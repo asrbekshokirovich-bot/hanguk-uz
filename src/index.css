@@ -1,0 +1,227 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Hanguk Consulting Design System
+   Primary: Deep Royal Blue (#1a3a6c) = HSL(216, 62%, 26%)
+   Accent: Vibrant Lime (#d4e94c) = HSL(68, 78%, 60%)
+   All colors in HSL format
+*/
+
+@layer base {
+  :root {
+    /* Hanguk Deep Royal Blue Theme - All values in HSL format without hsl() wrapper */
+    --background: 0 0% 100%;
+    --foreground: 216 70% 12%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 216 70% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 216 70% 12%;
+
+    /* Primary - Deep Royal Blue */
+    --primary: 216 62% 26%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary - Soft Blue Gray */
+    --secondary: 216 25% 95%;
+    --secondary-foreground: 216 62% 26%;
+
+    --muted: 216 20% 96%;
+    --muted-foreground: 216 20% 40%;
+
+    /* Accent - Vibrant Lime */
+    --accent: 68 78% 60%;
+    --accent-foreground: 216 70% 12%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Success - Lime Green */
+    --success: 68 78% 45%;
+    --success-foreground: 216 70% 12%;
+
+    /* Warning - Warm Gold */
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+
+    --border: 216 25% 88%;
+    --input: 216 25% 88%;
+    --ring: 68 78% 50%;
+
+    --radius: 0.75rem;
+
+    /* Chart colors */
+    --chart-1: 216 62% 26%;
+    --chart-2: 68 78% 60%;
+    --chart-3: 216 62% 45%;
+    --chart-4: 68 78% 75%;
+    --chart-5: 216 30% 60%;
+
+    /* Sidebar - Deep Navy */
+    --sidebar-background: 216 62% 20%;
+    --sidebar-foreground: 216 20% 90%;
+    --sidebar-primary: 0 0% 100%;
+    --sidebar-primary-foreground: 216 62% 26%;
+    --sidebar-accent: 68 78% 55%;
+    --sidebar-accent-foreground: 216 70% 10%;
+    --sidebar-border: 216 40% 28%;
+    --sidebar-ring: 68 78% 50%;
+
+    /* Safe area for mobile notches */
+    --safe-area-inset-top: env(safe-area-inset-top);
+    --safe-area-inset-bottom: env(safe-area-inset-bottom);
+    --safe-area-inset-left: env(safe-area-inset-left);
+    --safe-area-inset-right: env(safe-area-inset-right);
+  }
+
+  .dark {
+    /* OLED-optimized dark mode with true black */
+    --background: 0 0% 0%;
+    --foreground: 216 20% 95%;
+
+    --card: 216 52% 6%;
+    --card-foreground: 216 20% 95%;
+
+    --popover: 216 52% 6%;
+    --popover-foreground: 216 20% 95%;
+
+    --primary: 68 78% 55%;
+    --primary-foreground: 0 0% 0%;
+
+    --secondary: 216 30% 12%;
+    --secondary-foreground: 216 20% 95%;
+
+    --muted: 216 30% 12%;
+    --muted-foreground: 216 20% 60%;
+
+    --accent: 68 78% 50%;
+    --accent-foreground: 0 0% 0%;
+
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 68 78% 45%;
+    --success-foreground: 0 0% 0%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 0%;
+
+    --border: 216 30% 15%;
+    --input: 216 30% 15%;
+    --ring: 68 78% 55%;
+
+    /* Chart colors for dark mode */
+    --chart-1: 68 78% 55%;
+    --chart-2: 216 62% 55%;
+    --chart-3: 68 78% 70%;
+    --chart-4: 216 50% 70%;
+    --chart-5: 68 60% 45%;
+
+    --sidebar-background: 0 0% 0%;
+    --sidebar-foreground: 216 20% 90%;
+    --sidebar-primary: 68 78% 55%;
+    --sidebar-primary-foreground: 0 0% 0%;
+    --sidebar-accent: 216 30% 10%;
+    --sidebar-accent-foreground: 216 20% 95%;
+    --sidebar-border: 216 30% 12%;
+    --sidebar-ring: 68 78% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    /* Support for safe areas on mobile */
+    padding-top: var(--safe-area-inset-top);
+    padding-bottom: var(--safe-area-inset-bottom);
+    padding-left: var(--safe-area-inset-left);
+    padding-right: var(--safe-area-inset-right);
+  }
+
+  /* Touch-friendly tap targets */
+  button, a, [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Hide scrollbar but keep functionality */
+  .hide-scrollbar,
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .hide-scrollbar::-webkit-scrollbar,
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* PWA Standalone mode styles */
+@media all and (display-mode: standalone) {
+  body {
+    /* Extra padding for standalone PWA */
+    padding-top: calc(var(--safe-area-inset-top) + 0.5rem);
+  }
+}
+
+/* Animations */
+@layer utilities {
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.3s ease-out;
+  }
+
+  .animate-slide-down {
+    animation: slideDown 0.3s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes slideUp {
+    from { 
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to { 
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideDown {
+    from { 
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to { 
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Problem 7: GPS pulse animation in global CSS for Kakao CustomOverlay compatibility */
+  @keyframes gps-pulse {
+    0% { transform: scale(1); opacity: 0.6; }
+    50% { transform: scale(1.8); opacity: 0.2; }
+    100% { transform: scale(2.5); opacity: 0; }
+  }
+}

@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Hanguk Consulting</string>
+    <string name="title_activity_main">Hanguk Consulting</string>
+    <string name="package_name">com.hanguk.app</string>
+    <string name="custom_url_scheme">com.hanguk.app</string>
+</resources>
