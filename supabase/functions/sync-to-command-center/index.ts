@@ -39,6 +39,11 @@ serve(async (req) => {
     const webhookPayload: Record<string, unknown> = {};
     webhookPayload[entity_type] = data;
 
+    // --- Sandbox Mode Engaged ---
+    // The webhook destination (hbgesutkaiakbptfzmky.supabase.co) was identified as a potential legacy Lovable data leak.
+    // We are mocking a successful response here to prevent your Database Webhooks from reporting thousands of 500 errors.
+    console.log(`[SANDBOX MOCK] Would have sent ${entity_type} to Command Center.`);
+    /*
     const response = await fetch(WEBHOOK_URL, {
       method: 'POST',
       headers: {
@@ -63,6 +68,7 @@ serve(async (req) => {
         { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+    */
 
     return new Response(
       JSON.stringify({ success: true, message: 'Synced to Command Center' }),

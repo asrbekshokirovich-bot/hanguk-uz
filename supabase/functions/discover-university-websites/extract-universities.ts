@@ -1,7 +1,7 @@
 // ── Phase 1b: Extract universities from scraped content and insert into DB ──
 export async function extractAndInsertUniversities(
   allScrapedContent: string,
-  lovableApiKey: string,
+  geminiApiKey: string,
   supabase: any,
 ): Promise<{ imported: number; total: number }> {
   console.log('=== extractAndInsertUniversities ===');
@@ -40,10 +40,10 @@ Return a JSON array of objects. Return ONLY the JSON array, no other text.`;
 
   for (const chunk of chunks) {
     try {
-      const aiResp = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      const aiResp = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${lovableApiKey}`,
+          'Authorization': `Bearer ${geminiApiKey}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({

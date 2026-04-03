@@ -50,7 +50,7 @@ serve(async (req) => {
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
+    const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
@@ -90,7 +90,7 @@ serve(async (req) => {
       }
 
       // Calculate priority score and generate insights
-      const analysis = await analyzeLead(lead, notes || [], lovableApiKey);
+      const analysis = await analyzeLead(lead, notes || [], geminiApiKey);
 
       // Build update object conditionally - protect manually-set values
       // AI NEVER updates last_contacted_at — that field is staff-only (SmartContactDialog)
@@ -332,7 +332,7 @@ Provide a concise summary focusing on:
 
 Keep response under 100 words, in a professional CRM tone.`;
 
-  const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+  const response = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

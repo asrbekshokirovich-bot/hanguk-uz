@@ -39,7 +39,8 @@ import {
   Loader2,
   ImageIcon,
   File,
-  RefreshCw
+  RefreshCw,
+  Lightbulb
 } from 'lucide-react';
 import {
   Dialog,
@@ -68,6 +69,7 @@ import { EditStudentDialog } from './EditStudentDialog';
 import { DeleteStudentDialog } from './DeleteStudentDialog';
 import { AddPaymentDialog } from './AddPaymentDialog';
 import { AddApplicationDialog } from './AddApplicationDialog';
+import { SuggestUniversityDialog } from './SuggestUniversityDialog';
 import { TranslationWorkflow } from '@/components/translation/TranslationWorkflow';
 import { ClickToCall } from '@/components/calls/ClickToCall';
 
@@ -209,6 +211,8 @@ export function StudentDetail({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [addPaymentDialogOpen, setAddPaymentDialogOpen] = useState(false);
   const [addApplicationDialogOpen, setAddApplicationDialogOpen] = useState(false);
+  const [suggestUniversityDialogOpen, setSuggestUniversityDialogOpen] = useState(false);
+  const [existingSuggestedUniversityIds, setExistingSuggestedUniversityIds] = useState<string[]>([]);
 
   const [savingPaymentPlan, setSavingPaymentPlan] = useState(false);
   const [savingPaymentMode, setSavingPaymentMode] = useState(false);
@@ -281,7 +285,18 @@ export function StudentDetail({
     fetchPayments();
     fetchCalls();
     fetchDocuments();
+    fetchSuggestions();
   }, [student.user_id]);
+
+  const fetchSuggestions = async () => {
+    const { data } = await supabase
+      .from('student_suggestions')
+      .select('university_id')
+      .eq('student_id', student.user_id);
+    if (data) {
+      setExistingSuggestedUniversityIds(data.map(d => d.university_id));
+    }
+  };
 
   const fetchNotes = async () => {
     const { data } = await supabase
@@ -1046,10 +1061,16 @@ export function StudentDetail({
             <TabsContent value="applications" className="space-y-4 mt-6">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold">{t('navigation.applications')}</h3>
-                <Button size="sm" className="gap-2" onClick={() => setAddApplicationDialogOpen(true)}>
-                  <Plus className="h-4 w-4" />
-                  Add Application
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button size="sm" variant="outline" className="gap-2 text-blue-600 border-blue-400" onClick={() => setSuggestUniversityDialogOpen(true)}>
+                    <Lightbulb className="h-4 w-4" />
+                    Suggest University
+                  </Button>
+                  <Button size="sm" className="gap-2" onClick={() => setAddApplicationDialogOpen(true)}>
+                    <Plus className="h-4 w-4" />
+                    Add Application
+                  </Button>
+                </div>
               </div>
               {student.applications?.length === 0 ? (
                 <Card>
@@ -1704,6 +1725,17 @@ export function StudentDetail({
         existingApplicationUniversityIds={student.applications?.map((a) => a.university_id) || []}
         onSuccess={() => {
           setAddApplicationDialogOpen(false);
+          onRefresh();
+        }}
+      />
+      <SuggestUniversityDialog
+        open={suggestUniversityDialogOpen}
+        onOpenChange={setSuggestUniversityDialogOpen}
+        studentId={student.user_id}
+        existingSuggestedUniversityIds={existingSuggestedUniversityIds}
+        existingApplicationUniversityIds={student.applications?.map(a => a.university_id) || []}
+        onSuccess={() => {
+          fetchSuggestions();
           onRefresh();
         }}
       />

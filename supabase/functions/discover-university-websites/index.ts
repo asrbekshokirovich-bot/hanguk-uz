@@ -355,10 +355,10 @@ Deno.serve(async (req) => {
       );
     }
 
-    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
-    if (!lovableApiKey) {
+    const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
+    if (!geminiApiKey) {
       return new Response(
-        JSON.stringify({ success: false, error: 'LOVABLE_API_KEY not configured' }),
+        JSON.stringify({ success: false, error: 'GEMINI_API_KEY not configured' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       );
     }
@@ -495,7 +495,7 @@ Deno.serve(async (req) => {
             return;
           }
 
-          const discoveryResult = await extractAndInsertUniversities(allScrapedContent, lovableApiKey, supabase);
+          const discoveryResult = await extractAndInsertUniversities(allScrapedContent, geminiApiKey, supabase);
           console.log(`Phase 1b complete: imported ${discoveryResult.imported}, total ${discoveryResult.total}`);
 
           const { count: initialNeedWebsite } = await supabase

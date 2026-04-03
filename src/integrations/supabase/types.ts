@@ -3559,6 +3559,35 @@ export type Database = {
         }
         Relationships: []
       }
+      student_suggestions: {
+        Row: {
+          id: string
+          student_id: string
+          university_id: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          student_id: string
+          university_id: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          student_id?: string
+          university_id?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_suggestions_university_id_fkey"
+            columns: ["university_id"]
+            isOneToOne: false
+            referencedRelation: "universities"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
     }
     Views: {
       [_ in never]: never

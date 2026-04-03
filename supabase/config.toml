@@ -27,8 +27,7 @@ verify_jwt = false
 [functions.voip-webhook]
 verify_jwt = false
 
-[functions.get-mapbox-token]
-verify_jwt = false
+
 
 [functions.compare-universities]
 verify_jwt = false
@@ -48,8 +47,7 @@ verify_jwt = false
 [functions.elevenlabs-tts]
 verify_jwt = false
 
-[functions.simli-session]
-verify_jwt = false
+
 
 [functions.validate-document]
 verify_jwt = false

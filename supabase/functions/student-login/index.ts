@@ -65,7 +65,9 @@ Deno.serve(async (req) => {
       .select('role')
       .eq('user_id', profile.user_id);
 
-    if (userRoles && userRoles.length > 0) {
+    const isStaff = userRoles?.some(r => ['staff', 'admin', 'owner'].includes(r.role));
+
+    if (isStaff) {
       return new Response(
         JSON.stringify({ error: 'Staff members should use username/password login' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -90,12 +92,29 @@ Deno.serve(async (req) => {
     // This prevents creating a second auth user if profile.user_id was already updated
     if (!existingUser) {
       const deterministicEmail = `student-${profile.user_id}@hanguk.local`;
-      const { data: userList } = await supabaseAdmin.auth.admin.listUsers();
-      if (userList?.users) {
+      
+      // We must paginate listUsers because the default perPage is 50, meaning
+      // any orphaned students beyond the first 50 will be missed and crash createUser!
+      let page = 1;
+      let hasMore = true;
+      while (hasMore) {
+        const { data: userList } = await supabaseAdmin.auth.admin.listUsers({ page, perPage: 1000 });
+        
+        if (!userList?.users || userList.users.length === 0) {
+          break;
+        }
+
         const found = userList.users.find(u => u.email === deterministicEmail);
         if (found) {
           existingUser = found;
           console.log('Found existing auth user by email pattern:', deterministicEmail);
+          break;
+        }
+
+        if (userList.users.length < 1000) {
+          hasMore = false;
+        } else {
+          page++;
         }
       }
     }

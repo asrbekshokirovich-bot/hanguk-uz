@@ -6,7 +6,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
-const LOVABLE_AI_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
+const gemini_AI_URL = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
 
 // Uzbekistan regions and districts for handwriting disambiguation
 const UZBEKISTAN_REGIONS: Record<string, string[]> = {
@@ -375,10 +375,10 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
+    const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
 
-    if (!lovableApiKey) {
-      console.error('LOVABLE_API_KEY not configured');
+    if (!geminiApiKey) {
+      console.error('GEMINI_API_KEY not configured');
       return new Response(
         JSON.stringify({ error: 'AI service not configured' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -753,10 +753,10 @@ Follow the template format EXACTLY - same field labels, same order, same structu
 
     console.log('Sending to AI with', imageContents.length, 'images...');
 
-    const aiResponse = await fetch(LOVABLE_AI_URL, {
+    const aiResponse = await fetch(gemini_AI_URL, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${lovableApiKey}`,
+        'Authorization': `Bearer ${geminiApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({

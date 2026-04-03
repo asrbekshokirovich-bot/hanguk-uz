@@ -27,8 +27,8 @@ interface UniversitySearchResult {
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.4';
 
-async function doUniversitySearch(universityName: string, websiteUrl: string | undefined, firecrawlApiKey: string, lovableApiKey: string) {
-  const gatewayUrl = 'https://ai.gateway.lovable.dev/v1';
+async function doUniversitySearch(universityName: string, websiteUrl: string | undefined, firecrawlApiKey: string, geminiApiKey: string) {
+  const gatewayUrl = 'https://ai.gateway.gemini.dev/v1';
   
   let scrapedContent = '';
   let foundWebsite = websiteUrl || '';
@@ -241,7 +241,7 @@ Return as valid JSON object.`;
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${lovableApiKey}`,
+      'Authorization': `Bearer ${geminiApiKey}`,
     },
     body: JSON.stringify({
       model: 'google/gemini-2.5-flash',
@@ -378,10 +378,10 @@ Deno.serve(async (req) => {
       );
     }
 
-    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
-    if (!lovableApiKey) {
+    const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
+    if (!geminiApiKey) {
       return new Response(
-        JSON.stringify({ success: false, error: 'LOVABLE_API_KEY is not configured' }),
+        JSON.stringify({ success: false, error: 'GEMINI_API_KEY is not configured' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -396,7 +396,7 @@ Deno.serve(async (req) => {
 
       const searchPromise = (async () => {
         try {
-          const result = await doUniversitySearch(universityName, websiteUrl, firecrawlApiKey, lovableApiKey);
+          const result = await doUniversitySearch(universityName, websiteUrl, firecrawlApiKey, geminiApiKey);
           await supabaseAdmin.from('search_jobs').update({
             status: 'completed',
             result: result as any,
@@ -426,7 +426,7 @@ Deno.serve(async (req) => {
     }
 
     // Direct mode
-    const result = await doUniversitySearch(universityName, websiteUrl, firecrawlApiKey, lovableApiKey);
+    const result = await doUniversitySearch(universityName, websiteUrl, firecrawlApiKey, geminiApiKey);
     
     const status = result.success === false && result.error ? 
       (result.needsWebsite ? 200 : 500) : 200;

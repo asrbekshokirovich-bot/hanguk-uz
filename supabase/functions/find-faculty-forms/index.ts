@@ -178,7 +178,7 @@ async function expandFacultyTerms(
   const fallback = staticFallbackSynonyms[faculty.toLowerCase()];
 
   try {
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
@@ -933,7 +933,7 @@ Respond with ONLY a JSON object in this exact format:
   ]
 }`;
 
-  const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+  const response = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${apiKey}`,
@@ -1008,9 +1008,9 @@ function hashContent(markdown: string): string {
   return hash.toString();
 }
 
-async function doFacultySearch(request: FacultySearchRequest, firecrawlApiKey: string, lovableApiKey: string) {
+async function doFacultySearch(request: FacultySearchRequest, firecrawlApiKey: string, geminiApiKey: string) {
   // Step 0: Expand faculty terms using AI
-  const expandedTerms = await expandFacultyTerms(request.faculty, lovableApiKey);
+  const expandedTerms = await expandFacultyTerms(request.faculty, geminiApiKey);
   const expandedEnglish = expandedTerms.englishTerms.join(', ');
   const expandedKorean = expandedTerms.koreanTerms.join(', ');
   console.log(`Using expanded terms: EN=[${expandedEnglish}] KO=[${expandedKorean}]`);
@@ -1093,7 +1093,7 @@ async function doFacultySearch(request: FacultySearchRequest, firecrawlApiKey: s
 
   for (let i = 0; i < contentItems.length; i += batchSize) {
     const batch = contentItems.slice(i, i + batchSize);
-    const universities = await analyzeWithGemini(batch, request, lovableApiKey, expandedTerms);
+    const universities = await analyzeWithGemini(batch, request, geminiApiKey, expandedTerms);
     allUniversities.push(...universities);
   }
 
@@ -1313,7 +1313,7 @@ async function selfChainWithRetry(
 async function doComprehensiveFacultySearch(
   request: FacultySearchRequest,
   firecrawlApiKey: string,
-  lovableApiKey: string,
+  geminiApiKey: string,
   jobId: string,
   batchIndex: number = 0
 ) {
@@ -1328,7 +1328,7 @@ async function doComprehensiveFacultySearch(
   let universityIds: string[];
   
   if (batchIndex === 0) {
-    expandedTerms = await expandFacultyTerms(request.faculty, lovableApiKey);
+    expandedTerms = await expandFacultyTerms(request.faculty, geminiApiKey);
     
     // ISSUE 4 FIX: Fetch all universities ONCE on batch 0 and store IDs in progress
     const { data: allUniversities } = await supabase
@@ -1570,7 +1570,7 @@ async function doComprehensiveFacultySearch(
       }
 
       if (contentItems.length > 0) {
-        const universities = await analyzeWithGemini(contentItems.slice(0, 4), request, lovableApiKey, expandedTerms);
+        const universities = await analyzeWithGemini(contentItems.slice(0, 4), request, geminiApiKey, expandedTerms);
         if (universities.length > 0) {
           const validSourceUrls = new Set(contentItems.map(c => c.url));
           const validated = validateResults(universities, validSourceUrls, request.year);
@@ -1667,10 +1667,10 @@ Deno.serve(async (req) => {
       );
     }
 
-    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
-    if (!lovableApiKey) {
+    const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
+    if (!geminiApiKey) {
       return new Response(
-        JSON.stringify({ success: false, error: 'LOVABLE_API_KEY is not configured' }),
+        JSON.stringify({ success: false, error: 'GEMINI_API_KEY is not configured' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -1694,7 +1694,7 @@ Deno.serve(async (req) => {
     if (mode === 'comprehensive' && jobId) {
       const searchPromise = (async () => {
         try {
-          await doComprehensiveFacultySearch(request, firecrawlApiKey, lovableApiKey, jobId, batchIndex);
+          await doComprehensiveFacultySearch(request, firecrawlApiKey, geminiApiKey, jobId, batchIndex);
         } catch (err) {
           const errorMsg = err instanceof Error ? err.message : 'Unknown error';
           console.error(`Comprehensive search batch ${batchIndex} failed:`, errorMsg);
@@ -1730,7 +1730,7 @@ Deno.serve(async (req) => {
       // Use EdgeRuntime.waitUntil to continue processing after response
       const searchPromise = (async () => {
         try {
-          const result = await doFacultySearch(request, firecrawlApiKey, lovableApiKey);
+          const result = await doFacultySearch(request, firecrawlApiKey, geminiApiKey);
           await supabaseAdmin.from('search_jobs').update({
             status: 'completed',
             result: result as any,
@@ -1761,7 +1761,7 @@ Deno.serve(async (req) => {
     }
 
     // Direct mode (no jobId) - original behavior
-    const result = await doFacultySearch(request, firecrawlApiKey, lovableApiKey);
+    const result = await doFacultySearch(request, firecrawlApiKey, geminiApiKey);
 
     return new Response(
       JSON.stringify(result),

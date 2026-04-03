@@ -1,10 +1,9 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
+import { corsHeaders } from "../_shared/cors.ts";
+import { ApiError, handleError } from "../_shared/error-handler.ts";
+import { fetchWithRetry } from "../_shared/api-utils.ts";
+import { ipLimiter } from "../_shared/rate-limiter.ts";
 
 interface InterviewMessage {
   role: "interviewer" | "student";
@@ -65,12 +64,16 @@ serve(async (req) => {
   }
 
   try {
+    // Lightweight ip rate-limiting per isolate to stop interview scraping bots
+    const clientIp = req.headers.get("x-forwarded-for") || "unknown";
+    const allowed = await ipLimiter.checkLimit(clientIp, 60, 60 * 1000); 
+    if (!allowed) {
+      throw new ApiError(429, "Rate limit exceeded. Please try again later.");
+    }
+
     const authHeader = req.headers.get("authorization");
     if (!authHeader) {
-      return new Response(
-        JSON.stringify({ error: "Authorization required" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      throw new ApiError(401, "Authorization required");
     }
 
     const { sessionId, studentMessage, sessionType, targetUniversityId, language, focusTopic } = await req.json();
@@ -391,19 +394,17 @@ Current conversation length: ${conversationHistory.length} messages
 ${conversationHistory.length === 0 ? `START THE INTERVIEW NOW. Warmly greet the student in ${interviewLang} and ask them to introduce themselves briefly.` : ""}
 ${conversationHistory.length >= 8 ? "The interview is nearing end. Ask 1-2 more questions, then give a warm closing with brief suggestions for improvement." : ""}`;
 
-    // Call Lovable AI
-    const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
-    if (!lovableApiKey) {
-      return new Response(
-        JSON.stringify({ error: "AI service not configured" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    // Call gemini AI
+    const geminiApiKey = Deno.env.get("GEMINI_API_KEY");
+    if (!geminiApiKey) {
+      throw new ApiError(500, "AI service not configured");
     }
 
-    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    // Leveraging fetchWithRetry to gracefully handle Gemini 429 quota spikes behind the scenes
+    const aiResponse = await fetchWithRetry("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${lovableApiKey}`,
+        "Authorization": `Bearer ${geminiApiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
@@ -415,29 +416,19 @@ ${conversationHistory.length >= 8 ? "The interview is nearing end. Ask 1-2 more 
         ],
         max_tokens: 300,
       }),
-    });
+    }, 4); // Optional 4 retries for robustness
 
     if (!aiResponse.ok) {
       const errorText = await aiResponse.text();
-      console.error("AI error:", aiResponse.status, errorText);
+      console.error("AI error details:", aiResponse.status, errorText);
       
       if (aiResponse.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+        throw new ApiError(429, "Rate limit exceeded. Please try again in a moment.");
       }
       if (aiResponse.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "AI service temporarily unavailable." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+        throw new ApiError(402, "AI service temporarily unavailable.");
       }
-      
-      return new Response(
-        JSON.stringify({ error: "Failed to generate response" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      throw new ApiError(500, "Failed to generate response");
     }
 
     const aiData = await aiResponse.json();
@@ -461,10 +452,6 @@ ${conversationHistory.length >= 8 ? "The interview is nearing end. Ask 1-2 more 
     );
 
   } catch (error) {
-    console.error("Interview AI error:", error);
-    return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return handleError(error);
   }
 });
