@@ -48,7 +48,7 @@ export function useIntercomCaller() {
     }
 
     if (channelRef.current) {
-      channelRef.current.unsubscribe();
+      supabase.removeChannel(channelRef.current);
       channelRef.current = null;
     }
 
@@ -211,7 +211,7 @@ export function useIntercomCaller() {
                 });
 
                 // Allow some time for successful transmission before unsubscribing
-                setTimeout(() => calleeChannel.unsubscribe(), 2500);
+                setTimeout(() => supabase.removeChannel(calleeChannel), 2500);
               }
             });
 

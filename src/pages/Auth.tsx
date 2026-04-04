@@ -398,14 +398,14 @@ export default function Auth() {
                     type="text"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value.toUpperCase())}
-                    placeholder="YOUR FULL NAME"
+                    placeholder={t('auth.fullName')}
                     className="uppercase"
                     required
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="setup-username">Username</Label>
+                  <Label htmlFor="setup-username">{t('auth.username')}</Label>
                   <div className="relative">
                     <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
@@ -489,7 +489,7 @@ export default function Auth() {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="guest-email">Gmail / Email</Label>
+                        <Label htmlFor="guest-email">{t('auth.email')}</Label>
                         <div className="relative">
                           <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                           <Input
@@ -547,14 +547,14 @@ export default function Auth() {
                           type="text"
                           value={signUpFullName}
                           onChange={(e) => setSignUpFullName(e.target.value.toUpperCase())}
-                          placeholder="YOUR FULL NAME"
+                          placeholder={t('auth.fullName')}
                           className="uppercase"
                           required
                         />
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="signup-email">Gmail / Email</Label>
+                        <Label htmlFor="signup-email">{t('auth.email')}</Label>
                         <Input
                           id="signup-email"
                           type="email"
@@ -681,7 +681,7 @@ export default function Auth() {
                 <TabsContent value="staff">
                   <form onSubmit={handleLogin} className="space-y-4 mt-4">
                     <div className="space-y-2">
-                      <Label htmlFor="login-username">Username</Label>
+                      <Label htmlFor="login-username">{t('auth.username')}</Label>
                       <div className="relative">
                         <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input

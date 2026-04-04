@@ -147,7 +147,7 @@ export function useStaffPresence() {
     return () => {
       clearInterval(heartbeatInterval);
       clearInterval(refreshInterval);
-      channel.unsubscribe();
+      supabase.removeChannel(channel);
       window.removeEventListener('beforeunload', handleUnload);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       updatePresence('offline');

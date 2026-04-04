@@ -137,7 +137,7 @@ export function SidebarStaffPanel() {
               {connectionError
                 ? connectionError
                 : isConnected
-                ? `Ovozli aloqa (${onlineCount} online)`
+                ? `${t('navigation.voiceChat')} (${onlineCount} online)`
                 : isAutoConnecting
                 ? 'Ulanmoqda...'
                 : 'Bosib gaplashing (ulanish uchun bosing)'}
@@ -229,7 +229,7 @@ export function SidebarStaffPanel() {
               ? `Online (${onlineCount})`
               : isAutoConnecting
               ? 'Ulanmoqda...'
-              : 'Ovozli aloqa'}
+              : t('navigation.voiceChat')}
           </span>
         </div>
         <span

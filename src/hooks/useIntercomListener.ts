@@ -52,7 +52,7 @@ export function useIntercomListener() {
     }
 
     if (channelRef.current) {
-      channelRef.current.unsubscribe();
+      supabase.removeChannel(channelRef.current);
       channelRef.current = null;
     }
 
@@ -307,7 +307,7 @@ export function useIntercomListener() {
       });
 
     return () => {
-      personalChannel.unsubscribe();
+      supabase.removeChannel(personalChannel);
       cleanup();
     };
   }, [user, handleIncomingCall, cleanup, callState.isActive, callState.callId]);

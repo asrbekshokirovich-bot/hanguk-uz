@@ -893,12 +893,12 @@ export function StudentDetail({
           {/* Tabs */}
           <Tabs defaultValue="profile" className="w-full">
             <TabsList className="w-full justify-start overflow-x-auto flex-nowrap">
-              <TabsTrigger value="profile">Profile</TabsTrigger>
-              <TabsTrigger value="status">Status</TabsTrigger>
+              <TabsTrigger value="profile">{t('navigation.profile')}</TabsTrigger>
+              <TabsTrigger value="status">{t('student.applicationStatus')}</TabsTrigger>
               <TabsTrigger value="applications">{t('navigation.applications')}</TabsTrigger>
               <TabsTrigger value="payments">{t('navigation.payments')}</TabsTrigger>
               <TabsTrigger value="notes">{t('common.notes')}</TabsTrigger>
-              <TabsTrigger value="calls">Calls</TabsTrigger>
+              <TabsTrigger value="calls">{t('common.phone')}</TabsTrigger>
               <TabsTrigger value="documents">{t('navigation.documents')}</TabsTrigger>
               <TabsTrigger value="translation" className="gap-1">
                 <Languages className="h-3 w-3" />
@@ -915,7 +915,7 @@ export function StudentDetail({
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label className="text-muted-foreground">Full Name</Label>
+                    <Label className="text-muted-foreground">{t('auth.fullName')}</Label>
                     <div className="flex items-center gap-2 bg-muted/50 rounded-lg p-3">
                       <span className="text-foreground">{student.full_name || '-'}</span>
                     </div>
@@ -957,7 +957,7 @@ export function StudentDetail({
                 {/* Magic Code / Access Code */}
                 {(student as any).magic_code && (
                   <div className="space-y-2">
-                    <Label className="text-muted-foreground">Access Code</Label>
+                    <Label className="text-muted-foreground">{t('auth.accessCode')}</Label>
                     <div className="flex items-center justify-between bg-primary/5 border border-primary/20 rounded-lg p-3">
                       <div className="flex items-center gap-2">
                         <KeyRound className="h-4 w-4 text-primary" />
@@ -1010,7 +1010,7 @@ export function StudentDetail({
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-muted-foreground">Payment Mode</Label>
+                    <Label className="text-muted-foreground">{t('student.paymentMode') || 'Payment Mode'}</Label>
                     <Select value={currentPaymentMode} onValueChange={handlePaymentModeChange}>
                       <SelectTrigger className="bg-muted/50">
                         <SelectValue placeholder="Select payment mode" />
