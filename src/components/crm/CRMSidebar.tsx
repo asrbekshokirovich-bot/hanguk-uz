@@ -100,7 +100,7 @@ export function CRMSidebar({
       items: [
         { title: t('navigation.messages'), url: '/crm/messages', icon: MessageSquare, visible: true },
         { title: t('common.phone'), url: '/crm/calls', icon: Phone, visible: true },
-        { title: lang === 'uz' ? 'Jonli Qo\'ng\'iroq' : 'Live Call', url: '/crm/communication', icon: Radio, visible: true, highlight: true },
+        { title: lang === 'uz' ? 'Jonli Qo\'ng\'iroq' : 'Live Call', url: '/crm/communication', icon: Radio, visible: false, highlight: true },
         { title: 'Leads', url: '/crm/leads', icon: UserPlus, visible: true, highlight: true },
       ],
     },
@@ -255,7 +255,7 @@ export function useSidebarGroups(
       items: [
         { title: t('navigation.messages'), url: '/crm/messages', icon: MessageSquare, visible: true },
         { title: t('common.phone'), url: '/crm/calls', icon: Phone, visible: true },
-        { title: lang === 'uz' ? 'Jonli Qo\'ng\'iroq' : 'Live Call', url: '/crm/communication', icon: Radio, visible: true, highlight: true },
+        { title: lang === 'uz' ? 'Jonli Qo\'ng\'iroq' : 'Live Call', url: '/crm/communication', icon: Radio, visible: false, highlight: true },
         { title: 'Leads', url: '/crm/leads', icon: UserPlus, visible: true, highlight: true },
       ],
     },
