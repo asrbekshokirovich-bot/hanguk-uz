@@ -3,6 +3,7 @@ import { Mic, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useStaffManagement } from '@/hooks/useStaffManagement';
 import { useStaffPresence } from '@/hooks/useStaffPresence';
+import { useTranslation } from 'react-i18next';
 import { useVoiceChannelContext } from './VoiceChannelProvider';
 import { useAuth } from '@/contexts/AuthContext';
 import { PushToTalkStaffCard } from './PushToTalkStaffCard';
@@ -19,6 +20,7 @@ import { toast } from 'sonner';
 export function SidebarStaffPanel() {
   const { state } = useSidebar();
   const collapsed = state === 'collapsed';
+  const { t } = useTranslation();
   const { staff, loading } = useStaffManagement();
   const { isUserOnline, getUserStatus } = useStaffPresence();
   const { user } = useAuth();

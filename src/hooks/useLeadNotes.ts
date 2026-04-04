@@ -41,8 +41,9 @@ export const useLeadNotes = (leadId: string | null) => {
   useEffect(() => {
     if (!leadId) return;
 
+    const channelId = `lead-notes-${leadId}-${Math.random().toString(36).substring(7)}`;
     const channel = supabase
-      .channel(`lead-notes-${leadId}`)
+      .channel(channelId)
       .on(
         'postgres_changes',
         {

@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useStudentData } from '@/hooks/useStudentData';
+import { StudentDataProvider } from '@/contexts/StudentDataContext';
 import { useStudentPlan } from '@/hooks/useStudentPlan';
 import { usePlatform } from '@/hooks/usePlatform';
 import { ApplicationTracker } from '@/components/student/ApplicationTracker';
@@ -146,129 +147,131 @@ export default function StudentPortal() {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 p-4 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-4">
-        <div className="max-w-6xl mx-auto">
-          {/* Welcome Section */}
-          <div className="mb-6">
-            <div className="flex items-center gap-3 flex-wrap">
-              <h1 className="text-2xl font-bold text-primary">
-                {t('common.welcome')}, {user.user_metadata?.full_name || user.email}
-              </h1>
-              {planLabel && (
-                <Badge
-                  variant={isVIP ? "default" : "secondary"}
-                  className={cn(
-                    "gap-1",
-                    isNoRisk && "bg-gradient-to-r from-yellow-500 to-amber-500 text-white border-0",
-                    isPremium && "bg-gradient-to-r from-purple-500 to-indigo-500 text-white border-0",
-                    isStandart && "bg-primary text-primary-foreground border-0",
-                    isFree && "bg-muted text-muted-foreground border-0"
-                  )}
-                >
-                  {isVIP && <Crown className="h-3 w-3" />}
-                  {planLabel}
-                </Badge>
-              )}
+      <StudentDataProvider>
+        <main className="flex-1 p-4 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-4">
+          <div className="max-w-6xl mx-auto">
+            {/* Welcome Section */}
+            <div className="mb-6">
+              <div className="flex items-center gap-3 flex-wrap">
+                <h1 className="text-2xl font-bold text-primary">
+                  {t('common.welcome')}, {user.user_metadata?.full_name || user.email}
+                </h1>
+                {planLabel && (
+                  <Badge
+                    variant={isVIP ? "default" : "secondary"}
+                    className={cn(
+                      "gap-1",
+                      isNoRisk && "bg-gradient-to-r from-yellow-500 to-amber-500 text-white border-0",
+                      isPremium && "bg-gradient-to-r from-purple-500 to-indigo-500 text-white border-0",
+                      isStandart && "bg-primary text-primary-foreground border-0",
+                      isFree && "bg-muted text-muted-foreground border-0"
+                    )}
+                  >
+                    {isVIP && <Crown className="h-3 w-3" />}
+                    {planLabel}
+                  </Badge>
+                )}
+              </div>
+              <p className="text-muted-foreground">{t('student.applicationStatus')}</p>
             </div>
-            <p className="text-muted-foreground">{t('student.applicationStatus')}</p>
-          </div>
 
-          {/* Student Insights Panel */}
-          <div className="mb-6">
-            <StudentInsightsPanel onOpenChat={() => setIsChatOpen(true)} />
-          </div>
+            {/* Student Insights Panel */}
+            <div className="mb-6">
+              <StudentInsightsPanel onOpenChat={() => setIsChatOpen(true)} />
+            </div>
 
-          {/* Desktop Tabs */}
-          <div className="hidden md:block">
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="w-full justify-start mb-6">
-                <TabsTrigger value="applications" className="flex items-center gap-2">
-                  <GraduationCap className="h-4 w-4" />
-                  {t('student.myUniversities', 'Mening universitetlarim')}
-                </TabsTrigger>
-                <TabsTrigger value="map" className="flex items-center gap-2">
-                  <MapPin className="h-4 w-4" />
-                  {t('student.exploreMap')}
-                </TabsTrigger>
-                <TabsTrigger value="finder" className="flex items-center gap-2">
-                  <Search className="h-4 w-4" />
-                  {t('finder.findPrograms', 'Find Programs')}
-                </TabsTrigger>
-                <TabsTrigger value="documents" className="flex items-center gap-2">
-                  <FileText className="h-4 w-4" />
-                  {t('navigation.documents')}
-                </TabsTrigger>
-                <TabsTrigger
-                  value="interview"
-                  className={cn(
-                    "flex items-center gap-2",
-                    !isVIP && "opacity-70"
-                  )}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    navigate('/interview-practice');
-                  }}
-                >
-                  <Video className="h-4 w-4" />
-                  {t('interview.practice', 'Interview Practice')}
-                  {!isVIP && <Lock className="h-3 w-3 ml-1 text-muted-foreground" />}
-                </TabsTrigger>
-                <TabsTrigger
-                  value="studyplan"
-                  className={cn(
-                    "flex items-center gap-2",
-                    !isVIP && "opacity-70"
-                  )}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    navigate('/study-plan-trainer');
-                  }}
-                >
-                  <PenTool className="h-4 w-4" />
-                  {t('study.planTrainer', 'Study Plan Trainer')}
-                  {!isVIP && <Lock className="h-3 w-3 ml-1 text-muted-foreground" />}
-                </TabsTrigger>
-              </TabsList>
+            {/* Desktop Tabs */}
+            <div className="hidden md:block">
+              <Tabs value={activeTab} onValueChange={setActiveTab}>
+                <TabsList className="w-full justify-start mb-6">
+                  <TabsTrigger value="applications" className="flex items-center gap-2">
+                    <GraduationCap className="h-4 w-4" />
+                    {t('student.myUniversities', 'Mening universitetlarim')}
+                  </TabsTrigger>
+                  <TabsTrigger value="map" className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4" />
+                    {t('student.exploreMap')}
+                  </TabsTrigger>
+                  <TabsTrigger value="finder" className="flex items-center gap-2">
+                    <Search className="h-4 w-4" />
+                    {t('finder.findPrograms', 'Find Programs')}
+                  </TabsTrigger>
+                  <TabsTrigger value="documents" className="flex items-center gap-2">
+                    <FileText className="h-4 w-4" />
+                    {t('navigation.documents')}
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="interview"
+                    className={cn(
+                      "flex items-center gap-2",
+                      !isVIP && "opacity-70"
+                    )}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      navigate('/interview-practice');
+                    }}
+                  >
+                    <Video className="h-4 w-4" />
+                    {t('interview.practice', 'Interview Practice')}
+                    {!isVIP && <Lock className="h-3 w-3 ml-1 text-muted-foreground" />}
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="studyplan"
+                    className={cn(
+                      "flex items-center gap-2",
+                      !isVIP && "opacity-70"
+                    )}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      navigate('/study-plan-trainer');
+                    }}
+                  >
+                    <PenTool className="h-4 w-4" />
+                    {t('study.planTrainer', 'Study Plan Trainer')}
+                    {!isVIP && <Lock className="h-3 w-3 ml-1 text-muted-foreground" />}
+                  </TabsTrigger>
+                </TabsList>
 
-              <TabsContent value="applications">
-                <SuggestedUniversities suggestions={suggestions} onRefresh={refetchSuggestions} onShowOnMap={handleShowOnMap} />
-                <ApplicationTracker applications={applications} loading={loading} onShowOnMap={handleShowOnMap} />
-              </TabsContent>
-              <TabsContent value="map">
+                <TabsContent value="applications">
+                  <SuggestedUniversities suggestions={suggestions} onRefresh={refetchSuggestions} onShowOnMap={handleShowOnMap} />
+                  <ApplicationTracker applications={applications} loading={loading} onShowOnMap={handleShowOnMap} />
+                </TabsContent>
+                <TabsContent value="map">
+                  <UniversityMapKakao universities={universities} focusUniversityId={focusUniversityId} />
+                </TabsContent>
+                <TabsContent value="finder">
+                  <ProgramFinder />
+                </TabsContent>
+                <TabsContent value="documents">
+                  <DocumentUpload
+                    documents={documents}
+                    onUploadComplete={refetchDocuments}
+                  />
+                </TabsContent>
+              </Tabs>
+            </div>
+
+            {/* Mobile Content */}
+            <div className="md:hidden">
+              {activeTab === 'applications' && (
+                <>
+                  <SuggestedUniversities suggestions={suggestions} onRefresh={refetchSuggestions} onShowOnMap={handleShowOnMap} />
+                  <ApplicationTracker applications={applications} loading={loading} onShowOnMap={handleShowOnMap} />
+                </>
+              )}
+              {activeTab === 'map' && (
                 <UniversityMapKakao universities={universities} focusUniversityId={focusUniversityId} />
-              </TabsContent>
-              <TabsContent value="finder">
-                <ProgramFinder />
-              </TabsContent>
-              <TabsContent value="documents">
+              )}
+              {activeTab === 'documents' && (
                 <DocumentUpload
                   documents={documents}
                   onUploadComplete={refetchDocuments}
                 />
-              </TabsContent>
-            </Tabs>
+              )}
+            </div>
           </div>
-
-          {/* Mobile Content */}
-          <div className="md:hidden">
-            {activeTab === 'applications' && (
-              <>
-                <SuggestedUniversities suggestions={suggestions} onRefresh={refetchSuggestions} onShowOnMap={handleShowOnMap} />
-                <ApplicationTracker applications={applications} loading={loading} onShowOnMap={handleShowOnMap} />
-              </>
-            )}
-            {activeTab === 'map' && (
-              <UniversityMapKakao universities={universities} focusUniversityId={focusUniversityId} />
-            )}
-            {activeTab === 'documents' && (
-              <DocumentUpload
-                documents={documents}
-                onUploadComplete={refetchDocuments}
-              />
-            )}
-          </div>
-        </div>
-      </main>
+        </main>
+      </StudentDataProvider>
 
       {/* Bottom Navigation for Mobile - Native iOS/Android Tab Bar Style */}
       <nav className="fixed bottom-0 left-0 right-0 bg-background border-t border-border md:hidden z-40 pb-[env(safe-area-inset-bottom)]">

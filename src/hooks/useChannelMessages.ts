@@ -68,8 +68,9 @@ export function useChannelMessages(channelId: string | null) {
   useEffect(() => {
     if (!channelId) return;
 
+    const uniqueChannelId = `channel_messages_${channelId}_${Math.random().toString(36).substring(7)}`;
     const channel = supabase
-      .channel(`channel_messages_${channelId}`)
+      .channel(uniqueChannelId)
       .on(
         'postgres_changes',
         {

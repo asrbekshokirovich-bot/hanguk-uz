@@ -56,8 +56,9 @@ export function useUniversityAnnouncements(roomId: string | null) {
     fetchAnnouncements();
 
     // Subscribe to realtime
+    const channelId = `announcements-${roomId}-${Math.random().toString(36).substring(7)}`;
     const channel = supabase
-      .channel(`announcements-${roomId}`)
+      .channel(channelId)
       .on('postgres_changes', {
         event: '*',
         schema: 'public',

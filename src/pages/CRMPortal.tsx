@@ -17,6 +17,9 @@ import { HangukAIChat } from '@/components/ai/HangukAIChat';
 import { IntercomProvider } from '@/components/intercom/IntercomProvider';
 import { VoiceChannelProvider } from '@/components/intercom/VoiceChannelProvider';
 import { VoiceChannelHeader } from '@/components/intercom/VoiceChannelHeader';
+import { LeadsProvider } from '@/contexts/LeadsContext';
+import { CallsProvider } from '@/contexts/CallsContext';
+import { MessagesProvider } from '@/contexts/MessagesContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
@@ -447,9 +450,15 @@ export default function CRMPortal() {
               </header>
 
               {/* Main Content */}
-              <main className="flex-1 p-4 pb-safe overflow-auto">
-                <div className="max-w-7xl mx-auto space-y-6">{renderContent()}</div>
-              </main>
+              <LeadsProvider>
+                <CallsProvider>
+                  <MessagesProvider>
+                    <main className="flex-1 p-4 pb-safe overflow-auto">
+                      <div className="max-w-7xl mx-auto space-y-6">{renderContent()}</div>
+                    </main>
+                  </MessagesProvider>
+                </CallsProvider>
+              </LeadsProvider>
             </div>
 
             {/* Hanguk AI Chat */}
