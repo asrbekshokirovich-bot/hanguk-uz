@@ -353,7 +353,7 @@ const LeadsContent = () => {
               <SelectItem value="new">New</SelectItem>
               <SelectItem value="contacted">Contacted</SelectItem>
               <SelectItem value="qualified">Qualified</SelectItem>
-              <SelectItem value="contracted">Shartnomali</SelectItem>
+              <SelectItem value="contracted">{t('student.contracted')}</SelectItem>
               <SelectItem value="converted">Converted</SelectItem>
               <SelectItem value="lost">Lost</SelectItem>
             </SelectContent>

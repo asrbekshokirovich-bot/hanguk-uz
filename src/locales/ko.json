@@ -170,7 +170,10 @@
     "noPanoramaAtPosition": "이 위치에서 파노라마를 사용할 수 없습니다",
     "panoramaNavigationFailed": "다음 파노라마를 불러오지 못했습니다",
     "openStreetMapFallback": "OpenStreetMap (카카오 사용 불가)",
-    "paymentMode": "결제 방식"
+    "paymentMode": "결제 방식",
+    "contracted": "계약됨",
+    "noContract": "계약 없음",
+    "newContracts": "새 계약"
   },
   "crm": {
     "title": "관리 시스템",

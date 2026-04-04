@@ -171,7 +171,10 @@
     "noPanoramaAtPosition": "Bu joyda panorama mavjud emas",
     "panoramaNavigationFailed": "Keyingi panoramani yuklash amalga oshmadi",
     "openStreetMapFallback": "OpenStreetMap (Kakao mavjud emas)",
-    "paymentMode": "To'lov turi"
+    "paymentMode": "To'lov turi",
+    "contracted": "Shartnomali",
+    "noContract": "Shartnoma yo'q",
+    "newContracts": "Yangi shartnomalar"
   },
   "crm": {
     "title": "Boshqaruv tizimi",

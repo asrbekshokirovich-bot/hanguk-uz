@@ -117,7 +117,7 @@ export function StudentCard({ student, onSelect, currentLang }: StudentCardProps
               return (
                 <Badge className={`gap-1 ${planStyles[plan] || planStyles.free}`}>
                   <ScrollText className="h-3 w-3" />
-                  Shartnomali{planLabels[plan] ? ` · ${planLabels[plan]}` : ''}
+                  {t('student.contracted')} {planLabels[plan] ? ` · ${planLabels[plan]}` : ''}
                 </Badge>
               );
             })()}

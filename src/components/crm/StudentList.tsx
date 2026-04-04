@@ -225,7 +225,7 @@ export function StudentList({
           <div className="flex items-center gap-2 mb-3">
             <FileText className="h-5 w-5 text-amber-600" />
             <h3 className="font-semibold text-amber-600">
-              Yangi shartnomalar ({readyToContractLeads.length})
+              {t('student.newContracts')} ({readyToContractLeads.length})
             </h3>
           </div>
           <div className="space-y-2">
@@ -402,8 +402,8 @@ export function StudentList({
                     </SelectTrigger>
                     <SelectContent className="bg-background z-[100]">
                       <SelectItem value="all">{t('common.all')}</SelectItem>
-                      <SelectItem value="has_contract">Shartnomali</SelectItem>
-                      <SelectItem value="no_contract">Shartnoma yo'q</SelectItem>
+                      <SelectItem value="has_contract">{t('student.contracted')}</SelectItem>
+                      <SelectItem value="no_contract">{t('student.noContract')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -531,9 +531,7 @@ export function StudentList({
                       <div className="flex items-center gap-1 shrink-0">
                         {student.contract_date && (
                           <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 gap-1">
-                            <ScrollText className="h-3 w-3" />
-                            Shartnomali
-                          </Badge>
+                            <ScrollText className="h-3 w-3" />{t('student.contracted')}</Badge>
                         )}
                         {(student as any).is_gks_applicant && (
                           <Badge variant="secondary" className="bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 gap-1">
@@ -602,9 +600,7 @@ export function StudentList({
                           </h3>
                           {student.contract_date && (
                             <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 gap-1">
-                              <ScrollText className="h-3 w-3" />
-                              Shartnomali
-                            </Badge>
+                              <ScrollText className="h-3 w-3" />{t('student.contracted')}</Badge>
                           )}
                           {(student as any).is_gks_applicant && (
                             <Badge variant="secondary" className="bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 gap-1">
