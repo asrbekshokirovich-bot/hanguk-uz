@@ -1,0 +1,5 @@
+Total Suggestions: 4
+Student: c270d0f8-f539-47e0-bf9e-443e92a56160 | Uni: Gwangju National University of Education | Uni ID: ef499087-cb2f-41ab-bfbf-2e74ebe7a8c3
+Student: c270d0f8-f539-47e0-bf9e-443e92a56160 | Uni: Seoul National University of Science and Technology | Uni ID: 58f498d6-df70-4bbe-86bc-9d3b2f177dfc
+Student: c270d0f8-f539-47e0-bf9e-443e92a56160 | Uni: Kongju National University | Uni ID: c1c3597e-e2eb-4602-898a-7bc8782f65b0
+Student: c270d0f8-f539-47e0-bf9e-443e92a56160 | Uni: Kangwon National University | Uni ID: d4c75cc1-dcdf-4e3d-8c04-3f69649097e7

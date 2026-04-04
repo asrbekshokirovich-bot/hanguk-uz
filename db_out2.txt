@@ -1,0 +1,127 @@
+ID: ef499087-cb2f-41ab-bfbf-2e74ebe7a8c3 | EN: Gwangju National University of Education | UZ: Gwangju National University of Education
+ID: 58f498d6-df70-4bbe-86bc-9d3b2f177dfc | EN: Seoul National University of Science and Technology | UZ: Seoul National University of Science and Technology
+ID: c5af3fc8-4bec-4117-8b7e-190e126dbb10 | EN: Chonnam National University | UZ: Chonnam National University
+ID: 3d8a44dc-f0c0-41d1-810f-807a1491ecd6 | EN: Ulsan National Institute of Science and Technology | UZ: Ulsan National Institute of Science and Technology
+ID: 5b015c0b-8720-48f7-8600-d39e50616bfe | EN: Seoul National University | UZ: Seoul Milliy Universiteti
+ID: 19432c01-b7a3-44f4-8f2e-0b6f6bdc86e1 | EN: Seoul National University of Technology | UZ: Seoul National University of Technology
+ID: 068ac111-5834-47e4-aadb-dca4ee893688 | EN: Transnational Law and Business University | UZ: Transnational Law and Business University
+ID: 2660e9a0-c43c-4d11-b8da-1700e0e1a430 | EN: Jeju National University of Education | UZ: Jeju National University of Education
+ID: ef232c7a-d186-4102-974d-0b19c46148db | EN: Hanbat National University | UZ: Hanbat National University
+ID: 3d610901-4e73-48e7-96cc-0b83992fd3a4 | EN: Cheju National University of Education | UZ: Cheju National University of Education
+ID: 54cad263-4fce-4f54-80ec-45bf23249b11 | EN: Andong National University | UZ: Andong National University
+ID: ce1b1977-6491-4efc-a29b-7843ac4709b0 | EN: Ulsan National Institute of Science and Technology | UZ: Ulsan National Institute of Science and Technology
+ID: b2f3aec7-3dfc-4999-8354-3bde499a198f | EN: Andong National University | UZ: Andong National University
+ID: b5cc03df-c859-4d18-8cc4-46d82b632c7a | EN: Gyeongsang National University | UZ: Gyeongsang National University
+ID: 21dd5b1f-7779-4524-a713-804e7aa8454b | EN: Chungbuk National University | UZ: Chungbuk National University
+ID: 4411f09d-a70f-420c-99a3-5a5caf22fc69 | EN: Busan National University of Education | UZ: Busan National University of Education
+ID: 4531ce38-3823-4d03-ade0-f465f414c7fb | EN: Korea National Open University | UZ: Korea National Open University
+ID: 07bddbb5-b480-49b9-9376-921c864edef1 | EN: Cheongju National University of Education | UZ: Cheongju National University of Education
+ID: 468da868-f9eb-47ce-9bc0-61fa9d8908f8 | EN: Changwon National University | UZ: Changwon National University
+ID: 13c56644-301a-43a0-88c1-72d96e087e3f | EN: Gongju National University of Education | UZ: Gongju National University of Education
+ID: 3a1e4517-ad8f-42eb-9873-4ea239ab3e13 | EN: Kongju National University of Education | UZ: Kongju National University of Education
+ID: dde739a7-00e0-4fe8-a59d-aeda98b51d31 | EN: Jeonju National University of Education | UZ: Jeonju National University of Education
+ID: df4e804e-4ee6-490e-9940-c9482f3e11b7 | EN: Chuncheon National University of Education | UZ: Chuncheon National University of Education
+ID: 97443cbc-225e-4dff-8583-0c67d85e9e1c | EN: Chinju National University of Education | UZ: Chinju National University of Education
+ID: 5e1d73fa-e688-4e75-8965-86d9f818f5fc | EN: Chungnam National University | UZ: Chungnam National University
+ID: 6529cecb-4731-469e-a87f-3ad1fbfb2c1b | EN: Kyungpook National University | UZ: Kyungpook National University
+ID: dc4f8671-a21d-43c1-b790-e40931de423a | EN: Chungju National University | UZ: Chungju National University
+ID: e260fd09-34d1-4c87-90d8-202e5dba2664 | EN: Daegu National University of Education | UZ: Daegu National University of Education
+ID: 77ae20c6-ad23-4a41-8939-96efbff76bad | EN: Korea National University of Education | UZ: Korea National University of Education
+ID: 73d241a1-312b-4186-89f5-beed73147fe2 | EN: Gyeongin National University of Education | UZ: Gyeongin National University of Education
+ID: 9b49e1a8-4af3-44d1-baed-f764d9d8c4b7 | EN: Chuncheon National University of Education | UZ: Chuncheon National University of Education
+ID: 91f03dbd-1a1f-4856-acd0-4e8b37077712 | EN: Inchon National University of Education | UZ: Inchon National University of Education
+ID: d4c75cc1-dcdf-4e3d-8c04-3f69649097e7 | EN: Kangwon National University | UZ: Kangwon National University
+ID: 932ad411-488e-4c2b-987d-ef0734d1a296 | EN: Gangneung-Wonju National University | UZ: Gangneung-Wonju National University
+ID: 02831be6-e79b-4653-a610-117b9fa5d504 | EN: Miryang National University | UZ: Miryang National University
+ID: 01e3b955-c1b7-49b3-8887-e974f9651b52 | EN: Gongju National University of Education | UZ: Gongju National University of Education
+ID: c2c84d2b-6a29-4ee6-abe0-2a1413a80fe0 | EN: Gwangju National University of Education | UZ: Gwangju National University of Education
+ID: cc456c7b-5dd3-401b-a41e-04705f8d9686 | EN: Gyeongin National University of Education | UZ: Gyeongin National University of Education
+ID: c60ad1c6-bd73-4d28-86ee-79134a83fdde | EN: Gyeongnam National University of Science and Technology | UZ: Gyeongnam National University of Science and Technology
+ID: 16ce63aa-2163-4243-8526-1762b00db62f | EN: Samcheok National University | UZ: Samcheok National University
+ID: 7f43935e-f50e-4e8d-84b4-6fec6f2c0fb3 | EN: Daegu National University of Education | UZ: Daegu National University of Education
+ID: 1b5ecf74-8348-4535-85be-ebc8ce502192 | EN: Sangju National University | UZ: Sangju National University
+ID: ba67b4ab-d7d4-47d8-ae26-8b5fa37e6e9e | EN: Chunchon National University of Education | UZ: Chunchon National University of Education
+ID: cfd193dc-0273-498f-ad01-cccfa85844f9 | EN: Hankyong National University | UZ: Hankyong National University
+ID: b5986579-6bd3-4598-859e-cb88b13d4e32 | EN: Korean National Police University | UZ: Korean National Police University
+ID: 3a7d1198-f630-4e07-a079-a5866597b98e | EN: Incheon National University | UZ: Incheon National University
+ID: 7432c3d4-5848-4d87-ab45-ab8559884775 | EN: Iksan National College | UZ: Iksan National College
+ID: b14679ce-a363-4f7a-b317-4d2af6746715 | EN: International University of Korea | UZ: International University of Korea
+ID: 4240d6ae-6ed5-454d-a47d-8ae646a1644d | EN: Jeju International University | UZ: Jeju International University
+ID: a3bcd351-cf8d-4c4b-a305-3355df73aa1c | EN: Jeju National University | UZ: Jeju National University
+ID: 0c8f890e-4a8c-4ec1-99c0-56d29683fbf2 | EN: Jeonju National University of Education | UZ: Jeonju National University of Education
+ID: ed344fd0-9619-4470-be8a-862488033971 | EN: Busan National University of Education | UZ: Busan National University of Education
+ID: 0acb35f1-53c1-4b52-86a6-c2a246e9831e | EN: Chungnam National University | UZ: Chungnam National University
+ID: 631b4a1b-98a5-48bd-a184-b60c36cb9ea2 | EN: Korean National University of Cultural Heritage | UZ: Korean National University of Cultural Heritage
+ID: 38c1ad7b-a18f-42b7-8362-6b555f710e4b | EN: Cheongju National University of Education | UZ: Cheongju National University of Education
+ID: 6c4e6e7f-eabe-495e-9ed8-73b0caa90f51 | EN: Jinju National University | UZ: Jinju National University
+ID: bb02a4fe-ccb6-40ad-904e-c75ad36f1de9 | EN: Kangwon National University | UZ: Kangwon National University
+ID: b0e4017a-bed2-4135-a94f-c259378a125d | EN: Korea National Defense University | UZ: Korea National Defense University
+ID: 0ac8c3fe-b3e1-4dbb-a7ed-e1bd531569c0 | EN: Korea National Open University | UZ: Korea National Open University
+ID: 318ee35e-a5b5-400a-ab04-5da771c5edee | EN: Korea National University of Arts | UZ: Korea National University of Arts
+ID: 5decead4-db47-40bf-962a-68988ed4b22b | EN: Korea National University of Education | UZ: Korea National University of Education
+ID: 538497aa-ca80-46c7-b9b2-f40ba001f74d | EN: Korea National University of Transportation | UZ: Korea National University of Transportation
+ID: 9190eae2-d98d-4c6c-86aa-0e2f135fb8a3 | EN: Korea National Sport University | UZ: Korea National Sport University
+ID: f8fb6b73-c2cb-41eb-af3c-63919feaa28b | EN: Miryang National University | UZ: Miryang National University
+ID: b03e7386-0256-40ac-b7f9-7dfe7fffb3c0 | EN: Mokpo National Maritime University | UZ: Mokpo National Maritime University
+ID: 653b5de8-416c-4e71-8167-3308feec1ecb | EN: Sunchon National University | UZ: Sunchon National University
+ID: c8d1df34-9e15-4957-b298-828d89d1aaa7 | EN: Korea National Sport University | UZ: Korea National Sport University
+ID: 3e8af3e1-c183-4da5-ac24-6aaff95d78c4 | EN: Korea National University of Cultural Heritage | UZ: Korea National University of Cultural Heritage
+ID: 7919b75d-058f-49a3-84d5-dd4164ed2470 | EN: Hankyeong National University | UZ: Hankyeong National University
+ID: 1ad6f2a1-f957-49bc-9089-e7178df360e5 | EN: Yosu National University | UZ: Yosu National University
+ID: 5dd0f7d1-aab1-4aba-88da-ae8d51a804ee | EN: Wonju National College | UZ: Wonju National College
+ID: 42e0922d-f911-4f4a-9af6-50809facf93e | EN: Gyeongsang National University | UZ: Gyeongsang National University
+ID: b3e477ee-c081-4de6-9f58-d1f5eb247bfe | EN: Gyeongguk National University | UZ: Gyeongguk National University
+ID: f5dcbbf9-2970-4a69-8cf3-973c9cd392da | EN: Pusan National University of Education | UZ: Pusan National University of Education
+ID: e1454e7e-f375-4ffa-b793-38ae47d27de1 | EN: Chongju National College of Science and Technology | UZ: Chongju National College of Science and Technology
+ID: fa097b17-a493-4d43-96a0-c39bda6a472b | EN: Kongju National University | UZ: Kongju National University
+ID: 1ee6c89f-0285-4bf3-bde7-36e8dc9e4430 | EN: Kunsan National University | UZ: Kunsan National University
+ID: 6ea9afb1-5d58-41be-ac3f-21a886e53622 | EN: Kumoh National Institute of Technology | UZ: Kumoh National Institute of Technology
+ID: 480fe012-5c53-4e3a-a283-4435c9b84c87 | EN: Mokpo National University | UZ: Mokpo National University
+ID: 51bc49e5-4d71-46b6-b568-5f85dada1662 | EN: Pukyong National University | UZ: Pukyong National University
+ID: 760ce1cf-807f-4a1c-b651-2eca4799262f | EN: Hanbat National University | UZ: Hanbat National University
+ID: 3fcb09e8-4df1-4013-bafb-11fa3d590e40 | EN: Korea National Police University | UZ: Korea National Police University
+ID: 6ee051bd-be2e-46d4-91df-1f13c7552541 | EN: Cheonan National Technical College | UZ: Cheonan National Technical College
+ID: 13481771-0299-45ac-8c0d-d6e3c736f37b | EN: Taejon National University of Technology | UZ: Taejon National University of Technology
+ID: d584dd86-0f8f-4332-b2d3-0f57358c7bd5 | EN: International Graduate School of English | UZ: International Graduate School of English
+ID: a8d98754-a8d5-493f-bede-5c0666123579 | EN: Jeju International University | UZ: Jeju International University
+ID: cb73489a-6d02-4a06-9809-3cd579f595cd | EN: National Medical Center College of Nursing | UZ: National Medical Center College of Nursing
+ID: 1a3b00c0-a9d1-48d3-89d2-e3af7ec6cacc | EN: Jeju National University | UZ: Jeju National University
+ID: 3213b1a9-f970-4934-b7e8-5ab41189632e | EN: Seoul National University of Education | UZ: Seoul National University of Education
+ID: 3fa64b75-c792-4cf5-b070-cf496582b392 | EN: Korea National College of Rehabilitation and Welfare | UZ: Korea National College of Rehabilitation and Welfare
+ID: 249ac9d9-4ec9-40e7-9d67-c73f661b13b8 | EN: Korea National Railroad College | UZ: Korea National Railroad College
+ID: bbd4aab2-e91c-4fd7-8e7f-6825e229d924 | EN: Seoul National University | UZ: Seoul National University
+ID: 0f9c69b7-3874-4820-ba08-80f0f2c3929b | EN: Korea National University of Physical Education | UZ: Korea National University of Physical Education
+ID: 6ad6dbcd-bcbd-4763-b30e-5dd6f1b7f573 | EN: Chinju National University of Education | UZ: Chinju National University of Education
+ID: cef24728-4805-499a-943c-38b73f9079a1 | EN: Hankyong National University | UZ: Hankyong National University
+ID: 0a780425-5a30-4c5f-8e15-7d078410c195 | EN: Incheon National University | UZ: Incheon National University
+ID: 507bb432-7564-4298-8c56-1ecec7792fee | EN: Yosu National University | UZ: Yosu National University
+ID: 668adabd-82f4-4f26-8845-d63cbd7bffeb | EN: Gangneung-Wonju National University | UZ: Gangneung-Wonju National University
+ID: fe816dc0-d21a-4499-8084-0bf071530792 | EN: Chonbuk National University | UZ: Chonbuk National University
+ID: c66f9322-7a17-47e5-92e8-04e44e06ae17 | EN: International University of Korea | UZ: International University of Korea
+ID: 79b9d02e-b82d-4857-a957-0756d6a003eb | EN: Mokpo National Maritime University | UZ: Mokpo National Maritime University
+ID: c453cc77-174b-4953-bce6-463f5edca654 | EN: Kwangju National University of Education | UZ: Kwangju National University of Education
+ID: a8951a8d-3ab5-4f81-a09b-e254d3be5bea | EN: Mokpo National University | UZ: Mokpo National University
+ID: df8056d9-2e98-457c-b2f3-4411deebf2de | EN: Kangnung National University | UZ: Kangnung National University
+ID: ca0e2e6a-e656-4f01-8ab2-75e4e22e2c4c | EN: Kumoh National University of Technology | UZ: Kumoh National University of Technology
+ID: c1c3597e-e2eb-4602-898a-7bc8782f65b0 | EN: Kongju National University | UZ: Kongju National University
+ID: 8dcf04da-7f94-4f78-85a9-f9c535130798 | EN: Pusan National University | UZ: Pusan National University
+ID: e4546f29-e887-4b60-b9f2-43e8dbacd3c7 | EN: Chonju National University of Education | UZ: Chonju National University of Education
+ID: d718eeb9-5a5c-4185-981f-dbea624c4bc5 | EN: Taegu National University of Education | UZ: Taegu National University of Education
+ID: b2223c69-be14-4ad0-a06c-040255ef830e | EN: Pukyong National University | UZ: Pukyong National University
+ID: 638b1064-8960-4a9c-92ad-e7e6d1a8b8b7 | EN: Gyeongnam National University of Science and Technology | UZ: Gyeongnam National University of Science and Technology
+ID: 55c08768-0d9e-4133-9d74-241fb769a109 | EN: Korea National University of Arts | UZ: Korea National University of Arts
+ID: 292a44c5-af1d-48ea-a1da-dcc04d6d8854 | EN: Chinju National University | UZ: Chinju National University
+ID: 54316809-a881-4a5a-bcd7-231f5fabc2d3 | EN: Chongju National University of Education | UZ: Chongju National University of Education
+ID: 054e572c-e21f-4742-81d6-a57572bbf6e6 | EN: Chung-Ju National University | UZ: Chung-Ju National University
+ID: 17be4900-df97-41e2-a357-be71b77ac854 | EN: Changwon National University | UZ: Changwon National University
+ID: a1441a92-946c-4e5e-b451-8356c6179b55 | EN: Samchok National University | UZ: Samchok National University
+ID: 7a96cc7a-158c-4a29-aab7-711fc547c47d | EN: Sunchon National University | UZ: Sunchon National University
+ID: 51b99ad0-25bf-4020-ad70-1da91451dd70 | EN: Cheju National University | UZ: Cheju National University
+ID: 1c73d23b-ac3c-4ecf-ba16-e4833a7a0fac | EN: Kunsan National University | UZ: Kunsan National University
+ID: 0261debc-10a3-40fd-83de-cece0c164f9f | EN: Seoul National University of Education | UZ: Seoul National University of Education
+ID: d1144330-e892-4857-9117-608ced90050b | EN: Seoul National University of Science and Technology | UZ: Seoul National University of Science and Technology
+ID: 7f17896a-6fd4-4b88-8067-928db19b57e5 | EN: Chungbuk National University | UZ: Chungbuk National University
+ID: 388b0c53-f677-4710-b949-48b978023d57 | EN: Chonbuk National University | UZ: Chonbuk National University
+ID: 345247a7-a3d1-4b48-bafb-db2d843a9c68 | EN: Chonnam National University | UZ: Chonnam National University
+ID: e56391b7-6292-422c-9d2f-2633c7301491 | EN: Kyungpook National University | UZ: Kyungpook National University
+ID: 5e1f2e22-e537-4f56-9824-c312def5fc56 | EN: Pusan National University | UZ: Busan Milliy Universiteti

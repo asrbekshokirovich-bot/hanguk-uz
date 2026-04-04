@@ -7,20 +7,17 @@ const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 async function run() {
-  const { data: joined, error: err3 } = await supabase
-    .from('student_suggestions')
+  const { data: apps, error } = await supabase
+    .from('applications')
     .select('id, student_id, university_id, university:universities(id, name_en, name_uz)');
-    
-  let out = "";
-  if (err3) {
-    out += "ERROR: " + err3.message;
-  } else {
-    out += "TOTAL SUGGESTIONS: " + joined.length + "\n";
-    for (const sug of joined) {
-      out += `student_id: ${sug.student_id} | uni_en: ${sug.university?.name_en}\n`;
+
+  let out = `Total: ${apps?.length}\n`;
+  if (apps) {
+    for (const a of apps) {
+      out += `Student: ${a.student_id} | Uni: ${a.university?.name_en} | Uni ID: ${a.university_id}\n`;
     }
   }
-  fs.writeFileSync('db_out3.txt', out);
+  fs.writeFileSync('test_db_apps_out.txt', out);
 }
 
 run();

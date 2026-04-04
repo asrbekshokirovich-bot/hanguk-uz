@@ -7,8 +7,6 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   signInWithUsername: (username: string, password: string) => Promise<{ error: Error | null }>;
-  signInGuest: (email: string, password: string) => Promise<{ error: Error | null; data?: any }>;
-  signUpGuest: (email: string, password: string, fullName: string) => Promise<{ error: Error | null; data?: any }>;
   signUpOwner: (username: string, password: string, fullName: string) => Promise<{ error: Error | null }>;
   createStaffAccount: (username: string, password: string, fullName: string, roles: string[]) => Promise<{ error: Error | null; userId?: string }>;
   signOut: () => Promise<void>;
@@ -51,90 +49,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       password,
     });
     return { error };
-  };
-
-  const signInGuest = async (email: string, password: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('leads')
-        .select('*')
-        .eq('email', email)
-        .eq('password' as any, password)
-        .maybeSingle();
-
-      if (error) {
-        throw error;
-      }
-
-      if (!data) {
-        return { error: new Error('Invalid email or password') };
-      }
-
-      // Update login count and history directly in Supabase
-      const existingData = data as any;
-      const loginCount = (existingData.login_count || 0) + 1;
-      const now = new Date().toISOString();
-      const loginHistory = [now, ...(existingData.login_history || [])].slice(0, 20);
-
-      const { error: updateError } = await supabase
-        .from('leads')
-        .update({
-          login_count: loginCount,
-          login_history: loginHistory,
-          updated_at: now
-        })
-        .eq('id', data.id);
-
-      return { error: null, data: { ...data, login_count: loginCount, login_history: loginHistory } };
-    } catch (err: any) {
-      return { error: err };
-    }
-  };
-
-  const signUpGuest = async (email: string, password: string, fullName: string) => {
-    try {
-      // Check for duplicate email in Supabase
-      const { data: existing, error: checkError } = await supabase
-        .from('leads')
-        .select('id')
-        .eq('email', email)
-        .maybeSingle();
-
-      if (checkError) {
-        throw checkError;
-      }
-
-      if (existing) {
-        return { error: new Error("Bu email allaqachon ro'yxatdan o'tgan.") };
-      }
-
-      const now = new Date().toISOString();
-      const newRegistration = {
-        full_name: fullName,
-        email: email,
-        password: password,
-        created_at: now,
-        updated_at: now,
-        login_count: 1,
-        login_history: [now] as any,
-        source: 'Public Registration',
-        status: 'new'
-      } as any;
-
-      const { data, error } = await supabase
-        .from('leads')
-        .insert(newRegistration)
-        .select()
-        .single();
-
-      if (error) {
-        throw error;
-      }
-
-      return { error: null, data };
-    } catch (err: any) {
-      return { error: err };
-    }
   };
 
   // Sign up owner account (first-time setup only)
@@ -212,17 +126,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signOut = async () => {
-    try {
-      setSession(null);
-      setUser(null);
-      localStorage.removeItem('guest_session');
-      await supabase.auth.signOut();
-    } catch (err) {
-      console.error('[AuthContext] Sign out error:', err);
-    } finally {
-      setSession(null);
-      setUser(null);
-    }
+    await supabase.auth.signOut();
   };
 
   return (
@@ -231,8 +135,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       session, 
       loading, 
       signInWithUsername, 
-      signInGuest,
-      signUpGuest,
       signUpOwner, 
       createStaffAccount,
       signOut 

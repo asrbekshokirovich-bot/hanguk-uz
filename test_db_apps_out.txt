@@ -1,0 +1,3 @@
+Total: 2
+Student: c270d0f8-f539-47e0-bf9e-443e92a56160 | Uni: Seoul National University of Science and Technology | Uni ID: 58f498d6-df70-4bbe-86bc-9d3b2f177dfc
+Student: c270d0f8-f539-47e0-bf9e-443e92a56160 | Uni: Gwangju National University of Education | Uni ID: ef499087-cb2f-41ab-bfbf-2e74ebe7a8c3

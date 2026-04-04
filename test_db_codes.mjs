@@ -7,20 +7,19 @@ const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 async function run() {
-  const { data: joined, error: err3 } = await supabase
-    .from('student_suggestions')
-    .select('id, student_id, university_id, university:universities(id, name_en, name_uz)');
-    
-  let out = "";
-  if (err3) {
-    out += "ERROR: " + err3.message;
-  } else {
-    out += "TOTAL SUGGESTIONS: " + joined.length + "\n";
-    for (const sug of joined) {
-      out += `student_id: ${sug.student_id} | uni_en: ${sug.university?.name_en}\n`;
-    }
+  const { data: profiles, error } = await supabase
+    .from('profiles')
+    .select('id, user_id, full_name'); // magic_access_code removed for a sec
+
+  if (error) {
+    fs.writeFileSync('test_codes_out.txt', "ERROR: " + JSON.stringify(error));
+    return;
   }
-  fs.writeFileSync('db_out3.txt', out);
+  let out = `Total: ${profiles?.length}\n`;
+  for (const p of profiles) {
+    out += `Name: ${p.full_name} | UserID: ${p.user_id}\n`;
+  }
+  fs.writeFileSync('test_codes_out.txt', out);
 }
 
 run();

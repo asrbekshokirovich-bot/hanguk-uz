@@ -1,0 +1,26 @@
+[
+  {
+    "id": "f465b0ae-7c19-407e-a8aa-4894d0446129",
+    "student_id": "c270d0f8-f539-47e0-bf9e-443e92a56160",
+    "university_id": "5b015c0b-8720-48f7-8600-d39e50616bfe",
+    "university": {
+      "name_en": "Seoul National University"
+    }
+  },
+  {
+    "id": "1e42a98f-be47-41b7-9c1d-d59670b1a6fe",
+    "student_id": "c270d0f8-f539-47e0-bf9e-443e92a56160",
+    "university_id": "bb02a4fe-ccb6-40ad-904e-c75ad36f1de9",
+    "university": {
+      "name_en": "Kangwon National University"
+    }
+  },
+  {
+    "id": "bcd571f2-1775-4365-bf98-8dda959a9102",
+    "student_id": "c270d0f8-f539-47e0-bf9e-443e92a56160",
+    "university_id": "fa097b17-a493-4d43-96a0-c39bda6a472b",
+    "university": {
+      "name_en": "Kongju National University"
+    }
+  }
+]

@@ -107,6 +107,18 @@ export function useStudentData() {
           fetchDocuments();
         }
       )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'student_suggestions',
+          filter: `student_id=eq.${user.id}`,
+        },
+        () => {
+          fetchSuggestions();
+        }
+      )
       .subscribe();
 
     return () => {
