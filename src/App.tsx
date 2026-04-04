@@ -17,6 +17,7 @@ import Install from "./pages/Install";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import StudentPortal from "./pages/StudentPortal";
+import { StudentDataProvider } from "./contexts/StudentDataContext";
 import CRMPortal from "./pages/CRMPortal";
 import InterviewPractice from "./pages/InterviewPractice";
 import StudyPlanTrainer from "./pages/StudyPlanTrainer";
@@ -80,7 +81,7 @@ const App = () => (
                     <Route path="/install" element={<Install />} />
                     <Route path="/privacy" element={<Privacy />} />
                     <Route path="/terms" element={<Terms />} />
-                    <Route path="/portal" element={<StudentPortal />} />
+                    <Route path="/portal" element={<StudentDataProvider><StudentPortal /></StudentDataProvider>} />
                     <Route path="/interview-practice" element={<ProtectedRoute><InterviewPractice /></ProtectedRoute>} />
                     <Route path="/study-plan-trainer" element={<ProtectedRoute><StudyPlanTrainer /></ProtectedRoute>} />
                     <Route path="/university-portal" element={<ProtectedRoute><UniversityStaffPortal /></ProtectedRoute>} />

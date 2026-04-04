@@ -4,7 +4,6 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useStudentData } from '@/hooks/useStudentData';
-import { StudentDataProvider } from '@/contexts/StudentDataContext';
 import { useStudentPlan } from '@/hooks/useStudentPlan';
 import { usePlatform } from '@/hooks/usePlatform';
 import { ApplicationTracker } from '@/components/student/ApplicationTracker';
@@ -147,7 +146,6 @@ export default function StudentPortal() {
       </header>
 
       {/* Main Content */}
-      <StudentDataProvider>
         <main className="flex-1 p-4 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-4">
           <div className="max-w-6xl mx-auto">
             {/* Welcome Section */}
@@ -271,7 +269,6 @@ export default function StudentPortal() {
             </div>
           </div>
         </main>
-      </StudentDataProvider>
 
       {/* Bottom Navigation for Mobile - Native iOS/Android Tab Bar Style */}
       <nav className="fixed bottom-0 left-0 right-0 bg-background border-t border-border md:hidden z-40 pb-[env(safe-area-inset-bottom)]">
