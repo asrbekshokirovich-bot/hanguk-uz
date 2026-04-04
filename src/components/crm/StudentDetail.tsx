@@ -68,7 +68,6 @@ import {
 import { EditStudentDialog } from './EditStudentDialog';
 import { DeleteStudentDialog } from './DeleteStudentDialog';
 import { AddPaymentDialog } from './AddPaymentDialog';
-import { AddApplicationDialog } from './AddApplicationDialog';
 import { SuggestUniversityDialog } from './SuggestUniversityDialog';
 import { TranslationWorkflow } from '@/components/translation/TranslationWorkflow';
 import { ClickToCall } from '@/components/calls/ClickToCall';
@@ -210,9 +209,10 @@ export function StudentDetail({
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [addPaymentDialogOpen, setAddPaymentDialogOpen] = useState(false);
-  const [addApplicationDialogOpen, setAddApplicationDialogOpen] = useState(false);
   const [suggestUniversityDialogOpen, setSuggestUniversityDialogOpen] = useState(false);
   const [existingSuggestedUniversityIds, setExistingSuggestedUniversityIds] = useState<string[]>([]);
+  const [suggestedUniversitiesList, setSuggestedUniversitiesList] = useState<any[]>([]);
+  const [removingSuggestion, setRemovingSuggestion] = useState<string | null>(null);
 
   const [savingPaymentPlan, setSavingPaymentPlan] = useState(false);
   const [savingPaymentMode, setSavingPaymentMode] = useState(false);
@@ -291,10 +291,35 @@ export function StudentDetail({
   const fetchSuggestions = async () => {
     const { data } = await supabase
       .from('student_suggestions')
-      .select('university_id')
+      .select('university_id, university:universities(id, name_en, name_uz, is_partner)')
       .eq('student_id', student.user_id);
     if (data) {
       setExistingSuggestedUniversityIds(data.map(d => d.university_id));
+      setSuggestedUniversitiesList(data);
+    }
+  };
+
+  const handleRemoveSuggestion = async (universityId: string) => {
+    setRemovingSuggestion(universityId);
+    try {
+      const { error } = await supabase
+        .from('student_suggestions')
+        .delete()
+        .eq('student_id', student.user_id)
+        .eq('university_id', universityId);
+
+      if (error) throw error;
+
+      toast({ title: 'Suggestion removed successfully' });
+      fetchSuggestions();
+    } catch (err: any) {
+      toast({
+        title: 'Failed to remove suggestion',
+        description: err?.message || 'Unknown error',
+        variant: 'destructive',
+      });
+    } finally {
+      setRemovingSuggestion(null);
     }
   };
 
@@ -1000,10 +1025,6 @@ export function StudentDetail({
                 <Card>
                   <CardContent className="py-8 text-center space-y-3">
                     <p className="text-muted-foreground">No application found.</p>
-                    <Button size="sm" onClick={() => setAddApplicationDialogOpen(true)}>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Application
-                    </Button>
                   </CardContent>
                 </Card>
               ) : (
@@ -1057,29 +1078,75 @@ export function StudentDetail({
               )}
             </TabsContent>
 
-            {/* Applications Tab */}
-            <TabsContent value="applications" className="space-y-4 mt-6">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold">{t('navigation.applications')}</h3>
-                <div className="flex items-center gap-2">
-                  <Button size="sm" variant="outline" className="gap-2 text-blue-600 border-blue-400" onClick={() => setSuggestUniversityDialogOpen(true)}>
+            {/* Universities & Applications Tab */}
+            <TabsContent value="applications" className="space-y-6 mt-6">
+              
+              {/* Suggested Universities Section */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold">Suggested For Student (Pending)</h3>
+                  <Button size="sm" className="gap-2" onClick={() => setSuggestUniversityDialogOpen(true)}>
                     <Lightbulb className="h-4 w-4" />
                     Suggest University
                   </Button>
-                  <Button size="sm" className="gap-2" onClick={() => setAddApplicationDialogOpen(true)}>
-                    <Plus className="h-4 w-4" />
-                    Add Application
-                  </Button>
                 </div>
+                {suggestedUniversitiesList.length === 0 ? (
+                  <Card>
+                    <CardContent className="py-8 text-center text-muted-foreground">
+                      No suggested universities yet. Click "Suggest University" to recommend options to the student.
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    {suggestedUniversitiesList.map((sug) => {
+                      const uni = sug.university;
+                      if (!uni) return null;
+                      return (
+                        <Card key={sug.university_id} className="relative overflow-hidden group">
+                          <CardHeader className="pb-3">
+                            <CardTitle className="text-base flex items-start justify-between">
+                              <span className="pr-8">{uni.name_en || uni.name_uz || 'Unknown University'}</span>
+                              {uni.is_partner && (
+                                <Badge variant="secondary" className="text-xs shrink-0 whitespace-nowrap ml-2">Partner</Badge>
+                              )}
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <Button 
+                              variant="destructive" 
+                              size="sm" 
+                              className="w-full gap-2"
+                              disabled={removingSuggestion === sug.university_id}
+                              onClick={() => handleRemoveSuggestion(sug.university_id)}
+                            >
+                              {removingSuggestion === sug.university_id ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <Trash2 className="h-4 w-4" />
+                              )}
+                              Remove Suggestion
+                            </Button>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
-              {student.applications?.length === 0 ? (
-                <Card>
-                  <CardContent className="py-8 text-center text-muted-foreground">
-                    No applications yet. Click "Add Application" to start tracking.
-                  </CardContent>
-                </Card>
-              ) : (
-                student.applications?.map((app) => {
+
+              {/* Active Applications Section */}
+              <div className="space-y-4 pt-4 border-t border-border/50">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold">Active Applications (In Progress)</h3>
+                </div>
+                {student.applications?.length === 0 ? (
+                  <Card>
+                    <CardContent className="py-8 text-center text-muted-foreground">
+                      No active applications.
+                    </CardContent>
+                  </Card>
+                ) : (
+                  student.applications?.map((app) => {
                   const currentIndex = allStatusSteps.indexOf(app.status);
                   const progressPercent = ((currentIndex + 1) / allStatusSteps.length) * 100;
 
@@ -1145,7 +1212,8 @@ export function StudentDetail({
                     </Card>
                   );
                 })
-              )}
+                )}
+              </div>
             </TabsContent>
 
             {/* Payments Tab */}
@@ -1718,16 +1786,7 @@ export function StudentDetail({
         }))}
         onSuccess={fetchPayments}
       />
-      <AddApplicationDialog
-        open={addApplicationDialogOpen}
-        onOpenChange={setAddApplicationDialogOpen}
-        studentId={student.user_id}
-        existingApplicationUniversityIds={student.applications?.map((a) => a.university_id) || []}
-        onSuccess={() => {
-          setAddApplicationDialogOpen(false);
-          onRefresh();
-        }}
-      />
+
       <SuggestUniversityDialog
         open={suggestUniversityDialogOpen}
         onOpenChange={setSuggestUniversityDialogOpen}

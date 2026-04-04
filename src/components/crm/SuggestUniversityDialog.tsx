@@ -84,6 +84,32 @@ export function SuggestUniversityDialog({
     }
   };
 
+  const handleRemove = async () => {
+    if (!selectedUniversityId) return;
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from('student_suggestions')
+        .delete()
+        .eq('student_id', studentId)
+        .eq('university_id', selectedUniversityId);
+
+      if (error) throw error;
+
+      toast({ title: 'Suggestion removed successfully' });
+      setSelectedUniversityId(null);
+      onSuccess();
+    } catch (err: any) {
+      toast({
+        title: 'Failed to remove suggestion',
+        description: err?.message || 'Unknown error',
+        variant: 'destructive',
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleClose = () => {
     setSearch('');
     setSelectedUniversityId(null);
@@ -187,19 +213,36 @@ export function SuggestUniversityDialog({
           <Button variant="outline" onClick={handleClose} disabled={saving}>
             Cancel
           </Button>
-          <Button
-            onClick={handleSave}
-            disabled={!selectedUniversityId || isDuplicate || saving}
-          >
-            {saving ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Suggesting…
-              </>
-            ) : (
-              'Suggest University'
-            )}
-          </Button>
+          {isDuplicateSuggestion ? (
+            <Button
+              variant="destructive"
+              onClick={handleRemove}
+              disabled={saving}
+            >
+              {saving ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Removing…
+                </>
+              ) : (
+                'Remove Suggestion'
+              )}
+            </Button>
+          ) : (
+            <Button
+              onClick={handleSave}
+              disabled={!selectedUniversityId || isDuplicateApplication || saving}
+            >
+              {saving ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Suggesting…
+                </>
+              ) : (
+                'Suggest University'
+              )}
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>
