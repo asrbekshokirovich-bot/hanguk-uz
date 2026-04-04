@@ -58,6 +58,8 @@ function GlobalErrorBoundary({ children }: { children: React.ReactNode }) {
 }
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { StaffPresenceProvider } from "@/contexts/StaffPresenceContext";
+import { MentionNotificationsProvider } from "@/contexts/MentionNotificationsContext";
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -70,21 +72,25 @@ const App = () => (
             <BrowserRouter>
             <NativeRouterHandler />
             <AuthProvider>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/install" element={<Install />} />
-                <Route path="/privacy" element={<Privacy />} />
-                <Route path="/terms" element={<Terms />} />
-                <Route path="/portal" element={<StudentPortal />} />
-                <Route path="/interview-practice" element={<ProtectedRoute><InterviewPractice /></ProtectedRoute>} />
-                <Route path="/study-plan-trainer" element={<ProtectedRoute><StudyPlanTrainer /></ProtectedRoute>} />
-                <Route path="/university-portal" element={<ProtectedRoute><UniversityStaffPortal /></ProtectedRoute>} />
-                <Route path="/crm/*" element={<CRMPortal />} />
-                <Route path="/system-map" element={<SystemMap />} />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
+              <StaffPresenceProvider>
+                <MentionNotificationsProvider>
+                  <Routes>
+                    <Route path="/" element={<Index />} />
+                    <Route path="/auth" element={<Auth />} />
+                    <Route path="/install" element={<Install />} />
+                    <Route path="/privacy" element={<Privacy />} />
+                    <Route path="/terms" element={<Terms />} />
+                    <Route path="/portal" element={<StudentPortal />} />
+                    <Route path="/interview-practice" element={<ProtectedRoute><InterviewPractice /></ProtectedRoute>} />
+                    <Route path="/study-plan-trainer" element={<ProtectedRoute><StudyPlanTrainer /></ProtectedRoute>} />
+                    <Route path="/university-portal" element={<ProtectedRoute><UniversityStaffPortal /></ProtectedRoute>} />
+                    <Route path="/crm/*" element={<CRMPortal />} />
+                    <Route path="/system-map" element={<SystemMap />} />
+                    {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </MentionNotificationsProvider>
+              </StaffPresenceProvider>
             </AuthProvider>
           </BrowserRouter>
           </ErrorBoundary>
