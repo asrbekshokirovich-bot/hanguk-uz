@@ -16,6 +16,9 @@ export default defineConfig(({ mode }) => ({
     VitePWA({
       registerType: "autoUpdate",
       includeAssets: ["favicon.ico", "logo.jpg"],
+      devOptions: {
+        enabled: false,
+      },
       manifest: {
         name: "Hanguk Consulting",
         short_name: "Hanguk",

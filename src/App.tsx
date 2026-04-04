@@ -57,14 +57,17 @@ function GlobalErrorBoundary({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <TooltipProvider>
         <GlobalErrorBoundary>
-          <Toaster />
-          <Sonner position="top-center" />
-          <BrowserRouter>
+          <ErrorBoundary>
+            <Toaster />
+            <Sonner position="top-center" />
+            <BrowserRouter>
             <NativeRouterHandler />
             <AuthProvider>
               <Routes>
@@ -84,6 +87,7 @@ const App = () => (
               </Routes>
             </AuthProvider>
           </BrowserRouter>
+          </ErrorBoundary>
         </GlobalErrorBoundary>
       </TooltipProvider>
     </ThemeProvider>

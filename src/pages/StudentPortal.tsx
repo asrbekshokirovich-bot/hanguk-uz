@@ -39,7 +39,8 @@ import {
   Download,
   Lock,
   Crown,
-  Search
+  Search,
+  Loader2
 } from 'lucide-react';
 
 export default function StudentPortal() {
@@ -100,13 +101,14 @@ export default function StudentPortal() {
     );
   }
 
-  if (!user) {
-    return null;
-  }
-
-  // Block staff access - already handled in useEffect above
-  if (isStaff) {
-    return null;
+  // Block staff access or unauthenticated users - handled by useEffect
+  if (!user || isStaff) {
+    return (
+      <div className="min-h-[100dvh] flex flex-col items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+        <p className="text-muted-foreground">{t('common.redirecting', 'Redirecting...')}</p>
+      </div>
+    );
   }
 
   return (

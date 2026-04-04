@@ -106,22 +106,28 @@ export function useStaffPresence() {
 
     // Set offline on page unload
     const handleUnload = () => {
-      // Use sendBeacon with REST API for reliable offline status on page close
-      if (navigator.sendBeacon) {
-        const url = `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/staff_presence?user_id=eq.${user.id}`;
-        const body = JSON.stringify({
-          status: 'offline',
-          last_seen: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/staff_presence?user_id=eq.${user.id}`;
+      const body = JSON.stringify({
+        status: 'offline',
+        last_seen: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      });
+      const headers = {
+        'Content-Type': 'application/json',
+        'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        'Prefer': 'return=minimal'
+      };
+      
+      try {
+        fetch(url, {
+          method: 'PATCH',
+          headers,
+          body,
+          keepalive: true,
         });
-        const headers = {
-          'Content-Type': 'application/json',
-          'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-          'Prefer': 'return=minimal'
-        };
-        const blob = new Blob([body], { type: 'application/json' });
-        navigator.sendBeacon(url, blob);
+      } catch (e) {
+        console.error('Failed to dispatch offline status on unload', e);
       }
     };
 

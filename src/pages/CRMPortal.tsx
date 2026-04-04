@@ -23,7 +23,8 @@ import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import {
   LogOut,
   Lock,
-  Download
+  Download,
+  Loader2
 } from 'lucide-react';
 import { Tables } from '@/integrations/supabase/types';
 
@@ -154,57 +155,7 @@ export default function CRMPortal() {
     navigate('/auth');
   };
 
-  const handleEmergencyExport = async () => {
-    try {
-      const { supabase } = await import('@/integrations/supabase/client');
-      alert("Extraction started. This might take 30-40 seconds for all 78 tables! Please don't close the browser.");
-      
-      const tables = [
-        "admission_sync_jobs", "ai_context_cache", "ai_conversations", "application_form_cache", "application_form_changes", 
-        "application_form_validations", "applications", "call_sessions", "call_signals", "calls", "channel_messages", 
-        "distribution_transfer_items", "distribution_transfers", "documents", "expenses", "gks_designated_universities", 
-        "gks_program_info", "income_distribution_settings", "income_distributions", "intercom_calls", "interview_feedback", 
-        "interview_messages", "interview_questions", "interview_sessions", "lead_notes", "leads", "mentions", 
-        "message_threads", "messages", "monthly_payment_categories", "notifications", "operational_fund_allocations", 
-        "operational_fund_settings", "payment_transactions", "payments", "peer_review_queue", "peer_reviews", "profiles", 
-        "push_tokens", "room_channels", "room_members", "scheduled_payments", "scholarships", "search_jobs", "staff_bonuses", 
-        "staff_presence", "student_achievements", "student_budgets", "student_comments", "student_notes", "study_plan_analyses", 
-        "study_plan_chat_history", "study_plan_drafts", "study_plan_sessions", "system_map_connections", "system_map_nodes", 
-        "system_settings", "task_comments", "tasks", "translation_document_types", "translation_jobs", "translation_requirements", 
-        "translation_templates", "universities", "university_admission_periods", "university_announcements", 
-        "university_document_requirements", "university_events", "university_notes", "university_programs", "university_requirements", 
-        "university_rooms", "university_staff_assignments", "user_roles", "writing_streaks", "crm_students", "magic_access_codes"
-      ];
-      
-      const exportData: Record<string, any> = {};
-      
-      for (const table of tables) {
-        try {
-          const { data, error } = await supabase.from(table).select('*');
-          if (!error && data) {
-            exportData[table] = data;
-          }
-        } catch (err) {
-          console.warn(`Skipped ${table}`, err);
-        }
-      }
-      
-      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'full_system_export.json';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      
-      alert('Full export successfully downloaded! File: full_system_export.json');
-    } catch (e) {
-      console.error('Export failed:', e);
-      alert('Export failed. Check console.');
-    }
-  };
+
 
   // Reset selected student when navigating away from students
   useEffect(() => {
@@ -275,7 +226,12 @@ export default function CRMPortal() {
   }
 
   if (!user || !isStaff) {
-    return null;
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+        <p className="text-muted-foreground">{t('common.redirecting', 'Redirecting...')}</p>
+      </div>
+    );
   }
 
   const studentDetailElement = selectedStudent ? (
@@ -476,10 +432,6 @@ export default function CRMPortal() {
                     <h1 className="text-lg font-semibold hidden sm:block">{t('crm.title')}</h1>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Button onClick={handleEmergencyExport} variant="destructive" size="sm" className="mr-2">
-                      <Download className="h-4 w-4 mr-2" />
-                      Download Legacy Data
-                    </Button>
                     <VoiceChannelHeader />
                     <NotificationBell />
                     <LanguageSwitcher />

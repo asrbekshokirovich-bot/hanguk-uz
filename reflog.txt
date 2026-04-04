@@ -1,0 +1,20 @@
+9dbc5c9 HEAD@{0}: commit: Merge CRM Admin tools (Hallucination Cleaner & Approval Workflow) safely into old-hanguk-uz
+31a5680 HEAD@{1}: reset: moving to old-hanguk-uz
+31a5680 HEAD@{2}: reset: moving to old-hanguk-uz
+31a5680 HEAD@{3}: reset: moving to old-hanguk-uz
+31a5680 HEAD@{4}: reset: moving to old-hanguk-uz
+d7ef627 HEAD@{5}: checkout: moving from main to temp-merge-sandbox
+d7ef627 HEAD@{6}: checkout: moving from test-merge-branch to main
+d7ef627 HEAD@{7}: reset: moving to HEAD
+d7ef627 HEAD@{8}: checkout: moving from main to test-merge-branch
+d7ef627 HEAD@{9}: commit: feat/auth: unified student sign-up system with active CRM pipeline
+7c1ef78 HEAD@{10}: commit: feat(crm): add admin cleanup tool for hallucinated suggestions
+59aafdb HEAD@{11}: commit: feat(crm): implement separate counselor approval block inside StudentDetail applications tab
+ed2e502 HEAD@{12}: commit: feat(crm): unify suggestions and applications pipeline in StudentDetail UI
+759087c HEAD@{13}: commit: feat: add student suggestions UI to React web portal
+d62905b HEAD@{14}: commit: Update student suggestion DB type to owner
+73f7b98 HEAD@{15}: rebase (abort): returning to refs/heads/main
+949376c HEAD@{16}: pull origin main --rebase (start): checkout 949376cb55eb303322904653561d2d228809c526
+73f7b98 HEAD@{17}: Branch: renamed refs/heads/master to refs/heads/main
+73f7b98 HEAD@{19}: commit: feat: suggest university integration
+8273938 HEAD@{20}: commit (initial): Initial commit from archive
