@@ -42,6 +42,22 @@ export function useStudentData() {
     }
   }, [user]);
 
+  const [suggestions, setSuggestions] = useState<Tables<'student_suggestions'>[]>([]);
+
+  const fetchSuggestions = useCallback(async () => {
+    if (!user) return;
+    
+    const { data, error } = await supabase
+      .from('student_suggestions')
+      .select('*, university:universities(*)')
+      .eq('student_id', user.id)
+      .order('created_at', { ascending: false });
+
+    if (!error && data) {
+      setSuggestions(data);
+    }
+  }, [user]);
+
   const fetchUniversities = useCallback(async () => {
     const { data, error } = await supabase
       .from('universities')
@@ -61,6 +77,7 @@ export function useStudentData() {
         fetchApplications(),
         fetchDocuments(),
         fetchUniversities(),
+        fetchSuggestions(),
       ]);
       setLoading(false);
     };
@@ -70,7 +87,7 @@ export function useStudentData() {
     } else {
       setLoading(false);
     }
-  }, [user, fetchApplications, fetchDocuments, fetchUniversities]);
+  }, [user, fetchApplications, fetchDocuments, fetchUniversities, fetchSuggestions]);
 
   // Realtime subscription — auto-refresh documents when staff approves/rejects
   useEffect(() => {
@@ -101,8 +118,10 @@ export function useStudentData() {
     applications,
     documents,
     universities,
+    suggestions,
     loading,
     refetchApplications: fetchApplications,
     refetchDocuments: fetchDocuments,
+    refetchSuggestions: fetchSuggestions,
   };
 }

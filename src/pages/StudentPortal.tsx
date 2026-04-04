@@ -11,6 +11,7 @@ import { UniversityMapKakao } from '@/components/student/UniversityMapKakao';
 import { DocumentUpload } from '@/components/student/DocumentUpload';
 import { ProgramFinder } from '@/components/student/ProgramFinder';
 import { StudentInsightsPanel } from '@/components/student/StudentInsightsPanel';
+import { SuggestedUniversities } from '@/components/student/SuggestedUniversities';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { HangukAIChat } from '@/components/ai/HangukAIChat';
 import { Button } from '@/components/ui/button';
@@ -46,7 +47,7 @@ export default function StudentPortal() {
   const navigate = useNavigate();
   const { user, signOut, loading: authLoading } = useAuth();
   const { isStaff, loading: roleLoading } = useUserRole();
-  const { applications, documents, universities, loading, refetchDocuments } = useStudentData();
+  const { applications, documents, universities, suggestions, loading, refetchDocuments, refetchSuggestions } = useStudentData();
   const { isVIP, planLabel, isPremium, isNoRisk, isStandart, isFree, loading: planLoading } = useStudentPlan();
 
   const { isDespia, isWeb } = usePlatform();
@@ -228,6 +229,7 @@ export default function StudentPortal() {
               </TabsList>
 
               <TabsContent value="applications">
+                <SuggestedUniversities suggestions={suggestions} onRefresh={refetchSuggestions} onShowOnMap={handleShowOnMap} />
                 <ApplicationTracker applications={applications} loading={loading} onShowOnMap={handleShowOnMap} />
               </TabsContent>
               <TabsContent value="map">
@@ -248,7 +250,10 @@ export default function StudentPortal() {
           {/* Mobile Content */}
           <div className="md:hidden">
             {activeTab === 'applications' && (
-              <ApplicationTracker applications={applications} loading={loading} onShowOnMap={handleShowOnMap} />
+              <>
+                <SuggestedUniversities suggestions={suggestions} onRefresh={refetchSuggestions} onShowOnMap={handleShowOnMap} />
+                <ApplicationTracker applications={applications} loading={loading} onShowOnMap={handleShowOnMap} />
+              </>
             )}
             {activeTab === 'map' && (
               <UniversityMapKakao universities={universities} focusUniversityId={focusUniversityId} />
