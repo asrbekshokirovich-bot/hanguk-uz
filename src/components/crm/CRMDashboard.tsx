@@ -1,9 +1,12 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import {
   BarChart,
   Bar,
@@ -33,6 +36,8 @@ import {
   CheckCircle,
   Clock,
   AlertTriangle,
+  Loader2,
+  RefreshCw,
 } from 'lucide-react';
 import { useDashboardStats } from '@/hooks/useDashboardStats';
 import { AIInsightsPanel } from '@/components/crm/AIInsightsPanel';
@@ -61,6 +66,41 @@ export function CRMDashboard({ isAdmin, isOwner, isCallOperator, isDocumentHandl
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { stats, loading } = useDashboardStats();
+  const { toast } = useToast();
+  const [isCleaning, setIsCleaning] = useState(false);
+
+  const handleCleanupSuggestions = async () => {
+    setIsCleaning(true);
+    try {
+      const { data: suggestions, error: sugErr } = await supabase.from('student_suggestions').select('id, student_id, university_id');
+      if (sugErr) throw sugErr;
+
+      const { data: applications, error: appErr } = await supabase.from('applications').select('student_id, university_id');
+      if (appErr) throw appErr;
+
+      const overlaps = suggestions.filter(sug => 
+        applications.some(app => app.student_id === sug.student_id && app.university_id === sug.university_id)
+      );
+
+      if (overlaps.length === 0) {
+        toast({ title: "System Clean", description: "No hallucinated suggestions found." });
+        return;
+      }
+
+      for (const sug of overlaps) {
+        await supabase.from('student_suggestions').delete().eq('id', sug.id);
+      }
+
+      toast({ 
+        title: "Cleanup Complete", 
+        description: `Successfully isolated and removed ${overlaps.length} hallucinated suggestions.` 
+      });
+    } catch (err: any) {
+      toast({ title: "Cleanup Failed", description: err?.message, variant: "destructive" });
+    } finally {
+      setIsCleaning(false);
+    }
+  };
 
   const quickLinks = [
     {
@@ -171,10 +211,18 @@ export function CRMDashboard({ isAdmin, isOwner, isCallOperator, isDocumentHandl
             {format(new Date(), 'EEEE, MMMM d, yyyy')}
           </p>
         </div>
-        <Button onClick={() => navigate('/crm/tasks')}>
-          <ClipboardList className="h-4 w-4 mr-2" />
-          {t('navigation.tasks')}
-        </Button>
+        <div className="flex gap-2">
+          {isAdmin && (
+            <Button variant="destructive" onClick={handleCleanupSuggestions} disabled={isCleaning}>
+              {isCleaning ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
+              Clean Hallucinations
+            </Button>
+          )}
+          <Button onClick={() => navigate('/crm/tasks')}>
+            <ClipboardList className="h-4 w-4 mr-2" />
+            {t('navigation.tasks')}
+          </Button>
+        </div>
       </div>
 
       {/* AI Insights Panel - Prominent placement at top */}
