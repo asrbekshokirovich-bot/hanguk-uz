@@ -213,6 +213,7 @@ export function StudentDetail({
   const [existingSuggestedUniversityIds, setExistingSuggestedUniversityIds] = useState<string[]>([]);
   const [suggestedUniversitiesList, setSuggestedUniversitiesList] = useState<any[]>([]);
   const [removingSuggestion, setRemovingSuggestion] = useState<string | null>(null);
+  const [processingApplication, setProcessingApplication] = useState<string | null>(null);
 
   const [savingPaymentPlan, setSavingPaymentPlan] = useState(false);
   const [savingPaymentMode, setSavingPaymentMode] = useState(false);
@@ -320,6 +321,46 @@ export function StudentDetail({
       });
     } finally {
       setRemovingSuggestion(null);
+    }
+  };
+
+  const handleApproveApplication = async (appId: string) => {
+    setProcessingApplication(appId);
+    try {
+      const { error } = await onUpdateApplicationStatus(appId, 'documents_collection');
+      if (error) throw error;
+      toast({ title: 'Application approved successfully' });
+      onRefresh();
+    } catch (err: any) {
+      toast({
+        title: 'Failed to approve application',
+        description: err?.message || 'Unknown error',
+        variant: 'destructive',
+      });
+    } finally {
+      setProcessingApplication(null);
+    }
+  };
+
+  const handleRejectApplication = async (appId: string) => {
+    setProcessingApplication(appId);
+    try {
+      const { error } = await supabase
+        .from('applications')
+        .delete()
+        .eq('id', appId);
+
+      if (error) throw error;
+      toast({ title: 'Application rejected and removed' });
+      onRefresh();
+    } catch (err: any) {
+      toast({
+        title: 'Failed to reject application',
+        description: err?.message || 'Unknown error',
+        variant: 'destructive',
+      });
+    } finally {
+      setProcessingApplication(null);
     }
   };
 
@@ -1137,16 +1178,63 @@ export function StudentDetail({
               {/* Active Applications Section */}
               <div className="space-y-4 pt-4 border-t border-border/50">
                 <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold border-b pb-2 w-full">Pending Student Applications</h3>
+                </div>
+                {(!student.applications || student.applications.filter(a => a.status === 'pending_approval').length === 0) ? (
+                  <Card>
+                    <CardContent className="py-6 text-center text-muted-foreground text-sm">
+                      No applications pending approval.
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <div className="grid gap-4">
+                    {student.applications.filter(a => a.status === 'pending_approval').map((app) => (
+                      <Card key={app.id} className="border-yellow-400 bg-yellow-50/50 dark:bg-yellow-900/10 dark:border-yellow-600/50">
+                        <CardHeader className="pb-2">
+                          <CardTitle className="text-base text-yellow-800 dark:text-yellow-500">
+                            {getUniversityName(app.university)}
+                          </CardTitle>
+                          <p className="text-sm text-yellow-700/80 dark:text-yellow-500/80">
+                            Requested: {new Date(app.created_at).toLocaleDateString()}
+                          </p>
+                        </CardHeader>
+                        <CardContent className="flex items-center gap-3">
+                          <Button 
+                            className="flex-1 gap-2" 
+                            disabled={processingApplication === app.id}
+                            onClick={() => handleApproveApplication(app.id)}
+                          >
+                            {processingApplication === app.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4" />}
+                            Approve
+                          </Button>
+                          <Button 
+                            variant="destructive" 
+                            className="flex-1 gap-2" 
+                            disabled={processingApplication === app.id}
+                            onClick={() => handleRejectApplication(app.id)}
+                          >
+                            {processingApplication === app.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <XCircle className="h-4 w-4" />}
+                            Reject
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-4 pt-6 border-t border-border/50">
+                <div className="flex items-center justify-between">
                   <h3 className="text-lg font-semibold">Active Applications (In Progress)</h3>
                 </div>
-                {student.applications?.length === 0 ? (
+                {(!student.applications || student.applications.filter(a => a.status !== 'pending_approval').length === 0) ? (
                   <Card>
                     <CardContent className="py-8 text-center text-muted-foreground">
                       No active applications.
                     </CardContent>
                   </Card>
                 ) : (
-                  student.applications?.map((app) => {
+                  student.applications.filter(a => a.status !== 'pending_approval').map((app) => {
                   const currentIndex = allStatusSteps.indexOf(app.status);
                   const progressPercent = ((currentIndex + 1) / allStatusSteps.length) * 100;
 
