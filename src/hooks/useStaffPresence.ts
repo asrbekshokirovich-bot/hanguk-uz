@@ -88,8 +88,9 @@ export function useStaffPresence() {
     }, 10000);
 
     // Subscribe to realtime updates
+    const channelId = `staff-presence-changes-${Math.random().toString(36).substring(7)}`;
     const channel = supabase
-      .channel('staff-presence-changes')
+      .channel(channelId)
       .on(
         'postgres_changes',
         {
