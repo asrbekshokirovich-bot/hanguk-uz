@@ -77,7 +77,7 @@
     "registerNewAccount": "Создать новый аккаунт",
     "haveAccountMsg": "Уже есть аккаунт? Войти",
     "studentCodeDesc": "Введите 8-значный волшебный код доступа, предоставленный вашим консультантом.",
-    "accessCode": "Волшебный код",
+    "accessCode": "Код доступа",
     "setupSubtitle": "Первоначальная настройка",
     "firstTimeSetup": "Первоначальная настройка",
     "setupWarning": "Пожалуйста, введите данные учетной записи владельца ниже.",
@@ -87,7 +87,8 @@
     "invalidFormat": "Неверный формат",
     "studentNotFound": "Студент не найден",
     "registeredSuccess": "Успешно зарегистрировано",
-    "dataSaved": "Данные успешно сохранены"
+    "dataSaved": "Данные успешно сохранены",
+    "username": "Имя пользователя"
   },
   "navigation": {
     "home": "Главная",
@@ -169,7 +170,8 @@
     "dragToLookAround": "← Перетащите, чтобы осмотреться →",
     "noPanoramaAtPosition": "Панорама недоступна в этой позиции",
     "panoramaNavigationFailed": "Не удалось загрузить следующую панораму",
-    "openStreetMapFallback": "OpenStreetMap (Kakao недоступен)"
+    "openStreetMapFallback": "OpenStreetMap (Kakao недоступен)",
+    "paymentMode": "Способ оплаты"
   },
   "crm": {
     "title": "Система управления",

@@ -77,7 +77,7 @@
     "registerNewAccount": "Yangi hisob ochish",
     "haveAccountMsg": "Hisobingiz bormi? Kiring",
     "studentCodeDesc": "Konsultant taqdim etgan 8 xonali sehrli kirish kodini kiriting.",
-    "accessCode": "Sehrli kod",
+    "accessCode": "Kirish kodi",
     "setupSubtitle": "Ilk sozlash",
     "firstTimeSetup": "Birinchi marta sozlash",
     "setupWarning": "Iltimos, egasi hisobi ma'lumotlarini quyida kiriting.",
@@ -87,7 +87,8 @@
     "invalidFormat": "Noto'g'ri format",
     "studentNotFound": "Talaba topilmadi",
     "registeredSuccess": "Muvaffaqiyatli ro'yxatdan o'tdingiz",
-    "dataSaved": "Ma'lumotlar saqlandi"
+    "dataSaved": "Ma'lumotlar saqlandi",
+    "username": "Foydalanuvchi nomi"
   },
   "navigation": {
     "home": "Bosh sahifa",
@@ -169,7 +170,8 @@
     "dragToLookAround": "← Atrofga qarash uchun torting →",
     "noPanoramaAtPosition": "Bu joyda panorama mavjud emas",
     "panoramaNavigationFailed": "Keyingi panoramani yuklash amalga oshmadi",
-    "openStreetMapFallback": "OpenStreetMap (Kakao mavjud emas)"
+    "openStreetMapFallback": "OpenStreetMap (Kakao mavjud emas)",
+    "paymentMode": "To'lov turi"
   },
   "crm": {
     "title": "Boshqaruv tizimi",

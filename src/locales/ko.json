@@ -76,7 +76,7 @@
     "registerNewAccount": "새 계정 만들기",
     "haveAccountMsg": "이미 계정이 있으신가요? 로그인",
     "studentCodeDesc": "상담사가 제공한 8자리 매직 액세스 코드를 입력하세요.",
-    "accessCode": "매직 코드",
+    "accessCode": "액세스 코드",
     "setupSubtitle": "초기 설정",
     "firstTimeSetup": "초기 설정",
     "setupWarning": "아래에 소유자 계정 세부 정보를 구성하십시오.",
@@ -86,7 +86,8 @@
     "invalidFormat": "잘못된 형식",
     "studentNotFound": "학생을 찾을 수 없음",
     "registeredSuccess": "성공적으로 등록되었습니다",
-    "dataSaved": "데이터가 저장되었습니다"
+    "dataSaved": "데이터가 저장되었습니다",
+    "username": "사용자 이름"
   },
   "navigation": {
     "home": "홈",
@@ -168,7 +169,8 @@
     "dragToLookAround": "← 드래그하여 둘러보기 →",
     "noPanoramaAtPosition": "이 위치에서 파노라마를 사용할 수 없습니다",
     "panoramaNavigationFailed": "다음 파노라마를 불러오지 못했습니다",
-    "openStreetMapFallback": "OpenStreetMap (카카오 사용 불가)"
+    "openStreetMapFallback": "OpenStreetMap (카카오 사용 불가)",
+    "paymentMode": "결제 방식"
   },
   "crm": {
     "title": "관리 시스템",

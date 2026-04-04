@@ -77,7 +77,7 @@
     "registerNewAccount": "Register new account",
     "haveAccountMsg": "Already have an account?",
     "studentCodeDesc": "Enter your 8-character magic access code provided by your consultant.",
-    "accessCode": "Magic Access Code",
+    "accessCode": "Access Code",
     "setupSubtitle": "First time setup",
     "firstTimeSetup": "First time setup",
     "setupWarning": "Please configure your owner account details below.",
@@ -87,7 +87,8 @@
     "invalidFormat": "Invalid format",
     "studentNotFound": "Student not found",
     "registeredSuccess": "Successfully registered",
-    "dataSaved": "Data has been saved"
+    "dataSaved": "Data has been saved",
+    "username": "Username"
   },
   "navigation": {
     "home": "Home",
@@ -169,7 +170,8 @@
     "dragToLookAround": "← Drag to look around →",
     "noPanoramaAtPosition": "No panorama available at this position",
     "panoramaNavigationFailed": "Failed to load next panorama",
-    "openStreetMapFallback": "OpenStreetMap (Kakao unavailable)"
+    "openStreetMapFallback": "OpenStreetMap (Kakao unavailable)",
+    "paymentMode": "Payment Mode"
   },
   "crm": {
     "title": "Management System",
