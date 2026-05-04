@@ -8,19 +8,6 @@ interface InterviewMessage {
   role: 'interviewer' | 'student';
   content: string;
   created_at: string;
-  audio_url?: string | null;
-}
-
-/** Sentinel message used by the client to ask the AI to greet first.
- *  The interview-ai edge function detects this string and skips persisting it
- *  as a student turn so `conversationHistory.length === 0` correctly triggers
- *  the AI's greeting branch. */
-export const START_INTERVIEW_SENTINEL = '[START_INTERVIEW]';
-
-interface SendMessageResult {
-  response: string;
-  studentMessageId: string | null;
-  interviewerMessageId: string | null;
 }
 
 interface InterviewSession {
@@ -61,15 +48,13 @@ export function useInterviewSession() {
     studentMessage: string,
     sessionType?: string,
     language: string = 'ko'
-  ): Promise<SendMessageResult | null> => {
+  ) => {
     const currentSession = sessionRef.current || session;
     if (!currentSession) {
       console.error('[Interview] No active session for sendMessage');
       setError('No active session');
       return null;
     }
-
-    const isStartSentinel = studentMessage === START_INTERVIEW_SENTINEL;
 
     setIsProcessing(true);
 
@@ -79,21 +64,17 @@ export function useInterviewSession() {
         throw new Error('Not authenticated');
       }
 
-      // Add the student bubble to the UI immediately for snappy feel — but
-      // skip the START sentinel: it's a backend trigger, not a real turn the
-      // user typed/spoke.
-      if (!isStartSentinel) {
-        const tempStudentMessage: InterviewMessage = {
-          id: `temp-${Date.now()}`,
-          role: 'student',
-          content: studentMessage,
-          created_at: new Date().toISOString(),
-        };
-        setMessages(prev => [...prev, tempStudentMessage]);
-      }
+      // Add student message to UI immediately
+      const tempStudentMessage: InterviewMessage = {
+        id: `temp-${Date.now()}`,
+        role: 'student',
+        content: studentMessage,
+        created_at: new Date().toISOString(),
+      };
+      setMessages(prev => [...prev, tempStudentMessage]);
 
       console.log('[Interview] Sending message to interview-ai...', { sessionId: currentSession.id, sessionType });
-
+      
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/interview-ai`,
         {
@@ -121,38 +102,16 @@ export function useInterviewSession() {
 
       console.log('[Interview] Got AI response, length:', data.response?.length);
 
-      const studentMessageId: string | null = data.studentMessageId ?? null;
-      const interviewerMessageId: string | null = data.interviewerMessageId ?? null;
-
-      // Replace the temp student bubble with the persisted ID so callers can
-      // patch its `audio_url` later.
-      if (!isStartSentinel && studentMessageId) {
-        setMessages(prev => {
-          const next = [...prev];
-          for (let i = next.length - 1; i >= 0; i--) {
-            if (next[i].role === 'student' && next[i].id.startsWith('temp-')) {
-              next[i] = { ...next[i], id: studentMessageId };
-              break;
-            }
-          }
-          return next;
-        });
-      }
-
-      // Add interviewer response carrying the real DB id (or fallback).
+      // Add interviewer response
       const interviewerMessage: InterviewMessage = {
-        id: interviewerMessageId ?? `interviewer-${Date.now()}`,
+        id: `interviewer-${Date.now()}`,
         role: 'interviewer',
         content: data.response,
         created_at: new Date().toISOString(),
       };
       setMessages(prev => [...prev, interviewerMessage]);
 
-      return {
-        response: data.response,
-        studentMessageId,
-        interviewerMessageId,
-      };
+      return data.response;
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to send message';
       console.error('[Interview] sendMessage error:', message);
@@ -212,10 +171,8 @@ export function useInterviewSession() {
       setMessages([]);
       setFeedback(null);
 
-      // AI starts the conversation. The sentinel is recognized server-side
-      // and is intentionally NOT persisted as a student turn so the AI's
-      // greeting branch (`conversationHistory.length === 0`) actually fires.
-      await sendMessageRef.current(START_INTERVIEW_SENTINEL, sessionType, language);
+      // AI starts the conversation — use ref to get latest sendMessage
+      await sendMessageRef.current('[Interview started - AI begins]', sessionType, language);
 
       return newSession;
     } catch (err) {
@@ -237,13 +194,6 @@ export function useInterviewSession() {
   const endSession = useCallback(async (language: string = 'ko') => {
     const currentSession = sessionRef.current || session;
     if (!currentSession) return null;
-    // Idempotency guard: if a session has already been ended (manual click +
-    // auto timeout firing in the same tick, for example), don't double-call
-    // the feedback edge function or transition state twice.
-    if (currentSession.status === 'completed') {
-      console.log('[Interview] endSession skipped — session already completed');
-      return null;
-    }
 
     setIsLoading(true);
 
@@ -301,18 +251,6 @@ export function useInterviewSession() {
     setError(null);
   }, []);
 
-  /**
-   * Attach an `audio_url` to a previously persisted message so the transcript
-   * review UI can render an `<AudioPlayback>` for it. Used after the audio
-   * blob (student mic recording, or AI TTS output) has been uploaded to
-   * Supabase Storage.
-   */
-  const setMessageAudioUrl = useCallback((messageId: string, audioUrl: string) => {
-    setMessages(prev => prev.map(m =>
-      m.id === messageId ? { ...m, audio_url: audioUrl } : m
-    ));
-  }, []);
-
   return {
     session,
     messages,
@@ -324,6 +262,5 @@ export function useInterviewSession() {
     sendMessage,
     endSession,
     resetSession,
-    setMessageAudioUrl,
   };
 }

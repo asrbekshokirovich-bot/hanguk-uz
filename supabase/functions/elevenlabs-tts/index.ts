@@ -21,11 +21,7 @@ serve(async (req) => {
     // 2. Auth checking - Secures the endpoint from abuse
     const user = await requireAuth(req);
 
-    // Default voice falls back to a Korean native (Yuna). The previous default
-    // (`cgSgspJ2msm6clMCkdW9`) was a US-English voice ("Jessica") which caused
-    // Korean output to sound anglicized. Clients should still pass an explicit
-    // voiceId via `getVoiceId(lang)` from src/constants/voices.ts.
-    const { text, voiceId = 'xi3rF0t7dg7uN2M0WUhr' } = await req.json();
+    const { text, voiceId = 'cgSgspJ2msm6clMCkdW9' } = await req.json();
     
     if (!text) {
       throw new ApiError(400, "Text is required");
