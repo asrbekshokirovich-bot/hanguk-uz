@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useInterviewSession } from '@/hooks/useInterviewSession';
 import { useAudioRecorder } from '@/hooks/useAudioRecorder';
+import { getVoiceId } from '@/constants/voices';
 import { VIPAccessGate } from '@/components/interview/VIPAccessGate';
 import { InterviewFeedback } from '@/components/interview/InterviewFeedback';
 import { InterviewAnalytics } from '@/components/interview/InterviewAnalytics';
@@ -54,6 +55,17 @@ const TIME_LIMITS = [
   { value: 90, label: '90s' },
 ];
 
+/**
+ * Auto-end the session once the conversation reaches a natural endpoint.
+ * The interview-ai edge function tells the AI to "wrap up with a warm
+ * closing" at conversationHistory.length >= 8, so 16 total messages means
+ * the AI has had a chance to give its closing remarks. After that, the
+ * session auto-ends and feedback is generated.
+ *
+ * Manual End Interview button still works at any point before this.
+ */
+const SESSION_AUTO_END_AT_MESSAGES = 16;
+
 export default function InterviewPractice() {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -80,13 +92,24 @@ export default function InterviewPractice() {
   const [isTimerActive, setIsTimerActive] = useState(false);
 
   // Recording state
-  const [recordingEnabled, setRecordingEnabled] = useState(false);
+  // Default to ON — the user expects every interview to be recorded so they
+  // can replay it later from the transcript view. Can still be toggled off.
+  const [recordingEnabled, setRecordingEnabled] = useState(true);
+
+  // Autoplay fallback: when the browser blocks audio.play() on a cold load,
+  // we capture the pending HTMLAudioElement and surface a "Tap to start"
+  // button. The user's tap is a fresh gesture that satisfies autoplay.
+  const [needsTapToStart, setNeedsTapToStart] = useState(false);
+  const pendingAudioRef = useRef<HTMLAudioElement | null>(null);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioUrlRef = useRef<string | null>(null);
   const recognitionRef = useRef<any>(null);
   const lastSpokenIdRef = useRef<string>('');
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  // Tracks the DB id of the most recently sent student message so that when
+  // the mic recording finishes uploading we can attach its `audio_url`.
+  const lastStudentMessageIdRef = useRef<string | null>(null);
 
   const {
     session,
@@ -99,6 +122,7 @@ export default function InterviewPractice() {
     sendMessage,
     endSession,
     resetSession,
+    setMessageAudioUrl,
   } = useInterviewSession();
 
   const {
@@ -216,16 +240,35 @@ export default function InterviewPractice() {
     setIsListening(false);
     setIsSpeaking(true);
 
-    // Stop recording if active (using refs to avoid stale closure)
+    // Stop recording if active (using refs to avoid stale closure).
+    // When upload completes, link the audio_url back to the student message
+    // that this recording corresponds to so TranscriptReview can replay it.
     if (isRecordingRef.current) {
-      const result = await stopRecordingRef.current();
-      if (result && recordingEnabledRef.current) {
-        await uploadRecordingRef.current(result.blob);
+      const recResult = await stopRecordingRef.current();
+      if (recResult && recordingEnabledRef.current) {
+        const studentMsgId = lastStudentMessageIdRef.current;
+        // Don't block TTS playback on the upload — fire and patch later.
+        (async () => {
+          try {
+            const publicUrl = await uploadRecordingRef.current(recResult.blob);
+            if (!publicUrl || !studentMsgId) return;
+            setMessageAudioUrl(studentMsgId, publicUrl);
+            const { error: updErr } = await supabase
+              .from('interview_messages')
+              .update({ audio_url: publicUrl })
+              .eq('id', studentMsgId);
+            if (updErr) {
+              console.warn('[Interview] Failed to write student audio_url:', updErr.message);
+            }
+          } catch (uploadErr) {
+            console.error('[Interview] Student recording upload error:', uploadErr);
+          }
+        })();
       }
     }
 
     try {
-      const voiceId = currentLanguage === 'ko' ? 'cgSgspJ2msm6clMCkdW9' : 'nPczCjzI2devNBz1zQrb';
+      const voiceId = getVoiceId(currentLanguage);
 
       console.log('[TTS] Fetching audio from elevenlabs-tts...');
       const response = await fetch(
@@ -277,6 +320,47 @@ export default function InterviewPractice() {
       const audio = new Audio(audioUrl);
       audioRef.current = audio;
 
+      // Persist the AI's TTS audio so the user can replay it from the
+      // transcript review later. Fired non-blockingly — playback should not
+      // wait on storage upload. Skipped when recording is disabled or when
+      // we don't have a session/user (shouldn't happen in normal flow).
+      if (
+        recordingEnabledRef.current &&
+        session?.id &&
+        user?.id &&
+        messageId &&
+        !messageId.startsWith('interviewer-') // skip ad-hoc local-only ids
+      ) {
+        (async () => {
+          try {
+            const aiPath = `${user.id}/${session.id}/ai_${messageId}.mp3`;
+            const { error: upErr } = await supabase.storage
+              .from('interview-recordings')
+              .upload(aiPath, audioBlob, {
+                contentType: 'audio/mpeg',
+                upsert: true,
+              });
+            if (upErr) {
+              console.warn('[Interview] AI audio upload failed:', upErr.message);
+              return;
+            }
+            const { data: { publicUrl } } = supabase.storage
+              .from('interview-recordings')
+              .getPublicUrl(aiPath);
+            setMessageAudioUrl(messageId, publicUrl);
+            const { error: updErr } = await supabase
+              .from('interview_messages')
+              .update({ audio_url: publicUrl })
+              .eq('id', messageId);
+            if (updErr) {
+              console.warn('[Interview] Failed to write AI audio_url:', updErr.message);
+            }
+          } catch (err) {
+            console.error('[Interview] AI audio storage write error:', err);
+          }
+        })();
+      }
+
       audio.onended = () => {
         console.log('[TTS] Audio playback ended');
         setIsSpeaking(false);
@@ -305,22 +389,36 @@ export default function InterviewPractice() {
         }
       };
 
-      // Direct play instead of oncanplaythrough for reliability
+      // Direct play instead of oncanplaythrough for reliability.
+      // On cold loads the browser may have invalidated the original "Start
+      // Interview" gesture by the time the AI responds (~2-5 s round-trip),
+      // and `audio.play()` rejects with NotAllowedError. We surface a "Tap
+      // to start" button so the user's next click is a fresh gesture.
       try {
         console.log('[TTS] Calling audio.play()...');
         await audio.play();
         console.log('[TTS] Audio playing successfully');
+        // Successful play means autoplay is no longer blocked — clear any
+        // lingering tap-to-start UI from a previous failure.
+        if (needsTapToStart) {
+          setNeedsTapToStart(false);
+          pendingAudioRef.current = null;
+        }
       } catch (playErr) {
         console.error('[TTS] Autoplay blocked:', playErr);
+        // Audio is queued but not playing — clear the speaking state until
+        // the user taps and we successfully resume.
         setIsSpeaking(false);
-        toast.error('Ovozni eshitish uchun sahifaga bosing', { duration: 5000 });
+        pendingAudioRef.current = audio;
+        setNeedsTapToStart(true);
+        toast.info('Tap to start audio', { duration: 8000 });
       }
     } catch (err) {
       console.error('[TTS] Error:', err);
       setIsSpeaking(false);
       toast.error('Ovozli javob olishda xatolik. Matnni o\'qing.');
     }
-  }, [currentLanguage, timedMode, timeLimit]);
+  }, [currentLanguage, timedMode, timeLimit, session?.id, user?.id, setMessageAudioUrl, needsTapToStart]);
 
   // Keep speakWithTTS ref updated
   const speakWithTTSRef = useRef(speakWithTTS);
@@ -392,7 +490,13 @@ export default function InterviewPractice() {
         }
         setIsTimerActive(false);
 
-        await sendMessage(transcript, sessionType, currentLanguage);
+        const result = await sendMessage(transcript, sessionType, currentLanguage);
+        // Remember the just-persisted student message id so the upcoming
+        // recording upload (fired when the AI starts speaking) can patch
+        // its audio_url back to this exact row.
+        if (result?.studentMessageId) {
+          lastStudentMessageIdRef.current = result.studentMessageId;
+        }
       }
     };
 
@@ -465,7 +569,17 @@ export default function InterviewPractice() {
     }
   };
 
-  const handleEndInterview = async () => {
+  // Re-entrancy guard: timer-driven auto-end and a user click on the End
+  // button can fire in the same tick. Without this ref the feedback edge
+  // function would be hit twice.
+  const isEndingRef = useRef(false);
+
+  const handleEndInterview = useCallback(async (
+    reason: 'manual' | 'timeout' | 'error' = 'manual'
+  ) => {
+    if (isEndingRef.current) return;
+    isEndingRef.current = true;
+
     stopListening();
     cancelRecording();
     if (timerIntervalRef.current) {
@@ -475,9 +589,53 @@ export default function InterviewPractice() {
     if (audioRef.current) {
       audioRef.current.pause();
     }
-    await endSession(currentLanguage);
-    setViewState('feedback');
-  };
+
+    // Notify the user that the session is finishing — this fires for BOTH
+    // manual end and timeout-driven end so feedback is always announced.
+    if (reason === 'timeout') {
+      toast.success("Time's up! Session finished — generating feedback…", { duration: 4000 });
+    } else {
+      toast.success('Session finished — generating feedback…', { duration: 3000 });
+    }
+
+    try {
+      await endSession(currentLanguage);
+    } catch (err) {
+      console.error('[Interview] endSession threw:', err);
+    } finally {
+      // Always show the feedback view, even on error. The feedback panel
+      // already handles a null-feedback case by showing whatever it has.
+      setViewState('feedback');
+      isEndingRef.current = false;
+    }
+  }, [stopListening, cancelRecording, endSession, currentLanguage]);
+
+  // Session-level auto-end: when the conversation reaches the configured
+  // message threshold, the interview is over (the AI has been instructed
+  // to give a warm closing earlier). Auto-end fires the same flow as a
+  // manual click, so the user always gets a "Session finished" toast +
+  // feedback panel.
+  useEffect(() => {
+    if (viewState !== 'session') return;
+    if (!session || session.status !== 'active') return;
+    if (feedback) return;
+    if (isEndingRef.current) return;
+    if (messages.length < SESSION_AUTO_END_AT_MESSAGES) return;
+
+    // Wait until the AI finishes its closing message before ending so the
+    // user actually hears the goodbye.
+    if (isSpeaking || isProcessing) return;
+
+    handleEndInterview('timeout');
+  }, [
+    viewState,
+    session,
+    feedback,
+    messages.length,
+    isSpeaking,
+    isProcessing,
+    handleEndInterview,
+  ]);
 
   const handlePracticeAgain = () => {
     resetSession();
@@ -553,7 +711,7 @@ export default function InterviewPractice() {
       role: m.role,
       content: m.content,
       created_at: m.created_at,
-      audio_url: null, // TODO: Add audio URLs from recordings
+      audio_url: m.audio_url ?? null,
     }));
 
     return (
@@ -861,7 +1019,7 @@ export default function InterviewPractice() {
           <Button
             variant="destructive"
             size="sm"
-            onClick={handleEndInterview}
+            onClick={() => handleEndInterview('manual')}
             disabled={isLoading}
           >
             {isLoading ? (
@@ -878,6 +1036,38 @@ export default function InterviewPractice() {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col lg:flex-row gap-6 p-6">
+        {/* Tap-to-start overlay shown when the browser blocks autoplay on
+            the first AI greeting. Clicking is a fresh user gesture that
+            unblocks playback. */}
+        {needsTapToStart && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
+            <Button
+              size="lg"
+              onClick={async () => {
+                const a = pendingAudioRef.current;
+                if (!a) {
+                  setNeedsTapToStart(false);
+                  return;
+                }
+                try {
+                  await a.play();
+                  setIsSpeaking(true);
+                } catch (err) {
+                  console.error('[TTS] Manual play failed:', err);
+                  toast.error('Could not start audio. Try clicking again.');
+                  return;
+                }
+                pendingAudioRef.current = null;
+                setNeedsTapToStart(false);
+              }}
+              className="text-base"
+            >
+              <Volume2 className="h-5 w-5 mr-2" />
+              Tap to start audio
+            </Button>
+          </div>
+        )}
+
         {/* Left: Audio Avatar */}
         <div className="flex-1 flex flex-col">
           <AudioInterviewAvatar

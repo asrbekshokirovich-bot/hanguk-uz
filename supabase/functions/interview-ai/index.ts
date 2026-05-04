@@ -144,12 +144,24 @@ serve(async (req) => {
       );
     }
 
-    // Save student message
-    await adminClient.from("interview_messages").insert({
-      session_id: sessionId,
-      role: "student",
-      content: studentMessage,
-    });
+    // Save student message — but skip the sentinel that the client uses to
+    // ask the AI to greet first. Persisting it would make `conversationHistory`
+    // non-empty and the prompt logic below would skip the "START THE INTERVIEW"
+    // branch, causing the AI to reply *to* the bracket text instead of greeting.
+    const isStartSentinel = studentMessage === '[START_INTERVIEW]';
+    let studentMessageId: string | null = null;
+    if (!isStartSentinel) {
+      const { data: studentInsert } = await adminClient
+        .from("interview_messages")
+        .insert({
+          session_id: sessionId,
+          role: "student",
+          content: studentMessage,
+        })
+        .select("id")
+        .single();
+      studentMessageId = studentInsert?.id ?? null;
+    }
 
     // Get conversation history
     const { data: messages } = await adminClient
@@ -434,19 +446,27 @@ ${conversationHistory.length >= 8 ? "The interview is nearing end. Ask 1-2 more 
     const aiData = await aiResponse.json();
     const interviewerResponse = aiData.choices?.[0]?.message?.content || "죄송합니다, 다시 말씀해 주시겠어요?";
 
-    // Save interviewer message
-    await adminClient.from("interview_messages").insert({
-      session_id: sessionId,
-      role: "interviewer",
-      content: interviewerResponse,
-    });
+    // Save interviewer message and capture the inserted row's ID so the client
+    // can later attach an `audio_url` (TTS recording) to this exact message.
+    const { data: interviewerInsert } = await adminClient
+      .from("interview_messages")
+      .insert({
+        session_id: sessionId,
+        role: "interviewer",
+        content: interviewerResponse,
+      })
+      .select("id")
+      .single();
+    const interviewerMessageId: string | null = interviewerInsert?.id ?? null;
 
     console.log(`Interview ${sessionId}: Generated response for user ${user.id} (type: ${sessionType}, focus: ${focusTopic || 'all'})`);
 
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         response: interviewerResponse,
-        messageCount: (conversationHistory.length || 0) + 2
+        messageCount: (conversationHistory.length || 0) + (isStartSentinel ? 1 : 2),
+        studentMessageId,
+        interviewerMessageId,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
