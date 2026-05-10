@@ -113,7 +113,7 @@ export function UniversityComparisonChat({ universities, onClose }: UniversityCo
 
         const { data: applications } = await supabase
           .from('applications')
-          .select('status, university:universities(name_uz, name_en, name_ru)')
+          .select('status, university:institutions(name_en, name_ko)')
           .eq('student_id', user.id);
 
         setStudentContext({

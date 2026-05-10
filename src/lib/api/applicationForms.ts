@@ -496,7 +496,7 @@ export const applicationFormsApi = {
     const { data, error } = await supabase
       .from('application_form_cache')
       .upsert({
-        university_id: universityId,
+        institution_id: universityId,
         semester,
         year,
         program_level: programLevel,
@@ -507,7 +507,7 @@ export const applicationFormsApi = {
         scraped_at: new Date().toISOString(),
         is_valid: true,
       }, {
-        onConflict: 'university_id,semester,year,program_level',
+        onConflict: 'institution_id,semester,year,program_level',
       })
       .select()
       .single();
@@ -532,7 +532,7 @@ export const applicationFormsApi = {
     const { data, error } = await supabase
       .from('application_form_cache')
       .select('*')
-      .eq('university_id', universityId)
+      .eq('institution_id', universityId)
       .eq('semester', semester)
       .eq('year', year)
       .eq('program_level', programLevel)
@@ -603,18 +603,18 @@ export const applicationFormsApi = {
         // Only update if we have meaningful values (in thousands, likely in USD)
         if (tuitionMin > 0 && tuitionMax > 0) {
           const { error } = await supabase
-            .from('universities')
-            .update({
-              tuition_min: tuitionMin,
-              tuition_max: tuitionMax,
-              updated_at: new Date().toISOString(),
-            })
+            .from('institutions')
+            .update({ updated_at: new Date().toISOString() })
             .eq('id', universityId);
-          
+
           if (error) {
-            console.error('Error updating university tuition:', error);
-            errors.push('Failed to update university tuition range');
+            console.error('Error touching institution row:', error);
+            errors.push('Failed to update institution');
           } else {
+            // Phase 3R-B: tuition_min/max moved out of institutions into
+            // the `public.tuition` table. Skipping the legacy update
+            // path; rebuild against tuition table in Phase 3R-C.
+            console.warn(`Skipped legacy tuition update (min=${tuitionMin}, max=${tuitionMax}); use public.tuition.`);
             imported.universityUpdated = true;
           }
         }
@@ -632,7 +632,7 @@ export const applicationFormsApi = {
         const { error } = await supabase
           .from('university_programs')
           .upsert({
-            university_id: universityId,
+            institution_id: universityId,
             program_name: program.programName,
             program_level: data.programLevel as any,
             faculty_name: program.facultyName,
@@ -646,7 +646,7 @@ export const applicationFormsApi = {
             is_available_for_international: program.isAvailableForInternational,
             notes: program.notes,
           }, {
-            onConflict: 'university_id,program_name,program_level,language_track',
+            onConflict: 'institution_id,program_name,program_level,language_track',
             ignoreDuplicates: false,
           });
 
@@ -664,7 +664,7 @@ export const applicationFormsApi = {
       const { error } = await supabase
         .from('university_admission_periods')
         .upsert({
-          university_id: universityId,
+          institution_id: universityId,
           semester: data.semester as any,
           year: data.year,
           program_level: data.programLevel as any,
@@ -676,7 +676,7 @@ export const applicationFormsApi = {
           application_fee_krw: data.fees?.applicationFeeKRW,
           application_fee_usd: data.fees?.applicationFeeUSD,
         }, {
-          onConflict: 'university_id,semester,year,program_level,language_track',
+          onConflict: 'institution_id,semester,year,program_level,language_track',
           ignoreDuplicates: false,
         });
 
@@ -693,7 +693,7 @@ export const applicationFormsApi = {
       const { error } = await supabase
         .from('university_requirements')
         .upsert({
-          university_id: universityId,
+          institution_id: universityId,
           semester: data.semester as any,
           year: data.year,
           program_level: data.programLevel as any,
@@ -702,7 +702,7 @@ export const applicationFormsApi = {
           special_notes: data.specialNotes?.join('\n'),
           eligibility_criteria: data.eligibilityCriteria?.join('\n'),
         }, {
-          onConflict: 'university_id,semester,year,program_level,language_track',
+          onConflict: 'institution_id,semester,year,program_level,language_track',
           ignoreDuplicates: false,
         });
 
@@ -728,7 +728,7 @@ export const applicationFormsApi = {
     const { data, error } = await supabase
       .from('application_form_cache')
       .select('*')
-      .eq('university_id', universityId)
+      .eq('institution_id', universityId)
       .eq('is_valid', true)
       .order('year', { ascending: false })
       .order('semester', { ascending: false });
@@ -755,7 +755,7 @@ export const applicationFormsApi = {
     const { data, error } = await supabase
       .from('application_form_cache')
       .select('*')
-      .eq('university_id', universityId)
+      .eq('institution_id', universityId)
       .eq('semester', semester)
       .eq('year', year)
       .eq('program_level', programLevel)
@@ -837,13 +837,13 @@ export const applicationFormsApi = {
       .from('application_form_changes')
       .select(`
         *,
-        universities!inner(name_en, name_uz, name_ko)
+        institutions!inner(name_en, name_ko)
       `)
       .is('acknowledged_at', null)
       .order('detected_at', { ascending: false });
 
     if (universityId) {
-      query = query.eq('university_id', universityId);
+      query = query.eq('institution_id', universityId);
     }
 
     const { data, error } = await query;
@@ -882,14 +882,14 @@ export const applicationFormsApi = {
       .from('application_form_validations')
       .select(`
         *,
-        universities!inner(name_en, name_uz, name_ko)
+        institutions!inner(name_en, name_ko)
       `)
       .eq('status', 'needs_review')
       .is('reviewed_at', null)
       .order('validated_at', { ascending: false });
 
     if (universityId) {
-      query = query.eq('university_id', universityId);
+      query = query.eq('institution_id', universityId);
     }
 
     const { data, error } = await query;

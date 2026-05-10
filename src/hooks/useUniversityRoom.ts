@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 
 export interface UniversityRoom {
   id: string;
-  university_id: string;
+  institution_id: string;
   is_active: boolean;
   created_at: string;
 }
@@ -53,7 +53,7 @@ export function useUniversityRoom(universityId: string | null) {
       const { data: roomData, error: roomError } = await supabase
         .from('university_rooms')
         .select('*')
-        .eq('university_id', universityId)
+        .eq('institution_id', universityId)
         .eq('is_active', true)
         .single();
 

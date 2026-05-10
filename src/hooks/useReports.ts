@@ -66,11 +66,11 @@ export function useReports() {
         universitiesRes,
       ] = await Promise.all([
         supabase.from('profiles').select('*'),
-        supabase.from('applications').select('*, university:universities(name_en, name_uz)'),
+        supabase.from('applications').select('*, university:institutions(name_en, name_ko)'),
         supabase.from('payments').select('*').gte('created_at', fromDate).lte('created_at', toDate),
         supabase.from('calls').select('*').gte('started_at', fromDate).lte('started_at', toDate),
         supabase.from('tasks').select('*'),
-        supabase.from('universities').select('id, name_en, name_uz'),
+        supabase.from('institutions').select('id, name_en, name_ko'),
       ]);
 
       const profiles = profilesRes.data || [];

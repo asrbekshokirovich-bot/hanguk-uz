@@ -81,7 +81,7 @@ export function ApplicationTracker({ applications, loading, hideRoomEntry = fals
               <div className="flex items-start justify-between">
                 <div 
                   className={cn("flex items-center gap-3", onShowOnMap && "cursor-pointer hover:opacity-80 transition-opacity")}
-                  onClick={() => onShowOnMap && application.university_id && onShowOnMap(application.university_id)}
+                  onClick={() => onShowOnMap && application.institution_id && onShowOnMap(application.institution_id)}
                 >
                   {application.university?.logo_url ? (
                     <img
@@ -109,7 +109,7 @@ export function ApplicationTracker({ applications, loading, hideRoomEntry = fals
                       variant="ghost"
                       size="icon"
                       className="h-8 w-8 text-muted-foreground hover:text-primary"
-                      onClick={() => application.university_id && onShowOnMap(application.university_id)}
+                      onClick={() => application.institution_id && onShowOnMap(application.institution_id)}
                     >
                       <MapPin className="h-4 w-4" />
                     </Button>

@@ -59,7 +59,7 @@ export function useCRMData() {
       const [appsResult, docsResult, paymentsResult] = await Promise.all([
         supabase
           .from('applications')
-          .select('*, university:universities(*)')
+          .select('*, university:institutions(*)')
           .in('student_id', studentUserIds),
         supabase
           .from('documents')
@@ -158,7 +158,7 @@ export function useCRMData() {
     try {
       const { data, error } = await supabase
         .from('applications')
-        .select('*, university:universities(*)')
+        .select('*, university:institutions(*)')
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -175,9 +175,9 @@ export function useCRMData() {
   const fetchUniversities = async () => {
     try {
       const { data, error } = await supabase
-        .from('universities')
+        .from('institutions')
         .select('*')
-        .order('ranking', { ascending: true });
+        .order('tier', { ascending: true, nullsFirst: false });
 
       if (error) {
         console.error('Error fetching universities:', error);

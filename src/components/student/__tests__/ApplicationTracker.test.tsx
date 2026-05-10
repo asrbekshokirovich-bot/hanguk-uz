@@ -27,7 +27,7 @@ const mockApplications = [
   {
     id: "app-1",
     student_id: "stu-1",
-    university_id: "uni-1",
+    institution_id: "uni-1",
     status: "apostille",
     created_at: "2026-01-01",
     updated_at: "2026-01-01",

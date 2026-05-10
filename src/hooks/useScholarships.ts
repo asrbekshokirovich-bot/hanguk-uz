@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 export interface Scholarship {
   id: string;
-  university_id: string | null;
+  institution_id: string | null;
   name: string;
   name_uz: string | null;
   name_ru: string | null;
@@ -48,7 +48,7 @@ export function useScholarships(filters: ScholarshipFilters) {
         .from('scholarships')
         .select(`
           *,
-          university:universities(id, name_uz, name_en, name_ko, name_ru, logo_url)
+          university:institutions(id, name_en, name_ko, logo_url)
         `)
         .eq('is_active', true);
 

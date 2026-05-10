@@ -286,7 +286,7 @@ export function useAIInsights() {
 
       const { data: stuckApplications } = await supabase
         .from('applications')
-        .select('id, student_id, university_id, updated_at')
+        .select('id, student_id, institution_id, updated_at')
         .eq('status', 'university_review')
         .lt('updated_at', sevenDaysAgo.toISOString())
         .order('updated_at', { ascending: true })
@@ -294,11 +294,11 @@ export function useAIInsights() {
 
       if (stuckApplications && stuckApplications.length > 0) {
         const studentIds = stuckApplications.map(a => a.student_id);
-        const universityIds = stuckApplications.map(a => a.university_id);
+        const universityIds = stuckApplications.map(a => a.institution_id);
         
         const [studentsRes, universitiesRes] = await Promise.all([
           supabase.from('profiles').select('user_id, full_name').in('user_id', studentIds),
-          supabase.from('universities').select('id, name_en').in('id', universityIds)
+          supabase.from('institutions').select('id, name_en').in('id', universityIds)
         ]);
         
         const studentMap = new Map((studentsRes.data || []).map(s => [s.user_id, s.full_name]));
@@ -315,7 +315,7 @@ export function useAIInsights() {
           items: stuckApplications.map(a => ({
             id: a.id,
             name: studentMap.get(a.student_id) || 'Unknown',
-            detail: uniMap.get(a.university_id) || 'Unknown university'
+            detail: uniMap.get(a.institution_id) || 'Unknown university'
           }))
         });
       }
@@ -323,7 +323,7 @@ export function useAIInsights() {
       // 9. Success insight - recently accepted applications
       const { data: recentAccepted } = await supabase
         .from('applications')
-        .select('id, student_id, university_id')
+        .select('id, student_id, institution_id')
         .eq('decision', 'accepted')
         .gte('decision_at', sevenDaysAgo.toISOString())
         .order('decision_at', { ascending: false })
@@ -331,11 +331,11 @@ export function useAIInsights() {
 
       if (recentAccepted && recentAccepted.length > 0) {
         const studentIds = recentAccepted.map(a => a.student_id);
-        const universityIds = recentAccepted.map(a => a.university_id);
+        const universityIds = recentAccepted.map(a => a.institution_id);
         
         const [studentsRes, universitiesRes] = await Promise.all([
           supabase.from('profiles').select('user_id, full_name').in('user_id', studentIds),
-          supabase.from('universities').select('id, name_en').in('id', universityIds)
+          supabase.from('institutions').select('id, name_en').in('id', universityIds)
         ]);
         
         const studentMap = new Map((studentsRes.data || []).map(s => [s.user_id, s.full_name]));
@@ -351,7 +351,7 @@ export function useAIInsights() {
           items: recentAccepted.map(a => ({
             id: a.id,
             name: studentMap.get(a.student_id) || 'Unknown',
-            detail: `Accepted to ${uniMap.get(a.university_id) || 'university'}`
+            detail: `Accepted to ${uniMap.get(a.institution_id) || 'university'}`
           }))
         });
       }

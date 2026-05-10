@@ -108,8 +108,8 @@ export function StaffDetail({
   });
 
   // Issue 10: University assignment management
-  const [universities, setUniversities] = useState<Array<{ id: string; name_uz: string }>>([]);
-  const [currentAssignment, setCurrentAssignment] = useState<{ id: string; university_id: string; title: string | null } | null>(null);
+  const [universities, setUniversities] = useState<Array<{ id: string; name_en: string | null; name_ko: string }>>([]);
+  const [currentAssignment, setCurrentAssignment] = useState<{ id: string; institution_id: string; title: string | null } | null>(null);
   const [selectedUniversityId, setSelectedUniversityId] = useState('');
   const [assignmentTitle, setAssignmentTitle] = useState('');
   const [assigningSaving, setAssigningSaving] = useState(false);
@@ -119,33 +119,24 @@ export function StaffDetail({
   useEffect(() => {
     if (!isUniversityStaff) return;
     const fetchAssignmentData = async () => {
-      const [{ data: unis }, { data: assignments }] = await Promise.all([
-        supabase.from('universities').select('id, name_uz').order('name_uz'),
-        supabase.from('university_staff_assignments').select('id, university_id, title').eq('user_id', staff.user_id).eq('is_active', true).limit(1),
-      ]);
+      // Phase 3R-B: university_staff_assignments was dropped 2026-05-10.
+      // Until a replacement table is introduced, we still surface the
+      // institutions list for selection but no assignment can be persisted.
+      const { data: unis } = await supabase
+        .from('institutions')
+        .select('id, name_en, name_ko')
+        .order('name_ko');
       setUniversities(unis || []);
-      const assignment = assignments?.[0] || null;
-      setCurrentAssignment(assignment);
-      if (assignment) {
-        setSelectedUniversityId(assignment.university_id);
-        setAssignmentTitle(assignment.title || '');
-      }
+      setCurrentAssignment(null);
     };
     fetchAssignmentData();
   }, [staff.user_id, isUniversityStaff]);
 
   const handleSaveAssignment = async () => {
-    if (!selectedUniversityId) return;
-    setAssigningSaving(true);
-    if (currentAssignment) {
-      await supabase.from('university_staff_assignments').update({ university_id: selectedUniversityId, title: assignmentTitle || null }).eq('id', currentAssignment.id);
-    } else {
-      await supabase.from('university_staff_assignments').insert({ user_id: staff.user_id, university_id: selectedUniversityId, title: assignmentTitle || null });
-    }
+    // Phase 3R-B: university_staff_assignments dropped 2026-05-10.
+    // Save is a no-op until the replacement table lands.
+    console.warn('university_staff_assignments was retired on 2026-05-10. Save is a no-op.');
     setAssigningSaving(false);
-    // Refetch
-    const { data: assignments } = await supabase.from('university_staff_assignments').select('id, university_id, title').eq('user_id', staff.user_id).eq('is_active', true).limit(1);
-    setCurrentAssignment(assignments?.[0] || null);
   };
 
   const handleStartCall = () => {
@@ -411,7 +402,7 @@ export function StaffDetail({
                   </SelectTrigger>
                   <SelectContent>
                     {universities.map(u => (
-                      <SelectItem key={u.id} value={u.id}>{u.name_uz}</SelectItem>
+                      <SelectItem key={u.id} value={u.id}>{(u.name_ko ?? u.name_en ?? u.id)}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>

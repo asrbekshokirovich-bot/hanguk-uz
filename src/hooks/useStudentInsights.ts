@@ -25,7 +25,7 @@ export function useStudentInsights() {
     try {
       // Fetch student data
       const [applicationsRes, documentsRes, paymentsRes, tasksRes] = await Promise.all([
-        supabase.from('applications').select('*, university:universities(*)').eq('student_id', user.id),
+        supabase.from('applications').select('*, university:institutions(*)').eq('student_id', user.id),
         supabase.from('documents').select('*').eq('student_id', user.id),
         supabase.from('payments').select('*').eq('student_id', user.id),
         supabase.from('tasks').select('*').eq('student_id', user.id).neq('status', 'completed'),

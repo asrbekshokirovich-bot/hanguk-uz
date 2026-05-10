@@ -345,9 +345,9 @@ function StudyPlanTrainerContent() {
     if (!currentSession) return null;
 
     if (currentSession.document_type === 'study_plan') {
-      return await teachStudyPlan(currentLang, currentSession.target_university_id || undefined);
+      return await teachStudyPlan(currentLang, currentSession.target_institution_id || undefined);
     } else {
-      return await teachPersonalStatement(currentLang, currentSession.target_university_id || undefined);
+      return await teachPersonalStatement(currentLang, currentSession.target_institution_id || undefined);
     }
   }, [currentSession, currentLang, teachStudyPlan, teachPersonalStatement]);
 
@@ -364,9 +364,9 @@ function StudyPlanTrainerContent() {
 
     let response: string | null = null;
     if (currentSession.document_type === 'study_plan') {
-      response = await generateStudyPlanExample(currentLang, currentSession.target_university_id || undefined);
+      response = await generateStudyPlanExample(currentLang, currentSession.target_institution_id || undefined);
     } else {
-      response = await generatePersonalStatementExample(currentLang, currentSession.target_university_id || undefined);
+      response = await generatePersonalStatementExample(currentLang, currentSession.target_institution_id || undefined);
     }
 
     // Save as AI-generated draft (version 0)
@@ -413,9 +413,9 @@ function StudyPlanTrainerContent() {
       // Analyze
       let response: string | null = null;
       if (currentSession.document_type === 'study_plan') {
-        response = await analyzeStudyPlan(content, currentLang, currentSession.target_university_id || undefined);
+        response = await analyzeStudyPlan(content, currentLang, currentSession.target_institution_id || undefined);
       } else {
-        response = await analyzePersonalStatement(content, currentLang, currentSession.target_university_id || undefined);
+        response = await analyzePersonalStatement(content, currentLang, currentSession.target_institution_id || undefined);
       }
 
       if (response) {
@@ -465,9 +465,9 @@ function StudyPlanTrainerContent() {
     if (!currentSession) return null;
 
     if (currentSession.document_type === 'study_plan') {
-      return await chatAboutStudyPlan(message, currentLang, currentSession.target_university_id || undefined);
+      return await chatAboutStudyPlan(message, currentLang, currentSession.target_institution_id || undefined);
     } else {
-      return await chatAboutPersonalStatement(message, currentLang, currentSession.target_university_id || undefined);
+      return await chatAboutPersonalStatement(message, currentLang, currentSession.target_institution_id || undefined);
     }
   }, [currentSession, currentLang, chatAboutStudyPlan, chatAboutPersonalStatement]);
 
@@ -598,7 +598,7 @@ function StudyPlanTrainerContent() {
                 onDownload={handleDownload}
                 isSaving={isSessionLoading}
                 isSubmitting={isSubmittingForAnalysis}
-                universityId={currentSession.target_university_id || undefined}
+                universityId={currentSession.target_institution_id || undefined}
                 sessionId={currentSession.id}
                 latestDraftId={latestDraft?.id}
               />

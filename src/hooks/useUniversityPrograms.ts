@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 export interface UniversityProgram {
   id: string;
-  university_id: string;
+  institution_id: string;
   program_name: string;
   program_level: string;
   faculty_name: string | null;
@@ -20,7 +20,7 @@ export interface UniversityProgram {
 
 export interface UniversityAdmissionPeriod {
   id: string;
-  university_id: string;
+  institution_id: string;
   program_level: string;
   semester: string;
   year: number;
@@ -47,7 +47,7 @@ export function useUniversityPrograms(universityId: string | null) {
       const { data, error } = await supabase
         .from('university_programs')
         .select('*')
-        .eq('university_id', universityId)
+        .eq('institution_id', universityId)
         .eq('is_available_for_international', true);
       
       if (error) throw error;
@@ -69,7 +69,7 @@ export function useUniversityAdmissionPeriods(universityId: string | null) {
       const { data, error } = await supabase
         .from('university_admission_periods')
         .select('*')
-        .eq('university_id', universityId)
+        .eq('institution_id', universityId)
         .gte('year', currentYear)
         .order('year', { ascending: true })
         .order('semester', { ascending: true });

@@ -35,7 +35,7 @@ export function SuggestedUniversities({ suggestions, onRefresh, onShowOnMap }: S
       // 1. Insert into applications
       const { error: insertError } = await supabase.from('applications').insert({
         student_id: suggestion.student_id,
-        university_id: suggestion.university_id,
+        institution_id: suggestion.institution_id,
         status: 'pending_approval'
       });
       
@@ -97,7 +97,7 @@ export function SuggestedUniversities({ suggestions, onRefresh, onShowOnMap }: S
                     variant="ghost"
                     size="icon"
                     className="h-8 w-8"
-                    onClick={() => onShowOnMap(suggestion.university_id)}
+                    onClick={() => onShowOnMap(suggestion.institution_id)}
                   >
                     <MapPin className="h-4 w-4" />
                   </Button>
