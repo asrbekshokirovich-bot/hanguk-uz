@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
+import { useUniDbReviewer } from '@/hooks/useUniDbReviewer';
 import { useCRMData } from '@/hooks/useCRMData';
 import { usePayments } from '@/hooks/usePayments';
 import { CRMSidebar, useSidebarGroups } from '@/components/crm/CRMSidebar';
@@ -58,6 +59,7 @@ const ApplicationFormsContent = lazy(() => import('@/components/crm/pages/Applic
 const CalendarContent = lazy(() => import('@/components/crm/pages/CalendarContent'));
 const SettingsContent = lazy(() => import('@/components/crm/pages/SettingsContent'));
 const KakaoMapContent = lazy(() => import('@/components/crm/pages/KakaoMapContent'));
+const UniDbReviewContent = lazy(() => import('@/components/crm/pages/UniDbReviewContent'));
 
 // Access denied component
 const AccessDenied = () => (
@@ -84,6 +86,7 @@ export default function CRMPortal() {
   const location = useLocation();
   const { user, signOut, loading: authLoading } = useAuth();
   const { isStaff, isOwner, isAdmin, isCallOperator, isDocumentHandler, loading: roleLoading } = useUserRole();
+  const { isUniDbReviewer } = useUniDbReviewer();
   const {
     students,
     applications,
@@ -101,7 +104,7 @@ export default function CRMPortal() {
   const [activeGroup, setActiveGroup] = useState<string | null>(null);
 
   // Get sidebar groups for sub-navigation
-  const sidebarGroups = useSidebarGroups(isOwner, isAdmin, isCallOperator, isDocumentHandler, t, currentLang);
+  const sidebarGroups = useSidebarGroups(isOwner, isAdmin, isCallOperator, isDocumentHandler, t, currentLang, isUniDbReviewer);
 
   // Determine active group from URL
   useEffect(() => {
@@ -148,6 +151,7 @@ export default function CRMPortal() {
     if (currentPath.startsWith('/crm/communication')) return 'communication';
     if (currentPath.startsWith('/crm/application-forms')) return 'application-forms';
     if (currentPath.startsWith('/crm/kakao-map')) return 'kakao-map';
+    if (currentPath.startsWith('/crm/admin/uni-db-review')) return 'uni-db-review';
     return 'dashboard';
   };
 
@@ -400,6 +404,8 @@ export default function CRMPortal() {
         return <SafeSuspense><SettingsContent /></SafeSuspense>;
       case 'kakao-map':
         return <SafeSuspense><KakaoMapContent /></SafeSuspense>;
+      case 'uni-db-review':
+        return <SafeSuspense><UniDbReviewContent /></SafeSuspense>;
       default:
         return (
           <CRMDashboard
@@ -422,6 +428,7 @@ export default function CRMPortal() {
               isAdmin={isAdmin}
               isCallOperator={isCallOperator}
               isDocumentHandler={isDocumentHandler}
+              isUniDbReviewer={isUniDbReviewer}
               activeGroup={activeGroup}
               onGroupSelect={setActiveGroup}
             />

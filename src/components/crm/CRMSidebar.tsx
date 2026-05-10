@@ -11,10 +11,10 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { 
-  Users, 
-  FileText, 
-  GraduationCap, 
+import {
+  Users,
+  FileText,
+  GraduationCap,
   MessageSquare,
   ClipboardList,
   Calendar,
@@ -37,6 +37,7 @@ import {
   Shield,
   Receipt,
   Clock,
+  ClipboardCheck,
 } from 'lucide-react';
 import { SidebarStaffPanel } from '@/components/intercom/SidebarStaffPanel';
 
@@ -59,26 +60,21 @@ interface CRMSidebarProps {
   isAdmin: boolean;
   isCallOperator: boolean;
   isDocumentHandler: boolean;
+  isUniDbReviewer?: boolean;
   activeGroup: string | null;
   onGroupSelect: (groupId: string) => void;
 }
 
-export function CRMSidebar({ 
-  isOwner, 
-  isAdmin, 
-  isCallOperator, 
-  isDocumentHandler,
-  activeGroup,
-  onGroupSelect
-}: CRMSidebarProps) {
-  const { t, i18n } = useTranslation();
-  const lang = i18n.language;
-  const { state } = useSidebar();
-  const collapsed = state === 'collapsed';
-  const location = useLocation();
-  const navigate = useNavigate();
-
-  const groups: SidebarGroup[] = [
+function buildGroups(
+  isOwner: boolean,
+  isAdmin: boolean,
+  isCallOperator: boolean,
+  isDocumentHandler: boolean,
+  isUniDbReviewer: boolean,
+  t: (key: string) => string,
+  lang: string,
+): SidebarGroup[] {
+  return [
     {
       id: 'home',
       title: lang === 'uz' ? 'Asosiy' : 'Home',
@@ -142,16 +138,50 @@ export function CRMSidebar({
       visible: true,
       items: [
         { title: t('navigation.staff'), url: '/crm/staff', icon: Users, visible: true },
+        {
+          title: lang === 'uz' ? 'Uni DB Review' : 'Uni DB Review',
+          url: '/crm/admin/uni-db-review',
+          icon: ClipboardCheck,
+          visible: isUniDbReviewer,
+          highlight: true,
+        },
         { title: t('navigation.settings'), url: '/crm/settings', icon: Settings, visible: true },
       ],
     },
   ];
+}
+
+export function CRMSidebar({
+  isOwner,
+  isAdmin,
+  isCallOperator,
+  isDocumentHandler,
+  isUniDbReviewer = false,
+  activeGroup,
+  onGroupSelect,
+}: CRMSidebarProps) {
+  const { t, i18n } = useTranslation();
+  const lang = i18n.language;
+  const { state } = useSidebar();
+  const collapsed = state === 'collapsed';
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const groups: SidebarGroup[] = buildGroups(
+    isOwner,
+    isAdmin,
+    isCallOperator,
+    isDocumentHandler,
+    isUniDbReviewer,
+    t,
+    lang,
+  );
 
   // Determine which group should be active based on current URL
   const getActiveGroupFromUrl = () => {
     for (const group of groups) {
       for (const item of group.items) {
-        if (item.visible && (location.pathname === item.url || 
+        if (item.visible && (location.pathname === item.url ||
             (item.url !== '/crm' && location.pathname.startsWith(item.url)))) {
           return group.id;
         }
@@ -231,74 +261,8 @@ export function useSidebarGroups(
   isCallOperator: boolean,
   isDocumentHandler: boolean,
   t: (key: string) => string,
-  lang: string
+  lang: string,
+  isUniDbReviewer = false,
 ): SidebarGroup[] {
-  return [
-    {
-      id: 'home',
-      title: lang === 'uz' ? 'Asosiy' : 'Home',
-      icon: Home,
-      visible: true,
-      items: [
-        { title: t('navigation.dashboard'), url: '/crm', icon: Home, visible: true },
-        { title: 'Hanguk AI', url: '/crm/ai', icon: Bot, visible: true, highlight: true },
-        { title: t('navigation.students'), url: '/crm/students', icon: Users, visible: true },
-        { title: t('navigation.applications'), url: '/crm/applications', icon: GraduationCap, visible: true },
-        { title: t('navigation.documents'), url: '/crm/documents', icon: FileText, visible: true },
-      ],
-    },
-    {
-      id: 'communication',
-      title: t('navigation.communication'),
-      icon: Headphones,
-      visible: true,
-      items: [
-        { title: t('navigation.messages'), url: '/crm/messages', icon: MessageSquare, visible: true },
-        { title: t('common.phone'), url: '/crm/calls', icon: Phone, visible: true },
-        { title: t('navigation.liveCall'), url: '/crm/communication', icon: Radio, visible: false, highlight: true },
-        { title: t('navigation.leads'), url: '/crm/leads', icon: UserPlus, visible: true, highlight: true },
-      ],
-    },
-    {
-      id: 'management',
-      title: t('navigation.management'),
-      icon: Briefcase,
-      visible: true,
-      items: [
-        { title: t('navigation.tasks'), url: '/crm/tasks', icon: ClipboardList, visible: true },
-        { title: t('navigation.calendar'), url: '/crm/calendar', icon: Calendar, visible: true },
-        { title: t('navigation.universities'), url: '/crm/universities', icon: GraduationCap, visible: true },
-        { title: t('navigation.formFinder'), url: '/crm/application-forms', icon: FileSearch, visible: true, highlight: true },
-        { title: t('navigation.aiTranslation'), url: '/crm/translation', icon: Languages, visible: true, highlight: true },
-        { title: t('navigation.kakaoMap'), url: '/crm/kakao-map', icon: MapPin, visible: true, highlight: true },
-      ],
-    },
-    {
-      id: 'finance',
-      title: t('navigation.finance'),
-      icon: DollarSign,
-      visible: isOwner,
-      items: [
-        { title: t('navigation.overview'), url: '/crm/finance', icon: Home, visible: isOwner },
-        { title: t('navigation.students'), url: '/crm/finance/students', icon: Users, visible: isOwner },
-        { title: t('navigation.budgets'), url: '/crm/finance/budgets', icon: Wallet, visible: isOwner },
-        { title: t('navigation.monthly'), url: '/crm/finance/monthly', icon: CalendarClock, visible: isOwner },
-        { title: t('navigation.scheduled'), url: '/crm/finance/scheduled', icon: Clock, visible: isOwner },
-        { title: t('navigation.transactions'), url: '/crm/finance/transactions', icon: Receipt, visible: isOwner },
-        { title: t('navigation.distribution'), url: '/crm/finance/distribution', icon: PieChart, visible: isOwner },
-        { title: t('navigation.bonuses'), url: '/crm/finance/bonuses', icon: Gift, visible: isOwner },
-        { title: t('navigation.reports'), url: '/crm/finance/reports', icon: FileText, visible: isOwner },
-      ],
-    },
-    {
-      id: 'admin',
-      title: t('navigation.admin'),
-      icon: Shield,
-      visible: true,
-      items: [
-        { title: t('navigation.staff'), url: '/crm/staff', icon: Users, visible: true },
-        { title: t('navigation.settings'), url: '/crm/settings', icon: Settings, visible: true },
-      ],
-    },
-  ];
+  return buildGroups(isOwner, isAdmin, isCallOperator, isDocumentHandler, isUniDbReviewer, t, lang);
 }
