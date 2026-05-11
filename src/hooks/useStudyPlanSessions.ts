@@ -7,7 +7,7 @@ export interface StudyPlanSession {
   id: string;
   student_id: string;
   document_type: 'study_plan' | 'personal_statement';
-  target_university_id: string | null;
+  target_institution_id: string | null;
   current_step: number;
   status: 'in_progress' | 'completed' | 'abandoned';
   started_at: string;
@@ -76,7 +76,7 @@ export function useStudyPlanSessions() {
         .from('study_plan_sessions')
         .select(`
           *,
-          university:target_university_id (
+          university:target_institution_id (
             id,
             name_en,
             name_ko,
@@ -113,13 +113,13 @@ export function useStudyPlanSessions() {
         .insert({
           student_id: user.id,
           document_type: documentType,
-          target_university_id: targetUniversityId || null,
+          target_institution_id: targetUniversityId || null,
           current_step: 1,
           status: 'in_progress',
         })
         .select(`
           *,
-          university:target_university_id (
+          university:target_institution_id (
             id,
             name_en,
             name_ko,
@@ -162,7 +162,7 @@ export function useStudyPlanSessions() {
         .from('study_plan_sessions')
         .select(`
           *,
-          university:target_university_id (
+          university:target_institution_id (
             id,
             name_en,
             name_ko,

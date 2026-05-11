@@ -153,7 +153,7 @@ export function useInterviewSession() {
         .insert({
           student_id: user.id,
           session_type: sessionType,
-          target_university_id: targetUniversityId || null,
+          target_institution_id: targetUniversityId || null,
           status: 'active',
           focus_topic: focusTopic || null,
           timed_mode: timedMode || false,

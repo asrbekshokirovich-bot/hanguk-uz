@@ -1,5 +1,14 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+/**
+ * Phase 3R-B (2026-05-10) — neutered. The `public.university_announcements`
+ * table was dropped (always empty per the prompt cleanup scope). Hook
+ * keeps its public shape so existing call sites compile, but returns an
+ * empty list synchronously and no-ops on writes.
+ *
+ * Re-implement against `public.announcements` + announcement_sources
+ * (uni_db) when the staff-rooms feature is rebuilt in Phase 3R-C.
+ */
+
+import { useState, useCallback } from 'react';
 
 export interface UniversityAnnouncement {
   id: string;
@@ -16,92 +25,24 @@ export interface UniversityAnnouncement {
   poster_name?: string | null;
 }
 
-export function useUniversityAnnouncements(roomId: string | null) {
-  const [announcements, setAnnouncements] = useState<UniversityAnnouncement[]>([]);
-  const [loading, setLoading] = useState(true);
+export function useUniversityAnnouncements(_roomId: string | null) {
+  const [announcements] = useState<UniversityAnnouncement[]>([]);
+  const loading = false;
 
-  useEffect(() => {
-    if (!roomId) {
-      setLoading(false);
-      return;
-    }
+  const refetch = useCallback(async () => {
+    // legacy table dropped; nothing to fetch.
+  }, []);
 
-    const fetchAnnouncements = async () => {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('university_announcements')
-        .select('*')
-        .eq('room_id', roomId)
-        .order('is_pinned', { ascending: false })
-        .order('created_at', { ascending: false });
+  const create = useCallback(
+    async (_payload: Partial<UniversityAnnouncement>) => {
+      throw new Error('university_announcements is retired. Phase 3R-C will reroute writes to public.announcements.');
+    },
+    [],
+  );
 
-      if (!error && data) {
-        // Fetch poster names
-        const posterIds = [...new Set(data.map(a => a.posted_by))];
-        const { data: profiles } = await supabase
-          .from('profiles')
-          .select('user_id, full_name')
-          .in('user_id', posterIds);
+  const remove = useCallback(async (_id: string) => {
+    throw new Error('university_announcements is retired.');
+  }, []);
 
-        const profileMap = new Map(profiles?.map(p => [p.user_id, p.full_name]) || []);
-
-        setAnnouncements(data.map(a => ({
-          ...a,
-          poster_name: profileMap.get(a.posted_by) || null,
-        })));
-      }
-      setLoading(false);
-    };
-
-    fetchAnnouncements();
-
-    // Subscribe to realtime
-    const channelId = `announcements-${roomId}-${Math.random().toString(36).substring(7)}`;
-    const channel = supabase
-      .channel(channelId)
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'university_announcements',
-        filter: `room_id=eq.${roomId}`,
-      }, () => {
-        fetchAnnouncements();
-      })
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [roomId]);
-
-  const createAnnouncement = async (data: {
-    title: string;
-    content: string;
-    priority?: string;
-    is_pinned?: boolean;
-    attachment_url?: string;
-    attachment_name?: string;
-  }) => {
-    if (!roomId) return false;
-
-    const { data: userData } = await supabase.auth.getUser();
-    if (!userData.user) return false;
-
-    const { error } = await supabase
-      .from('university_announcements')
-      .insert({
-        room_id: roomId,
-        posted_by: userData.user.id,
-        title: data.title,
-        content: data.content,
-        priority: data.priority || 'normal',
-        is_pinned: data.is_pinned || false,
-        attachment_url: data.attachment_url || null,
-        attachment_name: data.attachment_name || null,
-      });
-
-    return !error;
-  };
-
-  return { announcements, loading, createAnnouncement };
+  return { announcements, loading, refetch, create, remove };
 }

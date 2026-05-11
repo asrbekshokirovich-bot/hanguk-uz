@@ -47,8 +47,8 @@ export function KakaoMap({ focusUniversityId }: KakaoMapProps) {
   useEffect(() => {
     const fetchUnis = async () => {
       const { data } = await supabase
-        .from('universities')
-        .select('id, name_en, name_ko, name_uz, city_en, city_ko, latitude, longitude, ranking, is_partner')
+        .from('institutions')
+        .select('id, name_en, name_ko, name_ko_short, city_ko, latitude, longitude, tier, is_partner')
         .eq('is_visible_on_map', true);
       if (data) setUniversities(data);
     };

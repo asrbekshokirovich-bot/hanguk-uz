@@ -41,9 +41,9 @@ export function NewSessionDialog({
     const fetchUniversities = async () => {
       try {
         const { data, error } = await supabase
-          .from('universities')
+          .from('institutions')
           .select('*')
-          .order('ranking', { ascending: true });
+          .order('tier', { ascending: true, nullsFirst: false });
 
         if (!error && data) {
           setUniversities(data);

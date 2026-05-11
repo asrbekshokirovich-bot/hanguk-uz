@@ -1,752 +1,469 @@
-import { useState, useEffect, useCallback } from 'react';
+/**
+ * Phase 3R-B cutover (2026-05-10) — full replacement.
+ *
+ * The legacy 4-component universities feature (UniversityList,
+ * UniversityForm, UniversityDetailSheet, AIUniversityForm) and the
+ * koreanUniversitiesApi bulk-import flow were tied to the now-dropped
+ * `public.universities` table. This page is a clean rebuild against
+ * the canonical `public.institutions` (uni_db) table:
+ *
+ *   - Browse / search institutions (Korean + English name)
+ *   - Toggle is_partner / is_visible_on_map per row
+ *   - Add a new institution (minimal form: Korean + English name,
+ *     primary_domain, type)
+ *   - Edit name + tier + admissions URL
+ *   - Delete (with confirm)
+ *   - Per-row partner badge + map-visible badge
+ *
+ * Deferred (intentionally hidden):
+ *   - LLM-powered "AI add" form  (legacy AIUniversityForm)
+ *   - Bulk-import button (legacy `koreanUniversitiesApi.startBackgroundImport`)
+ *
+ * Both will be re-implemented later against the institutions schema +
+ * recruitment_units. For now they're behind a hard-coded false flag so
+ * staff don't accidentally write to a non-existent legacy path.
+ */
+
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useUniversities } from '@/hooks/useUniversities';
-import { UniversityList } from '@/components/universities/UniversityList';
-import { UniversityDetailSheet } from '@/components/universities/UniversityDetailSheet';
-import { UniversityForm } from '@/components/universities/UniversityForm';
-import { AIUniversityForm } from '@/components/universities/AIUniversityForm';
+import { useUniversities, type Institution } from '@/hooks/useUniversities';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { 
+import {
   GraduationCap,
-  Star,
   Plus,
-  Building,
-  MapPin,
-  Sparkles,
-  Globe,
-  Loader2,
-  X,
-  CheckCircle2,
-  AlertCircle,
   Search,
+  Loader2,
+  Star,
+  StarOff,
+  Eye,
+  EyeOff,
+  Edit3,
+  Trash2,
+  Building2,
+  MapPin,
+  ExternalLink,
   RefreshCw,
 } from 'lucide-react';
-import { Tables } from '@/integrations/supabase/types';
-import { koreanUniversitiesApi, ImportProgress } from '@/lib/api/koreanUniversities';
 
-const STORAGE_KEY = 'university_import_job_id';
-const ENRICH_STORAGE_KEY = 'university_enrich_job_id';
+const ENABLE_LEGACY_FEATURES = false; // AI add + bulk import — disabled per Phase 3R-B
+
+const INSTITUTION_TYPES = ['national', 'public', 'private', 'religious', 'special'];
+
+type EditState =
+  | { mode: 'create' }
+  | { mode: 'edit'; row: Institution }
+  | null;
+
+interface FormFields {
+  name_ko: string;
+  name_en: string;
+  primary_domain: string;
+  institution_type: string;
+  tier: string;
+  city_ko: string;
+  primary_admissions_url_ko: string;
+}
+
+const emptyFields = (): FormFields => ({
+  name_ko: '',
+  name_en: '',
+  primary_domain: '',
+  institution_type: 'private',
+  tier: '',
+  city_ko: '',
+  primary_admissions_url_ko: '',
+});
+
+function fieldsFromRow(r: Institution): FormFields {
+  return {
+    name_ko: r.name_ko ?? '',
+    name_en: r.name_en ?? '',
+    primary_domain: r.primary_domain ?? '',
+    institution_type: r.institution_type ?? 'private',
+    tier: r.tier?.toString() ?? '',
+    city_ko: r.city_ko ?? '',
+    primary_admissions_url_ko: r.primary_admissions_url_ko ?? '',
+  };
+}
+
+function fieldsToPayload(f: FormFields): Partial<Institution> {
+  const payload: Partial<Institution> = {
+    name_ko: f.name_ko.trim(),
+    name_en: f.name_en.trim() || null,
+    primary_domain: f.primary_domain.trim() || 'unknown.ac.kr',
+    institution_type: f.institution_type,
+    city_ko: f.city_ko.trim() || null,
+    primary_admissions_url_ko: f.primary_admissions_url_ko.trim() || null,
+  };
+  if (f.tier.trim() !== '') {
+    const n = Number.parseInt(f.tier, 10);
+    if (Number.isFinite(n)) payload.tier = n;
+  }
+  return payload;
+}
 
 export default function UniversitiesContent() {
-  const { t, i18n } = useTranslation();
-  const currentLang = i18n.language;
+  const { t } = useTranslation();
   const { toast } = useToast();
-  const { 
-    universities, 
-    loading, 
+  const {
+    universities: institutions,
+    loading,
     stats,
     fetchUniversities,
-    createUniversity, 
-    updateUniversity, 
+    createUniversity,
+    updateUniversity,
     deleteUniversity,
     togglePartner,
-    toggleMapVisibility
+    toggleMapVisibility,
   } = useUniversities();
 
-  const [websiteFilter, setWebsiteFilter] = useState<'with' | 'without' | null>(null);
-  const [formOpen, setFormOpen] = useState(false);
-  const [aiFormOpen, setAiFormOpen] = useState(false);
-  const [editingUniversity, setEditingUniversity] = useState<Tables<'universities'> | null>(null);
-  const [selectedUniversity, setSelectedUniversity] = useState<Tables<'universities'> | null>(null);
+  const [search, setSearch] = useState('');
+  const [filter, setFilter] = useState<'all' | 'partners' | 'on_map'>('all');
+  const [edit, setEdit] = useState<EditState>(null);
+  const [fields, setFields] = useState<FormFields>(emptyFields());
+  const [confirmDelete, setConfirmDelete] = useState<Institution | null>(null);
+  const [busy, setBusy] = useState(false);
 
-  // Background import state
-  const [importJobId, setImportJobId] = useState<string | null>(
-    () => localStorage.getItem(STORAGE_KEY)
-  );
-  const [importStatus, setImportStatus] = useState<'idle' | 'processing' | 'completed' | 'failed'>('idle');
-  const [importProgress, setImportProgress] = useState<ImportProgress | null>(null);
-  const [importResult, setImportResult] = useState<any>(null);
-  const [importError, setImportError] = useState<string | null>(null);
-  const [isStarting, setIsStarting] = useState(false);
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return institutions.filter((row) => {
+      if (filter === 'partners' && !row.is_partner) return false;
+      if (filter === 'on_map' && !row.is_visible_on_map) return false;
+      if (!q) return true;
+      const haystack = [
+        row.name_ko ?? '',
+        row.name_en ?? '',
+        row.name_ko_short ?? '',
+        row.primary_domain ?? '',
+        row.city_ko ?? '',
+      ].join(' ').toLowerCase();
+      return haystack.includes(q);
+    });
+  }, [institutions, search, filter]);
 
-  // Re-enrich missing websites state
-  const [enrichJobId, setEnrichJobId] = useState<string | null>(
-    () => localStorage.getItem(ENRICH_STORAGE_KEY)
-  );
-  const [enrichStatus, setEnrichStatus] = useState<'idle' | 'processing' | 'completed' | 'failed'>('idle');
-  const [enrichProgress, setEnrichProgress] = useState<ImportProgress | null>(null);
-  const [enrichResult, setEnrichResult] = useState<any>(null);
-  const [enrichError, setEnrichError] = useState<string | null>(null);
-  const [isStartingEnrich, setIsStartingEnrich] = useState(false);
+  const openCreate = () => {
+    setFields(emptyFields());
+    setEdit({ mode: 'create' });
+  };
 
-  // Poll for import progress
-  const pollProgress = useCallback(async () => {
-    if (!importJobId) return;
+  const openEdit = (row: Institution) => {
+    setFields(fieldsFromRow(row));
+    setEdit({ mode: 'edit', row });
+  };
 
+  const closeEdit = () => {
+    if (busy) return;
+    setEdit(null);
+  };
+
+  const submitEdit = async () => {
+    if (!fields.name_ko.trim()) {
+      toast({ title: 'Korean name required', variant: 'destructive' });
+      return;
+    }
+    setBusy(true);
     try {
-      const status = await koreanUniversitiesApi.checkImportProgress(importJobId);
-      
-      if (status.progress) {
-        setImportProgress(status.progress);
+      if (edit?.mode === 'create') {
+        const { error } = await createUniversity(fieldsToPayload(fields));
+        if (error) throw new Error(error.message);
+        toast({ title: 'Institution added', description: fields.name_ko });
+      } else if (edit?.mode === 'edit') {
+        const { error } = await updateUniversity(edit.row.id, fieldsToPayload(fields));
+        if (error) throw new Error(error.message);
+        toast({ title: 'Saved', description: fields.name_ko });
       }
-      
-      if (status.status === 'completed') {
-        setImportStatus('completed');
-        setImportResult(status.result);
-        localStorage.removeItem(STORAGE_KEY);
-        fetchUniversities();
-      } else if (status.status === 'failed') {
-        setImportStatus('failed');
-        setImportError(status.error || 'Import failed');
-        localStorage.removeItem(STORAGE_KEY);
-      } else {
-        setImportStatus('processing');
-      }
+      setEdit(null);
     } catch (err) {
-      console.error('Poll error:', err);
-    }
-  }, [importJobId, fetchUniversities]);
-
-  useEffect(() => {
-    if (!importJobId) return;
-    
-    // Initial poll
-    pollProgress();
-    
-    // Poll every 5 seconds
-    const interval = setInterval(pollProgress, 5000);
-    return () => clearInterval(interval);
-  }, [importJobId, pollProgress]);
-
-  // Restore active job on mount
-  useEffect(() => {
-    if (importJobId) {
-      setImportStatus('processing');
-    }
-  }, []);
-
-  // Poll for enrich progress
-  const pollEnrichProgress = useCallback(async () => {
-    if (!enrichJobId) return;
-    try {
-      const status = await koreanUniversitiesApi.checkImportProgress(enrichJobId);
-      if (status.progress) setEnrichProgress(status.progress);
-      if (status.status === 'completed') {
-        setEnrichStatus('completed');
-        setEnrichResult(status.result);
-        localStorage.removeItem(ENRICH_STORAGE_KEY);
-        fetchUniversities();
-      } else if (status.status === 'failed') {
-        setEnrichStatus('failed');
-        // If error indicates job is gone/not found, clear state silently
-        const errMsg = status.error || 'Enrichment failed';
-        if (errMsg.toLowerCase().includes('not found') || errMsg.toLowerCase().includes('404')) {
-          setEnrichStatus('idle');
-          setEnrichJobId(null);
-          localStorage.removeItem(ENRICH_STORAGE_KEY);
-        } else {
-          setEnrichError(errMsg);
-          localStorage.removeItem(ENRICH_STORAGE_KEY);
-        }
-      } else {
-        setEnrichStatus('processing');
-      }
-    } catch (err: any) {
-      // If job is gone (404/not found), clear state cleanly so user can start fresh
-      const errMsg = err?.message || '';
-      if (errMsg.includes('not found') || errMsg.includes('404') || errMsg.includes('Job not found')) {
-        setEnrichStatus('idle');
-        setEnrichJobId(null);
-        localStorage.removeItem(ENRICH_STORAGE_KEY);
-      }
-      console.error('Enrich poll error:', err);
-    }
-  }, [enrichJobId, fetchUniversities]);
-
-  useEffect(() => {
-    if (!enrichJobId) return;
-    pollEnrichProgress();
-    const interval = setInterval(pollEnrichProgress, 5000);
-    return () => clearInterval(interval);
-  }, [enrichJobId, pollEnrichProgress]);
-
-  // On mount: auto-detect stuck/dead chains and resume them automatically
-  useEffect(() => {
-    const autoResume = async () => {
-      const { supabase } = await import('@/integrations/supabase/client');
-
-      // 1. If we have a stored enrichJobId, verify it immediately
-      if (enrichJobId) {
-        setEnrichStatus('processing');
-        try {
-          const status = await koreanUniversitiesApi.checkImportProgress(enrichJobId);
-          if (status.status === 'completed') {
-            setEnrichStatus('completed');
-            localStorage.removeItem(ENRICH_STORAGE_KEY);
-            fetchUniversities();
-            return;
-          } else if (status.status === 'failed') {
-            // Silently clear — we'll check for any other active job below
-            setEnrichStatus('idle');
-            setEnrichJobId(null);
-            localStorage.removeItem(ENRICH_STORAGE_KEY);
-          } else if (status.status === 'processing') {
-            // Still alive — keep tracking
-            return;
-          }
-        } catch {
-          setEnrichStatus('idle');
-          setEnrichJobId(null);
-          localStorage.removeItem(ENRICH_STORAGE_KEY);
-        }
-      }
-
-      // 2. Check DB for any active university_import job (even if localStorage was cleared)
-      const { data: activeJobs } = await supabase
-        .from('search_jobs')
-        .select('id, status, progress, updated_at')
-        .eq('type', 'university_import' as any)
-        .in('status', ['pending', 'processing'])
-        .order('updated_at', { ascending: false })
-        .limit(1);
-
-      if (!activeJobs || activeJobs.length === 0) return;
-
-      const activeJob = activeJobs[0];
-      const updatedAt = new Date(activeJob.updated_at as string);
-      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
-      const isStale = updatedAt < fiveMinutesAgo;
-
-      if (isStale) {
-        // Chain is dead — auto-restart it
-        console.log(`Auto-resuming dead enrichment chain for job ${activeJob.id} (last updated ${Math.round((Date.now() - updatedAt.getTime()) / 60000)}m ago)`);
-        localStorage.setItem(ENRICH_STORAGE_KEY, activeJob.id);
-        setEnrichJobId(activeJob.id);
-        setEnrichStatus('processing');
-        if (activeJob.progress) setEnrichProgress(activeJob.progress as any);
-
-        // Re-invoke the edge function to restart the chain from where it left off
-        supabase.functions.invoke('discover-university-websites', {
-          body: { jobId: activeJob.id, batchIndex: 1, enrichOnly: true },
-        }).catch(err => console.error('Auto-resume failed to invoke edge function:', err));
-
-        toast({
-          title: 'Enrichment Auto-Resumed',
-          description: 'The background job was paused and has been automatically restarted.',
-        });
-      } else {
-        // Chain is alive — resume tracking it in the UI
-        console.log(`Resuming tracking for active enrichment job ${activeJob.id}`);
-        localStorage.setItem(ENRICH_STORAGE_KEY, activeJob.id);
-        setEnrichJobId(activeJob.id);
-        setEnrichStatus('processing');
-        if (activeJob.progress) setEnrichProgress(activeJob.progress as any);
-      }
-    };
-
-    autoResume().catch(err => console.error('Auto-resume check failed:', err));
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const handleStartEnrich = async () => {
-    setIsStartingEnrich(true);
-    try {
-      const { supabase } = await import('@/integrations/supabase/client');
-      const { data: userData } = await supabase.auth.getUser();
-      const userId = userData?.user?.id;
-      if (!userId) {
-        toast({ title: 'Error', description: 'You must be logged in', variant: 'destructive' });
-        return;
-      }
-
-      // ── Duplicate check: Resume an existing recent job instead of creating a new one ──
-      const fifteenMinsAgo = new Date(Date.now() - 15 * 60 * 1000).toISOString();
-      const { data: existingJobs } = await supabase
-        .from('search_jobs')
-        .select('id, status, progress, updated_at')
-        .eq('type', 'university_import')
-        .in('status', ['pending', 'processing'])
-        .gte('updated_at', fifteenMinsAgo)
-        .order('updated_at', { ascending: false })
-        .limit(1);
-
-      if (existingJobs && existingJobs.length > 0) {
-        // Resume the existing active job
-        const existing = existingJobs[0];
-        console.log(`Resuming existing enrich job ${existing.id}`);
-        localStorage.setItem(ENRICH_STORAGE_KEY, existing.id);
-        setEnrichJobId(existing.id);
-        setEnrichStatus('processing');
-        setEnrichError(null);
-        if (existing.progress) setEnrichProgress(existing.progress as any);
-        toast({ title: 'Resuming Enrichment', description: 'An enrichment job is already running. Resuming tracking.' });
-        return;
-      }
-
-      // ── Kill any zombie processing jobs before creating a fresh one ──
-      await supabase
-        .from('search_jobs')
-        .update({ status: 'failed', error: 'Superseded by new enrichment job started by user' })
-        .eq('type', 'university_import')
-        .eq('status', 'processing');
-
-      // ── Create a fresh enrichment job ──
-      const { data: job, error: jobError } = await supabase
-        .from('search_jobs')
-        .insert([{
-          type: 'university_import',
-          status: 'pending',
-          user_id: userId,
-          progress: { phase: 'websites', imported: 0, total: 0, websiteProcessed: 0, websiteTotal: 0, websitesFound: 0 },
-        } as any])
-        .select('id')
-        .single();
-
-      if (jobError || !job) {
-        toast({ title: 'Error', description: jobError?.message || 'Failed to create enrichment job', variant: 'destructive' });
-        return;
-      }
-
-      // Trigger the edge function targeting only universities missing websites
-      supabase.functions.invoke('discover-university-websites', {
-        body: { jobId: job.id, batchIndex: 0, enrichOnly: true },
-      }).catch(err => console.error('Failed to invoke discover-university-websites:', err));
-
-      localStorage.setItem(ENRICH_STORAGE_KEY, job.id);
-      setEnrichJobId(job.id);
-      setEnrichStatus('processing');
-      setEnrichError(null);
-      setEnrichProgress({ phase: 'websites', imported: 0, total: 0, websiteProcessed: 0, websiteTotal: 0, websitesFound: 0 });
-      toast({ title: 'Website Enrichment Started', description: 'Finding official websites for all universities missing one. This runs in the background.' });
-    } finally {
-      setIsStartingEnrich(false);
-    }
-  };
-
-  const handleDismissEnrich = () => {
-    setEnrichStatus('idle');
-    setEnrichJobId(null);
-    setEnrichError(null);
-    setEnrichProgress(null);
-    setEnrichResult(null);
-  };
-
-  const handleStartImport = async () => {
-    setIsStarting(true);
-    try {
-      const { jobId, error } = await koreanUniversitiesApi.startBackgroundImport();
-      if (error || !jobId) {
-        toast({
-          title: t('common.error'),
-          description: error || 'Failed to start import',
-          variant: 'destructive',
-        });
-        return;
-      }
-      
-      // C1: Check localStorage BEFORE setting it for correct resume detection
-      const previousJobId = localStorage.getItem(STORAGE_KEY);
-      localStorage.setItem(STORAGE_KEY, jobId);
-      setImportJobId(jobId);
-      setImportStatus('processing');
-      setImportResult(null);
-      setImportError(null);
-      const wasResumed = previousJobId === jobId;
-      if (!wasResumed) {
-        setImportProgress({ phase: 'discovery', imported: 0, total: 0, websiteProcessed: 0, websiteTotal: 0, websitesFound: 0 });
-      }
-      // Immediately poll using jobId directly (avoids stale closure on pollProgress)
-      setTimeout(async () => {
-        try {
-          const status = await koreanUniversitiesApi.checkImportProgress(jobId);
-          if (status.progress) setImportProgress(status.progress);
-          if (status.status === 'completed') {
-            setImportStatus('completed');
-            setImportResult(status.result);
-            localStorage.removeItem(STORAGE_KEY);
-            fetchUniversities();
-          } else if (status.status === 'failed') {
-            setImportStatus('failed');
-            setImportError(status.error || 'Import failed');
-            localStorage.removeItem(STORAGE_KEY);
-          }
-        } catch (err) {
-          console.error('Initial poll error:', err);
-        }
-      }, 100);
-      
       toast({
-        title: 'Discovery Started',
-        description: 'Background university import has started. You can continue working while it runs.',
+        title: 'Save failed',
+        description: err instanceof Error ? err.message : String(err),
+        variant: 'destructive',
       });
     } finally {
-      setIsStarting(false);
+      setBusy(false);
     }
   };
 
-  const handleCancelImport = async () => {
-    if (!importJobId) return;
-    await koreanUniversitiesApi.cancelImport(importJobId);
-    setImportStatus('failed');
-    setImportError('Cancelled by user');
-    setImportJobId(null);
-    localStorage.removeItem(STORAGE_KEY);
-  };
-
-  const handleDismiss = () => {
-    setImportStatus('idle');
-    setImportJobId(null);
-    setImportResult(null);
-    setImportError(null);
-    setImportProgress(null);
-  };
-
-  const handleEdit = (university: Tables<'universities'>) => {
-    setEditingUniversity(university);
-    setFormOpen(true);
-  };
-
-  const handleDelete = async (id: string) => {
-    const { error } = await deleteUniversity(id);
-    if (error) {
-      toast({ title: t('common.error'), description: error.message, variant: 'destructive' });
-    } else {
-      toast({ title: t('common.success'), description: 'University deleted' });
+  const submitDelete = async () => {
+    if (!confirmDelete) return;
+    setBusy(true);
+    try {
+      const { error } = await deleteUniversity(confirmDelete.id);
+      if (error) throw new Error(error.message);
+      toast({ title: 'Deleted', description: confirmDelete.name_ko ?? confirmDelete.id });
+      setConfirmDelete(null);
+    } catch (err) {
+      toast({
+        title: 'Delete failed',
+        description: err instanceof Error ? err.message : String(err),
+        variant: 'destructive',
+      });
+    } finally {
+      setBusy(false);
     }
-  };
-
-  const handleTogglePartner = async (id: string, isPartner: boolean) => {
-    await togglePartner(id, isPartner);
-  };
-
-  const handleToggleMapVisibility = async (id: string, isVisible: boolean) => {
-    await toggleMapVisibility(id, isVisible);
-  };
-
-  const handleSave = async (data: Partial<Tables<'universities'>>) => {
-    if (editingUniversity) {
-      const { error } = await updateUniversity(editingUniversity.id, data);
-      if (!error) {
-        toast({ title: t('common.success'), description: 'University updated' });
-      }
-      return { error };
-    } else {
-      const { error } = await createUniversity(data as any);
-      if (!error) {
-        toast({ title: t('common.success'), description: 'University created' });
-      }
-      return { error };
-    }
-  };
-
-  // Progress display helpers
-  const getProgressPercent = () => {
-    if (!importProgress) return 0;
-    if (importProgress.phase === 'discovery') return 10; // show some activity
-    if (importProgress.phase === 'done') return 100;
-    if (importProgress.websiteTotal > 0) {
-      // Phase 2 is 90% of the total (10% for discovery)
-      return 10 + (importProgress.websiteProcessed / importProgress.websiteTotal) * 90;
-    }
-    return 15;
-  };
-
-  const getProgressLabel = () => {
-    if (!importProgress) return 'Starting...';
-    if (importProgress.phase === 'discovery') {
-      return `Importing universities... ${importProgress.imported > 0 ? `Found ${importProgress.imported} new` : 'Searching Wikipedia & databases...'}`;
-    }
-    if (importProgress.phase === 'websites') {
-      return `Discovering websites... ${importProgress.websiteProcessed}/${importProgress.websiteTotal} researched, ${importProgress.websitesFound} found`;
-    }
-    if (importProgress.phase === 'done') {
-      return `Complete!`;
-    }
-    return 'Processing...';
   };
 
   return (
     <div className="space-y-6">
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        <Card>
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <GraduationCap className="h-5 w-5 text-blue-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{stats.total}</p>
-              <p className="text-xs text-muted-foreground">{t('navigation.universities')}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 bg-yellow-100 rounded-lg">
-              <Star className="h-5 w-5 text-yellow-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{stats.partners}</p>
-              <p className="text-xs text-muted-foreground">{t('universities.partnerUniversity')}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 bg-green-100 rounded-lg">
-              <MapPin className="h-5 w-5 text-green-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{stats.visibleOnMap}</p>
-              <p className="text-xs text-muted-foreground">Visible on Map</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 bg-purple-100 rounded-lg">
-              <Building className="h-5 w-5 text-purple-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{stats.withPrograms}</p>
-              <p className="text-xs text-muted-foreground">With {t('universities.programs')}</p>
-            </div>
-          </CardContent>
-        </Card>
-        {/* Has Website — clickable filter */}
-        <Card
-          className={`cursor-pointer transition-all hover:shadow-md ${websiteFilter === 'with' ? 'ring-2 ring-green-500' : ''}`}
-          onClick={() => setWebsiteFilter(f => f === 'with' ? null : 'with')}
-        >
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 bg-green-100 rounded-lg">
-              <Globe className="h-5 w-5 text-green-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{stats.withWebsite}</p>
-              <p className="text-xs text-muted-foreground">Has Website</p>
-            </div>
-          </CardContent>
-        </Card>
-        {/* No Website — clickable filter */}
-        <Card
-          className={`cursor-pointer transition-all hover:shadow-md ${websiteFilter === 'without' ? 'ring-2 ring-red-500' : ''}`}
-          onClick={() => setWebsiteFilter(f => f === 'without' ? null : 'without')}
-        >
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 bg-red-100 rounded-lg">
-              <Globe className="h-5 w-5 text-red-400" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{stats.noWebsite}</p>
-              <p className="text-xs text-muted-foreground">No Website</p>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold flex items-center gap-2">
+            <GraduationCap className="h-6 w-6" />
+            {t('navigation.universities') ?? 'Institutions'}
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Backed by <code className="px-1 py-0.5 bg-muted rounded">public.institutions</code>{' '}
+            (uni_db). The legacy <code className="px-1 py-0.5 bg-muted rounded">universities</code>{' '}
+            table was dropped on 2026-05-10.
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={() => fetchUniversities()} disabled={loading}>
+            {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
+            Refresh
+          </Button>
+          <Button onClick={openCreate}>
+            <Plus className="h-4 w-4 mr-2" /> Add institution
+          </Button>
+        </div>
       </div>
 
-      {/* Import Progress Card */}
-      {importStatus === 'processing' && (
-        <Card className="border-blue-200 bg-blue-50/50 dark:border-blue-900 dark:bg-blue-950/30">
-          <CardContent className="p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
-                <span className="font-medium text-sm">Background University Discovery</span>
-              </div>
-              <Button variant="ghost" size="sm" onClick={handleCancelImport}>
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-            <Progress value={getProgressPercent()} className="h-2" />
-            <p className="text-xs text-muted-foreground">{getProgressLabel()}</p>
-            {importProgress && importProgress.imported > 0 && (
-              <div className="flex gap-4 text-xs text-muted-foreground">
-                <span>📚 {importProgress.total} total universities</span>
-                <span>🌐 {importProgress.websitesFound} websites found</span>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
-
-      {importStatus === 'completed' && (
-        <Card className="border-green-200 bg-green-50/50 dark:border-green-900 dark:bg-green-950/30">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-green-600" />
-                <span className="font-medium text-sm">
-                  Discovery Complete! {importResult?.totalUniversities} universities, {importResult?.withWebsite} with official websites
-                </span>
-              </div>
-              <Button variant="ghost" size="sm" onClick={handleDismiss}>
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {importStatus === 'failed' && importError && (
-        <Card className="border-red-200 bg-red-50/50 dark:border-red-900 dark:bg-red-950/30">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <AlertCircle className="h-4 w-4 text-red-600" />
-                <span className="font-medium text-sm">{importError}</span>
-              </div>
-              <Button variant="ghost" size="sm" onClick={handleDismiss}>
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Enrich Progress Card */}
-      {enrichStatus === 'processing' && (
-        <Card className="border-amber-200 bg-amber-50/50 dark:border-amber-900 dark:bg-amber-950/30">
-          <CardContent className="p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Loader2 className="h-4 w-4 animate-spin text-amber-600" />
-                <span className="font-medium text-sm">Re-enriching Missing Websites</span>
-              </div>
-              <Button variant="ghost" size="sm" onClick={handleDismissEnrich}>
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-            <Progress value={enrichProgress?.websiteTotal ? Math.min((enrichProgress.websiteProcessed / enrichProgress.websiteTotal) * 100, 100) : 5} className="h-2" />
-            <p className="text-xs text-muted-foreground">
-              {enrichProgress?.websiteTotal
-                ? `${Math.min(enrichProgress.websiteProcessed, enrichProgress.websiteTotal)}/${enrichProgress.websiteTotal} universities researched — ${enrichProgress.websitesFound} websites found`
-                : 'Starting website research...'}
-            </p>
-          </CardContent>
-        </Card>
-      )}
-
-      {enrichStatus === 'completed' && (
-        <Card className="border-green-200 bg-green-50/50 dark:border-green-900 dark:bg-green-950/30">
-          <CardContent className="p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-5 w-5 text-green-600" />
-                <span className="font-semibold text-sm">Website Enrichment Complete</span>
-              </div>
-              <Button variant="ghost" size="sm" onClick={handleDismissEnrich}>
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-            <div className="grid grid-cols-3 gap-3 text-center">
-              <div className="bg-background rounded-lg p-3 border">
-                <p className="text-2xl font-bold text-foreground">{enrichResult?.totalUniversities ?? enrichProgress?.websiteProcessed ?? '—'}</p>
-                <p className="text-xs text-muted-foreground">Universities processed</p>
-              </div>
-              <div className="bg-background rounded-lg p-3 border">
-                <p className="text-2xl font-bold text-green-600">{enrichResult?.withWebsite ?? enrichProgress?.websitesFound ?? '—'}</p>
-                <p className="text-xs text-muted-foreground">Websites found</p>
-              </div>
-              <div className="bg-background rounded-lg p-3 border">
-                <p className="text-2xl font-bold text-amber-600">{enrichResult?.missingWebsite ?? '—'}</p>
-                <p className="text-xs text-muted-foreground">Still missing</p>
-              </div>
-            </div>
-            {enrichResult?.missingWebsite > 0 && (
-              <p className="text-xs text-muted-foreground text-center">
-                {enrichResult.missingWebsite} universities couldn't be found — click "Re-enrich" again to retry them.
-              </p>
-            )}
-          </CardContent>
-        </Card>
-      )}
-
-      {enrichStatus === 'failed' && enrichError && (
-        <Card className="border-red-200 bg-red-50/50 dark:border-red-900 dark:bg-red-950/30">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <AlertCircle className="h-4 w-4 text-red-600" />
-                <span className="font-medium text-sm">{enrichError}</span>
-              </div>
-              <Button variant="ghost" size="sm" onClick={handleDismissEnrich}>
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Actions */}
-      <div className="flex justify-end gap-2 flex-wrap">
-        {enrichStatus !== 'processing' && (
-          <Button 
-            variant="outline" 
-            onClick={handleStartEnrich} 
-            disabled={isStartingEnrich}
-            title="Find official websites for all universities that are currently missing one"
-          >
-            {isStartingEnrich ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
-            Re-enrich Missing Websites
-          </Button>
-        )}
-        {importStatus !== 'processing' && (
-          <Button 
-            variant="outline" 
-            onClick={handleStartImport} 
-            disabled={isStarting}
-          >
-            {isStarting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Globe className="h-4 w-4 mr-2" />}
-            Discover All Universities
-          </Button>
-        )}
-        <Button onClick={() => setAiFormOpen(true)}>
-          <Sparkles className="h-4 w-4 mr-2" />
-          {t('common.add')} {t('navigation.universities')}
-        </Button>
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+        <Card><CardHeader className="pb-1"><CardTitle className="text-xs text-muted-foreground">Total</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{stats.total}</div></CardContent></Card>
+        <Card><CardHeader className="pb-1"><CardTitle className="text-xs text-muted-foreground">Partners</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{stats.partners}</div></CardContent></Card>
+        <Card><CardHeader className="pb-1"><CardTitle className="text-xs text-muted-foreground">On map</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{stats.visibleOnMap}</div></CardContent></Card>
+        <Card><CardHeader className="pb-1"><CardTitle className="text-xs text-muted-foreground">With domain</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{stats.withDomain}</div></CardContent></Card>
+        <Card><CardHeader className="pb-1"><CardTitle className="text-xs text-muted-foreground">With geo</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{stats.withGeo}</div></CardContent></Card>
       </div>
 
-      {/* University List */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <GraduationCap className="h-5 w-5" />
-            {t('navigation.universities')}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <UniversityList 
-            universities={universities}
-            loading={loading}
-            currentLang={currentLang}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            onTogglePartner={handleTogglePartner}
-            onToggleMapVisibility={handleToggleMapVisibility}
-            onSelect={setSelectedUniversity}
-            websiteFilter={websiteFilter}
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="relative flex-1 min-w-64">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search Korean / English name, domain, city"
+            className="pl-9"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
           />
-        </CardContent>
-      </Card>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button size="sm" variant={filter === 'all' ? 'default' : 'outline'} onClick={() => setFilter('all')}>All</Button>
+          <Button size="sm" variant={filter === 'partners' ? 'default' : 'outline'} onClick={() => setFilter('partners')}>
+            <Star className="h-4 w-4 mr-1" /> Partners
+          </Button>
+          <Button size="sm" variant={filter === 'on_map' ? 'default' : 'outline'} onClick={() => setFilter('on_map')}>
+            <MapPin className="h-4 w-4 mr-1" /> On map
+          </Button>
+        </div>
+      </div>
 
-      {/* AI Add Dialog */}
-      <AIUniversityForm
-        open={aiFormOpen}
-        onOpenChange={setAiFormOpen}
-        onSave={handleSave}
-      />
+      {loading ? (
+        <Card>
+          <CardContent className="p-12 text-center">
+            <Loader2 className="h-6 w-6 mx-auto animate-spin text-muted-foreground" />
+          </CardContent>
+        </Card>
+      ) : filtered.length === 0 ? (
+        <Card>
+          <CardContent className="p-12 text-center text-muted-foreground">
+            {institutions.length === 0
+              ? <>No institutions yet. Click <strong>Add institution</strong> to seed your first one.</>
+              : 'No matches for the current filter.'}
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          {filtered.map((row) => (
+            <Card key={row.id} className={row.is_partner ? 'border-primary/40' : undefined}>
+              <CardHeader className="pb-2">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <CardTitle className="text-base truncate">{row.name_ko}</CardTitle>
+                    {row.name_en ? (
+                      <p className="text-xs text-muted-foreground truncate">{row.name_en}</p>
+                    ) : null}
+                  </div>
+                  <Building2 className="h-4 w-4 text-muted-foreground shrink-0" />
+                </div>
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {row.is_partner ? <Badge>partner</Badge> : null}
+                  {row.is_visible_on_map ? <Badge variant="outline">on map</Badge> : null}
+                  <Badge variant="secondary">{row.institution_type}</Badge>
+                  {row.tier !== null && row.tier !== undefined ? <Badge variant="outline">tier {row.tier}</Badge> : null}
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-2 text-xs">
+                <div className="flex items-center gap-1 text-muted-foreground">
+                  <MapPin className="h-3 w-3 shrink-0" /> {row.city_ko ?? '—'}
+                </div>
+                <div className="text-muted-foreground truncate">
+                  {row.primary_domain || '—'}
+                </div>
+                {row.primary_admissions_url_ko ? (
+                  <a
+                    href={row.primary_admissions_url_ko}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline inline-flex items-center gap-1 truncate"
+                  >
+                    <ExternalLink className="h-3 w-3 shrink-0" /> admissions site
+                  </a>
+                ) : null}
 
-      {/* Edit Form Dialog */}
-      <UniversityForm
-        university={editingUniversity}
-        open={formOpen}
-        onOpenChange={(open) => {
-          setFormOpen(open);
-          if (!open) setEditingUniversity(null);
-        }}
-        onSave={handleSave}
-      />
+                <div className="flex items-center justify-between pt-2 border-t mt-2">
+                  <div className="flex items-center gap-1">
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      title={row.is_partner ? 'Remove partner' : 'Mark as partner'}
+                      onClick={() => togglePartner(row.id, !row.is_partner)}
+                    >
+                      {row.is_partner ? <Star className="h-4 w-4 fill-current" /> : <StarOff className="h-4 w-4" />}
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      title={row.is_visible_on_map ? 'Hide from map' : 'Show on map'}
+                      onClick={() => toggleMapVisibility(row.id, !row.is_visible_on_map)}
+                    >
+                      {row.is_visible_on_map ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                    </Button>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Button size="icon" variant="ghost" onClick={() => openEdit(row)}>
+                      <Edit3 className="h-4 w-4" />
+                    </Button>
+                    <Button size="icon" variant="ghost" onClick={() => setConfirmDelete(row)}>
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
 
-      {/* University Detail Sheet */}
-      <UniversityDetailSheet
-        university={selectedUniversity}
-        open={!!selectedUniversity}
-        onOpenChange={(open) => { if (!open) setSelectedUniversity(null); }}
-        currentLang={currentLang}
-      />
+      {/* Disabled legacy features banner — visible only when the flag flips on */}
+      {ENABLE_LEGACY_FEATURES ? (
+        <Card>
+          <CardContent className="p-4 text-xs text-muted-foreground">
+            (Legacy AI add + bulk import would render here once re-implemented against institutions.)
+          </CardContent>
+        </Card>
+      ) : null}
+
+      <Dialog open={!!edit} onOpenChange={(o) => !o && closeEdit()}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{edit?.mode === 'create' ? 'Add institution' : 'Edit institution'}</DialogTitle>
+            <DialogDescription>
+              Minimal fields for now. Tuition, programs, scholarships, requirements live in their
+              own uni_db tables (recruitment_units, tuition, scholarships, requirements).
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3 py-2">
+            <div className="space-y-1">
+              <Label htmlFor="i-ko">Korean name *</Label>
+              <Input id="i-ko" value={fields.name_ko} onChange={(e) => setFields({ ...fields, name_ko: e.target.value })} placeholder="서울대학교" />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="i-en">English name</Label>
+              <Input id="i-en" value={fields.name_en} onChange={(e) => setFields({ ...fields, name_en: e.target.value })} placeholder="Seoul National University" />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <Label htmlFor="i-domain">Domain</Label>
+                <Input id="i-domain" value={fields.primary_domain} onChange={(e) => setFields({ ...fields, primary_domain: e.target.value })} placeholder="snu.ac.kr" />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="i-tier">Tier (1-5, optional)</Label>
+                <Input id="i-tier" type="number" min={1} max={5} value={fields.tier} onChange={(e) => setFields({ ...fields, tier: e.target.value })} />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <Label htmlFor="i-type">Type</Label>
+                <Select value={fields.institution_type} onValueChange={(v) => setFields({ ...fields, institution_type: v })}>
+                  <SelectTrigger id="i-type"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {INSTITUTION_TYPES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="i-city">City (Korean)</Label>
+                <Input id="i-city" value={fields.city_ko} onChange={(e) => setFields({ ...fields, city_ko: e.target.value })} placeholder="서울" />
+              </div>
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="i-url">Admissions URL (Korean)</Label>
+              <Input id="i-url" value={fields.primary_admissions_url_ko} onChange={(e) => setFields({ ...fields, primary_admissions_url_ko: e.target.value })} placeholder="https://admission.snu.ac.kr" />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="ghost" onClick={closeEdit} disabled={busy}>Cancel</Button>
+            <Button onClick={submitEdit} disabled={busy}>
+              {busy ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
+              {edit?.mode === 'create' ? 'Add' : 'Save'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={!!confirmDelete} onOpenChange={(o) => !o && setConfirmDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete institution?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This permanently removes <strong>{confirmDelete?.name_ko}</strong> from{' '}
+              <code>public.institutions</code>. Any rows in dependent tables (university_programs,
+              gks_designated_universities, etc.) will have their <code>institution_id</code> set
+              to <code>NULL</code> via ON DELETE SET NULL — no cascade wipe.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={busy}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={submitDelete} disabled={busy} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              {busy ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

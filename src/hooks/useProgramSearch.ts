@@ -64,7 +64,7 @@ export function useProgramSearch(filters: ProgramFilters) {
           id, program_name, program_level, faculty_name, department_name,
           language_track, tuition_per_semester, tuition_per_year,
           topik_requirement, ielts_requirement, toefl_requirement, notes,
-          university:universities!inner(
+          university:institutions!inner(
             id, name_uz, name_en, name_ko, name_ru,
             city_uz, city_en, city_ko, city_ru,
             is_partner, ranking, logo_url, website
@@ -132,19 +132,17 @@ export function useAvailableRegions() {
     queryKey: ['available-regions'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('universities')
-        .select('city_en, city_uz, city_ru, city_ko')
-        .not('city_en', 'is', null);
+        .from('institutions')
+        .select('city_ko')
+        .not('city_ko', 'is', null);
       if (error) throw error;
+      // Phase 3R-B: institutions has only city_ko. Returns Korean-keyed
+      // distinct cities; UI is responsible for displaying the Korean label.
       const unique = new Map<string, { en: string; uz: string; ru: string; ko: string }>();
-      (data || []).forEach(u => {
-        if (u.city_en && !unique.has(u.city_en)) {
-          unique.set(u.city_en, {
-            en: u.city_en,
-            uz: u.city_uz || u.city_en,
-            ru: u.city_ru || u.city_en,
-            ko: u.city_ko || u.city_en,
-          });
+      (data || []).forEach((u: { city_ko: string | null }) => {
+        const c = u.city_ko;
+        if (c && !unique.has(c)) {
+          unique.set(c, { en: c, uz: c, ru: c, ko: c });
         }
       });
       return Array.from(unique.values());

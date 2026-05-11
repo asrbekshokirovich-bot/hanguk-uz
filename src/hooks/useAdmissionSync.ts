@@ -24,7 +24,7 @@ export interface AdmissionSyncJob {
 
 export interface AdmissionChange {
   id: string;
-  university_id: string;
+  institution_id: string;
   cache_id: string;
   change_type: string;
   field_name: string;
@@ -73,7 +73,7 @@ export function useAdmissionSync() {
       .from('application_form_changes')
       .select(`
         *,
-        universities!application_form_changes_university_id_fkey(name)
+        institutions!application_form_changes_institution_id_fkey(name_ko)
       `)
       .is('acknowledged_at', null)
       .order('detected_at', { ascending: false })

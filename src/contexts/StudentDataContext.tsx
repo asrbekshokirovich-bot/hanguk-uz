@@ -33,7 +33,7 @@ export function StudentDataProvider({ children }: { children: ReactNode }) {
     
     const { data, error } = await supabase
       .from('applications')
-      .select('*, university:universities(*)')
+      .select('*, university:institutions(*)')
       .eq('student_id', user.id)
       .order('created_at', { ascending: false });
 
@@ -61,7 +61,7 @@ export function StudentDataProvider({ children }: { children: ReactNode }) {
     
     const { data, error } = await supabase
       .from('student_suggestions')
-      .select('*, university:universities(*)')
+      .select('*, university:institutions(*)')
       .eq('student_id', user.id)
       .order('created_at', { ascending: false });
 
@@ -72,10 +72,10 @@ export function StudentDataProvider({ children }: { children: ReactNode }) {
 
   const fetchUniversities = useCallback(async () => {
     const { data, error } = await supabase
-      .from('universities')
+      .from('institutions')
       .select('*')
       .eq('is_visible_on_map', true)
-      .order('ranking', { ascending: true });
+      .order('tier', { ascending: true, nullsFirst: false });
 
     if (!error && data) {
       setUniversities(data);

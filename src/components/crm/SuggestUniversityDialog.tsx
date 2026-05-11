@@ -65,7 +65,7 @@ export function SuggestUniversityDialog({
     try {
       const { error } = await supabase.from('student_suggestions').insert({
         student_id: studentId,
-        university_id: selectedUniversityId,
+        institution_id: selectedUniversityId,
       });
 
       if (error) throw error;
@@ -92,7 +92,7 @@ export function SuggestUniversityDialog({
         .from('student_suggestions')
         .delete()
         .eq('student_id', studentId)
-        .eq('university_id', selectedUniversityId);
+        .eq('institution_id', selectedUniversityId);
 
       if (error) throw error;
 

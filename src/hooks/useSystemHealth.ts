@@ -103,11 +103,11 @@ export function useSystemHealth(
         supabase.from('profiles').select('id', { count: 'exact', head: true }),
         supabase.from('interview_sessions').select('created_at, status, student_id', { count: 'exact' }).order('created_at', { ascending: false }).limit(1),
         supabase.from('study_plan_drafts').select('created_at').order('created_at', { ascending: false }).limit(5),
-        supabase.from('universities').select('id, website'),
+        supabase.from('institutions').select('id, primary_admissions_url_ko'),
         supabase.from('staff_presence').select('last_seen, status'),
         supabase.from('university_programs').select('id', { count: 'exact', head: true }),
-        supabase.from('university_announcements').select('id', { count: 'exact', head: true }),
-        supabase.from('university_events').select('id', { count: 'exact', head: true }),
+        Promise.resolve({ data: null, error: null, count: 0 }),  // university_announcements retired 2026-05-10
+        Promise.resolve({ data: null, error: null, count: 0 }),  // university_events retired 2026-05-10
         supabase.from('university_rooms').select('id', { count: 'exact', head: true }),
         supabase.from('scholarships').select('id', { count: 'exact', head: true }),
         supabase.from('documents').select('id', { count: 'exact', head: true }),

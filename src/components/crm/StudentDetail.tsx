@@ -292,10 +292,10 @@ export function StudentDetail({
   const fetchSuggestions = async () => {
     const { data } = await supabase
       .from('student_suggestions')
-      .select('university_id, university:universities(id, name_en, name_uz, is_partner)')
+      .select('institution_id, university:institutions!applications_institution_id_fkey(id, name_en, name_ko, is_partner)')
       .eq('student_id', student.user_id);
     if (data) {
-      setExistingSuggestedUniversityIds(data.map(d => d.university_id));
+      setExistingSuggestedUniversityIds(data.map(d => d.institution_id));
       setSuggestedUniversitiesList(data);
     }
   };
@@ -307,7 +307,7 @@ export function StudentDetail({
         .from('student_suggestions')
         .delete()
         .eq('student_id', student.user_id)
-        .eq('university_id', universityId);
+        .eq('institution_id', universityId);
 
       if (error) throw error;
 
@@ -1143,7 +1143,7 @@ export function StudentDetail({
                       const uni = sug.university;
                       if (!uni) return null;
                       return (
-                        <Card key={sug.university_id} className="relative overflow-hidden group">
+                        <Card key={sug.institution_id} className="relative overflow-hidden group">
                           <CardHeader className="pb-3">
                             <CardTitle className="text-base flex items-start justify-between">
                               <span className="pr-8">{uni.name_en || uni.name_uz || 'Unknown University'}</span>
@@ -1157,10 +1157,10 @@ export function StudentDetail({
                               variant="destructive" 
                               size="sm" 
                               className="w-full gap-2"
-                              disabled={removingSuggestion === sug.university_id}
-                              onClick={() => handleRemoveSuggestion(sug.university_id)}
+                              disabled={removingSuggestion === sug.institution_id}
+                              onClick={() => handleRemoveSuggestion(sug.institution_id)}
                             >
-                              {removingSuggestion === sug.university_id ? (
+                              {removingSuggestion === sug.institution_id ? (
                                 <Loader2 className="h-4 w-4 animate-spin" />
                               ) : (
                                 <Trash2 className="h-4 w-4" />
@@ -1880,7 +1880,7 @@ export function StudentDetail({
         onOpenChange={setSuggestUniversityDialogOpen}
         studentId={student.user_id}
         existingSuggestedUniversityIds={existingSuggestedUniversityIds}
-        existingApplicationUniversityIds={student.applications?.map(a => a.university_id) || []}
+        existingApplicationUniversityIds={student.applications?.map(a => a.institution_id) || []}
         onSuccess={() => {
           fetchSuggestions();
           onRefresh();

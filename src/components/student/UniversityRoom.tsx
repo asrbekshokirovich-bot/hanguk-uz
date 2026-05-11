@@ -32,7 +32,7 @@ export function UniversityRoom({ open, onOpenChange, application, initialTab = '
   }, [initialTab]);
 
   const { room, channels, members, loading, getChannelByType } = useUniversityRoom(
-    application.university_id
+    application.institution_id
   );
 
   const discussionChannel = getChannelByType('discussion');

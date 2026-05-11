@@ -100,7 +100,7 @@ export function StudentList({
 
     // University filter
     const matchesUniversity = universityFilter === 'all' ||
-      student.applications?.some(app => app.university_id === universityFilter);
+      student.applications?.some(app => app.institution_id === universityFilter);
 
     // Status filter
     const matchesStatus = statusFilter === 'all' ||

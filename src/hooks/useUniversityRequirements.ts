@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 
 export interface UniversityRequirement {
   id: string;
-  university_id: string;
+  institution_id: string;
   document_type: 'study_plan' | 'personal_statement';
   min_word_count: number;
   max_word_count: number;
@@ -32,7 +32,7 @@ export function useUniversityRequirements(
       const { data, error } = await supabase
         .from('university_document_requirements' as any)
         .select('*')
-        .eq('university_id', universityId)
+        .eq('institution_id', universityId)
         .eq('document_type', documentType)
         .single();
 
@@ -44,7 +44,7 @@ export function useUniversityRequirements(
         const typedData = data as any;
         setRequirements({
           id: typedData.id,
-          university_id: typedData.university_id,
+          institution_id: typedData.institution_id,
           document_type: typedData.document_type,
           min_word_count: typedData.min_word_count || 500,
           max_word_count: typedData.max_word_count || 1000,
@@ -57,7 +57,7 @@ export function useUniversityRequirements(
         // Default requirements if none specified
         setRequirements({
           id: '',
-          university_id: universityId,
+          institution_id: universityId,
           document_type: documentType,
           min_word_count: 500,
           max_word_count: 1000,

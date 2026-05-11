@@ -26,7 +26,7 @@ export interface PeerReviewQueueItem {
   draft_id: string;
   document_type: string;
   language: string;
-  university_id: string | null;
+  institution_id: string | null;
   submitted_at: string;
   is_matched: boolean;
   draft_content?: string;
@@ -139,7 +139,7 @@ export function usePeerReview() {
           draft_id: draftId,
           document_type: documentType,
           language: language,
-          university_id: universityId || null,
+          institution_id: universityId || null,
         });
 
       if (queueError) {
