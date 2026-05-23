@@ -60,7 +60,7 @@ interface CRMSidebarProps {
   isAdmin: boolean;
   isCallOperator: boolean;
   isDocumentHandler: boolean;
-  isUniDbReviewer?: boolean;
+  canReviewUniDb?: boolean;
   activeGroup: string | null;
   onGroupSelect: (groupId: string) => void;
 }
@@ -70,7 +70,7 @@ function buildGroups(
   isAdmin: boolean,
   isCallOperator: boolean,
   isDocumentHandler: boolean,
-  isUniDbReviewer: boolean,
+  canReviewUniDb: boolean,
   t: (key: string) => string,
   lang: string,
 ): SidebarGroup[] {
@@ -139,10 +139,10 @@ function buildGroups(
       items: [
         { title: t('navigation.staff'), url: '/crm/staff', icon: Users, visible: true },
         {
-          title: lang === 'uz' ? 'Uni DB Review' : 'Uni DB Review',
+          title: 'Review',
           url: '/crm/admin/uni-db-review',
           icon: ClipboardCheck,
-          visible: isUniDbReviewer,
+          visible: canReviewUniDb,
           highlight: true,
         },
         { title: t('navigation.settings'), url: '/crm/settings', icon: Settings, visible: true },
@@ -156,7 +156,7 @@ export function CRMSidebar({
   isAdmin,
   isCallOperator,
   isDocumentHandler,
-  isUniDbReviewer = false,
+  canReviewUniDb = false,
   activeGroup,
   onGroupSelect,
 }: CRMSidebarProps) {
@@ -172,7 +172,7 @@ export function CRMSidebar({
     isAdmin,
     isCallOperator,
     isDocumentHandler,
-    isUniDbReviewer,
+    canReviewUniDb,
     t,
     lang,
   );
@@ -262,7 +262,7 @@ export function useSidebarGroups(
   isDocumentHandler: boolean,
   t: (key: string) => string,
   lang: string,
-  isUniDbReviewer = false,
+  canReviewUniDb = false,
 ): SidebarGroup[] {
-  return buildGroups(isOwner, isAdmin, isCallOperator, isDocumentHandler, isUniDbReviewer, t, lang);
+  return buildGroups(isOwner, isAdmin, isCallOperator, isDocumentHandler, canReviewUniDb, t, lang);
 }
