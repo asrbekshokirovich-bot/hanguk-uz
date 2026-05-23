@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
-import { useUniDbReviewer } from '@/hooks/useUniDbReviewer';
+import { useCanReviewUniDb } from '@/hooks/useCanReviewUniDb';
 import { useCRMData } from '@/hooks/useCRMData';
 import { usePayments } from '@/hooks/usePayments';
 import { CRMSidebar, useSidebarGroups } from '@/components/crm/CRMSidebar';
@@ -86,7 +86,7 @@ export default function CRMPortal() {
   const location = useLocation();
   const { user, signOut, loading: authLoading } = useAuth();
   const { isStaff, isOwner, isAdmin, isCallOperator, isDocumentHandler, loading: roleLoading } = useUserRole();
-  const { isUniDbReviewer } = useUniDbReviewer();
+  const { canReview: canReviewUniDb } = useCanReviewUniDb();
   const {
     students,
     applications,
@@ -104,7 +104,7 @@ export default function CRMPortal() {
   const [activeGroup, setActiveGroup] = useState<string | null>(null);
 
   // Get sidebar groups for sub-navigation
-  const sidebarGroups = useSidebarGroups(isOwner, isAdmin, isCallOperator, isDocumentHandler, t, currentLang, isUniDbReviewer);
+  const sidebarGroups = useSidebarGroups(isOwner, isAdmin, isCallOperator, isDocumentHandler, t, currentLang, canReviewUniDb);
 
   // Determine active group from URL
   useEffect(() => {
@@ -428,7 +428,7 @@ export default function CRMPortal() {
               isAdmin={isAdmin}
               isCallOperator={isCallOperator}
               isDocumentHandler={isDocumentHandler}
-              isUniDbReviewer={isUniDbReviewer}
+              canReviewUniDb={canReviewUniDb}
               activeGroup={activeGroup}
               onGroupSelect={setActiveGroup}
             />

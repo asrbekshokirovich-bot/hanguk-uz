@@ -49,7 +49,9 @@ export function useReviewQueue(enabled = true) {
       const { data, error } = await supabase
         // @ts-expect-error - view not in generated types yet
         .from('v_review_queue_dashboard')
-        .select('*');
+        .select('*')
+        .order('priority', { ascending: true })
+        .order('created_at', { ascending: true });
       if (error) throw error;
       return (data ?? []) as unknown as ReviewQueueRow[];
     },
