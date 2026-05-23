@@ -59,6 +59,31 @@ function formatKst(v: unknown): string {
   return `${get('year')}-${get('month')}-${get('day')} ${get('hour')}:${get('minute')} KST`;
 }
 
+function formatDate(v: unknown): string {
+  if (typeof v !== 'string' || !v.trim()) return NS;
+  const s = v.trim();
+  // Date-only ISO (YYYY-MM-DD) carries no time — show it verbatim rather than
+  // shifting it through a timezone.
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  return formatKst(s);
+}
+
+function dateRange(a: unknown, b: unknown): string {
+  const sa = formatDate(a);
+  const sb = formatDate(b);
+  if (sa === NS && sb === NS) return NS;
+  if (sa !== NS && sb !== NS) return `${sa} – ${sb}`;
+  return sa !== NS ? sa : sb;
+}
+
+function list(v: unknown): string {
+  if (Array.isArray(v)) {
+    const items = v.map((x) => String(x).trim()).filter(Boolean);
+    return items.length ? items.join(', ') : NS;
+  }
+  return text(v);
+}
+
 function awardPlain(awardType: unknown, value: unknown): string {
   const t = typeof awardType === 'string' ? awardType : '';
   if (!t && value === null) return NS;
@@ -148,6 +173,36 @@ function RowCard({ title, children }: { title?: string; children: ReactNode }) {
   );
 }
 
+interface TierRow {
+  score: string;
+  award: string;
+  duration: string;
+}
+
+// Accepts the current array form [{ <scoreKey>, award_type, award_value, duration }]
+// and the legacy object form { "<score>": <value | {award_type,…}> }.
+function normalizeTiers(rows: unknown, scoreKey: string): TierRow[] {
+  if (Array.isArray(rows)) {
+    return rows
+      .filter((x): x is Record<string, unknown> => !!x && typeof x === 'object')
+      .map((r) => ({
+        score: text(r[scoreKey]),
+        award: awardPlain(r.award_type, r.award_value ?? null),
+        duration: humanize(r.duration),
+      }));
+  }
+  if (rows && typeof rows === 'object') {
+    return Object.entries(rows as Record<string, unknown>).map(([k, v]) => {
+      if (v && typeof v === 'object') {
+        const o = v as Record<string, unknown>;
+        return { score: k, award: awardPlain(o.award_type, o.award_value ?? null), duration: humanize(o.duration) };
+      }
+      return { score: k, award: typeof v === 'number' ? `${v}%` : text(v), duration: NS };
+    });
+  }
+  return [];
+}
+
 function TierTable({
   rows,
   scoreKey,
@@ -157,10 +212,8 @@ function TierTable({
   scoreKey: string;
   scoreLabel: string;
 }) {
-  const list = Array.isArray(rows)
-    ? rows.filter((x): x is Record<string, unknown> => !!x && typeof x === 'object')
-    : [];
-  if (list.length === 0) {
+  const tiers = normalizeTiers(rows, scoreKey);
+  if (tiers.length === 0) {
     return <span className="text-sm text-muted-foreground italic">{NS}</span>;
   }
   return (
@@ -170,11 +223,11 @@ function TierTable({
         <div>Award</div>
         <div>Duration</div>
       </div>
-      {list.map((r, i) => (
+      {tiers.map((r, i) => (
         <div key={i} className="grid grid-cols-3 text-sm px-2 py-1">
-          <div>{text(r[scoreKey])}</div>
-          <div>{awardPlain(r.award_type, r.award_value ?? null)}</div>
-          <div>{humanize(r.duration)}</div>
+          <div>{r.score}</div>
+          <div>{r.award}</div>
+          <div>{r.duration}</div>
         </div>
       ))}
     </div>
@@ -189,17 +242,42 @@ function EmptyRows({ noun }: { noun: string }) {
   );
 }
 
-// Calendar event_type → human label, in display order. Online/offline/fee slots
-// are shown even when absent (offline + fee are not extracted yet).
-const TIMELINE_SLOTS: Array<{ label: string; type: string | null }> = [
+// Calendar event_type → human label, in display order (granular dated events).
+const TIMELINE_SLOTS: Array<{ label: string; type: string }> = [
   { label: 'Online application opens', type: 'apply_open' },
   { label: 'Online application deadline', type: 'apply_close' },
-  { label: 'Offline application', type: null },
   { label: 'Document deadline', type: 'documents_deadline' },
   { label: 'Interview', type: 'interview' },
   { label: 'Results announced', type: 'final_results' },
   { label: 'Registration opens', type: 'registration_open' },
 ];
+
+// A structured admission period (parsed_output.periods[]). Rendered per language
+// track; fields fall back to "Not specified" until re-extraction populates them.
+function PeriodBlock({ p }: { p: Record<string, unknown> }) {
+  const titleBits = [p.language_track, p.program_level]
+    .filter((x) => x !== null && x !== undefined && x !== '')
+    .map((x) => humanize(x));
+  const title = titleBits.length ? titleBits.join(' · ') : 'Admission period';
+  const fee =
+    [
+      p.application_fee_krw != null ? formatKrw(p.application_fee_krw) : null,
+      p.application_fee_usd != null ? `$${p.application_fee_usd}` : null,
+    ]
+      .filter(Boolean)
+      .join(' / ') || NS;
+  return (
+    <RowCard title={title}>
+      <Field label="Online application" value={dateRange(p.online_application_start, p.online_application_end)} />
+      <Field label="Offline application" value={dateRange(p.offline_application_start, p.offline_application_end)} />
+      <Field label="Interview" value={dateRange(p.interview_start, p.interview_end)} />
+      <Field label="Application window" value={dateRange(p.application_start, p.application_end)} />
+      <Field label="Document deadline" value={formatDate(p.document_deadline)} />
+      <Field label="Results announced" value={formatDate(p.result_announcement)} />
+      <Field label="Application fee" value={fee} />
+    </RowCard>
+  );
+}
 
 export function ReviewParsedOutput({
   fieldGroup,
@@ -226,35 +304,47 @@ export function ReviewParsedOutput({
   switch (fieldGroup) {
     case 'calendar': {
       const events = getArray(parsedOutput, 'events');
+      const periods = getArray(parsedOutput, 'periods');
       const byType = (t: string) => events.filter((e) => e.event_type === t);
+      // Always show at least one period block so offline/fee/etc. fields are
+      // visible; once re-extraction populates periods[], show one block per track.
+      const periodBlocks = periods.length > 0 ? periods : [{}];
       return (
-        <div className="space-y-3">
-          <RowCard>
-            {TIMELINE_SLOTS.map((slot) => {
-              if (slot.type === null) {
-                return <Field key={slot.label} label={slot.label} value={NS} full />;
-              }
-              const matches = byType(slot.type);
-              const value =
-                matches.length === 0 ? (
-                  NS
-                ) : (
-                  <div className="space-y-0.5">
-                    {matches.map((e, i) => (
-                      <div key={i}>
-                        {formatKst(e.starts_at)}
-                        {e.is_tentative ? ' (tentative)' : ''}
-                        {e.notes_ko ? (
-                          <span className="text-muted-foreground"> — {trField(e.notes_ko)}</span>
-                        ) : null}
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <div className="text-xs font-medium text-muted-foreground">Admission periods</div>
+            {periodBlocks.map((p, i) => (
+              <PeriodBlock key={i} p={p} />
+            ))}
+          </div>
+
+          {events.length > 0 ? (
+            <div className="space-y-2">
+              <div className="text-xs font-medium text-muted-foreground">Dated events</div>
+              <RowCard>
+                {TIMELINE_SLOTS.map((slot) => {
+                  const matches = byType(slot.type);
+                  const value =
+                    matches.length === 0 ? (
+                      NS
+                    ) : (
+                      <div className="space-y-0.5">
+                        {matches.map((e, i) => (
+                          <div key={i}>
+                            {formatKst(e.starts_at)}
+                            {e.is_tentative ? ' (tentative)' : ''}
+                            {e.notes_ko ? (
+                              <span className="text-muted-foreground"> — {trField(e.notes_ko)}</span>
+                            ) : null}
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                );
-              return <Field key={slot.label} label={slot.label} value={value} full />;
-            })}
-            <Field label="Application fee" value={NS} full />
-          </RowCard>
+                    );
+                  return <Field key={slot.label} label={slot.label} value={value} full />;
+                })}
+              </RowCard>
+            </div>
+          ) : null}
         </div>
       );
     }
@@ -283,7 +373,7 @@ export function ReviewParsedOutput({
                 <Field label="GPA floor" value={gpa} />
                 <Field label="Interview?" value={yesNo(r.interview_required)} />
                 <Field label="Practical exam?" value={yesNo(r.practical_exam_required)} />
-                <Field label="Majors / fields" value={text(r.majors)} />
+                <Field label="Majors / fields" value={list(r.majors)} />
                 <Field label="Tuition (this track)" value={formatKrw((r.tuition as Record<string, unknown> | undefined)?.amount_krw)} />
                 <Field label="Eligibility" value={trField(r.prose_ko)} full />
               </RowCard>
