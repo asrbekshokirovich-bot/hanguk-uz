@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useTranslationTraining, TranslationDocumentType, TranslationTemplate } from '@/hooks/useTranslationTraining';
-import { AITranslationPanel } from '@/components/translation/AITranslationPanel';
 import { TranslationWorkflow } from '@/components/translation/TranslationWorkflow';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,8 +24,7 @@ import {
   Settings2,
   Sparkles,
   FileCheck,
-  Languages,
-  ClipboardList
+  Languages
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -191,14 +189,10 @@ export default function TranslationTrainingContent() {
 
       {/* Main Tabs */}
       <Tabs defaultValue="translate" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="translate" className="gap-2">
             <Languages className="h-4 w-4" />
             Tarjima
-          </TabsTrigger>
-          <TabsTrigger value="jobs" className="gap-2">
-            <ClipboardList className="h-4 w-4" />
-            So'rovlar
           </TabsTrigger>
           <TabsTrigger value="upload" className="gap-2">
             <Upload className="h-4 w-4" />
@@ -214,13 +208,8 @@ export default function TranslationTrainingContent() {
           </TabsTrigger>
         </TabsList>
 
-        {/* Translate Tab - AI Translation */}
+        {/* Translate Tab - unified flow (student picker + auto-attach + PDF) */}
         <TabsContent value="translate" className="space-y-4">
-          <AITranslationPanel />
-        </TabsContent>
-
-        {/* Jobs Tab */}
-        <TabsContent value="jobs" className="space-y-4">
           <TranslationWorkflow />
         </TabsContent>
 

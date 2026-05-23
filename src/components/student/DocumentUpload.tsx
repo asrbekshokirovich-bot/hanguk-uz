@@ -34,7 +34,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Tables } from '@/integrations/supabase/types';
 import { useToast } from '@/hooks/use-toast';
-import { checkAutoTranslation } from '@/hooks/useAutoTranslation';
 
 interface DocumentUploadProps {
   documents: Tables<'documents'>[];
@@ -237,7 +236,6 @@ export function DocumentUpload({
   const { toast } = useToast();
   const [uploading, setUploading] = useState(false);
   // uploadProgress state removed (Bug #8 fix) — spinner is the visual indicator now
-  const [autoTranslationTriggered, setAutoTranslationTriggered] = useState<string[]>([]);
   const [deletingDocId, setDeletingDocId] = useState<string | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   
@@ -365,15 +363,6 @@ export function DocumentUpload({
       });
 
       onUploadComplete?.();
-
-      if (enableAutoTranslation && user) {
-        setTimeout(async () => {
-          const { triggered } = await checkAutoTranslation(user.id, user.id);
-          if (triggered.length > 0) {
-            setAutoTranslationTriggered(prev => [...prev, ...triggered]);
-          }
-        }, 1000);
-      }
     } catch (error: any) {
       // Bug #4 fix: If storage upload succeeded but DB insert failed, remove the orphaned file
       if (uploadedFileName) {
@@ -922,20 +911,6 @@ export function DocumentUpload({
         </DialogContent>
       </Dialog>
 
-
-      {/* Auto-translation notification */}
-      {autoTranslationTriggered.length > 0 && (
-        <Card className="border-primary/50 bg-primary/5">
-          <CardContent className="py-3">
-            <div className="flex items-center gap-2 text-primary">
-              <Sparkles className="h-4 w-4" />
-              <span className="text-sm font-medium">
-                Avtomatik tarjima boshlandi: {autoTranslationTriggered.join(', ')}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Upload Progress — indeterminate spinner instead of fake percentage */}
       {uploading && (
