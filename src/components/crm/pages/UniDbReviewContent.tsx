@@ -15,7 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { ReviewParsedOutput } from './ReviewParsedOutput';
+import { ReviewParsedOutput, collectKoreanTexts } from './ReviewParsedOutput';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -45,6 +45,7 @@ import {
   FileText,
   FileWarning,
   Code2,
+  Languages,
 } from 'lucide-react';
 
 const PRIORITY_BADGE_VARIANT: Record<number, 'default' | 'destructive' | 'secondary' | 'outline'> = {
@@ -73,16 +74,78 @@ function confidenceLabel(score: number | null): string | null {
   return `${Math.round(score * 100)}%`;
 }
 
-function QueueListItem({
-  row,
+// One university = all open queue items that share an institution identity.
+interface UniGroup {
+  key: string;
+  nameKo: string | null;
+  nameEn: string | null;
+  items: ReviewQueueRow[];
+}
+
+const SECTIONS: Array<{ group: string; title: string }> = [
+  { group: 'calendar', title: 'Admission timeline & fees' },
+  { group: 'requirements', title: 'Admission tracks (전형)' },
+  { group: 'tuition', title: 'Tuition' },
+  { group: 'scholarships', title: 'Scholarships' },
+  { group: 'documents_required', title: 'Required documents' },
+];
+
+const SECTION_TITLE: Record<string, string> = Object.fromEntries(
+  SECTIONS.map((s) => [s.group, s.title]),
+);
+
+function groupKey(row: ReviewQueueRow): string {
+  const name = row.name_en?.trim() || row.name_ko?.trim();
+  if (name) return `name:${name.toLowerCase()}`;
+  if (row.guideline_document_id) return `doc:${row.guideline_document_id}`;
+  return `item:${row.id}`;
+}
+
+function groupByUniversity(rows: ReviewQueueRow[]): UniGroup[] {
+  const map = new Map<string, UniGroup>();
+  for (const row of rows) {
+    const key = groupKey(row);
+    let g = map.get(key);
+    if (!g) {
+      g = { key, nameKo: row.name_ko, nameEn: row.name_en, items: [] };
+      map.set(key, g);
+    }
+    g.items.push(row);
+    if (!g.nameKo && row.name_ko) g.nameKo = row.name_ko;
+    if (!g.nameEn && row.name_en) g.nameEn = row.name_en;
+  }
+  const groups = Array.from(map.values());
+  groups.sort((a, b) => {
+    const pa = Math.min(...a.items.map((i) => i.priority));
+    const pb = Math.min(...b.items.map((i) => i.priority));
+    if (pa !== pb) return pa - pb;
+    return (a.nameEn ?? a.nameKo ?? '').localeCompare(b.nameEn ?? b.nameKo ?? '');
+  });
+  return groups;
+}
+
+function uniTitle(g: UniGroup): string {
+  return g.nameKo ?? g.nameEn ?? 'Unknown institution';
+}
+
+function avgConfidence(items: ReviewQueueRow[]): number | null {
+  const scores = items.map((i) => i.accuracy_self_score).filter((s): s is number => s !== null);
+  if (scores.length === 0) return null;
+  return scores.reduce((a, b) => a + b, 0) / scores.length;
+}
+
+function UniversityListItem({
+  group,
   selected,
   onSelect,
 }: {
-  row: ReviewQueueRow;
+  group: UniGroup;
   selected: boolean;
   onSelect: () => void;
 }) {
-  const conf = confidenceLabel(row.accuracy_self_score);
+  const minPriority = Math.min(...group.items.map((i) => i.priority));
+  const conf = confidenceLabel(avgConfidence(group.items));
+  const sections = Array.from(new Set(group.items.map((i) => i.field_group ?? 'other')));
   return (
     <button
       type="button"
@@ -92,15 +155,93 @@ function QueueListItem({
       }`}
     >
       <div className="flex items-center gap-2 flex-wrap mb-1.5">
-        <Badge variant={PRIORITY_BADGE_VARIANT[row.priority] ?? 'outline'}>P{row.priority}</Badge>
-        <Badge variant="outline" className="font-normal">{row.reason}</Badge>
+        <Badge variant={PRIORITY_BADGE_VARIANT[minPriority] ?? 'outline'}>P{minPriority}</Badge>
+        <Badge variant="outline" className="font-normal">
+          {group.items.length} item{group.items.length === 1 ? '' : 's'}
+        </Badge>
         {conf ? <Badge variant="outline" className="font-normal">conf {conf}</Badge> : null}
       </div>
-      <div className="font-medium text-sm truncate">{institutionName(row)}</div>
-      {row.name_ko && row.name_en ? (
-        <div className="text-xs text-muted-foreground truncate">{row.name_en}</div>
+      <div className="font-medium text-sm truncate">{uniTitle(group)}</div>
+      {group.nameKo && group.nameEn ? (
+        <div className="text-xs text-muted-foreground truncate">{group.nameEn}</div>
       ) : null}
+      <div className="text-xs text-muted-foreground mt-1 truncate">
+        {sections.map((s) => SECTION_TITLE[s] ?? s).join(' · ')}
+      </div>
     </button>
+  );
+}
+
+function UniversityDetail({
+  group,
+  allRows,
+  onResolved,
+}: {
+  group: UniGroup;
+  allRows: ReviewQueueRow[];
+  onResolved: () => void;
+}) {
+  const sameSourceCount = (row: ReviewQueueRow): number => {
+    const key = row.guideline_document_id ?? row.source_url_ko;
+    if (!key) return 1;
+    return allRows.filter((r) => (r.guideline_document_id ?? r.source_url_ko) === key).length;
+  };
+
+  const knownGroups = new Set(SECTIONS.map((s) => s.group));
+  const extraGroups = Array.from(
+    new Set(group.items.map((i) => i.field_group ?? 'other').filter((g) => !knownGroups.has(g))),
+  );
+
+  const renderSectionItems = (fieldGroup: string) => {
+    const items = group.items.filter((i) => (i.field_group ?? 'other') === fieldGroup);
+    if (items.length === 0) {
+      return (
+        <p className="text-sm text-muted-foreground italic rounded-lg border border-dashed p-3">
+          Not extracted yet for this university.
+        </p>
+      );
+    }
+    return (
+      <div className="space-y-4">
+        {items.map((item) => (
+          <DetailPane
+            key={item.id}
+            row={item}
+            sameSourceCount={sameSourceCount(item)}
+            onResolved={onResolved}
+          />
+        ))}
+      </div>
+    );
+  };
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-xl font-bold">{uniTitle(group)}</h2>
+        {group.nameKo && group.nameEn ? (
+          <p className="text-sm text-muted-foreground">{group.nameEn}</p>
+        ) : null}
+      </div>
+
+      {SECTIONS.map((section) => (
+        <section key={section.group} className="space-y-2">
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground border-b pb-1">
+            {section.title}
+          </h3>
+          {renderSectionItems(section.group)}
+        </section>
+      ))}
+
+      {extraGroups.map((fieldGroup) => (
+        <section key={fieldGroup} className="space-y-2">
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground border-b pb-1">
+            {fieldGroup}
+          </h3>
+          {renderSectionItems(fieldGroup)}
+        </section>
+      ))}
+    </div>
   );
 }
 
@@ -128,6 +269,9 @@ function DetailPane({
   const [confirmSourceWrong, setConfirmSourceWrong] = useState(false);
   const [sourceWrongDetail, setSourceWrongDetail] = useState('');
   const [showRawJson, setShowRawJson] = useState(false);
+  const [showKorean, setShowKorean] = useState(false);
+  const [translating, setTranslating] = useState(false);
+  const [translations, setTranslations] = useState<Map<string, string>>(new Map());
 
   // Reset local editing state whenever a different item is selected.
   useEffect(() => {
@@ -139,7 +283,51 @@ function DetailPane({
     setConfirmSourceWrong(false);
     setSourceWrongDetail('');
     setShowRawJson(false);
+    setShowKorean(false);
   }, [row.id, initialJson]);
+
+  // Translate the Korean free-text fields to English once per item.
+  useEffect(() => {
+    const texts = collectKoreanTexts(row.field_group, row.parsed_output);
+    if (texts.length === 0) {
+      setTranslations(new Map());
+      setTranslating(false);
+      return;
+    }
+
+    let cancelled = false;
+    setTranslating(true);
+    (async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('translate-fields', {
+          body: { texts, target_lang: 'en' },
+        });
+        if (error) throw error;
+        const arr = (data as { translations?: unknown } | null)?.translations;
+        const map = new Map<string, string>();
+        if (Array.isArray(arr)) {
+          texts.forEach((t, i) => {
+            const tr = arr[i];
+            if (typeof tr === 'string' && tr.trim()) map.set(t, tr);
+          });
+        }
+        if (!cancelled) setTranslations(map);
+      } catch (err) {
+        if (!cancelled) {
+          setTranslations(new Map());
+          toast.error('Translation unavailable', {
+            description: err instanceof Error ? err.message : 'Could not translate fields',
+          });
+        }
+      } finally {
+        if (!cancelled) setTranslating(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [row.id, row.field_group, row.parsed_output]);
 
   const pending =
     accept.isPending || editAccept.isPending || reject.isPending || flagSourceWrong.isPending;
@@ -241,9 +429,8 @@ function DetailPane({
 
   return (
     <div className="space-y-4">
-      <div>
-        <h2 className="text-lg font-semibold">{institutionName(row)}</h2>
-        <div className="flex items-center gap-2 flex-wrap mt-1.5">
+      <div className="space-y-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <Badge variant={PRIORITY_BADGE_VARIANT[row.priority] ?? 'outline'}>P{row.priority}</Badge>
           <Badge variant="outline" className="font-normal">{row.reason}</Badge>
           {conf ? (
@@ -252,7 +439,7 @@ function DetailPane({
             <Badge variant="outline" className="font-normal">self-confidence n/a</Badge>
           )}
         </div>
-        <div className="flex flex-wrap items-center gap-3 mt-2">
+        <div className="flex flex-wrap items-center gap-3">
           {row.source_url_ko ? (
             <a
               href={row.source_url_ko}
@@ -286,17 +473,38 @@ function DetailPane({
 
       <div className="space-y-2">
         <div className="flex items-center justify-between gap-2">
-          <Label>Extracted data</Label>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="h-7 text-xs"
-            onClick={() => setShowRawJson((v) => !v)}
-          >
-            <Code2 className="h-3.5 w-3.5 mr-1.5" />
-            {showRawJson ? 'Hide JSON' : 'Advanced / edit JSON'}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Label>Extracted data</Label>
+            {!showRawJson && translating ? (
+              <span className="text-xs text-muted-foreground inline-flex items-center gap-1">
+                <Loader2 className="h-3 w-3 animate-spin" /> translating…
+              </span>
+            ) : null}
+          </div>
+          <div className="flex items-center gap-1">
+            {!showRawJson && translations.size > 0 ? (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-7 text-xs"
+                onClick={() => setShowKorean((v) => !v)}
+              >
+                <Languages className="h-3.5 w-3.5 mr-1.5" />
+                {showKorean ? 'English' : '한국어'}
+              </Button>
+            ) : null}
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-7 text-xs"
+              onClick={() => setShowRawJson((v) => !v)}
+            >
+              <Code2 className="h-3.5 w-3.5 mr-1.5" />
+              {showRawJson ? 'Hide JSON' : 'Advanced / edit JSON'}
+            </Button>
+          </div>
         </div>
 
         {showRawJson ? (
@@ -320,7 +528,13 @@ function DetailPane({
             )}
           </>
         ) : (
-          <ReviewParsedOutput fieldGroup={row.field_group} parsedOutput={row.parsed_output} />
+          <ReviewParsedOutput
+            fieldGroup={row.field_group}
+            parsedOutput={row.parsed_output}
+            showKorean={showKorean}
+            translating={translating}
+            translations={translations}
+          />
         )}
       </div>
 
@@ -453,26 +667,19 @@ export default function UniDbReviewContent() {
   const queryEnabled = canReview && !gateLoading;
   const { data, isLoading, error, refetch, isFetching } = useReviewQueue(queryEnabled);
 
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedKey, setSelectedKey] = useState<string | null>(null);
 
   const rows = useMemo(() => data ?? [], [data]);
-  const selectedRow = rows.find((r) => r.id === selectedId) ?? null;
+  const groups = useMemo(() => groupByUniversity(rows), [rows]);
+  const selectedGroup = groups.find((g) => g.key === selectedKey) ?? null;
 
-  // How many open items share the selected item's source — used to warn the
-  // reviewer before flagging the whole source as wrong.
-  const sameSourceCount = useMemo(() => {
-    if (!selectedRow) return 0;
-    const key = selectedRow.guideline_document_id ?? selectedRow.source_url_ko;
-    if (!key) return 1;
-    return rows.filter((r) => (r.guideline_document_id ?? r.source_url_ko) === key).length;
-  }, [rows, selectedRow]);
-
-  // Drop the selection if the selected item leaves the queue (e.g. after an action).
+  // Drop the selection if the selected university leaves the queue (e.g. after
+  // all its items are resolved).
   useEffect(() => {
-    if (selectedId && !rows.some((r) => r.id === selectedId)) {
-      setSelectedId(null);
+    if (selectedKey && !groups.some((g) => g.key === selectedKey)) {
+      setSelectedKey(null);
     }
-  }, [rows, selectedId]);
+  }, [groups, selectedKey]);
 
   if (gateLoading) {
     return (
@@ -499,8 +706,10 @@ export default function UniDbReviewContent() {
     );
   }
 
+  // After an action, refresh the queue. The selection stays on the university
+  // (other sections remain); the effect above clears it only if the whole group
+  // is gone.
   const handleResolved = () => {
-    setSelectedId(null);
     refetch();
   };
 
@@ -549,20 +758,21 @@ export default function UniDbReviewContent() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,360px)_1fr] gap-4">
-          <Card>
+        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,340px)_1fr] gap-4 items-start">
+          <Card className="lg:sticky lg:top-24">
             <CardContent className="p-3">
               <div className="text-xs text-muted-foreground mb-2 px-1">
-                {rows.length} item{rows.length === 1 ? '' : 's'} waiting
+                {groups.length} universit{groups.length === 1 ? 'y' : 'ies'} · {rows.length} item
+                {rows.length === 1 ? '' : 's'} waiting
               </div>
               <ScrollArea className="h-[calc(100vh-22rem)] min-h-[300px] pr-2">
                 <div className="space-y-2">
-                  {rows.map((row) => (
-                    <QueueListItem
-                      key={row.id}
-                      row={row}
-                      selected={row.id === selectedId}
-                      onSelect={() => setSelectedId(row.id)}
+                  {groups.map((group) => (
+                    <UniversityListItem
+                      key={group.key}
+                      group={group}
+                      selected={group.key === selectedKey}
+                      onSelect={() => setSelectedKey(group.key)}
                     />
                   ))}
                 </div>
@@ -572,16 +782,16 @@ export default function UniDbReviewContent() {
 
           <Card>
             <CardContent className="p-4">
-              {selectedRow ? (
-                <DetailPane
-                  key={selectedRow.id}
-                  row={selectedRow}
-                  sameSourceCount={sameSourceCount}
+              {selectedGroup ? (
+                <UniversityDetail
+                  key={selectedGroup.key}
+                  group={selectedGroup}
+                  allRows={rows}
                   onResolved={handleResolved}
                 />
               ) : (
                 <div className="h-full min-h-[300px] flex items-center justify-center text-center text-muted-foreground text-sm p-8">
-                  Select an item from the queue to review its extracted data.
+                  Select a university to review its extracted data.
                 </div>
               )}
             </CardContent>
