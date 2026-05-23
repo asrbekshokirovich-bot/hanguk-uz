@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { streamClaude } from "../_shared/claude.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -1290,11 +1291,6 @@ serve(async (req) => {
     
     console.log(`[${user_type}] ${user_id} (lang: ${language}, detected_uz: ${detectedUzbek}): ${message.substring(0, 100)}...`);
 
-    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
-    if (!GEMINI_API_KEY) {
-      throw new Error("GEMINI_API_KEY is not configured");
-    }
-
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
@@ -1318,80 +1314,37 @@ serve(async (req) => {
       content: message,
     });
 
-    const messages = [
-      { role: "system", content: systemPrompt },
-      ...context.previousChats.slice(-10).map((c: any) => ({
-        role: c.role,
-        content: c.content,
-      })),
-      { role: "user", content: message },
-    ];
+    // Flatten the conversation history + current user message into a single
+    // user-content string, preserving roles. The system prompt goes to Claude's
+    // top-level `system` field.
+    const historyText = context.previousChats
+      .slice(-10)
+      .map((c: any) => `${c.role === "user" ? "User" : "Assistant"}: ${c.content}`)
+      .join("\n");
+    const userContent = historyText
+      ? `${historyText}\nUser: ${message}`
+      : `User: ${message}`;
 
     console.log("System prompt length:", systemPrompt.length);
 
-    const response = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${GEMINI_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages,
-        stream: true,
-      }),
-    });
-
-    if (!response.ok) {
-      if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "AI service unavailable. Please contact support." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      const errorText = await response.text();
-      console.error("AI gateway error:", response.status, errorText);
-      throw new Error(`AI gateway error: ${response.status}`);
-    }
-
-    const reader = response.body!.getReader();
-    const decoder = new TextDecoder();
+    const encoder = new TextEncoder();
     let fullResponse = "";
-    
+
     const { readable, writable } = new TransformStream();
     const writer = writable.getWriter();
 
     (async () => {
       try {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          
-          const chunk = decoder.decode(value, { stream: true });
-          await writer.write(value);
-          
-          const lines = chunk.split("\n");
-          for (const line of lines) {
-            if (line.startsWith("data: ") && line !== "data: [DONE]") {
-              try {
-                const json = JSON.parse(line.slice(6));
-                const content = json.choices?.[0]?.delta?.content;
-                if (content) {
-                  fullResponse += content;
-                }
-              } catch {
-                // Ignore parse errors
-              }
-            }
-          }
+        // Re-emit Claude text deltas in the SAME OpenAI-style SSE format the
+        // client already parses (`data: {choices:[{delta:{content}}]}` lines +
+        // `[DONE]`), while accumulating the full text for the DB save below.
+        for await (const delta of streamClaude(systemPrompt, userContent, { maxTokens: 4096 })) {
+          fullResponse += delta;
+          const sse = `data: ${JSON.stringify({ choices: [{ delta: { content: delta } }] })}\n\n`;
+          await writer.write(encoder.encode(sse));
         }
-        
+        await writer.write(encoder.encode("data: [DONE]\n\n"));
+
         if (fullResponse) {
           await supabase.from("ai_conversations").insert({
             user_id,
@@ -1400,7 +1353,7 @@ serve(async (req) => {
             content: fullResponse,
           });
         }
-        
+
         await writer.close();
       } catch (error) {
         console.error("Stream processing error:", error);

@@ -1,4 +1,5 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
+import { callClaude, extractJson } from "../_shared/claude.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -27,9 +28,7 @@ interface UniversitySearchResult {
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.4';
 
-async function doUniversitySearch(universityName: string, websiteUrl: string | undefined, firecrawlApiKey: string, geminiApiKey: string) {
-  const gatewayUrl = 'https://ai.gateway.gemini.dev/v1';
-  
+async function doUniversitySearch(universityName: string, websiteUrl: string | undefined, firecrawlApiKey: string) {
   let scrapedContent = '';
   let foundWebsite = websiteUrl || '';
   let searchMethod = websiteUrl ? 'direct_website' : 'search';
@@ -237,39 +236,22 @@ Return as valid JSON object.`;
     return headerSection + collected;
   }
 
-  const aiResponse = await fetch(`${gatewayUrl}/chat/completions`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${geminiApiKey}`,
-    },
-    body: JSON.stringify({
-      model: 'google/gemini-2.5-flash',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { 
-          role: 'user', 
-          content: `Extract information about "${universityName}" from this content. Website URL: ${foundWebsite || 'Unknown'}\n\nContent:\n${extractUniversityRelevantSections(scrapedContent, 80000)}` 
-        },
-      ],
-      temperature: 0.1,
-      response_format: { type: 'json_object' },
-    }),
-  });
-
-  if (!aiResponse.ok) {
-    const errorText = await aiResponse.text();
-    console.error('AI extraction failed:', errorText);
+  let extractedText = '';
+  try {
+    extractedText = await callClaude(
+      systemPrompt,
+      `Extract information about "${universityName}" from this content. Website URL: ${foundWebsite || 'Unknown'}\n\nContent:\n${extractUniversityRelevantSections(scrapedContent, 80000)}`,
+      { temperature: 0.1 },
+    );
+  } catch (err) {
+    console.error('AI extraction failed:', err);
     return { success: false, error: 'Failed to extract university information' };
   }
 
-  const aiResult = await aiResponse.json();
-  const extractedText = aiResult.choices?.[0]?.message?.content || '';
-  
   let universityData: UniversitySearchResult;
   try {
-    const parsed = JSON.parse(extractedText);
-    
+    const parsed = extractJson<any>(extractedText);
+
     if (parsed.isCorrectUniversity === false || parsed.confidence < 30) {
       return {
         success: false,
@@ -378,14 +360,6 @@ Deno.serve(async (req) => {
       );
     }
 
-    const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
-    if (!geminiApiKey) {
-      return new Response(
-        JSON.stringify({ success: false, error: 'GEMINI_API_KEY is not configured' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
     // If jobId provided, run as background job
     if (jobId) {
       const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -396,7 +370,7 @@ Deno.serve(async (req) => {
 
       const searchPromise = (async () => {
         try {
-          const result = await doUniversitySearch(universityName, websiteUrl, firecrawlApiKey, geminiApiKey);
+          const result = await doUniversitySearch(universityName, websiteUrl, firecrawlApiKey);
           await supabaseAdmin.from('search_jobs').update({
             status: 'completed',
             result: result as any,
@@ -426,7 +400,7 @@ Deno.serve(async (req) => {
     }
 
     // Direct mode
-    const result = await doUniversitySearch(universityName, websiteUrl, firecrawlApiKey, geminiApiKey);
+    const result = await doUniversitySearch(universityName, websiteUrl, firecrawlApiKey);
     
     const status = result.success === false && result.error ? 
       (result.needsWebsite ? 200 : 500) : 200;

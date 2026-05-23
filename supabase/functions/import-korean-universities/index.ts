@@ -1,5 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { callClaude, extractJson } from "../_shared/claude.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -218,12 +219,6 @@ Deno.serve(async (req) => {
 });
 
 async function extractUniversitiesWithAI(content: string, links: string[]): Promise<UniversityData[]> {
-  const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
-  if (!geminiApiKey) {
-    console.error('GEMINI_API_KEY not configured');
-    return [];
-  }
-  
   const systemPrompt = `You are a Korean university data extractor. Extract ALL universities mentioned in the content.
 For each university, extract:
 - name_en: English name (required)
@@ -246,33 +241,14 @@ Example output:
 ]`;
 
   try {
-    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${geminiApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Extract all Korean universities from this content:\n\n${content.substring(0, 50000)}\n\nLinks found: ${links.slice(0, 100).join('\n')}` },
-        ],
-        temperature: 0.1,
-        response_format: { type: 'json_object' },
-      }),
-    });
+    const text = await callClaude(
+      systemPrompt,
+      `Extract all Korean universities from this content:\n\n${content.substring(0, 50000)}\n\nLinks found: ${links.slice(0, 100).join('\n')}`,
+      { temperature: 0.1 },
+    );
 
-    if (!response.ok) {
-      console.error('AI extraction failed:', await response.text());
-      return [];
-    }
-
-    const result = await response.json();
-    const contentText = result.choices?.[0]?.message?.content || '';
-    
     try {
-      const parsed = JSON.parse(contentText);
+      const parsed = extractJson<any>(text);
       const universities = Array.isArray(parsed) ? parsed : (parsed.universities || []);
       
       return universities.map((u: Record<string, unknown>) => ({
