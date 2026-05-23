@@ -1,29 +1,31 @@
 import type { ReactNode } from 'react';
 
 /**
- * Renders the AI-extracted `parsed_output` for a review-queue item as a clean,
- * labelled layout instead of raw JSON. The shape depends on `field_group`.
+ * Renders the AI-extracted `parsed_output` for one review-queue item as a clean,
+ * labelled layout. Every field defined for a `field_group` is always shown — a
+ * missing value renders as "Not specified" so reviewers see the full structure
+ * (including fields the backend does not populate yet, e.g. majors, per-track
+ * tuition, IELTS bands, application fee).
  *
- * Korean free-text fields are shown translated (English) when a translation map
- * is supplied; a "translating…" placeholder is shown while the call is in
- * flight, and the original Korean is shown when `showKorean` is true.
+ * Korean free-text is shown translated (English) when a translation map is
+ * supplied, with a "translating…" placeholder in flight and the original Korean
+ * when `showKorean` is true.
  *
- * Internal-only fields (extractor_confidence, eligibility_predicate,
- * is_correction_notice, source_text_ko, country_specific, topik_tier_table)
- * are intentionally never rendered.
+ * Internal-only fields (extractor_confidence, eligibility_predicate raw,
+ * is_correction_notice, source_text_ko, country_specific) are never rendered.
  */
 
-const EMPTY = '—';
+const NS = 'Not specified';
 const TRANSLATING = 'translating…';
 
 function text(v: unknown): string {
-  if (v === null || v === undefined) return EMPTY;
+  if (v === null || v === undefined) return NS;
   const s = String(v).trim();
-  return s.length ? s : EMPTY;
+  return s.length ? s : NS;
 }
 
 function humanize(v: unknown): string {
-  if (v === null || v === undefined || v === '') return EMPTY;
+  if (v === null || v === undefined || v === '') return NS;
   const s = String(v).replace(/_/g, ' ').trim();
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
@@ -31,16 +33,17 @@ function humanize(v: unknown): string {
 function yesNo(v: unknown): string {
   if (v === true) return 'Yes';
   if (v === false) return 'No';
-  return EMPTY;
+  return NS;
 }
 
 function formatKrw(v: unknown): string {
-  if (typeof v !== 'number' || !Number.isFinite(v)) return EMPTY;
-  return `${new Intl.NumberFormat('en-US').format(v)} KRW`;
+  const n = typeof v === 'number' ? v : typeof v === 'string' && v.trim() !== '' ? Number(v) : NaN;
+  if (!Number.isFinite(n)) return NS;
+  return `${new Intl.NumberFormat('en-US').format(n)} KRW`;
 }
 
 function formatKst(v: unknown): string {
-  if (typeof v !== 'string' || !v) return EMPTY;
+  if (typeof v !== 'string' || !v) return NS;
   const d = new Date(v);
   if (Number.isNaN(d.getTime())) return text(v);
   const parts = new Intl.DateTimeFormat('en-CA', {
@@ -56,14 +59,30 @@ function formatKst(v: unknown): string {
   return `${get('year')}-${get('month')}-${get('day')} ${get('hour')}:${get('minute')} KST`;
 }
 
-function formatAwardValue(awardType: unknown, value: unknown): string {
-  if (value === null || value === undefined) return EMPTY;
-  const type = typeof awardType === 'string' ? awardType : '';
-  if (type.includes('pct')) return `${value}%`;
-  if (type.includes('krw') || type.includes('stipend') || type.includes('monthly')) {
-    return formatKrw(typeof value === 'number' ? value : Number(value));
+function awardPlain(awardType: unknown, value: unknown): string {
+  const t = typeof awardType === 'string' ? awardType : '';
+  if (!t && value === null) return NS;
+  if (t.includes('tuition_waiver')) return value != null ? `${value}% tuition waiver` : 'Tuition waiver';
+  if (t.includes('stipend') || t.includes('monthly')) {
+    return value != null ? `${formatKrw(value)} / month` : 'Monthly stipend';
   }
-  return text(value);
+  if (t.includes('pct')) return value != null ? `${value}%` : humanize(t);
+  if (!t) return NS;
+  return value != null ? `${humanize(t)} (${value})` : humanize(t);
+}
+
+function englishRequirement(v: unknown): string {
+  if (v === null || v === undefined) return NS;
+  if (typeof v === 'object' && !Array.isArray(v)) {
+    const o = v as Record<string, unknown>;
+    if (typeof o.min_score === 'number') {
+      const t = typeof o.test === 'string' ? o.test.toUpperCase() : 'English test';
+      return `${t} ${o.min_score}`;
+    }
+    if (o.deferred === true) return 'Deferred';
+    return NS;
+  }
+  return text(v);
 }
 
 function getArray(parsed: unknown, key: string): Array<Record<string, unknown>> {
@@ -109,10 +128,13 @@ export function collectKoreanTexts(fieldGroup: string | null, parsedOutput: unkn
 }
 
 function Field({ label, value, full }: { label: string; value: ReactNode; full?: boolean }) {
+  const muted = value === NS || value === TRANSLATING;
   return (
     <div className={full ? 'col-span-2 sm:col-span-3' : ''}>
       <div className="text-xs text-muted-foreground">{label}</div>
-      <div className="text-sm whitespace-pre-wrap break-words">{value}</div>
+      <div className={`text-sm whitespace-pre-wrap break-words ${muted ? 'text-muted-foreground italic' : ''}`}>
+        {value}
+      </div>
     </div>
   );
 }
@@ -126,13 +148,58 @@ function RowCard({ title, children }: { title?: string; children: ReactNode }) {
   );
 }
 
-function EmptyState() {
+function TierTable({
+  rows,
+  scoreKey,
+  scoreLabel,
+}: {
+  rows: unknown;
+  scoreKey: string;
+  scoreLabel: string;
+}) {
+  const list = Array.isArray(rows)
+    ? rows.filter((x): x is Record<string, unknown> => !!x && typeof x === 'object')
+    : [];
+  if (list.length === 0) {
+    return <span className="text-sm text-muted-foreground italic">{NS}</span>;
+  }
   return (
-    <p className="text-sm text-muted-foreground rounded-lg border border-dashed p-4 text-center">
-      No data extracted for this section.
+    <div className="rounded-md border divide-y overflow-hidden">
+      <div className="grid grid-cols-3 text-xs font-medium bg-muted/50 px-2 py-1">
+        <div>{scoreLabel}</div>
+        <div>Award</div>
+        <div>Duration</div>
+      </div>
+      {list.map((r, i) => (
+        <div key={i} className="grid grid-cols-3 text-sm px-2 py-1">
+          <div>{text(r[scoreKey])}</div>
+          <div>{awardPlain(r.award_type, r.award_value ?? null)}</div>
+          <div>{humanize(r.duration)}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function EmptyRows({ noun }: { noun: string }) {
+  return (
+    <p className="text-sm text-muted-foreground italic rounded-lg border border-dashed p-3">
+      No {noun} extracted for this item.
     </p>
   );
 }
+
+// Calendar event_type → human label, in display order. Online/offline/fee slots
+// are shown even when absent (offline + fee are not extracted yet).
+const TIMELINE_SLOTS: Array<{ label: string; type: string | null }> = [
+  { label: 'Online application opens', type: 'apply_open' },
+  { label: 'Online application deadline', type: 'apply_close' },
+  { label: 'Offline application', type: null },
+  { label: 'Document deadline', type: 'documents_deadline' },
+  { label: 'Interview', type: 'interview' },
+  { label: 'Results announced', type: 'final_results' },
+  { label: 'Registration opens', type: 'registration_open' },
+];
 
 export function ReviewParsedOutput({
   fieldGroup,
@@ -147,12 +214,10 @@ export function ReviewParsedOutput({
   translating?: boolean;
   translations?: Map<string, string>;
 }) {
-  // Render a Korean free-text value as its English translation by default,
-  // falling back to the original when translation is unavailable or toggled.
   const trField = (v: unknown): string => {
-    if (v === null || v === undefined) return EMPTY;
+    if (v === null || v === undefined) return NS;
     const s = String(v).trim();
-    if (!s) return EMPTY;
+    if (!s) return NS;
     if (showKorean) return s;
     if (translating) return TRANSLATING;
     return translations?.get(s) ?? s;
@@ -161,44 +226,42 @@ export function ReviewParsedOutput({
   switch (fieldGroup) {
     case 'calendar': {
       const events = getArray(parsedOutput, 'events');
-      if (events.length === 0) return <EmptyState />;
+      const byType = (t: string) => events.filter((e) => e.event_type === t);
       return (
         <div className="space-y-3">
-          {events.map((ev, i) => (
-            <RowCard key={i} title={humanize(ev.event_type)}>
-              <Field label="Event type" value={humanize(ev.event_type)} />
-              <Field label="Date (KST)" value={formatKst(ev.starts_at)} />
-              <Field label="Notes" value={trField(ev.notes_ko)} full />
-            </RowCard>
-          ))}
-        </div>
-      );
-    }
-
-    case 'tuition': {
-      const rows = getArray(parsedOutput, 'rows');
-      if (rows.length === 0) return <EmptyState />;
-      return (
-        <div className="space-y-3">
-          {rows.map((r, i) => (
-            <RowCard key={i} title={text(r.faculty_group)}>
-              <Field label="Faculty group" value={text(r.faculty_group)} />
-              <Field label="Year" value={text(r.year)} />
-              <Field label="Semester" value={text(r.semester)} />
-              <Field label="Amount" value={formatKrw(r.amount_krw)} />
-              <Field
-                label="Admission fee"
-                value={formatKrw(r.admission_fee ?? r.admission_fee_krw)}
-              />
-            </RowCard>
-          ))}
+          <RowCard>
+            {TIMELINE_SLOTS.map((slot) => {
+              if (slot.type === null) {
+                return <Field key={slot.label} label={slot.label} value={NS} full />;
+              }
+              const matches = byType(slot.type);
+              const value =
+                matches.length === 0 ? (
+                  NS
+                ) : (
+                  <div className="space-y-0.5">
+                    {matches.map((e, i) => (
+                      <div key={i}>
+                        {formatKst(e.starts_at)}
+                        {e.is_tentative ? ' (tentative)' : ''}
+                        {e.notes_ko ? (
+                          <span className="text-muted-foreground"> — {trField(e.notes_ko)}</span>
+                        ) : null}
+                      </div>
+                    ))}
+                  </div>
+                );
+              return <Field key={slot.label} label={slot.label} value={value} full />;
+            })}
+            <Field label="Application fee" value={NS} full />
+          </RowCard>
         </div>
       );
     }
 
     case 'requirements': {
       const rows = getArray(parsedOutput, 'rows');
-      if (rows.length === 0) return <EmptyState />;
+      if (rows.length === 0) return <EmptyRows noun="admission tracks" />;
       return (
         <div className="space-y-3">
           {rows.map((r, i) => {
@@ -207,18 +270,21 @@ export function ReviewParsedOutput({
                 ? `Level ${r.topik_min_level}`
                 : r.topik_deferred === true
                   ? 'Deferred'
-                  : EMPTY;
+                  : NS;
             const gpa =
               r.gpa_floor_pct !== null && r.gpa_floor_pct !== undefined
                 ? `${r.gpa_floor_pct}%`
-                : EMPTY;
+                : NS;
             return (
               <RowCard key={i} title={trField(r.applicant_category)}>
-                <Field label="Applicant category" value={trField(r.applicant_category)} />
-                <Field label="TOPIK level" value={topik} />
-                <Field label="English test" value={text(r.english_test)} />
-                <Field label="GPA" value={gpa} />
+                <Field label="Applicant category (track)" value={trField(r.applicant_category)} />
+                <Field label="TOPIK requirement" value={topik} />
+                <Field label="IELTS / English" value={englishRequirement(r.english_test)} />
+                <Field label="GPA floor" value={gpa} />
                 <Field label="Interview?" value={yesNo(r.interview_required)} />
+                <Field label="Practical exam?" value={yesNo(r.practical_exam_required)} />
+                <Field label="Majors / fields" value={text(r.majors)} />
+                <Field label="Tuition (this track)" value={formatKrw((r.tuition as Record<string, unknown> | undefined)?.amount_krw)} />
                 <Field label="Eligibility" value={trField(r.prose_ko)} full />
               </RowCard>
             );
@@ -227,20 +293,55 @@ export function ReviewParsedOutput({
       );
     }
 
+    case 'tuition': {
+      const rows = getArray(parsedOutput, 'rows');
+      if (rows.length === 0) return <EmptyRows noun="tuition rows" />;
+      return (
+        <div className="space-y-3">
+          {rows.map((r, i) => (
+            <RowCard key={i} title={text(r.faculty_group)}>
+              <Field label="Faculty group" value={text(r.faculty_group)} />
+              <Field label="Academic year" value={text(r.academic_year ?? r.year)} />
+              <Field label="Semester" value={text(r.semester_number ?? r.semester)} />
+              <Field label="First semester?" value={yesNo(r.is_first_semester)} />
+              <Field label="Tuition" value={formatKrw(r.amount_krw)} />
+              <Field label="Admission fee" value={formatKrw(r.admission_fee_krw ?? r.admission_fee)} />
+            </RowCard>
+          ))}
+        </div>
+      );
+    }
+
     case 'scholarships': {
       const rows = getArray(parsedOutput, 'rows');
-      if (rows.length === 0) return <EmptyState />;
+      if (rows.length === 0) return <EmptyRows noun="scholarships" />;
       return (
         <div className="space-y-3">
           {rows.map((r, i) => {
             const name = r.name_en ? text(r.name_en) : trField(r.name_ko);
+            const predicate = r.eligibility_predicate as Record<string, unknown> | undefined;
+            const predicateNote =
+              predicate && typeof predicate.prose_note === 'string' ? predicate.prose_note : null;
             return (
-              <RowCard key={i} title={name !== EMPTY ? name : undefined}>
+              <RowCard key={i} title={name !== NS ? name : 'Scholarship'}>
                 <Field label="Name" value={name} />
                 <Field label="Scope" value={humanize(r.scope)} />
-                <Field label="Award type" value={humanize(r.award_type)} />
-                <Field label="Value" value={formatAwardValue(r.award_type, r.award_value)} />
-                <Field label="Eligibility" value={trField(r.prose_ko)} full />
+                <Field label="Award" value={awardPlain(r.award_type, r.award_value ?? null)} />
+                <Field
+                  label="TOPIK score → award"
+                  value={<TierTable rows={r.topik_tier_table} scoreKey="topik_level" scoreLabel="TOPIK" />}
+                  full
+                />
+                <Field
+                  label="IELTS score → award"
+                  value={<TierTable rows={r.ielts_tier_table} scoreKey="ielts_min" scoreLabel="IELTS" />}
+                  full
+                />
+                <Field
+                  label="Eligibility"
+                  value={predicateNote ? `${trField(r.prose_ko)}\n(${predicateNote})` : trField(r.prose_ko)}
+                  full
+                />
               </RowCard>
             );
           })}
@@ -250,7 +351,7 @@ export function ReviewParsedOutput({
 
     case 'documents_required': {
       const rows = getArray(parsedOutput, 'rows');
-      if (rows.length === 0) return <EmptyState />;
+      if (rows.length === 0) return <EmptyRows noun="required documents" />;
       return (
         <div className="space-y-3">
           {rows.map((r, i) => (
