@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { callClaude, extractJson, toImageBlock } from "../_shared/claude.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -18,11 +19,6 @@ serve(async (req) => {
         JSON.stringify({ error: "Missing required fields" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
-    }
-
-    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
-    if (!GEMINI_API_KEY) {
-      throw new Error("GEMINI_API_KEY is not configured");
     }
 
     // Document type descriptions for AI context
@@ -130,121 +126,62 @@ IMPORTANT QUALITY CRITERIA:
 - Document should not be cropped or cut off
 - For photos (3.5x4.5): should be a professional ID photo, not a selfie
 
-Respond in ${language === 'ru' ? 'Russian' : language === 'en' ? 'English' : 'Uzbek'} language.`;
+Respond in ${language === 'ru' ? 'Russian' : language === 'en' ? 'English' : 'Uzbek'} language.
 
-    const response = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${GEMINI_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: systemPrompt },
-          {
-            role: "user",
-            content: [
-              {
-                type: "text",
-                text: `Analyze this document image and determine:
+Respond with ONLY a JSON object (no markdown, no prose) matching exactly this shape:
+{
+  "isValid": boolean,          // Whether the document passes all validation checks
+  "isCorrectType": boolean,    // Whether the document matches the expected type
+  "isProperScan": boolean,     // Whether the document is a proper scan (not a phone photo)
+  "isGoodQuality": boolean,    // Whether the document quality is acceptable
+  "isComplete": boolean,       // Whether the document is complete and not cropped
+  "issues": string[],          // List of specific issues found with the document
+  "suggestions": string[],     // Suggestions for how to fix the issues
+  "confidence": number         // Confidence score from 0 to 100
+}
+All fields are required.`;
+
+    const userText = `Analyze this document image and determine:
 1. Is this the correct document type (${docDesc.en})?
 2. Is this a proper scan or a phone photo?
 3. Is the quality acceptable?
 4. Is the document complete and readable?
 
-Provide your analysis using the validate_document function.`
-              },
-              {
-                type: "image_url",
-                image_url: {
-                  url: imageBase64.startsWith('data:') ? imageBase64 : `data:image/jpeg;base64,${imageBase64}`
-                }
-              }
-            ]
-          }
-        ],
-        tools: [
-          {
-            type: "function",
-            function: {
-              name: "validate_document",
-              description: "Validate document quality and type",
-              parameters: {
-                type: "object",
-                properties: {
-                  isValid: {
-                    type: "boolean",
-                    description: "Whether the document passes all validation checks"
-                  },
-                  isCorrectType: {
-                    type: "boolean",
-                    description: "Whether the document matches the expected type"
-                  },
-                  isProperScan: {
-                    type: "boolean",
-                    description: "Whether the document is a proper scan (not a phone photo)"
-                  },
-                  isGoodQuality: {
-                    type: "boolean",
-                    description: "Whether the document quality is acceptable"
-                  },
-                  isComplete: {
-                    type: "boolean",
-                    description: "Whether the document is complete and not cropped"
-                  },
-                  issues: {
-                    type: "array",
-                    items: { type: "string" },
-                    description: "List of specific issues found with the document"
-                  },
-                  suggestions: {
-                    type: "array",
-                    items: { type: "string" },
-                    description: "Suggestions for how to fix the issues"
-                  },
-                  confidence: {
-                    type: "number",
-                    description: "Confidence score from 0 to 100"
-                  }
-                },
-                required: ["isValid", "isCorrectType", "isProperScan", "isGoodQuality", "isComplete", "issues", "suggestions", "confidence"],
-                additionalProperties: false
-              }
-            }
-          }
-        ],
-        tool_choice: { type: "function", function: { name: "validate_document" } }
-      }),
-    });
+Respond with ONLY the JSON object described in the instructions.`;
 
-    if (!response.ok) {
-      if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "Rate limit exceeded. Please try again later." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "AI service quota exceeded." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      const errorText = await response.text();
-      console.error("AI gateway error:", response.status, errorText);
+    let text: string;
+    try {
+      text = await callClaude(
+        systemPrompt,
+        [
+          { type: "text", text: userText },
+          toImageBlock(imageBase64),
+        ],
+        { maxTokens: 2048 },
+      );
+    } catch (aiError) {
+      console.error("AI gateway error:", aiError);
       throw new Error("AI validation failed");
     }
 
-    const data = await response.json();
-    
-    // Extract the tool call result
-    const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
-    if (!toolCall || toolCall.function.name !== "validate_document") {
-      throw new Error("Invalid AI response format");
+    interface ValidationResult {
+      isValid: boolean;
+      isCorrectType: boolean;
+      isProperScan: boolean;
+      isGoodQuality: boolean;
+      isComplete: boolean;
+      issues: string[];
+      suggestions: string[];
+      confidence: number;
     }
 
-    const validationResult = JSON.parse(toolCall.function.arguments);
+    let validationResult: ValidationResult;
+    try {
+      validationResult = extractJson<ValidationResult>(text);
+    } catch (parseError) {
+      console.error("Failed to parse AI response:", parseError, text);
+      throw new Error("Invalid AI response format");
+    }
 
     return new Response(
       JSON.stringify(validationResult),

@@ -1,12 +1,11 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { callClaude, toImageBlock, toPdfBlock, type ClaudeBlock } from "../_shared/claude.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
-
-const gemini_AI_URL = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
 
 // Uzbekistan regions and districts for handwriting disambiguation
 const UZBEKISTAN_REGIONS: Record<string, string[]> = {
@@ -26,7 +25,7 @@ const UZBEKISTAN_REGIONS: Record<string, string[]> = {
   "Qoraqalpog'iston": ["Nukus", "Amudaryo", "Beruniy", "Chimboy", "Ellikqala", "Kegeyli", "Mo'ynoq", "Qanliko'l", "Qo'ng'irot", "Shumanay", "Taxtako'pir", "To'rtko'l", "Xo'jayli"]
 };
 
-// Convert file to base64 data URL for Gemini vision
+// Convert file to a bare base64 string for vision/document content blocks
 async function fileToBase64(blob: Blob): Promise<string> {
   const buffer = await blob.arrayBuffer();
   const bytes = new Uint8Array(buffer);
@@ -375,15 +374,6 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
-
-    if (!geminiApiKey) {
-      console.error('GEMINI_API_KEY not configured');
-      return new Response(
-        JSON.stringify({ error: 'AI service not configured' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
@@ -598,15 +588,21 @@ For dates that are unclear:
 - If truly unreadable, mark as [UNCLEAR] for manual review
 `;
 
-    // Prepare image content for vision model
-    const imageContents: Array<{ type: 'image_url'; image_url: { url: string } }> = [];
-    
+    // Prepare image/PDF content blocks for the vision model.
+    // PDFs become document blocks (toPdfBlock); everything else is an image block.
+    const imageContents: ClaudeBlock[] = [];
+
+    const toFileBlock = (base64: string, mimeType: string): ClaudeBlock =>
+      mimeType === 'application/pdf'
+        ? toPdfBlock(base64)
+        : toImageBlock(`data:${mimeType};base64,${base64}`);
+
     if (sourceFilePath) {
       console.log('Downloading source file:', sourceFilePath);
       const { data: fileData, error: downloadError } = await supabase.storage
         .from('translation-documents')
         .download(sourceFilePath);
-      
+
       if (downloadError || !fileData) {
         console.error('Failed to download source file:', downloadError);
         return new Response(
@@ -617,10 +613,7 @@ For dates that are unclear:
 
       const base64 = await fileToBase64(fileData);
       const mimeType = getMimeType(sourceFilePath);
-      imageContents.push({
-        type: 'image_url',
-        image_url: { url: `data:${mimeType};base64,${base64}` }
-      });
+      imageContents.push(toFileBlock(base64, mimeType));
       console.log('Source file encoded, MIME:', mimeType);
     }
 
@@ -632,14 +625,11 @@ For dates that are unclear:
           const { data: supportData, error: supportError } = await supabase.storage
             .from('translation-documents')
             .download(supportPath);
-          
+
           if (!supportError && supportData) {
             const base64 = await fileToBase64(supportData);
             const mimeType = getMimeType(supportPath);
-            imageContents.push({
-              type: 'image_url',
-              image_url: { url: `data:${mimeType};base64,${base64}` }
-            });
+            imageContents.push(toFileBlock(base64, mimeType));
             console.log('Supporting file encoded:', supportPath);
           }
         } catch (err) {
@@ -719,21 +709,21 @@ FINALLY:
 CRITICAL: The English translation MUST match the template format EXACTLY - same fields, same order, same layout.
 Names MUST be written EXACTLY as extracted from passports/IDs, NOT from the document being translated.`;
 
-    // Build user message
-    const userContent: Array<{ type: 'text'; text: string } | { type: 'image_url'; image_url: { url: string } }> = [];
-    
+    // Build user message: a leading text instruction followed by the file blocks
+    // (Anthropic content-block array). The text references the files by position,
+    // matching the order they are appended below.
+    const userContent: ClaudeBlock[] = [];
+
     if (imageContents.length > 0) {
-      userContent.push(...imageContents);
-      
       const imageCount = imageContents.length;
       const hasSupporting = supportingFilePaths && supportingFilePaths.length > 0;
-      
+
       userContent.push({
         type: 'text',
-        text: `I am providing ${imageCount} image(s).
+        text: `I am providing ${imageCount} document(s)/image(s).
 
-Image 1: The ${docType.name_en || docType.name_uz} document to translate (main document)
-${hasSupporting ? `Images 2-${imageCount}: Supporting documents (passports, ID cards) - IDENTIFY each one (student/father/mother) and extract names correctly` : ''}
+Document 1: The ${docType.name_en || docType.name_uz} document to translate (main document)
+${hasSupporting ? `Documents 2-${imageCount}: Supporting documents (passports, ID cards) - IDENTIFY each one (student/father/mother) and extract names correctly` : ''}
 
 IMPORTANT INSTRUCTIONS:
 1. First, identify EACH supporting document - determine if it belongs to the student, father, or mother
@@ -744,6 +734,7 @@ IMPORTANT INSTRUCTIONS:
 
 Follow the template format EXACTLY - same field labels, same order, same structure.`
       });
+      userContent.push(...imageContents);
     } else if (sourceText) {
       userContent.push({
         type: 'text',
@@ -751,53 +742,24 @@ Follow the template format EXACTLY - same field labels, same order, same structu
       });
     }
 
-    console.log('Sending to AI with', imageContents.length, 'images...');
+    console.log('Sending to AI with', imageContents.length, 'files...');
 
-    const aiResponse = await fetch(gemini_AI_URL, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${geminiApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userContent }
-        ],
+    let fullResponse: string;
+    try {
+      fullResponse = await callClaude(systemPrompt, userContent, {
         temperature: 0.1,
-        max_tokens: 10000,
-      }),
-    });
-
-    if (!aiResponse.ok) {
-      const errorText = await aiResponse.text();
-      console.error('AI error:', aiResponse.status, errorText);
-      
-      if (aiResponse.status === 429) {
-        return new Response(
-          JSON.stringify({ error: 'Tizim band. Keyinroq urinib ko\'ring.' }),
-          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-      if (aiResponse.status === 402) {
-        return new Response(
-          JSON.stringify({ error: 'AI xizmati uchun kredit tugagan.' }),
-          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-      
+        maxTokens: 10000,
+      });
+    } catch (aiError) {
+      console.error('AI error:', aiError);
       return new Response(
         JSON.stringify({ error: 'AI xizmatida xatolik' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const aiData = await aiResponse.json();
-    const fullResponse = aiData.choices?.[0]?.message?.content;
-
     if (!fullResponse) {
-      console.error('No AI response:', aiData);
+      console.error('No AI response');
       return new Response(
         JSON.stringify({ error: 'Tarjima olinmadi' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

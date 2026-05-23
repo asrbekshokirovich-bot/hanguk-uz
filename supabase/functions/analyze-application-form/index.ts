@@ -1,3 +1,5 @@
+import { callClaude, extractJson } from "../_shared/claude.ts";
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
@@ -204,220 +206,115 @@ COMMON KOREAN UNIVERSITY NAMES (watch for these to avoid confusion):
 - KAIST (한국과학기술원)
 
 OUTPUT FORMAT:
-You MUST call the extract_application_data function with complete structured data.
+You MUST return complete structured data as a single JSON object (see the exact shape specified in the user message).
 If information is not found, use null for optional fields.
 Provide a per-field confidence score in the fieldConfidence array.
 ALWAYS include universityMatch to confirm the content is for the correct university.
 ALWAYS include semesterMatch information indicating if data matches requested semester.`;
 
-const EXTRACTION_TOOL = {
-  type: "function",
-  function: {
-    name: "extract_application_data",
-    description: "Extract structured application data from university admission content with field-level confidence scoring and semester match verification",
-    parameters: {
-      type: "object",
-      properties: {
-        universityName: {
-          type: "string",
-          description: "Official name of the university"
-        },
-        programLevel: {
-          type: "string",
-          enum: ["undergraduate", "graduate", "phd"],
-          description: "Program level"
-        },
-        semester: {
-          type: "string",
-          enum: ["spring", "fall"],
-          description: "Admission semester"
-        },
-        year: {
-          type: "number",
-          description: "Admission year"
-        },
-        universityMatch: {
-          type: "object",
-          description: "CRITICAL: Validates that the content is for the CORRECT university. MUST check this first!",
-          properties: {
-            isCorrectUniversity: { type: "boolean", description: "True ONLY if content is definitely for the requested university" },
-            detectedUniversity: { type: "string", description: "The university name actually found in the content" },
-            detectedUniversityKo: { type: "string", description: "Korean name of the university found in content" },
-            confidence: { type: "number", description: "0-100 confidence that this is the correct university" },
-            reason: { type: "string", description: "Explanation of how university was verified or why it doesn't match" }
-          },
-          required: ["isCorrectUniversity", "detectedUniversity", "confidence"]
-        },
-        semesterMatch: {
-          type: "object",
-          description: "Indicates whether the extracted data matches the requested semester",
-          properties: {
-            isMatch: { type: "boolean", description: "True if data matches requested semester/year" },
-            actualSemester: { type: "string", description: "The actual semester the data is for" },
-            actualYear: { type: "number", description: "The actual year the data is for" },
-            notYetAnnounced: { type: "boolean", description: "True if the requested semester's form is not yet announced" },
-            reason: { type: "string", description: "Explanation of why data doesn't match or why not announced" }
-          },
-          required: ["isMatch"]
-        },
-        facultyTuitionBreakdown: {
-          type: "array",
-          description: "Tuition fees broken down by faculty/college - IMPORTANT: Korean universities typically have different tuition per faculty",
-          items: {
-            type: "object",
-            properties: {
-              facultyName: { type: "string", description: "Faculty/College name (e.g., College of Engineering)" },
-              facultyNameKo: { type: "string", description: "Faculty name in Korean if available" },
-              tuitionPerSemester: { type: "number", description: "Tuition per semester in KRW" },
-              tuitionPerYear: { type: "number", description: "Tuition per year in KRW" },
-              admissionFee: { type: "number", description: "One-time admission fee in KRW" },
-              availableTracks: { 
-                type: "array", 
-                items: { type: "string", enum: ["english", "korean"] },
-                description: "Which language tracks are available for this faculty" 
-              },
-              notes: { type: "string" }
-            },
-            required: ["facultyName", "availableTracks"]
-          }
-        },
-        trackAvailabilitySummary: {
-          type: "object",
-          description: "Summary of which faculties are available for each track",
-          properties: {
-            englishTrackFaculties: { 
-              type: "array", 
-              items: { type: "string" },
-              description: "List of faculty names available for English track"
-            },
-            koreanTrackFaculties: { 
-              type: "array", 
-              items: { type: "string" },
-              description: "List of faculty names available for Korean track"
-            },
-            bothTracksFaculties: { 
-              type: "array", 
-              items: { type: "string" },
-              description: "List of faculty names available for both tracks"
-            }
-          }
-        },
-        programs: {
-          type: "array",
-          description: "List of available programs/majors with faculty-specific details and unique requirements",
-          items: {
-            type: "object",
-            properties: {
-              programName: { type: "string" },
-              facultyName: { type: "string", description: "Faculty/College this program belongs to" },
-              departmentName: { type: "string" },
-              languageTrack: { type: "string", enum: ["english", "korean", "both"] },
-              tuitionPerSemester: { type: "number", description: "Tuition per semester (use faculty-specific value)" },
-              tuitionPerYear: { type: "number" },
-              topikRequirement: { type: "number", description: "TOPIK level 1-6 for Korean track" },
-              ieltsRequirement: { type: "number", description: "IELTS score 0.0-9.0 for English track" },
-              toeflRequirement: { type: "number", description: "TOEFL iBT score 0-120" },
-              isAvailableForInternational: { type: "boolean" },
-              notes: { type: "string" },
-              confidence: { type: "number", description: "Confidence 0-100 for this program entry" },
-              uniqueRequirements: { 
-                type: "array", 
-                items: { type: "string" },
-                description: "List of unique/special requirements for this specific program (e.g., 'Korean track only', 'Interview required', 'Portfolio submission required')"
-              },
-              interviewRequired: { type: "boolean", description: "True if this program requires an interview" },
-              portfolioRequired: { type: "boolean", description: "True if this program requires portfolio submission (arts, design, etc.)" },
-              practicalTestRequired: { type: "boolean", description: "True if this program requires practical test or audition (music, PE, etc.)" },
-              minimumGPA: { type: "number", description: "Minimum GPA requirement if specified" },
-              languageAlternatives: { 
-                type: "array", 
-                items: { type: "string" },
-                description: "Alternative language certifications accepted (e.g., 'TOEIC 700+', 'Duolingo 110+')"
-              }
-            },
-            required: ["programName", "facultyName", "languageTrack", "isAvailableForInternational"]
-          }
-        },
-        deadlines: {
-          type: "object",
-          description: "Important dates and deadlines",
-          properties: {
-            applicationStart: { type: "string", description: "ISO date YYYY-MM-DD" },
-            applicationEnd: { type: "string", description: "ISO date YYYY-MM-DD" },
-            documentDeadline: { type: "string", description: "ISO date YYYY-MM-DD" },
-            interviewDate: { type: "string", description: "ISO date or date range" },
-            resultAnnouncement: { type: "string", description: "ISO date YYYY-MM-DD" },
-            notes: { type: "string" }
-          }
-        },
-        requiredDocuments: {
-          type: "array",
-          description: "List of required documents",
-          items: {
-            type: "object",
-            properties: {
-              documentName: { type: "string" },
-              isRequired: { type: "boolean" },
-              trackSpecific: { type: "string", enum: ["english", "korean", "both"] },
-              notes: { type: "string" },
-              format: { type: "string", description: "e.g., 'apostille required', 'certified translation'" },
-              confidence: { type: "number", description: "Confidence 0-100 for this document requirement" }
-            },
-            required: ["documentName", "isRequired"]
-          }
-        },
-        fees: {
-          type: "object",
-          description: "Application and tuition fees",
-          properties: {
-            applicationFeeKRW: { type: "number" },
-            applicationFeeUSD: { type: "number" },
-            tuitionPerSemester: { type: "number", description: "General tuition - prefer faculty-specific in facultyTuitionBreakdown" },
-            tuitionPerYear: { type: "number" },
-            dormitoryFee: { type: "number" },
-            insuranceFee: { type: "number" },
-            notes: { type: "string" }
-          }
-        },
-        eligibilityCriteria: {
-          type: "array",
-          description: "List of eligibility requirements",
-          items: { type: "string" }
-        },
-        importantWarnings: {
-          type: "array",
-          description: "Critical warnings including semester mismatch alerts",
-          items: { type: "string" }
-        },
-        specialNotes: {
-          type: "array",
-          description: "Other important notes and special conditions",
-          items: { type: "string" }
-        },
-        confidence: {
-          type: "number",
-          description: "Overall confidence score 0-100 (reduce significantly if semester doesn't match)"
-        },
-        fieldConfidence: {
-          type: "array",
-          description: "Per-field confidence assessments for quality assurance",
-          items: {
-            type: "object",
-            properties: {
-              field: { type: "string", description: "Field path like 'deadlines.applicationEnd' or 'fees.applicationFeeKRW'" },
-              confidence: { type: "number", description: "Confidence 0-100" },
-              source: { type: "string", description: "Where this info was found in the document" },
-              needsReview: { type: "boolean", description: "True if staff should manually verify" },
-              reason: { type: "string", description: "Why this needs review or has low confidence" }
-            },
-            required: ["field", "confidence", "needsReview"]
-          }
-        }
-      },
-      required: ["universityName", "programs", "requiredDocuments", "confidence", "fieldConfidence", "semesterMatch"]
+// JSON-shape instruction appended to the system prompt. Replaces the former
+// OpenAI extract-application-data tool/function schema. Every property/type/meaning
+// is preserved so the parsed object is identical in shape to the old tool arguments.
+const OUTPUT_SHAPE_INSTRUCTION = `Respond with ONLY a JSON object (no markdown, no prose) matching exactly this shape (use null for any optional field not found):
+{
+  "universityName": string,                 // Official name of the university (REQUIRED)
+  "programLevel": "undergraduate" | "graduate" | "phd",  // Program level
+  "semester": "spring" | "fall",            // Admission semester
+  "year": number,                           // Admission year
+  "universityMatch": {                      // CRITICAL: validates content is for the CORRECT university. Check this first!
+    "isCorrectUniversity": boolean,         // (REQUIRED) True ONLY if content is definitely for the requested university
+    "detectedUniversity": string,           // (REQUIRED) The university name actually found in the content
+    "detectedUniversityKo": string,         // Korean name of the university found in content
+    "confidence": number,                   // (REQUIRED) 0-100 confidence that this is the correct university
+    "reason": string                        // Explanation of how university was verified or why it doesn't match
+  },
+  "semesterMatch": {                        // (REQUIRED) whether extracted data matches the requested semester
+    "isMatch": boolean,                     // (REQUIRED) True if data matches requested semester/year
+    "actualSemester": string,               // The actual semester the data is for
+    "actualYear": number,                   // The actual year the data is for
+    "notYetAnnounced": boolean,             // True if the requested semester's form is not yet announced
+    "reason": string                        // Explanation of why data doesn't match or why not announced
+  },
+  "facultyTuitionBreakdown": [              // Tuition fees broken down by faculty/college (Korean universities typically differ per faculty)
+    {
+      "facultyName": string,                // (REQUIRED) Faculty/College name (e.g., College of Engineering)
+      "facultyNameKo": string,              // Faculty name in Korean if available
+      "tuitionPerSemester": number,         // Tuition per semester in KRW
+      "tuitionPerYear": number,             // Tuition per year in KRW
+      "admissionFee": number,               // One-time admission fee in KRW
+      "availableTracks": ("english" | "korean")[],  // (REQUIRED) Which language tracks are available for this faculty
+      "notes": string
     }
-  }
-};
+  ],
+  "trackAvailabilitySummary": {             // Summary of which faculties are available for each track
+    "englishTrackFaculties": string[],      // Faculty names available for English track
+    "koreanTrackFaculties": string[],       // Faculty names available for Korean track
+    "bothTracksFaculties": string[]         // Faculty names available for both tracks
+  },
+  "programs": [                             // (REQUIRED) available programs/majors with faculty-specific details
+    {
+      "programName": string,                // (REQUIRED)
+      "facultyName": string,                // (REQUIRED) Faculty/College this program belongs to
+      "departmentName": string,
+      "languageTrack": "english" | "korean" | "both",  // (REQUIRED)
+      "tuitionPerSemester": number,         // Tuition per semester (use faculty-specific value)
+      "tuitionPerYear": number,
+      "topikRequirement": number,           // TOPIK level 1-6 for Korean track
+      "ieltsRequirement": number,           // IELTS score 0.0-9.0 for English track
+      "toeflRequirement": number,           // TOEFL iBT score 0-120
+      "isAvailableForInternational": boolean,  // (REQUIRED)
+      "notes": string,
+      "confidence": number,                 // Confidence 0-100 for this program entry
+      "uniqueRequirements": string[],       // Unique/special requirements (e.g., 'Korean track only', 'Interview required', 'Portfolio submission required')
+      "interviewRequired": boolean,         // True if this program requires an interview
+      "portfolioRequired": boolean,         // True if this program requires portfolio submission (arts, design, etc.)
+      "practicalTestRequired": boolean,     // True if this program requires practical test or audition (music, PE, etc.)
+      "minimumGPA": number,                 // Minimum GPA requirement if specified
+      "languageAlternatives": string[]      // Alternative language certifications accepted (e.g., 'TOEIC 700+', 'Duolingo 110+')
+    }
+  ],
+  "deadlines": {                            // Important dates and deadlines
+    "applicationStart": string,             // ISO date YYYY-MM-DD
+    "applicationEnd": string,               // ISO date YYYY-MM-DD
+    "documentDeadline": string,             // ISO date YYYY-MM-DD
+    "interviewDate": string,                // ISO date or date range
+    "resultAnnouncement": string,           // ISO date YYYY-MM-DD
+    "notes": string
+  },
+  "requiredDocuments": [                    // (REQUIRED) list of required documents
+    {
+      "documentName": string,               // (REQUIRED)
+      "isRequired": boolean,                // (REQUIRED)
+      "trackSpecific": "english" | "korean" | "both",
+      "notes": string,
+      "format": string,                     // e.g., 'apostille required', 'certified translation'
+      "confidence": number                  // Confidence 0-100 for this document requirement
+    }
+  ],
+  "fees": {                                 // Application and tuition fees
+    "applicationFeeKRW": number,
+    "applicationFeeUSD": number,
+    "tuitionPerSemester": number,           // General tuition - prefer faculty-specific in facultyTuitionBreakdown
+    "tuitionPerYear": number,
+    "dormitoryFee": number,
+    "insuranceFee": number,
+    "notes": string
+  },
+  "eligibilityCriteria": string[],          // List of eligibility requirements
+  "importantWarnings": string[],            // Critical warnings including semester mismatch alerts
+  "specialNotes": string[],                 // Other important notes and special conditions
+  "confidence": number,                     // (REQUIRED) Overall confidence score 0-100 (reduce significantly if semester doesn't match)
+  "fieldConfidence": [                      // (REQUIRED) per-field confidence assessments
+    {
+      "field": string,                      // (REQUIRED) Field path like 'deadlines.applicationEnd' or 'fees.applicationFeeKRW'
+      "confidence": number,                 // (REQUIRED) Confidence 0-100
+      "source": string,                     // Where this info was found in the document
+      "needsReview": boolean,               // (REQUIRED) True if staff should manually verify
+      "reason": string                      // Why this needs review or has low confidence
+    }
+  ]
+}
+Required top-level fields: universityName, programs, requiredDocuments, confidence, fieldConfidence, semesterMatch.`;
 
 // Smart content extraction: prioritize keyword-rich sections instead of simple truncation (ISSUE 4)
 function extractRelevantSections(content: string, maxLength: number = 50000): string {
@@ -472,15 +369,6 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
-    if (!GEMINI_API_KEY) {
-      console.error('GEMINI_API_KEY not configured');
-      return new Response(
-        JSON.stringify({ success: false, error: 'AI service not configured' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
     const request: AnalyzeRequest = await req.json();
     console.log('Analyze request for:', request.universityName, request.programLevel, request.semester, request.year);
 
@@ -521,7 +409,7 @@ CRITICAL VALIDATION - DO THIS FIRST:
 CONTENT TO ANALYZE:
 ${content}
 
-Extract all relevant information using the extract_application_data function. Be thorough and precise.
+Extract all relevant information into the JSON object described in the instructions. Be thorough and precise.
 IMPORTANT:
 - FIRST: Set universityMatch to confirm this content is for the correct university
 - For EVERY key field (deadlines, fees, requirements), provide a fieldConfidence entry
@@ -530,79 +418,46 @@ IMPORTANT:
 - If UNIVERSITY or SEMESTER doesn't match, add critical warnings and set confidence to 0
 - Include any warnings or special notes that could affect Uzbek students' applications.`;
 
-    console.log('Calling gemini AI for analysis with field confidence...');
+    console.log('Calling Claude AI for analysis with field confidence...');
 
-    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${GEMINI_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          { role: 'system', content: SYSTEM_PROMPT + (request.languageTrack && request.languageTrack !== 'both' ? `\n\nLANGUAGE TRACK PRIORITY:\nThe user specifically requested the "${request.languageTrack}" track. You MUST:\n- Provide FULL detail for programs available on the ${request.languageTrack} track\n- Only SUMMARIZE programs available exclusively on the other track\n- Clearly mark programs that are available on BOTH tracks\n- If the ${request.languageTrack} track is not available at this university, state this clearly in importantWarnings` : '') },
-          { role: 'user', content: userPrompt }
-        ],
-        tools: [EXTRACTION_TOOL],
-        tool_choice: { type: 'function', function: { name: 'extract_application_data' } },
-        temperature: 0.1,
-      }),
-    });
+    const systemWithTrack = SYSTEM_PROMPT + (request.languageTrack && request.languageTrack !== 'both' ? `\n\nLANGUAGE TRACK PRIORITY:\nThe user specifically requested the "${request.languageTrack}" track. You MUST:\n- Provide FULL detail for programs available on the ${request.languageTrack} track\n- Only SUMMARIZE programs available exclusively on the other track\n- Clearly mark programs that are available on BOTH tracks\n- If the ${request.languageTrack} track is not available at this university, state this clearly in importantWarnings` : '') + '\n\n' + OUTPUT_SHAPE_INSTRUCTION;
 
-    if (!response.ok) {
-      if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ success: false, error: 'AI service rate limit exceeded. Please try again in a moment.' }),
-          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ success: false, error: 'AI service quota exceeded. Please contact support.' }),
-          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-      const errorText = await response.text();
-      console.error('AI gateway error:', response.status, errorText);
+    let aiText: string;
+    try {
+      aiText = await callClaude(
+        systemWithTrack,
+        userPrompt,
+        { maxTokens: 8192, temperature: 0.1 },
+      );
+    } catch (aiError) {
+      console.error('AI gateway error:', aiError);
       return new Response(
         JSON.stringify({ success: false, error: 'AI analysis failed. Please try again.' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const aiResponse = await response.json();
     console.log('AI response received');
 
-    // Extract the function call result
-    const toolCall = aiResponse.choices?.[0]?.message?.tool_calls?.[0];
-    if (!toolCall || toolCall.function?.name !== 'extract_application_data') {
-      console.error('No valid tool call in response:', JSON.stringify(aiResponse));
-      
-      const messageContent = aiResponse.choices?.[0]?.message?.content;
-      if (messageContent) {
+    let extractedData: AnalyzedData;
+    try {
+      extractedData = extractJson<AnalyzedData>(aiText);
+    } catch (parseError) {
+      console.error('Failed to parse AI extraction results:', parseError);
+
+      // If the model returned prose instead of JSON, surface it as raw content.
+      if (aiText && aiText.trim().length > 0) {
         return new Response(
-          JSON.stringify({ 
-            success: true, 
+          JSON.stringify({
+            success: true,
             analyzed: false,
-            rawContent: messageContent,
-            message: 'AI could not extract structured data. Raw analysis provided.' 
+            rawContent: aiText,
+            message: 'AI could not extract structured data. Raw analysis provided.'
           }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
-      
-      return new Response(
-        JSON.stringify({ success: false, error: 'AI could not extract structured data from the content.' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
 
-    let extractedData: AnalyzedData;
-    try {
-      extractedData = JSON.parse(toolCall.function.arguments);
-    } catch (parseError) {
-      console.error('Failed to parse tool call arguments:', parseError);
       return new Response(
         JSON.stringify({ success: false, error: 'Failed to parse AI extraction results.' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

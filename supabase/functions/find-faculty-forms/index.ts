@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.4';
+import { callClaude, extractJson } from '../_shared/claude.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -164,81 +165,54 @@ const staticFallbackSynonyms: Record<string, { english: string[]; korean: string
   'veterinarian': { english: ['Veterinary Medicine', 'Veterinary Science'], korean: ['수의학', '수의과대학'] },
 };
 
-// AI-powered faculty term expansion using tool calling
+// AI-powered faculty term expansion. Replaces the former OpenAI `expand_faculty_terms`
+// tool/function-call with a "return ONLY JSON" prompt parsed via extractJson.
+interface ExpandFacultyTermsResult {
+  englishTerms: string[];
+  koreanTerms: string[];
+  primaryTerm: string;
+}
+
 async function expandFacultyTerms(
-  faculty: string,
-  apiKey: string
+  faculty: string
 ): Promise<{ englishTerms: string[]; koreanTerms: string[]; primaryTerm: string }> {
   const defaultResult = { englishTerms: [faculty], koreanTerms: [], primaryTerm: faculty };
-  
+
   // Check static map first
   const staticKorean = getKoreanFacultyName(faculty);
-  
+
   // Check static fallback synonyms
   const fallback = staticFallbackSynonyms[faculty.toLowerCase()];
 
-  try {
-    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        temperature: 0,
-        messages: [
-          {
-            role: 'system',
-            content: 'You map informal/colloquial terms to official Korean university faculty/department names. Use the expand_faculty_terms tool to return your answer.',
-          },
-          {
-            role: 'user',
-            content: `The user typed "${faculty}" as a faculty/field search term for Korean universities.
+  // JSON-shape instruction replacing the former expand_faculty_terms tool schema.
+  // Every property/type/meaning is preserved so the parsed object matches the old
+  // tool arguments exactly.
+  const systemPrompt = `You map informal/colloquial terms to official Korean university faculty/department names.
+
+Respond with ONLY a JSON object (no markdown, no prose) matching exactly this shape:
+{
+  "englishTerms": string[],   // Official English department/faculty names (max 3)
+  "koreanTerms": string[],    // Korean department/faculty names (max 3)
+  "primaryTerm": string       // The most common official department name in English
+}
+All fields are required.`;
+
+  const userPrompt = `The user typed "${faculty}" as a faculty/field search term for Korean universities.
 Return the official academic department/faculty names this could refer to, in both English and Korean.
 Return at most 3 English terms and 3 Korean terms. The primaryTerm should be the most common official department name.
 
 Examples:
 - "dentist" → englishTerms: ["Dentistry", "Dental Medicine"], koreanTerms: ["치의학", "치과대학"], primaryTerm: "Dentistry"
-- "coder" → englishTerms: ["Computer Science", "Computer Engineering", "Software Engineering"], koreanTerms: ["컴퓨터공학", "소프트웨어공학"], primaryTerm: "Computer Science"`,
-          },
-        ],
-        tools: [
-          {
-            type: 'function',
-            function: {
-              name: 'expand_faculty_terms',
-              description: 'Return expanded faculty/department names in English and Korean',
-              parameters: {
-                type: 'object',
-                properties: {
-                  englishTerms: {
-                    type: 'array',
-                    items: { type: 'string' },
-                    description: 'Official English department/faculty names (max 3)',
-                  },
-                  koreanTerms: {
-                    type: 'array',
-                    items: { type: 'string' },
-                    description: 'Korean department/faculty names (max 3)',
-                  },
-                  primaryTerm: {
-                    type: 'string',
-                    description: 'The most common official department name in English',
-                  },
-                },
-                required: ['englishTerms', 'koreanTerms', 'primaryTerm'],
-                additionalProperties: false,
-              },
-            },
-          },
-        ],
-        tool_choice: { type: 'function', function: { name: 'expand_faculty_terms' } },
-      }),
-    });
+- "coder" → englishTerms: ["Computer Science", "Computer Engineering", "Software Engineering"], koreanTerms: ["컴퓨터공학", "소프트웨어공학"], primaryTerm: "Computer Science"
 
-    if (!response.ok) {
-      console.error('Faculty expansion AI error:', response.status);
+Respond with ONLY the JSON object described in the instructions.`;
+
+  try {
+    let text: string;
+    try {
+      text = await callClaude(systemPrompt, userPrompt, { maxTokens: 1024, temperature: 0 });
+    } catch (aiError) {
+      console.error('Faculty expansion AI error:', aiError);
       // Use static fallback
       if (fallback) {
         return { englishTerms: fallback.english, koreanTerms: fallback.korean, primaryTerm: fallback.english[0] };
@@ -246,34 +220,23 @@ Examples:
       return { ...defaultResult, koreanTerms: staticKorean ? [staticKorean] : [] };
     }
 
-    const data = await response.json();
-    
-    // Extract from tool call response
-    const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
-    if (toolCall?.function?.arguments) {
-      const parsed = JSON.parse(toolCall.function.arguments);
+    let parsed: ExpandFacultyTermsResult | undefined;
+    try {
+      parsed = extractJson<ExpandFacultyTermsResult>(text);
+    } catch (parseError) {
+      console.error('No structured response from faculty expansion:', parseError);
+    }
+
+    if (parsed) {
       const result = {
         englishTerms: (parsed.englishTerms?.length ? parsed.englishTerms : [faculty]).slice(0, 3),
         koreanTerms: (parsed.koreanTerms || (staticKorean ? [staticKorean] : [])).slice(0, 3),
         primaryTerm: parsed.primaryTerm || faculty,
       };
-      console.log(`Faculty expansion (tool): "${faculty}" → EN: [${result.englishTerms.join(', ')}], KO: [${result.koreanTerms.join(', ')}]`);
+      console.log(`Faculty expansion: "${faculty}" → EN: [${result.englishTerms.join(', ')}], KO: [${result.koreanTerms.join(', ')}]`);
       return result;
     }
 
-    // Fallback: try parsing from content (in case tool calling wasn't used)
-    const content = data.choices?.[0]?.message?.content || '';
-    const jsonMatch = content.match(/\{[\s\S]*?"englishTerms"[\s\S]*?\}/);
-    if (jsonMatch) {
-      const parsed = JSON.parse(jsonMatch[0]);
-      return {
-        englishTerms: (parsed.englishTerms?.length ? parsed.englishTerms : [faculty]).slice(0, 3),
-        koreanTerms: (parsed.koreanTerms || (staticKorean ? [staticKorean] : [])).slice(0, 3),
-        primaryTerm: parsed.primaryTerm || faculty,
-      };
-    }
-
-    console.error('No structured response from faculty expansion');
     if (fallback) {
       return { englishTerms: fallback.english, koreanTerms: fallback.korean, primaryTerm: fallback.english[0] };
     }
@@ -837,7 +800,6 @@ function buildQualitySummary(results: UniversityResult[], sourcesUsed: number, o
 async function analyzeWithGemini(
   contents: { url: string; title: string; markdown: string; relevanceScore: number }[],
   request: FacultySearchRequest,
-  apiKey: string,
   expandedTerms?: { englishTerms: string[]; koreanTerms: string[]; primaryTerm: string }
 ): Promise<UniversityResult[]> {
   const sourceList = contents.map((c, i) => `Source ${i + 1} (relevance: ${c.relevanceScore.toFixed(1)}): ${c.url}`).join('\n');
@@ -933,53 +895,27 @@ Respond with ONLY a JSON object in this exact format:
   ]
 }`;
 
-  const response = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'google/gemini-2.5-flash',
-      temperature: 0.1,
-      messages: [
-        { role: 'system', content: `You are a Korean university admissions data extractor. Always respond with valid JSON only. NEVER fabricate data — return null for unknown fields. If a source is a blog or ranking list without specific per-university admission data, set confidence very low (0.2 or below). Only extract data for ${allTermsDisplay} faculty at ${request.programLevel} level.` },
-        { role: 'user', content: prompt },
-      ],
-    }),
-  });
+  const systemPrompt = `You are a Korean university admissions data extractor. Always respond with valid JSON only. NEVER fabricate data — return null for unknown fields. If a source is a blog or ranking list without specific per-university admission data, set confidence very low (0.2 or below). Only extract data for ${allTermsDisplay} faculty at ${request.programLevel} level.`;
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error('AI gateway error:', response.status, errorText);
-    
-    if (response.status === 429) throw new Error('Rate limit exceeded. Please try again in a moment.');
-    if (response.status === 402) throw new Error('AI credits exhausted. Please add credits to continue.');
-    throw new Error(`AI analysis failed: ${response.status}`);
+  let content: string;
+  try {
+    content = await callClaude(systemPrompt, prompt, { maxTokens: 8192, temperature: 0.1 });
+  } catch (aiError) {
+    console.error('AI gateway error:', aiError);
+    throw new Error(`AI analysis failed: ${aiError instanceof Error ? aiError.message : String(aiError)}`);
   }
 
-  const data = await response.json();
-  const content = data.choices?.[0]?.message?.content || '';
-  
-  let extractedJson: string | undefined;
-  
-  const codeBlockMatch = content.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/);
-  if (codeBlockMatch) {
-    extractedJson = codeBlockMatch[1];
-  } else {
-    const jsonMatch = content.match(/\{[\s\S]*?"universities"\s*:\s*\[[\s\S]*?\]\s*\}/);
-    extractedJson = jsonMatch?.[0];
-  }
-  
-  if (!extractedJson) {
-    console.error('No JSON found in AI response:', content.substring(0, 500));
+  let parsed: { universities?: UniversityResult[] };
+  try {
+    parsed = extractJson<{ universities?: UniversityResult[] }>(content);
+  } catch (e) {
+    console.error('No JSON found in AI response:', (content || '').substring(0, 500), e);
     return [];
   }
 
   try {
-    const parsed = JSON.parse(extractedJson);
     const universities: UniversityResult[] = parsed.universities || [];
-    
+
     return universities.map(uni => {
       if (uni.sourceIndex && uni.sourceIndex >= 1 && uni.sourceIndex <= contents.length) {
         uni.sourceUrl = contents[uni.sourceIndex - 1].url;
@@ -1008,9 +944,9 @@ function hashContent(markdown: string): string {
   return hash.toString();
 }
 
-async function doFacultySearch(request: FacultySearchRequest, firecrawlApiKey: string, geminiApiKey: string) {
+async function doFacultySearch(request: FacultySearchRequest, firecrawlApiKey: string) {
   // Step 0: Expand faculty terms using AI
-  const expandedTerms = await expandFacultyTerms(request.faculty, geminiApiKey);
+  const expandedTerms = await expandFacultyTerms(request.faculty);
   const expandedEnglish = expandedTerms.englishTerms.join(', ');
   const expandedKorean = expandedTerms.koreanTerms.join(', ');
   console.log(`Using expanded terms: EN=[${expandedEnglish}] KO=[${expandedKorean}]`);
@@ -1093,7 +1029,7 @@ async function doFacultySearch(request: FacultySearchRequest, firecrawlApiKey: s
 
   for (let i = 0; i < contentItems.length; i += batchSize) {
     const batch = contentItems.slice(i, i + batchSize);
-    const universities = await analyzeWithGemini(batch, request, geminiApiKey, expandedTerms);
+    const universities = await analyzeWithGemini(batch, request, expandedTerms);
     allUniversities.push(...universities);
   }
 
@@ -1313,7 +1249,6 @@ async function selfChainWithRetry(
 async function doComprehensiveFacultySearch(
   request: FacultySearchRequest,
   firecrawlApiKey: string,
-  geminiApiKey: string,
   jobId: string,
   batchIndex: number = 0
 ) {
@@ -1328,8 +1263,8 @@ async function doComprehensiveFacultySearch(
   let universityIds: string[];
   
   if (batchIndex === 0) {
-    expandedTerms = await expandFacultyTerms(request.faculty, geminiApiKey);
-    
+    expandedTerms = await expandFacultyTerms(request.faculty);
+
     // ISSUE 4 FIX: Fetch all universities ONCE on batch 0 and store IDs in progress
     const { data: allUniversities } = await supabase
       .from('universities')
@@ -1570,7 +1505,7 @@ async function doComprehensiveFacultySearch(
       }
 
       if (contentItems.length > 0) {
-        const universities = await analyzeWithGemini(contentItems.slice(0, 4), request, geminiApiKey, expandedTerms);
+        const universities = await analyzeWithGemini(contentItems.slice(0, 4), request, expandedTerms);
         if (universities.length > 0) {
           const validSourceUrls = new Set(contentItems.map(c => c.url));
           const validated = validateResults(universities, validSourceUrls, request.year);
@@ -1667,14 +1602,6 @@ Deno.serve(async (req) => {
       );
     }
 
-    const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
-    if (!geminiApiKey) {
-      return new Response(
-        JSON.stringify({ success: false, error: 'GEMINI_API_KEY is not configured' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
     const body = await req.json();
     const jobId = body.jobId;
     const mode = body.mode;
@@ -1694,7 +1621,7 @@ Deno.serve(async (req) => {
     if (mode === 'comprehensive' && jobId) {
       const searchPromise = (async () => {
         try {
-          await doComprehensiveFacultySearch(request, firecrawlApiKey, geminiApiKey, jobId, batchIndex);
+          await doComprehensiveFacultySearch(request, firecrawlApiKey, jobId, batchIndex);
         } catch (err) {
           const errorMsg = err instanceof Error ? err.message : 'Unknown error';
           console.error(`Comprehensive search batch ${batchIndex} failed:`, errorMsg);
@@ -1730,7 +1657,7 @@ Deno.serve(async (req) => {
       // Use EdgeRuntime.waitUntil to continue processing after response
       const searchPromise = (async () => {
         try {
-          const result = await doFacultySearch(request, firecrawlApiKey, geminiApiKey);
+          const result = await doFacultySearch(request, firecrawlApiKey);
           await supabaseAdmin.from('search_jobs').update({
             status: 'completed',
             result: result as any,
@@ -1761,7 +1688,7 @@ Deno.serve(async (req) => {
     }
 
     // Direct mode (no jobId) - original behavior
-    const result = await doFacultySearch(request, firecrawlApiKey, geminiApiKey);
+    const result = await doFacultySearch(request, firecrawlApiKey);
 
     return new Response(
       JSON.stringify(result),
