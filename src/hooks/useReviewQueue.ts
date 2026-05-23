@@ -18,6 +18,7 @@ export interface ReviewQueueRow {
   source_url_ko: string | null;
   storage_path: string | null;
   guideline_document_id: string | null;
+  field_group: string | null;
   parsed_output: unknown | null;
   accuracy_self_score: number | null;
 }

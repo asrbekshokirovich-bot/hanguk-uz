@@ -15,6 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { ReviewParsedOutput } from './ReviewParsedOutput';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -43,6 +44,7 @@ import {
   X,
   FileText,
   FileWarning,
+  Code2,
 } from 'lucide-react';
 
 const PRIORITY_BADGE_VARIANT: Record<number, 'default' | 'destructive' | 'secondary' | 'outline'> = {
@@ -125,6 +127,7 @@ function DetailPane({
   const [pdfLoading, setPdfLoading] = useState(false);
   const [confirmSourceWrong, setConfirmSourceWrong] = useState(false);
   const [sourceWrongDetail, setSourceWrongDetail] = useState('');
+  const [showRawJson, setShowRawJson] = useState(false);
 
   // Reset local editing state whenever a different item is selected.
   useEffect(() => {
@@ -135,6 +138,7 @@ function DetailPane({
     setRejectDetail('');
     setConfirmSourceWrong(false);
     setSourceWrongDetail('');
+    setShowRawJson(false);
   }, [row.id, initialJson]);
 
   const pending =
@@ -281,23 +285,42 @@ function DetailPane({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="parsed-output">Extracted data (editable JSON)</Label>
-        <Textarea
-          id="parsed-output"
-          className="font-mono text-xs"
-          rows={16}
-          value={jsonText}
-          onChange={(e) => setJsonText(e.target.value)}
-          disabled={pending}
-        />
-        {parseError ? (
-          <p className="text-xs text-destructive flex items-center gap-1">
-            <AlertCircle className="h-3.5 w-3.5 shrink-0" /> {parseError}
-          </p>
+        <div className="flex items-center justify-between gap-2">
+          <Label>Extracted data</Label>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="h-7 text-xs"
+            onClick={() => setShowRawJson((v) => !v)}
+          >
+            <Code2 className="h-3.5 w-3.5 mr-1.5" />
+            {showRawJson ? 'Hide JSON' : 'Advanced / edit JSON'}
+          </Button>
+        </div>
+
+        {showRawJson ? (
+          <>
+            <Textarea
+              id="parsed-output"
+              className="font-mono text-xs"
+              rows={16}
+              value={jsonText}
+              onChange={(e) => setJsonText(e.target.value)}
+              disabled={pending}
+            />
+            {parseError ? (
+              <p className="text-xs text-destructive flex items-center gap-1">
+                <AlertCircle className="h-3.5 w-3.5 shrink-0" /> {parseError}
+              </p>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                Edit the JSON directly, then use "Save edits + accept".
+              </p>
+            )}
+          </>
         ) : (
-          <p className="text-xs text-muted-foreground">
-            Verify the AI's extraction. Use "Accept as-is" if correct, or edit the JSON and "Save edits + accept".
-          </p>
+          <ReviewParsedOutput fieldGroup={row.field_group} parsedOutput={row.parsed_output} />
         )}
       </div>
 
