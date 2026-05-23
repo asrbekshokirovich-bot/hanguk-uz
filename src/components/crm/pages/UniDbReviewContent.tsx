@@ -15,7 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { ReviewParsedOutput } from './ReviewParsedOutput';
+import { ReviewParsedOutput, collectKoreanTexts } from './ReviewParsedOutput';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -45,6 +45,7 @@ import {
   FileText,
   FileWarning,
   Code2,
+  Languages,
 } from 'lucide-react';
 
 const PRIORITY_BADGE_VARIANT: Record<number, 'default' | 'destructive' | 'secondary' | 'outline'> = {
@@ -128,6 +129,9 @@ function DetailPane({
   const [confirmSourceWrong, setConfirmSourceWrong] = useState(false);
   const [sourceWrongDetail, setSourceWrongDetail] = useState('');
   const [showRawJson, setShowRawJson] = useState(false);
+  const [showKorean, setShowKorean] = useState(false);
+  const [translating, setTranslating] = useState(false);
+  const [translations, setTranslations] = useState<Map<string, string>>(new Map());
 
   // Reset local editing state whenever a different item is selected.
   useEffect(() => {
@@ -139,7 +143,51 @@ function DetailPane({
     setConfirmSourceWrong(false);
     setSourceWrongDetail('');
     setShowRawJson(false);
+    setShowKorean(false);
   }, [row.id, initialJson]);
+
+  // Translate the Korean free-text fields to English once per item.
+  useEffect(() => {
+    const texts = collectKoreanTexts(row.field_group, row.parsed_output);
+    if (texts.length === 0) {
+      setTranslations(new Map());
+      setTranslating(false);
+      return;
+    }
+
+    let cancelled = false;
+    setTranslating(true);
+    (async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('translate-fields', {
+          body: { texts, target_lang: 'en' },
+        });
+        if (error) throw error;
+        const arr = (data as { translations?: unknown } | null)?.translations;
+        const map = new Map<string, string>();
+        if (Array.isArray(arr)) {
+          texts.forEach((t, i) => {
+            const tr = arr[i];
+            if (typeof tr === 'string' && tr.trim()) map.set(t, tr);
+          });
+        }
+        if (!cancelled) setTranslations(map);
+      } catch (err) {
+        if (!cancelled) {
+          setTranslations(new Map());
+          toast.error('Translation unavailable', {
+            description: err instanceof Error ? err.message : 'Could not translate fields',
+          });
+        }
+      } finally {
+        if (!cancelled) setTranslating(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [row.id, row.field_group, row.parsed_output]);
 
   const pending =
     accept.isPending || editAccept.isPending || reject.isPending || flagSourceWrong.isPending;
@@ -286,17 +334,38 @@ function DetailPane({
 
       <div className="space-y-2">
         <div className="flex items-center justify-between gap-2">
-          <Label>Extracted data</Label>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="h-7 text-xs"
-            onClick={() => setShowRawJson((v) => !v)}
-          >
-            <Code2 className="h-3.5 w-3.5 mr-1.5" />
-            {showRawJson ? 'Hide JSON' : 'Advanced / edit JSON'}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Label>Extracted data</Label>
+            {!showRawJson && translating ? (
+              <span className="text-xs text-muted-foreground inline-flex items-center gap-1">
+                <Loader2 className="h-3 w-3 animate-spin" /> translating…
+              </span>
+            ) : null}
+          </div>
+          <div className="flex items-center gap-1">
+            {!showRawJson && translations.size > 0 ? (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-7 text-xs"
+                onClick={() => setShowKorean((v) => !v)}
+              >
+                <Languages className="h-3.5 w-3.5 mr-1.5" />
+                {showKorean ? 'English' : '한국어'}
+              </Button>
+            ) : null}
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-7 text-xs"
+              onClick={() => setShowRawJson((v) => !v)}
+            >
+              <Code2 className="h-3.5 w-3.5 mr-1.5" />
+              {showRawJson ? 'Hide JSON' : 'Advanced / edit JSON'}
+            </Button>
+          </div>
         </div>
 
         {showRawJson ? (
@@ -320,7 +389,13 @@ function DetailPane({
             )}
           </>
         ) : (
-          <ReviewParsedOutput fieldGroup={row.field_group} parsedOutput={row.parsed_output} />
+          <ReviewParsedOutput
+            fieldGroup={row.field_group}
+            parsedOutput={row.parsed_output}
+            showKorean={showKorean}
+            translating={translating}
+            translations={translations}
+          />
         )}
       </div>
 

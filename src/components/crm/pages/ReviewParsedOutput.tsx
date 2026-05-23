@@ -4,12 +4,17 @@ import type { ReactNode } from 'react';
  * Renders the AI-extracted `parsed_output` for a review-queue item as a clean,
  * labelled layout instead of raw JSON. The shape depends on `field_group`.
  *
+ * Korean free-text fields are shown translated (English) when a translation map
+ * is supplied; a "translating…" placeholder is shown while the call is in
+ * flight, and the original Korean is shown when `showKorean` is true.
+ *
  * Internal-only fields (extractor_confidence, eligibility_predicate,
  * is_correction_notice, source_text_ko, country_specific, topik_tier_table)
  * are intentionally never rendered.
  */
 
 const EMPTY = '—';
+const TRANSLATING = 'translating…';
 
 function text(v: unknown): string {
   if (v === null || v === undefined) return EMPTY;
@@ -71,6 +76,38 @@ function getArray(parsed: unknown, key: string): Array<Record<string, unknown>> 
   return [];
 }
 
+/**
+ * The Korean free-text values actually displayed for an item, deduplicated.
+ * Must stay in sync with the fields run through `trField` in the renderer.
+ */
+export function collectKoreanTexts(fieldGroup: string | null, parsedOutput: unknown): string[] {
+  const out: string[] = [];
+  const push = (v: unknown) => {
+    if (typeof v === 'string') {
+      const s = v.trim();
+      if (s) out.push(s);
+    }
+  };
+
+  if (fieldGroup === 'calendar') {
+    for (const ev of getArray(parsedOutput, 'events')) push(ev.notes_ko);
+  } else {
+    for (const r of getArray(parsedOutput, 'rows')) {
+      if (fieldGroup === 'requirements') {
+        push(r.applicant_category);
+        push(r.prose_ko);
+      } else if (fieldGroup === 'scholarships') {
+        push(r.prose_ko);
+        if (!r.name_en) push(r.name_ko);
+      } else if (fieldGroup === 'documents_required') {
+        push(r.notes_ko);
+      }
+    }
+  }
+
+  return Array.from(new Set(out));
+}
+
 function Field({ label, value, full }: { label: string; value: ReactNode; full?: boolean }) {
   return (
     <div className={full ? 'col-span-2 sm:col-span-3' : ''}>
@@ -100,10 +137,27 @@ function EmptyState() {
 export function ReviewParsedOutput({
   fieldGroup,
   parsedOutput,
+  showKorean = false,
+  translating = false,
+  translations,
 }: {
   fieldGroup: string | null;
   parsedOutput: unknown;
+  showKorean?: boolean;
+  translating?: boolean;
+  translations?: Map<string, string>;
 }) {
+  // Render a Korean free-text value as its English translation by default,
+  // falling back to the original when translation is unavailable or toggled.
+  const trField = (v: unknown): string => {
+    if (v === null || v === undefined) return EMPTY;
+    const s = String(v).trim();
+    if (!s) return EMPTY;
+    if (showKorean) return s;
+    if (translating) return TRANSLATING;
+    return translations?.get(s) ?? s;
+  };
+
   switch (fieldGroup) {
     case 'calendar': {
       const events = getArray(parsedOutput, 'events');
@@ -114,7 +168,7 @@ export function ReviewParsedOutput({
             <RowCard key={i} title={humanize(ev.event_type)}>
               <Field label="Event type" value={humanize(ev.event_type)} />
               <Field label="Date (KST)" value={formatKst(ev.starts_at)} />
-              <Field label="Notes" value={text(ev.notes_ko)} full />
+              <Field label="Notes" value={trField(ev.notes_ko)} full />
             </RowCard>
           ))}
         </div>
@@ -159,13 +213,13 @@ export function ReviewParsedOutput({
                 ? `${r.gpa_floor_pct}%`
                 : EMPTY;
             return (
-              <RowCard key={i} title={text(r.applicant_category)}>
-                <Field label="Applicant category" value={text(r.applicant_category)} />
+              <RowCard key={i} title={trField(r.applicant_category)}>
+                <Field label="Applicant category" value={trField(r.applicant_category)} />
                 <Field label="TOPIK level" value={topik} />
                 <Field label="English test" value={text(r.english_test)} />
                 <Field label="GPA" value={gpa} />
                 <Field label="Interview?" value={yesNo(r.interview_required)} />
-                <Field label="Eligibility" value={text(r.prose_ko)} full />
+                <Field label="Eligibility" value={trField(r.prose_ko)} full />
               </RowCard>
             );
           })}
@@ -179,14 +233,14 @@ export function ReviewParsedOutput({
       return (
         <div className="space-y-3">
           {rows.map((r, i) => {
-            const name = (r.name_en as ReactNode) || (r.name_ko as ReactNode) || EMPTY;
+            const name = r.name_en ? text(r.name_en) : trField(r.name_ko);
             return (
-              <RowCard key={i} title={typeof name === 'string' ? name : undefined}>
+              <RowCard key={i} title={name !== EMPTY ? name : undefined}>
                 <Field label="Name" value={name} />
                 <Field label="Scope" value={humanize(r.scope)} />
                 <Field label="Award type" value={humanize(r.award_type)} />
                 <Field label="Value" value={formatAwardValue(r.award_type, r.award_value)} />
-                <Field label="Eligibility" value={text(r.prose_ko)} full />
+                <Field label="Eligibility" value={trField(r.prose_ko)} full />
               </RowCard>
             );
           })}
@@ -204,7 +258,7 @@ export function ReviewParsedOutput({
               <Field label="Document" value={humanize(r.document_type)} />
               <Field label="Required?" value={yesNo(r.is_required)} />
               <Field label="Apostille?" value={yesNo(r.is_apostille_required)} />
-              <Field label="Notes" value={text(r.notes_ko)} full />
+              <Field label="Notes" value={trField(r.notes_ko)} full />
             </RowCard>
           ))}
         </div>
