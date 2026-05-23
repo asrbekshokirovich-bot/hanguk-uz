@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 import { useCanReviewUniDb } from '@/hooks/useCanReviewUniDb';
 import {
   useReviewQueue,
@@ -14,6 +15,16 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import {
   Select,
   SelectContent,
@@ -30,6 +41,8 @@ import {
   Check,
   Pencil,
   X,
+  FileText,
+  FileWarning,
 } from 'lucide-react';
 
 const PRIORITY_BADGE_VARIANT: Record<number, 'default' | 'destructive' | 'secondary' | 'outline'> = {
@@ -91,12 +104,14 @@ function QueueListItem({
 
 function DetailPane({
   row,
+  sameSourceCount,
   onResolved,
 }: {
   row: ReviewQueueRow;
+  sameSourceCount: number;
   onResolved: () => void;
 }) {
-  const { accept, editAccept, reject } = useReviewActions();
+  const { accept, editAccept, reject, flagSourceWrong } = useReviewActions();
 
   const initialJson = useMemo(
     () => JSON.stringify(row.parsed_output ?? {}, null, 2),
@@ -107,6 +122,9 @@ function DetailPane({
   const [rejecting, setRejecting] = useState(false);
   const [rejectReason, setRejectReason] = useState<RejectionReason>('wrong_year');
   const [rejectDetail, setRejectDetail] = useState('');
+  const [pdfLoading, setPdfLoading] = useState(false);
+  const [confirmSourceWrong, setConfirmSourceWrong] = useState(false);
+  const [sourceWrongDetail, setSourceWrongDetail] = useState('');
 
   // Reset local editing state whenever a different item is selected.
   useEffect(() => {
@@ -115,10 +133,56 @@ function DetailPane({
     setRejecting(false);
     setRejectReason('wrong_year');
     setRejectDetail('');
+    setConfirmSourceWrong(false);
+    setSourceWrongDetail('');
   }, [row.id, initialJson]);
 
-  const pending = accept.isPending || editAccept.isPending || reject.isPending;
+  const pending =
+    accept.isPending || editAccept.isPending || reject.isPending || flagSourceWrong.isPending;
   const conf = confidenceLabel(row.accuracy_self_score);
+
+  const handleOpenPdf = async () => {
+    if (!row.guideline_document_id) return;
+    setPdfLoading(true);
+    try {
+      // Signed URLs expire in ~15 min, so always fetch a fresh one per click.
+      const { data, error } = await supabase.functions.invoke('get-pdf-url', {
+        body: { document_id: row.guideline_document_id },
+      });
+      const signedUrl = (data as { signed_url?: string } | null)?.signed_url;
+      if (error || !signedUrl) {
+        throw error ?? new Error('No signed URL returned');
+      }
+      window.open(signedUrl, '_blank', 'noopener,noreferrer');
+    } catch (err) {
+      if (row.source_url_ko) {
+        window.open(row.source_url_ko, '_blank', 'noopener,noreferrer');
+        toast.message('Cached PDF unavailable', {
+          description: 'Opened the live source page instead.',
+        });
+      } else {
+        toast.error('Could not open source PDF', {
+          description: err instanceof Error ? err.message : 'Unknown error',
+        });
+      }
+    } finally {
+      setPdfLoading(false);
+    }
+  };
+
+  const handleFlagSourceWrong = () => {
+    flagSourceWrong.mutate(
+      { queueItemId: row.id, detail: sourceWrongDetail || undefined },
+      {
+        onSuccess: (count) => {
+          toast.success('Source flagged', { description: `${count} item(s) rejected` });
+          setConfirmSourceWrong(false);
+          onResolved();
+        },
+        onError: (err) => toast.error('Flag source failed', { description: err.message }),
+      },
+    );
+  };
 
   const handleAccept = () => {
     accept.mutate(
@@ -184,18 +248,36 @@ function DetailPane({
             <Badge variant="outline" className="font-normal">self-confidence n/a</Badge>
           )}
         </div>
-        {row.source_url_ko ? (
-          <a
-            href={row.source_url_ko}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-sm text-primary hover:underline inline-flex items-center gap-1 mt-2"
-          >
-            <ExternalLink className="h-3.5 w-3.5" /> View source
-          </a>
-        ) : (
-          <p className="text-sm text-muted-foreground mt-2">No source URL on file.</p>
-        )}
+        <div className="flex flex-wrap items-center gap-3 mt-2">
+          {row.source_url_ko ? (
+            <a
+              href={row.source_url_ko}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm text-primary hover:underline inline-flex items-center gap-1"
+            >
+              <ExternalLink className="h-3.5 w-3.5" /> View source page
+            </a>
+          ) : null}
+          {row.guideline_document_id ? (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleOpenPdf}
+              disabled={pdfLoading || pending}
+            >
+              {pdfLoading ? (
+                <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+              ) : (
+                <FileText className="h-4 w-4 mr-1.5" />
+              )}
+              Open source PDF
+            </Button>
+          ) : null}
+          {!row.source_url_ko && !row.guideline_document_id ? (
+            <p className="text-sm text-muted-foreground">No source on file.</p>
+          ) : null}
+        </div>
       </div>
 
       <div className="space-y-2">
@@ -287,8 +369,58 @@ function DetailPane({
             <X className="h-4 w-4 mr-1.5" />
             Reject
           </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="text-destructive border-destructive/40 hover:bg-destructive/10"
+            onClick={() => setConfirmSourceWrong(true)}
+            disabled={pending}
+          >
+            <FileWarning className="h-4 w-4 mr-1.5" />
+            Source is wrong
+          </Button>
         </div>
       )}
+
+      <AlertDialog open={confirmSourceWrong} onOpenChange={(o) => !o && setConfirmSourceWrong(false)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Flag this source as wrong?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Use this when the source document itself is wrong (wrong file, outdated, or
+              mislabeled). This rejects every open item from this source —{' '}
+              {sameSourceCount} item{sameSourceCount === 1 ? '' : 's'}. Continue?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="space-y-1.5 py-1">
+            <Label htmlFor="source-wrong-detail">Note (optional)</Label>
+            <Textarea
+              id="source-wrong-detail"
+              rows={3}
+              value={sourceWrongDetail}
+              onChange={(e) => setSourceWrongDetail(e.target.value)}
+              placeholder="Why the source is wrong"
+              disabled={flagSourceWrong.isPending}
+            />
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={flagSourceWrong.isPending}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                handleFlagSourceWrong();
+              }}
+              disabled={flagSourceWrong.isPending}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {flagSourceWrong.isPending ? (
+                <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+              ) : null}
+              Flag source &amp; reject all
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
@@ -302,6 +434,15 @@ export default function UniDbReviewContent() {
 
   const rows = useMemo(() => data ?? [], [data]);
   const selectedRow = rows.find((r) => r.id === selectedId) ?? null;
+
+  // How many open items share the selected item's source — used to warn the
+  // reviewer before flagging the whole source as wrong.
+  const sameSourceCount = useMemo(() => {
+    if (!selectedRow) return 0;
+    const key = selectedRow.guideline_document_id ?? selectedRow.source_url_ko;
+    if (!key) return 1;
+    return rows.filter((r) => (r.guideline_document_id ?? r.source_url_ko) === key).length;
+  }, [rows, selectedRow]);
 
   // Drop the selection if the selected item leaves the queue (e.g. after an action).
   useEffect(() => {
@@ -409,7 +550,12 @@ export default function UniDbReviewContent() {
           <Card>
             <CardContent className="p-4">
               {selectedRow ? (
-                <DetailPane key={selectedRow.id} row={selectedRow} onResolved={handleResolved} />
+                <DetailPane
+                  key={selectedRow.id}
+                  row={selectedRow}
+                  sameSourceCount={sameSourceCount}
+                  onResolved={handleResolved}
+                />
               ) : (
                 <div className="h-full min-h-[300px] flex items-center justify-center text-center text-muted-foreground text-sm p-8">
                   Select an item from the queue to review its extracted data.

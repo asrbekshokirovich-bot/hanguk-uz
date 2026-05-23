@@ -17,6 +17,7 @@ export interface ReviewQueueRow {
   name_en: string | null;
   source_url_ko: string | null;
   storage_path: string | null;
+  guideline_document_id: string | null;
   parsed_output: unknown | null;
   accuracy_self_score: number | null;
 }
@@ -72,6 +73,10 @@ interface RejectArgs extends AcceptArgs {
   reasonDetail?: string;
 }
 
+interface FlagSourceWrongArgs extends AcceptArgs {
+  detail?: string;
+}
+
 export function useReviewActions() {
   const qc = useQueryClient();
 
@@ -114,5 +119,19 @@ export function useReviewActions() {
     onSuccess: invalidate,
   });
 
-  return { accept, editAccept, reject };
+  // Marks the whole source document bad and rejects every open queue item that
+  // shares it. Returns the number of items rejected.
+  const flagSourceWrong = useMutation<number, Error, FlagSourceWrongArgs>({
+    mutationFn: async ({ queueItemId, detail }) => {
+      const { data, error } = await supabase.rpc('fn_flag_source_wrong' as never, {
+        queue_item_id: queueItemId,
+        detail: detail ?? null,
+      } as never);
+      if (error) throw new Error(error.message);
+      return Number(data ?? 0);
+    },
+    onSuccess: invalidate,
+  });
+
+  return { accept, editAccept, reject, flagSourceWrong };
 }
