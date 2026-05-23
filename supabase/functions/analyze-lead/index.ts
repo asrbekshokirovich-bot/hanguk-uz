@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { callClaude } from "../_shared/claude.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -50,7 +51,6 @@ serve(async (req) => {
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
@@ -90,7 +90,7 @@ serve(async (req) => {
       }
 
       // Calculate priority score and generate insights
-      const analysis = await analyzeLead(lead, notes || [], geminiApiKey);
+      const analysis = await analyzeLead(lead, notes || []);
 
       // Build update object conditionally - protect manually-set values
       // AI NEVER updates last_contacted_at — that field is staff-only (SmartContactDialog)
@@ -138,7 +138,7 @@ serve(async (req) => {
   }
 });
 
-async function analyzeLead(lead: Lead, notes: LeadNote[], apiKey: string | undefined) {
+async function analyzeLead(lead: Lead, notes: LeadNote[]) {
   // Find last contacted date from notes
   const lastContactedAt = notes.length > 0 
     ? notes[0].contacted_at || notes[0].created_at 
@@ -245,9 +245,9 @@ async function analyzeLead(lead: Lead, notes: LeadNote[], apiKey: string | undef
   // Generate AI summary if API key available
   let aiSummary = lead.ai_summary;
   
-  if (apiKey && notes.length > 0) {
+  if (notes.length > 0) {
     try {
-      aiSummary = await generateAISummary(lead, notes, apiKey);
+      aiSummary = await generateAISummary(lead, notes);
     } catch (error) {
       console.error('Error generating AI summary:', error);
       // Fall back to rule-based summary
@@ -305,7 +305,7 @@ function generateRuleBasedSummary(lead: Lead, notes: LeadNote[], priorityScore: 
   return parts.join(' ');
 }
 
-async function generateAISummary(lead: Lead, notes: LeadNote[], apiKey: string): Promise<string> {
+async function generateAISummary(lead: Lead, notes: LeadNote[]): Promise<string> {
   const notesText = notes.slice(0, 10).map(n => {
     const date = n.contacted_at || n.created_at;
     const outcome = n.outcome ? ` [${n.outcome}]` : '';
@@ -332,27 +332,11 @@ Provide a concise summary focusing on:
 
 Keep response under 100 words, in a professional CRM tone.`;
 
-  const response = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: 'google/gemini-2.5-flash',
-      messages: [
-        { role: 'system', content: 'You are a CRM assistant analyzing leads for a student consultancy. Be concise and actionable.' },
-        { role: 'user', content: prompt }
-      ],
-      max_tokens: 200,
-      temperature: 0.3,
-    }),
-  });
+  const text = await callClaude(
+    'You are a CRM assistant analyzing leads for a student consultancy. Be concise and actionable.',
+    prompt,
+    { maxTokens: 200, temperature: 0.3 },
+  );
 
-  if (!response.ok) {
-    throw new Error(`AI API error: ${response.status}`);
-  }
-
-  const data = await response.json();
-  return data.choices[0]?.message?.content || generateRuleBasedSummary(lead, notes, 50);
+  return text || generateRuleBasedSummary(lead, notes, 50);
 }

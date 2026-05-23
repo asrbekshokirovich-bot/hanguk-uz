@@ -1,7 +1,8 @@
 // ── Phase 1b: Extract universities from scraped content and insert into DB ──
+import { callClaude, extractJson } from "../_shared/claude.ts";
+
 export async function extractAndInsertUniversities(
   allScrapedContent: string,
-  geminiApiKey: string,
   supabase: any,
 ): Promise<{ imported: number; total: number }> {
   console.log('=== extractAndInsertUniversities ===');
@@ -40,34 +41,15 @@ Return a JSON array of objects. Return ONLY the JSON array, no other text.`;
 
   for (const chunk of chunks) {
     try {
-      const aiResp = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${geminiApiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'google/gemini-2.5-flash',
-          messages: [
-            { role: 'system', content: extractionPrompt },
-            { role: 'user', content: chunk },
-          ],
-        }),
-      });
-
-      if (aiResp.ok) {
-        const aiData = await aiResp.json();
-        const content = aiData.choices?.[0]?.message?.content || '';
-        const jsonMatch = content.match(/\[[\s\S]*\]/);
-        if (jsonMatch) {
-          try {
-            const parsed = JSON.parse(jsonMatch[0]);
-            allExtracted.push(...parsed);
-            console.log(`Extracted ${parsed.length} universities from chunk`);
-          } catch (parseErr) {
-            console.error('JSON parse error from AI:', parseErr);
-          }
+      const content = await callClaude(extractionPrompt, chunk);
+      try {
+        const parsed = extractJson<any[]>(content);
+        if (Array.isArray(parsed)) {
+          allExtracted.push(...parsed);
+          console.log(`Extracted ${parsed.length} universities from chunk`);
         }
+      } catch (parseErr) {
+        console.error('JSON parse error from AI:', parseErr);
       }
     } catch (err) {
       console.error('AI extraction error:', err);

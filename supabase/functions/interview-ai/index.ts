@@ -2,8 +2,8 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
 import { ApiError, handleError } from "../_shared/error-handler.ts";
-import { fetchWithRetry } from "../_shared/api-utils.ts";
 import { ipLimiter } from "../_shared/rate-limiter.ts";
+import { callClaude } from "../_shared/claude.ts";
 
 interface InterviewMessage {
   role: "interviewer" | "student";
@@ -394,45 +394,16 @@ Current conversation length: ${conversationHistory.length} messages
 ${conversationHistory.length === 0 ? `START THE INTERVIEW NOW. Warmly greet the student in ${interviewLang} and ask them to introduce themselves briefly.` : ""}
 ${conversationHistory.length >= 8 ? "The interview is nearing end. Ask 1-2 more questions, then give a warm closing with brief suggestions for improvement." : ""}`;
 
-    // Call gemini AI
-    const geminiApiKey = Deno.env.get("GEMINI_API_KEY");
-    if (!geminiApiKey) {
-      throw new ApiError(500, "AI service not configured");
-    }
+    // Call Claude — flatten the prior turns plus the new student message into a
+    // single user string (Anthropic takes the system prompt as a top-level field)
+    const flattenedHistory = conversationHistory
+      .map((m) => `${m.role === "assistant" ? "Interviewer" : "Student"}: ${m.content}`)
+      .concat(`Student: ${studentMessage}`)
+      .join("\n");
 
-    // Leveraging fetchWithRetry to gracefully handle Gemini 429 quota spikes behind the scenes
-    const aiResponse = await fetchWithRetry("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${geminiApiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          { role: "system", content: systemPrompt },
-          ...conversationHistory,
-          { role: "user", content: studentMessage },
-        ],
-        max_tokens: 300,
-      }),
-    }, 4); // Optional 4 retries for robustness
-
-    if (!aiResponse.ok) {
-      const errorText = await aiResponse.text();
-      console.error("AI error details:", aiResponse.status, errorText);
-      
-      if (aiResponse.status === 429) {
-        throw new ApiError(429, "Rate limit exceeded. Please try again in a moment.");
-      }
-      if (aiResponse.status === 402) {
-        throw new ApiError(402, "AI service temporarily unavailable.");
-      }
-      throw new ApiError(500, "Failed to generate response");
-    }
-
-    const aiData = await aiResponse.json();
-    const interviewerResponse = aiData.choices?.[0]?.message?.content || "죄송합니다, 다시 말씀해 주시겠어요?";
+    const interviewerResponse =
+      (await callClaude(systemPrompt, flattenedHistory, { maxTokens: 300 })) ||
+      "죄송합니다, 다시 말씀해 주시겠어요?";
 
     // Save interviewer message
     await adminClient.from("interview_messages").insert({

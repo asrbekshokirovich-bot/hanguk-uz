@@ -1,5 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { callClaude, extractJson } from "../_shared/claude.ts";
+import { callClaude, extractJson } from "../_shared/claude.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -177,60 +179,17 @@ You MUST respond with a valid JSON object in this exact format:
 Be constructive and encouraging while providing actionable suggestions based on typical Korean university interview expectations.
 Include message_scores for EVERY student response in the transcript.`;
 
-    // Call gemini AI for analysis
-    const geminiApiKey = Deno.env.get("GEMINI_API_KEY");
-    if (!geminiApiKey) {
-      return new Response(
-        JSON.stringify({ error: "AI service not configured" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    const aiResponse = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${geminiApiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: `Interview Transcript:\n\n${transcript}` },
-        ],
-        max_tokens: 2500,
-      }),
-    });
-
-    if (!aiResponse.ok) {
-      const errorText = await aiResponse.text();
-      console.error("AI error:", aiResponse.status, errorText);
-      
-      if (aiResponse.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "Rate limit exceeded. Please try again later." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      
-      return new Response(
-        JSON.stringify({ error: "Failed to generate feedback" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    const aiData = await aiResponse.json();
-    const feedbackText = aiData.choices?.[0]?.message?.content || "";
+    // Call Claude for analysis
+    const feedbackText = await callClaude(
+      systemPrompt,
+      `Interview Transcript:\n\n${transcript}`,
+      { maxTokens: 2500 },
+    );
 
     // Parse the JSON response
     let feedbackData;
     try {
-      const jsonMatch = feedbackText.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        feedbackData = JSON.parse(jsonMatch[0]);
-      } else {
-        throw new Error("No JSON found in response");
-      }
+      feedbackData = extractJson(feedbackText);
     } catch (parseError) {
       console.error("Failed to parse feedback JSON:", parseError, feedbackText);
       feedbackData = {
