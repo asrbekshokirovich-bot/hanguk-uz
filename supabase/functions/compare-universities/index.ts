@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { streamClaude } from "../_shared/claude.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -182,51 +183,37 @@ Provide a comprehensive comparison covering:
 6. Final recommendation`;
     }
 
-    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
-    if (!GEMINI_API_KEY) {
-      throw new Error('GEMINI_API_KEY is not configured');
+    // Flatten any prior conversation history (for follow-ups) plus the current
+    // user prompt into a single user-content string, preserving roles.
+    let userContent = userPrompt;
+    if (followUpQuestion && conversationHistory?.length > 0) {
+      const history = conversationHistory
+        .map((m: { role: string; content: string }) =>
+          `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`)
+        .join('\n');
+      userContent = `${history}\nUser: ${userPrompt}`;
     }
 
-    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${GEMINI_API_KEY}`,
-        'Content-Type': 'application/json',
+    // Re-emit Claude text deltas in the SAME OpenAI-style SSE format the client
+    // already parses (`data: {choices:[{delta:{content}}]}` lines + `[DONE]`).
+    const encoder = new TextEncoder();
+    const stream = new ReadableStream({
+      async start(controller) {
+        try {
+          for await (const delta of streamClaude(systemPrompt, userContent, { maxTokens: 4096 })) {
+            const sse = `data: ${JSON.stringify({ choices: [{ delta: { content: delta } }] })}\n\n`;
+            controller.enqueue(encoder.encode(sse));
+          }
+          controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+          controller.close();
+        } catch (err) {
+          console.error('Claude stream error:', err);
+          controller.error(err);
+        }
       },
-      body: JSON.stringify({
-        model: 'google/gemini-3-flash-preview',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          // Include conversation history for follow-ups
-          ...(followUpQuestion && conversationHistory?.length > 0
-            ? conversationHistory.map((m: { role: string; content: string }) => ({
-                role: m.role === 'user' ? 'user' : 'assistant',
-                content: m.content,
-              }))
-            : []),
-          { role: 'user', content: userPrompt }
-        ],
-        stream: true,
-      }),
     });
 
-    if (!response.ok) {
-      if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
-          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: 'AI credits exhausted. Please contact support.' }),
-          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-      throw new Error(`AI gateway error: ${response.status}`);
-    }
-
-    return new Response(response.body, {
+    return new Response(stream, {
       headers: { ...corsHeaders, 'Content-Type': 'text/event-stream' },
     });
 
