@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDocumentTranslation } from '@/hooks/useDocumentTranslation';
 import { useTranslationTraining, TranslationDocumentType } from '@/hooks/useTranslationTraining';
-import { checkAutoTranslation } from '@/hooks/useAutoTranslation';
+import { resolveTranslationInputs, findStudentDoc, STUDENT_DOC_SLOTS } from '@/lib/translationDocuments';
+import type { StructuredTranslation, TranslationBlock, TranslationFileInput, VerifiedNames } from '@/types/translation';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
+import type { Tables } from '@/integrations/supabase/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,24 +14,9 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  Upload, 
-  FileText, 
-  Check, 
-  X, 
-  Trash2, 
-  Eye,
-  Clock,
-  CheckCircle,
-  AlertCircle,
-  Loader2,
-  Download,
-  RefreshCw,
-  User,
-  Users,
-  Sparkles,
-  Zap
+import {
+  Upload, FileText, Trash2, Download, Loader2, Sparkles, RefreshCw, Users, User,
+  CheckCircle, AlertCircle, Clock, X, Check, AlertTriangle, Languages, FilePlus,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -41,445 +27,404 @@ interface TranslationWorkflowProps {
   onJobCreated?: () => void;
 }
 
-interface TranslationJobWithDetails {
+type DocumentRow = Tables<'documents'>;
+
+interface JobRow {
   id: string;
-  student_id: string;
   document_type_id: string;
   source_file_path: string;
-  translated_file_path: string | null;
+  output_pdf_path: string | null;
   translated_text: string | null;
+  structured_translation: StructuredTranslation | null;
+  verified_names: VerifiedNames | null;
   status: string;
   error_message: string | null;
-  supporting_documents: any[];
   auto_triggered: boolean;
   created_at: string;
   completed_at: string | null;
   document_type?: TranslationDocumentType;
-  student?: { full_name: string };
 }
+
+interface SupportingChoice extends TranslationFileInput {
+  label: string;
+  removable: boolean;
+}
+
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
 export function TranslationWorkflow({ studentId, studentName, onJobCreated }: TranslationWorkflowProps) {
   const { i18n } = useTranslation();
-  const { user } = useAuth();
-  const currentLang = i18n.language;
-  const { 
-    translateText, 
-    translateFromFile,
-    translating, 
-    createTranslationJob, 
-    updateJobStatus,
-    deleteJob 
-  } = useDocumentTranslation();
-  const { documentTypes, requirements, loading: loadingTypes } = useTranslationTraining();
+  const lang = i18n.language.split('-')[0] as 'uz' | 'ru' | 'en';
+  const { documentTypes, loading: loadingTypes } = useTranslationTraining();
+  const { translating, regenerating, runTranslation, regeneratePdf, createTranslationJob, saveTranslationResult, updateJobStatus, deleteJob } = useDocumentTranslation();
 
-  const [jobs, setJobs] = useState<TranslationJobWithDetails[]>([]);
-  const [loadingJobs, setLoadingJobs] = useState(true);
+  // Standalone (no studentId) student picker
+  const [students, setStudents] = useState<{ user_id: string; full_name: string | null }[]>([]);
+  const [pickedStudentId, setPickedStudentId] = useState<string>('');
+  const effectiveStudentId = studentId ?? (pickedStudentId || undefined);
+  const effectiveStudentName = studentId
+    ? studentName
+    : students.find((s) => s.user_id === pickedStudentId)?.full_name ?? undefined;
+
+  const [studentDocs, setStudentDocs] = useState<DocumentRow[]>([]);
+  const [jobs, setJobs] = useState<JobRow[]>([]);
+  const [loadingJobs, setLoadingJobs] = useState(false);
+
+  // New-translation form
   const [selectedTypeId, setSelectedTypeId] = useState<string>('');
-  const [sourceFile, setSourceFile] = useState<File | null>(null);
-  const [supportingFiles, setSupportingFiles] = useState<Record<string, File>>({});
-  const [uploading, setUploading] = useState(false);
-  const [processingJobId, setProcessingJobId] = useState<string | null>(null);
-  const [previewJob, setPreviewJob] = useState<TranslationJobWithDetails | null>(null);
-  const [checkingAuto, setCheckingAuto] = useState(false);
+  const [sourceDocId, setSourceDocId] = useState<string>(''); // documents.id when source is a student doc
+  const [uploadedSource, setUploadedSource] = useState<File | null>(null);
+  const [supporting, setSupporting] = useState<SupportingChoice[]>([]);
+  const [extraSupportFiles, setExtraSupportFiles] = useState<File[]>([]);
+  const [submitting, setSubmitting] = useState(false);
+
+  // Result dialog
+  const [activeResult, setActiveResult] = useState<{ jobId: string; documentTypeId: string; structured: StructuredTranslation; pdfPath: string } | null>(null);
+  const [editNames, setEditNames] = useState<VerifiedNames>({});
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [loadingPreview, setLoadingPreview] = useState(false);
 
   const getLocalizedName = (item: TranslationDocumentType) => {
-    if (currentLang === 'uz') return item.name_uz;
-    if (currentLang === 'ru') return item.name_ru || item.name_uz;
-    if (currentLang === 'ko') return item.name_ko || item.name_en || item.name_uz;
+    if (lang === 'uz') return item.name_uz;
+    if (lang === 'ru') return item.name_ru || item.name_uz;
     return item.name_en || item.name_uz;
   };
 
-  const selectedTypeRequirements = requirements.filter(
-    r => r.document_type_id === selectedTypeId
-  );
+  const selectedType = documentTypes.find((t) => t.id === selectedTypeId);
 
-  const fetchJobs = async () => {
-    setLoadingJobs(true);
-    
-    let query = supabase
-      .from('translation_jobs')
-      .select('*, document_type:translation_document_types(*)')
-      .order('created_at', { ascending: false });
-
-    if (studentId) {
-      query = query.eq('student_id', studentId);
-    }
-
-    const { data, error } = await query.limit(50);
-
-    if (!error && data) {
-      // Fetch student names for each job
-      const jobsWithStudents = await Promise.all(
-        data.map(async (job) => {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('full_name')
-            .eq('user_id', job.student_id)
-            .maybeSingle();
-          
-          return {
-            ...job,
-            student: profile ? { full_name: profile.full_name } : undefined
-          };
-        })
-      );
-      setJobs(jobsWithStudents as TranslationJobWithDetails[]);
-    }
-    
-    setLoadingJobs(false);
-  };
-
+  // ---- Data loading ----
   useEffect(() => {
-    fetchJobs();
+    if (studentId) return; // picker only needed in standalone mode
+    supabase
+      .from('profiles')
+      .select('user_id, full_name')
+      .not('full_name', 'is', null)
+      .order('full_name')
+      .limit(300)
+      .then(({ data }) => { if (data) setStudents(data); });
   }, [studentId]);
 
-  const handleCreateJob = async () => {
-    if (!selectedTypeId || !sourceFile || !studentId) {
-      toast.error('Barcha maydonlarni to\'ldiring');
-      return;
+  const fetchStudentDocs = useCallback(async () => {
+    if (!effectiveStudentId) { setStudentDocs([]); return; }
+    const { data } = await supabase.from('documents').select('*').eq('student_id', effectiveStudentId).order('created_at', { ascending: false });
+    setStudentDocs(data ?? []);
+  }, [effectiveStudentId]);
+
+  const fetchJobs = useCallback(async () => {
+    if (!effectiveStudentId) { setJobs([]); return; }
+    setLoadingJobs(true);
+    const { data } = await supabase
+      .from('translation_jobs')
+      .select('*, document_type:translation_document_types(*)')
+      .eq('student_id', effectiveStudentId)
+      .order('created_at', { ascending: false })
+      .limit(50);
+    setJobs((data as unknown as JobRow[]) ?? []);
+    setLoadingJobs(false);
+  }, [effectiveStudentId]);
+
+  useEffect(() => { fetchStudentDocs(); fetchJobs(); }, [fetchStudentDocs, fetchJobs]);
+
+  // When the document type changes, auto-resolve source + supporting from student docs.
+  useEffect(() => {
+    if (!selectedType || studentDocs.length === 0) {
+      setSourceDocId(''); setSupporting([]); return;
     }
+    const resolved = resolveTranslationInputs(selectedType.code, studentDocs, lang);
+    setSourceDocId(resolved.source?.documentId ?? '');
+    setUploadedSource(null);
+    setSupporting(resolved.supporting.map((s) => ({ path: s.path, bucket: s.bucket, role: s.role, label: s.label, removable: true })));
+    setExtraSupportFiles([]);
+  }, [selectedTypeId, studentDocs, lang]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    setUploading(true);
-
-    try {
-      // Upload source file
-      const sourcePath = `jobs/${studentId}/${Date.now()}_${sourceFile.name}`;
-      const { error: uploadError } = await supabase.storage
-        .from('translation-documents')
-        .upload(sourcePath, sourceFile);
-
-      if (uploadError) throw uploadError;
-
-      // Upload supporting files
-      const supportingDocs: { code: string; path: string }[] = [];
-      for (const [code, file] of Object.entries(supportingFiles)) {
-        const supportPath = `jobs/${studentId}/supporting_${Date.now()}_${file.name}`;
-        const { error } = await supabase.storage
-          .from('translation-documents')
-          .upload(supportPath, file);
-        
-        if (!error) {
-          supportingDocs.push({ code, path: supportPath });
-        }
-      }
-
-      // Create job record
-      const job = await createTranslationJob(
-        studentId,
-        selectedTypeId,
-        sourcePath,
-        undefined,
-        false
-      );
-
-      if (job) {
-        // Update with supporting documents
-        await supabase
-          .from('translation_jobs')
-          .update({ supporting_documents: supportingDocs })
-          .eq('id', job.id);
-
-        // Reset form
-        setSourceFile(null);
-        setSupportingFiles({});
-        setSelectedTypeId('');
-        
-        onJobCreated?.();
-        fetchJobs();
-      }
-    } catch (error: any) {
-      console.error('Failed to create job:', error);
-      toast.error(error.message || 'So\'rov yaratishda xatolik');
-    } finally {
-      setUploading(false);
-    }
+  // ---- Storage helpers ----
+  const uploadToTranslationBucket = async (file: File, kind: string): Promise<string> => {
+    const path = `jobs/${effectiveStudentId}/${kind}_${Date.now()}_${file.name.replace(/[^\w.-]/g, '_')}`;
+    const { error } = await supabase.storage.from('translation-documents').upload(path, file);
+    if (error) throw error;
+    return path;
   };
 
-  const handleProcessJob = async (job: TranslationJobWithDetails) => {
-    setProcessingJobId(job.id);
+  const proxyBlobUrl = async (path: string, bucket: string): Promise<string | null> => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return null;
+    const url = `${SUPABASE_URL}/functions/v1/document-proxy?path=${encodeURIComponent(path)}&bucket=${encodeURIComponent(bucket)}`;
+    const resp = await fetch(url, { headers: { Authorization: `Bearer ${session.access_token}` } });
+    if (!resp.ok) return null;
+    return URL.createObjectURL(await resp.blob());
+  };
 
+  // ---- Translate ----
+  const docLabel = (doc: DocumentRow): string => {
+    const tagged = doc.name.match(/^\[(.+?)\]/);
+    const slot = tagged?.[1];
+    if (slot && STUDENT_DOC_SLOTS[slot]) return STUDENT_DOC_SLOTS[slot][lang] ?? STUDENT_DOC_SLOTS[slot].en;
+    return doc.name.replace(/^\[.*?\]\s*/, '');
+  };
+
+  const handleTranslate = async () => {
+    if (!effectiveStudentId || !selectedTypeId) { toast.error('Talaba va hujjat turini tanlang'); return; }
+    if (!uploadedSource && !sourceDocId) { toast.error('Asl hujjatni tanlang yoki yuklang'); return; }
+
+    setSubmitting(true);
+    let jobId: string | null = null;
     try {
-      // Update status to processing
+      // Resolve source
+      let source: TranslationFileInput;
+      let sourceDocumentId: string | undefined;
+      if (uploadedSource) {
+        source = { path: await uploadToTranslationBucket(uploadedSource, 'source'), bucket: 'translation-documents' };
+      } else {
+        const doc = studentDocs.find((d) => d.id === sourceDocId)!;
+        source = { path: doc.file_path, bucket: 'student-documents' };
+        sourceDocumentId = doc.id;
+      }
+
+      // Resolve supporting (auto-attached + any uploaded extras)
+      const supportingInputs: TranslationFileInput[] = supporting.map((s) => ({ path: s.path, bucket: s.bucket, role: s.role }));
+      for (const f of extraSupportFiles) {
+        supportingInputs.push({ path: await uploadToTranslationBucket(f, 'support'), bucket: 'translation-documents', role: 'other' });
+      }
+
+      const job = await createTranslationJob(effectiveStudentId, selectedTypeId, source.path, sourceDocumentId, false);
+      if (!job) throw new Error('Job yaratilmadi');
+      jobId = job.id;
       await updateJobStatus(job.id, 'processing');
 
-      // Collect supporting document paths if available
-      const supportingPaths: string[] = [];
-      if (job.supporting_documents && Array.isArray(job.supporting_documents)) {
-        for (const doc of job.supporting_documents) {
-          if (doc.path) {
-            supportingPaths.push(doc.path);
-          }
-        }
-      }
+      const result = await runTranslation({ documentTypeId: selectedTypeId, source, supporting: supportingInputs, studentName: effectiveStudentName });
+      if (!result) throw new Error('Tarjima amalga oshmadi');
 
-      console.log('Processing job with OCR:', {
-        sourceFile: job.source_file_path,
-        supportingDocs: supportingPaths.length
-      });
-
-      // Use OCR + Translation
-      const result = await translateFromFile(
-        job.document_type_id,
-        job.source_file_path,
-        supportingPaths.length > 0 ? supportingPaths : undefined,
-        studentName,
-        undefined,  // parentNames
-        undefined   // additionalContext
-      );
-
-      if (result) {
-        // Update job with translated text
-        await updateJobStatus(
-          job.id, 
-          'completed', 
-          result.translatedText,
-          undefined,  // translatedFilePath - could generate PDF here
-          undefined   // errorMessage
-        );
-
-        // Show extracted text if OCR was performed
-        if (result.extractedText) {
-          console.log('OCR extracted text:', result.extractedText.substring(0, 200) + '...');
-        }
-
-        toast.success(
-          result.wasOCR 
-            ? 'Hujjat avtomatik o\'qildi va tarjima qilindi!' 
-            : 'Tarjima muvaffaqiyatli bajarildi!'
-        );
-      } else {
-        await updateJobStatus(job.id, 'failed', undefined, undefined, 'Tarjima amalga oshmadi');
-      }
-      
-    } catch (error: any) {
-      console.error('Processing error:', error);
-      await updateJobStatus(job.id, 'failed', undefined, undefined, error.message);
-      toast.error(error.message || 'Xatolik yuz berdi');
+      await saveTranslationResult(job.id, result);
+      toast.success('Tarjima tayyor — PDF yaratildi');
+      setActiveResult({ jobId: job.id, documentTypeId: selectedTypeId, structured: result.structured, pdfPath: result.pdfPath });
+      setEditNames(result.structured.verifiedNames ?? {});
+      onJobCreated?.();
+      await fetchJobs();
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Xatolik yuz berdi';
+      if (jobId) await updateJobStatus(jobId, 'failed', msg);
+      toast.error(msg);
     } finally {
-      setProcessingJobId(null);
-      fetchJobs();
+      setSubmitting(false);
     }
   };
 
-  const handleDeleteJob = async (jobId: string) => {
-    await deleteJob(jobId);
-    fetchJobs();
-  };
+  // ---- Result dialog: preview, edit names, regenerate, download ----
+  useEffect(() => {
+    if (!activeResult) { setPreviewUrl(null); return; }
+    let revoked: string | null = null;
+    setLoadingPreview(true);
+    proxyBlobUrl(activeResult.pdfPath, 'translation-documents').then((url) => {
+      revoked = url;
+      setPreviewUrl(url);
+      setLoadingPreview(false);
+    });
+    return () => { if (revoked) URL.revokeObjectURL(revoked); };
+  }, [activeResult?.pdfPath]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return <Clock className="h-4 w-4 text-yellow-500" />;
-      case 'processing':
-        return <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />;
-      case 'completed':
-        return <CheckCircle className="h-4 w-4 text-green-500" />;
-      case 'failed':
-        return <AlertCircle className="h-4 w-4 text-red-500" />;
-      default:
-        return <Clock className="h-4 w-4" />;
-    }
-  };
-
-  const getStatusBadge = (status: string) => {
-    const variants: Record<string, { variant: "default" | "secondary" | "destructive" | "outline"; label: string }> = {
-      pending: { variant: 'outline', label: 'Kutilmoqda' },
-      processing: { variant: 'secondary', label: 'Jarayonda' },
-      completed: { variant: 'default', label: 'Tayyor' },
-      failed: { variant: 'destructive', label: 'Xatolik' },
+  const replaceInStructured = (s: StructuredTranslation, oldStr: string, newStr: string): StructuredTranslation => {
+    if (!oldStr || oldStr === newStr) return s;
+    const rep = (t: string) => (t ? t.split(oldStr).join(newStr) : t);
+    return {
+      ...s,
+      blocks: s.blocks.map((b): TranslationBlock => {
+        switch (b.type) {
+          case 'title': case 'heading': case 'paragraph': case 'annotation': return { ...b, text: rep(b.text) };
+          case 'field': return { ...b, label: rep(b.label), value: rep(b.value) };
+          case 'table': return { ...b, header: b.header?.map(rep), rows: b.rows.map((r) => r.map(rep)) };
+          default: return b;
+        }
+      }),
     };
-    const config = variants[status] || variants.pending;
-    return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
-  const getFileUrl = async (path: string) => {
-    const { data } = await supabase.storage
-      .from('translation-documents')
-      .createSignedUrl(path, 3600);
-    return data?.signedUrl;
+  const handleRegenerate = async () => {
+    if (!activeResult) return;
+    let structured = activeResult.structured;
+    const original = structured.verifiedNames ?? {};
+    (['student', 'father', 'mother'] as const).forEach((k) => {
+      const oldVal = original[k]; const newVal = editNames[k];
+      if (oldVal && newVal && oldVal !== newVal) structured = replaceInStructured(structured, oldVal, newVal);
+    });
+    structured = { ...structured, verifiedNames: { ...original, ...editNames } };
+
+    const result = await regeneratePdf(activeResult.documentTypeId, structured);
+    if (!result) return;
+    await saveTranslationResult(activeResult.jobId, result, structured.verifiedNames);
+    setActiveResult({ jobId: activeResult.jobId, documentTypeId: activeResult.documentTypeId, structured: result.structured, pdfPath: result.pdfPath });
+    toast.success('PDF yangilandi');
+    await fetchJobs();
   };
 
-  const handlePreviewFile = async (path: string) => {
-    const url = await getFileUrl(path);
-    if (url) {
-      window.open(url, '_blank');
-    }
+  const handleDownload = async (path: string, fileName: string) => {
+    const url = await proxyBlobUrl(path, 'translation-documents');
+    if (!url) { toast.error('Yuklab bo\'lmadi'); return; }
+    const a = document.createElement('a');
+    a.href = url; a.download = fileName;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
+
+  const openExistingJob = (job: JobRow) => {
+    if (!job.structured_translation || !job.output_pdf_path) return;
+    setActiveResult({ jobId: job.id, documentTypeId: job.document_type_id, structured: job.structured_translation, pdfPath: job.output_pdf_path });
+    setEditNames(job.verified_names ?? job.structured_translation.verifiedNames ?? {});
+  };
+
+  const handleDelete = async (jobId: string) => {
+    await deleteJob(jobId);
+    await fetchJobs();
+  };
+
+  const statusBadge = (status: string) => {
+    const map: Record<string, { v: 'default' | 'secondary' | 'destructive' | 'outline'; label: string; icon: JSX.Element }> = {
+      pending: { v: 'outline', label: 'Kutilmoqda', icon: <Clock className="h-3 w-3" /> },
+      processing: { v: 'secondary', label: 'Jarayonda', icon: <Loader2 className="h-3 w-3 animate-spin" /> },
+      completed: { v: 'default', label: 'Tayyor', icon: <CheckCircle className="h-3 w-3" /> },
+      failed: { v: 'destructive', label: 'Xatolik', icon: <AlertCircle className="h-3 w-3" /> },
+    };
+    const c = map[status] ?? map.pending;
+    return <Badge variant={c.v} className="gap-1">{c.icon}{c.label}</Badge>;
   };
 
   if (loadingTypes) {
-    return (
-      <div className="flex items-center justify-center py-8">
-        <Loader2 className="h-6 w-6 animate-spin text-primary" />
-      </div>
-    );
+    return <div className="flex items-center justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
   }
 
   return (
     <div className="space-y-6">
-      <Tabs defaultValue="jobs" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="jobs" className="gap-2">
-            <FileText className="h-4 w-4" />
-            So'rovlar ({jobs.length})
-          </TabsTrigger>
-          {studentId && (
-            <TabsTrigger value="new" className="gap-2">
-              <Upload className="h-4 w-4" />
-              Yangi So'rov
-            </TabsTrigger>
-          )}
-        </TabsList>
+      {/* Standalone student picker */}
+      {!studentId && (
+        <Card>
+          <CardContent className="pt-4">
+            <Label>Talaba</Label>
+            <Select value={pickedStudentId} onValueChange={setPickedStudentId}>
+              <SelectTrigger className="mt-1"><SelectValue placeholder="Talabani tanlang..." /></SelectTrigger>
+              <SelectContent>
+                {students.map((s) => <SelectItem key={s.user_id} value={s.user_id}>{s.full_name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </CardContent>
+        </Card>
+      )}
 
-        {/* Jobs List */}
-        <TabsContent value="jobs" className="space-y-4">
-          <div className="flex items-center justify-between flex-wrap gap-2">
-            <h3 className="text-lg font-medium">Tarjima So'rovlari</h3>
-            <div className="flex items-center gap-2">
-              {studentId && (
-                <Button 
-                  variant="default" 
-                  size="sm" 
-                  onClick={async () => {
-                    if (!studentId || !user) return;
-                    setCheckingAuto(true);
-                    const { triggered, skipped } = await checkAutoTranslation(studentId, user.id);
-                    if (triggered.length === 0 && skipped.length === 0) {
-                      toast.info('Avtomatik tarjima uchun hujjatlar topilmadi');
-                    }
-                    await fetchJobs();
-                    setCheckingAuto(false);
-                  }}
-                  disabled={checkingAuto}
-                >
-                  {checkingAuto ? (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  ) : (
-                    <Zap className="h-4 w-4 mr-2" />
-                  )}
-                  Avtomatik Tekshirish
-                </Button>
+      {effectiveStudentId && (
+        <>
+          {/* New translation */}
+          <Card className="border-primary/20">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg"><Sparkles className="h-5 w-5 text-primary" />Yangi Tarjima</CardTitle>
+              <CardDescription>
+                Hujjat turini tanlang — tizim talaba hujjatlaridan asl nusxa va qo'shimcha hujjatlarni avtomatik biriktiradi, tarjima qiladi va PDF yaratadi.
+                {effectiveStudentName && <span className="font-medium"> Talaba: {effectiveStudentName}</span>}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Type */}
+              <div className="space-y-2">
+                <Label>Hujjat Turi *</Label>
+                <Select value={selectedTypeId} onValueChange={setSelectedTypeId}>
+                  <SelectTrigger><SelectValue placeholder="Hujjat turini tanlang..." /></SelectTrigger>
+                  <SelectContent>
+                    {documentTypes.map((t) => <SelectItem key={t.id} value={t.id}>{getLocalizedName(t)}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {selectedTypeId && (
+                <>
+                  {/* Source */}
+                  <div className="space-y-2">
+                    <Label>Asl Hujjat (tarjima qilinadigan) *</Label>
+                    {!uploadedSource ? (
+                      <Select value={sourceDocId} onValueChange={setSourceDocId}>
+                        <SelectTrigger><SelectValue placeholder="Talaba hujjatlaridan tanlang..." /></SelectTrigger>
+                        <SelectContent>
+                          {studentDocs.length === 0 && <div className="px-2 py-1.5 text-sm text-muted-foreground">Hujjatlar topilmadi</div>}
+                          {studentDocs.map((d) => <SelectItem key={d.id} value={d.id}>{docLabel(d)}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <div className="flex items-center justify-between gap-2 rounded-md border border-green-500 bg-green-500/10 px-3 py-2 text-sm">
+                        <span className="flex items-center gap-2 truncate"><Check className="h-4 w-4 text-green-600" />{uploadedSource.name}</span>
+                        <button onClick={() => setUploadedSource(null)} className="text-destructive"><X className="h-4 w-4" /></button>
+                      </div>
+                    )}
+                    <label className="inline-flex items-center gap-1 text-xs text-primary cursor-pointer hover:underline">
+                      <FilePlus className="h-3 w-3" /> Yangi fayl yuklash
+                      <input type="file" className="hidden" accept=".pdf,.jpg,.jpeg,.png" onChange={(e) => setUploadedSource(e.target.files?.[0] ?? null)} />
+                    </label>
+                  </div>
+
+                  {/* Supporting */}
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-1"><Users className="h-4 w-4" />Qo'shimcha Hujjatlar (ismlarni to'g'ri yozish uchun)</Label>
+                    {supporting.length === 0 && extraSupportFiles.length === 0 ? (
+                      <p className="text-xs text-yellow-600">Talaba zagran pasporti topilmadi — ismlar noto'g'ri bo'lishi mumkin. Pasport yuklang.</p>
+                    ) : (
+                      <div className="flex flex-wrap gap-1.5">
+                        {supporting.map((s, i) => (
+                          <Badge key={`${s.path}-${i}`} variant="secondary" className="gap-1">
+                            {s.role === 'student_passport' ? <User className="h-3 w-3" /> : s.role?.startsWith('father') || s.role?.startsWith('mother') ? <Users className="h-3 w-3" /> : <FileText className="h-3 w-3" />}
+                            {s.label}
+                            {s.removable && <button onClick={() => setSupporting((prev) => prev.filter((_, idx) => idx !== i))} className="ml-1 hover:text-destructive"><X className="h-3 w-3" /></button>}
+                          </Badge>
+                        ))}
+                        {extraSupportFiles.map((f, i) => (
+                          <Badge key={`extra-${i}`} variant="outline" className="gap-1">
+                            <FileText className="h-3 w-3" />{f.name}
+                            <button onClick={() => setExtraSupportFiles((prev) => prev.filter((_, idx) => idx !== i))} className="ml-1 hover:text-destructive"><X className="h-3 w-3" /></button>
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
+                    <label className="inline-flex items-center gap-1 text-xs text-primary cursor-pointer hover:underline">
+                      <FilePlus className="h-3 w-3" /> Pasport / ID qo'shish
+                      <input type="file" className="hidden" accept=".pdf,.jpg,.jpeg,.png" multiple onChange={(e) => setExtraSupportFiles((prev) => [...prev, ...Array.from(e.target.files ?? [])])} />
+                    </label>
+                  </div>
+
+                  <Button onClick={handleTranslate} disabled={submitting || translating} className="w-full" size="lg">
+                    {submitting || translating ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />AI tarjima qilmoqda...</> : <><Sparkles className="h-4 w-4 mr-2" />Tarjima qilish va PDF yaratish</>}
+                  </Button>
+                </>
               )}
-              <Button variant="outline" size="sm" onClick={fetchJobs}>
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Yangilash
-              </Button>
-            </div>
+            </CardContent>
+          </Card>
+
+          {/* Jobs */}
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-medium">Tarjimalar ({jobs.length})</h3>
+            <Button variant="outline" size="sm" onClick={fetchJobs}><RefreshCw className="h-4 w-4 mr-2" />Yangilash</Button>
           </div>
 
           {loadingJobs ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin" />
-            </div>
+            <div className="flex items-center justify-center py-8"><Loader2 className="h-6 w-6 animate-spin" /></div>
           ) : jobs.length === 0 ? (
-            <Card>
-              <CardContent className="py-8 text-center text-muted-foreground">
-                <FileText className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                <p>Hozircha tarjima so'rovlari yo'q</p>
-              </CardContent>
-            </Card>
+            <Card><CardContent className="py-8 text-center text-muted-foreground"><FileText className="h-12 w-12 mx-auto mb-3 opacity-50" /><p>Hozircha tarjimalar yo'q</p></CardContent></Card>
           ) : (
-            <ScrollArea className="h-[500px]">
+            <ScrollArea className="h-[420px]">
               <div className="space-y-3">
                 {jobs.map((job) => (
-                  <Card key={job.id} className={cn(
-                    "transition-colors",
-                    job.status === 'completed' && "border-green-200 bg-green-50/30",
-                    job.status === 'failed' && "border-red-200 bg-red-50/30"
-                  )}>
+                  <Card key={job.id} className={cn(job.status === 'completed' && 'border-green-200', job.status === 'failed' && 'border-red-200')}>
                     <CardContent className="p-4">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-2">
-                            {getStatusIcon(job.status)}
-                            {job.document_type && (
-                              <span className="font-medium">
-                                {getLocalizedName(job.document_type)}
-                              </span>
-                            )}
-                            {getStatusBadge(job.status)}
-                            {job.auto_triggered && (
-                              <Badge variant="outline" className="text-xs">
-                                <Sparkles className="h-3 w-3 mr-1" />
-                                Avtomatik
-                              </Badge>
-                            )}
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2 mb-1 flex-wrap">
+                            {job.document_type && <span className="font-medium">{getLocalizedName(job.document_type)}</span>}
+                            {statusBadge(job.status)}
                           </div>
-                          
-                          {!studentId && job.student && (
-                            <div className="flex items-center gap-1 text-sm text-muted-foreground mb-2">
-                              <User className="h-3 w-3" />
-                              {job.student.full_name}
-                            </div>
-                          )}
-
-                          <p className="text-xs text-muted-foreground">
-                            Yaratilgan: {new Date(job.created_at).toLocaleString()}
-                            {job.completed_at && (
-                              <> • Tugallangan: {new Date(job.completed_at).toLocaleString()}</>
-                            )}
-                          </p>
-
-                          {job.error_message && (
-                            <p className="text-xs text-red-600 mt-1">{job.error_message}</p>
-                          )}
+                          <p className="text-xs text-muted-foreground">{new Date(job.created_at).toLocaleString()}</p>
+                          {job.error_message && <p className="text-xs text-red-600 mt-1">{job.error_message}</p>}
                         </div>
-
                         <div className="flex items-center gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handlePreviewFile(job.source_file_path)}
-                            title="Original hujjatni ko'rish"
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          
-                          {job.translated_file_path && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handlePreviewFile(job.translated_file_path!)}
-                              title="Tarjimani ko'rish"
-                            >
-                              <Download className="h-4 w-4 text-green-600" />
-                            </Button>
+                          {job.status === 'completed' && job.output_pdf_path && (
+                            <>
+                              <Button variant="ghost" size="icon" title="Ko'rish / tahrirlash" onClick={() => openExistingJob(job)}><FileText className="h-4 w-4 text-primary" /></Button>
+                              <Button variant="ghost" size="icon" title="PDF yuklab olish" onClick={() => handleDownload(job.output_pdf_path!, `${job.document_type?.code ?? 'translation'}.pdf`)}><Download className="h-4 w-4 text-green-600" /></Button>
+                            </>
                           )}
-
-                          {job.translated_text && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => setPreviewJob(job)}
-                              title="Tarjima matnini ko'rish"
-                            >
-                              <FileText className="h-4 w-4 text-primary" />
-                            </Button>
-                          )}
-
-                          {job.status === 'pending' && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleProcessJob(job)}
-                              disabled={processingJobId === job.id}
-                              title="Tarjima qilish"
-                            >
-                              {processingJobId === job.id ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                              ) : (
-                                <Sparkles className="h-4 w-4 text-primary" />
-                              )}
-                            </Button>
-                          )}
-
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleDeleteJob(job.id)}
-                            title="O'chirish"
-                          >
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
+                          <Button variant="ghost" size="icon" title="O'chirish" onClick={() => handleDelete(job.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
                         </div>
                       </div>
                     </CardContent>
@@ -488,160 +433,74 @@ export function TranslationWorkflow({ studentId, studentName, onJobCreated }: Tr
               </div>
             </ScrollArea>
           )}
-        </TabsContent>
+        </>
+      )}
 
-        {/* New Job Form */}
-        {studentId && (
-          <TabsContent value="new" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Yangi Tarjima So'rovi</CardTitle>
-                <CardDescription>
-                  {studentName && `Talaba: ${studentName}`}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Document Type */}
-                <div className="space-y-2">
-                  <Label>Hujjat Turi *</Label>
-                  <Select value={selectedTypeId} onValueChange={setSelectedTypeId}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Hujjat turini tanlang..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {documentTypes.map((type) => (
-                        <SelectItem key={type.id} value={type.id}>
-                          {getLocalizedName(type)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+      {/* Result dialog */}
+      <Dialog open={!!activeResult} onOpenChange={(o) => { if (!o) setActiveResult(null); }}>
+        <DialogContent className="max-w-5xl max-h-[92vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><Languages className="h-5 w-5 text-primary" />Tarjima Natijasi — Certified Translation</DialogTitle>
+          </DialogHeader>
+          {activeResult && (
+            <div className="grid md:grid-cols-2 gap-4 flex-1 min-h-0">
+              {/* Left: verify + flags */}
+              <div className="space-y-4 overflow-auto pr-1">
+                <div className="space-y-3">
+                  <Label className="flex items-center gap-1"><User className="h-4 w-4" />Tasdiqlangan ismlar (pasport bo'yicha)</Label>
+                  {(['student', 'father', 'mother'] as const).map((k) =>
+                    (editNames[k] !== undefined || activeResult.structured.verifiedNames?.[k] !== undefined) ? (
+                      <div key={k} className="space-y-1">
+                        <span className="text-xs text-muted-foreground capitalize">{k === 'student' ? 'Talaba' : k === 'father' ? 'Ota' : 'Ona'}</span>
+                        <Input value={editNames[k] ?? ''} onChange={(e) => setEditNames((p) => ({ ...p, [k]: e.target.value }))} />
+                      </div>
+                    ) : null,
+                  )}
                 </div>
 
-                {/* Source Document */}
-                <div className="space-y-2">
-                  <Label>Original Hujjat *</Label>
-                  <div
-                    className={cn(
-                      "border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors",
-                      sourceFile ? "border-green-500 bg-green-50" : "border-muted-foreground/25 hover:border-primary"
-                    )}
-                    onClick={() => document.getElementById('source-doc')?.click()}
-                  >
-                    <input
-                      id="source-doc"
-                      type="file"
-                      className="hidden"
-                      accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                      onChange={(e) => setSourceFile(e.target.files?.[0] || null)}
-                    />
-                    {sourceFile ? (
-                      <div className="flex items-center justify-center gap-2 text-green-600">
-                        <Check className="h-5 w-5" />
-                        <span className="font-medium">{sourceFile.name}</span>
-                      </div>
-                    ) : (
-                      <div className="text-muted-foreground">
-                        <Upload className="h-8 w-8 mx-auto mb-2" />
-                        <p>Hujjatni yuklang</p>
-                      </div>
-                    )}
+                {activeResult.structured.unclearItems?.length > 0 && (
+                  <div className="rounded-lg border border-yellow-400 bg-yellow-50 dark:bg-yellow-950/20 p-3">
+                    <p className="flex items-center gap-1 text-sm font-medium text-yellow-700 dark:text-yellow-400 mb-1"><AlertTriangle className="h-4 w-4" />Tekshirish kerak</p>
+                    <ul className="list-disc pl-5 text-xs text-yellow-700 dark:text-yellow-400 space-y-0.5">
+                      {activeResult.structured.unclearItems.map((u, i) => <li key={i}>{u}</li>)}
+                    </ul>
                   </div>
-                </div>
+                )}
 
-                {/* Required Supporting Documents */}
-                {selectedTypeRequirements.length > 0 && (
-                  <div className="space-y-3">
-                    <Label>Qo'shimcha Hujjatlar</Label>
-                    {selectedTypeRequirements.map((req) => (
-                      <div key={req.id} className="flex items-center gap-3">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            {req.is_student_document && <User className="h-3 w-3" />}
-                            {req.is_parent_document && <Users className="h-3 w-3" />}
-                            <span className="text-sm">{req.required_document_name_uz}</span>
-                            {req.is_required && (
-                              <Badge variant="destructive" className="text-xs">Majburiy</Badge>
-                            )}
-                          </div>
-                          <Input
-                            type="file"
-                            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) {
-                                setSupportingFiles(prev => ({
-                                  ...prev,
-                                  [req.required_document_code]: file
-                                }));
-                              }
-                            }}
-                          />
-                        </div>
-                        {supportingFiles[req.required_document_code] && (
-                          <Check className="h-5 w-5 text-green-500" />
-                        )}
-                      </div>
+                {activeResult.structured.detectedSupportingDocs?.length > 0 && (
+                  <div className="rounded-lg border bg-muted/30 p-3 text-xs">
+                    <p className="font-medium mb-1">Aniqlangan hujjatlar</p>
+                    {activeResult.structured.detectedSupportingDocs.map((d, i) => (
+                      <p key={i} className="text-muted-foreground">{d.role}: <span className="text-foreground">{d.extractedName}</span> ({d.documentType})</p>
                     ))}
                   </div>
                 )}
 
-                {/* Submit */}
-                <Button
-                  onClick={handleCreateJob}
-                  disabled={!selectedTypeId || !sourceFile || uploading}
-                  className="w-full"
-                >
-                  {uploading ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Yuklanmoqda...
-                    </>
-                  ) : (
-                    <>
-                      <Upload className="h-4 w-4 mr-2" />
-                      So'rov Yaratish
-                    </>
-                  )}
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        )}
-      </Tabs>
+                <div className="flex gap-2">
+                  <Button variant="outline" onClick={handleRegenerate} disabled={regenerating} className="flex-1">
+                    {regenerating ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}Ismlarni saqlab, PDF yangilash
+                  </Button>
+                </div>
+              </div>
 
-      {/* Translation Preview Dialog */}
-      <Dialog open={!!previewJob} onOpenChange={() => setPreviewJob(null)}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Tarjima Natijasi</DialogTitle>
-          </DialogHeader>
-          {previewJob && (
-            <div className="space-y-4">
-              {previewJob.document_type && (
-                <Badge>{getLocalizedName(previewJob.document_type)}</Badge>
-              )}
-              <ScrollArea className="h-[400px] border rounded-lg p-4">
-                <pre className="whitespace-pre-wrap font-mono text-sm">
-                  {previewJob.translated_text}
-                </pre>
-              </ScrollArea>
-              <div className="flex justify-end gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    navigator.clipboard.writeText(previewJob.translated_text || '');
-                    toast.success('Nusxalandi');
-                  }}
-                >
-                  Nusxalash
-                </Button>
-                <Button onClick={() => setPreviewJob(null)}>
-                  Yopish
-                </Button>
+              {/* Right: PDF preview */}
+              <div className="flex flex-col min-h-0">
+                <div className="flex-1 min-h-[300px] border rounded-lg overflow-hidden bg-muted/30">
+                  {loadingPreview ? (
+                    <div className="h-full flex items-center justify-center"><Loader2 className="h-6 w-6 animate-spin" /></div>
+                  ) : previewUrl ? (
+                    <iframe src={previewUrl} title="PDF" className="w-full h-full min-h-[400px]" />
+                  ) : (
+                    <div className="h-full flex items-center justify-center text-sm text-muted-foreground">Ko'rib bo'lmadi</div>
+                  )}
+                </div>
               </div>
             </div>
           )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setActiveResult(null)}>Yopish</Button>
+            {activeResult && <Button onClick={() => handleDownload(activeResult.pdfPath, 'certified_translation.pdf')}><Download className="h-4 w-4 mr-2" />PDF yuklab olish</Button>}
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

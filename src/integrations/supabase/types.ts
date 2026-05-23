@@ -2786,15 +2786,18 @@ export type Database = {
           document_type_id: string
           error_message: string | null
           id: string
+          output_pdf_path: string | null
           requested_by: string | null
           source_document_id: string | null
           source_file_path: string
           status: string
+          structured_translation: Json | null
           student_id: string
           supporting_documents: Json | null
           translated_file_path: string | null
           translated_text: string | null
           updated_at: string
+          verified_names: Json | null
         }
         Insert: {
           auto_triggered?: boolean
@@ -2803,15 +2806,18 @@ export type Database = {
           document_type_id: string
           error_message?: string | null
           id?: string
+          output_pdf_path?: string | null
           requested_by?: string | null
           source_document_id?: string | null
           source_file_path: string
           status?: string
+          structured_translation?: Json | null
           student_id: string
           supporting_documents?: Json | null
           translated_file_path?: string | null
           translated_text?: string | null
           updated_at?: string
+          verified_names?: Json | null
         }
         Update: {
           auto_triggered?: boolean
@@ -2820,15 +2826,18 @@ export type Database = {
           document_type_id?: string
           error_message?: string | null
           id?: string
+          output_pdf_path?: string | null
           requested_by?: string | null
           source_document_id?: string | null
           source_file_path?: string
           status?: string
+          structured_translation?: Json | null
           student_id?: string
           supporting_documents?: Json | null
           translated_file_path?: string | null
           translated_text?: string | null
           updated_at?: string
+          verified_names?: Json | null
         }
         Relationships: [
           {
