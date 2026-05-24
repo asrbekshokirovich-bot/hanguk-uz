@@ -1,27 +1,33 @@
 import type { ReactNode } from 'react';
+import { NOT_SPECIFIED, resolveStatusField, confidencePct } from './reviewLogic';
 
 /**
  * Renders the AI-extracted `parsed_output` for one review-queue item as a clean,
  * labelled layout. Every field defined for a `field_group` is always shown — a
- * missing value renders as "Not specified" so reviewers see the full structure
- * (including fields the backend does not populate yet, e.g. majors, per-track
- * tuition, IELTS bands, application fee).
+ * missing value renders as "Not specified" so reviewers see the full structure.
  *
- * Korean free-text is shown translated (English) when a translation map is
- * supplied, with a "translating…" placeholder in flight and the original Korean
- * when `showKorean` is true.
+ * Text is rendered deterministically from the stored payload: Korean free-text
+ * is shown as-is, except where the backend has joined a precomputed English
+ * field (e.g. `prose_en`), in which case the English is shown. No translation
+ * happens at render time, so the text a reviewer approves is exactly the text
+ * shown.
  *
- * Internal-only fields (extractor_confidence, eligibility_predicate raw,
- * is_correction_notice, source_text_ko, country_specific) are never rendered.
+ * Internal-only fields (eligibility_predicate raw, is_correction_notice,
+ * source_text_ko, country_specific) are never rendered.
  */
 
-const NS = 'Not specified';
-const TRANSLATING = 'translating…';
+const NS = NOT_SPECIFIED;
 
 function text(v: unknown): string {
   if (v === null || v === undefined) return NS;
   const s = String(v).trim();
   return s.length ? s : NS;
+}
+
+/** Prefer a precomputed English value when present, else the Korean original. */
+function tr(koValue: unknown, enValue?: unknown): string {
+  if (typeof enValue === 'string' && enValue.trim()) return enValue.trim();
+  return text(koValue);
 }
 
 function humanize(v: unknown): string {
@@ -57,6 +63,12 @@ function formatKst(v: unknown): string {
   }).formatToParts(d);
   const get = (t: string) => parts.find((p) => p.type === t)?.value ?? '';
   return `${get('year')}-${get('month')}-${get('day')} ${get('hour')}:${get('minute')} KST`;
+}
+
+/** Document deadlines may be a plain date or a full timestamp. */
+function formatDeadline(v: unknown): string {
+  if (typeof v !== 'string' || !v.trim()) return NS;
+  return v.includes('T') ? formatKst(v) : text(v);
 }
 
 function awardPlain(awardType: unknown, value: unknown): string {
@@ -95,40 +107,18 @@ function getArray(parsed: unknown, key: string): Array<Record<string, unknown>> 
   return [];
 }
 
-/**
- * The Korean free-text values actually displayed for an item, deduplicated.
- * Must stay in sync with the fields run through `trField` in the renderer.
- */
-export function collectKoreanTexts(fieldGroup: string | null, parsedOutput: unknown): string[] {
-  const out: string[] = [];
-  const push = (v: unknown) => {
-    if (typeof v === 'string') {
-      const s = v.trim();
-      if (s) out.push(s);
-    }
-  };
-
-  if (fieldGroup === 'calendar') {
-    for (const ev of getArray(parsedOutput, 'events')) push(ev.notes_ko);
-  } else {
-    for (const r of getArray(parsedOutput, 'rows')) {
-      if (fieldGroup === 'requirements') {
-        push(r.applicant_category);
-        push(r.prose_ko);
-      } else if (fieldGroup === 'scholarships') {
-        push(r.prose_ko);
-        if (!r.name_en) push(r.name_ko);
-      } else if (fieldGroup === 'documents_required') {
-        push(r.notes_ko);
-      }
-    }
-  }
-
-  return Array.from(new Set(out));
-}
-
-function Field({ label, value, full }: { label: string; value: ReactNode; full?: boolean }) {
-  const muted = value === NS || value === TRANSLATING;
+function Field({
+  label,
+  value,
+  full,
+  muted: mutedOverride,
+}: {
+  label: string;
+  value: ReactNode;
+  full?: boolean;
+  muted?: boolean;
+}) {
+  const muted = mutedOverride ?? value === NS;
   return (
     <div className={full ? 'col-span-2 sm:col-span-3' : ''}>
       <div className="text-xs text-muted-foreground">{label}</div>
@@ -139,10 +129,33 @@ function Field({ label, value, full }: { label: string; value: ReactNode; full?:
   );
 }
 
-function RowCard({ title, children }: { title?: string; children: ReactNode }) {
+function ConfidenceTag({ value }: { value: unknown }) {
+  const pct = confidencePct(typeof value === 'number' ? value : null);
+  if (!pct) return null;
+  return (
+    <span className="text-xs font-normal rounded-full border px-2 py-0.5 text-muted-foreground" title="Extractor confidence for this row">
+      conf {pct}
+    </span>
+  );
+}
+
+function RowCard({
+  title,
+  headerRight,
+  children,
+}: {
+  title?: string;
+  headerRight?: ReactNode;
+  children: ReactNode;
+}) {
   return (
     <div className="rounded-lg border p-3 space-y-2">
-      {title ? <div className="text-sm font-semibold">{title}</div> : null}
+      {title || headerRight ? (
+        <div className="flex items-center justify-between gap-2">
+          {title ? <div className="text-sm font-semibold">{title}</div> : <span />}
+          {headerRight}
+        </div>
+      ) : null}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2">{children}</div>
     </div>
   );
@@ -204,25 +217,10 @@ const TIMELINE_SLOTS: Array<{ label: string; type: string | null }> = [
 export function ReviewParsedOutput({
   fieldGroup,
   parsedOutput,
-  showKorean = false,
-  translating = false,
-  translations,
 }: {
   fieldGroup: string | null;
   parsedOutput: unknown;
-  showKorean?: boolean;
-  translating?: boolean;
-  translations?: Map<string, string>;
 }) {
-  const trField = (v: unknown): string => {
-    if (v === null || v === undefined) return NS;
-    const s = String(v).trim();
-    if (!s) return NS;
-    if (showKorean) return s;
-    if (translating) return TRANSLATING;
-    return translations?.get(s) ?? s;
-  };
-
   switch (fieldGroup) {
     case 'calendar': {
       const events = getArray(parsedOutput, 'events');
@@ -245,7 +243,7 @@ export function ReviewParsedOutput({
                         {formatKst(e.starts_at)}
                         {e.is_tentative ? ' (tentative)' : ''}
                         {e.notes_ko ? (
-                          <span className="text-muted-foreground"> — {trField(e.notes_ko)}</span>
+                          <span className="text-muted-foreground"> — {tr(e.notes_ko, e.notes_en)}</span>
                         ) : null}
                       </div>
                     ))}
@@ -265,27 +263,41 @@ export function ReviewParsedOutput({
       return (
         <div className="space-y-3">
           {rows.map((r, i) => {
-            const topik =
+            const topikConcrete =
               r.topik_min_level !== null && r.topik_min_level !== undefined
                 ? `Level ${r.topik_min_level}`
                 : r.topik_deferred === true
                   ? 'Deferred'
-                  : NS;
-            const gpa =
+                  : null;
+            const topik = resolveStatusField(r.topik_status, topikConcrete);
+
+            const engStr = englishRequirement(r.english_test);
+            const english = resolveStatusField(r.english_status, engStr === NS ? null : engStr);
+
+            const gpaConcrete =
               r.gpa_floor_pct !== null && r.gpa_floor_pct !== undefined
                 ? `${r.gpa_floor_pct}%`
-                : NS;
+                : null;
+            const gpa = resolveStatusField(r.gpa_status, gpaConcrete);
+
             return (
-              <RowCard key={i} title={trField(r.applicant_category)}>
-                <Field label="Applicant category (track)" value={trField(r.applicant_category)} />
-                <Field label="TOPIK requirement" value={topik} />
-                <Field label="IELTS / English" value={englishRequirement(r.english_test)} />
-                <Field label="GPA floor" value={gpa} />
+              <RowCard
+                key={i}
+                title={text(r.applicant_category)}
+                headerRight={<ConfidenceTag value={r.extractor_confidence} />}
+              >
+                <Field label="Applicant category (track)" value={text(r.applicant_category)} />
+                <Field label="TOPIK requirement" value={topik.text} muted={topik.muted} />
+                <Field label="IELTS / English" value={english.text} muted={english.muted} />
+                <Field label="GPA floor" value={gpa.text} muted={gpa.muted} />
                 <Field label="Interview?" value={yesNo(r.interview_required)} />
                 <Field label="Practical exam?" value={yesNo(r.practical_exam_required)} />
                 <Field label="Majors / fields" value={text(r.majors)} />
-                <Field label="Tuition (this track)" value={formatKrw((r.tuition as Record<string, unknown> | undefined)?.amount_krw)} />
-                <Field label="Eligibility" value={trField(r.prose_ko)} full />
+                <Field
+                  label="Tuition (this track)"
+                  value={formatKrw((r.tuition as Record<string, unknown> | undefined)?.amount_krw)}
+                />
+                <Field label="Eligibility" value={tr(r.prose_ko, r.prose_en)} full />
               </RowCard>
             );
           })}
@@ -299,7 +311,11 @@ export function ReviewParsedOutput({
       return (
         <div className="space-y-3">
           {rows.map((r, i) => (
-            <RowCard key={i} title={text(r.faculty_group)}>
+            <RowCard
+              key={i}
+              title={text(r.faculty_group)}
+              headerRight={<ConfidenceTag value={r.extractor_confidence} />}
+            >
               <Field label="Faculty group" value={text(r.faculty_group)} />
               <Field label="Academic year" value={text(r.academic_year ?? r.year)} />
               <Field label="Semester" value={text(r.semester_number ?? r.semester)} />
@@ -318,12 +334,17 @@ export function ReviewParsedOutput({
       return (
         <div className="space-y-3">
           {rows.map((r, i) => {
-            const name = r.name_en ? text(r.name_en) : trField(r.name_ko);
+            const name = r.name_en ? text(r.name_en) : text(r.name_ko);
             const predicate = r.eligibility_predicate as Record<string, unknown> | undefined;
             const predicateNote =
               predicate && typeof predicate.prose_note === 'string' ? predicate.prose_note : null;
+            const eligibility = tr(r.prose_ko, r.prose_en);
             return (
-              <RowCard key={i} title={name !== NS ? name : 'Scholarship'}>
+              <RowCard
+                key={i}
+                title={name !== NS ? name : 'Scholarship'}
+                headerRight={<ConfidenceTag value={r.extractor_confidence} />}
+              >
                 <Field label="Name" value={name} />
                 <Field label="Scope" value={humanize(r.scope)} />
                 <Field label="Award" value={awardPlain(r.award_type, r.award_value ?? null)} />
@@ -339,7 +360,7 @@ export function ReviewParsedOutput({
                 />
                 <Field
                   label="Eligibility"
-                  value={predicateNote ? `${trField(r.prose_ko)}\n(${predicateNote})` : trField(r.prose_ko)}
+                  value={predicateNote ? `${eligibility}\n(${predicateNote})` : eligibility}
                   full
                 />
               </RowCard>
@@ -355,11 +376,17 @@ export function ReviewParsedOutput({
       return (
         <div className="space-y-3">
           {rows.map((r, i) => (
-            <RowCard key={i} title={humanize(r.document_type)}>
+            <RowCard
+              key={i}
+              title={humanize(r.document_type)}
+              headerRight={<ConfidenceTag value={r.extractor_confidence} />}
+            >
               <Field label="Document" value={humanize(r.document_type)} />
               <Field label="Required?" value={yesNo(r.is_required)} />
               <Field label="Apostille?" value={yesNo(r.is_apostille_required)} />
-              <Field label="Notes" value={trField(r.notes_ko)} full />
+              <Field label="Applies to round" value={humanize(r.applies_to_round)} />
+              <Field label="Deadline" value={formatDeadline(r.deadline)} />
+              <Field label="Notes" value={tr(r.notes_ko, r.notes_en)} full />
             </RowCard>
           ))}
         </div>
