@@ -267,3 +267,125 @@ export function diffParsedOutput(before: unknown, after: unknown): DiffEntry[] {
   walk('', before, after);
   return entries;
 }
+
+// ---------------------------------------------------------------------------
+// Item presence
+// ---------------------------------------------------------------------------
+
+export function itemCount(parsedOutput: unknown): number {
+  if (!parsedOutput || typeof parsedOutput !== 'object') return 0;
+  const o = parsedOutput as Record<string, unknown>;
+  const rows = Array.isArray(o.rows) ? o.rows.length : 0;
+  const events = Array.isArray(o.events) ? o.events.length : 0;
+  return rows + events;
+}
+
+export function isEmptyExtraction(parsedOutput: unknown): boolean {
+  return itemCount(parsedOutput) === 0;
+}
+
+// ---------------------------------------------------------------------------
+// Admission-track relevance. This service serves FOREIGN applicants, so
+// 외국인전형 is relevant; overseas-Korean / defector / "completed all schooling
+// abroad" / naturalised tracks are noise that should be de-emphasised.
+// ---------------------------------------------------------------------------
+
+export type TrackRelevance = 'foreign' | 'korean_heritage' | 'unknown';
+
+const FOREIGN_RE = /외국인|\bforeign\b/i;
+const KOREAN_HERITAGE_RE = /재외국민|북한이탈|국외\s*전\s*교육|전\s*교육과정|전교육과정|귀화/;
+
+export function classifyTrack(row: Record<string, unknown>): TrackRelevance {
+  const hay = ['applicant_category', 'prose_ko', 'prose_en', 'source_text_ko']
+    .map((k) => (typeof row[k] === 'string' ? (row[k] as string) : ''))
+    .join(' ');
+  const foreign = FOREIGN_RE.test(hay);
+  const heritage = KOREAN_HERITAGE_RE.test(hay);
+  if (foreign) return 'foreign'; // mixed 외국인+재외국민 cards stay visible
+  if (heritage) return 'korean_heritage';
+  return 'unknown';
+}
+
+// ---------------------------------------------------------------------------
+// Calendar event_type → timeline slot. Keep the union of `types` in sync with
+// the audit harness (uni_db_audit.sql §7). Any event_type not listed here is
+// returned in `other` so it is never silently dropped.
+// ---------------------------------------------------------------------------
+
+export const CALENDAR_SLOTS: Array<{ label: string; types: string[] }> = [
+  { label: 'Online application opens', types: ['apply_open'] },
+  { label: 'Online application deadline', types: ['apply_close'] },
+  { label: 'Document deadline', types: ['documents_deadline', 'document_submission_close'] },
+  { label: 'First-stage results', types: ['first_stage_results'] },
+  { label: 'Interview', types: ['interview'] },
+  { label: 'Results announced', types: ['final_results'] },
+  { label: 'Registration opens', types: ['registration_open'] },
+  { label: 'Registration deadline', types: ['registration_close'] },
+  { label: 'Orientation', types: ['orientation'] },
+];
+
+const MAPPED_EVENT_TYPES = new Set(CALENDAR_SLOTS.flatMap((s) => s.types));
+
+export function mapCalendarEvents(events: Array<Record<string, unknown>>): {
+  slots: Array<{ label: string; events: Array<Record<string, unknown>> }>;
+  other: Array<Record<string, unknown>>;
+} {
+  const slots = CALENDAR_SLOTS.map((s) => ({
+    label: s.label,
+    events: events.filter((e) => s.types.includes(String(e.event_type))),
+  }));
+  const other = events.filter((e) => !MAPPED_EVENT_TYPES.has(String(e.event_type)));
+  return { slots, other };
+}
+
+// ---------------------------------------------------------------------------
+// Stale-cycle detection: collect dates from a payload; a cycle is stale when it
+// has at least one parseable date and its LATEST date is already in the past.
+// ---------------------------------------------------------------------------
+
+export function collectDates(parsedOutput: unknown): Date[] {
+  const out: Date[] = [];
+  const push = (v: unknown) => {
+    if (typeof v === 'string' && v.trim()) {
+      const d = new Date(v);
+      if (!Number.isNaN(d.getTime())) out.push(d);
+    }
+  };
+  if (parsedOutput && typeof parsedOutput === 'object') {
+    const o = parsedOutput as Record<string, unknown>;
+    if (Array.isArray(o.events)) for (const e of o.events) push((e as Record<string, unknown>)?.starts_at);
+    if (Array.isArray(o.rows)) for (const r of o.rows) push((r as Record<string, unknown>)?.deadline);
+  }
+  return out;
+}
+
+export function isStaleCycle(parsedOutput: unknown, now: Date = new Date()): boolean {
+  const dates = collectDates(parsedOutput);
+  if (dates.length === 0) return false;
+  const latest = Math.max(...dates.map((d) => d.getTime()));
+  return latest < now.getTime();
+}
+
+// ---------------------------------------------------------------------------
+// Per-document country-specific rules (e.g. { UZ: { consular: true } }).
+// ---------------------------------------------------------------------------
+
+export interface CountryRule {
+  country: string;
+  rules: string[];
+}
+
+export function countryRules(row: Record<string, unknown>): CountryRule[] {
+  const cs = row.country_specific;
+  if (!cs || typeof cs !== 'object' || Array.isArray(cs)) return [];
+  const out: CountryRule[] = [];
+  for (const [country, val] of Object.entries(cs as Record<string, unknown>)) {
+    if (val && typeof val === 'object' && !Array.isArray(val)) {
+      const rules = Object.entries(val as Record<string, unknown>)
+        .filter(([, v]) => v === true || (typeof v === 'string' && v))
+        .map(([k, v]) => (v === true ? k : `${k}: ${v}`));
+      if (rules.length) out.push({ country, rules });
+    }
+  }
+  return out;
+}

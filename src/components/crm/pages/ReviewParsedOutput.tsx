@@ -1,5 +1,13 @@
-import type { ReactNode } from 'react';
-import { NOT_SPECIFIED, resolveStatusField, confidencePct } from './reviewLogic';
+import { useState, type ReactNode } from 'react';
+import {
+  NOT_SPECIFIED,
+  resolveStatusField,
+  confidencePct,
+  classifyTrack,
+  mapCalendarEvents,
+  countryRules,
+  type TrackRelevance,
+} from './reviewLogic';
 
 /**
  * Renders the AI-extracted `parsed_output` for one review-queue item as a clean,
@@ -202,17 +210,108 @@ function EmptyRows({ noun }: { noun: string }) {
   );
 }
 
-// Calendar event_type → human label, in display order. Online/offline/fee slots
-// are shown even when absent (offline + fee are not extracted yet).
-const TIMELINE_SLOTS: Array<{ label: string; type: string | null }> = [
-  { label: 'Online application opens', type: 'apply_open' },
-  { label: 'Online application deadline', type: 'apply_close' },
-  { label: 'Offline application', type: null },
-  { label: 'Document deadline', type: 'documents_deadline' },
-  { label: 'Interview', type: 'interview' },
-  { label: 'Results announced', type: 'final_results' },
-  { label: 'Registration opens', type: 'registration_open' },
-];
+function eventLines(events: Array<Record<string, unknown>>): ReactNode {
+  if (events.length === 0) return NS;
+  return (
+    <div className="space-y-0.5">
+      {events.map((e, i) => (
+        <div key={i}>
+          {formatKst(e.starts_at)}
+          {e.is_tentative ? ' (tentative)' : ''}
+          {e.notes_ko ? (
+            <span className="text-muted-foreground"> — {tr(e.notes_ko, e.notes_en)}</span>
+          ) : null}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function RequirementCard({ r }: { r: Record<string, unknown> }) {
+  const topikConcrete =
+    r.topik_min_level !== null && r.topik_min_level !== undefined
+      ? `Level ${r.topik_min_level}`
+      : r.topik_deferred === true
+        ? 'Deferred'
+        : null;
+  const topik = resolveStatusField(r.topik_status, topikConcrete);
+
+  const engStr = englishRequirement(r.english_test);
+  const english = resolveStatusField(r.english_status, engStr === NS ? null : engStr);
+
+  const gpaConcrete =
+    r.gpa_floor_pct !== null && r.gpa_floor_pct !== undefined ? `${r.gpa_floor_pct}%` : null;
+  const gpa = resolveStatusField(r.gpa_status, gpaConcrete);
+
+  const isHeritage = classifyTrack(r) === 'korean_heritage';
+
+  return (
+    <RowCard
+      title={text(r.applicant_category)}
+      headerRight={
+        <div className="flex items-center gap-1.5">
+          {isHeritage ? (
+            <span
+              className="text-xs rounded-full border px-2 py-0.5 text-muted-foreground"
+              title="Korean / overseas-Korean track — not relevant to foreign applicants"
+            >
+              Korean-heritage
+            </span>
+          ) : null}
+          <ConfidenceTag value={r.extractor_confidence} />
+        </div>
+      }
+    >
+      <Field label="Applicant category (track)" value={text(r.applicant_category)} />
+      <Field label="TOPIK requirement" value={topik.text} muted={topik.muted} />
+      <Field label="IELTS / English" value={english.text} muted={english.muted} />
+      <Field label="GPA floor" value={gpa.text} muted={gpa.muted} />
+      <Field label="Interview?" value={yesNo(r.interview_required)} />
+      <Field label="Practical exam?" value={yesNo(r.practical_exam_required)} />
+      <Field label="Majors / fields" value={text(r.majors)} />
+      <Field
+        label="Tuition (this track)"
+        value={formatKrw((r.tuition as Record<string, unknown> | undefined)?.amount_krw)}
+      />
+      <Field label="Eligibility" value={tr(r.prose_ko, r.prose_en)} full />
+    </RowCard>
+  );
+}
+
+// Foreign-applicant tracks (외국인전형) render first; Korean-heritage /
+// overseas-Korean tracks are collapsed behind a disclosure so they don't drown
+// out the relevant data.
+function RequirementsCards({ rows }: { rows: Array<Record<string, unknown>> }) {
+  const [showHeritage, setShowHeritage] = useState(false);
+  const relevant = rows.filter((r) => classifyTrack(r) !== 'korean_heritage');
+  const heritage = rows.filter((r) => classifyTrack(r) === 'korean_heritage');
+  return (
+    <div className="space-y-3">
+      {relevant.length === 0 && heritage.length > 0 ? (
+        <p className="text-sm text-muted-foreground italic rounded-lg border border-dashed p-3">
+          No foreign-applicant (외국인전형) track extracted — only Korean-heritage tracks are below.
+        </p>
+      ) : null}
+      {relevant.map((r, i) => (
+        <RequirementCard key={i} r={r} />
+      ))}
+      {heritage.length > 0 ? (
+        <div className="space-y-3">
+          <button
+            type="button"
+            onClick={() => setShowHeritage((v) => !v)}
+            className="text-xs text-muted-foreground hover:underline"
+          >
+            {showHeritage ? 'Hide' : 'Show'} {heritage.length} Korean-heritage / overseas-Korean
+            track{heritage.length === 1 ? '' : 's'} (재외국민·북한이탈·국외이수) — not for foreign
+            applicants
+          </button>
+          {showHeritage ? heritage.map((r, i) => <RequirementCard key={i} r={r} />) : null}
+        </div>
+      ) : null}
+    </div>
+  );
+}
 
 export function ReviewParsedOutput({
   fieldGroup,
@@ -224,35 +323,37 @@ export function ReviewParsedOutput({
   switch (fieldGroup) {
     case 'calendar': {
       const events = getArray(parsedOutput, 'events');
-      const byType = (t: string) => events.filter((e) => e.event_type === t);
+      const { slots, other } = mapCalendarEvents(events);
       return (
         <div className="space-y-3">
           <RowCard>
-            {TIMELINE_SLOTS.map((slot) => {
-              if (slot.type === null) {
-                return <Field key={slot.label} label={slot.label} value={NS} full />;
-              }
-              const matches = byType(slot.type);
-              const value =
-                matches.length === 0 ? (
-                  NS
-                ) : (
-                  <div className="space-y-0.5">
-                    {matches.map((e, i) => (
-                      <div key={i}>
-                        {formatKst(e.starts_at)}
-                        {e.is_tentative ? ' (tentative)' : ''}
-                        {e.notes_ko ? (
-                          <span className="text-muted-foreground"> — {tr(e.notes_ko, e.notes_en)}</span>
-                        ) : null}
-                      </div>
-                    ))}
-                  </div>
-                );
-              return <Field key={slot.label} label={slot.label} value={value} full />;
-            })}
+            {slots.map((slot) => (
+              <Field key={slot.label} label={slot.label} value={eventLines(slot.events)} full />
+            ))}
+            <Field label="Offline application" value={NS} full />
             <Field label="Application fee" value={NS} full />
           </RowCard>
+          {other.length > 0 ? (
+            <div className="rounded-lg border p-3 space-y-2">
+              <div className="text-sm font-semibold">
+                Other dates from the source ({other.length})
+              </div>
+              <div className="space-y-1">
+                {other.map((e, i) => (
+                  <div key={i} className="text-sm">
+                    <span className="text-muted-foreground">{humanize(e.event_type)}:</span>{' '}
+                    {formatKst(e.starts_at)}
+                    {e.is_tentative ? ' (tentative)' : ''}
+                    {e.notes_ko || e.source_text_ko ? (
+                      <span className="text-muted-foreground">
+                        {' '}— {tr(e.notes_ko ?? e.source_text_ko, e.notes_en)}
+                      </span>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
         </div>
       );
     }
@@ -260,49 +361,7 @@ export function ReviewParsedOutput({
     case 'requirements': {
       const rows = getArray(parsedOutput, 'rows');
       if (rows.length === 0) return <EmptyRows noun="admission tracks" />;
-      return (
-        <div className="space-y-3">
-          {rows.map((r, i) => {
-            const topikConcrete =
-              r.topik_min_level !== null && r.topik_min_level !== undefined
-                ? `Level ${r.topik_min_level}`
-                : r.topik_deferred === true
-                  ? 'Deferred'
-                  : null;
-            const topik = resolveStatusField(r.topik_status, topikConcrete);
-
-            const engStr = englishRequirement(r.english_test);
-            const english = resolveStatusField(r.english_status, engStr === NS ? null : engStr);
-
-            const gpaConcrete =
-              r.gpa_floor_pct !== null && r.gpa_floor_pct !== undefined
-                ? `${r.gpa_floor_pct}%`
-                : null;
-            const gpa = resolveStatusField(r.gpa_status, gpaConcrete);
-
-            return (
-              <RowCard
-                key={i}
-                title={text(r.applicant_category)}
-                headerRight={<ConfidenceTag value={r.extractor_confidence} />}
-              >
-                <Field label="Applicant category (track)" value={text(r.applicant_category)} />
-                <Field label="TOPIK requirement" value={topik.text} muted={topik.muted} />
-                <Field label="IELTS / English" value={english.text} muted={english.muted} />
-                <Field label="GPA floor" value={gpa.text} muted={gpa.muted} />
-                <Field label="Interview?" value={yesNo(r.interview_required)} />
-                <Field label="Practical exam?" value={yesNo(r.practical_exam_required)} />
-                <Field label="Majors / fields" value={text(r.majors)} />
-                <Field
-                  label="Tuition (this track)"
-                  value={formatKrw((r.tuition as Record<string, unknown> | undefined)?.amount_krw)}
-                />
-                <Field label="Eligibility" value={tr(r.prose_ko, r.prose_en)} full />
-              </RowCard>
-            );
-          })}
-        </div>
-      );
+      return <RequirementsCards rows={rows} />;
     }
 
     case 'tuition': {
@@ -375,20 +434,43 @@ export function ReviewParsedOutput({
       if (rows.length === 0) return <EmptyRows noun="required documents" />;
       return (
         <div className="space-y-3">
-          {rows.map((r, i) => (
-            <RowCard
-              key={i}
-              title={humanize(r.document_type)}
-              headerRight={<ConfidenceTag value={r.extractor_confidence} />}
-            >
-              <Field label="Document" value={humanize(r.document_type)} />
-              <Field label="Required?" value={yesNo(r.is_required)} />
-              <Field label="Apostille?" value={yesNo(r.is_apostille_required)} />
-              <Field label="Applies to round" value={humanize(r.applies_to_round)} />
-              <Field label="Deadline" value={formatDeadline(r.deadline)} />
-              <Field label="Notes" value={tr(r.notes_ko, r.notes_en)} full />
-            </RowCard>
-          ))}
+          {rows.map((r, i) => {
+            const rules = countryRules(r);
+            return (
+              <RowCard
+                key={i}
+                title={humanize(r.document_type)}
+                headerRight={<ConfidenceTag value={r.extractor_confidence} />}
+              >
+                <Field label="Document" value={humanize(r.document_type)} />
+                <Field label="Required?" value={yesNo(r.is_required)} />
+                <Field label="Apostille?" value={yesNo(r.is_apostille_required)} />
+                <Field label="Applies to round" value={humanize(r.applies_to_round)} />
+                <Field label="Deadline" value={formatDeadline(r.deadline)} />
+                <Field
+                  label="Country-specific legalization"
+                  value={
+                    rules.length === 0 ? (
+                      NS
+                    ) : (
+                      <div className="flex flex-wrap gap-1.5">
+                        {rules.map((cr) => (
+                          <span
+                            key={cr.country}
+                            className="text-xs rounded-full border px-2 py-0.5"
+                          >
+                            <span className="font-medium">{cr.country}</span>: {cr.rules.map(humanize).join(', ')}
+                          </span>
+                        ))}
+                      </div>
+                    )
+                  }
+                  full
+                />
+                <Field label="Notes" value={tr(r.notes_ko, r.notes_en)} full />
+              </RowCard>
+            );
+          })}
         </div>
       );
     }

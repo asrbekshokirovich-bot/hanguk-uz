@@ -22,6 +22,8 @@ import {
   confidencePct,
   validateParsedOutput,
   diffParsedOutput,
+  isEmptyExtraction,
+  isStaleCycle,
 } from './reviewLogic';
 import {
   AlertDialog,
@@ -213,34 +215,58 @@ function UniversityDetail({
   );
 
   const renderSectionItems = (fieldGroup: string) => {
-    const items = group.items.filter((i) => (i.field_group ?? 'other') === fieldGroup);
-    if (items.length === 0) {
+    const all = group.items.filter((i) => (i.field_group ?? 'other') === fieldGroup);
+    if (all.length === 0) {
       return (
         <p className="text-sm text-muted-foreground italic rounded-lg border border-dashed p-3">
           Not extracted yet for this university.
         </p>
       );
     }
+    // Extractions that produced no rows/events are noise — collapse them so they
+    // don't drown the section, but keep them reachable so they can be rejected.
+    const items = all.filter((i) => !isEmptyExtraction(i.parsed_output));
+    const empties = all.filter((i) => isEmptyExtraction(i.parsed_output));
     const multiple = items.length > 1;
+
+    const pane = (item: ReviewQueueRow, idx: number, total: number) => (
+      <div key={item.id}>
+        {total > 1 ? (
+          <div className="text-xs font-medium text-muted-foreground mb-1">
+            Source {idx + 1} of {total}
+            {shortStorageName(item.storage_path) ? ` · ${shortStorageName(item.storage_path)}` : ''}
+          </div>
+        ) : null}
+        <DetailPane row={item} sameSourceCount={sameSourceCount(item)} onResolved={onResolved} />
+      </div>
+    );
+
     return (
       <div className="space-y-4">
+        {items.length === 0 && empties.length > 0 ? (
+          <p className="text-sm text-muted-foreground italic rounded-lg border border-dashed p-3">
+            No content extracted for this section ({empties.length} empty extraction
+            {empties.length === 1 ? '' : 's'}).
+          </p>
+        ) : null}
         {multiple ? (
           <p className="text-xs text-muted-foreground">
             {items.length} separate extractions for this section (different source documents) —
             review each on its own.
           </p>
         ) : null}
-        {items.map((item, idx) => (
-          <div key={item.id}>
-            {multiple ? (
-              <div className="text-xs font-medium text-muted-foreground mb-1">
-                Source {idx + 1} of {items.length}
-                {shortStorageName(item.storage_path) ? ` · ${shortStorageName(item.storage_path)}` : ''}
-              </div>
-            ) : null}
-            <DetailPane row={item} sameSourceCount={sameSourceCount(item)} onResolved={onResolved} />
-          </div>
-        ))}
+        {items.map((item, idx) => pane(item, idx, items.length))}
+        {empties.length > 0 ? (
+          <details className="rounded-lg border border-dashed p-2">
+            <summary className="text-xs text-muted-foreground cursor-pointer">
+              {empties.length} empty extraction{empties.length === 1 ? '' : 's'} — likely safe to
+              reject
+            </summary>
+            <div className="space-y-4 mt-2">
+              {empties.map((item, idx) => pane(item, idx, empties.length))}
+            </div>
+          </details>
+        ) : null}
       </div>
     );
   };
@@ -316,6 +342,7 @@ function DetailPane({
   const pending =
     accept.isPending || editAccept.isPending || reject.isPending || flagSourceWrong.isPending;
   const conf = confidencePct(itemConfidence(row));
+  const stale = isStaleCycle(row.parsed_output);
 
   const validation = useMemo(
     () => validateParsedOutput(row.field_group, edited),
@@ -432,6 +459,11 @@ function DetailPane({
           ) : (
             <Badge variant="outline" className="font-normal">confidence n/a</Badge>
           )}
+          {stale ? (
+            <Badge variant="destructive" className="font-normal" title="All dates in this extraction are in the past">
+              past-cycle dates
+            </Badge>
+          ) : null}
         </div>
         <div className="flex flex-wrap items-center gap-3">
           {row.source_url_ko ? (

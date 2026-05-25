@@ -8,6 +8,12 @@ import {
   diffParsedOutput,
   itemsKey,
   NOT_SPECIFIED,
+  classifyTrack,
+  mapCalendarEvents,
+  isEmptyExtraction,
+  itemCount,
+  isStaleCycle,
+  countryRules,
 } from '../reviewLogic';
 
 // Trimmed but faithful shapes from v_review_queue_dashboard (Inha requirements,
@@ -170,5 +176,81 @@ describe('itemsKey', () => {
     expect(itemsKey('calendar')).toBe('events');
     expect(itemsKey('requirements')).toBe('rows');
     expect(itemsKey(null)).toBe('rows');
+  });
+});
+
+describe('classifyTrack', () => {
+  it('flags overseas-Korean / defector / abroad-curriculum tracks as korean_heritage', () => {
+    expect(classifyTrack({ applicant_category: '재외국민특별전형' })).toBe('korean_heritage');
+    expect(classifyTrack({ applicant_category: '북한이탈주민' })).toBe('korean_heritage');
+    expect(classifyTrack({ applicant_category: '국외 전 교육과정 이수자' })).toBe('korean_heritage');
+  });
+  it('flags 외국인전형 as foreign', () => {
+    expect(classifyTrack({ applicant_category: '외국인전형' })).toBe('foreign');
+  });
+  it('keeps mixed 외국인+재외국민 cards visible (foreign wins)', () => {
+    expect(classifyTrack({ applicant_category: '재외국민', prose_ko: '외국인 및 귀화자 포함' })).toBe('foreign');
+  });
+  it('returns unknown when neither pattern matches', () => {
+    expect(classifyTrack({ applicant_category: '일반전형' })).toBe('unknown');
+  });
+});
+
+describe('mapCalendarEvents', () => {
+  it('maps document_submission_close into the Document deadline slot (UI/data name mismatch fix)', () => {
+    const { slots } = mapCalendarEvents([{ event_type: 'document_submission_close', starts_at: 'x' }]);
+    const docSlot = slots.find((s) => s.label === 'Document deadline');
+    expect(docSlot?.events).toHaveLength(1);
+  });
+  it('routes unmapped event_types to other (never dropped)', () => {
+    const { other } = mapCalendarEvents([
+      { event_type: 'other', starts_at: 'x' },
+      { event_type: 'apply_open', starts_at: 'y' },
+    ]);
+    expect(other).toHaveLength(1);
+    expect(other[0].event_type).toBe('other');
+  });
+});
+
+describe('isEmptyExtraction / itemCount', () => {
+  it('counts rows and events', () => {
+    expect(itemCount({ rows: [{}, {}] })).toBe(2);
+    expect(itemCount({ events: [{}] })).toBe(1);
+    expect(itemCount({})).toBe(0);
+    expect(itemCount(null)).toBe(0);
+  });
+  it('detects empty payloads', () => {
+    expect(isEmptyExtraction({ rows: [] })).toBe(true);
+    expect(isEmptyExtraction({})).toBe(true);
+    expect(isEmptyExtraction({ rows: [{ a: 1 }] })).toBe(false);
+  });
+});
+
+describe('isStaleCycle', () => {
+  const now = new Date('2026-05-25T00:00:00Z');
+  it('is stale when the latest date is in the past', () => {
+    expect(isStaleCycle({ events: [{ starts_at: '2025-11-01T00:00:00+09:00' }] }, now)).toBe(true);
+  });
+  it('is not stale when any date is in the future', () => {
+    expect(isStaleCycle({ events: [{ starts_at: '2025-11-01' }, { starts_at: '2027-01-01' }] }, now)).toBe(false);
+  });
+  it('is not stale with no parseable dates', () => {
+    expect(isStaleCycle({ rows: [{ document_type: 'passport' }] }, now)).toBe(false);
+    expect(isStaleCycle({}, now)).toBe(false);
+  });
+  it('reads document deadlines too', () => {
+    expect(isStaleCycle({ rows: [{ deadline: '2024-10-01' }] }, now)).toBe(true);
+  });
+});
+
+describe('countryRules', () => {
+  it('extracts per-country legalization rules (e.g. UZ consular)', () => {
+    const rules = countryRules({ country_specific: { UZ: { consular: true }, CN: { notarization: true } } });
+    expect(rules).toContainEqual({ country: 'UZ', rules: ['consular'] });
+    expect(rules).toContainEqual({ country: 'CN', rules: ['notarization'] });
+  });
+  it('returns empty for missing or empty country_specific', () => {
+    expect(countryRules({})).toEqual([]);
+    expect(countryRules({ country_specific: {} })).toEqual([]);
   });
 });
