@@ -25,6 +25,7 @@ import {
   isEmptyExtraction,
   isStaleCycle,
 } from './reviewLogic';
+import { useInstitutionNameTranslation } from '@/hooks/useTranslations';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -209,6 +210,9 @@ function UniversityDetail({
     return allRows.filter((r) => (r.guideline_document_id ?? r.source_url_ko) === key).length;
   };
 
+  const gdId = group.items.find((i) => i.guideline_document_id)?.guideline_document_id ?? null;
+  const instName = useInstitutionNameTranslation(gdId);
+
   const knownGroups = new Set(SECTIONS.map((s) => s.group));
   const extraGroups = Array.from(
     new Set(group.items.map((i) => i.field_group ?? 'other').filter((g) => !knownGroups.has(g))),
@@ -275,8 +279,11 @@ function UniversityDetail({
     <div className="space-y-6">
       <div>
         <h2 className="text-xl font-bold">{uniTitle(group)}</h2>
-        {group.nameKo && group.nameEn ? (
-          <p className="text-sm text-muted-foreground">{group.nameEn}</p>
+        {group.nameEn ? (
+          <p className="text-sm text-muted-foreground">{group.nameEn} <span className="text-xs">(EN)</span></p>
+        ) : null}
+        {instName.uz ? (
+          <p className="text-sm text-muted-foreground">{instName.uz} <span className="text-xs">(UZ)</span></p>
         ) : null}
       </div>
 
