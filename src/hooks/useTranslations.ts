@@ -17,13 +17,20 @@ interface PgResult<T> {
   data: T[] | null;
   error: { message: string } | null;
 }
-interface LooseBuilder<T> extends PromiseLike<PgResult<T>> {
+export interface LooseBuilder<T> extends PromiseLike<PgResult<T>> {
   select(cols: string): LooseBuilder<T>;
   eq(col: string, val: string): LooseBuilder<T>;
   in(col: string, vals: readonly string[]): LooseBuilder<T>;
+  order(col: string, opts?: { ascending?: boolean; nullsFirst?: boolean }): LooseBuilder<T>;
+  limit(n: number): LooseBuilder<T>;
   maybeSingle(): PromiseLike<{ data: T | null; error: { message: string } | null }>;
 }
-function looseFrom<T>(table: string): LooseBuilder<T> {
+
+/**
+ * Minimal typed query builder for uni_db tables that aren't in the generated
+ * Supabase types (translations, guideline_documents, announcements, …).
+ */
+export function looseFrom<T>(table: string): LooseBuilder<T> {
   return (supabase as unknown as { from: (t: string) => unknown }).from(table) as LooseBuilder<T>;
 }
 

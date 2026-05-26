@@ -8,6 +8,7 @@ import { RoomChat } from './RoomChat';
 import { UniversityCalendar } from './UniversityCalendar';
 import { ProcessTracker } from './ProcessTracker';
 import { AnnouncementFeed } from './AnnouncementFeed';
+import { UniversityNotices } from './UniversityNotices';
 import { Tables } from '@/integrations/supabase/types';
 import { Info, MessageSquare, Megaphone, CalendarDays, Users } from 'lucide-react';
 
@@ -31,9 +32,11 @@ export function UniversityRoom({ open, onOpenChange, application, initialTab = '
     setActiveTab(initialTab);
   }, [initialTab]);
 
-  const { room, channels, members, loading, getChannelByType } = useUniversityRoom(
-    application.institution_id
-  );
+  // applications.institution_id exists at runtime but is missing from the
+  // (drifted) generated types; read it through a narrow cast.
+  const institutionId =
+    (application as unknown as { institution_id: string | null }).institution_id ?? null;
+  const { room, channels, members, loading, getChannelByType } = useUniversityRoom(institutionId);
 
   const discussionChannel = getChannelByType('discussion');
 
@@ -131,7 +134,8 @@ export function UniversityRoom({ open, onOpenChange, application, initialTab = '
                 />
               </TabsContent>
 
-              <TabsContent value="announcements" className="h-full m-0">
+              <TabsContent value="announcements" className="h-full m-0 overflow-auto">
+                <UniversityNotices institutionId={institutionId} />
                 <AnnouncementFeed roomId={room?.id || null} />
               </TabsContent>
 
