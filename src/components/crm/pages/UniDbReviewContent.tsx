@@ -24,8 +24,16 @@ import {
   diffParsedOutput,
   isEmptyExtraction,
   isStaleCycle,
+  filterReviewRows,
+  distinctInstitutions,
+  distinctFieldGroups,
+  distinctPriorities,
+  hasActiveFilters,
+  EMPTY_REVIEW_FILTERS,
+  type ReviewFilters,
 } from './reviewLogic';
 import { useInstitutionNameTranslation } from '@/hooks/useTranslations';
+import { Input } from '@/components/ui/input';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -64,6 +72,9 @@ import {
   X,
   FileText,
   FileWarning,
+  Search,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 
 const PRIORITY_BADGE_VARIANT: Record<number, 'default' | 'destructive' | 'secondary' | 'outline'> = {
@@ -79,9 +90,12 @@ const REJECTION_REASON_LABEL: Record<RejectionReason, string> = {
   wrong_archetype: 'wrong_archetype — applicant category misclassified',
   hallucinated_field: 'hallucinated_field — field not present in source',
   ocr_garbled: 'ocr_garbled — OCR output unusable',
+  empty_extraction: 'empty_extraction — extractor found nothing to publish',
   source_404: 'source_404 — original document no longer reachable',
   other: 'other — see notes',
 };
+
+const LIST_PAGE_SIZE = 10;
 
 function institutionName(row: ReviewQueueRow): string {
   return row.name_ko ?? row.name_en ?? 'Unknown institution';
@@ -324,11 +338,15 @@ function DetailPane({
     return p && typeof p === 'object' && !Array.isArray(p) ? (p as Record<string, unknown>) : {};
   }, [row.parsed_output]);
 
+  const emptyExtraction = isEmptyExtraction(row.parsed_output);
+
   const [editing, setEditing] = useState(false);
   const [edited, setEdited] = useState<Record<string, unknown>>(initialParsed);
   const [showDiff, setShowDiff] = useState(false);
   const [rejecting, setRejecting] = useState(false);
-  const [rejectReason, setRejectReason] = useState<RejectionReason | ''>('');
+  const [rejectReason, setRejectReason] = useState<RejectionReason | ''>(
+    emptyExtraction ? 'empty_extraction' : '',
+  );
   const [rejectDetail, setRejectDetail] = useState('');
   const [pdfLoading, setPdfLoading] = useState(false);
   const [confirmSourceWrong, setConfirmSourceWrong] = useState(false);
@@ -340,11 +358,11 @@ function DetailPane({
     setEdited(initialParsed);
     setShowDiff(false);
     setRejecting(false);
-    setRejectReason('');
+    setRejectReason(emptyExtraction ? 'empty_extraction' : '');
     setRejectDetail('');
     setConfirmSourceWrong(false);
     setSourceWrongDetail('');
-  }, [row.id, initialParsed]);
+  }, [row.id, initialParsed, emptyExtraction]);
 
   const pending =
     accept.isPending || editAccept.isPending || reject.isPending || flagSourceWrong.isPending;
@@ -719,18 +737,41 @@ export default function UniDbReviewContent() {
   const { data, isLoading, error, refetch, isFetching } = useReviewQueue(queryEnabled);
 
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
+  const [filters, setFilters] = useState<ReviewFilters>(EMPTY_REVIEW_FILTERS);
+  const [page, setPage] = useState(0);
 
   const rows = useMemo(() => data ?? [], [data]);
-  const groups = useMemo(() => groupByUniversity(rows), [rows]);
-  const selectedGroup = groups.find((g) => g.key === selectedKey) ?? null;
+  // The detail panel always shows a university's full set of items; only the
+  // list is filtered/paginated.
+  const allGroups = useMemo(() => groupByUniversity(rows), [rows]);
+  const filteredRows = useMemo(() => filterReviewRows(rows, filters), [rows, filters]);
+  const listGroups = useMemo(() => groupByUniversity(filteredRows), [filteredRows]);
+  const selectedGroup = allGroups.find((g) => g.key === selectedKey) ?? null;
 
-  // Drop the selection only if the selected university leaves the queue (e.g.
-  // after all its items are resolved) — never on an in-panel click.
+  const instOptions = useMemo(() => distinctInstitutions(rows), [rows]);
+  const fieldGroupOptions = useMemo(() => distinctFieldGroups(rows), [rows]);
+  const priorityOptions = useMemo(() => distinctPriorities(rows), [rows]);
+
+  const pageCount = Math.max(1, Math.ceil(listGroups.length / LIST_PAGE_SIZE));
+  const pagedGroups = useMemo(
+    () => listGroups.slice(page * LIST_PAGE_SIZE, page * LIST_PAGE_SIZE + LIST_PAGE_SIZE),
+    [listGroups, page],
+  );
+
+  // Reset to the first page whenever the filter set changes.
+  useEffect(() => setPage(0), [filters]);
+  // Clamp the page if the result set shrank under it.
   useEffect(() => {
-    if (selectedKey && !groups.some((g) => g.key === selectedKey)) {
+    if (page > pageCount - 1) setPage(0);
+  }, [page, pageCount]);
+
+  // Drop the selection only if the selected university leaves the filtered list
+  // (resolved, or excluded by a filter) — never on an in-panel click.
+  useEffect(() => {
+    if (selectedKey && !listGroups.some((g) => g.key === selectedKey)) {
       setSelectedKey(null);
     }
-  }, [groups, selectedKey]);
+  }, [listGroups, selectedKey]);
 
   if (gateLoading) {
     return (
@@ -806,45 +847,147 @@ export default function UniDbReviewContent() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,340px)_1fr] gap-4 items-start">
-          <Card className="lg:sticky lg:top-24">
-            <CardContent className="p-3">
-              <div className="text-xs text-muted-foreground mb-2 px-1">
-                {groups.length} universit{groups.length === 1 ? 'y' : 'ies'} · {rows.length} item
-                {rows.length === 1 ? '' : 's'} waiting
-              </div>
-              <ScrollArea className="h-[calc(100vh-22rem)] min-h-[300px] pr-2">
-                <div className="space-y-2">
-                  {groups.map((group) => (
-                    <UniversityListItem
-                      key={group.key}
-                      group={group}
-                      selected={group.key === selectedKey}
-                      onSelect={() => setSelectedKey(group.key)}
-                    />
-                  ))}
-                </div>
-              </ScrollArea>
-            </CardContent>
-          </Card>
+        <div className="space-y-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="relative flex-1 min-w-[180px]">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                value={filters.search}
+                onChange={(e) => setFilters((f) => ({ ...f, search: e.target.value }))}
+                placeholder="Search name, section, reason, or extracted data…"
+                className="pl-8"
+              />
+            </div>
+            <Select
+              value={filters.institution || 'all'}
+              onValueChange={(v) => setFilters((f) => ({ ...f, institution: v === 'all' ? '' : v }))}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Institution" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All institutions</SelectItem>
+                {instOptions.map((i) => (
+                  <SelectItem key={i} value={i}>
+                    {i}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select
+              value={filters.fieldGroup || 'all'}
+              onValueChange={(v) => setFilters((f) => ({ ...f, fieldGroup: v === 'all' ? '' : v }))}
+            >
+              <SelectTrigger className="w-[170px]">
+                <SelectValue placeholder="Section" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All sections</SelectItem>
+                {fieldGroupOptions.map((g) => (
+                  <SelectItem key={g} value={g}>
+                    {SECTION_TITLE[g] ?? g}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select
+              value={filters.priority === null ? 'all' : String(filters.priority)}
+              onValueChange={(v) =>
+                setFilters((f) => ({ ...f, priority: v === 'all' ? null : Number(v) }))
+              }
+            >
+              <SelectTrigger className="w-[130px]">
+                <SelectValue placeholder="Priority" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All priorities</SelectItem>
+                {priorityOptions.map((p) => (
+                  <SelectItem key={p} value={String(p)}>
+                    P{p}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {hasActiveFilters(filters) ? (
+              <Button variant="ghost" size="sm" onClick={() => setFilters(EMPTY_REVIEW_FILTERS)}>
+                <X className="h-4 w-4 mr-1" /> Clear
+              </Button>
+            ) : null}
+          </div>
 
-          {/* Stop in-panel clicks from bubbling so selection never resets. */}
-          <Card onClick={(e) => e.stopPropagation()}>
-            <CardContent className="p-4">
-              {selectedGroup ? (
-                <UniversityDetail
-                  key={selectedGroup.key}
-                  group={selectedGroup}
-                  allRows={rows}
-                  onResolved={handleResolved}
-                />
-              ) : (
-                <div className="h-full min-h-[300px] flex items-center justify-center text-center text-muted-foreground text-sm p-8">
-                  Select a university to review its extracted data.
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          {listGroups.length === 0 ? (
+            <Card>
+              <CardContent className="p-12 text-center text-muted-foreground">
+                No items match your filters.
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,340px)_1fr] gap-4 items-start">
+              <Card className="lg:sticky lg:top-24">
+                <CardContent className="p-3">
+                  <div className="text-xs text-muted-foreground mb-2 px-1">
+                    {listGroups.length} universit{listGroups.length === 1 ? 'y' : 'ies'} ·{' '}
+                    {filteredRows.length}
+                    {filteredRows.length === rows.length ? '' : ` of ${rows.length}`} item
+                    {rows.length === 1 ? '' : 's'}
+                  </div>
+                  <ScrollArea className="h-[calc(100vh-24rem)] min-h-[280px] pr-2">
+                    <div className="space-y-2">
+                      {pagedGroups.map((group) => (
+                        <UniversityListItem
+                          key={group.key}
+                          group={group}
+                          selected={group.key === selectedKey}
+                          onSelect={() => setSelectedKey(group.key)}
+                        />
+                      ))}
+                    </div>
+                  </ScrollArea>
+                  {pageCount > 1 ? (
+                    <div className="flex items-center justify-between gap-2 mt-2 px-1">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={page === 0}
+                        onClick={() => setPage((p) => Math.max(0, p - 1))}
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </Button>
+                      <span className="text-xs text-muted-foreground">
+                        Page {page + 1} of {pageCount}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={page >= pageCount - 1}
+                        onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ) : null}
+                </CardContent>
+              </Card>
+
+              {/* Stop in-panel clicks from bubbling so selection never resets. */}
+              <Card onClick={(e) => e.stopPropagation()}>
+                <CardContent className="p-4">
+                  {selectedGroup ? (
+                    <UniversityDetail
+                      key={selectedGroup.key}
+                      group={selectedGroup}
+                      allRows={rows}
+                      onResolved={handleResolved}
+                    />
+                  ) : (
+                    <div className="h-full min-h-[300px] flex items-center justify-center text-center text-muted-foreground text-sm p-8">
+                      Select a university to review its extracted data.
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          )}
         </div>
       )}
     </div>

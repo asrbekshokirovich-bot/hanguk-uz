@@ -32,6 +32,7 @@ export type RejectionReason =
   | 'wrong_archetype'
   | 'hallucinated_field'
   | 'ocr_garbled'
+  | 'empty_extraction'
   | 'source_404'
   | 'other';
 
@@ -40,6 +41,7 @@ export const REVIEW_REJECTION_REASONS: RejectionReason[] = [
   'wrong_archetype',
   'hallucinated_field',
   'ocr_garbled',
+  'empty_extraction',
   'source_404',
   'other',
 ];

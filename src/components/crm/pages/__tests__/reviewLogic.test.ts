@@ -14,6 +14,15 @@ import {
   itemCount,
   isStaleCycle,
   countryRules,
+  filterReviewRows,
+  reviewRowMatches,
+  institutionLabel,
+  distinctInstitutions,
+  distinctFieldGroups,
+  distinctPriorities,
+  hasActiveFilters,
+  EMPTY_REVIEW_FILTERS,
+  type ReviewRowLike,
 } from '../reviewLogic';
 
 // Trimmed but faithful shapes from v_review_queue_dashboard (Inha requirements,
@@ -252,5 +261,50 @@ describe('countryRules', () => {
   it('returns empty for missing or empty country_specific', () => {
     expect(countryRules({})).toEqual([]);
     expect(countryRules({ country_specific: {} })).toEqual([]);
+  });
+});
+
+describe('review-queue filtering', () => {
+  const rows: ReviewRowLike[] = [
+    { name_ko: '인하대학교', name_en: 'Inha University', field_group: 'requirements', reason: 'low_confidence', priority: 1, parsed_output: { rows: [{ applicant_category: '외국인전형' }] } },
+    { name_ko: '카이스트', name_en: 'KAIST', field_group: 'documents_required', reason: 'low_confidence', priority: 2, parsed_output: { rows: [{ document_type: 'apostille' }] } },
+    { name_ko: '인하대학교', name_en: 'Inha University', field_group: 'scholarships', reason: 'needs_review', priority: 3, parsed_output: { rows: [] } },
+  ];
+
+  it('institutionLabel prefers English, falls back to Korean', () => {
+    expect(institutionLabel({ name_ko: '인하대학교', name_en: 'Inha University' })).toBe('Inha University');
+    expect(institutionLabel({ name_ko: '인하대학교', name_en: null })).toBe('인하대학교');
+    expect(institutionLabel({ name_ko: null, name_en: null })).toBe('Unknown institution');
+  });
+
+  it('lists distinct institutions, field groups, and priorities', () => {
+    expect(distinctInstitutions(rows)).toEqual(['Inha University', 'KAIST']);
+    expect(distinctFieldGroups(rows)).toEqual(['documents_required', 'requirements', 'scholarships']);
+    expect(distinctPriorities(rows)).toEqual([1, 2, 3]);
+  });
+
+  it('empty filters match everything', () => {
+    expect(filterReviewRows(rows, EMPTY_REVIEW_FILTERS)).toHaveLength(3);
+    expect(hasActiveFilters(EMPTY_REVIEW_FILTERS)).toBe(false);
+  });
+
+  it('filters by institution, field group, and priority', () => {
+    expect(filterReviewRows(rows, { ...EMPTY_REVIEW_FILTERS, institution: 'Inha University' })).toHaveLength(2);
+    expect(filterReviewRows(rows, { ...EMPTY_REVIEW_FILTERS, fieldGroup: 'documents_required' })).toHaveLength(1);
+    expect(filterReviewRows(rows, { ...EMPTY_REVIEW_FILTERS, priority: 2 })[0].name_en).toBe('KAIST');
+  });
+
+  it('search matches name, field group, reason, and parsed_output content (case-insensitive)', () => {
+    expect(filterReviewRows(rows, { ...EMPTY_REVIEW_FILTERS, search: 'kaist' })).toHaveLength(1);
+    expect(filterReviewRows(rows, { ...EMPTY_REVIEW_FILTERS, search: 'apostille' })[0].name_en).toBe('KAIST');
+    expect(filterReviewRows(rows, { ...EMPTY_REVIEW_FILTERS, search: '외국인' })[0].name_en).toBe('Inha University');
+    expect(filterReviewRows(rows, { ...EMPTY_REVIEW_FILTERS, search: 'nonexistent-term' })).toHaveLength(0);
+  });
+
+  it('combines filters (AND) and reports active state', () => {
+    const f = { ...EMPTY_REVIEW_FILTERS, institution: 'Inha University', fieldGroup: 'scholarships' };
+    expect(filterReviewRows(rows, f)).toHaveLength(1);
+    expect(hasActiveFilters(f)).toBe(true);
+    expect(reviewRowMatches(rows[0], f)).toBe(false);
   });
 });
