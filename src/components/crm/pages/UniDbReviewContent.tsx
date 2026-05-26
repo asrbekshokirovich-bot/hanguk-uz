@@ -355,6 +355,13 @@ function DetailPane({
 
   const handleOpenPdf = async () => {
     if (!row.storage_path) return;
+    // Open the tab synchronously, inside the click gesture — if we waited for the
+    // await below, the browser would no longer treat window.open as user-initiated
+    // and would silently block it. We redirect this blank tab once the signed URL
+    // resolves. (No 'noopener' here: that makes window.open return null so we
+    // couldn't redirect it; sever the opener manually instead.)
+    const win = window.open('', '_blank');
+    if (win) win.opener = null;
     setPdfLoading(true);
     try {
       // Sign a fresh short-lived URL per click (signed URLs expire in ~15 min).
@@ -369,8 +376,10 @@ function DetailPane({
       });
       const signedUrl = (data as { signed_url?: string } | null)?.signed_url;
       if (error || !signedUrl) throw error ?? new Error('No signed URL returned');
-      window.open(signedUrl, '_blank', 'noopener,noreferrer');
+      if (win) win.location.href = signedUrl;
+      else window.location.href = signedUrl; // popups blocked — fall back to this tab
     } catch (err) {
+      win?.close();
       toast.error('Could not open source PDF', {
         description: err instanceof Error ? err.message : 'Unknown error',
       });
