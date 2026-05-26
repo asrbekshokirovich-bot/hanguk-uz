@@ -15,7 +15,16 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { ReviewParsedOutput, collectKoreanTexts } from './ReviewParsedOutput';
+import { ReviewParsedOutput } from './ReviewParsedOutput';
+import { StructuredReviewEditor, DiffList } from './ReviewEditor';
+import {
+  itemConfidence,
+  confidencePct,
+  validateParsedOutput,
+  diffParsedOutput,
+  isEmptyExtraction,
+  isStaleCycle,
+} from './reviewLogic';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,6 +35,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import {
   Select,
   SelectContent,
@@ -41,11 +58,11 @@ import {
   AlertCircle,
   Check,
   Pencil,
+  Eye,
+  Save,
   X,
   FileText,
   FileWarning,
-  Code2,
-  Languages,
 } from 'lucide-react';
 
 const PRIORITY_BADGE_VARIANT: Record<number, 'default' | 'destructive' | 'secondary' | 'outline'> = {
@@ -67,11 +84,6 @@ const REJECTION_REASON_LABEL: Record<RejectionReason, string> = {
 
 function institutionName(row: ReviewQueueRow): string {
   return row.name_ko ?? row.name_en ?? 'Unknown institution';
-}
-
-function confidenceLabel(score: number | null): string | null {
-  if (score === null || score === undefined) return null;
-  return `${Math.round(score * 100)}%`;
 }
 
 // One university = all open queue items that share an institution identity.
@@ -128,10 +140,16 @@ function uniTitle(g: UniGroup): string {
   return g.nameKo ?? g.nameEn ?? 'Unknown institution';
 }
 
-function avgConfidence(items: ReviewQueueRow[]): number | null {
-  const scores = items.map((i) => i.accuracy_self_score).filter((s): s is number => s !== null);
-  if (scores.length === 0) return null;
-  return scores.reduce((a, b) => a + b, 0) / scores.length;
+/** Lowest confidence across a group's items — surfaces the weakest extraction. */
+function groupMinConfidence(items: ReviewQueueRow[]): number | null {
+  const vals = items.map((i) => itemConfidence(i)).filter((v): v is number => v !== null);
+  return vals.length ? Math.min(...vals) : null;
+}
+
+function shortStorageName(storagePath: string | null): string | null {
+  if (!storagePath) return null;
+  const base = storagePath.split('/').pop() ?? storagePath;
+  return base.length > 18 ? `${base.slice(0, 10)}…${base.slice(-7)}` : base;
 }
 
 function UniversityListItem({
@@ -144,7 +162,7 @@ function UniversityListItem({
   onSelect: () => void;
 }) {
   const minPriority = Math.min(...group.items.map((i) => i.priority));
-  const conf = confidenceLabel(avgConfidence(group.items));
+  const conf = confidencePct(groupMinConfidence(group.items));
   const sections = Array.from(new Set(group.items.map((i) => i.field_group ?? 'other')));
   return (
     <button
@@ -159,7 +177,11 @@ function UniversityListItem({
         <Badge variant="outline" className="font-normal">
           {group.items.length} item{group.items.length === 1 ? '' : 's'}
         </Badge>
-        {conf ? <Badge variant="outline" className="font-normal">conf {conf}</Badge> : null}
+        {conf ? (
+          <Badge variant="outline" className="font-normal" title="Lowest row confidence">
+            conf {conf}
+          </Badge>
+        ) : null}
       </div>
       <div className="font-medium text-sm truncate">{uniTitle(group)}</div>
       {group.nameKo && group.nameEn ? (
@@ -193,24 +215,58 @@ function UniversityDetail({
   );
 
   const renderSectionItems = (fieldGroup: string) => {
-    const items = group.items.filter((i) => (i.field_group ?? 'other') === fieldGroup);
-    if (items.length === 0) {
+    const all = group.items.filter((i) => (i.field_group ?? 'other') === fieldGroup);
+    if (all.length === 0) {
       return (
         <p className="text-sm text-muted-foreground italic rounded-lg border border-dashed p-3">
           Not extracted yet for this university.
         </p>
       );
     }
+    // Extractions that produced no rows/events are noise — collapse them so they
+    // don't drown the section, but keep them reachable so they can be rejected.
+    const items = all.filter((i) => !isEmptyExtraction(i.parsed_output));
+    const empties = all.filter((i) => isEmptyExtraction(i.parsed_output));
+    const multiple = items.length > 1;
+
+    const pane = (item: ReviewQueueRow, idx: number, total: number) => (
+      <div key={item.id}>
+        {total > 1 ? (
+          <div className="text-xs font-medium text-muted-foreground mb-1">
+            Source {idx + 1} of {total}
+            {shortStorageName(item.storage_path) ? ` · ${shortStorageName(item.storage_path)}` : ''}
+          </div>
+        ) : null}
+        <DetailPane row={item} sameSourceCount={sameSourceCount(item)} onResolved={onResolved} />
+      </div>
+    );
+
     return (
       <div className="space-y-4">
-        {items.map((item) => (
-          <DetailPane
-            key={item.id}
-            row={item}
-            sameSourceCount={sameSourceCount(item)}
-            onResolved={onResolved}
-          />
-        ))}
+        {items.length === 0 && empties.length > 0 ? (
+          <p className="text-sm text-muted-foreground italic rounded-lg border border-dashed p-3">
+            No content extracted for this section ({empties.length} empty extraction
+            {empties.length === 1 ? '' : 's'}).
+          </p>
+        ) : null}
+        {multiple ? (
+          <p className="text-xs text-muted-foreground">
+            {items.length} separate extractions for this section (different source documents) —
+            review each on its own.
+          </p>
+        ) : null}
+        {items.map((item, idx) => pane(item, idx, items.length))}
+        {empties.length > 0 ? (
+          <details className="rounded-lg border border-dashed p-2">
+            <summary className="text-xs text-muted-foreground cursor-pointer">
+              {empties.length} empty extraction{empties.length === 1 ? '' : 's'} — likely safe to
+              reject
+            </summary>
+            <div className="space-y-4 mt-2">
+              {empties.map((item, idx) => pane(item, idx, empties.length))}
+            </div>
+          </details>
+        ) : null}
       </div>
     );
   };
@@ -256,107 +312,68 @@ function DetailPane({
 }) {
   const { accept, editAccept, reject, flagSourceWrong } = useReviewActions();
 
-  const initialJson = useMemo(
-    () => JSON.stringify(row.parsed_output ?? {}, null, 2),
-    [row.parsed_output],
-  );
-  const [jsonText, setJsonText] = useState(initialJson);
-  const [parseError, setParseError] = useState<string | null>(null);
+  const initialParsed = useMemo<Record<string, unknown>>(() => {
+    const p = row.parsed_output;
+    return p && typeof p === 'object' && !Array.isArray(p) ? (p as Record<string, unknown>) : {};
+  }, [row.parsed_output]);
+
+  const [editing, setEditing] = useState(false);
+  const [edited, setEdited] = useState<Record<string, unknown>>(initialParsed);
+  const [showDiff, setShowDiff] = useState(false);
   const [rejecting, setRejecting] = useState(false);
-  const [rejectReason, setRejectReason] = useState<RejectionReason>('wrong_year');
+  const [rejectReason, setRejectReason] = useState<RejectionReason | ''>('');
   const [rejectDetail, setRejectDetail] = useState('');
   const [pdfLoading, setPdfLoading] = useState(false);
   const [confirmSourceWrong, setConfirmSourceWrong] = useState(false);
   const [sourceWrongDetail, setSourceWrongDetail] = useState('');
-  const [showRawJson, setShowRawJson] = useState(false);
-  const [showKorean, setShowKorean] = useState(false);
-  const [translating, setTranslating] = useState(false);
-  const [translations, setTranslations] = useState<Map<string, string>>(new Map());
 
   // Reset local editing state whenever a different item is selected.
   useEffect(() => {
-    setJsonText(initialJson);
-    setParseError(null);
+    setEditing(false);
+    setEdited(initialParsed);
+    setShowDiff(false);
     setRejecting(false);
-    setRejectReason('wrong_year');
+    setRejectReason('');
     setRejectDetail('');
     setConfirmSourceWrong(false);
     setSourceWrongDetail('');
-    setShowRawJson(false);
-    setShowKorean(false);
-  }, [row.id, initialJson]);
-
-  // Translate the Korean free-text fields to English once per item.
-  useEffect(() => {
-    const texts = collectKoreanTexts(row.field_group, row.parsed_output);
-    if (texts.length === 0) {
-      setTranslations(new Map());
-      setTranslating(false);
-      return;
-    }
-
-    let cancelled = false;
-    setTranslating(true);
-    (async () => {
-      try {
-        const { data, error } = await supabase.functions.invoke('translate-fields', {
-          body: { texts, target_lang: 'en' },
-        });
-        if (error) throw error;
-        const arr = (data as { translations?: unknown } | null)?.translations;
-        const map = new Map<string, string>();
-        if (Array.isArray(arr)) {
-          texts.forEach((t, i) => {
-            const tr = arr[i];
-            if (typeof tr === 'string' && tr.trim()) map.set(t, tr);
-          });
-        }
-        if (!cancelled) setTranslations(map);
-      } catch (err) {
-        if (!cancelled) {
-          setTranslations(new Map());
-          toast.error('Translation unavailable', {
-            description: err instanceof Error ? err.message : 'Could not translate fields',
-          });
-        }
-      } finally {
-        if (!cancelled) setTranslating(false);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [row.id, row.field_group, row.parsed_output]);
+  }, [row.id, initialParsed]);
 
   const pending =
     accept.isPending || editAccept.isPending || reject.isPending || flagSourceWrong.isPending;
-  const conf = confidenceLabel(row.accuracy_self_score);
+  const conf = confidencePct(itemConfidence(row));
+  const stale = isStaleCycle(row.parsed_output);
+
+  const validation = useMemo(
+    () => validateParsedOutput(row.field_group, edited),
+    [row.field_group, edited],
+  );
+  const diff = useMemo(
+    () => diffParsedOutput(initialParsed, edited),
+    [initialParsed, edited],
+  );
 
   const handleOpenPdf = async () => {
-    if (!row.guideline_document_id) return;
+    if (!row.storage_path) return;
     setPdfLoading(true);
     try {
-      // Signed URLs expire in ~15 min, so always fetch a fresh one per click.
+      // Sign a fresh short-lived URL per click (signed URLs expire in ~15 min).
+      // Send both identifiers so this works whether get-pdf-url keys off the
+      // storage path or the document id.
       const { data, error } = await supabase.functions.invoke('get-pdf-url', {
-        body: { document_id: row.guideline_document_id },
+        body: {
+          storage_path: row.storage_path,
+          document_id: row.guideline_document_id,
+          reason: 'open_original',
+        },
       });
       const signedUrl = (data as { signed_url?: string } | null)?.signed_url;
-      if (error || !signedUrl) {
-        throw error ?? new Error('No signed URL returned');
-      }
+      if (error || !signedUrl) throw error ?? new Error('No signed URL returned');
       window.open(signedUrl, '_blank', 'noopener,noreferrer');
     } catch (err) {
-      if (row.source_url_ko) {
-        window.open(row.source_url_ko, '_blank', 'noopener,noreferrer');
-        toast.message('Cached PDF unavailable', {
-          description: 'Opened the live source page instead.',
-        });
-      } else {
-        toast.error('Could not open source PDF', {
-          description: err instanceof Error ? err.message : 'Unknown error',
-        });
-      }
+      toast.error('Could not open source PDF', {
+        description: err instanceof Error ? err.message : 'Unknown error',
+      });
     } finally {
       setPdfLoading(false);
     }
@@ -364,7 +381,7 @@ function DetailPane({
 
   const handleFlagSourceWrong = () => {
     flagSourceWrong.mutate(
-      { queueItemId: row.id, detail: sourceWrongDetail || undefined },
+      { queueItemId: row.id, detail: sourceWrongDetail },
       {
         onSuccess: (count) => {
           toast.success('Source flagged', { description: `${count} item(s) rejected` });
@@ -389,24 +406,24 @@ function DetailPane({
     );
   };
 
-  const handleEditAccept = () => {
-    let parsed: Record<string, unknown>;
-    try {
-      parsed = JSON.parse(jsonText || '{}');
-    } catch (err) {
-      setParseError(err instanceof Error ? err.message : 'Invalid JSON');
+  const handleSaveEditsClick = () => {
+    if (!validation.ok) {
+      setEditing(true);
+      toast.error('Cannot save', {
+        description: 'Fix the highlighted validation errors first.',
+      });
       return;
     }
-    if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed) || Object.keys(parsed).length === 0) {
-      setParseError('Corrected payload must be a non-empty JSON object');
-      return;
-    }
-    setParseError(null);
+    setShowDiff(true);
+  };
+
+  const confirmSaveEdits = () => {
     editAccept.mutate(
-      { queueItemId: row.id, correctedPayload: parsed },
+      { queueItemId: row.id, correctedPayload: edited },
       {
         onSuccess: () => {
           toast.success('Accepted with edits', { description: institutionName(row) });
+          setShowDiff(false);
           onResolved();
         },
         onError: (err) => toast.error('Edit + accept failed', { description: err.message }),
@@ -415,11 +432,13 @@ function DetailPane({
   };
 
   const handleReject = () => {
+    if (rejectReason === '') return;
     reject.mutate(
       { queueItemId: row.id, reason: rejectReason, reasonDetail: rejectDetail || undefined },
       {
         onSuccess: () => {
           toast.success('Rejected', { description: `Reason: ${rejectReason}` });
+          setRejecting(false);
           onResolved();
         },
         onError: (err) => toast.error('Reject failed', { description: err.message }),
@@ -434,10 +453,17 @@ function DetailPane({
           <Badge variant={PRIORITY_BADGE_VARIANT[row.priority] ?? 'outline'}>P{row.priority}</Badge>
           <Badge variant="outline" className="font-normal">{row.reason}</Badge>
           {conf ? (
-            <Badge variant="outline" className="font-normal">self-confidence {conf}</Badge>
+            <Badge variant="outline" className="font-normal" title="Lowest per-row confidence">
+              lowest row conf {conf}
+            </Badge>
           ) : (
-            <Badge variant="outline" className="font-normal">self-confidence n/a</Badge>
+            <Badge variant="outline" className="font-normal">confidence n/a</Badge>
           )}
+          {stale ? (
+            <Badge variant="destructive" className="font-normal" title="All dates in this extraction are in the past">
+              past-cycle dates
+            </Badge>
+          ) : null}
         </div>
         <div className="flex flex-wrap items-center gap-3">
           {row.source_url_ko ? (
@@ -450,7 +476,7 @@ function DetailPane({
               <ExternalLink className="h-3.5 w-3.5" /> View source page
             </a>
           ) : null}
-          {row.guideline_document_id ? (
+          {row.storage_path ? (
             <Button
               variant="outline"
               size="sm"
@@ -465,7 +491,7 @@ function DetailPane({
               Open source PDF
             </Button>
           ) : null}
-          {!row.source_url_ko && !row.guideline_document_id ? (
+          {!row.source_url_ko && !row.storage_path ? (
             <p className="text-sm text-muted-foreground">No source on file.</p>
           ) : null}
         </div>
@@ -473,152 +499,159 @@ function DetailPane({
 
       <div className="space-y-2">
         <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <Label>Extracted data</Label>
-            {!showRawJson && translating ? (
-              <span className="text-xs text-muted-foreground inline-flex items-center gap-1">
-                <Loader2 className="h-3 w-3 animate-spin" /> translating…
-              </span>
-            ) : null}
-          </div>
-          <div className="flex items-center gap-1">
-            {!showRawJson && translations.size > 0 ? (
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="h-7 text-xs"
-                onClick={() => setShowKorean((v) => !v)}
-              >
-                <Languages className="h-3.5 w-3.5 mr-1.5" />
-                {showKorean ? 'English' : '한국어'}
-              </Button>
-            ) : null}
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="h-7 text-xs"
-              onClick={() => setShowRawJson((v) => !v)}
-            >
-              <Code2 className="h-3.5 w-3.5 mr-1.5" />
-              {showRawJson ? 'Hide JSON' : 'Advanced / edit JSON'}
-            </Button>
-          </div>
+          <Label>Extracted data</Label>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="h-7 text-xs"
+            onClick={() => setEditing((v) => !v)}
+            disabled={pending}
+          >
+            {editing ? (
+              <>
+                <Eye className="h-3.5 w-3.5 mr-1.5" /> View
+              </>
+            ) : (
+              <>
+                <Pencil className="h-3.5 w-3.5 mr-1.5" /> Edit data
+              </>
+            )}
+          </Button>
         </div>
 
-        {showRawJson ? (
-          <>
-            <Textarea
-              id="parsed-output"
-              className="font-mono text-xs"
-              rows={16}
-              value={jsonText}
-              onChange={(e) => setJsonText(e.target.value)}
-              disabled={pending}
-            />
-            {parseError ? (
-              <p className="text-xs text-destructive flex items-center gap-1">
-                <AlertCircle className="h-3.5 w-3.5 shrink-0" /> {parseError}
-              </p>
-            ) : (
-              <p className="text-xs text-muted-foreground">
-                Edit the JSON directly, then use "Save edits + accept".
-              </p>
-            )}
-          </>
-        ) : (
-          <ReviewParsedOutput
+        {editing ? (
+          <StructuredReviewEditor
             fieldGroup={row.field_group}
-            parsedOutput={row.parsed_output}
-            showKorean={showKorean}
-            translating={translating}
-            translations={translations}
+            value={edited}
+            onChange={setEdited}
+            disabled={pending}
           />
+        ) : (
+          <ReviewParsedOutput fieldGroup={row.field_group} parsedOutput={row.parsed_output} />
         )}
       </div>
 
-      {rejecting ? (
-        <div className="space-y-3 rounded-lg border border-destructive/40 p-3">
-          <div className="space-y-1.5">
-            <Label htmlFor="reject-reason">Rejection reason</Label>
-            <Select
-              value={rejectReason}
-              onValueChange={(v) => setRejectReason(v as RejectionReason)}
-            >
-              <SelectTrigger id="reject-reason">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {REVIEW_REJECTION_REASONS.map((r) => (
-                  <SelectItem key={r} value={r}>
-                    {REJECTION_REASON_LABEL[r]}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="reject-detail">Detail (optional)</Label>
-            <Textarea
-              id="reject-detail"
-              rows={3}
-              value={rejectDetail}
-              onChange={(e) => setRejectDetail(e.target.value)}
-              placeholder="What specifically went wrong"
-              disabled={pending}
-            />
-          </div>
-          <div className="flex gap-2">
-            <Button variant="destructive" size="sm" onClick={handleReject} disabled={pending}>
-              {reject.isPending ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : null}
-              Confirm reject
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => setRejecting(false)} disabled={pending}>
+      <div className="flex flex-wrap gap-2 pt-1">
+        <Button size="sm" onClick={handleAccept} disabled={pending}>
+          {accept.isPending ? (
+            <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+          ) : (
+            <Check className="h-4 w-4 mr-1.5" />
+          )}
+          Accept as-is
+        </Button>
+        <Button
+          size="sm"
+          variant="secondary"
+          onClick={handleSaveEditsClick}
+          disabled={pending || diff.length === 0}
+          title={diff.length === 0 ? 'No edits yet — use Edit data first' : undefined}
+        >
+          {editAccept.isPending ? (
+            <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+          ) : (
+            <Save className="h-4 w-4 mr-1.5" />
+          )}
+          Save edits + accept
+        </Button>
+        <Button size="sm" variant="destructive" onClick={() => setRejecting(true)} disabled={pending}>
+          <X className="h-4 w-4 mr-1.5" />
+          Reject
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          className="text-destructive border-destructive/40 hover:bg-destructive/10"
+          onClick={() => setConfirmSourceWrong(true)}
+          disabled={pending}
+        >
+          <FileWarning className="h-4 w-4 mr-1.5" />
+          Source is wrong
+        </Button>
+      </div>
+
+      {/* Diff confirmation before committing edits */}
+      <Dialog open={showDiff} onOpenChange={(o) => !o && setShowDiff(false)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Review your changes</DialogTitle>
+            <DialogDescription>
+              These fields will be saved as the corrected extraction for {institutionName(row)}, then
+              accepted.
+            </DialogDescription>
+          </DialogHeader>
+          <DiffList entries={diff} />
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setShowDiff(false)} disabled={editAccept.isPending}>
               Cancel
             </Button>
-          </div>
-        </div>
-      ) : (
-        <div className="flex flex-wrap gap-2 pt-1">
-          <Button size="sm" onClick={handleAccept} disabled={pending}>
-            {accept.isPending ? (
-              <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
-            ) : (
-              <Check className="h-4 w-4 mr-1.5" />
-            )}
-            Accept as-is
-          </Button>
-          <Button size="sm" variant="secondary" onClick={handleEditAccept} disabled={pending}>
-            {editAccept.isPending ? (
-              <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
-            ) : (
-              <Pencil className="h-4 w-4 mr-1.5" />
-            )}
-            Save edits + accept
-          </Button>
-          <Button
-            size="sm"
-            variant="destructive"
-            onClick={() => setRejecting(true)}
-            disabled={pending}
-          >
-            <X className="h-4 w-4 mr-1.5" />
-            Reject
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            className="text-destructive border-destructive/40 hover:bg-destructive/10"
-            onClick={() => setConfirmSourceWrong(true)}
-            disabled={pending}
-          >
-            <FileWarning className="h-4 w-4 mr-1.5" />
-            Source is wrong
-          </Button>
-        </div>
-      )}
+            <Button onClick={confirmSaveEdits} disabled={editAccept.isPending || !validation.ok}>
+              {editAccept.isPending ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : null}
+              Save &amp; accept
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
+      {/* Reject — confirmation + required reason */}
+      <AlertDialog open={rejecting} onOpenChange={(o) => !o && setRejecting(false)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reject this extraction?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This removes the item from the queue without publishing it. Pick the reason it’s being
+              rejected.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="space-y-3 py-1">
+            <div className="space-y-1.5">
+              <Label htmlFor="reject-reason">
+                Rejection reason <span className="text-destructive">*</span>
+              </Label>
+              <Select value={rejectReason} onValueChange={(v) => setRejectReason(v as RejectionReason)}>
+                <SelectTrigger id="reject-reason">
+                  <SelectValue placeholder="Select a reason…" />
+                </SelectTrigger>
+                <SelectContent>
+                  {REVIEW_REJECTION_REASONS.map((r) => (
+                    <SelectItem key={r} value={r}>
+                      {REJECTION_REASON_LABEL[r]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="reject-detail">Detail (optional)</Label>
+              <Textarea
+                id="reject-detail"
+                rows={3}
+                value={rejectDetail}
+                onChange={(e) => setRejectDetail(e.target.value)}
+                placeholder="What specifically went wrong"
+                disabled={reject.isPending}
+              />
+            </div>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={reject.isPending}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                handleReject();
+              }}
+              disabled={reject.isPending || rejectReason === ''}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {reject.isPending ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : null}
+              Confirm reject
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Source is wrong — confirmation + required note */}
       <AlertDialog open={confirmSourceWrong} onOpenChange={(o) => !o && setConfirmSourceWrong(false)}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -630,7 +663,9 @@ function DetailPane({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="space-y-1.5 py-1">
-            <Label htmlFor="source-wrong-detail">Note (optional)</Label>
+            <Label htmlFor="source-wrong-detail">
+              Reason <span className="text-destructive">*</span>
+            </Label>
             <Textarea
               id="source-wrong-detail"
               rows={3}
@@ -647,7 +682,7 @@ function DetailPane({
                 e.preventDefault();
                 handleFlagSourceWrong();
               }}
-              disabled={flagSourceWrong.isPending}
+              disabled={flagSourceWrong.isPending || sourceWrongDetail.trim() === ''}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {flagSourceWrong.isPending ? (
@@ -673,8 +708,8 @@ export default function UniDbReviewContent() {
   const groups = useMemo(() => groupByUniversity(rows), [rows]);
   const selectedGroup = groups.find((g) => g.key === selectedKey) ?? null;
 
-  // Drop the selection if the selected university leaves the queue (e.g. after
-  // all its items are resolved).
+  // Drop the selection only if the selected university leaves the queue (e.g.
+  // after all its items are resolved) — never on an in-panel click.
   useEffect(() => {
     if (selectedKey && !groups.some((g) => g.key === selectedKey)) {
       setSelectedKey(null);
@@ -706,9 +741,6 @@ export default function UniDbReviewContent() {
     );
   }
 
-  // After an action, refresh the queue. The selection stays on the university
-  // (other sections remain); the effect above clears it only if the whole group
-  // is gone.
   const handleResolved = () => {
     refetch();
   };
@@ -780,7 +812,8 @@ export default function UniDbReviewContent() {
             </CardContent>
           </Card>
 
-          <Card>
+          {/* Stop in-panel clicks from bubbling so selection never resets. */}
+          <Card onClick={(e) => e.stopPropagation()}>
             <CardContent className="p-4">
               {selectedGroup ? (
                 <UniversityDetail

@@ -21,6 +21,10 @@ export interface ReviewQueueRow {
   field_group: string | null;
   parsed_output: unknown | null;
   accuracy_self_score: number | null;
+  // Added by migration 20260523150000 — lowest per-row extractor confidence.
+  // Optional so the UI keeps working before the migration is applied (it then
+  // falls back to a client-computed min, then accuracy_self_score).
+  min_row_confidence?: number | null;
 }
 
 export type RejectionReason =
