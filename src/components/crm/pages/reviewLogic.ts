@@ -389,3 +389,78 @@ export function countryRules(row: Record<string, unknown>): CountryRule[] {
   }
   return out;
 }
+
+// ---------------------------------------------------------------------------
+// Review-queue list filtering. The dashboard view is open-only (no status
+// column), so filtering is by institution / field group / priority / free-text
+// search. Kept pure so the component's filter bar is trivially testable.
+// ---------------------------------------------------------------------------
+
+export interface ReviewRowLike {
+  name_ko: string | null;
+  name_en: string | null;
+  field_group: string | null;
+  reason: string;
+  priority: number;
+  parsed_output?: unknown;
+}
+
+export interface ReviewFilters {
+  institution: string; // '' = all (compared against institutionLabel)
+  fieldGroup: string; // '' = all
+  priority: number | null; // null = all
+  search: string; // '' = all
+}
+
+export const EMPTY_REVIEW_FILTERS: ReviewFilters = {
+  institution: '',
+  fieldGroup: '',
+  priority: null,
+  search: '',
+};
+
+export function hasActiveFilters(f: ReviewFilters): boolean {
+  return !!f.institution || !!f.fieldGroup || f.priority !== null || f.search.trim() !== '';
+}
+
+/** Display identity for an institution row (English name, else Korean). */
+export function institutionLabel(row: { name_ko: string | null; name_en: string | null }): string {
+  return row.name_en?.trim() || row.name_ko?.trim() || 'Unknown institution';
+}
+
+export function distinctInstitutions(
+  rows: Array<{ name_ko: string | null; name_en: string | null }>,
+): string[] {
+  return Array.from(new Set(rows.map(institutionLabel))).sort((a, b) => a.localeCompare(b));
+}
+
+export function distinctFieldGroups(rows: Array<{ field_group: string | null }>): string[] {
+  return Array.from(new Set(rows.map((r) => r.field_group ?? 'other'))).sort();
+}
+
+export function distinctPriorities(rows: Array<{ priority: number }>): number[] {
+  return Array.from(new Set(rows.map((r) => r.priority))).sort((a, b) => a - b);
+}
+
+export function reviewRowMatches(row: ReviewRowLike, f: ReviewFilters): boolean {
+  if (f.institution && institutionLabel(row) !== f.institution) return false;
+  if (f.fieldGroup && (row.field_group ?? 'other') !== f.fieldGroup) return false;
+  if (f.priority !== null && row.priority !== f.priority) return false;
+  const q = f.search.trim().toLowerCase();
+  if (q) {
+    let hay = `${row.name_ko ?? ''} ${row.name_en ?? ''} ${row.field_group ?? ''} ${row.reason ?? ''}`;
+    if (row.parsed_output != null) {
+      try {
+        hay += ` ${JSON.stringify(row.parsed_output)}`;
+      } catch {
+        /* non-serialisable payloads are searched by metadata only */
+      }
+    }
+    if (!hay.toLowerCase().includes(q)) return false;
+  }
+  return true;
+}
+
+export function filterReviewRows<T extends ReviewRowLike>(rows: T[], f: ReviewFilters): T[] {
+  return rows.filter((r) => reviewRowMatches(r, f));
+}
