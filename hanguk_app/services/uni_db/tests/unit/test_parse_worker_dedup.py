@@ -81,6 +81,23 @@ class _ArgConn:
         return "OK"
 
 
+async def test_approved_entry_inserts_with_status_and_flag() -> None:
+    # Auto-publish path: an approved+flagged entry is inserted with status
+    # 'approved', needs_attention True, and resolved_at set (so the publish
+    # worker's `order by resolved_at` picks it up).
+    result = _result("requirements", {"rows": [{"applicant_category": "외국인전형"}]})
+    entry = {"entity_type": "extraction_jobs", "entity_id": None,
+             "reason": "low_confidence", "priority": 3, "field_group": "requirements",
+             "rationale": "r", "status": "approved", "needs_attention": True}
+    conn = _ArgConn()
+    await persist_outcome(conn, _outcome([result], [entry]))
+    ins = next(args for sql, args in conn.calls
+               if "insert into public.review_queue" in sql)
+    assert ins[5] == "approved"     # status ($6)
+    assert ins[6] is True           # needs_attention ($7)
+    assert ins[7] is not None       # resolved_at ($8) stamped for approved
+
+
 async def test_failed_job_records_error_text_not_raw_output() -> None:
     from uni_db.workers.parse_worker import _failed_result
 

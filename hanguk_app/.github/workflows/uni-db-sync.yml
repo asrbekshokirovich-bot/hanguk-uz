@@ -98,9 +98,11 @@ jobs:
         continue-on-error: true
         run: python scripts/run_translate_once.py --limit 100
 
-      # 5) Publish reviewer-approved items into the public tables the app reads
-      #    (requirements/tuition/scholarships/periods/documents). DB-only + idempotent,
-      #    so it just normalizes whatever was approved since the last run. Best-effort.
+      # 5) Publish approved items into the public tables the app reads
+      #    (requirements/tuition/scholarships/periods/documents). Review is now
+      #    AUTOMATED: parse auto-approves every content-bearing extraction
+      #    (low-confidence ones flagged needs_attention but still published), so
+      #    this step drains them with no human in the loop. DB-only + idempotent.
       - name: Publish approved items
         continue-on-error: true
-        run: uni-db publish --limit 500
+        run: uni-db publish --limit 1000

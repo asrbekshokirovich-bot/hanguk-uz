@@ -139,16 +139,21 @@ class TestFullPipelineIntoReviewQueue:
             "documents_required",
         }
         # Layer 1 queue hygiene: the tuition / scholarships / documents_required
-        # mocks are empty ({"rows": []}) → NOT enqueued. Only content-bearing
-        # difficult fields (requirements) reach the human queue.
+        # mocks are empty ({"rows": []}) → NOT enqueued.
         review_groups = {e["field_group"] for e in outcome.review_queue_entries}
         assert "scholarships" not in review_groups
         assert "documents_required" not in review_groups
         assert "tuition" not in review_groups
-        # D1 calendar auto-publishes (has content, high confidence).
-        assert "calendar" not in review_groups
-        # requirements mock has content → it is the one that routes to review.
+        # Fully-automated: both content-bearing groups are queued `approved`.
+        # Calendar (high confidence) is clean; requirements (low confidence) is
+        # published but flagged needs_attention. Neither waits on a human.
+        assert "calendar" in review_groups
         assert "requirements" in review_groups
+        by_group = {e["field_group"]: e for e in outcome.review_queue_entries}
+        assert by_group["calendar"]["status"] == "approved"
+        assert by_group["calendar"]["needs_attention"] is False
+        assert by_group["requirements"]["status"] == "approved"
+        assert by_group["requirements"]["needs_attention"] is True
 
 
 class TestCostBudgetGate:
