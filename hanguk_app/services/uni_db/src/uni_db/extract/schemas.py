@@ -1,0 +1,385 @@
+"""JSON schemas matching the §C tables.
+
+Used by the LLM extraction layer in strict-JSON mode. Audit §5.3 /
+plan §F.3. Each schema covers ONE field group (calendar, tuition,
+requirements, scholarships, documents_required) so the LLM call is
+narrow and the validator can pinpoint the failing field.
+"""
+
+from __future__ import annotations
+
+from typing import Any
+
+CALENDAR_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    # Allow Claude to attach top-level meta fields like `is_correction_notice`,
+    # `correction_text_ko` without invalidating the whole extraction. Per-row
+    # strictness is preserved below.
+    "additionalProperties": True,
+    "properties": {
+        "events": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                # Accept extra per-event fields (e.g. cycle_label,
+                # is_correction_notice) instead of discarding the whole calendar
+                # — a single unmodelled field used to fail the entire group.
+                "additionalProperties": True,
+                "required": ["event_type", "starts_at", "source_text_ko"],
+                "properties": {
+                    "event_type": {
+                        "type": "string",
+                        "enum": [
+                            "apply_open", "apply_close",
+                            "document_submission_deadline",
+                            # Aliases Claude emits for the deadline above.
+                            "documents_deadline", "document_submission_close",
+                            "first_stage_results", "interview", "practical_exam",
+                            "final_results", "additional_admit",
+                            "offer_confirmation",
+                            "registration_open", "registration_close",
+                            "registration_withdrawal_open",
+                            "registration_withdrawal_close",
+                            "orientation", "semester_start",
+                            "scholarship_application_close",
+                            "language_test_deadline",
+                            # Catch-all: normalize_output() maps any event type
+                            # outside this list to "other" so a single odd label
+                            # (e.g. "tuition_payment") never fails the whole extraction.
+                            "other",
+                        ],
+                    },
+                    "starts_at":     {"type": "string", "format": "date-time"},
+                    "ends_at":       {"type": ["string", "null"], "format": "date-time"},
+                    "is_tentative":  {"type": "boolean"},
+                    "notes_ko":      {"type": ["string", "null"]},
+                    "source_text_ko":{"type": "string"},
+                    "extractor_confidence": {"type": "number", "minimum": 0, "maximum": 1},
+                },
+            },
+        },
+        # Per admission cycle & language track — maps to
+        # university_admission_periods. Dates are ISO strings (date or
+        # date-time) or null. Additive: the events[] array above is unchanged.
+        "periods": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": True,
+                "properties": {
+                    "language_track":  {"type": ["string", "null"], "enum": [None, "korean", "english"]},
+                    "program_level":   {"type": ["string", "null"]},
+                    "online_application_start":  {"type": ["string", "null"]},
+                    "online_application_end":    {"type": ["string", "null"]},
+                    "offline_application_start": {"type": ["string", "null"]},
+                    "offline_application_end":   {"type": ["string", "null"]},
+                    "interview_start": {"type": ["string", "null"]},
+                    "interview_end":   {"type": ["string", "null"]},
+                    "application_start":   {"type": ["string", "null"]},
+                    "application_end":     {"type": ["string", "null"]},
+                    "document_deadline":   {"type": ["string", "null"]},
+                    "result_announcement": {"type": ["string", "null"]},
+                    "application_fee_krw": {"type": ["number", "null"]},
+                    "application_fee_usd": {"type": ["number", "null"]},
+                    "source_text_ko":      {"type": ["string", "null"]},
+                },
+            },
+        },
+    },
+    "required": ["events"],
+}
+
+TUITION_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "additionalProperties": True,  # root-level meta fields allowed
+    "properties": {
+        "rows": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                # Extra per-row fields (notes_ko, is_correction_notice, …) are
+                # kept rather than failing the whole tuition group.
+                "additionalProperties": True,
+                "required": ["faculty_group", "academic_year",
+                             "semester_number", "amount_krw", "source_text_ko"],
+                "properties": {
+                    "faculty_group":      {"type": "string"},
+                    "academic_year":      {"type": "integer"},
+                    "semester_number":    {"type": "integer", "minimum": 1, "maximum": 12},
+                    "amount_krw":         {"type": "integer", "minimum": 0},
+                    "admission_fee_krw":  {"type": ["integer", "null"], "minimum": 0},
+                    "is_first_semester":  {"type": "boolean"},
+                    "source_text_ko":     {"type": "string"},
+                    "extractor_confidence":{"type": "number", "minimum": 0, "maximum": 1},
+                },
+            },
+        },
+    },
+    "required": ["rows"],
+}
+
+REQUIREMENTS_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "additionalProperties": True,  # root-level meta fields allowed
+    "properties": {
+        "rows": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                # Per-row strictness: reject wrong-group field drift
+                # (`document_type`, `institution`, `program_level`,
+                # `admission_cycles`, etc. — these were the historical
+                # hallucinations on KAIST archetype-G runs).
+                "additionalProperties": False,
+                # applicant_category is often absent on a row (the guideline
+                # states it once at section level); make it optional/nullable
+                # rather than failing the extraction.
+                "required": ["source_text_ko"],
+                "properties": {
+                    "applicant_category":      {"type": ["string", "null"]},
+                    "topik_min_level":         {"type": ["integer", "null"], "minimum": 1, "maximum": 6},
+                    "topik_deferred":          {"type": "boolean"},
+                    "english_test": {
+                        # Tightened from `["object", "null"]` to a closed shape.
+                        # Common test scores Claude has emitted historically;
+                        # `other_ko` is the escape hatch for any test outside
+                        # this list (e.g. CEFR, DELE) so we capture the prose
+                        # rather than dropping the signal.
+                        "type": ["object", "null"],
+                        "additionalProperties": False,
+                        "properties": {
+                            "toefl_ibt": {"type": ["integer", "null"], "minimum": 0, "maximum": 120},
+                            "toefl_pbt": {"type": ["integer", "null"], "minimum": 0, "maximum": 700},
+                            "ielts":     {"type": ["number",  "null"], "minimum": 0, "maximum": 9.0},
+                            "teps":      {"type": ["integer", "null"], "minimum": 0, "maximum": 600},
+                            "duolingo":  {"type": ["integer", "null"], "minimum": 0, "maximum": 160},
+                            "cambridge": {"type": ["string",  "null"]},
+                            "other_ko":  {"type": ["string",  "null"]},
+                            # Normalised primary test + its numeric threshold
+                            # (e.g. test="ielts", min_score=6.0). Keep the
+                            # per-test fields above as well.
+                            "test":      {"type": ["string", "null"],
+                                          "enum": [None, "ielts", "toefl_ibt", "toefl_pbt",
+                                                   "teps", "duolingo", "topik", "cambridge", "other"]},
+                            "min_score": {"type": ["number", "null"]},
+                            "deferred":  {"type": "boolean"},
+                        },
+                    },
+                    "gpa_floor_pct":           {"type": ["number", "null"], "minimum": 0, "maximum": 100},
+                    # Explicit presence sentinels — distinguish "the source
+                    # explicitly waives this" (not_required, e.g. 재외국민/탈북민
+                    # TOPIK 면제) from "this excerpt is silent" (not_stated).
+                    # Without these, the UI cannot tell "not required" from
+                    # "not specified" — both collapse to a null value field.
+                    "topik_status":   {"type": ["string", "null"],
+                                       "enum": [None, "required", "not_required", "not_stated"]},
+                    "english_status": {"type": ["string", "null"],
+                                       "enum": [None, "required", "not_required", "not_stated"]},
+                    "gpa_status":     {"type": ["string", "null"],
+                                       "enum": [None, "required", "not_required", "not_stated"]},
+                    # Whether this row is a complete track definition (eligibility
+                    # + selection) or just a narrow notice that mentions a track
+                    # (e.g. an interview-day announcement). "partial" routes it to
+                    # a softer review state instead of shipping as a full track.
+                    "completeness":   {"type": ["string", "null"],
+                                       "enum": [None, "full", "partial"]},
+                    # Which applicant audience this track serves, so the UI can
+                    # filter to our cohort. The product serves FOREIGN
+                    # applicants (외국인전형); 재외국민/북한이탈/국외이수/귀화 are
+                    # different audiences and should be tagged, not surfaced as
+                    # the foreign track.
+                    "audience":       {"type": ["string", "null"],
+                                       "enum": [None, "foreign", "overseas_korean",
+                                                "defector", "naturalized", "domestic"]},
+                    # Majors offered to this track (programs.name_ko on publish).
+                    "majors":                  {"type": ["array", "null"], "items": {"type": "string"}},
+                    # Per-track tuition (maps to the tuition table on publish).
+                    "tuition": {
+                        "type": ["object", "null"],
+                        "additionalProperties": False,
+                        "properties": {
+                            "amount_krw":        {"type": ["integer", "null"], "minimum": 0},
+                            "admission_fee_krw": {"type": ["integer", "null"], "minimum": 0},
+                            "academic_year":     {"type": ["integer", "null"]},
+                            "semester_number":   {"type": ["integer", "null"], "minimum": 1, "maximum": 12},
+                        },
+                    },
+                    "interview_required":      {"type": "boolean"},
+                    "practical_exam_required": {"type": "boolean"},
+                    "prose_ko":                {"type": ["string", "null"]},
+                    "notes_ko":                {"type": ["string", "null"]},
+                    "is_correction_notice":    {"type": "boolean"},
+                    "correction_text_ko":      {"type": ["string", "null"]},
+                    "source_text_ko":          {"type": "string"},
+                    "extractor_confidence":    {"type": "number", "minimum": 0, "maximum": 1},
+                },
+            },
+        },
+    },
+    # Critical: empty case is `{"rows": []}` — no required field rejection
+    # (this fixed the 2/3 KAIST archetype-A failures where the section had
+    # no requirements info but the old schema demanded `applicant_category`).
+    "required": ["rows"],
+}
+
+SCHOLARSHIPS_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "additionalProperties": True,  # root-level meta fields allowed
+    "properties": {
+        "rows": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                # Extra per-row fields (duration, …) are kept rather than
+                # failing the whole scholarships group.
+                "additionalProperties": True,
+                "required": ["scope", "name_ko", "award_type", "source_text_ko"],
+                "properties": {
+                    "scope":      {"type": "string",
+                                   "enum": ["national", "university", "department",
+                                            "foundation", "regional"]},
+                    "name_ko":    {"type": "string"},
+                    "name_en":    {"type": ["string", "null"]},
+                    "award_type": {"type": "string",
+                                   "enum": ["tuition_waiver_pct", "tuition_waiver_krw",
+                                            "stipend_monthly", "airfare", "other"]},
+                    "award_value":{"type": ["number", "null"]},
+                    "applicant_categories":  {"type": ["array", "null"], "items": {"type": "string"}},
+                    # Tiered award grids foreign-student scholarships use.
+                    # Preferred form is an array of per-band tiers; object/null
+                    # still accepted for backward-compat.
+                    "topik_tier_table": {
+                        "type": ["array", "object", "null"],
+                        "items": {
+                            "type": "object",
+                            "additionalProperties": True,
+                            "properties": {
+                                "topik_level": {"type": ["integer", "null"], "minimum": 1, "maximum": 6},
+                                "award_type":  {"type": ["string", "null"]},
+                                "award_value": {"type": ["number", "null"]},
+                                "duration":    {"type": ["string", "null"],
+                                                "enum": [None, "first_semester", "full_year", "all_years"]},
+                            },
+                        },
+                    },
+                    "ielts_tier_table": {
+                        "type": ["array", "null"],
+                        "items": {
+                            "type": "object",
+                            "additionalProperties": True,
+                            "properties": {
+                                "ielts_min":   {"type": ["number", "null"], "minimum": 0, "maximum": 9.0},
+                                "award_type":  {"type": ["string", "null"]},
+                                "award_value": {"type": ["number", "null"]},
+                                "duration":    {"type": ["string", "null"],
+                                                "enum": [None, "first_semester", "full_year", "all_years"]},
+                            },
+                        },
+                    },
+                    "eligibility_predicate": {"type": ["object", "null"]},
+                    "prose_ko":              {"type": ["string", "null"]},
+                    # Claude frequently adds a short note alongside prose; allow it.
+                    "notes_ko":              {"type": ["string", "null"]},
+                    "correction_text_ko":    {"type": ["string", "null"]},
+                    "is_correction_notice":  {"type": "boolean"},
+                    "source_text_ko":        {"type": "string"},
+                    "extractor_confidence":  {"type": "number", "minimum": 0, "maximum": 1},
+                },
+            },
+        },
+    },
+    "required": ["rows"],
+}
+
+DOCUMENTS_REQUIRED_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "additionalProperties": True,  # root-level meta fields allowed
+    "properties": {
+        "rows": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                # The model names the document field many ways (document_name_ko,
+                # name_ko, label_ko) and adds is_mandatory / is_notarization_required
+                # / translation_required / copies … — accept them all instead of
+                # discarding the whole group, and require only source_text_ko so a
+                # naming variant on the doc field never fails the row. This was
+                # dropping documents_required on ~every document.
+                "additionalProperties": True,
+                "required": ["source_text_ko"],
+                "properties": {
+                    "applicant_category":     {"type": ["string", "null"]},
+                    "document_type":          {"type": "string"},
+                    "is_required":            {"type": "boolean"},
+                    "is_apostille_required":  {"type": "boolean"},
+                    "country_specific":       {"type": ["object", "null"]},
+                    # Per-document / per-round deadline when the guideline
+                    # states one (e.g. KAIST's recommendation-letter
+                    # Oct 29 / Jan 21). ISO date/date-time string or null.
+                    "deadline":               {"type": ["string", "null"]},
+                    "applies_to_round":       {"type": ["string", "null"]},
+                    "notes_ko":               {"type": ["string", "null"]},
+                    # Claude emits these in some shots — accept rather than reject.
+                    "extractor_confidence":   {"type": "number", "minimum": 0, "maximum": 1},
+                    "is_correction_notice":   {"type": "boolean"},
+                    "source_text_ko":         {"type": "string"},
+                },
+            },
+        },
+    },
+    "required": ["rows"],
+}
+
+RECRUITMENT_UNITS_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "rows": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "required": ["faculty_ko", "department_ko", "source_text_ko"],
+                "properties": {
+                    "external_code":  {"type": ["string", "null"]},
+                    "faculty_ko":     {"type": "string"},
+                    "division_ko":    {"type": ["string", "null"]},
+                    "department_ko":  {"type": "string"},
+                    "major_track_ko": {"type": ["string", "null"]},
+                    "faculty_group":  {
+                        "type": ["string", "null"],
+                        "enum": [
+                            None,
+                            "humanities", "social", "natural_science", "engineering",
+                            "arts_pe", "medicine", "dentistry", "veterinary",
+                            "pharmacy", "theology", "interdisciplinary",
+                        ],
+                    },
+                    "campus":               {"type": ["string", "null"]},
+                    "quota":                {"type": ["integer", "string", "null"]},
+                    "is_in_quota":          {"type": ["boolean", "null"]},
+                    "applicant_category":   {"type": ["string", "null"]},
+                    "is_correction_notice": {"type": "boolean"},
+                    "correction_text_ko":   {"type": ["string", "null"]},
+                    "notes_ko":             {"type": ["string", "null"]},
+                    "source_text_ko":       {"type": "string"},
+                    "extractor_confidence": {"type": "number", "minimum": 0, "maximum": 1},
+                },
+            },
+        },
+    },
+    "required": ["rows"],
+}
+
+FIELD_GROUP_SCHEMAS: dict[str, dict[str, Any]] = {
+    "calendar":           CALENDAR_SCHEMA,
+    "tuition":            TUITION_SCHEMA,
+    "requirements":       REQUIREMENTS_SCHEMA,
+    "scholarships":       SCHOLARSHIPS_SCHEMA,
+    "documents_required": DOCUMENTS_REQUIRED_SCHEMA,
+    "recruitment_units":  RECRUITMENT_UNITS_SCHEMA,
+    # Phase 1 alias: 'basic_requirements' is the user-facing label,
+    # 'requirements' is the table name. Same shape.
+    "basic_requirements": REQUIREMENTS_SCHEMA,
+    "document_checklist": DOCUMENTS_REQUIRED_SCHEMA,
+}

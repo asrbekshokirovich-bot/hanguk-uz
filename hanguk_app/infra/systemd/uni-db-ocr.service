@@ -1,0 +1,31 @@
+[Unit]
+Description=uni_db OCR worker (EasyOCR; long-running queue poller)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=uni-db
+Group=uni-db
+WorkingDirectory=/opt/uni_db/services/uni_db
+EnvironmentFile=/etc/uni_db/env
+ExecStart=/opt/uni_db/services/uni_db/.venv/bin/python -m uni_db.parse.ocr_easyocr
+Restart=on-failure
+RestartSec=10
+
+# Hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/var/cache/uni_db /var/log/uni_db
+StandardOutput=journal
+StandardError=journal
+
+# OCR is the heaviest worker — give it more headroom but cap so it
+# doesn't drag the others under
+MemoryMax=2G
+CPUQuota=180%
+
+[Install]
+WantedBy=multi-user.target

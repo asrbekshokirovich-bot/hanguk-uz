@@ -1,0 +1,26 @@
+{
+  "lastBuildDate": "Wed, 07 May 2026 10:30:00 +0900",
+  "total": 3,
+  "start": 1,
+  "display": 3,
+  "items": [
+    {
+      "title": "<b>외국인전형</b> 모집요강 발표 — example A",
+      "link": "https://admission.example-a.ac.kr/notice/view?seq=10",
+      "description": "2026학년도 외국인전형 모집요강",
+      "postdate": "20260505"
+    },
+    {
+      "title": "정정공고 — 외국인전형 일정 변경",
+      "link": "https://admission.example-b.ac.kr/notice/view?seq=11",
+      "description": "정정공고",
+      "postdate": "20260506"
+    },
+    {
+      "title": "교내 행사 — admissions-irrelevant",
+      "link": "https://www.example-c.ac.kr/news/post/9",
+      "description": "행사 안내",
+      "postdate": "20260507"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  P1 #18: Data-extraction rules (Android 12+).
+
+  Mirrors backup_rules.xml but uses the newer schema. Cloud-backup
+  excludes the same sensitive data; device-transfer additionally drops
+  shared preferences so a phone-to-phone migration doesn't carry app
+  secrets across hardware.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="sharedpref" path="."/>
+        <exclude domain="database" path="."/>
+        <exclude domain="file" path="flutter_secure_storage"/>
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="sharedpref" path="."/>
+        <exclude domain="file" path="flutter_secure_storage"/>
+    </device-transfer>
+</data-extraction-rules>

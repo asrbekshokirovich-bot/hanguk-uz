@@ -1,0 +1,1104 @@
+From 1bbea913e6cf5d846a16f3636bf140ff1a7d66da Mon Sep 17 00:00:00 2001
+From: "Asrbek (via Claude)" <asrbekshokirovich@gmail.com>
+Date: Sun, 10 May 2026 15:50:58 +0000
+Subject: [PATCH 1/2] feat(crm): add /crm/admin/uni-db-review reviewer queue
+ (Phase 3R-A)
+
+Wires the React staff CRM into the uni_db HITL queue so Asrbek (or any
+profiles.role IN ('uni_db_reviewer','admin','uni_db_admin') user) can
+work the review queue without leaving the CRM.
+
+New files
+- src/hooks/useUniDbReviewer.ts - reads profiles.role for the current
+  auth user. Coexists with the existing useUserRole() (which reads the
+  user_roles app_role ENUM); see hanguk-uz-staff-crm-architecture.md
+  for why we have two role systems.
+- src/hooks/useReviewQueue.ts - react-query wrappers around
+  v_review_queue_dashboard plus the three RPC mutations (fn_review_accept,
+  fn_review_edit_accept, fn_review_reject). Refetches every 60s.
+- src/components/crm/pages/UniDbReviewContent.tsx - the page.
+  - Forbidden card if not a reviewer.
+  - 4-card stats header (open, overdue, P1+P2, avg confidence).
+  - 2-column grid of queue items with priority badges, SLA-overdue
+    indicator, source URL, expandable JSON payload, and three actions:
+    Accept (with confirm dialog), Edit & Accept (JSON editor dialog),
+    Reject (reason-code dropdown matching reviewer-onboarding.md \xc2\xa76).
+
+Modified
+- src/components/crm/CRMSidebar.tsx - extracts groups into a buildGroups
+  helper to deduplicate the prior copy-paste between the inline groups
+  and the exported useSidebarGroups hook. Adds an isUniDbReviewer prop
+  + 'Uni DB Review' item under the Admin group, gated on that flag.
+- src/pages/CRMPortal.tsx - imports useUniDbReviewer, threads the flag
+  to <CRMSidebar> and useSidebarGroups, adds /crm/admin/uni-db-review
+  URL prefix recognition + 'uni-db-review' renderContent case with
+  lazy-imported UniDbReviewContent.
+
+Companion DB migration (already applied to staging+prod)
+- supabase/migrations/20260701001000_uni_db_v3_review_action_rpcs.sql
+  in the hanguk_app repo. Defines fn_review_accept / _edit_accept /
+  _reject as SECURITY DEFINER plpgsql, plus a reviewer SELECT policy
+  on review_queue (the prior RLS only allowed admin SELECT, which
+  would have made v_review_queue_dashboard return empty for the
+  reviewer role). The trg_review_queue_audit trigger from Phase 1
+  still handles the immutable review_decisions audit-log insert when
+  status transitions.
+
+Verification still pending
+- Visual smoke test on Vercel preview before merge to main.
+- npm install / vite build kept timing out in the build sandbox so the
+  TypeScript types weren't validated locally; relying on Vercel
+  preview to catch any compile errors.
+---
+ src/components/crm/CRMSidebar.tsx             | 144 ++---
+ .../crm/pages/UniDbReviewContent.tsx          | 584 ++++++++++++++++++
+ src/hooks/useReviewQueue.ts                   | 116 ++++
+ src/hooks/useUniDbReviewer.ts                 |  64 ++
+ src/pages/CRMPortal.tsx                       |   9 +-
+ 5 files changed, 826 insertions(+), 91 deletions(-)
+ create mode 100644 src/components/crm/pages/UniDbReviewContent.tsx
+ create mode 100644 src/hooks/useReviewQueue.ts
+ create mode 100644 src/hooks/useUniDbReviewer.ts
+
+diff --git a/src/components/crm/CRMSidebar.tsx b/src/components/crm/CRMSidebar.tsx
+index 289f1de..4343ad5 100644
+--- a/src/components/crm/CRMSidebar.tsx
++++ b/src/components/crm/CRMSidebar.tsx
+@@ -11,10 +11,10 @@ import {
+   SidebarMenuItem,
+   useSidebar,
+ } from '@/components/ui/sidebar';
+-import { 
+-  Users, 
+-  FileText, 
+-  GraduationCap, 
++import {
++  Users,
++  FileText,
++  GraduationCap,
+   MessageSquare,
+   ClipboardList,
+   Calendar,
+@@ -37,6 +37,7 @@ import {
+   Shield,
+   Receipt,
+   Clock,
++  ClipboardCheck,
+ } from 'lucide-react';
+ import { SidebarStaffPanel } from '@/components/intercom/SidebarStaffPanel';
+ 
+@@ -59,26 +60,21 @@ interface CRMSidebarProps {
+   isAdmin: boolean;
+   isCallOperator: boolean;
+   isDocumentHandler: boolean;
++  isUniDbReviewer?: boolean;
+   activeGroup: string | null;
+   onGroupSelect: (groupId: string) => void;
+ }
+ 
+-export function CRMSidebar({ 
+-  isOwner, 
+-  isAdmin, 
+-  isCallOperator, 
+-  isDocumentHandler,
+-  activeGroup,
+-  onGroupSelect
+-}: CRMSidebarProps) {
+-  const { t, i18n } = useTranslation();
+-  const lang = i18n.language;
+-  const { state } = useSidebar();
+-  const collapsed = state === 'collapsed';
+-  const location = useLocation();
+-  const navigate = useNavigate();
+-
+-  const groups: SidebarGroup[] = [
++function buildGroups(
++  isOwner: boolean,
++  isAdmin: boolean,
++  isCallOperator: boolean,
++  isDocumentHandler: boolean,
++  isUniDbReviewer: boolean,
++  t: (key: string) => string,
++  lang: string,
++): SidebarGroup[] {
++  return [
+     {
+       id: 'home',
+       title: lang === 'uz' ? 'Asosiy' : 'Home',
+@@ -142,16 +138,50 @@ export function CRMSidebar({
+       visible: true,
+       items: [
+         { title: t('navigation.staff'), url: '/crm/staff', icon: Users, visible: true },
++        {
++          title: lang === 'uz' ? 'Uni DB Review' : 'Uni DB Review',
++          url: '/crm/admin/uni-db-review',
++          icon: ClipboardCheck,
++          visible: isUniDbReviewer,
++          highlight: true,
++        },
+         { title: t('navigation.settings'), url: '/crm/settings', icon: Settings, visible: true },
+       ],
+     },
+   ];
++}
++
++export function CRMSidebar({
++  isOwner,
++  isAdmin,
++  isCallOperator,
++  isDocumentHandler,
++  isUniDbReviewer = false,
++  activeGroup,
++  onGroupSelect,
++}: CRMSidebarProps) {
++  const { t, i18n } = useTranslation();
++  const lang = i18n.language;
++  const { state } = useSidebar();
++  const collapsed = state === 'collapsed';
++  const location = useLocation();
++  const navigate = useNavigate();
++
++  const groups: SidebarGroup[] = buildGroups(
++    isOwner,
++    isAdmin,
++    isCallOperator,
++    isDocumentHandler,
++    isUniDbReviewer,
++    t,
++    lang,
++  );
+ 
+   // Determine which group should be active based on current URL
+   const getActiveGroupFromUrl = () => {
+     for (const group of groups) {
+       for (const item of group.items) {
+-        if (item.visible && (location.pathname === item.url || 
++        if (item.visible && (location.pathname === item.url ||
+             (item.url !== '/crm' && location.pathname.startsWith(item.url)))) {
+           return group.id;
+         }
+@@ -231,74 +261,8 @@ export function useSidebarGroups(
+   isCallOperator: boolean,
+   isDocumentHandler: boolean,
+   t: (key: string) => string,
+-  lang: string
++  lang: string,
++  isUniDbReviewer = false,
+ ): SidebarGroup[] {
+-  return [
+-    {
+-      id: 'home',
+-      title: lang === 'uz' ? 'Asosiy' : 'Home',
+-      icon: Home,
+-      visible: true,
+-      items: [
+-        { title: t('navigation.dashboard'), url: '/crm', icon: Home, visible: true },
+-        { title: 'Hanguk AI', url: '/crm/ai', icon: Bot, visible: true, highlight: true },
+-        { title: t('navigation.students'), url: '/crm/students', icon: Users, visible: true },
+-        { title: t('navigation.applications'), url: '/crm/applications', icon: GraduationCap, visible: true },
+-        { title: t('navigation.documents'), url: '/crm/documents', icon: FileText, visible: true },
+-      ],
+-    },
+-    {
+-      id: 'communication',
+-      title: t('navigation.communication'),
+-      icon: Headphones,
+-      visible: true,
+-      items: [
+-        { title: t('navigation.messages'), url: '/crm/messages', icon: MessageSquare, visible: true },
+-        { title: t('common.phone'), url: '/crm/calls', icon: Phone, visible: true },
+-        { title: t('navigation.liveCall'), url: '/crm/communication', icon: Radio, visible: false, highlight: true },
+-        { title: t('navigation.leads'), url: '/crm/leads', icon: UserPlus, visible: true, highlight: true },
+-      ],
+-    },
+-    {
+-      id: 'management',
+-      title: t('navigation.management'),
+-      icon: Briefcase,
+-      visible: true,
+-      items: [
+-        { title: t('navigation.tasks'), url: '/crm/tasks', icon: ClipboardList, visible: true },
+-        { title: t('navigation.calendar'), url: '/crm/calendar', icon: Calendar, visible: true },
+-        { title: t('navigation.universities'), url: '/crm/universities', icon: GraduationCap, visible: true },
+-        { title: t('navigation.formFinder'), url: '/crm/application-forms', icon: FileSearch, visible: true, highlight: true },
+-        { title: t('navigation.aiTranslation'), url: '/crm/translation', icon: Languages, visible: true, highlight: true },
+-        { title: t('navigation.kakaoMap'), url: '/crm/kakao-map', icon: MapPin, visible: true, highlight: true },
+-      ],
+-    },
+-    {
+-      id: 'finance',
+-      title: t('navigation.finance'),
+-      icon: DollarSign,
+-      visible: isOwner,
+-      items: [
+-        { title: t('navigation.overview'), url: '/crm/finance', icon: Home, visible: isOwner },
+-        { title: t('navigation.students'), url: '/crm/finance/students', icon: Users, visible: isOwner },
+-        { title: t('navigation.budgets'), url: '/crm/finance/budgets', icon: Wallet, visible: isOwner },
+-        { title: t('navigation.monthly'), url: '/crm/finance/monthly', icon: CalendarClock, visible: isOwner },
+-        { title: t('navigation.scheduled'), url: '/crm/finance/scheduled', icon: Clock, visible: isOwner },
+-        { title: t('navigation.transactions'), url: '/crm/finance/transactions', icon: Receipt, visible: isOwner },
+-        { title: t('navigation.distribution'), url: '/crm/finance/distribution', icon: PieChart, visible: isOwner },
+-        { title: t('navigation.bonuses'), url: '/crm/finance/bonuses', icon: Gift, visible: isOwner },
+-        { title: t('navigation.reports'), url: '/crm/finance/reports', icon: FileText, visible: isOwner },
+-      ],
+-    },
+-    {
+-      id: 'admin',
+-      title: t('navigation.admin'),
+-      icon: Shield,
+-      visible: true,
+-      items: [
+-        { title: t('navigation.staff'), url: '/crm/staff', icon: Users, visible: true },
+-        { title: t('navigation.settings'), url: '/crm/settings', icon: Settings, visible: true },
+-      ],
+-    },
+-  ];
++  return buildGroups(isOwner, isAdmin, isCallOperator, isDocumentHandler, isUniDbReviewer, t, lang);
+ }
+diff --git a/src/components/crm/pages/UniDbReviewContent.tsx b/src/components/crm/pages/UniDbReviewContent.tsx
+new file mode 100644
+index 0000000..ecb16b9
+--- /dev/null
++++ b/src/components/crm/pages/UniDbReviewContent.tsx
+@@ -0,0 +1,584 @@
++import { useMemo, useState } from 'react';
++import { useUniDbReviewer } from '@/hooks/useUniDbReviewer';
++import {
++  useReviewQueue,
++  useReviewActions,
++  ReviewQueueRow,
++  REVIEW_REJECTION_REASONS,
++  RejectionReason,
++} from '@/hooks/useReviewQueue';
++import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
++import { Button } from '@/components/ui/button';
++import { Badge } from '@/components/ui/badge';
++import {
++  AlertDialog,
++  AlertDialogAction,
++  AlertDialogCancel,
++  AlertDialogContent,
++  AlertDialogDescription,
++  AlertDialogFooter,
++  AlertDialogHeader,
++  AlertDialogTitle,
++} from '@/components/ui/alert-dialog';
++import {
++  Dialog,
++  DialogContent,
++  DialogDescription,
++  DialogFooter,
++  DialogHeader,
++  DialogTitle,
++} from '@/components/ui/dialog';
++import { Textarea } from '@/components/ui/textarea';
++import { Label } from '@/components/ui/label';
++import {
++  Select,
++  SelectContent,
++  SelectItem,
++  SelectTrigger,
++  SelectValue,
++} from '@/components/ui/select';
++import { ShieldAlert, Loader2, ExternalLink, RefreshCw, AlertCircle, Clock } from 'lucide-react';
++import { useToast } from '@/hooks/use-toast';
++
++const PRIORITY_LABEL: Record<number, string> = {
++  1: 'P1 — correction notice',
++  2: 'P2 — attachment changed',
++  3: 'P3 — diff (high)',
++  4: 'P4 — diff (medium)',
++  5: 'P5 — refresh',
++};
++
++const PRIORITY_BADGE_VARIANT: Record<number, 'default' | 'destructive' | 'secondary' | 'outline'> = {
++  1: 'destructive',
++  2: 'destructive',
++  3: 'default',
++  4: 'secondary',
++  5: 'outline',
++};
++
++const SLA_HOURS: Record<number, number> = { 1: 4, 2: 12, 3: 24, 4: 48, 5: 96 };
++
++function formatRelative(dateIso: string): string {
++  const created = new Date(dateIso).getTime();
++  const diffMs = Date.now() - created;
++  const hours = Math.floor(diffMs / 3_600_000);
++  if (hours < 1) {
++    const minutes = Math.max(0, Math.floor(diffMs / 60_000));
++    return `${minutes}m ago`;
++  }
++  if (hours < 24) return `${hours}h ago`;
++  const days = Math.floor(hours / 24);
++  return `${days}d ${hours % 24}h ago`;
++}
++
++function isOverdue(row: ReviewQueueRow): boolean {
++  const slaHours = SLA_HOURS[row.priority] ?? 96;
++  const ageHours = (Date.now() - new Date(row.created_at).getTime()) / 3_600_000;
++  return ageHours > slaHours;
++}
++
++function ReasonOptionLabel({ value }: { value: RejectionReason }) {
++  switch (value) {
++    case 'wrong_year':
++      return 'wrong_year — PDF is for a different academic year';
++    case 'wrong_archetype':
++      return 'wrong_archetype — applicant category misclassified';
++    case 'hallucinated_field':
++      return 'hallucinated_field — field not present in source';
++    case 'ocr_garbled':
++      return 'ocr_garbled — OCR output unusable';
++    case 'source_404':
++      return 'source_404 — original document no longer reachable';
++    case 'other':
++      return 'other — see notes';
++  }
++}
++
++function Forbidden() {
++  return (
++    <Card>
++      <CardContent className="p-12 text-center">
++        <ShieldAlert className="h-12 w-12 mx-auto text-destructive mb-4" />
++        <h2 className="text-xl font-semibold mb-2">Reviewer access required</h2>
++        <p className="text-muted-foreground max-w-md mx-auto">
++          This page is for the uni_db HITL queue. You need <code className="px-1 py-0.5 bg-muted rounded">profiles.role</code>{' '}
++          set to <code className="px-1 py-0.5 bg-muted rounded">uni_db_reviewer</code> or{' '}
++          <code className="px-1 py-0.5 bg-muted rounded">admin</code>. Ask the workspace owner to grant access.
++        </p>
++      </CardContent>
++    </Card>
++  );
++}
++
++interface RejectDialogProps {
++  open: boolean;
++  onOpenChange: (open: boolean) => void;
++  onSubmit: (reason: RejectionReason, detail: string) => void;
++  pending: boolean;
++}
++
++function RejectDialog({ open, onOpenChange, onSubmit, pending }: RejectDialogProps) {
++  const [reason, setReason] = useState<RejectionReason>('wrong_year');
++  const [detail, setDetail] = useState('');
++
++  return (
++    <Dialog open={open} onOpenChange={onOpenChange}>
++      <DialogContent className="max-w-md">
++        <DialogHeader>
++          <DialogTitle>Reject this extraction</DialogTitle>
++          <DialogDescription>
++            The discovery worker will re-queue the source for re-extraction at the next crawl.
++            The audit log records who rejected it and why.
++          </DialogDescription>
++        </DialogHeader>
++
++        <div className="space-y-4 py-2">
++          <div className="space-y-2">
++            <Label htmlFor="reject-reason">Reason code</Label>
++            <Select value={reason} onValueChange={(v) => setReason(v as RejectionReason)}>
++              <SelectTrigger id="reject-reason">
++                <SelectValue />
++              </SelectTrigger>
++              <SelectContent>
++                {REVIEW_REJECTION_REASONS.map((r) => (
++                  <SelectItem key={r} value={r}>
++                    <ReasonOptionLabel value={r} />
++                  </SelectItem>
++                ))}
++              </SelectContent>
++            </Select>
++          </div>
++
++          <div className="space-y-2">
++            <Label htmlFor="reject-detail">Detail (optional)</Label>
++            <Textarea
++              id="reject-detail"
++              value={detail}
++              onChange={(e) => setDetail(e.target.value)}
++              placeholder="What specifically went wrong (helpful for the eng team)"
++              rows={4}
++            />
++          </div>
++        </div>
++
++        <DialogFooter>
++          <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={pending}>
++            Cancel
++          </Button>
++          <Button
++            variant="destructive"
++            disabled={pending}
++            onClick={() => onSubmit(reason, detail)}
++          >
++            {pending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
++            Reject
++          </Button>
++        </DialogFooter>
++      </DialogContent>
++    </Dialog>
++  );
++}
++
++interface EditAcceptDialogProps {
++  open: boolean;
++  onOpenChange: (open: boolean) => void;
++  initialPayload: unknown;
++  onSubmit: (payload: Record<string, unknown>, notes: string) => void;
++  pending: boolean;
++}
++
++function EditAcceptDialog({ open, onOpenChange, initialPayload, onSubmit, pending }: EditAcceptDialogProps) {
++  const initialString = useMemo(
++    () => JSON.stringify(initialPayload ?? {}, null, 2),
++    [initialPayload],
++  );
++  const [text, setText] = useState(initialString);
++  const [notes, setNotes] = useState('');
++  const [parseError, setParseError] = useState<string | null>(null);
++
++  const handleSubmit = () => {
++    try {
++      const parsed = JSON.parse(text || '{}') as Record<string, unknown>;
++      if (Object.keys(parsed).length === 0) {
++        setParseError('Corrected payload must be non-empty');
++        return;
++      }
++      setParseError(null);
++      onSubmit(parsed, notes);
++    } catch (err) {
++      setParseError(err instanceof Error ? err.message : 'invalid JSON');
++    }
++  };
++
++  return (
++    <Dialog open={open} onOpenChange={onOpenChange}>
++      <DialogContent className="max-w-2xl">
++        <DialogHeader>
++          <DialogTitle>Edit and accept</DialogTitle>
++          <DialogDescription>
++            Adjust the JSON payload below. The diff against the original extraction lands in{' '}
++            <code className="px-1 py-0.5 bg-muted rounded">review_decisions</code> as an immutable audit row.
++          </DialogDescription>
++        </DialogHeader>
++
++        <div className="space-y-3 py-2">
++          <div className="space-y-2">
++            <Label htmlFor="edit-payload">Corrected payload (JSON)</Label>
++            <Textarea
++              id="edit-payload"
++              className="font-mono text-xs"
++              rows={14}
++              value={text}
++              onChange={(e) => setText(e.target.value)}
++            />
++            {parseError ? (
++              <p className="text-xs text-destructive flex items-center gap-1">
++                <AlertCircle className="h-3.5 w-3.5" /> {parseError}
++              </p>
++            ) : null}
++          </div>
++
++          <div className="space-y-2">
++            <Label htmlFor="edit-notes">Reviewer notes (optional)</Label>
++            <Textarea
++              id="edit-notes"
++              value={notes}
++              onChange={(e) => setNotes(e.target.value)}
++              placeholder="What you changed and why"
++              rows={3}
++            />
++          </div>
++        </div>
++
++        <DialogFooter>
++          <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={pending}>
++            Cancel
++          </Button>
++          <Button onClick={handleSubmit} disabled={pending}>
++            {pending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
++            Accept with edits
++          </Button>
++        </DialogFooter>
++      </DialogContent>
++    </Dialog>
++  );
++}
++
++interface QueueItemCardProps {
++  row: ReviewQueueRow;
++  onAccept: (id: string) => void;
++  onOpenEdit: (row: ReviewQueueRow) => void;
++  onOpenReject: (row: ReviewQueueRow) => void;
++  pendingId: string | null;
++}
++
++function QueueItemCard({ row, onAccept, onOpenEdit, onOpenReject, pendingId }: QueueItemCardProps) {
++  const isThisPending = pendingId === row.id;
++  const overdue = isOverdue(row);
++
++  return (
++    <Card className={overdue ? 'border-destructive/40' : undefined}>
++      <CardHeader className="pb-3">
++        <div className="flex items-start justify-between gap-3">
++          <div className="space-y-1 min-w-0">
++            <div className="flex items-center gap-2 flex-wrap">
++              <Badge variant={PRIORITY_BADGE_VARIANT[row.priority] ?? 'outline'}>
++                {PRIORITY_LABEL[row.priority] ?? `P${row.priority}`}
++              </Badge>
++              {overdue ? (
++                <Badge variant="destructive" className="gap-1">
++                  <Clock className="h-3 w-3" /> overdue
++                </Badge>
++              ) : null}
++              <Badge variant="outline">{row.reason}</Badge>
++              {row.accuracy_self_score !== null ? (
++                <Badge variant="outline">
++                  conf {Math.round((row.accuracy_self_score ?? 0) * 100)}%
++                </Badge>
++              ) : null}
++            </div>
++            <CardTitle className="text-base truncate">
++              {row.name_ko ?? row.name_en ?? <span className="text-muted-foreground">unknown institution</span>}
++            </CardTitle>
++            {row.name_ko && row.name_en ? (
++              <p className="text-xs text-muted-foreground truncate">{row.name_en}</p>
++            ) : null}
++          </div>
++          <div className="text-right text-xs text-muted-foreground shrink-0">
++            <div>{formatRelative(row.created_at)}</div>
++            <div className="font-mono">{row.entity_type}</div>
++          </div>
++        </div>
++      </CardHeader>
++
++      <CardContent className="space-y-3">
++        {row.source_url_ko ? (
++          <a
++            href={row.source_url_ko}
++            target="_blank"
++            rel="noopener noreferrer"
++            className="text-xs text-primary hover:underline inline-flex items-center gap-1 break-all"
++          >
++            <ExternalLink className="h-3 w-3 shrink-0" />
++            {row.source_url_ko}
++          </a>
++        ) : null}
++
++        {row.parsed_output ? (
++          <details className="text-xs">
++            <summary className="cursor-pointer text-muted-foreground select-none">
++              extracted payload
++            </summary>
++            <pre className="mt-2 p-2 bg-muted rounded text-[11px] overflow-auto max-h-64">
++              {JSON.stringify(row.parsed_output, null, 2)}
++            </pre>
++          </details>
++        ) : null}
++
++        <div className="flex flex-wrap gap-2 pt-2">
++          <Button
++            size="sm"
++            onClick={() => onAccept(row.id)}
++            disabled={isThisPending}
++          >
++            {isThisPending ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : null}
++            Accept
++          </Button>
++          <Button
++            size="sm"
++            variant="secondary"
++            onClick={() => onOpenEdit(row)}
++            disabled={isThisPending}
++          >
++            Edit & accept
++          </Button>
++          <Button
++            size="sm"
++            variant="destructive"
++            onClick={() => onOpenReject(row)}
++            disabled={isThisPending}
++          >
++            Reject
++          </Button>
++        </div>
++      </CardContent>
++    </Card>
++  );
++}
++
++export default function UniDbReviewContent() {
++  const { isUniDbReviewer, loading: roleLoading } = useUniDbReviewer();
++  const queryEnabled = isUniDbReviewer && !roleLoading;
++  const { data, isLoading, error, refetch, isFetching } = useReviewQueue(queryEnabled);
++  const { accept, editAccept, reject } = useReviewActions();
++  const { toast } = useToast();
++
++  const [confirmAccept, setConfirmAccept] = useState<ReviewQueueRow | null>(null);
++  const [editTarget, setEditTarget] = useState<ReviewQueueRow | null>(null);
++  const [rejectTarget, setRejectTarget] = useState<ReviewQueueRow | null>(null);
++
++  if (roleLoading) {
++    return (
++      <Card>
++        <CardContent className="p-12 text-center">
++          <Loader2 className="h-6 w-6 mx-auto animate-spin text-muted-foreground" />
++        </CardContent>
++      </Card>
++    );
++  }
++
++  if (!isUniDbReviewer) {
++    return <Forbidden />;
++  }
++
++  const rows = data ?? [];
++  const overdueCount = rows.filter(isOverdue).length;
++  const pendingMutationId =
++    accept.isPending ? accept.variables?.queueItemId ?? null
++    : editAccept.isPending ? editAccept.variables?.queueItemId ?? null
++    : reject.isPending ? reject.variables?.queueItemId ?? null
++    : null;
++
++  const handleAccept = (id: string) => {
++    accept.mutate(
++      { queueItemId: id },
++      {
++        onSuccess: () => {
++          toast({ title: 'Accepted', description: 'Audit row written to review_decisions.' });
++          setConfirmAccept(null);
++        },
++        onError: (err) => {
++          toast({ title: 'Accept failed', description: err.message, variant: 'destructive' });
++        },
++      },
++    );
++  };
++
++  const handleEditAccept = (payload: Record<string, unknown>, notes: string) => {
++    if (!editTarget) return;
++    editAccept.mutate(
++      {
++        queueItemId: editTarget.id,
++        correctedPayload: payload,
++        reviewerNotes: notes || undefined,
++      },
++      {
++        onSuccess: () => {
++          toast({ title: 'Accepted with edits', description: 'Diff captured in review_decisions.' });
++          setEditTarget(null);
++        },
++        onError: (err) => {
++          toast({ title: 'Edit-accept failed', description: err.message, variant: 'destructive' });
++        },
++      },
++    );
++  };
++
++  const handleReject = (reason: RejectionReason, detail: string) => {
++    if (!rejectTarget) return;
++    reject.mutate(
++      {
++        queueItemId: rejectTarget.id,
++        reason,
++        reasonDetail: detail || undefined,
++      },
++      {
++        onSuccess: () => {
++          toast({ title: 'Rejected', description: `Reason: ${reason}` });
++          setRejectTarget(null);
++        },
++        onError: (err) => {
++          toast({ title: 'Reject failed', description: err.message, variant: 'destructive' });
++        },
++      },
++    );
++  };
++
++  return (
++    <div className="space-y-6">
++      <div className="flex items-start justify-between gap-4 flex-wrap">
++        <div>
++          <h1 className="text-2xl font-bold">uni_db review queue</h1>
++          <p className="text-sm text-muted-foreground mt-1">
++            HITL extraction queue. SLA priorities P1 (4h) → P5 (96h). See{' '}
++            <code className="px-1 py-0.5 bg-muted rounded">docs/runbooks/reviewer-onboarding.md</code> for the playbook.
++          </p>
++        </div>
++        <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
++          {isFetching ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
++          Refresh
++        </Button>
++      </div>
++
++      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
++        <Card>
++          <CardHeader className="pb-1"><CardTitle className="text-xs text-muted-foreground">Open</CardTitle></CardHeader>
++          <CardContent><div className="text-2xl font-bold">{rows.length}</div></CardContent>
++        </Card>
++        <Card>
++          <CardHeader className="pb-1"><CardTitle className="text-xs text-muted-foreground">Overdue</CardTitle></CardHeader>
++          <CardContent>
++            <div className={`text-2xl font-bold ${overdueCount > 0 ? 'text-destructive' : ''}`}>{overdueCount}</div>
++          </CardContent>
++        </Card>
++        <Card>
++          <CardHeader className="pb-1"><CardTitle className="text-xs text-muted-foreground">P1+P2</CardTitle></CardHeader>
++          <CardContent>
++            <div className="text-2xl font-bold">{rows.filter((r) => r.priority <= 2).length}</div>
++          </CardContent>
++        </Card>
++        <Card>
++          <CardHeader className="pb-1"><CardTitle className="text-xs text-muted-foreground">Avg confidence</CardTitle></CardHeader>
++          <CardContent>
++            <div className="text-2xl font-bold">
++              {rows.length === 0
++                ? '—'
++                : `${Math.round(
++                    (rows.reduce((acc, r) => acc + (r.accuracy_self_score ?? 0), 0) / rows.length) * 100,
++                  )}%`}
++            </div>
++          </CardContent>
++        </Card>
++      </div>
++
++      {error ? (
++        <Card className="border-destructive/40">
++          <CardContent className="p-4 flex items-start gap-3">
++            <AlertCircle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
++            <div>
++              <p className="font-medium">Failed to load review queue</p>
++              <p className="text-sm text-muted-foreground">{error.message}</p>
++            </div>
++          </CardContent>
++        </Card>
++      ) : null}
++
++      {isLoading ? (
++        <Card>
++          <CardContent className="p-12 text-center">
++            <Loader2 className="h-6 w-6 mx-auto animate-spin text-muted-foreground" />
++          </CardContent>
++        </Card>
++      ) : rows.length === 0 ? (
++        <Card>
++          <CardContent className="p-12 text-center text-muted-foreground">
++            <p className="text-sm">Queue is empty.</p>
++            <p className="text-xs mt-1">
++              Items appear here when the discovery worker promotes an extraction to <code>review_queue.status='open'</code>.
++            </p>
++          </CardContent>
++        </Card>
++      ) : (
++        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
++          {rows.map((row) => (
++            <QueueItemCard
++              key={row.id}
++              row={row}
++              onAccept={(id) => setConfirmAccept(rows.find((r) => r.id === id) ?? null)}
++              onOpenEdit={setEditTarget}
++              onOpenReject={setRejectTarget}
++              pendingId={pendingMutationId}
++            />
++          ))}
++        </div>
++      )}
++
++      <AlertDialog open={!!confirmAccept} onOpenChange={(o) => !o && setConfirmAccept(null)}>
++        <AlertDialogContent>
++          <AlertDialogHeader>
++            <AlertDialogTitle>Accept this extraction as-is?</AlertDialogTitle>
++            <AlertDialogDescription>
++              This promotes the row to its target table and writes an immutable audit row in{' '}
++              <code>review_decisions</code>. You cannot undo a decision — file a P1 correction instead.
++            </AlertDialogDescription>
++          </AlertDialogHeader>
++          <AlertDialogFooter>
++            <AlertDialogCancel disabled={accept.isPending}>Cancel</AlertDialogCancel>
++            <AlertDialogAction
++              disabled={accept.isPending}
++              onClick={() => confirmAccept && handleAccept(confirmAccept.id)}
++            >
++              {accept.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
++              Accept
++            </AlertDialogAction>
++          </AlertDialogFooter>
++        </AlertDialogContent>
++      </AlertDialog>
++
++      <EditAcceptDialog
++        open={!!editTarget}
++        onOpenChange={(o) => !o && setEditTarget(null)}
++        initialPayload={editTarget?.parsed_output ?? {}}
++        onSubmit={handleEditAccept}
++        pending={editAccept.isPending}
++      />
++
++      <RejectDialog
++        open={!!rejectTarget}
++        onOpenChange={(o) => !o && setRejectTarget(null)}
++        onSubmit={handleReject}
++        pending={reject.isPending}
++      />
++    </div>
++  );
++}
+diff --git a/src/hooks/useReviewQueue.ts b/src/hooks/useReviewQueue.ts
+new file mode 100644
+index 0000000..ffafeaf
+--- /dev/null
++++ b/src/hooks/useReviewQueue.ts
+@@ -0,0 +1,116 @@
++import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
++import { supabase } from '@/integrations/supabase/client';
++
++/**
++ * One row of `public.v_review_queue_dashboard` (Phase 1 review_views
++ * migration). Defined inline because the auto-generated supabase types
++ * do not (yet) include uni_db views or RPCs.
++ */
++export interface ReviewQueueRow {
++  id: string;
++  priority: number;
++  reason: string;
++  entity_type: string;
++  entity_id: string;
++  created_at: string;
++  name_ko: string | null;
++  name_en: string | null;
++  source_url_ko: string | null;
++  storage_path: string | null;
++  parsed_output: unknown | null;
++  accuracy_self_score: number | null;
++}
++
++export type RejectionReason =
++  | 'wrong_year'
++  | 'wrong_archetype'
++  | 'hallucinated_field'
++  | 'ocr_garbled'
++  | 'source_404'
++  | 'other';
++
++export const REVIEW_REJECTION_REASONS: RejectionReason[] = [
++  'wrong_year',
++  'wrong_archetype',
++  'hallucinated_field',
++  'ocr_garbled',
++  'source_404',
++  'other',
++];
++
++const REVIEW_QUEUE_KEY = ['uni_db', 'review_queue_dashboard'] as const;
++
++export function useReviewQueue(enabled = true) {
++  return useQuery<ReviewQueueRow[], Error>({
++    queryKey: REVIEW_QUEUE_KEY,
++    enabled,
++    refetchInterval: 60_000,
++    queryFn: async () => {
++      const { data, error } = await supabase
++        // @ts-expect-error - view not in generated types yet
++        .from('v_review_queue_dashboard')
++        .select('*');
++      if (error) throw error;
++      return (data ?? []) as unknown as ReviewQueueRow[];
++    },
++  });
++}
++
++interface AcceptArgs {
++  queueItemId: string;
++}
++
++interface EditAcceptArgs extends AcceptArgs {
++  correctedPayload: Record<string, unknown>;
++  reviewerNotes?: string;
++}
++
++interface RejectArgs extends AcceptArgs {
++  reason: RejectionReason;
++  reasonDetail?: string;
++}
++
++export function useReviewActions() {
++  const qc = useQueryClient();
++
++  const invalidate = () => qc.invalidateQueries({ queryKey: REVIEW_QUEUE_KEY });
++
++  const accept = useMutation<string, Error, AcceptArgs>({
++    mutationFn: async ({ queueItemId }) => {
++      const { data, error } = await supabase.rpc('fn_review_accept' as never, {
++        queue_item_id: queueItemId,
++      } as never);
++      if (error) throw new Error(error.message);
++      return data as unknown as string;
++    },
++    onSuccess: invalidate,
++  });
++
++  const editAccept = useMutation<string, Error, EditAcceptArgs>({
++    mutationFn: async ({ queueItemId, correctedPayload, reviewerNotes }) => {
++      const { data, error } = await supabase.rpc('fn_review_edit_accept' as never, {
++        queue_item_id: queueItemId,
++        corrected_payload: correctedPayload,
++        reviewer_notes: reviewerNotes ?? null,
++      } as never);
++      if (error) throw new Error(error.message);
++      return data as unknown as string;
++    },
++    onSuccess: invalidate,
++  });
++
++  const reject = useMutation<string, Error, RejectArgs>({
++    mutationFn: async ({ queueItemId, reason, reasonDetail }) => {
++      const { data, error } = await supabase.rpc('fn_review_reject' as never, {
++        queue_item_id: queueItemId,
++        reason,
++        reason_detail: reasonDetail ?? null,
++      } as never);
++      if (error) throw new Error(error.message);
++      return data as unknown as string;
++    },
++    onSuccess: invalidate,
++  });
++
++  return { accept, editAccept, reject };
++}
+diff --git a/src/hooks/useUniDbReviewer.ts b/src/hooks/useUniDbReviewer.ts
+new file mode 100644
+index 0000000..542446f
+--- /dev/null
++++ b/src/hooks/useUniDbReviewer.ts
+@@ -0,0 +1,64 @@
++import { useEffect, useState } from 'react';
++import { supabase } from '@/integrations/supabase/client';
++import { useAuth } from '@/contexts/AuthContext';
++
++/**
++ * Reads `public.profiles.role` for the current auth user and reports
++ * whether they are a uni_db reviewer or admin.
++ *
++ * `profiles.role` is the uni_db-side role column added by the
++ * `00000000000003_pre_uni_db_profiles_role.sql` bridge migration.
++ * It is intentionally separate from the existing `public.user_roles`
++ * (which uses the `app_role` ENUM and powers the staff CRM gate).
++ *
++ * Two role systems coexist:
++ *   - `user_roles.role`   ENUM: owner / admin / call_operator / document_handler / university_staff
++ *   - `profiles.role`     TEXT: student / contracted_student / counselor / admin / uni_db_reviewer / uni_db_admin
++ *
++ * See `docs/runbooks/hanguk-uz-staff-crm-architecture.md` §1 in the
++ * hanguk_app repo for the full breakdown.
++ */
++export function useUniDbReviewer() {
++  const { user } = useAuth();
++  const [role, setRole] = useState<string | null>(null);
++  const [loading, setLoading] = useState(true);
++
++  useEffect(() => {
++    let cancelled = false;
++
++    const fetchRole = async () => {
++      if (!user) {
++        setRole(null);
++        setLoading(false);
++        return;
++      }
++
++      const { data, error } = await supabase
++        .from('profiles')
++        // @ts-expect-error - `role` is added by a uni_db bridge migration
++        // and may not be reflected in the auto-generated types yet.
++        .select('role')
++        .eq('user_id', user.id)
++        .maybeSingle();
++
++      if (!cancelled) {
++        if (!error && data && typeof (data as { role?: unknown }).role === 'string') {
++          setRole((data as { role: string }).role);
++        } else {
++          setRole(null);
++        }
++        setLoading(false);
++      }
++    };
++
++    fetchRole();
++    return () => {
++      cancelled = true;
++    };
++  }, [user]);
++
++  const isUniDbReviewer = role === 'uni_db_reviewer' || role === 'uni_db_admin' || role === 'admin';
++  const isUniDbAdmin = role === 'uni_db_admin' || role === 'admin';
++
++  return { role, isUniDbReviewer, isUniDbAdmin, loading };
++}
+diff --git a/src/pages/CRMPortal.tsx b/src/pages/CRMPortal.tsx
+index 1aa7084..4ec0266 100644
+--- a/src/pages/CRMPortal.tsx
++++ b/src/pages/CRMPortal.tsx
+@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
+ import { useNavigate, useLocation } from 'react-router-dom';
+ import { useAuth } from '@/contexts/AuthContext';
+ import { useUserRole } from '@/hooks/useUserRole';
++import { useUniDbReviewer } from '@/hooks/useUniDbReviewer';
+ import { useCRMData } from '@/hooks/useCRMData';
+ import { usePayments } from '@/hooks/usePayments';
+ import { CRMSidebar, useSidebarGroups } from '@/components/crm/CRMSidebar';
+@@ -58,6 +59,7 @@ const ApplicationFormsContent = lazy(() => import('@/components/crm/pages/Applic
+ const CalendarContent = lazy(() => import('@/components/crm/pages/CalendarContent'));
+ const SettingsContent = lazy(() => import('@/components/crm/pages/SettingsContent'));
+ const KakaoMapContent = lazy(() => import('@/components/crm/pages/KakaoMapContent'));
++const UniDbReviewContent = lazy(() => import('@/components/crm/pages/UniDbReviewContent'));
+ 
+ // Access denied component
+ const AccessDenied = () => (
+@@ -84,6 +86,7 @@ export default function CRMPortal() {
+   const location = useLocation();
+   const { user, signOut, loading: authLoading } = useAuth();
+   const { isStaff, isOwner, isAdmin, isCallOperator, isDocumentHandler, loading: roleLoading } = useUserRole();
++  const { isUniDbReviewer } = useUniDbReviewer();
+   const {
+     students,
+     applications,
+@@ -101,7 +104,7 @@ export default function CRMPortal() {
+   const [activeGroup, setActiveGroup] = useState<string | null>(null);
+ 
+   // Get sidebar groups for sub-navigation
+-  const sidebarGroups = useSidebarGroups(isOwner, isAdmin, isCallOperator, isDocumentHandler, t, currentLang);
++  const sidebarGroups = useSidebarGroups(isOwner, isAdmin, isCallOperator, isDocumentHandler, t, currentLang, isUniDbReviewer);
+ 
+   // Determine active group from URL
+   useEffect(() => {
+@@ -148,6 +151,7 @@ export default function CRMPortal() {
+     if (currentPath.startsWith('/crm/communication')) return 'communication';
+     if (currentPath.startsWith('/crm/application-forms')) return 'application-forms';
+     if (currentPath.startsWith('/crm/kakao-map')) return 'kakao-map';
++    if (currentPath.startsWith('/crm/admin/uni-db-review')) return 'uni-db-review';
+     return 'dashboard';
+   };
+ 
+@@ -400,6 +404,8 @@ export default function CRMPortal() {
+         return <SafeSuspense><SettingsContent /></SafeSuspense>;
+       case 'kakao-map':
+         return <SafeSuspense><KakaoMapContent /></SafeSuspense>;
++      case 'uni-db-review':
++        return <SafeSuspense><UniDbReviewContent /></SafeSuspense>;
+       default:
+         return (
+           <CRMDashboard
+@@ -422,6 +428,7 @@ export default function CRMPortal() {
+               isAdmin={isAdmin}
+               isCallOperator={isCallOperator}
+               isDocumentHandler={isDocumentHandler}
++              isUniDbReviewer={isUniDbReviewer}
+               activeGroup={activeGroup}
+               onGroupSelect={setActiveGroup}
+             />
+-- 
+2.34.1
+

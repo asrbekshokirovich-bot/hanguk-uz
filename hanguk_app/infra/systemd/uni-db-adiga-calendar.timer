@@ -1,0 +1,16 @@
+[Unit]
+Description=Run uni_db Adiga admissions-calendar fetch weekly (Sun 03:00 local)
+Requires=uni-db-adiga-calendar.service
+
+[Timer]
+# Sundays at 03:00 local time. KCUE publishes the next academic year's
+# admissions calendar in February each year; weekly polling picks it up
+# within ~7 days and stays cheap (52 reqs/yr, all idempotent).
+OnCalendar=Sun *-*-* 03:00:00
+# Catch up if the VPS was off during a fire-time
+Persistent=true
+# Spread load across replicas (if more than one ever exists)
+RandomizedDelaySec=600
+
+[Install]
+WantedBy=timers.target

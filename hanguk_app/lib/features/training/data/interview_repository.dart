@@ -1,0 +1,732 @@
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
+import '../../../core/config/app_config.dart';
+
+// ---------------------------------------------------------------------------
+// Persona / Voice configuration — single source of truth for both Vapi and TTS
+// ---------------------------------------------------------------------------
+class InterviewPersonaConfig {
+  static String getVoiceId(String persona, String language) {
+    final isKo = language == 'ko';
+    if (persona == 'strict') {
+      return isKo ? AppConfig.voiceIdKoStrict : AppConfig.voiceIdEnStrict;
+    } else if (persona == 'impatient') {
+      return isKo ? AppConfig.voiceIdKoImpatient : AppConfig.voiceIdEnImpatient;
+    }
+    return isKo ? AppConfig.voiceIdKoFriendly : AppConfig.voiceIdEnFriendly;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Models
+// ---------------------------------------------------------------------------
+class InterviewMessage {
+  final String id;
+  final String role; // 'interviewer' | 'student'
+  final String content;
+  final String createdAt;
+
+  const InterviewMessage({
+    required this.id,
+    required this.role,
+    required this.content,
+    required this.createdAt,
+  });
+}
+
+// ---------------------------------------------------------------------------
+// State
+// ---------------------------------------------------------------------------
+class InterviewSessionState {
+  final String? sessionId;
+  final String sessionType;
+  final String status;
+  final List<InterviewMessage> messages;
+  final Map<String, dynamic>? feedback;
+  final String? targetUniversityId;
+  final String? targetUniversityName;
+  final String selectedLanguage;
+  final bool isLoading;
+  final bool isProcessing;
+  final String interviewerPersona;
+  final List<String> liveHints;
+  final String? error;
+  final bool isVapiConnected; // true when WebRTC call is live
+  final String?
+  vapiCallId; // Stores the underlying session ID for audio recordings
+  final String? focusTopic; // Optional free-text steer for the AI's questions
+  final bool timedMode;
+  final int? timeLimitSeconds; // Hard cap; null = untimed
+
+  const InterviewSessionState({
+    this.sessionId,
+    this.sessionType = 'general',
+    this.status = 'idle',
+    this.messages = const [],
+    this.feedback,
+    this.targetUniversityId,
+    this.targetUniversityName,
+    this.selectedLanguage = 'ko',
+    this.isLoading = false,
+    this.isProcessing = false,
+    this.interviewerPersona = 'friendly',
+    this.liveHints = const [],
+    this.error,
+    this.isVapiConnected = false,
+    this.vapiCallId,
+    this.focusTopic,
+    this.timedMode = false,
+    this.timeLimitSeconds,
+  });
+
+  InterviewSessionState copyWith({
+    String? sessionId,
+    String? sessionType,
+    String? status,
+    List<InterviewMessage>? messages,
+    Map<String, dynamic>? feedback,
+    String? targetUniversityId,
+    String? targetUniversityName,
+    String? selectedLanguage,
+    bool? isLoading,
+    bool? isProcessing,
+    String? interviewerPersona,
+    List<String>? liveHints,
+    String? error,
+    bool clearError = false,
+    bool? isVapiConnected,
+    String? vapiCallId,
+    String? focusTopic,
+    bool? timedMode,
+    int? timeLimitSeconds,
+  }) {
+    return InterviewSessionState(
+      sessionId: sessionId ?? this.sessionId,
+      sessionType: sessionType ?? this.sessionType,
+      status: status ?? this.status,
+      messages: messages ?? this.messages,
+      feedback: feedback ?? this.feedback,
+      targetUniversityId: targetUniversityId ?? this.targetUniversityId,
+      targetUniversityName: targetUniversityName ?? this.targetUniversityName,
+      selectedLanguage: selectedLanguage ?? this.selectedLanguage,
+      isLoading: isLoading ?? this.isLoading,
+      isProcessing: isProcessing ?? this.isProcessing,
+      interviewerPersona: interviewerPersona ?? this.interviewerPersona,
+      liveHints: liveHints ?? this.liveHints,
+      error: clearError ? null : (error ?? this.error),
+      isVapiConnected: isVapiConnected ?? this.isVapiConnected,
+      vapiCallId: vapiCallId ?? this.vapiCallId,
+      focusTopic: focusTopic ?? this.focusTopic,
+      timedMode: timedMode ?? this.timedMode,
+      timeLimitSeconds: timeLimitSeconds ?? this.timeLimitSeconds,
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Notifier
+// ---------------------------------------------------------------------------
+class InterviewNotifier extends Notifier<InterviewSessionState> {
+  // Audit D8: track every TTS temp file we write so the next session
+  // boundary (or `cleanupTtsFiles()` call) can delete them. Without
+  // tracking, repeated sessions accumulated `tts_<epoch>.mp3` files
+  // forever in the temp dir.
+  final List<String> _ttsFilePaths = [];
+
+  @override
+  InterviewSessionState build() {
+    return const InterviewSessionState();
+  }
+
+  /// Delete any temp TTS files written during the current/previous
+  /// session. Safe to call eagerly — missing files are ignored.
+  Future<void> cleanupTtsFiles() async {
+    final paths = List<String>.from(_ttsFilePaths);
+    _ttsFilePaths.clear();
+    for (final p in paths) {
+      try {
+        final f = File(p);
+        if (await f.exists()) {
+          await f.delete();
+        }
+      } on FileSystemException catch (e) {
+        debugPrint('TTS cleanup failed for $p: $e');
+      }
+    }
+  }
+
+  // ── Session lifecycle ────────────────────────────────────────────────────
+
+  /// Clears any prior error message in state. Used by the interview-setup
+  /// dialog so a stale error doesn't render on a re-open (audit U17).
+  void clearError() {
+    if (state.error != null) {
+      state = state.copyWith(clearError: true);
+    }
+  }
+
+  /// Mark the current session row as `abandoned` and clear in-memory
+  /// state. Used when the user backs out of the interview screen
+  /// without ever pressing End — previously the row stayed `status =
+  /// 'active'` forever and history-replay couldn't tell what happened
+  /// (audit F14). The status string follows the existing `'completed'` /
+  /// `'rejected'` pattern in the table; no enum migration needed.
+  Future<void> markAbandoned() async {
+    final sessionId = state.sessionId;
+    if (sessionId == null) return;
+    if (state.status != 'active') return;
+    try {
+      await Supabase.instance.client
+          .from('interview_sessions')
+          .update({'status': 'abandoned'})
+          .eq('id', sessionId);
+    } on Exception catch (e) {
+      debugPrint('Failed to mark session abandoned: $e');
+    }
+    state = state.copyWith(status: 'abandoned', isVapiConnected: false);
+  }
+
+  Future<void> startSession({
+    String sessionType = 'general',
+    String? targetUniversityId,
+    String? targetUniversityName,
+    String language = 'ko',
+    String? focusTopic,
+    String persona = 'friendly',
+    bool timedMode = false,
+    int? timeLimitSeconds,
+  }) async {
+    state = state.copyWith(isLoading: true, clearError: true);
+
+    try {
+      final client = Supabase.instance.client;
+      final user = client.auth.currentUser;
+      if (user == null) throw Exception('User not authenticated');
+
+      // Create Session in DB
+      final response = await client
+          .from('interview_sessions')
+          .insert({
+            'student_id': user.id,
+            'session_type': sessionType,
+            'target_institution_id': targetUniversityId,
+            'status': 'active',
+            'focus_topic': focusTopic,
+            'timed_mode': timedMode,
+            'time_limit_seconds': timeLimitSeconds,
+          })
+          .select()
+          .single();
+
+      final newSessionId = response['id'] as String;
+
+      state = state.copyWith(
+        sessionId: newSessionId,
+        sessionType: sessionType,
+        status: 'active',
+        messages: [],
+        feedback: null,
+        targetUniversityId: targetUniversityId,
+        targetUniversityName: targetUniversityName,
+        selectedLanguage: language,
+        interviewerPersona: persona,
+        liveHints: [],
+        focusTopic: focusTopic,
+        timedMode: timedMode,
+        timeLimitSeconds: timeLimitSeconds,
+        // NOTE: We do NOT call sendMessage here anymore.
+        // Vapi handles the greeting via its own firstMessage field.
+        // Calling sendMessage here caused a duplicate greeting race condition.
+      );
+    } on Exception catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: 'Failed to start interview: ${e.toString()}',
+      );
+    } finally {
+      state = state.copyWith(isLoading: false);
+    }
+  }
+
+  // ── Vapi connection state sync ───────────────────────────────────────────
+
+  /// Called by InterviewActiveView to sync the WebRTC call state into the
+  /// global provider so other widgets can react to connection status.
+  void setVapiConnected(bool value) {
+    state = state.copyWith(isVapiConnected: value);
+  }
+
+  void setVapiCallId(String callId) {
+    state = state.copyWith(vapiCallId: callId);
+    // Persist the call id so history/analytics can replay the recording later.
+    final sessionId = state.sessionId;
+    if (sessionId != null) {
+      unawaited(_persistVapiCallId(sessionId, callId));
+    }
+  }
+
+  Future<void> _persistVapiCallId(String sessionId, String callId) async {
+    // Audit D6: failures here meant the row had vapi_call_id=NULL and
+    // history-replay later showed "Audio recording not found". We now
+    // retry up to 3 times with exponential backoff, then surface a
+    // non-blocking error so the UI can show "audio unavailable" later.
+    const delays = [
+      Duration(seconds: 1),
+      Duration(seconds: 4),
+      Duration(seconds: 12),
+    ];
+    Object? lastError;
+    for (var attempt = 0; attempt < delays.length; attempt++) {
+      try {
+        await Supabase.instance.client
+            .from('interview_sessions')
+            .update({'vapi_call_id': callId})
+            .eq('id', sessionId);
+        return;
+      } on Exception catch (e) {
+        lastError = e;
+        debugPrint(
+          'Failed to persist vapi_call_id (attempt ${attempt + 1}/${delays.length}): $e',
+        );
+        if (attempt < delays.length - 1) {
+          await Future<void>.delayed(delays[attempt]);
+        }
+      }
+    }
+    state = state.copyWith(
+      error:
+          'Could not save audio link for this session ($lastError). '
+          'Replay may be unavailable.',
+    );
+  }
+
+  // ── Text-only interview: full AI round-trip ──────────────────────────────
+
+  Future<String?> sendMessage(
+    String studentText, {
+    String language = 'ko',
+  }) async {
+    final sessionId = state.sessionId;
+    if (sessionId == null) {
+      state = state.copyWith(error: 'No active session');
+      return null;
+    }
+
+    state = state.copyWith(isProcessing: true, clearError: true);
+
+    // Audit D7: previously a temp student message was added with id
+    // `'temp-…'` and never removed if the AI call failed — the user
+    // saw their utterance but no response. We now track the temp id
+    // so the catch block can roll it back.
+    String? tempId;
+
+    try {
+      // Add temporary student message
+      if (!studentText.contains('[Interview started')) {
+        tempId = 'temp-${DateTime.now().millisecondsSinceEpoch}';
+        final newStudentMsg = InterviewMessage(
+          id: tempId,
+          role: 'student',
+          content: studentText,
+          createdAt: DateTime.now().toIso8601String(),
+        );
+        state = state.copyWith(messages: [...state.messages, newStudentMsg]);
+      }
+
+      final client = Supabase.instance.client;
+
+      // Call interview-ai edge function for text-based response
+      final response = await client.functions.invoke(
+        'interview-ai',
+        body: {
+          'sessionId': sessionId,
+          'studentMessage': studentText,
+          'sessionType': state.sessionType,
+          'language': state.selectedLanguage,
+          'persona': state.interviewerPersona,
+        },
+      );
+
+      final data = response.data as Map<String, dynamic>?;
+      if (data == null || data['error'] != null) {
+        throw Exception(data?['error'] ?? 'Empty response from AI Interviewer');
+      }
+
+      final aiText = data['response'] as String? ?? 'No response generated.';
+
+      final aiMsg = InterviewMessage(
+        id: 'interviewer-${DateTime.now().millisecondsSinceEpoch}',
+        role: 'interviewer',
+        content: aiText,
+        createdAt: DateTime.now().toIso8601String(),
+      );
+
+      state = state.copyWith(messages: [...state.messages, aiMsg]);
+      return aiText;
+    } on FunctionException catch (e) {
+      final errDetail = (e.details is Map)
+          ? (e.details as Map)['error']
+          : e.details;
+      _rollbackTempMessage(tempId);
+      state = state.copyWith(
+        error: 'AI Interview error: ${errDetail ?? e.toString()}',
+      );
+      return null;
+    } on Exception catch (e) {
+      _rollbackTempMessage(tempId);
+      state = state.copyWith(
+        error: 'Failed to process answer: ${e.toString()}',
+      );
+      return null;
+    } finally {
+      state = state.copyWith(isProcessing: false);
+    }
+  }
+
+  void _rollbackTempMessage(String? tempId) {
+    if (tempId == null) return;
+    final remaining = state.messages
+        .where((m) => m.id != tempId)
+        .toList(growable: false);
+    if (remaining.length != state.messages.length) {
+      state = state.copyWith(messages: remaining);
+    }
+  }
+
+  // ── Vapi mode: transcript logging only (NO AI call) ─────────────────────
+
+  /// Used during a live Vapi WebRTC session to persist the student's
+  /// transcript to the DB without triggering a redundant Gemini AI response.
+  /// The voice AI (GPT-4o via Vapi) already handles the conversation.
+  Future<void> logTranscript(String studentText) =>
+      logTranscriptWithRole(studentText, 'student');
+
+  /// Persist a transcript line for either side of the conversation. Adding
+  /// AI-side transcripts (role = 'interviewer') closes a regression where
+  /// `interview-feedback` was scoring a one-sided dialogue — see audit F9.
+  Future<void> logTranscriptWithRole(String text, String role) async {
+    final sessionId = state.sessionId;
+    if (sessionId == null) return;
+    if (text.isEmpty) return;
+
+    final dbRole = role == 'assistant' ? 'interviewer' : role;
+
+    try {
+      final client = Supabase.instance.client;
+      await client.from('interview_messages').insert({
+        'session_id': sessionId,
+        'role': dbRole,
+        'content': text,
+      });
+
+      final newMsg = InterviewMessage(
+        id: 'vapi-$dbRole-${DateTime.now().millisecondsSinceEpoch}',
+        role: dbRole,
+        content: text,
+        createdAt: DateTime.now().toIso8601String(),
+      );
+      state = state.copyWith(messages: [...state.messages, newMsg]);
+    } on Exception catch (e) {
+      // Non-critical — don't surface to user, just log.
+      debugPrint('Failed to log Vapi transcript ($dbRole): $e');
+    }
+  }
+
+  // ── End session & feedback ───────────────────────────────────────────────
+
+  Future<Map<String, dynamic>?> endSession({String language = 'ko'}) async {
+    final sessionId = state.sessionId;
+    if (sessionId == null) return null;
+    // Audit D10: guard against double-fire. Tapping "End Session" twice
+    // (or the AppBar end + the auto-end timer triggering simultaneously)
+    // would otherwise hit `interview-feedback` twice and produce
+    // duplicate feedback rows.
+    if (state.isLoading || state.status == 'completed') return state.feedback;
+
+    state = state.copyWith(isLoading: true, clearError: true);
+
+    try {
+      final client = Supabase.instance.client;
+
+      final response = await client.functions.invoke(
+        'interview-feedback',
+        body: {'sessionId': sessionId, 'language': language},
+      );
+
+      final data = response.data as Map<String, dynamic>?;
+      if (data == null || data['error'] != null) {
+        throw Exception(data?['error'] ?? 'Failed to get feedback');
+      }
+
+      // Audit F15: the `interview-feedback` Edge Function persists into
+      // public.interview_feedback (UNIQUE on session_id). We defensively
+      // verify the row landed; if it didn't, insert it ourselves so
+      // history-replay always has feedback to show.
+      final fbRaw = data['feedback'];
+      if (fbRaw is! Map) {
+        throw Exception('Unexpected feedback shape from server');
+      }
+      final fb = Map<String, dynamic>.from(fbRaw);
+
+      try {
+        final row = await client
+            .from('interview_feedback')
+            .select('session_id')
+            .eq('session_id', sessionId)
+            .maybeSingle();
+        if (row == null) {
+          await client.from('interview_feedback').insert({
+            'session_id': sessionId,
+            if (fb['overall_score'] is num)
+              'overall_score': (fb['overall_score'] as num).round().clamp(
+                1,
+                10,
+              ),
+            if (fb['communication_score'] is num)
+              'communication_score': (fb['communication_score'] as num)
+                  .round()
+                  .clamp(1, 10),
+            if (fb['confidence_score'] is num)
+              'confidence_score': (fb['confidence_score'] as num).round().clamp(
+                1,
+                10,
+              ),
+            if (fb['content_score'] is num)
+              'content_score': (fb['content_score'] as num).round().clamp(
+                1,
+                10,
+              ),
+            if (fb['language_score'] is num)
+              'language_score': (fb['language_score'] as num).round().clamp(
+                1,
+                10,
+              ),
+            if (fb['strengths'] is List) 'strengths': fb['strengths'],
+            if (fb['improvements'] is List) 'improvements': fb['improvements'],
+            if (fb['message_scores'] is List)
+              'message_scores': fb['message_scores'],
+            if (fb['detailed_feedback'] is String)
+              'detailed_feedback': fb['detailed_feedback'],
+          });
+        }
+      } on Exception catch (e) {
+        // Non-fatal — the in-memory feedback is still available.
+        debugPrint('Defensive interview_feedback insert failed: $e');
+      }
+
+      state = state.copyWith(
+        status: 'completed',
+        feedback: fb,
+        isVapiConnected: false, // Vapi call is over at this point
+      );
+
+      return fb;
+    } on Exception catch (e) {
+      state = state.copyWith(error: 'Failed to end session: ${e.toString()}');
+      return null;
+    } finally {
+      state = state.copyWith(isLoading: false);
+    }
+  }
+
+  // ── TTS Audio (fallback for non-Vapi text mode) ──────────────────────────
+
+  /// Extracts MP3 bytes from the ElevenLabs TTS edge function.
+  /// Uses InterviewPersonaConfig for voice selection (single source of truth).
+  Future<String?> generateTTSAudioPath(String text, String language) async {
+    try {
+      final client = Supabase.instance.client;
+      final token = client.auth.currentSession?.accessToken;
+      if (token == null) return null;
+
+      // Centralized voice selection — no more duplicated voice ID strings here
+      final voiceId = InterviewPersonaConfig.getVoiceId(
+        state.interviewerPersona,
+        language,
+      );
+
+      final edgeUrl = Uri.parse(
+        '${AppConfig.supabaseUrl}/functions/v1/elevenlabs-tts',
+      );
+
+      final response = await http.post(
+        edgeUrl,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+          'apikey': AppConfig.supabaseAnonKey,
+        },
+        body: jsonEncode({'text': text, 'voiceId': voiceId}),
+      );
+
+      // Audit B6: rely on the status code only. The previous string
+      // match against `'Invalid_api_key'` was brittle and would silently
+      // miss any other 401 shape the ElevenLabs TTS proxy returns.
+      if (response.statusCode == 401 || response.statusCode == 403) {
+        debugPrint(
+          'ElevenLabs TTS auth error (${response.statusCode}). '
+          'Falling back to browser TTS.',
+        );
+        return '__BROWSER_TTS__';
+      }
+
+      if (response.statusCode != 200) {
+        throw Exception(
+          'TTS Request failed with ${response.statusCode}: ${response.body}',
+        );
+      }
+
+      // Save binary to temp local file for playback via just_audio
+      final tempDir = await getTemporaryDirectory();
+      final file = File(
+        '${tempDir.path}/tts_${DateTime.now().millisecondsSinceEpoch}.mp3',
+      );
+      await file.writeAsBytes(response.bodyBytes);
+      // Audit D8: register so cleanupTtsFiles can sweep on
+      // session-end / resetSession.
+      _ttsFilePaths.add(file.path);
+      return file.path;
+    } on Exception catch (e) {
+      state = state.copyWith(error: 'Voice playback error: ${e.toString()}');
+      return null;
+    }
+  }
+
+  // ── Hint generation ──────────────────────────────────────────────────────
+
+  Future<void> getHint(String contextText) async {
+    final sessionId = state.sessionId;
+    if (sessionId == null) return;
+
+    try {
+      final client = Supabase.instance.client;
+      final response = await client.functions.invoke(
+        'interview-ai',
+        body: {
+          'sessionId': sessionId,
+          'studentMessage': contextText,
+          'sessionType': state.sessionType,
+          'language': state.selectedLanguage,
+          'persona': state.interviewerPersona,
+          'action': 'get_hint',
+        },
+      );
+
+      final data = response.data as Map<String, dynamic>?;
+      if (data != null && data['hints'] != null) {
+        final hintsRaw = data['hints'] as String;
+        final parsedHints = hintsRaw
+            .split('\n')
+            .map((s) => s.trim().replaceAll(RegExp(r'^[-*•]\s*'), ''))
+            .where((s) => s.isNotEmpty)
+            .take(3)
+            .toList();
+        state = state.copyWith(liveHints: parsedHints);
+      }
+    } on Exception catch (e) {
+      debugPrint('Failed to get hints: $e');
+    }
+  }
+
+  // ── Feedback & History ──────────────────────────────────────────────────
+
+  Future<void> loadFeedback(String targetSessionId) async {
+    state = state.copyWith(isLoading: true, clearError: true);
+    try {
+      final client = Supabase.instance.client;
+      final response = await client.functions.invoke(
+        'interview-feedback',
+        body: {
+          'sessionId': targetSessionId,
+          'language': state.selectedLanguage,
+        },
+      );
+
+      final data = response.data as Map<String, dynamic>?;
+      if (data != null && data['feedback'] != null) {
+        state = state.copyWith(feedback: data['feedback']);
+      } else if (data != null && data['error'] != null) {
+        state = state.copyWith(error: data['error']);
+      }
+    } catch (e) {
+      debugPrint('Failed to load feedback: $e');
+      state = state.copyWith(error: 'Failed to load feedback: $e');
+    } finally {
+      state = state.copyWith(isLoading: false);
+    }
+  }
+
+  /// Returns at most [limit] historical sessions, ordered newest-first.
+  /// Audit D9: previously unbounded — could OOM for prolific users.
+  /// Conservative default of 50; raise via [limit] or pass [offset] to
+  /// fetch older pages.
+  Future<List<Map<String, dynamic>>> getSessionHistory({
+    int limit = 50,
+    int offset = 0,
+  }) async {
+    try {
+      final client = Supabase.instance.client;
+      final user = client.auth.currentUser;
+      if (user == null) return [];
+
+      final response = await client
+          .from('interview_sessions')
+          .select('*, institution:target_institution_id(name_en, name_ko)')
+          .eq('student_id', user.id)
+          .order('created_at', ascending: false)
+          .range(offset, offset + limit - 1);
+
+      return List<Map<String, dynamic>>.from(response);
+    } on Exception catch (e) {
+      debugPrint('Failed to fetch session history: $e');
+      return [];
+    }
+  }
+
+  Future<String?> fetchRecordingUrl(String vapiCallId) async {
+    try {
+      final client = Supabase.instance.client;
+      final response = await client.functions.invoke(
+        'vapi-fetch-recording',
+        body: {'callId': vapiCallId},
+      );
+
+      final data = response.data as Map<String, dynamic>?;
+      return data?['recordingUrl'] as String?;
+    } catch (e) {
+      debugPrint('Failed to fetch Vapi recording URL: $e');
+      return null;
+    }
+  }
+
+  // ── Reset ────────────────────────────────────────────────────────────────
+
+  void resetSession() {
+    unawaited(cleanupTtsFiles()); // audit D8
+    state = const InterviewSessionState();
+  }
+
+  /// Audit U15: like [resetSession] but **preserves the feedback** from
+  /// the most-recent completed session so the user can revisit it via
+  /// history without it being wiped. Used by the "Start another"
+  /// button on the post-session analytics view.
+  void resetForNewSession() {
+    unawaited(cleanupTtsFiles()); // audit D8
+    final keep = state.feedback;
+    state = InterviewSessionState(feedback: keep);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Provider
+// ---------------------------------------------------------------------------
+final interviewProvider =
+    NotifierProvider<InterviewNotifier, InterviewSessionState>(() {
+      return InterviewNotifier();
+    });

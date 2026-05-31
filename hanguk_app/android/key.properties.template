@@ -1,0 +1,17 @@
+# Copy this file to android/key.properties and fill in your real values.
+# `key.properties` is gitignored — never commit the real one.
+#
+# See docs/RELEASE.md for keystore generation and CI setup.
+
+# Path to the keystore file. Use an absolute path or a path relative to
+# the android/ directory. Outside the repo is recommended (e.g. ~/keys/...).
+storeFile=/absolute/path/to/hanguk-upload.jks
+
+# Password for the keystore itself.
+storePassword=CHANGEME_KEYSTORE_PASSWORD
+
+# Alias of the key inside the keystore.
+keyAlias=hanguk-upload
+
+# Password for the key (often same as storePassword).
+keyPassword=CHANGEME_KEY_PASSWORD

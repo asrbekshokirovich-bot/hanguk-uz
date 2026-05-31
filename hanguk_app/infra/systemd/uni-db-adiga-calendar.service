@@ -1,0 +1,24 @@
+[Unit]
+Description=uni_db Adiga admissions-calendar fetch (one-shot, triggered by timer)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=uni-db
+Group=uni-db
+WorkingDirectory=/opt/uni_db/services/uni_db
+EnvironmentFile=/etc/uni_db/env
+ExecStart=/opt/uni_db/services/uni_db/.venv/bin/python -m uni_db.workers.adiga_calendar_worker
+
+# Hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/var/cache/uni_db /var/log/uni_db
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
