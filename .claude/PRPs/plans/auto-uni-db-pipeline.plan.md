@@ -1,80 +1,90 @@
 # Plan: Fully-Automated University DB Pipeline (remove human review)
 
 ## Summary
-Today the Korean-university data pipeline is **human-gated**: extractions land in
-`review_queue` as `open` and a staff reviewer must `fn_review_accept` / edit /
-reject each one before `publish_worker.py` can write the normalized public tables
-(`admission_cycles`, `requirements`, `tuition`, `scholarships`,
-`documents_required`). Because that human step rarely runs — and the publisher
-itself only runs from a `main`-gated GitHub Action — the applicant-facing content
-tables are near-empty (`tuition`=0, `documents_required`=0, `requirements`=6,
-`scholarships`=3 in prod). This plan **removes the human entirely** and replaces
-the review gate with an automated **auto-gate** stage, so the funnel runs
-unattended end to end.
+The Korean-university data pipeline (`hanguk_app/services/uni_db/`, a Python
+service driven by the `uni-db-sync` GitHub Action) extracts admissions data into
+`extraction_jobs.parsed_output`, then routes each field group through a
+**human-review gate** before `publish_worker.py` writes the applicant-facing
+public tables (`admission_cycles`, `requirements`, `tuition`, `scholarships`,
+`documents_required`, `university_admission_periods`). This plan **removes the
+human gate** so the funnel runs unattended end to end.
 
 ## User Story
 As the platform owner, I want the university database to populate and stay fresh
 **without anyone reviewing rows by hand**, so applicants always see current
-admissions data and staff never become the bottleneck.
-
-## Problem → Solution
-Human review between `parse` and `publish` (never runs → nothing publishes) →
-**Auto-gate worker** that decides accept/flag/reject by extractor confidence +
-validity, so every succeeded extraction flows straight to the public tables.
-
-## Auto-gate policy (chosen: "Auto + non-blocking flag")
-Nothing ever waits on a human. For each queued extraction:
-
-| Condition | Decision | published_outcome | needs_attention |
-|---|---|---|---|
-| empty extraction (no rows / no events+periods) | AUTO-REJECT | `rejected_empty` | — |
-| wrong intake year (parsed ≠ guideline_document year) | AUTO-REJECT | `rejected_wrong_year` | — |
-| confidence ≥ `high_confidence` (0.85) | PUBLISH clean | `published` | `false` |
-| confidence < 0.85 (incl. no score) | PUBLISH flagged | `published` | `true` |
-
-Flagged rows are **published anyway** and surfaced on a **read-only**
-"Needs attention" dashboard — they do not block visibility. Auto-rejects are
-re-tried automatically next cycle when the source document changes (hash diff).
-
-## Metadata
-- **Complexity**: Large
-- **Source**: User directive — "no human detection at all, everything automated"
-- **Primary tree**: `hanguk_app/services/uni_db/` (Python) + `hanguk_app/supabase/migrations/`
-- **Estimated files**: ~10 (3 new, 7 modified)
+admissions data and staff are never the bottleneck.
 
 ---
 
-## Current architecture (verified)
+## TRUE root cause (verified in code + prod)
+
+The gate is `parse_worker.parse_one_document()` → `validators.evaluate()`
+(`extract/validators.py`). `evaluate()` returns **both** `auto_publish` and
+`requires_hitl`, but the worker (`parse_worker.py:149`) acts on **only
+`requires_hitl`**:
 
 ```
-discover → extract → parse(enqueue 'open') → [HUMAN: fn_review_accept/edit/reject] → translate → publish
+requires_hitl == True   → enqueue review_queue(status='open')   → waits for a human (never comes)
+requires_hitl == False  → (nothing)                              → extraction_jobs row orphaned, never published
 ```
 
-- **Orchestrator**: `hanguk_app/.github/workflows/uni-db-sync.yml` — daily 03:17 UTC,
-  gated on `vars.UNI_DB_SYNC_ENABLED=='true'`; 6 steps = the CLI subcommands.
-- **Enqueue**: `parse_worker.py` inserts `review_queue(entity_type='extraction_jobs',
-  status='open', priority, reason)`; `_priority_for(score)` →
-  `high_confidence|low_confidence|high_difficulty_field|no_confidence_score`.
-- **Gate (human today)**: `fn_review_accept`/`fn_review_edit_accept`/`fn_review_reject`
-  in `20260701001000_uni_db_v3_review_action_rpcs.sql` — **only flip
-  `review_queue.status`**; they never write content tables.
-- **Publish**: `publish_worker.py` — `_FETCH_SQL` pulls `status='approved' AND
-  published_at IS NULL`, dispatches by `field_group` to idempotent upserts
-  (`ON CONFLICT`), anchors each row to an `admission_cycles` row
-  (`status='unverified'`), stamps `published_at`/`published_outcome`.
-- **Thresholds**: `config.py` `high_confidence=0.85`, `low_confidence=0.60`
-  (`UNI_DB_HIGH_CONFIDENCE` / `UNI_DB_LOW_CONFIDENCE`).
-- **Live counts**: review_queue 147 (87 open, 37 rejected, 15 superseded, 8 approved/all published);
-  extraction_jobs 438 succeeded across calendar/requirements/tuition/scholarships/documents_required.
+So there are **two leaks**, not one:
 
-## Target architecture
+1. **Orphaned auto-publish path.** When `evaluate()` says auto-publish
+   (`requires_hitl=False`), parse_worker writes the `extraction_jobs` row and
+   does nothing else. `publish_worker` only drains `review_queue` rows with
+   `status='approved'`, so these high-confidence extractions are **never
+   published**. The `auto_publish=True` branch is wired to a dead end.
+2. **Always-HITL fields.** `FIELD_DIFFICULTY` marks `scholarships`,
+   `documents_required`, `gpa_floor`, `recruitment_unit` (D4) and
+   `scholarship_topik_tier_table` (D5) as **ALWAYS HITL**. Those tables can
+   never fill without a human.
+
+**Evidence (prod `lysjdtyanhdfphqyijsr`):** `extraction_jobs` 438 succeeded
+(calendar 68, tuition 86, requirements 89, scholarships 76, documents_required
+50) but `review_queue` only 147 rows; published content = requirements 6,
+admission_cycles 6, scholarships 3, **tuition 0, documents_required 0**. The
+gap = the two leaks above.
+
+The publisher itself is solid: `publish_worker.publish_pending()` already does
+cycle get-or-create, year/term inference, a stale-past-cycle hold, empty-card
+guards, per-item error isolation, and is idempotent via
+`review_queue.published_at`. **We reuse it unchanged in spirit** — we just feed
+it everything, automatically.
+
+## Auto-gate policy (chosen: "Auto + non-blocking flag")
+Nothing waits on a human. At parse time, for each **non-empty, non-failed**
+extraction:
+
+| Condition | Action | needs_attention |
+|---|---|---|
+| empty extraction / `_extraction_failed` | skip (error/refetch lane, unchanged) | — |
+| `evaluate().auto_publish` is True (high confidence) | auto-approve → publish | `false` |
+| would have been HITL (low conf, or D4/D5) | auto-approve → publish **flagged** | `true` |
+| past-cycle / wrong-year (publisher's `is_stale_cycle`) | held by publisher (unchanged) | — |
+
+Flagged rows publish anyway and surface on a **read-only "Needs attention"**
+dashboard. Nothing blocks. Re-ingestion (hash diff) refreshes data each cycle.
+
+## Metadata
+- **Complexity**: Medium (reuses the existing publisher; the core change is the parse-time enqueue decision)
+- **Source**: User directive — "no human detection at all, everything automated"
+- **Tree**: `hanguk_app/services/uni_db/` + `hanguk_app/supabase/migrations/`
+- **Estimated files**: ~8 (1 new migration, ~5 modified, tests)
+
+---
+
+## Current vs target
 
 ```
-discover → extract → parse(enqueue) → AUTO-GATE(accept/flag/reject) → translate → publish(+needs_attention)
+NOW:    extract → parse ─┬─ requires_hitl  → review_queue(open) → [HUMAN] → publish
+                         └─ auto_publish    → (orphaned, never published)
+
+TARGET: extract → parse → auto-decide → review_queue(approved, +needs_attention?) → publish
 ```
 
-The human RPCs stay in place (manual override still possible) but are no longer
-required for data to flow.
+The `fn_review_*` RPCs and the CRM page stay as an **optional manual override**;
+they're no longer required for data to flow.
 
 ---
 
@@ -82,89 +92,75 @@ required for data to flow.
 
 | File | Action | Why |
 |---|---|---|
-| `hanguk_app/supabase/migrations/2026XXXX_uni_db_v9_auto_gate.sql` | CREATE | Add `needs_attention bool` + `attention_reason text` to `admission_cycles`, `requirements`, `tuition`, `scholarships`, `documents_required`; add `fn_auto_gate_accept(job_id, needs_attention, reason)` SECURITY DEFINER that sets `review_queue.status='approved'` + records flag; add `fn_auto_gate_reject(job_id, reason)`. |
-| `hanguk_app/supabase/migrations/2026XXXX_uni_db_v9_needs_attention_view.sql` | CREATE | `v_needs_attention` read-only view unioning flagged published rows for the dashboard. |
-| `services/uni_db/src/uni_db/workers/gate_worker.py` | CREATE | The auto-gate: fetch `open`/`in_review` items + extraction, apply policy, call the gate RPCs. Pure decision logic in a testable `decide(...)`. |
-| `services/uni_db/tests/test_gate_worker.py` | CREATE | Unit-test `decide()` across all bands + empty/wrong-year edges. |
-| `services/uni_db/src/uni_db/cli.py` | UPDATE | Wire `uni-db gate` subcommand. |
-| `services/uni_db/src/uni_db/config.py` | UPDATE | Add `auto_gate_enabled` (default true) + reuse confidence thresholds. |
-| `services/uni_db/src/uni_db/workers/publish_worker.py` | UPDATE | Read `needs_attention`/`attention_reason` from the queue decision and pass into every publisher upsert; set on `admission_cycles` too. |
-| `services/uni_db/src/uni_db/normalize.py` | UPDATE | Accept + thread `needs_attention`/`attention_reason` into each normalized row dict. |
-| `hanguk_app/.github/workflows/uni-db-sync.yml` | UPDATE | Insert `uni-db gate` step between `parse` and `translate`. |
-| `src/components/crm/pages/UniDbReviewContent.tsx` | UPDATE | Convert to a **read-only** "Needs attention" view (drop accept/edit/reject buttons); read `v_needs_attention`. |
+| `services/uni_db/src/uni_db/workers/parse_worker.py` | UPDATE | In `parse_one_document`, decide per extraction via `evaluate()`; enqueue **every** non-empty/non-failed result as an auto-approval carrying `needs_attention` + `reason`, instead of only enqueuing `requires_hitl` items as `open`. Keep the dedup/supersede + empty/failed skips. |
+| `hanguk_app/supabase/migrations/2026XXXX_uni_db_auto_publish.sql` | CREATE | (a) add `needs_attention boolean not null default false` + `attention_reason text` to `admission_cycles, requirements, tuition, scholarships, documents_required, university_admission_periods`; (b) widen `review_queue.status` check / reason to allow direct `approved` inserts with a synthetic reason if constrained; (c) `v_needs_attention` read-only view. |
+| `services/uni_db/src/uni_db/workers/publish_worker.py` | UPDATE | Read `needs_attention`/`attention_reason` off the queue row (the auto decision in `reviewer_decision`) and pass into every `_publish_*` upsert + the `get_or_create_cycle`. |
+| `services/uni_db/src/uni_db/config.py` | UPDATE | Add `auto_publish_enabled: bool=True` (`UNI_DB_AUTO_PUBLISH`) so the gate removal is reversible by env. |
+| `hanguk_app/.github/workflows/uni-db-sync.yml` | UPDATE | No new step needed (parse now auto-approves, publish already runs at step 5). Bump the publish `--limit` for the backlog drain; add a one-line comment that review is automated. |
+| `services/uni_db/tests/unit/test_parse_worker_dedup.py` (+ maybe new) | UPDATE | Assert every non-empty result is enqueued `approved`; low-conf/D4/D5 carry `needs_attention=true`; empty/failed still skipped. |
+| `services/uni_db/tests/unit/test_publish_worker.py` | UPDATE | Assert `needs_attention` carries through to the inserted rows. |
+| `src/components/crm/pages/UniDbReviewContent.tsx` | UPDATE | Make read-only "Needs attention": list flagged published rows from `v_needs_attention`; drop accept/edit/reject actions. |
 
 ## NOT building
-- Removing the `fn_review_*` RPCs (kept as optional manual override).
-- Rewriting the legacy `universities` edge functions (separate cleanup track).
-- A second LLM cross-check pass (policy chosen is single-pass + flag, not accuracy-first).
+- A separate `gate_worker` (unnecessary — the decision lives at parse time and the existing publisher drains it).
+- Removing `fn_review_accept/edit/reject` (kept as manual override).
+- Touching the legacy `supabase/functions/` `universities` system (dead parallel track; separate cleanup).
+- A second LLM cross-check pass (policy is single-pass + flag).
 
 ---
 
 ## Step-by-step tasks
 
-### Task 1 — Schema: flag columns + auto-gate RPCs (migration v9)
-- ADD `needs_attention boolean NOT NULL DEFAULT false`, `attention_reason text`
-  to `admission_cycles`, `requirements`, `tuition`, `scholarships`, `documents_required`.
-- CREATE `fn_auto_gate_accept(p_job_id uuid, p_needs_attention bool, p_reason text)`:
-  set the job's queue row `status='approved'`, `reviewer_decision = jsonb_build_object('auto', true, 'needs_attention', p_needs_attention, 'attention_reason', p_reason)`, `assigned_to = null`.
-- CREATE `fn_auto_gate_reject(p_job_id uuid, p_reason text)`: `status='rejected'`,
-  `published_outcome` left null, reason stored. Both `SECURITY DEFINER`, idempotent
-  (`status in ('open','in_review')`).
-- VALIDATE: `supabase db lint`; columns exist; RPCs callable.
+### Task 1 — Migration: flag columns + needs-attention view
+- ADD `needs_attention bool NOT NULL DEFAULT false` + `attention_reason text` to the six public content tables.
+- CREATE `v_needs_attention` = published rows where `needs_attention` (institution, section, reason, source link, created_at) for the dashboard.
+- If `review_queue.status`/`reason` CHECKs block inserting `approved` directly with an auto reason, widen them (mirror `20260517183000_..._widen_review_queue_reason.sql` / `20260524010000_..._superseded_status.sql`).
+- VALIDATE: `supabase db lint`.
 
-### Task 2 — `gate_worker.py` + pure `decide()`
-- `decide(field_group, parsed_output, accuracy_self_score, gd_intake_year, cfg) -> Decision`
-  implementing the policy table. `Decision = {action: 'accept'|'reject', needs_attention, reason}`.
-- Empty test mirrors `parse_worker` shapes: `requirements/tuition/...` → `rows==[]`;
-  `calendar` → `events==[] and periods==[]`.
-- Worker loop: fetch open items (join extraction_jobs + guideline_documents), call
-  `fn_auto_gate_accept`/`fn_auto_gate_reject`, count outcomes, log summary.
-- MIRROR `publish_worker.py` connect/fetch/loop structure.
+### Task 2 — parse_worker auto-approve (the core change)
+- For each non-empty/non-failed result, call `evaluate(...)`; build a queue entry with `status='approved'`, `needs_attention = requires_hitl_or_low_conf`, `reason` (e.g. `auto_clean` / `auto_low_confidence` / `auto_difficult_field`), and stash `{needs_attention, attention_reason}` in `reviewer_decision`.
+- Keep the supersede-dedup and the empty/failed skips exactly as-is.
+- Set `resolved_at = now()` on insert so the publisher's `order by resolved_at` works.
+- MIRROR the existing insert in `persist_outcome`.
 
-### Task 3 — CLI `uni-db gate`
-- Add subparser `gate` with `--limit` + `--dry-run`; call `gate_worker.run(...)`.
+### Task 3 — publisher carries the flag
+- In `_FETCH_SQL`, also select the auto decision; in each `_publish_*` and `get_or_create_cycle`, set `needs_attention`/`attention_reason`.
 
-### Task 4 — Publisher carries the flag
-- In `_publish_one`, read `needs_attention`/`attention_reason` from
-  `reviewer_decision` (the auto decision) and pass to each `_publish_*`.
-- Each publisher upsert sets `needs_attention`, `attention_reason` (and on the
-  `admission_cycles` get-or-create for calendar).
+### Task 4 — config switch
+- `auto_publish_enabled` (default true). When false, fall back to today's `open`-enqueue behavior (so the change is reversible without a revert).
 
-### Task 5 — Orchestrator step
-- In `uni-db-sync.yml`, add between "Parse" and "Translate":
-  `- name: Auto-gate queued items` → `uni-db gate`. `continue-on-error: true` to match siblings.
+### Task 5 — tests
+- parse_worker: every non-empty result enqueued `approved`; flags set on low-conf/D4/D5; empty/failed skipped; dedup preserved.
+- publish_worker: `needs_attention` reaches the inserted row args.
+- `pytest services/uni_db` green.
 
-### Task 6 — Read-only dashboard
-- `v_needs_attention` view + rewrite `UniDbReviewContent.tsx` to list flagged
-  published rows (institution, section, reason, source link) with **no actions**.
+### Task 6 — read-only dashboard
+- `UniDbReviewContent.tsx` → list `v_needs_attention`, no actions. `tsc`/`vite build` clean.
 
-### Task 7 — Backfill + enable (LIVE — owner action)
-- One-off: `uni-db gate` (drains the 87 open) then `uni-db publish` (writes content tables).
-- Set `vars.UNI_DB_SYNC_ENABLED='true'` + secrets (`UNI_DB_SUPABASE_DB_URL`,
-  `UNI_DB_GEMINI_API_KEY`/`UNI_DB_ANTHROPIC_API_KEY`, `UNI_DB_FIRECRAWL_API_KEY`)
-  so the daily cron runs unattended.
+### Task 7 — backfill + enable (LIVE — owner action)
+- One-off to drain the existing 438 succeeded extractions: a small backfill that auto-approves every succeeded `extraction_jobs` without a terminal queue row, then `uni-db publish --limit 1000`.
+- Set `vars.UNI_DB_SYNC_ENABLED='true'` + secrets (`UNI_DB_SUPABASE_DB_URL`, `UNI_DB_ANTHROPIC_API_KEY`, optional `UNI_DB_DEEPL_API_KEY`) so the 6-hourly cron runs unattended.
 
 ---
 
 ## Testing strategy
-- **Unit**: `test_gate_worker.decide()` — high→accept/clean, mid→accept/flag,
-  low→accept/flag, none→accept/flag, empty→reject, wrong-year→reject.
-- **Idempotency**: run `gate` twice → second run is a no-op (status already terminal).
-- **Publish carry-through**: flagged item → published row has `needs_attention=true`.
-- **Static**: `pytest services/uni_db`, `supabase db lint`, `tsc`/`vite build` for the dashboard.
+- **Unit**: parse-time decision (clean/flagged/skip) + publisher flag carry-through.
+- **Idempotency**: re-run publish → no dup rows (`published_at` guard).
+- **Static**: `pytest services/uni_db`, `supabase db lint`, `tsc`/`vite build`.
+- **Backfill dry-run**: count would-be auto-approvals before writing.
 
 ## Acceptance criteria
 - [ ] No code path requires a human to publish admissions data.
-- [ ] `uni-db gate` auto-accepts/flags/rejects every open item per the policy table.
-- [ ] Published content tables carry `needs_attention`/`attention_reason`.
-- [ ] Daily workflow runs discover→extract→parse→**gate**→translate→publish.
-- [ ] CRM review page is read-only (no accept/reject), shows flagged rows.
-- [ ] Backfill drains the 87 open items into the content tables.
+- [ ] Every non-empty/non-failed extraction auto-approves and publishes (clean or flagged).
+- [ ] `tuition` and `documents_required` populate from the backlog.
+- [ ] Published rows carry `needs_attention`/`attention_reason`.
+- [ ] CRM page is read-only (no accept/reject), shows flagged rows.
+- [ ] `auto_publish_enabled=false` restores the old human-gated behavior.
 
 ## Risks
 | Risk | Likelihood | Impact | Mitigation |
 |---|---|---|---|
-| Auto-publishing wrong admission data to applicants | Med | High | `needs_attention` flag + read-only dashboard; auto-reject empty/wrong-year; idempotent re-publish on source change. |
+| Wrong admission data reaches applicants | Med | High | `needs_attention` flag + read-only dashboard; publisher's stale/empty guards stay; re-ingest refreshes; `auto_publish_enabled` kill-switch. |
+| Backlog floods content tables with low-conf rows | Med | Med | Flag (not block); dashboard triage; tune the confidence bar in `evaluate()`. |
+| Schema drift (RPCs/views applied outside repo) | High | Med | Phase 0 `supabase db pull` before migrating; ship all new objects as migrations. |
 | LLM spend from unattended cron | Med | Med | `UNI_DB_SYNC_ENABLED` gate + per-step `--limit`. |
-| Schema drift (RPCs/views applied outside repo) | High | Med | Phase 0 `supabase db pull` before migrating; all new objects shipped as migrations. |
-| Mid-band noise floods "needs_attention" | Med | Low | Tune `UNI_DB_HIGH_CONFIDENCE`; flag is non-blocking. |
