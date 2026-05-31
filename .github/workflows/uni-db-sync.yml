@@ -41,7 +41,7 @@ jobs:
     timeout-minutes: 90
     defaults:
       run:
-        working-directory: services/uni_db
+        working-directory: hanguk_app/services/uni_db
     env:
       # Live flags — this job is the one place we intentionally crawl + spend.
       UNI_DB_LIVE_APIS: "true"
@@ -59,7 +59,7 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-          cache-dependency-path: services/uni_db/pyproject.toml
+          cache-dependency-path: hanguk_app/services/uni_db/pyproject.toml
 
       - name: Install service (base deps — no torch/Playwright)
         run: |
@@ -78,9 +78,11 @@ jobs:
         continue-on-error: true
         run: python scripts/run_discovery_once.py --since 2
 
-      # 2) Download guideline PDFs → documents → extract → review_queue.
-      #    This is the paid AI step. A non-zero exit (every item failed)
-      #    surfaces as a failed run so we notice; per-item errors are skipped.
+      # 2) Download guideline PDFs → documents → extract → auto-approve into
+      #    review_queue. Review is automated (UNI_DB_AUTO_PUBLISH, default on):
+      #    every content-bearing extraction is approved here, low-confidence ones
+      #    flagged needs_attention. This is the paid AI step. A non-zero exit
+      #    (every item failed) surfaces as a failed run; per-item errors skip.
       - name: Fetch + parse
         run: uni-db run-pipeline --limit "${{ github.event.inputs.fetch_limit || '50' }}"
 
