@@ -95,6 +95,32 @@ describe('ReviewParsedOutput — calendar', () => {
   });
 });
 
+describe('ReviewParsedOutput — translated display', () => {
+  // When the displayed rows have been translated to English, track relevance
+  // must be derived from the original Korean via `classifyFrom`, otherwise the
+  // 외국인 / 재외국민 markers are gone and heritage tracks wouldn't collapse.
+  const translatedRows = {
+    rows: [
+      { applicant_category: 'International applicants (Humanities)', prose_ko: '…', extractor_confidence: 0.9 },
+      { applicant_category: 'Overseas Korean special admission', prose_ko: 'Overseas Korean (2%)…', extractor_confidence: 0.7 },
+    ],
+  };
+
+  it('collapses heritage tracks using classifyFrom even when display text is English', () => {
+    render(
+      <ReviewParsedOutput
+        fieldGroup="requirements"
+        parsedOutput={translatedRows}
+        classifyFrom={mixedRequirements}
+      />,
+    );
+    expect(screen.getAllByText('International applicants (Humanities)').length).toBeGreaterThan(0);
+    // The heritage row's data stays hidden behind the disclosure.
+    expect(screen.queryByText('Overseas Korean special admission')).toBeNull();
+    expect(screen.getByText(/Korean-heritage/)).toBeInTheDocument();
+  });
+});
+
 describe('ReviewParsedOutput — render stability', () => {
   it('produces identical text across renders (deterministic, no re-translation)', () => {
     const a = render(<ReviewParsedOutput fieldGroup="requirements" parsedOutput={foreignRequirements} />);
