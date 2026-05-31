@@ -59,7 +59,7 @@ export default function Terms() {
         },
         {
           title: '9. Contact Information',
-          content: 'For questions about these Terms, contact us at support@hanguk.consulting'
+          content: 'For questions about these Terms, contact us at support@hanguk.uz'
         }
       ]
     },
@@ -112,7 +112,7 @@ export default function Terms() {
         },
         {
           title: '9. Aloqa ma\'lumotlari',
-          content: 'Ushbu Shartlar bo\'yicha savollar uchun biz bilan bog\'laning: support@hanguk.consulting'
+          content: 'Ushbu Shartlar bo\'yicha savollar uchun biz bilan bog\'laning: support@hanguk.uz'
         }
       ]
     },
@@ -165,7 +165,7 @@ export default function Terms() {
         },
         {
           title: '9. Контактная информация',
-          content: 'По вопросам об этих Условиях обращайтесь: support@hanguk.consulting'
+          content: 'По вопросам об этих Условиях обращайтесь: support@hanguk.uz'
         }
       ]
     },
@@ -218,7 +218,7 @@ export default function Terms() {
         },
         {
           title: '9. 연락처',
-          content: '본 약관에 대한 문의사항은 support@hanguk.consulting으로 연락해 주세요'
+          content: '본 약관에 대한 문의사항은 support@hanguk.uz으로 연락해 주세요'
         }
       ]
     }

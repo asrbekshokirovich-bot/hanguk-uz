@@ -176,7 +176,7 @@ export default function Auth() {
     setLoading(false);
 
     if (error) {
-      toast({ title: t('auth.loginError'), description: 'Invalid username or password', variant: 'destructive' });
+      toast({ title: t('auth.loginError'), description: t('auth.invalidCredentials'), variant: 'destructive' });
     } else {
       toast({ title: t('auth.loginSuccess') });
       navigate('/');
@@ -464,10 +464,6 @@ export default function Auth() {
               // Login Tabs - Staff vs Student
               <Tabs defaultValue="student" className="w-full" onValueChange={setActiveTab}>
                 <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="registrate" className="w-full gap-2">
-                    <User className="h-4 w-4" />
-                    {t('auth.tabRegistrate')}
-                  </TabsTrigger>
                   <TabsTrigger value="student" className="w-full gap-2">
                     <GraduationCap className="h-4 w-4" />
                     {t('auth.tabStudent')}
@@ -476,10 +472,19 @@ export default function Auth() {
                     <Briefcase className="h-4 w-4" />
                     {t('auth.tabStaff')}
                   </TabsTrigger>
+                  <TabsTrigger value="registrate" className="w-full gap-2">
+                    <User className="h-4 w-4" />
+                    {t('auth.tabRegistrate')}
+                  </TabsTrigger>
                 </TabsList>
 
                 {/* Registrate section */}
                 <TabsContent value="registrate">
+                  <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg mt-4 mb-2">
+                    <p className="text-sm text-muted-foreground text-center">
+                      {t('auth.registerTabHelper')}
+                    </p>
+                  </div>
                   {isGuestLoginMode ? (
                     <form onSubmit={handleLogin} className="space-y-4 mt-4">
                       <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg">
@@ -680,6 +685,12 @@ export default function Auth() {
                 {/* Staff Login with Username/Password */}
                 <TabsContent value="staff">
                   <form onSubmit={handleLogin} className="space-y-4 mt-4">
+                    <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg">
+                      <p className="text-sm text-muted-foreground text-center">
+                        {t('auth.staffTabHelper')}
+                      </p>
+                    </div>
+
                     <div className="space-y-2">
                       <Label htmlFor="login-username">{t('auth.username')}</Label>
                       <div className="relative">

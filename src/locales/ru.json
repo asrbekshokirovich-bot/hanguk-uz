@@ -88,7 +88,12 @@
     "studentNotFound": "Студент не найден",
     "registeredSuccess": "Успешно зарегистрировано",
     "dataSaved": "Данные успешно сохранены",
-    "username": "Имя пользователя"
+    "username": "Имя пользователя",
+    "studentTabHelper": "Для студентов с Magic Code от консультанта.",
+    "staffTabHelper": "Для сотрудников Hanguk с логином и паролем.",
+    "registerTabHelper": "Создайте аккаунт, чтобы отслеживать заявки как гость.",
+    "staffSignIn": "Вход для сотрудников",
+    "createAccount": "Создать аккаунт"
   },
   "navigation": {
     "home": "Главная",
@@ -835,5 +840,24 @@
     "partnerScholarship": "Партнёрская",
     "externalScholarship": "Внешняя",
     "apply": "Подать заявку"
+  },
+  "dashboard": {
+    "quickAccess": "Быстрый доступ",
+    "allModules": "Все модули",
+    "activeApps": "Активные заявки",
+    "pendingTasks": "Ожидающие задачи",
+    "callLogs": "Журнал звонков",
+    "applicationsTrend": "Динамика заявок",
+    "applicationsByStatus": "Заявки по статусу",
+    "callsThisWeek": "Звонки за неделю",
+    "tasksByPriority": "Задачи по приоритету",
+    "recentActivity": "Недавняя активность",
+    "noRecentActivity": "Нет недавней активности",
+    "incoming": "Входящие",
+    "outgoing": "Исходящие",
+    "active": "Активные",
+    "pending": "В ожидании",
+    "unread": "Непрочитанные",
+    "total": "Всего"
   }
 }

@@ -9,6 +9,9 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
+  SidebarMenuSubButton,
   useSidebar,
 } from '@/components/ui/sidebar';
 import {
@@ -204,6 +207,11 @@ export function CRMSidebar({
     }
   };
 
+  // Whether a sub-item's URL matches the current route
+  const isItemActive = (url: string) =>
+    location.pathname === url ||
+    (url !== '/crm' && location.pathname.startsWith(url));
+
   return (
     <Sidebar collapsible="icon" className="flex flex-col">
       <SidebarHeader className="p-4">
@@ -222,21 +230,48 @@ export function CRMSidebar({
 
       <SidebarContent className="flex-1">
         <SidebarMenu className="px-2 space-y-1">
-          {groups.filter(g => g.visible).map((group) => (
-            <SidebarMenuItem key={group.id}>
-              <SidebarMenuButton
-                onClick={() => handleGroupClick(group.id)}
-                isActive={currentActiveGroup === group.id}
-                className={cn(
-                  "w-full justify-start gap-3 h-11 text-base font-medium transition-all",
-                  currentActiveGroup === group.id && "bg-primary text-primary-foreground hover:bg-primary/90"
+          {groups.filter(g => g.visible).map((group) => {
+            const isGroupActive = currentActiveGroup === group.id;
+            const visibleItems = group.items.filter(item => item.visible);
+            return (
+              <SidebarMenuItem key={group.id}>
+                <SidebarMenuButton
+                  onClick={() => handleGroupClick(group.id)}
+                  isActive={isGroupActive}
+                  tooltip={group.title}
+                  className={cn(
+                    "w-full justify-start gap-3 h-11 text-base font-medium transition-all",
+                    isGroupActive && "bg-primary text-primary-foreground hover:bg-primary/90"
+                  )}
+                >
+                  <group.icon className="h-5 w-5 flex-shrink-0" />
+                  {!collapsed && <span>{group.title}</span>}
+                </SidebarMenuButton>
+
+                {/* Inline accordion: reveal the active group's sub-items so the
+                    full IA is scannable. Auto-hidden on the collapsed icon rail. */}
+                {isGroupActive && !collapsed && visibleItems.length > 0 && (
+                  <SidebarMenuSub>
+                    {visibleItems.map((item) => (
+                      <SidebarMenuSubItem key={item.url + item.title}>
+                        <SidebarMenuSubButton
+                          isActive={isItemActive(item.url)}
+                          onClick={() => navigate(item.url)}
+                          className="cursor-pointer"
+                        >
+                          <item.icon className="h-4 w-4 flex-shrink-0" />
+                          <span>{item.title}</span>
+                          {item.highlight && (
+                            <span className="ml-auto h-1.5 w-1.5 rounded-full bg-sidebar-accent flex-shrink-0" />
+                          )}
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
+                    ))}
+                  </SidebarMenuSub>
                 )}
-              >
-                <group.icon className="h-5 w-5 flex-shrink-0" />
-                {!collapsed && <span>{group.title}</span>}
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
+              </SidebarMenuItem>
+            );
+          })}
         </SidebarMenu>
       </SidebarContent>
 

@@ -168,9 +168,9 @@ See `STORE_METADATA.md` for complete multi-language store descriptions (English,
 **Keywords**: korea, university, study abroad, education, application, student, scholarship, korean language, admission, visa
 
 **URLs**:
-- Privacy Policy: https://koryo-guide-ai.lovable.app/privacy
-- Terms of Service: https://koryo-guide-ai.lovable.app/terms
-- Support: https://koryo-guide-ai.lovable.app
+- Privacy Policy: https://hanguk.uz/privacy
+- Terms of Service: https://hanguk.uz/terms
+- Support: https://hanguk.uz
 
 ### Generated Assets
 
@@ -275,4 +275,4 @@ This will make the app use the bundled web assets instead of loading from a remo
 
 ## Support
 
-For deployment assistance, contact support@hanguk.consulting
+For deployment assistance, contact support@hanguk.uz

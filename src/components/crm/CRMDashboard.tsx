@@ -83,7 +83,7 @@ export function CRMDashboard({ isAdmin, isOwner, isCallOperator, isDocumentHandl
       url: '/crm',
       color: 'bg-green-500',
       count: stats.activeApplications,
-      label: 'Active',
+      label: t('dashboard.active'),
       visible: true,
     },
     {
@@ -92,7 +92,7 @@ export function CRMDashboard({ isAdmin, isOwner, isCallOperator, isDocumentHandl
       url: '/crm',
       color: 'bg-yellow-500',
       count: stats.pendingDocuments,
-      label: 'Pending',
+      label: t('dashboard.pending'),
       visible: true,
     },
     {
@@ -101,7 +101,7 @@ export function CRMDashboard({ isAdmin, isOwner, isCallOperator, isDocumentHandl
       url: '/crm/messages',
       color: 'bg-purple-500',
       count: stats.unreadMessages,
-      label: 'Unread',
+      label: t('dashboard.unread'),
       visible: true,
     },
     {
@@ -110,7 +110,7 @@ export function CRMDashboard({ isAdmin, isOwner, isCallOperator, isDocumentHandl
       url: '/crm/calls',
       color: 'bg-orange-500',
       count: stats.totalCalls,
-      label: 'Total',
+      label: t('dashboard.total'),
       visible: true,
     },
     {
@@ -119,7 +119,7 @@ export function CRMDashboard({ isAdmin, isOwner, isCallOperator, isDocumentHandl
       url: '/crm/tasks',
       color: 'bg-pink-500',
       count: stats.pendingTasks,
-      label: 'Pending',
+      label: t('dashboard.pending'),
       visible: true,
     },
     {
@@ -128,7 +128,7 @@ export function CRMDashboard({ isAdmin, isOwner, isCallOperator, isDocumentHandl
       url: '/crm/finance',
       color: 'bg-emerald-500',
       count: stats.pendingPayments,
-      label: 'Pending',
+      label: t('dashboard.pending'),
       visible: isOwner, // Only owners can see payments
     },
     {
@@ -170,7 +170,7 @@ export function CRMDashboard({ isAdmin, isOwner, isCallOperator, isDocumentHandl
   return (
     <div className="space-y-6">
       {/* Welcome Section */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-2xl font-bold">{t('navigation.dashboard')}</h2>
           <p className="text-muted-foreground">
@@ -211,7 +211,7 @@ export function CRMDashboard({ isAdmin, isOwner, isCallOperator, isDocumentHandl
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Active Apps</p>
+                <p className="text-sm text-muted-foreground">{t('dashboard.activeApps')}</p>
                 <p className="text-3xl font-bold">{stats.activeApplications}</p>
               </div>
               <div className="p-3 bg-chart-2/10 rounded-full">
@@ -239,7 +239,7 @@ export function CRMDashboard({ isAdmin, isOwner, isCallOperator, isDocumentHandl
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">{t('student.pending')} Tasks</p>
+                <p className="text-sm text-muted-foreground">{t('dashboard.pendingTasks')}</p>
                 <p className="text-3xl font-bold">{stats.pendingTasks}</p>
               </div>
               <div className="p-3 bg-warning/10 rounded-full">
@@ -253,7 +253,7 @@ export function CRMDashboard({ isAdmin, isOwner, isCallOperator, isDocumentHandl
       {/* Quick Access Grid */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Quick Access</CardTitle>
+          <CardTitle className="text-lg">{t('dashboard.quickAccess')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -288,7 +288,7 @@ export function CRMDashboard({ isAdmin, isOwner, isCallOperator, isDocumentHandl
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center gap-2">
               <TrendingUp className="h-5 w-5" />
-              Applications Trend
+              {t('dashboard.applicationsTrend')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -323,7 +323,7 @@ export function CRMDashboard({ isAdmin, isOwner, isCallOperator, isDocumentHandl
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center gap-2">
               <GraduationCap className="h-5 w-5" />
-              Applications by Status
+              {t('dashboard.applicationsByStatus')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -371,7 +371,7 @@ export function CRMDashboard({ isAdmin, isOwner, isCallOperator, isDocumentHandl
             <CardHeader className="pb-2">
               <CardTitle className="text-lg flex items-center gap-2">
                 <Phone className="h-5 w-5" />
-                Calls This Week
+                {t('dashboard.callsThisWeek')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -389,8 +389,8 @@ export function CRMDashboard({ isAdmin, isOwner, isCallOperator, isDocumentHandl
                       }}
                     />
                     <Legend />
-                    <Bar dataKey="incoming" fill="hsl(var(--chart-2))" name="Incoming" />
-                    <Bar dataKey="outgoing" fill="hsl(var(--chart-3))" name="Outgoing" />
+                    <Bar dataKey="incoming" fill="hsl(var(--chart-2))" name={t('dashboard.incoming')} />
+                    <Bar dataKey="outgoing" fill="hsl(var(--chart-3))" name={t('dashboard.outgoing')} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -403,7 +403,7 @@ export function CRMDashboard({ isAdmin, isOwner, isCallOperator, isDocumentHandl
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center gap-2">
               <ClipboardList className="h-5 w-5" />
-              Tasks by Priority
+              {t('dashboard.tasksByPriority')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -433,7 +433,7 @@ export function CRMDashboard({ isAdmin, isOwner, isCallOperator, isDocumentHandl
             <CardHeader className="pb-2">
               <CardTitle className="text-lg flex items-center gap-2">
                 <Calendar className="h-5 w-5" />
-                Recent Activity
+                {t('dashboard.recentActivity')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -441,7 +441,7 @@ export function CRMDashboard({ isAdmin, isOwner, isCallOperator, isDocumentHandl
                 <div className="space-y-3">
                   {stats.recentActivity.length === 0 ? (
                     <p className="text-center text-muted-foreground py-8">
-                      No recent activity
+                      {t('dashboard.noRecentActivity')}
                     </p>
                   ) : (
                     stats.recentActivity.map((activity) => (
@@ -474,7 +474,7 @@ export function CRMDashboard({ isAdmin, isOwner, isCallOperator, isDocumentHandl
       {/* Module Links */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">All Modules</CardTitle>
+          <CardTitle className="text-lg">{t('dashboard.allModules')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -510,7 +510,7 @@ export function CRMDashboard({ isAdmin, isOwner, isCallOperator, isDocumentHandl
               >
                 <div className="flex items-center gap-3">
                   <Phone className="h-5 w-5 text-orange-500" />
-                  <span>Call Logs</span>
+                  <span>{t('dashboard.callLogs')}</span>
                 </div>
                 <ArrowRight className="h-4 w-4" />
               </Button>
