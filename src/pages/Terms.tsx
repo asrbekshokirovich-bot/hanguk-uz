@@ -228,17 +228,17 @@ export default function Terms() {
 
   return (
     <NativeContainer className="bg-background">
-      <div className="min-h-screen bg-background text-foreground flex flex-col justify-between">
+      <div className="min-h-screen bg-background text-foreground flex flex-col">
         <header className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b pt-[env(safe-area-inset-top)]">
-          <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-            <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+          <div className="container mx-auto px-4 h-16 flex items-center gap-2">
+            <Button variant="ghost" size="icon" className="flex-shrink-0" onClick={() => navigate(-1)}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <h1 className="ml-2 text-lg font-semibold">{c.title}</h1>
+            <h1 className="text-lg font-semibold truncate">{c.title}</h1>
           </div>
         </header>
 
-        <main className="container py-6 max-w-3xl">
+        <main className="container mx-auto px-4 py-6 max-w-3xl">
           <p className="text-sm text-muted-foreground mb-4">{c.lastUpdated}</p>
           <p className="mb-6">{c.intro}</p>
 
