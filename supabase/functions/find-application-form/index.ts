@@ -452,7 +452,7 @@ Deno.serve(async (req) => {
     
     // Dynamic university name lookup from DB
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    const supabaseKey = (Deno.env.get('SB_SECRET_KEY') ?? Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'));
     if (supabaseUrl && supabaseKey) {
       try {
         const supabaseAdmin = createClient(supabaseUrl, supabaseKey);

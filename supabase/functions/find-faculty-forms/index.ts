@@ -678,7 +678,7 @@ async function crossReferenceAndValidateWithDB(
   results: UniversityResult[]
 ): Promise<UniversityResult[]> {
   const supabaseUrl = Deno.env.get('SUPABASE_URL');
-  const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+  const supabaseKey = (Deno.env.get('SB_SECRET_KEY') ?? Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'));
   if (!supabaseUrl || !supabaseKey) return results;
 
   try {
@@ -1318,7 +1318,7 @@ async function doComprehensiveFacultySearch(
   batchIndex: number = 0
 ) {
   const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-  const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+  const supabaseKey = (Deno.env.get('SB_SECRET_KEY') ?? Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'))!;
   const supabase = createClient(supabaseUrl, supabaseKey);
 
   const BATCH_SIZE = 10;
@@ -1699,7 +1699,7 @@ Deno.serve(async (req) => {
           const errorMsg = err instanceof Error ? err.message : 'Unknown error';
           console.error(`Comprehensive search batch ${batchIndex} failed:`, errorMsg);
           const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-          const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+          const supabaseKey = (Deno.env.get('SB_SECRET_KEY') ?? Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'))!;
           const supabase = createClient(supabaseUrl, supabaseKey);
           await supabase.from('search_jobs').update({ status: 'failed', error: errorMsg }).eq('id', jobId);
         }
@@ -1721,7 +1721,7 @@ Deno.serve(async (req) => {
     // If jobId provided, run as background job (existing behavior)
     if (jobId) {
       const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-      const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+      const supabaseKey = (Deno.env.get('SB_SECRET_KEY') ?? Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'))!;
       const supabaseAdmin = createClient(supabaseUrl, supabaseKey);
 
       // Mark job as processing

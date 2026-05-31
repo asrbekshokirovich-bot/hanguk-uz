@@ -314,7 +314,7 @@ Return as valid JSON object.`;
       if (hostname.endsWith('.ac.kr')) {
         const normalizedWebsite = `https://${hostname}`;
         const supabaseUrl = Deno.env.get('SUPABASE_URL');
-        const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+        const supabaseKey = (Deno.env.get('SB_SECRET_KEY') ?? Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'));
         if (supabaseUrl && supabaseKey) {
           const supabaseAdmin = createClient(supabaseUrl, supabaseKey);
           // Issue 19 fix: Use separate filter calls instead of string interpolation in .or()
@@ -389,7 +389,7 @@ Deno.serve(async (req) => {
     // If jobId provided, run as background job
     if (jobId) {
       const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-      const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+      const supabaseKey = (Deno.env.get('SB_SECRET_KEY') ?? Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'))!;
       const supabaseAdmin = createClient(supabaseUrl, supabaseKey);
 
       await supabaseAdmin.from('search_jobs').update({ status: 'processing' }).eq('id', jobId);

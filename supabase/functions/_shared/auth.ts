@@ -9,7 +9,7 @@ export async function requireAuth(req: Request) {
   }
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
-  const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY");
+  const supabaseAnonKey = (Deno.env.get('SB_PUBLISHABLE_KEY') ?? Deno.env.get("SUPABASE_ANON_KEY"));
   
   if (!supabaseUrl || !supabaseAnonKey) {
     throw new ApiError(500, "Supabase environment variables missing");
