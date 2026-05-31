@@ -1,8 +1,9 @@
+import 'dart:io';
 import 'package:supabase/supabase.dart';
 
 Future<void> main() async {
   const supabaseUrl = 'https://lysjdtyanhdfphqyijsr.supabase.co';
-  const supabaseKey = 'SERVICE_ROLE_KEY_REMOVED__ROTATE_AND_LOAD_FROM_ENV';
+  final supabaseKey = Platform.environment['SUPABASE_SECRET_KEY'] ?? '';
   
   final client = SupabaseClient(supabaseUrl, supabaseKey);
   

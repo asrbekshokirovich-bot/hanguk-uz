@@ -6,7 +6,7 @@ Future<void> main() async {
   
   // Credentials from .env.edge (using Service Role Key to bypass RLS for UPSERT)
   const supabaseUrl = 'https://lysjdtyanhdfphqyijsr.supabase.co';
-  const supabaseKey = 'SERVICE_ROLE_KEY_REMOVED__ROTATE_AND_LOAD_FROM_ENV';
+  final supabaseKey = Platform.environment['SUPABASE_SECRET_KEY'] ?? '';
   
   final client = SupabaseClient(supabaseUrl, supabaseKey);
   
