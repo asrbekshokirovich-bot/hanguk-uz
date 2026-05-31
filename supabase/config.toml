@@ -18,6 +18,9 @@ verify_jwt = false
 [functions.translate-document]
 verify_jwt = false
 
+[functions.translate-parsed-output]
+verify_jwt = true
+
 [functions.sync-to-command-center]
 verify_jwt = false
 

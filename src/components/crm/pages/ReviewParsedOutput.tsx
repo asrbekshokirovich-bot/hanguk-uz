@@ -227,7 +227,7 @@ function eventLines(events: Array<Record<string, unknown>>): ReactNode {
   );
 }
 
-function RequirementCard({ r }: { r: Record<string, unknown> }) {
+function RequirementCard({ r, track }: { r: Record<string, unknown>; track?: TrackRelevance }) {
   const topikConcrete =
     r.topik_min_level !== null && r.topik_min_level !== undefined
       ? `Level ${r.topik_min_level}`
@@ -243,7 +243,7 @@ function RequirementCard({ r }: { r: Record<string, unknown> }) {
     r.gpa_floor_pct !== null && r.gpa_floor_pct !== undefined ? `${r.gpa_floor_pct}%` : null;
   const gpa = resolveStatusField(r.gpa_status, gpaConcrete);
 
-  const isHeritage = classifyTrack(r) === 'korean_heritage';
+  const isHeritage = (track ?? classifyTrack(r)) === 'korean_heritage';
 
   return (
     <RowCard
@@ -281,10 +281,23 @@ function RequirementCard({ r }: { r: Record<string, unknown> }) {
 // Foreign-applicant tracks (외국인전형) render first; Korean-heritage /
 // overseas-Korean tracks are collapsed behind a disclosure so they don't drown
 // out the relevant data.
-function RequirementsCards({ rows }: { rows: Array<Record<string, unknown>> }) {
+// `classifyRows` carries the original Korean rows (when the displayed `rows`
+// have been translated to English) so track detection — which keys off Korean
+// markers like 외국인전형 / 재외국민 — keeps working. It defaults to `rows`.
+function RequirementsCards({
+  rows,
+  classifyRows,
+}: {
+  rows: Array<Record<string, unknown>>;
+  classifyRows?: Array<Record<string, unknown>>;
+}) {
   const [showHeritage, setShowHeritage] = useState(false);
-  const relevant = rows.filter((r) => classifyTrack(r) !== 'korean_heritage');
-  const heritage = rows.filter((r) => classifyTrack(r) === 'korean_heritage');
+  const items = rows.map((row, i) => ({
+    row,
+    track: classifyTrack((classifyRows?.[i] ?? row) as Record<string, unknown>),
+  }));
+  const relevant = items.filter((it) => it.track !== 'korean_heritage');
+  const heritage = items.filter((it) => it.track === 'korean_heritage');
   return (
     <div className="space-y-3">
       {relevant.length === 0 && heritage.length > 0 ? (
@@ -292,8 +305,8 @@ function RequirementsCards({ rows }: { rows: Array<Record<string, unknown>> }) {
           No foreign-applicant (외국인전형) track extracted — only Korean-heritage tracks are below.
         </p>
       ) : null}
-      {relevant.map((r, i) => (
-        <RequirementCard key={i} r={r} />
+      {relevant.map((it, i) => (
+        <RequirementCard key={i} r={it.row} track={it.track} />
       ))}
       {heritage.length > 0 ? (
         <div className="space-y-3">
@@ -306,7 +319,7 @@ function RequirementsCards({ rows }: { rows: Array<Record<string, unknown>> }) {
             track{heritage.length === 1 ? '' : 's'} (재외국민·북한이탈·국외이수) — not for foreign
             applicants
           </button>
-          {showHeritage ? heritage.map((r, i) => <RequirementCard key={i} r={r} />) : null}
+          {showHeritage ? heritage.map((it, i) => <RequirementCard key={i} r={it.row} track={it.track} />) : null}
         </div>
       ) : null}
     </div>
@@ -316,9 +329,16 @@ function RequirementsCards({ rows }: { rows: Array<Record<string, unknown>> }) {
 export function ReviewParsedOutput({
   fieldGroup,
   parsedOutput,
+  classifyFrom,
 }: {
   fieldGroup: string | null;
+  /** Payload to display. May be an English translation of the stored Korean. */
   parsedOutput: unknown;
+  /**
+   * Optional original (Korean) payload to derive track relevance from when
+   * `parsedOutput` has been translated. Defaults to `parsedOutput`.
+   */
+  classifyFrom?: unknown;
 }) {
   switch (fieldGroup) {
     case 'calendar': {
@@ -361,7 +381,8 @@ export function ReviewParsedOutput({
     case 'requirements': {
       const rows = getArray(parsedOutput, 'rows');
       if (rows.length === 0) return <EmptyRows noun="admission tracks" />;
-      return <RequirementsCards rows={rows} />;
+      const classifyRows = getArray(classifyFrom ?? parsedOutput, 'rows');
+      return <RequirementsCards rows={rows} classifyRows={classifyRows} />;
     }
 
     case 'tuition': {

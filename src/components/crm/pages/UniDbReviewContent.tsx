@@ -26,6 +26,7 @@ import {
   isStaleCycle,
 } from './reviewLogic';
 import { useInstitutionNameTranslation } from '@/hooks/useTranslations';
+import { useReviewTranslation } from '@/hooks/useReviewTranslation';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -360,6 +361,11 @@ function DetailPane({
     [initialParsed, edited],
   );
 
+  // Translate the extracted Korean to English for display only (the stored
+  // Korean stays the source of truth for editing, the diff, and accept).
+  // Paused while editing so reviewers edit the real payload, not a translation.
+  const translation = useReviewTranslation(row.id, row.parsed_output, !editing);
+
   const handleOpenPdf = async () => {
     if (!row.storage_path) return;
     // Open the tab synchronously, inside the click gesture — if we waited for the
@@ -543,8 +549,23 @@ function DetailPane({
             onChange={setEdited}
             disabled={pending}
           />
+        ) : translation.isLoading ? (
+          <div className="flex items-center gap-2 rounded-lg border border-dashed p-3 text-sm text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" /> Translating to English…
+          </div>
+        ) : translation.isError ? (
+          <div className="space-y-2">
+            <p className="text-xs text-amber-600">
+              Couldn't translate automatically — showing the original Korean.
+            </p>
+            <ReviewParsedOutput fieldGroup={row.field_group} parsedOutput={row.parsed_output} />
+          </div>
         ) : (
-          <ReviewParsedOutput fieldGroup={row.field_group} parsedOutput={row.parsed_output} />
+          <ReviewParsedOutput
+            fieldGroup={row.field_group}
+            parsedOutput={translation.data ?? row.parsed_output}
+            classifyFrom={row.parsed_output}
+          />
         )}
       </div>
 
