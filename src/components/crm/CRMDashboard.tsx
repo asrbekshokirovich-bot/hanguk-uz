@@ -73,7 +73,6 @@ export function CRMDashboard({ isAdmin, isOwner, isCallOperator, isDocumentHandl
       title: t('navigation.students'),
       icon: Users,
       url: '/crm',
-      color: 'bg-blue-500',
       count: stats.totalStudents,
       visible: true,
     },
@@ -81,7 +80,6 @@ export function CRMDashboard({ isAdmin, isOwner, isCallOperator, isDocumentHandl
       title: t('navigation.applications'),
       icon: GraduationCap,
       url: '/crm',
-      color: 'bg-green-500',
       count: stats.activeApplications,
       label: t('dashboard.active'),
       visible: true,
@@ -90,7 +88,6 @@ export function CRMDashboard({ isAdmin, isOwner, isCallOperator, isDocumentHandl
       title: t('navigation.documents'),
       icon: FileText,
       url: '/crm',
-      color: 'bg-yellow-500',
       count: stats.pendingDocuments,
       label: t('dashboard.pending'),
       visible: true,
@@ -99,7 +96,6 @@ export function CRMDashboard({ isAdmin, isOwner, isCallOperator, isDocumentHandl
       title: t('navigation.messages'),
       icon: MessageSquare,
       url: '/crm/messages',
-      color: 'bg-purple-500',
       count: stats.unreadMessages,
       label: t('dashboard.unread'),
       visible: true,
@@ -108,7 +104,6 @@ export function CRMDashboard({ isAdmin, isOwner, isCallOperator, isDocumentHandl
       title: t('common.phone'),
       icon: Phone,
       url: '/crm/calls',
-      color: 'bg-orange-500',
       count: stats.totalCalls,
       label: t('dashboard.total'),
       visible: true,
@@ -117,7 +112,6 @@ export function CRMDashboard({ isAdmin, isOwner, isCallOperator, isDocumentHandl
       title: t('navigation.tasks'),
       icon: ClipboardList,
       url: '/crm/tasks',
-      color: 'bg-pink-500',
       count: stats.pendingTasks,
       label: t('dashboard.pending'),
       visible: true,
@@ -126,7 +120,6 @@ export function CRMDashboard({ isAdmin, isOwner, isCallOperator, isDocumentHandl
       title: t('navigation.payments'),
       icon: DollarSign,
       url: '/crm/finance',
-      color: 'bg-emerald-500',
       count: stats.pendingPayments,
       label: t('dashboard.pending'),
       visible: isOwner, // Only owners can see payments
@@ -135,7 +128,6 @@ export function CRMDashboard({ isAdmin, isOwner, isCallOperator, isDocumentHandl
       title: t('navigation.universities'),
       icon: GraduationCap,
       url: '/crm/universities',
-      color: 'bg-indigo-500',
       visible: true,
     },
   ];
@@ -484,7 +476,7 @@ export function CRMDashboard({ isAdmin, isOwner, isCallOperator, isDocumentHandl
               onClick={() => navigate('/crm/messages')}
             >
               <div className="flex items-center gap-3">
-                <MessageSquare className="h-5 w-5 text-purple-500" />
+                <MessageSquare className="h-5 w-5 text-primary" />
                 <span>{t('navigation.messages')}</span>
               </div>
               <ArrowRight className="h-4 w-4" />
@@ -496,7 +488,7 @@ export function CRMDashboard({ isAdmin, isOwner, isCallOperator, isDocumentHandl
               onClick={() => navigate('/crm/tasks')}
             >
               <div className="flex items-center gap-3">
-                <ClipboardList className="h-5 w-5 text-pink-500" />
+                <ClipboardList className="h-5 w-5 text-primary" />
                 <span>{t('navigation.tasks')}</span>
               </div>
               <ArrowRight className="h-4 w-4" />
@@ -509,7 +501,7 @@ export function CRMDashboard({ isAdmin, isOwner, isCallOperator, isDocumentHandl
                 onClick={() => navigate('/crm/calls')}
               >
                 <div className="flex items-center gap-3">
-                  <Phone className="h-5 w-5 text-orange-500" />
+                  <Phone className="h-5 w-5 text-primary" />
                   <span>{t('dashboard.callLogs')}</span>
                 </div>
                 <ArrowRight className="h-4 w-4" />
@@ -523,7 +515,7 @@ export function CRMDashboard({ isAdmin, isOwner, isCallOperator, isDocumentHandl
                 onClick={() => navigate('/crm/payments')}
               >
                 <div className="flex items-center gap-3">
-                  <DollarSign className="h-5 w-5 text-emerald-500" />
+                  <DollarSign className="h-5 w-5 text-primary" />
                   <span>{t('navigation.payments')}</span>
                 </div>
                 <ArrowRight className="h-4 w-4" />
@@ -536,7 +528,7 @@ export function CRMDashboard({ isAdmin, isOwner, isCallOperator, isDocumentHandl
               onClick={() => navigate('/crm/universities')}
             >
               <div className="flex items-center gap-3">
-                <GraduationCap className="h-5 w-5 text-indigo-500" />
+                <GraduationCap className="h-5 w-5 text-primary" />
                 <span>{t('navigation.universities')}</span>
               </div>
               <ArrowRight className="h-4 w-4" />
