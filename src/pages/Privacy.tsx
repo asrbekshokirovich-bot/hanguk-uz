@@ -56,7 +56,7 @@ These services have their own privacy policies and data handling practices.`
         },
         {
           title: '6. Contact Us',
-          content: 'If you have any questions about this Privacy Policy, please contact us at support@hanguk.consulting'
+          content: 'If you have any questions about this Privacy Policy, please contact us at support@hanguk.uz'
         }
       ]
     },
@@ -106,7 +106,7 @@ Bu xizmatlar o'zlarining maxfiylik siyosatlariga ega.`
         },
         {
           title: '6. Biz bilan bog\'laning',
-          content: 'Ushbu Maxfiylik siyosati bo\'yicha savollaringiz bo\'lsa, support@hanguk.consulting manziliga murojaat qiling'
+          content: 'Ushbu Maxfiylik siyosati bo\'yicha savollaringiz bo\'lsa, support@hanguk.uz manziliga murojaat qiling'
         }
       ]
     },
@@ -156,7 +156,7 @@ Bu xizmatlar o'zlarining maxfiylik siyosatlariga ega.`
         },
         {
           title: '6. Свяжитесь с нами',
-          content: 'Если у вас есть вопросы по этой Политике конфиденциальности, свяжитесь с нами: support@hanguk.consulting'
+          content: 'Если у вас есть вопросы по этой Политике конфиденциальности, свяжитесь с нами: support@hanguk.uz'
         }
       ]
     },
@@ -206,7 +206,7 @@ Bu xizmatlar o'zlarining maxfiylik siyosatlariga ega.`
         },
         {
           title: '6. 문의하기',
-          content: '본 개인정보 처리방침에 대한 문의사항은 support@hanguk.consulting으로 연락해 주세요'
+          content: '본 개인정보 처리방침에 대한 문의사항은 support@hanguk.uz으로 연락해 주세요'
         }
       ]
     }

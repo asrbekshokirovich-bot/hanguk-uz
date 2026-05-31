@@ -151,10 +151,10 @@ Hanguk Consulting은 전문적인 안내와 지원으로 한국 대학 진학을
 
 ## URLs
 
-- **Privacy Policy:** https://koryo-guide-ai.lovable.app/privacy
-- **Terms of Service:** https://koryo-guide-ai.lovable.app/terms
-- **Support URL:** https://koryo-guide-ai.lovable.app
-- **Marketing URL:** https://koryo-guide-ai.lovable.app
+- **Privacy Policy:** https://hanguk.uz/privacy
+- **Terms of Service:** https://hanguk.uz/terms
+- **Support URL:** https://hanguk.uz
+- **Marketing URL:** https://hanguk.uz
 
 ---
 
@@ -209,5 +209,5 @@ Hanguk Consulting은 전문적인 안내와 지원으로 한국 대학 진학을
 ## Contact Information
 
 - **Developer Name:** Hanguk Consulting
-- **Support Email:** support@hanguk.consulting
-- **Website:** https://koryo-guide-ai.lovable.app
+- **Support Email:** support@hanguk.uz
+- **Website:** https://hanguk.uz

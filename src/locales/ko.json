@@ -87,7 +87,12 @@
     "studentNotFound": "학생을 찾을 수 없음",
     "registeredSuccess": "성공적으로 등록되었습니다",
     "dataSaved": "데이터가 저장되었습니다",
-    "username": "사용자 이름"
+    "username": "사용자 이름",
+    "studentTabHelper": "상담사에게 매직 코드를 받은 학생용입니다.",
+    "staffTabHelper": "아이디와 비밀번호가 있는 Hanguk 직원용입니다.",
+    "registerTabHelper": "게스트로 지원 현황을 확인하려면 계정을 만드세요.",
+    "staffSignIn": "직원 로그인",
+    "createAccount": "계정 만들기"
   },
   "navigation": {
     "home": "홈",
@@ -800,5 +805,24 @@
     "partnerScholarship": "파트너",
     "externalScholarship": "외부",
     "apply": "지원하기"
+  },
+  "dashboard": {
+    "quickAccess": "빠른 액세스",
+    "allModules": "모든 모듈",
+    "activeApps": "진행 중 지원",
+    "pendingTasks": "대기 중 작업",
+    "callLogs": "통화 기록",
+    "applicationsTrend": "지원 추이",
+    "applicationsByStatus": "상태별 지원",
+    "callsThisWeek": "이번 주 통화",
+    "tasksByPriority": "우선순위별 작업",
+    "recentActivity": "최근 활동",
+    "noRecentActivity": "최근 활동 없음",
+    "incoming": "수신",
+    "outgoing": "발신",
+    "active": "진행 중",
+    "pending": "대기 중",
+    "unread": "안 읽음",
+    "total": "전체"
   }
 }

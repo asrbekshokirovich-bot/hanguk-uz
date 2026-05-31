@@ -88,7 +88,12 @@
     "studentNotFound": "Student not found",
     "registeredSuccess": "Successfully registered",
     "dataSaved": "Data has been saved",
-    "username": "Username"
+    "username": "Username",
+    "studentTabHelper": "For students with a Magic Code from their consultant.",
+    "staffTabHelper": "For Hanguk staff with a username and password.",
+    "registerTabHelper": "Create an account to track your applications as a guest.",
+    "staffSignIn": "Staff Sign-In",
+    "createAccount": "Create Account"
   },
   "navigation": {
     "home": "Home",
@@ -845,5 +850,24 @@
     "partnerScholarship": "Partner",
     "externalScholarship": "External",
     "apply": "Apply"
+  },
+  "dashboard": {
+    "quickAccess": "Quick Access",
+    "allModules": "All Modules",
+    "activeApps": "Active Apps",
+    "pendingTasks": "Pending Tasks",
+    "callLogs": "Call Logs",
+    "applicationsTrend": "Applications Trend",
+    "applicationsByStatus": "Applications by Status",
+    "callsThisWeek": "Calls This Week",
+    "tasksByPriority": "Tasks by Priority",
+    "recentActivity": "Recent Activity",
+    "noRecentActivity": "No recent activity",
+    "incoming": "Incoming",
+    "outgoing": "Outgoing",
+    "active": "Active",
+    "pending": "Pending",
+    "unread": "Unread",
+    "total": "Total"
   }
 }

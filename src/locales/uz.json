@@ -88,7 +88,12 @@
     "studentNotFound": "Talaba topilmadi",
     "registeredSuccess": "Muvaffaqiyatli ro'yxatdan o'tdingiz",
     "dataSaved": "Ma'lumotlar saqlandi",
-    "username": "Foydalanuvchi nomi"
+    "username": "Foydalanuvchi nomi",
+    "studentTabHelper": "Maslahatchidan Magic Code olgan talabalar uchun.",
+    "staffTabHelper": "Login va parolga ega Hanguk xodimlari uchun.",
+    "registerTabHelper": "Mehmon sifatida arizalarni kuzatish uchun hisob yarating.",
+    "staffSignIn": "Xodim kirishi",
+    "createAccount": "Hisob yaratish"
   },
   "navigation": {
     "home": "Bosh sahifa",
@@ -835,5 +840,24 @@
     "partnerScholarship": "Hamkor",
     "externalScholarship": "Tashqi",
     "apply": "Ariza berish"
+  },
+  "dashboard": {
+    "quickAccess": "Tezkor kirish",
+    "allModules": "Barcha modullar",
+    "activeApps": "Faol arizalar",
+    "pendingTasks": "Kutilayotgan vazifalar",
+    "callLogs": "Qo'ng'iroqlar tarixi",
+    "applicationsTrend": "Arizalar dinamikasi",
+    "applicationsByStatus": "Holat bo'yicha arizalar",
+    "callsThisWeek": "Shu haftadagi qo'ng'iroqlar",
+    "tasksByPriority": "Muhimligi bo'yicha vazifalar",
+    "recentActivity": "So'nggi faollik",
+    "noRecentActivity": "So'nggi faollik yo'q",
+    "incoming": "Kiruvchi",
+    "outgoing": "Chiquvchi",
+    "active": "Faol",
+    "pending": "Kutilmoqda",
+    "unread": "O'qilmagan",
+    "total": "Jami"
   }
 }

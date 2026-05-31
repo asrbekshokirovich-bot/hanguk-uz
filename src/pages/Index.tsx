@@ -52,7 +52,11 @@ const Index = () => {
           </div>
           <div className="flex items-center gap-2">
             <LanguageSwitcher />
-            <Button variant="highlight" onClick={() => navigate('/auth')}>
+            <Button
+              variant="outline"
+              className="bg-white/10 border-white/30 text-white hover:bg-white/20 hover:text-white"
+              onClick={() => navigate('/auth')}
+            >
               {t('auth.login')}
             </Button>
           </div>
