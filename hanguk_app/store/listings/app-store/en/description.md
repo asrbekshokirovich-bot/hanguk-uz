@@ -1,0 +1,48 @@
+# Hanguk — Korean University Admissions Companion
+
+Hanguk is the all-in-one preparation toolkit for Uzbek students applying
+to Korean universities. Map your application timeline, draft your
+personal statement with an AI editor, practice the admissions interview
+with a Korean-speaking voice agent, and explore the universities of
+Korea on an interactive map — all in one app.
+
+## What you can do
+
+**Build a personalized study plan.** Pick the universities you're
+applying to, set your target track (Korean-language or English-language
+admission), and walk through a step-by-step wizard that turns a blank
+page into a complete application strategy. AI feedback on every step
+catches gaps before they cost you points.
+
+**Draft your personal statement, faster.** A focused writing workspace
+gives you grammar suggestions in-line, content feedback as you type,
+and an overall score the moment you ask for it. Saved drafts version
+automatically — every word you wrote is recoverable.
+
+**Practice the admissions interview.** Talk to a Korean-native AI
+interviewer (your choice: friendly, strict, or impatient persona) and
+get a transcript, a per-question score, and an actionable improvement
+list after every session. Switch to English-mode practice when you need
+it.
+
+**Explore Korean universities on a map.** Tap any campus to see admissions
+deadlines, available programs, and a roadview tour. Powered by Kakao
+Maps for accurate, up-to-date geographic data.
+
+**Stay in touch with your consultant.** The chat tab keeps your
+counsellor a tap away.
+
+## Who it's for
+
+High-school students in Uzbekistan preparing for a Korean university
+application. Useful from your first "should I go to Korea?" thought
+all the way through accepting your offer letter.
+
+## Privacy
+
+We collect only the data we need to run the app for you. We don't sell
+your data, we don't use third-party analytics, and you can delete your
+account at any time from the Account screen.
+
+Privacy Policy: https://hanguk.uz/privacy
+Terms of Service: https://hanguk.uz/terms

@@ -1,0 +1,322 @@
+{
+  "@@locale": "uz",
+  "@@x-translator-status": "TODO: translate. Most older strings still English seeds. 2026-05-12 i18n adoption pass: training tab + bottom-nav + tab titles translated. 2026-05-12 i18n phase 2: account + auth + notification settings translated. 2026-05-12 i18n phase 3: training/drafting workspace translated; previously English-seeded training keys now have real Uzbek translations.",
+
+  "trainingTabTitle": "Tayyorgarlik markazi",
+  "trainingTabSubtitle": "Universitet arizalaringizni sun'iy intellekt yordamida mashq qiling.",
+  "studyPlanCardTitle": "Study Plan tuzish",
+  "studyPlanCardDesc": "O'qish maqsadlaringiz uchun ishonchli reja tuzing.",
+  "personalStatementCardTitle": "Personal Statement",
+  "personalStatementCardDesc": "Samarali va jozibali shaxsiy insho yozing.",
+  "interviewCardTitle": "Suhbatga tayyorgarlik",
+  "interviewCardDesc": "Sinov savollari bilan mashq qiling va o'zingizga ishonchni mustahkamlang.",
+  "applyCta": "Universitetga ariza topshirish",
+  "noApplicationsTitle": "Hozircha arizalar yo'q",
+  "noApplicationsBody": "Avval maqsadli universitetni qo'shing — insho yozish u yerdan boshlanadi.",
+  "startInterview": "Suhbatni boshlash",
+  "cancel": "Bekor qilish",
+  "endInterview": "Suhbatni tugatish",
+  "endSession": "Sessiyani tugatish",
+  "practiceAgain": "Yana mashq qilish",
+  "connecting": "Ulanmoqda...",
+  "greetWait": "Ulanmoqda — intervyuer tez orada salomlashadi...",
+  "yourTurn": "Javob berish navbatingiz",
+  "aiSpeaking": "Intervyuer gapirmoqda...",
+  "wrappingUp": "Suhbat yakunlanmoqda...",
+  "micRequired": "Suhbat uchun mikrofon ruxsati kerak.",
+
+  "walkaroundLoadingTitle": "Loading campus walkaround",
+  "walkaroundLoadingSubtitle": "Fetching street view near campus.",
+  "walkaroundNoPanoTitle": "No street view here",
+  "walkaroundNoPanoSubtitle": "This campus doesn't have a walkable street view nearby.",
+  "walkaroundBlockedTitle": "Street view unavailable",
+  "walkaroundBlockedSubtitle": "The map provider blocked this request. Try again on a different network.",
+  "walkaroundNetworkTitle": "Couldn't reach the map provider",
+  "walkaroundNetworkSubtitle": "Check your connection and try again.",
+  "walkaroundInitErrorTitle": "Street view couldn't start",
+  "walkaroundInitErrorSubtitle": "Something went wrong starting the walkaround. Please try again.",
+  "virtualTourTitle": "Virtual Tour",
+  "virtualWalkaroundTitle": "Virtual Walkaround",
+
+  "navApplications": "Arizalar",
+  "navMap": "Xarita",
+  "navDocs": "Hujjatlar",
+  "navTraining": "Tayyorgarlik",
+
+  "applicationsTabTitle": "Arizalarim",
+  "mapTabTitle": "Universitetlar",
+  "documentsTabTitle": "Hujjatlarim",
+
+  "accountTooltip": "Hisob",
+
+  "ok": "OK",
+  "loadingLabel": "Yuklanmoqda...",
+
+  "accountBackTooltip": "Orqaga",
+  "accountTitle": "Hisob",
+  "accountSignedInAs": "Tizimga kirgan hisob",
+  "accountUnknownAccount": "(noma'lum hisob)",
+  "accountSessionLabel": "Sessiya",
+  "accountSigningOut": "Chiqilmoqda...",
+  "accountSignOut": "Tizimdan chiqish",
+  "accountYourDataLabel": "Sizning ma'lumotlaringiz",
+  "accountYourDataBody": "Hanguk saqlab turgan barcha hisob ma'lumotlaringizning — profil, arizalar, o'quv rejalari, qoralamalar, intervyu seanslari va izohlar — JSON nusxasini yuklab oling.",
+  "accountPreparingExport": "Eksport tayyorlanmoqda...",
+  "accountDownloadMyData": "Ma'lumotlarimni yuklab olish",
+  "accountDangerZoneLabel": "Xavfli zona",
+  "accountDangerZoneBody": "Hisobni o'chirish qaytarib bo'lmaydigan amaldir. Profilingiz, arizalaringiz, o'quv rejalaringiz, motivatsion xat qoralamalari, intervyu seanslari va yozuvlaringiz butunlay o'chiriladi. Saqlangan hujjatlar 30 kun ichida, zaxira nusxalari esa 90 kun ichida muddati tugaydi.",
+  "accountDeleteAccount": "Hisobni o'chirish",
+  "accountPrivacyPolicy": "Maxfiylik siyosati",
+  "accountTermsOfService": "Foydalanish shartlari",
+  "accountDeleteErrorTitle": "Hisob o'chirilmadi",
+  "accountDeleteErrorBody": "Ma'lumotlaringizni o'chirishda xatolik yuz berdi:\n\n{error}\n\nO'chirishni yakunlay olishimiz uchun privacy@hanguk.uz manziliga email yuboring.",
+  "@accountDeleteErrorBody": {
+    "placeholders": {
+      "error": { "type": "Object" }
+    }
+  },
+  "accountExportFailed": "Eksport amalga oshmadi: {error}",
+  "@accountExportFailed": {
+    "placeholders": {
+      "error": { "type": "Object" }
+    }
+  },
+  "accountDeleteDialogTitle": "Hisobingizni o'chirib tashlaysizmi?",
+  "accountDeleteDialogBody": "Bu hisobingizni, arizalaringizni, o'quv rejalaringizni, motivatsion xat qoralamalarini, intervyu seanslari va yozuvlarini butunlay o'chirib tashlaydi.\n\nTasdiqlash uchun DELETE deb yozing.",
+  "accountDeleteDialogConfirm": "Butunlay o'chirish",
+  "accountDeleteProgress": "Hisob o'chirilmoqda...",
+
+  "loginStudentPortal": "Talaba portali",
+  "loginAccessCodeHelp": "Konsultantingiz yoki universitet vakili bergan 8 belgili kirish kodini (harflar va raqamlar) kiriting.",
+  "loginAccessCodeButton": "Kirish kodi orqali kirish",
+  "loginSwitchToPhone": "← Telefon raqami orqali kirmoqchiman",
+  "loginComingSoonTitle": "Tez orada",
+  "loginComingSoonBody": "Tizimlarimiz yangilanayotgani sababli ommaviy ro'yxatdan o'tish va telefon orqali kirish vaqtincha to'xtatildi.\n\nTalabalar: hozircha sehrli kirish kodingiz bilan tizimga kiring.",
+  "loginSwitchToMagicCode": "Sehrli kod orqali kirishga o'tish",
+  "loginErrorInvalidPhone": "Iltimos, to'g'ri telefon raqamini kiriting (masalan, +12345678).",
+  "loginErrorPasswordTooShort": "Parol kamida 6 ta belgidan iborat bo'lishi kerak.",
+  "loginErrorInvalidCredentials": "Telefon raqami yoki parol noto'g'ri.",
+  "loginErrorInvalidAccessCode": "Iltimos, to'g'ri kirish kodini kiriting (kamida 6 belgi).",
+  "signUpErrorNameRequired": "To'liq ismni kiritish shart.",
+  "signUpErrorPhoneRequired": "To'g'ri telefon raqami kerak (masalan, +12345678).",
+  "signUpErrorPasswordMismatch": "Parollar mos kelmadi.",
+  "signUpSuccess": "Hisob yaratildi! Iltimos, tizimga kiring.",
+
+  "notifSettingsTitle": "Bildirishnoma sozlamalari",
+  "notifSettingsEmptyTitle": "Hali kuzatilayotgan universitet yo'q",
+  "notifSettingsEmptyBody": "Universitet sahifasida \"Bu muassasani kuzatish\"ni bosib obuna bo'ling. Kamida bitta kuzatuv qo'shilgach, bildirishnoma sozlamalari shu yerda paydo bo'ladi.",
+  "notifSettingsCalendar": "Taqvim o'zgarishlari",
+  "notifSettingsCalendarDesc": "Muddat sanalari o'zgarsa",
+  "notifSettingsCorrection": "Tuzatish e'lonlari",
+  "notifSettingsCorrectionDesc": "정정공고 e'lon qilindi — eng yuqori ustuvorlik",
+  "notifSettingsRequirement": "Talab o'zgarishlari",
+  "notifSettingsRequirementDesc": "TOPIK / GPA / til imtihoni qoidalari o'zgarsa",
+  "notifSettingsScholarship": "Stipendiya yangiliklari",
+  "notifSettingsScholarshipDesc": "Standart bo'yicha o'chirilgan — ko'p bildirishnoma keladi",
+  "notifSettingsLoadError": "Xato: {error}",
+  "@notifSettingsLoadError": {
+    "placeholders": {
+      "error": { "type": "Object" }
+    }
+  },
+  "notifSettingsPushLanguage": "Push bildirishnoma tili: {lang}",
+  "@notifSettingsPushLanguage": {
+    "placeholders": {
+      "lang": { "type": "String" }
+    }
+  },
+  "notifSettingsUpdateError": "Sozlamani yangilab bo'lmadi: {error}",
+  "@notifSettingsUpdateError": {
+    "placeholders": {
+      "error": { "type": "Object" }
+    }
+  },
+
+  "interviewDialogStepUniversity": "1. Maqsadli universitetni tanlang",
+  "interviewDialogStepTrack": "2. Suhbat tilini tanlang",
+  "interviewDialogStepPersona": "3. Suhbatdosh tipi",
+  "interviewNoAppsBody": "Avval maqsadli universitetni qo'shing — suhbat mashqi o'sha maktabga moslab boriladi.",
+  "trackKorean": "Koreyscha",
+  "trackEnglish": "Inglizcha",
+  "personaFriendly": "Do'stona qabul xodimi",
+  "personaStrict": "Qattiqqo'l professor",
+  "personaImpatient": "Sabri yo'q viza xodimi",
+  "personaFriendlyCaps": "Do'stona qabul xodimi",
+  "personaStrictCaps": "Qattiqqo'l professor",
+  "personaImpatientCaps": "Sabri yo'q viza xodimi",
+  "micBlockedInSettings": "Mikrofon tizim sozlamalarida bloklangan.",
+  "openSettings": "Sozlamalarni ochish",
+  "genericError": "Xato: {error}",
+  "@genericError": {
+    "placeholders": { "error": { "type": "Object" } }
+  },
+  "errorLoadingApplications": "Arizalarni yuklab bo'lmadi: {error}",
+  "@errorLoadingApplications": {
+    "placeholders": { "error": { "type": "Object" } }
+  },
+  "noAppsInlineHint": "Hozircha arizalar yo'q — Arizalar tabidan qo'shing.",
+
+  "aiStatusWaiting": "Kiritishni kutmoqda...",
+  "aiStatusCoolingDown": "AI dam olmoqda…",
+  "aiStatusAnalyzing": "AI tahlil qilmoqda...",
+  "aiStatusReady": "Tayyor",
+  "aiStatusPredicting": "AI taklif bermoqda...",
+  "aiStatusSupervisionActive": "AI nazorati faol",
+  "workspaceTitle": "Ish maydoni",
+  "workspaceAnalyzeButton": "Tahlil",
+  "aiSupervisionWarningsTitle": "AI nazorat ogohlantirishlari:",
+  "grammarReplaceWith": "\"{original}\" o'rniga \"{suggestion}\" yozing",
+  "@grammarReplaceWith": {
+    "placeholders": {
+      "original": { "type": "String" },
+      "suggestion": { "type": "String" }
+    }
+  },
+  "draftingHint": "{documentTitle} matnini shu yerga yozing...",
+  "@draftingHint": {
+    "placeholders": { "documentTitle": { "type": "String" } }
+  },
+  "ghostSuggestionSemantics": "AI taklifi — qo'yish uchun bosing",
+  "ghostAccept": "Qabul qilish",
+  "ghostDismiss": "Taklifni yopish",
+
+  "pastDraftsTooltip": "Avvalgi qoralamalar",
+  "sessionSettingsTooltip": "Sessiya sozlamalari",
+  "switchTrackEnglish": "Til → Inglizcha",
+  "switchTrackKorean": "Til → Koreyscha",
+  "createNewSession": "Yangi sessiya yaratish",
+  "yourSavedDrafts": "Saqlangan qoralamalar",
+  "noPreviousDrafts": "Avvalgi qoralamalar topilmadi.",
+  "generalDraftLabel": "Umumiy",
+  "studyPlanDocumentName": "Study Plan",
+  "personalStatementDocumentName": "Personal Statement",
+  "savedDraftItemTitle": "{universityName} {documentName}",
+  "@savedDraftItemTitle": {
+    "placeholders": {
+      "universityName": { "type": "String" },
+      "documentName": { "type": "String" }
+    }
+  },
+  "sessionStatusLabel": "Holat: {status}",
+  "@sessionStatusLabel": {
+    "placeholders": { "status": { "type": "String" } }
+  },
+  "deleteSessionTitle": "Sessiyani o'chirish",
+  "deleteSessionBody": "Ushbu sessiyani o'chirib tashlamoqchimisiz? Bu amalni qaytarib bo'lmaydi.",
+  "deleteLabel": "O'chirish",
+  "stepperLabelGuide": "Qo'llanma",
+  "stepperLabelExample": "Namuna",
+  "stepperLabelDraft": "Qoralama",
+  "stepperLabelFeedback": "Izoh",
+  "readExamplesButton": "Namunalarni ko'rish",
+  "targetUniversityLabel": "Maqsadli universitet",
+  "startDraftingButton": "Yozishni boshlash",
+  "newStudyPlanDialogTitle": "Yangi Study Plan",
+  "newPersonalStatementDialogTitle": "Yangi Personal Statement",
+  "selectTargetUniversityStep": "1. Maqsadli universitetni tanlang",
+  "selectLanguageTrackStep": "2. Yozish tilini tanlang",
+  "createSession": "Sessiya yaratish",
+  "aiExampleEmbassyTitle": "Elchixona uchun namuna",
+  "aiExampleUniversityTitle": "{universityName} uchun namuna",
+  "@aiExampleUniversityTitle": {
+    "placeholders": { "universityName": { "type": "String" } }
+  },
+  "aiExampleEmbassyLabel": "Koreya Respublikasi Elchixonasi (Viza)",
+  "aiExampleWritingPlaceholder": "AI namuna yozmoqda...",
+  "copyButton": "Nusxa olish",
+  "copiedSnackbar": "Matn nusxalandi!",
+
+  "analysisFeedbackTitle": "Tahlil va izohlar",
+  "noAnalysisYet": "Hozircha tahlil yaratilmagan.",
+  "aiReviewedDraft": "AI qoralamani ko'rib chiqdi.",
+  "returnToDrafting": "Qoralamaga qaytish",
+
+  "studyPlanHistoryTitle": "Study Plan tarixi",
+  "personalStatementHistoryTitle": "Personal Statement tarixi",
+  "draftingHistoryTitle": "Qoralamalar tarixi",
+  "noPastDraftsYet": "Hali saqlangan qoralamalar yo'q",
+  "noPastDraftsBody": "Yangi sessiya boshlang — qoralamalaringiz oxirgi tahrir tartibida shu yerda paydo bo'ladi.",
+  "noTargetUniversity": "Maqsadli universitet yo'q",
+  "sessionStepLabel": "Bosqich {step}",
+  "@sessionStepLabel": {
+    "placeholders": { "step": { "type": "int" } }
+  },
+
+  "metricWords": "So'zlar",
+  "metricCharacters": "Belgilar",
+  "saveStatusUnsaved": "Saqlanmagan",
+  "saveStatusSaving": "Saqlanmoqda...",
+  "saveStatusSaved": "Saqlandi",
+  "saveStatusError": "Saqlash xatosi",
+
+  "interviewPracticeTitle": "Suhbat mashqi",
+  "interviewSettingUp": "Suhbat tayyorlanmoqda...",
+
+  "interviewSetupTitle": "AI suhbat sozlamalari",
+  "interviewSetupSubtitle": "Suhbatni boshlashdan oldin AI suhbatdosh sozlamalarini moslang.",
+  "interviewTypeLabel": "Suhbat turi",
+  "interviewTypeGeneral": "Umumiy tanishtiruv",
+  "interviewTypeUniversitySpecific": "Universitetga moslangan",
+  "interviewTypeVisa": "Viza / Elchixona suhbati",
+  "targetUniversityFieldLabel": "Maqsadli universitet",
+  "languageLabel": "Til",
+  "interviewerPersonaLabel": "Suhbatdosh tipi",
+  "focusTopicLabel": "Mavzu (ixtiyoriy)",
+  "focusTopicHint": "masalan, Kompyuter ilmlari mutaxassisligi haqida...",
+  "timedModeTitle": "Vaqt cheklovi",
+  "timedModeSubtitle": "Qattiq 5 daqiqalik cheklov",
+  "startPracticeButton": "Mashqni boshlash",
+  "pickUniversityFirstHint": "Yuqoridan maqsadli universitetni tanlang.",
+
+  "coachingFiller": "Qo'shimcha so'zlardan voz keching!",
+  "lifelineHintsTitle": "💡 Yordam maslahatlari:",
+  "speakerAi": "AI",
+  "speakerYou": "Siz",
+  "connectionInterrupted": "Aloqa uzildi: {detail}",
+  "@connectionInterrupted": {
+    "placeholders": { "detail": { "type": "String" } }
+  },
+
+  "interviewAnalyticsTitle": "Suhbat tahlili",
+  "analyzingTranscript": "AI transkripsiyani tahlil qilmoqda...",
+  "noFeedbackAvailable": "Izoh topilmadi.",
+  "overallScoreLabel": "Umumiy ball",
+  "metricCommunication": "Muloqot",
+  "metricConfidence": "Ishonchlilik",
+  "metricContent": "Mazmun",
+  "metricLanguage": "Til",
+  "detailedFeedbackTitle": "Batafsil izoh",
+  "detailedFeedbackFallback": "Yaxshi natija.",
+  "strengthsLabel": "Kuchli tomonlar",
+  "areasToImproveLabel": "Yaxshilash kerak",
+  "startAnotherInterview": "Yangi suhbatni boshlash",
+  "sessionRecording": "Sessiya yozuvi",
+  "audioRecordingNotFound": "Audio yozuv topilmadi.",
+
+  "interviewHistoryTitle": "Suhbatlar tarixi",
+  "noPastInterviews": "O'tgan suhbatlar topilmadi.",
+  "unknownTarget": "Noma'lum maqsad",
+  "unknownUniversity": "Noma'lum universitet",
+  "abandonedSessionNote": "Bu sessiya izohsiz tugatilgan — qayta tinglash mavjud emas.",
+  "activeSessionNote": "Bu sessiya hali faol. Tugatib izohni ko'ring.",
+  "deleteSessionTooltip": "Sessiyani o'chirish",
+  "deleteInterviewDialogTitle": "Bu sessiyani o'chirib tashlaysizmi?",
+  "deleteInterviewDialogBody": "Izoh va yozuv havolasi butunlay o'chiriladi.",
+  "deleteFailed": "O'chirish amalga oshmadi: {error}",
+  "@deleteFailed": {
+    "placeholders": { "error": { "type": "Object" } }
+  },
+
+  "a11yTooltipAskAi": "Hanguk AI dan so'rash",
+  "a11yTooltipClearChat": "Chat tarixini tozalash",
+  "a11yTooltipSendMessage": "Xabar yuborish",
+  "a11yTooltipClose": "Yopish",
+  "a11yTooltipPreviewDocument": "Hujjatni ko'rib chiqish",
+  "a11yTooltipDeleteDocument": "Hujjatni o'chirish",
+  "a11yTooltipInterviewHistory": "Suhbat tarixi",
+  "a11yTooltipCloseSession": "Sessiyani yopish",
+  "a11yTooltipDeleteSession": "Sessiyani o'chirish",
+  "a11yTooltipBack": "Orqaga",
+  "a11yTooltipPlayRecording": "Yozuvni ijro etish",
+  "a11yTooltipPauseRecording": "Yozuvni to'xtatish"
+}

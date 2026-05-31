@@ -1,0 +1,66 @@
+name: uni-db ingest
+
+# One-off catch-up: fetch + extract guides for auto-discovered (promoted)
+# sources that have no board adapter — direct PDF / guide-page URLs from the
+# discovery → approve flow. The regular `uni-db sync` only ingests a small
+# chunk per run so it stays inside its time budget; this workflow exists to
+# work through a large backlog in one go with a much higher timeout.
+#
+# Idempotent: a source whose URL already backs a guideline_document is skipped,
+# so running this repeatedly is safe and simply continues where it left off.
+#
+# Paid (real ac.kr fetches + LLM extraction). Same UNI_DB_* secrets as sync.
+
+on:
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: "Max promoted sources to ingest this run"
+        default: "40"
+        required: false
+
+concurrency:
+  group: uni-db-ingest
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    defaults:
+      run:
+        working-directory: services/uni_db
+    env:
+      UNI_DB_LIVE_APIS: "true"
+      UNI_DB_LIVE_CRAWL: "true"
+      UNI_DB_ENV: "production"
+      SUPABASE_DB_URL: ${{ secrets.UNI_DB_SUPABASE_DB_URL }}
+      SUPABASE_URL: ${{ secrets.UNI_DB_SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.UNI_DB_SUPABASE_SERVICE_ROLE_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.UNI_DB_ANTHROPIC_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: services/uni_db/pyproject.toml
+
+      - name: Install service (base deps)
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+
+      - name: Check required secrets are set
+        run: |
+          if [ -z "${SUPABASE_DB_URL}" ] || [ -z "${ANTHROPIC_API_KEY}" ] || [ -z "${SUPABASE_SERVICE_ROLE_KEY}" ]; then
+            echo "::error::Missing secrets. ingest needs UNI_DB_SUPABASE_DB_URL, UNI_DB_ANTHROPIC_API_KEY and UNI_DB_SUPABASE_SERVICE_ROLE_KEY."
+            exit 1
+          fi
+
+      - name: Ingest auto-discovered sources
+        run: uni-db ingest-direct --limit "${{ github.event.inputs.limit || '40' }}"

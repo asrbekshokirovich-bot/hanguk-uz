@@ -1,0 +1,106 @@
+name: uni-db sync
+
+# Scheduled crawl → fetch → extract → translate for the university DB.
+# Replaces the Hetzner VPS: no server to manage, runs on GitHub's runners.
+#
+# IMPORTANT:
+#   * Scheduled (cron) runs only fire from the DEFAULT branch — this starts
+#     working once merged to main.
+#   * Add these repo secrets first (Settings → Secrets and variables → Actions):
+#       UNI_DB_SUPABASE_DB_URL, UNI_DB_SUPABASE_URL,
+#       UNI_DB_SUPABASE_SERVICE_ROLE_KEY, UNI_DB_ANTHROPIC_API_KEY
+#       (optional: UNI_DB_DEEPL_API_KEY for the translate stage)
+#   * Use the "Run workflow" button (workflow_dispatch) with a larger
+#     fetch_limit for the one-time backlog catch-up.
+#   * GitHub auto-disables scheduled workflows after 60 days of repo
+#     inactivity — this repo is active, but keep that in mind.
+
+on:
+  schedule:
+    # Every 6 hours (UTC). Matches the source registry's high-season cadence;
+    # GitHub may start a scheduled run 10–30 min late under load — fine here.
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+    inputs:
+      fetch_limit:
+        description: "Max announcements to fetch+parse this run (use ~100 for the one-time catch-up)"
+        default: "50"
+        required: false
+
+# Never let two cycles overlap; let the running one finish.
+concurrency:
+  group: uni-db-sync
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    defaults:
+      run:
+        working-directory: services/uni_db
+    env:
+      # Live flags — this job is the one place we intentionally crawl + spend.
+      UNI_DB_LIVE_APIS: "true"
+      UNI_DB_LIVE_CRAWL: "true"
+      UNI_DB_ENV: "production"
+      SUPABASE_DB_URL: ${{ secrets.UNI_DB_SUPABASE_DB_URL }}
+      SUPABASE_URL: ${{ secrets.UNI_DB_SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.UNI_DB_SUPABASE_SERVICE_ROLE_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.UNI_DB_ANTHROPIC_API_KEY }}
+      DEEPL_API_KEY: ${{ secrets.UNI_DB_DEEPL_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: services/uni_db/pyproject.toml
+
+      - name: Install service (base deps — no torch/Playwright)
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+
+      - name: Check required secrets are set
+        run: |
+          if [ -z "${SUPABASE_DB_URL}" ] || [ -z "${ANTHROPIC_API_KEY}" ]; then
+            echo "::error::Missing secrets. Add UNI_DB_SUPABASE_DB_URL and UNI_DB_ANTHROPIC_API_KEY in Settings → Secrets and variables → Actions (see docs/runbooks/uni-db-go-live.md)."
+            exit 1
+          fi
+
+      # 1) Poll due sources, record posts (+ classifier label). Best-effort.
+      - name: Discover
+        continue-on-error: true
+        run: python scripts/run_discovery_once.py --since 2
+
+      # 2) Download guideline PDFs → documents → extract → review_queue.
+      #    This is the paid AI step. A non-zero exit (every item failed)
+      #    surfaces as a failed run so we notice; per-item errors are skipped.
+      - name: Fetch + parse
+        run: uni-db run-pipeline --limit "${{ github.event.inputs.fetch_limit || '50' }}"
+
+      # 3) Ingest auto-discovered (promoted) sources that have no board adapter
+      #    — direct PDF/guide-page URLs from the discovery → approve flow. Small
+      #    chunk so the whole sync stays inside the time budget; it's idempotent,
+      #    so successive runs work through the backlog. Use the dedicated
+      #    `uni-db ingest` workflow for a large one-off catch-up. Best-effort.
+      - name: Ingest auto-discovered sources
+        continue-on-error: true
+        run: uni-db ingest-direct --limit 12
+
+      # 4) Fill EN/UZ translations for the review screen. Best-effort.
+      - name: Translate
+        continue-on-error: true
+        run: python scripts/run_translate_once.py --limit 100
+
+      # 5) Publish reviewer-approved items into the public tables the app reads
+      #    (requirements/tuition/scholarships/periods/documents). DB-only + idempotent,
+      #    so it just normalizes whatever was approved since the last run. Best-effort.
+      - name: Publish approved items
+        continue-on-error: true
+        run: uni-db publish --limit 500

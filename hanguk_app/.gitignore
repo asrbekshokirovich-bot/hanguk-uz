@@ -1,0 +1,92 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# The .vscode folder contains launch configuration and tasks you configure in
+# VS Code which you may wish to be included in version control, so this line
+# is commented out by default.
+#.vscode/
+
+# Flutter/Dart/Pub related
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+/build/
+/coverage/
+
+# Symbolication related
+app.*.symbols
+
+# Obfuscation related
+app.*.map.json
+
+# Android Studio will place build artifacts here
+/android/app/debug
+/android/app/profile
+/android/app/release
+
+# Node
+node_modules/
+.env
+
+# Release signing — NEVER commit the real keystore or key.properties.
+# Use android/key.properties.template as a guide; see docs/RELEASE.md.
+android/key.properties
+**/*.jks
+**/*.keystore
+
+# Claude Code — local-only settings (per-machine permissions/cache).
+.claude/settings.local.json
+.claude/worktrees/
+
+# services/uni_db — Python service layer
+services/uni_db/.venv/
+services/uni_db/.cache/
+services/uni_db/.env
+services/uni_db/.staging-secrets.txt
+services/uni_db/.prod-db-url.txt
+services/uni_db/.prod-baseline-tmp.sql
+services/uni_db/.pytest_cache/
+services/uni_db/.mypy_cache/
+services/uni_db/.ruff_cache/
+services/uni_db/**/__pycache__/
+services/uni_db/*.egg-info/
+
+# Supabase CLI — local link metadata (project ref + db creds cache).
+supabase/.temp/
+services/uni_db/build/
+services/uni_db/dist/
+
+# Push-notification credentials — never commit. APNs key is a one-time
+# download from Apple Developer; Firebase service account JSON contains
+# a private key. Both feed `supabase secrets set` only.
+*.p8
+AuthKey_*.p8
+firebase-adminsdk*.json
+*-firebase-adminsdk-*.json
+service-account*.json
+google-services.json
+GoogleService-Info.plist
+.vapid-keys
+vapid-keys.json
+implementation_plan.md
+pg.zip

@@ -1,0 +1,198 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Virtual Tour</title>
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css"
+          crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"
+            crossorigin="anonymous"></script>
+    <style>
+        html, body { width: 100%; height: 100%; margin: 0; padding: 0; background: #0f1626; overflow: hidden; }
+        #viewer { width: 100%; height: 100%; }
+        .hg-status {
+            position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+            color: white; font-family: sans-serif; text-align: center; padding: 0 24px;
+            max-width: 320px; z-index: 5;
+        }
+        .hg-status h3 { font-weight: 600; margin: 0 0 6px 0; font-size: 16px; }
+        .hg-status p { color: rgba(255,255,255,0.6); font-size: 13px; margin: 0; }
+        .hg-pill {
+            position: absolute; top: 16px; right: 16px;
+            padding: 6px 12px; border-radius: 18px;
+            background: rgba(0,0,0,0.55); color: white; font-family: sans-serif;
+            font-size: 12px; border: 1px solid rgba(255,255,255,0.15);
+            pointer-events: none; z-index: 4;
+        }
+    </style>
+</head>
+<body>
+    <div id="viewer"></div>
+    <div id="status" class="hg-status">
+        <h3>Loading virtual tour</h3>
+        <p>Fetching campus panoramas.</p>
+    </div>
+    <div id="pill" class="hg-pill" style="display:none"></div>
+
+    <script>
+    // The Dart side posts `setTourSpec(json)` once it has the tour
+    // JSONB row, plus `setLabels({loading, error, sceneLabelPrefix})`
+    // for localized copy. This file is a generic shell; nothing
+    // specific to Yonsei lives here.
+    (function () {
+        var viewer = null;
+        var labels = {
+            loading: 'Loading virtual tour',
+            loadingSubtitle: 'Fetching campus panoramas.',
+            error: "Tour couldn't load",
+            errorSubtitle: 'Try again on a different network.',
+            scenePrefix: '',
+        };
+
+        function postState(state, sceneId) {
+            try {
+                if (window.HangukTourChannel) {
+                    var payload = sceneId
+                        ? state + '|' + sceneId
+                        : state;
+                    window.HangukTourChannel.postMessage(payload);
+                }
+            } catch (_) {}
+        }
+
+        function showStatus(title, subtitle) {
+            var el = document.getElementById('status');
+            el.innerHTML = '<h3>' + title + '</h3><p>' + (subtitle || '') + '</p>';
+            el.style.display = '';
+        }
+        function hideStatus() {
+            document.getElementById('status').style.display = 'none';
+        }
+        function showPill(text) {
+            var p = document.getElementById('pill');
+            if (!text) { p.style.display = 'none'; return; }
+            p.textContent = text;
+            p.style.display = '';
+        }
+
+        function buildScenesFromSpec(spec, locale) {
+            var out = {};
+            if (!spec || !Array.isArray(spec.scenes)) return out;
+            for (var i = 0; i < spec.scenes.length; i++) {
+                var s = spec.scenes[i];
+                if (!s || !s.id || !s.panorama_url) continue;
+                var hots = [];
+                if (Array.isArray(s.hotspots)) {
+                    for (var j = 0; j < s.hotspots.length; j++) {
+                        var h = s.hotspots[j];
+                        if (typeof h.yaw !== 'number' || typeof h.pitch !== 'number') continue;
+                        var hotspot = {
+                            yaw: h.yaw,
+                            pitch: h.pitch,
+                            type: 'scene',
+                            text: h.text || '',
+                        };
+                        if (h.target_scene_id) hotspot.sceneId = h.target_scene_id;
+                        if (h.target_url) {
+                            // External URL hotspot — Pannellum supports type=info
+                            hotspot.type = 'info';
+                            hotspot.URL = h.target_url;
+                        }
+                        hots.push(hotspot);
+                    }
+                }
+                out[s.id] = {
+                    title: pickTitle(s, locale),
+                    panorama: s.panorama_url,
+                    autoLoad: true,
+                    hotSpots: hots,
+                };
+            }
+            return out;
+        }
+
+        function pickTitle(scene, locale) {
+            if (locale === 'ko' && scene.title_ko) return scene.title_ko;
+            if (locale === 'uz' && scene.title_uz) return scene.title_uz;
+            return scene.title || '';
+        }
+
+        function load(spec, locale) {
+            try {
+                var scenes = buildScenesFromSpec(spec, locale || 'en');
+                var firstId = spec.default_scene && scenes[spec.default_scene]
+                    ? spec.default_scene
+                    : Object.keys(scenes)[0];
+                if (!firstId) {
+                    showStatus(labels.error, 'No scenes defined.');
+                    postState('no_scenes');
+                    return;
+                }
+                viewer = pannellum.viewer('viewer', {
+                    default: { firstScene: firstId, sceneFadeDuration: 600 },
+                    scenes: scenes,
+                });
+                viewer.on('load', function () {
+                    hideStatus();
+                    var cur = viewer.getScene();
+                    var sceneObj = scenes[cur];
+                    if (sceneObj && sceneObj.title) {
+                        showPill((labels.scenePrefix || '') + sceneObj.title);
+                    } else {
+                        showPill('');
+                    }
+                    postState('ready', cur);
+                });
+                viewer.on('scenechange', function (id) {
+                    var s = scenes[id];
+                    if (s && s.title) {
+                        showPill((labels.scenePrefix || '') + s.title);
+                    } else {
+                        showPill('');
+                    }
+                    postState('scene', id);
+                });
+                viewer.on('error', function (e) {
+                    showStatus(labels.error, labels.errorSubtitle);
+                    postState('error');
+                });
+            } catch (e) {
+                showStatus(labels.error, labels.errorSubtitle);
+                postState('error');
+            }
+        }
+
+        // Public surface exposed to the Dart side via the WebView
+        // controller's runJavaScript('window.HangukTour.<fn>(...)').
+        window.HangukTour = {
+            setLabels: function (next) {
+                if (!next) return;
+                if (next.loading) labels.loading = next.loading;
+                if (next.loadingSubtitle) labels.loadingSubtitle = next.loadingSubtitle;
+                if (next.error) labels.error = next.error;
+                if (next.errorSubtitle) labels.errorSubtitle = next.errorSubtitle;
+                if (next.scenePrefix !== undefined) labels.scenePrefix = next.scenePrefix;
+                // Re-render the current status text with new labels.
+                showStatus(labels.loading, labels.loadingSubtitle);
+            },
+            setTourSpec: function (jsonStr, locale) {
+                var spec;
+                try { spec = JSON.parse(jsonStr); }
+                catch (e) {
+                    showStatus(labels.error, 'Tour data is malformed.');
+                    postState('parse_error');
+                    return;
+                }
+                load(spec, locale);
+            },
+        };
+
+        // Until the Dart side hands us a spec, sit on the loading
+        // state so the user doesn't see a blank black square.
+        showStatus(labels.loading, labels.loadingSubtitle);
+    })();
+    </script>
+</body>
+</html>

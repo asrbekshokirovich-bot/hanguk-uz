@@ -1,0 +1,604 @@
+{
+  "@@locale": "en",
+
+  "trainingTabTitle": "Training Center",
+  "@trainingTabTitle": { "description": "Title of the Training bottom-nav tab." },
+
+  "trainingTabSubtitle": "Prepare for your university applications with AI-guided training modules.",
+  "@trainingTabSubtitle": { "description": "One-line description of the Training tab." },
+
+  "studyPlanCardTitle": "Study Plan Builder",
+  "studyPlanCardDesc": "Craft a compelling roadmap for your academic journey.",
+  "personalStatementCardTitle": "Personal Statement",
+  "personalStatementCardDesc": "Write effective and engaging personal essays.",
+  "interviewCardTitle": "Interview Preparation",
+  "interviewCardDesc": "Practice mock questions and improve your confidence.",
+
+  "applyCta": "Apply to a university",
+  "noApplicationsTitle": "No applications yet",
+  "noApplicationsBody": "Add a target university first — drafting starts from a target school.",
+
+  "startInterview": "Start Interview",
+  "cancel": "Cancel",
+  "endInterview": "End Interview",
+  "endSession": "End Session",
+  "practiceAgain": "Practice Again",
+
+  "connecting": "Connecting...",
+  "greetWait": "Connecting — your interviewer will greet you shortly...",
+  "yourTurn": "Your turn to speak",
+  "aiSpeaking": "Interviewer is speaking...",
+  "wrappingUp": "Wrapping up the interview...",
+
+  "micRequired": "Microphone access is required for the interview.",
+
+  "walkaroundLoadingTitle": "Loading campus walkaround",
+  "@walkaroundLoadingTitle": { "description": "Shown while the Kakao Roadview WebView is fetching a panorama." },
+  "walkaroundLoadingSubtitle": "Fetching street view near campus.",
+
+  "walkaroundNoPanoTitle": "No street view here",
+  "@walkaroundNoPanoTitle": { "description": "Shown when no Kakao panorama is found within 200m of the campus pin." },
+  "walkaroundNoPanoSubtitle": "This campus doesn't have a walkable street view nearby.",
+
+  "walkaroundBlockedTitle": "Street view unavailable",
+  "@walkaroundBlockedTitle": { "description": "Shown when the Kakao JS SDK loads but is blocked at runtime." },
+  "walkaroundBlockedSubtitle": "The map provider blocked this request. Try again on a different network.",
+
+  "walkaroundNetworkTitle": "Couldn't reach the map provider",
+  "@walkaroundNetworkTitle": { "description": "Shown when the Kakao JS SDK fails to load (network error)." },
+  "walkaroundNetworkSubtitle": "Check your connection and try again.",
+
+  "walkaroundInitErrorTitle": "Street view couldn't start",
+  "@walkaroundInitErrorTitle": { "description": "Shown when initializing the Kakao Roadview throws unexpectedly." },
+  "walkaroundInitErrorSubtitle": "Something went wrong starting the walkaround. Please try again.",
+
+  "virtualTourTitle": "Virtual Tour",
+  "@virtualTourTitle": { "description": "Button label for the curated panorama tour (Pannellum), when available." },
+  "virtualWalkaroundTitle": "Virtual Walkaround",
+  "@virtualWalkaroundTitle": { "description": "Button label for the Kakao Roadview walkaround." },
+
+  "navApplications": "Applications",
+  "@navApplications": { "description": "Bottom-nav label for the Applications tab (opens ApplicationsTab with AppBar title 'My Applications'). Renamed from navHome in the 2026-05-12 UI/UX audit P0 #5 — 'Home' was a misnomer because the tab is the Applications screen, not a landing/home screen." },
+  "navMap": "Map",
+  "@navMap": { "description": "Bottom-nav label for the Map tab." },
+  "navDocs": "Docs",
+  "@navDocs": { "description": "Bottom-nav label for the Documents tab." },
+  "navTraining": "Training",
+  "@navTraining": { "description": "Bottom-nav label for the Training tab. Kept short for the nav bar — the full screen title is trainingTabTitle." },
+
+  "applicationsTabTitle": "My Applications",
+  "@applicationsTabTitle": { "description": "AppBar title for the Applications tab." },
+  "mapTabTitle": "Universities",
+  "@mapTabTitle": { "description": "Top-bar title for the Map tab." },
+  "documentsTabTitle": "My Documents",
+  "@documentsTabTitle": { "description": "AppBar title for the Documents tab." },
+
+  "accountTooltip": "Account",
+  "@accountTooltip": { "description": "Tooltip for the account icon button in the Applications AppBar — opens the AccountScreen with sign-out, data export, and delete account." },
+
+  "ok": "OK",
+  "@ok": { "description": "Generic confirm/dismiss button used in alert dialogs." },
+
+  "loadingLabel": "Loading...",
+  "@loadingLabel": { "description": "Neutral 'Loading...' label used by spinner placeholder views." },
+
+  "accountBackTooltip": "Back",
+  "@accountBackTooltip": { "description": "Tooltip on the back arrow at the top of the AccountScreen." },
+
+  "accountTitle": "Account",
+  "@accountTitle": { "description": "Header shown next to the back arrow at the top of the AccountScreen. Same lemma as accountTooltip but kept separate so translators can differ between a 'header' and a 'tooltip' if their language calls for it." },
+
+  "accountSignedInAs": "Signed in as",
+  "@accountSignedInAs": { "description": "Label above the email/phone of the currently logged-in user on the AccountScreen." },
+
+  "accountUnknownAccount": "(unknown account)",
+  "@accountUnknownAccount": { "description": "Fallback shown when neither email nor phone is available for the current Supabase user." },
+
+  "accountSessionLabel": "Session",
+  "@accountSessionLabel": { "description": "Section header for the sign-out card on the AccountScreen." },
+
+  "accountSigningOut": "Signing out…",
+  "@accountSigningOut": { "description": "Label on the sign-out button while the sign-out call is in flight." },
+
+  "accountSignOut": "Sign out",
+  "@accountSignOut": { "description": "Idle label on the sign-out button." },
+
+  "accountYourDataLabel": "Your data",
+  "@accountYourDataLabel": { "description": "Section header for the data-export card on the AccountScreen (PIPA + GDPR right to data portability)." },
+
+  "accountYourDataBody": "Download a JSON copy of everything Hanguk holds about your account — profile, applications, study plans, drafts, interview sessions and feedback.",
+  "@accountYourDataBody": { "description": "Body copy under the 'Your data' header, explaining what the JSON export contains." },
+
+  "accountPreparingExport": "Preparing export…",
+  "@accountPreparingExport": { "description": "Label on the export-data button while the export-my-data Edge Function call is in flight." },
+
+  "accountDownloadMyData": "Download my data",
+  "@accountDownloadMyData": { "description": "Idle label on the data-export button." },
+
+  "accountDangerZoneLabel": "Danger zone",
+  "@accountDangerZoneLabel": { "description": "Section header for the delete-account card on the AccountScreen. Red." },
+
+  "accountDangerZoneBody": "Deleting your account is permanent. We will erase your profile, applications, study plans, personal-statement drafts, interview sessions, and transcripts. Documents in storage are removed within 30 days; backups age out within 90 days.",
+  "@accountDangerZoneBody": { "description": "Body copy under the 'Danger zone' header, enumerating exactly what gets deleted and the storage/backup retention windows. Same retention numbers appear in the privacy policy — keep them in sync if the policy is updated." },
+
+  "accountDeleteAccount": "Delete account",
+  "@accountDeleteAccount": { "description": "Label on the red 'Delete account' button that opens the confirmation dialog." },
+
+  "accountPrivacyPolicy": "Privacy Policy",
+  "@accountPrivacyPolicy": { "description": "Legal footer link on the AccountScreen — opens the privacy policy in the system browser." },
+
+  "accountTermsOfService": "Terms of Service",
+  "@accountTermsOfService": { "description": "Legal footer link on the AccountScreen — opens the terms of service in the system browser." },
+
+  "accountDeleteErrorTitle": "Could not delete account",
+  "@accountDeleteErrorTitle": { "description": "Title of the AlertDialog shown when fn_delete_my_account RPC throws." },
+
+  "accountDeleteErrorBody": "We hit an error while deleting your data:\n\n{error}\n\nPlease email privacy@hanguk.uz so we can finish the deletion for you.",
+  "@accountDeleteErrorBody": {
+    "description": "Body of the AlertDialog shown when fn_delete_my_account RPC throws. Embeds the server error message verbatim so we can debug. Falls back to manual email so the user retains their PIPA/GDPR right to erasure.",
+    "placeholders": {
+      "error": { "type": "Object" }
+    }
+  },
+
+  "accountExportFailed": "Export failed: {error}",
+  "@accountExportFailed": {
+    "description": "SnackBar message shown when the export-my-data Edge Function fails. The error is the FunctionException.details or Exception.toString().",
+    "placeholders": {
+      "error": { "type": "Object" }
+    }
+  },
+
+  "accountDeleteDialogTitle": "Delete your account?",
+  "@accountDeleteDialogTitle": { "description": "Title of the 'type DELETE to confirm' dialog." },
+
+  "accountDeleteDialogBody": "This will permanently delete your account, applications, study plans, personal-statement drafts, interview sessions, and transcripts.\n\nType DELETE to confirm.",
+  "@accountDeleteDialogBody": { "description": "Body of the 'type DELETE to confirm' dialog. NOTE: the literal word 'DELETE' that the user must type is intentionally left in English in all locales — the TextField controller compares against the uppercase literal 'DELETE'. Translators: leave 'DELETE' as-is and adapt only the surrounding sentence." },
+
+  "accountDeleteDialogConfirm": "Delete forever",
+  "@accountDeleteDialogConfirm": { "description": "Label on the red confirm button at the bottom of the 'type DELETE to confirm' dialog." },
+
+  "accountDeleteProgress": "Deleting your account…",
+  "@accountDeleteProgress": { "description": "Status text shown next to the spinner in the non-dismissible deletion progress dialog." },
+
+  "loginStudentPortal": "Student Portal",
+  "@loginStudentPortal": { "description": "Subtitle under the 'Hanguk' wordmark on the LoginScreen card." },
+
+  "loginAccessCodeHelp": "Enter the 8-character access code (letters and numbers) provided by your consultant or university representative.",
+  "@loginAccessCodeHelp": { "description": "Help text above the magic-code TextField on the LoginScreen. Explains where the code comes from." },
+
+  "loginAccessCodeButton": "Login manually with Access Code",
+  "@loginAccessCodeButton": { "description": "Label on the primary sign-in button in magic-code mode." },
+
+  "loginSwitchToPhone": "← I actually want to Log in via Phone Number",
+  "@loginSwitchToPhone": { "description": "Fallback TextButton under the magic-code form that returns to the phone-login UI. Translators: keep the leading arrow." },
+
+  "loginComingSoonTitle": "Coming Soon",
+  "@loginComingSoonTitle": { "description": "Title of the 'maintenance' card shown on the LoginScreen while public phone sign-up is disabled." },
+
+  "loginComingSoonBody": "Public sign up and phone login are currently under maintenance as we upgrade our systems.\n\nStudents: Please use your Magic Access Code to log in for now.",
+  "@loginComingSoonBody": { "description": "Body of the 'maintenance' card. Explains that public sign-up is temporarily disabled and points students at the magic-code flow." },
+
+  "loginSwitchToMagicCode": "Switch to Magic Code Login",
+  "@loginSwitchToMagicCode": { "description": "TextButton inside the 'Coming Soon' card that flips the LoginScreen into magic-code mode." },
+
+  "loginErrorInvalidPhone": "Please enter a valid phone number (e.g. +12345678).",
+  "@loginErrorInvalidPhone": { "description": "Validation error when the phone number on the Sign In tab is empty or too short." },
+
+  "loginErrorPasswordTooShort": "Password must be at least 6 characters.",
+  "@loginErrorPasswordTooShort": { "description": "Validation error when the password is shorter than 6 chars (used on both Sign In and Sign Up)." },
+
+  "loginErrorInvalidCredentials": "Invalid phone number or password.",
+  "@loginErrorInvalidCredentials": { "description": "Error shown after the Supabase signInWithPhone call rejects the credentials. Intentionally vague — does not reveal whether the phone or password was the problem." },
+
+  "loginErrorInvalidAccessCode": "Please enter a valid access code (min 6 characters).",
+  "@loginErrorInvalidAccessCode": { "description": "Validation error when the magic-code TextField is shorter than 6 chars before submission." },
+
+  "signUpErrorNameRequired": "Full Name is required.",
+  "@signUpErrorNameRequired": { "description": "Validation error on the Sign Up tab when the name field is empty." },
+
+  "signUpErrorPhoneRequired": "A valid phone number is required (e.g. +12345678).",
+  "@signUpErrorPhoneRequired": { "description": "Validation error on the Sign Up tab when the phone field is empty or too short." },
+
+  "signUpErrorPasswordMismatch": "Passwords do not match.",
+  "@signUpErrorPasswordMismatch": { "description": "Validation error on the Sign Up tab when password and confirm-password differ." },
+
+  "signUpSuccess": "Account created successfully! Please log in.",
+  "@signUpSuccess": { "description": "Success banner shown on the LoginScreen after Sign Up succeeds; the tab controller then animates back to the Sign In tab." },
+
+  "notifSettingsTitle": "Notification settings",
+  "@notifSettingsTitle": { "description": "AppBar title for the /notifications/settings screen (per-tracked-university push-notification preferences)." },
+
+  "notifSettingsEmptyTitle": "No tracked universities yet",
+  "@notifSettingsEmptyTitle": { "description": "Empty-state title on the notification settings screen — shown when user_tracked_universities is empty." },
+
+  "notifSettingsEmptyBody": "Tap \"Track this institution\" on a university page to follow it. Notification preferences appear here once you have at least one tracked institution.",
+  "@notifSettingsEmptyBody": { "description": "Empty-state body on the notification settings screen — instructs the user how to start tracking a university." },
+
+  "notifSettingsCalendar": "Calendar changes",
+  "@notifSettingsCalendar": { "description": "SwitchListTile title — toggles notify_on_calendar_change." },
+
+  "notifSettingsCalendarDesc": "Deadline dates move",
+  "@notifSettingsCalendarDesc": { "description": "SwitchListTile subtitle for the calendar-changes toggle." },
+
+  "notifSettingsCorrection": "Correction notices",
+  "@notifSettingsCorrection": { "description": "SwitchListTile title — toggles notify_on_correction (Korean: 정정공고)." },
+
+  "notifSettingsCorrectionDesc": "정정공고 published — highest priority",
+  "@notifSettingsCorrectionDesc": { "description": "SwitchListTile subtitle for the correction-notice toggle. NOTE: '정정공고' is the Korean university-admission term for an official correction announcement and is left untranslated across locales — it is the term the user actually encounters on Korean university sites." },
+
+  "notifSettingsRequirement": "Requirement changes",
+  "@notifSettingsRequirement": { "description": "SwitchListTile title — toggles notify_on_requirement_change." },
+
+  "notifSettingsRequirementDesc": "TOPIK / GPA / language test rules change",
+  "@notifSettingsRequirementDesc": { "description": "SwitchListTile subtitle for the requirement-changes toggle. 'TOPIK' is a proper noun (test name) and is left untranslated across locales." },
+
+  "notifSettingsScholarship": "Scholarship updates",
+  "@notifSettingsScholarship": { "description": "SwitchListTile title — toggles notify_on_scholarship_change." },
+
+  "notifSettingsScholarshipDesc": "Off by default — high volume",
+  "@notifSettingsScholarshipDesc": { "description": "SwitchListTile subtitle for the scholarship-updates toggle; warns the user that the channel is noisy." },
+
+  "notifSettingsLoadError": "Error: {error}",
+  "@notifSettingsLoadError": {
+    "description": "Centered error message when notificationSettingsProvider's AsyncValue is in the error state.",
+    "placeholders": {
+      "error": { "type": "Object" }
+    }
+  },
+
+  "notifSettingsPushLanguage": "Push payload language: {lang}",
+  "@notifSettingsPushLanguage": {
+    "description": "Label above each per-institution card showing the preferred language code stored on the row. The value is a BCP-47 code (e.g. 'en', 'ko').",
+    "placeholders": {
+      "lang": { "type": "String" }
+    }
+  },
+
+  "notifSettingsUpdateError": "Could not update preference: {error}",
+  "@notifSettingsUpdateError": {
+    "description": "SnackBar message when updateNotificationPrefs() throws.",
+    "placeholders": {
+      "error": { "type": "Object" }
+    }
+  },
+
+  "interviewDialogStepUniversity": "1. Select Target University",
+  "@interviewDialogStepUniversity": { "description": "Step header in the training-tab interview-setup dialog." },
+  "interviewDialogStepTrack": "2. Select Interview Track",
+  "@interviewDialogStepTrack": { "description": "Step header in the training-tab interview-setup dialog." },
+  "interviewDialogStepPersona": "3. Interviewer Persona",
+  "@interviewDialogStepPersona": { "description": "Step header in the training-tab interview-setup dialog." },
+  "interviewNoAppsBody": "Add a target university first — interview practice tailors questions to that school.",
+  "@interviewNoAppsBody": { "description": "Empty-state body in the training-tab interview-setup dialog. Wording differs from noApplicationsBody because it explains how the interview, specifically, tailors to a university." },
+  "trackKorean": "Korean",
+  "@trackKorean": { "description": "Track-chip label for Korean. Used by interview setup AND drafting session dialogs." },
+  "trackEnglish": "English",
+  "@trackEnglish": { "description": "Track-chip label for English. Used by interview setup AND drafting session dialogs." },
+  "personaFriendly": "Friendly admissions officer",
+  "@personaFriendly": { "description": "Dropdown label for the friendly persona on the training-tab quick-setup dialog." },
+  "personaStrict": "Strict professor",
+  "@personaStrict": { "description": "Dropdown label for the strict persona on the training-tab quick-setup dialog." },
+  "personaImpatient": "Impatient visa officer",
+  "@personaImpatient": { "description": "Dropdown label for the impatient persona on the training-tab quick-setup dialog." },
+  "personaFriendlyCaps": "Friendly Admissions Officer",
+  "@personaFriendlyCaps": { "description": "Dropdown label for the friendly persona on the full InterviewSetupView. Capitalised differently from the training-tab dialog to match the existing UI style." },
+  "personaStrictCaps": "Strict Professor",
+  "@personaStrictCaps": { "description": "Dropdown label for the strict persona on the full InterviewSetupView." },
+  "personaImpatientCaps": "Impatient Visa Officer",
+  "@personaImpatientCaps": { "description": "Dropdown label for the impatient persona on the full InterviewSetupView." },
+  "micBlockedInSettings": "Microphone is blocked in system settings.",
+  "@micBlockedInSettings": { "description": "SnackBar shown when the OS reports microphone permission permanently denied. Paired with an 'Open settings' deep-link action." },
+  "openSettings": "Open settings",
+  "@openSettings": { "description": "SnackBar action label that deep-links into the OS app-settings page so the user can re-enable microphone." },
+  "genericError": "Error: {error}",
+  "@genericError": {
+    "description": "Generic 'Error: {error}' inline message used in several training-flow loading states.",
+    "placeholders": { "error": { "type": "Object" } }
+  },
+  "errorLoadingApplications": "Error loading applications: {error}",
+  "@errorLoadingApplications": {
+    "description": "Error string shown in the InterviewSetupView university picker when the applications provider errors.",
+    "placeholders": { "error": { "type": "Object" } }
+  },
+  "noAppsInlineHint": "No applications yet — go to the Applications tab to add one.",
+  "@noAppsInlineHint": { "description": "Short empty-state hint inside the InterviewSetupView university picker. Differs from the longer noApplicationsBody used in the training-tab dialog." },
+
+  "aiStatusWaiting": "Waiting for input...",
+  "@aiStatusWaiting": { "description": "AdvancedDraftingWorkspace AI status when no draft text yet." },
+  "aiStatusCoolingDown": "AI cooling down…",
+  "@aiStatusCoolingDown": { "description": "AdvancedDraftingWorkspace AI status when the per-minute rate cap is in effect (audit A10). The next supervise call is deferred." },
+  "aiStatusAnalyzing": "AI analyzing...",
+  "@aiStatusAnalyzing": { "description": "AdvancedDraftingWorkspace AI status while supervise-draft is in flight." },
+  "aiStatusReady": "Ready",
+  "@aiStatusReady": { "description": "AdvancedDraftingWorkspace AI status when supervise-draft returned empty (no warnings, no ghost text)." },
+  "aiStatusPredicting": "AI Predicting...",
+  "@aiStatusPredicting": { "description": "AdvancedDraftingWorkspace AI status when ghost-text continuation is available." },
+  "aiStatusSupervisionActive": "AI Supervision Active",
+  "@aiStatusSupervisionActive": { "description": "AdvancedDraftingWorkspace AI status when supervise-draft returned issues but no ghost text." },
+  "workspaceTitle": "Workspace",
+  "@workspaceTitle": { "description": "Header above the drafting TextField in AdvancedDraftingWorkspace." },
+  "workspaceAnalyzeButton": "Analyze",
+  "@workspaceAnalyzeButton": { "description": "Right-aligned action in the AdvancedDraftingWorkspace header that saves the draft and runs full analysis." },
+  "aiSupervisionWarningsTitle": "AI Supervision Warnings:",
+  "@aiSupervisionWarningsTitle": { "description": "Label above the list of grammar-fix chips in AdvancedDraftingWorkspace." },
+  "grammarReplaceWith": "Replace \"{original}\" with \"{suggestion}\"",
+  "@grammarReplaceWith": {
+    "description": "Action-chip body inside the AI Supervision Warnings list. Translators: the quotes around the substrings are part of the UI styling.",
+    "placeholders": {
+      "original": { "type": "String" },
+      "suggestion": { "type": "String" }
+    }
+  },
+  "draftingHint": "Type your {documentTitle} here...",
+  "@draftingHint": {
+    "description": "TextField hint inside AdvancedDraftingWorkspace. documentTitle is a localized document name (e.g. 'Study Plan' / 'Personal Statement').",
+    "placeholders": { "documentTitle": { "type": "String" } }
+  },
+  "ghostSuggestionSemantics": "AI suggestion — tap to insert",
+  "@ghostSuggestionSemantics": { "description": "Semantic label on the ghost-text suggestion preview in AdvancedDraftingWorkspace (for screen readers)." },
+  "ghostAccept": "Accept",
+  "@ghostAccept": { "description": "Button label inside the ghost-text suggestion bar — inserts the ghost text at the cursor." },
+  "ghostDismiss": "Dismiss suggestion",
+  "@ghostDismiss": { "description": "Tooltip on the close (×) button inside the ghost-text suggestion bar." },
+
+  "pastDraftsTooltip": "Past drafts",
+  "@pastDraftsTooltip": { "description": "AppBar action tooltip on StudyPlanScreen opening StudyPlanHistoryView." },
+  "sessionSettingsTooltip": "Session settings",
+  "@sessionSettingsTooltip": { "description": "AppBar action tooltip on StudyPlanScreen for the per-session settings popup menu." },
+  "switchTrackEnglish": "Switch track → English",
+  "@switchTrackEnglish": { "description": "PopupMenuItem inside the session-settings menu on StudyPlanScreen." },
+  "switchTrackKorean": "Switch track → Korean",
+  "@switchTrackKorean": { "description": "PopupMenuItem inside the session-settings menu on StudyPlanScreen." },
+  "createNewSession": "Create New Session",
+  "@createNewSession": { "description": "Primary CTA on the StudyPlanScreen session-list (empty state of the screen)." },
+  "yourSavedDrafts": "Your Saved Drafts",
+  "@yourSavedDrafts": { "description": "Section header above the past-drafts list on StudyPlanScreen." },
+  "noPreviousDrafts": "No previous drafts found.",
+  "@noPreviousDrafts": { "description": "Empty-state body inside the past-drafts list on StudyPlanScreen." },
+  "generalDraftLabel": "General",
+  "@generalDraftLabel": { "description": "Fallback university name shown for drafts that have no target university yet." },
+  "studyPlanDocumentName": "Study Plan",
+  "@studyPlanDocumentName": { "description": "Localized document name. NOT the card title (that's studyPlanCardTitle). Used inline in the saved-drafts list as '{University} Study Plan'." },
+  "personalStatementDocumentName": "Personal Statement",
+  "@personalStatementDocumentName": { "description": "Localized document name. NOT the card title (that's personalStatementCardTitle). Used inline in the saved-drafts list as '{University} Personal Statement'." },
+  "savedDraftItemTitle": "{universityName} {documentName}",
+  "@savedDraftItemTitle": {
+    "description": "ListTile title in StudyPlanScreen's saved-drafts list. Placeholder order may need to swap in some locales — translators may rewrite to '{documentName} for {universityName}'.",
+    "placeholders": {
+      "universityName": { "type": "String" },
+      "documentName": { "type": "String" }
+    }
+  },
+  "sessionStatusLabel": "Status: {status}",
+  "@sessionStatusLabel": {
+    "description": "ListTile subtitle in StudyPlanScreen's saved-drafts list. status is the raw status code from the row (e.g. 'in_progress').",
+    "placeholders": { "status": { "type": "String" } }
+  },
+  "deleteSessionTitle": "Delete Session",
+  "@deleteSessionTitle": { "description": "AlertDialog title for the delete-session confirmation in StudyPlanScreen." },
+  "deleteSessionBody": "Are you sure you want to delete this session? This action cannot be undone.",
+  "@deleteSessionBody": { "description": "AlertDialog body for the delete-session confirmation in StudyPlanScreen." },
+  "deleteLabel": "Delete",
+  "@deleteLabel": { "description": "Generic 'Delete' button label used in destructive confirm dialogs across training." },
+  "stepperLabelGuide": "Guide",
+  "@stepperLabelGuide": { "description": "Step 1 label in the StudyPlanScreen wizard stepper." },
+  "stepperLabelExample": "Example",
+  "@stepperLabelExample": { "description": "Step 2 label in the StudyPlanScreen wizard stepper." },
+  "stepperLabelDraft": "Draft",
+  "@stepperLabelDraft": { "description": "Step 3 label in the StudyPlanScreen wizard stepper." },
+  "stepperLabelFeedback": "Feedback",
+  "@stepperLabelFeedback": { "description": "Step 4 label in the StudyPlanScreen wizard stepper." },
+  "readExamplesButton": "Read Examples",
+  "@readExamplesButton": { "description": "CTA at the bottom of Step 1 (Guide) in StudyPlanScreen advancing to Step 2 (Example)." },
+  "targetUniversityLabel": "Target University",
+  "@targetUniversityLabel": { "description": "Section header above the chosen-university row on Step 2 (Example) in StudyPlanScreen." },
+  "startDraftingButton": "Start Drafting",
+  "@startDraftingButton": { "description": "CTA at the bottom of Step 2 (Example) in StudyPlanScreen advancing to Step 3 (Draft)." },
+  "newStudyPlanDialogTitle": "Start New Study Plan",
+  "@newStudyPlanDialogTitle": { "description": "Create-session AlertDialog title when documentType is study_plan." },
+  "newPersonalStatementDialogTitle": "Start New Personal Statement",
+  "@newPersonalStatementDialogTitle": { "description": "Create-session AlertDialog title when documentType is personal_statement." },
+  "selectTargetUniversityStep": "1. Select Target University",
+  "@selectTargetUniversityStep": { "description": "Step header inside the create-session dialog on StudyPlanScreen. Same text as interviewDialogStepUniversity but kept separate so translators can change one without the other." },
+  "selectLanguageTrackStep": "2. Select Language Track",
+  "@selectLanguageTrackStep": { "description": "Step header inside the create-session dialog on StudyPlanScreen." },
+  "createSession": "Create Session",
+  "@createSession": { "description": "Primary CTA at the bottom of the StudyPlanScreen create-session dialog." },
+  "aiExampleEmbassyTitle": "Embassy Example",
+  "@aiExampleEmbassyTitle": { "description": "Header for the embassy-template AI example card on Step 2 (Example) in StudyPlanScreen." },
+  "aiExampleUniversityTitle": "Example for {universityName}",
+  "@aiExampleUniversityTitle": {
+    "description": "Header for the university-template AI example card on Step 2 (Example) in StudyPlanScreen.",
+    "placeholders": { "universityName": { "type": "String" } }
+  },
+  "aiExampleEmbassyLabel": "Embassy of the Republic of Korea (Visa)",
+  "@aiExampleEmbassyLabel": { "description": "Subtitle inside the embassy-template AI example card, identifying the addressee of the visa application." },
+  "aiExampleWritingPlaceholder": "AI is writing an example...",
+  "@aiExampleWritingPlaceholder": { "description": "Inline loading text inside the AI example card while the simulated 'thinking' delay runs." },
+  "copyButton": "Copy",
+  "@copyButton": { "description": "Copy-to-clipboard button label inside the AI example card." },
+  "copiedSnackbar": "Text copied!",
+  "@copiedSnackbar": { "description": "SnackBar shown after the AI example text is copied to clipboard." },
+
+  "analysisFeedbackTitle": "Analysis & Feedback",
+  "@analysisFeedbackTitle": { "description": "Section header on Step 4 (Feedback) in StudyPlanScreen." },
+  "noAnalysisYet": "No analysis generated yet.",
+  "@noAnalysisYet": { "description": "Empty-state body on Step 4 (Feedback) in StudyPlanScreen when no analysis row exists." },
+  "aiReviewedDraft": "AI successfully reviewed your draft.",
+  "@aiReviewedDraft": { "description": "Fallback body on Step 4 (Feedback) in StudyPlanScreen when the analysis row exists but aiResponse is empty." },
+  "returnToDrafting": "Return to Drafting",
+  "@returnToDrafting": { "description": "CTA at the bottom of Step 4 (Feedback) returning to Step 3 (Draft)." },
+
+  "studyPlanHistoryTitle": "Study Plan history",
+  "@studyPlanHistoryTitle": { "description": "AppBar title for StudyPlanHistoryView when documentType is study_plan." },
+  "personalStatementHistoryTitle": "Personal Statement history",
+  "@personalStatementHistoryTitle": { "description": "AppBar title for StudyPlanHistoryView when documentType is personal_statement." },
+  "draftingHistoryTitle": "Drafting history",
+  "@draftingHistoryTitle": { "description": "AppBar title for StudyPlanHistoryView when documentType is unknown." },
+  "noPastDraftsYet": "No past drafts yet",
+  "@noPastDraftsYet": { "description": "Empty-state title on StudyPlanHistoryView." },
+  "noPastDraftsBody": "Start a new session and your drafts will appear here, ordered by most recently edited.",
+  "@noPastDraftsBody": { "description": "Empty-state body on StudyPlanHistoryView." },
+  "noTargetUniversity": "No target university",
+  "@noTargetUniversity": { "description": "Fallback shown on a StudyPlanHistoryView session card when universityNameEn is null/empty." },
+  "sessionStepLabel": "Step {step}",
+  "@sessionStepLabel": {
+    "description": "Step pill on a StudyPlanHistoryView session card.",
+    "placeholders": { "step": { "type": "int" } }
+  },
+
+  "metricWords": "Words",
+  "@metricWords": { "description": "Word-count label in LiveMetricsBar (AdvancedDraftingWorkspace footer)." },
+  "metricCharacters": "Characters",
+  "@metricCharacters": { "description": "Character-count label in LiveMetricsBar (AdvancedDraftingWorkspace footer)." },
+  "saveStatusUnsaved": "Unsaved",
+  "@saveStatusUnsaved": { "description": "LiveMetricsBar save-status tag." },
+  "saveStatusSaving": "Saving...",
+  "@saveStatusSaving": { "description": "LiveMetricsBar save-status tag." },
+  "saveStatusSaved": "Saved",
+  "@saveStatusSaved": { "description": "LiveMetricsBar save-status tag." },
+  "saveStatusError": "Save failed",
+  "@saveStatusError": { "description": "LiveMetricsBar save-status tag (audit U1/A5)." },
+
+  "interviewPracticeTitle": "Interview Practice",
+  "@interviewPracticeTitle": { "description": "AppBar title on InterviewScreen." },
+  "interviewSettingUp": "Setting up your interview...",
+  "@interviewSettingUp": { "description": "Loading caption on InterviewScreen while startSession() runs after navigation from the training-tab dialog." },
+
+  "interviewSetupTitle": "AI Interview Setup",
+  "@interviewSetupTitle": { "description": "Header on the full InterviewSetupView (separate from the quick-setup dialog in TrainingTab)." },
+  "interviewSetupSubtitle": "Configure your AI interviewer settings before starting.",
+  "@interviewSetupSubtitle": { "description": "Subtitle under the InterviewSetupView header." },
+  "interviewTypeLabel": "Interview Type",
+  "@interviewTypeLabel": { "description": "Field label for the sessionType dropdown on InterviewSetupView." },
+  "interviewTypeGeneral": "General Introduction",
+  "@interviewTypeGeneral": { "description": "sessionType dropdown item — value 'general'." },
+  "interviewTypeUniversitySpecific": "University Specific",
+  "@interviewTypeUniversitySpecific": { "description": "sessionType dropdown item — value 'university_specific'." },
+  "interviewTypeVisa": "Visa / Embassy Check",
+  "@interviewTypeVisa": { "description": "sessionType dropdown item — value 'visa'." },
+  "targetUniversityFieldLabel": "Target university",
+  "@targetUniversityFieldLabel": { "description": "Field label on InterviewSetupView when sessionType == university_specific. Lower-case variant of targetUniversityLabel." },
+  "languageLabel": "Language",
+  "@languageLabel": { "description": "Field label for the language-track picker on InterviewSetupView." },
+  "interviewerPersonaLabel": "Interviewer Persona",
+  "@interviewerPersonaLabel": { "description": "Field label for the persona dropdown on InterviewSetupView." },
+  "focusTopicLabel": "Focus Topic (Optional)",
+  "@focusTopicLabel": { "description": "Field label for the focus-topic TextField on InterviewSetupView." },
+  "focusTopicHint": "e.g. Discussing my computer science major...",
+  "@focusTopicHint": { "description": "TextField hint for the focus-topic field on InterviewSetupView." },
+  "timedModeTitle": "Timed Mode",
+  "@timedModeTitle": { "description": "Switch tile title on InterviewSetupView." },
+  "timedModeSubtitle": "5 minute strict limit",
+  "@timedModeSubtitle": { "description": "Switch tile subtitle on InterviewSetupView." },
+  "startPracticeButton": "Start Practice",
+  "@startPracticeButton": { "description": "Primary CTA on InterviewSetupView. Different from startInterview which is used in the quick-setup dialog." },
+  "pickUniversityFirstHint": "Pick a target university above to enable.",
+  "@pickUniversityFirstHint": { "description": "Hint shown under a disabled Start Practice button when university_specific is selected but no target uni is picked." },
+
+  "coachingFiller": "Avoid using filler words!",
+  "@coachingFiller": { "description": "Coaching warning shown in InterviewActiveView when too many filler words detected (≥4)." },
+  "lifelineHintsTitle": "💡 Lifeline Hints:",
+  "@lifelineHintsTitle": { "description": "Header above the live-hints panel in InterviewActiveView." },
+  "speakerAi": "AI",
+  "@speakerAi": { "description": "Speaker label in the transcript ledger on InterviewActiveView (interviewer turn)." },
+  "speakerYou": "You",
+  "@speakerYou": { "description": "Speaker label in the transcript ledger on InterviewActiveView (user turn)." },
+  "connectionInterrupted": "Connection interrupted: {detail}",
+  "@connectionInterrupted": {
+    "description": "Error message shown in InterviewActiveView when a Vapi status-update event signals an error. detail is the truncated error payload (audit U12).",
+    "placeholders": { "detail": { "type": "String" } }
+  },
+
+  "interviewAnalyticsTitle": "Interview Analytics",
+  "@interviewAnalyticsTitle": { "description": "Header on InterviewAnalyticsView." },
+  "analyzingTranscript": "Analyzing transcript with AI...",
+  "@analyzingTranscript": { "description": "Loading caption on InterviewAnalyticsView while interview-feedback Edge Function runs." },
+  "noFeedbackAvailable": "No feedback available.",
+  "@noFeedbackAvailable": { "description": "Fallback shown on InterviewAnalyticsView when feedback is null AND state.error is null." },
+  "overallScoreLabel": "Overall Score",
+  "@overallScoreLabel": { "description": "Big-score card header on InterviewAnalyticsView." },
+  "metricCommunication": "Communication",
+  "@metricCommunication": { "description": "Per-metric label on InterviewAnalyticsView." },
+  "metricConfidence": "Confidence",
+  "@metricConfidence": { "description": "Per-metric label on InterviewAnalyticsView." },
+  "metricContent": "Content",
+  "@metricContent": { "description": "Per-metric label on InterviewAnalyticsView." },
+  "metricLanguage": "Language",
+  "@metricLanguage": { "description": "Per-metric label on InterviewAnalyticsView." },
+  "detailedFeedbackTitle": "Detailed Feedback",
+  "@detailedFeedbackTitle": { "description": "Section header on InterviewAnalyticsView above the long-form review." },
+  "detailedFeedbackFallback": "Great job.",
+  "@detailedFeedbackFallback": { "description": "Fallback body when the feedback row has no detailed_feedback field." },
+  "strengthsLabel": "Strengths",
+  "@strengthsLabel": { "description": "Section header on InterviewAnalyticsView." },
+  "areasToImproveLabel": "Areas to Improve",
+  "@areasToImproveLabel": { "description": "Section header on InterviewAnalyticsView." },
+  "startAnotherInterview": "Start another interview",
+  "@startAnotherInterview": { "description": "CTA at the bottom of InterviewAnalyticsView returning to InterviewSetupView." },
+  "sessionRecording": "Session Recording",
+  "@sessionRecording": { "description": "Header on the audio player widget inside InterviewAnalyticsView." },
+  "audioRecordingNotFound": "Audio recording not found.",
+  "@audioRecordingNotFound": { "description": "Error string shown inside the audio player when fetchRecordingUrl returns null." },
+
+  "interviewHistoryTitle": "Interview History",
+  "@interviewHistoryTitle": { "description": "Header on InterviewHistoryView." },
+  "noPastInterviews": "No past interviews found.",
+  "@noPastInterviews": { "description": "Empty-state on InterviewHistoryView." },
+  "unknownTarget": "Unknown Target",
+  "@unknownTarget": { "description": "Fallback target name on an InterviewHistoryView session card when neither the institution embed nor the legacy universities embed had a row." },
+  "unknownUniversity": "Unknown University",
+  "@unknownUniversity": { "description": "Fallback target name on an InterviewHistoryView session card when the institution embed exists but both name_en and name_ko are empty." },
+  "abandonedSessionNote": "This session ended without feedback — no replay available.",
+  "@abandonedSessionNote": { "description": "SnackBar shown when an abandoned session is tapped on InterviewHistoryView (audit H1)." },
+  "activeSessionNote": "This session is still active. Finish it to see feedback.",
+  "@activeSessionNote": { "description": "SnackBar shown when an in-progress session is tapped on InterviewHistoryView (audit H1)." },
+  "deleteSessionTooltip": "Delete session",
+  "@deleteSessionTooltip": { "description": "IconButton tooltip on InterviewHistoryView session cards (audit H2)." },
+  "deleteInterviewDialogTitle": "Delete this session?",
+  "@deleteInterviewDialogTitle": { "description": "AlertDialog title for the delete-session confirmation on InterviewHistoryView." },
+  "deleteInterviewDialogBody": "The feedback and recording link will be permanently removed.",
+  "@deleteInterviewDialogBody": { "description": "AlertDialog body for the delete-session confirmation on InterviewHistoryView." },
+  "deleteFailed": "Delete failed: {error}",
+  "@deleteFailed": {
+    "description": "SnackBar shown when the delete-interview-session RPC throws.",
+    "placeholders": { "error": { "type": "Object" } }
+  },
+
+  "a11yTooltipAskAi": "Ask Hanguk AI",
+  "@a11yTooltipAskAi": { "description": "Accessibility tooltip on the floating action button in HomeScreen that opens the Hanguk AI chat bottom-sheet. Read aloud by screen readers (audit P0 #3)." },
+
+  "a11yTooltipClearChat": "Clear chat history",
+  "@a11yTooltipClearChat": { "description": "Accessibility tooltip on the trash-can IconButton in ChatTab's AppBar that wipes the in-memory chat transcript (audit P0 #3)." },
+
+  "a11yTooltipSendMessage": "Send message",
+  "@a11yTooltipSendMessage": { "description": "Accessibility tooltip on the send IconButton at the bottom of ChatTab and on the UniversityRoomModal discussion-tab composer (audit P0 #3). Shared between two screens — translators may keep one short phrase." },
+
+  "a11yTooltipClose": "Close",
+  "@a11yTooltipClose": { "description": "Accessibility tooltip on the × IconButton at the top-right of the UniversityRoomModal header that dismisses the bottom-sheet (audit P0 #3)." },
+
+  "a11yTooltipPreviewDocument": "Preview document",
+  "@a11yTooltipPreviewDocument": { "description": "Accessibility tooltip on the eye IconButton inside a DocumentSlot row that opens the uploaded file preview (audit P0 #3)." },
+
+  "a11yTooltipDeleteDocument": "Delete document",
+  "@a11yTooltipDeleteDocument": { "description": "Accessibility tooltip on the trash IconButton inside a DocumentSlot row that removes an uploaded (non-approved) document (audit P0 #3)." },
+
+  "a11yTooltipInterviewHistory": "Interview history",
+  "@a11yTooltipInterviewHistory": { "description": "Accessibility tooltip on the history IconButton in InterviewSetupView's top-right that opens InterviewHistoryView (audit P0 #3). Same lemma as interviewHistoryTitle but a tooltip — translators may keep them in sync or differ." },
+
+  "a11yTooltipCloseSession": "Close session",
+  "@a11yTooltipCloseSession": { "description": "Accessibility tooltip on the × IconButton on StudyPlanScreen's AppBar that exits the current drafting session back to the saved-drafts list (audit P0 #3)." },
+
+  "a11yTooltipDeleteSession": "Delete session",
+  "@a11yTooltipDeleteSession": { "description": "Accessibility tooltip on the trash IconButton inside a saved-drafts ListTile on StudyPlanScreen that removes the draft (audit P0 #3). Same lemma as deleteSessionTooltip (used on InterviewHistoryView) — translators may keep them in sync or differ." },
+
+  "a11yTooltipBack": "Back",
+  "@a11yTooltipBack": { "description": "Accessibility tooltip on the back-arrow IconButton in the training-flow views (InterviewHistoryView header, InterviewAnalyticsView header) (audit P0 #3). Same lemma as accountBackTooltip — translators may keep them in sync or differ." },
+
+  "a11yTooltipPlayRecording": "Play recording",
+  "@a11yTooltipPlayRecording": { "description": "Accessibility tooltip on the audio-playback IconButton inside InterviewAnalyticsView's session-recording widget when the recording is currently paused/stopped (audit P0 #3). Paired with a11yTooltipPauseRecording." },
+
+  "a11yTooltipPauseRecording": "Pause recording",
+  "@a11yTooltipPauseRecording": { "description": "Accessibility tooltip on the audio-playback IconButton inside InterviewAnalyticsView's session-recording widget when the recording is currently playing (audit P0 #3). Paired with a11yTooltipPlayRecording." }
+}

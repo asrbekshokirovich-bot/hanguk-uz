@@ -1,0 +1,34 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "Static Release Web (PowerShell)",
+      "runtimeExecutable": "powershell",
+      "runtimeArgs": [
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "scripts\\serve_web.ps1"
+      ],
+      "port": 8080
+    },
+    {
+      "name": "Flutter Web (Chrome)",
+      "runtimeExecutable": "C:\\Users\\User\\flutter\\bin\\flutter.bat",
+      "runtimeArgs": ["run", "-d", "chrome", "--web-port=8080"],
+      "port": 8080
+    },
+    {
+      "name": "Flutter Web (headless server)",
+      "runtimeExecutable": "C:\\Users\\User\\flutter\\bin\\flutter.bat",
+      "runtimeArgs": ["run", "-d", "web-server", "--web-port=8080", "--web-hostname=127.0.0.1"],
+      "port": 8080
+    },
+    {
+      "name": "Flutter Web (Edge)",
+      "runtimeExecutable": "C:\\Users\\User\\flutter\\bin\\flutter.bat",
+      "runtimeArgs": ["run", "-d", "edge", "--web-port=8080"],
+      "port": 8080
+    }
+  ]
+}

@@ -1,0 +1,2179 @@
+
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="format-detection" content="telephone=no" />
+<meta property="og:url" content="https://oku.korea.ac.kr/oku/index.do" />
+<meta property="og:title" content="입학처" />
+<meta property="og:description" content="수시 > 공지사항" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="입학처"/>
+<meta property="og:image" content="https://oku.korea.ac.kr/img/bvs/snslogo.jpg" />
+<title>입학처 수시 > 공지사항</title>
+
+<link rel="stylesheet" type="text/css" href="/kru/css/common.css" /><!-- reset -->
+<link rel="stylesheet" type="text/css" href="/kru/css/board.css" /><!-- board -->
+<link rel="stylesheet" type="text/css" href="/kru/type/IPSI_C/css/layout.css?v=2" /><!-- 개별 -->
+<link rel="stylesheet" type="text/css" href="/kru/css/ipsi.css" >
+
+<link rel="stylesheet" href="/kru/css/pop_zone.css" />
+<link rel="stylesheet" href="/css/jquery-ui.css" />
+<link rel="stylesheet" href="/css/jquery-ui.theme.css" />
+
+<script type="text/javascript" src="/js/jquery-2.2.1.min.js"></script>
+<script type="text/javascript" src="/js/jquery.font-accessibility.dev.js"></script>
+<!-- slick -->
+<link rel="stylesheet" type="text/css" href="/kru/js/slick/slick.css" />
+<script type="text/javascript" src="/kru/js/slick/slick.min.js"></script>
+<script type="text/javascript" src="/kru/js/slick/slick.acc.js"></script>
+<!-- mCustomScrollbar -->
+<link rel="stylesheet" type="text/css" href="/kru/js/mCustomScrollbar/jquery.mCustomScrollbar.css" />
+<script type="text/javascript" src="/kru/js/mCustomScrollbar/jquery.mCustomScrollbar.concat.min.js"></script>
+
+<script type="text/javascript" src="/kru/js/common.js"></script><!-- 공통 스크립트 -->
+<script type="text/javascript" src="/kru/js/board.js"></script><!-- board -->
+<script type="text/javascript" src="/kru/type/IPSI_C/js/layout.js"></script><!-- layout -->
+
+<script src="/js/jquery.form.js"></script>
+<script src="/js/comm_fr.js"></script>
+<script src="/js/util.js"></script>
+<script src="/js/jquery.tmpl.js"></script>
+<script type="text/javascript" src="/js/clipboard.min.js"></script>
+<script src="/js/printThis.js"></script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-M344LFMEVY"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-M344LFMEVY');
+</script>
+
+
+<link rel="stylesheet" href="/kru/type/IPSI_C/css_2025/reset2.css">
+<link rel="stylesheet" href="/kru/type/IPSI_C/css_2025/common_2025.css">
+<link rel="stylesheet" href="/kru/type/IPSI_C/css_2025/swiper-bundle.min.css">
+
+<script type="text/javascript" src="/kru/type/IPSI_C/js_2025/jquery-ui.js"></script>
+<script type="text/javascript" src="/kru/type/IPSI_C/js_2025/swiper-bundle.min.js"></script>
+<script type="text/javascript" src="/kru/type/IPSI_C/js_2025/common_2025.js"></script>
+<script type="text/javascript" src="/kru/type/IPSI_C/js_2025/sub_2025.js"></script>
+
+<script>
+    $().ready(function() {
+        var clipboard = new ClipboardJS('.sns_urlCopy', {
+            text: function() {
+                return fn_getUrl();
+            }
+        });
+        clipboard.on('success', function(e) {
+            alert("URL이 복사되었습니다.");
+        });
+        clipboard.on('error', function(e) {
+            alert("URL복사에 실패했습니다.");
+        });
+    });
+
+    function fn_getUrl(){
+        var rtnUrl = "";
+        var url = decodeURIComponent(location.href);
+        if($("input:hidden[name=MapInfo]").val() != "" && typeof $("input:hidden[name=MapInfo]").val() != 'undefined' ){
+            if(url.indexOf("MapInfo") != -1) {
+                url =url.substring(0, url.indexOf("&MapInfo"))+"&MapInfo="+$("input:hidden[name=MapInfo]").val();
+            }else{
+                url = url+"&MapInfo="+$("input:hidden[name=MapInfo]").val();
+            }
+        }
+        url = decodeURIComponent(url).replace("#","");
+        url = decodeURIComponent(url).replace(";","");
+        rtnUrl = url.replace("#;","");
+
+        return rtnUrl;
+    }
+
+
+    function shareSns(sns){
+        var snsTitle = '';
+        var snsItems = new Array();
+        var winOpt = new Array();
+        var snsUrl = fn_getUrl();
+
+        snsItems['facebook'] = "http://www.facebook.com/share.php?t="+encodeURIComponent(snsTitle) + "&u=" + encodeURIComponent(snsUrl);
+        snsItems['twitter'] = "https://twitter.com/intent/tweet?text=" + encodeURIComponent(snsTitle + "\n" + snsUrl);
+        snsItems['kakao'] = "https://story.kakao.com/share?url="+encodeURIComponent(snsUrl);
+
+        winOpt['facebook'] = "width=700, height=500, resizable=yes";
+        winOpt['twitter'] = "width=700, height=500, resizable=yes";
+        winOpt['kakao'] = "width=500, height=500, resizable=yes";
+
+        var win = window.open(snsItems[sns], sns, winOpt[sns]);
+        if (win) {
+            win.focus();
+        }
+    }
+</script>
+</head>
+<script>
+var gnbDep1 = 0;
+var gnbDep2 = 0;
+var gnbDep3 = 0;
+gnbDep1 = 1;
+gnbDep2 = 2;
+
+</script>
+<body class="typeSub">
+	<!-- 웹접근성 -->
+	<div id="skip">
+		<strong class="hide">반복영역 건너뛰기</strong>
+		<ul>
+			<li><a href="#contents" tabindex="0">본문 바로가기</a></li>
+			<li><a href="#gnb" tabindex="0">상단메뉴 바로가기</a></li>
+		</ul>
+	</div>
+	<!-- 웹접근성 -->
+
+	<!-- container -->
+	
+
+
+<script>
+	function setSnbHref(obj, org){
+		var v_menuno = ($(obj).data("menuno"));
+		var v_sub = ($(obj).data("sub"));
+
+		if($("ul#gnb_parent li."+v_menuno+" > .menuM").length > 0){
+			if($("ul#gnb_parent li."+v_menuno+" > .menuM > li").length > 0){
+				if(v_sub=="Y"){
+					$(org).attr("href",$("ul#gnb_parent li."+v_menuno+" > .menuM > li:eq(0) > a").attr("href"));
+					$(org).attr("target",$("ul#gnb_parent li."+v_menuno+" > .menuM > li:eq(0) > a").attr("target"));
+				}else{
+					$(org).attr("href",$(org).find(">a").attr("href"));
+				}
+				setHref($("ul#gnb li."+v_menuno+" >  div > ul > li:eq(0)"),org);
+			}
+		}else{
+			if($("ul#gnb_parent li."+v_menuno+" > ul > li").length > 0){
+				if(v_sub=="Y"){
+					$(org).find(">a").attr("href",$("ul#gnb_parent li."+v_menuno+" > ul > li:eq(0) > a").attr("href"));
+					$(org).find(">a").attr("target",$("ul#gnb_parent li."+v_menuno+" > ul > li:eq(0) > a").attr("target"));
+				}else{
+					$(org).find(">a").attr("href",$(org).find(">a").attr("href"));
+				}
+				setHref($("ul#gnb li."+v_menuno+" > ul > li:eq(0)"),org);
+			}
+		}
+	}
+
+	function setParentHref(obj){
+		 if ($(obj).closest("li").find("li").length > 0) {
+			 if($(obj).find("a").data("sub")=="Y"){
+				$(obj).find("a").attr("href", $(obj).closest("li").find("li:eq(0)").find('a').attr("href"));
+				$(obj).find("a").attr("target", $(obj).closest("li").find("li:eq(0)").find('a').attr("target"));
+			 }
+		 }
+	}
+
+	$(function(){
+		$(document).on("click", "ul#gnb li, ul#rnb li:not(ul#rnb>li.child), .mSnb_menu li", function(){
+			setHref($(this),$(this));
+		});
+		$(document).on("click", "ul#gnb_parent li", function(){
+			setParentHref($(this));
+		});
+		$(document).on("click", "#snb_nav .snb_area li a", function(){
+			setSnbHref($(this),$(this));
+		});
+	});
+
+	function goSearch(searchText) {
+
+		if($("#searchSendForm input[name=SEARCH_TEXT]").val().trim()==''){
+			if (searchText) {
+				$("#searchSendForm input[name=SEARCH_TEXT]").val(searchText);
+			} else {
+				alert("검색어를 입력해주세요.");
+				return false;
+			}
+		}
+		$("#searchSendForm").attr("action","/oku/search.do");
+		$("#searchSendForm").submit();
+	}
+</script>
+<div class="header">
+	<div class="inner">
+		<h1 class="logo">
+			
+			<a href="https://oku.korea.ac.kr/oku/index.do"><img src="/ajaxfile/CMN_SVC/FileView.do?GBN=X01&SITE_GROUP_NO=2&SITE_NO=2&PC_FILE_NM_SAVED=202510/1761529886804_0.png" alt="입학처" class="off"/></a>
+			<a href="https://oku.korea.ac.kr/oku/index.do"><img src="/ajaxfile/CMN_SVC/FileView.do?GBN=X01&SITE_GROUP_NO=2&SITE_NO=2&MOBILE=TRUE&MOBILE_FILE_NM_SAVED=202510/1761529842936_0.png" alt="입학처" class="on"/></a>
+		</h1>
+		<!-- //logo -->
+
+		<div class="gnb_wrap">
+			<ul class="gnb" id="gnb_parent">
+				
+				<li class="depth1 550">
+					<a href="/oku/cms/FR_CON/index.do?MENU_ID=550" title="수시 현재창  이동" data-menuno="550" data-sub="Y" target="_self"><span>수시</span></a>
+					<ul class="depth2 menuM" id="gnb">
+						
+							<li>
+								<a href="/oku/cms/FR_CON/index.do?MENU_ID=680" title="모집요강 현재창  이동" data-menuno="680" data-sub="Y" target="_self"><span>모집요강</span></a>
+							</li>
+						
+							<li>
+								<a href="/oku/cms/FR_CON/index.do?MENU_ID=1700" title="공지사항 현재창  이동" data-menuno="1700" data-sub="Y" target="_self"><span>공지사항</span></a>
+							</li>
+						
+							<li>
+								<a href="/oku/cms/FR_CON/index.do?MENU_ID=1710" title="제출서류 현재창  이동" data-menuno="1710" data-sub="Y" target="_self"><span>제출서류</span></a>
+							</li>
+						
+							<li>
+								<a href="/oku/cms/FR_CON/index.do?MENU_ID=1720" title="지원율통계 현재창  이동" data-menuno="1720" data-sub="Y" target="_self"><span>지원율통계</span></a>
+							</li>
+						
+					</ul>
+				</li>
+				
+				<li class="depth1 570">
+					<a href="/oku/cms/FR_CON/index.do?MENU_ID=570" title="정시 현재창  이동" data-menuno="570" data-sub="Y" target="_self"><span>정시</span></a>
+					<ul class="depth2 menuM" id="gnb">
+						
+							<li>
+								<a href="/oku/cms/FR_CON/index.do?MENU_ID=650" title="모집요강 현재창  이동" data-menuno="650" data-sub="Y" target="_self"><span>모집요강</span></a>
+							</li>
+						
+							<li>
+								<a href="/oku/cms/FR_CON/index.do?MENU_ID=1730" title="공지사항 현재창  이동" data-menuno="1730" data-sub="Y" target="_self"><span>공지사항</span></a>
+							</li>
+						
+							<li>
+								<a href="/oku/cms/FR_CON/index.do?MENU_ID=730" title="제출서류 현재창  이동" data-menuno="730" data-sub="Y" target="_self"><span>제출서류</span></a>
+							</li>
+						
+							<li>
+								<a href="/oku/cms/FR_CON/index.do?MENU_ID=710" title="지원율통계 현재창  이동" data-menuno="710" data-sub="Y" target="_self"><span>지원율통계</span></a>
+							</li>
+						
+					</ul>
+				</li>
+				
+				<li class="depth1 1660">
+					<a href="/oku/cms/FR_CON/index.do?MENU_ID=1660" title="특별전형 현재창  이동" data-menuno="1660" data-sub="Y" target="_self"><span>특별전형</span></a>
+					<ul class="depth2 menuM" id="gnb">
+						
+							<li>
+								<a href="/oku/cms/FR_CON/index.do?MENU_ID=690" title="모집요강(전기) 현재창  이동" data-menuno="690" data-sub="Y" target="_self"><span>모집요강(전기)</span></a>
+							</li>
+						
+							<li>
+								<a href="/oku/cms/FR_CON/index.do?MENU_ID=1370" title="모집요강(후기) 현재창  이동" data-menuno="1370" data-sub="Y" target="_self"><span>모집요강(후기)</span></a>
+							</li>
+						
+							<li>
+								<a href="/oku/cms/FR_CON/index.do?MENU_ID=1740" title="공지사항 현재창  이동" data-menuno="1740" data-sub="Y" target="_self"><span>공지사항</span></a>
+							</li>
+						
+							<li>
+								<a href="/oku/cms/FR_CON/index.do?MENU_ID=1750" title="제출서류 현재창  이동" data-menuno="1750" data-sub="Y" target="_self"><span>제출서류</span></a>
+							</li>
+						
+							<li>
+								<a href="/oku/cms/FR_CON/index.do?MENU_ID=1760" title="지원율통계 현재창  이동" data-menuno="1760" data-sub="Y" target="_self"><span>지원율통계</span></a>
+							</li>
+						
+					</ul>
+				</li>
+				
+				<li class="depth1 1670">
+					<a href="/oku/cms/FR_CON/index.do?MENU_ID=1670" title="편입학 현재창  이동" data-menuno="1670" data-sub="Y" target="_self"><span>편입학</span></a>
+					<ul class="depth2 menuM" id="gnb">
+						
+							<li>
+								<a href="/oku/cms/FR_CON/index.do?MENU_ID=660" title="모집요강 현재창  이동" data-menuno="660" data-sub="Y" target="_self"><span>모집요강</span></a>
+							</li>
+						
+							<li>
+								<a href="/oku/cms/FR_CON/index.do?MENU_ID=1770" title="공지사항 현재창  이동" data-menuno="1770" data-sub="Y" target="_self"><span>공지사항</span></a>
+							</li>
+						
+							<li>
+								<a href="/oku/cms/FR_CON/index.do?MENU_ID=1780" title="제출서류 현재창  이동" data-menuno="1780" data-sub="Y" target="_self"><span>제출서류</span></a>
+							</li>
+						
+							<li>
+								<a href="/oku/cms/FR_CON/index.do?MENU_ID=1790" title="지원율통계 현재창  이동" data-menuno="1790" data-sub="Y" target="_self"><span>지원율통계</span></a>
+							</li>
+						
+					</ul>
+				</li>
+				
+				<li class="depth1 580">
+					<a href="/oku/cms/FR_CON/index.do?MENU_ID=580" title="입학도우미 현재창  이동" data-menuno="580" data-sub="Y" target="_self"><span>입학도우미</span></a>
+					<ul class="depth2 menuM" id="gnb">
+						
+							<li>
+								<a href="/oku/cms/FR_CON/index.do?MENU_ID=750" title="통합 공지사항 현재창  이동" data-menuno="750" data-sub="Y" target="_self"><span>통합 공지사항</span></a>
+							</li>
+						
+							<li>
+								<a href="/oku/cms/FR_CON/index.do?MENU_ID=1540" title="Q&A 현재창  이동" data-menuno="1540" data-sub="Y" target="_self"><span>Q&A</span></a>
+							</li>
+						
+							<li>
+								<a href="/oku/cms/FR_CON/index.do?MENU_ID=790" title="FAQ 현재창  이동" data-menuno="790" data-sub="Y" target="_self"><span>FAQ</span></a>
+							</li>
+						
+							<li>
+								<a href="/oku/cms/FR_CON/index.do?MENU_ID=1060" title="통합일정 현재창  이동" data-menuno="1060" data-sub="Y" target="_self"><span>통합일정</span></a>
+							</li>
+						
+					</ul>
+				</li>
+				
+				<li class="depth1 590">
+					<a href="/oku/cms/FR_CON/index.do?MENU_ID=590" title="입학자료실 현재창  이동" data-menuno="590" data-sub="Y" target="_self"><span>입학자료실</span></a>
+					<ul class="depth2 menuM" id="gnb">
+						
+							<li>
+								<a href="/oku/cms/FR_CON/index.do?MENU_ID=720" title="기출문제 현재창  이동" data-menuno="720" data-sub="Y" target="_self"><span>기출문제</span></a>
+							</li>
+						
+							<li>
+								<a href="/oku/cms/FR_CON/index.do?MENU_ID=740" title="전년도 모집요강 현재창  이동" data-menuno="740" data-sub="Y" target="_self"><span>전년도 모집요강</span></a>
+							</li>
+						
+							<li>
+								<a href="/oku/cms/FR_CON/index.do?MENU_ID=760" title="입시 관련 영상 현재창  이동" data-menuno="760" data-sub="Y" target="_self"><span>입시 관련 영상</span></a>
+							</li>
+						
+							<li>
+								<a href="/oku/cms/FR_CON/index.do?MENU_ID=1400" title="입학처 규정 현재창  이동" data-menuno="1400" data-sub="Y" target="_self"><span>입학처 규정</span></a>
+							</li>
+						
+							<li>
+								<a href="/oku/cms/FR_CON/index.do?MENU_ID=810" title="동영상 강의 현재창  이동" data-menuno="810" data-sub="Y" target="_self"><span>동영상 강의</span></a>
+							</li>
+						
+					</ul>
+				</li>
+				
+				<li class="depth1 1680">
+					<a href="/oku/cms/FR_CON/index.do?MENU_ID=1680" title="신청 및 조회 현재창  이동" data-menuno="1680" data-sub="Y" target="_self"><span>신청 및 조회</span></a>
+					<ul class="depth2 menuM" id="gnb">
+						
+							<li>
+								<a href="/oku/cms/FR_CON/index.do?MENU_ID=1010" title="성적표 리포팅 도착확인 현재창  이동" data-menuno="1010" data-sub="Y" target="_self"><span>성적표 리포팅 도착확인</span></a>
+							</li>
+						
+							<li>
+								<a href="/oku/cms/FR_CON/index.do?MENU_ID=1000" title="고교별 합격자 조회 현재창  이동" data-menuno="1000" data-sub="Y" target="_self"><span>고교별 합격자 조회</span></a>
+							</li>
+						
+					</ul>
+				</li>
+				
+				<li class="depth1 600">
+					<a href="/oku/cms/FR_CON/index.do?MENU_ID=600" title="학교안내 현재창  이동" data-menuno="600" data-sub="Y" target="_self"><span>학교안내</span></a>
+					<ul class="depth2 menuM" id="gnb">
+						
+							<li>
+								<a href="/oku/cms/FR_CON/index.do?MENU_ID=700" title="International Students 현재창  이동" data-menuno="700" data-sub="Y" target="_self"><span>International Students</span></a>
+							</li>
+						
+							<li>
+								<a href="/oku/cms/FR_CON/index.do?MENU_ID=820" title="전공안내 현재창  이동" data-menuno="820" data-sub="Y" target="_self"><span>전공안내</span></a>
+							</li>
+						
+							<li>
+								<a href="https://registrar.korea.ac.kr/eduinfo/info/major_double.do" title="다양한 전공제도  새창 이동" data-menuno="830" data-sub="N" target="_blank"><span>다양한 전공제도</span></a>
+							</li>
+						
+							<li>
+								<a href="https://dorm.korea.ac.kr/front/main" title="기숙사  새창 이동" data-menuno="850" data-sub="N" target="_blank"><span>기숙사</span></a>
+							</li>
+						
+							<li>
+								<a href="https://tour.korea.ac.kr/tour/index.do" title="견학프로그램  새창 이동" data-menuno="860" data-sub="N" target="_blank"><span>견학프로그램</span></a>
+							</li>
+						
+							<li>
+								<a href="https://www.korea.ac.kr/ko/401/subview.do" title="캠퍼스맵  새창 이동" data-menuno="870" data-sub="N" target="_blank"><span>캠퍼스맵</span></a>
+							</li>
+						
+							<li>
+								<a href="/oku/cms/FR_CON/index.do?MENU_ID=880" title="입학처 오시는 길 현재창  이동" data-menuno="880" data-sub="Y" target="_self"><span>입학처 오시는 길</span></a>
+							</li>
+						
+					</ul>
+				</li>
+				
+			</ul>
+			<!-- //gnb -->
+		</div>
+		<!-- //gnb_wrap -->
+
+		<div class="hd_side">
+			<div class="campus_select">
+				<button class="view">
+					서울캠퍼스 입학처
+					
+				</button>
+				<ul>
+					<li><a href="/oku/index.do" target="_blank">서울캠퍼스 입학처</a></li>
+					<li><a href="/sejong/index.do" target="_blank">세종캠퍼스 입학팀</a></li>
+					<li><a href="https://oia.korea.ac.kr/oia/index.do" target="_blank">국제처</a></li>
+					<li><a href="https://www.korea.ac.kr/sites/ko/index.do" target="_blank">고려대학교</a></li>
+				</ul>
+			</div>
+			<div class="hd_btn_wrap">
+				<button class="btn_issue "><span class="hide">핫이슈</span></button>
+				<button class="btn_search"><span class="hide">검색</span></button>
+				<button class="btn_menu"><span class="hide">전체메뉴</span></button>
+			</div>
+		</div>
+		<!-- //hd_side -->
+
+	</div>
+	<!-- //inner -->
+</div>
+<!-- //header -->
+
+<div class="searchBg">
+	<div class="search_wrap">
+		<button class="btn_close">닫기</button>
+		<div class="inner">
+
+			<div class="search_tit">
+				<div class="logo"><img src="/kru/type/IPSI_C/img/common/search_logo.svg" alt="고려대학교" /></div>
+				<h2><span class="point">KU</span>SEARCH</h2>
+			</div>
+			<form method="post" id="searchSendForm">
+				<div class="search_box">
+					<input type="text" name="SEARCH_TEXT" placeholder="검색어를 입력해주세요." class="searchForm" title="검색" onkeypress="javascript:if(event.keyCode == 13) goSearch();">
+					<button class="submit" onclick="goSearch();">검색</button>
+				</div>
+			</form>
+			<div class="hot_keyword">
+				<ul>
+					
+						
+					
+						
+					
+						
+					
+						
+					
+						
+					
+				</ul>
+			</div>
+		</div>
+		<div class="bg_txt">KOREA UNIVERSITY</div>
+	</div>
+</div>
+
+
+
+
+<div class="hotIssueBg ">
+	<div class="hotIssue_wrap">
+		<div class="tit_area">
+			<p class="tit">KU HOT issue</p>
+			<button class="btn_close">닫기</button>
+		</div>
+		<div class="hotIssue_con">
+			<div class="hotIssue_slider mySwiper swiper">
+				<div class="swiper-wrapper">
+					
+				</div>
+				<!-- //swiper-wrapper -->
+				<div class="hotIssue_dir">
+					<button class="swiper-button-prev"></button>
+					<button class="swiper-button-next"></button>
+				</div>
+			</div>
+			<!-- //hotIssue_slider -->
+		</div>
+		<!-- //hotIssue_con -->
+	</div>
+	<!-- //hotIssue_wrap -->
+</div>
+<!-- //hotIssueBg -->
+
+<div class="allMenu">
+	<button class="btn_close">닫기</button>
+	<div class="logo">
+		<img src="/ajaxfile/CMN_SVC/FileView.do?GBN=X01&SITE_GROUP_NO=2&SITE_NO=2&PC_FILE_NM_SAVED=202510/1761529886804_0.png" alt="입학처"/>
+		<img src="/ajaxfile/CMN_SVC/FileView.do?GBN=X01&SITE_GROUP_NO=2&SITE_NO=2&MOBILE=TRUE&MOBILE_FILE_NM_SAVED=202510/1761529842936_0.png" alt="입학처" class="on"/>
+	</div>
+	<div class="flex_inner">
+		<div class="left_side">
+			<div class="info_wrap">
+				<div class="tel">
+					 <p class="txt1"><span class="t">고려대학교 입학처</span> <strong>전화상담</strong></p>
+<p class="txt2"><span class="t">평일&nbsp;09:00 ~ 17:30 <span>(공휴일, 중식시간 제외)</span></span> <strong>02.3290.5161~3</strong></p>
+
+				</div>
+				
+				<div class="addr_copy">
+					<address class="address">(02841) 서울시 성북구 안암로 145 <span class="mb_br"></span>고려대학교 라이시움 1층<span class="mb_block">ⓒ2025 KU</span></address>
+<p class="copy">ⓒ2025 ADMISSIONS OFFICE KOREA UNIVERSITY. <span class="mb_br"></span> ALL RIGHTS RESERVED.</p>			
+
+				</div>
+			</div>
+		</div>
+		<div class="allMenu_con">
+			<div class="inner">
+				<ul class="gnbDepth1">
+					
+					<li>
+						<a href="#" title="수시 현재창  이동" data-menuno="550" data-sub="Y" target="_self"><span>수시</span></a>
+						<ul class="gnbDepth2">
+							
+								<li><a href="/oku/cms/FR_CON/index.do?MENU_ID=680" title="모집요강 현재창  이동" data-sub="Y" target="_self"><span>모집요강</span></a>
+							
+								<li><a href="/oku/cms/FR_CON/index.do?MENU_ID=1700" title="공지사항 현재창  이동" data-sub="Y" target="_self"><span>공지사항</span></a>
+							
+								<li><a href="/oku/cms/FR_CON/index.do?MENU_ID=1710" title="제출서류 현재창  이동" data-sub="Y" target="_self"><span>제출서류</span></a>
+							
+								<li><a href="/oku/cms/FR_CON/index.do?MENU_ID=1720" title="지원율통계 현재창  이동" data-sub="Y" target="_self"><span>지원율통계</span></a>
+							
+						</ul>
+					</li>
+					
+					<li>
+						<a href="#" title="정시 현재창  이동" data-menuno="570" data-sub="Y" target="_self"><span>정시</span></a>
+						<ul class="gnbDepth2">
+							
+								<li><a href="/oku/cms/FR_CON/index.do?MENU_ID=650" title="모집요강 현재창  이동" data-sub="Y" target="_self"><span>모집요강</span></a>
+							
+								<li><a href="/oku/cms/FR_CON/index.do?MENU_ID=1730" title="공지사항 현재창  이동" data-sub="Y" target="_self"><span>공지사항</span></a>
+							
+								<li><a href="/oku/cms/FR_CON/index.do?MENU_ID=730" title="제출서류 현재창  이동" data-sub="Y" target="_self"><span>제출서류</span></a>
+							
+								<li><a href="/oku/cms/FR_CON/index.do?MENU_ID=710" title="지원율통계 현재창  이동" data-sub="Y" target="_self"><span>지원율통계</span></a>
+							
+						</ul>
+					</li>
+					
+					<li>
+						<a href="#" title="특별전형 현재창  이동" data-menuno="1660" data-sub="Y" target="_self"><span>특별전형</span></a>
+						<ul class="gnbDepth2">
+							
+								<li><a href="/oku/cms/FR_CON/index.do?MENU_ID=690" title="모집요강(전기) 현재창  이동" data-sub="Y" target="_self"><span>모집요강(전기)</span></a>
+							
+								<li><a href="/oku/cms/FR_CON/index.do?MENU_ID=1370" title="모집요강(후기) 현재창  이동" data-sub="Y" target="_self"><span>모집요강(후기)</span></a>
+							
+								<li><a href="/oku/cms/FR_CON/index.do?MENU_ID=1740" title="공지사항 현재창  이동" data-sub="Y" target="_self"><span>공지사항</span></a>
+							
+								<li><a href="/oku/cms/FR_CON/index.do?MENU_ID=1750" title="제출서류 현재창  이동" data-sub="Y" target="_self"><span>제출서류</span></a>
+							
+								<li><a href="/oku/cms/FR_CON/index.do?MENU_ID=1760" title="지원율통계 현재창  이동" data-sub="Y" target="_self"><span>지원율통계</span></a>
+							
+						</ul>
+					</li>
+					
+					<li>
+						<a href="#" title="편입학 현재창  이동" data-menuno="1670" data-sub="Y" target="_self"><span>편입학</span></a>
+						<ul class="gnbDepth2">
+							
+								<li><a href="/oku/cms/FR_CON/index.do?MENU_ID=660" title="모집요강 현재창  이동" data-sub="Y" target="_self"><span>모집요강</span></a>
+							
+								<li><a href="/oku/cms/FR_CON/index.do?MENU_ID=1770" title="공지사항 현재창  이동" data-sub="Y" target="_self"><span>공지사항</span></a>
+							
+								<li><a href="/oku/cms/FR_CON/index.do?MENU_ID=1780" title="제출서류 현재창  이동" data-sub="Y" target="_self"><span>제출서류</span></a>
+							
+								<li><a href="/oku/cms/FR_CON/index.do?MENU_ID=1790" title="지원율통계 현재창  이동" data-sub="Y" target="_self"><span>지원율통계</span></a>
+							
+						</ul>
+					</li>
+					
+					<li>
+						<a href="#" title="입학도우미 현재창  이동" data-menuno="580" data-sub="Y" target="_self"><span>입학도우미</span></a>
+						<ul class="gnbDepth2">
+							
+								<li><a href="/oku/cms/FR_CON/index.do?MENU_ID=750" title="통합 공지사항 현재창  이동" data-sub="Y" target="_self"><span>통합 공지사항</span></a>
+							
+								<li><a href="/oku/cms/FR_CON/index.do?MENU_ID=1540" title="Q&A 현재창  이동" data-sub="Y" target="_self"><span>Q&A</span></a>
+							
+								<li><a href="/oku/cms/FR_CON/index.do?MENU_ID=790" title="FAQ 현재창  이동" data-sub="Y" target="_self"><span>FAQ</span></a>
+							
+								<li><a href="/oku/cms/FR_CON/index.do?MENU_ID=1060" title="통합일정 현재창  이동" data-sub="Y" target="_self"><span>통합일정</span></a>
+							
+						</ul>
+					</li>
+					
+					<li>
+						<a href="#" title="입학자료실 현재창  이동" data-menuno="590" data-sub="Y" target="_self"><span>입학자료실</span></a>
+						<ul class="gnbDepth2">
+							
+								<li><a href="/oku/cms/FR_CON/index.do?MENU_ID=720" title="기출문제 현재창  이동" data-sub="Y" target="_self"><span>기출문제</span></a>
+							
+								<li><a href="/oku/cms/FR_CON/index.do?MENU_ID=740" title="전년도 모집요강 현재창  이동" data-sub="Y" target="_self"><span>전년도 모집요강</span></a>
+							
+								<li><a href="/oku/cms/FR_CON/index.do?MENU_ID=760" title="입시 관련 영상 현재창  이동" data-sub="Y" target="_self"><span>입시 관련 영상</span></a>
+							
+								<li><a href="/oku/cms/FR_CON/index.do?MENU_ID=1400" title="입학처 규정 현재창  이동" data-sub="Y" target="_self"><span>입학처 규정</span></a>
+							
+								<li><a href="/oku/cms/FR_CON/index.do?MENU_ID=810" title="동영상 강의 현재창  이동" data-sub="Y" target="_self"><span>동영상 강의</span></a>
+							
+						</ul>
+					</li>
+					
+					<li>
+						<a href="#" title="신청 및 조회 현재창  이동" data-menuno="1680" data-sub="Y" target="_self"><span>신청 및 조회</span></a>
+						<ul class="gnbDepth2">
+							
+								<li><a href="/oku/cms/FR_CON/index.do?MENU_ID=1010" title="성적표 리포팅 도착확인 현재창  이동" data-sub="Y" target="_self"><span>성적표 리포팅 도착확인</span></a>
+							
+								<li><a href="/oku/cms/FR_CON/index.do?MENU_ID=1000" title="고교별 합격자 조회 현재창  이동" data-sub="Y" target="_self"><span>고교별 합격자 조회</span></a>
+							
+						</ul>
+					</li>
+					
+					<li>
+						<a href="#" title="학교안내 현재창  이동" data-menuno="600" data-sub="Y" target="_self"><span>학교안내</span></a>
+						<ul class="gnbDepth2">
+							
+								<li><a href="/oku/cms/FR_CON/index.do?MENU_ID=700" title="International Students 현재창  이동" data-sub="Y" target="_self"><span>International Students</span></a>
+							
+								<li><a href="/oku/cms/FR_CON/index.do?MENU_ID=820" title="전공안내 현재창  이동" data-sub="Y" target="_self"><span>전공안내</span></a>
+							
+								<li><a href="https://registrar.korea.ac.kr/eduinfo/info/major_double.do" title="다양한 전공제도  새창 이동" data-sub="N" target="_blank"><span>다양한 전공제도</span></a>
+							
+								<li><a href="https://dorm.korea.ac.kr/front/main" title="기숙사  새창 이동" data-sub="N" target="_blank"><span>기숙사</span></a>
+							
+								<li><a href="https://tour.korea.ac.kr/tour/index.do" title="견학프로그램  새창 이동" data-sub="N" target="_blank"><span>견학프로그램</span></a>
+							
+								<li><a href="https://www.korea.ac.kr/ko/401/subview.do" title="캠퍼스맵  새창 이동" data-sub="N" target="_blank"><span>캠퍼스맵</span></a>
+							
+								<li><a href="/oku/cms/FR_CON/index.do?MENU_ID=880" title="입학처 오시는 길 현재창  이동" data-sub="Y" target="_self"><span>입학처 오시는 길</span></a>
+							
+						</ul>
+					</li>
+					
+				</ul>
+				<!-- //gnbDepth1 -->
+				
+				<!-- //quick_menu -->
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="bottom_floating_wrap">
+	<div class="chetbot">
+		<a href="#none">
+			<span class="icon"></span>
+			<p>챗봇</p>
+		</a>
+	</div>
+	<!-- //chetbot -->
+	<div class="btn_top" data-menuanchor="visualPage">
+		<a href="#visualPage">
+			<span></span>
+			<p>TOP</p>
+		</a>
+	</div>
+	<!-- //btn_top -->
+</div>
+<!-- // bottom_floating_wrap -->
+
+	<div id="container">
+		
+
+<script>
+$(function(){
+	$(".btn_print").bind("click", function(){
+		window.print();	
+	});
+});
+</script>
+
+<div class="sVisual" style="background-image:url(/ajaxfile/CMN_SVC/FileView.do?GBN=X03&SITE_NO=2&MENU_NO=550)"><div>
+    <strong></strong>
+</div></div>
+<nav id="snb_nav">
+    <div class="snb_area">
+		<a class="btn_home"  href="https://oku.korea.ac.kr/oku/index.do" title="HOME">HOME</a>
+	        
+            	<button >수시</button>
+           
+           	
+           		<button class="on">공지사항</button>
+           	
+          
+            <ul id="snb">
+            	 
+            	 	<li class="child">
+						<a href="/oku/cms/FR_CON/index.do?MENU_ID=550" data-menuno="550" title="수시 현재창  이동" data-sub="Y" target="_self">수시</a>
+			           	<ul id="menuM 550">
+							
+								
+									
+						           			<li data-menuno="680" data-sub="Y"><a href="/oku/cms/FR_CON/index.do?MENU_ID=680" title="" target="_self">모집요강</a></li>
+									
+								
+									
+						           			<li data-menuno="1700" data-sub="Y"><a href="/oku/cms/FR_CON/index.do?MENU_ID=1700" title="" target="_self">공지사항</a></li>
+									
+								
+									
+						           			<li data-menuno="1710" data-sub="Y"><a href="/oku/cms/FR_CON/index.do?MENU_ID=1710" title="" target="_self">제출서류</a></li>
+									
+								
+									
+						           			<li data-menuno="1720" data-sub="Y"><a href="/oku/cms/FR_CON/index.do?MENU_ID=1720" title="" target="_self">지원율통계</a></li>
+									
+								
+							
+								
+									
+								
+									
+								
+									
+								
+									
+								
+							
+								
+									
+								
+									
+								
+									
+								
+									
+								
+									
+								
+							
+								
+									
+								
+									
+								
+									
+								
+									
+								
+							
+								
+									
+								
+									
+								
+									
+								
+									
+								
+							
+								
+									
+								
+									
+								
+									
+								
+									
+								
+									
+								
+							
+								
+									
+								
+									
+								
+							
+								
+									
+								
+									
+								
+									
+								
+									
+								
+									
+								
+									
+								
+									
+								
+							
+						</ul>
+					</li>
+       	 		
+            	 	<li class="child">
+						<a href="/oku/cms/FR_CON/index.do?MENU_ID=570" data-menuno="570" title="정시 현재창  이동" data-sub="Y" target="_self">정시</a>
+			           	<ul id="menuM 570">
+							
+								
+									
+						           			<li data-menuno="680" data-sub="Y"><a href="/oku/cms/FR_CON/index.do?MENU_ID=680" title="" target="_self">모집요강</a></li>
+									
+								
+									
+						           			<li data-menuno="1700" data-sub="Y"><a href="/oku/cms/FR_CON/index.do?MENU_ID=1700" title="" target="_self">공지사항</a></li>
+									
+								
+									
+						           			<li data-menuno="1710" data-sub="Y"><a href="/oku/cms/FR_CON/index.do?MENU_ID=1710" title="" target="_self">제출서류</a></li>
+									
+								
+									
+						           			<li data-menuno="1720" data-sub="Y"><a href="/oku/cms/FR_CON/index.do?MENU_ID=1720" title="" target="_self">지원율통계</a></li>
+									
+								
+							
+								
+									
+								
+									
+								
+									
+								
+									
+								
+							
+								
+									
+								
+									
+								
+									
+								
+									
+								
+									
+								
+							
+								
+									
+								
+									
+								
+									
+								
+									
+								
+							
+								
+									
+								
+									
+								
+									
+								
+									
+								
+							
+								
+									
+								
+									
+								
+									
+								
+									
+								
+									
+								
+							
+								
+									
+								
+									
+								
+							
+								
+									
+								
+									
+								
+									
+								
+									
+								
+									
+								
+									
+								
+									
+								
+							
+						</ul>
+					</li>
+       	 		
+            	 	<li class="child">
+						<a href="/oku/cms/FR_CON/index.do?MENU_ID=1660" data-menuno="1660" title="특별전형 현재창  이동" data-sub="Y" target="_self">특별전형</a>
+			           	<ul id="menuM 1660">
+							
+								
+									
+						           			<li data-menuno="680" data-sub="Y"><a href="/oku/cms/FR_CON/index.do?MENU_ID=680" title="" target="_self">모집요강</a></li>
+									
+								
+									
+						           			<li data-menuno="1700" data-sub="Y"><a href="/oku/cms/FR_CON/index.do?MENU_ID=1700" title="" target="_self">공지사항</a></li>
+									
+								
+									
+						           			<li data-menuno="1710" data-sub="Y"><a href="/oku/cms/FR_CON/index.do?MENU_ID=1710" title="" target="_self">제출서류</a></li>
+									
+								
+									
+						           			<li data-menuno="1720" data-sub="Y"><a href="/oku/cms/FR_CON/index.do?MENU_ID=1720" title="" target="_self">지원율통계</a></li>
+									
+								
+							
+								
+									
+								
+									
+								
+									
+								
+									
+								
+							
+								
+									
+								
+									
+								
+									
+								
+									
+								
+									
+								
+							
+								
+									
+								
+									
+								
+									
+								
+									
+								
+							
+								
+									
+								
+									
+								
+									
+								
+									
+								
+							
+								
+									
+								
+									
+								
+									
+								
+									
+								
+									
+								
+							
+								
+									
+								
+									
+								
+							
+								
+									
+								
+									
+								
+									
+								
+									
+								
+									
+								
+									
+								
+									
+								
+							
+						</ul>
+					</li>
+       	 		
+            	 	<li class="child">
+						<a href="/oku/cms/FR_CON/index.do?MENU_ID=1670" data-menuno="1670" title="편입학 현재창  이동" data-sub="Y" target="_self">편입학</a>
+			           	<ul id="menuM 1670">
+							
+								
+									
+						           			<li data-menuno="680" data-sub="Y"><a href="/oku/cms/FR_CON/index.do?MENU_ID=680" title="" target="_self">모집요강</a></li>
+									
+								
+									
+						           			<li data-menuno="1700" data-sub="Y"><a href="/oku/cms/FR_CON/index.do?MENU_ID=1700" title="" target="_self">공지사항</a></li>
+									
+								
+									
+						           			<li data-menuno="1710" data-sub="Y"><a href="/oku/cms/FR_CON/index.do?MENU_ID=1710" title="" target="_self">제출서류</a></li>
+									
+								
+									
+						           			<li data-menuno="1720" data-sub="Y"><a href="/oku/cms/FR_CON/index.do?MENU_ID=1720" title="" target="_self">지원율통계</a></li>
+									
+								
+							
+								
+									
+								
+									
+								
+									
+								
+									
+								
+							
+								
+									
+								
+									
+								
+									
+								
+									
+								
+									
+								
+							
+								
+									
+								
+									
+								
+									
+								
+									
+								
+							
+								
+									
+								
+									
+								
+									
+								
+									
+								
+							
+								
+									
+								
+									
+								
+									
+								
+									
+								
+									
+								
+							
+								
+									
+								
+									
+								
+							
+								
+									
+								
+									
+								
+									
+								
+									
+								
+									
+								
+									
+								
+									
+								
+							
+						</ul>
+					</li>
+       	 		
+            	 	<li class="child">
+						<a href="/oku/cms/FR_CON/index.do?MENU_ID=580" data-menuno="580" title="입학도우미 현재창  이동" data-sub="Y" target="_self">입학도우미</a>
+			           	<ul id="menuM 580">
+							
+								
+									
+						           			<li data-menuno="680" data-sub="Y"><a href="/oku/cms/FR_CON/index.do?MENU_ID=680" title="" target="_self">모집요강</a></li>
+									
+								
+									
+						           			<li data-menuno="1700" data-sub="Y"><a href="/oku/cms/FR_CON/index.do?MENU_ID=1700" title="" target="_self">공지사항</a></li>
+									
+								
+									
+						           			<li data-menuno="1710" data-sub="Y"><a href="/oku/cms/FR_CON/index.do?MENU_ID=1710" title="" target="_self">제출서류</a></li>
+									
+								
+									
+						           			<li data-menuno="1720" data-sub="Y"><a href="/oku/cms/FR_CON/index.do?MENU_ID=1720" title="" target="_self">지원율통계</a></li>
+									
+								
+							
+								
+									
+								
+									
+								
+									
+								
+									
+								
+							
+								
+									
+								
+									
+								
+									
+								
+									
+								
+									
+								
+							
+								
+									
+								
+									
+								
+									
+								
+									
+								
+							
+								
+									
+								
+									
+								
+									
+								
+									
+								
+							
+								
+									
+								
+									
+								
+									
+								
+									
+								
+									
+								
+							
+								
+									
+								
+									
+								
+							
+								
+									
+								
+									
+								
+									
+								
+									
+								
+									
+								
+									
+								
+									
+								
+							
+						</ul>
+					</li>
+       	 		
+            	 	<li class="child">
+						<a href="/oku/cms/FR_CON/index.do?MENU_ID=590" data-menuno="590" title="입학자료실 현재창  이동" data-sub="Y" target="_self">입학자료실</a>
+			           	<ul id="menuM 590">
+							
+								
+									
+						           			<li data-menuno="680" data-sub="Y"><a href="/oku/cms/FR_CON/index.do?MENU_ID=680" title="" target="_self">모집요강</a></li>
+									
+								
+									
+						           			<li data-menuno="1700" data-sub="Y"><a href="/oku/cms/FR_CON/index.do?MENU_ID=1700" title="" target="_self">공지사항</a></li>
+									
+								
+									
+						           			<li data-menuno="1710" data-sub="Y"><a href="/oku/cms/FR_CON/index.do?MENU_ID=1710" title="" target="_self">제출서류</a></li>
+									
+								
+									
+						           			<li data-menuno="1720" data-sub="Y"><a href="/oku/cms/FR_CON/index.do?MENU_ID=1720" title="" target="_self">지원율통계</a></li>
+									
+								
+							
+								
+									
+								
+									
+								
+									
+								
+									
+								
+							
+								
+									
+								
+									
+								
+									
+								
+									
+								
+									
+								
+							
+								
+									
+								
+									
+								
+									
+								
+									
+								
+							
+								
+									
+								
+									
+								
+									
+								
+									
+								
+							
+								
+									
+								
+									
+								
+									
+								
+									
+								
+									
+								
+							
+								
+									
+								
+									
+								
+							
+								
+									
+								
+									
+								
+									
+								
+									
+								
+									
+								
+									
+								
+									
+								
+							
+						</ul>
+					</li>
+       	 		
+            	 	<li class="child">
+						<a href="/oku/cms/FR_CON/index.do?MENU_ID=1680" data-menuno="1680" title="신청 및 조회 현재창  이동" data-sub="Y" target="_self">신청 및 조회</a>
+			           	<ul id="menuM 1680">
+							
+								
+									
+						           			<li data-menuno="680" data-sub="Y"><a href="/oku/cms/FR_CON/index.do?MENU_ID=680" title="" target="_self">모집요강</a></li>
+									
+								
+									
+						           			<li data-menuno="1700" data-sub="Y"><a href="/oku/cms/FR_CON/index.do?MENU_ID=1700" title="" target="_self">공지사항</a></li>
+									
+								
+									
+						           			<li data-menuno="1710" data-sub="Y"><a href="/oku/cms/FR_CON/index.do?MENU_ID=1710" title="" target="_self">제출서류</a></li>
+									
+								
+									
+						           			<li data-menuno="1720" data-sub="Y"><a href="/oku/cms/FR_CON/index.do?MENU_ID=1720" title="" target="_self">지원율통계</a></li>
+									
+								
+							
+								
+									
+								
+									
+								
+									
+								
+									
+								
+							
+								
+									
+								
+									
+								
+									
+								
+									
+								
+									
+								
+							
+								
+									
+								
+									
+								
+									
+								
+									
+								
+							
+								
+									
+								
+									
+								
+									
+								
+									
+								
+							
+								
+									
+								
+									
+								
+									
+								
+									
+								
+									
+								
+							
+								
+									
+								
+									
+								
+							
+								
+									
+								
+									
+								
+									
+								
+									
+								
+									
+								
+									
+								
+									
+								
+							
+						</ul>
+					</li>
+       	 		
+            	 	<li class="child">
+						<a href="/oku/cms/FR_CON/index.do?MENU_ID=600" data-menuno="600" title="학교안내 현재창  이동" data-sub="Y" target="_self">학교안내</a>
+			           	<ul id="menuM 600">
+							
+								
+									
+						           			<li data-menuno="680" data-sub="Y"><a href="/oku/cms/FR_CON/index.do?MENU_ID=680" title="" target="_self">모집요강</a></li>
+									
+								
+									
+						           			<li data-menuno="1700" data-sub="Y"><a href="/oku/cms/FR_CON/index.do?MENU_ID=1700" title="" target="_self">공지사항</a></li>
+									
+								
+									
+						           			<li data-menuno="1710" data-sub="Y"><a href="/oku/cms/FR_CON/index.do?MENU_ID=1710" title="" target="_self">제출서류</a></li>
+									
+								
+									
+						           			<li data-menuno="1720" data-sub="Y"><a href="/oku/cms/FR_CON/index.do?MENU_ID=1720" title="" target="_self">지원율통계</a></li>
+									
+								
+							
+								
+									
+								
+									
+								
+									
+								
+									
+								
+							
+								
+									
+								
+									
+								
+									
+								
+									
+								
+									
+								
+							
+								
+									
+								
+									
+								
+									
+								
+									
+								
+							
+								
+									
+								
+									
+								
+									
+								
+									
+								
+							
+								
+									
+								
+									
+								
+									
+								
+									
+								
+									
+								
+							
+								
+									
+								
+									
+								
+							
+								
+									
+								
+									
+								
+									
+								
+									
+								
+									
+								
+									
+								
+									
+								
+							
+						</ul>
+					</li>
+       	 		 
+       	 	</ul>
+		<div class="snb_util">
+            <fieldset class="zoom">
+				<legend>글자 확대축소 영역</legend>
+                <button type="button" class="btn_zoomOut">축소</button>
+				<button type="button" class="btn_zoomIn">확대</button>
+			</fieldset>
+            <button type="button" class="btn_print">인쇄</button>
+            <button type="button" class="btn_share">공유</button>
+            <!-- 공유박스 -->
+            <div class="shareBox">
+				<ul>
+					<li><a href="javascript:shareSns('facebook');" class="sns_facebook" title="페이스북 연동 새창열기">페이스북</a></li>
+					<li><a href="javascript:shareSns('kakao');" class="sns_kakaoStory" title="카카오스토리 연동 새창열기">카카오스토리</a></li>
+					<li><a href="#" class="sns_urlCopy" title="URL 복사">URL 복사</a></li>
+					
+				</ul>
+			</div>
+            <!-- //공유박스 -->
+            <!--<button type="button" class="btn_top">위로</button>-->
+        </div>
+	</div>
+</nav>
+
+		
+		
+		
+		<div id="contents">
+				<!-- 상단고정 영역 -->
+					<div class="pageFix_ct">
+						
+					</div>
+					<!-- //상단고정 영역 -->	
+			<article>
+				<!--컨텐츠 위치-->
+	            
+
+<link rel="stylesheet" href="/kru/kru/css/board.css" />
+<script>
+var gbn = '';
+
+$().ready(function() {
+	
+	fn_detail();
+	
+
+	$(".btn_reply").click(function(){
+		$("#sendForm").attr("action", "BoardReplyWrite.do");
+	    $("#sendForm").submit();
+	});
+	
+	$(".shareArea .btnC_share").click(function(){
+		$(this).toggleClass('on');
+		$(".shareArea .shareBox").toggle();
+		shareBox_act();
+	});
+
+	$(".shareArea .shareBox li>a").click(function(){
+		$(".shareArea .shareBox").toggle();
+		shareBox_act();
+	});
+
+	$("div#dim").click(function(){
+		$(this).removeClass("on");
+		$(".shareArea .shareBox").toggle();
+	});
+
+	$(window).resize(function(){
+		if($(".shareArea .shareBox").css('display') == 'block'){
+			$(".shareArea .shareBox").toggle();
+			shareBox_act();
+		}
+	});
+	
+	$(document).on("click",".btnC_like", function(){
+		
+		fn_comm_ajax({
+            url : "/oku/ajaxf/FR_BBS_SVC/BoardLike.do",
+            data : $("#sendForm").serialize(),
+            dataType : "json",
+            success : function(data) {
+                if(data == 1){
+                	fn_detail();
+                }else if(data == 3){
+                	alert("로그인 후 좋아요 하실 수 있습니다.");
+                }else{
+                    alert("좋아요에 실패했습니다. 관리자에 문의하세요.");
+                }
+            }
+        });
+		return false;
+	});
+	
+	$(document).on("click","button.btn_modi", function(){
+		
+        $("#sendForm").attr("action", "BoardWrite.do");
+	    $("#sendForm").submit();
+	});
+	$(document).on("click","button.btn_delete",function(){
+		
+        boardItemDel();
+    });
+	
+	$(document).on("click",".btnArea button.btn_list",function(){
+		$("#sendForm").attr("action", "/oku/cms/FR_CON/index.do");
+	    $("#sendForm").submit();
+	});
+	
+	$(document).on("click","button.reply",function(){
+    	
+	    $("#sendForm input:hidden[name=P_BBS_SEQ]").val($("#sendForm input:hidden[name=BBS_SEQ]").val());
+	    $("#sendForm input:hidden[name=BBS_SEQ]").val("");
+	        
+		$("#sendForm").attr("action", "BoardReply.do");
+	    $("#sendForm").submit();
+    });
+	
+	$(document).on("click",".btn_preview",function(){
+		fn_comm_ajax({
+	        url : "/oku/ajaxf/CMN_SVC/PreviewFile.do",
+	        data : $("#prvForm").serialize()+'&GBN=Y02&SITE_NO='+$(this).data("siteno")+'&BOARD_SEQ='+$(this).data("boardseq")+'&BBS_SEQ='+$(this).data("bbsseq")+'&FILE_SEQ='+$(this).data("fileseq"),
+	        dataType : "json",
+	        success : function(data) {
+	        	if(data.result == '1'){
+	        		window.open(data.previewUrl);
+	        	}else{
+	        		alert('미리보기에 실패했습니다. 관리자에게 문의하세요.');
+	        	}
+	        }
+	    });
+    });
+	
+	//*************** 댓글 Function **************//
+	$(document).on("click",".btn .btn_upt", function(){
+		$(this).parents(".list").find("li").each(function(idx){
+			if(idx>0){
+				$(this).parents(".list").find("li").eq(idx).find("p").show();
+				$(this).parents(".list").find("li").eq(idx).find(".btn").show();
+				$(this).parents(".list").find("li").eq(idx).find(".txtInfo>span").show();
+				$(this).parents(".list").find("li").eq(idx).find(".txtInfo>div").remove();
+				$(this).parents(".list").find("li").eq(idx).find("fieldset").remove();
+			}
+		})
+		
+		var idno = $(this).closest("li").data("idno");
+		ifrPop('PwdPop','/oku/cms/FR_BBS_CON/PwdChkPop.do?BASE_PATH=/oku&GBN=MODI&SITE_NO='+$("#sendForm [name=SITE_NO]").val()+'&BOARD_SEQ='+$("#sendForm [name=BOARD_SEQ]").val()+'&BBS_SEQ='+$("#sendForm [name=BBS_SEQ]").val()+'&COMMENT_SEQ='+idno);
+        return;
+        fn_comment_upt(idno);
+	});
+	
+	$(document).on("click",".btn .btn_del", function(){
+		var idno = $(this).closest("li").data("idno");
+		ifrPop('PwdPop','/oku/cms/FR_BBS_CON/PwdChkPop.do?BASE_PATH=/oku&GBN=DEL&SITE_NO='+$("#sendForm [name=SITE_NO]").val()+'&BOARD_SEQ='+$("#sendForm [name=BOARD_SEQ]").val()+'&BBS_SEQ='+$("#sendForm [name=BBS_SEQ]").val()+'&COMMENT_SEQ='+idno);
+        return;
+		fn_comment_del(idno);
+	});
+	
+	$(document).on("click",".btn .btn_save", function(){
+		
+	    if($(this).closest("li").find("fieldset textarea").val().trim() == ""){
+	        alert('댓글을 입력하세요.');
+	        return;
+	    }
+	    if($(this).closest("li").find(".infoEdit #replyW_writer").val().trim() == ""){
+	        alert('작성자를 입력하세요.');
+	        return;
+	    }
+	    if($(this).closest("li").find(".infoEdit #replyW_check").val().trim() == ""){
+	        alert('확인번호를 입력하세요.');
+	        return;
+	    }
+	    var idno = $(this).parents("li").data("idno");
+	    
+	    fn_comm_ajax({
+	        url : "/oku/ajaxf/FR_BBS_SVC/BoardCommentModi.do",
+	        data : $("#commentForm").serialize()+"&COMMENT_SEQ="+idno,
+	        dataType : "json",
+	        success : function(data) {
+	            if(data == 1){
+	                fn_comment_list();
+	            }else if(data == 2){
+	                alert("세션이 만료되었습니다.");
+	            }else{
+	                alert("저장에 실패했습니다. 관리자에 문의하세요.");
+	            }
+	        }
+	    });
+	});
+	
+	$(document).on("click",".btn .btn_cancel", function(){
+		$(this).closest("li").find("p").show();
+		$(this).closest("li").find(".btn").show();
+		$(this).closest("li").find(".txtInfo>span").show();
+		$(this).closest("li").find(".txtInfo>div").remove();
+		$(this).closest("li").find("fieldset").remove();
+	});
+	//*************** 댓글 Function **************//
+});
+function fn_comment_upt(comment_seq){
+	ifrPopClose('PwdPop');
+	$("#commentForm [data-idno="+comment_seq+"]").find(".txtInfo>span").hide();
+	$("#commentForm [data-idno="+comment_seq+"]").find("p").hide();
+	$("#commentForm [data-idno="+comment_seq+"]").find(".btn").hide();
+	var infoTag ='<div class="infoEdit">';
+	infoTag += '    <label for="replyW_writer">작성자</label><input name="WRITER_NM" class="inp_t" id="replyW_writer" type="text" maxlength="10" readonly="readonly">';
+	infoTag += '</div>';
+	infoTag += '<div class="infoEdit">';
+	infoTag += '    <label for="replyW_check">확인번호</label> <input name="PASSWD_upt" class="inp_t" id="replyW_check" type="password" maxlength="20">';
+	infoTag += '</div>';
+	var modiTag = '<fieldset>';
+	modiTag += '<legend>댓글 수정</legend>';
+	modiTag += '<textarea class="inp_area" name="COMMENT_CONT" title="댓글 내용 수정창"></textarea>';
+	modiTag += '<div class="btn"><button class="btn_txtCancel btn_cancel" type="button">취소</button><button class="btn_txtWrite btn_save" type="button">등록</button></div>';
+	modiTag += '</fieldset>';
+	
+	$(infoTag).appendTo($("#commentForm [data-idno="+comment_seq+"]").find(".txtInfo"));
+	$(modiTag).appendTo($("#commentForm [data-idno="+comment_seq+"]"));
+	$("#commentForm [data-idno="+comment_seq+"]").find(".txtInfo input[name=WRITER_NM]").val($("#commentForm [data-idno="+comment_seq+"]").find(".writer").text());
+	$("#commentForm [data-idno="+comment_seq+"]").find("textarea[name=COMMENT_CONT]").val($("#commentForm [data-idno="+comment_seq+"]").find("p").data("conts"));
+}
+function fn_comment_del(comment_seq){
+	ifrPopClose('PwdPop');
+	if(!confirm("삭제하시겠습니까?")) {
+        return;
+    }
+    
+    fn_comm_ajax({
+        url : "/oku/ajaxf/FR_BBS_SVC/BoardCommentDel.do",
+        data : $("#commentForm").serialize()+"&COMMENT_SEQ="+comment_seq,
+        dataType : "json",
+        success : function(data) {
+        	if(data == 1){
+        		$("#commentForm [name=pageNo]").val("1");
+                fn_comment_list();
+            }else if(data == 2){
+                alert("세션이 만료되었습니다.");
+            }else{
+                alert("삭제에 실패했습니다. 관리자에 문의하세요.");
+            }
+        }
+    });
+}
+function fn_view(pwd){
+	$("#sendForm [name=PWD]").val(pwd);
+	if(gbn == 'MODI'){
+		if($("#sendForm input:hidden[name=P_BBS_SEQ]").val() == ""){
+        	$("#sendForm").attr("action", "BoardWrite.do");
+    	    $("#sendForm").submit();
+        }else{
+        	var pBbsSeq = $("#sendForm input:hidden[name=P_BBS_SEQ]").val();
+        	$("#sendForm").attr("action", "BoardReply.do");
+    	    $("#sendForm").submit();
+        }
+	}else{
+		boardItemDel();
+	}
+}
+
+function fn_detail(){
+    if($("#sendForm input:hidden[name=BBS_SEQ]").val() == ''){
+        return;
+    }
+    
+    fn_comm_ajax({
+        url : "/oku/ajaxf/FR_BBS_SVC/BoardViewData.do",
+        data : $("#sendForm").serialize()+"&CONTENTS_NO=1",
+        dataType : "json",
+        success : function(data) {
+            
+            $("#sendForm").fn_comm_setValue(data);
+            $("div.shareArea .btnC_like span").text(data.RECOMMS);
+            
+            var headerTag = '';
+            if(data.CATE_NM != null && data.CATE_NM != ''){
+            	headerTag = '<span class="mark_categ">'+data.CATE_NM+'</span> ';
+            }
+            headerTag += data.SUBJECT;
+			if("Y" == "Y" || "Y" == "Y" || "N" == "Y"){
+	            headerTag += '<div class="txtInfo">';
+	            if("Y" == "Y"){
+	            	headerTag += '<span class="writer"><span class="sort">작성자</span>'+data.WRITER_NM+'</span>';
+	            }
+	            if("Y" == "Y"){
+	            	headerTag += '<span class="date"><span class="sort">작성일</span>'+data.WRITE_DT+'</span>';
+	            }
+	            if("N" == "Y"){
+	            	headerTag += '<span class="view"><span class="sort">조회</span>'+data.HITS+'</span>';
+	            }
+	            headerTag += '</div>';
+			}
+            
+            $("div.BBSlist_v dt").html(headerTag);
+            
+            $("head meta[name=title]").attr("content",data.SUBJECT);
+            
+        /*     var conts = '';
+            if(data.CONTENTS != null && data.CONTENTS.indexOf("<") == 0){
+            	
+                conts = $(data.CONTENTS).text();
+            }else{
+                conts = data.CONTENTS;
+            }
+            
+            $("head meta[name=description]").attr("content",conts); */
+            
+            if(/<[a-z][\s\S]*>/i.test(data.CONTENTS)) //에디터 작성글(html)인지 체크
+            {
+                $("div.view_txt").html(data.CONTENTS);
+            }
+            else
+           	{
+                $("div.view_txt").html(data.CONTENTS.replace(/\n/g,"<br/>"));
+           	}
+        }
+    });
+}
+
+function boardItemDel(){
+	if(!confirm("삭제하시겠습니까?")) {
+        return;
+    }
+    var basePath  = "/oku";
+    fn_comm_ajax({
+        url : basePath+"/ajaxf/FR_BBS_SVC/BoardItemDel.do",
+        data : $("#sendForm").serialize(),
+        dataType : "json",
+        success : function(data) {
+            if(data == 1){
+                $("#sendForm").attr("action", basePath+"/cms/FR_CON/index.do");
+        	    $("#sendForm").submit();
+            }else if(data == 9){
+            	alert("삭제권한이 없습니다.");
+            }else{
+                alert("삭제에 실패했습니다. 관리자에 문의하세요.");
+            }
+        }
+    });
+}
+
+function textareaBytes(obj){
+	var text = $(obj).val();
+	$(obj).parents("fieldset").find("span").text(getTextBytes(text));
+}
+
+function getTextBytes(str){
+	var len = 0;
+	for(var i =0; i< str.length; i++){
+		if(escape(str.charAt(i)).length == 6){
+			len++;
+		}
+		len++;
+	}
+	return len;
+}
+
+function fn_comment_list(){
+	
+    fn_comm_ajax({
+        url : "/oku/ajaxf/FR_BBS_SVC/BoardCommentListData.do",
+        data : $("#commentForm").serialize(),
+        dataType : "json",
+        success : function(data) {
+            fn_comm_setList("#tbody", data, "#listTemplate", "#noListTemplate", ".replyArea .num", ".pagination");
+//             $("#tbody").show();
+            	$("#REPLY_Tag").find("textarea").text("");
+            if($("#commentForm .list li").length > 0){
+	    		$($("#tbody li:eq(0)")).before($("#REPLY_Tag").html());
+            	$(".pagination").show();
+            }else{
+	    		$($("#tbody")).append($("#REPLY_Tag").html());
+            	$(".pagination").hide();
+            }
+            
+            $("#commentForm .list li").each(function(){
+            	var org = $(this).find("p").text();
+            	$(this).find("p").html(org.replace(/\n/g,"<br/>"));
+        	});
+        }
+    });
+}
+
+function fn_comment_save(){
+    //validation check
+    if($("#commentForm input[name=WRITER_NM]").val().trim() == ""){
+        alert('작성자를 입력하세요.');
+        return;
+    }
+    if($("#commentForm input[name=PASSWD]").val().trim() == ""){
+        alert('확인번호를 입력하세요.');
+        return;
+    }
+    if($("#commentForm textarea[name=COMMENT_CONT_NEW]").val().trim() == ""){
+        alert('댓글을 입력하세요.');
+        return;
+    }
+    if(!confirm("저장하시겠습니까?")) {
+        return;
+    }
+    
+    fn_comm_ajax({
+        url : "/oku/ajaxf/FR_BBS_SVC/BoardCommentSave.do",
+        data : $("#commentForm").serialize(),
+        dataType : "json",
+        success : function(data) {
+            if(data == 1){
+                $("#commentForm textarea[name=COMMENT_CONT_NEW]").val("");
+                fn_comment_list();
+            }else if(data == 2){
+            	alert("세션이 만료되었습니다.");
+            }else{
+                alert("저장에 실패했습니다. 관리자에 문의하세요.");
+            }
+        }
+    });
+}
+
+function linkPage(pageNo){
+    $("#commentForm [name='pageNo']").val(pageNo);
+    fn_comment_list();
+}
+
+function fileDown(obj){
+    location.href="/ajaxfile/FR_SVC/FileDown.do?GBN=X01&BOARD_SEQ="+$(obj).data("boardseq")+"&SITE_NO="+$(obj).data("siteno")+"&BBS_SEQ="+$(obj).data("bbsseq")+"&FILE_SEQ="+$(obj).data("fileseq");
+}
+
+function prev(){
+	$("#sendForm input:hidden[name=BBS_SEQ]").val($("#sendForm input:hidden[name=PREV_IDX]").val());
+	$("#sendForm").attr("action", "BoardView.do");
+    $("#sendForm").submit();
+}
+
+function next(){
+	$("#sendForm input:hidden[name=BBS_SEQ]").val($("#sendForm input:hidden[name=NEXT_IDX]").val());
+	$("#sendForm").attr("action", "BoardView.do");
+    $("#sendForm").submit();
+}
+
+function shareBox_act(){
+	if($("#dim").attr("class") == "on"){
+		$("#dim").removeClass("on");
+	}else{
+		$("#dim").addClass("on");
+	}
+}
+/* 
+function shareSns(sns){
+	var snsTitle = '';
+	var snsItems = new Array();
+	var winOpt = new Array();
+	var snsUrl = 'https://oku.korea.ac.kr/oku/cms/FR_BBS_CON/BoardView.do?MENU_ID=1700';
+	snsUrl += '&CONTENTS_NO=';
+	snsUrl += '&SITE_NO=2';
+	snsUrl += '&BOARD_SEQ=5';
+	snsUrl += '&BBS_SEQ=1791';
+	snsUrl += '&P_BBS_SEQ=';
+	snsUrl += '&SLFLAG=Y';
+	
+	snsItems['facebook'] = "http://www.facebook.com/share.php?t="+encodeURIComponent(snsTitle) + "&u=" + encodeURIComponent(snsUrl);
+	snsItems['twitter'] = "https://twitter.com/intent/tweet?text=" + encodeURIComponent(snsTitle + "\n" + snsUrl);
+	snsItems['band'] = "http://www.band.us/plugin/share?body="+encodeURIComponent(snsUrl)+"&route="+encodeURIComponent(snsUrl);
+	snsItems['kakao'] = "https://story.kakao.com/share?url="+encodeURIComponent(snsUrl);
+	snsItems['google'] = "https://plus.google.com/share?url="+encodeURIComponent(snsUrl)+"&t=" + encodeURIComponent(snsTitle);
+	snsItems['blog'] = "http://blog.naver.com/openapi/share?url=" + encodeURIComponent(snsUrl) + "&title=" + encodeURIComponent(snsTitle);
+	snsItems['pinterest'] = "http://www.pinterest.com/pin/create/button/?url=" + encodeURIComponent(snsUrl) + "&description=" + encodeURIComponent(snsTitle);
+	snsItems['tumblr'] = "https://www.tumblr.com/widgets/share/tool?posttype=link&canonicalUrl=" + encodeURIComponent(snsUrl) + "&title=" + encodeURIComponent(snsTitle);
+	
+	winOpt['facebook'] = "width=600, height=500";
+	winOpt['twitter'] = "width=600, height=500";
+	winOpt['band'] = "width=500, height=500, resizable=yes";
+	winOpt['kakao'] = "width=500, height=500, resizable=yes";
+	winOpt['google'] = "width=500, height=500, resizable=yes";
+	winOpt['blog'] = "width=500, height=500, resizable=yes";
+	winOpt['pinterest'] = "width=700, height=700, resizable=yes";
+	winOpt['tumblr'] = "width=700, height=700, resizable=yes";
+	
+	var win = window.open(snsItems[sns], sns, winOpt[sns]);
+	if (win) {
+        win.focus();
+    }
+}
+ */
+
+</script>
+<!-- board -->
+<div class="board_area">
+	<form id="sendForm" method="post">
+	    <input type="hidden" name="MENU_ID" id="MENU_ID" value="1700"/>
+	    <input type="hidden" name="CONTENTS_NO" value=""/>
+	    <input type="hidden" name="SITE_NO" value="2"/>
+	    <input type="hidden" name="BOARD_SEQ" value="5"/>
+	    <input type="hidden" name="BBS_SEQ" value="1791"/>
+	    <input type="hidden" name="P_BBS_SEQ" />
+	    <input type="hidden" name="CATE_SEQ"/>
+		<input type="hidden" name="PWD" />
+	    <input type="hidden" name="pageNo" id="pageNo" value=""/>
+	    <input type="hidden" name="SEARCH_SEQ" value=""/>
+	    <input type="hidden" name="SEARCH_FLD" value=""/>
+	    <input type="hidden" name="SEARCH" value=""/>
+	    <input type="hidden" name="PREV_IDX" value=""/>
+	    <input type="hidden" name="NEXT_IDX" value=""/>
+	</form>
+	<div class="BBSlist_v">
+		<dl>
+			<dt></dt>
+			<dd>
+				<div class="view_txt"></div>
+				
+				<div class="fileArea">
+				
+					<p>
+						<a href="#;" title="2028학년도_고려대(서울)_입학전형시행계획(2026.04.).pdf 다운로드" data-boardseq="5" data-siteno="2" data-bbsseq="1791" data-fileseq="2" onclick="fileDown(this);">2028학년도_고려대(서울)_입학전형시행계획(2026.04.).pdf</a>
+	                 	
+	                 </p>
+				
+				</div>
+				
+			</dd>
+		</dl>
+
+		<!-- 공유 -->
+		
+		<!-- //공유 -->
+	</div>
+
+	<div class="btnArea">
+	
+	
+		<button type="button" class="btnC btnBlack btn_list"><span>목록</span></button>
+	</div>
+
+	
+
+	
+
+</div>
+<!-- //board -->
+<form id="prvForm" target="_blank"></form>
+
+<div id="REPLY_Tag" style="display: none;">
+
+	<!-- 쓰기 -->
+	<li>
+		<div class="txtInfo">
+			<div class="infoEdit">
+				<label for="replyW_writer">작성자</label><input type="text" name="WRITER_NM" id="replyW_writer" class="inp_t" maxlength="10"/>
+			</div>
+			<div class="infoEdit">
+				<label for="replyW_check">확인번호</label> <input type="password" name="PASSWD" id="replyW_check" class="inp_t" maxlength="20" />
+			</div>
+		</div>
+		<fieldset>
+			<legend>댓글 입력</legend>
+			<textarea class="inp_area" name="COMMENT_CONT_NEW" placeholder="댓글을 입력해 주세요." title="댓글 입력창" maxlength="4000"></textarea>
+			<!--<span>0/4000 bytes</span>-->
+			<div class="btn">
+				<button class="btn_txtWrite" type="button" onclick="fn_comment_save();">등록</button>
+			</div>
+		</fieldset>
+	</li>
+	<!-- //쓰기 -->
+	
+</div>
+
+	            <!--/컨텐츠 위치-->
+			</article>
+		</div>
+	</div>
+	
+
+
+
+<div class="section section_footer fp-auto-height" id="section_footer" data-anchor="lastPage">
+	<div class="footer_top">
+		<div class="footer_inner">
+			<div class="logo">
+				<img src="/kru/type/IPSI_C/img/common/footer_logo.svg" alt="고려대학교" class="pc" />
+				<img src="/kru/type/IPSI_C/img/common/footer_logo_mb.svg" alt="고려대학교" class="mb" />
+			</div>
+			<div class="footer_con">
+				<div class="tel">
+					 <p class="txt1"><span class="t">고려대학교 입학처</span> <strong>전화상담</strong></p>
+<p class="txt2"><span class="t">평일&nbsp;09:00 ~ 17:30 <span>(공휴일, 중식시간 제외)</span></span> <strong>02.3290.5161~3</strong></p>
+
+				</div>
+				<div class="family_wrap">
+					<div class="family_site">
+						<button><span><strong>교내주요기관</strong> 바로가기</span></button>
+						<div class="list_wrap">
+							<button><span><strong>교내주요기관</strong> 바로가기</span></button>
+							<div class="list">
+								<ul class="scroll_custom">
+									
+										<li><a href="https://www.korea.ac.kr/" title="새창열림" target="_blank"><span>대학</span></a></li>
+									
+										<li><a href="https://graduate.korea.ac.kr/" title="새창열림" target="_blank"><span>대학원</span></a></li>
+									
+										<li><a href="https://oia.korea.ac.kr/oia/index.do" title="새창열림" target="_blank"><span>국제처</span></a></li>
+									
+										<li><a href="http://langtopia.korea.ac.kr/" title="새창열림" target="_blank"><span>국제어학원</span></a></li>
+									
+										<li><a href="https://library.korea.ac.kr/" title="새창열림" target="_blank"><span>도서관</span></a></li>
+									
+										<li><a href="https://www.kumc.or.kr/" title="새창열림" target="_blank"><span>의료원</span></a></li>
+									
+										<li><a href="http://museum.korea.ac.kr/" title="새창열림" target="_blank"><span>박물관</span></a></li>
+									
+										<li><a href="https://dorm.korea.ac.kr/" title="새창열림" target="_blank"><span>안암학사</span></a></li>
+									
+										<li><a href="http://www.ktn.ac.kr/" title="새창열림" target="_blank"><span>방송국</span></a></li>
+									
+										<li><a href="http://www.kuleader.net/" title="새창열림" target="_blank"><span>응원단</span></a></li>
+									
+								</ul>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="address_wrap">
+					<address class="address">(02841) 서울시 성북구 안암로 145 <span class="mb_br"></span>고려대학교 라이시움 1층<span class="mb_block">ⓒ2025 KU</span></address>
+<p class="copy">ⓒ2025 ADMISSIONS OFFICE KOREA UNIVERSITY. <span class="mb_br"></span> ALL RIGHTS RESERVED.</p>			
+
+				</div>
+				<div class="link_wrap">
+				
+					<a href="http://www.adiga.kr" target="_blank" title="새창열림" class="footer_mark">
+						<img src="/ajaxfile/CMN_SVC/FileView.do?GBN=X08_1&BASIC_SEQ=2&INFO_SEQ=1" alt="대입정보포털어디가">
+					</a>
+				
+					<a href="http://www.webwatch.or.kr/Situation/WA_Situation.html?MenuCD=110" target="_blank" title="새창열림" class="footer_mark">
+						<img src="/ajaxfile/CMN_SVC/FileView.do?GBN=X08_1&BASIC_SEQ=2&INFO_SEQ=2" alt="과학기술정보통신부 WEB ACCESSIBILITY 마크(웹 접근성 품질인증 마크)">
+					</a>
+				
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- //footer_top -->
+	<div class="footer_menu">
+		<div class="footer_inner">
+			<ul>
+				
+				<li><a href="/oku/cms/FR_CON/index.do?MENU_ID=1440" target="_self" title=""><span>개인정보처리방침</span></a></li>
+				
+				<li><a href="/oku/cms/FR_CON/index.do?MENU_ID=950" target="_self" title=""><span>이메일주소무단수집거부</span></a></li>
+				
+				<li><a href="/oku/cms/FR_CON/index.do?MENU_ID=960" target="_self" title=""><span>장애인을 위한 홈페이지 이용방법</span></a></li>
+				
+				<li><a href="/oku/cms/FR_CON/index.do?MENU_ID=880" target="_self" title=""><span>입학처 오시는 길</span></a></li>
+				
+			</ul>
+		</div>
+	</div>
+	<!-- //footer_menu -->
+</div>
+<!-- //section_footer -->
+</body>
+</html>

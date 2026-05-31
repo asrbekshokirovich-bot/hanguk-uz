@@ -1,0 +1,322 @@
+{
+  "@@locale": "ko",
+  "@@x-translator-status": "TODO: translate. Most older strings still English seeds. walkaround/virtualTour translated. 2026-05-12 i18n adoption pass: training tab + bottom-nav + tab titles translated. 2026-05-12 i18n phase 2: account + auth + notification settings translated. 2026-05-12 i18n phase 3: training/drafting workspace translated; previously English-seeded training keys now have real Korean translations.",
+
+  "trainingTabTitle": "트레이닝 센터",
+  "trainingTabSubtitle": "AI 가이드 트레이닝 모듈로 대학 지원을 준비하세요.",
+  "studyPlanCardTitle": "학업 계획서 작성기",
+  "studyPlanCardDesc": "학업 여정을 위한 설득력 있는 로드맵을 작성하세요.",
+  "personalStatementCardTitle": "자기소개서",
+  "personalStatementCardDesc": "효과적이고 매력적인 자기소개 에세이를 작성하세요.",
+  "interviewCardTitle": "면접 준비",
+  "interviewCardDesc": "모의 질문으로 연습하고 자신감을 키우세요.",
+  "applyCta": "대학에 지원하기",
+  "noApplicationsTitle": "아직 지원서가 없습니다",
+  "noApplicationsBody": "먼저 목표 대학을 추가하세요 — 초안은 목표 학교에서 시작합니다.",
+  "startInterview": "면접 시작",
+  "cancel": "취소",
+  "endInterview": "면접 종료",
+  "endSession": "세션 종료",
+  "practiceAgain": "다시 연습하기",
+  "connecting": "연결 중...",
+  "greetWait": "연결 중 — 면접관이 곧 인사할 것입니다...",
+  "yourTurn": "답변할 차례입니다",
+  "aiSpeaking": "면접관이 말하는 중...",
+  "wrappingUp": "면접을 마무리하는 중...",
+  "micRequired": "면접을 위해 마이크 권한이 필요합니다.",
+
+  "walkaroundLoadingTitle": "캠퍼스 워크어라운드 로딩 중",
+  "walkaroundLoadingSubtitle": "캠퍼스 주변 거리뷰를 가져오는 중입니다.",
+  "walkaroundNoPanoTitle": "이 위치의 거리뷰가 없습니다",
+  "walkaroundNoPanoSubtitle": "이 캠퍼스 근처에는 걸어볼 수 있는 거리뷰가 없습니다.",
+  "walkaroundBlockedTitle": "거리뷰를 사용할 수 없습니다",
+  "walkaroundBlockedSubtitle": "지도 제공자가 요청을 차단했습니다. 다른 네트워크에서 다시 시도해 주세요.",
+  "walkaroundNetworkTitle": "지도 서비스에 연결할 수 없습니다",
+  "walkaroundNetworkSubtitle": "연결 상태를 확인하고 다시 시도해 주세요.",
+  "walkaroundInitErrorTitle": "거리뷰를 시작할 수 없습니다",
+  "walkaroundInitErrorSubtitle": "워크어라운드 시작 중 오류가 발생했습니다. 다시 시도해 주세요.",
+  "virtualTourTitle": "가상 투어",
+  "virtualWalkaroundTitle": "가상 워크어라운드",
+
+  "navApplications": "지원서",
+  "navMap": "지도",
+  "navDocs": "서류",
+  "navTraining": "트레이닝",
+
+  "applicationsTabTitle": "내 지원서",
+  "mapTabTitle": "대학교",
+  "documentsTabTitle": "내 서류",
+
+  "accountTooltip": "계정",
+
+  "ok": "확인",
+  "loadingLabel": "로딩 중...",
+
+  "accountBackTooltip": "뒤로",
+  "accountTitle": "계정",
+  "accountSignedInAs": "로그인 계정",
+  "accountUnknownAccount": "(알 수 없는 계정)",
+  "accountSessionLabel": "세션",
+  "accountSigningOut": "로그아웃 중...",
+  "accountSignOut": "로그아웃",
+  "accountYourDataLabel": "내 데이터",
+  "accountYourDataBody": "Hanguk이 보관 중인 계정 데이터(프로필, 지원서, 학습 계획, 초안, 모의 면접 세션 및 피드백)의 JSON 사본을 다운로드합니다.",
+  "accountPreparingExport": "내보내기 준비 중...",
+  "accountDownloadMyData": "내 데이터 다운로드",
+  "accountDangerZoneLabel": "위험 구역",
+  "accountDangerZoneBody": "계정 삭제는 영구적입니다. 프로필, 지원서, 학습 계획, 자기소개서 초안, 모의 면접 세션 및 기록이 모두 삭제됩니다. 저장된 문서는 30일 이내, 백업본은 90일 이내에 만료됩니다.",
+  "accountDeleteAccount": "계정 삭제",
+  "accountPrivacyPolicy": "개인정보처리방침",
+  "accountTermsOfService": "이용약관",
+  "accountDeleteErrorTitle": "계정을 삭제할 수 없습니다",
+  "accountDeleteErrorBody": "데이터 삭제 중 오류가 발생했습니다:\n\n{error}\n\n삭제를 완료할 수 있도록 privacy@hanguk.uz로 이메일을 보내주세요.",
+  "@accountDeleteErrorBody": {
+    "placeholders": {
+      "error": { "type": "Object" }
+    }
+  },
+  "accountExportFailed": "내보내기 실패: {error}",
+  "@accountExportFailed": {
+    "placeholders": {
+      "error": { "type": "Object" }
+    }
+  },
+  "accountDeleteDialogTitle": "계정을 삭제하시겠습니까?",
+  "accountDeleteDialogBody": "계정, 지원서, 학습 계획, 자기소개서 초안, 모의 면접 세션 및 기록이 영구적으로 삭제됩니다.\n\n계속하려면 DELETE를 입력하세요.",
+  "accountDeleteDialogConfirm": "영구 삭제",
+  "accountDeleteProgress": "계정 삭제 중...",
+
+  "loginStudentPortal": "학생 포털",
+  "loginAccessCodeHelp": "컨설턴트 또는 대학 담당자가 제공한 8자리 액세스 코드(영문과 숫자)를 입력하세요.",
+  "loginAccessCodeButton": "액세스 코드로 로그인",
+  "loginSwitchToPhone": "← 전화번호로 로그인할게요",
+  "loginComingSoonTitle": "출시 예정",
+  "loginComingSoonBody": "시스템 업그레이드 작업 중이라 공개 회원가입과 전화 로그인이 일시 중단되었습니다.\n\n학생 여러분: 당분간 매직 액세스 코드로 로그인해 주세요.",
+  "loginSwitchToMagicCode": "매직 코드 로그인으로 전환",
+  "loginErrorInvalidPhone": "유효한 전화번호를 입력해 주세요 (예: +12345678).",
+  "loginErrorPasswordTooShort": "비밀번호는 6자 이상이어야 합니다.",
+  "loginErrorInvalidCredentials": "전화번호 또는 비밀번호가 올바르지 않습니다.",
+  "loginErrorInvalidAccessCode": "유효한 액세스 코드를 입력해 주세요 (최소 6자).",
+  "signUpErrorNameRequired": "이름을 입력해 주세요.",
+  "signUpErrorPhoneRequired": "유효한 전화번호가 필요합니다 (예: +12345678).",
+  "signUpErrorPasswordMismatch": "비밀번호가 일치하지 않습니다.",
+  "signUpSuccess": "계정이 생성되었습니다. 로그인해 주세요.",
+
+  "notifSettingsTitle": "알림 설정",
+  "notifSettingsEmptyTitle": "추적 중인 대학이 없습니다",
+  "notifSettingsEmptyBody": "대학 페이지에서 \"이 학교 추적\"을 탭하여 팔로우하세요. 추적 중인 학교가 하나 이상 생기면 알림 설정이 여기에 표시됩니다.",
+  "notifSettingsCalendar": "일정 변경",
+  "notifSettingsCalendarDesc": "마감일이 변경될 때",
+  "notifSettingsCorrection": "정정공고",
+  "notifSettingsCorrectionDesc": "정정공고 게시 — 최우선 알림",
+  "notifSettingsRequirement": "지원 요건 변경",
+  "notifSettingsRequirementDesc": "TOPIK / 학점 / 어학 시험 규정 변경",
+  "notifSettingsScholarship": "장학금 업데이트",
+  "notifSettingsScholarshipDesc": "기본값 꺼짐 — 알림이 많을 수 있음",
+  "notifSettingsLoadError": "오류: {error}",
+  "@notifSettingsLoadError": {
+    "placeholders": {
+      "error": { "type": "Object" }
+    }
+  },
+  "notifSettingsPushLanguage": "푸시 알림 언어: {lang}",
+  "@notifSettingsPushLanguage": {
+    "placeholders": {
+      "lang": { "type": "String" }
+    }
+  },
+  "notifSettingsUpdateError": "설정을 업데이트하지 못했습니다: {error}",
+  "@notifSettingsUpdateError": {
+    "placeholders": {
+      "error": { "type": "Object" }
+    }
+  },
+
+  "interviewDialogStepUniversity": "1. 대상 대학 선택",
+  "interviewDialogStepTrack": "2. 면접 트랙 선택",
+  "interviewDialogStepPersona": "3. 면접관 성격",
+  "interviewNoAppsBody": "먼저 목표 대학을 추가하세요 — 면접 연습은 그 학교에 맞춰 진행됩니다.",
+  "trackKorean": "한국어",
+  "trackEnglish": "영어",
+  "personaFriendly": "친절한 입학사정관",
+  "personaStrict": "엄격한 교수",
+  "personaImpatient": "성격 급한 비자 담당관",
+  "personaFriendlyCaps": "친절한 입학사정관",
+  "personaStrictCaps": "엄격한 교수",
+  "personaImpatientCaps": "성격 급한 비자 담당관",
+  "micBlockedInSettings": "시스템 설정에서 마이크가 차단되었습니다.",
+  "openSettings": "설정 열기",
+  "genericError": "오류: {error}",
+  "@genericError": {
+    "placeholders": { "error": { "type": "Object" } }
+  },
+  "errorLoadingApplications": "지원서를 불러오지 못했습니다: {error}",
+  "@errorLoadingApplications": {
+    "placeholders": { "error": { "type": "Object" } }
+  },
+  "noAppsInlineHint": "아직 지원서가 없습니다 — 지원서 탭에서 추가하세요.",
+
+  "aiStatusWaiting": "입력 대기 중...",
+  "aiStatusCoolingDown": "AI 잠시 대기 중…",
+  "aiStatusAnalyzing": "AI 분석 중...",
+  "aiStatusReady": "준비 완료",
+  "aiStatusPredicting": "AI 예측 중...",
+  "aiStatusSupervisionActive": "AI 검토 활성화",
+  "workspaceTitle": "작업 공간",
+  "workspaceAnalyzeButton": "분석",
+  "aiSupervisionWarningsTitle": "AI 검토 경고:",
+  "grammarReplaceWith": "\"{original}\"을(를) \"{suggestion}\"(으)로 교체",
+  "@grammarReplaceWith": {
+    "placeholders": {
+      "original": { "type": "String" },
+      "suggestion": { "type": "String" }
+    }
+  },
+  "draftingHint": "{documentTitle}을(를) 여기에 입력하세요...",
+  "@draftingHint": {
+    "placeholders": { "documentTitle": { "type": "String" } }
+  },
+  "ghostSuggestionSemantics": "AI 제안 — 탭하여 삽입",
+  "ghostAccept": "사용",
+  "ghostDismiss": "제안 닫기",
+
+  "pastDraftsTooltip": "이전 초안",
+  "sessionSettingsTooltip": "세션 설정",
+  "switchTrackEnglish": "트랙 전환 → 영어",
+  "switchTrackKorean": "트랙 전환 → 한국어",
+  "createNewSession": "새 세션 만들기",
+  "yourSavedDrafts": "저장된 초안",
+  "noPreviousDrafts": "이전 초안이 없습니다.",
+  "generalDraftLabel": "일반",
+  "studyPlanDocumentName": "학업 계획서",
+  "personalStatementDocumentName": "자기소개서",
+  "savedDraftItemTitle": "{universityName} {documentName}",
+  "@savedDraftItemTitle": {
+    "placeholders": {
+      "universityName": { "type": "String" },
+      "documentName": { "type": "String" }
+    }
+  },
+  "sessionStatusLabel": "상태: {status}",
+  "@sessionStatusLabel": {
+    "placeholders": { "status": { "type": "String" } }
+  },
+  "deleteSessionTitle": "세션 삭제",
+  "deleteSessionBody": "이 세션을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
+  "deleteLabel": "삭제",
+  "stepperLabelGuide": "가이드",
+  "stepperLabelExample": "예시",
+  "stepperLabelDraft": "초안",
+  "stepperLabelFeedback": "피드백",
+  "readExamplesButton": "예시 보기",
+  "targetUniversityLabel": "대상 대학",
+  "startDraftingButton": "초안 작성 시작",
+  "newStudyPlanDialogTitle": "새 학업 계획서 시작",
+  "newPersonalStatementDialogTitle": "새 자기소개서 시작",
+  "selectTargetUniversityStep": "1. 대상 대학 선택",
+  "selectLanguageTrackStep": "2. 작성 언어 선택",
+  "createSession": "세션 만들기",
+  "aiExampleEmbassyTitle": "대사관 예시",
+  "aiExampleUniversityTitle": "{universityName} 예시",
+  "@aiExampleUniversityTitle": {
+    "placeholders": { "universityName": { "type": "String" } }
+  },
+  "aiExampleEmbassyLabel": "주한 대한민국 대사관 (비자)",
+  "aiExampleWritingPlaceholder": "AI가 예시를 작성 중입니다...",
+  "copyButton": "복사",
+  "copiedSnackbar": "텍스트가 복사되었습니다!",
+
+  "analysisFeedbackTitle": "분석 및 피드백",
+  "noAnalysisYet": "아직 생성된 분석이 없습니다.",
+  "aiReviewedDraft": "AI가 초안을 검토했습니다.",
+  "returnToDrafting": "초안으로 돌아가기",
+
+  "studyPlanHistoryTitle": "학업 계획서 기록",
+  "personalStatementHistoryTitle": "자기소개서 기록",
+  "draftingHistoryTitle": "초안 기록",
+  "noPastDraftsYet": "아직 저장된 초안이 없습니다",
+  "noPastDraftsBody": "새 세션을 시작하면 가장 최근 편집된 순으로 초안이 여기에 표시됩니다.",
+  "noTargetUniversity": "대상 대학 없음",
+  "sessionStepLabel": "단계 {step}",
+  "@sessionStepLabel": {
+    "placeholders": { "step": { "type": "int" } }
+  },
+
+  "metricWords": "단어",
+  "metricCharacters": "글자",
+  "saveStatusUnsaved": "저장 안 됨",
+  "saveStatusSaving": "저장 중...",
+  "saveStatusSaved": "저장됨",
+  "saveStatusError": "저장 실패",
+
+  "interviewPracticeTitle": "면접 연습",
+  "interviewSettingUp": "면접을 준비하는 중...",
+
+  "interviewSetupTitle": "AI 면접 설정",
+  "interviewSetupSubtitle": "면접을 시작하기 전 AI 면접관 설정을 확인하세요.",
+  "interviewTypeLabel": "면접 유형",
+  "interviewTypeGeneral": "일반 자기소개",
+  "interviewTypeUniversitySpecific": "대학 맞춤형",
+  "interviewTypeVisa": "비자 / 대사관 점검",
+  "targetUniversityFieldLabel": "대상 대학",
+  "languageLabel": "언어",
+  "interviewerPersonaLabel": "면접관 성격",
+  "focusTopicLabel": "집중 주제 (선택)",
+  "focusTopicHint": "예) 컴퓨터공학 전공에 대해 이야기하기...",
+  "timedModeTitle": "시간 제한 모드",
+  "timedModeSubtitle": "5분 엄격 제한",
+  "startPracticeButton": "연습 시작",
+  "pickUniversityFirstHint": "위에서 대상 대학을 먼저 선택하세요.",
+
+  "coachingFiller": "추임새를 자제하세요!",
+  "lifelineHintsTitle": "💡 도움 힌트:",
+  "speakerAi": "AI",
+  "speakerYou": "본인",
+  "connectionInterrupted": "연결이 중단되었습니다: {detail}",
+  "@connectionInterrupted": {
+    "placeholders": { "detail": { "type": "String" } }
+  },
+
+  "interviewAnalyticsTitle": "면접 분석",
+  "analyzingTranscript": "AI가 대화 기록을 분석하는 중...",
+  "noFeedbackAvailable": "피드백을 사용할 수 없습니다.",
+  "overallScoreLabel": "총점",
+  "metricCommunication": "의사소통",
+  "metricConfidence": "자신감",
+  "metricContent": "내용",
+  "metricLanguage": "언어",
+  "detailedFeedbackTitle": "상세 피드백",
+  "detailedFeedbackFallback": "잘하셨습니다.",
+  "strengthsLabel": "강점",
+  "areasToImproveLabel": "개선할 점",
+  "startAnotherInterview": "다른 면접 시작",
+  "sessionRecording": "세션 녹음",
+  "audioRecordingNotFound": "오디오 녹음을 찾을 수 없습니다.",
+
+  "interviewHistoryTitle": "면접 기록",
+  "noPastInterviews": "지난 면접 기록이 없습니다.",
+  "unknownTarget": "알 수 없는 대상",
+  "unknownUniversity": "알 수 없는 대학",
+  "abandonedSessionNote": "이 세션은 피드백 없이 종료되었습니다 — 재생할 수 없습니다.",
+  "activeSessionNote": "이 세션은 아직 진행 중입니다. 끝낸 후 피드백을 확인하세요.",
+  "deleteSessionTooltip": "세션 삭제",
+  "deleteInterviewDialogTitle": "이 세션을 삭제하시겠습니까?",
+  "deleteInterviewDialogBody": "피드백과 녹음 링크가 영구적으로 삭제됩니다.",
+  "deleteFailed": "삭제 실패: {error}",
+  "@deleteFailed": {
+    "placeholders": { "error": { "type": "Object" } }
+  },
+
+  "a11yTooltipAskAi": "Hanguk AI에 질문하기",
+  "a11yTooltipClearChat": "채팅 기록 지우기",
+  "a11yTooltipSendMessage": "메시지 보내기",
+  "a11yTooltipClose": "닫기",
+  "a11yTooltipPreviewDocument": "문서 미리보기",
+  "a11yTooltipDeleteDocument": "문서 삭제",
+  "a11yTooltipInterviewHistory": "면접 기록",
+  "a11yTooltipCloseSession": "세션 닫기",
+  "a11yTooltipDeleteSession": "세션 삭제",
+  "a11yTooltipBack": "뒤로",
+  "a11yTooltipPlayRecording": "녹음 재생",
+  "a11yTooltipPauseRecording": "녹음 일시정지"
+}

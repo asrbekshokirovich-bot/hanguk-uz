@@ -1,0 +1,115 @@
+[project]
+name = "uni-db"
+version = "0.1.0"
+description = "Korean Universities Database — crawl, extract, translate"
+requires-python = ">=3.12"
+readme = "README.md"
+license = { text = "Proprietary" }
+authors = [{ name = "Hanguk" }]
+
+dependencies = [
+  # HTTP / async
+  "httpx>=0.27",
+  "anyio>=4.4",
+  "tenacity>=9.0",
+
+  # Postgres
+  "asyncpg>=0.29",
+  "psycopg[binary]>=3.2",
+
+  # Supabase / object storage
+  "supabase>=2.7",
+  "boto3>=1.35",                   # R2 via S3-compatible API
+
+  # HTML / scraping
+  "beautifulsoup4>=4.12",
+  "lxml>=5.3",
+  "feedparser>=6.0",               # RSS/Atom
+
+  # PDF / OCR (lightweight tier — heavier extractors are extras)
+  "pymupdf>=1.24",
+  "pdfplumber>=0.11",
+  "pillow>=10.4",
+
+  # LLM extraction
+  "anthropic>=0.40",
+  "jsonschema>=4.23",
+
+  # Translation
+  "deepl>=1.18",                   # DeepL Pro API client
+
+  # Embeddings (loaded lazily; not required for tests)
+  "numpy>=2.0",
+
+  # Logging / config
+  "structlog>=24.4",
+  "python-dotenv>=1.0",
+  "pydantic>=2.9",
+  "pydantic-settings>=2.5",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.3",
+  "pytest-asyncio>=0.24",
+  "pytest-mock>=3.14",
+  "pytest-cov>=5.0",
+  "ruff>=0.6",
+  "mypy>=1.11",
+  "respx>=0.21",                   # httpx mocking
+]
+# Heavy extractors — opt in when you need them. CI installs only the
+# baseline + dev set so test runs stay reproducible across machines.
+heavy = [
+  "camelot-py[cv]>=0.11",
+  "playwright>=1.47",              # JS-heavy ac.kr sites in Phase 1+
+  # ADR-002: EasyOCR for image-only Korean PDFs. Pulls torch as a
+  # transitive dep (~2 GB) — that's why it's in the heavy extras.
+  # The model files (ko + en) auto-download to ~/.EasyOCR/ on first
+  # use (~80 MB).
+  "easyocr>=1.7",
+]
+
+[project.scripts]
+uni-db = "uni_db.cli:main"
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/uni_db"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "ASYNC", "SIM", "RUF"]
+ignore = [
+  "E501",            # line length — handled by formatter judgement
+  # Project conventions (kept consistent across the codebase):
+  "UP017",           # `timezone.utc` over `datetime.UTC`
+  "UP035",           # `typing.Mapping` etc. over `collections.abc`
+  # CJK false-positives: Korean text + full-width punctuation trip the
+  # ambiguous-unicode lints constantly. The Korean IS the content.
+  "RUF001", "RUF002", "RUF003",
+  # Intentional: workers `except Exception` to isolate one bad item from the
+  # batch (documented per worker); plus low-value style nits.
+  "BLE001", "SIM102", "SIM103", "E741",
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Test-code conventions: unused unpacks/locals in arrange-only tests, mutable
+# class attrs in fixtures, implicit Optional in fakes.
+"tests/**" = ["RUF012", "RUF013", "RUF059", "F841"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+filterwarnings = ["error"]

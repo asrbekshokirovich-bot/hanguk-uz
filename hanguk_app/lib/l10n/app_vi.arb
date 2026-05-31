@@ -1,0 +1,322 @@
+{
+  "@@locale": "vi",
+  "@@x-translator-status": "TODO: translate. English seeds copied verbatim.",
+
+  "trainingTabTitle": "Training Center",
+  "trainingTabSubtitle": "Prepare for your university applications with AI-guided training modules.",
+  "studyPlanCardTitle": "Study Plan Builder",
+  "studyPlanCardDesc": "Craft a compelling roadmap for your academic journey.",
+  "personalStatementCardTitle": "Personal Statement",
+  "personalStatementCardDesc": "Write effective and engaging personal essays.",
+  "interviewCardTitle": "Interview Preparation",
+  "interviewCardDesc": "Practice mock questions and improve your confidence.",
+  "applyCta": "Apply to a university",
+  "noApplicationsTitle": "No applications yet",
+  "noApplicationsBody": "Add a target university first — drafting starts from a target school.",
+  "startInterview": "Start Interview",
+  "cancel": "Cancel",
+  "endInterview": "End Interview",
+  "endSession": "End Session",
+  "practiceAgain": "Practice Again",
+  "connecting": "Connecting...",
+  "greetWait": "Connecting — your interviewer will greet you shortly...",
+  "yourTurn": "Your turn to speak",
+  "aiSpeaking": "Interviewer is speaking...",
+  "wrappingUp": "Wrapping up the interview...",
+  "micRequired": "Microphone access is required for the interview.",
+
+  "walkaroundLoadingTitle": "Loading campus walkaround",
+  "walkaroundLoadingSubtitle": "Fetching street view near campus.",
+  "walkaroundNoPanoTitle": "No street view here",
+  "walkaroundNoPanoSubtitle": "This campus doesn't have a walkable street view nearby.",
+  "walkaroundBlockedTitle": "Street view unavailable",
+  "walkaroundBlockedSubtitle": "The map provider blocked this request. Try again on a different network.",
+  "walkaroundNetworkTitle": "Couldn't reach the map provider",
+  "walkaroundNetworkSubtitle": "Check your connection and try again.",
+  "walkaroundInitErrorTitle": "Street view couldn't start",
+  "walkaroundInitErrorSubtitle": "Something went wrong starting the walkaround. Please try again.",
+  "virtualTourTitle": "Virtual Tour",
+  "virtualWalkaroundTitle": "Virtual Walkaround",
+
+  "navApplications": "Đơn",
+  "navMap": "Bản đồ",
+  "navDocs": "Tài liệu",
+  "navTraining": "Đào tạo",
+
+  "applicationsTabTitle": "Đơn của tôi",
+  "mapTabTitle": "Trường đại học",
+  "documentsTabTitle": "Tài liệu của tôi",
+
+  "accountTooltip": "Tài khoản",
+
+  "ok": "OK",
+  "loadingLabel": "Loading...",
+
+  "accountBackTooltip": "Back",
+  "accountTitle": "Account",
+  "accountSignedInAs": "Signed in as",
+  "accountUnknownAccount": "(unknown account)",
+  "accountSessionLabel": "Session",
+  "accountSigningOut": "Signing out…",
+  "accountSignOut": "Sign out",
+  "accountYourDataLabel": "Your data",
+  "accountYourDataBody": "Download a JSON copy of everything Hanguk holds about your account — profile, applications, study plans, drafts, interview sessions and feedback.",
+  "accountPreparingExport": "Preparing export…",
+  "accountDownloadMyData": "Download my data",
+  "accountDangerZoneLabel": "Danger zone",
+  "accountDangerZoneBody": "Deleting your account is permanent. We will erase your profile, applications, study plans, personal-statement drafts, interview sessions, and transcripts. Documents in storage are removed within 30 days; backups age out within 90 days.",
+  "accountDeleteAccount": "Delete account",
+  "accountPrivacyPolicy": "Privacy Policy",
+  "accountTermsOfService": "Terms of Service",
+  "accountDeleteErrorTitle": "Could not delete account",
+  "accountDeleteErrorBody": "We hit an error while deleting your data:\n\n{error}\n\nPlease email privacy@hanguk.uz so we can finish the deletion for you.",
+  "@accountDeleteErrorBody": {
+    "placeholders": {
+      "error": { "type": "Object" }
+    }
+  },
+  "accountExportFailed": "Export failed: {error}",
+  "@accountExportFailed": {
+    "placeholders": {
+      "error": { "type": "Object" }
+    }
+  },
+  "accountDeleteDialogTitle": "Delete your account?",
+  "accountDeleteDialogBody": "This will permanently delete your account, applications, study plans, personal-statement drafts, interview sessions, and transcripts.\n\nType DELETE to confirm.",
+  "accountDeleteDialogConfirm": "Delete forever",
+  "accountDeleteProgress": "Deleting your account…",
+
+  "loginStudentPortal": "Student Portal",
+  "loginAccessCodeHelp": "Enter the 8-character access code (letters and numbers) provided by your consultant or university representative.",
+  "loginAccessCodeButton": "Login manually with Access Code",
+  "loginSwitchToPhone": "← I actually want to Log in via Phone Number",
+  "loginComingSoonTitle": "Coming Soon",
+  "loginComingSoonBody": "Public sign up and phone login are currently under maintenance as we upgrade our systems.\n\nStudents: Please use your Magic Access Code to log in for now.",
+  "loginSwitchToMagicCode": "Switch to Magic Code Login",
+  "loginErrorInvalidPhone": "Please enter a valid phone number (e.g. +12345678).",
+  "loginErrorPasswordTooShort": "Password must be at least 6 characters.",
+  "loginErrorInvalidCredentials": "Invalid phone number or password.",
+  "loginErrorInvalidAccessCode": "Please enter a valid access code (min 6 characters).",
+  "signUpErrorNameRequired": "Full Name is required.",
+  "signUpErrorPhoneRequired": "A valid phone number is required (e.g. +12345678).",
+  "signUpErrorPasswordMismatch": "Passwords do not match.",
+  "signUpSuccess": "Account created successfully! Please log in.",
+
+  "notifSettingsTitle": "Notification settings",
+  "notifSettingsEmptyTitle": "No tracked universities yet",
+  "notifSettingsEmptyBody": "Tap \"Track this institution\" on a university page to follow it. Notification preferences appear here once you have at least one tracked institution.",
+  "notifSettingsCalendar": "Calendar changes",
+  "notifSettingsCalendarDesc": "Deadline dates move",
+  "notifSettingsCorrection": "Correction notices",
+  "notifSettingsCorrectionDesc": "정정공고 published — highest priority",
+  "notifSettingsRequirement": "Requirement changes",
+  "notifSettingsRequirementDesc": "TOPIK / GPA / language test rules change",
+  "notifSettingsScholarship": "Scholarship updates",
+  "notifSettingsScholarshipDesc": "Off by default — high volume",
+  "notifSettingsLoadError": "Error: {error}",
+  "@notifSettingsLoadError": {
+    "placeholders": {
+      "error": { "type": "Object" }
+    }
+  },
+  "notifSettingsPushLanguage": "Push payload language: {lang}",
+  "@notifSettingsPushLanguage": {
+    "placeholders": {
+      "lang": { "type": "String" }
+    }
+  },
+  "notifSettingsUpdateError": "Could not update preference: {error}",
+  "@notifSettingsUpdateError": {
+    "placeholders": {
+      "error": { "type": "Object" }
+    }
+  },
+
+  "interviewDialogStepUniversity": "1. Select Target University",
+  "interviewDialogStepTrack": "2. Select Interview Track",
+  "interviewDialogStepPersona": "3. Interviewer Persona",
+  "interviewNoAppsBody": "Add a target university first — interview practice tailors questions to that school.",
+  "trackKorean": "Korean",
+  "trackEnglish": "English",
+  "personaFriendly": "Friendly admissions officer",
+  "personaStrict": "Strict professor",
+  "personaImpatient": "Impatient visa officer",
+  "personaFriendlyCaps": "Friendly Admissions Officer",
+  "personaStrictCaps": "Strict Professor",
+  "personaImpatientCaps": "Impatient Visa Officer",
+  "micBlockedInSettings": "Microphone is blocked in system settings.",
+  "openSettings": "Open settings",
+  "genericError": "Error: {error}",
+  "@genericError": {
+    "placeholders": { "error": { "type": "Object" } }
+  },
+  "errorLoadingApplications": "Error loading applications: {error}",
+  "@errorLoadingApplications": {
+    "placeholders": { "error": { "type": "Object" } }
+  },
+  "noAppsInlineHint": "No applications yet — go to the Applications tab to add one.",
+
+  "aiStatusWaiting": "Waiting for input...",
+  "aiStatusCoolingDown": "AI cooling down…",
+  "aiStatusAnalyzing": "AI analyzing...",
+  "aiStatusReady": "Ready",
+  "aiStatusPredicting": "AI Predicting...",
+  "aiStatusSupervisionActive": "AI Supervision Active",
+  "workspaceTitle": "Workspace",
+  "workspaceAnalyzeButton": "Analyze",
+  "aiSupervisionWarningsTitle": "AI Supervision Warnings:",
+  "grammarReplaceWith": "Replace \"{original}\" with \"{suggestion}\"",
+  "@grammarReplaceWith": {
+    "placeholders": {
+      "original": { "type": "String" },
+      "suggestion": { "type": "String" }
+    }
+  },
+  "draftingHint": "Type your {documentTitle} here...",
+  "@draftingHint": {
+    "placeholders": { "documentTitle": { "type": "String" } }
+  },
+  "ghostSuggestionSemantics": "AI suggestion — tap to insert",
+  "ghostAccept": "Accept",
+  "ghostDismiss": "Dismiss suggestion",
+
+  "pastDraftsTooltip": "Past drafts",
+  "sessionSettingsTooltip": "Session settings",
+  "switchTrackEnglish": "Switch track → English",
+  "switchTrackKorean": "Switch track → Korean",
+  "createNewSession": "Create New Session",
+  "yourSavedDrafts": "Your Saved Drafts",
+  "noPreviousDrafts": "No previous drafts found.",
+  "generalDraftLabel": "General",
+  "studyPlanDocumentName": "Study Plan",
+  "personalStatementDocumentName": "Personal Statement",
+  "savedDraftItemTitle": "{universityName} {documentName}",
+  "@savedDraftItemTitle": {
+    "placeholders": {
+      "universityName": { "type": "String" },
+      "documentName": { "type": "String" }
+    }
+  },
+  "sessionStatusLabel": "Status: {status}",
+  "@sessionStatusLabel": {
+    "placeholders": { "status": { "type": "String" } }
+  },
+  "deleteSessionTitle": "Delete Session",
+  "deleteSessionBody": "Are you sure you want to delete this session? This action cannot be undone.",
+  "deleteLabel": "Delete",
+  "stepperLabelGuide": "Guide",
+  "stepperLabelExample": "Example",
+  "stepperLabelDraft": "Draft",
+  "stepperLabelFeedback": "Feedback",
+  "readExamplesButton": "Read Examples",
+  "targetUniversityLabel": "Target University",
+  "startDraftingButton": "Start Drafting",
+  "newStudyPlanDialogTitle": "Start New Study Plan",
+  "newPersonalStatementDialogTitle": "Start New Personal Statement",
+  "selectTargetUniversityStep": "1. Select Target University",
+  "selectLanguageTrackStep": "2. Select Language Track",
+  "createSession": "Create Session",
+  "aiExampleEmbassyTitle": "Embassy Example",
+  "aiExampleUniversityTitle": "Example for {universityName}",
+  "@aiExampleUniversityTitle": {
+    "placeholders": { "universityName": { "type": "String" } }
+  },
+  "aiExampleEmbassyLabel": "Embassy of the Republic of Korea (Visa)",
+  "aiExampleWritingPlaceholder": "AI is writing an example...",
+  "copyButton": "Copy",
+  "copiedSnackbar": "Text copied!",
+
+  "analysisFeedbackTitle": "Analysis & Feedback",
+  "noAnalysisYet": "No analysis generated yet.",
+  "aiReviewedDraft": "AI successfully reviewed your draft.",
+  "returnToDrafting": "Return to Drafting",
+
+  "studyPlanHistoryTitle": "Study Plan history",
+  "personalStatementHistoryTitle": "Personal Statement history",
+  "draftingHistoryTitle": "Drafting history",
+  "noPastDraftsYet": "No past drafts yet",
+  "noPastDraftsBody": "Start a new session and your drafts will appear here, ordered by most recently edited.",
+  "noTargetUniversity": "No target university",
+  "sessionStepLabel": "Step {step}",
+  "@sessionStepLabel": {
+    "placeholders": { "step": { "type": "int" } }
+  },
+
+  "metricWords": "Words",
+  "metricCharacters": "Characters",
+  "saveStatusUnsaved": "Unsaved",
+  "saveStatusSaving": "Saving...",
+  "saveStatusSaved": "Saved",
+  "saveStatusError": "Save failed",
+
+  "interviewPracticeTitle": "Interview Practice",
+  "interviewSettingUp": "Setting up your interview...",
+
+  "interviewSetupTitle": "AI Interview Setup",
+  "interviewSetupSubtitle": "Configure your AI interviewer settings before starting.",
+  "interviewTypeLabel": "Interview Type",
+  "interviewTypeGeneral": "General Introduction",
+  "interviewTypeUniversitySpecific": "University Specific",
+  "interviewTypeVisa": "Visa / Embassy Check",
+  "targetUniversityFieldLabel": "Target university",
+  "languageLabel": "Language",
+  "interviewerPersonaLabel": "Interviewer Persona",
+  "focusTopicLabel": "Focus Topic (Optional)",
+  "focusTopicHint": "e.g. Discussing my computer science major...",
+  "timedModeTitle": "Timed Mode",
+  "timedModeSubtitle": "5 minute strict limit",
+  "startPracticeButton": "Start Practice",
+  "pickUniversityFirstHint": "Pick a target university above to enable.",
+
+  "coachingFiller": "Avoid using filler words!",
+  "lifelineHintsTitle": "💡 Lifeline Hints:",
+  "speakerAi": "AI",
+  "speakerYou": "You",
+  "connectionInterrupted": "Connection interrupted: {detail}",
+  "@connectionInterrupted": {
+    "placeholders": { "detail": { "type": "String" } }
+  },
+
+  "interviewAnalyticsTitle": "Interview Analytics",
+  "analyzingTranscript": "Analyzing transcript with AI...",
+  "noFeedbackAvailable": "No feedback available.",
+  "overallScoreLabel": "Overall Score",
+  "metricCommunication": "Communication",
+  "metricConfidence": "Confidence",
+  "metricContent": "Content",
+  "metricLanguage": "Language",
+  "detailedFeedbackTitle": "Detailed Feedback",
+  "detailedFeedbackFallback": "Great job.",
+  "strengthsLabel": "Strengths",
+  "areasToImproveLabel": "Areas to Improve",
+  "startAnotherInterview": "Start another interview",
+  "sessionRecording": "Session Recording",
+  "audioRecordingNotFound": "Audio recording not found.",
+
+  "interviewHistoryTitle": "Interview History",
+  "noPastInterviews": "No past interviews found.",
+  "unknownTarget": "Unknown Target",
+  "unknownUniversity": "Unknown University",
+  "abandonedSessionNote": "This session ended without feedback — no replay available.",
+  "activeSessionNote": "This session is still active. Finish it to see feedback.",
+  "deleteSessionTooltip": "Delete session",
+  "deleteInterviewDialogTitle": "Delete this session?",
+  "deleteInterviewDialogBody": "The feedback and recording link will be permanently removed.",
+  "deleteFailed": "Delete failed: {error}",
+  "@deleteFailed": {
+    "placeholders": { "error": { "type": "Object" } }
+  },
+
+  "a11yTooltipAskAi": "Ask Hanguk AI",
+  "a11yTooltipClearChat": "Clear chat history",
+  "a11yTooltipSendMessage": "Send message",
+  "a11yTooltipClose": "Close",
+  "a11yTooltipPreviewDocument": "Preview document",
+  "a11yTooltipDeleteDocument": "Delete document",
+  "a11yTooltipInterviewHistory": "Interview history",
+  "a11yTooltipCloseSession": "Close session",
+  "a11yTooltipDeleteSession": "Delete session",
+  "a11yTooltipBack": "Back",
+  "a11yTooltipPlayRecording": "Play recording",
+  "a11yTooltipPauseRecording": "Pause recording"
+}

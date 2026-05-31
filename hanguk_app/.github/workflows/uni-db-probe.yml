@@ -1,0 +1,53 @@
+name: uni-db probe
+
+# Manual tool for onboarding a NEW university. Give it a notice-board URL;
+# it renders the page on the runner with a real Chrome browser (bypassing the
+# UA bot-filters + JS rendering that block the dev sandbox) and prints the
+# board's row structure + a suggested HtmlListSelectors snippet. Paste that
+# output back so the adapter (configs/<uni>.py) can be written accurately.
+#
+# Read-only: it does NOT touch the database or any secrets.
+
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: "University notice-board URL to probe (e.g. https://admission.x.ac.kr/notice)"
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: services/uni_db
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: services/uni_db/pyproject.toml
+
+      - name: Install (base deps + a headless Chrome)
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+          pip install playwright
+          python -m playwright install --with-deps chromium
+
+      - name: Probe the board
+        run: python scripts/probe_site.py "${{ github.event.inputs.url }}"
+
+      - name: Upload the rendered HTML (for deeper inspection)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: probe-html
+          path: services/uni_db/probe_output.html
+          if-no-files-found: ignore
