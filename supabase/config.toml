@@ -19,7 +19,7 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.translate-parsed-output]
-verify_jwt = true
+verify_jwt = false
 
 [functions.sync-to-command-center]
 verify_jwt = false
