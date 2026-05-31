@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:supabase/supabase.dart';
 void main() async {
-  final client = SupabaseClient('https://lysjdtyanhdfphqyijsr.supabase.co', 'SERVICE_ROLE_KEY_REMOVED__ROTATE_AND_LOAD_FROM_ENV');
+  final client = SupabaseClient('https://lysjdtyanhdfphqyijsr.supabase.co', (Platform.environment['SUPABASE_SECRET_KEY'] ?? ''));
   
   try {
     final res = await client.from('app_versions').select().eq('id', 'android').single();

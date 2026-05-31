@@ -118,7 +118,7 @@ Deno.serve(async (req) => {
 
     const admin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      (Deno.env.get('SB_SECRET_KEY') ?? Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')) ?? '',
       { auth: { autoRefreshToken: false, persistSession: false } },
     )
 
@@ -237,7 +237,7 @@ Deno.serve(async (req) => {
     // Use a non-admin client to actually exchange the password for a session.
     const anon = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      (Deno.env.get('SB_PUBLISHABLE_KEY') ?? Deno.env.get('SUPABASE_ANON_KEY')) ?? '',
       { auth: { autoRefreshToken: false, persistSession: false } },
     )
 

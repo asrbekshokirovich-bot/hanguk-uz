@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:convert';
 import 'package:supabase/supabase.dart';
 
@@ -5,8 +6,8 @@ Future<void> main() async {
   const supabaseUrl = 'https://lysjdtyanhdfphqyijsr.supabase.co';
   
   // Use anon key and login
-  const anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx5c2pkdHlhbmhkZnBocXlpanNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NTUxMDYsImV4cCI6MjA4ODQzMTEwNn0.p-WlK-r4xqRk63N6zc_8JCIV53FVmjwAcqK7Lx25GJs';
-  const serviceRoleKey = 'SERVICE_ROLE_KEY_REMOVED__ROTATE_AND_LOAD_FROM_ENV';
+  const anonKey = 'sb_publishable_Ne64VlXnQ7tWJJ1e7aQLGg_5OgQiof3';
+  final serviceRoleKey = Platform.environment['SUPABASE_SECRET_KEY'] ?? '';
   
   final client = SupabaseClient(supabaseUrl, serviceRoleKey);
   try {

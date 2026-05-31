@@ -9,7 +9,7 @@ const corsHeaders = {
 // Problem 11: Build Supabase client with user's JWT for RLS compliance
 function buildSupabaseClient(req: Request) {
   const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-  const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+  const supabaseAnonKey = (Deno.env.get('SB_PUBLISHABLE_KEY') ?? Deno.env.get('SUPABASE_ANON_KEY'))!;
   const authHeader = req.headers.get('Authorization');
 
   // Use user's JWT if available, otherwise fall back to anon key

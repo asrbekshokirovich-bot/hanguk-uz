@@ -19,7 +19,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
-const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+const SERVICE_ROLE_KEY = (Deno.env.get('SB_SECRET_KEY') ?? Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'))!;
 const PUSH_ENABLED = (Deno.env.get('UNI_DB_PUSH_ENABLED') || 'false').toLowerCase() === 'true';
 const FCM_SERVICE_ACCOUNT_JSON = Deno.env.get('FCM_SERVICE_ACCOUNT_JSON') || '';
 const APNS_KEY_P8 = Deno.env.get('APNS_KEY_P8') || '';

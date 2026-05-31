@@ -32,7 +32,7 @@ const SIGNED_URL_TTL_SECONDS = 60 * 15;
 const DEFAULT_BUCKET = 'guideline-blobs';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
-const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+const SERVICE_ROLE_KEY = (Deno.env.get('SB_SECRET_KEY') ?? Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'))!;
 
 if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
   // Fail loud at boot so a misconfigured deploy doesn't 500 every call.

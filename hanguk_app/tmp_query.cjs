@@ -1,5 +1,5 @@
 const SUPABASE_URL = 'https://lysjdtyanhdfphqyijsr.supabase.co';
-const ANON_KEY = 'SERVICE_ROLE_KEY_REMOVED__ROTATE_AND_LOAD_FROM_ENV';
+const ANON_KEY = process.env.SUPABASE_SECRET_KEY;
 
 async function test() {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/applications?select=*,university:universities(id,name_en)`, {

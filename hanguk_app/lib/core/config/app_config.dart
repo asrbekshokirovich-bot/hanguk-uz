@@ -7,10 +7,14 @@ class AppConfig {
   // ── Supabase ─────────────────────────────────────────────────────────────
   static const String supabaseUrl = 'https://lysjdtyanhdfphqyijsr.supabase.co';
 
-  /// The Supabase anonymous key. This is intentionally a public key — it is
-  /// safe to ship in the client, but should never be a service_role key.
-  static const String supabaseAnonKey =
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx5c2pkdHlhbmhkZnBocXlpanNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NTUxMDYsImV4cCI6MjA4ODQzMTEwNn0.p-WlK-r4xqRk63N6zc_8JCIV53FVmjwAcqK7Lx25GJs';
+  /// The Supabase publishable (client) key — intentionally public and safe to
+  /// ship in the client. Replaces the legacy `anon` JWT so the app keeps
+  /// working once the legacy API keys are disabled. Override per build with
+  /// `--dart-define=SUPABASE_PUBLISHABLE_KEY=...`. Never a secret/service key.
+  static const String supabaseAnonKey = String.fromEnvironment(
+    'SUPABASE_PUBLISHABLE_KEY',
+    defaultValue: 'sb_publishable_Ne64VlXnQ7tWJJ1e7aQLGg_5OgQiof3',
+  );
 
   // ── Vapi (WebRTC voice AI) ────────────────────────────────────────────────
   /// Public key for the Vapi WebRTC service. Safe to include in client builds.
