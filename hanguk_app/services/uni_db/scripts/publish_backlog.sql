@@ -38,6 +38,28 @@ begin
 exception when others then return null;
 end $$;
 
+-- Map extractor program levels (master/doctoral/phd/…) to the
+-- university_admission_periods CHECK set; unknown -> undergraduate.
+create or replace function pg_temp._uni_plevel(v text) returns text
+language sql immutable as $$
+  select case lower(coalesce(v,''))
+    when 'undergraduate' then 'undergraduate'
+    when 'graduate' then 'graduate'
+    when 'both' then 'both'
+    when 'master' then 'graduate' when 'masters' then 'graduate'
+    when 'doctoral' then 'graduate' when 'doctorate' then 'graduate'
+    when 'phd' then 'graduate' when 'grad' then 'graduate'
+    when 'graduate_school' then 'graduate' when 'integrated' then 'graduate'
+    else 'undergraduate' end
+$$;
+
+-- Clamp language_track to its CHECK set; anything else -> NULL.
+create or replace function pg_temp._uni_ltrack(v text) returns text
+language sql immutable as $$
+  select case when lower(coalesce(v,'')) in ('korean','english','both')
+              then lower(v) else null end
+$$;
+
 create or replace function pg_temp._uni_track_for(aud text, cat text) returns text
 language sql immutable as $$
   select case
@@ -197,7 +219,7 @@ begin
             application_start, application_end, document_deadline, result_announcement, online_application_start,
             online_application_end, offline_application_start, offline_application_end, interview_start, interview_end,
             application_fee_krw, application_fee_usd, needs_attention, attention_reason)
-          values (rec.institution_id, v_term, v_year, coalesce(nullif(r->>'program_level',''),'undergraduate'), r->>'language_track',
+          values (rec.institution_id, v_term, v_year, pg_temp._uni_plevel(r->>'program_level'), pg_temp._uni_ltrack(r->>'language_track'),
             pg_temp._uni_d(r->>'application_start'), pg_temp._uni_d(r->>'application_end'), pg_temp._uni_d(r->>'document_deadline'),
             pg_temp._uni_d(r->>'result_announcement'), pg_temp._uni_d(r->>'online_application_start'), pg_temp._uni_d(r->>'online_application_end'),
             pg_temp._uni_d(r->>'offline_application_start'), pg_temp._uni_d(r->>'offline_application_end'),
