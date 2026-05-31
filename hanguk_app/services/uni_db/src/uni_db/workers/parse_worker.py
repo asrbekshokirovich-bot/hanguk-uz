@@ -27,6 +27,7 @@ from uuid import UUID, uuid4
 import asyncpg
 import jsonschema
 
+from ..config import settings
 from ..extract.archetype import (
     ArchetypeFingerprint,
     classify_archetype,
@@ -62,12 +63,21 @@ def parse_one_document(
     guideline_document_id: UUID,
     pdf_text_first_pages: str,
     pdf_text_full: str,
+    auto_publish: bool | None = None,
 ) -> ParseOutcome:
     """Pure: returns the outcome without touching the DB.
 
     The DB-writing wrapper is `persist_outcome`. Tests exercise this
     function directly against fixture text.
+
+    `auto_publish` (defaults to `settings.auto_publish_enabled`) controls the
+    gate: when true (the production default) EVERY content-bearing extraction
+    is queued as an `approved` item so the publish worker normalizes it without
+    a human — low-confidence / difficult-field ones flagged `needs_attention`
+    but still published. When false the legacy human-review gate applies (only
+    `requires_hitl` items queued as `open`).
     """
+    auto = settings.auto_publish_enabled if auto_publish is None else auto_publish
     archetype = classify_archetype(pdf_text_first_pages)
     degree = classify_degree_level(
         first_pages_text=pdf_text_first_pages,
@@ -146,18 +156,9 @@ def parse_one_document(
             field_name=_canonical_field_for(group),
             confidence=result.accuracy_self_score,
         )
-        if verdict.requires_hitl:
-            review_entries.append(
-                {
-                    "entity_type": "extraction_jobs",
-                    "entity_id": None,           # filled by persist_outcome
-                    "reason": "low_confidence" if result.accuracy_self_score < 0.85
-                              else "high_difficulty_field",
-                    "priority": 3 if result.accuracy_self_score >= 0.7 else 2,
-                    "field_group": group,
-                    "rationale": verdict.rationale,
-                }
-            )
+        entry = _queue_entry_for(group, result, verdict, auto_publish=auto)
+        if entry is not None:
+            review_entries.append(entry)
 
     # A single PDF that covers BOTH undergraduate and graduate admission is
     # mis-parsed as one undergraduate document. Flag it (document-level) so a
@@ -191,6 +192,60 @@ def parse_one_document(
         extraction_results=results,
         review_queue_entries=review_entries,
     )
+
+
+def _queue_entry_for(
+    group: str,
+    result: ExtractionResult,
+    verdict,
+    *,
+    auto_publish: bool,
+) -> dict[str, object] | None:
+    """Build the review_queue entry for one content-bearing extraction.
+
+    Auto-publish (default): every extraction is queued `approved` so the
+    publish worker picks it up with no human. Difficult / low-confidence ones
+    are still published, just flagged `needs_attention` for a read-only triage
+    view. Legacy mode: only `requires_hitl` items are queued, as `open`.
+    """
+    score = result.accuracy_self_score
+    base: dict[str, object] = {
+        "entity_type": "extraction_jobs",
+        "entity_id": None,           # filled by persist_outcome
+        "field_group": group,
+        "rationale": verdict.rationale,
+    }
+
+    if not auto_publish:
+        # Legacy human-gated: drop high-confidence items, queue the rest as open.
+        if not verdict.requires_hitl:
+            return None
+        return {
+            **base,
+            "status": "open",
+            "needs_attention": False,
+            "reason": "low_confidence" if score < 0.85 else "high_difficulty_field",
+            "priority": 3 if score >= 0.7 else 2,
+        }
+
+    if verdict.requires_hitl:
+        # Publish anyway, but flag it for triage.
+        return {
+            **base,
+            "status": "approved",
+            "needs_attention": True,
+            "reason": "low_confidence" if score < 0.85 else "high_difficulty_field",
+            "priority": 3 if score >= 0.7 else 2,
+        }
+
+    # Clean, high-confidence → publish without a flag.
+    return {
+        **base,
+        "status": "approved",
+        "needs_attention": False,
+        "reason": "auto_approved",
+        "priority": 5,
+    }
 
 
 async def persist_outcome(
@@ -255,7 +310,8 @@ async def persist_outcome(
                     """
                     update public.review_queue
                        set status = 'superseded', resolved_at = now()
-                     where status in ('open', 'in_review')
+                     where status in ('open', 'in_review', 'approved')
+                       and published_at is null
                        and entity_type = 'extraction_jobs'
                        and entity_id in (
                          select ej.id from public.extraction_jobs ej
@@ -268,18 +324,23 @@ async def persist_outcome(
                     result.field_group,
                     job_id,
                 )
+                status = str(entry.get("status", "open"))
                 await conn.execute(
                     """
                     insert into public.review_queue (
                       entity_type, entity_id, reason, priority,
-                      reviewer_notes
-                    ) values ($1,$2,$3,$4,$5)
+                      reviewer_notes, status, needs_attention, resolved_at
+                    ) values ($1,$2,$3,$4,$5,$6,$7,$8)
                     """,
                     "extraction_jobs",
                     job_id,
                     entry["reason"],
                     entry["priority"],
                     entry["rationale"],
+                    status,
+                    bool(entry.get("needs_attention", False)),
+                    datetime.now(tz=timezone.utc)
+                    if status in ("approved", "rejected") else None,
                 )
 
     # Document-level review entries (e.g. the combined undergrad+grad split

@@ -185,6 +185,8 @@ def category_for(row: dict) -> str:
 _FETCH_SQL = """
 select rq.id            as queue_id,
        rq.reviewer_decision,
+       rq.needs_attention,
+       rq.reviewer_notes as attention_reason,
        ej.field_group,
        ej.parsed_output,
        ej.accuracy_self_score,
@@ -212,21 +214,29 @@ async def get_or_create_cycle(
     intake_term: str,
     cycle_track: str,
     applicant_category: str,
+    needs_attention: bool = False,
+    attention_reason: str | None = None,
 ) -> UUID:
     return await conn.fetchval(
         """
         insert into public.admission_cycles
           (institution_id, intake_year, intake_term, cycle_track, round_number,
-           applicant_category, guideline_document_id, status)
-        values ($1,$2,$3,$4,1,$5,$6,'unverified')
+           applicant_category, guideline_document_id, status,
+           needs_attention, attention_reason)
+        values ($1,$2,$3,$4,1,$5,$6,'unverified',$7,$8)
         on conflict (institution_id, intake_year, intake_term, cycle_track,
                      round_number, applicant_category)
           do update set guideline_document_id = excluded.guideline_document_id,
+                        needs_attention = admission_cycles.needs_attention
+                                          or excluded.needs_attention,
+                        attention_reason = coalesce(admission_cycles.attention_reason,
+                                                    excluded.attention_reason),
                         updated_at = now()
         returning id
         """,
         institution_id, intake_year, intake_term, cycle_track,
         applicant_category, guideline_document_id,
+        needs_attention, attention_reason,
     )
 
 
@@ -240,12 +250,13 @@ async def _publish_tuition(conn, rec, payload) -> int:
         await conn.execute(
             """insert into public.tuition (institution_id, faculty_group, academic_year,
                  semester_number, amount_krw, admission_fee_krw, is_first_semester,
-                 source_text_ko, extractor_confidence)
-               values ($1,$2,$3,$4,$5,$6,$7,$8,$9)""",
+                 source_text_ko, extractor_confidence, needs_attention, attention_reason)
+               values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)""",
             rec["institution_id"], r.get("faculty_group") or "전체",
             r.get("academic_year") or rec["_year"], sem, amount,
             r.get("admission_fee_krw"), bool(r.get("is_first_semester", sem == 1)),
             r.get("source_text_ko"), r.get("extractor_confidence"),
+            bool(rec.get("_na", False)), rec.get("_ar"),
         )
         n += 1
     return n
@@ -275,13 +286,14 @@ async def _publish_scholarships(conn, rec, payload) -> int:
             """insert into public.scholarships (institution_id, scope, name_ko, name_en,
                  award_type, award_value, applicant_categories, topik_tier_table,
                  ielts_tier_table, eligibility_predicate, prose_ko, source_text_ko,
-                 extractor_confidence)
-               values ($1,$2,$3,$4,$5,$6,$7,$8::jsonb,$9::jsonb,$10::jsonb,$11,$12,$13)""",
+                 extractor_confidence, needs_attention, attention_reason)
+               values ($1,$2,$3,$4,$5,$6,$7,$8::jsonb,$9::jsonb,$10::jsonb,$11,$12,$13,$14,$15)""",
             rec["institution_id"], r["scope"], r["name_ko"], r.get("name_en"),
             r["award_type"], r.get("award_value"),
             _arr(r.get("applicant_categories")), _j(r.get("topik_tier_table")),
             _j(r.get("ielts_tier_table")), _j(r.get("eligibility_predicate")),
             r.get("prose_ko"), r.get("source_text_ko"), r.get("extractor_confidence"),
+            bool(rec.get("_na", False)), rec.get("_ar"),
         )
         n += 1
     return n
@@ -300,6 +312,8 @@ async def _row_cycle(conn, rec, row: dict) -> UUID:
         intake_term=rec["_term"],
         cycle_track=track_for(row.get("audience"), category),
         applicant_category=category,
+        needs_attention=bool(rec.get("_na", False)),
+        attention_reason=rec.get("_ar"),
     )
 
 
@@ -311,14 +325,15 @@ async def _publish_requirements(conn, rec, payload) -> int:
             """insert into public.requirements (cycle_id, applicant_category,
                  topik_min_level, topik_deferred, english_test, gpa_floor_pct,
                  interview_required, practical_exam_required, prose_ko,
-                 source_text_ko, extractor_confidence)
-               values ($1,$2,$3,$4,$5::jsonb,$6,$7,$8,$9,$10,$11)""",
+                 source_text_ko, extractor_confidence, needs_attention, attention_reason)
+               values ($1,$2,$3,$4,$5::jsonb,$6,$7,$8,$9,$10,$11,$12,$13)""",
             cycle_id, category_for(r),
             r.get("topik_min_level"), bool(r.get("topik_deferred", False)),
             _j(r.get("english_test")), r.get("gpa_floor_pct"),
             bool(r.get("interview_required", False)),
             bool(r.get("practical_exam_required", False)),
             r.get("prose_ko"), r.get("source_text_ko"), r.get("extractor_confidence"),
+            bool(rec.get("_na", False)), rec.get("_ar"),
         )
         n += 1
     return n
@@ -331,12 +346,13 @@ async def _publish_documents(conn, rec, payload) -> int:
         await conn.execute(
             """insert into public.documents_required (cycle_id, applicant_category,
                  document_type, is_required, is_apostille_required, country_specific,
-                 notes_ko, source_text_ko)
-               values ($1,$2,$3,$4,$5,$6::jsonb,$7,$8)""",
+                 notes_ko, source_text_ko, needs_attention, attention_reason)
+               values ($1,$2,$3,$4,$5,$6::jsonb,$7,$8,$9,$10)""",
             cycle_id, category_for(r),
             first_doc_name(r), bool(r.get("is_required", True)),
             bool(r.get("is_apostille_required") or r.get("is_notarization_required") or False),
             _j(r.get("country_specific")), r.get("notes_ko"), r.get("source_text_ko"),
+            bool(rec.get("_na", False)), rec.get("_ar"),
         )
         n += 1
     return n
@@ -356,8 +372,9 @@ async def _publish_calendar(conn, rec, payload) -> int:
                  application_start, application_end, document_deadline,
                  result_announcement, online_application_start, online_application_end,
                  offline_application_start, offline_application_end,
-                 interview_start, interview_end, application_fee_krw, application_fee_usd)
-               values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
+                 interview_start, interview_end, application_fee_krw, application_fee_usd,
+                 needs_attention, attention_reason)
+               values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19)
                on conflict (institution_id, semester, year, program_level, language_track)
                do update set
                  application_start = excluded.application_start,
@@ -372,6 +389,8 @@ async def _publish_calendar(conn, rec, payload) -> int:
                  interview_end = excluded.interview_end,
                  application_fee_krw = excluded.application_fee_krw,
                  application_fee_usd = excluded.application_fee_usd,
+                 needs_attention = excluded.needs_attention,
+                 attention_reason = excluded.attention_reason,
                  updated_at = now()""",
             rec["institution_id"], semester, rec["_year"],
             p.get("program_level") or "undergraduate", p.get("language_track"),
@@ -381,6 +400,7 @@ async def _publish_calendar(conn, rec, payload) -> int:
             _as_date(p.get("offline_application_start")), _as_date(p.get("offline_application_end")),
             _as_date(p.get("interview_start")), _as_date(p.get("interview_end")),
             p.get("application_fee_krw"), p.get("application_fee_usd"),
+            bool(rec.get("_na", False)), rec.get("_ar"),
         )
         n += 1
     return n
@@ -421,6 +441,9 @@ async def publish_pending(conn: asyncpg.Connection, *, limit: int = 200) -> Publ
             continue
         rec["_year"] = infer_year(payload, default=default_year)
         rec["_term"] = infer_term(payload)
+        # Auto-gate flag (from review_queue) carried onto every published row.
+        rec["_na"] = bool(rec.get("needs_attention", False))
+        rec["_ar"] = rec.get("attention_reason")
         try:
             n = await publisher(conn, rec, payload)
         except Exception as exc:  # one bad item must not abort the batch

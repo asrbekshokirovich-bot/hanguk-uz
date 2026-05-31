@@ -22,6 +22,13 @@ class Settings(BaseSettings):
     live_crawl: bool = Field(default=False, alias="UNI_DB_LIVE_CRAWL")
     env: str = Field(default="development", alias="UNI_DB_ENV")
 
+    # Auto-publish (no human review). When true (default), parse_worker
+    # auto-approves every non-empty/non-failed extraction straight into
+    # review_queue as `approved` — low-confidence/difficult ones flagged
+    # needs_attention but still published. Set false to restore the legacy
+    # human-gated behavior (only `requires_hitl` items enqueued as `open`).
+    auto_publish_enabled: bool = Field(default=True, alias="UNI_DB_AUTO_PUBLISH")
+
     # OCR provider — ADR-002 default is `easyocr` (open-source).
     # Flip to `naver_clova` if the in-office reviewer reports >6 hrs/wk
     # of OCR cleanup load sustained for 4 weeks (ADR-002 reversal trigger).
