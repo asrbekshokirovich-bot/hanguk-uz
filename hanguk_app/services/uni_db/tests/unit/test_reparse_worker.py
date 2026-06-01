@@ -10,9 +10,13 @@ from uni_db.workers import reparse_worker
 class _FakeConn:
     def __init__(self, rows: list[dict]) -> None:
         self._rows = rows
+        self.executed: list[tuple] = []
 
     async def fetch(self, sql: str, *args: object) -> list[dict]:
         return self._rows
+
+    async def execute(self, sql: str, *args: object) -> None:
+        self.executed.append((sql, args))
 
 
 async def test_reparses_each_document() -> None:
@@ -60,3 +64,37 @@ async def test_parse_failure_counted() -> None:
         _FakeConn(rows), limit=10, fetch_blob=lambda p: b"%PDF", run_parse=failing_parse,
     )
     assert (ok, fail) == (0, 1)
+
+
+async def test_pending_only_marks_broken_doc_failed() -> None:
+    """A pending doc that fails reparse must be flipped to 'failed' so the
+    scheduled drain stops re-billing it every run."""
+    gd_id = uuid4()
+    conn = _FakeConn([{"id": gd_id, "storage_path": "broken.pdf"}])
+
+    async def failing_parse(c, _gd_id, data) -> None:
+        raise RuntimeError("archetype crash")
+
+    ok, fail = await reparse_worker.reparse_pending(
+        conn, limit=10, pending_only=True,
+        fetch_blob=lambda p: b"%PDF", run_parse=failing_parse,
+    )
+    assert (ok, fail) == (0, 1)
+    marks = [a for sql, a in conn.executed
+             if "parse_status='failed'" in sql.replace(" ", "").replace("\n", "")
+             or "parse_status = 'failed'" in sql]
+    assert marks and marks[0][0] == gd_id
+
+
+async def test_non_pending_failure_is_not_marked_failed() -> None:
+    """Default (full) reparse must NOT mark failures, so a fix can retry them."""
+    conn = _FakeConn([{"id": uuid4(), "storage_path": "x.pdf"}])
+
+    async def failing_parse(c, gd_id, data) -> None:
+        raise RuntimeError("boom")
+
+    ok, fail = await reparse_worker.reparse_pending(
+        conn, limit=10, fetch_blob=lambda p: b"%PDF", run_parse=failing_parse,
+    )
+    assert (ok, fail) == (0, 1)
+    assert conn.executed == []

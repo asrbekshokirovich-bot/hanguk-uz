@@ -86,6 +86,16 @@ jobs:
       - name: Fetch + parse
         run: uni-db run-pipeline --limit "${{ github.event.inputs.fetch_limit || '50' }}"
 
+      # 2b) Reclaim documents orphaned at parse_status='pending'. The inline
+      #     fetch+parse inserts the row, then parses; if parse/persist throws the
+      #     row is stranded 'pending', and step 2 (which only scans NEW
+      #     announcements) never retries it. Drain those here. Cost-bounded:
+      #     pending-only + capped, and a doc that fails again is marked 'failed'
+      #     so it isn't re-billed every cycle. Best-effort.
+      - name: Reparse orphaned pending documents
+        continue-on-error: true
+        run: uni-db reparse --pending-only --limit 25
+
       # 3) Ingest auto-discovered (promoted) sources that have no board adapter
       #    — direct PDF/guide-page URLs from the discovery → approve flow. Small
       #    chunk so the whole sync stays inside the time budget; it's idempotent,
