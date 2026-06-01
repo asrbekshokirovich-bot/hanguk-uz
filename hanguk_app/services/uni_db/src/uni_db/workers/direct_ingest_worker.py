@@ -50,6 +50,14 @@ from .propose_worker import registrable_domain
 log = logging.getLogger(__name__)
 
 _KOREAN_UNIV_NAME = re.compile(r"[가-힣]{2,}(?:대학교|대학|대)")
+# Generic words the greedy name regex wrongly grabs from boilerplate titles
+# ("…일반대학…", "2026학년도대학원…") — reject these so the caller falls back to the
+# domain instead of recording a junk institution name (see the 2026 identity audit).
+_GENERIC_NAME_STEMS = frozenset({
+    "일반", "학년도", "모집", "신입", "편입", "전형", "정시", "수시",
+    "특별", "외국인", "재외국민", "대학원", "후기", "전기", "추가",
+})
+_NAME_SUFFIX = re.compile(r"(대학교|대학|대)$")
 # Auto-created institutions are placeholders: kept off the public map and typed
 # 'private' (the modal type, a valid institution_type) until a reviewer fixes
 # the real name/type. institution_type has a CHECK constraint, so this must be
@@ -61,11 +69,21 @@ GenericResolve = Callable[[str, httpx.AsyncClient, str | None], Awaitable[Any]]
 
 
 def korean_name_from_title(title: str | None) -> str | None:
-    """Pull a Korean university name (…대학교/…대학/…대) out of a search-hit title."""
+    """Pull a Korean university name (…대학교/…대학/…대) out of a search-hit title.
+
+    Rejects generic boilerplate the greedy regex grabs ("일반대학", "학년도대학") so
+    the caller falls back to the domain rather than storing a junk name.
+    """
     if not title:
         return None
     m = _KOREAN_UNIV_NAME.search(title)
-    return m.group(0) if m else None
+    if not m:
+        return None
+    name = m.group(0)
+    stem = _NAME_SUFFIX.sub("", name)
+    if not stem or stem in _GENERIC_NAME_STEMS:
+        return None
+    return name
 
 
 async def get_or_create_institution(

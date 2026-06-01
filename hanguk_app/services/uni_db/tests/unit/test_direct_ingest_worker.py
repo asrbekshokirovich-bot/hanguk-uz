@@ -94,6 +94,14 @@ class TestKoreanName:
         assert diw.korean_name_from_title("Foreign Admission Guide") is None
         assert diw.korean_name_from_title(None) is None
 
+    def test_rejects_generic_boilerplate_names(self) -> None:
+        # the greedy regex used to grab these from title boilerplate (2026 audit)
+        assert diw.korean_name_from_title("2026학년도 일반대학 모집요강") is None
+        assert diw.korean_name_from_title("2026학년도대학원 외국인 모집") is None
+        # real names sitting next to generic words still resolve
+        assert diw.korean_name_from_title("군산대학교 신입학 안내") == "군산대학교"
+        assert diw.korean_name_from_title("한양사이버대학교 2026") == "한양사이버대학교"
+
 
 async def test_institution_created_hidden_when_missing() -> None:
     conn = _Conn(institution_exists=False)
