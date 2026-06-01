@@ -3,6 +3,8 @@
 **Date:** 2026-06-01 · **Companion to:** `docs/university-admissions-audit.md`
 **Scope:** Every issue in the audit (16 systemic + all 51 universities), mapped to a concrete,
 file‑level fix, phased by impact and risk.
+**Status (2026‑06‑01):** *Planning only — no code/DB changes applied yet.* Decisions locked:
+schools kept **with warning labels** (not hidden); Korea‑proxy **options being researched** (memo in Phase 2).
 
 ---
 
@@ -61,13 +63,16 @@ file‑level fix, phased by impact and risk.
   then UPDATE the three. (No existing column fits; this is the one genuinely new field.)
 - **Effort:** S · **Risk:** very low.
 
-### 0.5 Make the app honor type/flags (student‑safety)
-- **What:** in the student browser (`StudentUniversities` + detail sheet, added in PR #20):
-  - **Hide or hard‑gate** `institution_type='cyber'` (D‑2 visa‑ineligible) with a clear notice.
-  - **Label** `junior_college` ("2–3yr associate degree") and `specialized` ("theology seminary").
-  - **Gender‑gate** `is_women_only` (don't surface to male students; badge "women‑only").
-- **How:** extend the `v_institution_content_counts` view / query select to include
-  `institution_type, is_women_only`, and branch in the React components.
+### 0.5 Make the app honor type/flags — *labels, not hiding* (decided)
+- **What:** in the student browser (`StudentUniversities` + detail sheet, PR #20), **keep every school
+  but badge it clearly** so students aren't misled:
+  - `institution_type='cyber'` → badge **"Online university — not eligible for a D‑2 student visa"**.
+  - `junior_college` → badge **"Vocational college — 2–3yr associate degree (not a bachelor's)"**.
+  - `specialized` → badge **"Specialized institution (theology seminary)"**.
+  - `is_women_only` → badge **"Women‑only admission"** (and, where the student's gender is known,
+    de‑prioritize for male students rather than hard‑hiding).
+- **How:** add `institution_type, is_women_only` to the `v_institution_content_counts` view / query and
+  render a badge + one‑line explainer in the card and detail sheet.
 - **Effort:** M · **Risk:** low (read‑only display logic).
 
 ---
@@ -226,9 +231,9 @@ the publish step flips it live.
 
 ---
 
-## Open decisions (need your input)
+## Open decisions
 
-1. **Korea proxy** (Phase 2): pick a provider + budget, or defer (Phase 1's 403‑blocked items stay blocked until then).
-2. **Vocational/cyber/seminary** (Phase 0.3): **hide** them from the student browser, or **keep with a warning label**?
-3. **Multi‑campus** (Phase 3.4): split into separate records now, or annotate one record per university for v1?
-4. **Scope of execution:** do all phases, or stop after Phase 0 (+3.1) and review?
+1. ✅ **Vocational/cyber/seminary/women‑only** — *keep with a warning label* (decided 2026‑06‑01); baked into 0.5.
+2. ✅ **Execution scope** — *planning only for now* (decided 2026‑06‑01); nothing applied yet.
+3. **Korea proxy** (Phase 2): provider + budget — *options being researched*; recommendation appended to Phase 2 below.
+4. **Multi‑campus** (Phase 3.4): split into separate per‑campus records now, or annotate one record per university for v1? — **still open.**
