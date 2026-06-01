@@ -4,7 +4,8 @@
 **Scope:** Every issue in the audit (16 systemic + all 51 universities), mapped to a concrete,
 file‑level fix, phased by impact and risk.
 **Status (2026‑06‑01):** *Planning only — no code/DB changes applied yet.* Decisions locked:
-schools kept **with warning labels** (not hidden); Korea‑proxy **options being researched** (memo in Phase 2).
+schools kept **with warning labels** (not hidden); Korea‑proxy **recommendation ready** — Vultr Seoul
+VPS ≈ $5–6/mo + browser headers + mirror‑on‑first‑fetch (Phase 2).
 
 ---
 
@@ -124,20 +125,53 @@ Konkuk Seoul (`enter.konkuk.ac.kr`), Kangwon (`oiaknu`), Jeonbuk (`ioffice`).
 
 ---
 
-## Phase 2 — Crawler root cause: Korea egress proxy
+## Phase 2 — Crawler root cause: Korea egress *(research‑backed recommendation)*
 
 *The single highest‑leverage fix — unblocks the entire 403 tier (no‑doc + many empty parses).*
 
-- **2.1 Code:** add `http_proxy_url` to `config.py` (`:106‑113`, alongside the existing http_* settings)
-  and wire it into the **bare** `httpx.AsyncClient(...)` in `cli.py:316‑320` (run‑pipeline) and
-  `:433‑437` (ingest‑direct), plus `attachment_downloader.py:46‑52`:
-  `httpx.AsyncClient(..., proxy=settings.http_proxy_url or None)`. ~5 lines.
-- **2.2 Ops:** provision a **Korea‑based proxy** (KR VPS/residential proxy) and store it as secret
-  `UNI_DB_HTTP_PROXY` in the GitHub Actions env (same place as the other `UNI_DB_*` secrets). This is
-  a procurement/ops task, not code.
-- **2.3 Run:** re‑run discovery + fetch through the proxy → captures the real PDFs for 1.1–1.5.
-- **Effort:** S (code) + ops (proxy) · **Risk:** low code, medium ops (cost + reliability of proxy).
-- **Decision needed:** which proxy provider/budget (see Open decisions).
+**Diagnosis (a free test settles the cost).** `.ac.kr` 403s are *mostly a plain GeoIP country block* —
+**any** Korean IP, even a cheap Seoul **datacenter** VPS, passes. Only a minority are bot/ASN blocks
+needing a Korean *residential/ISP* IP, and some are just missing‑header bot detection. So spend cheap‑first:
+
+- **2.0 Free first move — headers + probe.** Add browser‑like headers to the fetch client (the worker
+  already sets `Referer` per request): `User-Agent: Mozilla/5.0 …Chrome…`,
+  `Accept-Language: ko-KR,ko;q=0.9`, `Referer: https://www.google.co.kr/`. Then probe one blocked PDF
+  from a Seoul VPS with `curl`; a 200 ⇒ pure geo block ⇒ Step 2 suffices. Costs nothing.
+- **2.1 Code wiring.** Add `http_proxy_url` to `config.py` (`:106‑113`) and pass it to the **bare**
+  `httpx.AsyncClient(...)` at `cli.py:316‑320` + `:433‑437` and `attachment_downloader.py:46‑52`
+  (`proxy=settings.http_proxy_url or None`); SOCKS needs `pip install httpx[socks]`.
+  *(Zero‑code alternative: httpx auto‑honors `HTTPS_PROXY`/`ALL_PROXY` env vars — set them in the
+  Actions job and skip the config change.)* Store the endpoint as secret `UNI_DB_HTTP_PROXY`.
+
+**2.2 Recommended provider — cheapest‑first:**
+1. **Headers only (free)** — clears the missing‑header subset.
+2. **Vultr Seoul VPS ≈ $5–6/mo** (1 vCPU/1 GB, true Seoul region) as an **SSH SOCKS5 tunnel** or tinyproxy
+   → fixes ~90% of `.ac.kr` (the geo‑block majority), ~30 min to stand up. *(Free alt: Oracle Cloud Seoul
+   Always‑Free ARM = $0, but Seoul capacity is often exhausted — only if you can wait.)*
+3. **Fallback — Korean *datacenter* proxy** (Webshare KR ≈ $0.029/IP): Korean ASN, cheap, passes simple geo+ASN checks.
+4. **Last resort (Cloudflare‑backed sites) — Korean *ISP/residential*** (Oxylabs ISP ≈ $2.10/IP·mo, IPRoyal ≈ $7/GB). Few KR universities need this.
+
+| Option | ~Cost | Type | Reliability for .ac.kr | Setup |
+|---|---|---|---|---|
+| Browser headers only | $0 | — | clears header‑gated subset | trivial |
+| **Vultr Seoul VPS + SSH SOCKS5** | **$5–6/mo** | KR datacenter | High (geo‑block bypass) | low |
+| Oracle Cloud Seoul Always‑Free | $0 | KR datacenter | High *if provisioned* | medium (capacity) |
+| AWS ap‑northeast‑2 t4g.nano | ~$4/mo | KR datacenter | High | low |
+| Webshare KR datacenter proxies | ~$5–15/mo | KR DC proxy | Medium‑High | very low |
+| Oxylabs ISP / IPRoyal residential | ~$2.10/IP·mo / ~$7/GB | KR residential | Highest | very low |
+
+**2.3 Architecture — mirror once, then drop the proxy dependency.** The pipeline **already stores every
+fetched PDF as a blob** (`storage/supabase_storage.store_blob`) and `reparse` re‑reads stored blobs
+offline. So the proxy is needed **only at first fetch**: run discovery+fetch through the KR egress once
+(or per new cycle), the PDFs mirror to Supabase Storage, and all downstream extraction/reparse needs no
+proxy. Add a `HEAD`/`ETag`/`Last‑Modified` check to re‑fetch only when a guideline actually changes.
+
+**2.4 Legal/ops.** Public admission guides are Korean government works (Copyright Act Art. 7) → low‑risk
+to fetch/mirror for informational use; honor `robots.txt`; avoid PII pages (admission *results*).
+GitHub‑hosted runners use US Azure IPs (always non‑KR), so the tunnel is required in CI.
+
+- **Effort:** S (headers + wiring) + ~30 min ops (VPS) · **Risk:** low.
+  **Recommendation: headers + a $5–6/mo Vultr Seoul VPS via SSH SOCKS5, mirror PDFs on first fetch.**
 
 ---
 
@@ -235,5 +269,5 @@ the publish step flips it live.
 
 1. ✅ **Vocational/cyber/seminary/women‑only** — *keep with a warning label* (decided 2026‑06‑01); baked into 0.5.
 2. ✅ **Execution scope** — *planning only for now* (decided 2026‑06‑01); nothing applied yet.
-3. **Korea proxy** (Phase 2): provider + budget — *options being researched*; recommendation appended to Phase 2 below.
+3. ✅ **Korea proxy** (Phase 2): *recommendation made* — browser headers + a **$5–6/mo Vultr Seoul VPS (SSH SOCKS5)**, mirror PDFs on first fetch; residential proxy only as a per‑site fallback. **Needs your go‑ahead + the `UNI_DB_HTTP_PROXY` secret.**
 4. **Multi‑campus** (Phase 3.4): split into separate per‑campus records now, or annotate one record per university for v1? — **still open.**
