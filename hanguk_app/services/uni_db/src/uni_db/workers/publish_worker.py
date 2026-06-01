@@ -147,6 +147,28 @@ def infer_term(payload: dict) -> str:
     return "fall" if any(h in blob for h in _FALL_HINTS) else "spring"
 
 
+def program_level_for(value: object) -> str:
+    """Map an extracted program level to a university_admission_periods.program_level
+    CHECK value ('undergraduate' | 'graduate' | 'both'). The extractor emits finer
+    levels (master/doctoral/phd) that the table doesn't model, so collapse them to
+    'graduate' — otherwise the row violates the CHECK and the whole calendar item
+    fails to publish (audit: Ewha/KHU graduate periods looped as publish errors)."""
+    v = value.strip().lower() if isinstance(value, str) else ""
+    if v in ("undergraduate", "graduate", "both"):
+        return v
+    if v in ("master", "masters", "doctoral", "doctorate", "phd", "graduate_school",
+             "grad", "master_doctoral", "integrated"):
+        return "graduate"
+    return "undergraduate"
+
+
+def language_track_for(value: object) -> str | None:
+    """Clamp to the language_track CHECK ('korean' | 'english' | 'both'); anything
+    else (incl. null) becomes NULL so it never blocks a publish."""
+    v = value.strip().lower() if isinstance(value, str) else ""
+    return v if v in ("korean", "english", "both") else None
+
+
 def first_doc_name(row: dict) -> str:
     for k in ("document_type", "document_name_ko", "name_ko", "label_ko", "name_en"):
         v = row.get(k)
@@ -393,7 +415,7 @@ async def _publish_calendar(conn, rec, payload) -> int:
                  attention_reason = excluded.attention_reason,
                  updated_at = now()""",
             rec["institution_id"], semester, rec["_year"],
-            p.get("program_level") or "undergraduate", p.get("language_track"),
+            program_level_for(p.get("program_level")), language_track_for(p.get("language_track")),
             _as_date(p.get("application_start")), _as_date(p.get("application_end")),
             _as_date(p.get("document_deadline")), _as_date(p.get("result_announcement")),
             _as_date(p.get("online_application_start")), _as_date(p.get("online_application_end")),

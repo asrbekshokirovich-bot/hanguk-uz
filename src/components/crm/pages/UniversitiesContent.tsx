@@ -59,6 +59,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
+import { UniversityAdmissionsSheet } from './UniversityAdmissionsSheet';
 import {
   GraduationCap,
   Plus,
@@ -74,6 +75,7 @@ import {
   MapPin,
   ExternalLink,
   RefreshCw,
+  ListChecks,
 } from 'lucide-react';
 
 const ENABLE_LEGACY_FEATURES = false; // AI add + bulk import — disabled per Phase 3R-B
@@ -153,6 +155,7 @@ export default function UniversitiesContent() {
   const [edit, setEdit] = useState<EditState>(null);
   const [fields, setFields] = useState<FormFields>(emptyFields());
   const [confirmDelete, setConfirmDelete] = useState<Institution | null>(null);
+  const [detail, setDetail] = useState<Institution | null>(null);
   const [busy, setBusy] = useState(false);
 
   const filtered = useMemo(() => {
@@ -361,6 +364,15 @@ export default function UniversitiesContent() {
                     </Button>
                   </div>
                   <div className="flex items-center gap-1">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-8"
+                      title="View admissions data"
+                      onClick={() => setDetail(row)}
+                    >
+                      <ListChecks className="h-4 w-4 mr-1" /> Admissions
+                    </Button>
                     <Button size="icon" variant="ghost" onClick={() => openEdit(row)}>
                       <Edit3 className="h-4 w-4" />
                     </Button>
@@ -383,6 +395,12 @@ export default function UniversitiesContent() {
           </CardContent>
         </Card>
       ) : null}
+
+      <UniversityAdmissionsSheet
+        institution={detail}
+        open={!!detail}
+        onOpenChange={(o) => !o && setDetail(null)}
+      />
 
       <Dialog open={!!edit} onOpenChange={(o) => !o && closeEdit()}>
         <DialogContent className="max-w-md">
