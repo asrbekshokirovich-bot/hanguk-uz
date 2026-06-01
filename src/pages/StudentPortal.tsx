@@ -7,7 +7,8 @@ import { useStudentData } from '@/hooks/useStudentData';
 import { useStudentPlan } from '@/hooks/useStudentPlan';
 import { usePlatform } from '@/hooks/usePlatform';
 import { ApplicationTracker } from '@/components/student/ApplicationTracker';
-import { UniversityMapKakao } from '@/components/student/UniversityMapKakao';
+import { StudentUniversities } from '@/components/student/StudentUniversities';
+import type { Institution } from '@/hooks/useUniversities';
 import { DocumentUpload } from '@/components/student/DocumentUpload';
 import { ProgramFinder } from '@/components/student/ProgramFinder';
 import { StudentInsightsPanel } from '@/components/student/StudentInsightsPanel';
@@ -188,7 +189,7 @@ export default function StudentPortal() {
                   </TabsTrigger>
                   <TabsTrigger value="map" className="flex items-center gap-2">
                     <MapPin className="h-4 w-4" />
-                    {t('student.exploreMap')}
+                    {t('navigation.universities', 'Universities')}
                   </TabsTrigger>
                   <TabsTrigger value="finder" className="flex items-center gap-2">
                     <Search className="h-4 w-4" />
@@ -235,7 +236,7 @@ export default function StudentPortal() {
                   <ApplicationTracker applications={applications} loading={loading} onShowOnMap={handleShowOnMap} />
                 </TabsContent>
                 <TabsContent value="map">
-                  <UniversityMapKakao universities={universities} focusUniversityId={focusUniversityId} />
+                  <StudentUniversities institutions={universities as unknown as Institution[]} focusUniversityId={focusUniversityId} />
                 </TabsContent>
                 <TabsContent value="finder">
                   <ProgramFinder />
@@ -258,7 +259,7 @@ export default function StudentPortal() {
                 </>
               )}
               {activeTab === 'map' && (
-                <UniversityMapKakao universities={universities} focusUniversityId={focusUniversityId} />
+                <StudentUniversities institutions={universities as unknown as Institution[]} focusUniversityId={focusUniversityId} />
               )}
               {activeTab === 'documents' && (
                 <DocumentUpload
