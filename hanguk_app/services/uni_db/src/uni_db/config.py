@@ -108,6 +108,9 @@ class Settings(BaseSettings):
         alias="HTTP_USER_AGENT",
     )
     http_request_timeout_sec: int = Field(default=30, alias="HTTP_REQUEST_TIMEOUT_SEC")
+    # Optional Korea-egress proxy (e.g. socks5://… or http://…) so the crawler can
+    # reach .ac.kr sites that 403 non-Korean IPs. Empty = direct (current behaviour).
+    http_proxy_url: str = Field(default="", alias="UNI_DB_HTTP_PROXY")
     http_per_domain_rps: float = Field(default=1.0, alias="HTTP_PER_DOMAIN_RPS")
     http_jitter_min_sec: int = Field(default=2, alias="HTTP_JITTER_MIN_SEC")
     http_jitter_max_sec: int = Field(default=15, alias="HTTP_JITTER_MAX_SEC")

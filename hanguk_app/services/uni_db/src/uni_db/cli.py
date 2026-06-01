@@ -314,9 +314,13 @@ async def _run_pipeline(*, limit: int) -> int:
     conn = await asyncpg.connect(settings.supabase_db_url)
     try:
         async with httpx.AsyncClient(
-            headers={"User-Agent": settings.http_user_agent},
+            headers={
+                "User-Agent": settings.http_user_agent,
+                "Accept-Language": "ko-KR,ko;q=0.9,en;q=0.8",
+            },
             follow_redirects=True,
             timeout=settings.http_request_timeout_sec,
+            proxy=settings.http_proxy_url or None,
         ) as http:
             ok, fail = await fetch_worker.fetch_pending(conn, http, limit=limit)
     finally:
@@ -431,9 +435,13 @@ async def _ingest_direct(*, limit: int) -> int:
     conn = await asyncpg.connect(settings.supabase_db_url)
     try:
         async with httpx.AsyncClient(
-            headers={"User-Agent": settings.http_user_agent},
+            headers={
+                "User-Agent": settings.http_user_agent,
+                "Accept-Language": "ko-KR,ko;q=0.9,en;q=0.8",
+            },
             follow_redirects=True,
             timeout=settings.http_request_timeout_sec,
+            proxy=settings.http_proxy_url or None,
         ) as http:
             ok, fail = await direct_ingest_worker.ingest_pending(conn, http, limit=limit)
     finally:
@@ -483,9 +491,13 @@ async def _propose_sources(*, days: int, mode: str) -> int:
     conn = await asyncpg.connect(settings.supabase_db_url)
     try:
         async with httpx.AsyncClient(
-            headers={"User-Agent": settings.http_user_agent},
+            headers={
+                "User-Agent": settings.http_user_agent,
+                "Accept-Language": "ko-KR,ko;q=0.9,en;q=0.8",
+            },
             follow_redirects=True,
             timeout=settings.http_request_timeout_sec,
+            proxy=settings.http_proxy_url or None,
         ) as http:
             if mode == "targeted":
                 domains = await propose_worker.fetch_known_domains(conn)
