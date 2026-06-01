@@ -267,7 +267,8 @@ the publish step flips it live.
 
 ## Open decisions
 
-1. ✅ **Vocational/cyber/seminary/women‑only** — *keep with a warning label* (decided 2026‑06‑01); baked into 0.5.
-2. ✅ **Execution scope** — *planning only for now* (decided 2026‑06‑01); nothing applied yet.
-3. ✅ **Korea proxy** (Phase 2): *recommendation made* — browser headers + a **$5–6/mo Vultr Seoul VPS (SSH SOCKS5)**, mirror PDFs on first fetch; residential proxy only as a per‑site fallback. **Needs your go‑ahead + the `UNI_DB_HTTP_PROXY` secret.**
-4. **Multi‑campus** (Phase 3.4): split into separate per‑campus records now, or annotate one record per university for v1? — **still open.**
+1. ✅ **Vocational/cyber/seminary/women‑only** — *keep with a warning label* (2026‑06‑01); shipped in 0.5.
+2. ✅ **Multi‑campus** (3.4) — *annotate one record per university for v1* (2026‑06‑01); Dongguk (our record = WISE/Gyeongju campus) is labeled now; the others use their main domain and get their per‑campus nuance with the Phase‑1 data.
+3. ✅ **Korea proxy** (Phase 2) — browser headers + a ~$5–6/mo Vultr Seoul VPS (SSH SOCKS5), mirror on first fetch. **You are provisioning it and adding the `UNI_DB_HTTP_PROXY` secret**, then I run Phase 1.
+
+**Execution status (2026‑06‑01):** Phase 0 (0.1–0.5), 3.1 (documents dedup), 2.1 (proxy wiring), 3.2 (name hardening) are **applied + pushed**. **Phase 1** (re‑fetch the correct 2026 docs, then verify & set the official `primary_admissions_url_ko` links as each fetch confirms) is **ready to run the moment the proxy secret exists** — the per‑university target URLs are in the audit. Remaining afterward: 3.3 (in‑page HTML), 3.5 (rolling/multi‑round cycles), 4 (tuition source).
