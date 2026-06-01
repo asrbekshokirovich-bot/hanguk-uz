@@ -369,7 +369,15 @@ async def _publish_documents(conn, rec, payload) -> int:
             """insert into public.documents_required (cycle_id, applicant_category,
                  document_type, is_required, is_apostille_required, country_specific,
                  notes_ko, source_text_ko, needs_attention, attention_reason)
-               values ($1,$2,$3,$4,$5,$6::jsonb,$7,$8,$9,$10)""",
+               values ($1,$2,$3,$4,$5,$6::jsonb,$7,$8,$9,$10)
+               on conflict (cycle_id, document_type, applicant_category) do update set
+                 is_required = excluded.is_required,
+                 is_apostille_required = excluded.is_apostille_required,
+                 country_specific = excluded.country_specific,
+                 notes_ko = excluded.notes_ko,
+                 source_text_ko = excluded.source_text_ko,
+                 needs_attention = excluded.needs_attention,
+                 attention_reason = excluded.attention_reason""",
             cycle_id, category_for(r),
             first_doc_name(r), bool(r.get("is_required", True)),
             bool(r.get("is_apostille_required") or r.get("is_notarization_required") or False),
