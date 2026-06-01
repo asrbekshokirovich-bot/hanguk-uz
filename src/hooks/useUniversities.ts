@@ -39,6 +39,7 @@ export type Institution = Tables<'institutions'> extends never
       logo_url: string | null;
       is_partner: boolean;
       is_visible_on_map: boolean;
+      is_women_only: boolean;
       display_names: Record<string, unknown> | null;
       kcue_code: string | null;
       wikidata_id: string | null;

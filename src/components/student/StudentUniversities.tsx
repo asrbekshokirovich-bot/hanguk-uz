@@ -104,6 +104,23 @@ function contentSummary(c: InstitutionContentCounts | undefined): string[] {
   return out;
 }
 
+/** Student-safety notices derived from institution kind/flags (audit Phase 0). */
+type InstNoticeTone = 'destructive' | 'warning' | 'muted';
+interface InstNotice { short: string; full: string; tone: InstNoticeTone }
+function institutionNotices(inst: Institution): InstNotice[] {
+  const f = inst as { institution_type?: string | null; is_women_only?: boolean | null };
+  const out: InstNotice[] = [];
+  if (f.institution_type === 'cyber')
+    out.push({ short: 'Online · no D-2 visa', full: 'Online (cyber) university — cannot sponsor a D-2 student visa, so it is not a study-in-Korea route.', tone: 'destructive' });
+  if (f.institution_type === 'junior_college')
+    out.push({ short: 'Vocational (2–3 yr)', full: 'Vocational junior college — programs are mostly 2–3 years and award an associate degree, not a bachelor’s.', tone: 'warning' });
+  if (f.institution_type === 'specialized')
+    out.push({ short: 'Seminary', full: 'Specialized institution — theology / ministry-focused programs only.', tone: 'muted' });
+  if (f.is_women_only)
+    out.push({ short: 'Women-only', full: 'Women-only admission — open to female applicants only.', tone: 'muted' });
+  return out;
+}
+
 // ─── Requirement / document rows ──────────────────────────────────────────────
 
 function RequirementRow({ r }: { r: AdmissionRequirement }) {
@@ -437,6 +454,7 @@ export function StudentUniversities({ institutions, focusUniversityId }: Props) 
             const c = counts?.[inst.id];
             const summary = contentSummary(c);
             const has = hasAnyContent(c);
+            const notices = institutionNotices(inst);
             return (
               <button key={inst.id} onClick={() => setSelected(inst)} className="text-left">
                 <Card className="h-full transition-colors hover:border-primary/40 hover:bg-muted/30">
@@ -453,6 +471,19 @@ export function StudentUniversities({ institutions, focusUniversityId }: Props) 
                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                       <MapPin className="h-3 w-3 shrink-0" /> {inst.city_ko ?? '—'}
                     </div>
+                    {notices.length ? (
+                      <div className="flex flex-wrap gap-1">
+                        {notices.map((n) => (
+                          <Badge
+                            key={n.short}
+                            variant={n.tone === 'destructive' ? 'destructive' : n.tone === 'muted' ? 'secondary' : 'outline'}
+                            className={`text-[10px] font-normal ${n.tone === 'warning' ? 'border-amber-500 text-amber-700 dark:text-amber-500' : ''}`}
+                          >
+                            {n.short}
+                          </Badge>
+                        ))}
+                      </div>
+                    ) : null}
                     {has ? (
                       <div className="flex flex-wrap gap-1 pt-1">
                         {summary.map((s) => (
@@ -489,6 +520,24 @@ export function StudentUniversities({ institutions, focusUniversityId }: Props) 
                     : ''}
                 </SheetDescription>
               </SheetHeader>
+              {institutionNotices(selected).length ? (
+                <div className="px-5 pb-3 flex flex-col gap-1.5">
+                  {institutionNotices(selected).map((n) => (
+                    <div
+                      key={n.short}
+                      className={`text-xs rounded-md px-2.5 py-1.5 ${
+                        n.tone === 'destructive'
+                          ? 'bg-destructive/10 text-destructive'
+                          : n.tone === 'warning'
+                            ? 'bg-amber-500/10 text-amber-700 dark:text-amber-500'
+                            : 'bg-muted text-muted-foreground'
+                      }`}
+                    >
+                      {n.full}
+                    </div>
+                  ))}
+                </div>
+              ) : null}
               <Separator />
               <UniversityDetail inst={selected} lang={lang} />
             </>
