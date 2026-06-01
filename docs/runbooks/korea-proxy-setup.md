@@ -98,6 +98,42 @@ straight into the `UNI_DB_HTTP_PROXY` secret (Step 7). Done — skip steps 1–6
 
 ---
 
+## Doing it for free
+
+**Yes — two ways to pay $0 (or ~5 cents).**
+
+### Free option 1 — Oracle Cloud "Always Free" Seoul server ($0 forever)
+Oracle gives a small server in Korea free, permanently. Setup is the same as Path A, just on Oracle:
+1. Sign up at **cloud.oracle.com/free**. During signup you must pick a **home region** —
+   choose **South Korea Central (Seoul)** or **South Korea North (Chuncheon)**. ⚠️ This is
+   permanent, so pick a Korean region. (A card is required for identity check; the Always‑Free
+   resources are not charged.)
+2. **Console → Compute → Instances → Create instance:**
+   - Image: **Ubuntu 24.04** (Canonical Ubuntu)
+   - Shape: pick one labeled **"Always Free eligible"** (e.g. **VM.Standard.E2.1.Micro**). If you
+     see *"Out of host capacity"*, try the other shape/availability domain or retry later — this is
+     the one annoyance of the free tier.
+   - Add your SSH key; make sure it gets a **public IP**. Note that IP.
+3. **Open the port (Oracle needs TWO firewall steps — this is the only extra bit vs Vultr):**
+   - In the instance's **VCN → Security List**, add an **Ingress rule**: Source `0.0.0.0/0`,
+     protocol **TCP**, destination port **8888**.
+   - After you SSH in, also open it on the OS:
+     ```
+     sudo iptables -I INPUT 6 -p tcp --dport 8888 -j ACCEPT
+     sudo apt install -y iptables-persistent && sudo netfilter-persistent save
+     ```
+4. Now follow **Steps 3–8** of Path A above (install tinyproxy, set BasicAuth + `Allow 0.0.0.0/0`,
+   restart, test, add the `UNI_DB_HTTP_PROXY` secret). Done — $0/month.
+
+### Free option 2 — "pennies": rent for an hour, then delete
+Because we **store every PDF after fetching it, the proxy is only needed for the one ~1‑hour Phase‑1
+run.** So: do Path A on Vultr, let Claude run the fetch, then **destroy the server**. Vultr bills by
+the hour (~$0.009/hr), so the whole thing costs **about 1–5 cents**. Simplest if Oracle's free
+capacity is being stubborn.
+
+> Don't use "free public proxy lists" — they're unreliable, usually not Korean, and can spy on the
+> traffic. Stick to one of the two options above.
+
 ## Notes
 - **Keep the password private** — only ever paste it into the GitHub secret, never into code/chat.
 - **It's only needed at fetch time.** Once we fetch each PDF, we store a copy, so re‑processing later
