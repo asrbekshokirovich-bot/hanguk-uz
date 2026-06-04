@@ -52,7 +52,7 @@ const CallsContent = lazy(() => import('@/components/crm/pages/CallsContent'));
 const StaffContent = lazy(() => import('@/components/crm/pages/StaffContent'));
 const ReportsContent = lazy(() => import('@/components/crm/pages/ReportsContent'));
 const AIAssistantContent = lazy(() => import('@/components/crm/pages/AIAssistantContent'));
-const TranslationTrainingContent = lazy(() => import('@/components/crm/pages/TranslationTrainingContent'));
+const AITranslationPage = lazy(() => import('@/components/crm/pages/AITranslationPage'));
 const LeadsContent = lazy(() => import('@/components/crm/pages/LeadsContent'));
 const CommunicationContent = lazy(() => import('@/components/crm/pages/CommunicationContent'));
 const ApplicationFormsContent = lazy(() => import('@/components/crm/pages/ApplicationFormsContent'));
@@ -391,7 +391,7 @@ export default function CRMPortal() {
       case 'staff':
         return <SafeSuspense><StaffContent /></SafeSuspense>;
       case 'translation':
-        return <SafeSuspense><TranslationTrainingContent /></SafeSuspense>;
+        return <SafeSuspense><AITranslationPage /></SafeSuspense>;
       case 'communication':
         return <SafeSuspense><CommunicationContent /></SafeSuspense>;
       case 'application-forms':

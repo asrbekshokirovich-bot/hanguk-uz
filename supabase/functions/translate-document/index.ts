@@ -1,6 +1,19 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { PDFDocument, StandardFonts, rgb, PDFFont, PDFPage } from "https://esm.sh/pdf-lib@1.17.1";
+import {
+  Document,
+  Packer,
+  Paragraph,
+  TextRun,
+  Table,
+  TableRow,
+  TableCell,
+  HeadingLevel,
+  AlignmentType,
+  WidthType,
+  BorderStyle,
+  ShadingType,
+} from "https://esm.sh/docx@8";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -28,7 +41,7 @@ const UZBEKISTAN_REGIONS: Record<string, string[]> = {
   "Qoraqalpog'iston": ["Nukus", "Amudaryo", "Beruniy", "Chimboy", "Ellikqala", "Kegeyli", "Mo'ynoq", "Qanliko'l", "Qo'ng'irot", "Shumanay", "Taxtako'pir", "To'rtko'l", "Xo'jayli"],
 };
 
-// ---------- Types for the structured translation model ----------
+// ---------- Types ----------
 type Block =
   | { type: "title"; text: string }
   | { type: "heading"; text: string }
@@ -70,200 +83,151 @@ function getMimeType(filePath: string): string {
   }
 }
 
-// ---------- PDF text sanitisation ----------
-// StandardFonts use WinAnsi encoding and crash on characters outside it
-// (e.g. the Uzbek turned-comma ʻ in Oʻzbek / Gʻ). Normalise to safe ASCII.
-function sanitizeWinAnsi(input: string): string {
-  if (!input) return "";
-  let s = input
-    .replace(/[ʻʼ‘’‛`´]/g, "'")
-    .replace(/[“”„«»]/g, '"')
-    .replace(/[–—−]/g, "-")
-    .replace(/[…]/g, "...")
-    .replace(/[   ]/g, " ")
-    .replace(/\t/g, "    ");
-  // Drop control chars (except newline) and anything the WinAnsi font can't draw.
-  let out = "";
-  for (const ch of s) {
-    const code = ch.codePointAt(0)!;
-    if (ch === "\n") { out += ch; continue; }
-    if (code < 0x20 || code === 0x7f || (code >= 0x80 && code <= 0x9f)) continue;
-    if (code > 0xff) { out += "?"; continue; }
-    out += ch;
-  }
-  return out;
-}
+// ---------- DOCX renderer ----------
+async function renderDocx(structured: StructuredTranslation, meta: { documentTitle: string }): Promise<Uint8Array> {
+  const children: (Paragraph | Table)[] = [];
 
-function wrapText(text: string, font: PDFFont, size: number, maxWidth: number): string[] {
-  const safe = sanitizeWinAnsi(text);
-  const lines: string[] = [];
-  for (const rawLine of safe.split("\n")) {
-    const words = rawLine.split(/\s+/).filter(Boolean);
-    if (words.length === 0) { lines.push(""); continue; }
-    let current = "";
-    for (const word of words) {
-      const candidate = current ? `${current} ${word}` : word;
-      if (font.widthOfTextAtSize(candidate, size) <= maxWidth) {
-        current = candidate;
-      } else {
-        if (current) lines.push(current);
-        // Hard-break words that are wider than the column.
-        if (font.widthOfTextAtSize(word, size) > maxWidth) {
-          let chunk = "";
-          for (const c of word) {
-            if (font.widthOfTextAtSize(chunk + c, size) > maxWidth) {
-              lines.push(chunk);
-              chunk = c;
-            } else {
-              chunk += c;
-            }
-          }
-          current = chunk;
-        } else {
-          current = word;
-        }
-      }
-    }
-    if (current) lines.push(current);
-  }
-  return lines;
-}
-
-// ---------- PDF renderer (certified-translation layout) ----------
-const PAGE_W = 595.28; // A4
-const PAGE_H = 841.89;
-const MARGIN = 56;
-const CONTENT_W = PAGE_W - MARGIN * 2;
-
-async function renderPdf(structured: StructuredTranslation, meta: { documentTitle: string }): Promise<Uint8Array> {
-  const pdf = await PDFDocument.create();
-  const fontRegular = await pdf.embedFont(StandardFonts.TimesRoman);
-  const fontBold = await pdf.embedFont(StandardFonts.TimesRomanBold);
-  const fontItalic = await pdf.embedFont(StandardFonts.TimesRomanItalic);
-
-  let page: PDFPage = pdf.addPage([PAGE_W, PAGE_H]);
-  let y = PAGE_H - MARGIN;
-
-  const ensureSpace = (needed: number) => {
-    if (y - needed < MARGIN) {
-      page = pdf.addPage([PAGE_W, PAGE_H]);
-      y = PAGE_H - MARGIN;
-    }
-  };
-
-  const drawLines = (
-    text: string,
-    opts: { font?: PDFFont; size?: number; align?: "left" | "center"; color?: ReturnType<typeof rgb>; gap?: number; indent?: number } = {},
-  ) => {
-    const font = opts.font ?? fontRegular;
-    const size = opts.size ?? 11;
-    const lineHeight = size * 1.35;
-    const indent = opts.indent ?? 0;
-    const lines = wrapText(text, font, size, CONTENT_W - indent);
-    for (const line of lines) {
-      ensureSpace(lineHeight);
-      const width = font.widthOfTextAtSize(line, size);
-      const x = opts.align === "center" ? (PAGE_W - width) / 2 : MARGIN + indent;
-      page.drawText(line, { x, y: y - size, size, font, color: opts.color ?? rgb(0, 0, 0) });
-      y -= lineHeight;
-    }
-    if (opts.gap) y -= opts.gap;
-  };
-
-  const drawRule = (color = rgb(0.7, 0.7, 0.7)) => {
-    ensureSpace(12);
-    page.drawLine({ start: { x: MARGIN, y }, end: { x: PAGE_W - MARGIN, y }, thickness: 0.75, color });
-    y -= 12;
-  };
-
-  // Top label
-  drawLines("CERTIFIED TRANSLATION FROM UZBEK INTO ENGLISH", {
-    font: fontItalic, size: 9, align: "center", color: rgb(0.45, 0.45, 0.45), gap: 10,
-  });
+  // Header label
+  children.push(
+    new Paragraph({
+      alignment: AlignmentType.CENTER,
+      children: [new TextRun({ text: "CERTIFIED TRANSLATION FROM UZBEK INTO ENGLISH", italics: true, size: 18, color: "777777" })],
+      spacing: { after: 200 },
+    })
+  );
 
   for (const block of structured.blocks ?? []) {
     switch (block.type) {
       case "title":
-        drawLines(block.text.toUpperCase(), { font: fontBold, size: 15, align: "center", gap: 10 });
+        children.push(
+          new Paragraph({
+            heading: HeadingLevel.HEADING_1,
+            alignment: AlignmentType.CENTER,
+            children: [new TextRun({ text: block.text.toUpperCase(), bold: true, size: 32 })],
+            spacing: { after: 200 },
+          })
+        );
         break;
+
       case "heading":
-        y -= 4;
-        drawLines(block.text, { font: fontBold, size: 12, gap: 4 });
+        children.push(
+          new Paragraph({
+            heading: HeadingLevel.HEADING_2,
+            children: [new TextRun({ text: block.text, bold: true, size: 24 })],
+            spacing: { before: 200, after: 100 },
+          })
+        );
         break;
-      case "field": {
-        const label = `${block.label}: `;
-        const labelWidth = fontBold.widthOfTextAtSize(sanitizeWinAnsi(label), 11);
-        const lineHeight = 11 * 1.35;
-        ensureSpace(lineHeight);
-        page.drawText(sanitizeWinAnsi(label), { x: MARGIN, y: y - 11, size: 11, font: fontBold });
-        // Value wrapped, first line continues after label.
-        const valueLines = wrapText(block.value ?? "", fontRegular, 11, CONTENT_W - labelWidth);
-        if (valueLines.length === 0) valueLines.push("");
-        page.drawText(valueLines[0], { x: MARGIN + labelWidth, y: y - 11, size: 11, font: fontRegular });
-        y -= lineHeight;
-        for (let i = 1; i < valueLines.length; i++) {
-          ensureSpace(lineHeight);
-          page.drawText(valueLines[i], { x: MARGIN + labelWidth, y: y - 11, size: 11, font: fontRegular });
-          y -= lineHeight;
-        }
-        y -= 2;
+
+      case "field":
+        children.push(
+          new Paragraph({
+            children: [
+              new TextRun({ text: `${block.label}: `, bold: true, size: 22 }),
+              new TextRun({ text: block.value ?? "", size: 22 }),
+            ],
+            spacing: { after: 60 },
+          })
+        );
         break;
-      }
+
       case "paragraph":
-        drawLines(block.text, { size: 11, gap: 6 });
+        children.push(
+          new Paragraph({
+            children: [new TextRun({ text: block.text, size: 22 })],
+            spacing: { after: 120 },
+          })
+        );
         break;
+
       case "annotation":
-        drawLines(`[${block.text.replace(/^\[|\]$/g, "")}]`, { font: fontItalic, size: 10, color: rgb(0.4, 0.4, 0.4), gap: 4 });
+        children.push(
+          new Paragraph({
+            children: [new TextRun({ text: `[${block.text.replace(/^\[|\]$/g, "")}]`, italics: true, size: 20, color: "666666" })],
+            spacing: { after: 80 },
+          })
+        );
         break;
+
       case "spacer":
-        y -= 8;
+        children.push(new Paragraph({ children: [], spacing: { after: 160 } }));
         break;
+
       case "table": {
         const cols = Math.max(1, block.header?.length ?? (block.rows[0]?.length ?? 1));
-        const colW = CONTENT_W / cols;
-        const pad = 4;
-        const cellSize = 10;
-        const drawRow = (cells: string[], bold: boolean) => {
-          const wrapped = cells.map((c) => wrapText(c ?? "", bold ? fontBold : fontRegular, cellSize, colW - pad * 2));
-          const rowLines = Math.max(1, ...wrapped.map((w) => w.length));
-          const rowH = rowLines * cellSize * 1.3 + pad * 2;
-          ensureSpace(rowH);
-          const top = y;
-          for (let c = 0; c < cols; c++) {
-            const x = MARGIN + c * colW;
-            page.drawRectangle({ x, y: top - rowH, width: colW, height: rowH, borderColor: rgb(0.6, 0.6, 0.6), borderWidth: 0.5 });
-            const lines = wrapped[c] ?? [];
-            for (let li = 0; li < lines.length; li++) {
-              page.drawText(lines[li], { x: x + pad, y: top - pad - cellSize - li * cellSize * 1.3, size: cellSize, font: bold ? fontBold : fontRegular });
-            }
-          }
-          y = top - rowH;
-        };
-        if (block.header && block.header.length) drawRow(block.header, true);
-        for (const row of block.rows ?? []) drawRow(row, false);
-        y -= 8;
+        const colWidth = Math.floor(9000 / cols);
+
+        const makeCell = (text: string, isHeader = false) =>
+          new TableCell({
+            children: [
+              new Paragraph({
+                children: [new TextRun({ text: text ?? "", bold: isHeader, size: isHeader ? 20 : 18 })],
+              }),
+            ],
+            shading: isHeader ? { type: ShadingType.SOLID, color: "F0F0F0", fill: "F0F0F0" } : undefined,
+          });
+
+        const tableRows: TableRow[] = [];
+        if (block.header?.length) {
+          tableRows.push(new TableRow({ children: block.header.map((h) => makeCell(h, true)) }));
+        }
+        for (const row of block.rows ?? []) {
+          const cells = row.map((c) => makeCell(c));
+          while (cells.length < cols) cells.push(makeCell(""));
+          tableRows.push(new TableRow({ children: cells }));
+        }
+
+        children.push(
+          new Table({
+            rows: tableRows,
+            width: { size: 100, type: WidthType.PERCENTAGE },
+          })
+        );
+        children.push(new Paragraph({ children: [], spacing: { after: 160 } }));
         break;
       }
     }
   }
 
-  // Translator's certification block
-  y -= 16;
-  drawRule();
-  drawLines("TRANSLATOR'S CERTIFICATION", { font: fontBold, size: 11, gap: 6 });
-  drawLines(
-    "I hereby certify that the foregoing is a true, complete and accurate translation from Uzbek into English of the attached document, to the best of my knowledge and ability.",
-    { size: 10, gap: 10 },
-  );
+  // Certification footer
   const dateStr = new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "long", year: "numeric" });
-  drawLines(`Date of translation: ${dateStr}`, { size: 10, gap: 4 });
-  drawLines("Signature: ______________________________", { size: 10, gap: 2 });
-  drawLines("Translator / Authorised representative", { font: fontItalic, size: 9, color: rgb(0.45, 0.45, 0.45) });
+  children.push(
+    new Paragraph({
+      border: { top: { style: BorderStyle.SINGLE, size: 6, color: "AAAAAA" } },
+      spacing: { before: 400, after: 160 },
+      children: [new TextRun({ text: "TRANSLATOR'S CERTIFICATION", bold: true, size: 22 })],
+    }),
+    new Paragraph({
+      children: [new TextRun({
+        text: "I hereby certify that the foregoing is a true, complete and accurate translation from Uzbek into English of the attached document, to the best of my knowledge and ability.",
+        size: 20,
+      })],
+      spacing: { after: 200 },
+    }),
+    new Paragraph({
+      children: [new TextRun({ text: `Date of translation: ${dateStr}`, size: 20 })],
+      spacing: { after: 120 },
+    }),
+    new Paragraph({
+      children: [new TextRun({ text: "Signature: ______________________________", size: 20 })],
+      spacing: { after: 80 },
+    }),
+    new Paragraph({
+      children: [new TextRun({ text: "Translator / Authorised representative", italics: true, size: 18, color: "777777" })],
+    })
+  );
 
-  return await pdf.save();
+  const doc = new Document({
+    sections: [{ properties: {}, children }],
+    creator: "Hanguk.uz Translation System",
+    title: `Certified Translation — ${meta.documentTitle}`,
+  });
+
+  const buffer = await Packer.toBuffer(doc);
+  return new Uint8Array(buffer);
 }
 
-// ---------- Plain text projection (for search / preview) ----------
+// ---------- Plain text projection ----------
 function blocksToPlainText(structured: StructuredTranslation): string {
   const parts: string[] = [];
   for (const b of structured.blocks ?? []) {
@@ -285,7 +249,6 @@ function blocksToPlainText(structured: StructuredTranslation): string {
 
 function parseStructured(raw: string): StructuredTranslation {
   let text = raw.trim();
-  // Strip code fences if present.
   text = text.replace(/^```(?:json)?/i, "").replace(/```$/i, "").trim();
   let parsed: any;
   try {
@@ -318,8 +281,7 @@ serve(async (req) => {
     const geminiApiKey = Deno.env.get("GEMINI_API_KEY");
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Staff-only gate: this function can read from the student-documents bucket,
-    // so restrict it to staff (mirrors the document-proxy policy).
+    // Staff-only gate
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) return json({ error: "Unauthorized" }, 401);
     const userClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
@@ -334,11 +296,11 @@ serve(async (req) => {
     const body = await req.json();
     const {
       documentTypeId,
-      source,                // { path, bucket }
-      supporting = [],       // [{ path, bucket, role }]
+      source,
+      supporting = [],
       studentName,
       verifiedNames: providedNames,
-      regenerate,            // { structured } -> re-render PDF only, no AI call
+      regenerate,
     } = body;
 
     if (!documentTypeId) return json({ error: "documentTypeId is required" }, 400);
@@ -352,7 +314,7 @@ serve(async (req) => {
 
     const documentTitle = docType.name_en || docType.name_uz || docType.code;
 
-    // ---- Fast path: re-render PDF from staff-edited structured data ----
+    // ---- Fast path: re-render DOCX from staff-edited structured data ----
     if (regenerate?.structured) {
       const structured: StructuredTranslation = {
         detectedSupportingDocs: regenerate.structured.detectedSupportingDocs ?? [],
@@ -360,15 +322,15 @@ serve(async (req) => {
         blocks: regenerate.structured.blocks ?? [],
         unclearItems: regenerate.structured.unclearItems ?? [],
       };
-      const pdfBytes = await renderPdf(structured, { documentTitle });
-      const pdfPath = `output/${Date.now()}_${docType.code}_translation.pdf`;
+      const docxBytes = await renderDocx(structured, { documentTitle });
+      const docxPath = `output/${Date.now()}_${docType.code}_translation.docx`;
       const { error: upErr } = await supabase.storage.from(OUTPUT_BUCKET)
-        .upload(pdfPath, pdfBytes, { contentType: "application/pdf", upsert: true });
-      if (upErr) return json({ error: `PDF upload failed: ${upErr.message}` }, 500);
+        .upload(docxPath, docxBytes, { contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", upsert: true });
+      if (upErr) return json({ error: `DOCX upload failed: ${upErr.message}` }, 500);
       return json({
         structured,
         plainText: blocksToPlainText(structured),
-        pdfPath,
+        docxPath,
         documentType: { code: docType.code, name: docType.name_uz, nameEn: docType.name_en },
       });
     }
@@ -376,7 +338,7 @@ serve(async (req) => {
     if (!geminiApiKey) return json({ error: "AI service not configured" }, 500);
     if (!source?.path) return json({ error: "source.path is required" }, 400);
 
-    // ---- Download source + supporting files from their respective buckets ----
+    // ---- Download files ----
     const downloadFile = async (path: string, bucket: string) => {
       const { data, error } = await supabase.storage.from(bucket || OUTPUT_BUCKET).download(path);
       if (error || !data) throw new Error(`Could not download ${bucket}/${path}: ${error?.message ?? "not found"}`);
@@ -398,7 +360,7 @@ serve(async (req) => {
       }
     }
 
-    // ---- Few-shot examples from approved templates (terminology guidance only) ----
+    // ---- Few-shot examples from approved templates ----
     const { data: templates } = await supabase
       .from("translation_templates")
       .select("original_text, translated_text")
@@ -418,7 +380,7 @@ You receive images. Image 1 is the MAIN document to translate. Any further image
 ${supportingRoles.length ? `Supporting documents provided (in order): ${supportingRoles.join(", ")}.` : ""}
 
 === NAME ACCURACY (CRITICAL) ===
-- The STUDENT's name MUST be copied EXACTLY from their international (foreign) passport — letter for letter, including the MRZ section. Take the patronymic/middle name from the top section if absent from the MRZ.
+- The STUDENT's name MUST be copied EXACTLY from their international (biometric/foreign) passport — letter for letter, including the MRZ section. Take the patronymic/middle name from the top section if absent from the MRZ.
 - PARENTS' names MUST be copied EXACTLY from their passport / ID card, NEVER from the birth certificate (birth certificates often misspell). Use the certificate only to learn the relationship (Otasi = father, Onasi = mother).
 - For ID cards the name is already in Latin script — copy it verbatim.
 - If a name cannot be confirmed from an identity document, add it to "unclearItems" rather than guessing.
@@ -452,11 +414,11 @@ Return ONLY a JSON object (no prose, no markdown) with this exact shape:
   ],
   "unclearItems": ["..."]
 }
-Rules for blocks: the first block should be a "title". Reproduce the source's field order. Use "field" for label/value pairs, "table" for grids (e.g. transcripts), "annotation" for seals/signatures/photos. Only include keys that exist for that block type. Omit father/mother from verifiedNames if not applicable.`;
+Rules: first block must be "title". Use "field" for label/value pairs, "table" for grids, "annotation" for seals/signatures. Only include keys that exist for that block type. Omit father/mother from verifiedNames if not applicable.`;
 
     const userContent: Array<{ type: "text"; text: string } | { type: "image_url"; image_url: { url: string } }> = [
       ...imageContents,
-      { type: "text", text: `Translate the main document (image 1) into English. Identify each supporting identity document and extract names from them. Return the JSON object described in the system prompt.` },
+      { type: "text", text: "Translate the main document (image 1) into English. Identify each supporting identity document and extract names from them. Return the JSON object described in the system prompt." },
     ];
 
     const aiResponse = await fetch(GEMINI_AI_URL, {
@@ -487,22 +449,21 @@ Rules for blocks: the first block should be a "title". Reproduce the source's fi
     if (!content) return json({ error: "Tarjima olinmadi" }, 500);
 
     const structured = parseStructured(content);
-    // Apply staff-provided name overrides if present.
     if (providedNames) structured.verifiedNames = { ...structured.verifiedNames, ...providedNames };
 
-    const pdfBytes = await renderPdf(structured, { documentTitle });
-    const pdfPath = `output/${Date.now()}_${docType.code}_translation.pdf`;
+    const docxBytes = await renderDocx(structured, { documentTitle });
+    const docxPath = `output/${Date.now()}_${docType.code}_translation.docx`;
     const { error: upErr } = await supabase.storage.from(OUTPUT_BUCKET)
-      .upload(pdfPath, pdfBytes, { contentType: "application/pdf", upsert: true });
+      .upload(docxPath, docxBytes, { contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", upsert: true });
     if (upErr) {
-      console.error("PDF upload failed:", upErr);
-      return json({ error: `PDF upload failed: ${upErr.message}` }, 500);
+      console.error("DOCX upload failed:", upErr);
+      return json({ error: `DOCX upload failed: ${upErr.message}` }, 500);
     }
 
     return json({
       structured,
       plainText: blocksToPlainText(structured),
-      pdfPath,
+      docxPath,
       documentType: { code: docType.code, name: docType.name_uz, nameEn: docType.name_en },
     });
   } catch (error) {

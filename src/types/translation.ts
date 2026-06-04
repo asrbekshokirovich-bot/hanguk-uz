@@ -32,7 +32,7 @@ export interface StructuredTranslation {
 export interface TranslationResult {
   structured: StructuredTranslation;
   plainText: string;
-  pdfPath: string;
+  docxPath: string;
   documentType: { code: string; name: string; nameEn: string | null };
 }
 

@@ -69,7 +69,7 @@ import { EditStudentDialog } from './EditStudentDialog';
 import { DeleteStudentDialog } from './DeleteStudentDialog';
 import { AddPaymentDialog } from './AddPaymentDialog';
 import { SuggestUniversityDialog } from './SuggestUniversityDialog';
-import { TranslationWorkflow } from '@/components/translation/TranslationWorkflow';
+import AITranslationPage from '@/components/crm/pages/AITranslationPage';
 import { ClickToCall } from '@/components/calls/ClickToCall';
 
 type StudentProfile = Tables<'profiles'> & {
@@ -1783,7 +1783,7 @@ export function StudentDetail({
 
             {/* Translation Tab */}
             <TabsContent value="translation" className="space-y-4 mt-6">
-              <TranslationWorkflow
+              <AITranslationPage
                 studentId={student.user_id}
                 studentName={student.full_name || undefined}
               />

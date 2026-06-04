@@ -22,7 +22,6 @@ export function useDocumentTranslation() {
   const [translating, setTranslating] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
 
-  // Run the full pipeline: OCR + translate + render certified PDF.
   const runTranslation = async (args: RunTranslationArgs): Promise<TranslationResult | null> => {
     setTranslating(true);
     try {
@@ -46,8 +45,7 @@ export function useDocumentTranslation() {
     }
   };
 
-  // Re-render the PDF from staff-edited structured data (no AI call).
-  const regeneratePdf = async (
+  const regenerateDocx = async (
     documentTypeId: string,
     structured: StructuredTranslation,
   ): Promise<TranslationResult | null> => {
@@ -56,11 +54,11 @@ export function useDocumentTranslation() {
       const { data, error } = await supabase.functions.invoke('translate-document', {
         body: { documentTypeId, regenerate: { structured } },
       });
-      if (error) { toast.error(error.message || 'PDF qayta yaratishda xatolik'); return null; }
+      if (error) { toast.error(error.message || 'DOCX qayta yaratishda xatolik'); return null; }
       if (data?.error) { toast.error(data.error); return null; }
       return data as TranslationResult;
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'PDF qayta yaratishda xatolik');
+      toast.error(e instanceof Error ? e.message : 'DOCX qayta yaratishda xatolik');
       return null;
     } finally {
       setRegenerating(false);
@@ -88,17 +86,16 @@ export function useDocumentTranslation() {
       })
       .select()
       .single();
-    if (error) { console.error('Failed to create job:', error); toast.error('Tarjima so\'rovi yaratilmadi'); return null; }
+    if (error) { console.error('Failed to create job:', error); toast.error("Tarjima so'rovi yaratilmadi"); return null; }
     return data;
   };
 
-  // Persist a completed translation (PDF + structured model) onto a job.
   const saveTranslationResult = async (jobId: string, result: TranslationResult, verifiedNames?: VerifiedNames) => {
     const { error } = await supabase
       .from('translation_jobs')
       .update({
         status: 'completed',
-        output_pdf_path: result.pdfPath,
+        output_docx_path: result.docxPath,
         structured_translation: result.structured as unknown as Record<string, unknown>,
         verified_names: (verifiedNames ?? result.structured.verifiedNames) as unknown as Record<string, unknown>,
         translated_text: result.plainText,
@@ -120,8 +117,8 @@ export function useDocumentTranslation() {
 
   const deleteJob = async (jobId: string) => {
     const { error } = await supabase.from('translation_jobs').delete().eq('id', jobId);
-    if (error) { toast.error('So\'rovni o\'chirib bo\'lmadi'); return { error }; }
-    toast.success('So\'rov o\'chirildi');
+    if (error) { toast.error("So'rovni o'chirib bo'lmadi"); return { error }; }
+    toast.success("So'rov o'chirildi");
     return { error: null };
   };
 
@@ -129,7 +126,7 @@ export function useDocumentTranslation() {
     translating,
     regenerating,
     runTranslation,
-    regeneratePdf,
+    regenerateDocx,
     createTranslationJob,
     saveTranslationResult,
     updateJobStatus,
