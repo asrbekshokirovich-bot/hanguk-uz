@@ -25,52 +25,94 @@ function toMediatekaPhone(input: string): string {
   return d;
 }
 
-// Mediateka's documentation isn't public, so this function tries the two
-// most common endpoint shapes used by Uzbek/Russian VATS engines:
-//   1. POST /crmapi/v1/makecall (action in the path)
-//   2. POST /crmapi/v1 with cmd=makecall in the body (symmetric to the
-//      inbound webhook which uses cmd=event / cmd=history / cmd=contact)
-// Whichever returns a 2xx wins. If both fail, surface the last error so
-// we can iterate.
+// Mediateka's documentation isn't public, so this function tries multiple
+// endpoint shapes used by Uzbek/Russian VATS engines. We log every attempt's
+// request + response to the voip_webhook_captures table so the exact body
+// Mediateka returned is inspectable via SQL — many of these engines respond
+// 200 with an error JSON, which a naive .ok check misclassifies as success.
 async function attemptMediatekaMakeCall(opts: {
   baseUrl: string;
   apiKey: string;
   user: string;
   phone: string;
+  // deno-lint-ignore no-explicit-any
+  captureRow: (row: Record<string, any>) => Promise<void>;
 }) {
-  const { baseUrl, apiKey, user, phone } = opts;
+  const { baseUrl, apiKey, user, phone, captureRow } = opts;
   const headers = {
     'Authorization': `Bearer ${apiKey}`,
     'Content-Type': 'application/x-www-form-urlencoded',
     'Accept': 'application/json, text/plain;q=0.9, */*;q=0.5',
   };
+  const trimmedBase = baseUrl.replace(/\/$/, '');
   const attempts: { name: string; url: string; body: string }[] = [
-    {
-      name: 'path-makecall',
-      url: `${baseUrl.replace(/\/$/, '')}/makecall`,
-      body: new URLSearchParams({ user, phone }).toString(),
-    },
-    {
-      name: 'cmd-makecall',
-      url: baseUrl.replace(/\/$/, ''),
-      body: new URLSearchParams({ cmd: 'makecall', user, phone }).toString(),
-    },
+    { name: 'path-makecall-user-phone',
+      url: `${trimmedBase}/makecall`,
+      body: new URLSearchParams({ user, phone }).toString() },
+    { name: 'cmd-makecall-user-phone',
+      url: trimmedBase,
+      body: new URLSearchParams({ cmd: 'makecall', user, phone }).toString() },
+    { name: 'path-makecall-ext-phone',
+      url: `${trimmedBase}/makecall`,
+      body: new URLSearchParams({ ext: user === 'admin' ? '701' : user, phone }).toString() },
+    { name: 'path-call-from-to',
+      url: `${trimmedBase}/call`,
+      body: new URLSearchParams({ from: user, to: phone }).toString() },
   ];
 
+  // Heuristic: a body indicating actual failure even when the HTTP status is
+  // 200. Anything that screams "error" / "false" / non-success result is bad.
+  const isBodyFailure = (body: string): boolean => {
+    if (!body) return false;
+    const t = body.trim();
+    // try to parse JSON
+    try {
+      const j = JSON.parse(t);
+      if (j && typeof j === 'object') {
+        if (j.error || j.errors) return true;
+        if ('success' in j && !j.success) return true;
+        if ('ok' in j && !j.ok) return true;
+        if ('status' in j && typeof j.status === 'string' && /err|fail|denied/i.test(j.status)) return true;
+        if ('result' in j && typeof j.result === 'string' && /err|fail/i.test(j.result)) return true;
+      }
+    } catch {
+      // not JSON — heuristic on text
+      if (/error|denied|not.?found|unauthor/i.test(t)) return true;
+    }
+    return false;
+  };
+
+  let firstAcceptedAttempt: { name: string; body: string } | null = null;
   let last: { name: string; status: number; body: string } | null = null;
+
   for (const a of attempts) {
     const resp = await fetch(a.url, { method: 'POST', headers, body: a.body });
     const text = await resp.text().catch(() => '');
-    if (resp.ok) {
+    await captureRow({
+      method: 'OUT',
+      url: a.url,
+      query: {},
+      headers: { 'attempt': a.name, 'upstream_status': String(resp.status) },
+      content_type: resp.headers.get('content-type') || '',
+      raw_body: text,
+      parsed_payload: { request_body: a.body, attempt: a.name, upstream_status: resp.status },
+      notes: 'mediateka-makecall outbound attempt',
+    });
+
+    last = { name: a.name, status: resp.status, body: text.slice(0, 1000) };
+
+    const looksOk = resp.ok && !isBodyFailure(text);
+    if (looksOk) {
+      // Found a genuinely successful shape. Stop.
       return { ok: true as const, attempt: a.name, status: resp.status, body: text };
     }
-    last = { name: a.name, status: resp.status, body: text.slice(0, 500) };
-    // 404 / 405 / 400 on one shape is the signal to try the next shape.
-    // Don't keep trying on auth (401/403) — that's a configuration issue,
-    // not an endpoint guess problem.
+    // Remember the first attempt that at least returned 2xx so we can
+    // report it back to the caller even when none look truly successful.
+    if (resp.ok && !firstAcceptedAttempt) firstAcceptedAttempt = { name: a.name, body: text.slice(0, 500) };
+
     if (resp.status === 401 || resp.status === 403) break;
   }
-  return { ok: false as const, last };
+  return { ok: false as const, last, firstAcceptedAttempt };
 }
 
 Deno.serve(async (req) => {
@@ -142,15 +184,21 @@ Deno.serve(async (req) => {
     const mediatekaUser = Deno.env.get('MEDIATEKA_DEFAULT_USER') || 'admin';
     const baseUrl = Deno.env.get('MEDIATEKA_API_BASE') || 'https://hanguk.sip.uz/crmapi/v1';
 
-    const result = await attemptMediatekaMakeCall({ baseUrl, apiKey, user: mediatekaUser, phone });
+    const captureRow = async (row: Record<string, unknown>) => {
+      try { await supabaseAdmin.from('voip_webhook_captures').insert(row); }
+      catch (e) { console.error('capture insert failed:', e); }
+    };
+
+    const result = await attemptMediatekaMakeCall({ baseUrl, apiKey, user: mediatekaUser, phone, captureRow });
 
     if (!result.ok) {
-      console.error('Mediateka makecall failed:', result.last);
+      console.error('Mediateka makecall failed across all attempts:', result.last);
       return new Response(JSON.stringify({
         error: 'Mediateka rejected makecall',
         upstream_status: result.last?.status,
         upstream_body: result.last?.body,
-        hint: 'Verify the endpoint path / required fields with Mediateka support if this persists.',
+        first_2xx_attempt: result.firstAcceptedAttempt,
+        hint: 'Check voip_webhook_captures rows with notes="mediateka-makecall outbound attempt" for full responses.',
       }), {
         status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
