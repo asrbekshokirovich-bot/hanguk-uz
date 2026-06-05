@@ -39,44 +39,47 @@ async function attemptMediatekaMakeCall(opts: {
   captureRow: (row: Record<string, any>) => Promise<void>;
 }) {
   const { baseUrl, apiKey, user, phone, captureRow } = opts;
+  // Mediateka authenticates outbound CRM calls the SAME way it authenticates
+  // its own inbound webhooks: a `crm_token` field in the request body. A
+  // capture from the first live test confirmed this — a Bearer header gets
+  // "Empty token" from /crmapi/v1/makecall.
   const headers = {
-    'Authorization': `Bearer ${apiKey}`,
     'Content-Type': 'application/x-www-form-urlencoded',
     'Accept': 'application/json, text/plain;q=0.9, */*;q=0.5',
   };
   const trimmedBase = baseUrl.replace(/\/$/, '');
   const attempts: { name: string; url: string; body: string }[] = [
-    { name: 'path-makecall-user-phone',
+    { name: 'makecall-crm_token-user-phone',
       url: `${trimmedBase}/makecall`,
-      body: new URLSearchParams({ user, phone }).toString() },
-    { name: 'cmd-makecall-user-phone',
-      url: trimmedBase,
-      body: new URLSearchParams({ cmd: 'makecall', user, phone }).toString() },
-    { name: 'path-makecall-ext-phone',
+      body: new URLSearchParams({ crm_token: apiKey, user, phone }).toString() },
+    { name: 'makecall-crm_token-ext-phone',
       url: `${trimmedBase}/makecall`,
-      body: new URLSearchParams({ ext: user === 'admin' ? '701' : user, phone }).toString() },
-    { name: 'path-call-from-to',
-      url: `${trimmedBase}/call`,
-      body: new URLSearchParams({ from: user, to: phone }).toString() },
+      body: new URLSearchParams({ crm_token: apiKey, ext: user === 'admin' ? '701' : user, phone }).toString() },
   ];
 
-  // Heuristic: a body indicating actual failure even when the HTTP status is
-  // 200. Anything that screams "error" / "false" / non-success result is bad.
-  const isBodyFailure = (body: string): boolean => {
+  // Detect failure even when status is 200 — Mediateka sometimes returns an
+  // admin-portal HTML page on the wrong endpoint, and the JSON error path
+  // returns 400 with {"message":"..."}.
+  const isBodyFailure = (body: string, contentType: string): boolean => {
     if (!body) return false;
+    const ct = contentType.toLowerCase();
+    // HTML response from a JSON API is always a failure — it's the admin
+    // dashboard / unsupported-browser page served by mistake.
+    if (ct.includes('text/html')) return true;
     const t = body.trim();
-    // try to parse JSON
+    if (t.startsWith('<')) return true;
     try {
       const j = JSON.parse(t);
       if (j && typeof j === 'object') {
         if (j.error || j.errors) return true;
+        // Mediateka uses {message: "Empty token"} for errors.
+        if (typeof j.message === 'string' && /empty|invalid|denied|fail|error|not\s*found/i.test(j.message)) return true;
         if ('success' in j && !j.success) return true;
         if ('ok' in j && !j.ok) return true;
         if ('status' in j && typeof j.status === 'string' && /err|fail|denied/i.test(j.status)) return true;
         if ('result' in j && typeof j.result === 'string' && /err|fail/i.test(j.result)) return true;
       }
     } catch {
-      // not JSON — heuristic on text
       if (/error|denied|not.?found|unauthor/i.test(t)) return true;
     }
     return false;
@@ -101,7 +104,7 @@ async function attemptMediatekaMakeCall(opts: {
 
     last = { name: a.name, status: resp.status, body: text.slice(0, 1000) };
 
-    const looksOk = resp.ok && !isBodyFailure(text);
+    const looksOk = resp.ok && !isBodyFailure(text, resp.headers.get('content-type') || '');
     if (looksOk) {
       // Found a genuinely successful shape. Stop.
       return { ok: true as const, attempt: a.name, status: resp.status, body: text };
