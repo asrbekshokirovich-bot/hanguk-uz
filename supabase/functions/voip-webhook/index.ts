@@ -129,13 +129,93 @@ serve(async (req) => {
     // Voximplant payload detection
     const isVoximplant = !!(payload.call_session_id || payload.call_session_history_id);
 
-    // Mediateka payload detection (best-effort until we see real payloads).
-    // Tag is set above when our secret matched.
-    const isMediateka = (payload as Record<string, unknown>).__voip_provider === 'mediateka';
+    // Mediateka uses form-urlencoded with a `crm_token` body field and a
+    // `callid` identifier. Detect either by tag (set above when our secret
+    // matched the env var) or by the unmistakable field combo, so a captured
+    // request that pre-dates the env var still gets parsed correctly.
+    const isMediateka =
+      (payload as Record<string, unknown>).__voip_provider === 'mediateka' ||
+      (typeof payload.crm_token === 'string' && typeof payload.callid === 'string');
 
     let callData;
 
-    if (isVoximplant) {
+    if (isMediateka) {
+      const cmd = String(payload.cmd ?? '').toLowerCase();
+      const callid = String(payload.callid ?? '');
+      const phone = String(payload.phone ?? '');
+      const ext = payload.ext ? String(payload.ext) : null;
+
+      // ---- cmd=contact: Mediateka is asking us who this caller is so the
+      // agent's phone screen can show the name. Look up the lead/student
+      // and respond with the name. Do NOT write to calls — this is metadata,
+      // not a call event.
+      if (cmd === 'contact') {
+        const normalized = normalizePhoneNumber(phone);
+        let name: string | null = null;
+
+        const { data: lead } = await supabaseAdmin
+          .from('leads')
+          .select('id, full_name')
+          .or(`phone.eq.${normalized},phone.eq.${phone}`)
+          .maybeSingle();
+        if (lead) name = (lead as { full_name: string | null }).full_name;
+
+        if (!name) {
+          const { data: profile } = await supabaseAdmin
+            .from('profiles')
+            .select('full_name')
+            .or(`phone.eq.${normalized},phone.eq.${phone}`)
+            .maybeSingle();
+          if (profile) name = (profile as { full_name: string | null }).full_name;
+        }
+
+        const displayName = name || `+${normalized.replace(/^\+/, '')}`;
+        return new Response(JSON.stringify({
+          success: true,
+          name: displayName,
+          contact: { name: displayName },
+        }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+
+      // ---- cmd=event / cmd=history: actual call state. Map to calls table.
+      const directionRaw = String(payload.direction ?? payload.type ?? '').toLowerCase();
+      const direction = directionRaw === 'out' || directionRaw === 'outgoing' ? 'outgoing' : 'incoming';
+
+      let status = 'no_answer';
+      let endedAt: string | null = null;
+      let recordingUrl: string | null = null;
+
+      if (cmd === 'event') {
+        const evType = String(payload.type ?? '').toUpperCase();
+        if (evType === 'OUTGOING' || evType === 'INCOMING') status = 'no_answer';
+        else if (evType === 'ACCEPTED') status = 'no_answer'; // call alive; final state arrives via history
+        else if (evType === 'COMPLETED') { status = 'completed'; endedAt = new Date().toISOString(); }
+        else if (evType === 'CANCELLED') { status = 'missed'; endedAt = new Date().toISOString(); }
+      } else if (cmd === 'history') {
+        const histStatus = String(payload.status ?? '').toLowerCase();
+        if (histStatus === 'success') status = 'completed';
+        else if (histStatus === 'missed') status = 'missed';
+        else if (histStatus === 'busy') status = 'busy';
+        else if (histStatus === 'notavailable') status = 'failed';
+        else status = 'completed';
+        endedAt = new Date().toISOString();
+        if (payload.link) recordingUrl = String(payload.link);
+      }
+
+      callData = {
+        external_call_id: callid,
+        phone_number: phone,
+        direction,
+        status,
+        duration: parseInt(String(payload.duration ?? '0'), 10) || 0,
+        recording_url: recordingUrl,
+        started_at: parseMediatekaTimestamp(payload.start as string | undefined) || new Date().toISOString(),
+        ended_at: endedAt,
+        voip_provider: 'mediateka',
+      };
+      // ext (701) preserved for a later staff_id mapping migration; not stored yet.
+      void ext;
+    } else if (isVoximplant) {
       const voximplantApiKey = Deno.env.get('VOXIMPLANT_API_KEY');
       const incomingApiKey = (payload.api_key as string) || req.headers.get('x-api-key');
       if (voximplantApiKey && incomingApiKey && incomingApiKey !== voximplantApiKey) {
@@ -286,6 +366,15 @@ function mapCallStatus(status: string): string {
   if (['failed', 'error', 'canceled', 'cancelled'].includes(statusLower)) return 'failed';
   if (['ringing', 'initiated', 'queued', 'in-progress'].includes(statusLower)) return 'no_answer';
   return 'completed';
+}
+
+// Mediateka serializes timestamps as compact ISO 8601: "20260605T115444Z".
+// Postgres timestamptz can't parse that — expand to "2026-06-05T11:54:44Z".
+function parseMediatekaTimestamp(s: string | undefined): string | null {
+  if (!s) return null;
+  const m = /^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z$/.exec(s);
+  if (!m) return null;
+  return `${m[1]}-${m[2]}-${m[3]}T${m[4]}:${m[5]}:${m[6]}Z`;
 }
 
 function normalizePhoneNumber(phone: string): string {
