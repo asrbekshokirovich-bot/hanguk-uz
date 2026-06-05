@@ -1,19 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import {
-  Document,
-  Packer,
-  Paragraph,
-  TextRun,
-  Table,
-  TableRow,
-  TableCell,
-  HeadingLevel,
-  AlignmentType,
-  WidthType,
-  BorderStyle,
-  ShadingType,
-} from "https://esm.sh/docx@8";
+import JSZip from "https://esm.sh/jszip@3.10.1";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -23,16 +10,15 @@ const corsHeaders = {
 const GEMINI_AI_URL = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
 const OUTPUT_BUCKET = "translation-documents";
 
-// Uzbekistan regions and districts for handwriting disambiguation during OCR.
 const UZBEKISTAN_REGIONS: Record<string, string[]> = {
-  "Toshkent shahri": ["Bektemir", "Chilonzor", "Mirzo Ulugʻbek", "Mirobod", "Olmazor", "Sergeli", "Shayxontohur", "Uchtepa", "Yakkasaroy", "Yangihayot", "Yunusobod"],
+  "Toshkent shahri": ["Bektemir", "Chilonzor", "Mirzo Ulugbek", "Mirobod", "Olmazor", "Sergeli", "Shayxontohur", "Uchtepa", "Yakkasaroy", "Yangihayot", "Yunusobod"],
   "Toshkent viloyati": ["Angren", "Olmaliq", "Chirchiq", "Bekobod", "Oqqo'rg'on", "Bo'stonliq", "Bo'ka", "Zangiota", "Qibray", "Parkent", "Piskent", "Chinoz"],
   "Samarqand viloyati": ["Samarqand", "Kattaqo'rg'on", "Bulung'ur", "Ishtixon", "Jomboy", "Narpay", "Nurobod", "Oqdaryo", "Payariq", "Toyloq", "Urgut"],
-  "Buxoro viloyati": ["Buxoro", "Kogon", "Olot", "Gʻijduvon", "Jondor", "Peshku", "Qorakuʻl", "Romitan", "Shofirkon", "Vobkent"],
+  "Buxoro viloyati": ["Buxoro", "Kogon", "Olot", "G'ijduvon", "Jondor", "Peshku", "Qorako'l", "Romitan", "Shofirkon", "Vobkent"],
   "Farg'ona viloyati": ["Farg'ona", "Marg'ilon", "Quvasoy", "Qo'qon", "Beshariq", "Bog'dod", "Buvayda", "Dang'ara", "Furqat", "Oltiariq", "Quva", "Rishton", "Uchko'prik"],
   "Andijon viloyati": ["Andijon", "Xonobod", "Asaka", "Baliqchi", "Bo'z", "Buloqboshi", "Jalolquduq", "Marhamat", "Oltinko'l", "Shahrixon", "Xo'jaobod"],
   "Namangan viloyati": ["Namangan", "Chortoq", "Chust", "Kosonsoy", "Mingbuloq", "Norin", "Pop", "To'raqo'rg'on", "Uchqo'rg'on"],
-  "Qashqadaryo viloyati": ["Qarshi", "Shahrisabz", "Chiroqchi", "Dehqonobod", "Gʻuzor", "Kasbi", "Kitob", "Koson", "Mirishkor", "Muborak", "Nishon", "Qamashi"],
+  "Qashqadaryo viloyati": ["Qarshi", "Shahrisabz", "Chiroqchi", "Dehqonobod", "G'uzor", "Kasbi", "Kitob", "Koson", "Mirishkor", "Muborak", "Nishon", "Qamashi"],
   "Surxondaryo viloyati": ["Termiz", "Angor", "Bandixon", "Boysun", "Denov", "Jarqo'rg'on", "Muzrabot", "Oltinsoy", "Qiziriq", "Sherobod", "Uzun"],
   "Xorazm viloyati": ["Urganch", "Xiva", "Bog'ot", "Gurlan", "Xonqa", "Xazorasp", "Qo'shko'pir", "Shovot", "Yangiariq"],
   "Navoiy viloyati": ["Navoiy", "Zarafshon", "Konimex", "Karmana", "Navbahor", "Nurota", "Qiziltepa", "Tomdi", "Uchquduq"],
@@ -74,157 +60,158 @@ function getMimeType(filePath: string): string {
   const ext = filePath.split(".").pop()?.toLowerCase();
   switch (ext) {
     case "pdf": return "application/pdf";
-    case "jpg":
-    case "jpeg": return "image/jpeg";
+    case "jpg": case "jpeg": return "image/jpeg";
     case "png": return "image/png";
     case "webp": return "image/webp";
-    case "gif": return "image/gif";
     default: return "application/octet-stream";
   }
 }
 
-// ---------- DOCX renderer ----------
+// ---------- XML helper ----------
+function escXml(s: string): string {
+  if (!s) return "";
+  return String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+}
+
+// ---------- DOCX generator (manual XML + JSZip) ----------
+function makeParagraph(text: string, opts: { bold?: boolean; heading?: boolean; italic?: boolean; size?: number; center?: boolean; color?: string } = {}): string {
+  const sz = (opts.size ?? 22) * 2; // half-points
+  const boldTag = opts.bold || opts.heading ? "<w:b/>" : "";
+  const italicTag = opts.italic ? "<w:i/>" : "";
+  const colorTag = opts.color ? `<w:color w:val="${opts.color}"/>` : "";
+  const szTag = `<w:sz w:val="${sz}"/><w:szCs w:val="${sz}"/>`;
+  const align = opts.center ? `<w:jc w:val="center"/>` : "";
+  const outlineLvl = opts.heading ? `<w:outlineLvl w:val="1"/>` : "";
+  const spacing = opts.heading ? `<w:spacing w:after="100" w:before="200"/>` : `<w:spacing w:after="80"/>`;
+
+  const runs = text ? `<w:r><w:rPr>${boldTag}${italicTag}${colorTag}${szTag}</w:rPr><w:t xml:space="preserve">${escXml(text)}</w:t></w:r>` : "";
+
+  return `<w:p><w:pPr>${align}${outlineLvl}${spacing}</w:pPr>${runs}</w:p>`;
+}
+
+function makeFieldParagraph(label: string, value: string): string {
+  const sz = 22 * 2;
+  return `<w:p><w:pPr><w:spacing w:after="60"/></w:pPr>` +
+    `<w:r><w:rPr><w:b/><w:sz w:val="${sz}"/><w:szCs w:val="${sz}"/></w:rPr><w:t xml:space="preserve">${escXml(label + ": ")}</w:t></w:r>` +
+    `<w:r><w:rPr><w:sz w:val="${sz}"/><w:szCs w:val="${sz}"/></w:rPr><w:t xml:space="preserve">${escXml(value ?? "")}</w:t></w:r>` +
+    `</w:p>`;
+}
+
+function makeTableXml(header: string[] | undefined, rows: string[][]): string {
+  const cols = Math.max(header?.length ?? 0, ...rows.map((r) => r.length), 1);
+  const colWidthTwips = Math.floor(8640 / cols);
+
+  const makeCell = (text: string, bold: boolean) =>
+    `<w:tc><w:tcPr><w:tcW w:w="${colWidthTwips}" w:type="dxa"/></w:tcPr>` +
+    `<w:p><w:r><w:rPr>${bold ? "<w:b/>" : ""}<w:sz w:val="18"/><w:szCs w:val="18"/></w:rPr>` +
+    `<w:t xml:space="preserve">${escXml(text ?? "")}</w:t></w:r></w:p></w:tc>`;
+
+  const makeRow = (cells: string[], bold: boolean) =>
+    `<w:tr>${cells.map((c) => makeCell(c, bold)).join("")}</w:tr>`;
+
+  const gridCols = Array.from({ length: cols }, () => `<w:gridCol w:w="${colWidthTwips}"/>`).join("");
+
+  let tableRows = "";
+  if (header?.length) tableRows += makeRow(header, true);
+  for (const row of rows) {
+    const padded = [...row];
+    while (padded.length < cols) padded.push("");
+    tableRows += makeRow(padded, false);
+  }
+
+  return `<w:tbl><w:tblPr><w:tblW w:w="8640" w:type="dxa"/>` +
+    `<w:tblBorders><w:top w:val="single" w:sz="4" w:color="AAAAAA"/><w:left w:val="single" w:sz="4" w:color="AAAAAA"/>` +
+    `<w:bottom w:val="single" w:sz="4" w:color="AAAAAA"/><w:right w:val="single" w:sz="4" w:color="AAAAAA"/>` +
+    `<w:insideH w:val="single" w:sz="4" w:color="AAAAAA"/><w:insideV w:val="single" w:sz="4" w:color="AAAAAA"/></w:tblBorders>` +
+    `</w:tblPr><w:tblGrid>${gridCols}</w:tblGrid>${tableRows}</w:tbl>` +
+    `<w:p><w:pPr><w:spacing w:after="160"/></w:pPr></w:p>`;
+}
+
 async function renderDocx(structured: StructuredTranslation, meta: { documentTitle: string }): Promise<Uint8Array> {
-  const children: (Paragraph | Table)[] = [];
+  const bodyParts: string[] = [];
 
   // Header label
-  children.push(
-    new Paragraph({
-      alignment: AlignmentType.CENTER,
-      children: [new TextRun({ text: "CERTIFIED TRANSLATION FROM UZBEK INTO ENGLISH", italics: true, size: 18, color: "777777" })],
-      spacing: { after: 200 },
-    })
-  );
+  bodyParts.push(makeParagraph("CERTIFIED TRANSLATION FROM UZBEK INTO ENGLISH", { italic: true, size: 9, center: true, color: "777777" }));
 
   for (const block of structured.blocks ?? []) {
     switch (block.type) {
       case "title":
-        children.push(
-          new Paragraph({
-            heading: HeadingLevel.HEADING_1,
-            alignment: AlignmentType.CENTER,
-            children: [new TextRun({ text: block.text.toUpperCase(), bold: true, size: 32 })],
-            spacing: { after: 200 },
-          })
-        );
+        bodyParts.push(makeParagraph(block.text.toUpperCase(), { bold: true, heading: true, size: 16, center: true }));
         break;
-
       case "heading":
-        children.push(
-          new Paragraph({
-            heading: HeadingLevel.HEADING_2,
-            children: [new TextRun({ text: block.text, bold: true, size: 24 })],
-            spacing: { before: 200, after: 100 },
-          })
-        );
+        bodyParts.push(makeParagraph(block.text, { bold: true, size: 12 }));
         break;
-
       case "field":
-        children.push(
-          new Paragraph({
-            children: [
-              new TextRun({ text: `${block.label}: `, bold: true, size: 22 }),
-              new TextRun({ text: block.value ?? "", size: 22 }),
-            ],
-            spacing: { after: 60 },
-          })
-        );
+        bodyParts.push(makeFieldParagraph(block.label, block.value));
         break;
-
       case "paragraph":
-        children.push(
-          new Paragraph({
-            children: [new TextRun({ text: block.text, size: 22 })],
-            spacing: { after: 120 },
-          })
-        );
+        bodyParts.push(makeParagraph(block.text));
         break;
-
       case "annotation":
-        children.push(
-          new Paragraph({
-            children: [new TextRun({ text: `[${block.text.replace(/^\[|\]$/g, "")}]`, italics: true, size: 20, color: "666666" })],
-            spacing: { after: 80 },
-          })
-        );
+        bodyParts.push(makeParagraph(`[${block.text.replace(/^\[|\]$/g, "")}]`, { italic: true, size: 10, color: "666666" }));
         break;
-
       case "spacer":
-        children.push(new Paragraph({ children: [], spacing: { after: 160 } }));
+        bodyParts.push(`<w:p><w:pPr><w:spacing w:after="160"/></w:pPr></w:p>`);
         break;
-
-      case "table": {
-        const cols = Math.max(1, block.header?.length ?? (block.rows[0]?.length ?? 1));
-        const colWidth = Math.floor(9000 / cols);
-
-        const makeCell = (text: string, isHeader = false) =>
-          new TableCell({
-            children: [
-              new Paragraph({
-                children: [new TextRun({ text: text ?? "", bold: isHeader, size: isHeader ? 20 : 18 })],
-              }),
-            ],
-            shading: isHeader ? { type: ShadingType.SOLID, color: "F0F0F0", fill: "F0F0F0" } : undefined,
-          });
-
-        const tableRows: TableRow[] = [];
-        if (block.header?.length) {
-          tableRows.push(new TableRow({ children: block.header.map((h) => makeCell(h, true)) }));
-        }
-        for (const row of block.rows ?? []) {
-          const cells = row.map((c) => makeCell(c));
-          while (cells.length < cols) cells.push(makeCell(""));
-          tableRows.push(new TableRow({ children: cells }));
-        }
-
-        children.push(
-          new Table({
-            rows: tableRows,
-            width: { size: 100, type: WidthType.PERCENTAGE },
-          })
-        );
-        children.push(new Paragraph({ children: [], spacing: { after: 160 } }));
+      case "table":
+        bodyParts.push(makeTableXml(block.header, block.rows));
         break;
-      }
     }
   }
 
   // Certification footer
   const dateStr = new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "long", year: "numeric" });
-  children.push(
-    new Paragraph({
-      border: { top: { style: BorderStyle.SINGLE, size: 6, color: "AAAAAA" } },
-      spacing: { before: 400, after: 160 },
-      children: [new TextRun({ text: "TRANSLATOR'S CERTIFICATION", bold: true, size: 22 })],
-    }),
-    new Paragraph({
-      children: [new TextRun({
-        text: "I hereby certify that the foregoing is a true, complete and accurate translation from Uzbek into English of the attached document, to the best of my knowledge and ability.",
-        size: 20,
-      })],
-      spacing: { after: 200 },
-    }),
-    new Paragraph({
-      children: [new TextRun({ text: `Date of translation: ${dateStr}`, size: 20 })],
-      spacing: { after: 120 },
-    }),
-    new Paragraph({
-      children: [new TextRun({ text: "Signature: ______________________________", size: 20 })],
-      spacing: { after: 80 },
-    }),
-    new Paragraph({
-      children: [new TextRun({ text: "Translator / Authorised representative", italics: true, size: 18, color: "777777" })],
-    })
+  bodyParts.push(
+    `<w:p><w:pPr><w:pBdr><w:top w:val="single" w:sz="6" w:space="1" w:color="AAAAAA"/></w:pBdr><w:spacing w:before="400" w:after="160"/></w:pPr>` +
+    `<w:r><w:rPr><w:b/><w:sz w:val="44"/><w:szCs w:val="44"/></w:rPr><w:t>TRANSLATOR'S CERTIFICATION</w:t></w:r></w:p>`,
+    makeParagraph("I hereby certify that the foregoing is a true, complete and accurate translation from Uzbek into English of the attached document, to the best of my knowledge and ability.", { size: 10 }),
+    makeParagraph(`Date of translation: ${dateStr}`, { size: 10 }),
+    makeParagraph("Signature: ______________________________", { size: 10 }),
+    makeParagraph("Translator / Authorised representative", { italic: true, size: 9, color: "777777" }),
   );
 
-  const doc = new Document({
-    sections: [{ properties: {}, children }],
-    creator: "Hanguk.uz Translation System",
-    title: `Certified Translation — ${meta.documentTitle}`,
-  });
+  const documentXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:wpc="http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas"
+  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  xmlns:o="urn:schemas-microsoft-com:office:office"
+  xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+  xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+  xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml"
+  mc:Ignorable="w14 wpc">
+  <w:body>
+${bodyParts.join("\n")}
+    <w:sectPr>
+      <w:pgSz w:w="12240" w:h="15840"/>
+      <w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440"/>
+    </w:sectPr>
+  </w:body>
+</w:document>`;
 
-  const buffer = await Packer.toBuffer(doc);
-  return new Uint8Array(buffer);
+  const contentTypes = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+  <Default Extension="xml" ContentType="application/xml"/>
+  <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
+</Types>`;
+
+  const relsMain = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>
+</Relationships>`;
+
+  const zip = new JSZip();
+  zip.file("[Content_Types].xml", contentTypes);
+  zip.file("_rels/.rels", relsMain);
+  zip.file("word/document.xml", documentXml);
+
+  const blob: Blob = await zip.generateAsync({ type: "blob", mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" });
+  const arrayBuffer = await blob.arrayBuffer();
+  return new Uint8Array(arrayBuffer);
 }
 
 // ---------- Plain text projection ----------
@@ -268,9 +255,7 @@ function parseStructured(raw: string): StructuredTranslation {
 }
 
 serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   const json = (body: unknown, status = 200) =>
     new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -294,27 +279,17 @@ serve(async (req) => {
     if (!isStaff) return json({ error: "Forbidden" }, 403);
 
     const body = await req.json();
-    const {
-      documentTypeId,
-      source,
-      supporting = [],
-      studentName,
-      verifiedNames: providedNames,
-      regenerate,
-    } = body;
+    const { documentTypeId, source, supporting = [], studentName, verifiedNames: providedNames, regenerate } = body;
 
     if (!documentTypeId) return json({ error: "documentTypeId is required" }, 400);
 
     const { data: docType, error: typeError } = await supabase
-      .from("translation_document_types")
-      .select("*")
-      .eq("id", documentTypeId)
-      .maybeSingle();
+      .from("translation_document_types").select("*").eq("id", documentTypeId).maybeSingle();
     if (typeError || !docType) return json({ error: "Document type not found" }, 404);
 
     const documentTitle = docType.name_en || docType.name_uz || docType.code;
 
-    // ---- Fast path: re-render DOCX from staff-edited structured data ----
+    // ---- Fast path: re-render DOCX ----
     if (regenerate?.structured) {
       const structured: StructuredTranslation = {
         detectedSupportingDocs: regenerate.structured.detectedSupportingDocs ?? [],
@@ -327,12 +302,7 @@ serve(async (req) => {
       const { error: upErr } = await supabase.storage.from(OUTPUT_BUCKET)
         .upload(docxPath, docxBytes, { contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", upsert: true });
       if (upErr) return json({ error: `DOCX upload failed: ${upErr.message}` }, 500);
-      return json({
-        structured,
-        plainText: blocksToPlainText(structured),
-        docxPath,
-        documentType: { code: docType.code, name: docType.name_uz, nameEn: docType.name_en },
-      });
+      return json({ structured, plainText: blocksToPlainText(structured), docxPath, documentType: { code: docType.code, name: docType.name_uz, nameEn: docType.name_en } });
     }
 
     if (!geminiApiKey) return json({ error: "AI service not configured" }, 500);
@@ -360,13 +330,10 @@ serve(async (req) => {
       }
     }
 
-    // ---- Few-shot examples from approved templates ----
+    // ---- Few-shot examples ----
     const { data: templates } = await supabase
-      .from("translation_templates")
-      .select("original_text, translated_text")
-      .eq("document_type_id", documentTypeId)
-      .eq("is_approved", true)
-      .limit(3);
+      .from("translation_templates").select("original_text, translated_text")
+      .eq("document_type_id", documentTypeId).eq("is_approved", true).limit(3);
     const trainingExamples = (templates ?? [])
       .filter((t) => t.original_text && t.translated_text)
       .map((t, i) => `=== Example ${i + 1} ===\nUZBEK:\n${t.original_text}\n\nENGLISH:\n${t.translated_text}`)
@@ -380,23 +347,23 @@ You receive images. Image 1 is the MAIN document to translate. Any further image
 ${supportingRoles.length ? `Supporting documents provided (in order): ${supportingRoles.join(", ")}.` : ""}
 
 === NAME ACCURACY (CRITICAL) ===
-- The STUDENT's name MUST be copied EXACTLY from their international (biometric/foreign) passport — letter for letter, including the MRZ section. Take the patronymic/middle name from the top section if absent from the MRZ.
-- PARENTS' names MUST be copied EXACTLY from their passport / ID card, NEVER from the birth certificate (birth certificates often misspell). Use the certificate only to learn the relationship (Otasi = father, Onasi = mother).
+- The STUDENT's name MUST be copied EXACTLY from their international (biometric/foreign) passport — letter for letter, including the MRZ section.
+- PARENTS' names MUST be copied EXACTLY from their passport / ID card, NEVER from the birth certificate.
 - For ID cards the name is already in Latin script — copy it verbatim.
-- If a name cannot be confirmed from an identity document, add it to "unclearItems" rather than guessing.
-${providedNames ? `\nSTAFF-VERIFIED NAMES (authoritative — use these exactly): ${JSON.stringify(providedNames)}` : ""}
+- If a name cannot be confirmed from an identity document, add it to "unclearItems".
+${providedNames ? `\nSTAFF-VERIFIED NAMES (use these exactly): ${JSON.stringify(providedNames)}` : ""}
 
 === OCR RULES ===
-- Cyrillic→Latin: Ў→O', Қ→Q, Ғ→G', Ҳ→H, Ш→Sh, Ч→Ch, Ё→Yo, Ю→Yu, Я→Ya, Ж→J, Х→X.
+- Cyrillic to Latin: U with breve -> O', Q with tail -> Q, G with stroke -> G', H with tail -> H, Sh -> Sh, Ch -> Ch.
 - Dates are usually DD.MM.YYYY. Preserve registry/serial numbers exactly.
-- Represent stamps, seals, signatures and photos as annotation blocks, e.g. text "Official Seal", "Signature", "Photograph".
-- For unclear handwriting use the value with a trailing " [unclear]" and also list it in unclearItems.
+- Represent stamps, seals, signatures as annotation blocks.
+- For unclear handwriting use " [unclear]" suffix and list in unclearItems.
 
-=== HANDWRITING: UZBEKISTAN PLACES ===
+=== UZBEKISTAN PLACES ===
 ${Object.entries(UZBEKISTAN_REGIONS).map(([r, d]) => `${r}: ${d.join(", ")}`).join("\n")}
 
-${trainingExamples ? `=== APPROVED TRANSLATION EXAMPLES (match terminology and field labels) ===\n${trainingExamples}\n` : ""}
-${studentName ? `Student (from CRM, cross-check against passport): ${studentName}` : ""}
+${trainingExamples ? `=== APPROVED EXAMPLES ===\n${trainingExamples}\n` : ""}
+${studentName ? `Student (cross-check against passport): ${studentName}` : ""}
 
 === OUTPUT FORMAT ===
 Return ONLY a JSON object (no prose, no markdown) with this exact shape:
@@ -414,11 +381,11 @@ Return ONLY a JSON object (no prose, no markdown) with this exact shape:
   ],
   "unclearItems": ["..."]
 }
-Rules: first block must be "title". Use "field" for label/value pairs, "table" for grids, "annotation" for seals/signatures. Only include keys that exist for that block type. Omit father/mother from verifiedNames if not applicable.`;
+First block must be "title". Use "field" for label/value pairs, "table" for grids, "annotation" for seals/stamps.`;
 
     const userContent: Array<{ type: "text"; text: string } | { type: "image_url"; image_url: { url: string } }> = [
       ...imageContents,
-      { type: "text", text: "Translate the main document (image 1) into English. Identify each supporting identity document and extract names from them. Return the JSON object described in the system prompt." },
+      { type: "text", text: "Translate the main document (image 1) into English. Extract names from supporting identity documents. Return the JSON object." },
     ];
 
     const aiResponse = await fetch(GEMINI_AI_URL, {
@@ -441,7 +408,7 @@ Rules: first block must be "title". Use "field" for label/value pairs, "table" f
       console.error("AI error:", aiResponse.status, errorText);
       if (aiResponse.status === 429) return json({ error: "Tizim band. Keyinroq urinib ko'ring." }, 429);
       if (aiResponse.status === 402) return json({ error: "AI xizmati uchun kredit tugagan." }, 402);
-      return json({ error: "AI xizmatida xatolik" }, 500);
+      return json({ error: `AI xizmatida xatolik: ${aiResponse.status}` }, 500);
     }
 
     const aiData = await aiResponse.json();
