@@ -39,7 +39,6 @@ export function ClickToCall({ phoneNumber, studentId, leadId, showIcon = true, c
     e.stopPropagation();
     if (!user) return;
 
-    // Debounce: prevent rapid duplicate calls
     const now = Date.now();
     if (now - lastCallRef.current < DEBOUNCE_MS) {
       toast({ title: "Biroz kuting", description: "Qo'ng'iroq allaqachon boshlangan", variant: 'destructive' });
@@ -47,7 +46,30 @@ export function ClickToCall({ phoneNumber, studentId, leadId, showIcon = true, c
     }
     lastCallRef.current = now;
 
-    // Log with initial status 'no_answer'
+    // Ask Mediateka to ring the agent's softphone and dial the customer.
+    // If it succeeds, the canonical `calls` row will be created by the
+    // voip-webhook when Mediateka emits cmd=history. If it fails, fall back
+    // to the manual logging flow so the click is never silently lost.
+    const { data: makecall, error: makecallError } = await supabase.functions.invoke(
+      'mediateka-makecall',
+      { body: { phone: normalized } },
+    );
+
+    if (!makecallError && makecall?.success) {
+      toast({
+        title: "Qo'ng'iroq boshlandi",
+        description: `Telefon jiringlaydi va ${normalized} raqamiga ulanasiz`,
+      });
+      return;
+    }
+
+    // Fallback path — used when MEDIATEKA_API_KEY isn't set, the agent isn't
+    // staff, or Mediateka rejected the makecall. Log a manual call row and
+    // let the user record the outcome by hand.
+    if (makecallError) {
+      console.warn('mediateka-makecall fallback:', makecallError);
+    }
+
     const { data, error } = await supabase.from('calls').insert({
       phone_number: normalized,
       direction: 'outgoing' as string,
@@ -61,7 +83,7 @@ export function ClickToCall({ phoneNumber, studentId, leadId, showIcon = true, c
     if (!error && data) {
       setCurrentCallId(data.id);
       setShowOutcome(true);
-      toast({ title: "Qo'ng'iroq boshlandi", description: normalized });
+      toast({ title: "Qo'ng'iroq boshlandi (qo'lda)", description: normalized });
     }
   };
 
