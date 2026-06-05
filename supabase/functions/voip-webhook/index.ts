@@ -3,8 +3,55 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-webhook-secret, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-webhook-secret, x-api-key, x-pbx-token, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
+
+/**
+ * Reads the request body once and parses it regardless of encoding.
+ * Supports JSON, application/x-www-form-urlencoded and multipart/form-data.
+ * Falls back gracefully so a malformed/unknown body never throws.
+ */
+async function readPayload(req: Request, url: URL): Promise<{ payload: Record<string, unknown>; rawBody: string; contentType: string }> {
+  const contentType = req.headers.get('content-type') || '';
+  let rawBody = '';
+  try {
+    rawBody = await req.text();
+  } catch (_e) {
+    rawBody = '';
+  }
+
+  let payload: Record<string, unknown> = {};
+
+  if (rawBody) {
+    // 1) JSON
+    if (contentType.includes('application/json') || rawBody.trim().startsWith('{') || rawBody.trim().startsWith('[')) {
+      try {
+        payload = JSON.parse(rawBody);
+      } catch (_e) {
+        /* fall through */
+      }
+    }
+    // 2) form-urlencoded (very common for Uzbek/Russian VATS engines)
+    if (Object.keys(payload).length === 0) {
+      try {
+        const params = new URLSearchParams(rawBody);
+        const obj: Record<string, string> = {};
+        let found = false;
+        params.forEach((v, k) => { obj[k] = v; found = true; });
+        if (found) payload = obj;
+      } catch (_e) {
+        /* fall through */
+      }
+    }
+  }
+
+  // Merge query-string params (some engines send the command/key via the URL)
+  url.searchParams.forEach((v, k) => {
+    if (!(k in payload)) (payload as Record<string, unknown>)[k] = v;
+  });
+
+  return { payload, rawBody, contentType };
+}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -17,10 +64,26 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
-    // Webhook secret validation (legacy providers)
+    const url = new URL(req.url);
+    const { payload, rawBody, contentType } = await readPayload(req, url);
+
+    // ---- Comprehensive capture logging ----
+    // A single test call from any provider reveals its exact format here.
+    const headersObj: Record<string, string> = {};
+    req.headers.forEach((v, k) => { headersObj[k] = v; });
+    console.log('=== VoIP webhook received ===');
+    console.log('method:', req.method);
+    console.log('url:', req.url);
+    console.log('query:', JSON.stringify(Object.fromEntries(url.searchParams)));
+    console.log('content-type:', contentType);
+    console.log('headers:', JSON.stringify(headersObj));
+    console.log('raw body:', rawBody);
+    console.log('parsed payload:', JSON.stringify(payload));
+
+    // Webhook secret validation (legacy providers — only enforced if env var set)
     const webhookSecret = req.headers.get('x-webhook-secret');
     const expectedSecret = Deno.env.get('VOIP_WEBHOOK_SECRET');
-    
+
     if (expectedSecret && webhookSecret !== expectedSecret) {
       console.error('Invalid webhook secret');
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
@@ -29,9 +92,6 @@ serve(async (req) => {
       });
     }
 
-    const payload = await req.json();
-    console.log('Received VoIP webhook:', JSON.stringify(payload, null, 2));
-
     // Detect if this is a Voximplant payload
     const isVoximplant = !!(payload.call_session_id || payload.call_session_history_id);
 
@@ -39,9 +99,8 @@ serve(async (req) => {
 
     if (isVoximplant) {
       // --- Voximplant-specific parsing ---
-      // Validate API key for Voximplant webhooks
       const voximplantApiKey = Deno.env.get('VOXIMPLANT_API_KEY');
-      const incomingApiKey = payload.api_key || req.headers.get('x-api-key');
+      const incomingApiKey = (payload.api_key as string) || req.headers.get('x-api-key');
       if (voximplantApiKey && incomingApiKey && incomingApiKey !== voximplantApiKey) {
         console.error('Invalid Voximplant API key');
         return new Response(JSON.stringify({ error: 'Unauthorized' }), {
@@ -50,7 +109,7 @@ serve(async (req) => {
         });
       }
 
-      const direction = (payload.call_direction || 'incoming').toLowerCase();
+      const direction = ((payload.call_direction as string) || 'incoming').toLowerCase();
       const phoneNumber = direction === 'outgoing'
         ? (payload.callee || payload.destination || payload.caller_id)
         : (payload.caller_id || payload.callee);
@@ -59,8 +118,8 @@ serve(async (req) => {
         external_call_id: payload.call_session_id || payload.call_session_history_id,
         phone_number: phoneNumber,
         direction: direction === 'outbound' ? 'outgoing' : direction,
-        status: mapVoximplantStatus(payload.result || payload.status || 'unknown'),
-        duration: parseInt(payload.duration || '0'),
+        status: mapVoximplantStatus((payload.result as string) || (payload.status as string) || 'unknown'),
+        duration: parseInt((payload.duration as string) || '0'),
         recording_url: payload.record_url || payload.recording_url,
         started_at: payload.start_time || payload.started_at || new Date().toISOString(),
         ended_at: payload.end_time || payload.ended_at,
@@ -73,29 +132,39 @@ serve(async (req) => {
       callData = {
         external_call_id: payload.call_id || payload.CallSid || payload.callId || payload.uuid,
         phone_number: payload.from || payload.From || payload.caller_id || payload.callerNumber,
-        direction: (payload.direction || payload.Direction || 'incoming').toLowerCase(),
-        status: mapCallStatus(payload.status || payload.CallStatus || payload.state || eventType),
-        duration: parseInt(payload.duration || payload.Duration || payload.CallDuration || '0'),
+        direction: ((payload.direction as string) || (payload.Direction as string) || 'incoming').toLowerCase(),
+        status: mapCallStatus((payload.status as string) || (payload.CallStatus as string) || (payload.state as string) || (eventType as string)),
+        duration: parseInt((payload.duration as string) || (payload.Duration as string) || (payload.CallDuration as string) || '0'),
         recording_url: payload.recording_url || payload.RecordingUrl || payload.recordingUrl,
         started_at: payload.start_time || payload.StartTime || payload.startedAt || new Date().toISOString(),
         ended_at: payload.end_time || payload.EndTime || payload.endedAt,
-        voip_provider: payload.provider || 'uzmobile',
+        voip_provider: (payload.provider as string) || 'unknown',
       };
     }
 
-    // Try to find student by phone number
+    // If we couldn't identify a call id, this is likely a capture-only request
+    // (e.g. provider handshake/test). Acknowledge with 200 so the provider
+    // doesn't disable the webhook, and rely on the logs above to learn the format.
+    if (!callData.external_call_id && !callData.phone_number) {
+      console.log('No identifiable call fields — acknowledging without DB write.');
+      return new Response(JSON.stringify({ success: true, captured: true }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    // Try to find student / lead by phone number
     let studentId = null;
     let leadId = null;
 
     if (callData.phone_number) {
-      const normalizedPhone = normalizePhoneNumber(callData.phone_number);
-      
+      const normalizedPhone = normalizePhoneNumber(callData.phone_number as string);
+
       const { data: profile } = await supabaseAdmin
         .from('profiles')
         .select('user_id')
         .or(`phone.eq.${normalizedPhone},phone.eq.${callData.phone_number}`)
         .maybeSingle();
-      
+
       if (profile) {
         studentId = profile.user_id;
         console.log('Found student:', studentId);
@@ -175,8 +244,10 @@ serve(async (req) => {
   } catch (error: unknown) {
     console.error('VoIP webhook error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    return new Response(JSON.stringify({ error: errorMessage }), {
-      status: 500,
+    // Return 200 so the provider does not disable the webhook on transient
+    // errors. The error is logged above for debugging.
+    return new Response(JSON.stringify({ success: false, error: errorMessage }), {
+      status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   }
