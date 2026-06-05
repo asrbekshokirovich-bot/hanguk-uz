@@ -13,12 +13,11 @@ import {
   Clock,
   User,
   Calendar,
-  ExternalLink,
-  Play,
   Edit,
   FileText,
   Headphones,
 } from 'lucide-react';
+import { RecordingPlayer } from './RecordingPlayer';
 
 interface CallDetailProps {
   call: Call;
@@ -179,17 +178,7 @@ export function CallDetail({ call, onEdit }: CallDetailProps) {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  className="flex-1"
-                  onClick={() => window.open(call.recording_url!, '_blank')}
-                >
-                  <Play className="h-4 w-4 mr-2" />
-                  Play Recording
-                  <ExternalLink className="h-4 w-4 ml-2" />
-                </Button>
-              </div>
+              <RecordingPlayer callId={call.id} />
             </CardContent>
           </Card>
         )}
