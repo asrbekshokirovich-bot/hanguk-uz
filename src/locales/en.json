@@ -428,7 +428,10 @@
     "unread": "Unread",
     "reply": "Reply",
     "assign": "Assign",
-    "archive": "Archive"
+    "archive": "Archive",
+    "lead": "Lead",
+    "convertToLead": "Convert to lead",
+    "viewLead": "View lead"
   },
   "errors": {
     "general": "An error occurred",

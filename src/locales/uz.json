@@ -426,7 +426,10 @@
     "unread": "O'qilmagan",
     "reply": "Javob berish",
     "assign": "Tayinlash",
-    "archive": "Arxivlash"
+    "archive": "Arxivlash",
+    "lead": "Lid",
+    "convertToLead": "Lidga aylantirish",
+    "viewLead": "Lidni ko'rish"
   },
   "errors": {
     "general": "Xatolik yuz berdi",

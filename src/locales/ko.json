@@ -386,7 +386,10 @@
     "unread": "읽지 않음",
     "reply": "답장",
     "assign": "할당",
-    "archive": "보관"
+    "archive": "보관",
+    "lead": "리드",
+    "convertToLead": "리드로 전환",
+    "viewLead": "리드 보기"
   },
   "errors": {
     "general": "오류가 발생했습니다",

@@ -37,9 +37,11 @@ import {
   Phone,
   Building2,
   Key,
-  Loader2
+  Loader2,
+  Plug
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
+import IntegrationsSettings from '@/components/crm/pages/IntegrationsSettings';
 
 interface UserProfile {
   id: string;
@@ -183,7 +185,7 @@ export default function SettingsContent() {
       </div>
 
       <Tabs defaultValue="profile" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-flex">
+        <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:inline-flex">
           <TabsTrigger value="profile" className="flex items-center gap-2">
             <User className="h-4 w-4" />
             <span className="hidden sm:inline">Profile</span>
@@ -191,6 +193,10 @@ export default function SettingsContent() {
           <TabsTrigger value="notifications" className="flex items-center gap-2">
             <Bell className="h-4 w-4" />
             <span className="hidden sm:inline">Notifications</span>
+          </TabsTrigger>
+          <TabsTrigger value="integrations" className="flex items-center gap-2">
+            <Plug className="h-4 w-4" />
+            <span className="hidden sm:inline">Integrations</span>
           </TabsTrigger>
           <TabsTrigger value="appearance" className="flex items-center gap-2">
             <Palette className="h-4 w-4" />
@@ -393,6 +399,24 @@ export default function SettingsContent() {
                   />
                 </div>
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Integrations Tab */}
+        <TabsContent value="integrations" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Plug className="h-5 w-5" />
+                Channel Integrations
+              </CardTitle>
+              <CardDescription>
+                Connect Instagram and Telegram so client messages arrive in the CRM inbox
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <IntegrationsSettings />
             </CardContent>
           </Card>
         </TabsContent>
