@@ -42,6 +42,30 @@ export default function AIAssistantContent() {
   const { toast } = useToast();
   const [indexing, setIndexing] = useState(false);
   const [docRemaining, setDocRemaining] = useState<number | null>(null);
+  const [enriching, setEnriching] = useState(false);
+  const [leadRemaining, setLeadRemaining] = useState<number | null>(null);
+
+  // Reads each lead's chats/calls/notes and auto-fills structured fields so the
+  // AI can answer questions like "leads taking the exam in May".
+  const enrichLeads = async () => {
+    if (enriching) return;
+    setEnriching(true);
+    let total = 0;
+    try {
+      for (let i = 0; i < 300; i++) {
+        const { data, error: invErr } = await supabase.functions.invoke('request-lead-enrichment', { body: { limit: 5 } });
+        if (invErr) throw new Error(invErr.message);
+        total += data?.processed || 0;
+        setLeadRemaining(data?.remaining ?? 0);
+        if (!data || (data.remaining ?? 0) === 0 || (data.processed ?? 0) === 0) break;
+      }
+      toast({ title: 'Leads enriched', description: `Analyzed ${total} lead(s). The AI now has their extracted details.` });
+    } catch (e) {
+      toast({ title: 'Enrichment stopped', description: e instanceof Error ? e.message : 'Unknown error', variant: 'destructive' });
+    } finally {
+      setEnriching(false);
+    }
+  };
 
   // Reads the student files (OCR + extraction) so the AI can answer about their
   // contents. Drains the queue in batches; safe to run repeatedly.
@@ -360,6 +384,20 @@ export default function AIAssistantContent() {
                 </Button>
                 <p className="text-[11px] text-muted-foreground mt-1 px-1">
                   Lets the AI answer about what's inside each file. Runs in the background; keep this tab open.
+                </p>
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start gap-3 h-auto py-3 px-3 mt-2 bg-teal-500/10 text-teal-600 hover:bg-teal-500/20"
+                  onClick={enrichLeads}
+                  disabled={enriching}
+                >
+                  {enriching ? <Loader2 className="h-5 w-5 animate-spin flex-shrink-0" /> : <Sparkles className="h-5 w-5 flex-shrink-0" />}
+                  <span className="text-sm font-medium text-left">
+                    {enriching ? `Enriching leads… ${leadRemaining ?? ''} left` : t('ai.enrichLeads', 'Enrich leads (AI)')}
+                  </span>
+                </Button>
+                <p className="text-[11px] text-muted-foreground mt-1 px-1">
+                  Reads each lead's chats/calls to auto-fill exam date, intake, program, priority &amp; a summary.
                 </p>
               </div>
 
