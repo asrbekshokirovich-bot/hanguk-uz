@@ -22,6 +22,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useHangukAI } from '@/hooks/useHangukAI';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface QuickAction {
   icon: React.ElementType;
@@ -37,6 +39,31 @@ export default function AIAssistantContent() {
   const { messages, isLoading, error, sendMessage, clearMessages } = useHangukAI('staff', currentLang);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const { toast } = useToast();
+  const [indexing, setIndexing] = useState(false);
+  const [docRemaining, setDocRemaining] = useState<number | null>(null);
+
+  // Reads the student files (OCR + extraction) so the AI can answer about their
+  // contents. Drains the queue in batches; safe to run repeatedly.
+  const indexDocuments = async () => {
+    if (indexing) return;
+    setIndexing(true);
+    let processedTotal = 0;
+    try {
+      for (let i = 0; i < 300; i++) {
+        const { data, error: invErr } = await supabase.functions.invoke('request-document-analysis', { body: { limit: 8 } });
+        if (invErr) throw new Error(invErr.message);
+        processedTotal += data?.processed || 0;
+        setDocRemaining(data?.remaining ?? 0);
+        if (!data || (data.remaining ?? 0) === 0 || (data.processed ?? 0) === 0) break;
+      }
+      toast({ title: 'Documents indexed', description: `Read ${processedTotal} file(s). Hanguk AI can now answer about their contents.` });
+    } catch (e) {
+      toast({ title: 'Indexing stopped', description: e instanceof Error ? e.message : 'Unknown error', variant: 'destructive' });
+    } finally {
+      setIndexing(false);
+    }
+  };
 
   const quickActions: QuickAction[] = [
     {
@@ -316,6 +343,25 @@ export default function AIAssistantContent() {
                   <span className="text-sm font-medium">{action.label}</span>
                 </Button>
               ))}
+
+              <div className="pt-4 border-t mt-4">
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start gap-3 h-auto py-3 px-3 bg-indigo-500/10 text-indigo-600 hover:bg-indigo-500/20"
+                  onClick={indexDocuments}
+                  disabled={indexing}
+                >
+                  {indexing ? <Loader2 className="h-5 w-5 animate-spin flex-shrink-0" /> : <FileText className="h-5 w-5 flex-shrink-0" />}
+                  <span className="text-sm font-medium text-left">
+                    {indexing
+                      ? `Reading files… ${docRemaining ?? ''} left`
+                      : t('ai.indexDocuments', 'Read all documents (AI)')}
+                  </span>
+                </Button>
+                <p className="text-[11px] text-muted-foreground mt-1 px-1">
+                  Lets the AI answer about what's inside each file. Runs in the background; keep this tab open.
+                </p>
+              </div>
 
               <div className="pt-4 border-t mt-4">
                 <p className="text-xs text-muted-foreground mb-3">
