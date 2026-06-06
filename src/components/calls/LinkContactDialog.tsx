@@ -14,9 +14,15 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, Search, User, UserPlus } from 'lucide-react';
 
+type Channel = 'phone' | 'telegram' | 'instagram' | 'whatsapp';
+
 interface LinkContactDialogProps {
-  callId: string;
-  phoneNumber: string;
+  /** Which channel this identifier belongs to. */
+  channel: Channel;
+  /** Raw identifier — a phone number, or a Telegram chat/user id. */
+  identifier: string;
+  /** Human-friendly label shown in the title (e.g. the name or @handle). */
+  identifierLabel?: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onLinked?: () => void;
@@ -29,7 +35,14 @@ interface Candidate {
   phone: string | null;
 }
 
-export function LinkContactDialog({ callId, phoneNumber, open, onOpenChange, onLinked }: LinkContactDialogProps) {
+export function LinkContactDialog({
+  channel,
+  identifier,
+  identifierLabel,
+  open,
+  onOpenChange,
+  onLinked,
+}: LinkContactDialogProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [query, setQuery] = useState('');
@@ -51,36 +64,35 @@ export function LinkContactDialog({ callId, phoneNumber, open, onOpenChange, onL
           .or(`full_name.ilike.${like},phone.ilike.${like}`).limit(8),
       ]);
       if (!active) return;
-      const cands: Candidate[] = [
+      setResults([
         ...(students.data || []).map((s) => ({
           type: 'student' as const, id: s.user_id, name: s.full_name || 'Unnamed', phone: s.phone,
         })),
         ...(leads.data || []).map((l) => ({
           type: 'lead' as const, id: l.id, name: l.full_name || 'Unnamed', phone: l.phone,
         })),
-      ];
-      setResults(cands);
+      ]);
       setLoading(false);
     }, 250);
     return () => { active = false; clearTimeout(timer); };
   }, [query, open]);
 
   const link = async (c: Candidate) => {
-    const identifier = normalizePhone(phoneNumber);
-    if (!identifier) {
-      toast({ title: 'No phone number', description: 'This call has no usable number to attach.', variant: 'destructive' });
+    const canonical = channel === 'phone' ? normalizePhone(identifier) : identifier;
+    if (!canonical) {
+      toast({ title: 'Nothing to attach', description: 'This conversation has no usable identifier.', variant: 'destructive' });
       return;
     }
     setSavingId(c.id);
     try {
       const anyDb = supabase as unknown as { from: (t: string) => any };
 
-      // 1. Persist the mapping so every future call/chat from this number links
-      //    automatically (and staff can see who attached it).
+      // 1. Persist the mapping so future messages/calls auto-link, and staff can
+      //    see who attached it.
       const { error: idErr } = await anyDb.from('communication_identities').upsert({
-        channel: 'phone',
-        identifier,
-        identifier_label: phoneNumber,
+        channel,
+        identifier: canonical,
+        identifier_label: identifierLabel || identifier,
         student_id: c.type === 'student' ? c.id : null,
         lead_id: c.type === 'lead' ? c.id : null,
         display_name: c.name,
@@ -90,20 +102,10 @@ export function LinkContactDialog({ callId, phoneNumber, open, onOpenChange, onL
       }, { onConflict: 'channel,identifier' });
       if (idErr) throw idErr;
 
-      // 2. Link this call.
-      const callUpdate = c.type === 'student'
-        ? { student_id: c.id }
-        : { lead_id: c.id };
-      const { error: callErr } = await supabase.from('calls').update(callUpdate).eq('id', callId);
-      if (callErr) throw callErr;
+      // 2. Back-link existing records on this channel.
+      await backfill(c, canonical);
 
-      // 3. Back-link other unattached calls from the same number.
-      if (c.type === 'student') {
-        await supabase.from('calls').update({ student_id: c.id })
-          .eq('phone_number', phoneNumber).is('student_id', null);
-      }
-
-      toast({ title: 'Linked', description: `Calls from ${phoneNumber} are now attached to ${c.name}.` });
+      toast({ title: 'Linked', description: `Now attached to ${c.name}.` });
       onLinked?.();
       onOpenChange(false);
     } catch (e) {
@@ -117,13 +119,37 @@ export function LinkContactDialog({ callId, phoneNumber, open, onOpenChange, onL
     }
   };
 
+  const backfill = async (c: Candidate, _canonical: string) => {
+    if (channel === 'phone') {
+      if (c.type === 'student') {
+        await supabase.from('calls').update({ student_id: c.id })
+          .eq('phone_number', identifier).is('student_id', null);
+      } else {
+        await supabase.from('calls').update({ lead_id: c.id })
+          .eq('phone_number', identifier).is('lead_id', null).is('student_id', null);
+      }
+    } else if (channel === 'telegram') {
+      // message_threads/messages only carry a student link; for leads we keep
+      // the identity mapping so a future conversion picks it up.
+      if (c.type === 'student') {
+        await supabase.from('message_threads').update({ student_id: c.id })
+          .eq('source', 'telegram').eq('sender_id', identifier).is('student_id', null);
+        await supabase.from('messages').update({ student_id: c.id })
+          .eq('source', 'telegram').eq('sender_id', identifier).is('student_id', null);
+      }
+    }
+  };
+
+  const title = identifierLabel || identifier;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Attach {phoneNumber} to…</DialogTitle>
+          <DialogTitle>Attach {title} to…</DialogTitle>
           <DialogDescription>
-            Pick the student or lead this number belongs to. Future calls and chats from this number will link automatically.
+            Pick the student or lead this {channel === 'phone' ? 'number' : 'chat'} belongs to.
+            Future {channel === 'phone' ? 'calls' : 'messages'} will link automatically.
           </DialogDescription>
         </DialogHeader>
 

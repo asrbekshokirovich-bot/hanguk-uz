@@ -93,17 +93,40 @@ $$);
 
 ---
 
-## Roadmap
+## Phase 2 — Telegram, staff personal accounts (implemented)
 
-### Phase 2 — Telegram (staff personal accounts)
 Students message staff's **personal** Telegram, so an always-on **userbot**
-(MTProto/GramJS) mirrors messages into our system — it cannot run as an Edge
-Function. Plan:
-- A small Node worker (hosted off-platform) holds a session per staff account and
-  POSTs each message to a new `telegram-ingest` Edge Function.
-- `telegram-ingest` reuses `resolveIdentity('telegram', chatId)` → `messages` /
-  `message_threads` (the linking is already wired into `telegram-webhook` today).
-- One-time login per account (phone + code + 2FA → session string).
+(MTProto/GramJS) mirrors messages into our system — it can't run as an Edge
+Function.
+
+```
+staff personal Telegram ──> telegram-userbot/ (off-platform, always-on)
+                                  │  (1:1 chats; incoming + staff's outgoing)
+                                  ▼  POST events  (x-ingest-secret)
+                            telegram-ingest ──> resolveIdentity('telegram', userId)
+                                  │                 │  (auto-links by known phone)
+                                  ▼                 ▼
+                        upsert_message_thread   messages (deduped by peerId:msgId)
+```
+
+- **`telegram-userbot/`** — Node/GramJS worker: `login.mjs` (one-time session per
+  account), `index.mjs` (live mirror + optional history backfill), Docker + README.
+  Host on a small VM / Railway / Fly / Render.
+- **`telegram-ingest`** — edge endpoint the worker POSTs to. Resolves identity
+  (exact telegram map → **auto-link by the contact's phone** → unlinked),
+  upserts the thread for both directions, stores the message (deduped).
+- **Auto-linking:** since students are usually saved contacts, their phone is
+  visible to the userbot and matches a known student → most chats link with no
+  manual step. Otherwise staff attach via Messages → ⋯ → **Link to Student**
+  (`LinkContactDialog`, now channel-generic; back-links existing messages).
+
+**New secret:** `TELEGRAM_INGEST_SECRET` — set the same value on the
+`telegram-ingest` function and in the worker's env.
+
+Not yet: sending replies *from the CRM* (staff reply in their Telegram app and
+those outgoing messages are mirrored); media file download/storage.
+
+## Roadmap
 
 ### Phase 3 — Per-student conversation brain
 - Unified `communications` timeline (calls + Telegram + IG) on the student 360.

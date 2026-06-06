@@ -57,7 +57,7 @@ export async function resolveIdentity(
   supabaseAdmin: SupabaseAdmin,
   channel: Channel,
   rawIdentifier: string | null | undefined,
-  opts: { displayName?: string | null } = {},
+  opts: { displayName?: string | null; phone?: string | null; identifierLabel?: string | null } = {},
 ): Promise<ResolvedIdentity> {
   if (!rawIdentifier) return EMPTY;
 
@@ -135,6 +135,28 @@ export async function resolveIdentity(
         displayName: (lead as any).full_name ?? null,
         confidence: "inferred",
       };
+    }
+  }
+
+  // 3. Cross-channel link: a Telegram/Instagram contact whose phone we already
+  //    know belongs to a student/lead. Resolve via the phone, then remember the
+  //    channel→person mapping so future messages link with no lookup.
+  if (channel !== "phone" && opts.phone) {
+    const viaPhone = await resolveIdentity(supabaseAdmin, "phone", opts.phone, {
+      displayName: opts.displayName,
+    });
+    if (viaPhone.studentId || viaPhone.leadId) {
+      await upsertIdentity(supabaseAdmin, {
+        channel,
+        identifier,
+        identifier_label: opts.identifierLabel ?? null,
+        student_id: viaPhone.studentId,
+        lead_id: viaPhone.leadId,
+        display_name: opts.displayName ?? viaPhone.displayName ?? null,
+        confidence: viaPhone.confidence ?? "inferred",
+        source: "auto",
+      });
+      return viaPhone;
     }
   }
 

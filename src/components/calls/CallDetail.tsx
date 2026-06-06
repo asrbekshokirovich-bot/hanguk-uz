@@ -235,8 +235,9 @@ export function CallDetail({ call, onEdit }: CallDetailProps) {
       </div>
 
       <LinkContactDialog
-        callId={call.id}
-        phoneNumber={call.phone_number}
+        channel="phone"
+        identifier={call.phone_number}
+        identifierLabel={call.phone_number}
         open={linkOpen}
         onOpenChange={setLinkOpen}
       />
