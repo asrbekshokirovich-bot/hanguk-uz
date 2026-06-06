@@ -96,12 +96,16 @@ function render() {
 
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
-  if (!authed(url)) {
+  // GET pages require ?k= in the URL. The POST to /submit carries the password
+  // in the form body (hidden field, checked below) rather than the query string,
+  // so it must bypass the URL-based guard or it would 401 itself.
+  const isSubmit = req.method === "POST" && url.pathname === "/submit";
+  if (!isSubmit && !authed(url)) {
     res.writeHead(401, { "Content-Type": "text/html" });
     res.end(page(`<p>Add <code style="display:inline">?k=YOUR_LOGIN_PASSWORD</code> to the URL to continue.</p>`));
     return;
   }
-  if (req.method === "POST" && url.pathname === "/submit") {
+  if (isSubmit) {
     let raw = "";
     for await (const chunk of req) raw += chunk;
     const body = new URLSearchParams(raw);
