@@ -30,6 +30,18 @@ verify_jwt = false
 [functions.voip-webhook]
 verify_jwt = false
 
+# Internal workers — authenticated by the service-role key in the Authorization
+# header (checked inside the function), invoked server-to-server / by cron.
+[functions.process-call-recording]
+verify_jwt = false
+
+[functions.dispatch-comm-jobs]
+verify_jwt = false
+
+# Staff-facing trigger (validates the caller's JWT + role inside the function).
+[functions.request-call-analysis]
+verify_jwt = true
+
 
 
 [functions.compare-universities]
