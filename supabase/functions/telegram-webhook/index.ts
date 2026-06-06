@@ -192,7 +192,9 @@ Koreyada o'qish va til kurslari bo'yicha yordam beramiz. Sizni qaysi yo'nalish q
         }
       }
 
-      const sent = await tgSend(chatId, `Rahmat! 🎉 Ma'lumotlaringiz qabul qilindi. Menejerimiz tez orada siz bilan bog'lanadi.`, { remove_keyboard: true });
+      const sent = await tgSend(chatId, `Rahmat! 🎉 Ma'lumotlaringiz qabul qilindi. Menejerimiz tez orada siz bilan bog'lanadi.
+
+Savolingiz bo'lsa, shu yerda — Telegram orqali — bemalol yozing. 💬 Xodimlarimiz javob berishadi.`, { remove_keyboard: true });
       if (sent) {
         await bumpThread(supabase, chatId, contactName, "outgoing");
         await storeMessage(supabase, { chatId, messageId: sent.message_id, senderName: "Hanguk bot", content: "Rahmat! Ma'lumotlaringiz qabul qilindi.", direction: "outgoing", studentId: identity.studentId });
