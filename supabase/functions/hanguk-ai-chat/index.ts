@@ -59,6 +59,16 @@ async function getStudentBundle(supabase: any, userId: string) {
   };
 }
 
+async function getStudentDocs(supabase: any, userId: string): Promise<string> {
+  const { data } = await supabase.from("document_extractions").select("doc_type, key_fields, full_text").eq("student_id", userId).limit(20);
+  if (!data || !data.length) return "";
+  const rows = data.map((d: any) => {
+    const fields = Array.isArray(d.key_fields) ? d.key_fields.map((f: any) => `${f.label}: ${f.value}`).join("; ") : "";
+    return `• ${d.doc_type || "document"}: ${fields || String(d.full_text || "").slice(0, 200)}`;
+  });
+  return "\n📄 DOCUMENT CONTENTS:\n" + rows.join("\n");
+}
+
 function formatBundle(b: any, opts: { staff: boolean }): string {
   const p = b.profile || {};
   const lines: string[] = [];
@@ -96,6 +106,7 @@ function formatBundle(b: any, opts: { staff: boolean }): string {
       lines.push(`• [${fmtDate(m.created_at)}] ${m.direction === "outgoing" ? "Staff" : "Student"}: ${String(m.content).slice(0, 200)}`);
     }
   }
+  if (b.docText) lines.push(b.docText);
   return lines.join("\n");
 }
 
@@ -119,14 +130,42 @@ async function crossSearch(supabase: any, message: string): Promise<string> {
 }
 
 async function lightStats(supabase: any): Promise<string> {
-  const [students, overdue, pendingDocs, unread, followups] = await Promise.all([
+  const [students, overdue, pendingDocs, unread, followups, leads] = await Promise.all([
     supabase.from("profiles").select("*", { count: "exact", head: true }),
     supabase.from("payments").select("*", { count: "exact", head: true }).eq("status", "overdue"),
     supabase.from("documents").select("*", { count: "exact", head: true }).eq("status", "uploaded"),
     supabase.from("message_threads").select("*", { count: "exact", head: true }).gt("unread_count", 0),
     supabase.from("call_analyses").select("*", { count: "exact", head: true }).eq("follow_up_needed", true),
+    supabase.from("leads").select("*", { count: "exact", head: true }),
   ]);
-  return `Students: ${students.count ?? 0} | Overdue payments: ${overdue.count ?? 0} | Docs pending review: ${pendingDocs.count ?? 0} | Unread chats: ${unread.count ?? 0} | Calls needing follow-up: ${followups.count ?? 0}`;
+  return `Students: ${students.count ?? 0} | Leads: ${leads.count ?? 0} | Overdue payments: ${overdue.count ?? 0} | Docs pending review: ${pendingDocs.count ?? 0} | Unread chats: ${unread.count ?? 0} | Calls needing follow-up: ${followups.count ?? 0}`;
+}
+
+// ---- leads -----------------------------------------------------------------
+const LEAD_WORDS = ["lead", "exam", "topik", "ielts", "follow", "intake", "pipeline", "prospect", "convert", "stipend"];
+function leadIntent(message: string): boolean {
+  const s = message.toLowerCase();
+  return LEAD_WORDS.some((w) => s.includes(w));
+}
+
+async function getLeads(supabase: any) {
+  const { data } = await supabase.from("leads")
+    .select("full_name, phone, status, priority_score, source, exam_date, exam_type, target_intake, preferred_program, preferred_university, city, education_level, korean_level, next_follow_up, interest_level")
+    .order("priority_score", { ascending: false }).limit(300);
+  return data || [];
+}
+
+function formatLeads(leads: any[]): string {
+  return leads.map((l: any) => "• " + [
+    l.full_name || "—", l.phone || "", `status:${l.status || "new"}`, `prio:${l.priority_score ?? 0}`,
+    l.source ? `src:${l.source}` : "",
+    (l.exam_type || l.exam_date) ? `exam:${l.exam_type || ""} ${l.exam_date || ""}`.trim() : "",
+    l.target_intake ? `intake:${l.target_intake}` : "",
+    (l.preferred_program || l.preferred_university) ? `prog:${l.preferred_program || l.preferred_university}` : "",
+    l.city ? `city:${l.city}` : "",
+    l.korean_level ? `korean:${l.korean_level}` : "",
+    l.next_follow_up ? `follow:${fmtDate(l.next_follow_up)}` : "",
+  ].filter(Boolean).join(" | ")).join("\n");
 }
 
 // ---- prompts ---------------------------------------------------------------
@@ -148,7 +187,11 @@ async function buildStaffPrompt(supabase: any, userId: string, message: string, 
     const { data: profs } = await supabase.from("profiles").select("user_id, full_name").or(ors).limit(3);
     queried = profs || [];
   }
-  const bundles = await Promise.all(queried.map((s: any) => getStudentBundle(supabase, s.user_id)));
+  const bundles = await Promise.all(queried.map(async (s: any) => {
+    const b = await getStudentBundle(supabase, s.user_id);
+    (b as any).docText = await getStudentDocs(supabase, s.user_id);
+    return b;
+  }));
   const [stats, search] = await Promise.all([lightStats(supabase), crossSearch(supabase, message)]);
 
   let studentSection = "";
@@ -156,27 +199,36 @@ async function buildStaffPrompt(supabase: any, userId: string, message: string, 
     studentSection = "\n## 👤 STUDENT(S) IN THIS QUESTION\n" + bundles.map((b) => formatBundle(b, { staff: true })).join("\n\n");
   }
 
+  let leadsSection = "";
+  if (leadIntent(message)) {
+    const leads = await getLeads(supabase);
+    leadsSection = `\n## 🎯 LEADS (${leads.length}) — filter this list to answer lead questions\n${formatLeads(leads)}`;
+  }
+
   return `# Hanguk AI — CRM assistant for staff
 ${langLine(language)}
 
 You are Hanguk AI for Hanguk Consulting (Korean university admissions, Uzbekistan).
-You can READ each student's phone-call summaries (Uzbek), Telegram chats, applications, documents, payments and tasks. Answer naturally and **cite your source** inline, e.g. "(call 05/06)" or "(chat 04/06)". If you don't have the info, say so and suggest where to look. Be concise.
+You can READ each student's phone-call summaries (Uzbek), Telegram chats, applications, documents, payments and tasks, AND the full leads pipeline. Answer naturally and **cite your source** inline, e.g. "(call 05/06)" or "(chat 04/06)". If you don't have the info, say so and suggest where to look. Be concise.
 
 Staff: ${profile?.full_name || "Staff"} (${(roles || []).map((r: any) => r.role).join(", ") || "staff"})
 
 ## 📊 QUICK NUMBERS
 ${stats}
 ${studentSection}
+${leadsSection}
 ${search}
 
 ## HOW TO ANSWER
 - "What did we discuss with X / what did we promise X?" → use that student's RECENT CALLS + CHAT above, quote specifics with dates.
 - "Who asked about X this week?" → use SEARCH MATCHES above, list the students.
+- "List leads who [take the exam in May / are high priority / from Telegram / want a Master's / from Tashkent]" → filter the LEADS list by exam_date, exam_type, target_intake, status, source, priority, program, city or follow-up date, and return a clear numbered list with phone numbers.
 - Always cite the date + (call/chat). End with the suggested next step if there is one.`;
 }
 
 async function buildStudentPrompt(supabase: any, userId: string, language: string): Promise<string> {
   const b = await getStudentBundle(supabase, userId);
+  (b as any).docText = await getStudentDocs(supabase, userId);
   return `# Hanguk AI — your study-abroad assistant
 ${langLine(language)}
 
