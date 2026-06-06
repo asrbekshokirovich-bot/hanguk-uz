@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
+import { resolveIdentity } from "../_shared/identity.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -33,6 +34,11 @@ serve(async (req) => {
           .join(" ");
         const content = message.text || "[Media message]";
 
+        // Resolve which student/lead this chat belongs to via the identity
+        // spine. Telegram chats link once a staff member attaches the chat (or
+        // the userbot maps it); after that every message auto-links here.
+        const identity = await resolveIdentity(supabase, "telegram", chatId, { displayName: senderName });
+
         // Atomic upsert with increment (fixes race condition)
         const { error: threadError } = await supabase.rpc('increment_thread_unread', {
           p_source: 'telegram',
@@ -42,6 +48,17 @@ serve(async (req) => {
 
         if (threadError) {
           console.error("Thread upsert error:", threadError);
+        }
+
+        // Stamp the resolved student onto the thread (only when known and not
+        // already set, so a manual attach is never clobbered).
+        if (identity.studentId) {
+          await supabase
+            .from("message_threads")
+            .update({ student_id: identity.studentId })
+            .eq("source", "telegram")
+            .eq("sender_id", chatId)
+            .is("student_id", null);
         }
 
         // Insert message
@@ -54,10 +71,12 @@ serve(async (req) => {
           message_type: message.photo ? "image" : message.voice ? "voice" : "text",
           direction: "incoming",
           status: "unread",
+          student_id: identity.studentId,
           metadata: {
             telegram_chat_id: chatId,
             telegram_message_id: message.message_id,
             telegram_user_id: senderId,
+            lead_id: identity.leadId,
           },
         });
 
