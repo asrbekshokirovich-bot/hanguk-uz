@@ -42,9 +42,16 @@ verify_jwt = false
 [functions.dispatch-comm-jobs]
 verify_jwt = false
 
-# Staff-facing trigger (validates the caller's JWT + role inside the function).
+# Staff-facing triggers (validate the caller's JWT + role inside the function).
 [functions.request-call-analysis]
 verify_jwt = true
+
+[functions.request-document-analysis]
+verify_jwt = true
+
+# Internal document reader (service-role bearer checked inside).
+[functions.process-document]
+verify_jwt = false
 
 
 

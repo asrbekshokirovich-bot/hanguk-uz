@@ -15,8 +15,9 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const WORKERS: Record<string, string> = {
-  call_transcribe_analyze: "process-call-recording",
+const WORKERS: Record<string, { fn: string; param: string }> = {
+  call_transcribe_analyze: { fn: "process-call-recording", param: "call_id" },
+  document_extract: { fn: "process-document", param: "document_id" },
 };
 
 Deno.serve(async (req) => {
@@ -58,16 +59,16 @@ Deno.serve(async (req) => {
   const results: any[] = [];
 
   for (const jobRow of claimable) {
-    const fn = WORKERS[jobRow.job_type];
-    if (!fn) {
+    const w = WORKERS[jobRow.job_type];
+    if (!w) {
       results.push({ id: jobRow.id, skipped: "no_worker" });
       continue;
     }
     try {
-      const res = await fetch(`${supabaseUrl}/functions/v1/${fn}`, {
+      const res = await fetch(`${supabaseUrl}/functions/v1/${w.fn}`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${serviceKey}` },
-        body: JSON.stringify({ call_id: jobRow.ref_id }),
+        body: JSON.stringify({ [w.param]: jobRow.ref_id }),
       });
       const out = await res.json().catch(() => ({}));
       results.push({ id: jobRow.id, ok: res.ok, status: res.status, out });
