@@ -96,9 +96,11 @@ export function CallIntelligence({ callId }: CallIntelligenceProps) {
     load();
   }, [load]);
 
-  // While a job is in flight, poll until the transcript shows up.
+  // Poll only while it's actually being worked on (our request in flight, or the
+  // worker is processing). A 'pending' job with no worker is stuck — don't spin
+  // forever; let the user kick it with the Analyze button.
   useEffect(() => {
-    if (!running && job?.status !== 'pending' && job?.status !== 'processing') return;
+    if (!running && job?.status !== 'processing') return;
     const timer = setInterval(load, 4000);
     return () => clearInterval(timer);
   }, [running, job?.status, load]);
@@ -125,7 +127,8 @@ export function CallIntelligence({ callId }: CallIntelligenceProps) {
     }
   };
 
-  const processing = running || job?.status === 'pending' || job?.status === 'processing';
+  // Only the active worker spins; a queued/stuck job must stay clickable.
+  const activelyRunning = running || job?.status === 'processing';
 
   return (
     <Card>
@@ -135,8 +138,8 @@ export function CallIntelligence({ callId }: CallIntelligenceProps) {
             <Sparkles className="h-4 w-4 text-primary" />
             AI Analysis
           </CardTitle>
-          <Button variant="ghost" size="sm" onClick={runAnalysis} disabled={processing}>
-            {processing ? (
+          <Button variant="ghost" size="sm" onClick={runAnalysis} disabled={running}>
+            {activelyRunning ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
               <RefreshCw className="h-4 w-4" />
@@ -152,7 +155,7 @@ export function CallIntelligence({ callId }: CallIntelligenceProps) {
           </div>
         ) : !analysis && !transcript ? (
           <div className="text-sm text-muted-foreground space-y-3">
-            {processing ? (
+            {activelyRunning ? (
               <div className="flex items-center gap-2">
                 <Loader2 className="h-4 w-4 animate-spin" />
                 Transcribing &amp; analyzing the call… this can take a moment.
@@ -160,10 +163,13 @@ export function CallIntelligence({ callId }: CallIntelligenceProps) {
             ) : job?.status === 'error' ? (
               <div className="flex items-start gap-2 text-destructive">
                 <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
-                <span>Analysis failed: {job.last_error || 'unknown error'}. Try again.</span>
+                <span>Analysis failed: {job.last_error || 'unknown error'}. Click Analyze to retry.</span>
               </div>
             ) : (
-              <p>Not analyzed yet. Click <strong>Analyze</strong> to transcribe and summarize this call.</p>
+              <p>
+                {job?.status === 'pending' ? 'This call is queued. ' : 'Not analyzed yet. '}
+                Click <strong>Analyze</strong> to transcribe &amp; summarize it now.
+              </p>
             )}
           </div>
         ) : (
