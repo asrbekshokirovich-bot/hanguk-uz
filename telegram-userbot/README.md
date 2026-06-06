@@ -10,6 +10,10 @@ to a student/lead and stores it.
 > Function (it needs a persistent connection). Host it on a small VM / Railway /
 > Fly.io / Render / a `systemd` service.
 
+> **Easiest path: Railway, no terminal needed → see [`DEPLOY_RAILWAY.md`](./DEPLOY_RAILWAY.md).**
+> It uses the built-in browser login (`LOGIN_MODE=1`) so you log in from a web
+> page instead of a command line. The rest of this README is the CLI route.
+
 ## How it links chats to students
 `telegram-ingest` resolves each chat via the identity spine:
 1. an existing `(telegram, user_id)` mapping, else

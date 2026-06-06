@@ -6,6 +6,9 @@
 // resolves which student/lead the chat belongs to (auto-linking by the student's
 // known phone) and stores it.
 //
+//   LOGIN_MODE=1  -> serves the browser login page (one-time, get a session)
+//   otherwise     -> runs the bot
+//
 // Run: `npm start`   ·   First-time backfill: `npm run backfill`
 import { TelegramClient } from "telegram";
 import { StringSession } from "telegram/sessions/index.js";
@@ -20,10 +23,6 @@ const backfillOnStart = process.env.BACKFILL_ON_START === "1";
 const backfillDialogs = Number(process.env.BACKFILL_DIALOGS || 50);
 const backfillPerChat = Number(process.env.BACKFILL_LIMIT || 100);
 
-for (const [k, v] of Object.entries({ TELEGRAM_API_ID: apiId, TELEGRAM_API_HASH: apiHash, INGEST_URL: ingestUrl, TELEGRAM_INGEST_SECRET: ingestSecret })) {
-  if (!v) { console.error(`Missing required env var: ${k}`); process.exit(1); }
-}
-
 /** Accounts come from TG_ACCOUNTS (JSON) or a single TG_SESSION. */
 function loadAccounts() {
   if (process.env.TG_ACCOUNTS) {
@@ -34,7 +33,7 @@ function loadAccounts() {
   if (process.env.TG_SESSION) {
     return [{ label: process.env.TG_LABEL || "default", staffUserId: process.env.TG_STAFF_USER_ID || null, session: process.env.TG_SESSION }];
   }
-  throw new Error("Set TG_SESSION (from `npm run login`) or TG_ACCOUNTS.");
+  throw new Error("Set TG_SESSION (from login) or TG_ACCOUNTS.");
 }
 
 function mediaType(message) {
@@ -93,8 +92,8 @@ function isMirrorablePeer(peer, selfId) {
 async function backfill(client, account, selfId) {
   console.log(`[${account.label}] backfilling up to ${backfillPerChat} msgs across ${backfillDialogs} chats…`);
   const dialogs = await client.getDialogs({ limit: backfillDialogs });
-  for (const d of dialogs) {
-    const peer = d.entity;
+  for (const dlg of dialogs) {
+    const peer = dlg.entity;
     if (!isMirrorablePeer(peer, selfId)) continue;
     try {
       const msgs = await client.getMessages(peer, { limit: backfillPerChat });
@@ -115,7 +114,7 @@ async function startAccount(account) {
   });
   await client.connect();
   if (!(await client.checkAuthorization())) {
-    console.error(`[${account.label}] session is not authorized — re-run \`npm run login\` for this account.`);
+    console.error(`[${account.label}] session is not authorized — log in again for this account.`);
     return null;
   }
   const me = await client.getMe();
@@ -136,30 +135,41 @@ async function startAccount(account) {
 
   if (backfillOnStart) await backfill(client, account, selfId);
 
-  // Keepalive: surfaces a dropped connection in logs; autoReconnect handles recovery.
   setInterval(() => { client.getMe().catch((e) => console.error(`[${account.label}] keepalive:`, e?.message || e)); }, 4 * 60 * 1000);
   return client;
 }
 
-const accounts = loadAccounts();
-const clients = [];
-for (const acc of accounts) {
-  const c = await startAccount(acc);
-  if (c) clients.push(c);
+async function runBot() {
+  for (const [k, v] of Object.entries({ TELEGRAM_API_ID: apiId, TELEGRAM_API_HASH: apiHash, INGEST_URL: ingestUrl, TELEGRAM_INGEST_SECRET: ingestSecret })) {
+    if (!v) { console.error(`Missing required env var: ${k}`); process.exit(1); }
+  }
+
+  const accounts = loadAccounts();
+  const clients = [];
+  for (const acc of accounts) {
+    const c = await startAccount(acc);
+    if (c) clients.push(c);
+  }
+  if (clients.length === 0) {
+    console.error("No accounts connected. Exiting.");
+    process.exit(1);
+  }
+  console.log(`Userbot running for ${clients.length} account(s). Listening for messages…`);
+
+  async function shutdown() {
+    console.log("Shutting down…");
+    for (const c of clients) await c.disconnect().catch(() => {});
+    process.exit(0);
+  }
+  process.on("SIGINT", shutdown);
+  process.on("SIGTERM", shutdown);
+
+  await new Promise(() => {}); // keep the process alive
 }
 
-if (clients.length === 0) {
-  console.error("No accounts connected. Exiting.");
-  process.exit(1);
+// ---- Entry point -----------------------------------------------------------
+if (process.env.LOGIN_MODE === "1") {
+  await import("./login-web.mjs"); // serves the one-time browser login page
+} else {
+  await runBot();
 }
-console.log(`Userbot running for ${clients.length} account(s). Listening for messages…`);
-
-async function shutdown() {
-  console.log("Shutting down…");
-  for (const c of clients) await c.disconnect().catch(() => {});
-  process.exit(0);
-}
-process.on("SIGINT", shutdown);
-process.on("SIGTERM", shutdown);
-
-await new Promise(() => {}); // keep the process alive
