@@ -49,8 +49,14 @@ verify_jwt = true
 [functions.request-document-analysis]
 verify_jwt = true
 
-# Internal document reader (service-role bearer checked inside).
+[functions.request-lead-enrichment]
+verify_jwt = true
+
+# Internal workers (service-role bearer checked inside).
 [functions.process-document]
+verify_jwt = false
+
+[functions.enrich-lead]
 verify_jwt = false
 
 
