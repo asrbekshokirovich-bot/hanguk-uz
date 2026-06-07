@@ -1,5 +1,9 @@
 {
   "common": {
+    "noData": "No data available",
+    "retry": "Retry",
+    "noResults": "No results found",
+    "noEventsForDay": "No events for this day",
     "save": "Save",
     "cancel": "Cancel",
     "submit": "Submit",
