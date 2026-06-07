@@ -11,6 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { StudentsReport } from '@/components/reports/StudentsReport';
 import { ApplicationsReport } from '@/components/reports/ApplicationsReport';
 import { PaymentsReport } from '@/components/reports/PaymentsReport';
+import { EmptyState } from '@/components/ui/empty-state';
 import {
   BarChart3,
   CalendarIcon,
@@ -52,12 +53,7 @@ export default function ReportsContent() {
   }
 
   if (!data) {
-    return (
-      <div className="text-center py-12 text-muted-foreground">
-        <BarChart3 className="h-12 w-12 mx-auto mb-4 opacity-50" />
-        <p>No report data available</p>
-      </div>
-    );
+    return <EmptyState icon={BarChart3} title={t('common.noData')} />;
   }
 
   return (

@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
 import { Button } from '@/components/ui/button';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { Logo } from '@/components/Logo';
 import {
   Download,
   ChevronRight
@@ -33,7 +34,7 @@ const Index = () => {
     return (
       <div className="min-h-[100dvh] flex items-center justify-center bg-background">
         <div className="animate-pulse flex flex-col items-center gap-4">
-          <img src="/logo.jpg" alt="Hanguk" className="h-16 w-16 rounded-xl object-cover" />
+          <Logo className="h-16 w-16" />
           <p className="text-muted-foreground">{t('common.loading')}</p>
         </div>
       </div>
@@ -43,12 +44,12 @@ const Index = () => {
   // Not logged in - show welcome screen
   if (!user) {
     return (
-      <div className="min-h-[100dvh] flex flex-col bg-gradient-to-br from-primary via-primary/90 to-primary/80">
+      <div className="min-h-[100dvh] flex flex-col bg-app-gradient">
         {/* Header */}
         <header className="flex justify-between items-center p-4">
           <div className="flex items-center gap-3">
-            <img src="/logo.jpg" alt="Hanguk" className="h-10 w-10 rounded-lg object-cover" />
-            <span className="text-xl font-bold text-white">Hanguk</span>
+            <Logo variant="glyph" className="h-9 w-9" />
+            <span className="text-xl font-bold tracking-tight text-white">Hanguk</span>
           </div>
           <div className="flex items-center gap-2">
             <LanguageSwitcher />
@@ -65,11 +66,11 @@ const Index = () => {
         {/* Hero Section */}
         <main className="flex-1 flex flex-col items-center justify-center p-4 text-center">
           <div className="max-w-2xl mx-auto space-y-6">
-            <img src="/logo.jpg" alt="Hanguk" className="h-24 w-24 mx-auto rounded-2xl object-cover shadow-xl ring-4 ring-accent/30" />
-            <h1 className="text-4xl md:text-5xl font-bold text-white">
+            <Logo variant="wordmark" tone="dark" className="h-28 w-auto mx-auto" />
+            <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-white">
               Hanguk Consulting
             </h1>
-            <p className="text-xl text-white/80 max-w-md mx-auto">
+            <p className="text-lg md:text-xl text-white/80 max-w-md mx-auto leading-relaxed">
               {t('auth.signupSubtitle')}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
@@ -92,7 +93,7 @@ const Index = () => {
   return (
     <div className="min-h-[100dvh] flex items-center justify-center bg-background">
       <div className="animate-pulse flex flex-col items-center gap-4">
-        <img src="/logo.jpg" alt="Hanguk" className="h-16 w-16 rounded-xl object-cover" />
+        <Logo className="h-16 w-16" />
         <p className="text-muted-foreground">{t('common.loading')}</p>
       </div>
     </div>

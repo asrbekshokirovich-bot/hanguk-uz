@@ -14,6 +14,7 @@ import { ProgramFinder } from '@/components/student/ProgramFinder';
 import { StudentInsightsPanel } from '@/components/student/StudentInsightsPanel';
 import { SuggestedUniversities } from '@/components/student/SuggestedUniversities';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { Logo } from '@/components/Logo';
 import { HangukAIChat } from '@/components/ai/HangukAIChat';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -96,7 +97,7 @@ export default function StudentPortal() {
     return (
       <div className="min-h-[100dvh] flex items-center justify-center bg-background">
         <div className="animate-pulse flex flex-col items-center gap-4">
-          <img src="/logo.jpg" alt="Hanguk" className="h-16 w-16 rounded-xl object-cover" />
+          <Logo className="h-16 w-16" />
           <p className="text-muted-foreground">{t('common.loading')}</p>
         </div>
       </div>
@@ -119,9 +120,9 @@ export default function StudentPortal() {
       <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 pt-[env(safe-area-inset-top)]">
         <div className="flex justify-between items-center p-4">
           <div className="flex items-center gap-3">
-            <img src="/logo.jpg" alt="Hanguk" className="h-10 w-10 rounded-lg object-cover" />
+            <Logo className="h-10 w-10 rounded-lg" />
             <div className="hidden sm:block">
-              <span className="text-xl font-bold text-primary">Hanguk</span>
+              <span className="text-xl font-bold tracking-tight text-primary">Hanguk</span>
               <p className="text-xs text-muted-foreground">{t('student.portal')}</p>
             </div>
           </div>

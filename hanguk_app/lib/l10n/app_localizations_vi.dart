@@ -142,6 +142,102 @@ class AppLocalizationsVi extends AppLocalizations {
   String get documentsTabTitle => 'Tài liệu của tôi';
 
   @override
+  String get documentUploadInfo => 'Upload valid PDF or JPEG scans of your original documents. Max 10MB per file.';
+
+  @override
+  String get documentsRequiredHeading => 'Required Documents';
+
+  @override
+  String get documentUploadFailed => 'Couldn\'t upload your document. Please try again.';
+
+  @override
+  String get documentPreviewFailed => 'Couldn\'t open the document. Please try again.';
+
+  @override
+  String get documentLoadError => 'Couldn\'t load your documents.';
+
+  @override
+  String get commonRetry => 'Retry';
+
+  @override
+  String get onboardingSkip => 'Skip';
+
+  @override
+  String get onboardingNext => 'Next';
+
+  @override
+  String get onboardingStart => 'Get Started';
+
+  @override
+  String get onboardingStep1Title => 'Track your applications';
+
+  @override
+  String get onboardingStep1Body => 'Follow every university application from documents to decision, all in one place.';
+
+  @override
+  String get onboardingStep2Title => 'Explore universities & upload documents';
+
+  @override
+  String get onboardingStep2Body => 'Find universities on the map and securely upload the documents each one needs.';
+
+  @override
+  String get onboardingStep3Title => 'Practice interviews with AI';
+
+  @override
+  String get onboardingStep3Body => 'Rehearse Korean admission interviews with the AI coach and get instant feedback.';
+
+  @override
+  String get appsEmptyTitle => 'No applications yet';
+
+  @override
+  String get appsEmptyBody => 'Your applications will appear here once you apply to a university.';
+
+  @override
+  String get appsLoadError => 'Couldn\'t load your applications.';
+
+  @override
+  String get appsPendingHeading => 'Pending Applications';
+
+  @override
+  String get appsActiveHeading => 'Active Applications';
+
+  @override
+  String get searchHint => 'Search...';
+
+  @override
+  String get clearSearch => 'Clear search';
+
+  @override
+  String get filterAll => 'All';
+
+  @override
+  String get filterPartner => 'Partner';
+
+  @override
+  String get filterTop => 'Top';
+
+  @override
+  String get noUniversitiesMatch => 'No universities match this filter';
+
+  @override
+  String get clearFilters => 'Clear filters';
+
+  @override
+  String get universitiesLoadError => 'Couldn\'t load universities';
+
+  @override
+  String get checkConnectionRetry => 'Check your connection and try again';
+
+  @override
+  String get switchToListView => 'Switch to list view';
+
+  @override
+  String get switchToMapView => 'Switch to map view';
+
+  @override
+  String get chatInputHint => 'Ask anything about South Korea...';
+
+  @override
   String get accountTooltip => 'Tài khoản';
 
   @override

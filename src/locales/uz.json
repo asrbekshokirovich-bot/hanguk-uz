@@ -1,5 +1,9 @@
 {
   "common": {
+    "noData": "Ma'lumot yo'q",
+    "retry": "Qayta urinish",
+    "noResults": "Hech narsa topilmadi",
+    "noEventsForDay": "Bu kun uchun tadbirlar yo'q",
     "save": "Saqlash",
     "cancel": "Bekor qilish",
     "submit": "Yuborish",

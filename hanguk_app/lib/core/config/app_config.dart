@@ -67,20 +67,17 @@ class AppConfig {
   );
 
   // Legal URLs - Privacy Policy and Terms of Service.
-  // Required for App Store + Play Store submissions
-  // (P0 #3 from store_readiness_audit_2026-05-12.md).
-  // Stored in Supabase Storage 'legal' bucket; override at build time
-  // with --dart-define=PRIVACY_POLICY_URL=... if you host them
-  // elsewhere.
+  // Required for App Store + Play Store submissions (audit S3).
+  // Point at the domain-owned, localized web pages (hanguk-uz exposes
+  // /privacy and /terms; canonical domain per STORE_METADATA.md).
+  // Override at build time with --dart-define=PRIVACY_POLICY_URL=... .
   static const String privacyPolicyUrl = String.fromEnvironment(
     'PRIVACY_POLICY_URL',
-    defaultValue:
-        'https://lysjdtyanhdfphqyijsr.supabase.co/storage/v1/object/public/legal/PRIVACY_POLICY.md',
+    defaultValue: 'https://hanguk.uz/privacy',
   );
 
   static const String termsOfServiceUrl = String.fromEnvironment(
     'TERMS_OF_SERVICE_URL',
-    defaultValue:
-        'https://lysjdtyanhdfphqyijsr.supabase.co/storage/v1/object/public/legal/TERMS_OF_SERVICE.md',
+    defaultValue: 'https://hanguk.uz/terms',
   );
 }

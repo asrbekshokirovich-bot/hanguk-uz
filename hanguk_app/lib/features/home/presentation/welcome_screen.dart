@@ -58,19 +58,16 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
                 padding: const EdgeInsets.all(20.0),
                 child: Row(
                   children: [
-                    Container(
-                      color: Colors.white,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        // Decorative — wordmark next to it carries the
-                        // brand for assistive tech.
-                        child: Image.asset(
-                          'assets/images/logo.jpg',
-                          height: 40,
-                          width: 40,
-                          fit: BoxFit.contain,
-                          excludeFromSemantics: true,
-                        ),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      // Decorative — wordmark next to it carries the
+                      // brand for assistive tech.
+                      child: Image.asset(
+                        'assets/images/app_icon.png',
+                        height: 40,
+                        width: 40,
+                        fit: BoxFit.cover,
+                        excludeFromSemantics: true,
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -96,8 +93,6 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
                     Container(
                       padding: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
-                        color: Colors
-                            .white, // Added white background so the JPEG blends in
                         borderRadius: BorderRadius.circular(24),
                         border: Border.all(
                           color: AppColors.vibrantLime.withValues(alpha: 0.3),
@@ -116,10 +111,10 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
                         // Decorative — the "Hanguk Consulting" headline
                         // immediately below carries the brand identity.
                         child: Image.asset(
-                          'assets/images/logo.jpg',
+                          'assets/images/app_icon.png',
                           height: 100,
                           width: 100,
-                          fit: BoxFit.contain,
+                          fit: BoxFit.cover,
                           excludeFromSemantics: true,
                         ),
                       ),
@@ -176,33 +171,16 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 56,
-                      child: OutlinedButton(
-                        onPressed: () {},
-                        style: OutlinedButton.styleFrom(
-                          side: BorderSide(
-                            color: Colors.white.withValues(alpha: 0.3),
-                          ),
-                          foregroundColor: Colors.white.withValues(alpha: 0.7),
-                        ),
-                        child: const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.phone, size: 20),
-                            SizedBox(width: 8),
-                            Flexible(
-                              child: Text(
-                                'Log In / Sign Up with Phone Number (Coming Soon)',
-                                style: TextStyle(fontSize: 14),
-                                textAlign: TextAlign.center,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
+                    // Quiet helper for students without a code yet. Phone
+                    // sign-up is intentionally hidden until it ships
+                    // (no "coming soon" placeholder — audit A2/S2).
+                    Text(
+                      'Get a Magic Code from your consultant to sign in.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.6),
+                        fontSize: 13,
+                        height: 1.4,
                       ),
                     ),
                   ],

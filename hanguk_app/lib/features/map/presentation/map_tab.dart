@@ -136,7 +136,7 @@ class _MapTabState extends ConsumerState<MapTab> {
                       controller: _searchController,
                       style: const TextStyle(color: Colors.white, fontSize: 14),
                       decoration: InputDecoration(
-                        hintText: 'Search...',
+                        hintText: l.searchHint,
                         hintStyle: const TextStyle(
                           color: Colors.white70,
                           fontSize: 14,
@@ -157,7 +157,7 @@ class _MapTabState extends ConsumerState<MapTab> {
                         ),
                         suffixIcon: _searchQuery.isNotEmpty
                             ? Semantics(
-                                label: 'Clear search',
+                                label: l.clearSearch,
                                 button: true,
                                 child: GestureDetector(
                                   onTap: () => _searchController.clear(),
@@ -189,14 +189,14 @@ class _MapTabState extends ConsumerState<MapTab> {
               child: Row(
                 children: [
                   _FilterChip(
-                    label: 'All',
+                    label: l.filterAll,
                     icon: Icons.school_outlined,
                     selected: _activeFilter == 'all',
                     onTap: () => setState(() => _activeFilter = 'all'),
                   ),
                   const SizedBox(width: 8),
                   _FilterChip(
-                    label: 'Partner',
+                    label: l.filterPartner,
                     icon: Icons.handshake_outlined,
                     selected: _activeFilter == 'partner',
                     onTap: () => setState(() => _activeFilter = 'partner'),
@@ -207,7 +207,7 @@ class _MapTabState extends ConsumerState<MapTab> {
                     // 100" to "Top". The semantics moved from a
                     // numeric `ranking` cap to the categorical `tier`
                     // (0 or 1).
-                    label: 'Top',
+                    label: l.filterTop,
                     icon: Icons.workspace_premium_outlined,
                     selected: _activeFilter == 'top',
                     onTap: () => setState(() => _activeFilter = 'top'),
@@ -268,6 +268,7 @@ class _MapTabState extends ConsumerState<MapTab> {
 
   Widget _buildList(List<University> unis) {
     if (unis.isEmpty) {
+      final l = AppLocalizations.of(context)!;
       return Center(
         key: const ValueKey('empty'),
         child: Column(
@@ -280,9 +281,7 @@ class _MapTabState extends ConsumerState<MapTab> {
             ),
             const SizedBox(height: 16),
             Text(
-              _searchQuery.isNotEmpty
-                  ? 'No results for "$_searchQuery"'
-                  : 'No universities match this filter',
+              l.noUniversitiesMatch,
               style: const TextStyle(color: Colors.white70, fontSize: 14),
             ),
             const SizedBox(height: 12),
@@ -291,9 +290,9 @@ class _MapTabState extends ConsumerState<MapTab> {
                 _searchController.clear();
                 setState(() => _activeFilter = 'all');
               },
-              child: const Text(
-                'Clear filters',
-                style: TextStyle(color: AppColors.vibrantLime),
+              child: Text(
+                l.clearFilters,
+                style: const TextStyle(color: AppColors.vibrantLime),
               ),
             ),
           ],
@@ -313,6 +312,7 @@ class _MapTabState extends ConsumerState<MapTab> {
   }
 
   Widget _buildErrorState() {
+    final l = AppLocalizations.of(context)!;
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -320,7 +320,7 @@ class _MapTabState extends ConsumerState<MapTab> {
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: Colors.red.withValues(alpha: 0.08),
+              color: AppColors.error.withValues(alpha: 0.08),
               shape: BoxShape.circle,
             ),
             child: const Icon(
@@ -330,18 +330,18 @@ class _MapTabState extends ConsumerState<MapTab> {
             ),
           ),
           const SizedBox(height: 20),
-          const Text(
-            'Could not load universities',
-            style: TextStyle(
+          Text(
+            l.universitiesLoadError,
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 16,
               fontWeight: FontWeight.w500,
             ),
           ),
           const SizedBox(height: 6),
-          const Text(
-            'Check your connection and try again',
-            style: TextStyle(color: Colors.white70, fontSize: 13),
+          Text(
+            l.checkConnectionRetry,
+            style: const TextStyle(color: Colors.white70, fontSize: 13),
           ),
           const SizedBox(height: 20),
           OutlinedButton.icon(
@@ -351,9 +351,9 @@ class _MapTabState extends ConsumerState<MapTab> {
               size: 18,
               color: AppColors.vibrantLime,
             ),
-            label: const Text(
-              'Retry',
-              style: TextStyle(color: AppColors.vibrantLime),
+            label: Text(
+              l.commonRetry,
+              style: const TextStyle(color: AppColors.vibrantLime),
             ),
             style: OutlinedButton.styleFrom(
               side: BorderSide(
@@ -381,12 +381,13 @@ class _ToggleButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     return Semantics(
       // Audit M21 (2026-05-12): screen-reader label for the list/map
       // toggle. The icon is purely visual; without this Semantics
       // node the toggle is announced as an empty button.
       button: true,
-      label: isMapMode ? 'Switch to list view' : 'Switch to map view',
+      label: isMapMode ? l.switchToListView : l.switchToMapView,
       child: GestureDetector(
         onTap: onTap,
         child: AnimatedContainer(
@@ -484,12 +485,13 @@ class _FilterEmptyBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     return Semantics(
       // Audit M21 (2026-05-12): screen readers announce this badge
       // so non-sighted users know the map is empty because of an
       // active filter.
       liveRegion: true,
-      label: 'No universities match the current filter',
+      label: l.noUniversitiesMatch,
       child: Material(
         color: Colors.transparent,
         child: Container(
@@ -507,10 +509,10 @@ class _FilterEmptyBadge extends StatelessWidget {
                 size: 18,
               ),
               const SizedBox(width: 10),
-              const Expanded(
+              Expanded(
                 child: Text(
-                  'No universities match — adjust your filter or search.',
-                  style: TextStyle(color: Colors.white, fontSize: 13),
+                  l.noUniversitiesMatch,
+                  style: const TextStyle(color: Colors.white, fontSize: 13),
                 ),
               ),
               TextButton(
@@ -519,7 +521,7 @@ class _FilterEmptyBadge extends StatelessWidget {
                   foregroundColor: AppColors.vibrantLime,
                   padding: const EdgeInsets.symmetric(horizontal: 10),
                 ),
-                child: const Text('Clear'),
+                child: Text(l.clearFilters),
               ),
             ],
           ),

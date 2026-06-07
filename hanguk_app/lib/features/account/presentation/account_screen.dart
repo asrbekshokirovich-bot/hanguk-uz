@@ -355,7 +355,12 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                     onPressed: () => _openLegal(AppConfig.privacyPolicyUrl),
                     child: Text(
                       l10n.accountPrivacyPolicy,
-                      style: const TextStyle(color: AppColors.vibrantLime),
+                      // Links are white w/ underline on dark; lime is reserved
+                      // for actions/active states only (audit A5/C2).
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        decoration: TextDecoration.underline,
+                      ),
                     ),
                   ),
                   const Text(' • ', style: TextStyle(color: Colors.white70)),
@@ -363,7 +368,10 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                     onPressed: () => _openLegal(AppConfig.termsOfServiceUrl),
                     child: Text(
                       l10n.accountTermsOfService,
-                      style: const TextStyle(color: AppColors.vibrantLime),
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        decoration: TextDecoration.underline,
+                      ),
                     ),
                   ),
                 ],
