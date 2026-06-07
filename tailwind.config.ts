@@ -135,16 +135,11 @@ export default {
           from: { opacity: "0", transform: "translateY(6px)" },
           to: { opacity: "1", transform: "none" },
         },
-        "fade-in": {
-          from: { opacity: "0" },
-          to: { opacity: "1" },
-        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "fade-up": "fade-up 0.28s cubic-bezier(.22,.61,.36,1)",
-        "fade-in": "fade-in 0.2s ease-out",
       },
       spacing: {
         "safe-top": "var(--safe-area-inset-top)",

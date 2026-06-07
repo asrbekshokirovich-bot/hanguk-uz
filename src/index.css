@@ -260,8 +260,9 @@
   @media (prefers-reduced-motion: reduce) {
     .animate-fade-in,
     .animate-slide-up,
-    .animate-slide-down {
-      animation: none;
+    .animate-slide-down,
+    .animate-fade-up {
+      animation: none !important;
     }
   }
 }
