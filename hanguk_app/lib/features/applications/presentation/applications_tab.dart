@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../../design_system/adaptive/empty_state.dart';
 import '../../uni_db/presentation/widgets/home_recent_changes_banner.dart';
 import '../../uni_db/presentation/widgets/verified_deadlines_overlay.dart';
 import 'widgets/application_card.dart';
@@ -50,12 +51,12 @@ class ApplicationsTab extends ConsumerWidget {
           tabStateAsync.when(
             data: (state) {
               if (state.isEmpty) {
-                return const SliverFillRemaining(
-                  child: Center(
-                    child: Text(
-                      'You have no active applications yet.',
-                      style: TextStyle(color: Colors.white54),
-                    ),
+                return SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: EmptyState(
+                    icon: Icons.school_outlined,
+                    headline: l.appsEmptyTitle,
+                    subhead: l.appsEmptyBody,
                   ),
                 );
               }
@@ -77,10 +78,10 @@ class ApplicationsTab extends ConsumerWidget {
 
                   // Applications Section
                   if (state.pendingApps.isNotEmpty)
-                    ..._buildPendingSection(state.pendingApps),
+                    ..._buildPendingSection(l, state.pendingApps),
 
                   if (state.activeApps.isNotEmpty)
-                    ..._buildActiveSection(state.activeApps),
+                    ..._buildActiveSection(l, state.activeApps),
 
                   if (state.hasActiveApplications)
                     const SliverToBoxAdapter(child: SizedBox(height: 100)),
@@ -91,7 +92,35 @@ class ApplicationsTab extends ConsumerWidget {
               child: Center(child: CircularProgressIndicator.adaptive()),
             ),
             error: (err, stack) => SliverFillRemaining(
-              child: Center(child: Text('Error loading applications: $err')),
+              hasScrollBody: false,
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.error_outline,
+                        color: Colors.white54,
+                        size: 40,
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        l.appsLoadError,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(color: Colors.white70),
+                      ),
+                      const SizedBox(height: 16),
+                      TextButton.icon(
+                        onPressed: () =>
+                            ref.invalidate(applicationsTabProvider),
+                        icon: const Icon(Icons.refresh),
+                        label: Text(l.commonRetry),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ),
         ],
@@ -99,14 +128,17 @@ class ApplicationsTab extends ConsumerWidget {
     );
   }
 
-  List<Widget> _buildPendingSection(List<dynamic> pendingApps) {
+  List<Widget> _buildPendingSection(
+    AppLocalizations l,
+    List<dynamic> pendingApps,
+  ) {
     return [
-      const SliverToBoxAdapter(
+      SliverToBoxAdapter(
         child: Padding(
-          padding: EdgeInsets.fromLTRB(16, 24, 16, 8),
+          padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
           child: Text(
-            'Pending Applications',
-            style: TextStyle(
+            l.appsPendingHeading,
+            style: const TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
               color: Colors.white,
@@ -128,14 +160,17 @@ class ApplicationsTab extends ConsumerWidget {
     ];
   }
 
-  List<Widget> _buildActiveSection(List<dynamic> activeApps) {
+  List<Widget> _buildActiveSection(
+    AppLocalizations l,
+    List<dynamic> activeApps,
+  ) {
     return [
-      const SliverToBoxAdapter(
+      SliverToBoxAdapter(
         child: Padding(
-          padding: EdgeInsets.fromLTRB(16, 24, 16, 8),
+          padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
           child: Text(
-            'Active Applications',
-            style: TextStyle(
+            l.appsActiveHeading,
+            style: const TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
               color: Colors.white,

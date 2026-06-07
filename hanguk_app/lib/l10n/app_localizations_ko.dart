@@ -179,6 +179,57 @@ class AppLocalizationsKo extends AppLocalizations {
   String get onboardingStep3Body => 'AI 코치와 한국 대학 입학 면접을 연습하고 즉각적인 피드백을 받으세요.';
 
   @override
+  String get appsEmptyTitle => '아직 지원 내역이 없습니다';
+
+  @override
+  String get appsEmptyBody => '대학에 지원하면 여기에 표시됩니다.';
+
+  @override
+  String get appsLoadError => '지원 내역을 불러오지 못했습니다.';
+
+  @override
+  String get appsPendingHeading => '대기 중인 지원';
+
+  @override
+  String get appsActiveHeading => '진행 중인 지원';
+
+  @override
+  String get searchHint => '검색...';
+
+  @override
+  String get clearSearch => '검색 지우기';
+
+  @override
+  String get filterAll => '전체';
+
+  @override
+  String get filterPartner => '파트너';
+
+  @override
+  String get filterTop => '상위';
+
+  @override
+  String get noUniversitiesMatch => '이 필터에 맞는 대학이 없습니다';
+
+  @override
+  String get clearFilters => '필터 지우기';
+
+  @override
+  String get universitiesLoadError => '대학을 불러오지 못했습니다';
+
+  @override
+  String get checkConnectionRetry => '연결을 확인하고 다시 시도하세요';
+
+  @override
+  String get switchToListView => '목록 보기로 전환';
+
+  @override
+  String get switchToMapView => '지도 보기로 전환';
+
+  @override
+  String get chatInputHint => '한국에 대해 무엇이든 물어보세요...';
+
+  @override
   String get accountTooltip => '계정';
 
   @override

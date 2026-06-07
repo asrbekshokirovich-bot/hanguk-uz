@@ -399,6 +399,40 @@ abstract class AppLocalizations {
   /// Onboarding string (audit A9).
   String get onboardingStep3Body;
 
+  String get appsEmptyTitle;
+
+  String get appsEmptyBody;
+
+  String get appsLoadError;
+
+  String get appsPendingHeading;
+
+  String get appsActiveHeading;
+
+  String get searchHint;
+
+  String get clearSearch;
+
+  String get filterAll;
+
+  String get filterPartner;
+
+  String get filterTop;
+
+  String get noUniversitiesMatch;
+
+  String get clearFilters;
+
+  String get universitiesLoadError;
+
+  String get checkConnectionRetry;
+
+  String get switchToListView;
+
+  String get switchToMapView;
+
+  String get chatInputHint;
+
   /// Tooltip for the account icon button in the Applications AppBar —
   /// opens the AccountScreen with sign-out, data export, and delete
   /// account.

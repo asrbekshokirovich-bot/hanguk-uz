@@ -187,6 +187,57 @@ class AppLocalizationsRu extends AppLocalizations {
   String get onboardingStep3Body => 'Репетируйте вступительные интервью с ИИ-коучем и получайте мгновенную обратную связь.';
 
   @override
+  String get appsEmptyTitle => 'Заявок пока нет';
+
+  @override
+  String get appsEmptyBody => 'Ваши заявки появятся здесь после подачи в университет.';
+
+  @override
+  String get appsLoadError => 'Не удалось загрузить ваши заявки.';
+
+  @override
+  String get appsPendingHeading => 'Ожидающие заявки';
+
+  @override
+  String get appsActiveHeading => 'Активные заявки';
+
+  @override
+  String get searchHint => 'Поиск...';
+
+  @override
+  String get clearSearch => 'Очистить поиск';
+
+  @override
+  String get filterAll => 'Все';
+
+  @override
+  String get filterPartner => 'Партнёр';
+
+  @override
+  String get filterTop => 'Топ';
+
+  @override
+  String get noUniversitiesMatch => 'Нет вузов по этому фильтру';
+
+  @override
+  String get clearFilters => 'Сбросить фильтры';
+
+  @override
+  String get universitiesLoadError => 'Не удалось загрузить университеты';
+
+  @override
+  String get checkConnectionRetry => 'Проверьте подключение и попробуйте снова';
+
+  @override
+  String get switchToListView => 'Переключить на список';
+
+  @override
+  String get switchToMapView => 'Переключить на карту';
+
+  @override
+  String get chatInputHint => 'Спросите что угодно о Южной Корее...';
+
+  @override
   String get accountTooltip => 'Аккаунт';
 
   @override

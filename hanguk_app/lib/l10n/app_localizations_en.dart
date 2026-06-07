@@ -187,6 +187,57 @@ class AppLocalizationsEn extends AppLocalizations {
   String get onboardingStep3Body => 'Rehearse Korean admission interviews with the AI coach and get instant feedback.';
 
   @override
+  String get appsEmptyTitle => 'No applications yet';
+
+  @override
+  String get appsEmptyBody => 'Your applications will appear here once you apply to a university.';
+
+  @override
+  String get appsLoadError => 'Couldn\'t load your applications.';
+
+  @override
+  String get appsPendingHeading => 'Pending Applications';
+
+  @override
+  String get appsActiveHeading => 'Active Applications';
+
+  @override
+  String get searchHint => 'Search...';
+
+  @override
+  String get clearSearch => 'Clear search';
+
+  @override
+  String get filterAll => 'All';
+
+  @override
+  String get filterPartner => 'Partner';
+
+  @override
+  String get filterTop => 'Top';
+
+  @override
+  String get noUniversitiesMatch => 'No universities match this filter';
+
+  @override
+  String get clearFilters => 'Clear filters';
+
+  @override
+  String get universitiesLoadError => 'Couldn\'t load universities';
+
+  @override
+  String get checkConnectionRetry => 'Check your connection and try again';
+
+  @override
+  String get switchToListView => 'Switch to list view';
+
+  @override
+  String get switchToMapView => 'Switch to map view';
+
+  @override
+  String get chatInputHint => 'Ask anything about South Korea...';
+
+  @override
   String get accountTooltip => 'Account';
 
   @override
