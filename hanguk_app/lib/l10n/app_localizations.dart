@@ -372,6 +372,33 @@ abstract class AppLocalizations {
   /// Document tab string (audit A3/A4).
   String get commonRetry;
 
+  /// Onboarding string (audit A9).
+  String get onboardingSkip;
+
+  /// Onboarding string (audit A9).
+  String get onboardingNext;
+
+  /// Onboarding string (audit A9).
+  String get onboardingStart;
+
+  /// Onboarding string (audit A9).
+  String get onboardingStep1Title;
+
+  /// Onboarding string (audit A9).
+  String get onboardingStep1Body;
+
+  /// Onboarding string (audit A9).
+  String get onboardingStep2Title;
+
+  /// Onboarding string (audit A9).
+  String get onboardingStep2Body;
+
+  /// Onboarding string (audit A9).
+  String get onboardingStep3Title;
+
+  /// Onboarding string (audit A9).
+  String get onboardingStep3Body;
+
   /// Tooltip for the account icon button in the Applications AppBar —
   /// opens the AccountScreen with sign-out, data export, and delete
   /// account.

@@ -160,6 +160,33 @@ class AppLocalizationsEn extends AppLocalizations {
   String get commonRetry => 'Retry';
 
   @override
+  String get onboardingSkip => 'Skip';
+
+  @override
+  String get onboardingNext => 'Next';
+
+  @override
+  String get onboardingStart => 'Get Started';
+
+  @override
+  String get onboardingStep1Title => 'Track your applications';
+
+  @override
+  String get onboardingStep1Body => 'Follow every university application from documents to decision, all in one place.';
+
+  @override
+  String get onboardingStep2Title => 'Explore universities & upload documents';
+
+  @override
+  String get onboardingStep2Body => 'Find universities on the map and securely upload the documents each one needs.';
+
+  @override
+  String get onboardingStep3Title => 'Practice interviews with AI';
+
+  @override
+  String get onboardingStep3Body => 'Rehearse Korean admission interviews with the AI coach and get instant feedback.';
+
+  @override
   String get accountTooltip => 'Account';
 
   @override

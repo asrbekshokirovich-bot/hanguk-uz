@@ -159,6 +159,33 @@ class AppLocalizationsUz extends AppLocalizations {
   String get commonRetry => 'Qayta urinish';
 
   @override
+  String get onboardingSkip => 'O\'tkazib yuborish';
+
+  @override
+  String get onboardingNext => 'Keyingi';
+
+  @override
+  String get onboardingStart => 'Boshlash';
+
+  @override
+  String get onboardingStep1Title => 'Arizalaringizni kuzating';
+
+  @override
+  String get onboardingStep1Body => 'Har bir universitet arizasini hujjatlardan qarorgacha bitta joyda kuzating.';
+
+  @override
+  String get onboardingStep2Title => 'Universitetlarni o\'rganing va hujjat yuklang';
+
+  @override
+  String get onboardingStep2Body => 'Universitetlarni xaritada toping va har biri uchun kerakli hujjatlarni xavfsiz yuklang.';
+
+  @override
+  String get onboardingStep3Title => 'AI bilan suhbatga tayyorlaning';
+
+  @override
+  String get onboardingStep3Body => 'AI murabbiy bilan koreys universitetlari suhbatlarini mashq qiling va darhol fikr-mulohaza oling.';
+
+  @override
   String get accountTooltip => 'Hisob';
 
   @override

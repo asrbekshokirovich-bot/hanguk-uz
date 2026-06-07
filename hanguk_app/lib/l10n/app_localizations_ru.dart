@@ -160,6 +160,33 @@ class AppLocalizationsRu extends AppLocalizations {
   String get commonRetry => 'Повторить';
 
   @override
+  String get onboardingSkip => 'Пропустить';
+
+  @override
+  String get onboardingNext => 'Далее';
+
+  @override
+  String get onboardingStart => 'Начать';
+
+  @override
+  String get onboardingStep1Title => 'Отслеживайте заявки';
+
+  @override
+  String get onboardingStep1Body => 'Следите за каждой заявкой в университет — от документов до решения — в одном месте.';
+
+  @override
+  String get onboardingStep2Title => 'Изучайте вузы и загружайте документы';
+
+  @override
+  String get onboardingStep2Body => 'Находите университеты на карте и безопасно загружайте нужные документы.';
+
+  @override
+  String get onboardingStep3Title => 'Тренируйте интервью с ИИ';
+
+  @override
+  String get onboardingStep3Body => 'Репетируйте вступительные интервью с ИИ-коучем и получайте мгновенную обратную связь.';
+
+  @override
   String get accountTooltip => 'Аккаунт';
 
   @override

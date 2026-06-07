@@ -152,6 +152,33 @@ class AppLocalizationsKo extends AppLocalizations {
   String get commonRetry => '다시 시도';
 
   @override
+  String get onboardingSkip => '건너뛰기';
+
+  @override
+  String get onboardingNext => '다음';
+
+  @override
+  String get onboardingStart => '시작하기';
+
+  @override
+  String get onboardingStep1Title => '지원 현황 추적';
+
+  @override
+  String get onboardingStep1Body => '서류부터 합격까지 모든 대학 지원을 한곳에서 관리하세요.';
+
+  @override
+  String get onboardingStep2Title => '대학 탐색 및 서류 업로드';
+
+  @override
+  String get onboardingStep2Body => '지도에서 대학을 찾고 필요한 서류를 안전하게 업로드하세요.';
+
+  @override
+  String get onboardingStep3Title => 'AI로 면접 연습';
+
+  @override
+  String get onboardingStep3Body => 'AI 코치와 한국 대학 입학 면접을 연습하고 즉각적인 피드백을 받으세요.';
+
+  @override
   String get accountTooltip => '계정';
 
   @override

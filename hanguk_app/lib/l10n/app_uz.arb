@@ -52,6 +52,15 @@
   "documentPreviewFailed": "Hujjatni ochib bo‘lmadi. Iltimos, qayta urinib ko‘ring.",
   "documentLoadError": "Hujjatlaringizni yuklab bo‘lmadi.",
   "commonRetry": "Qayta urinish",
+  "onboardingSkip": "O'tkazib yuborish",
+  "onboardingNext": "Keyingi",
+  "onboardingStart": "Boshlash",
+  "onboardingStep1Title": "Arizalaringizni kuzating",
+  "onboardingStep1Body": "Har bir universitet arizasini hujjatlardan qarorgacha bitta joyda kuzating.",
+  "onboardingStep2Title": "Universitetlarni o'rganing va hujjat yuklang",
+  "onboardingStep2Body": "Universitetlarni xaritada toping va har biri uchun kerakli hujjatlarni xavfsiz yuklang.",
+  "onboardingStep3Title": "AI bilan suhbatga tayyorlaning",
+  "onboardingStep3Body": "AI murabbiy bilan koreys universitetlari suhbatlarini mashq qiling va darhol fikr-mulohaza oling.",
 
   "accountTooltip": "Hisob",
 
