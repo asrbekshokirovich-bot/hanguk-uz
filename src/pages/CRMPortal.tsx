@@ -8,6 +8,7 @@ import { useCanReviewUniDb } from '@/hooks/useCanReviewUniDb';
 import { useCRMData } from '@/hooks/useCRMData';
 import { usePayments } from '@/hooks/usePayments';
 import { CRMSidebar, useSidebarGroups } from '@/components/crm/CRMSidebar';
+import { Logo } from '@/components/Logo';
 import { CRMSubNavigation } from '@/components/crm/CRMSubNavigation';
 import { CRMDashboard } from '@/components/crm/CRMDashboard';
 import { StudentList } from '@/components/crm/StudentList';
@@ -225,7 +226,7 @@ export default function CRMPortal() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="animate-pulse flex flex-col items-center gap-4">
-          <img src="/logo.jpg" alt="Hanguk" className="h-16 w-16 rounded-xl object-cover" />
+          <Logo className="h-16 w-16" />
           <p className="text-muted-foreground">{t('common.loading')}</p>
         </div>
       </div>

@@ -43,6 +43,7 @@ import {
   ClipboardCheck,
 } from 'lucide-react';
 import { SidebarStaffPanel } from '@/components/intercom/SidebarStaffPanel';
+import { Logo } from '@/components/Logo';
 
 export interface SidebarGroup {
   id: string;
@@ -217,10 +218,10 @@ export function CRMSidebar({
       <SidebarHeader className="p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img src="/logo.jpg" alt="Hanguk" className="h-8 w-8 rounded-lg object-cover" />
+            <Logo className="h-8 w-8 rounded-lg" />
             {!collapsed && (
               <div>
-                <span className="font-bold text-primary">Hanguk</span>
+                <span className="font-bold tracking-tight text-primary">Hanguk</span>
                 <p className="text-xs text-muted-foreground">{t('crm.title')}</p>
               </div>
             )}

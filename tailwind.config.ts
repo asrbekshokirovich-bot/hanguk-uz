@@ -80,14 +80,46 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        /* Raw brand palette — for the rare case a token isn't enough.
+           Prefer the semantic tokens above. Lime is action-only. */
+        brand: {
+          DEFAULT: "#1A3A6C", // Royal Blue
+          royal: "#1A3A6C",
+          "royal-90": "#132A4D",
+          "royal-80": "#0F213D",
+          lime: "#D4E94C",
+          "lime-deep": "#B4CC19",
+          ink: "#0A1A34",
+        },
+        /* App / OLED dark surfaces (Capacitor build) */
+        app: {
+          black: "#000000",
+          navy: "#0A0A1A",
+          slate: "#0F172A",
+          nav: "#0F213D",
+          sheet: "#071221",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        xl: "16px", // app buttons / inputs
+        "2xl": "20px", // app cards
+        pill: "9999px",
       },
       fontFamily: {
-        sans: ["Inter", "system-ui", "sans-serif"],
+        sans: ["Inter", "system-ui", "-apple-system", "Segoe UI", "sans-serif"],
+        mono: ["JetBrains Mono", "ui-monospace", "SFMono-Regular", "monospace"],
+      },
+      boxShadow: {
+        /* Soft & blue-tinted — never pure black (Hanguk Design System) */
+        sm: "0 1px 2px rgba(10,26,52,0.06)",
+        DEFAULT: "0 1px 3px rgba(10,26,52,0.08), 0 1px 2px rgba(10,26,52,0.06)",
+        md: "0 4px 12px rgba(10,26,52,0.08)",
+        lg: "0 12px 28px rgba(10,26,52,0.12)",
+        xl: "0 20px 48px rgba(10,26,52,0.16)",
+        "2xl": "0 28px 64px rgba(10,26,52,0.20)",
       },
       keyframes: {
         "accordion-down": {

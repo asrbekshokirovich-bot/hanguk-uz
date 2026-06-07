@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { Logo } from '@/components/Logo';
 import { Download, Printer } from 'lucide-react';
 import { Payment } from '@/hooks/usePayments';
 
@@ -41,7 +42,7 @@ export function InvoiceView({ payment, onClose }: InvoiceViewProps) {
       <Card ref={invoiceRef} className="max-w-2xl mx-auto">
         <CardHeader className="text-center border-b">
           <div className="flex items-center justify-center gap-3 mb-4">
-            <img src="/logo.jpg" alt="Hanguk" className="h-12 w-12 rounded-lg object-cover" />
+            <Logo className="h-12 w-12 rounded-lg" />
             <div>
               <CardTitle className="text-2xl">Hanguk Consulting</CardTitle>
               <p className="text-sm text-muted-foreground">Education Consulting Services</p>

@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { Logo } from '@/components/Logo';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, User, Lock, Crown, KeyRound, GraduationCap, Briefcase, Eye, EyeOff } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -345,7 +346,7 @@ export default function Auth() {
     return (
       <div className="min-h-[100dvh] flex items-center justify-center bg-secondary">
         <div className="flex flex-col items-center gap-4">
-          <img src="/logo.jpg" alt="Hanguk" className="h-12 w-12 rounded-xl object-cover animate-pulse" />
+          <Logo className="h-12 w-12 animate-pulse" />
           <Loader2 className="h-6 w-6 animate-spin text-primary" />
           <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
         </div>
@@ -358,8 +359,8 @@ export default function Auth() {
       {/* Header with Language Switcher */}
       <header className="flex justify-between items-center p-4">
         <div className="flex items-center gap-3">
-          <img src="/logo.jpg" alt="Hanguk" className="h-10 w-10 rounded-lg object-cover" />
-          <span className="text-xl font-bold text-primary">Hanguk</span>
+          <Logo className="h-10 w-10" />
+          <span className="text-xl font-bold tracking-tight text-primary">Hanguk</span>
         </div>
         <div className="flex items-center gap-2">
           <ThemeToggle />
@@ -371,8 +372,8 @@ export default function Auth() {
       <main className="flex-1 flex items-center justify-center p-4">
         <Card className="w-full max-w-md shadow-xl border-border/50 backdrop-blur">
           <CardHeader className="text-center">
-            <img src="/logo.jpg" alt="Hanguk" className="h-16 w-16 mx-auto rounded-xl object-cover mb-4 ring-2 ring-accent/20" />
-            <CardTitle className="text-2xl text-primary">Hanguk</CardTitle>
+            <Logo className="h-16 w-16 mx-auto mb-4 ring-2 ring-accent/20" />
+            <CardTitle className="text-2xl tracking-tight text-primary">Hanguk</CardTitle>
             <CardDescription>
               {isSetupMode ? t('auth.setupSubtitle') : t('auth.loginSubtitle')}
             </CardDescription>
