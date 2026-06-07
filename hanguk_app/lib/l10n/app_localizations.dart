@@ -354,6 +354,24 @@ abstract class AppLocalizations {
   /// **'My Documents'**
   String get documentsTabTitle;
 
+  /// Document tab string (audit A3/A4).
+  String get documentUploadInfo;
+
+  /// Document tab string (audit A3/A4).
+  String get documentsRequiredHeading;
+
+  /// Document tab string (audit A3/A4).
+  String get documentUploadFailed;
+
+  /// Document tab string (audit A3/A4).
+  String get documentPreviewFailed;
+
+  /// Document tab string (audit A3/A4).
+  String get documentLoadError;
+
+  /// Document tab string (audit A3/A4).
+  String get commonRetry;
+
   /// Tooltip for the account icon button in the Applications AppBar —
   /// opens the AccountScreen with sign-out, data export, and delete
   /// account.

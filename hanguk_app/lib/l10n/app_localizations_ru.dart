@@ -142,6 +142,24 @@ class AppLocalizationsRu extends AppLocalizations {
   String get documentsTabTitle => 'Мои документы';
 
   @override
+  String get documentUploadInfo => 'Загрузите корректные PDF или JPEG сканы оригиналов документов. Максимум 10 МБ на файл.';
+
+  @override
+  String get documentsRequiredHeading => 'Необходимые документы';
+
+  @override
+  String get documentUploadFailed => 'Не удалось загрузить документ. Пожалуйста, попробуйте ещё раз.';
+
+  @override
+  String get documentPreviewFailed => 'Не удалось открыть документ. Пожалуйста, попробуйте ещё раз.';
+
+  @override
+  String get documentLoadError => 'Не удалось загрузить ваши документы.';
+
+  @override
+  String get commonRetry => 'Повторить';
+
+  @override
   String get accountTooltip => 'Аккаунт';
 
   @override

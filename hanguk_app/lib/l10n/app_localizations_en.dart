@@ -142,6 +142,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get documentsTabTitle => 'My Documents';
 
   @override
+  String get documentUploadInfo => 'Upload valid PDF or JPEG scans of your original documents. Max 10MB per file.';
+
+  @override
+  String get documentsRequiredHeading => 'Required Documents';
+
+  @override
+  String get documentUploadFailed => 'Couldn\'t upload your document. Please try again.';
+
+  @override
+  String get documentPreviewFailed => 'Couldn\'t open the document. Please try again.';
+
+  @override
+  String get documentLoadError => 'Couldn\'t load your documents.';
+
+  @override
+  String get commonRetry => 'Retry';
+
+  @override
   String get accountTooltip => 'Account';
 
   @override

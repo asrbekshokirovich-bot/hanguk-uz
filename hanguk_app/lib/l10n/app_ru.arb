@@ -46,6 +46,12 @@
   "applicationsTabTitle": "Мои заявки",
   "mapTabTitle": "Университеты",
   "documentsTabTitle": "Мои документы",
+  "documentUploadInfo": "Загрузите корректные PDF или JPEG сканы оригиналов документов. Максимум 10 МБ на файл.",
+  "documentsRequiredHeading": "Необходимые документы",
+  "documentUploadFailed": "Не удалось загрузить документ. Пожалуйста, попробуйте ещё раз.",
+  "documentPreviewFailed": "Не удалось открыть документ. Пожалуйста, попробуйте ещё раз.",
+  "documentLoadError": "Не удалось загрузить ваши документы.",
+  "commonRetry": "Повторить",
 
   "accountTooltip": "Аккаунт",
 

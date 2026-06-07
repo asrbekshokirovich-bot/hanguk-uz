@@ -176,33 +176,16 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 56,
-                      child: OutlinedButton(
-                        onPressed: () {},
-                        style: OutlinedButton.styleFrom(
-                          side: BorderSide(
-                            color: Colors.white.withValues(alpha: 0.3),
-                          ),
-                          foregroundColor: Colors.white.withValues(alpha: 0.7),
-                        ),
-                        child: const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.phone, size: 20),
-                            SizedBox(width: 8),
-                            Flexible(
-                              child: Text(
-                                'Log In / Sign Up with Phone Number (Coming Soon)',
-                                style: TextStyle(fontSize: 14),
-                                textAlign: TextAlign.center,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
+                    // Quiet helper for students without a code yet. Phone
+                    // sign-up is intentionally hidden until it ships
+                    // (no "coming soon" placeholder — audit A2/S2).
+                    Text(
+                      'Get a Magic Code from your consultant to sign in.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.6),
+                        fontSize: 13,
+                        height: 1.4,
                       ),
                     ),
                   ],

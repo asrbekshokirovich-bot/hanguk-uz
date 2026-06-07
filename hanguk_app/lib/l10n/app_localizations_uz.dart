@@ -141,6 +141,24 @@ class AppLocalizationsUz extends AppLocalizations {
   String get documentsTabTitle => 'Hujjatlarim';
 
   @override
+  String get documentUploadInfo => 'Asl hujjatlaringizning to‘g‘ri PDF yoki JPEG nusxalarini yuklang. Har bir fayl uchun eng ko‘pi 10MB.';
+
+  @override
+  String get documentsRequiredHeading => 'Kerakli hujjatlar';
+
+  @override
+  String get documentUploadFailed => 'Hujjatingizni yuklab bo‘lmadi. Iltimos, qayta urinib ko‘ring.';
+
+  @override
+  String get documentPreviewFailed => 'Hujjatni ochib bo‘lmadi. Iltimos, qayta urinib ko‘ring.';
+
+  @override
+  String get documentLoadError => 'Hujjatlaringizni yuklab bo‘lmadi.';
+
+  @override
+  String get commonRetry => 'Qayta urinish';
+
+  @override
   String get accountTooltip => 'Hisob';
 
   @override

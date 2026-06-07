@@ -12,7 +12,9 @@ import '../data/auth_repository.dart';
 class LoginScreen extends ConsumerStatefulWidget {
   final bool initialMagicCodeMode;
 
-  const LoginScreen({super.key, this.initialMagicCodeMode = false});
+  // A2/S2: Magic Code is the finished primary path. Phone auth is hidden
+  // until it ships, so we default to the Magic Code portal.
+  const LoginScreen({super.key, this.initialMagicCodeMode = true});
 
   @override
   ConsumerState<LoginScreen> createState() => _LoginScreenState();
@@ -299,11 +301,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                       const SizedBox(height: 16),
                     ],
 
-                    // ── Forms ──────────────────────────────────────────────────────
-                    if (_isMagicCodeMode)
-                      _buildMagicCodePortal(scheme)
-                    else
-                      _buildPublicAuthPortal(scheme),
+                    // ── Form ───────────────────────────────────────────────────────
+                    // Magic Code is the single, finished sign-in path (A2/S2).
+                    _buildMagicCodePortal(scheme),
                   ],
                 ),
               ),
@@ -366,85 +366,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
             loading: _loading,
             onPressed: _handleStudentLogin,
           ),
-          const SizedBox(height: 12),
-          TextButton(
-            onPressed: () {
-              // Optional fallback if user navigated wrong from Welcome Page
-              setState(() => _isMagicCodeMode = false);
-            },
-            child: Text(
-              l10n.loginSwitchToPhone,
-              style: const TextStyle(color: Colors.white54, fontSize: 13),
-            ),
-          ),
         ],
       ),
-    );
-  }
-
-  Widget _buildPublicAuthPortal(ColorScheme scheme) {
-    final l10n = AppLocalizations.of(context)!;
-    return Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.05),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-          ),
-          child: Column(
-            children: [
-              const Icon(Icons.build_circle, size: 48, color: Colors.white54),
-              const SizedBox(height: 16),
-              Text(
-                l10n.loginComingSoonTitle,
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                l10n.loginComingSoonBody,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: Colors.white70,
-                  height: 1.5,
-                  fontSize: 13,
-                ),
-              ),
-              const SizedBox(height: 24),
-              TextButton.icon(
-                onPressed: () {
-                  setState(() {
-                    _isMagicCodeMode = true;
-                  });
-                },
-                icon: const Icon(Icons.vpn_key, color: Colors.white, size: 18),
-                label: Text(
-                  l10n.loginSwitchToMagicCode,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                style: TextButton.styleFrom(
-                  backgroundColor: scheme.primary.withValues(alpha: 0.3),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 14,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
     );
   }
 

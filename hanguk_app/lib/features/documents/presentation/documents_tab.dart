@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import '../data/documents_repository.dart';
 import '../domain/document_type.dart';
 import '../domain/document.dart';
@@ -22,6 +23,7 @@ class _DocumentsTabState extends ConsumerState<DocumentsTab> {
   final Map<String, bool> _uploadingDocs = {};
 
   Future<void> _handleUpload(DocumentType type) async {
+    final l = AppLocalizations.of(context)!;
     try {
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
@@ -39,11 +41,13 @@ class _DocumentsTabState extends ConsumerState<DocumentsTab> {
         // Refresh provider
         ref.invalidate(documentsProvider);
       }
-    } catch (e) {
+    } catch (e, st) {
+      // Real error goes to Sentry; the user sees a friendly localized message.
+      await Sentry.captureException(e, stackTrace: st);
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Upload failed: $e')));
+        ).showSnackBar(SnackBar(content: Text(l.documentUploadFailed)));
       }
     } finally {
       if (mounted) {
@@ -53,6 +57,7 @@ class _DocumentsTabState extends ConsumerState<DocumentsTab> {
   }
 
   Future<void> _handlePreview(AppDocument doc) async {
+    final l = AppLocalizations.of(context)!;
     try {
       final signedUrl = await Supabase.instance.client.storage
           .from('student-documents')
@@ -64,15 +69,16 @@ class _DocumentsTabState extends ConsumerState<DocumentsTab> {
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Could not open document preview.')),
+            SnackBar(content: Text(l.documentPreviewFailed)),
           );
         }
       }
-    } catch (e) {
+    } catch (e, st) {
+      await Sentry.captureException(e, stackTrace: st);
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Preview error: $e')));
+        ).showSnackBar(SnackBar(content: Text(l.documentPreviewFailed)));
       }
     }
   }
@@ -106,23 +112,29 @@ class _DocumentsTabState extends ConsumerState<DocumentsTab> {
                       color: AppColors.vibrantLime.withValues(alpha: 0.2),
                     ),
                   ),
-                  child: const Row(
+                  child: Row(
                     children: [
-                      Icon(Icons.info_outline, color: AppColors.vibrantLime),
-                      SizedBox(width: 12),
+                      const Icon(
+                        Icons.info_outline,
+                        color: AppColors.vibrantLime,
+                      ),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: Text(
-                          'Upload valid PDF or JPEG scans of your original documents. Max 10MB per file.',
-                          style: TextStyle(fontSize: 13, color: Colors.white70),
+                          l.documentUploadInfo,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: Colors.white70,
+                          ),
                         ),
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 24),
-                const Text(
-                  'Required Documents',
-                  style: TextStyle(
+                Text(
+                  l.documentsRequiredHeading,
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
@@ -179,8 +191,32 @@ class _DocumentsTabState extends ConsumerState<DocumentsTab> {
           loading: () => const SliverFillRemaining(
             child: Center(child: CircularProgressIndicator.adaptive()),
           ),
-          error: (err, stack) =>
-              SliverFillRemaining(child: Center(child: Text('Error: \$err'))),
+          error: (err, stack) => SliverFillRemaining(
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.error_outline,
+                    color: Colors.white54,
+                    size: 40,
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    l.documentLoadError,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.white70, fontSize: 14),
+                  ),
+                  const SizedBox(height: 16),
+                  TextButton.icon(
+                    onPressed: () => ref.invalidate(documentsProvider),
+                    icon: const Icon(Icons.refresh),
+                    label: Text(l.commonRetry),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
 
         const SliverPadding(padding: EdgeInsets.only(bottom: 60)),

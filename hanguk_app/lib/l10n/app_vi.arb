@@ -46,6 +46,12 @@
   "applicationsTabTitle": "Đơn của tôi",
   "mapTabTitle": "Trường đại học",
   "documentsTabTitle": "Tài liệu của tôi",
+  "documentUploadInfo": "Upload valid PDF or JPEG scans of your original documents. Max 10MB per file.",
+  "documentsRequiredHeading": "Required Documents",
+  "documentUploadFailed": "Couldn't upload your document. Please try again.",
+  "documentPreviewFailed": "Couldn't open the document. Please try again.",
+  "documentLoadError": "Couldn't load your documents.",
+  "commonRetry": "Retry",
 
   "accountTooltip": "Tài khoản",
 

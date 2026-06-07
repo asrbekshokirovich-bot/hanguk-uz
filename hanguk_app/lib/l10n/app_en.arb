@@ -71,6 +71,12 @@
   "mapTabTitle": "Universities",
   "@mapTabTitle": { "description": "Top-bar title for the Map tab." },
   "documentsTabTitle": "My Documents",
+  "documentUploadInfo": "Upload valid PDF or JPEG scans of your original documents. Max 10MB per file.",
+  "documentsRequiredHeading": "Required Documents",
+  "documentUploadFailed": "Couldn't upload your document. Please try again.",
+  "documentPreviewFailed": "Couldn't open the document. Please try again.",
+  "documentLoadError": "Couldn't load your documents.",
+  "commonRetry": "Retry",
   "@documentsTabTitle": { "description": "AppBar title for the Documents tab." },
 
   "accountTooltip": "Account",

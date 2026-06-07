@@ -134,6 +134,24 @@ class AppLocalizationsKo extends AppLocalizations {
   String get documentsTabTitle => '내 서류';
 
   @override
+  String get documentUploadInfo => '원본 서류의 PDF 또는 JPEG 스캔본을 업로드하세요. 파일당 최대 10MB.';
+
+  @override
+  String get documentsRequiredHeading => '필수 서류';
+
+  @override
+  String get documentUploadFailed => '문서를 업로드하지 못했습니다. 다시 시도해 주세요.';
+
+  @override
+  String get documentPreviewFailed => '문서를 열지 못했습니다. 다시 시도해 주세요.';
+
+  @override
+  String get documentLoadError => '문서를 불러오지 못했습니다.';
+
+  @override
+  String get commonRetry => '다시 시도';
+
+  @override
   String get accountTooltip => '계정';
 
   @override

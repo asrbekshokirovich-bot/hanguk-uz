@@ -46,6 +46,12 @@
   "applicationsTabTitle": "Arizalarim",
   "mapTabTitle": "Universitetlar",
   "documentsTabTitle": "Hujjatlarim",
+  "documentUploadInfo": "Asl hujjatlaringizning to‘g‘ri PDF yoki JPEG nusxalarini yuklang. Har bir fayl uchun eng ko‘pi 10MB.",
+  "documentsRequiredHeading": "Kerakli hujjatlar",
+  "documentUploadFailed": "Hujjatingizni yuklab bo‘lmadi. Iltimos, qayta urinib ko‘ring.",
+  "documentPreviewFailed": "Hujjatni ochib bo‘lmadi. Iltimos, qayta urinib ko‘ring.",
+  "documentLoadError": "Hujjatlaringizni yuklab bo‘lmadi.",
+  "commonRetry": "Qayta urinish",
 
   "accountTooltip": "Hisob",
 
