@@ -14,6 +14,13 @@ const badgeVariants = cva(
         outline: "text-foreground",
         highlight: "border-transparent bg-accent text-accent-foreground hover:bg-accent/80 font-semibold",
         success: "border-transparent bg-success text-success-foreground hover:bg-success/80",
+        /* Soft tonal badges (redesign) — tinted bg + colored text, for
+           stage / payment / priority / status chips across the CRM. */
+        successSoft: "border-transparent bg-success/10 text-success",
+        warning: "border-transparent bg-warning/10 text-warning",
+        info: "border-transparent bg-info/10 text-info",
+        lime: "border-transparent bg-accent/15 text-accent-foreground",
+        neutral: "border-transparent bg-muted text-muted-foreground",
       },
     },
     defaultVariants: {
