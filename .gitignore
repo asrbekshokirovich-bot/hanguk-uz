@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# Redesign handoff package (reference-only — not app source)
+hanguk_uz_redesign/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

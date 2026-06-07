@@ -43,6 +43,7 @@ export default {
           DEFAULT: "hsl(var(--warning))",
           foreground: "hsl(var(--warning-foreground))",
         },
+        info: "hsl(var(--info))",
         muted: {
           DEFAULT: "hsl(var(--muted))",
           foreground: "hsl(var(--muted-foreground))",
@@ -101,11 +102,11 @@ export default {
         },
       },
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
-        xl: "16px", // app buttons / inputs
-        "2xl": "20px", // app cards
+        xl: "calc(var(--radius) + 6px)", // ~20px cards
+        lg: "var(--radius)", // 14px
+        md: "calc(var(--radius) - 4px)", // 10px controls
+        sm: "calc(var(--radius) - 6px)", // 8px chips
+        "2xl": "20px", // app cards (Capacitor)
         pill: "9999px",
       },
       fontFamily: {
@@ -130,10 +131,20 @@ export default {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
+        "fade-up": {
+          from: { opacity: "0", transform: "translateY(6px)" },
+          to: { opacity: "1", transform: "none" },
+        },
+        "fade-in": {
+          from: { opacity: "0" },
+          to: { opacity: "1" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "fade-up": "fade-up 0.28s cubic-bezier(.22,.61,.36,1)",
+        "fade-in": "fade-in 0.2s ease-out",
       },
       spacing: {
         "safe-top": "var(--safe-area-inset-top)",
