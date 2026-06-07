@@ -37,6 +37,25 @@ function sanitizeQuery(message: string): string {
   return Array.from(new Set(words)).slice(0, 8).join(" ");
 }
 
+// Names are often typed lowercase (e.g. "jetkenshek haqida malumot ber"), which
+// candidateNames' capitalized match misses. Pull meaningful word tokens — minus
+// common English/Uzbek/Russian query words — so we can match a person by name.
+function nameSearchTokens(message: string): string[] {
+  const cleaned = message.toLowerCase().replace(/[^\p{L}\p{N}\s'’ʼ]/gu, " ").replace(/\s+/g, " ").trim();
+  const stop = new Set([
+    "the", "and", "for", "what", "who", "which", "this", "that", "with", "does", "did",
+    "about", "from", "have", "has", "want", "list", "all", "can", "you", "your", "tell",
+    "give", "show", "info", "information", "details", "detail", "find", "search", "name",
+    "student", "students", "lead", "leads", "please", "need", "more", "data",
+    "nima", "kim", "qaysi", "uchun", "bilan", "haqida", "haqidagi", "bormi", "malumot",
+    "ma'lumot", "ber", "bering", "korsat", "royxat", "talaba", "talabalar", "mijoz",
+    "menga", "qancha", "qanday", "kerak", "hammasi", "barcha", "qidir",
+    "что", "кто", "какой", "про", "дай", "покажи", "информация", "найди", "студент", "имя",
+  ]);
+  const words = cleaned.split(" ").filter((w) => w.length >= 4 && !stop.has(w));
+  return Array.from(new Set(words)).slice(0, 4);
+}
+
 function fmtDate(d: string | null | undefined): string {
   if (!d) return "";
   try { return new Date(d).toLocaleDateString("en-GB"); } catch { return String(d); }
@@ -180,12 +199,21 @@ async function buildStaffPrompt(supabase: any, userId: string, message: string, 
   const { data: profile } = await supabase.from("profiles").select("full_name").eq("user_id", userId).maybeSingle();
   const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", userId);
 
-  const names = candidateNames(message);
+  // Match the person across capitalized names AND lowercase tokens, then look
+  // them up in BOTH students (profiles) and the leads pipeline by name.
+  const searchTerms = Array.from(new Set([...candidateNames(message), ...nameSearchTokens(message)])).slice(0, 5);
   let queried: any[] = [];
-  if (names.length) {
-    const ors = names.map((n) => `full_name.ilike.%${n}%`).join(",");
-    const { data: profs } = await supabase.from("profiles").select("user_id, full_name").or(ors).limit(3);
-    queried = profs || [];
+  let namedLeads: any[] = [];
+  if (searchTerms.length) {
+    const ors = searchTerms.map((n) => `full_name.ilike.%${n}%`).join(",");
+    const [profsRes, leadsRes] = await Promise.all([
+      supabase.from("profiles").select("user_id, full_name").or(ors).limit(3),
+      supabase.from("leads")
+        .select("full_name, phone, status, priority_score, source, exam_date, exam_type, target_intake, preferred_program, preferred_university, city, education_level, korean_level, next_follow_up, interest_level")
+        .or(ors).limit(5),
+    ]);
+    queried = profsRes.data || [];
+    namedLeads = leadsRes.data || [];
   }
   const bundles = await Promise.all(queried.map(async (s: any) => {
     const b = await getStudentBundle(supabase, s.user_id);
@@ -197,6 +225,11 @@ async function buildStaffPrompt(supabase: any, userId: string, message: string, 
   let studentSection = "";
   if (bundles.length) {
     studentSection = "\n## 👤 STUDENT(S) IN THIS QUESTION\n" + bundles.map((b) => formatBundle(b, { staff: true })).join("\n\n");
+  }
+
+  let namedLeadsSection = "";
+  if (namedLeads.length) {
+    namedLeadsSection = "\n## 🎯 MATCHING LEAD(S) BY NAME\n" + formatLeads(namedLeads);
   }
 
   let leadsSection = "";
@@ -216,6 +249,7 @@ Staff: ${profile?.full_name || "Staff"} (${(roles || []).map((r: any) => r.role)
 ## 📊 QUICK NUMBERS
 ${stats}
 ${studentSection}
+${namedLeadsSection}
 ${leadsSection}
 ${search}
 
