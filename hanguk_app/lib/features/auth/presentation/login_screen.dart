@@ -218,10 +218,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                   // Brand name — intentionally not localized.
                   const Text(
                     'Hanguk',
+                    // Wordmark is white on dark everywhere; lime is for
+                    // actions/active states only (audit A5/C2).
                     style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.vibrantLime,
+                      color: Colors.white,
                     ),
                   ),
                 ],
@@ -242,7 +244,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                       style: TextStyle(
                         fontSize: 26,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.vibrantLime,
+                        color: Colors.white,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -261,16 +263,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                         width: double.infinity,
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.red.withValues(alpha: 0.1),
+                          color: AppColors.error.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: Colors.red.withValues(alpha: 0.3),
+                            color: AppColors.error.withValues(alpha: 0.3),
                           ),
                         ),
                         child: Text(
                           _error!,
                           style: const TextStyle(
-                            color: Colors.redAccent,
+                            color: AppColors.error,
                             fontSize: 13,
                           ),
                           textAlign: TextAlign.center,
@@ -283,16 +285,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                         width: double.infinity,
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.green.withValues(alpha: 0.1),
+                          color: AppColors.success.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: Colors.green.withValues(alpha: 0.3),
+                            color: AppColors.success.withValues(alpha: 0.3),
                           ),
                         ),
                         child: Text(
                           _success!,
                           style: const TextStyle(
-                            color: Colors.greenAccent,
+                            color: AppColors.success,
                             fontSize: 13,
                           ),
                           textAlign: TextAlign.center,
@@ -379,7 +381,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
       child: ClipRRect(
         borderRadius: BorderRadius.circular(radius),
         child: Image.asset(
-          'assets/images/logo.jpg',
+          'assets/images/app_icon.png',
           width: size,
           height: size,
           fit: BoxFit.cover,

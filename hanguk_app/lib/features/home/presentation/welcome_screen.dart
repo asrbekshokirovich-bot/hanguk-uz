@@ -58,19 +58,16 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
                 padding: const EdgeInsets.all(20.0),
                 child: Row(
                   children: [
-                    Container(
-                      color: Colors.white,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        // Decorative — wordmark next to it carries the
-                        // brand for assistive tech.
-                        child: Image.asset(
-                          'assets/images/logo.jpg',
-                          height: 40,
-                          width: 40,
-                          fit: BoxFit.contain,
-                          excludeFromSemantics: true,
-                        ),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      // Decorative — wordmark next to it carries the
+                      // brand for assistive tech.
+                      child: Image.asset(
+                        'assets/images/app_icon.png',
+                        height: 40,
+                        width: 40,
+                        fit: BoxFit.cover,
+                        excludeFromSemantics: true,
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -96,8 +93,6 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
                     Container(
                       padding: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
-                        color: Colors
-                            .white, // Added white background so the JPEG blends in
                         borderRadius: BorderRadius.circular(24),
                         border: Border.all(
                           color: AppColors.vibrantLime.withValues(alpha: 0.3),
@@ -116,10 +111,10 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
                         // Decorative — the "Hanguk Consulting" headline
                         // immediately below carries the brand identity.
                         child: Image.asset(
-                          'assets/images/logo.jpg',
+                          'assets/images/app_icon.png',
                           height: 100,
                           width: 100,
-                          fit: BoxFit.contain,
+                          fit: BoxFit.cover,
                           excludeFromSemantics: true,
                         ),
                       ),
