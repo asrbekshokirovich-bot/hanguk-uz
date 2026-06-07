@@ -339,7 +339,7 @@ Keep response under 100 words, in a professional CRM tone.`;
       'Authorization': `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: 'google/gemini-2.5-flash',
+      model: 'gemini-2.5-flash',
       messages: [
         { role: 'system', content: 'You are a CRM assistant analyzing leads for a student consultancy. Be concise and actionable.' },
         { role: 'user', content: prompt }

@@ -392,7 +392,7 @@ First block must be "title". Use "field" for label/value pairs, "table" for grid
       method: "POST",
       headers: { Authorization: `Bearer ${geminiApiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "gemini-2.5-flash",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userContent },

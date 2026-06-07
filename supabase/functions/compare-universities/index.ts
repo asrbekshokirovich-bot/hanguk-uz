@@ -194,7 +194,7 @@ Provide a comprehensive comparison covering:
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-3-flash-preview',
+        model: 'gemini-2.5-flash',
         messages: [
           { role: 'system', content: systemPrompt },
           // Include conversation history for follow-ups
