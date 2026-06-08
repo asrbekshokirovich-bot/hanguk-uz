@@ -382,12 +382,12 @@ export default function Auth() {
             {isSetupMode ? (
               // Owner Setup Form
               <form onSubmit={handleOwnerSetup} className="space-y-4">
-                <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg mb-4">
-                  <div className="flex items-center gap-2 text-amber-800">
+                <div className="p-3 bg-warning/10 border border-warning/30 rounded-lg mb-4">
+                  <div className="flex items-center gap-2 text-warning">
                     <Crown className="h-5 w-5" />
                     <span className="font-medium">{t('auth.firstTimeSetup')}</span>
                   </div>
-                  <p className="text-sm text-amber-700 mt-1">
+                  <p className="text-sm text-warning/90 mt-1">
                     {t('auth.setupWarning')}
                   </p>
                 </div>

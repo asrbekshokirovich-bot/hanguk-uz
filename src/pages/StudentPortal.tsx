@@ -14,6 +14,7 @@ import { ProgramFinder } from '@/components/student/ProgramFinder';
 import { StudentInsightsPanel } from '@/components/student/StudentInsightsPanel';
 import { SuggestedUniversities } from '@/components/student/SuggestedUniversities';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { ThemeToggleButton } from '@/components/ThemeToggleButton';
 import { Logo } from '@/components/Logo';
 import { HangukAIChat } from '@/components/ai/HangukAIChat';
 import { Button } from '@/components/ui/button';
@@ -140,6 +141,7 @@ export default function StudentPortal() {
               </Button>
             )}
             <LanguageSwitcher />
+            <ThemeToggleButton />
             <Button variant="ghost" size="sm" onClick={handleSignOut}>
               <LogOut className="h-4 w-4 mr-2" />
               <span className="hidden sm:inline">{t('auth.logout')}</span>
@@ -162,8 +164,8 @@ export default function StudentPortal() {
                     variant={isVIP ? "default" : "secondary"}
                     className={cn(
                       "gap-1",
-                      isNoRisk && "bg-gradient-to-r from-yellow-500 to-amber-500 text-white border-0",
-                      isPremium && "bg-gradient-to-r from-purple-500 to-indigo-500 text-white border-0",
+                      isNoRisk && "bg-warning text-warning-foreground border-0",
+                      isPremium && "bg-accent text-accent-foreground border-0",
                       isStandart && "bg-primary text-primary-foreground border-0",
                       isFree && "bg-muted text-muted-foreground border-0"
                     )}
