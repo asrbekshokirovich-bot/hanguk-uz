@@ -12,7 +12,6 @@ import {
   ClipboardList,
   MessageSquare,
   TrendingUp,
-  HelpCircle,
   Zap
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -128,15 +127,6 @@ export default function AIAssistantContent() {
     },
   ];
 
-  const exampleQueries = [
-    "Show me info about [Student Name]",
-    "What is the status of applications this week?",
-    "Which students have overdue payments?",
-    "List all accepted applications",
-    "Who needs to submit documents?",
-    "Show me students from Tashkent office",
-  ];
-
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -201,62 +191,14 @@ export default function AIAssistantContent() {
               <div className="space-y-4">
                 {/* Welcome message when no messages */}
                 {messages.length === 0 && (
-                  <div className="space-y-6">
-                    <div className="flex gap-3">
-                      <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
-                        <Bot className="h-5 w-5 text-primary-foreground" />
-                      </div>
-                      <div className="flex-1 bg-muted rounded-lg p-4">
-                        <p className="font-medium mb-2">
-                          {t('ai.welcomeStaff', "Hello! I'm Hanguk AI, your CRM assistant.")}
-                        </p>
-                        <p className="text-sm text-muted-foreground mb-4">
-                          {t('ai.staffCapabilities', 'I have access to all student data, applications, documents, payments, and communications. Here\'s what I can help you with:')}
-                        </p>
-                        <ul className="text-sm space-y-2 text-muted-foreground">
-                          <li className="flex items-center gap-2">
-                            <Users className="h-4 w-4 text-primary" />
-                            Look up any student by name and see their complete profile
-                          </li>
-                          <li className="flex items-center gap-2">
-                            <TrendingUp className="h-4 w-4 text-primary" />
-                            Get dashboard overview and system statistics
-                          </li>
-                          <li className="flex items-center gap-2">
-                            <ClipboardList className="h-4 w-4 text-primary" />
-                            View and manage your tasks
-                          </li>
-                          <li className="flex items-center gap-2">
-                            <FileText className="h-4 w-4 text-primary" />
-                            Check document status and pending reviews
-                          </li>
-                          <li className="flex items-center gap-2">
-                            <HelpCircle className="h-4 w-4 text-primary" />
-                            Answer questions about students, payments, and applications
-                          </li>
-                        </ul>
-                      </div>
+                  <div className="flex gap-3">
+                    <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
+                      <Bot className="h-5 w-5 text-primary-foreground" />
                     </div>
-
-                    {/* Example queries */}
-                    <div className="bg-muted/50 rounded-lg p-4">
-                      <p className="text-sm font-medium mb-3 flex items-center gap-2">
-                        <HelpCircle className="h-4 w-4" />
-                        {t('ai.tryAsking', 'Try asking:')}
+                    <div className="flex-1 bg-muted rounded-lg p-4">
+                      <p className="font-medium">
+                        {t('ai.welcomeStaff', "Hello! I'm Hanguk AI, your CRM assistant.")}
                       </p>
-                      <div className="flex flex-wrap gap-2">
-                        {exampleQueries.map((query, idx) => (
-                          <Button
-                            key={idx}
-                            variant="outline"
-                            size="sm"
-                            className="text-xs"
-                            onClick={() => handleQuickAction(query)}
-                          >
-                            {query}
-                          </Button>
-                        ))}
-                      </div>
                     </div>
                   </div>
                 )}

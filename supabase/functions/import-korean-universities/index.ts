@@ -253,7 +253,7 @@ Example output:
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'gemini-2.5-flash',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: `Extract all Korean universities from this content:\n\n${content.substring(0, 50000)}\n\nLinks found: ${links.slice(0, 100).join('\n')}` },

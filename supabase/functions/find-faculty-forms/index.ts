@@ -185,7 +185,7 @@ async function expandFacultyTerms(
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'gemini-2.5-flash',
         temperature: 0,
         messages: [
           {
@@ -940,7 +940,7 @@ Respond with ONLY a JSON object in this exact format:
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'google/gemini-2.5-flash',
+      model: 'gemini-2.5-flash',
       temperature: 0.1,
       messages: [
         { role: 'system', content: `You are a Korean university admissions data extractor. Always respond with valid JSON only. NEVER fabricate data — return null for unknown fields. If a source is a blog or ranking list without specific per-university admission data, set confidence very low (0.2 or below). Only extract data for ${allTermsDisplay} faculty at ${request.programLevel} level.` },
