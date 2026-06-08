@@ -54,7 +54,6 @@ const AIAssistantContent = lazy(() => import('@/components/crm/pages/AIAssistant
 const AITranslationPage = lazy(() => import('@/components/crm/pages/AITranslationPage'));
 const LeadsContent = lazy(() => import('@/components/crm/pages/LeadsContent'));
 const CommunicationContent = lazy(() => import('@/components/crm/pages/CommunicationContent'));
-const ApplicationFormsContent = lazy(() => import('@/components/crm/pages/ApplicationFormsContent'));
 const CalendarContent = lazy(() => import('@/components/crm/pages/CalendarContent'));
 const SettingsContent = lazy(() => import('@/components/crm/pages/SettingsContent'));
 const KakaoMapContent = lazy(() => import('@/components/crm/pages/KakaoMapContent'));
@@ -133,7 +132,6 @@ export default function CRMPortal() {
     if (currentPath.startsWith('/crm/settings')) return 'settings';
     if (currentPath.startsWith('/crm/translation')) return 'translation';
     if (currentPath.startsWith('/crm/communication')) return 'communication';
-    if (currentPath.startsWith('/crm/application-forms')) return 'application-forms';
     if (currentPath.startsWith('/crm/kakao-map')) return 'kakao-map';
     if (currentPath.startsWith('/crm/admin/uni-db-review')) return 'uni-db-review';
     return 'dashboard';
@@ -396,8 +394,6 @@ export default function CRMPortal() {
         return <SafeSuspense><AITranslationPage /></SafeSuspense>;
       case 'communication':
         return <SafeSuspense><CommunicationContent /></SafeSuspense>;
-      case 'application-forms':
-        return <SafeSuspense><ApplicationFormsContent /></SafeSuspense>;
       case 'reports':
         return <SafeSuspense><ReportsContent /></SafeSuspense>;
       case 'calendar':
