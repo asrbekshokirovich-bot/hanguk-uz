@@ -6,13 +6,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { ThemeToggleButton } from '@/components/ThemeToggleButton';
 import { Logo } from '@/components/Logo';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, User, Lock, Crown, KeyRound, GraduationCap, Briefcase, Eye, EyeOff } from 'lucide-react';
-import { ThemeToggle } from '@/components/ThemeToggle';
+import { cn } from '@/lib/utils';
+import { Loader2, User, Lock, Crown, GraduationCap, Briefcase, Eye, EyeOff, Check, ShieldCheck, Sparkles } from 'lucide-react';
 import { z } from 'zod';
 
 const usernameSchema = z.string().min(3).max(20).regex(/^[a-zA-Z0-9_]+$/, 'Only letters, numbers, and underscores');
@@ -355,30 +354,53 @@ export default function Auth() {
   }
 
   return (
-    <div className="min-h-[100dvh] flex flex-col bg-gradient-to-br from-primary/10 via-background to-accent/5">
-      {/* Header with Language Switcher */}
-      <header className="flex justify-between items-center p-4">
-        <div className="flex items-center gap-3">
-          <Logo className="h-10 w-10" />
-          <span className="text-xl font-bold tracking-tight text-primary">Hanguk</span>
+    <div className="min-h-[100dvh] bg-background lg:grid lg:grid-cols-2">
+      {/* Brand panel (desktop) */}
+      <div className="relative hidden flex-col justify-between overflow-hidden bg-app-gradient p-12 lg:flex">
+        <div className="pointer-events-none absolute -right-16 -top-16 h-72 w-72 rounded-full bg-accent/10" />
+        <div className="relative flex items-center gap-3">
+          <Logo variant="badge" className="h-10 w-10 rounded-lg" />
+          <span className="text-xl font-bold text-white">Hanguk</span>
         </div>
-        <div className="flex items-center gap-2">
-          <ThemeToggle />
-          <LanguageSwitcher />
+        <div className="relative max-w-md">
+          <h2 className="text-3xl font-extrabold leading-tight tracking-tight text-white">
+            {t('auth.brandHeadline', { defaultValue: 'Welcome back to your journey' })}
+          </h2>
+          <p className="mt-4 text-base leading-relaxed text-white/70">
+            {t('auth.brandSub', { defaultValue: 'Track your applications, documents and interviews — all the way to your South Korean university.' })}
+          </p>
+          <div className="mt-9 flex flex-col gap-3.5">
+            <div className="flex items-center gap-3">
+              <div className="flex h-8 w-8 items-center justify-center rounded-md bg-white/10"><Check className="h-4 w-4 text-accent" /></div>
+              <span className="text-sm font-medium text-white/90">{t('auth.tick1', { defaultValue: '94% acceptance rate' })}</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="flex h-8 w-8 items-center justify-center rounded-md bg-white/10"><ShieldCheck className="h-4 w-4 text-accent" /></div>
+              <span className="text-sm font-medium text-white/90">{t('auth.tick2', { defaultValue: 'Documents handled for you' })}</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="flex h-8 w-8 items-center justify-center rounded-md bg-white/10"><Sparkles className="h-4 w-4 text-accent" /></div>
+              <span className="text-sm font-medium text-white/90">{t('auth.tick3', { defaultValue: 'AI interview practice' })}</span>
+            </div>
+          </div>
         </div>
-      </header>
+        <div className="relative text-xs text-white/45">© 2025 Hanguk Consulting · hanguk.uz</div>
+      </div>
 
-      {/* Auth Form */}
-      <main className="flex-1 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md shadow-xl border-border/50 backdrop-blur">
-          <CardHeader className="text-center">
-            <Logo className="h-16 w-16 mx-auto mb-4 ring-2 ring-accent/20" />
-            <CardTitle className="text-2xl tracking-tight text-primary">Hanguk</CardTitle>
-            <CardDescription>
-              {isSetupMode ? t('auth.setupSubtitle') : t('auth.loginSubtitle')}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
+      {/* Form side */}
+      <div className="flex min-h-[100dvh] flex-col lg:min-h-0">
+        <header className="flex items-center justify-between p-4">
+          <div className="flex items-center gap-2.5 lg:invisible">
+            <Logo variant="badge" className="h-9 w-9 rounded-lg" />
+            <span className="text-lg font-bold text-foreground">Hanguk</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <LanguageSwitcher />
+            <ThemeToggleButton />
+          </div>
+        </header>
+        <main className="flex flex-1 items-center justify-center px-6 pb-10">
+          <div className="w-full max-w-sm">
             {isSetupMode ? (
               // Owner Setup Form
               <form onSubmit={handleOwnerSetup} className="space-y-4">
@@ -461,293 +483,139 @@ export default function Auth() {
                   {t('auth.createOwnerBtn')}
                 </Button>
               </form>
-            ) : (
-              // Login Tabs - Staff vs Student
-              <Tabs defaultValue="student" className="w-full" onValueChange={setActiveTab}>
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="student" className="w-full gap-2">
-                    <GraduationCap className="h-4 w-4" />
-                    {t('auth.tabStudent')}
-                  </TabsTrigger>
-                  <TabsTrigger value="staff" className="w-full gap-2">
-                    <Briefcase className="h-4 w-4" />
-                    {t('auth.tabStaff')}
-                  </TabsTrigger>
-                  <TabsTrigger value="registrate" className="w-full gap-2">
-                    <User className="h-4 w-4" />
-                    {t('auth.tabRegistrate')}
-                  </TabsTrigger>
-                </TabsList>
-
-                {/* Registrate section */}
-                <TabsContent value="registrate">
-                  <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg mt-4 mb-2">
-                    <p className="text-sm text-muted-foreground text-center">
-                      {t('auth.registerTabHelper')}
-                    </p>
-                  </div>
-                  {isGuestLoginMode ? (
-                    <form onSubmit={handleLogin} className="space-y-4 mt-4">
-                      <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg">
-                        <p className="text-sm text-muted-foreground text-center">
-                          {t('auth.guestLoginDesc')}
-                        </p>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="guest-email">{t('auth.email')}</Label>
-                        <div className="relative">
-                          <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                          <Input
-                            id="guest-email"
-                            type="email"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value.toLowerCase())}
-                            placeholder="example@gmail.com"
-                            className="pl-9"
-                            required
-                          />
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="guest-password">{t('auth.password')}</Label>
-                        <div className="relative">
-                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                          <Input
-                            id="guest-password"
-                            type={showLoginPassword ? "text" : "password"}
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            placeholder="••••••"
-                            className="pl-9 pr-10"
-                            required
-                          />
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                            onClick={() => setShowLoginPassword(!showLoginPassword)}
-                          >
-                            {showLoginPassword ? (
-                              <EyeOff className="h-4 w-4 text-muted-foreground" />
-                            ) : (
-                              <Eye className="h-4 w-4 text-muted-foreground" />
-                            )}
-                          </Button>
-                        </div>
-                      </div>
-
-                      <Button type="submit" className="w-full" disabled={loading}>
-                        {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        {t('auth.loginSystem')}
-                      </Button>
-                    </form>
-                  ) : (
-                    <form onSubmit={handleSignUp} className="space-y-4 mt-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="signup-name">{t('auth.fullName')}</Label>
-                        <Input
-                          id="signup-name"
-                          type="text"
-                          value={signUpFullName}
-                          onChange={(e) => setSignUpFullName(e.target.value.toUpperCase())}
-                          placeholder={t('auth.fullName')}
-                          className="uppercase"
-                          required
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="signup-email">{t('auth.email')}</Label>
-                        <Input
-                          id="signup-email"
-                          type="email"
-                          value={signUpEmail}
-                          onChange={(e) => setSignUpEmail(e.target.value)}
-                          placeholder="example@gmail.com"
-                          required
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="signup-password">{t('auth.password')}</Label>
-                        <div className="relative">
-                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                          <Input
-                            id="signup-password"
-                            type={showSignUpPassword ? "text" : "password"}
-                            value={signUpPassword}
-                            onChange={(e) => setSignUpPassword(e.target.value)}
-                            placeholder="••••••"
-                            className="pl-9 pr-10"
-                            required
-                          />
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                            onClick={() => setShowSignUpPassword(!showSignUpPassword)}
-                          >
-                            {showSignUpPassword ? (
-                              <EyeOff className="h-4 w-4 text-muted-foreground" />
-                            ) : (
-                              <Eye className="h-4 w-4 text-muted-foreground" />
-                            )}
-                          </Button>
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="signup-confirm">{t('auth.confirmPassword')}</Label>
-                        <div className="relative">
-                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                          <Input
-                            id="signup-confirm"
-                            type={showConfirmSignUpPassword ? "text" : "password"}
-                            value={confirmSignUpPassword}
-                            onChange={(e) => setConfirmSignUpPassword(e.target.value)}
-                            placeholder="••••••"
-                            className="pl-9 pr-10"
-                            required
-                          />
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                            onClick={() => setShowConfirmSignUpPassword(!showConfirmSignUpPassword)}
-                          >
-                            {showConfirmSignUpPassword ? (
-                              <EyeOff className="h-4 w-4 text-muted-foreground" />
-                            ) : (
-                              <Eye className="h-4 w-4 text-muted-foreground" />
-                            )}
-                          </Button>
-                        </div>
-                      </div>
-
-                      <Button type="submit" className="w-full" disabled={loading}>
-                        {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        {t('auth.registerBtn')}
-                      </Button>
-                    </form>
-                  )}
-
-                  <div className="text-center mt-4 pb-2">
-                    <Button
-                      variant="link"
-                      size="sm"
-                      onClick={() => setIsGuestLoginMode(!isGuestLoginMode)}
-                      className="text-xs text-muted-foreground hover:text-primary transition-colors"
-                    >
-                      {isGuestLoginMode
-                        ? t('auth.registerNewAccount')
-                        : t('auth.haveAccountMsg')}
-                    </Button>
-                  </div>
-                </TabsContent>
-
-                {/* Student Login with Magic Code */}
-                <TabsContent value="student">
-                  <form onSubmit={handleStudentLogin} className="space-y-4 mt-4">
-                    <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg">
-                      <p className="text-sm text-muted-foreground text-center">
-                        {t('auth.studentCodeDesc')}
-                      </p>
-                    </div>
-
+            ) : activeTab === 'registrate' ? (
+              <div>
+                <button type="button" onClick={() => setActiveTab('student')} className="mb-3 text-sm font-medium text-muted-foreground hover:text-foreground">← {t('common.back', { defaultValue: 'Back' })}</button>
+                <h1 className="text-2xl font-extrabold tracking-tight text-foreground">{t('auth.tabRegistrate')}</h1>
+                <div className="mt-3 rounded-lg border border-primary/20 bg-primary/5 p-3">
+                  <p className="text-center text-sm text-muted-foreground">{t('auth.registerTabHelper')}</p>
+                </div>
+                {isGuestLoginMode ? (
+                  <form onSubmit={handleLogin} className="mt-4 space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="magic-code">{t('auth.accessCode')}</Label>
+                      <Label htmlFor="guest-email">{t('auth.email')}</Label>
                       <div className="relative">
-                        <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          id="magic-code"
-                          type="text"
-                          value={magicCode}
-                          onChange={(e) => setMagicCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
-                          placeholder="XXXXXXXX"
-                          className="pl-9 text-center text-lg tracking-widest font-mono"
-                          maxLength={10}
-                          required
-                        />
+                        <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input id="guest-email" type="email" value={username} onChange={(e) => setUsername(e.target.value.toLowerCase())} placeholder="example@gmail.com" className="pl-9" required />
                       </div>
                     </div>
-
+                    <div className="space-y-2">
+                      <Label htmlFor="guest-password">{t('auth.password')}</Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input id="guest-password" type={showLoginPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••" className="pl-9 pr-10" required />
+                        <Button type="button" variant="ghost" size="sm" className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent" onClick={() => setShowLoginPassword(!showLoginPassword)}>
+                          {showLoginPassword ? <EyeOff className="h-4 w-4 text-muted-foreground" /> : <Eye className="h-4 w-4 text-muted-foreground" />}
+                        </Button>
+                      </div>
+                    </div>
                     <Button type="submit" className="w-full" disabled={loading}>
                       {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      {t('auth.loginButton')}
+                      {t('auth.loginSystem')}
                     </Button>
                   </form>
-                </TabsContent>
-
-                {/* Staff Login with Username/Password */}
-                <TabsContent value="staff">
-                  <form onSubmit={handleLogin} className="space-y-4 mt-4">
-                    <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg">
-                      <p className="text-sm text-muted-foreground text-center">
-                        {t('auth.staffTabHelper')}
-                      </p>
+                ) : (
+                  <form onSubmit={handleSignUp} className="mt-4 space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-name">{t('auth.fullName')}</Label>
+                      <Input id="signup-name" type="text" value={signUpFullName} onChange={(e) => setSignUpFullName(e.target.value.toUpperCase())} placeholder={t('auth.fullName')} className="uppercase" required />
                     </div>
-
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-email">{t('auth.email')}</Label>
+                      <Input id="signup-email" type="email" value={signUpEmail} onChange={(e) => setSignUpEmail(e.target.value)} placeholder="example@gmail.com" required />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-password">{t('auth.password')}</Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input id="signup-password" type={showSignUpPassword ? 'text' : 'password'} value={signUpPassword} onChange={(e) => setSignUpPassword(e.target.value)} placeholder="••••••" className="pl-9 pr-10" required />
+                        <Button type="button" variant="ghost" size="sm" className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent" onClick={() => setShowSignUpPassword(!showSignUpPassword)}>
+                          {showSignUpPassword ? <EyeOff className="h-4 w-4 text-muted-foreground" /> : <Eye className="h-4 w-4 text-muted-foreground" />}
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-confirm">{t('auth.confirmPassword')}</Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input id="signup-confirm" type={showConfirmSignUpPassword ? 'text' : 'password'} value={confirmSignUpPassword} onChange={(e) => setConfirmSignUpPassword(e.target.value)} placeholder="••••••" className="pl-9 pr-10" required />
+                        <Button type="button" variant="ghost" size="sm" className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent" onClick={() => setShowConfirmSignUpPassword(!showConfirmSignUpPassword)}>
+                          {showConfirmSignUpPassword ? <EyeOff className="h-4 w-4 text-muted-foreground" /> : <Eye className="h-4 w-4 text-muted-foreground" />}
+                        </Button>
+                      </div>
+                    </div>
+                    <Button type="submit" className="w-full" disabled={loading}>
+                      {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      {t('auth.registerBtn')}
+                    </Button>
+                  </form>
+                )}
+                <div className="mt-4 text-center">
+                  <Button variant="link" size="sm" onClick={() => setIsGuestLoginMode(!isGuestLoginMode)} className="text-xs text-muted-foreground hover:text-primary transition-colors">
+                    {isGuestLoginMode ? t('auth.registerNewAccount') : t('auth.haveAccountMsg')}
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div>
+                <h1 className="text-2xl font-extrabold tracking-tight text-foreground">{t('auth.signIn', { defaultValue: 'Sign in' })}</h1>
+                <p className="mt-1.5 text-sm text-muted-foreground">{t('auth.chooseContinue', { defaultValue: "Choose how you'd like to continue." })}</p>
+                <div className="mt-6 grid grid-cols-2 gap-2">
+                  <button type="button" onClick={() => setActiveTab('student')} className={cn('flex h-11 items-center justify-center gap-2 rounded-md border text-sm font-semibold transition-colors', activeTab === 'student' ? 'border-primary bg-info/10 text-primary' : 'border-border text-muted-foreground hover:text-foreground')}>
+                    <GraduationCap className="h-4 w-4" />
+                    {t('auth.tabStudent')}
+                  </button>
+                  <button type="button" onClick={() => setActiveTab('staff')} className={cn('flex h-11 items-center justify-center gap-2 rounded-md border text-sm font-semibold transition-colors', activeTab === 'staff' ? 'border-primary bg-info/10 text-primary' : 'border-border text-muted-foreground hover:text-foreground')}>
+                    <Briefcase className="h-4 w-4" />
+                    {t('auth.tabStaff')}
+                  </button>
+                </div>
+                {activeTab === 'staff' ? (
+                  <form onSubmit={handleLogin} className="mt-5 space-y-4">
                     <div className="space-y-2">
                       <Label htmlFor="login-username">{t('auth.username')}</Label>
                       <div className="relative">
                         <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          id="login-username"
-                          type="text"
-                          value={username}
-                          onChange={(e) => setUsername(e.target.value.toLowerCase())}
-                          placeholder="username"
-                          className="pl-9"
-                          required
-                        />
+                        <Input id="login-username" type="text" value={username} onChange={(e) => setUsername(e.target.value.toLowerCase())} placeholder="username" className="pl-9" required />
                       </div>
                     </div>
-
                     <div className="space-y-2">
                       <Label htmlFor="login-password">{t('auth.password')}</Label>
                       <div className="relative">
                         <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          id="login-password"
-                          type={showLoginPassword ? "text" : "password"}
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
-                          placeholder="••••••"
-                          className="pl-9 pr-10"
-                          required
-                        />
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                          onClick={() => setShowLoginPassword(!showLoginPassword)}
-                        >
-                          {showLoginPassword ? (
-                            <EyeOff className="h-4 w-4 text-muted-foreground" />
-                          ) : (
-                            <Eye className="h-4 w-4 text-muted-foreground" />
-                          )}
+                        <Input id="login-password" type={showLoginPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••" className="pl-9 pr-10" required />
+                        <Button type="button" variant="ghost" size="sm" className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent" onClick={() => setShowLoginPassword(!showLoginPassword)}>
+                          {showLoginPassword ? <EyeOff className="h-4 w-4 text-muted-foreground" /> : <Eye className="h-4 w-4 text-muted-foreground" />}
                         </Button>
                       </div>
                     </div>
-
                     <Button type="submit" className="w-full" disabled={loading}>
                       {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                       {t('auth.loginButton')}
                     </Button>
                   </form>
-                </TabsContent>
-              </Tabs>
+                ) : (
+                  <form onSubmit={handleStudentLogin} className="mt-5 space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="magic-code">{t('auth.accessCode')}</Label>
+                      <input id="magic-code" type="text" value={magicCode} onChange={(e) => setMagicCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))} placeholder="XXXXXXXX" maxLength={10} required className={cn('h-14 w-full rounded-md border bg-card text-center font-mono text-2xl uppercase tracking-[0.3em] text-foreground outline-none transition-colors focus:ring-2 focus:ring-ring', magicCode.length >= 8 ? 'border-accent' : 'border-input')} />
+                      <p className="text-xs text-muted-foreground">{t('auth.studentCodeDesc')}</p>
+                    </div>
+                    <Button type="submit" variant="highlight" className="w-full" disabled={loading}>
+                      {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      {t('auth.loginButton')}
+                    </Button>
+                    <p className="text-center text-sm text-muted-foreground">
+                      {t('auth.noCodeQ', { defaultValue: "Don't have a code?" })}{' '}
+                      <button type="button" onClick={() => setActiveTab('registrate')} className="font-semibold text-primary hover:underline">{t('auth.contactConsultant', { defaultValue: 'Contact a consultant' })}</button>
+                    </p>
+                  </form>
+                )}
+              </div>
             )}
-          </CardContent>
-        </Card>
-      </main>
+          </div>
+        </main>
+      </div>
     </div>
   );
 }
