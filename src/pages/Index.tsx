@@ -80,7 +80,7 @@ const Index = () => {
   ];
 
   return (
-    <div className="min-h-[100dvh] bg-background text-foreground">
+    <div className="min-h-[100dvh] overflow-x-hidden bg-background text-foreground">
       {/* Nav */}
       <header className="mx-auto flex w-full max-w-[1200px] items-center justify-between px-5 py-5 sm:px-10">
         <div className="flex items-center gap-2.5">
@@ -102,7 +102,7 @@ const Index = () => {
 
       {/* Hero */}
       <section className="mx-auto grid w-full max-w-[1200px] items-center gap-12 px-5 py-12 sm:px-10 lg:grid-cols-[1.05fr_0.95fr] lg:py-16">
-        <div className="animate-fade-up">
+        <div className="min-w-0 animate-fade-up">
           <span className="inline-flex items-center gap-2 rounded-full bg-accent/15 px-3 py-1.5 text-xs font-semibold text-accent-foreground">
             <span className="h-1.5 w-1.5 rounded-full bg-accent" />
             {t('landing.trustedBy', { defaultValue: 'Trusted by 1,200+ students in Uzbekistan' })}
@@ -136,7 +136,7 @@ const Index = () => {
         </div>
 
         {/* Hero visual: application-preview card */}
-        <div className="relative animate-fade-up">
+        <div className="relative min-w-0 animate-fade-up">
           <div className="absolute -inset-5 rounded-[40px] bg-[radial-gradient(circle_at_70%_30%,hsl(var(--accent)/0.18),transparent_60%)]" />
           <Card className="relative p-6 shadow-float">
             <div className="mb-5 flex items-center gap-3">
@@ -147,7 +147,7 @@ const Index = () => {
                 <div className="font-semibold">Aziz Karimov</div>
                 <div className="truncate text-xs text-muted-foreground">Application to Seoul National University</div>
               </div>
-              <span className="rounded-full bg-info/10 px-2.5 py-0.5 text-xs font-semibold text-info">Submitted</span>
+              <span className="shrink-0 rounded-full bg-info/10 px-2.5 py-0.5 text-xs font-semibold text-info">Submitted</span>
             </div>
             <div className="mb-5 flex items-start">
               {['Docs', 'Trans', 'Apost', 'Submit', 'Visa'].map((step, i) => {
