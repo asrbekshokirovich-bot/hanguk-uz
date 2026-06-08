@@ -310,20 +310,22 @@ export default function UniversitiesContent() {
           {filtered.map((row) => (
             <Card key={row.id} className={row.is_partner ? 'border-primary/40' : undefined}>
               <CardHeader className="pb-2">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-info/10 text-info">
+                    <GraduationCap className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0 flex-1">
                     <CardTitle className="text-base truncate">{row.name_ko}</CardTitle>
                     {row.name_en ? (
                       <p className="text-xs text-muted-foreground truncate">{row.name_en}</p>
                     ) : null}
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {row.is_partner ? <Badge variant="lime">partner</Badge> : null}
+                      {row.is_visible_on_map ? <Badge variant="outline">on map</Badge> : null}
+                      <Badge variant="neutral">{row.institution_type}</Badge>
+                      {row.tier !== null && row.tier !== undefined ? <Badge variant="info">tier {row.tier}</Badge> : null}
+                    </div>
                   </div>
-                  <Building2 className="h-4 w-4 text-muted-foreground shrink-0" />
-                </div>
-                <div className="flex flex-wrap gap-1 mt-1">
-                  {row.is_partner ? <Badge>partner</Badge> : null}
-                  {row.is_visible_on_map ? <Badge variant="outline">on map</Badge> : null}
-                  <Badge variant="secondary">{row.institution_type}</Badge>
-                  {row.tier !== null && row.tier !== undefined ? <Badge variant="outline">tier {row.tier}</Badge> : null}
                 </div>
               </CardHeader>
               <CardContent className="space-y-2 text-xs">

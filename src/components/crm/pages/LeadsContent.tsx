@@ -159,30 +159,30 @@ const LeadsContent = () => {
 
   const getSourceColor = (source: Lead['source']) => {
     switch (source) {
-      case 'telegram': return 'bg-blue-500/10 text-blue-500';
-      case 'instagram': return 'bg-pink-500/10 text-pink-500';
-      case 'call': return 'bg-green-500/10 text-green-500';
-      case 'ai_detected': return 'bg-purple-500/10 text-purple-500';
-      default: return 'bg-gray-500/10 text-gray-500';
+      case 'telegram': return 'bg-info/10 text-info';
+      case 'instagram': return 'bg-primary/10 text-primary';
+      case 'call': return 'bg-success/10 text-success';
+      case 'ai_detected': return 'bg-accent/15 text-accent-foreground';
+      default: return 'bg-muted text-muted-foreground';
     }
   };
 
   const getStatusColor = (status: Lead['status']) => {
     switch (status) {
-      case 'new': return 'bg-blue-500/10 text-blue-500';
-      case 'contacted': return 'bg-yellow-500/10 text-yellow-500';
-      case 'qualified': return 'bg-green-500/10 text-green-500';
-      case 'converted': return 'bg-emerald-500/10 text-emerald-500';
-      case 'lost': return 'bg-red-500/10 text-red-500';
-      default: return 'bg-gray-500/10 text-gray-500';
+      case 'new': return 'bg-info/10 text-info';
+      case 'contacted': return 'bg-warning/10 text-warning';
+      case 'qualified': return 'bg-success/10 text-success';
+      case 'converted': return 'bg-success/10 text-success';
+      case 'lost': return 'bg-destructive/10 text-destructive';
+      default: return 'bg-muted text-muted-foreground';
     }
   };
 
   const getPriorityColor = (score: number | null) => {
-    if (!score) return 'bg-gray-500/10 text-gray-500';
-    if (score >= 70) return 'bg-red-500/10 text-red-500';
-    if (score >= 50) return 'bg-yellow-500/10 text-yellow-500';
-    return 'bg-blue-500/10 text-blue-500';
+    if (!score) return 'bg-muted text-muted-foreground';
+    if (score >= 70) return 'bg-destructive/10 text-destructive';
+    if (score >= 50) return 'bg-warning/10 text-warning';
+    return 'bg-info/10 text-info';
   };
 
   const getPriorityLabel = (score: number | null) => {
@@ -195,92 +195,51 @@ const LeadsContent = () => {
   const getFollowUpStatus = (nextFollowUp: string | null) => {
     if (!nextFollowUp) return null;
     const date = new Date(nextFollowUp);
-    if (isToday(date)) return { label: 'Today', color: 'text-red-500' };
-    if (isPast(date)) return { label: 'Overdue', color: 'text-red-600 font-medium' };
+    if (isToday(date)) return { label: 'Today', color: 'text-destructive' };
+    if (isPast(date)) return { label: 'Overdue', color: 'text-destructive font-medium' };
     return { label: formatDistanceToNow(date, { addSuffix: true }), color: 'text-muted-foreground' };
   };
 
+  const STAT_TONE: Record<string, string> = {
+    primary: 'bg-primary/10 text-primary',
+    info: 'bg-info/10 text-info',
+    success: 'bg-success/10 text-success',
+    warning: 'bg-warning/10 text-warning',
+    destructive: 'bg-destructive/10 text-destructive',
+  };
+  const statCards = [
+    { icon: Users, value: stats.total, label: 'Total', tone: 'primary' },
+    { icon: Sparkles, value: stats.new, label: 'New', tone: 'info' },
+    { icon: PhoneCall, value: stats.callToday, label: 'Call Today', tone: 'destructive' },
+    { icon: Gauge, value: stats.highPriority, label: 'High Priority', tone: 'warning' },
+    { icon: TrendingUp, value: stats.qualified, label: 'Qualified', tone: 'success' },
+    { icon: ArrowRight, value: stats.converted, label: 'Converted', tone: 'success' },
+    { icon: Bot, value: stats.aiDetected, label: 'AI Detected', tone: 'primary' },
+  ];
+
   return (
     <div className="space-y-6">
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-muted-foreground" />
-              <div>
-                <p className="text-2xl font-bold">{stats.total}</p>
-                <p className="text-xs text-muted-foreground">Total</p>
-              </div>
+      {/* Page head */}
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">{t('navigation.leads')}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {t('leads.subtitle', { defaultValue: 'Hanguk AI scores every lead by conversion likelihood' })}
+          </p>
+        </div>
+      </div>
+
+      {/* Stat cards */}
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-7">
+        {statCards.map((card) => (
+          <Card key={card.label} className="p-4">
+            <div className={cn('flex h-9 w-9 items-center justify-center rounded-md', STAT_TONE[card.tone])}>
+              <card.icon className="h-5 w-5" />
             </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-blue-500" />
-              <div>
-                <p className="text-2xl font-bold">{stats.new}</p>
-                <p className="text-xs text-muted-foreground">New</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="bg-red-500/5 border-red-500/20">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <PhoneCall className="h-5 w-5 text-red-500" />
-              <div>
-                <p className="text-2xl font-bold text-red-500">{stats.callToday}</p>
-                <p className="text-xs text-muted-foreground">Call Today</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <Gauge className="h-5 w-5 text-orange-500" />
-              <div>
-                <p className="text-2xl font-bold">{stats.highPriority}</p>
-                <p className="text-xs text-muted-foreground">High Priority</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-green-500" />
-              <div>
-                <p className="text-2xl font-bold">{stats.qualified}</p>
-                <p className="text-xs text-muted-foreground">Qualified</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <ArrowRight className="h-5 w-5 text-emerald-500" />
-              <div>
-                <p className="text-2xl font-bold">{stats.converted}</p>
-                <p className="text-xs text-muted-foreground">Converted</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <Bot className="h-5 w-5 text-purple-500" />
-              <div>
-                <p className="text-2xl font-bold">{stats.aiDetected}</p>
-                <p className="text-xs text-muted-foreground">AI Detected</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            <div className="mt-3 text-2xl font-extrabold leading-none text-foreground">{card.value}</div>
+            <div className="mt-1 text-xs text-muted-foreground">{card.label}</div>
+          </Card>
+        ))}
       </div>
 
       {/* AI Leads Intelligence Panel */}
@@ -288,9 +247,9 @@ const LeadsContent = () => {
 
       {/* Call Today Alert */}
       {callTodayLeads.length > 0 && (
-        <Card className="border-red-500/30 bg-red-500/5">
+        <Card className="border-destructive/30 bg-destructive/5">
           <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-red-500">
+            <CardTitle className="flex items-center gap-2 text-destructive">
               <PhoneCall className="h-5 w-5" />
               Call Today ({callTodayLeads.length})
             </CardTitle>
@@ -346,7 +305,7 @@ const LeadsContent = () => {
               <SelectItem value="all">All Status</SelectItem>
               <SelectItem value="call_today">
                 <div className="flex items-center gap-2">
-                  <PhoneCall className="h-3 w-3 text-red-500" />
+                  <PhoneCall className="h-3 w-3 text-destructive" />
                   Call Today ({stats.callToday})
                 </div>
               </SelectItem>
@@ -435,7 +394,7 @@ const LeadsContent = () => {
                             </Badge>
                           )}
                           {lead.source === 'ai_detected' && (
-                            <Badge variant="outline" className="bg-purple-500/10 text-purple-500">
+                            <Badge variant="outline" className="bg-accent/15 text-accent-foreground">
                               <Bot className="h-3 w-3 mr-1" />
                               AI
                             </Badge>
