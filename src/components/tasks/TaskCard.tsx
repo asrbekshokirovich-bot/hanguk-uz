@@ -34,7 +34,7 @@ interface TaskCardProps {
 
 const priorityConfig = {
   urgent: { color: 'bg-destructive', stripe: 'bg-destructive', label: 'Urgent' },
-  high: { color: 'bg-orange-500', stripe: 'bg-orange-500', label: 'High' },
+  high: { color: 'bg-warning', stripe: 'bg-warning', label: 'High' },
   normal: { color: 'bg-primary', stripe: 'bg-primary', label: 'Normal' },
   low: { color: 'bg-muted-foreground', stripe: 'bg-muted-foreground', label: 'Low' },
 };

@@ -17,15 +17,15 @@ export function ResponseTimer({ timeRemaining, timeLimit, isActive }: ResponseTi
   const percentage = (timeRemaining / timeLimit) * 100;
   
   const getColor = () => {
-    if (percentage > 50) return 'bg-green-500';
-    if (percentage > 25) return 'bg-yellow-500';
-    return 'bg-red-500';
+    if (percentage > 50) return 'bg-success';
+    if (percentage > 25) return 'bg-warning';
+    return 'bg-destructive';
   };
   
   const getTextColor = () => {
-    if (percentage > 50) return 'text-green-600 dark:text-green-400';
-    if (percentage > 25) return 'text-yellow-600 dark:text-yellow-400';
-    return 'text-red-600 dark:text-red-400';
+    if (percentage > 50) return 'text-success dark:text-success';
+    if (percentage > 25) return 'text-warning dark:text-warning';
+    return 'text-destructive dark:text-destructive';
   };
 
   return (

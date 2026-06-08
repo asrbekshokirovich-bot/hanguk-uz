@@ -54,10 +54,10 @@ export function StudentCard({ student, onSelect, currentLang }: StudentCardProps
     const progress = ((index + 1) / statusSteps.length) * 100;
     
     if (status === 'completed') {
-      return <Badge className="bg-green-500"><CheckCircle className="h-3 w-3 mr-1" /> {t('common.success')}</Badge>;
+      return <Badge className="bg-success"><CheckCircle className="h-3 w-3 mr-1" /> {t('common.success')}</Badge>;
     }
     if (index >= 4) {
-      return <Badge className="bg-blue-500"><Clock className="h-3 w-3 mr-1" /> {Math.round(progress)}%</Badge>;
+      return <Badge className="bg-info"><Clock className="h-3 w-3 mr-1" /> {Math.round(progress)}%</Badge>;
     }
     return <Badge variant="secondary"><Clock className="h-3 w-3 mr-1" /> {Math.round(progress)}%</Badge>;
   };
@@ -103,9 +103,9 @@ export function StudentCard({ student, onSelect, currentLang }: StudentCardProps
             {student.contract_date && (() => {
               const plan = normalizePlanName(student.payment_plan);
               const planStyles: Record<string, string> = {
-                standart: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
-                premium: 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300',
-                no_risk: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
+                standart: 'bg-info/10 text-info dark:bg-info dark:text-info',
+                premium: 'bg-primary/10 text-primary dark:bg-primary dark:text-primary',
+                no_risk: 'bg-success/10 text-success dark:bg-success dark:text-success',
                 free: 'bg-muted text-muted-foreground',
               };
               const planLabels: Record<string, string> = {
@@ -157,19 +157,19 @@ export function StudentCard({ student, onSelect, currentLang }: StudentCardProps
           </span>
           <div className="flex items-center gap-2">
             {docStats.approved > 0 && (
-              <span className="flex items-center gap-1 text-green-600">
+              <span className="flex items-center gap-1 text-success">
                 <CheckCircle className="h-3 w-3" />
                 {docStats.approved}
               </span>
             )}
             {docStats.pending > 0 && (
-              <span className="flex items-center gap-1 text-yellow-600">
+              <span className="flex items-center gap-1 text-warning">
                 <Clock className="h-3 w-3" />
                 {docStats.pending}
               </span>
             )}
             {docStats.rejected > 0 && (
-              <span className="flex items-center gap-1 text-red-600">
+              <span className="flex items-center gap-1 text-destructive">
                 <AlertCircle className="h-3 w-3" />
                 {docStats.rejected}
               </span>

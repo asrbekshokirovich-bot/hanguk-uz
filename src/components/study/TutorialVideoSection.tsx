@@ -41,11 +41,11 @@ const categoryIcons: Record<string, React.ComponentType<{ className?: string }>>
 };
 
 const categoryColors: Record<string, string> = {
-  introduction: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
-  structure: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
-  grammar: 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300',
-  examples: 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300',
-  tips: 'bg-pink-100 text-pink-700 dark:bg-pink-900 dark:text-pink-300',
+  introduction: 'bg-info/10 text-info dark:bg-info dark:text-info',
+  structure: 'bg-success/10 text-success dark:bg-success dark:text-success',
+  grammar: 'bg-primary/10 text-primary dark:bg-primary dark:text-primary',
+  examples: 'bg-warning/10 text-warning dark:bg-warning dark:text-warning',
+  tips: 'bg-primary/10 text-primary dark:bg-primary dark:text-primary',
 };
 
 export function TutorialVideoSection({ documentType }: TutorialVideoSectionProps) {

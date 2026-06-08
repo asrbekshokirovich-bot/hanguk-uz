@@ -50,9 +50,9 @@ export function StudyPlanAnalysis({
     : null;
 
   const getScoreColor = (score: number) => {
-    if (score >= 8) return 'text-green-600 dark:text-green-400';
-    if (score >= 6) return 'text-amber-600 dark:text-amber-400';
-    return 'text-red-600 dark:text-red-400';
+    if (score >= 8) return 'text-success dark:text-success';
+    if (score >= 6) return 'text-warning dark:text-warning';
+    return 'text-destructive dark:text-destructive';
   };
 
   if (isLoading) {
@@ -153,11 +153,11 @@ export function StudyPlanAnalysis({
             
             {/* Milestone celebration */}
             {analysis.overall_score >= 8 && (
-              <div className="mt-4 p-3 bg-green-50 dark:bg-green-950/30 rounded-lg border border-green-200 dark:border-green-800 flex items-center gap-3">
-                <Trophy className="h-6 w-6 text-green-600" />
+              <div className="mt-4 p-3 bg-success/10 dark:bg-success/30 rounded-lg border border-success/30 dark:border-success flex items-center gap-3">
+                <Trophy className="h-6 w-6 text-success" />
                 <div>
-                  <p className="font-medium text-green-800 dark:text-green-200">{t('study.excellentWork', 'Excellent Work!')}</p>
-                  <p className="text-sm text-green-700 dark:text-green-300">
+                  <p className="font-medium text-success dark:text-success">{t('study.excellentWork', 'Excellent Work!')}</p>
+                  <p className="text-sm text-success dark:text-success">
                     {t('study.readyForSubmission', 'Your {{documentType}} is ready for submission.', { documentType: documentLabel.toLowerCase() })}
                   </p>
                 </div>
@@ -172,7 +172,7 @@ export function StudyPlanAnalysis({
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
-              <CheckCircle className="h-5 w-5 text-green-500" />
+              <CheckCircle className="h-5 w-5 text-success" />
               {t('interview.strengths', 'Strengths')}
             </CardTitle>
           </CardHeader>
@@ -180,7 +180,7 @@ export function StudyPlanAnalysis({
             <ul className="space-y-2">
               {analysis.strengths.map((strength, idx) => (
                 <li key={idx} className="flex items-start gap-2 text-sm">
-                  <CheckCircle className="h-4 w-4 text-green-500 shrink-0 mt-0.5" />
+                  <CheckCircle className="h-4 w-4 text-success shrink-0 mt-0.5" />
                   <span>{strength}</span>
                 </li>
               ))}
@@ -194,7 +194,7 @@ export function StudyPlanAnalysis({
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
-              <XCircle className="h-5 w-5 text-red-500" />
+              <XCircle className="h-5 w-5 text-destructive" />
               {t('study.grammarLanguageErrors', 'Grammar & Language Errors')} ({analysis.grammar_errors.length})
             </CardTitle>
           </CardHeader>
@@ -210,14 +210,14 @@ export function StudyPlanAnalysis({
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
                       <div className="flex items-center gap-2">
-                        <XCircle className="h-4 w-4 text-red-500 shrink-0" />
-                        <span className="line-through text-red-600 dark:text-red-400">
+                        <XCircle className="h-4 w-4 text-destructive shrink-0" />
+                        <span className="line-through text-destructive dark:text-destructive">
                           {error.error}
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <CheckCircle className="h-4 w-4 text-green-500 shrink-0" />
-                        <span className="text-green-600 dark:text-green-400">
+                        <CheckCircle className="h-4 w-4 text-success shrink-0" />
+                        <span className="text-success dark:text-success">
                           {error.correction}
                         </span>
                       </div>
@@ -235,7 +235,7 @@ export function StudyPlanAnalysis({
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
-              <Lightbulb className="h-5 w-5 text-amber-500" />
+              <Lightbulb className="h-5 w-5 text-warning" />
               {t('study.suggestedImprovements', 'Suggested Improvements')}
             </CardTitle>
           </CardHeader>
@@ -243,7 +243,7 @@ export function StudyPlanAnalysis({
             <ul className="space-y-2">
               {analysis.improvements.map((improvement, idx) => (
                 <li key={idx} className="flex items-start gap-2 text-sm">
-                  <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+                  <AlertTriangle className="h-4 w-4 text-warning shrink-0 mt-0.5" />
                   <span>{improvement}</span>
                 </li>
               ))}

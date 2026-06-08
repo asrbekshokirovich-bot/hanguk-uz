@@ -1,4 +1,4 @@
-import React, { useState, useEffect, lazy, Suspense } from 'react';
+import React, { useState, useEffect, useMemo, lazy, Suspense } from 'react';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -8,8 +8,9 @@ import { useCanReviewUniDb } from '@/hooks/useCanReviewUniDb';
 import { useCRMData } from '@/hooks/useCRMData';
 import { usePayments } from '@/hooks/usePayments';
 import { CRMSidebar, useSidebarGroups } from '@/components/crm/CRMSidebar';
+import { CRMCommandMenu } from '@/components/crm/CRMCommandMenu';
+import { ThemeToggleButton } from '@/components/ThemeToggleButton';
 import { Logo } from '@/components/Logo';
-import { CRMSubNavigation } from '@/components/crm/CRMSubNavigation';
 import { CRMDashboard } from '@/components/crm/CRMDashboard';
 import { StudentList } from '@/components/crm/StudentList';
 import { StudentDetail } from '@/components/crm/StudentDetail';
@@ -22,13 +23,10 @@ import { VoiceChannelHeader } from '@/components/intercom/VoiceChannelHeader';
 import { LeadsProvider } from '@/contexts/LeadsContext';
 import { CallsProvider } from '@/contexts/CallsContext';
 import { MessagesProvider } from '@/contexts/MessagesContext';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import {
-  LogOut,
   Lock,
-  Download,
   Loader2
 } from 'lucide-react';
 import { Tables } from '@/integrations/supabase/types';
@@ -56,7 +54,6 @@ const AIAssistantContent = lazy(() => import('@/components/crm/pages/AIAssistant
 const AITranslationPage = lazy(() => import('@/components/crm/pages/AITranslationPage'));
 const LeadsContent = lazy(() => import('@/components/crm/pages/LeadsContent'));
 const CommunicationContent = lazy(() => import('@/components/crm/pages/CommunicationContent'));
-const ApplicationFormsContent = lazy(() => import('@/components/crm/pages/ApplicationFormsContent'));
 const CalendarContent = lazy(() => import('@/components/crm/pages/CalendarContent'));
 const SettingsContent = lazy(() => import('@/components/crm/pages/SettingsContent'));
 const KakaoMapContent = lazy(() => import('@/components/crm/pages/KakaoMapContent'));
@@ -102,24 +99,9 @@ export default function CRMPortal() {
   const loading = studentsLoading || paymentsLoading;
 
   const [selectedStudent, setSelectedStudent] = useState<StudentProfile | null>(null);
-  const [activeGroup, setActiveGroup] = useState<string | null>(null);
 
-  // Get sidebar groups for sub-navigation
+  // Sidebar groups (role-filtered) power the ⌘K command menu in the header.
   const sidebarGroups = useSidebarGroups(isOwner, isAdmin, isCallOperator, isDocumentHandler, t, currentLang, canReviewUniDb);
-
-  // Determine active group from URL
-  useEffect(() => {
-    const path = location.pathname;
-    for (const group of sidebarGroups) {
-      for (const item of group.items) {
-        if (item.visible && (path === item.url || (item.url !== '/crm' && path.startsWith(item.url)))) {
-          setActiveGroup(group.id);
-          return;
-        }
-      }
-    }
-    setActiveGroup('home');
-  }, [location.pathname, sidebarGroups]);
 
   // Determine current view from URL
   const currentPath = location.pathname;
@@ -150,13 +132,30 @@ export default function CRMPortal() {
     if (currentPath.startsWith('/crm/settings')) return 'settings';
     if (currentPath.startsWith('/crm/translation')) return 'translation';
     if (currentPath.startsWith('/crm/communication')) return 'communication';
-    if (currentPath.startsWith('/crm/application-forms')) return 'application-forms';
     if (currentPath.startsWith('/crm/kakao-map')) return 'kakao-map';
     if (currentPath.startsWith('/crm/admin/uni-db-review')) return 'uni-db-review';
     return 'dashboard';
   };
 
   const activeView = getActiveView();
+
+  // Top-bar title: the most specific nav item matching the current route,
+  // reusing the existing i18n labels so the header stays in sync with the nav.
+  const pageTitle = useMemo(() => {
+    let best = '';
+    let bestLen = -1;
+    for (const group of sidebarGroups) {
+      for (const item of group.items) {
+        const match =
+          currentPath === item.url || (item.url !== '/crm' && currentPath.startsWith(item.url));
+        if (match && item.url.length > bestLen) {
+          best = item.title;
+          bestLen = item.url.length;
+        }
+      }
+    }
+    return best || t('navigation.dashboard');
+  }, [sidebarGroups, currentPath, t]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -395,8 +394,6 @@ export default function CRMPortal() {
         return <SafeSuspense><AITranslationPage /></SafeSuspense>;
       case 'communication':
         return <SafeSuspense><CommunicationContent /></SafeSuspense>;
-      case 'application-forms':
-        return <SafeSuspense><ApplicationFormsContent /></SafeSuspense>;
       case 'reports':
         return <SafeSuspense><ReportsContent /></SafeSuspense>;
       case 'calendar':
@@ -422,47 +419,47 @@ export default function CRMPortal() {
   return (
     <IntercomProvider>
       <VoiceChannelProvider>
-        <SidebarProvider defaultOpen={true}>
-          <div className="min-h-screen flex w-full">
+        <SidebarProvider
+          defaultOpen={true}
+          style={{ '--sidebar-width': '248px', '--sidebar-width-icon': '72px' } as React.CSSProperties}
+        >
+          <div className="flex min-h-screen w-full">
             <CRMSidebar
               isOwner={isOwner}
               isAdmin={isAdmin}
               isCallOperator={isCallOperator}
               isDocumentHandler={isDocumentHandler}
               canReviewUniDb={canReviewUniDb}
-              activeGroup={activeGroup}
-              onGroupSelect={setActiveGroup}
+              user={user}
+              onSignOut={handleSignOut}
             />
 
-            <div className="flex-1 flex flex-col">
+            <div className="flex min-w-0 flex-1 flex-col">
               {/* Header */}
-              <header className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 pt-[env(safe-area-inset-top)]">
-                <div className="flex justify-between items-center p-4 border-b">
-                  <div className="flex items-center gap-2">
-                    <SidebarTrigger />
-                    <h1 className="text-lg font-semibold hidden sm:block">{t('crm.title')}</h1>
-                  </div>
-                  <div className="flex items-center gap-2">
+              <header className="sticky top-0 z-50 border-b border-border bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70 pt-[env(safe-area-inset-top)]">
+                <div className="flex h-16 items-center gap-3 px-4 sm:px-6">
+                  <SidebarTrigger className="h-9 w-9 text-muted-foreground" />
+                  <h1 className="min-w-0 flex-1 truncate text-[17px] font-bold tracking-tight text-foreground">
+                    {pageTitle}
+                  </h1>
+                  <div className="flex items-center gap-1.5 sm:gap-2">
+                    <CRMCommandMenu groups={sidebarGroups} />
                     <VoiceChannelHeader />
-                    <NotificationBell />
                     <LanguageSwitcher />
-                    <Button variant="ghost" size="sm" onClick={handleSignOut}>
-                      <LogOut className="h-4 w-4 mr-2" />
-                      <span className="hidden sm:inline">{t('auth.logout')}</span>
-                    </Button>
+                    <ThemeToggleButton />
+                    <NotificationBell />
                   </div>
                 </div>
-
-                {/* Sub-navigation for active group */}
-                <CRMSubNavigation groups={sidebarGroups} activeGroup={activeGroup} />
               </header>
 
               {/* Main Content */}
               <LeadsProvider>
                 <CallsProvider>
                   <MessagesProvider>
-                    <main className="flex-1 p-4 pb-safe overflow-auto">
-                      <div className="max-w-7xl mx-auto space-y-6">{renderContent()}</div>
+                    <main className="flex-1 overflow-auto bg-background p-4 pb-safe sm:p-6">
+                      <div key={activeView} className="mx-auto max-w-[1240px] animate-fade-up space-y-6">
+                        {renderContent()}
+                      </div>
                     </main>
                   </MessagesProvider>
                 </CallsProvider>

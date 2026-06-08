@@ -2,72 +2,70 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Hanguk Consulting Design System
-   Primary: Deep Royal Blue (#1a3a6c) = HSL(216, 62%, 26%)
-   Accent: Vibrant Lime (#d4e94c) = HSL(68, 78%, 60%)
-   All colors in HSL format
+/* Hanguk Consulting Design System — Evolved "Premium SaaS" (redesign)
+   Same brand DNA: Royal Blue (#1A3A6C) + Vibrant Lime (#D4E94C) + Inter.
+   Refined neutrals, layered elevation, full light + dark.
+   shadcn/ui-compatible HSL tokens (no hsl() wrapper). Light is the soft
+   blue-grey canvas; dark is deep navy (not OLED black). Lime stays the
+   single key-action accent — never a body-text colour.
 */
 
 @layer base {
   :root {
-    /* Hanguk Deep Royal Blue Theme - All values in HSL format without hsl() wrapper */
-    --background: 0 0% 100%;
-    --foreground: 216 70% 12%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 216 70% 12%;
-
+    /* ---- surfaces ---- */
+    --background: 216 38% 97%;        /* #F6F8FB app canvas */
+    --foreground: 217 62% 12%;        /* #0C1B33 ink */
+    --card: 0 0% 100%;                /* #FFFFFF */
+    --card-foreground: 217 62% 12%;
     --popover: 0 0% 100%;
-    --popover-foreground: 216 70% 12%;
+    --popover-foreground: 217 62% 12%;
 
-    /* Primary - Deep Royal Blue */
-    --primary: 216 62% 26%;
+    /* ---- brand ---- */
+    --primary: 217 61% 26%;           /* #1A3A6C royal blue */
     --primary-foreground: 0 0% 100%;
+    --accent: 68 78% 61%;             /* #D4E94C vibrant lime */
+    --accent-foreground: 217 45% 16%; /* #16203A */
 
-    /* Secondary - Soft Blue Gray */
-    --secondary: 216 25% 95%;
-    --secondary-foreground: 216 62% 26%;
+    /* ---- neutral system ---- */
+    --secondary: 216 30% 96%;         /* #F0F3F8 */
+    --secondary-foreground: 217 61% 26%;
+    --muted: 216 30% 96%;             /* #F0F3F8 */
+    --muted-foreground: 217 23% 34%;  /* #43526B */
+    --border: 216 30% 92%;            /* #E5EAF1 */
+    --input: 216 30% 92%;
+    --ring: 217 61% 40%;              /* focus ring (blue) */
 
-    --muted: 216 20% 96%;
-    --muted-foreground: 216 20% 40%;
-
-    /* Accent - Vibrant Lime */
-    --accent: 68 78% 60%;
-    --accent-foreground: 216 70% 12%;
-
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-
-    /* Success - Lime Green */
-    --success: 68 78% 45%;
-    --success-foreground: 216 70% 12%;
-
-    /* Warning - Warm Gold */
-    --warning: 38 92% 50%;
+    /* ---- semantic ---- */
+    --success: 146 75% 36%;           /* #15A05A */
+    --success-foreground: 0 0% 100%;
+    --warning: 35 100% 44%;           /* #E08600 */
     --warning-foreground: 0 0% 100%;
+    --destructive: 4 73% 56%;         /* #E0463C */
+    --destructive-foreground: 0 0% 100%;
+    --info: 217 56% 42%;              /* #2E5FA8 */
 
-    --border: 216 25% 88%;
-    --input: 216 25% 88%;
-    --ring: 68 78% 50%;
+    --radius: 0.875rem;       /* 14px base; shadcn derives md/sm from this */
 
-    --radius: 0.75rem;
+    /* Chart palette */
+    --chart-1: 217 61% 26%;   /* royal */
+    --chart-2: 68 78% 61%;    /* lime */
+    --chart-3: 213 54% 55%;   /* blue-400 */
+    --chart-4: 146 75% 36%;   /* success */
+    --chart-5: 217 16% 53%;   /* slate */
 
-    /* Chart colors */
-    --chart-1: 216 62% 26%;
-    --chart-2: 68 78% 60%;
-    --chart-3: 216 62% 45%;
-    --chart-4: 68 78% 75%;
-    --chart-5: 216 30% 60%;
+    /* Sidebar (shadcn sidebar slots) — deep navy rail w/ lime active */
+    --sidebar-background: 216 65% 17%;     /* #0F2547 deep navy */
+    --sidebar-foreground: 216 30% 88%;
+    --sidebar-primary: 68 78% 61%;         /* lime active accent */
+    --sidebar-primary-foreground: 217 45% 16%;
+    --sidebar-accent: 216 60% 24%;         /* hover fill */
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 216 50% 24%;
+    --sidebar-ring: 68 78% 61%;
 
-    /* Sidebar - Deep Navy */
-    --sidebar-background: 216 62% 20%;
-    --sidebar-foreground: 216 20% 90%;
-    --sidebar-primary: 0 0% 100%;
-    --sidebar-primary-foreground: 216 62% 26%;
-    --sidebar-accent: 68 78% 55%;
-    --sidebar-accent-foreground: 216 70% 10%;
-    --sidebar-border: 216 40% 28%;
-    --sidebar-ring: 68 78% 50%;
+    /* ============================================================
+       Preserved custom tokens (used across the app — do not remove).
+       ============================================================ */
 
     /* Safe area for mobile notches */
     --safe-area-inset-top: env(safe-area-inset-top);
@@ -79,7 +77,7 @@
     --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
     --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', monospace;
 
-    /* Radii (base 0.75rem = 12px) — app surfaces use larger radii */
+    /* App-surface radii (Capacitor build / glass cards) */
     --radius-app-btn: 16px;   /* app buttons / inputs */
     --radius-app-card: 20px;  /* app glass cards */
     --radius-pill: 999px;
@@ -102,56 +100,51 @@
   }
 
   .dark {
-    /* OLED-optimized dark mode with true black */
-    --background: 0 0% 0%;
-    --foreground: 216 20% 95%;
+    /* ---- surfaces ---- */
+    --background: 218 48% 6%;          /* #080D17 */
+    --foreground: 216 42% 95%;         /* #EAF0F9 */
+    --card: 218 43% 10%;               /* #0F1626 */
+    --card-foreground: 216 42% 95%;
+    --popover: 218 43% 10%;
+    --popover-foreground: 216 42% 95%;
 
-    --card: 216 52% 6%;
-    --card-foreground: 216 20% 95%;
+    /* ---- brand ---- */
+    --primary: 217 52% 49%;            /* #3D6FBF lifted royal */
+    --primary-foreground: 0 0% 100%;
+    --accent: 68 78% 61%;              /* #D4E94C lime stays */
+    --accent-foreground: 217 45% 16%;
 
-    --popover: 216 52% 6%;
-    --popover-foreground: 216 20% 95%;
+    /* ---- neutral system ---- */
+    --secondary: 218 35% 14%;          /* #1A2438 */
+    --secondary-foreground: 216 42% 95%;
+    --muted: 218 35% 14%;
+    --muted-foreground: 217 18% 63%;   /* #A7B4CA */
+    --border: 218 30% 18%;             /* #20293C */
+    --input: 218 30% 18%;
+    --ring: 217 52% 55%;
 
-    --primary: 68 78% 55%;
-    --primary-foreground: 0 0% 0%;
+    /* ---- semantic ---- */
+    --success: 146 56% 49%;            /* #34C77B */
+    --warning: 35 86% 59%;             /* #F0A53A */
+    --destructive: 4 86% 66%;          /* #F2685E */
+    --info: 214 56% 60%;
 
-    --secondary: 216 30% 12%;
-    --secondary-foreground: 216 20% 95%;
+    /* Chart palette (dark) */
+    --chart-1: 217 52% 55%;
+    --chart-2: 68 78% 61%;
+    --chart-3: 214 56% 60%;
+    --chart-4: 146 56% 49%;
+    --chart-5: 217 18% 63%;
 
-    --muted: 216 30% 12%;
-    --muted-foreground: 216 20% 60%;
-
-    --accent: 68 78% 50%;
-    --accent-foreground: 0 0% 0%;
-
-    --destructive: 0 62% 50%;
-    --destructive-foreground: 0 0% 100%;
-
-    --success: 68 78% 45%;
-    --success-foreground: 0 0% 0%;
-
-    --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 0%;
-
-    --border: 216 30% 15%;
-    --input: 216 30% 15%;
-    --ring: 68 78% 55%;
-
-    /* Chart colors for dark mode */
-    --chart-1: 68 78% 55%;
-    --chart-2: 216 62% 55%;
-    --chart-3: 68 78% 70%;
-    --chart-4: 216 50% 70%;
-    --chart-5: 68 60% 45%;
-
-    --sidebar-background: 0 0% 0%;
-    --sidebar-foreground: 216 20% 90%;
-    --sidebar-primary: 68 78% 55%;
-    --sidebar-primary-foreground: 0 0% 0%;
-    --sidebar-accent: 216 30% 10%;
-    --sidebar-accent-foreground: 216 20% 95%;
-    --sidebar-border: 216 30% 12%;
-    --sidebar-ring: 68 78% 50%;
+    /* Sidebar (dark) */
+    --sidebar-background: 220 44% 7%;  /* #0A0F1C */
+    --sidebar-foreground: 216 30% 80%;
+    --sidebar-primary: 68 78% 61%;
+    --sidebar-primary-foreground: 217 45% 16%;
+    --sidebar-accent: 218 35% 16%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 218 30% 18%;
+    --sidebar-ring: 68 78% 61%;
   }
 }
 
@@ -167,13 +160,16 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-family: var(--font-sans);
-    font-feature-settings: "rlig" 1, "calt" 1;
+    font-feature-settings: "cv11", "ss01";
     /* Support for safe areas on mobile */
     padding-top: var(--safe-area-inset-top);
     padding-bottom: var(--safe-area-inset-bottom);
     padding-left: var(--safe-area-inset-left);
     padding-right: var(--safe-area-inset-right);
   }
+
+  /* Tighten display headings (premium feel) */
+  h1, h2, h3 { letter-spacing: -0.02em; }
 
   /* Tabular/aligned codes & data use the mono family */
   code, kbd, samp, pre, .font-mono {
@@ -232,22 +228,22 @@
   }
 
   @keyframes slideUp {
-    from { 
+    from {
       opacity: 0;
       transform: translateY(10px);
     }
-    to { 
+    to {
       opacity: 1;
       transform: translateY(0);
     }
   }
 
   @keyframes slideDown {
-    from { 
+    from {
       opacity: 0;
       transform: translateY(-10px);
     }
-    to { 
+    to {
       opacity: 1;
       transform: translateY(0);
     }
@@ -264,8 +260,9 @@
   @media (prefers-reduced-motion: reduce) {
     .animate-fade-in,
     .animate-slide-up,
-    .animate-slide-down {
-      animation: none;
+    .animate-slide-down,
+    .animate-fade-up {
+      animation: none !important;
     }
   }
 }
@@ -310,4 +307,20 @@
   .shadow-brand-md { box-shadow: var(--shadow-md); }
   .shadow-brand-lg { box-shadow: var(--shadow-lg); }
   .shadow-brand-xl { box-shadow: var(--shadow-xl); }
+}
+
+/* ============================================================
+   ELEVATION TOKENS (redesign) — layered SaaS depth.
+   shadow-card (rest) · shadow-raised (hover) · shadow-pop
+   (popovers) · shadow-float (dialogs). Deepen in dark.
+   ============================================================ */
+@layer utilities {
+  .shadow-card   { box-shadow: 0 1px 2px hsl(217 62% 12% / 0.05), 0 1px 1px hsl(217 62% 12% / 0.03); }
+  .shadow-raised { box-shadow: 0 2px 4px hsl(217 62% 12% / 0.05), 0 4px 12px hsl(217 62% 12% / 0.06); }
+  .shadow-pop    { box-shadow: 0 8px 24px hsl(217 62% 12% / 0.08), 0 2px 6px hsl(217 62% 12% / 0.05); }
+  .shadow-float  { box-shadow: 0 18px 48px hsl(217 62% 12% / 0.14), 0 6px 16px hsl(217 62% 12% / 0.08); }
+  .dark .shadow-card   { box-shadow: 0 1px 2px hsl(0 0% 0% / 0.4); }
+  .dark .shadow-raised { box-shadow: 0 2px 8px hsl(0 0% 0% / 0.45); }
+  .dark .shadow-pop    { box-shadow: 0 10px 28px hsl(0 0% 0% / 0.5); }
+  .dark .shadow-float  { box-shadow: 0 24px 56px hsl(0 0% 0% / 0.6); }
 }

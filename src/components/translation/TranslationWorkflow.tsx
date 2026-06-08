@@ -345,8 +345,8 @@ export function TranslationWorkflow({ studentId, studentName, onJobCreated }: Tr
                         </SelectContent>
                       </Select>
                     ) : (
-                      <div className="flex items-center justify-between gap-2 rounded-md border border-green-500 bg-green-500/10 px-3 py-2 text-sm">
-                        <span className="flex items-center gap-2 truncate"><Check className="h-4 w-4 text-green-600" />{uploadedSource.name}</span>
+                      <div className="flex items-center justify-between gap-2 rounded-md border border-success bg-success/10 px-3 py-2 text-sm">
+                        <span className="flex items-center gap-2 truncate"><Check className="h-4 w-4 text-success" />{uploadedSource.name}</span>
                         <button onClick={() => setUploadedSource(null)} className="text-destructive"><X className="h-4 w-4" /></button>
                       </div>
                     )}
@@ -360,7 +360,7 @@ export function TranslationWorkflow({ studentId, studentName, onJobCreated }: Tr
                   <div className="space-y-2">
                     <Label className="flex items-center gap-1"><Users className="h-4 w-4" />Qo'shimcha Hujjatlar (ismlarni to'g'ri yozish uchun)</Label>
                     {supporting.length === 0 && extraSupportFiles.length === 0 ? (
-                      <p className="text-xs text-yellow-600">Talaba zagran pasporti topilmadi — ismlar noto'g'ri bo'lishi mumkin. Pasport yuklang.</p>
+                      <p className="text-xs text-warning">Talaba zagran pasporti topilmadi — ismlar noto'g'ri bo'lishi mumkin. Pasport yuklang.</p>
                     ) : (
                       <div className="flex flex-wrap gap-1.5">
                         {supporting.map((s, i) => (
@@ -406,7 +406,7 @@ export function TranslationWorkflow({ studentId, studentName, onJobCreated }: Tr
             <ScrollArea className="h-[420px]">
               <div className="space-y-3">
                 {jobs.map((job) => (
-                  <Card key={job.id} className={cn(job.status === 'completed' && 'border-green-200', job.status === 'failed' && 'border-red-200')}>
+                  <Card key={job.id} className={cn(job.status === 'completed' && 'border-success/30', job.status === 'failed' && 'border-destructive/30')}>
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0 flex-1">
@@ -415,13 +415,13 @@ export function TranslationWorkflow({ studentId, studentName, onJobCreated }: Tr
                             {statusBadge(job.status)}
                           </div>
                           <p className="text-xs text-muted-foreground">{new Date(job.created_at).toLocaleString()}</p>
-                          {job.error_message && <p className="text-xs text-red-600 mt-1">{job.error_message}</p>}
+                          {job.error_message && <p className="text-xs text-destructive mt-1">{job.error_message}</p>}
                         </div>
                         <div className="flex items-center gap-1">
                           {job.status === 'completed' && job.output_pdf_path && (
                             <>
                               <Button variant="ghost" size="icon" title="Ko'rish / tahrirlash" onClick={() => openExistingJob(job)}><FileText className="h-4 w-4 text-primary" /></Button>
-                              <Button variant="ghost" size="icon" title="PDF yuklab olish" onClick={() => handleDownload(job.output_pdf_path!, `${job.document_type?.code ?? 'translation'}.pdf`)}><Download className="h-4 w-4 text-green-600" /></Button>
+                              <Button variant="ghost" size="icon" title="PDF yuklab olish" onClick={() => handleDownload(job.output_pdf_path!, `${job.document_type?.code ?? 'translation'}.pdf`)}><Download className="h-4 w-4 text-success" /></Button>
                             </>
                           )}
                           <Button variant="ghost" size="icon" title="O'chirish" onClick={() => handleDelete(job.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
@@ -459,9 +459,9 @@ export function TranslationWorkflow({ studentId, studentName, onJobCreated }: Tr
                 </div>
 
                 {activeResult.structured.unclearItems?.length > 0 && (
-                  <div className="rounded-lg border border-yellow-400 bg-yellow-50 dark:bg-yellow-950/20 p-3">
-                    <p className="flex items-center gap-1 text-sm font-medium text-yellow-700 dark:text-yellow-400 mb-1"><AlertTriangle className="h-4 w-4" />Tekshirish kerak</p>
-                    <ul className="list-disc pl-5 text-xs text-yellow-700 dark:text-yellow-400 space-y-0.5">
+                  <div className="rounded-lg border border-warning bg-warning/10 dark:bg-warning/20 p-3">
+                    <p className="flex items-center gap-1 text-sm font-medium text-warning dark:text-warning mb-1"><AlertTriangle className="h-4 w-4" />Tekshirish kerak</p>
+                    <ul className="list-disc pl-5 text-xs text-warning dark:text-warning space-y-0.5">
                       {activeResult.structured.unclearItems.map((u, i) => <li key={i}>{u}</li>)}
                     </ul>
                   </div>

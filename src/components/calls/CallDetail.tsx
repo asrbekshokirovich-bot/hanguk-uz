@@ -43,9 +43,9 @@ export function CallDetail({ call, onEdit }: CallDetailProps) {
       return <PhoneMissed className="h-6 w-6 text-destructive" />;
     }
     return call.direction === 'incoming' ? (
-      <PhoneIncoming className="h-6 w-6 text-green-500" />
+      <PhoneIncoming className="h-6 w-6 text-success" />
     ) : (
-      <PhoneOutgoing className="h-6 w-6 text-blue-500" />
+      <PhoneOutgoing className="h-6 w-6 text-info" />
     );
   };
 

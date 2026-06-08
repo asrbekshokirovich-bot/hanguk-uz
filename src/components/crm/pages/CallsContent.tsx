@@ -84,7 +84,7 @@ export default function CallsContent() {
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
-              <PhoneIncoming className="h-5 w-5 text-green-500" />
+              <PhoneIncoming className="h-5 w-5 text-success" />
               <span className="text-2xl font-bold">{incomingCalls}</span>
             </div>
           </CardContent>
@@ -98,7 +98,7 @@ export default function CallsContent() {
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
-              <PhoneOutgoing className="h-5 w-5 text-blue-500" />
+              <PhoneOutgoing className="h-5 w-5 text-info" />
               <span className="text-2xl font-bold">{outgoingCalls}</span>
             </div>
           </CardContent>
@@ -126,7 +126,7 @@ export default function CallsContent() {
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
-              <Clock className="h-5 w-5 text-orange-500" />
+              <Clock className="h-5 w-5 text-warning" />
               <span className="text-2xl font-bold">
                 {Math.floor(avgDuration / 60)}:{(avgDuration % 60).toString().padStart(2, '0')}
               </span>

@@ -235,8 +235,8 @@ export function StudentAITranslationPage() {
                 </Label>
 
                 {uploadedSource ? (
-                  <div className="flex items-center justify-between gap-2 rounded-lg border border-green-500 bg-green-500/10 px-3 py-2 text-sm">
-                    <span className="flex items-center gap-2 truncate text-green-700">
+                  <div className="flex items-center justify-between gap-2 rounded-lg border border-success bg-success/10 px-3 py-2 text-sm">
+                    <span className="flex items-center gap-2 truncate text-success">
                       <CheckCircle className="h-4 w-4 shrink-0" />
                       <span className="truncate">{uploadedSource.name}</span>
                     </span>
@@ -274,7 +274,7 @@ export function StudentAITranslationPage() {
                 </Label>
 
                 {autoSupporting.length === 0 && extraFiles.length === 0 ? (
-                  <p className="text-xs text-amber-600 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg px-3 py-2">
+                  <p className="text-xs text-warning bg-warning/10 dark:bg-warning/20 border border-warning/30 dark:border-warning rounded-lg px-3 py-2">
                     <AlertTriangle className="h-3 w-3 inline mr-1" />
                     Zagran pasport topilmadi
                   </p>
@@ -330,10 +330,10 @@ export function StudentAITranslationPage() {
 
       {/* Natija */}
       {completedDocxPath && (
-        <Card className="border-green-300 bg-green-50 dark:bg-green-950/20">
+        <Card className="border-success/30 bg-success/10 dark:bg-success/20">
           <CardContent className="pt-4 pb-4">
             <div className="flex items-center justify-between gap-3 flex-wrap">
-              <div className="flex items-center gap-2 text-green-700 dark:text-green-400">
+              <div className="flex items-center gap-2 text-success dark:text-success">
                 <CheckCircle className="h-5 w-5 shrink-0" />
                 <div>
                   <p className="font-medium">Tarjima tayyor!</p>
@@ -369,8 +369,8 @@ export function StudentAITranslationPage() {
           <div className="space-y-2">
             {jobs.map((job) => (
               <Card key={job.id} className={cn(
-                job.status === 'completed' && 'border-green-200',
-                job.status === 'failed' && 'border-red-200',
+                job.status === 'completed' && 'border-success/30',
+                job.status === 'failed' && 'border-destructive/30',
               )}>
                 <CardContent className="p-3">
                   <div className="flex items-center justify-between gap-3">
@@ -382,13 +382,13 @@ export function StudentAITranslationPage() {
                       <p className="text-xs text-muted-foreground mt-0.5">
                         {new Date(job.created_at).toLocaleString('uz-UZ')}
                       </p>
-                      {job.error_message && <p className="text-xs text-red-600 mt-1">{job.error_message}</p>}
+                      {job.error_message && <p className="text-xs text-destructive mt-1">{job.error_message}</p>}
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
                       {job.status === 'completed' && job.output_docx_path && (
                         <Button variant="ghost" size="icon" className="h-8 w-8" title="Word yuklab olish"
                           onClick={() => handleDownload(job.output_docx_path!, `tarjima_${job.document_type?.code ?? 'hujjat'}.docx`)}>
-                          <Download className="h-4 w-4 text-green-600" />
+                          <Download className="h-4 w-4 text-success" />
                         </Button>
                       )}
                       <Button variant="ghost" size="icon" className="h-8 w-8" title="O'chirish" onClick={() => handleDelete(job.id)}>

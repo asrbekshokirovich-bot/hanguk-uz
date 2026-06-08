@@ -8,6 +8,7 @@ import { useUniversityStaffData } from '@/hooks/useUniversityStaffData';
 import { useUniversityAnnouncements } from '@/hooks/useUniversityAnnouncements';
 import { useUniversityRoom } from '@/hooks/useUniversityRoom';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { ThemeToggleButton } from '@/components/ThemeToggleButton';
 import { RoomChat } from '@/components/student/RoomChat';
 import { AnnouncementFeed } from '@/components/student/AnnouncementFeed';
 import { UniversityCalendar } from '@/components/student/UniversityCalendar';
@@ -138,6 +139,7 @@ export default function UniversityStaffPortal() {
           </div>
           <div className="flex items-center gap-2">
             <LanguageSwitcher />
+            <ThemeToggleButton />
             <Button variant="ghost" size="sm" onClick={handleSignOut}>
               <LogOut className="h-4 w-4 mr-2" />
               <span className="hidden sm:inline">{t('auth.logout')}</span>

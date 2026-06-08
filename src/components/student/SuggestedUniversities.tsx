@@ -61,14 +61,14 @@ export function SuggestedUniversities({ suggestions, onRefresh, onShowOnMap }: S
 
   return (
     <div className="space-y-4 mb-6">
-      <h2 className="text-lg font-semibold flex items-center gap-2 text-blue-600 dark:text-blue-400">
+      <h2 className="text-lg font-semibold flex items-center gap-2 text-info dark:text-info">
         <Lightbulb className="h-5 w-5" />
         {t('student.suggestedForYou', 'Suggested For You')}
       </h2>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {suggestions.map((suggestion) => (
-          <Card key={suggestion.id} className="relative overflow-hidden border-blue-100 dark:border-blue-900/50 bg-blue-50/30 dark:bg-blue-900/10">
+          <Card key={suggestion.id} className="relative overflow-hidden border-info/30 dark:border-info/50 bg-info/10/30 dark:bg-info/10">
             <CardContent className="p-4 flex items-center gap-4">
               {suggestion.university?.logo_url ? (
                 <img
@@ -77,8 +77,8 @@ export function SuggestedUniversities({ suggestions, onRefresh, onShowOnMap }: S
                   className="h-12 w-12 rounded-xl object-cover"
                 />
               ) : (
-                <div className="h-12 w-12 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center">
-                  <Lightbulb className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                <div className="h-12 w-12 bg-info/10 dark:bg-info/30 rounded-xl flex items-center justify-center">
+                  <Lightbulb className="h-6 w-6 text-info dark:text-info" />
                 </div>
               )}
               

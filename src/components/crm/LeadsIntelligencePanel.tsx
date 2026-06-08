@@ -100,16 +100,16 @@ const CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutes
 
 const severityConfig = {
   critical: { color: 'text-destructive', bg: 'bg-destructive/10 border-destructive/30', icon: XCircle, label: 'CRITICAL' },
-  high: { color: 'text-orange-500', bg: 'bg-orange-500/10 border-orange-500/30', icon: AlertTriangle, label: 'HIGH' },
-  medium: { color: 'text-yellow-500', bg: 'bg-yellow-500/10 border-yellow-500/30', icon: AlertCircle, label: 'MEDIUM' },
-  low: { color: 'text-blue-500', bg: 'bg-blue-500/10 border-blue-500/30', icon: Info, label: 'LOW' },
+  high: { color: 'text-warning', bg: 'bg-warning/10 border-warning/30', icon: AlertTriangle, label: 'HIGH' },
+  medium: { color: 'text-warning', bg: 'bg-warning/10 border-warning/30', icon: AlertCircle, label: 'MEDIUM' },
+  low: { color: 'text-info', bg: 'bg-info/10 border-info/30', icon: Info, label: 'LOW' },
 };
 
 const healthConfig = {
   critical: { color: 'text-destructive', bg: 'bg-destructive/10', label: '🔴 Critical' },
-  poor: { color: 'text-orange-500', bg: 'bg-orange-500/10', label: '🟠 Poor' },
-  fair: { color: 'text-yellow-500', bg: 'bg-yellow-500/10', label: '🟡 Fair' },
-  good: { color: 'text-green-500', bg: 'bg-green-500/10', label: '🟢 Good' },
+  poor: { color: 'text-warning', bg: 'bg-warning/10', label: '🟠 Poor' },
+  fair: { color: 'text-warning', bg: 'bg-warning/10', label: '🟡 Fair' },
+  good: { color: 'text-success', bg: 'bg-success/10', label: '🟢 Good' },
   unknown: { color: 'text-muted-foreground', bg: 'bg-muted', label: '⚪ Unknown' },
 };
 
@@ -196,9 +196,9 @@ export const LeadsIntelligencePanel: React.FC<LeadsIntelligencePanelProps> = ({ 
       <Card className={cn(
         "border-2 transition-colors",
         analysis?.overall_health === 'critical' && "border-destructive/40",
-        analysis?.overall_health === 'poor' && "border-orange-500/40",
-        analysis?.overall_health === 'fair' && "border-yellow-500/40",
-        analysis?.overall_health === 'good' && "border-green-500/40",
+        analysis?.overall_health === 'poor' && "border-warning/40",
+        analysis?.overall_health === 'fair' && "border-warning/40",
+        analysis?.overall_health === 'good' && "border-success/40",
         !analysis && "border-border"
       )}>
         <CardHeader className="pb-3">
@@ -376,13 +376,13 @@ export const LeadsIntelligencePanel: React.FC<LeadsIntelligencePanelProps> = ({ 
               <div className={cn(
                 "flex items-start gap-2 p-3 rounded-lg border text-sm",
                 analysis.weekly_trend.direction === 'declining' && "bg-destructive/5 border-destructive/20",
-                analysis.weekly_trend.direction === 'improving' && "bg-green-500/5 border-green-500/20",
+                analysis.weekly_trend.direction === 'improving' && "bg-success/5 border-success/20",
                 analysis.weekly_trend.direction === 'stable' && "bg-muted border-border",
               )}>
                 {analysis.weekly_trend.direction === 'declining' ? (
                   <TrendingDown className="h-4 w-4 text-destructive mt-0.5 flex-shrink-0" />
                 ) : analysis.weekly_trend.direction === 'improving' ? (
-                  <TrendingUp className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                  <TrendingUp className="h-4 w-4 text-success mt-0.5 flex-shrink-0" />
                 ) : (
                   <Minus className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
                 )}
@@ -415,7 +415,7 @@ export const LeadsIntelligencePanel: React.FC<LeadsIntelligencePanelProps> = ({ 
                 <ActionLeadGroup
                   icon={UserX}
                   title="Never Been Contacted"
-                  color="text-amber-500"
+                  color="text-warning"
                   leads={neverContactedLeads}
                   getSubtext={(l) => `Added ${formatDistanceToNow(new Date(l.created_at), { addSuffix: true })}`}
                 />
@@ -425,14 +425,14 @@ export const LeadsIntelligencePanel: React.FC<LeadsIntelligencePanelProps> = ({ 
                 <ActionLeadGroup
                   icon={Flame}
                   title="Hot Leads Stuck in Contacted"
-                  color="text-orange-500"
+                  color="text-warning"
                   leads={hotStuckLeads}
                   getSubtext={(l) => `Score: ${l.priority_score} — stuck ${formatDistanceToNow(new Date(l.updated_at), { addSuffix: true })}`}
                 />
               )}
 
               {overdueLeads.length === 0 && neverContactedLeads.length === 0 && hotStuckLeads.length === 0 && (
-                <div className="flex items-center gap-2 text-sm text-green-600 bg-green-500/10 rounded-lg p-3">
+                <div className="flex items-center gap-2 text-sm text-success bg-success/10 rounded-lg p-3">
                   <CheckCircle2 className="h-4 w-4" />
                   No urgent leads to action right now. Pipeline looks healthy!
                 </div>
@@ -451,8 +451,8 @@ export const LeadsIntelligencePanel: React.FC<LeadsIntelligencePanelProps> = ({ 
                       <Badge variant="outline" className={cn(
                         "text-xs",
                         rec.priority === 'immediate' && "border-destructive/50 text-destructive",
-                        rec.priority === 'short_term' && "border-orange-500/50 text-orange-500",
-                        rec.priority === 'strategic' && "border-blue-500/50 text-blue-500",
+                        rec.priority === 'short_term' && "border-warning/50 text-warning",
+                        rec.priority === 'strategic' && "border-info/50 text-info",
                       )}>
                         {rec.priority.replace('_', ' ')}
                       </Badge>
@@ -484,8 +484,8 @@ interface StatPillProps {
 const StatPill: React.FC<StatPillProps> = ({ icon: Icon, label, value, subValue, color, loading }) => {
   const colorMap = {
     red: 'text-destructive bg-destructive/10 border-destructive/20',
-    amber: 'text-amber-500 bg-amber-500/10 border-amber-500/20',
-    green: 'text-green-600 bg-green-500/10 border-green-500/20',
+    amber: 'text-warning bg-warning/10 border-warning/20',
+    green: 'text-success bg-success/10 border-success/20',
     muted: 'text-muted-foreground bg-muted border-border',
   };
 

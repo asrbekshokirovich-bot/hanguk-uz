@@ -58,7 +58,7 @@ export function ProcessTracker({ currentStatus, compact = false }: ProcessTracke
                   className={cn(
                     "rounded-full flex items-center justify-center transition-all",
                     compact ? "h-5 w-5" : "h-7 w-7",
-                    status === 'completed' && "bg-green-500 text-white",
+                    status === 'completed' && "bg-success text-white",
                     status === 'current' && "bg-primary text-primary-foreground animate-pulse ring-4 ring-primary/20",
                     status === 'upcoming' && "border-2 border-muted-foreground/30 bg-background"
                   )}
@@ -75,7 +75,7 @@ export function ProcessTracker({ currentStatus, compact = false }: ProcessTracke
                   className={cn(
                     "text-center mt-1 leading-tight max-w-[60px]",
                     compact ? "text-[8px]" : "text-[10px]",
-                    status === 'completed' && "text-green-600 dark:text-green-400 font-medium",
+                    status === 'completed' && "text-success dark:text-success font-medium",
                     status === 'current' && "text-primary font-semibold",
                     status === 'upcoming' && "text-muted-foreground"
                   )}
@@ -93,7 +93,7 @@ export function ProcessTracker({ currentStatus, compact = false }: ProcessTracke
                     "self-start",
                     compact ? "mt-2.5" : "mt-3.5",
                     currentIndex > index
-                      ? "bg-green-500"
+                      ? "bg-success"
                       : currentIndex === index
                       ? "bg-gradient-to-r from-primary to-muted-foreground/30"
                       : "bg-muted-foreground/20 border-t border-dashed border-muted-foreground/30"

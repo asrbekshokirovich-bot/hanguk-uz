@@ -93,37 +93,37 @@ export default function AIAssistantContent() {
       icon: TrendingUp,
       label: t('ai.quickDashboard', 'Dashboard Overview'),
       message: 'Show me the current dashboard overview with all key metrics and what needs immediate attention.',
-      color: 'bg-blue-500/10 text-blue-600 hover:bg-blue-500/20'
+      color: 'bg-info/10 text-info hover:bg-info/20'
     },
     {
       icon: Users,
       label: t('ai.quickStudents', 'Student Summary'),
       message: 'Give me a summary of all students - how many total, any pending documents, and who needs follow-up.',
-      color: 'bg-green-500/10 text-green-600 hover:bg-green-500/20'
+      color: 'bg-success/10 text-success hover:bg-success/20'
     },
     {
       icon: ClipboardList,
       label: t('ai.quickTasks', 'My Tasks'),
       message: 'Show me all my pending tasks sorted by priority and due date.',
-      color: 'bg-orange-500/10 text-orange-600 hover:bg-orange-500/20'
+      color: 'bg-warning/10 text-warning hover:bg-warning/20'
     },
     {
       icon: FileText,
       label: t('ai.quickDocuments', 'Pending Documents'),
       message: 'Which documents are pending review? List them with student names.',
-      color: 'bg-purple-500/10 text-purple-600 hover:bg-purple-500/20'
+      color: 'bg-primary/10 text-primary hover:bg-primary/20'
     },
     {
       icon: MessageSquare,
       label: t('ai.quickMessages', 'Unread Messages'),
       message: 'Show me all unread messages and who they are from.',
-      color: 'bg-pink-500/10 text-pink-600 hover:bg-pink-500/20'
+      color: 'bg-accent/15 text-accent-foreground hover:bg-accent/25'
     },
     {
       icon: Zap,
       label: t('ai.quickUrgent', 'Urgent Items'),
       message: 'What are the most urgent items that need my attention right now? Include overdue payments, urgent tasks, and pending approvals.',
-      color: 'bg-red-500/10 text-red-600 hover:bg-red-500/20'
+      color: 'bg-destructive/10 text-destructive hover:bg-destructive/20'
     },
   ];
 
@@ -274,6 +274,7 @@ export default function AIAssistantContent() {
                 <Button
                   onClick={handleSend}
                   disabled={!input.trim() || isLoading}
+                  variant="highlight"
                   size="lg"
                   className="h-14 w-14 flex-shrink-0"
                 >
@@ -313,7 +314,7 @@ export default function AIAssistantContent() {
               <div className="pt-4 border-t mt-4">
                 <Button
                   variant="ghost"
-                  className="w-full justify-start gap-3 h-auto py-3 px-3 bg-indigo-500/10 text-indigo-600 hover:bg-indigo-500/20"
+                  className="w-full justify-start gap-3 h-auto py-3 px-3 bg-info/10 text-info hover:bg-info/20"
                   onClick={indexDocuments}
                   disabled={indexing}
                 >
@@ -329,7 +330,7 @@ export default function AIAssistantContent() {
                 </p>
                 <Button
                   variant="ghost"
-                  className="w-full justify-start gap-3 h-auto py-3 px-3 mt-2 bg-teal-500/10 text-teal-600 hover:bg-teal-500/20"
+                  className="w-full justify-start gap-3 h-auto py-3 px-3 mt-2 bg-success/10 text-success hover:bg-success/20"
                   onClick={enrichLeads}
                   disabled={enriching}
                 >

@@ -379,15 +379,15 @@ export function AddPaymentDialog({
         {/* Payment Progress for Installments */}
         {isInstallment && (
           <div className="flex gap-2">
-            <div className={`flex-1 p-2 rounded-lg border ${hasInitialDeposit ? 'bg-green-500/10 border-green-500' : 'bg-muted'}`}>
+            <div className={`flex-1 p-2 rounded-lg border ${hasInitialDeposit ? 'bg-success/10 border-success' : 'bg-muted'}`}>
               <p className="text-xs font-medium">1st Payment</p>
-              <p className={`text-xs ${hasInitialDeposit ? 'text-green-600' : 'text-muted-foreground'}`}>
+              <p className={`text-xs ${hasInitialDeposit ? 'text-success' : 'text-muted-foreground'}`}>
                 {hasInitialDeposit ? '✓ Recorded' : 'Pending'}
               </p>
             </div>
-            <div className={`flex-1 p-2 rounded-lg border ${hasRemainingPayment ? 'bg-green-500/10 border-green-500' : 'bg-muted'}`}>
+            <div className={`flex-1 p-2 rounded-lg border ${hasRemainingPayment ? 'bg-success/10 border-success' : 'bg-muted'}`}>
               <p className="text-xs font-medium">2nd Payment</p>
-              <p className={`text-xs ${hasRemainingPayment ? 'text-green-600' : 'text-muted-foreground'}`}>
+              <p className={`text-xs ${hasRemainingPayment ? 'text-success' : 'text-muted-foreground'}`}>
                 {hasRemainingPayment ? '✓ Recorded' : 'Pending'}
               </p>
             </div>
@@ -542,9 +542,9 @@ export function AddPaymentDialog({
 
           {/* Net Income Preview */}
           {formData.paidAmount && Number(formData.paidAmount) > 0 && (
-            <div className="bg-green-500/20 rounded-lg p-3">
+            <div className="bg-success/20 rounded-lg p-3">
               <p className="text-sm text-muted-foreground">Net Income (You Will Receive):</p>
-              <p className="text-xl font-bold text-green-500">
+              <p className="text-xl font-bold text-success">
                 {netIncome.toLocaleString()} {formData.currency}
               </p>
             </div>

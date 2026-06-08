@@ -75,7 +75,7 @@ export function VoiceChannelStaffPanel({ compact = false }: VoiceChannelStaffPan
       <div className="space-y-2">
         <div className="flex items-center justify-between px-2">
           <div className="flex items-center gap-2 text-sm">
-            <Radio className={cn('h-4 w-4', isConnected ? 'text-green-500' : 'text-muted-foreground')} />
+            <Radio className={cn('h-4 w-4', isConnected ? 'text-success' : 'text-muted-foreground')} />
             <span className="font-medium">
               Online ({onlineCount})
             </span>
@@ -145,7 +145,7 @@ export function VoiceChannelStaffPanel({ compact = false }: VoiceChannelStaffPan
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Radio className={cn('h-5 w-5', isConnected ? 'text-green-500' : 'text-muted-foreground')} />
+          <Radio className={cn('h-5 w-5', isConnected ? 'text-success' : 'text-muted-foreground')} />
           <div>
             <h3 className="font-semibold">Ovozli kanal</h3>
             <p className="text-xs text-muted-foreground">

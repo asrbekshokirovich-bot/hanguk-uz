@@ -13,7 +13,7 @@ interface AnnouncementFeedProps {
 // Issue 11: priority labels are now translated via i18n keys
 const getPriorityConfig = (t: (key: string, fallback: string) => string) => ({
   urgent: { color: 'bg-destructive text-destructive-foreground', icon: AlertTriangle, label: t('tasks.urgent', 'Urgent') },
-  high: { color: 'bg-orange-500 text-white', icon: Bell, label: t('tasks.high', 'High') },
+  high: { color: 'bg-warning text-white', icon: Bell, label: t('tasks.high', 'High') },
   normal: { color: 'bg-primary text-primary-foreground', icon: Info, label: t('tasks.normal', 'Normal') },
   low: { color: 'bg-muted text-muted-foreground', icon: Info, label: t('tasks.low', 'Low') },
 });

@@ -66,7 +66,7 @@ export function AchievementsPanel({
     <Sheet>
       <SheetTrigger asChild>
         <Button variant="outline" size="sm" className="gap-2">
-          <Trophy className="h-4 w-4 text-amber-500" />
+          <Trophy className="h-4 w-4 text-warning" />
           <span className="hidden sm:inline">{t('study.achievements', 'Achievements')}</span>
           <Badge variant="secondary" className="ml-1">
             {unlockedCount}/{totalAchievements}
@@ -76,7 +76,7 @@ export function AchievementsPanel({
       <SheetContent className="w-full sm:max-w-md">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
-            <Trophy className="h-5 w-5 text-amber-500" />
+            <Trophy className="h-5 w-5 text-warning" />
             {t('study.achievementsTitle', 'Your Achievements')}
           </SheetTitle>
           <SheetDescription>
@@ -98,7 +98,7 @@ export function AchievementsPanel({
                     <p className="text-xs text-muted-foreground">{xp.toLocaleString()} XP</p>
                   </div>
                 </div>
-                <Star className="h-6 w-6 text-amber-500" />
+                <Star className="h-6 w-6 text-warning" />
               </div>
               <Progress value={(xp % 1000) / 10} className="h-2" />
               <p className="text-xs text-muted-foreground mt-1">
@@ -107,13 +107,13 @@ export function AchievementsPanel({
             </div>
 
             {/* Streak */}
-            <div className="bg-orange-50 dark:bg-orange-950/30 rounded-lg p-4">
+            <div className="bg-warning/10 dark:bg-warning/30 rounded-lg p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900 rounded-full flex items-center justify-center">
+                  <div className="w-12 h-12 bg-warning/10 dark:bg-warning rounded-full flex items-center justify-center">
                     <Flame className={cn(
                       'h-6 w-6',
-                      streak.currentStreak > 0 ? 'text-orange-500' : 'text-muted-foreground'
+                      streak.currentStreak > 0 ? 'text-warning' : 'text-muted-foreground'
                     )} />
                   </div>
                   <div>
@@ -154,16 +154,16 @@ export function AchievementsPanel({
                       className={cn(
                         'flex items-center gap-3 p-3 rounded-lg border transition-colors',
                         isEarned
-                          ? 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800'
+                          ? 'bg-warning/10 dark:bg-warning/30 border-warning/30 dark:border-warning'
                           : 'bg-muted/30 border-transparent opacity-60'
                       )}
                     >
                       <div className={cn(
                         'w-10 h-10 rounded-full flex items-center justify-center shrink-0',
-                        isEarned ? 'bg-amber-100 dark:bg-amber-900' : 'bg-muted'
+                        isEarned ? 'bg-warning/10 dark:bg-warning' : 'bg-muted'
                       )}>
                         {isEarned ? (
-                          <Icon className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                          <Icon className="h-5 w-5 text-warning dark:text-warning" />
                         ) : (
                           <Lock className="h-4 w-4 text-muted-foreground" />
                         )}
@@ -179,7 +179,7 @@ export function AchievementsPanel({
                           {achievement.description}
                         </p>
                         {isEarned && achievement.earnedAt && (
-                          <p className="text-xs text-amber-600 dark:text-amber-400 mt-0.5">
+                          <p className="text-xs text-warning dark:text-warning mt-0.5">
                             {t('study.earned', 'Earned')} {formatDistanceToNow(new Date(achievement.earnedAt), { addSuffix: true })}
                           </p>
                         )}
@@ -203,7 +203,7 @@ export function StreakIndicator({ streak }: { streak: WritingStreak }) {
   if (streak.currentStreak === 0) return null;
 
   return (
-    <Badge variant="outline" className="gap-1 border-orange-300 text-orange-600 dark:border-orange-700 dark:text-orange-400">
+    <Badge variant="outline" className="gap-1 border-warning/30 text-warning dark:border-warning dark:text-warning">
       <Flame className="h-3 w-3" />
       {streak.currentStreak}
     </Badge>

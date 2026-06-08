@@ -132,13 +132,13 @@ const CONTACT_TYPES: { value: ContactType; label: string; icon: string }[] = [
 ];
 
 const OUTCOMES: { value: ContactOutcome; label: string; icon: React.ReactNode; color: string }[] = [
-  { value: 'answered', label: 'Answered', icon: <CheckCircle2 className="h-4 w-4" />, color: 'text-green-500' },
-  { value: 'interested', label: 'Interested', icon: <Sparkles className="h-4 w-4" />, color: 'text-emerald-500' },
-  { value: 'callback_requested', label: 'Callback', icon: <PhoneCall className="h-4 w-4" />, color: 'text-blue-500' },
-  { value: 'no_answer', label: 'No Answer', icon: <AlertCircle className="h-4 w-4" />, color: 'text-yellow-500' },
-  { value: 'busy', label: 'Busy', icon: <Clock className="h-4 w-4" />, color: 'text-orange-500' },
-  { value: 'voicemail', label: 'Voicemail', icon: <MessageSquare className="h-4 w-4" />, color: 'text-gray-500' },
-  { value: 'not_interested', label: 'Not Interested', icon: <XCircle className="h-4 w-4" />, color: 'text-red-500' },
+  { value: 'answered', label: 'Answered', icon: <CheckCircle2 className="h-4 w-4" />, color: 'text-success' },
+  { value: 'interested', label: 'Interested', icon: <Sparkles className="h-4 w-4" />, color: 'text-success' },
+  { value: 'callback_requested', label: 'Callback', icon: <PhoneCall className="h-4 w-4" />, color: 'text-info' },
+  { value: 'no_answer', label: 'No Answer', icon: <AlertCircle className="h-4 w-4" />, color: 'text-warning' },
+  { value: 'busy', label: 'Busy', icon: <Clock className="h-4 w-4" />, color: 'text-warning' },
+  { value: 'voicemail', label: 'Voicemail', icon: <MessageSquare className="h-4 w-4" />, color: 'text-muted-foreground' },
+  { value: 'not_interested', label: 'Not Interested', icon: <XCircle className="h-4 w-4" />, color: 'text-destructive' },
 ];
 
 export const LeadDetailSheet: React.FC<LeadDetailSheetProps> = ({
@@ -361,9 +361,9 @@ export const LeadDetailSheet: React.FC<LeadDetailSheetProps> = ({
 
   const getPriorityColor = (score: number | null) => {
     if (!score) return 'bg-muted text-muted-foreground';
-    if (score >= 70) return 'bg-red-500/10 text-red-500 border-red-500/30';
-    if (score >= 50) return 'bg-yellow-500/10 text-yellow-500 border-yellow-500/30';
-    return 'bg-blue-500/10 text-blue-500 border-blue-500/30';
+    if (score >= 70) return 'bg-destructive/10 text-destructive border-destructive/30';
+    if (score >= 50) return 'bg-warning/10 text-warning border-warning/30';
+    return 'bg-info/10 text-info border-info/30';
   };
 
   const getOutcomeDisplay = (outcome: string | null) => {
@@ -1045,13 +1045,13 @@ export const LeadDetailSheet: React.FC<LeadDetailSheetProps> = ({
                   </Card>
                   <Card>
                     <CardContent className="p-3 text-center">
-                      <p className="text-2xl font-bold text-green-500">{contactStats.answered}</p>
+                      <p className="text-2xl font-bold text-success">{contactStats.answered}</p>
                       <p className="text-xs text-muted-foreground">Answered</p>
                     </CardContent>
                   </Card>
                   <Card>
                     <CardContent className="p-3 text-center">
-                      <p className="text-2xl font-bold text-yellow-500">{contactStats.noAnswer}</p>
+                      <p className="text-2xl font-bold text-warning">{contactStats.noAnswer}</p>
                       <p className="text-xs text-muted-foreground">No Answer</p>
                     </CardContent>
                   </Card>
@@ -1108,8 +1108,8 @@ export const LeadDetailSheet: React.FC<LeadDetailSheetProps> = ({
                           className={cn(
                             'gap-1.5 transition-all',
                             contractEnabled
-                              ? 'bg-indigo-600 hover:bg-indigo-700 text-white'
-                              : 'text-indigo-600 border-indigo-300 hover:bg-indigo-50'
+                              ? 'bg-primary hover:bg-primary text-white'
+                              : 'text-primary border-primary/30 hover:bg-primary/10'
                           )}
                           onClick={() => setContractEnabled(!contractEnabled)}
                         >
@@ -1120,8 +1120,8 @@ export const LeadDetailSheet: React.FC<LeadDetailSheetProps> = ({
                     </div>
                     {/* Contract section */}
                     {lead.contract_number && !contractEnabled ? (
-                      <div className="rounded-lg border border-indigo-200 bg-indigo-50/30 p-3 space-y-2">
-                        <div className="flex items-center gap-2 text-sm font-medium text-indigo-700">
+                      <div className="rounded-lg border border-primary/30 bg-primary/10/30 p-3 space-y-2">
+                        <div className="flex items-center gap-2 text-sm font-medium text-primary">
                           <FileText className="h-4 w-4" />
                           Shartnoma ma'lumotlari
                         </div>
@@ -1194,7 +1194,7 @@ export const LeadDetailSheet: React.FC<LeadDetailSheetProps> = ({
                         </AlertDialog>
                       </div>
                     ) : contractEnabled ? (
-                      <div className="rounded-lg border border-indigo-200 bg-indigo-50/30 p-3 space-y-3">
+                      <div className="rounded-lg border border-primary/30 bg-primary/10/30 p-3 space-y-3">
                         <div>
                           <Label className="text-xs text-muted-foreground">Shartnoma raqami</Label>
                           <Input
@@ -1264,7 +1264,7 @@ export const LeadDetailSheet: React.FC<LeadDetailSheetProps> = ({
                               }
                             }}
                             disabled={!formData.contract_number?.trim()}
-                            className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white"
+                            className="flex-1 bg-primary hover:bg-primary text-white"
                           >
                             <Save className="h-4 w-4 mr-1" />
                             Shartnomani saqlash
@@ -1297,7 +1297,7 @@ export const LeadDetailSheet: React.FC<LeadDetailSheetProps> = ({
                         <div className="flex-1 space-y-1">
                           <Label className="text-xs text-muted-foreground flex items-center gap-1">
                             <CalendarPlus className="h-3 w-3" />
-                            Next Follow-up <span className="text-red-500">*</span>
+                            Next Follow-up <span className="text-destructive">*</span>
                           </Label>
                           <Popover>
                             <PopoverTrigger asChild>
@@ -1305,7 +1305,7 @@ export const LeadDetailSheet: React.FC<LeadDetailSheetProps> = ({
                                 variant="outline"
                                 className={cn(
                                   "w-full justify-start text-left font-normal",
-                                  !nextFollowUp && "text-muted-foreground border-red-500/50"
+                                  !nextFollowUp && "text-muted-foreground border-destructive/50"
                                 )}
                               >
                                 <CalendarPlus className="mr-2 h-4 w-4" />

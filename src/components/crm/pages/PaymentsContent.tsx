@@ -44,8 +44,8 @@ export default function PaymentsContent() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 bg-green-100 rounded-lg">
-              <TrendingUp className="h-5 w-5 text-green-600" />
+            <div className="p-2 bg-success/10 rounded-lg">
+              <TrendingUp className="h-5 w-5 text-success" />
             </div>
             <div>
               <p className="text-2xl font-bold">${stats.totalCollected.toLocaleString()}</p>
@@ -55,8 +55,8 @@ export default function PaymentsContent() {
         </Card>
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 bg-yellow-100 rounded-lg">
-              <Clock className="h-5 w-5 text-yellow-600" />
+            <div className="p-2 bg-warning/10 rounded-lg">
+              <Clock className="h-5 w-5 text-warning" />
             </div>
             <div>
               <p className="text-2xl font-bold">${stats.totalPending.toLocaleString()}</p>
@@ -66,8 +66,8 @@ export default function PaymentsContent() {
         </Card>
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <CheckCircle className="h-5 w-5 text-blue-600" />
+            <div className="p-2 bg-info/10 rounded-lg">
+              <CheckCircle className="h-5 w-5 text-info" />
             </div>
             <div>
               <p className="text-2xl font-bold">{stats.completedCount}</p>
@@ -77,8 +77,8 @@ export default function PaymentsContent() {
         </Card>
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 bg-red-100 rounded-lg">
-              <AlertCircle className="h-5 w-5 text-red-600" />
+            <div className="p-2 bg-destructive/10 rounded-lg">
+              <AlertCircle className="h-5 w-5 text-destructive" />
             </div>
             <div>
               <p className="text-2xl font-bold">{stats.overdueCount}</p>

@@ -100,10 +100,10 @@ export function InvoiceView({ payment, onClose }: InvoiceViewProps) {
               <div className="col-span-3 text-right">
                 <span className={`px-2 py-1 rounded text-xs ${
                   payment.status === 'completed' 
-                    ? 'bg-green-100 text-green-700' 
+                    ? 'bg-success/10 text-success' 
                     : payment.status === 'partial'
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'bg-yellow-100 text-yellow-700'
+                    ? 'bg-info/10 text-info'
+                    : 'bg-warning/10 text-warning'
                 }`}>
                   {payment.status}
                 </span>
@@ -120,7 +120,7 @@ export function InvoiceView({ payment, onClose }: InvoiceViewProps) {
               <span className="text-muted-foreground">{t('payments.totalAmount')}</span>
               <span className="font-medium">{formatCurrency(Number(payment.amount), payment.currency)}</span>
             </div>
-            <div className="flex justify-between text-green-600">
+            <div className="flex justify-between text-success">
               <span>{t('payments.paidAmount')}</span>
               <span className="font-medium">{formatCurrency(Number(payment.paid_amount), payment.currency)}</span>
             </div>

@@ -243,7 +243,7 @@ export function AddStudentDialog({ open, onOpenChange, onSuccess }: AddStudentDi
           // Success screen with magic code
           <>
             <DialogHeader>
-              <DialogTitle className="flex items-center gap-2 text-green-600">
+              <DialogTitle className="flex items-center gap-2 text-success">
                 <CheckCircle className="h-5 w-5" />
                 Student Created Successfully
               </DialogTitle>
@@ -275,7 +275,7 @@ export function AddStudentDialog({ open, onOpenChange, onSuccess }: AddStudentDi
                 >
                   {copied ? (
                     <>
-                      <CheckCircle className="h-4 w-4 text-green-500" />
+                      <CheckCircle className="h-4 w-4 text-success" />
                       Copied!
                     </>
                   ) : (
@@ -287,8 +287,8 @@ export function AddStudentDialog({ open, onOpenChange, onSuccess }: AddStudentDi
                 </Button>
               </div>
 
-              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
-                <p className="text-sm text-amber-800">
+              <div className="bg-warning/10 border border-warning/30 rounded-lg p-3">
+                <p className="text-sm text-warning">
                   ⚠️ This code will only be shown once. Make sure to save or share it with the student before closing this dialog.
                 </p>
               </div>
@@ -382,7 +382,7 @@ export function AddStudentDialog({ open, onOpenChange, onSuccess }: AddStudentDi
             </div>
 
               {/* GKS Applicant Checkbox */}
-              <div className="flex items-center space-x-3 p-4 border rounded-lg bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20">
+              <div className="flex items-center space-x-3 p-4 border rounded-lg bg-gradient-to-r from-info to-primary dark:from-info/20 dark:to-primary/20">
                 <Checkbox
                   id="isGksApplicant"
                   checked={formData.isGksApplicant}
@@ -390,7 +390,7 @@ export function AddStudentDialog({ open, onOpenChange, onSuccess }: AddStudentDi
                 />
                 <div className="flex-1">
                   <Label htmlFor="isGksApplicant" className="flex items-center gap-2 cursor-pointer">
-                    <GraduationCap className="h-5 w-5 text-blue-600" />
+                    <GraduationCap className="h-5 w-5 text-info" />
                     <span className="font-medium">GKS Applicant</span>
                   </Label>
                   <p className="text-xs text-muted-foreground mt-1">
@@ -430,7 +430,7 @@ export function AddStudentDialog({ open, onOpenChange, onSuccess }: AddStudentDi
                 </div>
 
                 {formData.languageTrack === 'both' && (
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800">
+                  <div className="bg-info/10 border border-info/30 rounded-lg p-3 text-sm text-info">
                     🌐 Student can switch between Korean and English during interview practice
                   </div>
                 )}
@@ -461,14 +461,14 @@ export function AddStudentDialog({ open, onOpenChange, onSuccess }: AddStudentDi
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center gap-2">
                             <span className="font-semibold">{plan.label}</span>
-                            {plan.isVIP && <Crown className="h-4 w-4 text-yellow-500" />}
+                            {plan.isVIP && <Crown className="h-4 w-4 text-warning" />}
                           </div>
                           <span className="text-sm text-muted-foreground">{plan.price}</span>
                         </div>
                         <div className="grid grid-cols-2 gap-1 mt-3">
                           {plan.features.map(feature => (
                             <div key={feature} className="text-xs flex items-center gap-1 text-muted-foreground">
-                              <CheckCircle className="h-3 w-3 text-green-500 flex-shrink-0" />
+                              <CheckCircle className="h-3 w-3 text-success flex-shrink-0" />
                               <span>{t(`student.planFeatures.${feature}`, FEATURE_LABELS[feature])}</span>
                             </div>
                           ))}
@@ -491,12 +491,12 @@ export function AddStudentDialog({ open, onOpenChange, onSuccess }: AddStudentDi
                         type="date"
                         value={formData.contractDate}
                         onChange={(e) => setFormData({ ...formData, contractDate: e.target.value })}
-                        className={cn("pl-9", !formData.contractDate && "border-amber-500")}
+                        className={cn("pl-9", !formData.contractDate && "border-warning")}
                         required
                       />
                     </div>
                     {!formData.contractDate && (
-                      <p className="text-xs text-amber-600 flex items-center gap-1">
+                      <p className="text-xs text-warning flex items-center gap-1">
                         <AlertCircle className="h-3 w-3" />
                         Due dates are calculated from contract date
                       </p>
@@ -542,7 +542,7 @@ export function AddStudentDialog({ open, onOpenChange, onSuccess }: AddStudentDi
                         <div className="flex items-center gap-2">
                           <CreditCard className="h-4 w-4" />
                           <span>💳 Total: {formatted}{formData.paymentMode === 'installment' ? ' (2 payments)' : ' (one-time)'}</span>
-                          {plan.isVIP && <Badge variant="default" className="ml-auto bg-gradient-to-r from-yellow-500 to-amber-500 text-white border-0 text-xs">VIP</Badge>}
+                          {plan.isVIP && <Badge variant="default" className="ml-auto bg-gradient-to-r from-warning to-warning text-white border-0 text-xs">VIP</Badge>}
                         </div>
                       );
                     })()}
