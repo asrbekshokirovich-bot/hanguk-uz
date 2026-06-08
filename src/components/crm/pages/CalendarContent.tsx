@@ -111,10 +111,10 @@ export default function CalendarContent() {
   // Get priority color
   const getPriorityColor = (priority?: string) => {
     switch (priority) {
-      case 'urgent': return 'bg-red-500';
-      case 'high': return 'bg-orange-500';
-      case 'normal': return 'bg-blue-500';
-      case 'low': return 'bg-gray-400';
+      case 'urgent': return 'bg-destructive';
+      case 'high': return 'bg-warning';
+      case 'normal': return 'bg-info';
+      case 'low': return 'bg-muted-foreground';
       default: return 'bg-primary';
     }
   };
@@ -122,9 +122,9 @@ export default function CalendarContent() {
   // Get status icon
   const getStatusIcon = (status?: string) => {
     switch (status) {
-      case 'completed': return <CheckCircle2 className="h-3 w-3 text-green-500" />;
-      case 'in_progress': return <Clock className="h-3 w-3 text-yellow-500" />;
-      case 'overdue': return <AlertCircle className="h-3 w-3 text-red-500" />;
+      case 'completed': return <CheckCircle2 className="h-3 w-3 text-success" />;
+      case 'in_progress': return <Clock className="h-3 w-3 text-warning" />;
+      case 'overdue': return <AlertCircle className="h-3 w-3 text-destructive" />;
       default: return <Circle className="h-3 w-3 text-muted-foreground" />;
     }
   };
@@ -219,15 +219,15 @@ export default function CalendarContent() {
                     onClick={() => setSelectedDate(day)}
                     className={cn(
                       "h-24 p-1 rounded-lg border transition-all text-left flex flex-col",
-                      isToday(day) && "border-primary",
+                      isToday(day) && "border-accent bg-accent/10",
                       isSelected && "ring-2 ring-primary bg-primary/5",
                       !isCurrentMonth && "opacity-50",
-                      "hover:bg-accent"
+                      "hover:bg-accent/20"
                     )}
                   >
                     <span className={cn(
                       "text-sm font-medium w-6 h-6 flex items-center justify-center rounded-full",
-                      isToday(day) && "bg-primary text-primary-foreground"
+                      isToday(day) && "bg-accent text-accent-foreground"
                     )}>
                       {format(day, 'd')}
                     </span>
@@ -240,7 +240,7 @@ export default function CalendarContent() {
                           className={cn(
                             "text-xs truncate px-1 py-0.5 rounded",
                             event.type === 'task' && getPriorityColor(event.priority),
-                            event.type === 'payment' && "bg-green-500",
+                            event.type === 'payment' && "bg-success",
                             "text-white"
                           )}
                         >
@@ -271,19 +271,19 @@ export default function CalendarContent() {
             {/* Legend */}
             <div className="flex items-center gap-4 mt-4 pt-4 border-t">
               <div className="flex items-center gap-2 text-sm">
-                <div className="w-3 h-3 rounded bg-red-500" />
+                <div className="w-3 h-3 rounded bg-destructive" />
                 <span>Urgent</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
-                <div className="w-3 h-3 rounded bg-orange-500" />
+                <div className="w-3 h-3 rounded bg-warning" />
                 <span>High</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
-                <div className="w-3 h-3 rounded bg-blue-500" />
+                <div className="w-3 h-3 rounded bg-info" />
                 <span>Normal</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
-                <div className="w-3 h-3 rounded bg-green-500" />
+                <div className="w-3 h-3 rounded bg-success" />
                 <span>Payment</span>
               </div>
             </div>
@@ -312,11 +312,11 @@ export default function CalendarContent() {
                       className={cn(
                         "p-3 rounded-lg border",
                         event.type === 'task' && "border-l-4",
-                        event.type === 'task' && event.priority === 'urgent' && "border-l-red-500",
-                        event.type === 'task' && event.priority === 'high' && "border-l-orange-500",
-                        event.type === 'task' && event.priority === 'normal' && "border-l-blue-500",
-                        event.type === 'task' && event.priority === 'low' && "border-l-gray-400",
-                        event.type === 'payment' && "border-l-4 border-l-green-500"
+                        event.type === 'task' && event.priority === 'urgent' && "border-l-destructive",
+                        event.type === 'task' && event.priority === 'high' && "border-l-warning",
+                        event.type === 'task' && event.priority === 'normal' && "border-l-info",
+                        event.type === 'task' && event.priority === 'low' && "border-l-muted-foreground",
+                        event.type === 'payment' && "border-l-4 border-l-success"
                       )}
                     >
                       <div className="flex items-start justify-between gap-2">
@@ -324,7 +324,7 @@ export default function CalendarContent() {
                           {event.type === 'task' ? (
                             <ClipboardList className="h-4 w-4 text-muted-foreground" />
                           ) : (
-                            <DollarSign className="h-4 w-4 text-green-500" />
+                            <DollarSign className="h-4 w-4 text-success" />
                           )}
                           <span className="font-medium text-sm">{event.title}</span>
                         </div>
@@ -346,7 +346,7 @@ export default function CalendarContent() {
                           </Badge>
                         )}
                         {event.type === 'payment' && event.amount && (
-                          <Badge variant="outline" className="text-xs bg-green-500/10 text-green-600">
+                          <Badge variant="successSoft" className="text-xs">
                             {event.amount.toLocaleString()} {event.currency}
                           </Badge>
                         )}
@@ -372,8 +372,8 @@ export default function CalendarContent() {
         <Card>
           <CardContent className="pt-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-blue-500/10">
-                <ClipboardList className="h-5 w-5 text-blue-500" />
+              <div className="p-2 rounded-lg bg-info/10">
+                <ClipboardList className="h-5 w-5 text-info" />
               </div>
               <div>
                 <p className="text-2xl font-bold">{tasks.filter(t => t.status !== 'completed').length}</p>
@@ -386,8 +386,8 @@ export default function CalendarContent() {
         <Card>
           <CardContent className="pt-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-red-500/10">
-                <AlertCircle className="h-5 w-5 text-red-500" />
+              <div className="p-2 rounded-lg bg-destructive/10">
+                <AlertCircle className="h-5 w-5 text-destructive" />
               </div>
               <div>
                 <p className="text-2xl font-bold">{tasks.filter(t => t.priority === 'urgent' && t.status !== 'completed').length}</p>
@@ -400,8 +400,8 @@ export default function CalendarContent() {
         <Card>
           <CardContent className="pt-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-green-500/10">
-                <DollarSign className="h-5 w-5 text-green-500" />
+              <div className="p-2 rounded-lg bg-success/10">
+                <DollarSign className="h-5 w-5 text-success" />
               </div>
               <div>
                 <p className="text-2xl font-bold">{payments.filter(p => p.status === 'pending').length}</p>
@@ -414,8 +414,8 @@ export default function CalendarContent() {
         <Card>
           <CardContent className="pt-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-yellow-500/10">
-                <Clock className="h-5 w-5 text-yellow-500" />
+              <div className="p-2 rounded-lg bg-warning/10">
+                <Clock className="h-5 w-5 text-warning" />
               </div>
               <div>
                 <p className="text-2xl font-bold">

@@ -376,7 +376,7 @@ export default function SettingsContent() {
                     <div className="flex items-center gap-2">
                       <Label>Sound Notifications</Label>
                       {notifications.soundEnabled ? (
-                        <Volume2 className="h-4 w-4 text-green-500" />
+                        <Volume2 className="h-4 w-4 text-success" />
                       ) : (
                         <VolumeX className="h-4 w-4 text-muted-foreground" />
                       )}
@@ -511,7 +511,7 @@ export default function SettingsContent() {
                           Last sign in: {user?.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleString() : 'Unknown'}
                         </p>
                       </div>
-                      <Badge variant="outline" className="bg-green-500/10 text-green-600">
+                      <Badge variant="successSoft">
                         Active
                       </Badge>
                     </div>
