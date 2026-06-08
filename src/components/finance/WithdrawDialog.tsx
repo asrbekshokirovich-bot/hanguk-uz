@@ -175,11 +175,11 @@ export function WithdrawDialog({
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Yechilgan:</span>
-              <span className="font-medium text-green-600">{formatAmount(paidAmount, 'UZS')}</span>
+              <span className="font-medium text-success">{formatAmount(paidAmount, 'UZS')}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Kutilmoqda:</span>
-              <span className="font-medium text-yellow-600">{formatAmount(pendingAmount, 'UZS')}</span>
+              <span className="font-medium text-warning">{formatAmount(pendingAmount, 'UZS')}</span>
             </div>
           </div>
 
@@ -264,8 +264,8 @@ export function WithdrawDialog({
               </div>
             </>
           ) : (
-            <div className="p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
-              <p className="text-sm text-yellow-700 dark:text-yellow-400">
+            <div className="p-4 bg-warning/10 border border-warning/20 rounded-lg">
+              <p className="text-sm text-warning dark:text-warning">
                 Bu amal {formatAmount(paidAmount, 'UZS')} summasini "Kutilmoqda" holatiga qaytaradi.
               </p>
             </div>

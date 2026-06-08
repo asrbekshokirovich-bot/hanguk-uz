@@ -17,10 +17,10 @@ function getLocalizedField(s: Scholarship, field: 'name' | 'description', lang: 
 }
 
 const typeColors: Record<string, string> = {
-  government: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300',
-  university: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
-  partner: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
-  external: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300',
+  government: 'bg-warning/10 text-warning dark:bg-warning/30 dark:text-warning',
+  university: 'bg-info/10 text-info dark:bg-info/30 dark:text-info',
+  partner: 'bg-success/10 text-success dark:bg-success/30 dark:text-success',
+  external: 'bg-primary/10 text-primary dark:bg-primary/30 dark:text-primary',
 };
 
 const typeLabels: Record<string, string> = {
@@ -43,8 +43,8 @@ export function ScholarshipCard({ scholarship, lang }: ScholarshipCardProps) {
       <CardContent className="p-4 space-y-3">
         {/* Header */}
         <div className="flex items-start gap-3">
-          <div className="h-10 w-10 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center flex-shrink-0">
-            <Award className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+          <div className="h-10 w-10 rounded-lg bg-warning/10 dark:bg-warning/30 flex items-center justify-center flex-shrink-0">
+            <Award className="h-5 w-5 text-warning dark:text-warning" />
           </div>
           <div className="flex-1 min-w-0">
             <h3 className="font-semibold text-sm">{getLocalizedField(s, 'name', lang)}</h3>

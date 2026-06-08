@@ -388,9 +388,9 @@ export function ManualTransactionDialog({ students, onSuccess }: ManualTransacti
 
           {/* Net Amount Preview */}
           {form.amount && Number(form.amount) > 0 && (
-            <div className="p-3 bg-green-500/10 rounded-lg">
+            <div className="p-3 bg-success/10 rounded-lg">
               <p className="text-sm text-muted-foreground">Net Income:</p>
-              <p className="text-xl font-bold text-green-600">
+              <p className="text-xl font-bold text-success">
                 {formatAmount(netAmount, form.currency)}
               </p>
             </div>

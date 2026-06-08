@@ -97,13 +97,13 @@ const CONTACT_TYPES: { value: ContactType; label: string; icon: string }[] = [
 ];
 
 const OUTCOMES: { value: ContactOutcome; label: string; color: string }[] = [
-  { value: 'answered', label: 'Answered', color: 'bg-green-500/10 text-green-500' },
-  { value: 'interested', label: 'Very Interested', color: 'bg-emerald-500/10 text-emerald-500' },
-  { value: 'callback_requested', label: 'Callback Requested', color: 'bg-blue-500/10 text-blue-500' },
-  { value: 'no_answer', label: 'No Answer', color: 'bg-yellow-500/10 text-yellow-500' },
-  { value: 'busy', label: 'Busy', color: 'bg-orange-500/10 text-orange-500' },
-  { value: 'voicemail', label: 'Voicemail', color: 'bg-gray-500/10 text-gray-500' },
-  { value: 'not_interested', label: 'Not Interested', color: 'bg-red-500/10 text-red-500' },
+  { value: 'answered', label: 'Answered', color: 'bg-success/10 text-success' },
+  { value: 'interested', label: 'Very Interested', color: 'bg-success/10 text-success' },
+  { value: 'callback_requested', label: 'Callback Requested', color: 'bg-info/10 text-info' },
+  { value: 'no_answer', label: 'No Answer', color: 'bg-warning/10 text-warning' },
+  { value: 'busy', label: 'Busy', color: 'bg-warning/10 text-warning' },
+  { value: 'voicemail', label: 'Voicemail', color: 'bg-muted/10 text-muted-foreground' },
+  { value: 'not_interested', label: 'Not Interested', color: 'bg-destructive/10 text-destructive' },
 ];
 
 export const AddLeadWizard: React.FC<AddLeadWizardProps> = ({

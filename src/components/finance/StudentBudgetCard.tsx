@@ -65,13 +65,13 @@ export function StudentBudgetCard({ student, budgets }: StudentBudgetCardProps) 
 
   if (!summary) {
     return (
-      <Card className="border-dashed border-yellow-500/50">
+      <Card className="border-dashed border-warning/50">
         <CardContent className="p-4">
           <div className="flex items-center gap-3">
-            <AlertCircle className="h-8 w-8 text-yellow-500" />
+            <AlertCircle className="h-8 w-8 text-warning" />
             <div>
               <p className="font-medium">{student.full_name || 'Unknown'}</p>
-              <p className="text-sm text-yellow-600">Budget pending - awaiting payment completion</p>
+              <p className="text-sm text-warning">Budget pending - awaiting payment completion</p>
             </div>
           </div>
         </CardContent>
@@ -129,7 +129,7 @@ export function StudentBudgetCard({ student, budgets }: StudentBudgetCardProps) 
                 className="flex items-center justify-between p-2 rounded-lg bg-muted/50"
               >
                 <div className="flex items-center gap-2">
-                  <Icon className={`h-4 w-4 ${isFullySpent ? 'text-green-500' : 'text-muted-foreground'}`} />
+                  <Icon className={`h-4 w-4 ${isFullySpent ? 'text-success' : 'text-muted-foreground'}`} />
                   <div>
                     <p className="text-sm font-medium">{cat.label}</p>
                     <p className="text-xs text-muted-foreground">
@@ -140,7 +140,7 @@ export function StudentBudgetCard({ student, budgets }: StudentBudgetCardProps) 
                 <div className="text-right">
                   <p className="text-sm font-medium">{formatAmount(cat.allocated, 'UZS')}</p>
                   {isFullySpent ? (
-                    <Badge variant="outline" className="text-green-600 border-green-500">
+                    <Badge variant="outline" className="text-success border-success">
                       <CheckCircle className="h-3 w-3 mr-1" />
                       Spent
                     </Badge>

@@ -104,9 +104,9 @@ export function StaffBonusesPanel() {
       case 'pending':
         return <Badge variant="secondary"><Clock className="h-3 w-3 mr-1" /> {lang === 'uz' ? 'Kutilmoqda' : 'Pending'}</Badge>;
       case 'assigned':
-        return <Badge variant="outline" className="border-yellow-500 text-yellow-600"><User className="h-3 w-3 mr-1" /> {lang === 'uz' ? 'Tayinlangan' : 'Assigned'}</Badge>;
+        return <Badge variant="outline" className="border-warning text-warning"><User className="h-3 w-3 mr-1" /> {lang === 'uz' ? 'Tayinlangan' : 'Assigned'}</Badge>;
       case 'paid':
-        return <Badge variant="default" className="bg-green-500"><CheckCircle className="h-3 w-3 mr-1" /> {lang === 'uz' ? "To'langan" : 'Paid'}</Badge>;
+        return <Badge variant="default" className="bg-success"><CheckCircle className="h-3 w-3 mr-1" /> {lang === 'uz' ? "To'langan" : 'Paid'}</Badge>;
     }
   };
 
@@ -123,50 +123,50 @@ export function StaffBonusesPanel() {
     <div className="space-y-6">
       {/* Stats Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-gradient-to-br from-purple-500/10 to-purple-500/5 border-purple-500/20">
+        <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">{lang === 'uz' ? 'Tayinlanmagan' : 'Unassigned'}</p>
-                <p className="text-2xl font-bold text-purple-600">{stats.unassignedCount}</p>
+                <p className="text-2xl font-bold text-primary">{stats.unassignedCount}</p>
               </div>
-              <Gift className="h-8 w-8 text-purple-500/50" />
+              <Gift className="h-8 w-8 text-primary/50" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-yellow-500/10 to-yellow-500/5 border-yellow-500/20">
+        <Card className="bg-gradient-to-br from-warning/10 to-warning/5 border-warning/20">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">{lang === 'uz' ? 'Tayinlangan' : 'Assigned'}</p>
-                <p className="text-2xl font-bold text-yellow-600">{stats.assignedCount}</p>
+                <p className="text-2xl font-bold text-warning">{stats.assignedCount}</p>
               </div>
-              <User className="h-8 w-8 text-yellow-500/50" />
+              <User className="h-8 w-8 text-warning/50" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20">
+        <Card className="bg-gradient-to-br from-success/10 to-success/5 border-success/20">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">{lang === 'uz' ? "To'langan" : 'Paid'}</p>
-                <p className="text-2xl font-bold text-green-600">{stats.paidCount}</p>
+                <p className="text-2xl font-bold text-success">{stats.paidCount}</p>
               </div>
-              <CheckCircle className="h-8 w-8 text-green-500/50" />
+              <CheckCircle className="h-8 w-8 text-success/50" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20">
+        <Card className="bg-gradient-to-br from-info/10 to-info/5 border-info/20">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">{lang === 'uz' ? 'Bu oy jami' : 'This Month'}</p>
-                <p className="text-2xl font-bold text-blue-600">{formatAmount(stats.currentMonthTotal, 'UZS')}</p>
+                <p className="text-2xl font-bold text-info">{formatAmount(stats.currentMonthTotal, 'UZS')}</p>
               </div>
-              <DollarSign className="h-8 w-8 text-blue-500/50" />
+              <DollarSign className="h-8 w-8 text-info/50" />
             </div>
           </CardContent>
         </Card>
@@ -201,11 +201,11 @@ export function StaffBonusesPanel() {
               <span className="font-semibold">{formatAmount(BONUS_AMOUNTS.standart, 'UZS')}</span>
             </div>
             <div className="flex items-center gap-2 px-4 py-2 bg-muted rounded-lg">
-              <Badge className="bg-purple-500">PREMIUM</Badge>
+              <Badge className="bg-primary">PREMIUM</Badge>
               <span className="font-semibold">{formatAmount(BONUS_AMOUNTS.premium, 'UZS')}</span>
             </div>
             <div className="flex items-center gap-2 px-4 py-2 bg-muted rounded-lg">
-              <Badge className="bg-yellow-500 text-black">NO RISK</Badge>
+              <Badge className="bg-warning text-black">NO RISK</Badge>
               <span className="font-semibold">{formatAmount(BONUS_AMOUNTS.no_risk, 'UZS')}</span>
             </div>
           </div>
@@ -267,7 +267,7 @@ export function StaffBonusesPanel() {
                         <TableCell>
                           <Badge variant="outline">{getPlanLabel(bonus.plan_type)}</Badge>
                         </TableCell>
-                        <TableCell className="font-semibold text-green-600">
+                        <TableCell className="font-semibold text-success">
                           {formatAmount(bonus.bonus_amount, bonus.currency)}
                         </TableCell>
                         <TableCell className="text-muted-foreground">
@@ -345,16 +345,16 @@ export function StaffBonusesPanel() {
                         <TableCell className="font-medium">{summary.staff_name}</TableCell>
                         <TableCell className="text-center">{summary.bonus_count}</TableCell>
                         <TableCell className="text-center">
-                          <Badge variant="default" className="bg-green-500">{summary.paid_count}</Badge>
+                          <Badge variant="default" className="bg-success">{summary.paid_count}</Badge>
                         </TableCell>
                         <TableCell className="text-center">
                           {summary.pending_count > 0 && (
-                            <Badge variant="outline" className="border-yellow-500 text-yellow-600">
+                            <Badge variant="outline" className="border-warning text-warning">
                               {summary.pending_count}
                             </Badge>
                           )}
                         </TableCell>
-                        <TableCell className="text-right font-bold text-green-600">
+                        <TableCell className="text-right font-bold text-success">
                           {formatAmount(summary.total_amount, 'UZS')}
                         </TableCell>
                         <TableCell>
@@ -405,7 +405,7 @@ export function StaffBonusesPanel() {
                       <TableCell>
                         <Badge variant="outline">{getPlanLabel(bonus.plan_type)}</Badge>
                       </TableCell>
-                      <TableCell className="font-semibold text-green-600">
+                      <TableCell className="font-semibold text-success">
                         {formatAmount(bonus.bonus_amount, bonus.currency)}
                       </TableCell>
                       <TableCell>

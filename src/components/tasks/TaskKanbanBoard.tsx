@@ -46,15 +46,15 @@ const columns: KanbanColumn[] = [
     id: 'in_progress',
     title: 'In Progress',
     icon: Clock,
-    color: 'text-yellow-600',
-    bgColor: 'bg-yellow-50 dark:bg-yellow-950/20'
+    color: 'text-warning',
+    bgColor: 'bg-warning/10 dark:bg-warning/20'
   },
   {
     id: 'completed',
     title: 'Completed',
     icon: CheckCircle,
-    color: 'text-green-600',
-    bgColor: 'bg-green-50 dark:bg-green-950/20'
+    color: 'text-success',
+    bgColor: 'bg-success/10 dark:bg-success/20'
   },
 ];
 

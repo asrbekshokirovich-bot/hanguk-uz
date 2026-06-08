@@ -52,7 +52,7 @@ export const UniversitySelectionBar = forwardRef<HTMLDivElement, UniversitySelec
                   variant="secondary" 
                   className="flex items-center gap-1 px-3 py-1.5 text-sm whitespace-nowrap"
                 >
-                  {uni.is_partner && <Star className="h-3 w-3 text-yellow-500" />}
+                  {uni.is_partner && <Star className="h-3 w-3 text-warning" />}
                   <span className="max-w-[150px] truncate">{getUniversityName(uni)}</span>
                   <button 
                     onClick={() => onRemove(uni.id)}

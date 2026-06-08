@@ -14,10 +14,10 @@ import { useStudentInsights } from '@/hooks/useStudentInsights';
 import { useState } from 'react';
 
 const typeStyles = {
-  action: 'bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-900',
-  info: 'bg-slate-50 dark:bg-slate-950/30 border-slate-200 dark:border-slate-800',
-  success: 'bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-900',
-  warning: 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-900',
+  action: 'bg-info/10 dark:bg-info/30 border-info/30 dark:border-info',
+  info: 'bg-muted dark:bg-muted/30 border-border dark:border-border',
+  success: 'bg-success/10 dark:bg-success/30 border-success/30 dark:border-success',
+  warning: 'bg-warning/10 dark:bg-warning/30 border-warning/30 dark:border-warning',
 };
 
 interface StudentInsightsPanelProps {

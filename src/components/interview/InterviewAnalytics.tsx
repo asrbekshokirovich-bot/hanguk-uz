@@ -152,7 +152,7 @@ export function InterviewAnalytics({ onBack }: InterviewAnalyticsProps) {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-2 text-muted-foreground mb-1">
-              <Flame className="h-4 w-4 text-orange-500" />
+              <Flame className="h-4 w-4 text-warning" />
               <span className="text-xs">{t('interview.streak', 'Streak')}</span>
             </div>
             <div className="text-2xl font-bold">{analytics.practiceStreak} {t('common.days', 'days')}</div>
@@ -176,9 +176,9 @@ export function InterviewAnalytics({ onBack }: InterviewAnalyticsProps) {
           <CardHeader className="pb-2">
             <CardTitle className="text-base flex items-center gap-2">
               {analytics.improvementRate >= 0 ? (
-                <TrendingUp className="h-4 w-4 text-green-500" />
+                <TrendingUp className="h-4 w-4 text-success" />
               ) : (
-                <TrendingDown className="h-4 w-4 text-red-500" />
+                <TrendingDown className="h-4 w-4 text-destructive" />
               )}
               {t('interview.improvement', 'Improvement')}
             </CardTitle>
@@ -186,7 +186,7 @@ export function InterviewAnalytics({ onBack }: InterviewAnalyticsProps) {
           <CardContent>
             <div className={cn(
               "text-3xl font-bold",
-              analytics.improvementRate >= 0 ? "text-green-600" : "text-red-600"
+              analytics.improvementRate >= 0 ? "text-success" : "text-destructive"
             )}>
               {analytics.improvementRate >= 0 ? '+' : ''}{analytics.improvementRate.toFixed(1)}%
             </div>
@@ -206,7 +206,7 @@ export function InterviewAnalytics({ onBack }: InterviewAnalyticsProps) {
           <CardContent className="space-y-3">
             <div>
               <div className="flex justify-between text-sm mb-1">
-                <span className="text-green-600">{t('interview.strongest', 'Strongest')}</span>
+                <span className="text-success">{t('interview.strongest', 'Strongest')}</span>
                 <span className="font-medium">{formatCategoryName(analytics.strongestCategory || '')}</span>
               </div>
               <Progress 
@@ -216,7 +216,7 @@ export function InterviewAnalytics({ onBack }: InterviewAnalyticsProps) {
             </div>
             <div>
               <div className="flex justify-between text-sm mb-1">
-                <span className="text-yellow-600">{t('interview.needsWork', 'Needs Work')}</span>
+                <span className="text-warning">{t('interview.needsWork', 'Needs Work')}</span>
                 <span className="font-medium">{formatCategoryName(analytics.weakestCategory || '')}</span>
               </div>
               <Progress 

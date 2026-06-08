@@ -161,7 +161,7 @@ function NeedsAttentionView() {
       {groups.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-            <CheckCircle2 className="h-10 w-10 text-green-500 mb-3" />
+            <CheckCircle2 className="h-10 w-10 text-success mb-3" />
             <h3 className="font-medium">Nothing needs attention</h3>
             <p className="text-sm text-muted-foreground mt-1">
               {search
@@ -191,7 +191,7 @@ function NeedsAttentionView() {
                         key={`${r.section}:${r.id}`}
                         className="flex items-start gap-3 rounded-md border border-border/60 p-2.5"
                       >
-                        <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
+                        <AlertTriangle className="h-4 w-4 text-warning mt-0.5 shrink-0" />
                         <div className="min-w-0">
                           <div className="text-sm font-medium">
                             {SECTION_LABEL[r.section] ?? r.section}

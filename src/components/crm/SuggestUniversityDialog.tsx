@@ -174,11 +174,11 @@ export function SuggestUniversityDialog({
                           <Badge variant="secondary" className="text-xs">Partner</Badge>
                         )}
                         {alreadyApplied ? (
-                          <Badge variant="outline" className="text-xs text-amber-600 border-amber-400">
+                          <Badge variant="outline" className="text-xs text-warning border-warning">
                             Applied
                           </Badge>
                         ) : alreadySuggested ? (
-                          <Badge variant="outline" className="text-xs text-blue-600 border-blue-400">
+                          <Badge variant="outline" className="text-xs text-info border-info">
                             Suggested
                           </Badge>
                         ) : null}
@@ -191,7 +191,7 @@ export function SuggestUniversityDialog({
           </div>
 
           {isDuplicateSuggestion && selectedUniversity && (
-            <div className="flex items-start gap-2 rounded-md bg-blue-500/10 border border-blue-400/30 px-3 py-2 text-sm text-blue-700 dark:text-blue-400">
+            <div className="flex items-start gap-2 rounded-md bg-info/10 border border-info/30 px-3 py-2 text-sm text-info dark:text-info">
               <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
               <span>
                 <strong>{selectedUniversity.name_en || selectedUniversity.name_uz}</strong> has already been suggested to this student.
@@ -200,7 +200,7 @@ export function SuggestUniversityDialog({
           )}
 
           {isDuplicateApplication && selectedUniversity && (
-            <div className="flex items-start gap-2 rounded-md bg-amber-500/10 border border-amber-400/30 px-3 py-2 text-sm text-amber-700 dark:text-amber-400">
+            <div className="flex items-start gap-2 rounded-md bg-warning/10 border border-warning/30 px-3 py-2 text-sm text-warning dark:text-warning">
               <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
               <span>
                 <strong>{selectedUniversity.name_en || selectedUniversity.name_uz}</strong> already has an active application.

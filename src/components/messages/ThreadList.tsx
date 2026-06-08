@@ -22,10 +22,10 @@ const sourceIcons: Record<string, string> = {
 };
 
 const sourceColors: Record<string, string> = {
-  telegram: 'bg-blue-500',
-  instagram: 'bg-gradient-to-r from-purple-500 to-pink-500',
-  whatsapp: 'bg-green-500',
-  manual: 'bg-gray-500',
+  telegram: 'bg-info',
+  instagram: 'bg-gradient-to-r from-primary to-primary',
+  whatsapp: 'bg-success',
+  manual: 'bg-muted',
 };
 
 export function ThreadList({ threads, selectedThread, loading, onSelectThread }: ThreadListProps) {

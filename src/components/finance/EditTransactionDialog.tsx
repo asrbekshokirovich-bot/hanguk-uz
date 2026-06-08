@@ -226,9 +226,9 @@ export function EditTransactionDialog({
 
           {/* Amount Preview */}
           {isExpense && form.amount && Number(form.amount) > 0 && (
-            <div className="p-3 bg-red-500/10 rounded-lg">
+            <div className="p-3 bg-destructive/10 rounded-lg">
               <p className="text-sm text-muted-foreground">Xarajat:</p>
-              <p className="text-xl font-bold text-red-600">
+              <p className="text-xl font-bold text-destructive">
                 -{formatAmount(Number(form.amount), form.currency)}
               </p>
             </div>

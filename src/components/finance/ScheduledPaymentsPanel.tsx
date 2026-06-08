@@ -93,20 +93,20 @@ export function ScheduledPaymentsPanel({ initialStatusFilter = 'all' }: Schedule
 
   const getStatusIcon = (ep: ExpectedPayment) => {
     if (ep.status === 'completed') {
-      return <CheckCircle className="h-4 w-4 text-green-500" />;
+      return <CheckCircle className="h-4 w-4 text-success" />;
     }
     if (ep.status === 'partial') {
-      return <CreditCard className="h-4 w-4 text-blue-500" />;
+      return <CreditCard className="h-4 w-4 text-info" />;
     }
     if (ep.payment_type === 'second_payment') {
-      return <GraduationCap className="h-4 w-4 text-purple-500" />;
+      return <GraduationCap className="h-4 w-4 text-primary" />;
     }
-    return <Calendar className="h-4 w-4 text-yellow-500" />;
+    return <Calendar className="h-4 w-4 text-warning" />;
   };
 
   const getStatusBadge = (ep: ExpectedPayment) => {
     if (ep.status === 'completed') {
-      return <Badge variant="default" className="bg-green-500">Completed</Badge>;
+      return <Badge variant="default" className="bg-success">Completed</Badge>;
     }
 
     // Check if overdue
@@ -116,17 +116,17 @@ export function ScheduledPaymentsPanel({ initialStatusFilter = 'all' }: Schedule
         return <Badge variant="destructive">Overdue {dueInfo.days}d</Badge>;
       }
       if (dueInfo.days <= 3) {
-        return <Badge variant="secondary" className="bg-yellow-500/20 text-yellow-700">Due Soon</Badge>;
+        return <Badge variant="secondary" className="bg-warning/20 text-warning">Due Soon</Badge>;
       }
     }
 
     if (ep.status === 'partial') {
-      return <Badge variant="default" className="bg-blue-500">Partial</Badge>;
+      return <Badge variant="default" className="bg-info">Partial</Badge>;
     }
 
     // Waiting for admission (second payment without due date)
     if (ep.payment_type === 'second_payment' && !ep.due_date) {
-      return <Badge variant="outline" className="border-purple-500 text-purple-600">Awaiting Admission</Badge>;
+      return <Badge variant="outline" className="border-primary text-primary">Awaiting Admission</Badge>;
     }
 
     return <Badge variant="outline">Scheduled</Badge>;
@@ -153,7 +153,7 @@ export function ScheduledPaymentsPanel({ initialStatusFilter = 'all' }: Schedule
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <DollarSign className="h-5 w-5 text-yellow-500" />
+              <DollarSign className="h-5 w-5 text-warning" />
               <div>
                 <p className="text-2xl font-bold">{formatAmount(stats.remainingUZS, 'UZS')}</p>
                 <p className="text-xs text-muted-foreground">Remaining (UZS)</p>
@@ -164,7 +164,7 @@ export function ScheduledPaymentsPanel({ initialStatusFilter = 'all' }: Schedule
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <DollarSign className="h-5 w-5 text-green-500" />
+              <DollarSign className="h-5 w-5 text-success" />
               <div>
                 <p className="text-2xl font-bold">{formatAmount(stats.remainingUSD, 'USD')}</p>
                 <p className="text-xs text-muted-foreground">Remaining (USD)</p>
@@ -175,7 +175,7 @@ export function ScheduledPaymentsPanel({ initialStatusFilter = 'all' }: Schedule
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <AlertTriangle className="h-5 w-5 text-red-500" />
+              <AlertTriangle className="h-5 w-5 text-destructive" />
               <div>
                 <p className="text-2xl font-bold">{stats.overdueCount}</p>
                 <p className="text-xs text-muted-foreground">Overdue</p>
@@ -186,7 +186,7 @@ export function ScheduledPaymentsPanel({ initialStatusFilter = 'all' }: Schedule
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <Clock className="h-5 w-5 text-blue-500" />
+              <Clock className="h-5 w-5 text-info" />
               <div>
                 <p className="text-2xl font-bold">{stats.notStartedCount}</p>
                 <p className="text-xs text-muted-foreground">Not Started</p>
@@ -200,7 +200,7 @@ export function ScheduledPaymentsPanel({ initialStatusFilter = 'all' }: Schedule
       <div className="grid grid-cols-3 gap-4">
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
-            <Calendar className="h-4 w-4 text-orange-500" />
+            <Calendar className="h-4 w-4 text-warning" />
             <div>
               <p className="text-lg font-semibold">{stats.dueThisWeekCount}</p>
               <p className="text-xs text-muted-foreground">Due This Week</p>
@@ -209,7 +209,7 @@ export function ScheduledPaymentsPanel({ initialStatusFilter = 'all' }: Schedule
         </Card>
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
-            <CreditCard className="h-4 w-4 text-blue-500" />
+            <CreditCard className="h-4 w-4 text-info" />
             <div>
               <p className="text-lg font-semibold">{stats.partialCount}</p>
               <p className="text-xs text-muted-foreground">Partial Payments</p>
@@ -218,7 +218,7 @@ export function ScheduledPaymentsPanel({ initialStatusFilter = 'all' }: Schedule
         </Card>
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
-            <CheckCircle className="h-4 w-4 text-green-500" />
+            <CheckCircle className="h-4 w-4 text-success" />
             <div>
               <p className="text-lg font-semibold">{stats.completedCount}</p>
               <p className="text-xs text-muted-foreground">Completed</p>
@@ -327,7 +327,7 @@ export function ScheduledPaymentsPanel({ initialStatusFilter = 'all' }: Schedule
                           </div>
                         </TableCell>
                         <TableCell>
-                          <span className="font-medium text-red-600">
+                          <span className="font-medium text-destructive">
                             {formatAmount(ep.remaining_amount, ep.currency)}
                           </span>
                         </TableCell>

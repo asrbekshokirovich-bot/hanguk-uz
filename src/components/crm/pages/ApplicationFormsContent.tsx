@@ -988,14 +988,14 @@ export default function ApplicationFormsContent() {
               ) : cachedData?.hasRecent ? (
                 <Alert className={cn(
                   "py-2",
-                  cachedData.isStale ? "border-yellow-500 bg-yellow-50 dark:bg-yellow-950" : "border-green-500 bg-green-50 dark:bg-green-950"
+                  cachedData.isStale ? "border-warning bg-warning/10 dark:bg-warning" : "border-success bg-success/10 dark:bg-success"
                 )}>
                   <div className="flex items-center justify-between w-full">
                     <div className="flex items-center gap-2">
                       {cachedData.isStale ? (
-                        <Clock className="h-4 w-4 text-yellow-600" />
+                        <Clock className="h-4 w-4 text-warning" />
                       ) : (
-                        <CheckCircle2 className="h-4 w-4 text-green-600" />
+                        <CheckCircle2 className="h-4 w-4 text-success" />
                       )}
                       <span className="text-sm">
                         {cachedData.isStale 
@@ -1121,7 +1121,7 @@ export default function ApplicationFormsContent() {
                                  result.source === 'official_website' ? 'Official' : 'Web'}
                               </Badge>
                               {result.markdown && (
-                                <Badge variant="outline" className="text-green-600">
+                                <Badge variant="outline" className="text-success">
                                   <FileCheck className="h-3 w-3 mr-1" />
                                   Content
                                 </Badge>
@@ -1137,7 +1137,7 @@ export default function ApplicationFormsContent() {
                               href={result.url} 
                               target="_blank" 
                               rel="noopener noreferrer"
-                              className="text-xs text-blue-500 hover:underline flex items-center gap-1 mt-2"
+                              className="text-xs text-info hover:underline flex items-center gap-1 mt-2"
                             >
                               <ExternalLink className="h-3 w-3" />
                               {result.url}
@@ -1177,9 +1177,9 @@ export default function ApplicationFormsContent() {
                       <div className="flex items-center gap-4">
                         <div className={cn(
                           "h-16 w-16 rounded-full flex items-center justify-center text-2xl font-bold",
-                          analyzedData.confidence >= 80 ? "bg-green-100 text-green-700" :
-                          analyzedData.confidence >= 50 ? "bg-yellow-100 text-yellow-700" :
-                          "bg-red-100 text-red-700"
+                          analyzedData.confidence >= 80 ? "bg-success/10 text-success" :
+                          analyzedData.confidence >= 50 ? "bg-warning/10 text-warning" :
+                          "bg-destructive/10 text-destructive"
                         )}>
                           {analyzedData.confidence}%
                         </div>
@@ -1207,23 +1207,23 @@ export default function ApplicationFormsContent() {
                     
                     {/* Source Form URL - For Manual Verification */}
                     {(analyzedData.sourceFormUrl || selectedResult?.url) && (
-                      <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
+                      <div className="mt-4 p-3 bg-info/10 dark:bg-info rounded-lg border border-info/30 dark:border-info">
                         <div className="flex items-start gap-2">
-                          <FileCheck className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                          <FileCheck className="h-4 w-4 text-info mt-0.5 flex-shrink-0" />
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                            <p className="text-sm font-medium text-info dark:text-info">
                               {lang === 'uz' ? "Manba hujjat - Qo'lda tekshiring" : "Source Form - Verify Manually"}
                             </p>
                             <a 
                               href={analyzedData.sourceFormUrl || selectedResult?.url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-sm text-blue-600 hover:underline break-all flex items-center gap-1 mt-1"
+                              className="text-sm text-info hover:underline break-all flex items-center gap-1 mt-1"
                             >
                               <ExternalLink className="h-3 w-3 flex-shrink-0" />
                               {analyzedData.sourceFormUrl || selectedResult?.url}
                             </a>
-                            <p className="text-xs text-blue-600/70 mt-1">
+                            <p className="text-xs text-info/70 mt-1">
                               {lang === 'uz' 
                                 ? "⚠️ Importdan oldin barcha ma'lumotlarni ushbu manbadan tekshiring"
                                 : "⚠️ Please verify all extracted information against this source before importing"
@@ -1255,7 +1255,7 @@ export default function ApplicationFormsContent() {
 
                 {/* Semester Match Warning */}
                 {analyzedData.semesterMatch && !analyzedData.semesterMatch.isMatch && (
-                  <Alert variant="destructive" className="border-orange-500 bg-orange-50 dark:bg-orange-950">
+                  <Alert variant="destructive" className="border-warning bg-warning/10 dark:bg-warning">
                     <CalendarX className="h-4 w-4" />
                     <AlertTitle>
                       {analyzedData.semesterMatch.notYetAnnounced 
@@ -1378,14 +1378,14 @@ export default function ApplicationFormsContent() {
                             <ul className="text-sm space-y-1">
                               {analyzedData.trackAvailabilitySummary.englishTrackFaculties?.map((f, i) => (
                                 <li key={i} className="flex items-center gap-2">
-                                  <CheckCircle2 className="h-3 w-3 text-green-500" />
+                                  <CheckCircle2 className="h-3 w-3 text-success" />
                                   {f}
                                   <Badge variant="outline" className="text-xs">English only</Badge>
                                 </li>
                               ))}
                               {analyzedData.trackAvailabilitySummary.bothTracksFaculties?.map((f, i) => (
                                 <li key={`both-${i}`} className="flex items-center gap-2">
-                                  <CheckCircle2 className="h-3 w-3 text-green-500" />
+                                  <CheckCircle2 className="h-3 w-3 text-success" />
                                   {f}
                                 </li>
                               ))}
@@ -1403,14 +1403,14 @@ export default function ApplicationFormsContent() {
                             <ul className="text-sm space-y-1">
                               {analyzedData.trackAvailabilitySummary.koreanTrackFaculties?.map((f, i) => (
                                 <li key={i} className="flex items-center gap-2">
-                                  <CheckCircle2 className="h-3 w-3 text-blue-500" />
+                                  <CheckCircle2 className="h-3 w-3 text-info" />
                                   {f}
                                   <Badge variant="outline" className="text-xs">Korean only</Badge>
                                 </li>
                               ))}
                               {analyzedData.trackAvailabilitySummary.bothTracksFaculties?.map((f, i) => (
                                 <li key={`both-k-${i}`} className="flex items-center gap-2">
-                                  <CheckCircle2 className="h-3 w-3 text-blue-500" />
+                                  <CheckCircle2 className="h-3 w-3 text-info" />
                                   {f}
                                 </li>
                               ))}
@@ -1466,11 +1466,11 @@ export default function ApplicationFormsContent() {
                                         </Badge>
                                         {program.isAvailableForInternational ? (
                                           <span title="Available for international students">
-                                            <CheckCircle2 className="h-4 w-4 text-green-500" />
+                                            <CheckCircle2 className="h-4 w-4 text-success" />
                                           </span>
                                         ) : (
                                           <span title="Not available for international students">
-                                            <XCircle className="h-4 w-4 text-red-500" />
+                                            <XCircle className="h-4 w-4 text-destructive" />
                                           </span>
                                         )}
                                       </div>
@@ -1488,7 +1488,7 @@ export default function ApplicationFormsContent() {
                                         <Badge variant="outline" className="text-xs">TOEFL {program.toeflRequirement}</Badge>
                                       )}
                                       {program.minimumGPA && (
-                                        <Badge variant="outline" className="text-xs bg-purple-50 text-purple-700 border-purple-200">
+                                        <Badge variant="outline" className="text-xs bg-primary/10 text-primary border-primary/30">
                                           Min GPA: {program.minimumGPA}
                                         </Badge>
                                       )}
@@ -1505,7 +1505,7 @@ export default function ApplicationFormsContent() {
                                         <span className="text-xs text-muted-foreground">
                                           {lang === 'uz' ? "Muqobil sertifikatlar: " : "Alternative certs: "}
                                         </span>
-                                        <span className="text-xs text-green-600">
+                                        <span className="text-xs text-success">
                                           {program.languageAlternatives.join(', ')}
                                         </span>
                                       </div>
@@ -1516,29 +1516,29 @@ export default function ApplicationFormsContent() {
                                       program.interviewRequired || 
                                       program.portfolioRequired || 
                                       program.practicalTestRequired) && (
-                                      <div className="mt-2 p-2 bg-amber-50 dark:bg-amber-950 rounded border border-amber-200 dark:border-amber-800">
-                                        <p className="text-xs font-medium text-amber-800 dark:text-amber-200 mb-1">
+                                      <div className="mt-2 p-2 bg-warning/10 dark:bg-warning rounded border border-warning/30 dark:border-warning">
+                                        <p className="text-xs font-medium text-warning dark:text-warning mb-1">
                                           {lang === 'uz' ? "Maxsus talablar:" : "Special Requirements:"}
                                         </p>
                                         <div className="flex flex-wrap gap-1">
                                           {program.interviewRequired && (
-                                            <Badge variant="outline" className="text-xs bg-amber-100 text-amber-700 border-amber-300">
+                                            <Badge variant="outline" className="text-xs bg-warning/10 text-warning border-warning/30">
                                               {lang === 'uz' ? "Suhbat talab" : "Interview Required"}
                                             </Badge>
                                           )}
                                           {program.portfolioRequired && (
-                                            <Badge variant="outline" className="text-xs bg-amber-100 text-amber-700 border-amber-300">
+                                            <Badge variant="outline" className="text-xs bg-warning/10 text-warning border-warning/30">
                                               {lang === 'uz' ? "Portfolio talab" : "Portfolio Required"}
                                             </Badge>
                                           )}
                                           {program.practicalTestRequired && (
-                                            <Badge variant="outline" className="text-xs bg-amber-100 text-amber-700 border-amber-300">
+                                            <Badge variant="outline" className="text-xs bg-warning/10 text-warning border-warning/30">
                                               {lang === 'uz' ? "Amaliy imtihon" : "Practical Test"}
                                             </Badge>
                                           )}
                                         </div>
                                         {program.uniqueRequirements && program.uniqueRequirements.length > 0 && (
-                                          <ul className="text-xs text-amber-700 dark:text-amber-300 mt-1 list-disc list-inside">
+                                          <ul className="text-xs text-warning dark:text-warning mt-1 list-disc list-inside">
                                             {program.uniqueRequirements.map((req, i) => (
                                               <li key={i}>{req}</li>
                                             ))}
@@ -1659,9 +1659,9 @@ export default function ApplicationFormsContent() {
                             )}
                           >
                             {doc.isRequired ? (
-                              <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                              <CheckCircle2 className="h-4 w-4 text-success mt-0.5 flex-shrink-0" />
                             ) : (
-                              <Info className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                              <Info className="h-4 w-4 text-info mt-0.5 flex-shrink-0" />
                             )}
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-medium">{doc.documentName}</p>
@@ -1741,12 +1741,12 @@ export default function ApplicationFormsContent() {
                 {/* Import Success Result */}
                 {importResult && (
                   <Alert className={cn(
-                    importResult.success ? "border-green-500 bg-green-50 dark:bg-green-950" : "border-yellow-500 bg-yellow-50 dark:bg-yellow-950"
+                    importResult.success ? "border-success bg-success/10 dark:bg-success" : "border-warning bg-warning/10 dark:bg-warning"
                   )}>
                     {importResult.success ? (
-                      <CheckCircle2 className="h-4 w-4 text-green-600" />
+                      <CheckCircle2 className="h-4 w-4 text-success" />
                     ) : (
-                      <AlertTriangle className="h-4 w-4 text-yellow-600" />
+                      <AlertTriangle className="h-4 w-4 text-warning" />
                     )}
                     <AlertTitle>
                       {importResult.success 
@@ -1770,7 +1770,7 @@ export default function ApplicationFormsContent() {
                         </div>
                         {importResult.imported.universityUpdated && (
                           <div className="flex items-center gap-2">
-                            <GraduationCap className="h-4 w-4 text-green-600" />
+                            <GraduationCap className="h-4 w-4 text-success" />
                             <span>{lang === 'uz' ? "To'lov yangilandi" : "Tuition updated"}</span>
                           </div>
                         )}
@@ -1823,23 +1823,23 @@ export default function ApplicationFormsContent() {
                       </h4>
                       <ul className="text-sm space-y-1 text-muted-foreground">
                         <li className="flex items-center gap-2">
-                          <CheckCircle2 className="h-3 w-3 text-green-500" />
+                          <CheckCircle2 className="h-3 w-3 text-success" />
                           universities ({lang === 'uz' ? "to'lov diapazoni" : "tuition range"})
                         </li>
                         <li className="flex items-center gap-2">
-                          <CheckCircle2 className="h-3 w-3 text-green-500" />
+                          <CheckCircle2 className="h-3 w-3 text-success" />
                           university_programs ({analyzedData.programs?.length || 0} {lang === 'uz' ? "ta" : "entries"})
                         </li>
                         <li className="flex items-center gap-2">
-                          <CheckCircle2 className="h-3 w-3 text-green-500" />
+                          <CheckCircle2 className="h-3 w-3 text-success" />
                           university_admission_periods ({lang === 'uz' ? "muddatlar va to'lovlar" : "deadlines & fees"})
                         </li>
                         <li className="flex items-center gap-2">
-                          <CheckCircle2 className="h-3 w-3 text-green-500" />
+                          <CheckCircle2 className="h-3 w-3 text-success" />
                           university_requirements ({lang === 'uz' ? "hujjatlar ro'yxati" : "document checklist"})
                         </li>
                         <li className="flex items-center gap-2">
-                          <CheckCircle2 className="h-3 w-3 text-green-500" />
+                          <CheckCircle2 className="h-3 w-3 text-success" />
                           application_form_cache ({lang === 'uz' ? "qayta qidiruvni oldini olish" : "avoid re-scraping"})
                         </li>
                       </ul>
@@ -2035,8 +2035,8 @@ export default function ApplicationFormsContent() {
 
               {/* Future year warning */}
               {year >= currentYear + 2 && (
-                <Alert className="border-yellow-500 bg-yellow-50 dark:bg-yellow-950">
-                  <AlertTriangle className="h-4 w-4 text-yellow-600" />
+                <Alert className="border-warning bg-warning/10 dark:bg-warning">
+                  <AlertTriangle className="h-4 w-4 text-warning" />
                   <AlertTitle>
                     {lang === 'uz' ? "Kelajakdagi yil ogohlantirishi" : "Future Year Warning"}
                   </AlertTitle>
@@ -2052,12 +2052,12 @@ export default function ApplicationFormsContent() {
 
               {/* Priority 5: Prerequisite Warning for Comprehensive Search */}
               {!facultySearching && universities.length > 0 && universitiesWithWebsite < universities.length * 0.5 && (
-                <Alert className="border-amber-500/50 bg-amber-50/50 dark:bg-amber-950/30">
-                  <AlertTriangle className="h-4 w-4 text-amber-600" />
-                  <AlertTitle className="text-amber-800 dark:text-amber-300">
+                <Alert className="border-warning/50 bg-warning/10/50 dark:bg-warning/30">
+                  <AlertTriangle className="h-4 w-4 text-warning" />
+                  <AlertTitle className="text-warning dark:text-warning">
                     {lang === 'uz' ? "Keng qidiruv uchun tavsiya" : "Prerequisite for Best Results"}
                   </AlertTitle>
-                  <AlertDescription className="text-amber-700 dark:text-amber-400 text-sm">
+                  <AlertDescription className="text-warning dark:text-warning text-sm">
                     {lang === 'uz'
                       ? `Faqat ${universitiesWithWebsite} ta universitetda veb-sayt ma'lumoti bor (${universities.length} tadan). "Barcha universitetlarni qidirish" veb-saytlari mavjud universitetlarni ko'rib chiqadi. Natijalar sifatini yaxshilash uchun avval Universitetlar sahifasida "Veb-saytlarni boyitish"ni ishga tushiring.`
                       : `Only ${universitiesWithWebsite} of ${universities.length} universities have website data. "Search All Universities" will only scan those with websites. For best results, run "Re-enrich Websites" on the Universities page first.`
@@ -2215,8 +2215,8 @@ export default function ApplicationFormsContent() {
 
 
           {facultyExpandedTerms && (
-            <Alert className="border-blue-500/50 bg-blue-50/50 dark:bg-blue-950/30">
-              <Wand2 className="h-4 w-4 text-blue-600" />
+            <Alert className="border-info/50 bg-info/10/50 dark:bg-info/30">
+              <Wand2 className="h-4 w-4 text-info" />
               <AlertTitle className="text-sm font-medium">
                 {lang === 'uz' ? "Aqlli qidiruv" : "Smart Search"}
               </AlertTitle>
@@ -2276,14 +2276,14 @@ export default function ApplicationFormsContent() {
                 <div className="p-3 border rounded-lg text-center">
                   <p className="text-lg font-bold text-primary">{facultyQualitySummary.verifiedCount}</p>
                   <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
-                    <ShieldCheck className="h-3 w-3 text-green-600" />
+                    <ShieldCheck className="h-3 w-3 text-success" />
                     {lang === 'uz' ? "Tasdiqlangan" : "Verified"}
                   </p>
                 </div>
                 <div className="p-3 border rounded-lg text-center">
-                  <p className="text-lg font-bold text-yellow-600">{facultyQualitySummary.reviewCount}</p>
+                  <p className="text-lg font-bold text-warning">{facultyQualitySummary.reviewCount}</p>
                   <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
-                    <Info className="h-3 w-3 text-yellow-600" />
+                    <Info className="h-3 w-3 text-warning" />
                     {lang === 'uz' ? "Tekshiring" : "Review"}
                   </p>
                 </div>
@@ -2435,7 +2435,7 @@ export default function ApplicationFormsContent() {
                                 <TooltipProvider>
                                   <Tooltip>
                                     <TooltipTrigger>
-                                      <AlertTriangle className="h-3.5 w-3.5 text-yellow-600" />
+                                      <AlertTriangle className="h-3.5 w-3.5 text-warning" />
                                     </TooltipTrigger>
                                     <TooltipContent>
                                       <span className="text-xs">{lang === 'uz' ? "Noaniq deadline formati" : "Vague deadline format"}</span>
@@ -2477,9 +2477,9 @@ export default function ApplicationFormsContent() {
                                 <TooltipTrigger asChild>
                                   <div className="flex items-center gap-1">
                                     {uni.confidence >= 0.8 ? (
-                                      <ShieldCheck className="h-3.5 w-3.5 text-green-600" />
+                                      <ShieldCheck className="h-3.5 w-3.5 text-success" />
                                     ) : uni.confidence >= 0.6 ? (
-                                      <Info className="h-3.5 w-3.5 text-yellow-600" />
+                                      <Info className="h-3.5 w-3.5 text-warning" />
                                     ) : (
                                       <ShieldAlert className="h-3.5 w-3.5 text-destructive" />
                                     )}
@@ -2591,7 +2591,7 @@ export default function ApplicationFormsContent() {
                   </div>
                   <Progress value={admissionSync.progressPct} className="h-2" />
                   <div className="flex gap-4 text-xs text-muted-foreground">
-                    <span className="text-green-600 dark:text-green-400">✓ {admissionSync.activeJob.found} {lang === 'uz' ? "topildi" : "found"}</span>
+                    <span className="text-success dark:text-success">✓ {admissionSync.activeJob.found} {lang === 'uz' ? "topildi" : "found"}</span>
                     <span className="text-destructive">✗ {admissionSync.activeJob.failed} {lang === 'uz' ? "topilmadi" : "not found"}</span>
                   </div>
                 </div>
@@ -2605,7 +2605,7 @@ export default function ApplicationFormsContent() {
                     <div className="text-xs text-muted-foreground mt-1">{lang === 'uz' ? "Tekshirildi" : "Scanned"}</div>
                   </div>
                   <div className="text-center p-3 rounded-lg bg-muted/50">
-                    <div className="text-2xl font-bold text-green-600 dark:text-green-400">{admissionSync.lastJob.found}</div>
+                    <div className="text-2xl font-bold text-success dark:text-success">{admissionSync.lastJob.found}</div>
                     <div className="text-xs text-muted-foreground mt-1">{lang === 'uz' ? "Topildi" : "Found"}</div>
                   </div>
                   <div className="text-center p-3 rounded-lg bg-muted/50">
@@ -2615,7 +2615,7 @@ export default function ApplicationFormsContent() {
                   <div className="text-center p-3 rounded-lg bg-muted/50">
                     <div className="flex items-center justify-center gap-1">
                       {admissionSync.lastJob.status === 'completed' ? (
-                        <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
+                        <CheckCircle2 className="h-5 w-5 text-success dark:text-success" />
                       ) : admissionSync.lastJob.status === 'failed' ? (
                         <XCircle className="h-5 w-5 text-destructive" />
                       ) : (
@@ -2656,7 +2656,7 @@ export default function ApplicationFormsContent() {
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle className="flex items-center gap-2">
-                    <AlertTriangle className="h-5 w-5 text-amber-500" />
+                    <AlertTriangle className="h-5 w-5 text-warning" />
                     {lang === 'uz' ? "O'zgarishlar Xabarnomasi" : "Changes Inbox"}
                     {admissionSync.changes.length > 0 && (
                       <Badge variant="destructive" className="ml-2">{admissionSync.changes.length}</Badge>
@@ -2676,7 +2676,7 @@ export default function ApplicationFormsContent() {
             <CardContent>
               {admissionSync.changes.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
-                  <CheckCircle2 className="h-10 w-10 mx-auto mb-3 opacity-30 text-green-500" />
+                  <CheckCircle2 className="h-10 w-10 mx-auto mb-3 opacity-30 text-success" />
                   <p className="text-sm">{lang === 'uz' ? "Yangi o'zgarishlar yo'q" : "No unacknowledged changes"}</p>
                 </div>
               ) : (

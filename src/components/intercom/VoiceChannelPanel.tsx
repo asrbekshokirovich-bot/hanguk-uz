@@ -51,7 +51,7 @@ export function VoiceChannelPanel() {
     <Card className="border-none shadow-none bg-transparent">
       <CardHeader className="p-3 pb-2">
         <CardTitle className="text-sm font-medium flex items-center gap-2">
-          <Radio className={cn('h-4 w-4', isConnected && 'text-green-500 animate-pulse')} />
+          <Radio className={cn('h-4 w-4', isConnected && 'text-success animate-pulse')} />
           Ovozli kanal
         </CardTitle>
       </CardHeader>
@@ -59,7 +59,7 @@ export function VoiceChannelPanel() {
         {isConnected ? (
           <>
             <div className="flex items-center justify-between">
-              <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/30">
+              <Badge variant="outline" className="bg-success/10 text-success border-success/30">
                 <Circle className="h-2 w-2 fill-current mr-1 animate-pulse" />
                 Ulangan
               </Badge>
@@ -113,7 +113,7 @@ export function VoiceChannelPanel() {
                         className={cn(
                           'w-full text-left flex items-center gap-2 p-2 rounded-md transition-all',
                           selected && 'ring-1 ring-primary bg-accent',
-                          selected && isSpeaking && 'ring-2 ring-green-500 bg-green-500/10',
+                          selected && isSpeaking && 'ring-2 ring-success bg-success/10',
                           !isMuted && 'hover:bg-accent cursor-pointer'
                         )}
                         onClick={() => void handleUserClick(participant.user_id)}
@@ -125,12 +125,12 @@ export function VoiceChannelPanel() {
                             <AvatarFallback className="text-xs">{getInitials(participant.full_name)}</AvatarFallback>
                           </Avatar>
                           {(participant.isSpeaking || (selected && isSpeaking)) && (
-                            <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-green-500 animate-pulse" />
+                            <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-success animate-pulse" />
                           )}
                         </div>
                         <span className="text-sm font-medium truncate">{participant.full_name || 'Unknown'}</span>
                         {(participant.isSpeaking || (selected && isSpeaking)) && (
-                          <Volume2 className="h-3 w-3 text-green-500 ml-auto animate-pulse" />
+                          <Volume2 className="h-3 w-3 text-success ml-auto animate-pulse" />
                         )}
                       </button>
                     );

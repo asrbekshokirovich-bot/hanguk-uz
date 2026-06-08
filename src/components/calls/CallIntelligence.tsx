@@ -55,11 +55,11 @@ interface Job {
 }
 
 const sentimentColor: Record<string, string> = {
-  positive: 'bg-green-500/15 text-green-600 dark:text-green-400',
+  positive: 'bg-success/15 text-success dark:text-success',
   neutral: 'bg-muted text-muted-foreground',
-  negative: 'bg-red-500/15 text-red-600 dark:text-red-400',
-  frustrated: 'bg-red-500/15 text-red-600 dark:text-red-400',
-  confused: 'bg-amber-500/15 text-amber-600 dark:text-amber-400',
+  negative: 'bg-destructive/15 text-destructive dark:text-destructive',
+  frustrated: 'bg-destructive/15 text-destructive dark:text-destructive',
+  confused: 'bg-warning/15 text-warning dark:text-warning',
 };
 
 // The DB types are regenerated out-of-band; cast to reach the new tables.
@@ -183,7 +183,7 @@ export function CallIntelligence({ callId }: CallIntelligenceProps) {
                 </Badge>
               )}
               {analysis?.follow_up_needed && (
-                <Badge className="bg-amber-500/15 text-amber-600 dark:text-amber-400">
+                <Badge className="bg-warning/15 text-warning dark:text-warning">
                   <Flag className="h-3 w-3 mr-1" /> Follow-up
                 </Badge>
               )}

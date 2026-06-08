@@ -57,31 +57,31 @@ const ROLE_CONFIG: Record<AppRole, { label: string; icon: React.ReactNode; color
   owner: {
     label: 'Owner',
     icon: <Crown className="h-4 w-4" />,
-    color: 'bg-yellow-500',
+    color: 'bg-warning',
     description: 'Full system access, can manage all users and settings',
   },
   admin: {
     label: 'Admin',
     icon: <ShieldCheck className="h-4 w-4" />,
-    color: 'bg-purple-500',
+    color: 'bg-primary',
     description: 'Manage staff, payments, universities, and view all data',
   },
   call_operator: {
     label: 'Call Operator',
     icon: <Headphones className="h-4 w-4" />,
-    color: 'bg-blue-500',
+    color: 'bg-info',
     description: 'Handle calls, messages, and student communications',
   },
   document_handler: {
     label: 'Document Handler',
     icon: <FileCheck className="h-4 w-4" />,
-    color: 'bg-green-500',
+    color: 'bg-success',
     description: 'Review and manage student documents and applications',
   },
   university_staff: {
     label: 'University Staff',
     icon: <GraduationCap className="h-4 w-4" />,
-    color: 'bg-teal-500',
+    color: 'bg-info',
     description: 'University representative with access to their university portal',
   },
 };

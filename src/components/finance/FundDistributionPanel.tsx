@@ -35,10 +35,10 @@ const categoryIcons: Record<string, typeof Users> = {
 };
 
 const categoryColors: Record<string, string> = {
-  salary: 'text-blue-600',
-  rent: 'text-purple-600',
-  utilities: 'text-yellow-600',
-  other: 'text-gray-600',
+  salary: 'text-info',
+  rent: 'text-primary',
+  utilities: 'text-warning',
+  other: 'text-muted-foreground',
 };
 
 export function FundDistributionPanel({ summary }: FundDistributionPanelProps) {
@@ -83,7 +83,7 @@ export function FundDistributionPanel({ summary }: FundDistributionPanelProps) {
           </div>
           <Badge 
             variant={adjustedCoveragePercent >= 100 ? 'default' : 'secondary'}
-            className={adjustedCoveragePercent >= 100 ? 'bg-green-500' : ''}
+            className={adjustedCoveragePercent >= 100 ? 'bg-success' : ''}
           >
             {adjustedCoveragePercent.toFixed(1)}% Covered
           </Badge>
@@ -118,7 +118,7 @@ export function FundDistributionPanel({ summary }: FundDistributionPanelProps) {
           <div className="space-y-3 pt-2">
             {summary.categories.map((category) => {
               const Icon = categoryIcons[category.category_type] || DollarSign;
-              const colorClass = categoryColors[category.category_type] || 'text-gray-600';
+              const colorClass = categoryColors[category.category_type] || 'text-muted-foreground';
               
               return (
                 <div key={category.id} className="space-y-1">

@@ -44,13 +44,13 @@ export function IntercomButton({
   const getStatusColor = () => {
     switch (userStatus) {
       case 'online':
-        return 'bg-green-500';
+        return 'bg-success';
       case 'away':
-        return 'bg-yellow-500';
+        return 'bg-warning';
       case 'busy':
-        return 'bg-red-500';
+        return 'bg-destructive';
       default:
-        return 'bg-gray-400';
+        return 'bg-muted';
     }
   };
 
@@ -96,7 +96,7 @@ export function IntercomButton({
               size === 'default' && 'h-10 w-10',
               size === 'lg' && 'h-12 w-12',
               isCalling && 'animate-pulse',
-              isActive && 'ring-2 ring-green-500 ring-offset-2'
+              isActive && 'ring-2 ring-success ring-offset-2'
             )}
             onClick={handleClick}
             disabled={isButtonDisabled}

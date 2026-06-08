@@ -765,11 +765,11 @@ export function StudentDetail({
   const getDocStatusIcon = (status: string) => {
     switch (status) {
       case 'approved':
-        return <CheckCircle className="h-4 w-4 text-green-500" />;
+        return <CheckCircle className="h-4 w-4 text-success" />;
       case 'rejected':
-        return <XCircle className="h-4 w-4 text-red-500" />;
+        return <XCircle className="h-4 w-4 text-destructive" />;
       default:
-        return <Clock className="h-4 w-4 text-yellow-500" />;
+        return <Clock className="h-4 w-4 text-warning" />;
     }
   };
 
@@ -1190,7 +1190,7 @@ export function StudentDetail({
                               {completed ? (
                                 <CheckCircle className="h-5 w-5 text-primary shrink-0 mt-0.5 sm:mt-0" />
                               ) : (
-                                <Clock className="h-5 w-5 text-yellow-500 shrink-0 mt-0.5 sm:mt-0" />
+                                <Clock className="h-5 w-5 text-warning shrink-0 mt-0.5 sm:mt-0" />
                               )}
                               <span className="font-medium break-words leading-tight">{step.label}</span>
                             </div>
@@ -1282,12 +1282,12 @@ export function StudentDetail({
                 ) : (
                   <div className="grid gap-4">
                     {student.applications.filter(a => a.status === 'pending_approval').map((app) => (
-                      <Card key={app.id} className="border-yellow-400 bg-yellow-50/50 dark:bg-yellow-900/10 dark:border-yellow-600/50">
+                      <Card key={app.id} className="border-warning bg-warning/10/50 dark:bg-warning/10 dark:border-warning/50">
                         <CardHeader className="pb-2">
-                          <CardTitle className="text-base text-yellow-800 dark:text-yellow-500">
+                          <CardTitle className="text-base text-warning dark:text-warning">
                             {getUniversityName(app.university)}
                           </CardTitle>
-                          <p className="text-sm text-yellow-700/80 dark:text-yellow-500/80">
+                          <p className="text-sm text-warning/80 dark:text-warning/80">
                             Requested: {new Date(app.created_at).toLocaleDateString()}
                           </p>
                         </CardHeader>
@@ -1468,9 +1468,9 @@ export function StudentDetail({
                           </div>
                         </div>
 
-                        <div className="bg-green-500/20 rounded-lg p-3">
+                        <div className="bg-success/20 rounded-lg p-3">
                           <p className="text-sm text-muted-foreground">Net Income (You Received):</p>
-                          <p className="text-xl font-bold text-green-500">{netIncome.toLocaleString()} {payment.currency}</p>
+                          <p className="text-xl font-bold text-success">{netIncome.toLocaleString()} {payment.currency}</p>
                         </div>
 
                         <div className="text-sm space-y-1">
@@ -1514,10 +1514,10 @@ export function StudentDetail({
                     </Card>
                   </div>
 
-                  <Card className="bg-green-500/20">
+                  <Card className="bg-success/20">
                     <CardContent className="py-4">
                       <p className="text-sm text-muted-foreground">Total Net Income (Actual Received)</p>
-                      <p className="text-2xl font-bold text-green-500">{totalNetIncome.toLocaleString()} UZS</p>
+                      <p className="text-2xl font-bold text-success">{totalNetIncome.toLocaleString()} UZS</p>
                     </CardContent>
                   </Card>
 
@@ -1525,7 +1525,7 @@ export function StudentDetail({
                     <Card className="bg-muted/50">
                       <CardContent className="py-4">
                         <p className="text-sm text-muted-foreground">Pending</p>
-                        <p className="text-xl font-bold text-yellow-500">{totalPending.toLocaleString()} UZS</p>
+                        <p className="text-xl font-bold text-warning">{totalPending.toLocaleString()} UZS</p>
                       </CardContent>
                     </Card>
                     <Card className="bg-muted/50">
@@ -1730,7 +1730,7 @@ export function StudentDetail({
                       {doc ? (
                         <div className="flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-muted/40 transition-colors" onClick={() => handleViewDocument(doc)}>
                           {isTranslation ? <span className="w-5 shrink-0" /> : <span className="text-xs text-muted-foreground w-5 shrink-0 text-right">{idx + 1}</span>}
-                          <CheckCircle className="h-5 w-5 text-green-500 shrink-0" />
+                          <CheckCircle className="h-5 w-5 text-success shrink-0" />
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium leading-tight truncate">{docName}</p>
                             <div className="flex items-center gap-1 mt-0.5">

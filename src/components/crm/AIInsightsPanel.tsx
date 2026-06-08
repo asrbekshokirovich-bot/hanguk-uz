@@ -31,31 +31,31 @@ import { useAIInsights } from '@/hooks/useAIInsights';
 const typeConfig = {
   urgent: {
     icon: AlertTriangle,
-    color: 'text-red-600',
-    bg: 'bg-red-50 dark:bg-red-950/30',
-    border: 'border-red-200 dark:border-red-900',
-    badge: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300',
+    color: 'text-destructive',
+    bg: 'bg-destructive/10 dark:bg-destructive/30',
+    border: 'border-destructive/30 dark:border-destructive',
+    badge: 'bg-destructive/10 text-destructive dark:bg-destructive dark:text-destructive',
   },
   warning: {
     icon: AlertCircle,
-    color: 'text-amber-600',
-    bg: 'bg-amber-50 dark:bg-amber-950/30',
-    border: 'border-amber-200 dark:border-amber-900',
-    badge: 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300',
+    color: 'text-warning',
+    bg: 'bg-warning/10 dark:bg-warning/30',
+    border: 'border-warning/30 dark:border-warning',
+    badge: 'bg-warning/10 text-warning dark:bg-warning dark:text-warning',
   },
   info: {
     icon: Info,
-    color: 'text-blue-600',
-    bg: 'bg-blue-50 dark:bg-blue-950/30',
-    border: 'border-blue-200 dark:border-blue-900',
-    badge: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
+    color: 'text-info',
+    bg: 'bg-info/10 dark:bg-info/30',
+    border: 'border-info/30 dark:border-info',
+    badge: 'bg-info/10 text-info dark:bg-info dark:text-info',
   },
   success: {
     icon: CheckCircle2,
-    color: 'text-green-600',
-    bg: 'bg-green-50 dark:bg-green-950/30',
-    border: 'border-green-200 dark:border-green-900',
-    badge: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
+    color: 'text-success',
+    bg: 'bg-success/10 dark:bg-success/30',
+    border: 'border-success/30 dark:border-success',
+    badge: 'bg-success/10 text-success dark:bg-success dark:text-success',
   },
 };
 
@@ -133,7 +133,7 @@ export function AIInsightsPanel() {
                   </Badge>
                 )}
                 {warningCount > 0 && (
-                  <Badge variant="outline" className="text-xs text-amber-600 border-amber-300">
+                  <Badge variant="outline" className="text-xs text-warning border-warning/30">
                     {warningCount} warning
                   </Badge>
                 )}
@@ -154,8 +154,8 @@ export function AIInsightsPanel() {
       <CardContent>
         {insights.length === 0 ? (
           <div className="text-center py-8">
-            <CheckCircle2 className="h-12 w-12 text-green-500 mx-auto mb-3" />
-            <p className="font-medium text-green-700 dark:text-green-400">
+            <CheckCircle2 className="h-12 w-12 text-success mx-auto mb-3" />
+            <p className="font-medium text-success dark:text-success">
               {t('ai.allClear', 'All Clear!')}
             </p>
             <p className="text-sm text-muted-foreground mt-1">
