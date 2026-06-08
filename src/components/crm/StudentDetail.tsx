@@ -6,12 +6,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import {
   Phone,
+  Check,
   CheckCircle,
   Clock,
   XCircle,
@@ -50,6 +52,7 @@ import {
 } from '@/components/ui/dialog';
 import { Tables } from '@/integrations/supabase/types';
 import { supabase } from '@/integrations/supabase/client';
+import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -833,60 +836,150 @@ export function StudentDetail({
 
   // renderDocRow is defined at module level below the component
 
+  const heroInitials = (student.full_name || 'U')
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
+  const heroPlanMap: Record<string, { label: string; tone: 'lime' | 'info' | 'neutral' }> = {
+    premium: { label: 'Premium', tone: 'lime' },
+    standart: { label: 'Standard', tone: 'info' },
+    no_risk: { label: 'No-Risk', tone: 'neutral' },
+    free: { label: 'Free', tone: 'neutral' },
+  };
+  const heroPlan = heroPlanMap[(student.payment_plan || '').toLowerCase()];
+  const heroIsVip = paymentPlans.find((p) => p.value === student.payment_plan?.toLowerCase())?.isVIP;
+  const trackerSteps = [
+    t('crm.stepDocuments', { defaultValue: 'Documents' }),
+    t('crm.stepTranslation', { defaultValue: 'Translation' }),
+    t('crm.stepApostille', { defaultValue: 'Apostille' }),
+    t('crm.stepSubmitted', { defaultValue: 'Submitted' }),
+    t('crm.stepResponse', { defaultValue: 'Response' }),
+    t('crm.stepVisa', { defaultValue: 'Visa' }),
+  ];
+
   return (
     <>
       <Sheet open={true} onOpenChange={() => onBack()}>
         <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
-          <SheetHeader className="pb-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="flex items-start gap-3">
-                <User className="h-5 w-5 text-muted-foreground mt-0.5" />
-                <div>
-                  <div className="flex items-center gap-2">
-                    <SheetTitle className="text-lg font-semibold">
-                      {student.full_name || t('common.name')}
-                    </SheetTitle>
-                    {(() => {
-                      const plan = paymentPlans.find(p => p.value === student.payment_plan?.toLowerCase());
-                      if (plan?.isVIP) {
-                        return (
-                          <Badge
-                            variant="default"
-                            className="bg-gradient-to-r from-yellow-500 to-amber-500 text-white border-0 gap-1"
-                          >
-                            <Crown className="h-3 w-3" />
-                            VIP
-                          </Badge>
-                        );
-                      }
-                      return null;
-                    })()}
+          <SheetHeader className="space-y-0 pb-4">
+            <div className="rounded-lg border border-border bg-card p-5 shadow-card">
+              {/* Hero */}
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center gap-4">
+                  <Avatar className="h-16 w-16">
+                    <AvatarImage src={student.avatar_url || undefined} />
+                    <AvatarFallback className="bg-primary/10 text-lg font-bold text-primary">
+                      {heroInitials}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <SheetTitle className="text-xl font-bold tracking-tight text-foreground">
+                        {student.full_name || t('common.name')}
+                      </SheetTitle>
+                      {heroPlan && <Badge variant={heroPlan.tone}>{heroPlan.label}</Badge>}
+                      {heroIsVip && (
+                        <Badge variant="warning" className="gap-1">
+                          <Crown className="h-3 w-3" />
+                          VIP
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
+                      {student.office_location && (
+                        <span className="flex items-center gap-1.5">
+                          <MapPin className="h-3.5 w-3.5" />
+                          {student.office_location}
+                        </span>
+                      )}
+                      {student.phone && (
+                        <span className="flex items-center gap-1.5">
+                          <Phone className="h-3.5 w-3.5" />
+                          {student.phone}
+                        </span>
+                      )}
+                      {student.birth_date && (
+                        <span className="flex items-center gap-1.5">
+                          <Calendar className="h-3.5 w-3.5" />
+                          {format(new Date(student.birth_date), 'yyyy-MM-dd')}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    Complete student profile and activity history
-                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="sm" className="gap-2" onClick={() => setEditDialogOpen(true)}>
+                    <Pencil className="h-4 w-4" />
+                    {t('common.edit')}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="gap-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    onClick={() => setDeleteDialogOpen(true)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    {t('common.delete')}
+                  </Button>
                 </div>
               </div>
-              <div className="flex items-center gap-2 self-start sm:self-auto border-t sm:border-0 pt-3 sm:pt-0 w-full sm:w-auto">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="gap-2 flex-1 sm:flex-none"
-                  onClick={() => setEditDialogOpen(true)}
-                >
-                  <Pencil className="h-4 w-4" />
-                  {t('common.edit')}
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-destructive hover:text-destructive hover:bg-destructive/10 gap-2 flex-1 sm:flex-none"
-                  onClick={() => setDeleteDialogOpen(true)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                  {t('common.delete')}
-                </Button>
-              </div>
+
+              {/* 6-step process tracker (live application status) */}
+              {latestApp && (
+                <div className="mt-5 border-t border-border pt-5">
+                  <div className="flex items-start">
+                    {trackerSteps.map((label, i) => {
+                      const done = i < currentStatusIndex;
+                      const current = i === currentStatusIndex;
+                      return (
+                        <div key={label} className="relative flex flex-1 flex-col items-center">
+                          {i < trackerSteps.length - 1 && (
+                            <div
+                              className={cn(
+                                'absolute left-1/2 top-3.5 h-0.5 w-full',
+                                done ? 'bg-accent' : 'bg-border',
+                              )}
+                            />
+                          )}
+                          <div
+                            className={cn(
+                              'z-10 flex h-7 w-7 items-center justify-center rounded-full',
+                              done
+                                ? 'bg-accent text-accent-foreground'
+                                : current
+                                  ? 'bg-accent/15 ring-2 ring-accent'
+                                  : 'bg-muted',
+                            )}
+                          >
+                            {done ? (
+                              <Check className="h-3.5 w-3.5" strokeWidth={3} />
+                            ) : (
+                              <span
+                                className={cn(
+                                  'text-xs font-bold',
+                                  current ? 'text-accent' : 'text-muted-foreground',
+                                )}
+                              >
+                                {i + 1}
+                              </span>
+                            )}
+                          </div>
+                          <span
+                            className={cn(
+                              'mt-2 text-center text-[11px]',
+                              done || current ? 'font-semibold text-foreground' : 'text-muted-foreground',
+                            )}
+                          >
+                            {label}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           </SheetHeader>
 
