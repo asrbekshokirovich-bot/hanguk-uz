@@ -9,7 +9,6 @@ import { usePlatform } from '@/hooks/usePlatform';
 import { ApplicationTracker } from '@/components/student/ApplicationTracker';
 import { UniversityMapKakao } from '@/components/student/UniversityMapKakao';
 import { DocumentUpload } from '@/components/student/DocumentUpload';
-import { StudentAITranslationPage } from '@/components/student/AITranslationPage';
 import { ProgramFinder } from '@/components/student/ProgramFinder';
 import { StudentInsightsPanel } from '@/components/student/StudentInsightsPanel';
 import { SuggestedUniversities } from '@/components/student/SuggestedUniversities';
@@ -43,7 +42,6 @@ import {
   Lock,
   Crown,
   Search,
-  Languages,
   Loader2
 } from 'lucide-react';
 
@@ -203,10 +201,6 @@ export default function StudentPortal() {
                     <FileText className="h-4 w-4" />
                     {t('navigation.documents')}
                   </TabsTrigger>
-                  <TabsTrigger value="translation" className="flex items-center gap-2">
-                    <Languages className="h-4 w-4" />
-                    {t('navigation.translation', 'AI Tarjima')}
-                  </TabsTrigger>
                   <TabsTrigger
                     value="interview"
                     className={cn(
@@ -255,9 +249,6 @@ export default function StudentPortal() {
                     onUploadComplete={refetchDocuments}
                   />
                 </TabsContent>
-                <TabsContent value="translation">
-                  <StudentAITranslationPage />
-                </TabsContent>
               </Tabs>
             </div>
 
@@ -277,9 +268,6 @@ export default function StudentPortal() {
                   documents={documents}
                   onUploadComplete={refetchDocuments}
                 />
-              )}
-              {activeTab === 'translation' && (
-                <StudentAITranslationPage />
               )}
             </div>
           </div>
@@ -348,21 +336,6 @@ export default function StudentPortal() {
             )}
             <FileText className="h-6 w-6" strokeWidth={activeTab === 'documents' ? 2.5 : 1.5} />
             <span className="text-[10px] mt-0.5 font-medium">{t('navigation.docs', 'Docs')}</span>
-          </button>
-
-          {/* AI Translation */}
-          <button
-            className={cn(
-              "flex-1 flex flex-col items-center justify-center pt-2 pb-1 relative transition-colors active:opacity-70",
-              activeTab === 'translation' ? 'text-primary' : 'text-muted-foreground'
-            )}
-            onClick={() => setActiveTab('translation')}
-          >
-            {activeTab === 'translation' && (
-              <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-primary rounded-full" />
-            )}
-            <Languages className="h-6 w-6" strokeWidth={activeTab === 'translation' ? 2.5 : 1.5} />
-            <span className="text-[10px] mt-0.5 font-medium">{t('navigation.translate', 'Tarjima')}</span>
           </button>
 
           {/* More - Opens submenu for Interview & Study Plan */}
