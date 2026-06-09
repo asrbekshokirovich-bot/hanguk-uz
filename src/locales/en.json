@@ -44,6 +44,15 @@
     "skip": "Skip"
   },
   "auth": {
+    "brandHeadline": "Welcome back to your journey",
+    "brandSub": "Track your applications, documents and interviews — all the way to your South Korean university.",
+    "tick1": "94% acceptance rate",
+    "tick2": "Documents handled for you",
+    "tick3": "AI interview practice",
+    "signIn": "Sign in",
+    "chooseContinue": "Choose how you'd like to continue.",
+    "noCodeQ": "Don't have a code?",
+    "contactConsultant": "Contact a consultant",
     "login": "Login",
     "logout": "Logout",
     "signup": "Sign Up",

@@ -44,6 +44,15 @@
     "skip": "O'tkazib yuborish"
   },
   "auth": {
+    "brandHeadline": "Yana xush kelibsiz",
+    "brandSub": "Arizalar, hujjatlar va suhbatlaringizni Janubiy Koreyadagi universitetgacha bo'lgan butun yo'l davomida kuzatib boring.",
+    "tick1": "94% qabul ko'rsatkichi",
+    "tick2": "Hujjatlaringizni biz tayyorlaymiz",
+    "tick3": "AI bilan suhbat mashqi",
+    "signIn": "Kirish",
+    "chooseContinue": "Davom etish usulini tanlang.",
+    "noCodeQ": "Kodingiz yo'qmi?",
+    "contactConsultant": "Maslahatchi bilan bog'laning",
     "login": "Kirish",
     "logout": "Chiqish",
     "signup": "Ro'yxatdan o'tish",

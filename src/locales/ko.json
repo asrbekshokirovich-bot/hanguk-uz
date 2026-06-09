@@ -43,6 +43,15 @@
     "welcome": "환영합니다"
   },
   "auth": {
+    "brandHeadline": "다시 오신 것을 환영합니다",
+    "brandSub": "지원서, 서류, 면접을 한국 대학 입학까지 한곳에서 관리하세요.",
+    "tick1": "합격률 94%",
+    "tick2": "서류는 저희가 처리합니다",
+    "tick3": "AI 면접 연습",
+    "signIn": "로그인",
+    "chooseContinue": "어떻게 진행할지 선택하세요.",
+    "noCodeQ": "코드가 없으신가요?",
+    "contactConsultant": "컨설턴트에게 문의",
     "login": "로그인",
     "logout": "로그아웃",
     "signup": "회원가입",
