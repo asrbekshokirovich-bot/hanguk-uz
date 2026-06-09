@@ -149,13 +149,18 @@ def infer_term(payload: dict) -> str:
 
 def program_level_for(value: object) -> str:
     """Map an extracted program level to a university_admission_periods.program_level
-    CHECK value ('undergraduate' | 'graduate' | 'both'). The extractor emits finer
-    levels (master/doctoral/phd) that the table doesn't model, so collapse them to
-    'graduate' — otherwise the row violates the CHECK and the whole calendar item
-    fails to publish (audit: Ewha/KHU graduate periods looped as publish errors)."""
+    CHECK value. The live constraint allows only
+    ('undergraduate' | 'graduate' | 'phd' | 'all') — NOT 'both' (that value is valid
+    for language_track, not program_level). Emitting 'both' here violated the CHECK
+    and made the whole calendar period fail to publish (audit: Ewha/KHU graduate
+    periods looped as publish errors). A combined undergrad+grad calendar maps to the
+    table's catch-all 'all'; finer graduate levels (master/doctoral/phd strings)
+    collapse to 'graduate' as before."""
     v = value.strip().lower() if isinstance(value, str) else ""
-    if v in ("undergraduate", "graduate", "both"):
+    if v in ("undergraduate", "graduate", "all"):
         return v
+    if v == "both":            # undergrad + grad → the table's catch-all value
+        return "all"
     if v in ("master", "masters", "doctoral", "doctorate", "phd", "graduate_school",
              "grad", "master_doctoral", "integrated"):
         return "graduate"
