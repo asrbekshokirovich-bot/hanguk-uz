@@ -27,12 +27,77 @@ export interface UseVoiceChannelReturn {
   isInChannel: boolean;
 }
 
-const ICE_SERVERS: RTCConfiguration = {
-  iceServers: [
-    { urls: "stun:stun.l.google.com:19302" },
-    { urls: "stun:stun1.l.google.com:19302" },
-  ],
-};
+// STUN lets peers discover their public address; it works for ~70-80% of
+// connections. The rest (symmetric NAT, corporate/office firewalls) need a TURN
+// relay or they silently fail to connect. TURN is resolved at runtime so the
+// credentials don't have to be baked into the client bundle.
+//
+// Configure via Vite env (all optional — with none set we fall back to STUN-only,
+// i.e. the previous behavior, so this is a zero-regression change):
+//   VITE_TURN_ICE_ENDPOINT  — URL returning { iceServers: [...] } (or a bare array)
+//                             with SHORT-LIVED credentials. Preferred for production
+//                             so the long-term TURN secret stays server-side.
+//   VITE_TURN_URLS          — comma-separated TURN url(s), e.g.
+//                             "turn:turn.example.com:3478,turns:turn.example.com:5349"
+//   VITE_TURN_USERNAME      — static TURN username (used with VITE_TURN_URLS)
+//   VITE_TURN_CREDENTIAL    — static TURN credential (used with VITE_TURN_URLS)
+const STUN_ONLY: RTCIceServer[] = [
+  { urls: "stun:stun.l.google.com:19302" },
+  { urls: "stun:stun1.l.google.com:19302" },
+];
+
+let iceServersPromise: Promise<RTCConfiguration> | null = null;
+
+async function buildIceConfiguration(): Promise<RTCConfiguration> {
+  // 1. Runtime endpoint → ephemeral credentials (recommended for production).
+  const endpoint = import.meta.env.VITE_TURN_ICE_ENDPOINT as string | undefined;
+  if (endpoint) {
+    try {
+      const res = await fetch(endpoint, { credentials: "omit" });
+      if (res.ok) {
+        const data = await res.json();
+        const servers: RTCIceServer[] | undefined = Array.isArray(data) ? data : data?.iceServers;
+        if (servers && servers.length > 0) {
+          console.log("[VoiceChannel] Loaded", servers.length, "ICE server(s) from endpoint");
+          return { iceServers: [...STUN_ONLY, ...servers] };
+        }
+      }
+      console.warn("[VoiceChannel] TURN endpoint returned no iceServers; using STUN only");
+    } catch (e) {
+      console.warn("[VoiceChannel] Failed to load ICE servers from endpoint; using STUN only", e);
+    }
+  }
+
+  // 2. Static TURN credentials from env.
+  const turnUrls = import.meta.env.VITE_TURN_URLS as string | undefined;
+  if (turnUrls) {
+    const urls = turnUrls.split(",").map((u) => u.trim()).filter(Boolean);
+    if (urls.length > 0) {
+      console.log("[VoiceChannel] Using static TURN server(s) from env");
+      return {
+        iceServers: [
+          ...STUN_ONLY,
+          {
+            urls,
+            username: import.meta.env.VITE_TURN_USERNAME as string | undefined,
+            credential: import.meta.env.VITE_TURN_CREDENTIAL as string | undefined,
+          },
+        ],
+      };
+    }
+  }
+
+  // 3. No TURN configured → STUN only (previous behavior).
+  return { iceServers: STUN_ONLY };
+}
+
+// Resolve ICE configuration once (memoized) and reuse it for every peer connection.
+function loadIceConfiguration(): Promise<RTCConfiguration> {
+  if (!iceServersPromise) {
+    iceServersPromise = buildIceConfiguration();
+  }
+  return iceServersPromise;
+}
 
 const CONNECTION_TIMEOUT = 25000; // Increased from 15s for slower networks
 const RECONNECT_DELAY = 2000;
@@ -330,7 +395,7 @@ export function useVoiceChannel(): UseVoiceChannelReturn {
 
       console.log("[VoiceChannel] Creating peer connection with", participantId, "initiator:", isInitiator);
 
-      const pc = new RTCPeerConnection(ICE_SERVERS);
+      const pc = new RTCPeerConnection(await loadIceConfiguration());
       peerConnectionsRef.current.set(participantId, pc);
 
       // FIX: Attach the actual audio track when creating transceiver (not just "audio" string)
