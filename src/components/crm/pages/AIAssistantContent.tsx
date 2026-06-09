@@ -20,6 +20,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { Logo } from '@/components/Logo';
 import { useHangukAI } from '@/hooks/useHangukAI';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -189,17 +190,10 @@ export default function AIAssistantContent() {
             {/* Messages */}
             <ScrollArea className="flex-1 p-4" ref={scrollRef}>
               <div className="space-y-4">
-                {/* Welcome message when no messages */}
+                {/* Empty state — clean Hanguk brand mark */}
                 {messages.length === 0 && (
-                  <div className="flex gap-3">
-                    <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
-                      <Bot className="h-5 w-5 text-primary-foreground" />
-                    </div>
-                    <div className="flex-1 bg-muted rounded-lg p-4">
-                      <p className="font-medium">
-                        {t('ai.welcomeStaff', "Hello! I'm Hanguk AI, your CRM assistant.")}
-                      </p>
-                    </div>
+                  <div className="flex flex-col items-center justify-center py-20">
+                    <Logo variant="badge" className="h-20 w-20 rounded-2xl opacity-90" />
                   </div>
                 )}
 
@@ -344,22 +338,6 @@ export default function AIAssistantContent() {
                 </p>
               </div>
 
-              <div className="pt-4 border-t mt-4">
-                <p className="text-xs text-muted-foreground mb-3">
-                  {t('ai.searchTip', 'Search for a student:')}
-                </p>
-                <div className="space-y-1">
-                  <p className="text-xs text-muted-foreground italic">
-                    "Show me info about Ali"
-                  </p>
-                  <p className="text-xs text-muted-foreground italic">
-                    "Find student Aziza"
-                  </p>
-                  <p className="text-xs text-muted-foreground italic">
-                    "Who is Jasur?"
-                  </p>
-                </div>
-              </div>
             </CardContent>
           </Card>
         </div>
