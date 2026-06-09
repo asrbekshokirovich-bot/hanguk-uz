@@ -34,6 +34,10 @@ export interface UseVoiceChannelReturn {
 //
 // Configure via Vite env (all optional — with none set we fall back to STUN-only,
 // i.e. the previous behavior, so this is a zero-regression change):
+//   VITE_TURN_FUNCTION      — name of a Supabase Edge Function returning
+//                             { iceServers } with short-lived creds (most secure;
+//                             see supabase/functions/turn-credentials). The user's
+//                             auth token is attached automatically.
 //   VITE_TURN_ICE_ENDPOINT  — URL returning { iceServers: [...] } (or a bare array)
 //                             with SHORT-LIVED credentials. Preferred for production
 //                             so the long-term TURN secret stays server-side.
@@ -49,7 +53,25 @@ const STUN_ONLY: RTCIceServer[] = [
 let iceServersPromise: Promise<RTCConfiguration> | null = null;
 
 async function buildIceConfiguration(): Promise<RTCConfiguration> {
-  // 1. Runtime endpoint → ephemeral credentials (recommended for production).
+  // 1. Supabase Edge Function that mints ephemeral TURN creds (most secure — the
+  //    user's auth token is attached automatically by the supabase client, so the
+  //    relay can only be used by signed-in staff).
+  const fnName = import.meta.env.VITE_TURN_FUNCTION as string | undefined;
+  if (fnName) {
+    try {
+      const { data, error } = await supabase.functions.invoke(fnName);
+      const servers: RTCIceServer[] | undefined = Array.isArray(data) ? data : data?.iceServers;
+      if (!error && servers && servers.length > 0) {
+        console.log("[VoiceChannel] Loaded", servers.length, "ICE server(s) from function", fnName);
+        return { iceServers: servers };
+      }
+      console.warn("[VoiceChannel] TURN function returned no iceServers; trying next source", error);
+    } catch (e) {
+      console.warn("[VoiceChannel] TURN function invoke failed; trying next source", e);
+    }
+  }
+
+  // 2. Generic runtime endpoint (e.g. Metered) → ephemeral credentials.
   const endpoint = import.meta.env.VITE_TURN_ICE_ENDPOINT as string | undefined;
   if (endpoint) {
     try {
@@ -68,7 +90,7 @@ async function buildIceConfiguration(): Promise<RTCConfiguration> {
     }
   }
 
-  // 2. Static TURN credentials from env.
+  // 3. Static TURN credentials from env.
   const turnUrls = import.meta.env.VITE_TURN_URLS as string | undefined;
   if (turnUrls) {
     const urls = turnUrls.split(",").map((u) => u.trim()).filter(Boolean);
@@ -87,7 +109,7 @@ async function buildIceConfiguration(): Promise<RTCConfiguration> {
     }
   }
 
-  // 3. No TURN configured → STUN only (previous behavior).
+  // 4. No TURN configured → STUN only (previous behavior).
   return { iceServers: STUN_ONLY };
 }
 
