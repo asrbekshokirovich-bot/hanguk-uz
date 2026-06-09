@@ -17,6 +17,7 @@ const badgeVariants = cva(
         /* Soft tonal badges (redesign) — tinted bg + colored text, for
            stage / payment / priority / status chips across the CRM. */
         successSoft: "border-transparent bg-success/10 text-success",
+        destructiveSoft: "border-transparent bg-destructive/10 text-destructive",
         warning: "border-transparent bg-warning/10 text-warning",
         info: "border-transparent bg-info/10 text-info",
         lime: "border-transparent bg-accent/15 text-accent-foreground",

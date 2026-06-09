@@ -913,5 +913,91 @@
     "ctaHeading": "Ready to study in South Korea?",
     "ctaSub": "Get your magic code from a consultant and start today.",
     "getApp": "Get the app"
+  },
+  "applications": {
+    "title": "Applications",
+    "subtitle": "{{count}} active applications across {{unis}} universities",
+    "export": "Export",
+    "new": "New Application",
+    "stat": {
+      "total": "Total applications",
+      "inReview": "In review",
+      "submitted": "Submitted",
+      "deadlines": "Deadlines ≤ 14 days"
+    },
+    "intake": {
+      "all": "All intakes",
+      "spring": "Spring {{year}}",
+      "fall": "Fall {{year}}"
+    },
+    "filter": {
+      "university": "University",
+      "allUniversities": "All universities"
+    },
+    "view": {
+      "board": "Board",
+      "table": "Table"
+    },
+    "stage": {
+      "new": "New",
+      "documents": "Documents",
+      "review": "In Review",
+      "submitted": "Submitted",
+      "decision": "Decision"
+    },
+    "col": {
+      "student": "Student",
+      "universityProgram": "University · Program",
+      "intake": "Intake",
+      "documents": "Documents",
+      "stage": "Stage",
+      "deadline": "Deadline"
+    },
+    "deadline": {
+      "closed": "Closed",
+      "daysLeft": "{{count}}d left"
+    },
+    "outcome": {
+      "accepted": "Accepted",
+      "waitlist": "Waitlist",
+      "rejected": "Rejected",
+      "pending": "Pending"
+    },
+    "timeline": {
+      "heading": "Status timeline",
+      "created": "Application created",
+      "documents": "Documents collected",
+      "translated": "Translated & apostilled",
+      "submitted": "Submitted to university",
+      "decision": "Decision received",
+      "awaiting": "Awaiting decision"
+    },
+    "empty": {
+      "title": "No applications yet",
+      "description": "Applications appear here once students start applying to universities."
+    },
+    "programTbd": "Program TBD",
+    "unknownUniversity": "Unknown university",
+    "multiApps": "{{count}} applications",
+    "highPriority": "High priority",
+    "advanceStage": "Advance stage",
+    "message": "Message",
+    "messageHint": "Open the student's profile to send a message.",
+    "copyId": "Copy application ID",
+    "idCopied": "Application ID copied",
+    "drawerDocuments": "Documents",
+    "upload": "Upload",
+    "uploadHint": "Upload documents from the student's profile.",
+    "verified": "Verified",
+    "pending": "Pending",
+    "noDocuments": "No documents uploaded yet",
+    "deadlineTitle": "Submission deadline",
+    "otherApps": "{{name}}'s other applications · {{count}}",
+    "topik": "TOPIK {{level}}",
+    "noTopik": "TOPIK —",
+    "advanced": "Stage advanced",
+    "advanceError": "Couldn't advance stage",
+    "maxStage": "Already at the final stage",
+    "exported": "Applications exported"
   }
 }

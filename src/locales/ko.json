@@ -868,5 +868,91 @@
     "ctaHeading": "한국에서 공부할 준비가 되셨나요?",
     "ctaSub": "컨설턴트에게 매직 코드를 받아 오늘 시작하세요.",
     "getApp": "앱 다운로드"
+  },
+  "applications": {
+    "title": "지원서",
+    "subtitle": "{{unis}}개 대학에 {{count}}건의 활성 지원서",
+    "export": "내보내기",
+    "new": "새 지원서",
+    "stat": {
+      "total": "전체 지원서",
+      "inReview": "검토 중",
+      "submitted": "제출됨",
+      "deadlines": "마감 ≤ 14일"
+    },
+    "intake": {
+      "all": "모든 학기",
+      "spring": "{{year}} 봄학기",
+      "fall": "{{year}} 가을학기"
+    },
+    "filter": {
+      "university": "대학",
+      "allUniversities": "모든 대학"
+    },
+    "view": {
+      "board": "보드",
+      "table": "테이블"
+    },
+    "stage": {
+      "new": "신규",
+      "documents": "서류",
+      "review": "검토 중",
+      "submitted": "제출됨",
+      "decision": "결정"
+    },
+    "col": {
+      "student": "학생",
+      "universityProgram": "대학 · 프로그램",
+      "intake": "학기",
+      "documents": "서류",
+      "stage": "단계",
+      "deadline": "마감일"
+    },
+    "deadline": {
+      "closed": "마감",
+      "daysLeft": "{{count}}일 남음"
+    },
+    "outcome": {
+      "accepted": "합격",
+      "waitlist": "대기자",
+      "rejected": "불합격",
+      "pending": "대기 중"
+    },
+    "timeline": {
+      "heading": "상태 타임라인",
+      "created": "지원서 생성됨",
+      "documents": "서류 수집됨",
+      "translated": "번역 및 아포스티유 완료",
+      "submitted": "대학에 제출됨",
+      "decision": "결정 수신됨",
+      "awaiting": "결정 대기 중"
+    },
+    "empty": {
+      "title": "아직 지원서가 없습니다",
+      "description": "학생이 대학에 지원하면 여기에 표시됩니다."
+    },
+    "programTbd": "프로그램 미정",
+    "unknownUniversity": "알 수 없는 대학",
+    "multiApps": "지원서 {{count}}건",
+    "highPriority": "높은 우선순위",
+    "advanceStage": "단계 진행",
+    "message": "메시지",
+    "messageHint": "메시지를 보내려면 학생 프로필을 염세요.",
+    "copyId": "지원서 ID 복사",
+    "idCopied": "지원서 ID가 복사되었습니다",
+    "drawerDocuments": "서류",
+    "upload": "업로드",
+    "uploadHint": "학생 프로필에서 서류를 업로드하세요.",
+    "verified": "확인됨",
+    "pending": "대기",
+    "noDocuments": "아직 업로드된 서류가 없습니다",
+    "deadlineTitle": "제출 마감일",
+    "otherApps": "{{name}}님의 다른 지원서 · {{count}}",
+    "topik": "TOPIK {{level}}",
+    "noTopik": "TOPIK —",
+    "advanced": "단계가 진행되었습니다",
+    "advanceError": "단계를 진행할 수 없습니다",
+    "maxStage": "이미 마지막 단계입니다",
+    "exported": "지원서를 내보냈습니다"
   }
 }

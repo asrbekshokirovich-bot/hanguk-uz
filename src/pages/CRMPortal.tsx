@@ -58,6 +58,7 @@ const CalendarContent = lazy(() => import('@/components/crm/pages/CalendarConten
 const SettingsContent = lazy(() => import('@/components/crm/pages/SettingsContent'));
 const KakaoMapContent = lazy(() => import('@/components/crm/pages/KakaoMapContent'));
 const UniDbReviewContent = lazy(() => import('@/components/crm/pages/UniDbReviewContent'));
+const ApplicationsContent = lazy(() => import('@/components/crm/pages/ApplicationsContent'));
 
 // Access denied component
 const AccessDenied = () => (
@@ -291,22 +292,13 @@ export default function CRMPortal() {
         );
       case 'applications':
         return (
-          <>
-            <div style={{ display: selectedStudent ? 'none' : undefined }}>
-              <Card>
-                <CardHeader>
-                  <CardTitle>{t('navigation.applications')}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground mb-4">
-                    View applications from the student detail view by selecting a student.
-                  </p>
-                  {studentListElement}
-                </CardContent>
-              </Card>
-            </div>
-            {studentDetailElement}
-          </>
+          <SafeSuspense>
+            <ApplicationsContent
+              students={students}
+              loading={loading}
+              onUpdateApplicationStatus={updateApplicationStatus}
+            />
+          </SafeSuspense>
         );
       case 'documents':
         return (
