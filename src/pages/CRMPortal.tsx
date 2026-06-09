@@ -10,7 +10,7 @@ import { usePayments } from '@/hooks/usePayments';
 import { CRMSidebar, useSidebarGroups } from '@/components/crm/CRMSidebar';
 import { CRMCommandMenu } from '@/components/crm/CRMCommandMenu';
 import { ThemeToggleButton } from '@/components/ThemeToggleButton';
-import { Logo } from '@/components/Logo';
+import { Logo } from '@/components/brand/Logo';
 import { CRMDashboard } from '@/components/crm/CRMDashboard';
 import { StudentList } from '@/components/crm/StudentList';
 import { StudentDetail } from '@/components/crm/StudentDetail';
@@ -225,7 +225,7 @@ export default function CRMPortal() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="animate-pulse flex flex-col items-center gap-4">
-          <Logo className="h-16 w-16" />
+          <Logo variant="glyph" className="h-16 w-16" />
           <p className="text-muted-foreground">{t('common.loading')}</p>
         </div>
       </div>

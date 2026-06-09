@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
-import { Logo } from '@/components/Logo';
+import { Logo } from '@/components/brand/Logo';
 import { usePlatform } from '@/hooks/usePlatform';
 import { Download, Share, Smartphone, CheckCircle, PartyPopper } from 'lucide-react';
 
@@ -66,7 +66,7 @@ export default function Install() {
       <div className="min-h-screen flex flex-col bg-secondary">
         <header className="flex justify-between items-center p-4">
           <div className="flex items-center gap-3">
-            <Logo className="h-10 w-10 rounded-lg" />
+            <Logo variant="glyph" className="h-10 w-10" />
             <span className="text-xl font-bold tracking-tight text-primary">Hanguk</span>
           </div>
           <LanguageSwitcher />
@@ -105,7 +105,7 @@ export default function Install() {
       {/* Header */}
       <header className="flex justify-between items-center p-4">
         <div className="flex items-center gap-3">
-          <Logo className="h-10 w-10 rounded-lg" />
+          <Logo variant="glyph" className="h-10 w-10" />
           <span className="text-xl font-bold tracking-tight text-primary">Hanguk</span>
         </div>
         <LanguageSwitcher />

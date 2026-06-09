@@ -3,7 +3,7 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
-import { Logo } from '@/components/Logo';
+import { Logo } from '@/components/brand/Logo';
 
 // Loading Component
 function LoadingScreen() {
@@ -12,7 +12,7 @@ function LoadingScreen() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
       <div className="animate-pulse flex flex-col items-center gap-4">
-        <Logo className="h-16 w-16" />
+        <Logo variant="glyph" className="h-16 w-16" />
         <p className="text-muted-foreground">{t('common.loading', 'Loading...')}</p>
       </div>
     </div>
@@ -26,7 +26,7 @@ function RedirectingScreen() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
       <div className="flex flex-col items-center gap-4">
-        <Logo className="h-16 w-16 opacity-50" />
+        <Logo variant="glyph" className="h-16 w-16 opacity-50" />
         <p className="text-muted-foreground">{t('auth.redirecting', 'Redirecting to login...')}</p>
       </div>
     </div>

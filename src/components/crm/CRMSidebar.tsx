@@ -44,7 +44,7 @@ import {
   LogOut,
 } from 'lucide-react';
 import { SidebarStaffPanel } from '@/components/intercom/SidebarStaffPanel';
-import { Logo } from '@/components/Logo';
+import { Logo } from '@/components/brand/Logo';
 
 export interface SidebarGroup {
   id: string;
@@ -204,7 +204,7 @@ export function CRMSidebar({
       {/* Brand */}
       <SidebarHeader className="p-3">
         <div className={cn('flex items-center gap-2.5', collapsed && 'justify-center')}>
-          <Logo variant="badge" className="h-9 w-9 shrink-0 rounded-lg" />
+          <Logo variant="glyph" onDark className="h-9 w-9 shrink-0" />
           {!collapsed && (
             <div className="min-w-0">
               <div className="truncate text-[15px] font-bold leading-tight text-white">Hanguk</div>

@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { ThemeToggleButton } from '@/components/ThemeToggleButton';
-import { Logo } from '@/components/Logo';
+import { Logo } from '@/components/brand/Logo';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Loader2, User, Lock, Crown, GraduationCap, Briefcase, Eye, EyeOff, Check, ShieldCheck, Sparkles } from 'lucide-react';
@@ -345,7 +345,7 @@ export default function Auth() {
     return (
       <div className="min-h-[100dvh] flex items-center justify-center bg-secondary">
         <div className="flex flex-col items-center gap-4">
-          <Logo className="h-12 w-12 animate-pulse" />
+          <Logo variant="glyph" className="h-12 w-12 animate-pulse" />
           <Loader2 className="h-6 w-6 animate-spin text-primary" />
           <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
         </div>
@@ -358,9 +358,8 @@ export default function Auth() {
       {/* Brand panel (desktop) */}
       <div className="relative hidden flex-col justify-between overflow-hidden bg-app-gradient p-12 lg:flex">
         <div className="pointer-events-none absolute -right-16 -top-16 h-72 w-72 rounded-full bg-accent/10" />
-        <div className="relative flex items-center gap-3">
-          <Logo variant="badge" className="h-10 w-10 rounded-lg" />
-          <span className="text-xl font-bold text-white">Hanguk</span>
+        <div className="relative flex items-center">
+          <Logo variant="lockup" onDark className="h-10" />
         </div>
         <div className="relative max-w-md">
           <h2 className="text-3xl font-extrabold leading-tight tracking-tight text-white">
@@ -390,9 +389,8 @@ export default function Auth() {
       {/* Form side */}
       <div className="flex min-h-[100dvh] flex-col lg:min-h-0">
         <header className="flex items-center justify-between p-4">
-          <div className="flex items-center gap-2.5 lg:invisible">
-            <Logo variant="badge" className="h-9 w-9 rounded-lg" />
-            <span className="text-lg font-bold text-foreground">Hanguk</span>
+          <div className="lg:invisible">
+            <Logo variant="lockup" className="h-9" />
           </div>
           <div className="flex items-center gap-2">
             <LanguageSwitcher />

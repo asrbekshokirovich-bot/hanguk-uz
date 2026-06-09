@@ -8,7 +8,7 @@ import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { ThemeToggleButton } from '@/components/ThemeToggleButton';
-import { Logo } from '@/components/Logo';
+import { Logo } from '@/components/brand/Logo';
 import {
   ArrowRight,
   Play,
@@ -45,7 +45,7 @@ const Index = () => {
     return (
       <div className="min-h-[100dvh] flex items-center justify-center bg-background">
         <div className="animate-pulse flex flex-col items-center gap-4">
-          <Logo className="h-16 w-16" />
+          <Logo variant="glyph" className="h-16 w-16" />
           <p className="text-muted-foreground">{t('common.loading')}</p>
         </div>
       </div>
@@ -57,7 +57,7 @@ const Index = () => {
     return (
       <div className="min-h-[100dvh] flex items-center justify-center bg-background">
         <div className="animate-pulse flex flex-col items-center gap-4">
-          <Logo className="h-16 w-16" />
+          <Logo variant="glyph" className="h-16 w-16" />
           <p className="text-muted-foreground">{t('common.loading')}</p>
         </div>
       </div>
@@ -83,9 +83,8 @@ const Index = () => {
     <div className="min-h-[100dvh] overflow-x-hidden bg-background text-foreground">
       {/* Nav */}
       <header className="mx-auto flex w-full max-w-[1200px] items-center justify-between px-5 py-5 sm:px-10">
-        <div className="flex items-center gap-2.5">
-          <Logo variant="badge" className="h-9 w-9 rounded-lg" />
-          <span className="text-lg font-bold tracking-tight">Hanguk</span>
+        <div className="flex items-center">
+          <Logo variant="lockup" className="h-9" />
         </div>
         <div className="flex items-center gap-2 sm:gap-3">
           <LanguageSwitcher />
