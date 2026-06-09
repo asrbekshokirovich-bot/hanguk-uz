@@ -29,7 +29,6 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { useDashboardStats } from '@/hooks/useDashboardStats';
-import { AIInsightsPanel } from '@/components/crm/AIInsightsPanel';
 import { UzbekistanRegionalMap } from '@/components/crm/UzbekistanRegionalMap';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
@@ -135,9 +134,6 @@ export function CRMDashboard(_props: CRMDashboardProps) {
           </Button>
         </div>
       </div>
-
-      {/* AI insights (live) — the dashboard's AI surface */}
-      <AIInsightsPanel />
 
       {/* Stat cards */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
