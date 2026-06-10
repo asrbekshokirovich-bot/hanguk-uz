@@ -149,6 +149,12 @@ function buildGroups(
           visible: canReviewUniDb,
           highlight: true,
         },
+        {
+          title: 'Upload PDFs',
+          url: '/crm/admin/uni-db-upload',
+          icon: FileText,
+          visible: canReviewUniDb,
+        },
         { title: t('navigation.settings'), url: '/crm/settings', icon: Settings, visible: true },
       ],
     },

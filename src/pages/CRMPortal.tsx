@@ -58,6 +58,7 @@ const CalendarContent = lazy(() => import('@/components/crm/pages/CalendarConten
 const SettingsContent = lazy(() => import('@/components/crm/pages/SettingsContent'));
 const KakaoMapContent = lazy(() => import('@/components/crm/pages/KakaoMapContent'));
 const UniDbReviewContent = lazy(() => import('@/components/crm/pages/UniDbReviewContent'));
+const UniDbUploadContent = lazy(() => import('@/components/crm/pages/UniDbUploadContent'));
 
 // Access denied component
 const AccessDenied = () => (
@@ -133,6 +134,7 @@ export default function CRMPortal() {
     if (currentPath.startsWith('/crm/translation')) return 'translation';
     if (currentPath.startsWith('/crm/communication')) return 'communication';
     if (currentPath.startsWith('/crm/kakao-map')) return 'kakao-map';
+    if (currentPath.startsWith('/crm/admin/uni-db-upload')) return 'uni-db-upload';
     if (currentPath.startsWith('/crm/admin/uni-db-review')) return 'uni-db-review';
     return 'dashboard';
   };
@@ -404,6 +406,8 @@ export default function CRMPortal() {
         return <SafeSuspense><KakaoMapContent /></SafeSuspense>;
       case 'uni-db-review':
         return <SafeSuspense><UniDbReviewContent /></SafeSuspense>;
+      case 'uni-db-upload':
+        return <SafeSuspense><UniDbUploadContent /></SafeSuspense>;
       default:
         return (
           <CRMDashboard

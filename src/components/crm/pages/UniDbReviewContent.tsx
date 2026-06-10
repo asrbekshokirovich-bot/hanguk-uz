@@ -216,7 +216,7 @@ function NeedsAttentionView() {
 }
 
 export function UniDbReviewContent() {
-  const { allowed, loading } = useCanReviewUniDb();
+  const { canReview, loading } = useCanReviewUniDb();
 
   if (loading) {
     return (
@@ -226,7 +226,7 @@ export function UniDbReviewContent() {
     );
   }
 
-  if (!allowed) {
+  if (!canReview) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
         <ShieldAlert className="h-10 w-10 text-muted-foreground mb-3" />
@@ -240,3 +240,5 @@ export function UniDbReviewContent() {
 
   return <NeedsAttentionView />;
 }
+
+export default UniDbReviewContent;
