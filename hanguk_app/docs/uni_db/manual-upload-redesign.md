@@ -67,9 +67,12 @@ admission season = the push.
 
 ## Migration — phased
 1. ✅ **Front door:** `upload-guideline` + Upload UI (this PR). Verify on a few unis.
-2. **Extraction engine:** add `uni-db-process-uploads.yml` = `reparse --pending-only`
-   → `publish` → `translate` (a network-free subset of the old sync). This is what
-   turns a pending upload into published data.
+2. ✅ **Extraction engine:** `.github/workflows/uni-db-process-uploads.yml` =
+   `uni-db reparse --pending-only` → `uni-db publish` → translate (network-free
+   subset of the old sync; every 30 min + manual dispatch). Turns a pending upload
+   into published data. Added a `--pending-only` reparse mode that processes only
+   never-parsed uploads and flips a broken PDF to `failed` so it isn't re-billed.
+   Activates once on the default branch with the `UNI_DB_*` secrets set.
 3. **Seed the worklist:** load the certified 350+ list (official registry).
 4. **Delete the brittle layer:** remove discovery/crawl/fetch/resolvers +
    `uni-db-sync.yml` + the 4 dead workflows (pure dead-code removal once uploads work).
@@ -79,6 +82,6 @@ admission season = the push.
 
 ## Fast-follows (tracked)
 - Status column on the upload list (security_invoker view over `guideline_documents`).
-- `uni-db-process-uploads` workflow (extraction engine).
+- Immediate trigger on upload (repository_dispatch) instead of the 30-min poll.
 - Official-API ingestor for tuition/scholarships.
 - Certified 350+ seed (the starter-100 is a working set, not the certified list).
