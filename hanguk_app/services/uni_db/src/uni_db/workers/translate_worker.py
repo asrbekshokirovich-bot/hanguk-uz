@@ -147,45 +147,53 @@ async def run_jobs(
 ) -> int:
     written = 0
     for job in jobs:
-        result = translate(
-            source_text_ko=job.source_text_ko,
-            target_lang=job.target_lang,
-            glossary=glossary,
-            is_label=job.is_label,
-        )
-        if is_suspect_translation(result.text_value, job.target_lang):
+        try:
+            result = translate(
+                source_text_ko=job.source_text_ko,
+                target_lang=job.target_lang,
+                glossary=glossary,
+                is_label=job.is_label,
+            )
+            if is_suspect_translation(result.text_value, job.target_lang):
+                log.warning(
+                    "translate: dropped suspect output for %s.%s [%s]: %r",
+                    job.entity_type, job.field_name, job.target_lang,
+                    result.text_value[:80],
+                )
+                continue
+            await conn.execute(
+                """
+                insert into public.translations (
+                  entity_type, entity_id, field_name, lang,
+                  text_value, source_lang, provider, confidence,
+                  back_trans_distance, is_machine
+                ) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,true)
+                on conflict (entity_type, entity_id, field_name, lang) do update
+                  set text_value         = excluded.text_value,
+                      provider           = excluded.provider,
+                      confidence         = excluded.confidence,
+                      back_trans_distance= excluded.back_trans_distance,
+                      is_machine         = true,
+                      created_at         = now()
+                """,
+                job.entity_type,
+                job.entity_id,
+                job.field_name,
+                job.target_lang,
+                result.text_value,
+                "ko",
+                result.provider,
+                result.confidence,
+                result.back_trans_distance,
+            )
+            written += 1
+        except Exception as exc:  # one bad row must not abort the whole batch
             log.warning(
-                "translate: dropped suspect output for %s.%s [%s]: %r",
+                "translate: job %s.%s [%s] failed: %s: %s",
                 job.entity_type, job.field_name, job.target_lang,
-                result.text_value[:80],
+                type(exc).__name__, str(exc)[:160],
             )
             continue
-        await conn.execute(
-            """
-            insert into public.translations (
-              entity_type, entity_id, field_name, lang,
-              text_value, source_lang, provider, confidence,
-              back_trans_distance, is_machine
-            ) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,true)
-            on conflict (entity_type, entity_id, field_name, lang) do update
-              set text_value         = excluded.text_value,
-                  provider           = excluded.provider,
-                  confidence         = excluded.confidence,
-                  back_trans_distance= excluded.back_trans_distance,
-                  is_machine         = true,
-                  created_at         = now()
-            """,
-            job.entity_type,
-            job.entity_id,
-            job.field_name,
-            job.target_lang,
-            result.text_value,
-            "ko",
-            result.provider,
-            result.confidence,
-            result.back_trans_distance,
-        )
-        written += 1
     return written
 
 

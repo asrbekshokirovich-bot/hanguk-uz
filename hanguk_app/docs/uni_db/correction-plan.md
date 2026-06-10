@@ -81,12 +81,21 @@ review screen that crashes on open.
 - ⚠️ **1.5 Migrations not replayable.** The `20260510*` "fix" batch ALTER/REVOKEs
   objects created in later-dated June/July migrations, so `supabase db reset` aborts.
   Re-timestamp/reorder; verify a clean reset on staging.
-- ☐ **1.6 `compare-universities`** reads the dropped `public.universities` table →
-  point it at `institutions`.
-- ☐ **1.7 Smaller bugs:** `v_uni_db_health` counts `status='promoted'` (never
-  happens → "published" always 0); calendar `needs_attention` overwrite (line ~414)
-  clears flags vs the sticky-OR used for cycles; `translate_worker` lacks per-row
-  try/except; `import-korean-universities` `.or()` filter built from unescaped names.
+- ⚠️ **1.6 Legacy edge fns hit the dropped `public.universities` table.** Both
+  `compare-universities` (read) and `import-korean-universities` (read+write, plus an
+  unescaped `.or()` filter built from LLM names) target the table dropped in the
+  v3 cutover, so they're effectively dead. **Decision needed:** retire them, or
+  repoint to `institutions` (non-trivial column remap: no `name_uz`/`city_en`/
+  `website`; `institutions` uses `primary_domain` etc.). Don't polish the `.or()`
+  on a dead function.
+- **1.7 Smaller bugs:**
+  - ✅ `translate_worker.run_jobs` now wraps each job in try/except, so one
+    provider/DB error skips that row instead of aborting the language batch
+    (added `test_translate_worker.py`).
+  - ☐ `v_uni_db_health` counts `status='promoted'` (never happens → "published"
+    always 0) — needs a corrective view migration (untestable here; staging).
+  - ☐ calendar `needs_attention` overwrite (line ~414) clears flags vs the
+    sticky-OR used for cycles (debatable — verify intent before changing).
 - ⚠️ **1.8 `fn_delete_my_account`** deletes by `user_id` but the PII tables key on
   `student_id` → deletion fails / leaves PII (store-compliance). Migration + staging.
 
