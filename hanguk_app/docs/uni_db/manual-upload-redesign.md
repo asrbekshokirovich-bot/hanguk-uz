@@ -18,7 +18,7 @@ break whenever a site changes) and keeps the robust part (Claude reading PDFs).
 | Keep (works) | Cut (brittle) | Build (new, small) |
 |---|---|---|
 | `institutions` + content tables (requirements, documents, scholarships, cycles, periods) | `discovery/` (adapters, registry, classifier, propose_source, change_detection) | **`upload-guideline`** edge fn ✅ (this PR) |
-| Claude extraction: `parse_worker` → `extract_orchestrator` → `publish_worker` | `fetch_worker` + `parse/pdf_resolvers/*` (korea_univ/kaist breakage) | **Upload UI** `UniDbUploadContent` ✅ (this PR) |
+| Claude extraction: `parse_worker` → `extract_orchestrator` → `publish_worker` | `fetch_worker` + `parse/pdf_resolvers/*` (korea_univ/kaist breakage) | **Upload** in the Universities cards ✅ |
 | `review_queue` + needs-attention UI (fixed in #52) | `discovery_worker`; tables `announcement_sources` / `crawl_runs` / `crawl_findings` / `proposed_sources` (leave dormant) | **`uni-db-process-uploads`** workflow (reparse-pending → publish → translate) — next |
 | `guideline_documents` + `guideline-blobs` bucket | `uni-db-sync.yml` + the 4 dead `uni-db-*` workflows | **Freshness/status** view + worklist column — next |
 | `translations` + `translate_worker` | Naver discovery; the scheduler | (opt.) official-API pull for **tuition** (Academyinfo) |
@@ -49,10 +49,13 @@ door*, not the house — ~80% reuse.
 - Returns `{ guideline_document_id, parse_status: 'pending' }`.
 
 ## The Upload UI (shipped)
-- `/crm/admin/uni-db-upload` (sidebar → Admin → "Upload PDFs", gated by
-  `fn_can_review_uni_db`). Searchable institution list + per-row "Upload PDF".
-- v1 has no per-university status column (avoids the internal-only RLS on
-  `guideline_documents` from the client) — see fast-follow.
+- Lives in the **Universities** section (`/crm/universities` → `UniversitiesContent`),
+  gated like the rest of the CRM. Each university is a **card** with an **Upload PDF**
+  button and a status chip (No PDF / Processing / Current / Failed). No separate page.
+- The button calls the `upload-guideline` edge function; the chip comes from the
+  latest `guideline_documents` row (staff-readable via the
+  `guideline_documents_app_read` / `fn_is_app_user()` RLS policy), refreshed after an
+  upload and every 30s.
 
 ## Staff workflow — right-sized
 Guidelines update **seasonally**, not daily. The daily job is a **worklist of
