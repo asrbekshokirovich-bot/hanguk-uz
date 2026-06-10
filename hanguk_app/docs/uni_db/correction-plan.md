@@ -81,13 +81,14 @@ review screen that crashes on open.
 - ⚠️ **1.5 Migrations not replayable.** The `20260510*` "fix" batch ALTER/REVOKEs
   objects created in later-dated June/July migrations, so `supabase db reset` aborts.
   Re-timestamp/reorder; verify a clean reset on staging.
-- ⚠️ **1.6 Legacy edge fns hit the dropped `public.universities` table.** Both
-  `compare-universities` (read) and `import-korean-universities` (read+write, plus an
-  unescaped `.or()` filter built from LLM names) target the table dropped in the
-  v3 cutover, so they're effectively dead. **Decision needed:** retire them, or
-  repoint to `institutions` (non-trivial column remap: no `name_uz`/`city_en`/
-  `website`; `institutions` uses `primary_domain` etc.). Don't polish the `.or()`
-  on a dead function.
+- ✅ **1.6 Retired the dead legacy edge fns.** `compare-universities` and
+  `import-korean-universities` both targeted the dropped `public.universities`
+  table → deleted both functions + their `config.toml` registration. **Follow-up:**
+  the student `UniversityComparisonChat` UI (mounted in `UniversityMapKakao`) called
+  `compare-universities` and is now orphaned — but it was already non-functional
+  (dropped table), so nothing regressed. Decide: remove the compare feature, or
+  rebuild it on `institutions`. Left intact for now; the build stays green because
+  the generated `types.ts` still carries the stale `universities` type.
 - **1.7 Smaller bugs:**
   - ✅ `translate_worker.run_jobs` now wraps each job in try/except, so one
     provider/DB error skips that row instead of aborting the language batch

@@ -61,9 +61,6 @@ verify_jwt = false
 
 
 
-[functions.compare-universities]
-verify_jwt = false
-
 [functions.heygen-avatar-token]
 verify_jwt = false
 
@@ -97,9 +94,6 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.search-university]
-verify_jwt = false
-
-[functions.import-korean-universities]
 verify_jwt = false
 
 [functions.analyze-lead]
