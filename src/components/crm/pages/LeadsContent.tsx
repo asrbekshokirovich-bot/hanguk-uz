@@ -22,7 +22,9 @@ import {
   Gauge,
   PhoneCall,
   Calendar,
-  FileText
+  FileText,
+  MapPin,
+  GraduationCap
 } from 'lucide-react';
 import { SmartContactDialog } from '@/components/leads/SmartContactDialog';
 import { AddLeadWizard } from '@/components/leads/AddLeadWizard';
@@ -409,12 +411,12 @@ const LeadsContent = () => {
                           )}
                           {lead.city && (
                             <span className="flex items-center gap-1">
-                              📍 {lead.city}
+                              <MapPin className="h-3 w-3" /> {lead.city}
                             </span>
                           )}
                           {lead.preferred_university && (
                             <span className="flex items-center gap-1 truncate max-w-[150px]">
-                              🎓 {lead.preferred_university}
+                              <GraduationCap className="h-3 w-3 shrink-0" /> {lead.preferred_university}
                             </span>
                           )}
                           {followUpStatus && (

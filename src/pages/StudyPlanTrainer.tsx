@@ -7,7 +7,7 @@ import { useStudyPlanSessions } from '@/hooks/useStudyPlanSessions';
 import { useStudentPlan } from '@/hooks/useStudentPlan';
 import { useGamification } from '@/hooks/useGamification';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
-import { Logo } from '@/components/Logo';
+import { Logo } from '@/components/brand/Logo';
 import { VIPAccessGate } from '@/components/interview/VIPAccessGate';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -644,7 +644,7 @@ export default function StudyPlanTrainer() {
     return (
       <div className="min-h-[100dvh] flex items-center justify-center bg-background">
         <div className="animate-pulse flex flex-col items-center gap-4">
-          <Logo className="h-16 w-16" />
+          <Logo variant="glyph" className="h-16 w-16" />
           <p className="text-muted-foreground">{t('common.loading', 'Loading...')}</p>
         </div>
       </div>

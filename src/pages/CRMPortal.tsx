@@ -10,7 +10,7 @@ import { usePayments } from '@/hooks/usePayments';
 import { CRMSidebar, useSidebarGroups } from '@/components/crm/CRMSidebar';
 import { CRMCommandMenu } from '@/components/crm/CRMCommandMenu';
 import { ThemeToggleButton } from '@/components/ThemeToggleButton';
-import { Logo } from '@/components/Logo';
+import { Logo } from '@/components/brand/Logo';
 import { CRMDashboard } from '@/components/crm/CRMDashboard';
 import { StudentList } from '@/components/crm/StudentList';
 import { StudentDetail } from '@/components/crm/StudentDetail';
@@ -58,6 +58,7 @@ const CalendarContent = lazy(() => import('@/components/crm/pages/CalendarConten
 const SettingsContent = lazy(() => import('@/components/crm/pages/SettingsContent'));
 const KakaoMapContent = lazy(() => import('@/components/crm/pages/KakaoMapContent'));
 const UniDbReviewContent = lazy(() => import('@/components/crm/pages/UniDbReviewContent'));
+const ApplicationsContent = lazy(() => import('@/components/crm/pages/ApplicationsContent'));
 
 // Access denied component
 const AccessDenied = () => (
@@ -225,7 +226,7 @@ export default function CRMPortal() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="animate-pulse flex flex-col items-center gap-4">
-          <Logo className="h-16 w-16" />
+          <Logo variant="glyph" className="h-16 w-16" />
           <p className="text-muted-foreground">{t('common.loading')}</p>
         </div>
       </div>
@@ -291,22 +292,13 @@ export default function CRMPortal() {
         );
       case 'applications':
         return (
-          <>
-            <div style={{ display: selectedStudent ? 'none' : undefined }}>
-              <Card>
-                <CardHeader>
-                  <CardTitle>{t('navigation.applications')}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground mb-4">
-                    View applications from the student detail view by selecting a student.
-                  </p>
-                  {studentListElement}
-                </CardContent>
-              </Card>
-            </div>
-            {studentDetailElement}
-          </>
+          <SafeSuspense>
+            <ApplicationsContent
+              students={students}
+              loading={loading}
+              onUpdateApplicationStatus={updateApplicationStatus}
+            />
+          </SafeSuspense>
         );
       case 'documents':
         return (

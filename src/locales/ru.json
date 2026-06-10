@@ -903,5 +903,91 @@
     "ctaHeading": "Готовы учиться в Южной Корее?",
     "ctaSub": "Получите волшебный код у консультанта и начните сегодня.",
     "getApp": "Скачать приложение"
+  },
+  "applications": {
+    "title": "Заявки",
+    "subtitle": "{{count}} активных заявок в {{unis}} университетах",
+    "export": "Экспорт",
+    "new": "Новая заявка",
+    "stat": {
+      "total": "Всего заявок",
+      "inReview": "На рассмотрении",
+      "submitted": "Отправлено",
+      "deadlines": "Дедлайны ≤ 14 дней"
+    },
+    "intake": {
+      "all": "Все наборы",
+      "spring": "Весна {{year}}",
+      "fall": "Осень {{year}}"
+    },
+    "filter": {
+      "university": "Университет",
+      "allUniversities": "Все университеты"
+    },
+    "view": {
+      "board": "Доска",
+      "table": "Таблица"
+    },
+    "stage": {
+      "new": "Новая",
+      "documents": "Документы",
+      "review": "На рассмотрении",
+      "submitted": "Отправлено",
+      "decision": "Решение"
+    },
+    "col": {
+      "student": "Студент",
+      "universityProgram": "Университет · Программа",
+      "intake": "Набор",
+      "documents": "Документы",
+      "stage": "Этап",
+      "deadline": "Дедлайн"
+    },
+    "deadline": {
+      "closed": "Закрыто",
+      "daysLeft": "осталось {{count}} дн."
+    },
+    "outcome": {
+      "accepted": "Принят",
+      "waitlist": "Лист ожидания",
+      "rejected": "Отклонён",
+      "pending": "В ожидании"
+    },
+    "timeline": {
+      "heading": "История статусов",
+      "created": "Заявка создана",
+      "documents": "Документы собраны",
+      "translated": "Переведено и апостилировано",
+      "submitted": "Отправлено в университет",
+      "decision": "Решение получено",
+      "awaiting": "Ожидание решения"
+    },
+    "empty": {
+      "title": "Пока нет заявок",
+      "description": "Заявки появятся здесь, как только студенты начнут подавать в университеты."
+    },
+    "programTbd": "Программа уточняется",
+    "unknownUniversity": "Неизвестный университет",
+    "multiApps": "{{count}} заявок",
+    "highPriority": "Высокий приоритет",
+    "advanceStage": "Следующий этап",
+    "message": "Сообщение",
+    "messageHint": "Откройте профиль студента, чтобы отправить сообщение.",
+    "copyId": "Скопировать ID заявки",
+    "idCopied": "ID заявки скопирован",
+    "drawerDocuments": "Документы",
+    "upload": "Загрузить",
+    "uploadHint": "Загрузите документы из профиля студента.",
+    "verified": "Проверено",
+    "pending": "Ожидает",
+    "noDocuments": "Документы ещё не загружены",
+    "deadlineTitle": "Срок подачи",
+    "otherApps": "Другие заявки {{name}} · {{count}}",
+    "topik": "TOPIK {{level}}",
+    "noTopik": "TOPIK —",
+    "advanced": "Этап продвинут",
+    "advanceError": "Не удалось продвинуть этап",
+    "maxStage": "Уже на финальном этапе",
+    "exported": "Заявки экспортированы"
   }
 }

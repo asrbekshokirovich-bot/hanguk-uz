@@ -39,7 +39,15 @@ interface FinanceReportsProps {
   payments: Payment[];
 }
 
-const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
+// Theme-aware chart palette — resolves against the design-system tokens so the
+// charts adapt to light/dark instead of using fixed hex.
+const COLORS = [
+  'hsl(var(--chart-1))',
+  'hsl(var(--chart-2))',
+  'hsl(var(--chart-3))',
+  'hsl(var(--chart-4))',
+  'hsl(var(--chart-5))',
+];
 
 export function FinanceReports({ students, payments }: FinanceReportsProps) {
   const { t } = useTranslation();
@@ -150,10 +158,10 @@ export function FinanceReports({ students, payments }: FinanceReportsProps) {
       (p.status !== 'completed' && isPaymentOverdue(p.due_date, p.status))).length;
 
     return [
-      { name: 'Completed', value: completed, color: '#10b981' },
-      { name: 'Partial', value: partial, color: '#f59e0b' },
-      { name: 'Pending', value: pending, color: '#6b7280' },
-      { name: 'Overdue', value: overdue, color: '#ef4444' },
+      { name: 'Completed', value: completed, color: 'hsl(var(--success))' },
+      { name: 'Partial', value: partial, color: 'hsl(var(--warning))' },
+      { name: 'Pending', value: pending, color: 'hsl(var(--muted-foreground))' },
+      { name: 'Overdue', value: overdue, color: 'hsl(var(--destructive))' },
     ].filter(d => d.value > 0);
   }, [payments]);
 
@@ -183,8 +191,8 @@ export function FinanceReports({ students, payments }: FinanceReportsProps) {
                   ]}
                 />
                 <Legend />
-                <Bar yAxisId="left" dataKey="uzs" name="UZS (Millions)" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-                <Bar yAxisId="right" dataKey="usd" name="USD" fill="#10b981" radius={[4, 4, 0, 0]} />
+                <Bar yAxisId="left" dataKey="uzs" name="UZS (Millions)" fill="hsl(var(--chart-1))" radius={[4, 4, 0, 0]} />
+                <Bar yAxisId="right" dataKey="usd" name="USD" fill="hsl(var(--success))" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>

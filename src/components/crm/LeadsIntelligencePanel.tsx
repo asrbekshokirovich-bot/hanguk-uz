@@ -106,11 +106,11 @@ const severityConfig = {
 };
 
 const healthConfig = {
-  critical: { color: 'text-destructive', bg: 'bg-destructive/10', label: '🔴 Critical' },
-  poor: { color: 'text-warning', bg: 'bg-warning/10', label: '🟠 Poor' },
-  fair: { color: 'text-warning', bg: 'bg-warning/10', label: '🟡 Fair' },
-  good: { color: 'text-success', bg: 'bg-success/10', label: '🟢 Good' },
-  unknown: { color: 'text-muted-foreground', bg: 'bg-muted', label: '⚪ Unknown' },
+  critical: { color: 'text-destructive', bg: 'bg-destructive/10', label: 'Critical' },
+  poor: { color: 'text-warning', bg: 'bg-warning/10', label: 'Poor' },
+  fair: { color: 'text-warning', bg: 'bg-warning/10', label: 'Fair' },
+  good: { color: 'text-success', bg: 'bg-success/10', label: 'Good' },
+  unknown: { color: 'text-muted-foreground', bg: 'bg-muted', label: 'Unknown' },
 };
 
 export const LeadsIntelligencePanel: React.FC<LeadsIntelligencePanelProps> = ({ leads, stats }) => {

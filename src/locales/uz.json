@@ -903,5 +903,91 @@
     "ctaHeading": "Janubiy Koreyada o'qishga tayyormisiz?",
     "ctaSub": "Maslahatchidan kirish kodingizni oling va bugunoq boshlang.",
     "getApp": "Ilovani o'rnatish"
+  },
+  "applications": {
+    "title": "Arizalar",
+    "subtitle": "{{unis}} ta universitet bo'yicha {{count}} ta faol ariza",
+    "export": "Eksport",
+    "new": "Yangi ariza",
+    "stat": {
+      "total": "Jami arizalar",
+      "inReview": "Ko'rib chiqilmoqda",
+      "submitted": "Topshirilgan",
+      "deadlines": "Muddati ≤ 14 kun"
+    },
+    "intake": {
+      "all": "Barcha qabullar",
+      "spring": "Bahor {{year}}",
+      "fall": "Kuz {{year}}"
+    },
+    "filter": {
+      "university": "Universitet",
+      "allUniversities": "Barcha universitetlar"
+    },
+    "view": {
+      "board": "Doska",
+      "table": "Jadval"
+    },
+    "stage": {
+      "new": "Yangi",
+      "documents": "Hujjatlar",
+      "review": "Ko'rib chiqilmoqda",
+      "submitted": "Topshirilgan",
+      "decision": "Qaror"
+    },
+    "col": {
+      "student": "Talaba",
+      "universityProgram": "Universitet · Dastur",
+      "intake": "Qabul",
+      "documents": "Hujjatlar",
+      "stage": "Bosqich",
+      "deadline": "Muddat"
+    },
+    "deadline": {
+      "closed": "Yopilgan",
+      "daysLeft": "{{count}} kun qoldi"
+    },
+    "outcome": {
+      "accepted": "Qabul qilindi",
+      "waitlist": "Navbatda",
+      "rejected": "Rad etildi",
+      "pending": "Kutilmoqda"
+    },
+    "timeline": {
+      "heading": "Holat tarixi",
+      "created": "Ariza yaratildi",
+      "documents": "Hujjatlar yig'ildi",
+      "translated": "Tarjima va apostil qilindi",
+      "submitted": "Universitetga topshirildi",
+      "decision": "Qaror qabul qilindi",
+      "awaiting": "Qaror kutilmoqda"
+    },
+    "empty": {
+      "title": "Hozircha arizalar yo'q",
+      "description": "Talabalar universitetlarga ariza topshira boshlaganida, ular shu yerda paydo bo'ladi."
+    },
+    "programTbd": "Dastur aniqlanmagan",
+    "unknownUniversity": "Noma'lum universitet",
+    "multiApps": "{{count}} ta ariza",
+    "highPriority": "Yuqori muhimlik",
+    "advanceStage": "Bosqichni oshirish",
+    "message": "Xabar",
+    "messageHint": "Xabar yuborish uchun talaba profilini oching.",
+    "copyId": "Ariza ID sidan nusxa olish",
+    "idCopied": "Ariza ID si nusxalandi",
+    "drawerDocuments": "Hujjatlar",
+    "upload": "Yuklash",
+    "uploadHint": "Hujjatlarni talaba profilidan yuklang.",
+    "verified": "Tasdiqlangan",
+    "pending": "Kutilmoqda",
+    "noDocuments": "Hali hujjatlar yuklanmagan",
+    "deadlineTitle": "Topshirish muddati",
+    "otherApps": "{{name}}ning boshqa arizalari · {{count}}",
+    "topik": "TOPIK {{level}}",
+    "noTopik": "TOPIK —",
+    "advanced": "Bosqich oshirildi",
+    "advanceError": "Bosqichni oshirib bo'lmadi",
+    "maxStage": "Allaqachon oxirgi bosqichda",
+    "exported": "Arizalar eksport qilindi"
   }
 }

@@ -20,7 +20,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { Logo } from '@/components/Logo';
+import { Logo } from '@/components/brand/Logo';
 import { useHangukAI } from '@/hooks/useHangukAI';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -193,7 +193,7 @@ export default function AIAssistantContent() {
                 {/* Empty state — clean Hanguk brand mark */}
                 {messages.length === 0 && (
                   <div className="flex flex-col items-center justify-center py-20">
-                    <Logo variant="badge" className="h-20 w-20 rounded-2xl opacity-90" />
+                    <Logo variant="glyph" className="h-20 w-20 opacity-90" />
                   </div>
                 )}
 

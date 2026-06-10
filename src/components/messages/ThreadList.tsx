@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { useState } from 'react';
-import { Search, MessageSquare } from 'lucide-react';
+import { Search, MessageSquare, Send, Instagram, MessageCircle, Mail, type LucideIcon } from 'lucide-react';
 import { MessageThread } from '@/hooks/useMessages';
 
 interface ThreadListProps {
@@ -14,19 +14,24 @@ interface ThreadListProps {
   onSelectThread: (thread: MessageThread) => void;
 }
 
-const sourceIcons: Record<string, string> = {
-  telegram: '✈️',
-  instagram: '📷',
-  whatsapp: '💬',
-  manual: '✉️',
+const sourceIcons: Record<string, LucideIcon> = {
+  telegram: Send,
+  instagram: Instagram,
+  whatsapp: MessageCircle,
+  manual: Mail,
 };
 
 const sourceColors: Record<string, string> = {
   telegram: 'bg-info',
   instagram: 'bg-gradient-to-r from-primary to-primary',
   whatsapp: 'bg-success',
-  manual: 'bg-muted',
+  manual: 'bg-muted-foreground',
 };
+
+function SourceIcon({ source, className }: { source: string; className?: string }) {
+  const Icon = sourceIcons[source] ?? MessageSquare;
+  return <Icon className={className} aria-hidden="true" />;
+}
 
 export function ThreadList({ threads, selectedThread, loading, onSelectThread }: ThreadListProps) {
   const { t } = useTranslation();
@@ -101,7 +106,9 @@ export function ThreadList({ threads, selectedThread, loading, onSelectThread }:
               className="cursor-pointer text-xs"
               onClick={() => setSourceFilter(source)}
             >
-              {sourceIcons[source]} {source}
+              <span className="inline-flex items-center gap-1 capitalize">
+                <SourceIcon source={source} className="h-3 w-3" /> {source}
+              </span>
             </Badge>
           ))}
         </div>
@@ -132,8 +139,8 @@ export function ThreadList({ threads, selectedThread, loading, onSelectThread }:
                         {getInitials(thread.sender_name)}
                       </AvatarFallback>
                     </Avatar>
-                    <span className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center text-[10px] ${sourceColors[thread.source]}`}>
-                      {sourceIcons[thread.source]}
+                    <span className={`absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full text-white ${sourceColors[thread.source]}`}>
+                      <SourceIcon source={thread.source} className="h-2.5 w-2.5" />
                     </span>
                   </div>
                   
