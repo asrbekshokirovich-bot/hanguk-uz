@@ -74,8 +74,11 @@ admission season = the push.
    never-parsed uploads and flips a broken PDF to `failed` so it isn't re-billed.
    Activates once on the default branch with the `UNI_DB_*` secrets set.
 3. **Seed the worklist:** load the certified 350+ list (official registry).
-4. **Delete the brittle layer:** remove discovery/crawl/fetch/resolvers +
-   `uni-db-sync.yml` + the 4 dead workflows (pure dead-code removal once uploads work).
+4. ✅ **Delete the brittle scheduled scraping:** removed `uni-db-sync.yml` (root) +
+   the 4 dead `hanguk_app/.github/workflows/uni-db-{discover,ingest,probe,reparse}.yml`.
+   No cron scrapes any university site now. The discovery/fetch/resolver *Python* is
+   left dormant (it shares `fetch_worker._default_run_parse` with the engine, so a
+   clean code delete is a careful follow-up) — nothing schedules it, so it's harmless.
 5. **Harden:** per-university freshness status, the (fixed) review queue,
    translation QC, and the **Academyinfo/data.go.kr API** for tuition/scholarships
    (guideline PDFs often omit tuition → today's `tuition=0`).
