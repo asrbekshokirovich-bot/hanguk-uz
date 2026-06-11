@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useActiveIntake } from '@/contexts/IntakeContext';
+import { applyIntake } from '@/lib/intakeQuery';
 
 interface DashboardStats {
   totalStudents: number;
@@ -42,21 +44,19 @@ export function useDashboardStats() {
     tasksByPriority: [],
   });
   const [loading, setLoading] = useState(true);
+  const { activeIntakeId } = useActiveIntake();
 
   const fetchStats = async () => {
+    // Wait until the active intake has resolved, so the dashboard never shows
+    // another season's numbers in the gap before the intake loads.
+    if (!activeIntakeId) return;
     setLoading(true);
 
     try {
-      // First, get all staff user IDs (users with roles)
-      const { data: staffRoles } = await supabase
-        .from('user_roles')
-        .select('user_id');
-      
-      const staffUserIds = staffRoles?.map(r => r.user_id) || [];
-
-      // Fetch all data in parallel
+      // Fetch all data in parallel — intake-scoped wherever the table carries
+      // an intake_id (applications, documents, tasks, payments). Calls and
+      // messages are agency-wide ops and stay global.
       const [
-        profilesRes,
         applicationsRes,
         pendingDocsRes,
         callsRes,
@@ -74,34 +74,39 @@ export function useDashboardStats() {
         taskNormalCount,
         taskLowCount,
         taskUrgentCount,
+        // Distinct students per intake = apps ∪ docs ∪ payments in this season
+        docStudentsRes,
+        payStudentsRes,
       ] = await Promise.all([
-        supabase.from('profiles').select('user_id'),
-        supabase.from('applications').select('id, status, created_at'),
-        supabase.from('documents').select('id', { count: 'exact', head: true }).eq('status', 'uploaded'),
+        applyIntake(supabase.from('applications').select('id, status, created_at, student_id'), activeIntakeId),
+        applyIntake(supabase.from('documents').select('id', { count: 'exact', head: true }).eq('status', 'uploaded'), activeIntakeId),
         supabase.from('calls').select('*').order('started_at', { ascending: false }).limit(100),
         supabase.from('messages').select('id', { count: 'exact', head: true }).eq('status', 'unread').eq('direction', 'incoming'),
-        supabase.from('tasks').select('id, title, priority, status, created_at, due_date').neq('status', 'completed').neq('status', 'cancelled'),
-        supabase.from('payments').select('id', { count: 'exact', head: true }).in('status', ['pending', 'partial']),
-        supabase.from('applications').select('id', { count: 'exact', head: true }).eq('status', 'completed'),
-        // Individual status counts for accurate stats beyond 1000-row limit
-        supabase.from('applications').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
-        supabase.from('applications').select('id', { count: 'exact', head: true }).eq('status', 'submitted'),
-        supabase.from('applications').select('id', { count: 'exact', head: true }).eq('status', 'in_review'),
-        supabase.from('applications').select('id', { count: 'exact', head: true }).eq('status', 'rejected'),
-        // Task priority counts
-        supabase.from('tasks').select('id', { count: 'exact', head: true }).eq('priority', 'high').neq('status', 'completed').neq('status', 'cancelled'),
-        supabase.from('tasks').select('id', { count: 'exact', head: true }).eq('priority', 'normal').neq('status', 'completed').neq('status', 'cancelled'),
-        supabase.from('tasks').select('id', { count: 'exact', head: true }).eq('priority', 'low').neq('status', 'completed').neq('status', 'cancelled'),
-        supabase.from('tasks').select('id', { count: 'exact', head: true }).eq('priority', 'urgent').neq('status', 'completed').neq('status', 'cancelled'),
+        applyIntake(supabase.from('tasks').select('id, title, priority, status, created_at, due_date').neq('status', 'completed').neq('status', 'cancelled'), activeIntakeId),
+        applyIntake(supabase.from('payments').select('id', { count: 'exact', head: true }).in('status', ['pending', 'partial']), activeIntakeId),
+        applyIntake(supabase.from('applications').select('id', { count: 'exact', head: true }).eq('status', 'completed'), activeIntakeId),
+        applyIntake(supabase.from('applications').select('id', { count: 'exact', head: true }).eq('status', 'pending'), activeIntakeId),
+        applyIntake(supabase.from('applications').select('id', { count: 'exact', head: true }).eq('status', 'submitted'), activeIntakeId),
+        applyIntake(supabase.from('applications').select('id', { count: 'exact', head: true }).eq('status', 'in_review'), activeIntakeId),
+        applyIntake(supabase.from('applications').select('id', { count: 'exact', head: true }).eq('status', 'rejected'), activeIntakeId),
+        applyIntake(supabase.from('tasks').select('id', { count: 'exact', head: true }).eq('priority', 'high').neq('status', 'completed').neq('status', 'cancelled'), activeIntakeId),
+        applyIntake(supabase.from('tasks').select('id', { count: 'exact', head: true }).eq('priority', 'normal').neq('status', 'completed').neq('status', 'cancelled'), activeIntakeId),
+        applyIntake(supabase.from('tasks').select('id', { count: 'exact', head: true }).eq('priority', 'low').neq('status', 'completed').neq('status', 'cancelled'), activeIntakeId),
+        applyIntake(supabase.from('tasks').select('id', { count: 'exact', head: true }).eq('priority', 'urgent').neq('status', 'completed').neq('status', 'cancelled'), activeIntakeId),
+        applyIntake(supabase.from('documents').select('student_id'), activeIntakeId),
+        applyIntake(supabase.from('payments').select('student_id'), activeIntakeId),
       ]);
 
-      const profiles = profilesRes.data || [];
       const applications = applicationsRes.data || [];
       const calls = callsRes.data || [];
       const tasks = pendingTasksRes.data || [];
 
-      // Calculate stats - filter out staff from student count
-      const totalStudents = profiles.filter(p => !staffUserIds.includes(p.user_id)).length;
+      // Per-intake student count = distinct students with any record this season.
+      const studentIds = new Set<string>();
+      for (const a of applications) if (a.student_id) studentIds.add(a.student_id);
+      for (const d of (docStudentsRes.data || [])) if (d.student_id) studentIds.add(d.student_id);
+      for (const p of (payStudentsRes.data || [])) if (p.student_id) studentIds.add(p.student_id);
+      const totalStudents = studentIds.size;
       const activeApplications = applications.filter(
         (a) => !['completed', 'rejected'].includes(a.status)
       ).length;
@@ -222,7 +227,8 @@ export function useDashboardStats() {
 
   useEffect(() => {
     fetchStats();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeIntakeId]);
 
   return { stats, loading, refetch: fetchStats };
 }

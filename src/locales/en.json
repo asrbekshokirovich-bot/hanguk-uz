@@ -10,6 +10,8 @@
       "subtitle": "You're viewing one season. Students, applications, documents and finance are fully separated per intake."
     },
     "manage": "Manage intakes",
+    "default": "Default",
+    "manageHint": "Opening/closing seasons, setting the default, and creating new intakes arrive in a later update.",
     "viewing": "{{season}} {{year}}",
     "empty": {
       "title": "No data yet for {{season}} {{year}}",

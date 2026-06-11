@@ -27,9 +27,14 @@ import {
   Plus,
   Clock,
   ChevronRight,
+  CalendarRange,
 } from 'lucide-react';
 import { useDashboardStats } from '@/hooks/useDashboardStats';
 import { UzbekistanRegionalMap } from '@/components/crm/UzbekistanRegionalMap';
+import { IntakeBanner } from '@/components/crm/IntakeBanner';
+import { useActiveIntake } from '@/contexts/IntakeContext';
+import { EmptyState } from '@/components/ui/empty-state';
+import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 
@@ -68,6 +73,9 @@ export function CRMDashboard(_props: CRMDashboardProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { stats, loading } = useDashboardStats();
+  const { season, year } = useActiveIntake();
+  const seasonLabel = season ? t(`intake.season.${season}`) : '';
+  const goManage = () => navigate('/crm/intakes');
 
   // Humanised stage labels + chart palette for the "by stage" donut.
   const stageMeta: Record<string, { label: string; color: string }> = {
@@ -106,8 +114,17 @@ export function CRMDashboard(_props: CRMDashboardProps) {
 
   if (loading) {
     return (
-      <div className="flex h-64 items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary" />
+      <div className="space-y-5">
+        <IntakeBanner onManage={goManage} />
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-[116px] rounded-xl" />
+          ))}
+        </div>
+        <div className="grid gap-4 lg:grid-cols-[1.6fr_1fr]">
+          <Skeleton className="h-[296px] rounded-xl" />
+          <Skeleton className="h-[296px] rounded-xl" />
+        </div>
       </div>
     );
   }
@@ -115,13 +132,44 @@ export function CRMDashboard(_props: CRMDashboardProps) {
   const totalStaged = stats.applicationsByStatus.reduce((sum, s) => sum + s.count, 0);
   const months = stats.applicationsByMonth;
 
+  const isEmptyIntake =
+    stats.totalStudents === 0 &&
+    stats.activeApplications === 0 &&
+    stats.completedApplications === 0 &&
+    stats.pendingTasks === 0 &&
+    stats.pendingDocuments === 0 &&
+    stats.pendingPayments === 0 &&
+    stats.applicationsByStatus.length === 0;
+
+  if (isEmptyIntake) {
+    return (
+      <div className="space-y-5">
+        <IntakeBanner onManage={goManage} />
+        <EmptyState
+          icon={CalendarRange}
+          title={t('intake.empty.title', { season: seasonLabel, year: year ?? '' })}
+          description={t('intake.empty.description')}
+          action={{
+            label: t('dashboard.newStudent', { defaultValue: 'New Student' }),
+            onClick: () => navigate('/crm/students'),
+          }}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-5">
+      <IntakeBanner onManage={goManage} />
+
       {/* Page head */}
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">{t('navigation.dashboard')}</h1>
-          <p className="mt-1 text-sm text-muted-foreground">{format(new Date(), 'EEEE, MMMM d, yyyy')}</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {format(new Date(), 'EEEE, MMMM d, yyyy')}
+            {seasonLabel ? ` · ${t('intake.viewing', { season: seasonLabel, year })}` : ''}
+          </p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={() => navigate('/crm/tasks')}>

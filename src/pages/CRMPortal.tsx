@@ -16,6 +16,7 @@ import { StudentList } from '@/components/crm/StudentList';
 import { StudentDetail } from '@/components/crm/StudentDetail';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { SeasonSwitcher } from '@/components/crm/SeasonSwitcher';
+import { IntakeBanner } from '@/components/crm/IntakeBanner';
 import { NotificationBell } from '@/components/crm/NotificationBell';
 import { HangukAIChat } from '@/components/ai/HangukAIChat';
 import { IntercomProvider } from '@/components/intercom/IntercomProvider';
@@ -59,6 +60,7 @@ const CalendarContent = lazy(() => import('@/components/crm/pages/CalendarConten
 const SettingsContent = lazy(() => import('@/components/crm/pages/SettingsContent'));
 const KakaoMapContent = lazy(() => import('@/components/crm/pages/KakaoMapContent'));
 const UniDbReviewContent = lazy(() => import('@/components/crm/pages/UniDbReviewContent'));
+const ManageIntakesContent = lazy(() => import('@/components/crm/pages/ManageIntakesContent'));
 
 // Access denied component
 const AccessDenied = () => (
@@ -131,6 +133,7 @@ export default function CRMPortal() {
     if (currentPath.startsWith('/crm/reports')) return 'reports';
     if (currentPath.startsWith('/crm/calendar')) return 'calendar';
     if (currentPath.startsWith('/crm/settings')) return 'settings';
+    if (currentPath.startsWith('/crm/intakes')) return 'intakes';
     if (currentPath.startsWith('/crm/translation')) return 'translation';
     if (currentPath.startsWith('/crm/communication')) return 'communication';
     if (currentPath.startsWith('/crm/kakao-map')) return 'kakao-map';
@@ -293,7 +296,8 @@ export default function CRMPortal() {
       case 'applications':
         return (
           <>
-            <div style={{ display: selectedStudent ? 'none' : undefined }}>
+            <div style={{ display: selectedStudent ? 'none' : undefined }} className="space-y-4">
+              <IntakeBanner onManage={() => navigate('/crm/intakes')} />
               <Card>
                 <CardHeader>
                   <CardTitle>{t('navigation.applications')}</CardTitle>
@@ -401,6 +405,8 @@ export default function CRMPortal() {
         return <SafeSuspense><CalendarContent /></SafeSuspense>;
       case 'settings':
         return <SafeSuspense><SettingsContent /></SafeSuspense>;
+      case 'intakes':
+        return <SafeSuspense><ManageIntakesContent /></SafeSuspense>;
       case 'kakao-map':
         return <SafeSuspense><KakaoMapContent /></SafeSuspense>;
       case 'uni-db-review':
