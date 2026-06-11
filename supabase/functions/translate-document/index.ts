@@ -39,6 +39,8 @@ A birth certificate MUST be translated using EXACTLY the block sequence, labels
 and wording below. Keep every English label verbatim. Fill each value from the
 document (and from the supporting passports / ID cards for names). Skip a "field"
 only when that information is genuinely not present on the certificate.
+Do NOT put a trailing colon in any field "label" — the renderer adds ": "
+automatically (so label "Father" renders as "Father: ...").
 
 1.  title       text="BIRTH CERTIFICATE"
 2.  spacer
@@ -52,12 +54,12 @@ only when that information is genuinely not present on the certificate.
 10. spacer
 11. paragraph  text="a corresponding record was entered under No. <record number>"
 12. spacer
-13. field   label="Father:"                           value=<father's full name (from his passport/ID)>
+13. field   label="Father"                            value=<father's full name (from his passport/ID)>
 14. field   label="Nationality"                       value=<father's nationality, e.g. UZBEK>
 15. field   label="Mother"                             value=<mother's full name (from her passport/ID)>
 16. field   label="Nationality"                        value=<mother's nationality, e.g. UZBEK>
 17. paragraph  text="Place of registration Civil Registry Office <office / city>"
-18. field   label="Date of issue:"                     value=<date of issue>
+18. field   label="Date of issue"                      value=<date of issue>
 19. field   label="Head of Civil Registry office"      value="signed"
 20. annotation text="Office Seal"
 21. spacer
