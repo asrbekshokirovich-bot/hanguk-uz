@@ -75,10 +75,10 @@ export function UniversityRequirementsChecker({
   const wordCountProgress = Math.min(100, (wordCount / requirements.max_word_count) * 100);
 
   return (
-    <Card className={cn('border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/20', className)}>
+    <Card className={cn('border-info/30 dark:border-info bg-info/10/50 dark:bg-info/20', className)}>
       <CardHeader className="pb-3">
         <CardTitle className="text-base flex items-center gap-2">
-          <GraduationCap className="h-5 w-5 text-blue-600" />
+          <GraduationCap className="h-5 w-5 text-info" />
           {universityName || t('study.universityRequirements', 'University Requirements')}
         </CardTitle>
         <CardDescription>
@@ -95,9 +95,9 @@ export function UniversityRequirementsChecker({
             </span>
             <span className={cn(
               'font-medium',
-              wordCountStatus === 'good' && 'text-green-600',
-              wordCountStatus === 'low' && 'text-amber-600',
-              wordCountStatus === 'high' && 'text-red-600'
+              wordCountStatus === 'good' && 'text-success',
+              wordCountStatus === 'low' && 'text-warning',
+              wordCountStatus === 'high' && 'text-destructive'
             )}>
               {wordCount} / {requirements.min_word_count}-{requirements.max_word_count}
             </span>
@@ -106,18 +106,18 @@ export function UniversityRequirementsChecker({
             value={wordCountProgress} 
             className={cn(
               'h-2',
-              wordCountStatus === 'low' && '[&>div]:bg-amber-500',
-              wordCountStatus === 'high' && '[&>div]:bg-red-500'
+              wordCountStatus === 'low' && '[&>div]:bg-warning',
+              wordCountStatus === 'high' && '[&>div]:bg-destructive'
             )}
           />
           {wordCountStatus === 'low' && (
-            <p className="text-xs text-amber-600 flex items-center gap-1">
+            <p className="text-xs text-warning flex items-center gap-1">
               <AlertTriangle className="h-3 w-3" />
               {t('study.needMoreWords', 'Need at least {{count}} more words', { count: requirements.min_word_count - wordCount })}
             </p>
           )}
           {wordCountStatus === 'high' && (
-            <p className="text-xs text-red-600 flex items-center gap-1">
+            <p className="text-xs text-destructive flex items-center gap-1">
               <AlertTriangle className="h-3 w-3" />
               {t('study.tooManyWords', 'Reduce by {{count}} words', { count: wordCount - requirements.max_word_count })}
             </p>
@@ -142,7 +142,7 @@ export function UniversityRequirementsChecker({
                 className={cn(
                   'flex items-center gap-2 text-xs p-2 rounded',
                   detectedSections[section] 
-                    ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+                    ? 'bg-success/10 dark:bg-success/30 text-success dark:text-success'
                     : 'bg-muted/50 text-muted-foreground'
                 )}
               >
@@ -177,14 +177,14 @@ export function UniversityRequirementsChecker({
         {requirements.tips && (
           <>
             <Separator />
-            <div className="bg-blue-100 dark:bg-blue-900/30 rounded-lg p-3">
+            <div className="bg-info/10 dark:bg-info/30 rounded-lg p-3">
               <div className="flex items-start gap-2">
-                <Info className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
+                <Info className="h-4 w-4 text-info shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                  <p className="text-sm font-medium text-info dark:text-info">
                     {t('study.tip', 'Tip')}
                   </p>
-                  <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
+                  <p className="text-xs text-info dark:text-info mt-1">
                     {requirements.tips}
                   </p>
                 </div>

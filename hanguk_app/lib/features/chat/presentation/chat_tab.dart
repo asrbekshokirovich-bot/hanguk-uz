@@ -131,7 +131,7 @@ class _ChatTabState extends ConsumerState<ChatTab> {
                       controller: _textController,
                       style: const TextStyle(color: Colors.white),
                       decoration: InputDecoration(
-                        hintText: 'Ask anything about South Korea...',
+                        hintText: l.chatInputHint,
                         hintStyle: const TextStyle(color: Colors.white70),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(28),

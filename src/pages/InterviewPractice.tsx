@@ -747,7 +747,7 @@ export default function InterviewPractice() {
                 {/* Recording Toggle */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Circle className="h-4 w-4 text-red-500" />
+                    <Circle className="h-4 w-4 text-destructive" />
                     <Label htmlFor="record-mode" className="text-sm">
                       {t('interview.recordResponses', 'Record My Responses')}
                     </Label>
@@ -904,7 +904,7 @@ export default function InterviewPractice() {
               size="lg"
               className={cn(
                 "rounded-full w-14 h-14",
-                isMicEnabled && isListening && "ring-2 ring-green-500/50 animate-pulse"
+                isMicEnabled && isListening && "ring-2 ring-success/50 animate-pulse"
               )}
               onClick={toggleMic}
               disabled={isSpeaking || isProcessing}
@@ -919,7 +919,7 @@ export default function InterviewPractice() {
             <div className={cn(
               "px-4 py-2 rounded-full text-sm font-medium transition-all",
               isListening && isMicEnabled
-                ? "bg-green-500/20 text-green-600"
+                ? "bg-success/20 text-success"
                 : isSpeaking
                   ? "bg-primary/20 text-primary"
                   : "bg-muted text-muted-foreground"

@@ -40,82 +40,82 @@ export function FinanceOverview() {
 
       {/* Summary Stats Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20">
+        <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">{t('payments.paidAmount')}</p>
-                <p className="text-2xl font-bold text-green-600">
+                <p className="text-2xl font-bold text-success">
                   {formatAmount(stats.totalCollected, 'UZS')}
                 </p>
               </div>
-              <div className="p-2 bg-green-500/20 rounded-lg">
-                <TrendingUp className="h-5 w-5 text-green-600" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-md bg-success/10 text-success">
+                <TrendingUp className="h-5 w-5" />
               </div>
             </div>
-            <div className="mt-2 flex items-center text-xs text-green-600">
+            <div className="mt-2 flex items-center text-xs text-success">
               <ArrowUpRight className="h-3 w-3 mr-1" />
               {stats.completedCount} completed payments
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-yellow-500/10 to-yellow-500/5 border-yellow-500/20">
+        <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">{t('payments.pending')}</p>
-                <p className="text-2xl font-bold text-yellow-600">
+                <p className="text-2xl font-bold text-warning">
                   {formatAmount(stats.totalPending, 'UZS')}
                 </p>
               </div>
-              <div className="p-2 bg-yellow-500/20 rounded-lg">
-                <Clock className="h-5 w-5 text-yellow-600" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-md bg-warning/10 text-warning">
+                <Clock className="h-5 w-5" />
               </div>
             </div>
-            <div className="mt-2 flex items-center text-xs text-yellow-600">
+            <div className="mt-2 flex items-center text-xs text-warning">
               <Calendar className="h-3 w-3 mr-1" />
               {expectedStats.dueThisWeekCount} due this week
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-red-500/10 to-red-500/5 border-red-500/20">
+        <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">{t('payments.overdue')}</p>
-                <p className="text-2xl font-bold text-red-600">
+                <p className="text-2xl font-bold text-destructive">
                   {expectedStats.overdueCount}
                 </p>
               </div>
-              <div className="p-2 bg-red-500/20 rounded-lg">
-                <AlertTriangle className="h-5 w-5 text-red-600" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-md bg-destructive/10 text-destructive">
+                <AlertTriangle className="h-5 w-5" />
               </div>
             </div>
-            <div className="mt-2 flex items-center text-xs text-red-600">
+            <div className="mt-2 flex items-center text-xs text-destructive">
               <ArrowDownRight className="h-3 w-3 mr-1" />
               Requires immediate attention
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20">
+        <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Scheduled</p>
-                <p className="text-2xl font-bold text-blue-600">
-                  {expectedStats.remainingUZS > 0 
+                <p className="text-2xl font-bold text-info">
+                  {expectedStats.remainingUZS > 0
                     ? formatAmount(expectedStats.remainingUZS, 'UZS')
                     : expectedStats.totalPending}
                 </p>
               </div>
-              <div className="p-2 bg-blue-500/20 rounded-lg">
-                <Calendar className="h-5 w-5 text-blue-600" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-md bg-info/10 text-info">
+                <Calendar className="h-5 w-5" />
               </div>
             </div>
-            <div className="mt-2 flex items-center text-xs text-blue-600">
+            <div className="mt-2 flex items-center text-xs text-info">
               <Users className="h-3 w-3 mr-1" />
               {expectedStats.notStartedCount} not started, {expectedStats.partialCount} partial
             </div>

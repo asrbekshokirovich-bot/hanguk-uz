@@ -322,7 +322,7 @@ export function UniversityComparisonChat({ universities, onClose }: UniversityCo
           <div className="flex flex-wrap gap-1 mt-2">
             {universities.map(uni => (
               <Badge key={uni.id} variant="secondary" className="text-xs flex items-center gap-1">
-                {uni.is_partner && <Star className="h-3 w-3 text-yellow-500" />}
+                {uni.is_partner && <Star className="h-3 w-3 text-warning" />}
                 {getUniversityName(uni)}
               </Badge>
             ))}
@@ -338,7 +338,7 @@ export function UniversityComparisonChat({ universities, onClose }: UniversityCo
                 <Card>
                   <CardHeader className="py-3 px-4">
                     <CardTitle className="text-sm flex items-center gap-2">
-                      <Trophy className="h-4 w-4 text-yellow-500" />
+                      <Trophy className="h-4 w-4 text-warning" />
                       {t('universities.ranking')}
                     </CardTitle>
                   </CardHeader>
@@ -364,7 +364,7 @@ export function UniversityComparisonChat({ universities, onClose }: UniversityCo
                 <Card>
                   <CardHeader className="py-3 px-4">
                     <CardTitle className="text-sm flex items-center gap-2">
-                      <DollarSign className="h-4 w-4 text-green-500" />
+                      <DollarSign className="h-4 w-4 text-success" />
                       {t('universities.tuition')}
                     </CardTitle>
                   </CardHeader>
@@ -377,7 +377,7 @@ export function UniversityComparisonChat({ universities, onClose }: UniversityCo
                         </div>
                         <div className="h-2 bg-muted rounded-full overflow-hidden">
                           <div 
-                            className="h-full bg-gradient-to-r from-green-400 to-green-600 rounded-full"
+                            className="h-full bg-gradient-to-r from-success to-success rounded-full"
                             style={{ width: `${(item.max / maxTuition) * 100}%` }}
                           />
                         </div>
@@ -392,7 +392,7 @@ export function UniversityComparisonChat({ universities, onClose }: UniversityCo
                 <Card>
                   <CardHeader className="py-3 px-4">
                     <CardTitle className="text-sm flex items-center gap-2">
-                      <Users className="h-4 w-4 text-blue-500" />
+                      <Users className="h-4 w-4 text-info" />
                       {t('universities.acceptanceRate')}
                     </CardTitle>
                   </CardHeader>
@@ -414,7 +414,7 @@ export function UniversityComparisonChat({ universities, onClose }: UniversityCo
               <Card>
                 <CardHeader className="py-3 px-4">
                   <CardTitle className="text-sm flex items-center gap-2">
-                    <Building className="h-4 w-4 text-purple-500" />
+                    <Building className="h-4 w-4 text-primary" />
                     {t('universities.partnerUniversity')}
                   </CardTitle>
                 </CardHeader>
@@ -423,7 +423,7 @@ export function UniversityComparisonChat({ universities, onClose }: UniversityCo
                     <div key={idx} className="flex items-center justify-between text-xs">
                       <span className="truncate max-w-[150px]">{getUniversityName(uni)}</span>
                       {uni.is_partner ? (
-                        <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+                        <Badge className="bg-warning/10 text-warning dark:bg-warning dark:text-warning">
                           <Star className="h-3 w-3 mr-1" />
                           {t('universities.partner', 'Partner')}
                         </Badge>

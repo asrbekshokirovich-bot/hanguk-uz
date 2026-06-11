@@ -1,0 +1,16 @@
+{
+  "name": "hanguk-telegram-userbot",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Mirrors staff personal-account Telegram chats into Hanguk CRM via the telegram-ingest edge function.",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "login": "node --env-file=.env login.mjs",
+    "start": "node --env-file=.env index.mjs",
+    "backfill": "BACKFILL_ON_START=1 node --env-file=.env index.mjs"
+  },
+  "dependencies": {
+    "telegram": "^2"
+  }
+}

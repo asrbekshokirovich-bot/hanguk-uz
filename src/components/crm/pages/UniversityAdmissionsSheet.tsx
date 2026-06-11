@@ -48,7 +48,7 @@ interface Props {
 
 function FlagBadge({ reason }: { reason: string | null }) {
   return (
-    <Badge variant="outline" className="border-amber-500/50 text-amber-600 gap-1">
+    <Badge variant="outline" className="border-warning/50 text-warning gap-1">
       <AlertTriangle className="h-3 w-3" />
       {reason ? 'flagged' : 'needs attention'}
     </Badge>
@@ -245,7 +245,7 @@ export function UniversityAdmissionsSheet({ institution, open, onOpenChange }: P
             <GraduationCap className="h-5 w-5" />
             {institution?.name_ko ?? 'University'}
             {data && data.flaggedCount > 0 ? (
-              <Badge variant="outline" className="border-amber-500/50 text-amber-600 gap-1 ml-1">
+              <Badge variant="outline" className="border-warning/50 text-warning gap-1 ml-1">
                 <AlertTriangle className="h-3 w-3" />
                 {data.flaggedCount} flagged
               </Badge>
@@ -344,7 +344,7 @@ export function UniversityAdmissionsSheet({ institution, open, onOpenChange }: P
 
                 {data && data.flaggedCount === 0 ? (
                   <div className="flex items-center gap-2 text-xs text-muted-foreground mt-6 justify-center">
-                    <CheckCircle2 className="h-4 w-4 text-green-500" />
+                    <CheckCircle2 className="h-4 w-4 text-success" />
                     Nothing flagged — all published rows passed the confidence bar.
                   </div>
                 ) : null}

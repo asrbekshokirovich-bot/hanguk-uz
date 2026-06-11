@@ -14,6 +14,7 @@ import '../../uni_db/data/admin_review_providers.dart';
 import '../../updater/data/updater_repository.dart';
 import '../../updater/presentation/update_dialog.dart';
 import 'home_tab_provider.dart';
+import 'onboarding_overlay.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -33,9 +34,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _checkForUpdates();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // First-run orientation (audit A9) before the update prompt so a new
+      // student is oriented before anything else competes for attention.
+      await _maybeShowOnboarding();
+      await _checkForUpdates();
     });
+  }
+
+  Future<void> _maybeShowOnboarding() async {
+    if (await OnboardingStore.hasSeen() || !mounted) return;
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (_) => const OnboardingOverlay(),
+      ),
+    );
   }
 
   Future<void> _checkForUpdates() async {

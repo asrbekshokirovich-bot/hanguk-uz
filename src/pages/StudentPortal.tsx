@@ -9,11 +9,12 @@ import { usePlatform } from '@/hooks/usePlatform';
 import { ApplicationTracker } from '@/components/student/ApplicationTracker';
 import { UniversityMapKakao } from '@/components/student/UniversityMapKakao';
 import { DocumentUpload } from '@/components/student/DocumentUpload';
-import { StudentAITranslationPage } from '@/components/student/AITranslationPage';
 import { ProgramFinder } from '@/components/student/ProgramFinder';
 import { StudentInsightsPanel } from '@/components/student/StudentInsightsPanel';
 import { SuggestedUniversities } from '@/components/student/SuggestedUniversities';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { ThemeToggleButton } from '@/components/ThemeToggleButton';
+import { Logo } from '@/components/Logo';
 import { HangukAIChat } from '@/components/ai/HangukAIChat';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -41,7 +42,6 @@ import {
   Lock,
   Crown,
   Search,
-  Languages,
   Loader2
 } from 'lucide-react';
 
@@ -96,7 +96,7 @@ export default function StudentPortal() {
     return (
       <div className="min-h-[100dvh] flex items-center justify-center bg-background">
         <div className="animate-pulse flex flex-col items-center gap-4">
-          <img src="/logo.jpg" alt="Hanguk" className="h-16 w-16 rounded-xl object-cover" />
+          <Logo className="h-16 w-16" />
           <p className="text-muted-foreground">{t('common.loading')}</p>
         </div>
       </div>
@@ -119,9 +119,9 @@ export default function StudentPortal() {
       <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 pt-[env(safe-area-inset-top)]">
         <div className="flex justify-between items-center p-4">
           <div className="flex items-center gap-3">
-            <img src="/logo.jpg" alt="Hanguk" className="h-10 w-10 rounded-lg object-cover" />
+            <Logo className="h-10 w-10 rounded-lg" />
             <div className="hidden sm:block">
-              <span className="text-xl font-bold text-primary">Hanguk</span>
+              <span className="text-xl font-bold tracking-tight text-primary">Hanguk</span>
               <p className="text-xs text-muted-foreground">{t('student.portal')}</p>
             </div>
           </div>
@@ -139,6 +139,7 @@ export default function StudentPortal() {
               </Button>
             )}
             <LanguageSwitcher />
+            <ThemeToggleButton />
             <Button variant="ghost" size="sm" onClick={handleSignOut}>
               <LogOut className="h-4 w-4 mr-2" />
               <span className="hidden sm:inline">{t('auth.logout')}</span>
@@ -161,8 +162,8 @@ export default function StudentPortal() {
                     variant={isVIP ? "default" : "secondary"}
                     className={cn(
                       "gap-1",
-                      isNoRisk && "bg-gradient-to-r from-yellow-500 to-amber-500 text-white border-0",
-                      isPremium && "bg-gradient-to-r from-purple-500 to-indigo-500 text-white border-0",
+                      isNoRisk && "bg-warning text-warning-foreground border-0",
+                      isPremium && "bg-accent text-accent-foreground border-0",
                       isStandart && "bg-primary text-primary-foreground border-0",
                       isFree && "bg-muted text-muted-foreground border-0"
                     )}
@@ -199,10 +200,6 @@ export default function StudentPortal() {
                   <TabsTrigger value="documents" className="flex items-center gap-2">
                     <FileText className="h-4 w-4" />
                     {t('navigation.documents')}
-                  </TabsTrigger>
-                  <TabsTrigger value="translation" className="flex items-center gap-2">
-                    <Languages className="h-4 w-4" />
-                    {t('navigation.translation', 'AI Tarjima')}
                   </TabsTrigger>
                   <TabsTrigger
                     value="interview"
@@ -252,9 +249,6 @@ export default function StudentPortal() {
                     onUploadComplete={refetchDocuments}
                   />
                 </TabsContent>
-                <TabsContent value="translation">
-                  <StudentAITranslationPage />
-                </TabsContent>
               </Tabs>
             </div>
 
@@ -274,9 +268,6 @@ export default function StudentPortal() {
                   documents={documents}
                   onUploadComplete={refetchDocuments}
                 />
-              )}
-              {activeTab === 'translation' && (
-                <StudentAITranslationPage />
               )}
             </div>
           </div>
@@ -345,21 +336,6 @@ export default function StudentPortal() {
             )}
             <FileText className="h-6 w-6" strokeWidth={activeTab === 'documents' ? 2.5 : 1.5} />
             <span className="text-[10px] mt-0.5 font-medium">{t('navigation.docs', 'Docs')}</span>
-          </button>
-
-          {/* AI Translation */}
-          <button
-            className={cn(
-              "flex-1 flex flex-col items-center justify-center pt-2 pb-1 relative transition-colors active:opacity-70",
-              activeTab === 'translation' ? 'text-primary' : 'text-muted-foreground'
-            )}
-            onClick={() => setActiveTab('translation')}
-          >
-            {activeTab === 'translation' && (
-              <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-primary rounded-full" />
-            )}
-            <Languages className="h-6 w-6" strokeWidth={activeTab === 'translation' ? 2.5 : 1.5} />
-            <span className="text-[10px] mt-0.5 font-medium">{t('navigation.translate', 'Tarjima')}</span>
           </button>
 
           {/* More - Opens submenu for Interview & Study Plan */}

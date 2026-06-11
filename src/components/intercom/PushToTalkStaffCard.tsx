@@ -71,7 +71,7 @@ export function PushToTalkStaffCard({
           'relative flex items-center gap-2 p-2 rounded-lg transition-all select-none touch-none',
           'hover:bg-accent/50',
           isPressing && 'ring-2 ring-primary bg-primary/10 scale-[1.02]',
-          isSpeakingToMe && 'ring-2 ring-green-500 bg-green-500/10 animate-pulse',
+          isSpeakingToMe && 'ring-2 ring-success bg-success/10 animate-pulse',
           disabled && 'opacity-50 cursor-not-allowed',
           !isOnline && 'opacity-50'
         )}
@@ -91,7 +91,7 @@ export function PushToTalkStaffCard({
           <span
             className={cn(
               'absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-background',
-              isOnline ? 'bg-green-500' : 'bg-muted-foreground'
+              isOnline ? 'bg-success' : 'bg-muted-foreground'
             )}
           />
         </div>
@@ -102,7 +102,7 @@ export function PushToTalkStaffCard({
           <Mic className="h-4 w-4 text-primary animate-pulse ml-auto" />
         )}
         {isSpeakingToMe && !isPressing && (
-          <Mic className="h-4 w-4 text-green-500 animate-pulse ml-auto" />
+          <Mic className="h-4 w-4 text-success animate-pulse ml-auto" />
         )}
       </button>
     );
@@ -114,7 +114,7 @@ export function PushToTalkStaffCard({
         'relative flex flex-col items-center gap-2 p-4 rounded-xl transition-all select-none touch-none',
         'border border-border hover:border-primary/50 hover:bg-accent/50',
         isPressing && 'ring-2 ring-primary border-primary bg-primary/10 shadow-lg scale-[1.02]',
-        isSpeakingToMe && 'ring-2 ring-green-500 border-green-500 bg-green-500/10 animate-pulse',
+        isSpeakingToMe && 'ring-2 ring-success border-success bg-success/10 animate-pulse',
         disabled && 'opacity-50 cursor-not-allowed',
         !isOnline && 'opacity-50 cursor-not-allowed'
       )}
@@ -134,7 +134,7 @@ export function PushToTalkStaffCard({
         <span
           className={cn(
             'absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 border-background',
-            isOnline ? 'bg-green-500' : 'bg-muted-foreground'
+            isOnline ? 'bg-success' : 'bg-muted-foreground'
           )}
         />
       </div>
@@ -150,7 +150,7 @@ export function PushToTalkStaffCard({
               Gaplashyapti...
             </span>
           ) : isSpeakingToMe ? (
-            <span className="text-green-500 flex items-center justify-center gap-1">
+            <span className="text-success flex items-center justify-center gap-1">
               <Mic className="h-3 w-3 animate-pulse" />
               Sizga gaplashyapti
             </span>

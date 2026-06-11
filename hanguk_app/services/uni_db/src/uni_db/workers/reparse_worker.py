@@ -32,29 +32,29 @@ def _default_fetch_blob(storage_path: str) -> bytes:
 
 
 async def fetch_documents(
-    conn: asyncpg.Connection, *, limit: int, institution_id: UUID | None = None
+    conn: asyncpg.Connection, *, limit: int,
+    institution_id: UUID | None = None, pending_only: bool = False,
 ) -> list[asyncpg.Record]:
-    """Stored guideline documents to re-extract (least-recently-parsed first)."""
-    if institution_id is None:
-        return await conn.fetch(
-            """
-            select id, storage_path from public.guideline_documents
-             where storage_path is not null
-             order by parsed_version asc, fetched_at desc nulls last
-             limit $1
-            """,
-            limit,
-        )
-    return await conn.fetch(
-        """
-        select id, storage_path from public.guideline_documents
-         where storage_path is not null and institution_id = $2
-         order by parsed_version asc, fetched_at desc nulls last
-         limit $1
-        """,
-        limit,
-        institution_id,
+    """Stored guideline documents to re-extract (least-recently-parsed first).
+
+    pending_only=True targets only never-parsed (parse_status='pending')
+    documents — i.e. freshly uploaded PDFs — so the manual-upload engine drains
+    new uploads without re-extracting (and re-billing) already-parsed docs.
+    """
+    where = ["storage_path is not null"]
+    params: list[object] = [limit]
+    if pending_only:
+        where.append("parse_status = 'pending'")
+    if institution_id is not None:
+        params.append(institution_id)
+        where.append(f"institution_id = ${len(params)}")
+    sql = (
+        "select id, storage_path from public.guideline_documents "
+        f"where {' and '.join(where)} "
+        "order by parsed_version asc, fetched_at desc nulls last "
+        "limit $1"
     )
+    return await conn.fetch(sql, *params)
 
 
 async def reparse_pending(
@@ -62,17 +62,26 @@ async def reparse_pending(
     *,
     limit: int,
     institution_id: UUID | None = None,
+    pending_only: bool = False,
     fetch_blob: FetchBlob | None = None,
     run_parse: RunParse | None = None,
 ) -> tuple[int, int]:
-    """Re-extract up to `limit` stored documents. Returns (ok, fail)."""
+    """Re-extract up to `limit` stored documents. Returns (ok, fail).
+
+    When pending_only is set, only never-parsed (uploaded) docs are processed and
+    a document that fails is flipped to parse_status='failed', so a broken PDF is
+    not re-extracted (and re-billed) on every run.
+    """
     fetch_blob = fetch_blob or _default_fetch_blob
     if run_parse is None:
         from .fetch_worker import _default_run_parse
         run_parse = _default_run_parse
 
-    docs = await fetch_documents(conn, limit=limit, institution_id=institution_id)
-    log.info("reparse_worker: %d document(s) to re-extract", len(docs))
+    docs = await fetch_documents(
+        conn, limit=limit, institution_id=institution_id, pending_only=pending_only
+    )
+    log.info("reparse_worker: %d document(s) to re-extract%s",
+             len(docs), " (pending-only)" if pending_only else "")
     ok = fail = 0
     for d in docs:
         gd_id = d["id"]
@@ -83,6 +92,15 @@ async def reparse_pending(
             fail += 1
             log.warning("reparse_worker: %s failed: %s: %s",
                         str(gd_id)[:8], type(exc).__name__, str(exc)[:160])
+            if pending_only:
+                # Don't re-bill a broken upload every run — mark it failed.
+                try:
+                    await conn.execute(
+                        "update public.guideline_documents set parse_status='failed' where id=$1",
+                        gd_id,
+                    )
+                except Exception:  # marking failed is best-effort
+                    log.warning("reparse_worker: could not mark %s failed", str(gd_id)[:8])
         else:
             ok += 1
             log.info("reparse_worker: re-extracted %s", str(gd_id)[:8])

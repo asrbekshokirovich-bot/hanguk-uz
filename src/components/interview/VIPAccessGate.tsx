@@ -40,7 +40,7 @@ export function VIPAccessGate({ currentPlan, onUpgrade, onNativeUpgrade }: VIPAc
             <Lock className="h-8 w-8 text-primary" />
           </div>
           <CardTitle className="flex items-center justify-center gap-2 text-2xl">
-            <Crown className="h-6 w-6 text-yellow-500" />
+            <Crown className="h-6 w-6 text-warning" />
             {t('interview.vipOnly', 'VIP Feature')}
           </CardTitle>
           <CardDescription className="text-base mt-2">
@@ -81,14 +81,14 @@ export function VIPAccessGate({ currentPlan, onUpgrade, onNativeUpgrade }: VIPAc
               {t('interview.availableFor', 'Available for Premium and No Risk plan students')}
             </p>
             <div className="grid grid-cols-2 gap-3">
-              <div className="p-3 border rounded-lg text-center bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 border-blue-200 dark:border-blue-800">
-                <div className="font-medium text-blue-700 dark:text-blue-400">PREMIUM</div>
+              <div className="p-3 border rounded-lg text-center bg-gradient-to-br from-info to-primary dark:from-info/20 dark:to-primary/20 border-info/30 dark:border-info">
+                <div className="font-medium text-info dark:text-info">PREMIUM</div>
                 <div className="text-xs text-muted-foreground mt-1">
                   {t('interview.premiumDesc', '10M UZS - AI Interview + Embassy docs')}
                 </div>
               </div>
-              <div className="p-3 border rounded-lg text-center bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-950/20 dark:to-orange-950/20 border-yellow-200 dark:border-yellow-800">
-                <div className="font-medium text-yellow-700 dark:text-yellow-400">NO RISK</div>
+              <div className="p-3 border rounded-lg text-center bg-gradient-to-br from-warning to-warning dark:from-warning/20 dark:to-warning/20 border-warning/30 dark:border-warning">
+                <div className="font-medium text-warning dark:text-warning">NO RISK</div>
                 <div className="text-xs text-muted-foreground mt-1">
                   {t('interview.noRiskDesc', '$5,000 - Full VIP + Flight & Apartment')}
                 </div>

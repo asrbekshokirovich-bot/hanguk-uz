@@ -12,7 +12,6 @@ import {
   ClipboardList,
   MessageSquare,
   TrendingUp,
-  HelpCircle,
   Zap
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -21,7 +20,10 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { Logo } from '@/components/Logo';
 import { useHangukAI } from '@/hooks/useHangukAI';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface QuickAction {
   icon: React.ElementType;
@@ -37,53 +39,93 @@ export default function AIAssistantContent() {
   const { messages, isLoading, error, sendMessage, clearMessages } = useHangukAI('staff', currentLang);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const { toast } = useToast();
+  const [indexing, setIndexing] = useState(false);
+  const [docRemaining, setDocRemaining] = useState<number | null>(null);
+  const [enriching, setEnriching] = useState(false);
+  const [leadRemaining, setLeadRemaining] = useState<number | null>(null);
+
+  // Reads each lead's chats/calls/notes and auto-fills structured fields so the
+  // AI can answer questions like "leads taking the exam in May".
+  const enrichLeads = async () => {
+    if (enriching) return;
+    setEnriching(true);
+    let total = 0;
+    try {
+      for (let i = 0; i < 300; i++) {
+        const { data, error: invErr } = await supabase.functions.invoke('request-lead-enrichment', { body: { limit: 5 } });
+        if (invErr) throw new Error(invErr.message);
+        total += data?.processed || 0;
+        setLeadRemaining(data?.remaining ?? 0);
+        if (!data || (data.remaining ?? 0) === 0 || (data.processed ?? 0) === 0) break;
+      }
+      toast({ title: 'Leads enriched', description: `Analyzed ${total} lead(s). The AI now has their extracted details.` });
+    } catch (e) {
+      toast({ title: 'Enrichment stopped', description: e instanceof Error ? e.message : 'Unknown error', variant: 'destructive' });
+    } finally {
+      setEnriching(false);
+    }
+  };
+
+  // Reads the student files (OCR + extraction) so the AI can answer about their
+  // contents. Drains the queue in batches; safe to run repeatedly.
+  const indexDocuments = async () => {
+    if (indexing) return;
+    setIndexing(true);
+    let processedTotal = 0;
+    try {
+      for (let i = 0; i < 300; i++) {
+        const { data, error: invErr } = await supabase.functions.invoke('request-document-analysis', { body: { limit: 8 } });
+        if (invErr) throw new Error(invErr.message);
+        processedTotal += data?.processed || 0;
+        setDocRemaining(data?.remaining ?? 0);
+        if (!data || (data.remaining ?? 0) === 0 || (data.processed ?? 0) === 0) break;
+      }
+      toast({ title: 'Documents indexed', description: `Read ${processedTotal} file(s). Hanguk AI can now answer about their contents.` });
+    } catch (e) {
+      toast({ title: 'Indexing stopped', description: e instanceof Error ? e.message : 'Unknown error', variant: 'destructive' });
+    } finally {
+      setIndexing(false);
+    }
+  };
 
   const quickActions: QuickAction[] = [
     {
       icon: TrendingUp,
       label: t('ai.quickDashboard', 'Dashboard Overview'),
       message: 'Show me the current dashboard overview with all key metrics and what needs immediate attention.',
-      color: 'bg-blue-500/10 text-blue-600 hover:bg-blue-500/20'
+      color: 'bg-info/10 text-info hover:bg-info/20'
     },
     {
       icon: Users,
       label: t('ai.quickStudents', 'Student Summary'),
       message: 'Give me a summary of all students - how many total, any pending documents, and who needs follow-up.',
-      color: 'bg-green-500/10 text-green-600 hover:bg-green-500/20'
+      color: 'bg-success/10 text-success hover:bg-success/20'
     },
     {
       icon: ClipboardList,
       label: t('ai.quickTasks', 'My Tasks'),
       message: 'Show me all my pending tasks sorted by priority and due date.',
-      color: 'bg-orange-500/10 text-orange-600 hover:bg-orange-500/20'
+      color: 'bg-warning/10 text-warning hover:bg-warning/20'
     },
     {
       icon: FileText,
       label: t('ai.quickDocuments', 'Pending Documents'),
       message: 'Which documents are pending review? List them with student names.',
-      color: 'bg-purple-500/10 text-purple-600 hover:bg-purple-500/20'
+      color: 'bg-primary/10 text-primary hover:bg-primary/20'
     },
     {
       icon: MessageSquare,
       label: t('ai.quickMessages', 'Unread Messages'),
       message: 'Show me all unread messages and who they are from.',
-      color: 'bg-pink-500/10 text-pink-600 hover:bg-pink-500/20'
+      color: 'bg-accent/15 text-accent-foreground hover:bg-accent/25'
     },
     {
       icon: Zap,
       label: t('ai.quickUrgent', 'Urgent Items'),
       message: 'What are the most urgent items that need my attention right now? Include overdue payments, urgent tasks, and pending approvals.',
-      color: 'bg-red-500/10 text-red-600 hover:bg-red-500/20'
+      color: 'bg-destructive/10 text-destructive hover:bg-destructive/20'
     },
-  ];
-
-  const exampleQueries = [
-    "Show me info about [Student Name]",
-    "What is the status of applications this week?",
-    "Which students have overdue payments?",
-    "List all accepted applications",
-    "Who needs to submit documents?",
-    "Show me students from Tashkent office",
   ];
 
   useEffect(() => {
@@ -148,65 +190,10 @@ export default function AIAssistantContent() {
             {/* Messages */}
             <ScrollArea className="flex-1 p-4" ref={scrollRef}>
               <div className="space-y-4">
-                {/* Welcome message when no messages */}
+                {/* Empty state — clean Hanguk brand mark */}
                 {messages.length === 0 && (
-                  <div className="space-y-6">
-                    <div className="flex gap-3">
-                      <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
-                        <Bot className="h-5 w-5 text-primary-foreground" />
-                      </div>
-                      <div className="flex-1 bg-muted rounded-lg p-4">
-                        <p className="font-medium mb-2">
-                          {t('ai.welcomeStaff', "Hello! I'm Hanguk AI, your CRM assistant.")}
-                        </p>
-                        <p className="text-sm text-muted-foreground mb-4">
-                          {t('ai.staffCapabilities', 'I have access to all student data, applications, documents, payments, and communications. Here\'s what I can help you with:')}
-                        </p>
-                        <ul className="text-sm space-y-2 text-muted-foreground">
-                          <li className="flex items-center gap-2">
-                            <Users className="h-4 w-4 text-primary" />
-                            Look up any student by name and see their complete profile
-                          </li>
-                          <li className="flex items-center gap-2">
-                            <TrendingUp className="h-4 w-4 text-primary" />
-                            Get dashboard overview and system statistics
-                          </li>
-                          <li className="flex items-center gap-2">
-                            <ClipboardList className="h-4 w-4 text-primary" />
-                            View and manage your tasks
-                          </li>
-                          <li className="flex items-center gap-2">
-                            <FileText className="h-4 w-4 text-primary" />
-                            Check document status and pending reviews
-                          </li>
-                          <li className="flex items-center gap-2">
-                            <HelpCircle className="h-4 w-4 text-primary" />
-                            Answer questions about students, payments, and applications
-                          </li>
-                        </ul>
-                      </div>
-                    </div>
-
-                    {/* Example queries */}
-                    <div className="bg-muted/50 rounded-lg p-4">
-                      <p className="text-sm font-medium mb-3 flex items-center gap-2">
-                        <HelpCircle className="h-4 w-4" />
-                        {t('ai.tryAsking', 'Try asking:')}
-                      </p>
-                      <div className="flex flex-wrap gap-2">
-                        {exampleQueries.map((query, idx) => (
-                          <Button
-                            key={idx}
-                            variant="outline"
-                            size="sm"
-                            className="text-xs"
-                            onClick={() => handleQuickAction(query)}
-                          >
-                            {query}
-                          </Button>
-                        ))}
-                      </div>
-                    </div>
+                  <div className="flex flex-col items-center justify-center py-20">
+                    <Logo variant="badge" className="h-20 w-20 rounded-2xl opacity-90" />
                   </div>
                 )}
 
@@ -281,6 +268,7 @@ export default function AIAssistantContent() {
                 <Button
                   onClick={handleSend}
                   disabled={!input.trim() || isLoading}
+                  variant="highlight"
                   size="lg"
                   className="h-14 w-14 flex-shrink-0"
                 >
@@ -318,21 +306,38 @@ export default function AIAssistantContent() {
               ))}
 
               <div className="pt-4 border-t mt-4">
-                <p className="text-xs text-muted-foreground mb-3">
-                  {t('ai.searchTip', 'Search for a student:')}
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start gap-3 h-auto py-3 px-3 bg-info/10 text-info hover:bg-info/20"
+                  onClick={indexDocuments}
+                  disabled={indexing}
+                >
+                  {indexing ? <Loader2 className="h-5 w-5 animate-spin flex-shrink-0" /> : <FileText className="h-5 w-5 flex-shrink-0" />}
+                  <span className="text-sm font-medium text-left">
+                    {indexing
+                      ? `Reading files… ${docRemaining ?? ''} left`
+                      : t('ai.indexDocuments', 'Read all documents (AI)')}
+                  </span>
+                </Button>
+                <p className="text-[11px] text-muted-foreground mt-1 px-1">
+                  Lets the AI answer about what's inside each file. Runs in the background; keep this tab open.
                 </p>
-                <div className="space-y-1">
-                  <p className="text-xs text-muted-foreground italic">
-                    "Show me info about Ali"
-                  </p>
-                  <p className="text-xs text-muted-foreground italic">
-                    "Find student Aziza"
-                  </p>
-                  <p className="text-xs text-muted-foreground italic">
-                    "Who is Jasur?"
-                  </p>
-                </div>
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start gap-3 h-auto py-3 px-3 mt-2 bg-success/10 text-success hover:bg-success/20"
+                  onClick={enrichLeads}
+                  disabled={enriching}
+                >
+                  {enriching ? <Loader2 className="h-5 w-5 animate-spin flex-shrink-0" /> : <Sparkles className="h-5 w-5 flex-shrink-0" />}
+                  <span className="text-sm font-medium text-left">
+                    {enriching ? `Enriching leads… ${leadRemaining ?? ''} left` : t('ai.enrichLeads', 'Enrich leads (AI)')}
+                  </span>
+                </Button>
+                <p className="text-[11px] text-muted-foreground mt-1 px-1">
+                  Reads each lead's chats/calls to auto-fill exam date, intake, program, priority &amp; a summary.
+                </p>
               </div>
+
             </CardContent>
           </Card>
         </div>

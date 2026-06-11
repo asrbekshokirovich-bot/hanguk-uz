@@ -134,6 +134,102 @@ class AppLocalizationsKo extends AppLocalizations {
   String get documentsTabTitle => '내 서류';
 
   @override
+  String get documentUploadInfo => '원본 서류의 PDF 또는 JPEG 스캔본을 업로드하세요. 파일당 최대 10MB.';
+
+  @override
+  String get documentsRequiredHeading => '필수 서류';
+
+  @override
+  String get documentUploadFailed => '문서를 업로드하지 못했습니다. 다시 시도해 주세요.';
+
+  @override
+  String get documentPreviewFailed => '문서를 열지 못했습니다. 다시 시도해 주세요.';
+
+  @override
+  String get documentLoadError => '문서를 불러오지 못했습니다.';
+
+  @override
+  String get commonRetry => '다시 시도';
+
+  @override
+  String get onboardingSkip => '건너뛰기';
+
+  @override
+  String get onboardingNext => '다음';
+
+  @override
+  String get onboardingStart => '시작하기';
+
+  @override
+  String get onboardingStep1Title => '지원 현황 추적';
+
+  @override
+  String get onboardingStep1Body => '서류부터 합격까지 모든 대학 지원을 한곳에서 관리하세요.';
+
+  @override
+  String get onboardingStep2Title => '대학 탐색 및 서류 업로드';
+
+  @override
+  String get onboardingStep2Body => '지도에서 대학을 찾고 필요한 서류를 안전하게 업로드하세요.';
+
+  @override
+  String get onboardingStep3Title => 'AI로 면접 연습';
+
+  @override
+  String get onboardingStep3Body => 'AI 코치와 한국 대학 입학 면접을 연습하고 즉각적인 피드백을 받으세요.';
+
+  @override
+  String get appsEmptyTitle => '아직 지원 내역이 없습니다';
+
+  @override
+  String get appsEmptyBody => '대학에 지원하면 여기에 표시됩니다.';
+
+  @override
+  String get appsLoadError => '지원 내역을 불러오지 못했습니다.';
+
+  @override
+  String get appsPendingHeading => '대기 중인 지원';
+
+  @override
+  String get appsActiveHeading => '진행 중인 지원';
+
+  @override
+  String get searchHint => '검색...';
+
+  @override
+  String get clearSearch => '검색 지우기';
+
+  @override
+  String get filterAll => '전체';
+
+  @override
+  String get filterPartner => '파트너';
+
+  @override
+  String get filterTop => '상위';
+
+  @override
+  String get noUniversitiesMatch => '이 필터에 맞는 대학이 없습니다';
+
+  @override
+  String get clearFilters => '필터 지우기';
+
+  @override
+  String get universitiesLoadError => '대학을 불러오지 못했습니다';
+
+  @override
+  String get checkConnectionRetry => '연결을 확인하고 다시 시도하세요';
+
+  @override
+  String get switchToListView => '목록 보기로 전환';
+
+  @override
+  String get switchToMapView => '지도 보기로 전환';
+
+  @override
+  String get chatInputHint => '한국에 대해 무엇이든 물어보세요...';
+
+  @override
   String get accountTooltip => '계정';
 
   @override

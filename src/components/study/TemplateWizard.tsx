@@ -182,7 +182,7 @@ export function TemplateWizard({
                 <Button variant="outline" size="sm" onClick={handleCopy} className="gap-2">
                   {copied ? (
                     <>
-                      <Check className="h-4 w-4 text-green-500" />
+                      <Check className="h-4 w-4 text-success" />
                       {t('common.copied', 'Copied!')}
                     </>
                   ) : (

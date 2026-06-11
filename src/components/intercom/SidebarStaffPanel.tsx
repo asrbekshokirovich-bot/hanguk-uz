@@ -117,7 +117,7 @@ export function SidebarStaffPanel() {
               <div
                 className={cn(
                   'p-1.5 rounded-lg transition-colors',
-                  connectionError ? 'text-destructive' : isConnected ? 'text-green-500' : 'text-muted-foreground',
+                  connectionError ? 'text-destructive' : isConnected ? 'text-success' : 'text-muted-foreground',
                   isAutoConnecting && 'animate-pulse',
                   'cursor-pointer hover:bg-accent/50'
                 )}
@@ -154,7 +154,7 @@ export function SidebarStaffPanel() {
                   className={cn(
                     'relative p-0.5 rounded-full transition-all',
                     member.isOnline && 'hover:ring-2 hover:ring-primary/50',
-                    member.isSpeakingToMe && 'ring-2 ring-green-500 animate-pulse',
+                    member.isSpeakingToMe && 'ring-2 ring-success animate-pulse',
                     !member.isOnline && 'opacity-50 cursor-not-allowed'
                   )}
                   onMouseDown={() => member.isOnline && handlePressStart(member.user_id)}
@@ -173,7 +173,7 @@ export function SidebarStaffPanel() {
                   <span
                     className={cn(
                       'absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full border border-background',
-                      member.isOnline ? 'bg-green-500' : 'bg-muted-foreground'
+                      member.isOnline ? 'bg-success' : 'bg-muted-foreground'
                     )}
                   />
                 </button>
@@ -213,7 +213,7 @@ export function SidebarStaffPanel() {
             <Mic
               className={cn(
                 'h-4 w-4 cursor-pointer',
-                isConnected ? 'text-green-500' : 'text-muted-foreground',
+                isConnected ? 'text-success' : 'text-muted-foreground',
                 isAutoConnecting && 'animate-pulse'
               )}
               onClick={() => {
@@ -237,7 +237,7 @@ export function SidebarStaffPanel() {
         <span
           className={cn(
             'h-2 w-2 rounded-full',
-            connectionError ? 'bg-destructive' : isConnected ? 'bg-green-500' : 'bg-muted-foreground'
+            connectionError ? 'bg-destructive' : isConnected ? 'bg-success' : 'bg-muted-foreground'
           )}
         />
       </div>

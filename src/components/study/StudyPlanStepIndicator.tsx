@@ -58,7 +58,7 @@ export function StudyPlanStepIndicator({
                 <div
                   className={cn(
                     "w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all",
-                    isCompleted && "bg-green-500 border-green-500 text-white",
+                    isCompleted && "bg-success border-success text-white",
                     isCurrent && !isCompleted && "bg-primary border-primary text-primary-foreground",
                     !isCurrent && !isCompleted && isAccessible && "bg-muted border-border text-muted-foreground",
                     !isAccessible && "bg-muted border-border text-muted-foreground"
@@ -76,7 +76,7 @@ export function StudyPlanStepIndicator({
                   className={cn(
                     "text-xs font-medium",
                     isCurrent && "text-primary",
-                    isCompleted && "text-green-600 dark:text-green-400",
+                    isCompleted && "text-success dark:text-success",
                     !isCurrent && !isCompleted && "text-muted-foreground"
                   )}
                 >
@@ -90,7 +90,7 @@ export function StudyPlanStepIndicator({
                   <div
                     className={cn(
                       "h-full transition-all",
-                      isCompleted ? "bg-green-500" : "bg-border"
+                      isCompleted ? "bg-success" : "bg-border"
                     )}
                   />
                 </div>

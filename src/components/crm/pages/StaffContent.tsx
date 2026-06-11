@@ -69,7 +69,7 @@ export default function StaffContent() {
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
-              <ShieldCheck className="h-5 w-5 text-purple-500" />
+              <ShieldCheck className="h-5 w-5 text-primary" />
               <span className="text-2xl font-bold">{admins}</span>
             </div>
           </CardContent>
@@ -83,7 +83,7 @@ export default function StaffContent() {
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
-              <Headphones className="h-5 w-5 text-blue-500" />
+              <Headphones className="h-5 w-5 text-info" />
               <span className="text-2xl font-bold">{callOperators}</span>
             </div>
           </CardContent>
@@ -97,7 +97,7 @@ export default function StaffContent() {
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
-              <FileCheck className="h-5 w-5 text-green-500" />
+              <FileCheck className="h-5 w-5 text-success" />
               <span className="text-2xl font-bold">{docHandlers}</span>
             </div>
           </CardContent>

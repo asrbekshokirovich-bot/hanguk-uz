@@ -81,7 +81,7 @@ export function AudioInterviewAvatar({
             isSpeaking 
               ? "bg-gradient-to-br from-primary to-primary/60 shadow-lg shadow-primary/30" 
               : isListening
-              ? "bg-gradient-to-br from-green-500 to-green-600 shadow-lg shadow-green-500/30"
+              ? "bg-gradient-to-br from-success to-success shadow-lg shadow-green-500/30"
               : "bg-gradient-to-br from-slate-600 to-slate-700"
           )}>
             <User className="w-14 h-14 text-white" />
@@ -98,8 +98,8 @@ export function AudioInterviewAvatar({
                 isSpeaking 
                   ? "bg-primary" 
                   : isListening
-                  ? "bg-green-500"
-                  : "bg-slate-600"
+                  ? "bg-success"
+                  : "bg-muted"
               )}
               style={{
                 height: `${value * 100}%`,
@@ -116,8 +116,8 @@ export function AudioInterviewAvatar({
           isSpeaking 
             ? "bg-primary/20 text-primary" 
             : isListening
-            ? "bg-green-500/20 text-green-400"
-            : "bg-slate-700/50 text-slate-400"
+            ? "bg-success/20 text-success"
+            : "bg-muted/50 text-muted-foreground"
         )}>
           {isSpeaking ? (
             <>
@@ -131,7 +131,7 @@ export function AudioInterviewAvatar({
             </>
           ) : (
             <>
-              <div className="w-2 h-2 rounded-full bg-slate-500" />
+              <div className="w-2 h-2 rounded-full bg-muted" />
               <span>{t('interview.ready', 'Ready')}</span>
             </>
           )}
@@ -141,7 +141,7 @@ export function AudioInterviewAvatar({
         <div className="absolute top-4 left-4 flex items-center gap-2">
           <div className={cn(
             "w-2 h-2 rounded-full",
-            isSpeaking || isListening ? "bg-green-500" : "bg-slate-500"
+            isSpeaking || isListening ? "bg-success" : "bg-muted"
           )} />
           <span className="text-xs text-white/70 font-medium">
             {t('interview.aiInterviewer', 'AI Interviewer')}

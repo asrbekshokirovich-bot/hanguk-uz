@@ -125,13 +125,13 @@ export function SessionHistoryList({
                     <div className="flex items-start gap-3">
                       <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
                         session.document_type === 'study_plan' 
-                          ? 'bg-blue-100 dark:bg-blue-900/30' 
-                          : 'bg-purple-100 dark:bg-purple-900/30'
+                          ? 'bg-info/10 dark:bg-info/30' 
+                          : 'bg-primary/10 dark:bg-primary/30'
                       }`}>
                         {session.document_type === 'study_plan' ? (
-                          <BookOpen className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                          <BookOpen className="h-5 w-5 text-info dark:text-info" />
                         ) : (
-                          <FileText className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                          <FileText className="h-5 w-5 text-primary dark:text-primary" />
                         )}
                       </div>
                       
@@ -143,7 +143,7 @@ export function SessionHistoryList({
                               : t('study.personalStatement', 'Personal Statement')}
                           </span>
                           {session.status === 'completed' ? (
-                            <Badge variant="secondary" className="gap-1 text-green-600 bg-green-100 dark:bg-green-900/30">
+                            <Badge variant="secondary" className="gap-1 text-success bg-success/10 dark:bg-success/30">
                               <CheckCircle2 className="h-3 w-3" />
                               {t('common.completed', 'Completed')}
                             </Badge>

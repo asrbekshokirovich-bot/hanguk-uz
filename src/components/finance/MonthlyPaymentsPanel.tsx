@@ -46,10 +46,10 @@ const categoryIcons = {
 };
 
 const categoryColors = {
-  salary: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
-  rent: 'bg-purple-500/10 text-purple-600 border-purple-500/20',
-  utilities: 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20',
-  other: 'bg-gray-500/10 text-gray-600 border-gray-500/20',
+  salary: 'bg-info/10 text-info border-info/20',
+  rent: 'bg-primary/10 text-primary border-primary/20',
+  utilities: 'bg-warning/10 text-warning border-warning/20',
+  other: 'bg-muted/10 text-muted-foreground border-border/20',
 };
 
 export function MonthlyPaymentsPanel() {
@@ -145,8 +145,8 @@ export function MonthlyPaymentsPanel() {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-2">
-              <div className="p-2 bg-blue-500/10 rounded-lg">
-                <Users className="h-4 w-4 text-blue-600" />
+              <div className="p-2 bg-info/10 rounded-lg">
+                <Users className="h-4 w-4 text-info" />
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Salaries</p>
@@ -158,8 +158,8 @@ export function MonthlyPaymentsPanel() {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-2">
-              <div className="p-2 bg-purple-500/10 rounded-lg">
-                <Home className="h-4 w-4 text-purple-600" />
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <Home className="h-4 w-4 text-primary" />
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Rent</p>
@@ -171,8 +171,8 @@ export function MonthlyPaymentsPanel() {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-2">
-              <div className="p-2 bg-yellow-500/10 rounded-lg">
-                <Zap className="h-4 w-4 text-yellow-600" />
+              <div className="p-2 bg-warning/10 rounded-lg">
+                <Zap className="h-4 w-4 text-warning" />
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Utilities</p>

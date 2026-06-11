@@ -41,7 +41,7 @@ interface TaskDetailSheetProps {
 
 const priorityConfig = {
   urgent: { color: 'bg-destructive', label: 'Urgent' },
-  high: { color: 'bg-orange-500', label: 'High' },
+  high: { color: 'bg-warning', label: 'High' },
   normal: { color: 'bg-primary', label: 'Normal' },
   low: { color: 'bg-muted-foreground', label: 'Low' },
 };
@@ -141,7 +141,7 @@ export function TaskDetailSheet({
                 <Button 
                   size="sm" 
                   onClick={() => onStatusChange('completed')}
-                  className="bg-green-600 hover:bg-green-700"
+                  className="bg-success hover:bg-success"
                 >
                   <CheckCircle className="h-4 w-4 mr-2" />
                   Complete

@@ -3,6 +3,7 @@ import { useLocation, Link } from "react-router-dom";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { Logo } from "@/components/Logo";
 import { Home } from "lucide-react";
 
 const NotFound = () => {
@@ -18,8 +19,8 @@ const NotFound = () => {
       {/* Header */}
       <header className="flex justify-between items-center p-4">
         <div className="flex items-center gap-3">
-          <img src="/logo.jpg" alt="Hanguk" className="h-10 w-10 rounded-lg object-cover" />
-          <span className="text-xl font-bold text-primary">Hanguk</span>
+          <Logo className="h-10 w-10 rounded-lg" />
+          <span className="text-xl font-bold tracking-tight text-primary">Hanguk</span>
         </div>
         <LanguageSwitcher />
       </header>

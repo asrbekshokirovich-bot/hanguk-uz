@@ -149,7 +149,7 @@ export function StudyPlanExample({
               {/* Example with "Reference Only" label */}
               <div className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-lg p-4 border border-primary/20 relative">
                 <div className="absolute -top-3 left-4">
-                  <span className="bg-amber-500 text-white text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1">
+                  <span className="bg-warning text-white text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1">
                     <Ban className="h-3 w-3" />
                     {t('study.referenceOnly', 'REFERENCE ONLY - DO NOT COPY')}
                   </span>
@@ -167,7 +167,7 @@ export function StudyPlanExample({
                   >
                     {copied ? (
                       <>
-                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <CheckCircle className="h-4 w-4 text-success" />
                         {t('common.copied', 'Copied!')}
                       </>
                     ) : (
@@ -202,7 +202,7 @@ export function StudyPlanExample({
                 <Button 
                   variant="outline"
                   onClick={handleUseAsStartingPointClick}
-                  className="gap-2 border-amber-500 text-amber-700 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-950/20"
+                  className="gap-2 border-warning text-warning hover:bg-warning/10 dark:text-warning dark:hover:bg-warning/20"
                 >
                   <AlertTriangle className="h-4 w-4" />
                   {t('study.useAsReference', 'Use as Starting Point (Risky)')}
@@ -211,11 +211,11 @@ export function StudyPlanExample({
 
               {/* Main action - Continue to Writing */}
               <div className="text-center pt-6 border-t">
-                <div className="bg-green-50 dark:bg-green-950/20 rounded-lg p-4 mb-4 border border-green-200 dark:border-green-800">
-                  <p className="text-sm text-green-800 dark:text-green-200 font-medium mb-1">
+                <div className="bg-success/10 dark:bg-success/20 rounded-lg p-4 mb-4 border border-success/30 dark:border-success">
+                  <p className="text-sm text-success dark:text-success font-medium mb-1">
                     {t('study.recommendedAction', '✅ Recommended: Write Your Own')}
                   </p>
-                  <p className="text-xs text-green-700 dark:text-green-300">
+                  <p className="text-xs text-success dark:text-success">
                     {t('study.recommendedActionDesc', 'Use the example above as inspiration, then write your own unique content in the next step.')}
                   </p>
                 </div>
@@ -230,13 +230,13 @@ export function StudyPlanExample({
       </Card>
 
       {/* Info Card */}
-      <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 border-blue-200 dark:border-blue-800">
+      <Card className="bg-gradient-to-r from-info to-primary dark:from-info/20 dark:to-primary/20 border-info/30 dark:border-info">
         <CardContent className="pt-6">
           <div className="flex items-start gap-3">
-            <Sparkles className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" />
+            <Sparkles className="h-5 w-5 text-info shrink-0 mt-0.5" />
             <div>
-              <p className="font-medium text-blue-800 dark:text-blue-200 mb-1">{t('study.howToUseExample', 'How to Use This Example')}</p>
-              <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
+              <p className="font-medium text-info dark:text-info mb-1">{t('study.howToUseExample', 'How to Use This Example')}</p>
+              <ul className="text-sm text-info dark:text-info space-y-1">
                 <li>✓ {t('study.exampleUse1', 'Study the structure and organization')}</li>
                 <li>✓ {t('study.exampleUse2', 'Note the tone and writing style')}</li>
                 <li>✓ {t('study.exampleUse3', 'Understand what topics to cover')}</li>

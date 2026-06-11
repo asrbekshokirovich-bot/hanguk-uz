@@ -380,8 +380,8 @@ export function DiffList({ entries }: { entries: DiffEntry[] }) {
               <span className="text-[10px] uppercase tracking-wide text-destructive/70">before</span>
               <div className="whitespace-pre-wrap break-words">{renderValue(e.before)}</div>
             </div>
-            <div className="rounded bg-emerald-500/5 border border-emerald-500/20 px-2 py-1 break-words">
-              <span className="text-[10px] uppercase tracking-wide text-emerald-600">after</span>
+            <div className="rounded bg-success/5 border border-success/20 px-2 py-1 break-words">
+              <span className="text-[10px] uppercase tracking-wide text-success">after</span>
               <div className="whitespace-pre-wrap break-words">{renderValue(e.after)}</div>
             </div>
           </div>

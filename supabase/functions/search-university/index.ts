@@ -28,7 +28,7 @@ interface UniversitySearchResult {
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.4';
 
 async function doUniversitySearch(universityName: string, websiteUrl: string | undefined, firecrawlApiKey: string, geminiApiKey: string) {
-  const gatewayUrl = 'https://ai.gateway.gemini.dev/v1';
+  const gatewayUrl = 'https://generativelanguage.googleapis.com/v1beta/openai';
   
   let scrapedContent = '';
   let foundWebsite = websiteUrl || '';
@@ -244,7 +244,7 @@ Return as valid JSON object.`;
       'Authorization': `Bearer ${geminiApiKey}`,
     },
     body: JSON.stringify({
-      model: 'google/gemini-2.5-flash',
+      model: 'gemini-2.5-flash',
       messages: [
         { role: 'system', content: systemPrompt },
         { 

@@ -142,6 +142,102 @@ class AppLocalizationsRu extends AppLocalizations {
   String get documentsTabTitle => 'Мои документы';
 
   @override
+  String get documentUploadInfo => 'Загрузите корректные PDF или JPEG сканы оригиналов документов. Максимум 10 МБ на файл.';
+
+  @override
+  String get documentsRequiredHeading => 'Необходимые документы';
+
+  @override
+  String get documentUploadFailed => 'Не удалось загрузить документ. Пожалуйста, попробуйте ещё раз.';
+
+  @override
+  String get documentPreviewFailed => 'Не удалось открыть документ. Пожалуйста, попробуйте ещё раз.';
+
+  @override
+  String get documentLoadError => 'Не удалось загрузить ваши документы.';
+
+  @override
+  String get commonRetry => 'Повторить';
+
+  @override
+  String get onboardingSkip => 'Пропустить';
+
+  @override
+  String get onboardingNext => 'Далее';
+
+  @override
+  String get onboardingStart => 'Начать';
+
+  @override
+  String get onboardingStep1Title => 'Отслеживайте заявки';
+
+  @override
+  String get onboardingStep1Body => 'Следите за каждой заявкой в университет — от документов до решения — в одном месте.';
+
+  @override
+  String get onboardingStep2Title => 'Изучайте вузы и загружайте документы';
+
+  @override
+  String get onboardingStep2Body => 'Находите университеты на карте и безопасно загружайте нужные документы.';
+
+  @override
+  String get onboardingStep3Title => 'Тренируйте интервью с ИИ';
+
+  @override
+  String get onboardingStep3Body => 'Репетируйте вступительные интервью с ИИ-коучем и получайте мгновенную обратную связь.';
+
+  @override
+  String get appsEmptyTitle => 'Заявок пока нет';
+
+  @override
+  String get appsEmptyBody => 'Ваши заявки появятся здесь после подачи в университет.';
+
+  @override
+  String get appsLoadError => 'Не удалось загрузить ваши заявки.';
+
+  @override
+  String get appsPendingHeading => 'Ожидающие заявки';
+
+  @override
+  String get appsActiveHeading => 'Активные заявки';
+
+  @override
+  String get searchHint => 'Поиск...';
+
+  @override
+  String get clearSearch => 'Очистить поиск';
+
+  @override
+  String get filterAll => 'Все';
+
+  @override
+  String get filterPartner => 'Партнёр';
+
+  @override
+  String get filterTop => 'Топ';
+
+  @override
+  String get noUniversitiesMatch => 'Нет вузов по этому фильтру';
+
+  @override
+  String get clearFilters => 'Сбросить фильтры';
+
+  @override
+  String get universitiesLoadError => 'Не удалось загрузить университеты';
+
+  @override
+  String get checkConnectionRetry => 'Проверьте подключение и попробуйте снова';
+
+  @override
+  String get switchToListView => 'Переключить на список';
+
+  @override
+  String get switchToMapView => 'Переключить на карту';
+
+  @override
+  String get chatInputHint => 'Спросите что угодно о Южной Корее...';
+
+  @override
   String get accountTooltip => 'Аккаунт';
 
   @override

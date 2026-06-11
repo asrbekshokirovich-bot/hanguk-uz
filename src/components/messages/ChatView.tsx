@@ -19,6 +19,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Message, MessageThread } from '@/hooks/useMessages';
+import { LinkContactDialog } from '@/components/calls/LinkContactDialog';
+import { VoiceMessage } from '@/components/messages/VoiceMessage';
 
 interface ChatViewProps {
   thread: MessageThread;
@@ -39,7 +41,11 @@ export function ChatView({ thread, messages, onSendMessage, onArchive, onBack }:
   const { t } = useTranslation();
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
+  const [linkOpen, setLinkOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Channels whose chats can be attached to a student/lead (manual has no id).
+  const canLink = thread.source === 'telegram' || thread.source === 'instagram' || thread.source === 'whatsapp';
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -129,10 +135,12 @@ export function ChatView({ thread, messages, onSendMessage, onArchive, onBack }:
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem>
-              <User className="h-4 w-4 mr-2" />
-              Link to Student
-            </DropdownMenuItem>
+            {canLink && (
+              <DropdownMenuItem onClick={() => setLinkOpen(true)}>
+                <User className="h-4 w-4 mr-2" />
+                {thread.student_id ? 'Re-link to Student' : 'Link to Student'}
+              </DropdownMenuItem>
+            )}
             <DropdownMenuItem onClick={onArchive}>
               <Archive className="h-4 w-4 mr-2" />
               {t('messages.archive')}
@@ -164,7 +172,14 @@ export function ChatView({ thread, messages, onSendMessage, onArchive, onBack }:
                         : 'bg-background border'
                     }`}
                   >
-                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                    {message.message_type === 'voice' && message.metadata?.media_path ? (
+                      <VoiceMessage
+                        mediaPath={message.metadata.media_path}
+                        durationSeconds={message.metadata.media_duration}
+                      />
+                    ) : (
+                      <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                    )}
                     <p className={`text-[10px] mt-1 ${
                       message.direction === 'outgoing' ? 'text-primary-foreground/70' : 'text-muted-foreground'
                     }`}>
@@ -203,6 +218,16 @@ export function ChatView({ thread, messages, onSendMessage, onArchive, onBack }:
           Press Enter to send, Shift+Enter for new line
         </p>
       </div>
+
+      {canLink && (
+        <LinkContactDialog
+          channel={thread.source as 'telegram' | 'instagram' | 'whatsapp'}
+          identifier={thread.sender_id}
+          identifierLabel={thread.sender_name || thread.sender_id}
+          open={linkOpen}
+          onOpenChange={setLinkOpen}
+        />
+      )}
     </div>
   );
 }

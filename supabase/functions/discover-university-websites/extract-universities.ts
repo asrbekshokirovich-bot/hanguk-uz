@@ -47,7 +47,7 @@ Return a JSON array of objects. Return ONLY the JSON array, no other text.`;
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'google/gemini-2.5-flash',
+          model: 'gemini-2.5-flash',
           messages: [
             { role: 'system', content: extractionPrompt },
             { role: 'user', content: chunk },

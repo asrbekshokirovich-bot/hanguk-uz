@@ -6,6 +6,10 @@ verify_jwt = false
 [functions.send-telegram]
 verify_jwt = false
 
+# Ingestion endpoint for the personal-account userbot (auth via x-ingest-secret).
+[functions.telegram-ingest]
+verify_jwt = false
+
 [functions.create-staff]
 verify_jwt = false
 
@@ -33,9 +37,34 @@ verify_jwt = false
 [functions.voip-webhook]
 verify_jwt = false
 
+# Internal workers — authenticated by the service-role key in the Authorization
+# header (checked inside the function), invoked server-to-server / by cron.
+[functions.process-call-recording]
+verify_jwt = false
+
+[functions.dispatch-comm-jobs]
+verify_jwt = false
+
+# Staff-facing triggers (validate the caller's JWT + role inside the function).
+[functions.request-call-analysis]
+verify_jwt = true
+
+[functions.request-document-analysis]
+verify_jwt = true
+
+[functions.request-lead-enrichment]
+verify_jwt = true
+
+# Internal workers (service-role bearer checked inside).
+[functions.process-document]
+verify_jwt = false
+
+[functions.enrich-lead]
+verify_jwt = false
 
 
-[functions.compare-universities]
+
+[functions.upload-guideline]
 verify_jwt = false
 
 [functions.heygen-avatar-token]
@@ -71,9 +100,6 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.search-university]
-verify_jwt = false
-
-[functions.import-korean-universities]
 verify_jwt = false
 
 [functions.analyze-lead]

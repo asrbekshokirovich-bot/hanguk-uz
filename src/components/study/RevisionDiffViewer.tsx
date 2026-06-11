@@ -181,11 +181,11 @@ export function RevisionDiffViewer({
 
         {/* Stats */}
         <div className="flex items-center gap-4 flex-wrap">
-          <Badge variant="outline" className="gap-1 text-green-600 border-green-300">
+          <Badge variant="outline" className="gap-1 text-success border-success/30">
             <Plus className="h-3 w-3" />
             {stats.added} {t('study.added', 'added')}
           </Badge>
-          <Badge variant="outline" className="gap-1 text-red-600 border-red-300">
+          <Badge variant="outline" className="gap-1 text-destructive border-destructive/30">
             <Minus className="h-3 w-3" />
             {stats.removed} {t('study.removed', 'removed')}
           </Badge>
@@ -195,9 +195,9 @@ export function RevisionDiffViewer({
               className={cn(
                 'gap-1',
                 newScore > oldScore 
-                  ? 'text-green-600 border-green-300' 
+                  ? 'text-success border-success/30' 
                   : newScore < oldScore 
-                    ? 'text-red-600 border-red-300'
+                    ? 'text-destructive border-destructive/30'
                     : 'text-muted-foreground'
               )}
             >
@@ -221,8 +221,8 @@ export function RevisionDiffViewer({
                   <span
                     key={index}
                     className={cn(
-                      segment.type === 'added' && 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200',
-                      segment.type === 'removed' && 'bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-200 line-through'
+                      segment.type === 'added' && 'bg-success/10 dark:bg-success/50 text-success dark:text-success',
+                      segment.type === 'removed' && 'bg-destructive/10 dark:bg-destructive/50 text-destructive dark:text-destructive line-through'
                     )}
                   >
                     {segment.text}{' '}

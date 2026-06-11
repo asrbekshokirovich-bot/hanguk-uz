@@ -141,12 +141,18 @@ flutter:
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
+  # A1/S1: Apple rejects icons with an alpha channel; flatten on generation.
+  remove_alpha_ios: true
+  # Opaque source (white 한 on Royal Blue, no alpha) — see assets/app_icon2.png.
+  image_path: "assets/app_icon2.png"
+  # Android adaptive icon: solid Royal-Blue background + transparent white-한 foreground.
+  adaptive_icon_background: "#1A3A6C"
+  adaptive_icon_foreground: "assets/app-icon-adaptive-foreground.png"
   web:
     generate: true
     image_path: "assets/app_icon2.png"
-    background_color: "#ffffff"
-    theme_color: "#ffffff"
-  image_path: "assets/app_icon2.png"
+    background_color: "#1A3A6C"
+    theme_color: "#1A3A6C"
   min_sdk_android: 21
 
 dependency_overrides:

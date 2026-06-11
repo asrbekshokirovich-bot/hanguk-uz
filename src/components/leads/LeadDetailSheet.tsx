@@ -8,6 +8,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Progress } from '@/components/ui/progress';
+import { LeadScoreRing } from '@/components/crm/LeadScoreRing';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -51,7 +54,8 @@ import {
   Pencil,
   Trash2,
   MoreHorizontal,
-  FileText
+  FileText,
+  Send
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -76,6 +80,52 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
+
+function leadInitials(name: string | null) {
+  if (!name) return 'U';
+  return name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
+}
+function sourceTone(source: Lead['source']) {
+  switch (source) {
+    case 'telegram': return 'bg-info/10 text-info';
+    case 'instagram': return 'bg-primary/10 text-primary';
+    case 'call': return 'bg-success/10 text-success';
+    case 'ai_detected': return 'bg-accent/15 text-accent-foreground';
+    default: return 'bg-muted text-muted-foreground';
+  }
+}
+function SourceGlyph({ source }: { source: Lead['source'] }) {
+  const cls = 'h-3 w-3';
+  switch (source) {
+    case 'telegram': return <Send className={cls} />;
+    case 'instagram': return <MessageSquare className={cls} />;
+    case 'call': return <Phone className={cls} />;
+    case 'ai_detected': return <Bot className={cls} />;
+    default: return <User className={cls} />;
+  }
+}
+function priorityWord(score: number | null) {
+  if (!score) return 'unscored';
+  if (score >= 70) return 'hot';
+  if (score >= 50) return 'warm';
+  return 'cold';
+}
+// 4 AI signal estimates (0–100) derived from available lead data.
+function leadSignals(lead: Lead, answerRate: number) {
+  const budget = lead.budget_range;
+  const budgetFit =
+    budget === '20000_plus' || budget === '10000_20000' ? 88
+    : budget === '5000_10000' ? 66
+    : budget === 'scholarship' ? 45
+    : budget === 'under_5000' ? 38
+    : 30;
+  return {
+    intent: lead.priority_score || 0,
+    engagement: answerRate,
+    budget: budgetFit,
+    timeline: lead.preferred_start_date ? 75 : lead.next_follow_up ? 55 : 35,
+  };
+}
 
 interface LeadDetailSheetProps {
   lead: Lead | null;
@@ -132,13 +182,13 @@ const CONTACT_TYPES: { value: ContactType; label: string; icon: string }[] = [
 ];
 
 const OUTCOMES: { value: ContactOutcome; label: string; icon: React.ReactNode; color: string }[] = [
-  { value: 'answered', label: 'Answered', icon: <CheckCircle2 className="h-4 w-4" />, color: 'text-green-500' },
-  { value: 'interested', label: 'Interested', icon: <Sparkles className="h-4 w-4" />, color: 'text-emerald-500' },
-  { value: 'callback_requested', label: 'Callback', icon: <PhoneCall className="h-4 w-4" />, color: 'text-blue-500' },
-  { value: 'no_answer', label: 'No Answer', icon: <AlertCircle className="h-4 w-4" />, color: 'text-yellow-500' },
-  { value: 'busy', label: 'Busy', icon: <Clock className="h-4 w-4" />, color: 'text-orange-500' },
-  { value: 'voicemail', label: 'Voicemail', icon: <MessageSquare className="h-4 w-4" />, color: 'text-gray-500' },
-  { value: 'not_interested', label: 'Not Interested', icon: <XCircle className="h-4 w-4" />, color: 'text-red-500' },
+  { value: 'answered', label: 'Answered', icon: <CheckCircle2 className="h-4 w-4" />, color: 'text-success' },
+  { value: 'interested', label: 'Interested', icon: <Sparkles className="h-4 w-4" />, color: 'text-success' },
+  { value: 'callback_requested', label: 'Callback', icon: <PhoneCall className="h-4 w-4" />, color: 'text-info' },
+  { value: 'no_answer', label: 'No Answer', icon: <AlertCircle className="h-4 w-4" />, color: 'text-warning' },
+  { value: 'busy', label: 'Busy', icon: <Clock className="h-4 w-4" />, color: 'text-warning' },
+  { value: 'voicemail', label: 'Voicemail', icon: <MessageSquare className="h-4 w-4" />, color: 'text-muted-foreground' },
+  { value: 'not_interested', label: 'Not Interested', icon: <XCircle className="h-4 w-4" />, color: 'text-destructive' },
 ];
 
 export const LeadDetailSheet: React.FC<LeadDetailSheetProps> = ({
@@ -361,9 +411,9 @@ export const LeadDetailSheet: React.FC<LeadDetailSheetProps> = ({
 
   const getPriorityColor = (score: number | null) => {
     if (!score) return 'bg-muted text-muted-foreground';
-    if (score >= 70) return 'bg-red-500/10 text-red-500 border-red-500/30';
-    if (score >= 50) return 'bg-yellow-500/10 text-yellow-500 border-yellow-500/30';
-    return 'bg-blue-500/10 text-blue-500 border-blue-500/30';
+    if (score >= 70) return 'bg-destructive/10 text-destructive border-destructive/30';
+    if (score >= 50) return 'bg-warning/10 text-warning border-warning/30';
+    return 'bg-info/10 text-info border-info/30';
   };
 
   const getOutcomeDisplay = (outcome: string | null) => {
@@ -381,37 +431,80 @@ export const LeadDetailSheet: React.FC<LeadDetailSheetProps> = ({
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:max-w-2xl overflow-hidden flex flex-col">
-        <SheetHeader className="flex-shrink-0">
-          <div className="flex items-start justify-between">
-            <div>
-              <SheetTitle className="text-xl">{lead.full_name}</SheetTitle>
-              <div className="flex items-center gap-2 mt-1">
-                <Badge variant="outline" className={getPriorityColor(lead.priority_score)}>
-                  <Gauge className="h-3 w-3 mr-1" />
-                  {lead.priority_score || 0} Priority
-                </Badge>
-                <Badge variant="outline">
-                  {lead.status}
-                </Badge>
+        <SheetHeader className="flex-shrink-0 space-y-3">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex min-w-0 items-start gap-3">
+              <Avatar className="h-12 w-12">
+                <AvatarFallback className="bg-primary/10 text-base font-semibold text-primary">
+                  {leadInitials(lead.full_name)}
+                </AvatarFallback>
+              </Avatar>
+              <div className="min-w-0">
+                <SheetTitle className="truncate text-xl">{lead.full_name}</SheetTitle>
+                <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                  <Badge variant="outline" className={cn('gap-1 border-transparent font-medium', sourceTone(lead.source))}>
+                    <SourceGlyph source={lead.source} />
+                    {t(`leads.sources.${lead.source}`)}
+                  </Badge>
+                  <Badge variant="outline" className={cn('border-transparent font-medium', getPriorityColor(lead.priority_score))}>
+                    {t(`leads.priorities.${priorityWord(lead.priority_score)}`)} · {lead.priority_score || 0}
+                  </Badge>
+                  <Badge variant="outline" className="border-transparent bg-muted font-medium text-muted-foreground">
+                    {t(`leads.statuses.${lead.status}`)}
+                  </Badge>
+                </div>
               </div>
             </div>
-            <div className="flex gap-2">
+            <div className="flex shrink-0 items-center gap-2">
+              <LeadScoreRing score={lead.priority_score} size={52} strokeWidth={6} />
               {isEditing ? (
-                <>
+                <div className="flex gap-1.5">
                   <Button variant="outline" size="sm" onClick={() => setIsEditing(false)}>
-                    Cancel
+                    {t('common.cancel', { defaultValue: 'Cancel' })}
                   </Button>
                   <Button size="sm" onClick={handleSave} disabled={isSaving}>
-                    <Save className="h-4 w-4 mr-1" />
-                    {isSaving ? 'Saving...' : 'Save'}
+                    <Save className="mr-1 h-4 w-4" />
+                    {isSaving ? t('common.saving', { defaultValue: 'Saving…' }) : t('common.save', { defaultValue: 'Save' })}
                   </Button>
-                </>
+                </div>
               ) : (
                 <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
-                  Edit
+                  <Pencil className="mr-1 h-3.5 w-3.5" />
+                  {t('leads.editLead')}
                 </Button>
               )}
             </div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {lead.phone ? (
+              <Button asChild size="sm" className="flex-1 gap-1.5">
+                <a href={`tel:${lead.phone}`}>
+                  <Phone className="h-4 w-4" />
+                  {t('leads.call')}
+                </a>
+              </Button>
+            ) : (
+              <Button size="sm" className="flex-1 gap-1.5" disabled>
+                <Phone className="h-4 w-4" />
+                {t('leads.call')}
+              </Button>
+            )}
+            <Button variant="outline" size="sm" className="flex-1 gap-1.5" onClick={() => setActiveTab('contacts')}>
+              <MessageSquare className="h-4 w-4" />
+              {t('leads.message')}
+            </Button>
+            <Button
+              variant="highlight"
+              size="sm"
+              className="gap-1.5"
+              onClick={() => {
+                if (lead.contract_number) onConvert(lead.id);
+                else { setActiveTab('contacts'); setContractEnabled(true); }
+              }}
+            >
+              <ArrowRight className="h-4 w-4" />
+              {t('leads.convert')}
+            </Button>
           </div>
         </SheetHeader>
 
@@ -1045,13 +1138,13 @@ export const LeadDetailSheet: React.FC<LeadDetailSheetProps> = ({
                   </Card>
                   <Card>
                     <CardContent className="p-3 text-center">
-                      <p className="text-2xl font-bold text-green-500">{contactStats.answered}</p>
+                      <p className="text-2xl font-bold text-success">{contactStats.answered}</p>
                       <p className="text-xs text-muted-foreground">Answered</p>
                     </CardContent>
                   </Card>
                   <Card>
                     <CardContent className="p-3 text-center">
-                      <p className="text-2xl font-bold text-yellow-500">{contactStats.noAnswer}</p>
+                      <p className="text-2xl font-bold text-warning">{contactStats.noAnswer}</p>
                       <p className="text-xs text-muted-foreground">No Answer</p>
                     </CardContent>
                   </Card>
@@ -1108,8 +1201,8 @@ export const LeadDetailSheet: React.FC<LeadDetailSheetProps> = ({
                           className={cn(
                             'gap-1.5 transition-all',
                             contractEnabled
-                              ? 'bg-indigo-600 hover:bg-indigo-700 text-white'
-                              : 'text-indigo-600 border-indigo-300 hover:bg-indigo-50'
+                              ? 'bg-primary hover:bg-primary text-white'
+                              : 'text-primary border-primary/30 hover:bg-primary/10'
                           )}
                           onClick={() => setContractEnabled(!contractEnabled)}
                         >
@@ -1120,8 +1213,8 @@ export const LeadDetailSheet: React.FC<LeadDetailSheetProps> = ({
                     </div>
                     {/* Contract section */}
                     {lead.contract_number && !contractEnabled ? (
-                      <div className="rounded-lg border border-indigo-200 bg-indigo-50/30 p-3 space-y-2">
-                        <div className="flex items-center gap-2 text-sm font-medium text-indigo-700">
+                      <div className="rounded-lg border border-primary/30 bg-primary/10/30 p-3 space-y-2">
+                        <div className="flex items-center gap-2 text-sm font-medium text-primary">
                           <FileText className="h-4 w-4" />
                           Shartnoma ma'lumotlari
                         </div>
@@ -1194,7 +1287,7 @@ export const LeadDetailSheet: React.FC<LeadDetailSheetProps> = ({
                         </AlertDialog>
                       </div>
                     ) : contractEnabled ? (
-                      <div className="rounded-lg border border-indigo-200 bg-indigo-50/30 p-3 space-y-3">
+                      <div className="rounded-lg border border-primary/30 bg-primary/10/30 p-3 space-y-3">
                         <div>
                           <Label className="text-xs text-muted-foreground">Shartnoma raqami</Label>
                           <Input
@@ -1264,7 +1357,7 @@ export const LeadDetailSheet: React.FC<LeadDetailSheetProps> = ({
                               }
                             }}
                             disabled={!formData.contract_number?.trim()}
-                            className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white"
+                            className="flex-1 bg-primary hover:bg-primary text-white"
                           >
                             <Save className="h-4 w-4 mr-1" />
                             Shartnomani saqlash
@@ -1297,7 +1390,7 @@ export const LeadDetailSheet: React.FC<LeadDetailSheetProps> = ({
                         <div className="flex-1 space-y-1">
                           <Label className="text-xs text-muted-foreground flex items-center gap-1">
                             <CalendarPlus className="h-3 w-3" />
-                            Next Follow-up <span className="text-red-500">*</span>
+                            Next Follow-up <span className="text-destructive">*</span>
                           </Label>
                           <Popover>
                             <PopoverTrigger asChild>
@@ -1305,7 +1398,7 @@ export const LeadDetailSheet: React.FC<LeadDetailSheetProps> = ({
                                 variant="outline"
                                 className={cn(
                                   "w-full justify-start text-left font-normal",
-                                  !nextFollowUp && "text-muted-foreground border-red-500/50"
+                                  !nextFollowUp && "text-muted-foreground border-destructive/50"
                                 )}
                               >
                                 <CalendarPlus className="mr-2 h-4 w-4" />
@@ -1491,6 +1584,35 @@ export const LeadDetailSheet: React.FC<LeadDetailSheetProps> = ({
                         No AI analysis yet. Click "AI Analyze" to generate insights.
                       </p>
                     )}
+                  </CardContent>
+                </Card>
+
+                {/* AI signal estimates */}
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Sparkles className="h-4 w-4" />
+                      {t('leads.aiAnalysis')}
+                      <span className="ml-1 text-[10px] font-normal text-muted-foreground">({t('leads.estimated')})</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {(() => {
+                      const sig = leadSignals(lead, contactStats.answerRate);
+                      const rows: [string, number][] = [
+                        [t('leads.signalIntent'), sig.intent],
+                        [t('leads.signalEngagement'), sig.engagement],
+                        [t('leads.signalBudget'), sig.budget],
+                        [t('leads.signalTimeline'), sig.timeline],
+                      ];
+                      return rows.map(([label, val]) => (
+                        <div key={label} className="flex items-center gap-3">
+                          <span className="w-24 shrink-0 text-xs font-medium text-muted-foreground">{label}</span>
+                          <Progress value={val} className="h-1.5 flex-1" />
+                          <span className="w-7 text-right font-mono text-[11px] text-muted-foreground">{val}</span>
+                        </div>
+                      ));
+                    })()}
                   </CardContent>
                 </Card>
 

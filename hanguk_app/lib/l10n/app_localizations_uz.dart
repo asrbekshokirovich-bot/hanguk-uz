@@ -141,6 +141,102 @@ class AppLocalizationsUz extends AppLocalizations {
   String get documentsTabTitle => 'Hujjatlarim';
 
   @override
+  String get documentUploadInfo => 'Asl hujjatlaringizning to‘g‘ri PDF yoki JPEG nusxalarini yuklang. Har bir fayl uchun eng ko‘pi 10MB.';
+
+  @override
+  String get documentsRequiredHeading => 'Kerakli hujjatlar';
+
+  @override
+  String get documentUploadFailed => 'Hujjatingizni yuklab bo‘lmadi. Iltimos, qayta urinib ko‘ring.';
+
+  @override
+  String get documentPreviewFailed => 'Hujjatni ochib bo‘lmadi. Iltimos, qayta urinib ko‘ring.';
+
+  @override
+  String get documentLoadError => 'Hujjatlaringizni yuklab bo‘lmadi.';
+
+  @override
+  String get commonRetry => 'Qayta urinish';
+
+  @override
+  String get onboardingSkip => 'O\'tkazib yuborish';
+
+  @override
+  String get onboardingNext => 'Keyingi';
+
+  @override
+  String get onboardingStart => 'Boshlash';
+
+  @override
+  String get onboardingStep1Title => 'Arizalaringizni kuzating';
+
+  @override
+  String get onboardingStep1Body => 'Har bir universitet arizasini hujjatlardan qarorgacha bitta joyda kuzating.';
+
+  @override
+  String get onboardingStep2Title => 'Universitetlarni o\'rganing va hujjat yuklang';
+
+  @override
+  String get onboardingStep2Body => 'Universitetlarni xaritada toping va har biri uchun kerakli hujjatlarni xavfsiz yuklang.';
+
+  @override
+  String get onboardingStep3Title => 'AI bilan suhbatga tayyorlaning';
+
+  @override
+  String get onboardingStep3Body => 'AI murabbiy bilan koreys universitetlari suhbatlarini mashq qiling va darhol fikr-mulohaza oling.';
+
+  @override
+  String get appsEmptyTitle => 'Hozircha arizalar yo\'q';
+
+  @override
+  String get appsEmptyBody => 'Universitetga ariza topshirganingizdan so\'ng arizalaringiz shu yerda ko\'rinadi.';
+
+  @override
+  String get appsLoadError => 'Arizalaringizni yuklab bo\'lmadi.';
+
+  @override
+  String get appsPendingHeading => 'Kutilayotgan arizalar';
+
+  @override
+  String get appsActiveHeading => 'Faol arizalar';
+
+  @override
+  String get searchHint => 'Qidirish...';
+
+  @override
+  String get clearSearch => 'Qidiruvni tozalash';
+
+  @override
+  String get filterAll => 'Hammasi';
+
+  @override
+  String get filterPartner => 'Hamkor';
+
+  @override
+  String get filterTop => 'Top';
+
+  @override
+  String get noUniversitiesMatch => 'Bu filtrga mos universitet yo\'q';
+
+  @override
+  String get clearFilters => 'Filtrlarni tozalash';
+
+  @override
+  String get universitiesLoadError => 'Universitetlarni yuklab bo\'lmadi';
+
+  @override
+  String get checkConnectionRetry => 'Internetni tekshirib, qayta urinib ko\'ring';
+
+  @override
+  String get switchToListView => 'Ro\'yxat ko\'rinishiga o\'tish';
+
+  @override
+  String get switchToMapView => 'Xarita ko\'rinishiga o\'tish';
+
+  @override
+  String get chatInputHint => 'Janubiy Koreya haqida xohlagan savolingizni bering...';
+
+  @override
   String get accountTooltip => 'Hisob';
 
   @override

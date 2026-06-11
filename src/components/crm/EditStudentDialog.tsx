@@ -319,7 +319,7 @@ export function EditStudentDialog({ open, onOpenChange, student, onSuccess }: Ed
           </div>
 
           {/* GKS Applicant Checkbox */}
-          <div className="flex items-center space-x-3 p-4 border rounded-lg bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20">
+          <div className="flex items-center space-x-3 p-4 border rounded-lg bg-gradient-to-r from-info to-primary dark:from-info/20 dark:to-primary/20">
             <Checkbox
               id="isGksApplicant"
               checked={formData.isGksApplicant}
@@ -327,7 +327,7 @@ export function EditStudentDialog({ open, onOpenChange, student, onSuccess }: Ed
             />
             <div className="flex-1">
               <Label htmlFor="isGksApplicant" className="flex items-center gap-2 cursor-pointer">
-                <GraduationCap className="h-5 w-5 text-blue-600" />
+                <GraduationCap className="h-5 w-5 text-info" />
                 <span className="font-medium">GKS Applicant</span>
               </Label>
               <p className="text-xs text-muted-foreground mt-1">
@@ -361,14 +361,14 @@ export function EditStudentDialog({ open, onOpenChange, student, onSuccess }: Ed
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
                         <span className="font-semibold">{plan.label}</span>
-                        {plan.isVIP && <Crown className="h-4 w-4 text-yellow-500" />}
+                        {plan.isVIP && <Crown className="h-4 w-4 text-warning" />}
                       </div>
                       <span className="text-sm text-muted-foreground">{plan.price}</span>
                     </div>
                     <div className="grid grid-cols-2 gap-1 mt-3">
                       {plan.features.map(feature => (
                         <div key={feature} className="text-xs flex items-center gap-1 text-muted-foreground">
-                          <CheckCircle className="h-3 w-3 text-green-500 flex-shrink-0" />
+                          <CheckCircle className="h-3 w-3 text-success flex-shrink-0" />
                           <span>{FEATURE_LABELS[feature]}</span>
                         </div>
                       ))}
@@ -410,12 +410,12 @@ export function EditStudentDialog({ open, onOpenChange, student, onSuccess }: Ed
                     type="date"
                     value={formData.contractDate}
                     onChange={(e) => setFormData({ ...formData, contractDate: e.target.value })}
-                    className={cn("pl-9", !formData.contractDate && "border-amber-500")}
+                    className={cn("pl-9", !formData.contractDate && "border-warning")}
                     required
                   />
                 </div>
                 {!formData.contractDate && (
-                  <p className="text-xs text-amber-600 flex items-center gap-1">
+                  <p className="text-xs text-warning flex items-center gap-1">
                     <AlertCircle className="h-3 w-3" />
                     Due dates are calculated from contract date
                   </p>
@@ -443,7 +443,7 @@ export function EditStudentDialog({ open, onOpenChange, student, onSuccess }: Ed
                     <div className="flex items-center gap-2">
                       <CreditCard className="h-4 w-4" />
                       <span>💳 Total: {formatted}{formData.paymentMode === 'installment' ? ' (2 payments)' : ' (one-time)'}</span>
-                      {plan.isVIP && <Badge variant="default" className="ml-auto bg-gradient-to-r from-yellow-500 to-amber-500 text-white border-0 text-xs">VIP</Badge>}
+                      {plan.isVIP && <Badge variant="default" className="ml-auto bg-gradient-to-r from-warning to-warning text-white border-0 text-xs">VIP</Badge>}
                     </div>
                   );
                 })()}

@@ -89,6 +89,18 @@ class TestHelpers:
         rec2 = {"reviewer_decision": None, "parsed_output": {"rows": [{"r": 1}]}}
         assert pw._payload(rec2) == {"rows": [{"r": 1}]}
 
+    def test_program_level_maps_to_check_values(self) -> None:
+        # The university_admission_periods CHECK allows only
+        # undergraduate | graduate | phd | all. 'both' is NOT a valid value here
+        # (it belongs to language_track) and previously failed the whole period.
+        assert pw.program_level_for("undergraduate") == "undergraduate"
+        assert pw.program_level_for("graduate") == "graduate"
+        assert pw.program_level_for("all") == "all"
+        assert pw.program_level_for("both") == "all"
+        assert pw.program_level_for("master") == "graduate"
+        assert pw.program_level_for("phd") == "graduate"
+        assert pw.program_level_for(None) == "undergraduate"
+
 
 class TestCycleResolution:
     def test_track_from_audience(self) -> None:

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { format } from 'date-fns';
 import { useTranslation } from 'react-i18next';
 import { Call } from '@/hooks/useCalls';
@@ -13,12 +14,14 @@ import {
   Clock,
   User,
   Calendar,
-  ExternalLink,
-  Play,
   Edit,
   FileText,
   Headphones,
+  Link2,
 } from 'lucide-react';
+import { RecordingPlayer } from './RecordingPlayer';
+import { CallIntelligence } from './CallIntelligence';
+import { LinkContactDialog } from './LinkContactDialog';
 
 interface CallDetailProps {
   call: Call;
@@ -27,6 +30,7 @@ interface CallDetailProps {
 
 export function CallDetail({ call, onEdit }: CallDetailProps) {
   const { t } = useTranslation();
+  const [linkOpen, setLinkOpen] = useState(false);
 
   const formatDuration = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -39,9 +43,9 @@ export function CallDetail({ call, onEdit }: CallDetailProps) {
       return <PhoneMissed className="h-6 w-6 text-destructive" />;
     }
     return call.direction === 'incoming' ? (
-      <PhoneIncoming className="h-6 w-6 text-green-500" />
+      <PhoneIncoming className="h-6 w-6 text-success" />
     ) : (
-      <PhoneOutgoing className="h-6 w-6 text-blue-500" />
+      <PhoneOutgoing className="h-6 w-6 text-info" />
     );
   };
 
@@ -142,11 +146,24 @@ export function CallDetail({ call, onEdit }: CallDetailProps) {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {call.student?.full_name && (
+            {call.student?.full_name ? (
               <>
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground">Student</span>
                   <span className="font-medium">{call.student.full_name}</span>
+                </div>
+                <Separator />
+              </>
+            ) : (
+              <>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-muted-foreground">
+                    {call.lead_id ? 'Lead (unmatched student)' : 'Unknown contact'}
+                  </span>
+                  <Button variant="outline" size="sm" onClick={() => setLinkOpen(true)}>
+                    <Link2 className="h-4 w-4 mr-2" />
+                    Attach to student/lead
+                  </Button>
                 </div>
                 <Separator />
               </>
@@ -179,20 +196,13 @@ export function CallDetail({ call, onEdit }: CallDetailProps) {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  className="flex-1"
-                  onClick={() => window.open(call.recording_url!, '_blank')}
-                >
-                  <Play className="h-4 w-4 mr-2" />
-                  Play Recording
-                  <ExternalLink className="h-4 w-4 ml-2" />
-                </Button>
-              </div>
+              <RecordingPlayer callId={call.id} />
             </CardContent>
           </Card>
         )}
+
+        {/* AI call intelligence — transcript + Uzbek-first analysis */}
+        {call.recording_url && <CallIntelligence callId={call.id} />}
 
         {/* Notes */}
         {call.notes && (
@@ -223,6 +233,14 @@ export function CallDetail({ call, onEdit }: CallDetailProps) {
           </Card>
         )}
       </div>
+
+      <LinkContactDialog
+        channel="phone"
+        identifier={call.phone_number}
+        identifierLabel={call.phone_number}
+        open={linkOpen}
+        onOpenChange={setLinkOpen}
+      />
     </div>
   );
 }

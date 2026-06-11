@@ -34,11 +34,11 @@ interface StaffListProps {
 }
 
 const ROLE_CONFIG: Record<AppRole, { label: string; icon: React.ReactNode; color: string }> = {
-  owner: { label: 'Owner', icon: <Crown className="h-3 w-3" />, color: 'bg-yellow-500' },
-  admin: { label: 'Admin', icon: <ShieldCheck className="h-3 w-3" />, color: 'bg-purple-500' },
-  call_operator: { label: 'Call Operator', icon: <Headphones className="h-3 w-3" />, color: 'bg-blue-500' },
-  document_handler: { label: 'Doc Handler', icon: <FileCheck className="h-3 w-3" />, color: 'bg-green-500' },
-  university_staff: { label: 'Uni Staff', icon: <GraduationCap className="h-3 w-3" />, color: 'bg-teal-500' },
+  owner: { label: 'Owner', icon: <Crown className="h-3 w-3" />, color: 'bg-warning' },
+  admin: { label: 'Admin', icon: <ShieldCheck className="h-3 w-3" />, color: 'bg-primary' },
+  call_operator: { label: 'Call Operator', icon: <Headphones className="h-3 w-3" />, color: 'bg-info' },
+  document_handler: { label: 'Doc Handler', icon: <FileCheck className="h-3 w-3" />, color: 'bg-success' },
+  university_staff: { label: 'Uni Staff', icon: <GraduationCap className="h-3 w-3" />, color: 'bg-info' },
 };
 
 export function StaffList({ staff, selectedStaff, onSelectStaff }: StaffListProps) {
@@ -159,7 +159,7 @@ export function StaffList({ staff, selectedStaff, onSelectStaff }: StaffListProp
                     'cursor-pointer transition-all hover:bg-accent/50',
                     selectedStaff?.id === member.id && 'border-primary bg-accent',
                     isActiveSpeakingToThis && 'ring-2 ring-primary border-primary bg-primary/10',
-                    memberSpeakingToMe && 'ring-2 ring-green-500 border-green-500 bg-green-500/10 animate-pulse'
+                    memberSpeakingToMe && 'ring-2 ring-success border-success bg-success/10 animate-pulse'
                   )}
                   onClick={() => onSelectStaff(member)}
                 >
@@ -174,7 +174,7 @@ export function StaffList({ staff, selectedStaff, onSelectStaff }: StaffListProp
                         <span
                           className={cn(
                             'absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-background',
-                            memberIsOnline ? 'bg-green-500' : 'bg-muted-foreground'
+                            memberIsOnline ? 'bg-success' : 'bg-muted-foreground'
                           )}
                         />
                       </div>
@@ -216,7 +216,7 @@ export function StaffList({ staff, selectedStaff, onSelectStaff }: StaffListProp
                             className={cn(
                               'h-10 w-10 transition-all select-none touch-none',
                               isActiveSpeakingToThis && 'bg-primary text-primary-foreground scale-110',
-                              memberSpeakingToMe && 'bg-green-500 text-white animate-pulse',
+                              memberSpeakingToMe && 'bg-success text-white animate-pulse',
                               !memberIsOnline && 'opacity-50'
                             )}
                             onMouseDown={() => memberIsOnline && !isMuted && handlePressStart(member.user_id)}

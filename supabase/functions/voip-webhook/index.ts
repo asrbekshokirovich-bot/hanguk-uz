@@ -1,5 +1,28 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { resolveIdentity } from "../_shared/identity.ts";
+
+/**
+ * Best-effort nudge to the call-intelligence worker. The DB trigger already
+ * enqueued a durable job; this makes live calls get transcribed immediately.
+ * Runs in the background (EdgeRuntime.waitUntil) so the webhook still returns
+ * fast; dispatch-comm-jobs is the retry safety net.
+ */
+function invokeCallProcessor(callId: string): void {
+  const url = `${Deno.env.get("SUPABASE_URL")}/functions/v1/process-call-recording`;
+  const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const p = fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${key}` },
+    body: JSON.stringify({ call_id: callId }),
+  })
+    .then((r) => (r.ok ? undefined : r.text().then((t) => console.error("processor invoke non-200:", r.status, t.slice(0, 200)))))
+    .catch((e) => console.error("processor invoke failed:", e));
+  try {
+    (globalThis as unknown as { EdgeRuntime?: { waitUntil?: (p: Promise<unknown>) => void } })
+      .EdgeRuntime?.waitUntil?.(p);
+  } catch (_e) { /* not on edge runtime — fire and forget */ }
+}
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -268,28 +291,17 @@ serve(async (req) => {
       });
     }
 
-    // Match phone to student / lead
-    let studentId = null;
-    let leadId = null;
+    // Match phone to student / lead via the shared identity spine. This also
+    // persists newly-discovered phone→person mappings into
+    // communication_identities, so the link is reused on future calls/chats
+    // and is visible/editable by staff.
+    let studentId: string | null = null;
+    let leadId: string | null = null;
 
     if (callData.phone_number) {
-      const normalizedPhone = normalizePhoneNumber(callData.phone_number as string);
-
-      const { data: profile } = await supabaseAdmin
-        .from('profiles')
-        .select('user_id')
-        .or(`phone.eq.${normalizedPhone},phone.eq.${callData.phone_number}`)
-        .maybeSingle();
-
-      if (profile) studentId = profile.user_id;
-
-      const { data: lead } = await supabaseAdmin
-        .from('leads')
-        .select('id')
-        .or(`phone.eq.${normalizedPhone},phone.eq.${callData.phone_number}`)
-        .maybeSingle();
-
-      if (lead) leadId = lead.id;
+      const resolved = await resolveIdentity(supabaseAdmin, 'phone', callData.phone_number as string);
+      studentId = resolved.studentId;
+      leadId = resolved.leadId;
     }
 
     const { data: existingCall } = await supabaseAdmin
@@ -297,6 +309,8 @@ serve(async (req) => {
       .select('id')
       .eq('external_call_id', callData.external_call_id)
       .maybeSingle();
+
+    let callRowId: string | null = existingCall?.id ?? null;
 
     if (existingCall) {
       const { error: updateError } = await supabaseAdmin
@@ -306,6 +320,9 @@ serve(async (req) => {
           duration: callData.duration,
           recording_url: callData.recording_url,
           ended_at: callData.ended_at,
+          // Keep an existing student link; backfill it (and the lead link) when
+          // the identity spine now resolves a match it didn't have before.
+          ...(studentId ? { student_id: studentId } : {}),
           lead_id: leadId,
           updated_at: new Date().toISOString(),
         })
@@ -313,7 +330,7 @@ serve(async (req) => {
 
       if (updateError) throw updateError;
     } else {
-      const { error: insertError } = await supabaseAdmin
+      const { data: inserted, error: insertError } = await supabaseAdmin
         .from('calls')
         .insert({
           external_call_id: callData.external_call_id,
@@ -327,9 +344,17 @@ serve(async (req) => {
           voip_provider: callData.voip_provider,
           student_id: studentId,
           lead_id: leadId,
-        });
+        })
+        .select('id')
+        .single();
 
       if (insertError) throw insertError;
+      callRowId = inserted?.id ?? null;
+    }
+
+    // Completed call with a recording → transcribe + analyse (Uzbek-first).
+    if (callRowId && callData.status === 'completed' && callData.recording_url) {
+      invokeCallProcessor(callRowId);
     }
 
     return new Response(JSON.stringify({ success: true }), {

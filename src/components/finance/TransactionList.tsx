@@ -204,7 +204,7 @@ export function TransactionList({ payments, loading }: TransactionListProps) {
       }
     } else {
       if (tx.isGatewayFee) {
-        return <Badge variant="outline" className="bg-orange-500/10 text-orange-600 border-orange-500/20">Komissiya</Badge>;
+        return <Badge variant="outline" className="bg-warning/10 text-warning border-warning/20">Komissiya</Badge>;
       }
       return <Badge variant="destructive" className="capitalize">{tx.category}</Badge>;
     }
@@ -229,23 +229,23 @@ export function TransactionList({ payments, loading }: TransactionListProps) {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 bg-green-500/10 rounded-lg">
-              <ArrowUpRight className="h-5 w-5 text-green-600" />
+            <div className="p-2 bg-success/10 rounded-lg">
+              <ArrowUpRight className="h-5 w-5 text-success" />
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Kirim (UZS)</p>
-              <p className="text-xl font-bold text-green-600">{formatAmount(totals.incomeUZS, 'UZS')}</p>
+              <p className="text-xl font-bold text-success">{formatAmount(totals.incomeUZS, 'UZS')}</p>
             </div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 bg-red-500/10 rounded-lg">
-              <ArrowDownRight className="h-5 w-5 text-red-600" />
+            <div className="p-2 bg-destructive/10 rounded-lg">
+              <ArrowDownRight className="h-5 w-5 text-destructive" />
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Chiqim (UZS)</p>
-              <p className="text-xl font-bold text-red-600">{formatAmount(totals.expenseUZS, 'UZS')}</p>
+              <p className="text-xl font-bold text-destructive">{formatAmount(totals.expenseUZS, 'UZS')}</p>
             </div>
           </CardContent>
         </Card>
@@ -256,7 +256,7 @@ export function TransactionList({ payments, loading }: TransactionListProps) {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Sof (UZS)</p>
-              <p className={`text-xl font-bold ${totals.netUZS >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              <p className={`text-xl font-bold ${totals.netUZS >= 0 ? 'text-success' : 'text-destructive'}`}>
                 {formatAmount(totals.netUZS, 'UZS')}
               </p>
             </div>
@@ -352,13 +352,13 @@ export function TransactionList({ payments, loading }: TransactionListProps) {
                         <div className="flex items-center justify-end gap-1">
                           {tx.type === 'income' ? (
                             <>
-                              <ArrowUpRight className="h-3 w-3 text-green-500" />
-                              <span className="font-medium text-green-600">+{formatAmount(tx.amount, tx.currency)}</span>
+                              <ArrowUpRight className="h-3 w-3 text-success" />
+                              <span className="font-medium text-success">+{formatAmount(tx.amount, tx.currency)}</span>
                             </>
                           ) : (
                             <>
-                              <ArrowDownRight className="h-3 w-3 text-red-500" />
-                              <span className="font-medium text-red-600">-{formatAmount(tx.amount, tx.currency)}</span>
+                              <ArrowDownRight className="h-3 w-3 text-destructive" />
+                              <span className="font-medium text-destructive">-{formatAmount(tx.amount, tx.currency)}</span>
                             </>
                           )}
                         </div>

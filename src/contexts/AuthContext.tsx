@@ -55,37 +55,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signInGuest = async (email: string, password: string) => {
     try {
-      const { data, error } = await supabase
-        .from('leads')
-        .select('*')
-        .eq('email', email)
-        .eq('password' as any, password)
-        .maybeSingle();
+      // Guest credentials are validated server-side (service role) so the
+      // `leads` table — which stores plaintext passwords — is never exposed to
+      // the anon key. See supabase/functions/guest-auth.
+      const { data, error } = await supabase.functions.invoke('guest-auth', {
+        body: { action: 'login', email, password },
+      });
 
-      if (error) {
-        throw error;
+      if (error && !data) {
+        return { error: new Error(error.message || 'INVALID_CREDENTIALS') };
       }
 
-      if (!data) {
-        return { error: new Error('Invalid email or password') };
+      if (!data?.success) {
+        // data.code is one of EMAIL_NOT_FOUND | INVALID_PASSWORD | SERVER_ERROR
+        return { error: new Error(data?.code || 'INVALID_CREDENTIALS') };
       }
 
-      // Update login count and history directly in Supabase
-      const existingData = data as any;
-      const loginCount = (existingData.login_count || 0) + 1;
-      const now = new Date().toISOString();
-      const loginHistory = [now, ...(existingData.login_history || [])].slice(0, 20);
-
-      const { error: updateError } = await supabase
-        .from('leads')
-        .update({
-          login_count: loginCount,
-          login_history: loginHistory,
-          updated_at: now
-        })
-        .eq('id', data.id);
-
-      return { error: null, data: { ...data, login_count: loginCount, login_history: loginHistory } };
+      return { error: null, data: data.lead };
     } catch (err: any) {
       return { error: err };
     }
@@ -93,45 +79,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUpGuest = async (email: string, password: string, fullName: string) => {
     try {
-      // Check for duplicate email in Supabase
-      const { data: existing, error: checkError } = await supabase
-        .from('leads')
-        .select('id')
-        .eq('email', email)
-        .maybeSingle();
+      const { data, error } = await supabase.functions.invoke('guest-auth', {
+        body: { action: 'signup', email, password, fullName },
+      });
 
-      if (checkError) {
-        throw checkError;
+      if (error && !data) {
+        return { error: new Error(error.message || 'Signup failed') };
       }
 
-      if (existing) {
-        return { error: new Error("Bu email allaqachon ro'yxatdan o'tgan.") };
+      if (!data?.success) {
+        return { error: new Error(data?.message || data?.code || 'Signup failed') };
       }
 
-      const now = new Date().toISOString();
-      const newRegistration = {
-        full_name: fullName,
-        email: email,
-        password: password,
-        created_at: now,
-        updated_at: now,
-        login_count: 1,
-        login_history: [now] as any,
-        source: 'Public Registration',
-        status: 'new'
-      } as any;
-
-      const { data, error } = await supabase
-        .from('leads')
-        .insert(newRegistration)
-        .select()
-        .single();
-
-      if (error) {
-        throw error;
-      }
-
-      return { error: null, data };
+      return { error: null, data: data.lead };
     } catch (err: any) {
       return { error: err };
     }

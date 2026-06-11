@@ -70,7 +70,7 @@ export function ActiveCallOverlay({
         <Card
           className={cn(
             'p-3 cursor-pointer hover:shadow-lg transition-all',
-            isActive ? 'bg-green-500/10 border-green-500' : 'bg-yellow-500/10 border-yellow-500'
+            isActive ? 'bg-success/10 border-success' : 'bg-warning/10 border-warning'
           )}
           onClick={() => setMinimized(false)}
         >
@@ -83,7 +83,7 @@ export function ActiveCallOverlay({
               <div
                 className={cn(
                   'absolute -bottom-1 -right-1 h-4 w-4 rounded-full flex items-center justify-center',
-                  isActive ? 'bg-green-500' : 'bg-yellow-500'
+                  isActive ? 'bg-success' : 'bg-warning'
                 )}
               >
                 <Phone className="h-2.5 w-2.5 text-white" />
@@ -115,7 +115,7 @@ export function ActiveCallOverlay({
                 <AvatarFallback className="text-lg">{getInitials(userName)}</AvatarFallback>
               </Avatar>
               {isActive && (
-                <div className="absolute -bottom-1 -right-1 h-4 w-4 rounded-full bg-green-500 flex items-center justify-center">
+                <div className="absolute -bottom-1 -right-1 h-4 w-4 rounded-full bg-success flex items-center justify-center">
                   <div className="h-2 w-2 rounded-full bg-white animate-pulse" />
                 </div>
               )}
@@ -124,7 +124,7 @@ export function ActiveCallOverlay({
               <p className="font-semibold">{userName}</p>
               <p className={cn(
                 'text-sm',
-                isActive ? 'text-green-600' : isRinging ? 'text-blue-600' : 'text-yellow-600'
+                isActive ? 'text-success' : isRinging ? 'text-info' : 'text-warning'
               )}>
                 {isRinging
                   ? t('intercom.incoming', { defaultValue: 'Incoming Call...' })
@@ -156,9 +156,9 @@ export function ActiveCallOverlay({
         {isCalling && !isActive && (
           <div className="text-center mb-4">
             <div className="flex justify-center gap-1 mb-2">
-              <div className="h-2 w-2 rounded-full bg-yellow-500 animate-bounce" style={{ animationDelay: '0ms' }} />
-              <div className="h-2 w-2 rounded-full bg-yellow-500 animate-bounce" style={{ animationDelay: '150ms' }} />
-              <div className="h-2 w-2 rounded-full bg-yellow-500 animate-bounce" style={{ animationDelay: '300ms' }} />
+              <div className="h-2 w-2 rounded-full bg-warning animate-bounce" style={{ animationDelay: '0ms' }} />
+              <div className="h-2 w-2 rounded-full bg-warning animate-bounce" style={{ animationDelay: '150ms' }} />
+              <div className="h-2 w-2 rounded-full bg-warning animate-bounce" style={{ animationDelay: '300ms' }} />
             </div>
             <p className="text-sm text-muted-foreground">
               {t('intercom.waitingForAnswer', { defaultValue: 'Waiting for answer...' })}
@@ -169,9 +169,9 @@ export function ActiveCallOverlay({
         {isRinging && !isActive && (
           <div className="text-center mb-4">
             <div className="flex justify-center gap-1 mb-2">
-              <div className="h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
-              <div className="h-2 w-2 rounded-full bg-blue-500 animate-pulse delay-150" />
-              <div className="h-2 w-2 rounded-full bg-blue-500 animate-pulse delay-300" />
+              <div className="h-2 w-2 rounded-full bg-info animate-pulse" />
+              <div className="h-2 w-2 rounded-full bg-info animate-pulse delay-150" />
+              <div className="h-2 w-2 rounded-full bg-info animate-pulse delay-300" />
             </div>
             <p className="text-sm text-muted-foreground">
               {t('intercom.incomingCallDesc', { defaultValue: 'Incoming call from staff' })}
@@ -183,7 +183,7 @@ export function ActiveCallOverlay({
           {isRinging && onAcceptCall && (
             <Button
               variant="default"
-              className="h-12 rounded-full px-6 bg-green-500 hover:bg-green-600"
+              className="h-12 rounded-full px-6 bg-success hover:bg-success"
               onClick={onAcceptCall}
             >
               <Phone className="h-5 w-5 mr-2" />

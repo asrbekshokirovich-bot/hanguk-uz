@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { Logo } from '@/components/Logo';
 import { Download, Printer } from 'lucide-react';
 import { Payment } from '@/hooks/usePayments';
 
@@ -41,7 +42,7 @@ export function InvoiceView({ payment, onClose }: InvoiceViewProps) {
       <Card ref={invoiceRef} className="max-w-2xl mx-auto">
         <CardHeader className="text-center border-b">
           <div className="flex items-center justify-center gap-3 mb-4">
-            <img src="/logo.jpg" alt="Hanguk" className="h-12 w-12 rounded-lg object-cover" />
+            <Logo className="h-12 w-12 rounded-lg" />
             <div>
               <CardTitle className="text-2xl">Hanguk Consulting</CardTitle>
               <p className="text-sm text-muted-foreground">Education Consulting Services</p>
@@ -99,10 +100,10 @@ export function InvoiceView({ payment, onClose }: InvoiceViewProps) {
               <div className="col-span-3 text-right">
                 <span className={`px-2 py-1 rounded text-xs ${
                   payment.status === 'completed' 
-                    ? 'bg-green-100 text-green-700' 
+                    ? 'bg-success/10 text-success' 
                     : payment.status === 'partial'
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'bg-yellow-100 text-yellow-700'
+                    ? 'bg-info/10 text-info'
+                    : 'bg-warning/10 text-warning'
                 }`}>
                   {payment.status}
                 </span>
@@ -119,7 +120,7 @@ export function InvoiceView({ payment, onClose }: InvoiceViewProps) {
               <span className="text-muted-foreground">{t('payments.totalAmount')}</span>
               <span className="font-medium">{formatCurrency(Number(payment.amount), payment.currency)}</span>
             </div>
-            <div className="flex justify-between text-green-600">
+            <div className="flex justify-between text-success">
               <span>{t('payments.paidAmount')}</span>
               <span className="font-medium">{formatCurrency(Number(payment.paid_amount), payment.currency)}</span>
             </div>
