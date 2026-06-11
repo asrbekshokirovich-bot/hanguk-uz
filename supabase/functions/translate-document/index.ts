@@ -204,9 +204,6 @@ function makeTableXml(header: string[] | undefined, rows: string[][]): string {
 async function renderDocx(structured: StructuredTranslation, meta: { documentTitle: string }): Promise<Uint8Array> {
   const bodyParts: string[] = [];
 
-  // Header label
-  bodyParts.push(makeParagraph("CERTIFIED TRANSLATION FROM UZBEK INTO ENGLISH", { italic: true, size: 9, center: true, color: "777777" }));
-
   for (const block of structured.blocks ?? []) {
     switch (block.type) {
       case "title":
