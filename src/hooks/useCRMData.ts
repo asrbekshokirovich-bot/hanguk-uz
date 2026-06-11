@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Tables } from '@/integrations/supabase/types';
 import { toast } from 'sonner';
+import { useActiveIntake } from '@/contexts/IntakeContext';
+import { applyIntake } from '@/lib/intakeQuery';
 import { getPlanByValue, calculateFirstPaymentDueDate } from '@/hooks/useStudentPlan';
 
 type StudentProfile = Tables<'profiles'> & {
@@ -18,6 +20,7 @@ export function useCRMData() {
   const [applications, setApplications] = useState<Tables<'applications'>[]>([]);
   const [universities, setUniversities] = useState<Tables<'universities'>[]>([]);
   const [loading, setLoading] = useState(true);
+  const { activeIntakeId } = useActiveIntake();
 
   const fetchStudents = async () => {
     try {
@@ -55,20 +58,20 @@ export function useCRMData() {
 
       const studentUserIds = studentProfiles.map(p => p.user_id);
 
-      // Batch fetch all applications, documents, and payments for all students at once
+      // Batch fetch THIS intake's applications, documents and payments for all students.
       const [appsResult, docsResult, paymentsResult] = await Promise.all([
-        supabase
-          .from('applications')
-          .select('*, university:institutions(*)')
-          .in('student_id', studentUserIds),
-        supabase
-          .from('documents')
-          .select('*')
-          .in('student_id', studentUserIds),
-        supabase
-          .from('payments')
-      .select('student_id, status, payment_type, paid_amount')
-      .in('student_id', studentUserIds),
+        applyIntake(
+          supabase.from('applications').select('*, university:institutions(*)').in('student_id', studentUserIds),
+          activeIntakeId,
+        ),
+        applyIntake(
+          supabase.from('documents').select('*').in('student_id', studentUserIds),
+          activeIntakeId,
+        ),
+        applyIntake(
+          supabase.from('payments').select('student_id, status, payment_type, paid_amount').in('student_id', studentUserIds),
+          activeIntakeId,
+        ),
       ]);
 
       if (appsResult.error) {
@@ -109,9 +112,18 @@ export function useCRMData() {
         docsByStudent.set(doc.student_id, existing);
       }
 
+      // Students shown for this intake = those with any record (application,
+      // document or payment) in the active season. A student applying in both
+      // Spring and Fall therefore appears under each, with only that season's data.
+      const intakeStudentIds = new Set<string>();
+      for (const a of allApps) intakeStudentIds.add(a.student_id);
+      for (const d of allDocs) intakeStudentIds.add(d.student_id);
+      for (const p of allPayments) intakeStudentIds.add(p.student_id);
+      const memberProfiles = studentProfiles.filter((p) => intakeStudentIds.has(p.user_id));
+
       // Compute initialPaymentOverdue per student
       const initialOverdueByStudent = new Map<string, boolean>();
-      for (const profile of studentProfiles) {
+      for (const profile of memberProfiles) {
         const uid = profile.user_id;
         if (!profile.contract_date || !profile.payment_plan) {
           initialOverdueByStudent.set(uid, false);
@@ -139,7 +151,7 @@ export function useCRMData() {
       }
 
       // Combine
-      const studentsWithData = studentProfiles.map(profile => ({
+      const studentsWithData = memberProfiles.map(profile => ({
         ...profile,
         applications: appsByStudent.get(profile.user_id) || [],
         documents: docsByStudent.get(profile.user_id) || [],
@@ -156,10 +168,10 @@ export function useCRMData() {
 
   const fetchApplications = async () => {
     try {
-      const { data, error } = await supabase
-        .from('applications')
-        .select('*, university:institutions(*)')
-        .order('created_at', { ascending: false });
+      const { data, error } = await applyIntake(
+        supabase.from('applications').select('*, university:institutions(*)'),
+        activeIntakeId,
+      ).order('created_at', { ascending: false });
 
       if (error) {
         console.error('Error fetching applications:', error);
@@ -263,7 +275,8 @@ export function useCRMData() {
     };
 
     loadData();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeIntakeId]);
 
   return {
     students,

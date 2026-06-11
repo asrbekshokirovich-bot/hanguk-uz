@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useActiveIntake } from '@/contexts/IntakeContext';
+import { applyIntake } from '@/lib/intakeQuery';
 import { useCommandCenterSync } from '@/hooks/useCommandCenterSync';
 import { allocateBudgetsForPayment } from '@/hooks/useStudentBudgets';
 import { allocateOperationalFund } from '@/hooks/useOperationalFund';
@@ -42,12 +44,13 @@ export function usePayments() {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
   const { syncTransaction } = useCommandCenterSync();
+  const { activeIntakeId } = useActiveIntake();
 
   const fetchPayments = async () => {
-    const { data, error } = await supabase
-      .from('payments')
-      .select('*')
-      .order('created_at', { ascending: false });
+    const { data, error } = await applyIntake(
+      supabase.from('payments').select('*'),
+      activeIntakeId,
+    ).order('created_at', { ascending: false });
 
     if (!error && data) {
       // Batch fetch all student profiles (fix N+1 query)
@@ -89,6 +92,7 @@ export function usePayments() {
         currency: payment.currency || 'USD',
         due_date: payment.due_date || null,
         notes: payment.notes || null,
+        intake_id: activeIntakeId,
       })
       .select()
       .single();
@@ -211,7 +215,8 @@ export function usePayments() {
             await allocateBudgetsForPayment(
               payment.student_id,
               profile.payment_plan,
-              paymentId
+              paymentId,
+              payment.intake_id
             );
 
             // Create staff bonus for this student
@@ -347,7 +352,8 @@ export function usePayments() {
 
   useEffect(() => {
     fetchPayments();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeIntakeId]);
 
   // Calculate stats
   const stats = {

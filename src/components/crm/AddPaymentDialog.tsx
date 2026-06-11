@@ -21,6 +21,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useActiveIntake } from '@/contexts/IntakeContext';
 import { CreditCard, Calendar, DollarSign, Info, AlertCircle } from 'lucide-react';
 import { getPlanByValue, formatPlanAmount, calculateDueDate } from '@/hooks/useStudentPlan';
 import { allocateOperationalFund } from '@/hooks/useOperationalFund';
@@ -65,6 +66,7 @@ export function AddPaymentDialog({
   const { t } = useTranslation();
   const { toast } = useToast();
   const { user } = useAuth();
+  const { activeIntakeId } = useActiveIntake();
   const [loading, setLoading] = useState(false);
   const [fetchedPlan, setFetchedPlan] = useState<string | null>(null);
 
@@ -207,6 +209,7 @@ export function AddPaymentDialog({
           due_date: formData.dueDate || null,
           paid_at: paidAmount > 0 ? new Date().toISOString() : null,
           notes: formData.notes || null,
+          intake_id: activeIntakeId,
         })
         .select()
         .single();
@@ -271,7 +274,7 @@ export function AddPaymentDialog({
           
           // Auto-allocate student budgets
           if (effectivePlan) {
-            await allocateBudgetsForPayment(studentId, effectivePlan, payment.id);
+            await allocateBudgetsForPayment(studentId, effectivePlan, payment.id, activeIntakeId);
           }
           
           // Auto-create staff bonus for this student (if not already exists)

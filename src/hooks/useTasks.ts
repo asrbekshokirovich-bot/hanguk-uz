@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useActiveIntake } from '@/contexts/IntakeContext';
+import { applyIntake } from '@/lib/intakeQuery';
 import { useCommandCenterSync } from '@/hooks/useCommandCenterSync';
 import { useStaffMentions } from '@/hooks/useStaffMentions';
 import { extractMentions, getContentPreview, getUniqueMentionedUserIds } from '@/lib/mentionParser';
@@ -42,16 +44,17 @@ export interface TaskComment {
 
 export function useTasks() {
   const { user } = useAuth();
+  const { activeIntakeId } = useActiveIntake();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const { syncTask } = useCommandCenterSync();
   const { staffList } = useStaffMentions();
 
   const fetchTasks = async () => {
-    const { data, error } = await supabase
-      .from('tasks')
-      .select('*')
-      .order('created_at', { ascending: false });
+    const { data, error } = await applyIntake(
+      supabase.from('tasks').select('*'),
+      activeIntakeId,
+    ).order('created_at', { ascending: false });
 
     if (!error && data) {
       // Fetch profiles for assignees and creators
@@ -112,6 +115,7 @@ export function useTasks() {
         student_id: task.student_id || null,
         application_id: task.application_id || null,
         created_by: user.id,
+        intake_id: activeIntakeId,
       })
       .select()
       .single();
@@ -259,7 +263,8 @@ export function useTasks() {
 
   useEffect(() => {
     fetchTasks();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeIntakeId]);
 
   const stats = {
     total: tasks.length,
