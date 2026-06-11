@@ -475,7 +475,10 @@
     "unread": "Unread",
     "reply": "Reply",
     "assign": "Assign",
-    "archive": "Archive"
+    "archive": "Archive",
+    "voiceMessage": "Voice message",
+    "loadingAudio": "Loading voice message…",
+    "audioUnavailable": "Voice message unavailable"
   },
   "errors": {
     "general": "An error occurred",

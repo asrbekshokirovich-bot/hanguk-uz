@@ -79,8 +79,11 @@ On Railway/Fly/Render: deploy this folder, set the env vars in the dashboard
 
 ## Scope & notes
 - **1:1 chats only** — groups, channels, bots and Saved Messages are skipped.
-- Mirrors text + a placeholder for media (`[photo]`, `[voice]`, …). Media file
-  download/storage is a later enhancement.
+- Mirrors text and **voice messages**: a voice note's audio is downloaded and
+  inlined (base64, capped at 10MB) on the event; `telegram-ingest` stores it in
+  the private `chat-media` bucket so staff can play it back in the CRM. Other
+  media (photos, documents, video) is still mirrored as a placeholder
+  (`[photo]`, `[document]`, …) — download for those is a later enhancement.
 - Sending replies *from the CRM* is not wired yet; staff reply in their Telegram
   app as usual and those outgoing messages are mirrored.
 - You are logging into **your own** accounts to mirror **your own** business

@@ -85,6 +85,40 @@ async function bumpThread(supabase: Any, chatId: string, name: string, direction
   });
 }
 
+/** Resolve a Telegram file_id to its downloadable bytes (Bot API getFile). */
+async function fetchTelegramFile(fileId: string): Promise<{ bytes: Uint8Array; filePath: string } | null> {
+  if (!BOT_TOKEN) return null;
+  try {
+    const res = await fetch(`${TG_API}/getFile`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ file_id: fileId }),
+    });
+    const json = await res.json().catch(() => ({}));
+    const filePath: string | undefined = json?.result?.file_path;
+    if (!filePath) return null;
+    const fileRes = await fetch(`https://api.telegram.org/file/bot${BOT_TOKEN}/${filePath}`);
+    if (!fileRes.ok) return null;
+    return { bytes: new Uint8Array(await fileRes.arrayBuffer()), filePath };
+  } catch (e) {
+    console.error("fetchTelegramFile failed:", e);
+    return null;
+  }
+}
+
+/** Download a voice note and store it in the private chat-media bucket. */
+async function storeVoice(supabase: Any, chatId: string, messageId: number | string, voice: Any):
+  Promise<{ path: string; mime: string; duration: number | null; size: number } | null> {
+  const file = await fetchTelegramFile(voice.file_id);
+  if (!file) return null;
+  const mime = voice.mime_type || "audio/ogg";
+  const ext = file.filePath.includes(".") ? file.filePath.split(".").pop() : "ogg";
+  const path = `telegram/${chatId}/${messageId}.${ext}`;
+  const up = await supabase.storage.from("chat-media").upload(path, file.bytes, { contentType: mime, upsert: true });
+  if (up.error) { console.error("voice upload failed:", up.error.message); return null; }
+  return { path, mime, duration: voice.duration ?? null, size: file.bytes.byteLength };
+}
+
 /** Find-or-create the lead for this chat (keyed by source_id = chatId). */
 async function upsertLead(supabase: Any, chatId: string, fields: Record<string, unknown>): Promise<{ id: string } | null> {
   const { data: existing } = await supabase.from("leads")
@@ -203,17 +237,32 @@ Savolingiz bo'lsa, shu yerda — Telegram orqali — bemalol yozing. 💬 Xodiml
     }
 
     // --- Any other message: just capture (trigger links by identity) -----
-    const content = message.text || message.caption || "[Media message]";
     const identity = await resolveIdentity(supabase, "telegram", chatId, { displayName: fromName });
     await bumpThread(supabase, chatId, fromName, "incoming");
     if (identity.studentId) {
       await supabase.from("message_threads").update({ student_id: identity.studentId })
         .eq("source", "telegram").eq("sender_id", chatId).is("student_id", null);
     }
+
+    // Voice note: pull the audio bytes into chat-media so staff can play it back.
+    const voiceMeta = message.voice
+      ? await storeVoice(supabase, chatId, message.message_id, message.voice)
+      : null;
+    const messageType = message.photo ? "image" : message.voice ? "voice" : message.document ? "file" : "text";
+    const content = message.text || message.caption ||
+      (message.voice ? "🎤 Voice message" : "[Media message]");
+
     await storeMessage(supabase, {
       chatId, messageId: message.message_id, senderName: fromName, content, direction: "incoming",
-      type: message.photo ? "image" : message.voice ? "voice" : message.document ? "file" : "text",
-      studentId: identity.studentId, extraMeta: { telegram_user_id: tgUserId, username, lead_id: identity.leadId },
+      type: messageType, studentId: identity.studentId,
+      extraMeta: {
+        telegram_user_id: tgUserId, username, lead_id: identity.leadId,
+        media_type: message.voice ? "voice" : message.photo ? "image" : message.document ? "file" : null,
+        media_path: voiceMeta?.path ?? null,
+        media_mime: voiceMeta?.mime ?? null,
+        media_duration: voiceMeta?.duration ?? null,
+        media_size: voiceMeta?.size ?? null,
+      },
     });
     return ok();
   } catch (error: unknown) {

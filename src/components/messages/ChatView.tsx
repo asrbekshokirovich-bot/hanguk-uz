@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Message, MessageThread } from '@/hooks/useMessages';
 import { LinkContactDialog } from '@/components/calls/LinkContactDialog';
+import { VoiceMessage } from '@/components/messages/VoiceMessage';
 
 interface ChatViewProps {
   thread: MessageThread;
@@ -171,7 +172,14 @@ export function ChatView({ thread, messages, onSendMessage, onArchive, onBack }:
                         : 'bg-background border'
                     }`}
                   >
-                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                    {message.message_type === 'voice' && message.metadata?.media_path ? (
+                      <VoiceMessage
+                        mediaPath={message.metadata.media_path}
+                        durationSeconds={message.metadata.media_duration}
+                      />
+                    ) : (
+                      <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                    )}
                     <p className={`text-[10px] mt-1 ${
                       message.direction === 'outgoing' ? 'text-primary-foreground/70' : 'text-muted-foreground'
                     }`}>

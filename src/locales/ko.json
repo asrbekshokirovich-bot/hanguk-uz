@@ -433,7 +433,10 @@
     "unread": "읽지 않음",
     "reply": "답장",
     "assign": "할당",
-    "archive": "보관"
+    "archive": "보관",
+    "voiceMessage": "음성 메시지",
+    "loadingAudio": "음성 메시지 불러오는 중…",
+    "audioUnavailable": "음성 메시지를 사용할 수 없습니다"
   },
   "errors": {
     "general": "오류가 발생했습니다",

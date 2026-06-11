@@ -473,7 +473,10 @@
     "unread": "O'qilmagan",
     "reply": "Javob berish",
     "assign": "Tayinlash",
-    "archive": "Arxivlash"
+    "archive": "Arxivlash",
+    "voiceMessage": "Ovozli xabar",
+    "loadingAudio": "Ovozli xabar yuklanmoqda…",
+    "audioUnavailable": "Ovozli xabar mavjud emas"
   },
   "errors": {
     "general": "Xatolik yuz berdi",
