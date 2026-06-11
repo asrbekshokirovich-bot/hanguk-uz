@@ -512,6 +512,9 @@
     "reply": "Javob berish",
     "assign": "Tayinlash",
     "archive": "Arxivlash",
+    "lead": "Lid",
+    "convertToLead": "Lidga aylantirish",
+    "viewLead": "Lidni ko'rish",
     "voiceMessage": "Ovozli xabar",
     "loadingAudio": "Ovozli xabar yuklanmoqda…",
     "audioUnavailable": "Ovozli xabar mavjud emas"

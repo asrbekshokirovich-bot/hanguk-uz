@@ -5,12 +5,14 @@ import { Button } from '@/components/ui/button';
 import { MentionInput } from '@/components/ui/mention-input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Send, 
-  MoreVertical, 
-  Archive, 
+import {
+  Send,
+  MoreVertical,
+  Archive,
   User,
-  ArrowLeft
+  UserPlus,
+  ArrowLeft,
+  Loader2
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -28,6 +30,10 @@ interface ChatViewProps {
   onSendMessage: (content: string) => Promise<void>;
   onArchive: () => void;
   onBack: () => void;
+  hasLead?: boolean;
+  converting?: boolean;
+  onConvertToLead?: () => void;
+  onViewLead?: () => void;
 }
 
 const sourceLabels: Record<string, string> = {
@@ -37,7 +43,17 @@ const sourceLabels: Record<string, string> = {
   manual: 'Manual',
 };
 
-export function ChatView({ thread, messages, onSendMessage, onArchive, onBack }: ChatViewProps) {
+export function ChatView({
+  thread,
+  messages,
+  onSendMessage,
+  onArchive,
+  onBack,
+  hasLead = false,
+  converting = false,
+  onConvertToLead,
+  onViewLead,
+}: ChatViewProps) {
   const { t } = useTranslation();
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
@@ -122,9 +138,17 @@ export function ChatView({ thread, messages, onSendMessage, onArchive, onBack }:
           </Avatar>
           <div>
             <h3 className="font-medium">{thread.sender_name || 'Unknown'}</h3>
-            <Badge variant="outline" className="text-xs">
-              {sourceLabels[thread.source]}
-            </Badge>
+            <div className="flex items-center gap-1.5">
+              <Badge variant="outline" className="text-xs">
+                {sourceLabels[thread.source] || thread.source}
+              </Badge>
+              {hasLead && (
+                <Badge variant="secondary" className="text-xs flex items-center gap-1">
+                  <User className="h-3 w-3" />
+                  {t('messages.lead', 'Lead')}
+                </Badge>
+              )}
+            </div>
           </div>
         </div>
 
@@ -135,6 +159,21 @@ export function ChatView({ thread, messages, onSendMessage, onArchive, onBack }:
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
+            {hasLead ? (
+              <DropdownMenuItem onClick={onViewLead}>
+                <User className="h-4 w-4 mr-2" />
+                {t('messages.viewLead', 'View lead')}
+              </DropdownMenuItem>
+            ) : (
+              <DropdownMenuItem onClick={onConvertToLead} disabled={converting}>
+                {converting ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <UserPlus className="h-4 w-4 mr-2" />
+                )}
+                {t('messages.convertToLead', 'Convert to lead')}
+              </DropdownMenuItem>
+            )}
             {canLink && (
               <DropdownMenuItem onClick={() => setLinkOpen(true)}>
                 <User className="h-4 w-4 mr-2" />

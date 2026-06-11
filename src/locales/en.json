@@ -514,6 +514,9 @@
     "reply": "Reply",
     "assign": "Assign",
     "archive": "Archive",
+    "lead": "Lead",
+    "convertToLead": "Convert to lead",
+    "viewLead": "View lead",
     "voiceMessage": "Voice message",
     "loadingAudio": "Loading voice message…",
     "audioUnavailable": "Voice message unavailable"

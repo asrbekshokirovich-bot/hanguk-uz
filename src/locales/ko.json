@@ -472,6 +472,9 @@
     "reply": "답장",
     "assign": "할당",
     "archive": "보관",
+    "lead": "리드",
+    "convertToLead": "리드로 전환",
+    "viewLead": "리드 보기",
     "voiceMessage": "음성 메시지",
     "loadingAudio": "음성 메시지 불러오는 중…",
     "audioUnavailable": "음성 메시지를 사용할 수 없습니다"

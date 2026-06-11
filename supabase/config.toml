@@ -3,6 +3,12 @@ project_id = "hyvxwlwttzxzrkfolivo"
 [functions.telegram-webhook]
 verify_jwt = false
 
+[functions.instagram-webhook]
+verify_jwt = false
+
+[functions.send-instagram]
+verify_jwt = false
+
 [functions.send-telegram]
 verify_jwt = false
 
