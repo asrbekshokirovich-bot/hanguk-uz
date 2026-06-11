@@ -71,18 +71,26 @@ DATE STYLE for this document:
   day and year: "MONTH DD.YYYY" (e.g. 11.01.2008 -> "JANUARY 11.2008").
 
 PLACE NAMES (Place of birth / District / Region / Place of registration):
-- These are PROPER NOUNS. Transliterate them to standard Uzbek Latin — never
-  translate them, and never put the words tuman / shahar / shahri / viloyat /
-  hudud / district / region / city / area inside the value.
-- Match each place to the closest name in the "UZBEKISTAN PLACES" list above and
-  output that exact spelling (region e.g. FARG'ONA; district e.g. QUVA, BEKOBOD;
-  city e.g. FARG'ONA). Keep the ' apostrophe in names like FARG'ONA, QO'QON.
-- Only append " [unclear]" when the place genuinely cannot be matched to any known
-  name — do NOT guess a word like "hudud".
+- Write every place name in its ENGLISH (international) spelling — NOT the Uzbek
+  Latin form, and WITHOUT Uzbek apostrophes. They are proper nouns: never translate
+  the descriptor words (tuman / shahar / shahri / viloyat / hudud / district /
+  region / city / area) into the value.
+- Use the standard English names. Examples:
+  Toshkent -> TASHKENT, Farg'ona -> FERGANA, Buxoro -> BUKHARA,
+  Samarqand -> SAMARKAND, Andijon -> ANDIJAN, Namangan -> NAMANGAN,
+  Qashqadaryo -> KASHKADARYA, Surxondaryo -> SURKHANDARYA, Xorazm -> KHOREZM,
+  Navoiy -> NAVOI, Jizzax -> JIZZAKH, Sirdaryo -> SYRDARYA,
+  Qoraqalpog'iston -> KARAKALPAKSTAN, Qo'qon -> KOKAND, Marg'ilon -> MARGILAN,
+  Xiva -> KHIVA, Bekobod -> BEKABAD, Nukus -> NUKUS, Termiz -> TERMEZ.
+- Identify the place by matching the "UZBEKISTAN PLACES" list above, then output its
+  English spelling. For a small district/town with no well-known English name,
+  transcribe it without apostrophes (e.g. Quva -> QUVA, Beshariq -> BESHARIK).
+- Only append " [unclear]" when the place genuinely cannot be identified — do NOT
+  guess a word like "hudud".
 
 CAPITALISATION (match the sample exactly):
 - Every field VALUE is in UPPERCASE — full names, cities, districts, regions,
-  nationalities (e.g. OMONOVA DILNOZAXON MUXTOR QIZI, FARG'ONA, UZBEKISTAN, UZBEK).
+  nationalities (e.g. OMONOVA DILNOZAXON MUXTOR QIZI, FERGANA, UZBEKISTAN, UZBEK).
 - In dates the month is in CAPITALS (e.g. JANUARY 10.2003).
 - The only lowercase value is "signed" (Head of Civil Registry office).
 - Keep the bold labels in normal sentence case exactly as written above.`,
