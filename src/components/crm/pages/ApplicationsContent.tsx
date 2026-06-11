@@ -401,7 +401,7 @@ export default function ApplicationsContent({
                     {g.city} ·{' '}
                   </>
                 )}
-                {t('applications.studentsCount', { count: g.total })}
+                {t('applications.studentsCount', { n: g.total })}
               </div>
             </div>
             <Button variant="highlight" className="gap-2" onClick={() => navigate('/crm/students')}>
@@ -585,7 +585,7 @@ export default function ApplicationsContent({
           </Select>
         </div>
         <span className="text-sm font-medium text-muted-foreground">
-          {t('applications.uniCount', { count: uniGroups.length, defaultValue: `${uniGroups.length} universities` })}
+          {t('applications.uniCount', { n: uniGroups.length, defaultValue: `${uniGroups.length} universities` })}
         </span>
       </div>
 
@@ -647,7 +647,7 @@ export default function ApplicationsContent({
                             )}
                           </div>
                           <span className="text-xs font-semibold text-muted-foreground">
-                            {t('applications.studentsCount', { count: g.total })}
+                            {t('applications.studentsCount', { n: g.total })}
                           </span>
                         </div>
 
