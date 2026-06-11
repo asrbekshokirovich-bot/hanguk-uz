@@ -6,6 +6,8 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useLeads, Lead, CreateLeadData } from '@/hooks/useLeads';
+import { useActiveIntake } from '@/contexts/IntakeContext';
+import { EmptyState } from '@/components/ui/empty-state';
 import { useLeadNotes, ContactType, ContactOutcome } from '@/hooks/useLeadNotes';
 import { supabase } from '@/integrations/supabase/client';
 import { 
@@ -45,7 +47,9 @@ interface StaffMember {
 
 const LeadsContent = () => {
   const { t } = useTranslation();
-  const { 
+  const { season, year } = useActiveIntake();
+  const seasonLabel = season ? t(`intake.season.${season}`) : '';
+  const {
     leads, 
     loading, 
     stats, 
@@ -360,9 +364,15 @@ const LeadsContent = () => {
           {loading ? (
             <div className="text-center py-8 text-muted-foreground">Loading leads...</div>
           ) : filteredLeads.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              No leads found. Add your first lead or wait for AI to detect potential leads from conversations.
-            </div>
+            leads.length === 0 ? (
+              <EmptyState
+                icon={Users}
+                title={t('intake.empty.title', { season: seasonLabel, year: year ?? '' })}
+                description={t('intake.empty.description')}
+              />
+            ) : (
+              <EmptyState icon={Users} title={t('intake.noMatches')} />
+            )
           ) : (
             <div className="space-y-3">
               {displayedLeads.map((lead) => {

@@ -29,6 +29,8 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
+import { EmptyState } from '@/components/ui/empty-state';
+import { useActiveIntake } from '@/contexts/IntakeContext';
 import {
   Search,
   Users,
@@ -144,6 +146,8 @@ export function StudentList({
   const { t, i18n } = useTranslation();
   const currentLang = i18n.language;
   const { leads, convertToStudent } = useLeads();
+  const { season, year } = useActiveIntake();
+  const seasonLabel = season ? t(`intake.season.${season}`) : '';
 
   const readyToContractLeads = useMemo(
     () =>
@@ -610,12 +614,16 @@ export function StudentList({
 
       {/* Results */}
       {filteredStudents.length === 0 ? (
-        <div className="py-12 text-center text-muted-foreground">
-          <Users className="mx-auto mb-4 h-12 w-12 opacity-50" />
-          <p>
-            {t('common.none')} {t('navigation.students').toLowerCase()}
-          </p>
-        </div>
+        students.length === 0 ? (
+          <EmptyState
+            icon={Users}
+            title={t('intake.empty.title', { season: seasonLabel, year: year ?? '' })}
+            description={t('intake.empty.description')}
+            action={{ label: t('crm.addStudent'), onClick: () => setAddDialogOpen(true) }}
+          />
+        ) : (
+          <EmptyState icon={Search} title={t('intake.noMatches')} />
+        )
       ) : viewMode === 'list' ? (
         <Card className="overflow-hidden p-0">
           <Table>
