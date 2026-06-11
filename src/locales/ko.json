@@ -253,6 +253,28 @@
     "officeLocation": "사무실 위치"
   },
   "leads": {
+    "intel": {
+      "title": "AI 리드 인텔리전스",
+      "refresh": "새로고침",
+      "analysing": "분석 중…",
+      "updated": "업데이트 {{time}}",
+      "statOverdue": "기한 초과",
+      "statAnswerRate": "응답률",
+      "statHotStuck": "정체된 핫리드",
+      "vsLastWeek": "지난주 {{n}}% 대비",
+      "actNow": "지금 조치하세요",
+      "reasonOverdue": "기한 초과",
+      "reasonNever": "미접촉",
+      "reasonHotStuck": "정체된 핫리드",
+      "healthy": "긴급 리드 없음 — 파이프라인 양호",
+      "health": {
+        "critical": "위험",
+        "poor": "나쁨",
+        "fair": "보통",
+        "good": "양호",
+        "unknown": "알 수 없음"
+      }
+    },
     "subtitle": "Hanguk AI가 전환 가능성으로 모든 리드를 평가합니다",
     "total": "전체",
     "callTodayTitle": "오늘 전화할 리드 {{n}}명 — AI 점수순",

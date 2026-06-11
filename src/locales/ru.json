@@ -254,6 +254,28 @@
     "officeLocation": "Местоположение офиса"
   },
   "leads": {
+    "intel": {
+      "title": "AI-аналитика лидов",
+      "refresh": "Обновить",
+      "analysing": "Анализ…",
+      "updated": "Обновлено {{time}}",
+      "statOverdue": "Просрочено",
+      "statAnswerRate": "Отклик",
+      "statHotStuck": "Горячие застряли",
+      "vsLastWeek": "против {{n}}% на пр. нед.",
+      "actNow": "Срочные действия",
+      "reasonOverdue": "Просрочено",
+      "reasonNever": "Без контакта",
+      "reasonHotStuck": "Горячий лид застрял",
+      "healthy": "Срочных лидов нет — воронка в порядке",
+      "health": {
+        "critical": "Критично",
+        "poor": "Плохо",
+        "fair": "Средне",
+        "good": "Хорошо",
+        "unknown": "Неизвестно"
+      }
+    },
     "subtitle": "Hanguk AI оценивает каждого лида по вероятности конверсии",
     "total": "Всего",
     "callTodayTitle": "{{n}} лидов для звонка сегодня — по AI-оценке",

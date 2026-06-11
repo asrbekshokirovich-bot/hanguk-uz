@@ -254,6 +254,28 @@
     "officeLocation": "Ofis manzili"
   },
   "leads": {
+    "intel": {
+      "title": "AI lidlar tahlili",
+      "refresh": "Yangilash",
+      "analysing": "Tahlil qilinmoqda…",
+      "updated": "Yangilandi {{time}}",
+      "statOverdue": "Muddati o'tgan",
+      "statAnswerRate": "Javob darajasi",
+      "statHotStuck": "Issiq, qotgan",
+      "vsLastWeek": "o'tgan hafta {{n}}%",
+      "actNow": "Hoziroq harakat qiling",
+      "reasonOverdue": "Muddati o'tgan",
+      "reasonNever": "Bog'lanilmagan",
+      "reasonHotStuck": "Issiq lid qotib qolgan",
+      "healthy": "Hozircha shoshilinch lidlar yo'q — voronka sog'lom",
+      "health": {
+        "critical": "Tanqidiy",
+        "poor": "Yomon",
+        "fair": "O'rtacha",
+        "good": "Yaxshi",
+        "unknown": "Noma'lum"
+      }
+    },
     "subtitle": "Hanguk AI har bir lidni konversiya ehtimoli bo'yicha baholaydi",
     "total": "Jami",
     "callTodayTitle": "Bugun {{n}} ta lidga qo'ng'iroq qilish kerak — AI bali bo'yicha tartiblangan",
