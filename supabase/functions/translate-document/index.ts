@@ -27,6 +27,48 @@ const UZBEKISTAN_REGIONS: Record<string, string[]> = {
   "Qoraqalpog'iston": ["Nukus", "Amudaryo", "Beruniy", "Chimboy", "Ellikqala", "Kegeyli", "Mo'ynoq", "Qanliko'l", "Qo'ng'irot", "Shumanay", "Taxtako'pir", "To'rtko'l", "Xo'jayli"],
 };
 
+// ---------------------------------------------------------------------------
+// Fixed per-document-type layouts. Keyed by translation_document_types.code.
+// When a layout exists for the document being translated, the model MUST emit
+// the blocks in exactly this order, with these exact English labels/wording, so
+// the same document type always comes out in the same certified format.
+// ---------------------------------------------------------------------------
+const LAYOUT_TEMPLATES: Record<string, string> = {
+  birth_certificate: `=== REQUIRED LAYOUT (Birth Certificate) ===
+A birth certificate MUST be translated using EXACTLY the block sequence, labels
+and wording below. Keep every English label verbatim. Fill each value from the
+document (and from the supporting passports / ID cards for names). Skip a "field"
+only when that information is genuinely not present on the certificate.
+
+1.  title       text="BIRTH CERTIFICATE"
+2.  spacer
+3.  field   label="This is to certify that citizen"  value=<child's full name (from passport)>
+4.  field   label="Was born on"                       value=<date of birth, numeric DD.MM.YYYY>
+5.  field   label="Place of birth: city"              value=<city / settlement>
+6.  field   label="District of"                       value=<district>
+7.  field   label="Region of"                         value=<region>
+8.  field   label="Republic of"                       value=<country, e.g. UZBEKISTAN>
+9.  paragraph  text="Of which in the Book of birth registration on <registration date>"
+10. spacer
+11. paragraph  text="a corresponding record was entered under No. <record number>"
+12. spacer
+13. field   label="Father:"                           value=<father's full name (from his passport/ID)>
+14. field   label="Nationality"                       value=<father's nationality, e.g. UZBEK>
+15. field   label="Mother"                             value=<mother's full name (from her passport/ID)>
+16. field   label="Nationality"                        value=<mother's nationality, e.g. UZBEK>
+17. paragraph  text="Place of registration Civil Registry Office <office / city>"
+18. field   label="Date of issue:"                     value=<date of issue>
+19. field   label="Head of Civil Registry office"      value="signed"
+20. annotation text="Office Seal"
+21. spacer
+22. paragraph  text="<series> № <number>"   (certificate serial, e.g. "I-TV № 0255200")
+
+DATE STYLE for this document:
+- "Was born on" stays numeric DD.MM.YYYY (e.g. 01.09.2008).
+- The registration date and "Date of issue" use the English month name, then the
+  day and year: "MONTH DD.YYYY" (e.g. 11.01.2008 -> "JANUARY 11.2008").`,
+};
+
 // ---------- Types ----------
 type Block =
   | { type: "title"; text: string }
@@ -339,6 +381,11 @@ serve(async (req) => {
       .map((t, i) => `=== Example ${i + 1} ===\nUZBEK:\n${t.original_text}\n\nENGLISH:\n${t.translated_text}`)
       .join("\n\n");
 
+    // Per-document-type fixed layouts. When present, the model MUST follow the
+    // exact block sequence/labels below so a given document type always comes
+    // out in the same certified format (independent of few-shot examples).
+    const documentLayout = LAYOUT_TEMPLATES[docType.code] ?? "";
+
     const systemPrompt = `You are an expert sworn translator producing certified Uzbek-to-English translations of official documents for Korean university applications.
 
 DOCUMENT TYPE: ${docType.name_uz} (${docType.name_en || docType.code})
@@ -363,6 +410,7 @@ ${providedNames ? `\nSTAFF-VERIFIED NAMES (use these exactly): ${JSON.stringify(
 ${Object.entries(UZBEKISTAN_REGIONS).map(([r, d]) => `${r}: ${d.join(", ")}`).join("\n")}
 
 ${trainingExamples ? `=== APPROVED EXAMPLES ===\n${trainingExamples}\n` : ""}
+${documentLayout ? `${documentLayout}\n` : ""}
 ${studentName ? `Student (cross-check against passport): ${studentName}` : ""}
 
 === OUTPUT FORMAT ===
