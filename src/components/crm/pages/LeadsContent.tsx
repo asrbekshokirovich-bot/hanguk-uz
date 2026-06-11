@@ -370,7 +370,7 @@ const LeadsContent = () => {
       )}
 
       {/* AI Leads Intelligence Panel (existing) */}
-      <LeadsIntelligencePanel leads={leads} stats={stats} />
+      <LeadsIntelligencePanel leads={leads} stats={stats} onSelectLead={openDetail} />
 
       {/* Toolbar */}
       <div className="flex flex-wrap items-center justify-between gap-3">

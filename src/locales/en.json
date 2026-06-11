@@ -256,6 +256,28 @@
     "selectTrack": "Interview & Study Language"
   },
   "leads": {
+    "intel": {
+      "title": "AI Leads Intelligence",
+      "refresh": "Refresh",
+      "analysing": "Analysing…",
+      "updated": "Updated {{time}}",
+      "statOverdue": "Overdue",
+      "statAnswerRate": "Answer rate",
+      "statHotStuck": "Hot & stuck",
+      "vsLastWeek": "vs {{n}}% last wk",
+      "actNow": "Act on these now",
+      "reasonOverdue": "Overdue",
+      "reasonNever": "Never contacted",
+      "reasonHotStuck": "Hot lead stuck",
+      "healthy": "No urgent leads right now — pipeline looks healthy",
+      "health": {
+        "critical": "Critical",
+        "poor": "Poor",
+        "fair": "Fair",
+        "good": "Good",
+        "unknown": "Unknown"
+      }
+    },
     "subtitle": "Hanguk AI scores every lead by conversion likelihood",
     "total": "Total",
     "callTodayTitle": "{{n}} leads to call today — sorted by AI score",
