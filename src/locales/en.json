@@ -1,4 +1,21 @@
 {
+  "intake": {
+    "label": "Intake",
+    "season": { "spring": "Spring", "fall": "Fall" },
+    "status": { "open": "Open", "planning": "Planning", "closed": "Closed" },
+    "previousYear": "Previous year",
+    "nextYear": "Next year",
+    "banner": {
+      "title": "{{season}} {{year}} intake",
+      "subtitle": "You're viewing one season. Students, applications, documents and finance are fully separated per intake."
+    },
+    "manage": "Manage intakes",
+    "viewing": "{{season}} {{year}}",
+    "empty": {
+      "title": "No data yet for {{season}} {{year}}",
+      "description": "Records you create while this season is active will appear here."
+    }
+  },
   "common": {
     "noData": "No data available",
     "retry": "Retry",

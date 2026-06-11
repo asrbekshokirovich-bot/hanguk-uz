@@ -15,6 +15,7 @@ import { CRMDashboard } from '@/components/crm/CRMDashboard';
 import { StudentList } from '@/components/crm/StudentList';
 import { StudentDetail } from '@/components/crm/StudentDetail';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { SeasonSwitcher } from '@/components/crm/SeasonSwitcher';
 import { NotificationBell } from '@/components/crm/NotificationBell';
 import { HangukAIChat } from '@/components/ai/HangukAIChat';
 import { IntercomProvider } from '@/components/intercom/IntercomProvider';
@@ -439,9 +440,12 @@ export default function CRMPortal() {
               <header className="sticky top-0 z-50 border-b border-border bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70 pt-[env(safe-area-inset-top)]">
                 <div className="flex h-16 items-center gap-3 px-4 sm:px-6">
                   <SidebarTrigger className="h-9 w-9 text-muted-foreground" />
-                  <h1 className="min-w-0 flex-1 truncate text-[17px] font-bold tracking-tight text-foreground">
-                    {pageTitle}
-                  </h1>
+                  <div className="flex min-w-0 flex-1 items-center gap-3">
+                    <h1 className="min-w-0 truncate text-[17px] font-bold tracking-tight text-foreground">
+                      {pageTitle}
+                    </h1>
+                    <SeasonSwitcher className="shrink-0" />
+                  </div>
                   <div className="flex items-center gap-1.5 sm:gap-2">
                     <CRMCommandMenu groups={sidebarGroups} />
                     <VoiceChannelHeader />

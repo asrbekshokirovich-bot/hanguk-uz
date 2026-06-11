@@ -19,6 +19,7 @@ import Terms from "./pages/Terms";
 import StudentPortal from "./pages/StudentPortal";
 import { StudentDataProvider } from "./contexts/StudentDataContext";
 import CRMPortal from "./pages/CRMPortal";
+import { IntakeProvider } from "./contexts/IntakeContext";
 import InterviewPractice from "./pages/InterviewPractice";
 import StudyPlanTrainer from "./pages/StudyPlanTrainer";
 import UniversityStaffPortal from "./pages/UniversityStaffPortal";
@@ -85,7 +86,7 @@ const App = () => (
                     <Route path="/interview-practice" element={<ProtectedRoute><InterviewPractice /></ProtectedRoute>} />
                     <Route path="/study-plan-trainer" element={<ProtectedRoute><StudyPlanTrainer /></ProtectedRoute>} />
                     <Route path="/university-portal" element={<ProtectedRoute><UniversityStaffPortal /></ProtectedRoute>} />
-                    <Route path="/crm/*" element={<CRMPortal />} />
+                    <Route path="/crm/*" element={<IntakeProvider><CRMPortal /></IntakeProvider>} />
                     <Route path="/system-map" element={<SystemMap />} />
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                     <Route path="*" element={<NotFound />} />

@@ -1,4 +1,21 @@
 {
+  "intake": {
+    "label": "모집",
+    "season": { "spring": "봄", "fall": "가을" },
+    "status": { "open": "모집중", "planning": "준비중", "closed": "마감" },
+    "previousYear": "이전 연도",
+    "nextYear": "다음 연도",
+    "banner": {
+      "title": "{{year}}년 {{season}} 모집",
+      "subtitle": "한 시즌만 보고 있습니다. 학생, 지원서, 서류, 재무가 모집별로 완전히 분리됩니다."
+    },
+    "manage": "모집 관리",
+    "viewing": "{{year}}년 {{season}}",
+    "empty": {
+      "title": "{{year}}년 {{season}} 데이터가 아직 없습니다",
+      "description": "이 시즌이 활성화된 동안 생성한 기록이 여기에 표시됩니다."
+    }
+  },
   "common": {
     "noData": "데이터가 없습니다",
     "retry": "다시 시도",
