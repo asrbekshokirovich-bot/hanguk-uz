@@ -149,7 +149,7 @@ function escXml(s: string): string {
 
 // ---------- DOCX generator (manual XML + JSZip) ----------
 function makeParagraph(text: string, opts: { bold?: boolean; heading?: boolean; italic?: boolean; size?: number; center?: boolean; color?: string } = {}): string {
-  const sz = (opts.size ?? 22) * 2; // half-points
+  const sz = (opts.size ?? 12) * 2; // half-points
   const boldTag = opts.bold || opts.heading ? "<w:b/>" : "";
   const italicTag = opts.italic ? "<w:i/>" : "";
   const colorTag = opts.color ? `<w:color w:val="${opts.color}"/>` : "";
@@ -164,7 +164,7 @@ function makeParagraph(text: string, opts: { bold?: boolean; heading?: boolean; 
 }
 
 function makeFieldParagraph(label: string, value: string): string {
-  const sz = 22 * 2;
+  const sz = 12 * 2;
   return `<w:p><w:pPr><w:spacing w:after="60"/></w:pPr>` +
     `<w:r><w:rPr><w:b/><w:sz w:val="${sz}"/><w:szCs w:val="${sz}"/></w:rPr><w:t xml:space="preserve">${escXml(label + ": ")}</w:t></w:r>` +
     `<w:r><w:rPr><w:sz w:val="${sz}"/><w:szCs w:val="${sz}"/></w:rPr><w:t xml:space="preserve">${escXml(value ?? "")}</w:t></w:r>` +
