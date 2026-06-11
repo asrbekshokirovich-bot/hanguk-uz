@@ -35,6 +35,10 @@ interface IngestEvent {
     date?: number | null; // unix seconds
     out?: boolean;
     media_type?: string | null; // image | file | voice | video | ...
+    media_base64?: string | null; // raw media bytes (e.g. a voice note), inlined by the userbot
+    media_mime?: string | null;
+    media_filename?: string | null;
+    media_duration?: number | null; // seconds (voice/audio)
   };
 }
 
@@ -47,6 +51,58 @@ const MEDIA_TO_TYPE: Record<string, string> = {
   document: "file",
   file: "file",
 };
+
+const CHAT_MEDIA_BUCKET = "chat-media";
+const MAX_MEDIA_BYTES = 20 * 1024 * 1024; // 20MB hard cap
+
+const EXT_BY_MIME: Record<string, string> = {
+  "audio/ogg": "ogg",
+  "audio/opus": "ogg",
+  "audio/mpeg": "mp3",
+  "audio/mp4": "m4a",
+  "audio/x-m4a": "m4a",
+  "audio/aac": "aac",
+  "audio/wav": "wav",
+  "audio/webm": "webm",
+};
+
+function decodeBase64(b64: string): Uint8Array {
+  const clean = b64.includes(",") ? b64.slice(b64.indexOf(",") + 1) : b64;
+  const bin = atob(clean);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return bytes;
+}
+
+/** Upload inlined media bytes to the private chat-media bucket. Best-effort:
+ *  a failure here must not drop the message, so callers tolerate a null. */
+async function storeMedia(
+  supabase: any,
+  opts: { source: string; senderId: string; externalId: string; base64: string; mime?: string | null; filename?: string | null },
+): Promise<{ path: string; size: number; mime: string } | null> {
+  try {
+    const bytes = decodeBase64(opts.base64);
+    if (bytes.byteLength === 0 || bytes.byteLength > MAX_MEDIA_BYTES) return null;
+    const mime = opts.mime || "application/octet-stream";
+    const ext = EXT_BY_MIME[mime] ||
+      (opts.filename && opts.filename.includes(".") ? opts.filename.split(".").pop()! : "bin");
+    const safeId = String(opts.externalId).replace(/[^a-zA-Z0-9_-]/g, "_");
+    const safeSender = String(opts.senderId).replace(/[^a-zA-Z0-9_-]/g, "_");
+    const path = `${opts.source}/${safeSender}/${safeId}.${ext}`;
+    const up = await supabase.storage.from(CHAT_MEDIA_BUCKET).upload(path, bytes, {
+      contentType: mime,
+      upsert: true,
+    });
+    if (up.error) {
+      console.error("chat-media upload failed:", up.error.message);
+      return null;
+    }
+    return { path, size: bytes.byteLength, mime };
+  } catch (e) {
+    console.error("storeMedia error:", e instanceof Error ? e.message : String(e));
+    return null;
+  }
+}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -148,7 +204,25 @@ async function ingestOne(
   const messageType = ev.message.media_type
     ? (MEDIA_TO_TYPE[ev.message.media_type] ?? "file")
     : "text";
-  const content = ev.message.text?.trim() || (ev.message.media_type ? `[${ev.message.media_type}]` : "[empty]");
+
+  // Persist inlined media bytes (e.g. a voice note) so staff can play it back.
+  const media = ev.message.media_base64
+    ? await storeMedia(supabase, {
+        source: "telegram",
+        senderId: identifier,
+        externalId,
+        base64: ev.message.media_base64,
+        mime: ev.message.media_mime,
+        filename: ev.message.media_filename,
+      })
+    : null;
+
+  const content = ev.message.text?.trim() ||
+    (ev.message.media_type === "voice"
+      ? "🎤 Voice message"
+      : ev.message.media_type
+      ? `[${ev.message.media_type}]`
+      : "[empty]");
 
   const { error: msgErr } = await supabase.from("messages").insert({
     source: "telegram",
@@ -170,6 +244,10 @@ async function ingestOne(
       staff_user_id: ev.account?.staff_user_id ?? null,
       out: !!ev.message.out,
       media_type: ev.message.media_type ?? null,
+      media_path: media?.path ?? null,
+      media_mime: media?.mime ?? ev.message.media_mime ?? null,
+      media_duration: ev.message.media_duration ?? null,
+      media_size: media?.size ?? null,
     },
   });
   if (msgErr) throw new Error(`message insert: ${msgErr.message}`);

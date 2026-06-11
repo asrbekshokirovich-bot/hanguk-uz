@@ -36,6 +36,8 @@ function loadAccounts() {
   throw new Error("Set TG_SESSION (from login) or TG_ACCOUNTS.");
 }
 
+const MAX_MEDIA_BYTES = 10 * 1024 * 1024; // 10MB — voice notes are tiny; this keeps the ingest payload sane.
+
 function mediaType(message) {
   const m = message.media;
   if (!m) return null;
@@ -48,6 +50,35 @@ function mediaType(message) {
     return "document";
   }
   return "media";
+}
+
+/** Length (seconds) of a voice/audio document, if Telegram reported it. */
+function voiceDuration(message) {
+  const attrs = message.media?.document?.attributes || [];
+  const audio = attrs.find((a) => a.className === "DocumentAttributeAudio");
+  return audio?.duration ?? null;
+}
+
+function voiceMime(message) {
+  return message.media?.document?.mimeType || "audio/ogg";
+}
+
+/** Download a voice note's bytes and inline them (base64) onto the event so the
+ *  ingest function can store them. Best-effort: on any failure we just mirror
+ *  the message without audio. Only voice is fetched (keeps payloads small). */
+async function attachMedia(client, message, event) {
+  if (event.message.media_type !== "voice") return event;
+  try {
+    const buf = await client.downloadMedia(message, {});
+    if (buf && buf.length && buf.length <= MAX_MEDIA_BYTES) {
+      event.message.media_base64 = Buffer.from(buf).toString("base64");
+      event.message.media_mime = voiceMime(message);
+      event.message.media_duration = voiceDuration(message);
+    }
+  } catch (e) {
+    console.error("media download failed:", e?.message || e);
+  }
+  return event;
 }
 
 function toEvent(account, peer, message) {
@@ -97,9 +128,23 @@ async function backfill(client, account, selfId) {
     if (!isMirrorablePeer(peer, selfId)) continue;
     try {
       const msgs = await client.getMessages(peer, { limit: backfillPerChat });
-      const events = msgs.filter((m) => m && (m.message || m.media)).map((m) => toEvent(account, peer, m));
+      const raw = msgs.filter((m) => m && (m.message || m.media));
+      const events = [];
+      for (const m of raw) events.push(await attachMedia(client, m, toEvent(account, peer, m)));
       events.reverse(); // oldest first so threads order naturally
-      for (let i = 0; i < events.length; i += 200) await postEvents(events.slice(i, i + 200));
+      // Size-aware posting: a media-bearing event (base64 audio) goes on its own
+      // so a backfill batch never balloons past the ingest request limit.
+      let batch = [];
+      for (const ev of events) {
+        if (ev.message.media_base64) {
+          if (batch.length) { await postEvents(batch); batch = []; }
+          await postEvents([ev]);
+        } else {
+          batch.push(ev);
+          if (batch.length >= 200) { await postEvents(batch); batch = []; }
+        }
+      }
+      if (batch.length) await postEvents(batch);
     } catch (e) {
       console.error(`[${account.label}] backfill chat ${peer?.id}:`, e?.message || e);
     }
@@ -127,7 +172,8 @@ async function startAccount(account) {
       if (!message || !message.isPrivate) return; // 1:1 chats only
       const peer = await message.getChat();
       if (!isMirrorablePeer(peer, selfId)) return;
-      await postEvents([toEvent(account, peer, message)]);
+      const event = await attachMedia(client, message, toEvent(account, peer, message));
+      await postEvents([event]);
     } catch (e) {
       console.error(`[${account.label}] handler error:`, e?.message || e);
     }

@@ -148,7 +148,11 @@ export function ThreadList({ threads, selectedThread, loading, onSelectThread }:
                     </div>
                     <p className="text-sm text-muted-foreground truncate">
                       {thread.lastMessage?.direction === 'outgoing' && '↩ '}
-                      {thread.lastMessage?.content || 'No messages'}
+                      {thread.lastMessage
+                        ? thread.lastMessage.message_type === 'voice'
+                          ? `🎤 ${t('messages.voiceMessage', 'Voice message')}`
+                          : thread.lastMessage.content
+                        : 'No messages'}
                     </p>
                   </div>
 
