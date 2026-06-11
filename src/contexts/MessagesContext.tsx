@@ -139,6 +139,16 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
           console.error('Failed to send Telegram message:', telegramError);
         }
       }
+      if (source === 'instagram' && senderId) {
+        try {
+          const { error: igError } = await supabase.functions.invoke('send-instagram', {
+            body: { recipient_id: senderId, text: content },
+          });
+          if (igError) console.error('Failed to send Instagram message:', igError);
+        } catch (instagramError) {
+          console.error('Failed to send Instagram message:', instagramError);
+        }
+      }
       if (selectedThread) {
         await fetchMessages(selectedThread);
       }

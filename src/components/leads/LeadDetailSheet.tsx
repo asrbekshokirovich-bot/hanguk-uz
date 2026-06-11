@@ -8,6 +8,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Progress } from '@/components/ui/progress';
+import { LeadScoreRing } from '@/components/crm/LeadScoreRing';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -51,7 +54,8 @@ import {
   Pencil,
   Trash2,
   MoreHorizontal,
-  FileText
+  FileText,
+  Send
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -76,6 +80,52 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
+
+function leadInitials(name: string | null) {
+  if (!name) return 'U';
+  return name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
+}
+function sourceTone(source: Lead['source']) {
+  switch (source) {
+    case 'telegram': return 'bg-info/10 text-info';
+    case 'instagram': return 'bg-primary/10 text-primary';
+    case 'call': return 'bg-success/10 text-success';
+    case 'ai_detected': return 'bg-accent/15 text-accent-foreground';
+    default: return 'bg-muted text-muted-foreground';
+  }
+}
+function SourceGlyph({ source }: { source: Lead['source'] }) {
+  const cls = 'h-3 w-3';
+  switch (source) {
+    case 'telegram': return <Send className={cls} />;
+    case 'instagram': return <MessageSquare className={cls} />;
+    case 'call': return <Phone className={cls} />;
+    case 'ai_detected': return <Bot className={cls} />;
+    default: return <User className={cls} />;
+  }
+}
+function priorityWord(score: number | null) {
+  if (!score) return 'unscored';
+  if (score >= 70) return 'hot';
+  if (score >= 50) return 'warm';
+  return 'cold';
+}
+// 4 AI signal estimates (0–100) derived from available lead data.
+function leadSignals(lead: Lead, answerRate: number) {
+  const budget = lead.budget_range;
+  const budgetFit =
+    budget === '20000_plus' || budget === '10000_20000' ? 88
+    : budget === '5000_10000' ? 66
+    : budget === 'scholarship' ? 45
+    : budget === 'under_5000' ? 38
+    : 30;
+  return {
+    intent: lead.priority_score || 0,
+    engagement: answerRate,
+    budget: budgetFit,
+    timeline: lead.preferred_start_date ? 75 : lead.next_follow_up ? 55 : 35,
+  };
+}
 
 interface LeadDetailSheetProps {
   lead: Lead | null;
@@ -381,37 +431,80 @@ export const LeadDetailSheet: React.FC<LeadDetailSheetProps> = ({
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:max-w-2xl overflow-hidden flex flex-col">
-        <SheetHeader className="flex-shrink-0">
-          <div className="flex items-start justify-between">
-            <div>
-              <SheetTitle className="text-xl">{lead.full_name}</SheetTitle>
-              <div className="flex items-center gap-2 mt-1">
-                <Badge variant="outline" className={getPriorityColor(lead.priority_score)}>
-                  <Gauge className="h-3 w-3 mr-1" />
-                  {lead.priority_score || 0} Priority
-                </Badge>
-                <Badge variant="outline">
-                  {lead.status}
-                </Badge>
+        <SheetHeader className="flex-shrink-0 space-y-3">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex min-w-0 items-start gap-3">
+              <Avatar className="h-12 w-12">
+                <AvatarFallback className="bg-primary/10 text-base font-semibold text-primary">
+                  {leadInitials(lead.full_name)}
+                </AvatarFallback>
+              </Avatar>
+              <div className="min-w-0">
+                <SheetTitle className="truncate text-xl">{lead.full_name}</SheetTitle>
+                <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                  <Badge variant="outline" className={cn('gap-1 border-transparent font-medium', sourceTone(lead.source))}>
+                    <SourceGlyph source={lead.source} />
+                    {t(`leads.sources.${lead.source}`)}
+                  </Badge>
+                  <Badge variant="outline" className={cn('border-transparent font-medium', getPriorityColor(lead.priority_score))}>
+                    {t(`leads.priorities.${priorityWord(lead.priority_score)}`)} · {lead.priority_score || 0}
+                  </Badge>
+                  <Badge variant="outline" className="border-transparent bg-muted font-medium text-muted-foreground">
+                    {t(`leads.statuses.${lead.status}`)}
+                  </Badge>
+                </div>
               </div>
             </div>
-            <div className="flex gap-2">
+            <div className="flex shrink-0 items-center gap-2">
+              <LeadScoreRing score={lead.priority_score} size={52} strokeWidth={6} />
               {isEditing ? (
-                <>
+                <div className="flex gap-1.5">
                   <Button variant="outline" size="sm" onClick={() => setIsEditing(false)}>
-                    Cancel
+                    {t('common.cancel', { defaultValue: 'Cancel' })}
                   </Button>
                   <Button size="sm" onClick={handleSave} disabled={isSaving}>
-                    <Save className="h-4 w-4 mr-1" />
-                    {isSaving ? 'Saving...' : 'Save'}
+                    <Save className="mr-1 h-4 w-4" />
+                    {isSaving ? t('common.saving', { defaultValue: 'Saving…' }) : t('common.save', { defaultValue: 'Save' })}
                   </Button>
-                </>
+                </div>
               ) : (
                 <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
-                  Edit
+                  <Pencil className="mr-1 h-3.5 w-3.5" />
+                  {t('leads.editLead')}
                 </Button>
               )}
             </div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {lead.phone ? (
+              <Button asChild size="sm" className="flex-1 gap-1.5">
+                <a href={`tel:${lead.phone}`}>
+                  <Phone className="h-4 w-4" />
+                  {t('leads.call')}
+                </a>
+              </Button>
+            ) : (
+              <Button size="sm" className="flex-1 gap-1.5" disabled>
+                <Phone className="h-4 w-4" />
+                {t('leads.call')}
+              </Button>
+            )}
+            <Button variant="outline" size="sm" className="flex-1 gap-1.5" onClick={() => setActiveTab('contacts')}>
+              <MessageSquare className="h-4 w-4" />
+              {t('leads.message')}
+            </Button>
+            <Button
+              variant="highlight"
+              size="sm"
+              className="gap-1.5"
+              onClick={() => {
+                if (lead.contract_number) onConvert(lead.id);
+                else { setActiveTab('contacts'); setContractEnabled(true); }
+              }}
+            >
+              <ArrowRight className="h-4 w-4" />
+              {t('leads.convert')}
+            </Button>
           </div>
         </SheetHeader>
 
@@ -1491,6 +1584,35 @@ export const LeadDetailSheet: React.FC<LeadDetailSheetProps> = ({
                         No AI analysis yet. Click "AI Analyze" to generate insights.
                       </p>
                     )}
+                  </CardContent>
+                </Card>
+
+                {/* AI signal estimates */}
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Sparkles className="h-4 w-4" />
+                      {t('leads.aiAnalysis')}
+                      <span className="ml-1 text-[10px] font-normal text-muted-foreground">({t('leads.estimated')})</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {(() => {
+                      const sig = leadSignals(lead, contactStats.answerRate);
+                      const rows: [string, number][] = [
+                        [t('leads.signalIntent'), sig.intent],
+                        [t('leads.signalEngagement'), sig.engagement],
+                        [t('leads.signalBudget'), sig.budget],
+                        [t('leads.signalTimeline'), sig.timeline],
+                      ];
+                      return rows.map(([label, val]) => (
+                        <div key={label} className="flex items-center gap-3">
+                          <span className="w-24 shrink-0 text-xs font-medium text-muted-foreground">{label}</span>
+                          <Progress value={val} className="h-1.5 flex-1" />
+                          <span className="w-7 text-right font-mono text-[11px] text-muted-foreground">{val}</span>
+                        </div>
+                      ));
+                    })()}
                   </CardContent>
                 </Card>
 

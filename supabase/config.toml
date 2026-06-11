@@ -3,6 +3,15 @@ project_id = "hyvxwlwttzxzrkfolivo"
 [functions.telegram-webhook]
 verify_jwt = false
 
+[functions.instagram-webhook]
+verify_jwt = false
+
+[functions.send-instagram]
+verify_jwt = false
+
+[functions.send-telegram]
+verify_jwt = false
+
 # Ingestion endpoint for the personal-account userbot (auth via x-ingest-secret).
 [functions.telegram-ingest]
 verify_jwt = false

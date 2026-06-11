@@ -134,30 +134,13 @@ export default function Auth() {
         return;
       }
 
-      // Check if user exists first to give better error message
-      const { data: existingUser } = await supabase
-        .from('leads')
-        .select('email')
-        .eq('email', username)
-        .maybeSingle();
-
-      if (!existingUser) {
-        setLoading(false);
-        toast({
-          title: t('auth.loginError'),
-          description: t('auth.emailNotFound'),
-          variant: 'destructive'
-        });
-        return;
-      }
-
       const { data: guestData, error: guestError } = await signInGuest(username, password);
 
       if (guestError) {
         setLoading(false);
         toast({
           title: t('auth.loginError'),
-          description: guestError.message === 'Invalid email or password' ? t('auth.invalidCredentials') : (guestError.message || t('auth.invalidCredentials')),
+          description: guestError.message === 'EMAIL_NOT_FOUND' ? t('auth.emailNotFound') : t('auth.invalidCredentials'),
           variant: 'destructive'
         });
         return;

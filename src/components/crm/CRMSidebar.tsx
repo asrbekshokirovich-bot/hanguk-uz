@@ -90,7 +90,6 @@ function buildGroups(
         { title: 'Hanguk AI', url: '/crm/ai', icon: Bot, visible: true, highlight: true },
         { title: t('navigation.students'), url: '/crm/students', icon: Users, visible: true },
         { title: t('navigation.applications'), url: '/crm/applications', icon: GraduationCap, visible: true },
-        { title: t('navigation.documents'), url: '/crm/documents', icon: FileText, visible: true },
       ],
     },
     {

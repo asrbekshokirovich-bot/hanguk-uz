@@ -15,9 +15,13 @@ type StudentProfile = Tables<'profiles'> & {
   initialPaymentOverdue?: boolean;
 };
 
+type ApplicationWithUniversity = Tables<'applications'> & {
+  university?: Tables<'universities'>;
+};
+
 export function useCRMData() {
   const [students, setStudents] = useState<StudentProfile[]>([]);
-  const [applications, setApplications] = useState<Tables<'applications'>[]>([]);
+  const [applications, setApplications] = useState<ApplicationWithUniversity[]>([]);
   const [universities, setUniversities] = useState<Tables<'universities'>[]>([]);
   const [loading, setLoading] = useState(true);
   const { activeIntakeId } = useActiveIntake();
@@ -178,7 +182,7 @@ export function useCRMData() {
         toast.error('Failed to load applications');
         return;
       }
-      if (data) setApplications(data);
+      if (data) setApplications(data as ApplicationWithUniversity[]);
     } catch (error) {
       console.error('Unexpected error in fetchApplications:', error);
     }
