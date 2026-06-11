@@ -51,6 +51,7 @@ const CallsContent = lazy(() => import('@/components/crm/pages/CallsContent'));
 const StaffContent = lazy(() => import('@/components/crm/pages/StaffContent'));
 const ReportsContent = lazy(() => import('@/components/crm/pages/ReportsContent'));
 const AIAssistantContent = lazy(() => import('@/components/crm/pages/AIAssistantContent'));
+const ApplicationsContent = lazy(() => import('@/components/crm/pages/ApplicationsContent'));
 const AITranslationPage = lazy(() => import('@/components/crm/pages/AITranslationPage'));
 const LeadsContent = lazy(() => import('@/components/crm/pages/LeadsContent'));
 const CommunicationContent = lazy(() => import('@/components/crm/pages/CommunicationContent'));
@@ -293,17 +294,16 @@ export default function CRMPortal() {
         return (
           <>
             <div style={{ display: selectedStudent ? 'none' : undefined }}>
-              <Card>
-                <CardHeader>
-                  <CardTitle>{t('navigation.applications')}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground mb-4">
-                    View applications from the student detail view by selecting a student.
-                  </p>
-                  {studentListElement}
-                </CardContent>
-              </Card>
+              <SafeSuspense>
+                <ApplicationsContent
+                  applications={applications}
+                  students={students}
+                  loading={loading}
+                  currentLang={currentLang}
+                  onOpenStudent={setSelectedStudent}
+                  onUpdateApplicationStatus={updateApplicationStatus}
+                />
+              </SafeSuspense>
             </div>
             {studentDetailElement}
           </>
