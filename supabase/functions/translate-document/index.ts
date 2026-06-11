@@ -68,7 +68,24 @@ automatically (so label "Father" renders as "Father: ...").
 DATE STYLE for this document:
 - "Was born on" stays numeric DD.MM.YYYY (e.g. 01.09.2008).
 - The registration date and "Date of issue" use the English month name, then the
-  day and year: "MONTH DD.YYYY" (e.g. 11.01.2008 -> "JANUARY 11.2008").`,
+  day and year: "MONTH DD.YYYY" (e.g. 11.01.2008 -> "JANUARY 11.2008").
+
+PLACE NAMES (Place of birth / District / Region / Place of registration):
+- These are PROPER NOUNS. Transliterate them to standard Uzbek Latin — never
+  translate them, and never put the words tuman / shahar / shahri / viloyat /
+  hudud / district / region / city / area inside the value.
+- Match each place to the closest name in the "UZBEKISTAN PLACES" list above and
+  output that exact spelling (region e.g. FARG'ONA; district e.g. QUVA, BEKOBOD;
+  city e.g. FARG'ONA). Keep the ' apostrophe in names like FARG'ONA, QO'QON.
+- Only append " [unclear]" when the place genuinely cannot be matched to any known
+  name — do NOT guess a word like "hudud".
+
+CAPITALISATION (match the sample exactly):
+- Every field VALUE is in UPPERCASE — full names, cities, districts, regions,
+  nationalities (e.g. OMONOVA DILNOZAXON MUXTOR QIZI, FARG'ONA, UZBEKISTAN, UZBEK).
+- In dates the month is in CAPITALS (e.g. JANUARY 10.2003).
+- The only lowercase value is "signed" (Head of Civil Registry office).
+- Keep the bold labels in normal sentence case exactly as written above.`,
 };
 
 // ---------- Types ----------
@@ -467,6 +484,17 @@ First block must be "title". Use "field" for label/value pairs, "table" for grid
 
     const structured = parseStructured(content);
     if (providedNames) structured.verifiedNames = { ...structured.verifiedNames, ...providedNames };
+
+    // Birth certificates: the sample shows every field VALUE in UPPERCASE (names,
+    // places, nationalities) with only "signed" left lowercase. Enforce this
+    // deterministically so casing never drifts run to run.
+    if (docType.code === "birth_certificate") {
+      structured.blocks = structured.blocks.map((b) =>
+        b.type === "field" && b.value && b.value.trim().toLowerCase() !== "signed"
+          ? { ...b, value: b.value.toUpperCase() }
+          : b
+      );
+    }
 
     const docxBytes = await renderDocx(structured, { documentTitle });
     const docxPath = `output/${Date.now()}_${docType.code}_translation.docx`;
