@@ -86,13 +86,13 @@ const CONTACT_TYPES: { value: ContactType; label: string; icon: React.ReactNode 
 ];
 
 const CONTACT_OUTCOMES: { value: ContactOutcome; label: string; icon: React.ReactNode; color: string }[] = [
-  { value: 'answered', label: 'Answered', icon: <PhoneCall className="h-4 w-4" />, color: 'bg-green-500/10 text-green-600 border-green-500/20' },
-  { value: 'interested', label: 'Interested', icon: <ThumbsUp className="h-4 w-4" />, color: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' },
-  { value: 'callback_requested', label: 'Callback Requested', icon: <CalendarPlus className="h-4 w-4" />, color: 'bg-blue-500/10 text-blue-600 border-blue-500/20' },
-  { value: 'no_answer', label: 'No Answer', icon: <PhoneMissed className="h-4 w-4" />, color: 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20' },
-  { value: 'busy', label: 'Busy', icon: <PhoneOff className="h-4 w-4" />, color: 'bg-orange-500/10 text-orange-600 border-orange-500/20' },
-  { value: 'voicemail', label: 'Voicemail', icon: <Voicemail className="h-4 w-4" />, color: 'bg-purple-500/10 text-purple-600 border-purple-500/20' },
-  { value: 'not_interested', label: 'Not Interested', icon: <ThumbsDown className="h-4 w-4" />, color: 'bg-red-500/10 text-red-600 border-red-500/20' },
+  { value: 'answered', label: 'Answered', icon: <PhoneCall className="h-4 w-4" />, color: 'bg-success/10 text-success border-success/20' },
+  { value: 'interested', label: 'Interested', icon: <ThumbsUp className="h-4 w-4" />, color: 'bg-success/10 text-success border-success/20' },
+  { value: 'callback_requested', label: 'Callback Requested', icon: <CalendarPlus className="h-4 w-4" />, color: 'bg-info/10 text-info border-info/20' },
+  { value: 'no_answer', label: 'No Answer', icon: <PhoneMissed className="h-4 w-4" />, color: 'bg-warning/10 text-warning border-warning/20' },
+  { value: 'busy', label: 'Busy', icon: <PhoneOff className="h-4 w-4" />, color: 'bg-warning/10 text-warning border-warning/20' },
+  { value: 'voicemail', label: 'Voicemail', icon: <Voicemail className="h-4 w-4" />, color: 'bg-primary/10 text-primary border-primary/20' },
+  { value: 'not_interested', label: 'Not Interested', icon: <ThumbsDown className="h-4 w-4" />, color: 'bg-destructive/10 text-destructive border-destructive/20' },
 ];
 
 const SMART_TEMPLATES = [
@@ -367,16 +367,16 @@ export function SmartContactDialog({ lead, open, onOpenChange, onLeadUpdate }: S
               <div className="text-lg font-bold">{stats.total}</div>
               <div className="text-xs text-muted-foreground">Total</div>
             </div>
-            <div className="text-center p-2 rounded-lg bg-green-500/10">
-              <div className="text-lg font-bold text-green-600">{stats.answered}</div>
+            <div className="text-center p-2 rounded-lg bg-success/10">
+              <div className="text-lg font-bold text-success">{stats.answered}</div>
               <div className="text-xs text-muted-foreground">Answered</div>
             </div>
-            <div className="text-center p-2 rounded-lg bg-yellow-500/10">
-              <div className="text-lg font-bold text-yellow-600">{stats.noAnswer}</div>
+            <div className="text-center p-2 rounded-lg bg-warning/10">
+              <div className="text-lg font-bold text-warning">{stats.noAnswer}</div>
               <div className="text-xs text-muted-foreground">No Answer</div>
             </div>
-            <div className="text-center p-2 rounded-lg bg-blue-500/10">
-              <div className="text-lg font-bold text-blue-600">{stats.totalDuration}m</div>
+            <div className="text-center p-2 rounded-lg bg-info/10">
+              <div className="text-lg font-bold text-info">{stats.totalDuration}m</div>
               <div className="text-xs text-muted-foreground">Talk Time</div>
             </div>
           </div>
@@ -636,15 +636,15 @@ export function SmartContactDialog({ lead, open, onOpenChange, onLeadUpdate }: S
                 className={cn(
                   'gap-1.5 w-full transition-all',
                   contractEnabled 
-                    ? 'bg-indigo-600 hover:bg-indigo-700 text-white' 
-                    : 'text-indigo-600 border-indigo-300 hover:bg-indigo-50'
+                    ? 'bg-primary hover:bg-primary text-white' 
+                    : 'text-primary border-primary/30 hover:bg-primary/10'
                 )}
                 onClick={() => setContractEnabled(!contractEnabled)}
               >
                 <FileText className="h-4 w-4" />
                 Ready to Contract
                 {lead?.contract_number && !contractEnabled && (
-                  <Badge variant="outline" className="text-xs bg-green-500/10 text-green-600 border-green-500/20 ml-1">Mavjud</Badge>
+                  <Badge variant="outline" className="text-xs bg-success/10 text-success border-success/20 ml-1">Mavjud</Badge>
                 )}
               </Button>
             </div>
@@ -755,11 +755,11 @@ export function SmartContactDialog({ lead, open, onOpenChange, onLeadUpdate }: S
               
               <div className={contactType !== 'call' ? 'col-span-2' : ''}>
                 <label className="text-xs font-medium text-muted-foreground mb-1 block">
-                  Next Follow-up <span className="text-red-500">*</span>
+                  Next Follow-up <span className="text-destructive">*</span>
                 </label>
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" className={cn("w-full justify-start text-left font-normal text-xs", !nextFollowUp && "text-muted-foreground border-red-500/50")}>
+                    <Button variant="outline" className={cn("w-full justify-start text-left font-normal text-xs", !nextFollowUp && "text-muted-foreground border-destructive/50")}>
                       <CalendarPlus className="mr-1 h-3 w-3" />
                       {nextFollowUp ? format(nextFollowUp, 'MMM d') : 'Required'}
                     </Button>

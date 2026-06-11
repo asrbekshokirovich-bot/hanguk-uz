@@ -63,30 +63,30 @@ export function PaymentsReport({ data, onExport }: PaymentsReportProps) {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 gap-4">
-        <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900">
+        <Card className="bg-gradient-to-br from-success to-success dark:from-success dark:to-success">
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
-              <div className="p-3 bg-green-500 rounded-full text-white">
+              <div className="p-3 bg-success rounded-full text-white">
                 <DollarSign className="h-6 w-6" />
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Total Revenue</p>
-                <p className="text-2xl font-bold text-green-700 dark:text-green-300">
+                <p className="text-2xl font-bold text-success dark:text-success">
                   {formatCurrency(data.totalRevenue)}
                 </p>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950 dark:to-orange-900">
+        <Card className="bg-gradient-to-br from-warning to-warning dark:from-warning dark:to-warning">
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
-              <div className="p-3 bg-orange-500 rounded-full text-white">
+              <div className="p-3 bg-warning rounded-full text-white">
                 <AlertCircle className="h-6 w-6" />
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Pending Amount</p>
-                <p className="text-2xl font-bold text-orange-700 dark:text-orange-300">
+                <p className="text-2xl font-bold text-warning dark:text-warning">
                   {formatCurrency(data.totalPending)}
                 </p>
               </div>

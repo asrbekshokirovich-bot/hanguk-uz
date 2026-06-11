@@ -1,1369 +1,330 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+// Hanguk AI — retrieval-augmented assistant.
+// Answers questions about a student from their REAL data: call summaries
+// (Uzbek), Telegram chats, plus CRM facts — and can search across everyone.
+// Streams an OpenAI-compatible SSE response (the web client parses delta.content).
+//
+// deno-lint-ignore-file no-explicit-any
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Common Uzbek phrases and their English equivalents for better understanding
-const uzbekPhrasePatterns = {
-  // Greetings and politeness
-  greetings: [
-    /assalomu\s*alaykum/i, /salom/i, /xayrli\s*kun/i, /xayrli\s*tong/i, /xayrli\s*kech/i
-  ],
-  thanks: [
-    /rahmat/i, /tashakkur/i, /katta\s*rahmat/i, /minnatdorman/i, /minnatdorchilik/i
-  ],
-  // Question words
-  questions: [
-    /qanday/i, /qancha/i, /necha/i, /qachon/i, /qayerda/i, /kim/i, /nima/i, /nega/i, /nimaga/i
-  ],
-  // Document-related
-  documents: [
-    /hujjat/i, /pasport/i, /diplom/i, /attestat/i, /sertifikat/i, /spravka/i, /foto/i, /rasm/i,
-    /tarjima/i, /apostil/i, /notarial/i, /guvohnoma/i
-  ],
-  // Payment-related  
-  payments: [
-    /to'lov/i, /pul/i, /summa/i, /dollar/i, /qarz/i, /qarzdorlik/i, /to'lash/i, /to'ladim/i
-  ],
-  // Application-related
-  application: [
-    /ariza/i, /murojaat/i, /universitetga/i, /qabul/i, /o'qish/i, /ta'lim/i
-  ],
-  // Status inquiries
-  status: [
-    /holat/i, /qanday\s*holat/i, /qayerda\s*turibdi/i, /natija/i, /javob/i
-  ],
-  // Time-related
-  time: [
-    /qachon/i, /bugun/i, /ertaga/i, /keyingi\s*hafta/i, /oy/i, /vaqt/i, /muddat/i
-  ],
-  // University-related
-  university: [
-    /universitet/i, /kollej/i, /institut/i, /akademiya/i, /koreya/i, /seul/i, /pusan/i
-  ],
-  // Help requests
-  help: [
-    /yordam/i, /ko'mak/i, /kerak/i, /aytib\s*bering/i, /tushuntiring/i, /qanday\s*qilaman/i
-  ]
-};
+const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
 
-// Extract student names from message for lookup - with enhanced Uzbek support
-function extractStudentQuery(message: string): string | null {
-  const patterns = [
-    // English patterns
-    /(?:about|info|information|details|show|find|search|look up|lookup|get)\s+(?:student\s+)?([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)/i,
-    
-    // Uzbek patterns - expanded
-    /(?:talaba|student|o'quvchi)\s+([A-Z][a-z']+(?:\s+[A-Z][a-z']+)?)/i,
-    /([A-Z][a-z']+(?:\s+[A-Z][a-z']+)?)\s+(?:haqida|to'g'risida|ma'lumot)/i,
-    /([A-Z][a-z']+(?:\s+[A-Z][a-z']+)?)\s+(?:kim|kimdir)/i,
-    /(?:kim\s+bu|bu\s+kim)\s+([A-Z][a-z']+(?:\s+[A-Z][a-z']+)?)/i,
-    /(?:ko'rsat|top|izla|qidir)\s+([A-Z][a-z']+(?:\s+[A-Z][a-z']+)?)/i,
-    /([A-Z][a-z']+(?:\s+[A-Z][a-z']+)?)\s*(?:ni|ning)\s+(?:ma'lumot|hujjat|to'lov)/i,
-    /([A-Z][a-z']+)(?:ga|ning|ni)\s/i,
-    
-    // Russian patterns
-    /(?:студент|о\s+студенте|покажи|найди)\s+([А-Яа-яA-Za-z]+(?:\s+[А-Яа-яA-Za-z]+)?)/i,
-    /(?:кто такой|кто)\s+([А-Яа-яA-Za-z]+(?:\s+[А-Яа-яA-Za-z]+)?)/i,
-    
-    // Korean patterns
-    /(?:학생|누구)\s+([A-Za-z]+(?:\s+[A-Za-z]+)?)/i,
-    
-    // Name at start or end of sentence (common in Uzbek)
-    /^([A-Z][a-z']+(?:\s+[A-Z][a-z']+)?)\s+(?:haqida|bormi|qayerda)/i,
-    /(?:qara|ko'r)\s+([A-Z][a-z']+)/i,
-  ];
-  
-  for (const pattern of patterns) {
-    const match = message.match(pattern);
-    if (match && match[1]) {
-      const name = match[1].trim();
-      // Filter out common Uzbek words that might be mistaken for names
-      const uzbekWords = ['qanday', 'qachon', 'qayerda', 'nima', 'nega', 'kerak', 'bormi', 'haqida'];
-      if (!uzbekWords.includes(name.toLowerCase())) {
-        return name;
-      }
-    }
-  }
-  return null;
+// ---- small language + entity helpers (no backslash-heavy regex) ------------
+function isUzbek(message: string): boolean {
+  const s = message.toLowerCase();
+  const markers = ["o'", "g'", "ning", "uchun", "kerak", "haqida", "qanday", "qancha", "talaba", "rahmat", "salom", "bo'", "hujjat", "to'lov"];
+  let n = 0;
+  for (const w of markers) if (s.includes(w)) n++;
+  return n >= 2;
 }
 
-// Detect if message is primarily in Uzbek
-function isUzbekMessage(message: string): boolean {
-  const uzbekIndicators = [
-    /o'/i, /g'/i, /sh/i, /ch/i, // Uzbek-specific letters
-    /ning/i, /ga/i, /dan/i, /da\b/i, // Common suffixes
-    /man\b/i, /san\b/i, /miz\b/i, // Verb endings
-    /kerak/i, /uchun/i, /bilan/i, /haqida/i, // Common words
-  ];
-  
-  let matches = 0;
-  for (const pattern of uzbekIndicators) {
-    if (pattern.test(message)) matches++;
-  }
-  
-  return matches >= 2;
+function candidateNames(message: string): string[] {
+  const matches = message.match(/[A-Z][a-zA-Z'’ʼ]{2,}/g) || [];
+  const stop = new Set(["Hanguk", "Telegram", "Instagram", "TOPIK", "IELTS", "Korea", "Korean", "Bakalavr", "Magistr", "What", "Which", "Who", "When", "Where"]);
+  return Array.from(new Set(matches.filter((m) => !stop.has(m)))).slice(0, 4);
 }
 
-// Search for a specific student by name
-async function searchStudentByName(supabase: any, searchName: string) {
-  console.log("Searching for student:", searchName);
-  
-  const { data: profiles } = await supabase
-    .from("profiles")
-    .select("*")
-    .ilike("full_name", `%${searchName}%`)
-    .limit(5);
-
-  if (!profiles || profiles.length === 0) {
-    return null;
-  }
-
-  const detailedStudents = await Promise.all(
-    profiles.map(async (profile: any) => {
-      // Reduced from 11 to 5 core queries per student to minimize DB load
-      const [applications, documents, payments, tasks, scheduledPayments] = await Promise.all([
-        supabase.from("applications").select("*, university:universities(*)").eq("student_id", profile.user_id).order("created_at", { ascending: false }),
-        supabase.from("documents").select("*").eq("student_id", profile.user_id).order("created_at", { ascending: false }),
-        supabase.from("payments").select("*, transactions:payment_transactions(*)").eq("student_id", profile.user_id).order("created_at", { ascending: false }),
-        supabase.from("tasks").select("*").eq("student_id", profile.user_id).order("created_at", { ascending: false }).limit(10),
-        supabase.from("scheduled_payments").select("*").eq("student_id", profile.user_id).order("scheduled_date", { ascending: true }),
-      ]);
-
-      return {
-        profile,
-        applications: applications.data || [],
-        documents: documents.data || [],
-        payments: payments.data || [],
-        notes: [],
-        comments: [],
-        calls: [],
-        messageThreads: [],
-        tasks: tasks.data || [],
-        scheduledPayments: scheduledPayments.data || [],
-        budgets: [],
-        bonuses: [],
-      };
-    })
-  );
-
-  return detailedStudents;
+function sanitizeQuery(message: string): string {
+  const cleaned = message.toLowerCase().replace(/[^\p{L}\p{N}\s'’ʼ]/gu, " ").replace(/\s+/g, " ").trim();
+  const stop = new Set(["the", "and", "for", "what", "who", "which", "this", "that", "with", "did", "does", "about", "from", "have", "has", "nima", "kim", "qaysi", "uchun", "bilan", "haqida", "bormi"]);
+  const words = cleaned.split(" ").filter((w) => w.length >= 3 && !stop.has(w));
+  return Array.from(new Set(words)).slice(0, 8).join(" ");
 }
 
-// Format student details for AI context
-function formatStudentDetails(student: any): string {
-  const { profile, applications, documents, payments, notes, comments, calls, tasks, scheduledPayments, budgets, bonuses } = student;
-  
-  // Calculate payment summary
-  const totalAmount = payments.reduce((sum: number, p: any) => sum + Number(p.amount || 0), 0);
-  const paidAmount = payments.reduce((sum: number, p: any) => sum + Number(p.paid_amount || 0), 0);
-  const pendingAmount = totalAmount - paidAmount;
-  
-  // Calculate document summary
-  const docsUploaded = documents.filter((d: any) => d.status === "uploaded").length;
-  const docsApproved = documents.filter((d: any) => d.status === "approved").length;
-  const docsRejected = documents.filter((d: any) => d.status === "rejected").length;
-  
-  // Calculate application summary
-  const appsAccepted = applications.filter((a: any) => a.decision === "accepted").length;
-  const appsPending = applications.filter((a: any) => !a.decision || a.decision === "pending").length;
-  
-  // Scheduled payments info
-  const upcomingPayments = scheduledPayments?.filter((sp: any) => sp.status === 'pending') || [];
-  
-  let details = `
-══════════════════════════════════════
-📋 STUDENT: ${profile.full_name || "Unknown"}
-══════════════════════════════════════
-📞 Phone: ${profile.phone || "N/A"}
-🎂 Birth Date: ${profile.birth_date || "N/A"}
-📝 Contract Date: ${profile.contract_date || "N/A"}
-💰 Payment Plan: ${profile.payment_plan || "N/A"}
-🏢 Office: ${profile.office_location || "N/A"}
-🔑 Magic Code: [HIDDEN]
-🗣️ Language: ${profile.preferred_language || "N/A"}
-🇰🇷 Korean Level (TOPIK): ${profile.topik_level || "N/A"}
-📚 IELTS Score: ${profile.ielts_score || "N/A"}
-📍 City: ${profile.city || "N/A"}
-📅 Registered: ${profile.created_at ? new Date(profile.created_at).toLocaleDateString() : "N/A"}
-
-💵 PAYMENT SUMMARY:
-   Total: $${totalAmount} | Paid: $${paidAmount} | Remaining: $${pendingAmount}
-
-📅 SCHEDULED PAYMENTS (${upcomingPayments.length} pending):
-${upcomingPayments.map((sp: any) => 
-  `   • ${sp.payment_type}: $${sp.amount} - ${sp.scheduled_date ? new Date(sp.scheduled_date).toLocaleDateString() : 'TBD'} (${sp.trigger_type})`
-).join("\n") || "   No scheduled payments"}
-
-💼 STUDENT BUDGETS (${budgets?.length || 0}):
-${(budgets || []).map((b: any) => 
-  `   • ${b.category}: $${b.allocated_amount} (Spent: $${b.spent_amount || 0}) - ${b.status}`
-).join("\n") || "   No budgets"}
-
-🎁 STAFF BONUSES (${bonuses?.length || 0}):
-${(bonuses || []).map((b: any) => 
-  `   • ${b.plan_type}: $${b.bonus_amount} - ${b.status}${b.staff_user_id ? ' (assigned)' : ' (unassigned)'}`
-).join("\n") || "   No bonuses"}
-
-📄 DOCUMENT SUMMARY:
-   Total: ${documents.length} | Uploaded: ${docsUploaded} | Approved: ${docsApproved} | Rejected: ${docsRejected}
-
-🎓 APPLICATION SUMMARY:
-   Total: ${applications.length} | Accepted: ${appsAccepted} | Pending: ${appsPending}
-
-───────────────────────────────────────
-📚 APPLICATIONS (${applications.length}):
-${applications.map((app: any) => 
-  `   • ${app.university?.name_en || "Unknown University"}
-     Status: ${app.status} | Decision: ${app.decision || "Pending"}
-     ${app.notes ? `Notes: ${app.notes}` : ""}`
-).join("\n") || "   No applications"}
-
-───────────────────────────────────────
-📁 DOCUMENTS (${documents.length}):
-${documents.map((doc: any) => 
-  `   • ${doc.name}: ${doc.status}${doc.notes ? ` (${doc.notes})` : ""}`
-).join("\n") || "   No documents"}
-
-───────────────────────────────────────
-💳 PAYMENTS (${payments.length}):
-${payments.map((p: any) => {
-  const transactions = p.transactions || [];
-  return `   • ${p.payment_type}: $${p.amount} (Paid: $${p.paid_amount}) - ${p.status}
-     ${p.due_date ? `Due: ${new Date(p.due_date).toLocaleDateString()}` : ""}${p.notes ? ` | Notes: ${p.notes}` : ""}
-     ${transactions.length > 0 ? `Transactions: ${transactions.length}` : ""}`;
-}).join("\n") || "   No payments"}
-
-───────────────────────────────────────
-✅ TASKS (${tasks.length}):
-${tasks.map((t: any) => 
-  `   • [${t.priority}] ${t.title}: ${t.status}${t.due_date ? ` (Due: ${new Date(t.due_date).toLocaleDateString()})` : ""}`
-).join("\n") || "   No tasks"}
-
-───────────────────────────────────────
-📝 STAFF NOTES (${notes.length}):
-${notes.map((n: any) => 
-  `   • [${new Date(n.created_at).toLocaleDateString()}] ${n.creator?.full_name || "Staff"}: ${n.content}`
-).join("\n") || "   No notes"}
-
-───────────────────────────────────────
-💬 STAFF COMMENTS (${comments.length}):
-${comments.map((c: any) => 
-  `   • [${new Date(c.created_at).toLocaleDateString()}] ${c.creator?.full_name || "Staff"}: ${c.content}`
-).join("\n") || "   No comments"}
-
-───────────────────────────────────────
-📞 CALL HISTORY (${calls.length}):
-${calls.map((call: any) => 
-  `   • [${new Date(call.started_at).toLocaleDateString()}] ${call.direction} (${call.duration}s) - ${call.status}
-     ${call.notes ? `Notes: ${call.notes}` : "No notes"}`
-).join("\n") || "   No calls"}
-══════════════════════════════════════
-`;
-
-  return details;
-}
-
-// Get COMPLETE system context for full awareness
-async function getFullSystemContext(supabase: any) {
-  console.log("Fetching full system context for comprehensive AI awareness...");
-  
-  const [
-    // Core counts
-    totalStudentsCount,
-    totalLeadsCount,
-    totalUniversitiesCount,
-    totalApplicationsCount,
-    totalDocumentsCount,
-    totalPaymentsCount,
-    totalTasksCount,
-    totalMessagesCount,
-    totalCallsCount,
-    
-    // Status breakdowns
-    pendingDocuments,
-    approvedDocuments,
-    rejectedDocuments,
-    pendingPayments,
-    overduePayments,
-    completedPayments,
-    pendingTasks,
-    completedTasks,
-    unreadMessages,
-    
-    // Recent data with details
-    recentApplications,
-    recentDocuments,
-    recentPayments,
-    recentTasks,
-    recentCalls,
-    recentMessages,
-    recentLeads,
-    
-    // All universities
-    allUniversities,
-    
-    // All leads with details
-    allLeads,
-    
-    // Staff data
-    allStaff,
-    staffPresence,
-    staffBonuses,
-    
-    // Financial data
-    allPaymentTransactions,
-    allScheduledPayments,
-    allStudentBudgets,
-    
-    // Application form data
-    applicationFormCache,
-    applicationFormChanges,
-    
-    // Interview data
-    interviewSessions,
-    interviewQuestions,
-    
-    // Translation data
-    translationJobs,
-    translationDocTypes,
-    
-    // Communication data
-    messageThreads,
-    
-    // Room/channel data
-    universityRooms,
-    roomChannels,
-    
-  ] = await Promise.all([
-    // Core counts
-    supabase.from("profiles").select("*", { count: "exact", head: true }),
-    supabase.from("leads").select("*", { count: "exact", head: true }),
-    supabase.from("universities").select("*", { count: "exact", head: true }),
-    supabase.from("applications").select("*", { count: "exact", head: true }),
-    supabase.from("documents").select("*", { count: "exact", head: true }),
-    supabase.from("payments").select("*", { count: "exact", head: true }),
-    supabase.from("tasks").select("*", { count: "exact", head: true }),
-    supabase.from("messages").select("*", { count: "exact", head: true }),
-    supabase.from("calls").select("*", { count: "exact", head: true }),
-    
-    // Status breakdowns
-    supabase.from("documents").select("*", { count: "exact", head: true }).eq("status", "uploaded"),
-    supabase.from("documents").select("*", { count: "exact", head: true }).eq("status", "approved"),
-    supabase.from("documents").select("*", { count: "exact", head: true }).eq("status", "rejected"),
-    supabase.from("payments").select("*", { count: "exact", head: true }).eq("status", "pending"),
-    supabase.from("payments").select("*", { count: "exact", head: true }).eq("status", "overdue"),
-    supabase.from("payments").select("*", { count: "exact", head: true }).eq("status", "completed"),
-    supabase.from("tasks").select("*", { count: "exact", head: true }).neq("status", "completed"),
-    supabase.from("tasks").select("*", { count: "exact", head: true }).eq("status", "completed"),
-    supabase.from("message_threads").select("*", { count: "exact", head: true }).gt("unread_count", 0),
-    
-    // Recent data with full details
-    supabase.from("applications").select("*, student:profiles!applications_student_id_fkey(full_name, phone, city), university:universities(name_en, name_ko, city)").order("updated_at", { ascending: false }).limit(20),
-    supabase.from("documents").select("*, student:profiles!documents_student_id_fkey(full_name)").order("created_at", { ascending: false }).limit(20),
-    supabase.from("payments").select("*, student:profiles!payments_student_id_fkey(full_name, phone)").order("created_at", { ascending: false }).limit(20),
-    supabase.from("tasks").select("*, student:profiles!tasks_student_id_fkey(full_name), assignee:profiles!tasks_assigned_to_fkey(full_name)").order("created_at", { ascending: false }).limit(30),
-    supabase.from("calls").select("*, student:profiles!calls_student_id_fkey(full_name, phone)").order("started_at", { ascending: false }).limit(20),
-    supabase.from("messages").select("*").order("created_at", { ascending: false }).limit(30),
-    supabase.from("leads").select("*, notes:lead_notes(*)").order("created_at", { ascending: false }).limit(50),
-    
-    // All universities
-    supabase.from("universities").select("*").order("ranking", { ascending: true }),
-    
-    // All leads
-    supabase.from("leads").select("*").order("priority_score", { ascending: false }).limit(100),
-    
-    // Staff data
-    supabase.from("user_roles").select("*, profile:profiles!user_roles_user_id_fkey(full_name, phone)"),
-    supabase.from("staff_presence").select("*, profile:profiles!staff_presence_user_id_fkey(full_name)"),
-    supabase.from("staff_bonuses").select("*, student:profiles!staff_bonuses_student_id_fkey(full_name)").order("created_at", { ascending: false }).limit(50),
-    
-    // Financial data
-    supabase.from("payment_transactions").select("*, payment:payments(student_id, payment_type)").order("created_at", { ascending: false }).limit(50),
-    supabase.from("scheduled_payments").select("*, student:profiles!scheduled_payments_student_id_fkey(full_name)").order("scheduled_date", { ascending: true }).limit(50),
-    supabase.from("student_budgets").select("*, student:profiles!student_budgets_student_id_fkey(full_name)").order("created_at", { ascending: false }).limit(50),
-    
-    // Application form data
-    supabase.from("application_form_cache").select("*, university:universities(name_en)").order("updated_at", { ascending: false }).limit(20),
-    supabase.from("application_form_changes").select("*, university:universities(name_en)").eq("acknowledged_at", null).order("detected_at", { ascending: false }).limit(20),
-    
-    // Interview data
-    supabase.from("interview_sessions").select("*, university:universities(name_en), feedback:interview_feedback(*)").order("created_at", { ascending: false }).limit(20),
-    supabase.from("interview_questions").select("*, university:universities(name_en)").eq("is_active", true).limit(50),
-    
-    // Translation data
-    supabase.from("translation_jobs").select("*").order("created_at", { ascending: false }).limit(20),
-    supabase.from("translation_document_types").select("*").eq("is_active", true),
-    
-    // Communication
-    supabase.from("message_threads").select("*").order("last_message_at", { ascending: false }).limit(30),
-    
-    // Rooms
-    supabase.from("university_rooms").select("*, university:universities(name_en), members:room_members(count)").limit(20),
-    supabase.from("room_channels").select("*, room:university_rooms(university_id)").limit(50),
+// Names are often typed lowercase (e.g. "jetkenshek haqida malumot ber"), which
+// candidateNames' capitalized match misses. Pull meaningful word tokens — minus
+// common English/Uzbek/Russian query words — so we can match a person by name.
+function nameSearchTokens(message: string): string[] {
+  const cleaned = message.toLowerCase().replace(/[^\p{L}\p{N}\s'’ʼ]/gu, " ").replace(/\s+/g, " ").trim();
+  const stop = new Set([
+    "the", "and", "for", "what", "who", "which", "this", "that", "with", "does", "did",
+    "about", "from", "have", "has", "want", "list", "all", "can", "you", "your", "tell",
+    "give", "show", "info", "information", "details", "detail", "find", "search", "name",
+    "student", "students", "lead", "leads", "please", "need", "more", "data",
+    "nima", "kim", "qaysi", "uchun", "bilan", "haqida", "haqidagi", "bormi", "malumot",
+    "ma'lumot", "ber", "bering", "korsat", "royxat", "talaba", "talabalar", "mijoz",
+    "menga", "qancha", "qanday", "kerak", "hammasi", "barcha", "qidir",
+    "что", "кто", "какой", "про", "дай", "покажи", "информация", "найди", "студент", "имя",
   ]);
+  const words = cleaned.split(" ").filter((w) => w.length >= 4 && !stop.has(w));
+  return Array.from(new Set(words)).slice(0, 4);
+}
 
-  // Calculate financial totals from recentPayments data (avoid extra query)
-  const allPaymentsForCalc = recentPayments.data || [];
-  const financialSummary = {
-    totalRevenue: allPaymentsForCalc.reduce((sum: number, p: any) => sum + Number(p.paid_amount || 0), 0),
-    totalPending: allPaymentsForCalc.reduce((sum: number, p: any) => sum + (Number(p.amount || 0) - Number(p.paid_amount || 0)), 0),
-    totalOverdue: allPaymentsForCalc.filter((p: any) => p.status === 'overdue').reduce((sum: number, p: any) => sum + (Number(p.amount || 0) - Number(p.paid_amount || 0)), 0),
+function fmtDate(d: string | null | undefined): string {
+  if (!d) return "";
+  try { return new Date(d).toLocaleDateString("en-GB"); } catch { return String(d); }
+}
+
+// ---- retrieval -------------------------------------------------------------
+async function getStudentBundle(supabase: any, userId: string) {
+  const [profile, apps, docs, pays, analyses, msgs, tasks] = await Promise.all([
+    supabase.from("profiles").select("*").eq("user_id", userId).maybeSingle(),
+    supabase.from("applications").select("status, decision, notes, university:universities(name_en)").eq("student_id", userId).order("created_at", { ascending: false }),
+    supabase.from("documents").select("name, status, notes").eq("student_id", userId).order("created_at", { ascending: false }),
+    supabase.from("payments").select("payment_type, amount, paid_amount, status, due_date").eq("student_id", userId),
+    supabase.from("call_analyses").select("summary_uz, summary_en, intent, sentiment, action_items, follow_up_needed, created_at").eq("student_id", userId).order("created_at", { ascending: false }).limit(8),
+    supabase.from("messages").select("content, direction, created_at").eq("student_id", userId).order("created_at", { ascending: false }).limit(40),
+    supabase.from("tasks").select("title, status, priority, due_date").eq("student_id", userId).neq("status", "completed").limit(10),
+  ]);
+  return {
+    profile: profile.data, apps: apps.data || [], docs: docs.data || [], pays: pays.data || [],
+    analyses: analyses.data || [], msgs: (msgs.data || []).reverse(), tasks: tasks.data || [],
   };
+}
 
-  // Lead statistics
-  const leadStats = {
-    total: totalLeadsCount.count || 0,
-    new: (allLeads.data || []).filter((l: any) => l.status === 'new').length,
-    contacted: (allLeads.data || []).filter((l: any) => l.status === 'contacted').length,
-    qualified: (allLeads.data || []).filter((l: any) => l.status === 'qualified').length,
-    converted: (allLeads.data || []).filter((l: any) => l.status === 'converted').length,
-    lost: (allLeads.data || []).filter((l: any) => l.status === 'lost').length,
-    highPriority: (allLeads.data || []).filter((l: any) => (l.priority_score || 0) >= 70).length,
-  };
-
-  // Application statistics by status
-  const appsByStatus: Record<string, number> = {};
-  (recentApplications.data || []).forEach((app: any) => {
-    appsByStatus[app.status] = (appsByStatus[app.status] || 0) + 1;
+async function getStudentDocs(supabase: any, userId: string): Promise<string> {
+  const { data } = await supabase.from("document_extractions").select("doc_type, key_fields, full_text").eq("student_id", userId).limit(20);
+  if (!data || !data.length) return "";
+  const rows = data.map((d: any) => {
+    const fields = Array.isArray(d.key_fields) ? d.key_fields.map((f: any) => `${f.label}: ${f.value}`).join("; ") : "";
+    return `• ${d.doc_type || "document"}: ${fields || String(d.full_text || "").slice(0, 200)}`;
   });
-
-  return {
-    counts: {
-      totalStudents: totalStudentsCount.count || 0,
-      totalLeads: totalLeadsCount.count || 0,
-      totalUniversities: totalUniversitiesCount.count || 0,
-      totalApplications: totalApplicationsCount.count || 0,
-      totalDocuments: totalDocumentsCount.count || 0,
-      totalPayments: totalPaymentsCount.count || 0,
-      totalTasks: totalTasksCount.count || 0,
-      totalMessages: totalMessagesCount.count || 0,
-      totalCalls: totalCallsCount.count || 0,
-    },
-    statusBreakdowns: {
-      documents: {
-        pending: pendingDocuments.count || 0,
-        approved: approvedDocuments.count || 0,
-        rejected: rejectedDocuments.count || 0,
-      },
-      payments: {
-        pending: pendingPayments.count || 0,
-        overdue: overduePayments.count || 0,
-        completed: completedPayments.count || 0,
-      },
-      tasks: {
-        pending: pendingTasks.count || 0,
-        completed: completedTasks.count || 0,
-      },
-      messages: {
-        unread: unreadMessages.count || 0,
-      },
-    },
-    leadStats,
-    financialSummary,
-    applicationsByStatus: appsByStatus,
-    recentActivity: {
-      applications: recentApplications.data || [],
-      documents: recentDocuments.data || [],
-      payments: recentPayments.data || [],
-      tasks: recentTasks.data || [],
-      calls: recentCalls.data || [],
-      messages: recentMessages.data || [],
-      leads: recentLeads.data || [],
-    },
-    universities: allUniversities.data || [],
-    allLeads: allLeads.data || [],
-    staff: {
-      roles: allStaff.data || [],
-      presence: staffPresence.data || [],
-      bonuses: staffBonuses.data || [],
-    },
-    financial: {
-      transactions: allPaymentTransactions.data || [],
-      scheduled: allScheduledPayments.data || [],
-      budgets: allStudentBudgets.data || [],
-    },
-    applicationForms: {
-      cache: applicationFormCache.data || [],
-      changes: applicationFormChanges.data || [],
-    },
-    interviews: {
-      sessions: interviewSessions.data || [],
-      questions: interviewQuestions.data || [],
-    },
-    translations: {
-      jobs: translationJobs.data || [],
-      docTypes: translationDocTypes.data || [],
-    },
-    communication: {
-      threads: messageThreads.data || [],
-    },
-    rooms: {
-      universityRooms: universityRooms.data || [],
-      channels: roomChannels.data || [],
-    },
-  };
+  return "\n📄 DOCUMENT CONTENTS:\n" + rows.join("\n");
 }
 
-// Context aggregation for students
-async function getStudentContext(supabase: any, userId: string) {
-  console.log("Fetching student context for:", userId);
-  
-  const [
-    profileResult,
-    applicationsResult,
-    documentsResult,
-    paymentsResult,
-    messageThreadsResult,
-    callsResult,
-    previousChatsResult,
-    universitiesResult,
-    tasksResult,
-    scheduledPaymentsResult,
-    budgetsResult,
-    interviewSessionsResult,
-  ] = await Promise.all([
-    supabase.from("profiles").select("*").eq("user_id", userId).single(),
-    supabase.from("applications").select("*, university:universities(*)").eq("student_id", userId).order("created_at", { ascending: false }),
-    supabase.from("documents").select("*").eq("student_id", userId).order("created_at", { ascending: false }),
-    supabase.from("payments").select("*, transactions:payment_transactions(*)").eq("student_id", userId).order("created_at", { ascending: false }),
-    supabase.from("message_threads").select("*").eq("student_id", userId).order("last_message_at", { ascending: false }).limit(5),
-    supabase.from("calls").select("*").eq("student_id", userId).order("started_at", { ascending: false }).limit(10),
-    supabase.from("ai_conversations").select("role, content, created_at").eq("user_id", userId).order("created_at", { ascending: false }).limit(20),
-    supabase.from("universities").select("*").eq("is_visible_on_map", true).order("ranking", { ascending: true }),
-    supabase.from("tasks").select("*").eq("student_id", userId).order("created_at", { ascending: false }).limit(10),
-    supabase.from("scheduled_payments").select("*").eq("student_id", userId).order("scheduled_date", { ascending: true }),
-    supabase.from("student_budgets").select("*").eq("student_id", userId),
-    supabase.from("interview_sessions").select("*, feedback:interview_feedback(*), university:universities(name_en)").eq("student_id", userId).order("created_at", { ascending: false }).limit(5),
-  ]);
-
-  return {
-    profile: profileResult.data,
-    applications: applicationsResult.data || [],
-    documents: documentsResult.data || [],
-    payments: paymentsResult.data || [],
-    messageThreads: messageThreadsResult.data || [],
-    calls: callsResult.data || [],
-    tasks: tasksResult.data || [],
-    scheduledPayments: scheduledPaymentsResult.data || [],
-    budgets: budgetsResult.data || [],
-    interviewSessions: interviewSessionsResult.data || [],
-    previousChats: (previousChatsResult.data || []).reverse(),
-    universities: universitiesResult.data || [],
-  };
-}
-
-// Context aggregation for staff - ENHANCED with caching
-async function getStaffContext(supabase: any, userId: string, studentQuery: string | null) {
-  console.log("Fetching enhanced staff context for:", userId, "Student query:", studentQuery);
-  
-  // Get staff's own data
-  const [
-    profileResult,
-    rolesResult,
-    assignedTasksResult,
-    createdTasksResult,
-    previousChatsResult,
-  ] = await Promise.all([
-    supabase.from("profiles").select("*").eq("user_id", userId).single(),
-    supabase.from("user_roles").select("role").eq("user_id", userId),
-    supabase.from("tasks").select("*, student:profiles!tasks_student_id_fkey(full_name, phone)").eq("assigned_to", userId).neq("status", "completed").order("created_at", { ascending: false }).limit(30),
-    supabase.from("tasks").select("*").eq("created_by", userId).order("created_at", { ascending: false }).limit(15),
-    supabase.from("ai_conversations").select("role, content, created_at").eq("user_id", userId).order("created_at", { ascending: false }).limit(20),
-  ]);
-
-  // Try to get cached system context (5 minute TTL)
-  let systemContext: any = null;
-  const { data: cachedContext } = await supabase
-    .from("ai_context_cache")
-    .select("context_data, updated_at")
-    .eq("user_id", userId)
-    .eq("user_type", "staff_system")
-    .single();
-
-  const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
-  if (cachedContext && cachedContext.updated_at) {
-    const cacheAge = Date.now() - new Date(cachedContext.updated_at).getTime();
-    if (cacheAge < CACHE_TTL_MS) {
-      console.log("Using cached system context (age: " + Math.round(cacheAge / 1000) + "s)");
-      systemContext = cachedContext.context_data;
+function formatBundle(b: any, opts: { staff: boolean }): string {
+  const p = b.profile || {};
+  const lines: string[] = [];
+  lines.push(`### ${p.full_name || "Student"}${opts.staff && p.phone ? ` (${p.phone})` : ""}`);
+  if (p.city || p.topik_level || p.payment_plan) {
+    lines.push(`City: ${p.city || "—"} | TOPIK: ${p.topik_level || "—"}${opts.staff ? ` | Plan: ${p.payment_plan || "—"}` : ""}`);
+  }
+  if (b.apps.length) {
+    lines.push("Applications: " + b.apps.map((a: any) => `${a.university?.name_en || "University"} (${a.status}${a.decision ? "/" + a.decision : ""})`).join("; "));
+  }
+  if (opts.staff && b.pays.length) {
+    const total = b.pays.reduce((s: number, x: any) => s + Number(x.amount || 0), 0);
+    const paid = b.pays.reduce((s: number, x: any) => s + Number(x.paid_amount || 0), 0);
+    lines.push(`Payments: paid $${paid} of $${total} (remaining $${total - paid}).`);
+  }
+  if (b.docs.length) {
+    const pending = b.docs.filter((d: any) => d.status === "uploaded").length;
+    const approved = b.docs.filter((d: any) => d.status === "approved").length;
+    lines.push(`Documents: ${b.docs.length} total, ${approved} approved, ${pending} pending review.`);
+  }
+  if (opts.staff && b.tasks.length) {
+    lines.push("Open tasks: " + b.tasks.map((t: any) => `${t.title} (${t.priority})`).join("; "));
+  }
+  if (b.analyses.length) {
+    lines.push("\n📞 RECENT CALLS:");
+    for (const a of b.analyses) {
+      const sum = a.summary_uz || a.summary_en || "";
+      const ai = (a.action_items || []).map((x: any) => x.text).filter(Boolean).slice(0, 3).join("; ");
+      lines.push(`• [${fmtDate(a.created_at)}] ${sum}${a.follow_up_needed ? " (follow-up needed)" : ""}${ai ? ` — action items: ${ai}` : ""}`);
     }
   }
-
-  if (!systemContext) {
-    console.log("Cache miss — fetching full system context...");
-    systemContext = await getFullSystemContext(supabase);
-
-    // Save to cache (upsert)
-    await supabase
-      .from("ai_context_cache")
-      .upsert({
-        user_id: userId,
-        user_type: "staff_system",
-        context_data: systemContext,
-        updated_at: new Date().toISOString(),
-      }, { onConflict: "user_id, user_type" })
-      .select();
+  if (b.msgs.length) {
+    lines.push("\n💬 RECENT TELEGRAM CHAT:");
+    for (const m of b.msgs.slice(-25)) {
+      lines.push(`• [${fmtDate(m.created_at)}] ${m.direction === "outgoing" ? "Staff" : "Student"}: ${String(m.content).slice(0, 200)}`);
+    }
   }
-
-  // Get all students with details
-  const recentStudentsResult = await supabase
-    .from("profiles")
-    .select("user_id, full_name, phone, created_at, payment_plan, office_location, city, topik_level, contract_date")
-    .order("created_at", { ascending: false })
-    .limit(200);
-
-  let queriedStudents: any[] | null = null;
-  if (studentQuery) {
-    queriedStudents = await searchStudentByName(supabase, studentQuery);
-  }
-
-  return {
-    profile: profileResult.data,
-    roles: (rolesResult.data || []).map((r: any) => r.role),
-    assignedTasks: assignedTasksResult.data || [],
-    createdTasks: createdTasksResult.data || [],
-    previousChats: (previousChatsResult.data || []).reverse(),
-    systemContext,
-    recentStudents: recentStudentsResult.data || [],
-    queriedStudents,
-  };
+  if (b.docText) lines.push(b.docText);
+  return lines.join("\n");
 }
 
-// Build system prompt for students
-function buildStudentSystemPrompt(context: any, language: string): string {
-  const langInstructions: Record<string, string> = {
-    uz: `MUHIM: Faqat O'zbek tilida javob bering. Barcha javoblar O'zbek tilida bo'lishi kerak.
-
-O'ZBEK TILIDA JAVOB BERISH QOIDALARI:
-- Hurmatli murojaat qiling (Siz, Sizning)
-- Oddiy, tushunarli so'zlar ishlating
-- Texnik atamalarni o'zbekcha tushuntiring
-- Agar foydalanuvchi o'zbekcha yozsa, albatta o'zbekcha javob bering
-- Dollar summasini yozganda "$" belgisini ishlating
-- Sanalarni kun.oy.yil formatida yozing
-
-UMUMIY IBORALAR:
-- Hujjatlar = Documents
-- To'lov = Payment
-- Ariza = Application
-- Universitet = University
-- Qabul = Admission
-- Viza = Visa
-
-FOYDALANUVCHI SAVOLLARIGA MISOL JAVOBLAR:
-- "Qanday hujjatlar kerak?" → Kerakli hujjatlar ro'yxatini bering
-- "Qancha to'lashim kerak?" → To'lov ma'lumotlarini ko'rsating
-- "Arizam qayerda?" → Ariza holatini tushuntiring`,
-
-    ru: `ВАЖНО: Отвечайте ТОЛЬКО на русском языке. Все ответы должны быть на русском.
-
-Если пользователь пишет на узбекском, но язык интерфейса русский, всё равно отвечайте на русском.`,
-
-    ko: `중요: 한국어로만 답변해 주세요. 모든 답변은 한국어로 작성되어야 합니다.`,
-
-    en: "Respond in English only. Be clear and professional.",
-  };
-
-  // Calculate summaries
-  const totalPayment = context.payments.reduce((sum: number, p: any) => sum + Number(p.amount || 0), 0);
-  const paidAmount = context.payments.reduce((sum: number, p: any) => sum + Number(p.paid_amount || 0), 0);
-  const pendingDocs = context.documents.filter((d: any) => d.status === "uploaded").length;
-  const approvedDocs = context.documents.filter((d: any) => d.status === "approved").length;
-  const rejectedDocs = context.documents.filter((d: any) => d.status === "rejected");
-  
-  // Format applications
-  const appList = context.applications.map((app: any) => {
-    const uni = app.university;
-    return `• **${uni?.name_en || "University"}** (${uni?.city || "Korea"})
-  - Status: ${formatStatus(app.status, language)}
-  - Decision: ${formatDecision(app.decision || "pending", language)}
-  ${app.notes ? `- Notes: ${app.notes}` : ""}`;
-  }).join("\n\n") || "No applications yet";
-
-  // Format documents
-  const docList = context.documents.map((doc: any) => 
-    `• **${doc.name}**: ${formatDocStatus(doc.status, language)}${doc.notes ? ` (${doc.notes})` : ""}`
-  ).join("\n") || "No documents uploaded";
-
-  // Format payments
-  const paymentList = context.payments.map((p: any) => 
-    `• **${p.payment_type}**: $${p.amount} (Paid: $${p.paid_amount}) - ${formatPaymentStatus(p.status, language)}
-  ${p.due_date ? `Due: ${new Date(p.due_date).toLocaleDateString()}` : ""}${p.notes ? ` | ${p.notes}` : ""}`
-  ).join("\n") || "No payments recorded";
-
-  // Format tasks
-  const taskList = context.tasks.map((t: any) => {
-    const urgency = t.priority === "urgent" ? "🔴" : t.priority === "high" ? "🟠" : "🟢";
-    return `${urgency} **${t.title}**: ${t.status}${t.due_date ? ` (Due: ${new Date(t.due_date).toLocaleDateString()})` : ""}`;
-  }).join("\n") || "No pending tasks";
-
-  // Scheduled payments
-  const scheduledList = (context.scheduledPayments || []).filter((sp: any) => sp.status === 'pending').map((sp: any) => 
-    `• ${sp.payment_type}: $${sp.amount} - ${sp.scheduled_date ? new Date(sp.scheduled_date).toLocaleDateString() : 'TBD'}`
-  ).join("\n") || "No upcoming payments";
-
-  // Interview history
-  const interviewList = (context.interviewSessions || []).map((s: any) => {
-    const feedback = s.feedback?.[0];
-    return `• ${s.university?.name_en || 'Practice'} - ${s.status} ${feedback ? `(Score: ${feedback.overall_score}/100)` : ''}`;
-  }).join("\n") || "No interview sessions";
-
-  // Universities list
-  const uniList = context.universities.slice(0, 10).map((u: any) => 
-    `• **${u.name_en}** - ${u.city || "Korea"} (Rank: ${u.ranking || "N/A"})`
-  ).join("\n");
-
-  // Standard documents list
-  const standardDocuments = [
-    "Passport (valid for 6+ months)",
-    "High School Diploma / Bachelor's Degree",
-    "Academic Transcript",
-    "TOPIK Certificate (if available)",
-    "IELTS/TOEFL Score (if available)",
-    "Bank Statement (proof of funds)",
-    "Study Plan / Letter of Intent",
-    "Recommendation Letters",
-    "Health Certificate",
-    "Photos (passport size)"
-  ];
-
-  const uploadedDocNames = context.documents.map((d: any) => d.name.toLowerCase());
-  const potentialMissingDocs = standardDocuments.filter(doc => 
-    !uploadedDocNames.some((uploaded: string) => uploaded.includes(doc.toLowerCase().split(" ")[0]))
-  );
-
-  return `# 🎓 HANGUK AI - Your Personal Study Abroad Assistant
-
-${langInstructions[language] || langInstructions.en}
-
-## Your Identity
-You are Hanguk AI, a friendly and knowledgeable assistant for students applying to Korean universities through Hanguk Education. You have complete access to this student's data and can answer any question about their application journey.
-
-## 📋 Student Profile
-**Name:** ${context.profile?.full_name || "Student"}
-**Phone:** ${context.profile?.phone || "Not provided"}
-**City:** ${context.profile?.city || "Not provided"}
-**Contract Date:** ${context.profile?.contract_date || "Not set"}
-**Payment Plan:** ${context.profile?.payment_plan || "Not assigned"}
-**Magic Code:** ${context.profile?.magic_code || "Not assigned"}
-**TOPIK Level:** ${context.profile?.topik_level || "Not tested"}
-**IELTS Score:** ${context.profile?.ielts_score || "Not provided"}
-
----
-
-## 📊 DASHBOARD SUMMARY
-
-### 💰 Payment Summary
-- **Total:** $${totalPayment.toLocaleString()}
-- **Paid:** $${paidAmount.toLocaleString()}
-- **Remaining:** $${(totalPayment - paidAmount).toLocaleString()}
-
-### 📅 Upcoming Payments
-${scheduledList}
-
-### 📄 Documents
-- **Total:** ${context.documents.length}
-- **Pending Review:** ${pendingDocs}
-- **Approved:** ${approvedDocs}
-- **Rejected:** ${rejectedDocs.length}
-
-### 🎓 Applications: ${context.applications.length}
-
-### 🎤 Interview Practice Sessions: ${(context.interviewSessions || []).length}
-${interviewList}
-
----
-
-## 📚 MY APPLICATIONS
-${appList}
-
----
-
-## 📁 MY DOCUMENTS
-${docList}
-
-### Standard Documents Typically Required:
-${standardDocuments.map(d => `• ${d}`).join("\n")}
-
-### Potentially Missing Documents:
-${potentialMissingDocs.length > 0 ? potentialMissingDocs.map(d => `• ${d}`).join("\n") : "You seem to have uploaded the main documents!"}
-
----
-
-## 💳 MY PAYMENTS
-${paymentList}
-
----
-
-## ✅ MY TASKS
-${taskList}
-
----
-
-## 🏫 PARTNER UNIVERSITIES (Recommended)
-${uniList}
-
----
-
-## 📋 RESPONSE GUIDELINES
-
-### Always:
-1. **Be specific** - Reference the student's actual data above
-2. **Be encouraging** - Studying abroad is exciting but stressful
-3. **Be helpful** - Provide actionable next steps
-4. **Use formatting** - Use bullet points and headers for clarity
-
----
-
-## 🚫 STRICT RESTRICTIONS - CONFIDENTIAL INFORMATION
-
-**CRITICAL: You are a STUDENT-FACING assistant. You must NEVER reveal or discuss:**
-
-### Financial & Business Secrets:
-- ❌ Internal payment distribution or shareholder splits
-- ❌ Staff salaries, bonuses, or commission structures
-- ❌ Operational fund details or internal budgets
-- ❌ Company profit margins or revenue breakdowns
-- ❌ Payment processing fees or internal transaction details
-- ❌ Price negotiation history or discount policies
-
-### Internal Operations:
-- ❌ Staff tasks, assignments, or workload
-- ❌ Internal notes, comments, or staff communications about the student
-- ❌ Lead management data or conversion rates
-- ❌ CRM workflows or internal processes
-- ❌ Staff performance metrics or evaluations
-- ❌ Internal deadlines or staff schedules
-
-### Other Students & Leads:
-- ❌ Information about other students or applicants
-- ❌ Lead information or prospective student data
-- ❌ Comparative data about other applications
-- ❌ Success/failure rates of other students
-
-### System & Technical:
-- ❌ Database structure or system architecture
-- ❌ Admin tools or CRM features
-- ❌ Staff-only functions or capabilities
-- ❌ Internal reporting or analytics
-
-### If asked about restricted topics, respond with:
-"I'm here to help with YOUR application journey! For questions about [topic], please contact your consultant directly."
-
----
-
-### SMART RESPONSES for common questions:
-
-**"What documents do I need?"**
-1. First, check their current uploaded documents
-2. Compare with the standard requirements list AND the specific university requirements
-3. List the potentially missing documents
-4. Prioritize based on their application status
-
-**"Which universities am I applying to?"**
-→ List their exact applications with current status and next steps
-
-**"How much do I owe?"**
-→ Show their payment summary with remaining balance and due dates
-
-**"What's my application status?"**
-→ Give detailed status for each university and what happens next
-
-**"When will I hear back?"**
-→ If under university review, explain typical timelines (2-4 weeks usually)
-
-### Edge Cases:
-- **No data available:** Say "I don't have that information yet. Please contact your consultant."
-- **Technical questions:** Provide what you know, suggest contacting staff for specifics
-- **Visa questions:** Give general guidance, recommend official sources
-
-### Actionable Suggestions:
-ALWAYS end your response with 1-2 specific next steps based on their data:
-- If missing documents: "Next step: Upload your [specific document]"
-- If payment due: "Remember: Your payment of $X is due on [date]"
-- If waiting for response: "Your application to [university] is under review - typically takes 2-4 weeks"
-
-### Formatting:
-- Use **bold** for important information
-- Use bullet points for lists
-- Use emojis sparingly but appropriately (📚 🎓 ✅ ⏳ ❌)
-- Keep responses concise but complete`;
+async function crossSearch(supabase: any, message: string): Promise<string> {
+  const q = sanitizeQuery(message);
+  if (q.length < 3) return "";
+  const { data, error } = await supabase.rpc("search_communications_text", { p_query: q, p_limit: 12 });
+  if (error || !data || !data.length) return "";
+  const ids = Array.from(new Set(data.filter((r: any) => r.student_id).map((r: any) => r.student_id)));
+  const names: Record<string, string> = {};
+  if (ids.length) {
+    const { data: profs } = await supabase.from("profiles").select("user_id, full_name").in("user_id", ids);
+    for (const p of profs || []) names[p.user_id] = p.full_name;
+  }
+  const rows = data.map((r: any) => {
+    const who = r.student_id ? (names[r.student_id] || "student") : "unknown contact";
+    const icon = r.kind === "call" ? "📞" : "💬";
+    return `• ${icon} [${fmtDate(r.when_at)}] ${who}: ${String(r.snippet).slice(0, 220)}`;
+  });
+  return `\n## 🔎 SEARCH MATCHES for "${q}"\n${rows.join("\n")}`;
 }
 
-// Build system prompt for staff - ENHANCED with full system awareness
-function buildStaffSystemPrompt(context: any, language: string): string {
-  const langInstructions: Record<string, string> = {
-    uz: `MUHIM: Faqat O'zbek tilida javob bering.
-
-O'ZBEK TILIDA ISHLASH QOIDALARI:
-- Xodimlar bilan hurmatli muomala qiling
-- CRM atamalarini o'zbekcha ishlating:
-  - Talaba = Student
-  - Hujjat = Document  
-  - To'lov = Payment
-  - Vazifa = Task
-  - Ariza = Application
-  - Qabul = Admission
-  - Lead = Potentsial mijoz
-  - Muddati o'tgan = Overdue
-  - Kutilmoqda = Pending
-  - Tasdiqlangan = Approved
-  - Rad etilgan = Rejected
-- Hisobotlarni o'zbekcha taqdim eting
-- Raqamlarni aniq ko'rsating`,
-
-    ru: `ВАЖНО: Отвечайте ТОЛЬКО на русском языке. Используйте профессиональную терминологию CRM.`,
-
-    ko: `중요: 한국어로만 답변해 주세요. CRM 전문 용어를 한국어로 사용하세요.`,
-
-    en: "Respond in English. Use professional CRM terminology.",
-  };
-
-  const sys = context.systemContext;
-  
-  // Format tasks
-  const taskList = context.assignedTasks.slice(0, 15).map((t: any) => {
-    const urgency = t.priority === "urgent" ? "🔴" : t.priority === "high" ? "🟠" : "🟢";
-    return `${urgency} [${t.priority.toUpperCase()}] ${t.title}
-   Student: ${t.student?.full_name || "N/A"} (${t.student?.phone || "no phone"}) | Status: ${t.status}${t.due_date ? ` | Due: ${new Date(t.due_date).toLocaleDateString()}` : ""}`;
-  }).join("\n") || "No pending tasks";
-
-  // Recent applications
-  const recentApps = (sys?.recentActivity?.applications || []).slice(0, 10).map((a: any) => 
-    `• ${a.student?.full_name || "Unknown"} → ${a.university?.name_en || "Unknown"}: ${formatStatus(a.status)} ${a.decision ? `(${a.decision})` : ""}`
-  ).join("\n") || "None";
-
-  // Recent documents
-  const recentDocs = (sys?.recentActivity?.documents || []).slice(0, 10).map((d: any) => 
-    `• ${d.student?.full_name || "Unknown"}: ${d.name} (${formatDocStatus(d.status)})`
-  ).join("\n") || "None";
-
-  // Recent payments
-  const recentPayments = (sys?.recentActivity?.payments || []).slice(0, 10).map((p: any) => 
-    `• ${p.student?.full_name || "Unknown"}: $${p.amount} (${p.status}) - ${p.payment_type}`
-  ).join("\n") || "None";
-
-  // Recent leads
-  const recentLeads = (sys?.recentActivity?.leads || []).slice(0, 10).map((l: any) => 
-    `• ${l.full_name} (${l.phone || "no phone"}) - ${l.status} | Source: ${l.source}${l.priority_score ? ` | Priority: ${l.priority_score}` : ""}`
-  ).join("\n") || "None";
-
-  // All students list
-  const studentList = context.recentStudents.slice(0, 100).map((s: any) => 
-    `• ${s.full_name || "Unnamed"} | ${s.phone || "No phone"} | ${s.office_location || "No office"} | ${s.city || "Unknown city"} | Code: ${s.magic_code || "N/A"}`
-  ).join("\n");
-
-  // Staff presence
-  const onlineStaff = (sys?.staff?.presence || []).filter((p: any) => p.status === 'online').map((p: any) => 
-    `• ${p.profile?.full_name || "Unknown"} (online)`
-  ).join("\n") || "No staff online";
-
-  // Universities
-  const uniList = (sys?.universities || []).slice(0, 20).map((u: any) => 
-    `• ${u.name_en} | ${u.city || "Korea"} | Rank: ${u.ranking || "N/A"} | Visible: ${u.is_visible_on_map ? "Yes" : "No"}`
-  ).join("\n") || "No universities";
-
-  // Scheduled payments
-  const scheduledPayments = (sys?.financial?.scheduled || []).filter((sp: any) => sp.status === 'pending').slice(0, 10).map((sp: any) => 
-    `• ${sp.student?.full_name || "Unknown"}: $${sp.amount} (${sp.payment_type}) - ${sp.scheduled_date ? new Date(sp.scheduled_date).toLocaleDateString() : 'TBD'}`
-  ).join("\n") || "None pending";
-
-  // Application form changes (alerts)
-  const formChanges = (sys?.applicationForms?.changes || []).slice(0, 5).map((c: any) => 
-    `⚠️ ${c.university?.name_en}: ${c.field_name} changed (${c.severity})`
-  ).join("\n") || "No pending changes";
-
-  // Searched student details
-  let queriedStudentInfo = "";
-  if (context.queriedStudents && context.queriedStudents.length > 0) {
-    queriedStudentInfo = "\n\n# 🔍 SEARCHED STUDENT DETAILS\n";
-    queriedStudentInfo += context.queriedStudents.map((s: any) => formatStudentDetails(s)).join("\n\n");
-  }
-
-  // Generate insights and alerts
-  const insights: string[] = [];
-  if ((sys?.statusBreakdowns?.documents?.pending || 0) > 5) {
-    insights.push(`⚠️ ${sys.statusBreakdowns.documents.pending} documents awaiting review`);
-  }
-  if ((sys?.statusBreakdowns?.payments?.overdue || 0) > 0) {
-    insights.push(`🔴 ${sys.statusBreakdowns.payments.overdue} overdue payments need attention`);
-  }
-  if ((sys?.statusBreakdowns?.messages?.unread || 0) > 0) {
-    insights.push(`📬 ${sys.statusBreakdowns.messages.unread} unread messages`);
-  }
-  if (context.assignedTasks.some((t: any) => t.priority === "urgent")) {
-    insights.push(`🚨 You have urgent tasks requiring immediate attention`);
-  }
-  if ((sys?.leadStats?.highPriority || 0) > 0) {
-    insights.push(`⭐ ${sys.leadStats.highPriority} high-priority leads need follow-up`);
-  }
-  if ((sys?.applicationForms?.changes || []).length > 0) {
-    insights.push(`📝 ${sys.applicationForms.changes.length} university application form changes detected`);
-  }
-
-  return `# 🤖 HANGUK AI - FULL SYSTEM CRM ASSISTANT
-
-${langInstructions[language] || langInstructions.en}
-
-## Your Identity
-You are Hanguk AI, an intelligent CRM assistant with COMPLETE ACCESS to ALL system data. You can answer ANY question about students, leads, payments, documents, universities, tasks, and all operations in the system.
-
-## Current Staff Member
-**Name:** ${context.profile?.full_name || "Staff"}
-**Roles:** ${context.roles.join(", ") || "No roles assigned"}
-
----
-
-# 📊 COMPLETE SYSTEM DASHBOARD
-
-## 📈 CORE METRICS
-| Metric | Count |
-|--------|-------|
-| 👥 Total Students | ${sys?.counts?.totalStudents || 0} |
-| 🎯 Total Leads | ${sys?.counts?.totalLeads || 0} |
-| 🏫 Universities | ${sys?.counts?.totalUniversities || 0} |
-| 📋 Applications | ${sys?.counts?.totalApplications || 0} |
-| 📄 Documents | ${sys?.counts?.totalDocuments || 0} |
-| 💳 Payments | ${sys?.counts?.totalPayments || 0} |
-| ✅ Tasks | ${sys?.counts?.totalTasks || 0} |
-| 💬 Messages | ${sys?.counts?.totalMessages || 0} |
-| 📞 Calls | ${sys?.counts?.totalCalls || 0} |
-
-## 💰 FINANCIAL SUMMARY
-| Metric | Amount |
-|--------|--------|
-| 💵 Total Collected | $${(sys?.financialSummary?.totalRevenue || 0).toLocaleString()} |
-| ⏳ Pending Amount | $${(sys?.financialSummary?.totalPending || 0).toLocaleString()} |
-| 🔴 Overdue Amount | $${(sys?.financialSummary?.totalOverdue || 0).toLocaleString()} |
-
-## 🎯 LEAD PIPELINE
-| Stage | Count |
-|-------|-------|
-| 🆕 New | ${sys?.leadStats?.new || 0} |
-| 📞 Contacted | ${sys?.leadStats?.contacted || 0} |
-| ✅ Qualified | ${sys?.leadStats?.qualified || 0} |
-| 🎓 Converted | ${sys?.leadStats?.converted || 0} |
-| ❌ Lost | ${sys?.leadStats?.lost || 0} |
-| ⭐ High Priority | ${sys?.leadStats?.highPriority || 0} |
-
-## 📄 DOCUMENT STATUS
-| Status | Count |
-|--------|-------|
-| 📤 Pending Review | ${sys?.statusBreakdowns?.documents?.pending || 0} |
-| ✅ Approved | ${sys?.statusBreakdowns?.documents?.approved || 0} |
-| ❌ Rejected | ${sys?.statusBreakdowns?.documents?.rejected || 0} |
-
-## 💳 PAYMENT STATUS
-| Status | Count |
-|--------|-------|
-| ⏳ Pending | ${sys?.statusBreakdowns?.payments?.pending || 0} |
-| 🔴 Overdue | ${sys?.statusBreakdowns?.payments?.overdue || 0} |
-| ✅ Completed | ${sys?.statusBreakdowns?.payments?.completed || 0} |
-
-## ✅ TASK STATUS
-| Status | Count |
-|--------|-------|
-| 📋 Pending | ${sys?.statusBreakdowns?.tasks?.pending || 0} |
-| ✅ Completed | ${sys?.statusBreakdowns?.tasks?.completed || 0} |
-
-${insights.length > 0 ? `\n## 🔔 ALERTS & INSIGHTS\n${insights.join("\n")}` : ""}
-
----
-
-# 👤 YOUR TASKS (${context.assignedTasks.length} pending)
-${taskList}
-
----
-
-# 📈 RECENT ACTIVITY
-
-## Latest Applications (20)
-${recentApps}
-
-## Latest Documents (20)
-${recentDocs}
-
-## Latest Payments (10)
-${recentPayments}
-
-## Latest Leads (10)
-${recentLeads}
-
----
-
-# 📅 SCHEDULED PAYMENTS (Upcoming)
-${scheduledPayments}
-
----
-
-# 📝 APPLICATION FORM ALERTS
-${formChanges}
-
----
-
-# 👥 STAFF ONLINE
-${onlineStaff}
-
----
-
-# 🏫 UNIVERSITIES (${(sys?.universities || []).length})
-${uniList}
-
----
-
-# 👥 ALL STUDENTS (${context.recentStudents.length})
-${studentList}
-${queriedStudentInfo}
-
----
-
-# 🎯 ALL LEADS SUMMARY
-Total: ${sys?.leadStats?.total || 0}
-High Priority (score ≥70): ${sys?.leadStats?.highPriority || 0}
-
-Recent leads:
-${(sys?.allLeads || []).slice(0, 20).map((l: any) => 
-  `• ${l.full_name} | ${l.phone || "no phone"} | ${l.email || "no email"} | Status: ${l.status} | Source: ${l.source} | Priority: ${l.priority_score || 0}
-   ${l.preferred_university ? `Interested: ${l.preferred_university}` : ""} ${l.next_follow_up ? `| Follow-up: ${new Date(l.next_follow_up).toLocaleDateString()}` : ""}`
-).join("\n")}
-
----
-
-# 📋 RESPONSE GUIDELINES
-
-## I CAN ANSWER QUESTIONS ABOUT:
-- **Students**: Any student's profile, applications, documents, payments, tasks, notes
-- **Leads**: Lead status, priority, contact history, conversion
-- **Payments**: Who paid, who owes, overdue amounts, scheduled payments
-- **Documents**: Document status, missing documents, review needed
-- **Applications**: Status, university details, decision tracking
-- **Universities**: Rankings, locations, application requirements
-- **Tasks**: Assigned tasks, priorities, deadlines
-- **Staff**: Online status, assigned students, performance
-- **Financial**: Revenue, pending amounts, budget allocation
-- **Communication**: Message threads, call history
-
-## Student Lookup
-When asked about a specific student:
-1. Search the data above
-2. If found in SEARCHED STUDENT DETAILS, provide complete info
-3. Include: profile, applications, documents, payments, notes, tasks
-4. If not found, suggest checking spelling or phone number
-
-## Analytics Questions
-- "How many students?" → Provide count and breakdown by status/office
-- "Revenue this month?" → Show financial summary
-- "Which leads need follow-up?" → List high-priority leads
-- "Overdue payments?" → List students with overdue amounts
-
-## Actionable Suggestions
-Always end with 1-3 specific recommendations:
-- "Follow up with [Lead] - high priority score"
-- "Review [Student]'s documents - pending for X days"
-- "[Task] is overdue - needs immediate attention"
-
-## Formatting
-- Use **tables** for comparisons
-- Use **bullet points** for lists
-- Use **bold** for key information
-- Use emojis for visual scanning:
-  - 🔴 Urgent/Overdue
-  - 🟠 High priority
-  - 🟢 Normal/Good
-  - ⏳ Pending
-  - ✅ Completed`;
+async function lightStats(supabase: any): Promise<string> {
+  const [students, overdue, pendingDocs, unread, followups, leads] = await Promise.all([
+    supabase.from("profiles").select("*", { count: "exact", head: true }),
+    supabase.from("payments").select("*", { count: "exact", head: true }).eq("status", "overdue"),
+    supabase.from("documents").select("*", { count: "exact", head: true }).eq("status", "uploaded"),
+    supabase.from("message_threads").select("*", { count: "exact", head: true }).gt("unread_count", 0),
+    supabase.from("call_analyses").select("*", { count: "exact", head: true }).eq("follow_up_needed", true),
+    supabase.from("leads").select("*", { count: "exact", head: true }),
+  ]);
+  return `Students: ${students.count ?? 0} | Leads: ${leads.count ?? 0} | Overdue payments: ${overdue.count ?? 0} | Docs pending review: ${pendingDocs.count ?? 0} | Unread chats: ${unread.count ?? 0} | Calls needing follow-up: ${followups.count ?? 0}`;
 }
 
-// Helper functions for formatting - with Uzbek support
-function formatStatus(status: string, lang: string = "en"): string {
-  if (lang === "uz") {
-    const uzbekStatusMap: Record<string, string> = {
-      documents_collection: "📋 Hujjatlar yig'ilmoqda",
-      documents_translation: "🔄 Hujjatlar tarjima qilinmoqda",
-      apostille: "📜 Apostil jarayonida",
-      application_submitted: "📤 Ariza topshirildi",
-      university_review: "🏫 Universitet ko'rib chiqmoqda",
-      accepted: "✅ Qabul qilindi",
-      rejected: "❌ Rad etildi",
-      visa_processing: "🛂 Viza jarayonida",
-      completed: "🎉 Tugallandi",
-    };
-    return uzbekStatusMap[status] || status;
-  }
-  
-  const statusMap: Record<string, string> = {
-    documents_collection: "📋 Collecting Documents",
-    documents_translation: "🔄 Translating Documents",
-    apostille: "📜 Apostille Processing",
-    application_submitted: "📤 Application Submitted",
-    university_review: "🏫 Under University Review",
-    accepted: "✅ Accepted",
-    rejected: "❌ Rejected",
-    visa_processing: "🛂 Visa Processing",
-    completed: "🎉 Completed",
-  };
-  return statusMap[status] || status;
+// ---- leads -----------------------------------------------------------------
+const LEAD_WORDS = ["lead", "exam", "topik", "ielts", "follow", "intake", "pipeline", "prospect", "convert", "stipend"];
+function leadIntent(message: string): boolean {
+  const s = message.toLowerCase();
+  return LEAD_WORDS.some((w) => s.includes(w));
 }
 
-function formatDecision(decision: string, lang: string = "en"): string {
-  if (lang === "uz") {
-    const uzbekDecisionMap: Record<string, string> = {
-      accepted: "✅ Qabul qilindi",
-      rejected: "❌ Rad etildi", 
-      pending: "⏳ Kutilmoqda",
-      waitlisted: "📋 Kutish ro'yxatida",
-    };
-    return uzbekDecisionMap[decision] || decision;
-  }
-  
-  const decisionMap: Record<string, string> = {
-    accepted: "✅ Accepted",
-    rejected: "❌ Rejected",
-    pending: "⏳ Pending",
-    waitlisted: "📋 Waitlisted",
-  };
-  return decisionMap[decision] || decision;
+async function getLeads(supabase: any) {
+  const { data } = await supabase.from("leads")
+    .select("full_name, phone, status, priority_score, source, exam_date, exam_type, target_intake, preferred_program, preferred_university, city, education_level, korean_level, next_follow_up, interest_level")
+    .order("priority_score", { ascending: false }).limit(300);
+  return data || [];
 }
 
-function formatDocStatus(status: string, lang: string = "en"): string {
-  if (lang === "uz") {
-    const uzbekDocStatusMap: Record<string, string> = {
-      uploaded: "📤 Yuklangan (tekshirilmoqda)",
-      approved: "✅ Tasdiqlangan",
-      rejected: "❌ Rad etilgan",
-      reviewing: "👀 Ko'rib chiqilmoqda",
-    };
-    return uzbekDocStatusMap[status] || status;
-  }
-  
-  const statusMap: Record<string, string> = {
-    uploaded: "📤 Uploaded (Pending Review)",
-    approved: "✅ Approved",
-    rejected: "❌ Rejected",
-    reviewing: "👀 Under Review",
-  };
-  return statusMap[status] || status;
+function formatLeads(leads: any[]): string {
+  return leads.map((l: any) => "• " + [
+    l.full_name || "—", l.phone || "", `status:${l.status || "new"}`, `prio:${l.priority_score ?? 0}`,
+    l.source ? `src:${l.source}` : "",
+    (l.exam_type || l.exam_date) ? `exam:${l.exam_type || ""} ${l.exam_date || ""}`.trim() : "",
+    l.target_intake ? `intake:${l.target_intake}` : "",
+    (l.preferred_program || l.preferred_university) ? `prog:${l.preferred_program || l.preferred_university}` : "",
+    l.city ? `city:${l.city}` : "",
+    l.korean_level ? `korean:${l.korean_level}` : "",
+    l.next_follow_up ? `follow:${fmtDate(l.next_follow_up)}` : "",
+  ].filter(Boolean).join(" | ")).join("\n");
 }
 
-function formatPaymentStatus(status: string, lang: string = "en"): string {
-  if (lang === "uz") {
-    const uzbekPaymentStatusMap: Record<string, string> = {
-      pending: "⏳ Kutilmoqda",
-      partial: "🔄 Qisman to'langan",
-      completed: "✅ To'langan",
-      overdue: "🔴 Muddati o'tgan",
-    };
-    return uzbekPaymentStatusMap[status] || status;
-  }
-  
-  const statusMap: Record<string, string> = {
-    pending: "⏳ Pending",
-    partial: "🔄 Partially Paid",
-    completed: "✅ Paid",
-    overdue: "🔴 Overdue",
-  };
-  return statusMap[status] || status;
+// ---- prompts ---------------------------------------------------------------
+function langLine(language: string): string {
+  if (language === "uz") return "MUHIM: Faqat o'zbek tilida javob bering.";
+  if (language === "ru") return "ВАЖНО: Отвечайте только на русском языке.";
+  if (language === "ko") return "중요: 한국어로만 답변하세요.";
+  return "Respond in English.";
 }
 
+async function buildStaffPrompt(supabase: any, userId: string, message: string, language: string): Promise<string> {
+  const { data: profile } = await supabase.from("profiles").select("full_name").eq("user_id", userId).maybeSingle();
+  const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", userId);
+
+  // Match the person across capitalized names AND lowercase tokens, then look
+  // them up in BOTH students (profiles) and the leads pipeline by name.
+  const searchTerms = Array.from(new Set([...candidateNames(message), ...nameSearchTokens(message)])).slice(0, 5);
+  let queried: any[] = [];
+  let namedLeads: any[] = [];
+  if (searchTerms.length) {
+    const ors = searchTerms.map((n) => `full_name.ilike.%${n}%`).join(",");
+    const [profsRes, leadsRes] = await Promise.all([
+      supabase.from("profiles").select("user_id, full_name").or(ors).limit(3),
+      supabase.from("leads")
+        .select("full_name, phone, status, priority_score, source, exam_date, exam_type, target_intake, preferred_program, preferred_university, city, education_level, korean_level, next_follow_up, interest_level")
+        .or(ors).limit(5),
+    ]);
+    queried = profsRes.data || [];
+    namedLeads = leadsRes.data || [];
+  }
+  const bundles = await Promise.all(queried.map(async (s: any) => {
+    const b = await getStudentBundle(supabase, s.user_id);
+    (b as any).docText = await getStudentDocs(supabase, s.user_id);
+    return b;
+  }));
+  const [stats, search] = await Promise.all([lightStats(supabase), crossSearch(supabase, message)]);
+
+  let studentSection = "";
+  if (bundles.length) {
+    studentSection = "\n## 👤 STUDENT(S) IN THIS QUESTION\n" + bundles.map((b) => formatBundle(b, { staff: true })).join("\n\n");
+  }
+
+  let namedLeadsSection = "";
+  if (namedLeads.length) {
+    namedLeadsSection = "\n## 🎯 MATCHING LEAD(S) BY NAME\n" + formatLeads(namedLeads);
+  }
+
+  let leadsSection = "";
+  if (leadIntent(message)) {
+    const leads = await getLeads(supabase);
+    leadsSection = `\n## 🎯 LEADS (${leads.length}) — filter this list to answer lead questions\n${formatLeads(leads)}`;
+  }
+
+  return `# Hanguk AI — CRM assistant for staff
+${langLine(language)}
+
+You are Hanguk AI for Hanguk Consulting (Korean university admissions, Uzbekistan).
+You can READ each student's phone-call summaries (Uzbek), Telegram chats, applications, documents, payments and tasks, AND the full leads pipeline. Answer naturally and **cite your source** inline, e.g. "(call 05/06)" or "(chat 04/06)". If you don't have the info, say so and suggest where to look. Be concise.
+
+Staff: ${profile?.full_name || "Staff"} (${(roles || []).map((r: any) => r.role).join(", ") || "staff"})
+
+## 📊 QUICK NUMBERS
+${stats}
+${studentSection}
+${namedLeadsSection}
+${leadsSection}
+${search}
+
+## HOW TO ANSWER
+- "What did we discuss with X / what did we promise X?" → use that student's RECENT CALLS + CHAT above, quote specifics with dates.
+- "Who asked about X this week?" → use SEARCH MATCHES above, list the students.
+- "List leads who [take the exam in May / are high priority / from Telegram / want a Master's / from Tashkent]" → filter the LEADS list by exam_date, exam_type, target_intake, status, source, priority, program, city or follow-up date, and return a clear numbered list with phone numbers.
+- Always cite the date + (call/chat). End with the suggested next step if there is one.`;
+}
+
+async function buildStudentPrompt(supabase: any, userId: string, language: string): Promise<string> {
+  const b = await getStudentBundle(supabase, userId);
+  (b as any).docText = await getStudentDocs(supabase, userId);
+  return `# Hanguk AI — your study-abroad assistant
+${langLine(language)}
+
+You are Hanguk AI, helping THIS student with their Korean university application. Be warm, clear and encouraging. You can see their applications, documents, payments, and their own calls/chats with the team.
+
+${formatBundle(b, { staff: false })}
+
+## RULES
+- Only discuss THIS student's own information.
+- Never reveal staff notes, other students, internal finances, commissions, or system details. If asked, say: "Please contact your consultant for that."
+- End with 1–2 helpful next steps based on the data above.`;
+}
+
+// ---- handler ---------------------------------------------------------------
 serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
     const { message, user_id, user_type, language: requestedLang = "en" } = await req.json();
-
     if (!message || !user_id || !user_type) {
-      return new Response(
-        JSON.stringify({ error: "Missing required fields: message, user_id, user_type" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ error: "Missing required fields: message, user_id, user_type" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
+    if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY is not configured");
 
-    // Auto-detect Uzbek if message appears to be in Uzbek, regardless of UI language
-    const detectedUzbek = isUzbekMessage(message);
-    const language = detectedUzbek ? "uz" : requestedLang;
-    
-    console.log(`[${user_type}] ${user_id} (lang: ${language}, detected_uz: ${detectedUzbek}): ${message.substring(0, 100)}...`);
+    const language = isUzbek(message) ? "uz" : requestedLang;
+    const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
-    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
-    if (!GEMINI_API_KEY) {
-      throw new Error("GEMINI_API_KEY is not configured");
-    }
+    const systemPrompt = user_type === "student"
+      ? await buildStudentPrompt(supabase, user_id, language)
+      : await buildStaffPrompt(supabase, user_id, message, language);
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    // Short-term chat memory.
+    const { data: prev } = await supabase.from("ai_conversations")
+      .select("role, content").eq("user_id", user_id).order("created_at", { ascending: false }).limit(10);
+    const history = (prev || []).reverse();
 
-    let context: any;
-    let systemPrompt: string;
-
-    if (user_type === "student") {
-      context = await getStudentContext(supabase, user_id);
-      systemPrompt = buildStudentSystemPrompt(context, language);
-    } else {
-      const studentQuery = extractStudentQuery(message);
-      context = await getStaffContext(supabase, user_id, studentQuery);
-      systemPrompt = buildStaffSystemPrompt(context, language);
-    }
-
-    await supabase.from("ai_conversations").insert({
-      user_id,
-      user_type,
-      role: "user",
-      content: message,
-    });
+    await supabase.from("ai_conversations").insert({ user_id, user_type, role: "user", content: message });
 
     const messages = [
       { role: "system", content: systemPrompt },
-      ...context.previousChats.slice(-10).map((c: any) => ({
-        role: c.role,
-        content: c.content,
-      })),
+      ...history.map((c: any) => ({ role: c.role, content: c.content })),
       { role: "user", content: message },
     ];
 
-    console.log("System prompt length:", systemPrompt.length);
-
     const response = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${GEMINI_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages,
-        stream: true,
-      }),
+      headers: { Authorization: `Bearer ${GEMINI_API_KEY}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ model: "gemini-2.5-flash", messages, stream: true }),
     });
 
     if (!response.ok) {
-      if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "AI service unavailable. Please contact support." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
+      if (response.status === 429) return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again shortly." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       const errorText = await response.text();
       console.error("AI gateway error:", response.status, errorText);
       throw new Error(`AI gateway error: ${response.status}`);
     }
 
+    // Pipe the SSE through, accumulating the full text to save afterwards.
     const reader = response.body!.getReader();
     const decoder = new TextDecoder();
     let fullResponse = "";
-    
     const { readable, writable } = new TransformStream();
     const writer = writable.getWriter();
 
@@ -1372,51 +333,32 @@ serve(async (req) => {
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
-          
-          const chunk = decoder.decode(value, { stream: true });
           await writer.write(value);
-          
-          const lines = chunk.split("\n");
-          for (const line of lines) {
+          const chunk = decoder.decode(value, { stream: true });
+          for (const line of chunk.split("\n")) {
             if (line.startsWith("data: ") && line !== "data: [DONE]") {
               try {
                 const json = JSON.parse(line.slice(6));
                 const content = json.choices?.[0]?.delta?.content;
-                if (content) {
-                  fullResponse += content;
-                }
-              } catch {
-                // Ignore parse errors
-              }
+                if (content) fullResponse += content;
+              } catch { /* ignore */ }
             }
           }
         }
-        
         if (fullResponse) {
-          await supabase.from("ai_conversations").insert({
-            user_id,
-            user_type,
-            role: "assistant",
-            content: fullResponse,
-          });
+          await supabase.from("ai_conversations").insert({ user_id, user_type, role: "assistant", content: fullResponse });
         }
-        
         await writer.close();
-      } catch (error) {
-        console.error("Stream processing error:", error);
-        await writer.abort(error);
+      } catch (e) {
+        console.error("stream error:", e);
+        await writer.abort(e);
       }
     })();
 
-    return new Response(readable, {
-      headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
-    });
-
+    return new Response(readable, { headers: { ...corsHeaders, "Content-Type": "text/event-stream" } });
   } catch (error) {
     console.error("Hanguk AI error:", error);
-    return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 });

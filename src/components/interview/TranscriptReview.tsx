@@ -69,15 +69,15 @@ export function TranscriptReview({ messages, messageScores = [], onBack }: Trans
   };
 
   const getScoreColor = (score: number) => {
-    if (score >= 8) return 'text-green-600 bg-green-100 dark:bg-green-900/30';
-    if (score >= 6) return 'text-yellow-600 bg-yellow-100 dark:bg-yellow-900/30';
-    return 'text-red-600 bg-red-100 dark:bg-red-900/30';
+    if (score >= 8) return 'text-success bg-success/10 dark:bg-success/30';
+    if (score >= 6) return 'text-warning bg-warning/10 dark:bg-warning/30';
+    return 'text-destructive bg-destructive/10 dark:bg-destructive/30';
   };
 
   const getScoreBadgeColor = (score: number) => {
-    if (score >= 8) return 'bg-green-500';
-    if (score >= 6) return 'bg-yellow-500';
-    return 'bg-red-500';
+    if (score >= 8) return 'bg-success';
+    if (score >= 6) return 'bg-warning';
+    return 'bg-destructive';
   };
 
   // Group messages into Q&A pairs
@@ -194,15 +194,15 @@ export function TranscriptReview({ messages, messageScores = [], onBack }: Trans
                         <CollapsibleContent className="mt-2 space-y-3">
                           {/* Strengths */}
                           {answerScore.strengths.length > 0 && (
-                            <div className="bg-green-50 dark:bg-green-950/30 rounded-lg p-3">
-                              <div className="flex items-center gap-2 text-green-700 dark:text-green-400 font-medium text-sm mb-2">
+                            <div className="bg-success/10 dark:bg-success/30 rounded-lg p-3">
+                              <div className="flex items-center gap-2 text-success dark:text-success font-medium text-sm mb-2">
                                 <Star className="h-4 w-4" />
                                 {t('interview.strengths', 'Strengths')}
                               </div>
                               <ul className="space-y-1">
                                 {answerScore.strengths.map((s, i) => (
                                   <li key={i} className="text-sm flex items-start gap-2">
-                                    <span className="text-green-600">✓</span>
+                                    <span className="text-success">✓</span>
                                     <span>{s}</span>
                                   </li>
                                 ))}
@@ -212,15 +212,15 @@ export function TranscriptReview({ messages, messageScores = [], onBack }: Trans
 
                           {/* Suggestions */}
                           {answerScore.suggestions.length > 0 && (
-                            <div className="bg-yellow-50 dark:bg-yellow-950/30 rounded-lg p-3">
-                              <div className="flex items-center gap-2 text-yellow-700 dark:text-yellow-400 font-medium text-sm mb-2">
+                            <div className="bg-warning/10 dark:bg-warning/30 rounded-lg p-3">
+                              <div className="flex items-center gap-2 text-warning dark:text-warning font-medium text-sm mb-2">
                                 <AlertCircle className="h-4 w-4" />
                                 {t('interview.suggestions', 'Suggestions')}
                               </div>
                               <ul className="space-y-1">
                                 {answerScore.suggestions.map((s, i) => (
                                   <li key={i} className="text-sm flex items-start gap-2">
-                                    <span className="text-yellow-600">→</span>
+                                    <span className="text-warning">→</span>
                                     <span>{s}</span>
                                   </li>
                                 ))}
@@ -243,8 +243,8 @@ export function TranscriptReview({ messages, messageScores = [], onBack }: Trans
                                   : t('interview.showIdeal', 'Show Ideal Answer')}
                               </Button>
                               {showHint && (
-                                <div className="bg-blue-50 dark:bg-blue-950/30 rounded-lg p-3">
-                                  <p className="text-sm italic text-blue-800 dark:text-blue-300">
+                                <div className="bg-info/10 dark:bg-info/30 rounded-lg p-3">
+                                  <p className="text-sm italic text-info dark:text-info">
                                     "{answerScore.ideal_hint}"
                                   </p>
                                 </div>

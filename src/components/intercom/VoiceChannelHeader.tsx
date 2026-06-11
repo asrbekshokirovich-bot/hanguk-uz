@@ -47,7 +47,7 @@ export function VoiceChannelHeader() {
           className={cn(
             'relative',
             isSpeaking && 'text-primary',
-            someoneSpeakingToMe && 'text-green-500 animate-pulse',
+            someoneSpeakingToMe && 'text-success animate-pulse',
             connectionError && 'text-destructive'
           )}
         >
@@ -68,7 +68,7 @@ export function VoiceChannelHeader() {
               variant="secondary"
               className={cn(
                 'absolute -top-1 -right-1 h-4 min-w-[16px] p-0 flex items-center justify-center text-[10px]',
-                someoneSpeakingToMe && 'bg-green-500 text-white'
+                someoneSpeakingToMe && 'bg-success text-white'
               )}
             >
               {onlineCount}

@@ -58,7 +58,7 @@ class _SplashApp extends StatelessWidget {
                 // Splash logo is decorative; the loading indicator below
                 // is what conveys state to assistive tech.
                 child: Image(
-                  image: AssetImage('assets/images/logo.jpg'),
+                  image: AssetImage('assets/images/app_icon.png'),
                   width: 80,
                   height: 80,
                   fit: BoxFit.cover,
@@ -66,7 +66,8 @@ class _SplashApp extends StatelessWidget {
                 ),
               ),
               SizedBox(height: 24),
-              CircularProgressIndicator(color: Color(0xFF6C63FF)),
+              // Brand lime as the active/loading accent (was off-brand #6C63FF).
+              CircularProgressIndicator(color: Color(0xFFD4E94C)),
             ],
           ),
         ),

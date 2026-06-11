@@ -539,7 +539,7 @@ IMPORTANT:
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'gemini-2.5-flash',
         messages: [
           { role: 'system', content: SYSTEM_PROMPT + (request.languageTrack && request.languageTrack !== 'both' ? `\n\nLANGUAGE TRACK PRIORITY:\nThe user specifically requested the "${request.languageTrack}" track. You MUST:\n- Provide FULL detail for programs available on the ${request.languageTrack} track\n- Only SUMMARIZE programs available exclusively on the other track\n- Clearly mark programs that are available on BOTH tracks\n- If the ${request.languageTrack} track is not available at this university, state this clearly in importantWarnings` : '') },
           { role: 'user', content: userPrompt }

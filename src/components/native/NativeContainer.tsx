@@ -20,7 +20,7 @@ export function NativeContainer({
   
   useStatusBar({
     style: statusBarStyle,
-    backgroundColor: '#1e3a5f',
+    backgroundColor: '#1A3A6C',
     hidden: hideStatusBar
   });
 

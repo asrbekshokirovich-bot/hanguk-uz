@@ -60,3 +60,50 @@ async def test_parse_failure_counted() -> None:
         _FakeConn(rows), limit=10, fetch_blob=lambda p: b"%PDF", run_parse=failing_parse,
     )
     assert (ok, fail) == (0, 1)
+
+
+class _RecordingConn:
+    """Fake conn that also records execute() calls (for the pending-only path)."""
+
+    def __init__(self, rows: list[dict]) -> None:
+        self._rows = rows
+        self.executed: list[tuple] = []
+
+    async def fetch(self, sql: str, *args: object) -> list[dict]:
+        return self._rows
+
+    async def execute(self, sql: str, *args: object) -> str:
+        self.executed.append((sql, args))
+        return "OK"
+
+
+async def test_pending_only_marks_failure_failed() -> None:
+    # A broken upload must be flipped to 'failed' so it isn't re-billed next run.
+    gid = uuid4()
+    conn = _RecordingConn([{"id": gid, "storage_path": "bad.pdf"}])
+
+    async def failing_parse(_conn, _gid, _data) -> None:
+        raise ValueError("no text extracted")
+
+    ok, fail = await reparse_worker.reparse_pending(
+        conn, limit=10, pending_only=True,
+        fetch_blob=lambda p: b"%PDF", run_parse=failing_parse,
+    )
+    assert (ok, fail) == (0, 1)
+    assert any("parse_status='failed'" in sql and args == (gid,)
+               for sql, args in conn.executed)
+
+
+async def test_pending_only_success_does_not_touch_status() -> None:
+    gid = uuid4()
+    conn = _RecordingConn([{"id": gid, "storage_path": "ok.pdf"}])
+
+    async def ok_parse(_conn, _gid, _data) -> None:
+        return None
+
+    ok, fail = await reparse_worker.reparse_pending(
+        conn, limit=10, pending_only=True,
+        fetch_blob=lambda p: b"%PDF", run_parse=ok_parse,
+    )
+    assert (ok, fail) == (1, 0)
+    assert conn.executed == []

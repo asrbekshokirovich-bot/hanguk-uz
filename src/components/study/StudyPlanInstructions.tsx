@@ -93,7 +93,7 @@ function SectionCard({
                     key={idx} 
                     className="flex items-start gap-3 p-3 bg-muted/30 rounded-lg border border-border/50"
                   >
-                    <Check className="h-5 w-5 text-green-500 shrink-0 mt-0.5" />
+                    <Check className="h-5 w-5 text-success shrink-0 mt-0.5" />
                     <span className="text-sm leading-relaxed">{formatted.content}</span>
                   </div>
                 );
@@ -176,7 +176,7 @@ export function StudyPlanInstructions({
       t('study.introPoint4', 'It should demonstrate your understanding of the program, your academic background, and how studying in Korea aligns with your career goals.'),
     ],
     type: 'intro' as const,
-    colorTheme: 'from-blue-500/10 to-blue-600/5 border-blue-200 dark:border-blue-800',
+    colorTheme: 'from-info/10 to-info/5 border-info/30 dark:border-info',
   }), [t, documentLabel]);
 
   const sections = useMemo(() => {
@@ -285,7 +285,7 @@ export function StudyPlanInstructions({
                       idx === currentIndex 
                         ? "bg-primary scale-125" 
                         : idx < currentIndex 
-                          ? "bg-green-500" 
+                          ? "bg-success" 
                           : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
                     )}
                     title={section.title}
@@ -314,7 +314,7 @@ export function StudyPlanInstructions({
             <div className="space-y-4">
               <div className="bg-muted/50 rounded-lg p-4 border">
                 <div className="flex items-center gap-2 mb-3">
-                  <CheckCircle className="h-5 w-5 text-green-500" />
+                  <CheckCircle className="h-5 w-5 text-success" />
                   <span className="font-medium">{t('study.writingGuideLoaded', 'Writing Guide Loaded')}</span>
                 </div>
                 <ScrollArea className="h-[400px]">
@@ -338,13 +338,13 @@ export function StudyPlanInstructions({
       <TutorialVideoSection documentType={documentType} />
 
       {/* Tips Card */}
-      <Card className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 border-amber-200 dark:border-amber-800">
+      <Card className="bg-gradient-to-r from-warning to-warning dark:from-warning/20 dark:to-warning/20 border-warning/30 dark:border-warning">
         <CardContent className="pt-6">
           <div className="flex items-start gap-3">
-            <Lightbulb className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+            <Lightbulb className="h-5 w-5 text-warning shrink-0 mt-0.5" />
             <div>
-              <p className="font-medium text-amber-800 dark:text-amber-200 mb-1">{t('study.whatYouWillLearn', "What You'll Learn")}</p>
-              <ul className="text-sm text-amber-700 dark:text-amber-300 space-y-1">
+              <p className="font-medium text-warning dark:text-warning mb-1">{t('study.whatYouWillLearn', "What You'll Learn")}</p>
+              <ul className="text-sm text-warning dark:text-warning space-y-1">
                 <li>• {t('study.learnTip1', 'Key sections every {{documentType}} should include', { documentType: documentLabel.toLowerCase() })}</li>
                 <li>• {t('study.learnTip2', 'Common mistakes to avoid')}</li>
                 <li>• {t('study.learnTip3', 'Tips for making your document stand out')}</li>

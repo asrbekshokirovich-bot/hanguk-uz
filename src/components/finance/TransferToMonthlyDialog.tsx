@@ -131,9 +131,9 @@ export function TransferToMonthlyDialog({
                     >
                       <div className="flex items-center gap-2">
                         {item.name === 'Charity' ? (
-                          <Heart className="h-4 w-4 text-pink-500" />
+                          <Heart className="h-4 w-4 text-primary" />
                         ) : (
-                          <Users className="h-4 w-4 text-blue-500" />
+                          <Users className="h-4 w-4 text-info" />
                         )}
                         <span className="font-medium">{item.name}</span>
                         <Badge variant="outline" className="text-xs">

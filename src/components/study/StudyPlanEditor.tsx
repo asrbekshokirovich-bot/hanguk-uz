@@ -406,12 +406,12 @@ export function StudyPlanEditor({
               <span>{wordCount} {t('study.words', 'words')}</span>
               {lastSaveTime && (
                 <span className="flex items-center gap-1">
-                  <CheckCircle className="h-3 w-3 text-green-500" />
+                  <CheckCircle className="h-3 w-3 text-success" />
                   {t('study.saved', 'Saved')} {formatDistanceToNow(lastSaveTime, { addSuffix: true })}
                 </span>
               )}
               {hasChanges && (
-                <span className="text-amber-500">{t('study.unsavedChanges', 'Unsaved changes')}</span>
+                <span className="text-warning">{t('study.unsavedChanges', 'Unsaved changes')}</span>
               )}
             </div>
             <span>
@@ -444,13 +444,13 @@ export function StudyPlanEditor({
       </Card>
 
       {/* Writing Tips */}
-      <Card className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 border-green-200 dark:border-green-800">
+      <Card className="bg-gradient-to-r from-success to-success dark:from-success/20 dark:to-success/20 border-success/30 dark:border-success">
         <CardContent className="pt-6">
           <div className="flex items-start gap-3">
-            <FileEdit className="h-5 w-5 text-green-600 shrink-0 mt-0.5" />
+            <FileEdit className="h-5 w-5 text-success shrink-0 mt-0.5" />
             <div>
-              <p className="font-medium text-green-800 dark:text-green-200 mb-1">{t('study.writingTips', 'Writing Tips')}</p>
-              <ul className="text-sm text-green-700 dark:text-green-300 space-y-1">
+              <p className="font-medium text-success dark:text-success mb-1">{t('study.writingTips', 'Writing Tips')}</p>
+              <ul className="text-sm text-success dark:text-success space-y-1">
                 <li>• {t('study.writingTip1', 'Be specific and use concrete examples')}</li>
                 <li>• {t('study.writingTip2', 'Mention your target university by name')}</li>
                 <li>• {t('study.writingTip3', 'Connect your past experiences to future goals')}</li>

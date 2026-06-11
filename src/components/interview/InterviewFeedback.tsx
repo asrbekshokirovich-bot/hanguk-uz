@@ -54,35 +54,35 @@ export function InterviewFeedback({
       label: t('interview.communication', 'Communication'),
       score: feedback.communication_score,
       icon: MessageSquare,
-      color: 'text-blue-500'
+      color: 'text-info'
     },
     { 
       key: 'confidence', 
       label: t('interview.confidence', 'Confidence'),
       score: feedback.confidence_score,
       icon: Shield,
-      color: 'text-green-500'
+      color: 'text-success'
     },
     { 
       key: 'content', 
       label: t('interview.content', 'Content Quality'),
       score: feedback.content_score,
       icon: FileText,
-      color: 'text-purple-500'
+      color: 'text-primary'
     },
     { 
       key: 'language', 
       label: t('interview.language', 'Language'),
       score: feedback.language_score,
       icon: Languages,
-      color: 'text-orange-500'
+      color: 'text-warning'
     },
   ];
 
   const getScoreColor = (score: number) => {
-    if (score >= 8) return 'text-green-500';
-    if (score >= 6) return 'text-yellow-500';
-    return 'text-red-500';
+    if (score >= 8) return 'text-success';
+    if (score >= 6) return 'text-warning';
+    return 'text-destructive';
   };
 
   const getScoreLabel = (score: number) => {
@@ -151,7 +151,7 @@ export function InterviewFeedback({
       {/* Strengths */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2 text-green-600">
+          <CardTitle className="text-base flex items-center gap-2 text-success">
             <TrendingUp className="h-4 w-4" />
             {t('interview.strengths', 'Your Strengths')}
           </CardTitle>
@@ -160,7 +160,7 @@ export function InterviewFeedback({
           <ul className="space-y-2">
             {feedback.strengths.map((strength, index) => (
               <li key={index} className="flex items-start gap-2">
-                <span className="text-green-500 mt-0.5">✓</span>
+                <span className="text-success mt-0.5">✓</span>
                 <span className="text-sm">{strength}</span>
               </li>
             ))}
@@ -171,7 +171,7 @@ export function InterviewFeedback({
       {/* Areas for Improvement */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2 text-yellow-600">
+          <CardTitle className="text-base flex items-center gap-2 text-warning">
             <AlertCircle className="h-4 w-4" />
             {t('interview.improvements', 'Areas to Improve')}
           </CardTitle>
@@ -180,7 +180,7 @@ export function InterviewFeedback({
           <ul className="space-y-2">
             {feedback.improvements.map((improvement, index) => (
               <li key={index} className="flex items-start gap-2">
-                <span className="text-yellow-500 mt-0.5">→</span>
+                <span className="text-warning mt-0.5">→</span>
                 <span className="text-sm">{improvement}</span>
               </li>
             ))}

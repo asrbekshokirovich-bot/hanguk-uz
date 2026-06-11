@@ -11,6 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { StudentsReport } from '@/components/reports/StudentsReport';
 import { ApplicationsReport } from '@/components/reports/ApplicationsReport';
 import { PaymentsReport } from '@/components/reports/PaymentsReport';
+import { EmptyState } from '@/components/ui/empty-state';
 import {
   BarChart3,
   CalendarIcon,
@@ -52,12 +53,7 @@ export default function ReportsContent() {
   }
 
   if (!data) {
-    return (
-      <div className="text-center py-12 text-muted-foreground">
-        <BarChart3 className="h-12 w-12 mx-auto mb-4 opacity-50" />
-        <p>No report data available</p>
-      </div>
-    );
+    return <EmptyState icon={BarChart3} title={t('common.noData')} />;
   }
 
   return (
@@ -95,8 +91,8 @@ export default function ReportsContent() {
         <Card>
           <CardContent className="pt-4 pb-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <Users className="h-5 w-5 text-blue-600" />
+              <div className="p-2 bg-info/10 rounded-lg">
+                <Users className="h-5 w-5 text-info" />
               </div>
               <div>
                 <p className="text-2xl font-bold">{data.students.total}</p>
@@ -109,8 +105,8 @@ export default function ReportsContent() {
         <Card>
           <CardContent className="pt-4 pb-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <GraduationCap className="h-5 w-5 text-green-600" />
+              <div className="p-2 bg-success/10 rounded-lg">
+                <GraduationCap className="h-5 w-5 text-success" />
               </div>
               <div>
                 <p className="text-2xl font-bold">{data.applications.total}</p>
@@ -123,8 +119,8 @@ export default function ReportsContent() {
         <Card>
           <CardContent className="pt-4 pb-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-emerald-100 rounded-lg">
-                <DollarSign className="h-5 w-5 text-emerald-600" />
+              <div className="p-2 bg-success/10 rounded-lg">
+                <DollarSign className="h-5 w-5 text-success" />
               </div>
               <div>
                 <p className="text-2xl font-bold">
@@ -139,8 +135,8 @@ export default function ReportsContent() {
         <Card>
           <CardContent className="pt-4 pb-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-orange-100 rounded-lg">
-                <Phone className="h-5 w-5 text-orange-600" />
+              <div className="p-2 bg-warning/10 rounded-lg">
+                <Phone className="h-5 w-5 text-warning" />
               </div>
               <div>
                 <p className="text-2xl font-bold">{data.calls.total}</p>
@@ -153,8 +149,8 @@ export default function ReportsContent() {
         <Card>
           <CardContent className="pt-4 pb-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <ClipboardList className="h-5 w-5 text-purple-600" />
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <ClipboardList className="h-5 w-5 text-primary" />
               </div>
               <div>
                 <p className="text-2xl font-bold">{data.tasks.completionRate.toFixed(0)}%</p>

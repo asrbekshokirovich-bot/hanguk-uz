@@ -63,9 +63,9 @@ export function CallList({ calls, selectedCall, onSelectCall, onDeleteCall }: Ca
       return <PhoneMissed className="h-4 w-4 text-destructive" />;
     }
     return direction === 'incoming' ? (
-      <PhoneIncoming className="h-4 w-4 text-green-500" />
+      <PhoneIncoming className="h-4 w-4 text-success" />
     ) : (
-      <PhoneOutgoing className="h-4 w-4 text-blue-500" />
+      <PhoneOutgoing className="h-4 w-4 text-info" />
     );
   };
 

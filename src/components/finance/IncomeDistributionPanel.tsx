@@ -39,9 +39,9 @@ const recipientIcons: Record<string, typeof Users> = {
 };
 
 const recipientColors: Record<string, string> = {
-  owner: 'text-blue-600 bg-blue-500/10 border-blue-500/20',
-  charity: 'text-pink-600 bg-pink-500/10 border-pink-500/20',
-  other: 'text-gray-600 bg-gray-500/10 border-gray-500/20',
+  owner: 'text-info bg-info/10 border-info/20',
+  charity: 'text-primary bg-primary/10 border-primary/20',
+  other: 'text-muted-foreground bg-muted/10 border-border/20',
 };
 
 export function IncomeDistributionPanel() {
@@ -361,7 +361,7 @@ export function IncomeDistributionPanel() {
             
             return (
               <Card key={dist.recipient_name} className="overflow-hidden">
-                <div className={`h-1.5 ${dist.recipient_type === 'owner' ? 'bg-blue-500' : 'bg-pink-500'}`} />
+                <div className={`h-1.5 ${dist.recipient_type === 'owner' ? 'bg-info' : 'bg-primary'}`} />
                 <CardHeader className="pb-2">
                   <CardTitle className="flex items-center gap-2 text-base">
                     <div className={`p-2 rounded-lg ${colorClass}`}>
@@ -379,11 +379,11 @@ export function IncomeDistributionPanel() {
                   <Progress value={paidPercent} className="h-2" />
                   
                   <div className="flex justify-between text-xs">
-                    <span className="flex items-center gap-1 text-green-600">
+                    <span className="flex items-center gap-1 text-success">
                       <CheckCircle className="h-3 w-3" />
                       {formatAmount(adjustedPaid, 'UZS')}
                     </span>
-                    <span className="flex items-center gap-1 text-yellow-600">
+                    <span className="flex items-center gap-1 text-warning">
                       <Clock className="h-3 w-3" />
                       {formatAmount(adjustedPending, 'UZS')}
                     </span>

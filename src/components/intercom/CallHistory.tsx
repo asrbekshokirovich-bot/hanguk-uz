@@ -92,9 +92,9 @@ export function CallHistory() {
       return <PhoneMissed className="h-4 w-4 text-destructive" />;
     }
     if (call.is_outgoing) {
-      return <PhoneOutgoing className="h-4 w-4 text-blue-500" />;
+      return <PhoneOutgoing className="h-4 w-4 text-info" />;
     }
-    return <PhoneIncoming className="h-4 w-4 text-green-500" />;
+    return <PhoneIncoming className="h-4 w-4 text-success" />;
   };
 
   const getCallDuration = (call: CallRecord) => {

@@ -231,8 +231,8 @@ export default function TasksContent() {
 
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg shrink-0">
-              <Clock className="h-5 w-5 text-yellow-600" />
+            <div className="p-2 bg-warning/10 dark:bg-warning/30 rounded-lg shrink-0">
+              <Clock className="h-5 w-5 text-warning" />
             </div>
             <div>
               <p className="text-2xl font-bold">{stats.inProgress}</p>
@@ -243,8 +243,8 @@ export default function TasksContent() {
 
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg shrink-0">
-              <CheckCircle className="h-5 w-5 text-green-600" />
+            <div className="p-2 bg-success/10 dark:bg-success/30 rounded-lg shrink-0">
+              <CheckCircle className="h-5 w-5 text-success" />
             </div>
             <div>
               <p className="text-2xl font-bold">{stats.completed}</p>
@@ -259,11 +259,11 @@ export default function TasksContent() {
               "p-2 rounded-lg shrink-0",
               stats.overdue > 0 
                 ? "bg-destructive/10 animate-pulse" 
-                : "bg-red-100 dark:bg-red-900/30"
+                : "bg-destructive/10 dark:bg-destructive/30"
             )}>
               <AlertTriangle className={cn(
                 "h-5 w-5",
-                stats.overdue > 0 ? "text-destructive" : "text-red-600"
+                stats.overdue > 0 ? "text-destructive" : "text-destructive"
               )} />
             </div>
             <div>
@@ -275,8 +275,8 @@ export default function TasksContent() {
 
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg shrink-0">
-              <User className="h-5 w-5 text-purple-600" />
+            <div className="p-2 bg-primary/10 dark:bg-primary/30 rounded-lg shrink-0">
+              <User className="h-5 w-5 text-primary" />
             </div>
             <div>
               <p className="text-2xl font-bold">{stats.myTasks}</p>

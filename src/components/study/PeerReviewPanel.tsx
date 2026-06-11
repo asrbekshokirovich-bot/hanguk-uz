@@ -172,12 +172,12 @@ export function PeerReviewPanel({
               {pendingRequests.length > 0 && (
                 <div>
                   <h3 className="font-semibold mb-3 flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-amber-500" />
+                    <Clock className="h-4 w-4 text-warning" />
                     {t('study.awaitingReviews', 'Awaiting Reviews')}
                   </h3>
                   <div className="space-y-2">
                     {pendingRequests.map(review => (
-                      <div key={review.id} className="bg-amber-50 dark:bg-amber-950/30 rounded-lg p-3">
+                      <div key={review.id} className="bg-warning/10 dark:bg-warning/30 rounded-lg p-3">
                         <div className="flex items-center justify-between">
                           <span className="text-sm">{t('study.pendingReview', 'Pending review')}</span>
                           <Badge variant="outline" className="text-xs">
@@ -194,7 +194,7 @@ export function PeerReviewPanel({
               {myReviewsToGive.length > 0 && (
                 <div>
                   <h3 className="font-semibold mb-3 flex items-center gap-2">
-                    <MessageSquare className="h-4 w-4 text-blue-500" />
+                    <MessageSquare className="h-4 w-4 text-info" />
                     {t('study.reviewsToGive', 'Reviews to Complete')} ({myReviewsToGive.length})
                   </h3>
                   <div className="space-y-2">
@@ -227,7 +227,7 @@ export function PeerReviewPanel({
               {/* Completed Reviews Received */}
               <div>
                 <h3 className="font-semibold mb-3 flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <CheckCircle className="h-4 w-4 text-success" />
                   {t('study.feedbackReceived', 'Feedback Received')} ({completedReviews.length})
                 </h3>
                 {completedReviews.length === 0 ? (
@@ -237,7 +237,7 @@ export function PeerReviewPanel({
                 ) : (
                   <div className="space-y-3">
                     {completedReviews.map(review => (
-                      <Card key={review.id} className="border-green-200 dark:border-green-800">
+                      <Card key={review.id} className="border-success/30 dark:border-success">
                         <CardContent className="p-4">
                           <div className="flex items-center justify-between mb-2">
                             <div className="flex items-center gap-2">
@@ -249,7 +249,7 @@ export function PeerReviewPanel({
                                       key={i}
                                       className={cn(
                                         'h-3 w-3',
-                                        i < review.rating! ? 'text-amber-500 fill-amber-500' : 'text-muted-foreground'
+                                        i < review.rating! ? 'text-warning fill-warning' : 'text-muted-foreground'
                                       )}
                                     />
                                   ))}
@@ -267,7 +267,7 @@ export function PeerReviewPanel({
 
                           {review.strengths && review.strengths.length > 0 && (
                             <div className="mb-2">
-                              <p className="text-xs font-medium text-green-600 dark:text-green-400 flex items-center gap-1">
+                              <p className="text-xs font-medium text-success dark:text-success flex items-center gap-1">
                                 <ThumbsUp className="h-3 w-3" /> {t('study.strengths', 'Strengths')}
                               </p>
                               <ul className="text-xs text-muted-foreground mt-1 space-y-0.5">
@@ -280,7 +280,7 @@ export function PeerReviewPanel({
 
                           {review.improvements && review.improvements.length > 0 && (
                             <div>
-                              <p className="text-xs font-medium text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                              <p className="text-xs font-medium text-warning dark:text-warning flex items-center gap-1">
                                 <ThumbsDown className="h-3 w-3" /> {t('study.improvements', 'To Improve')}
                               </p>
                               <ul className="text-xs text-muted-foreground mt-1 space-y-0.5">
@@ -367,7 +367,7 @@ export function PeerReviewPanel({
                     >
                       <Star className={cn(
                         'h-8 w-8 transition-colors',
-                        value <= rating ? 'text-amber-500 fill-amber-500' : 'text-muted-foreground hover:text-amber-300'
+                        value <= rating ? 'text-warning fill-warning' : 'text-muted-foreground hover:text-warning'
                       )} />
                     </button>
                   ))}
@@ -387,7 +387,7 @@ export function PeerReviewPanel({
 
               {/* Strengths */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-green-600">{t('study.whatWorksWell', 'What works well?')}</label>
+                <label className="text-sm font-medium text-success">{t('study.whatWorksWell', 'What works well?')}</label>
                 <Textarea
                   placeholder={t('study.strengthsPlaceholder', 'List strengths, one per line...')}
                   value={strengths.join('\n')}
@@ -398,7 +398,7 @@ export function PeerReviewPanel({
 
               {/* Improvements */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-amber-600">{t('study.whatToImprove', 'What could be improved?')}</label>
+                <label className="text-sm font-medium text-warning">{t('study.whatToImprove', 'What could be improved?')}</label>
                 <Textarea
                   placeholder={t('study.improvementsPlaceholder', 'List suggestions, one per line...')}
                   value={improvements.join('\n')}

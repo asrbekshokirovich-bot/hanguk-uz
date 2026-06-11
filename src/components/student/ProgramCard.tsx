@@ -43,10 +43,10 @@ export function ProgramCard({ program, studentProfile, lang }: ProgramCardProps)
     : t('universities.bothTracks');
 
   const trackColor = program.language_track === 'english'
-    ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
+    ? 'bg-info/10 text-info dark:bg-info/30 dark:text-info'
     : program.language_track === 'korean'
-    ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
-    : 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300';
+    ? 'bg-success/10 text-success dark:bg-success/30 dark:text-success'
+    : 'bg-primary/10 text-primary dark:bg-primary/30 dark:text-primary';
 
   return (
     <Card className="hover:shadow-md transition-shadow">

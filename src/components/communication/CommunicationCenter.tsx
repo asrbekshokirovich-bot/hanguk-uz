@@ -91,7 +91,7 @@ export function CommunicationCenter() {
             <CardTitle className="flex items-center gap-2">
               <Radio className={cn(
                 "h-5 w-5",
-                isConnected && "text-green-500 animate-pulse"
+                isConnected && "text-success animate-pulse"
               )} />
               {t('communication.title', 'Voice Channel')}
             </CardTitle>
@@ -144,14 +144,14 @@ export function CommunicationCenter() {
               {isConnected && (
                 <div className={cn(
                   "flex items-center gap-3 p-3 rounded-lg transition-all",
-                  isSpeaking && "bg-green-500/10 ring-2 ring-green-500"
+                  isSpeaking && "bg-success/10 ring-2 ring-success"
                 )}>
                   <div className="relative">
                     <Avatar className="h-10 w-10">
                       <AvatarFallback>You</AvatarFallback>
                     </Avatar>
                     {isSpeaking && (
-                      <span className="absolute -bottom-1 -right-1 h-4 w-4 rounded-full bg-green-500 animate-pulse flex items-center justify-center">
+                      <span className="absolute -bottom-1 -right-1 h-4 w-4 rounded-full bg-success animate-pulse flex items-center justify-center">
                         <Mic className="h-2.5 w-2.5 text-white" />
                       </span>
                     )}
@@ -176,7 +176,7 @@ export function CommunicationCenter() {
                   key={participant.user_id}
                   className={cn(
                     "w-full text-left flex items-center gap-3 p-3 rounded-lg transition-all",
-                    participant.isSpeaking && "bg-green-500/10 ring-2 ring-green-500",
+                    participant.isSpeaking && "bg-success/10 ring-2 ring-success",
                     targetUserId === participant.user_id && "bg-accent ring-1 ring-primary"
                   )}
                   onClick={() => setTargetUserId(participant.user_id)}
@@ -187,7 +187,7 @@ export function CommunicationCenter() {
                       <AvatarFallback>{getInitials(participant.full_name)}</AvatarFallback>
                     </Avatar>
                     {participant.isSpeaking && (
-                      <span className="absolute -bottom-1 -right-1 h-4 w-4 rounded-full bg-green-500 animate-pulse flex items-center justify-center">
+                      <span className="absolute -bottom-1 -right-1 h-4 w-4 rounded-full bg-success animate-pulse flex items-center justify-center">
                         <Volume2 className="h-2.5 w-2.5 text-white" />
                       </span>
                     )}
@@ -245,7 +245,7 @@ export function CommunicationCenter() {
                     isMuted || !effectiveTargetUserId
                       ? "bg-muted cursor-not-allowed"
                       : isSpeaking
-                        ? "bg-green-500 scale-110 shadow-lg shadow-green-500/30"
+                        ? "bg-success scale-110 shadow-lg shadow-green-500/30"
                         : "bg-primary hover:bg-primary/90 active:scale-95"
                   )}
                   onMouseDown={handleMouseDown}

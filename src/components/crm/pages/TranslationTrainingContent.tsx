@@ -248,7 +248,7 @@ export default function TranslationTrainingContent() {
                   <div
                     className={cn(
                       "border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors",
-                      originalFile ? "border-green-500 bg-green-50" : "border-muted-foreground/25 hover:border-primary"
+                      originalFile ? "border-success bg-success/10" : "border-muted-foreground/25 hover:border-primary"
                     )}
                     onClick={() => document.getElementById('original-file')?.click()}
                   >
@@ -260,7 +260,7 @@ export default function TranslationTrainingContent() {
                       onChange={(e) => setOriginalFile(e.target.files?.[0] || null)}
                     />
                     {originalFile ? (
-                      <div className="flex items-center justify-center gap-2 text-green-600">
+                      <div className="flex items-center justify-center gap-2 text-success">
                         <Check className="h-5 w-5" />
                         <span className="font-medium">{originalFile.name}</span>
                       </div>
@@ -280,7 +280,7 @@ export default function TranslationTrainingContent() {
                   <div
                     className={cn(
                       "border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors",
-                      translatedFile ? "border-green-500 bg-green-50" : "border-muted-foreground/25 hover:border-primary"
+                      translatedFile ? "border-success bg-success/10" : "border-muted-foreground/25 hover:border-primary"
                     )}
                     onClick={() => document.getElementById('translated-file')?.click()}
                   >
@@ -292,7 +292,7 @@ export default function TranslationTrainingContent() {
                       onChange={(e) => setTranslatedFile(e.target.files?.[0] || null)}
                     />
                     {translatedFile ? (
-                      <div className="flex items-center justify-center gap-2 text-green-600">
+                      <div className="flex items-center justify-center gap-2 text-success">
                         <Check className="h-5 w-5" />
                         <span className="font-medium">{translatedFile.name}</span>
                       </div>
@@ -316,7 +316,7 @@ export default function TranslationTrainingContent() {
                 <div
                   className={cn(
                     "border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors",
-                    supportingFiles.length > 0 ? "border-blue-500 bg-blue-50" : "border-muted-foreground/25 hover:border-primary"
+                    supportingFiles.length > 0 ? "border-info bg-info/10" : "border-muted-foreground/25 hover:border-primary"
                   )}
                   onClick={() => document.getElementById('supporting-files')?.click()}
                 >
@@ -333,7 +333,7 @@ export default function TranslationTrainingContent() {
                   />
                   {supportingFiles.length > 0 ? (
                     <div className="space-y-2">
-                      <div className="flex items-center justify-center gap-2 text-blue-600">
+                      <div className="flex items-center justify-center gap-2 text-info">
                         <Check className="h-5 w-5" />
                         <span className="font-medium">{supportingFiles.length} ta fayl yuklandi</span>
                       </div>
@@ -436,7 +436,7 @@ export default function TranslationTrainingContent() {
               </Button>
               
               {(!originalText || !translatedText) && (originalFile || translatedFile) && (
-                <p className="text-sm text-yellow-600 text-center">
+                <p className="text-sm text-warning text-center">
                   ⚠️ Matn kontenti kiritilmadi. AI bu shablondan o'rgana olmaydi.
                 </p>
               )}
@@ -764,7 +764,7 @@ function TemplateCard({ template, onApprove, onDelete, onPreview, onEditText, ge
   return (
     <div className={cn(
       "p-4 border rounded-lg",
-      template.is_approved ? "border-green-200 bg-green-50/50" : "border-yellow-200 bg-yellow-50/50"
+      template.is_approved ? "border-success/30 bg-success/10/50" : "border-warning/30 bg-warning/10/50"
     )}>
       <div className="flex items-start justify-between">
         <div className="flex-1">
@@ -775,22 +775,22 @@ function TemplateCard({ template, onApprove, onDelete, onPreview, onEditText, ge
               </Badge>
             )}
             {template.is_approved ? (
-              <Badge className="bg-green-100 text-green-800">
+              <Badge className="bg-success/10 text-success">
                 <Check className="h-3 w-3 mr-1" />
                 Tasdiqlangan
               </Badge>
             ) : (
-              <Badge variant="outline" className="border-yellow-500 text-yellow-700">
+              <Badge variant="outline" className="border-warning text-warning">
                 Kutilmoqda
               </Badge>
             )}
             {hasText ? (
-              <Badge className="bg-blue-100 text-blue-800">
+              <Badge className="bg-info/10 text-info">
                 <FileText className="h-3 w-3 mr-1" />
                 Matn mavjud
               </Badge>
             ) : (
-              <Badge variant="outline" className="border-orange-500 text-orange-700">
+              <Badge variant="outline" className="border-warning text-warning">
                 ⚠️ Matn yo'q
               </Badge>
             )}
@@ -814,7 +814,7 @@ function TemplateCard({ template, onApprove, onDelete, onPreview, onEditText, ge
           </Button>
           {!template.is_approved && (
             <Button variant="ghost" size="icon" onClick={onApprove} title="Tasdiqlash">
-              <Check className="h-4 w-4 text-green-600" />
+              <Check className="h-4 w-4 text-success" />
             </Button>
           )}
           <Button variant="ghost" size="icon" onClick={onDelete} title="O'chirish">

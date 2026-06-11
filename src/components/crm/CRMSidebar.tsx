@@ -1,19 +1,20 @@
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
+import type { User } from '@supabase/supabase-js';
 import { cn } from '@/lib/utils';
 import {
   Sidebar,
   SidebarContent,
   SidebarHeader,
   SidebarFooter,
+  SidebarGroup as UIGroup,
+  SidebarGroupLabel as UIGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarMenuSub,
-  SidebarMenuSubItem,
-  SidebarMenuSubButton,
   useSidebar,
 } from '@/components/ui/sidebar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
   Users,
   FileText,
@@ -29,7 +30,6 @@ import {
   Languages,
   UserPlus,
   Radio,
-  FileSearch,
   Wallet,
   MapPin,
   Gift,
@@ -41,8 +41,10 @@ import {
   Receipt,
   Clock,
   ClipboardCheck,
+  LogOut,
 } from 'lucide-react';
 import { SidebarStaffPanel } from '@/components/intercom/SidebarStaffPanel';
+import { Logo } from '@/components/Logo';
 
 export interface SidebarGroup {
   id: string;
@@ -64,8 +66,8 @@ interface CRMSidebarProps {
   isCallOperator: boolean;
   isDocumentHandler: boolean;
   canReviewUniDb?: boolean;
-  activeGroup: string | null;
-  onGroupSelect: (groupId: string) => void;
+  user: User | null;
+  onSignOut: () => void;
 }
 
 function buildGroups(
@@ -112,7 +114,6 @@ function buildGroups(
         { title: t('navigation.tasks'), url: '/crm/tasks', icon: ClipboardList, visible: true },
         { title: t('navigation.calendar'), url: '/crm/calendar', icon: Calendar, visible: true },
         { title: t('navigation.universities'), url: '/crm/universities', icon: GraduationCap, visible: true },
-        { title: t('navigation.formFinder'), url: '/crm/application-forms', icon: FileSearch, visible: true, highlight: true },
         { title: t('navigation.aiTranslation'), url: '/crm/translation', icon: Languages, visible: true, highlight: true },
         { title: t('navigation.kakaoMap'), url: '/crm/kakao-map', icon: MapPin, visible: true, highlight: true },
       ],
@@ -160,8 +161,8 @@ export function CRMSidebar({
   isCallOperator,
   isDocumentHandler,
   canReviewUniDb = false,
-  activeGroup,
-  onGroupSelect,
+  user,
+  onSignOut,
 }: CRMSidebarProps) {
   const { t, i18n } = useTranslation();
   const lang = i18n.language;
@@ -170,126 +171,134 @@ export function CRMSidebar({
   const location = useLocation();
   const navigate = useNavigate();
 
-  const groups: SidebarGroup[] = buildGroups(
-    isOwner,
-    isAdmin,
-    isCallOperator,
-    isDocumentHandler,
-    canReviewUniDb,
-    t,
-    lang,
-  );
+  const groups = buildGroups(isOwner, isAdmin, isCallOperator, isDocumentHandler, canReviewUniDb, t, lang);
 
-  // Determine which group should be active based on current URL
-  const getActiveGroupFromUrl = () => {
-    for (const group of groups) {
-      for (const item of group.items) {
-        if (item.visible && (location.pathname === item.url ||
-            (item.url !== '/crm' && location.pathname.startsWith(item.url)))) {
-          return group.id;
-        }
-      }
-    }
-    return 'home';
-  };
-
-  const currentActiveGroup = activeGroup || getActiveGroupFromUrl();
-
-  const handleGroupClick = (groupId: string) => {
-    onGroupSelect(groupId);
-    // Navigate to first visible item in group
-    const group = groups.find(g => g.id === groupId);
-    if (group) {
-      const firstVisibleItem = group.items.find(item => item.visible);
-      if (firstVisibleItem) {
-        navigate(firstVisibleItem.url);
-      }
-    }
-  };
-
-  // Whether a sub-item's URL matches the current route
+  // Whether an item's URL matches the current route (most-specific match wins
+  // via startsWith; '/crm' only matches exactly so it isn't always active).
   const isItemActive = (url: string) =>
-    location.pathname === url ||
-    (url !== '/crm' && location.pathname.startsWith(url));
+    location.pathname === url || (url !== '/crm' && location.pathname.startsWith(url));
+
+  const displayName =
+    (user?.user_metadata?.full_name as string | undefined) ||
+    (user?.user_metadata?.name as string | undefined) ||
+    user?.email?.split('@')[0] ||
+    'User';
+  const initials = displayName
+    .split(' ')
+    .map((w) => w[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
+  const roleLabel = isOwner
+    ? t('roles.owner', { defaultValue: 'Owner' })
+    : isAdmin
+      ? t('roles.admin', { defaultValue: 'Admin' })
+      : isCallOperator
+        ? t('roles.callOperator', { defaultValue: 'Call operator' })
+        : isDocumentHandler
+          ? t('roles.documentHandler', { defaultValue: 'Document handler' })
+          : t('roles.staff', { defaultValue: 'Staff' });
 
   return (
-    <Sidebar collapsible="icon" className="flex flex-col">
-      <SidebarHeader className="p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img src="/logo.jpg" alt="Hanguk" className="h-8 w-8 rounded-lg object-cover" />
-            {!collapsed && (
-              <div>
-                <span className="font-bold text-primary">Hanguk</span>
-                <p className="text-xs text-muted-foreground">{t('crm.title')}</p>
-              </div>
-            )}
-          </div>
+    <Sidebar collapsible="icon" className="border-sidebar-border">
+      {/* Brand */}
+      <SidebarHeader className="p-3">
+        <div className={cn('flex items-center gap-2.5', collapsed && 'justify-center')}>
+          <Logo variant="badge" className="h-9 w-9 shrink-0 rounded-lg" />
+          {!collapsed && (
+            <div className="min-w-0">
+              <div className="truncate text-[15px] font-bold leading-tight text-white">Hanguk</div>
+              <div className="truncate text-[11px] font-medium text-sidebar-foreground/50">{t('crm.title')}</div>
+            </div>
+          )}
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="flex-1">
-        <SidebarMenu className="px-2 space-y-1">
-          {groups.filter(g => g.visible).map((group) => {
-            const isGroupActive = currentActiveGroup === group.id;
-            const visibleItems = group.items.filter(item => item.visible);
+      <SidebarContent>
+        {groups
+          .filter((group) => group.visible)
+          .map((group) => {
+            const items = group.items.filter((item) => item.visible);
+            if (items.length === 0) return null;
             return (
-              <SidebarMenuItem key={group.id}>
-                <SidebarMenuButton
-                  onClick={() => handleGroupClick(group.id)}
-                  isActive={isGroupActive}
-                  tooltip={group.title}
-                  className={cn(
-                    "w-full justify-start gap-3 h-11 text-base font-medium transition-all",
-                    isGroupActive && "bg-primary text-primary-foreground hover:bg-primary/90"
-                  )}
-                >
-                  <group.icon className="h-5 w-5 flex-shrink-0" />
-                  {!collapsed && <span>{group.title}</span>}
-                </SidebarMenuButton>
-
-                {/* Inline accordion: reveal the active group's sub-items so the
-                    full IA is scannable. Auto-hidden on the collapsed icon rail. */}
-                {isGroupActive && !collapsed && visibleItems.length > 0 && (
-                  <SidebarMenuSub>
-                    {visibleItems.map((item) => (
-                      <SidebarMenuSubItem key={item.url + item.title}>
-                        <SidebarMenuSubButton
-                          isActive={isItemActive(item.url)}
+              <UIGroup key={group.id} className="px-2 py-1">
+                <UIGroupLabel className="px-2 text-[10px] font-bold uppercase tracking-[0.09em] text-sidebar-foreground/40">
+                  {group.title}
+                </UIGroupLabel>
+                <SidebarMenu>
+                  {items.map((item) => {
+                    const active = isItemActive(item.url);
+                    const isAI = item.url === '/crm/ai';
+                    return (
+                      <SidebarMenuItem key={item.url + item.title}>
+                        {/* Lime active rail */}
+                        {active && (
+                          <span className="pointer-events-none absolute bottom-2 left-0 top-2 z-10 w-[3px] rounded-full bg-sidebar-primary" />
+                        )}
+                        <SidebarMenuButton
                           onClick={() => navigate(item.url)}
-                          className="cursor-pointer"
-                        >
-                          <item.icon className="h-4 w-4 flex-shrink-0" />
-                          <span>{item.title}</span>
-                          {item.highlight && (
-                            <span className="ml-auto h-1.5 w-1.5 rounded-full bg-sidebar-accent flex-shrink-0" />
+                          isActive={active}
+                          tooltip={item.title}
+                          className={cn(
+                            'gap-3 text-[14px] font-medium text-sidebar-foreground/70 hover:bg-white/5 hover:text-white',
+                            active && 'bg-white/10 font-semibold text-white hover:bg-white/10',
                           )}
-                        </SidebarMenuSubButton>
-                      </SidebarMenuSubItem>
-                    ))}
-                  </SidebarMenuSub>
-                )}
-              </SidebarMenuItem>
+                        >
+                          <item.icon className={cn('shrink-0', active && 'text-sidebar-primary')} />
+                          <span className="flex-1 truncate">{item.title}</span>
+                          {isAI && !collapsed && (
+                            <span className="rounded-full bg-sidebar-primary px-1.5 py-0.5 text-[9px] font-bold leading-none text-sidebar-primary-foreground">
+                              AI
+                            </span>
+                          )}
+                          {!isAI && item.highlight && !collapsed && (
+                            <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-sidebar-primary" />
+                          )}
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    );
+                  })}
+                </SidebarMenu>
+              </UIGroup>
             );
           })}
-        </SidebarMenu>
       </SidebarContent>
 
-      {/* Staff PTT Panel - pushed to bottom */}
-      <div className="mt-auto">
-        <SidebarStaffPanel />
-      </div>
+      {/* Staff PTT panel (intercom) — sits above the account block */}
+      <SidebarStaffPanel />
 
-      <SidebarFooter className="p-2">
-        <p className="text-xs text-muted-foreground text-center">
-          © 2025 Hanguk Consulting
-        </p>
+      {/* Account block */}
+      <SidebarFooter className="border-t border-sidebar-border p-2">
+        <div className={cn('flex items-center gap-2.5 px-1', collapsed && 'justify-center px-0')}>
+          <Avatar className="h-8 w-8 shrink-0">
+            <AvatarFallback className="bg-sidebar-primary text-[12px] font-bold text-sidebar-primary-foreground">
+              {initials}
+            </AvatarFallback>
+          </Avatar>
+          {!collapsed && (
+            <>
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-[13px] font-semibold text-white">{displayName}</div>
+                <div className="truncate text-[11px] text-sidebar-foreground/50">{roleLabel}</div>
+              </div>
+              <button
+                type="button"
+                onClick={onSignOut}
+                title={t('auth.logout')}
+                aria-label={t('auth.logout')}
+                className="flex shrink-0 items-center justify-center rounded-md px-2 text-sidebar-foreground/60 transition-colors hover:bg-white/5 hover:text-white"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
+            </>
+          )}
+        </div>
       </SidebarFooter>
     </Sidebar>
   );
 }
 
-// Export groups getter for use in header
+// Export groups getter for use in the header command menu (⌘K).
 export function useSidebarGroups(
   isOwner: boolean,
   isAdmin: boolean,

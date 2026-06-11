@@ -103,8 +103,8 @@ export default function MessagesContent() {
           <div className="grid grid-cols-2 gap-2 p-3 border-b">
             <Card>
               <CardContent className="p-3 flex items-center gap-2">
-                <div className="p-1.5 bg-red-100 rounded">
-                  <Mail className="h-4 w-4 text-red-600" />
+                <div className="p-1.5 bg-destructive/10 rounded">
+                  <Mail className="h-4 w-4 text-destructive" />
                 </div>
                 <div>
                   <p className="text-lg font-bold">{stats.unread}</p>
@@ -114,8 +114,8 @@ export default function MessagesContent() {
             </Card>
             <Card>
               <CardContent className="p-3 flex items-center gap-2">
-                <div className="p-1.5 bg-blue-100 rounded">
-                  <MessageSquare className="h-4 w-4 text-blue-600" />
+                <div className="p-1.5 bg-info/10 rounded">
+                  <MessageSquare className="h-4 w-4 text-info" />
                 </div>
                 <div>
                   <p className="text-lg font-bold">{stats.total}</p>

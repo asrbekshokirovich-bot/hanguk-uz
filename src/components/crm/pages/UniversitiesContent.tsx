@@ -24,9 +24,10 @@
  * staff don't accidentally write to a non-existent legacy path.
  */
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useRef, useEffect, type ChangeEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useUniversities, type Institution } from '@/hooks/useUniversities';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -76,6 +77,10 @@ import {
   ExternalLink,
   RefreshCw,
   ListChecks,
+  UploadCloud,
+  CheckCircle2,
+  Clock,
+  AlertTriangle,
 } from 'lucide-react';
 
 const ENABLE_LEGACY_FEATURES = false; // AI add + bulk import — disabled per Phase 3R-B
@@ -135,6 +140,31 @@ function fieldsToPayload(f: FormFields): Partial<Institution> {
   return payload;
 }
 
+const DOC_STATUS_REFRESH_MS = 30_000;
+
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(reader.error ?? new Error('read failed'));
+    reader.readAsDataURL(file);
+  });
+}
+
+/** Latest guideline-PDF status per institution, shown on each card. */
+function UploadStatusBadge({ status }: { status?: string }) {
+  if (!status) {
+    return <Badge variant="outline" className="gap-1"><Clock className="h-3 w-3" /> No PDF</Badge>;
+  }
+  if (status === 'succeeded') {
+    return <Badge variant="lime" className="gap-1"><CheckCircle2 className="h-3 w-3" /> Current</Badge>;
+  }
+  if (status === 'failed') {
+    return <Badge variant="destructive" className="gap-1"><AlertTriangle className="h-3 w-3" /> Failed</Badge>;
+  }
+  return <Badge variant="info" className="gap-1"><Loader2 className="h-3 w-3 animate-spin" /> Processing</Badge>;
+}
+
 export default function UniversitiesContent() {
   const { t } = useTranslation();
   const { toast } = useToast();
@@ -157,6 +187,66 @@ export default function UniversitiesContent() {
   const [confirmDelete, setConfirmDelete] = useState<Institution | null>(null);
   const [detail, setDetail] = useState<Institution | null>(null);
   const [busy, setBusy] = useState(false);
+
+  // --- Guideline-PDF upload (the manual-upload front door, per-card) ---
+  const [statusMap, setStatusMap] = useState<Map<string, string>>(new Map());
+  const [uploadingId, setUploadingId] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const pendingInstitution = useRef<string | null>(null);
+
+  const loadStatus = async () => {
+    const { data } = await supabase
+      .from('guideline_documents')
+      .select('institution_id, parse_status, fetched_at')
+      .order('fetched_at', { ascending: false });
+    const map = new Map<string, string>();
+    for (const r of (data ?? []) as { institution_id: string; parse_status: string }[]) {
+      if (!map.has(r.institution_id)) map.set(r.institution_id, r.parse_status);
+    }
+    setStatusMap(map);
+  };
+
+  useEffect(() => {
+    loadStatus();
+    const id = setInterval(loadStatus, DOC_STATUS_REFRESH_MS);
+    return () => clearInterval(id);
+  }, []);
+
+  const pickUpload = (institutionId: string) => {
+    pendingInstitution.current = institutionId;
+    fileInputRef.current?.click();
+  };
+
+  const onUploadFileChosen = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = ''; // allow re-selecting the same file later
+    const institutionId = pendingInstitution.current;
+    pendingInstitution.current = null;
+    if (!file || !institutionId) return;
+    if (file.type && file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+      toast({ title: 'Please choose a PDF file', variant: 'destructive' });
+      return;
+    }
+    setUploadingId(institutionId);
+    try {
+      const file_base64 = await fileToBase64(file);
+      const { data, error } = await supabase.functions.invoke('upload-guideline', {
+        body: { institution_id: institutionId, file_base64, filename: file.name },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(String(data.error));
+      toast({ title: 'PDF uploaded', description: 'Queued for analysis.' });
+      loadStatus();
+    } catch (err) {
+      toast({
+        title: 'Upload failed',
+        description: err instanceof Error ? err.message : String(err),
+        variant: 'destructive',
+      });
+    } finally {
+      setUploadingId(null);
+    }
+  };
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -239,6 +329,13 @@ export default function UniversitiesContent() {
 
   return (
     <div className="space-y-6">
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="application/pdf,.pdf"
+        className="hidden"
+        onChange={onUploadFileChosen}
+      />
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
@@ -310,20 +407,23 @@ export default function UniversitiesContent() {
           {filtered.map((row) => (
             <Card key={row.id} className={row.is_partner ? 'border-primary/40' : undefined}>
               <CardHeader className="pb-2">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-info/10 text-info">
+                    <GraduationCap className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0 flex-1">
                     <CardTitle className="text-base truncate">{row.name_ko}</CardTitle>
                     {row.name_en ? (
                       <p className="text-xs text-muted-foreground truncate">{row.name_en}</p>
                     ) : null}
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      <UploadStatusBadge status={statusMap.get(row.id)} />
+                      {row.is_partner ? <Badge variant="lime">partner</Badge> : null}
+                      {row.is_visible_on_map ? <Badge variant="outline">on map</Badge> : null}
+                      <Badge variant="neutral">{row.institution_type}</Badge>
+                      {row.tier !== null && row.tier !== undefined ? <Badge variant="info">tier {row.tier}</Badge> : null}
+                    </div>
                   </div>
-                  <Building2 className="h-4 w-4 text-muted-foreground shrink-0" />
-                </div>
-                <div className="flex flex-wrap gap-1 mt-1">
-                  {row.is_partner ? <Badge>partner</Badge> : null}
-                  {row.is_visible_on_map ? <Badge variant="outline">on map</Badge> : null}
-                  <Badge variant="secondary">{row.institution_type}</Badge>
-                  {row.tier !== null && row.tier !== undefined ? <Badge variant="outline">tier {row.tier}</Badge> : null}
                 </div>
               </CardHeader>
               <CardContent className="space-y-2 text-xs">
@@ -364,6 +464,18 @@ export default function UniversitiesContent() {
                     </Button>
                   </div>
                   <div className="flex items-center gap-1">
+                    <Button
+                      size="sm"
+                      className="h-8"
+                      disabled={uploadingId === row.id}
+                      onClick={() => pickUpload(row.id)}
+                      title="Upload admission-guideline PDF"
+                    >
+                      {uploadingId === row.id
+                        ? <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                        : <UploadCloud className="h-4 w-4 mr-1" />}
+                      Upload
+                    </Button>
                     <Button
                       size="sm"
                       variant="outline"

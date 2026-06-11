@@ -408,7 +408,7 @@ ${conversationHistory.length >= 8 ? "The interview is nearing end. Ask 1-2 more 
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "gemini-2.5-flash",
         messages: [
           { role: "system", content: systemPrompt },
           ...conversationHistory,

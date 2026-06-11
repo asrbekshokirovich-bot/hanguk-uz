@@ -112,49 +112,49 @@ export function BudgetOverviewPanel() {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20">
+        <Card className="bg-gradient-to-br from-success/10 to-success/5 border-success/20">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Total Spent</p>
-                <p className="text-2xl font-bold text-green-600">
+                <p className="text-2xl font-bold text-success">
                   {formatAmount(stats.totalSpent, 'UZS')}
                 </p>
               </div>
-              <div className="p-2 bg-green-500/20 rounded-lg">
-                <TrendingUp className="h-5 w-5 text-green-600" />
+              <div className="p-2 bg-success/20 rounded-lg">
+                <TrendingUp className="h-5 w-5 text-success" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20">
+        <Card className="bg-gradient-to-br from-info/10 to-info/5 border-info/20">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Remaining</p>
-                <p className="text-2xl font-bold text-blue-600">
+                <p className="text-2xl font-bold text-info">
                   {formatAmount(stats.remaining, 'UZS')}
                 </p>
               </div>
-              <div className="p-2 bg-blue-500/20 rounded-lg">
-                <PieChart className="h-5 w-5 text-blue-600" />
+              <div className="p-2 bg-info/20 rounded-lg">
+                <PieChart className="h-5 w-5 text-info" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-purple-500/10 to-purple-500/5 border-purple-500/20">
+        <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Students</p>
-                <p className="text-2xl font-bold text-purple-600">
+                <p className="text-2xl font-bold text-primary">
                   {stats.studentCount}
                 </p>
               </div>
-              <div className="p-2 bg-purple-500/20 rounded-lg">
-                <Users className="h-5 w-5 text-purple-600" />
+              <div className="p-2 bg-primary/20 rounded-lg">
+                <Users className="h-5 w-5 text-primary" />
               </div>
             </div>
           </CardContent>

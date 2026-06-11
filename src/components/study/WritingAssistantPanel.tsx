@@ -61,10 +61,10 @@ export function WritingAssistantPanel({
   };
 
   const getFormalityColor = (score: number) => {
-    if (score <= 3) return 'text-red-500';
-    if (score <= 5) return 'text-amber-500';
-    if (score <= 7) return 'text-green-500';
-    return 'text-emerald-600';
+    if (score <= 3) return 'text-destructive';
+    if (score <= 5) return 'text-warning';
+    if (score <= 7) return 'text-success';
+    return 'text-success';
   };
 
   return (
@@ -81,8 +81,8 @@ export function WritingAssistantPanel({
               <Badge 
                 variant={wordCountStatus === 'good' ? 'default' : 'outline'}
                 className={cn(
-                  wordCountStatus === 'low' && 'border-amber-500 text-amber-500',
-                  wordCountStatus === 'high' && 'border-red-500 text-red-500'
+                  wordCountStatus === 'low' && 'border-warning text-warning',
+                  wordCountStatus === 'high' && 'border-destructive text-destructive'
                 )}
               >
                 {state.wordCount}
@@ -160,16 +160,16 @@ export function WritingAssistantPanel({
                   key={section.id}
                   className={cn(
                     'flex items-center gap-2 p-2 rounded-md text-sm',
-                    section.detected ? 'bg-green-50 dark:bg-green-950/30' : 'bg-muted/30'
+                    section.detected ? 'bg-success/10 dark:bg-success/30' : 'bg-muted/30'
                   )}
                 >
                   {section.detected ? (
-                    <CheckCircle className="h-4 w-4 text-green-500 shrink-0" />
+                    <CheckCircle className="h-4 w-4 text-success shrink-0" />
                   ) : (
                     <Circle className="h-4 w-4 text-muted-foreground shrink-0" />
                   )}
                   <span className={cn(
-                    section.detected ? 'text-green-700 dark:text-green-300' : 'text-muted-foreground'
+                    section.detected ? 'text-success dark:text-success' : 'text-muted-foreground'
                   )}>
                     {section.name}
                   </span>
@@ -184,12 +184,12 @@ export function WritingAssistantPanel({
           <Collapsible open={suggestionsOpen} onOpenChange={setSuggestionsOpen}>
             <CollapsibleTrigger className="flex items-center justify-between w-full py-2">
               <span className="text-sm font-medium flex items-center gap-2">
-                <Lightbulb className="h-4 w-4 text-amber-500" />
+                <Lightbulb className="h-4 w-4 text-warning" />
                 {t('study.suggestions', 'Suggestions')}
               </span>
               <div className="flex items-center gap-2">
                 {state.suggestions.length > 0 && (
-                  <Badge variant="outline" className="text-xs border-amber-500 text-amber-600">
+                  <Badge variant="outline" className="text-xs border-warning text-warning">
                     {state.suggestions.length}
                   </Badge>
                 )}
@@ -199,7 +199,7 @@ export function WritingAssistantPanel({
             <CollapsibleContent className="space-y-2 pt-2">
               {state.suggestions.length === 0 ? (
                 <div className="text-center py-4 text-sm text-muted-foreground">
-                  <Sparkles className="h-8 w-8 mx-auto mb-2 text-green-500" />
+                  <Sparkles className="h-8 w-8 mx-auto mb-2 text-success" />
                   {t('study.noSuggestions', 'Looking good! No suggestions.')}
                 </div>
               ) : (
@@ -228,15 +228,15 @@ function SuggestionCard({ suggestion }: { suggestion: WritingSuggestion }) {
   const Icon = typeIcons[suggestion.type];
   
   return (
-    <Card className="border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/20">
+    <Card className="border-warning/30 dark:border-warning bg-warning/10/50 dark:bg-warning/20">
       <CardContent className="p-3">
         <div className="flex items-start gap-2">
-          <Icon className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+          <Icon className="h-4 w-4 text-warning shrink-0 mt-0.5" />
           <div className="space-y-1 flex-1 min-w-0">
             <div className="text-xs">
               <span className="line-through text-muted-foreground">{suggestion.original}</span>
               <span className="mx-1">→</span>
-              <span className="text-green-600 dark:text-green-400 font-medium">{suggestion.suggestion}</span>
+              <span className="text-success dark:text-success font-medium">{suggestion.suggestion}</span>
             </div>
             <p className="text-xs text-muted-foreground">{suggestion.reason}</p>
           </div>

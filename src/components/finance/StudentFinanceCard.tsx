@@ -116,13 +116,13 @@ export function StudentFinanceCard({
     switch (status) {
       case 'completed':
       case 'paid':
-        return <CheckCircle className="h-4 w-4 text-green-500" />;
+        return <CheckCircle className="h-4 w-4 text-success" />;
       case 'partial':
-        return <Clock className="h-4 w-4 text-yellow-500" />;
+        return <Clock className="h-4 w-4 text-warning" />;
       case 'overdue':
-        return <AlertTriangle className="h-4 w-4 text-red-500" />;
+        return <AlertTriangle className="h-4 w-4 text-destructive" />;
       case 'waiting':
-        return <GraduationCap className="h-4 w-4 text-blue-500" />;
+        return <GraduationCap className="h-4 w-4 text-info" />;
       default:
         return <Clock className="h-4 w-4 text-muted-foreground" />;
     }
@@ -132,13 +132,13 @@ export function StudentFinanceCard({
     switch (status) {
       case 'completed':
       case 'paid':
-        return <Badge variant="default" className="bg-green-500">Paid</Badge>;
+        return <Badge variant="default" className="bg-success">Paid</Badge>;
       case 'partial':
-        return <Badge variant="secondary" className="bg-yellow-500/20 text-yellow-700">Partial</Badge>;
+        return <Badge variant="secondary" className="bg-warning/20 text-warning">Partial</Badge>;
       case 'overdue':
         return <Badge variant="destructive">Overdue</Badge>;
       case 'waiting':
-        return <Badge variant="outline" className="border-blue-500 text-blue-600">Waiting Admission</Badge>;
+        return <Badge variant="outline" className="border-info text-info">Waiting Admission</Badge>;
       default:
         return <Badge variant="outline">Pending</Badge>;
     }
@@ -167,7 +167,7 @@ export function StudentFinanceCard({
         {/* Payment Mode */}
         <div className="flex items-center gap-2 text-sm">
           <CreditCard className="h-4 w-4 text-muted-foreground" />
-          <span className={isInstallment ? 'text-blue-600' : ''}>
+          <span className={isInstallment ? 'text-info' : ''}>
             {isInstallment ? 'Split Payment (2 payments)' : 'One-time Payment'}
           </span>
         </div>
@@ -182,7 +182,7 @@ export function StudentFinanceCard({
         {student.contract_date && financeData && (
           <div className="flex items-center gap-2 text-sm">
             <Clock className="h-4 w-4 text-muted-foreground" />
-            <span className={isPaymentOverdue(calculateFirstPaymentDueDate(student.contract_date), financeData.firstPaymentStatus) ? 'text-red-600 font-medium' : ''}>
+            <span className={isPaymentOverdue(calculateFirstPaymentDueDate(student.contract_date), financeData.firstPaymentStatus) ? 'text-destructive font-medium' : ''}>
               Payment Due: {format(new Date(calculateFirstPaymentDueDate(student.contract_date)), 'MMM d, yyyy')}
             </span>
           </div>
@@ -203,14 +203,14 @@ export function StudentFinanceCard({
                   <div>
                     <p className="text-sm font-medium">{payment.label}</p>
                     {payment.dueDate ? (
-                      <p className={`text-xs ${isOverdue ? 'text-red-600' : 'text-muted-foreground'}`}>
+                      <p className={`text-xs ${isOverdue ? 'text-destructive' : 'text-muted-foreground'}`}>
                         {isOverdue 
                           ? `${dueInfo?.days} days overdue`
                           : `Due: ${format(new Date(payment.dueDate), 'MMM d, yyyy')}`
                         }
                       </p>
                     ) : payment.triggerDescription ? (
-                      <p className="text-xs text-blue-600">{payment.triggerDescription}</p>
+                      <p className="text-xs text-info">{payment.triggerDescription}</p>
                     ) : null}
                   </div>
                 </div>
@@ -238,7 +238,7 @@ export function StudentFinanceCard({
 
         {/* Admission Status for Split Payments */}
         {isInstallment && (
-          <div className={`p-2 rounded-lg text-sm ${financeData.hasAdmission ? 'bg-green-500/10 text-green-700' : 'bg-muted'}`}>
+          <div className={`p-2 rounded-lg text-sm ${financeData.hasAdmission ? 'bg-success/10 text-success' : 'bg-muted'}`}>
             <div className="flex items-center gap-2">
               <GraduationCap className="h-4 w-4" />
               {financeData.hasAdmission 

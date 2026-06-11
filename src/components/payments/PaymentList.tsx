@@ -42,9 +42,9 @@ interface PaymentListProps {
 const getStatusBadge = (status: Payment['status']) => {
   switch (status) {
     case 'completed':
-      return <Badge className="bg-green-500"><CheckCircle className="h-3 w-3 mr-1" /> Completed</Badge>;
+      return <Badge className="bg-success"><CheckCircle className="h-3 w-3 mr-1" /> Completed</Badge>;
     case 'partial':
-      return <Badge className="bg-blue-500"><Clock className="h-3 w-3 mr-1" /> Partial</Badge>;
+      return <Badge className="bg-info"><Clock className="h-3 w-3 mr-1" /> Partial</Badge>;
     case 'overdue':
       return <Badge variant="destructive"><AlertCircle className="h-3 w-3 mr-1" /> Overdue</Badge>;
     case 'refunded':

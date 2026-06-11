@@ -354,6 +354,85 @@ abstract class AppLocalizations {
   /// **'My Documents'**
   String get documentsTabTitle;
 
+  /// Document tab string (audit A3/A4).
+  String get documentUploadInfo;
+
+  /// Document tab string (audit A3/A4).
+  String get documentsRequiredHeading;
+
+  /// Document tab string (audit A3/A4).
+  String get documentUploadFailed;
+
+  /// Document tab string (audit A3/A4).
+  String get documentPreviewFailed;
+
+  /// Document tab string (audit A3/A4).
+  String get documentLoadError;
+
+  /// Document tab string (audit A3/A4).
+  String get commonRetry;
+
+  /// Onboarding string (audit A9).
+  String get onboardingSkip;
+
+  /// Onboarding string (audit A9).
+  String get onboardingNext;
+
+  /// Onboarding string (audit A9).
+  String get onboardingStart;
+
+  /// Onboarding string (audit A9).
+  String get onboardingStep1Title;
+
+  /// Onboarding string (audit A9).
+  String get onboardingStep1Body;
+
+  /// Onboarding string (audit A9).
+  String get onboardingStep2Title;
+
+  /// Onboarding string (audit A9).
+  String get onboardingStep2Body;
+
+  /// Onboarding string (audit A9).
+  String get onboardingStep3Title;
+
+  /// Onboarding string (audit A9).
+  String get onboardingStep3Body;
+
+  String get appsEmptyTitle;
+
+  String get appsEmptyBody;
+
+  String get appsLoadError;
+
+  String get appsPendingHeading;
+
+  String get appsActiveHeading;
+
+  String get searchHint;
+
+  String get clearSearch;
+
+  String get filterAll;
+
+  String get filterPartner;
+
+  String get filterTop;
+
+  String get noUniversitiesMatch;
+
+  String get clearFilters;
+
+  String get universitiesLoadError;
+
+  String get checkConnectionRetry;
+
+  String get switchToListView;
+
+  String get switchToMapView;
+
+  String get chatInputHint;
+
   /// Tooltip for the account icon button in the Applications AppBar —
   /// opens the AccountScreen with sign-out, data export, and delete
   /// account.

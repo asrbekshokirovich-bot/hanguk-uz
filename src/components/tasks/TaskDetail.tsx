@@ -29,10 +29,10 @@ interface TaskDetailProps {
 }
 
 const priorityColors = {
-  urgent: 'bg-red-500',
-  high: 'bg-orange-500',
-  normal: 'bg-blue-500',
-  low: 'bg-gray-500',
+  urgent: 'bg-destructive',
+  high: 'bg-warning',
+  normal: 'bg-info',
+  low: 'bg-muted',
 };
 
 export function TaskDetail({ 
@@ -165,7 +165,7 @@ export function TaskDetail({
               <Button 
                 size="sm" 
                 onClick={() => onStatusChange('completed')}
-                className="bg-green-500 hover:bg-green-600"
+                className="bg-success hover:bg-success"
               >
                 <CheckCircle className="h-4 w-4 mr-2" />
                 Mark Complete

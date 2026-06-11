@@ -127,7 +127,7 @@ export function AddExpenseDialog({ onSuccess, trigger }: AddExpenseDialogProps) 
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <ArrowDownRight className="h-5 w-5 text-red-500" />
+            <ArrowDownRight className="h-5 w-5 text-destructive" />
             Xarajat qo'shish
           </DialogTitle>
         </DialogHeader>
@@ -250,9 +250,9 @@ export function AddExpenseDialog({ onSuccess, trigger }: AddExpenseDialogProps) 
 
           {/* Amount Preview */}
           {form.amount && Number(form.amount) > 0 && (
-            <div className="p-3 bg-red-500/10 rounded-lg">
+            <div className="p-3 bg-destructive/10 rounded-lg">
               <p className="text-sm text-muted-foreground">Xarajat:</p>
-              <p className="text-xl font-bold text-red-600">
+              <p className="text-xl font-bold text-destructive">
                 -{formatAmount(Number(form.amount), form.currency)}
               </p>
             </div>

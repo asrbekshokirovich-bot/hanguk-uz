@@ -57,7 +57,7 @@ export function ApplicationsReport({ data, onExport }: ApplicationsReportProps) 
         </Card>
         <Card>
           <CardContent className="pt-6 text-center">
-            <p className="text-3xl font-bold text-green-600">
+            <p className="text-3xl font-bold text-success">
               {data.byStatus.find((s) => s.status === 'completed')?.count || 0}
             </p>
             <p className="text-sm text-muted-foreground">Completed</p>
@@ -65,7 +65,7 @@ export function ApplicationsReport({ data, onExport }: ApplicationsReportProps) 
         </Card>
         <Card>
           <CardContent className="pt-6 text-center">
-            <p className="text-3xl font-bold text-blue-600">{data.successRate.toFixed(1)}%</p>
+            <p className="text-3xl font-bold text-info">{data.successRate.toFixed(1)}%</p>
             <p className="text-sm text-muted-foreground">Success Rate</p>
           </CardContent>
         </Card>

@@ -56,7 +56,7 @@ serve(async (req) => {
       method: "POST",
       headers: { Authorization: `Bearer ${geminiApiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "gemini-2.5-flash",
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
           { role: "user", content: serialized },

@@ -453,8 +453,8 @@ const NodeInfoPanel: React.FC<{
               {(healthStatus === 'amber' || healthStatus === 'red') && diagnosticMessage && (
                 <div
                   className={`mt-2.5 rounded-lg p-2.5 border text-[11px] leading-relaxed ${healthStatus === 'red'
-                      ? 'bg-red-500/10 border-red-500/20 text-red-300/80'
-                      : 'bg-amber-500/10 border-amber-500/20 text-amber-200/80'
+                      ? 'bg-destructive/10 border-destructive/20 text-destructive/80'
+                      : 'bg-warning/10 border-warning/20 text-warning/80'
                     }`}
                 >
                   <div className="flex gap-1.5 items-start">
