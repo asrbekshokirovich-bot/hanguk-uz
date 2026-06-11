@@ -23,6 +23,7 @@ import { Plus, DollarSign, Calendar, Info } from 'lucide-react';
 import { Tables } from '@/integrations/supabase/types';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useActiveIntake } from '@/contexts/IntakeContext';
 import { useToast } from '@/hooks/use-toast';
 import { getPlanByValue, formatAmount, getPaymentAmount } from '@/hooks/useStudentPlan';
 import { allocateOperationalFund } from '@/hooks/useOperationalFund';
@@ -52,6 +53,7 @@ export function ManualTransactionDialog({ students, onSuccess }: ManualTransacti
   const { t } = useTranslation();
   const { toast } = useToast();
   const { user } = useAuth();
+  const { activeIntakeId } = useActiveIntake();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -147,7 +149,7 @@ export function ManualTransactionDialog({ students, onSuccess }: ManualTransacti
           
           // Auto-allocate student budgets if not already done
           if (selectedStudent?.payment_plan) {
-            await allocateBudgetsForPayment(form.student_id, selectedStudent.payment_plan, existingPayment.id);
+            await allocateBudgetsForPayment(form.student_id, selectedStudent.payment_plan, existingPayment.id, activeIntakeId);
           }
           
           // Auto-distribute income to owners (after deducting operational fund + student budgets + bonus)
@@ -170,6 +172,7 @@ export function ManualTransactionDialog({ students, onSuccess }: ManualTransacti
             status: 'completed', // New payment with full amount = completed
             paid_at: new Date().toISOString(),
             notes: form.notes || null,
+            intake_id: activeIntakeId,
           })
           .select()
           .single();
@@ -197,7 +200,7 @@ export function ManualTransactionDialog({ students, onSuccess }: ManualTransacti
           
           // Auto-allocate student budgets
           if (selectedStudent?.payment_plan) {
-            await allocateBudgetsForPayment(form.student_id, selectedStudent.payment_plan, newPayment.id);
+            await allocateBudgetsForPayment(form.student_id, selectedStudent.payment_plan, newPayment.id, activeIntakeId);
           }
           
           // Auto-distribute income to owners (after deducting operational fund + student budgets + bonus)

@@ -40,6 +40,11 @@
     --success-foreground: 0 0% 100%;
     --warning: 35 100% 44%;           /* #E08600 */
     --warning-foreground: 0 0% 100%;
+    /* season accents — Spring = lime, Fall = amber (mirror of warning) */
+    --spring: 74 78% 33%;             /* deep lime, legible on light */
+    --spring-foreground: 72 80% 10%;
+    --fall: 35 100% 44%;              /* amber */
+    --fall-foreground: 0 0% 100%;
     --destructive: 4 73% 56%;         /* #E0463C */
     --destructive-foreground: 0 0% 100%;
     --info: 217 56% 42%;              /* #2E5FA8 */
@@ -126,6 +131,11 @@
     /* ---- semantic ---- */
     --success: 146 56% 49%;            /* #34C77B */
     --warning: 35 86% 59%;             /* #F0A53A */
+    /* season accents (dark) */
+    --spring: 68 78% 61%;              /* bright lime, legible on dark */
+    --spring-foreground: 72 80% 10%;
+    --fall: 35 86% 59%;                /* amber */
+    --fall-foreground: 0 0% 100%;
     --destructive: 4 86% 66%;          /* #F2685E */
     --info: 214 56% 60%;
 

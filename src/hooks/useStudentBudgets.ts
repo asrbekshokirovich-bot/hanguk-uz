@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useActiveIntake } from '@/contexts/IntakeContext';
+import { applyIntake } from '@/lib/intakeQuery';
 import { getBudgetCategoriesForPlan, BudgetCategory, normalizePlanName } from './useStudentPlan';
 
 export interface StudentBudget {
@@ -34,6 +36,7 @@ export interface BudgetSummary {
 export function useStudentBudgets(studentId?: string) {
   const [budgets, setBudgets] = useState<StudentBudget[]>([]);
   const [loading, setLoading] = useState(true);
+  const { activeIntakeId } = useActiveIntake();
 
   const fetchBudgets = useCallback(async (id?: string) => {
     const targetId = id || studentId;
@@ -42,17 +45,16 @@ export function useStudentBudgets(studentId?: string) {
       return;
     }
 
-    const { data, error } = await supabase
-      .from('student_budgets')
-      .select('*')
-      .eq('student_id', targetId)
-      .order('created_at', { ascending: true });
+    const { data, error } = await applyIntake(
+      supabase.from('student_budgets').select('*').eq('student_id', targetId),
+      activeIntakeId,
+    ).order('created_at', { ascending: true });
 
     if (!error && data) {
       setBudgets(data);
     }
     setLoading(false);
-  }, [studentId]);
+  }, [studentId, activeIntakeId]);
 
   useEffect(() => {
     fetchBudgets();
@@ -69,18 +71,19 @@ export function useStudentBudgets(studentId?: string) {
 export function useAllStudentBudgets() {
   const [budgets, setBudgets] = useState<StudentBudget[]>([]);
   const [loading, setLoading] = useState(true);
+  const { activeIntakeId } = useActiveIntake();
 
   const fetchAllBudgets = useCallback(async () => {
-    const { data, error } = await supabase
-      .from('student_budgets')
-      .select('*')
-      .order('created_at', { ascending: false });
+    const { data, error } = await applyIntake(
+      supabase.from('student_budgets').select('*'),
+      activeIntakeId,
+    ).order('created_at', { ascending: false });
 
     if (!error && data) {
       setBudgets(data);
     }
     setLoading(false);
-  }, []);
+  }, [activeIntakeId]);
 
   useEffect(() => {
     fetchAllBudgets();
@@ -120,14 +123,17 @@ export function useAllStudentBudgets() {
 export async function allocateBudgetsForPayment(
   studentId: string,
   planValue: string,
-  paymentId: string
+  paymentId: string,
+  intakeId?: string | null,
 ): Promise<{ success: boolean; error?: string; allocated?: number }> {
-  // Check if budgets already exist for this student
-  const { data: existingBudgets } = await supabase
+  // Check if budgets already exist for this student in this intake.
+  let existingQuery = supabase
     .from('student_budgets')
     .select('id')
     .eq('student_id', studentId)
     .limit(1);
+  if (intakeId) existingQuery = existingQuery.eq('intake_id', intakeId);
+  const { data: existingBudgets } = await existingQuery;
 
   if (existingBudgets && existingBudgets.length > 0) {
     // Budgets already allocated
@@ -154,6 +160,7 @@ export async function allocateBudgetsForPayment(
     currency: cat.currency,
     status: 'allocated',
     allocated_from_payment_id: paymentId,
+    intake_id: intakeId ?? null,
   }));
 
   const { error } = await supabase
@@ -178,7 +185,7 @@ export async function allocateMissingBudgets(): Promise<{ success: boolean; resu
   // This is more reliable than checking status
   const { data: payments, error: paymentsError } = await supabase
     .from('payments')
-    .select('id, student_id, status, amount, paid_amount');
+    .select('id, student_id, status, amount, paid_amount, intake_id');
 
   if (paymentsError || !payments) {
     console.error('Failed to fetch payments:', paymentsError);
@@ -236,7 +243,8 @@ export async function allocateMissingBudgets(): Promise<{ success: boolean; resu
     const allocation = await allocateBudgetsForPayment(
       payment.student_id,
       profile.payment_plan,
-      payment.id
+      payment.id,
+      payment.intake_id,
     );
 
     results.push({

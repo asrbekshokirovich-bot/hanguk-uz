@@ -43,6 +43,15 @@ export default {
           DEFAULT: "hsl(var(--warning))",
           foreground: "hsl(var(--warning-foreground))",
         },
+        /* Season accents — Spring = lime, Fall = amber. Driven by semantic tokens. */
+        spring: {
+          DEFAULT: "hsl(var(--spring))",
+          foreground: "hsl(var(--spring-foreground))",
+        },
+        fall: {
+          DEFAULT: "hsl(var(--fall))",
+          foreground: "hsl(var(--fall-foreground))",
+        },
         info: "hsl(var(--info))",
         muted: {
           DEFAULT: "hsl(var(--muted))",

@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useActiveIntake } from '@/contexts/IntakeContext';
+import { applyIntake } from '@/lib/intakeQuery';
 import { 
   calculateFirstPaymentDueDate, 
   calculateSecondPaymentDueDate,
@@ -34,13 +36,14 @@ export interface ScheduledPayment {
 export function useScheduledPayments() {
   const [scheduledPayments, setScheduledPayments] = useState<ScheduledPayment[]>([]);
   const [loading, setLoading] = useState(true);
+  const { activeIntakeId } = useActiveIntake();
 
   const fetchScheduledPayments = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from('scheduled_payments')
-      .select('*')
-      .order('scheduled_date', { ascending: true });
+    const { data, error } = await applyIntake(
+      supabase.from('scheduled_payments').select('*'),
+      activeIntakeId,
+    ).order('scheduled_date', { ascending: true });
 
     if (!error && data) {
       // Batch fetch all student profiles (fix N+1 query)
@@ -67,7 +70,7 @@ export function useScheduledPayments() {
       setScheduledPayments(paymentsWithStudents);
     }
     setLoading(false);
-  }, []);
+  }, [activeIntakeId]);
 
   /**
    * Create scheduled payments for a student based on their plan and payment mode
@@ -133,7 +136,7 @@ export function useScheduledPayments() {
 
     const { error } = await supabase
       .from('scheduled_payments')
-      .insert(paymentsToCreate);
+      .insert(paymentsToCreate.map((p) => ({ ...p, intake_id: activeIntakeId })));
 
     if (!error) {
       await fetchScheduledPayments();
@@ -189,6 +192,7 @@ export function useScheduledPayments() {
           due_date: dueDate,
           status: 'pending',
           notes: 'Auto-created upon university admission confirmation',
+          intake_id: activeIntakeId,
         })
         .select()
         .single();

@@ -15,6 +15,8 @@ import { CRMDashboard } from '@/components/crm/CRMDashboard';
 import { StudentList } from '@/components/crm/StudentList';
 import { StudentDetail } from '@/components/crm/StudentDetail';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { SeasonSwitcher } from '@/components/crm/SeasonSwitcher';
+import { IntakeBanner } from '@/components/crm/IntakeBanner';
 import { NotificationBell } from '@/components/crm/NotificationBell';
 import { HangukAIChat } from '@/components/ai/HangukAIChat';
 import { IntercomProvider } from '@/components/intercom/IntercomProvider';
@@ -59,6 +61,7 @@ const CalendarContent = lazy(() => import('@/components/crm/pages/CalendarConten
 const SettingsContent = lazy(() => import('@/components/crm/pages/SettingsContent'));
 const KakaoMapContent = lazy(() => import('@/components/crm/pages/KakaoMapContent'));
 const UniDbReviewContent = lazy(() => import('@/components/crm/pages/UniDbReviewContent'));
+const ManageIntakesContent = lazy(() => import('@/components/crm/pages/ManageIntakesContent'));
 
 // Access denied component
 const AccessDenied = () => (
@@ -131,6 +134,7 @@ export default function CRMPortal() {
     if (currentPath.startsWith('/crm/reports')) return 'reports';
     if (currentPath.startsWith('/crm/calendar')) return 'calendar';
     if (currentPath.startsWith('/crm/settings')) return 'settings';
+    if (currentPath.startsWith('/crm/intakes')) return 'intakes';
     if (currentPath.startsWith('/crm/translation')) return 'translation';
     if (currentPath.startsWith('/crm/communication')) return 'communication';
     if (currentPath.startsWith('/crm/kakao-map')) return 'kakao-map';
@@ -293,7 +297,8 @@ export default function CRMPortal() {
       case 'applications':
         return (
           <>
-            <div style={{ display: selectedStudent ? 'none' : undefined }}>
+            <div style={{ display: selectedStudent ? 'none' : undefined }} className="space-y-4">
+              <IntakeBanner onManage={() => navigate('/crm/intakes')} />
               <SafeSuspense>
                 <ApplicationsContent
                   applications={applications}
@@ -400,6 +405,8 @@ export default function CRMPortal() {
         return <SafeSuspense><CalendarContent /></SafeSuspense>;
       case 'settings':
         return <SafeSuspense><SettingsContent /></SafeSuspense>;
+      case 'intakes':
+        return <SafeSuspense><ManageIntakesContent /></SafeSuspense>;
       case 'kakao-map':
         return <SafeSuspense><KakaoMapContent /></SafeSuspense>;
       case 'uni-db-review':
@@ -439,9 +446,12 @@ export default function CRMPortal() {
               <header className="sticky top-0 z-50 border-b border-border bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70 pt-[env(safe-area-inset-top)]">
                 <div className="flex h-16 items-center gap-3 px-4 sm:px-6">
                   <SidebarTrigger className="h-9 w-9 text-muted-foreground" />
-                  <h1 className="min-w-0 flex-1 truncate text-[17px] font-bold tracking-tight text-foreground">
-                    {pageTitle}
-                  </h1>
+                  <div className="flex min-w-0 flex-1 items-center gap-3">
+                    <h1 className="min-w-0 truncate text-[17px] font-bold tracking-tight text-foreground">
+                      {pageTitle}
+                    </h1>
+                    <SeasonSwitcher className="shrink-0" />
+                  </div>
                   <div className="flex items-center gap-1.5 sm:gap-2">
                     <CRMCommandMenu groups={sidebarGroups} />
                     <VoiceChannelHeader />

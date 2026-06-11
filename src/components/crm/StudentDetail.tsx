@@ -54,6 +54,8 @@ import { Tables } from '@/integrations/supabase/types';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
+import { useActiveIntake } from '@/contexts/IntakeContext';
+import { applyIntake } from '@/lib/intakeQuery';
 import { useToast } from '@/hooks/use-toast';
 import {
   Select,
@@ -190,6 +192,7 @@ export function StudentDetail({
 }: StudentDetailProps) {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const { activeIntakeId } = useActiveIntake();
   const { toast } = useToast();
 
 
@@ -290,7 +293,8 @@ export function StudentDetail({
     fetchCalls();
     fetchDocuments();
     fetchSuggestions();
-  }, [student.user_id]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [student.user_id, activeIntakeId]);
 
   const fetchSuggestions = async () => {
     const { data } = await supabase
@@ -399,11 +403,13 @@ export function StudentDetail({
   };
 
   const fetchPayments = async () => {
-    const { data } = await supabase
-      .from('payments')
-      .select('*, transactions:payment_transactions(*)')
-      .eq('student_id', student.user_id)
-      .order('created_at', { ascending: false });
+    const { data } = await applyIntake(
+      supabase
+        .from('payments')
+        .select('*, transactions:payment_transactions(*)')
+        .eq('student_id', student.user_id),
+      activeIntakeId,
+    ).order('created_at', { ascending: false });
     if (data) setPayments(data as PaymentRecord[]);
   };
 
@@ -417,11 +423,10 @@ export function StudentDetail({
   };
 
   const fetchDocuments = async () => {
-    const { data } = await supabase
-      .from('documents')
-      .select('*')
-      .eq('student_id', student.user_id)
-      .order('created_at', { ascending: false });
+    const { data } = await applyIntake(
+      supabase.from('documents').select('*').eq('student_id', student.user_id),
+      activeIntakeId,
+    ).order('created_at', { ascending: false });
     if (data) setDocuments(data);
   };
 
@@ -697,6 +702,7 @@ export function StudentDetail({
         file_type: file.type,
         file_size: file.size,
         status: 'uploaded',
+        intake_id: activeIntakeId,
       });
 
       if (dbError) throw dbError;

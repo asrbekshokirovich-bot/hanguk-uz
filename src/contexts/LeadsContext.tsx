@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef, useMemo, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useActiveIntake } from '@/contexts/IntakeContext';
+import { applyIntake } from '@/lib/intakeQuery';
 import { toast } from 'sonner';
 
 export interface Lead {
@@ -88,6 +90,7 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+  const { activeIntakeId } = useActiveIntake();
   const convertingIds = useRef(new Set<string>());
   const fetchLeadsRef = useRef<() => Promise<void>>();
 
@@ -125,7 +128,7 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
     try {
       setLoading(true);
       const [{ data, error }, { data: studentProfiles }, { data: allProfiles }] = await Promise.all([
-        supabase.from('leads').select('*'),
+        applyIntake(supabase.from('leads').select('*'), activeIntakeId),
         supabase.from('profiles').select('full_name, phone, magic_code').not('magic_code', 'is', null),
         supabase.from('profiles').select('user_id, full_name'),
       ]);
@@ -168,6 +171,7 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
         .insert({
           ...leadData,
           created_by: user?.id,
+          intake_id: activeIntakeId,
         })
         .select()
         .single();
@@ -403,6 +407,11 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
       supabase.removeChannel(channel);
     };
   }, [user]);
+
+  // Re-scope leads when the active intake changes.
+  useEffect(() => {
+    fetchLeadsRef.current?.();
+  }, [activeIntakeId]);
 
   const stats = useMemo(() => ({
     total: leads.length,

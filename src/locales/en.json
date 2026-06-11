@@ -1,4 +1,33 @@
 {
+  "intake": {
+    "label": "Intake",
+    "season": { "spring": "Spring", "fall": "Fall" },
+    "status": { "open": "Open", "planning": "Planning", "closed": "Closed" },
+    "previousYear": "Previous year",
+    "nextYear": "Next year",
+    "banner": {
+      "title": "{{season}} {{year}} intake",
+      "subtitle": "You're viewing one season. Students, applications, documents and finance are fully separated per intake."
+    },
+    "manage": "Manage intakes",
+    "default": "Default",
+    "manageHint": "Opening/closing seasons, setting the default, and creating new intakes arrive in a later update.",
+    "active": "Active",
+    "makeActive": "Make active",
+    "setDefault": "Set as default",
+    "openAction": "Open",
+    "closeAction": "Close",
+    "createNextYear": "Create {{year}} intakes",
+    "createdToast": "Intakes created",
+    "updatedToast": "Intake updated",
+    "manageOnlyAdmins": "Only owners and admins can manage intakes.",
+    "noMatches": "No matches",
+    "viewing": "{{season}} {{year}}",
+    "empty": {
+      "title": "No data yet for {{season}} {{year}}",
+      "description": "Records you create while this season is active will appear here."
+    }
+  },
   "applications": {
     "subtitleUni": "{{unis}} universities · {{apps}} applications",
     "export": "Export",
