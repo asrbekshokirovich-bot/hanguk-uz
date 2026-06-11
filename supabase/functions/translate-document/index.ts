@@ -233,17 +233,6 @@ async function renderDocx(structured: StructuredTranslation, meta: { documentTit
     }
   }
 
-  // Certification footer
-  const dateStr = new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "long", year: "numeric" });
-  bodyParts.push(
-    `<w:p><w:pPr><w:pBdr><w:top w:val="single" w:sz="6" w:space="1" w:color="AAAAAA"/></w:pBdr><w:spacing w:before="400" w:after="160"/></w:pPr>` +
-    `<w:r><w:rPr><w:b/><w:sz w:val="44"/><w:szCs w:val="44"/></w:rPr><w:t>TRANSLATOR'S CERTIFICATION</w:t></w:r></w:p>`,
-    makeParagraph("I hereby certify that the foregoing is a true, complete and accurate translation from Uzbek into English of the attached document, to the best of my knowledge and ability.", { size: 10 }),
-    makeParagraph(`Date of translation: ${dateStr}`, { size: 10 }),
-    makeParagraph("Signature: ______________________________", { size: 10 }),
-    makeParagraph("Translator / Authorised representative", { italic: true, size: 9, color: "777777" }),
-  );
-
   const documentXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <w:document xmlns:wpc="http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas"
   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
