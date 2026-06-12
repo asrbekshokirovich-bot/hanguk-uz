@@ -173,6 +173,7 @@ const LeadsContent = () => {
   const [viewMode, setViewMode] = useState<'pipeline' | 'list'>('pipeline');
   const [isAddWizardOpen, setIsAddWizardOpen] = useState(false);
   const [staff, setStaff] = useState<StaffMember[]>([]);
+  const [students, setStudents] = useState<StaffMember[]>([]);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
@@ -188,14 +189,17 @@ const LeadsContent = () => {
   }, [leads]);
 
   useEffect(() => {
-    const fetchStaff = async () => {
-      const { data } = await supabase
-        .from('profiles')
-        .select('user_id, full_name')
-        .not('full_name', 'is', null);
-      setStaff(data || []);
+    const fetchPeople = async () => {
+      const [{ data: profiles }, { data: staffRoles }] = await Promise.all([
+        supabase.from('profiles').select('user_id, full_name').not('full_name', 'is', null),
+        supabase.from('user_roles').select('user_id'),
+      ]);
+      setStaff(profiles || []);
+      // Students = profiles that are NOT staff (have no role in user_roles).
+      const staffIds = new Set((staffRoles || []).map((r) => r.user_id));
+      setStudents((profiles || []).filter((p) => !staffIds.has(p.user_id)));
     };
-    fetchStaff();
+    fetchPeople();
   }, []);
 
   const filteredLeads = useMemo(
@@ -646,7 +650,7 @@ const LeadsContent = () => {
         open={isAddWizardOpen}
         onOpenChange={setIsAddWizardOpen}
         onSubmit={handleCreateLead}
-        staff={staff}
+        students={students}
       />
     </div>
   );

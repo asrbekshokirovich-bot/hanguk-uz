@@ -17,6 +17,7 @@ export interface Lead {
   notes: string | null;
   ai_summary: string | null;
   assigned_to: string | null;
+  referred_by_student_id: string | null;
   converted_to_student_id: string | null;
   created_by: string | null;
   created_at: string;
@@ -40,6 +41,9 @@ export interface Lead {
   assignee?: {
     full_name: string | null;
   };
+  referrer?: {
+    full_name: string | null;
+  } | null;
   isAlreadyStudent?: boolean;
 }
 
@@ -54,6 +58,7 @@ export interface CreateLeadData {
   notes?: string;
   ai_summary?: string;
   assigned_to?: string;
+  referred_by_student_id?: string;
   preferred_university?: string;
   preferred_program?: string;
   budget_range?: string;
@@ -149,6 +154,7 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
       const enrichedLeads = (data || []).map(lead => ({
         ...lead,
         assignee: lead.assigned_to ? (assigneeMap.get(lead.assigned_to) || null) : null,
+        referrer: lead.referred_by_student_id ? (assigneeMap.get(lead.referred_by_student_id) || null) : null,
         isAlreadyStudent:
           studentNames.has(lead.full_name.toLowerCase().trim()) ||
           (lead.phone ? studentPhones.has(normalizePhone(lead.phone)) : false),
@@ -196,6 +202,10 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
         cleanedUpdates.assigned_to = undefined;
       }
 
+      if (cleanedUpdates.referred_by_student_id === '' || cleanedUpdates.referred_by_student_id === 'none') {
+        cleanedUpdates.referred_by_student_id = undefined;
+      }
+
       const dateFields = ['birth_date', 'contract_date', 'next_follow_up', 'last_contacted_at', 'preferred_start_date'] as const;
       for (const field of dateFields) {
         if ((cleanedUpdates as Record<string, unknown>)[field] === '') {
@@ -209,6 +219,9 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
       
       if (updates.assigned_to === '' || updates.assigned_to === 'unassigned') {
         (finalUpdates as Record<string, unknown>).assigned_to = null;
+      }
+      if (updates.referred_by_student_id === '' || updates.referred_by_student_id === 'none') {
+        (finalUpdates as Record<string, unknown>).referred_by_student_id = null;
       }
       for (const field of dateFields) {
         if ((updates as Record<string, unknown>)[field] === '') {

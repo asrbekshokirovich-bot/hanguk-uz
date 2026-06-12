@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
@@ -29,7 +30,9 @@ import {
   DollarSign,
   BookOpen,
   Languages,
-  Sparkles
+  Sparkles,
+  UserCheck,
+  ChevronsUpDown
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -37,7 +40,8 @@ interface AddLeadWizardProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: CreateLeadData, initialNote?: { content: string; contactType: ContactType; outcome: ContactOutcome }) => Promise<void>;
-  staff: { user_id: string; full_name: string | null }[];
+  /** Students who can be credited as the referrer of this lead (not staff). */
+  students: { user_id: string; full_name: string | null }[];
 }
 
 interface WizardFormData extends CreateLeadData {
@@ -110,11 +114,12 @@ export const AddLeadWizard: React.FC<AddLeadWizardProps> = ({
   open,
   onOpenChange,
   onSubmit,
-  staff,
+  students,
 }) => {
   const { t } = useTranslation();
   const [currentStep, setCurrentStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [referrerPickerOpen, setReferrerPickerOpen] = useState(false);
   const [formData, setFormData] = useState<WizardFormData>({
     full_name: '',
     phone: '',
@@ -132,7 +137,7 @@ export const AddLeadWizard: React.FC<AddLeadWizardProps> = ({
     preferred_start_date: '',
     how_heard: '',
     notes: '',
-    assigned_to: '',
+    referred_by_student_id: '',
     initialNoteContent: '',
     initialContactType: 'call',
     initialOutcome: undefined,
@@ -186,7 +191,7 @@ export const AddLeadWizard: React.FC<AddLeadWizardProps> = ({
         preferred_start_date: formData.preferred_start_date || undefined,
         how_heard: formData.how_heard || undefined,
         notes: formData.notes?.trim() || undefined,
-        assigned_to: formData.assigned_to || undefined,
+        referred_by_student_id: formData.referred_by_student_id || undefined,
         // Don't set next follow-up if lead is not interested
         next_follow_up: formData.initialOutcome === 'not_interested' 
           ? undefined 
@@ -223,7 +228,7 @@ export const AddLeadWizard: React.FC<AddLeadWizardProps> = ({
         preferred_start_date: '',
         how_heard: '',
         notes: '',
-        assigned_to: '',
+        referred_by_student_id: '',
         initialNoteContent: '',
         initialContactType: 'call',
         initialOutcome: undefined,
@@ -322,23 +327,67 @@ export const AddLeadWizard: React.FC<AddLeadWizardProps> = ({
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Assign To</Label>
-                <Select
-                  value={formData.assigned_to || 'unassigned'}
-                  onValueChange={(v) => updateField('assigned_to', v === 'unassigned' ? undefined : v)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select staff member" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="unassigned">Unassigned</SelectItem>
-                    {staff.map((s) => (
-                      <SelectItem key={s.user_id} value={s.user_id}>
-                        {s.full_name || 'Unknown'}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label className="flex items-center gap-2">
+                  <UserCheck className="h-4 w-4" />
+                  Referred By (Student)
+                </Label>
+                <Popover open={referrerPickerOpen} onOpenChange={setReferrerPickerOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={referrerPickerOpen}
+                      className="w-full justify-between font-normal"
+                    >
+                      <span className={cn('truncate', !formData.referred_by_student_id && 'text-muted-foreground')}>
+                        {students.find((s) => s.user_id === formData.referred_by_student_id)?.full_name
+                          || 'No referral'}
+                      </span>
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                    <Command>
+                      <CommandInput placeholder="Search students..." />
+                      <CommandList>
+                        <CommandEmpty>No students found.</CommandEmpty>
+                        <CommandGroup>
+                          <CommandItem
+                            value="no-referral"
+                            onSelect={() => {
+                              updateField('referred_by_student_id', undefined);
+                              setReferrerPickerOpen(false);
+                            }}
+                          >
+                            No referral
+                          </CommandItem>
+                          {students.map((s) => (
+                            <CommandItem
+                              key={s.user_id}
+                              value={`${s.full_name || 'Unknown'} ${s.user_id}`}
+                              onSelect={() => {
+                                updateField('referred_by_student_id', s.user_id);
+                                setReferrerPickerOpen(false);
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  'mr-2 h-4 w-4',
+                                  formData.referred_by_student_id === s.user_id ? 'opacity-100' : 'opacity-0'
+                                )}
+                              />
+                              {s.full_name || 'Unknown'}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+                <p className="text-xs text-muted-foreground">
+                  Which student recommended this lead?
+                </p>
               </div>
             </div>
 

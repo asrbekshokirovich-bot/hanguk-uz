@@ -3105,6 +3105,7 @@ export type Database = {
           preferred_start_date: string | null
           preferred_university: string | null
           priority_score: number | null
+          referred_by_student_id: string | null
           source: string
           source_id: string | null
           status: string
@@ -3146,6 +3147,7 @@ export type Database = {
           preferred_start_date?: string | null
           preferred_university?: string | null
           priority_score?: number | null
+          referred_by_student_id?: string | null
           source?: string
           source_id?: string | null
           status?: string
@@ -3187,6 +3189,7 @@ export type Database = {
           preferred_start_date?: string | null
           preferred_university?: string | null
           priority_score?: number | null
+          referred_by_student_id?: string | null
           source?: string
           source_id?: string | null
           status?: string
@@ -3200,6 +3203,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "intakes"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_referred_by_student_id_fkey"
+            columns: ["referred_by_student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
           },
         ]
       }
