@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { useStaffBonuses } from '@/hooks/useStaffBonuses';
+import { useActiveIntake } from '@/contexts/IntakeContext';
 import { User, Phone, MapPin, Calendar, CreditCard, KeyRound, Copy, CheckCircle, Languages, Crown, AlertCircle, GraduationCap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -116,7 +116,7 @@ const LANGUAGE_TRACKS = [
 export function AddStudentDialog({ open, onOpenChange, onSuccess }: AddStudentDialogProps) {
   const { t } = useTranslation();
   const { toast } = useToast();
-  const { createBonusForStudent } = useStaffBonuses();
+  const { activeIntakeId } = useActiveIntake();
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [createdMagicCode, setCreatedMagicCode] = useState('');
@@ -174,6 +174,7 @@ export function AddStudentDialog({ open, onOpenChange, onSuccess }: AddStudentDi
           contractUrl: formData.contractUrl || null,
           languageTrack: formData.languageTrack || 'korean',
           isGksApplicant: formData.isGksApplicant || false,
+          intakeId: activeIntakeId,
         },
       });
 
@@ -181,10 +182,8 @@ export function AddStudentDialog({ open, onOpenChange, onSuccess }: AddStudentDi
         throw new Error(createResponse?.error || createError?.message || 'Failed to create student');
       }
 
-      // Create bonus if student has a payment plan
-      if (formData.paymentPlan && createResponse.profileId) {
-        await createBonusForStudent(createResponse.profileId, formData.paymentPlan);
-      }
+      // The create-student edge function enrolls the student in the active intake
+      // and records the staff bonus server-side (works for any staff role).
 
       // Show success screen with magic code
       setCreatedMagicCode(createResponse.magicCode);

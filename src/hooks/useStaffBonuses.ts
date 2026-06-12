@@ -23,39 +23,25 @@ export async function createBonusForPayment(studentId: string, planType: string)
     return false;
   }
 
-  // Check if bonus already exists for this student
-  const { data: existing } = await supabase
-    .from('staff_bonuses')
-    .select('id')
-    .eq('student_id', studentId)
-    .limit(1)
-    .maybeSingle();
-
-  if (existing) {
-    console.log('Bonus already exists for student:', studentId);
-    return false;
-  }
-
   const monthYear = format(new Date(), 'yyyy-MM');
 
-  const { error } = await supabase
-    .from('staff_bonuses')
-    .insert({
-      student_id: studentId,
-      plan_type: normalizedPlan,
-      bonus_amount: bonusAmount,
-      currency: 'UZS',
-      status: 'pending',
-      month_year: monthYear,
-    });
+  // Record via SECURITY DEFINER RPC: staff_bonuses is owner-only at the table
+  // level, but this lets any staff role create the bonus. The RPC is idempotent
+  // (one bonus per student), so no client-side existence check is needed.
+  const { data, error } = await supabase.rpc('record_staff_bonus', {
+    p_student_id: studentId,
+    p_plan_type: normalizedPlan,
+    p_bonus_amount: bonusAmount,
+    p_currency: 'UZS',
+    p_month_year: monthYear,
+  });
 
   if (error) {
     console.error('Error creating bonus:', error);
     return false;
   }
 
-  console.log(`Created bonus for student ${studentId} with plan ${planType}`);
-  return true;
+  return data === true;
 }
 
 export interface StaffBonus {
@@ -177,18 +163,14 @@ export function useStaffBonuses() {
 
     const monthYear = format(new Date(), 'yyyy-MM');
 
-    const { data, error } = await supabase
-      .from('staff_bonuses')
-      .insert({
-        student_id: studentId,
-        plan_type: normalizedPlan,
-        bonus_amount: bonusAmount,
-        currency: 'UZS',
-        status: 'pending',
-        month_year: monthYear,
-      })
-      .select()
-      .single();
+    // Record via the idempotent SECURITY DEFINER RPC (works for any staff role).
+    const { data, error } = await supabase.rpc('record_staff_bonus', {
+      p_student_id: studentId,
+      p_plan_type: normalizedPlan,
+      p_bonus_amount: bonusAmount,
+      p_currency: 'UZS',
+      p_month_year: monthYear,
+    });
 
     if (error) {
       console.error('Error creating bonus:', error);
@@ -196,7 +178,7 @@ export function useStaffBonuses() {
     }
 
     await fetchBonuses();
-    return data;
+    return data === true;
   };
 
   // Assign bonus to a staff member (owner only)
@@ -344,16 +326,11 @@ export function useStaffBonuses() {
     };
   };
 
-  // Get bonus amount for a specific student (for income distribution calculation)
+  // Get bonus amount for a specific student (for income distribution calculation).
+  // Uses the SECURITY DEFINER RPC so non-owner staff get the real amount too.
   const getBonusForStudent = async (studentId: string): Promise<number> => {
-    const { data } = await supabase
-      .from('staff_bonuses')
-      .select('bonus_amount')
-      .eq('student_id', studentId)
-      .limit(1)
-      .maybeSingle();
-
-    return data?.bonus_amount || 0;
+    const { data } = await supabase.rpc('staff_bonus_amount', { p_student_id: studentId });
+    return Number(data) || 0;
   };
 
   // Sync missing bonuses for students with COMPLETED payments but no bonus records

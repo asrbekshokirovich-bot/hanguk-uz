@@ -27,21 +27,42 @@ export function useCRMData() {
   const { activeIntakeId } = useActiveIntake();
 
   const fetchStudents = async () => {
+    if (!activeIntakeId) {
+      setStudents([]);
+      return;
+    }
     try {
-      // Get all staff user IDs
+      // Roster for the active season = explicit membership (student_intakes).
+      // This is role-independent, so every staff role sees the same students —
+      // unlike the old "derive from applications ∪ documents ∪ payments" approach,
+      // where a role that can't read `documents` (e.g. call_operator) saw fewer.
+      const { data: memberships, error: membershipError } = await supabase
+        .from('student_intakes')
+        .select('student_id')
+        .eq('intake_id', activeIntakeId);
+
+      if (membershipError) {
+        console.error('Error fetching student memberships:', membershipError);
+        toast.error('Failed to load students');
+        return;
+      }
+
+      const memberIds = new Set((memberships ?? []).map((m) => m.student_id));
+
+      // Staff are never students.
       const { data: staffRoles, error: staffError } = await supabase
         .from('user_roles')
         .select('user_id');
-      
+
       if (staffError) {
         console.error('Error fetching staff roles:', staffError);
         toast.error('Failed to load staff roles');
         return;
       }
 
-      const staffUserIds = staffRoles?.map(r => r.user_id) || [];
+      const staffUserIds = new Set((staffRoles ?? []).map((r) => r.user_id));
 
-      // Fetch all profiles
+      // Fetch all profiles, then keep this season's members (excluding staff).
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
         .select('*')
@@ -55,12 +76,16 @@ export function useCRMData() {
 
       if (!profiles) return;
 
-      // Filter out staff members
-      const studentProfiles = profiles.filter(
-        profile => !staffUserIds.includes(profile.user_id)
+      const memberProfiles = profiles.filter(
+        (profile) => memberIds.has(profile.user_id) && !staffUserIds.has(profile.user_id),
       );
 
-      const studentUserIds = studentProfiles.map(p => p.user_id);
+      const studentUserIds = memberProfiles.map((p) => p.user_id);
+
+      if (studentUserIds.length === 0) {
+        setStudents([]);
+        return;
+      }
 
       // Batch fetch THIS intake's applications, documents and payments for all students.
       const [appsResult, docsResult, paymentsResult] = await Promise.all([
@@ -115,15 +140,6 @@ export function useCRMData() {
         existing.push(doc);
         docsByStudent.set(doc.student_id, existing);
       }
-
-      // Students shown for this intake = those with any record (application,
-      // document or payment) in the active season. A student applying in both
-      // Spring and Fall therefore appears under each, with only that season's data.
-      const intakeStudentIds = new Set<string>();
-      for (const a of allApps) intakeStudentIds.add(a.student_id);
-      for (const d of allDocs) intakeStudentIds.add(d.student_id);
-      for (const p of allPayments) intakeStudentIds.add(p.student_id);
-      const memberProfiles = studentProfiles.filter((p) => intakeStudentIds.has(p.user_id));
 
       // Compute initialPaymentOverdue per student
       const initialOverdueByStudent = new Map<string, boolean>();

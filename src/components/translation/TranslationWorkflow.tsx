@@ -20,6 +20,8 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { useActiveIntake } from '@/contexts/IntakeContext';
+import { applyIntake } from '@/lib/intakeQuery';
 
 interface TranslationWorkflowProps {
   studentId?: string;
@@ -57,6 +59,7 @@ export function TranslationWorkflow({ studentId, studentName, onJobCreated }: Tr
   const lang = i18n.language.split('-')[0] as 'uz' | 'ru' | 'en';
   const { documentTypes, loading: loadingTypes } = useTranslationTraining();
   const { translating, regenerating, runTranslation, regeneratePdf, createTranslationJob, saveTranslationResult, updateJobStatus, deleteJob } = useDocumentTranslation();
+  const { activeIntakeId } = useActiveIntake();
 
   // Standalone (no studentId) student picker
   const [students, setStudents] = useState<{ user_id: string; full_name: string | null }[]>([]);
@@ -106,9 +109,12 @@ export function TranslationWorkflow({ studentId, studentName, onJobCreated }: Tr
 
   const fetchStudentDocs = useCallback(async () => {
     if (!effectiveStudentId) { setStudentDocs([]); return; }
-    const { data } = await supabase.from('documents').select('*').eq('student_id', effectiveStudentId).order('created_at', { ascending: false });
+    const { data } = await applyIntake(
+      supabase.from('documents').select('*').eq('student_id', effectiveStudentId),
+      activeIntakeId,
+    ).order('created_at', { ascending: false });
     setStudentDocs(data ?? []);
-  }, [effectiveStudentId]);
+  }, [effectiveStudentId, activeIntakeId]);
 
   const fetchJobs = useCallback(async () => {
     if (!effectiveStudentId) { setJobs([]); return; }

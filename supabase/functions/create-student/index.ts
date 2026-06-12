@@ -22,7 +22,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { fullName, phone, birthDate, city, officeLocation, paymentPlan, paymentMode, contractDate, contractUrl, languageTrack, isGksApplicant } = await req.json();
+    const { fullName, phone, birthDate, city, officeLocation, paymentPlan, paymentMode, contractDate, contractUrl, languageTrack, isGksApplicant, intakeId } = await req.json();
 
     if (!fullName?.trim()) {
       return new Response(
@@ -195,9 +195,65 @@ Deno.serve(async (req) => {
 
     console.log('Student profile created successfully:', profile.id);
 
+    // Enroll the student in the active admission intake so they appear in that
+    // season's roster immediately. Membership (student_intakes) is the CRM's
+    // single source of truth for the per-season roster, so without this a newly
+    // created student would be invisible in every season.
+    let intakeForStudent: string | null = intakeId || null;
+    if (!intakeForStudent) {
+      const { data: def } = await supabaseAdmin
+        .from('intakes')
+        .select('id')
+        .eq('is_default', true)
+        .order('year', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      intakeForStudent = def?.id || null;
+    }
+    if (intakeForStudent) {
+      const { error: enrollError } = await supabaseAdmin
+        .from('student_intakes')
+        .upsert(
+          { student_id: studentUserId, intake_id: intakeForStudent },
+          { onConflict: 'student_id,intake_id' },
+        );
+      if (enrollError) console.error('Failed to enroll student in intake:', enrollError);
+    }
+
+    // Record the staff bonus for this student's plan. `staff_bonuses` is owner-only
+    // at the table level (security-hardening intent), but the service role can write
+    // it — so this works regardless of which staff role created the student.
+    if (paymentPlan) {
+      const BONUS_AMOUNTS: Record<string, number> = { standart: 100000, premium: 150000, no_risk: 150000 };
+      const normalizedPlan = String(paymentPlan).toLowerCase().replace(/[\s-]+/g, '_');
+      const bonusAmount = BONUS_AMOUNTS[normalizedPlan];
+      if (bonusAmount) {
+        const { data: existingBonus } = await supabaseAdmin
+          .from('staff_bonuses')
+          .select('id')
+          .eq('student_id', studentUserId)
+          .limit(1)
+          .maybeSingle();
+        if (!existingBonus) {
+          const monthYear = new Date().toISOString().slice(0, 7);
+          const { error: bonusError } = await supabaseAdmin
+            .from('staff_bonuses')
+            .insert({
+              student_id: studentUserId,
+              plan_type: normalizedPlan,
+              bonus_amount: bonusAmount,
+              currency: 'UZS',
+              status: 'pending',
+              month_year: monthYear,
+            });
+          if (bonusError) console.error('Failed to create staff bonus:', bonusError);
+        }
+      }
+    }
+
     return new Response(
-      JSON.stringify({ 
-        success: true, 
+      JSON.stringify({
+        success: true,
         profileId: profile.id,
         userId: studentUserId,
         magicCode: magicCode // Return magic code so staff can share with student
