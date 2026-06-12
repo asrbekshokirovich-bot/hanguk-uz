@@ -62,6 +62,22 @@ type StudentProfile = Tables<'profiles'> & {
 
 type Tone = 'lime' | 'info' | 'neutral' | 'successSoft' | 'warning' | 'destructive';
 
+// Normalise names so search tolerates Uzbek/passport transliteration variants
+// (e.g. BAKHROM / BAHROM / BAXROM, KHURSHID / XURSHID, O' / O, G' / G) and is
+// independent of word order. Without this, typing "BAHROM" fails to match a
+// profile stored as "NORMAMATOV BAKHROM ...".
+function normalizeForSearch(value: string | null | undefined): string {
+  return (value ?? '')
+    .toLowerCase()
+    .replace(/['’ʻ`]/g, '')   // drop apostrophes (o' -> o, g' -> g)
+    .replace(/kh/g, 'h')       // KHurshid -> hurshid
+    .replace(/x/g, 'h')        // Baxrom -> bahrom (Uzbek "x" == "kh" == "h")
+    .replace(/ts/g, 's')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+    .replace(/\s+/g, ' ');
+}
+
 interface StudentListProps {
   students: StudentProfile[];
   universities: Tables<'universities'>[];
@@ -178,12 +194,20 @@ export function StudentList({
   };
 
   const filteredStudents = students.filter((student) => {
-    // Search filter
-    const matchesSearch =
-      !searchQuery ||
-      student.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      student.phone?.includes(searchQuery) ||
-      student.username?.toLowerCase().includes(searchQuery.toLowerCase());
+    // Search filter — tokenised, transliteration-tolerant and order-independent.
+    const trimmedQuery = searchQuery.trim();
+    let matchesSearch = true;
+    if (trimmedQuery) {
+      const haystack = normalizeForSearch(`${student.full_name ?? ''} ${student.username ?? ''}`);
+      const tokens = normalizeForSearch(trimmedQuery).split(' ').filter(Boolean);
+      const nameMatches = tokens.length > 0 && tokens.every((tok) => haystack.includes(tok));
+      const queryDigits = trimmedQuery.replace(/\D/g, '');
+      const phoneMatches =
+        queryDigits.length >= 3 &&
+        !!student.phone &&
+        student.phone.replace(/\D/g, '').includes(queryDigits);
+      matchesSearch = nameMatches || phoneMatches;
+    }
 
     // University filter
     const matchesUniversity =
