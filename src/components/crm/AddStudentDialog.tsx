@@ -20,7 +20,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useActiveIntake } from '@/contexts/IntakeContext';
-import { User, Phone, MapPin, Calendar, CreditCard, KeyRound, Copy, CheckCircle, Languages, Crown, AlertCircle, GraduationCap } from 'lucide-react';
+import { User, Phone, Calendar, CreditCard, KeyRound, Copy, CheckCircle, Crown, AlertCircle, GraduationCap, Plus, Trash2, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ContractUpload } from './ContractUpload';
@@ -31,43 +31,48 @@ interface AddStudentDialogProps {
   onSuccess: () => void;
 }
 
+interface PhoneEntry {
+  phone: string;
+  label: string;
+}
+
 const PAYMENT_PLANS = [
-  { 
-    value: 'free', 
-    label: 'FREE', 
-    price: '0 UZS', 
-    currency: 'UZS', 
-    priceOneTime: 0, 
+  {
+    value: 'free',
+    label: 'FREE',
+    price: '0 UZS',
+    currency: 'UZS',
+    priceOneTime: 0,
     priceInstallment: 0,
     isVIP: false,
     features: ['applications', 'map', 'documents', 'aiChat']
   },
-  { 
-    value: 'standart', 
-    label: 'STANDART', 
-    price: '5,000,000 UZS', 
-    currency: 'UZS', 
-    priceOneTime: 5000000, 
+  {
+    value: 'standart',
+    label: 'STANDART',
+    price: '5,000,000 UZS',
+    currency: 'UZS',
+    priceOneTime: 5000000,
     priceInstallment: 6000000,
     isVIP: false,
     features: ['applications', 'map', 'documents', 'aiChat']
   },
-  { 
-    value: 'premium', 
-    label: 'PREMIUM', 
-    price: '10,000,000 UZS', 
-    currency: 'UZS', 
-    priceOneTime: 10000000, 
+  {
+    value: 'premium',
+    label: 'PREMIUM',
+    price: '10,000,000 UZS',
+    currency: 'UZS',
+    priceOneTime: 10000000,
     priceInstallment: 13000000,
     isVIP: true,
     features: ['applications', 'map', 'documents', 'aiChat', 'interview', 'studyPlan', 'embassy']
   },
-  { 
-    value: 'no_risk', 
-    label: 'NO RISK', 
-    price: '$5,000 USD', 
-    currency: 'USD', 
-    priceOneTime: 5000, 
+  {
+    value: 'no_risk',
+    label: 'NO RISK',
+    price: '$5,000 USD',
+    currency: 'USD',
+    priceOneTime: 5000,
     priceInstallment: 5500,
     isVIP: true,
     features: ['applications', 'map', 'documents', 'aiChat', 'interview', 'studyPlan', 'embassy', 'flightApartment']
@@ -90,28 +95,21 @@ const PAYMENT_MODES = [
   { value: 'installment', label: '2 Installments' },
 ];
 
-const UZBEKISTAN_REGIONS = [
-  { value: 'tashkent_city', label: "Toshkent shahri" },
-  { value: 'tashkent', label: "Toshkent viloyati" },
-  { value: 'andijan', label: "Andijon viloyati" },
-  { value: 'bukhara', label: "Buxoro viloyati" },
-  { value: 'fergana', label: "Farg'ona viloyati" },
-  { value: 'jizzakh', label: "Jizzax viloyati" },
-  { value: 'khorezm', label: "Xorazm viloyati" },
-  { value: 'namangan', label: "Namangan viloyati" },
-  { value: 'navoiy', label: "Navoiy viloyati" },
-  { value: 'kashkadarya', label: "Qashqadaryo viloyati" },
-  { value: 'samarkand', label: "Samarqand viloyati" },
-  { value: 'sirdarya', label: "Sirdaryo viloyati" },
-  { value: 'surkhandarya', label: "Surxondaryo viloyati" },
-  { value: 'karakalpakstan', label: "Qoraqalpog'iston" },
+const PHONE_LABELS = [
+  { value: 'own', label: 'Own' },
+  { value: 'parent', label: 'Parent' },
+  { value: 'other', label: 'Other' },
 ];
 
-const LANGUAGE_TRACKS = [
-  { value: 'korean', label: 'Korean Track (한국어)', description: 'Interview and study in Korean' },
-  { value: 'english', label: 'English Track', description: 'Interview and study in English' },
-  { value: 'both', label: 'Both Tracks', description: 'Student can choose language during interview' },
-];
+const emptyForm = () => ({
+  fullName: '',
+  phones: [{ phone: '', label: 'own' }] as PhoneEntry[],
+  paymentPlan: '',
+  paymentMode: 'one_time',
+  contractDate: '',
+  contractUrl: '',
+  isGksApplicant: false,
+});
 
 export function AddStudentDialog({ open, onOpenChange, onSuccess }: AddStudentDialogProps) {
   const { t } = useTranslation();
@@ -123,56 +121,65 @@ export function AddStudentDialog({ open, onOpenChange, onSuccess }: AddStudentDi
   const [createdStudentName, setCreatedStudentName] = useState('');
   const [copied, setCopied] = useState(false);
 
-  const [formData, setFormData] = useState({
-    fullName: '',
-    phone: '',
-    birthDate: '',
-    city: '', // Region/city for analytics
-    paymentPlan: '',
-    paymentMode: 'one_time',
-    contractDate: '',
-    contractUrl: '',
-    languageTrack: 'korean',
-    isGksApplicant: false,
-  });
+  const [formData, setFormData] = useState(emptyForm());
+
+  const updatePhone = (index: number, patch: Partial<PhoneEntry>) => {
+    setFormData((prev) => ({
+      ...prev,
+      phones: prev.phones.map((p, i) => (i === index ? { ...p, ...patch } : p)),
+    }));
+  };
+
+  const addPhone = () => {
+    setFormData((prev) => ({ ...prev, phones: [...prev.phones, { phone: '', label: 'parent' }] }));
+  };
+
+  const removePhone = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      phones: prev.phones.length > 1 ? prev.phones.filter((_, i) => i !== index) : prev.phones,
+    }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.fullName.trim()) {
-      toast({
-        title: t('common.error'),
-        description: 'Full name is required',
-        variant: 'destructive',
-      });
-      return;
-    }
+    const filledPhones = formData.phones
+      .map((p) => ({ phone: p.phone.trim(), label: p.label }))
+      .filter((p) => p.phone.length > 0);
 
-    // Contract date is required
-    if (!formData.contractDate) {
-      toast({
-        title: t('common.error'),
-        description: 'Contract date is required to calculate payment due dates',
-        variant: 'destructive',
-      });
-      return;
-    }
+    // Validation — everything except the GKS flag is mandatory.
+    const requireField = (condition: boolean, message: string): boolean => {
+      if (!condition) {
+        toast({ title: t('common.error'), description: message, variant: 'destructive' });
+      }
+      return condition;
+    };
+
+    if (!requireField(!!formData.fullName.trim(), 'Full name is required')) return;
+    if (!requireField(filledPhones.length > 0, 'At least one phone number is required')) return;
+    if (!requireField(!!formData.paymentPlan, 'Payment plan is required')) return;
+    if (!requireField(!!formData.contractDate, 'Contract date is required')) return;
+    if (!requireField(!!formData.contractUrl, 'Contract file is required')) return;
 
     setLoading(true);
 
     try {
-      // Call edge function to create student profile (no auth account)
+      // Call edge function to create student profile (no auth account).
+      // Region, birth date and language track are filled automatically later
+      // from the student's passport, certificates and conversations.
       const { data: createResponse, error: createError } = await supabase.functions.invoke('create-student', {
         body: {
           fullName: formData.fullName,
-          phone: formData.phone || null,
-          birthDate: formData.birthDate || null,
-          city: formData.city || null,
+          phones: filledPhones.map((p, i) => ({
+            phone: p.phone,
+            label: p.label || null,
+            is_primary: i === 0,
+          })),
           paymentPlan: formData.paymentPlan || null,
           paymentMode: formData.paymentMode || 'one_time',
           contractDate: formData.contractDate || null,
           contractUrl: formData.contractUrl || null,
-          languageTrack: formData.languageTrack || 'korean',
           isGksApplicant: formData.isGksApplicant || false,
           intakeId: activeIntakeId,
         },
@@ -191,24 +198,13 @@ export function AddStudentDialog({ open, onOpenChange, onSuccess }: AddStudentDi
       setShowSuccess(true);
 
       // Reset form
-      setFormData({
-        fullName: '',
-        phone: '',
-        birthDate: '',
-        city: '',
-        paymentPlan: '',
-        paymentMode: 'one_time',
-        contractDate: '',
-        contractUrl: '',
-        languageTrack: 'korean',
-        isGksApplicant: false,
-      });
-      
+      setFormData(emptyForm());
+
       onSuccess();
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: t('common.error'),
-        description: error.message || 'Failed to add student',
+        description: (error instanceof Error ? error.message : '') || 'Failed to add student',
         variant: 'destructive',
       });
     } finally {
@@ -266,9 +262,9 @@ export function AddStudentDialog({ open, onOpenChange, onSuccess }: AddStudentDi
                 <div className="text-3xl font-mono font-bold tracking-widest text-primary mb-4">
                   {createdMagicCode}
                 </div>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={handleCopyCode}
                   className="gap-2"
                 >
@@ -314,71 +310,80 @@ export function AddStudentDialog({ open, onOpenChange, onSuccess }: AddStudentDi
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold">{t('crm.personalInfo')}</h3>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="fullName">{t('common.name')} *</Label>
-                    <div className="relative">
-                      <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="fullName"
-                        value={formData.fullName}
-                        onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                        placeholder="Enter full name"
-                        className="pl-9"
-                        required
-                      />
-                    </div>
+                <div className="space-y-2">
+                  <Label htmlFor="fullName">{t('common.name')} *</Label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="fullName"
+                      value={formData.fullName}
+                      onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                      placeholder="Enter full name"
+                      className="pl-9"
+                      required
+                    />
                   </div>
+                </div>
 
+                {/* Phone numbers — multiple allowed */}
+                <div className="space-y-2">
+                  <Label>{t('crm.phoneNumbers', 'Phone Numbers')} *</Label>
                   <div className="space-y-2">
-                    <Label htmlFor="phone">{t('common.phone')}</Label>
-                    <div className="relative">
-                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="phone"
-                        value={formData.phone}
-                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                        placeholder="+998 90 123 45 67"
-                        className="pl-9"
-                      />
-                    </div>
+                    {formData.phones.map((entry, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <div className="relative flex-1">
+                          <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input
+                            value={entry.phone}
+                            onChange={(e) => updatePhone(index, { phone: e.target.value })}
+                            placeholder="+998 90 123 45 67"
+                            className="pl-9"
+                            required={index === 0}
+                          />
+                        </div>
+                        <Select
+                          value={entry.label}
+                          onValueChange={(value) => updatePhone(index, { label: value })}
+                        >
+                          <SelectTrigger className="w-[110px] flex-shrink-0">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {PHONE_LABELS.map((l) => (
+                              <SelectItem key={l.value} value={l.value}>
+                                {t(`crm.phoneLabels.${l.value}`, l.label)}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="flex-shrink-0 text-muted-foreground hover:text-destructive"
+                          onClick={() => removePhone(index)}
+                          disabled={formData.phones.length === 1}
+                          aria-label="Remove phone number"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
                   </div>
+                  <Button type="button" variant="outline" size="sm" className="gap-1" onClick={addPhone}>
+                    <Plus className="h-3.5 w-3.5" />
+                    {t('crm.addPhone', 'Add phone number')}
+                  </Button>
+                </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="birthDate">{t('crm.birthDate')}</Label>
-                    <div className="relative">
-                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="birthDate"
-                        type="date"
-                        value={formData.birthDate}
-                        onChange={(e) => setFormData({ ...formData, birthDate: e.target.value })}
-                        className="pl-9"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="city">{t('crm.region', 'Region')}</Label>
-                    <Select
-                      value={formData.city}
-                      onValueChange={(value) => setFormData({ ...formData, city: value })}
-                    >
-                      <SelectTrigger>
-                        <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
-                        <SelectValue placeholder="Select region" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {UZBEKISTAN_REGIONS.map((region) => (
-                          <SelectItem key={region.value} value={region.label}>
-                            {region.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                {/* Auto-fill notice */}
+                <div className="flex items-start gap-2 bg-info/10 border border-info/30 rounded-lg p-3 text-sm text-info">
+                  <Sparkles className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                  <span>
+                    {t('crm.autoFillNotice', 'Region, birth date and language track are filled automatically from the student’s passport, certificates and conversations once uploaded.')}
+                  </span>
+                </div>
               </div>
-            </div>
 
               {/* GKS Applicant Checkbox */}
               <div className="flex items-center space-x-3 p-4 border rounded-lg bg-gradient-to-r from-info to-primary dark:from-info/20 dark:to-primary/20">
@@ -398,61 +403,24 @@ export function AddStudentDialog({ open, onOpenChange, onSuccess }: AddStudentDi
                 </div>
               </div>
 
-              {/* Language Track Selection */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold flex items-center gap-2">
-                  <Languages className="h-5 w-5" />
-                  {t('crm.languageTrack', 'Language Track')}
-                </h3>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="languageTrack">{t('crm.selectTrack', 'Interview & Study Language')}</Label>
-                  <Select
-                    value={formData.languageTrack}
-                    onValueChange={(value) => setFormData({ ...formData, languageTrack: value })}
-                  >
-                    <SelectTrigger>
-                      <Languages className="h-4 w-4 mr-2 text-muted-foreground" />
-                      <SelectValue placeholder="Select language track" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {LANGUAGE_TRACKS.map((track) => (
-                        <SelectItem key={track.value} value={track.value}>
-                          <div className="flex flex-col">
-                            <span>{track.label}</span>
-                            <span className="text-xs text-muted-foreground">{track.description}</span>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {formData.languageTrack === 'both' && (
-                  <div className="bg-info/10 border border-info/30 rounded-lg p-3 text-sm text-info">
-                    🌐 Student can switch between Korean and English during interview practice
-                  </div>
-                )}
-              </div>
-
               {/* Payment Plan & Contract */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold">{t('crm.paymentContract')}</h3>
 
                 {/* Plan Selection Cards */}
                 <div className="space-y-2">
-                  <Label>{t('crm.selectPlan')}</Label>
+                  <Label>{t('crm.selectPlan')} *</Label>
                 <div className="grid grid-cols-1 gap-3" role="radiogroup" aria-label="Payment Plan">
                     {PAYMENT_PLANS.map((plan) => (
-                      <button 
+                      <button
                         key={plan.value}
                         type="button"
                         role="radio"
                         aria-checked={formData.paymentPlan === plan.value}
                         className={cn(
                           "border rounded-lg p-4 cursor-pointer transition-all text-left w-full",
-                          formData.paymentPlan === plan.value 
-                            ? "border-primary bg-primary/5 ring-2 ring-primary" 
+                          formData.paymentPlan === plan.value
+                            ? "border-primary bg-primary/5 ring-2 ring-primary"
                             : "border-border hover:border-primary/50 hover:bg-muted/30"
                         )}
                         onClick={() => setFormData({ ...formData, paymentPlan: plan.value })}
@@ -522,7 +490,7 @@ export function AddStudentDialog({ open, onOpenChange, onSuccess }: AddStudentDi
                   </div>
                 </div>
 
-                {/* Contract Upload */}
+                {/* Contract Upload — required */}
                 <ContractUpload
                   value={formData.contractUrl}
                   onChange={(url) => setFormData({ ...formData, contractUrl: url })}
@@ -534,8 +502,8 @@ export function AddStudentDialog({ open, onOpenChange, onSuccess }: AddStudentDi
                       const plan = PAYMENT_PLANS.find(p => p.value === formData.paymentPlan);
                       if (!plan) return null;
                       const price = formData.paymentMode === 'installment' ? plan.priceInstallment : plan.priceOneTime;
-                      const formatted = plan.currency === 'UZS' 
-                        ? `${price.toLocaleString()} UZS` 
+                      const formatted = plan.currency === 'UZS'
+                        ? `${price.toLocaleString()} UZS`
                         : `$${price.toLocaleString()} USD`;
                       return (
                         <div className="flex items-center gap-2">

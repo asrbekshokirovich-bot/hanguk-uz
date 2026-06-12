@@ -280,7 +280,16 @@
     "selectPlan": "Rejani tanlang",
     "contractDate": "Shartnoma sanasi",
     "birthDate": "Tug'ilgan sana",
-    "officeLocation": "Ofis manzili"
+    "officeLocation": "Ofis manzili",
+    "region": "Viloyat",
+    "phoneNumbers": "Telefon raqamlar",
+    "addPhone": "Telefon raqam qo'shish",
+    "autoFillNotice": "Viloyat, tug'ilgan sana va til yo'nalishi talabaning pasporti, sertifikatlari va suhbatlari yuklangach avtomatik to'ldiriladi.",
+    "phoneLabels": {
+      "own": "O'zi",
+      "parent": "Ota-ona",
+      "other": "Boshqa"
+    }
   },
   "leads": {
     "intel": {

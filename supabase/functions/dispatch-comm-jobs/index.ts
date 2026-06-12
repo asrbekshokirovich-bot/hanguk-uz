@@ -18,6 +18,7 @@ const corsHeaders = {
 const WORKERS: Record<string, { fn: string; param: string }> = {
   call_transcribe_analyze: { fn: "process-call-recording", param: "call_id" },
   document_extract: { fn: "process-document", param: "document_id" },
+  student_track_infer: { fn: "infer-student-track", param: "student_id" },
 };
 
 Deno.serve(async (req) => {

@@ -113,6 +113,32 @@ export async function resolveIdentity(
       };
     }
 
+    // A student can have several numbers (own, parent, …) in student_phones.
+    const { data: phoneRow } = await supabaseAdmin
+      .from("student_phones")
+      .select("student_id, profiles!inner(full_name)")
+      .eq("phone_norm", identifier)
+      .maybeSingle();
+
+    if (phoneRow) {
+      const fullName = (phoneRow as any).profiles?.full_name ?? null;
+      await upsertIdentity(supabaseAdmin, {
+        channel,
+        identifier,
+        identifier_label: rawIdentifier.trim(),
+        student_id: (phoneRow as any).student_id,
+        display_name: opts.displayName ?? fullName,
+        confidence: "confirmed",
+        source: "auto",
+      });
+      return {
+        studentId: (phoneRow as any).student_id,
+        leadId: null,
+        displayName: fullName,
+        confidence: "confirmed",
+      };
+    }
+
     const { data: lead } = await supabaseAdmin
       .from("leads")
       .select("id, full_name")

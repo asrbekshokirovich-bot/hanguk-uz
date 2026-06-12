@@ -3926,6 +3926,7 @@ export type Database = {
           additional_phone: string | null
           avatar_url: string | null
           birth_date: string | null
+          birth_date_source: string | null
           city: string | null
           contract_date: string | null
           contract_url: string | null
@@ -3937,6 +3938,7 @@ export type Database = {
           is_gks_applicant: boolean | null
           korean_region_preference: string | null
           language_track: string | null
+          language_track_source: string | null
           magic_code: string | null
           marketing_consent: boolean
           marketing_consent_at: string | null
@@ -3948,6 +3950,7 @@ export type Database = {
           payment_plan: string | null
           phone: string | null
           preferred_language: string | null
+          region_source: string | null
           role: string | null
           sip1_label: string | null
           sip1_password: string | null
@@ -3974,6 +3977,7 @@ export type Database = {
           additional_phone?: string | null
           avatar_url?: string | null
           birth_date?: string | null
+          birth_date_source?: string | null
           city?: string | null
           contract_date?: string | null
           contract_url?: string | null
@@ -3985,6 +3989,7 @@ export type Database = {
           is_gks_applicant?: boolean | null
           korean_region_preference?: string | null
           language_track?: string | null
+          language_track_source?: string | null
           magic_code?: string | null
           marketing_consent?: boolean
           marketing_consent_at?: string | null
@@ -3996,6 +4001,7 @@ export type Database = {
           payment_plan?: string | null
           phone?: string | null
           preferred_language?: string | null
+          region_source?: string | null
           role?: string | null
           sip1_label?: string | null
           sip1_password?: string | null
@@ -4022,6 +4028,7 @@ export type Database = {
           additional_phone?: string | null
           avatar_url?: string | null
           birth_date?: string | null
+          birth_date_source?: string | null
           city?: string | null
           contract_date?: string | null
           contract_url?: string | null
@@ -4033,6 +4040,7 @@ export type Database = {
           is_gks_applicant?: boolean | null
           korean_region_preference?: string | null
           language_track?: string | null
+          language_track_source?: string | null
           magic_code?: string | null
           marketing_consent?: boolean
           marketing_consent_at?: string | null
@@ -4044,6 +4052,7 @@ export type Database = {
           payment_plan?: string | null
           phone?: string | null
           preferred_language?: string | null
+          region_source?: string | null
           role?: string | null
           sip1_label?: string | null
           sip1_password?: string | null
@@ -5168,6 +5177,45 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "student_code_status"
             referencedColumns: ["profile_user_id"]
+          },
+        ]
+      }
+      student_phones: {
+        Row: {
+          created_at: string
+          id: string
+          is_primary: boolean
+          label: string | null
+          phone: string
+          phone_norm: string | null
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_primary?: boolean
+          label?: string | null
+          phone: string
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_primary?: boolean
+          label?: string | null
+          phone?: string
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_phones_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
           },
         ]
       }
