@@ -20,7 +20,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Tables } from '@/integrations/supabase/types';
-import { User, Phone, MapPin, Calendar, CreditCard, Pencil, Languages, Crown, CheckCircle, AlertCircle, GraduationCap } from 'lucide-react';
+import { User, Phone, MapPin, Calendar, CreditCard, Pencil, Languages, Crown, CheckCircle, AlertCircle, GraduationCap, Plus, Trash2, Sparkles } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -35,43 +35,50 @@ interface EditStudentDialogProps {
   onSuccess: () => void;
 }
 
+interface PhoneEntry {
+  id?: string;
+  phone: string;
+  label: string;
+  is_primary: boolean;
+}
+
 const PAYMENT_PLANS = [
-  { 
-    value: 'free', 
-    label: 'FREE', 
-    price: '0 UZS', 
-    currency: 'UZS', 
-    priceOneTime: 0, 
+  {
+    value: 'free',
+    label: 'FREE',
+    price: '0 UZS',
+    currency: 'UZS',
+    priceOneTime: 0,
     priceInstallment: 0,
     isVIP: false,
     features: ['applications', 'map', 'documents', 'aiChat']
   },
-  { 
-    value: 'standart', 
-    label: 'STANDART', 
-    price: '5,000,000 UZS', 
-    currency: 'UZS', 
-    priceOneTime: 5000000, 
+  {
+    value: 'standart',
+    label: 'STANDART',
+    price: '5,000,000 UZS',
+    currency: 'UZS',
+    priceOneTime: 5000000,
     priceInstallment: 6000000,
     isVIP: false,
     features: ['applications', 'map', 'documents', 'aiChat']
   },
-  { 
-    value: 'premium', 
-    label: 'PREMIUM', 
-    price: '10,000,000 UZS', 
-    currency: 'UZS', 
-    priceOneTime: 10000000, 
+  {
+    value: 'premium',
+    label: 'PREMIUM',
+    price: '10,000,000 UZS',
+    currency: 'UZS',
+    priceOneTime: 10000000,
     priceInstallment: 13000000,
     isVIP: true,
     features: ['applications', 'map', 'documents', 'aiChat', 'interview', 'studyPlan', 'embassy']
   },
-  { 
-    value: 'no_risk', 
-    label: 'NO RISK', 
-    price: '$5,000 USD', 
-    currency: 'USD', 
-    priceOneTime: 5000, 
+  {
+    value: 'no_risk',
+    label: 'NO RISK',
+    price: '$5,000 USD',
+    currency: 'USD',
+    priceOneTime: 5000,
     priceInstallment: 5500,
     isVIP: true,
     features: ['applications', 'map', 'documents', 'aiChat', 'interview', 'studyPlan', 'embassy', 'flightApartment']
@@ -94,13 +101,21 @@ const PAYMENT_MODES = [
   { value: 'installment', label: '2 Installments' },
 ];
 
-const OFFICE_LOCATIONS = [
-  'Tashkent',
-  'Samarkand',
-  'Bukhara',
-  'Namangan',
-  'Andijan',
-  'Fergana',
+const UZBEKISTAN_REGIONS = [
+  "Toshkent shahri",
+  "Toshkent viloyati",
+  "Andijon viloyati",
+  "Buxoro viloyati",
+  "Farg'ona viloyati",
+  "Jizzax viloyati",
+  "Xorazm viloyati",
+  "Namangan viloyati",
+  "Navoiy viloyati",
+  "Qashqadaryo viloyati",
+  "Samarqand viloyati",
+  "Sirdaryo viloyati",
+  "Surxondaryo viloyati",
+  "Qoraqalpog'iston",
 ];
 
 const LANGUAGE_TRACKS = [
@@ -109,6 +124,27 @@ const LANGUAGE_TRACKS = [
   { value: 'both', label: 'Both (English & Korean)' },
 ];
 
+const PHONE_LABELS = [
+  { value: 'own', label: 'Own' },
+  { value: 'parent', label: 'Parent' },
+  { value: 'other', label: 'Other' },
+];
+
+// Small badge shown next to a field that was auto-filled (not staff-entered).
+function AutoBadge({ source }: { source: string | null | undefined }) {
+  if (!source || source === 'manual') return null;
+  const label = source === 'passport' ? 'from passport'
+    : source === 'certificate' ? 'from certificate'
+    : source === 'conversation' ? 'from conversations'
+    : 'auto';
+  return (
+    <Badge variant="outline" className="gap-1 text-[10px] text-info border-info/40">
+      <Sparkles className="h-3 w-3" />
+      {label}
+    </Badge>
+  );
+}
+
 export function EditStudentDialog({ open, onOpenChange, student, onSuccess }: EditStudentDialogProps) {
   const { t } = useTranslation();
   const { toast } = useToast();
@@ -116,9 +152,8 @@ export function EditStudentDialog({ open, onOpenChange, student, onSuccess }: Ed
 
   const [formData, setFormData] = useState({
     fullName: '',
-    phone: '',
     birthDate: '',
-    officeLocation: '',
+    city: '',
     paymentPlan: '',
     paymentMode: 'one_time',
     contractDate: '',
@@ -127,62 +162,102 @@ export function EditStudentDialog({ open, onOpenChange, student, onSuccess }: Ed
     notes: '',
     isGksApplicant: false,
   });
+  const [phones, setPhones] = useState<PhoneEntry[]>([]);
+  const [removedPhoneIds, setRemovedPhoneIds] = useState<string[]>([]);
 
   useEffect(() => {
-    if (student) {
-      setFormData({
-        fullName: student.full_name || '',
-        phone: student.phone || '',
-        birthDate: student.birth_date || '',
-        officeLocation: student.office_location || '',
-        paymentPlan: student.payment_plan || '',
-        paymentMode: student.payment_mode || 'one_time',
-        contractDate: student.contract_date || '',
-        contractUrl: (student as any).contract_url || '',
-        languageTrack: student.language_track || '',
-        notes: student.notes || '',
-        isGksApplicant: (student as any).is_gks_applicant || false,
-      });
-    }
+    if (!student) return;
+    setFormData({
+      fullName: student.full_name || '',
+      birthDate: student.birth_date || '',
+      city: student.city || '',
+      paymentPlan: student.payment_plan || '',
+      paymentMode: student.payment_mode || 'one_time',
+      contractDate: student.contract_date || '',
+      contractUrl: student.contract_url || '',
+      languageTrack: student.language_track || '',
+      notes: student.notes || '',
+      isGksApplicant: student.is_gks_applicant || false,
+    });
+    setRemovedPhoneIds([]);
+
+    // Load the student's phone numbers.
+    (async () => {
+      const { data } = await supabase
+        .from('student_phones')
+        .select('id, phone, label, is_primary')
+        .eq('student_id', student.user_id)
+        .order('is_primary', { ascending: false });
+      if (data && data.length > 0) {
+        setPhones(data.map((p) => ({ id: p.id, phone: p.phone, label: p.label || 'other', is_primary: p.is_primary })));
+      } else {
+        // Fall back to the legacy profile columns.
+        const fallback: PhoneEntry[] = [];
+        if (student.phone) fallback.push({ phone: student.phone, label: 'own', is_primary: true });
+        if (student.additional_phone) fallback.push({ phone: student.additional_phone, label: 'other', is_primary: false });
+        setPhones(fallback.length > 0 ? fallback : [{ phone: '', label: 'own', is_primary: true }]);
+      }
+    })();
   }, [student]);
+
+  const updatePhone = (index: number, patch: Partial<PhoneEntry>) => {
+    setPhones((prev) => prev.map((p, i) => (i === index ? { ...p, ...patch } : p)));
+  };
+  const addPhone = () => setPhones((prev) => [...prev, { phone: '', label: 'parent', is_primary: prev.length === 0 }]);
+  const removePhone = (index: number) => {
+    setPhones((prev) => {
+      const target = prev[index];
+      if (target?.id) setRemovedPhoneIds((ids) => [...ids, target.id!]);
+      const next = prev.filter((_, i) => i !== index);
+      if (next.length > 0 && !next.some((p) => p.is_primary)) next[0].is_primary = true;
+      return next;
+    });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!student || !formData.fullName.trim()) {
-      toast({
-        title: t('common.error'),
-        description: 'Full name is required',
-        variant: 'destructive',
-      });
+      toast({ title: t('common.error'), description: 'Full name is required', variant: 'destructive' });
       return;
     }
 
-    // Contract date is required
+    const filledPhones = phones.map((p) => ({ ...p, phone: p.phone.trim() })).filter((p) => p.phone.length > 0);
+    if (filledPhones.length === 0) {
+      toast({ title: t('common.error'), description: 'At least one phone number is required', variant: 'destructive' });
+      return;
+    }
+    if (!filledPhones.some((p) => p.is_primary)) filledPhones[0].is_primary = true;
+
     if (!formData.contractDate) {
-      toast({
-        title: t('common.error'),
-        description: 'Contract date is required to calculate payment due dates',
-        variant: 'destructive',
-      });
+      toast({ title: t('common.error'), description: 'Contract date is required to calculate payment due dates', variant: 'destructive' });
       return;
     }
 
     setLoading(true);
 
     try {
+      const primary = filledPhones.find((p) => p.is_primary) ?? filledPhones[0];
+      const secondary = filledPhones.find((p) => !p.is_primary);
+
+      // Staff edits are authoritative — stamp the manual source so async
+      // auto-fill never overwrites these values.
       const { error } = await supabase
         .from('profiles')
         .update({
           full_name: formData.fullName.trim(),
-          phone: formData.phone || null,
+          phone: primary?.phone ?? null,
+          additional_phone: secondary?.phone ?? null,
           birth_date: formData.birthDate || null,
-          office_location: formData.officeLocation || null,
+          birth_date_source: 'manual',
+          city: formData.city || null,
+          region_source: 'manual',
           payment_plan: formData.paymentPlan || null,
           payment_mode: formData.paymentMode || 'one_time',
           contract_date: formData.contractDate || null,
           contract_url: formData.contractUrl || null,
           language_track: formData.languageTrack || null,
+          language_track_source: 'manual',
           notes: formData.notes || null,
           is_gks_applicant: formData.isGksApplicant || false,
         })
@@ -190,19 +265,26 @@ export function EditStudentDialog({ open, onOpenChange, student, onSuccess }: Ed
 
       if (error) throw error;
 
-      toast({
-        title: t('common.success'),
-        description: 'Student updated successfully',
-      });
+      // Sync phone numbers: delete removed, upsert the rest.
+      if (removedPhoneIds.length > 0) {
+        await supabase.from('student_phones').delete().in('id', removedPhoneIds);
+      }
+      for (const p of filledPhones) {
+        if (p.id) {
+          await supabase.from('student_phones')
+            .update({ phone: p.phone, label: p.label || null, is_primary: p.is_primary })
+            .eq('id', p.id);
+        } else {
+          await supabase.from('student_phones')
+            .insert({ student_id: student.user_id, phone: p.phone, label: p.label || null, is_primary: p.is_primary });
+        }
+      }
 
+      toast({ title: t('common.success'), description: 'Student updated successfully' });
       onOpenChange(false);
       onSuccess();
-    } catch (error: any) {
-      toast({
-        title: t('common.error'),
-        description: error.message || 'Failed to update student',
-        variant: 'destructive',
-      });
+    } catch (error) {
+      toast({ title: t('common.error'), description: (error instanceof Error ? error.message : '') || 'Failed to update student', variant: 'destructive' });
     } finally {
       setLoading(false);
     }
@@ -224,38 +306,82 @@ export function EditStudentDialog({ open, onOpenChange, student, onSuccess }: Ed
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">{t('crm.personalInfo')}</h3>
 
+            <div className="space-y-2">
+              <Label htmlFor="fullName">{t('common.name')} *</Label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="fullName"
+                  value={formData.fullName}
+                  onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                  placeholder="Enter full name"
+                  className="pl-9"
+                  required
+                />
+              </div>
+            </div>
+
+            {/* Phone numbers — multiple allowed */}
+            <div className="space-y-2">
+              <Label>{t('crm.phoneNumbers', 'Phone Numbers')} *</Label>
+              <div className="space-y-2">
+                {phones.map((entry, index) => (
+                  <div key={entry.id ?? index} className="flex items-center gap-2">
+                    <div className="relative flex-1">
+                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        value={entry.phone}
+                        onChange={(e) => updatePhone(index, { phone: e.target.value })}
+                        placeholder="+998 90 123 45 67"
+                        className="pl-9"
+                      />
+                    </div>
+                    <Select value={entry.label} onValueChange={(value) => updatePhone(index, { label: value })}>
+                      <SelectTrigger className="w-[110px] flex-shrink-0">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {PHONE_LABELS.map((l) => (
+                          <SelectItem key={l.value} value={l.value}>{t(`crm.phoneLabels.${l.value}`, l.label)}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      type="button"
+                      variant={entry.is_primary ? 'default' : 'ghost'}
+                      size="sm"
+                      className="flex-shrink-0 text-xs px-2"
+                      onClick={() => setPhones((prev) => prev.map((p, i) => ({ ...p, is_primary: i === index })))}
+                      title="Set as primary"
+                    >
+                      {entry.is_primary ? 'Primary' : 'Set'}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="flex-shrink-0 text-muted-foreground hover:text-destructive"
+                      onClick={() => removePhone(index)}
+                      disabled={phones.length === 1}
+                      aria-label="Remove phone number"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+              <Button type="button" variant="outline" size="sm" className="gap-1" onClick={addPhone}>
+                <Plus className="h-3.5 w-3.5" />
+                {t('crm.addPhone', 'Add phone number')}
+              </Button>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="fullName">{t('common.name')} *</Label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="fullName"
-                    value={formData.fullName}
-                    onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                    placeholder="Enter full name"
-                    className="pl-9"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="phone">{t('common.phone')}</Label>
-                <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="phone"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    placeholder="+998 90 123 45 67"
-                    className="pl-9"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="birthDate">{t('crm.birthDate')}</Label>
+                <Label htmlFor="birthDate" className="flex items-center gap-2">
+                  {t('crm.birthDate')}
+                  <AutoBadge source={student?.birth_date_source} />
+                </Label>
                 <div className="relative">
                   <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -269,20 +395,18 @@ export function EditStudentDialog({ open, onOpenChange, student, onSuccess }: Ed
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="officeLocation">{t('crm.officeLocation')}</Label>
-                <Select
-                  value={formData.officeLocation}
-                  onValueChange={(value) => setFormData({ ...formData, officeLocation: value })}
-                >
+                <Label htmlFor="city" className="flex items-center gap-2">
+                  {t('crm.region', 'Region')}
+                  <AutoBadge source={student?.region_source} />
+                </Label>
+                <Select value={formData.city} onValueChange={(value) => setFormData({ ...formData, city: value })}>
                   <SelectTrigger>
                     <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
-                    <SelectValue placeholder="Select location" />
+                    <SelectValue placeholder="Select region" />
                   </SelectTrigger>
                   <SelectContent>
-                    {OFFICE_LOCATIONS.map((loc) => (
-                      <SelectItem key={loc} value={loc}>
-                        {loc}
-                      </SelectItem>
+                    {UZBEKISTAN_REGIONS.map((region) => (
+                      <SelectItem key={region} value={region}>{region}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -292,7 +416,10 @@ export function EditStudentDialog({ open, onOpenChange, student, onSuccess }: Ed
 
           {/* Language Track */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold">{t('crm.languageTrack') || 'Language Track'}</h3>
+            <h3 className="text-lg font-semibold flex items-center gap-2">
+              {t('crm.languageTrack') || 'Language Track'}
+              <AutoBadge source={student?.language_track_source} />
+            </h3>
 
             <div className="space-y-2">
               <Label htmlFor="languageTrack">{t('crm.selectTrack') || 'Select Track'}</Label>
@@ -345,15 +472,15 @@ export function EditStudentDialog({ open, onOpenChange, student, onSuccess }: Ed
               <Label>{t('crm.selectPlan')}</Label>
               <div className="grid grid-cols-1 gap-3" role="radiogroup" aria-label="Payment Plan">
                 {PAYMENT_PLANS.map((plan) => (
-                  <button 
+                  <button
                     key={plan.value}
                     type="button"
                     role="radio"
                     aria-checked={formData.paymentPlan === plan.value}
                     className={cn(
                       "border rounded-lg p-4 cursor-pointer transition-all text-left w-full",
-                      formData.paymentPlan === plan.value 
-                        ? "border-primary bg-primary/5 ring-2 ring-primary" 
+                      formData.paymentPlan === plan.value
+                        ? "border-primary bg-primary/5 ring-2 ring-primary"
                         : "border-border hover:border-primary/50 hover:bg-muted/30"
                     )}
                     onClick={() => setFormData({ ...formData, paymentPlan: plan.value })}
@@ -436,8 +563,8 @@ export function EditStudentDialog({ open, onOpenChange, student, onSuccess }: Ed
                   const plan = PAYMENT_PLANS.find(p => p.value === formData.paymentPlan);
                   if (!plan) return null;
                   const price = formData.paymentMode === 'installment' ? plan.priceInstallment : plan.priceOneTime;
-                  const formatted = plan.currency === 'UZS' 
-                    ? `${price.toLocaleString()} UZS` 
+                  const formatted = plan.currency === 'UZS'
+                    ? `${price.toLocaleString()} UZS`
                     : `$${price.toLocaleString()} USD`;
                   return (
                     <div className="flex items-center gap-2">

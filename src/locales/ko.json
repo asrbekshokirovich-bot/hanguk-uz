@@ -279,7 +279,16 @@
     "selectPlan": "계획 선택",
     "contractDate": "계약 날짜",
     "birthDate": "생년월일",
-    "officeLocation": "사무실 위치"
+    "officeLocation": "사무실 위치",
+    "region": "지역",
+    "phoneNumbers": "전화번호",
+    "addPhone": "전화번호 추가",
+    "autoFillNotice": "지역, 생년월일, 언어 트랙은 학생의 여권, 증명서 및 대화에서 업로드 후 자동으로 채워집니다.",
+    "phoneLabels": {
+      "own": "본인",
+      "parent": "부모",
+      "other": "기타"
+    }
   },
   "leads": {
     "intel": {

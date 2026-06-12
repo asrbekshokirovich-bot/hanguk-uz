@@ -282,7 +282,16 @@
     "birthDate": "Birth Date",
     "officeLocation": "Office Location",
     "languageTrack": "Language Track",
-    "selectTrack": "Interview & Study Language"
+    "selectTrack": "Interview & Study Language",
+    "region": "Region",
+    "phoneNumbers": "Phone Numbers",
+    "addPhone": "Add phone number",
+    "autoFillNotice": "Region, birth date and language track are filled automatically from the student’s passport, certificates and conversations once uploaded.",
+    "phoneLabels": {
+      "own": "Own",
+      "parent": "Parent",
+      "other": "Other"
+    }
   },
   "leads": {
     "intel": {

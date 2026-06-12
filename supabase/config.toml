@@ -65,6 +65,9 @@ verify_jwt = true
 [functions.process-document]
 verify_jwt = false
 
+[functions.infer-student-track]
+verify_jwt = false
+
 [functions.enrich-lead]
 verify_jwt = false
 

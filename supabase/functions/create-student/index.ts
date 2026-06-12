@@ -1,4 +1,38 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { normalizePhone } from "../_shared/identity.ts";
+
+interface PhoneInput {
+  phone: string;
+  label?: string | null;
+  is_primary?: boolean;
+}
+
+// Normalise the incoming phones[] (or a legacy single `phone`) into a clean,
+// de-duplicated list with exactly one primary number.
+function normalizePhoneList(phones: unknown, legacyPhone: unknown): PhoneInput[] {
+  const raw: PhoneInput[] = Array.isArray(phones)
+    ? (phones as PhoneInput[])
+    : legacyPhone
+      ? [{ phone: String(legacyPhone), is_primary: true }]
+      : [];
+
+  const seen = new Set<string>();
+  const cleaned: PhoneInput[] = [];
+  for (const entry of raw) {
+    const value = (entry?.phone ?? "").toString().trim();
+    if (!value) continue;
+    const norm = normalizePhone(value);
+    const key = norm ?? value.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    cleaned.push({ phone: value, label: entry?.label ?? null, is_primary: !!entry?.is_primary });
+  }
+
+  if (cleaned.length > 0 && !cleaned.some((p) => p.is_primary)) {
+    cleaned[0].is_primary = true;
+  }
+  return cleaned;
+}
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -22,11 +56,26 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { fullName, phone, birthDate, city, officeLocation, paymentPlan, paymentMode, contractDate, contractUrl, languageTrack, isGksApplicant, intakeId } = await req.json();
+    const { fullName, phone, phones, officeLocation, paymentPlan, paymentMode, contractDate, contractUrl, isGksApplicant, intakeId } = await req.json();
 
-    if (!fullName?.trim()) {
+    // Region, birth date and language track are intentionally NOT accepted here —
+    // they are filled automatically from the student's passport/certificates and
+    // conversations once those are uploaded (process-document / infer-student-track).
+    const phoneList = normalizePhoneList(phones, phone);
+    const primaryPhone = phoneList.find((p) => p.is_primary)?.phone ?? null;
+    const secondaryPhone = phoneList.find((p) => !p.is_primary)?.phone ?? null;
+
+    // Required fields (mirrors the dialog so the API can't be bypassed). Only the
+    // GKS-applicant flag is optional.
+    const missing: string[] = [];
+    if (!fullName?.trim()) missing.push('full name');
+    if (phoneList.length === 0) missing.push('at least one phone number');
+    if (!paymentPlan) missing.push('payment plan');
+    if (!contractDate) missing.push('contract date');
+    if (!contractUrl) missing.push('contract file');
+    if (missing.length > 0) {
       return new Response(
-        JSON.stringify({ error: 'Full name is required' }),
+        JSON.stringify({ error: `Missing required field(s): ${missing.join(', ')}` }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -86,33 +135,51 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Check if phone number already exists in profiles to prevent duplicate students
-    if (phone) {
+    // Check whether ANY of the submitted numbers already belongs to someone —
+    // a profile (phone/additional_phone) or another student's student_phones row.
+    for (const entry of phoneList) {
+      const norm = normalizePhone(entry.phone);
+      const variants = Array.from(new Set([entry.phone, norm].filter(Boolean))) as string[];
+
+      const orProfiles = variants
+        .flatMap((v) => [`phone.eq.${v}`, `additional_phone.eq.${v}`])
+        .join(',');
       const { data: existingPhone } = await supabaseAdmin
         .from('profiles')
         .select('id, user_id')
-        .eq('phone', phone)
+        .or(orProfiles)
         .maybeSingle();
-      
+
       if (existingPhone) {
-        // Check if this profile belongs to a staff member
         const { data: isStaff } = await supabaseAdmin
           .from('user_roles')
           .select('id')
           .eq('user_id', existingPhone.user_id)
           .maybeSingle();
-        
-        if (isStaff) {
+
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: isStaff
+              ? `Phone number ${entry.phone} belongs to a staff account`
+              : `A student with phone number ${entry.phone} already exists`,
+          }),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      if (norm) {
+        const { data: existingStudentPhone } = await supabaseAdmin
+          .from('student_phones')
+          .select('id')
+          .eq('phone_norm', norm)
+          .maybeSingle();
+        if (existingStudentPhone) {
           return new Response(
-            JSON.stringify({ success: false, error: 'This phone number belongs to a staff account' }),
+            JSON.stringify({ success: false, error: `A student with phone number ${entry.phone} already exists` }),
             { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
-        
-        return new Response(
-          JSON.stringify({ success: false, error: 'A student with this phone number already exists' }),
-          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
       }
     }
 
@@ -170,16 +237,18 @@ Deno.serve(async (req) => {
       .insert({
         user_id: studentUserId,
         full_name: fullName.trim(),
-        phone: phone || null,
-        birth_date: birthDate || null,
-        city: city || null,
+        // Keep phone/additional_phone populated for back-compat with identity
+        // resolution; the full set lives in student_phones (inserted below).
+        phone: primaryPhone,
+        additional_phone: secondaryPhone,
         office_location: officeLocation || null,
         payment_plan: paymentPlan || null,
         payment_mode: paymentMode || 'one_time',
         contract_date: contractDate || null,
         contract_url: contractUrl || null,
         magic_code: magicCode,
-        language_track: languageTrack || 'korean',
+        // Default track until certificates/conversations auto-fill it.
+        language_track: 'korean',
         is_gks_applicant: isGksApplicant || false,
       })
       .select()
@@ -194,6 +263,19 @@ Deno.serve(async (req) => {
     }
 
     console.log('Student profile created successfully:', profile.id);
+
+    // Persist the full list of phone numbers.
+    if (phoneList.length > 0) {
+      const { error: phonesError } = await supabaseAdmin
+        .from('student_phones')
+        .insert(phoneList.map((p) => ({
+          student_id: studentUserId,
+          phone: p.phone,
+          label: p.label || null,
+          is_primary: !!p.is_primary,
+        })));
+      if (phonesError) console.error('Failed to insert student phones:', phonesError);
+    }
 
     // Enroll the student in the active admission intake so they appear in that
     // season's roster immediately. Membership (student_intakes) is the CRM's
