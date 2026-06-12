@@ -24,10 +24,14 @@ function isUzbek(message: string): boolean {
   return n >= 2;
 }
 
-function candidateNames(message: string): string[] {
-  const matches = message.match(/[A-Z][a-zA-Z'’ʼ]{2,}/g) || [];
-  const stop = new Set(["Hanguk", "Telegram", "Instagram", "TOPIK", "IELTS", "Korea", "Korean", "Bakalavr", "Magistr", "What", "Which", "Who", "When", "Where"]);
-  return Array.from(new Set(matches.filter((m) => !stop.has(m)))).slice(0, 4);
+// Staff frequently identify a student by a pasted phone number. Pull any
+// digit run of 7+ (after stripping spaces / dashes / parens / +) so we can
+// match on profiles.phone as well as on the name.
+function phoneCandidates(message: string): string[] {
+  const matches = message.match(/\+?\d[\d\s\-()]{6,}\d/g) || [];
+  return Array.from(new Set(
+    matches.map((m) => m.replace(/\D/g, "")).filter((d) => d.length >= 7),
+  )).slice(0, 2);
 }
 
 function sanitizeQuery(message: string): string {
@@ -37,23 +41,37 @@ function sanitizeQuery(message: string): string {
   return Array.from(new Set(words)).slice(0, 8).join(" ");
 }
 
-// Names are often typed lowercase (e.g. "jetkenshek haqida malumot ber"), which
-// candidateNames' capitalized match misses. Pull meaningful word tokens — minus
-// common English/Uzbek/Russian query words — so we can match a person by name.
-function nameSearchTokens(message: string): string[] {
-  const cleaned = message.toLowerCase().replace(/[^\p{L}\p{N}\s'’ʼ]/gu, " ").replace(/\s+/g, " ").trim();
-  const stop = new Set([
-    "the", "and", "for", "what", "who", "which", "this", "that", "with", "does", "did",
-    "about", "from", "have", "has", "want", "list", "all", "can", "you", "your", "tell",
-    "give", "show", "info", "information", "details", "detail", "find", "search", "name",
-    "student", "students", "lead", "leads", "please", "need", "more", "data",
-    "nima", "kim", "qaysi", "uchun", "bilan", "haqida", "haqidagi", "bormi", "malumot",
-    "ma'lumot", "ber", "bering", "korsat", "royxat", "talaba", "talabalar", "mijoz",
-    "menga", "qancha", "qanday", "kerak", "hammasi", "barcha", "qidir",
-    "что", "кто", "какой", "про", "дай", "покажи", "информация", "найди", "студент", "имя",
-  ]);
-  const words = cleaned.split(" ").filter((w) => w.length >= 4 && !stop.has(w));
-  return Array.from(new Set(words)).slice(0, 4);
+// Names are often typed lowercase ("jetkenshek haqida malumot ber"), in Cyrillic,
+// or with apostrophes (O'g'li / qizi). Pull meaningful word tokens — apostrophe-
+// stripped, minimum 3 chars, minus common English/Uzbek/Russian query words and
+// patronymic suffixes — so we can match a person by name across scripts.
+const NAME_STOPWORDS = new Set([
+  "the", "and", "for", "what", "who", "which", "this", "that", "with", "does", "did",
+  "about", "from", "have", "has", "want", "list", "all", "can", "you", "your", "tell",
+  "give", "show", "info", "information", "details", "detail", "find", "search", "name",
+  "student", "students", "lead", "leads", "please", "need", "more", "data", "his", "her",
+  "topik", "ielts", "level", "score", "language", "proficiency", "document", "documents",
+  "nima", "kim", "qaysi", "uchun", "bilan", "haqida", "haqidagi", "bormi", "malumot",
+  "malumotlar", "ma'lumot", "ber", "bering", "korsat", "korsating", "royxat", "talaba",
+  "talabalar", "mijoz", "menga", "qancha", "qanday", "kerak", "hammasi", "barcha", "qidir",
+  "darajasi", "daraja", "hujjat", "hujjatlar", "tili", "bilim",
+  // patronymic suffixes that are not useful search terms
+  "ogli", "oglu", "ugli", "uglu", "qizi", "kizi",
+  "что", "кто", "какой", "про", "дай", "покажи", "информация", "найди", "студент", "имя",
+  "уровень", "балл", "язык", "документ", "документы",
+]);
+
+function nameTokens(message: string): string[] {
+  const cleaned = message
+    .toLowerCase()
+    .replace(/[''ʼ`']/g, "")                  // O'g'li -> ogli, d'Souza -> dsouza
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  const words = cleaned
+    .split(" ")
+    .filter((w) => w.length >= 3 && !NAME_STOPWORDS.has(w) && !/^\d+$/.test(w));
+  return Array.from(new Set(words)).slice(0, 6);
 }
 
 function fmtDate(d: string | null | undefined): string {
@@ -78,23 +96,132 @@ async function getStudentBundle(supabase: any, userId: string) {
   };
 }
 
+// Pull language-proficiency signals (TOPIK / IELTS) out of an extraction's
+// key_fields + text. Profiles.topik_level / ielts_score are almost always empty;
+// the real evidence lives in uploaded TOPIK score reports and IELTS certificates.
+function profFromExtraction(d: any): string[] {
+  const fields: any[] = Array.isArray(d.key_fields) ? d.key_fields : [];
+  const fieldText = fields.map((f) => `${f.label}: ${f.value}`).join(" | ");
+  const hay = `${d.doc_type || ""} ${fieldText} ${String(d.full_text || "").slice(0, 600)}`.toLowerCase();
+  const pick = (labels: string[]): string => {
+    for (const f of fields) {
+      const l = String(f.label || "").toLowerCase();
+      if (labels.some((k) => l.includes(k)) && f.value) return String(f.value);
+    }
+    return "";
+  };
+  const out: string[] = [];
+  if (hay.includes("topik") || hay.includes("한국어능력") || hay.includes("급")) {
+    const level = pick(["level", "급"]);
+    const total = pick(["total score", "total"]);
+    out.push(`TOPIK${level ? ` — level ${level}` : ""}${total ? `, total ${total}` : ""} (from uploaded TOPIK report)`);
+  }
+  if (hay.includes("ielts")) {
+    const band = pick(["overall", "band", "ielts"]);
+    out.push(`IELTS${band ? ` — ${band}` : ""} (from uploaded IELTS certificate)`);
+  }
+  return out;
+}
+
 async function getStudentDocs(supabase: any, userId: string): Promise<string> {
-  const { data } = await supabase.from("document_extractions").select("doc_type, key_fields, full_text").eq("student_id", userId).limit(20);
+  const { data } = await supabase
+    .from("document_extractions")
+    .select("doc_type, key_fields, full_text")
+    .eq("student_id", userId)
+    .limit(25);
   if (!data || !data.length) return "";
+
+  // Surface any TOPIK / IELTS evidence first so the model never misses it.
+  const proficiency = Array.from(new Set(data.flatMap(profFromExtraction)));
+
   const rows = data.map((d: any) => {
-    const fields = Array.isArray(d.key_fields) ? d.key_fields.map((f: any) => `${f.label}: ${f.value}`).join("; ") : "";
-    return `• ${d.doc_type || "document"}: ${fields || String(d.full_text || "").slice(0, 200)}`;
+    let fields = "";
+    if (Array.isArray(d.key_fields) && d.key_fields.length) {
+      // Cap to keep huge transcripts (80+ course rows) from drowning the prompt.
+      fields = d.key_fields
+        .slice(0, 14)
+        .map((f: any) => `${f.label}: ${String(f.value ?? "").slice(0, 120)}`)
+        .join("; ");
+      if (d.key_fields.length > 14) fields += ` … (+${d.key_fields.length - 14} more fields)`;
+    }
+    return `• ${d.doc_type || "document"}: ${fields || String(d.full_text || "").slice(0, 240)}`;
   });
-  return "\n📄 DOCUMENT CONTENTS:\n" + rows.join("\n");
+
+  const profBlock = proficiency.length
+    ? `\n🎓 LANGUAGE PROFICIENCY (from documents): ${proficiency.join(" | ")}`
+    : "";
+  return `${profBlock}\n📄 DOCUMENT CONTENTS:\n${rows.join("\n")}`;
+}
+
+// Find the student(s) a staff question is about. Robust against the brittle old
+// approach (full_name ILIKE '%token%' LIMIT 3, no ranking) which missed people
+// when a first name was shared, misspelled, transliterated, or pasted as a phone.
+//   1) Prefer the fuzzy, ranked, accent/apostrophe-tolerant `search_students` RPC.
+//   2) If that RPC isn't deployed yet, fall back to a ranked ILIKE over the roster:
+//      fetch a wide candidate set (no premature LIMIT 3) and score by how many
+//      query tokens each name covers, then keep the best handful.
+type StudentMatch = { user_id: string; full_name: string; phone: string | null };
+
+async function findStudents(supabase: any, tokens: string[], phones: string[]): Promise<StudentMatch[]> {
+  if (!tokens.length && !phones.length) return [];
+  const query = [...tokens, ...phones].join(" ").trim();
+
+  try {
+    const { data, error } = await supabase.rpc("search_students", { p_query: query, p_limit: 6 });
+    if (!error && Array.isArray(data) && data.length) {
+      return data.map((r: any) => ({ user_id: r.user_id, full_name: r.full_name, phone: r.phone }));
+    }
+  } catch { /* RPC not deployed — fall through to ILIKE */ }
+
+  const ors = [
+    ...tokens.map((t) => `full_name.ilike.%${t}%`),
+    ...phones.map((p) => `phone.ilike.%${p}%`),
+  ].join(",");
+  if (!ors) return [];
+  const { data } = await supabase
+    .from("profiles")
+    .select("user_id, full_name, phone, role")
+    .or(ors)
+    .limit(60);
+
+  const candidates = (data || []).filter((s: any) => !s.role || s.role === "student");
+  const scored = candidates.map((s: any) => {
+    const hay = String(s.full_name || "").toLowerCase().replace(/[''ʼ`']/g, "");
+    const words = hay.split(/\s+/);
+    let score = 0;
+    for (const t of tokens) {
+      if (words.includes(t)) score += 2;        // whole-name-part match
+      else if (hay.includes(t)) score += 1;     // substring match
+    }
+    const digits = String(s.phone || "").replace(/\D/g, "");
+    for (const p of phones) if (digits.includes(p)) score += 5;
+    return { s, score };
+  });
+  return scored
+    .filter((x: any) => x.score > 0)
+    .sort((a: any, b: any) => b.score - a.score)
+    .slice(0, 6)
+    .map((x: any) => ({ user_id: x.s.user_id, full_name: x.s.full_name, phone: x.s.phone }));
 }
 
 function formatBundle(b: any, opts: { staff: boolean }): string {
   const p = b.profile || {};
   const lines: string[] = [];
   lines.push(`### ${p.full_name || "Student"}${opts.staff && p.phone ? ` (${p.phone})` : ""}`);
-  if (p.city || p.topik_level || p.payment_plan) {
-    lines.push(`City: ${p.city || "—"} | TOPIK: ${p.topik_level || "—"}${opts.staff ? ` | Plan: ${p.payment_plan || "—"}` : ""}`);
+  if (p.city || p.payment_plan) {
+    lines.push(`City: ${p.city || "—"}${opts.staff ? ` | Plan: ${p.payment_plan || "—"}` : ""}`);
   }
+  // Language proficiency — show every signal we have, not just TOPIK. The
+  // structured columns are often empty, so flag that the docs hold the evidence.
+  const prof: string[] = [];
+  if (p.topik_level) prof.push(`TOPIK level ${p.topik_level}`);
+  if (p.ielts_score) prof.push(`IELTS ${p.ielts_score}`);
+  if (p.language_track) prof.push(`track: ${p.language_track}`);
+  lines.push(
+    prof.length
+      ? `Language proficiency: ${prof.join(" | ")}`
+      : `Language proficiency: not set on profile — check DOCUMENT CONTENTS below for a TOPIK/IELTS certificate.`,
+  );
   if (b.apps.length) {
     lines.push("Applications: " + b.apps.map((a: any) => `${a.university?.name_en || "University"} (${a.status}${a.decision ? "/" + a.decision : ""})`).join("; "));
   }
@@ -199,23 +326,27 @@ async function buildStaffPrompt(supabase: any, userId: string, message: string, 
   const { data: profile } = await supabase.from("profiles").select("full_name").eq("user_id", userId).maybeSingle();
   const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", userId);
 
-  // Match the person across capitalized names AND lowercase tokens, then look
-  // them up in BOTH students (profiles) and the leads pipeline by name.
-  const searchTerms = Array.from(new Set([...candidateNames(message), ...nameSearchTokens(message)])).slice(0, 5);
-  let queried: any[] = [];
+  // Match the person across scripts (Latin/Cyrillic), lowercase typing, apostrophes
+  // and pasted phone numbers, then look them up in BOTH the student roster (fuzzy,
+  // ranked) and the leads pipeline by name/phone.
+  const tokens = nameTokens(message);
+  const phones = phoneCandidates(message);
   let namedLeads: any[] = [];
-  if (searchTerms.length) {
-    const ors = searchTerms.map((n) => `full_name.ilike.%${n}%`).join(",");
-    const [profsRes, leadsRes] = await Promise.all([
-      supabase.from("profiles").select("user_id, full_name").or(ors).limit(3),
-      supabase.from("leads")
-        .select("full_name, phone, status, priority_score, source, exam_date, exam_type, target_intake, preferred_program, preferred_university, city, education_level, korean_level, next_follow_up, interest_level")
-        .or(ors).limit(5),
-    ]);
-    queried = profsRes.data || [];
-    namedLeads = leadsRes.data || [];
-  }
-  const bundles = await Promise.all(queried.map(async (s: any) => {
+  const leadOrs = [
+    ...tokens.map((t) => `full_name.ilike.%${t}%`),
+    ...phones.map((p) => `phone.ilike.%${p}%`),
+  ].join(",");
+  const [matched, leadsRes] = await Promise.all([
+    findStudents(supabase, tokens, phones),
+    leadOrs
+      ? supabase.from("leads")
+          .select("full_name, phone, status, priority_score, source, exam_date, exam_type, target_intake, preferred_program, preferred_university, city, education_level, korean_level, next_follow_up, interest_level")
+          .or(leadOrs).limit(8)
+      : Promise.resolve({ data: [] }),
+  ]);
+  namedLeads = leadsRes.data || [];
+
+  const bundles = await Promise.all(matched.map(async (s: StudentMatch) => {
     const b = await getStudentBundle(supabase, s.user_id);
     (b as any).docText = await getStudentDocs(supabase, s.user_id);
     return b;
@@ -255,8 +386,10 @@ ${search}
 
 ## HOW TO ANSWER
 - "What did we discuss with X / what did we promise X?" → use that student's RECENT CALLS + CHAT above, quote specifics with dates.
+- "What is X's TOPIK / IELTS / language level?" → report BOTH Korean (TOPIK) and English (IELTS) if known. The profile fields are often empty, so read "LANGUAGE PROFICIENCY (from documents)" and DOCUMENT CONTENTS: a TOPIK score report shows a Level (e.g. 6급 = level 6) and Total Score; an IELTS certificate shows an overall band. Quote the level/score and say it came from the uploaded document. Mention the language_track (korean/english) too.
 - "Who asked about X this week?" → use SEARCH MATCHES above, list the students.
 - "List leads who [take the exam in May / are high priority / from Telegram / want a Master's / from Tashkent]" → filter the LEADS list by exam_date, exam_type, target_intake, status, source, priority, program, city or follow-up date, and return a clear numbered list with phone numbers.
+- If NO student section appears for a name you were asked about, say you couldn't find an exact match, list any close names from MATCHING LEAD(S) or SEARCH MATCHES, and ask the staff to confirm the full name or share the phone number — do NOT invent details.
 - Always cite the date + (call/chat). End with the suggested next step if there is one.`;
 }
 
