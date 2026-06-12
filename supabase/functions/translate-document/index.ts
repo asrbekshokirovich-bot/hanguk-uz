@@ -419,6 +419,17 @@ ${providedNames ? `\nSTAFF-VERIFIED NAMES (use these exactly): ${JSON.stringify(
 - Represent stamps, seals, signatures as annotation blocks.
 - For unclear handwriting use " [unclear]" suffix and list in unclearItems.
 
+=== MULTI-PAGE (CRITICAL) ===
+- The MAIN document (image 1) may contain SEVERAL pages (e.g. a diploma whose
+  later pages are the grade transcript / supplement). You MUST translate EVERY
+  page of the main document in full — never stop after the first page.
+- Translate the pages in order. Before each page AFTER the first, insert a
+  "heading" block with text "Page 2", "Page 3", ... so the pages are separated.
+- Render grade/subject transcripts as "table" blocks (one row per subject), and
+  keep ALL rows — do not summarise or omit any subject.
+- Do NOT translate the SUPPORTING identity documents (later images); they are only
+  for spelling names.
+
 === UZBEKISTAN PLACES ===
 ${Object.entries(UZBEKISTAN_REGIONS).map(([r, d]) => `${r}: ${d.join(", ")}`).join("\n")}
 
@@ -446,7 +457,7 @@ First block must be "title". Use "field" for label/value pairs, "table" for grid
 
     const userContent: Array<{ type: "text"; text: string } | { type: "image_url"; image_url: { url: string } }> = [
       ...imageContents,
-      { type: "text", text: "Translate the main document (image 1) into English. Extract names from supporting identity documents. Return the JSON object." },
+      { type: "text", text: "Translate the main document (image 1) into English — EVERY page, including all transcript/supplement pages, not just the first. Extract names from supporting identity documents. Return the JSON object." },
     ];
 
     const aiResponse = await fetch(GEMINI_AI_URL, {
@@ -459,7 +470,7 @@ First block must be "title". Use "field" for label/value pairs, "table" for grid
           { role: "user", content: userContent },
         ],
         temperature: 0.1,
-        max_tokens: 12000,
+        max_tokens: 32000,
         response_format: { type: "json_object" },
       }),
     });
