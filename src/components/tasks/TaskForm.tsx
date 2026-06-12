@@ -31,7 +31,7 @@ interface TaskFormProps {
     status?: Task['status'];
     due_date?: string;
     assigned_to?: string;
-  }) => Promise<{ error: any }>;
+  }) => Promise<{ error: unknown }>;
   staffMembers: (Tables<'profiles'> & { user_id: string })[];
 }
 
@@ -104,7 +104,7 @@ export function TaskForm({ task, open, onOpenChange, onSave, staffMembers }: Tas
             <Input
               value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
-              placeholder="Task title..."
+              placeholder={`${t('common.name')}…`}
               required
             />
           </div>
@@ -114,7 +114,7 @@ export function TaskForm({ task, open, onOpenChange, onSave, staffMembers }: Tas
             <Textarea
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
-              placeholder="Task description..."
+              placeholder={`${t('common.description')}…`}
               rows={3}
             />
           </div>
@@ -151,7 +151,7 @@ export function TaskForm({ task, open, onOpenChange, onSave, staffMembers }: Tas
                   <SelectItem value="todo">{t('tasks.todo')}</SelectItem>
                   <SelectItem value="in_progress">{t('tasks.inProgress')}</SelectItem>
                   <SelectItem value="completed">{t('tasks.completed')}</SelectItem>
-                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                  <SelectItem value="cancelled">{t('tasks.cancelled')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -176,7 +176,7 @@ export function TaskForm({ task, open, onOpenChange, onSave, staffMembers }: Tas
                 <SelectValue placeholder={t('common.select')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="unassigned">Unassigned</SelectItem>
+                <SelectItem value="unassigned">{t('tasks.unassigned')}</SelectItem>
                 {staffMembers.map((member) => (
                   <SelectItem key={member.user_id} value={member.user_id}>
                     {member.full_name || member.user_id}

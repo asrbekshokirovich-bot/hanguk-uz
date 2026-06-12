@@ -2,7 +2,7 @@ import { useState, useRef, KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Plus, Loader2, Settings2 } from 'lucide-react';
+import { Plus, Loader2, User, Calendar } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface TaskQuickAddProps {
@@ -20,7 +20,6 @@ export function TaskQuickAdd({ onQuickAdd, onOpenFullForm, disabled }: TaskQuick
 
   const handleSubmit = async () => {
     if (!value.trim() || loading) return;
-    
     setLoading(true);
     try {
       await onQuickAdd(value.trim());
@@ -43,21 +42,20 @@ export function TaskQuickAdd({ onQuickAdd, onOpenFullForm, disabled }: TaskQuick
   };
 
   return (
-    <div 
+    <div
       className={cn(
-        "flex items-center gap-2 p-2 rounded-lg border bg-card transition-all",
-        focused && "ring-2 ring-ring ring-offset-2 ring-offset-background",
-        disabled && "opacity-50 pointer-events-none"
+        'flex items-center gap-3 rounded-md border border-border bg-card px-3.5 py-2.5 shadow-sm transition-all',
+        focused && 'ring-2 ring-ring ring-offset-2 ring-offset-background',
+        disabled && 'pointer-events-none opacity-50',
       )}
     >
-      <div className="flex items-center justify-center h-8 w-8 rounded-md bg-primary/10 text-primary shrink-0">
-        {loading ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : (
-          <Plus className="h-4 w-4" />
-        )}
+      <div
+        aria-hidden="true"
+        className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-2 border-dashed border-border text-muted-foreground"
+      >
+        {loading && <Loader2 className="h-3 w-3 animate-spin" />}
       </div>
-      
+
       <Input
         ref={inputRef}
         value={value}
@@ -65,19 +63,32 @@ export function TaskQuickAdd({ onQuickAdd, onOpenFullForm, disabled }: TaskQuick
         onKeyDown={handleKeyDown}
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
-        placeholder={t('tasks.quickAddPlaceholder', 'Quick add task... (Press Enter)')}
-        className="flex-1 border-0 shadow-none focus-visible:ring-0 h-8 px-0"
+        placeholder={t('tasks.quickAddInline')}
+        className="h-8 flex-1 border-0 bg-transparent px-0 shadow-none focus-visible:ring-0"
         disabled={loading || disabled}
       />
-      
+
       <Button
         variant="ghost"
-        size="icon"
-        className="h-8 w-8 shrink-0"
+        size="sm"
+        className="hidden text-muted-foreground sm:inline-flex"
         onClick={onOpenFullForm}
-        title={t('tasks.moreOptions', 'More options')}
       >
-        <Settings2 className="h-4 w-4 text-muted-foreground" />
+        <User className="mr-1.5 h-4 w-4" />
+        {t('tasks.assign')}
+      </Button>
+      <Button
+        variant="ghost"
+        size="sm"
+        className="hidden text-muted-foreground sm:inline-flex"
+        onClick={onOpenFullForm}
+      >
+        <Calendar className="mr-1.5 h-4 w-4" />
+        {t('tasks.dueBtn')}
+      </Button>
+      <Button variant="secondary" size="sm" onClick={handleSubmit} disabled={!value.trim() || loading}>
+        <Plus className="mr-1.5 h-4 w-4" />
+        {t('common.add')}
       </Button>
     </div>
   );
