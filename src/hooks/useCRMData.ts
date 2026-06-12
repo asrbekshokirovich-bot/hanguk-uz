@@ -8,7 +8,7 @@ import { getPlanByValue, calculateFirstPaymentDueDate } from '@/hooks/useStudent
 
 type StudentProfile = Tables<'profiles'> & {
   applications?: (Tables<'applications'> & {
-    university?: Tables<'universities'>;
+    university?: Tables<'institutions'>;
   })[];
   documents?: Tables<'documents'>[];
   paymentStatus?: string | null;
@@ -16,13 +16,13 @@ type StudentProfile = Tables<'profiles'> & {
 };
 
 type ApplicationWithUniversity = Tables<'applications'> & {
-  university?: Tables<'universities'>;
+  university?: Tables<'institutions'>;
 };
 
 export function useCRMData() {
   const [students, setStudents] = useState<StudentProfile[]>([]);
   const [applications, setApplications] = useState<ApplicationWithUniversity[]>([]);
-  const [universities, setUniversities] = useState<Tables<'universities'>[]>([]);
+  const [universities, setUniversities] = useState<Tables<'institutions'>[]>([]);
   const [loading, setLoading] = useState(true);
   const { activeIntakeId } = useActiveIntake();
 

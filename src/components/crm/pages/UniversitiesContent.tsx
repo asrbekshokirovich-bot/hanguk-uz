@@ -444,7 +444,7 @@ export default function UniversitiesContent() {
                   </a>
                 ) : null}
 
-                <div className="flex items-center justify-between pt-2 border-t mt-2">
+                <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t mt-2">
                   <div className="flex items-center gap-1">
                     <Button
                       size="icon"
@@ -463,7 +463,7 @@ export default function UniversitiesContent() {
                       {row.is_visible_on_map ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                     </Button>
                   </div>
-                  <div className="flex items-center gap-1">
+                  <div className="flex flex-wrap items-center gap-1">
                     <Button
                       size="sm"
                       className="h-8"
