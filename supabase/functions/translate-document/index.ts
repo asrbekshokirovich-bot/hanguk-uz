@@ -7,7 +7,11 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
-const GEMINI_AI_URL = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
+// Native Gemini endpoint (NOT the OpenAI-compat one): the OpenAI-compat
+// image_url path rasterises a PDF to a single image (first page only), which
+// dropped every page after page 1. The native generateContent endpoint with
+// inline_data reads ALL pages of a multi-page PDF.
+const GEMINI_AI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
 const OUTPUT_BUCKET = "translation-documents";
 
 const UZBEKISTAN_REGIONS: Record<string, string[]> = {
@@ -370,15 +374,17 @@ serve(async (req) => {
       return data;
     };
 
-    const imageContents: Array<{ type: "image_url"; image_url: { url: string } }> = [];
+    // Build native Gemini "parts": each file as inline_data so multi-page PDFs
+    // are read in full. The MAIN document is the first part.
+    const mediaParts: Array<{ inlineData: { mimeType: string; data: string } }> = [];
     const srcBlob = await downloadFile(source.path, source.bucket);
-    imageContents.push({ type: "image_url", image_url: { url: `data:${getMimeType(source.path)};base64,${await fileToBase64(srcBlob)}` } });
+    mediaParts.push({ inlineData: { mimeType: getMimeType(source.path), data: await fileToBase64(srcBlob) } });
 
     const supportingRoles: string[] = [];
     for (const sup of supporting) {
       try {
         const blob = await downloadFile(sup.path, sup.bucket);
-        imageContents.push({ type: "image_url", image_url: { url: `data:${getMimeType(sup.path)};base64,${await fileToBase64(blob)}` } });
+        mediaParts.push({ inlineData: { mimeType: getMimeType(sup.path), data: await fileToBase64(blob) } });
         supportingRoles.push(sup.role || "supporting document");
       } catch (e) {
         console.warn("Skipping supporting file:", sup.path, (e as Error).message);
@@ -403,7 +409,7 @@ serve(async (req) => {
 
 DOCUMENT TYPE: ${docType.name_uz} (${docType.name_en || docType.code})
 
-You receive images. Image 1 is the MAIN document to translate. Any further images are SUPPORTING identity documents (passports / ID cards) provided so you spell names correctly.
+You receive one or more files. The FIRST file is the MAIN document to translate (it may be a multi-page PDF). Any further files are SUPPORTING identity documents (passports / ID cards) provided so you spell names correctly.
 ${supportingRoles.length ? `Supporting documents provided (in order): ${supportingRoles.join(", ")}.` : ""}
 
 === NAME ACCURACY (CRITICAL) ===
@@ -420,15 +426,15 @@ ${providedNames ? `\nSTAFF-VERIFIED NAMES (use these exactly): ${JSON.stringify(
 - For unclear handwriting use " [unclear]" suffix and list in unclearItems.
 
 === MULTI-PAGE (CRITICAL) ===
-- The MAIN document (image 1) may contain SEVERAL pages (e.g. a diploma whose
-  later pages are the grade transcript / supplement). You MUST translate EVERY
-  page of the main document in full — never stop after the first page.
+- The MAIN document (the first file) may contain SEVERAL pages (e.g. a diploma or
+  its grade transcript / supplement). You MUST translate EVERY page of the main
+  document in full — never stop after the first page.
 - Translate the pages in order. Before each page AFTER the first, insert a
   "heading" block with text "Page 2", "Page 3", ... so the pages are separated.
 - Render grade/subject transcripts as "table" blocks (one row per subject), and
   keep ALL rows — do not summarise or omit any subject.
-- Do NOT translate the SUPPORTING identity documents (later images); they are only
-  for spelling names.
+- Do NOT translate the SUPPORTING identity documents (the later files); they are
+  only for spelling names.
 
 === UZBEKISTAN PLACES ===
 ${Object.entries(UZBEKISTAN_REGIONS).map(([r, d]) => `${r}: ${d.join(", ")}`).join("\n")}
@@ -455,23 +461,22 @@ Return ONLY a JSON object (no prose, no markdown) with this exact shape:
 }
 First block must be "title". Use "field" for label/value pairs, "table" for grids, "annotation" for seals/stamps.`;
 
-    const userContent: Array<{ type: "text"; text: string } | { type: "image_url"; image_url: { url: string } }> = [
-      ...imageContents,
-      { type: "text", text: "Translate the main document (image 1) into English — EVERY page, including all transcript/supplement pages, not just the first. Extract names from supporting identity documents. Return the JSON object." },
+    const userParts = [
+      ...mediaParts,
+      { text: "Translate the MAIN document (the first file) into English — EVERY page, including all transcript/supplement pages, not just the first. Extract names from the supporting identity documents. Return the JSON object." },
     ];
 
-    const aiResponse = await fetch(GEMINI_AI_URL, {
+    const aiResponse = await fetch(`${GEMINI_AI_URL}?key=${geminiApiKey}`, {
       method: "POST",
-      headers: { Authorization: `Bearer ${geminiApiKey}`, "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "gemini-2.5-flash",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userContent },
-        ],
-        temperature: 0.1,
-        max_tokens: 32000,
-        response_format: { type: "json_object" },
+        systemInstruction: { parts: [{ text: systemPrompt }] },
+        contents: [{ role: "user", parts: userParts }],
+        generationConfig: {
+          temperature: 0.1,
+          maxOutputTokens: 32000,
+          responseMimeType: "application/json",
+        },
       }),
     });
 
@@ -484,8 +489,13 @@ First block must be "title". Use "field" for label/value pairs, "table" for grid
     }
 
     const aiData = await aiResponse.json();
-    const content = aiData.choices?.[0]?.message?.content;
-    if (!content) return json({ error: "Tarjima olinmadi" }, 500);
+    const content = (aiData.candidates?.[0]?.content?.parts ?? [])
+      .map((p: { text?: string }) => p.text ?? "")
+      .join("");
+    if (!content) {
+      console.error("Empty AI content:", JSON.stringify(aiData).slice(0, 800));
+      return json({ error: "Tarjima olinmadi" }, 500);
+    }
 
     const structured = parseStructured(content);
     if (providedNames) structured.verifiedNames = { ...structured.verifiedNames, ...providedNames };
