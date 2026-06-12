@@ -36,14 +36,14 @@ import { cn } from '@/lib/utils';
 type TFunc = ReturnType<typeof useTranslation>['t'];
 
 type StudentProfile = Tables<'profiles'> & {
-  applications?: (Tables<'applications'> & { university?: Tables<'universities'> })[];
+  applications?: (Tables<'applications'> & { university?: Tables<'institutions'> })[];
   documents?: Tables<'documents'>[];
   paymentStatus?: string | null;
   initialPaymentOverdue?: boolean;
 };
 
 type ApplicationRow = Tables<'applications'> & {
-  university?: Tables<'universities'> | null;
+  university?: Tables<'institutions'> | null;
 };
 
 type Stage = 'new' | 'documents' | 'review' | 'submitted' | 'decision';
@@ -218,10 +218,18 @@ export default function ApplicationsContent({
   const [overrides, setOverrides] = useState<Record<string, Stage>>({});
   const [movingId, setMovingId] = useState<string | null>(null);
 
-  const uniName = (uni?: Tables<'universities'> | null) => {
+  const uniName = (uni?: Tables<'institutions'> | null) => {
     if (!uni) return '';
-    const key = `name_${currentLang}` as keyof Tables<'universities'>;
-    return (uni[key] as string) || uni.name_uz || '';
+    // The joined relation comes from the `institutions` table, which only has
+    // name_en / name_ko (+ name_ko_short). Prefer the active language when that
+    // column exists, then fall back to English, then Korean.
+    const localized = (uni as Record<string, unknown>)[`name_${currentLang}`];
+    return (
+      (typeof localized === 'string' && localized) ||
+      uni.name_en ||
+      uni.name_ko ||
+      ''
+    );
   };
 
   const intakeLabel = (intake: Intake) =>
@@ -282,7 +290,7 @@ export default function ApplicationsContent({
   // Apply intake/office filters at the application level, then group by university.
   const uniGroups = useMemo(() => {
     const q = search.trim().toLowerCase();
-    const map = new Map<string, { id: string; university: Tables<'universities'>; apps: Row[] }>();
+    const map = new Map<string, { id: string; university: Tables<'institutions'>; apps: Row[] }>();
     for (const r of rows) {
       if (intakeFilter !== 'all' && r.intake !== intakeFilter) continue;
       if (officeFilter !== 'all' && r.office !== officeFilter) continue;
@@ -302,7 +310,7 @@ export default function ApplicationsContent({
         return {
           ...g,
           name: uniName(g.university),
-          city: g.university.city ?? '',
+          city: g.university.city_ko ?? '',
           stage: STAGE_ORDER[stageIdx],
           stageIdx,
           total,
