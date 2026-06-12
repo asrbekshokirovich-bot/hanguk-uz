@@ -331,26 +331,26 @@ export const AddLeadWizard: React.FC<AddLeadWizardProps> = ({
                   <UserCheck className="h-4 w-4" />
                   Referred By (Student)
                 </Label>
-                <Popover open={referrerPickerOpen} onOpenChange={setReferrerPickerOpen}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      role="combobox"
-                      aria-expanded={referrerPickerOpen}
-                      className="w-full justify-between font-normal"
-                    >
-                      <span className={cn('truncate', !formData.referred_by_student_id && 'text-muted-foreground')}>
-                        {students.find((s) => s.user_id === formData.referred_by_student_id)?.full_name
-                          || 'No referral'}
-                      </span>
-                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                <Button
+                  type="button"
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={referrerPickerOpen}
+                  className="w-full justify-between font-normal"
+                  onClick={() => setReferrerPickerOpen((o) => !o)}
+                >
+                  <span className={cn('truncate', !formData.referred_by_student_id && 'text-muted-foreground')}>
+                    {students.find((s) => s.user_id === formData.referred_by_student_id)?.full_name
+                      || 'No referral'}
+                  </span>
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+                {/* Inline (non-portaled) list so wheel-scroll works inside the dialog's scroll lock. */}
+                {referrerPickerOpen && (
+                  <div className="rounded-md border bg-popover text-popover-foreground shadow-sm">
                     <Command>
                       <CommandInput placeholder="Search students..." />
-                      <CommandList>
+                      <CommandList className="max-h-56">
                         <CommandEmpty>No students found.</CommandEmpty>
                         <CommandGroup>
                           <CommandItem
@@ -383,8 +383,8 @@ export const AddLeadWizard: React.FC<AddLeadWizardProps> = ({
                         </CommandGroup>
                       </CommandList>
                     </Command>
-                  </PopoverContent>
-                </Popover>
+                  </div>
+                )}
                 <p className="text-xs text-muted-foreground">
                   Which student recommended this lead?
                 </p>
