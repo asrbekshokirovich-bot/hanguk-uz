@@ -1,6 +1,7 @@
-// enrich-lead — reads a lead's notes, Telegram chats and call summaries and
-// uses Gemini to auto-fill structured fields (exam date/type, intake, program,
-// levels, priority) + a short summary. Only fills EMPTY fields (never clobbers
+// enrich-lead — reads a lead's notes, Telegram/Instagram chats and call
+// summaries and uses Gemini to auto-fill structured fields (exam date/type,
+// intake, program, levels, city, budget, start date, how-heard, birth date,
+// priority) + a short summary. Only fills EMPTY fields (never clobbers
 // staff-entered values). Internal-only (service-role bearer).
 // deno-lint-ignore-file no-explicit-any
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -21,13 +22,23 @@ const SCHEMA = {
     preferred_university: { type: "string" },
     korean_level: { type: "string" },
     english_level: { type: "string" },
-    education_level: { type: "string" },
+    education_level: { type: "string", description: "high_school | bachelor | master | phd | other | empty" },
     interest_level: { type: "string", description: "low | medium | high | empty" },
+    city: { type: "string", description: "City/region the lead lives in, or empty" },
+    budget_range: { type: "string", description: "One of: under_5000 | 5000_10000 | 10000_20000 | 20000_plus | scholarship | empty" },
+    preferred_start_date: { type: "string", description: "One of: spring_2025 | fall_2025 | spring_2026 | fall_2026 | undecided | empty" },
+    how_heard: { type: "string", description: "One of: social_media | friend_referral | search_engine | advertisement | event | other | empty" },
+    birth_date: { type: "string", description: "Date of birth as YYYY-MM-DD, or empty" },
     priority_score: { type: "number", description: "0-100, how promising/ready this lead is" },
     summary: { type: "string", description: "2-3 sentence summary of this lead in English" },
   },
   required: ["summary"],
 };
+
+const BUDGET_RANGES = ["under_5000", "5000_10000", "10000_20000", "20000_plus", "scholarship"];
+const START_DATES = ["spring_2025", "fall_2025", "spring_2026", "fall_2026", "undecided"];
+const HOW_HEARD = ["social_media", "friend_referral", "search_engine", "advertisement", "event", "other"];
+const EDUCATION_LEVELS = ["high_school", "bachelor", "master", "phd", "other"];
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -63,7 +74,7 @@ Deno.serve(async (req) => {
       `Lead: ${lead.full_name || ""} (${lead.phone || ""})`,
       lead.notes ? `Notes: ${lead.notes}` : "",
       callRows.length ? "Call summaries:\n" + callRows.map((c: any) => `- ${c.summary_uz || c.summary_en || ""}`).join("\n") : "",
-      messages.length ? "Telegram chat:\n" + messages.map((m: any) => `${m.direction === "outgoing" ? "Staff" : "Lead"}: ${String(m.content).slice(0, 200)}`).join("\n") : "",
+      messages.length ? "Chat messages (Telegram/Instagram):\n" + messages.map((m: any) => `${m.direction === "outgoing" ? "Staff" : "Lead"}: ${String(m.content).slice(0, 200)}`).join("\n") : "",
     ].filter(Boolean).join("\n\n");
 
     const prompt = "You are analysing a sales lead for a Korean university admissions agency in Uzbekistan. Based ONLY on the information below (profile, notes, chats, call summaries — mostly Uzbek), extract what you can. Leave a field empty if it is not mentioned. Use YYYY-MM-DD for dates. Also write a 2-3 sentence summary.\n\n" + ctx;
@@ -92,8 +103,14 @@ Deno.serve(async (req) => {
     setIfEmpty("preferred_university", ex.preferred_university);
     setIfEmpty("korean_level", ex.korean_level);
     setIfEmpty("english_level", ex.english_level);
-    setIfEmpty("education_level", ex.education_level);
     setIfEmpty("interest_level", ex.interest_level);
+    setIfEmpty("city", ex.city);
+    // Enum-constrained fields: only accept values the UI understands.
+    if (EDUCATION_LEVELS.includes(String(ex.education_level))) setIfEmpty("education_level", ex.education_level);
+    if (BUDGET_RANGES.includes(String(ex.budget_range))) setIfEmpty("budget_range", ex.budget_range);
+    if (START_DATES.includes(String(ex.preferred_start_date))) setIfEmpty("preferred_start_date", ex.preferred_start_date);
+    if (HOW_HEARD.includes(String(ex.how_heard))) setIfEmpty("how_heard", ex.how_heard);
+    if (/^\d{4}-\d{2}-\d{2}$/.test(String(ex.birth_date || ""))) setIfEmpty("birth_date", ex.birth_date);
     if (typeof ex.priority_score === "number" && ex.priority_score >= 0 && ex.priority_score <= 100 && (lead.priority_score === null || lead.priority_score === 0)) upd.priority_score = Math.round(ex.priority_score);
     if (ex.summary && String(ex.summary).trim()) upd.ai_summary = String(ex.summary).slice(0, 1000);
 

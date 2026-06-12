@@ -204,6 +204,7 @@ export const LeadDetailSheet: React.FC<LeadDetailSheetProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isAutofilling, setIsAutofilling] = useState(false);
   const [formData, setFormData] = useState<Partial<CreateLeadData>>({});
   const [activeTab, setActiveTab] = useState('profile');
 
@@ -269,6 +270,7 @@ export const LeadDetailSheet: React.FC<LeadDetailSheetProps> = ({
         how_heard: lead.how_heard || '',
         notes: lead.notes || '',
         assigned_to: lead.assigned_to || '',
+        referred_by_student_id: lead.referred_by_student_id || '',
         contract_number: lead.contract_number || '',
         contract_date: lead.contract_date || '',
         payment_plan: lead.payment_plan || '',
@@ -306,6 +308,27 @@ export const LeadDetailSheet: React.FC<LeadDetailSheetProps> = ({
       await onAnalyze(lead.id);
     } finally {
       setIsAnalyzing(false);
+    }
+  };
+
+  const handleAutofill = async () => {
+    if (!lead) return;
+    setIsAutofilling(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('request-lead-enrichment', {
+        body: { lead_id: lead.id },
+      });
+      if (error || (data && data.ok === false)) {
+        throw error || new Error('Enrichment failed');
+      }
+      toast.success('Auto-filled from conversations. Refreshing…');
+      // enrich-lead updates the lead row server-side; the LeadsContext realtime
+      // listener refetches and the open sheet re-syncs from the updated lead.
+    } catch (err) {
+      console.error('Auto-fill failed:', err);
+      toast.error('Could not auto-fill from conversations');
+    } finally {
+      setIsAutofilling(false);
     }
   };
 
@@ -629,18 +652,18 @@ export const LeadDetailSheet: React.FC<LeadDetailSheetProps> = ({
                         )}
                       </div>
                       <div className="space-y-2">
-                        <Label className="text-xs text-muted-foreground">Assigned To</Label>
+                        <Label className="text-xs text-muted-foreground">Referred By (Student)</Label>
                         {isEditing ? (
                           <Select
-                            value={formData.assigned_to || 'unassigned'}
-                            onValueChange={(v) => updateField('assigned_to', v === 'unassigned' ? undefined : v)}
+                            value={formData.referred_by_student_id || 'none'}
+                            onValueChange={(v) => updateField('referred_by_student_id', v === 'none' ? undefined : v)}
                           >
                             <SelectTrigger>
-                              <SelectValue placeholder="Unassigned" />
+                              <SelectValue placeholder="No referral" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="unassigned">Unassigned</SelectItem>
-                              {staff.map((s) => (
+                              <SelectItem value="none">No referral</SelectItem>
+                              {studentsList.map((s) => (
                                 <SelectItem key={s.user_id} value={s.user_id}>
                                   {s.full_name || 'Unknown'}
                                 </SelectItem>
@@ -648,7 +671,7 @@ export const LeadDetailSheet: React.FC<LeadDetailSheetProps> = ({
                             </SelectContent>
                           </Select>
                         ) : (
-                          <p className="font-medium">{lead.assignee?.full_name || 'Unassigned'}</p>
+                          <p className="font-medium">{lead.referrer?.full_name || 'No referral'}</p>
                         )}
                       </div>
                     </div>
@@ -1097,6 +1120,16 @@ export const LeadDetailSheet: React.FC<LeadDetailSheetProps> = ({
                   >
                     <Bot className="h-4 w-4 mr-2" />
                     {isAnalyzing ? 'Analyzing...' : 'AI Analyze'}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={handleAutofill}
+                    disabled={isAutofilling}
+                    title="Fill empty fields from notes, calls, Telegram & Instagram conversations"
+                  >
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    {isAutofilling ? 'Auto-filling...' : 'Auto-fill'}
                   </Button>
                   {lead.contract_number ? (
                     <Button
