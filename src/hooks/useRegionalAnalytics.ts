@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useActiveIntake } from '@/contexts/IntakeContext';
+import { applyIntake } from '@/lib/intakeQuery';
 
 // Uzbekistan regions with standardized names for mapping
 export const UZBEKISTAN_REGIONS = [
@@ -62,6 +64,7 @@ export interface RegionalData {
 }
 
 export function useRegionalAnalytics() {
+  const { activeIntakeId } = useActiveIntake();
   const [data, setData] = useState<RegionalData[]>([]);
   const [loading, setLoading] = useState(true);
   const [totals, setTotals] = useState({ leads: 0, students: 0 });
@@ -74,20 +77,24 @@ export function useRegionalAnalytics() {
       const { data: staffRoles } = await supabase
         .from('user_roles')
         .select('user_id');
-      
-      const staffUserIds = staffRoles?.map(r => r.user_id) || [];
 
-      // Fetch leads and profiles in parallel
-      const [leadsRes, profilesRes] = await Promise.all([
-        supabase.from('leads').select('id, city'),
+      const staffUserIds = new Set((staffRoles ?? []).map((r) => r.user_id));
+
+      // Fetch leads, profiles and this season's membership in parallel.
+      // Leads and students are scoped to the active intake so the map matches
+      // the rest of the CRM.
+      const [leadsRes, profilesRes, membersRes] = await Promise.all([
+        applyIntake(supabase.from('leads').select('id, city'), activeIntakeId),
         supabase.from('profiles').select('user_id, city, office_location'),
+        applyIntake(supabase.from('student_intakes').select('student_id'), activeIntakeId),
       ]);
 
       const leads = leadsRes.data || [];
       const profiles = profilesRes.data || [];
+      const memberIds = new Set((membersRes.data ?? []).map((m) => m.student_id));
 
-      // Filter students (exclude staff)
-      const students = profiles.filter(p => !staffUserIds.includes(p.user_id));
+      // Students = this season's members, excluding staff.
+      const students = profiles.filter((p) => memberIds.has(p.user_id) && !staffUserIds.has(p.user_id));
 
       // Count by region
       const regionCounts: Record<string, { leads: number; students: number }> = {};
@@ -140,7 +147,8 @@ export function useRegionalAnalytics() {
 
   useEffect(() => {
     fetchData();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeIntakeId]);
 
   return { data, loading, totals, refetch: fetchData };
 }

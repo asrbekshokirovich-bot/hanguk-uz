@@ -278,15 +278,12 @@ export async function calculateNetDistributableIncome(
   // 2) Staff bonus deduction (ONLY ONCE per student - on first payment)
   let staffBonusDeduction = 0;
   if (isFirstDistributionForStudent) {
-    const { data: bonusRecord } = await supabase
-      .from('staff_bonuses')
-      .select('bonus_amount')
-      .eq('student_id', studentId)
-      .limit(1)
-      .maybeSingle();
+    // Read via SECURITY DEFINER RPC so the deduction is correct even when a
+    // non-owner staff member records the payment (staff_bonuses is owner-only).
+    const { data: bonusAmt } = await supabase.rpc('staff_bonus_amount', { p_student_id: studentId });
 
-    if (bonusRecord) {
-      staffBonusDeduction = Number(bonusRecord.bonus_amount || 0);
+    if (bonusAmt && Number(bonusAmt) > 0) {
+      staffBonusDeduction = Number(bonusAmt);
     } else if (profile?.payment_plan) {
       // Use centralized normalization for plan name
       const normalizedPlan = normalizePlanName(profile.payment_plan);

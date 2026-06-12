@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { format, subMonths, startOfMonth, endOfMonth } from 'date-fns';
+import { useActiveIntake } from '@/contexts/IntakeContext';
+import { applyIntake } from '@/lib/intakeQuery';
 
 export interface ReportData {
   students: {
@@ -46,6 +48,7 @@ export interface DateRange {
 
 export function useReports() {
   const { toast } = useToast();
+  const { activeIntakeId } = useActiveIntake();
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<ReportData | null>(null);
 
@@ -56,9 +59,12 @@ export function useReports() {
       const fromDate = format(dateRange.from, 'yyyy-MM-dd');
       const toDate = format(dateRange.to, 'yyyy-MM-dd');
 
-      // Fetch all data in parallel
+      // Fetch all data in parallel. Pipeline data is scoped to the active intake
+      // (so reports match the rest of the CRM); calls stay global (agency-wide).
       const [
         profilesRes,
+        membersRes,
+        staffRolesRes,
         applicationsRes,
         paymentsRes,
         callsRes,
@@ -66,14 +72,21 @@ export function useReports() {
         universitiesRes,
       ] = await Promise.all([
         supabase.from('profiles').select('*'),
-        supabase.from('applications').select('*, university:institutions(name_en, name_ko)'),
-        supabase.from('payments').select('*').gte('created_at', fromDate).lte('created_at', toDate),
+        applyIntake(supabase.from('student_intakes').select('student_id'), activeIntakeId),
+        supabase.from('user_roles').select('user_id'),
+        applyIntake(supabase.from('applications').select('*, university:institutions(name_en, name_ko)'), activeIntakeId),
+        applyIntake(supabase.from('payments').select('*').gte('created_at', fromDate).lte('created_at', toDate), activeIntakeId),
         supabase.from('calls').select('*').gte('started_at', fromDate).lte('started_at', toDate),
-        supabase.from('tasks').select('*'),
+        applyIntake(supabase.from('tasks').select('*'), activeIntakeId),
         supabase.from('institutions').select('id, name_en, name_ko'),
       ]);
 
-      const profiles = profilesRes.data || [];
+      // Students in this season = explicit membership, excluding staff.
+      const staffIds = new Set((staffRolesRes.data || []).map((r) => r.user_id));
+      const memberIds = new Set(
+        (membersRes.data || []).map((m) => m.student_id).filter((id) => !staffIds.has(id)),
+      );
+      const profiles = (profilesRes.data || []).filter((p) => memberIds.has(p.user_id));
       const applications = applicationsRes.data || [];
       const payments = paymentsRes.data || [];
       const calls = callsRes.data || [];

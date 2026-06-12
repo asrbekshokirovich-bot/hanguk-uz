@@ -5100,6 +5100,35 @@ export type Database = {
           },
         ]
       }
+      student_intakes: {
+        Row: {
+          created_at: string
+          id: string
+          intake_id: string
+          student_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          intake_id: string
+          student_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          intake_id?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_intakes_intake_id_fkey"
+            columns: ["intake_id"]
+            isOneToOne: false
+            referencedRelation: "intakes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       student_notes: {
         Row: {
           content: string
@@ -7881,6 +7910,16 @@ export type Database = {
       pgroonga_wal_truncate:
         | { Args: never; Returns: number }
         | { Args: { indexname: unknown }; Returns: number }
+      record_staff_bonus: {
+        Args: {
+          p_bonus_amount: number
+          p_currency?: string
+          p_month_year?: string
+          p_plan_type: string
+          p_student_id: string
+        }
+        Returns: boolean
+      }
       resolve_communication_identity: {
         Args: { p_channel: string; p_identifier: string }
         Returns: {
@@ -7900,6 +7939,7 @@ export type Database = {
           when_at: string
         }[]
       }
+      staff_bonus_amount: { Args: { p_student_id: string }; Returns: number }
       upsert_message_thread: {
         Args: {
           p_direction: string

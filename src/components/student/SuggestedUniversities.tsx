@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Lightbulb, Loader2, MapPin, Check } from 'lucide-react';
 import { Tables } from '@/integrations/supabase/types';
+import { getStudentActiveIntakeId } from '@/lib/studentIntake';
 
 type Suggestion = Tables<'student_suggestions'> & {
   university?: Tables<'universities'>;
@@ -32,11 +33,14 @@ export function SuggestedUniversities({ suggestions, onRefresh, onShowOnMap }: S
   const handleApply = async (suggestion: Suggestion) => {
     setSubmitting(suggestion.id);
     try {
-      // 1. Insert into applications
+      // 1. Insert into applications, stamped with the student's current season so
+      //    it lands in the right intake (not the default-trigger fallback).
+      const intakeId = await getStudentActiveIntakeId(suggestion.student_id);
       const { error: insertError } = await supabase.from('applications').insert({
         student_id: suggestion.student_id,
         institution_id: suggestion.institution_id,
-        status: 'pending_approval'
+        status: 'pending_approval',
+        ...(intakeId ? { intake_id: intakeId } : {}),
       });
       
       if (insertError) throw insertError;

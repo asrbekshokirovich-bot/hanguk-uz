@@ -199,25 +199,29 @@ export async function allocateMissingBudgets(): Promise<{ success: boolean; resu
 
   console.log(`Found ${fullyPaidPayments.length} fully paid payments out of ${payments.length} total`);
 
-  // Track processed students to avoid duplicates
+  // Track processed (student, season) pairs to avoid duplicates. Keyed per
+  // intake so a multi-season student still gets budgets allocated in each season.
   const processedStudents = new Set<string>();
 
   for (const payment of fullyPaidPayments) {
-    // Skip if we already processed this student in this run
-    if (processedStudents.has(payment.student_id)) {
+    const dedupKey = `${payment.student_id}:${payment.intake_id ?? 'none'}`;
+    // Skip if we already processed this student+season in this run
+    if (processedStudents.has(dedupKey)) {
       continue;
     }
-    processedStudents.add(payment.student_id);
+    processedStudents.add(dedupKey);
 
-    // Check if student already has budgets
-    const { data: existingBudgets } = await supabase
+    // Check if student already has budgets in THIS season.
+    let existingQuery = supabase
       .from('student_budgets')
       .select('id')
       .eq('student_id', payment.student_id)
       .limit(1);
+    if (payment.intake_id) existingQuery = existingQuery.eq('intake_id', payment.intake_id);
+    const { data: existingBudgets } = await existingQuery;
 
     if (existingBudgets && existingBudgets.length > 0) {
-      console.log(`Student ${payment.student_id} already has budgets, skipping`);
+      console.log(`Student ${payment.student_id} already has budgets for this season, skipping`);
       continue; // Skip - budgets already exist
     }
 

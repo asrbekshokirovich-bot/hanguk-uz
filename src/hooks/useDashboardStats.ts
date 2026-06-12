@@ -74,9 +74,10 @@ export function useDashboardStats() {
         taskNormalCount,
         taskLowCount,
         taskUrgentCount,
-        // Distinct students per intake = apps ∪ docs ∪ payments in this season
-        docStudentsRes,
-        payStudentsRes,
+        // Per-intake roster = explicit membership (role-independent), plus staff
+        // ids so we can exclude them.
+        membersRes,
+        staffRolesRes,
       ] = await Promise.all([
         applyIntake(supabase.from('applications').select('id, status, created_at, student_id'), activeIntakeId),
         applyIntake(supabase.from('documents').select('id', { count: 'exact', head: true }).eq('status', 'uploaded'), activeIntakeId),
@@ -93,19 +94,20 @@ export function useDashboardStats() {
         applyIntake(supabase.from('tasks').select('id', { count: 'exact', head: true }).eq('priority', 'normal').neq('status', 'completed').neq('status', 'cancelled'), activeIntakeId),
         applyIntake(supabase.from('tasks').select('id', { count: 'exact', head: true }).eq('priority', 'low').neq('status', 'completed').neq('status', 'cancelled'), activeIntakeId),
         applyIntake(supabase.from('tasks').select('id', { count: 'exact', head: true }).eq('priority', 'urgent').neq('status', 'completed').neq('status', 'cancelled'), activeIntakeId),
-        applyIntake(supabase.from('documents').select('student_id'), activeIntakeId),
-        applyIntake(supabase.from('payments').select('student_id'), activeIntakeId),
+        supabase.from('student_intakes').select('student_id').eq('intake_id', activeIntakeId),
+        supabase.from('user_roles').select('user_id'),
       ]);
 
       const applications = applicationsRes.data || [];
       const calls = callsRes.data || [];
       const tasks = pendingTasksRes.data || [];
 
-      // Per-intake student count = distinct students with any record this season.
+      // Per-intake student count = members of this season, excluding staff.
+      const staffIds = new Set((staffRolesRes.data || []).map((r) => r.user_id));
       const studentIds = new Set<string>();
-      for (const a of applications) if (a.student_id) studentIds.add(a.student_id);
-      for (const d of (docStudentsRes.data || [])) if (d.student_id) studentIds.add(d.student_id);
-      for (const p of (payStudentsRes.data || [])) if (p.student_id) studentIds.add(p.student_id);
+      for (const m of (membersRes.data || [])) {
+        if (m.student_id && !staffIds.has(m.student_id)) studentIds.add(m.student_id);
+      }
       const totalStudents = studentIds.size;
       const activeApplications = applications.filter(
         (a) => !['completed', 'rejected'].includes(a.status)

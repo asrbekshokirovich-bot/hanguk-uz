@@ -34,6 +34,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Tables } from '@/integrations/supabase/types';
 import { useToast } from '@/hooks/use-toast';
+import { getStudentActiveIntakeId } from '@/lib/studentIntake';
 
 interface DocumentUploadProps {
   documents: Tables<'documents'>[];
@@ -342,6 +343,9 @@ export function DocumentUpload({
       uploadedFileName = fileName;
 
       const docName = docType ? `[${docType.id}] ${file.name}` : file.name;
+      // Stamp the student's current season so the document lands in the right
+      // intake on the staff side (instead of the default-trigger fallback).
+      const intakeId = await getStudentActiveIntakeId(user.id);
       const { error: dbError } = await supabase.from('documents').insert({
         student_id: user.id,
         application_id: applicationId || null,
@@ -350,6 +354,7 @@ export function DocumentUpload({
         file_type: file.type,
         file_size: file.size,
         status: 'uploaded',
+        ...(intakeId ? { intake_id: intakeId } : {}),
       });
 
       if (dbError) throw dbError;
