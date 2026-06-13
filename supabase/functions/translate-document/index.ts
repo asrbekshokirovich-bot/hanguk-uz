@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import JSZip from "https://esm.sh/jszip@3.10.1";
+import { DIPLOMA_TEMPLATE_BASE64 } from "./templates/diploma-template.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -214,6 +215,148 @@ ${bodyParts.join("\n")}
   return new Uint8Array(arrayBuffer);
 }
 
+// ---------- Fixed-layout template fill ----------
+// Some document types must come out in an EXACT certified layout (tables, borders,
+// fonts) rather than the generic block renderer. For those we keep a staff-approved
+// .docx as a template with {{TOKEN}} placeholders and only swap text inside it, so
+// the layout stays byte-identical and only the student's data changes.
+interface TemplateRowGroup { marker: string; keys: string[] }
+interface TemplateConfig {
+  // base64 of the .docx template bundled alongside this function.
+  base64: string;
+  // Human-readable field schema injected into the extraction prompt.
+  fieldSchema: string;
+  rowGroups: TemplateRowGroup[];
+}
+
+const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
+  // PT — Primary/Professional ("kasbiy ta'lim") diploma + its supplement (ilova).
+  diploma: {
+    base64: DIPLOMA_TEMPLATE_BASE64,
+    rowGroups: [
+      { marker: "S_NO", keys: ["S_NO", "S_NAME", "S_HOURS", "S_MARK"] },
+      { marker: "A_NO", keys: ["A_NO", "A_NAME", "A_HOURS", "A_MARK"] },
+    ],
+    fieldSchema: `"fields": {
+  "STUDENT_NAME": "graduate full name in UPPERCASE, spelled exactly as in the international passport",
+  "SURNAME": "graduate surname only",
+  "GIVEN_NAMES": "graduate given name(s) / patronymic only",
+  "DIPLOMA_NUMBER": "digits after 'PT №' (e.g. 0213785)",
+  "SCHOOL": "issuing vocational school, in English (e.g. Angren city vocational school No.2)",
+  "SPECIALTY": "specialty / kasb-hunar (e.g. Diagnostics and repair of motor vehicles)",
+  "QUALIFICATIONS": "awarded qualifications, comma-separated",
+  "FIELD_OF_STUDY": "field of study / yo'nalish (section 2.2)",
+  "DOB": "date of birth DD.MM.YYYY",
+  "PREV_EDU": "previous education line (years, school, document No.)",
+  "GAC_DATE": "State Attestation Commission decision date, long form (e.g. June 28, 2024)",
+  "GAC_DECISION": "GAC decision text (e.g. Decision No.1 dated June 28,2024)",
+  "LEVEL": "education level (usually 'Primary professional education')",
+  "LENGTH": "length of education (e.g. 2 Years)",
+  "EDU_TYPE": "type of education (e.g. Day Time)",
+  "DESC_34": "section 3.4 programme / competencies description",
+  "CHAIRMAN": "GAC chairman name",
+  "DIRECTOR": "director short name (e.g. Muminov Farkhod)",
+  "DIRECTOR_FULL": "director full name incl. patronymic (signature block)",
+  "DEPUTY_FULL": "deputy director full name incl. patronymic (signature block)",
+  "REG_NUMBER": "registration number (e.g. 138)",
+  "ISSUE_DATE": "date of issue, long form (e.g. July 05, 2024)",
+  "ISSUE_PLACE": "place of issue (e.g. Tashkent)",
+  "LANG": "language of instruction (e.g. Uzbek)",
+  "ADDITIONAL_INFO": "section 4 additional information, or 'None'"
+},
+"subjects": [{ "name": "course/module name in English", "hours": "total hours (number)", "mark": "<digit> (excellent|good|satisfactory)" }],
+"attestations": [{ "name": "state attestation/exam name in English", "hours": "hours (number)", "mark": "<digit> (excellent|good|satisfactory)" }]`,
+  },
+};
+
+function decodeBase64ToBytes(b64: string): Uint8Array {
+  const bin = atob(b64);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return bytes;
+}
+
+// Duplicate the single template <w:tr> that contains {{MARKER}} once per data row,
+// substituting that row's per-cell tokens. Non-greedy match stops at the row's own
+// </w:tr> (not </w:trPr>), and rows never nest, so this is safe.
+function expandTemplateRows(xml: string, marker: string, rows: string[][], keys: string[]): string {
+  const token = `{{${marker}}}`;
+  return xml.replace(/<w:tr[ >][\s\S]*?<\/w:tr>/g, (rowXml) => {
+    if (!rowXml.includes(token)) return rowXml;
+    return rows.map((vals) => {
+      let r = rowXml;
+      keys.forEach((k, i) => { r = r.split(`{{${k}}}`).join(escXml(vals[i] ?? "")); });
+      return r;
+    }).join("");
+  });
+}
+
+interface TemplateData {
+  fields: Record<string, string>;
+  subjects: Array<{ name?: string; hours?: string | number; mark?: string }>;
+  attestations: Array<{ name?: string; hours?: string | number; mark?: string }>;
+}
+
+async function renderTemplateDocx(cfg: TemplateConfig, data: TemplateData): Promise<Uint8Array> {
+  const zip = await JSZip.loadAsync(decodeBase64ToBytes(cfg.base64));
+  const docXmlFile = zip.file("word/document.xml");
+  if (!docXmlFile) throw new Error("Template is missing word/document.xml");
+  let xml = await docXmlFile.async("string");
+
+  // Expand repeatable rows first (their per-cell tokens live inside the row template).
+  const subjRows = (data.subjects ?? []).map((s, i) => [String(i + 1), s.name ?? "", String(s.hours ?? ""), s.mark ?? ""]);
+  const attRows = (data.attestations ?? []).map((a, i) => [String(i + 1), a.name ?? "", String(a.hours ?? ""), a.mark ?? ""]);
+  xml = expandTemplateRows(xml, "S_NO", subjRows, ["S_NO", "S_NAME", "S_HOURS", "S_MARK"]);
+  xml = expandTemplateRows(xml, "A_NO", attRows, ["A_NO", "A_NAME", "A_HOURS", "A_MARK"]);
+
+  // Then substitute the single-value field tokens.
+  for (const [k, v] of Object.entries(data.fields ?? {})) {
+    xml = xml.split(`{{${k}}}`).join(escXml(String(v ?? "")));
+  }
+  // Clear any token we did not get a value for so it never reaches the reader.
+  xml = xml.replace(/\{\{[A-Z_0-9]+\}\}/g, "");
+
+  zip.file("word/document.xml", xml);
+  const out = await zip.generateAsync({
+    type: "uint8array",
+    mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  });
+  return out as Uint8Array;
+}
+
+function parseTemplateData(raw: string): TemplateData {
+  let text = raw.trim().replace(/^```(?:json)?/i, "").replace(/```$/i, "").trim();
+  let parsed: any;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    const start = text.indexOf("{");
+    const end = text.lastIndexOf("}");
+    if (start === -1 || end === -1) throw new Error("AI did not return valid JSON");
+    parsed = JSON.parse(text.slice(start, end + 1));
+  }
+  return {
+    fields: parsed.fields && typeof parsed.fields === "object" ? parsed.fields : {},
+    subjects: Array.isArray(parsed.subjects) ? parsed.subjects : [],
+    attestations: Array.isArray(parsed.attestations) ? parsed.attestations : [],
+  };
+}
+
+// Build a readable plain-text projection + a structured payload the app can store
+// and (later) re-render the template from.
+function templateToStructured(data: TemplateData, verifiedNames: Record<string, string>, code: string) {
+  return { template: code, fields: data.fields, subjects: data.subjects, attestations: data.attestations, verifiedNames };
+}
+function templateToPlainText(data: TemplateData): string {
+  const parts: string[] = [];
+  for (const [k, v] of Object.entries(data.fields ?? {})) if (v) parts.push(`${k}: ${v}`);
+  parts.push("", "Subjects:");
+  (data.subjects ?? []).forEach((s, i) => parts.push(`${i + 1}. ${s.name ?? ""} — ${s.hours ?? ""} — ${s.mark ?? ""}`));
+  parts.push("", "State attestations:");
+  (data.attestations ?? []).forEach((a, i) => parts.push(`${i + 1}. ${a.name ?? ""} — ${a.hours ?? ""} — ${a.mark ?? ""}`));
+  return parts.join("\n");
+}
+
 // ---------- Plain text projection ----------
 function blocksToPlainText(structured: StructuredTranslation): string {
   const parts: string[] = [];
@@ -275,7 +418,7 @@ serve(async (req) => {
     const { data: { user }, error: authErr } = await userClient.auth.getUser();
     if (authErr || !user) return json({ error: "Unauthorized" }, 401);
     const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", user.id);
-    const isStaff = (roles ?? []).some((r: { role: string }) => ["owner", "admin", "document_handler"].includes(r.role));
+    const isStaff = (roles ?? []).some((r: { role: string }) => ["owner", "admin", "document_handler", "call_operator"].includes(r.role));
     if (!isStaff) return json({ error: "Forbidden" }, 403);
 
     const body = await req.json();
@@ -288,9 +431,25 @@ serve(async (req) => {
     if (typeError || !docType) return json({ error: "Document type not found" }, 404);
 
     const documentTitle = docType.name_en || docType.name_uz || docType.code;
+    const templateCfg = TEMPLATE_CONFIGS[docType.code];
 
-    // ---- Fast path: re-render DOCX ----
+    // ---- Fast path: re-render DOCX from already-extracted data ----
     if (regenerate?.structured) {
+      // Fixed-layout (template) types re-fill the template from stored fields.
+      if (templateCfg && regenerate.structured.template) {
+        const data: TemplateData = {
+          fields: regenerate.structured.fields ?? {},
+          subjects: regenerate.structured.subjects ?? [],
+          attestations: regenerate.structured.attestations ?? [],
+        };
+        const docxBytes = await renderTemplateDocx(templateCfg, data);
+        const docxPath = `output/${Date.now()}_${docType.code}_translation.docx`;
+        const { error: upErr } = await supabase.storage.from(OUTPUT_BUCKET)
+          .upload(docxPath, docxBytes, { contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", upsert: true });
+        if (upErr) return json({ error: `DOCX upload failed: ${upErr.message}` }, 500);
+        const structured = templateToStructured(data, regenerate.structured.verifiedNames ?? {}, docType.code);
+        return json({ structured, plainText: templateToPlainText(data), docxPath, documentType: { code: docType.code, name: docType.name_uz, nameEn: docType.name_en } });
+      }
       const structured: StructuredTranslation = {
         detectedSupportingDocs: regenerate.structured.detectedSupportingDocs ?? [],
         verifiedNames: regenerate.structured.verifiedNames ?? {},
@@ -328,6 +487,86 @@ serve(async (req) => {
       } catch (e) {
         console.warn("Skipping supporting file:", sup.path, (e as Error).message);
       }
+    }
+
+    // ---- Fixed-layout template path (e.g. PT professional-education diploma) ----
+    if (templateCfg) {
+      const tplSystemPrompt = `You are an expert sworn translator. You are given images of an Uzbek "Primary Professional Education" diploma (PT diploma) and its supplement/appendix (ilova), plus possibly identity documents.
+
+Image 1 is the main diploma. Further images may be the supplement/appendix pages and identity documents (international passport / ID) provided so you spell names correctly.
+
+Extract every value and translate it into English, then return it to fill a fixed certified English template. Cover BOTH the diploma and the full supplement (all subjects/modules with hours and marks, and the state attestations).
+
+=== NAME ACCURACY (CRITICAL) ===
+- The graduate's name MUST match the international passport EXACTLY (letter for letter). Use UPPERCASE for STUDENT_NAME.
+${providedNames ? `- STAFF-VERIFIED NAMES (use exactly): ${JSON.stringify(providedNames)}` : ""}
+
+=== RULES ===
+- Marks: format as "<digit> (excellent|good|satisfactory)" (5=excellent, 4=good, 3=satisfactory).
+- Hours: numbers only. Keep subjects in their original order. Do NOT skip any subject.
+- Cyrillic→Latin transliteration for Uzbek names/places. Dates as DD.MM.YYYY unless a long form is requested.
+- If a value is missing, use an empty string "".
+
+=== OUTPUT FORMAT ===
+Return ONLY a JSON object (no prose, no markdown) with this exact shape:
+{
+${templateCfg.fieldSchema},
+"verifiedNames": { "student": "..." },
+"unclearItems": ["..."]
+}`;
+
+      const tplUserContent: Array<{ type: "text"; text: string } | { type: "image_url"; image_url: { url: string } }> = [
+        ...imageContents,
+        { type: "text", text: "Extract and translate the PT diploma and its supplement into the JSON object. Include ALL subjects and state attestations." },
+      ];
+
+      const tplResp = await fetch(GEMINI_AI_URL, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${geminiApiKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "gemini-2.5-flash",
+          messages: [
+            { role: "system", content: tplSystemPrompt },
+            { role: "user", content: tplUserContent },
+          ],
+          temperature: 0.1,
+          max_tokens: 12000,
+          response_format: { type: "json_object" },
+        }),
+      });
+
+      if (!tplResp.ok) {
+        const errorText = await tplResp.text();
+        console.error("AI error (template):", tplResp.status, errorText);
+        if (tplResp.status === 429) return json({ error: "Tizim band. Keyinroq urinib ko'ring." }, 429);
+        if (tplResp.status === 402) return json({ error: "AI xizmati uchun kredit tugagan." }, 402);
+        return json({ error: `AI xizmatida xatolik: ${tplResp.status}` }, 500);
+      }
+
+      const tplData = await tplResp.json();
+      const tplJson = tplData.choices?.[0]?.message?.content;
+      if (!tplJson) return json({ error: "Tarjima olinmadi" }, 500);
+
+      const data = parseTemplateData(tplJson);
+      const verifiedNames = { ...(data.fields.STUDENT_NAME ? { student: data.fields.STUDENT_NAME } : {}), ...(providedNames ?? {}) };
+      if (providedNames?.student) data.fields.STUDENT_NAME = providedNames.student;
+
+      const docxBytes = await renderTemplateDocx(templateCfg, data);
+      const docxPath = `output/${Date.now()}_${docType.code}_translation.docx`;
+      const { error: upErr } = await supabase.storage.from(OUTPUT_BUCKET)
+        .upload(docxPath, docxBytes, { contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", upsert: true });
+      if (upErr) {
+        console.error("DOCX upload failed:", upErr);
+        return json({ error: `DOCX upload failed: ${upErr.message}` }, 500);
+      }
+
+      const structured = templateToStructured(data, verifiedNames, docType.code);
+      return json({
+        structured,
+        plainText: templateToPlainText(data),
+        docxPath,
+        documentType: { code: docType.code, name: docType.name_uz, nameEn: docType.name_en },
+      });
     }
 
     // ---- Few-shot examples ----
