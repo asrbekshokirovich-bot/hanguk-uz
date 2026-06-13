@@ -8,6 +8,12 @@ name: Deploy translate-document function
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - claude/epic-ptolemy-hn51oi
+    paths:
+      - supabase/functions/translate-document/**
+      - .github/workflows/deploy-translate-document.yml
 
 jobs:
   deploy:
