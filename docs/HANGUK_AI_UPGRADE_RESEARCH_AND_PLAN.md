@@ -173,7 +173,9 @@ Gemini facts to exploit (Confidence: high):
 
 Cost/latency (Confidence: high, some figures pending re-verification):
 
-- **Pricing** ≈ $0.30 / 1M input, $2.50 / 1M output; cached input ≈ $0.15/1M.
+- **Pricing** (verified 2026-06, primary Google pricing page): **$0.50 / 1M input,
+  $2.00 / 1M output** (an earlier draft said $0.30/$2.50 — that was stale / Flash-Lite;
+  corrected). Cached input ≈ $0.125/1M (~25% of input). Free tier exists ($0).
 - **Context caching**: implicit (auto, ~75% off cached input) and explicit
   (~90% off) for 2.5 models; min ~1,024 tokens for Flash; static-first/
   variable-last prompt ordering. **Put the system prompt + tool schemas + schema
@@ -422,3 +424,89 @@ detect language per message, and ground every answer in returned rows with
 clarify/abstain behavior. Wrap it in **evals + tracing + a shadow/canary
 rollout** so it improves without regressing. Actions and proactive briefings come
 later, gated by human-in-the-loop confirmation and audit logging.
+
+---
+
+## 12. Verification addendum (adversarial re-check of the load-bearing claims)
+
+A second pass of **adversarial fact-check agents** independently tried to *refute*
+the load-bearing claims against primary sources. Net result: **the core
+architecture and security recommendations all held**; the corrections were to
+specific numbers and over-stated absolutes. Verdicts (TRUE / PARTIALLY / FALSE):
+
+**Confirmed TRUE (high confidence):**
+- Gemini OpenAI-shim **streaming + tool-call bugs are real and still present in
+  2026** (`finish_reason="stop"`, `index=null`, `type`-in-function 400, Responses
+  API 404). Client libs (LiteLLM/OpenRouter) *patch* them; Google hasn't fixed
+  server-side. → **two valid options**: native `generateContent` loop, **or** keep
+  the shim but route through a wrapper (e.g. LiteLLM) that normalizes these.
+- Gemini **native** function-calling loop, parallel + sequential calls, modes
+  AUTO/ANY/NONE, **thought-signatures must be round-tripped** (the `@google/genai`
+  SDK does this automatically) — all confirmed.
+- Supabase: **service_role bypasses RLS**; user-scoped client + RLS is the fix;
+  views bypass RLS unless `security_invoker=true`; use JWT `app_metadata` not
+  `user_metadata`; RLS survives pgvector search — all confirmed.
+- **PGroonga** is the sound multilingual FTS engine on Supabase (Korean included);
+  Supabase MCP production warnings confirmed verbatim.
+- Text-to-SQL **benchmark→production cliff** confirmed (GPT-4 ~6% on Spider 2.0).
+- **Semantic layer ≈ +17–23pp** accuracy (Cube paired benchmark, p≤0.0015) —
+  independently corroborated direction.
+- **Embedding dimensionality limit is rigorously proven** (Weller et al.,
+  arXiv 2508.21038, Google DeepMind) — *but only for single-vector embeddings*;
+  cross-encoders / multi-vector / BM25 escape it (this actually **supports** our
+  hybrid + reranker design).
+- **RRF** (SIGIR 2009) and **cross-encoder reranking** (bge-reranker-v2-m3) — solid.
+- **OWASP LLM Top-10 2025** IDs correct; **CaMeL** is real (arXiv 2503.18813,
+  "Defeating Prompt Injections by Design," dual-LLM + capabilities).
+- **Anthropic Citations API**: launched **Jan 23 2025**, char-level, API-enforced,
+  incompatible with structured outputs, all models except Haiku 3. The "15%" is
+  **Anthropic's own internal recall-lift vs prompt-based citations**, not a
+  third-party promo and not generic "RAG accuracy."
+- **OpenAI Evals deprecation**: read-only Oct 31 2026, shutdown Nov 30 2026.
+
+**Corrections (claims that were wrong or overstated):**
+- **Gemini 2.5 Flash pricing is $0.50 in / $2.00 out per 1M** (not $0.30/$2.50);
+  cached input ≈ $0.125; **explicit caching ≈ 75% off the token portion + storage,
+  NOT "90%"**; thinking budget 0–24,576; free tier 10 RPM / 250k TPM / 250 RPD.
+- **Gemini tool-declaration cap is 512 enforced** (128 is the docs' recommended
+  figure, not the hard limit).
+- **Current BIRD top is Gemini-SQL2 (Gemini 3.1 Pro) at 80.04%** (June 2026), not
+  XiYan's 75.63%; human baseline 92.96%; Spider 2.0 SOTA ~30–38%. (XiYan votes
+  among ~5 candidates, not 21 — that's CHASE.)
+- **Cross-lingual "30–50pt Hits@20 drop" is a worst-case** (Arabic–English, legal
+  domain), **not typical**: on standard benchmarks with modern retrievers the gap
+  is usually **<10 points (~8–9% relative)**. And the "root cause = score
+  calibration, not alignment" attribution to arXiv 2510.00908 is **FALSE** — that
+  survey actually centers **representation alignment** as a key challenge.
+- **"tRAG"/"MultiRAG" are paper-specific coinages**, not standard terms; the field
+  says *query translation* vs *direct multilingual retrieval* vs *document
+  translation* (the latter, "CrossRAG", was the best method in that paper).
+- **Embedding leaderboard moved**: **NVIDIA Llama-Embed-Nemotron-8B is #1 by Borda**
+  (Oct 2025); Qwen3-8B retains the highest *mean* (70.58). BGE-M3 specs all hold.
+- **Uzbek LLM/embedding evidence is sparse but not zero**: dedicated **UzLiB** (2025)
+  and native **TUMLU** Uzbek split (2025, Claude 3.5 ≈ 69.1% on Uzbek) exist; the
+  low-resource gap is real (o1 92.8% En → 70.8% Giriama). No Uzbek-specific
+  *embedding* benchmark exists → still must benchmark on real data.
+- **Korean LLMs lag English**: KMMLU (arXiv 2402.11548) GPT-4 ~60% vs ~86% English,
+  human 62.6%; KMMLU-Pro o1 79.55%. Korea-specific facts (visa/university rules)
+  must be verified against authoritative sources, not trusted to the model.
+
+**Refinements (true, with a caveat):**
+- `pg_trgm` **cannot index Korean** (Hangul) — use PGroonga for Korean; keep
+  pg_trgm+unaccent only as a fuzzy/accent layer for Latin/Cyrillic. (This affects
+  the existing `search_students` name matching for Korean-script names.)
+- Read-only role is write-proof only if you **also lock down `EXECUTE` on
+  `SECURITY DEFINER` functions**; use bare `EXPLAIN` (not `EXPLAIN ANALYZE`) for
+  dry-runs; use sqlglot **`Scope`** (not naive `find_all`) for table allow-listing.
+- Clarifying questions must be **selective** (ask only on detected ambiguity), not
+  always-ask. "Return N of M + push COUNT/GROUP BY to SQL" mechanism is sound;
+  "dominant pattern" is an unverified superlative.
+- "SQL is *required*" / "*the* fix" are best-practice, not proven necessity.
+
+**Still unverified / re-run recommended:** exact Gemini paid-tier Flash RPM/TPM/RPD;
+the code-level implementation agents (native-Gemini Deno loop, user-scoped client,
+RPC design, pgvector tuning, embedding pipeline, schema dictionary, frameworks,
+voice, proactive, omnichannel, intent routing, document AI, memory, model choice,
+structured output, privacy/compliance, rollout) — these were rate-limited and will
+add code-level specifics. PII/compliance (Uzbekistan localization, Korea PIPA,
+Google data-use terms) still needs first-party confirmation before sending PII.
