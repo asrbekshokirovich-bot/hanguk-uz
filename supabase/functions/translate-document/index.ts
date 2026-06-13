@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import JSZip from "https://esm.sh/jszip@3.10.1";
+import { DIPLOMA_TEMPLATE_BASE64 } from "./templates/diploma-template.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -221,8 +222,8 @@ ${bodyParts.join("\n")}
 // the layout stays byte-identical and only the student's data changes.
 interface TemplateRowGroup { marker: string; keys: string[] }
 interface TemplateConfig {
-  // Key in the public.app_assets table holding the base64 of the .docx template.
-  assetKey: string;
+  // base64 of the .docx template bundled alongside this function.
+  base64: string;
   // Human-readable field schema injected into the extraction prompt.
   fieldSchema: string;
   rowGroups: TemplateRowGroup[];
@@ -231,7 +232,7 @@ interface TemplateConfig {
 const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
   // PT — Primary/Professional ("kasbiy ta'lim") diploma + its supplement (ilova).
   diploma: {
-    assetKey: "diploma_template_v1",
+    base64: DIPLOMA_TEMPLATE_BASE64,
     rowGroups: [
       { marker: "S_NO", keys: ["S_NO", "S_NAME", "S_HOURS", "S_MARK"] },
       { marker: "A_NO", keys: ["A_NO", "A_NAME", "A_HOURS", "A_MARK"] },
@@ -296,15 +297,8 @@ interface TemplateData {
   attestations: Array<{ name?: string; hours?: string | number; mark?: string }>;
 }
 
-// deno-lint-ignore no-explicit-any
-async function loadTemplateBytes(supabase: any, assetKey: string): Promise<Uint8Array> {
-  const { data, error } = await supabase.from("app_assets").select("content").eq("key", assetKey).maybeSingle();
-  if (error || !data?.content) throw new Error(`Template asset '${assetKey}' not found`);
-  return decodeBase64ToBytes(data.content as string);
-}
-
-async function renderTemplateDocx(templateBytes: Uint8Array, data: TemplateData): Promise<Uint8Array> {
-  const zip = await JSZip.loadAsync(templateBytes);
+async function renderTemplateDocx(cfg: TemplateConfig, data: TemplateData): Promise<Uint8Array> {
+  const zip = await JSZip.loadAsync(decodeBase64ToBytes(cfg.base64));
   const docXmlFile = zip.file("word/document.xml");
   if (!docXmlFile) throw new Error("Template is missing word/document.xml");
   let xml = await docXmlFile.async("string");
@@ -448,7 +442,7 @@ serve(async (req) => {
           subjects: regenerate.structured.subjects ?? [],
           attestations: regenerate.structured.attestations ?? [],
         };
-        const docxBytes = await renderTemplateDocx(await loadTemplateBytes(supabase, templateCfg.assetKey), data);
+        const docxBytes = await renderTemplateDocx(templateCfg, data);
         const docxPath = `output/${Date.now()}_${docType.code}_translation.docx`;
         const { error: upErr } = await supabase.storage.from(OUTPUT_BUCKET)
           .upload(docxPath, docxBytes, { contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", upsert: true });
@@ -557,7 +551,7 @@ ${templateCfg.fieldSchema},
       const verifiedNames = { ...(data.fields.STUDENT_NAME ? { student: data.fields.STUDENT_NAME } : {}), ...(providedNames ?? {}) };
       if (providedNames?.student) data.fields.STUDENT_NAME = providedNames.student;
 
-      const docxBytes = await renderTemplateDocx(await loadTemplateBytes(supabase, templateCfg.assetKey), data);
+      const docxBytes = await renderTemplateDocx(templateCfg, data);
       const docxPath = `output/${Date.now()}_${docType.code}_translation.docx`;
       const { error: upErr } = await supabase.storage.from(OUTPUT_BUCKET)
         .upload(docxPath, docxBytes, { contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", upsert: true });
