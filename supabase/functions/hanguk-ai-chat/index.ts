@@ -409,6 +409,127 @@ ${formatBundle(b, { staff: false })}
 - End with 1–2 helpful next steps based on the data above.`;
 }
 
+// ---- agentic tool-calling (Phase 1, staff only) ---------------------------
+// The model fetches REAL rows via typed Postgres RPC tools instead of being
+// handed only counts. The tool loop runs NON-STREAMING (the OpenAI-compat shim
+// is reliable for non-streaming tool calls; streaming+tools is the buggy combo),
+// then the final answer is streamed back in the same SSE shape the client parses.
+const GEMINI_OPENAI_URL = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
+
+const AGENT_TOOLS = [
+  { type: "function", function: { name: "get_stats", description: "Quick CRM counts: students, leads, documents (total/pending/approved), overdue payments, open tasks, new leads.", parameters: { type: "object", properties: {} } } },
+  { type: "function", function: { name: "list_documents", description: "List documents with the owning student's name. Use status 'uploaded' for documents PENDING REVIEW, 'approved' for approved.", parameters: { type: "object", properties: { status: { type: "string", description: "uploaded | approved | rejected" }, student_id: { type: "string", description: "filter to one student's user_id" }, from_date: { type: "string", description: "ISO date lower bound on created_at" }, to_date: { type: "string", description: "ISO date upper bound (exclusive) on created_at" }, limit: { type: "integer" }, offset: { type: "integer" } } } } },
+  { type: "function", function: { name: "list_payments", description: "List payments with student name. Set overdue_only=true for overdue/past-due payments.", parameters: { type: "object", properties: { status: { type: "string", description: "pending | partial | completed | overdue | refunded" }, student_id: { type: "string" }, overdue_only: { type: "boolean" }, limit: { type: "integer" }, offset: { type: "integer" } } } } },
+  { type: "function", function: { name: "list_tasks", description: "List staff tasks.", parameters: { type: "object", properties: { status: { type: "string", description: "todo | in_progress | completed | cancelled" }, priority: { type: "string", description: "urgent | high | normal | low" }, limit: { type: "integer" }, offset: { type: "integer" } } } } },
+  { type: "function", function: { name: "list_leads", description: "List/filter the leads pipeline.", parameters: { type: "object", properties: { query: { type: "string", description: "name or phone substring" }, status: { type: "string", description: "new | contacted | qualified | converted | lost" }, source: { type: "string", description: "manual | telegram | instagram | call | ai_detected" }, exam_type: { type: "string", description: "TOPIK | IELTS | none" }, city: { type: "string" }, interest_level: { type: "string", description: "low | medium | high" }, from_exam_date: { type: "string", description: "ISO date" }, to_exam_date: { type: "string", description: "ISO date" }, limit: { type: "integer" }, offset: { type: "integer" } } } } },
+  { type: "function", function: { name: "list_students", description: "List/search students (non-staff users) by name/phone/city.", parameters: { type: "object", properties: { query: { type: "string" }, city: { type: "string" }, limit: { type: "integer" }, offset: { type: "integer" } } } } },
+  { type: "function", function: { name: "search_students", description: "Fuzzy, ranked student lookup by name or pasted phone number. Use to resolve a person mentioned by name to their student_id.", parameters: { type: "object", properties: { query: { type: "string" }, limit: { type: "integer" } }, required: ["query"] } } },
+  { type: "function", function: { name: "search_communications", description: "Full-text search across Telegram chats, call summaries and documents. Use for 'what did we discuss about X' / 'who asked about X'.", parameters: { type: "object", properties: { query: { type: "string" }, limit: { type: "integer" } }, required: ["query"] } } },
+];
+
+async function callAgentTool(client: any, name: string, rawArgs: string | undefined): Promise<any> {
+  let a: any = {};
+  try { a = rawArgs ? JSON.parse(rawArgs) : {}; } catch { /* tolerate bad args */ }
+  const rpc = async (fn: string, params: any) => {
+    const { data, error } = await client.rpc(fn, params);
+    return error ? { error: error.message } : data;
+  };
+  switch (name) {
+    case "get_stats": return rpc("ai_stats", {});
+    case "list_documents": return rpc("ai_list_documents", { p_status: a.status ?? null, p_student_id: a.student_id ?? null, p_from: a.from_date ?? null, p_to: a.to_date ?? null, p_limit: a.limit ?? 50, p_offset: a.offset ?? 0 });
+    case "list_payments": return rpc("ai_list_payments", { p_status: a.status ?? null, p_student_id: a.student_id ?? null, p_overdue_only: a.overdue_only ?? false, p_limit: a.limit ?? 50, p_offset: a.offset ?? 0 });
+    case "list_tasks": return rpc("ai_list_tasks", { p_status: a.status ?? null, p_priority: a.priority ?? null, p_limit: a.limit ?? 50, p_offset: a.offset ?? 0 });
+    case "list_leads": return rpc("ai_list_leads", { p_query: a.query ?? null, p_status: a.status ?? null, p_source: a.source ?? null, p_exam_type: a.exam_type ?? null, p_city: a.city ?? null, p_interest_level: a.interest_level ?? null, p_from_exam_date: a.from_exam_date ?? null, p_to_exam_date: a.to_exam_date ?? null, p_limit: a.limit ?? 50, p_offset: a.offset ?? 0 });
+    case "list_students": return rpc("ai_list_students", { p_query: a.query ?? null, p_city: a.city ?? null, p_limit: a.limit ?? 50, p_offset: a.offset ?? 0 });
+    case "search_students": return rpc("search_students", { p_query: a.query ?? "", p_limit: a.limit ?? 6 });
+    case "search_communications": return rpc("search_communications_text", { p_query: a.query ?? "", p_limit: a.limit ?? 12 });
+    default: return { error: `unknown tool: ${name}` };
+  }
+}
+
+function staffAgentSystem(language: string, today: string, staffName: string): string {
+  return `# Hanguk AI — CRM assistant for staff (agentic)
+${langLine(language)}
+
+You are Hanguk AI for Hanguk Consulting (Korean university admissions, Uzbekistan).
+Today is ${today} (timezone Asia/Tashkent). Staff member: ${staffName}.
+
+You answer questions by CALLING TOOLS to fetch real CRM data, then summarising the results.
+
+## RULES
+- ALWAYS call a tool to get data. NEVER invent rows, names, phone numbers, counts, statuses or dates.
+- "documents pending review" = documents with status 'uploaded' → call list_documents(status:"uploaded").
+- "overdue payments" → list_payments(overdue_only:true). "open tasks" → list_tasks(status:"todo" or "in_progress").
+- To answer about a person mentioned by name, first call search_students (or list_leads with query) to resolve them, then fetch their details.
+- Present results as a clear numbered list including each person's NAME (and phone). State the total: "Showing N of M".
+- If a tool returns 0 rows (or {total:0}), say so plainly — do not fabricate. If a tool returns {error: ...}, report that you couldn't fetch it.
+- Answer ONLY from values present in tool results. Cite dates from the data. Be concise.`;
+}
+
+function streamTextAsSSE(text: string): Response {
+  const enc = new TextEncoder();
+  const stream = new ReadableStream({
+    start(controller) {
+      const size = 90;
+      for (let i = 0; i < text.length; i += size) {
+        const chunk = text.slice(i, i + size);
+        controller.enqueue(enc.encode(`data: ${JSON.stringify({ choices: [{ delta: { content: chunk } }] })}\n\n`));
+      }
+      controller.enqueue(enc.encode("data: [DONE]\n\n"));
+      controller.close();
+    },
+  });
+  return new Response(stream, { headers: { ...corsHeaders, "Content-Type": "text/event-stream" } });
+}
+
+async function runStaffAgent(
+  userClient: any,
+  service: any,
+  opts: { message: string; language: string; userId: string; staffName: string },
+): Promise<Response> {
+  const { message, language, userId, staffName } = opts;
+
+  const { data: prev } = await service.from("ai_conversations")
+    .select("role, content").eq("user_id", userId).order("created_at", { ascending: false }).limit(10);
+  const history = (prev || []).reverse();
+  await service.from("ai_conversations").insert({ user_id: userId, user_type: "staff", role: "user", content: message });
+
+  const today = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Tashkent" });
+  const messages: any[] = [
+    { role: "system", content: staffAgentSystem(language, today, staffName) },
+    ...history.map((c: any) => ({ role: c.role, content: c.content })),
+    { role: "user", content: message },
+  ];
+
+  let finalText = "";
+  for (let i = 0; i < 6; i++) {
+    const resp = await fetch(GEMINI_OPENAI_URL, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${GEMINI_API_KEY}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ model: "gemini-2.5-flash", messages, tools: AGENT_TOOLS, tool_choice: "auto", stream: false }),
+    });
+    if (!resp.ok) throw new Error(`agent gateway ${resp.status}: ${(await resp.text()).slice(0, 200)}`);
+    const data = await resp.json();
+    const msg = data.choices?.[0]?.message;
+    if (!msg) throw new Error("agent: no message in response");
+
+    if (msg.tool_calls?.length) {
+      messages.push(msg);
+      for (const tc of msg.tool_calls) {
+        const result = await callAgentTool(userClient, tc.function?.name, tc.function?.arguments);
+        messages.push({ role: "tool", tool_call_id: tc.id, content: JSON.stringify(result).slice(0, 12000) });
+      }
+      continue;
+    }
+    finalText = msg.content || "";
+    break;
+  }
+
+  if (!finalText) finalText = "I couldn't produce a verified answer from the data. Please rephrase, or check the relevant section directly.";
+  await service.from("ai_conversations").insert({ user_id: userId, user_type: "staff", role: "assistant", content: finalText });
+  return streamTextAsSSE(finalText);
+}
+
 // ---- handler ---------------------------------------------------------------
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -423,6 +544,37 @@ serve(async (req) => {
 
     const language = isUzbek(message) ? "uz" : requestedLang;
     const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+
+    // Phase 1: agentic tool-calling for STAFF. Requires a real user JWT in the
+    // Authorization header (the RPC tools self-gate on auth.uid() = a staff user),
+    // so it activates only when the client forwards the session token. Any failure
+    // (no JWT, not staff, gateway error) falls through to the legacy path below.
+    const agentEnabled = (Deno.env.get("AI_AGENT_TOOLS") ?? "on") !== "off";
+    if (agentEnabled && user_type === "staff") {
+      try {
+        const token = (req.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "");
+        const anonKey = Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_PUBLISHABLE_KEY") || "";
+        if (token && anonKey) {
+          const userClient = createClient(Deno.env.get("SUPABASE_URL")!, anonKey, {
+            global: { headers: { Authorization: `Bearer ${token}` } },
+            auth: { persistSession: false, autoRefreshToken: false },
+          });
+          const { data: ures } = await userClient.auth.getUser();
+          const authedUser = ures?.user;
+          if (authedUser) {
+            const { data: isStaff } = await userClient.rpc("ai_is_staff", { p_uid: authedUser.id });
+            if (isStaff === true) {
+              const { data: prof } = await supabase.from("profiles").select("full_name").eq("user_id", authedUser.id).maybeSingle();
+              return await runStaffAgent(userClient, supabase, {
+                message, language, userId: authedUser.id, staffName: prof?.full_name || "Staff",
+              });
+            }
+          }
+        }
+      } catch (e) {
+        console.error("agent path failed, falling back to legacy:", e);
+      }
+    }
 
     const systemPrompt = user_type === "student"
       ? await buildStudentPrompt(supabase, user_id, language)

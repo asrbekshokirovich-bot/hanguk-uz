@@ -11,7 +11,7 @@ type UserType = 'student' | 'staff';
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/hanguk-ai-chat`;
 
 export function useHangukAI(userType: UserType, language: string = 'en') {
-  const { user } = useAuth();
+  const { user, session } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -40,11 +40,18 @@ export function useHangukAI(userType: UserType, language: string = 'en') {
     };
 
     try {
+      const publishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      // Forward the user's session JWT so the edge function can authenticate the
+      // caller (enables the staff agentic tool path, which gates on auth.uid()).
+      // The publishable key rides along as `apikey` for PostgREST. If there's no
+      // session token, fall back to the publishable key as Authorization (legacy).
+      const accessToken = session?.access_token;
       const resp = await fetch(CHAT_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          'apikey': publishableKey,
+          'Authorization': `Bearer ${accessToken || publishableKey}`,
         },
         body: JSON.stringify({
           message: input,
@@ -131,7 +138,7 @@ export function useHangukAI(userType: UserType, language: string = 'en') {
     } finally {
       setIsLoading(false);
     }
-  }, [user, userType, language]);
+  }, [user, session, userType, language]);
 
   const clearMessages = useCallback(() => {
     setMessages([]);
