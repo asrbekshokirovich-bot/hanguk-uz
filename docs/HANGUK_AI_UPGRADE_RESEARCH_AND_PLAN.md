@@ -510,3 +510,148 @@ voice, proactive, omnichannel, intent routing, document AI, memory, model choice
 structured output, privacy/compliance, rollout) — these were rate-limited and will
 add code-level specifics. PII/compliance (Uzbekistan localization, Korea PIPA,
 Google data-use terms) still needs first-party confirmation before sending PII.
+
+> **Update:** the code-level agents listed above have since been run — their
+> concrete findings are consolidated in §13 below.
+
+---
+
+## 13. Code-level implementation appendix (from the deep-dive wave)
+
+Concrete, implementable patterns from the code-level research wave. High
+confidence unless noted; verify version-specific items against live docs.
+
+### 13.1 Native-Gemini tool loop in Deno (`@google/genai`)
+- Use **`npm:@google/genai`** (pin a version), NOT legacy `@google/generative-ai`
+  (pulls Node-only `fs`, breaks in Deno). New SDK auto-round-trips thought signatures.
+- **Manual loop** (preferred over automatic function calling for edge/SSE — you control
+  the flush point, per-call timeouts, auth, iteration caps): each turn, if
+  `response.functionCalls` is non-empty, **push the model's entire
+  `candidates[0].content` back into `contents` verbatim** (preserves the encrypted
+  `thoughtSignature`; reconstructing only the `functionCall` part drops it → 400
+  "number of function response parts…"), execute all calls, append one `user` turn with
+  all `functionResponse` parts, repeat. Cap ~3–10 iterations + no-progress detection.
+- **Streaming:** `generateContentStream`; handle tool turns server-side, stream only the
+  final text turn as SSE; drain until `finishReason` (signature may ride an empty-text part).
+- **Context caching:** `ai.caches.create({ systemInstruction, tools, ttl })` then pass
+  `cachedContent`. Gotcha: with `cachedContent` you must NOT also pass
+  `systemInstruction`/`tools`/`toolConfig` (400) — bake them into the cache.
+- **Structured final answer:** do NOT combine `responseMimeType:application/json` with
+  tool-call history on 2.5 (errors). Use a forced **"final-answer" function call** whose
+  params are your output schema, or two-phase (tools → separate JSON call). For
+  `{answer, citations, query_ran, result_rows}`: stream narrative first, inject bulky
+  rows client-side.
+
+### 13.2 User-scoped Supabase client (RLS)
+```ts
+// per-request inside Deno.serve — user-scoped, RLS enforced:
+const supabaseUser = createClient(URL, ANON_KEY,
+  { global: { headers: { Authorization: req.headers.get("Authorization")! } } });
+// admin client (bypasses RLS) ONLY for role-checked global reads:
+const supabaseAdmin = createClient(URL, SERVICE_ROLE_KEY,
+  { auth: { persistSession: false, autoRefreshToken: false } });
+```
+Keep `verify_jwt = true`; verify with `supabaseUser.auth.getUser(token)` before role
+branches. RLS keys off the **Authorization** header, not `apikey`. Never let a user
+session bleed into the admin client; `service_role` in an RLS policy is a no-op.
+
+### 13.3 Typed RPC query tools (the "metrics layer")
+- Optional filters: **`(p_x IS NULL OR col = p_x)`** (not `COALESCE`, which breaks on
+  NULL cols). Constrain values with Postgres **`enum` param types** (surface as
+  JSON-schema enums → model can't pass invalid values).
+- `{total, rows}` in one scan via `count(*) OVER ()`; return `jsonb`; always
+  `limit least(p_limit, 200)`.
+- `SECURITY INVOKER` (caller RLS applies); `set search_path = ''` + fully-qualify;
+  per-function `set statement_timeout`; `revoke execute … from public, anon`, grant to
+  `authenticated` only.
+- **Few broad enum-constrained tools beat many narrow** (GitHub 40→13 = +2–5pts): ~4
+  read tools — `search_*`, `count_*`, `aggregate_*` (enum group_by/metric), `get_*`.
+- Read-only SQL escape hatch = last resort: dedicated SELECT-only role is the real guard
+  (keyword regex is not a parser; data-modifying CTEs slip past), single-statement check,
+  forced outer LIMIT, statement_timeout (cf. Datadog's Postgres-MCP `COMMIT; DROP…` CVE).
+
+### 13.4 Agent-friendly data model: curated views + signals
+- Base tables in a **private schema** (`app`), RLS on; expose only curated `crm_*`
+  one-big-table-per-entity **views** in `public` **`with (security_invoker = on)`** —
+  default views are SECURITY DEFINER and **bypass RLS**.
+- Pre-compute signals (`is_overdue`, `needs_follow_up`, `days_since_last_contact`,
+  `is_stalled`) so cross-entity questions become one-line filters. `COMMENT ON`
+  everything (grain/units/timezone) and feed comments to the model as its schema.
+- Expensive aggregates → materialized views via **pg_cron + `REFRESH … CONCURRENTLY`**
+  (needs unique index); wrap MV in a `security_invoker` view (RLS isn't enforced on MVs).
+
+### 13.5 Hybrid retrieval (keep PGroonga, add pgvector)
+- Supabase official **`hybrid_search`** RRF function (default **`rrf_k=50`**, inner-product
+  `<#>`). Replace the lexical `tsvector` arm with **PGroonga** for Korean (`tsvector`
+  and `pg_trgm` can't handle Hangul; `pg_bigm` isn't on managed Supabase).
+- pgvector: **HNSW default** (`m=16, ef_construction=64`), `halfvec` for >2000 dims.
+  **Filtered/RLS recall gotcha:** ANN filters post-scan → enable **0.8 iterative scans**
+  (`SET hnsw.iterative_scan='strict_order'`) and/or raise `ef_search`, or partial-index/
+  partition per tenant.
+- **Embeddings:** built-in `gte-small` is **English-only → disqualified**. Use **BGE-M3**
+  (self-host GPU; dense+sparse+ColBERT; best Turkic base — benchmark/fine-tune Uzbek) or
+  **`gemini-embedding-001`** (managed; verify Uzbek). Keep fresh with Supabase
+  **automatic-embeddings** (pgmq+pg_cron+pg_net+edge fn) for retries/batching.
+- **Chunking:** transcripts by speaker-turn windows+timestamps; OCR by sentences; carry
+  `doc_id/chunk_id/timestamp/language`; small-to-big retrieval.
+- **Repo note:** dims/indexes are inconsistent today (`communication_embeddings` 768-dim
+  text-embedding-004 + HNSW vs `embedding_chunks` 1024-dim + IVFFlat). Consolidate on one
+  model/dim/index; `text-embedding-004` is deprecated → migrate.
+
+### 13.6 Schema exposure, routing, self-correction, time
+- **Schema to model:** M-Schema (name:type, comment, example values, FK block);
+  `COMMENT ON` in migrations; vector schema-linking biased to **high recall**; dynamic
+  few-shot from a verified question→SQL store.
+- **Routing cascade:** regex guard (`how many|count|avg…` → SQL, never vector) →
+  embedding/kNN classifier (~100ms) → LLM tool-choice fallback when uncertain →
+  explicit **clarify/abstain** route (reasoning tuning *degrades* abstention ~24%).
+- **Self-correction (external feedback only — intrinsic hurts):** error-typed SQL repair
+  (cap 2–3) → empty-result "relax-then-honest" → grounding check (claims must appear in
+  rows) → SQL→NL back-translation vs question → N=3 execution-agreement vote (gated).
+- **Time:** inject now + day-of-week + IANA tz each turn (+ `get_current_time` tool);
+  model emits `relative_period` enum + optional ISO `{from,to}`; resolve with PG16 3-arg
+  `date_trunc(field, now(), 'Asia/Tashkent')` + half-open `[from,to)`; pin week-start &
+  "overdue" (`due < now AND not completed`); eval with a frozen clock.
+
+### 13.7 Framework / model / memory / cost / docs / channels / voice / proactive / privacy
+- **Framework (Deno check):** **Genkit does NOT run on Supabase Edge** (AJV `eval()`
+  blocked). **Vercel AI SDK 6** (`@ai-sdk/google`, `ToolLoopAgent`/`stopWhen`) and
+  **Mastra** run in Deno. Verdict: **hand-rolled native loop** simplest for a small team;
+  Vercel AI SDK is the viable framework (pairs with `useChat`/assistant-ui frontend).
+- **Model:** keep **Gemini 2.5 Flash** primary + **escalation tier** (Claude Sonnet 4.x
+  for Uzbek/Turkic understanding & multi-turn tools, or Gemini 2.5 Pro). **Post-edit
+  outbound Uzbek.** Plan a refresh (2.5 Flash deprecation flagged mid-2026).
+- **Memory:** replace flat last-10 with active-entity state + rolling summary; `memory`
+  table + RLS (`auth.uid()`) + pg_cron TTL + first-class erasure (also drop embeddings,
+  GDPR Art.17). LangGraph.js runs in Deno but **LangMem is Python-only** → summary-in-
+  Postgres beats a framework here.
+- **Cost/limits:** cache static prefix; `thinkingBudget:0` for routing; **Batch API −50%**
+  for bulk work; set an **AI Studio spend cap**; rate-limit numbers conflict → verify
+  live; **use Vertex for production** (99.5% SLA, no-training).
+- **Document AI:** separate OCR from reasoning — deterministic OCR (Naver Clova Korean-
+  best; Gemini multimodal can *hallucinate* on poor scans) for source-of-truth numbers,
+  LLM only structures; validate fields + flag low-confidence. (`document_extractions`
+  shape is right.)
+- **Omnichannel:** add canonical `persons` entity (conversion/merge = pointer updates),
+  **libphonenumber/E.164**, key webhooks on stable IDs (Telegram `user.id`, IGSID,
+  WhatsApp BSUID), demote auto phone-matches to `inferred`, per-message language.
+- **Voice:** **ElevenLabs Scribe** ≈ only strong **Uzbek STT** (~3.1% WER); ElevenLabs
+  **TTS has no Uzbek** → text-only/Russian-audio fallback. Cascade STT→agent→TTS.
+- **Proactive:** pg_cron → pg_net (Vault secrets) → edge fn running **deterministic SQL
+  signals** → LLM only summarizes → `notifications` (Realtime) + Telegram/email; dedup +
+  ~10/day cap + digest batching. Lead scoring rules-first.
+- **Fine-tuning:** last resort. 2.5 Flash SFT is GA **on Vertex only** (LoRA, ~100+ JSONL)
+  but **bakes in schema** + **cuts context (~32k)** → prefer prompting+RAG+tools; consider
+  only for stable outbound-Uzbek generation.
+- **Privacy:** **not the free AI Studio key** for PII (may train); paid Gemini/**Vertex +
+  DPA + ZDR + region pinning**; redact/tokenize PII (Presidio/Cloud DLP), pass IDs not raw
+  docs; RLS + column encryption + audit + consent/retention; **legal sign-off** on UZ
+  localization (passport photos≈biometric), Korea PIPA transfer, minor consent.
+
+### 13.8 Rollout (small-team playbook)
+Golden eval set from real queries **first** → **shadow** (compare correctness/cost/
+latency, don't show users — agentic cost/latency multiplier shows here) → **flag-gated
+canary** (1→5→25→100%) → **paired A/B** → **guardrails** (schema validation, circuit
+breaker, **fallback to the existing RAG**, kill switch, step/token caps) → **data
+flywheel** (👎/fallback → human-annotated golden case). Eval the **tool-call trajectory**,
+not just the final answer.
