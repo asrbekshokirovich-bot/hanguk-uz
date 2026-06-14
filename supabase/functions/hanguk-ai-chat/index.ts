@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { embedContent001 } from "../_shared/gemini.ts";
 
 // Hanguk AI — retrieval-augmented assistant.
 // Answers questions about a student from their REAL data: call summaries
@@ -424,8 +425,76 @@ const AGENT_TOOLS = [
   { type: "function", function: { name: "list_leads", description: "List/filter the leads pipeline.", parameters: { type: "object", properties: { query: { type: "string", description: "name or phone substring" }, status: { type: "string", description: "new | contacted | qualified | converted | lost" }, source: { type: "string", description: "manual | telegram | instagram | call | ai_detected" }, exam_type: { type: "string", description: "TOPIK | IELTS | none" }, city: { type: "string" }, interest_level: { type: "string", description: "low | medium | high" }, from_exam_date: { type: "string", description: "ISO date" }, to_exam_date: { type: "string", description: "ISO date" }, limit: { type: "integer" }, offset: { type: "integer" } } } } },
   { type: "function", function: { name: "list_students", description: "List/search students (non-staff users) by name/phone/city.", parameters: { type: "object", properties: { query: { type: "string" }, city: { type: "string" }, limit: { type: "integer" }, offset: { type: "integer" } } } } },
   { type: "function", function: { name: "search_students", description: "Fuzzy, ranked student lookup by name or pasted phone number. Use to resolve a person mentioned by name to their student_id.", parameters: { type: "object", properties: { query: { type: "string" }, limit: { type: "integer" } }, required: ["query"] } } },
-  { type: "function", function: { name: "search_communications", description: "Full-text search across Telegram chats, call summaries and documents. Use for 'what did we discuss about X' / 'who asked about X'.", parameters: { type: "object", properties: { query: { type: "string" }, limit: { type: "integer" } }, required: ["query"] } } },
+  { type: "function", function: { name: "search_communications", description: "Hybrid (semantic + keyword) search across Telegram chats, call summaries/transcripts and documents. Use for 'what did we discuss about X' / 'who asked about X' / topical questions. Returns the most relevant snippets with the student they belong to.", parameters: { type: "object", properties: { query: { type: "string" }, limit: { type: "integer" }, student_id: { type: "string", description: "optional: restrict to one student's user_id" } }, required: ["query"] } } },
 ];
+
+// Phase 2: hybrid retrieval for the content tool. Embed the query with
+// gemini-embedding-001, fuse PGroonga (lexical) + pgvector (dense) via the
+// hybrid_search_content RPC (RRF), then optionally rerank. Degrades gracefully:
+// if embedding/hybrid yields nothing (e.g. content_embeddings not back-filled
+// yet) or errors, fall back to the original lexical search over the source
+// tables so there is never a regression vs. Phase 1.
+async function searchCommunicationsHybrid(
+  client: any,
+  query: string,
+  limit: number,
+  studentId?: string | null,
+): Promise<any[]> {
+  const q = sanitizeQuery(query);
+  if (q.length < 3) return [];
+  try {
+    const embedding = await embedContent001(q, "RETRIEVAL_QUERY", 1536);
+    const { data, error } = await client.rpc("hybrid_search_content", {
+      query_text: q,
+      query_embedding: embedding,
+      match_count: limit,
+      filter_student_id: studentId ?? null,
+    });
+    if (!error && Array.isArray(data) && data.length) {
+      const ranked = await maybeRerank(q, data);
+      return ranked.map((r: any) => ({
+        kind: r.source_type,
+        student_id: r.student_id,
+        lead_id: r.lead_id,
+        when_at: r.created_at,
+        snippet: String(r.content ?? "").slice(0, 300),
+      }));
+    }
+  } catch (e) {
+    console.error("hybrid search failed, falling back to lexical:", e instanceof Error ? e.message : e);
+  }
+  // Lexical fallback (works even before the embedding backfill completes).
+  const { data } = await client.rpc("search_communications_text", { p_query: q, p_limit: limit, p_student: studentId ?? null });
+  return data ?? [];
+}
+
+// Optional cross-encoder reranker. Enabled by setting RERANKER_URL to a
+// Text-Embeddings-Inference-style /rerank endpoint (e.g. bge-reranker-v2-m3):
+//   POST { query, texts: [...] } -> [{ index, score }, ...]
+// If unset or it errors, the RRF order is kept unchanged.
+async function maybeRerank(query: string, rows: any[]): Promise<any[]> {
+  const url = Deno.env.get("RERANKER_URL");
+  if (!url || rows.length < 2) return rows;
+  try {
+    const texts = rows.map((r) => String(r.content ?? "").slice(0, 1200));
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query, texts }),
+    });
+    if (!res.ok) return rows;
+    const scored = await res.json();
+    if (!Array.isArray(scored)) return rows;
+    const order = scored
+      .filter((s: any) => Number.isInteger(s?.index) && s.index < rows.length)
+      .sort((a: any, b: any) => (b.score ?? 0) - (a.score ?? 0))
+      .map((s: any) => rows[s.index]);
+    return order.length ? order : rows;
+  } catch (e) {
+    console.error("reranker failed, keeping RRF order:", e instanceof Error ? e.message : e);
+    return rows;
+  }
+}
 
 async function callAgentTool(client: any, name: string, rawArgs: string | undefined): Promise<any> {
   let a: any = {};
@@ -442,7 +511,7 @@ async function callAgentTool(client: any, name: string, rawArgs: string | undefi
     case "list_leads": return rpc("ai_list_leads", { p_query: a.query ?? null, p_status: a.status ?? null, p_source: a.source ?? null, p_exam_type: a.exam_type ?? null, p_city: a.city ?? null, p_interest_level: a.interest_level ?? null, p_from_exam_date: a.from_exam_date ?? null, p_to_exam_date: a.to_exam_date ?? null, p_limit: a.limit ?? 50, p_offset: a.offset ?? 0 });
     case "list_students": return rpc("ai_list_students", { p_query: a.query ?? null, p_city: a.city ?? null, p_limit: a.limit ?? 50, p_offset: a.offset ?? 0 });
     case "search_students": return rpc("search_students", { p_query: a.query ?? "", p_limit: a.limit ?? 6 });
-    case "search_communications": return rpc("search_communications_text", { p_query: a.query ?? "", p_limit: a.limit ?? 12 });
+    case "search_communications": return searchCommunicationsHybrid(client, a.query ?? "", a.limit ?? 12, a.student_id ?? null);
     default: return { error: `unknown tool: ${name}` };
   }
 }
