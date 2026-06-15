@@ -1,5 +1,4 @@
 // AUTO-GENERATED — do not edit by hand. base64 of diploma.docx in this folder.
-// To change the layout, edit diploma.docx and regenerate this file.
 export const DIPLOMA_TEMPLATE_BASE64 =
   "UEsDBBQAAAAIAAAAIQDJK+safQEAACoHAAATAAAAW0NvbnRlbnRfVHlwZXNdLnhtbLWVy07DMBBF90j8Q+RtlbhlgRBq2gWPJVSifIBrT9qI+CF70sffM2nS"
   "CKHSAG02kZyZe+/xRJqMp1tdRGvwIbcmZaNkyCIw0qrcLFP2Pn+O71gUUBglCmsgZTsIbDq5vhrPdw5CRGoTUrZCdPecB7kCLUJiHRiqZNZrgXT0S+6E/BBL"
