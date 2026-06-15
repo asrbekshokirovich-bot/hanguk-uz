@@ -1,7 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import JSZip from "https://esm.sh/jszip@3.10.1";
-import { DIPLOMA_TEMPLATE_BASE64 } from "./templates/diploma-template.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -99,118 +98,70 @@ CAPITALISATION (match the sample exactly):
 - In dates the month is in CAPITALS (e.g. JANUARY 10.2003).
 - The only lowercase value is "signed" (Head of Civil Registry office).
 - Keep the bold labels in normal sentence case exactly as written above.`,
+
+  diploma: `=== REQUIRED LAYOUT (Professional / PT diploma + Supplement) ===
+This is an Uzbek "Primary Professional Education" (kasb-hunar / PT) diploma,
+usually followed by its SUPPLEMENT (ilova). Translate BOTH the diploma page AND
+the FULL supplement, in EXACTLY the block order below. Read EVERY page — never
+stop after page 1. Keep every English label verbatim (no trailing colon in
+labels — the renderer adds ": " automatically).
+
+--- PART A: THE DIPLOMA (front page) ---
+1.  title     text="DIPLOMA OF PRIMARY PROFESSIONAL EDUCATION OF THE REPUBLIC OF UZBEKISTAN"
+2.  field label="PT №"                          value=<diploma number, e.g. 0213785>
+3.  field label="Educational institution"       value=<vocational school name in English>
+4.  paragraph text="In accordance with the decision of the State Attestation Commission from <GAC decision date, e.g. June 28, 2024>"
+5.  field label="Awarded to"                     value=<GRADUATE FULL NAME from passport, UPPERCASE>
+6.  field label="Is completed (in the specialty)" value=<specialty>
+7.  field label="Qualification"                  value=<awarded qualifications, comma-separated>
+8.  field label="Chairman of the State Attestation Commission" value=<chairman name>
+9.  field label="Director"                        value=<director name>
+10. field label="Registration number"            value=<registration number>
+11. field label="Date and place"                 value="<issue date, e.g. July 05, 2024>, <place, e.g. Tashkent>"
+12. spacer
+
+--- PART B: THE SUPPLEMENT (ilova) ---
+13. title     text="DIPLOMA SUPPLEMENT"
+14. paragraph text="(without diploma the attachment is invalid)"
+15. heading   text="1. INFORMATION ABOUT THE DIPLOMA HOLDER"
+16. field label="1.1. Surname"                    value=<surname>
+17. field label="1.2. Name, Father's name"        value=<given name(s) / patronymic>
+18. field label="1.3. Date of birth"              value=<DD.MM.YYYY>
+19. field label="1.4. Certificate of previous education" value=<years, school, document No.>
+20. heading   text="2. QUALIFICATION INFORMATION"
+21. field label="2.1. Name of the speciality/profession" value=<specialty>
+22. field label="Decision of the State Attestation Commission" value=<decision text, e.g. Decision № 4 dated June 27, 2025>
+23. field label="2.2. Field of study"             value=<field of study>
+24. field label="2.3. Qualification"              value=<qualification>
+25. field label="2.4. The name, organizational-legal form and type of the educational institution awarding the diploma" value=<institution>
+26. field label="2.5. Language(s) of education (examination)" value=<language, e.g. Uzbek>
+27. heading   text="3. INFORMATION ON THE LEVEL OF EDUCATION"
+28. field label="3.1. Level of education"         value=<e.g. Primary professional education>
+29. field label="3.2. Length of education"        value=<e.g. 2 Years>
+30. field label="3.3. Type of education"          value=<e.g. Day Time>
+31. field label="3.4. Programme / competencies"   value=<section 3.4 description>
+32. paragraph text="3.5. Programme details and grades obtained:"
+33. table  header=["No.","Name of the course (module)","Total hours in the curriculum","Rating score, credit, mark"]
+           rows=<ONE ROW PER SUBJECT — include EVERY subject in order; mark like "5 (excellent)">
+34. paragraph text="The state attestations"
+35. table  header=["No.","Name of the course (module)","Total hours in the curriculum","Rating score, credit, mark"]
+           rows=<ONE ROW PER state attestation / exam>
+36. field label="4. Additional information"       value=<text, or "None">
+37. spacer
+38. heading   text="SIGNATURE AND SEAL"
+39. field label="Director"                         value=<director full name incl. patronymic>
+40. field label="Deputy Director"                  value=<deputy director full name incl. patronymic>
+41. field label="Registration Number"             value=<registration number>
+42. field label="Date of issue"                   value=<issue date>
+43. annotation text="Round seal"
+
+RULES:
+- Marks formatted as "<digit> (excellent|good|satisfactory)" (5=excellent, 4=good, 3=satisfactory). Hours are numbers.
+- Keep ALL subjects and ALL state attestations — never summarise or omit a row.
+- Graduate name in UPPERCASE, spelled EXACTLY as in the international passport.
+- School / place names in their English spelling, WITHOUT Uzbek apostrophes.
+- If a value is genuinely absent, skip that field (or use "None" for section 4).`,
 };
-
-// ---------------------------------------------------------------------------
-// Fixed-LAYOUT template fill. Some document types must come out in an EXACT
-// certified Word layout (tables, borders, fonts) that the block renderer cannot
-// reproduce. For those we keep a staff-approved .docx as a bundled template with
-// {{TOKEN}} placeholders and only swap text inside it, so the layout stays
-// byte-identical and only the student's data changes.
-// ---------------------------------------------------------------------------
-interface TemplateConfig { base64: string; fieldSchema: string }
-const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
-  // PT — Primary/Professional ("kasbiy ta'lim") diploma + supplement (ilova).
-  diploma: {
-    base64: DIPLOMA_TEMPLATE_BASE64,
-    fieldSchema: `"fields": {
-  "STUDENT_NAME": "graduate full name in UPPERCASE, exactly as in the international passport",
-  "SURNAME": "graduate surname only",
-  "GIVEN_NAMES": "graduate given name(s)/patronymic only",
-  "DIPLOMA_NUMBER": "digits after 'PT №' (e.g. 0213785)",
-  "SCHOOL": "issuing vocational school in English (e.g. Angren city vocational school No.2)",
-  "SPECIALTY": "specialty/kasb-hunar (e.g. Diagnostics and repair of motor vehicles)",
-  "QUALIFICATIONS": "awarded qualifications, comma-separated",
-  "FIELD_OF_STUDY": "field of study/yo'nalish (section 2.2)",
-  "DOB": "date of birth DD.MM.YYYY",
-  "PREV_EDU": "previous education line (years, school, document No.)",
-  "GAC_DATE": "State Attestation Commission decision date, long form (e.g. June 28, 2024)",
-  "GAC_DECISION": "GAC decision text (e.g. Decision No.1 dated June 28,2024)",
-  "LEVEL": "education level (usually 'Primary professional education')",
-  "LENGTH": "length of education (e.g. 2 Years)",
-  "EDU_TYPE": "type of education (e.g. Day Time)",
-  "DESC_34": "section 3.4 programme/competencies description",
-  "CHAIRMAN": "GAC chairman name",
-  "DIRECTOR": "director short name (e.g. Muminov Farkhod)",
-  "DIRECTOR_FULL": "director full name incl. patronymic (signature block)",
-  "DEPUTY_FULL": "deputy director full name incl. patronymic (signature block)",
-  "REG_NUMBER": "registration number (e.g. 138)",
-  "ISSUE_DATE": "date of issue, long form (e.g. July 05, 2024)",
-  "ISSUE_PLACE": "place of issue (e.g. Tashkent)",
-  "LANG": "language of instruction (e.g. Uzbek)",
-  "ADDITIONAL_INFO": "section 4 additional information, or 'None'"
-},
-"subjects": [{ "name": "course/module name in English", "hours": "total hours (number)", "mark": "<digit> (excellent|good|satisfactory)" }],
-"attestations": [{ "name": "state attestation/exam name in English", "hours": "hours (number)", "mark": "<digit> (excellent|good|satisfactory)" }]`,
-  },
-};
-
-function decodeBase64ToBytes(b64: string): Uint8Array {
-  const bin = atob(b64);
-  const bytes = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-  return bytes;
-}
-
-// Duplicate the single template <w:tr> containing {{MARKER}} once per data row.
-function expandTemplateRows(xml: string, marker: string, rows: string[][], keys: string[]): string {
-  const token = `{{${marker}}}`;
-  return xml.replace(/<w:tr[ >][\s\S]*?<\/w:tr>/g, (rowXml) => {
-    if (!rowXml.includes(token)) return rowXml;
-    return rows.map((vals) => {
-      let r = rowXml;
-      keys.forEach((k, i) => { r = r.split(`{{${k}}}`).join(escXml(vals[i] ?? "")); });
-      return r;
-    }).join("");
-  });
-}
-
-interface TemplateData {
-  fields: Record<string, string>;
-  subjects: Array<{ name?: string; hours?: string | number; mark?: string }>;
-  attestations: Array<{ name?: string; hours?: string | number; mark?: string }>;
-}
-
-async function renderTemplateDocx(cfg: TemplateConfig, data: TemplateData): Promise<Uint8Array> {
-  const zip = await JSZip.loadAsync(decodeBase64ToBytes(cfg.base64));
-  const docXmlFile = zip.file("word/document.xml");
-  if (!docXmlFile) throw new Error("Template is missing word/document.xml");
-  let xml = await docXmlFile.async("string");
-  const subjRows = (data.subjects ?? []).map((s, i) => [String(i + 1), s.name ?? "", String(s.hours ?? ""), s.mark ?? ""]);
-  const attRows = (data.attestations ?? []).map((a, i) => [String(i + 1), a.name ?? "", String(a.hours ?? ""), a.mark ?? ""]);
-  xml = expandTemplateRows(xml, "S_NO", subjRows, ["S_NO", "S_NAME", "S_HOURS", "S_MARK"]);
-  xml = expandTemplateRows(xml, "A_NO", attRows, ["A_NO", "A_NAME", "A_HOURS", "A_MARK"]);
-  for (const [k, v] of Object.entries(data.fields ?? {})) xml = xml.split(`{{${k}}}`).join(escXml(String(v ?? "")));
-  xml = xml.replace(/\{\{[A-Z_0-9]+\}\}/g, "");
-  zip.file("word/document.xml", xml);
-  return (await zip.generateAsync({ type: "uint8array", mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" })) as Uint8Array;
-}
-
-function parseTemplateData(raw: string): TemplateData {
-  let text = raw.trim().replace(/^```(?:json)?/i, "").replace(/```$/i, "").trim();
-  let parsed: any;
-  try { parsed = JSON.parse(text); }
-  catch {
-    const s = text.indexOf("{"), e = text.lastIndexOf("}");
-    if (s === -1 || e === -1) throw new Error("AI did not return valid JSON");
-    parsed = JSON.parse(text.slice(s, e + 1));
-  }
-  return {
-    fields: parsed.fields && typeof parsed.fields === "object" ? parsed.fields : {},
-    subjects: Array.isArray(parsed.subjects) ? parsed.subjects : [],
-    attestations: Array.isArray(parsed.attestations) ? parsed.attestations : [],
-  };
-}
-
-function templateToPlainText(data: TemplateData): string {
-  const parts: string[] = [];
-  for (const [k, v] of Object.entries(data.fields ?? {})) if (v) parts.push(`${k}: ${v}`);
-  parts.push("", "Subjects:");
-  (data.subjects ?? []).forEach((s, i) => parts.push(`${i + 1}. ${s.name ?? ""} — ${s.hours ?? ""} — ${s.mark ?? ""}`));
-  parts.push("", "State attestations:");
-  (data.attestations ?? []).forEach((a, i) => parts.push(`${i + 1}. ${a.name ?? ""} — ${a.hours ?? ""} — ${a.mark ?? ""}`));
-  return parts.join("\n");
-}
 
 // ---------- Types ----------
 type Block =
@@ -462,22 +413,6 @@ serve(async (req) => {
 
     // ---- Fast path: re-render DOCX ----
     if (regenerate?.structured) {
-      // Fixed-layout (template) types re-fill the bundled template from stored fields.
-      const regenCfg = TEMPLATE_CONFIGS[docType.code];
-      if (regenCfg && regenerate.structured.template) {
-        const data: TemplateData = {
-          fields: regenerate.structured.fields ?? {},
-          subjects: regenerate.structured.subjects ?? [],
-          attestations: regenerate.structured.attestations ?? [],
-        };
-        const docxBytes = await renderTemplateDocx(regenCfg, data);
-        const docxPath = `output/${Date.now()}_${docType.code}_translation.docx`;
-        const { error: upErr } = await supabase.storage.from(OUTPUT_BUCKET)
-          .upload(docxPath, docxBytes, { contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", upsert: true });
-        if (upErr) return json({ error: `DOCX upload failed: ${upErr.message}` }, 500);
-        const structured = { template: docType.code, fields: data.fields, subjects: data.subjects, attestations: data.attestations, verifiedNames: regenerate.structured.verifiedNames ?? {} };
-        return json({ structured, plainText: templateToPlainText(data), docxPath, documentType: { code: docType.code, name: docType.name_uz, nameEn: docType.name_en } });
-      }
       const structured: StructuredTranslation = {
         detectedSupportingDocs: regenerate.structured.detectedSupportingDocs ?? [],
         verifiedNames: regenerate.structured.verifiedNames ?? {},
@@ -517,63 +452,6 @@ serve(async (req) => {
       } catch (e) {
         console.warn("Skipping supporting file:", sup.path, (e as Error).message);
       }
-    }
-
-    // ---- Fixed-layout template path (PT professional-education diploma) ----
-    // Produces the EXACT certified Word layout of the approved sample by filling
-    // a bundled .docx template, instead of the generic block renderer.
-    const templateCfg = TEMPLATE_CONFIGS[docType.code];
-    if (templateCfg) {
-      const tplSystemPrompt = `You are an expert sworn translator. The files are an Uzbek "Primary Professional Education" diploma (PT diploma) and its supplement/appendix (ilova); later files may be identity documents for name spelling.
-
-Read EVERY page (the diploma AND the full supplement). Extract every value, translate to English, and return JSON to fill a fixed certified template. Include ALL subjects/modules (with hours and marks) and ALL state attestations — never summarise or skip rows.
-
-=== NAME ACCURACY ===
-- The graduate's name MUST match the international passport EXACTLY. UPPERCASE for STUDENT_NAME.
-${providedNames ? `- STAFF-VERIFIED NAMES (use exactly): ${JSON.stringify(providedNames)}` : ""}
-
-=== RULES ===
-- Marks formatted as "<digit> (excellent|good|satisfactory)" (5=excellent, 4=good, 3=satisfactory).
-- Hours are numbers. Keep subjects in original order. Missing value -> "".
-- Cyrillic->Latin transliteration for names/places.
-
-=== OUTPUT (JSON only, no prose) ===
-{
-${templateCfg.fieldSchema},
-"verifiedNames": { "student": "..." },
-"unclearItems": ["..."]
-}`;
-
-      const tplResp = await fetch(`${GEMINI_AI_URL}?key=${geminiApiKey}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          systemInstruction: { parts: [{ text: tplSystemPrompt }] },
-          contents: [{ role: "user", parts: [...mediaParts, { text: "Extract and translate the PT diploma and its full supplement into the JSON object. Include ALL subjects and state attestations." }] }],
-          generationConfig: { temperature: 0.1, maxOutputTokens: 32000, responseMimeType: "application/json" },
-        }),
-      });
-      if (!tplResp.ok) {
-        const errorText = await tplResp.text();
-        console.error("AI error (template):", tplResp.status, errorText);
-        if (tplResp.status === 429) return json({ error: "Tizim band. Keyinroq urinib ko'ring." }, 429);
-        if (tplResp.status === 402) return json({ error: "AI xizmati uchun kredit tugagan." }, 402);
-        return json({ error: `AI xizmatida xatolik: ${tplResp.status}` }, 500);
-      }
-      const tplData = await tplResp.json();
-      const tplJson = (tplData.candidates?.[0]?.content?.parts ?? []).map((p: { text?: string }) => p.text ?? "").join("");
-      if (!tplJson) return json({ error: "Tarjima olinmadi" }, 500);
-
-      const data = parseTemplateData(tplJson);
-      if (providedNames?.student) data.fields.STUDENT_NAME = providedNames.student;
-      const docxBytes = await renderTemplateDocx(templateCfg, data);
-      const docxPath = `output/${Date.now()}_${docType.code}_translation.docx`;
-      const { error: upErr } = await supabase.storage.from(OUTPUT_BUCKET)
-        .upload(docxPath, docxBytes, { contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", upsert: true });
-      if (upErr) { console.error("DOCX upload failed:", upErr); return json({ error: `DOCX upload failed: ${upErr.message}` }, 500); }
-
-      const structured = { template: docType.code, fields: data.fields, subjects: data.subjects, attestations: data.attestations, verifiedNames: data.fields.STUDENT_NAME ? { student: data.fields.STUDENT_NAME } : {} };
-      return json({ structured, plainText: templateToPlainText(data), docxPath, documentType: { code: docType.code, name: docType.name_uz, nameEn: docType.name_en } });
     }
 
     // ---- Few-shot examples ----
