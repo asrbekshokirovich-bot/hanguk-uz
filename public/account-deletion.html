@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Delete your account — Hanguk Student App</title>
+  <meta name="description" content="Request deletion of your Hanguk Student App account and associated data." />
+  <style>
+    :root { color-scheme: light; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; max-width: 720px; margin: 0 auto; padding: 32px 20px; line-height: 1.6; color: #1b2330; }
+    h1 { font-size: 1.7rem; margin-bottom: .25rem; }
+    h2 { font-size: 1.15rem; margin-top: 2rem; }
+    .sub { color: #5a6678; margin-top: 0; }
+    code { background: #f2f4f7; padding: 1px 6px; border-radius: 4px; }
+    label { display: block; font-weight: 600; margin: 14px 0 6px; }
+    input, textarea, button { font: inherit; width: 100%; box-sizing: border-box; }
+    input, textarea { padding: 10px 12px; border: 1px solid #c9d2de; border-radius: 8px; }
+    textarea { min-height: 90px; resize: vertical; }
+    .req { color: #c0392b; }
+    button { margin-top: 18px; padding: 12px 16px; background: #1257d1; color: #fff; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; }
+    button:disabled { opacity: .6; cursor: default; }
+    .card { background: #f7f9fc; border: 1px solid #e2e6ec; border-radius: 10px; padding: 16px 18px; }
+    .ok { background: #e7f7ec; border: 1px solid #b6e3c4; color: #1e7a3d; padding: 14px 16px; border-radius: 10px; }
+    .err { background: #fdecec; border: 1px solid #f3c2c2; color: #b3261e; padding: 14px 16px; border-radius: 10px; }
+    table { border-collapse: collapse; width: 100%; margin-top: .5rem; }
+    th, td { border: 1px solid #e2e6ec; padding: 8px 10px; text-align: left; vertical-align: top; }
+    th { background: #f7f9fc; }
+    a { color: #1257d1; }
+    footer { margin-top: 2.5rem; color: #6b7686; font-size: .9rem; }
+    .hint { color: #6b7686; font-size: .9rem; margin-top: 4px; }
+  </style>
+</head>
+<body>
+  <h1>Delete your account</h1>
+  <p class="sub"><strong>Hanguk Student App</strong> &middot; operated by Hanguk (<code>hanguk.uz</code>)</p>
+
+  <p>
+    Submit the form below to request deletion of your <strong>Hanguk Student App</strong>
+    account and associated data. We verify and action requests within
+    <strong>30 days</strong> and email you when it is done.
+  </p>
+
+  <h2>Request account deletion</h2>
+  <form id="form">
+    <label for="contact">Email or phone on your account <span class="req">*</span></label>
+    <input id="contact" name="contact" type="text" required
+           placeholder="e.g. +998 90 123 45 67 or you@example.com" />
+    <p class="hint">Use the email or phone number you sign in with, so we can verify the request.</p>
+
+    <label for="full_name">Full name</label>
+    <input id="full_name" name="full_name" type="text" placeholder="Optional" />
+
+    <label for="reason">Reason (optional)</label>
+    <textarea id="reason" name="reason" placeholder="Optional — helps us improve"></textarea>
+
+    <button id="submit" type="submit">Send deletion request</button>
+  </form>
+
+  <div id="result" style="margin-top:16px"></div>
+
+  <h2>Prefer to do it yourself, in the app?</h2>
+  <div class="card">
+    Open the app → <strong>Account</strong> screen → <strong>Delete account</strong> →
+    type <code>DELETE</code> to confirm and re-authenticate. Or email
+    <a href="mailto:privacy@hanguk.uz">privacy@hanguk.uz</a>.
+  </div>
+
+  <h2>What data is deleted, and what is kept</h2>
+  <table>
+    <thead><tr><th>Data</th><th>What happens</th><th>Retention</th></tr></thead>
+    <tbody>
+      <tr><td>Profile (name, phone, account)</td><td>Permanently deleted</td><td>Immediately</td></tr>
+      <tr><td>Applications, study plans, personal-statement drafts</td><td>Permanently deleted</td><td>Immediately</td></tr>
+      <tr><td>Mock interview sessions, transcripts &amp; voice recordings</td><td>Permanently deleted</td><td>Immediately</td></tr>
+      <tr><td>Chat messages</td><td>Permanently deleted</td><td>Immediately</td></tr>
+      <tr><td>Uploaded documents in storage</td><td>Deleted</td><td>Within 30 days</td></tr>
+      <tr><td>Encrypted backups</td><td>Age out automatically</td><td>Within 90 days</td></tr>
+    </tbody>
+  </table>
+  <p>To remove only specific items (e.g. one document) without closing your account, delete them in the app or email <a href="mailto:privacy@hanguk.uz">privacy@hanguk.uz</a>.</p>
+
+  <footer>Questions? Contact <a href="mailto:privacy@hanguk.uz">privacy@hanguk.uz</a>.</footer>
+
+  <script>
+    // Public anon key — safe to expose; the row-level policy only permits
+    // INSERT into account_deletion_requests (no read access).
+    const SUPABASE_URL = "https://lysjdtyanhdfphqyijsr.supabase.co";
+    const ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx5c2pkdHlhbmhkZnBocXlpanNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NTUxMDYsImV4cCI6MjA4ODQzMTEwNn0.p-WlK-r4xqRk63N6zc_8JCIV53FVmjwAcqK7Lx25GJs";
+
+    const form = document.getElementById("form");
+    const result = document.getElementById("result");
+    const btn = document.getElementById("submit");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      result.innerHTML = "";
+      btn.disabled = true;
+      btn.textContent = "Sending…";
+
+      const payload = {
+        contact: document.getElementById("contact").value.trim(),
+        full_name: document.getElementById("full_name").value.trim() || null,
+        reason: document.getElementById("reason").value.trim() || null,
+      };
+
+      try {
+        const res = await fetch(SUPABASE_URL + "/rest/v1/account_deletion_requests", {
+          method: "POST",
+          headers: {
+            "apikey": ANON_KEY,
+            "Authorization": "Bearer " + ANON_KEY,
+            "Content-Type": "application/json",
+            "Prefer": "return=minimal",
+          },
+          body: JSON.stringify(payload),
+        });
+        if (res.ok) {
+          form.style.display = "none";
+          result.innerHTML = '<div class="ok"><strong>Request received.</strong> ' +
+            'We will verify it and delete your account within 30 days, then email you. ' +
+            'You can also reach us at privacy@hanguk.uz.</div>';
+        } else {
+          throw new Error("HTTP " + res.status);
+        }
+      } catch (err) {
+        result.innerHTML = '<div class="err">Sorry, we could not submit the request (' +
+          err.message + '). Please email <a href="mailto:privacy@hanguk.uz">privacy@hanguk.uz</a> ' +
+          'from the email or phone on your account.</div>';
+        btn.disabled = false;
+        btn.textContent = "Send deletion request";
+      }
+    });
+  </script>
+</body>
+</html>
