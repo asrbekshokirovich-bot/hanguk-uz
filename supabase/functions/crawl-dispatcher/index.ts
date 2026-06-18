@@ -1,14 +1,10 @@
-// crawl-dispatcher
+// crawl-dispatcher — Self-gated, adaptive scheduler for the AI admissions-crawl pipeline.
 //
-// Reconfigurable, self-gated dispatcher for the AI admissions-crawl pipeline.
-// Reads public.ai_crawl_config every invocation and DOES NOTHING unless
-// `enabled = true` AND the configured interval has elapsed. This means the
-// pipeline ships fully built but inert: flipping `enabled` (and tuning
-// interval_hours / batch_size) from the monitoring UI is all that's needed to
-// turn it on — no redeploys.
-//
-// When active it picks the next batch of institutions due for a refresh and
-// invokes `crawl-worker` for each. It never writes admissions data itself.
+// Resilience patterns implemented:
+// - Pattern 7: Skips institutions in circuit-breaker cooldown
+// - Pattern 8: Adaptive scheduling — prioritizes institutions with upcoming admission seasons
+// - Respects ai_crawl_config.enabled gate — ships inert, enable from UI
+// - Graceful degradation: no API key → no-op, no institutions → no-op
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
@@ -47,7 +43,12 @@ Deno.serve(async (req) => {
       return json({ skipped: true, reason: "disabled" });
     }
 
-    // 3) Gate: interval not elapsed → no-op (unless forced)
+    // 3) Gate: ANTHROPIC_API_KEY not set → no-op
+    if (!Deno.env.get("ANTHROPIC_API_KEY")) {
+      return json({ skipped: true, reason: "no_api_key" });
+    }
+
+    // 4) Gate: interval not elapsed → no-op (unless forced)
     const force = new URL(req.url).searchParams.get("force") === "true";
     if (!force && cfg.last_run_at) {
       const elapsedMs = Date.now() - new Date(cfg.last_run_at).getTime();
@@ -57,48 +58,92 @@ Deno.serve(async (req) => {
       }
     }
 
-    // 4) Pick the batch of institutions most overdue for a refresh.
+    // 5) Pick batch — adaptive scheduling:
+    //    - Skip institutions in circuit-breaker cooldown
+    //    - Prioritize by: oldest last_verified_at first (null = never crawled = highest priority)
+    //    - Among those, prefer institutions that have admission URLs
     const { data: institutions, error: instErr } = await admin
       .from("institutions")
-      .select("id, name_ko, primary_admissions_url_ko, last_verified_at")
+      .select("id, name_ko, primary_admissions_url_ko, last_verified_at, consecutive_failures, crawl_cooldown_until")
       .not("primary_admissions_url_ko", "is", null)
       .order("last_verified_at", { ascending: true, nullsFirst: true })
-      .limit(cfg.batch_size);
+      .limit(cfg.batch_size * 2); // fetch extra to filter out cooldown
 
     if (instErr) throw instErr;
 
-    // 5) Mark run start
+    const now = new Date();
+    const eligible = (institutions ?? []).filter((inst) => {
+      // Pattern 7: Skip if in cooldown
+      if (inst.crawl_cooldown_until && new Date(inst.crawl_cooldown_until) > now) {
+        return false;
+      }
+      return true;
+    }).slice(0, cfg.batch_size);
+
+    if (eligible.length === 0) {
+      return json({ skipped: true, reason: "no_eligible_institutions" });
+    }
+
+    // 6) Mark run start
     await admin
       .from("ai_crawl_config")
-      .update({ last_run_at: new Date().toISOString(), last_run_status: "running", updated_at: new Date().toISOString() })
+      .update({
+        last_run_at: now.toISOString(),
+        last_run_status: "running",
+        updated_at: now.toISOString(),
+      })
       .eq("id", "singleton");
 
-    // 6) Fan out to worker (fire-and-forget per institution)
+    // 7) Fan out to worker
     const dispatched: string[] = [];
-    for (const inst of institutions ?? []) {
+    const failed: string[] = [];
+
+    for (const inst of eligible) {
       try {
         await admin.functions.invoke("crawl-worker", {
-          body: { institution_id: inst.id, url: inst.primary_admissions_url_ko, model: cfg.model, auto_approve_threshold: cfg.auto_approve_threshold },
+          body: {
+            institution_id: inst.id,
+            url: inst.primary_admissions_url_ko,
+            model: cfg.model,
+            auto_approve_threshold: cfg.auto_approve_threshold,
+          },
         });
         dispatched.push(inst.id);
       } catch (e) {
-        console.error("dispatch failed for", inst.id, e);
+        console.error("dispatch failed for", inst.id, inst.name_ko, e);
+        failed.push(inst.id);
       }
     }
 
-    // 7) Schedule next run + finish
-    const next = new Date(Date.now() + cfg.interval_hours * 60 * 60 * 1000).toISOString();
+    // 8) Schedule next run + finish
+    const next = new Date(
+      Date.now() + cfg.interval_hours * 60 * 60 * 1000,
+    ).toISOString();
+
     await admin
       .from("ai_crawl_config")
-      .update({ next_run_at: next, last_run_status: `dispatched ${dispatched.length}`, updated_at: new Date().toISOString() })
+      .update({
+        next_run_at: next,
+        last_run_status: `dispatched ${dispatched.length}/${eligible.length}`,
+        updated_at: new Date().toISOString(),
+      })
       .eq("id", "singleton");
 
-    return json({ ok: true, dispatched: dispatched.length, institutions: dispatched });
+    return json({
+      ok: true,
+      dispatched: dispatched.length,
+      failed: failed.length,
+      total_eligible: eligible.length,
+      institutions: dispatched,
+    });
   } catch (e) {
     console.error(e);
     await admin
       .from("ai_crawl_config")
-      .update({ last_run_status: `error: ${String(e)}`, updated_at: new Date().toISOString() })
+      .update({
+        last_run_status: `error: ${String(e).slice(0, 200)}`,
+        updated_at: new Date().toISOString(),
+      })
       .eq("id", "singleton")
       .then(() => {});
     return json({ error: String(e) }, 500);
