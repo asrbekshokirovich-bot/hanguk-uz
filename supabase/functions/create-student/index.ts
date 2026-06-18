@@ -56,7 +56,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { fullName, phone, phones, officeLocation, paymentPlan, paymentMode, contractDate, contractUrl, isGksApplicant, intakeId } = await req.json();
+    const { fullName, phone, phones, officeLocation, paymentPlan, paymentMode, contractDate, contractUrl, isGksApplicant, intakeId, languageTrack } = await req.json();
 
     // Region, birth date and language track are intentionally NOT accepted here —
     // they are filled automatically from the student's passport/certificates and
@@ -247,8 +247,10 @@ Deno.serve(async (req) => {
         contract_date: contractDate || null,
         contract_url: contractUrl || null,
         magic_code: magicCode,
-        // Default track until certificates/conversations auto-fill it.
-        language_track: 'korean',
+        // Staff-selected track at creation; defaults to korean. Auto-fill from
+        // certificates/conversations can still refine it later.
+        language_track: ['korean', 'english', 'both'].includes(languageTrack) ? languageTrack : 'korean',
+        language_track_source: ['korean', 'english', 'both'].includes(languageTrack) ? 'manual' : 'default',
         is_gks_applicant: isGksApplicant || false,
       })
       .select()

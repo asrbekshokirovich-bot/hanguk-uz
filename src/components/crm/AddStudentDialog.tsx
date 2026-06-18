@@ -101,6 +101,12 @@ const PHONE_LABELS = [
   { value: 'other', label: 'Other' },
 ];
 
+const LANGUAGE_TRACKS = [
+  { value: 'korean', label: 'Korean Track (한국어)' },
+  { value: 'english', label: 'English Track' },
+  { value: 'both', label: 'Both Tracks' },
+];
+
 const emptyForm = () => ({
   fullName: '',
   phones: [{ phone: '', label: 'own' }] as PhoneEntry[],
@@ -109,6 +115,7 @@ const emptyForm = () => ({
   contractDate: '',
   contractUrl: '',
   isGksApplicant: false,
+  languageTrack: 'korean',
 });
 
 export function AddStudentDialog({ open, onOpenChange, onSuccess }: AddStudentDialogProps) {
@@ -181,6 +188,7 @@ export function AddStudentDialog({ open, onOpenChange, onSuccess }: AddStudentDi
           contractDate: formData.contractDate || null,
           contractUrl: formData.contractUrl || null,
           isGksApplicant: formData.isGksApplicant || false,
+          languageTrack: formData.languageTrack || 'korean',
           intakeId: activeIntakeId,
         },
       });
@@ -376,11 +384,31 @@ export function AddStudentDialog({ open, onOpenChange, onSuccess }: AddStudentDi
                   </Button>
                 </div>
 
+                {/* Language Track Selection */}
+                <div className="space-y-2">
+                  <Label htmlFor="languageTrack">{t('crm.languageTrack', 'Language Track')} *</Label>
+                  <Select
+                    value={formData.languageTrack}
+                    onValueChange={(value) => setFormData({ ...formData, languageTrack: value })}
+                  >
+                    <SelectTrigger id="languageTrack">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {LANGUAGE_TRACKS.map((track) => (
+                        <SelectItem key={track.value} value={track.value}>
+                          {t(`crm.languageTracks.${track.value}`, track.label)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
                 {/* Auto-fill notice */}
                 <div className="flex items-start gap-2 bg-info/10 border border-info/30 rounded-lg p-3 text-sm text-info">
                   <Sparkles className="h-4 w-4 mt-0.5 flex-shrink-0" />
                   <span>
-                    {t('crm.autoFillNotice', 'Region, birth date and language track are filled automatically from the student’s passport, certificates and conversations once uploaded.')}
+                    {t('crm.autoFillNotice', 'Region and birth date are filled automatically from the student’s passport once uploaded.')}
                   </span>
                 </div>
               </div>
