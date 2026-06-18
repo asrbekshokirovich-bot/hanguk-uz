@@ -20,6 +20,13 @@ import {
   type AdmissionPeriodInput,
 } from '@/hooks/useAdmissionPeriodMutations';
 
+// Empty number inputs arrive as NaN (valueAsNumber); coerce them to null so an
+// empty optional fee field doesn't silently fail validation.
+const optionalNum = z.preprocess(
+  (v) => (v === '' || v === null || v === undefined || (typeof v === 'number' && Number.isNaN(v)) ? null : v),
+  z.coerce.number().min(0).nullable(),
+);
+
 const schema = z.object({
   semester: z.enum(['spring', 'fall']),
   year: z.coerce.number().min(2024).max(2030),
@@ -31,8 +38,8 @@ const schema = z.object({
   result_announcement: z.string().nullable(),
   online_application_start: z.string().nullable(),
   online_application_end: z.string().nullable(),
-  application_fee_krw: z.coerce.number().nullable(),
-  application_fee_usd: z.coerce.number().nullable(),
+  application_fee_krw: optionalNum,
+  application_fee_usd: optionalNum,
   application_form_url: z.string().url().nullable().or(z.literal('')),
   application_guide_url: z.string().url().nullable().or(z.literal('')),
 });

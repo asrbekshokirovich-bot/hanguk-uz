@@ -20,13 +20,21 @@ import {
   useUpdateRequirement,
 } from '@/hooks/useAdmissionCycleMutations';
 
+// Empty number inputs come through as NaN (valueAsNumber) or '' — treat both as
+// null so optional numeric fields don't block submission with a hidden error.
+const optionalNum = (min: number, max: number) =>
+  z.preprocess(
+    (v) => (v === '' || v === null || v === undefined || (typeof v === 'number' && Number.isNaN(v)) ? null : v),
+    z.coerce.number().min(min).max(max).nullable(),
+  );
+
 const schema = z.object({
   applicant_category: z.string().nullable(),
-  topik_min_level: z.coerce.number().min(1).max(6).nullable(),
+  topik_min_level: optionalNum(1, 6),
   topik_deferred: z.boolean(),
-  ielts_min: z.coerce.number().min(0).max(9).nullable(),
-  toefl_min: z.coerce.number().min(0).max(120).nullable(),
-  gpa_floor_pct: z.coerce.number().min(0).max(100).nullable(),
+  ielts_min: optionalNum(0, 9),
+  toefl_min: optionalNum(0, 120),
+  gpa_floor_pct: optionalNum(0, 100),
   interview_required: z.boolean(),
   practical_exam_required: z.boolean(),
   prose_ko: z.string().nullable(),

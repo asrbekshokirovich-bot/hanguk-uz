@@ -24,7 +24,11 @@ const schema = z.object({
   intake_year: z.coerce.number().min(2024).max(2030),
   intake_term: z.enum(['spring', 'fall']),
   cycle_track: z.string().min(1),
-  round_number: z.coerce.number().nullable(),
+  // Empty round number arrives as NaN (valueAsNumber); coerce to null.
+  round_number: z.preprocess(
+    (v) => (v === '' || v === null || v === undefined || (typeof v === 'number' && Number.isNaN(v)) ? null : v),
+    z.coerce.number().min(1).nullable(),
+  ),
   is_unified: z.boolean(),
   applicant_category: z.string().nullable(),
   status: z.string(),
