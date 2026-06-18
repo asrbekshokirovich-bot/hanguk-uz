@@ -45,8 +45,10 @@ import { Button } from '@/components/ui/button';
 import { AdmissionPeriodFormDialog } from './AdmissionPeriodFormDialog';
 import { AdmissionCycleFormDialog } from './AdmissionCycleFormDialog';
 import { RequirementFormDialog } from './RequirementFormDialog';
+import { DocumentFormDialog } from './DocumentFormDialog';
 import { useDeleteAdmissionPeriod } from '@/hooks/useAdmissionPeriodMutations';
 import { useDeleteAdmissionCycle, useDeleteRequirement } from '@/hooks/useAdmissionCycleMutations';
+import { useDeleteDocument } from '@/hooks/useDocumentMutations';
 
 interface Props {
   institution: Institution | null;
@@ -113,7 +115,7 @@ function RequirementRow({ r, onEdit, onDelete }: { r: AdmissionRequirement; onEd
   );
 }
 
-function DocumentRow({ d }: { d: RequiredDocument }) {
+function DocumentRow({ d, onEdit, onDelete }: { d: RequiredDocument; onEdit?: () => void; onDelete?: () => void }) {
   return (
     <div className="rounded-md border border-border/60 p-2.5">
       <div className="flex items-center justify-between gap-2">
@@ -122,6 +124,8 @@ function DocumentRow({ d }: { d: RequiredDocument }) {
           {d.is_required === false ? <Badge variant="secondary">optional</Badge> : null}
           {d.is_apostille_required ? <Badge variant="outline">apostille</Badge> : null}
           {d.needs_attention ? <FlagBadge reason={d.attention_reason} /> : null}
+          {onEdit && <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={onEdit}><Pencil className="h-3 w-3" /></Button>}
+          {onDelete && <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-destructive hover:text-destructive" onClick={onDelete}><Trash2 className="h-3 w-3" /></Button>}
         </div>
       </div>
       {d.applicant_category ? (
@@ -286,6 +290,11 @@ export function UniversityAdmissionsSheet({ institution, open, onOpenChange }: P
   const [reqCycleId, setReqCycleId] = useState<string>('');
   const deleteReq = useDeleteRequirement();
 
+  const [docFormOpen, setDocFormOpen] = useState(false);
+  const [editingDoc, setEditingDoc] = useState<RequiredDocument | null>(null);
+  const [docCycleId, setDocCycleId] = useState<string>('');
+  const deleteDoc = useDeleteDocument();
+
   const counts = useMemo(() => {
     if (!data) return { req: 0, doc: 0, sch: 0, tui: 0, per: 0 };
     return {
@@ -388,11 +397,35 @@ export function UniversityAdmissionsSheet({ institution, open, onOpenChange }: P
                   )}
                 </TabsContent>
 
-                <TabsContent value="documents" className="mt-2 space-y-1.5">
-                  {counts.doc ? (
-                    data!.cycles.flatMap((c) =>
-                      (c.documents_required ?? []).map((d) => <DocumentRow key={d.id} d={d} />),
-                    )
+                <TabsContent value="documents" className="mt-2 space-y-4">
+                  {data && data.cycles.length ? (
+                    data.cycles.map((c, i) => (
+                      <div key={c.id} className="space-y-1.5">
+                        {i > 0 ? <Separator className="mb-3" /> : null}
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-medium text-muted-foreground">
+                            {[c.intake_year, c.intake_term, c.cycle_track].filter(Boolean).join(' · ') || 'Cycle'}
+                          </span>
+                          <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => { setEditingDoc(null); setDocCycleId(c.id); setDocFormOpen(true); }}>
+                            <Plus className="h-3 w-3" /> Hujjat
+                          </Button>
+                        </div>
+                        {(c.documents_required ?? []).length ? (
+                          (c.documents_required ?? []).map((d) => (
+                            <DocumentRow
+                              key={d.id}
+                              d={d}
+                              onEdit={() => { setEditingDoc(d); setDocCycleId(c.id); setDocFormOpen(true); }}
+                              onDelete={() => {
+                                if (confirm('Bu hujjatni o\'chirmoqchimisiz?')) deleteDoc.mutate({ id: d.id });
+                              }}
+                            />
+                          ))
+                        ) : (
+                          <p className="text-xs text-muted-foreground py-1">Hujjatlar yo'q.</p>
+                        )}
+                      </div>
+                    ))
                   ) : (
                     <EmptySection label="required documents" />
                   )}
@@ -470,6 +503,14 @@ export function UniversityAdmissionsSheet({ institution, open, onOpenChange }: P
               open={reqFormOpen}
               onOpenChange={setReqFormOpen}
               editReq={editingReq}
+            />
+          )}
+          {docCycleId && (
+            <DocumentFormDialog
+              cycleId={docCycleId}
+              open={docFormOpen}
+              onOpenChange={setDocFormOpen}
+              editDoc={editingDoc}
             />
           )}
         </>
