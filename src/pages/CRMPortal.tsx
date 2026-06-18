@@ -63,6 +63,7 @@ const KakaoMapContent = lazy(() => import('@/components/crm/pages/KakaoMapConten
 const UniDbReviewContent = lazy(() => import('@/components/crm/pages/UniDbReviewContent'));
 const ProgramFinderContent = lazy(() => import('@/components/crm/pages/ProgramFinderContent'));
 const ManageIntakesContent = lazy(() => import('@/components/crm/pages/ManageIntakesContent'));
+const AiCrawlMonitorContent = lazy(() => import('@/components/crm/pages/AiCrawlMonitorContent'));
 
 // Access denied component
 const AccessDenied = () => (
@@ -141,6 +142,7 @@ export default function CRMPortal() {
     if (currentPath.startsWith('/crm/communication')) return 'communication';
     if (currentPath.startsWith('/crm/kakao-map')) return 'kakao-map';
     if (currentPath.startsWith('/crm/admin/uni-db-review')) return 'uni-db-review';
+    if (currentPath.startsWith('/crm/admin/ai-crawl')) return 'ai-crawl';
     return 'dashboard';
   };
 
@@ -387,6 +389,8 @@ export default function CRMPortal() {
         return <FinanceReportsWrapper />;
       case 'program-finder':
         return <SafeSuspense><ProgramFinderContent /></SafeSuspense>;
+      case 'ai-crawl':
+        return <SafeSuspense><AiCrawlMonitorContent /></SafeSuspense>;
       case 'universities':
         return <SafeSuspense><UniversitiesContent /></SafeSuspense>;
       case 'tasks':

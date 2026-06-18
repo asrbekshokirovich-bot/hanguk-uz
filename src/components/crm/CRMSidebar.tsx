@@ -150,6 +150,13 @@ function buildGroups(
           visible: canReviewUniDb,
           highlight: true,
         },
+        {
+          title: 'AI Crawl',
+          url: '/crm/admin/ai-crawl',
+          icon: Bot,
+          visible: isOwner || isAdmin,
+          highlight: true,
+        },
         { title: t('navigation.settings'), url: '/crm/settings', icon: Settings, visible: true },
       ],
     },
