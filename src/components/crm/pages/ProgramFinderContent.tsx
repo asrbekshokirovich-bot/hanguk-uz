@@ -1,5 +1,4 @@
-import { useState, useMemo } from 'react';
-import { useTranslation } from 'react-i18next';
+import { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -7,7 +6,6 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Slider } from '@/components/ui/slider';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Search,
@@ -18,6 +16,8 @@ import {
   Clock,
   AlertCircle,
   Filter,
+  Shield,
+  Building2,
 } from 'lucide-react';
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -25,53 +25,38 @@ import { DeadlineBadge, getDeadlineInfo, type DeadlineInfo } from './DeadlineBad
 
 // ── Types ──────────────────────────────────────────────────────────
 
-interface ProgramFilters {
-  programLevel: string;
-  languageTrack: string;
-  region: string;
-  faculty: string;
-  maxTuition: number | null;
-  maxTopik: number | null;
-  partnerOnly: boolean;
+interface Filters {
   searchQuery: string;
   semester: string;
   admissionStatus: string;
+  programLevel: string;
+  languageTrack: string;
+  region: string;
+  partnerOnly: boolean;
+  ieqasOnly: boolean;
+  maxTopik: number | null;
+  cycleTrack: string;
 }
 
-const defaultFilters: ProgramFilters = {
-  programLevel: '',
-  languageTrack: '',
-  region: '',
-  faculty: '',
-  maxTuition: null,
-  maxTopik: null,
-  partnerOnly: false,
+const defaultFilters: Filters = {
   searchQuery: '',
   semester: '',
   admissionStatus: '',
+  programLevel: '',
+  languageTrack: '',
+  region: '',
+  partnerOnly: false,
+  ieqasOnly: false,
+  maxTopik: null,
+  cycleTrack: '',
 };
 
-interface ProgramRow {
-  id: string;
-  program_name: string;
-  program_level: string;
-  faculty_name: string | null;
-  department_name: string | null;
-  language_track: string;
-  tuition_per_semester: number | null;
-  tuition_per_year: number | null;
-  topik_requirement: number | null;
-  ielts_requirement: number | null;
-  toefl_requirement: number | null;
-  notes: string | null;
-  institution_id: string | null;
-}
-
-interface InstitutionRow {
+interface Institution {
   id: string;
   name_ko: string;
   name_en: string | null;
   city_ko: string | null;
+  region_code: string | null;
   is_partner: boolean | null;
   tier: number | null;
   logo_url: string | null;
@@ -79,132 +64,169 @@ interface InstitutionRow {
   primary_admissions_url_ko: string | null;
   institution_type: string | null;
   ieqas_status: string | null;
+  is_women_only: boolean | null;
 }
 
-interface AdmissionPeriodRow {
+interface AdmissionPeriod {
   id: string;
-  institution_id: string | null;
-  program_level: string | null;
+  institution_id: string;
   semester: string | null;
   year: number | null;
   application_start: string | null;
   application_end: string | null;
+  document_deadline: string | null;
+  result_announcement: string | null;
+  program_level: string | null;
+  language_track: string | null;
 }
 
-interface EnrichedProgram extends ProgramRow {
-  institution: InstitutionRow | null;
+interface RequirementInfo {
+  institution_id: string;
+  topik_min_level: number | null;
+  english_test: Record<string, unknown> | null;
+  applicant_category: string | null;
+  cycle_track: string | null;
+  intake_term: string | null;
+  intake_year: number | null;
+}
+
+interface EnrichedInstitution {
+  institution: Institution;
+  nearestPeriod: AdmissionPeriod | null;
   deadline: DeadlineInfo | null;
-  admission_period: AdmissionPeriodRow | null;
+  requirements: RequirementInfo[];
+  minTopik: number | null;
+  allPeriods: AdmissionPeriod[];
 }
 
-// ── Data hooks ─────────────────────────────────────────────────────
+// ── Data hook ─────────────────────────────────────────────────────
 
-function useCrmProgramSearch(filters: ProgramFilters) {
+function useCrmInstitutionSearch(filters: Filters) {
   return useQuery({
-    queryKey: ['crm-program-search', filters],
-    queryFn: async (): Promise<EnrichedProgram[]> => {
-      // 1) Fetch programs
-      let q = supabase
-        .from('university_programs')
-        .select('id, program_name, program_level, faculty_name, department_name, language_track, tuition_per_semester, tuition_per_year, topik_requirement, ielts_requirement, toefl_requirement, notes, institution_id')
-        .eq('is_available_for_international', true);
+    queryKey: ['crm-institution-search', filters],
+    queryFn: async (): Promise<EnrichedInstitution[]> => {
+      const [instRes, periodRes, reqRes] = await Promise.all([
+        supabase.from('institutions').select('id, name_ko, name_en, city_ko, region_code, is_partner, tier, logo_url, primary_domain, primary_admissions_url_ko, institution_type, ieqas_status, is_women_only'),
+        supabase.from('university_admission_periods').select('id, institution_id, semester, year, application_start, application_end, document_deadline, result_announcement, program_level, language_track'),
+        supabase.from('requirements').select('topik_min_level, english_test, applicant_category, cycle_id').then(async (res) => {
+          if (!res.data || res.data.length === 0) return { data: [], error: null };
+          const cycleIds = [...new Set(res.data.map(r => r.cycle_id).filter(Boolean))];
+          const { data: cycles } = await supabase.from('admission_cycles').select('id, institution_id, cycle_track, intake_term, intake_year').in('id', cycleIds);
+          const cycleMap = new Map((cycles || []).map(c => [c.id, c]));
+          return {
+            data: res.data.map(r => {
+              const c = cycleMap.get(r.cycle_id!);
+              return {
+                institution_id: c?.institution_id || '',
+                topik_min_level: r.topik_min_level,
+                english_test: r.english_test as Record<string, unknown> | null,
+                applicant_category: r.applicant_category,
+                cycle_track: c?.cycle_track || null,
+                intake_term: c?.intake_term || null,
+                intake_year: c?.intake_year || null,
+              } as RequirementInfo;
+            }),
+            error: null,
+          };
+        }),
+      ]);
 
-      if (filters.programLevel) q = q.eq('program_level', filters.programLevel);
-      if (filters.languageTrack) q = q.eq('language_track', filters.languageTrack);
-      if (filters.maxTopik) q = q.or(`topik_requirement.lte.${filters.maxTopik},topik_requirement.is.null`);
-      if (filters.maxTuition) q = q.lte('tuition_per_semester', filters.maxTuition);
+      if (instRes.error) throw instRes.error;
+      const institutions = (instRes.data || []) as Institution[];
+      const periods = (periodRes.data || []) as AdmissionPeriod[];
+      const requirements = (reqRes.data || []) as RequirementInfo[];
 
-      const { data: programs, error: pErr } = await q.order('program_name').limit(500);
-      if (pErr) throw pErr;
-      if (!programs || programs.length === 0) return [];
+      const periodsByInst = new Map<string, AdmissionPeriod[]>();
+      periods.forEach(p => {
+        const arr = periodsByInst.get(p.institution_id) || [];
+        arr.push(p);
+        periodsByInst.set(p.institution_id, arr);
+      });
 
-      // 2) Fetch institutions
-      const instIds = [...new Set((programs as ProgramRow[]).map(p => p.institution_id).filter(Boolean))];
-      const { data: institutions } = await supabase
-        .from('institutions')
-        .select('id, name_ko, name_en, city_ko, is_partner, tier, logo_url, primary_domain, primary_admissions_url_ko, institution_type, ieqas_status')
-        .in('id', instIds);
-
-      const instMap = new Map((institutions || []).map(i => [i.id, i as InstitutionRow]));
-
-      // 3) Fetch admission periods
-      const { data: periods } = await supabase
-        .from('university_admission_periods')
-        .select('id, institution_id, program_level, semester, year, application_start, application_end')
-        .in('institution_id', instIds);
-
-      const periodsByInst = new Map<string, AdmissionPeriodRow[]>();
-      (periods || []).forEach(p => {
-        const arr = periodsByInst.get(p.institution_id!) || [];
-        arr.push(p as AdmissionPeriodRow);
-        periodsByInst.set(p.institution_id!, arr);
+      const reqsByInst = new Map<string, RequirementInfo[]>();
+      requirements.forEach(r => {
+        if (!r.institution_id) return;
+        const arr = reqsByInst.get(r.institution_id) || [];
+        arr.push(r);
+        reqsByInst.set(r.institution_id, arr);
       });
 
       const now = new Date();
+      now.setHours(0, 0, 0, 0);
 
-      // 4) Enrich
-      let results: EnrichedProgram[] = (programs as ProgramRow[]).map(prog => {
-        const inst = instMap.get(prog.institution_id!) || null;
-        const instPeriods = periodsByInst.get(prog.institution_id!) || [];
+      let results: EnrichedInstitution[] = institutions.map(inst => {
+        const instPeriods = periodsByInst.get(inst.id) || [];
+        const instReqs = reqsByInst.get(inst.id) || [];
 
-        // Find the best matching admission period
-        const matchingPeriod = instPeriods
-          .filter(p => !p.program_level || p.program_level === prog.program_level)
-          .sort((a, b) => {
-            const aEnd = a.application_end ? new Date(a.application_end).getTime() : Infinity;
-            const bEnd = b.application_end ? new Date(b.application_end).getTime() : Infinity;
-            return aEnd - bEnd;
-          })
-          .find(p => {
-            if (!p.application_end) return false;
-            return new Date(p.application_end) >= now || !instPeriods.some(other => other.application_end && new Date(other.application_end) >= now);
-          }) || instPeriods[0] || null;
+        // Find nearest open/upcoming period
+        const sorted = [...instPeriods].sort((a, b) => {
+          const aEnd = a.application_end ? new Date(a.application_end).getTime() : Infinity;
+          const bEnd = b.application_end ? new Date(b.application_end).getTime() : Infinity;
+          return aEnd - bEnd;
+        });
 
-        const deadline = matchingPeriod
-          ? getDeadlineInfo(matchingPeriod.application_start, matchingPeriod.application_end)
+        const nearestPeriod = sorted.find(p => {
+          if (!p.application_end) return false;
+          return new Date(p.application_end) >= now;
+        }) || sorted[sorted.length - 1] || null;
+
+        const deadline = nearestPeriod
+          ? getDeadlineInfo(nearestPeriod.application_start, nearestPeriod.application_end)
           : null;
 
-        return { ...prog, institution: inst, deadline, admission_period: matchingPeriod };
+        const topikLevels = instReqs.map(r => r.topik_min_level).filter((v): v is number => v != null);
+        const minTopik = topikLevels.length > 0 ? Math.min(...topikLevels) : null;
+
+        return { institution: inst, nearestPeriod, deadline, requirements: instReqs, minTopik, allPeriods: instPeriods };
       });
 
-      // 5) Client-side filters
+      // Client-side filters
       if (filters.partnerOnly) {
-        results = results.filter(p => p.institution?.is_partner === true);
+        results = results.filter(r => r.institution.is_partner === true);
+      }
+      if (filters.ieqasOnly) {
+        results = results.filter(r => r.institution.ieqas_status === 'certified');
       }
       if (filters.region) {
-        const r = filters.region.toLowerCase();
-        results = results.filter(p => p.institution?.city_ko?.toLowerCase().includes(r));
+        const reg = filters.region.toLowerCase();
+        results = results.filter(r => r.institution.city_ko?.toLowerCase().includes(reg) || r.institution.region_code?.toLowerCase() === reg);
       }
-      if (filters.faculty) {
-        const f = filters.faculty.toLowerCase();
-        results = results.filter(p => p.faculty_name?.toLowerCase().includes(f));
+      if (filters.maxTopik) {
+        results = results.filter(r => r.minTopik != null && r.minTopik <= filters.maxTopik!);
+      }
+      if (filters.programLevel) {
+        results = results.filter(r => r.allPeriods.some(p => p.program_level === filters.programLevel));
+      }
+      if (filters.languageTrack) {
+        results = results.filter(r => r.allPeriods.some(p => p.language_track === filters.languageTrack));
+      }
+      if (filters.semester) {
+        results = results.filter(r => r.allPeriods.some(p => p.semester === filters.semester));
+      }
+      if (filters.cycleTrack) {
+        results = results.filter(r => r.requirements.some(req => req.cycle_track === filters.cycleTrack));
+      }
+      if (filters.admissionStatus === 'open') {
+        results = results.filter(r => r.deadline?.status === 'closing-soon' || r.deadline?.status === 'open');
+      } else if (filters.admissionStatus === 'upcoming') {
+        results = results.filter(r => r.deadline?.status === 'upcoming');
+      } else if (filters.admissionStatus === 'closed') {
+        results = results.filter(r => r.deadline?.status === 'closed');
       }
       if (filters.searchQuery) {
         const sq = filters.searchQuery.toLowerCase();
-        results = results.filter(p =>
-          p.program_name.toLowerCase().includes(sq) ||
-          p.faculty_name?.toLowerCase().includes(sq) ||
-          p.institution?.name_en?.toLowerCase().includes(sq) ||
-          p.institution?.name_ko?.toLowerCase().includes(sq)
-        );
-      }
-      if (filters.semester) {
-        results = results.filter(p => p.admission_period?.semester === filters.semester);
-      }
-      if (filters.admissionStatus === 'open') {
-        results = results.filter(p => p.deadline?.status === 'closing-soon' || p.deadline?.status === 'open');
-      } else if (filters.admissionStatus === 'upcoming') {
-        results = results.filter(p => p.deadline?.status === 'upcoming');
-      } else if (filters.admissionStatus === 'closed') {
-        results = results.filter(p => p.deadline?.status === 'closed');
+        results = results.filter(r => {
+          const inst = r.institution;
+          if (inst.name_ko?.toLowerCase().includes(sq)) return true;
+          if (inst.name_en?.toLowerCase().includes(sq)) return true;
+          if (inst.city_ko?.toLowerCase().includes(sq)) return true;
+          if (r.requirements.some(req => req.applicant_category?.toLowerCase().includes(sq))) return true;
+          return false;
+        });
       }
 
-      // 6) Sort by deadline
-      results.sort((a, b) => {
-        const aScore = deadlineSortScore(a.deadline);
-        const bScore = deadlineSortScore(b.deadline);
-        return aScore - bScore;
-      });
+      // Sort: open/closing-soon first, then by days left
+      results.sort((a, b) => deadlineSortScore(a.deadline) - deadlineSortScore(b.deadline));
 
       return results;
     },
@@ -233,35 +255,26 @@ function useRegions() {
   });
 }
 
-function useFaculties() {
-  return useQuery({
-    queryKey: ['crm-faculties'],
-    queryFn: async () => {
-      const { data } = await supabase.from('university_programs').select('faculty_name').eq('is_available_for_international', true).not('faculty_name', 'is', null);
-      return [...new Set((data || []).map(d => d.faculty_name).filter(Boolean) as string[])].sort();
-    },
-    staleTime: 60_000,
-  });
-}
-
 // ── Filter Bar ─────────────────────────────────────────────────────
 
-function FilterBar({ filters, onChange }: { filters: ProgramFilters; onChange: (f: ProgramFilters) => void }) {
-  const { t } = useTranslation();
+function FilterBar({ filters, onChange }: { filters: Filters; onChange: (f: Filters) => void }) {
   const { data: regions } = useRegions();
-  const { data: faculties } = useFaculties();
-
   const [localSearch, setLocalSearch] = useState(filters.searchQuery);
 
-  const update = (partial: Partial<ProgramFilters>) => onChange({ ...filters, ...partial });
-
-  // Debounced search
-  const handleSearch = (val: string) => {
-    setLocalSearch(val);
-    const timer = setTimeout(() => update({ searchQuery: val }), 300);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (localSearch !== filters.searchQuery) {
+        onChange({ ...filters, searchQuery: localSearch });
+      }
+    }, 300);
     return () => clearTimeout(timer);
-  };
+  }, [localSearch]);
 
+  useEffect(() => {
+    setLocalSearch(filters.searchQuery);
+  }, [filters.searchQuery]);
+
+  const update = (partial: Partial<Filters>) => onChange({ ...filters, ...partial });
   const hasFilters = JSON.stringify(filters) !== JSON.stringify(defaultFilters);
 
   return (
@@ -269,35 +282,23 @@ function FilterBar({ filters, onChange }: { filters: ProgramFilters; onChange: (
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Universitet yoki dastur qidirish..."
+          placeholder="Universitet, yo'nalish, fakultet nomi bilan qidirish..."
           value={localSearch}
-          onChange={(e) => handleSearch(e.target.value)}
+          onChange={(e) => setLocalSearch(e.target.value)}
           className="pl-9"
         />
       </div>
 
       <div className="flex flex-wrap gap-2">
-        <Select value={filters.programLevel || 'all'} onValueChange={(v) => update({ programLevel: v === 'all' ? '' : v })}>
-          <SelectTrigger className="w-[130px] h-9 text-xs">
-            <SelectValue placeholder="Daraja" />
+        <Select value={filters.admissionStatus || 'all'} onValueChange={(v) => update({ admissionStatus: v === 'all' ? '' : v })}>
+          <SelectTrigger className="w-[140px] h-9 text-xs">
+            <SelectValue placeholder="Qabul holati" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Hammasi</SelectItem>
-            <SelectItem value="bachelor">Bakalavr</SelectItem>
-            <SelectItem value="master">Magistr</SelectItem>
-            <SelectItem value="phd">PhD</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <Select value={filters.languageTrack || 'all'} onValueChange={(v) => update({ languageTrack: v === 'all' ? '' : v })}>
-          <SelectTrigger className="w-[130px] h-9 text-xs">
-            <SelectValue placeholder="Til" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Hammasi</SelectItem>
-            <SelectItem value="english">English</SelectItem>
-            <SelectItem value="korean">Korean</SelectItem>
-            <SelectItem value="both">Ikkalasi</SelectItem>
+            <SelectItem value="open">Ochiq</SelectItem>
+            <SelectItem value="upcoming">Tez orada</SelectItem>
+            <SelectItem value="closed">Yopilgan</SelectItem>
           </SelectContent>
         </Select>
 
@@ -312,27 +313,36 @@ function FilterBar({ filters, onChange }: { filters: ProgramFilters; onChange: (
           </SelectContent>
         </Select>
 
-        <Select value={filters.admissionStatus || 'all'} onValueChange={(v) => update({ admissionStatus: v === 'all' ? '' : v })}>
-          <SelectTrigger className="w-[140px] h-9 text-xs">
-            <SelectValue placeholder="Qabul holati" />
+        <Select value={filters.programLevel || 'all'} onValueChange={(v) => update({ programLevel: v === 'all' ? '' : v })}>
+          <SelectTrigger className="w-[130px] h-9 text-xs">
+            <SelectValue placeholder="Daraja" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Hammasi</SelectItem>
-            <SelectItem value="open">Ochiq</SelectItem>
-            <SelectItem value="upcoming">Tez orada</SelectItem>
-            <SelectItem value="closed">Yopilgan</SelectItem>
+            <SelectItem value="undergraduate">Bakalavr</SelectItem>
+            <SelectItem value="graduate">Magistr</SelectItem>
           </SelectContent>
         </Select>
 
-        <Select value={filters.faculty || 'all'} onValueChange={(v) => update({ faculty: v === 'all' ? '' : v })}>
-          <SelectTrigger className="w-[150px] h-9 text-xs">
-            <SelectValue placeholder="Fakultet" />
+        <Select value={filters.languageTrack || 'all'} onValueChange={(v) => update({ languageTrack: v === 'all' ? '' : v })}>
+          <SelectTrigger className="w-[130px] h-9 text-xs">
+            <SelectValue placeholder="Til" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Hammasi</SelectItem>
-            {(faculties || []).map((f) => (
-              <SelectItem key={f} value={f}>{f}</SelectItem>
-            ))}
+            <SelectItem value="english">English</SelectItem>
+            <SelectItem value="korean">Korean</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select value={filters.cycleTrack || 'all'} onValueChange={(v) => update({ cycleTrack: v === 'all' ? '' : v })}>
+          <SelectTrigger className="w-[140px] h-9 text-xs">
+            <SelectValue placeholder="Qabul turi" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Hammasi</SelectItem>
+            <SelectItem value="foreign">Xorijiy (Foreign)</SelectItem>
+            <SelectItem value="overseas_korean_full">Koreys diaspora</SelectItem>
           </SelectContent>
         </Select>
 
@@ -360,24 +370,14 @@ function FilterBar({ filters, onChange }: { filters: ProgramFilters; onChange: (
           </SelectContent>
         </Select>
 
-        <div className="flex items-center gap-2 min-w-[180px]">
-          <Label className="text-xs whitespace-nowrap">Narx</Label>
-          <Slider
-            value={[filters.maxTuition || 10000000]}
-            onValueChange={([v]) => update({ maxTuition: v >= 10000000 ? null : v })}
-            min={1000000}
-            max={10000000}
-            step={500000}
-            className="w-[80px]"
-          />
-          <span className="text-[10px] text-muted-foreground whitespace-nowrap">
-            {filters.maxTuition ? `≤ ${(filters.maxTuition / 1000000).toFixed(1)}M ₩` : 'Barchasi'}
-          </span>
-        </div>
-
         <div className="flex items-center gap-2 px-2">
           <Switch id="crm-partner" checked={filters.partnerOnly} onCheckedChange={(v) => update({ partnerOnly: v })} />
           <Label htmlFor="crm-partner" className="text-xs cursor-pointer">Hamkor</Label>
+        </div>
+
+        <div className="flex items-center gap-2 px-2">
+          <Switch id="crm-ieqas" checked={filters.ieqasOnly} onCheckedChange={(v) => update({ ieqasOnly: v })} />
+          <Label htmlFor="crm-ieqas" className="text-xs cursor-pointer">IEQAS</Label>
         </div>
 
         {hasFilters && (
@@ -390,27 +390,19 @@ function FilterBar({ filters, onChange }: { filters: ProgramFilters; onChange: (
   );
 }
 
-// ── Program Card ───────────────────────────────────────────────────
+// ── Institution Card ──────────────────────────────────────────────
 
-function CrmProgramCard({ program }: { program: EnrichedProgram }) {
-  const inst = program.institution;
+function InstitutionCard({ item }: { item: EnrichedInstitution }) {
+  const inst = item.institution;
+  const period = item.nearestPeriod;
 
-  const trackLabel = program.language_track === 'english' ? 'English'
-    : program.language_track === 'korean' ? '한국어' : 'Both';
-
-  const trackColor = program.language_track === 'english'
-    ? 'bg-info/10 text-info'
-    : program.language_track === 'korean'
-    ? 'bg-success/10 text-success'
-    : 'bg-primary/10 text-primary';
-
-  const fmtKRW = (n: number | null) => n ? `₩${n.toLocaleString()}` : '—';
+  const typeLabel = inst.institution_type === 'private' ? 'Xususiy' : inst.institution_type === 'national' ? 'Davlat' : inst.institution_type || '';
 
   return (
     <Card className="hover:shadow-md transition-shadow">
       <CardContent className="p-4 space-y-3">
         <div className="flex items-start gap-3">
-          {inst?.logo_url ? (
+          {inst.logo_url ? (
             <img src={inst.logo_url} alt="" className="h-10 w-10 rounded-lg object-contain bg-muted flex-shrink-0" />
           ) : (
             <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
@@ -419,54 +411,82 @@ function CrmProgramCard({ program }: { program: EnrichedProgram }) {
           )}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="font-semibold text-sm truncate">{inst?.name_ko || 'Unknown'}</h3>
-              {inst?.is_partner && (
+              <h3 className="font-semibold text-sm truncate">{inst.name_ko}</h3>
+              {inst.is_partner && (
                 <Badge variant="default" className="text-[10px] px-1.5 py-0">Hamkor</Badge>
+              )}
+              {inst.ieqas_status === 'certified' && (
+                <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-emerald-500/50 text-emerald-600">
+                  <Shield className="h-2.5 w-2.5 mr-0.5" />IEQAS
+                </Badge>
               )}
             </div>
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
               <MapPin className="h-3 w-3" />
-              {inst?.city_ko || '—'}
-              {inst?.tier && <span className="ml-2">#{inst.tier}</span>}
+              {inst.city_ko || '—'}
+              {inst.tier && <span className="ml-2">#{inst.tier}</span>}
+              {typeLabel && (
+                <Badge variant="outline" className="text-[9px] ml-1 py-0">{typeLabel}</Badge>
+              )}
             </div>
           </div>
-          {program.deadline && <DeadlineBadge info={program.deadline} />}
+          {item.deadline && <DeadlineBadge info={item.deadline} />}
         </div>
 
-        <div>
-          <p className="font-medium text-sm">{program.program_name}</p>
-          {program.faculty_name && (
-            <p className="text-xs text-muted-foreground">{program.faculty_name}</p>
-          )}
-        </div>
+        {inst.name_en && (
+          <p className="text-xs text-muted-foreground">{inst.name_en}</p>
+        )}
 
+        {/* Requirements summary */}
         <div className="flex flex-wrap gap-1.5">
-          <Badge variant="secondary" className="text-[10px]">{program.program_level}</Badge>
-          <Badge className={`text-[10px] border-0 ${trackColor}`}>{trackLabel}</Badge>
-          {program.topik_requirement && (
-            <Badge variant="outline" className="text-[10px]">TOPIK {program.topik_requirement}</Badge>
+          {item.minTopik != null && (
+            <Badge variant="outline" className="text-[10px]">TOPIK ≥ {item.minTopik}</Badge>
           )}
-          {program.ielts_requirement && (
-            <Badge variant="outline" className="text-[10px]">IELTS {program.ielts_requirement}</Badge>
+          {item.requirements.some(r => r.english_test) && (
+            <Badge variant="outline" className="text-[10px]">English test</Badge>
+          )}
+          {item.requirements.length > 0 && (
+            <Badge variant="secondary" className="text-[10px]">
+              {item.requirements.length} ta talab
+            </Badge>
+          )}
+          {item.allPeriods.length > 0 && (
+            <Badge variant="secondary" className="text-[10px]">
+              {item.allPeriods.length} ta qabul davri
+            </Badge>
           )}
         </div>
 
-        {program.admission_period && (
+        {/* Nearest admission period */}
+        {period && (
           <div className="text-xs text-muted-foreground flex items-center gap-1">
             <Clock className="h-3 w-3" />
-            {program.admission_period.application_start?.slice(0, 10) || '?'} → {program.admission_period.application_end?.slice(0, 10) || '?'}
-            {program.admission_period.semester && (
-              <Badge variant="outline" className="text-[10px] ml-1">{program.admission_period.semester === 'spring' ? 'Bahor' : 'Kuz'} {program.admission_period.year}</Badge>
+            {period.application_start?.slice(0, 10) || '?'} → {period.application_end?.slice(0, 10) || '?'}
+            {period.semester && (
+              <Badge variant="outline" className="text-[10px] ml-1">
+                {period.semester === 'spring' ? 'Bahor' : 'Kuz'} {period.year}
+              </Badge>
+            )}
+            {period.program_level && (
+              <Badge variant="outline" className="text-[10px]">
+                {period.program_level === 'undergraduate' ? 'Bakalavr' : period.program_level === 'graduate' ? 'Magistr' : period.program_level}
+              </Badge>
+            )}
+            {period.language_track && (
+              <Badge className={`text-[10px] border-0 ${period.language_track === 'english' ? 'bg-info/10 text-info' : 'bg-success/10 text-success'}`}>
+                {period.language_track === 'english' ? 'English' : '한국어'}
+              </Badge>
             )}
           </div>
         )}
 
         <div className="flex items-center justify-between pt-1 border-t">
-          <div className="text-xs">
-            <span className="text-muted-foreground">Narx:</span>{' '}
-            <span className="font-medium">{fmtKRW(program.tuition_per_semester)}<span className="text-muted-foreground">/sem</span></span>
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <Building2 className="h-3 w-3" />
+            {inst.institution_type || '—'}
+            {inst.is_women_only && <Badge variant="outline" className="text-[9px] ml-1 py-0">Women only</Badge>}
           </div>
-          {inst?.primary_admissions_url_ko && (
+          {inst.primary_admissions_url_ko && (
             <Button variant="ghost" size="sm" className="h-7 text-xs" asChild>
               <a href={inst.primary_admissions_url_ko} target="_blank" rel="noopener noreferrer">
                 <ExternalLink className="h-3 w-3 mr-1" /> Sayt
@@ -482,8 +502,15 @@ function CrmProgramCard({ program }: { program: EnrichedProgram }) {
 // ── Main Page ──────────────────────────────────────────────────────
 
 export default function ProgramFinderContent() {
-  const [filters, setFilters] = useState<ProgramFilters>(defaultFilters);
-  const { data: results, isLoading } = useCrmProgramSearch(filters);
+  const [filters, setFilters] = useState<Filters>(defaultFilters);
+  const { data: results, isLoading } = useCrmInstitutionSearch(filters);
+
+  const stats = useMemo(() => {
+    if (!results) return null;
+    const open = results.filter(r => r.deadline?.status === 'open' || r.deadline?.status === 'closing-soon').length;
+    const upcoming = results.filter(r => r.deadline?.status === 'upcoming').length;
+    return { total: results.length, open, upcoming };
+  }, [results]);
 
   return (
     <div className="space-y-4">
@@ -491,16 +518,18 @@ export default function ProgramFinderContent() {
         <div>
           <h2 className="text-lg font-semibold flex items-center gap-2">
             <Filter className="h-5 w-5" />
-            Dastur Qidiruv
+            Universitet Qidiruv
           </h2>
           <p className="text-sm text-muted-foreground">
-            Universitetlar va dasturlarni filterlab qidiring. Eng yaqin deadline tepada.
+            Universitetlarni nomi, yo'nalishi, sertifikatlari bo'yicha qidiring. Eng yaqin deadline tepada.
           </p>
         </div>
-        {results && (
-          <Badge variant="secondary" className="text-sm">
-            {results.length} ta natija
-          </Badge>
+        {stats && (
+          <div className="flex gap-2">
+            <Badge variant="secondary" className="text-sm">{stats.total} ta universitet</Badge>
+            {stats.open > 0 && <Badge variant="default" className="text-sm bg-emerald-600">{stats.open} ta ochiq</Badge>}
+            {stats.upcoming > 0 && <Badge variant="outline" className="text-sm">{stats.upcoming} ta kutilmoqda</Badge>}
+          </div>
         )}
       </div>
 
@@ -526,8 +555,8 @@ export default function ProgramFinderContent() {
         </div>
       ) : results && results.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {results.map((prog) => (
-            <CrmProgramCard key={prog.id} program={prog} />
+          {results.map((item) => (
+            <InstitutionCard key={item.institution.id} item={item} />
           ))}
         </div>
       ) : (
