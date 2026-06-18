@@ -550,6 +550,15 @@ export default function ProgramFinderContent() {
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
+      // Open with "/" (no modifier) — but ignore when typing in a field.
+      const target = e.target as HTMLElement | null;
+      const isTyping = target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable);
+      if (e.key === '/' && !isTyping) {
+        e.preventDefault();
+        setQuickOpen((o) => !o);
+        return;
+      }
+      // Keep Cmd/Ctrl+K as a harmless alternative.
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
         setQuickOpen((o) => !o);
@@ -586,7 +595,7 @@ export default function ProgramFinderContent() {
           </p>
           <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5 mt-2" onClick={() => setQuickOpen(true)}>
             <CommandIcon className="h-3 w-3" /> Tez qidiruv
-            <kbd className="ml-1 px-1.5 py-0.5 text-[10px] bg-muted rounded border">⌘K</kbd>
+            <kbd className="ml-1 px-1.5 py-0.5 text-[10px] bg-muted rounded border">/</kbd>
           </Button>
         </div>
         {stats && (
