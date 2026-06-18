@@ -23,6 +23,8 @@ import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { DeadlineBadge, getDeadlineInfo, type DeadlineInfo } from './DeadlineBadge';
 import { UniversityAdmissionsSheet } from './UniversityAdmissionsSheet';
+import { UniversityQuickSearch, pushRecentUniversity, type QuickInstitution } from './UniversityQuickSearch';
+import { Command as CommandIcon } from 'lucide-react';
 
 // ── Types ──────────────────────────────────────────────────────────
 
@@ -544,6 +546,24 @@ export default function ProgramFinderContent() {
   const { data: results, isLoading } = useCrmInstitutionSearch(filters);
   const [selectedInstitution, setSelectedInstitution] = useState<Institution | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [quickOpen, setQuickOpen] = useState(false);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setQuickOpen((o) => !o);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
+
+  const openInstitutionById = (inst: QuickInstitution) => {
+    // Build a minimal institution object for the sheet (it only needs id + names for the header).
+    setSelectedInstitution({ id: inst.id, name_ko: inst.name_ko, name_en: inst.name_en, city_ko: inst.city_ko } as unknown as Institution);
+    setSheetOpen(true);
+  };
 
   const stats = useMemo(() => {
     if (!results) return null;
@@ -564,6 +584,10 @@ export default function ProgramFinderContent() {
           <p className="text-sm text-muted-foreground">
             Universitetlarni nomi, yo'nalishi, sertifikatlari bo'yicha qidiring. Eng yaqin deadline tepada.
           </p>
+          <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5 mt-2" onClick={() => setQuickOpen(true)}>
+            <CommandIcon className="h-3 w-3" /> Tez qidiruv
+            <kbd className="ml-1 px-1.5 py-0.5 text-[10px] bg-muted rounded border">⌘K</kbd>
+          </Button>
         </div>
         {stats && (
           <div className="flex gap-2">
@@ -602,7 +626,7 @@ export default function ProgramFinderContent() {
       ) : results && results.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {results.map((item) => (
-            <InstitutionCard key={item.institution.id} item={item} onClick={() => { setSelectedInstitution(item.institution); setSheetOpen(true); }} />
+            <InstitutionCard key={item.institution.id} item={item} onClick={() => { pushRecentUniversity(item.institution.id); setSelectedInstitution(item.institution); setSheetOpen(true); }} />
           ))}
         </div>
       ) : (
@@ -613,6 +637,12 @@ export default function ProgramFinderContent() {
           <p className="text-muted-foreground">Natija topilmadi. Filterlarni o'zgartiring.</p>
         </div>
       )}
+
+      <UniversityQuickSearch
+        open={quickOpen}
+        onOpenChange={setQuickOpen}
+        onSelect={openInstitutionById}
+      />
 
       <UniversityAdmissionsSheet
         institution={selectedInstitution as any}
