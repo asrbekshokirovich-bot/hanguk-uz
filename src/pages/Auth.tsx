@@ -95,7 +95,7 @@ export default function Auth() {
     // Also redirect guests if they visit /auth while logged in
     const guestSession = localStorage.getItem('guest_session');
     if (guestSession) {
-      navigate('/portal');
+      navigate('/auth');
     }
   }, [user, navigate]);
 
@@ -150,7 +150,7 @@ export default function Auth() {
         localStorage.setItem('guest_session', JSON.stringify(guestData));
         setLoading(false);
         toast({ title: t('auth.loginSuccess') });
-        navigate('/portal');
+        navigate('/auth');
         return;
       }
     }
@@ -312,7 +312,7 @@ export default function Auth() {
       setSignUpPassword('');
       setConfirmSignUpPassword('');
       setSignUpFullName('');
-      navigate('/portal');
+      navigate('/auth');
     } catch (error: any) {
       toast({
         title: t('auth.loginError'),
