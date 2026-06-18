@@ -22,6 +22,7 @@ import {
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { DeadlineBadge, getDeadlineInfo, type DeadlineInfo } from './DeadlineBadge';
+import { UniversityAdmissionsSheet } from './UniversityAdmissionsSheet';
 
 // ── Types ──────────────────────────────────────────────────────────
 
@@ -392,14 +393,14 @@ function FilterBar({ filters, onChange }: { filters: Filters; onChange: (f: Filt
 
 // ── Institution Card ──────────────────────────────────────────────
 
-function InstitutionCard({ item }: { item: EnrichedInstitution }) {
+function InstitutionCard({ item, onClick }: { item: EnrichedInstitution; onClick: () => void }) {
   const inst = item.institution;
   const period = item.nearestPeriod;
 
   const typeLabel = inst.institution_type === 'private' ? 'Xususiy' : inst.institution_type === 'national' ? 'Davlat' : inst.institution_type || '';
 
   return (
-    <Card className="hover:shadow-md transition-shadow">
+    <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={onClick}>
       <CardContent className="p-4 space-y-3">
         <div className="flex items-start gap-3">
           {inst.logo_url ? (
@@ -487,7 +488,7 @@ function InstitutionCard({ item }: { item: EnrichedInstitution }) {
             {inst.is_women_only && <Badge variant="outline" className="text-[9px] ml-1 py-0">Women only</Badge>}
           </div>
           {inst.primary_admissions_url_ko && (
-            <Button variant="ghost" size="sm" className="h-7 text-xs" asChild>
+            <Button variant="ghost" size="sm" className="h-7 text-xs" asChild onClick={(e: React.MouseEvent) => e.stopPropagation()}>
               <a href={inst.primary_admissions_url_ko} target="_blank" rel="noopener noreferrer">
                 <ExternalLink className="h-3 w-3 mr-1" /> Sayt
               </a>
@@ -504,6 +505,8 @@ function InstitutionCard({ item }: { item: EnrichedInstitution }) {
 export default function ProgramFinderContent() {
   const [filters, setFilters] = useState<Filters>(defaultFilters);
   const { data: results, isLoading } = useCrmInstitutionSearch(filters);
+  const [selectedInstitution, setSelectedInstitution] = useState<Institution | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   const stats = useMemo(() => {
     if (!results) return null;
@@ -556,7 +559,7 @@ export default function ProgramFinderContent() {
       ) : results && results.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {results.map((item) => (
-            <InstitutionCard key={item.institution.id} item={item} />
+            <InstitutionCard key={item.institution.id} item={item} onClick={() => { setSelectedInstitution(item.institution); setSheetOpen(true); }} />
           ))}
         </div>
       ) : (
@@ -567,6 +570,12 @@ export default function ProgramFinderContent() {
           <p className="text-muted-foreground">Natija topilmadi. Filterlarni o'zgartiring.</p>
         </div>
       )}
+
+      <UniversityAdmissionsSheet
+        institution={selectedInstitution as any}
+        open={sheetOpen}
+        onOpenChange={setSheetOpen}
+      />
     </div>
   );
 }
