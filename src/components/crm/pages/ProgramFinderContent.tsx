@@ -284,7 +284,7 @@ function FilterBar({ filters, onChange }: { filters: Filters; onChange: (f: Filt
       }
     }, 300);
     return () => clearTimeout(timer);
-  }, [localSearch]);
+  }, [localSearch, filters, onChange]);
 
   useEffect(() => {
     setLocalSearch(filters.searchQuery);

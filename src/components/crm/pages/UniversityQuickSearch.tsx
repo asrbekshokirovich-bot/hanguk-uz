@@ -91,7 +91,7 @@ export function UniversityQuickSearch({ open, onOpenChange, onSelect }: Props) {
               <CommandItem
                 key={`recent-${inst.id}`}
                 value={`recent ${inst.name_ko} ${inst.name_en ?? ''}`}
-                onSelect={() => handleSelect(inst.id)}
+                onSelect={() => handleSelect(inst)}
               >
                 <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
                 <span className="font-medium">{inst.name_ko}</span>
@@ -106,7 +106,7 @@ export function UniversityQuickSearch({ open, onOpenChange, onSelect }: Props) {
             <CommandItem
               key={inst.id}
               value={`${inst.name_ko} ${inst.name_en ?? ''} ${inst.city_ko ?? ''}`}
-              onSelect={() => handleSelect(inst.id)}
+              onSelect={() => handleSelect(inst)}
             >
               <GraduationCap className="h-4 w-4 mr-2 text-muted-foreground" />
               <span className="font-medium">{inst.name_ko}</span>
