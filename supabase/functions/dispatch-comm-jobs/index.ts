@@ -15,10 +15,13 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const WORKERS: Record<string, { fn: string; param: string }> = {
+const WORKERS: Record<string, { fn: string; param: string; passRefTable?: boolean }> = {
   call_transcribe_analyze: { fn: "process-call-recording", param: "call_id" },
   document_extract: { fn: "process-document", param: "document_id" },
   student_track_infer: { fn: "infer-student-track", param: "student_id" },
+  // Phase 2: hybrid-retrieval embeddings. The worker handles three source
+  // tables, so it needs ref_table alongside ref_id to know what to fetch.
+  content_embed: { fn: "embed-content", param: "ref_id", passRefTable: true },
 };
 
 Deno.serve(async (req) => {
@@ -47,7 +50,7 @@ Deno.serve(async (req) => {
   // Pick claimable jobs: pending, or errored but still under max_attempts.
   const { data: jobs, error } = await supabase
     .from("comm_processing_jobs")
-    .select("id, job_type, ref_id, attempts, max_attempts, status")
+    .select("id, job_type, ref_table, ref_id, attempts, max_attempts, status")
     .in("status", ["pending", "error"])
     .order("created_at", { ascending: true })
     .limit(limit);
@@ -66,10 +69,12 @@ Deno.serve(async (req) => {
       continue;
     }
     try {
+      const payload: Record<string, unknown> = { [w.param]: jobRow.ref_id };
+      if (w.passRefTable) payload.ref_table = jobRow.ref_table;
       const res = await fetch(`${supabaseUrl}/functions/v1/${w.fn}`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${serviceKey}` },
-        body: JSON.stringify({ [w.param]: jobRow.ref_id }),
+        body: JSON.stringify(payload),
       });
       const out = await res.json().catch(() => ({}));
       results.push({ id: jobRow.id, ok: res.ok, status: res.status, out });

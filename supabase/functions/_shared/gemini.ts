@@ -45,6 +45,49 @@ export async function embedText(
   return values;
 }
 
+/** L2-normalise a vector in place-style (returns a new array). */
+function l2normalize(v: number[]): number[] {
+  let sum = 0;
+  for (const x of v) sum += x * x;
+  const norm = Math.sqrt(sum);
+  if (!norm || !Number.isFinite(norm)) return v;
+  return v.map((x) => x / norm);
+}
+
+/**
+ * Embed a single string with **gemini-embedding-001** (Phase 2 hybrid store).
+ * Matryoshka (MRL) output: we truncate to `outputDim` (default 1536, matching
+ * content_embeddings.embedding) and L2-normalise — Google recommends normalising
+ * whenever outputDimensionality != 3072, otherwise cosine distances are off.
+ *   taskType: RETRIEVAL_DOCUMENT to store, RETRIEVAL_QUERY to search.
+ */
+export async function embedContent001(
+  text: string,
+  taskType: "RETRIEVAL_DOCUMENT" | "RETRIEVAL_QUERY" = "RETRIEVAL_DOCUMENT",
+  outputDim = 1536,
+): Promise<number[]> {
+  const res = await fetch(
+    `${GEMINI_BASE}/models/gemini-embedding-001:embedContent?key=${apiKey()}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "models/gemini-embedding-001",
+        content: { parts: [{ text: text.slice(0, 8000) }] },
+        taskType,
+        outputDimensionality: outputDim,
+      }),
+    },
+  );
+  if (!res.ok) {
+    throw new Error(`Gemini embed (001) failed: ${res.status} ${await res.text()}`);
+  }
+  const json = await res.json();
+  const values = json?.embedding?.values;
+  if (!Array.isArray(values)) throw new Error("Gemini embed (001): no vector in response");
+  return outputDim === 3072 ? values : l2normalize(values);
+}
+
 /**
  * Run a Gemini model with a JSON response schema and return the parsed object.
  * `schema` is a Gemini responseSchema (OpenAPI-subset). Throws on transport
