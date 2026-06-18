@@ -57,12 +57,12 @@ const statusConfig: Record<DeadlineStatus, { variant: string; icon: typeof Clock
   'open': {
     variant: 'default',
     icon: Clock,
-    className: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30',
+    className: 'bg-success/10 text-success border-success/30',
   },
   'upcoming': {
     variant: 'default',
     icon: CalendarClock,
-    className: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/30',
+    className: 'bg-info/10 text-info border-info/30',
   },
   'closed': {
     variant: 'secondary',

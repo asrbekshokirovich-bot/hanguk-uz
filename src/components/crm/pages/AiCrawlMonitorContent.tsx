@@ -47,16 +47,16 @@ export default function AiCrawlMonitorContent() {
       </div>
 
       {/* Status banner */}
-      <Card className={enabled ? 'border-emerald-500/40' : 'border-amber-500/40'}>
+      <Card className={enabled ? 'border-success/40' : 'border-warning/40'}>
         <CardContent className="p-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             {enabled ? (
-              <div className="h-10 w-10 rounded-full bg-emerald-500/10 flex items-center justify-center">
-                <Power className="h-5 w-5 text-emerald-600" />
+              <div className="h-10 w-10 rounded-full bg-success/10 flex items-center justify-center">
+                <Power className="h-5 w-5 text-success" />
               </div>
             ) : (
-              <div className="h-10 w-10 rounded-full bg-amber-500/10 flex items-center justify-center">
-                <PauseCircle className="h-5 w-5 text-amber-600" />
+              <div className="h-10 w-10 rounded-full bg-warning/10 flex items-center justify-center">
+                <PauseCircle className="h-5 w-5 text-warning" />
               </div>
             )}
             <div>
@@ -81,8 +81,8 @@ export default function AiCrawlMonitorContent() {
       </Card>
 
       {!enabled && (
-        <div className="flex items-start gap-2 rounded-md border border-amber-500/30 bg-amber-500/5 p-3 text-xs">
-          <AlertTriangle className="h-4 w-4 text-amber-600 flex-shrink-0 mt-0.5" />
+        <div className="flex items-start gap-2 rounded-md border border-warning/30 bg-warning/5 p-3 text-xs">
+          <AlertTriangle className="h-4 w-4 text-warning flex-shrink-0 mt-0.5" />
           <div>
             <p className="font-medium">Tizim tayyor, lekin o'chiq.</p>
             <p className="text-muted-foreground mt-0.5">
@@ -145,7 +145,7 @@ export default function AiCrawlMonitorContent() {
               {runs.map((r) => (
                 <div key={r.id} className="flex items-center justify-between rounded-md border border-border/60 p-2 text-xs">
                   <div className="flex items-center gap-2">
-                    {r.status === 'succeeded' ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
+                    {r.status === 'succeeded' ? <CheckCircle2 className="h-3.5 w-3.5 text-success" />
                       : r.status === 'running' ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
                       : <AlertTriangle className="h-3.5 w-3.5 text-destructive" />}
                     <span>{fmtDateTime(r.started_at)}</span>

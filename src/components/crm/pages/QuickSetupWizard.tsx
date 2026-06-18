@@ -129,8 +129,8 @@ export function QuickSetupWizard({ institutionId, institutionName, open, onOpenC
         <div className="flex items-center gap-2 mb-2">
           {STEPS.map((label, i) => (
             <div key={label} className="flex items-center gap-2 flex-1">
-              <div className={`flex items-center gap-1.5 ${i === step ? 'text-primary font-medium' : i < step ? 'text-emerald-600' : 'text-muted-foreground'}`}>
-                <div className={`h-6 w-6 rounded-full flex items-center justify-center text-xs border ${i === step ? 'border-primary bg-primary/10' : i < step ? 'border-emerald-600 bg-emerald-600/10' : 'border-muted'}`}>
+              <div className={`flex items-center gap-1.5 ${i === step ? 'text-primary font-medium' : i < step ? 'text-success' : 'text-muted-foreground'}`}>
+                <div className={`h-6 w-6 rounded-full flex items-center justify-center text-xs border ${i === step ? 'border-primary bg-primary/10' : i < step ? 'border-success bg-success/10' : 'border-muted'}`}>
                   {i < step ? <Check className="h-3 w-3" /> : i + 1}
                 </div>
                 <span className="text-xs">{label}</span>

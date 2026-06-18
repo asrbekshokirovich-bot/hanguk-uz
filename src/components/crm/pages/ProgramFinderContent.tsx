@@ -312,9 +312,9 @@ function FilterBar({ filters, onChange }: { filters: Filters; onChange: (f: Filt
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Hammasi</SelectItem>
-            <SelectItem value="empty">🔴 To'ldirilmagan</SelectItem>
-            <SelectItem value="partial">🟡 Qisman</SelectItem>
-            <SelectItem value="complete">🟢 To'liq</SelectItem>
+            <SelectItem value="empty">To'ldirilmagan</SelectItem>
+            <SelectItem value="partial">Qisman</SelectItem>
+            <SelectItem value="complete">To'liq</SelectItem>
           </SelectContent>
         </Select>
 
@@ -422,12 +422,12 @@ function FilterBar({ filters, onChange }: { filters: Filters; onChange: (f: Filt
 
 function CompletenessBadge({ status }: { status: Completeness }) {
   if (status === 'empty') {
-    return <Badge variant="outline" className="text-[10px] border-red-500/50 text-red-600 bg-red-500/5">🔴 To'ldirilmagan</Badge>;
+    return <Badge variant="outline" className="text-[10px] border-destructive/40 text-destructive">To'ldirilmagan</Badge>;
   }
   if (status === 'partial') {
-    return <Badge variant="outline" className="text-[10px] border-amber-500/50 text-amber-600 bg-amber-500/5">🟡 Qisman</Badge>;
+    return <Badge variant="warning" className="text-[10px]">Qisman</Badge>;
   }
-  return <Badge variant="outline" className="text-[10px] border-emerald-500/50 text-emerald-600 bg-emerald-500/5">🟢 To'liq</Badge>;
+  return <Badge variant="successSoft" className="text-[10px]">To'liq</Badge>;
 }
 
 function InstitutionCard({ item, onClick }: { item: EnrichedInstitution; onClick: () => void }) {
@@ -452,10 +452,10 @@ function InstitutionCard({ item, onClick }: { item: EnrichedInstitution; onClick
             <div className="flex items-center gap-2 flex-wrap">
               <h3 className="font-semibold text-sm truncate">{inst.name_ko}</h3>
               {inst.is_partner && (
-                <Badge variant="default" className="text-[10px] px-1.5 py-0">Hamkor</Badge>
+                <Badge variant="highlight" className="text-[10px] px-1.5 py-0">Hamkor</Badge>
               )}
               {inst.ieqas_status === 'certified' && (
-                <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-emerald-500/50 text-emerald-600">
+                <Badge variant="successSoft" className="text-[10px] px-1.5 py-0">
                   <Shield className="h-2.5 w-2.5 mr-0.5" />IEQAS
                 </Badge>
               )}
@@ -513,7 +513,7 @@ function InstitutionCard({ item, onClick }: { item: EnrichedInstitution; onClick
               </Badge>
             )}
             {period.language_track && (
-              <Badge className={`text-[10px] border-0 ${period.language_track === 'english' ? 'bg-info/10 text-info' : 'bg-success/10 text-success'}`}>
+              <Badge variant={period.language_track === 'english' ? 'info' : 'successSoft'} className="text-[10px]">
                 {period.language_track === 'english' ? 'English' : '한국어'}
               </Badge>
             )}
@@ -603,11 +603,11 @@ export default function ProgramFinderContent() {
           <div className="flex gap-2">
             <Badge variant="secondary" className="text-sm">{stats.total} ta universitet</Badge>
             {stats.empty > 0 && (
-              <Badge variant="outline" className="text-sm border-red-500/50 text-red-600 cursor-pointer" onClick={() => setFilters(f => ({ ...f, dataStatus: 'empty' }))}>
+              <Badge variant="outline" className="text-sm border-destructive/40 text-destructive cursor-pointer" onClick={() => setFilters(f => ({ ...f, dataStatus: 'empty' }))}>
                 {stats.empty} ta to'ldirilmagan
               </Badge>
             )}
-            {stats.open > 0 && <Badge variant="default" className="text-sm bg-emerald-600">{stats.open} ta ochiq</Badge>}
+            {stats.open > 0 && <Badge variant="success" className="text-sm">{stats.open} ta ochiq</Badge>}
             {stats.upcoming > 0 && <Badge variant="outline" className="text-sm">{stats.upcoming} ta kutilmoqda</Badge>}
           </div>
         )}
