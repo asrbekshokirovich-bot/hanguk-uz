@@ -48,6 +48,8 @@ import { AdmissionCycleFormDialog } from './AdmissionCycleFormDialog';
 import { RequirementFormDialog } from './RequirementFormDialog';
 import { DocumentFormDialog } from './DocumentFormDialog';
 import { CloneCycleDialog } from './CloneCycleDialog';
+import { QuickSetupWizard } from './QuickSetupWizard';
+import { Sparkles } from 'lucide-react';
 import { useDeleteAdmissionPeriod } from '@/hooks/useAdmissionPeriodMutations';
 import { useDeleteAdmissionCycle, useDeleteRequirement } from '@/hooks/useAdmissionCycleMutations';
 import { useDeleteDocument } from '@/hooks/useDocumentMutations';
@@ -302,6 +304,8 @@ export function UniversityAdmissionsSheet({ institution, open, onOpenChange }: P
   const [cloneOpen, setCloneOpen] = useState(false);
   const [cloneSource, setCloneSource] = useState<{ id: string; label: string } | null>(null);
 
+  const [wizardOpen, setWizardOpen] = useState(false);
+
   const counts = useMemo(() => {
     if (!data) return { req: 0, doc: 0, sch: 0, tui: 0, per: 0 };
     return {
@@ -329,9 +333,13 @@ export function UniversityAdmissionsSheet({ institution, open, onOpenChange }: P
           </SheetTitle>
           <SheetDescription>
             {institution?.name_en ? `${institution.name_en} · ` : ''}
-            Auto-published admissions data (read-only). Flagged rows were published with
-            low extractor confidence — spot-check against the source.
+            Qabul ma'lumotlari. Tab orqali sikl, talab, hujjat va muddatlarni boshqaring.
           </SheetDescription>
+          {data && data.cycles.length === 0 && data.periods.length === 0 ? (
+            <Button size="sm" className="mt-2 gap-1.5 w-fit" onClick={() => setWizardOpen(true)}>
+              <Sparkles className="h-3.5 w-3.5" /> Tezkor sozlash (3 qadam)
+            </Button>
+          ) : null}
         </SheetHeader>
         <Separator />
 
@@ -533,6 +541,12 @@ export function UniversityAdmissionsSheet({ institution, open, onOpenChange }: P
               onOpenChange={setCloneOpen}
             />
           )}
+          <QuickSetupWizard
+            institutionId={institution.id}
+            institutionName={institution.name_ko ?? 'University'}
+            open={wizardOpen}
+            onOpenChange={setWizardOpen}
+          />
         </>
       )}
     </Sheet>
