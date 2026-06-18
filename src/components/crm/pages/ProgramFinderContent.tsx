@@ -37,6 +37,7 @@ interface Filters {
   ieqasOnly: boolean;
   maxTopik: number | null;
   cycleTrack: string;
+  dataStatus: string;
 }
 
 const defaultFilters: Filters = {
@@ -50,7 +51,16 @@ const defaultFilters: Filters = {
   ieqasOnly: false,
   maxTopik: null,
   cycleTrack: '',
+  dataStatus: '',
 };
+
+type Completeness = 'empty' | 'partial' | 'complete';
+
+function getCompleteness(reqCount: number, periodCount: number): Completeness {
+  if (reqCount === 0 && periodCount === 0) return 'empty';
+  if (reqCount > 0 && periodCount > 0) return 'complete';
+  return 'partial';
+}
 
 interface Institution {
   id: string;
@@ -207,6 +217,9 @@ function useCrmInstitutionSearch(filters: Filters) {
       if (filters.cycleTrack) {
         results = results.filter(r => r.requirements.some(req => req.cycle_track === filters.cycleTrack));
       }
+      if (filters.dataStatus) {
+        results = results.filter(r => getCompleteness(r.requirements.length, r.allPeriods.length) === filters.dataStatus);
+      }
       if (filters.admissionStatus === 'open') {
         results = results.filter(r => r.deadline?.status === 'closing-soon' || r.deadline?.status === 'open');
       } else if (filters.admissionStatus === 'upcoming') {
@@ -291,6 +304,18 @@ function FilterBar({ filters, onChange }: { filters: Filters; onChange: (f: Filt
       </div>
 
       <div className="flex flex-wrap gap-2">
+        <Select value={filters.dataStatus || 'all'} onValueChange={(v) => update({ dataStatus: v === 'all' ? '' : v })}>
+          <SelectTrigger className="w-[160px] h-9 text-xs">
+            <SelectValue placeholder="Ma'lumot holati" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Hammasi</SelectItem>
+            <SelectItem value="empty">🔴 To'ldirilmagan</SelectItem>
+            <SelectItem value="partial">🟡 Qisman</SelectItem>
+            <SelectItem value="complete">🟢 To'liq</SelectItem>
+          </SelectContent>
+        </Select>
+
         <Select value={filters.admissionStatus || 'all'} onValueChange={(v) => update({ admissionStatus: v === 'all' ? '' : v })}>
           <SelectTrigger className="w-[140px] h-9 text-xs">
             <SelectValue placeholder="Qabul holati" />
@@ -393,9 +418,20 @@ function FilterBar({ filters, onChange }: { filters: Filters; onChange: (f: Filt
 
 // ── Institution Card ──────────────────────────────────────────────
 
+function CompletenessBadge({ status }: { status: Completeness }) {
+  if (status === 'empty') {
+    return <Badge variant="outline" className="text-[10px] border-red-500/50 text-red-600 bg-red-500/5">🔴 To'ldirilmagan</Badge>;
+  }
+  if (status === 'partial') {
+    return <Badge variant="outline" className="text-[10px] border-amber-500/50 text-amber-600 bg-amber-500/5">🟡 Qisman</Badge>;
+  }
+  return <Badge variant="outline" className="text-[10px] border-emerald-500/50 text-emerald-600 bg-emerald-500/5">🟢 To'liq</Badge>;
+}
+
 function InstitutionCard({ item, onClick }: { item: EnrichedInstitution; onClick: () => void }) {
   const inst = item.institution;
   const period = item.nearestPeriod;
+  const completeness = getCompleteness(item.requirements.length, item.allPeriods.length);
 
   const typeLabel = inst.institution_type === 'private' ? 'Xususiy' : inst.institution_type === 'national' ? 'Davlat' : inst.institution_type || '';
 
@@ -440,6 +476,7 @@ function InstitutionCard({ item, onClick }: { item: EnrichedInstitution; onClick
 
         {/* Requirements summary */}
         <div className="flex flex-wrap gap-1.5">
+          <CompletenessBadge status={completeness} />
           {item.minTopik != null && (
             <Badge variant="outline" className="text-[10px]">TOPIK ≥ {item.minTopik}</Badge>
           )}
@@ -512,7 +549,8 @@ export default function ProgramFinderContent() {
     if (!results) return null;
     const open = results.filter(r => r.deadline?.status === 'open' || r.deadline?.status === 'closing-soon').length;
     const upcoming = results.filter(r => r.deadline?.status === 'upcoming').length;
-    return { total: results.length, open, upcoming };
+    const empty = results.filter(r => getCompleteness(r.requirements.length, r.allPeriods.length) === 'empty').length;
+    return { total: results.length, open, upcoming, empty };
   }, [results]);
 
   return (
@@ -530,6 +568,11 @@ export default function ProgramFinderContent() {
         {stats && (
           <div className="flex gap-2">
             <Badge variant="secondary" className="text-sm">{stats.total} ta universitet</Badge>
+            {stats.empty > 0 && (
+              <Badge variant="outline" className="text-sm border-red-500/50 text-red-600 cursor-pointer" onClick={() => setFilters(f => ({ ...f, dataStatus: 'empty' }))}>
+                {stats.empty} ta to'ldirilmagan
+              </Badge>
+            )}
             {stats.open > 0 && <Badge variant="default" className="text-sm bg-emerald-600">{stats.open} ta ochiq</Badge>}
             {stats.upcoming > 0 && <Badge variant="outline" className="text-sm">{stats.upcoming} ta kutilmoqda</Badge>}
           </div>
