@@ -1,13 +1,12 @@
 /**
- * Read-only admissions detail for one institution, shown in a side sheet from the
+ * Admissions detail for one institution, shown in a side sheet from the
  * CRM Universities list. Restores the per-university view that was dropped in the
  * 2026-05-10 uni_db cutover, re-pointed at the normalized tables via
  * useUniversityAdmissions.
  *
- * Read-only by design: the uni_db pipeline auto-publishes this data; staff use
- * this to spot-check it (the needs_attention badge surfaces low-confidence rows).
+ * Calendar tab now supports CRUD for admission periods via staff data entry.
  */
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import type { Institution } from '@/hooks/useUniversities';
 import {
   useUniversityAdmissions,
@@ -38,7 +37,13 @@ import {
   Wallet,
   CalendarClock,
   CheckCircle2,
+  Plus,
+  Pencil,
+  Trash2,
 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { AdmissionPeriodFormDialog } from './AdmissionPeriodFormDialog';
+import { useDeleteAdmissionPeriod } from '@/hooks/useAdmissionPeriodMutations';
 
 interface Props {
   institution: Institution | null;
@@ -204,14 +209,26 @@ function TuitionRowView({ t }: { t: TuitionRow }) {
   );
 }
 
-function PeriodRow({ p }: { p: AdmissionPeriod }) {
+function PeriodRow({ p, onEdit, onDelete }: { p: AdmissionPeriod; onEdit?: () => void; onDelete?: () => void }) {
   return (
     <div className="rounded-md border border-border/60 p-2.5">
       <div className="flex items-center justify-between gap-2">
         <span className="text-sm font-medium">
           {[p.year, p.semester, p.program_level, p.language_track].filter(Boolean).join(' · ')}
         </span>
-        {p.needs_attention ? <FlagBadge reason={p.attention_reason} /> : null}
+        <div className="flex items-center gap-1">
+          {p.needs_attention ? <FlagBadge reason={p.attention_reason} /> : null}
+          {onEdit && (
+            <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={onEdit}>
+              <Pencil className="h-3 w-3" />
+            </Button>
+          )}
+          {onDelete && (
+            <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-destructive hover:text-destructive" onClick={onDelete}>
+              <Trash2 className="h-3 w-3" />
+            </Button>
+          )}
+        </div>
       </div>
       <div className="text-xs text-muted-foreground mt-1 grid grid-cols-2 gap-x-3 gap-y-0.5">
         <span>Apply: {fmtDate(p.application_start)} → {fmtDate(p.application_end)}</span>
@@ -225,6 +242,9 @@ function PeriodRow({ p }: { p: AdmissionPeriod }) {
 
 export function UniversityAdmissionsSheet({ institution, open, onOpenChange }: Props) {
   const { data, isLoading, error } = useUniversityAdmissions(open ? institution?.id ?? null : null);
+  const [periodFormOpen, setPeriodFormOpen] = useState(false);
+  const [editingPeriod, setEditingPeriod] = useState<AdmissionPeriod | null>(null);
+  const deletePeriod = useDeleteAdmissionPeriod();
 
   const counts = useMemo(() => {
     if (!data) return { req: 0, doc: 0, sch: 0, tui: 0, per: 0 };
@@ -335,8 +355,24 @@ export function UniversityAdmissionsSheet({ institution, open, onOpenChange }: P
                 </TabsContent>
 
                 <TabsContent value="calendar" className="mt-2 space-y-1.5">
+                  <div className="flex justify-end mb-2">
+                    <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => { setEditingPeriod(null); setPeriodFormOpen(true); }}>
+                      <Plus className="h-3 w-3" /> Qabul davri qo'shish
+                    </Button>
+                  </div>
                   {data && data.periods.length ? (
-                    data.periods.map((p) => <PeriodRow key={p.id} p={p} />)
+                    data.periods.map((p) => (
+                      <PeriodRow
+                        key={p.id}
+                        p={p}
+                        onEdit={() => { setEditingPeriod(p); setPeriodFormOpen(true); }}
+                        onDelete={() => {
+                          if (confirm('Bu qabul davrini o\'chirmoqchimisiz?')) {
+                            deletePeriod.mutate({ id: p.id, institution_id: institution!.id });
+                          }
+                        }}
+                      />
+                    ))
                   ) : (
                     <EmptySection label="application calendar" />
                   )}
@@ -353,6 +389,15 @@ export function UniversityAdmissionsSheet({ institution, open, onOpenChange }: P
           </Tabs>
         )}
       </SheetContent>
+
+      {institution && (
+        <AdmissionPeriodFormDialog
+          institutionId={institution.id}
+          open={periodFormOpen}
+          onOpenChange={setPeriodFormOpen}
+          editPeriod={editingPeriod}
+        />
+      )}
     </Sheet>
   );
 }
