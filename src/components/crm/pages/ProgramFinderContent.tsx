@@ -558,8 +558,8 @@ export default function ProgramFinderContent() {
         setQuickOpen((o) => !o);
         return;
       }
-      // Ctrl+Q to open quick search (Windows/Linux safe; preventDefault stops browser handling).
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'q') {
+      // Alt+S to open quick search (not a browser shortcut on any OS).
+      if (e.altKey && e.key.toLowerCase() === 's') {
         e.preventDefault();
         setQuickOpen((o) => !o);
       }
@@ -595,7 +595,7 @@ export default function ProgramFinderContent() {
           </p>
           <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5 mt-2" onClick={() => setQuickOpen(true)}>
             <CommandIcon className="h-3 w-3" /> Tez qidiruv
-            <kbd className="ml-1 px-1.5 py-0.5 text-[10px] bg-muted rounded border">Ctrl+Q</kbd>
+            <kbd className="ml-1 px-1.5 py-0.5 text-[10px] bg-muted rounded border">Alt+S</kbd>
             <kbd className="px-1.5 py-0.5 text-[10px] bg-muted rounded border">/</kbd>
           </Button>
         </div>
