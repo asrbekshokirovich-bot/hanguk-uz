@@ -40,12 +40,14 @@ import {
   Plus,
   Pencil,
   Trash2,
+  Copy,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { AdmissionPeriodFormDialog } from './AdmissionPeriodFormDialog';
 import { AdmissionCycleFormDialog } from './AdmissionCycleFormDialog';
 import { RequirementFormDialog } from './RequirementFormDialog';
 import { DocumentFormDialog } from './DocumentFormDialog';
+import { CloneCycleDialog } from './CloneCycleDialog';
 import { useDeleteAdmissionPeriod } from '@/hooks/useAdmissionPeriodMutations';
 import { useDeleteAdmissionCycle, useDeleteRequirement } from '@/hooks/useAdmissionCycleMutations';
 import { useDeleteDocument } from '@/hooks/useDocumentMutations';
@@ -137,13 +139,14 @@ function DocumentRow({ d, onEdit, onDelete }: { d: RequiredDocument; onEdit?: ()
   );
 }
 
-function CycleCard({ cycle, onEditCycle, onDeleteCycle, onEditReq, onDeleteReq, onAddReq }: {
+function CycleCard({ cycle, onEditCycle, onDeleteCycle, onEditReq, onDeleteReq, onAddReq, onClone }: {
   cycle: AdmissionCycle;
   onEditCycle?: () => void;
   onDeleteCycle?: () => void;
   onEditReq?: (r: AdmissionRequirement) => void;
   onDeleteReq?: (id: string) => void;
   onAddReq?: () => void;
+  onClone?: () => void;
 }) {
   const title = [cycle.intake_year, cycle.intake_term, cycle.cycle_track]
     .filter(Boolean)
@@ -162,6 +165,7 @@ function CycleCard({ cycle, onEditCycle, onDeleteCycle, onEditReq, onDeleteReq, 
         </div>
         <div className="flex items-center gap-1">
           {cycle.needs_attention ? <FlagBadge reason={cycle.attention_reason} /> : null}
+          {onClone && <Button variant="ghost" size="sm" className="h-6 w-6 p-0" title="Boshqa semestrga nusxa" onClick={onClone}><Copy className="h-3 w-3" /></Button>}
           {onEditCycle && <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={onEditCycle}><Pencil className="h-3 w-3" /></Button>}
           {onDeleteCycle && <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-destructive hover:text-destructive" onClick={onDeleteCycle}><Trash2 className="h-3 w-3" /></Button>}
         </div>
@@ -295,6 +299,9 @@ export function UniversityAdmissionsSheet({ institution, open, onOpenChange }: P
   const [docCycleId, setDocCycleId] = useState<string>('');
   const deleteDoc = useDeleteDocument();
 
+  const [cloneOpen, setCloneOpen] = useState(false);
+  const [cloneSource, setCloneSource] = useState<{ id: string; label: string } | null>(null);
+
   const counts = useMemo(() => {
     if (!data) return { req: 0, doc: 0, sch: 0, tui: 0, per: 0 };
     return {
@@ -389,6 +396,10 @@ export function UniversityAdmissionsSheet({ institution, open, onOpenChange }: P
                             }
                           }}
                           onAddReq={() => { setEditingReq(null); setReqCycleId(c.id); setReqFormOpen(true); }}
+                          onClone={() => {
+                            setCloneSource({ id: c.id, label: [c.intake_year, c.intake_term, c.cycle_track].filter(Boolean).join(' · ') || 'Cycle' });
+                            setCloneOpen(true);
+                          }}
                         />
                       </div>
                     ))
@@ -511,6 +522,15 @@ export function UniversityAdmissionsSheet({ institution, open, onOpenChange }: P
               open={docFormOpen}
               onOpenChange={setDocFormOpen}
               editDoc={editingDoc}
+            />
+          )}
+          {cloneSource && (
+            <CloneCycleDialog
+              sourceCycleId={cloneSource.id}
+              institutionId={institution.id}
+              sourceLabel={cloneSource.label}
+              open={cloneOpen}
+              onOpenChange={setCloneOpen}
             />
           )}
         </>
