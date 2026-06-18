@@ -526,13 +526,22 @@ function InstitutionCard({ item, onClick }: { item: EnrichedInstitution; onClick
             {inst.institution_type || '—'}
             {inst.is_women_only && <Badge variant="outline" className="text-[9px] ml-1 py-0">Women only</Badge>}
           </div>
-          {inst.primary_admissions_url_ko && (
-            <Button variant="ghost" size="sm" className="h-7 text-xs" asChild onClick={(e: React.MouseEvent) => e.stopPropagation()}>
-              <a href={inst.primary_admissions_url_ko} target="_blank" rel="noopener noreferrer">
-                <ExternalLink className="h-3 w-3 mr-1" /> Sayt
-              </a>
-            </Button>
-          )}
+          <div className="flex items-center gap-1">
+            {inst.primary_domain && (
+              <Button variant="ghost" size="sm" className="h-7 text-xs" asChild onClick={(e: React.MouseEvent) => e.stopPropagation()}>
+                <a href={inst.primary_domain.startsWith('http') ? inst.primary_domain : `https://${inst.primary_domain}`} target="_blank" rel="noopener noreferrer">
+                  <ExternalLink className="h-3 w-3 mr-1" /> Sayt
+                </a>
+              </Button>
+            )}
+            {inst.primary_admissions_url_ko && (
+              <Button variant="ghost" size="sm" className="h-7 text-xs" asChild onClick={(e: React.MouseEvent) => e.stopPropagation()}>
+                <a href={inst.primary_admissions_url_ko} target="_blank" rel="noopener noreferrer">
+                  <GraduationCap className="h-3 w-3 mr-1" /> Qabul
+                </a>
+              </Button>
+            )}
+          </div>
         </div>
       </CardContent>
     </Card>

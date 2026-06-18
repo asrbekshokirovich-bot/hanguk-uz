@@ -41,6 +41,7 @@ import {
   Pencil,
   Trash2,
   Copy,
+  ExternalLink,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { AdmissionPeriodFormDialog } from './AdmissionPeriodFormDialog';
@@ -335,6 +336,28 @@ export function UniversityAdmissionsSheet({ institution, open, onOpenChange }: P
             {institution?.name_en ? `${institution.name_en} · ` : ''}
             Qabul ma'lumotlari. Tab orqali sikl, talab, hujjat va muddatlarni boshqaring.
           </SheetDescription>
+          <div className="flex items-center gap-2 pt-1">
+            {institution?.primary_domain && (
+              <a
+                href={institution.primary_domain.startsWith('http') ? institution.primary_domain : `https://${institution.primary_domain}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+              >
+                <ExternalLink className="h-3 w-3" /> Rasmiy sayt
+              </a>
+            )}
+            {institution?.primary_admissions_url_ko && (
+              <a
+                href={institution.primary_admissions_url_ko}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+              >
+                <GraduationCap className="h-3 w-3" /> Qabul sahifasi
+              </a>
+            )}
+          </div>
           {data && data.cycles.length === 0 && data.periods.length === 0 ? (
             <Button size="sm" className="mt-2 gap-1.5 w-fit" onClick={() => setWizardOpen(true)}>
               <Sparkles className="h-3.5 w-3.5" /> Tezkor sozlash (3 qadam)
