@@ -61,6 +61,7 @@ const CalendarContent = lazy(() => import('@/components/crm/pages/CalendarConten
 const SettingsContent = lazy(() => import('@/components/crm/pages/SettingsContent'));
 const KakaoMapContent = lazy(() => import('@/components/crm/pages/KakaoMapContent'));
 const UniDbReviewContent = lazy(() => import('@/components/crm/pages/UniDbReviewContent'));
+const ProgramFinderContent = lazy(() => import('@/components/crm/pages/ProgramFinderContent'));
 const ManageIntakesContent = lazy(() => import('@/components/crm/pages/ManageIntakesContent'));
 
 // Access denied component
@@ -125,6 +126,7 @@ export default function CRMPortal() {
     if (currentPath.startsWith('/crm/finance/reports')) return 'finance-reports';
     if (currentPath.startsWith('/crm/finance')) return 'finance';
     if (currentPath.startsWith('/crm/payments')) return 'finance'; // Legacy redirect
+    if (currentPath.startsWith('/crm/program-finder')) return 'program-finder';
     if (currentPath.startsWith('/crm/universities')) return 'universities';
     if (currentPath.startsWith('/crm/tasks')) return 'tasks';
     if (currentPath.startsWith('/crm/messages')) return 'messages';
@@ -383,6 +385,8 @@ export default function CRMPortal() {
       case 'finance-reports':
         if (!isOwner) return <AccessDenied />;
         return <FinanceReportsWrapper />;
+      case 'program-finder':
+        return <SafeSuspense><ProgramFinderContent /></SafeSuspense>;
       case 'universities':
         return <SafeSuspense><UniversitiesContent /></SafeSuspense>;
       case 'tasks':
