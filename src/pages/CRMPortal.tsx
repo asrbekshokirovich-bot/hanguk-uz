@@ -61,9 +61,7 @@ const CalendarContent = lazy(() => import('@/components/crm/pages/CalendarConten
 const SettingsContent = lazy(() => import('@/components/crm/pages/SettingsContent'));
 const KakaoMapContent = lazy(() => import('@/components/crm/pages/KakaoMapContent'));
 const UniDbReviewContent = lazy(() => import('@/components/crm/pages/UniDbReviewContent'));
-const ProgramFinderContent = lazy(() => import('@/components/crm/pages/ProgramFinderContent'));
 const ManageIntakesContent = lazy(() => import('@/components/crm/pages/ManageIntakesContent'));
-const AiCrawlMonitorContent = lazy(() => import('@/components/crm/pages/AiCrawlMonitorContent'));
 
 // Access denied component
 const AccessDenied = () => (
@@ -388,11 +386,9 @@ export default function CRMPortal() {
         if (!isOwner) return <AccessDenied />;
         return <FinanceReportsWrapper />;
       case 'program-finder':
-        return <SafeSuspense><ProgramFinderContent /></SafeSuspense>;
       case 'ai-crawl':
-        return <SafeSuspense><AiCrawlMonitorContent /></SafeSuspense>;
       case 'universities':
-        return <SafeSuspense><UniversitiesContent /></SafeSuspense>;
+        return <SafeSuspense><UniversitiesContent isOwner={isOwner} isAdmin={isAdmin} /></SafeSuspense>;
       case 'tasks':
         return <SafeSuspense><TasksContent /></SafeSuspense>;
       case 'messages':

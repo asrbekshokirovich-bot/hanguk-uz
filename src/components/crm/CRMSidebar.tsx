@@ -42,7 +42,6 @@ import {
   Clock,
   ClipboardCheck,
   LogOut,
-  Search,
 } from 'lucide-react';
 import { SidebarStaffPanel } from '@/components/intercom/SidebarStaffPanel';
 import { Logo } from '@/components/Logo';
@@ -113,8 +112,7 @@ function buildGroups(
       items: [
         { title: t('navigation.tasks'), url: '/crm/tasks', icon: ClipboardList, visible: true },
         { title: t('navigation.calendar'), url: '/crm/calendar', icon: Calendar, visible: true },
-        { title: t('navigation.universities'), url: '/crm/universities', icon: GraduationCap, visible: true },
-        { title: 'Dastur Qidiruv', url: '/crm/program-finder', icon: Search, visible: true, highlight: true },
+        { title: t('navigation.universities'), url: '/crm/universities', icon: GraduationCap, visible: true, highlight: true },
         { title: t('navigation.aiTranslation'), url: '/crm/translation', icon: Languages, visible: true, highlight: true },
         { title: t('navigation.kakaoMap'), url: '/crm/kakao-map', icon: MapPin, visible: true, highlight: true },
       ],
@@ -148,13 +146,6 @@ function buildGroups(
           url: '/crm/admin/uni-db-review',
           icon: ClipboardCheck,
           visible: canReviewUniDb,
-          highlight: true,
-        },
-        {
-          title: 'AI Crawl',
-          url: '/crm/admin/ai-crawl',
-          icon: Bot,
-          visible: isOwner || isAdmin,
           highlight: true,
         },
         { title: t('navigation.settings'), url: '/crm/settings', icon: Settings, visible: true },
