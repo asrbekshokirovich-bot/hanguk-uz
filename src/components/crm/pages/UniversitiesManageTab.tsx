@@ -29,6 +29,7 @@ import { useTranslation } from 'react-i18next';
 import { useUniversities, type Institution } from '@/hooks/useUniversities';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -81,6 +82,7 @@ import {
   CheckCircle2,
   Clock,
   AlertTriangle,
+  Bot,
 } from 'lucide-react';
 
 const ENABLE_LEGACY_FEATURES = false; // AI add + bulk import — disabled per Phase 3R-B
@@ -187,6 +189,23 @@ export default function UniversitiesManageTab() {
   const [confirmDelete, setConfirmDelete] = useState<Institution | null>(null);
   const [detail, setDetail] = useState<Institution | null>(null);
   const [busy, setBusy] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+
+  const toggleSelect = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const selectAll = () => {
+    if (selected.size === filtered.length) {
+      setSelected(new Set());
+    } else {
+      setSelected(new Set(filtered.map((r) => r.id)));
+    }
+  };
 
   // --- Guideline-PDF upload (the manual-upload front door, per-card) ---
   const [statusMap, setStatusMap] = useState<Map<string, string>>(new Map());
@@ -246,6 +265,55 @@ export default function UniversitiesManageTab() {
     } finally {
       setUploadingId(null);
     }
+  };
+
+  // --- AI Crawl per-institution ---
+  const [crawlingIds, setCrawlingIds] = useState<Set<string>>(new Set());
+  const [crawlResults, setCrawlResults] = useState<Map<string, { ok: boolean; message: string }>>(new Map());
+
+  const triggerCrawl = async (row: Institution) => {
+    if (!row.primary_admissions_url_ko && !row.primary_domain) {
+      toast({ title: 'URL yo\'q', description: 'Bu universitet uchun admissions URL yoki domen kiritilmagan.', variant: 'destructive' });
+      return;
+    }
+    const url = row.primary_admissions_url_ko || `https://${row.primary_domain}`;
+    setCrawlingIds((prev) => new Set(prev).add(row.id));
+    setCrawlResults((prev) => { const m = new Map(prev); m.delete(row.id); return m; });
+
+    try {
+      const { data, error } = await supabase.functions.invoke('crawl-worker', {
+        body: { institution_id: row.id, url },
+      });
+      if (error) throw error;
+      const result = data as Record<string, unknown>;
+      if (result.error) {
+        setCrawlResults((prev) => new Map(prev).set(row.id, { ok: false, message: String(result.error) }));
+        toast({ title: `${row.name_ko} — xato`, description: String(result.error), variant: 'destructive' });
+      } else if (result.skipped) {
+        setCrawlResults((prev) => new Map(prev).set(row.id, { ok: true, message: `O'tkazildi: ${result.reason}` }));
+        toast({ title: `${row.name_ko}`, description: `O'tkazildi: ${result.reason}` });
+      } else {
+        const count = (result.periods_found ?? 0) as number;
+        setCrawlResults((prev) => new Map(prev).set(row.id, { ok: true, message: `${count} ta davr topildi` }));
+        toast({ title: `${row.name_ko} — muvaffaqiyat`, description: `${count} ta qabul davri topildi` });
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setCrawlResults((prev) => new Map(prev).set(row.id, { ok: false, message: msg }));
+      toast({ title: `${row.name_ko} — xato`, description: msg, variant: 'destructive' });
+    } finally {
+      setCrawlingIds((prev) => { const s = new Set(prev); s.delete(row.id); return s; });
+    }
+  };
+
+  const triggerBatchCrawl = async () => {
+    const rows = institutions.filter((r) => selected.has(r.id));
+    if (rows.length === 0) return;
+    toast({ title: `${rows.length} ta universitet uchun AI Crawl boshlandi` });
+    for (const row of rows) {
+      await triggerCrawl(row);
+    }
+    setSelected(new Set());
   };
 
   const filtered = useMemo(() => {
@@ -385,8 +453,27 @@ export default function UniversitiesManageTab() {
           <Button size="sm" variant={filter === 'on_map' ? 'default' : 'outline'} onClick={() => setFilter('on_map')}>
             <MapPin className="h-4 w-4 mr-1" /> On map
           </Button>
+          <span className="text-muted-foreground">|</span>
+          <Button size="sm" variant="ghost" onClick={selectAll}>
+            {selected.size === filtered.length && filtered.length > 0 ? 'Barchasini olib tashlash' : 'Barchasini tanlash'}
+          </Button>
         </div>
       </div>
+
+      {selected.size > 0 && (
+        <div className="flex items-center gap-3 p-3 bg-primary/5 border rounded-lg">
+          <span className="text-sm font-medium">{selected.size} ta tanlandi</span>
+          <Button size="sm" onClick={triggerBatchCrawl} disabled={crawlingIds.size > 0}>
+            {crawlingIds.size > 0
+              ? <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+              : <Bot className="h-4 w-4 mr-1" />}
+            Tanlanganlarni AI Crawl qilish
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => setSelected(new Set())}>
+            Bekor qilish
+          </Button>
+        </div>
+      )}
 
       {loading ? (
         <Card>
@@ -408,6 +495,11 @@ export default function UniversitiesManageTab() {
             <Card key={row.id} className={row.is_partner ? 'border-primary/40' : undefined}>
               <CardHeader className="pb-2">
                 <div className="flex items-start gap-3">
+                  <Checkbox
+                    checked={selected.has(row.id)}
+                    onCheckedChange={() => toggleSelect(row.id)}
+                    className="mt-1 shrink-0"
+                  />
                   <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-info/10 text-info">
                     <GraduationCap className="h-5 w-5" />
                   </div>
@@ -480,6 +572,19 @@ export default function UniversitiesManageTab() {
                       size="sm"
                       variant="outline"
                       className="h-8"
+                      disabled={crawlingIds.has(row.id)}
+                      onClick={() => triggerCrawl(row)}
+                      title="AI orqali qabul ma'lumotlarini qidirish"
+                    >
+                      {crawlingIds.has(row.id)
+                        ? <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                        : <Bot className="h-4 w-4 mr-1" />}
+                      AI Crawl
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-8"
                       title="View admissions data"
                       onClick={() => setDetail(row)}
                     >
@@ -493,6 +598,12 @@ export default function UniversitiesManageTab() {
                     </Button>
                   </div>
                 </div>
+                {crawlResults.has(row.id) && (
+                  <div className={`text-xs mt-2 flex items-center gap-1 ${crawlResults.get(row.id)!.ok ? 'text-green-600' : 'text-destructive'}`}>
+                    {crawlResults.get(row.id)!.ok ? <CheckCircle2 className="h-3 w-3" /> : <AlertTriangle className="h-3 w-3" />}
+                    {crawlResults.get(row.id)!.message}
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))}
