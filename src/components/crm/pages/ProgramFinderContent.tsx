@@ -41,6 +41,7 @@ interface Filters {
   cycleTrack: string;
   dataStatus: string;
   institutionType: string;
+  category: 'all' | 'universities' | 'colleges';
 }
 
 const defaultFilters: Filters = {
@@ -56,6 +57,7 @@ const defaultFilters: Filters = {
   cycleTrack: '',
   dataStatus: '',
   institutionType: '',
+  category: 'all',
 };
 
 type Completeness = 'empty' | 'partial' | 'complete';
@@ -196,6 +198,11 @@ function useCrmInstitutionSearch(filters: Filters) {
       });
 
       // Client-side filters
+      if (filters.category === 'universities') {
+        results = results.filter(r => r.institution.institution_type !== 'junior_college');
+      } else if (filters.category === 'colleges') {
+        results = results.filter(r => r.institution.institution_type === 'junior_college');
+      }
       if (filters.institutionType) {
         results = results.filter(r => r.institution.institution_type === filters.institutionType);
       }
@@ -336,6 +343,18 @@ function FilterBar({ filters, onChange }: { filters: Filters; onChange: (f: Filt
             <RotateCcw className="h-3 w-3 mr-1" /> Clear
           </Button>
         )}
+      </div>
+
+      <div className="flex items-center gap-2">
+        <Button size="sm" variant={filters.category === 'all' ? 'default' : 'outline'} onClick={() => { update({ category: 'all', institutionType: '' }); }}>
+          All
+        </Button>
+        <Button size="sm" variant={filters.category === 'universities' ? 'default' : 'outline'} onClick={() => { update({ category: 'universities', institutionType: '' }); }}>
+          <GraduationCap className="h-4 w-4 mr-1" /> Universities
+        </Button>
+        <Button size="sm" variant={filters.category === 'colleges' ? 'default' : 'outline'} onClick={() => { update({ category: 'colleges', institutionType: '' }); }}>
+          <Building2 className="h-4 w-4 mr-1" /> Colleges
+        </Button>
       </div>
 
       {showMore && (

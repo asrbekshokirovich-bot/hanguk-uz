@@ -184,6 +184,7 @@ export default function UniversitiesManageTab() {
 
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<'all' | 'partners' | 'on_map' | 'new' | 'no_domain' | 'hidden'>('all');
+  const [category, setCategory] = useState<'all' | 'universities' | 'colleges'>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'name' | 'newest' | 'oldest'>('name');
   const [edit, setEdit] = useState<EditState>(null);
@@ -325,6 +326,8 @@ export default function UniversitiesManageTab() {
       if (filter === 'on_map' && !row.is_visible_on_map) return false;
       if (filter === 'hidden' && row.is_visible_on_map) return false;
       if (filter === 'no_domain' && row.primary_admissions_url_ko) return false;
+      if (category === 'universities' && row.institution_type === 'junior_college') return false;
+      if (category === 'colleges' && row.institution_type !== 'junior_college') return false;
       if (typeFilter !== 'all' && row.institution_type !== typeFilter) return false;
       if (filter === 'new') {
         const created = new Date(row.created_at);
@@ -344,7 +347,7 @@ export default function UniversitiesManageTab() {
     if (sortBy === 'newest') result.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     else if (sortBy === 'oldest') result.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
     return result;
-  }, [institutions, search, filter, typeFilter, sortBy]);
+  }, [institutions, search, filter, category, typeFilter, sortBy]);
 
   const openCreate = () => {
     setFields(emptyFields());
@@ -459,6 +462,16 @@ export default function UniversitiesManageTab() {
           />
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <Button size="sm" variant={category === 'all' ? 'default' : 'outline'} onClick={() => { setCategory('all'); setTypeFilter('all'); }}>
+            All
+          </Button>
+          <Button size="sm" variant={category === 'universities' ? 'default' : 'outline'} onClick={() => { setCategory('universities'); setTypeFilter('all'); }}>
+            <GraduationCap className="h-4 w-4 mr-1" /> Universities
+          </Button>
+          <Button size="sm" variant={category === 'colleges' ? 'default' : 'outline'} onClick={() => { setCategory('colleges'); setTypeFilter('all'); }}>
+            <Building2 className="h-4 w-4 mr-1" /> Colleges
+          </Button>
+          <span className="text-muted-foreground">|</span>
           <Button size="sm" variant={filter === 'all' ? 'default' : 'outline'} onClick={() => setFilter('all')}>
             All
           </Button>
