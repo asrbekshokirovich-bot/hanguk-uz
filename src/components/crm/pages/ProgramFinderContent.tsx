@@ -276,6 +276,7 @@ function useRegions() {
 function FilterBar({ filters, onChange }: { filters: Filters; onChange: (f: Filters) => void }) {
   const { data: regions } = useRegions();
   const [localSearch, setLocalSearch] = useState(filters.searchQuery);
+  const [showMore, setShowMore] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -293,127 +294,162 @@ function FilterBar({ filters, onChange }: { filters: Filters; onChange: (f: Filt
   const update = (partial: Partial<Filters>) => onChange({ ...filters, ...partial });
   const hasFilters = JSON.stringify(filters) !== JSON.stringify(defaultFilters);
 
+  const activeCount = [
+    filters.dataStatus, filters.admissionStatus, filters.semester,
+    filters.programLevel, filters.languageTrack, filters.cycleTrack,
+    filters.region, filters.maxTopik ? 'y' : '',
+    filters.partnerOnly ? 'y' : '', filters.ieqasOnly ? 'y' : '',
+  ].filter(Boolean).length;
+
   return (
     <div className="space-y-3">
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Universitet, yo'nalish, fakultet nomi bilan qidirish..."
-          value={localSearch}
-          onChange={(e) => setLocalSearch(e.target.value)}
-          className="pl-9"
-        />
-      </div>
-
-      <div className="flex flex-wrap gap-2">
-        <Select value={filters.dataStatus || 'all'} onValueChange={(v) => update({ dataStatus: v === 'all' ? '' : v })}>
-          <SelectTrigger className="w-[160px] h-9 text-xs">
-            <SelectValue placeholder="Ma'lumot holati" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Hammasi</SelectItem>
-            <SelectItem value="empty">To'ldirilmagan</SelectItem>
-            <SelectItem value="partial">Qisman</SelectItem>
-            <SelectItem value="complete">To'liq</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <Select value={filters.admissionStatus || 'all'} onValueChange={(v) => update({ admissionStatus: v === 'all' ? '' : v })}>
-          <SelectTrigger className="w-[140px] h-9 text-xs">
-            <SelectValue placeholder="Qabul holati" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Hammasi</SelectItem>
-            <SelectItem value="open">Ochiq</SelectItem>
-            <SelectItem value="upcoming">Tez orada</SelectItem>
-            <SelectItem value="closed">Yopilgan</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <Select value={filters.semester || 'all'} onValueChange={(v) => update({ semester: v === 'all' ? '' : v })}>
-          <SelectTrigger className="w-[130px] h-9 text-xs">
-            <SelectValue placeholder="Semestr" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Hammasi</SelectItem>
-            <SelectItem value="spring">Bahor (Spring)</SelectItem>
-            <SelectItem value="fall">Kuz (Fall)</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <Select value={filters.programLevel || 'all'} onValueChange={(v) => update({ programLevel: v === 'all' ? '' : v })}>
-          <SelectTrigger className="w-[130px] h-9 text-xs">
-            <SelectValue placeholder="Daraja" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Hammasi</SelectItem>
-            <SelectItem value="undergraduate">Bakalavr</SelectItem>
-            <SelectItem value="graduate">Magistr</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <Select value={filters.languageTrack || 'all'} onValueChange={(v) => update({ languageTrack: v === 'all' ? '' : v })}>
-          <SelectTrigger className="w-[130px] h-9 text-xs">
-            <SelectValue placeholder="Til" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Hammasi</SelectItem>
-            <SelectItem value="english">English</SelectItem>
-            <SelectItem value="korean">Korean</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <Select value={filters.cycleTrack || 'all'} onValueChange={(v) => update({ cycleTrack: v === 'all' ? '' : v })}>
-          <SelectTrigger className="w-[140px] h-9 text-xs">
-            <SelectValue placeholder="Qabul turi" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Hammasi</SelectItem>
-            <SelectItem value="foreign">Xorijiy (Foreign)</SelectItem>
-            <SelectItem value="overseas_korean_full">Koreys diaspora</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <Select value={filters.region || 'all'} onValueChange={(v) => update({ region: v === 'all' ? '' : v })}>
-          <SelectTrigger className="w-[130px] h-9 text-xs">
-            <SelectValue placeholder="Shahar" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Hammasi</SelectItem>
-            {(regions || []).map((r) => (
-              <SelectItem key={r} value={r}>{r}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <Select value={filters.maxTopik?.toString() || 'all'} onValueChange={(v) => update({ maxTopik: v === 'all' ? null : Number(v) })}>
-          <SelectTrigger className="w-[120px] h-9 text-xs">
-            <SelectValue placeholder="TOPIK" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Hammasi</SelectItem>
-            {[1, 2, 3, 4, 5, 6].map(level => (
-              <SelectItem key={level} value={level.toString()}>TOPIK ≤ {level}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <div className="flex items-center gap-2 px-2">
-          <Switch id="crm-partner" checked={filters.partnerOnly} onCheckedChange={(v) => update({ partnerOnly: v })} />
-          <Label htmlFor="crm-partner" className="text-xs cursor-pointer">Hamkor</Label>
+      <div className="flex gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Universitet, yo'nalish, fakultet nomi bilan qidirish..."
+            value={localSearch}
+            onChange={(e) => setLocalSearch(e.target.value)}
+            className="pl-9"
+          />
         </div>
-
-        <div className="flex items-center gap-2 px-2">
-          <Switch id="crm-ieqas" checked={filters.ieqasOnly} onCheckedChange={(v) => update({ ieqasOnly: v })} />
-          <Label htmlFor="crm-ieqas" className="text-xs cursor-pointer">IEQAS</Label>
-        </div>
-
+        <Button
+          variant={activeCount > 0 ? 'default' : 'outline'}
+          size="sm"
+          className="h-10 gap-1.5"
+          onClick={() => setShowMore(!showMore)}
+        >
+          <Filter className="h-4 w-4" />
+          Filtr
+          {activeCount > 0 && (
+            <Badge variant="secondary" className="h-5 min-w-5 px-1 text-[10px]">{activeCount}</Badge>
+          )}
+        </Button>
         {hasFilters && (
-          <Button variant="ghost" size="sm" className="h-9 text-xs" onClick={() => { onChange(defaultFilters); setLocalSearch(''); }}>
+          <Button variant="ghost" size="sm" className="h-10 text-xs" onClick={() => { onChange(defaultFilters); setLocalSearch(''); }}>
             <RotateCcw className="h-3 w-3 mr-1" /> Tozalash
           </Button>
         )}
       </div>
+
+      {showMore && (
+        <div className="border rounded-lg p-4 space-y-4 bg-card animate-in slide-in-from-top-2 duration-200">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Qabul holati</label>
+              <Select value={filters.admissionStatus || 'all'} onValueChange={(v) => update({ admissionStatus: v === 'all' ? '' : v })}>
+                <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Barchasi</SelectItem>
+                  <SelectItem value="open">🟢 Ochiq</SelectItem>
+                  <SelectItem value="upcoming">🟡 Tez orada</SelectItem>
+                  <SelectItem value="closed">🔴 Yopilgan</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Semestr</label>
+              <Select value={filters.semester || 'all'} onValueChange={(v) => update({ semester: v === 'all' ? '' : v })}>
+                <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Barchasi</SelectItem>
+                  <SelectItem value="spring">Bahor (Spring)</SelectItem>
+                  <SelectItem value="fall">Kuz (Fall)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Daraja</label>
+              <Select value={filters.programLevel || 'all'} onValueChange={(v) => update({ programLevel: v === 'all' ? '' : v })}>
+                <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Barchasi</SelectItem>
+                  <SelectItem value="undergraduate">Bakalavr</SelectItem>
+                  <SelectItem value="graduate">Magistr</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Til yo'nalishi</label>
+              <Select value={filters.languageTrack || 'all'} onValueChange={(v) => update({ languageTrack: v === 'all' ? '' : v })}>
+                <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Barchasi</SelectItem>
+                  <SelectItem value="english">English track</SelectItem>
+                  <SelectItem value="korean">Korean track</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Qabul turi</label>
+              <Select value={filters.cycleTrack || 'all'} onValueChange={(v) => update({ cycleTrack: v === 'all' ? '' : v })}>
+                <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Barchasi</SelectItem>
+                  <SelectItem value="foreign">Xorijiy (Foreign)</SelectItem>
+                  <SelectItem value="overseas_korean_full">Koreys diaspora</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Shahar / Mintaqa</label>
+              <Select value={filters.region || 'all'} onValueChange={(v) => update({ region: v === 'all' ? '' : v })}>
+                <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Barchasi</SelectItem>
+                  {(regions || []).map((r) => (
+                    <SelectItem key={r} value={r}>{r}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">TOPIK daraja</label>
+              <Select value={filters.maxTopik?.toString() || 'all'} onValueChange={(v) => update({ maxTopik: v === 'all' ? null : Number(v) })}>
+                <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Barchasi</SelectItem>
+                  {[1, 2, 3, 4, 5, 6].map(level => (
+                    <SelectItem key={level} value={level.toString()}>TOPIK {level} va past</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Ma'lumot holati</label>
+              <Select value={filters.dataStatus || 'all'} onValueChange={(v) => update({ dataStatus: v === 'all' ? '' : v })}>
+                <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Barchasi</SelectItem>
+                  <SelectItem value="empty">To'ldirilmagan</SelectItem>
+                  <SelectItem value="partial">Qisman</SelectItem>
+                  <SelectItem value="complete">To'liq</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-6 pt-1 border-t">
+            <div className="flex items-center gap-2">
+              <Switch id="crm-partner" checked={filters.partnerOnly} onCheckedChange={(v) => update({ partnerOnly: v })} />
+              <Label htmlFor="crm-partner" className="text-sm cursor-pointer">Faqat hamkorlar</Label>
+            </div>
+            <div className="flex items-center gap-2">
+              <Switch id="crm-ieqas" checked={filters.ieqasOnly} onCheckedChange={(v) => update({ ieqasOnly: v })} />
+              <Label htmlFor="crm-ieqas" className="text-sm cursor-pointer">Faqat IEQAS</Label>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
