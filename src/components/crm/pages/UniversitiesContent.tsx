@@ -18,7 +18,7 @@ interface Props {
 }
 
 export default function UniversitiesContent({ isOwner, isAdmin }: Props) {
-  const canSeeCrawl = isOwner || isAdmin;
+  const canManage = isOwner || isAdmin;
   const [tab, setTab] = useState('search');
 
   return (
@@ -29,11 +29,13 @@ export default function UniversitiesContent({ isOwner, isAdmin }: Props) {
             <Search className="h-4 w-4" />
             Program Search
           </TabsTrigger>
-          <TabsTrigger value="manage" className="gap-1.5">
-            <GraduationCap className="h-4 w-4" />
-            Manage
-          </TabsTrigger>
-          {canSeeCrawl && (
+          {canManage && (
+            <TabsTrigger value="manage" className="gap-1.5">
+              <GraduationCap className="h-4 w-4" />
+              Manage
+            </TabsTrigger>
+          )}
+          {canManage && (
             <TabsTrigger value="ai-crawl" className="gap-1.5">
               <Bot className="h-4 w-4" />
               AI Monitor
@@ -47,13 +49,15 @@ export default function UniversitiesContent({ isOwner, isAdmin }: Props) {
           </Suspense>
         </TabsContent>
 
-        <TabsContent value="manage" className="mt-4">
-          <Suspense fallback={<Fallback />}>
-            <UniversitiesManageTab />
-          </Suspense>
-        </TabsContent>
+        {canManage && (
+          <TabsContent value="manage" className="mt-4">
+            <Suspense fallback={<Fallback />}>
+              <UniversitiesManageTab />
+            </Suspense>
+          </TabsContent>
+        )}
 
-        {canSeeCrawl && (
+        {canManage && (
           <TabsContent value="ai-crawl" className="mt-4">
             <Suspense fallback={<Fallback />}>
               <AiCrawlMonitorContent />
