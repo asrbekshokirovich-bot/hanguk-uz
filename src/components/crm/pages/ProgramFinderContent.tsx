@@ -203,8 +203,14 @@ function useCrmInstitutionSearch(filters: Filters) {
       } else if (filters.category === 'colleges') {
         results = results.filter(r => r.institution.institution_type === 'junior_college');
       }
-      if (filters.institutionType) {
-        results = results.filter(r => r.institution.institution_type === filters.institutionType);
+      if (filters.institutionType === 'national_group') {
+        results = results.filter(r => ['national', 'national_special', 'public', 'education_university'].includes(r.institution.institution_type ?? ''));
+      } else if (filters.institutionType === 'private') {
+        results = results.filter(r => r.institution.institution_type === 'private' || r.institution.institution_type === 'specialized');
+      } else if (filters.institutionType === 'junior_college') {
+        results = results.filter(r => r.institution.institution_type === 'junior_college');
+      } else if (filters.institutionType === 'cyber') {
+        results = results.filter(r => r.institution.institution_type === 'cyber');
       }
       if (filters.partnerOnly) {
         results = results.filter(r => r.institution.is_partner === true);
@@ -416,15 +422,11 @@ function FilterBar({ filters, onChange }: { filters: Filters; onChange: (f: Filt
               <Select value={filters.institutionType || 'all'} onValueChange={(v) => update({ institutionType: v === 'all' ? '' : v })}>
                 <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All</SelectItem>
-                  <SelectItem value="national">National</SelectItem>
-                  <SelectItem value="public">Public</SelectItem>
+                  <SelectItem value="all">All types</SelectItem>
+                  <SelectItem value="national_group">National / Public</SelectItem>
                   <SelectItem value="private">Private</SelectItem>
-                  <SelectItem value="junior_college">Junior College</SelectItem>
-                  <SelectItem value="cyber">Cyber / Online</SelectItem>
-                  <SelectItem value="education_university">Education Univ.</SelectItem>
-                  <SelectItem value="national_special">National Special</SelectItem>
-                  <SelectItem value="specialized">Specialized</SelectItem>
+                  <SelectItem value="junior_college">College (2-3 yr)</SelectItem>
+                  <SelectItem value="cyber">Online / Cyber</SelectItem>
                 </SelectContent>
               </Select>
             </div>

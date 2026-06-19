@@ -303,7 +303,10 @@ export default function UniversitiesManageTab() {
       if (filter === 'no_domain' && row.primary_admissions_url_ko) return false;
       if (category === 'universities' && row.institution_type === 'junior_college') return false;
       if (category === 'colleges' && row.institution_type !== 'junior_college') return false;
-      if (typeFilter !== 'all' && row.institution_type !== typeFilter) return false;
+      if (typeFilter === 'national_group' && !['national', 'national_special', 'public', 'education_university'].includes(row.institution_type)) return false;
+      if (typeFilter === 'private' && row.institution_type !== 'private' && row.institution_type !== 'specialized') return false;
+      if (typeFilter === 'junior_college' && row.institution_type !== 'junior_college') return false;
+      if (typeFilter === 'cyber' && row.institution_type !== 'cyber') return false;
       if (filter === 'new') {
         const created = new Date(row.created_at);
         const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
@@ -472,14 +475,10 @@ export default function UniversitiesManageTab() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All types</SelectItem>
-              <SelectItem value="national">National</SelectItem>
-              <SelectItem value="public">Public</SelectItem>
+              <SelectItem value="national_group">National / Public</SelectItem>
               <SelectItem value="private">Private</SelectItem>
-              <SelectItem value="junior_college">Junior College</SelectItem>
-              <SelectItem value="cyber">Cyber / Online</SelectItem>
-              <SelectItem value="education_university">Education Univ.</SelectItem>
-              <SelectItem value="national_special">National Special</SelectItem>
-              <SelectItem value="specialized">Specialized</SelectItem>
+              <SelectItem value="junior_college">College (2-3 yr)</SelectItem>
+              <SelectItem value="cyber">Online / Cyber</SelectItem>
             </SelectContent>
           </Select>
           <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
