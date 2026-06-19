@@ -317,11 +317,23 @@ export default function UniversitiesManageTab() {
     })();
   }, [institutions]);
 
+  const BASIC_FIELDS: (keyof Institution)[] = [
+    'name_en', 'city_ko', 'region_code', 'latitude', 'longitude',
+    'tier', 'ieqas_status', 'primary_admissions_url_ko',
+  ];
+
   const getCompleteness = (row: Institution): 'complete' | 'partial' | 'empty' => {
     const periods = periodCounts.get(row.id) ?? 0;
     const reqs = reqCounts.get(row.id) ?? 0;
-    if (periods === 0 && reqs === 0) return 'empty';
-    if (periods > 0 && reqs > 0) return 'complete';
+    let basicFilled = 0;
+    for (const f of BASIC_FIELDS) {
+      const v = row[f];
+      if (v !== null && v !== undefined && v !== '') basicFilled++;
+    }
+    const hasAdmissions = periods > 0 && reqs > 0;
+    const hasBasic = basicFilled === BASIC_FIELDS.length;
+    if (!hasBasic && !hasAdmissions && periods === 0 && reqs === 0 && basicFilled === 0) return 'empty';
+    if (hasBasic && hasAdmissions) return 'complete';
     return 'partial';
   };
 
