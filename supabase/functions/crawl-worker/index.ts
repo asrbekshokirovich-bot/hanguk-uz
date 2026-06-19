@@ -216,6 +216,7 @@ Deno.serve(async (req) => {
   const admin = createClient(supabaseUrl, serviceKey);
 
   let runId: string | null = null;
+  let institutionId: string | null = null;
 
   try {
     const body = (await req.json()) as WorkerBody;
@@ -225,6 +226,7 @@ Deno.serve(async (req) => {
       model = "claude-sonnet-4-6",
       auto_approve_threshold = 0.9,
     } = body;
+    institutionId = institution_id;
 
     if (!anthropicKey) {
       return json(
@@ -395,7 +397,7 @@ Deno.serve(async (req) => {
         .eq("id", runId);
 
       // Update cache hash — page was fetched successfully, just no data found
-      await upsertPageCache(admin, institution_id, newHash, text.length);
+      await upsertPageCache(admin, institution_id, newHash, new TextEncoder().encode(text).byteLength);
 
       // Reset failures (page fetched OK, just no admissions data)
       await admin
@@ -508,7 +510,7 @@ Deno.serve(async (req) => {
       .eq("id", runId);
 
     // Update page cache + reset circuit breaker
-    await upsertPageCache(admin, institution_id, newHash, text.length);
+    await upsertPageCache(admin, institution_id, newHash, new TextEncoder().encode(text).byteLength);
     await admin
       .from("institutions")
       .update({
@@ -540,13 +542,12 @@ Deno.serve(async (req) => {
         .eq("id", runId);
     }
     // Record failure for circuit breaker
-    try {
-      const body = await req.clone().json().catch(() => null);
-      if (body?.institution_id) {
-        await recordFailure(admin, body.institution_id, runId, String(e));
+    if (institutionId) {
+      try {
+        await recordFailure(admin, institutionId, runId, String(e));
+      } catch {
+        // best-effort
       }
-    } catch {
-      // best-effort
     }
     return json({ error: String(e) }, 500);
   }

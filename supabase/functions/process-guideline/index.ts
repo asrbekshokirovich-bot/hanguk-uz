@@ -133,10 +133,15 @@ Deno.serve(async (req) => {
 
     for (const doc of docs) {
       try {
-        await admin
+        const { count } = await admin
           .from("guideline_documents")
-          .update({ parse_status: "running" })
-          .eq("id", doc.id);
+          .update({ parse_status: "running" }, { count: "exact" })
+          .eq("id", doc.id)
+          .eq("parse_status", "pending");
+        if ((count ?? 0) === 0) {
+          results.push({ id: doc.id, status: "skipped", periods: 0 });
+          continue;
+        }
 
         const dl = await admin.storage.from(BUCKET).download(doc.storage_path);
         if (dl.error || !dl.data) throw new Error(`Download failed: ${dl.error?.message}`);

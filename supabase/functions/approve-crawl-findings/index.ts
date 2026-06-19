@@ -15,6 +15,21 @@ Deno.serve(async (req) => {
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const admin = createClient(supabaseUrl, serviceKey);
 
+  // --- Auth check ---
+  const authHeader = req.headers.get("authorization") ?? "";
+  const token = authHeader.replace(/^Bearer\s+/i, "");
+  if (!token) {
+    return json({ error: "Missing authorization header" }, 401);
+  }
+
+  // Allow service-role key directly, otherwise verify as user JWT
+  if (token !== serviceKey) {
+    const { data: { user }, error: authError } = await admin.auth.getUser(token);
+    if (authError || !user) {
+      return json({ error: "Invalid or expired token" }, 401);
+    }
+  }
+
   try {
     const body = (await req.json().catch(() => ({}))) as {
       finding_id?: string;
@@ -25,13 +40,14 @@ Deno.serve(async (req) => {
     const now = new Date().toISOString();
 
     // --- Batch auto-approve mode ---
+    // Auto-approve pending findings where reviewer_decision->confidence >= 0.9
     if (body.auto) {
       const { data: items } = await admin
         .from("review_queue")
         .select("id, entity_id, reviewer_decision")
         .eq("entity_type", "crawl_finding")
         .eq("status", "pending")
-        .eq("reason", "high_confidence_auto")
+        .gte("reviewer_decision->>confidence", "0.9")
         .limit(50);
 
       if (!items || items.length === 0) {
@@ -42,6 +58,9 @@ Deno.serve(async (req) => {
       for (const item of items) {
         const dec = item.reviewer_decision as Record<string, unknown> | null;
         if (!dec?.suggested || !dec?.institution_id) continue;
+
+        const confidence = Number(dec.confidence);
+        if (!Number.isFinite(confidence) || confidence < 0.9) continue;
 
         const p = dec.suggested as Record<string, unknown>;
         await upsertPeriod(admin, dec.institution_id as string, p);
