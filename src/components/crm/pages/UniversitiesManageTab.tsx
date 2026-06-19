@@ -159,6 +159,7 @@ export default function UniversitiesManageTab() {
 
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<'all' | 'partners' | 'on_map' | 'new' | 'no_domain' | 'no_data' | 'hidden'>('all');
+  const [dataFilter, setDataFilter] = useState<'all' | 'complete' | 'partial' | 'empty'>('all');
   const [category, setCategory] = useState<'all' | 'universities' | 'colleges'>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'name' | 'newest' | 'oldest'>('name');
@@ -294,6 +295,33 @@ export default function UniversitiesManageTab() {
     setSelected(new Set());
   };
 
+  const DATA_FIELDS: (keyof Institution)[] = [
+    'name_en', 'city_ko', 'region_code', 'latitude', 'longitude',
+    'tier', 'ieqas_status', 'primary_admissions_url_ko',
+  ];
+
+  const getCompleteness = (row: Institution): 'complete' | 'partial' | 'empty' => {
+    let filled = 0;
+    for (const f of DATA_FIELDS) {
+      const v = row[f];
+      if (v !== null && v !== undefined && v !== '') filled++;
+    }
+    if (filled === DATA_FIELDS.length) return 'complete';
+    if (filled === 0) return 'empty';
+    return 'partial';
+  };
+
+  const dataStats = useMemo(() => {
+    let complete = 0, partial = 0, empty = 0;
+    for (const row of institutions) {
+      const c = getCompleteness(row);
+      if (c === 'complete') complete++;
+      else if (c === 'partial') partial++;
+      else empty++;
+    }
+    return { complete, partial, empty };
+  }, [institutions]);
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     const result = institutions.filter((row) => {
@@ -312,6 +340,7 @@ export default function UniversitiesManageTab() {
         const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
         if (created < threeDaysAgo) return false;
       }
+      if (dataFilter !== 'all' && getCompleteness(row) !== dataFilter) return false;
       if (!q) return true;
       const haystack = [
         row.name_ko ?? '',
@@ -325,7 +354,7 @@ export default function UniversitiesManageTab() {
     if (sortBy === 'newest') result.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     else if (sortBy === 'oldest') result.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
     return result;
-  }, [institutions, search, filter, category, typeFilter, sortBy]);
+  }, [institutions, search, filter, dataFilter, category, typeFilter, sortBy]);
 
   const openCreate = () => {
     setFields(emptyFields());
@@ -494,6 +523,17 @@ export default function UniversitiesManageTab() {
               <SelectItem value="cyber">Online / Cyber</SelectItem>
             </SelectContent>
           </Select>
+          <Select value={dataFilter} onValueChange={(v) => setDataFilter(v as typeof dataFilter)}>
+            <SelectTrigger className="h-8 w-[160px] text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All data ({institutions.length})</SelectItem>
+              <SelectItem value="complete">Complete ({dataStats.complete})</SelectItem>
+              <SelectItem value="partial">Partial ({dataStats.partial})</SelectItem>
+              <SelectItem value="empty">Empty ({dataStats.empty})</SelectItem>
+            </SelectContent>
+          </Select>
           <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
             <SelectTrigger className="h-8 w-[140px] text-xs">
               <SelectValue />
@@ -511,7 +551,7 @@ export default function UniversitiesManageTab() {
         </div>
       </div>
 
-      {filter !== 'all' && (
+      {(filter !== 'all' || dataFilter !== 'all') && (
         <div className="text-sm text-muted-foreground">
           {filtered.length} results (of {institutions.length} total)
         </div>
