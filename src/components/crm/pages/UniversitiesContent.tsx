@@ -36,7 +36,7 @@ export default function UniversitiesContent({ isOwner, isAdmin }: Props) {
           {canSeeCrawl && (
             <TabsTrigger value="ai-crawl" className="gap-1.5">
               <Bot className="h-4 w-4" />
-              AI Crawl
+              AI Monitor
             </TabsTrigger>
           )}
         </TabsList>

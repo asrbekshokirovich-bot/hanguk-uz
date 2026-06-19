@@ -274,7 +274,7 @@ export default function UniversitiesManageTab() {
 
   const triggerCrawl = async (row: Institution) => {
     if (!row.primary_admissions_url_ko && !row.primary_domain) {
-      toast({ title: 'URL yo\'q', description: 'Bu universitet uchun admissions URL yoki domen kiritilmagan.', variant: 'destructive' });
+      toast({ title: 'URL yo\'q', description: 'Avval universitetning qabul sahifasi URL\'ini kiriting.', variant: 'destructive' });
       return;
     }
     const url = row.primary_admissions_url_ko || `https://${row.primary_domain}`;
@@ -310,7 +310,7 @@ export default function UniversitiesManageTab() {
   const triggerBatchCrawl = async () => {
     const rows = institutions.filter((r) => selected.has(r.id));
     if (rows.length === 0) return;
-    toast({ title: `${rows.length} ta universitet uchun AI Crawl boshlandi` });
+    toast({ title: `${rows.length} ta universitet uchun AI yangilash boshlandi` });
     for (const row of rows) {
       await triggerCrawl(row);
     }
@@ -506,7 +506,7 @@ export default function UniversitiesManageTab() {
             {crawlingIds.size > 0
               ? <Loader2 className="h-4 w-4 mr-1 animate-spin" />
               : <Bot className="h-4 w-4 mr-1" />}
-            Tanlanganlarni AI Crawl qilish
+            Tanlanganlarni AI yangilash
           </Button>
           <Button size="sm" variant="ghost" onClick={() => setSelected(new Set())}>
             Bekor qilish
@@ -613,12 +613,12 @@ export default function UniversitiesManageTab() {
                       className="h-8"
                       disabled={crawlingIds.has(row.id)}
                       onClick={() => triggerCrawl(row)}
-                      title="AI orqali qabul ma'lumotlarini qidirish"
+                      title="AI orqali qabul ma'lumotlarini yangilash"
                     >
                       {crawlingIds.has(row.id)
                         ? <Loader2 className="h-4 w-4 mr-1 animate-spin" />
                         : <Bot className="h-4 w-4 mr-1" />}
-                      AI Crawl
+                      AI Yangilash
                     </Button>
                     <Button
                       size="sm"
