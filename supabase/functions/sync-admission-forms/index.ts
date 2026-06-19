@@ -275,17 +275,13 @@ Deno.serve(async (req) => {
     totalProcessedThisRun++;
     totalFoundThisRun += foundForm ? 1 : 0;
     totalFailedThisRun += foundForm ? 0 : 1;
-    const newProcessed = (job.processed ?? 0) + totalProcessedThisRun;
-    const newFound = (job.found ?? 0) + totalFoundThisRun;
-    const newFailed = (job.failed ?? 0) + totalFailedThisRun;
 
-    // Update running totals in the job row
     await supabase
       .from('admission_sync_jobs')
       .update({
-        processed: newProcessed,
-        found: newFound,
-        failed: newFailed,
+        processed: (job.processed ?? 0) + totalProcessedThisRun,
+        found: (job.found ?? 0) + totalFoundThisRun,
+        failed: (job.failed ?? 0) + totalFailedThisRun,
         status: 'running',
       })
       .eq('id', syncJobId);
