@@ -448,24 +448,50 @@ Deno.serve(async (req) => {
 
       newCount++;
 
+      const isHighConfidence = conf >= auto_approve_threshold;
+
       await admin.from("review_queue").insert({
         entity_type: "crawl_finding",
         entity_id: finding?.id ?? null,
-        reason:
-          conf >= auto_approve_threshold
-            ? "high_confidence_auto"
-            : "needs_review",
-        priority: conf >= auto_approve_threshold ? 3 : 1,
-        status: "pending",
+        reason: isHighConfidence ? "high_confidence_auto" : "needs_review",
+        priority: isHighConfidence ? 3 : 1,
+        status: isHighConfidence ? "approved" : "pending",
         reviewer_decision: {
           institution_id,
           confidence: conf,
           field_confidence: p.field_confidence ?? {},
           suggested: p,
           page_type: extracted.page_type,
+          source: "crawl",
         },
-        needs_attention: conf < auto_approve_threshold,
+        needs_attention: !isHighConfidence,
+        resolved_at: isHighConfidence ? new Date().toISOString() : null,
       });
+
+      if (isHighConfidence) {
+        await admin.from("university_admission_periods").upsert(
+          {
+            institution_id,
+            semester: p.semester,
+            year: p.year,
+            program_level: p.program_level,
+            language_track: p.language_track ?? null,
+            application_start: p.application_start ?? null,
+            application_end: p.application_end ?? null,
+            document_deadline: p.document_deadline ?? null,
+            result_announcement: p.result_announcement ?? null,
+            application_fee_krw: p.application_fee_krw ?? null,
+            application_fee_usd: p.application_fee_usd ?? null,
+            application_form_url: p.application_form_url ?? null,
+            needs_attention: false,
+            updated_at: new Date().toISOString(),
+          },
+          {
+            onConflict: "institution_id,semester,year,program_level,language_track",
+            ignoreDuplicates: false,
+          },
+        );
+      }
     }
 
     // 5) Close run successfully
