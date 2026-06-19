@@ -471,7 +471,7 @@ Deno.serve(async (req) => {
       });
 
       if (isHighConfidence) {
-        await admin.from("university_admission_periods").upsert(
+        const { error: upsertErr } = await admin.from("university_admission_periods").upsert(
           {
             institution_id,
             semester: p.semester,
@@ -493,6 +493,9 @@ Deno.serve(async (req) => {
             ignoreDuplicates: false,
           },
         );
+        if (upsertErr) {
+          console.error(`Auto-commit failed for ${institution_id}:`, upsertErr.message);
+        }
       }
     }
 

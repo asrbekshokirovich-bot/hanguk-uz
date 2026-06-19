@@ -47,7 +47,6 @@ Deno.serve(async (req) => {
         .select("id, entity_id, reviewer_decision")
         .eq("entity_type", "crawl_finding")
         .eq("status", "pending")
-        .gte("reviewer_decision->>confidence", "0.9")
         .limit(50);
 
       if (!items || items.length === 0) {

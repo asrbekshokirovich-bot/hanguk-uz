@@ -126,9 +126,7 @@ Deno.serve(async (req) => {
   }
 
   // Fire-and-forget: trigger process-guideline so the PDF is parsed automatically.
-  try {
-    admin.functions.invoke("process-guideline", { body: { document_id: doc.id } });
-  } catch (_) { /* best-effort */ }
+  admin.functions.invoke("process-guideline", { body: { document_id: doc.id } }).catch(() => {});
 
   return json({
     ok: true,

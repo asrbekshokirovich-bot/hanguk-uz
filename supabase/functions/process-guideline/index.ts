@@ -133,12 +133,13 @@ Deno.serve(async (req) => {
 
     for (const doc of docs) {
       try {
-        const { count } = await admin
+        const { data: updated } = await admin
           .from("guideline_documents")
-          .update({ parse_status: "running" }, { count: "exact" })
+          .update({ parse_status: "running" })
           .eq("id", doc.id)
-          .eq("parse_status", "pending");
-        if ((count ?? 0) === 0) {
+          .eq("parse_status", "pending")
+          .select("id");
+        if (!updated || updated.length === 0) {
           results.push({ id: doc.id, status: "skipped", periods: 0 });
           continue;
         }
