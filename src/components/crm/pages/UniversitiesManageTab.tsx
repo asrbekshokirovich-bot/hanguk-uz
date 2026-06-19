@@ -295,19 +295,33 @@ export default function UniversitiesManageTab() {
     setSelected(new Set());
   };
 
-  const DATA_FIELDS: (keyof Institution)[] = [
-    'name_en', 'city_ko', 'region_code', 'latitude', 'longitude',
-    'tier', 'ieqas_status', 'primary_admissions_url_ko',
-  ];
+  const [periodCounts, setPeriodCounts] = useState<Map<string, number>>(new Map());
+  const [reqCounts, setReqCounts] = useState<Map<string, number>>(new Map());
+
+  useEffect(() => {
+    (async () => {
+      const [pRes, rRes] = await Promise.all([
+        supabase.from('university_admission_periods').select('institution_id'),
+        supabase.from('admission_cycles').select('institution_id'),
+      ]);
+      const pm = new Map<string, number>();
+      for (const r of pRes.data ?? []) {
+        pm.set(r.institution_id, (pm.get(r.institution_id) ?? 0) + 1);
+      }
+      setPeriodCounts(pm);
+      const rm = new Map<string, number>();
+      for (const r of rRes.data ?? []) {
+        rm.set(r.institution_id, (rm.get(r.institution_id) ?? 0) + 1);
+      }
+      setReqCounts(rm);
+    })();
+  }, [institutions]);
 
   const getCompleteness = (row: Institution): 'complete' | 'partial' | 'empty' => {
-    let filled = 0;
-    for (const f of DATA_FIELDS) {
-      const v = row[f];
-      if (v !== null && v !== undefined && v !== '') filled++;
-    }
-    if (filled === DATA_FIELDS.length) return 'complete';
-    if (filled === 0) return 'empty';
+    const periods = periodCounts.get(row.id) ?? 0;
+    const reqs = reqCounts.get(row.id) ?? 0;
+    if (periods === 0 && reqs === 0) return 'empty';
+    if (periods > 0 && reqs > 0) return 'complete';
     return 'partial';
   };
 
@@ -320,7 +334,7 @@ export default function UniversitiesManageTab() {
       else empty++;
     }
     return { complete, partial, empty };
-  }, [institutions]);
+  }, [institutions, periodCounts, reqCounts]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -611,6 +625,12 @@ export default function UniversitiesManageTab() {
                       {row.is_visible_on_map ? <Badge variant="outline">on map</Badge> : null}
                       <Badge variant="neutral">{row.institution_type}</Badge>
                       {row.tier !== null && row.tier !== undefined ? <Badge variant="info">tier {row.tier}</Badge> : null}
+                      {(() => {
+                        const c = getCompleteness(row);
+                        if (c === 'empty') return <Badge variant="outline" className="border-destructive/40 text-destructive">Empty</Badge>;
+                        if (c === 'partial') return <Badge variant="warning">Partial</Badge>;
+                        return <Badge variant="lime">Complete</Badge>;
+                      })()}
                     </div>
                   </div>
                 </div>
