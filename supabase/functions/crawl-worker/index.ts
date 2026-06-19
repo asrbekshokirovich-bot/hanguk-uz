@@ -158,7 +158,7 @@ function pruneAndExtractText(html: string): string {
 
   // Remove script, style, noscript, svg, nav, footer, header (common noise)
   const stripTags = [
-    "script", "style", "noscript", "svg", "nav", "footer",
+    "script", "style", "noscript", "svg", "nav", "footer", "header",
     "iframe", "object", "embed",
   ];
   for (const tag of stripTags) {
@@ -459,7 +459,7 @@ Deno.serve(async (req) => {
 
       await admin.from("review_queue").insert({
         entity_type: "crawl_finding",
-        entity_id: finding?.id ?? null,
+        entity_id: finding.id,
         reason: isHighConfidence ? "high_confidence_auto" : "needs_review",
         priority: isHighConfidence ? 3 : 1,
         status: isHighConfidence ? "approved" : "pending",

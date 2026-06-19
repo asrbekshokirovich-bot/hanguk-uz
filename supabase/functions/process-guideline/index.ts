@@ -226,7 +226,7 @@ Deno.serve(async (req) => {
         for (const p of periods) {
           p.confidence = Math.max(0, Math.min(1, p.confidence ?? 0.5));
 
-          const { data: finding } = await admin
+          const { data: finding, error: findingError } = await admin
             .from("crawl_findings")
             .insert({
               crawl_run_id: run?.id ?? null,
@@ -237,11 +237,16 @@ Deno.serve(async (req) => {
             .select("id")
             .single();
 
+          if (findingError) {
+            console.error("Failed to insert crawl_finding:", findingError);
+            continue;
+          }
+
           const isHighConfidence = p.confidence >= autoApproveThreshold;
 
           await admin.from("review_queue").insert({
             entity_type: "crawl_finding",
-            entity_id: finding?.id ?? null,
+            entity_id: finding.id,
             reason: isHighConfidence ? "high_confidence_auto" : "needs_review",
             priority: isHighConfidence ? 3 : 1,
             status: isHighConfidence ? "approved" : "pending",

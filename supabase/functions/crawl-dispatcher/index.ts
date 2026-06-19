@@ -94,24 +94,29 @@ Deno.serve(async (req) => {
       })
       .eq("id", "singleton");
 
-    // 7) Fan out to worker
-    const dispatched: string[] = [];
-    const failed: string[] = [];
-
-    for (const inst of eligible) {
-      try {
-        await admin.functions.invoke("crawl-worker", {
+    // 7) Fan out to worker (parallel — sequential dispatch risks timeout)
+    const results = await Promise.allSettled(
+      eligible.map((inst) =>
+        admin.functions.invoke("crawl-worker", {
           body: {
             institution_id: inst.id,
             url: inst.primary_admissions_url_ko,
             model: cfg.model,
             auto_approve_threshold: cfg.auto_approve_threshold,
           },
-        });
-        dispatched.push(inst.id);
-      } catch (e) {
-        console.error("dispatch failed for", inst.id, inst.name_ko, e);
-        failed.push(inst.id);
+        }).then(() => inst)
+      ),
+    );
+
+    const dispatched: string[] = [];
+    const failed: string[] = [];
+    for (let i = 0; i < results.length; i++) {
+      const r = results[i];
+      if (r.status === "fulfilled") {
+        dispatched.push(r.value.id);
+      } else {
+        console.error("dispatch failed for", eligible[i].id, eligible[i].name_ko, r.reason);
+        failed.push(eligible[i].id);
       }
     }
 
