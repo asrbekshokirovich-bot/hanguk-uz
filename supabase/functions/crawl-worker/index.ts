@@ -433,7 +433,7 @@ Deno.serve(async (req) => {
     let newCount = 0;
     for (const p of validPeriods) {
       const conf = p.confidence;
-      const { data: finding } = await admin
+      const { data: finding, error: findingError } = await admin
         .from("crawl_findings")
         .insert({
           crawl_run_id: runId,
@@ -447,6 +447,11 @@ Deno.serve(async (req) => {
         })
         .select("id")
         .single();
+
+      if (findingError) {
+        console.error("Failed to insert crawl_finding:", findingError);
+        continue;
+      }
 
       newCount++;
 

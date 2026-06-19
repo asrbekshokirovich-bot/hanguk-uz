@@ -131,7 +131,7 @@ async function upsertPeriod(
   institutionId: string,
   p: Record<string, unknown>,
 ) {
-  await admin.from("university_admission_periods").upsert(
+  const { error } = await admin.from("university_admission_periods").upsert(
     {
       institution_id: institutionId,
       semester: p.semester,
@@ -153,6 +153,9 @@ async function upsertPeriod(
       ignoreDuplicates: false,
     },
   );
+  if (error) {
+    throw new Error(`Failed to upsert admission period for ${institutionId}: ${error.message}`);
+  }
 }
 
 function json(body: unknown, status = 200) {

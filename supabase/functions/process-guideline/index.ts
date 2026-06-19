@@ -204,7 +204,7 @@ Deno.serve(async (req) => {
         const periods: Period[] = (extracted.periods ?? []).filter(validatePeriod);
 
         // Create a crawl_run for tracking
-        const { data: run } = await admin
+        const { data: run, error: runError } = await admin
           .from("crawl_runs")
           .insert({
             institution_id: doc.institution_id,
@@ -216,6 +216,10 @@ Deno.serve(async (req) => {
           })
           .select("id")
           .single();
+
+        if (runError) {
+          console.error("Failed to insert crawl_run:", runError);
+        }
 
         const autoApproveThreshold = 0.9;
 

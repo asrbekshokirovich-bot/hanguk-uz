@@ -214,6 +214,10 @@ Deno.serve(async (req) => {
 
     if (validationError) {
       console.error('Error saving validation:', validationError);
+      return new Response(
+        JSON.stringify({ success: false, error: 'Failed to save validation result', details: validationError.message }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     // 5. Save detected changes
