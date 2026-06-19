@@ -274,7 +274,7 @@ export default function UniversitiesManageTab() {
 
   const triggerCrawl = async (row: Institution) => {
     if (!row.primary_admissions_url_ko && !row.primary_domain) {
-      toast({ title: 'URL yo\'q', description: 'Avval universitetning qabul sahifasi URL\'ini kiriting.', variant: 'destructive' });
+      toast({ title: 'No URL', description: 'Add an admissions URL or domain first.', variant: 'destructive' });
       return;
     }
     const url = row.primary_admissions_url_ko || `https://${row.primary_domain}`;
@@ -289,19 +289,19 @@ export default function UniversitiesManageTab() {
       const result = data as Record<string, unknown>;
       if (result.error) {
         setCrawlResults((prev) => new Map(prev).set(row.id, { ok: false, message: String(result.error) }));
-        toast({ title: `${row.name_ko} — xato`, description: String(result.error), variant: 'destructive' });
+        toast({ title: `${row.name_ko} — error`, description: String(result.error), variant: 'destructive' });
       } else if (result.skipped) {
-        setCrawlResults((prev) => new Map(prev).set(row.id, { ok: true, message: `O'tkazildi: ${result.reason}` }));
-        toast({ title: `${row.name_ko}`, description: `O'tkazildi: ${result.reason}` });
+        setCrawlResults((prev) => new Map(prev).set(row.id, { ok: true, message: `Skipped: ${result.reason}` }));
+        toast({ title: `${row.name_ko}`, description: `Skipped: ${result.reason}` });
       } else {
         const count = (result.periods_found ?? 0) as number;
-        setCrawlResults((prev) => new Map(prev).set(row.id, { ok: true, message: `${count} ta davr topildi` }));
-        toast({ title: `${row.name_ko} — muvaffaqiyat`, description: `${count} ta qabul davri topildi` });
+        setCrawlResults((prev) => new Map(prev).set(row.id, { ok: true, message: `${count} periods found` }));
+        toast({ title: `${row.name_ko} — success`, description: `${count} admission periods found` });
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       setCrawlResults((prev) => new Map(prev).set(row.id, { ok: false, message: msg }));
-      toast({ title: `${row.name_ko} — xato`, description: msg, variant: 'destructive' });
+      toast({ title: `${row.name_ko} — error`, description: msg, variant: 'destructive' });
     } finally {
       setCrawlingIds((prev) => { const s = new Set(prev); s.delete(row.id); return s; });
     }
@@ -310,7 +310,7 @@ export default function UniversitiesManageTab() {
   const triggerBatchCrawl = async () => {
     const rows = institutions.filter((r) => selected.has(r.id));
     if (rows.length === 0) return;
-    toast({ title: `${rows.length} ta universitet uchun AI yangilash boshlandi` });
+    toast({ title: `AI Update started for ${rows.length} institutions` });
     for (const row of rows) {
       await triggerCrawl(row);
     }
@@ -458,22 +458,22 @@ export default function UniversitiesManageTab() {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Button size="sm" variant={filter === 'all' ? 'default' : 'outline'} onClick={() => setFilter('all')}>
-            Barchasi
+            All
           </Button>
           <Button size="sm" variant={filter === 'new' ? 'default' : 'outline'} onClick={() => setFilter('new')}>
-            <Clock className="h-4 w-4 mr-1" /> Yangi (3 kun)
+            <Clock className="h-4 w-4 mr-1" /> Recent (3d)
           </Button>
           <Button size="sm" variant={filter === 'hidden' ? 'default' : 'outline'} onClick={() => setFilter('hidden')}>
-            <EyeOff className="h-4 w-4 mr-1" /> Yashirin
+            <EyeOff className="h-4 w-4 mr-1" /> Hidden
           </Button>
           <Button size="sm" variant={filter === 'no_domain' ? 'default' : 'outline'} onClick={() => setFilter('no_domain')}>
-            <AlertTriangle className="h-4 w-4 mr-1" /> URL yo'q
+            <AlertTriangle className="h-4 w-4 mr-1" /> No URL
           </Button>
           <Button size="sm" variant={filter === 'partners' ? 'default' : 'outline'} onClick={() => setFilter('partners')}>
-            <Star className="h-4 w-4 mr-1" /> Hamkorlar
+            <Star className="h-4 w-4 mr-1" /> Partners
           </Button>
           <Button size="sm" variant={filter === 'on_map' ? 'default' : 'outline'} onClick={() => setFilter('on_map')}>
-            <MapPin className="h-4 w-4 mr-1" /> Xaritada
+            <MapPin className="h-4 w-4 mr-1" /> On map
           </Button>
           <span className="text-muted-foreground">|</span>
           <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
@@ -481,35 +481,35 @@ export default function UniversitiesManageTab() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="name">Nomi bo'yicha</SelectItem>
-              <SelectItem value="newest">Eng yangi</SelectItem>
-              <SelectItem value="oldest">Eng eski</SelectItem>
+              <SelectItem value="name">By name</SelectItem>
+              <SelectItem value="newest">Newest first</SelectItem>
+              <SelectItem value="oldest">Oldest first</SelectItem>
             </SelectContent>
           </Select>
           <span className="text-muted-foreground">|</span>
           <Button size="sm" variant="ghost" onClick={selectAll}>
-            {selected.size === filtered.length && filtered.length > 0 ? 'Bekor qilish' : 'Barchasini tanlash'}
+            {selected.size === filtered.length && filtered.length > 0 ? 'Deselect all' : 'Select all'}
           </Button>
         </div>
       </div>
 
       {filter !== 'all' && (
         <div className="text-sm text-muted-foreground">
-          {filtered.length} ta natija (jami {institutions.length} tadan)
+          {filtered.length} results (of {institutions.length} total)
         </div>
       )}
 
       {selected.size > 0 && (
         <div className="flex items-center gap-3 p-3 bg-primary/5 border rounded-lg">
-          <span className="text-sm font-medium">{selected.size} ta tanlandi</span>
+          <span className="text-sm font-medium">{selected.size} selected</span>
           <Button size="sm" onClick={triggerBatchCrawl} disabled={crawlingIds.size > 0}>
             {crawlingIds.size > 0
               ? <Loader2 className="h-4 w-4 mr-1 animate-spin" />
               : <Bot className="h-4 w-4 mr-1" />}
-            Tanlanganlarni AI yangilash
+            AI Update selected
           </Button>
           <Button size="sm" variant="ghost" onClick={() => setSelected(new Set())}>
-            Bekor qilish
+            Cancel
           </Button>
         </div>
       )}
@@ -613,12 +613,12 @@ export default function UniversitiesManageTab() {
                       className="h-8"
                       disabled={crawlingIds.has(row.id)}
                       onClick={() => triggerCrawl(row)}
-                      title="AI orqali qabul ma'lumotlarini yangilash"
+                      title="Fetch admissions data via AI"
                     >
                       {crawlingIds.has(row.id)
                         ? <Loader2 className="h-4 w-4 mr-1 animate-spin" />
                         : <Bot className="h-4 w-4 mr-1" />}
-                      AI Yangilash
+                      AI Update
                     </Button>
                     <Button
                       size="sm"

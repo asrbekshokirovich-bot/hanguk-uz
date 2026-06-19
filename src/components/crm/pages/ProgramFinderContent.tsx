@@ -307,7 +307,7 @@ function FilterBar({ filters, onChange }: { filters: Filters; onChange: (f: Filt
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Universitet, yo'nalish, fakultet nomi bilan qidirish..."
+            placeholder="Search by university, program, or faculty name..."
             value={localSearch}
             onChange={(e) => setLocalSearch(e.target.value)}
             className="pl-9"
@@ -320,14 +320,14 @@ function FilterBar({ filters, onChange }: { filters: Filters; onChange: (f: Filt
           onClick={() => setShowMore(!showMore)}
         >
           <Filter className="h-4 w-4" />
-          Filtr
+          Filters
           {activeCount > 0 && (
             <Badge variant="secondary" className="h-5 min-w-5 px-1 text-[10px]">{activeCount}</Badge>
           )}
         </Button>
         {hasFilters && (
           <Button variant="ghost" size="sm" className="h-10 text-xs" onClick={() => { onChange(defaultFilters); setLocalSearch(''); }}>
-            <RotateCcw className="h-3 w-3 mr-1" /> Tozalash
+            <RotateCcw className="h-3 w-3 mr-1" /> Clear
           </Button>
         )}
       </div>
@@ -336,48 +336,48 @@ function FilterBar({ filters, onChange }: { filters: Filters; onChange: (f: Filt
         <div className="border rounded-lg p-4 space-y-4 bg-card animate-in slide-in-from-top-2 duration-200">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-muted-foreground">Qabul holati</label>
+              <label className="text-xs font-medium text-muted-foreground">Admission status</label>
               <Select value={filters.admissionStatus || 'all'} onValueChange={(v) => update({ admissionStatus: v === 'all' ? '' : v })}>
                 <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Barchasi</SelectItem>
-                  <SelectItem value="open">🟢 Ochiq</SelectItem>
-                  <SelectItem value="upcoming">🟡 Tez orada</SelectItem>
-                  <SelectItem value="closed">🔴 Yopilgan</SelectItem>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="open">🟢 Open</SelectItem>
+                  <SelectItem value="upcoming">🟡 Upcoming</SelectItem>
+                  <SelectItem value="closed">🔴 Closed</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-muted-foreground">Semestr</label>
+              <label className="text-xs font-medium text-muted-foreground">Semester</label>
               <Select value={filters.semester || 'all'} onValueChange={(v) => update({ semester: v === 'all' ? '' : v })}>
                 <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Barchasi</SelectItem>
-                  <SelectItem value="spring">Bahor (Spring)</SelectItem>
-                  <SelectItem value="fall">Kuz (Fall)</SelectItem>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="spring">Spring</SelectItem>
+                  <SelectItem value="fall">Fall</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-muted-foreground">Daraja</label>
+              <label className="text-xs font-medium text-muted-foreground">Program level</label>
               <Select value={filters.programLevel || 'all'} onValueChange={(v) => update({ programLevel: v === 'all' ? '' : v })}>
                 <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Barchasi</SelectItem>
-                  <SelectItem value="undergraduate">Bakalavr</SelectItem>
-                  <SelectItem value="graduate">Magistr</SelectItem>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="undergraduate">Undergraduate</SelectItem>
+                  <SelectItem value="graduate">Graduate</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-muted-foreground">Til yo'nalishi</label>
+              <label className="text-xs font-medium text-muted-foreground">Language track</label>
               <Select value={filters.languageTrack || 'all'} onValueChange={(v) => update({ languageTrack: v === 'all' ? '' : v })}>
                 <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Barchasi</SelectItem>
+                  <SelectItem value="all">All</SelectItem>
                   <SelectItem value="english">English track</SelectItem>
                   <SelectItem value="korean">Korean track</SelectItem>
                 </SelectContent>
@@ -387,23 +387,23 @@ function FilterBar({ filters, onChange }: { filters: Filters; onChange: (f: Filt
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-muted-foreground">Qabul turi</label>
+              <label className="text-xs font-medium text-muted-foreground">Admission type</label>
               <Select value={filters.cycleTrack || 'all'} onValueChange={(v) => update({ cycleTrack: v === 'all' ? '' : v })}>
                 <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Barchasi</SelectItem>
-                  <SelectItem value="foreign">Xorijiy (Foreign)</SelectItem>
-                  <SelectItem value="overseas_korean_full">Koreys diaspora</SelectItem>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="foreign">Foreign</SelectItem>
+                  <SelectItem value="overseas_korean_full">Overseas Korean</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-muted-foreground">Shahar / Mintaqa</label>
+              <label className="text-xs font-medium text-muted-foreground">City / Region</label>
               <Select value={filters.region || 'all'} onValueChange={(v) => update({ region: v === 'all' ? '' : v })}>
                 <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Barchasi</SelectItem>
+                  <SelectItem value="all">All</SelectItem>
                   {(regions || []).map((r) => (
                     <SelectItem key={r} value={r}>{r}</SelectItem>
                   ))}
@@ -412,27 +412,27 @@ function FilterBar({ filters, onChange }: { filters: Filters; onChange: (f: Filt
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-muted-foreground">TOPIK daraja</label>
+              <label className="text-xs font-medium text-muted-foreground">TOPIK level</label>
               <Select value={filters.maxTopik?.toString() || 'all'} onValueChange={(v) => update({ maxTopik: v === 'all' ? null : Number(v) })}>
                 <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Barchasi</SelectItem>
+                  <SelectItem value="all">All</SelectItem>
                   {[1, 2, 3, 4, 5, 6].map(level => (
-                    <SelectItem key={level} value={level.toString()}>TOPIK {level} va past</SelectItem>
+                    <SelectItem key={level} value={level.toString()}>TOPIK ≤ {level}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-muted-foreground">Ma'lumot holati</label>
+              <label className="text-xs font-medium text-muted-foreground">Data status</label>
               <Select value={filters.dataStatus || 'all'} onValueChange={(v) => update({ dataStatus: v === 'all' ? '' : v })}>
                 <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Barchasi</SelectItem>
-                  <SelectItem value="empty">To'ldirilmagan</SelectItem>
-                  <SelectItem value="partial">Qisman</SelectItem>
-                  <SelectItem value="complete">To'liq</SelectItem>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="empty">Empty</SelectItem>
+                  <SelectItem value="partial">Partial</SelectItem>
+                  <SelectItem value="complete">Complete</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -441,11 +441,11 @@ function FilterBar({ filters, onChange }: { filters: Filters; onChange: (f: Filt
           <div className="flex items-center gap-6 pt-1 border-t">
             <div className="flex items-center gap-2">
               <Switch id="crm-partner" checked={filters.partnerOnly} onCheckedChange={(v) => update({ partnerOnly: v })} />
-              <Label htmlFor="crm-partner" className="text-sm cursor-pointer">Faqat hamkorlar</Label>
+              <Label htmlFor="crm-partner" className="text-sm cursor-pointer">Partners only</Label>
             </div>
             <div className="flex items-center gap-2">
               <Switch id="crm-ieqas" checked={filters.ieqasOnly} onCheckedChange={(v) => update({ ieqasOnly: v })} />
-              <Label htmlFor="crm-ieqas" className="text-sm cursor-pointer">Faqat IEQAS</Label>
+              <Label htmlFor="crm-ieqas" className="text-sm cursor-pointer">IEQAS only</Label>
             </div>
           </div>
         </div>
@@ -458,12 +458,12 @@ function FilterBar({ filters, onChange }: { filters: Filters; onChange: (f: Filt
 
 function CompletenessBadge({ status }: { status: Completeness }) {
   if (status === 'empty') {
-    return <Badge variant="outline" className="text-[10px] border-destructive/40 text-destructive">To'ldirilmagan</Badge>;
+    return <Badge variant="outline" className="text-[10px] border-destructive/40 text-destructive">Empty</Badge>;
   }
   if (status === 'partial') {
-    return <Badge variant="warning" className="text-[10px]">Qisman</Badge>;
+    return <Badge variant="warning" className="text-[10px]">Partial</Badge>;
   }
-  return <Badge variant="successSoft" className="text-[10px]">To'liq</Badge>;
+  return <Badge variant="successSoft" className="text-[10px]">Complete</Badge>;
 }
 
 function InstitutionCard({ item, onClick }: { item: EnrichedInstitution; onClick: () => void }) {
@@ -636,7 +636,7 @@ export default function ProgramFinderContent() {
             Universitet Qidiruv
           </h2>
           <p className="text-sm text-muted-foreground">
-            Universitetlarni nomi, yo'nalishi, sertifikatlari bo'yicha qidiring. Eng yaqin deadline tepada.
+            Search universities by name, program, or certification. Nearest deadlines shown first.
           </p>
           <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5 mt-2" onClick={() => setQuickOpen(true)}>
             <CommandIcon className="h-3 w-3" /> Tez qidiruv
@@ -689,7 +689,7 @@ export default function ProgramFinderContent() {
           <div className="h-14 w-14 rounded-full bg-muted flex items-center justify-center">
             <AlertCircle className="h-7 w-7 text-muted-foreground" />
           </div>
-          <p className="text-muted-foreground">Natija topilmadi. Filterlarni o'zgartiring.</p>
+          <p className="text-muted-foreground">No results found. Try adjusting your filters.</p>
         </div>
       )}
 

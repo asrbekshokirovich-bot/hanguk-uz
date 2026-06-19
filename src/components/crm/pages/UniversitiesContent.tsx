@@ -27,11 +27,11 @@ export default function UniversitiesContent({ isOwner, isAdmin }: Props) {
         <TabsList>
           <TabsTrigger value="search" className="gap-1.5">
             <Search className="h-4 w-4" />
-            Dastur Qidiruv
+            Program Search
           </TabsTrigger>
           <TabsTrigger value="manage" className="gap-1.5">
             <GraduationCap className="h-4 w-4" />
-            Boshqaruv
+            Manage
           </TabsTrigger>
           {canSeeCrawl && (
             <TabsTrigger value="ai-crawl" className="gap-1.5">
