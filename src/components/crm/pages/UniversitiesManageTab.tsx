@@ -1,29 +1,3 @@
-/**
- * Phase 3R-B cutover (2026-05-10) — full replacement.
- *
- * The legacy 4-component universities feature (UniversityList,
- * UniversityForm, UniversityDetailSheet, AIUniversityForm) and the
- * koreanUniversitiesApi bulk-import flow were tied to the now-dropped
- * `public.universities` table. This page is a clean rebuild against
- * the canonical `public.institutions` (uni_db) table:
- *
- *   - Browse / search institutions (Korean + English name)
- *   - Toggle is_partner / is_visible_on_map per row
- *   - Add a new institution (minimal form: Korean + English name,
- *     primary_domain, type)
- *   - Edit name + tier + admissions URL
- *   - Delete (with confirm)
- *   - Per-row partner badge + map-visible badge
- *
- * Deferred (intentionally hidden):
- *   - LLM-powered "AI add" form  (legacy AIUniversityForm)
- *   - Bulk-import button (legacy `koreanUniversitiesApi.startBackgroundImport`)
- *
- * Both will be re-implemented later against the institutions schema +
- * recruitment_units. For now they're behind a hard-coded false flag so
- * staff don't accidentally write to a non-existent legacy path.
- */
-
 import { useMemo, useState, useRef, useEffect, type ChangeEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useUniversities, type Institution } from '@/hooks/useUniversities';
@@ -85,9 +59,10 @@ import {
   Bot,
 } from 'lucide-react';
 
-const ENABLE_LEGACY_FEATURES = false; // AI add + bulk import — disabled per Phase 3R-B
-
-const INSTITUTION_TYPES = ['national', 'public', 'private', 'religious', 'special'];
+const INSTITUTION_TYPES = [
+  'national', 'public', 'private', 'junior_college', 'cyber',
+  'education_university', 'national_special', 'specialized',
+];
 
 type EditState =
   | { mode: 'create' }
@@ -679,15 +654,6 @@ export default function UniversitiesManageTab() {
           ))}
         </div>
       )}
-
-      {/* Disabled legacy features banner — visible only when the flag flips on */}
-      {ENABLE_LEGACY_FEATURES ? (
-        <Card>
-          <CardContent className="p-4 text-xs text-muted-foreground">
-            (Legacy AI add + bulk import would render here once re-implemented against institutions.)
-          </CardContent>
-        </Card>
-      ) : null}
 
       <UniversityAdmissionsSheet
         institution={detail}
