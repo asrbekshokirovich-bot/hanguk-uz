@@ -1,0 +1,65 @@
+{
+  "_comment": "Phase 0 voice bake-off lines for the Hanguk Uzbek phone agent. Real, in-domain Uzbek sentences (greeting + disclosure, GKS/TOPIK/visa answers, lead capture, hand-off). A native Uzbek speaker rates each voice on accent, naturalness, clarity, and prosody. These same lines double as the agent's canned phrases. 'en' is a gloss for the team, never synthesized.",
+  "sentences": [
+    {
+      "id": "01-greeting-disclosure",
+      "uz": "Assalomu alaykum! Men Hanguk Education kompaniyasining virtual yordamchisiman. Sizga qanday yordam bera olaman?",
+      "en": "Hello! I'm Hanguk Education's virtual assistant. How can I help you?"
+    },
+    {
+      "id": "02-ask-need",
+      "uz": "Albatta, yordam beraman. Siz Koreyada bakalavr, magistratura yoki til kursi haqida ma'lumot olmoqchimisiz?",
+      "en": "Of course, I'll help. Are you interested in a Bachelor's, Master's, or a language course in Korea?"
+    },
+    {
+      "id": "03-gks-scholarship",
+      "uz": "GKS — bu Koreya hukumati stipendiyasi. U o'qish to'lovini, samolyot chiptasini va oylik nafaqani to'liq qoplaydi. Talabnoma odatda har yili fevral va mart oylarida ochiladi.",
+      "en": "GKS is the Korean Government Scholarship. It fully covers tuition, airfare, and a monthly stipend. Applications usually open in February and March each year."
+    },
+    {
+      "id": "04-topik-requirement",
+      "uz": "Ko'pchilik universitetlar uchun TOPIK 3-daraja yetarli, ammo ba'zi dasturlar 4-darajani talab qiladi. Agar koreys tilini bilmasangiz, ingliz tilidagi dasturlar ham bor.",
+      "en": "For most universities TOPIK level 3 is enough, but some programs require level 4. If you don't know Korean, there are also English-taught programs."
+    },
+    {
+      "id": "05-bachelor-steps",
+      "uz": "Bakalavrga kirish uchun avval attestat va diplomingizni tayyorlaymiz, keyin universitet tanlaymiz, hujjatlarni topshiramiz va viza jarayonini boshlaymiz. Butun jarayonda biz siz bilan bo'lamiz.",
+      "en": "For Bachelor's admission we first prepare your certificate and diploma, then choose a university, submit documents, and start the visa process. We're with you the whole way."
+    },
+    {
+      "id": "06-visa-d2",
+      "uz": "O'qish uchun sizga D-2 talaba vizasi kerak bo'ladi. Universitetdan qabul xati kelgach, viza uchun hujjatlarni Seul elchixonasiga topshiramiz. Bu odatda ikki-uch hafta vaqt oladi.",
+      "en": "For studying you'll need a D-2 student visa. Once the university acceptance letter arrives, we submit the visa documents to the Seoul embassy. This usually takes two to three weeks."
+    },
+    {
+      "id": "07-cost-consultation",
+      "uz": "Bir yillik o'qish to'lovi universitetga qarab taxminan to'rt mingdan olti ming dollargacha bo'ladi. Aniq raqamlarni bepul maslahat uchrashuvida batafsil tushuntiramiz.",
+      "en": "Annual tuition is roughly four to six thousand dollars depending on the university. We'll explain exact figures in a free consultation."
+    },
+    {
+      "id": "08-capture-callback",
+      "uz": "Sizga to'liq ma'lumot yuborishimiz uchun ismingiz va telefon raqamingizni qoldirsangiz bo'ladimi? Mutaxassisimiz bugun siz bilan bog'lanadi.",
+      "en": "May I take your name and phone number so we can send you full details? Our specialist will contact you today."
+    },
+    {
+      "id": "09-language-course",
+      "uz": "Bizda koreys tili kurslari ham bor — noldan boshlab TOPIK imtihoniga tayyorlash. Darslar haftada to'rt marta, tajribali o'qituvchilar bilan o'tiladi.",
+      "en": "We also have Korean language courses — from zero to TOPIK exam preparation. Classes are four times a week with experienced teachers."
+    },
+    {
+      "id": "10-handoff",
+      "uz": "Bu savol bo'yicha sizni mutaxassisimizga ulab qo'yaman, u sizga aniqroq javob beradi. Bir daqiqa kuting, iltimos.",
+      "en": "For this question I'll connect you to our specialist who can answer more precisely. One moment, please."
+    },
+    {
+      "id": "11-numbers-dates",
+      "uz": "Bahorgi qabul 2026-yil 1-mart kuni yopiladi. Ro'yxatdan o'tish uchun 250 dollar to'lov va 3 ta tavsiyanoma kerak bo'ladi.",
+      "en": "Spring intake closes on March 1, 2026. To register you'll need a $250 fee and 3 recommendation letters. (Tests numbers, dates, code-switched terms.)"
+    },
+    {
+      "id": "12-empathy-closing",
+      "uz": "Tushunaman, chet elda o'qish katta qaror. Xavotir olmang — biz har bir bosqichda yoningizdamiz. Sizni Koreyada ko'rishni juda istaymiz!",
+      "en": "I understand, studying abroad is a big decision. Don't worry — we're beside you at every step. We'd love to see you in Korea! (Tests warmth/emotion/prosody.)"
+    }
+  ]
+}
