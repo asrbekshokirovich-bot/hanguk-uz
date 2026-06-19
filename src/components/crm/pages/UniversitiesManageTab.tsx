@@ -184,6 +184,7 @@ export default function UniversitiesManageTab() {
 
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<'all' | 'partners' | 'on_map' | 'new' | 'no_domain' | 'hidden'>('all');
+  const [typeFilter, setTypeFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'name' | 'newest' | 'oldest'>('name');
   const [edit, setEdit] = useState<EditState>(null);
   const [fields, setFields] = useState<FormFields>(emptyFields());
@@ -324,6 +325,7 @@ export default function UniversitiesManageTab() {
       if (filter === 'on_map' && !row.is_visible_on_map) return false;
       if (filter === 'hidden' && row.is_visible_on_map) return false;
       if (filter === 'no_domain' && row.primary_admissions_url_ko) return false;
+      if (typeFilter !== 'all' && row.institution_type !== typeFilter) return false;
       if (filter === 'new') {
         const created = new Date(row.created_at);
         const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
@@ -342,7 +344,7 @@ export default function UniversitiesManageTab() {
     if (sortBy === 'newest') result.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     else if (sortBy === 'oldest') result.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
     return result;
-  }, [institutions, search, filter, sortBy]);
+  }, [institutions, search, filter, typeFilter, sortBy]);
 
   const openCreate = () => {
     setFields(emptyFields());
@@ -476,6 +478,22 @@ export default function UniversitiesManageTab() {
             <MapPin className="h-4 w-4 mr-1" /> On map
           </Button>
           <span className="text-muted-foreground">|</span>
+          <Select value={typeFilter} onValueChange={setTypeFilter}>
+            <SelectTrigger className="h-8 w-[160px] text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All types</SelectItem>
+              <SelectItem value="national">National</SelectItem>
+              <SelectItem value="public">Public</SelectItem>
+              <SelectItem value="private">Private</SelectItem>
+              <SelectItem value="junior_college">Junior College</SelectItem>
+              <SelectItem value="cyber">Cyber / Online</SelectItem>
+              <SelectItem value="education_university">Education Univ.</SelectItem>
+              <SelectItem value="national_special">National Special</SelectItem>
+              <SelectItem value="specialized">Specialized</SelectItem>
+            </SelectContent>
+          </Select>
           <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
             <SelectTrigger className="h-8 w-[140px] text-xs">
               <SelectValue />

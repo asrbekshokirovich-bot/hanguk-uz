@@ -40,6 +40,7 @@ interface Filters {
   maxTopik: number | null;
   cycleTrack: string;
   dataStatus: string;
+  institutionType: string;
 }
 
 const defaultFilters: Filters = {
@@ -54,6 +55,7 @@ const defaultFilters: Filters = {
   maxTopik: null,
   cycleTrack: '',
   dataStatus: '',
+  institutionType: '',
 };
 
 type Completeness = 'empty' | 'partial' | 'complete';
@@ -194,6 +196,9 @@ function useCrmInstitutionSearch(filters: Filters) {
       });
 
       // Client-side filters
+      if (filters.institutionType) {
+        results = results.filter(r => r.institution.institution_type === filters.institutionType);
+      }
       if (filters.partnerOnly) {
         results = results.filter(r => r.institution.is_partner === true);
       }
@@ -298,6 +303,7 @@ function FilterBar({ filters, onChange }: { filters: Filters; onChange: (f: Filt
     filters.dataStatus, filters.admissionStatus, filters.semester,
     filters.programLevel, filters.languageTrack, filters.cycleTrack,
     filters.region, filters.maxTopik ? 'y' : '',
+    filters.institutionType,
     filters.partnerOnly ? 'y' : '', filters.ieqasOnly ? 'y' : '',
   ].filter(Boolean).length;
 
@@ -385,7 +391,25 @@ function FilterBar({ filters, onChange }: { filters: Filters; onChange: (f: Filt
             </div>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Institution type</label>
+              <Select value={filters.institutionType || 'all'} onValueChange={(v) => update({ institutionType: v === 'all' ? '' : v })}>
+                <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="national">National</SelectItem>
+                  <SelectItem value="public">Public</SelectItem>
+                  <SelectItem value="private">Private</SelectItem>
+                  <SelectItem value="junior_college">Junior College</SelectItem>
+                  <SelectItem value="cyber">Cyber / Online</SelectItem>
+                  <SelectItem value="education_university">Education Univ.</SelectItem>
+                  <SelectItem value="national_special">National Special</SelectItem>
+                  <SelectItem value="specialized">Specialized</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">Admission type</label>
               <Select value={filters.cycleTrack || 'all'} onValueChange={(v) => update({ cycleTrack: v === 'all' ? '' : v })}>
@@ -471,7 +495,7 @@ function InstitutionCard({ item, onClick }: { item: EnrichedInstitution; onClick
   const period = item.nearestPeriod;
   const completeness = getCompleteness(item.requirements.length, item.allPeriods.length);
 
-  const typeLabel = inst.institution_type === 'private' ? 'Xususiy' : inst.institution_type === 'national' ? 'Davlat' : inst.institution_type || '';
+  const typeLabel = inst.institution_type || '';
 
   return (
     <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={onClick}>
