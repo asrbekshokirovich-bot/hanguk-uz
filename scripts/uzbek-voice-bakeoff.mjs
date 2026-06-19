@@ -12,9 +12,17 @@
  * + a manifest.json. No new dependencies — Node 18+ (global fetch) and fs only.
  *
  * ── Run ───────────────────────────────────────────────────────────────────────
- *   # Azure (the default / must-have option). Get a Speech resource key in the
- *   # Azure portal; pick a region close to users (westeurope recommended).
+ *   # ElevenLabs (you already have this key). Quickest to try, but ElevenLabs does
+ *   # NOT officially support Uzbek TTS — expect an accent. Hear it for yourself:
+ *   ELEVENLABS_API_KEY=xxxx node scripts/uzbek-voice-bakeoff.mjs
+ *
+ *   # Azure (the native-Uzbek option). Get a Speech resource key in the Azure
+ *   # portal; pick a region close to users (westeurope recommended).
  *   AZURE_SPEECH_KEY=xxxx AZURE_SPEECH_REGION=westeurope node scripts/uzbek-voice-bakeoff.mjs
+ *
+ *   # Best: run BOTH together so the comparison page shows them side by side.
+ *   ELEVENLABS_API_KEY=xxx AZURE_SPEECH_KEY=xxx AZURE_SPEECH_REGION=westeurope \
+ *     node scripts/uzbek-voice-bakeoff.mjs
  *
  *   # Optional: also try Yandex SpeechKit (native Uzbek, Central-Asia region).
  *   # Voice names for Uzbek are under-documented — set them explicitly once you
@@ -52,6 +60,42 @@ const xmlEscape = (s) =>
 // ── Providers ─────────────────────────────────────────────────────────────────
 // Each provider lists the voices to try and a synth(text) -> { buffer, ext }.
 const providers = [];
+
+// ElevenLabs — uses the key already configured in the project. NOTE: ElevenLabs
+// does NOT officially list Uzbek as a TTS language (only for transcription). The
+// multilingual models will still *attempt* Uzbek text, but expect a foreign
+// accent and mispronunciations. This block lets you hear exactly how it sounds.
+if (process.env.ELEVENLABS_API_KEY) {
+  const voiceIds = (process.env.ELEVEN_VOICE_IDS || "cgSgspJ2msm6clMCkdW9")
+    .split(",").map((v) => v.trim()).filter(Boolean);
+  const models = (process.env.ELEVEN_MODELS || "eleven_multilingual_v2,eleven_v3")
+    .split(",").map((v) => v.trim()).filter(Boolean);
+  for (const model of models) {
+    providers.push({
+      name: `elevenlabs-${model}`,
+      voices: voiceIds,
+      async synth(text, voice) {
+        // v3 has a different voice_settings schema; send settings only for v2/turbo.
+        const body = { text, model_id: model };
+        if (model !== "eleven_v3") {
+          body.voice_settings = { stability: 0.5, similarity_boost: 0.75, style: 0.3, use_speaker_boost: true };
+        }
+        const res = await fetch(
+          `https://api.elevenlabs.io/v1/text-to-speech/${voice}?output_format=mp3_44100_128`,
+          {
+            method: "POST",
+            headers: { "xi-api-key": process.env.ELEVENLABS_API_KEY, "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+          },
+        );
+        if (!res.ok) throw new Error(`ElevenLabs ${res.status}: ${(await res.text()).slice(0, 200)}`);
+        return { buffer: Buffer.from(await res.arrayBuffer()), ext: "mp3" };
+      },
+    });
+  }
+} else {
+  console.warn("• ElevenLabs skipped — set ELEVENLABS_API_KEY to include it (you already have this key in the project secrets).");
+}
 
 // Azure Neural TTS — the only tier-1 cloud with real Uzbek voices.
 if (process.env.AZURE_SPEECH_KEY) {
@@ -116,7 +160,7 @@ if (process.env.YANDEX_API_KEY && process.env.YANDEX_FOLDER_ID && process.env.YA
 }
 
 if (providers.length === 0) {
-  console.error("\nNo providers configured. Set at least AZURE_SPEECH_KEY + AZURE_SPEECH_REGION and re-run.");
+  console.error("\nNo providers configured. Set ELEVENLABS_API_KEY (easiest — you already have it) and/or AZURE_SPEECH_KEY + AZURE_SPEECH_REGION, then re-run.");
   process.exit(1);
 }
 

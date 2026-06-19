@@ -9,29 +9,30 @@ Uzbek?** — is settled first, cheaply, before any telephony work.
 
 ## Phase 0 — Uzbek voice bake-off (do this first)
 
-Speaking Uzbek is the make-or-break. There is essentially **one** production-grade
-Uzbek voice (Microsoft Azure: `uz-UZ-MadinaNeural` / `uz-UZ-SardorNeural`), with
-Yandex SpeechKit and Aisha AI (Tashkent) as native contenders. This step
-synthesizes the same real Hanguk sentences with each and lets a **native Uzbek
-speaker** pick the winner.
+Speaking Uzbek is the make-or-break. **Microsoft Azure** (`uz-UZ-MadinaNeural` /
+`uz-UZ-SardorNeural`) is the only tier-1 cloud with native Uzbek voices; **Yandex
+SpeechKit** and **Aisha AI** (Tashkent) are native contenders. **ElevenLabs** is
+included too because the key is already configured — but note it does **not**
+officially support Uzbek TTS (only transcription), so it will read Uzbek text with
+a foreign accent. The point of this step is to *hear* the difference and let a
+**native Uzbek speaker** pick the winner.
 
-1. Get a **Microsoft Azure Speech** resource key (Azure portal → Speech service).
-   Choose a region near users — **`westeurope`** is recommended (low latency from
-   Tashkent; keep media + models in the EU, never the US — see the research doc).
-2. Generate the samples (no install needed — Node 18+):
+1. Pick at least one provider's credentials:
+   - **ElevenLabs** — already in the project secrets (`ELEVENLABS_API_KEY`). Quickest.
+   - **Azure** — create a **Speech** resource (Azure portal), region **`westeurope`**
+     (low latency from Tashkent; keep media in the EU, never the US — see research doc),
+     then copy KEY 1 from *Keys and Endpoint*.
+2. Generate the samples (no install needed — Node 18+). Best to run both so the
+   comparison page shows them side by side:
 
    ```sh
+   ELEVENLABS_API_KEY=<key> \
    AZURE_SPEECH_KEY=<key> AZURE_SPEECH_REGION=westeurope \
      node scripts/uzbek-voice-bakeoff.mjs
    ```
 
-   Optionally also try Yandex (confirm the Uzbek voice names with Yandex first):
-
-   ```sh
-   AZURE_SPEECH_KEY=<key> AZURE_SPEECH_REGION=westeurope \
-   YANDEX_API_KEY=<key> YANDEX_FOLDER_ID=<id> YANDEX_UZ_VOICES=<voice1,voice2> \
-     node scripts/uzbek-voice-bakeoff.mjs
-   ```
+   Either key alone also works. Optionally add Yandex (confirm the Uzbek voice
+   names with Yandex first): `YANDEX_API_KEY=<key> YANDEX_FOLDER_ID=<id> YANDEX_UZ_VOICES=<v1,v2>`.
 
 3. Open **`voice-samples/index.html`** in a browser. A native Uzbek speaker rates
    each voice across the rows on **accent, naturalness, clarity, and prosody** —
