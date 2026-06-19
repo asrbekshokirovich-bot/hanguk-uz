@@ -158,7 +158,7 @@ export default function UniversitiesManageTab() {
   } = useUniversities();
 
   const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState<'all' | 'partners' | 'on_map' | 'new' | 'no_domain' | 'hidden'>('all');
+  const [filter, setFilter] = useState<'all' | 'partners' | 'on_map' | 'new' | 'no_domain' | 'no_data' | 'hidden'>('all');
   const [category, setCategory] = useState<'all' | 'universities' | 'colleges'>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'name' | 'newest' | 'oldest'>('name');
@@ -405,9 +405,7 @@ export default function UniversitiesManageTab() {
             {t('navigation.universities') ?? 'Institutions'}
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Backed by <code className="px-1 py-0.5 bg-muted rounded">public.institutions</code>{' '}
-            (uni_db). The legacy <code className="px-1 py-0.5 bg-muted rounded">universities</code>{' '}
-            table was dropped on 2026-05-10.
+            Manage institution records, visibility, and admissions data.
           </p>
         </div>
         <div className="flex gap-2">
@@ -422,11 +420,26 @@ export default function UniversitiesManageTab() {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-        <Card><CardHeader className="pb-1"><CardTitle className="text-xs text-muted-foreground">Total</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{stats.total}</div></CardContent></Card>
-        <Card><CardHeader className="pb-1"><CardTitle className="text-xs text-muted-foreground">Partners</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{stats.partners}</div></CardContent></Card>
-        <Card><CardHeader className="pb-1"><CardTitle className="text-xs text-muted-foreground">On map</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{stats.visibleOnMap}</div></CardContent></Card>
-        <Card><CardHeader className="pb-1"><CardTitle className="text-xs text-muted-foreground">With domain</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{stats.withDomain}</div></CardContent></Card>
-        <Card><CardHeader className="pb-1"><CardTitle className="text-xs text-muted-foreground">With geo</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{stats.withGeo}</div></CardContent></Card>
+        <Card className="cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => setFilter('all')}>
+          <CardHeader className="pb-1"><CardTitle className="text-xs text-muted-foreground">Total</CardTitle></CardHeader>
+          <CardContent><div className="text-2xl font-bold">{stats.total}</div></CardContent>
+        </Card>
+        <Card className="cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => setFilter('partners')}>
+          <CardHeader className="pb-1"><CardTitle className="text-xs text-muted-foreground">Partners</CardTitle></CardHeader>
+          <CardContent><div className="text-2xl font-bold">{stats.partners}</div></CardContent>
+        </Card>
+        <Card className="cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => setFilter('on_map')}>
+          <CardHeader className="pb-1"><CardTitle className="text-xs text-muted-foreground">On map</CardTitle></CardHeader>
+          <CardContent><div className="text-2xl font-bold">{stats.visibleOnMap}</div></CardContent>
+        </Card>
+        <Card className="cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => setFilter('no_domain')}>
+          <CardHeader className="pb-1"><CardTitle className="text-xs text-muted-foreground text-destructive">No admissions URL</CardTitle></CardHeader>
+          <CardContent><div className="text-2xl font-bold text-destructive">{stats.total - stats.withDomain}</div></CardContent>
+        </Card>
+        <Card className="cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => setFilter('hidden')}>
+          <CardHeader className="pb-1"><CardTitle className="text-xs text-muted-foreground">Hidden</CardTitle></CardHeader>
+          <CardContent><div className="text-2xl font-bold">{institutions.filter(i => !i.is_visible_on_map).length}</div></CardContent>
+        </Card>
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
@@ -665,8 +678,7 @@ export default function UniversitiesManageTab() {
           <DialogHeader>
             <DialogTitle>{edit?.mode === 'create' ? 'Add institution' : 'Edit institution'}</DialogTitle>
             <DialogDescription>
-              Minimal fields for now. Tuition, programs, scholarships, requirements live in their
-              own uni_db tables (recruitment_units, tuition, scholarships, requirements).
+              Basic institution information. Admissions data is managed separately.
             </DialogDescription>
           </DialogHeader>
 
@@ -725,10 +737,7 @@ export default function UniversitiesManageTab() {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete institution?</AlertDialogTitle>
             <AlertDialogDescription>
-              This permanently removes <strong>{confirmDelete?.name_ko}</strong> from{' '}
-              <code>public.institutions</code>. Any rows in dependent tables (university_programs,
-              gks_designated_universities, etc.) will have their <code>institution_id</code> set
-              to <code>NULL</code> via ON DELETE SET NULL — no cascade wipe.
+              This permanently removes <strong>{confirmDelete?.name_ko}</strong>. Related admissions data will be unlinked.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

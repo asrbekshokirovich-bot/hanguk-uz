@@ -313,7 +313,7 @@ function FilterBar({ filters, onChange }: { filters: Filters; onChange: (f: Filt
   const hasFilters = JSON.stringify(filters) !== JSON.stringify(defaultFilters);
 
   const activeCount = [
-    filters.dataStatus, filters.admissionStatus, filters.semester,
+    filters.admissionStatus, filters.semester,
     filters.programLevel, filters.languageTrack, filters.cycleTrack,
     filters.region, filters.maxTopik ? 'y' : '',
     filters.institutionType,
@@ -416,7 +416,7 @@ function FilterBar({ filters, onChange }: { filters: Filters; onChange: (f: Filt
             </div>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">Institution type</label>
               <Select value={filters.institutionType || 'all'} onValueChange={(v) => update({ institutionType: v === 'all' ? '' : v })}>
@@ -469,18 +469,6 @@ function FilterBar({ filters, onChange }: { filters: Filters; onChange: (f: Filt
               </Select>
             </div>
 
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-muted-foreground">Data status</label>
-              <Select value={filters.dataStatus || 'all'} onValueChange={(v) => update({ dataStatus: v === 'all' ? '' : v })}>
-                <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All</SelectItem>
-                  <SelectItem value="empty">Empty</SelectItem>
-                  <SelectItem value="partial">Partial</SelectItem>
-                  <SelectItem value="complete">Complete</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
           </div>
 
           <div className="flex items-center gap-6 pt-1 border-t">
@@ -533,7 +521,7 @@ function InstitutionCard({ item, onClick }: { item: EnrichedInstitution; onClick
             <div className="flex items-center gap-2 flex-wrap">
               <h3 className="font-semibold text-sm truncate">{inst.name_ko}</h3>
               {inst.is_partner && (
-                <Badge variant="highlight" className="text-[10px] px-1.5 py-0">Hamkor</Badge>
+                <Badge variant="highlight" className="text-[10px] px-1.5 py-0">Partner</Badge>
               )}
               {inst.ieqas_status === 'certified' && (
                 <Badge variant="successSoft" className="text-[10px] px-1.5 py-0">
@@ -568,12 +556,12 @@ function InstitutionCard({ item, onClick }: { item: EnrichedInstitution; onClick
           )}
           {item.requirements.length > 0 && (
             <Badge variant="secondary" className="text-[10px]">
-              {item.requirements.length} ta talab
+              {item.requirements.length} requirements
             </Badge>
           )}
           {item.allPeriods.length > 0 && (
             <Badge variant="secondary" className="text-[10px]">
-              {item.allPeriods.length} ta qabul davri
+              {item.allPeriods.length} periods
             </Badge>
           )}
         </div>
@@ -585,12 +573,12 @@ function InstitutionCard({ item, onClick }: { item: EnrichedInstitution; onClick
             {period.application_start?.slice(0, 10) || '?'} → {period.application_end?.slice(0, 10) || '?'}
             {period.semester && (
               <Badge variant="outline" className="text-[10px] ml-1">
-                {period.semester === 'spring' ? 'Bahor' : 'Kuz'} {period.year}
+                {period.semester === 'spring' ? 'Spring' : 'Fall'} {period.year}
               </Badge>
             )}
             {period.program_level && (
               <Badge variant="outline" className="text-[10px]">
-                {period.program_level === 'undergraduate' ? 'Bakalavr' : period.program_level === 'graduate' ? 'Magistr' : period.program_level}
+                {period.program_level === 'undergraduate' ? 'Bachelor' : period.program_level === 'graduate' ? 'Master' : period.program_level}
               </Badge>
             )}
             {period.language_track && (
@@ -611,14 +599,14 @@ function InstitutionCard({ item, onClick }: { item: EnrichedInstitution; onClick
             {inst.primary_domain && (
               <Button variant="ghost" size="sm" className="h-7 text-xs" asChild onClick={(e: React.MouseEvent) => e.stopPropagation()}>
                 <a href={inst.primary_domain.startsWith('http') ? inst.primary_domain : `https://${inst.primary_domain}`} target="_blank" rel="noopener noreferrer">
-                  <ExternalLink className="h-3 w-3 mr-1" /> Sayt
+                  <ExternalLink className="h-3 w-3 mr-1" /> Site
                 </a>
               </Button>
             )}
             {inst.primary_admissions_url_ko && (
               <Button variant="ghost" size="sm" className="h-7 text-xs" asChild onClick={(e: React.MouseEvent) => e.stopPropagation()}>
                 <a href={inst.primary_admissions_url_ko} target="_blank" rel="noopener noreferrer">
-                  <GraduationCap className="h-3 w-3 mr-1" /> Qabul
+                  <GraduationCap className="h-3 w-3 mr-1" /> Admissions
                 </a>
               </Button>
             )}
@@ -678,27 +666,22 @@ export default function ProgramFinderContent() {
         <div>
           <h2 className="text-lg font-semibold flex items-center gap-2">
             <Filter className="h-5 w-5" />
-            Universitet Qidiruv
+            University Search
           </h2>
           <p className="text-sm text-muted-foreground">
             Search universities by name, program, or certification. Nearest deadlines shown first.
           </p>
           <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5 mt-2" onClick={() => setQuickOpen(true)}>
-            <CommandIcon className="h-3 w-3" /> Tez qidiruv
+            <CommandIcon className="h-3 w-3" /> Quick search
             <kbd className="ml-1 px-1.5 py-0.5 text-[10px] bg-muted rounded border">Alt+S</kbd>
             <kbd className="px-1.5 py-0.5 text-[10px] bg-muted rounded border">/</kbd>
           </Button>
         </div>
         {stats && (
           <div className="flex gap-2">
-            <Badge variant="secondary" className="text-sm">{stats.total} ta universitet</Badge>
-            {stats.empty > 0 && (
-              <Badge variant="outline" className="text-sm border-destructive/40 text-destructive cursor-pointer" onClick={() => setFilters(f => ({ ...f, dataStatus: 'empty' }))}>
-                {stats.empty} ta to'ldirilmagan
-              </Badge>
-            )}
-            {stats.open > 0 && <Badge variant="success" className="text-sm">{stats.open} ta ochiq</Badge>}
-            {stats.upcoming > 0 && <Badge variant="outline" className="text-sm">{stats.upcoming} ta kutilmoqda</Badge>}
+            <Badge variant="secondary" className="text-sm">{stats.total} universities</Badge>
+            {stats.open > 0 && <Badge variant="success" className="text-sm">{stats.open} open</Badge>}
+            {stats.upcoming > 0 && <Badge variant="outline" className="text-sm">{stats.upcoming} upcoming</Badge>}
           </div>
         )}
       </div>
