@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Hanguk Box — Reveal</title>
+<style>
+  /* ============================================================
+     HANGUK BOX — animated unboxing reveal
+     Brand: Royal Blue #1A3A6C · Lime #D4E94C · Ink #0A1A34 · Cream #F6F1E4
+     Pure CSS 3D + Web Animations API. No dependencies. Loops.
+     ============================================================ */
+  :root{
+    --royal:#1A3A6C; --royal-90:#132A4D; --royal-80:#0F213D;
+    --lime:#D4E94C; --lime-deep:#B4CC19; --ink:#0A1A34; --cream:#F6F1E4;
+    --paper:#FBF8F0;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+    background:radial-gradient(120% 120% at 50% 18%, #FFFFFF 0%, var(--cream) 46%, #E9E2CF 100%);
+    color:var(--ink); overflow:hidden; height:100%;
+    display:flex; align-items:center; justify-content:center;
+  }
+  /* floor shadow / studio sweep */
+  .studio::before{
+    content:""; position:fixed; left:50%; bottom:-22vh; transform:translateX(-50%);
+    width:140vw; height:60vh; border-radius:50%;
+    background:radial-gradient(closest-side, rgba(10,26,52,.10), rgba(10,26,52,0));
+    z-index:0;
+  }
+
+  .stage{
+    position:relative; width:min(96vw,1100px); aspect-ratio:16/9;
+    display:flex; align-items:center; justify-content:center;
+    perspective:1500px; perspective-origin:50% 42%; z-index:1;
+  }
+
+  /* ---------- Intro / outro overlay text ---------- */
+  .titles{position:absolute; inset:0; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; text-align:center; pointer-events:none; z-index:5;}
+  .titles .kicker{font-size:clamp(11px,1.4vw,15px); letter-spacing:.42em; text-transform:uppercase;
+    color:var(--royal); font-weight:700; opacity:0;}
+  .titles h1{font-size:clamp(34px,7vw,84px); line-height:.96; font-weight:800; letter-spacing:-.02em;
+    color:var(--royal); margin:.18em 0 .12em; opacity:0;}
+  .titles h1 .lime{color:var(--lime-deep)}
+  .titles .glyph{width:clamp(54px,9vw,104px); margin-bottom:.2em; opacity:0; filter:drop-shadow(0 10px 24px rgba(10,26,52,.18))}
+  .titles .sub{font-size:clamp(13px,1.8vw,20px); color:#4A5B74; font-weight:500; opacity:0; max-width:30ch}
+
+  .hero-cta{position:absolute; left:0; right:0; bottom:5%; display:flex; flex-direction:column;
+    align-items:center; gap:14px; z-index:6; opacity:0;}
+  .hero-cta .pill{display:inline-flex; align-items:center; gap:10px; background:var(--royal);
+    color:#fff; padding:14px 26px; border-radius:999px; font-weight:700; font-size:clamp(14px,1.7vw,18px);
+    box-shadow:0 18px 40px rgba(10,26,52,.28)}
+  .hero-cta .pill b{color:var(--lime)}
+  .hero-cta .price{font-size:clamp(12px,1.5vw,15px); color:#56657d; font-weight:600; letter-spacing:.06em}
+
+  /* ---------- 3D world ---------- */
+  .world{position:absolute; transform-style:preserve-3d; transform:rotateX(8deg);}
+  .rig{transform-style:preserve-3d}
+
+  /* shared cuboid faces */
+  .face{position:absolute; overflow:hidden; backface-visibility:hidden;}
+
+  /* ===== BASE / TRAY ===== box outer: W360 D240 H92 ===== */
+  .box{position:absolute; transform-style:preserve-3d; transform:translate(-50%,-50%);}
+  /* tray faces */
+  .tray{transform-style:preserve-3d}
+  .t-front,.t-back{width:360px;height:92px}
+  .t-left,.t-right{width:240px;height:92px}
+  .t-bottom{width:360px;height:240px}
+  .t-front{transform:translate3d(-180px,-46px,120px)}
+  .t-back {transform:rotateY(180deg) translate3d(-180px,-46px,120px)}
+  .t-right{transform:rotateY(90deg)  translate3d(-120px,-46px,180px)}
+  .t-left {transform:rotateY(-90deg) translate3d(-120px,-46px,180px)}
+  .t-bottom{transform:rotateX(-90deg) translate3d(-180px,-120px,-46px)}
+  /* inner walls (lighter) */
+  .t-in-front,.t-in-back{width:344px;height:80px}
+  .t-in-left,.t-in-right{width:224px;height:80px}
+  .t-floor{width:344px;height:224px}
+  .t-in-front{transform:translate3d(-172px,-40px,112px) rotateY(180deg)}
+  .t-in-back {transform:translate3d(-172px,-40px,-112px)}
+  .t-in-right{transform:rotateY(-90deg) translate3d(-112px,-40px,172px)}
+  .t-in-left {transform:rotateY(90deg)  translate3d(-112px,-40px,172px)}
+  .t-floor{transform:rotateX(90deg) translate3d(-172px,-112px,40px)}
+
+  .navy{background:
+      linear-gradient(180deg, rgba(255,255,255,.06), rgba(0,0,0,.10)),
+      var(--royal)}
+  .navy-d{background:linear-gradient(180deg, var(--royal-90), var(--royal-80))}
+  .innerwall{background:linear-gradient(180deg,#E7E0CF,#D9D1BB)}
+  .innerfloor{background:
+      radial-gradient(120% 120% at 50% 30%, #FFFFFF, #ECE6D6 70%, #DED6C0);}
+  /* lime seam line near top rim */
+  .rim{position:absolute; left:0; right:0; top:0; height:6px; background:var(--lime)}
+
+  /* logo + label on box faces */
+  .panel-logo{position:absolute; inset:0; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:12px; color:#fff}
+  .panel-logo img{width:78px; opacity:.96}
+  .panel-logo .name{font-weight:800; letter-spacing:.02em; font-size:24px}
+  .panel-logo .name .l{color:var(--lime)}
+  .panel-logo .tiny{font-size:9px; letter-spacing:.4em; text-transform:uppercase; color:#BFD0E6}
+  .side-label{position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    gap:10px; color:#fff; font-weight:700; letter-spacing:.32em; text-transform:uppercase; font-size:13px}
+  .side-label img{width:24px}
+
+  /* ===== LID ===== shallow cuboid W372 D252 H26 ===== */
+  .lid{position:absolute; transform-style:preserve-3d; transform:translateY(-46px);}
+  .l-top{width:372px;height:252px}
+  .l-front,.l-back{width:372px;height:30px}
+  .l-left,.l-right{width:252px;height:30px}
+  .l-top  {transform:rotateX(90deg) translate3d(-186px,-126px,15px)}
+  .l-front{transform:translate3d(-186px,-15px,126px)}
+  .l-back {transform:rotateY(180deg) translate3d(-186px,-15px,126px)}
+  .l-right{transform:rotateY(90deg) translate3d(-126px,-15px,186px)}
+  .l-left {transform:rotateY(-90deg) translate3d(-126px,-15px,186px)}
+
+  /* ===== LAPTOP ===== sits in tray, rises + opens ===== */
+  .laptop{position:absolute; transform-style:preserve-3d; transform:translateY(20px); opacity:0;}
+  .lap-base{width:300px;height:200px; position:absolute; left:-150px; top:-100px;
+    transform:rotateX(90deg); border-radius:10px;
+    background:linear-gradient(180deg,#cfd6df,#aab3c0); box-shadow:inset 0 0 0 2px #9aa3b2}
+  .lap-base .kb{position:absolute; inset:18px 22px 60px; border-radius:6px;
+    background:repeating-linear-gradient(90deg,#8b95a4 0 26px,#aab3c0 26px 30px),
+               repeating-linear-gradient(180deg,#8b95a4 0 16px,#aab3c0 16px 20px);
+    background-blend-mode:multiply; opacity:.5}
+  .lap-base .pad{position:absolute; left:50%; bottom:14px; transform:translateX(-50%);
+    width:96px;height:40px;border-radius:6px;background:#bcc4d0;box-shadow:inset 0 0 0 2px #9aa3b2}
+  .lap-screen{width:300px;height:196px; position:absolute; left:-150px; bottom:0;
+    transform-origin:bottom center; transform:rotateX(0deg);
+    border-radius:10px; background:#0b1220; box-shadow:0 0 0 8px #c7ced8, 0 0 0 10px #aab3c0;}
+  .screen-ui{position:absolute; inset:8px; border-radius:6px; overflow:hidden;
+    background:linear-gradient(180deg,#10294f,#0b1c39); color:#fff; display:flex; flex-direction:column}
+  .screen-ui .bar{height:30px; background:var(--royal); display:flex; align-items:center; gap:8px; padding:0 12px}
+  .screen-ui .bar img{width:18px} .screen-ui .bar span{font-size:11px;font-weight:800;letter-spacing:.04em}
+  .screen-ui .bar .dot{margin-left:auto; width:8px;height:8px;border-radius:50%;background:var(--lime)}
+  .screen-ui .body{flex:1; padding:12px; display:flex; flex-direction:column; gap:8px}
+  .screen-ui .card{height:16px;border-radius:5px;background:rgba(255,255,255,.10)}
+  .screen-ui .card.w70{width:70%} .screen-ui .card.w50{width:50%}
+  .screen-ui .btn{margin-top:auto; align-self:flex-start; background:var(--lime); color:var(--ink);
+    font-size:11px;font-weight:800;padding:7px 14px;border-radius:6px}
+
+  /* ===== BOOKS ===== thin cuboids that slide + fan ===== */
+  .book{position:absolute; transform-style:preserve-3d; opacity:0;}
+  .bk-cover,.bk-back{width:150px;height:210px}
+  .bk-spine{width:18px;height:210px}
+  .bk-top,.bk-bottom{width:150px;height:18px}
+  .bk-pages{width:18px;height:210px}
+  .bk-cover{transform:translate3d(-75px,-105px,9px)}
+  .bk-back {transform:translate3d(-75px,-105px,-9px) rotateY(180deg)}
+  .bk-spine{transform:translateX(-75px) rotateY(-90deg) translateZ(9px) translateX(-9px)}
+  .bk-pages{transform:translateX(75px) rotateY(90deg) translateZ(9px) translateX(-9px);
+    background:repeating-linear-gradient(180deg,#fff 0 3px,#e7e2d4 3px 4px)}
+  .bk-top{transform:translateY(-105px) rotateX(90deg) translateZ(9px) translateY(-9px);background:#efe9da}
+  .bk-bottom{transform:translateY(105px) rotateX(-90deg) translateZ(9px) translateY(-9px);background:#efe9da}
+  .cover-art{position:absolute; inset:0; padding:18px 16px; display:flex; flex-direction:column;
+    color:#fff; background:linear-gradient(160deg,var(--royal),var(--royal-80))}
+  .cover-art .top{display:flex; justify-content:space-between; align-items:center}
+  .cover-art .top img{width:30px}
+  .cover-art .top .n{font-size:9px;font-weight:800;letter-spacing:.18em}
+  .cover-art .ttl{margin-top:auto; font-size:21px; font-weight:800; line-height:1.05; letter-spacing:-.01em}
+  .cover-art .ttl b{color:var(--lime)}
+  .cover-art .by{font-size:9px; color:#BFD0E6; margin-top:8px; letter-spacing:.14em; text-transform:uppercase}
+  .cover-art .barline{height:5px;width:54px;background:var(--lime);border-radius:3px;margin-top:10px}
+  .cover-lime{background:linear-gradient(160deg,var(--lime),var(--lime-deep)) !important;color:var(--ink)!important}
+  .cover-lime .ttl b{color:var(--royal)} .cover-lime .by{color:var(--royal-80)} .cover-lime .barline{background:var(--royal)}
+  .spine-art{position:absolute; inset:0; background:var(--royal-90); display:flex; align-items:center; justify-content:center}
+  .spine-art.lime{background:var(--lime-deep)}
+
+  /* soft contact shadow under the whole rig */
+  .contact{position:absolute; width:520px; height:150px; left:-260px; top:90px;
+    background:radial-gradient(closest-side, rgba(10,26,52,.22), rgba(10,26,52,0));
+    transform:rotateX(90deg) translateZ(-2px); filter:blur(2px)}
+
+  /* controls */
+  .ctrl{position:fixed; bottom:18px; right:18px; display:flex; gap:10px; z-index:20}
+  .ctrl button{font:inherit; font-weight:700; font-size:13px; border:none; cursor:pointer;
+    padding:10px 16px; border-radius:999px; background:var(--royal); color:#fff;
+    box-shadow:0 8px 20px rgba(10,26,52,.25)}
+  .ctrl button.alt{background:#fff; color:var(--royal); box-shadow:0 8px 20px rgba(10,26,52,.14)}
+  .brandtag{position:fixed; top:18px; left:20px; display:flex; align-items:center; gap:10px; z-index:20; opacity:.9}
+  .brandtag img{width:26px} .brandtag span{font-weight:800; color:var(--royal); letter-spacing:.02em}
+  @media (max-width:560px){ .ctrl{bottom:12px;right:12px} .brandtag{top:12px;left:14px} }
+</style>
+</head>
+<body class="studio">
+  <div class="brandtag"><img id="bt" alt="Hanguk"/><span>Hanguk Box</span></div>
+
+  <div class="stage" id="stage">
+    <!-- intro / outro titles -->
+    <div class="titles" id="titles">
+      <img class="glyph" id="glyph" alt="한"/>
+      <div class="kicker" id="kicker">Hanguk Consulting presents</div>
+      <h1 id="h1">Hanguk <span class="lime">Box</span></h1>
+      <div class="sub" id="sub">Bitta quti — bitta noutbuk va Hanguk jamoasi yozgan kitoblar bilan.</div>
+    </div>
+
+    <!-- 3D world -->
+    <div class="world">
+      <div class="rig" id="rig">
+        <div class="contact"></div>
+
+        <!-- BOX (tray + contents + lid) -->
+        <div class="box" id="box">
+
+          <!-- TRAY -->
+          <div class="tray">
+            <div class="face t-bottom navy-d"></div>
+            <div class="face t-back navy"><div class="rim"></div><div class="side-label"><img id="sl1"/>HANGUK</div></div>
+            <div class="face t-left navy"><div class="rim"></div><div class="side-label"><img id="sl2"/>한 BOX</div></div>
+            <div class="face t-right navy"><div class="rim"></div><div class="side-label"><img id="sl3"/>한 BOX</div></div>
+            <div class="face t-front navy">
+              <div class="rim"></div>
+              <div class="panel-logo">
+                <img id="pl1"/>
+                <div class="name">Hanguk <span class="l">Box</span></div>
+                <div class="tiny">Learn · Build · Belong</div>
+              </div>
+            </div>
+            <!-- inner -->
+            <div class="face t-floor innerfloor"></div>
+            <div class="face t-in-back innerwall"></div>
+            <div class="face t-in-front innerwall"></div>
+            <div class="face t-in-left innerwall"></div>
+            <div class="face t-in-right innerwall"></div>
+          </div>
+
+          <!-- LAPTOP -->
+          <div class="laptop" id="laptop">
+            <div class="lap-base"><div class="kb"></div><div class="pad"></div></div>
+            <div class="lap-screen" id="lapscreen">
+              <div class="screen-ui">
+                <div class="bar"><img id="su1"/><span>HANGUK</span><div class="dot"></div></div>
+                <div class="body">
+                  <div class="card w70"></div>
+                  <div class="card w50"></div>
+                  <div class="card"></div>
+                  <div class="card w70"></div>
+                  <div class="btn">Boshlash →</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- BOOKS -->
+          <div class="book" id="book1">
+            <div class="face bk-back" style="background:var(--royal-80)"></div>
+            <div class="face bk-cover"><div class="cover-art">
+              <div class="top"><img id="bc1"/><div class="n">HANGUK</div></div>
+              <div class="ttl">Koreyada<br><b>O'qish</b> yo'li</div>
+              <div class="barline"></div>
+              <div class="by">Hanguk Staff · Vol.1</div>
+            </div></div>
+            <div class="face bk-spine"><div class="spine-art"></div></div>
+            <div class="face bk-pages"></div>
+            <div class="face bk-top"></div>
+            <div class="face bk-bottom"></div>
+          </div>
+
+          <div class="book" id="book2">
+            <div class="face bk-back" style="background:var(--lime-deep)"></div>
+            <div class="face bk-cover"><div class="cover-art cover-lime">
+              <div class="top"><img id="bc2"/><div class="n">HANGUK</div></div>
+              <div class="ttl">TOPIK<br><b>Master</b> Guide</div>
+              <div class="barline"></div>
+              <div class="by">Hanguk Staff · Vol.2</div>
+            </div></div>
+            <div class="face bk-spine"><div class="spine-art lime"></div></div>
+            <div class="face bk-pages"></div>
+            <div class="face bk-top"></div>
+            <div class="face bk-bottom"></div>
+          </div>
+
+          <!-- LID (drawn last so it overlays while closed) -->
+          <div class="lid" id="lid">
+            <div class="face l-front navy"><div class="rim"></div></div>
+            <div class="face l-back navy-d"></div>
+            <div class="face l-left navy"><div class="rim"></div></div>
+            <div class="face l-right navy"><div class="rim"></div></div>
+            <div class="face l-top navy-d">
+              <div class="panel-logo">
+                <img id="pl2"/>
+                <div class="name">Hanguk <span class="l">Box</span></div>
+                <div class="tiny">한 · Consulting</div>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /box -->
+      </div><!-- /rig -->
+    </div><!-- /world -->
+
+    <!-- outro CTA -->
+    <div class="hero-cta" id="cta">
+      <div class="pill">Hanguk <b>Box</b> — buyurtma bering · <b>han.uz</b></div>
+      <div class="price" id="price">Noutbuk + Hanguk jamoasi kitoblari · cheklangan soni</div>
+    </div>
+  </div>
+
+  <div class="ctrl">
+    <button class="alt" id="replay">↻ Replay</button>
+    <button id="full">⤢ Fullscreen</button>
+    <button id="rec">● Record .webm</button>
+  </div>
+
+<script>
+/* ===== logos (embedded base64) ===== */
+const NAVY = "__NAVY_LOGO__";
+const WHITE = "__WHITE_GLYPH__";
+[ "bt","pl1","pl2","sl1","sl2","sl3","su1","bc1","bc2" ].forEach(id=>{ const e=document.getElementById(id); if(e) e.src=NAVY; });
+// white glyph for the intro on light bg -> use navy mark instead (visible on cream)
+document.getElementById("glyph").src = NAVY;
+
+/* ===== animation timeline (Web Animations API) ===== */
+const E = s=>document.getElementById(s);
+const ease = "cubic-bezier(.22,.61,.36,1)";
+const easeOut = "cubic-bezier(.16,1,.3,1)";
+
+function run(){
+  const t = (el,kf,opt)=>el.animate(kf,{fill:"both",easing:ease,...opt});
+
+  // reset
+  document.getAnimations().forEach(a=>a.cancel());
+
+  // ---- INTRO TITLES (0 - 2.6s) ----
+  t(E("glyph"), [{opacity:0,transform:"translateY(18px) scale(.8)"},{opacity:1,transform:"none"}],{duration:700,delay:150});
+  t(E("kicker"),[{opacity:0,transform:"translateY(10px)"},{opacity:1,transform:"none"}],{duration:600,delay:450});
+  t(E("h1"),    [{opacity:0,transform:"translateY(14px)"},{opacity:1,transform:"none"}],{duration:700,delay:600});
+  t(E("sub"),   [{opacity:0,transform:"translateY(10px)"},{opacity:1,transform:"none"}],{duration:700,delay:900});
+  // fade titles out
+  [["glyph",0],["kicker",30],["h1",60],["sub",90]].forEach(([id,d])=>
+    t(E(id),[{opacity:1},{opacity:0,transform:"translateY(-12px)"}],{duration:600,delay:2300+d}));
+
+  // ---- BOX ENTERS + 360° SPIN (2.4s - 7.2s) ----
+  t(E("rig"),[
+      {opacity:0, transform:"translateY(120px) scale(.5) rotateX(8deg) rotateY(0deg)"},
+      {opacity:1, transform:"translateY(40px) scale(1) rotateX(8deg) rotateY(0deg)", offset:.28},
+      {opacity:1, transform:"translateY(40px) scale(1) rotateX(8deg) rotateY(360deg)", offset:.86},
+      {opacity:1, transform:"translateY(40px) scale(1) rotateX(14deg) rotateY(388deg)"}
+    ],{duration:4800,delay:2400,easing:easeOut});
+
+  // ---- LID OPENS (7.2s - 9.0s): lift up, tilt back ----
+  t(E("lid"),[
+      {transform:"translateY(-46px) rotateX(0deg)"},
+      {transform:"translateY(-150px) rotateX(0deg)", offset:.45},
+      {transform:"translateY(-235px) translateZ(-150px) rotateX(118deg)"}
+    ],{duration:1800,delay:7200,easing:easeOut});
+
+  // ---- LAPTOP RISES (8.6s - 10.4s) then OPENS (10.2 - 11.6s) ----
+  t(E("laptop"),[
+      {opacity:0, transform:"translateY(40px) scale(.9)"},
+      {opacity:1, transform:"translateY(20px) scale(.92)", offset:.15},
+      {opacity:1, transform:"translateY(-120px) translateZ(20px) rotateX(-2deg) scale(1)"}
+    ],{duration:1900,delay:8600,easing:easeOut});
+  t(E("lapscreen"),[
+      {transform:"rotateX(0deg)"},
+      {transform:"rotateX(-104deg)"}
+    ],{duration:1400,delay:10200,easing:easeOut});
+
+  // ---- BOOKS SLIDE OUT + FAN (10.8s - 12.8s) ----
+  t(E("book1"),[
+      {opacity:0, transform:"translate3d(0,30px,0) rotateX(70deg) rotateZ(0deg) scale(.8)"},
+      {opacity:1, transform:"translate3d(-300px,150px,140px) rotateX(64deg) rotateZ(-18deg) scale(1)"}
+    ],{duration:1700,delay:10800,easing:easeOut});
+  t(E("book2"),[
+      {opacity:0, transform:"translate3d(0,30px,0) rotateX(70deg) rotateZ(0deg) scale(.8)"},
+      {opacity:1, transform:"translate3d(300px,170px,120px) rotateX(64deg) rotateZ(16deg) scale(1)"}
+    ],{duration:1700,delay:11200,easing:easeOut});
+
+  // ---- HERO SETTLE + slow turntable (12.6s - 16.5s) ----
+  t(E("rig"),[
+      {transform:"translateY(40px) scale(1) rotateX(14deg) rotateY(388deg)"},
+      {transform:"translateY(20px) scale(1.02) rotateX(20deg) rotateY(372deg)"}
+    ],{duration:4000,delay:12600,easing:ease});
+
+  // ---- OUTRO CTA (13.4s) ----
+  t(E("cta"),[{opacity:0,transform:"translateY(20px)"},{opacity:1,transform:"none"}],{duration:800,delay:13400,easing:easeOut});
+
+  // ---- LOOP ----
+  const last = E("rig").getAnimations().pop();
+}
+
+let loop;
+function start(){
+  run();
+  clearTimeout(loop);
+  loop = setTimeout(start, 17500); // total cycle ~17.5s
+}
+E("replay").onclick = start;
+E("full").onclick = ()=>{ const el=document.documentElement;
+  if(!document.fullscreenElement){ el.requestFullscreen&&el.requestFullscreen(); } else { document.exitFullscreen(); } };
+
+/* ===== one-click recorder -> downloads a real video file (no installs) =====
+   Captures this browser tab via MediaRecorder and saves a .webm you can post,
+   send to clients, or convert to .mp4 with any tool. */
+E("rec").onclick = async ()=>{
+  if(!navigator.mediaDevices?.getDisplayMedia){ alert("Your browser can't record. Use your phone/desktop screen recorder instead."); return; }
+  try{
+    const stream = await navigator.mediaDevices.getDisplayMedia({ video:{ frameRate:30 }, audio:false });
+    const mime = MediaRecorder.isTypeSupported("video/webm;codecs=vp9") ? "video/webm;codecs=vp9" : "video/webm";
+    const rec = new MediaRecorder(stream, { mimeType:mime, videoBitsPerSecond: 8_000_000 });
+    const chunks=[];
+    rec.ondataavailable = e=>{ if(e.data.size) chunks.push(e.data); };
+    rec.onstop = ()=>{
+      const blob = new Blob(chunks, {type:"video/webm"});
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob); a.download = "hanguk-box-reveal.webm"; a.click();
+      stream.getTracks().forEach(t=>t.stop());
+      E("rec").textContent = "● Record .webm";
+    };
+    start();                         // restart animation from the top
+    rec.start();
+    E("rec").textContent = "● Recording… 18s";
+    setTimeout(()=>rec.stop(), 17800);  // capture exactly one full loop
+  }catch(e){ /* user cancelled the share prompt */ }
+};
+
+start();
+</script>
+</body>
+</html>
