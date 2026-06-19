@@ -650,11 +650,16 @@ export default function UniversitiesManageTab() {
             <Card key={row.id} className={`border-l-4 ${borderColor} ${row.is_partner ? 'ring-1 ring-primary/30' : ''} overflow-hidden`}>
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between mb-1">
-                  <Checkbox
-                    checked={selected.has(row.id)}
-                    onCheckedChange={() => toggleSelect(row.id)}
-                    className="shrink-0"
-                  />
+                  <div className="flex items-center gap-1.5">
+                    <Checkbox
+                      checked={selected.has(row.id)}
+                      onCheckedChange={() => toggleSelect(row.id)}
+                      className="shrink-0"
+                    />
+                    <Button size="icon" variant="outline" className="h-5 w-5" disabled={crawlingIds.has(row.id)} onClick={() => triggerCrawl(row)} title="AI crawl">
+                      {crawlingIds.has(row.id) ? <Loader2 className="h-2.5 w-2.5 animate-spin" /> : <Bot className="h-2.5 w-2.5" />}
+                    </Button>
+                  </div>
                   <span className="text-[10px] text-muted-foreground">{formatRelative(row.updated_at)}</span>
                 </div>
                 <div className="flex items-start gap-2">
@@ -720,9 +725,6 @@ export default function UniversitiesManageTab() {
                     <div className="flex-1" />
                     <Button size="icon" variant="outline" className="h-6 w-6" disabled={uploadingId === row.id} onClick={() => pickUpload(row.id)} title="Upload PDF">
                       {uploadingId === row.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <UploadCloud className="h-3 w-3" />}
-                    </Button>
-                    <Button size="icon" variant="outline" className="h-6 w-6" disabled={crawlingIds.has(row.id)} onClick={() => triggerCrawl(row)} title="AI crawl">
-                      {crawlingIds.has(row.id) ? <Loader2 className="h-3 w-3 animate-spin" /> : <Bot className="h-3 w-3" />}
                     </Button>
                     <Button size="sm" variant="outline" className="h-6 text-[10px] px-1.5" title="View admissions data" onClick={() => setDetail(row)}>
                       <ListChecks className="h-3 w-3 mr-0.5" />Data
