@@ -142,6 +142,20 @@ function UploadStatusBadge({ status }: { status?: string }) {
   return <Badge variant="info" className="gap-1"><Loader2 className="h-3 w-3 animate-spin" /> Processing</Badge>;
 }
 
+function formatRelative(dateStr: string | null | undefined): string {
+  if (!dateStr) return '—';
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return 'just now';
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  if (days < 30) return `${days}d ago`;
+  const months = Math.floor(days / 30);
+  return `${months}mo ago`;
+}
+
 export default function UniversitiesManageTab() {
   const { t } = useTranslation();
   const { toast } = useToast();
@@ -634,39 +648,40 @@ export default function UniversitiesManageTab() {
                 ? 'bg-yellow-500'
                 : 'bg-red-400';
             return (
-            <Card key={row.id} className={`border-l-4 ${borderColor} ${row.is_partner ? 'ring-1 ring-primary/30' : ''}`}>
+            <Card key={row.id} className={`border-l-4 ${borderColor} ${row.is_partner ? 'ring-1 ring-primary/30' : ''} overflow-hidden`}>
               <CardHeader className="pb-2">
-                <div className="flex items-start gap-3">
+                <div className="flex items-center justify-between mb-1">
                   <Checkbox
                     checked={selected.has(row.id)}
                     onCheckedChange={() => toggleSelect(row.id)}
-                    className="mt-1 shrink-0"
+                    className="shrink-0"
                   />
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground font-bold text-sm">
+                  <span className="text-[10px] text-muted-foreground">{formatRelative(row.updated_at)}</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground font-bold text-sm">
                     {(row.name_ko ?? '?')[0]}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <CardTitle className="text-base truncate">{row.name_ko}</CardTitle>
+                    <CardTitle className="text-sm leading-tight truncate">{row.name_ko}</CardTitle>
                     {row.name_en ? (
                       <p className="text-xs text-muted-foreground truncate">{row.name_en}</p>
                     ) : (
                       <p className="text-xs text-destructive/60 truncate italic">No English name</p>
                     )}
-                    <div className="flex items-center gap-2 mt-2">
-                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                        <MapPin className="h-3 w-3" /> {row.city_ko ?? '—'}
-                      </div>
-                      {row.tier !== null && row.tier !== undefined && (
-                        <span className="text-xs text-muted-foreground">#{row.tier}</span>
-                      )}
-                      <Badge variant="neutral" className="text-[10px]">{row.institution_type}</Badge>
+                    <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                      <span className="text-[11px] text-muted-foreground flex items-center gap-0.5">
+                        <MapPin className="h-2.5 w-2.5" />{row.city_ko ?? '—'}
+                      </span>
+                      {row.tier != null && <span className="text-[11px] text-muted-foreground">#{row.tier}</span>}
+                      <Badge variant="neutral" className="text-[9px] px-1 py-0">{row.institution_type}</Badge>
                     </div>
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-2 text-xs">
-                <div className="flex items-center gap-2">
-                  <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
+              <CardContent className="space-y-1.5 text-xs pt-0">
+                <div className="flex items-center gap-1.5">
+                  <div className="flex-1 h-1 rounded-full bg-muted overflow-hidden">
                     <div className={`h-full rounded-full transition-all ${progressColor}`} style={{ width: `${ci.pct}%` }} />
                   </div>
                   <span className="text-[10px] text-muted-foreground whitespace-nowrap">{ci.score}/{ci.total}</span>
@@ -674,56 +689,49 @@ export default function UniversitiesManageTab() {
 
                 <div className="flex flex-wrap gap-1">
                   <UploadStatusBadge status={statusMap.get(row.id)} />
-                  {row.is_partner && <Badge variant="lime">partner</Badge>}
-                  {row.is_visible_on_map && <Badge variant="outline">on map</Badge>}
-                  {row.ieqas_status === 'outstanding' && <Badge variant="info" className="text-[10px]">IEQAS+</Badge>}
-                  {row.ieqas_status === 'accredited' && <Badge variant="outline" className="text-[10px]">IEQAS</Badge>}
+                  {row.is_partner && <Badge variant="lime" className="text-[9px] px-1 py-0">partner</Badge>}
+                  {row.is_visible_on_map && <Badge variant="outline" className="text-[9px] px-1 py-0">on map</Badge>}
+                  {row.ieqas_status === 'outstanding' && <Badge variant="info" className="text-[9px] px-1 py-0">IEQAS+</Badge>}
+                  {row.ieqas_status === 'accredited' && <Badge variant="outline" className="text-[9px] px-1 py-0">IEQAS</Badge>}
                 </div>
 
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <span className="truncate flex-1">{row.primary_domain || '—'}</span>
+                <div className="flex items-center gap-1.5 text-muted-foreground">
+                  <span className="truncate flex-1 text-[11px]">{row.primary_domain || '—'}</span>
                   {row.primary_admissions_url_ko && (
-                    <a
-                      href={row.primary_admissions_url_ko}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-primary hover:text-primary/80 shrink-0"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <ExternalLink className="h-3.5 w-3.5" />
+                    <a href={row.primary_admissions_url_ko} target="_blank" rel="noopener noreferrer" className="text-primary hover:text-primary/80 shrink-0" onClick={(e) => e.stopPropagation()}>
+                      <ExternalLink className="h-3 w-3" />
                     </a>
                   )}
                 </div>
 
-                <div className="flex items-center justify-between gap-1 pt-2 border-t">
+                <div className="pt-1.5 border-t space-y-1">
                   <div className="flex items-center gap-0.5">
-                    <Button size="icon" variant="ghost" className="h-7 w-7" title={row.is_partner ? 'Remove partner' : 'Mark as partner'} onClick={() => togglePartner(row.id, !row.is_partner)}>
-                      {row.is_partner ? <Star className="h-3.5 w-3.5 fill-current" /> : <StarOff className="h-3.5 w-3.5" />}
+                    <Button size="icon" variant="ghost" className="h-6 w-6" title={row.is_partner ? 'Remove partner' : 'Mark as partner'} onClick={() => togglePartner(row.id, !row.is_partner)}>
+                      {row.is_partner ? <Star className="h-3 w-3 fill-current" /> : <StarOff className="h-3 w-3" />}
                     </Button>
-                    <Button size="icon" variant="ghost" className="h-7 w-7" title={row.is_visible_on_map ? 'Hide from map' : 'Show on map'} onClick={() => toggleMapVisibility(row.id, !row.is_visible_on_map)}>
-                      {row.is_visible_on_map ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
+                    <Button size="icon" variant="ghost" className="h-6 w-6" title={row.is_visible_on_map ? 'Hide from map' : 'Show on map'} onClick={() => toggleMapVisibility(row.id, !row.is_visible_on_map)}>
+                      {row.is_visible_on_map ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
                     </Button>
-                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openEdit(row)}>
-                      <Edit3 className="h-3.5 w-3.5" />
+                    <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => openEdit(row)}>
+                      <Edit3 className="h-3 w-3" />
                     </Button>
-                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setConfirmDelete(row)}>
-                      <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                    <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => setConfirmDelete(row)}>
+                      <Trash2 className="h-3 w-3 text-destructive" />
                     </Button>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Button size="sm" variant="outline" className="h-7 text-[11px] px-2" disabled={uploadingId === row.id} onClick={() => pickUpload(row.id)} title="Upload admission-guideline PDF">
-                      {uploadingId === row.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <UploadCloud className="h-3.5 w-3.5" />}
+                    <div className="flex-1" />
+                    <Button size="icon" variant="outline" className="h-6 w-6" disabled={uploadingId === row.id} onClick={() => pickUpload(row.id)} title="Upload PDF">
+                      {uploadingId === row.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <UploadCloud className="h-3 w-3" />}
                     </Button>
-                    <Button size="sm" variant="outline" className="h-7 text-[11px] px-2" disabled={crawlingIds.has(row.id)} onClick={() => triggerCrawl(row)} title="Fetch admissions data via AI">
-                      {crawlingIds.has(row.id) ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Bot className="h-3.5 w-3.5" />}
+                    <Button size="icon" variant="outline" className="h-6 w-6" disabled={crawlingIds.has(row.id)} onClick={() => triggerCrawl(row)} title="AI crawl">
+                      {crawlingIds.has(row.id) ? <Loader2 className="h-3 w-3 animate-spin" /> : <Bot className="h-3 w-3" />}
                     </Button>
-                    <Button size="sm" variant="outline" className="h-7 text-[11px] px-2" title="View admissions data" onClick={() => setDetail(row)}>
-                      <ListChecks className="h-3.5 w-3.5 mr-1" /> Data
+                    <Button size="sm" variant="outline" className="h-6 text-[10px] px-1.5" title="View admissions data" onClick={() => setDetail(row)}>
+                      <ListChecks className="h-3 w-3 mr-0.5" />Data
                     </Button>
                   </div>
                 </div>
                 {crawlResults.has(row.id) && (
-                  <div className={`text-xs flex items-center gap-1 ${crawlResults.get(row.id)!.ok ? 'text-green-600' : 'text-destructive'}`}>
+                  <div className={`text-[11px] flex items-center gap-1 ${crawlResults.get(row.id)!.ok ? 'text-green-600' : 'text-destructive'}`}>
                     {crawlResults.get(row.id)!.ok ? <CheckCircle2 className="h-3 w-3" /> : <AlertTriangle className="h-3 w-3" />}
                     {crawlResults.get(row.id)!.message}
                   </div>
