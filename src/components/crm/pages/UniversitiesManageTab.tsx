@@ -322,7 +322,7 @@ export default function UniversitiesManageTab() {
     'tier', 'ieqas_status', 'primary_admissions_url_ko',
   ];
 
-  const getCompleteness = (row: Institution): 'complete' | 'partial' | 'empty' => {
+  const getCompletenessInfo = (row: Institution) => {
     const periods = periodCounts.get(row.id) ?? 0;
     const reqs = reqCounts.get(row.id) ?? 0;
     let basicFilled = 0;
@@ -330,12 +330,19 @@ export default function UniversitiesManageTab() {
       const v = row[f];
       if (v !== null && v !== undefined && v !== '') basicFilled++;
     }
+    const totalChecks = BASIC_FIELDS.length + 2;
+    const score = basicFilled + (periods > 0 ? 1 : 0) + (reqs > 0 ? 1 : 0);
+    const pct = Math.round((score / totalChecks) * 100);
     const hasAdmissions = periods > 0 && reqs > 0;
     const hasBasic = basicFilled === BASIC_FIELDS.length;
-    if (!hasBasic && !hasAdmissions && periods === 0 && reqs === 0 && basicFilled === 0) return 'empty';
-    if (hasBasic && hasAdmissions) return 'complete';
-    return 'partial';
+    let status: 'complete' | 'partial' | 'empty';
+    if (!hasBasic && !hasAdmissions && periods === 0 && reqs === 0 && basicFilled === 0) status = 'empty';
+    else if (hasBasic && hasAdmissions) status = 'complete';
+    else status = 'partial';
+    return { status, pct, score, total: totalChecks };
   };
+
+  const getCompleteness = (row: Institution) => getCompletenessInfo(row).status;
 
   const dataStats = useMemo(() => {
     let complete = 0, partial = 0, empty = 0;
@@ -614,8 +621,20 @@ export default function UniversitiesManageTab() {
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          {filtered.map((row) => (
-            <Card key={row.id} className={row.is_partner ? 'border-primary/40' : undefined}>
+          {filtered.map((row) => {
+            const ci = getCompletenessInfo(row);
+            const borderColor = ci.status === 'complete'
+              ? 'border-l-green-500'
+              : ci.status === 'partial'
+                ? 'border-l-yellow-500'
+                : 'border-l-red-400';
+            const progressColor = ci.status === 'complete'
+              ? 'bg-green-500'
+              : ci.status === 'partial'
+                ? 'bg-yellow-500'
+                : 'bg-red-400';
+            return (
+            <Card key={row.id} className={`border-l-4 ${borderColor} ${row.is_partner ? 'ring-1 ring-primary/30' : ''}`}>
               <CardHeader className="pb-2">
                 <div className="flex items-start gap-3">
                   <Checkbox
@@ -623,119 +642,96 @@ export default function UniversitiesManageTab() {
                     onCheckedChange={() => toggleSelect(row.id)}
                     className="mt-1 shrink-0"
                   />
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-info/10 text-info">
-                    <GraduationCap className="h-5 w-5" />
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground font-bold text-sm">
+                    {(row.name_ko ?? '?')[0]}
                   </div>
                   <div className="min-w-0 flex-1">
                     <CardTitle className="text-base truncate">{row.name_ko}</CardTitle>
                     {row.name_en ? (
                       <p className="text-xs text-muted-foreground truncate">{row.name_en}</p>
-                    ) : null}
-                    <div className="flex flex-wrap gap-1 mt-2">
-                      <UploadStatusBadge status={statusMap.get(row.id)} />
-                      {row.is_partner ? <Badge variant="lime">partner</Badge> : null}
-                      {row.is_visible_on_map ? <Badge variant="outline">on map</Badge> : null}
-                      <Badge variant="neutral">{row.institution_type}</Badge>
-                      {row.tier !== null && row.tier !== undefined ? <Badge variant="info">tier {row.tier}</Badge> : null}
-                      {(() => {
-                        const c = getCompleteness(row);
-                        if (c === 'empty') return <Badge variant="outline" className="border-destructive/40 text-destructive">Empty</Badge>;
-                        if (c === 'partial') return <Badge variant="warning">Partial</Badge>;
-                        return <Badge variant="lime">Complete</Badge>;
-                      })()}
+                    ) : (
+                      <p className="text-xs text-destructive/60 truncate italic">No English name</p>
+                    )}
+                    <div className="flex items-center gap-2 mt-2">
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <MapPin className="h-3 w-3" /> {row.city_ko ?? '—'}
+                      </div>
+                      {row.tier !== null && row.tier !== undefined && (
+                        <span className="text-xs text-muted-foreground">#{row.tier}</span>
+                      )}
+                      <Badge variant="neutral" className="text-[10px]">{row.institution_type}</Badge>
                     </div>
                   </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-2 text-xs">
-                <div className="flex items-center gap-1 text-muted-foreground">
-                  <MapPin className="h-3 w-3 shrink-0" /> {row.city_ko ?? '—'}
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
+                    <div className={`h-full rounded-full transition-all ${progressColor}`} style={{ width: `${ci.pct}%` }} />
+                  </div>
+                  <span className="text-[10px] text-muted-foreground whitespace-nowrap">{ci.score}/{ci.total}</span>
                 </div>
-                <div className="text-muted-foreground truncate">
-                  {row.primary_domain || '—'}
-                </div>
-                {row.primary_admissions_url_ko ? (
-                  <a
-                    href={row.primary_admissions_url_ko}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-primary hover:underline inline-flex items-center gap-1 truncate"
-                  >
-                    <ExternalLink className="h-3 w-3 shrink-0" /> admissions site
-                  </a>
-                ) : null}
 
-                <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t mt-2">
-                  <div className="flex items-center gap-1">
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      title={row.is_partner ? 'Remove partner' : 'Mark as partner'}
-                      onClick={() => togglePartner(row.id, !row.is_partner)}
+                <div className="flex flex-wrap gap-1">
+                  <UploadStatusBadge status={statusMap.get(row.id)} />
+                  {row.is_partner && <Badge variant="lime">partner</Badge>}
+                  {row.is_visible_on_map && <Badge variant="outline">on map</Badge>}
+                  {row.ieqas_status === 'outstanding' && <Badge variant="info" className="text-[10px]">IEQAS+</Badge>}
+                  {row.ieqas_status === 'accredited' && <Badge variant="outline" className="text-[10px]">IEQAS</Badge>}
+                </div>
+
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <span className="truncate flex-1">{row.primary_domain || '—'}</span>
+                  {row.primary_admissions_url_ko && (
+                    <a
+                      href={row.primary_admissions_url_ko}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:text-primary/80 shrink-0"
+                      onClick={(e) => e.stopPropagation()}
                     >
-                      {row.is_partner ? <Star className="h-4 w-4 fill-current" /> : <StarOff className="h-4 w-4" />}
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    </a>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-between gap-1 pt-2 border-t">
+                  <div className="flex items-center gap-0.5">
+                    <Button size="icon" variant="ghost" className="h-7 w-7" title={row.is_partner ? 'Remove partner' : 'Mark as partner'} onClick={() => togglePartner(row.id, !row.is_partner)}>
+                      {row.is_partner ? <Star className="h-3.5 w-3.5 fill-current" /> : <StarOff className="h-3.5 w-3.5" />}
                     </Button>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      title={row.is_visible_on_map ? 'Hide from map' : 'Show on map'}
-                      onClick={() => toggleMapVisibility(row.id, !row.is_visible_on_map)}
-                    >
-                      {row.is_visible_on_map ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                    <Button size="icon" variant="ghost" className="h-7 w-7" title={row.is_visible_on_map ? 'Hide from map' : 'Show on map'} onClick={() => toggleMapVisibility(row.id, !row.is_visible_on_map)}>
+                      {row.is_visible_on_map ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
+                    </Button>
+                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openEdit(row)}>
+                      <Edit3 className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setConfirmDelete(row)}>
+                      <Trash2 className="h-3.5 w-3.5 text-destructive" />
                     </Button>
                   </div>
-                  <div className="flex flex-wrap items-center gap-1">
-                    <Button
-                      size="sm"
-                      className="h-8"
-                      disabled={uploadingId === row.id}
-                      onClick={() => pickUpload(row.id)}
-                      title="Upload admission-guideline PDF"
-                    >
-                      {uploadingId === row.id
-                        ? <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                        : <UploadCloud className="h-4 w-4 mr-1" />}
-                      Upload
+                  <div className="flex items-center gap-1">
+                    <Button size="sm" variant="outline" className="h-7 text-[11px] px-2" disabled={uploadingId === row.id} onClick={() => pickUpload(row.id)} title="Upload admission-guideline PDF">
+                      {uploadingId === row.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <UploadCloud className="h-3.5 w-3.5" />}
                     </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="h-8"
-                      disabled={crawlingIds.has(row.id)}
-                      onClick={() => triggerCrawl(row)}
-                      title="Fetch admissions data via AI"
-                    >
-                      {crawlingIds.has(row.id)
-                        ? <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                        : <Bot className="h-4 w-4 mr-1" />}
-                      AI Update
+                    <Button size="sm" variant="outline" className="h-7 text-[11px] px-2" disabled={crawlingIds.has(row.id)} onClick={() => triggerCrawl(row)} title="Fetch admissions data via AI">
+                      {crawlingIds.has(row.id) ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Bot className="h-3.5 w-3.5" />}
                     </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="h-8"
-                      title="View admissions data"
-                      onClick={() => setDetail(row)}
-                    >
-                      <ListChecks className="h-4 w-4 mr-1" /> Admissions
-                    </Button>
-                    <Button size="icon" variant="ghost" onClick={() => openEdit(row)}>
-                      <Edit3 className="h-4 w-4" />
-                    </Button>
-                    <Button size="icon" variant="ghost" onClick={() => setConfirmDelete(row)}>
-                      <Trash2 className="h-4 w-4 text-destructive" />
+                    <Button size="sm" variant="outline" className="h-7 text-[11px] px-2" title="View admissions data" onClick={() => setDetail(row)}>
+                      <ListChecks className="h-3.5 w-3.5 mr-1" /> Data
                     </Button>
                   </div>
                 </div>
                 {crawlResults.has(row.id) && (
-                  <div className={`text-xs mt-2 flex items-center gap-1 ${crawlResults.get(row.id)!.ok ? 'text-green-600' : 'text-destructive'}`}>
+                  <div className={`text-xs flex items-center gap-1 ${crawlResults.get(row.id)!.ok ? 'text-green-600' : 'text-destructive'}`}>
                     {crawlResults.get(row.id)!.ok ? <CheckCircle2 className="h-3 w-3" /> : <AlertTriangle className="h-3 w-3" />}
                     {crawlResults.get(row.id)!.message}
                   </div>
                 )}
               </CardContent>
             </Card>
-          ))}
+            );
+          })}
         </div>
       )}
 
