@@ -105,6 +105,7 @@ export default function AiCrawlMonitorContent() {
               <Select value={interval} onValueChange={(v) => { setIntervalH(v); updateConfig.mutate({ interval_hours: Number(v) }); }}>
                 <SelectTrigger className="h-9 text-xs"><SelectValue /></SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="4">Har 4 soatda</SelectItem>
                   <SelectItem value="6">Har 6 soatda</SelectItem>
                   <SelectItem value="12">Har 12 soatda</SelectItem>
                   <SelectItem value="24">Har 24 soatda</SelectItem>
