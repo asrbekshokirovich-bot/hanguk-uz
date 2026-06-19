@@ -183,7 +183,8 @@ export default function UniversitiesManageTab() {
   } = useUniversities();
 
   const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState<'all' | 'partners' | 'on_map'>('all');
+  const [filter, setFilter] = useState<'all' | 'partners' | 'on_map' | 'new' | 'no_domain' | 'hidden'>('all');
+  const [sortBy, setSortBy] = useState<'name' | 'newest' | 'oldest'>('name');
   const [edit, setEdit] = useState<EditState>(null);
   const [fields, setFields] = useState<FormFields>(emptyFields());
   const [confirmDelete, setConfirmDelete] = useState<Institution | null>(null);
@@ -318,9 +319,16 @@ export default function UniversitiesManageTab() {
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return institutions.filter((row) => {
+    const result = institutions.filter((row) => {
       if (filter === 'partners' && !row.is_partner) return false;
       if (filter === 'on_map' && !row.is_visible_on_map) return false;
+      if (filter === 'hidden' && row.is_visible_on_map) return false;
+      if (filter === 'no_domain' && row.primary_admissions_url_ko) return false;
+      if (filter === 'new') {
+        const created = new Date(row.created_at);
+        const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
+        if (created < threeDaysAgo) return false;
+      }
       if (!q) return true;
       const haystack = [
         row.name_ko ?? '',
@@ -331,7 +339,10 @@ export default function UniversitiesManageTab() {
       ].join(' ').toLowerCase();
       return haystack.includes(q);
     });
-  }, [institutions, search, filter]);
+    if (sortBy === 'newest') result.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    else if (sortBy === 'oldest') result.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+    return result;
+  }, [institutions, search, filter, sortBy]);
 
   const openCreate = () => {
     setFields(emptyFields());
@@ -445,20 +456,48 @@ export default function UniversitiesManageTab() {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <div className="flex items-center gap-2">
-          <Button size="sm" variant={filter === 'all' ? 'default' : 'outline'} onClick={() => setFilter('all')}>All</Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button size="sm" variant={filter === 'all' ? 'default' : 'outline'} onClick={() => setFilter('all')}>
+            Barchasi
+          </Button>
+          <Button size="sm" variant={filter === 'new' ? 'default' : 'outline'} onClick={() => setFilter('new')}>
+            <Clock className="h-4 w-4 mr-1" /> Yangi (3 kun)
+          </Button>
+          <Button size="sm" variant={filter === 'hidden' ? 'default' : 'outline'} onClick={() => setFilter('hidden')}>
+            <EyeOff className="h-4 w-4 mr-1" /> Yashirin
+          </Button>
+          <Button size="sm" variant={filter === 'no_domain' ? 'default' : 'outline'} onClick={() => setFilter('no_domain')}>
+            <AlertTriangle className="h-4 w-4 mr-1" /> URL yo'q
+          </Button>
           <Button size="sm" variant={filter === 'partners' ? 'default' : 'outline'} onClick={() => setFilter('partners')}>
-            <Star className="h-4 w-4 mr-1" /> Partners
+            <Star className="h-4 w-4 mr-1" /> Hamkorlar
           </Button>
           <Button size="sm" variant={filter === 'on_map' ? 'default' : 'outline'} onClick={() => setFilter('on_map')}>
-            <MapPin className="h-4 w-4 mr-1" /> On map
+            <MapPin className="h-4 w-4 mr-1" /> Xaritada
           </Button>
           <span className="text-muted-foreground">|</span>
+          <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
+            <SelectTrigger className="h-8 w-[140px] text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="name">Nomi bo'yicha</SelectItem>
+              <SelectItem value="newest">Eng yangi</SelectItem>
+              <SelectItem value="oldest">Eng eski</SelectItem>
+            </SelectContent>
+          </Select>
+          <span className="text-muted-foreground">|</span>
           <Button size="sm" variant="ghost" onClick={selectAll}>
-            {selected.size === filtered.length && filtered.length > 0 ? 'Barchasini olib tashlash' : 'Barchasini tanlash'}
+            {selected.size === filtered.length && filtered.length > 0 ? 'Bekor qilish' : 'Barchasini tanlash'}
           </Button>
         </div>
       </div>
+
+      {filter !== 'all' && (
+        <div className="text-sm text-muted-foreground">
+          {filtered.length} ta natija (jami {institutions.length} tadan)
+        </div>
+      )}
 
       {selected.size > 0 && (
         <div className="flex items-center gap-3 p-3 bg-primary/5 border rounded-lg">
