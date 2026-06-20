@@ -34,6 +34,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { AddExpenseDialog } from './AddExpenseDialog';
 import { EditTransactionDialog } from './EditTransactionDialog';
 import { UpcomingTransactionsPanel } from './UpcomingTransactionsPanel';
+import { AddPlannedTransactionDialog } from './AddPlannedTransactionDialog';
 import { usePlannedTransactions } from '@/hooks/usePlannedTransactions';
 
 interface Expense {
@@ -314,6 +315,7 @@ export function TransactionList({ payments, loading }: TransactionListProps) {
                 </SelectContent>
               </Select>
               <AddExpenseDialog onSuccess={fetchExpenses} />
+              <AddPlannedTransactionDialog onCreate={plannedData.create} />
             </div>
           </div>
         </CardHeader>
