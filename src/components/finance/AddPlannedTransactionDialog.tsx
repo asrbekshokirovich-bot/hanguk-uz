@@ -114,7 +114,7 @@ export function AddPlannedTransactionDialog({ onCreate, trigger }: Props) {
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Kutilayotgan tranzaksiya qo'shish</DialogTitle>
         </DialogHeader>
