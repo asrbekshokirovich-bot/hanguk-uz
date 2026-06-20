@@ -33,6 +33,8 @@ import { formatAmount } from '@/hooks/useStudentPlan';
 import { supabase } from '@/integrations/supabase/client';
 import { AddExpenseDialog } from './AddExpenseDialog';
 import { EditTransactionDialog } from './EditTransactionDialog';
+import { UpcomingTransactionsPanel } from './UpcomingTransactionsPanel';
+import { usePlannedTransactions } from '@/hooks/usePlannedTransactions';
 
 interface Expense {
   id: string;
@@ -73,6 +75,7 @@ export function TransactionList({ payments, loading }: TransactionListProps) {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [editingTransaction, setEditingTransaction] = useState<TransactionItem | null>(null);
   const [expensesLoading, setExpensesLoading] = useState(false);
+  const plannedData = usePlannedTransactions();
 
   // Fetch expenses
   const fetchExpenses = async () => {
@@ -383,6 +386,9 @@ export function TransactionList({ payments, loading }: TransactionListProps) {
           </div>
         </CardContent>
       </Card>
+
+      {/* Upcoming Transactions */}
+      <UpcomingTransactionsPanel data={plannedData} />
 
       {/* Edit Transaction Dialog */}
       {editingTransaction && (
