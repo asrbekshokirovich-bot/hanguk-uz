@@ -58,6 +58,7 @@ export function useUniversities() {
   const [loading, setLoading] = useState(true);
 
   const fetchUniversities = async (visibleOnly = false) => {
+    setLoading(true);
     let query = supabase
       .from('institutions')
       .select('*')
