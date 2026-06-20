@@ -15,13 +15,16 @@ import { useExpectedPayments } from '@/hooks/useExpectedPayments';
 import { formatAmount } from '@/hooks/useStudentPlan';
 import { PlannedIncomePanel } from './PlannedIncomePanel';
 import { ManualTransactionDialog } from './ManualTransactionDialog';
+import { UpcomingTransactionsPanel } from './UpcomingTransactionsPanel';
+import { usePlannedTransactions } from '@/hooks/usePlannedTransactions';
 
 export function FinanceOverview() {
   const { t } = useTranslation();
   const { payments, stats, loading: paymentsLoading, fetchPayments } = usePayments();
   const { students, loading: studentsLoading } = useCRMData();
   const { stats: expectedStats } = useExpectedPayments(students, payments);
-  
+  const plannedData = usePlannedTransactions();
+
   const loading = paymentsLoading || studentsLoading;
 
   return (
@@ -123,9 +126,12 @@ export function FinanceOverview() {
         </Card>
       </div>
 
+      {/* Upcoming Transactions */}
+      <UpcomingTransactionsPanel data={plannedData} />
+
       {/* Planned Income Panel */}
-      <PlannedIncomePanel 
-        students={students} 
+      <PlannedIncomePanel
+        students={students}
         payments={payments}
         loading={loading}
       />
