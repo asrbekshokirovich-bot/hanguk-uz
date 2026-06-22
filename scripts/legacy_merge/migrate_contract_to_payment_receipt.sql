@@ -23,7 +23,12 @@
 --     -  8 had no payment row          -> new initial_deposit payment created
 --                                         (premium 10,000,000 / standart 5,000,000 UZS,
 --                                          status completed, intake bafc30e2-…)
---   Result: 0 contract_url remaining, 48 payments carry the moved receipt.
+--   Follow-up (same mechanism): +1 no_risk student whose JPG check sat in the
+--     contract slot with an empty payment receipt -> receipt attached.
+--   Intentionally NOT touched: 3 free/tekin_natija students whose contract_url
+--     is a PDF with no payment row — confirmed to be genuine contracts, not checks.
+--   Result: only those 3 genuine contracts remain in contract_url; every moved
+--     check now lives on its owner's payment (matched on user_id, no mixups).
 --
 -- Mechanism
 --   The container running this had no network egress to *.supabase.co, so the
