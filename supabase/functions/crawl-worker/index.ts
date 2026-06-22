@@ -2,7 +2,8 @@
 //
 // 1. Validate-then-commit: never overwrite good data with empty/garbage extraction
 // 2. Guardrails: reject impossible values (past deadlines, bad TOPIK/GPA ranges)
-// 3. Text-hash gate: skip LLM call if page content hasn't changed
+// 3. Conditional GET (ETag/If-Modified-Since) + text-hash gate: skip work when unchanged
+//    Honors 304 Not Modified and 429 Retry-After for polite, cheap crawling
 // 4. DOM pruning: strip nav/footer/scripts before LLM sees content
 // 5. Per-field confidence: each extracted field carries its own confidence score
 // 6. Classify-then-extract: detect page type, use appropriate schema
@@ -262,19 +263,28 @@ Deno.serve(async (req) => {
     if (runErr) throw runErr;
     runId = run.id;
 
-    // 2) Fetch the page
+    // Load prior cache for conditional GET (ETag / Last-Modified)
+    const { data: cached } = await admin
+      .from("crawl_page_cache")
+      .select("content_hash, etag, last_modified")
+      .eq("institution_id", institution_id)
+      .single();
+
+    // 2) Fetch the page (conditional GET to skip unchanged content cheaply)
+    const reqHeaders: Record<string, string> = {
+      "User-Agent": "Mozilla/5.0 (compatible; HangukUZ-AdmissionsBot/1.0; +https://hanguk.uz)",
+      "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+      "Accept-Language": "ko-KR,ko;q=0.9,en;q=0.8",
+      "Accept-Encoding": "gzip, deflate, br",
+    };
+    if (cached?.etag) reqHeaders["If-None-Match"] = cached.etag;
+    if (cached?.last_modified) reqHeaders["If-Modified-Since"] = cached.last_modified;
+
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 30_000);
     let pageRes: Response;
     try {
-      pageRes = await fetch(url, {
-        headers: {
-          "User-Agent": "Mozilla/5.0 (compatible; HangukUZ-AdmissionsBot/1.0)",
-          "Accept": "text/html,application/xhtml+xml",
-          "Accept-Language": "ko-KR,ko;q=0.9",
-        },
-        signal: controller.signal,
-      });
+      pageRes = await fetch(url, { headers: reqHeaders, signal: controller.signal });
     } catch (fetchErr) {
       clearTimeout(timeout);
       await recordFailure(admin, institution_id, runId, `fetch_error: ${fetchErr}`);
@@ -283,11 +293,41 @@ Deno.serve(async (req) => {
     clearTimeout(timeout);
 
     const httpStatus = pageRes.status;
+
+    // 304 Not Modified — server confirms content unchanged, skip LLM entirely
+    if (httpStatus === 304) {
+      await admin
+        .from("crawl_runs")
+        .update({
+          status: "skipped",
+          ended_at: new Date().toISOString(),
+          http_status_code: 304,
+          skipped_reason: "not_modified_304",
+          records_seen: 0,
+          records_new: 0,
+        })
+        .eq("id", runId);
+      await admin
+        .from("institutions")
+        .update({ consecutive_failures: 0, crawl_cooldown_until: null, last_verified_at: new Date().toISOString() })
+        .eq("id", institution_id);
+      return json({ ok: true, run_id: runId, skipped: true, reason: "not_modified_304" });
+    }
+
+    // 429 Too Many Requests — honor Retry-After, back off politely (not a hard failure)
+    if (httpStatus === 429) {
+      const retryAfter = pageRes.headers.get("retry-after");
+      await recordFailure(admin, institution_id, runId, `rate_limited_429 retry_after=${retryAfter ?? "n/a"}`, retryAfter);
+      return json({ skipped: true, reason: "rate_limited_429", retry_after: retryAfter }, 429);
+    }
+
     if (httpStatus >= 400) {
       await recordFailure(admin, institution_id, runId, `http_${httpStatus}`);
       return json({ error: `HTTP ${httpStatus}` }, 502);
     }
 
+    const etag = pageRes.headers.get("etag");
+    const lastModified = pageRes.headers.get("last-modified");
     const html = await pageRes.text();
 
     // --- Pattern 4: DOM pruning ---
@@ -296,12 +336,6 @@ Deno.serve(async (req) => {
 
     // --- Pattern 3: Text-hash gate ---
     const newHash = await hashContent(text);
-
-    const { data: cached } = await admin
-      .from("crawl_page_cache")
-      .select("content_hash")
-      .eq("institution_id", institution_id)
-      .single();
 
     if (cached?.content_hash === newHash) {
       // Page unchanged — skip LLM, mark success
@@ -318,7 +352,8 @@ Deno.serve(async (req) => {
         })
         .eq("id", runId);
 
-      // Reset failures on successful fetch
+      // Refresh validators + reset failures on successful fetch
+      await upsertPageCache(admin, institution_id, newHash, new TextEncoder().encode(text).byteLength, etag, lastModified);
       await admin
         .from("institutions")
         .update({ consecutive_failures: 0, last_verified_at: new Date().toISOString() })
@@ -395,7 +430,7 @@ Deno.serve(async (req) => {
         .eq("id", runId);
 
       // Update cache hash — page was fetched successfully, just no data found
-      await upsertPageCache(admin, institution_id, newHash, new TextEncoder().encode(text).byteLength);
+      await upsertPageCache(admin, institution_id, newHash, new TextEncoder().encode(text).byteLength, etag, lastModified);
 
       // Reset failures (page fetched OK, just no admissions data)
       await admin
@@ -516,7 +551,7 @@ Deno.serve(async (req) => {
       .eq("id", runId);
 
     // Update page cache + reset circuit breaker
-    await upsertPageCache(admin, institution_id, newHash, new TextEncoder().encode(text).byteLength);
+    await upsertPageCache(admin, institution_id, newHash, new TextEncoder().encode(text).byteLength, etag, lastModified);
     await admin
       .from("institutions")
       .update({
@@ -566,6 +601,7 @@ async function recordFailure(
   institutionId: string,
   runId: string | null,
   errorText: string,
+  retryAfter?: string | null,
 ) {
   // Update run if exists
   if (runId) {
@@ -590,9 +626,20 @@ async function recordFailure(
   // Exponential backoff with jitter: 1h, 2h, 4h, 8h... capped at 72h
   const backoffHours = Math.min(72, Math.pow(2, failures - 1));
   const jitterMs = Math.random() * 15 * 60 * 1000; // up to 15 min jitter
-  const cooldownUntil = new Date(
-    Date.now() + backoffHours * 60 * 60 * 1000 + jitterMs,
-  ).toISOString();
+  let cooldownMs = backoffHours * 60 * 60 * 1000 + jitterMs;
+
+  // Honor server's Retry-After (seconds or HTTP-date) when present, taking the longer wait
+  if (retryAfter) {
+    const asSeconds = Number(retryAfter);
+    const retryMs = Number.isFinite(asSeconds)
+      ? asSeconds * 1000
+      : (new Date(retryAfter).getTime() - Date.now());
+    if (Number.isFinite(retryMs) && retryMs > 0) {
+      cooldownMs = Math.max(cooldownMs, retryMs);
+    }
+  }
+
+  const cooldownUntil = new Date(Date.now() + cooldownMs).toISOString();
 
   await admin
     .from("institutions")
@@ -608,6 +655,8 @@ async function upsertPageCache(
   institutionId: string,
   contentHash: string,
   sizeBytes: number,
+  etag?: string | null,
+  lastModified?: string | null,
 ) {
   await admin.from("crawl_page_cache").upsert(
     {
@@ -615,6 +664,8 @@ async function upsertPageCache(
       content_hash: contentHash,
       fetched_at: new Date().toISOString(),
       page_size_bytes: sizeBytes,
+      etag: etag ?? null,
+      last_modified: lastModified ?? null,
     },
     { onConflict: "institution_id" },
   );
