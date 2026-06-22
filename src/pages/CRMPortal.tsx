@@ -7,6 +7,7 @@ import { useUserRole } from '@/hooks/useUserRole';
 import { useCanReviewUniDb } from '@/hooks/useCanReviewUniDb';
 import { useCRMData } from '@/hooks/useCRMData';
 import { usePayments } from '@/hooks/usePayments';
+import { useActiveIntake } from '@/contexts/IntakeContext';
 import { CRMSidebar, useSidebarGroups } from '@/components/crm/CRMSidebar';
 import { CRMCommandMenu } from '@/components/crm/CRMCommandMenu';
 import { ThemeToggleButton } from '@/components/ThemeToggleButton';
@@ -96,9 +97,11 @@ export default function CRMPortal() {
     loading: studentsLoading,
     updateApplicationStatus,
     updateDocumentStatus,
-    refetchStudents
+    refetchStudents,
+    refetchApplications,
   } = useCRMData();
 
+  const { activeIntakeId } = useActiveIntake();
   const { payments, loading: paymentsLoading, fetchPayments } = usePayments();
   const loading = studentsLoading || paymentsLoading;
 
@@ -305,10 +308,13 @@ export default function CRMPortal() {
                 <ApplicationsContent
                   applications={applications}
                   students={students}
+                  universities={universities}
                   loading={loading}
                   currentLang={currentLang}
+                  activeIntakeId={activeIntakeId}
                   onOpenStudent={setSelectedStudent}
                   onUpdateApplicationStatus={updateApplicationStatus}
+                  onRefresh={() => { refetchApplications(); refetchStudents(); }}
                 />
               </SafeSuspense>
             </div>
