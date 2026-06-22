@@ -21,7 +21,6 @@ export function FinanceOverview() {
   const { payments, stats, loading: paymentsLoading, fetchPayments } = usePayments();
   const { students, loading: studentsLoading } = useCRMData();
   const { stats: expectedStats } = useExpectedPayments(students, payments);
-  
   const loading = paymentsLoading || studentsLoading;
 
   return (
@@ -124,8 +123,8 @@ export function FinanceOverview() {
       </div>
 
       {/* Planned Income Panel */}
-      <PlannedIncomePanel 
-        students={students} 
+      <PlannedIncomePanel
+        students={students}
         payments={payments}
         loading={loading}
       />
