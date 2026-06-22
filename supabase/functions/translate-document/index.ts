@@ -7,7 +7,11 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
-const GEMINI_AI_URL = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
+// Native Gemini endpoint (NOT the OpenAI-compat one): the OpenAI-compat
+// image_url path rasterises a PDF to a single image (first page only), which
+// dropped every page after page 1. The native generateContent endpoint with
+// inline_data reads ALL pages of a multi-page PDF.
+const GEMINI_AI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
 const OUTPUT_BUCKET = "translation-documents";
 
 const UZBEKISTAN_REGIONS: Record<string, string[]> = {
@@ -25,6 +29,75 @@ const UZBEKISTAN_REGIONS: Record<string, string[]> = {
   "Jizzax viloyati": ["Jizzax", "Arnasoy", "Baxmal", "Do'stlik", "Forish", "G'allaorol", "Mirzacho'l", "Paxtakor", "Zafarobod", "Zomin"],
   "Sirdaryo viloyati": ["Guliston", "Yangiyer", "Shirin", "Boyovut", "Mirzaobod", "Oqoltin", "Sayxunobod", "Sardoba", "Xovos"],
   "Qoraqalpog'iston": ["Nukus", "Amudaryo", "Beruniy", "Chimboy", "Ellikqala", "Kegeyli", "Mo'ynoq", "Qanliko'l", "Qo'ng'irot", "Shumanay", "Taxtako'pir", "To'rtko'l", "Xo'jayli"],
+};
+
+// ---------------------------------------------------------------------------
+// Fixed per-document-type layouts. Keyed by translation_document_types.code.
+// When a layout exists for the document being translated, the model MUST emit
+// the blocks in exactly this order, with these exact English labels/wording, so
+// the same document type always comes out in the same certified format.
+// ---------------------------------------------------------------------------
+const LAYOUT_TEMPLATES: Record<string, string> = {
+  birth_certificate: `=== REQUIRED LAYOUT (Birth Certificate) ===
+A birth certificate MUST be translated using EXACTLY the block sequence, labels
+and wording below. Keep every English label verbatim. Fill each value from the
+document (and from the supporting passports / ID cards for names). Skip a "field"
+only when that information is genuinely not present on the certificate.
+Do NOT put a trailing colon in any field "label" — the renderer adds ": "
+automatically (so label "Father" renders as "Father: ...").
+
+1.  title       text="BIRTH CERTIFICATE"
+2.  spacer
+3.  field   label="This is to certify that citizen"  value=<child's full name (from passport)>
+4.  field   label="Was born on"                       value=<date of birth, numeric DD.MM.YYYY>
+5.  field   label="Place of birth: city"              value=<city / settlement>
+6.  field   label="District of"                       value=<district>
+7.  field   label="Region of"                         value=<region>
+8.  field   label="Republic of"                       value=<country, e.g. UZBEKISTAN>
+9.  paragraph  text="Of which in the Book of birth registration on <registration date>"
+10. spacer
+11. paragraph  text="a corresponding record was entered under No. <record number>"
+12. spacer
+13. field   label="Father"                            value=<father's full name (from his passport/ID)>
+14. field   label="Nationality"                       value=<father's nationality, e.g. UZBEK>
+15. field   label="Mother"                             value=<mother's full name (from her passport/ID)>
+16. field   label="Nationality"                        value=<mother's nationality, e.g. UZBEK>
+17. paragraph  text="Place of registration Civil Registry Office <office / city>"
+18. field   label="Date of issue"                      value=<date of issue>
+19. field   label="Head of Civil Registry office"      value="signed"
+20. annotation text="Office Seal"
+21. spacer
+22. paragraph  text="<series> № <number>"   (certificate serial, e.g. "I-TV № 0255200")
+
+DATE STYLE for this document:
+- "Was born on" stays numeric DD.MM.YYYY (e.g. 01.09.2008).
+- The registration date and "Date of issue" use the English month name, then the
+  day and year: "MONTH DD.YYYY" (e.g. 11.01.2008 -> "JANUARY 11.2008").
+
+PLACE NAMES (Place of birth / District / Region / Place of registration):
+- Write every place name in its ENGLISH (international) spelling — NOT the Uzbek
+  Latin form, and WITHOUT Uzbek apostrophes. They are proper nouns: never translate
+  the descriptor words (tuman / shahar / shahri / viloyat / hudud / district /
+  region / city / area) into the value.
+- Use the standard English names. Examples:
+  Toshkent -> TASHKENT, Farg'ona -> FERGANA, Buxoro -> BUKHARA,
+  Samarqand -> SAMARKAND, Andijon -> ANDIJAN, Namangan -> NAMANGAN,
+  Qashqadaryo -> KASHKADARYA, Surxondaryo -> SURKHANDARYA, Xorazm -> KHOREZM,
+  Navoiy -> NAVOI, Jizzax -> JIZZAKH, Sirdaryo -> SYRDARYA,
+  Qoraqalpog'iston -> KARAKALPAKSTAN, Qo'qon -> KOKAND, Marg'ilon -> MARGILAN,
+  Xiva -> KHIVA, Bekobod -> BEKABAD, Nukus -> NUKUS, Termiz -> TERMEZ.
+- Identify the place by matching the "UZBEKISTAN PLACES" list above, then output its
+  English spelling. For a small district/town with no well-known English name,
+  transcribe it without apostrophes (e.g. Quva -> QUVA, Beshariq -> BESHARIK).
+- Only append " [unclear]" when the place genuinely cannot be identified — do NOT
+  guess a word like "hudud".
+
+CAPITALISATION (match the sample exactly):
+- Every field VALUE is in UPPERCASE — full names, cities, districts, regions,
+  nationalities (e.g. OMONOVA DILNOZAXON MUXTOR QIZI, FERGANA, UZBEKISTAN, UZBEK).
+- In dates the month is in CAPITALS (e.g. JANUARY 10.2003).
+- The only lowercase value is "signed" (Head of Civil Registry office).
+- Keep the bold labels in normal sentence case exactly as written above.`,
 };
 
 // ---------- Types ----------
@@ -80,7 +153,7 @@ function escXml(s: string): string {
 
 // ---------- DOCX generator (manual XML + JSZip) ----------
 function makeParagraph(text: string, opts: { bold?: boolean; heading?: boolean; italic?: boolean; size?: number; center?: boolean; color?: string } = {}): string {
-  const sz = (opts.size ?? 22) * 2; // half-points
+  const sz = (opts.size ?? 12) * 2; // half-points
   const boldTag = opts.bold || opts.heading ? "<w:b/>" : "";
   const italicTag = opts.italic ? "<w:i/>" : "";
   const colorTag = opts.color ? `<w:color w:val="${opts.color}"/>` : "";
@@ -95,7 +168,7 @@ function makeParagraph(text: string, opts: { bold?: boolean; heading?: boolean; 
 }
 
 function makeFieldParagraph(label: string, value: string): string {
-  const sz = 22 * 2;
+  const sz = 12 * 2;
   return `<w:p><w:pPr><w:spacing w:after="60"/></w:pPr>` +
     `<w:r><w:rPr><w:b/><w:sz w:val="${sz}"/><w:szCs w:val="${sz}"/></w:rPr><w:t xml:space="preserve">${escXml(label + ": ")}</w:t></w:r>` +
     `<w:r><w:rPr><w:sz w:val="${sz}"/><w:szCs w:val="${sz}"/></w:rPr><w:t xml:space="preserve">${escXml(value ?? "")}</w:t></w:r>` +
@@ -135,9 +208,6 @@ function makeTableXml(header: string[] | undefined, rows: string[][]): string {
 async function renderDocx(structured: StructuredTranslation, meta: { documentTitle: string }): Promise<Uint8Array> {
   const bodyParts: string[] = [];
 
-  // Header label
-  bodyParts.push(makeParagraph("CERTIFIED TRANSLATION FROM UZBEK INTO ENGLISH", { italic: true, size: 9, center: true, color: "777777" }));
-
   for (const block of structured.blocks ?? []) {
     switch (block.type) {
       case "title":
@@ -163,17 +233,6 @@ async function renderDocx(structured: StructuredTranslation, meta: { documentTit
         break;
     }
   }
-
-  // Certification footer
-  const dateStr = new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "long", year: "numeric" });
-  bodyParts.push(
-    `<w:p><w:pPr><w:pBdr><w:top w:val="single" w:sz="6" w:space="1" w:color="AAAAAA"/></w:pBdr><w:spacing w:before="400" w:after="160"/></w:pPr>` +
-    `<w:r><w:rPr><w:b/><w:sz w:val="44"/><w:szCs w:val="44"/></w:rPr><w:t>TRANSLATOR'S CERTIFICATION</w:t></w:r></w:p>`,
-    makeParagraph("I hereby certify that the foregoing is a true, complete and accurate translation from Uzbek into English of the attached document, to the best of my knowledge and ability.", { size: 10 }),
-    makeParagraph(`Date of translation: ${dateStr}`, { size: 10 }),
-    makeParagraph("Signature: ______________________________", { size: 10 }),
-    makeParagraph("Translator / Authorised representative", { italic: true, size: 9, color: "777777" }),
-  );
 
   const documentXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <w:document xmlns:wpc="http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas"
@@ -315,15 +374,17 @@ serve(async (req) => {
       return data;
     };
 
-    const imageContents: Array<{ type: "image_url"; image_url: { url: string } }> = [];
+    // Build native Gemini "parts": each file as inline_data so multi-page PDFs
+    // are read in full. The MAIN document is the first part.
+    const mediaParts: Array<{ inlineData: { mimeType: string; data: string } }> = [];
     const srcBlob = await downloadFile(source.path, source.bucket);
-    imageContents.push({ type: "image_url", image_url: { url: `data:${getMimeType(source.path)};base64,${await fileToBase64(srcBlob)}` } });
+    mediaParts.push({ inlineData: { mimeType: getMimeType(source.path), data: await fileToBase64(srcBlob) } });
 
     const supportingRoles: string[] = [];
     for (const sup of supporting) {
       try {
         const blob = await downloadFile(sup.path, sup.bucket);
-        imageContents.push({ type: "image_url", image_url: { url: `data:${getMimeType(sup.path)};base64,${await fileToBase64(blob)}` } });
+        mediaParts.push({ inlineData: { mimeType: getMimeType(sup.path), data: await fileToBase64(blob) } });
         supportingRoles.push(sup.role || "supporting document");
       } catch (e) {
         console.warn("Skipping supporting file:", sup.path, (e as Error).message);
@@ -339,11 +400,16 @@ serve(async (req) => {
       .map((t, i) => `=== Example ${i + 1} ===\nUZBEK:\n${t.original_text}\n\nENGLISH:\n${t.translated_text}`)
       .join("\n\n");
 
+    // Per-document-type fixed layouts. When present, the model MUST follow the
+    // exact block sequence/labels below so a given document type always comes
+    // out in the same certified format (independent of few-shot examples).
+    const documentLayout = LAYOUT_TEMPLATES[docType.code] ?? "";
+
     const systemPrompt = `You are an expert sworn translator producing certified Uzbek-to-English translations of official documents for Korean university applications.
 
 DOCUMENT TYPE: ${docType.name_uz} (${docType.name_en || docType.code})
 
-You receive images. Image 1 is the MAIN document to translate. Any further images are SUPPORTING identity documents (passports / ID cards) provided so you spell names correctly.
+You receive one or more files. The FIRST file is the MAIN document to translate (it may be a multi-page PDF). Any further files are SUPPORTING identity documents (passports / ID cards) provided so you spell names correctly.
 ${supportingRoles.length ? `Supporting documents provided (in order): ${supportingRoles.join(", ")}.` : ""}
 
 === NAME ACCURACY (CRITICAL) ===
@@ -359,10 +425,22 @@ ${providedNames ? `\nSTAFF-VERIFIED NAMES (use these exactly): ${JSON.stringify(
 - Represent stamps, seals, signatures as annotation blocks.
 - For unclear handwriting use " [unclear]" suffix and list in unclearItems.
 
+=== MULTI-PAGE (CRITICAL) ===
+- The MAIN document (the first file) may contain SEVERAL pages (e.g. a diploma or
+  its grade transcript / supplement). You MUST translate EVERY page of the main
+  document in full — never stop after the first page.
+- Translate the pages in order. Before each page AFTER the first, insert a
+  "heading" block with text "Page 2", "Page 3", ... so the pages are separated.
+- Render grade/subject transcripts as "table" blocks (one row per subject), and
+  keep ALL rows — do not summarise or omit any subject.
+- Do NOT translate the SUPPORTING identity documents (the later files); they are
+  only for spelling names.
+
 === UZBEKISTAN PLACES ===
 ${Object.entries(UZBEKISTAN_REGIONS).map(([r, d]) => `${r}: ${d.join(", ")}`).join("\n")}
 
 ${trainingExamples ? `=== APPROVED EXAMPLES ===\n${trainingExamples}\n` : ""}
+${documentLayout ? `${documentLayout}\n` : ""}
 ${studentName ? `Student (cross-check against passport): ${studentName}` : ""}
 
 === OUTPUT FORMAT ===
@@ -383,23 +461,22 @@ Return ONLY a JSON object (no prose, no markdown) with this exact shape:
 }
 First block must be "title". Use "field" for label/value pairs, "table" for grids, "annotation" for seals/stamps.`;
 
-    const userContent: Array<{ type: "text"; text: string } | { type: "image_url"; image_url: { url: string } }> = [
-      ...imageContents,
-      { type: "text", text: "Translate the main document (image 1) into English. Extract names from supporting identity documents. Return the JSON object." },
+    const userParts = [
+      ...mediaParts,
+      { text: "Translate the MAIN document (the first file) into English — EVERY page, including all transcript/supplement pages, not just the first. Extract names from the supporting identity documents. Return the JSON object." },
     ];
 
-    const aiResponse = await fetch(GEMINI_AI_URL, {
+    const aiResponse = await fetch(`${GEMINI_AI_URL}?key=${geminiApiKey}`, {
       method: "POST",
-      headers: { Authorization: `Bearer ${geminiApiKey}`, "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "gemini-2.5-flash",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userContent },
-        ],
-        temperature: 0.1,
-        max_tokens: 12000,
-        response_format: { type: "json_object" },
+        systemInstruction: { parts: [{ text: systemPrompt }] },
+        contents: [{ role: "user", parts: userParts }],
+        generationConfig: {
+          temperature: 0.1,
+          maxOutputTokens: 32000,
+          responseMimeType: "application/json",
+        },
       }),
     });
 
@@ -412,11 +489,27 @@ First block must be "title". Use "field" for label/value pairs, "table" for grid
     }
 
     const aiData = await aiResponse.json();
-    const content = aiData.choices?.[0]?.message?.content;
-    if (!content) return json({ error: "Tarjima olinmadi" }, 500);
+    const content = (aiData.candidates?.[0]?.content?.parts ?? [])
+      .map((p: { text?: string }) => p.text ?? "")
+      .join("");
+    if (!content) {
+      console.error("Empty AI content:", JSON.stringify(aiData).slice(0, 800));
+      return json({ error: "Tarjima olinmadi" }, 500);
+    }
 
     const structured = parseStructured(content);
     if (providedNames) structured.verifiedNames = { ...structured.verifiedNames, ...providedNames };
+
+    // Birth certificates: the sample shows every field VALUE in UPPERCASE (names,
+    // places, nationalities) with only "signed" left lowercase. Enforce this
+    // deterministically so casing never drifts run to run.
+    if (docType.code === "birth_certificate") {
+      structured.blocks = structured.blocks.map((b) =>
+        b.type === "field" && b.value && b.value.trim().toLowerCase() !== "signed"
+          ? { ...b, value: b.value.toUpperCase() }
+          : b
+      );
+    }
 
     const docxBytes = await renderDocx(structured, { documentTitle });
     const docxPath = `output/${Date.now()}_${docType.code}_translation.docx`;
