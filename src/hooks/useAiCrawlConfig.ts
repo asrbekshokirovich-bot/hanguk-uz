@@ -8,6 +8,7 @@ export interface AiCrawlConfig {
   batch_size: number;
   model: string;
   auto_approve_threshold: number;
+  require_approval: boolean;
   last_run_at: string | null;
   next_run_at: string | null;
   last_run_status: string | null;

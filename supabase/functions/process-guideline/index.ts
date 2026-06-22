@@ -102,6 +102,15 @@ Deno.serve(async (req) => {
     return json({ error: "GEMINI_API_KEY not configured" }, 400);
   }
 
+  // Read review-mode config (auto vs manual approval)
+  const { data: cfg } = await admin
+    .from("ai_crawl_config")
+    .select("auto_approve_threshold, require_approval")
+    .eq("id", "singleton")
+    .single();
+  const autoApproveThreshold = cfg?.auto_approve_threshold ?? 0.9;
+  const requireApproval = cfg?.require_approval ?? true;
+
   try {
     const body = await req.json().catch(() => ({})) as { document_id?: string };
 
@@ -218,8 +227,6 @@ Deno.serve(async (req) => {
           console.error("Failed to insert crawl_run:", runError);
         }
 
-        const autoApproveThreshold = 0.9;
-
         for (const p of periods) {
           p.confidence = Math.max(0, Math.min(1, p.confidence ?? 0.5));
 
@@ -239,7 +246,7 @@ Deno.serve(async (req) => {
             continue;
           }
 
-          const isHighConfidence = p.confidence >= autoApproveThreshold;
+          const isHighConfidence = !requireApproval && p.confidence >= autoApproveThreshold;
 
           await admin.from("review_queue").insert({
             entity_type: "crawl_finding",

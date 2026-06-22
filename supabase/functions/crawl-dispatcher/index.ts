@@ -15,6 +15,7 @@ interface CrawlConfig {
   batch_size: number;
   model: string;
   auto_approve_threshold: number;
+  require_approval: boolean;
   last_run_at: string | null;
 }
 
@@ -31,7 +32,7 @@ Deno.serve(async (req) => {
     // 1) Load config
     const { data: config, error: cfgErr } = await admin
       .from("ai_crawl_config")
-      .select("enabled, interval_hours, batch_size, model, auto_approve_threshold, last_run_at")
+      .select("enabled, interval_hours, batch_size, model, auto_approve_threshold, require_approval, last_run_at")
       .eq("id", "singleton")
       .single();
 
@@ -103,6 +104,7 @@ Deno.serve(async (req) => {
             url: inst.primary_admissions_url_ko,
             model: cfg.model,
             auto_approve_threshold: cfg.auto_approve_threshold,
+            require_approval: cfg.require_approval,
           },
         }).then(() => inst)
       ),

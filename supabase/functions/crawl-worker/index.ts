@@ -19,6 +19,7 @@ interface WorkerBody {
   url: string;
   model?: string;
   auto_approve_threshold?: number;
+  require_approval?: boolean;
 }
 
 // ---------- Tool schemas for Gemini structured extraction (function calling) ----------
@@ -225,6 +226,7 @@ Deno.serve(async (req) => {
       url,
       model = "gemini-2.5-flash",
       auto_approve_threshold = 0.9,
+      require_approval = true,
     } = body;
     institutionId = institution_id;
 
@@ -273,8 +275,8 @@ Deno.serve(async (req) => {
     try {
       pageRes = await fetch(url, {
         headers: {
-          "User-Agent": "HangukUZ-AdmissionsBot/1.0",
-          "Accept": "text/html",
+          "User-Agent": "Mozilla/5.0 (compatible; HangukUZ-AdmissionsBot/1.0)",
+          "Accept": "text/html,application/xhtml+xml",
           "Accept-Language": "ko-KR,ko;q=0.9",
         },
         signal: controller.signal,
@@ -457,7 +459,7 @@ Deno.serve(async (req) => {
 
       newCount++;
 
-      const isHighConfidence = conf >= auto_approve_threshold;
+      const isHighConfidence = !require_approval && conf >= auto_approve_threshold;
 
       await admin.from("review_queue").insert({
         entity_type: "crawl_finding",

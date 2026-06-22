@@ -34,6 +34,7 @@ export default function AiCrawlMonitorContent() {
   }
 
   const enabled = config?.enabled ?? false;
+  const requireApproval = config?.require_approval ?? true;
 
   return (
     <div className="space-y-4">
@@ -126,6 +127,38 @@ export default function AiCrawlMonitorContent() {
               </Select>
             </div>
           </div>
+          {/* Review mode: auto vs manual approval */}
+          <div className="space-y-2 max-w-md pt-1">
+            <Label className="text-xs">Tasdiqlash rejimi</Label>
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                type="button"
+                variant={requireApproval ? 'default' : 'outline'}
+                size="sm"
+                className="h-9 text-xs"
+                disabled={updateConfig.isPending}
+                onClick={() => updateConfig.mutate({ require_approval: true })}
+              >
+                Tasdiqli (qo'lda)
+              </Button>
+              <Button
+                type="button"
+                variant={!requireApproval ? 'default' : 'outline'}
+                size="sm"
+                className="h-9 text-xs"
+                disabled={updateConfig.isPending}
+                onClick={() => updateConfig.mutate({ require_approval: false })}
+              >
+                Avtomatik
+              </Button>
+            </div>
+            <p className="text-[11px] text-muted-foreground">
+              {requireApproval
+                ? "Har bir natija staff tasdig'i uchun navbatga tushadi — saytga avtomatik yozilmaydi."
+                : `Ishonchlilik ${config ? Math.round(config.auto_approve_threshold * 100) : 90}% dan yuqori natijalar avtomatik qo'llanadi, qolganlari tasdiqqa tushadi.`}
+            </p>
+          </div>
+
           <div className="grid grid-cols-2 gap-4 max-w-md text-xs text-muted-foreground">
             <div>Model: <span className="font-mono">{config?.model}</span></div>
             <div>Auto-tasdiq chegarasi: {config ? Math.round(config.auto_approve_threshold * 100) : 90}%</div>
