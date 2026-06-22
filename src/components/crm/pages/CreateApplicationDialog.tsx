@@ -180,30 +180,47 @@ export default function CreateApplicationDialog({
     }
   };
 
+  const stepNumber = step === 'university' ? 1 : 2;
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-h-[85vh] max-w-2xl overflow-hidden p-0">
+        {/* Header with step indicator */}
         <DialogHeader className="border-b px-6 py-4">
-          <DialogTitle className="flex items-center gap-2">
-            {step === 'students' && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="mr-1 h-7 w-7"
-                onClick={() => setStep('university')}
-              >
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-            )}
-            {step === 'university'
-              ? t('applications.selectUniversity', { defaultValue: 'Select University' })
-              : t('applications.selectStudents', { defaultValue: 'Select Students' })}
-          </DialogTitle>
+          <div className="flex items-center justify-between">
+            <DialogTitle className="flex items-center gap-3 text-base">
+              {step === 'students' && (
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-8 w-8 shrink-0"
+                  onClick={() => setStep('university')}
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+              )}
+              <GraduationCap className="h-5 w-5 text-primary" />
+              {step === 'university'
+                ? t('applications.selectUniversity', { defaultValue: 'Select University' })
+                : t('applications.selectStudents', { defaultValue: 'Select Students' })}
+            </DialogTitle>
+            <div className="flex items-center gap-1.5">
+              <span className={cn(
+                'flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold',
+                stepNumber >= 1 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground',
+              )}>1</span>
+              <div className={cn('h-0.5 w-6 rounded-full', stepNumber >= 2 ? 'bg-primary' : 'bg-muted')} />
+              <span className={cn(
+                'flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold',
+                stepNumber >= 2 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground',
+              )}>2</span>
+            </div>
+          </div>
         </DialogHeader>
 
         {step === 'university' && (
           <div className="flex flex-col overflow-hidden">
-            <div className="border-b px-6 py-3">
+            <div className="px-6 py-3">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
@@ -214,9 +231,15 @@ export default function CreateApplicationDialog({
                   autoFocus
                 />
               </div>
+              <p className="mt-2 text-xs text-muted-foreground">
+                {t('applications.uniCount', {
+                  n: filteredUniversities.length,
+                  defaultValue: `${filteredUniversities.length} universities available`,
+                })}
+              </p>
             </div>
-            <div className="overflow-y-auto px-6 py-3" style={{ maxHeight: 'calc(85vh - 140px)' }}>
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            <div className="overflow-y-auto px-6 pb-4" style={{ maxHeight: 'calc(85vh - 160px)' }}>
+              <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
                 {filteredUniversities.map((uni) => {
                   const appCount = students.filter((s) =>
                     s.applications?.some((a) => a.institution_id === uni.id),
@@ -225,21 +248,21 @@ export default function CreateApplicationDialog({
                     <Card
                       key={uni.id}
                       onClick={() => handleSelectUniversity(uni.id)}
-                      className="cursor-pointer p-3 transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-raised"
+                      className="group cursor-pointer border-transparent bg-muted/40 p-3.5 transition-all hover:border-primary/40 hover:bg-primary/5 hover:shadow-md"
                     >
                       <div className="flex items-start gap-3">
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-info/10">
+                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-background shadow-sm ring-1 ring-border/50">
                           {uni.logo_url ? (
                             <img src={uni.logo_url} alt="" className="h-7 w-7 rounded object-contain" />
                           ) : (
-                            <GraduationCap className="h-5 w-5 text-info" />
+                            <GraduationCap className="h-5 w-5 text-muted-foreground group-hover:text-primary" />
                           )}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <div className="line-clamp-2 text-sm font-semibold leading-tight">
+                          <div className="line-clamp-2 text-sm font-semibold leading-tight group-hover:text-primary">
                             {uniName(uni)}
                           </div>
-                          <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
+                          <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
                             {uni.city_ko && (
                               <span className="flex items-center gap-1">
                                 <MapPin className="h-3 w-3" />
@@ -254,15 +277,13 @@ export default function CreateApplicationDialog({
                             )}
                           </div>
                           {appCount > 0 && (
-                            <div className="mt-1.5 flex items-center gap-1">
-                              <Badge variant="neutral" className="gap-1 text-[10px]">
-                                <Users className="h-3 w-3" />
-                                {t('applications.existingApps', {
-                                  n: appCount,
-                                  defaultValue: `${appCount} student(s)`,
-                                })}
-                              </Badge>
-                            </div>
+                            <Badge variant="neutral" className="mt-2 gap-1 text-[10px]">
+                              <Users className="h-3 w-3" />
+                              {t('applications.existingApps', {
+                                n: appCount,
+                                defaultValue: `${appCount} student(s)`,
+                              })}
+                            </Badge>
                           )}
                         </div>
                       </div>
@@ -270,7 +291,7 @@ export default function CreateApplicationDialog({
                   );
                 })}
                 {filteredUniversities.length === 0 && (
-                  <div className="col-span-full py-8 text-center text-sm text-muted-foreground">
+                  <div className="col-span-full py-12 text-center text-sm text-muted-foreground">
                     {t('common.noResults', { defaultValue: 'No results found' })}
                   </div>
                 )}
@@ -281,18 +302,18 @@ export default function CreateApplicationDialog({
 
         {step === 'students' && selectedUni && (
           <div className="flex flex-col overflow-hidden">
-            {/* Selected university header */}
-            <div className="border-b bg-muted/30 px-6 py-3">
+            {/* Selected university banner */}
+            <div className="mx-6 mt-3 rounded-xl bg-gradient-to-r from-primary/10 to-primary/5 p-3.5 ring-1 ring-primary/15">
               <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-info/10">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-background shadow-sm ring-1 ring-border/50">
                   {selectedUni.logo_url ? (
                     <img src={selectedUni.logo_url} alt="" className="h-6 w-6 rounded object-contain" />
                   ) : (
-                    <GraduationCap className="h-5 w-5 text-info" />
+                    <GraduationCap className="h-5 w-5 text-primary" />
                   )}
                 </div>
-                <div>
-                  <div className="text-sm font-semibold">{uniName(selectedUni)}</div>
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm font-semibold">{uniName(selectedUni)}</div>
                   {selectedUni.city_ko && (
                     <div className="flex items-center gap-1 text-xs text-muted-foreground">
                       <MapPin className="h-3 w-3" />
@@ -301,7 +322,7 @@ export default function CreateApplicationDialog({
                   )}
                 </div>
                 {existingAppStudentIds.size > 0 && (
-                  <Badge variant="neutral" className="ml-auto text-[11px]">
+                  <Badge variant="neutral" className="shrink-0 text-[11px]">
                     {t('applications.alreadyApplied', {
                       n: existingAppStudentIds.size,
                       defaultValue: `${existingAppStudentIds.size} already applied`,
@@ -312,7 +333,7 @@ export default function CreateApplicationDialog({
             </div>
 
             {/* Search + select all */}
-            <div className="flex items-center gap-2 border-b px-6 py-3">
+            <div className="flex items-center gap-2 px-6 py-3">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
@@ -324,7 +345,7 @@ export default function CreateApplicationDialog({
                 />
               </div>
               <Button
-                variant="ghost"
+                variant="outline"
                 size="sm"
                 onClick={selectedStudentIds.size === availableStudents.length ? deselectAll : selectAll}
               >
@@ -335,9 +356,9 @@ export default function CreateApplicationDialog({
             </div>
 
             {/* Student list */}
-            <div className="overflow-y-auto px-6 py-2" style={{ maxHeight: 'calc(85vh - 280px)' }}>
+            <div className="overflow-y-auto border-t px-6 py-2" style={{ maxHeight: 'calc(85vh - 300px)' }}>
               {availableStudents.length === 0 ? (
-                <div className="py-8 text-center text-sm text-muted-foreground">
+                <div className="py-12 text-center text-sm text-muted-foreground">
                   {existingAppStudentIds.size > 0
                     ? t('applications.allAlreadyApplied', { defaultValue: 'All students already have applications for this university' })
                     : t('common.noResults', { defaultValue: 'No results found' })}
@@ -351,14 +372,14 @@ export default function CreateApplicationDialog({
                         key={student.user_id}
                         onClick={() => toggleStudent(student.user_id)}
                         className={cn(
-                          'flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 transition-colors',
+                          'flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 transition-all',
                           isSelected
-                            ? 'bg-primary/10 ring-1 ring-primary/30'
+                            ? 'bg-primary/10 shadow-sm ring-1 ring-primary/30'
                             : 'hover:bg-muted/60',
                         )}
                       >
                         <Checkbox checked={isSelected} className="pointer-events-none" />
-                        <Avatar className="h-8 w-8">
+                        <Avatar className="h-9 w-9 ring-1 ring-border/40">
                           <AvatarImage src={student.avatar_url || undefined} />
                           <AvatarFallback className="text-xs font-semibold">
                             {getInitials(student.full_name)}
@@ -375,9 +396,9 @@ export default function CreateApplicationDialog({
                           )}
                         </div>
                         {student.applications && student.applications.length > 0 && (
-                          <span className="text-xs text-muted-foreground">
+                          <Badge variant="neutral" className="text-[10px]">
                             {student.applications.length} app{student.applications.length > 1 ? 's' : ''}
-                          </span>
+                          </Badge>
                         )}
                       </div>
                     );
@@ -386,19 +407,30 @@ export default function CreateApplicationDialog({
               )}
             </div>
 
-            {/* Footer with submit */}
-            <div className="flex items-center justify-between border-t px-6 py-4">
-              <span className="text-sm text-muted-foreground">
-                {t('applications.selectedCount', {
-                  n: selectedStudentIds.size,
-                  defaultValue: `${selectedStudentIds.size} student(s) selected`,
-                })}
-              </span>
+            {/* Footer */}
+            <div className="flex items-center justify-between border-t bg-muted/20 px-6 py-4">
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setStep('university')}
+                  className="gap-1.5"
+                >
+                  <ArrowLeft className="h-3.5 w-3.5" />
+                  {t('common.back', { defaultValue: 'Back' })}
+                </Button>
+                <span className="text-sm text-muted-foreground">
+                  {t('applications.selectedCount', {
+                    n: selectedStudentIds.size,
+                    defaultValue: `${selectedStudentIds.size} student(s) selected`,
+                  })}
+                </span>
+              </div>
               <Button
-                variant="highlight"
                 disabled={selectedStudentIds.size === 0 || submitting}
                 onClick={handleSubmit}
-                className="gap-2"
+                size="sm"
+                className="gap-2 px-5"
               >
                 {submitting ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
