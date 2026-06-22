@@ -57,7 +57,6 @@ const EXTRACTION_TOOL_GEMINI = {
             application_fee_usd: { type: "INTEGER", nullable: true },
             application_form_url: { type: "STRING", nullable: true },
             confidence: { type: "NUMBER" },
-            field_confidence: { type: "OBJECT", properties: {}, additionalProperties: true },
           },
           required: ["semester", "year", "program_level", "confidence"],
         },

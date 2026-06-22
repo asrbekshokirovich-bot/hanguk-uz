@@ -72,12 +72,6 @@ const EXTRACTION_TOOL_GEMINI = {
               type: "NUMBER",
               description: "Overall confidence for this row (0..1)",
             },
-            field_confidence: {
-              type: "OBJECT",
-              description: "Per-field confidence scores where uncertain",
-              properties: {},
-              additionalProperties: true,
-            },
           },
           required: ["semester", "year", "program_level", "confidence"],
         },
