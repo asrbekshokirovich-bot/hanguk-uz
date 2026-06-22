@@ -50,7 +50,9 @@ Deno.serve(async (req) => {
     }
 
     // 4) Gate: interval not elapsed → no-op (unless forced)
-    const force = new URL(req.url).searchParams.get("force") === "true";
+    const params = new URL(req.url).searchParams;
+    const force = params.get("force") === "true";
+    const batchOverride = params.get("batch_size") ? parseInt(params.get("batch_size")!, 10) : null;
     if (!force && cfg.last_run_at) {
       const elapsedMs = Date.now() - new Date(cfg.last_run_at).getTime();
       const intervalMs = cfg.interval_hours * 60 * 60 * 1000;
@@ -58,6 +60,8 @@ Deno.serve(async (req) => {
         return json({ skipped: true, reason: "interval_not_elapsed", elapsedMs, intervalMs });
       }
     }
+
+    const effectiveBatch = batchOverride ?? cfg.batch_size;
 
     // 5) Pick batch — adaptive scheduling:
     //    - Skip institutions in circuit-breaker cooldown
@@ -68,7 +72,7 @@ Deno.serve(async (req) => {
       .select("id, name_ko, primary_admissions_url_ko, last_verified_at, consecutive_failures, crawl_cooldown_until")
       .not("primary_admissions_url_ko", "is", null)
       .order("last_verified_at", { ascending: true, nullsFirst: true })
-      .limit(cfg.batch_size * 2); // fetch extra to filter out cooldown
+      .limit(effectiveBatch * 2);
 
     if (instErr) throw instErr;
 
@@ -79,11 +83,18 @@ Deno.serve(async (req) => {
         return false;
       }
       return true;
-    }).slice(0, cfg.batch_size);
+    }).slice(0, effectiveBatch);
 
     if (eligible.length === 0) {
       return json({ skipped: true, reason: "no_eligible_institutions" });
     }
+
+    // 5b) Cleanup: mark stuck "running" crawl_runs as failed (>10 min old)
+    await admin
+      .from("crawl_runs")
+      .update({ status: "failed", ended_at: new Date().toISOString(), error_text: "stale_running_cleanup" })
+      .eq("status", "running")
+      .lt("started_at", new Date(Date.now() - 10 * 60 * 1000).toISOString());
 
     // 6) Mark run start
     await admin
@@ -95,30 +106,35 @@ Deno.serve(async (req) => {
       })
       .eq("id", "singleton");
 
-    // 7) Fan out to worker (parallel — sequential dispatch risks timeout)
-    const results = await Promise.allSettled(
-      eligible.map((inst) =>
-        admin.functions.invoke("crawl-worker", {
-          body: {
-            institution_id: inst.id,
-            url: inst.primary_admissions_url_ko,
-            model: cfg.model,
-            auto_approve_threshold: cfg.auto_approve_threshold,
-            require_approval: cfg.require_approval,
-          },
-        }).then(() => inst)
-      ),
-    );
-
+    // 7) Fan out to worker in waves of CONCURRENCY to avoid overwhelming the runtime
+    const CONCURRENCY = 10;
     const dispatched: string[] = [];
     const failed: string[] = [];
-    for (let i = 0; i < results.length; i++) {
-      const r = results[i];
-      if (r.status === "fulfilled") {
-        dispatched.push(r.value.id);
-      } else {
-        console.error("dispatch failed for", eligible[i].id, eligible[i].name_ko, r.reason);
-        failed.push(eligible[i].id);
+
+    for (let i = 0; i < eligible.length; i += CONCURRENCY) {
+      const wave = eligible.slice(i, i + CONCURRENCY);
+      const results = await Promise.allSettled(
+        wave.map((inst) =>
+          admin.functions.invoke("crawl-worker", {
+            body: {
+              institution_id: inst.id,
+              url: inst.primary_admissions_url_ko,
+              model: cfg.model,
+              auto_approve_threshold: cfg.auto_approve_threshold,
+              require_approval: cfg.require_approval,
+            },
+          }).then(() => inst)
+        ),
+      );
+
+      for (let j = 0; j < results.length; j++) {
+        const r = results[j];
+        if (r.status === "fulfilled") {
+          dispatched.push(r.value.id);
+        } else {
+          console.error("dispatch failed for", wave[j].id, wave[j].name_ko, r.reason);
+          failed.push(wave[j].id);
+        }
       }
     }
 
