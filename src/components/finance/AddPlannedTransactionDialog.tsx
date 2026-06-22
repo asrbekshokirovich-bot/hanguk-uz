@@ -90,7 +90,7 @@ export function AddPlannedTransactionDialog({ onCreate, trigger }: Props) {
         amount: Number(form.amount),
         currency: form.currency,
         expected_date: form.expected_date,
-        recurrence: (form.recurrence || null) as any,
+        recurrence: (form.recurrence && form.recurrence !== 'none' ? form.recurrence : null) as any,
         notes: form.notes || null,
       });
       const label = type === 'income' ? 'Kutilayotgan daromad' : 'Kutilayotgan xarajat';
