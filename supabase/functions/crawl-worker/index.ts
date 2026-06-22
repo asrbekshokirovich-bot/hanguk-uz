@@ -9,12 +9,10 @@
 // 7. Per-host circuit breaker: back off after consecutive failures
 // 8. Adaptive scheduling: (handled by dispatcher)
 //
-// Remains inert until ANTHROPIC_API_KEY is set and ai_crawl_config.enabled = true.
+// Remains inert until GEMINI_API_KEY is set and ai_crawl_config.enabled = true.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
-import { crypto } from "https://deno.land/std@0.208.0/crypto/mod.ts";
-import { encodeHex } from "https://deno.land/std@0.208.0/encoding/hex.ts";
 
 interface WorkerBody {
   institution_id: string;
@@ -23,66 +21,68 @@ interface WorkerBody {
   auto_approve_threshold?: number;
 }
 
-// ---------- Tool schemas for Claude structured extraction ----------
+// ---------- Tool schemas for Gemini structured extraction (function calling) ----------
 
-const EXTRACTION_TOOL = {
+const EXTRACTION_TOOL_GEMINI = {
   name: "record_admission_data",
   description:
     "Record structured admission information extracted from a Korean university admissions page. Only include data explicitly present on the page. If uncertain, set confidence lower.",
-  input_schema: {
-    type: "object",
+  parameters: {
+    type: "OBJECT",
     properties: {
       page_type: {
-        type: "string",
+        type: "STRING",
         enum: ["admissions_portal", "specific_intake", "department_list", "unknown"],
         description: "Detected page type",
       },
       periods: {
-        type: "array",
+        type: "ARRAY",
         description: "Admission application periods found on the page.",
         items: {
-          type: "object",
+          type: "OBJECT",
           properties: {
-            semester: { type: "string", enum: ["spring", "fall"] },
-            year: { type: "integer", minimum: 2024, maximum: 2030 },
+            semester: { type: "STRING", enum: ["spring", "fall"] },
+            year: { type: "INTEGER" },
             program_level: {
-              type: "string",
+              type: "STRING",
               enum: ["undergraduate", "graduate", "phd", "language"],
             },
             language_track: {
-              type: ["string", "null"],
-              enum: ["korean", "english", null],
+              type: "STRING",
+              enum: ["korean", "english"],
+              nullable: true,
             },
             application_start: {
-              type: ["string", "null"],
+              type: "STRING",
               description: "ISO date YYYY-MM-DD",
+              nullable: true,
             },
             application_end: {
-              type: ["string", "null"],
+              type: "STRING",
               description: "ISO date YYYY-MM-DD",
+              nullable: true,
             },
-            document_deadline: { type: ["string", "null"] },
-            result_announcement: { type: ["string", "null"] },
-            application_fee_krw: { type: ["integer", "null"] },
-            application_fee_usd: { type: ["integer", "null"] },
-            application_form_url: { type: ["string", "null"] },
+            document_deadline: { type: "STRING", nullable: true },
+            result_announcement: { type: "STRING", nullable: true },
+            application_fee_krw: { type: "INTEGER", nullable: true },
+            application_fee_usd: { type: "INTEGER", nullable: true },
+            application_form_url: { type: "STRING", nullable: true },
             confidence: {
-              type: "number",
-              minimum: 0,
-              maximum: 1,
+              type: "NUMBER",
               description: "Overall confidence for this row (0..1)",
             },
             field_confidence: {
-              type: "object",
+              type: "OBJECT",
               description: "Per-field confidence scores where uncertain",
-              additionalProperties: { type: "number" },
+              properties: {},
+              additionalProperties: true,
             },
           },
           required: ["semester", "year", "program_level", "confidence"],
         },
       },
       notes: {
-        type: "string",
+        type: "STRING",
         description: "Anything ambiguous a human should verify.",
       },
     },
@@ -200,7 +200,7 @@ function pruneAndExtractText(html: string): string {
 async function hashContent(text: string): Promise<string> {
   const data = new TextEncoder().encode(text);
   const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-  return encodeHex(new Uint8Array(hashBuffer));
+  return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, "0")).join("");
 }
 
 // ---------- Main handler ----------
@@ -212,7 +212,7 @@ Deno.serve(async (req) => {
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-  const anthropicKey = Deno.env.get("ANTHROPIC_API_KEY");
+  const geminiKey = Deno.env.get("GEMINI_API_KEY");
   const admin = createClient(supabaseUrl, serviceKey);
 
   let runId: string | null = null;
@@ -223,14 +223,14 @@ Deno.serve(async (req) => {
     const {
       institution_id,
       url,
-      model = "claude-sonnet-4-6",
+      model = "gemini-2.5-flash",
       auto_approve_threshold = 0.9,
     } = body;
     institutionId = institution_id;
 
-    if (!anthropicKey) {
+    if (!geminiKey) {
       return json(
-        { error: "ANTHROPIC_API_KEY not configured — pipeline is not enabled yet." },
+        { error: "GEMINI_API_KEY not configured — pipeline is not enabled yet." },
         400,
       );
     }
@@ -336,49 +336,51 @@ Deno.serve(async (req) => {
       });
     }
 
-    // 3) Ask Claude to extract (structured tool_use)
-    const aiRes = await fetch("https://api.anthropic.com/v1/messages", {
+    // 3) Ask Gemini to extract (function calling)
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey}`;
+    const aiRes = await fetch(geminiUrl, {
       method: "POST",
-      headers: {
-        "x-api-key": anthropicKey,
-        "anthropic-version": "2023-06-01",
-        "content-type": "application/json",
-      },
+      headers: { "content-type": "application/json" },
       body: JSON.stringify({
-        model,
-        max_tokens: 4096,
-        tools: [EXTRACTION_TOOL],
-        tool_choice: { type: "tool", name: "record_admission_data" },
-        messages: [
+        contents: [
           {
             role: "user",
-            content: [
-              `You are extracting admission data from a Korean university's admissions page.`,
-              `Rules:`,
-              `- Only include data EXPLICITLY present on the page`,
-              `- Use ISO dates (YYYY-MM-DD). Convert Korean dates (2025년 3월 2일 → 2025-03-02)`,
-              `- Set confidence lower (0.3-0.6) for anything you had to infer or guess`,
-              `- Set confidence high (0.8-1.0) only for clearly stated facts`,
-              `- If no admission periods are found, return empty periods array`,
-              `- Classify the page_type to help downstream processing`,
-              `\n---PAGE CONTENT---\n${text}`,
-            ].join("\n"),
+            parts: [
+              {
+                text: [
+                  `You are extracting admission data from a Korean university's admissions page.`,
+                  `Rules:`,
+                  `- Only include data EXPLICITLY present on the page`,
+                  `- Use ISO dates (YYYY-MM-DD). Convert Korean dates (2025년 3월 2일 → 2025-03-02)`,
+                  `- Set confidence lower (0.3-0.6) for anything you had to infer or guess`,
+                  `- Set confidence high (0.8-1.0) only for clearly stated facts`,
+                  `- If no admission periods are found, return empty periods array`,
+                  `- Classify the page_type to help downstream processing`,
+                  `\n---PAGE CONTENT---\n${text}`,
+                ].join("\n"),
+              },
+            ],
           },
         ],
+        tools: [{ functionDeclarations: [EXTRACTION_TOOL_GEMINI] }],
+        toolConfig: {
+          functionCallingConfig: { mode: "ANY", allowedFunctionNames: ["record_admission_data"] },
+        },
+        generationConfig: { maxOutputTokens: 4096 },
       }),
     });
 
     if (!aiRes.ok) {
       const errText = await aiRes.text();
-      await recordFailure(admin, institution_id, runId, `claude_api_${aiRes.status}: ${errText.slice(0, 200)}`);
-      return json({ error: `Claude API error: ${aiRes.status}` }, 502);
+      await recordFailure(admin, institution_id, runId, `gemini_api_${aiRes.status}: ${errText.slice(0, 200)}`);
+      return json({ error: `Gemini API error: ${aiRes.status}` }, 502);
     }
 
     const aiJson = await aiRes.json();
-    const toolUse = (aiJson.content ?? []).find(
-      (c: { type: string }) => c.type === "tool_use",
+    const fnCall = aiJson.candidates?.[0]?.content?.parts?.find(
+      (p: { functionCall?: unknown }) => p.functionCall,
     );
-    const extracted = toolUse?.input ?? { periods: [], page_type: "unknown" };
+    const extracted = fnCall?.functionCall?.args ?? { periods: [], page_type: "unknown" };
     const periods: Period[] = extracted.periods ?? [];
 
     // --- Pattern 1: Validate-then-commit ---

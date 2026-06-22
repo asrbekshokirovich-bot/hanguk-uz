@@ -86,7 +86,7 @@ export default function AiCrawlMonitorContent() {
           <div>
             <p className="font-medium">Tizim tayyor, lekin o'chiq.</p>
             <p className="text-muted-foreground mt-0.5">
-              Yoqishdan oldin <code>ANTHROPIC_API_KEY</code> sozlanishi va scheduler (pg_cron) ulanishi kerak.
+              Yoqishdan oldin <code>GEMINI_API_KEY</code> sozlanishi va scheduler (pg_cron) ulanishi kerak.
               Yoqilganda har bir tekshiruv staff tasdig'i uchun navbatga tushadi — to'g'ridan-to'g'ri saytga yozilmaydi.
             </p>
           </div>

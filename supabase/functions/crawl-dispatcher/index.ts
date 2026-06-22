@@ -43,8 +43,8 @@ Deno.serve(async (req) => {
       return json({ skipped: true, reason: "disabled" });
     }
 
-    // 3) Gate: ANTHROPIC_API_KEY not set → no-op
-    if (!Deno.env.get("ANTHROPIC_API_KEY")) {
+    // 3) Gate: GEMINI_API_KEY not set → no-op
+    if (!Deno.env.get("GEMINI_API_KEY")) {
       return json({ skipped: true, reason: "no_api_key" });
     }
 

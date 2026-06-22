@@ -29,40 +29,40 @@ interface Period {
   field_confidence?: Record<string, number>;
 }
 
-const EXTRACTION_TOOL = {
+const EXTRACTION_TOOL_GEMINI = {
   name: "record_admission_data",
   description:
     "Record structured admission information extracted from a Korean university admissions guideline PDF (모집요강). Only include data explicitly present in the document.",
-  input_schema: {
-    type: "object" as const,
+  parameters: {
+    type: "OBJECT" as const,
     properties: {
       page_type: {
-        type: "string",
+        type: "STRING",
         enum: ["admissions_portal", "specific_intake", "department_list", "unknown"],
       },
       periods: {
-        type: "array",
+        type: "ARRAY",
         items: {
-          type: "object",
+          type: "OBJECT",
           properties: {
-            semester: { type: "string", enum: ["spring", "fall"] },
-            year: { type: "integer", minimum: 2024, maximum: 2030 },
-            program_level: { type: "string", enum: ["undergraduate", "graduate", "phd", "language"] },
-            language_track: { type: ["string", "null"], enum: ["korean", "english", null] },
-            application_start: { type: ["string", "null"], description: "ISO YYYY-MM-DD" },
-            application_end: { type: ["string", "null"], description: "ISO YYYY-MM-DD" },
-            document_deadline: { type: ["string", "null"] },
-            result_announcement: { type: ["string", "null"] },
-            application_fee_krw: { type: ["integer", "null"] },
-            application_fee_usd: { type: ["integer", "null"] },
-            application_form_url: { type: ["string", "null"] },
-            confidence: { type: "number", minimum: 0, maximum: 1 },
-            field_confidence: { type: "object", additionalProperties: { type: "number" } },
+            semester: { type: "STRING", enum: ["spring", "fall"] },
+            year: { type: "INTEGER" },
+            program_level: { type: "STRING", enum: ["undergraduate", "graduate", "phd", "language"] },
+            language_track: { type: "STRING", enum: ["korean", "english"], nullable: true },
+            application_start: { type: "STRING", description: "ISO YYYY-MM-DD", nullable: true },
+            application_end: { type: "STRING", description: "ISO YYYY-MM-DD", nullable: true },
+            document_deadline: { type: "STRING", nullable: true },
+            result_announcement: { type: "STRING", nullable: true },
+            application_fee_krw: { type: "INTEGER", nullable: true },
+            application_fee_usd: { type: "INTEGER", nullable: true },
+            application_form_url: { type: "STRING", nullable: true },
+            confidence: { type: "NUMBER" },
+            field_confidence: { type: "OBJECT", properties: {}, additionalProperties: true },
           },
           required: ["semester", "year", "program_level", "confidence"],
         },
       },
-      notes: { type: "string" },
+      notes: { type: "STRING" },
     },
     required: ["page_type", "periods"],
   },
@@ -95,11 +95,11 @@ Deno.serve(async (req) => {
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-  const anthropicKey = Deno.env.get("ANTHROPIC_API_KEY");
+  const geminiKey = Deno.env.get("GEMINI_API_KEY");
   const admin = createClient(supabaseUrl, serviceKey);
 
-  if (!anthropicKey) {
-    return json({ error: "ANTHROPIC_API_KEY not configured" }, 400);
+  if (!geminiKey) {
+    return json({ error: "GEMINI_API_KEY not configured" }, 400);
   }
 
   try {
@@ -153,28 +153,20 @@ Deno.serve(async (req) => {
 
         const b64 = bytesToBase64(bytes);
 
-        const aiRes = await fetch("https://api.anthropic.com/v1/messages", {
+        const geminiModel = "gemini-2.5-flash";
+        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${geminiKey}`;
+        const aiRes = await fetch(geminiUrl, {
           method: "POST",
-          headers: {
-            "x-api-key": anthropicKey,
-            "anthropic-version": "2023-06-01",
-            "content-type": "application/json",
-          },
+          headers: { "content-type": "application/json" },
           body: JSON.stringify({
-            model: "claude-sonnet-4-6",
-            max_tokens: 4096,
-            tools: [EXTRACTION_TOOL],
-            tool_choice: { type: "tool", name: "record_admission_data" },
-            messages: [
+            contents: [
               {
                 role: "user",
-                content: [
+                parts: [
                   {
-                    type: "document",
-                    source: { type: "base64", media_type: "application/pdf", data: b64 },
+                    inlineData: { mimeType: "application/pdf", data: b64 },
                   },
                   {
-                    type: "text",
                     text: [
                       "You are extracting admission data from a Korean university admissions guideline PDF (모집요강).",
                       "Rules:",
@@ -188,19 +180,24 @@ Deno.serve(async (req) => {
                 ],
               },
             ],
+            tools: [{ functionDeclarations: [EXTRACTION_TOOL_GEMINI] }],
+            toolConfig: {
+              functionCallingConfig: { mode: "ANY", allowedFunctionNames: ["record_admission_data"] },
+            },
+            generationConfig: { maxOutputTokens: 4096 },
           }),
         });
 
         if (!aiRes.ok) {
           const errText = await aiRes.text();
-          throw new Error(`Claude API error ${aiRes.status}: ${errText.slice(0, 200)}`);
+          throw new Error(`Gemini API error ${aiRes.status}: ${errText.slice(0, 200)}`);
         }
 
         const aiJson = await aiRes.json();
-        const toolUse = (aiJson.content ?? []).find(
-          (c: { type: string }) => c.type === "tool_use",
+        const fnCall = aiJson.candidates?.[0]?.content?.parts?.find(
+          (p: { functionCall?: unknown }) => p.functionCall,
         );
-        const extracted = toolUse?.input ?? { periods: [], page_type: "unknown" };
+        const extracted = fnCall?.functionCall?.args ?? { periods: [], page_type: "unknown" };
         const periods: Period[] = (extracted.periods ?? []).filter(validatePeriod);
 
         // Create a crawl_run for tracking
