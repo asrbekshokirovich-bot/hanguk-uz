@@ -172,6 +172,17 @@ export function AddPaymentDialog({
     }));
   }, [planInfo, studentPaymentMode, open, formData.paymentType, contractDate, isInstallment]);
 
+  // Re-apply the correct default payment type when the dialog opens or once the
+  // existing payments finish loading. The initial useState value is computed on mount,
+  // when `existingPayments` may still be empty, which previously left the type stuck on
+  // 'initial_deposit' even though one already existed.
+  useEffect(() => {
+    if (open) {
+      setFormData(prev => ({ ...prev, paymentType: getDefaultPaymentType() }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, hasInitialDeposit, hasRemainingPayment]);
+
   // Update amount when payment type changes
   const handlePaymentTypeChange = (value: string) => {
     setFormData(prev => ({ ...prev, paymentType: value }));
@@ -196,8 +207,13 @@ export function AddPaymentDialog({
       const paidAmount = Number(formData.paidAmount) || 0;
       const gatewayFee = Number(formData.gatewayFee) || 0;
 
-      // Create the payment record
-      const { data: payment, error: paymentError } = await supabase
+      // Create the payment record.
+      // NOTE: a DB trigger (payments_idempotent_initial_deposit) silently swallows
+      // duplicate `initial_deposit` inserts (it updates the existing row and RETURNs NULL),
+      // so the INSERT can legitimately return 0 rows. Use maybeSingle() to avoid the
+      // PGRST116 "Cannot coerce the result to a single JSON object" error, then fall back
+      // to fetching the existing payment row so we can still attach the receipt/transaction.
+      const { data: insertedPayment, error: paymentError } = await supabase
         .from('payments')
         .insert({
           student_id: studentId,
@@ -212,9 +228,31 @@ export function AddPaymentDialog({
           intake_id: activeIntakeId,
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (paymentError) throw paymentError;
+
+      let payment = insertedPayment;
+
+      // Idempotent trigger updated an existing initial_deposit instead of inserting:
+      // re-fetch that row so the rest of the flow (transaction, receipt, allocations) works.
+      if (!payment) {
+        const { data: existingPayment, error: existingError } = await supabase
+          .from('payments')
+          .select()
+          .eq('student_id', studentId)
+          .eq('payment_type', formData.paymentType)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (existingError) throw existingError;
+        payment = existingPayment;
+      }
+
+      if (!payment) {
+        throw new Error('Could not create or locate the payment record');
+      }
 
       // If there's a paid amount, create a transaction record
       if (paidAmount > 0 && payment) {
