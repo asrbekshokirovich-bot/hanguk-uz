@@ -96,12 +96,20 @@ Deno.serve(async (req) => {
       );
     }
 
-    // ── Step 3: Fetch the university at this batch position ───────────────
+    // ── Step 3–5: Loop through universities sequentially ───────────────
+    let currentBatchIndex = batchIndex;
+    let lastUniversityName = '';
+    let lastFoundForm = false;
+    let totalProcessedThisRun = 0;
+    let totalFoundThisRun = 0;
+    let totalFailedThisRun = 0;
+
+    while (true) {
     const { data: universities, error: uniErr } = await supabase
       .from('universities')
       .select('id, name_ko, name_en, website')
       .order('id', { ascending: true })
-      .range(batchIndex, batchIndex);
+      .range(currentBatchIndex, currentBatchIndex);
 
     if (uniErr) {
       console.error('Error fetching universities:', uniErr);
@@ -119,58 +127,24 @@ Deno.serve(async (req) => {
         .update({
           status: 'completed',
           completed_at: new Date().toISOString(),
-          processed: batchIndex,
+          processed: currentBatchIndex,
         })
         .eq('id', syncJobId);
 
-      console.log(`[sync-admission-forms] Job ${syncJobId} completed! Processed ${batchIndex} universities.`);
-      return new Response(
-        JSON.stringify({ message: 'Sync complete', processed: batchIndex }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      console.log(`[sync-admission-forms] Job ${syncJobId} completed! Processed ${currentBatchIndex} universities.`);
+      break;
+    }
+
+    // Check if job was cancelled
+    const { data: jobCheck } = await supabase.from('admission_sync_jobs').select('status').eq('id', syncJobId).single();
+    if (jobCheck?.status === 'cancelled') {
+      console.log(`[sync-admission-forms] Job ${syncJobId} was cancelled, stopping.`);
+      break;
     }
 
     const university = universities[0];
     const universityDisplayName = university.name_en || university.name_ko || 'Unknown';
-    console.log(`[sync-admission-forms] Processing ${batchIndex + 1}: ${universityDisplayName} (${university.website})`);
-
-    // ── Step 4: Fire the self-chain for the NEXT university BEFORE processing ─
-    // This ensures the chain continues even if this invocation times out
-    const nextBatchIndex = batchIndex + 1;
-
-    // Check if there's a next university
-    const { count: remainingCount } = await supabase
-      .from('universities')
-      .select('*', { count: 'exact', head: true })
-      .order('id', { ascending: true })
-      .range(nextBatchIndex, nextBatchIndex);
-
-    const hasMore = (remainingCount ?? 0) > 0;
-
-    if (hasMore) {
-      // Self-chain: invoke next batch after 2s delay (prevents Firecrawl rate limiting)
-      setTimeout(async () => {
-        try {
-          await fetch(`${FUNCTION_BASE_URL}/sync-admission-forms`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-            },
-            body: JSON.stringify({
-              batchIndex: nextBatchIndex,
-              semester,
-              year,
-              programLevel,
-              syncJobId,
-              triggeredBy,
-            }),
-          });
-        } catch (err) {
-          console.error('[sync-admission-forms] Failed to chain next batch:', err);
-        }
-      }, 2000);
-    }
+    console.log(`[sync-admission-forms] Processing ${currentBatchIndex + 1}: ${universityDisplayName} (${university.website})`);
 
     // ── Step 5: Search for application form for this university ──────────────
     let foundForm = false;
@@ -298,28 +272,35 @@ Deno.serve(async (req) => {
     }
 
     // ── Step 7: Update job progress ─────────────────────────────────────────
-    const newProcessed = (job.processed ?? 0) + 1;
-    const newFound = (job.found ?? 0) + (foundForm ? 1 : 0);
-    const newFailed = (job.failed ?? 0) + (foundForm ? 0 : 1);
+    totalProcessedThisRun++;
+    totalFoundThisRun += foundForm ? 1 : 0;
+    totalFailedThisRun += foundForm ? 0 : 1;
 
     await supabase
       .from('admission_sync_jobs')
       .update({
-        processed: newProcessed,
-        found: newFound,
-        failed: newFailed,
-        status: hasMore ? 'running' : 'completed',
-        completed_at: hasMore ? null : new Date().toISOString(),
+        processed: (job.processed ?? 0) + totalProcessedThisRun,
+        found: (job.found ?? 0) + totalFoundThisRun,
+        failed: (job.failed ?? 0) + totalFailedThisRun,
+        status: 'running',
       })
       .eq('id', syncJobId);
 
+    lastUniversityName = universityDisplayName;
+    lastFoundForm = foundForm;
+    currentBatchIndex++;
+
+    // Small delay between universities to avoid rate limiting
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    } // end while
+
     return new Response(
       JSON.stringify({
-        message: hasMore ? 'Processing next...' : 'Sync complete',
-        university: universityDisplayName,
-        found: foundForm,
-        processed: newProcessed,
-        hasMore,
+        message: 'Sync complete',
+        lastUniversity: lastUniversityName,
+        found: lastFoundForm,
+        processed: totalProcessedThisRun,
         syncJobId,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

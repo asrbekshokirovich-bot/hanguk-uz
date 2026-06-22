@@ -182,7 +182,7 @@ ${Object.entries(bySource).map(([s, c]) => `${s}: ${c}`).join(", ")}
 ${topCities.join(", ")}
 
 === PIPELINE HEALTH ===
-Conversion rate (converted / total): ${Math.round(((byStatus["converted"] || 0) / total) * 100)}%
+Conversion rate (converted / total): ${total === 0 ? 0 : Math.round(((byStatus["converted"] || 0) / total) * 100)}%
 Qualified-to-converted ratio: ${byStatus["qualified"] ? Math.round(((byStatus["converted"] || 0) / (byStatus["qualified"] || 1)) * 100) : "N/A"}%
 Active pipeline (not converted/lost): ${total - (byStatus["converted"] || 0) - (byStatus["lost"] || 0)}
 `;

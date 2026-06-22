@@ -244,7 +244,16 @@ Provide your analysis using the validate_document function.`
       throw new Error("Invalid AI response format");
     }
 
-    const validationResult = JSON.parse(toolCall.function.arguments);
+    let validationResult;
+    try {
+      validationResult = JSON.parse(toolCall.function.arguments);
+    } catch (parseError) {
+      console.error("Failed to parse AI tool call arguments:", parseError);
+      return new Response(
+        JSON.stringify({ error: "Failed to parse AI validation response" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     return new Response(
       JSON.stringify(validationResult),

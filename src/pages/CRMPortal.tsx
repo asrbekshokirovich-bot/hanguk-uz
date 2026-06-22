@@ -7,6 +7,7 @@ import { useUserRole } from '@/hooks/useUserRole';
 import { useCanReviewUniDb } from '@/hooks/useCanReviewUniDb';
 import { useCRMData } from '@/hooks/useCRMData';
 import { usePayments } from '@/hooks/usePayments';
+import { useActiveIntake } from '@/contexts/IntakeContext';
 import { CRMSidebar, useSidebarGroups } from '@/components/crm/CRMSidebar';
 import { CRMCommandMenu } from '@/components/crm/CRMCommandMenu';
 import { ThemeToggleButton } from '@/components/ThemeToggleButton';
@@ -96,9 +97,11 @@ export default function CRMPortal() {
     loading: studentsLoading,
     updateApplicationStatus,
     updateDocumentStatus,
-    refetchStudents
+    refetchStudents,
+    refetchApplications,
   } = useCRMData();
 
+  const { activeIntakeId } = useActiveIntake();
   const { payments, loading: paymentsLoading, fetchPayments } = usePayments();
   const loading = studentsLoading || paymentsLoading;
 
@@ -125,6 +128,7 @@ export default function CRMPortal() {
     if (currentPath.startsWith('/crm/finance/reports')) return 'finance-reports';
     if (currentPath.startsWith('/crm/finance')) return 'finance';
     if (currentPath.startsWith('/crm/payments')) return 'finance'; // Legacy redirect
+    if (currentPath.startsWith('/crm/program-finder')) return 'program-finder';
     if (currentPath.startsWith('/crm/universities')) return 'universities';
     if (currentPath.startsWith('/crm/tasks')) return 'tasks';
     if (currentPath.startsWith('/crm/messages')) return 'messages';
@@ -139,6 +143,7 @@ export default function CRMPortal() {
     if (currentPath.startsWith('/crm/communication')) return 'communication';
     if (currentPath.startsWith('/crm/kakao-map')) return 'kakao-map';
     if (currentPath.startsWith('/crm/admin/uni-db-review')) return 'uni-db-review';
+    if (currentPath.startsWith('/crm/admin/ai-crawl')) return 'ai-crawl';
     return 'dashboard';
   };
 
@@ -303,10 +308,13 @@ export default function CRMPortal() {
                 <ApplicationsContent
                   applications={applications}
                   students={students}
+                  universities={universities}
                   loading={loading}
                   currentLang={currentLang}
+                  activeIntakeId={activeIntakeId}
                   onOpenStudent={setSelectedStudent}
                   onUpdateApplicationStatus={updateApplicationStatus}
+                  onRefresh={() => { refetchApplications(); refetchStudents(); }}
                 />
               </SafeSuspense>
             </div>
@@ -383,8 +391,10 @@ export default function CRMPortal() {
       case 'finance-reports':
         if (!isOwner) return <AccessDenied />;
         return <FinanceReportsWrapper />;
+      case 'program-finder':
+      case 'ai-crawl':
       case 'universities':
-        return <SafeSuspense><UniversitiesContent /></SafeSuspense>;
+        return <SafeSuspense><UniversitiesContent isOwner={isOwner} isAdmin={isAdmin} /></SafeSuspense>;
       case 'tasks':
         return <SafeSuspense><TasksContent /></SafeSuspense>;
       case 'messages':

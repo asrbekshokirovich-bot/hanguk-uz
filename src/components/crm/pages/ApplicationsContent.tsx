@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import CreateApplicationDialog from './CreateApplicationDialog';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -56,10 +57,13 @@ interface ApplicationsContentProps {
   applications: ApplicationRow[];
   /** Enriches each application with its applicant's profile + documents. */
   students: StudentProfile[];
+  universities: Tables<'institutions'>[];
   loading: boolean;
   currentLang: string;
+  activeIntakeId: string | null;
   onOpenStudent: (student: StudentProfile) => void;
   onUpdateApplicationStatus: (id: string, status: string) => Promise<{ error: unknown }>;
+  onRefresh: () => void;
 }
 
 const STAGE_ORDER: Stage[] = ['new', 'documents', 'review', 'submitted', 'decision'];
@@ -203,10 +207,13 @@ function deadlineMeta(daysLeft: number, date: Date, lang: string, t: TFunc): { t
 export default function ApplicationsContent({
   applications,
   students,
+  universities,
   loading,
   currentLang,
+  activeIntakeId,
   onOpenStudent,
   onUpdateApplicationStatus,
+  onRefresh,
 }: ApplicationsContentProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -217,6 +224,7 @@ export default function ApplicationsContent({
   const [openUniId, setOpenUniId] = useState<string | null>(null);
   const [overrides, setOverrides] = useState<Record<string, Stage>>({});
   const [movingId, setMovingId] = useState<string | null>(null);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
   const uniName = (uni?: Tables<'institutions'> | null) => {
     if (!uni) return '';
@@ -551,12 +559,21 @@ export default function ApplicationsContent({
             <Download className="h-4 w-4" />
             {t('applications.export')}
           </Button>
-          <Button variant="highlight" className="gap-2" onClick={() => navigate('/crm/students')}>
+          <Button variant="highlight" className="gap-2" onClick={() => setCreateDialogOpen(true)}>
             <Plus className="h-4 w-4" />
             {t('applications.newApplication')}
           </Button>
         </div>
       </div>
+
+      <CreateApplicationDialog
+        open={createDialogOpen}
+        onOpenChange={setCreateDialogOpen}
+        students={students}
+        universities={universities}
+        activeIntakeId={activeIntakeId}
+        onCreated={onRefresh}
+      />
 
       {/* How-it-works banner */}
       <div className="flex items-center gap-3 rounded-xl bg-info/10 px-4 py-3">

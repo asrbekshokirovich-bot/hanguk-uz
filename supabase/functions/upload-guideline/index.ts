@@ -43,7 +43,7 @@ async function sha256Hex(bytes: Uint8Array): Promise<string> {
 }
 
 function safeName(name: string): string {
-  return (name || "guideline.pdf").replace(/[^A-Za-z0-9._-]/g, "_").slice(-80);
+  return (name || "guideline.pdf").replace(/[^A-Za-z0-9._-]/g, "_").slice(0, 80);
 }
 
 Deno.serve(async (req) => {
@@ -124,6 +124,9 @@ Deno.serve(async (req) => {
     await admin.storage.from(BUCKET).remove([storagePath]);
     return json({ error: `DB insert failed: ${insErr.message}` }, 500);
   }
+
+  // Fire-and-forget: trigger process-guideline so the PDF is parsed automatically.
+  admin.functions.invoke("process-guideline", { body: { document_id: doc.id } }).catch(() => {});
 
   return json({
     ok: true,

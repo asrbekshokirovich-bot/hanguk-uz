@@ -73,8 +73,16 @@ Deno.serve(async (req) => {
       });
       const out = await res.json().catch(() => ({}));
       results.push({ id: jobRow.id, ok: res.ok, status: res.status, out });
+      await supabase.from("comm_processing_jobs").update({
+        status: "processing",
+        attempts: (jobRow.attempts ?? 0) + 1,
+      }).eq("id", jobRow.id);
     } catch (e) {
       results.push({ id: jobRow.id, ok: false, error: e instanceof Error ? e.message : String(e) });
+      await supabase.from("comm_processing_jobs").update({
+        status: "error",
+        attempts: (jobRow.attempts ?? 0) + 1,
+      }).eq("id", jobRow.id);
     }
   }
 

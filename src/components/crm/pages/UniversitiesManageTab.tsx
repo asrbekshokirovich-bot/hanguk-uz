@@ -1,0 +1,831 @@
+import { useMemo, useState, useRef, useEffect, type ChangeEvent } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useUniversities, type Institution } from '@/hooks/useUniversities';
+import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
+import { UniversityAdmissionsSheet } from './UniversityAdmissionsSheet';
+import {
+  GraduationCap,
+  Plus,
+  Search,
+  Loader2,
+  Star,
+  StarOff,
+  Eye,
+  EyeOff,
+  Edit3,
+  Trash2,
+  Building2,
+  MapPin,
+  ExternalLink,
+  RefreshCw,
+  ListChecks,
+  UploadCloud,
+  CheckCircle2,
+  Clock,
+  AlertTriangle,
+  Bot,
+} from 'lucide-react';
+
+const INSTITUTION_TYPES = [
+  'national', 'public', 'private', 'junior_college', 'cyber',
+  'education_university', 'national_special', 'specialized',
+];
+
+type EditState =
+  | { mode: 'create' }
+  | { mode: 'edit'; row: Institution }
+  | null;
+
+interface FormFields {
+  name_ko: string;
+  name_en: string;
+  primary_domain: string;
+  institution_type: string;
+  tier: string;
+  city_ko: string;
+  primary_admissions_url_ko: string;
+}
+
+const emptyFields = (): FormFields => ({
+  name_ko: '',
+  name_en: '',
+  primary_domain: '',
+  institution_type: 'private',
+  tier: '',
+  city_ko: '',
+  primary_admissions_url_ko: '',
+});
+
+function fieldsFromRow(r: Institution): FormFields {
+  return {
+    name_ko: r.name_ko ?? '',
+    name_en: r.name_en ?? '',
+    primary_domain: r.primary_domain ?? '',
+    institution_type: r.institution_type ?? 'private',
+    tier: r.tier?.toString() ?? '',
+    city_ko: r.city_ko ?? '',
+    primary_admissions_url_ko: r.primary_admissions_url_ko ?? '',
+  };
+}
+
+function fieldsToPayload(f: FormFields): Partial<Institution> {
+  const payload: Partial<Institution> = {
+    name_ko: f.name_ko.trim(),
+    name_en: f.name_en.trim() || null,
+    primary_domain: f.primary_domain.trim() || 'unknown.ac.kr',
+    institution_type: f.institution_type,
+    city_ko: f.city_ko.trim() || null,
+    primary_admissions_url_ko: f.primary_admissions_url_ko.trim() || null,
+  };
+  if (f.tier.trim() !== '') {
+    const n = Number.parseInt(f.tier, 10);
+    if (Number.isFinite(n)) payload.tier = n;
+  }
+  return payload;
+}
+
+const DOC_STATUS_REFRESH_MS = 30_000;
+
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(reader.error ?? new Error('read failed'));
+    reader.readAsDataURL(file);
+  });
+}
+
+/** Latest guideline-PDF status per institution, shown on each card. */
+function UploadStatusBadge({ status }: { status?: string }) {
+  if (!status) {
+    return <Badge variant="outline" className="gap-1"><Clock className="h-3 w-3" /> No PDF</Badge>;
+  }
+  if (status === 'succeeded') {
+    return <Badge variant="lime" className="gap-1"><CheckCircle2 className="h-3 w-3" /> Current</Badge>;
+  }
+  if (status === 'failed') {
+    return <Badge variant="destructive" className="gap-1"><AlertTriangle className="h-3 w-3" /> Failed</Badge>;
+  }
+  return <Badge variant="info" className="gap-1"><Loader2 className="h-3 w-3 animate-spin" /> Processing</Badge>;
+}
+
+function formatRelative(dateStr: string | null | undefined): string {
+  if (!dateStr) return '—';
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const days = Math.floor(diff / 86400000);
+  if (days < 1) return 'today';
+  if (days === 1) return '1d ago';
+  if (days < 30) return `${days}d ago`;
+  const months = Math.floor(days / 30);
+  if (months < 12) return `${months}mo ago`;
+  const years = Math.floor(months / 12);
+  return `${years}y ago`;
+}
+
+export default function UniversitiesManageTab() {
+  const { t } = useTranslation();
+  const { toast } = useToast();
+  const {
+    universities: institutions,
+    loading,
+    stats,
+    fetchUniversities,
+    createUniversity,
+    updateUniversity,
+    deleteUniversity,
+    togglePartner,
+    toggleMapVisibility,
+  } = useUniversities();
+
+  const [search, setSearch] = useState('');
+  const [filter, setFilter] = useState<'all' | 'partners' | 'on_map' | 'new' | 'no_domain' | 'no_data' | 'hidden'>('all');
+  const [dataFilter, setDataFilter] = useState<'all' | 'complete' | 'partial' | 'empty'>('all');
+  const [category, setCategory] = useState<'all' | 'universities' | 'colleges'>('all');
+  const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [sortBy, setSortBy] = useState<'name' | 'newest' | 'oldest'>('name');
+  const [edit, setEdit] = useState<EditState>(null);
+  const [fields, setFields] = useState<FormFields>(emptyFields());
+  const [confirmDelete, setConfirmDelete] = useState<Institution | null>(null);
+  const [detail, setDetail] = useState<Institution | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+
+  const toggleSelect = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const selectAll = () => {
+    if (selected.size === filtered.length) {
+      setSelected(new Set());
+    } else {
+      setSelected(new Set(filtered.map((r) => r.id)));
+    }
+  };
+
+  // --- Guideline-PDF upload (the manual-upload front door, per-card) ---
+  const [statusMap, setStatusMap] = useState<Map<string, string>>(new Map());
+  const [uploadingId, setUploadingId] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const pendingInstitution = useRef<string | null>(null);
+
+  const loadStatus = async () => {
+    const { data } = await supabase
+      .from('guideline_documents')
+      .select('institution_id, parse_status, fetched_at')
+      .order('fetched_at', { ascending: false });
+    const map = new Map<string, string>();
+    for (const r of (data ?? []) as { institution_id: string; parse_status: string }[]) {
+      if (!map.has(r.institution_id)) map.set(r.institution_id, r.parse_status);
+    }
+    setStatusMap(map);
+  };
+
+  useEffect(() => {
+    loadStatus();
+    const id = setInterval(loadStatus, DOC_STATUS_REFRESH_MS);
+    return () => clearInterval(id);
+  }, []);
+
+  const pickUpload = (institutionId: string) => {
+    pendingInstitution.current = institutionId;
+    fileInputRef.current?.click();
+  };
+
+  const onUploadFileChosen = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = ''; // allow re-selecting the same file later
+    const institutionId = pendingInstitution.current;
+    pendingInstitution.current = null;
+    if (!file || !institutionId) return;
+    if (file.type && file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+      toast({ title: 'Please choose a PDF file', variant: 'destructive' });
+      return;
+    }
+    setUploadingId(institutionId);
+    try {
+      const file_base64 = await fileToBase64(file);
+      const { data, error } = await supabase.functions.invoke('upload-guideline', {
+        body: { institution_id: institutionId, file_base64, filename: file.name },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(String(data.error));
+      toast({ title: 'PDF uploaded', description: 'Queued for analysis.' });
+      loadStatus();
+    } catch (err) {
+      toast({
+        title: 'Upload failed',
+        description: err instanceof Error ? err.message : String(err),
+        variant: 'destructive',
+      });
+    } finally {
+      setUploadingId(null);
+    }
+  };
+
+  // --- AI Crawl per-institution ---
+  const [crawlingIds, setCrawlingIds] = useState<Set<string>>(new Set());
+  const [crawlResults, setCrawlResults] = useState<Map<string, { ok: boolean; message: string }>>(new Map());
+
+  const triggerCrawl = async (row: Institution) => {
+    if (!row.primary_admissions_url_ko && !row.primary_domain) {
+      toast({ title: 'No URL', description: 'Add an admissions URL or domain first.', variant: 'destructive' });
+      return;
+    }
+    const url = row.primary_admissions_url_ko || `https://${row.primary_domain}`;
+    setCrawlingIds((prev) => new Set(prev).add(row.id));
+    setCrawlResults((prev) => { const m = new Map(prev); m.delete(row.id); return m; });
+
+    try {
+      const { data, error } = await supabase.functions.invoke('crawl-worker', {
+        body: { institution_id: row.id, url },
+      });
+      if (error) throw error;
+      const result = data as Record<string, unknown>;
+      if (result.error) {
+        setCrawlResults((prev) => new Map(prev).set(row.id, { ok: false, message: String(result.error) }));
+        toast({ title: `${row.name_ko} — error`, description: String(result.error), variant: 'destructive' });
+      } else if (result.skipped) {
+        setCrawlResults((prev) => new Map(prev).set(row.id, { ok: true, message: `Skipped: ${result.reason}` }));
+        toast({ title: `${row.name_ko}`, description: `Skipped: ${result.reason}` });
+      } else {
+        const count = (result.periods_found ?? 0) as number;
+        setCrawlResults((prev) => new Map(prev).set(row.id, { ok: true, message: `${count} periods found` }));
+        toast({ title: `${row.name_ko} — success`, description: `${count} admission periods found` });
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setCrawlResults((prev) => new Map(prev).set(row.id, { ok: false, message: msg }));
+      toast({ title: `${row.name_ko} — error`, description: msg, variant: 'destructive' });
+    } finally {
+      setCrawlingIds((prev) => { const s = new Set(prev); s.delete(row.id); return s; });
+    }
+  };
+
+  const triggerBatchCrawl = async () => {
+    const rows = institutions.filter((r) => selected.has(r.id));
+    if (rows.length === 0) return;
+    toast({ title: `AI Update started for ${rows.length} institutions` });
+    for (const row of rows) {
+      await triggerCrawl(row);
+    }
+    setSelected(new Set());
+  };
+
+  const [periodCounts, setPeriodCounts] = useState<Map<string, number>>(new Map());
+  const [reqCounts, setReqCounts] = useState<Map<string, number>>(new Map());
+
+  useEffect(() => {
+    (async () => {
+      const [pRes, rRes] = await Promise.all([
+        supabase.from('university_admission_periods').select('institution_id'),
+        supabase.from('admission_cycles').select('institution_id'),
+      ]);
+      const pm = new Map<string, number>();
+      for (const r of pRes.data ?? []) {
+        pm.set(r.institution_id, (pm.get(r.institution_id) ?? 0) + 1);
+      }
+      setPeriodCounts(pm);
+      const rm = new Map<string, number>();
+      for (const r of rRes.data ?? []) {
+        rm.set(r.institution_id, (rm.get(r.institution_id) ?? 0) + 1);
+      }
+      setReqCounts(rm);
+    })();
+  }, [institutions]);
+
+  const BASIC_FIELDS: (keyof Institution)[] = [
+    'name_en', 'city_ko', 'region_code', 'latitude', 'longitude',
+    'tier', 'ieqas_status', 'primary_admissions_url_ko',
+  ];
+
+  const getCompletenessInfo = (row: Institution) => {
+    const periods = periodCounts.get(row.id) ?? 0;
+    const reqs = reqCounts.get(row.id) ?? 0;
+    let basicFilled = 0;
+    for (const f of BASIC_FIELDS) {
+      const v = row[f];
+      if (v !== null && v !== undefined && v !== '') basicFilled++;
+    }
+    const totalChecks = BASIC_FIELDS.length + 2;
+    const score = basicFilled + (periods > 0 ? 1 : 0) + (reqs > 0 ? 1 : 0);
+    const pct = Math.round((score / totalChecks) * 100);
+    const hasAdmissions = periods > 0 && reqs > 0;
+    const hasBasic = basicFilled === BASIC_FIELDS.length;
+    let status: 'complete' | 'partial' | 'empty';
+    if (!hasBasic && !hasAdmissions && periods === 0 && reqs === 0 && basicFilled === 0) status = 'empty';
+    else if (hasBasic && hasAdmissions) status = 'complete';
+    else status = 'partial';
+    return { status, pct, score, total: totalChecks };
+  };
+
+  const getCompleteness = (row: Institution) => getCompletenessInfo(row).status;
+
+  const dataStats = useMemo(() => {
+    let complete = 0, partial = 0, empty = 0;
+    for (const row of institutions) {
+      const c = getCompleteness(row);
+      if (c === 'complete') complete++;
+      else if (c === 'partial') partial++;
+      else empty++;
+    }
+    return { complete, partial, empty };
+  }, [institutions, periodCounts, reqCounts]);
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    const result = institutions.filter((row) => {
+      if (filter === 'partners' && !row.is_partner) return false;
+      if (filter === 'on_map' && !row.is_visible_on_map) return false;
+      if (filter === 'hidden' && row.is_visible_on_map) return false;
+      if (filter === 'no_domain' && row.primary_admissions_url_ko) return false;
+      if (category === 'universities' && row.institution_type === 'junior_college') return false;
+      if (category === 'colleges' && row.institution_type !== 'junior_college') return false;
+      if (typeFilter === 'national_group' && !['national', 'national_special', 'public', 'education_university'].includes(row.institution_type)) return false;
+      if (typeFilter === 'private' && row.institution_type !== 'private' && row.institution_type !== 'specialized') return false;
+      if (typeFilter === 'junior_college' && row.institution_type !== 'junior_college') return false;
+      if (typeFilter === 'cyber' && row.institution_type !== 'cyber') return false;
+      if (filter === 'new') {
+        const created = new Date(row.created_at);
+        const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
+        if (created < threeDaysAgo) return false;
+      }
+      if (dataFilter !== 'all' && getCompleteness(row) !== dataFilter) return false;
+      if (!q) return true;
+      const haystack = [
+        row.name_ko ?? '',
+        row.name_en ?? '',
+        row.name_ko_short ?? '',
+        row.primary_domain ?? '',
+        row.city_ko ?? '',
+      ].join(' ').toLowerCase();
+      return haystack.includes(q);
+    });
+    if (sortBy === 'newest') result.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    else if (sortBy === 'oldest') result.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+    return result;
+  }, [institutions, search, filter, dataFilter, category, typeFilter, sortBy]);
+
+  const openCreate = () => {
+    setFields(emptyFields());
+    setEdit({ mode: 'create' });
+  };
+
+  const openEdit = (row: Institution) => {
+    setFields(fieldsFromRow(row));
+    setEdit({ mode: 'edit', row });
+  };
+
+  const closeEdit = () => {
+    if (busy) return;
+    setEdit(null);
+  };
+
+  const submitEdit = async () => {
+    if (!fields.name_ko.trim()) {
+      toast({ title: 'Korean name required', variant: 'destructive' });
+      return;
+    }
+    setBusy(true);
+    try {
+      if (edit?.mode === 'create') {
+        const { error } = await createUniversity(fieldsToPayload(fields));
+        if (error) throw new Error(error.message);
+        toast({ title: 'Institution added', description: fields.name_ko });
+      } else if (edit?.mode === 'edit') {
+        const { error } = await updateUniversity(edit.row.id, fieldsToPayload(fields));
+        if (error) throw new Error(error.message);
+        toast({ title: 'Saved', description: fields.name_ko });
+      }
+      setEdit(null);
+    } catch (err) {
+      toast({
+        title: 'Save failed',
+        description: err instanceof Error ? err.message : String(err),
+        variant: 'destructive',
+      });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const submitDelete = async () => {
+    if (!confirmDelete) return;
+    setBusy(true);
+    try {
+      const { error } = await deleteUniversity(confirmDelete.id);
+      if (error) throw new Error(error.message);
+      toast({ title: 'Deleted', description: confirmDelete.name_ko ?? confirmDelete.id });
+      setConfirmDelete(null);
+    } catch (err) {
+      toast({
+        title: 'Delete failed',
+        description: err instanceof Error ? err.message : String(err),
+        variant: 'destructive',
+      });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="application/pdf,.pdf"
+        className="hidden"
+        onChange={onUploadFileChosen}
+      />
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold flex items-center gap-2">
+            <GraduationCap className="h-6 w-6" />
+            {t('navigation.universities') ?? 'Institutions'}
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Manage institution records, visibility, and admissions data.
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={() => fetchUniversities()} disabled={loading}>
+            {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
+            Refresh
+          </Button>
+          <Button onClick={openCreate}>
+            <Plus className="h-4 w-4 mr-2" /> Add institution
+          </Button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+        <Card className="cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => setFilter('all')}>
+          <CardHeader className="pb-1"><CardTitle className="text-xs text-muted-foreground">Total</CardTitle></CardHeader>
+          <CardContent><div className="text-2xl font-bold">{stats.total}</div></CardContent>
+        </Card>
+        <Card className="cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => setFilter('partners')}>
+          <CardHeader className="pb-1"><CardTitle className="text-xs text-muted-foreground">Partners</CardTitle></CardHeader>
+          <CardContent><div className="text-2xl font-bold">{stats.partners}</div></CardContent>
+        </Card>
+        <Card className="cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => setFilter('on_map')}>
+          <CardHeader className="pb-1"><CardTitle className="text-xs text-muted-foreground">On map</CardTitle></CardHeader>
+          <CardContent><div className="text-2xl font-bold">{stats.visibleOnMap}</div></CardContent>
+        </Card>
+        <Card className="cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => setFilter('no_domain')}>
+          <CardHeader className="pb-1"><CardTitle className="text-xs text-muted-foreground text-destructive">No admissions URL</CardTitle></CardHeader>
+          <CardContent><div className="text-2xl font-bold text-destructive">{stats.total - stats.withDomain}</div></CardContent>
+        </Card>
+        <Card className="cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => setFilter('hidden')}>
+          <CardHeader className="pb-1"><CardTitle className="text-xs text-muted-foreground">Hidden</CardTitle></CardHeader>
+          <CardContent><div className="text-2xl font-bold">{institutions.filter(i => !i.is_visible_on_map).length}</div></CardContent>
+        </Card>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="relative flex-1 min-w-64">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search Korean / English name, domain, city"
+            className="pl-9"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button size="sm" variant={category === 'all' ? 'default' : 'outline'} onClick={() => { setCategory('all'); setTypeFilter('all'); }}>
+            All
+          </Button>
+          <Button size="sm" variant={category === 'universities' ? 'default' : 'outline'} onClick={() => { setCategory('universities'); setTypeFilter('all'); }}>
+            <GraduationCap className="h-4 w-4 mr-1" /> Universities
+          </Button>
+          <Button size="sm" variant={category === 'colleges' ? 'default' : 'outline'} onClick={() => { setCategory('colleges'); setTypeFilter('all'); }}>
+            <Building2 className="h-4 w-4 mr-1" /> Colleges
+          </Button>
+          <span className="text-muted-foreground">|</span>
+          <Button size="sm" variant={filter === 'all' ? 'default' : 'outline'} onClick={() => setFilter('all')}>
+            All
+          </Button>
+          <Button size="sm" variant={filter === 'new' ? 'default' : 'outline'} onClick={() => setFilter('new')}>
+            <Clock className="h-4 w-4 mr-1" /> Recent (3d)
+          </Button>
+          <Button size="sm" variant={filter === 'hidden' ? 'default' : 'outline'} onClick={() => setFilter('hidden')}>
+            <EyeOff className="h-4 w-4 mr-1" /> Hidden
+          </Button>
+          <Button size="sm" variant={filter === 'no_domain' ? 'default' : 'outline'} onClick={() => setFilter('no_domain')}>
+            <AlertTriangle className="h-4 w-4 mr-1" /> No URL
+          </Button>
+          <Button size="sm" variant={filter === 'partners' ? 'default' : 'outline'} onClick={() => setFilter('partners')}>
+            <Star className="h-4 w-4 mr-1" /> Partners
+          </Button>
+          <Button size="sm" variant={filter === 'on_map' ? 'default' : 'outline'} onClick={() => setFilter('on_map')}>
+            <MapPin className="h-4 w-4 mr-1" /> On map
+          </Button>
+          <span className="text-muted-foreground">|</span>
+          <Select value={typeFilter} onValueChange={setTypeFilter}>
+            <SelectTrigger className="h-8 w-[160px] text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All types</SelectItem>
+              <SelectItem value="national_group">National / Public</SelectItem>
+              <SelectItem value="private">Private</SelectItem>
+              <SelectItem value="junior_college">College (2-3 yr)</SelectItem>
+              <SelectItem value="cyber">Online / Cyber</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={dataFilter} onValueChange={(v) => setDataFilter(v as typeof dataFilter)}>
+            <SelectTrigger className="h-8 w-[160px] text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All data ({institutions.length})</SelectItem>
+              <SelectItem value="complete">Complete ({dataStats.complete})</SelectItem>
+              <SelectItem value="partial">Partial ({dataStats.partial})</SelectItem>
+              <SelectItem value="empty">Empty ({dataStats.empty})</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
+            <SelectTrigger className="h-8 w-[140px] text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="name">By name</SelectItem>
+              <SelectItem value="newest">Newest first</SelectItem>
+              <SelectItem value="oldest">Oldest first</SelectItem>
+            </SelectContent>
+          </Select>
+          <span className="text-muted-foreground">|</span>
+          <Button size="sm" variant="ghost" onClick={selectAll}>
+            {selected.size === filtered.length && filtered.length > 0 ? 'Deselect all' : 'Select all'}
+          </Button>
+        </div>
+      </div>
+
+      {(filter !== 'all' || dataFilter !== 'all') && (
+        <div className="text-sm text-muted-foreground">
+          {filtered.length} results (of {institutions.length} total)
+        </div>
+      )}
+
+      {selected.size > 0 && (
+        <div className="flex items-center gap-3 p-3 bg-primary/5 border rounded-lg">
+          <span className="text-sm font-medium">{selected.size} selected</span>
+          <Button size="sm" onClick={triggerBatchCrawl} disabled={crawlingIds.size > 0}>
+            {crawlingIds.size > 0
+              ? <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+              : <Bot className="h-4 w-4 mr-1" />}
+            AI Update selected
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => setSelected(new Set())}>
+            Cancel
+          </Button>
+        </div>
+      )}
+
+      {loading ? (
+        <Card>
+          <CardContent className="p-12 text-center">
+            <Loader2 className="h-6 w-6 mx-auto animate-spin text-muted-foreground" />
+          </CardContent>
+        </Card>
+      ) : filtered.length === 0 ? (
+        <Card>
+          <CardContent className="p-12 text-center text-muted-foreground">
+            {institutions.length === 0
+              ? <>No institutions yet. Click <strong>Add institution</strong> to seed your first one.</>
+              : 'No matches for the current filter.'}
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          {filtered.map((row) => {
+            const ci = getCompletenessInfo(row);
+            const borderColor = ci.status === 'complete'
+              ? 'border-l-green-500'
+              : ci.status === 'partial'
+                ? 'border-l-yellow-500'
+                : 'border-l-red-400';
+            const progressColor = ci.status === 'complete'
+              ? 'bg-green-500'
+              : ci.status === 'partial'
+                ? 'bg-yellow-500'
+                : 'bg-red-400';
+            return (
+            <Card key={row.id} className={`border-l-4 ${borderColor} ${row.is_partner ? 'ring-1 ring-primary/30' : ''} overflow-hidden`}>
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-1.5">
+                    <Checkbox
+                      checked={selected.has(row.id)}
+                      onCheckedChange={() => toggleSelect(row.id)}
+                      className="shrink-0"
+                    />
+                    <Button size="icon" variant="outline" className="h-5 w-5" disabled={crawlingIds.has(row.id)} onClick={() => triggerCrawl(row)} title="AI crawl">
+                      {crawlingIds.has(row.id) ? <Loader2 className="h-2.5 w-2.5 animate-spin" /> : <Bot className="h-2.5 w-2.5" />}
+                    </Button>
+                  </div>
+                  <span className="text-[10px] text-muted-foreground">{formatRelative(row.updated_at)}</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground font-bold text-sm">
+                    {(row.name_ko ?? '?')[0]}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <CardTitle className="text-sm leading-tight truncate">{row.name_ko}</CardTitle>
+                    {row.name_en ? (
+                      <p className="text-xs text-muted-foreground truncate">{row.name_en}</p>
+                    ) : (
+                      <p className="text-xs text-destructive/60 truncate italic">No English name</p>
+                    )}
+                    <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                      <span className="text-[11px] text-muted-foreground flex items-center gap-0.5">
+                        <MapPin className="h-2.5 w-2.5" />{row.city_ko ?? '—'}
+                      </span>
+                      {row.tier != null && <span className="text-[11px] text-muted-foreground">#{row.tier}</span>}
+                      <Badge variant="neutral" className="text-[9px] px-1 py-0">{row.institution_type}</Badge>
+                    </div>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-1.5 text-xs pt-0">
+                <div className="flex items-center gap-1.5">
+                  <div className="flex-1 h-1 rounded-full bg-muted overflow-hidden">
+                    <div className={`h-full rounded-full transition-all ${progressColor}`} style={{ width: `${ci.pct}%` }} />
+                  </div>
+                  <span className="text-[10px] text-muted-foreground whitespace-nowrap">{ci.score}/{ci.total}</span>
+                </div>
+
+                <div className="flex flex-wrap gap-1">
+                  <UploadStatusBadge status={statusMap.get(row.id)} />
+                  {row.is_partner && <Badge variant="lime" className="text-[9px] px-1 py-0">partner</Badge>}
+                  {row.is_visible_on_map && <Badge variant="outline" className="text-[9px] px-1 py-0">on map</Badge>}
+                  {row.ieqas_status === 'outstanding' && <Badge variant="info" className="text-[9px] px-1 py-0">IEQAS+</Badge>}
+                  {row.ieqas_status === 'accredited' && <Badge variant="outline" className="text-[9px] px-1 py-0">IEQAS</Badge>}
+                </div>
+
+                <div className="flex items-center gap-1.5 text-muted-foreground">
+                  <span className="truncate flex-1 text-[11px]">{row.primary_domain || '—'}</span>
+                  {row.primary_admissions_url_ko && (
+                    <a href={row.primary_admissions_url_ko} target="_blank" rel="noopener noreferrer" className="text-primary hover:text-primary/80 shrink-0" onClick={(e) => e.stopPropagation()}>
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  )}
+                </div>
+
+                <div className="pt-1.5 border-t space-y-1">
+                  <div className="flex items-center gap-0.5">
+                    <Button size="icon" variant="ghost" className="h-6 w-6" title={row.is_partner ? 'Remove partner' : 'Mark as partner'} onClick={() => togglePartner(row.id, !row.is_partner)}>
+                      {row.is_partner ? <Star className="h-3 w-3 fill-current" /> : <StarOff className="h-3 w-3" />}
+                    </Button>
+                    <Button size="icon" variant="ghost" className="h-6 w-6" title={row.is_visible_on_map ? 'Hide from map' : 'Show on map'} onClick={() => toggleMapVisibility(row.id, !row.is_visible_on_map)}>
+                      {row.is_visible_on_map ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+                    </Button>
+                    <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => openEdit(row)}>
+                      <Edit3 className="h-3 w-3" />
+                    </Button>
+                    <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => setConfirmDelete(row)}>
+                      <Trash2 className="h-3 w-3 text-destructive" />
+                    </Button>
+                    <div className="flex-1" />
+                    <Button size="icon" variant="outline" className="h-6 w-6" disabled={uploadingId === row.id} onClick={() => pickUpload(row.id)} title="Upload PDF">
+                      {uploadingId === row.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <UploadCloud className="h-3 w-3" />}
+                    </Button>
+                    <Button size="sm" variant="outline" className="h-6 text-[10px] px-1.5" title="View admissions data" onClick={() => setDetail(row)}>
+                      <ListChecks className="h-3 w-3 mr-0.5" />Data
+                    </Button>
+                  </div>
+                </div>
+                {crawlResults.has(row.id) && (
+                  <div className={`text-[11px] flex items-center gap-1 ${crawlResults.get(row.id)!.ok ? 'text-green-600' : 'text-destructive'}`}>
+                    {crawlResults.get(row.id)!.ok ? <CheckCircle2 className="h-3 w-3" /> : <AlertTriangle className="h-3 w-3" />}
+                    {crawlResults.get(row.id)!.message}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+            );
+          })}
+        </div>
+      )}
+
+      <UniversityAdmissionsSheet
+        institution={detail}
+        open={!!detail}
+        onOpenChange={(o) => !o && setDetail(null)}
+      />
+
+      <Dialog open={!!edit} onOpenChange={(o) => !o && closeEdit()}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{edit?.mode === 'create' ? 'Add institution' : 'Edit institution'}</DialogTitle>
+            <DialogDescription>
+              Basic institution information. Admissions data is managed separately.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3 py-2">
+            <div className="space-y-1">
+              <Label htmlFor="i-ko">Korean name *</Label>
+              <Input id="i-ko" value={fields.name_ko} onChange={(e) => setFields({ ...fields, name_ko: e.target.value })} placeholder="서울대학교" />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="i-en">English name</Label>
+              <Input id="i-en" value={fields.name_en} onChange={(e) => setFields({ ...fields, name_en: e.target.value })} placeholder="Seoul National University" />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <Label htmlFor="i-domain">Domain</Label>
+                <Input id="i-domain" value={fields.primary_domain} onChange={(e) => setFields({ ...fields, primary_domain: e.target.value })} placeholder="snu.ac.kr" />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="i-tier">Tier (1-5, optional)</Label>
+                <Input id="i-tier" type="number" min={1} max={5} value={fields.tier} onChange={(e) => setFields({ ...fields, tier: e.target.value })} />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <Label htmlFor="i-type">Type</Label>
+                <Select value={fields.institution_type} onValueChange={(v) => setFields({ ...fields, institution_type: v })}>
+                  <SelectTrigger id="i-type"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {INSTITUTION_TYPES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="i-city">City (Korean)</Label>
+                <Input id="i-city" value={fields.city_ko} onChange={(e) => setFields({ ...fields, city_ko: e.target.value })} placeholder="서울" />
+              </div>
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="i-url">Admissions URL (Korean)</Label>
+              <Input id="i-url" value={fields.primary_admissions_url_ko} onChange={(e) => setFields({ ...fields, primary_admissions_url_ko: e.target.value })} placeholder="https://admission.snu.ac.kr" />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="ghost" onClick={closeEdit} disabled={busy}>Cancel</Button>
+            <Button onClick={submitEdit} disabled={busy}>
+              {busy ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
+              {edit?.mode === 'create' ? 'Add' : 'Save'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={!!confirmDelete} onOpenChange={(o) => !o && setConfirmDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete institution?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This permanently removes <strong>{confirmDelete?.name_ko}</strong>. Related admissions data will be unlinked.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={busy}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={submitDelete} disabled={busy} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              {busy ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+}

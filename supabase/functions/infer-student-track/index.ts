@@ -54,7 +54,7 @@ Deno.serve(async (req) => {
     const [{ data: messages }, { data: transcripts }, { data: analyses }] = await Promise.all([
       supabase.from("messages").select("content, created_at").eq("student_id", studentId)
         .order("created_at", { ascending: false }).limit(60),
-      supabase.from("call_transcripts").select("full_text, call_id").limit(10),
+      supabase.from("call_transcripts").select("full_text, call_id").eq("student_id", studentId).limit(10),
       supabase.from("call_analyses").select("summary_uz, summary_en, topics").eq("student_id", studentId)
         .order("created_at", { ascending: false }).limit(10),
     ]);

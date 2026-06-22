@@ -1,13 +1,12 @@
 /**
- * Read-only admissions detail for one institution, shown in a side sheet from the
+ * Admissions detail for one institution, shown in a side sheet from the
  * CRM Universities list. Restores the per-university view that was dropped in the
  * 2026-05-10 uni_db cutover, re-pointed at the normalized tables via
  * useUniversityAdmissions.
  *
- * Read-only by design: the uni_db pipeline auto-publishes this data; staff use
- * this to spot-check it (the needs_attention badge surfaces low-confidence rows).
+ * Calendar tab now supports CRUD for admission periods via staff data entry.
  */
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import type { Institution } from '@/hooks/useUniversities';
 import {
   useUniversityAdmissions,
@@ -38,7 +37,23 @@ import {
   Wallet,
   CalendarClock,
   CheckCircle2,
+  Plus,
+  Pencil,
+  Trash2,
+  Copy,
+  ExternalLink,
 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { AdmissionPeriodFormDialog } from './AdmissionPeriodFormDialog';
+import { AdmissionCycleFormDialog } from './AdmissionCycleFormDialog';
+import { RequirementFormDialog } from './RequirementFormDialog';
+import { DocumentFormDialog } from './DocumentFormDialog';
+import { CloneCycleDialog } from './CloneCycleDialog';
+import { QuickSetupWizard } from './QuickSetupWizard';
+import { Sparkles } from 'lucide-react';
+import { useDeleteAdmissionPeriod } from '@/hooks/useAdmissionPeriodMutations';
+import { useDeleteAdmissionCycle, useDeleteRequirement } from '@/hooks/useAdmissionCycleMutations';
+import { useDeleteDocument } from '@/hooks/useDocumentMutations';
 
 interface Props {
   institution: Institution | null;
@@ -81,7 +96,7 @@ function SourceText({ text }: { text: string | null }) {
   );
 }
 
-function RequirementRow({ r }: { r: AdmissionRequirement }) {
+function RequirementRow({ r, onEdit, onDelete }: { r: AdmissionRequirement; onEdit?: () => void; onDelete?: () => void }) {
   const bits: string[] = [];
   if (r.topik_min_level != null) bits.push(`TOPIK ≥ ${r.topik_min_level}${r.topik_deferred ? ' (deferred)' : ''}`);
   if (r.gpa_floor_pct != null) bits.push(`GPA ≥ ${r.gpa_floor_pct}%`);
@@ -91,7 +106,11 @@ function RequirementRow({ r }: { r: AdmissionRequirement }) {
     <div className="rounded-md border border-border/60 p-2.5">
       <div className="flex items-center justify-between gap-2">
         <span className="text-sm font-medium">{r.applicant_category || '외국인전형'}</span>
-        {r.needs_attention ? <FlagBadge reason={r.attention_reason} /> : null}
+        <div className="flex items-center gap-1">
+          {r.needs_attention ? <FlagBadge reason={r.attention_reason} /> : null}
+          {onEdit && <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={onEdit}><Pencil className="h-3 w-3" /></Button>}
+          {onDelete && <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-destructive hover:text-destructive" onClick={onDelete}><Trash2 className="h-3 w-3" /></Button>}
+        </div>
       </div>
       <div className="text-sm text-muted-foreground mt-0.5">
         {bits.length ? bits.join(' · ') : (r.prose_ko || 'No structured criteria')}
@@ -101,7 +120,7 @@ function RequirementRow({ r }: { r: AdmissionRequirement }) {
   );
 }
 
-function DocumentRow({ d }: { d: RequiredDocument }) {
+function DocumentRow({ d, onEdit, onDelete }: { d: RequiredDocument; onEdit?: () => void; onDelete?: () => void }) {
   return (
     <div className="rounded-md border border-border/60 p-2.5">
       <div className="flex items-center justify-between gap-2">
@@ -110,6 +129,8 @@ function DocumentRow({ d }: { d: RequiredDocument }) {
           {d.is_required === false ? <Badge variant="secondary">optional</Badge> : null}
           {d.is_apostille_required ? <Badge variant="outline">apostille</Badge> : null}
           {d.needs_attention ? <FlagBadge reason={d.attention_reason} /> : null}
+          {onEdit && <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={onEdit}><Pencil className="h-3 w-3" /></Button>}
+          {onDelete && <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-destructive hover:text-destructive" onClick={onDelete}><Trash2 className="h-3 w-3" /></Button>}
         </div>
       </div>
       {d.applicant_category ? (
@@ -121,7 +142,15 @@ function DocumentRow({ d }: { d: RequiredDocument }) {
   );
 }
 
-function CycleCard({ cycle }: { cycle: AdmissionCycle }) {
+function CycleCard({ cycle, onEditCycle, onDeleteCycle, onEditReq, onDeleteReq, onAddReq, onClone }: {
+  cycle: AdmissionCycle;
+  onEditCycle?: () => void;
+  onDeleteCycle?: () => void;
+  onEditReq?: (r: AdmissionRequirement) => void;
+  onDeleteReq?: (id: string) => void;
+  onAddReq?: () => void;
+  onClone?: () => void;
+}) {
   const title = [cycle.intake_year, cycle.intake_term, cycle.cycle_track]
     .filter(Boolean)
     .join(' · ');
@@ -137,15 +166,33 @@ function CycleCard({ cycle }: { cycle: AdmissionCycle }) {
             <Badge variant="outline">{cycle.status}</Badge>
           ) : null}
         </div>
-        {cycle.needs_attention ? <FlagBadge reason={cycle.attention_reason} /> : null}
+        <div className="flex items-center gap-1">
+          {cycle.needs_attention ? <FlagBadge reason={cycle.attention_reason} /> : null}
+          {onClone && <Button variant="ghost" size="sm" className="h-6 w-6 p-0" title="Boshqa semestrga nusxa" onClick={onClone}><Copy className="h-3 w-3" /></Button>}
+          {onEditCycle && <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={onEditCycle}><Pencil className="h-3 w-3" /></Button>}
+          {onDeleteCycle && <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-destructive hover:text-destructive" onClick={onDeleteCycle}><Trash2 className="h-3 w-3" /></Button>}
+        </div>
       </div>
 
       {cycle.requirements?.length ? (
         <div className="space-y-1.5">
-          {cycle.requirements.map((r) => <RequirementRow key={r.id} r={r} />)}
+          {cycle.requirements.map((r) => (
+            <RequirementRow
+              key={r.id}
+              r={r}
+              onEdit={onEditReq ? () => onEditReq(r) : undefined}
+              onDelete={onDeleteReq ? () => onDeleteReq(r.id) : undefined}
+            />
+          ))}
         </div>
       ) : (
         <div className="text-xs text-muted-foreground">No admission tracks for this cycle.</div>
+      )}
+
+      {onAddReq && (
+        <Button variant="ghost" size="sm" className="h-7 text-xs gap-1" onClick={onAddReq}>
+          <Plus className="h-3 w-3" /> Talab qo'shish
+        </Button>
       )}
 
       {cycle.documents_required?.length ? (
@@ -204,14 +251,26 @@ function TuitionRowView({ t }: { t: TuitionRow }) {
   );
 }
 
-function PeriodRow({ p }: { p: AdmissionPeriod }) {
+function PeriodRow({ p, onEdit, onDelete }: { p: AdmissionPeriod; onEdit?: () => void; onDelete?: () => void }) {
   return (
     <div className="rounded-md border border-border/60 p-2.5">
       <div className="flex items-center justify-between gap-2">
         <span className="text-sm font-medium">
           {[p.year, p.semester, p.program_level, p.language_track].filter(Boolean).join(' · ')}
         </span>
-        {p.needs_attention ? <FlagBadge reason={p.attention_reason} /> : null}
+        <div className="flex items-center gap-1">
+          {p.needs_attention ? <FlagBadge reason={p.attention_reason} /> : null}
+          {onEdit && (
+            <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={onEdit}>
+              <Pencil className="h-3 w-3" />
+            </Button>
+          )}
+          {onDelete && (
+            <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-destructive hover:text-destructive" onClick={onDelete}>
+              <Trash2 className="h-3 w-3" />
+            </Button>
+          )}
+        </div>
       </div>
       <div className="text-xs text-muted-foreground mt-1 grid grid-cols-2 gap-x-3 gap-y-0.5">
         <span>Apply: {fmtDate(p.application_start)} → {fmtDate(p.application_end)}</span>
@@ -225,6 +284,28 @@ function PeriodRow({ p }: { p: AdmissionPeriod }) {
 
 export function UniversityAdmissionsSheet({ institution, open, onOpenChange }: Props) {
   const { data, isLoading, error } = useUniversityAdmissions(open ? institution?.id ?? null : null);
+  const [periodFormOpen, setPeriodFormOpen] = useState(false);
+  const [editingPeriod, setEditingPeriod] = useState<AdmissionPeriod | null>(null);
+  const deletePeriod = useDeleteAdmissionPeriod();
+
+  const [cycleFormOpen, setCycleFormOpen] = useState(false);
+  const [editingCycle, setEditingCycle] = useState<AdmissionCycle | null>(null);
+  const deleteCycle = useDeleteAdmissionCycle();
+
+  const [reqFormOpen, setReqFormOpen] = useState(false);
+  const [editingReq, setEditingReq] = useState<AdmissionRequirement | null>(null);
+  const [reqCycleId, setReqCycleId] = useState<string>('');
+  const deleteReq = useDeleteRequirement();
+
+  const [docFormOpen, setDocFormOpen] = useState(false);
+  const [editingDoc, setEditingDoc] = useState<RequiredDocument | null>(null);
+  const [docCycleId, setDocCycleId] = useState<string>('');
+  const deleteDoc = useDeleteDocument();
+
+  const [cloneOpen, setCloneOpen] = useState(false);
+  const [cloneSource, setCloneSource] = useState<{ id: string; label: string } | null>(null);
+
+  const [wizardOpen, setWizardOpen] = useState(false);
 
   const counts = useMemo(() => {
     if (!data) return { req: 0, doc: 0, sch: 0, tui: 0, per: 0 };
@@ -253,9 +334,35 @@ export function UniversityAdmissionsSheet({ institution, open, onOpenChange }: P
           </SheetTitle>
           <SheetDescription>
             {institution?.name_en ? `${institution.name_en} · ` : ''}
-            Auto-published admissions data (read-only). Flagged rows were published with
-            low extractor confidence — spot-check against the source.
+            Qabul ma'lumotlari. Tab orqali sikl, talab, hujjat va muddatlarni boshqaring.
           </SheetDescription>
+          <div className="flex items-center gap-2 pt-1">
+            {institution?.primary_domain && (
+              <a
+                href={institution.primary_domain.startsWith('http') ? institution.primary_domain : `https://${institution.primary_domain}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+              >
+                <ExternalLink className="h-3 w-3" /> Rasmiy sayt
+              </a>
+            )}
+            {institution?.primary_admissions_url_ko && (
+              <a
+                href={institution.primary_admissions_url_ko}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+              >
+                <GraduationCap className="h-3 w-3" /> Qabul sahifasi
+              </a>
+            )}
+          </div>
+          {data && data.cycles.length === 0 && data.periods.length === 0 ? (
+            <Button size="sm" className="mt-2 gap-1.5 w-fit" onClick={() => setWizardOpen(true)}>
+              <Sparkles className="h-3.5 w-3.5" /> Tezkor sozlash (3 qadam)
+            </Button>
+          ) : null}
         </SheetHeader>
         <Separator />
 
@@ -296,11 +403,35 @@ export function UniversityAdmissionsSheet({ institution, open, onOpenChange }: P
             <ScrollArea className="flex-1 min-h-0 mt-2">
               <div className="px-5 pb-6">
                 <TabsContent value="requirements" className="mt-2 space-y-4">
+                  <div className="flex justify-end mb-2">
+                    <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => { setEditingCycle(null); setCycleFormOpen(true); }}>
+                      <Plus className="h-3 w-3" /> Sikl qo'shish
+                    </Button>
+                  </div>
                   {data && data.cycles.length ? (
                     data.cycles.map((c, i) => (
                       <div key={c.id}>
                         {i > 0 ? <Separator className="mb-4" /> : null}
-                        <CycleCard cycle={c} />
+                        <CycleCard
+                          cycle={c}
+                          onEditCycle={() => { setEditingCycle(c); setCycleFormOpen(true); }}
+                          onDeleteCycle={() => {
+                            if (confirm('Bu siklni o\'chirmoqchimisiz?')) {
+                              deleteCycle.mutate({ id: c.id, institution_id: institution!.id });
+                            }
+                          }}
+                          onEditReq={(r) => { setEditingReq(r); setReqCycleId(c.id); setReqFormOpen(true); }}
+                          onDeleteReq={(id) => {
+                            if (confirm('Bu talabni o\'chirmoqchimisiz?')) {
+                              deleteReq.mutate({ id });
+                            }
+                          }}
+                          onAddReq={() => { setEditingReq(null); setReqCycleId(c.id); setReqFormOpen(true); }}
+                          onClone={() => {
+                            setCloneSource({ id: c.id, label: [c.intake_year, c.intake_term, c.cycle_track].filter(Boolean).join(' · ') || 'Cycle' });
+                            setCloneOpen(true);
+                          }}
+                        />
                       </div>
                     ))
                   ) : (
@@ -308,11 +439,35 @@ export function UniversityAdmissionsSheet({ institution, open, onOpenChange }: P
                   )}
                 </TabsContent>
 
-                <TabsContent value="documents" className="mt-2 space-y-1.5">
-                  {counts.doc ? (
-                    data!.cycles.flatMap((c) =>
-                      (c.documents_required ?? []).map((d) => <DocumentRow key={d.id} d={d} />),
-                    )
+                <TabsContent value="documents" className="mt-2 space-y-4">
+                  {data && data.cycles.length ? (
+                    data.cycles.map((c, i) => (
+                      <div key={c.id} className="space-y-1.5">
+                        {i > 0 ? <Separator className="mb-3" /> : null}
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-medium text-muted-foreground">
+                            {[c.intake_year, c.intake_term, c.cycle_track].filter(Boolean).join(' · ') || 'Cycle'}
+                          </span>
+                          <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => { setEditingDoc(null); setDocCycleId(c.id); setDocFormOpen(true); }}>
+                            <Plus className="h-3 w-3" /> Hujjat
+                          </Button>
+                        </div>
+                        {(c.documents_required ?? []).length ? (
+                          (c.documents_required ?? []).map((d) => (
+                            <DocumentRow
+                              key={d.id}
+                              d={d}
+                              onEdit={() => { setEditingDoc(d); setDocCycleId(c.id); setDocFormOpen(true); }}
+                              onDelete={() => {
+                                if (confirm('Bu hujjatni o\'chirmoqchimisiz?')) deleteDoc.mutate({ id: d.id });
+                              }}
+                            />
+                          ))
+                        ) : (
+                          <p className="text-xs text-muted-foreground py-1">Hujjatlar yo'q.</p>
+                        )}
+                      </div>
+                    ))
                   ) : (
                     <EmptySection label="required documents" />
                   )}
@@ -335,8 +490,24 @@ export function UniversityAdmissionsSheet({ institution, open, onOpenChange }: P
                 </TabsContent>
 
                 <TabsContent value="calendar" className="mt-2 space-y-1.5">
+                  <div className="flex justify-end mb-2">
+                    <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => { setEditingPeriod(null); setPeriodFormOpen(true); }}>
+                      <Plus className="h-3 w-3" /> Qabul davri qo'shish
+                    </Button>
+                  </div>
                   {data && data.periods.length ? (
-                    data.periods.map((p) => <PeriodRow key={p.id} p={p} />)
+                    data.periods.map((p) => (
+                      <PeriodRow
+                        key={p.id}
+                        p={p}
+                        onEdit={() => { setEditingPeriod(p); setPeriodFormOpen(true); }}
+                        onDelete={() => {
+                          if (confirm('Bu qabul davrini o\'chirmoqchimisiz?')) {
+                            deletePeriod.mutate({ id: p.id, institution_id: institution!.id });
+                          }
+                        }}
+                      />
+                    ))
                   ) : (
                     <EmptySection label="application calendar" />
                   )}
@@ -353,6 +524,54 @@ export function UniversityAdmissionsSheet({ institution, open, onOpenChange }: P
           </Tabs>
         )}
       </SheetContent>
+
+      {institution && (
+        <>
+          <AdmissionPeriodFormDialog
+            institutionId={institution.id}
+            open={periodFormOpen}
+            onOpenChange={setPeriodFormOpen}
+            editPeriod={editingPeriod}
+          />
+          <AdmissionCycleFormDialog
+            institutionId={institution.id}
+            open={cycleFormOpen}
+            onOpenChange={setCycleFormOpen}
+            editCycle={editingCycle}
+          />
+          {reqCycleId && (
+            <RequirementFormDialog
+              cycleId={reqCycleId}
+              open={reqFormOpen}
+              onOpenChange={setReqFormOpen}
+              editReq={editingReq}
+            />
+          )}
+          {docCycleId && (
+            <DocumentFormDialog
+              cycleId={docCycleId}
+              open={docFormOpen}
+              onOpenChange={setDocFormOpen}
+              editDoc={editingDoc}
+            />
+          )}
+          {cloneSource && (
+            <CloneCycleDialog
+              sourceCycleId={cloneSource.id}
+              institutionId={institution.id}
+              sourceLabel={cloneSource.label}
+              open={cloneOpen}
+              onOpenChange={setCloneOpen}
+            />
+          )}
+          <QuickSetupWizard
+            institutionId={institution.id}
+            institutionName={institution.name_ko ?? 'University'}
+            open={wizardOpen}
+            onOpenChange={setWizardOpen}
+          />
+        </>
+      )}
     </Sheet>
   );
 }

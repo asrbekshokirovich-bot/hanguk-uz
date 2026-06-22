@@ -112,7 +112,7 @@ function buildGroups(
       items: [
         { title: t('navigation.tasks'), url: '/crm/tasks', icon: ClipboardList, visible: true },
         { title: t('navigation.calendar'), url: '/crm/calendar', icon: Calendar, visible: true },
-        { title: t('navigation.universities'), url: '/crm/universities', icon: GraduationCap, visible: true },
+        { title: t('navigation.universities'), url: '/crm/universities', icon: GraduationCap, visible: true, highlight: true },
         { title: t('navigation.aiTranslation'), url: '/crm/translation', icon: Languages, visible: true, highlight: true },
         { title: t('navigation.kakaoMap'), url: '/crm/kakao-map', icon: MapPin, visible: true, highlight: true },
       ],

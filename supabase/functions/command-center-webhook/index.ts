@@ -35,7 +35,16 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const payload: WebhookPayload = await req.json();
+    let payload: WebhookPayload;
+    try {
+      payload = await req.json();
+    } catch (e) {
+      console.error('Failed to parse request JSON:', e);
+      return new Response(
+        JSON.stringify({ error: 'Invalid JSON body' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
     const { entity_type, action, data } = payload;
 
     console.log(`Received webhook: ${entity_type} - ${action}`, JSON.stringify(data, null, 2));
@@ -197,7 +206,8 @@ async function handleTransactionUpdate(supabase: any, action: string, data: Reco
         paid_at: new Date().toISOString()
       })
       .eq('student_id', studentId)
-      .eq('status', 'pending');
+      .eq('status', 'pending')
+      .limit(1);
     
     if (error) {
       console.error('Error updating payment:', error);
