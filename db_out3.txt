@@ -1,3 +1,0 @@
-TOTAL SUGGESTIONS: 2
-student_id: c270d0f8-f539-47e0-bf9e-443e92a56160 | uni_en: Gwangju National University of Education
-student_id: c270d0f8-f539-47e0-bf9e-443e92a56160 | uni_en: Seoul National University of Science and Technology

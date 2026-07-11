@@ -35,7 +35,9 @@ These are on the live nightly `find-guidelines` → verify → parse → approva
 
 ---
 
-## Phase 1 — Zero-risk scratch / junk files
+## Phase 1 — Zero-risk scratch / junk files ✅ EXECUTED 2026-07-11
+
+> **Done** on branch `claude/hanguluk-cloud-sync-scheduler-r6bmy1` (this PR). All 29 files below were `git rm`'d after a final re-check confirmed their only references were the two `diff_status*.txt` dumps listing each other (both removed) and a store-submission *cleanup* checklist that lists them as junk to remove. Includes removing the checked-in PII dump `hanguk_app/identity_dump.json`.
 
 Committed-by-accident debug dumps at repo root and under `hanguk_app/`. Every one is referenced only by the two `diff_status*.txt` git-status dumps (which are themselves scratch) or by the throwaway writer script that produced it — never by code, build, CI, or the live path.
 
@@ -223,7 +225,15 @@ Do Phase 4 as an owner-approved migration PR so the drop is captured in `hanguk_
 
 Each item below **failed the "zero live references" bar** and cannot be mechanically deleted. Grouped by the decision that unblocks it.
 
-### A. The dormant board-polling discovery subsystem — retire as a unit, or keep dormant?
+> **Owner decisions received 2026-07-11:**
+> - **A (two schedulers):** the cloud Claude Routine (`find-guidelines`) has **fully replaced** the Hetzner `uni-db-sync` timer → **retire the entire board-polling discovery cluster** as one coordinated PR.
+> - **B (AI edge-crawl):** **abandoned → tear it down** (unschedule cron job #5, drop the RPC + `ai_crawl_config`, delete `crawl-dispatcher`/`crawl-worker`).
+> - **C (`compare-universities`):** **rebuild on `institutions`** (keep the feature; repoint fn + UI) — a feature-fix task, scoped separately from cleanup, not a delete.
+> - **D/E/F and the rest remain open** (see below).
+>
+> These convert A and B into executable retirement PRs (still owner-run for the prod-teardown steps + backups) and reclassify C as a rebuild, not a removal. Phase 1 (scratch/junk) has been **executed** on this branch.
+
+### A. The dormant board-polling discovery subsystem — ✅ RESOLVED: retire as a unit
 
 `discovery_worker.py`, `change_detection.py`, `registry.py`, `html_list_adapter.py`, `json_api_adapter.py`, `playwright_list_adapter.py`, `discovery/adapters/configs/**` (dir), `scripts/run_discovery_once.py`, `discovery/models.py::CrawlRunSummary`, `crawl_findings` (prod table), `uni-db-sync.service`, `uni-db-sync.timer`, plus the `crawl` subcommand in `cli.py`.
 
@@ -231,14 +241,14 @@ Each item below **failed the "zero live references" bar** and cannot be mechanic
 - **Question for the owner:** Is the Hetzner `uni-db-sync` hourly timer still the live scheduler in prod, or has the cloud Claude Routine (`find-guidelines`) fully replaced it? If replaced → retire the entire cluster in one coordinated PR (modules + configs + `crawl` subcommand + tests + `run_discovery_once.py` + `uni-db-sync.{service,timer}` + `deploy.sh` enable/start lines + README/runbook + drop `crawl_findings`/`announcement_sources`). If still live → keep all of it and mark it "dormant-but-deployed" so future audits stop flagging it.
 - **Do not** delete any single file here in isolation — each deletion cascades to `ImportError` in the others, in `run_discovery_once.py`, and in the `uni-db crawl` subcommand, and reddens the offline uni-db CI workflow.
 
-### B. The prod edge-crawl cluster (`ai_crawl_config` gate) — coordinated teardown?
+### B. The prod edge-crawl cluster (`ai_crawl_config` gate) — ✅ RESOLVED: tear it down
 
 `crawl-dispatcher` (v5), `crawl-worker` (v6) prod edge fns; `public.ai_crawl_config` table; pg_cron job #5 `ai-crawl-dispatcher`; RPC `fn_invoke_crawl_dispatcher()`.
 
 - **Why parked:** functionally inert (`ai_crawl_config.enabled=false`, `last_run_at=NULL`, 0 `crawl_finding` rows) and absent from the repo — but **pg_cron job #5 is ACTIVE** (`0 */4 * * *`) and calls `fn_invoke_crawl_dispatcher()` → `crawl-dispatcher` → `crawl-worker`. It only no-ops because of the `enabled` gate.
 - **Question:** Confirm the AI edge-crawl experiment is abandoned. If yes → coordinated prod teardown: unschedule cron job #5, `DROP FUNCTION fn_invoke_crawl_dispatcher()`, `supabase functions delete crawl-dispatcher crawl-worker`, drop `ai_crawl_config`. Dropping any one alone leaves a dangling cron → RPC → 404 or a `relation does not exist` error every 4h.
 
-### C. `compare-universities` (prod edge fn v31) — remove feature or rebuild on `institutions`?
+### C. `compare-universities` (prod edge fn v31) — ✅ RESOLVED: rebuild on `institutions`
 
 - Prod fn is non-functional (reads dropped `universities`/`university_notes`), but the **student-facing compare UI is still routed live**: `/portal` → `StudentPortal` → `UniversityMapKakao` → `UniversityComparisonChat.tsx:172` fetches `/functions/v1/compare-universities`. The repo's own `correction-plan.md:84` leaves this open.
 - **Question:** Remove the compare feature entirely, or rebuild it on `institutions`? A blind delete leaves a mounted page calling a deleted endpoint. Coordinate the fn removal with the UI.
