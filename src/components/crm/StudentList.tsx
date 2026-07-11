@@ -181,7 +181,7 @@ export function StudentList({
     return (university[nameKey] as string) || university.name_uz || '';
   };
 
-  const filteredStudents = students.filter((student) => {
+  const filteredStudents = useMemo(() => students.filter((student) => {
     // Search filter
     const matchesSearch =
       !searchQuery ||
@@ -254,7 +254,17 @@ export function StudentList({
       matchesContract &&
       matchesPayments
     );
-  });
+  }), [
+    students,
+    searchQuery,
+    universityFilter,
+    statusFilter,
+    documentsFilter,
+    planFilter,
+    gksFilter,
+    contractFilter,
+    paymentsFilter,
+  ]);
 
   // Plan counts power the quick-filter chips (All / Premium / Standard / No-Risk).
   const planCounts = useMemo(() => {
