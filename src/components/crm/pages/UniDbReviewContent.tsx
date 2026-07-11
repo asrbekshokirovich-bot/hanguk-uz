@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
   ShieldAlert,
   Loader2,
@@ -14,17 +15,20 @@ import {
   CheckCircle2,
   AlertTriangle,
 } from 'lucide-react';
+import { CrawlTargetPanel } from './CrawlTargetPanel';
+import { ReviewApprovalQueue } from './ReviewApprovalQueue';
 
 /**
- * University-data review is now FULLY AUTOMATED — there is no human accept /
- * reject / edit step. The pipeline (services/uni_db) auto-approves every
- * content-bearing extraction and the publish worker writes it straight into the
- * applicant-facing tables; low-confidence / difficult-field rows are still
- * published but flagged `needs_attention`.
+ * University-data review. Auto-crawled guidelines are held for HUMAN APPROVAL —
+ * nothing publishes until a staff member approves it in the "Awaiting approval"
+ * tab (the queue is `v_review_queue_dashboard`, actions via fn_review_*).
  *
- * This page is therefore READ-ONLY: it surfaces the auto-published rows that
- * were flagged, grouped by institution + section, so staff can spot-check them.
- * Nothing here blocks data from reaching applicants.
+ * A second, read-only "Auto-published flags" tab surfaces any rows that were
+ * auto-published (when the pipeline runs with require-approval off) but flagged
+ * for low confidence, grouped by institution, for spot-checking.
+ *
+ * The crawl-target panel at the top shows (and lets owners/admins change) which
+ * admission cycle the nightly crawl targets.
  */
 
 const SECTION_LABEL: Record<string, string> = {
@@ -90,8 +94,7 @@ function institutionName(g: UniGroup): string {
 }
 
 function NeedsAttentionView() {
-  const { data: rows = [], isLoading, error, refetch, isRefetching } =
-    useNeedsAttention();
+  const { data: rows = [], isLoading, error, refetch, isRefetching } = useNeedsAttention();
   const [search, setSearch] = useState('');
 
   const groups = useMemo(() => {
@@ -119,12 +122,12 @@ function NeedsAttentionView() {
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
-        <AlertTriangle className="h-10 w-10 text-destructive mb-3" />
+        <AlertTriangle className="mb-3 h-10 w-10 text-destructive" />
         <p className="text-sm text-muted-foreground">
           Could not load the needs-attention feed: {error.message}
         </p>
         <Button variant="outline" size="sm" className="mt-4" onClick={() => refetch()}>
-          <RefreshCw className="h-4 w-4 mr-2" /> Retry
+          <RefreshCw className="mr-2 h-4 w-4" /> Retry
         </Button>
       </div>
     );
@@ -132,16 +135,14 @@ function NeedsAttentionView() {
 
   return (
     <div className="space-y-4">
-      {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold flex items-center gap-2">
-            University data — needs attention
+          <h2 className="flex items-center gap-2 text-lg font-semibold">
+            Auto-published — needs attention
           </h2>
           <p className="text-sm text-muted-foreground">
-            Review is automated. These rows were auto-published but flagged for a
-            low extractor confidence — they are already live for applicants; this
-            list is for spot-checking only.
+            Rows auto-published but flagged for low extractor confidence. Already live for
+            applicants — this list is for spot-checking only.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -157,31 +158,28 @@ function NeedsAttentionView() {
         </div>
       </div>
 
-      {/* Empty state — the happy path under automation */}
       {groups.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-            <CheckCircle2 className="h-10 w-10 text-success mb-3" />
+            <CheckCircle2 className="mb-3 h-10 w-10 text-success" />
             <h3 className="font-medium">Nothing needs attention</h3>
-            <p className="text-sm text-muted-foreground mt-1">
-              {search
-                ? 'No flagged rows match your filter.'
-                : 'Every auto-published row passed the confidence bar.'}
+            <p className="mt-1 text-sm text-muted-foreground">
+              {search ? 'No flagged rows match your filter.' : 'No auto-published rows are flagged.'}
             </p>
           </CardContent>
         </Card>
       ) : (
-        <ScrollArea className="h-[calc(100vh-16rem)]">
+        <ScrollArea className="h-[calc(100vh-22rem)]">
           <div className="space-y-4 pr-3">
             {groups.map((g) => (
               <Card key={g.key}>
                 <CardContent className="p-4">
-                  <div className="flex items-center justify-between mb-3">
+                  <div className="mb-3 flex items-center justify-between">
                     <div>
                       <div className="font-medium">{institutionName(g)}</div>
-                      {g.nameKo && g.nameEn && (
+                      {g.nameKo && g.nameEn ? (
                         <div className="text-xs text-muted-foreground">{g.nameKo}</div>
-                      )}
+                      ) : null}
                     </div>
                     <Badge variant="secondary">{g.rows.length} flagged</Badge>
                   </div>
@@ -191,16 +189,16 @@ function NeedsAttentionView() {
                         key={`${r.section}:${r.id}`}
                         className="flex items-start gap-3 rounded-md border border-border/60 p-2.5"
                       >
-                        <AlertTriangle className="h-4 w-4 text-warning mt-0.5 shrink-0" />
+                        <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
                         <div className="min-w-0">
                           <div className="text-sm font-medium">
                             {SECTION_LABEL[r.section] ?? r.section}
                           </div>
-                          {r.attention_reason && (
-                            <div className="text-xs text-muted-foreground break-words">
+                          {r.attention_reason ? (
+                            <div className="break-words text-xs text-muted-foreground">
                               {r.attention_reason}
                             </div>
-                          )}
+                          ) : null}
                         </div>
                       </div>
                     ))}
@@ -229,16 +227,32 @@ export function UniDbReviewContent() {
   if (!canReview) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
-        <ShieldAlert className="h-10 w-10 text-muted-foreground mb-3" />
+        <ShieldAlert className="mb-3 h-10 w-10 text-muted-foreground" />
         <h2 className="text-lg font-semibold">Access restricted</h2>
-        <p className="text-sm text-muted-foreground mt-1">
-          You don't have permission to view university data.
+        <p className="mt-1 text-sm text-muted-foreground">
+          You don&rsquo;t have permission to view university data.
         </p>
       </div>
     );
   }
 
-  return <NeedsAttentionView />;
+  return (
+    <div className="space-y-4">
+      <CrawlTargetPanel />
+      <Tabs defaultValue="approval">
+        <TabsList>
+          <TabsTrigger value="approval">Awaiting approval</TabsTrigger>
+          <TabsTrigger value="flags">Auto-published flags</TabsTrigger>
+        </TabsList>
+        <TabsContent value="approval" className="mt-4">
+          <ReviewApprovalQueue />
+        </TabsContent>
+        <TabsContent value="flags" className="mt-4">
+          <NeedsAttentionView />
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
 }
 
 export default UniDbReviewContent;

@@ -304,10 +304,11 @@ def _queue_entry_for(
 
     if require_approval:
         # Human-in-front: nothing auto-publishes; everything waits as `open`.
-        reason = (
-            f"reliability_{color}" if color
-            else ("low_confidence" if score < 0.85 else "needs_review")
-        )
+        # `reason` must satisfy the review_queue.reason CHECK constraint, so we
+        # use an allowed value and carry the reliability COLOUR out-of-band in
+        # reviewer_notes ("[RED]/[AMBER]/[GREEN] …", from report.to_review_note)
+        # and the needs_attention flag — which the review UI reads for the badge.
+        reason = "high_difficulty_field" if color == "red" else "low_confidence"
         priority = 1 if color == "red" else (2 if color == "amber" else 3)
         return {
             **base,
