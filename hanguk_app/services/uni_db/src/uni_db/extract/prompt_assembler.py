@@ -117,6 +117,26 @@ def _correction_notice_addendum() -> str:
     )
 
 
+def _language_eligibility_addendum() -> str:
+    """Audit follow-up — capture BOTH language-eligibility routes.
+
+    Our applicants qualify on either the Korean (TOPIK) or the English
+    (IELTS/TOEFL) track, so dropping one route silently excludes a whole cohort
+    of qualified students. Applied to the requirements group only.
+    """
+    return (
+        "## Language eligibility — capture BOTH tracks\n\n"
+        "Applicants qualify on EITHER track: Korean (TOPIK) or English "
+        "(IELTS / TOEFL / Duolingo / TEPS). When the source lists a Korean-track "
+        "requirement AND an English-track requirement, extract BOTH with their "
+        "numeric cutoffs — never drop one. Put the Korean requirement in "
+        "`topik_min_level` / `topik_status`, and the English requirement in "
+        "`english_test` (the specific test + `min_score`) / `english_status`. Use "
+        "`not_required` when the source explicitly waives a test (면제) and "
+        "`not_stated` when the excerpt is silent — never invent a cutoff.\n"
+    )
+
+
 def _footnote_addendum() -> str:
     return (
         "## Footnote handling\n\n"
@@ -142,6 +162,11 @@ def assemble_prompt(
 
     glossary_md = _render_glossary(list(glossary)) if glossary else ""
     field_group_md = _read_prompt_file(PROMPT_FILES[field_group])
+    language_md = (
+        _language_eligibility_addendum()
+        if field_group in ("requirements", "basic_requirements")
+        else ""
+    )
     archetype_md = ""
     if archetype in ARCHETYPE_FEWSHOT_FILES:
         try:
@@ -154,6 +179,7 @@ def assemble_prompt(
         for section in (
             glossary_md,
             field_group_md,
+            language_md,
             archetype_md,
             _correction_notice_addendum(),
             _footnote_addendum(),

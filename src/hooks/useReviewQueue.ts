@@ -25,6 +25,12 @@ export interface ReviewQueueRow {
   // Optional so the UI keeps working before the migration is applied (it then
   // falls back to a client-computed min, then accuracy_self_score).
   min_row_confidence?: number | null;
+  // Added by migration 20260901000000 — the reliability gauntlet's verdict.
+  // reviewer_notes is prefixed "[RED]/[AMBER]/[GREEN] …"; needs_attention flags
+  // red items. Optional so the UI degrades gracefully before that migration.
+  reviewer_notes?: string | null;
+  needs_attention?: boolean | null;
+  status?: string | null;
 }
 
 export type RejectionReason =

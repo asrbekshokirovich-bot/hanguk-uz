@@ -58,6 +58,8 @@ class TestParseOneDocument:
             guideline_document_id=uuid4(),
             pdf_text_first_pages=korean_guideline_text[:1500],
             pdf_text_full=korean_guideline_text,
+            require_approval=False,
+            verify_level="off",
         )
         # The calendar mock returns confidence ≥ 0.9 (D1) → auto-approved and
         # queued for publishing, with no needs_attention flag.
@@ -74,6 +76,8 @@ class TestParseOneDocument:
             guideline_document_id=uuid4(),
             pdf_text_first_pages=korean_guideline_text[:1500],
             pdf_text_full=korean_guideline_text,
+            require_approval=False,
+            verify_level="off",
         )
         # The requirements mock returns low confidence (D3 < 0.90) → still
         # queued approved (it publishes), but flagged needs_attention.
@@ -93,6 +97,8 @@ class TestParseOneDocument:
             pdf_text_first_pages=korean_guideline_text[:1500],
             pdf_text_full=korean_guideline_text,
             auto_publish=False,
+            require_approval=False,
+            verify_level="off",
         )
         by_group = {e["field_group"]: e for e in outcome.review_queue_entries}
         assert "calendar" not in by_group

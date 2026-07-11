@@ -126,6 +126,8 @@ class TestFullPipelineIntoReviewQueue:
             guideline_document_id=uuid4(),
             pdf_text_first_pages=ARCHETYPE_B.korean_text[:1500],
             pdf_text_full=ARCHETYPE_B.korean_text,
+            require_approval=False,
+            verify_level="off",
         )
         # Archetype routed correctly.
         assert outcome.archetype.label == "B"

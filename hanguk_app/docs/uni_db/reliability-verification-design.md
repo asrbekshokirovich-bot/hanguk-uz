@@ -1,0 +1,132 @@
+# Uni-DB: Reliability verification + human-approval gate
+
+**Goal (2026-07):** before any auto-crawled guideline data is shown to staff, run
+it through a multi-agent verification gauntlet; and publish **nothing** until a
+staff member approves it. This is the reliability layer on top of the auto-crawl
+(`auto-crawl-revival.md`).
+
+Configured by three settings (`config.py`):
+
+| env | default | meaning |
+|---|---|---|
+| `UNI_DB_VERIFY_LEVEL` | `maximum` | `off` / `balanced` / `thorough` / `maximum` |
+| `UNI_DB_CONSENSUS_RUNS` | `3` | independent re-extractions at `maximum` |
+| `UNI_DB_REQUIRE_APPROVAL` | `true` | every guideline waits in review_queue for a human |
+
+## The gauntlet (code: `src/uni_db/verify/`)
+
+Each guideline runs these gates; the result is a green/amber/red
+`ReliabilityReport` attached to every review card.
+
+| # | Gate | Technique | Where |
+|---|---|---|---|
+| 0 | **Identity** | a cheap model confirms it's *this* university's current *foreign-applicant* guideline (not a notice/tender/old year), AND a deterministic name cross-check | `agents.check_identity`, run by the finder before ingest |
+| 1 | **Extraction** | per-field-group Claude extraction, only the schema fields, every value carries a verbatim source quote | existing `extract/` |
+| 2 | **Grounding** | (a) deterministic: the quote must literally appear in the PDF; (b) LLM judge: does the quote support each value? | `checks.check_grounding_deterministic`, `agents.grounding_judge` |
+| 3 | **Consensus** | N independent re-extractions must AGREE on the critical fields (dates, tuition, TOPIK, docs); disagreement → red | `checks.consensus` |
+| 4 | **Critics** | 3 adversarial agents — accuracy, completeness, scope — try to break it | `agents.run_critics` |
+| 5 | **Sanity** | deterministic: date order, tuition band, TOPIK 1–6, IELTS 0–9, cycle year | `checks.sanity_checks` |
+| 6 | **Aggregate** | combine into green/amber/red | `engine.aggregate` |
+| 7 | **HITL** | queue every guideline `open`; only staff Approve publishes | `parse_worker` (`require_approval`) |
+
+## Language eligibility — both tracks (TOPIK *and* IELTS)
+
+Our applicants qualify on **either** language track — Korean (TOPIK) or English
+(IELTS / TOEFL / Duolingo / TEPS) — so dropping one route silently excludes a
+whole cohort. This is enforced at three layers:
+
+- **Extraction** (`extract/prompt_assembler._language_eligibility_addendum`, requirements
+  group only): "when the source lists a TOPIK route AND an English-test route,
+  extract BOTH with their numeric cutoffs — never drop one"; `not_required` for an
+  explicit 면제, `not_stated` when silent, never a guessed cutoff.
+- **Sanity** (`checks._sanity_requirements`): a `required` English status with no
+  IELTS/TOEFL score, or a `required` TOPIK status with no level (and not deferred),
+  is flagged — a stated requirement must carry its threshold.
+- **Completeness critic** (`prompts.completeness_critic_prompt`, requirements): explicitly
+  told to flag whichever route the source states but the extraction omitted, so an
+  English-track (IELTS) requirement is never lost.
+
+The **target cycle** (which year/term to crawl for) is read from the CRM's
+selected intake — `public.intakes` (default → open → latest) — not hardcoded;
+`--year` overrides, and a date-based default applies only if the table is absent.
+
+**Colour policy** (`engine.aggregate`) — a guideline is **red** (do not publish
+until fixed) when: identity rejected · a fabricated citation (quote not in the
+PDF) · any high-severity critic issue · a non-unanimous consensus on a critical
+field · a high-severity sanity violation. **Amber** for softer signals
+(unsupported value, medium issue, cycle-year mismatch, low identity confidence).
+**Green** when nothing tripped. Every guideline still requires human approval
+regardless of colour; the colour tells the reviewer where to look first.
+
+## The prompts
+
+The verifier prompts live in `verify/prompts.py` (one place, so regressions show
+up in review). All of them hard-forbid outside knowledge — a verifier may use
+only the text it is shown — and demand strict JSON.
+
+- **Identity** (`identity_prompt`): "strict admissions-document gatekeeper … decide
+  ONLY whether this is the {year}학년도 foreign-applicant 모집요강 for {university} …
+  if unsure, fail closed" → `{document_kind, matches_target_university,
+  academic_year_in_doc, serves_foreign_applicants, is_old_or_superseded, …}`.
+- **Grounding judge** (`grounding_judge_prompt`): "for every non-null field, decide
+  whether the source span EXPLICITLY states that value … do not reward
+  plausible-but-unstated values" → `{unsupported: [...]}`.
+- **Accuracy critic** (`accuracy_critic_prompt`): "skeptical fact-checker … list
+  EVERY value that is wrong or unsupported … default to flagging when uncertain".
+- **Completeness critic** (`completeness_critic_prompt`): "list every REQUIRED item
+  the source states but the extraction MISSED".
+- **Scope critic** (`scope_critic_prompt`): "target = FOREIGN applicants … flag any
+  row that belongs to a different applicant category / year / track".
+
+The extraction prompt (`extract/prompt_assembler.py`) already requires
+`source_text_ko` on every row — that per-value citation is what Gates 2/4 verify
+against, and it's the backbone of the whole approach.
+
+## Cost & models
+
+Identity + grounding + critics use the cheap classify model
+(`ANTHROPIC_MODEL_CLASSIFY`, e.g. haiku); consensus re-extraction uses the
+extractor (`ANTHROPIC_MODEL_EXTRACT`, sonnet). At `maximum` a guideline is ~10–12
+model calls; the deterministic gates (grounding-in-source, sanity, consensus
+diff) are free and run at every level. Set a lower `UNI_DB_VERIFY_LEVEL` to trade
+reliability for spend — the human-approval gate is independent of level.
+
+## What a reviewer sees
+
+Every content-bearing extraction is queued `open` with
+`reviewer_notes = report.to_review_note()` — the colour, the failed gates, the
+disagreeing values, the ungrounded quotes, and each critic's findings — plus the
+existing per-field confidence and the source quote, and a link to the PDF. The
+reviewer Approves / Edits / Rejects; only Approve lets `publish_worker` write the
+data into the app's tables.
+
+## Audit hardening (2026-07)
+
+An adversarial review of the gauntlet fixed several real defects:
+
+- **Verification is never fatal.** A failing grounding-judge / critic LLM call
+  (rate limit, non-JSON) is caught and degrades to the deterministic checks; the
+  whole gauntlet is wrapped in `parse_worker` so a bug can never discard a
+  successfully-extracted document (it just routes to review unverified).
+- **The published `periods[]` are verified**, not only `events[]` — the app
+  publishes `university_admission_periods` from `periods`, so those dates now get
+  the same date-order sanity, source grounding, and cross-run consensus.
+- **Consensus is value-aware**: per-faculty tuition (catches swapped amounts) and
+  per-scholarship award value (catches a changed %), not just min + name-set.
+- **Grounding tolerates interior reformatting** (chunk-majority match) so a
+  correctly-extracted quote the model lightly reworded isn't branded a fabrication,
+  while a truly-absent quote still fails.
+- **Finder freshness is content-based**: hash-checked before any paid identity or
+  parse, so an in-place guideline replacement at a known URL is caught as new; one
+  bad candidate no longer aborts an institution's other candidates; ranking puts
+  the target year above direct-PDF-ness so an old-year PDF isn't tried first.
+- **Target cycle** has a deterministic tiebreak; the crawl workflow passes dispatch
+  inputs via `env` (no shell injection).
+
+## Remaining wiring (needs live creds / DB / UI)
+
+The engine + gates + prompts + full-HITL routing are code-complete and unit-tested
+offline. Still to finish against a live project: surfacing the reliability report
+in the CRM review screen (it currently rides in `reviewer_notes`; a dedicated
+`review_queue.reliability jsonb` column + UI card is the follow-up), and a live
+end-to-end run once the `ANTHROPIC_*`/`NAVER_*`/`SUPABASE_*` creds are set.

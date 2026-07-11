@@ -1,0 +1,111 @@
+name: uni-db auto-crawl guidelines
+
+# Crawl every tracked institution's own website for the upcoming cycle's
+# admission guideline (모집요강), download newly-published PDFs, and run them
+# through the Claude extract -> publish -> translate pipeline. This is the
+# DISCOVERY half — unlike uni-db-process-uploads.yml (which only drains PDFs a
+# human already uploaded), this job actually searches university sites.
+#
+# MANUAL-ONLY: the daily 00:00 / 02:00 Asia/Tashkent schedule is owned by a
+# Claude scheduled task (Routine), not this workflow, so there's no `schedule:`
+# here — running both would double-crawl. This workflow stays as an on-demand
+# fallback / test harness you can trigger from the Actions tab.
+#
+# Required repo secrets (Settings -> Secrets and variables -> Actions):
+#   UNI_DB_SUPABASE_DB_URL, UNI_DB_SUPABASE_URL,
+#   UNI_DB_SUPABASE_SERVICE_ROLE_KEY, UNI_DB_ANTHROPIC_API_KEY,
+#   UNI_DB_NAVER_SEARCH_CLIENT_ID, UNI_DB_NAVER_SEARCH_CLIENT_SECRET
+#   (optional: UNI_DB_DEEPL_API_KEY for the translate stage)
+
+on:
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: "Max institutions to sweep this run"
+        default: "400"
+        required: false
+      year:
+        description: "Target academic year (학년도). Blank = next year."
+        default: ""
+        required: false
+
+# Never overlap two sweeps (or a sweep with a manual dispatch); let the running
+# one finish.
+concurrency:
+  group: uni-db-auto-crawl
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    defaults:
+      run:
+        working-directory: hanguk_app/services/uni_db
+    env:
+      # This job DOES crawl university sites and DOES call the paid LLM.
+      UNI_DB_LIVE_CRAWL: "true"
+      UNI_DB_LIVE_APIS: "true"
+      UNI_DB_ENV: "production"
+      SUPABASE_DB_URL: ${{ secrets.UNI_DB_SUPABASE_DB_URL }}
+      SUPABASE_URL: ${{ secrets.UNI_DB_SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.UNI_DB_SUPABASE_SERVICE_ROLE_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.UNI_DB_ANTHROPIC_API_KEY }}
+      NAVER_SEARCH_CLIENT_ID: ${{ secrets.UNI_DB_NAVER_SEARCH_CLIENT_ID }}
+      NAVER_SEARCH_CLIENT_SECRET: ${{ secrets.UNI_DB_NAVER_SEARCH_CLIENT_SECRET }}
+      DEEPL_API_KEY: ${{ secrets.UNI_DB_DEEPL_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: hanguk_app/services/uni_db/pyproject.toml
+
+      - name: Install service (base deps — no torch/Playwright)
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+
+      - name: Check required secrets are set
+        run: |
+          if [ -z "${SUPABASE_DB_URL}" ] || [ -z "${ANTHROPIC_API_KEY}" ] \
+             || [ -z "${NAVER_SEARCH_CLIENT_ID}" ] || [ -z "${NAVER_SEARCH_CLIENT_SECRET}" ]; then
+            echo "::error::Missing secrets. Add UNI_DB_SUPABASE_DB_URL, UNI_DB_ANTHROPIC_API_KEY, UNI_DB_NAVER_SEARCH_CLIENT_ID and UNI_DB_NAVER_SEARCH_CLIENT_SECRET in Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+
+      # 1) Search every institution's own domain for the target cycle's 모집요강,
+      #    download newly-published PDFs, and extract them with Claude inline. A
+      #    single school failing is logged and counted, never fatal.
+      - name: Find + ingest new guidelines
+        env:
+          # Pass dispatch inputs via env (never inline into the shell line) to
+          # avoid script injection.
+          LIMIT: ${{ github.event.inputs.limit || '400' }}
+          YEAR: ${{ github.event.inputs.year }}
+        run: |
+          ARGS=(--limit "$LIMIT")
+          if [ -n "$YEAR" ]; then ARGS+=(--year "$YEAR"); fi
+          uni-db find-guidelines "${ARGS[@]}"
+
+      # 2) Safety net — extract any doc left pending (e.g. an inline parse that
+      #    hit a transient error) so nothing sits unprocessed until the 30-min
+      #    process-uploads job.
+      - name: Extract any still-pending docs
+        continue-on-error: true
+        run: uni-db reparse --pending-only --limit 100
+
+      # 3) Publish approved items into the public tables the app reads. DB-only + idempotent.
+      - name: Publish approved items
+        continue-on-error: true
+        run: uni-db publish --limit 1000
+
+      # 4) Fill EN/UZ translations for the published content. Best-effort.
+      - name: Translate
+        continue-on-error: true
+        run: python scripts/run_translate_once.py --limit 100
