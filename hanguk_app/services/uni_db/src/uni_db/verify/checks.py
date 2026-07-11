@@ -27,15 +27,23 @@ def _norm(text: str | None) -> str:
 
 
 def _iter_rows(parsed_output: object) -> list[dict[str, Any]]:
-    """Return the row/event dicts from an extraction payload, ignoring meta."""
+    """Return the row/event/period dicts from an extraction payload, ignoring
+    meta. `periods` is included so the calendar rows the app actually PUBLISHES
+    are grounded, not just the `events` array."""
     if not isinstance(parsed_output, dict):
         return []
     rows: list[dict[str, Any]] = []
-    for key in ("rows", "events"):
+    for key in ("rows", "events", "periods"):
         seq = parsed_output.get(key)
         if isinstance(seq, list):
             rows.extend(r for r in seq if isinstance(r, dict))
     return rows
+
+
+def _list(parsed_output: object, key: str) -> list[dict[str, Any]]:
+    if isinstance(parsed_output, dict) and isinstance(parsed_output.get(key), list):
+        return [r for r in parsed_output[key] if isinstance(r, dict)]
+    return []
 
 
 def _as_date(value: object) -> datetime | None:
@@ -67,23 +75,38 @@ def _num(value: object) -> float | None:
 # ---------------------------------------------------------------------------
 
 _MIN_QUOTE_LEN = 12
-_PREFIX_LEN = 40
+_CHUNK = 20
+_MIN_CHUNK = 10
+
+
+def _quote_grounded(nq: str, norm_pdf: str) -> bool:
+    """Whitespace-insensitive grounding: the quote is grounded if it appears
+    whole, or if a MAJORITY of its ~20-char chunks appear. Chunking tolerates
+    interior reformatting (e.g. the model rewriting a date `2026년 9월 1일` →
+    `2026.9.1`) — which would defeat a whole-string or prefix-only match — while
+    a fabricated quote, sharing no long run with the source, still fails."""
+    if not nq or nq in norm_pdf:
+        return True
+    chunks = [nq[i:i + _CHUNK] for i in range(0, len(nq), _CHUNK)]
+    chunks = [c for c in chunks if len(c) >= _MIN_CHUNK]
+    if not chunks:
+        return True
+    hits = sum(1 for c in chunks if c in norm_pdf)
+    return hits * 2 >= len(chunks)
 
 
 def check_grounding_deterministic(
     field_group: str, parsed_output: object, pdf_text: str
 ) -> list[GroundingIssue]:
     """Flag any row whose `source_text_ko` does not actually occur in the PDF —
-    a fabricated citation. Whitespace-insensitive; a 40-char prefix match is
-    accepted since the model sometimes trims/joins the tail of a quote."""
+    a fabricated citation."""
     norm_pdf = _norm(pdf_text)
     issues: list[GroundingIssue] = []
     for i, row in enumerate(_iter_rows(parsed_output)):
         quote = row.get("source_text_ko")
         if not isinstance(quote, str) or len(quote.strip()) < _MIN_QUOTE_LEN:
             continue
-        nq = _norm(quote)
-        if nq and (nq in norm_pdf or nq[:_PREFIX_LEN] in norm_pdf):
+        if _quote_grounded(_norm(quote), norm_pdf):
             continue
         issues.append(
             GroundingIssue(
@@ -106,6 +129,9 @@ _TUITION_MIN_KRW = 500_000
 _TUITION_MAX_KRW = 30_000_000
 
 _CAL_ORDER = ["apply_open", "apply_close", "document_submission_deadline", "final_results"]
+# The date fields the app actually publishes (university_admission_periods),
+# in the order they must occur.
+_PERIOD_ORDER = ["application_start", "application_end", "document_deadline", "result_announcement"]
 
 
 def sanity_checks(
@@ -142,6 +168,19 @@ def _sanity_calendar(parsed_output: object) -> list[SanityIssue]:
                     detail=f"{a_name} {a_dt.date()} is after {b_name} {b_dt.date()}",
                 )
             )
+    # Same ordering rule on the PUBLISHED period rows (what applicants see).
+    for idx, p in enumerate(_list(parsed_output, "periods")):
+        seq = [(f, _as_date(p.get(f))) for f in _PERIOD_ORDER]
+        seq = [(f, d) for f, d in seq if d is not None]
+        for (a_name, a_dt), (b_name, b_dt) in pairwise(seq):
+            if a_dt > b_dt:
+                issues.append(SanityIssue(
+                    field_group="calendar",
+                    field=f"period[{idx}].{a_name}→{b_name}",
+                    severity="high",
+                    problem="out_of_order_dates",
+                    detail=f"{a_name} {a_dt.date()} is after {b_name} {b_dt.date()}",
+                ))
     return issues
 
 
@@ -245,27 +284,62 @@ def critical_signature(field_group: str, parsed_output: object) -> dict[str, Any
     rows = _iter_rows(parsed_output)
     if field_group == "calendar":
         out: dict[str, Any] = {}
-        for row in rows:
+        for row in _list(parsed_output, "events"):
             et = row.get("event_type")
             dt = _as_date(row.get("starts_at"))
             if isinstance(et, str) and et in _CAL_ORDER and dt is not None:
                 out.setdefault(f"date:{et}", dt.date().isoformat())
+        # Published period dates too (order-independent list per field).
+        for f in _PERIOD_ORDER:
+            dates = sorted(
+                d.date().isoformat()
+                for p in _list(parsed_output, "periods")
+                for d in [_as_date(p.get(f))] if d is not None
+            )
+            if dates:
+                out[f"period:{f}"] = dates
         return out
     if field_group == "tuition":
-        amounts = [int(a) for row in rows if (a := _num(row.get("amount_krw"))) is not None]
-        facs = sorted({str(row.get("faculty_group")) for row in rows if row.get("faculty_group")})
-        return {"tuition:min_krw": min(amounts) if amounts else None,
-                "tuition:faculties": facs}
+        # Per-faculty amount, so a run that SWAPS two faculties' tuition (same
+        # min + same faculty set) is still caught as a disagreement.
+        by_fac: dict[str, int] = {}
+        for row in rows:
+            amt = _num(row.get("amount_krw"))
+            fac = row.get("faculty_group")
+            if amt is not None and fac:
+                key = str(fac)
+                by_fac[key] = min(by_fac.get(key, int(amt)), int(amt))
+        return {f"tuition:{k}": v for k, v in sorted(by_fac.items())}
     if field_group in ("requirements", "basic_requirements"):
         topiks = [t for row in rows if isinstance((t := row.get("topik_min_level")), int)]
-        return {"req:topik_min": min(topiks) if topiks else None}
+        eng: list[float] = []
+        for row in rows:
+            et = row.get("english_test")
+            if isinstance(et, dict):
+                for k in ("ielts", "min_score", "toefl_ibt"):
+                    v = _num(et.get(k))
+                    if v is not None:
+                        eng.append(v)
+                        break
+        gpas = [g for row in rows if (g := _num(row.get("gpa_floor_pct"))) is not None]
+        return {
+            "req:topik_min": min(topiks) if topiks else None,
+            "req:english_min": min(eng) if eng else None,
+            "req:gpa_floor": min(gpas) if gpas else None,
+        }
     if field_group == "documents_required":
         docs = sorted({str(row.get("document_type")) for row in rows
                        if row.get("is_required", True) and row.get("document_type")})
         return {"docs:required": docs}
     if field_group == "scholarships":
-        names = sorted({str(row.get("name_ko")) for row in rows if row.get("name_ko")})
-        return {"sch:names": names}
+        # Name → (award_type, award_value), so a changed award value on the same
+        # scholarship name is a disagreement (was invisible with a name-set).
+        out2: dict[str, Any] = {}
+        for row in rows:
+            name = row.get("name_ko")
+            if name:
+                out2[f"sch:{name}"] = [row.get("award_type"), _num(row.get("award_value"))]
+        return dict(sorted(out2.items()))
     return {}
 
 

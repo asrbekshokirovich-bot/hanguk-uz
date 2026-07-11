@@ -124,18 +124,22 @@ def build_search_keywords(year: int) -> list[str]:
     return out
 
 
-def _rank_key(url: str, title: str | None, *, year: int) -> tuple[bool, bool, bool, bool, int]:
-    """Sort key (ascending = best first): drop procurement noise, prefer a
-    direct PDF, a 모집요강, a foreign-applicant guide, the target academic year,
-    then the shorter URL."""
+def _rank_key(
+    url: str, title: str | None, *, year: int
+) -> tuple[bool, bool, bool, bool, bool, int]:
+    """Sort key (ascending = best first): drop procurement noise, then prefer a
+    모집요강, the TARGET YEAR, a foreign-applicant guide, a direct PDF, then the
+    shorter URL. Year is ranked ABOVE direct-PDF-ness on purpose so a current-year
+    board page beats an old-year direct PDF (which the identity gate would reject
+    anyway) instead of being attempted first."""
     t = title or ""
     u = url.lower()
     return (
         bool(_PROCUREMENT_NOISE_RE.search(t)),
-        not u.endswith(".pdf"),
         "모집요강" not in t and "모집요강" not in u,
-        "외국인" not in t and "재외국민" not in t,
         str(year) not in t and str(year) not in u,
+        "외국인" not in t and "재외국민" not in t,
+        not u.endswith(".pdf"),
         len(url),
     )
 
@@ -171,16 +175,6 @@ async def gather_candidates(
     )
 
 
-async def _known_url(conn: asyncpg.Connection, url: str) -> bool:
-    """We already hold a (non-failed) guideline_document fetched from this URL."""
-    row = await conn.fetchrow(
-        "select 1 from public.guideline_documents "
-        "where source_url_ko = $1 and parse_status <> 'failed' limit 1",
-        url,
-    )
-    return row is not None
-
-
 async def _known_hash(conn: asyncpg.Connection, sha256: str) -> bool:
     """This exact PDF is already stored (and not a prior failure) — not new."""
     row = await conn.fetchrow(
@@ -203,7 +197,8 @@ async def fetch_target_cycle(conn: asyncpg.Connection) -> tuple[int, str | None]
         row = await conn.fetchrow(
             """
             select season, year from public.intakes
-             order by is_default desc nulls last, is_open desc nulls last, year desc
+             order by is_default desc nulls last, is_open desc nulls last,
+                      year desc, updated_at desc nulls last
              limit 1
             """
         )
@@ -262,34 +257,43 @@ async def process_one_institution(
     saw_known = False
     last_note = "no usable PDF among candidates"
     for cand in candidates[:per_institution]:
-        if await _known_url(conn, cand.url):
-            saw_known = True
+        # One bad candidate (network error, unreadable PDF, parse failure) must
+        # not abandon this institution's remaining candidates.
+        try:
+            data, mime = await resolve(cand.url)
+            if data is None:
+                last_note = mime  # `mime` carries the skip reason here
+                continue
+            # Freshness is keyed on CONTENT, not URL: hash first, so an in-place
+            # replacement at a previously-seen URL is caught as new, and a PDF we
+            # already hold (under any URL) is skipped BEFORE any paid identity or
+            # parse work.
+            sha256 = hashlib.sha256(data).hexdigest()
+            if await _known_hash(conn, sha256):
+                saw_known = True
+                continue
+            # Gate 0 — reject a wrong university / old-cycle / not-a-guideline PDF
+            # before we store or (expensively) parse it.
+            if identity_check is not None and not identity_check(data, row):
+                last_note = "identity rejected (wrong university / cycle / not a guideline)"
+                continue
+            stored = store_blob(data, sha256=sha256, mime=mime)
+            gd_id = await insert_guideline_document(
+                conn,
+                institution_id=row["id"],
+                source_url_ko=cand.url,
+                storage_path=stored.storage_path,
+                sha256=sha256,
+                size_bytes=len(data),
+                mime=mime,
+            )
+            await run_parse(conn, gd_id, data)
+            return "ingested", cand.url, len(candidates)
+        except Exception as exc:  # isolate this candidate; try the next one
+            last_note = f"{type(exc).__name__}: {exc}"
+            log.warning("guideline_finder: candidate error %s — %s",
+                        cand.url, str(exc)[:160])
             continue
-        data, mime = await resolve(cand.url)
-        if data is None:
-            last_note = mime  # `mime` carries the skip reason here
-            continue
-        # Gate 0 — reject a wrong university / old-cycle / not-a-guideline PDF
-        # before we store or (expensively) parse it.
-        if identity_check is not None and not identity_check(data, row):
-            last_note = "identity check rejected candidate (wrong university / cycle / not a guideline)"
-            continue
-        sha256 = hashlib.sha256(data).hexdigest()
-        if await _known_hash(conn, sha256):
-            saw_known = True
-            continue
-        stored = store_blob(data, sha256=sha256, mime=mime)
-        gd_id = await insert_guideline_document(
-            conn,
-            institution_id=row["id"],
-            source_url_ko=cand.url,
-            storage_path=stored.storage_path,
-            sha256=sha256,
-            size_bytes=len(data),
-            mime=mime,
-        )
-        await run_parse(conn, gd_id, data)
-        return "ingested", cand.url, len(candidates)
 
     if saw_known:
         return "unchanged", "current guideline already ingested", len(candidates)

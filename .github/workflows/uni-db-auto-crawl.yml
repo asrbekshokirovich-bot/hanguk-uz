@@ -83,7 +83,15 @@ jobs:
       #    download newly-published PDFs, and extract them with Claude inline. A
       #    single school failing is logged and counted, never fatal.
       - name: Find + ingest new guidelines
-        run: uni-db find-guidelines --limit "${{ github.event.inputs.limit || '400' }}" ${{ github.event.inputs.year && format('--year {0}', github.event.inputs.year) || '' }}
+        env:
+          # Pass dispatch inputs via env (never inline into the shell line) to
+          # avoid script injection.
+          LIMIT: ${{ github.event.inputs.limit || '400' }}
+          YEAR: ${{ github.event.inputs.year }}
+        run: |
+          ARGS=(--limit "$LIMIT")
+          if [ -n "$YEAR" ]; then ARGS+=(--year "$YEAR"); fi
+          uni-db find-guidelines "${ARGS[@]}"
 
       # 2) Safety net — extract any doc left pending (e.g. an inline parse that
       #    hit a transient error) so nothing sits unprocessed until the 30-min

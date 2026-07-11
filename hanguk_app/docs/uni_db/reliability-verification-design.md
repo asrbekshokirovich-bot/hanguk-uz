@@ -100,6 +100,29 @@ existing per-field confidence and the source quote, and a link to the PDF. The
 reviewer Approves / Edits / Rejects; only Approve lets `publish_worker` write the
 data into the app's tables.
 
+## Audit hardening (2026-07)
+
+An adversarial review of the gauntlet fixed several real defects:
+
+- **Verification is never fatal.** A failing grounding-judge / critic LLM call
+  (rate limit, non-JSON) is caught and degrades to the deterministic checks; the
+  whole gauntlet is wrapped in `parse_worker` so a bug can never discard a
+  successfully-extracted document (it just routes to review unverified).
+- **The published `periods[]` are verified**, not only `events[]` — the app
+  publishes `university_admission_periods` from `periods`, so those dates now get
+  the same date-order sanity, source grounding, and cross-run consensus.
+- **Consensus is value-aware**: per-faculty tuition (catches swapped amounts) and
+  per-scholarship award value (catches a changed %), not just min + name-set.
+- **Grounding tolerates interior reformatting** (chunk-majority match) so a
+  correctly-extracted quote the model lightly reworded isn't branded a fabrication,
+  while a truly-absent quote still fails.
+- **Finder freshness is content-based**: hash-checked before any paid identity or
+  parse, so an in-place guideline replacement at a known URL is caught as new; one
+  bad candidate no longer aborts an institution's other candidates; ranking puts
+  the target year above direct-PDF-ness so an old-year PDF isn't tried first.
+- **Target cycle** has a deterministic tiebreak; the crawl workflow passes dispatch
+  inputs via `env` (no shell injection).
+
 ## Remaining wiring (needs live creds / DB / UI)
 
 The engine + gates + prompts + full-HITL routing are code-complete and unit-tested

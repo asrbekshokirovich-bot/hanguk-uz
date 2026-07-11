@@ -173,27 +173,57 @@ async def test_ingests_new_guideline() -> None:
     assert any("insert into public.guideline_documents" in e for e in conn.executed)
 
 
-async def test_unchanged_when_url_already_ingested() -> None:
-    url = "https://inha.ac.kr/2027_모집요강.pdf"
-    conn = _Conn(known_urls={url})
-    resolved: list = []
+async def test_known_hash_skips_before_identity_and_parse() -> None:
+    # Freshness is content-based: a PDF we already hold (by hash) is skipped
+    # BEFORE paying for the identity check or the parse.
+    conn = _Conn(known_hashes={PDF_SHA})
     parsed: list = []
+    identity_calls: list = []
 
     async def resolve(u: str):
-        resolved.append(u)
         return PDF, "application/pdf"
 
     async def parse(c, gd, d):
         parsed.append(gd)
 
-    outcome, _note, _seen = await _process(
-        conn, _row(),
-        search=_search_returning(_ann(url, "2027 모집요강")),
-        resolve=resolve, run_parse=parse,
+    def identity(data, row):
+        identity_calls.append(1)   # must NOT run for a hash we already hold
+        return True
+
+    outcome, _note, _seen = await gfw.process_one_institution(
+        conn, _row(), keywords=["모집요강"], year=2027, per_institution=3,
+        search_site=_search_returning(_ann("https://inha.ac.kr/new-url.pdf", "2027 모집요강")),
+        resolve=resolve, store_blob=_store, run_parse=parse, identity_check=identity,
     )
     assert outcome == "unchanged"
-    assert resolved == []                                     # never downloaded
-    assert parsed == []                                       # never re-billed
+    assert identity_calls == []
+    assert parsed == []
+
+
+async def test_one_bad_candidate_does_not_abort_others() -> None:
+    # The first-ranked candidate raises; the institution's next candidate must
+    # still be tried (one bad PDF can't stall the whole school).
+    conn = _Conn()
+    parsed: list = []
+
+    async def resolve(u: str):
+        if "bad" in u:
+            raise RuntimeError("network boom")
+        return PDF, "application/pdf"
+
+    async def parse(c, gd, d):
+        parsed.append(gd)
+
+    search = _search_returning(
+        _ann("https://inha.ac.kr/bad_2027_모집요강.pdf", "2027 모집요강"),   # shorter URL → ranked first
+        _ann("https://inha.ac.kr/good_2027_모집요강.pdf", "2027 모집요강"),
+    )
+    outcome, _note, _seen = await gfw.process_one_institution(
+        conn, _row(), keywords=["모집요강"], year=2027, per_institution=3,
+        search_site=search, resolve=resolve, store_blob=_store, run_parse=parse,
+    )
+    assert outcome == "ingested"
+    assert len(parsed) == 1
 
 
 async def test_unchanged_when_hash_already_seen() -> None:
@@ -277,7 +307,11 @@ async def test_find_new_guidelines_tallies_and_isolates_errors() -> None:
     )
     assert run.institutions_seen == 2
     assert run.ingested == 1
-    assert run.errors == 1
+    # The bad school's only candidate errored — isolated inside the candidate
+    # loop, so the school is 'skipped', not a fatal institution-level error, and
+    # the good school still ingested.
+    assert run.skipped == 1
+    assert run.errors == 0
 
 
 # --------------------------------------------------------------------------- #

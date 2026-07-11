@@ -16,6 +16,7 @@ look first.
 
 from __future__ import annotations
 
+import logging
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
@@ -34,6 +35,8 @@ from .models import (
     IdentityVerdict,
     SanityIssue,
 )
+
+log = logging.getLogger(__name__)
 
 # Injection seams (default to the live agents; tests pass fakes).
 GroundingFn = Callable[[str, str, list[dict[str, Any]]], list[GroundingIssue]]
@@ -144,7 +147,11 @@ def verify_extraction(
     grounding = check_grounding_deterministic(field_group, primary, pdf_text)
     if use_grounding_llm and rows:
         gfn = grounding_fn or _default_grounding_fn
-        grounding = grounding + gfn(field_group, source_text_ko, rows)
+        try:
+            grounding = grounding + gfn(field_group, source_text_ko, rows)
+        except Exception as exc:  # a judge error must never lose the extraction
+            log.warning("verify: grounding judge failed for %s (%s); deterministic only",
+                        field_group, type(exc).__name__)
 
     sanity = sanity_checks(field_group, primary, target_year=target_year)
     cons = consensus(field_group, runs) if len(runs) > 1 else []
@@ -152,7 +159,10 @@ def verify_extraction(
     critics: list[CriticIssue] = []
     if use_critics and rows:
         cfn = critics_fn or _default_critics_fn
-        critics = cfn(field_group, source_text_ko, rows, target_year, target_term)
+        try:
+            critics = cfn(field_group, source_text_ko, rows, target_year, target_term)
+        except Exception as exc:  # ditto — critics are advisory, never fatal
+            log.warning("verify: critics failed for %s (%s)", field_group, type(exc).__name__)
 
     return aggregate(
         field_group=field_group,

@@ -188,11 +188,60 @@ class TestConsensus:
 
     def test_disagreement_flagged(self) -> None:
         cons = checks.consensus("tuition", [self._run(5_000_000), self._run(6_000_000)])
-        disagreeing = [c for c in cons if c.field == "tuition:min_krw"]
+        disagreeing = [c for c in cons if c.field == "tuition:인문"]
         assert disagreeing and not disagreeing[0].unanimous
 
     def test_single_run_no_consensus(self) -> None:
         assert checks.consensus("tuition", [self._run(5_000_000)]) == []
+
+    def test_swapped_faculty_amounts_flagged(self) -> None:
+        # min + faculty-set are identical, but the per-faculty amounts are
+        # swapped — value-aware signature must catch this.
+        def run(hum: int, eng: int) -> dict:
+            return {"rows": [
+                {"faculty_group": "인문", "amount_krw": hum, "source_text_ko": "x"},
+                {"faculty_group": "공학", "amount_krw": eng, "source_text_ko": "x"},
+            ]}
+        cons = checks.consensus("tuition", [run(4_000_000, 5_000_000), run(5_000_000, 4_000_000)])
+        assert any(not c.unanimous for c in cons)
+
+    def test_scholarship_value_change_flagged(self) -> None:
+        def run(pct: float) -> dict:
+            return {"rows": [{"name_ko": "글로벌장학금", "award_type": "tuition_waiver_pct",
+                              "award_value": pct, "source_text_ko": "x"}]}
+        cons = checks.consensus("scholarships", [run(100.0), run(50.0)])
+        assert any(not c.unanimous for c in cons)
+
+
+class TestPeriods:
+    """The published calendar rows (periods[]) must be checked, not just events[]."""
+
+    def test_period_out_of_order_flagged(self) -> None:
+        out = checks.sanity_checks("calendar", {"periods": [
+            {"application_start": "2027-03-01", "document_deadline": "2026-11-01",
+             "source_text_ko": "x"},
+        ]}, target_year=2027)
+        assert any(i.problem == "out_of_order_dates" and i.field.startswith("period[")
+                   for i in out)
+
+    def test_period_dates_in_order_clean(self) -> None:
+        out = checks.sanity_checks("calendar", {"periods": [
+            {"application_start": "2026-09-01", "application_end": "2026-09-30",
+             "document_deadline": "2026-10-05", "result_announcement": "2026-12-01",
+             "source_text_ko": "x"},
+        ]}, target_year=2027)
+        assert out == []
+
+    def test_period_quote_grounding(self) -> None:
+        # A fabricated period source quote is flagged just like an event's.
+        pdf = "인하대 원서접수 2026.09.01 ~ 09.30 서류마감 10.05"
+        out = checks.check_grounding_deterministic(
+            "calendar",
+            {"periods": [{"application_start": "2026-09-01",
+                          "source_text_ko": "완전히 지어낸 마감 문장입니다 전형료 면제"}]},
+            pdf,
+        )
+        assert len(out) == 1 and out[0].problem == "quote_not_in_source"
 
 
 # --------------------------------------------------------------------------- #

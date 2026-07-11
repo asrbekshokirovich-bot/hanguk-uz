@@ -154,6 +154,9 @@ def parse_one_document(
                     if not _looks_truncated(retry.parsed_output):
                         log.info("extract: truncation retry recovered %s", group)
                         result = retry
+                        # Verify against the SAME window the winning extraction
+                        # saw, or consensus/critics would false-flag tail rows.
+                        section_text = wider
 
         results.append(result)
 
@@ -163,16 +166,21 @@ def parse_one_document(
         if _is_empty_output(result.parsed_output):
             continue
 
-        report = _verify_group(
-            group=group,
-            archetype=archetype.label,
-            primary=result,
-            pdf_text_full=pdf_text_full,
-            section_text=section_text,
-            level=level,
-            target_year=year,
-            target_term=target_term,
-        )
+        try:
+            report = _verify_group(
+                group=group,
+                archetype=archetype.label,
+                primary=result,
+                pdf_text_full=pdf_text_full,
+                section_text=section_text,
+                level=level,
+                target_year=year,
+                target_term=target_term,
+            )
+        except Exception as exc:  # verification must never lose a good extraction
+            log.warning("verify: gauntlet errored for %s (%s); routing unverified to review",
+                        group, type(exc).__name__)
+            report = None
 
         verdict = validate_field(
             field_name=_canonical_field_for(group),
