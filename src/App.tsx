@@ -74,7 +74,6 @@ function GlobalErrorBoundary({ children }: { children: React.ReactNode }) {
 }
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { StaffPresenceProvider } from "@/contexts/StaffPresenceContext";
 import { MentionNotificationsProvider } from "@/contexts/MentionNotificationsContext";
 
 const App = () => (
@@ -88,8 +87,11 @@ const App = () => (
             <BrowserRouter>
             <NativeRouterHandler />
             <AuthProvider>
-              <StaffPresenceProvider>
-                <MentionNotificationsProvider>
+              {/* StaffPresenceProvider is mounted inside CRMPortal, not here:
+                  its only consumers are CRM intercom components, so keeping it
+                  app-wide made every logged-in user write staff_presence every
+                  30s and open a realtime channel on public/student routes too. */}
+              <MentionNotificationsProvider>
                   <Suspense fallback={<RouteFallback />}>
                     <Routes>
                       <Route path="/" element={<Index />} />
@@ -107,8 +109,7 @@ const App = () => (
                       <Route path="*" element={<NotFound />} />
                     </Routes>
                   </Suspense>
-                </MentionNotificationsProvider>
-              </StaffPresenceProvider>
+              </MentionNotificationsProvider>
             </AuthProvider>
           </BrowserRouter>
           </ErrorBoundary>

@@ -105,6 +105,52 @@ export function CallsProvider({ children }: { children: ReactNode }) {
   
   fetchCallsRef.current = fetchCalls;
 
+  // Apply a single realtime change in place instead of re-fetching the whole
+  // calls table on every row event. Only the changed row's 1-2 profiles are
+  // fetched; the list is re-sorted by started_at to keep ordering stable.
+  const applyCallChange = async (payload: {
+    eventType: 'INSERT' | 'UPDATE' | 'DELETE';
+    new?: Record<string, any>;
+    old?: Record<string, any>;
+  }) => {
+    if (payload.eventType === 'DELETE') {
+      const oldId = payload.old?.id;
+      if (oldId) setCalls(prev => prev.filter(c => c.id !== oldId));
+      return;
+    }
+
+    const row = payload.new;
+    if (!row?.id) return;
+
+    const ids = [row.student_id, row.staff_id].filter(Boolean) as string[];
+    const profilesMap: Record<string, { full_name: string | null }> = {};
+    if (ids.length > 0) {
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('user_id, full_name')
+        .in('user_id', ids);
+      for (const p of profiles ?? []) profilesMap[p.user_id] = { full_name: p.full_name };
+    }
+
+    const enriched = {
+      ...row,
+      direction: row.direction as 'incoming' | 'outgoing',
+      status: row.status as Call['status'],
+      student: row.student_id ? profilesMap[row.student_id] : undefined,
+      staff: row.staff_id ? profilesMap[row.staff_id] : undefined,
+    } as Call;
+
+    setCalls(prev => {
+      const next = [enriched, ...prev.filter(c => c.id !== enriched.id)];
+      next.sort(
+        (a, b) => new Date(b.started_at).getTime() - new Date(a.started_at).getTime(),
+      );
+      return next;
+    });
+  };
+  const applyCallChangeRef = useRef(applyCallChange);
+  applyCallChangeRef.current = applyCallChange;
+
   const createCall = async (input: CallInput) => {
     if (!user) return false;
 
@@ -157,24 +203,19 @@ export function CallsProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     fetchCallsRef.current?.();
 
-    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
     const channelId = `calls-realtime-globalctx`;
     const channel = supabase
       .channel(channelId)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'calls' },
-        () => {
-          if (debounceTimer) clearTimeout(debounceTimer);
-          debounceTimer = setTimeout(() => {
-            fetchCallsRef.current?.();
-          }, 1500);
+        (payload) => {
+          applyCallChangeRef.current?.(payload as any);
         }
       )
       .subscribe();
 
     return () => {
-      if (debounceTimer) clearTimeout(debounceTimer);
       supabase.removeChannel(channel);
     };
   }, []);
