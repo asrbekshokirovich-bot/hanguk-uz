@@ -8,7 +8,15 @@
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest run",
+    "db:start": "supabase start",
+    "db:stop": "supabase stop",
+    "db:status": "supabase status",
+    "db:reset": "supabase db reset",
+    "db:studio": "supabase status -o env | grep STUDIO",
+    "env:local": "node scripts/gen-local-env.mjs",
+    "functions:serve": "supabase functions serve --env-file ./supabase/functions/.env.local"
   },
   "dependencies": {
     "@capacitor/android": "^8.0.1",
@@ -103,6 +111,7 @@
     "globals": "^15.15.0",
     "lovable-tagger": "^1.1.13",
     "postcss": "^8.5.6",
+    "supabase": "^2.109.1",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.38.0",

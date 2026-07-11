@@ -1,5 +1,18 @@
 # Welcome to your Lovable project
 
+## Run it locally (full local backend)
+
+To run the whole app on your machine — frontend **and** a local Supabase backend
+(Postgres + Auth + Storage + Edge functions) in Docker, with all migrations and
+a seeded login — see **[LOCAL_DEVELOPMENT.md](./LOCAL_DEVELOPMENT.md)**.
+
+```bash
+npm install
+npm run db:start     # local Supabase (applies migrations + seed)
+npm run env:local    # point the app at localhost
+npm run dev          # http://localhost:8080  ·  log in: owner / password123
+```
+
 ## Project info
 
 **URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
