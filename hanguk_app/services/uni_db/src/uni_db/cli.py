@@ -66,6 +66,21 @@ def _build_parser() -> argparse.ArgumentParser:
     p_ingest.add_argument("--limit", type=int, default=60,
                           help="Max promoted sources to ingest this run")
 
+    p_find = sub.add_parser(
+        "find-guidelines",
+        help="LIVE: search every institution's own domain for the target cycle's "
+             "모집요강 PDF, ingest+parse only newly-published ones",
+    )
+    p_find.add_argument("--limit", type=int, default=400,
+                        help="Max institutions to sweep this run (default 400 — "
+                             "covers the whole ~300 list)")
+    p_find.add_argument("--year", type=int, default=None,
+                        help="Target academic year (학년도). Default: next year, "
+                             "matching the upcoming admission cycle.")
+    p_find.add_argument("--per-institution", type=int, default=3,
+                        help="Best-N ranked candidates to attempt downloading per "
+                             "school before giving up (default 3)")
+
     p_publish = sub.add_parser(
         "publish",
         help="Normalize approved review items into the public tables the app reads "
@@ -108,6 +123,10 @@ def main(argv: list[str] | None = None) -> int:
                                     pending_only=args.pending_only))
     if args.cmd == "ingest-direct":
         return asyncio.run(_ingest_direct(limit=args.limit))
+    if args.cmd == "find-guidelines":
+        return asyncio.run(_find_guidelines(
+            limit=args.limit, year=args.year, per_institution=args.per_institution,
+        ))
     if args.cmd == "publish":
         return asyncio.run(_publish(limit=args.limit))
     if args.cmd == "propose-sources":
@@ -439,6 +458,65 @@ async def _ingest_direct(*, limit: int) -> int:
         await conn.close()
 
     print(f"ingest-direct: ingested ok={ok} failed={fail}")
+    return 0
+
+
+async def _find_guidelines(*, limit: int, year: int | None, per_institution: int) -> int:
+    """LIVE: sweep every tracked institution for the target cycle's 모집요강 PDF.
+
+    For each institution it site-searches (Naver) inside the university's own
+    domain, ranks the hits, downloads the best PDF, and — only when the PDF is
+    genuinely new (unseen SHA-256) — stores it and runs the paid Claude parse.
+    Real ac.kr fetches + paid LLM, so it's gated on `UNI_DB_LIVE_CRAWL` +
+    `UNI_DB_LIVE_APIS` + Naver keys + `SUPABASE_DB_URL`.
+    """
+    if not (settings.live_crawl and settings.live_apis):
+        print(
+            "find-guidelines needs UNI_DB_LIVE_CRAWL=true and UNI_DB_LIVE_APIS=true "
+            "(real ac.kr fetches + paid LLM). Refusing. See docs/credentials.md.",
+            file=sys.stderr,
+        )
+        return 2
+    if not (settings.naver_search_client_id and settings.naver_search_client_secret):
+        print(
+            "NAVER_SEARCH_CLIENT_ID/SECRET not set; cannot search for guidelines.",
+            file=sys.stderr,
+        )
+        return 2
+    if not settings.supabase_db_url:
+        print("SUPABASE_DB_URL is not set; cannot run the guideline finder.", file=sys.stderr)
+        return 2
+
+    from datetime import datetime, timezone
+
+    import asyncpg
+    import httpx
+
+    from .workers import guideline_finder_worker
+
+    # Default to the upcoming cycle's academic year (학년도), matching the app's
+    # "next year" default and publish_worker's year inference.
+    target_year = year or (datetime.now(tz=timezone.utc).year + 1)
+
+    conn = await asyncpg.connect(settings.supabase_db_url)
+    try:
+        async with httpx.AsyncClient(
+            headers={"User-Agent": settings.http_user_agent},
+            follow_redirects=True,
+            timeout=settings.http_request_timeout_sec,
+        ) as http:
+            run = await guideline_finder_worker.find_new_guidelines(
+                conn, http,
+                year=target_year, limit=limit, per_institution=per_institution,
+            )
+    finally:
+        await conn.close()
+
+    print(
+        f"find-guidelines[{target_year}]: institutions={run.institutions_seen} "
+        f"candidates={run.candidates_seen} ingested={run.ingested} "
+        f"unchanged={run.unchanged} skipped={run.skipped} errors={run.errors}"
+    )
     return 0
 
 
