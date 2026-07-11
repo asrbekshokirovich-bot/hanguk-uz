@@ -29,7 +29,7 @@ import re
 from collections.abc import Awaitable, Callable, Sequence
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 import asyncpg
 import httpx
@@ -74,6 +74,30 @@ DEFAULT_PER_INSTITUTION = 3
 SearchSiteFn = Callable[[str, str], Awaitable[list[Announcement]]]
 # url -> (pdf_bytes | None, mime_or_skip_reason).
 ResolveFn = Callable[[str], Awaitable[tuple[bytes | None, str]]]
+# (pdf_bytes, institution_row) -> True to accept, False to reject (wrong PDF).
+IdentityCheckFn = Callable[[bytes, "asyncpg.Record"], bool]
+
+
+def pdf_head_text(data: bytes, *, max_pages: int = 3, max_chars: int = 8000) -> str:
+    """First-pages text for the Gate 0 identity check — a light pymupdf read (no
+    OCR), so a wrong PDF is rejected cheaply before the full extract/parse."""
+    try:
+        import pymupdf
+    except ImportError:  # pragma: no cover — pymupdf is a base dep in production
+        return ""
+    parts: list[str] = []
+    try:
+        doc = pymupdf.open(stream=data, filetype="pdf")
+    except Exception:  # not a readable PDF → let the caller decide
+        return ""
+    try:
+        for i, page in enumerate(doc):
+            if i >= max_pages:
+                break
+            parts.append(page.get_text())
+    finally:
+        doc.close()
+    return "\n".join(parts)[:max_chars]
 
 
 @dataclass(frozen=True, slots=True)
@@ -195,6 +219,7 @@ async def process_one_institution(
     resolve: ResolveFn,
     store_blob: _StoreBlob,
     run_parse: RunParse,
+    identity_check: IdentityCheckFn | None = None,
 ) -> tuple[str, str, int]:
     """Find + ingest one institution's current guideline.
 
@@ -217,6 +242,11 @@ async def process_one_institution(
         data, mime = await resolve(cand.url)
         if data is None:
             last_note = mime  # `mime` carries the skip reason here
+            continue
+        # Gate 0 — reject a wrong university / old-cycle / not-a-guideline PDF
+        # before we store or (expensively) parse it.
+        if identity_check is not None and not identity_check(data, row):
+            last_note = "identity check rejected candidate (wrong university / cycle / not a guideline)"
             continue
         sha256 = hashlib.sha256(data).hexdigest()
         if await _known_hash(conn, sha256):
@@ -259,6 +289,71 @@ def _make_default_resolve(http: httpx.AsyncClient) -> ResolveFn:
     return resolve
 
 
+def make_identity_check(target_year: int, target_term: str | None = None) -> IdentityCheckFn:
+    """Gate 0 as an IdentityCheckFn: read the PDF's first pages and ask the
+    verifier whether it's this university's current foreign-applicant guideline.
+    A verifier error or unreadable head never blocks ingestion (fail open — the
+    downstream parse gauntlet + human approval still guard the data)."""
+    from ..verify.agents import check_identity
+
+    def check(data: bytes, row: asyncpg.Record) -> bool:
+        try:
+            head = pdf_head_text(data)
+            if not head.strip():
+                return True
+            verdict = check_identity(
+                university_name_ko=row["name_ko"],
+                university_name_en=row["name_en"],
+                target_year=target_year,
+                target_term=target_term,
+                head_text=head,
+            )
+            if not verdict.accepted:
+                log.info(
+                    "guideline_finder: identity REJECT for %s — %s",
+                    row["name_ko"], verdict.reject_reason or verdict.document_kind,
+                )
+            return verdict.accepted
+        except Exception as exc:
+            log.warning(
+                "guideline_finder: identity check errored (%s); allowing candidate",
+                type(exc).__name__,
+            )
+            return True
+
+    return check
+
+
+def make_run_parse(target_year: int, target_term: str | None = None) -> RunParse:
+    """A run_parse that threads the target cycle into the parse gauntlet so its
+    sanity/scope checks know which year/term to hold the data to. Verification
+    level + require-approval come from settings inside parse_one_document."""
+
+    async def run_parse(conn: asyncpg.Connection, gd_id: UUID, data: bytes) -> None:
+        from ..parse.extract_orchestrator import extract as extract_pdf
+        from .parse_worker import parse_one_document, persist_outcome
+
+        extracted, _decision = extract_pdf(data)
+        if not extracted.text.strip():
+            await conn.execute(
+                "update public.guideline_documents set parse_status='failed' where id=$1",
+                gd_id,
+            )
+            raise ValueError("no text extracted from PDF")
+        pages = extracted.text.split("\n")
+        head = "\n".join(pages[: min(len(pages), 600)])
+        outcome = parse_one_document(
+            guideline_document_id=gd_id,
+            pdf_text_first_pages=head,
+            pdf_text_full=extracted.text,
+            target_year=target_year,
+            target_term=target_term,
+        )
+        await persist_outcome(conn, outcome)
+
+    return run_parse
+
+
 async def find_new_guidelines(
     conn: asyncpg.Connection,
     http: httpx.AsyncClient,
@@ -271,6 +366,7 @@ async def find_new_guidelines(
     resolve: ResolveFn | None = None,
     store_blob: _StoreBlob | None = None,
     run_parse: RunParse | None = None,
+    identity_check: IdentityCheckFn | None = None,
 ) -> FinderRun:
     """Sweep up to `limit` institutions for the `year` cycle's guideline PDF.
 
@@ -300,6 +396,7 @@ async def find_new_guidelines(
                 keywords=keywords, year=year, per_institution=per_institution,
                 search_site=search_site, resolve=resolve,
                 store_blob=store_blob, run_parse=run_parse,
+                identity_check=identity_check,
             )
         except Exception as exc:  # one bad school must not abort the sweep
             errors += 1

@@ -37,6 +37,8 @@ from ..extract.degree_level import DegreeClassification, classify_degree_level
 from ..extract.llm_anthropic import ExtractionResult, extract_field_group
 from ..extract.validators import evaluate as validate_field
 from ..parse.degree_sections import split_by_degree
+from ..verify import verify_extraction
+from ..verify.engine import ReliabilityReport
 
 log = logging.getLogger(__name__)
 
@@ -64,6 +66,10 @@ def parse_one_document(
     pdf_text_first_pages: str,
     pdf_text_full: str,
     auto_publish: bool | None = None,
+    require_approval: bool | None = None,
+    verify_level: str | None = None,
+    target_year: int | None = None,
+    target_term: str | None = None,
 ) -> ParseOutcome:
     """Pure: returns the outcome without touching the DB.
 
@@ -71,13 +77,18 @@ def parse_one_document(
     function directly against fixture text.
 
     `auto_publish` (defaults to `settings.auto_publish_enabled`) controls the
-    gate: when true (the production default) EVERY content-bearing extraction
-    is queued as an `approved` item so the publish worker normalizes it without
-    a human — low-confidence / difficult-field ones flagged `needs_attention`
-    but still published. When false the legacy human-review gate applies (only
-    `requires_hitl` items queued as `open`).
+    legacy gate. `require_approval` (defaults to `settings.require_approval`)
+    is the human-in-front gate: when true, EVERY content-bearing extraction is
+    queued as `open` for a staff member to approve, and nothing publishes on its
+    own — this overrides `auto_publish`. `verify_level` (defaults to
+    `settings.verify_level`) runs the reliability gauntlet (grounding / sanity /
+    consensus / adversarial critics) per field group and attaches the
+    green/amber/red report to each review card so the reviewer knows where to look.
     """
     auto = settings.auto_publish_enabled if auto_publish is None else auto_publish
+    approve = settings.require_approval if require_approval is None else require_approval
+    level = (settings.verify_level if verify_level is None else verify_level).lower()
+    year = target_year if target_year is not None else (datetime.now(tz=timezone.utc).year + 1)
     archetype = classify_archetype(pdf_text_first_pages)
     degree = classify_degree_level(
         first_pages_text=pdf_text_first_pages,
@@ -152,11 +163,25 @@ def parse_one_document(
         if _is_empty_output(result.parsed_output):
             continue
 
+        report = _verify_group(
+            group=group,
+            archetype=archetype.label,
+            primary=result,
+            pdf_text_full=pdf_text_full,
+            section_text=section_text,
+            level=level,
+            target_year=year,
+            target_term=target_term,
+        )
+
         verdict = validate_field(
             field_name=_canonical_field_for(group),
             confidence=result.accuracy_self_score,
         )
-        entry = _queue_entry_for(group, result, verdict, auto_publish=auto)
+        entry = _queue_entry_for(
+            group, result, verdict,
+            auto_publish=auto, require_approval=approve, report=report,
+        )
         if entry is not None:
             review_entries.append(entry)
 
@@ -194,27 +219,95 @@ def parse_one_document(
     )
 
 
+def _verify_group(
+    *,
+    group: str,
+    archetype: str,
+    primary: ExtractionResult,
+    pdf_text_full: str,
+    section_text: str,
+    level: str,
+    target_year: int,
+    target_term: str | None,
+) -> ReliabilityReport | None:
+    """Run the reliability gauntlet for one field group.
+
+    Deterministic gates (grounding-in-source, sanity ranges, consensus diff)
+    always run. The LLM judges (grounding, adversarial critics) run at
+    `thorough`/`maximum` when live. `maximum` also re-extracts the group
+    `consensus_runs` times so the critical fields must agree. Returns None when
+    verification is off.
+    """
+    if level == "off":
+        return None
+    live = settings.live_apis
+    runs: list[dict[str, object]] = [primary.parsed_output]
+    if level == "maximum" and live:
+        for _ in range(max(0, settings.consensus_runs - 1)):
+            try:
+                extra = extract_field_group(
+                    field_group=group, archetype=archetype, source_text_ko=section_text,
+                )
+            except Exception as exc:  # a failed re-extract just shrinks the vote
+                log.warning("verify: consensus re-extract failed for %s: %s",
+                            group, type(exc).__name__)
+                break
+            runs.append(extra.parsed_output)
+    use_llm = level in ("thorough", "maximum") and live
+    return verify_extraction(
+        field_group=group,
+        runs=runs,
+        pdf_text=pdf_text_full,
+        source_text_ko=section_text,
+        target_year=target_year,
+        target_term=target_term,
+        use_grounding_llm=use_llm,
+        use_critics=use_llm,
+    )
+
+
 def _queue_entry_for(
     group: str,
     result: ExtractionResult,
     verdict,
     *,
     auto_publish: bool,
+    require_approval: bool = False,
+    report: ReliabilityReport | None = None,
 ) -> dict[str, object] | None:
     """Build the review_queue entry for one content-bearing extraction.
 
-    Auto-publish (default): every extraction is queued `approved` so the
-    publish worker picks it up with no human. Difficult / low-confidence ones
-    are still published, just flagged `needs_attention` for a read-only triage
-    view. Legacy mode: only `requires_hitl` items are queued, as `open`.
+    require_approval (human-in-front): EVERY extraction waits as `open` for a
+    staff member; the reliability report colour sets the priority and the
+    `needs_attention` flag (red = look here first). Nothing publishes on its own.
+
+    Auto-publish (legacy default): every extraction is queued `approved` so the
+    publish worker picks it up with no human. Legacy human-gate: only
+    `requires_hitl` items are queued, as `open`.
     """
     score = result.accuracy_self_score
+    color = report.overall if report is not None else None
     base: dict[str, object] = {
         "entity_type": "extraction_jobs",
         "entity_id": None,           # filled by persist_outcome
         "field_group": group,
-        "rationale": verdict.rationale,
+        "rationale": report.to_review_note() if report is not None else verdict.rationale,
     }
+
+    if require_approval:
+        # Human-in-front: nothing auto-publishes; everything waits as `open`.
+        reason = (
+            f"reliability_{color}" if color
+            else ("low_confidence" if score < 0.85 else "needs_review")
+        )
+        priority = 1 if color == "red" else (2 if color == "amber" else 3)
+        return {
+            **base,
+            "status": "open",
+            "needs_attention": color == "red",
+            "reason": reason,
+            "priority": priority,
+        }
 
     if not auto_publish:
         # Legacy human-gated: drop high-confidence items, queue the rest as open.

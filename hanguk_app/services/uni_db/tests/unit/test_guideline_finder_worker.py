@@ -278,3 +278,55 @@ async def test_find_new_guidelines_tallies_and_isolates_errors() -> None:
     assert run.institutions_seen == 2
     assert run.ingested == 1
     assert run.errors == 1
+
+
+# --------------------------------------------------------------------------- #
+# Gate 0 — identity check
+# --------------------------------------------------------------------------- #
+
+
+async def test_identity_reject_skips_candidate() -> None:
+    conn = _Conn()
+    parsed: list = []
+
+    async def resolve(u: str):
+        return PDF, "application/pdf"
+
+    async def parse(c, gd, d):
+        parsed.append(gd)
+
+    outcome, note, _seen = await gfw.process_one_institution(
+        conn, _row(),
+        keywords=["모집요강"], year=2027, per_institution=3,
+        search_site=_search_returning(_ann("https://inha.ac.kr/2027_모집요강.pdf", "2027 모집요강")),
+        resolve=resolve, store_blob=_store, run_parse=parse,
+        identity_check=lambda data, row: False,        # Gate 0 rejects everything
+    )
+    assert outcome == "skipped"
+    assert "identity" in note
+    assert parsed == []                                 # never stored or parsed
+
+
+async def test_identity_accept_ingests() -> None:
+    conn = _Conn()
+    parsed: list = []
+
+    async def resolve(u: str):
+        return PDF, "application/pdf"
+
+    async def parse(c, gd, d):
+        parsed.append(gd)
+
+    outcome, _note, _seen = await gfw.process_one_institution(
+        conn, _row(),
+        keywords=["모집요강"], year=2027, per_institution=3,
+        search_site=_search_returning(_ann("https://inha.ac.kr/2027_모집요강.pdf", "2027 모집요강")),
+        resolve=resolve, store_blob=_store, run_parse=parse,
+        identity_check=lambda data, row: True,
+    )
+    assert outcome == "ingested"
+    assert len(parsed) == 1
+
+
+def test_pdf_head_text_on_non_pdf_is_empty() -> None:
+    assert gfw.pdf_head_text(b"this is not a pdf") == ""

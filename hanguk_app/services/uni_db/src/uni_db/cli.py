@@ -498,6 +498,14 @@ async def _find_guidelines(*, limit: int, year: int | None, per_institution: int
     # "next year" default and publish_worker's year inference.
     target_year = year or (datetime.now(tz=timezone.utc).year + 1)
 
+    # Gate 0 identity check + target-year-aware parse gauntlet, unless verify
+    # is turned off. Both are no-ops when UNI_DB_VERIFY_LEVEL=off.
+    verify_on = settings.verify_level.lower() != "off"
+    identity_check = (
+        guideline_finder_worker.make_identity_check(target_year) if verify_on else None
+    )
+    run_parse = guideline_finder_worker.make_run_parse(target_year)
+
     conn = await asyncpg.connect(settings.supabase_db_url)
     try:
         async with httpx.AsyncClient(
@@ -508,6 +516,7 @@ async def _find_guidelines(*, limit: int, year: int | None, per_institution: int
             run = await guideline_finder_worker.find_new_guidelines(
                 conn, http,
                 year=target_year, limit=limit, per_institution=per_institution,
+                run_parse=run_parse, identity_check=identity_check,
             )
     finally:
         await conn.close()
@@ -515,7 +524,8 @@ async def _find_guidelines(*, limit: int, year: int | None, per_institution: int
     print(
         f"find-guidelines[{target_year}]: institutions={run.institutions_seen} "
         f"candidates={run.candidates_seen} ingested={run.ingested} "
-        f"unchanged={run.unchanged} skipped={run.skipped} errors={run.errors}"
+        f"unchanged={run.unchanged} skipped={run.skipped} errors={run.errors} "
+        f"(verify={settings.verify_level}, approval_required={settings.require_approval})"
     )
     return 0
 

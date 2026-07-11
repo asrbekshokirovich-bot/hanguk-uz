@@ -29,6 +29,20 @@ class Settings(BaseSettings):
     # human-gated behavior (only `requires_hitl` items enqueued as `open`).
     auto_publish_enabled: bool = Field(default=True, alias="UNI_DB_AUTO_PUBLISH")
 
+    # Reliability verification gauntlet (see verify/). Controls how hard we
+    # check an extraction before a human sees it:
+    #   off       — no verification
+    #   balanced  — deterministic grounding + sanity only (no LLM judges)
+    #   thorough  — + LLM grounding judge + 3 adversarial critics
+    #   maximum   — + N-way consensus re-extraction on the critical fields
+    verify_level: str = Field(default="maximum", alias="UNI_DB_VERIFY_LEVEL")
+    # How many independent extractions the consensus gate runs at 'maximum'.
+    consensus_runs: int = Field(default=3, alias="UNI_DB_CONSENSUS_RUNS")
+    # When true, NOTHING auto-publishes — every guideline waits in review_queue
+    # for a staff member to approve. This is the human-in-front gate; it overrides
+    # auto_publish for any document parsed through it.
+    require_approval: bool = Field(default=True, alias="UNI_DB_REQUIRE_APPROVAL")
+
     # OCR provider — ADR-002 default is `easyocr` (open-source).
     # Flip to `naver_clova` if the in-office reviewer reports >6 hrs/wk
     # of OCR cleanup load sustained for 4 weeks (ADR-002 reversal trigger).
