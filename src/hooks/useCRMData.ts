@@ -62,10 +62,19 @@ export function useCRMData() {
 
       const staffUserIds = new Set((staffRoles ?? []).map((r) => r.user_id));
 
-      // Fetch all profiles, then keep this season's members (excluding staff).
+      // Fetch ONLY this season's member profiles (bounded by student_intakes)
+      // instead of the entire profiles table. Previously every profile row ever
+      // created was downloaded and filtered in JS, which grew unboundedly.
+      const memberIdList = Array.from(memberIds);
+      if (memberIdList.length === 0) {
+        setStudents([]);
+        return;
+      }
+
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
         .select('*')
+        .in('user_id', memberIdList)
         .order('created_at', { ascending: false });
 
       if (profilesError) {
@@ -76,8 +85,9 @@ export function useCRMData() {
 
       if (!profiles) return;
 
+      // Staff are excluded here as a safety net (they should not be members).
       const memberProfiles = profiles.filter(
-        (profile) => memberIds.has(profile.user_id) && !staffUserIds.has(profile.user_id),
+        (profile) => !staffUserIds.has(profile.user_id),
       );
 
       const studentUserIds = memberProfiles.map((p) => p.user_id);

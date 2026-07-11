@@ -132,24 +132,27 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
   const fetchLeads = async () => {
     try {
       setLoading(true);
-      const [{ data, error }, { data: studentProfiles }, { data: allProfiles }] = await Promise.all([
+      // One profiles scan instead of two: the assignee map needs every profile
+      // (staff assignees have no magic_code) while student matching needs the
+      // magic_code rows, so both are derived from a single fetch.
+      const [{ data, error }, { data: allProfiles }] = await Promise.all([
         applyIntake(supabase.from('leads').select('*'), activeIntakeId),
-        supabase.from('profiles').select('full_name, phone, magic_code').not('magic_code', 'is', null),
-        supabase.from('profiles').select('user_id, full_name'),
+        supabase.from('profiles').select('user_id, full_name, phone, magic_code'),
       ]);
 
       if (error) throw error;
 
-      const assigneeMap = new Map<string, { full_name: string | null }>();
-      (allProfiles || []).forEach(p => assigneeMap.set(p.user_id, { full_name: p.full_name }));
-
       const normalizePhone = (p: string | null) => p ? p.replace(/\D/g, '').slice(-9) : '';
-      const studentNames = new Set(
-        (studentProfiles || []).map(p => (p.full_name || '').toLowerCase().trim())
-      );
-      const studentPhones = new Set(
-        (studentProfiles || []).filter(p => p.phone).map(p => normalizePhone(p.phone))
-      );
+      const assigneeMap = new Map<string, { full_name: string | null }>();
+      const studentNames = new Set<string>();
+      const studentPhones = new Set<string>();
+      (allProfiles || []).forEach(p => {
+        assigneeMap.set(p.user_id, { full_name: p.full_name });
+        if (p.magic_code) {
+          studentNames.add((p.full_name || '').toLowerCase().trim());
+          if (p.phone) studentPhones.add(normalizePhone(p.phone));
+        }
+      });
 
       const enrichedLeads = (data || []).map(lead => ({
         ...lead,

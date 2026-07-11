@@ -43,16 +43,34 @@ export function useDistributionTransfers() {
       .order('created_at', { ascending: false });
 
     if (!error && data) {
-      // Fetch items for each transfer
-      const transfersWithItems = await Promise.all(
-        data.map(async (transfer: any) => {
-          const { data: items } = await supabase
-            .from('distribution_transfer_items')
-            .select('*')
-            .eq('transfer_id', transfer.id);
-          return { ...transfer, items: items || [] };
-        })
+      // Batch-fetch items for every transfer in a single query.
+      // Previously this ran one items query per transfer (an N+1);
+      // now it's one .in() lookup grouped by transfer_id into a Map.
+      const transferIds = Array.from(
+        new Set(
+          data
+            .map((transfer: any) => transfer.id)
+            .filter((id): id is string => Boolean(id)),
+        ),
       );
+
+      const itemsByTransferId = new Map<string, DistributionTransferItem[]>();
+      if (transferIds.length > 0) {
+        const { data: items } = await supabase
+          .from('distribution_transfer_items')
+          .select('*')
+          .in('transfer_id', transferIds);
+        for (const item of items ?? []) {
+          const list = itemsByTransferId.get(item.transfer_id) ?? [];
+          list.push(item as DistributionTransferItem);
+          itemsByTransferId.set(item.transfer_id, list);
+        }
+      }
+
+      const transfersWithItems = data.map((transfer: any) => ({
+        ...transfer,
+        items: itemsByTransferId.get(transfer.id) ?? [],
+      }));
       setTransfers(transfersWithItems as DistributionTransfer[]);
     }
     setLoading(false);

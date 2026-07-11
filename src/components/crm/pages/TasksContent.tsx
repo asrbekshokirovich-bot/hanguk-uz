@@ -91,19 +91,26 @@ export default function TasksContent() {
 
       if (roles) {
         const userIds = [...new Set(roles.map((r) => r.user_id))];
-        const profiles: (Tables<'profiles'> & { user_id: string })[] = [];
 
-        for (const userId of userIds) {
+        // Batch-fetch every staff profile in a single query.
+        // Previously this ran one profiles query per user id (an N+1);
+        // now it's one .in() lookup keyed into a Map.
+        const profileByUserId = new Map<string, Tables<'profiles'> & { user_id: string }>();
+        if (userIds.length > 0) {
           const { data } = await supabase
             .from('profiles')
             .select('*')
-            .eq('user_id', userId)
-            .maybeSingle();
-
-          if (data) {
-            profiles.push(data);
+            .in('user_id', userIds);
+          for (const profile of data ?? []) {
+            profileByUserId.set(profile.user_id, profile);
           }
         }
+
+        const profiles = userIds
+          .map((userId) => profileByUserId.get(userId))
+          .filter(
+            (profile): profile is Tables<'profiles'> & { user_id: string } => Boolean(profile),
+          );
         setStaffMembers(profiles);
       }
     };
