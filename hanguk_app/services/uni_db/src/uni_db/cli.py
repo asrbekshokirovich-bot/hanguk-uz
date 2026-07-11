@@ -75,8 +75,8 @@ def _build_parser() -> argparse.ArgumentParser:
                         help="Max institutions to sweep this run (default 400 — "
                              "covers the whole ~300 list)")
     p_find.add_argument("--year", type=int, default=None,
-                        help="Target academic year (학년도). Default: next year, "
-                             "matching the upcoming admission cycle.")
+                        help="Target academic year (학년도). Default: the CRM-selected "
+                             "intake (public.intakes), else next year.")
     p_find.add_argument("--per-institution", type=int, default=3,
                         help="Best-N ranked candidates to attempt downloading per "
                              "school before giving up (default 3)")
@@ -494,20 +494,28 @@ async def _find_guidelines(*, limit: int, year: int | None, per_institution: int
 
     from .workers import guideline_finder_worker
 
-    # Default to the upcoming cycle's academic year (학년도), matching the app's
-    # "next year" default and publish_worker's year inference.
-    target_year = year or (datetime.now(tz=timezone.utc).year + 1)
-
-    # Gate 0 identity check + target-year-aware parse gauntlet, unless verify
-    # is turned off. Both are no-ops when UNI_DB_VERIFY_LEVEL=off.
-    verify_on = settings.verify_level.lower() != "off"
-    identity_check = (
-        guideline_finder_worker.make_identity_check(target_year) if verify_on else None
-    )
-    run_parse = guideline_finder_worker.make_run_parse(target_year)
-
     conn = await asyncpg.connect(settings.supabase_db_url)
     try:
+        # Target cycle: an explicit --year wins; otherwise the CRM-selected
+        # intake (public.intakes); otherwise the upcoming academic year.
+        target_year: int | None = year
+        target_term: str | None = None
+        if target_year is None:
+            cycle = await guideline_finder_worker.fetch_target_cycle(conn)
+            if cycle is not None:
+                target_year, target_term = cycle
+        if target_year is None:
+            target_year = datetime.now(tz=timezone.utc).year + 1
+
+        # Gate 0 identity check + target-cycle-aware parse gauntlet, unless
+        # verification is turned off (UNI_DB_VERIFY_LEVEL=off).
+        verify_on = settings.verify_level.lower() != "off"
+        identity_check = (
+            guideline_finder_worker.make_identity_check(target_year, target_term)
+            if verify_on else None
+        )
+        run_parse = guideline_finder_worker.make_run_parse(target_year, target_term)
+
         async with httpx.AsyncClient(
             headers={"User-Agent": settings.http_user_agent},
             follow_redirects=True,
@@ -521,8 +529,9 @@ async def _find_guidelines(*, limit: int, year: int | None, per_institution: int
     finally:
         await conn.close()
 
+    cycle_label = f"{target_year}{'/' + target_term if target_term else ''}"
     print(
-        f"find-guidelines[{target_year}]: institutions={run.institutions_seen} "
+        f"find-guidelines[{cycle_label}]: institutions={run.institutions_seen} "
         f"candidates={run.candidates_seen} ingested={run.ingested} "
         f"unchanged={run.unchanged} skipped={run.skipped} errors={run.errors} "
         f"(verify={settings.verify_level}, approval_required={settings.require_approval})"

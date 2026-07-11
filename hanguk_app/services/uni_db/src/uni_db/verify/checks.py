@@ -187,6 +187,7 @@ def _sanity_requirements(parsed_output: object) -> list[SanityIssue]:
             issues.append(SanityIssue("requirements", "gpa_floor_pct", "high",
                                       "gpa_out_of_range", f"GPA floor {gpa}% not in 0..100"))
         et = row.get("english_test")
+        english_scores: list[str] = []
         if isinstance(et, dict):
             ielts = _num(et.get("ielts"))
             if ielts is not None and not (0 <= ielts <= 9):
@@ -196,6 +197,27 @@ def _sanity_requirements(parsed_output: object) -> list[SanityIssue]:
             if toefl is not None and not (0 <= toefl <= 120):
                 issues.append(SanityIssue("requirements", "english_test.toefl_ibt", "high",
                                           "toefl_out_of_range", f"TOEFL iBT {toefl} not in 0..120"))
+            english_scores = [
+                k for k in ("ielts", "toefl_ibt", "toefl_pbt", "teps", "duolingo", "min_score")
+                if _num(et.get(k)) is not None
+            ]
+        # Language-eligibility completeness. Our applicants qualify on EITHER
+        # track — Korean (TOPIK) or English (IELTS/TOEFL) — so a stated
+        # requirement must carry its actual threshold; a "required" status with
+        # no number is a dropped cutoff that would wrongly filter a qualified
+        # student. (Deferred/면제 is a legitimate no-number case, so it's allowed.)
+        if row.get("english_status") == "required" and not english_scores:
+            issues.append(SanityIssue(
+                "requirements", "english_test", "medium", "english_required_no_score",
+                "English proficiency required but no IELTS/TOEFL score threshold captured",
+            ))
+        if (row.get("topik_status") == "required"
+                and row.get("topik_min_level") is None
+                and not row.get("topik_deferred")):
+            issues.append(SanityIssue(
+                "requirements", "topik_min_level", "medium", "topik_required_no_level",
+                "TOPIK required but no minimum level captured",
+            ))
     return issues
 
 

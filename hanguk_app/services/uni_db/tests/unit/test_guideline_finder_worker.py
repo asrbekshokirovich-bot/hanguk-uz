@@ -330,3 +330,25 @@ async def test_identity_accept_ingests() -> None:
 
 def test_pdf_head_text_on_non_pdf_is_empty() -> None:
     assert gfw.pdf_head_text(b"this is not a pdf") == ""
+
+
+# --------------------------------------------------------------------------- #
+# target cycle from the CRM intakes table
+# --------------------------------------------------------------------------- #
+
+
+async def test_fetch_target_cycle_reads_default_intake() -> None:
+    class _IntakeConn:
+        async def fetchrow(self, sql: str, *a: object):
+            assert "public.intakes" in sql
+            return {"season": "fall", "year": 2027}
+
+    assert await gfw.fetch_target_cycle(_IntakeConn()) == (2027, "fall")
+
+
+async def test_fetch_target_cycle_missing_table_returns_none() -> None:
+    class _NoTableConn:
+        async def fetchrow(self, sql: str, *a: object):
+            raise RuntimeError('relation "public.intakes" does not exist')
+
+    assert await gfw.fetch_target_cycle(_NoTableConn()) is None

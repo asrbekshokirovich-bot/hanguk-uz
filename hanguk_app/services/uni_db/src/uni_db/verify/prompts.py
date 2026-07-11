@@ -111,12 +111,23 @@ def accuracy_critic_prompt(*, source_text_ko: str, rows: list[dict[str, Any]]) -
 def completeness_critic_prompt(
     *, source_text_ko: str, rows: list[dict[str, Any]], field_group: str
 ) -> tuple[str, str]:
+    lang_clause = ""
+    if field_group in ("requirements", "basic_requirements"):
+        lang_clause = (
+            " CRITICAL for eligibility: our applicants qualify on EITHER language "
+            "track — Korean (TOPIK) or English (IELTS / TOEFL / Duolingo / TEPS). If "
+            "the source states a TOPIK route AND an English-test route, BOTH must be "
+            "captured; flag whichever route — and its numeric cutoff — the source "
+            "states but the extraction omitted. Missing the English/IELTS route would "
+            "wrongly exclude English-track applicants, and vice versa."
+        )
     system = (
         "You check for OMISSIONS. Given the Korean source span and the JSON "
         f"extracted for the '{field_group}' group, list every REQUIRED item the "
         "source clearly states but the extraction MISSED — a missing deadline, a "
-        "required document, a TOPIK level, a tuition row, a scholarship. Only list "
-        "items actually present in the source. Use no outside knowledge. " + _JSON_ONLY
+        "required document, a TOPIK level, an IELTS/TOEFL score, a tuition row, a "
+        "scholarship. Only list items actually present in the source. Use no outside "
+        "knowledge." + lang_clause + " " + _JSON_ONLY
         + "\n\nJSON shape:\n"
         '{ "missing": [ {"what": string, "source_quote": string, '
         '"severity": "high|medium|low"} ] }\n'

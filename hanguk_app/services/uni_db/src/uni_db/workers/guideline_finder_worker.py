@@ -191,6 +191,32 @@ async def _known_hash(conn: asyncpg.Connection, sha256: str) -> bool:
     return row is not None
 
 
+async def fetch_target_cycle(conn: asyncpg.Connection) -> tuple[int, str | None] | None:
+    """The admission cycle to crawl for, as selected in the CRM.
+
+    Reads `public.intakes` (the CRM's season/year table): the default intake,
+    else the open one, else the most recent. Returns `(year, term)` with term in
+    {'spring','fall'} — or None if the table is absent/empty so the caller can
+    fall back to a date-based default.
+    """
+    try:
+        row = await conn.fetchrow(
+            """
+            select season, year from public.intakes
+             order by is_default desc nulls last, is_open desc nulls last, year desc
+             limit 1
+            """
+        )
+    except Exception as exc:  # table may not exist in a bare uni_db project
+        log.info("guideline_finder: no intakes table (%s); using date default",
+                 type(exc).__name__)
+        return None
+    if not row or row["year"] is None:
+        return None
+    season = row["season"] if row["season"] in ("spring", "fall") else None
+    return int(row["year"]), season
+
+
 async def fetch_target_institutions(
     conn: asyncpg.Connection, *, limit: int
 ) -> list[asyncpg.Record]:

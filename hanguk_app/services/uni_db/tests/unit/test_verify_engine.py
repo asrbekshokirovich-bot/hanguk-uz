@@ -84,6 +84,59 @@ class TestSanity:
         problems = {i.problem for i in out}
         assert {"topik_out_of_range", "gpa_out_of_range", "ielts_out_of_range"} <= problems
 
+    def test_english_required_without_score_flagged(self) -> None:
+        # English (IELTS/TOEFL) route stated as required but its cutoff dropped —
+        # this would wrongly exclude English-track applicants.
+        out = checks.sanity_checks("requirements", {"rows": [
+            {"english_status": "required", "english_test": None, "source_text_ko": "x"},
+        ]}, target_year=2027)
+        assert any(i.problem == "english_required_no_score" for i in out)
+
+    def test_topik_required_without_level_flagged(self) -> None:
+        out = checks.sanity_checks("requirements", {"rows": [
+            {"topik_status": "required", "topik_min_level": None,
+             "topik_deferred": False, "source_text_ko": "x"},
+        ]}, target_year=2027)
+        assert any(i.problem == "topik_required_no_level" for i in out)
+
+    def test_topik_required_but_deferred_is_ok(self) -> None:
+        # 면제 / deferred is a legitimate no-number case.
+        out = checks.sanity_checks("requirements", {"rows": [
+            {"topik_status": "required", "topik_min_level": None,
+             "topik_deferred": True, "source_text_ko": "x"},
+        ]}, target_year=2027)
+        assert not any(i.problem == "topik_required_no_level" for i in out)
+
+    def test_both_language_routes_with_scores_clean(self) -> None:
+        out = checks.sanity_checks("requirements", {"rows": [
+            {"topik_status": "required", "topik_min_level": 3,
+             "english_status": "required", "english_test": {"ielts": 5.5},
+             "source_text_ko": "x"},
+        ]}, target_year=2027)
+        assert out == []
+
+
+def test_completeness_critic_prompt_is_language_track_aware() -> None:
+    from uni_db.verify import prompts
+
+    sys_req, _ = prompts.completeness_critic_prompt(
+        source_text_ko="x", rows=[{"a": 1}], field_group="requirements"
+    )
+    assert "IELTS" in sys_req and "TOPIK" in sys_req and "EITHER language" in sys_req
+    sys_cal, _ = prompts.completeness_critic_prompt(
+        source_text_ko="x", rows=[{"a": 1}], field_group="calendar"
+    )
+    assert "EITHER language" not in sys_cal   # clause is requirements-only
+
+
+def test_requirements_extraction_prompt_has_language_addendum() -> None:
+    from uni_db.extract.prompt_assembler import assemble_prompt
+
+    req = assemble_prompt(field_group="requirements", archetype="A", source_text_ko="x")
+    assert "Language eligibility" in req.system and "IELTS" in req.system
+    cal = assemble_prompt(field_group="calendar", archetype="A", source_text_ko="x")
+    assert "Language eligibility" not in cal.system
+
 
 # --------------------------------------------------------------------------- #
 # Gate 2 (deterministic) — grounding: the quote must be in the PDF

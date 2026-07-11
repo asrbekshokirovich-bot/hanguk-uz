@@ -29,6 +29,27 @@ Each guideline runs these gates; the result is a green/amber/red
 | 6 | **Aggregate** | combine into green/amber/red | `engine.aggregate` |
 | 7 | **HITL** | queue every guideline `open`; only staff Approve publishes | `parse_worker` (`require_approval`) |
 
+## Language eligibility — both tracks (TOPIK *and* IELTS)
+
+Our applicants qualify on **either** language track — Korean (TOPIK) or English
+(IELTS / TOEFL / Duolingo / TEPS) — so dropping one route silently excludes a
+whole cohort. This is enforced at three layers:
+
+- **Extraction** (`extract/prompt_assembler._language_eligibility_addendum`, requirements
+  group only): "when the source lists a TOPIK route AND an English-test route,
+  extract BOTH with their numeric cutoffs — never drop one"; `not_required` for an
+  explicit 면제, `not_stated` when silent, never a guessed cutoff.
+- **Sanity** (`checks._sanity_requirements`): a `required` English status with no
+  IELTS/TOEFL score, or a `required` TOPIK status with no level (and not deferred),
+  is flagged — a stated requirement must carry its threshold.
+- **Completeness critic** (`prompts.completeness_critic_prompt`, requirements): explicitly
+  told to flag whichever route the source states but the extraction omitted, so an
+  English-track (IELTS) requirement is never lost.
+
+The **target cycle** (which year/term to crawl for) is read from the CRM's
+selected intake — `public.intakes` (default → open → latest) — not hardcoded;
+`--year` overrides, and a date-based default applies only if the table is absent.
+
 **Colour policy** (`engine.aggregate`) — a guideline is **red** (do not publish
 until fixed) when: identity rejected · a fabricated citation (quote not in the
 PDF) · any high-severity critic issue · a non-unanimous consensus on a critical
