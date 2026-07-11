@@ -76,6 +76,15 @@ interface GuidelineGroup {
   rows: ReviewQueueRow[];
 }
 
+const COLOR_RANK: Record<ReliabilityColor, number> = { red: 0, amber: 1, green: 2 };
+
+function groupColorRank(g: GuidelineGroup): number {
+  const c = rollupColor(
+    g.rows.map((r) => parseReliability(r.reviewer_notes, r.needs_attention).color),
+  );
+  return c ? COLOR_RANK[c] : 3; // unscored last
+}
+
 function groupRows(rows: ReviewQueueRow[]): GuidelineGroup[] {
   const map = new Map<string, GuidelineGroup>();
   for (const row of rows) {
@@ -95,8 +104,10 @@ function groupRows(rows: ReviewQueueRow[]): GuidelineGroup[] {
     }
     g.rows.push(row);
   }
-  // Most sections (and reddest) first.
-  return [...map.values()].sort((a, b) => b.rows.length - a.rows.length);
+  // Red first, then amber, then green/unscored — so the guidelines a reviewer
+  // is told to triage first sort to the top. Array.sort is stable, so within a
+  // colour the view's own order (priority asc, then created_at) is preserved.
+  return [...map.values()].sort((a, b) => groupColorRank(a) - groupColorRank(b));
 }
 
 function institutionName(g: GuidelineGroup): string {
