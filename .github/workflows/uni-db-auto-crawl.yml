@@ -1,25 +1,23 @@
 name: uni-db auto-crawl guidelines
 
-# Daily cloud sync: crawl every tracked institution's own website for the
-# upcoming cycle's admission guideline (모집요강), download newly-published PDFs,
-# and run them through the Claude extract -> publish -> translate pipeline. This
-# is the DISCOVERY half — unlike uni-db-process-uploads.yml (which only drains
-# PDFs a human already uploaded), this job actually searches university sites.
+# Crawl every tracked institution's own website for the upcoming cycle's
+# admission guideline (모집요강), download newly-published PDFs, and run them
+# through the Claude extract -> publish -> translate pipeline. This is the
+# DISCOVERY half — unlike uni-db-process-uploads.yml (which only drains PDFs a
+# human already uploaded), this job actually searches university sites.
 #
-# Schedule: 00:00 and 02:00 Asia/Tashkent (UTC+5) every day. GitHub cron is UTC,
-# so that's 19:00 and 21:00 UTC. Two passes give freshness + a same-night retry.
+# MANUAL-ONLY: the daily 00:00 / 02:00 Asia/Tashkent schedule is owned by a
+# Claude scheduled task (Routine), not this workflow, so there's no `schedule:`
+# here — running both would double-crawl. This workflow stays as an on-demand
+# fallback / test harness you can trigger from the Actions tab.
 #
 # Required repo secrets (Settings -> Secrets and variables -> Actions):
 #   UNI_DB_SUPABASE_DB_URL, UNI_DB_SUPABASE_URL,
 #   UNI_DB_SUPABASE_SERVICE_ROLE_KEY, UNI_DB_ANTHROPIC_API_KEY,
 #   UNI_DB_NAVER_SEARCH_CLIENT_ID, UNI_DB_NAVER_SEARCH_CLIENT_SECRET
 #   (optional: UNI_DB_DEEPL_API_KEY for the translate stage)
-# Scheduled runs fire only from the DEFAULT branch — this activates once merged.
 
 on:
-  schedule:
-    - cron: "0 19 * * *"   # 00:00 Asia/Tashkent (UTC+5)
-    - cron: "0 21 * * *"   # 02:00 Asia/Tashkent (UTC+5)
   workflow_dispatch:
     inputs:
       limit:

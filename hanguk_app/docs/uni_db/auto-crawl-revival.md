@@ -43,7 +43,8 @@ structurally gone because coverage is reported per run.
 |---|---|
 | Finder worker | `src/uni_db/workers/guideline_finder_worker.py` |
 | CLI command | `uni-db find-guidelines [--limit N] [--year YYYY] [--per-institution K]` (`src/uni_db/cli.py`) |
-| Scheduled job | `.github/workflows/uni-db-auto-crawl.yml` |
+| Daily schedule | **Claude scheduled task (Routine)** — a fresh Claude session at 00:00 and 02:00 Asia/Tashkent installs the service and runs `find-guidelines → reparse --pending-only → publish → translate` against prod. |
+| Manual fallback | `.github/workflows/uni-db-auto-crawl.yml` (workflow_dispatch only — the daily cron lives in the Routine, not here, to avoid double-crawling) |
 | Unit tests | `tests/unit/test_guideline_finder_worker.py` |
 
 Reused unchanged: `NaverSearchAdapter`, `resolve_to_pdf` / `insert_guideline_document`
@@ -64,26 +65,37 @@ uni-db find-guidelines                         (this job, per institution)
    reparse pending ─▶ publish ─▶ translate ─▶ student app
 ```
 
-## Schedule
+## Schedule — Claude scheduled task (Routine)
 
-`uni-db-auto-crawl.yml` runs twice daily at **00:00 and 02:00 Asia/Tashkent
-(UTC+5)** — i.e. `0 19 * * *` and `0 21 * * *` UTC. Two passes give freshness
-plus a same-night retry. GitHub only fires scheduled workflows from the default
-branch, so the job activates once this merges to `main`.
+The daily cadence is owned by **two Claude scheduled tasks**, not a GitHub cron.
+Each fires a fresh Claude session at **00:00 and 02:00 Asia/Tashkent (UTC+5)** —
+i.e. `0 19 * * *` and `0 21 * * *` UTC — which installs the service and runs
+`find-guidelines → reparse --pending-only → publish → translate` against
+production, then reports a summary. Two passes give freshness + a same-night
+retry. `uni-db-auto-crawl.yml` is kept as a manual (`workflow_dispatch`)
+fallback only, so the two schedulers never double-crawl.
 
-## Required repo secrets
+## Required configuration (Claude environment)
 
-Add under **Settings → Secrets and variables → Actions** (same `UNI_DB_*`
-convention as `uni-db-process-uploads.yml`):
+The scheduled Claude session runs the crawl directly, so these must be present
+as **environment variables in the Claude Code environment** (not GitHub secrets):
 
-- `UNI_DB_SUPABASE_DB_URL`, `UNI_DB_SUPABASE_URL`, `UNI_DB_SUPABASE_SERVICE_ROLE_KEY`
-- `UNI_DB_ANTHROPIC_API_KEY` — Claude extraction
-- `UNI_DB_NAVER_SEARCH_CLIENT_ID`, `UNI_DB_NAVER_SEARCH_CLIENT_SECRET` — the search step
-- (optional) `UNI_DB_DEEPL_API_KEY` — translation stage
+- `SUPABASE_DB_URL`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`
+- `ANTHROPIC_API_KEY` — Claude extraction
+- `NAVER_SEARCH_CLIENT_ID`, `NAVER_SEARCH_CLIENT_SECRET` — the search step
+- (optional) `DEEPL_API_KEY` — translation stage
 
-The command self-refuses (exit 2) unless `UNI_DB_LIVE_CRAWL=true`,
-`UNI_DB_LIVE_APIS=true`, the Naver keys, and `SUPABASE_DB_URL` are all present,
-so a misconfigured run can't quietly do nothing or fire paid calls by accident.
+`UNI_DB_LIVE_CRAWL=true` and `UNI_DB_LIVE_APIS=true` are exported by the Routine
+prompt itself. The command self-refuses (exit 2) unless the live flags, the
+Naver keys, and `SUPABASE_DB_URL` are all present, so a misconfigured run can't
+quietly do nothing or fire paid calls by accident. The production Supabase
+project must also be active (unpaused) and the environment's network policy must
+allow outbound calls to `*.ac.kr`, `openapi.naver.com`, the Supabase host, PyPI,
+and `api.anthropic.com`.
+
+If you'd rather keep production credentials out of the Claude environment, the
+`uni-db-auto-crawl.yml` workflow can be switched back to a `schedule:` and run
+on GitHub Actions with the `UNI_DB_*` repo secrets instead.
 
 ## Known limits / follow-ups
 
