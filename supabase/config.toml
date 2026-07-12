@@ -114,3 +114,9 @@ verify_jwt = false
 [functions.compare-universities]
 verify_jwt = false
 
+# Internal SQL-over-HTTPS bridge for the uni_db crawl when it runs in a Claude
+# Routine sandbox (raw Postgres blocked). verify_jwt=true so the gateway checks
+# the caller's JWT signature; the function additionally requires service_role.
+[functions.db-exec]
+verify_jwt = true
+

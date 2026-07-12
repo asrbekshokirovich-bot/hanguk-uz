@@ -32,6 +32,14 @@ class Settings(BaseSettings):
     # Path/name of the claude CLI binary (claude_cli backend only).
     claude_cli_bin: str = Field(default="claude", alias="UNI_DB_CLAUDE_CLI")
 
+    # Database transport:
+    #   postgres — asyncpg direct connection (default; needs raw TCP to 5432)
+    #   http     — run SQL over HTTPS via the `db-exec` edge function. Required
+    #              when the crawl runs in a Claude Routine sandbox, which only
+    #              permits outbound HTTP(S) and blocks raw Postgres. Needs
+    #              SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY.
+    db_transport: str = Field(default="postgres", alias="UNI_DB_DB_TRANSPORT")
+
     # Auto-publish (no human review). When true (default), parse_worker
     # auto-approves every non-empty/non-failed extraction straight into
     # review_queue as `approved` — low-confidence/difficult ones flagged
