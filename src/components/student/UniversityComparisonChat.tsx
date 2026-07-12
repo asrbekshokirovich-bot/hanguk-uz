@@ -223,7 +223,13 @@ export function UniversityComparisonChat({ universities, onClose }: UniversityCo
           if (data === '[DONE]') continue;
           try {
             const parsed = JSON.parse(data);
-            const content = parsed.choices?.[0]?.delta?.content || parsed.choices?.[0]?.message?.content || '';
+            // Server normalizes Claude's stream into OpenAI-shaped chunks; the
+            // `delta.text` fallback keeps this robust to a raw Anthropic stream.
+            const content =
+              parsed.choices?.[0]?.delta?.content ||
+              parsed.choices?.[0]?.message?.content ||
+              parsed.delta?.text ||
+              '';
             if (content) {
               fullContent += content;
               if (additionalContext) {
