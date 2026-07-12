@@ -12,6 +12,20 @@ guideline sections). `--output-format json` returns an envelope whose `result`
 field holds the model's text, which callers parse exactly as they parse an API
 response.
 
+Two properties matter when this runs unattended at midnight inside a Routine:
+
+1. STRICT single-agent — at most ONE `claude` process ever runs at a time,
+   enforced both in-process (a threading lock) and across processes (an
+   `fcntl` file lock). Even if two Routines fire, or the crawl agent spawns
+   parallel `uni-db` subprocesses, their Claude calls are serialized so they
+   can never gang up and trip the subscription's concurrency limits.
+
+2. NON-STOP resilience — if a usage/rate limit IS hit (very likely at the
+   midnight peak), the call does not abort the run. It waits and retries with
+   exponential backoff for up to `claude_cli_retry_budget_sec` (default 2h),
+   so the crawl "keeps going for a couple of hours" until the limit window
+   resets rather than dying on the first limited call.
+
 Caveat: each invocation is a fresh CLI session, so there is no cross-call prompt
 caching (unlike the API path's ephemeral cache). That is a deliberate trade for
 "no API key"; the crawl paces itself and only new guidelines are parsed.
@@ -19,11 +33,13 @@ caching (unlike the API path's ephemeral cache). That is a deliberate trade for
 
 from __future__ import annotations
 
+import contextlib
 import json
 import logging
 import subprocess
 import tempfile
 import threading
+import time
 from pathlib import Path
 
 from ..config import settings
@@ -40,9 +56,46 @@ _CLI_TIMEOUT_SEC = 240.0
 # hard guarantee: at most ONE `claude` subprocess runs at any moment.
 _CLI_LOCK = threading.Lock()
 
+# Cross-process serialization. The threading lock above only covers one Python
+# process; if the crawl agent spawns two `uni-db` subprocesses (or two Routines
+# fire), each has its own threading lock and they could still call `claude`
+# concurrently. This flock-based lock makes "one at a time" strict across every
+# process on the host that uses this backend.
+_CLI_LOCKFILE = Path(tempfile.gettempdir()) / "uni_db_claude_cli.lock"
+
+# Usage-limit retry pacing. First wait is short; back off exponentially up to a
+# cap so we probe periodically without hammering during a limit window. The
+# total budget comes from settings (default 2h).
+_CLI_RETRY_BASE_SLEEP_SEC = 60.0
+_CLI_RETRY_MAX_SLEEP_SEC = 15 * 60.0
+
+# Substrings (case-insensitive) that mark a *transient* usage/rate/capacity
+# limit — retryable. Matched only against error output (nonzero exit or an
+# is_error envelope), never against successful result text.
+_USAGE_LIMIT_MARKERS = (
+    "usage limit",
+    "rate limit",
+    "rate_limit",
+    "rate-limit",
+    "429",
+    "overloaded",
+    "limit reached",
+    "reset at",
+    "try again later",
+    "temporarily unavailable",
+    "capacity",
+    "too many requests",
+    "quota",
+    "please wait",
+)
+
 
 class ClaudeCliError(RuntimeError):
     """The `claude` CLI failed, timed out, or returned an error envelope."""
+
+
+class _UsageLimitError(ClaudeCliError):
+    """A transient subscription usage/rate limit — retry after a wait."""
 
 
 def _cli_model(model: str) -> str:
@@ -59,6 +112,81 @@ def _cli_model(model: str) -> str:
     return "sonnet"
 
 
+def _is_usage_limit(text: str) -> bool:
+    """True if error output looks like a transient usage/rate/capacity limit."""
+    low = (text or "").lower()
+    return any(marker in low for marker in _USAGE_LIMIT_MARKERS)
+
+
+@contextlib.contextmanager
+def _cli_serialized():
+    """Hold both the in-process and cross-process locks for one CLI call.
+
+    The `fcntl` file lock is best-effort: on platforms without it (non-Unix),
+    the threading lock alone still serializes within the process.
+    """
+    with _CLI_LOCK:
+        try:
+            import fcntl
+        except ImportError:  # pragma: no cover — Unix-only sandbox in practice
+            yield
+            return
+        with open(_CLI_LOCKFILE, "w") as lock_fh:
+            fcntl.flock(lock_fh, fcntl.LOCK_EX)
+            try:
+                yield
+            finally:
+                fcntl.flock(lock_fh, fcntl.LOCK_UN)
+
+
+def _one_call(cmd: list[str], user: str, timeout: float) -> str:
+    """Run the `claude` CLI once and return its result text.
+
+    Raises `_UsageLimitError` on a transient limit (retryable) and
+    `ClaudeCliError` on any other failure (fatal).
+    """
+    try:
+        # One at a time, always — never two Claude calls concurrently, in this
+        # process or any other on the host.
+        with _cli_serialized():
+            proc = subprocess.run(
+                cmd,
+                input=user,
+                capture_output=True,
+                text=True,
+                timeout=timeout,
+            )
+    except subprocess.TimeoutExpired as exc:
+        raise ClaudeCliError(f"claude CLI timed out after {timeout:.0f}s") from exc
+    except FileNotFoundError as exc:
+        raise ClaudeCliError(
+            f"claude CLI binary not found: {settings.claude_cli_bin!r}. "
+            "Set UNI_DB_CLAUDE_CLI or run inside a Claude Code session."
+        ) from exc
+
+    if proc.returncode != 0:
+        stderr = (proc.stderr or "")[:300]
+        msg = f"claude CLI exited {proc.returncode}: {stderr}"
+        raise (_UsageLimitError if _is_usage_limit(proc.stderr or "") else ClaudeCliError)(msg)
+
+    try:
+        envelope = json.loads(proc.stdout)
+    except json.JSONDecodeError as exc:
+        raise ClaudeCliError(
+            f"claude CLI output was not JSON: {(proc.stdout or '')[:200]!r}"
+        ) from exc
+
+    if envelope.get("is_error") or envelope.get("subtype") not in (None, "success"):
+        detail = str(envelope.get("result"))
+        msg = f"claude CLI returned error: {detail[:300]}"
+        raise (_UsageLimitError if _is_usage_limit(detail) else ClaudeCliError)(msg)
+
+    result = envelope.get("result")
+    if not isinstance(result, str) or not result.strip():
+        raise ClaudeCliError("claude CLI returned no result text")
+    return result
+
+
 def run_claude_cli(
     system: str,
     user: str,
@@ -70,6 +198,11 @@ def run_claude_cli(
 
     Mirrors the API path's "(system, user, model) -> raw text" contract so the
     existing JSON-parsing/salvage logic is reused unchanged.
+
+    On a transient subscription usage/rate limit the call does not abort: it
+    waits (exponential backoff, capped) and retries for up to
+    `settings.claude_cli_retry_budget_sec` before giving up, so a midnight limit
+    does not stop the nightly crawl.
     """
     sys_file = tempfile.NamedTemporaryFile(  # noqa: SIM115 — need the path after write
         "w", suffix=".sys.txt", delete=False, encoding="utf-8"
@@ -87,40 +220,33 @@ def run_claude_cli(
             "--append-system-prompt-file",
             sys_file.name,
         ]
-        try:
-            # One at a time, always — never two Claude calls concurrently.
-            with _CLI_LOCK:
-                proc = subprocess.run(
-                    cmd,
-                    input=user,
-                    capture_output=True,
-                    text=True,
-                    timeout=timeout,
+
+        budget = max(0, settings.claude_cli_retry_budget_sec)
+        deadline = time.monotonic() + budget
+        sleep_for = _CLI_RETRY_BASE_SLEEP_SEC
+        attempt = 0
+        while True:
+            attempt += 1
+            try:
+                return _one_call(cmd, user, timeout)
+            except _UsageLimitError as exc:
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    raise ClaudeCliError(
+                        f"claude CLI usage-limited and retry budget "
+                        f"({budget / 3600:.1f}h) exhausted after {attempt} "
+                        f"attempts: {exc}"
+                    ) from exc
+                wait = min(sleep_for, _CLI_RETRY_MAX_SLEEP_SEC, remaining)
+                log.warning(
+                    "claude CLI usage-limited (attempt %d); waiting %.0fs then "
+                    "retrying (%.0fs of budget left): %s",
+                    attempt,
+                    wait,
+                    remaining,
+                    exc,
                 )
-        except subprocess.TimeoutExpired as exc:
-            raise ClaudeCliError(f"claude CLI timed out after {timeout:.0f}s") from exc
-        except FileNotFoundError as exc:
-            raise ClaudeCliError(
-                f"claude CLI binary not found: {settings.claude_cli_bin!r}. "
-                "Set UNI_DB_CLAUDE_CLI or run inside a Claude Code session."
-            ) from exc
+                time.sleep(wait)
+                sleep_for = min(sleep_for * 2, _CLI_RETRY_MAX_SLEEP_SEC)
     finally:
         Path(sys_file.name).unlink(missing_ok=True)
-
-    if proc.returncode != 0:
-        raise ClaudeCliError(
-            f"claude CLI exited {proc.returncode}: {(proc.stderr or '')[:300]}"
-        )
-    try:
-        envelope = json.loads(proc.stdout)
-    except json.JSONDecodeError as exc:
-        raise ClaudeCliError(
-            f"claude CLI output was not JSON: {(proc.stdout or '')[:200]!r}"
-        ) from exc
-
-    if envelope.get("is_error") or envelope.get("subtype") not in (None, "success"):
-        raise ClaudeCliError(f"claude CLI returned error: {str(envelope.get('result'))[:300]}")
-    result = envelope.get("result")
-    if not isinstance(result, str) or not result.strip():
-        raise ClaudeCliError("claude CLI returned no result text")
-    return result

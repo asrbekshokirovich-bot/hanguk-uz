@@ -31,6 +31,15 @@ class Settings(BaseSettings):
     llm_backend: str = Field(default="anthropic", alias="UNI_DB_LLM_BACKEND")
     # Path/name of the claude CLI binary (claude_cli backend only).
     claude_cli_bin: str = Field(default="claude", alias="UNI_DB_CLAUDE_CLI")
+    # Usage-limit resilience (claude_cli backend only). When a subscription
+    # usage/rate limit is hit — most likely right at midnight when the nightly
+    # crawl starts — a single `claude` call fails. Instead of aborting the whole
+    # run, the CLI backend waits and retries for up to this many seconds total,
+    # so the crawl "keeps going for a couple of hours" until the limit window
+    # resets. Default 2h; raise via env to wait longer.
+    claude_cli_retry_budget_sec: int = Field(
+        default=7200, alias="UNI_DB_CLI_RETRY_BUDGET_SEC"
+    )
 
     # Database transport:
     #   postgres — asyncpg direct connection (default; needs raw TCP to 5432)
