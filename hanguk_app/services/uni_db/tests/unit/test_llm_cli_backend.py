@@ -79,3 +79,122 @@ def test_extract_field_group_routes_through_cli_without_api_key(monkeypatch):
     assert captured.get("called") is True
     assert result.llm_provider == "claude_cli"
     assert len(result.parsed_output["rows"]) == 1
+
+
+# --- usage guards: serialize CLI calls + cap verify depth on the subscription --
+
+def test_cli_calls_are_serialized_by_a_lock():
+    import threading
+    # a real lock instance so concurrent pipeline calls can never overlap
+    assert isinstance(llm_cli._CLI_LOCK, type(threading.Lock()))
+
+
+def test_cli_serialized_holds_a_cross_process_lock():
+    # a lockfile path is defined so `fcntl` can serialize across processes,
+    # not just threads within one process
+    assert llm_cli._CLI_LOCKFILE.name.endswith(".lock")
+    # the context manager acquires + releases cleanly
+    with llm_cli._cli_serialized():
+        pass
+
+
+# --- usage-limit resilience: wait + retry instead of aborting the run --------
+
+def test_is_usage_limit_markers():
+    assert llm_cli._is_usage_limit("Claude usage limit reached. reset at 3pm")
+    assert llm_cli._is_usage_limit("HTTP 429 Too Many Requests")
+    assert llm_cli._is_usage_limit("overloaded_error: capacity")
+    assert not llm_cli._is_usage_limit("schema validation failed")
+    assert not llm_cli._is_usage_limit("")
+
+
+def test_run_claude_cli_retries_on_usage_limit_then_succeeds(monkeypatch):
+    limited = json.dumps({"type": "result", "subtype": "error_during_execution",
+                          "is_error": True, "result": "Claude usage limit reached. reset at 3pm"})
+    ok = json.dumps({"type": "result", "subtype": "success", "is_error": False,
+                     "result": '{"rows": []}'})
+    calls = {"n": 0}
+
+    def fake_run(*a, **k):
+        calls["n"] += 1
+        return _fake_completed(limited if calls["n"] == 1 else ok)
+
+    slept: list[float] = []
+    monkeypatch.setattr(subprocess, "run", fake_run)
+    monkeypatch.setattr(llm_cli.time, "sleep", lambda s: slept.append(s))
+    monkeypatch.setattr(settings, "claude_cli_retry_budget_sec", 7200)
+
+    out = llm_cli.run_claude_cli("sys", "user", "claude-sonnet-4-6")
+    assert out == '{"rows": []}'
+    assert calls["n"] == 2  # retried once, then succeeded
+    assert slept and slept[0] > 0  # it actually waited before retrying
+
+
+def test_run_claude_cli_retries_on_usage_limit_stderr(monkeypatch):
+    """A nonzero exit whose stderr looks rate-limited is retryable too."""
+    ok = json.dumps({"type": "result", "subtype": "success", "is_error": False, "result": "hi"})
+    calls = {"n": 0}
+
+    def fake_run(*a, **k):
+        calls["n"] += 1
+        if calls["n"] == 1:
+            return _fake_completed("", returncode=1, stderr="Error: 429 Too Many Requests")
+        return _fake_completed(ok)
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+    monkeypatch.setattr(llm_cli.time, "sleep", lambda s: None)
+    monkeypatch.setattr(settings, "claude_cli_retry_budget_sec", 7200)
+
+    assert llm_cli.run_claude_cli("s", "u", "claude-sonnet-4-6") == "hi"
+    assert calls["n"] == 2
+
+
+def test_run_claude_cli_gives_up_when_budget_exhausted(monkeypatch):
+    limited = json.dumps({"type": "result", "subtype": "error",
+                          "is_error": True, "result": "usage limit reached"})
+    monkeypatch.setattr(subprocess, "run", lambda *a, **k: _fake_completed(limited))
+    monkeypatch.setattr(llm_cli.time, "sleep", lambda s: None)
+    monkeypatch.setattr(settings, "claude_cli_retry_budget_sec", 0)  # no budget → give up at once
+
+    with pytest.raises(llm_cli.ClaudeCliError):
+        llm_cli.run_claude_cli("s", "u", "claude-sonnet-4-6")
+
+
+def test_run_claude_cli_does_not_retry_a_genuine_error(monkeypatch):
+    """A real (non-limit) failure must fail fast, not spin for hours."""
+    bad = json.dumps({"type": "result", "subtype": "error_during_execution",
+                      "is_error": True, "result": "schema mismatch"})
+    calls = {"n": 0}
+
+    def fake_run(*a, **k):
+        calls["n"] += 1
+        return _fake_completed(bad)
+
+    slept: list[float] = []
+    monkeypatch.setattr(subprocess, "run", fake_run)
+    monkeypatch.setattr(llm_cli.time, "sleep", lambda s: slept.append(s))
+    monkeypatch.setattr(settings, "claude_cli_retry_budget_sec", 7200)
+
+    with pytest.raises(llm_cli.ClaudeCliError):
+        llm_cli.run_claude_cli("s", "u", "claude-sonnet-4-6")
+    assert calls["n"] == 1  # no retry
+    assert not slept
+
+
+def test_effective_verify_level_caps_on_claude_cli(monkeypatch):
+    # API backend: level passes through unchanged
+    monkeypatch.setattr(settings, "llm_backend", "anthropic")
+    monkeypatch.setattr(settings, "verify_level", "maximum")
+    assert settings.effective_verify_level == "maximum"
+
+    # claude_cli backend: heavy levels drop to 'balanced' (deterministic only)
+    monkeypatch.setattr(settings, "llm_backend", "claude_cli")
+    for heavy in ("maximum", "thorough", "MAXIMUM"):
+        monkeypatch.setattr(settings, "verify_level", heavy)
+        assert settings.effective_verify_level == "balanced"
+
+    # 'off' stays off; lighter levels pass through
+    monkeypatch.setattr(settings, "verify_level", "off")
+    assert settings.effective_verify_level == "off"
+    monkeypatch.setattr(settings, "verify_level", "balanced")
+    assert settings.effective_verify_level == "balanced"

@@ -31,6 +31,15 @@ class Settings(BaseSettings):
     llm_backend: str = Field(default="anthropic", alias="UNI_DB_LLM_BACKEND")
     # Path/name of the claude CLI binary (claude_cli backend only).
     claude_cli_bin: str = Field(default="claude", alias="UNI_DB_CLAUDE_CLI")
+    # Usage-limit resilience (claude_cli backend only). When a subscription
+    # usage/rate limit is hit — most likely right at midnight when the nightly
+    # crawl starts — a single `claude` call fails. Instead of aborting the whole
+    # run, the CLI backend waits and retries for up to this many seconds total,
+    # so the crawl "keeps going for a couple of hours" until the limit window
+    # resets. Default 2h; raise via env to wait longer.
+    claude_cli_retry_budget_sec: int = Field(
+        default=7200, alias="UNI_DB_CLI_RETRY_BUDGET_SEC"
+    )
 
     # Database transport:
     #   postgres — asyncpg direct connection (default; needs raw TCP to 5432)
@@ -147,6 +156,23 @@ class Settings(BaseSettings):
     # Observability
     sentry_dsn: str = Field(default="", alias="SENTRY_DSN")
     log_level: str = Field(default="INFO", alias="LOG_LEVEL")
+
+
+    @property
+    def effective_verify_level(self) -> str:
+        """The verify level actually used, given the LLM backend.
+
+        On the `claude_cli` (subscription) backend, cap the reliability gauntlet
+        at `balanced` — deterministic grounding + sanity only, NO LLM judges and
+        NO consensus re-extraction. The heavy levels fan out ~35 nested `claude`
+        calls per document, which spikes subscription usage and trips limits; the
+        deterministic gates plus mandatory staff approval keep quality. `off`
+        stays off. The API backend keeps the configured level unchanged.
+        """
+        lvl = self.verify_level.lower()
+        if lvl == "off" or self.llm_backend != "claude_cli":
+            return lvl
+        return "balanced" if lvl in ("thorough", "maximum") else lvl
 
 
 @lru_cache(maxsize=1)
