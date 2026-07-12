@@ -187,6 +187,16 @@ Update the doc-only references (README file-tree line 59, two markdown design do
 
 ## Phase 4 — Prod DB tables + prod-only edge functions (needs owner sign-off + backup)
 
+> **Script prepared (owner-run):** [`phase4-teardown.sql`](./phase4-teardown.sql) — an archive-then-drop
+> script, re-verified read-only against prod on 2026-07-12 (row counts, FK graph, cron job #5, the
+> dispatcher RPC, and that no view/RPC references any drop target). It is **in `docs/`, not `migrations/`,
+> so nothing auto-applies it** — review it, take a backup (the script archives the non-empty tables into
+> an `_archive` schema for you), then apply it deliberately. It drops the ai-crawl cluster (cron
+> `ai-crawl-dispatcher` + `fn_invoke_crawl_dispatcher` + `ai_crawl_config`), the dead legacy
+> application-form tables, and the backup/mig tables. `crawl_findings`/`announcement_sources` are
+> **deliberately left** (still read by the kept `run-pipeline`/`fetch_candidates`). Edge-function
+> undeploys are CLI-only (`supabase functions delete`) and listed at the bottom of the script.
+
 These live only in prod (not in the repo, or a repo table with data). All are empty, backup, or confirmed-orphaned via read-only Supabase MCP on project `Hanguk 2026` (`lysjdtyanhdfphqyijsr`). **Do not run without owner sign-off and a verified backup.**
 
 ### 4a. Prod-only edge functions (delete)
