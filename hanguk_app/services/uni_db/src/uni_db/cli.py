@@ -19,6 +19,7 @@ import logging
 import sys
 from pathlib import Path
 
+from . import db
 from .config import settings
 
 
@@ -292,12 +293,11 @@ async def _run_pipeline(*, limit: int) -> int:
         print("SUPABASE_DB_URL is not set; cannot run the live pipeline.", file=sys.stderr)
         return 2
 
-    import asyncpg
     import httpx
 
     from .workers import fetch_worker
 
-    conn = await asyncpg.connect(settings.supabase_db_url)
+    conn = await db.connect()
     try:
         async with httpx.AsyncClient(
             headers={"User-Agent": settings.http_user_agent},
@@ -340,11 +340,10 @@ async def _reparse(*, limit: int, institution: str | None, pending_only: bool = 
         print("SUPABASE_DB_URL is not set; cannot reparse.", file=sys.stderr)
         return 2
 
-    import asyncpg
 
     from .workers import reparse_worker
 
-    conn = await asyncpg.connect(settings.supabase_db_url)
+    conn = await db.connect()
     try:
         institution_id = None
         if institution:
@@ -373,11 +372,10 @@ async def _publish(*, limit: int) -> int:
         print("SUPABASE_DB_URL is not set; cannot publish.", file=sys.stderr)
         return 2
 
-    import asyncpg
 
     from .workers import publish_worker
 
-    conn = await asyncpg.connect(settings.supabase_db_url)
+    conn = await db.connect()
     try:
         run = await publish_worker.publish_pending(conn, limit=limit)
     finally:
@@ -409,12 +407,11 @@ async def _ingest_direct(*, limit: int) -> int:
         print("SUPABASE_DB_URL is not set; cannot ingest.", file=sys.stderr)
         return 2
 
-    import asyncpg
     import httpx
 
     from .workers import direct_ingest_worker
 
-    conn = await asyncpg.connect(settings.supabase_db_url)
+    conn = await db.connect()
     try:
         async with httpx.AsyncClient(
             headers={"User-Agent": settings.http_user_agent},
@@ -457,12 +454,11 @@ async def _find_guidelines(*, limit: int, year: int | None, per_institution: int
 
     from datetime import datetime, timezone
 
-    import asyncpg
     import httpx
 
     from .workers import guideline_finder_worker
 
-    conn = await asyncpg.connect(settings.supabase_db_url)
+    conn = await db.connect()
     try:
         # Target cycle: an explicit --year wins; otherwise the CRM-selected
         # intake (public.intakes); otherwise the upcoming academic year.
@@ -518,9 +514,8 @@ async def _todo(*, limit: int) -> int:
 
     import json as _json
 
-    import asyncpg
 
-    conn = await asyncpg.connect(settings.supabase_db_url)
+    conn = await db.connect()
     try:
         rows = await conn.fetch(
             """
@@ -569,7 +564,6 @@ async def _ingest_url(*, institution_id: str, url: str) -> int:
     from datetime import datetime, timezone
     from uuid import UUID
 
-    import asyncpg
     import httpx
 
     from .workers import guideline_finder_worker as gf
@@ -580,7 +574,7 @@ async def _ingest_url(*, institution_id: str, url: str) -> int:
         print(f"--institution must be a UUID, got {institution_id!r}", file=sys.stderr)
         return 2
 
-    conn = await asyncpg.connect(settings.supabase_db_url)
+    conn = await db.connect()
     try:
         row = await conn.fetchrow(
             "select id, name_ko, name_en, primary_domain from public.institutions where id=$1",
@@ -660,12 +654,11 @@ async def _propose_sources(*, days: int, mode: str) -> int:
 
     from datetime import datetime, timedelta, timezone
 
-    import asyncpg
     import httpx
 
     from .workers import propose_worker
 
-    conn = await asyncpg.connect(settings.supabase_db_url)
+    conn = await db.connect()
     try:
         async with httpx.AsyncClient(
             headers={"User-Agent": settings.http_user_agent},
