@@ -300,6 +300,51 @@ async def process_one_institution(
     return "skipped", last_note, len(candidates)
 
 
+async def ingest_one_url(
+    conn: asyncpg.Connection,
+    row: asyncpg.Record,
+    url: str,
+    *,
+    resolve: ResolveFn,
+    store_blob: _StoreBlob,
+    run_parse: RunParse,
+    identity_check: IdentityCheckFn | None = None,
+) -> tuple[str, str]:
+    """Ingest one caller-supplied PDF URL for a single institution.
+
+    Same download → content-hash dedup → identity gate → store → parse path as
+    ``process_one_institution``, but the URL is provided directly (e.g. by the
+    Routine agent's own web research) instead of discovered via site search — so
+    it needs no search backend (no Naver). Returns ``(outcome, note)`` where
+    outcome is ``ingested`` (note = guideline_document id) | ``unchanged`` |
+    ``skipped`` | ``error``.
+    """
+    try:
+        data, mime = await resolve(url)
+        if data is None:
+            return "skipped", mime  # `mime` carries the skip reason
+        sha256 = hashlib.sha256(data).hexdigest()
+        if await _known_hash(conn, sha256):
+            return "unchanged", "already ingested (same content hash)"
+        if identity_check is not None and not identity_check(data, row):
+            return "skipped", "identity rejected (wrong university / cycle / not a guideline)"
+        stored = store_blob(data, sha256=sha256, mime=mime)
+        gd_id = await insert_guideline_document(
+            conn,
+            institution_id=row["id"],
+            source_url_ko=url,
+            storage_path=stored.storage_path,
+            sha256=sha256,
+            size_bytes=len(data),
+            mime=mime,
+        )
+        await run_parse(conn, gd_id, data)
+        return "ingested", str(gd_id)
+    except Exception as exc:
+        log.warning("ingest_one_url: %s — %s", url, str(exc)[:160])
+        return "error", f"{type(exc).__name__}: {exc}"
+
+
 def _default_search_site(http: httpx.AsyncClient, since: datetime) -> SearchSiteFn:
     async def search(domain: str, keyword: str) -> list[Announcement]:
         adapter = NaverSearchAdapter(
