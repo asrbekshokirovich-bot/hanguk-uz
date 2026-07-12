@@ -75,6 +75,25 @@ def _build_parser() -> argparse.ArgumentParser:
                         help="Best-N ranked candidates to attempt downloading per "
                              "school before giving up (default 3)")
 
+    p_todo = sub.add_parser(
+        "todo",
+        help="Print (as JSON) the institutions that still need a current-cycle "
+             "guideline — the Routine agent's work list for ingest-url.",
+    )
+    p_todo.add_argument("--limit", type=int, default=20,
+                        help="Max institutions to return (keep subscription usage bounded)")
+
+    p_ingest_url = sub.add_parser(
+        "ingest-url",
+        help="LIVE: ingest+parse ONE guideline PDF at a caller-supplied URL for one "
+             "institution (no search backend — the URL is found by the Routine agent's "
+             "own web research). Keyless with UNI_DB_LLM_BACKEND=claude_cli.",
+    )
+    p_ingest_url.add_argument("--institution", required=True,
+                              help="institutions.id (UUID) the PDF belongs to")
+    p_ingest_url.add_argument("--url", required=True,
+                              help="Direct URL of the 모집요강 PDF (or a page that resolves to one)")
+
     p_publish = sub.add_parser(
         "publish",
         help="Normalize approved review items into the public tables the app reads "
@@ -119,6 +138,10 @@ def main(argv: list[str] | None = None) -> int:
         return asyncio.run(_find_guidelines(
             limit=args.limit, year=args.year, per_institution=args.per_institution,
         ))
+    if args.cmd == "todo":
+        return asyncio.run(_todo(limit=args.limit))
+    if args.cmd == "ingest-url":
+        return asyncio.run(_ingest_url(institution_id=args.institution, url=args.url))
     if args.cmd == "publish":
         return asyncio.run(_publish(limit=args.limit))
     if args.cmd == "propose-sources":
@@ -482,6 +505,127 @@ async def _find_guidelines(*, limit: int, year: int | None, per_institution: int
         f"(verify={settings.verify_level}, approval_required={settings.require_approval})"
     )
     return 0
+
+
+async def _todo(*, limit: int) -> int:
+    """Print, as JSON, institutions that still need a current-cycle guideline —
+    the Routine agent's work list. Each item: id, name, admissions_url, domain.
+    DB-only, no LLM, no external API — just needs SUPABASE_DB_URL.
+    """
+    if not settings.supabase_db_url:
+        print("SUPABASE_DB_URL is not set; cannot list work.", file=sys.stderr)
+        return 2
+
+    import json as _json
+
+    import asyncpg
+
+    conn = await asyncpg.connect(settings.supabase_db_url)
+    try:
+        rows = await conn.fetch(
+            """
+            select i.id::text as id,
+                   coalesce(i.name_en, i.name_ko) as name,
+                   i.name_ko,
+                   i.primary_admissions_url_ko as admissions_url,
+                   i.primary_domain as domain
+              from public.institutions i
+             where not exists (
+                     select 1 from public.guideline_documents g
+                      where g.institution_id = i.id
+                        and g.parse_status <> 'failed'
+                        and g.fetched_at > now() - interval '120 days'
+                   )
+             order by i.is_partner desc nulls last, i.tier asc nulls last, i.name_ko asc
+             limit $1
+            """,
+            limit,
+        )
+    finally:
+        await conn.close()
+
+    print(_json.dumps([dict(r) for r in rows], ensure_ascii=False, indent=2))
+    return 0
+
+
+async def _ingest_url(*, institution_id: str, url: str) -> int:
+    """LIVE: ingest+parse one guideline PDF at a caller-supplied URL for one
+    institution — the URL is found by the Routine agent's own web research, so
+    there is NO search backend (no Naver). With UNI_DB_LLM_BACKEND=claude_cli the
+    parse runs on the Claude subscription, so the whole path is keyless (only
+    SUPABASE_DB_URL is needed). Gated on UNI_DB_LIVE_CRAWL + UNI_DB_LIVE_APIS.
+    """
+    if not (settings.live_crawl and settings.live_apis):
+        print(
+            "ingest-url needs UNI_DB_LIVE_CRAWL=true and UNI_DB_LIVE_APIS=true "
+            "(real fetch + LLM parse). Refusing.",
+            file=sys.stderr,
+        )
+        return 2
+    if not settings.supabase_db_url:
+        print("SUPABASE_DB_URL is not set; cannot ingest.", file=sys.stderr)
+        return 2
+
+    from datetime import datetime, timezone
+    from uuid import UUID
+
+    import asyncpg
+    import httpx
+
+    from .workers import guideline_finder_worker as gf
+
+    try:
+        inst_uuid = UUID(institution_id)
+    except ValueError:
+        print(f"--institution must be a UUID, got {institution_id!r}", file=sys.stderr)
+        return 2
+
+    conn = await asyncpg.connect(settings.supabase_db_url)
+    try:
+        row = await conn.fetchrow(
+            "select id, name_ko, name_en, primary_domain from public.institutions where id=$1",
+            inst_uuid,
+        )
+        if row is None:
+            print(f"institution {institution_id} not found", file=sys.stderr)
+            return 2
+
+        target_year: int | None = None
+        target_term: str | None = None
+        cycle = await gf.fetch_target_cycle(conn)
+        if cycle is not None:
+            target_year, target_term = cycle
+        if target_year is None:
+            target_year = datetime.now(tz=timezone.utc).year + 1
+
+        verify_on = settings.verify_level.lower() != "off"
+        identity_check = (
+            gf.make_identity_check(target_year, target_term) if verify_on else None
+        )
+        run_parse = gf.make_run_parse(target_year, target_term)
+
+        async with httpx.AsyncClient(
+            headers={"User-Agent": settings.http_user_agent},
+            follow_redirects=True,
+            timeout=settings.http_request_timeout_sec,
+        ) as http:
+            outcome, note = await gf.ingest_one_url(
+                conn,
+                row,
+                url,
+                resolve=gf._make_default_resolve(http),
+                store_blob=gf._default_store_blob,
+                run_parse=run_parse,
+                identity_check=identity_check,
+            )
+    finally:
+        await conn.close()
+
+    print(
+        f"ingest-url: {outcome} — {note} (institution={institution_id}, "
+        f"verify={settings.verify_level}, approval_required={settings.require_approval})"
+    )
+    return 0 if outcome in ("ingested", "unchanged") else 1
 
 
 async def _propose_sources(*, days: int, mode: str) -> int:

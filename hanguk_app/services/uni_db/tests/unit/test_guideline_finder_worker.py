@@ -386,3 +386,62 @@ async def test_fetch_target_cycle_missing_table_returns_none() -> None:
             raise RuntimeError('relation "public.intakes" does not exist')
 
     assert await gfw.fetch_target_cycle(_NoTableConn()) is None
+
+
+# --- ingest_one_url: single caller-supplied URL (no search backend) -----------
+
+async def _resolve_ok(_url: str):
+    return PDF, "application/pdf"
+
+
+async def _resolve_none(_url: str):
+    return None, "not a pdf"
+
+
+def _make_parse(sink: list):
+    async def parse(_conn, gd_id, _data) -> None:
+        sink.append(gd_id)
+    return parse
+
+
+async def test_ingest_url_ingests_new_pdf() -> None:
+    parsed: list = []
+    conn = _Conn()
+    outcome, note = await gfw.ingest_one_url(
+        conn, _row(), "https://inha.ac.kr/guide.pdf",
+        resolve=_resolve_ok, store_blob=_store, run_parse=_make_parse(parsed),
+    )
+    assert outcome == "ingested"
+    assert len(parsed) == 1  # the parse gauntlet ran on the new doc
+
+
+async def test_ingest_url_dedups_by_content_hash() -> None:
+    parsed: list = []
+    conn = _Conn(known_hashes={PDF_SHA})
+    outcome, _ = await gfw.ingest_one_url(
+        conn, _row(), "https://inha.ac.kr/guide.pdf",
+        resolve=_resolve_ok, store_blob=_store, run_parse=_make_parse(parsed),
+    )
+    assert outcome == "unchanged"
+    assert parsed == []  # already-seen content: no re-parse
+
+
+async def test_ingest_url_identity_reject_skips() -> None:
+    parsed: list = []
+    conn = _Conn()
+    outcome, _ = await gfw.ingest_one_url(
+        conn, _row(), "https://inha.ac.kr/wrong.pdf",
+        resolve=_resolve_ok, store_blob=_store, run_parse=_make_parse(parsed),
+        identity_check=lambda _data, _row: False,
+    )
+    assert outcome == "skipped"
+    assert parsed == []
+
+
+async def test_ingest_url_resolve_none_skips() -> None:
+    outcome, note = await gfw.ingest_one_url(
+        _Conn(), _row(), "https://inha.ac.kr/page.html",
+        resolve=_resolve_none, store_blob=_store, run_parse=_make_parse([]),
+    )
+    assert outcome == "skipped"
+    assert note == "not a pdf"

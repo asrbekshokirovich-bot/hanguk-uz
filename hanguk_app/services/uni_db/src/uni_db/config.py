@@ -22,6 +22,16 @@ class Settings(BaseSettings):
     live_crawl: bool = Field(default=False, alias="UNI_DB_LIVE_CRAWL")
     env: str = Field(default="development", alias="UNI_DB_ENV")
 
+    # LLM backend for extraction + verification:
+    #   anthropic  — the Anthropic API (needs ANTHROPIC_API_KEY, billed per token)
+    #   claude_cli — shell out to the local `claude` CLI, which authenticates via
+    #                the running Claude Code session's subscription (NO api key,
+    #                no per-token bill). Used when the crawl runs inside a Claude
+    #                Routine so the whole pipeline stays keyless.
+    llm_backend: str = Field(default="anthropic", alias="UNI_DB_LLM_BACKEND")
+    # Path/name of the claude CLI binary (claude_cli backend only).
+    claude_cli_bin: str = Field(default="claude", alias="UNI_DB_CLAUDE_CLI")
+
     # Auto-publish (no human review). When true (default), parse_worker
     # auto-approves every non-empty/non-failed extraction straight into
     # review_queue as `approved` — low-confidence/difficult ones flagged

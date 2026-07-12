@@ -34,17 +34,24 @@ def call_json(system: str, user: str, model: str, *, max_tokens: int = 2048) -> 
             "verify.call_json needs UNI_DB_LIVE_APIS=true (paid Claude call). "
             "Tests should inject a fake call_json instead."
         )
-    if not settings.anthropic_api_key:
-        raise RuntimeError("ANTHROPIC_API_KEY is not set; cannot run verification agents.")
 
-    client = _get_client()
-    response = client.messages.create(
-        model=model,
-        max_tokens=max_tokens,
-        system=[{"type": "text", "text": system, "cache_control": {"type": "ephemeral"}}],
-        messages=[{"role": "user", "content": user}],
-    )
-    raw = _strip_fences(_extract_text(response))
+    if settings.llm_backend == "claude_cli":
+        # Keyless path — verifier agents run on the Claude Code subscription.
+        from ..extract.llm_cli import run_claude_cli
+
+        raw = _strip_fences(run_claude_cli(system, user, model))
+    else:
+        if not settings.anthropic_api_key:
+            raise RuntimeError("ANTHROPIC_API_KEY is not set; cannot run verification agents.")
+
+        client = _get_client()
+        response = client.messages.create(
+            model=model,
+            max_tokens=max_tokens,
+            system=[{"type": "text", "text": system, "cache_control": {"type": "ephemeral"}}],
+            messages=[{"role": "user", "content": user}],
+        )
+        raw = _strip_fences(_extract_text(response))
     try:
         parsed = json.loads(raw)
     except json.JSONDecodeError:
