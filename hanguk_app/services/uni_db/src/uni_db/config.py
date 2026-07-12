@@ -149,6 +149,23 @@ class Settings(BaseSettings):
     log_level: str = Field(default="INFO", alias="LOG_LEVEL")
 
 
+    @property
+    def effective_verify_level(self) -> str:
+        """The verify level actually used, given the LLM backend.
+
+        On the `claude_cli` (subscription) backend, cap the reliability gauntlet
+        at `balanced` — deterministic grounding + sanity only, NO LLM judges and
+        NO consensus re-extraction. The heavy levels fan out ~35 nested `claude`
+        calls per document, which spikes subscription usage and trips limits; the
+        deterministic gates plus mandatory staff approval keep quality. `off`
+        stays off. The API backend keeps the configured level unchanged.
+        """
+        lvl = self.verify_level.lower()
+        if lvl == "off" or self.llm_backend != "claude_cli":
+            return lvl
+        return "balanced" if lvl in ("thorough", "maximum") else lvl
+
+
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
     return Settings()  # type: ignore[call-arg]

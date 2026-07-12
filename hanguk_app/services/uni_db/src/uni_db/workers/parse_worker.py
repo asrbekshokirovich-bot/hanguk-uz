@@ -87,7 +87,9 @@ def parse_one_document(
     """
     auto = settings.auto_publish_enabled if auto_publish is None else auto_publish
     approve = settings.require_approval if require_approval is None else require_approval
-    level = (settings.verify_level if verify_level is None else verify_level).lower()
+    # effective_verify_level caps the gauntlet at 'balanced' on the claude_cli
+    # (subscription) backend so a document doesn't fan out ~35 nested claude calls.
+    level = (settings.effective_verify_level if verify_level is None else verify_level).lower()
     year = target_year if target_year is not None else (datetime.now(tz=timezone.utc).year + 1)
     archetype = classify_archetype(pdf_text_first_pages)
     degree = classify_degree_level(

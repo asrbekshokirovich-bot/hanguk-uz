@@ -23,6 +23,7 @@ import json
 import logging
 import subprocess
 import tempfile
+import threading
 from pathlib import Path
 
 from ..config import settings
@@ -32,6 +33,12 @@ log = logging.getLogger(__name__)
 # LLM calls can take 60-120s for long structured extractions; give the CLI
 # headroom over the API path's 120s since it also pays session-spawn overhead.
 _CLI_TIMEOUT_SEC = 240.0
+
+# Serialize every `claude` invocation process-wide so the crawl never runs two
+# subscription-backed Claude calls at once — concurrent calls spike usage and
+# trip rate limits. Even though the pipeline is already sequential, this is a
+# hard guarantee: at most ONE `claude` subprocess runs at any moment.
+_CLI_LOCK = threading.Lock()
 
 
 class ClaudeCliError(RuntimeError):
@@ -81,13 +88,15 @@ def run_claude_cli(
             sys_file.name,
         ]
         try:
-            proc = subprocess.run(
-                cmd,
-                input=user,
-                capture_output=True,
-                text=True,
-                timeout=timeout,
-            )
+            # One at a time, always — never two Claude calls concurrently.
+            with _CLI_LOCK:
+                proc = subprocess.run(
+                    cmd,
+                    input=user,
+                    capture_output=True,
+                    text=True,
+                    timeout=timeout,
+                )
         except subprocess.TimeoutExpired as exc:
             raise ClaudeCliError(f"claude CLI timed out after {timeout:.0f}s") from exc
         except FileNotFoundError as exc:

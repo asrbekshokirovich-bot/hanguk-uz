@@ -79,3 +79,30 @@ def test_extract_field_group_routes_through_cli_without_api_key(monkeypatch):
     assert captured.get("called") is True
     assert result.llm_provider == "claude_cli"
     assert len(result.parsed_output["rows"]) == 1
+
+
+# --- usage guards: serialize CLI calls + cap verify depth on the subscription --
+
+def test_cli_calls_are_serialized_by_a_lock():
+    import threading
+    # a real lock instance so concurrent pipeline calls can never overlap
+    assert isinstance(llm_cli._CLI_LOCK, type(threading.Lock()))
+
+
+def test_effective_verify_level_caps_on_claude_cli(monkeypatch):
+    # API backend: level passes through unchanged
+    monkeypatch.setattr(settings, "llm_backend", "anthropic")
+    monkeypatch.setattr(settings, "verify_level", "maximum")
+    assert settings.effective_verify_level == "maximum"
+
+    # claude_cli backend: heavy levels drop to 'balanced' (deterministic only)
+    monkeypatch.setattr(settings, "llm_backend", "claude_cli")
+    for heavy in ("maximum", "thorough", "MAXIMUM"):
+        monkeypatch.setattr(settings, "verify_level", heavy)
+        assert settings.effective_verify_level == "balanced"
+
+    # 'off' stays off; lighter levels pass through
+    monkeypatch.setattr(settings, "verify_level", "off")
+    assert settings.effective_verify_level == "off"
+    monkeypatch.setattr(settings, "verify_level", "balanced")
+    assert settings.effective_verify_level == "balanced"
