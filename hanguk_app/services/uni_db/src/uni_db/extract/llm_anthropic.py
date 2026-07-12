@@ -187,7 +187,9 @@ def extract_field_group(
             accuracy_self_score=_self_score(parsed),
         )
 
-    call = _call_anthropic(
+    use_cli = settings.llm_backend == "claude_cli"
+    backend = _call_claude_cli if use_cli else _call_anthropic
+    call = backend(
         field_group=field_group,
         archetype=archetype,
         source_text_ko=source_text_ko,
@@ -200,7 +202,7 @@ def extract_field_group(
         field_group=field_group,
         parsed_output=parsed,
         raw_output=call.raw,
-        llm_provider="anthropic",
+        llm_provider="claude_cli" if use_cli else "anthropic",
         llm_model=call.model,
         input_tokens=call.input_tokens,
         output_tokens=call.output_tokens,
@@ -381,6 +383,80 @@ def _normalize_wrapper(parsed: dict[str, Any], field_group: str) -> dict[str, An
     return parsed
 
 
+def _parse_extraction_output(raw: str, field_group: str) -> dict[str, Any]:
+    """Parse the model's JSON output, recovering from fences / prose / truncation.
+
+    Shared by the API and claude-CLI backends so both get identical fence
+    stripping, outermost-object fallback, and mid-array salvage.
+    """
+    stripped = _strip_fences(raw)
+    try:
+        parsed: dict[str, Any] | None = json.loads(stripped)
+    except json.JSONDecodeError:
+        parsed = None
+        start = stripped.find("{")
+        end = stripped.rfind("}")
+        if start != -1 and end > start:
+            try:
+                parsed = json.loads(stripped[start : end + 1])
+            except json.JSONDecodeError:
+                parsed = None
+        if parsed is None:
+            salvaged = _salvage_partial_json(stripped, field_group)
+            if salvaged is not None:
+                log.warning(
+                    "extract: %s response truncated; salvaged %d %s rows",
+                    field_group,
+                    len(next(iter(salvaged.values()))),
+                    next(iter(salvaged.keys())),
+                )
+                parsed = salvaged
+            else:
+                raise AnthropicResponseError(
+                    f"model response was not valid JSON; raw={raw[:200]!r}"
+                ) from None
+    if not isinstance(parsed, dict):
+        raise AnthropicResponseError(
+            f"model response parsed to {type(parsed).__name__}, expected dict"
+        )
+    return _normalize_wrapper(parsed, field_group)
+
+
+def _call_claude_cli(
+    *,
+    field_group: str,
+    archetype: str,
+    source_text_ko: str,
+) -> _AnthropicCallResult:
+    """Keyless extraction via the `claude` CLI (subscription auth, no API key)."""
+    from .llm_cli import run_claude_cli
+
+    prompt = assemble_prompt(
+        field_group=field_group,  # type: ignore[arg-type]
+        archetype=archetype,
+        source_text_ko=source_text_ko,
+        glossary=_default_glossary(),
+    )
+    log.info(
+        "extract: calling claude CLI (subscription) for %s/%s (~%d input tokens est.)",
+        archetype,
+        field_group,
+        prompt.estimated_input_tokens,
+    )
+    raw = run_claude_cli(prompt.system, prompt.user, settings.anthropic_model_extract)
+    parsed = _parse_extraction_output(raw, field_group)
+    return _AnthropicCallResult(
+        parsed=parsed,
+        raw=raw,
+        model=settings.anthropic_model_extract,
+        input_tokens=0,
+        output_tokens=0,
+        cached_input_tokens=0,
+        cache_write_tokens=0,
+        cost_usd=0.0,
+    )
+
+
 def _compute_cost_usd(
     *,
     input_tokens: int,
@@ -470,42 +546,7 @@ def _call_anthropic(
     )
 
     raw = _extract_text(response)
-    stripped = _strip_fences(raw)
-    try:
-        parsed = json.loads(stripped)
-    except json.JSONDecodeError:
-        # Fallback 1: the model occasionally wraps the JSON in prose. Extract
-        # the outermost {...} span and try once more.
-        parsed = None
-        start = stripped.find("{")
-        end = stripped.rfind("}")
-        if start != -1 and end > start:
-            try:
-                parsed = json.loads(stripped[start : end + 1])
-            except json.JSONDecodeError:
-                parsed = None
-        # Fallback 2: the response truncated mid-array at max_tokens. Salvage
-        # the complete row/event objects instead of discarding the whole job
-        # (this is what was losing real data — "Expecting ',' delimiter").
-        if parsed is None:
-            salvaged = _salvage_partial_json(stripped, field_group)
-            if salvaged is not None:
-                log.warning(
-                    "extract: %s/%s response truncated; salvaged %d %s rows",
-                    archetype, field_group,
-                    len(next(iter(salvaged.values()))),
-                    next(iter(salvaged.keys())),
-                )
-                parsed = salvaged
-            else:
-                raise AnthropicResponseError(
-                    f"Anthropic response was not valid JSON; raw={raw[:200]!r}"
-                ) from None
-    if not isinstance(parsed, dict):
-        raise AnthropicResponseError(
-            f"Anthropic response parsed to {type(parsed).__name__}, expected dict"
-        )
-    parsed = _normalize_wrapper(parsed, field_group)
+    parsed = _parse_extraction_output(raw, field_group)
 
     usage = response.usage
     input_tokens = int(getattr(usage, "input_tokens", 0) or 0)
