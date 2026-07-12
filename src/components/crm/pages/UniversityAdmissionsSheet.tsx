@@ -38,7 +38,9 @@ import {
   Wallet,
   CalendarClock,
   CheckCircle2,
+  StickyNote,
 } from 'lucide-react';
+import { InstitutionNotesPanel } from './InstitutionNotesPanel';
 
 interface Props {
   institution: Institution | null;
@@ -270,7 +272,7 @@ export function UniversityAdmissionsSheet({ institution, open, onOpenChange }: P
           </div>
         ) : (
           <Tabs defaultValue="requirements" className="flex-1 flex flex-col min-h-0">
-            <TabsList className="mx-5 mt-3 grid grid-cols-5">
+            <TabsList className="mx-5 mt-3 grid grid-cols-6">
               <TabsTrigger value="requirements" className="gap-1">
                 <GraduationCap className="h-3.5 w-3.5" /> Tracks
                 <Badge variant="secondary" className="ml-1 px-1">{counts.req}</Badge>
@@ -290,6 +292,9 @@ export function UniversityAdmissionsSheet({ institution, open, onOpenChange }: P
               <TabsTrigger value="calendar" className="gap-1">
                 <CalendarClock className="h-3.5 w-3.5" /> Calendar
                 <Badge variant="secondary" className="ml-1 px-1">{counts.per}</Badge>
+              </TabsTrigger>
+              <TabsTrigger value="notes" className="gap-1">
+                <StickyNote className="h-3.5 w-3.5" /> Notes
               </TabsTrigger>
             </TabsList>
 
@@ -340,6 +345,10 @@ export function UniversityAdmissionsSheet({ institution, open, onOpenChange }: P
                   ) : (
                     <EmptySection label="application calendar" />
                   )}
+                </TabsContent>
+
+                <TabsContent value="notes" className="mt-2">
+                  <InstitutionNotesPanel institutionId={institution?.id ?? null} />
                 </TabsContent>
 
                 {data && data.flaggedCount === 0 ? (

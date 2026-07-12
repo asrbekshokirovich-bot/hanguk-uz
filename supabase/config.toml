@@ -96,19 +96,7 @@ verify_jwt = false
 [functions.validate-document]
 verify_jwt = false
 
-[functions.find-application-form]
-verify_jwt = false
-
-[functions.analyze-application-form]
-verify_jwt = false
-
-[functions.validate-application-data]
-verify_jwt = false
-
 [functions.study-plan-trainer]
-verify_jwt = false
-
-[functions.search-university]
 verify_jwt = false
 
 [functions.analyze-lead]
@@ -117,27 +105,12 @@ verify_jwt = false
 [functions.kakao-roadview-proxy]
 verify_jwt = false
 
-[functions.discover-university-websites]
-verify_jwt = false
-
-[functions.find-faculty-forms]
-verify_jwt = false
-
-[functions.check-search-job]
-verify_jwt = false
-
 [functions.document-proxy]
 verify_jwt = false
 
 [functions.leads-intelligence]
 verify_jwt = false
 
-[functions.sync-admission-forms]
-verify_jwt = false
-
-[functions.seed-gks-data]
-verify_jwt = false
-
-[functions.import-academyinfo]
+[functions.compare-universities]
 verify_jwt = false
 

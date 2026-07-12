@@ -27,16 +27,6 @@ def fixtures_dir() -> Path:
 
 
 @pytest.fixture
-def snu_list_fixture(fixtures_dir: Path) -> Path:
-    return fixtures_dir / "snu_list.html"
-
-
-@pytest.fixture
-def rss_fixture(fixtures_dir: Path) -> Path:
-    return fixtures_dir / "sample_rss.xml"
-
-
-@pytest.fixture
 def naver_search_fixture(fixtures_dir: Path) -> Path:
     return fixtures_dir / "sample_naver_search.json"
 

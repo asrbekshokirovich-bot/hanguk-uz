@@ -17,7 +17,8 @@
  *
  * Deferred (intentionally hidden):
  *   - LLM-powered "AI add" form  (legacy AIUniversityForm)
- *   - Bulk-import button (legacy `koreanUniversitiesApi.startBackgroundImport`)
+ *   - Bulk-import button (the legacy koreanUniversitiesApi client has since
+ *     been removed; a replacement will be built against institutions)
  *
  * Both will be re-implemented later against the institutions schema +
  * recruitment_units. For now they're behind a hard-coded false flag so

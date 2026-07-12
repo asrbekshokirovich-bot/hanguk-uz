@@ -2,7 +2,6 @@
 
 Phase 0 commands:
   review-digest          Print HITL review queue as Markdown digest.
-  crawl --source X       Run discovery against a fixture (no live HTTP).
   parse  --fixture NAME  Run extraction (mocked LLM) against a fixture PDF.
   schema-check           Verify migrations parse and that tables-of-record
                          are referenced by views.
@@ -29,11 +28,6 @@ def _build_parser() -> argparse.ArgumentParser:
 
     p_review = sub.add_parser("review-digest", help="Print HITL queue as markdown")
     p_review.add_argument("--limit", type=int, default=20)
-
-    p_crawl = sub.add_parser("crawl", help="Run discovery against a source")
-    p_crawl.add_argument("--source", required=True, help="e.g. snu | rss-fixture")
-    p_crawl.add_argument("--fixture", action="store_true",
-                         help="Read from tests/fixtures/<source>.html")
 
     p_parse = sub.add_parser("parse", help="Run extraction over a fixture PDF")
     p_parse.add_argument("--fixture", required=True,
@@ -112,8 +106,6 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.cmd == "review-digest":
         return asyncio.run(_review_digest(limit=args.limit))
-    if args.cmd == "crawl":
-        return asyncio.run(_crawl_fixture(source=args.source, fixture=args.fixture))
     if args.cmd == "parse":
         return asyncio.run(_parse_fixture(name=args.fixture))
     if args.cmd == "run-pipeline":
@@ -228,53 +220,6 @@ async def _review_digest(*, limit: int) -> int:
         for r in accuracy_rows
     ]
     print(render_digest(queue=queue, accuracy=accuracy, overdue=overdue))
-    return 0
-
-
-async def _crawl_fixture(*, source: str, fixture: bool) -> int:
-    if not fixture:
-        print("Phase 0 only supports --fixture mode.", file=sys.stderr)
-        return 2
-
-    from uuid import uuid4
-
-    from .discovery.adapters.html_list_adapter import HtmlListAdapter, HtmlListSelectors
-    from .discovery.registry import RegistrySource
-    from .workers.discovery_worker import run_one_source
-
-    fixture_root = Path(__file__).parent.parent.parent / "tests" / "fixtures"
-    candidate = fixture_root / f"{source}_list.html"
-    if not candidate.exists():
-        print(f"fixture {candidate} missing", file=sys.stderr)
-        return 2
-
-    adapter = HtmlListAdapter(
-        source_id=uuid4(),
-        source_url_ko="https://admission.snu.ac.kr/international/notice",
-        selectors=HtmlListSelectors(
-            row="tr.notice-row",
-            title="td.title",
-            link="td.title a",
-            posted_at="td.date",
-        ),
-        fixture_path=candidate,
-    )
-    src = RegistrySource(
-        id=adapter.source_id,
-        institution_id=None,
-        source_type="university_admission_board",
-        url_ko=adapter.source_url_ko,
-        status="live",
-        cron_high_season_minutes=360,
-        cron_off_season_minutes=1440,
-        consecutive_fails=0,
-    )
-    run = await run_one_source(source=src, adapter=adapter, prior_snapshots={})
-    print(f"# discovery run — {source}")
-    print(f"  records_seen={run.summary.records_seen} new={run.summary.records_new} "
-          f"changed={run.summary.records_changed} status={run.summary.status}")
-    for ann, finding in run.findings:
-        print(f"  - [{finding.finding_type}/P{finding.priority}] {ann.title_ko[:80]}")
     return 0
 
 
