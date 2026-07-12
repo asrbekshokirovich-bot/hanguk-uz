@@ -136,7 +136,19 @@ Fix the two prose-only comments in `src/components/crm/pages/UniversitiesContent
 
 ---
 
-## Phase 3 — Dormant uni_db discovery modules NOT reused by the live path
+## Phase 3 — Retire the board-polling discovery cluster ✅ EXECUTED 2026-07-11 (per decision A)
+
+> **Done** on branch `claude/hanguluk-cloud-sync-scheduler-r6bmy1` (this PR). Owner decision A confirmed the cloud Routine (`find-guidelines`) has replaced the Hetzner `uni-db-sync` timer, so the whole board-polling crawl cluster was retired as one coordinated change:
+> - **Removed (src):** `workers/discovery_worker.py`; `discovery/{change_detection,registry,classifier,canonical_sources,attachment_downloader}.py`; the board adapters `discovery/adapters/{html_list,json_api,playwright,rss}_adapter.py` + the whole `discovery/adapters/configs/` dir. Kept: `naver_search_adapter.py`, `_adapter_base.py`, `keywords_ko.py`, `models.py` (finder reuses these), and the entire `propose_*` path (`propose_worker.registrable_domain` is finder-reused).
+> - **Removed (scripts/tests/infra):** `scripts/{run_discovery_once,_remote_test,_cbnu_adapter_debug}.py`; 7 coupled test files + 2 fixtures (`snu_list.html`, `sample_rss.xml`); `infra/systemd/uni-db-sync.{service,timer}`.
+> - **Edited:** dropped the `crawl` subcommand from `cli.py`; removed the two orphaned fixtures from `tests/conftest.py`; `infra/deploy.sh` now disables `uni-db-sync` and enables only `uni-db-adiga-calendar` (the separate weekly Adiga fetch, kept). `run-pipeline` + `fetch_worker.fetch_candidates` were **left intact** (not in decision A; they read the still-present `announcements` tables).
+> - **Verified:** `524 uni_db tests pass`, `ruff check src tests` clean.
+>
+> **⚠️ Deploy sequencing:** merging this PR does **not** touch the Hetzner box — the old units keep running there until someone runs `deploy.sh`. Once the updated `deploy.sh` is run it will *stop* the Hetzner crawl, so the cloud Routine must be confirmed working (its secrets set — see go-live prerequisite) **before** that deploy, or there will be a coverage gap.
+>
+> **Still owner-run (Phase 4):** drop the now-unfed prod tables `crawl_findings` / `announcement_sources` (+ the unused `classifier_label` column) after a backup. Not removed here: `upstream/data_go_kr.py` and `extract/cost_estimator.py` (deferred — the latter is owner_decision F).
+
+### (original analysis) Dormant uni_db discovery modules NOT reused by the live path
 
 These are genuinely un-wired: the finder imports only `naver_search_adapter` + `discovery.models`, never these. Cleanly removable **except** `registry.py`, which is coupled to the dormant crawl cluster and can only go as part of that cluster's retirement (owner_decision).
 
