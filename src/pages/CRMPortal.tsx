@@ -19,6 +19,7 @@ import { SeasonSwitcher } from '@/components/crm/SeasonSwitcher';
 import { IntakeBanner } from '@/components/crm/IntakeBanner';
 import { NotificationBell } from '@/components/crm/NotificationBell';
 import { HangukAIChat } from '@/components/ai/HangukAIChat';
+import { StaffPresenceProvider } from '@/contexts/StaffPresenceContext';
 import { IntercomProvider } from '@/components/intercom/IntercomProvider';
 import { VoiceChannelProvider } from '@/components/intercom/VoiceChannelProvider';
 import { VoiceChannelHeader } from '@/components/intercom/VoiceChannelHeader';
@@ -424,6 +425,7 @@ export default function CRMPortal() {
   };
 
   return (
+    <StaffPresenceProvider>
     <IntercomProvider>
       <VoiceChannelProvider>
         <SidebarProvider
@@ -482,5 +484,6 @@ export default function CRMPortal() {
         </SidebarProvider>
       </VoiceChannelProvider>
     </IntercomProvider>
+    </StaffPresenceProvider>
   );
 }

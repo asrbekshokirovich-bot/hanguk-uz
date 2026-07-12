@@ -75,4 +75,33 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    // Split large third-party libraries into their own long-lived chunks so an
+    // application code change doesn't invalidate the vendor cache, and so heavy
+    // libs (charts, maps) load only on the routes that use them.
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          "react-vendor": ["react", "react-dom", "react-router-dom"],
+          "supabase": ["@supabase/supabase-js"],
+          "radix": [
+            "@radix-ui/react-dialog",
+            "@radix-ui/react-dropdown-menu",
+            "@radix-ui/react-popover",
+            "@radix-ui/react-select",
+            "@radix-ui/react-tabs",
+            "@radix-ui/react-toast",
+            "@radix-ui/react-tooltip",
+            "@radix-ui/react-accordion",
+            "@radix-ui/react-scroll-area",
+          ],
+          "charts": ["recharts"],
+          "maps": ["leaflet"],
+          "i18n": ["i18next", "react-i18next", "i18next-browser-languagedetector"],
+          "forms": ["react-hook-form", "@hookform/resolvers", "zod"],
+          "date": ["date-fns"],
+        },
+      },
+    },
+  },
 }));

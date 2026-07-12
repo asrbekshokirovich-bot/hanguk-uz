@@ -79,17 +79,32 @@ export function usePeerReview() {
       if (toGiveError) {
         console.error('Error fetching reviews to give:', toGiveError);
       } else {
-        // Fetch draft content for each review
-        const reviewsWithContent = await Promise.all(
-          ((toGive as any) || []).map(async (review: any) => {
-            const { data: draft } = await supabase
-              .from('study_plan_drafts')
-              .select('content')
-              .eq('id', review.draft_id)
-              .single();
-            return { ...review, draft_content: draft?.content };
-          })
-        );
+        // Batch-fetch draft content for every review in a single query.
+        // Previously this ran one drafts query per review (an N+1);
+        // now it's one .in() lookup keyed into a Map.
+        const draftIds = Array.from(
+          new Set(
+            ((toGive as any[]) || [])
+              .map((review: any) => review.draft_id)
+              .filter((id: any): id is string => Boolean(id)),
+          ),
+        ) as string[];
+
+        const draftContentById = new Map<string, string>();
+        if (draftIds.length > 0) {
+          const { data: drafts } = await supabase
+            .from('study_plan_drafts')
+            .select('id, content')
+            .in('id', draftIds);
+          for (const draft of (drafts as any) ?? []) {
+            draftContentById.set(draft.id, draft.content);
+          }
+        }
+
+        const reviewsWithContent = ((toGive as any) || []).map((review: any) => ({
+          ...review,
+          draft_content: draftContentById.get(review.draft_id),
+        }));
         setMyReviewsToGive(reviewsWithContent);
       }
 

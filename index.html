@@ -10,13 +10,23 @@
     <meta name="description" content="Janubiy Koreya universitetlariga ariza berish platformasi. O'qish uchun professional yordam va qo'llab-quvvatlash." />
     <meta name="author" content="Hanguk Consulting" />
 
-    <!-- Fonts: Inter (UI) + JetBrains Mono (codes/data) — Hanguk Design System -->
+    <!-- Fonts: Inter (UI) + JetBrains Mono (codes/data) — Hanguk Design System.
+         Loaded non-render-blocking (media=print swap) so first paint isn't gated on
+         Google Fonts. Only weights actually used in the app are requested. -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      media="print"
+      onload="this.media='all'"
     />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      />
+    </noscript>
 
     <!-- Theme Color — Royal Blue #1A3A6C -->
     <meta name="theme-color" content="#1A3A6C" />
@@ -54,10 +64,15 @@
       (function() {
         var APP_VERSION = '1.0.1_stability_refactor';
         var currentVersion = localStorage.getItem('hanguk_app_version');
-        
-        if (currentVersion !== APP_VERSION) {
+
+        // First-ever visit: nothing is cached yet, so just record the version.
+        // Skipping the unregister+reload avoids a needless double page load for
+        // every new visitor (the reload path only matters for real upgrades).
+        if (currentVersion === null) {
+          localStorage.setItem('hanguk_app_version', APP_VERSION);
+        } else if (currentVersion !== APP_VERSION) {
           console.log('Version mismatch detected! Bypassing cache lock and updating from ' + currentVersion + ' to ' + APP_VERSION);
-          
+
           if ('serviceWorker' in navigator) {
             navigator.serviceWorker.getRegistrations().then(function(registrations) {
               for(let registration of registrations) {

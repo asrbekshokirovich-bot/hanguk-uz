@@ -57,37 +57,33 @@ export function useTasks() {
     ).order('created_at', { ascending: false });
 
     if (!error && data) {
-      // Fetch profiles for assignees and creators
-      const tasksWithProfiles = await Promise.all(
-        data.map(async (task) => {
-          let assignee = null;
-          let creator = null;
-
-          if (task.assigned_to) {
-            const { data: assigneeData } = await supabase
-              .from('profiles')
-              .select('full_name')
-              .eq('user_id', task.assigned_to)
-              .maybeSingle();
-            assignee = assigneeData;
-          }
-
-          if (task.created_by) {
-            const { data: creatorData } = await supabase
-              .from('profiles')
-              .select('full_name')
-              .eq('user_id', task.created_by)
-              .maybeSingle();
-            creator = creatorData;
-          }
-
-          return {
-            ...task,
-            assignee,
-            creator,
-          };
-        })
+      // Batch-fetch every assignee/creator profile in a single query.
+      // Previously this ran two per-row queries per task (an N+1 of up to
+      // 2N round-trips); now it's one .in() lookup keyed into a Map.
+      const userIds = Array.from(
+        new Set(
+          data
+            .flatMap((task) => [task.assigned_to, task.created_by])
+            .filter((id): id is string => Boolean(id)),
+        ),
       );
+
+      const profileByUserId = new Map<string, { full_name: string | null }>();
+      if (userIds.length > 0) {
+        const { data: profs } = await supabase
+          .from('profiles')
+          .select('user_id, full_name')
+          .in('user_id', userIds);
+        for (const p of profs ?? []) {
+          profileByUserId.set(p.user_id, { full_name: p.full_name });
+        }
+      }
+
+      const tasksWithProfiles = data.map((task) => ({
+        ...task,
+        assignee: task.assigned_to ? profileByUserId.get(task.assigned_to) ?? null : null,
+        creator: task.created_by ? profileByUserId.get(task.created_by) ?? null : null,
+      }));
       setTasks(tasksWithProfiles as Task[]);
     }
     setLoading(false);

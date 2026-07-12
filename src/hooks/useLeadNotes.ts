@@ -78,16 +78,34 @@ export const useLeadNotes = (leadId: string | null) => {
 
       if (error) throw error;
 
-      // Fetch author names
-      const notesWithAuthors = await Promise.all(
-        (data || []).map(async (note) => {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('full_name')
-            .eq('user_id', note.created_by)
-            .maybeSingle();
-          return { ...note, author: profile } as LeadNote;
-        })
+      // Batch-fetch every author profile in a single query.
+      // Previously this ran one profiles query per note (an N+1);
+      // now it's one .in() lookup keyed into a Map.
+      const authorIds = Array.from(
+        new Set(
+          (data || [])
+            .map((note) => note.created_by)
+            .filter((id): id is string => Boolean(id)),
+        ),
+      );
+
+      const profileByUserId = new Map<string, { full_name: string | null }>();
+      if (authorIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('user_id, full_name')
+          .in('user_id', authorIds);
+        for (const profile of profiles ?? []) {
+          profileByUserId.set(profile.user_id, { full_name: profile.full_name });
+        }
+      }
+
+      const notesWithAuthors = (data || []).map(
+        (note) =>
+          ({
+            ...note,
+            author: note.created_by ? profileByUserId.get(note.created_by) ?? null : null,
+          }) as LeadNote,
       );
 
       setNotes(notesWithAuthors);

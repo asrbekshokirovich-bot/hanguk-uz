@@ -7,24 +7,38 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { ThemeProvider } from "next-themes";
 import { NativeRouterHandler } from "@/components/native/NativeRouterHandler";
-import { useEffect } from "react";
+import { Suspense, lazy, useEffect } from "react";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import "@/lib/i18n";
 
+// Index and NotFound stay eager: Index is the landing route (fastest first paint)
+// and NotFound is trivial. Every heavy route below is code-split so visiting the
+// landing/login page no longer downloads the CRM, maps, charts and AI modules.
 import Index from "./pages/Index";
-import Auth from "./pages/Auth";
-import Install from "./pages/Install";
-import Privacy from "./pages/Privacy";
-import Terms from "./pages/Terms";
-import StudentPortal from "./pages/StudentPortal";
-import { StudentDataProvider } from "./contexts/StudentDataContext";
-import CRMPortal from "./pages/CRMPortal";
-import { IntakeProvider } from "./contexts/IntakeContext";
-import InterviewPractice from "./pages/InterviewPractice";
-import StudyPlanTrainer from "./pages/StudyPlanTrainer";
-import UniversityStaffPortal from "./pages/UniversityStaffPortal";
 import NotFound from "./pages/NotFound";
-import SystemMap from "./pages/SystemMap";
+import { StudentDataProvider } from "./contexts/StudentDataContext";
+import { IntakeProvider } from "./contexts/IntakeContext";
+
+const Auth = lazy(() => import("./pages/Auth"));
+const Install = lazy(() => import("./pages/Install"));
+const Privacy = lazy(() => import("./pages/Privacy"));
+const Terms = lazy(() => import("./pages/Terms"));
+const StudentPortal = lazy(() => import("./pages/StudentPortal"));
+const CRMPortal = lazy(() => import("./pages/CRMPortal"));
+const InterviewPractice = lazy(() => import("./pages/InterviewPractice"));
+const StudyPlanTrainer = lazy(() => import("./pages/StudyPlanTrainer"));
+const UniversityStaffPortal = lazy(() => import("./pages/UniversityStaffPortal"));
+const SystemMap = lazy(() => import("./pages/SystemMap"));
+
+// Full-screen fallback shown while a lazily-loaded route chunk is fetched.
+function RouteFallback() {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-background">
+      <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+    </div>
+  );
+}
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -60,7 +74,6 @@ function GlobalErrorBoundary({ children }: { children: React.ReactNode }) {
 }
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { StaffPresenceProvider } from "@/contexts/StaffPresenceContext";
 import { MentionNotificationsProvider } from "@/contexts/MentionNotificationsContext";
 
 const App = () => (
@@ -74,25 +87,29 @@ const App = () => (
             <BrowserRouter>
             <NativeRouterHandler />
             <AuthProvider>
-              <StaffPresenceProvider>
-                <MentionNotificationsProvider>
-                  <Routes>
-                    <Route path="/" element={<Index />} />
-                    <Route path="/auth" element={<Auth />} />
-                    <Route path="/install" element={<Install />} />
-                    <Route path="/privacy" element={<Privacy />} />
-                    <Route path="/terms" element={<Terms />} />
-                    <Route path="/portal" element={<StudentDataProvider><StudentPortal /></StudentDataProvider>} />
-                    <Route path="/interview-practice" element={<ProtectedRoute><InterviewPractice /></ProtectedRoute>} />
-                    <Route path="/study-plan-trainer" element={<ProtectedRoute><StudyPlanTrainer /></ProtectedRoute>} />
-                    <Route path="/university-portal" element={<ProtectedRoute><UniversityStaffPortal /></ProtectedRoute>} />
-                    <Route path="/crm/*" element={<IntakeProvider><CRMPortal /></IntakeProvider>} />
-                    <Route path="/system-map" element={<SystemMap />} />
-                    {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                </MentionNotificationsProvider>
-              </StaffPresenceProvider>
+              {/* StaffPresenceProvider is mounted inside CRMPortal, not here:
+                  its only consumers are CRM intercom components, so keeping it
+                  app-wide made every logged-in user write staff_presence every
+                  30s and open a realtime channel on public/student routes too. */}
+              <MentionNotificationsProvider>
+                  <Suspense fallback={<RouteFallback />}>
+                    <Routes>
+                      <Route path="/" element={<Index />} />
+                      <Route path="/auth" element={<Auth />} />
+                      <Route path="/install" element={<Install />} />
+                      <Route path="/privacy" element={<Privacy />} />
+                      <Route path="/terms" element={<Terms />} />
+                      <Route path="/portal" element={<StudentDataProvider><StudentPortal /></StudentDataProvider>} />
+                      <Route path="/interview-practice" element={<ProtectedRoute><InterviewPractice /></ProtectedRoute>} />
+                      <Route path="/study-plan-trainer" element={<ProtectedRoute><StudyPlanTrainer /></ProtectedRoute>} />
+                      <Route path="/university-portal" element={<ProtectedRoute><UniversityStaffPortal /></ProtectedRoute>} />
+                      <Route path="/crm/*" element={<IntakeProvider><CRMPortal /></IntakeProvider>} />
+                      <Route path="/system-map" element={<SystemMap />} />
+                      {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </Suspense>
+              </MentionNotificationsProvider>
             </AuthProvider>
           </BrowserRouter>
           </ErrorBoundary>

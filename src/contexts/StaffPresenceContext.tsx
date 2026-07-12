@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import type { RealtimeChannel } from '@supabase/supabase-js';
@@ -207,15 +207,16 @@ export function StaffPresenceProvider({ children }: { children: ReactNode }) {
     recomputeFromState();
   }, [recomputeFromState]);
 
+  // Memoize the context value so consumers only re-render when presence state
+  // actually changes, not every time this provider's parent re-renders. All the
+  // functions below are already stable (useCallback).
+  const value = useMemo(
+    () => ({ onlineStaff, loading, updatePresence, isUserOnline, getUserStatus, refetch }),
+    [onlineStaff, loading, updatePresence, isUserOnline, getUserStatus, refetch],
+  );
+
   return (
-    <StaffPresenceContext.Provider value={{
-      onlineStaff,
-      loading,
-      updatePresence,
-      isUserOnline,
-      getUserStatus,
-      refetch,
-    }}>
+    <StaffPresenceContext.Provider value={value}>
       {children}
     </StaffPresenceContext.Provider>
   );

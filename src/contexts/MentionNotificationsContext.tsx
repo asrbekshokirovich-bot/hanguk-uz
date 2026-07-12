@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useVoiceNotification } from '@/hooks/useVoiceNotification';
@@ -114,7 +114,7 @@ export function MentionNotificationsProvider({ children }: { children: ReactNode
     };
   }, [user, playNotificationSound]);
 
-  const markAsRead = async (mentionId: string) => {
+  const markAsRead = useCallback(async (mentionId: string) => {
     const { error } = await supabase
       .from('mentions')
       .update({ read_at: new Date().toISOString() })
@@ -127,9 +127,9 @@ export function MentionNotificationsProvider({ children }: { children: ReactNode
         )
       );
     }
-  };
+  }, []);
 
-  const markAllAsRead = async () => {
+  const markAllAsRead = useCallback(async () => {
     if (!user) return;
 
     const { error } = await supabase
@@ -143,19 +143,18 @@ export function MentionNotificationsProvider({ children }: { children: ReactNode
         prev.map(m => ({ ...m, read_at: m.read_at || new Date().toISOString() }))
       );
     }
-  };
+  }, [user]);
 
   const unreadCount = mentions.filter(m => !m.read_at).length;
 
+  // Memoize the value so consumers don't re-render on unrelated parent renders.
+  const value = useMemo(
+    () => ({ mentions, loading, unreadCount, markAsRead, markAllAsRead, refetch: fetchMentions }),
+    [mentions, loading, unreadCount, markAsRead, markAllAsRead, fetchMentions],
+  );
+
   return (
-    <MentionNotificationsContext.Provider value={{
-      mentions,
-      loading,
-      unreadCount,
-      markAsRead,
-      markAllAsRead,
-      refetch: fetchMentions,
-    }}>
+    <MentionNotificationsContext.Provider value={value}>
       {children}
     </MentionNotificationsContext.Provider>
   );
