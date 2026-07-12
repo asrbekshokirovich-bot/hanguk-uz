@@ -91,7 +91,10 @@ git commit -m "chore(cleanup): remove committed scratch/debug dumps (phase 1)"
 
 ---
 
-## Phase 2 — Dead legacy edge functions + orphaned frontend clients/hooks
+## Phase 2 — Dead legacy edge functions + orphaned frontend clients/hooks ✅ REPO-SIDE EXECUTED 2026-07-11
+
+> **Done** on branch `claude/hanguluk-cloud-sync-scheduler-r6bmy1` (this PR): deleted the 3 orphaned frontend files + all 10 legacy edge-function dirs, and pruned their 10 `[functions.*]` stanzas from `supabase/config.toml` (surgical — live functions kept). Re-verified: the 3 frontend files had zero importers (only two prose comments in `UniversitiesContent.tsx`, updated); the 10 functions form a closed cluster with no live external caller. `vite build` green.
+> **Still owner-run:** undeploy the functions from prod (`supabase functions delete <slug>` per slug) — the repo no longer defines them, but they linger in the prod project until removed.
 
 The legacy Firecrawl/Gemini "application-form / university-import" family (system A). All read or write the **dropped** `public.universities` table, and their only frontend entry points (`applicationFormsApi`, `useAdmissionSync`) have **zero importers** in `src/`. None is in the live edge set (`get-pdf-url` + `notify-tracked-changes` only).
 
