@@ -17,6 +17,8 @@ import '../../features/uni_db/presentation/application_tracker_screen.dart';
 import '../../features/uni_db/presentation/institution_compare_screen.dart';
 import '../../features/uni_db/presentation/institution_detail_screen.dart';
 import '../../features/uni_db/presentation/notification_settings_screen.dart';
+import '../../design_system/seoul_night/gallery/seoul_night_gallery_screen.dart';
+import '../feature_flags/design_gallery_flag.dart';
 import '../feature_flags/uni_db_flag.dart';
 
 part 'app_router.g.dart';
@@ -197,6 +199,17 @@ List<RouteBase> _uniDbRoutes() => [
   ),
 ];
 
+// Seoul Night design-system gallery — a dev-only visual QA surface for
+// every design token + core widget. Registered as a plain GoRoute
+// (same pattern as the other feature route helpers) and only when the
+// `DESIGN_GALLERY` compile-time flag is set. Touches no feature screens.
+List<RouteBase> _devGalleryRoutes() => [
+  GoRoute(
+    path: '/dev/design-gallery',
+    builder: (context, state) => const SeoulNightGalleryScreen(),
+  ),
+];
+
 final appRouterProvider = Provider<GoRouter>((ref) {
   final authStateAsync = ref.watch(authStateProvider);
 
@@ -207,6 +220,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ..._accountRoutes(),
       ..._mapRoutes(),
       if (kUniDbEnabled) ..._uniDbRoutes(),
+      if (kDesignGalleryEnabled) ..._devGalleryRoutes(),
     ],
     redirect: (context, state) {
       final isLoading = authStateAsync.isLoading;
@@ -215,10 +229,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final loc = state.uri.toString();
       final isGoingToLogin = loc == '/login';
       final isGoingToWelcome = loc == '/welcome';
+      // Dev QA gallery is reachable without auth so it can be opened on
+      // a fresh build. Only registered when kDesignGalleryEnabled.
+      final isGoingToGallery = loc == '/dev/design-gallery';
 
       if (isLoading) return null;
 
-      if (!isAuthenticated && !isGoingToLogin && !isGoingToWelcome) {
+      if (!isAuthenticated &&
+          !isGoingToLogin &&
+          !isGoingToWelcome &&
+          !isGoingToGallery) {
         return '/welcome';
       }
 

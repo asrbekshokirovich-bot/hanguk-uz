@@ -34,6 +34,11 @@ dependencies:
     sdk: flutter
 
   cupertino_icons: ^1.0.8
+  # Seoul Night design system typography — Inter, Noto Sans KR, and
+  # JetBrains Mono are resolved at runtime (cached to disk after first
+  # fetch, graceful system fallback offline). See
+  # lib/design_system/seoul_night/tokens/sn_typography.dart.
+  google_fonts: ^6.2.1
   flutter_riverpod: ^3.3.1
   freezed_annotation: ^3.1.0
   json_annotation: ^4.9.0
