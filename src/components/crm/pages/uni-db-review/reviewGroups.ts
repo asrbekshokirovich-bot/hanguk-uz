@@ -122,9 +122,18 @@ export const SECTION_ORDER = [
   'scholarships',
 ] as const;
 
+/** Pipeline aliases seen in v_needs_attention rows map onto the 5 sections. */
+const SECTION_ALIAS: Record<string, string> = {
+  admission_cycles: 'calendar',
+  admission_periods: 'calendar',
+  basic_requirements: 'requirements',
+  document_checklist: 'documents_required',
+};
+
 export function sectionLabelKey(fieldGroup: string | null): string {
-  return (SECTION_ORDER as readonly string[]).includes(fieldGroup ?? '')
-    ? `uniReview.section.${fieldGroup}`
+  const canonical = SECTION_ALIAS[fieldGroup ?? ''] ?? fieldGroup;
+  return (SECTION_ORDER as readonly string[]).includes(canonical ?? '')
+    ? `uniReview.section.${canonical}`
     : 'uniReview.section.unknown';
 }
 

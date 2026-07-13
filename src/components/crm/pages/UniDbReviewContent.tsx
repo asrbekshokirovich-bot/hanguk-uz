@@ -1,13 +1,14 @@
 import { useMemo, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient, useIsFetching } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useCanReviewUniDb } from '@/hooks/useCanReviewUniDb';
+import { useReviewQueue } from '@/hooks/useReviewQueue';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { cn } from '@/lib/utils';
 import {
   ShieldAlert,
   Loader2,
@@ -17,28 +18,19 @@ import {
 } from 'lucide-react';
 import { CrawlTargetPanel } from './CrawlTargetPanel';
 import { ReviewApprovalQueue } from './ReviewApprovalQueue';
+import { groupRows, sectionLabelKey, fmtDateKST } from './uni-db-review/reviewGroups';
 
 /**
- * University-data review. Auto-crawled guidelines are held for HUMAN APPROVAL —
- * nothing publishes until a staff member approves it in the "Awaiting approval"
- * tab (the queue is `v_review_queue_dashboard`, actions via fn_review_*).
+ * University-data review, redesigned per design_handoff/uni_db_review:
+ * page header with a refresh action, the crawl-target bar, and a pill
+ * segmented control switching between the approval queue (triage rail +
+ * detail) and the read-only "E'tibor kerak" (auto-published flags) tab.
  *
- * A second, read-only "Auto-published flags" tab surfaces any rows that were
- * auto-published (when the pipeline runs with require-approval off) but flagged
- * for low confidence, grouped by institution, for spot-checking.
- *
- * The crawl-target panel at the top shows (and lets owners/admins change) which
- * admission cycle the nightly crawl targets.
+ * Auto-crawled guidelines are held for HUMAN APPROVAL — nothing publishes
+ * until a staff member approves it in the queue (`v_review_queue_dashboard`,
+ * actions via fn_review_*). Access control (useCanReviewUniDb), the query
+ * keys, and the 60s refetch cadence are unchanged.
  */
-
-const SECTION_LABEL: Record<string, string> = {
-  requirements: 'Admission tracks (전형)',
-  documents_required: 'Required documents',
-  tuition: 'Tuition',
-  scholarships: 'Scholarships',
-  admission_cycles: 'Admission cycle',
-  admission_periods: 'Admission timeline & fees',
-};
 
 interface NeedsAttentionRow {
   section: string;
@@ -58,7 +50,6 @@ function useNeedsAttention() {
     refetchInterval: 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
-        // @ts-expect-error - view not in generated types yet
         .from('v_needs_attention')
         .select('*')
         .order('created_at', { ascending: false });
@@ -89,12 +80,9 @@ function groupByInstitution(rows: NeedsAttentionRow[]): UniGroup[] {
   return [...map.values()].sort((a, b) => b.rows.length - a.rows.length);
 }
 
-function institutionName(g: UniGroup): string {
-  return g.nameEn || g.nameKo || 'Unknown institution';
-}
-
 function NeedsAttentionView() {
-  const { data: rows = [], isLoading, error, refetch, isRefetching } = useNeedsAttention();
+  const { t } = useTranslation();
+  const { data: rows = [], isLoading, error, refetch } = useNeedsAttention();
   const [search, setSearch] = useState('');
 
   const groups = useMemo(() => {
@@ -124,97 +112,98 @@ function NeedsAttentionView() {
       <div className="flex flex-col items-center justify-center py-20 text-center">
         <AlertTriangle className="mb-3 h-10 w-10 text-destructive" />
         <p className="text-sm text-muted-foreground">
-          Could not load the needs-attention feed: {error.message}
+          {t('uniReview.states.error', { message: error.message })}
         </p>
         <Button variant="outline" size="sm" className="mt-4" onClick={() => refetch()}>
-          <RefreshCw className="mr-2 h-4 w-4" /> Retry
+          <RefreshCw className="mr-2 h-4 w-4" /> {t('uniReview.states.retry')}
         </Button>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 className="flex items-center gap-2 text-lg font-semibold">
-            Auto-published — needs attention
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            Rows auto-published but flagged for low extractor confidence. Already live for
-            applicants — this list is for spot-checking only.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Input
-            placeholder="Filter by institution, section, reason…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-64"
-          />
-          <Button variant="outline" size="icon" onClick={() => refetch()}>
-            <RefreshCw className={`h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`} />
-          </Button>
-        </div>
+    <div className="flex max-w-[880px] flex-col gap-3">
+      <div className="flex items-start gap-2 rounded-[10px] bg-warning/10 p-3 px-3.5">
+        <AlertTriangle className="mt-0.5 h-[15px] w-[15px] shrink-0 text-warning" />
+        <span className="text-[12.5px] font-medium leading-relaxed text-warning">
+          {t('uniReview.flags.banner')}
+        </span>
       </div>
+
+      <Input
+        placeholder={t('uniReview.flags.search')}
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        className="w-64"
+      />
 
       {groups.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-16 text-center">
             <CheckCircle2 className="mb-3 h-10 w-10 text-success" />
-            <h3 className="font-medium">Nothing needs attention</h3>
+            <h3 className="font-medium">{t('uniReview.flags.emptyTitle')}</h3>
             <p className="mt-1 text-sm text-muted-foreground">
-              {search ? 'No flagged rows match your filter.' : 'No auto-published rows are flagged.'}
+              {search ? t('uniReview.flags.emptyFiltered') : t('uniReview.flags.emptyBody')}
             </p>
           </CardContent>
         </Card>
       ) : (
-        <ScrollArea className="h-[calc(100vh-22rem)]">
-          <div className="space-y-4 pr-3">
-            {groups.map((g) => (
-              <Card key={g.key}>
-                <CardContent className="p-4">
-                  <div className="mb-3 flex items-center justify-between">
-                    <div>
-                      <div className="font-medium">{institutionName(g)}</div>
-                      {g.nameKo && g.nameEn ? (
-                        <div className="text-xs text-muted-foreground">{g.nameKo}</div>
-                      ) : null}
-                    </div>
-                    <Badge variant="secondary">{g.rows.length} flagged</Badge>
+        groups.map((g) => (
+          <div
+            key={g.key}
+            className="flex flex-col gap-2.5 rounded-xl border border-border bg-card p-4 px-[18px] shadow-sm"
+          >
+            <div className="flex flex-wrap items-center gap-2.5">
+              <span className="text-sm font-semibold">{g.nameEn || g.nameKo || '—'}</span>
+              {g.nameKo && g.nameEn ? (
+                <span className="text-[12.5px] text-muted-foreground/80" lang="ko">
+                  {g.nameKo}
+                </span>
+              ) : null}
+              <span className="flex-1" />
+              <span className="inline-flex h-[22px] items-center rounded-full bg-warning/10 px-2.5 text-[11.5px] font-semibold text-warning">
+                {t('uniReview.flags.count', { n: g.rows.length })}
+              </span>
+            </div>
+            <div className="flex flex-col">
+              {g.rows.map((r) => (
+                <div
+                  key={`${r.section}:${r.id}`}
+                  className="flex items-start gap-2.5 border-t border-border/60 px-0.5 py-[9px]"
+                >
+                  <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-warning" />
+                  <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                    <span className="text-[13px] font-semibold">
+                      {t(sectionLabelKey(r.section))}
+                    </span>
+                    {r.attention_reason ? (
+                      <span className="break-words text-[12.5px] text-muted-foreground">
+                        {r.attention_reason}
+                      </span>
+                    ) : null}
                   </div>
-                  <div className="space-y-2">
-                    {g.rows.map((r) => (
-                      <div
-                        key={`${r.section}:${r.id}`}
-                        className="flex items-start gap-3 rounded-md border border-border/60 p-2.5"
-                      >
-                        <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
-                        <div className="min-w-0">
-                          <div className="text-sm font-medium">
-                            {SECTION_LABEL[r.section] ?? r.section}
-                          </div>
-                          {r.attention_reason ? (
-                            <div className="break-words text-xs text-muted-foreground">
-                              {r.attention_reason}
-                            </div>
-                          ) : null}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  <span className="whitespace-nowrap font-mono text-[11.5px] text-muted-foreground/80">
+                    {fmtDateKST(r.created_at)?.split(' · ')[0] ?? ''}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
-        </ScrollArea>
+        ))
       )}
     </div>
   );
 }
 
 export function UniDbReviewContent() {
+  const { t } = useTranslation();
   const { canReview, loading } = useCanReviewUniDb();
+  const qc = useQueryClient();
+  const fetching = useIsFetching({ queryKey: ['uni_db'] });
+  const { data: queueRows = [] } = useReviewQueue(canReview);
+  const { data: flagRows = [] } = useNeedsAttention();
+
+  const pendingCount = useMemo(() => groupRows(queueRows).length, [queueRows]);
 
   if (loading) {
     return (
@@ -228,21 +217,55 @@ export function UniDbReviewContent() {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
         <ShieldAlert className="mb-3 h-10 w-10 text-muted-foreground" />
-        <h2 className="text-lg font-semibold">Access restricted</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          You don&rsquo;t have permission to view university data.
-        </p>
+        <h2 className="text-lg font-semibold">{t('uniReview.states.accessTitle')}</h2>
+        <p className="mt-1 text-sm text-muted-foreground">{t('uniReview.states.accessBody')}</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-[23px] font-bold leading-tight tracking-[-0.02em]">
+            {t('uniReview.title')}
+          </h1>
+          <p className="max-w-[600px] text-[13px] text-muted-foreground">
+            {t('uniReview.subtitle')}
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          className="h-9"
+          onClick={() => qc.invalidateQueries({ queryKey: ['uni_db'] })}
+        >
+          <RefreshCw className={cn('h-[15px] w-[15px]', fetching ? 'animate-spin' : '')} />
+          {t('uniReview.refresh')}
+        </Button>
+      </div>
+
       <CrawlTargetPanel />
+
       <Tabs defaultValue="approval">
-        <TabsList>
-          <TabsTrigger value="approval">Awaiting approval</TabsTrigger>
-          <TabsTrigger value="flags">Auto-published flags</TabsTrigger>
+        <TabsList className="h-auto w-max gap-0.5 rounded-full bg-secondary p-1">
+          <TabsTrigger
+            value="approval"
+            className="h-[34px] gap-2 rounded-full px-4 text-[13px] font-semibold data-[state=active]:shadow-sm"
+          >
+            {t('uniReview.tabs.queue')}
+            <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[11px] font-bold text-primary-foreground">
+              {pendingCount}
+            </span>
+          </TabsTrigger>
+          <TabsTrigger
+            value="flags"
+            className="h-[34px] gap-2 rounded-full px-4 text-[13px] font-semibold data-[state=active]:shadow-sm"
+          >
+            {t('uniReview.tabs.flags')}
+            <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-warning/10 px-1.5 text-[11px] font-bold text-warning">
+              {flagRows.length}
+            </span>
+          </TabsTrigger>
         </TabsList>
         <TabsContent value="approval" className="mt-4">
           <ReviewApprovalQueue />
