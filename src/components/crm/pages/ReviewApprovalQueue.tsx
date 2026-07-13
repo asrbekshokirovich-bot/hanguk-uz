@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Loader2, RefreshCw, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
@@ -53,6 +53,13 @@ export function ReviewApprovalQueue() {
     () => sortGroups(groupRows(mergeWithDecided(rows, decided)), decided),
     [rows, decided],
   );
+
+  // Pin the default selection (first after sort) once data arrives — a
+  // per-render fallback would make the focused university jump when a
+  // decision re-sorts the rail.
+  useEffect(() => {
+    if (!selectedKey && sorted.length > 0) setSelectedKey(sorted[0].key);
+  }, [selectedKey, sorted]);
 
   const selected: GuidelineGroup | null = useMemo(() => {
     if (sorted.length === 0) return null;

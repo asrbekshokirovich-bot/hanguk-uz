@@ -250,7 +250,7 @@ export function UniDbReviewContent() {
         <TabsList className="h-auto w-max gap-0.5 rounded-full bg-secondary p-1">
           <TabsTrigger
             value="approval"
-            className="h-[34px] gap-2 rounded-full px-4 text-[13px] font-semibold data-[state=active]:shadow-sm"
+            className="h-[34px] gap-2 rounded-full border-b-0 px-4 text-[13px] font-semibold hover:bg-transparent data-[state=active]:bg-card data-[state=active]:shadow-sm"
           >
             {t('uniReview.tabs.queue')}
             <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[11px] font-bold text-primary-foreground">
@@ -259,7 +259,7 @@ export function UniDbReviewContent() {
           </TabsTrigger>
           <TabsTrigger
             value="flags"
-            className="h-[34px] gap-2 rounded-full px-4 text-[13px] font-semibold data-[state=active]:shadow-sm"
+            className="h-[34px] gap-2 rounded-full border-b-0 px-4 text-[13px] font-semibold hover:bg-transparent data-[state=active]:bg-card data-[state=active]:shadow-sm"
           >
             {t('uniReview.tabs.flags')}
             <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-warning/10 px-1.5 text-[11px] font-bold text-warning">
