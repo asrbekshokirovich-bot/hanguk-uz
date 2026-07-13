@@ -1093,5 +1093,191 @@
     "ctaHeading": "Ready to study in South Korea?",
     "ctaSub": "Get your magic code from a consultant and start today.",
     "getApp": "Get the app"
+  },
+  "uniReview": {
+    "tabApproval": "Awaiting approval",
+    "tabFlags": "Auto-published flags",
+    "accessRestricted": "Access restricted",
+    "accessRestrictedBody": "You don't have permission to view university data.",
+    "queueTitle": "Data awaiting your approval",
+    "queueSubtitle": "Auto-crawled university data waits here for your approval. Students see nothing until you click Approve. When in doubt, compare with the PDF.",
+    "flagsTitle": "Auto-published — needs attention",
+    "flagsSubtitle": "These rows were published automatically but flagged for low reliability. They are already visible to students — this list is for spot-checking only.",
+    "filterPlaceholder": "Search by university, section or reason…",
+    "loadError": "Could not load the data: {{message}}",
+    "retry": "Retry",
+    "emptyQueueTitle": "Nothing awaiting approval",
+    "emptyQueueBody": "No new data has been collected yet, or everything has been reviewed.",
+    "emptyFlagsTitle": "Nothing needs attention",
+    "emptyFlagsBody": "No rows are flagged.",
+    "emptyFlagsFiltered": "No flagged rows match your search.",
+    "sectionCount": "{{n}} section(s)",
+    "flaggedCount": "{{n}} flagged",
+    "section": {
+      "calendar": "Deadlines",
+      "requirements": "Who can apply",
+      "tuition": "Tuition",
+      "scholarships": "Scholarships",
+      "documents_required": "Required documents",
+      "unknown": "Other section"
+    },
+    "confidence": {
+      "green": "Looks reliable",
+      "yellow": "Double-check",
+      "red": "Caution — compare with the PDF",
+      "tooltip": "Automatic extraction confidence: {{pct}}"
+    },
+    "reliability": {
+      "title": "Automatic checks",
+      "allPassed": "All checks passed",
+      "badge": {
+        "green": "Checks passed",
+        "amber": "Check carefully",
+        "red": "Problems found — must verify"
+      },
+      "checks": {
+        "identity": "May be the wrong university / document",
+        "consensus": "Repeated readings disagreed",
+        "grounding": "Value not found in the PDF text",
+        "sanity": "Value outside the usual range",
+        "critic": "Adversarial check objected",
+        "other": "Other check"
+      }
+    },
+    "approve": "Approve — students will see this",
+    "approveDone": "Approved — {{section}}",
+    "reject": "Reject",
+    "confirmReject": "Confirm reject",
+    "rejectDone": "Rejected — {{section}}",
+    "rejectDetailPlaceholder": "Note (optional)…",
+    "rejectReason": {
+      "wrong_year": "Old year / wrong cycle",
+      "wrong_archetype": "Wrong university / wrong document type",
+      "hallucinated_field": "Numbers look wrong",
+      "ocr_garbled": "Text came out garbled",
+      "source_404": "Source page won't open",
+      "other": "Other reason"
+    },
+    "flagSource": "Wrong source — reject every section from this PDF",
+    "flagSourceDone": "Source flagged — rejected {{n}} section(s)",
+    "viewPdf": "View PDF",
+    "sourcePage": "Source page",
+    "noPdf": "No stored PDF for this document yet.",
+    "pdfError": "Could not open the PDF.",
+    "showOriginal": "Show original text (Korean)",
+    "koreanOnly": "Korean only — read it via “Show original text”",
+    "completeness": {
+      "notYet": "not yet"
+    },
+    "values": {
+      "yes": "Yes",
+      "no": "No",
+      "notSpecified": "Not specified",
+      "notRequired": "Not required",
+      "required": "Required",
+      "deferred": "Can submit later",
+      "tentative": "tentative"
+    },
+    "fields": {
+      "applicantCategory": "Who it's for",
+      "topik": "TOPIK requirement",
+      "english": "English (IELTS etc.)",
+      "gpaFloor": "Minimum grades",
+      "interview": "Interview?",
+      "practicalExam": "Practical exam?",
+      "majors": "Majors / fields",
+      "tuitionTrack": "Tuition (this track)",
+      "eligibility": "Who can apply",
+      "facultyGroup": "Faculty group",
+      "academicYear": "Academic year",
+      "semester": "Semester",
+      "firstSemester": "First semester?",
+      "tuition": "Tuition",
+      "admissionFee": "Admission fee",
+      "name": "Name",
+      "scope": "Who provides it",
+      "award": "Amount",
+      "topikTier": "TOPIK level → award",
+      "ieltsTier": "IELTS score → award",
+      "document": "Document",
+      "required": "Required?",
+      "apostille": "Apostille needed?",
+      "appliesToRound": "Applies to round",
+      "deadline": "Deadline",
+      "countryRules": "Country-specific rules",
+      "notes": "Notes",
+      "offlineApplication": "Paper application",
+      "applicationFee": "Application fee",
+      "duration": "Duration"
+    },
+    "slots": {
+      "applyOpen": "Applications open",
+      "applyClose": "Application deadline",
+      "docsDeadline": "Document deadline",
+      "firstStage": "First-stage results",
+      "interview": "Interview",
+      "results": "Results announced",
+      "regOpen": "Registration opens",
+      "regClose": "Registration deadline",
+      "orientation": "Orientation",
+      "otherDates": "Other dates from the source ({{n}})"
+    },
+    "heritage": {
+      "badge": "Korean-heritage track",
+      "show": "Show {{n}} Korean-heritage track(s) — not for foreign applicants",
+      "hide": "Hide {{n}} Korean-heritage track(s)",
+      "none": "No foreign-applicant track extracted — only Korean-heritage tracks are below."
+    },
+    "emptySection": "Nothing was extracted for this section.",
+    "structuredViewMissing": "No friendly view for this section type yet.",
+    "awards": {
+      "waiverPct": "{{pct}}% off tuition",
+      "waiver": "Tuition discount",
+      "stipendMonthly": "{{amount}} per month",
+      "stipend": "Monthly stipend"
+    },
+    "durations": {
+      "first_semester": "First semester",
+      "full_year": "One year",
+      "all_years": "All years"
+    },
+    "scopes": {
+      "national": "Government scholarship",
+      "university": "University scholarship",
+      "department": "Department scholarship",
+      "foundation": "Foundation scholarship",
+      "regional": "Regional scholarship"
+    },
+    "drawer": {
+      "readOnly": "Auto-published admissions data (read-only). Flagged rows were published with low confidence — spot-check against the source.",
+      "flaggedBadge": "{{n}} flagged",
+      "flagged": "flagged",
+      "needsAttention": "needs attention",
+      "optional": "optional",
+      "apostilleBadge": "apostille",
+      "tabs": {
+        "tracks": "Tracks",
+        "docs": "Documents",
+        "aid": "Scholarships",
+        "tuition": "Tuition",
+        "calendar": "Deadlines",
+        "notes": "Notes"
+      },
+      "emptyTracks": "No admission tracks published for this university yet.",
+      "emptyDocs": "No required documents published for this university yet.",
+      "emptyAid": "No scholarships published for this university yet.",
+      "emptyTuition": "No tuition published for this university yet.",
+      "emptyCalendar": "No deadlines published for this university yet.",
+      "apply": "Apply",
+      "docsDue": "Documents due",
+      "result": "Result",
+      "fee": "Application fee",
+      "perSemester": "per semester",
+      "admissionFee": "admission fee",
+      "noCriteria": "No structured criteria stated",
+      "noTracksCycle": "No tracks for this cycle.",
+      "nothingFlagged": "Nothing flagged — all published rows passed the confidence bar.",
+      "loadError": "Could not load the data: {{message}}"
+    }
   }
 }

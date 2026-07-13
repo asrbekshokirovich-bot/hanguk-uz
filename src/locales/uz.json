@@ -1083,5 +1083,191 @@
     "ctaHeading": "Janubiy Koreyada o'qishga tayyormisiz?",
     "ctaSub": "Maslahatchidan kirish kodingizni oling va bugunoq boshlang.",
     "getApp": "Ilovani o'rnatish"
+  },
+  "uniReview": {
+    "tabApproval": "Tasdiqlash navbati",
+    "tabFlags": "Avto-chop etilgan ogohlantirishlar",
+    "accessRestricted": "Ruxsat yo'q",
+    "accessRestrictedBody": "Universitet ma'lumotlarini ko'rish uchun sizda ruxsat yo'q.",
+    "queueTitle": "Tasdiqlashni kutayotgan ma'lumotlar",
+    "queueSubtitle": "Avtomatik yig'ilgan universitet ma'lumotlari shu yerda tasdiqlashingizni kutadi. Siz “Tasdiqlash” tugmasini bosmaguningizcha talabalar hech narsani ko'rmaydi. Shubha bo'lsa, PDF bilan solishtiring.",
+    "flagsTitle": "Avto-chop etilgan — e'tibor talab qiladi",
+    "flagsSubtitle": "Bu qatorlar avtomatik chop etilgan, lekin ishonchlilik pastligi sababli belgilangan. Ular allaqachon talabalarga ko'rinadi — bu ro'yxat faqat tekshirish uchun.",
+    "filterPlaceholder": "Universitet, bo'lim yoki sabab bo'yicha qidirish…",
+    "loadError": "Ma'lumotni yuklab bo'lmadi: {{message}}",
+    "retry": "Qayta urinish",
+    "emptyQueueTitle": "Tasdiqlash uchun hech narsa yo'q",
+    "emptyQueueBody": "Yangi ma'lumot hali yig'ilmagan yoki hammasi ko'rib chiqilgan.",
+    "emptyFlagsTitle": "E'tibor talab qiladigan narsa yo'q",
+    "emptyFlagsBody": "Belgilangan qatorlar yo'q.",
+    "emptyFlagsFiltered": "Qidiruvga mos qator topilmadi.",
+    "sectionCount": "{{n}} ta bo'lim",
+    "flaggedCount": "{{n}} ta belgilangan",
+    "section": {
+      "calendar": "Muddatlar",
+      "requirements": "Kimlar topshira oladi",
+      "tuition": "O'qish to'lovi",
+      "scholarships": "Stipendiyalar",
+      "documents_required": "Kerakli hujjatlar",
+      "unknown": "Boshqa bo'lim"
+    },
+    "confidence": {
+      "green": "Ishonchli ko'rinadi",
+      "yellow": "Tekshirib ko'ring",
+      "red": "Ehtiyot bo'ling — PDF bilan solishtiring",
+      "tooltip": "Avtomatik ajratish ishonchliligi: {{pct}}"
+    },
+    "reliability": {
+      "title": "Avtomatik tekshiruvlar",
+      "allPassed": "Barcha tekshiruvlardan o'tdi",
+      "badge": {
+        "green": "Tekshiruvlardan o'tdi",
+        "amber": "Diqqat bilan tekshiring",
+        "red": "Xatosi bor — tekshirish shart"
+      },
+      "checks": {
+        "identity": "To'g'ri universitet / hujjat emasligi aniqlandi",
+        "consensus": "Takroriy o'qishlar bir xil chiqmadi",
+        "grounding": "Qiymat PDF matnidan topilmadi",
+        "sanity": "Qiymat odatiy me'yordan chetda",
+        "critic": "Tanqidiy tekshiruv e'tiroz bildirdi",
+        "other": "Boshqa tekshiruv"
+      }
+    },
+    "approve": "Tasdiqlash — talabalarga ko'rinadi",
+    "approveDone": "Tasdiqlandi — {{section}}",
+    "reject": "Rad etish",
+    "confirmReject": "Rad etishni tasdiqlash",
+    "rejectDone": "Rad etildi — {{section}}",
+    "rejectDetailPlaceholder": "Izoh (ixtiyoriy)…",
+    "rejectReason": {
+      "wrong_year": "Eski yil / boshqa mavsum",
+      "wrong_archetype": "Boshqa universitet / boshqa turdagi hujjat",
+      "hallucinated_field": "Raqamlar noto'g'ri ko'rinadi",
+      "ocr_garbled": "Matn buzilib o'qilgan",
+      "source_404": "Manba ochilmayapti",
+      "other": "Boshqa sabab"
+    },
+    "flagSource": "Noto'g'ri manba — bu PDFdagi barcha bo'limlarni rad etish",
+    "flagSourceDone": "Manba belgilandi — {{n}} ta bo'lim rad etildi",
+    "viewPdf": "PDFni ochish",
+    "sourcePage": "Manba sahifasi",
+    "noPdf": "Bu hujjat uchun saqlangan PDF hali yo'q.",
+    "pdfError": "PDFni ochib bo'lmadi.",
+    "showOriginal": "Asl matnni ko'rish (koreyscha)",
+    "koreanOnly": "Faqat koreys tilida — “Asl matnni ko'rish” orqali o'qing",
+    "completeness": {
+      "notYet": "hali yo'q"
+    },
+    "values": {
+      "yes": "Ha",
+      "no": "Yo'q",
+      "notSpecified": "Ko'rsatilmagan",
+      "notRequired": "Talab qilinmaydi",
+      "required": "Talab qilinadi",
+      "deferred": "Keyinroq topshirish mumkin",
+      "tentative": "taxminiy"
+    },
+    "fields": {
+      "applicantCategory": "Kimlar uchun",
+      "topik": "TOPIK talabi",
+      "english": "Ingliz tili (IELTS va b.)",
+      "gpaFloor": "Minimal o'zlashtirish",
+      "interview": "Suhbat bormi?",
+      "practicalExam": "Amaliy imtihon bormi?",
+      "majors": "Yo'nalishlar",
+      "tuitionTrack": "O'qish to'lovi (shu yo'nalish)",
+      "eligibility": "Kimlar topshira oladi",
+      "facultyGroup": "Fakultet guruhi",
+      "academicYear": "O'quv yili",
+      "semester": "Semestr",
+      "firstSemester": "Birinchi semestrmi?",
+      "tuition": "O'qish to'lovi",
+      "admissionFee": "Kirish to'lovi",
+      "name": "Nomi",
+      "scope": "Kim beradi",
+      "award": "Miqdori",
+      "topikTier": "TOPIK darajasi → stipendiya",
+      "ieltsTier": "IELTS bali → stipendiya",
+      "document": "Hujjat",
+      "required": "Majburiymi?",
+      "apostille": "Apostil kerakmi?",
+      "appliesToRound": "Qaysi bosqichga",
+      "deadline": "Topshirish muddati",
+      "countryRules": "Davlatga xos talablar",
+      "notes": "Izohlar",
+      "offlineApplication": "Qog'ozda topshirish",
+      "applicationFee": "Ariza to'lovi",
+      "duration": "Muddati"
+    },
+    "slots": {
+      "applyOpen": "Ariza qabuli boshlanadi",
+      "applyClose": "Ariza topshirish muddati",
+      "docsDeadline": "Hujjat topshirish muddati",
+      "firstStage": "Birinchi bosqich natijalari",
+      "interview": "Suhbat",
+      "results": "Natijalar e'lon qilinadi",
+      "regOpen": "Ro'yxatdan o'tish boshlanadi",
+      "regClose": "Ro'yxatdan o'tish muddati",
+      "orientation": "Tanishtiruv kuni",
+      "otherDates": "Manbadagi boshqa sanalar ({{n}})"
+    },
+    "heritage": {
+      "badge": "Koreys millatiga oidlar uchun",
+      "show": "{{n}} ta koreys millatiga oid yo'nalishni ko'rsatish (chet elliklar uchun emas)",
+      "hide": "{{n}} ta koreys millatiga oid yo'nalishni yashirish",
+      "none": "Chet elliklar uchun yo'nalish topilmadi — quyida faqat koreys millatiga oid yo'nalishlar bor."
+    },
+    "emptySection": "Bu bo'limdan hech qanday ma'lumot ajratilmadi.",
+    "structuredViewMissing": "Bu bo'lim turi uchun tayyor ko'rinish yo'q.",
+    "awards": {
+      "waiverPct": "O'qish to'lovidan {{pct}}% chegirma",
+      "waiver": "O'qish to'lovidan chegirma",
+      "stipendMonthly": "Oyiga {{amount}}",
+      "stipend": "Oylik stipendiya"
+    },
+    "durations": {
+      "first_semester": "Birinchi semestr",
+      "full_year": "Bir yil",
+      "all_years": "Butun o'qish davri"
+    },
+    "scopes": {
+      "national": "Davlat stipendiyasi",
+      "university": "Universitet stipendiyasi",
+      "department": "Fakultet stipendiyasi",
+      "foundation": "Jamg'arma stipendiyasi",
+      "regional": "Hududiy stipendiya"
+    },
+    "drawer": {
+      "readOnly": "Avtomatik chop etilgan qabul ma'lumotlari (faqat o'qish uchun). Belgilangan qatorlar past ishonchlilik bilan chop etilgan — manba bilan solishtiring.",
+      "flaggedBadge": "{{n}} ta belgilangan",
+      "flagged": "belgilangan",
+      "needsAttention": "e'tibor kerak",
+      "optional": "ixtiyoriy",
+      "apostilleBadge": "apostil",
+      "tabs": {
+        "tracks": "Yo'nalishlar",
+        "docs": "Hujjatlar",
+        "aid": "Stipendiya",
+        "tuition": "To'lov",
+        "calendar": "Muddatlar",
+        "notes": "Izohlar"
+      },
+      "emptyTracks": "Bu universitet uchun qabul yo'nalishlari hali chop etilmagan.",
+      "emptyDocs": "Bu universitet uchun kerakli hujjatlar hali chop etilmagan.",
+      "emptyAid": "Bu universitet uchun stipendiyalar hali chop etilmagan.",
+      "emptyTuition": "Bu universitet uchun o'qish to'lovi hali chop etilmagan.",
+      "emptyCalendar": "Bu universitet uchun muddatlar hali chop etilmagan.",
+      "apply": "Ariza",
+      "docsDue": "Hujjatlar",
+      "result": "Natija",
+      "fee": "Ariza to'lovi",
+      "perSemester": "semestrga",
+      "admissionFee": "kirish to'lovi",
+      "noCriteria": "Aniq mezonlar ko'rsatilmagan",
+      "noTracksCycle": "Bu mavsum uchun yo'nalishlar yo'q.",
+      "nothingFlagged": "Hech narsa belgilanmagan — barcha qatorlar ishonchlilik chegarasidan o'tgan.",
+      "loadError": "Ma'lumotni yuklab bo'lmadi: {{message}}"
+    }
   }
 }

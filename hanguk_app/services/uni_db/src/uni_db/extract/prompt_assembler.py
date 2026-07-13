@@ -137,6 +137,51 @@ def _language_eligibility_addendum() -> str:
     )
 
 
+# Field groups whose extractions land in the human review queue and therefore
+# get reviewer-facing plain-language summaries. recruitment_units is excluded:
+# its root schema is strict (additionalProperties: False) and it is not shown
+# in the review UI.
+SUMMARY_FIELD_GROUPS: frozenset[str] = frozenset({
+    "calendar",
+    "tuition",
+    "requirements",
+    "basic_requirements",
+    "scholarships",
+    "documents_required",
+    "document_checklist",
+})
+
+
+def _reviewer_summary_addendum() -> str:
+    """Ask the SAME extraction call to also emit plain-language summaries.
+
+    The admin review queue is staffed by Uzbek-speaking, non-technical
+    reviewers who cannot read Korean. `summary_uz` / `summary_en` give them a
+    2-4 sentence digest of what they are approving; `label_uz` / `label_en`
+    give each row a short human name. All four fields are OPTIONAL for
+    consumers — old payloads without them must keep rendering.
+    """
+    return (
+        "## Reviewer summaries (Uzbek + English)\n\n"
+        "In the SAME top-level JSON object, alongside the data array, also "
+        "emit two string fields:\n\n"
+        "- `summary_uz` — 2 to 4 short, plain sentences in Uzbek (Latin "
+        "script) summarising what this section says for a prospective "
+        "foreign student, e.g. \"Bu universitet chet ellik talabalardan "
+        "kamida TOPIK 3 talab qiladi. Hujjat topshirish 2026-yil "
+        "20-martgacha.\"\n"
+        "- `summary_en` — the same 2 to 4 sentences in plain English.\n\n"
+        "Write for a non-technical staff member who cannot read Korean: "
+        "state the concrete facts (deadlines, TOPIK levels, amounts in KRW, "
+        "document names), no URLs, no schema field names, no confidence "
+        "talk. Only state facts present in the source — never guess. If the "
+        "section contains no usable data, set both fields to null.\n\n"
+        "Additionally, each row MAY carry `label_uz` / `label_en` — a short "
+        "(2-5 word) plain-language name for that row (the admission track, "
+        "document, or scholarship name) in Uzbek and English.\n"
+    )
+
+
 def _footnote_addendum() -> str:
     return (
         "## Footnote handling\n\n"
@@ -167,6 +212,9 @@ def assemble_prompt(
         if field_group in ("requirements", "basic_requirements")
         else ""
     )
+    summary_md = (
+        _reviewer_summary_addendum() if field_group in SUMMARY_FIELD_GROUPS else ""
+    )
     archetype_md = ""
     if archetype in ARCHETYPE_FEWSHOT_FILES:
         try:
@@ -180,6 +228,7 @@ def assemble_prompt(
             glossary_md,
             field_group_md,
             language_md,
+            summary_md,
             archetype_md,
             _correction_notice_addendum(),
             _footnote_addendum(),

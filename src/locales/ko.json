@@ -1048,5 +1048,191 @@
     "ctaHeading": "한국에서 공부할 준비가 되셨나요?",
     "ctaSub": "컨설턴트에게 매직 코드를 받아 오늘 시작하세요.",
     "getApp": "앱 다운로드"
+  },
+  "uniReview": {
+    "tabApproval": "승인 대기",
+    "tabFlags": "자동 게시 플래그",
+    "accessRestricted": "접근 제한",
+    "accessRestrictedBody": "대학 데이터를 볼 권한이 없습니다.",
+    "queueTitle": "승인 대기 중인 데이터",
+    "queueSubtitle": "자동 수집된 대학 데이터가 승인을 기다립니다. 승인 전에는 학생에게 노출되지 않습니다. 의심되면 PDF와 대조하세요.",
+    "flagsTitle": "자동 게시 — 확인 필요",
+    "flagsSubtitle": "자동 게시되었지만 신뢰도가 낮아 플래그된 항목입니다. 이미 학생에게 노출 중이며, 이 목록은 점검용입니다.",
+    "filterPlaceholder": "대학·섹션·사유로 검색…",
+    "loadError": "데이터를 불러오지 못했습니다: {{message}}",
+    "retry": "다시 시도",
+    "emptyQueueTitle": "승인할 항목이 없습니다",
+    "emptyQueueBody": "새 데이터가 없거나 모두 검토되었습니다.",
+    "emptyFlagsTitle": "확인할 항목이 없습니다",
+    "emptyFlagsBody": "플래그된 항목이 없습니다.",
+    "emptyFlagsFiltered": "검색에 맞는 항목이 없습니다.",
+    "sectionCount": "섹션 {{n}}개",
+    "flaggedCount": "플래그 {{n}}개",
+    "section": {
+      "calendar": "일정",
+      "requirements": "지원 자격",
+      "tuition": "등록금",
+      "scholarships": "장학금",
+      "documents_required": "제출 서류",
+      "unknown": "기타 섹션"
+    },
+    "confidence": {
+      "green": "신뢰할 만함",
+      "yellow": "재확인 필요",
+      "red": "주의 — PDF와 대조",
+      "tooltip": "자동 추출 신뢰도: {{pct}}"
+    },
+    "reliability": {
+      "title": "자동 검증",
+      "allPassed": "모든 검증 통과",
+      "badge": {
+        "green": "검증 통과",
+        "amber": "주의 깊게 확인",
+        "red": "문제 발견 — 확인 필수"
+      },
+      "checks": {
+        "identity": "다른 대학/문서일 수 있음",
+        "consensus": "반복 추출 결과 불일치",
+        "grounding": "PDF 원문에서 값을 찾지 못함",
+        "sanity": "값이 통상 범위를 벗어남",
+        "critic": "검증 모델이 이의 제기",
+        "other": "기타 검증"
+      }
+    },
+    "approve": "승인 — 학생에게 공개됩니다",
+    "approveDone": "승인됨 — {{section}}",
+    "reject": "거절",
+    "confirmReject": "거절 확정",
+    "rejectDone": "거절됨 — {{section}}",
+    "rejectDetailPlaceholder": "메모 (선택)…",
+    "rejectReason": {
+      "wrong_year": "지난 학년도 / 다른 모집",
+      "wrong_archetype": "다른 대학 / 문서 유형",
+      "hallucinated_field": "수치가 부정확해 보임",
+      "ocr_garbled": "텍스트 깨짐",
+      "source_404": "출처 페이지 열림 안 됨",
+      "other": "기타 사유"
+    },
+    "flagSource": "출처 오류 — 이 PDF의 모든 섹션 거절",
+    "flagSourceDone": "출처 플래그됨 — {{n}}개 섹션 거절",
+    "viewPdf": "PDF 보기",
+    "sourcePage": "출처 페이지",
+    "noPdf": "저장된 PDF가 아직 없습니다.",
+    "pdfError": "PDF를 열 수 없습니다.",
+    "showOriginal": "원문 보기 (한국어)",
+    "koreanOnly": "한국어 원문만 있음 — “원문 보기” 참조",
+    "completeness": {
+      "notYet": "아직 없음"
+    },
+    "values": {
+      "yes": "예",
+      "no": "아니오",
+      "notSpecified": "명시 없음",
+      "notRequired": "불필요",
+      "required": "필수",
+      "deferred": "추후 제출 가능",
+      "tentative": "예정"
+    },
+    "fields": {
+      "applicantCategory": "대상",
+      "topik": "TOPIK 요건",
+      "english": "영어 (IELTS 등)",
+      "gpaFloor": "최저 성적",
+      "interview": "면접?",
+      "practicalExam": "실기시험?",
+      "majors": "모집 단위",
+      "tuitionTrack": "등록금 (해당 전형)",
+      "eligibility": "지원 자격",
+      "facultyGroup": "계열",
+      "academicYear": "학년도",
+      "semester": "학기",
+      "firstSemester": "첫 학기?",
+      "tuition": "등록금",
+      "admissionFee": "입학금",
+      "name": "이름",
+      "scope": "지급 주체",
+      "award": "금액",
+      "topikTier": "TOPIK 등급 → 장학",
+      "ieltsTier": "IELTS 점수 → 장학",
+      "document": "서류",
+      "required": "필수?",
+      "apostille": "아포스티유?",
+      "appliesToRound": "해당 차수",
+      "deadline": "제출 마감",
+      "countryRules": "국가별 요건",
+      "notes": "비고",
+      "offlineApplication": "서면 접수",
+      "applicationFee": "전형료",
+      "duration": "기간"
+    },
+    "slots": {
+      "applyOpen": "원서접수 시작",
+      "applyClose": "원서접수 마감",
+      "docsDeadline": "서류제출 마감",
+      "firstStage": "1단계 합격자 발표",
+      "interview": "면접",
+      "results": "최종 발표",
+      "regOpen": "등록 시작",
+      "regClose": "등록 마감",
+      "orientation": "오리엔테이션",
+      "otherDates": "원문의 기타 일정 ({{n}})"
+    },
+    "heritage": {
+      "badge": "재외국민 전형",
+      "show": "재외국민 전형 {{n}}개 보기 (외국인 전형 아님)",
+      "hide": "재외국민 전형 {{n}}개 숨기기",
+      "none": "외국인 전형이 추출되지 않음 — 아래는 재외국민 전형만 있습니다."
+    },
+    "emptySection": "이 섹션에서 추출된 내용이 없습니다.",
+    "structuredViewMissing": "이 섹션 유형의 보기가 아직 없습니다.",
+    "awards": {
+      "waiverPct": "등록금 {{pct}}% 감면",
+      "waiver": "등록금 감면",
+      "stipendMonthly": "월 {{amount}}",
+      "stipend": "월 장학금"
+    },
+    "durations": {
+      "first_semester": "첫 학기",
+      "full_year": "1년",
+      "all_years": "재학 전 기간"
+    },
+    "scopes": {
+      "national": "국가 장학금",
+      "university": "대학 장학금",
+      "department": "학과 장학금",
+      "foundation": "재단 장학금",
+      "regional": "지역 장학금"
+    },
+    "drawer": {
+      "readOnly": "자동 게시된 입시 데이터 (읽기 전용). 플래그된 행은 신뢰도가 낮게 게시됨 — 원본과 대조하세요.",
+      "flaggedBadge": "플래그 {{n}}개",
+      "flagged": "플래그됨",
+      "needsAttention": "확인 필요",
+      "optional": "선택",
+      "apostilleBadge": "아포스티유",
+      "tabs": {
+        "tracks": "전형",
+        "docs": "서류",
+        "aid": "장학금",
+        "tuition": "등록금",
+        "calendar": "일정",
+        "notes": "메모"
+      },
+      "emptyTracks": "아직 게시된 전형이 없습니다.",
+      "emptyDocs": "아직 게시된 제출 서류가 없습니다.",
+      "emptyAid": "아직 게시된 장학금이 없습니다.",
+      "emptyTuition": "아직 게시된 등록금이 없습니다.",
+      "emptyCalendar": "아직 게시된 일정이 없습니다.",
+      "apply": "접수",
+      "docsDue": "서류 마감",
+      "result": "발표",
+      "fee": "전형료",
+      "perSemester": "학기당",
+      "admissionFee": "입학금",
+      "noCriteria": "구체적 기준 없음",
+      "noTracksCycle": "이 모집에는 전형이 없습니다.",
+      "nothingFlagged": "플래그 없음 — 모든 행이 신뢰도 기준을 통과했습니다.",
+      "loadError": "데이터를 불러오지 못했습니다: {{message}}"
+    }
   }
 }
