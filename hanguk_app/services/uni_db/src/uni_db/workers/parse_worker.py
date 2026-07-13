@@ -70,6 +70,7 @@ def parse_one_document(
     verify_level: str | None = None,
     target_year: int | None = None,
     target_term: str | None = None,
+    only_groups: Iterable[str] | None = None,
 ) -> ParseOutcome:
     """Pure: returns the outcome without touching the DB.
 
@@ -84,6 +85,9 @@ def parse_one_document(
     `settings.verify_level`) runs the reliability gauntlet (grounding / sanity /
     consensus / adversarial critics) per field group and attaches the
     green/amber/red report to each review card so the reviewer knows where to look.
+    `only_groups` restricts extraction to a subset of FIELD_GROUPS (used by
+    `retry-failed` to re-run just the groups whose last job failed instead of
+    re-billing all five).
     """
     auto = settings.auto_publish_enabled if auto_publish is None else auto_publish
     approve = settings.require_approval if require_approval is None else require_approval
@@ -101,7 +105,12 @@ def parse_one_document(
     results: list[ExtractionResult] = []
     review_entries: list[dict[str, object]] = []
 
-    for group in FIELD_GROUPS:
+    wanted = None if only_groups is None else set(only_groups)
+    groups = FIELD_GROUPS if wanted is None else tuple(
+        g for g in FIELD_GROUPS if g in wanted
+    )
+
+    for group in groups:
         section_text = _slice_for(pdf_text_full, group, offsets)
         started = time.monotonic()
         try:
@@ -198,8 +207,10 @@ def parse_one_document(
     # A single PDF that covers BOTH undergraduate and graduate admission is
     # mis-parsed as one undergraduate document. Flag it (document-level) so a
     # reviewer splits it into separate admission cycles. The split boundaries
-    # are computed here for the reviewer/publish layer.
-    if degree.is_combined:
+    # are computed here for the reviewer/publish layer. Skipped on partial
+    # (retry-failed) runs — the full parse already flagged it and there is no
+    # dedup for document-level entries.
+    if degree.is_combined and wanted is None:
         segments = split_by_degree(pdf_text_full)
         seg_desc = ", ".join(
             f"{s.level}@{s.start_offset}" for s in segments
@@ -276,6 +287,83 @@ def _verify_group(
     )
 
 
+def group_summary(group: str, parsed: object) -> str:
+    """One-line per-group digest (counts + key values) for the review card.
+
+    Lands in review_queue.reviewer_notes so the admin queue can show WHAT was
+    extracted (tracks, TOPIK minimums, tuition range, scholarship names, doc
+    counts) without opening the raw JSON — previously the notes only carried
+    the confidence/reliability verdict, so reviewers effectively only saw
+    dates/periods.
+    """
+    if not isinstance(parsed, dict):
+        return ""
+    rows = parsed.get("rows") if isinstance(parsed.get("rows"), list) else []
+    parts: list[str] = []
+
+    if group == "calendar":
+        events = parsed.get("events") if isinstance(parsed.get("events"), list) else []
+        periods = parsed.get("periods") if isinstance(parsed.get("periods"), list) else []
+        parts.append(f"{len(events)} event(s), {len(periods)} period(s)")
+        dates = sorted(
+            str(e.get("starts_at"))[:10]
+            for e in events
+            if isinstance(e, dict) and e.get("starts_at")
+        )
+        if dates:
+            parts.append(f"dates {dates[0]}..{dates[-1]}")
+    elif group in ("tuition",):
+        amounts = [
+            r["amount_krw"] for r in rows
+            if isinstance(r, dict) and isinstance(r.get("amount_krw"), (int, float))
+        ]
+        parts.append(f"{len(rows)} tuition row(s)")
+        if amounts:
+            parts.append(f"₩{min(amounts):,.0f}–₩{max(amounts):,.0f}")
+    elif group in ("requirements", "basic_requirements"):
+        parts.append(f"{len(rows)} track(s)")
+        topik = [
+            r["topik_min_level"] for r in rows
+            if isinstance(r, dict) and isinstance(r.get("topik_min_level"), int)
+        ]
+        if topik:
+            parts.append(f"TOPIK min {min(topik)}")
+        hours = [
+            r["korean_hours_min"] for r in rows
+            if isinstance(r, dict) and isinstance(r.get("korean_hours_min"), int)
+        ]
+        if hours:
+            parts.append(f"Korean hours min {min(hours)}")
+        majors = {
+            m
+            for r in rows if isinstance(r, dict) and isinstance(r.get("majors"), list)
+            for m in r["majors"] if isinstance(m, str)
+        }
+        if majors:
+            parts.append(f"{len(majors)} major(s)")
+    elif group == "scholarships":
+        parts.append(f"{len(rows)} scholarship(s)")
+        names = [
+            r["name_ko"] for r in rows
+            if isinstance(r, dict) and isinstance(r.get("name_ko"), str)
+        ][:3]
+        if names:
+            parts.append(", ".join(names))
+    elif group in ("documents_required", "document_checklist"):
+        parts.append(f"{len(rows)} document(s)")
+        names = [
+            str(r.get("document_type") or r.get("label_ko") or r.get("document_name_ko") or "")
+            for r in rows if isinstance(r, dict)
+        ]
+        names = [n for n in names if n][:3]
+        if names:
+            parts.append(", ".join(names))
+    else:
+        parts.append(f"{len(rows)} row(s)")
+
+    return f"[{group}] " + "; ".join(parts)
+
+
 def _queue_entry_for(
     group: str,
     result: ExtractionResult,
@@ -297,11 +385,17 @@ def _queue_entry_for(
     """
     score = result.accuracy_self_score
     color = report.overall if report is not None else None
+    rationale = report.to_review_note() if report is not None else verdict.rationale
+    # Per-group content summary so the review card shows what was extracted,
+    # not only the confidence verdict.
+    summary = group_summary(group, result.parsed_output)
+    if summary:
+        rationale = f"{rationale} | {summary}"
     base: dict[str, object] = {
         "entity_type": "extraction_jobs",
         "entity_id": None,           # filled by persist_outcome
         "field_group": group,
-        "rationale": report.to_review_note() if report is not None else verdict.rationale,
+        "rationale": rationale,
     }
 
     if require_approval:
@@ -359,6 +453,13 @@ async def persist_outcome(
     for result in outcome.extraction_results:
         job_id = uuid4()
         job_status = "failed" if _is_failed_output(result.parsed_output) else "succeeded"
+        # Keys schema-guided pruning stripped are logged onto the job (the
+        # dedicated free-text column; the job still succeeds) so drift between
+        # the PDFs and our schemas stays visible. The unpruned model output is
+        # preserved in raw_output.
+        error_text = result.error_text
+        if error_text is None and result.dropped_keys:
+            error_text = "pruned unknown keys: " + ", ".join(result.dropped_keys)
         await conn.execute(
             """
             insert into public.extraction_jobs (
@@ -395,7 +496,7 @@ async def persist_outcome(
             datetime.now(tz=timezone.utc),
             datetime.now(tz=timezone.utc),
             job_status,
-            result.error_text,
+            error_text,
         )
 
         # Belt-and-suspenders: never enqueue an empty or failed extraction for

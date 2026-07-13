@@ -175,11 +175,46 @@ def language_track_for(value: object) -> str | None:
 
 
 def first_doc_name(row: dict) -> str:
-    for k in ("document_type", "document_name_ko", "name_ko", "label_ko", "name_en"):
+    for k in ("document_type", "document_name_ko", "name_ko", "label_ko",
+              "name_en", "label_en"):
         v = row.get(k)
         if isinstance(v, str) and v.strip():
             return v.strip()
     return "서류"
+
+
+def _as_int(value: object) -> int | None:
+    """Coerce an extracted numeric to int. Accepts ints/floats and formatted
+    strings ("3,500,000원" → 3500000); everything else is None."""
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, (int, float)):
+        return int(value)
+    if isinstance(value, str):
+        digits = re.sub(r"[^\d]", "", value)
+        return int(digits) if digits else None
+    return None
+
+
+def tuition_amount(row: dict) -> int | None:
+    """Per-semester amount in KRW under whichever key the model used.
+    Non-KRW-only rows (no *_krw / amount value) are skipped — the tuition
+    table is KRW-denominated."""
+    for k in ("amount_krw", "tuition_krw", "tuition_per_semester_krw", "amount"):
+        n = _as_int(row.get(k))
+        if n is not None:
+            return n
+    return None
+
+
+def tuition_faculty(row: dict) -> str:
+    """The faculty/department/major label a tuition row is keyed by."""
+    for k in ("faculty_group", "faculty_ko", "department_ko", "major_ko",
+              "department", "major", "faculty"):
+        v = row.get(k)
+        if isinstance(v, str) and v.strip():
+            return v.strip()
+    return "전체"
 
 
 def track_for(audience: object, category_text: object) -> str:
@@ -270,18 +305,22 @@ async def get_or_create_cycle(
 async def _publish_tuition(conn, rec, payload) -> int:
     n = 0
     for r in _rows(payload):
-        amount = r.get("amount_krw")
+        amount = tuition_amount(r)
         if amount is None:
             continue
-        sem = r.get("semester_number") or 1
+        # Clamp the semester into the table's 1..12 CHECK so one odd value
+        # ("semester": "1학기" → 1; 0 → 1) doesn't error the whole item.
+        sem = _as_int(r.get("semester_number") or r.get("semester")) or 1
+        sem = min(max(sem, 1), 12)
+        year = _as_int(r.get("academic_year") or r.get("year")) or rec["_year"]
         await conn.execute(
             """insert into public.tuition (institution_id, faculty_group, academic_year,
                  semester_number, amount_krw, admission_fee_krw, is_first_semester,
                  source_text_ko, extractor_confidence, needs_attention, attention_reason)
                values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)""",
-            rec["institution_id"], r.get("faculty_group") or "전체",
-            r.get("academic_year") or rec["_year"], sem, amount,
-            r.get("admission_fee_krw"), bool(r.get("is_first_semester", sem == 1)),
+            rec["institution_id"], tuition_faculty(r),
+            year, sem, amount,
+            _as_int(r.get("admission_fee_krw")), bool(r.get("is_first_semester", sem == 1)),
             r.get("source_text_ko"), r.get("extractor_confidence"),
             bool(rec.get("_na", False)), rec.get("_ar"),
         )
@@ -344,18 +383,141 @@ async def _row_cycle(conn, rec, row: dict) -> UUID:
     )
 
 
+def _english_minimums(row: dict) -> tuple[float | None, int | None]:
+    """(ielts_min, toefl_ibt_min) from the english_test object, reading both
+    the per-test fields and the normalised test/min_score pair."""
+    et = row.get("english_test")
+    if not isinstance(et, dict):
+        return None, None
+    ielts = et.get("ielts")
+    if ielts is None and et.get("test") == "ielts":
+        ielts = et.get("min_score")
+    toefl = et.get("toefl_ibt")
+    if toefl is None and et.get("test") == "toefl_ibt":
+        toefl = et.get("min_score")
+    ielts_v = float(ielts) if isinstance(ielts, (int, float)) else None
+    toefl_v = int(toefl) if isinstance(toefl, (int, float)) else None
+    return ielts_v, toefl_v
+
+
+def _language_track_from_requirements(row: dict) -> str:
+    """university_programs.language_track (NOT NULL: korean|english|both),
+    derived from which language routes the track accepts."""
+    has_topik = isinstance(row.get("topik_min_level"), int) or (
+        row.get("topik_status") == "required"
+    )
+    ielts_v, toefl_v = _english_minimums(row)
+    has_english = ielts_v is not None or toefl_v is not None or (
+        row.get("english_status") == "required"
+    )
+    if has_topik and has_english:
+        return "both"
+    if has_english:
+        return "english"
+    return "korean"
+
+
+def _degree_levels_for_track(track: str) -> tuple[str, str]:
+    """(programs.degree_level, university_programs.program_level) for a
+    cycle track. Graduate tracks map to master/graduate; everything else is
+    an undergraduate admission."""
+    if track == "grad_foreign":
+        return "master", "graduate"
+    return "bachelor", "undergraduate"
+
+
+async def _publish_programs_for_row(conn, rec, row: dict) -> int:
+    """Publish a requirements row's eligible majors into the program tables.
+
+    For each name in `majors`: get-or-create a `programs` row, link it to any
+    matching `recruitment_units` row via `recruitment_unit_programs`, and
+    get-or-update the app-facing `university_programs` row with the track's
+    TOPIK / IELTS / TOEFL minimums. Additive only — existing values are kept
+    (coalesce) and nothing is deleted."""
+    majors = row.get("majors")
+    if not isinstance(majors, list):
+        return 0
+    track = track_for(row.get("audience"), category_for(row))
+    degree_level, program_level = _degree_levels_for_track(track)
+    language_track = _language_track_from_requirements(row)
+    topik = row.get("topik_min_level") if isinstance(row.get("topik_min_level"), int) else None
+    ielts_min, toefl_min = _english_minimums(row)
+    tuition_obj = row.get("tuition") if isinstance(row.get("tuition"), dict) else {}
+    tuition_amt = _as_int(tuition_obj.get("amount_krw"))
+    n = 0
+    for major in majors:
+        if not isinstance(major, str) or not major.strip():
+            continue
+        name = major.strip()
+        program_id = await conn.fetchval(
+            """select id from public.programs
+                where institution_id = $1 and name_ko = $2 and degree_level = $3
+                limit 1""",
+            rec["institution_id"], name, degree_level,
+        )
+        if program_id is None:
+            program_id = await conn.fetchval(
+                """insert into public.programs
+                     (institution_id, name_ko, degree_level, source_text_ko)
+                   values ($1,$2,$3,$4) returning id""",
+                rec["institution_id"], name, degree_level, row.get("source_text_ko"),
+            )
+        # Link to any recruitment unit that names this major (best-effort).
+        await conn.execute(
+            """insert into public.recruitment_unit_programs (recruitment_unit_id, program_id)
+               select ru.id, $2 from public.recruitment_units ru
+                where ru.institution_id = $1
+                  and (ru.department_ko = $3 or ru.major_track_ko = $3)
+               on conflict do nothing""",
+            rec["institution_id"], program_id, name,
+        )
+        # App-facing table the student UI reads. No unique constraint exists,
+        # so get-or-update by (institution, name, level) instead of upserting.
+        up_id = await conn.fetchval(
+            """select id from public.university_programs
+                where institution_id = $1 and program_name = $2 and program_level = $3
+                limit 1""",
+            rec["institution_id"], name, program_level,
+        )
+        if up_id is None:
+            await conn.execute(
+                """insert into public.university_programs
+                     (institution_id, program_name, program_level, language_track,
+                      topik_requirement, ielts_requirement, toefl_requirement,
+                      tuition_per_semester, is_available_for_international)
+                   values ($1,$2,$3,$4,$5,$6,$7,$8,true)""",
+                rec["institution_id"], name, program_level, language_track,
+                topik, ielts_min, toefl_min, tuition_amt,
+            )
+        else:
+            await conn.execute(
+                """update public.university_programs
+                      set topik_requirement    = coalesce($2, topik_requirement),
+                          ielts_requirement    = coalesce($3, ielts_requirement),
+                          toefl_requirement    = coalesce($4, toefl_requirement),
+                          tuition_per_semester = coalesce($5, tuition_per_semester),
+                          updated_at = now()
+                    where id = $1""",
+                up_id, topik, ielts_min, toefl_min, tuition_amt,
+            )
+        n += 1
+    return n
+
+
 async def _publish_requirements(conn, rec, payload) -> int:
     n = 0
     for r in _rows(payload):
         cycle_id = await _row_cycle(conn, rec, r)
+        korean_hours = r.get("korean_hours_min")
         await conn.execute(
             """insert into public.requirements (cycle_id, applicant_category,
-                 topik_min_level, topik_deferred, english_test, gpa_floor_pct,
-                 interview_required, practical_exam_required, prose_ko,
+                 topik_min_level, topik_deferred, korean_hours_min, english_test,
+                 gpa_floor_pct, interview_required, practical_exam_required, prose_ko,
                  source_text_ko, extractor_confidence, needs_attention, attention_reason)
-               values ($1,$2,$3,$4,$5::jsonb,$6,$7,$8,$9,$10,$11,$12,$13)""",
+               values ($1,$2,$3,$4,$5,$6::jsonb,$7,$8,$9,$10,$11,$12,$13,$14)""",
             cycle_id, category_for(r),
             r.get("topik_min_level"), bool(r.get("topik_deferred", False)),
+            korean_hours if isinstance(korean_hours, int) else None,
             _j(r.get("english_test")), r.get("gpa_floor_pct"),
             bool(r.get("interview_required", False)),
             bool(r.get("practical_exam_required", False)),
@@ -363,6 +525,29 @@ async def _publish_requirements(conn, rec, payload) -> int:
             bool(rec.get("_na", False)), rec.get("_ar"),
         )
         n += 1
+        # Eligible majors → programs / recruitment_unit_programs /
+        # university_programs, so the app can show which faculties/majors the
+        # track admits (with its TOPIK/IELTS/TOEFL minimums).
+        n += await _publish_programs_for_row(conn, rec, r)
+        # Per-track tuition stated inside the requirements section → tuition
+        # table (the schema promised this mapping; it was never wired).
+        tuition_obj = r.get("tuition") if isinstance(r.get("tuition"), dict) else None
+        amount = _as_int(tuition_obj.get("amount_krw")) if tuition_obj else None
+        if amount is not None:
+            sem = _as_int(tuition_obj.get("semester_number")) or 1
+            sem = min(max(sem, 1), 12)
+            await conn.execute(
+                """insert into public.tuition (institution_id, faculty_group, academic_year,
+                     semester_number, amount_krw, admission_fee_krw, is_first_semester,
+                     source_text_ko, extractor_confidence, needs_attention, attention_reason)
+                   values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)""",
+                rec["institution_id"], "전체",
+                _as_int(tuition_obj.get("academic_year")) or rec["_year"],
+                sem, amount, _as_int(tuition_obj.get("admission_fee_krw")),
+                sem == 1, r.get("source_text_ko"), r.get("extractor_confidence"),
+                bool(rec.get("_na", False)), rec.get("_ar"),
+            )
+            n += 1
     return n
 
 

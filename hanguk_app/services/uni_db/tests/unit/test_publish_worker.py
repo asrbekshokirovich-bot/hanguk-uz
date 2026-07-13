@@ -317,3 +317,158 @@ async def test_skips_empty_scholarship_card() -> None:
     run = await pw.publish_pending(conn)
     assert run.rows_written == 1                     # only the real scholarship
     assert len(conn.inserts_into("scholarships")) == 1
+
+
+# --------------------------------------------------------------------------- #
+# tuition robustness — formatted amounts, key variants, semester clamp
+
+
+class TestTuitionCoercion:
+    def test_as_int_coerces_formatted_strings(self) -> None:
+        assert pw._as_int("3,500,000원") == 3_500_000
+        assert pw._as_int(4800000) == 4_800_000
+        assert pw._as_int(4800000.0) == 4_800_000
+        assert pw._as_int("no digits") is None
+        assert pw._as_int(None) is None
+        assert pw._as_int(True) is None
+
+    def test_amount_read_from_key_variants(self) -> None:
+        assert pw.tuition_amount({"amount_krw": 1}) == 1
+        assert pw.tuition_amount({"tuition_krw": "2,000"}) == 2000
+        assert pw.tuition_amount({"amount": 3}) == 3
+        assert pw.tuition_amount({"amount_usd": 3}) is None  # non-KRW skipped
+
+    def test_faculty_from_department_or_major(self) -> None:
+        assert pw.tuition_faculty({"faculty_group": "인문"}) == "인문"
+        assert pw.tuition_faculty({"department_ko": "기계공학과"}) == "기계공학과"
+        assert pw.tuition_faculty({"major_ko": "성악"}) == "성악"
+        assert pw.tuition_faculty({}) == "전체"
+
+
+async def test_tuition_publishes_formatted_string_amount_per_department() -> None:
+    cy = date.today().year
+    rec = _rec("tuition", {"rows": [{
+        "department_ko": "기계공학과", "academic_year": cy,
+        "semester_number": "1학기", "amount_krw": "4,800,000원",
+        "source_text_ko": "기계공학과 4,800,000원"}]})
+    conn = _Conn([rec])
+    run = await pw.publish_pending(conn)
+    assert run.rows_written == 1
+    args = conn.inserts_into("tuition")[0]
+    assert 4_800_000 in args and "기계공학과" in args
+
+
+async def test_tuition_semester_clamped_into_check_range() -> None:
+    cy = date.today().year
+    rec = _rec("tuition", {"rows": [{
+        "faculty_group": "인문", "academic_year": cy, "semester_number": 0,
+        "amount_krw": 1_000_000, "source_text_ko": "x"}]})
+    conn = _Conn([rec])
+    await pw.publish_pending(conn)
+    args = conn.inserts_into("tuition")[0]
+    assert args[3] == 1  # semester_number clamped to the 1..12 CHECK
+
+
+# --------------------------------------------------------------------------- #
+# requirements → korean hours + eligible programs
+
+
+class _ProgConn(_Conn):
+    """Fake that also answers the program get-or-create round-trips."""
+
+    def __init__(self, records: list[dict], *,
+                 existing_programs: bool = False) -> None:
+        super().__init__(records)
+        self._existing_programs = existing_programs
+        self.program_inserts = 0
+
+    async def fetchval(self, sql: str, *args: object):
+        squashed = " ".join(sql.split())
+        if "select id from public.programs" in squashed:
+            return uuid4() if self._existing_programs else None
+        if "insert into public.programs" in squashed:
+            self.program_inserts += 1
+            self.executes.append((squashed, args))
+            return uuid4()
+        if "select id from public.university_programs" in squashed:
+            return uuid4() if self._existing_programs else None
+        return await super().fetchval(sql, *args)
+
+
+def _req_row(**extra) -> dict:
+    row = {"applicant_category": "외국인전형", "audience": "foreign",
+           "source_text_ko": f"{date.today().year + 1}학년도 모집"}
+    row.update(extra)
+    return row
+
+
+async def test_requirements_publishes_korean_hours_min() -> None:
+    rec = _rec("requirements",
+               {"rows": [_req_row(topik_min_level=3, korean_hours_min=800)]})
+    conn = _Conn([rec])
+    await pw.publish_pending(conn)
+    args = conn.inserts_into("requirements")[0]
+    assert 800 in args and 3 in args
+
+
+async def test_requirements_majors_create_programs_and_links() -> None:
+    rec = _rec("requirements", {"rows": [_req_row(
+        topik_min_level=3,
+        english_test={"ielts": 5.5},
+        majors=["경영학과", "컴퓨터공학과"],
+    )]})
+    conn = _ProgConn([rec])
+    run = await pw.publish_pending(conn)
+    assert run.published == 1
+    assert conn.program_inserts == 2
+    up_inserts = conn.inserts_into("university_programs")
+    assert len(up_inserts) == 2
+    # TOPIK + IELTS minimums land on the app-facing row; both routes → 'both'
+    assert any(3 in a and 5.5 in a and "both" in a for a in up_inserts)
+    links = [sql for sql, _ in conn.executes
+             if "insert into public.recruitment_unit_programs" in sql]
+    assert len(links) == 2 and all("on conflict do nothing" in s for s in links)
+
+
+async def test_requirements_majors_update_existing_university_programs() -> None:
+    rec = _rec("requirements",
+               {"rows": [_req_row(topik_min_level=4, majors=["경영학과"])]})
+    conn = _ProgConn([rec], existing_programs=True)
+    await pw.publish_pending(conn)
+    assert conn.program_inserts == 0            # existing program reused
+    assert conn.inserts_into("university_programs") == []
+    updates = [sql for sql, _ in conn.executes
+               if "update public.university_programs" in sql]
+    assert len(updates) == 1 and "coalesce" in updates[0]
+
+
+async def test_requirements_per_track_tuition_lands_in_tuition_table() -> None:
+    rec = _rec("requirements", {"rows": [_req_row(
+        tuition={"amount_krw": 4_500_000, "academic_year": date.today().year,
+                 "semester_number": 1},
+    )]})
+    conn = _Conn([rec])
+    run = await pw.publish_pending(conn)
+    args = conn.inserts_into("tuition")
+    assert len(args) == 1 and 4_500_000 in args[0]
+    assert run.rows_written == 2                 # requirement row + tuition row
+
+
+class TestRequirementsProgramHelpers:
+    def test_english_minimums_from_both_shapes(self) -> None:
+        assert pw._english_minimums({"english_test": {"ielts": 5.5}}) == (5.5, None)
+        assert pw._english_minimums(
+            {"english_test": {"test": "toefl_ibt", "min_score": 80}}) == (None, 80)
+        assert pw._english_minimums({"english_test": None}) == (None, None)
+
+    def test_language_track_derivation(self) -> None:
+        assert pw._language_track_from_requirements(
+            {"topik_min_level": 3, "english_test": {"ielts": 5.5}}) == "both"
+        assert pw._language_track_from_requirements(
+            {"english_test": {"ielts": 5.5}}) == "english"
+        assert pw._language_track_from_requirements({"topik_min_level": 3}) == "korean"
+        assert pw._language_track_from_requirements({}) == "korean"
+
+    def test_degree_levels_for_track(self) -> None:
+        assert pw._degree_levels_for_track("grad_foreign") == ("master", "graduate")
+        assert pw._degree_levels_for_track("foreign") == ("bachelor", "undergraduate")

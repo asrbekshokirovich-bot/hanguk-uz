@@ -39,6 +39,7 @@ from tenacity import (
 from ..config import settings
 from .normalize import normalize_output
 from .prompt_assembler import GlossaryEntry, assemble_prompt
+from .prune import prune_to_schema
 from .schemas import FIELD_GROUP_SCHEMAS
 
 log = logging.getLogger(__name__)
@@ -60,6 +61,14 @@ _FENCE_RE = re.compile(
     re.DOTALL,
 )
 
+# Fenced JSON preceded by prose ("Here is the extraction:\n```json\n{...").
+# The anchored regex above misses it; this one finds the first fenced block
+# anywhere in the text. Closing fence optional for the same truncation reason.
+_FENCE_ANYWHERE_RE = re.compile(
+    r"```(?:json|JSON)?\s*([\[{].*?)(?:\s*```|\s*$)",
+    re.DOTALL,
+)
+
 
 @dataclass(frozen=True, slots=True)
 class ExtractionResult:
@@ -77,6 +86,10 @@ class ExtractionResult:
     # extraction_jobs.error_text column, not buried in raw_output). None on
     # success.
     error_text: str | None = None
+    # Key paths schema-guided pruning stripped before validation (see
+    # prune.prune_to_schema). Logged onto the job; raw_output keeps the
+    # unpruned model text.
+    dropped_keys: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -189,13 +202,48 @@ def extract_field_group(
 
     use_cli = settings.llm_backend == "claude_cli"
     backend = _call_claude_cli if use_cli else _call_anthropic
-    call = backend(
-        field_group=field_group,
-        archetype=archetype,
-        source_text_ko=source_text_ko,
-    )
-    parsed = normalize_output(field_group, call.parsed)
-    jsonschema.validate(instance=parsed, schema=FIELD_GROUP_SCHEMAS[field_group])
+
+    def _attempt(prompt_addendum: str | None):
+        call = backend(
+            field_group=field_group,
+            archetype=archetype,
+            source_text_ko=source_text_ko,
+            prompt_addendum=prompt_addendum,
+        )
+        parsed = normalize_output(field_group, call.parsed)
+        # Prune-don't-reject: strip keys the schema would refuse (logging
+        # them) so one unmodelled-but-real field never fails the whole job.
+        # After pruning, validation can only fail for a genuinely structural
+        # problem (required core field absent / broken type).
+        pruned, dropped = prune_to_schema(field_group, parsed)
+        jsonschema.validate(instance=pruned, schema=FIELD_GROUP_SCHEMAS[field_group])
+        return call, pruned, dropped
+
+    # One corrective retry per failure class, with the error fed back into
+    # the prompt: unparseable JSON → retry with the parse error; schema
+    # validation failure after pruning → retry with the validator errors.
+    try:
+        call, parsed, dropped = _attempt(None)
+    except AnthropicResponseError as exc:
+        log.warning(
+            "extract: %s/%s response unparseable (%s); retrying once with "
+            "the parse error appended to the prompt",
+            archetype, field_group, str(exc)[:120],
+        )
+        call, parsed, dropped = _attempt(_parse_retry_addendum(exc))
+    except jsonschema.ValidationError as exc:
+        log.warning(
+            "extract: %s/%s failed schema validation (%s); retrying once "
+            "with the validator errors appended to the prompt",
+            archetype, field_group, exc.message[:120],
+        )
+        call, parsed, dropped = _attempt(_validation_retry_addendum(exc))
+
+    if dropped:
+        log.info(
+            "extract: %s/%s pruned %d unmodelled key(s): %s",
+            archetype, field_group, len(dropped), ", ".join(dropped[:10]),
+        )
 
     latency_ms = int((time.monotonic() - started) * 1000)
     return ExtractionResult(
@@ -209,6 +257,30 @@ def extract_field_group(
         cost_usd=call.cost_usd,
         latency_ms=latency_ms,
         accuracy_self_score=_self_score(parsed),
+        dropped_keys=dropped,
+    )
+
+
+def _parse_retry_addendum(exc: Exception) -> str:
+    """Prompt suffix for the retry after an unparseable response."""
+    return (
+        "\n\n## RETRY — your previous response could not be parsed as JSON\n\n"
+        f"Parse error: {str(exc)[:400]}\n\n"
+        "Return ONLY the JSON object this time — no prose, no markdown code "
+        "fences, no commentary before or after the JSON.\n"
+    )
+
+
+def _validation_retry_addendum(exc: jsonschema.ValidationError) -> str:
+    """Prompt suffix for the retry after a schema-validation failure."""
+    path = "$" + "".join(
+        f"[{p}]" if isinstance(p, int) else f".{p}" for p in exc.absolute_path
+    )
+    return (
+        "\n\n## RETRY — your previous response failed schema validation\n\n"
+        f"Validator error at `{path}`: {exc.message[:400]}\n\n"
+        "Fix that problem and return ONLY the corrected JSON object. Keep "
+        "every other row/value you extracted unchanged.\n"
     )
 
 
@@ -299,11 +371,22 @@ def _retriable_exception_types() -> tuple[type[BaseException], ...]:  # pragma: 
 
 
 def _strip_fences(text: str) -> str:
-    """Remove ```json``` / ``` markdown fences if the model wrapped output."""
+    """Remove ```json``` / ``` markdown fences if the model wrapped output.
+
+    Handles both a fully fenced response and a fenced block preceded by
+    prose ("Here is the JSON:\\n```json\\n{...}```") — the second form was
+    failing whole jobs with "response was not valid JSON; raw='```json…'".
+    """
+    stripped = text.strip()
+    if stripped.startswith(("{", "[")):
+        return stripped  # already bare JSON — don't touch fences inside strings
     match = _FENCE_RE.match(text)
     if match:
         return match.group(1).strip()
-    return text.strip()
+    match = _FENCE_ANYWHERE_RE.search(text)
+    if match:
+        return match.group(1).strip()
+    return stripped
 
 
 def _salvage_partial_json(text: str, field_group: str | None = None) -> dict[str, Any] | None:
@@ -391,16 +474,26 @@ def _parse_extraction_output(raw: str, field_group: str) -> dict[str, Any]:
     """
     stripped = _strip_fences(raw)
     try:
-        parsed: dict[str, Any] | None = json.loads(stripped)
+        parsed: dict[str, Any] | list[Any] | None = json.loads(stripped)
     except json.JSONDecodeError:
         parsed = None
-        start = stripped.find("{")
-        end = stripped.rfind("}")
-        if start != -1 and end > start:
-            try:
-                parsed = json.loads(stripped[start : end + 1])
-            except json.JSONDecodeError:
-                parsed = None
+        # Prose around the JSON — recover the outermost object or the
+        # outermost array (the model sometimes returns a bare rows list).
+        # Whichever opener appears FIRST wins, so a bare list isn't mistaken
+        # for its first row object.
+        pairs = sorted(
+            (("{", "}"), ("[", "]")),
+            key=lambda p: (stripped.find(p[0]) == -1, stripped.find(p[0])),
+        )
+        for open_ch, close_ch in pairs:
+            start = stripped.find(open_ch)
+            end = stripped.rfind(close_ch)
+            if start != -1 and end > start:
+                try:
+                    parsed = json.loads(stripped[start : end + 1])
+                    break
+                except json.JSONDecodeError:
+                    parsed = None
         if parsed is None:
             salvaged = _salvage_partial_json(stripped, field_group)
             if salvaged is not None:
@@ -415,6 +508,11 @@ def _parse_extraction_output(raw: str, field_group: str) -> dict[str, Any]:
                 raise AnthropicResponseError(
                     f"model response was not valid JSON; raw={raw[:200]!r}"
                 ) from None
+    # Bare top-level list → wrap under the canonical content key so both
+    # shapes ({"rows": [...]} and [...]) normalize identically.
+    if isinstance(parsed, list):
+        wrapper = "events" if field_group == "calendar" else "rows"
+        parsed = {wrapper: parsed}
     if not isinstance(parsed, dict):
         raise AnthropicResponseError(
             f"model response parsed to {type(parsed).__name__}, expected dict"
@@ -422,11 +520,28 @@ def _parse_extraction_output(raw: str, field_group: str) -> dict[str, Any]:
     return _normalize_wrapper(parsed, field_group)
 
 
+# documents_required regularly needs the most output (dozens of rows across
+# applicant categories) and was the top CLI-timeout victim at 240s. Give it
+# double the budget; the other groups keep the default.
+_CLI_TIMEOUT_DEFAULT_SEC = 240.0
+_CLI_TIMEOUT_LONG_SEC = 480.0
+_CLI_TIMEOUT_LONG_GROUPS = frozenset({"documents_required", "document_checklist"})
+
+
+def _cli_timeout_for(field_group: str) -> float:
+    return (
+        _CLI_TIMEOUT_LONG_SEC
+        if field_group in _CLI_TIMEOUT_LONG_GROUPS
+        else _CLI_TIMEOUT_DEFAULT_SEC
+    )
+
+
 def _call_claude_cli(
     *,
     field_group: str,
     archetype: str,
     source_text_ko: str,
+    prompt_addendum: str | None = None,
 ) -> _AnthropicCallResult:
     """Keyless extraction via the `claude` CLI (subscription auth, no API key)."""
     from .llm_cli import run_claude_cli
@@ -437,13 +552,19 @@ def _call_claude_cli(
         source_text_ko=source_text_ko,
         glossary=_default_glossary(),
     )
+    user = prompt.user + prompt_addendum if prompt_addendum else prompt.user
     log.info(
         "extract: calling claude CLI (subscription) for %s/%s (~%d input tokens est.)",
         archetype,
         field_group,
         prompt.estimated_input_tokens,
     )
-    raw = run_claude_cli(prompt.system, prompt.user, settings.anthropic_model_extract)
+    raw = run_claude_cli(
+        prompt.system,
+        user,
+        settings.anthropic_model_extract,
+        timeout=_cli_timeout_for(field_group),
+    )
     parsed = _parse_extraction_output(raw, field_group)
     return _AnthropicCallResult(
         parsed=parsed,
@@ -494,6 +615,7 @@ def _call_anthropic(
     field_group: str,
     archetype: str,
     source_text_ko: str,
+    prompt_addendum: str | None = None,
 ) -> _AnthropicCallResult:
     """Live Anthropic call.
 
@@ -542,7 +664,10 @@ def _call_anthropic(
                 "cache_control": {"type": "ephemeral"},
             }
         ],
-        messages=[{"role": "user", "content": prompt.user}],
+        messages=[{
+            "role": "user",
+            "content": prompt.user + prompt_addendum if prompt_addendum else prompt.user,
+        }],
     )
 
     raw = _extract_text(response)

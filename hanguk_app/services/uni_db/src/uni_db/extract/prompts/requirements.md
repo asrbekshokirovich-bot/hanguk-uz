@@ -58,6 +58,10 @@ fields. Do not include fields from other field groups (`document_type`,
   "졸업 전 취득 가능" or "to be acquired before graduation", set
   `topik_deferred=true` and leave `topik_min_level` at the *target* level.
   Set `topik_status="not_required"` when TOPIK is explicitly waived/면제.
+- `korean_hours_min` is the minimum Korean-language study hours (한국어 연수
+  N시간 이상, e.g. "한국어연수 800시간 이수자") when the guideline accepts
+  language-institute hours in lieu of / alongside a TOPIK level. Integer or
+  `null` when not mentioned.
 - `english_test` is `null` when no English test is required; also set
   `english_status` accordingly (`not_required` if explicitly waived,
   `not_stated` if the excerpt is silent). When required, `english_test` is
