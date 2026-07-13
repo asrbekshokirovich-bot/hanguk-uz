@@ -1119,7 +1119,8 @@
       "chipAmber": "Check",
       "chipGreen": "Ready",
       "done": "Completed",
-      "sub": "{{n}} section(s) · min. confidence {{p}}%"
+      "sub": "{{n}} section(s) · min. confidence {{p}}%",
+      "subNoConf": "{{n}} section(s)"
     },
     "detail": {
       "sourcePage": "Source page",
@@ -1155,7 +1156,8 @@
     },
     "decided": {
       "approved": "Approved — published to students",
-      "rejected": "Rejected — {{reason}}"
+      "rejected": "Rejected — {{reason}}",
+      "sourceWrong": "Wrong source (bad PDF)"
     },
     "toast": {
       "approved": "Approved — {{uni}}: {{section}}",

@@ -1109,7 +1109,8 @@
       "chipAmber": "Tekshiring",
       "chipGreen": "Tayyor",
       "done": "Yakunlandi",
-      "sub": "{{n}} bo'lim · min. ishonch {{p}}%"
+      "sub": "{{n}} bo'lim · min. ishonch {{p}}%",
+      "subNoConf": "{{n}} bo'lim"
     },
     "detail": {
       "sourcePage": "Manba sahifa",
@@ -1145,7 +1146,8 @@
     },
     "decided": {
       "approved": "Tasdiqlandi — talabalarga e'lon qilindi",
-      "rejected": "Rad etildi — {{reason}}"
+      "rejected": "Rad etildi — {{reason}}",
+      "sourceWrong": "Manba noto'g'ri (PDF xato)"
     },
     "toast": {
       "approved": "Tasdiqlandi — {{uni}}: {{section}}",

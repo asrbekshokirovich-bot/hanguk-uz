@@ -1074,7 +1074,8 @@
       "chipAmber": "확인",
       "chipGreen": "준비됨",
       "done": "완료",
-      "sub": "{{n}}개 섹션 · 최소 신뢰도 {{p}}%"
+      "sub": "{{n}}개 섹션 · 최소 신뢰도 {{p}}%",
+      "subNoConf": "{{n}}개 섹션"
     },
     "detail": {
       "sourcePage": "출처 페이지",
@@ -1110,7 +1111,8 @@
     },
     "decided": {
       "approved": "승인됨 — 학생에게 게시됨",
-      "rejected": "거절됨 — {{reason}}"
+      "rejected": "거절됨 — {{reason}}",
+      "sourceWrong": "출처 오류 (잘못된 PDF)"
     },
     "toast": {
       "approved": "승인됨 — {{uni}}: {{section}}",
