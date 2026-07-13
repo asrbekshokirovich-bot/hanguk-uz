@@ -225,6 +225,11 @@ REQUIREMENTS_SCHEMA: dict[str, Any] = {
                     },
                     "interview_required":      {"type": "boolean"},
                     "practical_exam_required": {"type": "boolean"},
+                    # Optional reviewer-facing row labels (see the reviewer-
+                    # summary prompt addendum). Modelled explicitly because
+                    # this row level is strict (additionalProperties: False).
+                    "label_uz":                {"type": ["string", "null"]},
+                    "label_en":                {"type": ["string", "null"]},
                     "prose_ko":                {"type": ["string", "null"]},
                     "notes_ko":                {"type": ["string", "null"]},
                     "is_correction_notice":    {"type": "boolean"},

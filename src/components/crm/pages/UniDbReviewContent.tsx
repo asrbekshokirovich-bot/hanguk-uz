@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useCanReviewUniDb } from '@/hooks/useCanReviewUniDb';
 import { Card, CardContent } from '@/components/ui/card';
@@ -17,6 +18,7 @@ import {
 } from 'lucide-react';
 import { CrawlTargetPanel } from './CrawlTargetPanel';
 import { ReviewApprovalQueue } from './ReviewApprovalQueue';
+import { canonicalSection } from './reviewFriendly';
 
 /**
  * University-data review. Auto-crawled guidelines are held for HUMAN APPROVAL —
@@ -29,16 +31,10 @@ import { ReviewApprovalQueue } from './ReviewApprovalQueue';
  *
  * The crawl-target panel at the top shows (and lets owners/admins change) which
  * admission cycle the nightly crawl targets.
+ *
+ * All static text goes through the app i18n (uz/en, following the CRM's
+ * language switcher).
  */
-
-const SECTION_LABEL: Record<string, string> = {
-  requirements: 'Admission tracks (전형)',
-  documents_required: 'Required documents',
-  tuition: 'Tuition',
-  scholarships: 'Scholarships',
-  admission_cycles: 'Admission cycle',
-  admission_periods: 'Admission timeline & fees',
-};
 
 interface NeedsAttentionRow {
   section: string;
@@ -58,7 +54,6 @@ function useNeedsAttention() {
     refetchInterval: 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
-        // @ts-expect-error - view not in generated types yet
         .from('v_needs_attention')
         .select('*')
         .order('created_at', { ascending: false });
@@ -90,12 +85,18 @@ function groupByInstitution(rows: NeedsAttentionRow[]): UniGroup[] {
 }
 
 function institutionName(g: UniGroup): string {
-  return g.nameEn || g.nameKo || 'Unknown institution';
+  return g.nameEn || g.nameKo || '—';
 }
 
 function NeedsAttentionView() {
+  const { t } = useTranslation();
   const { data: rows = [], isLoading, error, refetch, isRefetching } = useNeedsAttention();
   const [search, setSearch] = useState('');
+
+  const sectionLabel = (section: string): string => {
+    const canonical = canonicalSection(section);
+    return canonical ? t(`uniReview.section.${canonical}`) : section;
+  };
 
   const groups = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -124,10 +125,10 @@ function NeedsAttentionView() {
       <div className="flex flex-col items-center justify-center py-20 text-center">
         <AlertTriangle className="mb-3 h-10 w-10 text-destructive" />
         <p className="text-sm text-muted-foreground">
-          Could not load the needs-attention feed: {error.message}
+          {t('uniReview.loadError', { message: error.message })}
         </p>
         <Button variant="outline" size="sm" className="mt-4" onClick={() => refetch()}>
-          <RefreshCw className="mr-2 h-4 w-4" /> Retry
+          <RefreshCw className="mr-2 h-4 w-4" /> {t('uniReview.retry')}
         </Button>
       </div>
     );
@@ -138,16 +139,13 @@ function NeedsAttentionView() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="flex items-center gap-2 text-lg font-semibold">
-            Auto-published — needs attention
+            {t('uniReview.flagsTitle')}
           </h2>
-          <p className="text-sm text-muted-foreground">
-            Rows auto-published but flagged for low extractor confidence. Already live for
-            applicants — this list is for spot-checking only.
-          </p>
+          <p className="text-sm text-muted-foreground">{t('uniReview.flagsSubtitle')}</p>
         </div>
         <div className="flex items-center gap-2">
           <Input
-            placeholder="Filter by institution, section, reason…"
+            placeholder={t('uniReview.filterPlaceholder')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-64"
@@ -162,9 +160,9 @@ function NeedsAttentionView() {
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-16 text-center">
             <CheckCircle2 className="mb-3 h-10 w-10 text-success" />
-            <h3 className="font-medium">Nothing needs attention</h3>
+            <h3 className="font-medium">{t('uniReview.emptyFlagsTitle')}</h3>
             <p className="mt-1 text-sm text-muted-foreground">
-              {search ? 'No flagged rows match your filter.' : 'No auto-published rows are flagged.'}
+              {search ? t('uniReview.emptyFlagsFiltered') : t('uniReview.emptyFlagsBody')}
             </p>
           </CardContent>
         </Card>
@@ -178,10 +176,12 @@ function NeedsAttentionView() {
                     <div>
                       <div className="font-medium">{institutionName(g)}</div>
                       {g.nameKo && g.nameEn ? (
-                        <div className="text-xs text-muted-foreground">{g.nameKo}</div>
+                        <div className="text-xs text-muted-foreground" lang="ko">{g.nameKo}</div>
                       ) : null}
                     </div>
-                    <Badge variant="secondary">{g.rows.length} flagged</Badge>
+                    <Badge variant="secondary">
+                      {t('uniReview.flaggedCount', { n: g.rows.length })}
+                    </Badge>
                   </div>
                   <div className="space-y-2">
                     {g.rows.map((r) => (
@@ -191,9 +191,7 @@ function NeedsAttentionView() {
                       >
                         <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
                         <div className="min-w-0">
-                          <div className="text-sm font-medium">
-                            {SECTION_LABEL[r.section] ?? r.section}
-                          </div>
+                          <div className="text-sm font-medium">{sectionLabel(r.section)}</div>
                           {r.attention_reason ? (
                             <div className="break-words text-xs text-muted-foreground">
                               {r.attention_reason}
@@ -214,6 +212,7 @@ function NeedsAttentionView() {
 }
 
 export function UniDbReviewContent() {
+  const { t } = useTranslation();
   const { canReview, loading } = useCanReviewUniDb();
 
   if (loading) {
@@ -228,9 +227,9 @@ export function UniDbReviewContent() {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
         <ShieldAlert className="mb-3 h-10 w-10 text-muted-foreground" />
-        <h2 className="text-lg font-semibold">Access restricted</h2>
+        <h2 className="text-lg font-semibold">{t('uniReview.accessRestricted')}</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          You don&rsquo;t have permission to view university data.
+          {t('uniReview.accessRestrictedBody')}
         </p>
       </div>
     );
@@ -241,8 +240,8 @@ export function UniDbReviewContent() {
       <CrawlTargetPanel />
       <Tabs defaultValue="approval">
         <TabsList>
-          <TabsTrigger value="approval">Awaiting approval</TabsTrigger>
-          <TabsTrigger value="flags">Auto-published flags</TabsTrigger>
+          <TabsTrigger value="approval">{t('uniReview.tabApproval')}</TabsTrigger>
+          <TabsTrigger value="flags">{t('uniReview.tabFlags')}</TabsTrigger>
         </TabsList>
         <TabsContent value="approval" className="mt-4">
           <ReviewApprovalQueue />

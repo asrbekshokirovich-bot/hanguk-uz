@@ -1,4 +1,6 @@
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import {
   Loader2,
   RefreshCw,
@@ -15,6 +17,7 @@ import { toast } from 'sonner';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Select,
@@ -31,40 +34,36 @@ import {
   type RejectionReason,
 } from '@/hooks/useReviewQueue';
 import { ReviewParsedOutput } from './ReviewParsedOutput';
-import { itemConfidence, confidencePct } from './reviewLogic';
+import { itemConfidence } from './reviewLogic';
+import { canonicalSection, presentSections } from './reviewFriendly';
+import {
+  ConfidenceLight,
+  ReliabilityChecklist,
+  SummaryBlock,
+  CompletenessStrip,
+} from './ReviewFriendly';
 import {
   parseReliability,
   rollupColor,
   reliabilityBadgeVariant,
-  RELIABILITY_LABEL,
   type ReliabilityColor,
 } from './reliability';
 
 /**
  * The human-approval queue for auto-crawled university guidelines. Every crawled
  * guideline is queued `open` and NOTHING publishes until a staff member approves
- * it here. Each item shows the extracted data (ReviewParsedOutput), the
- * reliability gauntlet's verdict, the source PDF, and Approve / Reject / Flag
- * actions (wired to fn_review_accept / fn_review_reject / fn_flag_source_wrong).
+ * it here. Each item shows the extractor's plain-language summary (when the
+ * payload carries one), the extracted data (ReviewParsedOutput), the reliability
+ * gauntlet's verdict as a plain pass/fail list, the source PDF, and
+ * Approve / Reject / Flag actions (wired to fn_review_accept / fn_review_reject /
+ * fn_flag_source_wrong). All static text goes through the app i18n (uz/en).
  */
 
-const SECTION_LABEL: Record<string, string> = {
-  requirements: 'Admission tracks & eligibility (전형)',
-  documents_required: 'Required documents',
-  tuition: 'Tuition',
-  scholarships: 'Scholarships',
-  calendar: 'Timeline & deadlines',
-  degree_split: 'Undergraduate + graduate split',
-};
-
-const REJECT_LABEL: Record<RejectionReason, string> = {
-  wrong_year: 'Wrong year / cycle',
-  wrong_archetype: 'Wrong document type',
-  hallucinated_field: 'Hallucinated / wrong data',
-  ocr_garbled: 'OCR garbled',
-  source_404: 'Source unavailable',
-  other: 'Other',
-};
+function sectionLabel(t: TFunction, fieldGroup: string | null): string {
+  const canonical = canonicalSection(fieldGroup);
+  if (canonical) return t(`uniReview.section.${canonical}`);
+  return fieldGroup ?? t('uniReview.section.unknown');
+}
 
 interface GuidelineGroup {
   key: string;
@@ -111,41 +110,51 @@ function groupRows(rows: ReviewQueueRow[]): GuidelineGroup[] {
 }
 
 function institutionName(g: GuidelineGroup): string {
-  return g.nameEn || g.nameKo || 'Unknown institution';
+  return g.nameEn || g.nameKo || '—';
 }
 
-async function openPdf(guidelineDocId: string | null, storagePath: string | null) {
+async function openPdf(
+  t: TFunction,
+  guidelineDocId: string | null,
+  storagePath: string | null,
+) {
   const body = guidelineDocId
     ? { document_id: guidelineDocId, reason: 'review' }
     : storagePath
       ? { storage_path: storagePath, reason: 'review' }
       : null;
   if (!body) {
-    toast.error('No stored PDF for this guideline yet.');
+    toast.error(t('uniReview.noPdf'));
     return;
   }
   const { data, error } = await supabase.functions.invoke('get-pdf-url', { body });
   const signed = (data as { signed_url?: string } | null)?.signed_url;
   if (error || !signed) {
-    toast.error(error?.message || 'Could not open the PDF.');
+    toast.error(error?.message || t('uniReview.pdfError'));
     return;
   }
   window.open(signed, '_blank', 'noopener,noreferrer');
 }
 
 function ReliabilityBadge({ color }: { color: ReliabilityColor | null }) {
+  const { t } = useTranslation();
   if (!color) return null;
-  return <Badge variant={reliabilityBadgeVariant(color)}>{RELIABILITY_LABEL[color]}</Badge>;
+  return (
+    <Badge variant={reliabilityBadgeVariant(color)}>
+      {t(`uniReview.reliability.badge.${color}`)}
+    </Badge>
+  );
 }
 
 function SectionCard({ row }: { row: ReviewQueueRow }) {
+  const { t } = useTranslation();
   const { accept, reject, flagSourceWrong } = useReviewActions();
   const [rejecting, setRejecting] = useState(false);
   const [rejectReason, setRejectReason] = useState<RejectionReason>('hallucinated_field');
+  const [rejectDetail, setRejectDetail] = useState('');
 
   const rel = parseReliability(row.reviewer_notes, row.needs_attention);
-  const conf = confidencePct(itemConfidence(row));
-  const label = SECTION_LABEL[row.field_group ?? ''] ?? row.field_group ?? 'Section';
+  const label = sectionLabel(t, row.field_group);
   const acting =
     (accept.isPending && accept.variables?.queueItemId === row.id) ||
     (reject.isPending && reject.variables?.queueItemId === row.id) ||
@@ -155,18 +164,23 @@ function SectionCard({ row }: { row: ReviewQueueRow }) {
     accept.mutate(
       { queueItemId: row.id },
       {
-        onSuccess: () => toast.success(`Approved — ${label}`),
+        onSuccess: () => toast.success(t('uniReview.approveDone', { section: label })),
         onError: (e) => toast.error(e.message),
       },
     );
 
   const onReject = () =>
     reject.mutate(
-      { queueItemId: row.id, reason: rejectReason },
+      {
+        queueItemId: row.id,
+        reason: rejectReason,
+        reasonDetail: rejectDetail.trim() || undefined,
+      },
       {
         onSuccess: () => {
-          toast.success(`Rejected — ${label}`);
+          toast.success(t('uniReview.rejectDone', { section: label }));
           setRejecting(false);
+          setRejectDetail('');
         },
         onError: (e) => toast.error(e.message),
       },
@@ -176,7 +190,7 @@ function SectionCard({ row }: { row: ReviewQueueRow }) {
     flagSourceWrong.mutate(
       { queueItemId: row.id },
       {
-        onSuccess: (n) => toast.success(`Flagged source — rejected ${n} item(s) from this PDF`),
+        onSuccess: (n) => toast.success(t('uniReview.flagSourceDone', { n })),
         onError: (e) => toast.error(e.message),
       },
     );
@@ -186,41 +200,42 @@ function SectionCard({ row }: { row: ReviewQueueRow }) {
       <div className="mb-2 flex flex-wrap items-center gap-2">
         <span className="text-sm font-medium">{label}</span>
         <ReliabilityBadge color={rel.color} />
-        {conf ? <Badge variant="neutral">confidence {conf}</Badge> : null}
+        <ConfidenceLight score={itemConfidence(row)} />
       </div>
 
-      {rel.detail ? (
-        <details className="mb-2 text-xs">
-          <summary className="cursor-pointer text-muted-foreground">Reliability checks</summary>
-          <pre className="mt-1 whitespace-pre-wrap break-words rounded bg-muted/50 p-2 font-mono text-[11px] text-muted-foreground">
-            {rel.detail}
-          </pre>
-        </details>
-      ) : null}
+      <ReliabilityChecklist detail={rel.detail} />
+
+      <SummaryBlock parsedOutput={row.parsed_output} />
 
       <ReviewParsedOutput fieldGroup={row.field_group} parsedOutput={row.parsed_output} />
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
         {acting ? <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" /> : null}
         <Button size="sm" onClick={onApprove} disabled={acting}>
-          <ThumbsUp className="h-3.5 w-3.5" /> Approve &amp; publish
+          <ThumbsUp className="h-3.5 w-3.5" /> {t('uniReview.approve')}
         </Button>
         {rejecting ? (
           <>
             <Select value={rejectReason} onValueChange={(v) => setRejectReason(v as RejectionReason)}>
-              <SelectTrigger className="h-8 w-[190px]">
+              <SelectTrigger className="h-8 w-[220px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 {REVIEW_REJECTION_REASONS.map((r) => (
                   <SelectItem key={r} value={r}>
-                    {REJECT_LABEL[r]}
+                    {t(`uniReview.rejectReason.${r}`)}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
+            <Input
+              value={rejectDetail}
+              onChange={(e) => setRejectDetail(e.target.value)}
+              placeholder={t('uniReview.rejectDetailPlaceholder')}
+              className="h-8 w-[200px]"
+            />
             <Button size="sm" variant="destructive" onClick={onReject} disabled={acting}>
-              Confirm reject
+              {t('uniReview.confirmReject')}
             </Button>
             <Button size="sm" variant="ghost" onClick={() => setRejecting(false)} disabled={acting}>
               <X className="h-3.5 w-3.5" />
@@ -228,7 +243,7 @@ function SectionCard({ row }: { row: ReviewQueueRow }) {
           </>
         ) : (
           <Button size="sm" variant="outline" onClick={() => setRejecting(true)} disabled={acting}>
-            Reject
+            {t('uniReview.reject')}
           </Button>
         )}
       </div>
@@ -240,7 +255,7 @@ function SectionCard({ row }: { row: ReviewQueueRow }) {
           disabled={acting}
           className="mt-2 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive"
         >
-          <Flag className="h-3 w-3" /> Wrong source — reject every section from this PDF
+          <Flag className="h-3 w-3" /> {t('uniReview.flagSource')}
         </button>
       ) : null}
     </div>
@@ -248,41 +263,43 @@ function SectionCard({ row }: { row: ReviewQueueRow }) {
 }
 
 function GuidelineCard({ group }: { group: GuidelineGroup }) {
+  const { t } = useTranslation();
   const color = rollupColor(
     group.rows.map((r) => parseReliability(r.reviewer_notes, r.needs_attention).color),
   );
+  const present = presentSections(group.rows.map((r) => r.field_group));
   return (
     <Card>
       <CardContent className="p-4">
         <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="font-medium">{institutionName(group)}</span>
+              <span className="text-base font-semibold">{institutionName(group)}</span>
               <ReliabilityBadge color={color} />
-              <Badge variant="secondary">{group.rows.length} section(s)</Badge>
+              <Badge variant="secondary">
+                {t('uniReview.sectionCount', { n: group.rows.length })}
+              </Badge>
             </div>
             {group.nameKo && group.nameEn ? (
-              <div className="text-xs text-muted-foreground">{group.nameKo}</div>
+              <div className="text-xs text-muted-foreground" lang="ko">{group.nameKo}</div>
             ) : null}
+            <CompletenessStrip present={present} />
           </div>
           <div className="flex shrink-0 items-center gap-2">
             {group.sourceUrl ? (
-              <a
-                href={group.sourceUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
-              >
-                <ExternalLink className="h-3.5 w-3.5" /> Source page
-              </a>
+              <Button size="sm" variant="outline" asChild>
+                <a href={group.sourceUrl} target="_blank" rel="noopener noreferrer">
+                  <ExternalLink className="h-3.5 w-3.5" /> {t('uniReview.sourcePage')}
+                </a>
+              </Button>
             ) : null}
             <Button
               size="sm"
               variant="outline"
-              onClick={() => openPdf(group.guidelineDocId, group.storagePath)}
+              onClick={() => openPdf(t, group.guidelineDocId, group.storagePath)}
               disabled={!group.guidelineDocId && !group.storagePath}
             >
-              <FileText className="h-3.5 w-3.5" /> View PDF
+              <FileText className="h-3.5 w-3.5" /> {t('uniReview.viewPdf')}
             </Button>
           </div>
         </div>
@@ -297,6 +314,7 @@ function GuidelineCard({ group }: { group: GuidelineGroup }) {
 }
 
 export function ReviewApprovalQueue() {
+  const { t } = useTranslation();
   const { data: rows = [], isLoading, error, refetch, isRefetching } = useReviewQueue();
   const groups = useMemo(() => groupRows(rows), [rows]);
 
@@ -313,10 +331,10 @@ export function ReviewApprovalQueue() {
       <div className="flex flex-col items-center justify-center py-20 text-center">
         <AlertTriangle className="mb-3 h-10 w-10 text-destructive" />
         <p className="text-sm text-muted-foreground">
-          Could not load the approval queue: {error.message}
+          {t('uniReview.loadError', { message: error.message })}
         </p>
         <Button variant="outline" size="sm" className="mt-4" onClick={() => refetch()}>
-          <RefreshCw className="mr-2 h-4 w-4" /> Retry
+          <RefreshCw className="mr-2 h-4 w-4" /> {t('uniReview.retry')}
         </Button>
       </div>
     );
@@ -326,12 +344,8 @@ export function ReviewApprovalQueue() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold">Guidelines awaiting approval</h2>
-          <p className="text-sm text-muted-foreground">
-            Auto-crawled guidelines are held here until you approve them. Nothing reaches applicants
-            until you click Approve. Red = the reliability checks flagged something; open the PDF to
-            verify.
-          </p>
+          <h2 className="text-lg font-semibold">{t('uniReview.queueTitle')}</h2>
+          <p className="text-sm text-muted-foreground">{t('uniReview.queueSubtitle')}</p>
         </div>
         <Button variant="outline" size="icon" onClick={() => refetch()}>
           <RefreshCw className={`h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`} />
@@ -342,10 +356,8 @@ export function ReviewApprovalQueue() {
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-16 text-center">
             <CheckCircle2 className="mb-3 h-10 w-10 text-success" />
-            <h3 className="font-medium">Nothing awaiting approval</h3>
-            <p className="mt-1 text-sm text-muted-foreground">
-              The crawl hasn&rsquo;t queued any new guidelines, or everything has been reviewed.
-            </p>
+            <h3 className="font-medium">{t('uniReview.emptyQueueTitle')}</h3>
+            <p className="mt-1 text-sm text-muted-foreground">{t('uniReview.emptyQueueBody')}</p>
           </CardContent>
         </Card>
       ) : (

@@ -6,8 +6,13 @@
  *
  * Read-only by design: the uni_db pipeline auto-publishes this data; staff use
  * this to spot-check it (the needs_attention badge surfaces low-confidence rows).
+ *
+ * Uses the same friendly renderer conventions as the review queue: translated
+ * labels (uz/en via the app i18n), human date/money/TOPIK formats, and Korean
+ * source text collapsed behind "Show original text".
  */
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { Institution } from '@/hooks/useUniversities';
 import {
   useUniversityAdmissions,
@@ -41,6 +46,8 @@ import {
   StickyNote,
 } from 'lucide-react';
 import { InstitutionNotesPanel } from './InstitutionNotesPanel';
+import { reviewLang, formatReviewDate, formatMoney, formatTopik } from './reviewFriendly';
+import { OriginalTextToggle } from './ReviewFriendly';
 
 interface Props {
   institution: Institution | null;
@@ -49,46 +56,39 @@ interface Props {
 }
 
 function FlagBadge({ reason }: { reason: string | null }) {
+  const { t } = useTranslation();
   return (
     <Badge variant="outline" className="border-warning/50 text-warning gap-1">
       <AlertTriangle className="h-3 w-3" />
-      {reason ? 'flagged' : 'needs attention'}
+      {reason ? t('uniReview.drawer.flagged') : t('uniReview.drawer.needsAttention')}
     </Badge>
   );
 }
 
-function fmtKrw(n: number | null | undefined): string {
-  if (n === null || n === undefined) return '—';
-  return `₩${n.toLocaleString('en-US')}`;
-}
-
-function fmtDate(s: string | null | undefined): string {
-  return s ? s.slice(0, 10) : '—';
-}
-
-function EmptySection({ label }: { label: string }) {
-  return (
-    <div className="text-sm text-muted-foreground py-8 text-center">
-      No {label} published for this university yet.
-    </div>
-  );
+function useFmt() {
+  const { t, i18n } = useTranslation();
+  const lang = reviewLang(i18n.language);
+  return {
+    t,
+    lang,
+    money: (n: number | null | undefined) => formatMoney(n) ?? '—',
+    date: (s: string | null | undefined) => formatReviewDate(s, lang) ?? '—',
+  };
 }
 
 function SourceText({ text }: { text: string | null }) {
   if (!text) return null;
-  return (
-    <p className="text-xs text-muted-foreground mt-1 line-clamp-2" title={text}>
-      {text}
-    </p>
-  );
+  return <OriginalTextToggle texts={[text]} />;
 }
 
 function RequirementRow({ r }: { r: AdmissionRequirement }) {
+  const { t } = useFmt();
   const bits: string[] = [];
-  if (r.topik_min_level != null) bits.push(`TOPIK ≥ ${r.topik_min_level}${r.topik_deferred ? ' (deferred)' : ''}`);
-  if (r.gpa_floor_pct != null) bits.push(`GPA ≥ ${r.gpa_floor_pct}%`);
-  if (r.interview_required) bits.push('interview');
-  if (r.practical_exam_required) bits.push('practical exam');
+  const topik = formatTopik(r.topik_min_level);
+  if (topik) bits.push(`${topik}${r.topik_deferred ? ` (${t('uniReview.values.deferred')})` : ''}`);
+  if (r.gpa_floor_pct != null) bits.push(`${t('uniReview.fields.gpaFloor')} ≥ ${r.gpa_floor_pct}%`);
+  if (r.interview_required) bits.push(t('uniReview.slots.interview'));
+  if (r.practical_exam_required) bits.push(t('uniReview.fields.practicalExam').replace('?', ''));
   return (
     <div className="rounded-md border border-border/60 p-2.5">
       <div className="flex items-center justify-between gap-2">
@@ -96,34 +96,39 @@ function RequirementRow({ r }: { r: AdmissionRequirement }) {
         {r.needs_attention ? <FlagBadge reason={r.attention_reason} /> : null}
       </div>
       <div className="text-sm text-muted-foreground mt-0.5">
-        {bits.length ? bits.join(' · ') : (r.prose_ko || 'No structured criteria')}
+        {bits.length ? bits.join(' · ') : t('uniReview.drawer.noCriteria')}
       </div>
-      <SourceText text={r.source_text_ko} />
+      <SourceText text={r.prose_ko || r.source_text_ko} />
     </div>
   );
 }
 
 function DocumentRow({ d }: { d: RequiredDocument }) {
+  const { t } = useFmt();
   return (
     <div className="rounded-md border border-border/60 p-2.5">
       <div className="flex items-center justify-between gap-2">
         <span className="text-sm font-medium">{d.document_type}</span>
         <div className="flex items-center gap-1">
-          {d.is_required === false ? <Badge variant="secondary">optional</Badge> : null}
-          {d.is_apostille_required ? <Badge variant="outline">apostille</Badge> : null}
+          {d.is_required === false ? (
+            <Badge variant="secondary">{t('uniReview.drawer.optional')}</Badge>
+          ) : null}
+          {d.is_apostille_required ? (
+            <Badge variant="outline">{t('uniReview.drawer.apostilleBadge')}</Badge>
+          ) : null}
           {d.needs_attention ? <FlagBadge reason={d.attention_reason} /> : null}
         </div>
       </div>
       {d.applicant_category ? (
         <div className="text-xs text-muted-foreground mt-0.5">{d.applicant_category}</div>
       ) : null}
-      {d.notes_ko ? <p className="text-xs text-muted-foreground mt-0.5">{d.notes_ko}</p> : null}
-      <SourceText text={d.source_text_ko} />
+      <SourceText text={d.notes_ko || d.source_text_ko} />
     </div>
   );
 }
 
 function CycleCard({ cycle }: { cycle: AdmissionCycle }) {
+  const { t } = useFmt();
   const title = [cycle.intake_year, cycle.intake_term, cycle.cycle_track]
     .filter(Boolean)
     .join(' · ');
@@ -131,7 +136,7 @@ function CycleCard({ cycle }: { cycle: AdmissionCycle }) {
     <div className="space-y-2">
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <span className="font-medium">{title || 'Cycle'}</span>
+          <span className="font-medium">{title || '—'}</span>
           {cycle.applicant_category ? (
             <Badge variant="secondary">{cycle.applicant_category}</Badge>
           ) : null}
@@ -147,13 +152,13 @@ function CycleCard({ cycle }: { cycle: AdmissionCycle }) {
           {cycle.requirements.map((r) => <RequirementRow key={r.id} r={r} />)}
         </div>
       ) : (
-        <div className="text-xs text-muted-foreground">No admission tracks for this cycle.</div>
+        <div className="text-xs text-muted-foreground">{t('uniReview.drawer.noTracksCycle')}</div>
       )}
 
       {cycle.documents_required?.length ? (
         <div className="space-y-1.5 pt-1">
           <div className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-            <FileText className="h-3 w-3" /> Required documents
+            <FileText className="h-3 w-3" /> {t('uniReview.section.documents_required')}
           </div>
           {cycle.documents_required.map((d) => <DocumentRow key={d.id} d={d} />)}
         </div>
@@ -163,50 +168,65 @@ function CycleCard({ cycle }: { cycle: AdmissionCycle }) {
 }
 
 function ScholarshipRow({ s }: { s: Scholarship }) {
+  const { t, money } = useFmt();
   const award =
     s.award_type === 'tuition_waiver_pct' && s.award_value != null
-      ? `${s.award_value}% tuition`
-      : s.award_value != null
-        ? `${s.award_value}`
-        : s.award_type || '';
+      ? t('uniReview.awards.waiverPct', { pct: s.award_value })
+      : s.award_type === 'stipend_monthly' && s.award_value != null
+        ? t('uniReview.awards.stipendMonthly', { amount: money(s.award_value) })
+        : s.award_value != null
+          ? `${s.award_value}`
+          : s.award_type || '';
+  const scope =
+    s.scope && ['national', 'university', 'department', 'foundation', 'regional'].includes(s.scope)
+      ? t(`uniReview.scopes.${s.scope}`)
+      : s.scope;
   return (
     <div className="rounded-md border border-border/60 p-2.5">
       <div className="flex items-center justify-between gap-2">
-        <span className="text-sm font-medium">{s.name_ko || s.name_en || 'Scholarship'}</span>
+        <span className="text-sm font-medium">{s.name_en || s.name_ko || '—'}</span>
         <div className="flex items-center gap-1">
           {award ? <Badge variant="secondary">{award}</Badge> : null}
           {s.needs_attention ? <FlagBadge reason={s.attention_reason} /> : null}
         </div>
       </div>
-      {s.scope ? <div className="text-xs text-muted-foreground mt-0.5">scope: {s.scope}</div> : null}
-      {s.prose_ko ? <p className="text-xs text-muted-foreground mt-0.5">{s.prose_ko}</p> : null}
-      <SourceText text={s.source_text_ko} />
+      {scope ? <div className="text-xs text-muted-foreground mt-0.5">{scope}</div> : null}
+      <SourceText text={s.prose_ko || s.source_text_ko} />
     </div>
   );
 }
 
-function TuitionRowView({ t }: { t: TuitionRow }) {
+function TuitionRowView({ t: row }: { t: TuitionRow }) {
+  const { t, money } = useFmt();
   return (
     <div className="rounded-md border border-border/60 p-2.5">
       <div className="flex items-center justify-between gap-2">
-        <span className="text-sm font-medium">{t.faculty_group || '전체'}</span>
+        <span className="text-sm font-medium">{row.faculty_group || '전체'}</span>
         <div className="flex items-center gap-1">
-          <Badge variant="secondary">{fmtKrw(t.amount_krw)}/sem</Badge>
-          {t.needs_attention ? <FlagBadge reason={t.attention_reason} /> : null}
+          <Badge variant="secondary">
+            {money(row.amount_krw)} / {t('uniReview.drawer.perSemester')}
+          </Badge>
+          {row.needs_attention ? <FlagBadge reason={row.attention_reason} /> : null}
         </div>
       </div>
       <div className="text-xs text-muted-foreground mt-0.5">
-        {[t.academic_year, t.semester_number ? `semester ${t.semester_number}` : null]
+        {[
+          row.academic_year,
+          row.semester_number ? `${t('uniReview.fields.semester')} ${row.semester_number}` : null,
+        ]
           .filter(Boolean)
           .join(' · ')}
-        {t.admission_fee_krw != null ? ` · admission fee ${fmtKrw(t.admission_fee_krw)}` : ''}
+        {row.admission_fee_krw != null
+          ? ` · ${t('uniReview.drawer.admissionFee')} ${money(row.admission_fee_krw)}`
+          : ''}
       </div>
-      <SourceText text={t.source_text_ko} />
+      <SourceText text={row.source_text_ko} />
     </div>
   );
 }
 
 function PeriodRow({ p }: { p: AdmissionPeriod }) {
+  const { t, money, date } = useFmt();
   return (
     <div className="rounded-md border border-border/60 p-2.5">
       <div className="flex items-center justify-between gap-2">
@@ -216,16 +236,31 @@ function PeriodRow({ p }: { p: AdmissionPeriod }) {
         {p.needs_attention ? <FlagBadge reason={p.attention_reason} /> : null}
       </div>
       <div className="text-xs text-muted-foreground mt-1 grid grid-cols-2 gap-x-3 gap-y-0.5">
-        <span>Apply: {fmtDate(p.application_start)} → {fmtDate(p.application_end)}</span>
-        <span>Docs due: {fmtDate(p.document_deadline)}</span>
-        <span>Result: {fmtDate(p.result_announcement)}</span>
-        {p.application_fee_krw != null ? <span>Fee: {fmtKrw(p.application_fee_krw)}</span> : null}
+        <span>
+          {t('uniReview.drawer.apply')}: {date(p.application_start)} → {date(p.application_end)}
+        </span>
+        <span>
+          {t('uniReview.drawer.docsDue')}: {date(p.document_deadline)}
+        </span>
+        <span>
+          {t('uniReview.drawer.result')}: {date(p.result_announcement)}
+        </span>
+        {p.application_fee_krw != null ? (
+          <span>
+            {t('uniReview.drawer.fee')}: {money(p.application_fee_krw)}
+          </span>
+        ) : null}
       </div>
     </div>
   );
 }
 
+function EmptySection({ text }: { text: string }) {
+  return <div className="text-sm text-muted-foreground py-8 text-center">{text}</div>;
+}
+
 export function UniversityAdmissionsSheet({ institution, open, onOpenChange }: Props) {
+  const { t } = useTranslation();
   const { data, isLoading, error } = useUniversityAdmissions(open ? institution?.id ?? null : null);
 
   const counts = useMemo(() => {
@@ -245,18 +280,19 @@ export function UniversityAdmissionsSheet({ institution, open, onOpenChange }: P
         <SheetHeader className="p-5 pb-3">
           <SheetTitle className="flex items-center gap-2">
             <GraduationCap className="h-5 w-5" />
-            {institution?.name_ko ?? 'University'}
+            {institution?.name_en ?? institution?.name_ko ?? '—'}
             {data && data.flaggedCount > 0 ? (
               <Badge variant="outline" className="border-warning/50 text-warning gap-1 ml-1">
                 <AlertTriangle className="h-3 w-3" />
-                {data.flaggedCount} flagged
+                {t('uniReview.drawer.flaggedBadge', { n: data.flaggedCount })}
               </Badge>
             ) : null}
           </SheetTitle>
           <SheetDescription>
-            {institution?.name_en ? `${institution.name_en} · ` : ''}
-            Auto-published admissions data (read-only). Flagged rows were published with
-            low extractor confidence — spot-check against the source.
+            {institution?.name_en && institution?.name_ko ? (
+              <span lang="ko">{institution.name_ko} · </span>
+            ) : null}
+            {t('uniReview.drawer.readOnly')}
           </SheetDescription>
         </SheetHeader>
         <Separator />
@@ -268,33 +304,35 @@ export function UniversityAdmissionsSheet({ institution, open, onOpenChange }: P
         ) : error ? (
           <div className="flex flex-col items-center justify-center flex-1 py-20 text-center px-6">
             <AlertTriangle className="h-8 w-8 text-destructive mb-2" />
-            <p className="text-sm text-muted-foreground">Could not load admissions data: {error.message}</p>
+            <p className="text-sm text-muted-foreground">
+              {t('uniReview.drawer.loadError', { message: error.message })}
+            </p>
           </div>
         ) : (
           <Tabs defaultValue="requirements" className="flex-1 flex flex-col min-h-0">
             <TabsList className="mx-5 mt-3 grid grid-cols-6">
               <TabsTrigger value="requirements" className="gap-1">
-                <GraduationCap className="h-3.5 w-3.5" /> Tracks
+                <GraduationCap className="h-3.5 w-3.5" /> {t('uniReview.drawer.tabs.tracks')}
                 <Badge variant="secondary" className="ml-1 px-1">{counts.req}</Badge>
               </TabsTrigger>
               <TabsTrigger value="documents" className="gap-1">
-                <FileText className="h-3.5 w-3.5" /> Docs
+                <FileText className="h-3.5 w-3.5" /> {t('uniReview.drawer.tabs.docs')}
                 <Badge variant="secondary" className="ml-1 px-1">{counts.doc}</Badge>
               </TabsTrigger>
               <TabsTrigger value="scholarships" className="gap-1">
-                <Award className="h-3.5 w-3.5" /> Aid
+                <Award className="h-3.5 w-3.5" /> {t('uniReview.drawer.tabs.aid')}
                 <Badge variant="secondary" className="ml-1 px-1">{counts.sch}</Badge>
               </TabsTrigger>
               <TabsTrigger value="tuition" className="gap-1">
-                <Wallet className="h-3.5 w-3.5" /> Tuition
+                <Wallet className="h-3.5 w-3.5" /> {t('uniReview.drawer.tabs.tuition')}
                 <Badge variant="secondary" className="ml-1 px-1">{counts.tui}</Badge>
               </TabsTrigger>
               <TabsTrigger value="calendar" className="gap-1">
-                <CalendarClock className="h-3.5 w-3.5" /> Calendar
+                <CalendarClock className="h-3.5 w-3.5" /> {t('uniReview.drawer.tabs.calendar')}
                 <Badge variant="secondary" className="ml-1 px-1">{counts.per}</Badge>
               </TabsTrigger>
               <TabsTrigger value="notes" className="gap-1">
-                <StickyNote className="h-3.5 w-3.5" /> Notes
+                <StickyNote className="h-3.5 w-3.5" /> {t('uniReview.drawer.tabs.notes')}
               </TabsTrigger>
             </TabsList>
 
@@ -309,7 +347,7 @@ export function UniversityAdmissionsSheet({ institution, open, onOpenChange }: P
                       </div>
                     ))
                   ) : (
-                    <EmptySection label="admission tracks" />
+                    <EmptySection text={t('uniReview.drawer.emptyTracks')} />
                   )}
                 </TabsContent>
 
@@ -319,7 +357,7 @@ export function UniversityAdmissionsSheet({ institution, open, onOpenChange }: P
                       (c.documents_required ?? []).map((d) => <DocumentRow key={d.id} d={d} />),
                     )
                   ) : (
-                    <EmptySection label="required documents" />
+                    <EmptySection text={t('uniReview.drawer.emptyDocs')} />
                   )}
                 </TabsContent>
 
@@ -327,15 +365,15 @@ export function UniversityAdmissionsSheet({ institution, open, onOpenChange }: P
                   {data && data.scholarships.length ? (
                     data.scholarships.map((s) => <ScholarshipRow key={s.id} s={s} />)
                   ) : (
-                    <EmptySection label="scholarships" />
+                    <EmptySection text={t('uniReview.drawer.emptyAid')} />
                   )}
                 </TabsContent>
 
                 <TabsContent value="tuition" className="mt-2 space-y-1.5">
                   {data && data.tuition.length ? (
-                    data.tuition.map((t) => <TuitionRowView key={t.id} t={t} />)
+                    data.tuition.map((row) => <TuitionRowView key={row.id} t={row} />)
                   ) : (
-                    <EmptySection label="tuition" />
+                    <EmptySection text={t('uniReview.drawer.emptyTuition')} />
                   )}
                 </TabsContent>
 
@@ -343,7 +381,7 @@ export function UniversityAdmissionsSheet({ institution, open, onOpenChange }: P
                   {data && data.periods.length ? (
                     data.periods.map((p) => <PeriodRow key={p.id} p={p} />)
                   ) : (
-                    <EmptySection label="application calendar" />
+                    <EmptySection text={t('uniReview.drawer.emptyCalendar')} />
                   )}
                 </TabsContent>
 
@@ -354,7 +392,7 @@ export function UniversityAdmissionsSheet({ institution, open, onOpenChange }: P
                 {data && data.flaggedCount === 0 ? (
                   <div className="flex items-center gap-2 text-xs text-muted-foreground mt-6 justify-center">
                     <CheckCircle2 className="h-4 w-4 text-success" />
-                    Nothing flagged — all published rows passed the confidence bar.
+                    {t('uniReview.drawer.nothingFlagged')}
                   </div>
                 ) : null}
               </div>

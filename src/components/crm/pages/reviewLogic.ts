@@ -312,25 +312,28 @@ export function classifyTrack(row: Record<string, unknown>): TrackRelevance {
 // returned in `other` so it is never silently dropped.
 // ---------------------------------------------------------------------------
 
-export const CALENDAR_SLOTS: Array<{ label: string; types: string[] }> = [
-  { label: 'Online application opens', types: ['apply_open'] },
-  { label: 'Online application deadline', types: ['apply_close'] },
-  { label: 'Document deadline', types: ['documents_deadline', 'document_submission_close'] },
-  { label: 'First-stage results', types: ['first_stage_results'] },
-  { label: 'Interview', types: ['interview'] },
-  { label: 'Results announced', types: ['final_results'] },
-  { label: 'Registration opens', types: ['registration_open'] },
-  { label: 'Registration deadline', types: ['registration_close'] },
-  { label: 'Orientation', types: ['orientation'] },
+// `key` addresses the slot's translated label (uniReview.slots.<key>);
+// `label` is the legacy English fallback.
+export const CALENDAR_SLOTS: Array<{ key: string; label: string; types: string[] }> = [
+  { key: 'applyOpen', label: 'Online application opens', types: ['apply_open'] },
+  { key: 'applyClose', label: 'Online application deadline', types: ['apply_close'] },
+  { key: 'docsDeadline', label: 'Document deadline', types: ['documents_deadline', 'document_submission_close'] },
+  { key: 'firstStage', label: 'First-stage results', types: ['first_stage_results'] },
+  { key: 'interview', label: 'Interview', types: ['interview'] },
+  { key: 'results', label: 'Results announced', types: ['final_results'] },
+  { key: 'regOpen', label: 'Registration opens', types: ['registration_open'] },
+  { key: 'regClose', label: 'Registration deadline', types: ['registration_close'] },
+  { key: 'orientation', label: 'Orientation', types: ['orientation'] },
 ];
 
 const MAPPED_EVENT_TYPES = new Set(CALENDAR_SLOTS.flatMap((s) => s.types));
 
 export function mapCalendarEvents(events: Array<Record<string, unknown>>): {
-  slots: Array<{ label: string; events: Array<Record<string, unknown>> }>;
+  slots: Array<{ key: string; label: string; events: Array<Record<string, unknown>> }>;
   other: Array<Record<string, unknown>>;
 } {
   const slots = CALENDAR_SLOTS.map((s) => ({
+    key: s.key,
     label: s.label,
     events: events.filter((e) => s.types.includes(String(e.event_type))),
   }));
