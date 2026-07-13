@@ -17,6 +17,14 @@ CALENDAR_SCHEMA: dict[str, Any] = {
     # strictness is preserved below.
     "additionalProperties": True,
     "properties": {
+        # Recurring top-level meta fields the model reads out of real PDFs
+        # (correction notices, the track/semester a calendar covers). Modelled
+        # explicitly so schema-guided pruning keeps them.
+        "is_correction_notice": {"type": "boolean"},
+        "correction_text_ko":   {"type": ["string", "null"]},
+        "admission_track":      {"type": ["string", "null"]},
+        "target_semester":      {"type": ["string", "null"]},
+        "notes_ko":             {"type": ["string", "null"]},
         "events": {
             "type": "array",
             "items": {
@@ -53,6 +61,12 @@ CALENDAR_SCHEMA: dict[str, Any] = {
                     "ends_at":       {"type": ["string", "null"], "format": "date-time"},
                     "is_tentative":  {"type": "boolean"},
                     "notes_ko":      {"type": ["string", "null"]},
+                    # Per-event correction/track annotations the model emits
+                    # when the PDF states them.
+                    "is_correction_notice": {"type": "boolean"},
+                    "correction_text_ko":   {"type": ["string", "null"]},
+                    "admission_track":      {"type": ["string", "null"]},
+                    "target_semester":      {"type": ["string", "null"]},
                     "source_text_ko":{"type": "string"},
                     "extractor_confidence": {"type": "number", "minimum": 0, "maximum": 1},
                 },
@@ -166,6 +180,11 @@ REQUIREMENTS_SCHEMA: dict[str, Any] = {
                         },
                     },
                     "gpa_floor_pct":           {"type": ["number", "null"], "minimum": 0, "maximum": 100},
+                    # Minimum Korean-language study hours (한국어 연수 시간) —
+                    # some guidelines accept N hours at a language institute in
+                    # lieu of / alongside a TOPIK level. A key eligibility
+                    # minimum the app must surface.
+                    "korean_hours_min":        {"type": ["integer", "null"], "minimum": 0},
                     # Explicit presence sentinels — distinguish "the source
                     # explicitly waives this" (not_required, e.g. 재외국민/탈북민
                     # TOPIK 면제) from "this excerpt is silent" (not_stated).
@@ -277,6 +296,11 @@ SCHOLARSHIPS_SCHEMA: dict[str, Any] = {
                         },
                     },
                     "eligibility_predicate": {"type": ["object", "null"]},
+                    # How long the award lasts (e.g. first semester only, all
+                    # years) — appears at row level in many guidelines, not
+                    # only inside tier tables. Free string; the tier tables
+                    # keep their closed enum.
+                    "duration":              {"type": ["string", "null"]},
                     "prose_ko":              {"type": ["string", "null"]},
                     # Claude frequently adds a short note alongside prose; allow it.
                     "notes_ko":              {"type": ["string", "null"]},
@@ -310,8 +334,14 @@ DOCUMENTS_REQUIRED_SCHEMA: dict[str, Any] = {
                 "properties": {
                     "applicant_category":     {"type": ["string", "null"]},
                     "document_type":          {"type": "string"},
+                    # Naming variants the model uses for the document label —
+                    # modelled explicitly (see first_doc_name in the publisher).
+                    "label_ko":               {"type": ["string", "null"]},
+                    "label_en":               {"type": ["string", "null"]},
                     "is_required":            {"type": "boolean"},
                     "is_apostille_required":  {"type": "boolean"},
+                    "is_notarization_required": {"type": "boolean"},
+                    "is_translation_required":  {"type": "boolean"},
                     "country_specific":       {"type": ["object", "null"]},
                     # Per-document / per-round deadline when the guideline
                     # states one (e.g. KAIST's recommendation-letter

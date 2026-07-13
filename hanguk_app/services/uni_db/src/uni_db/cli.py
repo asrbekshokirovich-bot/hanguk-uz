@@ -53,6 +53,15 @@ def _build_parser() -> argparse.ArgumentParser:
                            help="Only never-parsed (uploaded) docs; mark failures "
                                 "'failed' so a broken PDF isn't re-billed each run")
 
+    p_retry = sub.add_parser(
+        "retry-failed",
+        help="LIVE: re-run FAILED extraction jobs from already-stored guideline "
+             "PDFs (no re-download; blob hash verified). Only the failed field "
+             "groups are re-extracted.",
+    )
+    p_retry.add_argument("--limit", type=int, default=25,
+                         help="Max failed extraction jobs to retry this run")
+
     p_ingest = sub.add_parser(
         "ingest-direct",
         help="LIVE: fetch+extract guides from auto-discovered (promoted) sources "
@@ -133,6 +142,8 @@ def main(argv: list[str] | None = None) -> int:
     if args.cmd == "reparse":
         return asyncio.run(_reparse(limit=args.limit, institution=args.institution,
                                     pending_only=args.pending_only))
+    if args.cmd == "retry-failed":
+        return asyncio.run(_retry_failed(limit=args.limit))
     if args.cmd == "ingest-direct":
         return asyncio.run(_ingest_direct(limit=args.limit))
     if args.cmd == "find-guidelines":
@@ -361,6 +372,40 @@ async def _reparse(*, limit: int, institution: str | None, pending_only: bool = 
         await conn.close()
 
     print(f"reparse: re-extracted ok={ok} failed={fail}")
+    return 0
+
+
+async def _retry_failed(*, limit: int) -> int:
+    """LIVE: re-run failed extraction jobs from already-stored guideline PDFs.
+    Reads blobs from storage (no re-download from ac.kr; the stored blob's
+    SHA-256 is verified against guideline_documents first) and re-extracts
+    ONLY the field groups whose latest job failed. Makes LLM calls, so it's
+    gated on `UNI_DB_LIVE_APIS` + `SUPABASE_DB_URL`.
+    """
+    if not settings.live_apis:
+        print(
+            "retry-failed needs UNI_DB_LIVE_APIS=true (it re-runs LLM "
+            "extraction). Refusing. See docs/credentials.md.",
+            file=sys.stderr,
+        )
+        return 2
+    if not settings.supabase_db_url:
+        print("SUPABASE_DB_URL is not set; cannot retry failed jobs.", file=sys.stderr)
+        return 2
+
+    from .workers import retry_failed_worker
+
+    conn = await db.connect()
+    try:
+        run = await retry_failed_worker.retry_failed(conn, limit=limit)
+    finally:
+        await conn.close()
+
+    print(
+        f"retry-failed: jobs_seen={run.jobs_seen} documents={run.documents} "
+        f"retried={run.retried} hash_mismatch={run.hash_mismatch} "
+        f"errors={run.errors}"
+    )
     return 0
 
 
