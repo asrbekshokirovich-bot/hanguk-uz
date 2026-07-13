@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#1A3A6C"/><text x="50" y="58" font-family="sans-serif" font-size="30" font-weight="700" fill="#FFFFFF" text-anchor="middle">한</text><rect x="30" y="72" width="40" height="6" rx="3" fill="#D4E94C"/></svg></template>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="_ds/hanguk-design-system-9e4d9ed2-150d-4de2-b701-aa70a4cf7acb/colors_and_type.css">
+  <link rel="stylesheet" href="_ds/hanguk-design-system-9e4d9ed2-150d-4de2-b701-aa70a4cf7acb/redesign/theme.css">
+  <link rel="stylesheet" href="_ds/hanguk-design-system-9e4d9ed2-150d-4de2-b701-aa70a4cf7acb/styles.css">
+  <script src="_ds/hanguk-design-system-9e4d9ed2-150d-4de2-b701-aa70a4cf7acb/_ds_bundle.js"></script>
+  <style>
+    body { margin: 0; background: var(--canvas); }
+    a { color: var(--blue-500); text-decoration: none; }
+    a:hover { color: var(--blue-600); text-decoration: underline; }
+    button { font-family: var(--font); }
+    select { font-family: var(--font); }
+    @keyframes hkToast { from { opacity: 0; transform: translate(-50%, 10px); } to { opacity: 1; transform: translate(-50%, 0); } }
+    @keyframes hkSpin { to { transform: rotate(360deg); } }
+    @keyframes hkFade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+</helmet>
+<div data-screen-label="Uni DB Review" data-theme="{{ theme }}" style="min-height:100vh;background:var(--canvas);font-family:var(--font);color:var(--ink);">
+  <div style="max-width:1240px;margin:0 auto;padding:26px 28px 64px;display:flex;flex-direction:column;gap:16px;">
+
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;">
+      <div style="display:flex;flex-direction:column;gap:5px;">
+        <div style="font:700 23px/1.15 var(--font);letter-spacing:-0.02em;">Universitet bazasi — tekshiruv</div>
+        <div style="font-size:13px;color:var(--ink-2);max-width:600px;">Avto-yig'ilgan qabul yo'riqnomalari talabalarga chiqishidan oldin shu yerda tasdiqlanadi. Hech narsa sizning ruxsatingizsiz e'lon qilinmaydi.</div>
+      </div>
+      <button onClick="{{ onRefresh }}" style="height:36px;padding:0 14px;border-radius:var(--r-sm);border:1px solid var(--line);background:var(--surface);color:var(--ink);font:600 13px var(--font);display:inline-flex;align-items:center;gap:8px;cursor:pointer;" style-hover="background:var(--surface-3);">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="{{ refreshCss }}"><path d="M3 12a9 9 0 0 1 15-6.7L21 8 M21 3v5h-5 M21 12a9 9 0 0 1-15 6.7L3 16 M3 21v-5h5"></path></svg>
+        Yangilash
+      </button>
+    </div>
+
+    <div style="background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);box-shadow:var(--sh-1);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:12px;min-width:0;">
+        <span style="width:38px;height:38px;border-radius:10px;background:var(--tint-blue);color:var(--info);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4 M16 2v4 M3 10h18 M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path></svg>
+        </span>
+        <div style="display:flex;flex-direction:column;gap:2px;min-width:0;">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <span style="font:600 14px var(--font);">Avto-skaner mavsumi</span>
+            <span style="display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 9px;border-radius:999px;background:var(--tint-blue);color:var(--info);font:600 11.5px var(--font);">{{ crawlBadge }}</span>
+          </div>
+          <span style="font-size:12.5px;color:var(--ink-3);">Tungi skaner har bir universitetning shu mavsum uchun yo'riqnomasini qidiradi.</span>
+        </div>
+      </div>
+      <select value="{{ crawlValue }}" onChange="{{ onCrawlChange }}" style="height:34px;border-radius:var(--r-sm);border:1px solid var(--line);background:var(--surface);color:var(--ink);font:600 13px var(--font);padding:0 10px;cursor:pointer;">
+        <sc-for list="{{ crawlOptions }}" as="c" hint-placeholder-count="3">
+          <option value="{{ c.id }}">{{ c.label }}</option>
+        </sc-for>
+      </select>
+    </div>
+
+    <div style="display:flex;background:var(--surface-3);border-radius:999px;padding:4px;width:max-content;gap:2px;">
+      <button onClick="{{ goQueue }}" style="height:34px;padding:0 16px;border-radius:999px;border:none;cursor:pointer;font:600 13px var(--font);display:inline-flex;align-items:center;gap:8px;{{ tabQueueCss }}">
+        Tasdiqlash navbati
+        <span style="min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--primary);color:var(--primary-ink);font:700 11px/20px var(--font);text-align:center;">{{ pendingCount }}</span>
+      </button>
+      <button onClick="{{ goFlags }}" style="height:34px;padding:0 16px;border-radius:999px;border:none;cursor:pointer;font:600 13px var(--font);display:inline-flex;align-items:center;gap:8px;{{ tabFlagsCss }}">
+        E'tibor kerak
+        <span style="min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--warning-bg);color:var(--warning);font:700 11px/20px var(--font);text-align:center;">{{ flagsCount }}</span>
+      </button>
+    </div>
+
+    <sc-if value="{{ tabQueue }}" hint-placeholder-val="{{ true }}">
+      <div data-screen-label="Tasdiqlash navbati" style="display:grid;grid-template-columns:318px minmax(0,1fr);gap:16px;align-items:start;">
+
+        <div style="display:flex;flex-direction:column;gap:10px;position:sticky;top:16px;">
+          <div style="display:flex;align-items:baseline;justify-content:space-between;padding:2px 4px;">
+            <span style="font:600 11px var(--font);letter-spacing:0.06em;text-transform:uppercase;color:var(--ink-3);">Navbat — {{ uniCount }} universitet</span>
+            <span style="display:inline-flex;align-items:center;gap:9px;font:600 11.5px var(--font);color:var(--ink-3);">
+              <span style="display:inline-flex;align-items:center;gap:4px;"><span style="width:7px;height:7px;border-radius:4px;background:var(--danger);"></span>{{ counts.red }}</span>
+              <span style="display:inline-flex;align-items:center;gap:4px;"><span style="width:7px;height:7px;border-radius:4px;background:var(--warning);"></span>{{ counts.amber }}</span>
+              <span style="display:inline-flex;align-items:center;gap:4px;"><span style="width:7px;height:7px;border-radius:4px;background:var(--success);"></span>{{ counts.green }}</span>
+            </span>
+          </div>
+          <sc-for list="{{ rail }}" as="u" hint-placeholder-count="4">
+            <div onClick="{{ u.select }}" style="background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:12px 14px;cursor:pointer;display:flex;flex-direction:column;gap:6px;transition:border-color .15s, box-shadow .15s;{{ u.selCss }}" style-hover="border-color:var(--blue-400);">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span style="font:600 13.5px var(--font);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ u.en }}</span>
+                <sc-if value="{{ u.done }}" hint-placeholder-val="{{ false }}">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
+                </sc-if>
+                <sc-if value="{{ u.pending }}" hint-placeholder-val="{{ true }}">
+                  <span style="width:8px;height:8px;border-radius:4px;flex-shrink:0;background:{{ u.tone }};"></span>
+                </sc-if>
+              </div>
+              <div style="font-size:12px;color:var(--ink-3);">{{ u.ko }} · {{ u.city }}</div>
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                <sc-if value="{{ u.done }}" hint-placeholder-val="{{ false }}">
+                  <span style="display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:999px;background:var(--success-bg);color:var(--success);font:600 11px var(--font);">Yakunlandi</span>
+                </sc-if>
+                <sc-if value="{{ u.pending }}" hint-placeholder-val="{{ true }}">
+                  <span style="display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:999px;font:600 11px var(--font);{{ u.chipCss }}">{{ u.chipLabel }}</span>
+                  <span style="font:500 11.5px var(--font);color:var(--ink-3);">{{ u.sub }}</span>
+                </sc-if>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:12px;min-width:0;">
+
+          <div style="background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);box-shadow:var(--sh-1);padding:18px;display:flex;flex-direction:column;gap:13px;">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;">
+              <div style="display:flex;flex-direction:column;gap:3px;min-width:0;">
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                  <span style="font:700 18px/1.2 var(--font);letter-spacing:-0.01em;">{{ view.en }}</span>
+                  <span style="display:inline-flex;align-items:center;height:22px;padding:0 9px;border-radius:999px;background:var(--tint-blue);color:var(--info);font:600 11.5px var(--font);">{{ view.intake }}</span>
+                </div>
+                <span style="font-size:13px;color:var(--ink-2);">{{ view.ko }} · {{ view.city }}</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <button onClick="{{ view.openSrc }}" style="height:32px;padding:0 12px;border-radius:var(--r-sm);border:1px solid transparent;background:transparent;color:var(--ink-2);font:600 12.5px var(--font);display:inline-flex;align-items:center;gap:7px;cursor:pointer;" style-hover="background:var(--surface-3);color:var(--ink);">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6 M15 3h6v6 M10 14 21 3"></path></svg>
+                  Manba sahifa
+                </button>
+                <button onClick="{{ view.openPdf }}" style="height:32px;padding:0 12px;border-radius:var(--r-sm);border:1px solid var(--line);background:var(--surface);color:var(--ink);font:600 12.5px var(--font);display:inline-flex;align-items:center;gap:7px;cursor:pointer;" style-hover="background:var(--surface-3);">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6 M9 13h6 M9 17h6"></path></svg>
+                  PDF ochish
+                </button>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;">
+              <div style="flex:1;height:6px;border-radius:999px;background:var(--line-2);overflow:hidden;">
+                <div style="height:100%;border-radius:999px;background:{{ view.progressColor }};transition:width .3s ease;width:{{ view.progressW }};"></div>
+              </div>
+              <span style="font:600 12px var(--font);color:var(--ink-2);white-space:nowrap;">{{ view.progressLabel }}</span>
+            </div>
+            <sc-if value="{{ view.allDone }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;align-items:center;gap:10px;background:var(--success-bg);border-radius:10px;padding:11px 14px;animation:hkFade .25s ease-out;">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
+                <span style="font:600 13px var(--font);color:var(--success);flex:1;">Bu universitet bo'yicha barcha bo'limlar hal qilindi.</span>
+                <sc-if value="{{ view.hasNext }}" hint-placeholder-val="{{ false }}">
+                  <button onClick="{{ view.goNext }}" style="height:30px;padding:0 12px;border-radius:var(--r-sm);border:none;background:var(--primary);color:var(--primary-ink);font:600 12.5px var(--font);cursor:pointer;" style-hover="opacity:.92;">Keyingisi →</button>
+                </sc-if>
+              </div>
+            </sc-if>
+          </div>
+
+          <sc-for list="{{ view.sections }}" as="sec" hint-placeholder-count="3">
+            <div style="background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);box-shadow:var(--sh-1);padding:16px 18px;display:flex;flex-direction:column;gap:12px;">
+
+              <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                <span style="width:30px;height:30px;border-radius:9px;background:var(--surface-3);color:var(--ink-2);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ sec.iconD }}"></path></svg>
+                </span>
+                <span style="font:600 14.5px var(--font);">{{ sec.label }}</span>
+                <sc-if value="{{ sec.relRed }}" hint-placeholder-val="{{ false }}">
+                  <span style="display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 9px;border-radius:999px;background:var(--danger-bg);color:var(--danger);font:600 11.5px var(--font);"><span style="width:6px;height:6px;border-radius:3px;background:currentColor;"></span>Tuzatish kerak</span>
+                </sc-if>
+                <sc-if value="{{ sec.relAmber }}" hint-placeholder-val="{{ false }}">
+                  <span style="display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 9px;border-radius:999px;background:var(--warning-bg);color:var(--warning);font:600 11.5px var(--font);"><span style="width:6px;height:6px;border-radius:3px;background:currentColor;"></span>Diqqat bilan tekshiring</span>
+                </sc-if>
+                <sc-if value="{{ sec.relGreen }}" hint-placeholder-val="{{ false }}">
+                  <span style="display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 9px;border-radius:999px;background:var(--success-bg);color:var(--success);font:600 11.5px var(--font);"><span style="width:6px;height:6px;border-radius:3px;background:currentColor;"></span>Tekshiruvlar o'tdi</span>
+                </sc-if>
+                <span class="mono" style="font-size:11px;color:var(--ink-3);">ishonch {{ sec.confLabel }}</span>
+                <span style="flex:1;"></span>
+                <sc-if value="{{ sec.showActions }}" hint-placeholder-val="{{ true }}">
+                  <button onClick="{{ sec.approve }}" style="height:32px;padding:0 14px;border-radius:var(--r-sm);border:none;background:var(--primary);color:var(--primary-ink);font:600 12.5px var(--font);display:inline-flex;align-items:center;gap:7px;cursor:pointer;box-shadow:var(--sh-1);" style-hover="opacity:.92;" title="Tasdiqlash va talabalarga e'lon qilish">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
+                    Tasdiqlash
+                  </button>
+                  <button onClick="{{ sec.startReject }}" style="height:32px;padding:0 13px;border-radius:var(--r-sm);border:1px solid var(--line);background:var(--surface);color:var(--ink-2);font:600 12.5px var(--font);cursor:pointer;" style-hover="background:var(--danger-bg);color:var(--danger);border-color:transparent;">Rad etish</button>
+                </sc-if>
+              </div>
+
+              <sc-if value="{{ sec.isRejecting }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;flex-direction:column;gap:8px;background:var(--danger-bg);border-radius:10px;padding:11px 13px;animation:hkFade .2s ease-out;">
+                  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                    <span style="font:600 12.5px var(--font);color:var(--danger);">Rad etish sababi:</span>
+                    <select value="{{ rejectReason }}" onChange="{{ onReasonChange }}" style="height:30px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:600 12.5px var(--font);padding:0 8px;cursor:pointer;">
+                      <sc-for list="{{ reasons }}" as="r" hint-placeholder-count="6">
+                        <option value="{{ r.id }}">{{ r.label }}</option>
+                      </sc-for>
+                    </select>
+                    <button onClick="{{ sec.confirmReject }}" style="height:30px;padding:0 12px;border-radius:8px;border:none;background:var(--danger);color:#fff;font:600 12.5px var(--font);cursor:pointer;" style-hover="opacity:.9;">Rad etishni tasdiqlash</button>
+                    <button onClick="{{ sec.cancelReject }}" style="height:30px;width:30px;border-radius:8px;border:none;background:transparent;color:var(--ink-2);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;" style-hover="background:var(--surface);" title="Bekor qilish">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18 M6 6l12 12"></path></svg>
+                    </button>
+                  </div>
+                  <button onClick="{{ sec.flagSource }}" style="align-self:flex-start;border:none;background:transparent;padding:0;font:500 11.5px var(--font);color:var(--ink-3);cursor:pointer;display:inline-flex;align-items:center;gap:6px;" style-hover="color:var(--danger);">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z M4 22v-7"></path></svg>
+                    Manba noto'g'ri — bu PDFdagi barcha bo'limlarni rad etish
+                  </button>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ sec.isApproved }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;align-items:center;gap:10px;background:var(--success-bg);border-radius:10px;padding:10px 13px;animation:hkFade .25s ease-out;">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
+                  <span style="font:600 13px var(--font);color:var(--success);flex:1;">Tasdiqlandi — talabalarga e'lon qilindi</span>
+                  <button onClick="{{ sec.undo }}" style="height:28px;padding:0 11px;border-radius:8px;border:none;background:transparent;color:var(--ink-2);font:600 12px var(--font);cursor:pointer;" style-hover="background:var(--surface);">Bekor qilish</button>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ sec.isRejected }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;align-items:center;gap:10px;background:var(--danger-bg);border-radius:10px;padding:10px 13px;animation:hkFade .25s ease-out;">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18 M6 6l12 12"></path></svg>
+                  <span style="font:600 13px var(--font);color:var(--danger);flex:1;">Rad etildi — {{ sec.reasonLabel }}</span>
+                  <button onClick="{{ sec.undo }}" style="height:28px;padding:0 11px;border-radius:8px;border:none;background:transparent;color:var(--ink-2);font:600 12px var(--font);cursor:pointer;" style-hover="background:var(--surface);">Bekor qilish</button>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ sec.showBody }}" hint-placeholder-val="{{ true }}">
+
+                <sc-if value="{{ sec.noteShow }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:flex;align-items:flex-start;gap:9px;border-radius:10px;padding:10px 13px;background:{{ sec.noteBg }};">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="{{ sec.noteColor }}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-top:1px;flex-shrink:0;"><path d="M10.3 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.7 3.86a2 2 0 0 0-3.4 0z M12 9v4 M12 17h.01"></path></svg>
+                    <span style="font:500 12.5px/1.5 var(--font);color:{{ sec.noteColor }};">{{ sec.note }}</span>
+                  </div>
+                </sc-if>
+
+                <sc-if value="{{ sec.isCal }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:0 28px;">
+                    <sc-for list="{{ sec.cal.rows }}" as="r" hint-placeholder-count="6">
+                      <sc-if value="{{ r.show }}" hint-placeholder-val="{{ true }}">
+                        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:7px 0;border-bottom:1px solid var(--line-2);">
+                          <span style="font-size:13px;color:var(--ink-2);">{{ r.label }}</span>
+                          <span class="mono" style="font-size:12.5px;white-space:nowrap;{{ r.vCss }}">{{ r.value }}</span>
+                        </div>
+                      </sc-if>
+                    </sc-for>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 13px;background:var(--surface-2);border:1px solid var(--line-2);border-radius:10px;">
+                    <span style="font:600 13px var(--font);">Ariza to'lovi (전형료)</span>
+                    <span class="mono" style="font-size:13px;{{ sec.cal.feeCss }}">{{ sec.cal.fee }}</span>
+                  </div>
+                </sc-if>
+
+                <sc-if value="{{ sec.isReq }}" hint-placeholder-val="{{ false }}">
+                  <sc-for list="{{ sec.req.tracks }}" as="tk" hint-placeholder-count="1">
+                    <div style="display:flex;flex-direction:column;gap:10px;">
+                      <div style="font:600 12px var(--font);letter-spacing:0.05em;text-transform:uppercase;color:var(--ink-3);">{{ tk.cat }}</div>
+                      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;">
+                        <sc-for list="{{ tk.stats }}" as="st" hint-placeholder-count="4">
+                          <sc-if value="{{ st.show }}" hint-placeholder-val="{{ true }}">
+                            <div style="background:var(--surface-2);border:1px solid var(--line-2);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:3px;">
+                              <span style="font:600 10.5px var(--font);letter-spacing:0.06em;text-transform:uppercase;color:var(--ink-3);">{{ st.k }}</span>
+                              <span style="font:700 15px var(--font);{{ st.vCss }}">{{ st.v }}</span>
+                            </div>
+                          </sc-if>
+                        </sc-for>
+                      </div>
+                      <sc-if value="{{ tk.majorsShow }}" hint-placeholder-val="{{ true }}">
+                        <div style="font-size:13px;"><span style="color:var(--ink-3);">Yo'nalishlar: </span><span style="font-weight:500;">{{ tk.majors }}</span></div>
+                      </sc-if>
+                      <sc-if value="{{ tk.proseShow }}" hint-placeholder-val="{{ true }}">
+                        <div style="font-size:12.5px;line-height:1.55;color:var(--ink-2);background:var(--surface-2);border:1px solid var(--line-2);border-radius:10px;padding:10px 13px;">{{ tk.prose }}</div>
+                      </sc-if>
+                    </div>
+                  </sc-for>
+                  <sc-if value="{{ sec.req.hasHeritage }}" hint-placeholder-val="{{ false }}">
+                    <div style="display:flex;flex-direction:column;gap:8px;">
+                      <button onClick="{{ sec.req.toggleHeritage }}" style="align-self:flex-start;border:none;background:transparent;padding:0;font:500 12px var(--font);color:var(--ink-3);cursor:pointer;display:inline-flex;align-items:center;gap:6px;" style-hover="color:var(--ink-2);">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="{{ sec.req.chevCss }}"><path d="M6 9l6 6 6-6"></path></svg>
+                        {{ sec.req.heritageLabel }}
+                      </button>
+                      <sc-if value="{{ sec.req.heritageOpen }}" hint-placeholder-val="{{ false }}">
+                        <sc-for list="{{ sec.req.heritage }}" as="h" hint-placeholder-count="2">
+                          <div style="display:flex;justify-content:space-between;gap:12px;align-items:baseline;padding:8px 13px;background:var(--surface-2);border:1px dashed var(--line);border-radius:10px;">
+                            <span style="font:500 12.5px var(--font);color:var(--ink-3);">{{ h.cat }}</span>
+                            <span style="font-size:12px;color:var(--ink-3);">{{ h.line }}</span>
+                          </div>
+                        </sc-for>
+                      </sc-if>
+                    </div>
+                  </sc-if>
+                </sc-if>
+
+                <sc-if value="{{ sec.isTui }}" hint-placeholder-val="{{ false }}">
+                  <div style="border:1px solid var(--line-2);border-radius:10px;overflow:hidden;">
+                    <div style="display:grid;grid-template-columns:minmax(0,1fr) 170px 140px;gap:12px;padding:8px 13px;background:var(--surface-2);font:600 10.5px var(--font);letter-spacing:0.06em;text-transform:uppercase;color:var(--ink-3);">
+                      <span>Fakultet</span>
+                      <span style="text-align:right;">Kontrakt / semestr</span>
+                      <span style="text-align:right;">Kirish to'lovi</span>
+                    </div>
+                    <sc-for list="{{ sec.tui.rows }}" as="row" hint-placeholder-count="4">
+                      <div style="display:grid;grid-template-columns:minmax(0,1fr) 170px 140px;gap:12px;padding:9px 13px;border-top:1px solid var(--line-2);align-items:baseline;">
+                        <span style="font:600 13px var(--font);display:inline-flex;align-items:center;gap:7px;">{{ row.fac }}<sc-if value="{{ row.warn }}" hint-placeholder-val="{{ false }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--warning)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.7 3.86a2 2 0 0 0-3.4 0z M12 9v4 M12 17h.01"></path></svg></sc-if></span>
+                        <span class="mono" style="text-align:right;font-size:13px;font-weight:600;{{ row.semCss }}">{{ row.sem }}</span>
+                        <span class="mono" style="text-align:right;font-size:12.5px;{{ row.feeCss }}">{{ row.fee }}</span>
+                      </div>
+                    </sc-for>
+                  </div>
+                </sc-if>
+
+                <sc-if value="{{ sec.isDocs }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:flex;flex-direction:column;">
+                    <sc-for list="{{ sec.docs.rows }}" as="d" hint-placeholder-count="5">
+                      <div style="display:flex;align-items:center;gap:10px;padding:9px 2px;border-bottom:1px solid var(--line-2);flex-wrap:wrap;">
+                        <div style="flex:1;min-width:180px;display:flex;flex-direction:column;gap:2px;">
+                          <span style="font:600 13px var(--font);{{ d.nameCss }}">{{ d.name }}</span>
+                          <sc-if value="{{ d.noteShow }}" hint-placeholder-val="{{ false }}">
+                            <span style="font-size:11.5px;color:var(--ink-3);">{{ d.note }}</span>
+                          </sc-if>
+                        </div>
+                        <sc-if value="{{ d.isReq }}" hint-placeholder-val="{{ true }}">
+                          <span style="display:inline-flex;align-items:center;height:21px;padding:0 8px;border-radius:999px;background:var(--tint-blue);color:var(--info);font:600 11px var(--font);">Majburiy</span>
+                        </sc-if>
+                        <sc-if value="{{ d.isOpt }}" hint-placeholder-val="{{ false }}">
+                          <span style="display:inline-flex;align-items:center;height:21px;padding:0 8px;border-radius:999px;background:var(--surface-3);color:var(--ink-3);font:600 11px var(--font);">Ixtiyoriy</span>
+                        </sc-if>
+                        <sc-if value="{{ d.apostille }}" hint-placeholder-val="{{ false }}">
+                          <span style="display:inline-flex;align-items:center;height:21px;padding:0 8px;border-radius:999px;background:var(--tint-lime);color:var(--lime-700);font:600 11px var(--font);">Apostil</span>
+                        </sc-if>
+                        <sc-if value="{{ d.dlShow }}" hint-placeholder-val="{{ true }}">
+                          <span class="mono" style="font-size:12px;min-width:86px;text-align:right;{{ d.dlCss }}">{{ d.deadline }}</span>
+                        </sc-if>
+                      </div>
+                    </sc-for>
+                  </div>
+                </sc-if>
+
+                <sc-if value="{{ sec.isSch }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:flex;flex-direction:column;gap:4px;">
+                    <sc-for list="{{ sec.sch.rows }}" as="s" hint-placeholder-count="2">
+                      <div style="display:flex;flex-direction:column;gap:8px;padding:10px 2px;border-bottom:1px solid var(--line-2);">
+                        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                          <span style="font:600 13.5px var(--font);">{{ s.name }}</span>
+                          <span style="display:inline-flex;align-items:center;height:22px;padding:0 9px;border-radius:999px;background:var(--success-bg);color:var(--success);font:600 11.5px var(--font);">{{ s.award }}</span>
+                        </div>
+                        <sc-if value="{{ s.hasTiers }}" hint-placeholder-val="{{ true }}">
+                          <div style="display:flex;flex-wrap:wrap;gap:7px;">
+                            <sc-for list="{{ s.tiers }}" as="t" hint-placeholder-count="3">
+                              <span class="mono" style="display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 10px;border-radius:8px;background:var(--surface-2);border:1px solid var(--line-2);font-size:11.5px;color:var(--ink-2);"><span style="font-weight:600;color:var(--ink);">{{ t.score }}</span>→ {{ t.award }}</span>
+                            </sc-for>
+                          </div>
+                        </sc-if>
+                        <sc-if value="{{ s.noteShow }}" hint-placeholder-val="{{ false }}">
+                          <span style="font-size:12px;color:var(--ink-3);">{{ s.note }}</span>
+                        </sc-if>
+                      </div>
+                    </sc-for>
+                  </div>
+                </sc-if>
+
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ tabFlags }}" hint-placeholder-val="{{ false }}">
+      <div data-screen-label="E'tibor kerak" style="display:flex;flex-direction:column;gap:12px;max-width:880px;">
+        <div style="display:flex;align-items:flex-start;gap:9px;background:var(--warning-bg);border-radius:10px;padding:11px 14px;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--warning)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-top:1px;flex-shrink:0;"><path d="M10.3 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.7 3.86a2 2 0 0 0-3.4 0z M12 9v4 M12 17h.01"></path></svg>
+          <span style="font:500 12.5px/1.55 var(--font);color:var(--warning);">Bu yozuvlar avto-e'lon qilingan, lekin skaner ishonchi past bo'lgani uchun belgilangan. Ular allaqachon talabalarga ko'rinadi — faqat ko'zdan kechirish uchun.</span>
+        </div>
+        <sc-for list="{{ flags }}" as="f" hint-placeholder-count="2">
+          <div style="background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);box-shadow:var(--sh-1);padding:16px 18px;display:flex;flex-direction:column;gap:10px;">
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+              <span style="font:600 14px var(--font);">{{ f.uni }}</span>
+              <span style="font-size:12.5px;color:var(--ink-3);">{{ f.ko }}</span>
+              <span style="flex:1;"></span>
+              <span style="display:inline-flex;align-items:center;height:22px;padding:0 9px;border-radius:999px;background:var(--warning-bg);color:var(--warning);font:600 11.5px var(--font);">{{ f.n }} ta bayroq</span>
+            </div>
+            <div style="display:flex;flex-direction:column;">
+              <sc-for list="{{ f.rows }}" as="r" hint-placeholder-count="2">
+                <div style="display:flex;align-items:flex-start;gap:10px;padding:9px 2px;border-top:1px solid var(--line-2);">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--warning)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-top:2px;flex-shrink:0;"><path d="M10.3 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.7 3.86a2 2 0 0 0-3.4 0z M12 9v4 M12 17h.01"></path></svg>
+                  <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;">
+                    <span style="font:600 13px var(--font);">{{ r.section }}</span>
+                    <span style="font-size:12.5px;color:var(--ink-2);">{{ r.reason }}</span>
+                  </div>
+                  <span class="mono" style="font-size:11.5px;color:var(--ink-3);white-space:nowrap;">{{ r.date }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+
+  </div>
+
+  <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:var(--ink);color:var(--canvas);padding:11px 20px;border-radius:999px;font:600 13px var(--font);box-shadow:var(--sh-3);animation:hkToast .25s ease-out;z-index:50;white-space:nowrap;">{{ toastMsg }}</div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;darkMode&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Ko'rinish&quot;},&quot;showEmptyFields&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Ko'rinish&quot;}}">
+class Component extends DCLogic {
+  state = {
+    tab: 'queue',
+    sel: 'kyunghee',
+    decisions: {},
+    rejecting: null,
+    rejectReason: 'hallucinated_field',
+    heritageOpen: {},
+    crawl: 'spring2027',
+    toast: null,
+    refreshing: false
+  };
+
+  NS = "Ko'rsatilmagan";
+
+  ICONS = {
+    cal: 'M8 2v4 M16 2v4 M3 10h18 M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z',
+    cap: 'M2 10l10-5 10 5-10 5z M6 12.5V17c0 1.7 2.7 3 6 3s6-1.3 6-3v-4.5 M22 10v6',
+    won: 'M12 1v22 M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6',
+    doc: 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6 M9 13h6 M9 17h6',
+    award: 'M12 15a7 7 0 1 0 0-14 7 7 0 0 0 0 14z M8.2 13.9 7 22l5-3 5 3-1.2-8.1'
+  };
+
+  REASONS = [
+    { id: 'wrong_year', label: "Noto'g'ri yil / mavsum" },
+    { id: 'wrong_archetype', label: "Noto'g'ri hujjat turi" },
+    { id: 'hallucinated_field', label: "Xato / to'qilgan ma'lumot" },
+    { id: 'ocr_garbled', label: 'OCR matni buzilgan' },
+    { id: 'source_404', label: 'Manba ochilmadi' },
+    { id: 'other', label: 'Boshqa' }
+  ];
+
+  SECTION_META = {
+    calendar: { label: "Muddatlar va ariza to'lovi", icon: 'cal' },
+    requirements: { label: 'Kirish talablari', icon: 'cap' },
+    tuition: { label: 'Fakultetlar va kontrakt', icon: 'won' },
+    documents: { label: 'Kerakli hujjatlar', icon: 'doc' },
+    scholarships: { label: 'Stipendiyalar', icon: 'award' }
+  };
+
+  UNIS = [
+    {
+      id: 'kyunghee', en: 'Kyung Hee University', ko: '경희대학교', city: 'Seul',
+      sections: [
+        {
+          key: 'kh-tui', type: 'tuition', rel: 'red', conf: 0.61,
+          note: "Konsensus mos kelmadi: Humanitar fakultet kontrakti ikki manbada har xil (4 779 000 / 4 977 000). PDFdan tekshiring.",
+          rows: [
+            { fac: 'Humanitar va ijtimoiy fanlar', sem: 4779000, fee: 191000, warn: true },
+            { fac: 'Muhandislik', sem: 6331000, fee: 191000 },
+            { fac: 'Tabiiy fanlar', sem: 5672000, fee: 191000 },
+            { fac: "San'at va dizayn", sem: 6108000, fee: 191000 }
+          ]
+        },
+        {
+          key: 'kh-docs', type: 'documents', rel: 'amber', conf: 0.74,
+          note: '2 ta hujjatning topshirish muddati ajratilmadi — PDFdagi jadval bilan solishtiring.',
+          rows: [
+            { name: 'Pasport nusxasi', req: true },
+            { name: "Attestat + baholar ilovasi", req: true, apostille: true, deadline: '30.09.2026' },
+            { name: "O'qish davomiyligi ma'lumotnomasi", req: true, apostille: true, deadline: '30.09.2026' },
+            { name: "Bank ma'lumotnomasi", req: true, deadline: '30.09.2026', note: 'Kamida $20,000 qoldiq, 30 kundan eski emas' },
+            { name: 'TOPIK sertifikati', req: true, note: 'Asl nusxa suhbatgacha yetkaziladi' },
+            { name: 'Tavsiyanoma', req: false }
+          ]
+        },
+        {
+          key: 'kh-req', type: 'requirements', rel: 'green', conf: 0.88,
+          tracks: [{
+            cat: "Xorijiy fuqarolar (외국인전형) — bakalavr",
+            stats: [
+              { k: 'TOPIK', v: '3-daraja+' },
+              { k: 'IELTS / ingliz', v: '5.5+' },
+              { k: 'GPA', v: '70% dan yuqori' },
+              { k: 'Suhbat', v: 'Ha' },
+              { k: 'Amaliy imtihon', v: null }
+            ],
+            majors: 'Barcha fakultetlar (tibbiyot va farmatsiyadan tashqari)',
+            prose: "Abituriyent ham, ota-onasi ham Koreya fuqarosi bo'lmasligi va 12 yillik maktab ta'limini tugatgan bo'lishi kerak."
+          }],
+          heritage: [
+            { cat: "Chet eldagi koreyslar (재외국민)", line: "TOPIK 4 · faqat koreys diasporasi" },
+            { cat: "To'liq chet el ta'limi (전교육과정)", line: "12 yil chet elda o'qiganlar uchun" }
+          ]
+        },
+        {
+          key: 'kh-cal', type: 'calendar', rel: 'green', conf: 0.93,
+          rows: [
+            { label: 'Ariza ochilishi', value: '07.09.2026 · 10:00 KST' },
+            { label: 'Ariza yopilishi', value: '23.09.2026 · 17:00 KST', emph: true },
+            { label: 'Hujjat topshirish muddati', value: '30.09.2026 · 18:00 KST', emph: true },
+            { label: 'Suhbat', value: '06.11.2026 (taxminiy)' },
+            { label: 'Yakuniy natijalar', value: '11.12.2026' },
+            { label: "Ro'yxatdan o'tish", value: '14–18.12.2026' },
+            { label: 'Oflayn ariza', value: null }
+          ],
+          fee: 150000
+        }
+      ]
+    },
+    {
+      id: 'sogang', en: 'Sogang University', ko: '서강대학교', city: 'Seul',
+      sections: [
+        {
+          key: 'sg-req', type: 'requirements', rel: 'amber', conf: 0.69,
+          note: 'GPA chegarasi past ishonch bilan ajratildi (0.69) — PDFdan tasdiqlang.',
+          tracks: [{
+            cat: "Xorijiy fuqarolar (외국인전형) — bakalavr",
+            stats: [
+              { k: 'TOPIK', v: '3-daraja+' },
+              { k: 'IELTS / ingliz', v: '5.5+' },
+              { k: 'GPA', v: '80% dan yuqori', warn: true },
+              { k: 'Suhbat', v: "Yo'q" }
+            ],
+            majors: 'Humanitar, Iqtisod, Biznes, Muhandislik',
+            prose: null
+          }],
+          heritage: []
+        },
+        {
+          key: 'sg-sch', type: 'scholarships', rel: 'green', conf: 0.9,
+          rows: [
+            {
+              name: 'Global Scholarship A', award: 'Kontraktgacha 70% chegirma',
+              tiers: [
+                { score: 'TOPIK 4', award: '50% chegirma' },
+                { score: 'TOPIK 5–6', award: '70% chegirma' }
+              ],
+              note: 'Birinchi semestr uchun; keyin GPA 3.0+ saqlansa uzaytiriladi'
+            },
+            {
+              name: 'Global Scholarship B', award: '30% chegirma',
+              tiers: [{ score: 'IELTS 6.0+', award: '30% chegirma' }]
+            }
+          ]
+        },
+        {
+          key: 'sg-cal', type: 'calendar', rel: 'green', conf: 0.95,
+          rows: [
+            { label: 'Ariza ochilishi', value: '01.09.2026 · 10:00 KST' },
+            { label: 'Ariza yopilishi', value: '17.09.2026 · 16:00 KST', emph: true },
+            { label: 'Hujjat topshirish muddati', value: '19.09.2026 · 16:00 KST', emph: true },
+            { label: 'Yakuniy natijalar', value: '04.12.2026' }
+          ],
+          fee: 100000
+        }
+      ]
+    },
+    {
+      id: 'chungang', en: 'Chung-Ang University', ko: '중앙대학교', city: 'Seul',
+      sections: [
+        {
+          key: 'ca-cal', type: 'calendar', rel: 'green', conf: 0.97,
+          rows: [
+            { label: 'Ariza ochilishi', value: '10.09.2026 · 10:00 KST' },
+            { label: 'Ariza yopilishi', value: '28.09.2026 · 17:00 KST', emph: true },
+            { label: 'Hujjat topshirish muddati', value: '05.10.2026 · 17:00 KST', emph: true },
+            { label: 'Suhbat (onlayn)', value: '10.11.2026' },
+            { label: 'Yakuniy natijalar', value: '18.12.2026' }
+          ],
+          fee: 130000
+        },
+        {
+          key: 'ca-req', type: 'requirements', rel: 'green', conf: 0.91,
+          tracks: [{
+            cat: "Xorijiy fuqarolar (외국인전형) — bakalavr",
+            stats: [
+              { k: 'TOPIK', v: '3-daraja+' },
+              { k: 'IELTS / ingliz', v: 'Talab qilinmaydi' },
+              { k: 'GPA', v: null },
+              { k: 'Suhbat', v: 'Ha (onlayn)' }
+            ],
+            majors: "Barcha fakultetlar (tibbiyotdan tashqari)",
+            prose: null
+          }],
+          heritage: []
+        },
+        {
+          key: 'ca-tui', type: 'tuition', rel: 'green', conf: 0.89,
+          rows: [
+            { fac: 'Humanitar fanlar', sem: 4512000, fee: null },
+            { fac: 'Biznes va iqtisod', sem: 4640000, fee: null },
+            { fac: 'Muhandislik', sem: 6145000, fee: null }
+          ]
+        },
+        {
+          key: 'ca-docs', type: 'documents', rel: 'green', conf: 0.86,
+          rows: [
+            { name: 'Pasport nusxasi', req: true },
+            { name: 'Attestat + baholar ilovasi', req: true, apostille: true, deadline: '05.10.2026' },
+            { name: '3.5×4.5 foto', req: true },
+            { name: "Bank ma'lumotnomasi", req: true, deadline: '05.10.2026', note: 'Kamida $18,000 qoldiq' }
+          ]
+        }
+      ]
+    },
+    {
+      id: 'hanyang', en: 'Hanyang University', ko: '한양대학교', city: 'Seul',
+      sections: [
+        {
+          key: 'hy-cal', type: 'calendar', rel: 'green', conf: 0.92,
+          rows: [
+            { label: 'Ariza ochilishi', value: '14.09.2026 · 10:00 KST' },
+            { label: 'Ariza yopilishi', value: '30.09.2026 · 17:00 KST', emph: true },
+            { label: 'Hujjat topshirish muddati', value: '08.10.2026 · 17:00 KST', emph: true },
+            { label: 'Yakuniy natijalar', value: '21.12.2026' }
+          ],
+          fee: 150000
+        },
+        {
+          key: 'hy-sch', type: 'scholarships', rel: 'green', conf: 0.84,
+          rows: [
+            {
+              name: 'Hanyang International Excellence', award: '100% gacha chegirma',
+              tiers: [
+                { score: 'TOPIK 4', award: '50% chegirma' },
+                { score: 'TOPIK 5+', award: '100% (birinchi yil)' }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ];
+
+  FLAGS = [
+    {
+      uni: 'Dongguk University', ko: '동국대학교',
+      rows: [
+        { section: 'Fakultetlar va kontrakt', reason: "Kontrakt jadvalidagi 2 qator past ishonch bilan ajratildi (0.58) — jadvalni PDF bilan solishtiring", date: '12.07.2026' },
+        { section: 'Kerakli hujjatlar', reason: "Apostil talabi aniq ajratilmadi — hujjat izohini tekshiring", date: '12.07.2026' }
+      ]
+    },
+    {
+      uni: 'Inha University', ko: '인하대학교',
+      rows: [
+        { section: "Muddatlar va ariza to'lovi", reason: "Suhbat sanasi manbada taxminiy deb ko'rsatilgan", date: '09.07.2026' }
+      ]
+    }
+  ];
+
+  CRAWLS = [
+    { id: 'fall2026', label: 'Kuz 2026 · 2026학년도 2학기' },
+    { id: 'spring2027', label: 'Bahor 2027 · 2027학년도 1학기' },
+    { id: 'fall2027', label: 'Kuz 2027 · 2027학년도 2학기' }
+  ];
+
+  fmtKRW(n) {
+    if (n === null || n === undefined) return null;
+    return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ' KRW';
+  }
+
+  showToast(msg) {
+    if (this._toastTimer) clearTimeout(this._toastTimer);
+    this.setState({ toast: msg });
+    this._toastTimer = setTimeout(() => this.setState({ toast: null }), 2800);
+  }
+
+  decide(secKey, decision) {
+    this.setState(s => ({
+      decisions: Object.assign({}, s.decisions, { [secKey]: decision }),
+      rejecting: null
+    }));
+  }
+
+  undoDecision(secKey) {
+    this.setState(s => {
+      const d = Object.assign({}, s.decisions);
+      delete d[secKey];
+      return { decisions: d };
+    });
+    this.showToast('Qaror bekor qilindi');
+  }
+
+  uniRollup(uni, decisions) {
+    const open = uni.sections.filter(sec => !decisions[sec.key]);
+    if (open.length === 0) return { done: true, color: null, open: [] };
+    const colors = open.map(sec => sec.rel);
+    const color = colors.includes('red') ? 'red' : colors.includes('amber') ? 'amber' : 'green';
+    return { done: false, color, open };
+  }
+
+  renderVals() {
+    const { tab, sel, decisions, rejecting, rejectReason, heritageOpen, crawl, toast, refreshing } = this.state;
+    const showEmpty = this.props.showEmptyFields ?? true;
+    const theme = (this.props.darkMode ?? false) ? 'dark' : 'light';
+    const NS = this.NS;
+    const TONE = { red: 'var(--danger)', amber: 'var(--warning)', green: 'var(--success)' };
+    const CHIP = {
+      red: 'background:var(--danger-bg);color:var(--danger);',
+      amber: 'background:var(--warning-bg);color:var(--warning);',
+      green: 'background:var(--success-bg);color:var(--success);'
+    };
+    const CHIP_LABEL = { red: 'Tuzatish kerak', amber: 'Tekshiring', green: 'Tayyor' };
+
+    // ---- rail ----
+    const rollups = {};
+    this.UNIS.forEach(u => { rollups[u.id] = this.uniRollup(u, decisions); });
+    const rank = { red: 0, amber: 1, green: 2 };
+    const sorted = [...this.UNIS].sort((a, b) => {
+      const ra = rollups[a.id], rb = rollups[b.id];
+      const va = ra.done ? 9 : rank[ra.color];
+      const vb = rb.done ? 9 : rank[rb.color];
+      return va - vb;
+    });
+
+    const rail = sorted.map(u => {
+      const r = rollups[u.id];
+      const minConf = r.open.length ? Math.min(...r.open.map(s => s.conf)) : null;
+      return {
+        id: u.id, en: u.en, ko: u.ko, city: u.city,
+        done: r.done, pending: !r.done,
+        tone: r.done ? 'transparent' : TONE[r.color],
+        chipCss: r.done ? '' : CHIP[r.color],
+        chipLabel: r.done ? '' : CHIP_LABEL[r.color],
+        sub: r.done ? '' : r.open.length + " bo'lim · min. ishonch " + Math.round(minConf * 100) + '%',
+        isSel: u.id === sel,
+        selCss: u.id === sel ? 'border-color:var(--blue-400);box-shadow:0 0 0 3px var(--ring);' : '',
+        select: () => this.setState({ sel: u.id, rejecting: null })
+      };
+    });
+
+    const counts = { red: 0, amber: 0, green: 0 };
+    this.UNIS.forEach(u => { const r = rollups[u.id]; if (!r.done) counts[r.color]++; });
+    const pendingCount = this.UNIS.filter(u => !rollups[u.id].done).length;
+
+    // ---- detail view ----
+    const uni = this.UNIS.find(u => u.id === sel) || this.UNIS[0];
+    const decidedN = uni.sections.filter(s => decisions[s.key]).length;
+    const totalN = uni.sections.length;
+    const allDone = decidedN === totalN;
+    const nextPending = sorted.find(u => u.id !== uni.id && !rollups[u.id].done);
+
+    const uniShort = uni.en.replace(' University', '');
+
+    const sections = uni.sections.map(sec => {
+      const meta = this.SECTION_META[sec.type];
+      const dec = decisions[sec.key];
+      const isRejecting = rejecting === sec.key;
+      const out = {
+        key: sec.key,
+        label: meta.label,
+        iconD: this.ICONS[meta.icon],
+        relRed: sec.rel === 'red', relAmber: sec.rel === 'amber', relGreen: sec.rel === 'green',
+        confLabel: Math.round(sec.conf * 100) + '%',
+        isApproved: dec && dec.status === 'approved',
+        isRejected: dec && dec.status === 'rejected',
+        reasonLabel: dec && dec.reason ? dec.reason : '',
+        isRejecting,
+        showActions: !dec && !isRejecting,
+        showBody: !dec,
+        noteShow: !dec && !!sec.note,
+        note: sec.note || '',
+        noteBg: sec.rel === 'red' ? 'var(--danger-bg)' : 'var(--warning-bg)',
+        noteColor: sec.rel === 'red' ? 'var(--danger)' : 'var(--warning)',
+        isCal: sec.type === 'calendar',
+        isReq: sec.type === 'requirements',
+        isTui: sec.type === 'tuition',
+        isDocs: sec.type === 'documents',
+        isSch: sec.type === 'scholarships',
+        approve: () => {
+          this.decide(sec.key, { status: 'approved' });
+          this.showToast("Tasdiqlandi — " + uniShort + ': ' + meta.label);
+        },
+        startReject: () => this.setState({ rejecting: sec.key }),
+        cancelReject: () => this.setState({ rejecting: null }),
+        confirmReject: () => {
+          const r = this.REASONS.find(x => x.id === this.state.rejectReason);
+          this.decide(sec.key, { status: 'rejected', reason: r ? r.label : 'Boshqa' });
+          this.showToast('Rad etildi — ' + uniShort + ': ' + meta.label);
+        },
+        flagSource: () => {
+          const open = uni.sections.filter(s2 => !this.state.decisions[s2.key]);
+          const d = Object.assign({}, this.state.decisions);
+          open.forEach(s2 => { d[s2.key] = { status: 'rejected', reason: "Manba noto'g'ri (PDF xato)" }; });
+          this.setState({ decisions: d, rejecting: null });
+          this.showToast(open.length + " ta bo'lim rad etildi — manba xato deb belgilandi");
+        },
+        undo: () => this.undoDecision(sec.key)
+      };
+
+      if (sec.type === 'calendar') {
+        out.cal = {
+          rows: sec.rows.map(r => {
+            const missing = r.value === null || r.value === undefined;
+            return {
+              label: r.label,
+              value: missing ? NS : r.value,
+              vCss: missing ? 'color:var(--ink-3);font-style:italic;font-weight:400;'
+                : r.emph ? 'font-weight:700;color:var(--ink);' : 'font-weight:500;color:var(--ink);',
+              show: showEmpty ? true : !missing
+            };
+          }),
+          fee: sec.fee ? this.fmtKRW(sec.fee) : NS,
+          feeCss: sec.fee ? 'font-weight:700;color:var(--ink);' : 'color:var(--ink-3);font-style:italic;'
+        };
+      }
+
+      if (sec.type === 'requirements') {
+        out.req = {
+          tracks: sec.tracks.map(tk => ({
+            cat: tk.cat,
+            stats: tk.stats.map(st => {
+              const missing = st.v === null || st.v === undefined;
+              return {
+                k: st.k,
+                v: missing ? NS : st.v,
+                vCss: missing ? 'color:var(--ink-3);font-style:italic;font-weight:500;font-size:13px;'
+                  : st.warn ? 'color:var(--warning);' : '',
+                show: showEmpty ? true : !missing
+              };
+            }),
+            majors: tk.majors || '',
+            majorsShow: !!tk.majors,
+            prose: tk.prose || '',
+            proseShow: !!tk.prose
+          })),
+          hasHeritage: (sec.heritage || []).length > 0,
+          heritage: sec.heritage || [],
+          heritageOpen: !!heritageOpen[sec.key],
+          chevCss: heritageOpen[sec.key] ? 'transform:rotate(180deg);' : '',
+          heritageLabel: (heritageOpen[sec.key] ? 'Yashirish: ' : "Ko'rsatish: ") + (sec.heritage || []).length +
+            " ta koreys-diaspora yo'nalishi (xorijliklarga tegishli emas)",
+          toggleHeritage: () => this.setState(s => ({
+            heritageOpen: Object.assign({}, s.heritageOpen, { [sec.key]: !s.heritageOpen[sec.key] })
+          }))
+        };
+      }
+
+      if (sec.type === 'tuition') {
+        out.tui = {
+          rows: sec.rows.map(r => ({
+            fac: r.fac,
+            sem: this.fmtKRW(r.sem) || NS,
+            semCss: r.warn ? 'color:var(--warning);' : 'color:var(--ink);',
+            fee: r.fee === null || r.fee === undefined ? NS : this.fmtKRW(r.fee),
+            feeCss: r.fee === null || r.fee === undefined ? 'color:var(--ink-3);font-style:italic;' : 'color:var(--ink-2);',
+            warn: !!r.warn
+          }))
+        };
+      }
+
+      if (sec.type === 'documents') {
+        out.docs = {
+          rows: sec.rows.map(d => {
+            const noDl = !d.deadline;
+            return {
+              name: d.name,
+              nameCss: d.req ? '' : 'color:var(--ink-3);font-weight:500;',
+              isReq: !!d.req, isOpt: !d.req,
+              apostille: !!d.apostille,
+              deadline: noDl ? 'muddat: ' + NS.toLowerCase() : d.deadline,
+              dlCss: noDl ? 'color:var(--ink-3);font-style:italic;' : 'font-weight:600;color:var(--ink-2);',
+              dlShow: showEmpty ? true : !noDl,
+              note: d.note || '',
+              noteShow: !!d.note
+            };
+          })
+        };
+      }
+
+      if (sec.type === 'scholarships') {
+        out.sch = {
+          rows: sec.rows.map(s2 => ({
+            name: s2.name,
+            award: s2.award,
+            tiers: s2.tiers || [],
+            hasTiers: (s2.tiers || []).length > 0,
+            note: s2.note || '',
+            noteShow: !!s2.note
+          }))
+        };
+      }
+
+      return out;
+    });
+
+    const view = {
+      en: uni.en, ko: uni.ko, city: uni.city,
+      intake: 'Bahor 2027 · 2027학년도',
+      progressW: Math.round((decidedN / totalN) * 100) + '%',
+      progressColor: allDone ? 'var(--success)' : 'var(--blue-500)',
+      progressLabel: decidedN + '/' + totalN + ' hal qilindi',
+      allDone,
+      hasNext: !!nextPending,
+      goNext: () => nextPending && this.setState({ sel: nextPending.id, rejecting: null }),
+      openSrc: () => this.showToast('Demo: manba sahifasi yangi oynada ochiladi'),
+      openPdf: () => this.showToast('Demo: 2027 모집요강.pdf yangi oynada ochiladi'),
+      sections
+    };
+
+    const crawlOpt = this.CRAWLS.find(c => c.id === crawl);
+
+    return {
+      theme,
+      // tabs
+      tabQueue: tab === 'queue',
+      tabFlags: tab === 'flags',
+      tabQueueCss: tab === 'queue' ? 'background:var(--surface);color:var(--ink);box-shadow:var(--sh-1);' : 'background:transparent;color:var(--ink-2);',
+      tabFlagsCss: tab === 'flags' ? 'background:var(--surface);color:var(--ink);box-shadow:var(--sh-1);' : 'background:transparent;color:var(--ink-2);',
+      goQueue: () => this.setState({ tab: 'queue' }),
+      goFlags: () => this.setState({ tab: 'flags' }),
+      pendingCount,
+      flagsCount: this.FLAGS.reduce((a, f) => a + f.rows.length, 0),
+      // crawl
+      crawlValue: crawl,
+      crawlBadge: crawlOpt ? crawlOpt.label : '',
+      crawlOptions: this.CRAWLS,
+      onCrawlChange: (e) => {
+        const v = e.target.value;
+        const c = this.CRAWLS.find(x => x.id === v);
+        this.setState({ crawl: v });
+        this.showToast('Skaner maqsadi: ' + (c ? c.label : v));
+      },
+      // refresh
+      onRefresh: () => {
+        if (this.state.refreshing) return;
+        this.setState({ refreshing: true });
+        setTimeout(() => {
+          this.setState({ refreshing: false });
+          this.showToast("Yangilandi — yangi yozuv yo'q");
+        }, 900);
+      },
+      refreshCss: refreshing ? 'animation:hkSpin 1s linear infinite;' : '',
+      // queue
+      rail, counts, uniCount: this.UNIS.length,
+      view,
+      reasons: this.REASONS,
+      rejectReason,
+      onReasonChange: (e) => this.setState({ rejectReason: e.target.value }),
+      // flags
+      flags: this.FLAGS.map(f => ({ uni: f.uni, ko: f.ko, n: f.rows.length, rows: f.rows })),
+      // toast
+      hasToast: !!toast,
+      toastMsg: toast || ''
+    };
+  }
+}
+</script>
+</body>
+</html>
