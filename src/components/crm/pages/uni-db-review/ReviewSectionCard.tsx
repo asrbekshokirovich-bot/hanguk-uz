@@ -199,7 +199,9 @@ export function ReviewSectionCard({
               )}
             >
               <AlertTriangle className="mt-0.5 h-[15px] w-[15px] shrink-0" />
-              <span className="text-[12.5px] font-medium leading-normal">{note}</span>
+              <span className="min-w-0 break-words text-[12.5px] font-medium leading-normal">
+                {note}
+              </span>
             </div>
           ) : null}
           {children}

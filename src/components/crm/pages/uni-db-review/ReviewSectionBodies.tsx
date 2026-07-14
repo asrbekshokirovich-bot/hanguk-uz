@@ -69,16 +69,15 @@ const SLOT_KEY: Record<string, string> = {
 
 const EMPH_SLOTS = new Set(['applyClose', 'docsDeadline']);
 
-function calValue(t: TFunction, events: Array<Record<string, unknown>>): string | null {
-  if (events.length === 0) return null;
-  const parts = events
+/** One line per dated event — two intake rounds stack instead of colliding. */
+function calValueLines(t: TFunction, events: Array<Record<string, unknown>>): string[] {
+  return events
     .map((e) => {
       const d = fmtDateKST(e.starts_at);
       if (!d) return null;
       return e.is_tentative ? `${d} ${t('uniReview.cal.tentative')}` : d;
     })
-    .filter(Boolean) as string[];
-  return parts.length ? parts.join(' / ') : null;
+    .filter((l): l is string => l !== null);
 }
 
 export function CalendarBody({ row }: { row: ReviewQueueRow }) {
@@ -95,39 +94,51 @@ export function CalendarBody({ row }: { row: ReviewQueueRow }) {
     .map((p) => fmtKRW(p.application_fee_krw))
     .find((v): v is string => v !== null);
 
-  const rows: Array<{ key: string; value: string | null; emph: boolean }> = [
+  const rows: Array<{ key: string; lines: string[]; emph: boolean }> = [
     ...slots.map((s) => {
       const key = SLOT_KEY[s.label] ?? s.label;
-      return { key, value: calValue(t, s.events), emph: EMPH_SLOTS.has(key) };
+      return { key, lines: calValueLines(t, s.events), emph: EMPH_SLOTS.has(key) };
     }),
-    { key: 'offline', value: offline ?? null, emph: false },
+    { key: 'offline', lines: offline ? [offline] : [], emph: false },
   ];
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="grid gap-x-7 md:grid-cols-2">
+      {/* Single column until xl — the detail panel shares the row with the
+          318px rail, so two columns collide below full desktop width. */}
+      <div className="grid gap-x-7 xl:grid-cols-2">
         {rows.map((r) => (
           <div
             key={r.key}
-            className="flex items-baseline justify-between gap-3 border-b border-border/60 py-[7px]"
+            className="flex min-w-0 items-baseline justify-between gap-3 border-b border-border/60 py-[7px]"
           >
-            <span className="text-[13px] text-muted-foreground">
+            <span className="shrink-0 text-[13px] text-muted-foreground">
               {t(`uniReview.cal.${r.key}`)}
             </span>
             <span
               className={cn(
-                'whitespace-nowrap font-mono text-[12.5px]',
-                r.value ? (r.emph ? 'font-bold' : 'font-medium') : '',
+                'min-w-0 text-right font-mono text-[12.5px]',
+                r.lines.length ? (r.emph ? 'font-bold' : 'font-medium') : '',
               )}
             >
-              {r.value ?? <Ns />}
+              {r.lines.length ? (
+                r.lines.map((line, i) => (
+                  <span key={i} className="block break-words">
+                    {line}
+                  </span>
+                ))
+              ) : (
+                <Ns />
+              )}
             </span>
           </div>
         ))}
       </div>
       <div className="flex items-center justify-between gap-3 rounded-[10px] border border-border/60 bg-secondary/50 p-2.5 px-3.5">
         <span className="text-[13px] font-semibold">{t('uniReview.cal.fee')}</span>
-        <span className="font-mono text-[13px] font-bold">{fee ?? <Ns />}</span>
+        <span className="min-w-0 break-words text-right font-mono text-[13px] font-bold">
+          {fee ?? <Ns />}
+        </span>
       </div>
     </div>
   );
@@ -258,7 +269,7 @@ export function RequirementsBody({ row }: { row: ReviewQueueRow }) {
                     <span className="text-[10.5px] font-semibold uppercase tracking-[0.06em] text-muted-foreground/80">
                       {s.k}
                     </span>
-                    <span className="text-[15px] font-bold">
+                    <span className="break-words text-[15px] font-bold">
                       {s.v ?? <Ns className="text-[13px]" />}
                     </span>
                   </div>
@@ -298,12 +309,14 @@ export function RequirementsBody({ row }: { row: ReviewQueueRow }) {
             ? heritage.map(({ r }, i) => (
                 <div
                   key={i}
-                  className="flex items-baseline justify-between gap-3 rounded-[10px] border border-dashed border-border bg-secondary/50 px-3.5 py-2"
+                  className="flex min-w-0 items-baseline justify-between gap-3 rounded-[10px] border border-dashed border-border bg-secondary/50 px-3.5 py-2"
                 >
-                  <span className="text-[12.5px] font-medium text-muted-foreground/80">
+                  <span className="break-words text-[12.5px] font-medium text-muted-foreground/80">
                     {str(r.applicant_category) ?? <Ns />}
                   </span>
-                  <span className="text-xs text-muted-foreground/80">{heritageLine(t, r)}</span>
+                  <span className="min-w-0 break-words text-right text-xs text-muted-foreground/80">
+                    {heritageLine(t, r)}
+                  </span>
                 </div>
               ))
             : null}
@@ -322,8 +335,10 @@ export function TuitionBody({ row, noteDetail }: { row: ReviewQueueRow; noteDeta
   const rows = getArray(row.parsed_output, 'rows');
   if (rows.length === 0) return <Ns className="text-[13px]" />;
   return (
-    <div className="overflow-hidden rounded-[10px] border border-border/60">
-      <div className="grid grid-cols-[minmax(0,1fr)_170px_140px] gap-3 bg-secondary/50 px-3.5 py-2 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-muted-foreground/80">
+    // Fixed money columns — scroll inside the card on narrow widths instead
+    // of colliding with or clipping the faculty column.
+    <div className="overflow-x-auto rounded-[10px] border border-border/60">
+      <div className="grid min-w-[520px] grid-cols-[minmax(0,1fr)_170px_140px] gap-3 bg-secondary/50 px-3.5 py-2 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-muted-foreground/80">
         <span>{t('uniReview.tui.faculty')}</span>
         <span className="text-right">{t('uniReview.tui.perSemester')}</span>
         <span className="text-right">{t('uniReview.tui.admissionFee')}</span>
@@ -336,10 +351,10 @@ export function TuitionBody({ row, noteDetail }: { row: ReviewQueueRow; noteDeta
         return (
           <div
             key={i}
-            className="grid grid-cols-[minmax(0,1fr)_170px_140px] items-baseline gap-3 border-t border-border/60 px-3.5 py-[9px]"
+            className="grid min-w-[520px] grid-cols-[minmax(0,1fr)_170px_140px] items-baseline gap-3 border-t border-border/60 px-3.5 py-[9px]"
           >
-            <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold">
-              {fac ?? <Ns />}
+            <span className="inline-flex min-w-0 items-center gap-1.5 text-[13px] font-semibold">
+              <span className="min-w-0 break-words">{fac ?? <Ns />}</span>
               {warn ? <AlertTriangle className="h-[13px] w-[13px] shrink-0 text-warning" /> : null}
             </span>
             <span
@@ -384,14 +399,14 @@ export function DocumentsBody({ row }: { row: ReviewQueueRow }) {
             <div className="flex min-w-[180px] flex-1 flex-col gap-0.5">
               <span
                 className={cn(
-                  'text-[13px] font-semibold',
+                  'break-words text-[13px] font-semibold',
                   optional && 'font-medium text-muted-foreground/80',
                 )}
               >
                 {name ?? <Ns />}
               </span>
               {note ? (
-                <span className="text-[11.5px] text-muted-foreground/80" lang="ko">
+                <span className="break-words text-[11.5px] text-muted-foreground/80" lang="ko">
                   {note}
                 </span>
               ) : null}
@@ -498,9 +513,12 @@ export function ScholarshipsBody({ row }: { row: ReviewQueueRow }) {
                 {tiers.map((tier, j) => (
                   <span
                     key={j}
-                    className="inline-flex h-6 items-center gap-1.5 rounded-lg border border-border/60 bg-secondary/50 px-2.5 font-mono text-[11.5px] text-muted-foreground"
+                    className="inline-flex min-h-6 items-center gap-1.5 rounded-lg border border-border/60 bg-secondary/50 px-2.5 py-0.5 font-mono text-[11.5px] text-muted-foreground"
                   >
-                    <span className="font-semibold text-foreground">{tier.score}</span>→ {tier.award}
+                    <span className="whitespace-nowrap font-semibold text-foreground">
+                      {tier.score}
+                    </span>
+                    <span className="min-w-0 break-words">→ {tier.award}</span>
                   </span>
                 ))}
               </div>
