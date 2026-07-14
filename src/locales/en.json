@@ -1093,5 +1093,151 @@
     "ctaHeading": "Ready to study in South Korea?",
     "ctaSub": "Get your magic code from a consultant and start today.",
     "getApp": "Get the app"
+  },
+  "uniReview": {
+    "title": "University database — review",
+    "subtitle": "Auto-collected admission guidelines are approved here before students see them. Nothing is published without your permission.",
+    "refresh": "Refresh",
+    "crawl": {
+      "label": "Auto-scanner semester",
+      "helper": "The nightly scanner looks for each university's guideline for this semester.",
+      "noDefault": "No default semester set — the scanner falls back to next year",
+      "updated": "Scanner target: {{label}}",
+      "adminsOnly": "Only owners and admins can change this.",
+      "placeholder": "Choose a semester",
+      "planning": "planning",
+      "spring": "Spring",
+      "fall": "Fall"
+    },
+    "tabs": {
+      "queue": "Approval queue",
+      "flags": "Needs attention"
+    },
+    "rail": {
+      "header": "Queue — {{n}} universities",
+      "chipRed": "Needs fixing",
+      "chipAmber": "Check",
+      "chipGreen": "Ready",
+      "done": "Completed",
+      "sub": "{{n}} section(s) · min. confidence {{p}}%",
+      "subNoConf": "{{n}} section(s)"
+    },
+    "detail": {
+      "sourcePage": "Source page",
+      "openPdf": "Open PDF",
+      "noPdf": "No stored PDF for this guideline yet.",
+      "pdfError": "Could not open the PDF.",
+      "progress": "{{decided}}/{{total}} decided",
+      "allDone": "All sections for this university have been decided.",
+      "next": "Next →"
+    },
+    "section": {
+      "calendar": "Deadlines & application fee",
+      "requirements": "Admission requirements",
+      "tuition": "Faculties & tuition",
+      "documents_required": "Required documents",
+      "scholarships": "Scholarships",
+      "unknown": "Other section"
+    },
+    "rel": {
+      "red": "Needs fixing",
+      "amber": "Check carefully",
+      "green": "Checks passed"
+    },
+    "confidence": "confidence {{p}}",
+    "actions": {
+      "approve": "Approve",
+      "approveTitle": "Approve and publish to students",
+      "reject": "Reject",
+      "rejectReason": "Rejection reason:",
+      "confirmReject": "Confirm rejection",
+      "cancel": "Cancel",
+      "flagSource": "Wrong source — reject every section from this PDF"
+    },
+    "decided": {
+      "approved": "Approved — published to students",
+      "rejected": "Rejected — {{reason}}",
+      "sourceWrong": "Wrong source (bad PDF)"
+    },
+    "toast": {
+      "approved": "Approved — {{uni}}: {{section}}",
+      "rejected": "Rejected — {{uni}}: {{section}}",
+      "flagged": "{{n}} section(s) rejected — source flagged as wrong"
+    },
+    "reasons": {
+      "wrong_year": "Wrong year / cycle",
+      "wrong_archetype": "Wrong document type",
+      "hallucinated_field": "Wrong / fabricated data",
+      "ocr_garbled": "OCR text garbled",
+      "source_404": "Source won't open",
+      "other": "Other"
+    },
+    "ns": "Not specified",
+    "cal": {
+      "fee": "Application fee (전형료)",
+      "tentative": "(tentative)",
+      "applyOpen": "Applications open",
+      "applyClose": "Applications close",
+      "docsDeadline": "Document deadline",
+      "firstStage": "First-stage results",
+      "interview": "Interview",
+      "results": "Final results",
+      "regOpen": "Registration opens",
+      "regClose": "Registration closes",
+      "orientation": "Orientation day",
+      "offline": "Offline application"
+    },
+    "req": {
+      "foreignTrack": "International applicants ({{cat}})",
+      "defaultCat": "외국인전형",
+      "topik": "TOPIK",
+      "english": "IELTS / English",
+      "gpa": "GPA",
+      "interview": "Interview",
+      "practical": "Practical exam",
+      "yes": "Yes",
+      "no": "No",
+      "notRequired": "Not required",
+      "deferred": "Can submit later",
+      "topikLevel": "Level {{n}}+",
+      "gpaMin": "Above {{p}}%",
+      "majors": "Majors:",
+      "heritageShow": "Show: {{n}} Korean-heritage track(s) (not for foreign applicants)",
+      "heritageHide": "Hide: {{n}} Korean-heritage track(s) (not for foreign applicants)"
+    },
+    "tui": {
+      "faculty": "Faculty",
+      "perSemester": "Tuition / semester",
+      "admissionFee": "Admission fee"
+    },
+    "docs": {
+      "required": "Required",
+      "optional": "Optional",
+      "apostille": "Apostille",
+      "noDeadline": "deadline: not specified"
+    },
+    "sch": {
+      "waiverPct": "{{pct}}% tuition discount",
+      "waiver": "Tuition discount",
+      "stipendMonthly": "{{amount}} per month",
+      "stipend": "Monthly stipend",
+      "airfare": "Airfare"
+    },
+    "states": {
+      "error": "Could not load the data: {{message}}",
+      "retry": "Retry",
+      "emptyTitle": "Nothing awaiting approval",
+      "emptyBody": "The scanner found no new guidelines, or everything has been reviewed.",
+      "accessTitle": "Access restricted",
+      "accessBody": "You don't have permission to view university data."
+    },
+    "flags": {
+      "banner": "These records were auto-published but flagged because the scanner's confidence was low. They are already visible to students — for spot-checking only.",
+      "count": "{{n}} flag(s)",
+      "search": "University, section or reason…",
+      "emptyTitle": "Nothing flagged",
+      "emptyBody": "There are no flagged records.",
+      "emptyFiltered": "No flagged records match your search."
+    }
   }
 }

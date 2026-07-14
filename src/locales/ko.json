@@ -1048,5 +1048,151 @@
     "ctaHeading": "한국에서 공부할 준비가 되셨나요?",
     "ctaSub": "컨설턴트에게 매직 코드를 받아 오늘 시작하세요.",
     "getApp": "앱 다운로드"
+  },
+  "uniReview": {
+    "title": "대학 데이터베이스 — 검토",
+    "subtitle": "자동 수집된 모집요강은 학생에게 공개되기 전에 여기서 승인됩니다. 허가 없이는 아무것도 게시되지 않습니다.",
+    "refresh": "새로고침",
+    "crawl": {
+      "label": "자동 스캐너 학기",
+      "helper": "야간 스캐너가 각 대학의 해당 학기 모집요강을 찾습니다.",
+      "noDefault": "기본 학기가 없음 — 스캐너는 다음 해를 대상으로 합니다",
+      "updated": "스캐너 대상: {{label}}",
+      "adminsOnly": "소유자와 관리자만 변경할 수 있습니다.",
+      "placeholder": "학기 선택",
+      "planning": "계획 중",
+      "spring": "봄",
+      "fall": "가을"
+    },
+    "tabs": {
+      "queue": "승인 대기열",
+      "flags": "확인 필요"
+    },
+    "rail": {
+      "header": "대기열 — {{n}}개 대학",
+      "chipRed": "수정 필요",
+      "chipAmber": "확인",
+      "chipGreen": "준비됨",
+      "done": "완료",
+      "sub": "{{n}}개 섹션 · 최소 신뢰도 {{p}}%",
+      "subNoConf": "{{n}}개 섹션"
+    },
+    "detail": {
+      "sourcePage": "출처 페이지",
+      "openPdf": "PDF 열기",
+      "noPdf": "저장된 PDF가 아직 없습니다.",
+      "pdfError": "PDF를 열 수 없습니다.",
+      "progress": "{{decided}}/{{total}} 결정됨",
+      "allDone": "이 대학의 모든 섹션이 결정되었습니다.",
+      "next": "다음 →"
+    },
+    "section": {
+      "calendar": "일정 및 전형료",
+      "requirements": "지원 자격",
+      "tuition": "계열별 등록금",
+      "documents_required": "제출 서류",
+      "scholarships": "장학금",
+      "unknown": "기타 섹션"
+    },
+    "rel": {
+      "red": "수정 필요",
+      "amber": "주의 깊게 확인",
+      "green": "검증 통과"
+    },
+    "confidence": "신뢰도 {{p}}",
+    "actions": {
+      "approve": "승인",
+      "approveTitle": "승인하고 학생에게 게시",
+      "reject": "거절",
+      "rejectReason": "거절 사유:",
+      "confirmReject": "거절 확정",
+      "cancel": "취소",
+      "flagSource": "출처 오류 — 이 PDF의 모든 섹션 거절"
+    },
+    "decided": {
+      "approved": "승인됨 — 학생에게 게시됨",
+      "rejected": "거절됨 — {{reason}}",
+      "sourceWrong": "출처 오류 (잘못된 PDF)"
+    },
+    "toast": {
+      "approved": "승인됨 — {{uni}}: {{section}}",
+      "rejected": "거절됨 — {{uni}}: {{section}}",
+      "flagged": "{{n}}개 섹션 거절됨 — 출처 오류로 표시"
+    },
+    "reasons": {
+      "wrong_year": "잘못된 연도 / 모집",
+      "wrong_archetype": "잘못된 문서 유형",
+      "hallucinated_field": "오류 / 지어낸 데이터",
+      "ocr_garbled": "OCR 텍스트 깨짐",
+      "source_404": "출처 열림 안 됨",
+      "other": "기타"
+    },
+    "ns": "명시 없음",
+    "cal": {
+      "fee": "전형료",
+      "tentative": "(예정)",
+      "applyOpen": "원서접수 시작",
+      "applyClose": "원서접수 마감",
+      "docsDeadline": "서류제출 마감",
+      "firstStage": "1단계 발표",
+      "interview": "면접",
+      "results": "최종 발표",
+      "regOpen": "등록 시작",
+      "regClose": "등록 마감",
+      "orientation": "오리엔테이션",
+      "offline": "서면 접수"
+    },
+    "req": {
+      "foreignTrack": "외국인 지원자 ({{cat}})",
+      "defaultCat": "외국인전형",
+      "topik": "TOPIK",
+      "english": "IELTS / 영어",
+      "gpa": "GPA",
+      "interview": "면접",
+      "practical": "실기시험",
+      "yes": "예",
+      "no": "아니오",
+      "notRequired": "불필요",
+      "deferred": "추후 제출 가능",
+      "topikLevel": "{{n}}급+",
+      "gpaMin": "{{p}}% 이상",
+      "majors": "모집 단위:",
+      "heritageShow": "표시: 재외국민 전형 {{n}}개 (외국인 전형 아님)",
+      "heritageHide": "숨기기: 재외국민 전형 {{n}}개 (외국인 전형 아님)"
+    },
+    "tui": {
+      "faculty": "계열",
+      "perSemester": "등록금 / 학기",
+      "admissionFee": "입학금"
+    },
+    "docs": {
+      "required": "필수",
+      "optional": "선택",
+      "apostille": "아포스티유",
+      "noDeadline": "마감: 명시 없음"
+    },
+    "sch": {
+      "waiverPct": "{{pct}}% 감면",
+      "waiver": "등록금 감면",
+      "stipendMonthly": "월 {{amount}}",
+      "stipend": "월 장학금",
+      "airfare": "항공권"
+    },
+    "states": {
+      "error": "데이터를 불러오지 못했습니다: {{message}}",
+      "retry": "다시 시도",
+      "emptyTitle": "승인할 항목이 없습니다",
+      "emptyBody": "스캐너가 새 모집요강을 찾지 못했거나 모두 검토되었습니다.",
+      "accessTitle": "접근 제한",
+      "accessBody": "대학 데이터를 볼 권한이 없습니다."
+    },
+    "flags": {
+      "banner": "이 기록들은 자동 게시되었지만 스캐너 신뢰도가 낮아 표시되었습니다. 이미 학생에게 공개 중이며, 점검용입니다.",
+      "count": "플래그 {{n}}개",
+      "search": "대학, 섹션, 사유…",
+      "emptyTitle": "표시된 항목 없음",
+      "emptyBody": "표시된 기록이 없습니다.",
+      "emptyFiltered": "검색에 맞는 기록이 없습니다."
+    }
   }
 }

@@ -1,0 +1,100 @@
+/* ============================================================
+   HANGUK CONSULTING — Colors & Type Foundations
+   Source of truth:
+   - hanguk-uz (admin/CRM web): src/index.css + tailwind.config.ts
+   - hanguk_app (Flutter student app): lib/design_system/theme/*
+   Brand: Deep Royal Blue #1A3A6C + Vibrant Lime #D4E94C
+   Font: Inter (Google Fonts)
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root {
+  /* ---------- BRAND CORE ---------- */
+  --royal-blue:   #1A3A6C;   /* primary — HSL(216 62% 26%) */
+  --royal-blue-90:#132A4D;   /* gradient stop */
+  --royal-blue-80:#0F213D;   /* gradient stop */
+  --vibrant-lime: #D4E94C;   /* accent — HSL(68 78% 60%) */
+  --lime-deep:    #B4CC19;   /* success / pressed lime — HSL(68 78% 45%) */
+
+  /* ---------- LIGHT THEME (web admin default) ---------- */
+  --background:   #FFFFFF;
+  --foreground:   #0A1A34;   /* ink navy — HSL(216 70% 12%) */
+  --card:         #FFFFFF;
+  --card-foreground:#0A1A34;
+
+  --primary:      var(--royal-blue);
+  --primary-foreground:#FFFFFF;
+  --accent:       var(--vibrant-lime);
+  --accent-foreground:#0A1A34;
+
+  --secondary:    #EFF2F5;   /* soft blue-gray — HSL(216 25% 95%) */
+  --secondary-foreground: var(--royal-blue);
+  --muted:        #F3F5F7;   /* HSL(216 20% 96%) */
+  --muted-foreground:#52627A;/* HSL(216 20% 40%) */
+
+  --border:       #D9DFE8;   /* HSL(216 25% 88%) */
+  --input:        #D9DFE8;
+  --ring:         #C7E04A;   /* lime ring — HSL(68 78% 50%) */
+
+  /* ---------- SEMANTIC ---------- */
+  --success:      #B4CC19;   /* web token — olive-lime, HSL(68 78% 45%) */
+  --success-green:#16A34A;   /* flutter success */
+  --warning:      #F59E0B;   /* warm gold — HSL(38 92% 50%) */
+  --destructive:  #EF4444;   /* HSL(0 84% 60%) */
+  --destructive-app:#DC2626; /* flutter error */
+
+  /* ---------- SIDEBAR (deep navy) ---------- */
+  --sidebar:      #132D53;   /* HSL(216 62% 20%) */
+  --sidebar-foreground:#D6DEEC;
+  --sidebar-accent:#C7E04A;
+
+  /* ---------- DARK / APP SURFACES (Flutter, OLED) ---------- */
+  --app-black:    #000000;   /* scaffold / OLED true black */
+  --app-bg-navy:  #0A0A1A;   /* backgroundNavy */
+  --app-dark-slate:#0F172A;  /* darkSlate / surface */
+  --app-nav:      #0F213D;   /* bottom-nav background */
+  --app-sheet:    #071221;   /* AI chat modal sheet */
+  --app-glass:    rgba(255,255,255,0.12); /* glass card surface */
+  --app-glass-border: rgba(255,255,255,0.10);
+  /* App navy→black gradient (used directly in markup; not a single-value token):
+     linear-gradient(135deg,#1A3A6C 0%,#132A4D 45%,#0F213D 75%,#0A0A1A 100%) */
+
+  /* ---------- RADII (base 0.75rem) ---------- */
+  --radius:    0.75rem;          /* 12px — lg */
+  --radius-md: calc(var(--radius) - 2px); /* 10px */
+  --radius-sm: calc(var(--radius) - 4px); /* 8px */
+  --radius-app-btn: 16px;        /* Flutter buttons / inputs */
+  --radius-app-card:20px;        /* Flutter glass cards */
+  --radius-pill: 999px;
+
+  /* ---------- ELEVATION ---------- */
+  --shadow-sm:  0 1px 2px rgba(10,26,52,0.06);
+  --shadow-md:  0 4px 12px rgba(10,26,52,0.08);
+  --shadow-lg:  0 12px 28px rgba(10,26,52,0.12);
+  --shadow-xl:  0 20px 48px rgba(10,26,52,0.16);
+  --shadow-app: 0 10px 20px rgba(0,0,0,0.30); /* app hero/logo drop */
+
+  /* ---------- TYPE ---------- */
+  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', monospace;
+}
+
+/* ============================================================
+   SEMANTIC TYPE SCALE
+   Inter, tight tracking on display sizes. Bold (700) for
+   headings, 600 for UI labels/buttons, 400-500 body.
+   ============================================================ */
+.h-display { font-family: var(--font-sans); font-weight: 800; font-size: 48px; line-height: 1.05; letter-spacing: -0.02em; color: var(--foreground); }
+.h1 { font-family: var(--font-sans); font-weight: 700; font-size: 36px; line-height: 1.1;  letter-spacing: -0.02em; color: var(--foreground); }
+.h2 { font-family: var(--font-sans); font-weight: 700; font-size: 28px; line-height: 1.15; letter-spacing: -0.015em; color: var(--foreground); }
+.h3 { font-family: var(--font-sans); font-weight: 600; font-size: 22px; line-height: 1.2;  letter-spacing: -0.01em; color: var(--foreground); }
+.h4 { font-family: var(--font-sans); font-weight: 600; font-size: 18px; line-height: 1.3;  color: var(--foreground); }
+.body-lg { font-family: var(--font-sans); font-weight: 400; font-size: 18px; line-height: 1.5; color: var(--foreground); }
+.body    { font-family: var(--font-sans); font-weight: 400; font-size: 15px; line-height: 1.55; color: var(--foreground); }
+.body-sm { font-family: var(--font-sans); font-weight: 400; font-size: 13px; line-height: 1.5; color: var(--muted-foreground); }
+.label   { font-family: var(--font-sans); font-weight: 600; font-size: 13px; line-height: 1.2; letter-spacing: 0.01em; color: var(--foreground); }
+.overline{ font-family: var(--font-sans); font-weight: 600; font-size: 11px; line-height: 1.2; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted-foreground); }
+.btn-text{ font-family: var(--font-sans); font-weight: 700; font-size: 15px; letter-spacing: 0.01em; }
+.code    { font-family: var(--font-mono); font-weight: 500; font-size: 14px; letter-spacing: 0.04em; }
+.magic-code { font-family: var(--font-mono); font-weight: 600; font-size: 20px; letter-spacing: 0.3em; text-transform: uppercase; }
