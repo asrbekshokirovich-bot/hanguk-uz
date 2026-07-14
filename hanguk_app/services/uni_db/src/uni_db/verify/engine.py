@@ -155,7 +155,9 @@ def verify_extraction(
             log.warning("verify: grounding judge failed for %s (%s); deterministic only",
                         field_group, type(exc).__name__)
 
-    sanity = sanity_checks(field_group, primary, target_year=target_year)
+    sanity = sanity_checks(
+        field_group, primary, target_year=target_year, target_term=target_term
+    )
     cons = consensus(field_group, runs) if len(runs) > 1 else []
 
     critics: list[CriticIssue] = []

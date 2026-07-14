@@ -31,7 +31,12 @@ import {
   type RejectionReason,
 } from '@/hooks/useReviewQueue';
 import { ReviewParsedOutput } from './ReviewParsedOutput';
-import { itemConfidence, confidencePct } from './reviewLogic';
+import {
+  itemConfidence,
+  confidencePct,
+  isFailedExtraction,
+  minLaneConfidence,
+} from './reviewLogic';
 import { useActiveIntake } from '@/contexts/IntakeContext';
 import {
   parseReliability,
@@ -176,6 +181,8 @@ function SectionCard({ row }: { row: ReviewQueueRow }) {
   const [rejectReason, setRejectReason] = useState<RejectionReason>('hallucinated_field');
 
   const rel = parseReliability(row.reviewer_notes, row.needs_attention);
+  // Failed lane → "lane failed" badge, never "confidence 0%" (Phase 3).
+  const laneFailed = isFailedExtraction(row.parsed_output);
   const conf = confidencePct(itemConfidence(row));
   const label = SECTION_LABEL[row.field_group ?? ''] ?? row.field_group ?? 'Section';
   const acting =
@@ -219,7 +226,13 @@ function SectionCard({ row }: { row: ReviewQueueRow }) {
         <span className="text-sm font-medium">{label}</span>
         <ReliabilityBadge color={rel.color} />
         <CycleBadge row={row} />
-        {conf ? <Badge variant="neutral">confidence {conf}</Badge> : null}
+        {laneFailed ? (
+          <Badge variant="destructive" title="Extraction failed for this section — needs re-extraction, not review">
+            lane failed
+          </Badge>
+        ) : conf ? (
+          <Badge variant="neutral">confidence {conf}</Badge>
+        ) : null}
       </div>
 
       {rel.detail ? (
@@ -284,6 +297,9 @@ function GuidelineCard({ group }: { group: GuidelineGroup }) {
   const color = rollupColor(
     group.rows.map((r) => parseReliability(r.reviewer_notes, r.needs_attention).color),
   );
+  // Min confidence over SUCCEEDED lanes only — a failed lane must not drag
+  // the guideline to 0% (Phase 3).
+  const minConf = confidencePct(minLaneConfidence(group.rows));
   return (
     <Card>
       <CardContent className="p-4">
@@ -293,6 +309,7 @@ function GuidelineCard({ group }: { group: GuidelineGroup }) {
               <span className="font-medium">{institutionName(group)}</span>
               <ReliabilityBadge color={color} />
               <Badge variant="secondary">{group.rows.length} section(s)</Badge>
+              {minConf ? <Badge variant="neutral">min confidence {minConf}</Badge> : null}
             </div>
             {group.nameKo && group.nameEn ? (
               <div className="text-xs text-muted-foreground">{group.nameKo}</div>

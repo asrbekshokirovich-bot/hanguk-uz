@@ -37,6 +37,7 @@ import httpx
 from ..discovery.adapters.naver_search_adapter import NaverSearchAdapter
 from ..discovery.models import Announcement
 from ..parse.cycle_detect import cycle_is_older
+from ..watchdog import watchdog
 from .direct_ingest_worker import resolve_to_pdf
 from .fetch_worker import (
     RunParse,
@@ -385,6 +386,12 @@ async def process_one_institution(
                 mime=mime,
                 academic_year=verdict.academic_year_in_doc if verdict else None,
                 semester=verdict.term_in_doc if verdict else None,
+            )
+            # Belt-and-suspenders (Phase 3): an ingested doc with a cycle
+            # BELOW the crawl target means the identity gate was bypassed.
+            watchdog.record_ingested_document(
+                academic_year=verdict.academic_year_in_doc if verdict else None,
+                target_year=year,
             )
             await run_parse(conn, gd_id, data)
             return "ingested", cand.url, len(candidates)

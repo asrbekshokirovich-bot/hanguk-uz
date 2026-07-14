@@ -11,6 +11,12 @@ from datetime import datetime
 from itertools import pairwise
 from typing import Any
 
+from ..extract.event_types import (
+    CALENDAR_EVENT_ORDER,
+    PERIOD_FIELD_ORDER,
+    canonical_event_type,
+)
+from ..parse.cycle_detect import cycle_window
 from .models import ConsensusField, GroundingIssue, SanityIssue
 
 # ---------------------------------------------------------------------------
@@ -128,17 +134,25 @@ def check_grounding_deterministic(
 _TUITION_MIN_KRW = 500_000
 _TUITION_MAX_KRW = 30_000_000
 
-_CAL_ORDER = ["apply_open", "apply_close", "document_submission_deadline", "final_results"]
+# Event-type names come from the shared canonical table (Phase 3 — ONE table,
+# both lanes import it). Event types read from payloads are canonicalized
+# before comparison, so `document_submission_deadline` and `documents_deadline`
+# order/aggregate identically here and in the extraction lane.
+_CAL_ORDER = list(CALENDAR_EVENT_ORDER)
 # The date fields the app actually publishes (university_admission_periods),
 # in the order they must occur.
-_PERIOD_ORDER = ["application_start", "application_end", "document_deadline", "result_announcement"]
+_PERIOD_ORDER = list(PERIOD_FIELD_ORDER)
 
 
 def sanity_checks(
-    field_group: str, parsed_output: object, *, target_year: int | None = None
+    field_group: str,
+    parsed_output: object,
+    *,
+    target_year: int | None = None,
+    target_term: str | None = None,
 ) -> list[SanityIssue]:
     if field_group == "calendar":
-        return _sanity_calendar(parsed_output)
+        return _sanity_calendar(parsed_output, target_year, target_term)
     if field_group == "tuition":
         return _sanity_tuition(parsed_output, target_year)
     if field_group in ("requirements", "basic_requirements"):
@@ -148,11 +162,15 @@ def sanity_checks(
     return []
 
 
-def _sanity_calendar(parsed_output: object) -> list[SanityIssue]:
+def _sanity_calendar(
+    parsed_output: object,
+    target_year: int | None = None,
+    target_term: str | None = None,
+) -> list[SanityIssue]:
     issues: list[SanityIssue] = []
     first: dict[str, datetime] = {}
     for row in _iter_rows(parsed_output):
-        et = row.get("event_type")
+        et = canonical_event_type(row.get("event_type"))
         dt = _as_date(row.get("starts_at"))
         if isinstance(et, str) and dt is not None and et not in first:
             first[et] = dt
@@ -181,6 +199,42 @@ def _sanity_calendar(parsed_output: object) -> list[SanityIssue]:
                     problem="out_of_order_dates",
                     detail=f"{a_name} {a_dt.date()} is after {b_name} {b_dt.date()}",
                 ))
+    issues.extend(_cycle_window_issues(parsed_output, target_year, target_term))
+    return issues
+
+
+def _cycle_window_issues(
+    parsed_output: object, target_year: int | None, target_term: str | None
+) -> list[SanityIssue]:
+    """Phase 3 hard gate: EVERY extracted calendar date must fall inside the
+    target-cycle window (2027 spring: 2026-08-01 .. 2027-06-30). A date outside
+    it means the calendar was lifted from an older (or wrong-term) guideline —
+    the forensic audit found 78/83 stored documents were off-cycle — so the
+    violation is a HIGH `stale_cycle` issue, which lands the group RED."""
+    if target_year is None:
+        return []
+    lo, hi = cycle_window(target_year, target_term)
+    issues: list[SanityIssue] = []
+
+    def _check(where: str, value: object) -> None:
+        dt = _as_date(value)
+        if dt is not None and not (lo <= dt.date() <= hi):
+            issues.append(SanityIssue(
+                field_group="calendar",
+                field=where,
+                severity="high",
+                problem="stale_cycle",
+                detail=f"{where} {dt.date()} outside target-cycle window "
+                       f"{lo.isoformat()}..{hi.isoformat()}",
+            ))
+
+    for i, ev in enumerate(_list(parsed_output, "events")):
+        _check(f"events[{i}].starts_at", ev.get("starts_at"))
+        _check(f"events[{i}].ends_at", ev.get("ends_at"))
+    for i, p in enumerate(_list(parsed_output, "periods")):
+        for field, value in p.items():
+            if isinstance(value, str):
+                _check(f"period[{i}].{field}", value)
     return issues
 
 
@@ -285,7 +339,7 @@ def critical_signature(field_group: str, parsed_output: object) -> dict[str, Any
     if field_group == "calendar":
         out: dict[str, Any] = {}
         for row in _list(parsed_output, "events"):
-            et = row.get("event_type")
+            et = canonical_event_type(row.get("event_type"))
             dt = _as_date(row.get("starts_at"))
             if isinstance(et, str) and et in _CAL_ORDER and dt is not None:
                 out.setdefault(f"date:{et}", dt.date().isoformat())

@@ -177,19 +177,55 @@ export function minRowConfidence(parsedOutput: unknown): number | null {
 }
 
 /**
+ * A FAILED extraction lane: the backend records the error under an
+ * `_extraction_failed` marker with `accuracy_self_score = 0`. Such a lane has
+ * no confidence to show — it needs re-extraction, not review — and must never
+ * render as "0%" nor drag a guideline's min-confidence to zero.
+ */
+export function isFailedExtraction(parsedOutput: unknown): boolean {
+  return (
+    !!parsedOutput &&
+    typeof parsedOutput === 'object' &&
+    !Array.isArray(parsedOutput) &&
+    '_extraction_failed' in (parsedOutput as Record<string, unknown>)
+  );
+}
+
+/**
  * The confidence to surface for one queue item: prefer the view's
  * `min_row_confidence`, then a client-computed min over the rows (meaningful
  * before the backend migration lands), then the job-level `accuracy_self_score`.
+ * A failed lane returns null — the UI shows "lane failed", never 0%.
  */
 export function itemConfidence(item: {
   min_row_confidence?: number | null;
   parsed_output?: unknown;
   accuracy_self_score?: number | null;
 }): number | null {
+  if (isFailedExtraction(item.parsed_output)) return null;
   if (typeof item.min_row_confidence === 'number') return item.min_row_confidence;
   const computed = minRowConfidence(item.parsed_output);
   if (computed !== null) return computed;
   return typeof item.accuracy_self_score === 'number' ? item.accuracy_self_score : null;
+}
+
+/**
+ * Guideline-level minimum confidence, computed over SUCCEEDED lanes only —
+ * failed lanes are excluded rather than counted as 0. Null when no succeeded
+ * lane carries a score.
+ */
+export function minLaneConfidence(
+  items: Array<{
+    min_row_confidence?: number | null;
+    parsed_output?: unknown;
+    accuracy_self_score?: number | null;
+  }>,
+): number | null {
+  const scores = items
+    .filter((i) => !isFailedExtraction(i.parsed_output))
+    .map(itemConfidence)
+    .filter((c): c is number => typeof c === 'number' && Number.isFinite(c));
+  return scores.length ? Math.min(...scores) : null;
 }
 
 export function confidencePct(score: number | null | undefined): string | null {

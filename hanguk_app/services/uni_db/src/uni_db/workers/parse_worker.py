@@ -44,6 +44,7 @@ from ..extract.validators import evaluate as validate_field
 from ..parse.degree_sections import split_by_degree
 from ..verify import verify_extraction
 from ..verify.engine import ReliabilityReport
+from ..watchdog import watchdog
 
 log = logging.getLogger(__name__)
 
@@ -170,6 +171,9 @@ def parse_one_document(
                     "extract: extraction failed for %s: %s: %s",
                     group, type(exc).__name__, str(exc)[:160],
                 )
+                # Credit-balance failures are pointless to retry — a human must
+                # top up. The watchdog turns the first one into a loud alert.
+                watchdog.record_llm_error(str(exc))
                 results.append(_failed_result(
                     group,
                     violation=f"{type(exc).__name__}: {exc}",
@@ -203,6 +207,10 @@ def parse_one_document(
                         section_text = wider
 
         results.append(result)
+
+        # Run-health signal: too many empty payloads across a run means the
+        # sources/prompts are broken, not that the PDFs are thin (Phase 3).
+        watchdog.record_payload(empty=_is_empty_output(result.parsed_output))
 
         # Empty extraction (e.g. {"rows": []}) → nothing to review. Don't
         # queue it; an empty result means a thin/wrong source and is handled

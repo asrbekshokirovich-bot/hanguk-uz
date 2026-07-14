@@ -44,6 +44,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from ..config import settings
+from ..watchdog import watchdog
 
 log = logging.getLogger(__name__)
 
@@ -200,8 +201,13 @@ def _one_call(cmd: list[str], user: str, timeout: float) -> CliCallResult:
 
     if proc.returncode != 0:
         stderr = (proc.stderr or "")[:300]
+        limited = _is_usage_limit(proc.stderr or "")
+        # Phase 3 watchdog: a streak of GENUINE nonzero exits (not usage
+        # limits, which self-heal via the retry loop) means the CLI is broken.
+        watchdog.record_cli_exit(proc.returncode, usage_limited=limited)
         msg = f"claude CLI exited {proc.returncode}: {stderr}"
-        raise (_UsageLimitError if _is_usage_limit(proc.stderr or "") else ClaudeCliError)(msg)
+        raise (_UsageLimitError if limited else ClaudeCliError)(msg)
+    watchdog.record_cli_exit(0)
 
     try:
         envelope = json.loads(proc.stdout)
