@@ -15,7 +15,8 @@ import {
   type RejectionReason,
   type ReviewQueueRow,
 } from '@/hooks/useReviewQueue';
-import { itemConfidence, confidencePct } from '../reviewLogic';
+import { useActiveIntake } from '@/contexts/IntakeContext';
+import { itemConfidence, confidencePct, isFailedExtraction } from '../reviewLogic';
 import { parseReliability, type ReliabilityColor } from '../reliability';
 import { SECTION_ICON, firstNoteLine, sectionLabelKey, type DecidedInfo } from './reviewGroups';
 
@@ -38,6 +39,39 @@ export interface SectionCardHandlers {
   onApprove: (row: ReviewQueueRow) => void;
   onConfirmReject: (row: ReviewQueueRow, reason: RejectionReason) => void;
   onFlagSource: (row: ReviewQueueRow) => void;
+}
+
+/**
+ * The source document's classified admission cycle (migration 20260714000000 +
+ * backfill_document_cycle.py). Warning-tinted when the document describes an
+ * OLDER cycle than the crawl target — the reviewer is looking at stale data.
+ */
+function CycleBadge({ row }: { row: ReviewQueueRow }) {
+  const { t } = useTranslation();
+  const { intakes } = useActiveIntake();
+  const year = row.doc_academic_year;
+  if (year == null) return null;
+  const season =
+    row.doc_semester === 'spring' || row.doc_semester === 'fall'
+      ? t(`uniReview.crawl.${row.doc_semester}`)
+      : null;
+  const target = intakes.find((i) => i.is_default) ?? null;
+  const stale =
+    target != null &&
+    (year < target.year ||
+      (year === target.year && target.season === 'spring' && row.doc_semester === 'fall'));
+  return (
+    <span
+      className={cn(
+        'inline-flex h-[22px] items-center rounded-full px-2.5 text-[11.5px] font-semibold',
+        stale ? 'bg-warning/10 text-warning' : 'bg-info/10 text-info',
+      )}
+      title={t(stale ? 'uniReview.cycle.staleTitle' : 'uniReview.cycle.title')}
+    >
+      {year}학년도{season ? ` · ${season}` : ''}
+      {stale ? ` — ${t('uniReview.cycle.stale')}` : ''}
+    </span>
+  );
 }
 
 export function ReviewSectionCard({
@@ -66,6 +100,9 @@ export function ReviewSectionCard({
   const { t } = useTranslation();
   const rel = parseReliability(row.reviewer_notes, row.needs_attention);
   const Icon = SECTION_ICON[row.field_group ?? ''] ?? SECTION_ICON.documents_required;
+  // Failed lane → "extraction failed" pill, never "confidence 0%" (Phase 3:
+  // itemConfidence returns null for a failed lane).
+  const laneFailed = isFailedExtraction(row.parsed_output);
   const conf = confidencePct(itemConfidence(row));
   const note = rel.color === 'red' || rel.color === 'amber' ? firstNoteLine(rel.detail) : null;
 
@@ -87,7 +124,15 @@ export function ReviewSectionCard({
             {t(`uniReview.rel.${rel.color}`)}
           </span>
         ) : null}
-        {conf ? (
+        <CycleBadge row={row} />
+        {laneFailed ? (
+          <span
+            className="inline-flex h-[22px] items-center rounded-full bg-destructive/10 px-2.5 text-[11.5px] font-semibold text-destructive"
+            title={t('uniReview.laneFailedTitle')}
+          >
+            {t('uniReview.laneFailed')}
+          </span>
+        ) : conf ? (
           <span className="font-mono text-[11px] text-muted-foreground/80">
             {t('uniReview.confidence', { p: conf })}
           </span>

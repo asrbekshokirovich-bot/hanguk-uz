@@ -1157,6 +1157,14 @@
       "green": "Checks passed"
     },
     "confidence": "confidence {{p}}",
+    "laneFailed": "Extraction failed",
+    "laneFailedTitle": "Extraction errored for this section — it needs re-extraction, not review",
+    "minConfidence": "min confidence {{p}}",
+    "cycle": {
+      "title": "Admission cycle this document describes",
+      "staleTitle": "Document describes an older cycle than the crawl target — stale data",
+      "stale": "stale"
+    },
     "actions": {
       "approve": "Approve",
       "approveTitle": "Approve and publish to students",

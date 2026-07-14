@@ -260,9 +260,11 @@ class TestCliTimeouts:
 
         def fake_run(system: str, user: str, model: str, *, timeout: float):
             captured["timeout"] = timeout
-            return json.dumps({"rows": [{"source_text_ko": "여권 사본"}]})
+            return llm_cli.CliCallResult(
+                text=json.dumps({"rows": [{"source_text_ko": "여권 사본"}]})
+            )
 
-        monkeypatch.setattr(llm_cli, "run_claude_cli", fake_run)
+        monkeypatch.setattr(llm_cli, "run_claude_cli_result", fake_run)
 
         result = llm_anthropic.extract_field_group(
             field_group="documents_required", archetype="H", source_text_ko="x",

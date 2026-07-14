@@ -1147,6 +1147,14 @@
       "green": "Tekshiruvlar o'tdi"
     },
     "confidence": "ishonch {{p}}",
+    "laneFailed": "Ma'lumot olishda xatolik",
+    "laneFailedTitle": "Bu bo'lim uchun ma'lumot olish xatoga uchradi — tekshirish emas, qayta ishga tushirish kerak",
+    "minConfidence": "eng past ishonch {{p}}",
+    "cycle": {
+      "title": "Ushbu hujjat qaysi qabul mavsumiga tegishli",
+      "staleTitle": "Hujjat maqsadli mavsumdan eskiroq mavsumga tegishli — eskirgan ma'lumot",
+      "stale": "eskirgan"
+    },
     "actions": {
       "approve": "Tasdiqlash",
       "approveTitle": "Tasdiqlash va talabalarga e'lon qilish",

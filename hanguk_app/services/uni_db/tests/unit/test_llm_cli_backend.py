@@ -28,6 +28,31 @@ def test_run_claude_cli_extracts_result_from_envelope(monkeypatch):
     assert out == '{"rows": []}'
 
 
+def test_run_claude_cli_result_captures_envelope_usage(monkeypatch):
+    envelope = json.dumps({
+        "type": "result", "subtype": "success", "is_error": False,
+        "result": '{"rows": []}',
+        "usage": {
+            "input_tokens": 111, "output_tokens": 22,
+            "cache_read_input_tokens": 3333, "cache_creation_input_tokens": 44,
+        },
+    })
+    monkeypatch.setattr(subprocess, "run", lambda *a, **k: _fake_completed(envelope))
+    res = llm_cli.run_claude_cli_result("sys", "user", "claude-sonnet-4-6")
+    assert res.text == '{"rows": []}'
+    assert (res.input_tokens, res.output_tokens) == (111, 22)
+    assert (res.cached_input_tokens, res.cache_write_tokens) == (3333, 44)
+
+
+def test_run_claude_cli_result_zero_usage_when_envelope_has_none(monkeypatch):
+    envelope = json.dumps({"type": "result", "subtype": "success",
+                           "is_error": False, "result": "hi"})
+    monkeypatch.setattr(subprocess, "run", lambda *a, **k: _fake_completed(envelope))
+    res = llm_cli.run_claude_cli_result("sys", "user", "claude-sonnet-4-6")
+    assert res.text == "hi"
+    assert (res.input_tokens, res.output_tokens) == (0, 0)
+
+
 def test_run_claude_cli_raises_on_error_envelope(monkeypatch):
     envelope = json.dumps({"type": "result", "subtype": "error_during_execution",
                            "is_error": True, "result": "boom"})
@@ -57,20 +82,24 @@ def test_extract_field_group_routes_through_cli_without_api_key(monkeypatch):
 
     captured = {}
 
-    def fake_cli(system: str, user: str, model: str, **kw) -> str:
+    def fake_cli(system: str, user: str, model: str, **kw) -> llm_cli.CliCallResult:
         captured["called"] = True
-        return json.dumps({"rows": [{
-            "applicant_category": "외국인전형", "topik_min_level": 4, "topik_deferred": False,
-            "english_test": None, "gpa_floor_pct": None, "interview_required": False,
-            "practical_exam_required": False, "prose_ko": "x", "source_text_ko": "x",
-            "extractor_confidence": 0.9,
-        }]})
+        return llm_cli.CliCallResult(
+            text=json.dumps({"rows": [{
+                "applicant_category": "외국인전형", "topik_min_level": 4, "topik_deferred": False,
+                "english_test": None, "gpa_floor_pct": None, "interview_required": False,
+                "practical_exam_required": False, "prose_ko": "x", "source_text_ko": "x",
+                "extractor_confidence": 0.9,
+            }]}),
+            input_tokens=1234,
+            output_tokens=321,
+        )
 
     # If the SDK path were taken, _get_client would be hit and fail without a key.
     def explode():
         raise AssertionError("SDK client must not be built in claude_cli mode")
 
-    monkeypatch.setattr(llm_cli, "run_claude_cli", fake_cli)
+    monkeypatch.setattr(llm_cli, "run_claude_cli_result", fake_cli)
     monkeypatch.setattr(llm_anthropic, "_get_client", explode)
 
     result = llm_anthropic.extract_field_group(
@@ -79,6 +108,10 @@ def test_extract_field_group_routes_through_cli_without_api_key(monkeypatch):
     assert captured.get("called") is True
     assert result.llm_provider == "claude_cli"
     assert len(result.parsed_output["rows"]) == 1
+    # Phase 2: token usage from the CLI envelope lands on the job.
+    assert result.input_tokens == 1234
+    assert result.output_tokens == 321
+    assert result.cost_usd == 0.0  # subscription — not billed per token
 
 
 # --- usage guards: serialize CLI calls + cap verify depth on the subscription --

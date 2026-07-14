@@ -65,6 +65,19 @@ class Settings(BaseSettings):
     verify_level: str = Field(default="maximum", alias="UNI_DB_VERIFY_LEVEL")
     # How many independent extractions the consensus gate runs at 'maximum'.
     consensus_runs: int = Field(default=3, alias="UNI_DB_CONSENSUS_RUNS")
+    # Full-document extraction (correction plan, Phase 2). When the whole
+    # guideline text fits this token budget, every field group is extracted
+    # against the FULL text — the fixed 12k-char section slice starved groups
+    # whose data sits in appendix tables. Above the budget, the improved
+    # anchor slicer (TOC-aware, prefer-last-match) kicks in.
+    extract_fulldoc_token_budget: int = Field(
+        default=100_000, alias="UNI_DB_FULLDOC_TOKEN_BUDGET"
+    )
+    # One extraction call for all five field groups (per-group JSON keys)
+    # instead of five calls — opt-in; falls back to per-group on any failure.
+    extract_single_call: bool = Field(
+        default=False, alias="UNI_DB_EXTRACT_SINGLE_CALL"
+    )
     # When true, NOTHING auto-publishes — every guideline waits in review_queue
     # for a staff member to approve. This is the human-in-front gate; it overrides
     # auto_publish for any document parsed through it.

@@ -3,6 +3,8 @@ import {
   validateParsedOutput,
   minRowConfidence,
   itemConfidence,
+  isFailedExtraction,
+  minLaneConfidence,
   resolveStatusField,
   confidencePct,
   diffParsedOutput,
@@ -125,6 +127,38 @@ describe('confidence', () => {
     expect(confidencePct(0.85)).toBe('85%');
     expect(confidencePct(0.724)).toBe('72%');
     expect(confidencePct(null)).toBeNull();
+  });
+
+  it('detects a failed extraction lane', () => {
+    expect(isFailedExtraction({ _extraction_failed: 'timeout' })).toBe(true);
+    expect(isFailedExtraction(inhaRequirements)).toBe(false);
+    expect(isFailedExtraction(null)).toBe(false);
+    expect(isFailedExtraction([])).toBe(false);
+  });
+
+  it('a failed lane has no confidence — never 0%', () => {
+    // The backend records accuracy_self_score = 0 on failed jobs; showing
+    // that as "confidence 0%" misreads an error as a very bad extraction.
+    expect(
+      itemConfidence({
+        parsed_output: { _extraction_failed: 'APITimeoutError' },
+        accuracy_self_score: 0,
+        min_row_confidence: 0,
+      }),
+    ).toBeNull();
+  });
+
+  it('min lane confidence skips failed lanes (succeeded lanes only)', () => {
+    const succeeded = { parsed_output: inhaRequirements, accuracy_self_score: 0.9 };
+    const alsoOk = { min_row_confidence: 0.91, parsed_output: kaistDocuments };
+    const failed = {
+      parsed_output: { _extraction_failed: 'boom' },
+      accuracy_self_score: 0,
+      min_row_confidence: 0,
+    };
+    expect(minLaneConfidence([succeeded, alsoOk, failed])).toBe(0.87);
+    expect(minLaneConfidence([failed])).toBeNull();
+    expect(minLaneConfidence([])).toBeNull();
   });
 });
 

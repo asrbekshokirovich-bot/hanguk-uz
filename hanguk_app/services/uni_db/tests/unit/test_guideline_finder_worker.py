@@ -445,3 +445,148 @@ async def test_ingest_url_resolve_none_skips() -> None:
     )
     assert outcome == "skipped"
     assert note == "not a pdf"
+
+
+# --------------------------------------------------------------------------- #
+# Gate 0 fail-closed outcomes (correction plan, Phase 1c)
+# --------------------------------------------------------------------------- #
+
+
+def _notes_sink():
+    notes: list[tuple[str, str]] = []
+
+    async def record(_conn, url: str, _title, note: str) -> None:
+        notes.append((url, note))
+
+    return notes, record
+
+
+async def test_stale_cycle_records_not_yet_published_and_does_not_ingest() -> None:
+    conn = _Conn()
+    parsed: list = []
+    notes, record = _notes_sink()
+
+    async def resolve(u: str):
+        return PDF, "application/pdf"
+
+    async def parse(c, gd, d):  # pragma: no cover - must never run
+        parsed.append(gd)
+
+    outcome, note, _seen = await gfw.process_one_institution(
+        conn, _row(), keywords=["모집요강"], year=2027, per_institution=3,
+        search_site=_search_returning(_ann("https://inha.ac.kr/2026_모집요강.pdf", "2026 모집요강")),
+        resolve=resolve, store_blob=_store, run_parse=parse,
+        identity_check=lambda d, r: gfw.IdentityDecision(
+            decision="stale", note="newest guideline is 2026 fall (target 2027 spring)",
+        ),
+        record_note=record,
+    )
+    assert outcome == "skipped"
+    assert "not yet published" in note
+    assert parsed == []
+    assert not any("insert into public.guideline_documents" in e for e in conn.executed)
+    assert len(notes) == 1 and "not yet published" in notes[0][1]
+
+
+async def test_identity_error_fails_closed_and_records_note() -> None:
+    conn = _Conn()
+    parsed: list = []
+    notes, record = _notes_sink()
+
+    async def resolve(u: str):
+        return PDF, "application/pdf"
+
+    async def parse(c, gd, d):  # pragma: no cover - must never run
+        parsed.append(gd)
+
+    outcome, note, _seen = await gfw.process_one_institution(
+        conn, _row(), keywords=["모집요강"], year=2027, per_institution=3,
+        search_site=_search_returning(_ann("https://inha.ac.kr/2027_모집요강.pdf", "2027 모집요강")),
+        resolve=resolve, store_blob=_store, run_parse=parse,
+        identity_check=lambda d, r: gfw.IdentityDecision(
+            decision="error", note="identity verifier errored: RuntimeError",
+        ),
+        record_note=record,
+    )
+    assert outcome == "skipped"
+    assert parsed == []                                # fail closed: no ingest
+    assert len(notes) == 1 and "fail-closed" in notes[0][1]
+
+
+async def test_unreadable_head_fails_closed() -> None:
+    conn = _Conn()
+    notes, record = _notes_sink()
+
+    async def resolve(u: str):
+        return PDF, "application/pdf"
+
+    async def parse(c, gd, d):  # pragma: no cover - must never run
+        raise AssertionError("must not parse")
+
+    outcome, _note, _seen = await gfw.process_one_institution(
+        conn, _row(), keywords=["모집요강"], year=2027, per_institution=3,
+        search_site=_search_returning(_ann("https://inha.ac.kr/scan.pdf", "모집요강")),
+        resolve=resolve, store_blob=_store, run_parse=parse,
+        identity_check=lambda d, r: gfw.IdentityDecision(
+            decision="unreadable", note="no readable text in the first pages",
+        ),
+        record_note=record,
+    )
+    assert outcome == "skipped"
+    assert len(notes) == 1
+
+
+async def test_accept_with_verdict_threads_cycle_into_insert() -> None:
+    from uni_db.verify.models import IdentityVerdict
+
+    class _CycleConn(_Conn):
+        def __init__(self):
+            super().__init__()
+            self.insert_args: tuple | None = None
+
+        async def execute(self, sql: str, *args: object) -> str:
+            s = " ".join(sql.split())
+            if "insert into public.guideline_documents" in s:
+                self.insert_args = args
+                assert "academic_year" in s and "semester" in s
+            self.executed.append(s)
+            return "OK"
+
+    verdict = IdentityVerdict(
+        document_kind="guideline", university_name_ko_in_doc="인하대학교",
+        matches_target_university=True, academic_year_in_doc=2027,
+        term_in_doc="spring", matches_target_cycle=True, audience="foreign",
+        serves_foreign_applicants=True, is_old_or_superseded=False, confidence=0.9,
+    )
+    conn = _CycleConn()
+
+    async def resolve(u: str):
+        return PDF, "application/pdf"
+
+    async def parse(c, gd, d):
+        return None
+
+    outcome, _note, _seen = await gfw.process_one_institution(
+        conn, _row(), keywords=["모집요강"], year=2027, per_institution=3,
+        search_site=_search_returning(_ann("https://inha.ac.kr/2027_모집요강.pdf", "2027 모집요강")),
+        resolve=resolve, store_blob=_store, run_parse=parse,
+        identity_check=lambda d, r: gfw.IdentityDecision(
+            decision="accept", note="accepted", verdict=verdict,
+        ),
+    )
+    assert outcome == "ingested"
+    assert conn.insert_args is not None
+    assert 2027 in conn.insert_args and "spring" in conn.insert_args
+
+
+async def test_ingest_one_url_stale_records_and_skips() -> None:
+    notes, record = _notes_sink()
+    outcome, note = await gfw.ingest_one_url(
+        _Conn(), _row(), "https://inha.ac.kr/old.pdf",
+        resolve=_resolve_ok, store_blob=_store, run_parse=_make_parse([]),
+        identity_check=lambda d, r: gfw.IdentityDecision(decision="stale", note="2026 doc"),
+        record_note=record,
+    )
+    assert outcome == "skipped"
+    assert note == "2026 doc"
+    assert len(notes) == 1

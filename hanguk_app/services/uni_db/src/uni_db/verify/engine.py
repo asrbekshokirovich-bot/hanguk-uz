@@ -6,7 +6,8 @@ Colour policy (a guideline is RED = must not publish until a human fixes it):
           any HIGH-severity critic issue; a non-unanimous consensus on a
           critical field; any HIGH-severity sanity violation.
   AMBER — softer signals: an unsupported value, a MEDIUM critic/sanity issue,
-          a target-cycle-year mismatch, low identity confidence.
+          low identity confidence. (A target-cycle mismatch is RED since
+          Phase 1b — identity acceptance now requires the target cycle.)
   GREEN — nothing tripped.
 
 Every guideline still requires human approval regardless of colour (that is the
@@ -105,8 +106,9 @@ def aggregate(
         bool(grounding_issues)
         or any(c.severity in ("medium", "low") for c in critic_issues)
         or any(s.severity in ("medium", "low") for s in sanity_issues)
-        or (identity is not None and identity.accepted
-            and (not identity.matches_target_cycle or identity.confidence < 0.7))
+        # A cycle mismatch is no longer an amber case: IdentityVerdict.accepted
+        # now requires matches_target_cycle (Phase 1b), so it lands RED above.
+        or (identity is not None and identity.accepted and identity.confidence < 0.7)
     )
     overall: Color = "red" if red else ("amber" if amber else "green")
     return ReliabilityReport(
@@ -153,7 +155,9 @@ def verify_extraction(
             log.warning("verify: grounding judge failed for %s (%s); deterministic only",
                         field_group, type(exc).__name__)
 
-    sanity = sanity_checks(field_group, primary, target_year=target_year)
+    sanity = sanity_checks(
+        field_group, primary, target_year=target_year, target_term=target_term
+    )
     cons = consensus(field_group, runs) if len(runs) > 1 else []
 
     critics: list[CriticIssue] = []

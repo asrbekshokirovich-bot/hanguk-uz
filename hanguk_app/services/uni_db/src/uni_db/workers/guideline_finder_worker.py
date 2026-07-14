@@ -36,6 +36,9 @@ import httpx
 
 from ..discovery.adapters.naver_search_adapter import NaverSearchAdapter
 from ..discovery.models import Announcement
+from ..parse.cycle_detect import cycle_is_older
+from ..verify.models import IdentityVerdict
+from ..watchdog import watchdog
 from .direct_ingest_worker import resolve_to_pdf
 from .fetch_worker import (
     RunParse,
@@ -74,8 +77,72 @@ DEFAULT_PER_INSTITUTION = 3
 SearchSiteFn = Callable[[str, str], Awaitable[list[Announcement]]]
 # url -> (pdf_bytes | None, mime_or_skip_reason).
 ResolveFn = Callable[[str], Awaitable[tuple[bytes | None, str]]]
-# (pdf_bytes, institution_row) -> True to accept, False to reject (wrong PDF).
-IdentityCheckFn = Callable[[bytes, "asyncpg.Record"], bool]
+
+
+@dataclass(frozen=True, slots=True)
+class IdentityDecision:
+    """Gate 0 outcome for one candidate PDF (correction plan, Phase 1c).
+
+    ``decision``:
+      * ``accept``      — a genuine target-cycle guideline; ingest it.
+      * ``reject``      — wrong university / not a guideline; try the next
+                          candidate.
+      * ``stale``       — a real guideline, but for an OLDER cycle than the
+                          target: the school hasn't published the target
+                          cycle yet. Recorded, never ingested.
+      * ``unreadable``  — the head text couldn't be extracted, so identity is
+                          unverifiable. FAIL CLOSED: not ingested; recorded to
+                          proposed_sources for a human look.
+      * ``error``       — the verifier itself errored. FAIL CLOSED as above.
+    """
+
+    decision: str  # accept | reject | stale | unreadable | error
+    note: str
+    verdict: IdentityVerdict | None = None
+
+
+# (pdf_bytes, institution_row) -> IdentityDecision. Legacy callables returning
+# a bare bool (True=accept / False=reject) are still accepted and normalized.
+IdentityCheckFn = Callable[[bytes, "asyncpg.Record"], "IdentityDecision | bool"]
+
+# (conn, url, title, note) -> None. Records a finder finding (stale cycle /
+# unverifiable candidate) without ingesting; default writes proposed_sources.
+RecordNoteFn = Callable[
+    [asyncpg.Connection, str, "str | None", str], Awaitable[None]
+]
+
+
+def _normalize_identity(result: IdentityDecision | bool) -> IdentityDecision:
+    if isinstance(result, IdentityDecision):
+        return result
+    if result:
+        return IdentityDecision(decision="accept", note="accepted")
+    return IdentityDecision(
+        decision="reject",
+        note="identity rejected (wrong university / cycle / not a guideline)",
+    )
+
+
+async def record_proposed_note(
+    conn: asyncpg.Connection, url: str, title: str | None, note: str
+) -> None:
+    """Default RecordNoteFn: file the candidate + why it was NOT ingested into
+    `proposed_sources` (pending_review) so fail-closed skips stay visible to a
+    human instead of vanishing into logs. Idempotent on url_ko."""
+    await conn.execute(
+        """
+        insert into public.proposed_sources
+          (url_ko, source_type, proposed_by, candidate_title, review_notes)
+        values ($1, 'university_admission_board', 'naver_search', $2, $3)
+        on conflict (url_ko) do update
+          set review_notes = excluded.review_notes,
+              candidate_title = coalesce(excluded.candidate_title,
+                                         proposed_sources.candidate_title)
+        """,
+        url,
+        title,
+        note[:1000],
+    )
 
 
 def pdf_head_text(data: bytes, *, max_pages: int = 3, max_chars: int = 8000) -> str:
@@ -241,11 +308,18 @@ async def process_one_institution(
     store_blob: _StoreBlob,
     run_parse: RunParse,
     identity_check: IdentityCheckFn | None = None,
+    record_note: RecordNoteFn | None = None,
 ) -> tuple[str, str, int]:
     """Find + ingest one institution's current guideline.
 
     Returns (outcome, note, candidates_seen) where outcome is one of
     ``ingested`` | ``unchanged`` | ``skipped``.
+
+    Identity gating FAILS CLOSED (correction plan, Phase 1c): an unreadable
+    head or a verifier error means the candidate is NOT ingested — it is
+    recorded via `record_note` for a human look instead. A readable guideline
+    for an OLDER cycle is likewise never ingested; it is recorded as
+    "target cycle not yet published" for the institution.
     """
     domain = registrable_domain(row["primary_domain"])
     candidates = await gather_candidates(
@@ -254,7 +328,10 @@ async def process_one_institution(
     if not candidates:
         return "skipped", "search returned no on-domain guideline", 0
 
+    recorder = record_note or record_proposed_note
+    name = row["name_ko"] or domain
     saw_known = False
+    saw_stale = False
     last_note = "no usable PDF among candidates"
     for cand in candidates[:per_institution]:
         # One bad candidate (network error, unreadable PDF, parse failure) must
@@ -272,11 +349,32 @@ async def process_one_institution(
             if await _known_hash(conn, sha256):
                 saw_known = True
                 continue
-            # Gate 0 — reject a wrong university / old-cycle / not-a-guideline PDF
-            # before we store or (expensively) parse it.
-            if identity_check is not None and not identity_check(data, row):
-                last_note = "identity rejected (wrong university / cycle / not a guideline)"
-                continue
+            # Gate 0 — reject a wrong university / old-cycle / not-a-guideline
+            # PDF before we store or (expensively) parse it. Fail closed.
+            verdict: IdentityVerdict | None = None
+            if identity_check is not None:
+                gate = _normalize_identity(identity_check(data, row))
+                verdict = gate.verdict
+                if gate.decision == "stale":
+                    saw_stale = True
+                    last_note = gate.note
+                    await recorder(
+                        conn, cand.url, cand.title,
+                        f"{name}: target-cycle {year} guideline not yet "
+                        f"published — {gate.note}",
+                    )
+                    continue
+                if gate.decision in ("unreadable", "error"):
+                    last_note = gate.note
+                    await recorder(
+                        conn, cand.url, cand.title,
+                        f"{name}: candidate NOT ingested (identity "
+                        f"unverifiable, fail-closed) — {gate.note}",
+                    )
+                    continue
+                if gate.decision != "accept":
+                    last_note = gate.note
+                    continue
             stored = store_blob(data, sha256=sha256, mime=mime)
             gd_id = await insert_guideline_document(
                 conn,
@@ -286,6 +384,14 @@ async def process_one_institution(
                 sha256=sha256,
                 size_bytes=len(data),
                 mime=mime,
+                academic_year=verdict.academic_year_in_doc if verdict else None,
+                semester=verdict.term_in_doc if verdict else None,
+            )
+            # Belt-and-suspenders (Phase 3): an ingested doc with a cycle
+            # BELOW the crawl target means the identity gate was bypassed.
+            watchdog.record_ingested_document(
+                academic_year=verdict.academic_year_in_doc if verdict else None,
+                target_year=year,
             )
             await run_parse(conn, gd_id, data)
             return "ingested", cand.url, len(candidates)
@@ -297,6 +403,13 @@ async def process_one_institution(
 
     if saw_known:
         return "unchanged", "current guideline already ingested", len(candidates)
+    if saw_stale:
+        return (
+            "skipped",
+            f"target-cycle {year} guideline not yet published "
+            f"(newest candidate is an older cycle)",
+            len(candidates),
+        )
     return "skipped", last_note, len(candidates)
 
 
@@ -309,16 +422,19 @@ async def ingest_one_url(
     store_blob: _StoreBlob,
     run_parse: RunParse,
     identity_check: IdentityCheckFn | None = None,
+    record_note: RecordNoteFn | None = None,
 ) -> tuple[str, str]:
     """Ingest one caller-supplied PDF URL for a single institution.
 
-    Same download → content-hash dedup → identity gate → store → parse path as
-    ``process_one_institution``, but the URL is provided directly (e.g. by the
-    Routine agent's own web research) instead of discovered via site search — so
-    it needs no search backend (no Naver). Returns ``(outcome, note)`` where
-    outcome is ``ingested`` (note = guideline_document id) | ``unchanged`` |
-    ``skipped`` | ``error``.
+    Same download → content-hash dedup → identity gate (fail-closed) → store →
+    parse path as ``process_one_institution``, but the URL is provided directly
+    (e.g. by the Routine agent's own web research) instead of discovered via
+    site search — so it needs no search backend (no Naver). Returns
+    ``(outcome, note)`` where outcome is ``ingested`` (note =
+    guideline_document id) | ``unchanged`` | ``skipped`` | ``error``.
     """
+    recorder = record_note or record_proposed_note
+    name = row["name_ko"] or "?"
     try:
         data, mime = await resolve(url)
         if data is None:
@@ -326,8 +442,25 @@ async def ingest_one_url(
         sha256 = hashlib.sha256(data).hexdigest()
         if await _known_hash(conn, sha256):
             return "unchanged", "already ingested (same content hash)"
-        if identity_check is not None and not identity_check(data, row):
-            return "skipped", "identity rejected (wrong university / cycle / not a guideline)"
+        verdict: IdentityVerdict | None = None
+        if identity_check is not None:
+            gate = _normalize_identity(identity_check(data, row))
+            verdict = gate.verdict
+            if gate.decision == "stale":
+                await recorder(
+                    conn, url, None,
+                    f"{name}: target-cycle guideline not yet published — {gate.note}",
+                )
+                return "skipped", gate.note
+            if gate.decision in ("unreadable", "error"):
+                await recorder(
+                    conn, url, None,
+                    f"{name}: candidate NOT ingested (identity unverifiable, "
+                    f"fail-closed) — {gate.note}",
+                )
+                return "skipped", gate.note
+            if gate.decision != "accept":
+                return "skipped", gate.note
         stored = store_blob(data, sha256=sha256, mime=mime)
         gd_id = await insert_guideline_document(
             conn,
@@ -337,6 +470,8 @@ async def ingest_one_url(
             sha256=sha256,
             size_bytes=len(data),
             mime=mime,
+            academic_year=verdict.academic_year_in_doc if verdict else None,
+            semester=verdict.term_in_doc if verdict else None,
         )
         await run_parse(conn, gd_id, data)
         return "ingested", str(gd_id)
@@ -366,16 +501,25 @@ def _make_default_resolve(http: httpx.AsyncClient) -> ResolveFn:
 
 def make_identity_check(target_year: int, target_term: str | None = None) -> IdentityCheckFn:
     """Gate 0 as an IdentityCheckFn: read the PDF's first pages and ask the
-    verifier whether it's this university's current foreign-applicant guideline.
-    A verifier error or unreadable head never blocks ingestion (fail open — the
-    downstream parse gauntlet + human approval still guard the data)."""
+    verifier whether it's this university's target-cycle foreign-applicant
+    guideline.
+
+    FAILS CLOSED (correction plan, Phase 1c): an unreadable head or a verifier
+    error means the candidate is NOT ingested (previously both fell open, which
+    is how unverifiable HWP/board blobs and old-cycle PDFs got stored). A
+    genuine guideline whose cycle is OLDER than the target is classified
+    ``stale`` so the caller records "not yet published" instead of ingesting.
+    """
     from ..verify.agents import check_identity
 
-    def check(data: bytes, row: asyncpg.Record) -> bool:
+    def check(data: bytes, row: asyncpg.Record) -> IdentityDecision:
+        head = pdf_head_text(data)
+        if not head.strip():
+            return IdentityDecision(
+                decision="unreadable",
+                note="no readable text in the first pages (scan/HWP/non-PDF?)",
+            )
         try:
-            head = pdf_head_text(data)
-            if not head.strip():
-                return True
             verdict = check_identity(
                 university_name_ko=row["name_ko"],
                 university_name_en=row["name_en"],
@@ -383,18 +527,41 @@ def make_identity_check(target_year: int, target_term: str | None = None) -> Ide
                 target_term=target_term,
                 head_text=head,
             )
-            if not verdict.accepted:
-                log.info(
-                    "guideline_finder: identity REJECT for %s — %s",
-                    row["name_ko"], verdict.reject_reason or verdict.document_kind,
-                )
-            return verdict.accepted
         except Exception as exc:
             log.warning(
-                "guideline_finder: identity check errored (%s); allowing candidate",
+                "guideline_finder: identity check errored (%s); failing closed",
                 type(exc).__name__,
             )
-            return True
+            return IdentityDecision(
+                decision="error",
+                note=f"identity verifier errored: {type(exc).__name__}",
+            )
+        if verdict.accepted:
+            return IdentityDecision(decision="accept", note="accepted", verdict=verdict)
+        if (
+            verdict.document_kind == "guideline"
+            and verdict.matches_target_university
+            and cycle_is_older(
+                verdict.academic_year_in_doc,
+                verdict.term_in_doc,
+                target_year=target_year,
+                target_term=target_term,
+            )
+        ):
+            note = (
+                f"newest guideline is {verdict.academic_year_in_doc}"
+                f"{f' {verdict.term_in_doc}' if verdict.term_in_doc else ''} "
+                f"(target {target_year}{f' {target_term}' if target_term else ''})"
+            )
+            log.info("guideline_finder: STALE cycle for %s — %s", row["name_ko"], note)
+            return IdentityDecision(decision="stale", note=note, verdict=verdict)
+        note = verdict.reject_reason or verdict.document_kind
+        log.info("guideline_finder: identity REJECT for %s — %s", row["name_ko"], note)
+        return IdentityDecision(
+            decision="reject",
+            note=f"identity rejected — {note}",
+            verdict=verdict,
+        )
 
     return check
 
@@ -442,6 +609,7 @@ async def find_new_guidelines(
     store_blob: _StoreBlob | None = None,
     run_parse: RunParse | None = None,
     identity_check: IdentityCheckFn | None = None,
+    record_note: RecordNoteFn | None = None,
 ) -> FinderRun:
     """Sweep up to `limit` institutions for the `year` cycle's guideline PDF.
 
@@ -471,7 +639,7 @@ async def find_new_guidelines(
                 keywords=keywords, year=year, per_institution=per_institution,
                 search_site=search_site, resolve=resolve,
                 store_blob=store_blob, run_parse=run_parse,
-                identity_check=identity_check,
+                identity_check=identity_check, record_note=record_note,
             )
         except Exception as exc:  # one bad school must not abort the sweep
             errors += 1

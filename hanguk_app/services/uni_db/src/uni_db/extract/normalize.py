@@ -15,6 +15,13 @@ from __future__ import annotations
 import re
 from typing import Any
 
+from .event_types import (
+    CALENDAR_EVENT_TYPES,
+    EVENT_TO_PERIOD_FIELD,
+    EVENT_TYPE_SYNONYMS,
+    canonical_event_type,
+)
+
 # Field groups whose content array is "events"; everything else is "rows".
 _CONTENT_KEY: dict[str, str] = {"calendar": "events"}
 
@@ -43,40 +50,10 @@ _TRAILING_LATIN_RE = re.compile(
     r"([A-Za-z][A-Za-z0-9 ,.\-:;'\"()/&%]{39,})\s*$"
 )
 
-# Allowed calendar event types (mirror of CALENDAR_SCHEMA enum). Anything
-# outside this set is mapped to "other".
-CALENDAR_EVENT_TYPES: frozenset[str] = frozenset({
-    "apply_open", "apply_close",
-    "document_submission_deadline", "documents_deadline", "document_submission_close",
-    "first_stage_results", "interview", "practical_exam",
-    "final_results", "additional_admit", "offer_confirmation",
-    "registration_open", "registration_close",
-    "registration_withdrawal_open", "registration_withdrawal_close",
-    "orientation", "semester_start",
-    "scholarship_application_close", "language_test_deadline",
-    "other",
-})
-
-
-# Map event_type variants (schema-valid but unmapped by the review UI, or
-# common model paraphrases) onto the canonical types the frontend renders, so
-# they stop landing under "Other dates". Targets the high-volume cases.
-_CALENDAR_EVENT_SYNONYMS: dict[str, str] = {
-    "document_submission_deadline": "documents_deadline",
-    "documents_submission_deadline": "documents_deadline",
-    "document_deadline": "documents_deadline",
-    "result_announcement": "final_results",
-    "results_announcement": "final_results",
-    "final_announcement": "final_results",
-    "first_round_results": "first_stage_results",
-    "first_stage_announcement": "first_stage_results",
-    "application_open": "apply_open",
-    "application_start": "apply_open",
-    "application_close": "apply_close",
-    "application_end": "apply_close",
-    "registration_start": "registration_open",
-    "registration_end": "registration_close",
-}
+# Event-type vocabulary lives in extract/event_types.py — the ONE canonical
+# table BOTH lanes import (Phase 3; verify/checks.py reads the same names).
+# The alias keeps this module's historical name working.
+_CALENDAR_EVENT_SYNONYMS = EVENT_TYPE_SYNONYMS
 
 
 def content_key_for(field_group: str) -> str:
@@ -152,16 +129,9 @@ def _clean_row(row: Any) -> None:
 # reads the structured `periods[]` fields. When extraction filled events but
 # not periods, derive a period so the labelled fields (application window,
 # interview, results) aren't shown as "Not specified" while the data sits
-# unseen in events. Maps an event_type → the period field it populates.
-_EVENT_TO_PERIOD_FIELD: dict[str, str] = {
-    "apply_open": "application_start",
-    "apply_close": "application_end",
-    "document_submission_deadline": "document_deadline",
-    "documents_deadline": "document_deadline",
-    "document_submission_close": "document_deadline",
-    "interview": "interview_start",
-    "final_results": "result_announcement",
-}
+# unseen in events. The event_type → period-field mapping is the shared
+# canonical table (event_types.EVENT_TO_PERIOD_FIELD), keyed by canonical
+# names — synonyms are canonicalized first.
 
 
 def _derive_period_from_events(events: list) -> dict[str, Any]:
@@ -170,7 +140,8 @@ def _derive_period_from_events(events: list) -> dict[str, Any]:
     for ev in events:
         if not isinstance(ev, dict):
             continue
-        field = _EVENT_TO_PERIOD_FIELD.get(ev.get("event_type"))
+        canonical = canonical_event_type(ev.get("event_type"))
+        field = EVENT_TO_PERIOD_FIELD.get(canonical) if canonical else None
         starts = ev.get("starts_at")
         if field and starts and field not in period:
             period[field] = starts

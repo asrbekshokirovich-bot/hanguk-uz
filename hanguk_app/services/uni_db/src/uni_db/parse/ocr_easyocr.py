@@ -100,6 +100,40 @@ def ocr_pdf_bytes(pdf_bytes: bytes) -> OcrResult:
     return _ocr_pdf_bytes_live(pdf_bytes)
 
 
+def ocr_image_bytes(image_bytes: bytes) -> OcrResult:
+    """Run EasyOCR over ONE raw image payload (PNG/JPEG/… — Phase 4).
+
+    Some boards serve the guideline as a page screenshot; the fetch stage
+    stores those bytes as-is and the orchestrator routes them here — no PDF
+    rasterisation step, the image goes straight to the reader. Same
+    live/stub gating as `ocr_pdf_bytes`.
+    """
+    if not settings.live_apis:
+        log.info("EasyOCR is stubbed (UNI_DB_LIVE_APIS=false).")
+        return OcrResult(
+            text="<easyocr stubbed in mock mode — no text extracted>",
+            pages=1,
+            cost_usd_estimate=0.0,
+            extractor="easyocr-image",
+        )
+    return _ocr_image_bytes_live(image_bytes)
+
+
+def _ocr_image_bytes_live(image_bytes: bytes) -> OcrResult:
+    reader = _get_reader()
+    results = reader.readtext(
+        image_bytes,
+        detail=0,            # text strings only, no bounding boxes
+        paragraph=True,      # group text by paragraph
+    )
+    return OcrResult(
+        text="\n".join(results),
+        pages=1,
+        cost_usd_estimate=0.0,
+        extractor="easyocr-image",
+    )
+
+
 def _ocr_pdf_bytes_live(pdf_bytes: bytes) -> OcrResult:
     """Real OCR path. Kept separate so unit tests can monkey-patch it
     without flipping the live flag."""

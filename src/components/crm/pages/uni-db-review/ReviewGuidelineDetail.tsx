@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import type { RejectionReason, ReviewQueueRow } from '@/hooks/useReviewQueue';
 import { useActiveIntake } from '@/contexts/IntakeContext';
 import { parseReliability } from '../reliability';
+import { confidencePct, minLaneConfidence } from '../reviewLogic';
 import { institutionName, type DecidedMap, type GuidelineGroup } from './reviewGroups';
 import { ReviewSectionCard, type SectionCardHandlers } from './ReviewSectionCard';
 import { SectionBody } from './ReviewSectionBodies';
@@ -79,6 +80,9 @@ export function ReviewGuidelineDetail({
 }) {
   const { t } = useTranslation();
   const intakePill = useIntakePill();
+  // Min confidence across this guideline's SUCCEEDED lanes only — a failed
+  // lane must not drag the number to 0% (Phase 3).
+  const minConf = confidencePct(minLaneConfidence(group.rows));
 
   const decidedN = group.rows.filter((r) => decided[r.id]).length;
   const totalN = group.rows.length;
@@ -97,6 +101,11 @@ export function ReviewGuidelineDetail({
               {intakePill ? (
                 <span className="inline-flex h-[22px] items-center rounded-full bg-info/10 px-2.5 text-[11.5px] font-semibold text-info">
                   {intakePill}
+                </span>
+              ) : null}
+              {minConf ? (
+                <span className="font-mono text-[11px] text-muted-foreground/80">
+                  {t('uniReview.minConfidence', { p: minConf })}
                 </span>
               ) : null}
             </div>

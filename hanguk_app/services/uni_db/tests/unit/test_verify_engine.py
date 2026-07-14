@@ -372,8 +372,10 @@ class TestAggregate:
         si = [SanityIssue("tuition", "academic_year", "medium", "year_mismatch")]
         assert aggregate(sanity_issues=si).overall == "amber"
 
-    def test_amber_on_cycle_mismatch(self) -> None:
-        assert aggregate(identity=_idv(matches_target_cycle=False)).overall == "amber"
+    def test_red_on_cycle_mismatch(self) -> None:
+        # Phase 1b: a cycle mismatch fails identity acceptance outright — the
+        # old amber carve-out let 78/83 stored docs describe stale cycles.
+        assert aggregate(identity=_idv(matches_target_cycle=False)).overall == "red"
 
 
 # --------------------------------------------------------------------------- #

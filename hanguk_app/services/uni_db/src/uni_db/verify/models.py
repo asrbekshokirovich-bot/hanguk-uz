@@ -28,12 +28,15 @@ class IdentityVerdict:
     @property
     def accepted(self) -> bool:
         """Hard-accept only a real, current, foreign-applicant guideline for the
-        right university. A cycle-year mismatch is NOT a hard reject (it's flagged
-        amber downstream) because the finder already biases search to the target
-        year and the authoritative year is confirmed at publish time."""
+        right university AND the right admission cycle. A cycle mismatch used to
+        be tolerated (flagged amber downstream), which is exactly how 78/83
+        stored documents ended up describing older cycles than the crawl
+        target — so matches_target_cycle is now a hard requirement (correction
+        plan, Phase 1b)."""
         return (
             self.document_kind == "guideline"
             and self.matches_target_university
+            and self.matches_target_cycle
             and self.serves_foreign_applicants
             and not self.is_old_or_superseded
             and self.reject_reason is None
