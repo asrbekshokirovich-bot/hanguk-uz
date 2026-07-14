@@ -61,7 +61,19 @@
     "outcome_rejected": "Rejected",
     "outcome_pending": "Pending",
     "emptyTitle": "No applications yet",
-    "emptyDesc": "Applications will appear here once students apply to universities."
+    "emptyDesc": "Applications will appear here once students apply to universities.",
+    "pickUniversityTitle": "Select a university",
+    "pickUniversityDesc": "Choose a university from the uni-db to start applications for it.",
+    "noUniversities": "No universities found",
+    "partner": "Partner",
+    "pickStudentTitle": "Select a student",
+    "pickStudentDesc": "Attach a student to {{university}}. This creates their application.",
+    "searchStudents": "Search students…",
+    "noStudents": "No students found",
+    "alreadyApplied": "Applied",
+    "applicationCreated": "Application created",
+    "duplicateApplication": "This student already has an application to this university.",
+    "emptyUniDesc": "No students yet. Attach a student to start applications for this university."
   },
   "common": {
     "noData": "No data available",
