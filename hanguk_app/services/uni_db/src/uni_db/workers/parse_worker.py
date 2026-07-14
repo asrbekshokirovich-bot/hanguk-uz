@@ -29,12 +29,17 @@ import jsonschema
 
 from ..config import settings
 from ..extract.archetype import (
+    SECTION_ANCHORS,
     ArchetypeFingerprint,
     classify_archetype,
-    find_section_offsets,
 )
 from ..extract.degree_level import DegreeClassification, classify_degree_level
-from ..extract.llm_anthropic import ExtractionResult, extract_field_group
+from ..extract.llm_anthropic import (
+    ExtractionResult,
+    extract_all_groups,
+    extract_field_group,
+)
+from ..extract.prompt_assembler import _estimate_tokens
 from ..extract.validators import evaluate as validate_field
 from ..parse.degree_sections import split_by_degree
 from ..verify import verify_extraction
@@ -100,7 +105,6 @@ def parse_one_document(
         first_pages_text=pdf_text_first_pages,
         full_text=pdf_text_full,
     )
-    offsets = find_section_offsets(pdf_text_full)
 
     results: list[ExtractionResult] = []
     review_entries: list[dict[str, object]] = []
@@ -110,45 +114,74 @@ def parse_one_document(
         g for g in FIELD_GROUPS if g in wanted
     )
 
-    for group in groups:
-        section_text = _slice_for(pdf_text_full, group, offsets)
-        started = time.monotonic()
+    # Phase 2: when the whole document fits the token budget, EVERY field
+    # group is extracted against the FULL text — the fixed 12k section slice
+    # starved groups whose data sits in appendix tables. Oversized documents
+    # get the TOC-aware, prefer-last-match anchor slicer instead.
+    full_doc = _fits_full_doc(pdf_text_full)
+    section_texts = _section_texts(pdf_text_full, groups, full_doc=full_doc)
+
+    # Single-call mode (opt-in): ONE model call returns all requested groups
+    # keyed by name. Groups missing from (or invalid in) the combined response
+    # fall back to their per-group call below. Needs the full document — the
+    # per-group anchor slices can't share one prompt.
+    combined: dict[str, ExtractionResult] | None = None
+    if settings.extract_single_call and full_doc and len(groups) > 1:
         try:
-            result = extract_field_group(
-                field_group=group,
+            combined = extract_all_groups(
                 archetype=archetype.label,
-                source_text_ko=section_text,
+                source_text_ko=pdf_text_full,
+                groups=groups,
             )
-        except jsonschema.ValidationError as ve:
-            log.warning(
-                "extract: schema validation failed for %s: %s",
-                group, ve.message[:160],
-            )
-            # Failed extraction → recorded as a failed job (error lane),
-            # NOT queued for content review. A human can't review an error;
-            # these need a prompt/schema fix + re-extraction (Layer 2).
-            results.append(_failed_result(
-                group, "claude-sonnet-4-6", violation=ve.message[:500],
-                latency_ms=int((time.monotonic() - started) * 1000)))
-            continue
         except Exception as exc:
-            # API timeout, rate limit, network error, malformed JSON, etc.
-            # Don't abort the whole document — log + record failure + next group.
             log.warning(
-                "extract: extraction failed for %s: %s: %s",
-                group, type(exc).__name__, str(exc)[:160],
+                "extract: single-call mode failed (%s: %s); falling back to "
+                "per-group calls", type(exc).__name__, str(exc)[:160],
             )
-            results.append(_failed_result(
-                group, "claude-sonnet-4-6",
-                violation=f"{type(exc).__name__}: {exc}",
-                latency_ms=int((time.monotonic() - started) * 1000)))
-            continue
+            combined = None
+
+    for group in groups:
+        section_text = section_texts[group]
+        started = time.monotonic()
+        result = combined.get(group) if combined is not None else None
+        if result is None:
+            try:
+                result = extract_field_group(
+                    field_group=group,
+                    archetype=archetype.label,
+                    source_text_ko=section_text,
+                )
+            except jsonschema.ValidationError as ve:
+                log.warning(
+                    "extract: schema validation failed for %s: %s",
+                    group, ve.message[:160],
+                )
+                # Failed extraction → recorded as a failed job (error lane),
+                # NOT queued for content review. A human can't review an error;
+                # these need a prompt/schema fix + re-extraction (Layer 2).
+                results.append(_failed_result(
+                    group, violation=ve.message[:500],
+                    latency_ms=int((time.monotonic() - started) * 1000)))
+                continue
+            except Exception as exc:
+                # API timeout, rate limit, network error, malformed JSON, etc.
+                # Don't abort the whole document — log + record failure + next group.
+                log.warning(
+                    "extract: extraction failed for %s: %s: %s",
+                    group, type(exc).__name__, str(exc)[:160],
+                )
+                results.append(_failed_result(
+                    group,
+                    violation=f"{type(exc).__name__}: {exc}",
+                    latency_ms=int((time.monotonic() - started) * 1000)))
+                continue
 
         # If a row's source span was clipped mid-word, the model never saw the
         # full requirement. Re-extract once against a wider window before
-        # accepting the truncated row.
-        if _looks_truncated(result.parsed_output) and group in offsets:
-            wider = _slice_for(pdf_text_full, group, offsets, length=_WIDE_SLICE_LEN)
+        # accepting the truncated row. (Full-document mode already saw
+        # everything, so there is no wider window to retry against.)
+        if not full_doc and _looks_truncated(result.parsed_output):
+            wider = _anchor_slice(pdf_text_full, group, max_len=_WIDE_SLICE_LEN)
             if len(wider) > len(section_text):
                 try:
                     retry = extract_field_group(
@@ -588,6 +621,133 @@ _WIDE_SLICE_LEN = 24000
 # reach the next whitespace/newline boundary instead of clipping a word.
 _BOUNDARY_LOOKAHEAD = 600
 
+# --- Phase 2 anchor slicing (documents over the full-doc token budget) ------
+# An anchor window runs from the chosen match to the next section anchor, but
+# never shorter than the floor (dense anchor clusters would starve a group)
+# nor longer than the cap.
+_MAX_ANCHOR_WINDOW = 20_000
+_MIN_ANCHOR_WINDOW = 4_000
+# ~2 pages of text when the document has no \f page markers to count.
+_TOC_CHAR_FALLBACK = 4_000
+# Groups whose data commonly lives in appendix tables at the END of the
+# document (등록금 납부 안내 / 장학 제도 / 제출서류 별표). With no usable
+# anchor, their fallback scans from the document end, not the head.
+_APPENDIX_GROUPS = frozenset({"tuition", "scholarships", "documents_required"})
+_TAIL_FALLBACK_LEN = 16_000
+# A table-of-contents line: dot/middle-dot leaders running into a page number
+# ("제출서류 ·········· 12"). Anchor matches on such lines are TOC noise.
+_DOT_LEADER_RE = re.compile(r"(?:[.·•‥…]\s*){4,}\d{1,3}\s*$")
+
+
+def _fits_full_doc(full_text: str) -> bool:
+    """True when the whole document fits the full-text extraction budget."""
+    return _estimate_tokens(full_text) <= settings.extract_fulldoc_token_budget
+
+
+def _section_texts(
+    full_text: str, groups: Iterable[str], *, full_doc: bool | None = None
+) -> dict[str, str]:
+    """The source text each field group is extracted against (Phase 2).
+
+    Within the token budget every group gets the FULL text; above it, each
+    group gets its anchor window (see `_anchor_slice`).
+    """
+    fits = _fits_full_doc(full_text) if full_doc is None else full_doc
+    if fits:
+        return {g: full_text for g in groups}
+    return {g: _anchor_slice(full_text, g) for g in groups}
+
+
+def _toc_boundary(text: str) -> int:
+    """Offset where the first two pages end (TOC territory).
+
+    PyMuPDF's get_text uses \\f between pages; without page markers, fall back
+    to a fixed char count.
+    """
+    idx = -1
+    for _ in range(2):
+        idx = text.find("\f", idx + 1)
+        if idx == -1:
+            return min(len(text), _TOC_CHAR_FALLBACK)
+    return idx
+
+
+def _is_toc_match(text: str, pos: int, toc_end: int) -> bool:
+    """A match is TOC noise when it sits in the first two pages or on a
+    dot-leader line (heading ····· page-number)."""
+    if pos < toc_end:
+        return True
+    line_start = text.rfind("\n", 0, pos) + 1
+    line_end = text.find("\n", pos)
+    if line_end == -1:
+        line_end = len(text)
+    return bool(_DOT_LEADER_RE.search(text[line_start:line_end]))
+
+
+# Matches closer together than this belong to the same section run: an anchor
+# word recurs constantly INSIDE its own section body (등록금 appears on every
+# tuition-table row), so "last match" must mean "last cluster", not the last
+# raw occurrence at the section's tail.
+_ANCHOR_CLUSTER_GAP = 2_000
+
+
+def _next_anchor_after(text: str, pos: int, *, exclude_group: str) -> int:
+    """Start of the nearest OTHER section's anchor after `pos`, or EOF.
+
+    The group's own pattern is excluded — its anchor word repeating inside its
+    own body must not terminate the window one row in.
+    """
+    nearest = len(text)
+    for name, pattern in SECTION_ANCHORS.items():
+        if name == exclude_group:
+            continue
+        m = pattern.search(text, pos + 1)
+        if m and m.start() < nearest:
+            nearest = m.start()
+    return nearest
+
+
+def _anchor_slice(
+    full_text: str, group: str, *, max_len: int = _MAX_ANCHOR_WINDOW
+) -> str:
+    """Anchor window for one group in an over-budget document.
+
+    All anchor matches are collected (finditer), TOC hits are dropped (first
+    two pages / dot-leader lines), and the LAST match CLUSTER wins — the real
+    detail/appendix table sits later in the document than the early summary
+    mentions the old first-match logic latched onto. The window starts at the
+    last cluster's FIRST match (its section heading) and runs to the next
+    OTHER-group anchor (floored/capped, word-boundary extended). With no
+    usable match, appendix-style groups (tuition / scholarships /
+    documents_required) scan from the document END; the rest keep the head
+    fallback.
+    """
+    pattern = SECTION_ANCHORS.get(group)
+    toc_end = _toc_boundary(full_text)
+    starts = (
+        [
+            m.start()
+            for m in pattern.finditer(full_text)
+            if not _is_toc_match(full_text, m.start(), toc_end)
+        ]
+        if pattern is not None
+        else []
+    )
+    if not starts:
+        if group in _APPENDIX_GROUPS:
+            return full_text[max(0, len(full_text) - _TAIL_FALLBACK_LEN):]
+        return _extend_to_boundary(full_text, 0, _FALLBACK_LEN)
+    # First match of the last cluster = the heading of the last section run.
+    start = starts[0]
+    prev = starts[0]
+    for s in starts[1:]:
+        if s - prev > _ANCHOR_CLUSTER_GAP:
+            start = s
+        prev = s
+    end = _next_anchor_after(full_text, start, exclude_group=group)
+    length = min(max(end - start, _MIN_ANCHOR_WINDOW), max_len)
+    return _extend_to_boundary(full_text, start, length)
+
 # A row's source_text_ko looks truncated when it ends with a short dangling
 # alphabetic token after whitespace (e.g. "... Proficiency T"). Numbers
 # ("TOPIK 4", "iBT 80") and Korean clause-enders ("...제출") don't match, so
@@ -632,20 +792,30 @@ def _looks_truncated(parsed_output: object) -> bool:
     return False
 
 
+def _current_llm_provider() -> str:
+    """The provider a live extraction call would actually use right now."""
+    if not settings.live_apis:
+        return "mock"
+    return "claude_cli" if settings.llm_backend == "claude_cli" else "anthropic"
+
+
 def _failed_result(
-    group: str, model: str, *, violation: str, latency_ms: int = 0
+    group: str, model: str | None = None, *, violation: str, latency_ms: int = 0
 ) -> ExtractionResult:
     # The error goes in error_text (the dedicated column), NOT buried in
     # raw_output. parsed_output keeps a minimal marker so status detection
     # (_is_failed_output) still routes it to the error lane. raw_output is a
     # valid-but-empty jsonb doc. latency_ms is the real elapsed time.
+    # llm_provider/llm_model reflect the CONFIGURED backend (previously
+    # hardcoded to anthropic/claude-sonnet-4-6, which mislabelled every
+    # claude_cli-lane failure).
     return ExtractionResult(
         field_group=group,
         parsed_output={"_extraction_failed": violation},
         raw_output="{}",
         error_text=violation,
-        llm_provider="anthropic",
-        llm_model=model,
+        llm_provider=_current_llm_provider(),
+        llm_model=model or settings.anthropic_model_extract,
         input_tokens=0,
         output_tokens=0,
         cost_usd=0.0,

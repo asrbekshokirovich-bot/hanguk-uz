@@ -207,6 +207,84 @@ def assemble_prompt(
     )
 
 
+def assemble_combined_prompt(
+    *,
+    archetype: str,
+    source_text_ko: str,
+    groups: tuple[str, ...],
+    glossary: Iterable[GlossaryEntry] = (),
+) -> AssembledPrompt:
+    """One prompt covering SEVERAL field groups (Phase 2 single-call mode).
+
+    The system message stacks every group's field prompt under a labelled
+    heading, and the output contract asks for ONE JSON object whose top-level
+    keys are the group names — each value in that group's usual shape
+    (`{"events": [...]}` for calendar, `{"rows": [...]}` for the rest). The
+    caller splits the response per group and validates each against its own
+    schema, falling back to a per-group call for any group that fails.
+    """
+    unknown = [g for g in groups if g not in PROMPT_FILES]
+    if unknown:
+        raise ValueError(f"unknown field_group(s): {', '.join(unknown)}")
+    if not groups:
+        raise ValueError("assemble_combined_prompt needs at least one group")
+
+    glossary_md = _render_glossary(list(glossary)) if glossary else ""
+    group_sections: list[str] = []
+    for g in groups:
+        section = f"# FIELD GROUP `{g}`\n\n" + _read_prompt_file(PROMPT_FILES[g])
+        if g in ("requirements", "basic_requirements"):
+            section += "\n\n" + _language_eligibility_addendum()
+        group_sections.append(section)
+
+    archetype_md = ""
+    if archetype in ARCHETYPE_FEWSHOT_FILES:
+        try:
+            archetype_md = _read_prompt_file(ARCHETYPE_FEWSHOT_FILES[archetype])
+        except FileNotFoundError:        # pragma: no cover — defensive
+            archetype_md = ""
+
+    shapes = ", ".join(
+        f'`"{g}"` → `{{"{"events" if g == "calendar" else "rows"}": [...]}}`'
+        for g in groups
+    )
+    output_md = (
+        "## Output — ALL field groups in ONE JSON object\n\n"
+        "Return ONLY one JSON object whose top-level keys are EXACTLY: "
+        + ", ".join(f"`{g}`" for g in groups)
+        + ". Each value must follow that field group's schema exactly as "
+        "described in its section above (" + shapes + "). Include EVERY key "
+        "even when a group has no data in the source — use an empty array for "
+        "it. No prose, no markdown code fences, no commentary."
+    )
+
+    system = "\n\n".join(
+        section
+        for section in (
+            glossary_md,
+            *group_sections,
+            archetype_md,
+            _correction_notice_addendum(),
+            _footnote_addendum(),
+            output_md,
+        )
+        if section
+    )
+    user = (
+        "Source span (Korean source-of-truth — preserve verbatim in "
+        "`source_text_ko` for every emitted row):\n\n"
+        "```\n"
+        f"{source_text_ko}\n"
+        "```\n"
+    )
+    return AssembledPrompt(
+        system=system,
+        user=user,
+        schema_name="COMBINED",
+        estimated_input_tokens=_estimate_tokens(system) + _estimate_tokens(user),
+    )
+
+
 def _estimate_tokens(text: str) -> int:
     """Rough Korean-aware token estimate.
 

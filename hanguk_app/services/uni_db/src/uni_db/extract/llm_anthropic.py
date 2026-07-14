@@ -38,7 +38,11 @@ from tenacity import (
 
 from ..config import settings
 from .normalize import normalize_output
-from .prompt_assembler import GlossaryEntry, assemble_prompt
+from .prompt_assembler import (
+    GlossaryEntry,
+    assemble_combined_prompt,
+    assemble_prompt,
+)
 from .prune import prune_to_schema
 from .schemas import FIELD_GROUP_SCHEMAS
 
@@ -259,6 +263,180 @@ def extract_field_group(
         accuracy_self_score=_self_score(parsed),
         dropped_keys=dropped,
     )
+
+
+# Output budget for the single-call mode: five field groups' rows in one
+# response. Per-group calls use 8192; documents_required alone can approach
+# that, so the combined call gets a much larger ceiling (Sonnet supports it).
+_COMBINED_MAX_TOKENS = 32768
+# One CLI call producing all five groups needs the long timeout.
+_COMBINED_CLI_TIMEOUT_SEC = 600.0
+
+
+def extract_all_groups(
+    *,
+    archetype: str,
+    source_text_ko: str,
+    groups: tuple[str, ...],
+) -> dict[str, ExtractionResult]:
+    """ONE model call extracting every requested field group (Phase 2
+    single-call mode, `settings.extract_single_call`).
+
+    The response is one JSON object keyed by group name; each group's payload
+    is normalized/pruned/validated independently. Returns an ExtractionResult
+    per group that validated — a group whose payload is missing or invalid is
+    simply ABSENT from the dict, and the caller falls back to a per-group
+    `extract_field_group` call for it. Raises when the whole response is
+    unusable (transport error / non-JSON), in which case the caller falls back
+    to per-group calls for everything.
+
+    Token/cost/latency figures are split evenly across the returned groups:
+    one call produced them all, and extraction_jobs records one row per group.
+    """
+    bad = [g for g in groups if g not in FIELD_GROUP_SCHEMAS]
+    if bad:
+        raise ValueError(f"unknown field_group(s): {', '.join(bad)}")
+
+    started = time.monotonic()
+
+    if not settings.live_apis:
+        # Deterministic mocks, one per group — same fixture path as
+        # extract_field_group so the end-to-end loop runs without tokens.
+        out: dict[str, ExtractionResult] = {}
+        for g in groups:
+            parsed = _MOCK_OUTPUTS[g]
+            jsonschema.validate(instance=parsed, schema=FIELD_GROUP_SCHEMAS[g])
+            out[g] = ExtractionResult(
+                field_group=g,
+                parsed_output=parsed,
+                raw_output=json.dumps(parsed, ensure_ascii=False),
+                llm_provider="mock",
+                llm_model="mock",
+                input_tokens=0,
+                output_tokens=0,
+                cost_usd=0.0,
+                latency_ms=int((time.monotonic() - started) * 1000),
+                accuracy_self_score=_self_score(parsed),
+            )
+        return out
+
+    prompt = assemble_combined_prompt(
+        archetype=archetype,
+        source_text_ko=source_text_ko,
+        groups=groups,
+        glossary=_default_glossary(),
+    )
+
+    if settings.llm_backend == "claude_cli":
+        from .llm_cli import run_claude_cli_result
+
+        log.info(
+            "extract: single-call via claude CLI for %s/%s (~%d input tokens est.)",
+            archetype, "+".join(groups), prompt.estimated_input_tokens,
+        )
+        call = run_claude_cli_result(
+            prompt.system, prompt.user, settings.anthropic_model_extract,
+            timeout=_COMBINED_CLI_TIMEOUT_SEC,
+        )
+        raw = call.text
+        model = settings.anthropic_model_extract
+        provider = "claude_cli"
+        input_tokens, output_tokens = call.input_tokens, call.output_tokens
+        cost = 0.0  # subscription — not billed per token
+    else:
+        if not settings.anthropic_api_key:
+            raise RuntimeError(
+                "ANTHROPIC_API_KEY is not set; cannot call Claude. See "
+                "docs/credentials.md §4."
+            )
+        client = _get_client()
+        log.info(
+            "extract: single-call via anthropic %s for %s/%s (~%d input tokens est.)",
+            settings.anthropic_model_extract, archetype, "+".join(groups),
+            prompt.estimated_input_tokens,
+        )
+        response = client.messages.create(
+            model=settings.anthropic_model_extract,
+            max_tokens=_COMBINED_MAX_TOKENS,
+            system=[{
+                "type": "text",
+                "text": prompt.system,
+                "cache_control": {"type": "ephemeral"},
+            }],
+            messages=[{"role": "user", "content": prompt.user}],
+        )
+        raw = _extract_text(response)
+        model = getattr(response, "model", settings.anthropic_model_extract)
+        provider = "anthropic"
+        usage = response.usage
+        input_tokens = int(getattr(usage, "input_tokens", 0) or 0)
+        output_tokens = int(getattr(usage, "output_tokens", 0) or 0)
+        cost = _compute_cost_usd(
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
+            cached_input_tokens=int(getattr(usage, "cache_read_input_tokens", 0) or 0),
+            cache_write_tokens=int(getattr(usage, "cache_creation_input_tokens", 0) or 0),
+        )
+
+    # Fences are stripped BEFORE json.loads here exactly as in the per-group
+    # lane (_parse_extraction_output) — same recovery for prose-wrapped JSON.
+    stripped = _strip_fences(raw)
+    try:
+        parsed_all: Any = json.loads(stripped)
+    except json.JSONDecodeError:
+        start, end = stripped.find("{"), stripped.rfind("}")
+        parsed_all = None
+        if start != -1 and end > start:
+            with contextlib.suppress(json.JSONDecodeError):
+                parsed_all = json.loads(stripped[start : end + 1])
+        if parsed_all is None:
+            raise AnthropicResponseError(
+                f"single-call response was not valid JSON; raw={raw[:200]!r}"
+            ) from None
+    if not isinstance(parsed_all, dict):
+        raise AnthropicResponseError(
+            f"single-call response parsed to {type(parsed_all).__name__}, expected dict"
+        )
+
+    latency_ms = int((time.monotonic() - started) * 1000)
+    n = max(1, len(groups))
+    results: dict[str, ExtractionResult] = {}
+    for g in groups:
+        sub = parsed_all.get(g)
+        if isinstance(sub, list):
+            sub = {("events" if g == "calendar" else "rows"): sub}
+        if not isinstance(sub, dict):
+            log.warning(
+                "extract: single-call response missing/invalid group %s; "
+                "it falls back to a per-group call", g,
+            )
+            continue
+        try:
+            normalized = normalize_output(g, _normalize_wrapper(sub, g))
+            pruned, dropped = prune_to_schema(g, normalized)
+            jsonschema.validate(instance=pruned, schema=FIELD_GROUP_SCHEMAS[g])
+        except Exception as exc:
+            log.warning(
+                "extract: single-call payload for %s failed validation (%s); "
+                "it falls back to a per-group call", g, str(exc)[:160],
+            )
+            continue
+        results[g] = ExtractionResult(
+            field_group=g,
+            parsed_output=pruned,
+            # Per-group slice of the combined response, so extraction_jobs
+            # doesn't store the full 5-group text five times over.
+            raw_output=json.dumps(parsed_all.get(g), ensure_ascii=False),
+            llm_provider=provider,
+            llm_model=model,
+            input_tokens=input_tokens // n,
+            output_tokens=output_tokens // n,
+            cost_usd=round(cost / n, 6),
+            latency_ms=latency_ms // n,
+            accuracy_self_score=_self_score(pruned),
+            dropped_keys=dropped,
+        )
+    return results
 
 
 def _parse_retry_addendum(exc: Exception) -> str:
@@ -544,7 +722,7 @@ def _call_claude_cli(
     prompt_addendum: str | None = None,
 ) -> _AnthropicCallResult:
     """Keyless extraction via the `claude` CLI (subscription auth, no API key)."""
-    from .llm_cli import run_claude_cli
+    from .llm_cli import run_claude_cli_result
 
     prompt = assemble_prompt(
         field_group=field_group,  # type: ignore[arg-type]
@@ -559,21 +737,24 @@ def _call_claude_cli(
         field_group,
         prompt.estimated_input_tokens,
     )
-    raw = run_claude_cli(
+    call = run_claude_cli_result(
         prompt.system,
         user,
         settings.anthropic_model_extract,
         timeout=_cli_timeout_for(field_group),
     )
-    parsed = _parse_extraction_output(raw, field_group)
+    parsed = _parse_extraction_output(call.text, field_group)
+    # Token counts come from the CLI's JSON envelope (previously discarded —
+    # every CLI-lane job recorded 0 tokens, hiding the real usage). cost_usd
+    # stays 0.0: the subscription is not billed per token.
     return _AnthropicCallResult(
         parsed=parsed,
-        raw=raw,
+        raw=call.text,
         model=settings.anthropic_model_extract,
-        input_tokens=0,
-        output_tokens=0,
-        cached_input_tokens=0,
-        cache_write_tokens=0,
+        input_tokens=call.input_tokens,
+        output_tokens=call.output_tokens,
+        cached_input_tokens=call.cached_input_tokens,
+        cache_write_tokens=call.cache_write_tokens,
         cost_usd=0.0,
     )
 

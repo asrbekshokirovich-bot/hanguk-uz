@@ -40,6 +40,7 @@ import subprocess
 import tempfile
 import threading
 import time
+from dataclasses import dataclass
 from pathlib import Path
 
 from ..config import settings
@@ -88,6 +89,19 @@ _USAGE_LIMIT_MARKERS = (
     "quota",
     "please wait",
 )
+
+
+@dataclass(frozen=True, slots=True)
+class CliCallResult:
+    """One successful `claude` CLI call: the model's text plus the token usage
+    the CLI reports in its JSON envelope (Phase 2 — usage was previously
+    discarded, so extraction_jobs rows from the CLI lane all showed 0 tokens)."""
+
+    text: str
+    input_tokens: int = 0
+    output_tokens: int = 0
+    cached_input_tokens: int = 0
+    cache_write_tokens: int = 0
 
 
 class ClaudeCliError(RuntimeError):
@@ -139,8 +153,28 @@ def _cli_serialized():
                 fcntl.flock(lock_fh, fcntl.LOCK_UN)
 
 
-def _one_call(cmd: list[str], user: str, timeout: float) -> str:
-    """Run the `claude` CLI once and return its result text.
+def _envelope_usage(envelope: dict) -> dict[str, int]:
+    """Token counts from the CLI envelope's `usage` block (zeros if absent)."""
+    usage = envelope.get("usage")
+    if not isinstance(usage, dict):
+        return {"input": 0, "output": 0, "cached": 0, "cache_write": 0}
+
+    def _i(key: str) -> int:
+        try:
+            return int(usage.get(key) or 0)
+        except (TypeError, ValueError):
+            return 0
+
+    return {
+        "input": _i("input_tokens"),
+        "output": _i("output_tokens"),
+        "cached": _i("cache_read_input_tokens"),
+        "cache_write": _i("cache_creation_input_tokens"),
+    }
+
+
+def _one_call(cmd: list[str], user: str, timeout: float) -> CliCallResult:
+    """Run the `claude` CLI once and return its result text + token usage.
 
     Raises `_UsageLimitError` on a transient limit (retryable) and
     `ClaudeCliError` on any other failure (fatal).
@@ -184,7 +218,14 @@ def _one_call(cmd: list[str], user: str, timeout: float) -> str:
     result = envelope.get("result")
     if not isinstance(result, str) or not result.strip():
         raise ClaudeCliError("claude CLI returned no result text")
-    return result
+    tokens = _envelope_usage(envelope)
+    return CliCallResult(
+        text=result,
+        input_tokens=tokens["input"],
+        output_tokens=tokens["output"],
+        cached_input_tokens=tokens["cached"],
+        cache_write_tokens=tokens["cache_write"],
+    )
 
 
 def run_claude_cli(
@@ -197,7 +238,20 @@ def run_claude_cli(
     """Run one keyless Claude call and return the model's raw text output.
 
     Mirrors the API path's "(system, user, model) -> raw text" contract so the
-    existing JSON-parsing/salvage logic is reused unchanged.
+    existing JSON-parsing/salvage logic is reused unchanged. Callers that also
+    want the CLI-reported token usage use `run_claude_cli_result`.
+    """
+    return run_claude_cli_result(system, user, model, timeout=timeout).text
+
+
+def run_claude_cli_result(
+    system: str,
+    user: str,
+    model: str,
+    *,
+    timeout: float = _CLI_TIMEOUT_SEC,
+) -> CliCallResult:
+    """Run one keyless Claude call; return the model text + envelope token usage.
 
     On a transient subscription usage/rate limit the call does not abort: it
     waits (exponential backoff, capped) and retries for up to
