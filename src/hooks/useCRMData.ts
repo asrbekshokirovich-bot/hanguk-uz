@@ -235,6 +235,27 @@ export function useCRMData() {
     return { error };
   };
 
+  // Staff-created application from the CRM applications board: attach a student
+  // to a university (institution). Stamped with the CRM's active intake so it
+  // lands in the current season's view; status 'pending' → an active application
+  // in the "New" stage (NOT 'pending_approval', which is a student-side request
+  // awaiting staff approval). The (student_id, institution_id) UNIQUE constraint
+  // guards against duplicates — the error is surfaced to the caller.
+  const createApplication = async (studentId: string, institutionId: string) => {
+    const { error } = await supabase.from('applications').insert({
+      student_id: studentId,
+      institution_id: institutionId,
+      status: 'pending',
+      ...(activeIntakeId ? { intake_id: activeIntakeId } : {}),
+    });
+
+    if (!error) {
+      await fetchApplications();
+      await fetchStudents();
+    }
+    return { error };
+  };
+
   const updateDocumentStatus = async (documentId: string, newStatus: string, notes?: string) => {
     if (newStatus === 'rejected') {
       // Fetch the file path first
@@ -306,6 +327,7 @@ export function useCRMData() {
     refetchStudents: fetchStudents,
     refetchApplications: fetchApplications,
     updateApplicationStatus,
+    createApplication,
     updateDocumentStatus,
   };
 }

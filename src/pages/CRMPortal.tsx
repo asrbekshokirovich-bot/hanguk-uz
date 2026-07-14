@@ -95,6 +95,7 @@ export default function CRMPortal() {
     universities,
     loading: studentsLoading,
     updateApplicationStatus,
+    createApplication,
     updateDocumentStatus,
     refetchStudents
   } = useCRMData();
@@ -303,10 +304,12 @@ export default function CRMPortal() {
                 <ApplicationsContent
                   applications={applications}
                   students={students}
+                  universities={universities}
                   loading={loading}
                   currentLang={currentLang}
                   onOpenStudent={setSelectedStudent}
                   onUpdateApplicationStatus={updateApplicationStatus}
+                  onCreateApplication={createApplication}
                 />
               </SafeSuspense>
             </div>

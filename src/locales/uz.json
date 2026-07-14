@@ -61,7 +61,19 @@
     "outcome_rejected": "Rad etildi",
     "outcome_pending": "Kutilmoqda",
     "emptyTitle": "Hozircha arizalar yo'q",
-    "emptyDesc": "Talabalar universitetlarga ariza topshirgach, ular shu yerda paydo bo'ladi."
+    "emptyDesc": "Talabalar universitetlarga ariza topshirgach, ular shu yerda paydo bo'ladi.",
+    "pickUniversityTitle": "Universitetni tanlang",
+    "pickUniversityDesc": "Ariza boshlash uchun uni-db bazasidan universitetni tanlang.",
+    "noUniversities": "Universitet topilmadi",
+    "partner": "Hamkor",
+    "pickStudentTitle": "Talabani tanlang",
+    "pickStudentDesc": "{{university}} uchun talabani biriktiring. Bu uning arizasini yaratadi.",
+    "searchStudents": "Talaba qidirish…",
+    "noStudents": "Talaba topilmadi",
+    "alreadyApplied": "Ariza berilgan",
+    "applicationCreated": "Ariza yaratildi",
+    "duplicateApplication": "Bu talaba allaqachon ushbu universitetga ariza bergan.",
+    "emptyUniDesc": "Hali talabalar yo'q. Ushbu universitet uchun ariza boshlash uchun talaba biriktiring."
   },
   "common": {
     "noData": "Ma'lumot yo'q",

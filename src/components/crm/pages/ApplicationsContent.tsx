@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -18,6 +17,13 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
   Plus,
   Download,
   Search,
@@ -29,6 +35,8 @@ import {
   Sparkles,
   CheckCircle2,
   Inbox,
+  Loader2,
+  Users,
 } from 'lucide-react';
 import { Tables } from '@/integrations/supabase/types';
 import { cn } from '@/lib/utils';
@@ -56,10 +64,15 @@ interface ApplicationsContentProps {
   applications: ApplicationRow[];
   /** Enriches each application with its applicant's profile + documents. */
   students: StudentProfile[];
+  /** Full uni-db roster (public.institutions) — powers the "New application"
+   *  university picker so a university can be opened before it has any apps. */
+  universities: Tables<'institutions'>[];
   loading: boolean;
   currentLang: string;
   onOpenStudent: (student: StudentProfile) => void;
   onUpdateApplicationStatus: (id: string, status: string) => Promise<{ error: unknown }>;
+  /** Attach a student to a university → creates their application row. */
+  onCreateApplication: (studentId: string, institutionId: string) => Promise<{ error: unknown }>;
 }
 
 const STAGE_ORDER: Stage[] = ['new', 'documents', 'review', 'submitted', 'decision'];
@@ -203,13 +216,14 @@ function deadlineMeta(daysLeft: number, date: Date, lang: string, t: TFunc): { t
 export default function ApplicationsContent({
   applications,
   students,
+  universities,
   loading,
   currentLang,
   onOpenStudent,
   onUpdateApplicationStatus,
+  onCreateApplication,
 }: ApplicationsContentProps) {
   const { t } = useTranslation();
-  const navigate = useNavigate();
 
   const [search, setSearch] = useState('');
   const [intakeFilter, setIntakeFilter] = useState<'all' | Intake>('all');
@@ -217,6 +231,9 @@ export default function ApplicationsContent({
   const [openUniId, setOpenUniId] = useState<string | null>(null);
   const [overrides, setOverrides] = useState<Record<string, Stage>>({});
   const [movingId, setMovingId] = useState<string | null>(null);
+  // Picker dialogs: universities at the board level, students inside a university.
+  const [pickUniOpen, setPickUniOpen] = useState(false);
+  const [pickStudentOpen, setPickStudentOpen] = useState(false);
 
   const uniName = (uni?: Tables<'institutions'> | null) => {
     if (!uni) return '';
@@ -326,7 +343,52 @@ export default function ApplicationsContent({
   }, [rows, search, intakeFilter, officeFilter, currentLang]);
 
   const totalApps = useMemo(() => uniGroups.reduce((a, g) => a + g.total, 0), [uniGroups]);
-  const openGroup = openUniId ? uniGroups.find((g) => g.id === openUniId) ?? null : null;
+
+  // When a university is opened via the picker before it has any applications,
+  // it won't be in `uniGroups` (those are derived from apps). Synthesize an empty
+  // group from the uni-db roster so its (empty) student board can still render.
+  const openGroup = useMemo(() => {
+    if (!openUniId) return null;
+    const existing = uniGroups.find((g) => g.id === openUniId);
+    if (existing) return existing;
+    const uni = universities.find((u) => u.id === openUniId);
+    if (!uni) return null;
+    return {
+      id: uni.id,
+      university: uni,
+      apps: [] as Row[],
+      name: uniName(uni),
+      city: uni.city_ko ?? '',
+      stage: STAGE_ORDER[0],
+      stageIdx: 0,
+      total: 0,
+      advanced: 0,
+      gating: [] as Row[],
+      earliest: 0,
+      earliestDate: new Date(),
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openUniId, uniGroups, universities, currentLang]);
+
+  // Application count per university — a subtle "N students" badge in the picker.
+  const appCountByUni = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const a of applications) {
+      if (a.institution_id) m.set(a.institution_id, (m.get(a.institution_id) ?? 0) + 1);
+    }
+    return m;
+  }, [applications]);
+
+  // Students who already have an application to the currently-open university —
+  // disabled in the student picker (the (student, institution) pair is UNIQUE).
+  const appliedStudentIds = useMemo(() => {
+    const set = new Set<string>();
+    if (!openUniId) return set;
+    for (const a of applications) {
+      if (a.institution_id === openUniId) set.add(a.student_id);
+    }
+    return set;
+  }, [applications, openUniId]);
 
   // ---- move a single student (application) between stages -------------------
   const move = async (row: Row, dir: -1 | 1) => {
@@ -347,6 +409,32 @@ export default function ApplicationsContent({
     } else {
       toast.success(t('applications.movedTo', { stage: stageLabel[newStage], defaultValue: `Moved to ${stageLabel[newStage]}` }));
     }
+  };
+
+  // ---- picker flows ---------------------------------------------------------
+  // Board-level "New application" → pick a university → open its student board.
+  const handlePickUniversity = (uni: Tables<'institutions'>) => {
+    setPickUniOpen(false);
+    setOpenUniId(uni.id);
+  };
+
+  // Inside a university, "Attach student" → pick a student → create the app.
+  const handleCreateApplication = async (studentId: string) => {
+    if (!openUniId) return;
+    const { error } = await onCreateApplication(studentId, openUniId);
+    if (error) {
+      const code = (error as { code?: string })?.code;
+      toast.error(
+        code === '23505'
+          ? t('applications.duplicateApplication', {
+              defaultValue: 'This student already has an application to this university.',
+            })
+          : t('common.error', { defaultValue: 'Something went wrong' }),
+      );
+      return;
+    }
+    toast.success(t('applications.applicationCreated', { defaultValue: 'Application created' }));
+    setPickStudentOpen(false);
   };
 
   // ----------------------------------------------------------------- loading -
@@ -376,7 +464,8 @@ export default function ApplicationsContent({
   // ===========================================================================
   if (openGroup) {
     const g = openGroup;
-    const isDecision = g.stageIdx === 4;
+    const isEmpty = g.total === 0;
+    const isDecision = g.stageIdx === 4 && !isEmpty;
     const gatingNames = g.gating.map((r) => firstName(r.student?.full_name ?? null)).join(', ');
     return (
       <div className="space-y-4">
@@ -412,19 +501,23 @@ export default function ApplicationsContent({
                 {t('applications.studentsCount', { n: g.total })}
               </div>
             </div>
-            <Button variant="highlight" className="gap-2" onClick={() => navigate('/crm/students')}>
+            <Button variant="highlight" className="gap-2" onClick={() => setPickStudentOpen(true)}>
               <Plus className="h-4 w-4" />
               {t('applications.attachStudent')}
             </Button>
           </div>
 
-          {/* Auto-stage banner */}
+          {/* Auto-stage banner (or empty-uni prompt when no students attached yet) */}
           <div className="mt-4 flex items-center gap-3 border-t border-border pt-4">
-            <div className={cn('flex h-9 w-9 shrink-0 items-center justify-center rounded-lg', isDecision ? 'bg-success/10' : 'bg-warning/10')}>
-              {isDecision ? <CheckCircle2 className="h-5 w-5 text-success" /> : <Sparkles className="h-5 w-5 text-warning" />}
+            <div className={cn('flex h-9 w-9 shrink-0 items-center justify-center rounded-lg', isEmpty ? 'bg-muted' : isDecision ? 'bg-success/10' : 'bg-warning/10')}>
+              {isEmpty ? <Inbox className="h-5 w-5 text-muted-foreground" /> : isDecision ? <CheckCircle2 className="h-5 w-5 text-success" /> : <Sparkles className="h-5 w-5 text-warning" />}
             </div>
             <p className="flex-1 text-sm text-muted-foreground">
-              {isDecision
+              {isEmpty
+                ? t('applications.emptyUniDesc', {
+                    defaultValue: 'No students yet. Attach a student to start applications for this university.',
+                  })
+                : isDecision
                 ? t('applications.allReachedDecision')
                 : t('applications.autoStage', {
                     stage: stageLabel[g.stage],
@@ -434,10 +527,12 @@ export default function ApplicationsContent({
                     defaultValue: `Auto-stage: ${stageLabel[g.stage]}. Advances to ${stageLabel[STAGE_ORDER[g.stageIdx + 1]]} when ${g.gating.length} student(s) (${gatingNames}) move up.`,
                   })}
             </p>
-            <div className="flex w-32 shrink-0 items-center gap-2">
-              <Progress value={(g.advanced / g.total) * 100} className="h-1.5 flex-1" />
-              <span className="font-mono text-[11px] text-muted-foreground">{g.advanced}/{g.total}</span>
-            </div>
+            {!isEmpty && (
+              <div className="flex w-32 shrink-0 items-center gap-2">
+                <Progress value={(g.advanced / g.total) * 100} className="h-1.5 flex-1" />
+                <span className="font-mono text-[11px] text-muted-foreground">{g.advanced}/{g.total}</span>
+              </div>
+            )}
           </div>
         </Card>
 
@@ -523,6 +618,16 @@ export default function ApplicationsContent({
             );
           })}
         </div>
+
+        <StudentPickerDialog
+          open={pickStudentOpen}
+          onOpenChange={setPickStudentOpen}
+          students={students}
+          appliedStudentIds={appliedStudentIds}
+          universityName={g.name}
+          onCreate={handleCreateApplication}
+          t={t}
+        />
       </div>
     );
   }
@@ -551,7 +656,7 @@ export default function ApplicationsContent({
             <Download className="h-4 w-4" />
             {t('applications.export')}
           </Button>
-          <Button variant="highlight" className="gap-2" onClick={() => navigate('/crm/students')}>
+          <Button variant="highlight" className="gap-2" onClick={() => setPickUniOpen(true)}>
             <Plus className="h-4 w-4" />
             {t('applications.newApplication')}
           </Button>
@@ -691,6 +796,249 @@ export default function ApplicationsContent({
           })}
         </div>
       )}
+
+      <UniversityPickerDialog
+        open={pickUniOpen}
+        onOpenChange={setPickUniOpen}
+        universities={universities}
+        uniName={uniName}
+        appCountByUni={appCountByUni}
+        onPick={handlePickUniversity}
+        t={t}
+      />
     </div>
+  );
+}
+
+// ===========================================================================
+// University picker — board-level "New application" chooses from the uni-db.
+// ===========================================================================
+function UniversityPickerDialog({
+  open,
+  onOpenChange,
+  universities,
+  uniName,
+  appCountByUni,
+  onPick,
+  t,
+}: {
+  open: boolean;
+  onOpenChange: (o: boolean) => void;
+  universities: Tables<'institutions'>[];
+  uniName: (uni?: Tables<'institutions'> | null) => string;
+  appCountByUni: Map<string, number>;
+  onPick: (uni: Tables<'institutions'>) => void;
+  t: TFunc;
+}) {
+  const [search, setSearch] = useState('');
+
+  const filtered = useMemo(() => {
+    const named = universities
+      .map((u) => ({ u, name: uniName(u) }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+    const q = search.trim().toLowerCase();
+    if (!q) return named;
+    return named.filter(
+      ({ u, name }) =>
+        name.toLowerCase().includes(q) ||
+        (u.name_ko ?? '').toLowerCase().includes(q) ||
+        (u.name_en ?? '').toLowerCase().includes(q) ||
+        (u.city_ko ?? '').toLowerCase().includes(q),
+    );
+  }, [universities, uniName, search]);
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <GraduationCap className="h-5 w-5 text-info" />
+            {t('applications.pickUniversityTitle', { defaultValue: 'Select a university' })}
+          </DialogTitle>
+          <DialogDescription>
+            {t('applications.pickUniversityDesc', {
+              defaultValue: 'Choose a university from the uni-db to start applications for it.',
+            })}
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            autoFocus
+            placeholder={t('applications.searchUniversities')}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+
+        <div className="max-h-[52vh] overflow-y-auto rounded-md border border-border">
+          {filtered.length === 0 ? (
+            <div className="py-8 text-center text-sm text-muted-foreground">
+              {t('applications.noUniversities', { defaultValue: 'No universities found' })}
+            </div>
+          ) : (
+            filtered.map(({ u, name }) => {
+              const count = appCountByUni.get(u.id) ?? 0;
+              return (
+                <button
+                  key={u.id}
+                  type="button"
+                  onClick={() => onPick(u)}
+                  className="flex w-full items-center justify-between gap-3 border-b border-border/50 px-3 py-2.5 text-left transition-colors last:border-0 hover:bg-accent/50"
+                >
+                  <div className="flex min-w-0 items-center gap-2.5">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-info/10">
+                      <GraduationCap className="h-4 w-4 text-info" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="truncate text-sm font-medium text-foreground">{name}</div>
+                      {u.city_ko ? (
+                        <div className="flex items-center gap-1 truncate text-xs text-muted-foreground">
+                          <MapPin className="h-3 w-3" />
+                          {u.city_ko}
+                        </div>
+                      ) : null}
+                    </div>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-1.5">
+                    {u.is_partner ? (
+                      <Badge variant="successSoft">{t('applications.partner', { defaultValue: 'Partner' })}</Badge>
+                    ) : null}
+                    {count > 0 ? (
+                      <Badge variant="info">{t('applications.studentsCount', { n: count })}</Badge>
+                    ) : null}
+                  </div>
+                </button>
+              );
+            })
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ===========================================================================
+// Student picker — inside a university, "Attach student" creates the app.
+// ===========================================================================
+function StudentPickerDialog({
+  open,
+  onOpenChange,
+  students,
+  appliedStudentIds,
+  universityName,
+  onCreate,
+  t,
+}: {
+  open: boolean;
+  onOpenChange: (o: boolean) => void;
+  students: StudentProfile[];
+  appliedStudentIds: Set<string>;
+  universityName: string;
+  onCreate: (studentId: string) => Promise<void>;
+  t: TFunc;
+}) {
+  const [search, setSearch] = useState('');
+  const [savingId, setSavingId] = useState<string | null>(null);
+
+  const filtered = useMemo(() => {
+    const sorted = [...students].sort((a, b) =>
+      (a.full_name ?? '').localeCompare(b.full_name ?? ''),
+    );
+    const q = search.trim().toLowerCase();
+    if (!q) return sorted;
+    return sorted.filter(
+      (s) =>
+        (s.full_name ?? '').toLowerCase().includes(q) ||
+        (s.office_location ?? '').toLowerCase().includes(q),
+    );
+  }, [students, search]);
+
+  const pick = async (s: StudentProfile) => {
+    if (appliedStudentIds.has(s.user_id) || savingId) return;
+    setSavingId(s.user_id);
+    await onCreate(s.user_id);
+    setSavingId(null);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => !savingId && onOpenChange(o)}>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Users className="h-5 w-5 text-info" />
+            {t('applications.pickStudentTitle', { defaultValue: 'Select a student' })}
+          </DialogTitle>
+          <DialogDescription>
+            {t('applications.pickStudentDesc', {
+              university: universityName,
+              defaultValue: `Attach a student to ${universityName}. This creates their application.`,
+            })}
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            autoFocus
+            placeholder={t('applications.searchStudents', { defaultValue: 'Search students…' })}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+
+        <div className="max-h-[52vh] overflow-y-auto rounded-md border border-border">
+          {filtered.length === 0 ? (
+            <div className="py-8 text-center text-sm text-muted-foreground">
+              {t('applications.noStudents', { defaultValue: 'No students found' })}
+            </div>
+          ) : (
+            filtered.map((s) => {
+              const applied = appliedStudentIds.has(s.user_id);
+              const saving = savingId === s.user_id;
+              return (
+                <button
+                  key={s.user_id}
+                  type="button"
+                  disabled={applied || !!savingId}
+                  onClick={() => pick(s)}
+                  className={cn(
+                    'flex w-full items-center justify-between gap-3 border-b border-border/50 px-3 py-2.5 text-left transition-colors last:border-0',
+                    applied ? 'cursor-not-allowed opacity-60' : 'hover:bg-accent/50',
+                  )}
+                >
+                  <div className="flex min-w-0 items-center gap-2.5">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={s.avatar_url || undefined} />
+                      <AvatarFallback className={cn('text-[10px] font-semibold', toneFor(s.user_id))}>
+                        {getInitials(s.full_name)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0">
+                      <div className="truncate text-sm font-medium text-foreground">{s.full_name || '—'}</div>
+                      {s.office_location ? (
+                        <div className="truncate text-xs text-muted-foreground">{s.office_location}</div>
+                      ) : null}
+                    </div>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-1.5">
+                    {applied ? (
+                      <Badge variant="outline">{t('applications.alreadyApplied', { defaultValue: 'Applied' })}</Badge>
+                    ) : saving ? (
+                      <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                    ) : (
+                      <Plus className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </div>
+                </button>
+              );
+            })
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
