@@ -1083,5 +1083,159 @@
     "ctaHeading": "Janubiy Koreyada o'qishga tayyormisiz?",
     "ctaSub": "Maslahatchidan kirish kodingizni oling va bugunoq boshlang.",
     "getApp": "Ilovani o'rnatish"
+  },
+  "uniReview": {
+    "title": "Universitet bazasi — tekshiruv",
+    "subtitle": "Avto-yig'ilgan qabul yo'riqnomalari talabalarga chiqishidan oldin shu yerda tasdiqlanadi. Hech narsa sizning ruxsatingizsiz e'lon qilinmaydi.",
+    "refresh": "Yangilash",
+    "crawl": {
+      "label": "Avto-skaner mavsumi",
+      "helper": "Tungi skaner har bir universitetning shu mavsum uchun yo'riqnomasini qidiradi.",
+      "noDefault": "Asosiy mavsum tanlanmagan — skaner keyingi yilga mo'ljal oladi",
+      "updated": "Skaner maqsadi: {{label}}",
+      "adminsOnly": "Buni faqat egalar va adminlar o'zgartira oladi.",
+      "placeholder": "Mavsumni tanlang",
+      "planning": "rejalashtirilmoqda",
+      "spring": "Bahor",
+      "fall": "Kuz"
+    },
+    "tabs": {
+      "queue": "Tasdiqlash navbati",
+      "flags": "E'tibor kerak"
+    },
+    "rail": {
+      "header": "Navbat — {{n}} universitet",
+      "chipRed": "Tuzatish kerak",
+      "chipAmber": "Tekshiring",
+      "chipGreen": "Tayyor",
+      "done": "Yakunlandi",
+      "sub": "{{n}} bo'lim · min. ishonch {{p}}%",
+      "subNoConf": "{{n}} bo'lim"
+    },
+    "detail": {
+      "sourcePage": "Manba sahifa",
+      "openPdf": "PDF ochish",
+      "noPdf": "Bu yo'riqnoma uchun saqlangan PDF hali yo'q.",
+      "pdfError": "PDFni ochib bo'lmadi.",
+      "progress": "{{decided}}/{{total}} hal qilindi",
+      "allDone": "Bu universitet bo'yicha barcha bo'limlar hal qilindi.",
+      "next": "Keyingisi →"
+    },
+    "section": {
+      "calendar": "Muddatlar va ariza to'lovi",
+      "requirements": "Kirish talablari",
+      "tuition": "Fakultetlar va kontrakt",
+      "documents_required": "Kerakli hujjatlar",
+      "scholarships": "Stipendiyalar",
+      "unknown": "Boshqa bo'lim"
+    },
+    "rel": {
+      "red": "Tuzatish kerak",
+      "amber": "Diqqat bilan tekshiring",
+      "green": "Tekshiruvlar o'tdi"
+    },
+    "confidence": "ishonch {{p}}",
+    "laneFailed": "Ma'lumot olishda xatolik",
+    "laneFailedTitle": "Bu bo'lim uchun ma'lumot olish xatoga uchradi — tekshirish emas, qayta ishga tushirish kerak",
+    "minConfidence": "eng past ishonch {{p}}",
+    "cycle": {
+      "title": "Ushbu hujjat qaysi qabul mavsumiga tegishli",
+      "staleTitle": "Hujjat maqsadli mavsumdan eskiroq mavsumga tegishli — eskirgan ma'lumot",
+      "stale": "eskirgan"
+    },
+    "actions": {
+      "approve": "Tasdiqlash",
+      "approveTitle": "Tasdiqlash va talabalarga e'lon qilish",
+      "reject": "Rad etish",
+      "rejectReason": "Rad etish sababi:",
+      "confirmReject": "Rad etishni tasdiqlash",
+      "cancel": "Bekor qilish",
+      "flagSource": "Manba noto'g'ri — bu PDFdagi barcha bo'limlarni rad etish"
+    },
+    "decided": {
+      "approved": "Tasdiqlandi — talabalarga e'lon qilindi",
+      "rejected": "Rad etildi — {{reason}}",
+      "sourceWrong": "Manba noto'g'ri (PDF xato)"
+    },
+    "toast": {
+      "approved": "Tasdiqlandi — {{uni}}: {{section}}",
+      "rejected": "Rad etildi — {{uni}}: {{section}}",
+      "flagged": "{{n}} ta bo'lim rad etildi — manba xato deb belgilandi"
+    },
+    "reasons": {
+      "wrong_year": "Noto'g'ri yil / mavsum",
+      "wrong_archetype": "Noto'g'ri hujjat turi",
+      "hallucinated_field": "Xato / to'qilgan ma'lumot",
+      "ocr_garbled": "OCR matni buzilgan",
+      "source_404": "Manba ochilmadi",
+      "other": "Boshqa"
+    },
+    "ns": "Ko'rsatilmagan",
+    "cal": {
+      "fee": "Ariza to'lovi (전형료)",
+      "tentative": "(taxminiy)",
+      "applyOpen": "Ariza ochilishi",
+      "applyClose": "Ariza yopilishi",
+      "docsDeadline": "Hujjat topshirish muddati",
+      "firstStage": "Birinchi bosqich natijalari",
+      "interview": "Suhbat",
+      "results": "Yakuniy natijalar",
+      "regOpen": "Ro'yxatdan o'tish boshlanishi",
+      "regClose": "Ro'yxatdan o'tish tugashi",
+      "orientation": "Tanishtiruv kuni",
+      "offline": "Oflayn ariza"
+    },
+    "req": {
+      "foreignTrack": "Xorijiy fuqarolar ({{cat}})",
+      "defaultCat": "외국인전형",
+      "topik": "TOPIK",
+      "english": "IELTS / ingliz",
+      "gpa": "GPA",
+      "interview": "Suhbat",
+      "practical": "Amaliy imtihon",
+      "yes": "Ha",
+      "no": "Yo'q",
+      "notRequired": "Talab qilinmaydi",
+      "deferred": "Keyin topshirish mumkin",
+      "topikLevel": "{{n}}-daraja+",
+      "gpaMin": "{{p}}% dan yuqori",
+      "majors": "Yo'nalishlar:",
+      "heritageShow": "Ko'rsatish: {{n}} ta koreys-diaspora yo'nalishi (xorijliklarga tegishli emas)",
+      "heritageHide": "Yashirish: {{n}} ta koreys-diaspora yo'nalishi (xorijliklarga tegishli emas)"
+    },
+    "tui": {
+      "faculty": "Fakultet",
+      "perSemester": "Kontrakt / semestr",
+      "admissionFee": "Kirish to'lovi"
+    },
+    "docs": {
+      "required": "Majburiy",
+      "optional": "Ixtiyoriy",
+      "apostille": "Apostil",
+      "noDeadline": "muddat: ko'rsatilmagan"
+    },
+    "sch": {
+      "waiverPct": "{{pct}}% chegirma",
+      "waiver": "Kontrakt chegirmasi",
+      "stipendMonthly": "Oyiga {{amount}}",
+      "stipend": "Oylik stipendiya",
+      "airfare": "Aviachipta"
+    },
+    "states": {
+      "error": "Ma'lumotni yuklab bo'lmadi: {{message}}",
+      "retry": "Qayta urinish",
+      "emptyTitle": "Tasdiqlash uchun hech narsa yo'q",
+      "emptyBody": "Skaner yangi yo'riqnoma topmadi yoki hammasi ko'rib chiqilgan.",
+      "accessTitle": "Ruxsat yo'q",
+      "accessBody": "Universitet ma'lumotlarini ko'rish uchun sizda ruxsat yo'q."
+    },
+    "flags": {
+      "banner": "Bu yozuvlar avto-e'lon qilingan, lekin skaner ishonchi past bo'lgani uchun belgilangan. Ular allaqachon talabalarga ko'rinadi — faqat ko'zdan kechirish uchun.",
+      "count": "{{n}} ta bayroq",
+      "search": "Universitet, bo'lim yoki sabab…",
+      "emptyTitle": "Hech narsa belgilanmagan",
+      "emptyBody": "Belgilangan yozuvlar yo'q.",
+      "emptyFiltered": "Qidiruvga mos yozuv topilmadi."
+    }
   }
 }
