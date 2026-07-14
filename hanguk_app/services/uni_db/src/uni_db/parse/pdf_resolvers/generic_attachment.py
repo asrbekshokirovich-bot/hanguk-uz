@@ -132,3 +132,109 @@ async def resolve(
         return None
     download_url, filename = found
     return ResolvedPdf(url=download_url, filename=filename, headers={"Referer": attachment_url})
+
+
+# ---------------------------------------------------------------------------
+# Per-site resolvers (Phase 4). These boards were storing the BOARD PAGE (or
+# a hidden-post alert) instead of the attached file: their download links are
+# CMS endpoints with no file extension, so the crawler needs to know each
+# site's exact endpoint. Endpoint patterns were captured from the live boards
+# (2026-07):
+#
+#   daedong.ac.kr      /ipsi/ajx_json/UploadMgr/downloadRun.do?qcode=…
+#                      anchors inside <ul class="fileList">, filename in <span>
+#   ipsi.dongguk.ac.kr /cmmn/fileDown.do?fileSeq=…      (Dongguk WISE campus)
+#   ikw.ac.kr          /jfile/readFile.tc?fileId=…&fileSeq=…   (Kyungwoon)
+#   sangji.ac.kr       /cmm/fms/FileDown.do?atchFileId=…&fileSn=…
+#   enter.mokwon.ac.kr /_prog/download/?file_id=…
+#
+# Each site resolver only accepts anchors on its known endpoint (falling back
+# to the generic extractor when none match), scores them with the shared
+# newest-cycle/PDF/guide-hint ranking, and pins a Referer for the CMS
+# anti-leech check — so the crawler stores the real file, not the board page.
+# ---------------------------------------------------------------------------
+
+
+def _extract_endpoint_link(
+    html: str, base_url: str, endpoint_re: re.Pattern[str]
+) -> tuple[str, str] | None:
+    """Best attachment anchor whose href hits the site's download endpoint."""
+    soup = BeautifulSoup(html, "lxml")
+    candidates: list[tuple[int, str, str]] = []
+    current = date.today().year
+    for anchor in soup.find_all("a"):
+        href = (anchor.get("href") or "").strip()
+        if not href or href.startswith("#") or href.lower().startswith("javascript:"):
+            continue
+        absolute = urljoin(base_url, href)
+        if not endpoint_re.search(absolute):
+            continue
+        text = anchor.get_text(" ", strip=True)
+        year = _detect_year(text, absolute)
+        year_boost = year * 1000 if (year is not None and current - 1 <= year <= current + 2) else 0
+        is_pdf = ".pdf" in text.lower()
+        score = year_boost + (10 if is_pdf else 0) + _score(text, absolute)
+        candidates.append((score, absolute, text or "attachment"))
+    if not candidates:
+        return None
+    candidates.sort(key=lambda c: c[0], reverse=True)
+    _, absolute, filename = candidates[0]
+    return absolute, filename
+
+
+def _make_site_resolver(site: str, endpoint_re: re.Pattern[str]):
+    async def resolve_site(
+        attachment_url: str,
+        http_client: httpx.AsyncClient,
+        referer: str | None = None,
+    ) -> ResolvedPdf | None:
+        # The recorded URL may already BE the download endpoint (the finder
+        # sometimes stores it directly). Hand it back with a Referer — these
+        # CMSes serve an HTML error to referer-less requests.
+        if endpoint_re.search(attachment_url):
+            return ResolvedPdf(
+                url=attachment_url,
+                filename=urlsplit(attachment_url).path.rsplit("/", 1)[-1] or "attachment",
+                headers={"Referer": referer or attachment_url},
+            )
+        log.info("%s: resolving %s", site, attachment_url[:140])
+        try:
+            resp = await http_client.get(attachment_url, timeout=_HTTP_TIMEOUT_SEC)
+        except httpx.HTTPError as exc:
+            log.warning("%s: detail fetch failed: %s", site, exc)
+            return None
+        if resp.status_code != 200:
+            log.warning("%s: HTTP %s for %s", site, resp.status_code, attachment_url[:120])
+            return None
+        found = _extract_endpoint_link(resp.text, attachment_url, endpoint_re)
+        if found is None:
+            # Board layout changed? Fall back to the generic heuristics
+            # rather than dropping the candidate on the floor.
+            found = _extract_pdf_link(resp.text, attachment_url)
+        if found is None:
+            log.info("%s: no attachment link on detail page", site)
+            return None
+        download_url, filename = found
+        return ResolvedPdf(
+            url=download_url, filename=filename, headers={"Referer": attachment_url}
+        )
+
+    resolve_site.__name__ = f"resolve_{site}"
+    return resolve_site
+
+
+resolve_daedong = _make_site_resolver(
+    "daedong", re.compile(r"/ajx_json/UploadMgr/downloadRun\.do", re.IGNORECASE)
+)
+resolve_dongguk_wise = _make_site_resolver(
+    "dongguk_wise", re.compile(r"/cmmn/fileDown\.do", re.IGNORECASE)
+)
+resolve_ikw = _make_site_resolver(
+    "ikw", re.compile(r"/jfile/readFile\.tc", re.IGNORECASE)
+)
+resolve_sangji = _make_site_resolver(
+    "sangji", re.compile(r"/cmm/fms/FileDown\.do", re.IGNORECASE)
+)
+resolve_mokwon = _make_site_resolver(
+    "mokwon", re.compile(r"/_prog/download/", re.IGNORECASE)
+)

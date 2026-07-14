@@ -80,7 +80,14 @@ ResolverFn = Callable[
 # the registry fall through to the legacy direct-fetch path.
 
 def _build_registry() -> dict[str, ResolverFn]:
-    from .generic_attachment import resolve as resolve_generic
+    from .generic_attachment import (
+        resolve as resolve_generic,
+        resolve_daedong,
+        resolve_dongguk_wise,
+        resolve_ikw,
+        resolve_mokwon,
+        resolve_sangji,
+    )
     from .kaist import resolve as resolve_kaist
     from .korea_univ import resolve as resolve_korea_univ
     from .yonsei import resolve as resolve_yonsei
@@ -100,6 +107,18 @@ def _build_registry() -> dict[str, ResolverFn]:
         # (download.php / file_download.php). Generic resolver handles them.
         "oia.cau.ac.kr": resolve_generic,
         "admission.kookmin.ac.kr": resolve_generic,
+        # Phase 4 per-site resolvers — boards that were storing the board
+        # page / hidden-post alert instead of the attached file. Endpoint
+        # patterns captured from the live boards; see generic_attachment.py.
+        "www.daedong.ac.kr": resolve_daedong,
+        "daedong.ac.kr": resolve_daedong,
+        "ipsi.dongguk.ac.kr": resolve_dongguk_wise,
+        "www.ikw.ac.kr": resolve_ikw,
+        "ikw.ac.kr": resolve_ikw,
+        "www.sangji.ac.kr": resolve_sangji,
+        "sangji.ac.kr": resolve_sangji,
+        "enter.mokwon.ac.kr": resolve_mokwon,
+        "www.mokwon.ac.kr": resolve_mokwon,
     }
 
 

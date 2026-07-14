@@ -336,6 +336,138 @@ class TestKaistResolver:
 
 
 # ---------------------------------------------------------------------------
+# Phase 4 per-site board resolvers (daedong / dongguk WISE / ikw / sangji /
+# mokwon). Markup snippets mirror the live boards captured 2026-07.
+# ---------------------------------------------------------------------------
+
+
+DAEDONG_DETAIL_URL = (
+    "https://www.daedong.ac.kr/ipsi/CMS/Board/Board.do"
+    "?mCode=MN086&mode=view&board_seq=51521"
+)
+DONGGUK_DETAIL_URL = "https://ipsi.dongguk.ac.kr/article/notice/detail/341"
+IKW_FILE_URL = "https://www.ikw.ac.kr/jfile/readFile.tc?fileId=JF00000076991&fileSeq=1"
+SANGJI_DETAIL_URL = "https://www.sangji.ac.kr/ipsi/board/view.do?seq=100"
+MOKWON_DETAIL_URL = "https://enter.mokwon.ac.kr/board/notice/view?id=77"
+
+DAEDONG_HTML = """
+<ul class="fileList">
+  <li><a href="/ipsi/ajx_json/UploadMgr/downloadRun.do?qcode=Qm9hcmQsMzc1MTAsWQ==" title="내려받기">
+    <span>사실증명 발급 열람 신청 위임장(부모 및 학생용).hwp (30KB)</span></a></li>
+  <li><a href="/ipsi/ajx_json/UploadMgr/downloadRun.do?qcode=Qm9hcmQsMzc1MTEsWQ==" title="내려받기">
+    <span>2027학년도 외국인 특별전형 모집요강.hwp (2MB)</span></a></li>
+</ul>
+"""
+
+DONGGUK_HTML = """
+<ul><li class='files1' data-name="file">
+  <a href="/cmmn/fileDown.do?fileSeq=151">
+    2027 재외국민 및 외국인 특별전형 모집요강.hwp</a></li></ul>
+"""
+
+SANGJI_HTML = """
+<div class="file"><a href="/cmm/fms/FileDown.do?atchFileId=FILE_000000076838Mf1&fileSn=0">
+  2027학년도 외국인전형 모집요강.hwp</a></div>
+"""
+
+MOKWON_HTML = """
+<a href="/_prog/download/?file_id=kv11sdl3yh63j1gu9wq05d7fh90oja">
+  2027학년도 목원대학교 외국인 특별전형 모집요강.hwp</a>
+"""
+
+
+class TestPhase4SiteResolvers:
+    def test_registry_routes_all_five_hosts(self) -> None:
+        assert get_resolver_for_url(DAEDONG_DETAIL_URL) is generic.resolve_daedong
+        assert get_resolver_for_url(DONGGUK_DETAIL_URL) is generic.resolve_dongguk_wise
+        assert get_resolver_for_url(IKW_FILE_URL) is generic.resolve_ikw
+        assert get_resolver_for_url(SANGJI_DETAIL_URL) is generic.resolve_sangji
+        assert get_resolver_for_url(MOKWON_DETAIL_URL) is generic.resolve_mokwon
+
+    @respx.mock
+    async def test_daedong_prefers_the_guideline_attachment(self) -> None:
+        respx.get(DAEDONG_DETAIL_URL).mock(
+            return_value=httpx.Response(200, content=DAEDONG_HTML.encode()),
+        )
+        async with httpx.AsyncClient() as client:
+            resolved = await generic.resolve_daedong(DAEDONG_DETAIL_URL, client, None)
+        assert resolved is not None
+        # The 모집요강 anchor must beat the unrelated 위임장 form.
+        assert "qcode=Qm9hcmQsMzc1MTEsWQ==" in resolved.url
+        assert "모집요강" in resolved.filename
+        assert resolved.headers.get("Referer") == DAEDONG_DETAIL_URL
+
+    @respx.mock
+    async def test_dongguk_wise_finds_filedown_endpoint(self) -> None:
+        respx.get(DONGGUK_DETAIL_URL).mock(
+            return_value=httpx.Response(200, content=DONGGUK_HTML.encode()),
+        )
+        async with httpx.AsyncClient() as client:
+            resolved = await generic.resolve_dongguk_wise(DONGGUK_DETAIL_URL, client, None)
+        assert resolved is not None
+        assert resolved.url == "https://ipsi.dongguk.ac.kr/cmmn/fileDown.do?fileSeq=151"
+
+    async def test_ikw_hands_back_a_direct_file_endpoint_with_referer(self) -> None:
+        # The recorded URL is already the jfile endpoint; the resolver returns
+        # it with a Referer (referer-less requests get an HTML alert page).
+        async with httpx.AsyncClient() as client:
+            resolved = await generic.resolve_ikw(IKW_FILE_URL, client, None)
+        assert resolved is not None
+        assert resolved.url == IKW_FILE_URL
+        assert resolved.headers.get("Referer")
+
+    @respx.mock
+    async def test_sangji_finds_fms_filedown(self) -> None:
+        respx.get(SANGJI_DETAIL_URL).mock(
+            return_value=httpx.Response(200, content=SANGJI_HTML.encode()),
+        )
+        async with httpx.AsyncClient() as client:
+            resolved = await generic.resolve_sangji(SANGJI_DETAIL_URL, client, None)
+        assert resolved is not None
+        assert "/cmm/fms/FileDown.do?atchFileId=" in resolved.url
+
+    @respx.mock
+    async def test_mokwon_finds_prog_download(self) -> None:
+        respx.get(MOKWON_DETAIL_URL).mock(
+            return_value=httpx.Response(200, content=MOKWON_HTML.encode()),
+        )
+        async with httpx.AsyncClient() as client:
+            resolved = await generic.resolve_mokwon(MOKWON_DETAIL_URL, client, None)
+        assert resolved is not None
+        assert "/_prog/download/?file_id=" in resolved.url
+        assert "모집요강" in resolved.filename
+
+    @respx.mock
+    async def test_site_resolver_falls_back_to_generic_extraction(self) -> None:
+        # Board layout changed (no known endpoint) but a plain PDF anchor
+        # exists → generic heuristics still find it.
+        html = b'<a href="/files/2027_guide.pdf">2027 \xeb\xaa\xa8\xec\xa7\x91\xec\x9a\x94\xea\xb0\x95</a>'
+        respx.get(DAEDONG_DETAIL_URL).mock(
+            return_value=httpx.Response(200, content=html),
+        )
+        async with httpx.AsyncClient() as client:
+            resolved = await generic.resolve_daedong(DAEDONG_DETAIL_URL, client, None)
+        assert resolved is not None
+        assert resolved.url.endswith("/files/2027_guide.pdf")
+
+    @respx.mock
+    async def test_site_resolver_returns_none_when_nothing_found(self) -> None:
+        respx.get(DAEDONG_DETAIL_URL).mock(
+            return_value=httpx.Response(200, content=b"<p>no attachments</p>"),
+        )
+        async with httpx.AsyncClient() as client:
+            resolved = await generic.resolve_daedong(DAEDONG_DETAIL_URL, client, None)
+        assert resolved is None
+
+    @respx.mock
+    async def test_site_resolver_returns_none_on_http_error(self) -> None:
+        respx.get(SANGJI_DETAIL_URL).mock(return_value=httpx.Response(500))
+        async with httpx.AsyncClient() as client:
+            resolved = await generic.resolve_sangji(SANGJI_DETAIL_URL, client, None)
+        assert resolved is None
+
+
+# ---------------------------------------------------------------------------
 # ResolvedPdf shape
 # ---------------------------------------------------------------------------
 

@@ -21,6 +21,7 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass
 
+from .format_convert import IMAGE_FORMATS, extract_hwp, sniff_format
 from .pdf_text import ExtractedPdf, extract_text_pymupdf
 
 log = logging.getLogger(__name__)
@@ -38,7 +39,7 @@ class OrchestratorDecision:
     """Records why a particular tier was chosen — useful for HITL ops
     to debug why a PDF landed in the OCR queue."""
 
-    tier: str                  # 'pymupdf' | 'ocr_fallback' | 'pymupdf+ocr_pages'
+    tier: str                  # 'pymupdf' | 'ocr_fallback' | 'hwp_convert' | 'image_ocr'
     reason: str
     pages_with_text_layer: int
     pages_below_threshold: int
@@ -47,7 +48,47 @@ class OrchestratorDecision:
 
 def extract(pdf_bytes: bytes) -> tuple[ExtractedPdf, OrchestratorDecision]:
     """Run the tiered extraction. Returns the best ExtractedPdf the
-    pipeline could produce plus a decision record explaining the path."""
+    pipeline could produce plus a decision record explaining the path.
+
+    Phase 4: the payload's REAL format is sniffed first (the upstream
+    content-type routinely lies). HWP/HWPX converts via hwp5txt or
+    LibreOffice headless; a raw image payload routes straight to the
+    EasyOCR lane. Everything else goes down the PDF tiers.
+    """
+    fmt = sniff_format(pdf_bytes)
+
+    if fmt in ("hwp", "hwpx"):
+        converted = extract_hwp(pdf_bytes, fmt=fmt)
+        return converted, OrchestratorDecision(
+            tier="hwp_convert",
+            reason=f"payload is {fmt.upper()}; converted via {converted.extractor}",
+            pages_with_text_layer=converted.page_count,
+            pages_below_threshold=0,
+            chars_per_page_avg=len(converted.text) / max(converted.page_count, 1),
+        )
+
+    if fmt in IMAGE_FORMATS:
+        # Board-page screenshot stored as the "guideline" — OCR the image
+        # directly (no PDF rasterisation step). Lazy import: easyocr is heavy.
+        from .ocr_easyocr import ocr_image_bytes
+
+        ocr_result = ocr_image_bytes(pdf_bytes)
+        return (
+            ExtractedPdf(
+                text=ocr_result.text,
+                page_count=max(ocr_result.pages, 1),
+                has_text_layer=False,
+                extractor=ocr_result.extractor,
+            ),
+            OrchestratorDecision(
+                tier="image_ocr",
+                reason=f"payload is a {fmt} image; routed to the EasyOCR lane",
+                pages_with_text_layer=0,
+                pages_below_threshold=max(ocr_result.pages, 1),
+                chars_per_page_avg=float(len(ocr_result.text)),
+            ),
+        )
+
     primary = extract_text_pymupdf(pdf_bytes)
     decision = _decide(primary)
 
