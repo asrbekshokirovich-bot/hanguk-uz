@@ -31,6 +31,11 @@ export interface ReviewQueueRow {
   reviewer_notes?: string | null;
   needs_attention?: boolean | null;
   status?: string | null;
+  // Added by migration 20260714000000 — the source document's classified
+  // admission cycle (guideline_documents.academic_year/semester). Optional so
+  // the UI keeps working before the migration/backfill are applied.
+  doc_academic_year?: number | null;
+  doc_semester?: string | null;
 }
 
 export type RejectionReason =
@@ -59,7 +64,6 @@ export function useReviewQueue(enabled = true) {
     refetchInterval: 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
-        // @ts-expect-error - view not in generated types yet
         .from('v_review_queue_dashboard')
         .select('*')
         .order('priority', { ascending: true })

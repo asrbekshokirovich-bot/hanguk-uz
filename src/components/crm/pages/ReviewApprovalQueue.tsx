@@ -32,6 +32,7 @@ import {
 } from '@/hooks/useReviewQueue';
 import { ReviewParsedOutput } from './ReviewParsedOutput';
 import { itemConfidence, confidencePct } from './reviewLogic';
+import { useActiveIntake } from '@/contexts/IntakeContext';
 import {
   parseReliability,
   rollupColor,
@@ -138,6 +139,37 @@ function ReliabilityBadge({ color }: { color: ReliabilityColor | null }) {
   return <Badge variant={reliabilityBadgeVariant(color)}>{RELIABILITY_LABEL[color]}</Badge>;
 }
 
+/**
+ * The source document's classified admission cycle (migration 20260714000000 +
+ * backfill_document_cycle.py). Warning-tinted when the document describes an
+ * OLDER cycle than the crawl target — the reviewer is looking at stale data.
+ */
+function CycleBadge({ row }: { row: ReviewQueueRow }) {
+  const { intakes } = useActiveIntake();
+  const year = row.doc_academic_year;
+  if (year == null) return null;
+  const term =
+    row.doc_semester === 'spring' ? 'Spring' : row.doc_semester === 'fall' ? 'Fall' : null;
+  const target = intakes.find((i) => i.is_default) ?? null;
+  const stale =
+    target != null &&
+    (year < target.year ||
+      (year === target.year && target.season === 'spring' && row.doc_semester === 'fall'));
+  return (
+    <Badge
+      variant={stale ? 'warning' : 'info'}
+      title={
+        stale
+          ? `Document describes the ${year} cycle — older than the crawl target`
+          : 'Admission cycle this document describes'
+      }
+    >
+      {year}학년도{term ? ` · ${term}` : ''}
+      {stale ? ' — stale' : ''}
+    </Badge>
+  );
+}
+
 function SectionCard({ row }: { row: ReviewQueueRow }) {
   const { accept, reject, flagSourceWrong } = useReviewActions();
   const [rejecting, setRejecting] = useState(false);
@@ -186,6 +218,7 @@ function SectionCard({ row }: { row: ReviewQueueRow }) {
       <div className="mb-2 flex flex-wrap items-center gap-2">
         <span className="text-sm font-medium">{label}</span>
         <ReliabilityBadge color={rel.color} />
+        <CycleBadge row={row} />
         {conf ? <Badge variant="neutral">confidence {conf}</Badge> : null}
       </div>
 

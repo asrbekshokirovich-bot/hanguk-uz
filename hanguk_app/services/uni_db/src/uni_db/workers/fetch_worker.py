@@ -154,18 +154,34 @@ async def insert_guideline_document(
     sha256: str,
     size_bytes: int,
     mime: str,
+    academic_year: int | None = None,
+    semester: str | None = None,
 ) -> UUID:
+    """Insert (or refresh) one stored guideline blob.
+
+    `academic_year` / `semester` carry the document's classified admission
+    cycle (from the identity gate) when known; existing values are never
+    clobbered with NULL on a re-fetch (coalesce in the conflict update).
+    """
+    if semester not in (None, "spring", "fall"):
+        semester = None  # anything else would violate the CHECK constraint
     await conn.execute(
         """
         insert into public.guideline_documents (
           id, institution_id, source_url_ko,
           storage_path, file_hash_sha256, file_size_bytes, mime_type,
-          fetched_at, parse_status, parsed_version, language
-        ) values ($1,$2,$3,$4,$5,$6,$7,$8,'pending',0,'ko')
-        on conflict (file_hash_sha256) do update set fetched_at = excluded.fetched_at
+          fetched_at, parse_status, parsed_version, language,
+          academic_year, semester
+        ) values ($1,$2,$3,$4,$5,$6,$7,$8,'pending',0,'ko',$9,$10)
+        on conflict (file_hash_sha256) do update
+          set fetched_at = excluded.fetched_at,
+              academic_year = coalesce(excluded.academic_year,
+                                       guideline_documents.academic_year),
+              semester = coalesce(excluded.semester, guideline_documents.semester)
         """,
         uuid4(), institution_id, source_url_ko, storage_path,
         sha256, size_bytes, mime, datetime.now(tz=timezone.utc),
+        academic_year, semester,
     )
     row = await conn.fetchrow(
         "select id from public.guideline_documents where file_hash_sha256 = $1",
