@@ -61,7 +61,7 @@ class TestCycleWindow:
 class TestSharedEventTypeTable:
     def test_both_lanes_read_the_same_order_table(self) -> None:
         # verify/checks orders on the canonical table — not its own copy.
-        assert _CAL_ORDER == list(CALENDAR_EVENT_ORDER)
+        assert list(CALENDAR_EVENT_ORDER) == _CAL_ORDER
         assert "documents_deadline" in _CAL_ORDER
         assert "document_submission_deadline" not in _CAL_ORDER
 

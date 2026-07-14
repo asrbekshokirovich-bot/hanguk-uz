@@ -82,6 +82,8 @@ ResolverFn = Callable[
 def _build_registry() -> dict[str, ResolverFn]:
     from .generic_attachment import (
         resolve as resolve_generic,
+    )
+    from .generic_attachment import (
         resolve_daedong,
         resolve_dongguk_wise,
         resolve_ikw,

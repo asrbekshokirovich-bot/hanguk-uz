@@ -37,6 +37,7 @@ import httpx
 from ..discovery.adapters.naver_search_adapter import NaverSearchAdapter
 from ..discovery.models import Announcement
 from ..parse.cycle_detect import cycle_is_older
+from ..verify.models import IdentityVerdict
 from ..watchdog import watchdog
 from .direct_ingest_worker import resolve_to_pdf
 from .fetch_worker import (
@@ -46,7 +47,6 @@ from .fetch_worker import (
     _StoreBlob,
     insert_guideline_document,
 )
-from ..verify.models import IdentityVerdict
 from .propose_worker import registrable_domain
 
 log = logging.getLogger(__name__)
@@ -98,7 +98,7 @@ class IdentityDecision:
 
     decision: str  # accept | reject | stale | unreadable | error
     note: str
-    verdict: "IdentityVerdict | None" = None
+    verdict: IdentityVerdict | None = None
 
 
 # (pdf_bytes, institution_row) -> IdentityDecision. Legacy callables returning
@@ -112,7 +112,7 @@ RecordNoteFn = Callable[
 ]
 
 
-def _normalize_identity(result: "IdentityDecision | bool") -> IdentityDecision:
+def _normalize_identity(result: IdentityDecision | bool) -> IdentityDecision:
     if isinstance(result, IdentityDecision):
         return result
     if result:
