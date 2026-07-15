@@ -230,6 +230,15 @@ REQUIREMENTS_SCHEMA: dict[str, Any] = {
                     "is_correction_notice":    {"type": "boolean"},
                     "correction_text_ko":      {"type": ["string", "null"]},
                     "source_text_ko":          {"type": "string"},
+                    # Uzbek siblings for the review UI (additive — the `_ko`
+                    # fields above stay verbatim Korean). See the "Uzbek
+                    # translations" prompt addendum in prompt_assembler.py.
+                    "applicant_category_uz":   {"type": ["string", "null"]},
+                    "majors_uz":               {"type": ["array", "null"], "items": {"type": "string"}},
+                    "prose_uz":                {"type": ["string", "null"]},
+                    "notes_uz":                {"type": ["string", "null"]},
+                    "correction_text_uz":      {"type": ["string", "null"]},
+                    "source_text_uz":          {"type": ["string", "null"]},
                     "extractor_confidence":    {"type": "number", "minimum": 0, "maximum": 1},
                 },
             },
@@ -393,6 +402,16 @@ RECRUITMENT_UNITS_SCHEMA: dict[str, Any] = {
                     "correction_text_ko":   {"type": ["string", "null"]},
                     "notes_ko":             {"type": ["string", "null"]},
                     "source_text_ko":       {"type": "string"},
+                    # Uzbek siblings for the review UI (additive — `_ko` stays
+                    # verbatim Korean). See the Uzbek prompt addendum.
+                    "faculty_uz":            {"type": ["string", "null"]},
+                    "division_uz":           {"type": ["string", "null"]},
+                    "department_uz":         {"type": ["string", "null"]},
+                    "major_track_uz":        {"type": ["string", "null"]},
+                    "applicant_category_uz": {"type": ["string", "null"]},
+                    "correction_text_uz":    {"type": ["string", "null"]},
+                    "notes_uz":              {"type": ["string", "null"]},
+                    "source_text_uz":        {"type": ["string", "null"]},
                     "extractor_confidence": {"type": "number", "minimum": 0, "maximum": 1},
                 },
             },
