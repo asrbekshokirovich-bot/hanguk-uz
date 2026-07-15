@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../data/admin_review_providers.dart';
 import '../domain/review_queue_item.dart';
+import '../domain/uzbek_projection.dart';
 
 /// `/admin/review` — the in-office reviewer's HITL surface.
 ///
@@ -230,7 +231,7 @@ class _PriorityBadge extends StatelessWidget {
   }
 }
 
-class _DetailPane extends StatelessWidget {
+class _DetailPane extends StatefulWidget {
   const _DetailPane({
     required this.item,
     required this.busy,
@@ -248,10 +249,26 @@ class _DetailPane extends StatelessWidget {
   onReject;
 
   @override
+  State<_DetailPane> createState() => _DetailPaneState();
+}
+
+class _DetailPaneState extends State<_DetailPane> {
+  /// Reviewers read Uzbek by default; the toggle reveals the raw Korean-source
+  /// payload for cross-checking against the original guideline. Display-only —
+  /// the stored payload and everything sent to accept/edit stays Korean.
+  bool _showOriginal = false;
+
+  @override
   Widget build(BuildContext context) {
-    final formattedJson = const JsonEncoder.withIndent(
-      '  ',
-    ).convert(item.parsedOutput);
+    final item = widget.item;
+    final busy = widget.busy;
+
+    final hasUzbek = payloadHasUzbek(item.parsedOutput);
+    final display = _showOriginal
+        ? item.parsedOutput
+        : localizeToUzbek(item.parsedOutput);
+    final formattedJson = const JsonEncoder.withIndent('  ').convert(display);
+
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -287,12 +304,51 @@ class _DetailPane extends StatelessWidget {
               alignment: Alignment.centerLeft,
               child: TextButton.icon(
                 icon: const Icon(Icons.open_in_new),
-                label: const Text('Open source page (한국어)'),
+                label: const Text('Manba sahifasi (한국어)'),
                 onPressed: () => _launchPdf(context, item.sourceUrlKo!),
               ),
             ),
           const SizedBox(height: 8),
-          const Text('Extracted payload:'),
+          // Payload header + Uzbek / original toggle.
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  _showOriginal
+                      ? 'Asl nusxa (manba tili):'
+                      : "Ajratib olingan ma'lumot (o'zbekcha):",
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+              ),
+              TextButton.icon(
+                icon: Icon(
+                  _showOriginal
+                      ? Icons.translate
+                      : Icons.description_outlined,
+                  size: 18,
+                ),
+                label: Text(_showOriginal ? "O'zbekcha" : 'Asl nusxa'),
+                onPressed: () =>
+                    setState(() => _showOriginal = !_showOriginal),
+              ),
+            ],
+          ),
+          if (!hasUzbek && !_showOriginal)
+            Container(
+              width: double.infinity,
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.amber.shade50,
+                border: Border.all(color: Colors.amber.shade200),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                "Bu yozuv hali o'zbek tiliga tarjima qilinmagan (eski "
+                "ma'lumot). Quyida asl matn ko'rsatilmoqda.",
+                style: TextStyle(fontSize: 12, color: Colors.amber.shade900),
+              ),
+            ),
           const SizedBox(height: 4),
           Expanded(
             child: SingleChildScrollView(
@@ -317,7 +373,7 @@ class _DetailPane extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               FilledButton(
-                onPressed: busy ? null : () => onAccept(item),
+                onPressed: busy ? null : () => widget.onAccept(item),
                 child: const Text('Accept'),
               ),
             ],
@@ -328,12 +384,14 @@ class _DetailPane extends StatelessWidget {
   }
 
   Future<void> _editAccept(BuildContext context) async {
+    // Editing always operates on the raw Korean-source payload — the Uzbek
+    // projection is display-only and never leaves this screen.
     final corrected = await showDialog<Map<String, dynamic>>(
       context: context,
-      builder: (_) => _EditPayloadDialog(initial: item.parsedOutput),
+      builder: (_) => _EditPayloadDialog(initial: widget.item.parsedOutput),
     );
     if (corrected != null) {
-      await onEditAccept(item, corrected);
+      await widget.onEditAccept(widget.item, corrected);
     }
   }
 
@@ -343,7 +401,7 @@ class _DetailPane extends StatelessWidget {
       builder: (_) => const _RejectReasonDialog(),
     );
     if (result != null) {
-      await onReject(item, result.reason, result.detail);
+      await widget.onReject(widget.item, result.reason, result.detail);
     }
   }
 
