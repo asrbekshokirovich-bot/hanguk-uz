@@ -1218,7 +1218,14 @@
     "tui": {
       "faculty": "Факультет",
       "perSemester": "Контракт / семестр",
-      "admissionFee": "Вступительный взнос"
+      "admissionFee": "Вступительный взнос",
+      "fac": {
+        "social": "Социальные науки",
+        "arts_pe": "Искусство и физкультура",
+        "humanities": "Гуманитарные науки",
+        "engineering": "Инженерия",
+        "natural_science": "Естественные науки"
+      }
     },
     "docs": {
       "required": "Обязателен",
@@ -1231,7 +1238,10 @@
       "waiver": "Скидка на контракт",
       "stipendMonthly": "{{amount}} в месяц",
       "stipend": "Ежемесячная стипендия",
-      "airfare": "Авиабилет"
+      "airfare": "Авиабилет",
+      "awardType": {
+        "other": "Другое"
+      }
     },
     "states": {
       "error": "Не удалось загрузить данные: {{message}}",
