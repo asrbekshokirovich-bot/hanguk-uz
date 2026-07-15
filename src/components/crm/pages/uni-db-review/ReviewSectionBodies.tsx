@@ -227,7 +227,7 @@ function heritageLine(t: TFunction, r: Record<string, unknown>): string {
   const bits: string[] = [];
   if (typeof r.topik_min_level === 'number') bits.push(`TOPIK ${r.topik_min_level}`);
   if (r.gpa_floor_pct !== null && r.gpa_floor_pct !== undefined) bits.push(`GPA ${r.gpa_floor_pct}%+`);
-  const prose = str(r.prose_ko);
+  const prose = str(r.prose_uz) ?? str(r.prose_ko);
   if (bits.length === 0 && prose) return prose.length > 70 ? `${prose.slice(0, 70)}…` : prose;
   return bits.length ? bits.join(' · ') : t('uniReview.ns');
 }
@@ -244,15 +244,18 @@ export function RequirementsBody({ row }: { row: ReviewQueueRow }) {
     <div className="flex flex-col gap-3">
       {foreign.length === 0 && heritage.length === 0 ? <Ns className="text-[13px]" /> : null}
       {foreign.map(({ r, track }, i) => {
-        const cat = str(r.applicant_category);
+        const cat = str(r.applicant_category_uz) ?? str(r.applicant_category);
         const overline =
           track === 'foreign'
             ? t('uniReview.req.foreignTrack', { cat: cat ?? t('uniReview.req.defaultCat') })
             : cat;
-        const majors = Array.isArray(r.majors)
-          ? (r.majors as unknown[]).filter((m) => typeof m === 'string').join(', ')
-          : str(r.majors);
-        const prose = str(r.prose_ko);
+        const majorsSrc = r.majors_uz ?? r.majors;
+        const majors = Array.isArray(majorsSrc)
+          ? (majorsSrc as unknown[]).filter((m) => typeof m === 'string').join(', ')
+          : str(majorsSrc);
+        const proseUz = str(r.prose_uz);
+        const prose = proseUz ?? str(r.prose_ko);
+        const proseLang = proseUz ? 'uz' : 'ko';
         return (
           <div key={i} className="flex flex-col gap-2.5">
             <div className="text-xs font-semibold uppercase tracking-[0.05em] text-muted-foreground/80">
@@ -282,7 +285,7 @@ export function RequirementsBody({ row }: { row: ReviewQueueRow }) {
             {prose ? (
               <div
                 className="rounded-[10px] border border-border/60 bg-secondary/50 p-2.5 px-3.5 text-[12.5px] leading-relaxed text-muted-foreground"
-                lang="ko"
+                lang={proseLang}
               >
                 {prose}
               </div>
@@ -312,7 +315,7 @@ export function RequirementsBody({ row }: { row: ReviewQueueRow }) {
                   className="flex min-w-0 items-baseline justify-between gap-3 rounded-[10px] border border-dashed border-border bg-secondary/50 px-3.5 py-2"
                 >
                   <span className="break-words text-[12.5px] font-medium text-muted-foreground/80">
-                    {str(r.applicant_category) ?? <Ns />}
+                    {str(r.applicant_category_uz) ?? str(r.applicant_category) ?? <Ns />}
                   </span>
                   <span className="min-w-0 break-words text-right text-xs text-muted-foreground/80">
                     {heritageLine(t, r)}
@@ -388,8 +391,14 @@ export function DocumentsBody({ row }: { row: ReviewQueueRow }) {
       {rows.map((r, i) => {
         const optional = r.is_required === false;
         const name =
-          humanize(r.document_type) ?? str(r.label_ko) ?? str(r.document_name_ko) ?? null;
-        const note = str(r.notes_ko);
+          str(r.label_uz) ??
+          humanize(r.document_type) ??
+          str(r.label_ko) ??
+          str(r.document_name_ko) ??
+          null;
+        const noteUz = str(r.notes_uz);
+        const note = noteUz ?? str(r.notes_ko);
+        const noteLang = noteUz ? 'uz' : 'ko';
         const deadline = fmtDateKST(r.deadline);
         return (
           <div
@@ -406,7 +415,7 @@ export function DocumentsBody({ row }: { row: ReviewQueueRow }) {
                 {name ?? <Ns />}
               </span>
               {note ? (
-                <span className="break-words text-[11.5px] text-muted-foreground/80" lang="ko">
+                <span className="break-words text-[11.5px] text-muted-foreground/80" lang={noteLang}>
                   {note}
                 </span>
               ) : null}
@@ -491,13 +500,15 @@ export function ScholarshipsBody({ row }: { row: ReviewQueueRow }) {
   return (
     <div className="flex flex-col gap-1">
       {rows.map((r, i) => {
-        const name = str(r.name_en) ?? str(r.name_ko);
+        const name = str(r.name_uz) ?? str(r.name_en) ?? str(r.name_ko);
         const award = awardLabel(t, r.award_type, r.award_value);
         const tiers = [
           ...tierChips(t, r.topik_tier_table, 'topik_level', 'TOPIK'),
           ...tierChips(t, r.ielts_tier_table, 'ielts_min', 'IELTS'),
         ];
-        const note = str(r.prose_ko);
+        const noteUz = str(r.prose_uz);
+        const note = noteUz ?? str(r.prose_ko);
+        const noteLang = noteUz ? 'uz' : 'ko';
         return (
           <div key={i} className="flex flex-col gap-2 border-b border-border/60 px-0.5 py-2.5">
             <div className="flex flex-wrap items-center gap-2.5">
@@ -524,7 +535,7 @@ export function ScholarshipsBody({ row }: { row: ReviewQueueRow }) {
               </div>
             ) : null}
             {note ? (
-              <span className="text-xs text-muted-foreground/80" lang="ko">
+              <span className="text-xs text-muted-foreground/80" lang={noteLang}>
                 {note}
               </span>
             ) : null}
