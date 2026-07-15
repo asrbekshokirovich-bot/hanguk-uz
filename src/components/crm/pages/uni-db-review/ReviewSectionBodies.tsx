@@ -348,6 +348,7 @@ export function TuitionBody({ row, noteDetail }: { row: ReviewQueueRow; noteDeta
       </div>
       {rows.map((r, i) => {
         const fac = str(r.faculty_group);
+        const facLabel = fac ? t(`uniReview.tui.fac.${fac}`, { defaultValue: fac }) : null;
         const warn = !!fac && !!noteDetail && noteDetail.includes(fac);
         const sem = fmtKRW(r.amount_krw);
         const fee = fmtKRW(r.admission_fee_krw ?? r.admission_fee);
@@ -357,7 +358,7 @@ export function TuitionBody({ row, noteDetail }: { row: ReviewQueueRow; noteDeta
             className="grid min-w-[520px] grid-cols-[minmax(0,1fr)_170px_140px] items-baseline gap-3 border-t border-border/60 px-3.5 py-[9px]"
           >
             <span className="inline-flex min-w-0 items-center gap-1.5 text-[13px] font-semibold">
-              <span className="min-w-0 break-words">{fac ?? <Ns />}</span>
+              <span className="min-w-0 break-words">{facLabel ?? <Ns />}</span>
               {warn ? <AlertTriangle className="h-[13px] w-[13px] shrink-0 text-warning" /> : null}
             </span>
             <span
@@ -471,7 +472,7 @@ function awardLabel(t: TFunction, type: unknown, value: unknown): string | null 
     return krw ? t('uniReview.sch.stipendMonthly', { amount: krw }) : t('uniReview.sch.stipend');
   }
   if (ty === 'airfare') return t('uniReview.sch.airfare');
-  if (ty) return humanize(ty);
+  if (ty) return t(`uniReview.sch.awardType.${ty}`, { defaultValue: humanize(ty) });
   return null;
 }
 

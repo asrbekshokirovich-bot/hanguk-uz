@@ -1183,7 +1183,14 @@
     "tui": {
       "faculty": "계열",
       "perSemester": "등록금 / 학기",
-      "admissionFee": "입학금"
+      "admissionFee": "입학금",
+      "fac": {
+        "social": "사회계열",
+        "arts_pe": "예체능계열",
+        "humanities": "인문계열",
+        "engineering": "공학계열",
+        "natural_science": "자연과학계열"
+      }
     },
     "docs": {
       "required": "필수",
@@ -1196,7 +1203,10 @@
       "waiver": "등록금 감면",
       "stipendMonthly": "월 {{amount}}",
       "stipend": "월 장학금",
-      "airfare": "항공권"
+      "airfare": "항공권",
+      "awardType": {
+        "other": "기타"
+      }
     },
     "states": {
       "error": "데이터를 불러오지 못했습니다: {{message}}",

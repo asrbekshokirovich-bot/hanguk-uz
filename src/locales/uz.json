@@ -1218,7 +1218,14 @@
     "tui": {
       "faculty": "Fakultet",
       "perSemester": "Kontrakt / semestr",
-      "admissionFee": "Kirish to'lovi"
+      "admissionFee": "Kirish to'lovi",
+      "fac": {
+        "social": "Ijtimoiy fanlar",
+        "arts_pe": "San'at va jismoniy tarbiya",
+        "humanities": "Gumanitar fanlar",
+        "engineering": "Muhandislik",
+        "natural_science": "Tabiiy fanlar"
+      }
     },
     "docs": {
       "required": "Majburiy",
@@ -1231,7 +1238,10 @@
       "waiver": "Kontrakt chegirmasi",
       "stipendMonthly": "Oyiga {{amount}}",
       "stipend": "Oylik stipendiya",
-      "airfare": "Aviachipta"
+      "airfare": "Aviachipta",
+      "awardType": {
+        "other": "Boshqa"
+      }
     },
     "states": {
       "error": "Ma'lumotni yuklab bo'lmadi: {{message}}",
