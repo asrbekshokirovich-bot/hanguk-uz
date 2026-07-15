@@ -128,6 +128,44 @@ def _footnote_addendum() -> str:
     )
 
 
+def _uzbek_translation_addendum() -> str:
+    """Reviewers read the extraction in Uzbek, so every human-readable
+    Korean text field must ship with an Uzbek sibling.
+
+    This is ADDITIVE — the `_ko` fields stay verbatim Korean (the pipeline's
+    source of truth for the downstream publish/translate stages), and we add a
+    parallel `_uz` field for the review UI. See extract/schemas.py, where the
+    strict field groups (requirements, recruitment_units) declare the `_uz`
+    fields explicitly; the additive groups accept them via additionalProperties.
+    """
+    return (
+        "## Uzbek translations (REQUIRED — reviewers read Uzbek)\n\n"
+        "For EVERY field whose key ends in `_ko` and holds human-readable text "
+        "(e.g. `prose_ko`, `notes_ko`, `name_ko`, `source_text_ko`, "
+        "`faculty_ko`, `department_ko`, `division_ko`, `major_track_ko`, "
+        "`correction_text_ko`), you MUST also emit a sibling field with the "
+        "same base name and a `_uz` suffix (`prose_uz`, `notes_uz`, `name_uz`, "
+        "`source_text_uz`, …) containing a faithful, fluent Uzbek translation "
+        "in the Latin alphabet.\n\n"
+        "Additionally, for Korean text carried in fields that do NOT use the "
+        "`_ko` suffix, emit an Uzbek sibling too: `applicant_category` → "
+        "`applicant_category_uz` (string), and `majors` → `majors_uz` (an "
+        "array of the same length and order).\n\n"
+        "Rules:\n"
+        "- Keep the original `_ko` / Korean fields EXACTLY as extracted — never "
+        "replace Korean with Uzbek. The `_uz` field is an addition, not a "
+        "substitution.\n"
+        "- Translate the full meaning naturally into Uzbek; do not leave Korean "
+        "or English inside a `_uz` field. Proper nouns (university, department "
+        "names) may be transliterated into Uzbek Latin script.\n"
+        "- Do NOT translate or alter numbers, dates/times, ISO strings, "
+        "booleans, `null`, enum/status codes (e.g. `apply_open`, `not_required`, "
+        "`tuition_waiver_pct`), or test names. Those stay byte-for-byte.\n"
+        "- If a `_ko` field is null or absent, its `_uz` sibling is null or "
+        "absent too.\n"
+    )
+
+
 def assemble_prompt(
     *,
     field_group: FieldGroup,
@@ -157,6 +195,7 @@ def assemble_prompt(
             archetype_md,
             _correction_notice_addendum(),
             _footnote_addendum(),
+            _uzbek_translation_addendum(),
             "## Output\n\nReturn ONLY a JSON object that validates against "
             f"`{schema_name}` (defined in extract/schemas.py). "
             "No prose, no markdown code fences, no commentary.",
