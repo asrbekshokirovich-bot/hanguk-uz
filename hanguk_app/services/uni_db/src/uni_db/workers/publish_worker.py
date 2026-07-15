@@ -66,6 +66,7 @@ class PublishRun:
     skipped: int            # empty/failed payloads, or unknown field group
     held: int               # approved but withheld — source is a past cycle
     errors: int
+    flagged: int = 0        # published but needs_attention raised by a freshness signal
 
 
 # --------------------------------------------------------------------------- #
@@ -140,6 +141,61 @@ def is_stale_cycle(payload: dict, source_url: object, *, floor: int) -> bool:
     genuinely-current data that simply omits a year still publishes."""
     years = detected_years(payload, source_url)
     return bool(years) and max(years) < floor
+
+
+# Freshness signals *beyond* past-cycle staleness (audit Phase 6, triggers 2-4).
+# Unlike is_stale_cycle these never withhold — they raise needs_attention so a
+# human re-confirms the source. Pure string checks; no IO.
+
+# Tokens a *current* Korean guideline should no longer request. 호적등본 (family-
+# register copy) was abolished in 2008 and replaced by 가족관계증명서 / 기본증명서;
+# its presence means the source predates that reform (audit: Chodang).
+_OBSOLETE_TOKENS: tuple[str, ...] = ("호적등본", "호적초본")
+
+# File kinds that count as "a real document was linked".
+_DOC_EXTS: tuple[str, ...] = (".pdf", ".hwp", ".hwpx", ".doc", ".docx")
+
+# Substrings that mark a notice-board / index / opaque-handle URL rather than a
+# dated 모집요강 (audit D1/D6). Only consulted when NO document extension is
+# present, so a direct PDF is never mis-flagged.
+_INDEX_URL_HINTS: tuple[str, ...] = (
+    "notice.asp", "list.do", "view.do", "mode=view", "articleno",
+    "/bbs", "/board", "boardview", "menu_id", "fileseq", "bn=", "?menu",
+)
+
+
+def is_index_page_source(source_url: object) -> bool:
+    """True when the URL looks like a notice-board / index / opaque handle instead
+    of a direct guideline document. A .pdf/.hwp/… anywhere in the URL wins, so a
+    real document is never flagged."""
+    if not isinstance(source_url, str) or not source_url.strip():
+        return False
+    url = source_url.lower()
+    if any(ext in url for ext in _DOC_EXTS):
+        return False
+    return any(hint in url for hint in _INDEX_URL_HINTS)
+
+
+def obsolete_tokens(payload: dict) -> tuple[str, ...]:
+    """Obsolete document tokens present in the payload (e.g. the abolished
+    호적등본), order-stable and de-duplicated."""
+    blob = json.dumps(payload, ensure_ascii=False)
+    return tuple(t for t in _OBSOLETE_TOKENS if t in blob)
+
+
+def freshness_flags(payload: dict, source_url: object) -> tuple[str, ...]:
+    """Non-blocking freshness reason codes for a payload that is NOT past-cycle
+    stale: 'missing_year' (no year in payload or URL — needs human year
+    confirmation), 'index_page_source' (source is an index/opaque handle, not a
+    dated 요강), and 'obsolete_token:<tok>' per abolished token found. Empty tuple
+    means clean."""
+    flags: list[str] = []
+    if not detected_years(payload, source_url):
+        flags.append("missing_year")
+    if is_index_page_source(source_url):
+        flags.append("index_page_source")
+    flags.extend(f"obsolete_token:{t}" for t in obsolete_tokens(payload))
+    return tuple(flags)
 
 
 def infer_term(payload: dict) -> str:
@@ -633,7 +689,7 @@ async def publish_pending(conn: asyncpg.Connection, *, limit: int = 200) -> Publ
     """Normalize approved, not-yet-published review items into the public tables."""
     records = await conn.fetch(_FETCH_SQL, limit)
     log.info("publish_worker: %d approved item(s) to publish", len(records))
-    published = rows_written = skipped = held = errors = 0
+    published = rows_written = skipped = held = errors = flagged = 0
     default_year = datetime.now(tz=timezone.utc).year + 1
     floor = _min_publishable_year()
     for rec in records:
@@ -656,6 +712,18 @@ async def publish_pending(conn: asyncpg.Connection, *, limit: int = 200) -> Publ
         # Auto-gate flag (from review_queue) carried onto every published row.
         rec["_na"] = bool(rec.get("needs_attention", False))
         rec["_ar"] = rec.get("attention_reason")
+        # Freshness guard (audit Phase 6): flag — never withhold — a row whose
+        # source is an index page, whose payload carries an obsolete document
+        # token (e.g. 호적등본), or that has no year anywhere. Past-cycle data is
+        # already held above; Korean source fields are untouched.
+        _flags = freshness_flags(payload, rec.get("source_url_ko"))
+        if _flags:
+            flagged += 1
+            rec["_na"] = True
+            _reason = "freshness: " + ", ".join(_flags)
+            rec["_ar"] = f"{rec['_ar']}; {_reason}" if rec.get("_ar") else _reason
+            log.info("publish_worker: FLAG %s (%s) — %s",
+                     str(rec["queue_id"])[:8], rec["field_group"], _reason)
         try:
             n = await publisher(conn, rec, payload)
         except Exception as exc:  # one bad item must not abort the batch
@@ -672,6 +740,7 @@ async def publish_pending(conn: asyncpg.Connection, *, limit: int = 200) -> Publ
     return PublishRun(
         approved_seen=len(records), published=published,
         rows_written=rows_written, skipped=skipped, held=held, errors=errors,
+        flagged=flagged,
     )
 
 
