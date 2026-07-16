@@ -215,6 +215,7 @@ export function StudentDetail({
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [addPaymentDialogOpen, setAddPaymentDialogOpen] = useState(false);
+  const [degreeSaving, setDegreeSaving] = useState<string | null>(null);
   const [suggestUniversityDialogOpen, setSuggestUniversityDialogOpen] = useState(false);
   const [existingSuggestedUniversityIds, setExistingSuggestedUniversityIds] = useState<string[]>([]);
   const [suggestedUniversitiesList, setSuggestedUniversitiesList] = useState<any[]>([]);
@@ -501,6 +502,33 @@ export function StudentDetail({
     } else {
       toast({ title: 'Failed to delete payment', variant: 'destructive' });
     }
+  };
+
+  // Set the applicant track (bachelor/master/gks) for ALL of this student's
+  // applications at once — lets staff backfill the degree on students that were
+  // created before the picker existed. Saves to applications.degree_level.
+  const handleSetDegree = async (value: string) => {
+    setDegreeSaving(value);
+    const { data, error } = await supabase
+      .from('applications')
+      .update({ degree_level: value })
+      .eq('student_id', student.user_id)
+      .select('id');
+    setDegreeSaving(null);
+    if (error) {
+      toast({ title: t('common.error'), description: error.message, variant: 'destructive' });
+      return;
+    }
+    if (!data || data.length === 0) {
+      toast({
+        title: t('common.error'),
+        description: "Bu talabaning arizasi yo'q — avval universitetga biriktiring.",
+        variant: 'destructive',
+      });
+      return;
+    }
+    toast({ title: t('common.success', { defaultValue: 'Saqlandi' }) });
+    onRefresh();
   };
 
   // Legacy handleFileUpload removed — only slot-based upload is used now
@@ -799,6 +827,7 @@ export function StudentDetail({
   // Get current application status
   const latestApp = student.applications?.[0];
   const currentStatusIndex = latestApp ? allStatusSteps.indexOf(latestApp.status) : -1;
+  const currentDegree = student.applications?.find((a) => a.degree_level)?.degree_level ?? null;
 
   const isStepCompleted = (stepKey: string) => {
     const stepIndex = allStatusSteps.indexOf(stepKey);
@@ -1050,6 +1079,27 @@ export function StudentDetail({
                   <div className="flex items-center gap-2 bg-muted/50 rounded-lg p-3">
                     <MapPin className="h-4 w-4 text-muted-foreground" />
                     <span className="text-foreground">{student.office_location || '-'}</span>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-muted-foreground">{t('applications.selectDegree', { defaultValue: 'Daraja' })}</Label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { value: 'bachelor', label: t('applications.degreeBachelor', { defaultValue: 'Bakalavr' }) },
+                      { value: 'master', label: t('applications.degreeMaster', { defaultValue: 'Magistratura' }) },
+                      { value: 'gks', label: t('applications.degreeGks', { defaultValue: 'GKS' }) },
+                    ].map((opt) => (
+                      <Button
+                        key={opt.value}
+                        type="button"
+                        variant={currentDegree === opt.value ? 'default' : 'outline'}
+                        disabled={degreeSaving !== null}
+                        onClick={() => handleSetDegree(opt.value)}
+                      >
+                        {opt.label}
+                      </Button>
+                    ))}
                   </div>
                 </div>
 
