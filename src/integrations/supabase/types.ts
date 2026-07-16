@@ -863,6 +863,7 @@ export type Database = {
           created_at: string
           decision: string | null
           decision_at: string | null
+          degree_level: string | null
           id: string
           institution_id: string | null
           intake_id: string | null
@@ -877,6 +878,7 @@ export type Database = {
           created_at?: string
           decision?: string | null
           decision_at?: string | null
+          degree_level?: string | null
           id?: string
           institution_id?: string | null
           intake_id?: string | null
@@ -891,6 +893,7 @@ export type Database = {
           created_at?: string
           decision?: string | null
           decision_at?: string | null
+          degree_level?: string | null
           id?: string
           institution_id?: string | null
           intake_id?: string | null

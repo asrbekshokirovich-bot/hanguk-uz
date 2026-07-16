@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -72,7 +73,7 @@ interface ApplicationsContentProps {
   onOpenStudent: (student: StudentProfile) => void;
   onUpdateApplicationStatus: (id: string, status: string) => Promise<{ error: unknown }>;
   /** Attach a student to a university → creates their application row. */
-  onCreateApplication: (studentId: string, institutionId: string) => Promise<{ error: unknown }>;
+  onCreateApplication: (studentId: string, institutionId: string, degreeLevel: string) => Promise<{ error: unknown }>;
 }
 
 const STAGE_ORDER: Stage[] = ['new', 'documents', 'review', 'submitted', 'decision'];
@@ -140,18 +141,7 @@ const AVATAR_TONES = [
   'bg-warning/10 text-warning',
 ];
 
-// --- UI-only placeholders (schema has no program/intake/deadline column) ----
-const PROGRAMS = [
-  'Computer Science',
-  'Business Administration',
-  'Korean Language & Literature',
-  'Mechanical Engineering',
-  'International Trade',
-  'Electrical Engineering',
-  'Media & Communication',
-  'Global Economics',
-];
-
+// --- UI-only placeholders (schema has no intake/deadline column) -------------
 function hashInt(seed: string) {
   let hash = 0;
   for (let i = 0; i < seed.length; i += 1) hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
@@ -169,10 +159,6 @@ function getInitials(name: string | null) {
 
 function firstName(name: string | null) {
   return (name || '—').split(' ')[0];
-}
-
-function placeholderProgram(id: string) {
-  return PROGRAMS[hashInt(`${id}p`) % PROGRAMS.length];
 }
 
 function placeholderIntake(id: string): Intake {
@@ -260,6 +246,12 @@ export default function ApplicationsContent({
     decision: t('applications.colDecision'),
   };
 
+  const degreeLabel: Record<string, string> = {
+    bachelor: t('applications.degreeBachelor', { defaultValue: 'Bakalavr' }),
+    master: t('applications.degreeMaster', { defaultValue: 'Magistratura' }),
+    gks: t('applications.degreeGks', { defaultValue: 'GKS' }),
+  };
+
   const studentByUserId = useMemo(() => {
     const map = new Map<string, StudentProfile>();
     for (const s of students) map.set(s.user_id, s);
@@ -282,7 +274,7 @@ export default function ApplicationsContent({
           university: app.university ?? null,
           stage,
           stageIdx: STAGE_ORDER.indexOf(stage),
-          program: placeholderProgram(app.id),
+          degree: app.degree_level,
           intake: placeholderIntake(app.id),
           office: student?.office_location ?? null,
           deadline,
@@ -419,9 +411,9 @@ export default function ApplicationsContent({
   };
 
   // Inside a university, "Attach student" → pick a student → create the app.
-  const handleCreateApplication = async (studentId: string) => {
+  const handleCreateApplication = async (studentId: string, degreeLevel: string) => {
     if (!openUniId) return;
-    const { error } = await onCreateApplication(studentId, openUniId);
+    const { error } = await onCreateApplication(studentId, openUniId, degreeLevel);
     if (error) {
       const code = (error as { code?: string })?.code;
       toast.error(
@@ -573,7 +565,7 @@ export default function ApplicationsContent({
                           </Avatar>
                           <div className="min-w-0 flex-1">
                             <div className="truncate text-[12px] font-semibold text-foreground">{r.student?.full_name || '—'}</div>
-                            <div className="truncate text-[11px] text-muted-foreground">{r.program}</div>
+                            <div className="truncate text-[11px] text-muted-foreground">{r.degree ? degreeLabel[r.degree] : '—'}</div>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
@@ -937,11 +929,18 @@ function StudentPickerDialog({
   students: StudentProfile[];
   appliedStudentIds: Set<string>;
   universityName: string;
-  onCreate: (studentId: string) => Promise<void>;
+  onCreate: (studentId: string, degreeLevel: string) => Promise<void>;
   t: TFunc;
 }) {
   const [search, setSearch] = useState('');
   const [savingId, setSavingId] = useState<string | null>(null);
+  const [degree, setDegree] = useState('bachelor');
+
+  const DEGREE_OPTIONS = [
+    { value: 'bachelor', label: t('applications.degreeBachelor', { defaultValue: 'Bakalavr' }) },
+    { value: 'master', label: t('applications.degreeMaster', { defaultValue: 'Magistratura' }) },
+    { value: 'gks', label: t('applications.degreeGks', { defaultValue: 'GKS' }) },
+  ];
 
   const filtered = useMemo(() => {
     const sorted = [...students].sort((a, b) =>
@@ -959,7 +958,7 @@ function StudentPickerDialog({
   const pick = async (s: StudentProfile) => {
     if (appliedStudentIds.has(s.user_id) || savingId) return;
     setSavingId(s.user_id);
-    await onCreate(s.user_id);
+    await onCreate(s.user_id, degree);
     setSavingId(null);
   };
 
@@ -978,6 +977,25 @@ function StudentPickerDialog({
             })}
           </DialogDescription>
         </DialogHeader>
+
+        <div className="space-y-1.5">
+          <Label className="text-xs font-medium text-muted-foreground">
+            {t('applications.selectDegree', { defaultValue: 'Daraja' })}
+          </Label>
+          <div className="grid grid-cols-3 gap-2">
+            {DEGREE_OPTIONS.map((opt) => (
+              <Button
+                key={opt.value}
+                type="button"
+                size="sm"
+                variant={degree === opt.value ? 'default' : 'outline'}
+                onClick={() => setDegree(opt.value)}
+              >
+                {opt.label}
+              </Button>
+            ))}
+          </div>
+        </div>
 
         <div className="relative">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />

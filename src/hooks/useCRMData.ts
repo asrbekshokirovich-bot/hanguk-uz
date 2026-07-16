@@ -241,11 +241,12 @@ export function useCRMData() {
   // in the "New" stage (NOT 'pending_approval', which is a student-side request
   // awaiting staff approval). The (student_id, institution_id) UNIQUE constraint
   // guards against duplicates — the error is surfaced to the caller.
-  const createApplication = async (studentId: string, institutionId: string) => {
+  const createApplication = async (studentId: string, institutionId: string, degreeLevel?: string) => {
     const { error } = await supabase.from('applications').insert({
       student_id: studentId,
       institution_id: institutionId,
       status: 'pending',
+      ...(degreeLevel ? { degree_level: degreeLevel } : {}),
       ...(activeIntakeId ? { intake_id: activeIntakeId } : {}),
     });
 
