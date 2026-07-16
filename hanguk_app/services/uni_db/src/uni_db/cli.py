@@ -103,6 +103,15 @@ def _build_parser() -> argparse.ArgumentParser:
                               help="institutions.id (UUID) the PDF belongs to")
     p_ingest_url.add_argument("--url", required=True,
                               help="Direct URL of the 모집요강 PDF (or a page that resolves to one)")
+    p_ingest_url.add_argument("--year", type=int, default=None,
+                              help="Target academic year (학년도) the PDF must match. An "
+                                   "explicit value wins over the CRM-selected intake "
+                                   "(public.intakes), so the nightly Routine can target a "
+                                   "cycle the CRM hasn't switched to yet. Default: the "
+                                   "CRM-selected intake, else next year.")
+    p_ingest_url.add_argument("--term", choices=["spring", "fall"], default=None,
+                              help="Target semester the PDF must match (spring = 전기/1학기, "
+                                   "fall = 후기/2학기). Only meaningful together with --year.")
 
     p_publish = sub.add_parser(
         "publish",
@@ -153,7 +162,10 @@ def main(argv: list[str] | None = None) -> int:
     if args.cmd == "todo":
         return asyncio.run(_todo(limit=args.limit))
     if args.cmd == "ingest-url":
-        return asyncio.run(_ingest_url(institution_id=args.institution, url=args.url))
+        return asyncio.run(_ingest_url(
+            institution_id=args.institution, url=args.url,
+            year=args.year, term=args.term,
+        ))
     if args.cmd == "publish":
         return asyncio.run(_publish(limit=args.limit))
     if args.cmd == "propose-sources":
@@ -588,7 +600,8 @@ async def _todo(*, limit: int) -> int:
     return 0
 
 
-async def _ingest_url(*, institution_id: str, url: str) -> int:
+async def _ingest_url(*, institution_id: str, url: str,
+                      year: int | None = None, term: str | None = None) -> int:
     """LIVE: ingest+parse one guideline PDF at a caller-supplied URL for one
     institution — the URL is found by the Routine agent's own web research, so
     there is NO search backend (no Naver). With UNI_DB_LLM_BACKEND=claude_cli the
@@ -629,11 +642,16 @@ async def _ingest_url(*, institution_id: str, url: str) -> int:
             print(f"institution {institution_id} not found", file=sys.stderr)
             return 2
 
-        target_year: int | None = None
-        target_term: str | None = None
-        cycle = await gf.fetch_target_cycle(conn)
-        if cycle is not None:
-            target_year, target_term = cycle
+        # Target cycle: an explicit --year (with optional --term) wins; else
+        # the CRM-selected intake (public.intakes); else the upcoming academic
+        # year. The override lets the nightly Routine target e.g. 2027 spring
+        # even while the CRM's active intake is still an earlier cycle.
+        target_year: int | None = year
+        target_term: str | None = term
+        if target_year is None:
+            cycle = await gf.fetch_target_cycle(conn)
+            if cycle is not None:
+                target_year, target_term = cycle
         if target_year is None:
             target_year = datetime.now(tz=timezone.utc).year + 1
 
