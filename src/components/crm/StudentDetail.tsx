@@ -921,6 +921,15 @@ export function StudentDetail({
                           VIP
                         </Badge>
                       )}
+                      {currentDegree && (
+                        <Badge variant="default">
+                          {currentDegree === 'bachelor'
+                            ? t('applications.degreeBachelor', { defaultValue: 'Bakalavr' })
+                            : currentDegree === 'master'
+                            ? t('applications.degreeMaster', { defaultValue: 'Magistratura' })
+                            : t('applications.degreeGks', { defaultValue: 'GKS' })}
+                        </Badge>
+                      )}
                     </div>
                     <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
                       {student.office_location && (
