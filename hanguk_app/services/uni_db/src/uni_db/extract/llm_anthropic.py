@@ -269,8 +269,10 @@ def extract_field_group(
 # response. Per-group calls use 8192; documents_required alone can approach
 # that, so the combined call gets a much larger ceiling (Sonnet supports it).
 _COMBINED_MAX_TOKENS = 32768
-# One CLI call producing all five groups needs the long timeout.
-_COMBINED_CLI_TIMEOUT_SEC = 600.0
+# One CLI call producing all five groups needs the longest timeout — it
+# aggregates every group's output, including the two heavy ones bounded by
+# _CLI_TIMEOUT_BY_GROUP below. (Not the nightly path, which runs per-group.)
+_COMBINED_CLI_TIMEOUT_SEC = 1200.0
 
 
 def extract_all_groups(
@@ -698,20 +700,32 @@ def _parse_extraction_output(raw: str, field_group: str) -> dict[str, Any]:
     return _normalize_wrapper(parsed, field_group)
 
 
-# documents_required regularly needs the most output (dozens of rows across
-# applicant categories) and was the top CLI-timeout victim at 240s. Give it
-# double the budget; the other groups keep the default.
+# CLI wall-clock ceilings, per field group. Each bounds the `claude`
+# subprocess itself (not the wait for the single-agent lock), and hitting one
+# is FATAL — the group's data is lost for that document, with no retry. A
+# ceiling must therefore clear the SLOWEST healthy generation, not the average.
+#
+# Sizing is grounded in extraction_jobs latency data (2026-07): the two
+# text-heaviest groups routinely generate past the old walls and were being
+# guillotined mid-output —
+#   • scholarships       — 16 fatal timeouts pinned at exactly 240s, while
+#                          healthy runs already reach into that window. 600s.
+#   • documents_required — still dying at exactly 480s on the 2026-07-16 run;
+#                          healthy runs reach ~480s of generation. 900s.
+# The per-group Uzbek `_uz` addendum roughly doubles output on these two
+# groups, which is what pushed them past the old ceilings. The lighter groups
+# (calendar / requirements / tuition) finish well inside the default and keep
+# it, so a genuine hang there still fails fast.
 _CLI_TIMEOUT_DEFAULT_SEC = 240.0
-_CLI_TIMEOUT_LONG_SEC = 480.0
-_CLI_TIMEOUT_LONG_GROUPS = frozenset({"documents_required", "document_checklist"})
+_CLI_TIMEOUT_BY_GROUP: dict[str, float] = {
+    "scholarships": 600.0,
+    "documents_required": 900.0,
+    "document_checklist": 900.0,
+}
 
 
 def _cli_timeout_for(field_group: str) -> float:
-    return (
-        _CLI_TIMEOUT_LONG_SEC
-        if field_group in _CLI_TIMEOUT_LONG_GROUPS
-        else _CLI_TIMEOUT_DEFAULT_SEC
-    )
+    return _CLI_TIMEOUT_BY_GROUP.get(field_group, _CLI_TIMEOUT_DEFAULT_SEC)
 
 
 def _call_claude_cli(
