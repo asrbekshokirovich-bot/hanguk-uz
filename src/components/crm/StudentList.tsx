@@ -181,12 +181,22 @@ export function StudentList({
     return (university[nameKey] as string) || university.name_uz || '';
   };
 
+  // Every number a student has. Newer records keep the second one in
+  // additional_phone, while older ones were typed as "90.../ 91..." into the
+  // single phone field — split on the separators so both surface either way.
+  const phoneList = (s: { phone?: string | null; additional_phone?: string | null }) =>
+    [s.phone, s.additional_phone]
+      .filter(Boolean)
+      .flatMap((v) => String(v).split(/[\/,;]/))
+      .map((v) => v.trim())
+      .filter(Boolean);
+
   const filteredStudents = students.filter((student) => {
     // Search filter
     const matchesSearch =
       !searchQuery ||
       student.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      student.phone?.includes(searchQuery) ||
+      phoneList(student).some((p) => p.includes(searchQuery)) ||
       student.username?.toLowerCase().includes(searchQuery.toLowerCase());
 
     // University filter
@@ -661,8 +671,12 @@ export function StudentList({
                           <div className="truncate font-semibold text-foreground">
                             {student.full_name || 'Unknown Student'}
                           </div>
-                          <div className="truncate text-xs text-muted-foreground">
-                            {[student.office_location, student.phone].filter(Boolean).join(' · ') || '—'}
+                          <div className="space-y-0.5 text-xs text-muted-foreground">
+                            {student.office_location && <div className="truncate">{student.office_location}</div>}
+                            {phoneList(student).map((p) => (
+                              <div key={p} className="truncate">{p}</div>
+                            ))}
+                            {!student.office_location && phoneList(student).length === 0 && <div>—</div>}
                           </div>
                         </div>
                       </div>
