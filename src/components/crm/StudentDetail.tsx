@@ -73,6 +73,7 @@ import {
 import { EditStudentDialog } from './EditStudentDialog';
 import { DeleteStudentDialog } from './DeleteStudentDialog';
 import { AddPaymentDialog } from './AddPaymentDialog';
+import { EditPaymentDialog } from './EditPaymentDialog';
 import { SuggestUniversityDialog } from './SuggestUniversityDialog';
 import AITranslationPage from '@/components/crm/pages/AITranslationPage';
 import { ClickToCall } from '@/components/calls/ClickToCall';
@@ -215,6 +216,7 @@ export function StudentDetail({
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [addPaymentDialogOpen, setAddPaymentDialogOpen] = useState(false);
+  const [editingPayment, setEditingPayment] = useState<PaymentRecord | null>(null);
   const [degreeSaving, setDegreeSaving] = useState<string | null>(null);
   const [suggestUniversityDialogOpen, setSuggestUniversityDialogOpen] = useState(false);
   const [existingSuggestedUniversityIds, setExistingSuggestedUniversityIds] = useState<string[]>([]);
@@ -1509,7 +1511,7 @@ export function StudentDetail({
                             )}
                           </div>
                           <div className="flex gap-2">
-                            <Button variant="outline" size="icon">
+                            <Button variant="outline" size="icon" onClick={() => setEditingPayment(payment)}>
                               <Pencil className="h-4 w-4" />
                             </Button>
                             <Button
@@ -2017,6 +2019,13 @@ export function StudentDetail({
         onOpenChange={setDeleteDialogOpen}
         student={student}
         onSuccess={handleDeleteSuccess}
+      />
+
+      <EditPaymentDialog
+        open={!!editingPayment}
+        onOpenChange={(o) => !o && setEditingPayment(null)}
+        payment={editingPayment}
+        onSuccess={fetchPayments}
       />
 
       <AddPaymentDialog
