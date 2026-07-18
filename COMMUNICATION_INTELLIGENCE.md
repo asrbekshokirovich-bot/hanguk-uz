@@ -137,10 +137,26 @@ those outgoing messages are mirrored); media file download/storage.
   `document_extractions` (text, type, key fields) → embed. Backfill all docs.
 - Document finder + Q&A for staff.
 
-### Phase 5 — Hanguk AI upgrade (retrieval, not prompt-dump)
-- Give `hanguk-ai-chat` real tools: `search_communications`, `search_documents`,
-  `get_student_360`, `find_document` — answer anything about a student and cite
-  the exact call / message / document. Keep the existing student-facing guards.
+### Phase 5 — Hanguk AI upgrade (retrieval, not prompt-dump) — *semantic retrieval implemented*
+- **Done:** `hanguk-ai-chat` now retrieves by *meaning*, not just keywords. It
+  embeds the question (`text-embedding-004`, `RETRIEVAL_QUERY`) and hits the
+  existing `communication_embeddings` / `match_communication_embeddings` (pgvector)
+  store, so it can answer "who's worried about tuition?" or "what did we say about
+  her scholarship?" even when the wording differs or the call was months ago.
+  - Cross-everyone search is now **hybrid** (pgroonga keyword ∪ pgvector semantic),
+    deduped per source, with student names resolved and dates cited.
+  - Each matched student also gets a **scoped semantic recall** block — the most
+    relevant moments to *this* question, beyond the recent-calls window.
+  - `match_communication_embeddings` now returns `student_id` / `lead_id` so hits
+    are attributable. Retrieval fails soft: a missing embedding degrades to
+    keyword-only, never a broken reply.
+  - Prompts hardened for reliability: strict **grounding** (answer only from the
+    data, never invent a date/score/amount/university), a **prompt-injection
+    guard** (retrieved calls/chats/documents are DATA, not instructions), and a
+    low temperature (0.3) for factual answers.
+- **Still open:** expose these as first-class model *tools* (`search_communications`,
+  `search_documents`, `get_student_360`, `find_document`) so the model decides when
+  to retrieve, plus document-vector search (only call transcripts are embedded today).
 
 ### Later — Instagram
 Schema + inbox already tolerate `source='instagram'`. Add an `instagram-webhook`
