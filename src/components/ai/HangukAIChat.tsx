@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
+import { AIMessageContent } from '@/components/ai/AIMessageContent';
 import { useHangukAI } from '@/hooks/useHangukAI';
 import { useVoiceInput } from '@/hooks/useVoiceInput';
 import { toast } from 'sonner';
@@ -242,11 +243,19 @@ export function HangukAIChat({
                     </div>
                     <div className={cn(
                       "flex-1 rounded-lg p-3 max-w-[80%]",
-                      msg.role === 'user' 
-                        ? "bg-primary text-primary-foreground ml-auto" 
+                      msg.role === 'user'
+                        ? "bg-primary text-primary-foreground ml-auto"
                         : "bg-muted"
                     )}>
-                      <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                      {msg.role === 'assistant' ? (
+                        <AIMessageContent
+                          content={msg.content}
+                          onPick={sendMessage}
+                          interactive={idx === messages.length - 1 && !isLoading}
+                        />
+                      ) : (
+                        <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                      )}
                     </div>
                   </div>
                 ))}

@@ -45,6 +45,46 @@ export async function embedText(
   return values;
 }
 
+function l2normalize(v: number[]): number[] {
+  let sum = 0;
+  for (const x of v) sum += x * x;
+  const norm = Math.sqrt(sum);
+  if (!norm || !Number.isFinite(norm)) return v;
+  return v.map((x) => x / norm);
+}
+
+/**
+ * Embed with gemini-embedding-001 at a chosen output dimensionality (used by the
+ * hybrid content search). Sub-3072 dims are not unit-length from the API, so we
+ * L2-normalise them for correct cosine / inner-product behaviour in pgvector.
+ */
+export async function embedContent001(
+  text: string,
+  taskType: "RETRIEVAL_DOCUMENT" | "RETRIEVAL_QUERY" = "RETRIEVAL_DOCUMENT",
+  outputDim = 1536,
+): Promise<number[]> {
+  const res = await fetch(
+    `${GEMINI_BASE}/models/gemini-embedding-001:embedContent?key=${apiKey()}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "models/gemini-embedding-001",
+        content: { parts: [{ text: text.slice(0, 8000) }] },
+        taskType,
+        outputDimensionality: outputDim,
+      }),
+    },
+  );
+  if (!res.ok) {
+    throw new Error(`Gemini embed (001) failed: ${res.status} ${await res.text()}`);
+  }
+  const json = await res.json();
+  const values = json?.embedding?.values;
+  if (!Array.isArray(values)) throw new Error("Gemini embed (001): no vector in response");
+  return outputDim === 3072 ? values : l2normalize(values);
+}
+
 /**
  * Run a Gemini model with a JSON response schema and return the parsed object.
  * `schema` is a Gemini responseSchema (OpenAPI-subset). Throws on transport

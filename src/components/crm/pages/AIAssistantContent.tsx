@@ -21,6 +21,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { Logo } from '@/components/Logo';
+import { AIMessageContent } from '@/components/ai/AIMessageContent';
 import { useHangukAI } from '@/hooks/useHangukAI';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -222,7 +223,15 @@ export default function AIAssistantContent() {
                         ? "bg-primary text-primary-foreground ml-auto"
                         : "bg-muted"
                     )}>
-                      <p className="text-sm whitespace-pre-wrap leading-relaxed">{msg.content}</p>
+                      {msg.role === 'assistant' ? (
+                        <AIMessageContent
+                          content={msg.content}
+                          onPick={sendMessage}
+                          interactive={idx === messages.length - 1 && !isLoading}
+                        />
+                      ) : (
+                        <p className="text-sm whitespace-pre-wrap leading-relaxed">{msg.content}</p>
+                      )}
                     </div>
                   </div>
                 ))}

@@ -1,17 +1,33 @@
-// Read-only SQL tool for Hanguk AI's staff analytics.
+// Hanguk AI — read-only analytics tool + the shared "ask a clarifying question"
+// guide.
 //
-// Lets the assistant COUNT / AGGREGATE / JOIN / CONCLUDE over real data by
-// running SQL — but only ever against the `ai` schema of safe views (no
-// secrets), only SELECT/WITH, only inside a READ ONLY transaction with a
-// statement timeout and a hard row cap. Defense in depth:
+// query_database lets the assistant COUNT / AGGREGATE / JOIN / CONCLUDE over real
+// data ("how many students were accepted?", "revenue by university"). It only
+// ever hits the `ai` schema of safe views (no secrets), only SELECT/WITH, only
+// inside a READ ONLY transaction with a statement timeout + row cap, and the
+// caller gates it to owner/admin. Defense in depth:
 //   1. Column safety   — the `ai` views expose safe columns only (migration).
 //   2. search_path=ai   — bare table names resolve to those views, nothing else.
 //   3. Denylist         — blocks writes and any cross-schema / secret reference.
 //   4. READ ONLY txn    — Postgres itself rejects any write, whatever the text.
-//   5. Owner/admin only — the caller gates who ever gets this tool (index.ts).
+//   5. Owner/admin only — the caller decides who ever gets this tool.
 //
 // deno-lint-ignore-file no-explicit-any
 import { Pool } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
+
+// Shared instruction: when a request is ambiguous, ask ONE multiple-choice
+// question (rendered as clickable chips in the web client) instead of guessing.
+export const CLARIFY_GUIDE = `## ASK A MULTIPLE-CHOICE QUESTION WHEN AMBIGUOUS
+If the request is ambiguous, or a word doesn't map to a single field (e.g.
+"accepted / qabul qilingan" — there is no explicit acceptance field), do NOT
+guess a definition and do NOT just refuse. Ask ONE short multiple-choice
+question, then stop and wait for the answer.
+Reply with ONLY this JSON envelope and nothing else — no prose before or after:
+{"type":"clarify","question":"<short question>","options":["<opt 1>","<opt 2>","<opt 3>"]}
+- 2–4 concrete options, written in the SAME language as the user. Keep the JSON
+  keys exactly as shown.
+- Ask only when the choice actually changes the answer, and at most once. If the
+  user already made it clear, just answer. After they choose, give the full answer.`;
 
 let pool: Pool | null = null;
 function getPool(): Pool {
@@ -23,9 +39,8 @@ const MAX_ROWS = 500;
 
 // Word-bounded data-changing verbs. created_at / updated_at etc. don't match
 // (the trailing letter kills the \b). Kept deliberately tight — real DML/DDL
-// only — so common search terms and aliases ("call", "do", "copy", "lock", …)
-// aren't rejected; anything else that isn't a SELECT is caught by the READ ONLY
-// transaction at execution time regardless.
+// only — so common search terms/aliases aren't rejected; anything else that
+// isn't a SELECT is caught by the READ ONLY transaction at execution regardless.
 const DENY_WRITE = /\b(insert|update|delete|drop|alter|truncate|grant|revoke|create|merge)\b/i;
 // Substring bans: cross-schema hops and anything secret-shaped. search_path only
 // covers *bare* names, so qualified `public.profiles` must be blocked here.
@@ -36,7 +51,7 @@ export type QueryResult = { rows?: any[]; error?: string; note?: string; rowCoun
 /** Validate + run one read-only SELECT against the `ai` views. Never throws. */
 export async function runReadOnlyQuery(sql: unknown): Promise<QueryResult> {
   if (typeof sql !== "string") return { error: "sql must be a string" };
-  let q = sql.trim().replace(/;+\s*$/, "").trim();
+  const q = sql.trim().replace(/;+\s*$/, "").trim();
   if (!q) return { error: "empty query" };
   if (q.includes(";")) return { error: "only a single statement is allowed (remove the ';')" };
   if (!/^(select|with)\b/i.test(q)) return { error: "only SELECT / WITH queries are allowed" };
@@ -111,13 +126,13 @@ export const QUERY_TOOL = {
   function: {
     name: "query_database",
     description:
-      "Run ONE read-only SQL SELECT against the ai.* analytics views to count, sum, average, group, join, filter or otherwise compute an exact answer over the whole CRM (students, applications, payments, documents, leads, calls, messages, tasks). Use this for any 'how many / how much / which / list / average / total / by-<group>' question instead of guessing. You may call it several times — e.g. first inspect the distinct values of a status/decision column, then compute. Postgres dialect; single statement, no semicolon; results are capped at 500 rows.",
+      "Run ONE read-only SQL SELECT against the ai.* analytics views to count, sum, average, group, join, filter or otherwise compute an exact answer over the whole CRM (students, applications, payments, documents, leads, calls, messages, tasks) — use this for any 'how many / how much / which / list / average / total / by-<group>' question the other tools don't cover. You may call it several times (e.g. inspect the distinct values of a status/decision column first, then compute). Postgres dialect; single statement, no semicolon; results capped at 500 rows.",
     parameters: {
       type: "object",
       properties: {
         sql: {
           type: "string",
-          description: "A single Postgres SELECT (or WITH … SELECT) over the ai.* views. Bare table names resolve to the ai schema, e.g. `select count(*) from applications where decision = 'accepted'`.",
+          description: "A single Postgres SELECT (or WITH … SELECT) over the ai.* views. Bare table names resolve to the ai schema, e.g. `select count(*) from applications where status = 'completed'`.",
         },
       },
       required: ["sql"],
