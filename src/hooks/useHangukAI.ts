@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 type Message = {
   role: 'user' | 'assistant';
@@ -40,11 +41,18 @@ export function useHangukAI(userType: UserType, language: string = 'en') {
     };
 
     try {
+      // Forward the logged-in user's access token so the edge function can
+      // identify them (the staff agent path needs a real JWT, not the anon key).
+      // The publishable key still goes in `apikey` to satisfy the gateway.
+      const { data: { session } } = await supabase.auth.getSession();
+      const accessToken = session?.access_token ?? import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
       const resp = await fetch(CHAT_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          'Authorization': `Bearer ${accessToken}`,
         },
         body: JSON.stringify({
           message: input,
