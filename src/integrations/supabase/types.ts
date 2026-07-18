@@ -7539,10 +7539,12 @@ export type Database = {
           channel: string
           content: string
           id: string
+          lead_id: string
           metadata: Json
           similarity: number
           source_id: string
           source_type: string
+          student_id: string
         }[]
       }
       normalize_phone: { Args: { p: string }; Returns: string }
