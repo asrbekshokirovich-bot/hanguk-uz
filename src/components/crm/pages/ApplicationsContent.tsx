@@ -41,6 +41,8 @@ import {
 } from 'lucide-react';
 import { Tables } from '@/integrations/supabase/types';
 import { cn } from '@/lib/utils';
+import { AdmissionsStats } from './AdmissionsStats';
+import { outcomeOf, type Outcome } from './applicationOutcome';
 
 type TFunc = ReturnType<typeof useTranslation>['t'];
 
@@ -56,7 +58,6 @@ type ApplicationRow = Tables<'applications'> & {
 };
 
 type Stage = 'new' | 'documents' | 'review' | 'submitted' | 'decision';
-type Outcome = 'accepted' | 'waitlist' | 'rejected' | 'pending';
 type Intake = 'spring2026' | 'fall2026';
 type BadgeTone = 'neutral' | 'info' | 'warning' | 'successSoft' | 'destructive';
 
@@ -179,16 +180,6 @@ function daysUntil(date: Date) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   return Math.round((date.getTime() - today.getTime()) / 86_400_000);
-}
-
-function outcomeOf(app: ApplicationRow): Outcome {
-  const d = (app.decision || '').toLowerCase();
-  if (d.includes('accept')) return 'accepted';
-  if (d.includes('waitlist')) return 'waitlist';
-  if (d.includes('reject')) return 'rejected';
-  if (app.status === 'completed' || app.status === 'accepted') return 'accepted';
-  if (app.status === 'rejected') return 'rejected';
-  return 'pending';
 }
 
 function deadlineMeta(daysLeft: number, date: Date, lang: string, t: TFunc): { tone: BadgeTone; label: string } {
@@ -660,6 +651,9 @@ export default function ApplicationsContent({
         <Sparkles className="h-5 w-5 shrink-0 text-info" />
         <p className="text-[13px] leading-snug text-muted-foreground">{t('applications.howItWorks')}</p>
       </div>
+
+      {/* Admissions statistics — accepted by 1/2/3+ universities, waiting, by city & university */}
+      <AdmissionsStats applications={applications} students={students} currentLang={currentLang} />
 
       {/* Toolbar */}
       <div className="flex flex-wrap items-center justify-between gap-3">
