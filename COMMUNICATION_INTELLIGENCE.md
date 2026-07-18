@@ -154,9 +154,21 @@ those outgoing messages are mirrored); media file download/storage.
     data, never invent a date/score/amount/university), a **prompt-injection
     guard** (retrieved calls/chats/documents are DATA, not instructions), and a
     low temperature (0.3) for factual answers.
-- **Still open:** expose these as first-class model *tools* (`search_communications`,
-  `search_documents`, `get_student_360`, `find_document`) so the model decides when
-  to retrieve, plus document-vector search (only call transcripts are embedded today).
+- **Tool-calling (implemented for admins):** owner/admin staff now get a
+  `query_database` tool and a reasoning loop, so the model can COMPUTE answers it
+  used to only guess at — "how many students were accepted?", "collected vs
+  outstanding by university", "leads with an exam in May". It writes read-only
+  SQL that only ever hits an `ai` schema of **safe views** (no SIP passwords,
+  magic codes or lead passwords), runs inside a READ ONLY transaction with a
+  statement timeout + row cap, and is denylisted against cross-schema / secret
+  access (`supabase/functions/hanguk-ai-chat/tools.ts`,
+  `migrations/…_ai_analytics_views.sql`). The tool bypasses RLS (org-wide
+  analytics), so it is gated to owner/admin only; other staff and students keep
+  the retrieval-only path.
+- **Still open:** expose the communication/document retrieval as first-class
+  tools too (`search_communications`, `search_documents`, `find_document`) so the
+  model decides when to pull context; embed documents for vector search (only call
+  transcripts are embedded today).
 
 ### Later — Instagram
 Schema + inbox already tolerate `source='instagram'`. Add an `instagram-webhook`

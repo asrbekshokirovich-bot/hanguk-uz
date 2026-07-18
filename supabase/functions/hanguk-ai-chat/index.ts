@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { embedText } from "../_shared/gemini.ts";
+import { getAiSchema, QUERY_TOOL, runReadOnlyQuery } from "./tools.ts";
 
 // Hanguk AI — retrieval-augmented assistant.
 // Answers questions about a student from their REAL data: call summaries
@@ -411,9 +412,13 @@ function langLine(language: string): string {
   return "Respond in English.";
 }
 
-async function buildStaffPrompt(supabase: any, userId: string, message: string, language: string): Promise<string> {
+async function buildStaffPrompt(supabase: any, userId: string, message: string, language: string): Promise<{ prompt: string; canQuery: boolean }> {
   const { data: profile } = await supabase.from("profiles").select("full_name").eq("user_id", userId).maybeSingle();
   const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", userId);
+  // The live-SQL tool bypasses RLS (org-wide analytics), so only trusted admins
+  // get it. Everyone else still gets the full retrieval context below.
+  const roleList = (roles || []).map((r: any) => r.role);
+  const canQuery = roleList.includes("owner") || roleList.includes("admin");
 
   // Match the person across scripts (Latin/Cyrillic), lowercase typing, apostrophes
   // and pasted phone numbers, then look them up in BOTH the student roster (fuzzy,
@@ -467,11 +472,46 @@ async function buildStaffPrompt(supabase: any, userId: string, message: string, 
     leadsSection = `\n## 🎯 LEADS (${leads.length}) — filter this list to answer lead questions\n${formatLeads(leads)}`;
   }
 
-  return `# Hanguk AI — CRM assistant for staff
+  // Live-data tool guide (owner/admin only). This is what turns the assistant
+  // from "answer from the pre-loaded blocks" into "compute the answer from the
+  // whole database" — counts, sums, group-bys, joins, trends.
+  let toolsSection = "";
+  if (canQuery) {
+    const schema = await getAiSchema();
+    toolsSection = `
+## 🛠 LIVE DATA TOOL — query_database (use it to COMPUTE, don't guess)
+You can run read-only SQL (Postgres) over these analytics views to answer any
+counting / totalling / averaging / grouping / filtering / trend question about
+the whole CRM. Prefer this over eyeballing the blocks above whenever the answer
+is a number, a list, or a breakdown.
+
+Views (query bare names — they resolve to the ai schema; SELECT-only, one
+statement, no semicolon):
+${schema}
+
+Working with it:
+- Don't assume what a status/decision/enum value is. If unsure, first run e.g.
+  \`select decision, count(*) from applications group by 1 order by 2 desc\` to
+  see the real values, then compute the final number.
+- An application counts as accepted/admitted when its \`decision\` says so (check
+  the distinct values first); "submitted"/"in review" are not acceptances.
+- Join keys: applications.student_id → students.user_id; payments.student_id →
+  students.user_id; applications.institution_id → institutions.id (or use the
+  built-in \`university_name\`); call_analyses.student_id / calls.student_id →
+  students.user_id.
+- Money: payments.amount is billed, paid_amount is collected; "revenue/collected"
+  = sum(paid_amount), "outstanding" = sum(amount - paid_amount).
+- After you get numbers, state them plainly and say they were computed live from
+  the database. If a query errors, read the error and fix the SQL, then retry.
+  If a result is genuinely empty, say so — don't invent figures.
+`;
+  }
+
+  const prompt = `# Hanguk AI — CRM assistant for staff
 ${langLine(language)}
 
 You are Hanguk AI for Hanguk Consulting (Korean university admissions, Uzbekistan).
-You can READ each student's phone-call summaries (Uzbek), Telegram chats, applications, documents, payments and tasks, AND the full leads pipeline. Answer naturally and **cite your source** inline, e.g. "(call 05/06)" or "(chat 04/06)". Be concise.
+You can READ each student's phone-call summaries (Uzbek), Telegram chats, applications, documents, payments and tasks, AND the full leads pipeline${canQuery ? ", and you can RUN LIVE SQL to compute exact numbers (see the tool below)" : ""}. Answer naturally and **cite your source** inline, e.g. "(call 05/06)" or "(chat 04/06)". Be concise.
 
 Staff: ${profile?.full_name || "Staff"} (${(roles || []).map((r: any) => r.role).join(", ") || "staff"})
 
@@ -483,18 +523,19 @@ Staff: ${profile?.full_name || "Staff"} (${(roles || []).map((r: any) => r.role)
 
 ## 📊 QUICK NUMBERS
 ${stats}
-${studentSection}
+${toolsSection}${studentSection}
 ${namedLeadsSection}
 ${leadsSection}
 ${search}
 
 ## HOW TO ANSWER
-- "What did we discuss with X / what did we promise X?" → use that student's RECENT CALLS + CHAT above, quote specifics with dates.
+${canQuery ? '- "How many / how much / what is the total / average / which / list / breakdown by …?" → CALL query_database and compute it. Never estimate a count from the blocks above when you can query it exactly.\n' : ""}- "What did we discuss with X / what did we promise X?" → use that student's RECENT CALLS + CHAT above, quote specifics with dates.
 - "What is X's TOPIK / IELTS / language level?" → report BOTH Korean (TOPIK) and English (IELTS) if known. The profile fields are often empty, so read "LANGUAGE PROFICIENCY (from documents)" and DOCUMENT CONTENTS: a TOPIK score report shows a Level (e.g. 6급 = level 6) and Total Score; an IELTS certificate shows an overall band. Quote the level/score and say it came from the uploaded document. Mention the language_track (korean/english) too.
 - "Who asked about X this week?" → use SEARCH MATCHES above, list the students.
 - "List leads who [take the exam in May / are high priority / from Telegram / want a Master's / from Tashkent]" → filter the LEADS list by exam_date, exam_type, target_intake, status, source, priority, program, city or follow-up date, and return a clear numbered list with phone numbers.
 - If NO student section appears for a name you were asked about, say you couldn't find an exact match, list any close names from MATCHING LEAD(S) or SEARCH MATCHES, and ask the staff to confirm the full name or share the phone number — do NOT invent details.
 - Always cite the date + (call/chat). End with the suggested next step if there is one.`;
+  return { prompt, canQuery };
 }
 
 async function buildStudentPrompt(supabase: any, userId: string, message: string, language: string): Promise<string> {
@@ -521,6 +562,83 @@ ${formatBundle(b, { staff: false })}
 - End with 1–2 helpful next steps based on the data above.`;
 }
 
+// ---- agentic tool loop (staff admins) --------------------------------------
+const GEMINI_OPENAI_URL = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
+
+// Run the model with the query_database tool in a loop: it writes SQL, we run it
+// read-only, feed the rows back, and repeat until it has enough to answer. This
+// is what lets it COMPUTE ("how many were accepted?") instead of guessing.
+async function runWithTools(baseMessages: any[]): Promise<string> {
+  const messages = [...baseMessages];
+  const MAX_STEPS = 5;
+  for (let step = 0; step < MAX_STEPS; step++) {
+    const lastStep = step === MAX_STEPS - 1;
+    const res = await fetch(GEMINI_OPENAI_URL, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${GEMINI_API_KEY}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "gemini-2.5-flash",
+        messages,
+        temperature: 0.2,
+        tools: [QUERY_TOOL],
+        // Force a written answer on the final step so we never end mid-loop.
+        tool_choice: lastStep ? "none" : "auto",
+      }),
+    });
+    if (!res.ok) {
+      if (res.status === 429) throw new Error("Rate limit exceeded. Please try again shortly.");
+      const t = await res.text();
+      console.error("tool-loop gateway error:", res.status, t);
+      throw new Error(`AI gateway error: ${res.status}`);
+    }
+    const data = await res.json();
+    const msg = data.choices?.[0]?.message;
+    if (!msg) throw new Error("Empty completion from AI gateway");
+
+    const toolCalls = msg.tool_calls || [];
+    if (toolCalls.length && !lastStep) {
+      messages.push({ role: "assistant", content: msg.content ?? "", tool_calls: toolCalls });
+      for (const tc of toolCalls) {
+        let result;
+        if (tc.function?.name === "query_database") {
+          let args: any = {};
+          try { args = JSON.parse(tc.function.arguments || "{}"); } catch { /* keep {} */ }
+          result = await runReadOnlyQuery(args.sql);
+        } else {
+          result = { error: `unknown tool: ${tc.function?.name}` };
+        }
+        // Cap the payload so a wide result set can't blow the context window.
+        messages.push({ role: "tool", tool_call_id: tc.id, content: JSON.stringify(result).slice(0, 12000) });
+      }
+      continue;
+    }
+    const text = (msg.content || "").trim();
+    if (text) return text;
+    if (lastStep) return "I ran the analysis but couldn't phrase an answer — please try rephrasing the question.";
+  }
+  return "I wasn't able to finish computing that. Try narrowing the question.";
+}
+
+// Replay a finished answer to the web client as the OpenAI SSE it already parses.
+// Chunk on whitespace so we never split a multi-byte char (e.g. an emoji) mid-run.
+function sseFromText(text: string): ReadableStream {
+  const enc = new TextEncoder();
+  const emit = (c: any, s: string) =>
+    c.enqueue(enc.encode(`data: ${JSON.stringify({ choices: [{ delta: { content: s } }] })}\n\n`));
+  return new ReadableStream({
+    start(controller) {
+      let buf = "";
+      for (const tok of text.split(/(\s+)/)) {
+        buf += tok;
+        if (buf.length >= 60) { emit(controller, buf); buf = ""; }
+      }
+      if (buf) emit(controller, buf);
+      controller.enqueue(enc.encode("data: [DONE]\n\n"));
+      controller.close();
+    },
+  });
+}
+
 // ---- handler ---------------------------------------------------------------
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -536,9 +654,15 @@ serve(async (req) => {
     const language = isUzbek(message) ? "uz" : requestedLang;
     const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
-    const systemPrompt = user_type === "student"
-      ? await buildStudentPrompt(supabase, user_id, message, language)
-      : await buildStaffPrompt(supabase, user_id, message, language);
+    let systemPrompt: string;
+    let canQuery = false;
+    if (user_type === "student") {
+      systemPrompt = await buildStudentPrompt(supabase, user_id, message, language);
+    } else {
+      const built = await buildStaffPrompt(supabase, user_id, message, language);
+      systemPrompt = built.prompt;
+      canQuery = built.canQuery;
+    }
 
     // Short-term chat memory.
     const { data: prev } = await supabase.from("ai_conversations")
@@ -553,7 +677,16 @@ serve(async (req) => {
       { role: "user", content: message },
     ];
 
-    const response = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
+    // Admin staff: run the reasoning + live-SQL loop, then replay the answer as SSE.
+    if (canQuery) {
+      const finalText = await runWithTools(messages);
+      if (finalText) {
+        await supabase.from("ai_conversations").insert({ user_id, user_type, role: "assistant", content: finalText });
+      }
+      return new Response(sseFromText(finalText), { headers: { ...corsHeaders, "Content-Type": "text/event-stream" } });
+    }
+
+    const response = await fetch(GEMINI_OPENAI_URL, {
       method: "POST",
       headers: { Authorization: `Bearer ${GEMINI_API_KEY}`, "Content-Type": "application/json" },
       // Low temperature: this is a grounded, factual assistant answering from
