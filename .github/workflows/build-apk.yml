@@ -1,0 +1,78 @@
+name: Build APK
+
+# Builds an installable Android APK for hanguk_app and publishes it as a
+# GitHub Release asset (tag: apk-latest). Debug-signed release build — no
+# keystore needed: android/app/build.gradle.kts falls back to debug signing
+# when android/key.properties is absent. This reuses the known-good recipe
+# that produced the earlier apk-latest release.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [claude/build-apk-20260721]
+    paths:
+      - "hanguk_app/**"
+      - ".github/workflows/build-apk.yml"
+
+concurrency:
+  group: build-apk-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: hanguk_app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: flutter pub get
+        run: flutter pub get
+
+      - name: Build release APK (debug-signed fallback)
+        run: flutter build apk --release
+
+      - name: Stage APK
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/dist"
+          cp build/app/outputs/flutter-apk/app-release.apk \
+            "$GITHUB_WORKSPACE/dist/hanguk-app.apk"
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: hanguk-app-apk
+          path: dist/hanguk-app.apk
+          if-no-files-found: error
+
+      - name: Publish APK to a Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: apk-latest
+          name: Hanguk App — latest APK
+          body: |
+            Avtomatik qurilgan Android APK (debug-signed release build).
+
+            Telefonga o'rnatish:
+            1. Quyidagi `hanguk-app.apk` faylni telefoningizga yuklab oling.
+            2. Faylni oching va "Noma'lum manbalardan o'rnatish"ga ruxsat bering.
+            3. O'rnatishni yakunlang.
+
+            Commit: ${{ github.sha }}
+          files: dist/hanguk-app.apk
+          fail_on_unmatched_files: true
