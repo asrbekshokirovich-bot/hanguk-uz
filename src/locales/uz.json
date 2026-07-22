@@ -54,6 +54,7 @@
     "selectDegree": "Daraja",
     "degreeBachelor": "Bakalavr",
     "degreeMaster": "Magistratura",
+    "degreeVocational": "Kasbiy ta'lim",
     "degreeGks": "GKS",
     "autoStage": "Avto-bosqich: {{stage}}. {{k}} ta talaba ({{names}}) keyingi bosqichga o'tganda {{next}} ga o'tadi.",
     "allReachedDecision": "Barcha talabalar Qaror bosqichiga yetdi — bu universitet to'liq ilgariladi.",

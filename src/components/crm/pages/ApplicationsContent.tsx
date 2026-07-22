@@ -240,6 +240,8 @@ export default function ApplicationsContent({
   const degreeLabel: Record<string, string> = {
     bachelor: t('applications.degreeBachelor', { defaultValue: 'Bakalavr' }),
     master: t('applications.degreeMaster', { defaultValue: 'Magistratura' }),
+    vocational: t('applications.degreeVocational', { defaultValue: "Kasbiy ta'lim" }),
+    // Historic value: students recorded before the vocational rename stay GKS.
     gks: t('applications.degreeGks', { defaultValue: 'GKS' }),
   };
 
@@ -933,7 +935,7 @@ function StudentPickerDialog({
   const DEGREE_OPTIONS = [
     { value: 'bachelor', label: t('applications.degreeBachelor', { defaultValue: 'Bakalavr' }) },
     { value: 'master', label: t('applications.degreeMaster', { defaultValue: 'Magistratura' }) },
-    { value: 'gks', label: t('applications.degreeGks', { defaultValue: 'GKS' }) },
+    { value: 'vocational', label: t('applications.degreeVocational', { defaultValue: "Kasbiy ta'lim" }) },
   ];
 
   const filtered = useMemo(() => {

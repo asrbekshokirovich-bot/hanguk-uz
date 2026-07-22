@@ -836,6 +836,16 @@ export function StudentDetail({
   const currentStatusIndex = latestApp ? allStatusSteps.indexOf(latestApp.status) : -1;
   const currentDegree = student.applications?.find((a) => a.degree_level)?.degree_level ?? null;
 
+  // 'gks' is historic — students recorded before the vocational rename keep that
+  // label; only 'vocational' is offered for new applications.
+  const degreeLabel = (value: string) =>
+    ({
+      bachelor: t('applications.degreeBachelor', { defaultValue: 'Bakalavr' }),
+      master: t('applications.degreeMaster', { defaultValue: 'Magistratura' }),
+      vocational: t('applications.degreeVocational', { defaultValue: "Kasbiy ta'lim" }),
+      gks: t('applications.degreeGks', { defaultValue: 'GKS' }),
+    })[value] ?? value;
+
   const isStepCompleted = (stepKey: string) => {
     const stepIndex = allStatusSteps.indexOf(stepKey);
     return stepIndex <= currentStatusIndex;
@@ -929,13 +939,7 @@ export function StudentDetail({
                         </Badge>
                       )}
                       {currentDegree && (
-                        <Badge variant="default">
-                          {currentDegree === 'bachelor'
-                            ? t('applications.degreeBachelor', { defaultValue: 'Bakalavr' })
-                            : currentDegree === 'master'
-                            ? t('applications.degreeMaster', { defaultValue: 'Magistratura' })
-                            : t('applications.degreeGks', { defaultValue: 'GKS' })}
-                        </Badge>
+                        <Badge variant="default">{degreeLabel(currentDegree)}</Badge>
                       )}
                     </div>
                     <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
@@ -1104,7 +1108,7 @@ export function StudentDetail({
                     {[
                       { value: 'bachelor', label: t('applications.degreeBachelor', { defaultValue: 'Bakalavr' }) },
                       { value: 'master', label: t('applications.degreeMaster', { defaultValue: 'Magistratura' }) },
-                      { value: 'gks', label: t('applications.degreeGks', { defaultValue: 'GKS' }) },
+                      { value: 'vocational', label: t('applications.degreeVocational', { defaultValue: "Kasbiy ta'lim" }) },
                     ].map((opt) => (
                       <Button
                         key={opt.value}

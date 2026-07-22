@@ -54,6 +54,7 @@
     "selectDegree": "Degree",
     "degreeBachelor": "Bachelor's",
     "degreeMaster": "Master's",
+    "degreeVocational": "Vocational",
     "degreeGks": "GKS",
     "autoStage": "Auto-stage: {{stage}}. Advances to {{next}} when {{k}} student(s) ({{names}}) move up.",
     "allReachedDecision": "All students have reached Decision — this university is fully advanced.",

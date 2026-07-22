@@ -54,6 +54,7 @@
     "selectDegree": "학위",
     "degreeBachelor": "학사",
     "degreeMaster": "석사",
+    "degreeVocational": "직업교육",
     "degreeGks": "GKS",
     "autoStage": "자동 단계: {{stage}}. {{k}}명의 학생({{names}})이 진행하면 {{next}}(으)로 이동합니다.",
     "allReachedDecision": "모든 학생이 결정 단계에 도달했습니다 — 이 대학은 완전히 진행되었습니다.",
