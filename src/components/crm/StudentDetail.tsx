@@ -674,12 +674,17 @@ export function StudentDetail({
 
       const ext = doc.file_path.split('.').pop()?.toLowerCase() || '';
       const isImage = ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(ext);
+      const isPdf = ext === 'pdf' || blob.type === 'application/pdf';
 
       if (isImage) {
         setPreviewDoc({ url: blobUrl, name: doc.name, type: 'image' });
+      } else if (isPdf) {
+        // Show PDFs in the same dialog instead of force-downloading them — staff
+        // need to read the document, not collect files.
+        setPreviewDoc({ url: blobUrl, name: doc.name, type: 'pdf' });
       } else {
-        // Force download — never blocked by Chrome, extensions, or popup blockers
-        const fileName = doc.name.replace(/^\[.*?\]\s*/, '') || 'document.pdf';
+        // Unknown type — fall back to a download.
+        const fileName = doc.name.replace(/^\[.*?\]\s*/, '') || 'document';
         const a = document.createElement('a');
         a.href = blobUrl;
         a.download = fileName;
@@ -1701,19 +1706,46 @@ export function StudentDetail({
                 ref={slotFileInputRef}
                 type="file"
                 className="hidden"
-                accept=".pdf,.jpg,.jpeg,.png"
+                accept="application/pdf,image/jpeg,image/png,image/webp,.pdf,.jpg,.jpeg,.png,.webp"
                 onChange={handleSlotFileSelect}
               />
 
-              {/* Image Preview Dialog */}
+              {/* Document Preview Dialog (images + PDFs) */}
               <Dialog open={!!previewDoc} onOpenChange={() => setPreviewDoc(null)}>
-                <DialogContent className="sm:max-w-2xl">
+                <DialogContent className={previewDoc?.type === 'pdf' ? 'sm:max-w-4xl' : 'sm:max-w-2xl'}>
                   <DialogHeader>
-                    <DialogTitle className="truncate">{previewDoc?.name}</DialogTitle>
+                    <DialogTitle className="truncate pr-8">{previewDoc?.name}</DialogTitle>
                   </DialogHeader>
                   {previewDoc?.type === 'image' && (
                     <div className="flex justify-center">
                       <img src={previewDoc.url} alt={previewDoc.name} className="max-h-[70vh] object-contain rounded-lg" />
+                    </div>
+                  )}
+                  {previewDoc?.type === 'pdf' && (
+                    <div className="space-y-2">
+                      <iframe
+                        src={previewDoc.url}
+                        title={previewDoc.name}
+                        className="h-[70vh] w-full rounded-lg border border-border"
+                      />
+                      <div className="flex justify-end">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="gap-1.5"
+                          onClick={() => {
+                            const a = document.createElement('a');
+                            a.href = previewDoc.url;
+                            a.download = previewDoc.name.replace(/^\[.*?\]\s*/, '') || 'document.pdf';
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                          }}
+                        >
+                          <Download className="h-3.5 w-3.5" />
+                          {currentLang === 'ru' ? 'Скачать' : currentLang === 'en' ? 'Download' : 'Yuklab olish'}
+                        </Button>
+                      </div>
                     </div>
                   )}
                 </DialogContent>

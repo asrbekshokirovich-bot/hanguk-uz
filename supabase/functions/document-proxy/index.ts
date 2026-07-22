@@ -47,7 +47,11 @@ Deno.serve(async (req) => {
       .select('role')
       .eq('user_id', user.id);
 
-    const isStaff = roles?.some((r: { role: string }) => ['owner', 'admin', 'document_handler'].includes(r.role));
+    // Keep in sync with the documents-table RLS policies: call_operator staff
+    // attach documents, so they must be able to open them too (otherwise every
+    // view returns 403 for them).
+    const isStaff = roles?.some((r: { role: string }) =>
+      ['owner', 'admin', 'document_handler', 'call_operator'].includes(r.role));
     const ownsFile = filePath.startsWith(user.id);
 
     if (!isStaff && !ownsFile) {
