@@ -19,6 +19,7 @@ Future<void> main() async {
     await SentryFlutter.init((options) {
       options.dsn = sentryDsn;
       options.tracesSampleRate = 0.1;
+      options.environment = 'production';
     });
   }
 

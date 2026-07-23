@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/config/build_config.dart';
 import '../data/update_telemetry.dart';
 import '../data/updater_repository.dart';
 import 'update_dialog.dart';
@@ -50,6 +51,9 @@ class _UpdateGateState extends ConsumerState<UpdateGate>
 
   Future<void> _checkAndPing() async {
     if (!mounted) return;
+    // Store build: Play/App Store owns updates, so skip the network
+    // round-trip entirely rather than merely hiding its result.
+    if (kIsStoreBuild) return;
     // Telemetry ping is fire-and-forget; never blocks the update check.
     unawaited(ref.read(updateTelemetryProvider).ping());
     await ref.read(updaterProvider.notifier).check();
@@ -57,6 +61,11 @@ class _UpdateGateState extends ConsumerState<UpdateGate>
 
   @override
   Widget build(BuildContext context) {
+    if (kIsStoreBuild) {
+      // Do'kon build'ida APK-sideload updater butunlay o'chiriladi.
+      // Yangilanishlar Play/App Store orqali keladi.
+      return widget.child;
+    }
     final state = ref.watch(updaterProvider);
     return Stack(
       children: [

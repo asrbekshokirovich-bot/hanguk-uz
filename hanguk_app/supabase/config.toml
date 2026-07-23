@@ -1,0 +1,41 @@
+# Hanguk Flutter ilovasi uchun Supabase konfiguratsiyasi.
+# DIQQAT: bu ildizdagi supabase/config.toml dan ALOHIDA fayl.
+# Ildizdagisi web CRM uchun, bu esa mobil ilova uchun.
+
+project_id = "lysjdtyanhdfphqyijsr"
+
+# ── Login ───────────────────────────────────────────────────────
+# Talaba hali tizimga kirmagan holda chaqiradi, shuning uchun
+# gateway darajasida JWT tekshiruvi o'chirilgan. Funksiya ichida
+# magic-code ning o'zi autentifikatsiya vazifasini bajaradi.
+[functions.student-login-v2]
+verify_jwt = false
+
+# ── Hujjatlar ───────────────────────────────────────────────────
+# verify_jwt qiymatlari 2026-07-23 holatida Supabase Dashboard bilan
+# tekshirilgan — bu yerdagi qiymatlar joriy deploy holatiga mos.
+# Diqqat: bu ikkalasi hozir false bilan ishlayapti; agar buni true'ga
+# o'zgartirib qayta deploy qilsangiz, chaqiruvchi tomon JWT yubormasa
+# funksiya 401 bilan sinadi.
+[functions.get-pdf-url]
+verify_jwt = false
+
+[functions.translate-document]
+verify_jwt = false
+
+[functions.translate-fields]
+verify_jwt = true
+
+# ── Foydalanuvchi ma'lumotlari ──────────────────────────────────
+[functions.export-my-data]
+verify_jwt = true
+
+[functions.register-push-token]
+verify_jwt = true
+
+# ── Ichki xabarnomalar ───────────────────────────────────────────
+# Diqqat: hozir true bilan ishlayapti (server-to-server chaqiruvchi
+# service-role kalit yuboradi, bu haqiqiy JWT sifatida o'tadi).
+# Buni false'ga tushirish autentifikatsiyani olib tashlaydi — qilmang.
+[functions.notify-tracked-changes]
+verify_jwt = true

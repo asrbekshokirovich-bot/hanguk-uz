@@ -143,6 +143,23 @@ class AuthRepository {
           );
         }
       }
+
+      // Not a typed error — a gateway-level problem. 404 means the
+      // function isn't deployed; surface that distinctly instead of
+      // letting it disappear into "Unexpected server error".
+      final status = e.status;
+      if (status == 404) {
+        return (
+          error: _messageFor('SERVICE_UNAVAILABLE', 'login endpoint not found'),
+          studentName: null,
+        );
+      }
+      if (status >= 500) {
+        return (
+          error: _messageFor('SERVICE_UNAVAILABLE', 'HTTP $status'),
+          studentName: null,
+        );
+      }
       return (
         error: _messageFor('INTERNAL_ERROR', e.details?.toString()),
         studentName: null,
@@ -153,8 +170,14 @@ class AuthRepository {
         studentName: null,
       );
     } catch (e) {
+      // Tarmoq uzilishi va JSON parse xatolari shu yerga tushadi.
+      final text = e.toString();
+      final isNetwork = text.contains('SocketException') ||
+          text.contains('ClientException') ||
+          text.contains('Connection') ||
+          text.contains('TimeoutException');
       return (
-        error: _messageFor('INTERNAL_ERROR', e.toString()),
+        error: _messageFor(isNetwork ? 'NETWORK_ERROR' : 'INTERNAL_ERROR', text),
         studentName: null,
       );
     }
@@ -177,8 +200,19 @@ class AuthRepository {
         return 'Server is busy setting up your account. Please try again in 30 seconds.';
       case 'AUTH_SIGNIN_FAILED':
         return 'Login server error. Please try again, or ask your counsellor to reset your account.';
+      case 'SERVER_MISCONFIGURED':
+        return 'The login service is not configured correctly. '
+            'Please tell your counsellor: server setup error.';
+      case 'SERVICE_UNAVAILABLE':
+        return 'The login service is unavailable right now. '
+            'Please try again in a minute.'
+            '${detail == null ? "" : "\n\n($detail)"}';
+      case 'NETWORK_ERROR':
+        return 'No connection to the server. '
+            'Check your internet and try again.';
       case 'INTERNAL_ERROR':
-        return 'Unexpected server error. Please try again, or contact your counsellor.';
+        return 'Unexpected server error. Please try again, or contact your counsellor.'
+            '${detail == null ? "" : "\n\n($detail)"}';
       default:
         // Some legacy responses returned plain strings — show them directly.
         return code;

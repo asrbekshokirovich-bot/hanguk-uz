@@ -11,6 +11,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../core/config/build_config.dart';
 import 'app_version_info.dart';
 import 'version_compare.dart';
 
@@ -249,6 +250,14 @@ class UpdaterRepository {
     required void Function(int received, int total) onProgress,
     required void Function() onInstall,
   }) async {
+    // Do'kon build'ida bu yo'l umuman ishlatilmasligi kerak. Agar bu
+    // yerga yetib kelsa — bu dasturiy xato, jim o'tkazmaymiz.
+    if (kIsStoreBuild) {
+      throw UnsupportedError(
+        'APK sideloading do\'kon build\'ida o\'chirilgan. '
+        'Yangilanishlar Google Play orqali tarqatiladi.',
+      );
+    }
     if (info.downloadUrl.isEmpty) {
       throw const _UpdaterException(
         UpdateErrorCode.unknown,
