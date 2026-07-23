@@ -1,0 +1,1600 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Hanguk ilovasining login va Google Play build muammolarini bosqichma-bosqich tuzatish qo'llanmasi — diagnostika, nusxalanadigan kod bloklari va tekshiruv ro'yxati bilan.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛠</text></svg>">
+<title>Hanguk — Login va Build tuzatish qo'llanmasi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#EEF1EC;
+    --paper-2:#E5E9E3;
+    --card:#F7F9F6;
+    --ink:#14201C;
+    --ink-soft:#4A5A54;
+    --ink-faint:#7C8A84;
+    --rule:#C6CFC8;
+    --signal:#B3400C;
+    --signal-bg:#FBEDE6;
+    --verify:#0D5B4E;
+    --verify-bg:#E3EFEB;
+    --code-bg:#131C19;
+    --code-fg:#D8E2DC;
+    --code-dim:#7E8F88;
+    --measure:56rem;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth;scroll-padding-top:1.5rem}
+  body{
+    margin:0;background:var(--paper);color:var(--ink);
+    font-family:"Source Serif 4",Georgia,serif;
+    font-size:17px;line-height:1.62;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{display:grid;grid-template-columns:16rem minmax(0,1fr);gap:3rem;max-width:82rem;margin:0 auto;padding:0 2rem}
+
+  /* ---------- Rail ---------- */
+  .rail{position:sticky;top:0;height:100vh;overflow-y:auto;padding:2.5rem 0 3rem;border-right:1px solid var(--rule)}
+  .rail-brand{font-family:Archivo,system-ui,sans-serif;font-weight:800;font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;color:var(--signal);margin-bottom:.35rem}
+  .rail-title{font-family:Archivo,system-ui,sans-serif;font-weight:700;font-size:1.05rem;line-height:1.25;margin:0 0 1.6rem;padding-right:1.5rem}
+  .rail nav{font-family:Archivo,system-ui,sans-serif;font-size:.82rem;line-height:1.35}
+  .rail nav a{display:block;padding:.42rem 1.2rem .42rem 0;color:var(--ink-soft);text-decoration:none;border-left:2px solid transparent;padding-left:.85rem;margin-left:-.85rem;transition:color .15s,border-color .15s}
+  .rail nav a:hover{color:var(--ink);border-left-color:var(--signal)}
+  .rail nav .grp{font-weight:700;font-size:.7rem;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-faint);margin:1.5rem 0 .5rem}
+  .rail nav .grp:first-child{margin-top:0}
+  .rail nav a code{font-family:"JetBrains Mono",monospace;font-size:.78em;color:var(--ink-faint)}
+
+  .progress-box{margin-top:2rem;padding:.9rem 1rem;background:var(--card);border:1px solid var(--rule);border-radius:3px}
+  .progress-label{font-family:Archivo,sans-serif;font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:.5rem}
+  .progress-count{font-family:Archivo,sans-serif;font-weight:800;font-size:1.5rem;line-height:1}
+  .progress-count span{font-size:.9rem;font-weight:600;color:var(--ink-faint)}
+  .progress-track{height:4px;background:var(--paper-2);margin-top:.6rem;border-radius:2px;overflow:hidden}
+  .progress-fill{height:100%;background:var(--verify);width:0;transition:width .3s ease}
+
+  /* ---------- Main ---------- */
+  main{padding:3.5rem 0 8rem;max-width:var(--measure)}
+  .eyebrow{font-family:Archivo,sans-serif;font-weight:700;font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--signal)}
+  h1{font-family:Archivo,sans-serif;font-weight:800;font-size:clamp(2.1rem,4.4vw,3.1rem);line-height:1.05;letter-spacing:-.025em;margin:.5rem 0 1rem}
+  .lede{font-size:1.16rem;line-height:1.55;color:var(--ink-soft);max-width:44rem;margin:0 0 2rem}
+
+  h2{font-family:Archivo,sans-serif;font-weight:800;font-size:1.72rem;letter-spacing:-.015em;line-height:1.18;margin:4.5rem 0 .4rem;padding-top:1.6rem;border-top:2px solid var(--ink)}
+  h2 .num{display:block;font-size:.72rem;letter-spacing:.16em;font-weight:700;color:var(--signal);margin-bottom:.5rem}
+  h3{font-family:Archivo,sans-serif;font-weight:700;font-size:1.16rem;letter-spacing:-.005em;margin:2.6rem 0 .6rem}
+  h4{font-family:Archivo,sans-serif;font-weight:600;font-size:.95rem;margin:1.6rem 0 .4rem}
+  p{margin:0 0 1rem}
+  ul,ol{margin:0 0 1rem;padding-left:1.3rem}
+  li{margin-bottom:.4rem}
+  strong{font-weight:600}
+  a{color:var(--verify)}
+
+  code{font-family:"JetBrains Mono",monospace;font-size:.85em;background:var(--paper-2);padding:.1em .35em;border-radius:2px;word-break:break-word}
+
+  /* ---------- Step cards ---------- */
+  .step{background:var(--card);border:1px solid var(--rule);border-radius:3px;margin:1.5rem 0;overflow:hidden}
+  .step-head{display:flex;align-items:flex-start;gap:.85rem;padding:1.05rem 1.25rem;border-bottom:1px solid var(--rule);background:#fff}
+  .step-head input{margin:.3rem 0 0;width:1.05rem;height:1.05rem;accent-color:var(--verify);flex-shrink:0;cursor:pointer}
+  .step-id{font-family:"JetBrains Mono",monospace;font-weight:600;font-size:.75rem;color:#fff;background:var(--ink);padding:.18em .5em;border-radius:2px;flex-shrink:0;margin-top:.15rem}
+  .step-id.warn{background:var(--signal)}
+  .step-title{font-family:Archivo,sans-serif;font-weight:700;font-size:1.02rem;line-height:1.35;margin:0}
+  .step-body{padding:1.25rem}
+  .step-body > :last-child{margin-bottom:0}
+  .step.done{opacity:.55}
+  .step.done .step-title{text-decoration:line-through;text-decoration-color:var(--ink-faint)}
+
+  .file-path{font-family:"JetBrains Mono",monospace;font-size:.78rem;color:var(--ink-faint);display:block;margin-top:.2rem;font-weight:400}
+
+  /* ---------- Code ---------- */
+  .code{position:relative;background:var(--code-bg);border-radius:3px;margin:.9rem 0 1.1rem}
+  .code-bar{display:flex;justify-content:space-between;align-items:center;padding:.5rem .85rem;border-bottom:1px solid #26332E}
+  .code-name{font-family:"JetBrains Mono",monospace;font-size:.72rem;color:var(--code-dim);letter-spacing:.02em}
+  .copy{font-family:Archivo,sans-serif;font-size:.68rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;background:none;border:1px solid #35443E;color:var(--code-dim);padding:.28em .7em;border-radius:2px;cursor:pointer;transition:.15s}
+  .copy:hover{color:#fff;border-color:#5B6D66}
+  .copy.ok{color:#8FD9A8;border-color:#3E6B4E}
+  pre{margin:0;padding:.95rem 1rem;overflow-x:auto;font-family:"JetBrains Mono",monospace;font-size:.795rem;line-height:1.62;color:var(--code-fg);white-space:pre}
+  pre .c{color:#6E8079;font-style:italic}
+  pre .del{color:#E08A6E;display:block;background:rgba(179,64,12,.14)}
+  pre .add{color:#8FD9A8;display:block;background:rgba(13,91,78,.22)}
+  pre .k{color:#9DBFEA}
+  pre .s{color:#D9C08A}
+
+  /* ---------- Callouts ---------- */
+  .note{border-left:3px solid var(--verify);background:var(--verify-bg);padding:.85rem 1.1rem;margin:1.1rem 0;font-size:.95rem}
+  .warn{border-left:3px solid var(--signal);background:var(--signal-bg);padding:.85rem 1.1rem;margin:1.1rem 0;font-size:.95rem}
+  .note > :last-child,.warn > :last-child{margin-bottom:0}
+  .note-label,.warn-label{font-family:Archivo,sans-serif;font-weight:700;font-size:.68rem;letter-spacing:.13em;text-transform:uppercase;display:block;margin-bottom:.3rem}
+  .note-label{color:var(--verify)}
+  .warn-label{color:var(--signal)}
+
+  /* ---------- Table ---------- */
+  table{width:100%;border-collapse:collapse;margin:1.1rem 0;font-size:.9rem}
+  th{font-family:Archivo,sans-serif;font-weight:700;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;text-align:left;color:var(--ink-faint);border-bottom:1.5px solid var(--ink);padding:.45rem .7rem .45rem 0}
+  td{padding:.6rem .7rem .6rem 0;border-bottom:1px solid var(--rule);vertical-align:top}
+  td:last-child,th:last-child{padding-right:0}
+
+  /* ---------- Signature: triage ---------- */
+  .triage{background:var(--ink);color:var(--paper);border-radius:4px;padding:1.6rem;margin:1.6rem 0 2rem}
+  .triage-q{font-family:Archivo,sans-serif;font-weight:700;font-size:1.05rem;color:#fff;margin:0 0 .35rem}
+  .triage-sub{font-size:.9rem;color:#93A49D;margin:0 0 1.15rem}
+  .triage-opts{display:grid;gap:.55rem}
+  .t-opt{display:flex;align-items:flex-start;gap:.8rem;width:100%;text-align:left;background:#1E2B27;border:1px solid #2F3E38;color:var(--paper);padding:.8rem .95rem;border-radius:3px;cursor:pointer;font-family:inherit;font-size:.92rem;line-height:1.45;transition:.15s}
+  .t-opt:hover{border-color:#4C6058;background:#243430}
+  .t-opt[aria-pressed="true"]{border-color:#8FD9A8;background:#22332C}
+  .t-code{font-family:"JetBrains Mono",monospace;font-weight:600;font-size:.78rem;background:#0C1512;color:#9DBFEA;padding:.22em .55em;border-radius:2px;flex-shrink:0;margin-top:.1rem}
+  .t-out{margin-top:1.15rem;padding-top:1.15rem;border-top:1px solid #2F3E38;font-size:.94rem;display:none}
+  .t-out.on{display:block}
+  .t-out h5{font-family:Archivo,sans-serif;font-weight:700;font-size:.98rem;color:#fff;margin:0 0 .4rem}
+  .t-out p{margin:0 0 .6rem;color:#BFCCC6}
+  .t-out a{color:#8FD9A8;font-weight:600}
+  .t-out code{background:#0C1512;color:#D9C08A}
+
+  .kbd{font-family:"JetBrains Mono",monospace;font-size:.78rem;border:1px solid var(--rule);border-bottom-width:2px;background:#fff;padding:.12em .4em;border-radius:3px}
+
+  footer{margin-top:5rem;padding-top:1.5rem;border-top:2px solid var(--ink);font-size:.85rem;color:var(--ink-faint)}
+
+  @media (max-width:960px){
+    .wrap{grid-template-columns:1fr;gap:0;padding:0 1.25rem}
+    .rail{position:static;height:auto;border-right:none;border-bottom:1px solid var(--rule);padding:2rem 0 1.5rem}
+    .rail nav{columns:2;column-gap:1.5rem}
+    main{padding-top:2.5rem}
+    body{font-size:16px}
+  }
+  @media print{
+    .rail,.copy{display:none}
+    .wrap{display:block}
+    body{background:#fff;font-size:11pt}
+    .code{border:1px solid #ccc}
+    pre{color:#111;background:#f6f6f6}
+    .t-out{display:block!important}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<aside class="rail">
+  <div class="rail-brand">Hanguk / Ta'mirlash tartibi</div>
+  <p class="rail-title">Login va Build muammolarini tuzatish</p>
+  <nav>
+    <div class="grp">Diagnoz</div>
+    <a href="#sabab">Nima uchun buzilgan</a>
+    <a href="#diagnostika">Diagnostika testi</a>
+
+    <div class="grp">A — Login</div>
+    <a href="#L1"><code>L1</code> config.toml yaratish</a>
+    <a href="#L2"><code>L2</code> Ildiz project_id</a>
+    <a href="#L3"><code>L3</code> Deploy qilish</a>
+    <a href="#L4"><code>L4</code> Secrets tekshirish</a>
+    <a href="#L5"><code>L5</code> Env himoyasi</a>
+    <a href="#L6"><code>L6</code> Xato xabarlari</a>
+    <a href="#L7"><code>L7</code> Google demo hisobi</a>
+
+    <div class="grp">B — Build</div>
+    <a href="#B1"><code>B1</code> ProGuard ulash</a>
+    <a href="#B2"><code>B2</code> Imzo fallback</a>
+    <a href="#B3"><code>B3</code> Updater to'siq</a>
+    <a href="#B4"><code>B4</code> Flavor yaratish</a>
+    <a href="#B5"><code>B5</code> CI ni tiklash</a>
+    <a href="#B6"><code>B6</code> Sentry</a>
+
+    <div class="grp">Yakun</div>
+    <a href="#build">Yakuniy build</a>
+    <a href="#tekshiruv">Tekshiruv ro'yxati</a>
+    <a href="#play">Play Console'ga yuborish</a>
+  </nav>
+
+  <div class="progress-box">
+    <div class="progress-label">Bajarildi</div>
+    <div class="progress-count"><b id="pdone">0</b><span id="ptotal"> / 0</span></div>
+    <div class="progress-track"><div class="progress-fill" id="pfill"></div></div>
+  </div>
+</aside>
+
+<main>
+
+<div class="eyebrow">Ta'mirlash tartibi &middot; asrbekshokirovich-bot/hanguk-uz</div>
+<h1>Login va build<br>muammolarini tuzatish</h1>
+<p class="lede">Google ilovaga kira olmagani uchun uni rad etdi. Quyida sababning aniq zanjiri va uni tuzatishning har bir qadami — nusxa ko'chirib qo'yiladigan kod bilan. Qadamlar tartib bilan bajarilishi kerak: <b>A</b> blok ilovaga kirishni tiklaydi, <b>B</b> blok esa build'ni Play qabul qiladigan holatga keltiradi.</p>
+
+<div class="warn">
+  <span class="warn-label">Boshlashdan oldin</span>
+  <p>Bu qo'llanma faqat login va build'ni qamrab oladi. Repodagi ochiq kalitlar masalasi alohida qoldi — u hal qilinmaguncha ilovani do'konda saqlab turish xavfli. Bunga commit qilingan keystore ham kiradi: <code>android/app/upload-keystore.jks</code> (repo ildizida, Capacitor tomonida) hozir git tarixida turibdi; <code>KAKAO_JS_KEY</code> ning default qiymati ham kodga yozilgan (<code>app_config.dart:64</code>). Login ishlagach bularga qayting.</p>
+</div>
+
+<!-- ============ SABAB ============ -->
+<h2 id="sabab"><span class="num">Diagnoz</span>Nima uchun buzilgan</h2>
+
+<p>Skrinshotdagi <b>"Unexpected server error. Please try again, or contact your counsellor."</b> matni butun kod bazasida faqat bitta joyda uchraydi:</p>
+
+<div class="code">
+  <div class="code-bar"><span class="code-name">hanguk_app/lib/features/auth/data/auth_repository.dart:181</span><button class="copy">Nusxa</button></div>
+<pre><span class="k">case</span> <span class="s">'INTERNAL_ERROR'</span>:
+  <span class="k">return</span> <span class="s">'Unexpected server error. Please try again, or contact your counsellor.'</span>;</pre>
+</div>
+
+<p>Bu xabar <code>_messageFor()</code> funksiyasining <b>oxirgi chorasi</b>. Server tushunarli xato qaytarganda foydalanuvchi butunlay boshqa matn ko'radi:</p>
+
+<table>
+  <thead><tr><th style="width:34%">Server qaytargan kod</th><th>Foydalanuvchi ko'radigan matn</th></tr></thead>
+  <tbody>
+    <tr><td><code>CODE_NOT_FOUND</code></td><td>We don't recognise this code…</td></tr>
+    <tr><td><code>STAFF_BLOCKED</code></td><td>Staff members must use username/password…</td></tr>
+    <tr><td><code>AUTH_SIGNIN_FAILED</code></td><td>Login server error…</td></tr>
+    <tr><td><code>AUTH_CREATE_FAILED</code></td><td>Server is busy setting up your account…</td></tr>
+    <tr><td><b><code>INTERNAL_ERROR</code></b></td><td><b>Unexpected server error…</b> &larr; reviewer shuni ko'rgan</td></tr>
+  </tbody>
+</table>
+
+<div class="note">
+  <span class="note-label">Asosiy xulosa</span>
+  <p>Agar <code>QR6ZUBDZ</code> kodi noto'g'ri bo'lganda, reviewer <i>"We don't recognise this code"</i> ni ko'rar edi. U buni ko'rmadi. Demak muammo kodning o'zida emas — <b>server javob bermayapti yoki topilmayapti</b>.</p>
+</div>
+
+<h3>Xato qanday "INTERNAL_ERROR" ga aylanadi</h3>
+
+<p>Dart tomonidagi <code>catch</code> blokiga qarang. Server 404 qaytarganda javob tanasi <code>{"code":404,"message":"Requested function was not found"}</code> bo'ladi — bu <code>Map</code>, lekin uning ichida <code>error</code> kaliti <b>yo'q</b>. Shuning uchun shart bajarilmaydi va kod pastdagi umumiy holatga tushadi:</p>
+
+<div class="code">
+  <div class="code-bar"><span class="code-name">auth_repository.dart:134-149 — hozirgi holat</span><button class="copy">Nusxa</button></div>
+<pre>} <span class="k">on</span> FunctionException <span class="k">catch</span> (e) {
+  <span class="k">if</span> (e.details <span class="k">is</span> Map) {
+    <span class="k">final</span> m = e.details <span class="k">as</span> Map;
+    <span class="k">if</span> (m[<span class="s">'error'</span>] != <span class="k">null</span>) {        <span class="c">// 404 javobda bu kalit YO'Q</span>
+      <span class="k">return</span> (error: _messageFor(...), studentName: <span class="k">null</span>);
+    }
+  }
+  <span class="k">return</span> (
+    error: _messageFor(<span class="s">'INTERNAL_ERROR'</span>, ...),  <span class="c">// &larr; hamma qolgani shu yerga</span>
+    studentName: <span class="k">null</span>,
+  );
+}</pre>
+</div>
+
+<h3>Nima uchun funksiya topilmaydi — uchta konkret sabab</h3>
+
+<p><b>1. Flutter ilovasining Supabase konfiguratsiyasi umuman mavjud emas.</b> <code>hanguk_app/supabase/</code> papkasida <code>functions/</code> va <code>migrations/</code> bor, lekin <code>config.toml</code> <b>yo'q</b>. Ya'ni <code>student-login-v2</code> uchun hech qanday deploy sozlamasi yozilmagan.</p>
+
+<p><b>2. Ildizdagi konfiguratsiya noto'g'ri loyihaga ko'rsatadi.</b></p>
+
+<div class="code">
+  <div class="code-bar"><span class="code-name">supabase/config.toml:1</span><button class="copy">Nusxa</button></div>
+<pre>project_id = <span class="s">"hyvxwlwttzxzrkfolivo"</span>   <span class="c"># &larr; ESKI, tashlab ketilgan loyiha</span></pre>
+</div>
+
+<p>Ilova esa <code>app_config.dart</code> va <code>main.dart</code> da <code>lysjdtyanhdfphqyijsr</code> ga ulanadi. Agar <code>supabase functions deploy</code> ni <code>--project-ref</code> siz ishlatgan bo'lsangiz, funksiya <b>eski loyihaga</b> ketgan.</p>
+
+<p><b>3. Ildizdagi <code>config.toml</code> da <code>student-login-v2</code> ro'yxatga olinmagan</b> — u yerda faqat eski <code>student-login</code> (v1) bor. Deploy tarixi ham ziddiyatli: <code>hanguk_app/CURRENT_STATUS.md</code> da funksiya prod'ga <i>v11</i> sifatida deploy qilingani qayd etilgan, lekin <code>USER_ACTIONS_REQUIRED.md</code> da hali ham <b>57 ta bajarilmagan punkt</b> turibdi. Ya'ni "deploy qilinmagan" — tasdiqlangan fakt emas, ehtimollardan biri; quyidagi diagnostika buni 30 soniyada aniqlaydi.</p>
+
+<h3>To'rtinchi ehtimol: env o'zgaruvchisi yetishmayapti</h3>
+
+<p>Agar funksiya deploy qilingan bo'lsa ham, ichida potentsial yiqilish nuqtasi bor. <code>student-login-v2</code> — v1 dan farqli ravishda — <b>anon kalitni</b> ham talab qiladi:</p>
+
+<div class="code">
+  <div class="code-bar"><span class="code-name">student-login-v2/index.ts:238</span><button class="copy">Nusxa</button></div>
+<pre><span class="k">const</span> anon = createClient(
+  Deno.env.get(<span class="s">'SUPABASE_URL'</span>) ?? <span class="s">''</span>,
+  Deno.env.get(<span class="s">'SUPABASE_ANON_KEY'</span>) ?? <span class="s">''</span>,   <span class="c">// &larr; bo'sh bo'lsa exception</span>
+  { auth: { autoRefreshToken: <span class="k">false</span>, persistSession: <span class="k">false</span> } },
+)</pre>
+</div>
+
+<p>Agar <code>SUPABASE_ANON_KEY</code> mavjud bo'lmasa, <code>createClient(url, '')</code> darhol exception tashlaydi. Uni tashqi <code>try/catch</code> ushlaydi va <code>INTERNAL_ERROR</code> qaytaradi — <b>yana aynan o'sha xabar</b>. v1 bu o'zgaruvchini ishlatmaydi, shuning uchun eski funksiya ishlab, yangisi sinishi mumkin.</p>
+
+<!-- ============ DIAGNOSTIKA ============ -->
+<h2 id="diagnostika"><span class="num">Diagnostika</span>Avval qaysi sabab ekanini aniqlang</h2>
+
+<p>Taxmin qilib tuzatmang — 30 soniyada aniq bilib oling. Terminalda ishga tushiring (<code>ANON_KEY</code> ni <code>app_config.dart</code> dan oling):</p>
+
+<div class="code">
+  <div class="code-bar"><span class="code-name">Terminal</span><button class="copy">Nusxa</button></div>
+<pre>curl -i -X POST \
+  <span class="s">"https://lysjdtyanhdfphqyijsr.supabase.co/functions/v1/student-login-v2"</span> \
+  -H <span class="s">"apikey: &lt;ANON_KEY&gt;"</span> \
+  -H <span class="s">"Authorization: Bearer &lt;ANON_KEY&gt;"</span> \
+  -H <span class="s">"Content-Type: application/json"</span> \
+  -d <span class="s">'{"magicCode":"TEST0000"}'</span></pre>
+</div>
+
+<div class="triage">
+  <p class="triage-q">Qaysi javob keldi?</p>
+  <p class="triage-sub">Birinchi qatorni va JSON tanasini o'qing, keyin mos variantni bosing.</p>
+  <div class="triage-opts">
+    <button class="t-opt" data-t="a" aria-pressed="false"><span class="t-code">404</span><span>Requested function was not found &mdash; yoki umuman <code>404 Not Found</code></span></button>
+    <button class="t-opt" data-t="b" aria-pressed="false"><span class="t-code">401</span><span><code>{"error":"CODE_NOT_FOUND"}</code> &mdash; funksiya javob berdi</span></button>
+    <button class="t-opt" data-t="c" aria-pressed="false"><span class="t-code">500</span><span><code>{"error":"INTERNAL_ERROR","detail":"..."}</code></span></button>
+    <button class="t-opt" data-t="d" aria-pressed="false"><span class="t-code">5xx</span><span>Boshqa xato, bo'sh javob, yoki timeout</span></button>
+  </div>
+
+  <div class="t-out" id="t-a">
+    <h5>Funksiya deploy qilinmagan — tashxis tasdiqlandi</h5>
+    <p>Bu asosiy sabab. Ilova mavjud bo'lmagan endpointni chaqirmoqda, gateway 404 qaytarmoqda, Dart uni <code>INTERNAL_ERROR</code> ga aylantirmoqda.</p>
+    <p><b>Bajaring:</b> <a href="#L1">L1</a> &rarr; <a href="#L2">L2</a> &rarr; <a href="#L3">L3</a> &rarr; <a href="#L4">L4</a>, keyin bu testni qayta ishga tushiring. Javob <code>401 CODE_NOT_FOUND</code> ga o'zgarishi kerak.</p>
+  </div>
+  <div class="t-out" id="t-b">
+    <h5>Funksiya ishlayapti — muammo kodda yoki bazada</h5>
+    <p>Server sog'lom. Demak reviewer bergan <code>QR6ZUBDZ</code> kodi bazada topilmagan, yoki reviewer test paytida server vaqtincha o'chgan.</p>
+    <p><b>Bajaring:</b> <a href="#L6">L6</a> (xato xabarlarini aniqlashtirish) va <a href="#L7">L7</a> (Google uchun doimiy demo hisob). <a href="#L1">L1</a>–<a href="#L4">L4</a> ni ham bajaring — ular kelajakdagi noto'g'ri deploy'ning oldini oladi.</p>
+  </div>
+  <div class="t-out" id="t-c">
+    <h5>Funksiya bor, lekin ichida yiqilyapti</h5>
+    <p><code>detail</code> maydonini o'qing — u aniq sababni aytadi. Agar u <code>supabaseKey is required</code> yoki shunga o'xshash bo'lsa, <code>SUPABASE_ANON_KEY</code> yetishmayapti.</p>
+    <p><b>Bajaring:</b> <a href="#L4">L4</a> (Secrets tekshirish) va <a href="#L5">L5</a> (env himoyasini qo'shish). Keyin <a href="#L6">L6</a>.</p>
+  </div>
+  <div class="t-out" id="t-d">
+    <h5>Aniq bo'lmagan xato</h5>
+    <p>Supabase Dashboard &rarr; Edge Functions &rarr; <code>student-login-v2</code> &rarr; <b>Logs</b> ni oching. Funksiya <code>logEvent()</code> orqali har bir so'rov uchun bitta JSON qator yozadi. Agar log'da hech narsa yo'q bo'lsa — so'rov funksiyaga umuman yetib bormagan, ya'ni u deploy qilinmagan.</p>
+    <p><b>Bajaring:</b> <a href="#L1">L1</a> dan boshlab hammasini tartib bilan.</p>
+  </div>
+</div>
+
+<!-- ============ A: LOGIN ============ -->
+<h2 id="login-blok"><span class="num">A bloki</span>Login'ni tiklash</h2>
+
+<div class="step" id="L1">
+  <div class="step-head">
+    <input type="checkbox" class="chk" id="c-L1">
+    <span class="step-id">L1</span>
+    <label class="step-title" for="c-L1">Flutter ilovasi uchun Supabase konfiguratsiyasini yarating
+      <span class="file-path">YANGI FAYL &rarr; hanguk_app/supabase/config.toml</span>
+    </label>
+  </div>
+  <div class="step-body">
+    <p>Bu fayl hozir umuman mavjud emas. Usiz <code>supabase</code> CLI qaysi loyihaga deploy qilishni va funksiyalar JWT talab qiladimi-yo'qmi bilmaydi.</p>
+
+    <div class="code">
+      <div class="code-bar"><span class="code-name">hanguk_app/supabase/config.toml — to'liq fayl</span><button class="copy">Nusxa</button></div>
+<pre><span class="c"># Hanguk Flutter ilovasi uchun Supabase konfiguratsiyasi.</span>
+<span class="c"># DIQQAT: bu ildizdagi supabase/config.toml dan ALOHIDA fayl.</span>
+<span class="c"># Ildizdagisi web CRM uchun, bu esa mobil ilova uchun.</span>
+
+project_id = <span class="s">"lysjdtyanhdfphqyijsr"</span>
+
+<span class="c"># ── Login ───────────────────────────────────────────────────────</span>
+<span class="c"># Talaba hali tizimga kirmagan holda chaqiradi, shuning uchun</span>
+<span class="c"># gateway darajasida JWT tekshiruvi o'chirilgan. Funksiya ichida</span>
+<span class="c"># magic-code ning o'zi autentifikatsiya vazifasini bajaradi.</span>
+[functions.student-login-v2]
+verify_jwt = false
+
+<span class="c"># ── Hujjatlar ───────────────────────────────────────────────────</span>
+[functions.get-pdf-url]
+verify_jwt = true
+
+[functions.translate-document]
+verify_jwt = true
+
+[functions.translate-fields]
+verify_jwt = true
+
+<span class="c"># ── Foydalanuvchi ma'lumotlari ──────────────────────────────────</span>
+[functions.export-my-data]
+verify_jwt = true
+
+[functions.register-push-token]
+verify_jwt = true
+
+<span class="c"># ── Ichki xabarnomalar (server-to-server chaqiriladi) ───────────</span>
+[functions.notify-tracked-changes]
+verify_jwt = false</pre>
+    </div>
+
+    <div class="note">
+      <span class="note-label">Nima uchun student-login-v2 uchun false</span>
+      <p><code>supabase_flutter</code> anon kalitni <code>Authorization</code> sarlavhasida yuboradi, va anon kalit texnik jihatdan haqiqiy JWT — shuning uchun <code>verify_jwt = true</code> ham o'tib ketardi. Lekin login endpointi uchun <code>false</code> standart amaliyot: u kalit formati o'zgarganda yoki sarlavha yo'qolganda sinmaydi.</p>
+    </div>
+  </div>
+</div>
+
+<div class="step" id="L2">
+  <div class="step-head">
+    <input type="checkbox" class="chk" id="c-L2">
+    <span class="step-id warn">L2</span>
+    <label class="step-title" for="c-L2">Ildizdagi noto'g'ri <code>project_id</code> ni tuzating
+      <span class="file-path">supabase/config.toml — 1-qator</span>
+    </label>
+  </div>
+  <div class="step-body">
+    <p>Bu qator hozir eski loyihaga ko'rsatmoqda. Agar shu holicha qoldirsangiz, keyingi safar CRM funksiyalarini deploy qilganingizda ular yana noto'g'ri joyga ketadi.</p>
+
+    <div class="code">
+      <div class="code-bar"><span class="code-name">supabase/config.toml</span><button class="copy">Nusxa</button></div>
+<pre><span class="del">- project_id = "hyvxwlwttzxzrkfolivo"</span>
+<span class="add">+ project_id = "lysjdtyanhdfphqyijsr"</span></pre>
+    </div>
+
+    <p>Shu bilan birga, ildizdagi faylga <code>student-login-v2</code> ni <b>qo'shmang</b> — u endi <code>hanguk_app</code> ga tegishli. Ikkita joyda e'lon qilinsa, qaysi biri qo'llanishi tasodifga bog'liq bo'lib qoladi.</p>
+
+    <div class="warn">
+      <span class="warn-label">Eski funksiyani hali o'chirmang</span>
+      <p><code>student-login</code> (v1) hozir ham deploy qilingan bo'lishi mumkin va ba'zi eski ilova versiyalari unga murojaat qilayotgan bo'lishi mumkin. v2 barqaror ishlaganiga bir hafta ishonch hosil qilgach o'chiring.</p>
+    </div>
+  </div>
+</div>
+
+<div class="step" id="L3">
+  <div class="step-head">
+    <input type="checkbox" class="chk" id="c-L3">
+    <span class="step-id warn">L3</span>
+    <label class="step-title" for="c-L3">Funksiyani to'g'ri loyihaga deploy qiling</label>
+  </div>
+  <div class="step-body">
+    <p>Har doim <code>--project-ref</code> ni ochiq yozing. Bu bitta odat butun muammoning oldini oladi.</p>
+
+    <div class="code">
+      <div class="code-bar"><span class="code-name">Terminal</span><button class="copy">Nusxa</button></div>
+<pre><span class="c"># 1. Supabase CLI o'rnatilganini tekshiring (v1.200+ tavsiya etiladi)</span>
+supabase --version
+
+<span class="c"># 2. Tizimga kiring (brauzer ochiladi)</span>
+supabase login
+
+<span class="c"># 3. Flutter ilovasining supabase papkasiga o'ting</span>
+cd hanguk_app
+
+<span class="c"># 4. Loyihaga bog'lang</span>
+supabase link --project-ref lysjdtyanhdfphqyijsr
+
+<span class="c"># 5. Login funksiyasini deploy qiling</span>
+supabase functions deploy student-login-v2 \
+  --project-ref lysjdtyanhdfphqyijsr \
+  --no-verify-jwt
+
+<span class="c"># 6. Deploy bo'lganini tasdiqlang — ro'yxatda ko'rinishi kerak</span>
+supabase functions list --project-ref lysjdtyanhdfphqyijsr</pre>
+    </div>
+
+    <h4>Yo'qolgan qolgan funksiyalarni ham deploy qiling</h4>
+    <p>Ilova chaqiradigan, lekin hech qachon deploy qilinmagan bo'lishi mumkin bo'lganlar:</p>
+
+    <div class="code">
+      <div class="code-bar"><span class="code-name">Terminal</span><button class="copy">Nusxa</button></div>
+<pre>cd hanguk_app
+
+<span class="k">for</span> fn <span class="k">in</span> get-pdf-url register-push-token export-my-data \
+         translate-document translate-fields notify-tracked-changes
+<span class="k">do</span>
+  supabase functions deploy <span class="s">"$fn"</span> --project-ref lysjdtyanhdfphqyijsr
+<span class="k">done</span></pre>
+    </div>
+
+    <div class="warn">
+      <span class="warn-label">Ilova chaqiradigan, lekin repoda mavjud bo'lmagan funksiyalar</span>
+      <p><code>check-student-phone</code> — <code>signUpStudent()</code> da chaqiriladi (<code>auth_repository.dart:196</code>). Hozir <code>try/catch</code> ichida jim yiqiladi, shuning uchun ro'yxatdan o'tish ishlaydi, lekin CRM-hisob tekshiruvi bajarilmaydi. <code>vapi-fetch-recording</code> — mock-intervyu yozuvlari uchun (<code>interview_repository.dart:696</code>). Ikkalasi ham repoda yo'q. Agar ular prodda mavjud bo'lsa, kodini repoga qo'shing; yo'q bo'lsa, chaqiruvlarni olib tashlang.</p>
+    </div>
+  </div>
+</div>
+
+<div class="step" id="L4">
+  <div class="step-head">
+    <input type="checkbox" class="chk" id="c-L4">
+    <span class="step-id">L4</span>
+    <label class="step-title" for="c-L4">Edge Function secrets'ni tekshiring</label>
+  </div>
+  <div class="step-body">
+    <p>Supabase odatda uchta o'zgaruvchini avtomatik joylaydi, lekin yangi loyihalarda kalit tizimi o'zgargani sababli <code>SUPABASE_ANON_KEY</code> tushib qolishi mumkin. Aynan shu — <a href="#sabab">yuqorida</a> tasvirlangan to'rtinchi ehtimoliy sabab.</p>
+
+    <div class="code">
+      <div class="code-bar"><span class="code-name">Terminal</span><button class="copy">Nusxa</button></div>
+<pre>supabase secrets list --project-ref lysjdtyanhdfphqyijsr</pre>
+    </div>
+
+    <p>Ro'yxatda quyidagi uchtasi <b>ham</b> bo'lishi shart:</p>
+    <ul>
+      <li><code>SUPABASE_URL</code></li>
+      <li><code>SUPABASE_ANON_KEY</code></li>
+      <li><code>SUPABASE_SERVICE_ROLE_KEY</code></li>
+    </ul>
+
+    <p>Agar biri yetishmasa, qo'lda qo'shing (qiymatlarni Dashboard &rarr; Settings &rarr; API dan oling):</p>
+
+    <div class="code">
+      <div class="code-bar"><span class="code-name">Terminal</span><button class="copy">Nusxa</button></div>
+<pre>supabase secrets set SUPABASE_ANON_KEY=<span class="s">"&lt;anon_key&gt;"</span> \
+  --project-ref lysjdtyanhdfphqyijsr
+
+<span class="c"># O'zgarish kuchga kirishi uchun funksiyani qayta deploy qiling</span>
+supabase functions deploy student-login-v2 \
+  --project-ref lysjdtyanhdfphqyijsr --no-verify-jwt</pre>
+    </div>
+  </div>
+</div>
+
+<div class="step" id="L5">
+  <div class="step-head">
+    <input type="checkbox" class="chk" id="c-L5">
+    <span class="step-id">L5</span>
+    <label class="step-title" for="c-L5">Funksiyaga env himoyasi va zaxira yo'l qo'shing
+      <span class="file-path">hanguk_app/supabase/functions/student-login-v2/index.ts</span>
+    </label>
+  </div>
+  <div class="step-body">
+    <p>Hozir funksiya env o'zgaruvchisi yo'qligini tekshirmaydi — u shunchaki bo'sh satr bilan davom etadi va tushunarsiz joyda yiqiladi. Bu patch ikkita narsani qiladi: muammoni <b>aniq aytadi</b>, va anon kalit bo'lmasa <b>admin klient bilan davom etadi</b> (v1 shunday ishlar edi).</p>
+
+    <h4>1-o'zgarish — <code>ErrorCode</code> tipiga yangi kod qo'shing</h4>
+    <div class="code">
+      <div class="code-bar"><span class="code-name">index.ts:34-41</span><button class="copy">Nusxa</button></div>
+<pre>type ErrorCode =
+  | <span class="s">'CODE_REQUIRED'</span>
+  | <span class="s">'CODE_NOT_FOUND'</span>
+  | <span class="s">'CODE_LOOKUP_FAILED'</span>
+  | <span class="s">'STAFF_BLOCKED'</span>
+  | <span class="s">'AUTH_CREATE_FAILED'</span>
+  | <span class="s">'AUTH_SIGNIN_FAILED'</span>
+<span class="add">+   | 'SERVER_MISCONFIGURED'</span>
+  | <span class="s">'INTERNAL_ERROR'</span></pre>
+    </div>
+
+    <h4>2-o'zgarish — admin klient yaratilishidan oldin tekshiruv</h4>
+    <p><code>const admin = createClient(...)</code> qatorini toping (hozir <code>index.ts:119-123</code>) va uni butunlay quyidagiga almashtiring:</p>
+
+    <div class="code">
+      <div class="code-bar"><span class="code-name">index.ts — admin klient bloki</span><button class="copy">Nusxa</button></div>
+<pre><span class="c">// ── Env o'zgaruvchilarni bir marta o'qib, darhol tekshiramiz ──</span>
+<span class="k">const</span> SUPABASE_URL = Deno.env.get(<span class="s">'SUPABASE_URL'</span>) ?? <span class="s">''</span>
+<span class="k">const</span> SERVICE_KEY  = Deno.env.get(<span class="s">'SUPABASE_SERVICE_ROLE_KEY'</span>) ?? <span class="s">''</span>
+<span class="k">const</span> ANON_KEY     = Deno.env.get(<span class="s">'SUPABASE_ANON_KEY'</span>) ?? <span class="s">''</span>
+
+<span class="k">if</span> (!SUPABASE_URL || !SERVICE_KEY) {
+  <span class="c">// Bu ishlab chiqarish xatosi, foydalanuvchining aybi emas —</span>
+  <span class="c">// shuning uchun log'da aniq nomlab yozamiz.</span>
+  <span class="k">const</span> missing = [
+    !SUPABASE_URL ? <span class="s">'SUPABASE_URL'</span> : <span class="k">null</span>,
+    !SERVICE_KEY ? <span class="s">'SUPABASE_SERVICE_ROLE_KEY'</span> : <span class="k">null</span>,
+  ].filter(Boolean).join(<span class="s">', '</span>)
+  logEvent({ result: <span class="s">'SERVER_MISCONFIGURED'</span>, detail: <span class="s">`missing: ${missing}`</span> })
+  <span class="k">return</span> errorResponse(<span class="s">'SERVER_MISCONFIGURED'</span>, <span class="s">`missing env: ${missing}`</span>, 500)
+}
+
+<span class="k">const</span> admin = createClient(SUPABASE_URL, SERVICE_KEY, {
+  auth: { autoRefreshToken: <span class="k">false</span>, persistSession: <span class="k">false</span> },
+})</pre>
+    </div>
+
+    <h4>3-o'zgarish — anon klient uchun zaxira yo'l</h4>
+    <p>Faylning quyi qismidagi <code>const anon = createClient(...)</code> blokini toping (hozir <code>index.ts:238-242</code>) va almashtiring:</p>
+
+    <div class="code">
+      <div class="code-bar"><span class="code-name">index.ts — sessiya olish bloki</span><button class="copy">Nusxa</button></div>
+<pre><span class="c">// Parolni sessiyaga almashtirish uchun anon klient afzal.</span>
+<span class="c">// Agar SUPABASE_ANON_KEY joylashtirilmagan bo'lsa, funksiyani</span>
+<span class="c">// yiqitmasdan admin klient bilan davom etamiz — v1 aynan</span>
+<span class="c">// shunday ishlagan va u ishonchli edi.</span>
+<span class="k">const</span> signInClient = ANON_KEY
+  ? createClient(SUPABASE_URL, ANON_KEY, {
+      auth: { autoRefreshToken: <span class="k">false</span>, persistSession: <span class="k">false</span> },
+    })
+  : admin
+
+<span class="k">if</span> (!ANON_KEY) {
+  logEvent({ result: <span class="s">'WARN'</span>, detail: <span class="s">'SUPABASE_ANON_KEY yo\'q — admin klient ishlatilmoqda'</span> })
+}
+
+<span class="k">let</span> { data: sessionData, error: signInErr } =
+  <span class="k">await</span> signInClient.auth.signInWithPassword({
+    email: authUser.email,
+    password: stablePassword,
+  })</pre>
+    </div>
+
+    <div class="note">
+      <span class="note-label">Pastroqda ham bitta o'zgarish bor</span>
+      <p>Parolni tiklashdan keyingi ikkinchi urinishda ham <code>anon.auth.signInWithPassword</code> chaqiriladi (hozir <code>index.ts:268-271</code>). Uni ham <code>signInClient.auth.signInWithPassword</code> ga o'zgartiring, aks holda <code>anon</code> nomi topilmay xato chiqadi.</p>
+    </div>
+
+    <p>Keyin qayta deploy qiling:</p>
+    <div class="code">
+      <div class="code-bar"><span class="code-name">Terminal</span><button class="copy">Nusxa</button></div>
+<pre>cd hanguk_app
+supabase functions deploy student-login-v2 \
+  --project-ref lysjdtyanhdfphqyijsr --no-verify-jwt</pre>
+    </div>
+  </div>
+</div>
+
+<div class="step" id="L6">
+  <div class="step-head">
+    <input type="checkbox" class="chk" id="c-L6">
+    <span class="step-id warn">L6</span>
+    <label class="step-title" for="c-L6">Xato xabarlarini aniqlashtiring — sababni yashirmang
+      <span class="file-path">hanguk_app/lib/features/auth/data/auth_repository.dart</span>
+    </label>
+  </div>
+  <div class="step-body">
+    <p>Bu eng muhim uzoq muddatli tuzatish. Agar bu kod boshidanoq to'g'ri bo'lganda, siz reviewer'ning xabarini o'qib darhol <i>"funksiya topilmadi"</i> deb tushunardingiz — bir necha hafta yo'qotilmasdi.</p>
+
+    <h4>1-o'zgarish — <code>_messageFor</code> ga yangi holatlar</h4>
+    <div class="code">
+      <div class="code-bar"><span class="code-name">auth_repository.dart — _messageFor()</span><button class="copy">Nusxa</button></div>
+<pre>String _messageFor(String code, String? detail) {
+  <span class="k">switch</span> (code) {
+    <span class="k">case</span> <span class="s">'BAD_INPUT'</span>:
+    <span class="k">case</span> <span class="s">'CODE_REQUIRED'</span>:
+      <span class="k">return</span> <span class="s">'Please enter a valid 6-10 character access code.'</span>;
+    <span class="k">case</span> <span class="s">'CODE_NOT_FOUND'</span>:
+      <span class="k">return</span> <span class="s">"We don't recognise this code. Please double-check it with your counsellor."</span>;
+    <span class="k">case</span> <span class="s">'CODE_LOOKUP_FAILED'</span>:
+      <span class="k">return</span> <span class="s">'Server error while verifying your code. Please contact your counsellor.'</span>;
+    <span class="k">case</span> <span class="s">'STAFF_BLOCKED'</span>:
+      <span class="k">return</span> <span class="s">'Staff members must use username/password sign-in, not a magic code.'</span>;
+    <span class="k">case</span> <span class="s">'AUTH_CREATE_FAILED'</span>:
+      <span class="k">return</span> <span class="s">'Server is busy setting up your account. Please try again in 30 seconds.'</span>;
+    <span class="k">case</span> <span class="s">'AUTH_SIGNIN_FAILED'</span>:
+      <span class="k">return</span> <span class="s">'Login server error. Please try again, or ask your counsellor to reset your account.'</span>;
+<span class="add">+     case 'SERVER_MISCONFIGURED':</span>
+<span class="add">+       return 'The login service is not configured correctly. '</span>
+<span class="add">+           'Please tell your counsellor: server setup error.';</span>
+<span class="add">+     case 'SERVICE_UNAVAILABLE':</span>
+<span class="add">+       return 'The login service is unavailable right now. '</span>
+<span class="add">+           'Please try again in a minute.'</span>
+<span class="add">+           '${detail == null ? "" : "\n\n($detail)"}';</span>
+<span class="add">+     case 'NETWORK_ERROR':</span>
+<span class="add">+       return 'No connection to the server. '</span>
+<span class="add">+           'Check your internet and try again.';</span>
+    <span class="k">case</span> <span class="s">'INTERNAL_ERROR'</span>:
+<span class="del">-     return 'Unexpected server error. Please try again, or contact your counsellor.';</span>
+<span class="add">+       return 'Unexpected server error. Please try again, or contact your counsellor.'</span>
+<span class="add">+           '${detail == null ? "" : "\n\n($detail)"}';</span>
+    <span class="k">default</span>:
+      <span class="k">return</span> code;
+  }
+}</pre>
+    </div>
+
+    <h4>2-o'zgarish — <code>catch</code> bloki HTTP statusni ajratsin</h4>
+    <p>Bu asosiy tuzatish. Hozir 404, 500 va tarmoq uzilishi — hammasi bitta xabarga aylanadi. Endi ular ajraladi:</p>
+
+    <div class="code">
+      <div class="code-bar"><span class="code-name">auth_repository.dart — signInWithMagicCode() catch bloklari</span><button class="copy">Nusxa</button></div>
+<pre>} <span class="k">on</span> FunctionException <span class="k">catch</span> (e) {
+  <span class="c">// Funksiya tipli xato qaytardimi? Unda uni to'g'ridan-to'g'ri ko'rsatamiz.</span>
+  <span class="k">if</span> (e.details <span class="k">is</span> Map) {
+    <span class="k">final</span> m = e.details <span class="k">as</span> Map;
+    <span class="k">if</span> (m[<span class="s">'error'</span>] != <span class="k">null</span>) {
+      <span class="k">return</span> (
+        error: _messageFor(m[<span class="s">'error'</span>].toString(), m[<span class="s">'detail'</span>]?.toString()),
+        studentName: <span class="k">null</span>,
+      );
+    }
+  }
+
+  <span class="c">// Tipli xato emas — demak gateway darajasidagi muammo.</span>
+  <span class="c">// 404 = funksiya deploy qilinmagan. Buni ALOHIDA ko'rsatamiz,</span>
+  <span class="c">// aks holda u "Unexpected server error" ichida yo'qoladi.</span>
+  <span class="k">final</span> status = e.status;
+  <span class="k">if</span> (status == 404) {
+    <span class="k">return</span> (
+      error: _messageFor(<span class="s">'SERVICE_UNAVAILABLE'</span>, <span class="s">'login endpoint not found'</span>),
+      studentName: <span class="k">null</span>,
+    );
+  }
+  <span class="k">if</span> (status >= 500) {
+    <span class="k">return</span> (
+      error: _messageFor(<span class="s">'SERVICE_UNAVAILABLE'</span>, <span class="s">'HTTP $status'</span>),
+      studentName: <span class="k">null</span>,
+    );
+  }
+  <span class="k">return</span> (
+    error: _messageFor(<span class="s">'INTERNAL_ERROR'</span>, <span class="s">'HTTP $status'</span>),
+    studentName: <span class="k">null</span>,
+  );
+} <span class="k">on</span> AuthException <span class="k">catch</span> (e) {
+  <span class="k">return</span> (
+    error: _messageFor(<span class="s">'AUTH_SIGNIN_FAILED'</span>, e.message),
+    studentName: <span class="k">null</span>,
+  );
+} <span class="k">catch</span> (e) {
+  <span class="c">// Tarmoq uzilishi va JSON parse xatolari shu yerga tushadi.</span>
+  <span class="k">final</span> text = e.toString();
+  <span class="k">final</span> isNetwork = text.contains(<span class="s">'SocketException'</span>) ||
+                    text.contains(<span class="s">'ClientException'</span>) ||
+                    text.contains(<span class="s">'Connection'</span>) ||
+                    text.contains(<span class="s">'TimeoutException'</span>);
+  <span class="k">return</span> (
+    error: _messageFor(isNetwork ? <span class="s">'NETWORK_ERROR'</span> : <span class="s">'INTERNAL_ERROR'</span>, text),
+    studentName: <span class="k">null</span>,
+  );
+}</pre>
+    </div>
+
+    <div class="note">
+      <span class="note-label">Nima uchun texnik tafsilotni foydalanuvchiga ko'rsatamiz</span>
+      <p>Odatda buni qilish yaxshi emas. Lekin sizning holatingizda foydalanuvchilar — konsultant nazorati ostidagi talabalar, va ular muammoni konsultantga aytadi. <code>(login endpoint not found)</code> degan qavs ichidagi matn konsultantga bir zumda nima bo'layotganini aytadi. Bu Play reviewer uchun ham xuddi shunday foydali.</p>
+    </div>
+  </div>
+</div>
+
+<div class="step" id="L7">
+  <div class="step-head">
+    <input type="checkbox" class="chk" id="c-L7">
+    <span class="step-id warn">L7</span>
+    <label class="step-title" for="c-L7">Google uchun doimiy demo hisob yarating</label>
+  </div>
+  <div class="step-body">
+    <p>Reviewer'ga haqiqiy talabaning kodini bermang. Ular ilovani istalgan vaqtda, istalgan davlatdan, bir necha marta ochadi.</p>
+
+    <h4>Demo hisob talablari</h4>
+    <ul>
+      <li>Muddati <b>tugamaydi</b></li>
+      <li><b>Cheksiz</b> marta ishlatiladi (bir martalik emas)</li>
+      <li>Qurilmaga <b>bog'lanmagan</b></li>
+      <li>Har qanday IP / davlatdan ishlaydi</li>
+      <li><b>Ichida ma'lumot bor</b> — bo'sh hisob bilan reviewer funksiyalarni ko'ra olmaydi va yana rad etadi</li>
+      <li>Hech qanday staff roli <b>yo'q</b> — aks holda <code>STAFF_BLOCKED</code> chiqadi</li>
+    </ul>
+
+    <p>Supabase Dashboard &rarr; SQL Editor da ishga tushiring:</p>
+
+    <div class="code">
+      <div class="code-bar"><span class="code-name">SQL Editor</span><button class="copy">Nusxa</button></div>
+<pre><span class="c">-- 1. (Ixtiyoriy sanity-check.) Tasdiqlangan holat: student-login-v2</span>
+<span class="c">--    profiles.magic_code ustunini o'qiydi va unda UNIQUE constraint</span>
+<span class="c">--    bor (profiles_magic_code_key) — shu tufayli quyidagi</span>
+<span class="c">--    ON CONFLICT (magic_code) ishlaydi.</span>
+<span class="k">SELECT</span> column_name
+<span class="k">FROM</span> information_schema.columns
+<span class="k">WHERE</span> table_name = <span class="s">'profiles'</span>
+  <span class="k">AND</span> column_name <span class="k">LIKE</span> <span class="s">'%magic%'</span>;
+
+<span class="c">-- 2. Demo profil yarating. user_id — vaqtinchalik placeholder</span>
+<span class="c">--    (profiles.user_id auth.users'ga FK EMAS — 20260105090054-migratsiya</span>
+<span class="c">--    uni ataylab olib tashlagan); birinchi login'da funksiya uni</span>
+<span class="c">--    haqiqiy auth-user id bilan almashtiradi (index.ts:233-235).</span>
+<span class="k">INSERT INTO</span> public.profiles (user_id, full_name, magic_code, phone)
+<span class="k">VALUES</span> (
+  gen_random_uuid(),
+  <span class="s">'Google Play Review'</span>,
+  <span class="s">'GOOGLE01'</span>,
+  <span class="s">'+998900000000'</span>
+)
+<span class="k">ON CONFLICT</span> (magic_code) <span class="k">DO NOTHING</span>
+<span class="k">RETURNING</span> id, user_id, magic_code;
+
+<span class="c">-- 3. Bu hisobda HECH QANDAY staff roli bo'lmasin</span>
+<span class="k">DELETE FROM</span> public.user_roles
+<span class="k">WHERE</span> user_id <span class="k">IN</span> (
+  <span class="k">SELECT</span> user_id <span class="k">FROM</span> public.profiles <span class="k">WHERE</span> magic_code = <span class="s">'GOOGLE01'</span>
+);
+
+<span class="c">-- 4. Tekshiring: topilishi kerak</span>
+<span class="k">SELECT</span> id, user_id, full_name, magic_code
+<span class="k">FROM</span> public.profiles
+<span class="k">WHERE</span> magic_code = <span class="s">'GOOGLE01'</span>;</pre>
+    </div>
+
+    <h4>Namuna ma'lumot to'ldiring</h4>
+    <p>Reviewer barcha funksiyalarni ko'rishi kerak. Demo hisobga qo'shing: bir nechta universitet takliflari, kamida bitta ariza, bir-ikki hujjat, chat xabari. Buni CRM interfeysidan qo'lda qilish eng oson.</p>
+
+    <h4>Telefon orqali kirish haqida</h4>
+    <p>Hozirgi ilovada telefon orqali kirish yo'li <b>yo'q</b> — login ekrani faqat kirish-kodi formasidan iborat (<code>login_screen.dart</code> dagi izoh: <i>"Magic Code is the single, finished sign-in path"</i>). <code>_handlePhoneLogin</code> funksiyasi kodda bor, lekin unga hech qanday tugma ulanmagan, va u OTP emas, telefon+parol bilan ishlaydi (<code>signInWithPassword</code>, <code>auth_repository.dart:53</code>). Shuning uchun Supabase'dagi "Test phone numbers" (OTP) sozlamasi bu ilovaga hech narsa bermaydi — reviewer'ga faqat kirish kodi kifoya. Telefon-login UI'ga qo'shilsa, shu bo'limga qaytib demo yo'lini ham hujjatlashtiring.</p>
+
+    <p>Nihoyat, kodni test qiling — <b>haqiqiy javob kelishi kerak</b>:</p>
+    <div class="code">
+      <div class="code-bar"><span class="code-name">Terminal</span><button class="copy">Nusxa</button></div>
+<pre>curl -s -X POST \
+  <span class="s">"https://lysjdtyanhdfphqyijsr.supabase.co/functions/v1/student-login-v2"</span> \
+  -H <span class="s">"apikey: &lt;ANON_KEY&gt;"</span> \
+  -H <span class="s">"Authorization: Bearer &lt;ANON_KEY&gt;"</span> \
+  -H <span class="s">"Content-Type: application/json"</span> \
+  -d <span class="s">'{"magicCode":"GOOGLE01"}'</span> | head -c 400
+
+<span class="c"># Kutilayotgan: {"success":true,"session":{"access_token":"eyJ..."...</span>
+
+<span class="c"># Ikki marta ketma-ket ishlaydimi? (bir martalik emasligini tasdiqlash)</span>
+<span class="k">for</span> i <span class="k">in</span> 1 2 3; <span class="k">do</span>
+  curl -s -o /dev/null -w <span class="s">"urinish $i: %{http_code}\n"</span> -X POST \
+    <span class="s">"https://lysjdtyanhdfphqyijsr.supabase.co/functions/v1/student-login-v2"</span> \
+    -H <span class="s">"apikey: &lt;ANON_KEY&gt;"</span> -H <span class="s">"Authorization: Bearer &lt;ANON_KEY&gt;"</span> \
+    -H <span class="s">"Content-Type: application/json"</span> -d <span class="s">'{"magicCode":"GOOGLE01"}'</span>
+<span class="k">done</span>
+<span class="c"># Uchalasi ham 200 bo'lishi kerak</span></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ============ B: BUILD ============ -->
+<h2 id="build-blok"><span class="num">B bloki</span>Build'ni tuzatish</h2>
+
+<p>Login ishlagandan keyin ham build konfiguratsiyasida uchta jiddiy muammo bor. Ikkitasi Play siyosatini buzadi, bittasi esa "debug'da ishlaydi, release'da sinadi" turidagi xatolarning klassik sababi.</p>
+
+<div class="step" id="B1">
+  <div class="step-head">
+    <input type="checkbox" class="chk" id="c-B1">
+    <span class="step-id warn">B1</span>
+    <label class="step-title" for="c-B1">ProGuard qoidalari yozilgan, lekin ulanmagan — ulang
+      <span class="file-path">hanguk_app/android/app/build.gradle.kts</span>
+    </label>
+  </div>
+  <div class="step-body">
+    <p>Hozirgi holat:</p>
+    <div class="code">
+      <div class="code-bar"><span class="code-name">build.gradle.kts — buildTypes.release</span><button class="copy">Nusxa</button></div>
+<pre>release {
+    isMinifyEnabled = <span class="k">true</span>       <span class="c">// R8 kodni qisqartiradi va nomlarni buzadi</span>
+    isShrinkResources = <span class="k">true</span>    <span class="c">// resurslar ham qirqiladi</span>
+    <span class="c">// proguardFiles(...) — YO'Q</span>
+}</pre>
+    </div>
+
+    <p>Ayni paytda <code>hanguk_app/android/app/proguard-rules.pro</code> fayli <b>mavjud</b> — 100+ qatorli, Supabase, Kotlin serialization, OkHttp, Riverpod, freezed, WebView JS bridge uchun to'liq <code>-keep</code> qoidalari bilan. Faylning o'z sarlavhasida yozilgan:</p>
+
+    <div class="code">
+      <div class="code-bar"><span class="code-name">proguard-rules.pro:6-8</span><button class="copy">Nusxa</button></div>
+<pre><span class="c"># This file is referenced from android/app/build.gradle.kts via:</span>
+<span class="c">#   proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"),</span>
+<span class="c">#                 "proguard-rules.pro")</span></pre>
+    </div>
+
+    <p>Lekin bu qator hech qachon yozilmagan. R8 minifikatsiya qilyapti, <b>himoya qoidalarisiz</b>.</p>
+
+    <div class="warn">
+      <span class="warn-label">Nima uchun bu login xatosiga aloqador</span>
+      <p>Aniqlik uchun: R8 Dart kodiga tegmaydi — Flutter'ning Dart qismi alohida (AOT) kompilyatsiya qilinadi. Xavf ostidagilar — <b>native Android plugin'lar</b>: <code>install_plugin</code>, WebView JS-bridge, Kakao, audio va boshqalar (aynan ular uchun <code>proguard-rules.pro</code> da <code>-keep</code> qoidalari yozilgan). Qoidalarsiz R8 shu plugin klasslarini o'chirib yoki nomini buzib yuborishi mumkin. Natija: debug build'da hammasi ishlaydi, Play'dan yuklab olingan release build'da esa tushunarsiz xato.</p>
+    </div>
+
+    <h4>Tuzatish</h4>
+    <div class="code">
+      <div class="code-bar"><span class="code-name">build.gradle.kts — buildTypes bloki</span><button class="copy">Nusxa</button></div>
+<pre>buildTypes {
+    release {
+        signingConfig = ...  <span class="c">// B2 da o'zgaradi</span>
+
+        isMinifyEnabled = <span class="k">true</span>
+        isShrinkResources = <span class="k">true</span>
+<span class="add">+         proguardFiles(</span>
+<span class="add">+             getDefaultProguardFile("proguard-android-optimize.txt"),</span>
+<span class="add">+             "proguard-rules.pro",</span>
+<span class="add">+         )</span>
+    }
+}</pre>
+    </div>
+
+    <h4>Tekshirish</h4>
+    <p>Build'dan keyin R8 hisobotini o'qing. Agar qoidalar qo'llanmagan bo'lsa, bu fayl umuman yaratilmaydi:</p>
+    <div class="code">
+      <div class="code-bar"><span class="code-name">Terminal</span><button class="copy">Nusxa</button></div>
+<pre><span class="c"># Build'dan keyin — bu fayl mavjud bo'lishi kerak.</span>
+<span class="c"># (B4 dagi flavor qo'shilgach yo'l mapping/storeRelease/ bo'ladi.)</span>
+ls -la build/app/outputs/mapping/release/mapping.txt
+
+<span class="c"># Qoidalar qo'llanganining isboti: keep qilingan klass O'Z NOMIGA</span>
+<span class="c"># map bo'ladi (obfuskatsiya qilinmagan). Natija bo'sh bo'lmasligi kerak.</span>
+<span class="c"># (Eslatma: Dart kodi R8 mapping'ga tushmaydi — bu native/plugin</span>
+<span class="c"># qatlamini tekshiradi.)</span>
+grep <span class="s">"installplugin.InstallPlugin -&gt; com.zaihui.installplugin.InstallPlugin"</span> \
+  build/app/outputs/mapping/release/mapping.txt</pre>
+    </div>
+
+    <div class="note">
+      <span class="note-label">mapping.txt ni saqlang</span>
+      <p>Play Console &rarr; App bundle explorer ga <code>mapping.txt</code> ni yuklang. Usiz release crash'lari o'qib bo'lmaydigan holatda keladi.</p>
+    </div>
+  </div>
+</div>
+
+<div class="step" id="B2">
+  <div class="step-head">
+    <input type="checkbox" class="chk" id="c-B2">
+    <span class="step-id">B2</span>
+    <label class="step-title" for="c-B2">Release build jimgina debug kalit bilan imzolanmasin
+      <span class="file-path">hanguk_app/android/app/build.gradle.kts</span>
+    </label>
+  </div>
+  <div class="step-body">
+    <p>Hozir <code>key.properties</code> topilmasa, build <b>to'xtamaydi</b> — shunchaki ogohlantirish yozadi va debug kalit bilan imzolaydi. Bunday AAB ni Play qabul qilmaydi, va xato xabari chalkash bo'ladi.</p>
+
+    <div class="code">
+      <div class="code-bar"><span class="code-name">build.gradle.kts — signingConfig tanlash</span><button class="copy">Nusxa</button></div>
+<pre>signingConfig = <span class="k">if</span> (hasReleaseKeys) {
+    signingConfigs.getByName(<span class="s">"release"</span>)
+} <span class="k">else</span> {
+<span class="del">-   logger.warn("[hanguk] WARNING: android/key.properties not found. ...")</span>
+<span class="del">-   signingConfigs.getByName("debug")</span>
+<span class="add">+     // Do'kon uchun build DEBUG kalit bilan imzolanmasligi kerak.</span>
+<span class="add">+     // Mahalliy test uchun `flutter run --release` ishlatmoqchi bo'lsangiz,</span>
+<span class="add">+     // key.properties faylini yarating (key.properties.template dan).</span>
+<span class="add">+     throw GradleException(</span>
+<span class="add">+         "android/key.properties topilmadi. Release build imzolab bo'lmaydi. " +</span>
+<span class="add">+         "key.properties.template dan nusxa oling va to'ldiring. " +</span>
+<span class="add">+         "Batafsil: hanguk_app/docs/RELEASE.md"</span>
+<span class="add">+     )</span>
+}</pre>
+    </div>
+
+    <p>Repoda <code>android/key.properties.template</code> allaqachon bor va <code>key.properties</code> gitignore qilingan. Faqat nusxa olib to'ldiring:</p>
+
+    <div class="code">
+      <div class="code-bar"><span class="code-name">Terminal</span><button class="copy">Nusxa</button></div>
+<pre>cd hanguk_app/android
+cp key.properties.template key.properties
+<span class="c"># Endi to'rtta qiymatni to'ldiring:</span>
+<span class="c">#   storeFile, storePassword, keyAlias, keyPassword</span></pre>
+    </div>
+
+    <div class="warn">
+      <span class="warn-label">Keystore'ni yo'qotmang</span>
+      <p><code>.jks</code> faylini va ikkala parolni ikkita alohida shifrlangan joyda saqlang. Uni yo'qotish — Play'dagi ilovadan butunlay ayrilish demakdir.</p>
+    </div>
+  </div>
+</div>
+
+<div class="step" id="B3">
+  <div class="step-head">
+    <input type="checkbox" class="chk" id="c-B3">
+    <span class="step-id warn">B3</span>
+    <label class="step-title" for="c-B3">Auto-updater aslida o'chirilmagan — uni haqiqatan o'chiring
+      <span class="file-path">3 ta fayl o'zgaradi</span>
+    </label>
+  </div>
+  <div class="step-body">
+    <p>Bu eng jiddiy topilma. Loyihada <code>STORE_BUILD</code> degan compile-time flag bor, va <code>build_config.dart</code> hujjatida shunday yozilgan:</p>
+
+    <div class="code">
+      <div class="code-bar"><span class="code-name">build_config.dart:13-18 — hujjatdagi va'da</span><button class="copy">Nusxa</button></div>
+<pre><span class="c">/// When [kIsStoreBuild] is true:</span>
+<span class="c">///   - The in-app auto-updater (`UpdateGate`) is bypassed at the</span>
+<span class="c">///     `MaterialApp.builder` level.</span>
+<span class="c">///   - Any attempt to call into the `install_plugin` install path</span>
+<span class="c">///     throws `UnsupportedError`.</span></pre>
+    </div>
+
+    <p><b>Ikkalasi ham bajarilmagan.</b> Men tekshirdim:</p>
+
+    <table>
+      <thead><tr><th style="width:52%">Fayl</th><th><code>kIsStoreBuild</code> soni</th></tr></thead>
+      <tbody>
+        <tr><td><code>updater/presentation/update_gate.dart</code></td><td><b>0</b></td></tr>
+        <tr><td><code>updater/data/updater_repository.dart</code></td><td><b>0</b></td></tr>
+        <tr><td><code>updater/data/play_in_app_update.dart</code></td><td>1 — lekin bu <i>Play</i> updater'ni <b>yoqadi</b></td></tr>
+      </tbody>
+    </table>
+
+    <p>Ya'ni <code>UpdateGate</code> <code>main.dart:100</code> da <b>shartsiz</b> ishga tushadi, va <code>updater_repository.dart:308</code> dagi <code>InstallPlugin.installApk()</code> ni hech narsa to'xtatmaydi. <code>--dart-define=STORE_BUILD=true</code> yozsangiz ham, ilova Supabase Storage'dan APK yuklab olib o'rnatishga urinaveradi. <code>PlayInAppUpdater</code> esa flag'ni tekshirsa-da, umuman <b>hech qayerdan chaqirilmaydi</b> — bayroq faqat o'lik kodni "yoqadi".</p>
+
+    <div class="warn">
+      <span class="warn-label">Nima uchun bu Play'ni rad etishga olib keladi</span>
+      <p>Play orqali tarqatiladigan ilova o'zini Play'dan tashqarida yangilay olmaydi — bu <b>Device and Network Abuse</b> siyosatining to'g'ridan-to'g'ri buzilishi. Bundan tashqari <code>REQUEST_INSTALL_PACKAGES</code> — sezgir ruxsat, u uchun alohida deklaratsiya talab qilinadi.</p>
+    </div>
+
+    <h4>1-o'zgarish — <code>UpdateGate</code> ni to'siq bilan o'rang</h4>
+    <div class="code">
+      <div class="code-bar"><span class="code-name">lib/features/updater/presentation/update_gate.dart</span><button class="copy">Nusxa</button></div>
+<pre><span class="c">// Fayl boshiga import qo'shing:</span>
+<span class="add">+ import '../../../core/config/build_config.dart';</span>
+
+<span class="c">// build() metodi boshiga (hozir 59-qator):</span>
+@override
+Widget build(BuildContext context) {
+<span class="add">+   // Do'kon build'ida APK-sideload updater butunlay o'chiriladi.</span>
+<span class="add">+   // Yangilanishlar Play/App Store orqali keladi.</span>
+<span class="add">+   if (kIsStoreBuild) {</span>
+<span class="add">+     return widget.child;</span>
+<span class="add">+   }</span>
+  ... mavjud kod ...
+}</pre>
+    </div>
+
+    <div class="note">
+      <span class="note-label">Aniq joyni topish</span>
+      <p>Aniq joylar: widget — <code>ConsumerStatefulWidget</code> (18-qator), shuning uchun <code>widget.child</code> ishlatiladi (hozir 63-qatorda shunday o'ralgan). Yangilanish tekshiruvi ikki joydan ishga tushadi: <code>initState()</code> (29) &rarr; <code>addPostFrameCallback</code> (32) &rarr; <code>_checkAndPing()</code> (33), hamda ilova fon'dan qaytganda <code>didChangeAppLifecycleState</code> (44). <code>build()</code> boshidagi to'siq ekranni himoya qiladi; qo'shimcha tozalik uchun <code>_checkAndPing()</code> boshiga ham <code>if (kIsStoreBuild) return;</code> qo'ying — shunda store build'da tarmoqqa umuman so'rov ketmaydi.</p>
+    </div>
+
+    <h4>2-o'zgarish — o'rnatish yo'lini bloklang</h4>
+    <div class="code">
+      <div class="code-bar"><span class="code-name">lib/features/updater/data/updater_repository.dart</span><button class="copy">Nusxa</button></div>
+<pre><span class="c">// Fayl boshiga import:</span>
+<span class="add">+ import '../../../core/config/build_config.dart';</span>
+
+<span class="c">// downloadAndInstall() metodi boshiga (hozir 247-qator;</span>
+<span class="c">// InstallPlugin.installApk chaqiruvi — 308-qator):</span>
+Future&lt;<span class="k">void</span>&gt; downloadAndInstall(...) <span class="k">async</span> {
+<span class="add">+   // Do'kon build'ida bu yo'l umuman ishlatilmasligi kerak.</span>
+<span class="add">+   // Agar bu yerga yetib kelsa — bu dasturiy xato, jim o'tkazmaymiz.</span>
+<span class="add">+   if (kIsStoreBuild) {</span>
+<span class="add">+     throw UnsupportedError(</span>
+<span class="add">+       'APK sideloading do\'kon build\'ida o\'chirilgan. '</span>
+<span class="add">+       'Yangilanishlar Google Play orqali tarqatiladi.',</span>
+<span class="add">+     );</span>
+<span class="add">+   }</span>
+  <span class="k">if</span> (info.downloadUrl.isEmpty) { ... }
+  ... mavjud kod ...
+}</pre>
+    </div>
+
+    <h4>3-o'zgarish — hujjatni haqiqatga moslang</h4>
+    <p><code>build_config.dart</code> dagi izoh endi to'g'ri bo'ladi, lekin bitta qatorni aniqlashtirib qo'ying — kelajakda yana chalkashmaslik uchun:</p>
+    <div class="code">
+      <div class="code-bar"><span class="code-name">lib/core/config/build_config.dart</span><button class="copy">Nusxa</button></div>
+<pre><span class="c">/// When [kIsStoreBuild] is true:</span>
+<span class="c">///   - UpdateGate returns its child untouched (update_gate.dart).</span>
+<span class="c">///   - UpdaterRepository.downloadAndInstall throws UnsupportedError.</span>
+<span class="c">///   - PlayInAppUpdater.checkAndPrompt() would be the only update</span>
+<span class="c">///     path — note: the class exists but is not wired up anywhere</span>
+<span class="c">///     yet; wiring it is optional (Play updates apps by itself).</span>
+<span class="c">///</span>
+<span class="c">/// Manifestdagi REQUEST_INSTALL_PACKAGES ruxsati esa `store`</span>
+<span class="c">/// flavor manifesti orqali olib tashlanadi — compile-time flag</span>
+<span class="c">/// manifestga ta'sir qilmaydi.</span></pre>
+    </div>
+  </div>
+</div>
+
+<div class="step" id="B4">
+  <div class="step-head">
+    <input type="checkbox" class="chk" id="c-B4">
+    <span class="step-id warn">B4</span>
+    <label class="step-title" for="c-B4">Manifestdan ruxsatni olib tashlaydigan flavor yarating</label>
+  </div>
+  <div class="step-body">
+    <p><code>STORE_BUILD</code> flagi faqat <b>runtime</b>'da ishlaydi. Manifestdagi ruxsat baribir AAB ichida qoladi va Google uni skanerlashda ko'radi. Buni faqat alohida manifest bilan hal qilish mumkin.</p>
+
+    <h4>1. Store manifestini yarating</h4>
+    <div class="code">
+      <div class="code-bar"><span class="code-name">YANGI FAYL → hanguk_app/android/app/src/store/AndroidManifest.xml</span><button class="copy">Nusxa</button></div>
+<pre>&lt;manifest xmlns:android=<span class="s">"http://schemas.android.com/apk/res/android"</span>
+          xmlns:tools=<span class="s">"http://schemas.android.com/tools"</span>&gt;
+
+    <span class="c">&lt;!-- Google Play siyosati: do'kon orqali tarqatiladigan ilova</span>
+<span class="c">         o'zini Play'dan tashqarida yangilay olmaydi. Bu ruxsat</span>
+<span class="c">         faqat selfHost flavor'ida kerak. --&gt;</span>
+    &lt;uses-permission
+        android:name=<span class="s">"android.permission.REQUEST_INSTALL_PACKAGES"</span>
+        tools:node=<span class="s">"remove"</span> /&gt;
+
+    <span class="c">&lt;!-- Talaba ma'lumotlari qurilma zaxira nusxasiga tushmasin.</span>
+<span class="c">         Asosiy manifestda allowBackup umuman yozilmagan (default:</span>
+<span class="c">         true), shu yerda aniq false qilamiz. --&gt;</span>
+    &lt;application android:allowBackup=<span class="s">"false"</span>
+                 tools:replace=<span class="s">"android:allowBackup"</span> /&gt;
+&lt;/manifest&gt;</pre>
+    </div>
+
+    <h4>2. Flavor'larni e'lon qiling</h4>
+    <div class="code">
+      <div class="code-bar"><span class="code-name">hanguk_app/android/app/build.gradle.kts — android{} bloki ichiga</span><button class="copy">Nusxa</button></div>
+<pre>android {
+    namespace = <span class="s">"com.hanguk.studentapp.hanguk_app"</span>
+    ...
+
+<span class="add">+   // ── Tarqatish kanallari ──────────────────────────────────</span>
+<span class="add">+   // store    → Google Play / App Store. APK-sideload yo'q.</span>
+<span class="add">+   // selfHost → to'g'ridan-to'g'ri APK tarqatish. Updater yoqiq.</span>
+<span class="add">+   flavorDimensions += "distribution"</span>
+<span class="add">+   productFlavors {</span>
+<span class="add">+       create("store") {</span>
+<span class="add">+           dimension = "distribution"</span>
+<span class="add">+           // applicationId o'zgarmaydi — Play'dagi ilova o'sha-o'sha.</span>
+<span class="add">+       }</span>
+<span class="add">+       create("selfHost") {</span>
+<span class="add">+           dimension = "distribution"</span>
+<span class="add">+       }</span>
+<span class="add">+   }</span>
+
+    buildTypes { ... }
+}</pre>
+    </div>
+
+    <div class="note">
+      <span class="note-label">Muhim</span>
+      <p><code>applicationId</code> ni flavor'lar orasida <b>o'zgartirmang</b>. Play'dagi ilova <code>com.hanguk.studentapp.hanguk_app</code> ID si bilan ro'yxatdan o'tgan; uni o'zgartirsangiz bu butunlay boshqa ilova bo'lib qoladi.</p>
+    </div>
+
+    <h4>3. Tekshiring — ruxsat haqiqatan olib tashlanganmi</h4>
+    <div class="code">
+      <div class="code-bar"><span class="code-name">Terminal</span><button class="copy">Nusxa</button></div>
+<pre>cd hanguk_app
+flutter build appbundle --release --flavor store \
+  --dart-define=STORE_BUILD=true
+
+<span class="c"># Birlashtirilgan manifestni toping va o'qing — natija BO'SH bo'lishi</span>
+<span class="c"># kerak. (AGP 8 da aniq yo'l versiyaga qarab o'zgaradi — masalan</span>
+<span class="c"># .../storeRelease/processStoreReleaseManifest/... — shuning uchun find:)</span>
+find build/app/intermediates/merged_manifests -name AndroidManifest.xml \
+  -path <span class="s">"*store*"</span> -exec grep -i REQUEST_INSTALL_PACKAGES {} +
+
+<span class="c"># Ishonchlisi — tayyor AAB ning o'zini tekshiring:</span>
+unzip -p build/app/outputs/bundle/storeRelease/app-store-release.aab \
+  base/manifest/AndroidManifest.xml | strings | grep -i INSTALL_PACKAGES</pre>
+    </div>
+
+    <p>Agar natija bo'sh bo'lsa — ruxsat muvaffaqiyatli olib tashlangan.</p>
+  </div>
+</div>
+
+<div class="step" id="B5">
+  <div class="step-head">
+    <input type="checkbox" class="chk" id="c-B5">
+    <span class="step-id warn">B5</span>
+    <label class="step-title" for="c-B5">CI ni tiklang — u hech qachon ishlamagan
+      <span class="file-path">hanguk_app/.github/ → .github/</span>
+    </label>
+  </div>
+  <div class="step-body">
+    <p>Repoda <code>hanguk_app/.github/workflows/ci.yml</code> fayli bor, unda <code>flutter analyze</code> va <code>flutter test</code> yozilgan. Lekin <b>GitHub Actions faqat repo ildizidagi <code>.github/workflows/</code> ni o'qiydi</b>. <code>hanguk_app</code> — pastki papka, alohida repo emas.</p>
+
+    <p>Ildizda esa faqat uchta workflow bor, ularning hammasi <code>uni-db</code> haqida. Ya'ni Flutter ilovasi uchun <b>bironta ham tekshiruv ishlamagan</b> — 20 ta test fayli bor, lekin ular hech qachon ishga tushmagan. Yuqoridagi B1–B4 muammolari aynan shuning uchun sezilmay o'tib ketgan.</p>
+
+    <div class="code">
+      <div class="code-bar"><span class="code-name">YANGI FAYL → .github/workflows/flutter-ci.yml (repo ILDIZIDA)</span><button class="copy">Nusxa</button></div>
+<pre>name: Flutter CI
+
+on:
+  pull_request:
+    paths: [<span class="s">'hanguk_app/**'</span>]
+  push:
+    branches: [main]
+    paths: [<span class="s">'hanguk_app/**'</span>]
+
+jobs:
+  analyze:
+    name: analyze + test + build check
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: hanguk_app   <span class="c"># &larr; MUHIM</span>
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: <span class="k">true</span>
+
+      - name: flutter pub get
+        run: flutter pub get
+
+      - name: flutter analyze
+        run: flutter analyze --no-fatal-infos
+
+      - name: flutter test
+        run: flutter test --exclude-tags=manual
+
+      <span class="c"># Imzolashsiz build — konfiguratsiya xatolarini erta ushlaydi.</span>
+      <span class="c"># key.properties CI'da yo'q, shuning uchun debug rejimida.</span>
+      - name: build check (debug, store flavor)
+        run: |
+          flutter build apk --debug --flavor store \
+            --dart-define=STORE_BUILD=true
+
+      <span class="c"># Nazorat: taqiqlangan ruxsat qaytib kelmaganini tekshiradi.</span>
+      <span class="c"># Manifest yo'li AGP versiyasiga bog'liq — shuning uchun find;</span>
+      <span class="c"># topilmasa ham xato (tekshiruv jim o'tib ketmasin).</span>
+      - name: store flavor'da REQUEST_INSTALL_PACKAGES yo'qligini tasdiqlash
+        run: |
+          MANIFEST=$(find build/app/intermediates/merged_manifests \
+            -path "*store*" -name AndroidManifest.xml | head -n1)
+          if [ -z "$MANIFEST" ]; then
+            echo "::error::Birlashtirilgan manifest topilmadi — build yo'li o'zgarganmi?"
+            exit 1
+          fi
+          if grep -q REQUEST_INSTALL_PACKAGES "$MANIFEST"; then
+            echo "::error::REQUEST_INSTALL_PACKAGES store flavor manifestida topildi"
+            exit 1
+          fi
+          echo "OK — ruxsat store flavor'ida yo'q ($MANIFEST)"</pre>
+    </div>
+
+    <p>Eski faylni o'chiring, chunki u chalg'itadi:</p>
+    <div class="code">
+      <div class="code-bar"><span class="code-name">Terminal</span><button class="copy">Nusxa</button></div>
+<pre>git rm hanguk_app/.github/workflows/ci.yml
+git add .github/workflows/flutter-ci.yml
+git commit -m <span class="s">"ci: Flutter workflow'ni ildizga ko'chirish (u ishlamayotgan edi)"</span></pre>
+    </div>
+
+    <div class="note">
+      <span class="note-label">Birinchi ishga tushirishda</span>
+      <p><code>flutter analyze</code> ehtimol ko'p ogohlantirish beradi — ular hech qachon tekshirilmagan. <code>--no-fatal-infos</code> ularni xato qilib hisoblamaydi, shuning uchun CI yiqilmaydi. Ogohlantirishlarni asta-sekin tozalang.</p>
+    </div>
+  </div>
+</div>
+
+<div class="step" id="B6">
+  <div class="step-head">
+    <input type="checkbox" class="chk" id="c-B6">
+    <span class="step-id">B6</span>
+    <label class="step-title" for="c-B6">Sentry DSN qo'shing — keyingi safar xatoni ko'ring</label>
+  </div>
+  <div class="step-body">
+    <p><code>main.dart</code> da Sentry allaqachon ulangan, lekin DSN build paytida berilishi kerak:</p>
+
+    <div class="code">
+      <div class="code-bar"><span class="code-name">main.dart:17-23 — mavjud kod</span><button class="copy">Nusxa</button></div>
+<pre><span class="k">const</span> sentryDsn = String.fromEnvironment(<span class="s">'SENTRY_DSN'</span>, defaultValue: <span class="s">''</span>);
+<span class="k">if</span> (sentryDsn.isNotEmpty) {
+  <span class="k">await</span> SentryFlutter.init((options) {
+    options.dsn = sentryDsn;
+    options.tracesSampleRate = 0.1;
+  });
+}</pre>
+    </div>
+
+    <p>DSN bo'lmasa SDK jim o'chadi — ya'ni hozir <b>prodda hech qanday xato hisoboti yo'q</b>. Agar Sentry ulangan bo'lganda, reviewer login qilishga uringan paytdayoq siz aniq stack trace ni ko'rgan bo'lardingiz.</p>
+
+    <ol>
+      <li><a href="https://sentry.io">sentry.io</a> da organization + project yarating (platform: Flutter)</li>
+      <li>DSN ni nusxa oling</li>
+      <li>Har bir release build'ga <code>--dart-define=SENTRY_DSN=...</code> qo'shing</li>
+    </ol>
+
+    <div class="note">
+      <span class="note-label">Foydali qo'shimcha</span>
+      <p><code>options.environment = 'production'</code> ni ham qo'shing — shunda test va prod xatolari aralashmaydi. Release versiyasini qo'lda yozish shart emas: <code>sentry_flutter</code> uni package ma'lumotidan (hozir <code>1.0.18+2031</code>) o'zi aniqlaydi.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ============ YAKUNIY BUILD ============ -->
+<h2 id="build"><span class="num">Yakun</span>Yakuniy build buyrug'i</h2>
+
+<p>Barcha bayroqlar bir joyda. Bittasini unutish — muammoning qaytishi demak, shuning uchun buni skript qilib saqlang.</p>
+
+<div class="code">
+  <div class="code-bar"><span class="code-name">YANGI FAYL → hanguk_app/scripts/build-store.sh</span><button class="copy">Nusxa</button></div>
+<pre>#!/usr/bin/env bash
+<span class="c"># Google Play uchun release AAB. Bayroqlarni qo'lda yozmang —</span>
+<span class="c"># har doim shu skriptni ishlating.</span>
+set -euo pipefail
+
+cd <span class="s">"$(dirname "$0")/.."</span>
+
+<span class="c"># Sirlarni muhitdan oling, skriptga yozmang:</span>
+<span class="c">#   export SENTRY_DSN="https://...@sentry.io/..."</span>
+<span class="c">#   export KAKAO_JS_KEY="..."</span>
+<span class="c"># Eslatma: KAKAO_JS_KEY ning eski default qiymati kodda hardcode</span>
+<span class="c"># qilingan (app_config.dart:64) — bu yerda YANGI (rotatsiya</span>
+<span class="c"># qilingan) kalitni bering.</span>
+: <span class="s">"${SENTRY_DSN:?SENTRY_DSN o'rnatilmagan}"</span>
+: <span class="s">"${KAKAO_JS_KEY:?KAKAO_JS_KEY o'rnatilmagan}"</span>
+
+flutter clean
+flutter pub get
+
+flutter build appbundle \
+  --release \
+  --flavor store \
+  --dart-define=STORE_BUILD=<span class="k">true</span> \
+  --dart-define=SENTRY_DSN=<span class="s">"$SENTRY_DSN"</span> \
+  --dart-define=KAKAO_JS_KEY=<span class="s">"$KAKAO_JS_KEY"</span>
+
+AAB=build/app/outputs/bundle/storeRelease/app-store-release.aab
+MAP=build/app/outputs/mapping/storeRelease/mapping.txt
+
+echo
+echo <span class="s">"── Nazorat tekshiruvlari ──────────────────────────"</span>
+
+<span class="c"># 1. AAB yaratildimi</span>
+[ -f <span class="s">"$AAB"</span> ] &amp;&amp; echo <span class="s">"OK   AAB: $AAB"</span> \
+             || { echo <span class="s">"XATO AAB topilmadi"</span>; exit 1; }
+
+<span class="c"># 2. ProGuard qoidalari qo'llandimi</span>
+[ -f <span class="s">"$MAP"</span> ] &amp;&amp; echo <span class="s">"OK   mapping.txt mavjud"</span> \
+             || echo <span class="s">"OGOHLANTIRISH: mapping.txt yo'q — proguardFiles ulanmaganmi?"</span>
+
+<span class="c"># 3. Taqiqlangan ruxsat yo'qmi</span>
+<span class="k">if</span> unzip -p <span class="s">"$AAB"</span> base/manifest/AndroidManifest.xml \
+     | strings | grep -q INSTALL_PACKAGES; <span class="k">then</span>
+  echo <span class="s">"XATO REQUEST_INSTALL_PACKAGES hali ham AAB ichida"</span>
+  exit 1
+<span class="k">else</span>
+  echo <span class="s">"OK   REQUEST_INSTALL_PACKAGES yo'q"</span>
+<span class="k">fi</span>
+
+echo
+echo <span class="s">"Play Console'ga yuklashga tayyor."</span>
+echo <span class="s">"mapping.txt ni ham yuklashni unutmang: $MAP"</span></pre>
+</div>
+
+<div class="code">
+  <div class="code-bar"><span class="code-name">Terminal</span><button class="copy">Nusxa</button></div>
+<pre>chmod +x hanguk_app/scripts/build-store.sh
+
+export SENTRY_DSN=<span class="s">"https://...@sentry.io/..."</span>
+export KAKAO_JS_KEY=<span class="s">"..."</span>
+
+./hanguk_app/scripts/build-store.sh</pre>
+</div>
+
+<!-- ============ TEKSHIRUV ============ -->
+<h2 id="tekshiruv"><span class="num">Nazorat</span>Yuborishdan oldingi tekshiruv</h2>
+
+<p>Bu bandlarning har biri repoda topilgan aniq muammoga mos keladi. Hammasi bajarilmaguncha yubormang.</p>
+
+<h3>Login</h3>
+<div class="step"><div class="step-head">
+  <input type="checkbox" class="chk" id="v1">
+  <label class="step-title" for="v1"><code>curl</code> testi <code>student-login-v2</code> uchun <b>200</b> qaytaradi (404 emas)</label>
+</div></div>
+<div class="step"><div class="step-head">
+  <input type="checkbox" class="chk" id="v2">
+  <label class="step-title" for="v2">Demo kod <code>GOOGLE01</code> ketma-ket 3 marta ishlaydi</label>
+</div></div>
+<div class="step"><div class="step-head">
+  <input type="checkbox" class="chk" id="v3">
+  <label class="step-title" for="v3">Demo hisob ichida ma'lumot bor — arizalar, hujjatlar, universitetlar</label>
+</div></div>
+<div class="step"><div class="step-head">
+  <input type="checkbox" class="chk" id="v4">
+  <label class="step-title" for="v4">Play Console ko'rsatmalari yangilangan — faqat kirish kodi, telefon/OTP eslatilmagan</label>
+</div></div>
+<div class="step"><div class="step-head">
+  <input type="checkbox" class="chk" id="v5">
+  <label class="step-title" for="v5">Noto'g'ri kod endi <i>"We don't recognise this code"</i> ko'rsatadi, <i>"Unexpected server error"</i> emas</label>
+</div></div>
+
+<h3>Build</h3>
+<div class="step"><div class="step-head">
+  <input type="checkbox" class="chk" id="v6">
+  <label class="step-title" for="v6"><code>mapping.txt</code> yaratildi — ProGuard qoidalari qo'llanmoqda</label>
+</div></div>
+<div class="step"><div class="step-head">
+  <input type="checkbox" class="chk" id="v7">
+  <label class="step-title" for="v7">AAB ichida <code>REQUEST_INSTALL_PACKAGES</code> yo'q</label>
+</div></div>
+<div class="step"><div class="step-head">
+  <input type="checkbox" class="chk" id="v8">
+  <label class="step-title" for="v8">AAB haqiqiy upload kalit bilan imzolangan (debug emas)</label>
+</div></div>
+<div class="step"><div class="step-head">
+  <input type="checkbox" class="chk" id="v9">
+  <label class="step-title" for="v9">CI ildizda va yashil holatda ishlayapti</label>
+</div></div>
+<div class="step"><div class="step-head">
+  <input type="checkbox" class="chk" id="v10">
+  <label class="step-title" for="v10">Sentry DSN berilgan — test xatosi Sentry'da ko'rindi</label>
+</div></div>
+
+<h3>Haqiqiy sharoitda test</h3>
+<div class="step"><div class="step-head">
+  <input type="checkbox" class="chk" id="v11">
+  <label class="step-title" for="v11">Play Internal testing kanalidan yuklab olingan versiyada login ishlaydi</label>
+</div></div>
+<div class="step"><div class="step-head">
+  <input type="checkbox" class="chk" id="v12">
+  <label class="step-title" for="v12">Toza, hech qachon ilova o'rnatilmagan qurilmada ishlaydi</label>
+</div></div>
+<div class="step"><div class="step-head">
+  <input type="checkbox" class="chk" id="v13">
+  <label class="step-title" for="v13">Android emulyatorda ishlaydi (reviewer emulyator ishlatishi mumkin)</label>
+</div></div>
+<div class="step"><div class="step-head">
+  <input type="checkbox" class="chk" id="v14">
+  <label class="step-title" for="v14">VPN bilan, AQSh IP orqali ishlaydi</label>
+</div></div>
+<div class="step"><div class="step-head">
+  <input type="checkbox" class="chk" id="v15">
+  <label class="step-title" for="v15">Chet eldagi tanish qurilmasida ham tekshirildi</label>
+</div></div>
+
+<div class="warn">
+  <span class="warn-label">Eng ko'p uchraydigan xato</span>
+  <p><b>Debug build bilan test qilib, release'ni yuborish.</b> ProGuard, imzo, flavor — bularning hammasi faqat release'da faollashadi. Har doim Play Internal testing kanalidan yuklab olingan versiyani sinang.</p>
+</div>
+
+<!-- ============ PLAY ============ -->
+<h2 id="play"><span class="num">Oxirgi qadam</span>Play Console'ga yuborish</h2>
+
+<p>Play Console &rarr; App content &rarr; <b>App access</b> (Sign in details) bo'limiga o'ting. "All or some functionality is restricted" ni tanlang va yangi yozuv qo'shing.</p>
+
+<table>
+  <thead><tr><th style="width:26%">Maydon</th><th>Qiymat</th></tr></thead>
+  <tbody>
+    <tr><td>Name</td><td>Student access code</td></tr>
+    <tr><td>Username</td><td><code>GOOGLE01</code></td></tr>
+    <tr><td>Password</td><td><code>not required</code></td></tr>
+    <tr><td>Instructions</td><td>Quyidagi matn</td></tr>
+  </tbody>
+</table>
+
+<div class="code">
+  <div class="code-bar"><span class="code-name">Play Console → App access → Instructions (ingliz tilida)</span><button class="copy">Nusxa</button></div>
+<pre>This app uses an 8-character ACCESS CODE instead of a
+username and password. There is no password field.
+
+HOW TO SIGN IN
+1. Open the app and wait for the splash screen to finish.
+2. The login screen shows a single code input field
+   (placeholder: XXXXXXXX).
+3. Type this code into the field:  GOOGLE01
+   (letters and digits, no spaces — the field
+   capitalises automatically)
+4. Tap the "Login manually with Access Code" button
+   below the field.
+5. You are signed in to a demo student account with full
+   access to every feature.
+
+NOTES FOR THE REVIEWER
+- Sign-in uses only this access code. There is no
+  password and no SMS/OTP step.
+- The access code is permanent and can be reused an
+  unlimited number of times, on any device.
+- The account works from any country and on emulators.
+- The demo account is pre-populated with sample
+  applications, documents and university suggestions so
+  every screen has content to review.
+- The app requires an internet connection.
+
+If sign-in fails, please retry once. Our login service is
+monitored and the on-call contact is support@hanguk.uz.</pre>
+</div>
+
+<h3>Keyin</h3>
+<ol>
+  <li>Yangi AAB ni yuklang (<code>versionCode</code> ko'tarilishi kerak — hozir <code>2031</code>)</li>
+  <li><code>mapping.txt</code> ni ham yuklang</li>
+  <li>Data Safety formasini tekshiring — u manifestdagi ruxsatlarga mos kelishi kerak</li>
+  <li>Privacy Policy URL (<code>hanguk.uz/privacy</code>) brauzerda ochilishini tasdiqlang</li>
+  <li>Publishing overview &rarr; <b>Send changes for review</b></li>
+</ol>
+
+<div class="note">
+  <span class="note-label">Kutish muddati</span>
+  <p>Qayta ko'rib chiqish odatda 1–7 kun. Policy support jamoasiga yozmang — Google xatida aniq aytilgan: eng tez yo'l ma'lumotlarni yangilab, review'ga yuborish.</p>
+</div>
+
+<div class="warn">
+  <span class="warn-label">Yangi build kerakmi?</span>
+  <p>Agar faqat Play Console'dagi matnni o'zgartirgan bo'lsangiz — yo'q. Lekin siz ilova kodini o'zgartirdingiz (ProGuard, flavor, updater, xato xabarlari), shuning uchun <b>yangi AAB majburiy</b>.</p>
+</div>
+
+<footer>
+  <p>Ta'mirlash tartibi &middot; <code>asrbekshokirovich-bot/hanguk-uz</code> &middot; <code>main</code> tarmog'i, oxirgi commit <code>1e452a8</code></p>
+  <p>Qadamlarning belgilanishi va triage tanlovi shu brauzerda saqlanadi (localStorage) — sahifani yopib qayta ochsangiz ham yo'qolmaydi. Boshidan boshlash uchun: <button type="button" id="reset-progress" class="copy" style="text-transform:none;letter-spacing:.02em;color:var(--ink-soft);border-color:var(--rule)">Belgilarni tozalash</button></p>
+</footer>
+
+</main>
+</div>
+
+<script>
+(function(){
+  var STORE_CHECKS = 'hanguk-guide-checks';
+  var STORE_TRIAGE = 'hanguk-guide-triage';
+
+  function loadJSON(key){
+    try { return JSON.parse(localStorage.getItem(key) || 'null'); }
+    catch(e){ return null; }
+  }
+  function saveJSON(key, val){
+    try { localStorage.setItem(key, JSON.stringify(val)); } catch(e){}
+  }
+  function clearStored(){
+    try {
+      localStorage.removeItem(STORE_CHECKS);
+      localStorage.removeItem(STORE_TRIAGE);
+    } catch(e){}
+  }
+
+  // ---- Nusxa ko'chirish tugmalari ----
+  // Diff belgilarini olib tashlab, toza matn beramiz:
+  //   "+ " qatorlar \u2014 qo'shiladigan kod (belgisi olib tashlanadi),
+  //   "- " qatorlar \u2014 o'chiriladigan kod (nusxaga kirmaydi).
+  function stripDiff(text){
+    return text.split('\n')
+      .map(function(l){
+        if(l.startsWith('+ ')) return l.slice(2);
+        if(l.startsWith('- ')) return null;
+        return l;
+      })
+      .filter(function(l){ return l !== null; })
+      .join('\n');
+  }
+  function markCopied(btn, ok){
+    btn.textContent = ok ? 'Ko\u2018chirildi' : 'Xato';
+    if(ok) btn.classList.add('ok');
+    setTimeout(function(){
+      btn.textContent = 'Nusxa';
+      btn.classList.remove('ok');
+    }, 1600);
+  }
+  // http:// yoki eski brauzerlarda navigator.clipboard bo'lmaydi \u2014
+  // ko'rinmas textarea + execCommand zaxira yo'li ishlaydi.
+  function legacyCopy(text, btn){
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly', '');
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    document.body.appendChild(ta);
+    ta.select();
+    var ok = false;
+    try { ok = document.execCommand('copy'); } catch(e){}
+    document.body.removeChild(ta);
+    markCopied(btn, ok);
+  }
+  function copyToClipboard(text, btn){
+    if(navigator.clipboard && window.isSecureContext){
+      navigator.clipboard.writeText(text).then(
+        function(){ markCopied(btn, true); },
+        function(){ legacyCopy(text, btn); }
+      );
+    } else {
+      legacyCopy(text, btn);
+    }
+  }
+  document.querySelectorAll('.copy').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var box = btn.closest('.code');
+      if(!box) return; // .copy ko'rinishidagi boshqa tugmalar (masalan, footer'dagi)
+      var pre = box.querySelector('pre');
+      if(!pre) return;
+      copyToClipboard(stripDiff(pre.innerText), btn);
+    });
+  });
+
+  // ---- Diagnostika triage ----
+  var opts = Array.prototype.slice.call(document.querySelectorAll('.t-opt'));
+  function selectTriage(key, persist){
+    opts.forEach(function(x){
+      x.setAttribute('aria-pressed', String(x.dataset.t === key));
+    });
+    document.querySelectorAll('.t-out').forEach(function(p){
+      p.classList.toggle('on', p.id === 't-' + key);
+    });
+    if(persist) saveJSON(STORE_TRIAGE, key);
+  }
+  opts.forEach(function(o){
+    o.addEventListener('click', function(){ selectTriage(o.dataset.t, true); });
+  });
+
+  // ---- Progress hisoblagich ----
+  var boxes = Array.prototype.slice.call(document.querySelectorAll('.chk'));
+  var done = document.getElementById('pdone');
+  var total = document.getElementById('ptotal');
+  var fill = document.getElementById('pfill');
+  total.textContent = ' / ' + boxes.length;
+
+  function refresh(){
+    var n = boxes.filter(function(b){ return b.checked; }).length;
+    done.textContent = n;
+    fill.style.width = (boxes.length ? (n / boxes.length * 100) : 0) + '%';
+  }
+  function syncCard(b){
+    var card = b.closest('.step');
+    if(card) card.classList.toggle('done', b.checked);
+  }
+  function persistChecks(){
+    saveJSON(STORE_CHECKS, boxes
+      .filter(function(b){ return b.checked; })
+      .map(function(b){ return b.id; }));
+  }
+  boxes.forEach(function(b){
+    b.addEventListener('change', function(){
+      syncCard(b);
+      persistChecks();
+      refresh();
+    });
+  });
+
+  // ---- Saqlangan holatni tiklash ----
+  var savedChecks = loadJSON(STORE_CHECKS);
+  if(Array.isArray(savedChecks)){
+    savedChecks.forEach(function(id){
+      var b = document.getElementById(id);
+      if(b && b.classList.contains('chk')){ b.checked = true; syncCard(b); }
+    });
+  }
+  var savedTriage = loadJSON(STORE_TRIAGE);
+  if(typeof savedTriage === 'string' && document.getElementById('t-' + savedTriage)){
+    selectTriage(savedTriage, false);
+  }
+  refresh();
+
+  // ---- Belgilarni tozalash ----
+  var reset = document.getElementById('reset-progress');
+  if(reset){
+    reset.addEventListener('click', function(){
+      boxes.forEach(function(b){ b.checked = false; syncCard(b); });
+      selectTriage('', false);
+      clearStored();
+      refresh();
+    });
+  }
+})();
+</script>
+</body>
+</html>
