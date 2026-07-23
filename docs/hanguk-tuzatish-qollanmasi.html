@@ -886,21 +886,40 @@ grep <span class="s">"installplugin.InstallPlugin -&gt; com.zaihui.installplugin
   <div class="step-body">
     <p>Hozir <code>key.properties</code> topilmasa, build <b>to'xtamaydi</b> — shunchaki ogohlantirish yozadi va debug kalit bilan imzolaydi. Bunday AAB ni Play qabul qilmaydi, va xato xabari chalkash bo'ladi.</p>
 
+    <div class="warn">
+      <span class="warn-label">Sodda "throw" ishlamaydi — Gradle konfiguratsiya vaqti tuzog'i</span>
+      <p><code>signingConfig = if (...) {...} else { throw ... }</code> ni to'g'ridan-to'g'ri shu yerga yozsangiz, u <b>har qanday</b> build'da ishga tushadi — hatto <code>flutter build apk --debug --flavor store</code> da ham. Sababi: Gradle <code>buildTypes.release</code> blokini <i>konfiguratsiya</i> bosqichida baholaydi, siz aynan qaysi variant'ni build qilishingizdan qat'iy nazar. Amalda buni CI'da tekshirib ko'rdik: unsigned debug build-check aynan shu qatordan yiqildi. To'g'ri yechim — tekshiruvni <code>gradle.taskGraph.whenReady</code> ichiga ko'chirish, u faqat haqiqatan so'ralgan task'larni ko'radi.</p>
+    </div>
+
     <div class="code">
-      <div class="code-bar"><span class="code-name">build.gradle.kts — signingConfig tanlash</span><button class="copy">Nusxa</button></div>
+      <div class="code-bar"><span class="code-name">build.gradle.kts — signingConfig (konfiguratsiya vaqti, zararsiz)</span><button class="copy">Nusxa</button></div>
 <pre>signingConfig = <span class="k">if</span> (hasReleaseKeys) {
     signingConfigs.getByName(<span class="s">"release"</span>)
 } <span class="k">else</span> {
 <span class="del">-   logger.warn("[hanguk] WARNING: android/key.properties not found. ...")</span>
-<span class="del">-   signingConfigs.getByName("debug")</span>
-<span class="add">+     // Do'kon uchun build DEBUG kalit bilan imzolanmasligi kerak.</span>
-<span class="add">+     // Mahalliy test uchun `flutter run --release` ishlatmoqchi bo'lsangiz,</span>
-<span class="add">+     // key.properties faylini yarating (key.properties.template dan).</span>
-<span class="add">+     throw GradleException(</span>
-<span class="add">+         "android/key.properties topilmadi. Release build imzolab bo'lmaydi. " +</span>
-<span class="add">+         "key.properties.template dan nusxa oling va to'ldiring. " +</span>
-<span class="add">+         "Batafsil: hanguk_app/docs/RELEASE.md"</span>
-<span class="add">+     )</span>
+    signingConfigs.getByName(<span class="s">"debug"</span>)
+}</pre>
+    </div>
+
+    <p>Haqiqiy majburlash — <code>android{}</code> blokidan <b>tashqarida</b>, fayl oxiriga qo'shing:</p>
+
+    <div class="code">
+      <div class="code-bar"><span class="code-name">build.gradle.kts — android{} blokidan keyin</span><button class="copy">Nusxa</button></div>
+<pre><span class="c">// Real release builds must never fall back to debug signing. Checked at</span>
+<span class="c">// task-graph time, not configuration time — so debug builds and CI's</span>
+<span class="c">// unsigned build-check aren't blocked by a missing keystore.</span>
+gradle.taskGraph.whenReady {
+    <span class="k">val</span> requestedRelease = allTasks.any { task -&gt;
+        task.name.contains(<span class="s">"Release"</span>) &amp;&amp;
+            (task.name.startsWith(<span class="s">"assemble"</span>) || task.name.startsWith(<span class="s">"bundle"</span>))
+    }
+    <span class="k">if</span> (requestedRelease &amp;&amp; !hasReleaseKeys) {
+        <span class="k">throw</span> GradleException(
+            <span class="s">"android/key.properties topilmadi. Release build imzolab bo'lmaydi. "</span> +
+            <span class="s">"key.properties.template dan nusxa oling va to'ldiring. "</span> +
+            <span class="s">"Batafsil: hanguk_app/docs/RELEASE.md"</span>
+        )
+    }
 }</pre>
     </div>
 
