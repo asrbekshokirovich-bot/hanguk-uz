@@ -57,9 +57,13 @@ android {
 
     signingConfigs {
         // Always declare "release"; only configure it if key.properties is present.
-        // Without key.properties, this config exists but has no key, and the
-        // release buildType selection logic below throws rather than silently
-        // falling back to debug signing.
+        // Without key.properties, this config exists but has no key. Assigning
+        // it to buildTypes.release below is a configuration-time no-op that
+        // must never fail on its own — Gradle configures the release build
+        // type for EVERY invocation (even `assembleStoreDebug`), regardless
+        // of which variant task actually runs. The real enforcement is the
+        // taskGraph.whenReady check further down, which only fires when a
+        // release task is genuinely requested.
         create("release") {
             if (hasReleaseKeys) {
                 keyAlias = keystoreProperties["keyAlias"] as String
@@ -72,17 +76,10 @@ android {
 
     buildTypes {
         release {
-            // Real release signing is mandatory. A release build without
-            // key.properties must fail loudly at configuration time rather
-            // than silently ship a debug-signed AAB that Play will reject.
             signingConfig = if (hasReleaseKeys) {
                 signingConfigs.getByName("release")
             } else {
-                throw GradleException(
-                    "android/key.properties topilmadi. Release build imzolab bo'lmaydi. " +
-                    "key.properties.template dan nusxa oling va to'ldiring. " +
-                    "Batafsil: hanguk_app/docs/RELEASE.md"
-                )
+                signingConfigs.getByName("debug")
             }
             // R8 obfuscation + minification for release. Disable temporarily
             // if a class is being mangled — but try to fix it with proguard
@@ -94,6 +91,26 @@ android {
                 "proguard-rules.pro",
             )
         }
+    }
+}
+
+// Real release builds must never fall back to debug signing. Checked at
+// task-graph time (once Gradle knows which tasks were actually requested),
+// not at configuration time — so debug builds and CI's unsigned build-check
+// (which never touch a release signing config) aren't blocked by a missing
+// keystore. Fires for assemble/bundle tasks of any release variant, in any
+// flavor (assembleRelease, bundleStoreRelease, assembleSelfHostRelease, ...).
+gradle.taskGraph.whenReady {
+    val requestedRelease = allTasks.any { task ->
+        task.name.contains("Release") &&
+            (task.name.startsWith("assemble") || task.name.startsWith("bundle"))
+    }
+    if (requestedRelease && !hasReleaseKeys) {
+        throw GradleException(
+            "android/key.properties topilmadi. Release build imzolab bo'lmaydi. " +
+            "key.properties.template dan nusxa oling va to'ldiring. " +
+            "Batafsil: hanguk_app/docs/RELEASE.md"
+        )
     }
 }
 
