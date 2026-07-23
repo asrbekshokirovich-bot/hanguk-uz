@@ -39,11 +39,31 @@ android {
         versionName = flutter.versionName
     }
 
+    // ── Distribution channels ────────────────────────────────────────
+    // store    → Google Play / App Store. APK-sideload updater removed
+    //            (see src/store/AndroidManifest.xml + kIsStoreBuild).
+    // selfHost → direct APK distribution. Bundled updater stays active.
+    // applicationId is intentionally the same across flavors — the Play
+    // listing must keep resolving to the same app.
+    flavorDimensions += "distribution"
+    productFlavors {
+        create("store") {
+            dimension = "distribution"
+        }
+        create("selfHost") {
+            dimension = "distribution"
+        }
+    }
+
     signingConfigs {
         // Always declare "release"; only configure it if key.properties is present.
-        // Without key.properties, this config exists but has no key, so the
-        // release buildType selection logic below falls back to debug-signing
-        // and prints a loud warning.
+        // Without key.properties, this config exists but has no key. Assigning
+        // it to buildTypes.release below is a configuration-time no-op that
+        // must never fail on its own — Gradle configures the release build
+        // type for EVERY invocation (even `assembleStoreDebug`), regardless
+        // of which variant task actually runs. The real enforcement is the
+        // taskGraph.whenReady check further down, which only fires when a
+        // release task is genuinely requested.
         create("release") {
             if (hasReleaseKeys) {
                 keyAlias = keystoreProperties["keyAlias"] as String
@@ -56,19 +76,9 @@ android {
 
     buildTypes {
         release {
-            // Use the real release signing config when keys are present;
-            // otherwise fall back to debug signing (so `flutter run --release`
-            // still works locally) but warn loudly so we never accidentally
-            // ship a debug-signed APK.
             signingConfig = if (hasReleaseKeys) {
                 signingConfigs.getByName("release")
             } else {
-                logger.warn(
-                    "[hanguk] WARNING: android/key.properties not found. " +
-                    "Falling back to DEBUG signing for the release build. " +
-                    "Production releases MUST be signed with the real upload key. " +
-                    "See docs/RELEASE.md."
-                )
                 signingConfigs.getByName("debug")
             }
             // R8 obfuscation + minification for release. Disable temporarily
@@ -76,7 +86,31 @@ android {
             // rules first rather than turning these off in production.
             isMinifyEnabled = true
             isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro",
+            )
         }
+    }
+}
+
+// Real release builds must never fall back to debug signing. Checked at
+// task-graph time (once Gradle knows which tasks were actually requested),
+// not at configuration time — so debug builds and CI's unsigned build-check
+// (which never touch a release signing config) aren't blocked by a missing
+// keystore. Fires for assemble/bundle tasks of any release variant, in any
+// flavor (assembleRelease, bundleStoreRelease, assembleSelfHostRelease, ...).
+gradle.taskGraph.whenReady {
+    val requestedRelease = allTasks.any { task ->
+        task.name.contains("Release") &&
+            (task.name.startsWith("assemble") || task.name.startsWith("bundle"))
+    }
+    if (requestedRelease && !hasReleaseKeys) {
+        throw GradleException(
+            "android/key.properties topilmadi. Release build imzolab bo'lmaydi. " +
+            "key.properties.template dan nusxa oling va to'ldiring. " +
+            "Batafsil: hanguk_app/docs/RELEASE.md"
+        )
     }
 }
 

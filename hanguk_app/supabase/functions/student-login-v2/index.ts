@@ -38,6 +38,7 @@ type ErrorCode =
   | 'STAFF_BLOCKED'
   | 'AUTH_CREATE_FAILED'
   | 'AUTH_SIGNIN_FAILED'
+  | 'SERVER_MISCONFIGURED'
   | 'INTERNAL_ERROR'
 
 function errorResponse(
@@ -116,11 +117,25 @@ Deno.serve(async (req) => {
     const normalizedCode = magicCode.trim().toUpperCase().replace(/\s+/g, '')
     codeMask = normalizedCode.slice(-3).padStart(normalizedCode.length, '*')
 
-    const admin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-      { auth: { autoRefreshToken: false, persistSession: false } },
-    )
+    // ── Env o'zgaruvchilarni bir marta o'qib, darhol tekshiramiz ──
+    const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? ''
+    const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    const ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY') ?? ''
+
+    if (!SUPABASE_URL || !SERVICE_KEY) {
+      // Bu ishlab chiqarish xatosi, foydalanuvchining aybi emas —
+      // shuning uchun log'da aniq nomlab yozamiz.
+      const missing = [
+        !SUPABASE_URL ? 'SUPABASE_URL' : null,
+        !SERVICE_KEY ? 'SUPABASE_SERVICE_ROLE_KEY' : null,
+      ].filter(Boolean).join(', ')
+      logEvent({ result: 'SERVER_MISCONFIGURED', code_mask: codeMask, detail: `missing: ${missing}` })
+      return errorResponse('SERVER_MISCONFIGURED', `missing env: ${missing}`, 500)
+    }
+
+    const admin = createClient(SUPABASE_URL, SERVICE_KEY, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    })
 
     const { data: profile, error: profileErr } = await admin
       .from('profiles')
@@ -235,13 +250,21 @@ Deno.serve(async (req) => {
     }
 
     // Use a non-admin client to actually exchange the password for a session.
-    const anon = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      { auth: { autoRefreshToken: false, persistSession: false } },
-    )
+    // Parolni sessiyaga almashtirish uchun anon klient afzal. Agar
+    // SUPABASE_ANON_KEY joylashtirilmagan bo'lsa, funksiyani yiqitmasdan
+    // admin klient bilan davom etamiz — v1 aynan shunday ishlagan va u
+    // ishonchli edi.
+    const signInClient = ANON_KEY
+      ? createClient(SUPABASE_URL, ANON_KEY, {
+          auth: { autoRefreshToken: false, persistSession: false },
+        })
+      : admin
 
-    let { data: sessionData, error: signInErr } = await anon.auth.signInWithPassword({
+    if (!ANON_KEY) {
+      logEvent({ result: 'WARN', code_mask: codeMask, detail: 'SUPABASE_ANON_KEY missing — falling back to admin client' })
+    }
+
+    let { data: sessionData, error: signInErr } = await signInClient.auth.signInWithPassword({
       email: authUser.email,
       password: stablePassword,
     })
@@ -265,7 +288,7 @@ Deno.serve(async (req) => {
           500,
         )
       }
-      ;({ data: sessionData, error: signInErr } = await anon.auth.signInWithPassword({
+      ;({ data: sessionData, error: signInErr } = await signInClient.auth.signInWithPassword({
         email: authUser.email,
         password: stablePassword,
       }))

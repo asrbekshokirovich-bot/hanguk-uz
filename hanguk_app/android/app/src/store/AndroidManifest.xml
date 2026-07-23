@@ -1,0 +1,16 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Google Play siyosati: do'kon orqali tarqatiladigan ilova
+         o'zini Play'dan tashqarida yangilay olmaydi. Bu ruxsat
+         faqat selfHost flavor'ida kerak. -->
+    <uses-permission
+        android:name="android.permission.REQUEST_INSTALL_PACKAGES"
+        tools:node="remove" />
+
+    <!-- Talaba ma'lumotlari qurilma zaxira nusxasiga tushmasin.
+         Asosiy manifestda allowBackup umuman yozilmagan (default:
+         true), shu yerda aniq false qilamiz. -->
+    <application android:allowBackup="false"
+                 tools:replace="android:allowBackup" />
+</manifest>

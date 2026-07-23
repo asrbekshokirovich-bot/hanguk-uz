@@ -1,0 +1,66 @@
+name: Flutter CI
+
+# Moved from hanguk_app/.github/workflows/ci.yml — GitHub Actions only
+# reads workflows under the repo root .github/workflows/, so the nested
+# copy never actually ran. See hanguk_app/docs/RELEASE.md.
+
+on:
+  pull_request:
+    paths: ['hanguk_app/**']
+  push:
+    branches: [main]
+    paths: ['hanguk_app/**']
+
+jobs:
+  analyze:
+    name: analyze + test + build check
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: hanguk_app
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: flutter pub get
+        run: flutter pub get
+
+      - name: flutter analyze
+        run: flutter analyze --no-fatal-infos
+
+      - name: flutter test
+        # Tests tagged `manual` are integration probes (Vapi network +
+        # platform permission channels) that can't run on a headless
+        # CI runner. Exclude them here; run locally on a device.
+        run: flutter test --exclude-tags=manual
+
+      # Unsigned build — catches configuration errors early. key.properties
+      # isn't present in CI, so this stays debug-only; the release/signing
+      # path is exercised locally via scripts/build-store.sh.
+      - name: build check (debug, store flavor)
+        run: |
+          flutter build apk --debug --flavor store \
+            --dart-define=STORE_BUILD=true
+
+      # Nazorat: taqiqlangan ruxsat qaytib kelmaganini tekshiradi. Manifest
+      # yo'li AGP versiyasiga bog'liq — shuning uchun find; topilmasa ham
+      # xato (tekshiruv jim o'tib ketmasin).
+      - name: store flavor'da REQUEST_INSTALL_PACKAGES yo'qligini tasdiqlash
+        run: |
+          MANIFEST=$(find build/app/intermediates/merged_manifests \
+            -path "*store*" -name AndroidManifest.xml | head -n1)
+          if [ -z "$MANIFEST" ]; then
+            echo "::error::Birlashtirilgan manifest topilmadi — build yo'li o'zgarganmi?"
+            exit 1
+          fi
+          if grep -q REQUEST_INSTALL_PACKAGES "$MANIFEST"; then
+            echo "::error::REQUEST_INSTALL_PACKAGES store flavor manifestida topildi"
+            exit 1
+          fi
+          echo "OK — ruxsat store flavor'ida yo'q ($MANIFEST)"
