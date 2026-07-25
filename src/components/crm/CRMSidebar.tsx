@@ -41,6 +41,7 @@ import {
   Receipt,
   Clock,
   ClipboardCheck,
+  Video,
   LogOut,
 } from 'lucide-react';
 import { SidebarStaffPanel } from '@/components/intercom/SidebarStaffPanel';
@@ -147,6 +148,14 @@ function buildGroups(
           icon: ClipboardCheck,
           visible: canReviewUniDb,
           highlight: true,
+        },
+        // Office footage shows staff and students, so this matches the
+        // owner/admin-only RLS on the camera tables.
+        {
+          title: t('navigation.cameras'),
+          url: '/crm/cameras',
+          icon: Video,
+          visible: isOwner || isAdmin,
         },
         { title: t('navigation.settings'), url: '/crm/settings', icon: Settings, visible: true },
       ],

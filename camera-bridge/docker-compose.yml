@@ -1,0 +1,59 @@
+# On-prem camera bridge for the Hanguk CRM.
+#
+# Runs on any always-on Linux box inside the office LAN. It cannot run on
+# Railway or any other cloud host: the Xiaomi P2P video path is local-only,
+# so the machine pulling the stream has to sit on the same network as the
+# camera.
+#
+#   go2rtc  — speaks Xiaomi's proprietary P2P protocol, re-serves as RTSP/WebRTC
+#   frigate — 24/7 recording to the local disk, retention, event API
+#   agent   — mirrors event METADATA (never video) into Supabase
+#
+# Start with: docker compose up -d
+
+services:
+  # Pinned to 1.9.13 on purpose. 1.9.14 has open i/o-timeout bugs against
+  # Xiaomi cs2 cameras (go2rtc issues #2048, #2294). Re-test before bumping.
+  go2rtc:
+    image: alexxit/go2rtc:1.9.13
+    container_name: hanguk-go2rtc
+    restart: unless-stopped
+    # Host networking is required: the P2P handshake uses arbitrary UDP ports
+    # and local discovery, neither of which survives Docker's bridge NAT.
+    network_mode: host
+    environment:
+      TZ: ${TZ:-Asia/Tashkent}
+    volumes:
+      - ./go2rtc:/config
+
+  frigate:
+    image: ghcr.io/blakeblackshear/frigate:stable
+    container_name: hanguk-frigate
+    restart: unless-stopped
+    network_mode: host
+    shm_size: "256mb"
+    environment:
+      TZ: ${TZ:-Asia/Tashkent}
+    volumes:
+      - ./frigate/config.yml:/config/config.yml:ro
+      # Recordings live here and nowhere else. Point this at the disk with
+      # room for your retention window (~1 TB per camera-month at 2K).
+      - ${RECORDINGS_PATH:-./recordings}:/media/frigate
+      - type: tmpfs
+        target: /tmp/cache
+        tmpfs:
+          size: 1000000000
+
+  agent:
+    build: ./agent
+    container_name: hanguk-cam-agent
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      TZ: ${TZ:-Asia/Tashkent}
+      SUPABASE_URL: ${SUPABASE_URL}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
+      FRIGATE_URL: ${FRIGATE_URL:-http://127.0.0.1:5000}
+      POLL_INTERVAL_SECONDS: ${POLL_INTERVAL_SECONDS:-15}
+    depends_on:
+      - frigate

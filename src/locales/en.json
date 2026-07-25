@@ -222,7 +222,8 @@
     "distribution": "Distribution",
     "bonuses": "Bonuses",
     "voiceChat": "Voice Chat",
-    "voiceChatDesc": "Instant radio communication"
+    "voiceChatDesc": "Instant radio communication",
+    "cameras": "Cameras"
   },
   "student": {
     "portal": "Student Portal",

@@ -221,7 +221,8 @@
     "distribution": "분배",
     "bonuses": "보너스",
     "voiceChat": "음성 채팅",
-    "voiceChatDesc": "즉각적인 무전기 통신"
+    "voiceChatDesc": "즉각적인 무전기 통신",
+    "cameras": "카메라"
   },
   "student": {
     "portal": "학생 포털",

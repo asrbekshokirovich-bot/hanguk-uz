@@ -1,0 +1,60 @@
+# Copy to config.yml before first start.
+#
+# Recording is on, detection is off. That is deliberate: no AI analysis has
+# been chosen yet, and running a detector burns CPU 24/7 for events nobody
+# has asked for. Live view + continuous recording work in this state; the
+# CRM event timeline stays empty until you turn detection on below.
+
+mqtt:
+  # The agent polls Frigate's HTTP API instead, so no broker is needed.
+  enabled: false
+
+cameras:
+  office:
+    ffmpeg:
+      inputs:
+        # go2rtc runs with host networking, so this is the same machine.
+        - path: rtsp://127.0.0.1:8554/office
+          input_args: preset-rtsp-restream
+          roles:
+            - record
+    detect:
+      enabled: false
+
+    record:
+      enabled: true
+      retain:
+        # 30 days of continuous footage. Shorten it if the disk is smaller
+        # than roughly 1 TB, and keep this number aligned with whatever
+        # retention period the office notice to staff and students states.
+        days: 30
+        mode: all
+
+# ---------------------------------------------------------------------------
+# TO ENABLE AI ANALYSIS LATER
+#
+# 1. Add a `detect` role to the input above:
+#        roles: [record, detect]
+# 2. Replace the `detect:` block with:
+#        detect:
+#          enabled: true
+#          width: 1280
+#          height: 720
+#          fps: 5
+# 3. Track only what you actually need — every extra label costs CPU:
+#        objects:
+#          track: [person]
+# 4. Pick a detector. CPU works for one camera at 5 fps; a Coral TPU or an
+#    Intel iGPU (openvino) is worth it beyond that:
+#        detectors:
+#          coral:
+#            type: edgetpu
+#            device: usb
+#
+# Events then appear in Frigate's API, the agent mirrors their metadata into
+# public.camera_events, and the CRM timeline fills in. Anything beyond
+# person/motion detection — face recognition in particular — is biometric
+# data and needs written consent before you switch it on.
+# ---------------------------------------------------------------------------
+
+version: 0.14

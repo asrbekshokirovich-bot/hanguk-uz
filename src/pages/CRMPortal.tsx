@@ -62,6 +62,7 @@ const SettingsContent = lazy(() => import('@/components/crm/pages/SettingsConten
 const KakaoMapContent = lazy(() => import('@/components/crm/pages/KakaoMapContent'));
 const UniDbReviewContent = lazy(() => import('@/components/crm/pages/UniDbReviewContent'));
 const ManageIntakesContent = lazy(() => import('@/components/crm/pages/ManageIntakesContent'));
+const CamerasContent = lazy(() => import('@/components/crm/pages/CamerasContent'));
 
 // Access denied component
 const AccessDenied = () => (
@@ -134,6 +135,7 @@ export default function CRMPortal() {
     if (currentPath.startsWith('/crm/staff')) return 'staff';
     if (currentPath.startsWith('/crm/reports')) return 'reports';
     if (currentPath.startsWith('/crm/calendar')) return 'calendar';
+    if (currentPath.startsWith('/crm/cameras')) return 'cameras';
     if (currentPath.startsWith('/crm/settings')) return 'settings';
     if (currentPath.startsWith('/crm/intakes')) return 'intakes';
     if (currentPath.startsWith('/crm/translation')) return 'translation';
@@ -406,6 +408,8 @@ export default function CRMPortal() {
         return <SafeSuspense><ReportsContent /></SafeSuspense>;
       case 'calendar':
         return <SafeSuspense><CalendarContent /></SafeSuspense>;
+      case 'cameras':
+        return <SafeSuspense><CamerasContent /></SafeSuspense>;
       case 'settings':
         return <SafeSuspense><SettingsContent /></SafeSuspense>;
       case 'intakes':

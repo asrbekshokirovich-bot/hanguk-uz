@@ -222,7 +222,8 @@
     "distribution": "Taqsimlash",
     "bonuses": "Bonuslar",
     "voiceChat": "Ovozli aloqa",
-    "voiceChatDesc": "Tezkor radio aloqa"
+    "voiceChatDesc": "Tezkor radio aloqa",
+    "cameras": "Kameralar"
   },
   "student": {
     "portal": "Talaba portali",

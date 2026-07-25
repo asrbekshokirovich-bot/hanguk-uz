@@ -1,0 +1,43 @@
+# Copy to go2rtc.yaml before first start.
+#
+# Do NOT hand-write the `streams:` entry for a Xiaomi camera. The source URL
+# carries per-device encryption material that go2rtc obtains by logging into
+# Mi Home for you. Start the container, open http://<bridge-ip>:1984, then:
+#
+#   Add  ->  Xiaomi  ->  log in with the Mi account that owns the camera
+#            (email/SMS code and captcha are prompted for as needed)
+#        ->  pick the camera  ->  it writes the stream entry into this file.
+#
+# Use a DEDICATED Mi account with the camera shared to it, not the agency's
+# main account — these credentials sit on the bridge in plain text, and they
+# unlock every device on whichever account you use.
+#
+# Confirmed working (go2rtc issue #1982): C300 = xiaomi.camera.c01a01,
+# C301 = mxiang.camera.c301, both over the cs2 protocol.
+#
+# After the WebUI writes it, the entry should look roughly like:
+#
+#   streams:
+#     office: xiaomi://...        # generated — leave it alone
+#
+# Name the stream `office` (or update CAMERA stream_key in the CRM to match),
+# because frigate/config.yml and the CRM live view both reference it by name.
+
+api:
+  listen: ":1984"
+
+rtsp:
+  # Frigate reads from here over loopback. Keep it bound to localhost unless
+  # you have a reason to expose raw RTSP on the LAN.
+  listen: "127.0.0.1:8554"
+
+webrtc:
+  # WebRTC needs a reachable UDP port for the browser to send media to.
+  listen: ":8555/tcp"
+
+log:
+  level: info
+  # Bump to debug when diagnosing a P2P handshake that will not come up.
+  # exec: debug
+
+streams: {}

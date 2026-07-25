@@ -222,7 +222,8 @@
     "distribution": "Распределение",
     "bonuses": "Бонусы",
     "voiceChat": "Голосовой чат",
-    "voiceChatDesc": "Мгновенная радиосвязь"
+    "voiceChatDesc": "Мгновенная радиосвязь",
+    "cameras": "Камеры"
   },
   "student": {
     "portal": "Портал студента",
