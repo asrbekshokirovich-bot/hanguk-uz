@@ -1040,30 +1040,28 @@ export function StudentDetail({
 
           {/* Tabs */}
           <Tabs defaultValue="profile" className="w-full">
-            <div className="flex items-center gap-2 overflow-x-auto">
-              <TabsList className="justify-start flex-nowrap">
-                <TabsTrigger value="profile">{t('navigation.profile')}</TabsTrigger>
-                <TabsTrigger value="status">{t('student.applicationStatus')}</TabsTrigger>
-                <TabsTrigger value="applications">{t('navigation.applications')}</TabsTrigger>
-                <TabsTrigger value="payments">{t('navigation.payments')}</TabsTrigger>
-                <TabsTrigger value="notes">{t('common.notes')}</TabsTrigger>
-                <TabsTrigger value="calls">{t('common.phone')}</TabsTrigger>
-                <TabsTrigger value="documents">{t('navigation.documents')}</TabsTrigger>
-                <TabsTrigger value="translation" className="gap-1">
-                  <Languages className="h-3 w-3" />
-                  Tarjima
-                </TabsTrigger>
-                <TabsTrigger value="comments">Comments</TabsTrigger>
-              </TabsList>
+            <TabsList className="w-full justify-start overflow-x-auto flex-nowrap">
+              <TabsTrigger value="profile">{t('navigation.profile')}</TabsTrigger>
+              <TabsTrigger value="status">{t('student.applicationStatus')}</TabsTrigger>
+              <TabsTrigger value="applications">{t('navigation.applications')}</TabsTrigger>
+              <TabsTrigger value="payments">{t('navigation.payments')}</TabsTrigger>
+              <TabsTrigger value="notes">{t('common.notes')}</TabsTrigger>
+              <TabsTrigger value="calls">{t('common.phone')}</TabsTrigger>
+              <TabsTrigger value="documents">{t('navigation.documents')}</TabsTrigger>
+              <TabsTrigger value="translation" className="gap-1">
+                <Languages className="h-3 w-3" />
+                Tarjima
+              </TabsTrigger>
+              <TabsTrigger value="comments">Comments</TabsTrigger>
               <button
                 type="button"
-                onClick={() => setSuggestUniversityDialogOpen(true)}
-                className="inline-flex items-center gap-1.5 shrink-0 whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                onClick={(e) => { e.stopPropagation(); setSuggestUniversityDialogOpen(true); }}
+                className="inline-flex items-center gap-1.5 shrink-0 whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium text-muted-foreground transition-all hover:bg-accent hover:text-accent-foreground"
               >
                 <Lightbulb className="h-3.5 w-3.5" />
                 Universitetga tavsiya qilish
               </button>
-            </div>
+            </TabsList>
 
             {/* Profile Tab */}
             <TabsContent value="profile" className="space-y-6 mt-6">
