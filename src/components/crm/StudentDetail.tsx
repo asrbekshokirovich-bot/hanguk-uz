@@ -1055,10 +1055,14 @@ export function StudentDetail({
                 </TabsTrigger>
                 <TabsTrigger value="comments">Comments</TabsTrigger>
               </TabsList>
-              <Button size="sm" className="gap-1.5 shrink-0" onClick={() => setSuggestUniversityDialogOpen(true)}>
+              <button
+                type="button"
+                onClick={() => setSuggestUniversityDialogOpen(true)}
+                className="inline-flex items-center gap-1.5 shrink-0 whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+              >
                 <Lightbulb className="h-3.5 w-3.5" />
                 Universitetga tavsiya qilish
-              </Button>
+              </button>
             </div>
 
             {/* Profile Tab */}
