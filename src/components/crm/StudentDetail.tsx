@@ -1040,8 +1040,8 @@ export function StudentDetail({
 
           {/* Tabs */}
           <Tabs defaultValue="profile" className="w-full">
-            <div className="flex items-center gap-2">
-              <TabsList className="flex-1 justify-start overflow-x-auto flex-nowrap">
+            <div className="flex items-center gap-2 overflow-x-auto">
+              <TabsList className="justify-start flex-nowrap">
                 <TabsTrigger value="profile">{t('navigation.profile')}</TabsTrigger>
                 <TabsTrigger value="status">{t('student.applicationStatus')}</TabsTrigger>
                 <TabsTrigger value="applications">{t('navigation.applications')}</TabsTrigger>
@@ -1057,7 +1057,7 @@ export function StudentDetail({
               </TabsList>
               <Button size="sm" className="gap-1.5 shrink-0" onClick={() => setSuggestUniversityDialogOpen(true)}>
                 <Lightbulb className="h-3.5 w-3.5" />
-                Tavsiya qilish
+                Universitetga tavsiya qilish
               </Button>
             </div>
 
