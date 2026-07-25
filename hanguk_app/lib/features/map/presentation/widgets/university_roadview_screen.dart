@@ -73,7 +73,11 @@ class _UniversityRoadviewScreenState extends State<UniversityRoadviewScreen> {
         'HangukRoadviewChannel',
         onMessageReceived: _onChannelMessage,
       )
-      ..loadHtmlString(htmlContent);
+      // baseUrl gives the WebView a real origin so the Kakao JS-key domain
+      // allowlist accepts it — same fix as map_mobile.dart and
+      // virtual_tour_screen.dart (see docs/runbooks/kakao.md). Without it
+      // the SDK script fails to load and the user sees "sdk_blocked"/"network".
+      ..loadHtmlString(htmlContent, baseUrl: 'https://hanguk.uz');
   }
 
   void _onChannelMessage(JavaScriptMessage message) {
