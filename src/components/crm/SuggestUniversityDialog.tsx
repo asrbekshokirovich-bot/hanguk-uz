@@ -14,6 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useUniversities } from '@/hooks/useUniversities';
 import { supabase } from '@/integrations/supabase/client';
+import { useActiveIntake } from '@/contexts/IntakeContext';
 
 interface SuggestUniversityDialogProps {
   open: boolean;
@@ -34,6 +35,7 @@ export function SuggestUniversityDialog({
 }: SuggestUniversityDialogProps) {
   const { toast } = useToast();
   const { universities, loading: loadingUniversities } = useUniversities();
+  const { activeIntakeId } = useActiveIntake();
 
   const [search, setSearch] = useState('');
   const [selectedUniversityId, setSelectedUniversityId] = useState<string | null>(null);
@@ -70,7 +72,17 @@ export function SuggestUniversityDialog({
 
       if (error) throw error;
 
-      toast({ title: 'University suggested successfully' });
+      const { error: appError } = await supabase.from('applications').insert({
+        student_id: studentId,
+        institution_id: selectedUniversityId,
+        status: 'pending',
+        ...(activeIntakeId ? { intake_id: activeIntakeId } : {}),
+      });
+      if (appError && !appError.message.includes('duplicate')) {
+        console.warn('Application insert note:', appError.message);
+      }
+
+      toast({ title: 'University recommended — application created' });
       handleClose();
       onSuccess();
     } catch (err: any) {
@@ -236,10 +248,10 @@ export function SuggestUniversityDialog({
               {saving ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  Suggesting…
+                  Saving…
                 </>
               ) : (
-                'Suggest University'
+                'Recommend & Apply'
               )}
             </Button>
           )}

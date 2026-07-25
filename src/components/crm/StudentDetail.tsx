@@ -965,6 +965,10 @@ export function StudentDetail({
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
+                  <Button size="sm" className="gap-2" onClick={() => setSuggestUniversityDialogOpen(true)}>
+                    <Lightbulb className="h-4 w-4" />
+                    Recommend University
+                  </Button>
                   <Button variant="outline" size="sm" className="gap-2" onClick={() => setEditDialogOpen(true)}>
                     <Pencil className="h-4 w-4" />
                     {t('common.edit')}
