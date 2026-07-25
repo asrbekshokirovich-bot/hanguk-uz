@@ -55,13 +55,28 @@ whatever the disk actually holds.
 
 ## Setup
 
+Copy this folder to the office computer and run:
+
 ```bash
 cd camera-bridge
+bash install.sh
+```
+
+It checks (and offers to install) Docker, creates the config files, asks for
+the Supabase service role key once and stores it with `chmod 600`, warns if
+the disk is too small for the retention window, and starts the stack. Safe to
+re-run — it never overwrites config you have already filled in.
+
+Doing it by hand instead:
+
+```bash
 cp .env.example .env                       # fill in SUPABASE_SERVICE_ROLE_KEY
 cp go2rtc/go2rtc.yaml.example go2rtc/go2rtc.yaml
 cp frigate/config.yml.example frigate/config.yml
 docker compose up -d
 ```
+
+Either way, two steps remain and both need a browser:
 
 **1. Pair the camera with go2rtc.** Open `http://<bridge-ip>:1984` →
 **Add** → **Xiaomi** → log in with the Mi account that owns the camera
@@ -118,6 +133,18 @@ via [python-miio](https://github.com/rytilahti/python-miio) or the
 the Mi account, and the MIoT siid/piid pair for the pan-tilt service on this
 model — neither of which is verified here yet, which is why no PTZ button is
 shipped rather than a button that silently does nothing.
+
+## Testing without a camera
+
+```bash
+cd agent && npm install && npm test
+```
+
+Stands up a fake Frigate and a fake Supabase, runs the real agent against
+them, and checks the row it writes — field mapping, epoch→ISO conversion,
+clip paths, camera lookup by `stream_key`, upsert idempotency, and that the
+payload carries references rather than image bytes. No camera, no Docker, and
+it never touches the real Supabase project.
 
 ## Troubleshooting
 

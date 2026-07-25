@@ -6,7 +6,8 @@
   "description": "Mirrors office camera event metadata from Frigate into Supabase. Video stays on the bridge.",
   "main": "index.mjs",
   "scripts": {
-    "start": "node index.mjs"
+    "start": "node index.mjs",
+    "test": "node test/smoke.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.0"

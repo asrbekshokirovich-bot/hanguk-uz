@@ -1,0 +1,6 @@
+# Real config never gets committed — these hold Mi Home credentials, the
+# Supabase service role key, and per-device encryption material.
+.env
+go2rtc/go2rtc.yaml
+frigate/config.yml
+recordings/
