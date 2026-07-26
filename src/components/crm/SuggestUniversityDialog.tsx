@@ -47,7 +47,7 @@ export function SuggestUniversityDialog({
     return universities.filter(
       (u) =>
         u.name_en?.toLowerCase().includes(q) ||
-        u.name_uz?.toLowerCase().includes(q) ||
+        u.name_ko?.toLowerCase().includes(q) ||
         u.name_ko?.toLowerCase().includes(q)
     );
   }, [universities, search]);
@@ -176,9 +176,9 @@ export function SuggestUniversityDialog({
                       }`}
                     >
                       <div>
-                        <span className="block">{uni.name_en || uni.name_uz}</span>
-                        {uni.name_uz && uni.name_en && (
-                          <span className="block text-xs text-muted-foreground">{uni.name_uz}</span>
+                        <span className="block">{uni.name_en || uni.name_ko}</span>
+                        {uni.name_ko && uni.name_en && (
+                          <span className="block text-xs text-muted-foreground">{uni.name_ko}</span>
                         )}
                       </div>
                       <div className="flex items-center gap-1 shrink-0 ml-2">
@@ -206,7 +206,7 @@ export function SuggestUniversityDialog({
             <div className="flex items-start gap-2 rounded-md bg-info/10 border border-info/30 px-3 py-2 text-sm text-info dark:text-info">
               <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
               <span>
-                <strong>{selectedUniversity.name_en || selectedUniversity.name_uz}</strong> has already been suggested to this student.
+                <strong>{selectedUniversity.name_en || selectedUniversity.name_ko}</strong> has already been suggested to this student.
               </span>
             </div>
           )}
@@ -215,7 +215,7 @@ export function SuggestUniversityDialog({
             <div className="flex items-start gap-2 rounded-md bg-warning/10 border border-warning/30 px-3 py-2 text-sm text-warning dark:text-warning">
               <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
               <span>
-                <strong>{selectedUniversity.name_en || selectedUniversity.name_uz}</strong> already has an active application.
+                <strong>{selectedUniversity.name_en || selectedUniversity.name_ko}</strong> already has an active application.
               </span>
             </div>
           )}

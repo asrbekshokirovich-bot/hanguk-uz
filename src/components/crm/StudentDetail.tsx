@@ -1101,9 +1101,10 @@ export function StudentDetail({
                 Tarjima
               </TabsTrigger>
               <TabsTrigger value="comments">Comments</TabsTrigger>
+              <div className="mx-1 h-6 w-px bg-border self-center shrink-0" />
               <TabsTrigger value="recommend" className="gap-1">
-                <Lightbulb className="h-3 w-3" />
-                Universitetga tavsiya qilish
+                <GraduationCap className="h-3 w-3" />
+                Oqishga topshirish
               </TabsTrigger>
             </TabsList>
 
@@ -2091,7 +2092,7 @@ export function StudentDetail({
               )}
             </TabsContent>
 
-            {/* Universitetga tavsiya qilish Tab */}
+            {/* Oqishga topshirish Tab */}
             <TabsContent value="recommend" className="space-y-4 mt-6">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
