@@ -1105,20 +1105,20 @@ export function StudentDetail({
             </TabsList>
 
             {/* Oqishga topshirish — alohida qator */}
-            <div className="mt-2">
+            <div className="mt-3">
               <button
                 type="button"
                 onClick={() => setShowApplySection((v) => !v)}
                 className={cn(
-                  "flex items-center gap-2 w-full rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                  "flex items-center gap-2 w-full rounded-lg px-4 py-2.5 text-sm font-semibold transition-all shadow-sm border",
                   showApplySection
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted/60 hover:bg-muted"
+                    ? "bg-gradient-to-r from-emerald-600 to-teal-600 text-white border-emerald-700 shadow-emerald-500/25"
+                    : "bg-gradient-to-r from-emerald-500/10 to-teal-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 hover:from-emerald-500/20 hover:to-teal-500/20 hover:border-emerald-500/50"
                 )}
               >
-                <GraduationCap className="h-4 w-4" />
+                <GraduationCap className="h-4.5 w-4.5" />
                 Oqishga topshirish
-                <span className="ml-auto text-xs opacity-60">
+                <span className="ml-auto text-xs opacity-70">
                   {showApplySection ? '▲' : '▼'}
                 </span>
               </button>
