@@ -1108,102 +1108,12 @@ export function StudentDetail({
             <div className="mt-3">
               <button
                 type="button"
-                onClick={() => setShowApplySection((v) => !v)}
-                className={cn(
-                  "flex items-center gap-2 w-full rounded-lg px-4 py-2.5 text-sm font-semibold transition-all shadow-sm border",
-                  showApplySection
-                    ? "bg-gradient-to-r from-emerald-600 to-teal-600 text-white border-emerald-700 shadow-emerald-500/25"
-                    : "bg-gradient-to-r from-emerald-500/10 to-teal-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 hover:from-emerald-500/20 hover:to-teal-500/20 hover:border-emerald-500/50"
-                )}
+                onClick={() => setShowApplySection(true)}
+                className="flex items-center gap-2 w-full rounded-lg px-4 py-2.5 text-sm font-semibold transition-all shadow-sm border bg-gradient-to-r from-emerald-500/10 to-teal-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 hover:from-emerald-500/20 hover:to-teal-500/20 hover:border-emerald-500/50"
               >
                 <GraduationCap className="h-4.5 w-4.5" />
                 Oqishga topshirish
-                <span className="ml-auto text-xs opacity-70">
-                  {showApplySection ? '▲' : '▼'}
-                </span>
               </button>
-
-              {showApplySection && (
-                <div className="space-y-4 mt-3">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <input
-                      type="text"
-                      placeholder="Universitet qidirish..."
-                      value={uniSearch}
-                      onChange={(e) => setUniSearch(e.target.value)}
-                      className="w-full rounded-md border border-input bg-background px-9 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    />
-                  </div>
-
-                  {loadingUniversities ? (
-                    <Card>
-                      <CardContent className="py-8 text-center text-muted-foreground">
-                        <Loader2 className="h-5 w-5 animate-spin mx-auto mb-2" />
-                        Universitetlar yuklanmoqda...
-                      </CardContent>
-                    </Card>
-                  ) : filteredUniversities.length === 0 ? (
-                    <Card>
-                      <CardContent className="py-8 text-center text-muted-foreground">
-                        Universitet topilmadi
-                      </CardContent>
-                    </Card>
-                  ) : (
-                    <div className="grid gap-3">
-                      {filteredUniversities.map((uni) => {
-                        const alreadyApplied = existingAppUniIds.has(uni.id);
-                        const alreadySuggested = existingSuggestedUniversityIds.includes(uni.id);
-                        return (
-                          <Card key={uni.id} className={cn(alreadyApplied && 'opacity-60')}>
-                            <CardContent className="py-3 flex items-center gap-3">
-                              {uni.logo_url ? (
-                                <img src={uni.logo_url} alt="" className="h-10 w-10 rounded-lg object-cover shrink-0" />
-                              ) : (
-                                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                                  <GraduationCap className="h-5 w-5 text-primary" />
-                                </div>
-                              )}
-                              <div className="flex-1 min-w-0">
-                                <p className="font-medium text-sm truncate">
-                                  {uni.name_en || uni.name_ko}
-                                </p>
-                                <div className="flex items-center gap-2 mt-0.5">
-                                  {uni.is_partner && (
-                                    <Badge variant="secondary" className="text-xs">Partner</Badge>
-                                  )}
-                                  {uni.city_ko && (
-                                    <span className="text-xs text-muted-foreground">{uni.city_ko}</span>
-                                  )}
-                                  {alreadyApplied && (
-                                    <Badge variant="outline" className="text-xs">Biriktirilgan</Badge>
-                                  )}
-                                  {alreadySuggested && !alreadyApplied && (
-                                    <Badge variant="outline" className="text-xs text-info border-info">Tavsiya qilingan</Badge>
-                                  )}
-                                </div>
-                              </div>
-                              <Button
-                                size="sm"
-                                disabled={alreadyApplied || applyingUniId === uni.id}
-                                onClick={() => handleRecommendApply(uni.id)}
-                                className="shrink-0 gap-1.5"
-                              >
-                                {applyingUniId === uni.id ? (
-                                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                ) : (
-                                  <Check className="h-3.5 w-3.5" />
-                                )}
-                                Biriktirish
-                              </Button>
-                            </CardContent>
-                          </Card>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              )}
             </div>
 
             {/* Profile Tab */}
@@ -2193,6 +2103,98 @@ export function StudentDetail({
           </Tabs>
         </SheetContent>
       </Sheet>
+
+      {/* Oqishga topshirish — katta ekran dialog */}
+      <Dialog open={showApplySection} onOpenChange={setShowApplySection}>
+        <DialogContent className="sm:max-w-3xl max-h-[85vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-lg">
+              <GraduationCap className="h-5 w-5 text-emerald-600" />
+              Oqishga topshirish
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="relative mt-2">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Universitet qidirish..."
+              value={uniSearch}
+              onChange={(e) => setUniSearch(e.target.value)}
+              className="w-full rounded-md border border-input bg-background px-9 py-2.5 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            />
+          </div>
+
+          <div className="flex-1 overflow-y-auto mt-3 -mx-6 px-6">
+            {loadingUniversities ? (
+              <div className="py-12 text-center text-muted-foreground">
+                <Loader2 className="h-6 w-6 animate-spin mx-auto mb-3" />
+                Universitetlar yuklanmoqda...
+              </div>
+            ) : filteredUniversities.length === 0 ? (
+              <div className="py-12 text-center text-muted-foreground">
+                Universitet topilmadi
+              </div>
+            ) : (
+              <div className="grid gap-2">
+                {filteredUniversities.map((uni) => {
+                  const alreadyApplied = existingAppUniIds.has(uni.id);
+                  const alreadySuggested = existingSuggestedUniversityIds.includes(uni.id);
+                  return (
+                    <div
+                      key={uni.id}
+                      className={cn(
+                        "flex items-center gap-3 rounded-lg border px-4 py-3 transition-colors hover:bg-accent/50",
+                        alreadyApplied && 'opacity-50'
+                      )}
+                    >
+                      {uni.logo_url ? (
+                        <img src={uni.logo_url} alt="" className="h-11 w-11 rounded-lg object-cover shrink-0" />
+                      ) : (
+                        <div className="h-11 w-11 rounded-lg bg-emerald-500/10 flex items-center justify-center shrink-0">
+                          <GraduationCap className="h-5 w-5 text-emerald-600" />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium truncate">
+                          {uni.name_en || uni.name_ko}
+                        </p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          {uni.is_partner && (
+                            <Badge variant="secondary" className="text-xs">Partner</Badge>
+                          )}
+                          {uni.city_ko && (
+                            <span className="text-xs text-muted-foreground">{uni.city_ko}</span>
+                          )}
+                          {alreadyApplied && (
+                            <Badge variant="outline" className="text-xs">Biriktirilgan</Badge>
+                          )}
+                          {alreadySuggested && !alreadyApplied && (
+                            <Badge variant="outline" className="text-xs text-info border-info">Tavsiya qilingan</Badge>
+                          )}
+                        </div>
+                      </div>
+                      <Button
+                        size="sm"
+                        disabled={alreadyApplied || applyingUniId === uni.id}
+                        onClick={() => handleRecommendApply(uni.id)}
+                        className="shrink-0 gap-1.5"
+                      >
+                        {applyingUniId === uni.id ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <Check className="h-3.5 w-3.5" />
+                        )}
+                        Biriktirish
+                      </Button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Dialogs */}
       <EditStudentDialog
