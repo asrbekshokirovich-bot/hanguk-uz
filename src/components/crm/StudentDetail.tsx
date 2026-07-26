@@ -2106,7 +2106,7 @@ export function StudentDetail({
 
       {/* Oqishga topshirish — katta ekran dialog */}
       <Dialog open={showApplySection} onOpenChange={setShowApplySection}>
-        <DialogContent className="sm:max-w-3xl max-h-[85vh] flex flex-col">
+        <DialogContent className="!max-w-[95vw] !w-[95vw] !h-[90vh] flex flex-col" style={{ position: 'fixed', zIndex: 9999 }}>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-lg">
               <GraduationCap className="h-5 w-5 text-emerald-600" />
@@ -2136,7 +2136,7 @@ export function StudentDetail({
                 Universitet topilmadi
               </div>
             ) : (
-              <div className="grid gap-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 {filteredUniversities.map((uni) => {
                   const alreadyApplied = existingAppUniIds.has(uni.id);
                   const alreadySuggested = existingSuggestedUniversityIds.includes(uni.id);
