@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { ContractUpload } from './ContractUpload';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
@@ -42,7 +42,9 @@ import {
   ImageIcon,
   File,
   RefreshCw,
-  Lightbulb
+  Lightbulb,
+  Search,
+  GraduationCap
 } from 'lucide-react';
 import {
   Dialog,
@@ -75,6 +77,7 @@ import { DeleteStudentDialog } from './DeleteStudentDialog';
 import { AddPaymentDialog } from './AddPaymentDialog';
 import { EditPaymentDialog } from './EditPaymentDialog';
 import { SuggestUniversityDialog } from './SuggestUniversityDialog';
+import { useUniversities } from '@/hooks/useUniversities';
 import AITranslationPage from '@/components/crm/pages/AITranslationPage';
 import { ClickToCall } from '@/components/calls/ClickToCall';
 
@@ -195,9 +198,11 @@ export function StudentDetail({
   const { user } = useAuth();
   const { activeIntakeId } = useActiveIntake();
   const { toast } = useToast();
-
+  const { universities, loading: loadingUniversities } = useUniversities();
 
   const [updating, setUpdating] = useState<string | null>(null);
+  const [uniSearch, setUniSearch] = useState('');
+  const [applyingUniId, setApplyingUniId] = useState<string | null>(null);
   const [notes, setNotes] = useState<StudentNote[]>([]);
   const [comments, setComments] = useState<StudentComment[]>([]);
   const [payments, setPayments] = useState<PaymentRecord[]>([]);
@@ -331,6 +336,49 @@ export function StudentDetail({
       });
     } finally {
       setRemovingSuggestion(null);
+    }
+  };
+
+  const filteredUniversities = useMemo(() => {
+    const q = uniSearch.toLowerCase().trim();
+    if (!q) return universities;
+    return universities.filter(
+      (u) =>
+        u.name_en?.toLowerCase().includes(q) ||
+        u.name_ko?.toLowerCase().includes(q) ||
+        (u.display_names as Record<string, string> | null)?.uz?.toLowerCase().includes(q)
+    );
+  }, [universities, uniSearch]);
+
+  const existingAppUniIds = new Set(student.applications?.map(a => a.institution_id) || []);
+
+  const handleRecommendApply = async (universityId: string) => {
+    setApplyingUniId(universityId);
+    try {
+      await supabase.from('student_suggestions').insert({
+        student_id: student.user_id,
+        institution_id: universityId,
+      });
+
+      const { error } = await supabase.from('applications').insert({
+        student_id: student.user_id,
+        institution_id: universityId,
+        status: 'pending',
+        ...(activeIntakeId ? { intake_id: activeIntakeId } : {}),
+      });
+      if (error && !error.message.includes('duplicate')) throw error;
+
+      toast({ title: 'Talaba universitetga biriktirildi' });
+      fetchSuggestions();
+      onRefresh();
+    } catch (err: any) {
+      toast({
+        title: 'Xatolik',
+        description: err?.message || 'Biriktirib bo\'lmadi',
+        variant: 'destructive',
+      });
+    } finally {
+      setApplyingUniId(null);
     }
   };
 
@@ -1053,14 +1101,10 @@ export function StudentDetail({
                 Tarjima
               </TabsTrigger>
               <TabsTrigger value="comments">Comments</TabsTrigger>
-              <button
-                type="button"
-                onClick={(e) => { e.stopPropagation(); setSuggestUniversityDialogOpen(true); }}
-                className="inline-flex items-center gap-1.5 shrink-0 whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium text-muted-foreground transition-all hover:bg-accent hover:text-accent-foreground"
-              >
-                <Lightbulb className="h-3.5 w-3.5" />
+              <TabsTrigger value="recommend" className="gap-1">
+                <Lightbulb className="h-3 w-3" />
                 Universitetga tavsiya qilish
-              </button>
+              </TabsTrigger>
             </TabsList>
 
             {/* Profile Tab */}
@@ -2044,6 +2088,87 @@ export function StudentDetail({
                     </CardContent>
                   </Card>
                 ))
+              )}
+            </TabsContent>
+
+            {/* Universitetga tavsiya qilish Tab */}
+            <TabsContent value="recommend" className="space-y-4 mt-6">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <input
+                  type="text"
+                  placeholder="Universitet qidirish..."
+                  value={uniSearch}
+                  onChange={(e) => setUniSearch(e.target.value)}
+                  className="w-full rounded-md border border-input bg-background px-9 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                />
+              </div>
+
+              {loadingUniversities ? (
+                <Card>
+                  <CardContent className="py-8 text-center text-muted-foreground">
+                    <Loader2 className="h-5 w-5 animate-spin mx-auto mb-2" />
+                    Universitetlar yuklanmoqda...
+                  </CardContent>
+                </Card>
+              ) : filteredUniversities.length === 0 ? (
+                <Card>
+                  <CardContent className="py-8 text-center text-muted-foreground">
+                    Universitet topilmadi
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="grid gap-3">
+                  {filteredUniversities.map((uni) => {
+                    const alreadyApplied = existingAppUniIds.has(uni.id);
+                    const alreadySuggested = existingSuggestedUniversityIds.includes(uni.id);
+                    return (
+                      <Card key={uni.id} className={cn(alreadyApplied && 'opacity-60')}>
+                        <CardContent className="py-3 flex items-center gap-3">
+                          {uni.logo_url ? (
+                            <img src={uni.logo_url} alt="" className="h-10 w-10 rounded-lg object-cover shrink-0" />
+                          ) : (
+                            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                              <GraduationCap className="h-5 w-5 text-primary" />
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-sm truncate">
+                              {uni.name_en || uni.name_ko}
+                            </p>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              {uni.is_partner && (
+                                <Badge variant="secondary" className="text-xs">Partner</Badge>
+                              )}
+                              {uni.city_ko && (
+                                <span className="text-xs text-muted-foreground">{uni.city_ko}</span>
+                              )}
+                              {alreadyApplied && (
+                                <Badge variant="outline" className="text-xs">Biriktirilgan</Badge>
+                              )}
+                              {alreadySuggested && !alreadyApplied && (
+                                <Badge variant="outline" className="text-xs text-info border-info">Tavsiya qilingan</Badge>
+                              )}
+                            </div>
+                          </div>
+                          <Button
+                            size="sm"
+                            disabled={alreadyApplied || applyingUniId === uni.id}
+                            onClick={() => handleRecommendApply(uni.id)}
+                            className="shrink-0 gap-1.5"
+                          >
+                            {applyingUniId === uni.id ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                              <Check className="h-3.5 w-3.5" />
+                            )}
+                            Biriktirish
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
               )}
             </TabsContent>
           </Tabs>
