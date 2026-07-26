@@ -1104,6 +1104,108 @@ export function StudentDetail({
               <TabsTrigger value="comments">Comments</TabsTrigger>
             </TabsList>
 
+            {/* Oqishga topshirish — alohida qator */}
+            <div className="mt-2">
+              <button
+                type="button"
+                onClick={() => setShowApplySection((v) => !v)}
+                className={cn(
+                  "flex items-center gap-2 w-full rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                  showApplySection
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted/60 hover:bg-muted"
+                )}
+              >
+                <GraduationCap className="h-4 w-4" />
+                Oqishga topshirish
+                <span className="ml-auto text-xs opacity-60">
+                  {showApplySection ? '▲' : '▼'}
+                </span>
+              </button>
+
+              {showApplySection && (
+                <div className="space-y-4 mt-3">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <input
+                      type="text"
+                      placeholder="Universitet qidirish..."
+                      value={uniSearch}
+                      onChange={(e) => setUniSearch(e.target.value)}
+                      className="w-full rounded-md border border-input bg-background px-9 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    />
+                  </div>
+
+                  {loadingUniversities ? (
+                    <Card>
+                      <CardContent className="py-8 text-center text-muted-foreground">
+                        <Loader2 className="h-5 w-5 animate-spin mx-auto mb-2" />
+                        Universitetlar yuklanmoqda...
+                      </CardContent>
+                    </Card>
+                  ) : filteredUniversities.length === 0 ? (
+                    <Card>
+                      <CardContent className="py-8 text-center text-muted-foreground">
+                        Universitet topilmadi
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    <div className="grid gap-3">
+                      {filteredUniversities.map((uni) => {
+                        const alreadyApplied = existingAppUniIds.has(uni.id);
+                        const alreadySuggested = existingSuggestedUniversityIds.includes(uni.id);
+                        return (
+                          <Card key={uni.id} className={cn(alreadyApplied && 'opacity-60')}>
+                            <CardContent className="py-3 flex items-center gap-3">
+                              {uni.logo_url ? (
+                                <img src={uni.logo_url} alt="" className="h-10 w-10 rounded-lg object-cover shrink-0" />
+                              ) : (
+                                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                                  <GraduationCap className="h-5 w-5 text-primary" />
+                                </div>
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium text-sm truncate">
+                                  {uni.name_en || uni.name_ko}
+                                </p>
+                                <div className="flex items-center gap-2 mt-0.5">
+                                  {uni.is_partner && (
+                                    <Badge variant="secondary" className="text-xs">Partner</Badge>
+                                  )}
+                                  {uni.city_ko && (
+                                    <span className="text-xs text-muted-foreground">{uni.city_ko}</span>
+                                  )}
+                                  {alreadyApplied && (
+                                    <Badge variant="outline" className="text-xs">Biriktirilgan</Badge>
+                                  )}
+                                  {alreadySuggested && !alreadyApplied && (
+                                    <Badge variant="outline" className="text-xs text-info border-info">Tavsiya qilingan</Badge>
+                                  )}
+                                </div>
+                              </div>
+                              <Button
+                                size="sm"
+                                disabled={alreadyApplied || applyingUniId === uni.id}
+                                onClick={() => handleRecommendApply(uni.id)}
+                                className="shrink-0 gap-1.5"
+                              >
+                                {applyingUniId === uni.id ? (
+                                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                ) : (
+                                  <Check className="h-3.5 w-3.5" />
+                                )}
+                                Biriktirish
+                              </Button>
+                            </CardContent>
+                          </Card>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
             {/* Profile Tab */}
             <TabsContent value="profile" className="space-y-6 mt-6">
               {/* Personal Information */}
@@ -2089,104 +2191,6 @@ export function StudentDetail({
             </TabsContent>
 
           </Tabs>
-
-          {/* Oqishga topshirish — alohida bo'lim */}
-          <Separator className="my-4" />
-          <div>
-            <button
-              type="button"
-              onClick={() => setShowApplySection((v) => !v)}
-              className="flex items-center gap-2 w-full text-left px-1 py-2 text-sm font-medium hover:text-primary transition-colors"
-            >
-              <GraduationCap className="h-4 w-4" />
-              Oqishga topshirish
-              <span className="ml-auto text-xs text-muted-foreground">
-                {showApplySection ? '▲' : '▼'}
-              </span>
-            </button>
-
-            {showApplySection && (
-              <div className="space-y-4 mt-2">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <input
-                    type="text"
-                    placeholder="Universitet qidirish..."
-                    value={uniSearch}
-                    onChange={(e) => setUniSearch(e.target.value)}
-                    className="w-full rounded-md border border-input bg-background px-9 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  />
-                </div>
-
-                {loadingUniversities ? (
-                  <Card>
-                    <CardContent className="py-8 text-center text-muted-foreground">
-                      <Loader2 className="h-5 w-5 animate-spin mx-auto mb-2" />
-                      Universitetlar yuklanmoqda...
-                    </CardContent>
-                  </Card>
-                ) : filteredUniversities.length === 0 ? (
-                  <Card>
-                    <CardContent className="py-8 text-center text-muted-foreground">
-                      Universitet topilmadi
-                    </CardContent>
-                  </Card>
-                ) : (
-                  <div className="grid gap-3">
-                    {filteredUniversities.map((uni) => {
-                      const alreadyApplied = existingAppUniIds.has(uni.id);
-                      const alreadySuggested = existingSuggestedUniversityIds.includes(uni.id);
-                      return (
-                        <Card key={uni.id} className={cn(alreadyApplied && 'opacity-60')}>
-                          <CardContent className="py-3 flex items-center gap-3">
-                            {uni.logo_url ? (
-                              <img src={uni.logo_url} alt="" className="h-10 w-10 rounded-lg object-cover shrink-0" />
-                            ) : (
-                              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                                <GraduationCap className="h-5 w-5 text-primary" />
-                              </div>
-                            )}
-                            <div className="flex-1 min-w-0">
-                              <p className="font-medium text-sm truncate">
-                                {uni.name_en || uni.name_ko}
-                              </p>
-                              <div className="flex items-center gap-2 mt-0.5">
-                                {uni.is_partner && (
-                                  <Badge variant="secondary" className="text-xs">Partner</Badge>
-                                )}
-                                {uni.city_ko && (
-                                  <span className="text-xs text-muted-foreground">{uni.city_ko}</span>
-                                )}
-                                {alreadyApplied && (
-                                  <Badge variant="outline" className="text-xs">Biriktirilgan</Badge>
-                                )}
-                                {alreadySuggested && !alreadyApplied && (
-                                  <Badge variant="outline" className="text-xs text-info border-info">Tavsiya qilingan</Badge>
-                                )}
-                              </div>
-                            </div>
-                            <Button
-                              size="sm"
-                              disabled={alreadyApplied || applyingUniId === uni.id}
-                              onClick={() => handleRecommendApply(uni.id)}
-                              className="shrink-0 gap-1.5"
-                            >
-                              {applyingUniId === uni.id ? (
-                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                              ) : (
-                                <Check className="h-3.5 w-3.5" />
-                              )}
-                              Biriktirish
-                            </Button>
-                          </CardContent>
-                        </Card>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
         </SheetContent>
       </Sheet>
 
