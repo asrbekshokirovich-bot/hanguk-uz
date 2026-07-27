@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../design_system/theme/app_colors.dart';
 import '../../../../l10n/app_localizations.dart';
-import '../../applications/data/applications_repository.dart';
-import '../../home/presentation/home_tab_provider.dart';
 import '../data/interview_repository.dart';
+import 'widgets/target_university_picker.dart';
 import 'study_plan_screen.dart';
 import 'interview_screen.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -208,7 +207,6 @@ class TrainingTab extends ConsumerWidget {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             final l = AppLocalizations.of(context)!;
-            final applicationsAsync = ref.watch(applicationsProvider);
             final interviewState = ref.watch(interviewProvider);
 
             return AlertDialog(
@@ -237,122 +235,12 @@ class TrainingTab extends ConsumerWidget {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    applicationsAsync.when(
-                      loading: () => const Center(
-                        child: CircularProgressIndicator(
-                          color: AppColors.vibrantLime,
-                        ),
-                      ),
-                      error: (e, s) => Text(
-                        l.genericError(e),
-                        style: const TextStyle(color: Colors.red),
-                      ),
-                      data: (applications) {
-                        if (applications.isEmpty) {
-                          // Empty-state CTA: send the user to the Applications tab
-                          // so they can add a university (the previous behaviour
-                          // left "Start Interview" permanently disabled with no
-                          // path forward — see INTERVIEW_QA_REPORT.md §1).
-                          return Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Colors.white10),
-                              borderRadius: BorderRadius.circular(12),
-                              color: Colors.white.withValues(alpha: 0.02),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  l.noApplicationsTitle,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  l.interviewNoAppsBody,
-                                  style: const TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 12,
-                                    height: 1.35,
-                                  ),
-                                ),
-                                const SizedBox(height: 12),
-                                Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: ElevatedButton.icon(
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: AppColors.vibrantLime,
-                                      foregroundColor: Colors.black,
-                                    ),
-                                    icon: const Icon(Icons.school, size: 18),
-                                    label: Text(
-                                      l.applyCta,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    onPressed: () {
-                                      // 0 = Applications tab in HomeScreen.
-                                      ref
-                                          .read(homeTabProvider.notifier)
-                                          .setTab(0);
-                                      Navigator.pop(context);
-                                    },
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        }
-                        return Container(
-                          height: 150,
-                          width: double.maxFinite,
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.white10),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: ListView.builder(
-                            shrinkWrap: true,
-                            itemCount: applications.length,
-                            itemBuilder: (context, i) {
-                              final uni = applications[i].university;
-                              if (uni == null) return const SizedBox.shrink();
-                              final isSelected = selectedUniId == uni.id;
-                              return ListTile(
-                                dense: true,
-                                title: Text(
-                                  uni.name,
-                                  style: TextStyle(
-                                    color: isSelected
-                                        ? AppColors.vibrantLime
-                                        : Colors.white,
-                                  ),
-                                ),
-                                leading: Icon(
-                                  Icons.school,
-                                  color: isSelected
-                                      ? AppColors.vibrantLime
-                                      : Colors.white24,
-                                ),
-                                trailing: isSelected
-                                    ? const Icon(
-                                        Icons.check_circle,
-                                        color: AppColors.vibrantLime,
-                                      )
-                                    : null,
-                                onTap: () => setDialogState(() {
-                                  selectedUniId = uni.id;
-                                  selectedUniName = uni.name;
-                                }),
-                              );
-                            },
-                          ),
-                        );
-                      },
+                    TargetUniversityPicker(
+                      selectedId: selectedUniId,
+                      onPick: (id, name) => setDialogState(() {
+                        selectedUniId = id;
+                        selectedUniName = name;
+                      }),
                     ),
                     const SizedBox(height: 24),
                     Text(

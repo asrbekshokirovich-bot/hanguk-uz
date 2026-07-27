@@ -6,9 +6,8 @@ import '../../../../l10n/app_localizations.dart';
 import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dart:math';
-import '../../applications/data/applications_repository.dart';
-import '../../home/presentation/home_tab_provider.dart';
 import '../data/study_plan_repository.dart';
+import 'widgets/target_university_picker.dart';
 
 // study_plan_chat_fab removed 2026-05-10 (training audit P0 #6) — was a
 // non-functional placeholder. Re-add when the feature is actually built.
@@ -860,7 +859,6 @@ class _StudyPlanScreenState extends ConsumerState<StudyPlanScreen> {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             final l = AppLocalizations.of(context)!;
-            final applicationsAsync = ref.watch(applicationsProvider);
 
             return AlertDialog(
               backgroundColor: AppColors.backgroundNavy,
@@ -890,120 +888,11 @@ class _StudyPlanScreenState extends ConsumerState<StudyPlanScreen> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    applicationsAsync.when(
-                      loading: () => const Center(
-                        child: CircularProgressIndicator(
-                          color: AppColors.vibrantLime,
-                        ),
+                    TargetUniversityPicker(
+                      selectedId: selectedUniId,
+                      onPick: (id, name) => setDialogState(
+                        () => selectedUniId = id,
                       ),
-                      error: (e, s) => Text(
-                        l.genericError(e),
-                        style: const TextStyle(color: Colors.red),
-                      ),
-                      data: (applications) {
-                        if (applications.isEmpty) {
-                          // Audit F4: previous version showed only static
-                          // text — now mirror the training-tab CTA so the
-                          // student can actually act on the message.
-                          return Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Colors.white10),
-                              borderRadius: BorderRadius.circular(12),
-                              color: Colors.white.withValues(alpha: 0.02),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  l.noApplicationsTitle,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  l.noApplicationsBody,
-                                  style: const TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 12,
-                                    height: 1.35,
-                                  ),
-                                ),
-                                const SizedBox(height: 12),
-                                Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: ElevatedButton.icon(
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: AppColors.vibrantLime,
-                                      foregroundColor: Colors.black,
-                                    ),
-                                    icon: const Icon(Icons.school, size: 18),
-                                    label: Text(
-                                      l.applyCta,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    onPressed: () {
-                                      ref
-                                          .read(homeTabProvider.notifier)
-                                          .setTab(0);
-                                      Navigator.of(context).pop();
-                                      Navigator.of(context).pop();
-                                    },
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        }
-                        return Container(
-                          height: 150,
-                          width: double.maxFinite,
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.white10),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: ListView.builder(
-                            shrinkWrap: true,
-                            itemCount: applications.length,
-                            itemBuilder: (context, i) {
-                              final uni = applications[i].university;
-                              if (uni == null) return const SizedBox.shrink();
-                              final isSelected = selectedUniId == uni.id;
-                              return ListTile(
-                                dense: true,
-                                title: Text(
-                                  uni.name,
-                                  style: TextStyle(
-                                    color: isSelected
-                                        ? AppColors.vibrantLime
-                                        : Colors.white,
-                                  ),
-                                ),
-                                leading: Icon(
-                                  Icons.school,
-                                  color: isSelected
-                                      ? AppColors.vibrantLime
-                                      : Colors.white24,
-                                ),
-                                trailing: isSelected
-                                    ? const Icon(
-                                        Icons.check_circle,
-                                        color: AppColors.vibrantLime,
-                                      )
-                                    : null,
-                                onTap: () => setDialogState(
-                                  () => selectedUniId = uni.id,
-                                ),
-                              );
-                            },
-                          ),
-                        );
-                      },
                     ),
                     const SizedBox(height: 24),
                     Text(

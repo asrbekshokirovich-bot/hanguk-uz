@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../design_system/theme/app_colors.dart';
 import '../../../../l10n/app_localizations.dart';
-import '../../../applications/data/applications_repository.dart';
 import '../../../uni_db/presentation/widgets/university_specific_cta.dart';
 import '../../data/interview_repository.dart';
+import 'target_university_picker.dart';
 
 class InterviewSetupView extends ConsumerStatefulWidget {
   final VoidCallback onHistoryTapped;
@@ -131,7 +131,7 @@ class _InterviewSetupViewState extends ConsumerState<InterviewSetupView> {
             const SizedBox(height: 16),
             _buildLabel(l.targetUniversityFieldLabel),
             const SizedBox(height: 8),
-            _UniversityPicker(
+            TargetUniversityPicker(
               selectedId: _targetUniversityId,
               onPick: (id, name) => setState(() {
                 _targetUniversityId = id;
@@ -324,80 +324,9 @@ class _InterviewSetupViewState extends ConsumerState<InterviewSetupView> {
   }
 }
 
-/// Picks a target university from the user's applications. Mirrors the
-/// list in `training_tab.dart`'s interview-setup dialog so the two
-/// entry paths share behavior.
-class _UniversityPicker extends ConsumerWidget {
-  const _UniversityPicker({required this.selectedId, required this.onPick});
-
-  final String? selectedId;
-  final void Function(String id, String name) onPick;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l = AppLocalizations.of(context)!;
-    final applications = ref.watch(applicationsProvider);
-    return applications.when(
-      loading: () => const Padding(
-        padding: EdgeInsets.symmetric(vertical: 8),
-        child: Center(
-          child: CircularProgressIndicator(color: AppColors.vibrantLime),
-        ),
-      ),
-      error: (e, _) => Text(
-        l.errorLoadingApplications(e),
-        style: const TextStyle(color: Colors.redAccent, fontSize: 12),
-      ),
-      data: (apps) {
-        if (apps.isEmpty) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Text(
-              l.noAppsInlineHint,
-              style: const TextStyle(color: Colors.white54, fontSize: 12),
-            ),
-          );
-        }
-        return Container(
-          height: 150,
-          width: double.maxFinite,
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.white10),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: ListView.builder(
-            itemCount: apps.length,
-            itemBuilder: (context, i) {
-              final uni = apps[i].university;
-              if (uni == null) return const SizedBox.shrink();
-              final isSelected = selectedId == uni.id;
-              return ListTile(
-                dense: true,
-                leading: Icon(
-                  Icons.school,
-                  color: isSelected ? AppColors.vibrantLime : Colors.white24,
-                ),
-                title: Text(
-                  uni.name,
-                  style: TextStyle(
-                    color: isSelected ? AppColors.vibrantLime : Colors.white,
-                  ),
-                ),
-                trailing: isSelected
-                    ? const Icon(
-                        Icons.check_circle,
-                        color: AppColors.vibrantLime,
-                      )
-                    : null,
-                onTap: () => onPick(uni.id, uni.name),
-              );
-            },
-          ),
-        );
-      },
-    );
-  }
-}
+// The target-university picker now lives in `target_university_picker.dart`
+// (shared with the personal-statement / study-plan setup dialogs) and falls
+// back to the full university list when the student has no applications.
 
 class _LanguageOption extends StatelessWidget {
   final String title;
