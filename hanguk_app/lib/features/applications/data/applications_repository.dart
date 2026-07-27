@@ -22,10 +22,10 @@ final suggestedUniversitiesProvider = FutureProvider<List<University>>((
   final client = Supabase.instance.client;
 
   try {
-    // Attempt to fetch from CRM suggestions table directly with joining universities
+    // Attempt to fetch from CRM suggestions table directly with joining institutions
     final data = await client
         .from('student_suggestions')
-        .select('university_id, university:universities(*)')
+        .select('institution_id, university:institutions(*)')
         .eq('student_id', user.id);
 
     debugPrint(
@@ -39,8 +39,8 @@ final suggestedUniversitiesProvider = FutureProvider<List<University>>((
           University(
             id: u['id'] as String,
             name:
-                u['name_en'] as String? ?? u['name_uz'] as String? ?? 'Unknown',
-            location: u['city_en'] as String? ?? '',
+                u['name_en'] as String? ?? u['name_ko'] as String? ?? 'Unknown',
+            location: u['city_ko'] as String? ?? '',
             isPartner: u['is_partner'] as bool? ?? false,
             latitude: u['latitude'] != null
                 ? (u['latitude'] as num).toDouble()
@@ -72,9 +72,9 @@ final suggestedUniversitiesProvider = FutureProvider<List<University>>((
   }
 
   try {
-    // Fallback: If no explicit CRM suggestions exist yet, fetch partner universities directly
+    // Fallback: If no explicit CRM suggestions exist yet, fetch partner institutions directly
     final fallbackData = await client
-        .from('universities')
+        .from('institutions')
         .select()
         .eq('is_partner', true)
         .limit(5);
@@ -92,8 +92,8 @@ final suggestedUniversitiesProvider = FutureProvider<List<University>>((
           (u) => University(
             id: u['id'] as String,
             name:
-                u['name_en'] as String? ?? u['name_uz'] as String? ?? 'Unknown',
-            location: u['city_en'] as String? ?? '',
+                u['name_en'] as String? ?? u['name_ko'] as String? ?? 'Unknown',
+            location: u['city_ko'] as String? ?? '',
             isPartner: u['is_partner'] as bool? ?? false,
             latitude: u['latitude'] != null
                 ? (u['latitude'] as num).toDouble()
@@ -121,7 +121,7 @@ Future<void> submitSelectedUniversities(List<String> universityIds) async {
       .map(
         (uId) => {
           'student_id': user.id,
-          'university_id': uId,
+          'institution_id': uId,
           'status': 'pending_approval',
         },
       )
@@ -157,10 +157,10 @@ final applicationsProvider = FutureProvider<List<StudentApplication>>((
 
   final client = Supabase.instance.client;
   try {
-    // Join with universities table to get university name/location in one call
+    // Join with institutions table to get university name/location in one call
     final data = await client
         .from('applications')
-        .select('*, university:universities(id, name_en, city_en, is_partner)')
+        .select('*, university:institutions(id, name_en, city_ko, is_partner)')
         .eq('student_id', user.id)
         .order('created_at', ascending: false);
 
@@ -176,7 +176,7 @@ final applicationsProvider = FutureProvider<List<StudentApplication>>((
         university = University(
           id: uniRow['id'] as String,
           name: uniRow['name_en'] as String? ?? 'Unknown University',
-          location: uniRow['city_en'] as String? ?? 'South Korea',
+          location: uniRow['city_ko'] as String? ?? 'South Korea',
           isPartner: uniRow['is_partner'] as bool? ?? false,
         );
       }
@@ -184,7 +184,7 @@ final applicationsProvider = FutureProvider<List<StudentApplication>>((
       return StudentApplication(
         id: row['id'] as String,
         studentId: row['student_id'] as String,
-        universityId: row['university_id'] as String? ?? '',
+        universityId: row['institution_id'] as String? ?? '',
         program: row['program'] as String? ?? '',
         status: row['status'] as String? ?? 'pending',
         createdAt: DateTime.parse(row['created_at'] as String),
