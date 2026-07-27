@@ -22,6 +22,13 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
   VapiClient? _client;
   VapiCall? _call;
   StreamSubscription? _eventSub;
+
+  // Only one live Vapi call may exist at a time. Starting a second interview
+  // before the first tore down left two WebRTC calls running at once —
+  // overlapping voices and, with the doubled audio/WebRTC load, app freezes.
+  // This static handle lets a newly-started interview stop the previous one
+  // before it connects.
+  static _InterviewActiveViewState? _liveInstance;
   bool _isCallActive = false;
   bool _isAI_Speaking = false;
   bool _firstMessageReceived = false;
@@ -80,6 +87,14 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
   }
 
   Future<void> _startCall() async {
+    // Tear down any interview call still live from a previous screen so the
+    // two don't talk over each other (and don't freeze the app under the
+    // doubled WebRTC load).
+    if (_liveInstance != null && !identical(_liveInstance, this)) {
+      _liveInstance!._stopCall();
+    }
+    _liveInstance = this;
+
     setState(() => _isCallActive = true);
     final interviewState = ref.read(interviewProvider);
 
@@ -365,6 +380,8 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
         _isAI_Speaking = false;
       });
     }
+
+    if (identical(_liveInstance, this)) _liveInstance = null;
   }
 
   /// Detects whether a Vapi 'tool-calls' or 'function-call' event
