@@ -60,11 +60,19 @@ class _UniversityRoadviewScreenState extends State<UniversityRoadviewScreen> {
   void initState() {
     super.initState();
 
-    final htmlContent = generateRoadviewHtml(
-      widget.university.latitude ?? 36.5,
-      widget.university.longitude ?? 127.8,
-      widget.university.name,
-    );
+    final lat = widget.university.latitude;
+    final lng = widget.university.longitude;
+
+    // No coordinates → do NOT fall back to the centre of Korea (36.5, 127.8),
+    // which shows a random rural location that looks nothing like the campus.
+    // Create an empty controller and surface the "no street view" state.
+    if (lat == null || lng == null) {
+      _controller = WebViewController();
+      _state = const _RvNoPano();
+      return;
+    }
+
+    final htmlContent = generateRoadviewHtml(lat, lng, widget.university.name);
 
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
