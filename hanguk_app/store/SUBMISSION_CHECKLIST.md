@@ -290,6 +290,80 @@ Apple wants a working demo account so reviewers can sign in.
 
 ---
 
+## § 11b. Play App Access — reviewer demo account (Google)
+
+Google Play rejects the app with **"Login credentials are incorrect"**
+whenever the magic code entered under **App content → App access** does
+not resolve to a live student profile. This happened once because the
+code that was submitted belonged to a student profile that had since
+been deleted — the login screen then shows *"We don't recognise this
+code."*
+
+To prevent this recurring, a **permanent demo student** exists purely
+for review. **Do not delete it.**
+
+- Magic code (access code): **`QR6ZUBDZ`**
+- Profile name in CRM: **`DEMO — Google Play Reviewer (do not delete)`**
+- It has **no staff role** (so the magic-code login is not blocked) and
+  is enrolled in the default intake so it renders like a real student.
+- It carries **no real personal data** — safe to hand to reviewers.
+
+Where to put it in Play Console:
+
+1. Play Console → your app → **App content → App access**.
+2. Select **"All or some functionality is restricted"**.
+3. Add an instruction row:
+   - Name: `Student login (magic code)`
+   - Instructions: *"On the welcome screen tap **I have a Magic Code**,
+     enter the access code below, then tap **Login manually with Access
+     Code**. No phone/SMS needed."*
+   - Username: *(leave blank — not used)*
+   - Password / access code: **`QR6ZUBDZ`**
+4. Save, then re-submit from **Publishing overview**.
+
+**Verify before every submission** that the code still logs in — either
+run through the app, or hit the Edge Function directly:
+
+```bash
+curl -sS -X POST \
+  'https://lysjdtyanhdfphqyijsr.supabase.co/functions/v1/student-login-v2' \
+  -H "Authorization: Bearer <ANON_KEY>" \
+  -H "apikey: <ANON_KEY>" \
+  -H 'Content-Type: application/json' \
+  -d '{"magicCode":"QR6ZUBDZ"}'
+# Expect: {"success":true,"session":{...}}  (HTTP 200)
+# CODE_NOT_FOUND / 401 → the demo profile was deleted; recreate it (below).
+```
+
+**If the demo account was deleted, recreate it** (SQL editor, production):
+
+```sql
+INSERT INTO profiles (
+  user_id, full_name, magic_code, parental_consent,
+  language_track, language_track_source, preferred_language,
+  office_location, birth_date
+) VALUES (
+  gen_random_uuid(),
+  'DEMO — Google Play Reviewer (do not delete)',
+  'QR6ZUBDZ', true,
+  'korean', 'manual', 'en', 'Demo', DATE '2000-01-01'
+);
+-- Enroll in the default intake so it appears in the CRM roster:
+INSERT INTO student_intakes (student_id, intake_id)
+SELECT p.user_id, i.id
+FROM profiles p
+CROSS JOIN LATERAL (
+  SELECT id FROM intakes WHERE is_default = true ORDER BY year DESC LIMIT 1
+) i
+WHERE p.magic_code = 'QR6ZUBDZ'
+ON CONFLICT (student_id, intake_id) DO NOTHING;
+```
+
+The first login mints the auth user and repairs `profiles.user_id`
+automatically (see `student-login-v2`), so no extra auth setup is needed.
+
+---
+
 ## § 12. Sentry project (crash reporting)
 
 1. Sign up at <https://sentry.io> (free tier covers Hanguk's volume).
@@ -570,6 +644,7 @@ diagnose. Common ones documented at the bottom of this file.
 | Play — Data safety / Manifest mismatch | Re-check `docs/store/play-data-safety.md` against the declared permissions in `AndroidManifest.xml`. |
 | Play — Account deletion required (`13327111`) | Implemented in P0 #2; ensure the listing form's "Account deletion" section links to the in-app `/account` screen and the email `support@hanguk.uz`. |
 | Play — Sensitive permissions justification | `RECORD_AUDIO` for interview practice; cite this in the Play Console's permissions declaration. |
+| Play — "Login credentials are incorrect" | The magic code under App access no longer resolves to a live student (usually the demo profile was deleted). Recreate the demo account and re-enter code `QR6ZUBDZ` — see § 11b. |
 
 ---
 
