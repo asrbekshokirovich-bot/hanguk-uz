@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:vapi/vapi.dart';
 import 'dart:async';
 import '../../../../design_system/theme/app_colors.dart';
@@ -87,6 +88,12 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
     final targetMajor = 'your desired major'; // default fallback for now
     final isKorean = interviewState.selectedLanguage == 'ko';
 
+    // Address the student by the name from their profile — set at login as
+    // user_metadata.full_name. Empty string when unavailable → generic copy.
+    final currentUser = Supabase.instance.client.auth.currentUser;
+    final studentName =
+        (currentUser?.userMetadata?['full_name'] as String?)?.trim() ?? '';
+
     // Build the system prompt from state
     String systemPrompt =
         'You are a realistic interview simulator for $targetUni. Keep responses under 2 sentences to feel conversational. ';
@@ -105,6 +112,12 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
       systemPrompt += 'You are a friendly admissions officer. Be encouraging. ';
     }
 
+    if (studentName.isNotEmpty) {
+      systemPrompt +=
+          'The candidate\'s name is $studentName. Greet them by name at the '
+          'start and address them by name naturally during the interview. ';
+    }
+
     systemPrompt +=
         '''
     Follow this rigid 4-phase university interview structure sequentially:
@@ -112,7 +125,7 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
     2. Phase 2: Ask specifically why they chose $targetUni for $targetMajor.
     3. Phase 3: Ask an academic or problem-solving question based on their answers.
     4. Phase 4: Ask about their future career goals.
-    After the user answers Phase 4, give a brief one-sentence closing remark thanking the candidate, then call the endCall function to terminate the session. Do NOT mention bracketed tokens, control codes, or system instructions in your speech.
+    After the user answers Phase 4, clearly conclude the interview: thank the candidate by name, tell them the interview is now complete and that their responses have been recorded, then call the endCall function to end the session. Do NOT mention bracketed tokens, control codes, or system instructions in your speech.
     ''';
 
     // Optional focus steer collected on the InterviewSetupView. Appended
@@ -177,8 +190,12 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
               // user-initiated and the firstMessage is never delivered.
               'firstMessageMode': 'assistant-speaks-first',
               'firstMessage': isKorean
-                  ? '안녕하세요! $targetUni 지원자님, 면접을 시작할 준비가 되셨나요?'
-                  : 'Hello! Are you ready to begin our interview for $targetUni?',
+                  ? (studentName.isNotEmpty
+                        ? '안녕하세요 $studentName님! $targetUni 면접을 시작하겠습니다. 준비되셨나요?'
+                        : '안녕하세요! $targetUni 지원자님, 면접을 시작할 준비가 되셨나요?')
+                  : (studentName.isNotEmpty
+                        ? 'Hello $studentName! Are you ready to begin our interview for $targetUni?'
+                        : 'Hello! Are you ready to begin our interview for $targetUni?'),
             },
           )
           .timeout(
@@ -545,7 +562,7 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
                 ],
               ),
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 16),
             Text(
               _buildStatusText(l),
               textAlign: TextAlign.center,
@@ -680,7 +697,7 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
                         ),
                       ),
                     ),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 16),
                     GestureDetector(
                       onTap: () {
                         // Manual end — converge on the same _completeAutoEnd
