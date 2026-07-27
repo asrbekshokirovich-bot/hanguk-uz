@@ -400,28 +400,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
   }
 }
 
-// ─── Loading View ─────────────────────────────────────────────────────────────
-
-class _LoadingView extends StatelessWidget {
-  const _LoadingView();
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          CircularProgressIndicator(
-            color: Theme.of(context).colorScheme.primary,
-          ),
-          const SizedBox(height: 16),
-          const Text('Loading...', style: TextStyle(color: Colors.white54)),
-        ],
-      ),
-    );
-  }
-}
-
 // ─── Reusable Widgets ─────────────────────────────────────────────────────────
 
 class _HangukTextField extends StatelessWidget {

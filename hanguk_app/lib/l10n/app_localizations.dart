@@ -1623,6 +1623,13 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Pause recording'**
   String get a11yTooltipPauseRecording;
+
+  /// Warning in StudyPlanAnalysisView when the draft's script doesn't match
+  /// the selected writing track (audit G3-4).
+  String get trackMismatchWarning;
+
+  /// Error banner in InterviewSetupView when startSession() fails (audit G3-5).
+  String get interviewStartError;
 }
 
 class _AppLocalizationsDelegate

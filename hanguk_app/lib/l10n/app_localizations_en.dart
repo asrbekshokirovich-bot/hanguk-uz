@@ -874,4 +874,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get a11yTooltipPauseRecording => 'Pause recording';
+
+  @override
+  String get trackMismatchWarning =>
+      'Your draft\'s language doesn\'t match the track you chose. Please rewrite it in the selected language.';
+
+  @override
+  String get interviewStartError =>
+      'Couldn\'t start the interview. Please check your connection and try again.';
 }

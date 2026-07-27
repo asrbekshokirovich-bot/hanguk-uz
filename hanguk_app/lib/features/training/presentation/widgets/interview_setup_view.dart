@@ -273,6 +273,44 @@ class _InterviewSetupViewState extends ConsumerState<InterviewSetupView> {
           ),
           const SizedBox(height: 48),
 
+          // Audit G3·5: startSession() sets state.error on failure but this
+          // view never surfaced it, so a failed start looked like a silent
+          // freeze. Show a localized banner; it clears automatically because
+          // startSession() runs copyWith(clearError: true) on the next try.
+          if (state.error != null && !state.isLoading) ...[
+            Container(
+              margin: const EdgeInsets.only(bottom: 16),
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: AppColors.error.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: AppColors.error.withValues(alpha: 0.4),
+                ),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.error_outline,
+                    color: AppColors.error,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      l.interviewStartError,
+                      style: const TextStyle(
+                        color: AppColors.error,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+
           if (state.isLoading)
             const Center(
               child: CircularProgressIndicator(color: AppColors.vibrantLime),

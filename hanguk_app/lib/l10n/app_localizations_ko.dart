@@ -849,4 +849,12 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get a11yTooltipPauseRecording => '녹음 일시정지';
+
+  @override
+  String get trackMismatchWarning =>
+      '작성 중인 초안의 언어가 선택한 트랙과 다릅니다. 선택한 언어로 다시 작성해 주세요.';
+
+  @override
+  String get interviewStartError =>
+      '면접을 시작할 수 없습니다. 인터넷 연결을 확인하고 다시 시도해 주세요.';
 }

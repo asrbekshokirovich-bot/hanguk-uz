@@ -874,4 +874,12 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get a11yTooltipPauseRecording => 'Pause recording';
+
+  @override
+  String get trackMismatchWarning =>
+      'Язык вашего черновика не совпадает с выбранным направлением. Пожалуйста, перепишите его на выбранном языке.';
+
+  @override
+  String get interviewStartError =>
+      'Не удалось начать собеседование. Проверьте подключение и попробуйте снова.';
 }

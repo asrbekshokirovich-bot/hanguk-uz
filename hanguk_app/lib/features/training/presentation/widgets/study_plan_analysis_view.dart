@@ -115,8 +115,17 @@ class StudyPlanAnalysisView extends ConsumerWidget {
     final hasKorean = koreanReg.hasMatch(content);
     final hasLatin = latinReg.hasMatch(content);
 
-    if (track == 'english' && hasKorean && !hasLatin) return true;
-    if (track == 'korean' && hasLatin && !hasKorean) return true;
+    // Sessions now store 'en'/'ko' (they used to store 'english'/'korean'),
+    // so normalize both old and new codes — otherwise this check silently
+    // never fires for any session created after the code switch.
+    final normalized = switch (track) {
+      'english' || 'en' => 'english',
+      'korean' || 'ko' => 'korean',
+      _ => track,
+    };
+
+    if (normalized == 'english' && hasKorean && !hasLatin) return true;
+    if (normalized == 'korean' && hasLatin && !hasKorean) return true;
 
     return false;
   }
@@ -124,52 +133,41 @@ class StudyPlanAnalysisView extends ConsumerWidget {
   Widget _buildTrackWarning() {
     return Builder(
       builder: (context) {
-        // Hardcoded Uzbek copy was unreadable for Korean / English
-        // speakers — see audit U2. Picks the message from the session
-        // track until full intl wiring lands.
-        return Consumer(
-          builder: (context, ref, _) {
-            final state = ref.watch(documentSessionProvider(documentType));
-            final track = state.currentSession?.selectedTrack ?? 'uzbek';
-            final message = switch (track) {
-              'korean' => '선택한 작성 언어와 본문 언어가 다릅니다. 선택한 언어로 다시 작성해 주세요.',
-              'english' =>
-                'Your draft language does not match the selected track. Please rewrite in the selected language.',
-              _ =>
-                'Sening tracking boshqa edi! Draftini tanlangan tilda yozganingga ishonch hosil qil.',
-            };
-            return Container(
-              margin: const EdgeInsets.only(bottom: 16),
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.redAccent.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: Colors.redAccent.withValues(alpha: 0.3),
+        // Show the "your draft language doesn't match your chosen track"
+        // notice in the USER's UI language (not the track's language), so
+        // every locale can read it. Previously it was hardcoded per-track
+        // (ko/en/uz only) — see audit U2 / G3·4.
+        final message = AppLocalizations.of(context)!.trackMismatchWarning;
+        return Container(
+          margin: const EdgeInsets.only(bottom: 16),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.redAccent.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: Colors.redAccent.withValues(alpha: 0.3),
+            ),
+          ),
+          child: Row(
+            children: [
+              const Icon(
+                Icons.warning_amber_rounded,
+                color: Colors.redAccent,
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  message,
+                  style: const TextStyle(
+                    color: Colors.redAccent,
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.warning_amber_rounded,
-                    color: Colors.redAccent,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      message,
-                      style: const TextStyle(
-                        color: Colors.redAccent,
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
+            ],
+          ),
         );
       },
     );

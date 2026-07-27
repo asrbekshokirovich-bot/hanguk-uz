@@ -876,4 +876,12 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get a11yTooltipPauseRecording => 'Yozuvni to\'xtatish';
+
+  @override
+  String get trackMismatchWarning =>
+      'Qoralamangiz tili siz tanlagan yo\'nalishga mos kelmayapti. Iltimos, tanlangan tilda qayta yozing.';
+
+  @override
+  String get interviewStartError =>
+      'Suhbatni boshlab bo\'lmadi. Internet aloqasini tekshirib, qayta urinib ko\'ring.';
 }

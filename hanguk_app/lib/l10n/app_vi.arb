@@ -350,5 +350,7 @@
   "a11yTooltipDeleteSession": "Delete session",
   "a11yTooltipBack": "Back",
   "a11yTooltipPlayRecording": "Play recording",
-  "a11yTooltipPauseRecording": "Pause recording"
+  "a11yTooltipPauseRecording": "Pause recording",
+  "trackMismatchWarning": "Ngôn ngữ bản nháp của bạn không khớp với lộ trình đã chọn. Vui lòng viết lại bằng ngôn ngữ đã chọn.",
+  "interviewStartError": "Không thể bắt đầu phỏng vấn. Vui lòng kiểm tra kết nối và thử lại."
 }

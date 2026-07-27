@@ -874,4 +874,12 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get a11yTooltipPauseRecording => 'Pause recording';
+
+  @override
+  String get trackMismatchWarning =>
+      'Ngôn ngữ bản nháp của bạn không khớp với lộ trình đã chọn. Vui lòng viết lại bằng ngôn ngữ đã chọn.';
+
+  @override
+  String get interviewStartError =>
+      'Không thể bắt đầu phỏng vấn. Vui lòng kiểm tra kết nối và thử lại.';
 }

@@ -789,14 +789,14 @@ class _StudyPlanScreenState extends ConsumerState<StudyPlanScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _AiExampleCard(
-          key: ValueKey('uni_\${uniName}'),
+          key: ValueKey('uni_$uniName'),
           universityName: uniName,
           index: 1,
           isEmbassy: false,
         ),
         const SizedBox(height: 24),
         _AiExampleCard(
-          key: ValueKey('embassy_\${uniName}'),
+          key: ValueKey('embassy_$uniName'),
           // The embassy template uses a fixed addressee label that does
           // not change between sessions; the localized version is read
           // by _AiExampleCard via the embassy flag.
@@ -1093,7 +1093,7 @@ class _AiExampleCard extends StatefulWidget {
 }
 
 class _AiExampleCardState extends State<_AiExampleCard> {
-  late Future<String> _aiFuture;
+  late final String _example;
 
   @override
   void initState() {
@@ -1187,16 +1187,14 @@ If granted the visa, my sole priority will be my studies. I have thoroughly plan
 I wish to explicitly state my intention to return to my home country immediately following my graduation. There is a high demand for international experts in my field here, and the degree I earn in South Korea will guarantee me a prestigious leading position in my homeland. I view this educational journey as a critical investment in my future. I kindly ask for a favorable decision on my visa application. Thank you.''',
     ];
 
-    // Pick a truly random template each time the widget is built based on type
+    // These are ready-made sample letters the student can copy and adapt —
+    // NOT live AI output. Pick one at random per card, once, in initState.
+    // (Previously this faked a "thinking" delay + an "AI is writing..."
+    // placeholder, which misled users into thinking the text was being
+    // generated for them in real time.)
     final random = Random();
     final _templates = widget.isEmbassy ? _embassyTemplates : _uniTemplates;
-    final selectedExample = _templates[random.nextInt(_templates.length)];
-
-    // Simulate thinking time dynamically so cards load progressively
-    _aiFuture = Future.delayed(
-      Duration(milliseconds: 1500 + (widget.index * 900)),
-      () => selectedExample,
-    );
+    _example = _templates[random.nextInt(_templates.length)];
   }
 
   @override
@@ -1242,88 +1240,55 @@ I wish to explicitly state my intention to return to my home country immediately
               ],
             ),
           ),
-          FutureBuilder<String>(
-            future: _aiFuture,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return Padding(
-                  padding: const EdgeInsets.all(32),
-                  child: Column(
-                    children: [
-                      const CircularProgressIndicator(
-                        color: AppColors.vibrantLime,
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  _example,
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontSize: 15,
+                    height: 1.5,
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(
+                  left: 16,
+                  right: 16,
+                  bottom: 16,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton.icon(
+                      icon: const Icon(Icons.copy, size: 18),
+                      label: Text(l.copyButton),
+                      style: TextButton.styleFrom(
+                        foregroundColor: AppColors.vibrantLime,
                       ),
-                      const SizedBox(height: 16),
-                      Text(
-                        l.aiExampleWritingPlaceholder,
-                        style: const TextStyle(color: Colors.white54),
-                      ),
-                    ],
-                  ),
-                );
-              }
-
-              if (snapshot.hasError) {
-                return Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Text(
-                    l.genericError(snapshot.error ?? ''),
-                    style: const TextStyle(color: Colors.red),
-                  ),
-                );
-              }
-
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Text(
-                      snapshot.data!,
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 15,
-                        height: 1.5,
-                      ),
+                      onPressed: () {
+                        Clipboard.setData(
+                          ClipboardData(text: _example),
+                        ).then((_) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(l.copiedSnackbar),
+                                backgroundColor: Colors.green,
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                          }
+                        });
+                      },
                     ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      left: 16,
-                      right: 16,
-                      bottom: 16,
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        TextButton.icon(
-                          icon: const Icon(Icons.copy, size: 18),
-                          label: Text(l.copyButton),
-                          style: TextButton.styleFrom(
-                            foregroundColor: AppColors.vibrantLime,
-                          ),
-                          onPressed: () {
-                            Clipboard.setData(
-                              ClipboardData(text: snapshot.data!),
-                            ).then((_) {
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(l.copiedSnackbar),
-                                    backgroundColor: Colors.green,
-                                    behavior: SnackBarBehavior.floating,
-                                  ),
-                                );
-                              }
-                            });
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              );
-            },
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),
