@@ -21,21 +21,21 @@ class ProcessTracker extends StatelessWidget {
   final String status;
 
   /// The nine stages of the journey, in order.
-  ///
-  /// These English strings are the ones this widget has always shown — there
-  /// is no ARB key for them yet, so they are kept verbatim rather than
-  /// invented anew (see the l10n note in the PR description).
-  static const List<String> stepLabels = <String>[
-    'Document preparation',
-    'Online application',
-    'Offline application',
-    'Interview',
-    'Waiting for invoice',
-    'Tuition fee payment',
-    'Waiting for admission letter',
-    'Preparing for visa application',
-    'Waiting for visa issue',
+  static List<String> stepLabels(AppLocalizations l) => <String>[
+    l.journeyStageDocumentPrep,
+    l.journeyStageOnlineApplication,
+    l.journeyStageOfflineApplication,
+    l.journeyStageInterview,
+    l.journeyStageWaitingInvoice,
+    l.journeyStageTuitionPayment,
+    l.journeyStageWaitingAdmission,
+    l.journeyStageVisaPreparation,
+    l.journeyStageWaitingVisa,
   ];
+
+  /// Number of stages. A constant rather than `stepLabels.length` so callers
+  /// that only need the denominator don't have to hold a BuildContext.
+  static const int stepCount = 9;
 
   /// Korean status word for an application that has not started moving yet
   /// (spec §1 Korean voice: 대기 = pending). Stays literal Korean in every
@@ -46,8 +46,6 @@ class ProcessTracker extends StatelessWidget {
   /// layout constant rather than a token.
   static const double _segmentHeight = 8;
   static const double _segmentGap = 5;
-
-  static int get stepCount => stepLabels.length;
 
   /// How many stages of the journey this status has reached (0 = not started,
   /// [stepCount] = the last stage). Unchanged from the timeline this widget
@@ -86,10 +84,11 @@ class ProcessTracker extends StatelessWidget {
 
   /// Label of the stage currently in progress, or null before the journey
   /// starts.
-  static String? currentStageLabel(String status) {
+  static String? currentStageLabel(String status, AppLocalizations l) {
     final index = stepFor(status) - 1;
-    if (index < 0 || index >= stepLabels.length) return null;
-    return stepLabels[index];
+    final labels = stepLabels(l);
+    if (index < 0 || index >= labels.length) return null;
+    return labels[index];
   }
 
   /// Lime stage caption beside the step count.
@@ -110,7 +109,7 @@ class ProcessTracker extends StatelessWidget {
     final l = AppLocalizations.of(context)!;
     final step = stepFor(status);
     final currentIndex = step - 1;
-    final stage = currentStageLabel(status);
+    final stage = currentStageLabel(status, l);
 
     return GlassCard(
       padding: const EdgeInsets.all(18),
@@ -159,7 +158,7 @@ class ProcessTracker extends StatelessWidget {
               // Last stage.
               Expanded(
                 child: Text(
-                  stepLabels.last,
+                  stepLabels(l).last,
                   textAlign: TextAlign.end,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,

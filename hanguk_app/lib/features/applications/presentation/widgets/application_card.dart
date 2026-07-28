@@ -267,7 +267,7 @@ class _ApplicationCardState extends State<ApplicationCard> {
   }
 
   String _stageLabel(String status, AppLocalizations l) =>
-      ProcessTracker.currentStageLabel(status) ?? l.sessionStatusLabel(status);
+      ProcessTracker.currentStageLabel(status, l) ?? l.sessionStatusLabel(status);
 }
 
 /// Shown in place of the journey bar while a counselor has not approved the
