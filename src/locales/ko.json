@@ -595,7 +595,125 @@
     "viewLead": "리드 보기",
     "voiceMessage": "음성 메시지",
     "loadingAudio": "음성 메시지 불러오는 중…",
-    "audioUnavailable": "음성 메시지를 사용할 수 없습니다"
+    "audioUnavailable": "음성 메시지를 사용할 수 없습니다",
+    "tabs": {
+      "label": "대기열 필터",
+      "unassigned": "미배정",
+      "mine": "내 담당",
+      "all": "전체",
+      "done": "완료"
+    },
+    "channels": {
+      "all": "모든 채널",
+      "telegram": "텔레그램",
+      "instagram": "인스타그램",
+      "app": "앱"
+    },
+    "queue": {
+      "label": "대화 대기열",
+      "searchPlaceholder": "학생 및 메시지 검색",
+      "shown": "{{count}}건 표시",
+      "waiting": "{{time}} 대기",
+      "mine": "내 담당",
+      "noPreview": "아직 메시지가 없습니다",
+      "emptyTitle": "대화가 없습니다",
+      "emptyBody": "다른 탭, 채널 또는 검색어를 사용해 보세요."
+    },
+    "thread": {
+      "streamLabel": "메시지 기록",
+      "unassigned": "미배정",
+      "unassignedWaiting": "미배정 · {{time}} 대기",
+      "claim": "담당하기",
+      "assignedToYou": "내게 배정됨",
+      "assignedToOther": "배정됨",
+      "autoTranslateOn": "자동 번역 켜짐",
+      "autoTranslateOff": "자동 번역 꺼짐",
+      "markDone": "완료 처리",
+      "toggleContext": "학생 패널 열기/닫기",
+      "translationBadge": "{{from}} → {{to}}",
+      "translate": "번역",
+      "hideTranslation": "번역 숨기기",
+      "translating": "번역 중…",
+      "internalNoteLabel": "내부 메모 · 학생에게 전송되지 않음"
+    },
+    "composer": {
+      "label": "답장 작성",
+      "placeholder": "답장을 작성하세요…  / 키로 저장된 답변, Enter로 전송",
+      "savedReplies": "저장된 답변",
+      "internalNote": "내부 메모",
+      "noteBanner": "내부 메모 모드 — 학생에게 전송되지 않습니다",
+      "sendIn": "전송 언어",
+      "hintSend": "{{language}}(으)로 전송 · 자동 번역",
+      "hintNote": "직원에게만 표시",
+      "send": "보내기",
+      "saveNote": "메모 저장"
+    },
+    "savedReplies": {
+      "docs": "서류 체크리스트",
+      "apostille": "아포스티유 소요 기간",
+      "payment": "결제 안내",
+      "call": "상담 예약",
+      "topik": "TOPIK 불필요"
+    },
+    "languages": {
+      "uz": "우즈베크어",
+      "ru": "러시아어",
+      "ko": "한국어",
+      "en": "영어"
+    },
+    "stages": {
+      "consultation": "상담",
+      "documents": "서류",
+      "application": "지원",
+      "visa": "비자 및 출국",
+      "visaShort": "비자",
+      "newLead": "신규 리드",
+      "enrolled": "등록 완료"
+    },
+    "rail": {
+      "label": "학생 정보",
+      "progress": "지원 진행 상황",
+      "documents": "서류",
+      "payment": "결제",
+      "activity": "최근 활동",
+      "ofTotal": "/ {{total}}",
+      "nextInstalment": "다음 납부일 {{date}}",
+      "missingCount": "{{count}}건 누락",
+      "complete": "완료",
+      "noStudentTitle": "학생과 연결되지 않음",
+      "noStudentBody": "지원 정보를 보려면 이 대화를 리드로 전환하세요.",
+      "activityCall": "통화 — {{minutes}}분",
+      "activityDocument": "{{name}} 업로드",
+      "activityPayment": "결제 완료",
+      "state": {
+        "done": "완료",
+        "current": "진행 중",
+        "todo": "시작 전"
+      },
+      "doc": {
+        "received": "접수됨",
+        "review": "검토 중",
+        "missing": "미제출"
+      }
+    },
+    "empty": {
+      "title": "대기열이 비었습니다",
+      "body": "이 필터에는 대기 중인 대화가 없습니다. 다른 탭을 선택하거나 미배정 대기열에서 다음 대화를 담당하세요.",
+      "cta": "미배정으로 이동"
+    },
+    "header": {
+      "summary": "공유 대기열 · 미배정 {{unassigned}}건 · 내 담당 {{mine}}건"
+    },
+    "toast": {
+      "claimFailed": "대화를 담당할 수 없습니다.",
+      "doneFailed": "대화를 완료 처리할 수 없습니다.",
+      "doneTitle": "완료 처리됨",
+      "doneBody": "대화가 완료 탭으로 이동했습니다.",
+      "noteFailed": "내부 메모를 저장할 수 없습니다.",
+      "sendFailed": "메시지를 보낼 수 없습니다. 인스타그램/텔레그램 연동을 확인하세요.",
+      "translationUnavailableTitle": "번역을 사용할 수 없음",
+      "translationUnavailableBody": "번역 서비스가 아직 설정되지 않았습니다. 저장된 번역은 계속 표시됩니다."
+    }
   },
   "errors": {
     "general": "오류가 발생했습니다",

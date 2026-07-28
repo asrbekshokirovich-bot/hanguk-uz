@@ -637,7 +637,125 @@
     "viewLead": "View lead",
     "voiceMessage": "Voice message",
     "loadingAudio": "Loading voice message…",
-    "audioUnavailable": "Voice message unavailable"
+    "audioUnavailable": "Voice message unavailable",
+    "tabs": {
+      "label": "Queue filter",
+      "unassigned": "Unassigned",
+      "mine": "Mine",
+      "all": "All",
+      "done": "Done"
+    },
+    "channels": {
+      "all": "All channels",
+      "telegram": "Telegram",
+      "instagram": "Instagram",
+      "app": "App"
+    },
+    "queue": {
+      "label": "Conversation queue",
+      "searchPlaceholder": "Search students & messages",
+      "shown": "{{count}} shown",
+      "waiting": "{{time}} waiting",
+      "mine": "Mine",
+      "noPreview": "No messages yet",
+      "emptyTitle": "No conversations",
+      "emptyBody": "Try another tab, channel, or search term."
+    },
+    "thread": {
+      "streamLabel": "Message history",
+      "unassigned": "Unassigned",
+      "unassignedWaiting": "Unassigned · {{time}} waiting",
+      "claim": "Claim",
+      "assignedToYou": "Assigned to you",
+      "assignedToOther": "Assigned",
+      "autoTranslateOn": "Auto-translate On",
+      "autoTranslateOff": "Auto-translate Off",
+      "markDone": "Mark Done",
+      "toggleContext": "Toggle student panel",
+      "translationBadge": "{{from}} → {{to}}",
+      "translate": "Translate",
+      "hideTranslation": "Hide translation",
+      "translating": "Translating…",
+      "internalNoteLabel": "Internal note · not sent to student"
+    },
+    "composer": {
+      "label": "Write a reply",
+      "placeholder": "Write a reply…  Press / for saved replies, Enter to send",
+      "savedReplies": "Saved Replies",
+      "internalNote": "Internal Note",
+      "noteBanner": "Internal note mode — this will not be sent to the student",
+      "sendIn": "Send in",
+      "hintSend": "Sends in {{language}} · auto-translated",
+      "hintNote": "Visible to staff only",
+      "send": "Send",
+      "saveNote": "Save note"
+    },
+    "savedReplies": {
+      "docs": "Document checklist",
+      "apostille": "Apostille timeline",
+      "payment": "Payment instructions",
+      "call": "Book a consultation",
+      "topik": "TOPIK not required"
+    },
+    "languages": {
+      "uz": "Uzbek",
+      "ru": "Russian",
+      "ko": "Korean",
+      "en": "English"
+    },
+    "stages": {
+      "consultation": "Consultation",
+      "documents": "Documents",
+      "application": "Application",
+      "visa": "Visa & Flight",
+      "visaShort": "Visa",
+      "newLead": "New Lead",
+      "enrolled": "Enrolled"
+    },
+    "rail": {
+      "label": "Student context",
+      "progress": "Application Progress",
+      "documents": "Documents",
+      "payment": "Payment",
+      "activity": "Recent Activity",
+      "ofTotal": "of {{total}}",
+      "nextInstalment": "Next instalment due {{date}}",
+      "missingCount": "{{count}} missing",
+      "complete": "Complete",
+      "noStudentTitle": "Not linked to a student",
+      "noStudentBody": "Convert this conversation to a lead to see application context here.",
+      "activityCall": "Call — {{minutes}} min",
+      "activityDocument": "Uploaded {{name}}",
+      "activityPayment": "Payment received",
+      "state": {
+        "done": "completed",
+        "current": "in progress",
+        "todo": "not started"
+      },
+      "doc": {
+        "received": "Received",
+        "review": "In review",
+        "missing": "Missing"
+      }
+    },
+    "empty": {
+      "title": "Queue is clear",
+      "body": "Nothing waiting on this filter. Pick another tab, or claim the next conversation from Unassigned.",
+      "cta": "Go to Unassigned"
+    },
+    "header": {
+      "summary": "Shared queue · {{unassigned}} unassigned · {{mine}} assigned to you"
+    },
+    "toast": {
+      "claimFailed": "Could not claim this conversation.",
+      "doneFailed": "Could not close this conversation.",
+      "doneTitle": "Marked done",
+      "doneBody": "The conversation moved to Done.",
+      "noteFailed": "Could not save the internal note.",
+      "sendFailed": "Could not send the message. Check that the Instagram/Telegram integration is configured.",
+      "translationUnavailableTitle": "Translation unavailable",
+      "translationUnavailableBody": "No translation service is configured yet. Cached translations still display."
+    }
   },
   "errors": {
     "general": "An error occurred",

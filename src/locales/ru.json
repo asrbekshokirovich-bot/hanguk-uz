@@ -635,7 +635,125 @@
     "viewLead": "Открыть лид",
     "voiceMessage": "Голосовое сообщение",
     "loadingAudio": "Загрузка голосового сообщения…",
-    "audioUnavailable": "Голосовое сообщение недоступно"
+    "audioUnavailable": "Голосовое сообщение недоступно",
+    "tabs": {
+      "label": "Фильтр очереди",
+      "unassigned": "Без исполнителя",
+      "mine": "Мои",
+      "all": "Все",
+      "done": "Завершённые"
+    },
+    "channels": {
+      "all": "Все каналы",
+      "telegram": "Telegram",
+      "instagram": "Instagram",
+      "app": "Приложение"
+    },
+    "queue": {
+      "label": "Очередь диалогов",
+      "searchPlaceholder": "Поиск студентов и сообщений",
+      "shown": "показано: {{count}}",
+      "waiting": "ждёт {{time}}",
+      "mine": "Мой",
+      "noPreview": "Сообщений пока нет",
+      "emptyTitle": "Диалогов нет",
+      "emptyBody": "Попробуйте другую вкладку, канал или поисковый запрос."
+    },
+    "thread": {
+      "streamLabel": "История сообщений",
+      "unassigned": "Без исполнителя",
+      "unassignedWaiting": "Без исполнителя · ждёт {{time}}",
+      "claim": "Взять",
+      "assignedToYou": "Назначено вам",
+      "assignedToOther": "Назначено",
+      "autoTranslateOn": "Автоперевод вкл.",
+      "autoTranslateOff": "Автоперевод выкл.",
+      "markDone": "Завершить",
+      "toggleContext": "Показать/скрыть панель студента",
+      "translationBadge": "{{from}} → {{to}}",
+      "translate": "Перевести",
+      "hideTranslation": "Скрыть перевод",
+      "translating": "Переводим…",
+      "internalNoteLabel": "Внутренняя заметка · не отправляется студенту"
+    },
+    "composer": {
+      "label": "Написать ответ",
+      "placeholder": "Напишите ответ…  / — шаблоны, Enter — отправить",
+      "savedReplies": "Шаблоны ответов",
+      "internalNote": "Внутренняя заметка",
+      "noteBanner": "Режим внутренней заметки — студент этого не увидит",
+      "sendIn": "Язык",
+      "hintSend": "Отправка на {{language}} · автоперевод",
+      "hintNote": "Видно только сотрудникам",
+      "send": "Отправить",
+      "saveNote": "Сохранить заметку"
+    },
+    "savedReplies": {
+      "docs": "Список документов",
+      "apostille": "Сроки апостиля",
+      "payment": "Инструкции по оплате",
+      "call": "Запись на консультацию",
+      "topik": "TOPIK не обязателен"
+    },
+    "languages": {
+      "uz": "узбекский",
+      "ru": "русский",
+      "ko": "корейский",
+      "en": "английский"
+    },
+    "stages": {
+      "consultation": "Консультация",
+      "documents": "Документы",
+      "application": "Заявка",
+      "visa": "Виза и вылет",
+      "visaShort": "Виза",
+      "newLead": "Новый лид",
+      "enrolled": "Зачислен"
+    },
+    "rail": {
+      "label": "Контекст студента",
+      "progress": "Ход заявки",
+      "documents": "Документы",
+      "payment": "Оплата",
+      "activity": "Последние действия",
+      "ofTotal": "из {{total}}",
+      "nextInstalment": "Следующий платёж {{date}}",
+      "missingCount": "не хватает: {{count}}",
+      "complete": "Готово",
+      "noStudentTitle": "Не связан со студентом",
+      "noStudentBody": "Преобразуйте диалог в лид, чтобы видеть здесь данные по заявке.",
+      "activityCall": "Звонок — {{minutes}} мин",
+      "activityDocument": "Загружен {{name}}",
+      "activityPayment": "Платёж получен",
+      "state": {
+        "done": "выполнено",
+        "current": "в процессе",
+        "todo": "не начато"
+      },
+      "doc": {
+        "received": "Получен",
+        "review": "На проверке",
+        "missing": "Нет"
+      }
+    },
+    "empty": {
+      "title": "Очередь пуста",
+      "body": "По этому фильтру ничего не ждёт. Выберите другую вкладку или возьмите следующий диалог из очереди.",
+      "cta": "К диалогам без исполнителя"
+    },
+    "header": {
+      "summary": "Общая очередь · {{unassigned}} без исполнителя · {{mine}} у вас"
+    },
+    "toast": {
+      "claimFailed": "Не удалось взять диалог.",
+      "doneFailed": "Не удалось завершить диалог.",
+      "doneTitle": "Завершено",
+      "doneBody": "Диалог перемещён в «Завершённые».",
+      "noteFailed": "Не удалось сохранить внутреннюю заметку.",
+      "sendFailed": "Не удалось отправить сообщение. Проверьте интеграцию Instagram/Telegram.",
+      "translationUnavailableTitle": "Перевод недоступен",
+      "translationUnavailableBody": "Сервис перевода ещё не настроен. Сохранённые переводы по-прежнему отображаются."
+    }
   },
   "errors": {
     "general": "Произошла ошибка",
