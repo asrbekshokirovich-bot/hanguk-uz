@@ -51,7 +51,7 @@ serve(async (req) => {
     // Verify session belongs to user
     const { data: session, error: sessionError } = await supabase
       .from("interview_sessions")
-      .select("*, target_university_id")
+      .select("*")
       .eq("id", sessionId)
       .eq("student_id", user.id)
       .single();
@@ -91,21 +91,24 @@ serve(async (req) => {
       );
     }
 
-    // Get university information for context-aware feedback
+    // Get university information for context-aware feedback.
+    // Phase 3R-B: the legacy `universities` table was dropped and the column
+    // renamed to target_institution_id — this block still referenced both,
+    // which made the session SELECT above fail (undefined column) and the
+    // whole function return 404 "Session not found" for every request.
     let universityContext = "";
-    if (session.target_university_id) {
+    if (session.target_institution_id) {
       const { data: university } = await adminClient
-        .from("universities")
-        .select("name_ko, name_en, description_en, ranking, city_en")
-        .eq("id", session.target_university_id)
+        .from("institutions")
+        .select("name_ko, name_en, city_ko, tier")
+        .eq("id", session.target_institution_id)
         .single();
-      
+
       if (university) {
         universityContext = `
-The interview was for: ${university.name_ko || university.name_en}
-Location: ${university.city_en || 'Korea'}
-Ranking: ${university.ranking ? `#${university.ranking}` : 'N/A'}
-${university.description_en ? `About: ${university.description_en.substring(0, 200)}...` : ''}
+The interview was for: ${university.name_en || university.name_ko}
+Location: ${university.city_ko || 'Korea'}
+${university.tier !== null && university.tier !== undefined ? `Quality tier: ${university.tier} (0 = flagship)` : ''}
 
 IMPORTANT: Evaluate if the student demonstrated knowledge about this specific university in their answers.
 `;
