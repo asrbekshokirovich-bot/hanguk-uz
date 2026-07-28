@@ -9,6 +9,8 @@ import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
 import '../../data/university_chat_repository.dart';
 import '../../data/university_events_repository.dart';
+import '../../data/university_announcements_repository.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class UniversityRoomModal extends StatefulWidget {
   final StudentApplication application;
@@ -46,6 +48,7 @@ class _UniversityRoomModalState extends State<UniversityRoomModal> {
   DateTime? _selectedDay;
   late final UniversityChatController _chatController;
   late final UniversityEventsController _eventsController;
+  late final UniversityAnnouncementsController _announcementsController;
 
   @override
   void initState() {
@@ -56,10 +59,22 @@ class _UniversityRoomModalState extends State<UniversityRoomModal> {
       widget.application.universityId,
     );
     _eventsController.addListener(_onStateChanged);
+    _announcementsController = UniversityAnnouncementsController(
+      widget.application.universityId,
+    );
+    _announcementsController.addListener(_onStateChanged);
   }
 
   void _onStateChanged() {
     if (mounted) setState(() {});
+  }
+
+  Future<void> _openAnnouncement(String url) async {
+    final uri = Uri.tryParse(url.startsWith('http') ? url : 'https://$url');
+    if (uri == null) return;
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
   }
 
   @override
@@ -68,6 +83,8 @@ class _UniversityRoomModalState extends State<UniversityRoomModal> {
     _chatController.dispose();
     _eventsController.removeListener(_onStateChanged);
     _eventsController.dispose();
+    _announcementsController.removeListener(_onStateChanged);
+    _announcementsController.dispose();
     _msgController.dispose();
     super.dispose();
   }
@@ -153,6 +170,7 @@ class _UniversityRoomModalState extends State<UniversityRoomModal> {
     final uniName = widget.application.university?.name ?? 'Unknown University';
     final chatState = _chatController.state;
     final eventsState = _eventsController.state;
+    final announcementsState = _announcementsController.state;
 
     List<UniversityEvent> _getEventsForDay(DateTime day) {
       if (eventsState.isLoading || eventsState.error != null) return [];
@@ -439,24 +457,106 @@ class _UniversityRoomModalState extends State<UniversityRoomModal> {
                     ],
                   ),
 
-                  // Announcements Tab
-                  Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.campaign_outlined,
-                          size: 48,
-                          color: Colors.white.withValues(alpha: 0.1),
+                  // Announcements (News) Tab — official admission notices for
+                  // this institution, from v_institution_announcements.
+                  announcementsState.isLoading
+                      ? const Center(
+                          child: CircularProgressIndicator(
+                            color: AppColors.vibrantLime,
+                          ),
+                        )
+                      : announcementsState.error != null
+                      ? Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Text(
+                              announcementsState.error!,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(color: Colors.redAccent),
+                            ),
+                          ),
+                        )
+                      : announcementsState.announcements.isEmpty
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.campaign_outlined,
+                                size: 48,
+                                color: Colors.white.withValues(alpha: 0.1),
+                              ),
+                              const SizedBox(height: 16),
+                              const Text(
+                                'No active announcements.',
+                                style: TextStyle(color: Colors.white70),
+                              ),
+                            ],
+                          ),
+                        )
+                      : ListView.builder(
+                          padding: const EdgeInsets.all(16),
+                          itemCount: announcementsState.announcements.length,
+                          itemBuilder: (context, index) {
+                            final ann =
+                                announcementsState.announcements[index];
+                            return Container(
+                              margin: const EdgeInsets.only(bottom: 12),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.05),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: ListTile(
+                                leading: Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.vibrantLime.withValues(
+                                      alpha: 0.2,
+                                    ),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.campaign_outlined,
+                                    color: AppColors.vibrantLime,
+                                    size: 20,
+                                  ),
+                                ),
+                                title: Text(
+                                  ann.title,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                subtitle: ann.postedAt != null
+                                    ? Padding(
+                                        padding: const EdgeInsets.only(top: 4),
+                                        child: Text(
+                                          DateFormat(
+                                            'yyyy-MM-dd',
+                                          ).format(ann.postedAt!),
+                                          style: const TextStyle(
+                                            color: Colors.white70,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      )
+                                    : null,
+                                trailing: ann.url != null
+                                    ? const Icon(
+                                        Icons.open_in_new_rounded,
+                                        color: Colors.white38,
+                                        size: 18,
+                                      )
+                                    : null,
+                                onTap: ann.url != null
+                                    ? () => _openAnnouncement(ann.url!)
+                                    : null,
+                              ),
+                            );
+                          },
                         ),
-                        const SizedBox(height: 16),
-                        const Text(
-                          'No active announcements.',
-                          style: TextStyle(color: Colors.white70),
-                        ),
-                      ],
-                    ),
-                  ),
 
                   // Calendar Tab
                   Column(
