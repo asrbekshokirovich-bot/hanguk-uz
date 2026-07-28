@@ -28,7 +28,7 @@ import type { ConversationVM } from './types';
  * tab (or another operator's tab, via the context's realtime subscription)
  * lands without a manual reload.
  */
-export function useMessagesQueue() {
+export function useMessagesQueue(locallyRead: ReadonlySet<string> = new Set()) {
   const { t } = useTranslation();
   const { user } = useAuth();
   const { threads, loading } = useMessages();
@@ -122,10 +122,10 @@ export function useMessagesQueue() {
         isMine: !!assignee && assignee === user?.id,
         isAssigned: !!assignee,
         isDone: th.status === 'archived',
-        unreadCount: th.unread_count ?? 0,
+        unreadCount: locallyRead.has(th.id) ? 0 : th.unread_count ?? 0,
       };
     });
-  }, [threads, assignments, stages, user?.id, t]);
+  }, [threads, assignments, stages, user?.id, t, locallyRead]);
 
   return { conversations, loading, refreshAssignments: loadAssignments };
 }
