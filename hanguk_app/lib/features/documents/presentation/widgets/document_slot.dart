@@ -211,8 +211,7 @@ class DocumentSlot extends StatelessWidget {
     final ko = type.nameKo;
     // "Collected" = a file is in, approved or not. The hero ring counts the
     // same set, so the ring and the lime tiles always agree.
-    final collected =
-        state == _SlotState.done || state == _SlotState.pending;
+    final collected = state == _SlotState.done || state == _SlotState.pending;
 
     final Widget row = GlassCard(
       margin: const EdgeInsets.only(bottom: 12),
@@ -275,7 +274,10 @@ class DocumentSlot extends StatelessWidget {
             crossAxisAlignment: WrapCrossAlignment.center,
             runSpacing: 8,
             spacing: 8,
-            children: [_status(l), Row(mainAxisSize: MainAxisSize.min, children: _actions(l))],
+            children: [
+              _status(l),
+              Row(mainAxisSize: MainAxisSize.min, children: _actions(l)),
+            ],
           ),
         ],
       ),

@@ -23,8 +23,9 @@ void main() {
     expect(find.byType(ElevatedButton), findsNothing);
   });
 
-  testWidgets('renders CTA when both ctaLabel and onCta provided',
-      (tester) async {
+  testWidgets('renders CTA when both ctaLabel and onCta provided', (
+    tester,
+  ) async {
     var tapped = false;
     await tester.pumpWidget(
       MaterialApp(

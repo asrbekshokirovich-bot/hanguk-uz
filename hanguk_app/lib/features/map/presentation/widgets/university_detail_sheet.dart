@@ -379,7 +379,8 @@ class UniversityDetailSheet extends ConsumerWidget {
     if (nextEventAt != null) {
       chips.add(
         StatusChip(
-          label: '${l.universityNextEvent} · '
+          label:
+              '${l.universityNextEvent} · '
               '${DateFormat.MMMd().format(nextEventAt)}',
           tone: StatusTone.warning,
         ),

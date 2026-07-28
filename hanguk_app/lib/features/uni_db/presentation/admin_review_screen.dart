@@ -188,10 +188,7 @@ class _QueueList extends StatelessWidget {
             priority: item.priority,
             overdue: item.isOverdue,
           ),
-          title: Text(
-            item.institutionLabel,
-            overflow: TextOverflow.ellipsis,
-          ),
+          title: Text(item.institutionLabel, overflow: TextOverflow.ellipsis),
           subtitle: Text(
             '${item.entityType} · ${item.reason}',
             overflow: TextOverflow.ellipsis,

@@ -286,13 +286,13 @@ class _InterviewSetupViewState extends ConsumerState<InterviewSetupView> {
             GlassCard(
               margin: const EdgeInsets.only(bottom: 16),
               padding: const EdgeInsets.all(14),
-              fillColor: SeoulColors.warningFill,
+              fillColor: SeoulColors.dangerFill,
               borderColor: SeoulColors.warning.withValues(alpha: 0.45),
               child: Row(
                 children: [
                   const Icon(
                     Icons.error_outline,
-                    color: SeoulColors.warningText,
+                    color: SeoulColors.dangerText,
                     size: 20,
                   ),
                   const SizedBox(width: 10),
@@ -300,7 +300,7 @@ class _InterviewSetupViewState extends ConsumerState<InterviewSetupView> {
                     child: Text(
                       l.interviewStartError,
                       style: SeoulType.bodySecondary.copyWith(
-                        color: SeoulColors.warningText,
+                        color: SeoulColors.dangerText,
                         fontWeight: FontWeight.w600,
                       ),
                     ),

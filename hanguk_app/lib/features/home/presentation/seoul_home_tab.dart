@@ -449,9 +449,7 @@ class _SectionHeader extends StatelessWidget {
           // A floor, not a ceiling: HangulTag is two lines (~37px at scale
           // 1.0) and overflows a fixed 44px box at the OS's larger font
           // settings. This keeps the 44px tap target without capping height.
-          constraints: const BoxConstraints(
-            minHeight: SeoulSizes.minTapTarget,
-          ),
+          constraints: const BoxConstraints(minHeight: SeoulSizes.minTapTarget),
           child: Row(
             children: [
               Expanded(
@@ -564,9 +562,7 @@ class _LoadingCard extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 14),
-          Expanded(
-            child: Text(l.loadingLabel, style: SeoulType.bodySecondary),
-          ),
+          Expanded(child: Text(l.loadingLabel, style: SeoulType.bodySecondary)),
         ],
       ),
     );

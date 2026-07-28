@@ -36,11 +36,7 @@ void main() {
     });
 
     test('isTopTier is false when tier is null', () {
-      const u = University(
-        id: 'i4',
-        name: 'Unclassified',
-        location: 'Daejeon',
-      );
+      const u = University(id: 'i4', name: 'Unclassified', location: 'Daejeon');
       expect(u.isTopTier, isFalse);
     });
 
@@ -63,11 +59,7 @@ void main() {
         location: 'B',
         ieqasStatus: 'none',
       );
-      const unset = University(
-        id: 'a4',
-        name: 'A',
-        location: 'B',
-      );
+      const unset = University(id: 'a4', name: 'A', location: 'B');
 
       expect(outstanding.isAccredited, isTrue);
       expect(accredited.isAccredited, isTrue);
@@ -79,11 +71,7 @@ void main() {
       // The legacy fields stay on the domain object so the UI keeps
       // compiling during the transition. They are emitted as null by
       // the repository.
-      const u = University(
-        id: 'l1',
-        name: 'L',
-        location: 'X',
-      );
+      const u = University(id: 'l1', name: 'L', location: 'X');
 
       // ignore: deprecated_member_use_from_same_package
       expect(u.ranking, isNull);
@@ -108,12 +96,7 @@ void main() {
     });
 
     test('nameForLocale falls back to ko when ko_short missing', () {
-      const u = University(
-        id: 'n2',
-        name: 'X',
-        location: 'X',
-        nameKo: '서울대학교',
-      );
+      const u = University(id: 'n2', name: 'X', location: 'X', nameKo: '서울대학교');
       expect(u.nameForLocale('ko'), '서울대학교');
     });
 
@@ -140,16 +123,14 @@ void main() {
       expect(u.nameForLocale('en'), 'Yonsei University');
     });
 
-    test('nameForLocale falls back to resolved name when no per-locale label exists',
-        () {
-      const u = University(
-        id: 'n5',
-        name: 'Resolved Name',
-        location: 'X',
-      );
-      expect(u.nameForLocale('en'), 'Resolved Name');
-      expect(u.nameForLocale('ko'), 'Resolved Name');
-    });
+    test(
+      'nameForLocale falls back to resolved name when no per-locale label exists',
+      () {
+        const u = University(id: 'n5', name: 'Resolved Name', location: 'X');
+        expect(u.nameForLocale('en'), 'Resolved Name');
+        expect(u.nameForLocale('ko'), 'Resolved Name');
+      },
+    );
 
     test('hasVirtualTour is true when virtualTour is non-null', () {
       const u = University(
@@ -162,11 +143,7 @@ void main() {
     });
 
     test('hasVirtualTour is false when virtualTour is null', () {
-      const u = University(
-        id: 'v2',
-        name: 'Y',
-        location: 'Seoul',
-      );
+      const u = University(id: 'v2', name: 'Y', location: 'Seoul');
       expect(u.hasVirtualTour, isFalse);
     });
   });

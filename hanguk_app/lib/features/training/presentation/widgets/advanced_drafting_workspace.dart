@@ -513,9 +513,7 @@ class _FixChip extends StatelessWidget {
       child: GestureDetector(
         onTap: onTap,
         child: Container(
-          constraints: const BoxConstraints(
-            minHeight: SeoulSizes.minTapTarget,
-          ),
+          constraints: const BoxConstraints(minHeight: SeoulSizes.minTapTarget),
           alignment: Alignment.center,
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           decoration: BoxDecoration(

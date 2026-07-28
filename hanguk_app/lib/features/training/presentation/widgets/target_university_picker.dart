@@ -65,7 +65,7 @@ class TargetUniversityPicker extends ConsumerWidget {
 
   Widget _error(AppLocalizations l, Object e) => Text(
     l.genericError(e),
-    style: SeoulType.caption.copyWith(color: SeoulColors.warningText),
+    style: SeoulType.caption.copyWith(color: SeoulColors.dangerText),
   );
 
   Widget _list(List<University> unis) {

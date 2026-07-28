@@ -106,9 +106,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           // screen sliding up rather than a foreign panel.
           gradient: SeoulGradients.appBackground,
           borderRadius: corners,
-          border: Border(
-            top: BorderSide(color: SeoulColors.glassBorder),
-          ),
+          border: Border(top: BorderSide(color: SeoulColors.glassBorder)),
         ),
         child: const ClipRRect(borderRadius: corners, child: ChatTab()),
       ),

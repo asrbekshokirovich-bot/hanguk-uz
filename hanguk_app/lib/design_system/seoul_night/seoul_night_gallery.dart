@@ -77,7 +77,10 @@ class _SeoulNightGalleryState extends State<SeoulNightGallery> {
           const SizedBox(height: 6),
           Text('Subtitle 16/700', style: SeoulType.subtitle),
           const SizedBox(height: 6),
-          Text('Body 15/400 — Oʻzbekcha, Русский, Tiếng Việt', style: SeoulType.body),
+          Text(
+            'Body 15/400 — Oʻzbekcha, Русский, Tiếng Việt',
+            style: SeoulType.body,
+          ),
           const SizedBox(height: 6),
           Text('Secondary 14/400', style: SeoulType.bodySecondary),
           const SizedBox(height: 6),
@@ -154,7 +157,11 @@ class _SeoulNightGalleryState extends State<SeoulNightGallery> {
             runSpacing: 8,
             children: [
               StatusChip(label: 'Submitted', tone: StatusTone.lime, ko: '완료'),
-              StatusChip(label: 'In Review', tone: StatusTone.warning, ko: '대기'),
+              StatusChip(
+                label: 'In Review',
+                tone: StatusTone.warning,
+                ko: '대기',
+              ),
               StatusChip(label: 'Documents', tone: StatusTone.info),
               StatusChip(label: 'Locked', ko: '잠김'),
             ],
@@ -179,9 +186,7 @@ class _SeoulNightGalleryState extends State<SeoulNightGallery> {
               const SizedBox(width: 10),
               const HangulGlyphTile(glyph: '연', active: true),
               const SizedBox(width: 10),
-              HangulGlyphTile(
-                glyph: HangulGlyphTile.firstSyllable('고려대학교'),
-              ),
+              HangulGlyphTile(glyph: HangulGlyphTile.firstSyllable('고려대학교')),
             ],
           ),
           const SizedBox(height: 28),

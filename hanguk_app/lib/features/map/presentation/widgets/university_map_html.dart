@@ -43,21 +43,15 @@ String generateMapHtml(List<University> universities, {String locale = 'en'}) {
 
   final kakaoMarkersJs = validUnis
       .map((u) {
-        final safeName = u
-            .nameForLocale(locale)
-            .replaceAll("'", "\\'")
-            .replaceAll('"', '\\"');
-        return "addKakaoMarker('${u.id}', ${u.latitude}, ${u.longitude}, '$safeName');";
+        final safeName = jsEscape(u.nameForLocale(locale));
+        return "addKakaoMarker('${jsEscape(u.id)}', ${u.latitude}, ${u.longitude}, '$safeName');";
       })
       .join('\n');
 
   final leafletMarkersJs = validUnis
       .map((u) {
-        final safeName = u
-            .nameForLocale(locale)
-            .replaceAll("'", "\\'")
-            .replaceAll('"', '\\"');
-        return "addLeafletMarker('${u.id}', ${u.latitude}, ${u.longitude}, '$safeName');";
+        final safeName = jsEscape(u.nameForLocale(locale));
+        return "addLeafletMarker('${jsEscape(u.id)}', ${u.latitude}, ${u.longitude}, '$safeName');";
       })
       .join('\n');
 
@@ -375,3 +369,26 @@ String generateMapHtml(List<University> universities, {String locale = 'en'}) {
 </html>
 ''';
 }
+
+/// Escape a Dart string for embedding inside a single-quoted JS string
+/// literal.
+///
+/// Handling only quotes is not enough. A backslash is an escape character in
+/// JS, so a name ending in one turns the closing quote into a literal and the
+/// **entire `<script>` block fails to parse** — nothing runs, not even the
+/// error handler, and the map renders as an empty rectangle with no
+/// explanation. A raw newline does the same thing. `<` is escaped too, since
+/// these values also reach an `innerHTML` sink in the marker info window.
+///
+/// Backslash must be replaced first, or it would double-escape the escapes
+/// added after it.
+String jsEscape(String input) => input
+    .replaceAll(r'\', r'\\')
+    .replaceAll("'", r"\'")
+    .replaceAll('"', r'\"')
+    .replaceAll('\n', r'\n')
+    .replaceAll('\r', r'\r')
+    .replaceAll('\u2028', r'\u2028')
+    .replaceAll('\u2029', r'\u2029')
+    .replaceAll('<', r'\u003C')
+    .replaceAll('&', r'\u0026');

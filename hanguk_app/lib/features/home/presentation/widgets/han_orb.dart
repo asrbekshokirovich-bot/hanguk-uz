@@ -55,12 +55,7 @@ class HanOrbController extends ValueNotifier<bool> {
 /// last child of a [Stack] that fills the screen, so the scrim covers the
 /// content beneath it.
 class HanOrb extends StatefulWidget {
-  const HanOrb({
-    super.key,
-    required this.items,
-    this.tooltip,
-    this.controller,
-  });
+  const HanOrb({super.key, required this.items, this.tooltip, this.controller});
 
   final List<HanOrbItem> items;
 

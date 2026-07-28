@@ -13,16 +13,15 @@ void main() {
           'model': {
             'provider': 'openai',
             'model': 'gpt-4o',
-            'messages': [{'role': 'system', 'content': 'hi'}]
+            'messages': [
+              {'role': 'system', 'content': 'hi'},
+            ],
           },
-          'voice': {
-            'provider': '11labs',
-            'voiceId': 'paula'
-          }
-        }
+          'voice': {'provider': '11labs', 'voiceId': 'paula'},
+        },
       );
       print("VAPI OK");
-    } catch(e) {
+    } catch (e) {
       print("VAPI ERROR: $e");
     }
   });

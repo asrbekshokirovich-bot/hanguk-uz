@@ -95,8 +95,9 @@ class SeoulRadii {
   static const double hero = 24;
 
   static const BorderRadius buttonR = BorderRadius.all(Radius.circular(button));
-  static const BorderRadius controlR =
-      BorderRadius.all(Radius.circular(control));
+  static const BorderRadius controlR = BorderRadius.all(
+    Radius.circular(control),
+  );
   static const BorderRadius tileR = BorderRadius.all(Radius.circular(tile));
   static const BorderRadius cardR = BorderRadius.all(Radius.circular(card));
   static const BorderRadius heroR = BorderRadius.all(Radius.circular(hero));
@@ -160,11 +161,7 @@ class SeoulGradients {
   static const LinearGradient heroCard = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [
-      Color(0xFF2A4E8C),
-      Color(0xFF1A3A6C),
-      Color(0xFF142E56),
-    ],
+    colors: [Color(0xFF2A4E8C), Color(0xFF1A3A6C), Color(0xFF142E56)],
     stops: [0.0, 0.57, 1.0],
   );
 

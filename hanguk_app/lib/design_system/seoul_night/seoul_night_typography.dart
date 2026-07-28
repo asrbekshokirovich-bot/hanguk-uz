@@ -85,13 +85,20 @@ class SeoulType {
     color: SeoulColors.textSecondary,
   );
 
+  /// Small supporting copy.
+  ///
+  /// `textSecondary`, not `textFaint`: 40% white over the app gradient
+  /// measures 3.57:1, under the 4.5:1 floor for 12px text, and this style
+  /// carries load-bearing sentences — the hint explaining why Start is
+  /// disabled, session dates, player timestamps. Sites that genuinely want
+  /// the fainter tone can still ask for it.
   static const TextStyle caption = TextStyle(
     fontFamily: inter,
     fontFamilyFallback: fallback,
     fontSize: 12,
     height: 1.35,
     fontWeight: FontWeight.w500,
-    color: SeoulColors.textFaint,
+    color: SeoulColors.textSecondary,
   );
 
   /// Uppercase eyebrow above a title.

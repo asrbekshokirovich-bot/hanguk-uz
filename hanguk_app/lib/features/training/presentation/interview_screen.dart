@@ -118,20 +118,22 @@ class _InterviewScreenState extends ConsumerState<InterviewScreen> {
               titleStyle: SeoulType.title,
             ),
           ),
-          // Unchanged behaviour: the header End control is rendered while the
-          // session row is 'active' and asks the notifier to end it — the Vapi
-          // teardown itself still runs in InterviewActiveView.dispose() via
-          // the centralized _stopCall(). The always-visible, always-reachable
-          // End control is the labelled one inside InterviewActiveView.
+          // One End control, not two.
+          //
+          // This used to call `endSession()` directly, which runs the
+          // feedback analysis (up to 25s) *before* status flips to
+          // 'completed' — and only that flip swaps the view, disposing
+          // InterviewActiveView and actually hanging up Vapi. So tapping End
+          // in the header left the interviewer talking and the microphone
+          // open for the whole "analysing" window, and skipped the
+          // forceIdleIfActive() escape hatch and the feedback-failure
+          // snackbar that the body control provides. Both now run the same
+          // path; the header is just a second way to reach it.
           if (state.status == 'active') ...[
             const SizedBox(width: 10),
             _HeaderEndAction(
               label: l.endSession,
-              onTap: () async {
-                await ref
-                    .read(interviewProvider.notifier)
-                    .endSession(language: state.selectedLanguage);
-              },
+              onTap: InterviewActiveView.endActiveCall,
             ),
           ],
         ],
@@ -187,7 +189,7 @@ class _InterviewScreenState extends ConsumerState<InterviewScreen> {
 }
 
 /// Compact destructive action in the section header. Warning-tinted rather
-/// than red: Seoul Night has no raw red, and `warning*` is the token family
+/// than red: `danger*` is the desaturated destructive tone for the navy
 /// for "this needs your attention" (spec §1 Color tokens).
 class _HeaderEndAction extends StatelessWidget {
   const _HeaderEndAction({required this.label, required this.onTap});
@@ -211,7 +213,7 @@ class _HeaderEndAction extends StatelessWidget {
             alignment: Alignment.center,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: SeoulColors.warningFill,
+              color: SeoulColors.dangerFill,
               border: Border.all(
                 color: SeoulColors.warning.withValues(alpha: 0.45),
               ),
@@ -219,7 +221,7 @@ class _HeaderEndAction extends StatelessWidget {
             child: const Icon(
               Icons.call_end,
               size: 20,
-              color: SeoulColors.warningText,
+              color: SeoulColors.dangerText,
             ),
           ),
         ),

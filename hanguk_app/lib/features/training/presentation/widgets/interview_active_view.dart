@@ -12,6 +12,15 @@ import '../../data/vapi_event_parser.dart' as vapi;
 class InterviewActiveView extends ConsumerStatefulWidget {
   const InterviewActiveView({super.key});
 
+  /// End the live call from outside this widget — currently the header
+  /// control in [InterviewScreen].
+  ///
+  /// There must be exactly one end path. Calling `endSession()` directly
+  /// runs the feedback analysis first, and only its completion swaps the view
+  /// and disposes this widget, so the microphone stays open for the whole
+  /// analysis window. Routing through here hangs up first, then analyses.
+  static void endActiveCall() => _InterviewActiveViewState._endLiveCall();
+
   @override
   ConsumerState<InterviewActiveView> createState() =>
       _InterviewActiveViewState();
@@ -29,6 +38,15 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
   // This static handle lets a newly-started interview stop the previous one
   // before it connects.
   static _InterviewActiveViewState? _liveInstance;
+
+  /// The single manual-end path, shared by the body button and the header
+  /// control. Latches so a double tap cannot start two teardowns.
+  static void _endLiveCall() {
+    final live = _liveInstance;
+    if (live == null || !live.mounted) return;
+    live._endFromUser();
+  }
+
   bool _isCallActive = false;
   bool _isAI_Speaking = false;
   bool _firstMessageReceived = false;
@@ -104,6 +122,11 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
         debugPrint('[VAPI] Previous-instance teardown failed: $e');
       }
     }
+    // `_initVapi` awaited platform init to get here; on web that genuinely
+    // takes time, so a fast back-tap can land first. Registering a dead
+    // instance as the live one would leave the next interview trying to stop
+    // a disposed widget.
+    if (!mounted) return;
     _liveInstance = this;
 
     setState(() => _isCallActive = true);
@@ -218,45 +241,45 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
       startFuture = _client?.start(
         waitUntilActive: true,
         assistant: {
-              'model': {
-                'provider': 'openai',
-                'model': 'gpt-4o',
-                'messages': [
-                  {'role': 'system', 'content': systemPrompt},
-                ],
-              },
-              'voice': {
-                'provider': '11labs',
-                'voiceId': voiceId,
-                // eleven_turbo_v2_5 has materially better Korean prosody than
-                // eleven_multilingual_v2. The voice ID itself must also be a
-                // Korean-native voice for full effect (see AppConfig.voiceIdKo*).
-                'model': 'eleven_turbo_v2_5',
-              },
-              // Speech-to-text for the STUDENT's side. Without this Vapi
-              // falls back to its English default, so a Korean-language
-              // interview transcribed the candidate's Korean answers as
-              // garbled English: the interviewer "didn't understand" anything
-              // the student said, and the saved transcript (which the
-              // feedback is scored from) was nonsense.
-              'transcriber': {
-                'provider': 'deepgram',
-                'model': 'nova-2',
-                'language': isKorean ? 'ko' : 'en',
-              },
-              'endCallFunctionEnabled': true,
-              'recordingEnabled': true,
-              // Force the AI to speak first on connect rather than waiting for
-              // user voice activity. Without this flag, Vapi treats the call as
-              // user-initiated and the firstMessage is never delivered.
-              'firstMessageMode': 'assistant-speaks-first',
-              'firstMessage': isKorean
-                  ? (studentName.isNotEmpty
-                        ? '안녕하세요 $studentName님! $targetUni 면접을 시작하겠습니다. 준비되셨나요?'
-                        : '안녕하세요! $targetUni 지원자님, 면접을 시작할 준비가 되셨나요?')
-                  : (studentName.isNotEmpty
-                        ? 'Hello $studentName! Are you ready to begin our interview for $targetUni?'
-                        : 'Hello! Are you ready to begin our interview for $targetUni?'),
+          'model': {
+            'provider': 'openai',
+            'model': 'gpt-4o',
+            'messages': [
+              {'role': 'system', 'content': systemPrompt},
+            ],
+          },
+          'voice': {
+            'provider': '11labs',
+            'voiceId': voiceId,
+            // eleven_turbo_v2_5 has materially better Korean prosody than
+            // eleven_multilingual_v2. The voice ID itself must also be a
+            // Korean-native voice for full effect (see AppConfig.voiceIdKo*).
+            'model': 'eleven_turbo_v2_5',
+          },
+          // Speech-to-text for the STUDENT's side. Without this Vapi
+          // falls back to its English default, so a Korean-language
+          // interview transcribed the candidate's Korean answers as
+          // garbled English: the interviewer "didn't understand" anything
+          // the student said, and the saved transcript (which the
+          // feedback is scored from) was nonsense.
+          'transcriber': {
+            'provider': 'deepgram',
+            'model': 'nova-2',
+            'language': isKorean ? 'ko' : 'en',
+          },
+          'endCallFunctionEnabled': true,
+          'recordingEnabled': true,
+          // Force the AI to speak first on connect rather than waiting for
+          // user voice activity. Without this flag, Vapi treats the call as
+          // user-initiated and the firstMessage is never delivered.
+          'firstMessageMode': 'assistant-speaks-first',
+          'firstMessage': isKorean
+              ? (studentName.isNotEmpty
+                    ? '안녕하세요 $studentName님! $targetUni 면접을 시작하겠습니다. 준비되셨나요?'
+                    : '안녕하세요! $targetUni 지원자님, 면접을 시작할 준비가 되셨나요?')
+              : (studentName.isNotEmpty
+                    ? 'Hello $studentName! Are you ready to begin our interview for $targetUni?'
+                    : 'Hello! Are you ready to begin our interview for $targetUni?'),
         },
       );
       final connected = await startFuture?.timeout(
@@ -273,7 +296,10 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
       // later _stopCall() can reach (teardown is already latched). Tear the
       // late arrival down instead.
       if (connected != null &&
-          (_isStopping || _didEndSession || !mounted || _errorMessage != null)) {
+          (_isStopping ||
+              _didEndSession ||
+              !mounted ||
+              _errorMessage != null)) {
         debugPrint('[VAPI] Handshake completed after teardown — disposing.');
         _disposeCallSafely(connected);
         return;
@@ -467,13 +493,10 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
       final sf = startFuture;
       if (sf != null) {
         unawaited(
-          sf.then(
-            (lateCall) {
-              if (identical(lateCall, _call)) return;
-              _disposeCallSafely(lateCall);
-            },
-            onError: (_) {},
-          ),
+          sf.then((lateCall) {
+            if (identical(lateCall, _call)) return;
+            _disposeCallSafely(lateCall);
+          }, onError: (_) {}),
         );
       }
       // Notify provider of failed connection so UI can react globally
@@ -599,12 +622,21 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
               l.noFeedbackAvailable,
               style: SeoulType.body.copyWith(color: SeoulColors.ink),
             ),
-            backgroundColor: SeoulColors.warning,
+            backgroundColor: SeoulColors.danger,
             behavior: SnackBarBehavior.floating,
           ),
         );
       }
     }
+  }
+
+  /// Manual end. Converges on the same `_completeAutoEnd` path the AI-driven
+  /// end uses, so the call is torn down first and the row still transitions to
+  /// 'completed' with feedback.
+  void _endFromUser() {
+    if (_didEndSession) return;
+    _didEndSession = true;
+    unawaited(_completeAutoEnd());
   }
 
   void _resetSilenceTimer() {
@@ -690,105 +722,129 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              if (state.targetUniversityName != null)
-                Center(child: _TargetUniPill(name: state.targetUniversityName!)),
-              if (_showCoachingWarning) ...[
-                const SizedBox(height: 12),
-                _CoachingWarning(text: l.coachingFiller),
-              ],
-
-              const Spacer(),
-
-              Center(
-                child: _VoiceOrb(
-                  speaking: _isAI_Speaking,
-                  connected: _isCallActive,
-                  languageTag: state.selectedLanguage.toUpperCase(),
-                ),
-              ),
-              const SizedBox(height: 22),
-
-              GlassCard(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 18,
-                  vertical: 14,
-                ),
-                child: Text(
-                  _buildStatusText(l),
-                  textAlign: TextAlign.center,
-                  // Warning tint means a real failure only. "The interviewer
-                  // is speaking" is a perfectly normal state, so it reads as
-                  // plain white; lime = your turn; faint = not connected yet.
-                  style: SeoulType.subtitle.copyWith(color: _statusColor()),
-                ),
-              ),
-
-              const Spacer(),
-
-              if (state.liveHints.isNotEmpty && _isCallActive)
-                Flexible(
-                  child: Padding(
-                    padding: const EdgeInsets.only(bottom: 16),
-                    child: SingleChildScrollView(
-                      child: GlassCard(
-                        radius: SeoulRadii.control,
-                        padding: const EdgeInsets.all(14),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              l.lifelineHintsTitle,
-                              style: SeoulType.subtitle.copyWith(
-                                fontSize: 14,
-                                color: SeoulColors.lime,
+              // Everything above the End control scrolls.
+              //
+              // It used to be one Column with two Spacers absorbing the
+              // slack. That works at the default font size, but a fixed
+              // 208px orb plus a long error status plus the coaching
+              // banner overflows a 360x640 screen at Android's 200% font
+              // setting — and because the End control is the last child,
+              // the entire overflow lands on it: laid out below the screen
+              // edge, invisible and untappable, with no way to scroll to
+              // it. That is precisely the moment a student most needs to
+              // stop the interview. The control is now pinned outside the
+              // scrollable region, so it cannot be pushed anywhere.
+              Expanded(
+                child: LayoutBuilder(
+                  builder: (context, viewport) => SingleChildScrollView(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: viewport.maxHeight,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          if (state.targetUniversityName != null)
+                            Center(
+                              child: _TargetUniPill(
+                                name: state.targetUniversityName!,
                               ),
                             ),
-                            const SizedBox(height: 8),
-                            ...state.liveHints.map(
-                              (h) => Padding(
-                                padding: const EdgeInsets.only(bottom: 4),
-                                child: Row(
+                          if (_showCoachingWarning) ...[
+                            const SizedBox(height: 12),
+                            _CoachingWarning(text: l.coachingFiller),
+                          ],
+
+                          Center(
+                            child: _VoiceOrb(
+                              speaking: _isAI_Speaking,
+                              connected: _isCallActive,
+                              languageTag: state.selectedLanguage.toUpperCase(),
+                            ),
+                          ),
+                          const SizedBox(height: 22),
+
+                          GlassCard(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 18,
+                              vertical: 14,
+                            ),
+                            child: Text(
+                              _buildStatusText(l),
+                              textAlign: TextAlign.center,
+                              // Warning tint means a real failure only. "The interviewer
+                              // is speaking" is a perfectly normal state, so it reads as
+                              // plain white; lime = your turn; faint = not connected yet.
+                              style: SeoulType.subtitle.copyWith(
+                                color: _statusColor(),
+                              ),
+                            ),
+                          ),
+
+                          if (state.liveHints.isNotEmpty && _isCallActive)
+                            // Inside the outer scroll view now, so it takes its
+                            // natural height instead of competing with Spacers for
+                            // the slack — and no longer needs a scroller of its own.
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 16),
+                              child: GlassCard(
+                                radius: SeoulRadii.control,
+                                padding: const EdgeInsets.all(14),
+                                child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      '•',
-                                      style: SeoulType.bodySecondary.copyWith(
+                                      l.lifelineHintsTitle,
+                                      style: SeoulType.subtitle.copyWith(
+                                        fontSize: 14,
                                         color: SeoulColors.lime,
                                       ),
                                     ),
-                                    const SizedBox(width: 8),
-                                    Expanded(
-                                      child: Text(
-                                        h,
-                                        style: SeoulType.bodySecondary,
+                                    const SizedBox(height: 8),
+                                    ...state.liveHints.map(
+                                      (h) => Padding(
+                                        padding: const EdgeInsets.only(
+                                          bottom: 4,
+                                        ),
+                                        child: Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              '•',
+                                              style: SeoulType.bodySecondary
+                                                  .copyWith(
+                                                    color: SeoulColors.lime,
+                                                  ),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Expanded(
+                                              child: Text(
+                                                h,
+                                                style: SeoulType.bodySecondary,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
                             ),
-                          ],
-                        ),
+                        ],
                       ),
                     ),
                   ),
                 ),
-
-              // End control — rendered unconditionally, never behind a state
-              // check, so it is reachable while connecting AND mid-interview.
-              _EndInterviewButton(
-                label: l.endInterview,
-                onTap: () {
-                  // Manual end — converge on the same _completeAutoEnd
-                  // path the AI-driven end uses, so feedback is
-                  // generated and the row transitions to 'completed'.
-                  // Previously this just called _stopCall + pop, which
-                  // left status='active' forever and skipped feedback.
-                  if (_didEndSession) return;
-                  _didEndSession = true;
-                  unawaited(_completeAutoEnd());
-                },
               ),
+
+              const SizedBox(height: 16),
+              // End control — pinned, rendered unconditionally, never
+              // behind a state check: reachable while connecting AND
+              // mid-interview.
+              _EndInterviewButton(label: l.endInterview, onTap: _endFromUser),
             ],
           ),
         ),
@@ -803,7 +859,7 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
   /// Colour of the status line. Purely presentational — it reads the same
   /// flags the status string itself is built from.
   Color _statusColor() {
-    if (_errorMessage != null) return SeoulColors.warningText;
+    if (_errorMessage != null) return SeoulColors.dangerText;
     if (_isAI_Speaking) return SeoulColors.textPrimary;
     if (_isCallActive) return SeoulColors.lime;
     return SeoulColors.textSecondary;
@@ -961,11 +1017,7 @@ class _TargetUniPill extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(
-            Icons.school,
-            color: SeoulColors.lime,
-            size: 16,
-          ),
+          const Icon(Icons.school, color: SeoulColors.lime, size: 16),
           const SizedBox(width: 8),
           Flexible(
             child: Text(
@@ -985,7 +1037,7 @@ class _TargetUniPill extends StatelessWidget {
 }
 
 /// "You are using too many filler words" nudge. Warning-tinted, not red —
-/// Seoul Night has no raw red (spec §1 Color tokens).
+/// Uses the `danger*` family — desaturated for the navy surface, not a raw red.
 class _CoachingWarning extends StatelessWidget {
   const _CoachingWarning({required this.text});
 
@@ -996,8 +1048,8 @@ class _CoachingWarning extends StatelessWidget {
     return GlassCard(
       radius: SeoulRadii.control,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      fillColor: SeoulColors.warningFill,
-      borderColor: SeoulColors.warning.withValues(alpha: 0.45),
+      fillColor: SeoulColors.dangerFill,
+      borderColor: SeoulColors.danger.withValues(alpha: 0.45),
       showShadow: false,
       blur: false,
       child: Row(
@@ -1005,14 +1057,14 @@ class _CoachingWarning extends StatelessWidget {
           const Icon(
             Icons.warning_amber_rounded,
             size: 18,
-            color: SeoulColors.warningText,
+            color: SeoulColors.dangerText,
           ),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
               text,
               style: SeoulType.bodySecondary.copyWith(
-                color: SeoulColors.warningText,
+                color: SeoulColors.dangerText,
               ),
             ),
           ),

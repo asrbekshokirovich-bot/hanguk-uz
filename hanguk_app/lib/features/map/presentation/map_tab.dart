@@ -357,7 +357,11 @@ class _MapCard extends StatelessWidget {
         SeoulSizes.screenPadding,
         2,
         SeoulSizes.screenPadding,
-        SeoulSizes.screenPadding,
+        // The orb floats over this card and swallows taps in its 86x86 box,
+        // so the map has to end above it — a pin in the bottom-right corner
+        // was simply not tappable. Less than a list's full clearance, since
+        // handing the map 128px of dead space would gut it.
+        SeoulSizes.orbBottom + 8,
       ),
       child: DecoratedBox(
         decoration: BoxDecoration(
@@ -521,25 +525,41 @@ class _FilterEmptyBadge extends StatelessWidget {
       child: GlassCard(
         padding: const EdgeInsets.fromLTRB(14, 10, 10, 10),
         radius: SeoulRadii.tile,
-        child: Row(
+        // Wrap, not Row: the clear-filters chip is intrinsically sized, so a
+        // Row gave the message whatever was left — which on a 320pt screen in
+        // English at the default font size was less than nothing. The badge
+        // that exists to explain an empty map was itself striped with
+        // overflow warnings. Wrapping drops the chip to its own line instead.
+        child: Wrap(
+          alignment: WrapAlignment.spaceBetween,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 10,
+          runSpacing: 8,
           children: [
-            const Icon(
-              Icons.filter_list_off,
-              color: SeoulColors.lime,
-              size: 18,
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                l.noUniversitiesMatch,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: SeoulType.bodySecondary.copyWith(
-                  color: SeoulColors.textPrimary,
-                ),
+            ConstrainedBox(
+              constraints: const BoxConstraints(minWidth: 140),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.filter_list_off,
+                    color: SeoulColors.lime,
+                    size: 18,
+                  ),
+                  const SizedBox(width: 10),
+                  Flexible(
+                    child: Text(
+                      l.noUniversitiesMatch,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: SeoulType.bodySecondary.copyWith(
+                        color: SeoulColors.textPrimary,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(width: 8),
             SeoulFilterChip(
               label: l.clearFilters,
               selected: false,

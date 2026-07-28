@@ -214,9 +214,14 @@ class _TourBackButton extends StatelessWidget {
           height: SeoulSizes.minTapTarget,
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: SeoulColors.glass,
+            // Not `glass` (white @ 7%): this floats over a live
+            // panorama, and a daytime sky makes a white icon on a
+            // white-tinted circle ~1.1:1 — invisible. With no AppBar,
+            // this circle is the only way off the screen. `mapWater`
+            // at 62% keeps it legible whatever the panorama shows.
+            color: SeoulColors.mapWater.withValues(alpha: 0.62),
             shape: BoxShape.circle,
-            border: Border.all(color: SeoulColors.glassBorder, width: 1),
+            border: Border.all(color: SeoulColors.heroBorder, width: 1),
             boxShadow: SeoulShadows.card,
           ),
           child: const Icon(
@@ -244,6 +249,10 @@ class _TourPill extends StatelessWidget {
       ),
       child: GlassCard(
         radius: 999,
+        // Same reason as the back circle: this sits over a live panorama, so
+        // it needs its own dark backing rather than the default glass tint.
+        fillColor: SeoulColors.mapWater.withValues(alpha: 0.62),
+        borderColor: SeoulColors.heroBorder,
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
         child: Row(
           mainAxisSize: MainAxisSize.min,

@@ -1,4 +1,5 @@
 import '../../../../core/config/app_config.dart';
+import 'university_map_html.dart' show jsEscape;
 
 /// Generates the Kakao Roadview WebView HTML for a single campus.
 ///
@@ -20,7 +21,7 @@ import '../../../../core/config/app_config.dart';
 /// unavailable / error state. Inline English strings here are the
 /// safe technical fallback if the JS bridge isn't wired.
 String generateRoadviewHtml(double lat, double lng, String name) {
-  final safeName = name.replaceAll("'", "\\'").replaceAll('"', '\\"');
+  final safeName = jsEscape(name);
   final kakaoJsKey = AppConfig.kakaoJsKey;
 
   return '''

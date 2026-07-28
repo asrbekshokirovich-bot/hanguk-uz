@@ -489,7 +489,6 @@ class InterviewNotifier extends Notifier<InterviewSessionState> {
     String sessionId,
     String language,
   ) async {
-
     // If the interview never produced a real exchange (still connecting, or
     // the student ended right away), there is nothing to analyze. Abandon the
     // session and drop back to the setup screen instead of calling the
@@ -560,39 +559,42 @@ class InterviewNotifier extends Notifier<InterviewSessionState> {
             .maybeSingle()
             .timeout(const Duration(seconds: 10));
         if (row == null) {
-          await client.from('interview_feedback').insert({
-            'session_id': sessionId,
-            if (fb['overall_score'] is num)
-              'overall_score': (fb['overall_score'] as num).round().clamp(
-                1,
-                10,
-              ),
-            if (fb['communication_score'] is num)
-              'communication_score': (fb['communication_score'] as num)
-                  .round()
-                  .clamp(1, 10),
-            if (fb['confidence_score'] is num)
-              'confidence_score': (fb['confidence_score'] as num).round().clamp(
-                1,
-                10,
-              ),
-            if (fb['content_score'] is num)
-              'content_score': (fb['content_score'] as num).round().clamp(
-                1,
-                10,
-              ),
-            if (fb['language_score'] is num)
-              'language_score': (fb['language_score'] as num).round().clamp(
-                1,
-                10,
-              ),
-            if (fb['strengths'] is List) 'strengths': fb['strengths'],
-            if (fb['improvements'] is List) 'improvements': fb['improvements'],
-            if (fb['message_scores'] is List)
-              'message_scores': fb['message_scores'],
-            if (fb['detailed_feedback'] is String)
-              'detailed_feedback': fb['detailed_feedback'],
-          }).timeout(const Duration(seconds: 10));
+          await client
+              .from('interview_feedback')
+              .insert({
+                'session_id': sessionId,
+                if (fb['overall_score'] is num)
+                  'overall_score': (fb['overall_score'] as num).round().clamp(
+                    1,
+                    10,
+                  ),
+                if (fb['communication_score'] is num)
+                  'communication_score': (fb['communication_score'] as num)
+                      .round()
+                      .clamp(1, 10),
+                if (fb['confidence_score'] is num)
+                  'confidence_score': (fb['confidence_score'] as num)
+                      .round()
+                      .clamp(1, 10),
+                if (fb['content_score'] is num)
+                  'content_score': (fb['content_score'] as num).round().clamp(
+                    1,
+                    10,
+                  ),
+                if (fb['language_score'] is num)
+                  'language_score': (fb['language_score'] as num).round().clamp(
+                    1,
+                    10,
+                  ),
+                if (fb['strengths'] is List) 'strengths': fb['strengths'],
+                if (fb['improvements'] is List)
+                  'improvements': fb['improvements'],
+                if (fb['message_scores'] is List)
+                  'message_scores': fb['message_scores'],
+                if (fb['detailed_feedback'] is String)
+                  'detailed_feedback': fb['detailed_feedback'],
+              })
+              .timeout(const Duration(seconds: 10));
         }
       } on Exception catch (e) {
         // Non-fatal — the in-memory feedback is still available.

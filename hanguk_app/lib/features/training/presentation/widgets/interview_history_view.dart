@@ -26,6 +26,9 @@ class _InterviewHistoryViewState extends ConsumerState<InterviewHistoryView> {
   }
 
   Future<void> _loadHistory() async {
+    // Reached from _confirmDelete after two awaits; the catch branch there
+    // already guards, the success path did not.
+    if (!mounted) return;
     setState(() => _isLoading = true);
     final history = await ref
         .read(interviewProvider.notifier)
@@ -106,7 +109,10 @@ class _InterviewHistoryViewState extends ConsumerState<InterviewHistoryView> {
                           color: SeoulColors.textFaint,
                         ),
                         const SizedBox(height: 14),
-                        Text(l.noPastInterviews, style: SeoulType.bodySecondary),
+                        Text(
+                          l.noPastInterviews,
+                          style: SeoulType.bodySecondary,
+                        ),
                         const SizedBox(height: 6),
                         Text('기록 없음', style: SeoulType.hangulLabel),
                       ],
@@ -168,14 +174,10 @@ class _InterviewHistoryViewState extends ConsumerState<InterviewHistoryView> {
     final Color statusColor = isCompleted
         ? SeoulColors.lime
         : (isAbandoned ? SeoulColors.textFaint : SeoulColors.warningText);
-    final String statusKo = isCompleted
-        ? '완료'
-        : (isAbandoned ? '중단' : '대기');
+    final String statusKo = isCompleted ? '완료' : (isAbandoned ? '중단' : '대기');
     final IconData statusIcon = isCompleted
         ? Icons.check_circle_outline
-        : (isAbandoned
-              ? Icons.cancel_outlined
-              : Icons.pending_outlined);
+        : (isAbandoned ? Icons.cancel_outlined : Icons.pending_outlined);
 
     return GlassCard(
       margin: const EdgeInsets.only(bottom: 12),
@@ -301,9 +303,7 @@ class _InterviewHistoryViewState extends ConsumerState<InterviewHistoryView> {
               onPressed: () => Navigator.pop(ctx, true),
               child: Text(
                 dl.deleteLabel,
-                style: SeoulType.button.copyWith(
-                  color: SeoulColors.warningText,
-                ),
+                style: SeoulType.button.copyWith(color: SeoulColors.dangerText),
               ),
             ),
           ],

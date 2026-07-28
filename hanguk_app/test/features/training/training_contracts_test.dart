@@ -16,10 +16,7 @@ void main() {
     });
 
     test('returns null on error envelope', () {
-      expect(
-        SuperviseResult.parse({'error': 'RATE_LIMITED'}),
-        isNull,
-      );
+      expect(SuperviseResult.parse({'error': 'RATE_LIMITED'}), isNull);
     });
 
     test('returns null when response is plain prose', () {

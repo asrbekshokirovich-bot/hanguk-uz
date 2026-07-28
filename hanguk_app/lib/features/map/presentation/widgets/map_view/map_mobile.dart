@@ -38,7 +38,7 @@ class _MobileMapWidget extends StatefulWidget {
 
 class _MobileMapWidgetState extends State<_MobileMapWidget> {
   late final WebViewController _controller;
-  late final Map<String, University> _uniById;
+  late Map<String, University> _uniById;
 
   @override
   void initState() {
@@ -63,6 +63,38 @@ class _MobileMapWidgetState extends State<_MobileMapWidget> {
         generateMapHtml(widget.universities, locale: widget.locale),
         baseUrl: 'https://hanguk.uz',
       );
+  }
+
+  /// Reload the page when the filtered set changes.
+  ///
+  /// Without this the markers were built once in initState and never again:
+  /// searching or filtering updated the list, the count pill and the
+  /// "no universities match" badge, while the map underneath still showed
+  /// every pin — and `_uniById` stayed frozen, so tapping a pin that had been
+  /// filtered out still opened its detail sheet. The card holds a stable
+  /// ValueKey, so nothing else was going to rebuild this element.
+  @override
+  void didUpdateWidget(covariant _MobileMapWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final sameLocale = oldWidget.locale == widget.locale;
+    if (sameLocale && _sameIds(oldWidget.universities, widget.universities)) {
+      return;
+    }
+    _uniById = {for (final u in widget.universities) u.id: u};
+    _controller.loadHtmlString(
+      generateMapHtml(widget.universities, locale: widget.locale),
+      baseUrl: 'https://hanguk.uz',
+    );
+  }
+
+  /// Identity by id and order — reloading the WebView is expensive, so only
+  /// do it when the set of pins actually differs.
+  static bool _sameIds(List<University> a, List<University> b) {
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i].id != b[i].id) return false;
+    }
+    return true;
   }
 
   @override

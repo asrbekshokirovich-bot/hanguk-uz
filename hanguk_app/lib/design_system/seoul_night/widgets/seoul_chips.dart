@@ -14,12 +14,21 @@ class HangulTag extends StatelessWidget {
     required this.ko,
     this.titleStyle,
     this.crossAxisAlignment = CrossAxisAlignment.start,
+    this.maxLines = 2,
   });
 
   final String en;
   final String ko;
   final TextStyle? titleStyle;
   final CrossAxisAlignment crossAxisAlignment;
+
+  /// Lines the title may wrap to before ellipsising.
+  ///
+  /// Defaults to 2, not 1: `overflow: ellipsis` with a null maxLines renders
+  /// as a *single* line, which silently truncated every university name to
+  /// "Korea Advanced Institute of Sci…" — including on the detail sheet,
+  /// where the full name is the whole point of the screen.
+  final int maxLines;
 
   @override
   Widget build(BuildContext context) {
@@ -30,6 +39,7 @@ class HangulTag extends StatelessWidget {
         Text(
           en,
           style: titleStyle ?? SeoulType.title,
+          maxLines: maxLines,
           overflow: TextOverflow.ellipsis,
         ),
         const SizedBox(height: 2),
@@ -114,15 +124,24 @@ class StatusChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontFamily: SeoulType.inter,
-              fontFamilyFallback: SeoulType.fallback,
-              fontSize: dense ? 10.5 : 11.5,
-              height: 1.2,
-              fontWeight: FontWeight.w700,
-              color: _fg,
+          // Flexible, because a MainAxisSize.min Row hands its children
+          // unbounded main-axis constraints: the label never wraps, it just
+          // overflows. Real content reaches that — "Ближайшее событие · 1
+          // сент." and city names like "Daejeon Metropolitan City" both
+          // striped the sheet at the default font size.
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontFamily: SeoulType.inter,
+                fontFamilyFallback: SeoulType.fallback,
+                fontSize: dense ? 10.5 : 11.5,
+                height: 1.2,
+                fontWeight: FontWeight.w700,
+                color: _fg,
+              ),
             ),
           ),
           if (ko != null) ...[
@@ -187,9 +206,7 @@ class SeoulFilterChip extends StatelessWidget {
                   fontSize: 13,
                   height: 1.2,
                   fontWeight: FontWeight.w700,
-                  color: selected
-                      ? SeoulColors.ink
-                      : SeoulColors.textSecondary,
+                  color: selected ? SeoulColors.ink : SeoulColors.textSecondary,
                 ),
               ),
               if (ko != null) ...[
@@ -197,9 +214,7 @@ class SeoulFilterChip extends StatelessWidget {
                 Text(
                   ko!,
                   style: SeoulType.hangulStatus.copyWith(
-                    color: selected
-                        ? SeoulColors.ink
-                        : SeoulColors.textFaint,
+                    color: selected ? SeoulColors.ink : SeoulColors.textFaint,
                   ),
                 ),
               ],

@@ -20,9 +20,7 @@ void main() {
   testWidgets('Login screen test harness compiles and pumps', (tester) async {
     await tester.pumpWidget(
       const ProviderScope(
-        child: MaterialApp(
-          home: Scaffold(body: SizedBox.shrink()),
-        ),
+        child: MaterialApp(home: Scaffold(body: SizedBox.shrink())),
       ),
     );
 

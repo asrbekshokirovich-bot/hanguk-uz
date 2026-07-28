@@ -106,7 +106,10 @@ class _InterviewAnalyticsViewState
                     children: [
                       const CircularProgressIndicator(color: SeoulColors.lime),
                       const SizedBox(height: 16),
-                      Text(l.analyzingTranscript, style: SeoulType.bodySecondary),
+                      Text(
+                        l.analyzingTranscript,
+                        style: SeoulType.bodySecondary,
+                      ),
                     ],
                   ),
                 )
@@ -118,7 +121,7 @@ class _InterviewAnalyticsViewState
                       state.error ?? l.noFeedbackAvailable,
                       textAlign: TextAlign.center,
                       style: SeoulType.body.copyWith(
-                        color: SeoulColors.warningText,
+                        color: SeoulColors.dangerText,
                       ),
                     ),
                   ),
@@ -280,11 +283,7 @@ class _InterviewAnalyticsViewState
       children: [
         Row(
           children: [
-            const Icon(
-              Icons.fact_check,
-              color: SeoulColors.lime,
-              size: 18,
-            ),
+            const Icon(Icons.fact_check, color: SeoulColors.lime, size: 18),
             const SizedBox(width: 8),
             Expanded(
               child: HangulTag(
@@ -315,7 +314,7 @@ class _InterviewAnalyticsViewState
     final idealHint = entry['ideal_hint']?.toString();
 
     final scoreValue = score is num ? score.toDouble() : null;
-    // Seoul Night has no raw red: a weak answer reads as `warning`, a middling
+    // A weak answer reads as `warning`, a middling
     // one as `info`, a strong one as `lime`.
     final tone = scoreValue == null
         ? StatusTone.neutral
@@ -446,8 +445,7 @@ class _InterviewAnalyticsViewState
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                for (final e in items)
-                  _bullet('•', e.toString(), markerColor),
+                for (final e in items) _bullet('•', e.toString(), markerColor),
               ],
             ),
           ),
@@ -459,7 +457,11 @@ class _InterviewAnalyticsViewState
 
 /// One sub-score: label, value, and a lime glow bar (spec §3.7).
 class _ScoreBar extends StatelessWidget {
-  const _ScoreBar({required this.label, required this.score, this.last = false});
+  const _ScoreBar({
+    required this.label,
+    required this.score,
+    this.last = false,
+  });
 
   final String label;
   final dynamic score;
@@ -586,22 +588,22 @@ class _AudioPlayerWidgetState extends ConsumerState<_AudioPlayerWidget> {
       return GlassCard(
         margin: const EdgeInsets.only(bottom: 18),
         padding: const EdgeInsets.all(14),
-        fillColor: SeoulColors.warningFill,
-        borderColor: SeoulColors.warning.withValues(alpha: 0.4),
+        fillColor: SeoulColors.dangerFill,
+        borderColor: SeoulColors.danger.withValues(alpha: 0.4),
         blur: false,
         child: Row(
           children: [
             const Icon(
               Icons.error_outline,
               size: 20,
-              color: SeoulColors.warningText,
+              color: SeoulColors.dangerText,
             ),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
                 errorText,
                 style: SeoulType.bodySecondary.copyWith(
-                  color: SeoulColors.warningText,
+                  color: SeoulColors.dangerText,
                 ),
               ),
             ),
@@ -681,13 +683,9 @@ class _AudioPlayerWidgetState extends ConsumerState<_AudioPlayerWidget> {
                       boxShadow: canPlay ? SeoulShadows.limeGlowSmall : null,
                     ),
                     child: Icon(
-                      _isPlaying
-                          ? Icons.pause
-                          : Icons.play_arrow,
+                      _isPlaying ? Icons.pause : Icons.play_arrow,
                       size: 28,
-                      color: canPlay
-                          ? SeoulColors.lime
-                          : SeoulColors.textFaint,
+                      color: canPlay ? SeoulColors.lime : SeoulColors.textFaint,
                     ),
                   ),
                 ),

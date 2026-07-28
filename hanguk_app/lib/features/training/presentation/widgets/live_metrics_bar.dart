@@ -31,20 +31,33 @@ class LiveMetricsBar extends StatelessWidget {
         color: SeoulColors.neutralFill,
         borderRadius: SeoulRadii.buttonR,
       ),
+      // Both sides are intrinsically sized, so a plain spaceBetween Row has
+      // nowhere to give: in Uzbek ("So'zlar" / "Belgilar" / "Saqlash xatosi")
+      // it striped the drafting workspace at 1.15 text scale. The metrics
+      // group yields first, since the save status is the part you must be
+      // able to read.
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
-            children: [
-              _buildMetric(l.metricWords, wordCount.toString()),
-              const SizedBox(width: 16),
-              _buildMetric(l.metricCharacters, charCount.toString()),
-              if (track != null) ...[
+          Flexible(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Flexible(
+                  child: _buildMetric(l.metricWords, wordCount.toString()),
+                ),
                 const SizedBox(width: 16),
-                _buildTrackIndicator(track!),
+                Flexible(
+                  child: _buildMetric(l.metricCharacters, charCount.toString()),
+                ),
+                if (track != null) ...[
+                  const SizedBox(width: 16),
+                  _buildTrackIndicator(track!),
+                ],
               ],
-            ],
+            ),
           ),
+          const SizedBox(width: 12),
           _buildSaveStatus(l),
         ],
       ),
@@ -53,8 +66,16 @@ class LiveMetricsBar extends StatelessWidget {
 
   Widget _buildMetric(String label, String value) {
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Text('$label: ', style: SeoulType.caption),
+        Flexible(
+          child: Text(
+            '$label: ',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: SeoulType.caption,
+          ),
+        ),
         Text(
           value,
           style: SeoulType.caption.copyWith(
@@ -89,7 +110,7 @@ class LiveMetricsBar extends StatelessWidget {
         break;
       case SaveStatus.error:
         icon = Icons.cloud_off_outlined;
-        color = SeoulColors.warningText;
+        color = SeoulColors.dangerText;
         text = l.saveStatusError;
         break;
     }
