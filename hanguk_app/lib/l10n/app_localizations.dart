@@ -1636,6 +1636,18 @@ abstract class AppLocalizations {
 
   /// Label above the AI's suggested stronger version of one answer.
   String get betterAnswerLabel;
+
+  /// Orb speed-dial label for the Home section.
+  String get navHome;
+
+  /// Time-of-day greeting on the Home header (before 12:00).
+  String get greetingMorning;
+
+  /// Time-of-day greeting on the Home header (12:00-17:59).
+  String get greetingAfternoon;
+
+  /// Time-of-day greeting on the Home header (18:00 onwards).
+  String get greetingEvening;
 }
 
 class _AppLocalizationsDelegate

@@ -354,5 +354,9 @@
   "trackMismatchWarning": "Ngôn ngữ bản nháp của bạn không khớp với lộ trình đã chọn. Vui lòng viết lại bằng ngôn ngữ đã chọn.",
   "interviewStartError": "Không thể bắt đầu phỏng vấn. Vui lòng kiểm tra kết nối và thử lại.",
   "perAnswerReviewTitle": "Phân tích từng câu trả lời",
-  "betterAnswerLabel": "CÂU TRẢ LỜI TỐT HƠN"
+  "betterAnswerLabel": "CÂU TRẢ LỜI TỐT HƠN",
+  "navHome": "Trang chủ",
+  "greetingMorning": "Chào buổi sáng",
+  "greetingAfternoon": "Chào buổi chiều",
+  "greetingEvening": "Chào buổi tối"
 }

@@ -888,4 +888,16 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get betterAnswerLabel => 'БОЛЕЕ СИЛЬНЫЙ ОТВЕТ';
+
+  @override
+  String get navHome => 'Главная';
+
+  @override
+  String get greetingMorning => 'Доброе утро';
+
+  @override
+  String get greetingAfternoon => 'Добрый день';
+
+  @override
+  String get greetingEvening => 'Добрый вечер';
 }

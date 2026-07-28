@@ -890,4 +890,16 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get betterAnswerLabel => 'KUCHLIROQ JAVOB';
+
+  @override
+  String get navHome => 'Bosh sahifa';
+
+  @override
+  String get greetingMorning => 'Xayrli tong';
+
+  @override
+  String get greetingAfternoon => 'Xayrli kun';
+
+  @override
+  String get greetingEvening => 'Xayrli kech';
 }

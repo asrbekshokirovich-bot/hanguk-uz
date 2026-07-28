@@ -354,5 +354,9 @@
   "trackMismatchWarning": "Qoralamangiz tili siz tanlagan yo'nalishga mos kelmayapti. Iltimos, tanlangan tilda qayta yozing.",
   "interviewStartError": "Suhbatni boshlab bo'lmadi. Internet aloqasini tekshirib, qayta urinib ko'ring.",
   "perAnswerReviewTitle": "Har bir javob tahlili",
-  "betterAnswerLabel": "KUCHLIROQ JAVOB"
+  "betterAnswerLabel": "KUCHLIROQ JAVOB",
+  "navHome": "Bosh sahifa",
+  "greetingMorning": "Xayrli tong",
+  "greetingAfternoon": "Xayrli kun",
+  "greetingEvening": "Xayrli kech"
 }

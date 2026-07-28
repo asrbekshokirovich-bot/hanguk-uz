@@ -888,4 +888,16 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get betterAnswerLabel => 'CÂU TRẢ LỜI TỐT HƠN';
+
+  @override
+  String get navHome => 'Trang chủ';
+
+  @override
+  String get greetingMorning => 'Chào buổi sáng';
+
+  @override
+  String get greetingAfternoon => 'Chào buổi chiều';
+
+  @override
+  String get greetingEvening => 'Chào buổi tối';
 }

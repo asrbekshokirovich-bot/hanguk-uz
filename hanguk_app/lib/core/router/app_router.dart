@@ -111,8 +111,9 @@ class _MapDeepLinkEntry extends ConsumerWidget {
     // Schedule the writes for after first build to avoid mutating
     // providers during the build phase.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // 1 = Map tab in the home bottom-nav (per home_screen.dart).
-      ref.read(homeTabProvider.notifier).setTab(1);
+      // Named, not a literal: the Seoul Night shell added a Home section, so
+      // the old hardcoded `1` now points at Applications.
+      ref.read(homeTabProvider.notifier).setTab(SeoulSection.map);
       ref.read(pendingMapDetailProvider.notifier).set(institutionId);
     });
     return const HomeScreen();

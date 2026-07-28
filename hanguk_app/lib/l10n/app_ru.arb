@@ -354,5 +354,9 @@
   "trackMismatchWarning": "Язык вашего черновика не совпадает с выбранным направлением. Пожалуйста, перепишите его на выбранном языке.",
   "interviewStartError": "Не удалось начать собеседование. Проверьте подключение и попробуйте снова.",
   "perAnswerReviewTitle": "Разбор каждого ответа",
-  "betterAnswerLabel": "БОЛЕЕ СИЛЬНЫЙ ОТВЕТ"
+  "betterAnswerLabel": "БОЛЕЕ СИЛЬНЫЙ ОТВЕТ",
+  "navHome": "Главная",
+  "greetingMorning": "Доброе утро",
+  "greetingAfternoon": "Добрый день",
+  "greetingEvening": "Добрый вечер"
 }

@@ -354,5 +354,9 @@
   "trackMismatchWarning": "작성 중인 초안의 언어가 선택한 트랙과 다릅니다. 선택한 언어로 다시 작성해 주세요.",
   "interviewStartError": "면접을 시작할 수 없습니다. 인터넷 연결을 확인하고 다시 시도해 주세요.",
   "perAnswerReviewTitle": "답변별 분석",
-  "betterAnswerLabel": "더 좋은 답변 예시"
+  "betterAnswerLabel": "더 좋은 답변 예시",
+  "navHome": "홈",
+  "greetingMorning": "좋은 아침",
+  "greetingAfternoon": "좋은 오후",
+  "greetingEvening": "좋은 저녁"
 }

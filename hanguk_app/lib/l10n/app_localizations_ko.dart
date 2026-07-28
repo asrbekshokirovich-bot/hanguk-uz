@@ -863,4 +863,16 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get betterAnswerLabel => '더 좋은 답변 예시';
+
+  @override
+  String get navHome => '홈';
+
+  @override
+  String get greetingMorning => '좋은 아침';
+
+  @override
+  String get greetingAfternoon => '좋은 오후';
+
+  @override
+  String get greetingEvening => '좋은 저녁';
 }

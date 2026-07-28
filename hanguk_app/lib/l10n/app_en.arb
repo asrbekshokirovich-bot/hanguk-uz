@@ -640,5 +640,13 @@
   "perAnswerReviewTitle": "Answer-by-answer review",
   "@perAnswerReviewTitle": { "description": "Section title above the per-answer breakdown in InterviewAnalyticsView." },
   "betterAnswerLabel": "A STRONGER ANSWER",
-  "@betterAnswerLabel": { "description": "Label above the AI's suggested stronger version of one answer." }
+  "@betterAnswerLabel": { "description": "Label above the AI's suggested stronger version of one answer." },
+  "navHome": "Home",
+  "@navHome": { "description": "Orb speed-dial label for the Home section." },
+  "greetingMorning": "Good morning",
+  "@greetingMorning": { "description": "Time-of-day greeting on the Home header (before 12:00)." },
+  "greetingAfternoon": "Good afternoon",
+  "@greetingAfternoon": { "description": "Time-of-day greeting on the Home header (12:00-17:59)." },
+  "greetingEvening": "Good evening",
+  "@greetingEvening": { "description": "Time-of-day greeting on the Home header (18:00 onwards)." }
 }
