@@ -90,3 +90,6 @@ GoogleService-Info.plist
 vapid-keys.json
 implementation_plan.md
 pg.zip
+
+# Scratch probes written by review agents; never part of the suite.
+test/**/_tmp_*_test.dart
