@@ -674,6 +674,7 @@
       "translate": "Перевести",
       "hideTranslation": "Скрыть перевод",
       "translating": "Переводим…",
+      "sending": "Отправляется…",
       "internalNoteLabel": "Внутренняя заметка · не отправляется студенту"
     },
     "composer": {
@@ -753,6 +754,13 @@
       "sendFailed": "Не удалось отправить сообщение. Проверьте интеграцию Instagram/Telegram.",
       "translationUnavailableTitle": "Перевод недоступен",
       "translationUnavailableBody": "Сервис перевода ещё не настроен. Сохранённые переводы по-прежнему отображаются."
+    },
+    "media": {
+      "voice": "Голосовое сообщение",
+      "image": "Фото",
+      "file": "Файл",
+      "loading": "Загрузка вложения…",
+      "unavailable": "Вложение недоступно"
     }
   },
   "errors": {

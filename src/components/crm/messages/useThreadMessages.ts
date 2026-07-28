@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useStaffMentions } from '@/hooks/useStaffMentions';
 import type { Message } from '@/contexts/MessagesContext';
 import { looksNonEnglish } from './queueLogic';
+import { extractMedia, isMediaPlaceholder } from './media';
 import { readCachedTranslation } from './translateMessage';
 import type { MessageVM } from './types';
 
@@ -47,22 +48,29 @@ export function useThreadMessages(messages: Message[]) {
           deliveryStatus: null,
           translation: null,
           translatable: false,
+          media: null,
         });
       }
 
       const isNote = (m.message_type as string) === 'note' || !!m.metadata?.internal;
       const kind: MessageVM['kind'] = isNote ? 'note' : m.direction === 'incoming' ? 'in' : 'out';
       const staffId = m.replied_by ?? m.assigned_to;
+      const media = extractMedia(m.message_type as string, m.metadata);
+      // A media message with no caption carries a placeholder string like
+      // "🎤 Voice message" or "[document]". Once the real player/thumbnail is
+      // rendered, repeating that as body text is just noise.
+      const text = media && isMediaPlaceholder(m.content) ? '' : m.content;
 
       out.push({
         id: m.id,
         kind,
-        text: m.content,
+        text,
+        media,
         createdAt: m.created_at,
         senderLabel: kind === 'in' ? null : (staffId ? staffNames.get(staffId) ?? null : null),
         deliveryStatus: kind === 'out' ? m.status : null,
         translation: readCachedTranslation(m.metadata),
-        translatable: looksNonEnglish(m.content),
+        translatable: !media && looksNonEnglish(m.content),
       });
     }
 

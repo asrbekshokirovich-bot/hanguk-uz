@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
+import { MessageAttachment } from './MessageAttachment';
 import type { MessageVM } from './types';
 
 interface MessageBubbleProps {
@@ -31,21 +32,30 @@ export function MessageBubble({ message: m, expanded, translating, onToggleTrans
       <div className="max-w-[560px]">
         <div
           className={cn(
-            'px-3.5 py-2.5 shadow-card',
+            'px-3.5 py-2.5 shadow-card transition-opacity',
+            m.pending && 'opacity-60',
             outbound
               ? 'rounded-[14px_14px_4px_14px] bg-primary'
               : 'rounded-[14px_14px_14px_4px] border border-border bg-card',
           )}
         >
-          <p
-            className={cn(
-              'whitespace-pre-wrap text-sm leading-[1.55]',
-              outbound ? 'text-primary-foreground' : 'text-foreground',
-            )}
-            style={{ textWrap: 'pretty' } as React.CSSProperties}
-          >
-            {m.text}
-          </p>
+          {m.media && (
+            <div className={cn(m.text && 'mb-2')}>
+              <MessageAttachment media={m.media} onPrimary={outbound} />
+            </div>
+          )}
+
+          {m.text && (
+            <p
+              className={cn(
+                'whitespace-pre-wrap text-sm leading-[1.55]',
+                outbound ? 'text-primary-foreground' : 'text-foreground',
+              )}
+              style={{ textWrap: 'pretty' } as React.CSSProperties}
+            >
+              {m.text}
+            </p>
+          )}
 
           {expanded && m.translation && (
             <div
@@ -93,7 +103,11 @@ export function MessageBubble({ message: m, expanded, translating, onToggleTrans
           )}
 
           <span className="text-[11px] font-medium text-muted-foreground">
-            {[outbound ? m.senderLabel : null, time, outbound ? m.deliveryStatus : null]
+            {[
+              outbound ? m.senderLabel : null,
+              m.pending ? t('messages.thread.sending') : time,
+              outbound && !m.pending ? m.deliveryStatus : null,
+            ]
               .filter(Boolean)
               .join(' · ')}
           </span>
