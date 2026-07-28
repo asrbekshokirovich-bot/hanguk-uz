@@ -460,8 +460,22 @@ class InterviewNotifier extends Notifier<InterviewSessionState> {
       (m) => !m.content.contains('[Interview started'),
     );
     if (!hasTranscript) {
-      await markAbandoned();
-      state = state.copyWith(status: 'idle', isVapiConnected: false);
+      // Return to the setup screen instantly so the End button feels
+      // responsive even on a slow network; mark the row abandoned in the
+      // background (inline, so its write can't fight the 'idle' reset).
+      final abandonedId = sessionId;
+      state = state.copyWith(
+        status: 'idle',
+        isVapiConnected: false,
+        isLoading: false,
+      );
+      unawaited(
+        Supabase.instance.client
+            .from('interview_sessions')
+            .update({'status': 'abandoned'})
+            .eq('id', abandonedId)
+            .then((_) {}, onError: (_) {}),
+      );
       return null;
     }
 

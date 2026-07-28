@@ -44,6 +44,7 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
   bool _didEndSession = false;
   Timer? _forceEndTimer;
   Timer? _timeLimitTimer;
+  Timer? _greetTimer;
 
   @override
   void initState() {
@@ -227,6 +228,19 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
       }
       debugPrint('[VAPI] Connected successfully.');
 
+      // Greeting watchdog: if the interviewer hasn't spoken within 18s of
+      // connecting, stop waiting forever — surface a failure so the user can
+      // go back and retry (the End button works from this state too).
+      _greetTimer?.cancel();
+      _greetTimer = Timer(const Duration(seconds: 18), () {
+        if (!mounted || _firstMessageReceived || _didEndSession) return;
+        setState(() {
+          _isCallActive = false;
+          _errorMessage =
+              'The interviewer did not respond. Please go back and try again.';
+        });
+      });
+
       _eventSub = _call?.onEvent.listen((event) {
         if (!mounted) return;
 
@@ -279,6 +293,7 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
           final eventType = eventValue['type'];
 
           if (eventType == 'speech-start') {
+            _greetTimer?.cancel();
             setState(() {
               _isAI_Speaking = true;
               _firstMessageReceived = true;
@@ -367,6 +382,7 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
     _silenceTimer?.cancel();
     _forceEndTimer?.cancel();
     _timeLimitTimer?.cancel();
+    _greetTimer?.cancel();
     _eventSub?.cancel();
     _call
         ?.stop(); // Explicit hang-up BEFORE dispose to prevent orphaned WebRTC connections
