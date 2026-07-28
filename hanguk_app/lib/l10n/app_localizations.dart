@@ -1789,6 +1789,7 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Good evening'**
   String get greetingEvening;
+
   /// Headline on the Welcome screen, under the 한 tile (DESIGN_SPEC 3.1).
   ///
   /// In en, this message translates to:
@@ -1807,8 +1808,7 @@ abstract class AppLocalizations {
   /// **'I have a magic code'**
   String get welcomeMagicCodeCta;
 
-  /// Secondary button on the Welcome screen that opens the guest catalog.
-  /// Currently compiled out behind kGuestModeEnabled.
+  /// Secondary button on the Welcome screen that opens the guest catalog. Currently compiled out behind kGuestModeEnabled.
   ///
   /// In en, this message translates to:
   /// **'Explore universities'**
@@ -1838,8 +1838,7 @@ abstract class AppLocalizations {
   /// **'View all'**
   String get homeViewAll;
 
-  /// Count on the Documents hero card: how many required documents have
-  /// been uploaded out of the total.
+  /// Count on the Documents hero card: how many required documents have been uploaded out of the total.
   ///
   /// In en, this message translates to:
   /// **'{collected} of {total} collected'**
@@ -1863,29 +1862,25 @@ abstract class AppLocalizations {
   /// **'Pending review'**
   String get documentStatusPendingReview;
 
-  /// Short status chip on an application card: the student is collecting
-  /// documents.
+  /// Short status chip on an application card: the student is collecting documents.
   ///
   /// In en, this message translates to:
   /// **'Documents'**
   String get statusDocs;
 
-  /// Short status chip on an application card: the application has been
-  /// sent to the university.
+  /// Short status chip on an application card: the application has been sent to the university.
   ///
   /// In en, this message translates to:
   /// **'Submitted'**
   String get statusSubmitted;
 
-  /// Short status chip on an application card: the university or the
-  /// consulate is reviewing it.
+  /// Short status chip on an application card: the university or the consulate is reviewing it.
   ///
   /// In en, this message translates to:
   /// **'In review'**
   String get statusInReview;
 
-  /// Short status chip on an application card: waiting on the university or
-  /// the consulate to respond.
+  /// Short status chip on an application card: waiting on the university or the consulate to respond.
   ///
   /// In en, this message translates to:
   /// **'Waiting'**
@@ -1951,13 +1946,11 @@ abstract class AppLocalizations {
   /// **'Waiting for visa issue'**
   String get journeyStageWaitingVisa;
 
-  /// Pill over the map showing how many universities have coordinates and
-  /// are therefore drawn as pins.
+  /// Pill over the map showing how many universities have coordinates and are therefore drawn as pins.
   ///
   /// In en, this message translates to:
   /// **'{count} universities mapped'**
   String mapUniversitiesMapped(int count);
-
 }
 
 class _AppLocalizationsDelegate

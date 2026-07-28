@@ -929,7 +929,8 @@ class AppLocalizationsRu extends AppLocalizations {
   String get welcomeHeadline => 'Добро пожаловать в ваш путь';
 
   @override
-  String get welcomeSubtitle => 'Ваш путь в университет Южной Кореи начинается здесь.';
+  String get welcomeSubtitle =>
+      'Ваш путь в университет Южной Кореи начинается здесь.';
 
   @override
   String get welcomeMagicCodeCta => 'У меня есть магический код';

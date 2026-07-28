@@ -934,7 +934,8 @@ class AppLocalizationsUz extends AppLocalizations {
   String get welcomeHeadline => 'Yo\'lingizga xush kelibsiz';
 
   @override
-  String get welcomeSubtitle => 'Janubiy Koreya universitetiga yo\'lingiz shu yerdan boshlanadi.';
+  String get welcomeSubtitle =>
+      'Janubiy Koreya universitetiga yo\'lingiz shu yerdan boshlanadi.';
 
   @override
   String get welcomeMagicCodeCta => 'Menda sehrli kod bor';

@@ -929,7 +929,8 @@ class AppLocalizationsVi extends AppLocalizations {
   String get welcomeHeadline => 'Chào mừng đến hành trình của bạn';
 
   @override
-  String get welcomeSubtitle => 'Con đường đến đại học Hàn Quốc bắt đầu từ đây.';
+  String get welcomeSubtitle =>
+      'Con đường đến đại học Hàn Quốc bắt đầu từ đây.';
 
   @override
   String get welcomeMagicCodeCta => 'Tôi có mã Magic Code';
