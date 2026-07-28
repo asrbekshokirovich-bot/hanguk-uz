@@ -184,7 +184,11 @@ class SeoulType {
           bodyLarge: body,
           bodyMedium: bodySecondary,
           bodySmall: caption,
-          labelLarge: button,
+          // `button` is ink-coloured because it sits on lime. As the app-wide
+          // labelLarge it would render near-black on the dark background for
+          // any widget that reads the style directly (Material buttons are
+          // safe — they override the colour), so re-tint it here.
+          labelLarge: button.copyWith(color: SeoulColors.textPrimary),
         );
   }
 }

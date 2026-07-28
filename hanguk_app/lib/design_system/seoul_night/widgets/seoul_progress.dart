@@ -103,8 +103,9 @@ class ConicProgressRing extends StatelessWidget {
   Widget build(BuildContext context) {
     final v = value.clamp(0.0, 1.0);
 
+    // No `size:` — CustomPaint ignores it when a child is present; the
+    // SizedBox below defines the layout size.
     Widget ring(double t) => CustomPaint(
-      size: Size.square(size),
       painter: _RingPainter(value: t, strokeWidth: strokeWidth),
       child: SizedBox(
         width: size,
