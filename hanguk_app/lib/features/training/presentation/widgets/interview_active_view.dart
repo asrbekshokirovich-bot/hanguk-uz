@@ -777,16 +777,9 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
             ),
             const Spacer(),
 
-            // Transcript & controls panel.
-            //
-            // flex: 3 against the two Spacers (flex 1 each) — with equal flex
-            // the panel only got a third of the free space, and since the End
-            // button + its label take ~110px of that as fixed height, the
-            // transcript area collapsed to a sliver and rendered half-cut
-            // lines. clipBehavior keeps a partially-scrolled line inside the
-            // rounded corners instead of bleeding past the panel edge.
+            // Controls panel: live hints (when the plan enables them) and
+            // the End control. No transcript — see the note below.
             Flexible(
-              flex: 3,
               child: Container(
                 clipBehavior: Clip.antiAlias,
                 padding: const EdgeInsets.fromLTRB(24, 18, 24, 8),
@@ -836,74 +829,13 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
                         ),
                       ),
                     ],
-                    // Audit U14: show a two-sided ledger of the last few
-                    // turns instead of just the very last student utterance.
-                    // While Vapi is mid-utterance, live partial transcript
-                    // is also shown at the top.
-                    Flexible(
-                      child: SingleChildScrollView(
-                        reverse: true,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            if (_isCallActive && _currentWords.isNotEmpty)
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 6,
-                                ),
-                                child: Text(
-                                  _currentWords,
-                                  textAlign: TextAlign.center,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 18,
-                                    height: 1.5,
-                                  ),
-                                ),
-                              ),
-                            for (final m in _lastTurns(state.messages, 6))
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 4,
-                                ),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    SizedBox(
-                                      width: 64,
-                                      child: Text(
-                                        m.role == 'interviewer'
-                                            ? l.speakerAi
-                                            : l.speakerYou,
-                                        textAlign: TextAlign.right,
-                                        style: TextStyle(
-                                          color: m.role == 'interviewer'
-                                              ? AppColors.vibrantLime
-                                              : Colors.white54,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Text(
-                                        m.content,
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 14,
-                                          height: 1.45,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
+                    // No live transcript on screen: this is a spoken
+                    // interview, and the running text only competed with the
+                    // End control for space (it rendered as clipped half
+                    // lines). Speech is still transcribed and stored — the
+                    // full conversation appears in the post-session feedback
+                    // and in history.
+                    const SizedBox(height: 8),
                     GestureDetector(
                       onTap: () {
                         // Manual end — converge on the same _completeAutoEnd
@@ -951,21 +883,6 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
           ),
       ],
     );
-  }
-
-  /// Returns the most-recent [maxTurns] interview messages in
-  /// chronological order, after stripping the synthetic
-  /// "[Interview started …]" sentinel a previous version of
-  /// `sendMessage` used to emit.
-  List<InterviewMessage> _lastTurns(
-    List<InterviewMessage> messages,
-    int maxTurns,
-  ) {
-    final cleaned = messages
-        .where((m) => !m.content.contains('[Interview started'))
-        .toList(growable: false);
-    if (cleaned.length <= maxTurns) return cleaned;
-    return cleaned.sublist(cleaned.length - maxTurns);
   }
 
   String _buildStatusText(AppLocalizations l) {
