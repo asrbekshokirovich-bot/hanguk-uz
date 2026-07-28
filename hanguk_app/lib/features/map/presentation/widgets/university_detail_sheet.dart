@@ -279,18 +279,22 @@ class UniversityDetailSheet extends ConsumerWidget {
                           ),
                         ),
 
-                      // Visit Website Button
-                      if (university.website != null &&
-                          university.website!.isNotEmpty)
+                      // Visit Website Button — uses the university's official
+                      // homepage domain (institutions.primary_domain). The old
+                      // `website` field was deprecated and always null, so this
+                      // button never showed; primaryDomain is populated for
+                      // every institution. _launchWebsite prepends https://.
+                      if (university.primaryDomain != null &&
+                          university.primaryDomain!.isNotEmpty)
                         SizedBox(
                           width: double.infinity,
                           child: OutlinedButton.icon(
                             onPressed: () {
                               analytics.universityWebsiteOpen(
                                 university.id,
-                                university.website!,
+                                university.primaryDomain!,
                               );
-                              _launchWebsite(university.website!);
+                              _launchWebsite(university.primaryDomain!);
                             },
                             icon: const Icon(
                               Icons.open_in_browser_rounded,

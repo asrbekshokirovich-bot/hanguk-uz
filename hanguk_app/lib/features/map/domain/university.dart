@@ -69,6 +69,12 @@ class University {
   final Map<String, dynamic>? virtualTour;
   final String? walkaroundUrl;
 
+  // Official university homepage domain (e.g. 'yonsei.ac.kr'), sourced from
+  // institutions.primary_domain via v_institutions_for_map. The detail sheet
+  // turns it into https://<domain> for the "Visit University Website" button.
+  // This replaces the deprecated `website` field below (which was always null).
+  final String? primaryDomain;
+
   // ── Deprecated legacy fields ────────────────────────────────────────────
   // Kept nullable so existing widgets continue to compile during the
   // transition. The repository always emits `null` — these fields used
@@ -106,6 +112,7 @@ class University {
     this.isVisibleOnMap = true,
     this.virtualTour,
     this.walkaroundUrl,
+    this.primaryDomain,
     // ignore: deprecated_member_use_from_same_package
     this.ranking,
     // ignore: deprecated_member_use_from_same_package
