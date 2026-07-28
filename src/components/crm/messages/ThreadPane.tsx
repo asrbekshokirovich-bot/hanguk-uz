@@ -10,7 +10,6 @@ interface ThreadPaneProps {
   autoTranslate: boolean;
   contextOpen: boolean;
   claiming: boolean;
-  sending: boolean;
   translatingId: string | null;
   isExpanded: (id: string, hasTranslation: boolean) => boolean;
   onToggleTranslation: (message: MessageVM, expanded: boolean) => void;
@@ -18,7 +17,7 @@ interface ThreadPaneProps {
   onToggleContext: () => void;
   onClaim: () => void;
   onMarkDone: () => void;
-  onSend: (text: string, options: { internal: boolean; language: SendLanguage }) => Promise<void> | void;
+  onSend: (text: string, options: { internal: boolean; language: SendLanguage }) => Promise<boolean>;
 }
 
 /** Centre pane: header, message stream, composer. */
@@ -29,7 +28,6 @@ export function ThreadPane({
   autoTranslate,
   contextOpen,
   claiming,
-  sending,
   translatingId,
   isExpanded,
   onToggleTranslation,
@@ -58,7 +56,7 @@ export function ThreadPane({
         translatingId={translatingId}
         onToggleTranslation={onToggleTranslation}
       />
-      <Composer sending={sending} onSend={onSend} />
+      <Composer onSend={onSend} />
     </section>
   );
 }

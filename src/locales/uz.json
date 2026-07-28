@@ -674,6 +674,7 @@
       "translate": "Tarjima qilish",
       "hideTranslation": "Tarjimani yashirish",
       "translating": "Tarjima qilinmoqda…",
+      "sending": "Yuborilmoqda…",
       "internalNoteLabel": "Ichki eslatma · talabaga yuborilmaydi"
     },
     "composer": {
@@ -753,6 +754,13 @@
       "sendFailed": "Xabarni yuborishning iloji bo‘lmadi. Instagram/Telegram integratsiyasini tekshiring.",
       "translationUnavailableTitle": "Tarjima mavjud emas",
       "translationUnavailableBody": "Tarjima xizmati hali sozlanmagan. Saqlangan tarjimalar ko‘rinishda qoladi."
+    },
+    "media": {
+      "voice": "Ovozli xabar",
+      "image": "Rasm",
+      "file": "Fayl",
+      "loading": "Ilova yuklanmoqda…",
+      "unavailable": "Ilova mavjud emas"
     }
   },
   "errors": {

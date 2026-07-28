@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -35,6 +35,15 @@ import type {
  * `instagram-webhook`, `send-telegram`, `send-instagram`); the app channel
  * renders correctly but no producer writes `source = 'app'` yet.
  */
+/** An outbound message shown before the server has confirmed it. */
+interface PendingMessage {
+  id: string;
+  threadId: string;
+  text: string;
+  internal: boolean;
+  createdAt: string;
+}
+
 export default function MessagesContent() {
   const { t } = useTranslation();
   const { toast } = useToast();
@@ -64,8 +73,9 @@ export default function MessagesContent() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [contextOpen, setContextOpen] = useState(true);
   const [claiming, setClaiming] = useState(false);
-  const [sending, setSending] = useState(false);
   const [translatingId, setTranslatingId] = useState<string | null>(null);
+  const [pending, setPending] = useState<PendingMessage[]>([]);
+  const optimisticSeq = useRef(0);
 
   const filtered = useMemo(
     () => sortConversations(filterConversations(conversations, tab, channel, query), tab),
@@ -137,7 +147,36 @@ export default function MessagesContent() {
     [streamMatchesActive, messages],
   );
 
-  const threadMessages = useThreadMessages(activeMessages);
+  const confirmedMessages = useThreadMessages(activeMessages);
+
+  // Retire an optimistic bubble as soon as the real row for it comes back.
+  useEffect(() => {
+    if (pending.length === 0) return;
+    const landed = new Set(
+      confirmedMessages.filter((m) => m.kind === 'out' || m.kind === 'note').map((m) => m.text),
+    );
+    setPending((prev) => prev.filter((p) => !landed.has(p.text)));
+  }, [confirmedMessages, pending.length]);
+
+  const threadMessages = useMemo<MessageVM[]>(() => {
+    const mine = pending.filter((p) => p.threadId === activeId);
+    if (mine.length === 0) return confirmedMessages;
+    return [
+      ...confirmedMessages,
+      ...mine.map<MessageVM>((p) => ({
+        id: p.id,
+        kind: p.internal ? 'note' : 'out',
+        text: p.text,
+        createdAt: p.createdAt,
+        senderLabel: null,
+        deliveryStatus: null,
+        translation: null,
+        translatable: false,
+        media: null,
+        pending: true,
+      })),
+    ];
+  }, [confirmedMessages, pending, activeId]);
   const { autoTranslate, toggleAuto, isExpanded, toggleMessage } = useThreadTranslation(activeId);
   const { student, loading: studentLoading } = useStudentContext(active?.studentId ?? null);
 
@@ -180,9 +219,25 @@ export default function MessagesContent() {
   }, [active, archiveThread, toast, t]);
 
   const handleSend = useCallback(
-    async (text: string, options: { internal: boolean; language: SendLanguage }) => {
-      if (!active || !selectedThread || sending) return;
-      setSending(true);
+    async (text: string, options: { internal: boolean; language: SendLanguage }): Promise<boolean> => {
+      if (!active || !selectedThread) return false;
+
+      // Show the bubble immediately. Everything below — the insert, the
+      // Telegram/Instagram relay, the assignment write and the refetches — is
+      // several seconds of round trips, and the operator should not be staring
+      // at a frozen composer for any of it.
+      const optimisticId = `pending-${optimisticSeq.current++}`;
+      const optimistic: PendingMessage = {
+        id: optimisticId,
+        threadId: active.threadId,
+        text,
+        internal: options.internal,
+        createdAt: new Date().toISOString(),
+      };
+      setPending((prev) => [...prev, optimistic]);
+
+      const dropOptimistic = () =>
+        setPending((prev) => prev.filter((p) => p.id !== optimisticId));
 
       if (options.internal) {
         // Internal notes are stored on the thread but never relayed to the
@@ -200,42 +255,41 @@ export default function MessagesContent() {
           replied_at: new Date().toISOString(),
         });
         if (error) {
+          dropOptimistic();
           toast({
             title: t('common.error'),
             description: t('messages.toast.noteFailed'),
             variant: 'destructive',
           });
-        } else {
-          await fetchMessages(selectedThread);
-          await fetchThreads();
+          return false;
         }
-        setSending(false);
-        return;
+        void fetchMessages(selectedThread);
+        return true;
       }
 
       const { error } = await sendMessage(text, selectedThread.source, selectedThread.sender_id);
       if (error) {
+        dropOptimistic();
         toast({
           title: t('common.error'),
           description: error.message || t('messages.toast.sendFailed'),
           variant: 'destructive',
         });
-        setSending(false);
-        return;
+        return false;
       }
 
       // Replying takes ownership of a conversation nobody had claimed yet.
+      // Deliberately not awaited: the message is already delivered and on
+      // screen, so the bookkeeping must not hold the composer hostage.
       if (!active.isAssigned && user) {
-        await assignThread(active.threadId, user.id);
-        await refreshAssignments();
+        void assignThread(active.threadId, user.id).then(() => refreshAssignments());
       }
-      await fetchThreads();
-      setSending(false);
+      void fetchThreads();
+      return true;
     },
     [
       active,
       selectedThread,
-      sending,
       sendMessage,
       assignThread,
       refreshAssignments,
@@ -303,7 +357,6 @@ export default function MessagesContent() {
               autoTranslate={autoTranslate}
               contextOpen={contextOpen}
               claiming={claiming}
-              sending={sending}
               translatingId={translatingId}
               isExpanded={isExpanded}
               onToggleTranslation={handleToggleTranslation}

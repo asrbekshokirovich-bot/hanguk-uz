@@ -676,6 +676,7 @@
       "translate": "Translate",
       "hideTranslation": "Hide translation",
       "translating": "Translating…",
+      "sending": "Sending…",
       "internalNoteLabel": "Internal note · not sent to student"
     },
     "composer": {
@@ -755,6 +756,13 @@
       "sendFailed": "Could not send the message. Check that the Instagram/Telegram integration is configured.",
       "translationUnavailableTitle": "Translation unavailable",
       "translationUnavailableBody": "No translation service is configured yet. Cached translations still display."
+    },
+    "media": {
+      "voice": "Voice message",
+      "image": "Photo",
+      "file": "File",
+      "loading": "Loading attachment…",
+      "unavailable": "Attachment unavailable"
     }
   },
   "errors": {

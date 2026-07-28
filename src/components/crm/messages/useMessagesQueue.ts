@@ -7,6 +7,7 @@ import type { MessageThread } from '@/contexts/MessagesContext';
 import { channelHandle, toChannelId } from './channels';
 import { initialsOf, minutesSince } from './queueLogic';
 import { mostAdvancedStatus, stageLabelKey } from './stages';
+import { isMediaPlaceholder, mediaPreviewKey } from './media';
 import type { ConversationVM } from './types';
 
 /**
@@ -114,7 +115,7 @@ export function useMessagesQueue(locallyRead: ReadonlySet<string> = new Set()) {
         handle: channelHandle(channel, th.sender_id, th.sender_name),
         studentId: th.student_id,
         stage: t(stageLabelKey(th.student_id, th.student_id ? stages.get(th.student_id) : null)),
-        preview: last?.content?.replace(/\s+/g, ' ').trim() || '',
+        preview: previewFor(last, t),
         lastAt: th.last_message_at,
         // Nothing is "waiting" once the operator has replied, so an outbound
         // last message resets the SLA clock to zero.
@@ -128,4 +129,20 @@ export function useMessagesQueue(locallyRead: ReadonlySet<string> = new Set()) {
   }, [threads, assignments, stages, user?.id, t, locallyRead]);
 
   return { conversations, loading, refreshAssignments: loadAssignments };
+}
+
+/**
+ * One-line queue preview. Media rows store a placeholder caption such as
+ * "[document]" or "🎤 Voice message"; those are replaced with a localised
+ * label so raw ingest strings never leak into the queue.
+ */
+function previewFor(
+  last: MessageThread['lastMessage'],
+  t: (key: string) => string,
+): string {
+  if (!last) return '';
+  const body = last.content?.replace(/\s+/g, ' ').trim() ?? '';
+  const key = mediaPreviewKey(last.message_type as string);
+  if (key && (!body || isMediaPlaceholder(body))) return t(key);
+  return body;
 }

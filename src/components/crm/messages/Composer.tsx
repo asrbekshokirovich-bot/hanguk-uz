@@ -8,8 +8,7 @@ import { SendLanguageChips } from './SendLanguageChips';
 import type { SavedReply, SendLanguage } from './types';
 
 interface ComposerProps {
-  sending: boolean;
-  onSend: (text: string, options: { internal: boolean; language: SendLanguage }) => Promise<void> | void;
+  onSend: (text: string, options: { internal: boolean; language: SendLanguage }) => Promise<boolean>;
 }
 
 /**
@@ -22,7 +21,7 @@ interface ComposerProps {
  * Internal-note mode paints the composer amber and switches the send path to a
  * note write, which is stored on the thread but never relayed to the channel.
  */
-export function Composer({ sending, onSend }: ComposerProps) {
+export function Composer({ onSend }: ComposerProps) {
   const { t } = useTranslation();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [draft, setDraft] = useState('');
@@ -32,11 +31,20 @@ export function Composer({ sending, onSend }: ComposerProps) {
 
   const submit = async () => {
     const text = draft.trim();
-    if (!text || sending) return;
-    await onSend(text, { internal: noteMode, language });
+    if (!text) return;
+    // Clear FIRST. Waiting for the insert, the channel relay and two refetches
+    // before emptying the box made Enter feel like it had not registered; the
+    // operator would sit staring at their own text for seconds. The draft is
+    // put back only if the send actually failed.
+    const wasNote = noteMode;
     setDraft('');
     setNoteMode(false);
     setShowSnippets(false);
+    const ok = await onSend(text, { internal: wasNote, language });
+    if (!ok) {
+      setDraft(text);
+      setNoteMode(wasNote);
+    }
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -121,7 +129,7 @@ export function Composer({ sending, onSend }: ComposerProps) {
             <button
               type="button"
               onClick={() => void submit()}
-              disabled={sending || !draft.trim()}
+              disabled={!draft.trim()}
               className="flex h-10 min-h-0 items-center gap-1.5 rounded-md bg-primary px-4 text-[13px] font-semibold text-primary-foreground transition hover:brightness-110 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card"
             >
               {noteMode ? t('messages.composer.saveNote') : t('messages.composer.send')}

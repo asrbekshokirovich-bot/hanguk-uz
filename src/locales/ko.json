@@ -634,6 +634,7 @@
       "translate": "번역",
       "hideTranslation": "번역 숨기기",
       "translating": "번역 중…",
+      "sending": "보내는 중…",
       "internalNoteLabel": "내부 메모 · 학생에게 전송되지 않음"
     },
     "composer": {
@@ -713,6 +714,13 @@
       "sendFailed": "메시지를 보낼 수 없습니다. 인스타그램/텔레그램 연동을 확인하세요.",
       "translationUnavailableTitle": "번역을 사용할 수 없음",
       "translationUnavailableBody": "번역 서비스가 아직 설정되지 않았습니다. 저장된 번역은 계속 표시됩니다."
+    },
+    "media": {
+      "voice": "음성 메시지",
+      "image": "사진",
+      "file": "파일",
+      "loading": "첨부파일 불러오는 중…",
+      "unavailable": "첨부파일을 사용할 수 없습니다"
     }
   },
   "errors": {

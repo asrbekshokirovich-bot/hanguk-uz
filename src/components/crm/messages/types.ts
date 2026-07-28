@@ -1,3 +1,5 @@
+import type { MessageMedia } from './media';
+
 /**
  * View-model types for the CRM Messages shared-queue inbox.
  *
@@ -86,6 +88,10 @@ export interface MessageVM {
   translation: MessageTranslation | null;
   /** True when the body is not English and a translation is offerable. */
   translatable: boolean;
+  /** Voice note / image / file attachment, or null for a plain text message. */
+  media: MessageMedia | null;
+  /** True for an optimistic bubble that has not been confirmed by the server. */
+  pending?: boolean;
 }
 
 /** A `/slash` reply the operator can insert into the draft. */
