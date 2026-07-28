@@ -59,6 +59,7 @@ export function ChatView({
   const [sending, setSending] = useState(false);
   const [linkOpen, setLinkOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const sendingRef = useRef(false);
 
   // Channels whose chats can be attached to a student/lead (manual has no id).
   const canLink = thread.source === 'telegram' || thread.source === 'instagram' || thread.source === 'whatsapp';
@@ -72,11 +73,17 @@ export function ChatView({
   }, [messages]);
 
   const handleSend = async () => {
-    if (!newMessage.trim()) return;
+    const text = newMessage.trim();
+    if (!text || sendingRef.current) return;
+    sendingRef.current = true;
     setSending(true);
-    await onSendMessage(newMessage.trim());
-    setNewMessage('');
-    setSending(false);
+    setNewMessage(''); // clear immediately - prevents double-sends
+    try {
+      await onSendMessage(text);
+    } finally {
+      sendingRef.current = false;
+      setSending(false);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -250,7 +257,7 @@ export function ChatView({
             className="min-h-10 max-h-32"
           />
           <Button onClick={handleSend} disabled={!newMessage.trim() || sending}>
-            <Send className="h-4 w-4" />
+            {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
           </Button>
         </div>
         <p className="text-xs text-muted-foreground mt-1">
