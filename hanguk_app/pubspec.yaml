@@ -112,6 +112,51 @@ flutter:
     - assets/images/
     - assets/virtual_tour/
 
+  # Seoul Night type (DESIGN_SPEC.md §1 "Type"). All three are single-file
+  # *variable* fonts, so each weight below points at the same .ttf — the
+  # asset is bundled once and the duplicate entries exist purely so font
+  # matching finds an exact weight and does not apply synthetic bold on
+  # top of the `wght` axis. The axis itself is driven by `FontVariation`
+  # in lib/design_system/seoul_night/tokens/sn_typography.dart; do not
+  # build these styles by hand.
+  #
+  # Licences: all three are SIL Open Font License 1.1 — see
+  # assets/fonts/OFL.txt.
+  #
+  # Size note: NotoSansKR-Variable.ttf is ~10 MB and dominates the
+  # bundle. It is a full CJK face and cannot be subset ahead of time,
+  # because university glyph tiles render the first syllable of an
+  # arbitrary Korean name. Revisit only if app size becomes a release
+  # blocker — the fallback would be platform Korean fonts, which differ
+  # between Android and iOS and would break the design's consistency.
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter-Variable.ttf
+          weight: 400
+        - asset: assets/fonts/Inter-Variable.ttf
+          weight: 500
+        - asset: assets/fonts/Inter-Variable.ttf
+          weight: 600
+        - asset: assets/fonts/Inter-Variable.ttf
+          weight: 700
+        - asset: assets/fonts/Inter-Variable.ttf
+          weight: 800
+        - asset: assets/fonts/Inter-Variable.ttf
+          weight: 900
+    - family: NotoSansKR
+      fonts:
+        - asset: assets/fonts/NotoSansKR-Variable.ttf
+          weight: 500
+        - asset: assets/fonts/NotoSansKR-Variable.ttf
+          weight: 700
+        - asset: assets/fonts/NotoSansKR-Variable.ttf
+          weight: 900
+    - family: JetBrainsMono
+      fonts:
+        - asset: assets/fonts/JetBrainsMono-Variable.ttf
+          weight: 600
+
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
 

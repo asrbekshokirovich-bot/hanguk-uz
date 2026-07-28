@@ -17,6 +17,8 @@ import '../../features/uni_db/presentation/application_tracker_screen.dart';
 import '../../features/uni_db/presentation/institution_compare_screen.dart';
 import '../../features/uni_db/presentation/institution_detail_screen.dart';
 import '../../features/uni_db/presentation/notification_settings_screen.dart';
+import '../../design_system/seoul_night/gallery/design_gallery_screen.dart';
+import '../feature_flags/design_gallery_flag.dart';
 import '../feature_flags/uni_db_flag.dart';
 
 part 'app_router.g.dart';
@@ -197,6 +199,23 @@ List<RouteBase> _uniDbRoutes() => [
   ),
 ];
 
+/// Seoul Night design gallery — visual QA for
+/// `lib/design_system/seoul_night/`. Registered only when
+/// `kDesignGalleryEnabled` (debug/profile, or
+/// `--dart-define=DESIGN_GALLERY=true`), and exempt from the auth
+/// redirect below so it can be opened without signing in.
+///
+/// Plain GoRoute entry, same pattern as `_uniDbRoutes()` — flipping the
+/// flag must not require running build_runner.
+const String kDesignGalleryPath = '/dev/design-gallery';
+
+List<RouteBase> _designGalleryRoutes() => [
+  GoRoute(
+    path: kDesignGalleryPath,
+    builder: (context, state) => const DesignGalleryScreen(),
+  ),
+];
+
 final appRouterProvider = Provider<GoRouter>((ref) {
   final authStateAsync = ref.watch(authStateProvider);
 
@@ -207,6 +226,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ..._accountRoutes(),
       ..._mapRoutes(),
       if (kUniDbEnabled) ..._uniDbRoutes(),
+      if (kDesignGalleryEnabled) ..._designGalleryRoutes(),
     ],
     redirect: (context, state) {
       final isLoading = authStateAsync.isLoading;
@@ -215,8 +235,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final loc = state.uri.toString();
       final isGoingToLogin = loc == '/login';
       final isGoingToWelcome = loc == '/welcome';
+      // The design gallery renders the system against static sample
+      // data and touches no user state, so it stays reachable in both
+      // directions — signed out (no bounce to /welcome) and signed in
+      // (no bounce to /). Compiled out of release builds entirely.
+      final isGoingToGallery =
+          kDesignGalleryEnabled && loc.startsWith(kDesignGalleryPath);
 
       if (isLoading) return null;
+
+      if (isGoingToGallery) return null;
 
       if (!isAuthenticated && !isGoingToLogin && !isGoingToWelcome) {
         return '/welcome';
