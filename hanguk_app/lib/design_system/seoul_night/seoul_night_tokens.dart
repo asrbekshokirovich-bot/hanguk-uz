@@ -62,6 +62,23 @@ class SeoulColors {
   static const Color limeFill = Color(0x24D4E94C); // lime chip fill
   static const Color neutralFill = Color(0x14FFFFFF);
 
+  // ── Semantic (destructive / failure) ─────────────────────────────────────
+  // Not in the spec's palette, which stops at warning/info — but the app has
+  // genuinely destructive actions (delete account, delete a document) and
+  // genuine failures (a rejected application, a login error). Amber would
+  // read as "heads up" when the meaning is "this cannot be undone" or "this
+  // did not work". Desaturated relative to the legacy `AppColors.error` so it
+  // sits on navy without vibrating.
+  static const Color danger = Color(0xFFEF6B6B);
+  static const Color dangerText = Color(0xFFFF9B9B);
+  static const Color dangerFill = Color(0x29EF6B6B); // 0.16
+
+  // Confirmation that is *not* progress. Progress is lime (spec §4) — this is
+  // for one-off "that worked" moments, e.g. the magic-code success banner.
+  static const Color success = Color(0xFF34D399);
+  static const Color successText = Color(0xFF7BE8C4);
+  static const Color successFill = Color(0x2934D399);
+
   // ── Map (spec §3.5) ──────────────────────────────────────────────────────
   static const Color mapWater = Color(0xFF0C1830);
   static const Color mapLand = Color(0xFF16305A);

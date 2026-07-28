@@ -41,7 +41,11 @@ class HangulTag extends StatelessWidget {
 
 /// Tone of a [StatusChip]. Mapping per spec §3.4:
 /// Submitted = lime, In Review = warning, Docs stage = info.
-enum StatusTone { lime, warning, info, neutral }
+///
+/// [danger] and [success] are outside the spec's palette — see the note on
+/// `SeoulColors.danger`. Reach for [lime] first: ongoing progress is lime,
+/// and [success] is only for a one-off "that worked".
+enum StatusTone { lime, warning, info, neutral, danger, success }
 
 /// A small pill stating where something stands. Optionally carries the Korean
 /// status word (완료 / 대기 / 잠김).
@@ -72,6 +76,10 @@ class StatusChip extends StatelessWidget {
         return SeoulColors.infoFill;
       case StatusTone.neutral:
         return SeoulColors.neutralFill;
+      case StatusTone.danger:
+        return SeoulColors.dangerFill;
+      case StatusTone.success:
+        return SeoulColors.successFill;
     }
   }
 
@@ -85,6 +93,10 @@ class StatusChip extends StatelessWidget {
         return SeoulColors.infoText;
       case StatusTone.neutral:
         return SeoulColors.textSecondary;
+      case StatusTone.danger:
+        return SeoulColors.dangerText;
+      case StatusTone.success:
+        return SeoulColors.successText;
     }
   }
 

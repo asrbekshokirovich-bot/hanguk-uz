@@ -1,14 +1,22 @@
-import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../design_system/adaptive/hanguk_scaffold.dart';
-import '../../../../design_system/adaptive/hanguk_card.dart';
-import '../../../../design_system/theme/app_colors.dart';
-import '../../../../l10n/app_localizations.dart';
+
+import '../../../design_system/seoul_night/seoul_night.dart';
+import '../../../design_system/theme/app_colors.dart';
+import '../../../l10n/app_localizations.dart';
 import '../data/auth_repository.dart';
 
 // ─── Login Screen ──────────────────────────────────────────────────────────────
 
+/// Magic Code (DESIGN_SPEC §3.2).
+///
+/// Key mark in a lime glass tile, the title with its 매직 코드 accent, the mono
+/// code field that lights lime once a full 8-character code is present, and the
+/// lime primary action.
+///
+/// Presentation only — the auth calls, validation thresholds, error handling
+/// and providers below are unchanged.
 class LoginScreen extends ConsumerStatefulWidget {
   final bool initialMagicCodeMode;
 
@@ -199,124 +207,63 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
 
   // ─── Build ────────────────────────────────────────────────────────────────────
 
+  /// Purely presentational: the field lights lime once a full 8-character code
+  /// is present (spec §3.2). Submission validation is untouched and still
+  /// lives in [_handleStudentLogin], which is why the primary button stays
+  /// tappable at every length.
+  bool _isCodeReady(String text) =>
+      text.replaceAll(RegExp(r'[^A-Za-z0-9]'), '').length >= 8;
+
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context)!;
 
-    return HangukScaffold(
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          child: Column(
-            children: [
-              // ── Header ──────────────────────────────────────────────────────────
-              Row(
-                children: [
-                  _logo(size: 40, radius: 10),
-                  const SizedBox(width: 12),
-                  // Brand name — intentionally not localized.
-                  const Text(
-                    'Hanguk',
-                    // Wordmark is white on dark everywhere; lime is for
-                    // actions/active states only (audit A5/C2).
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
+    return SeoulNightScaffold(
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(26, 24, 26, 40),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const SizedBox(height: 24),
 
-              const SizedBox(height: 48),
+            // ── Mark ─────────────────────────────────────────────────────────
+            const Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: _KeyTile(),
+            ),
+            const SizedBox(height: 18),
 
-              // ── Card ─────────────────────────────────────────────────────────────
-              HangukCard(
-                padding: const EdgeInsets.all(28),
-                child: Column(
-                  children: [
-                    _logo(size: 72, radius: 18),
-                    const SizedBox(height: 16),
-                    // Brand name — intentionally not localized.
-                    const Text(
-                      'Hanguk',
-                      style: TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      l10n.loginStudentPortal,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.white.withValues(alpha: 0.5),
-                      ),
-                    ),
-                    const SizedBox(height: 28),
+            // Title + decorative hangul accent (stays Korean in every locale).
+            HangulTag(
+              en: l10n.loginStudentPortal,
+              ko: '매직 코드',
+              titleStyle: SeoulType.headline,
+            ),
+            const SizedBox(height: 10),
 
-                    // ── Messages ───────────────────────────────────────────────────
-                    if (_error != null) ...[
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: AppColors.error.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: AppColors.error.withValues(alpha: 0.3),
-                          ),
-                        ),
-                        child: Text(
-                          _error!,
-                          style: const TextStyle(
-                            color: AppColors.error,
-                            fontSize: 13,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                    ],
-                    if (_success != null) ...[
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: AppColors.success.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: AppColors.success.withValues(alpha: 0.3),
-                          ),
-                        ),
-                        child: Text(
-                          _success!,
-                          style: const TextStyle(
-                            color: AppColors.success,
-                            fontSize: 13,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                    ],
+            Text(l10n.loginAccessCodeHelp, style: SeoulType.bodySecondary),
+            const SizedBox(height: 28),
 
-                    // ── Form ───────────────────────────────────────────────────────
-                    // Magic Code is the single, finished sign-in path (A2/S2).
-                    _buildMagicCodePortal(scheme),
-                  ],
-                ),
-              ),
+            // ── Messages ─────────────────────────────────────────────────────
+            if (_error != null) ...[
+              _MessageCard(message: _error!, tint: AppColors.error),
+              const SizedBox(height: 16),
             ],
-          ),
+            if (_success != null) ...[
+              _MessageCard(message: _success!, tint: AppColors.success),
+              const SizedBox(height: 16),
+            ],
+
+            // ── Form ─────────────────────────────────────────────────────────
+            // Magic Code is the single, finished sign-in path (A2/S2).
+            _buildMagicCodePortal(),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildMagicCodePortal(ColorScheme scheme) {
+  Widget _buildMagicCodePortal() {
     final l10n = AppLocalizations.of(context)!;
     // AutofillGroup lets iOS surface the OTP autofill chip and Android
     // group the credential for save-prompt purposes (audit P0 #3).
@@ -324,46 +271,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: scheme.primary.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: scheme.primary.withValues(alpha: 0.3)),
-            ),
-            child: Text(
-              l10n.loginAccessCodeHelp,
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.white70, fontSize: 13),
+          // Repaints the field's border/glow as the code is typed — no extra
+          // state, and the controller stays the single source of truth.
+          ValueListenableBuilder<TextEditingValue>(
+            valueListenable: _codeCtrl,
+            builder: (context, value, _) => _MagicCodeField(
+              controller: _codeCtrl,
+              ready: _isCodeReady(value.text),
+              onSubmitted: (_) => _handleStudentLogin(),
             ),
           ),
-          const SizedBox(height: 16),
-          _HangukTextField(
-            controller: _codeCtrl,
-            // Mask: code shape is enforced by the inputFormatters; not
-            // localized.
-            hint: 'XXXXXXXX',
-            icon: Icons.key,
-            textCapitalization: TextCapitalization.characters,
-            // OTP autofill: surfaces SMS-code suggestions on iOS QuickType
-            // and triggers the Android one-time-code retriever.
-            autofillHints: const [AutofillHints.oneTimeCode],
-            keyboardType: TextInputType.visiblePassword,
-            textInputAction: TextInputAction.done,
-            onSubmitted: (_) => _handleStudentLogin(),
-            inputFormatters: [
-              FilteringTextInputFormatter.allow(RegExp(r'[A-Z0-9a-z]')),
-              LengthLimitingTextInputFormatter(10),
-            ],
-            style: const TextStyle(
-              letterSpacing: 6,
-              fontFamily: 'monospace',
-              fontSize: 18,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(height: 16),
-          _HangukButton(
+          const SizedBox(height: 20),
+          LimeButton(
             label: l10n.loginAccessCodeButton,
             loading: _loading,
             onPressed: _handleStudentLogin,
@@ -372,145 +291,124 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
       ),
     );
   }
-
-  Widget _logo({required double size, required double radius}) {
-    // Brand logo is purely decorative — the "Hanguk" wordmark next to it
-    // already conveys the brand to assistive tech, so we exclude the image
-    // to prevent screen readers from announcing the file name.
-    return ExcludeSemantics(
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(radius),
-        child: Image.asset(
-          'assets/images/app_icon.png',
-          width: size,
-          height: size,
-          fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => Container(
-            width: size,
-            height: size,
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary,
-              borderRadius: BorderRadius.circular(radius),
-            ),
-            child: const Icon(Icons.school, color: Colors.white),
-          ),
-        ),
-      ),
-    );
-  }
 }
 
 // ─── Reusable Widgets ─────────────────────────────────────────────────────────
 
-class _HangukTextField extends StatelessWidget {
-  final TextEditingController controller;
-  final String hint;
-  final IconData icon;
-  final bool obscureText;
-  final TextCapitalization textCapitalization;
-  final List<TextInputFormatter>? inputFormatters;
-  final TextStyle? style;
-  // Accessibility / autofill plumbing — see WCAG 2.2 + audit P0 #3.
-  // Passing these enables iOS QuickType, Android Autofill, and OTP
-  // surface bar suggestions on the magic-code field.
-  final Iterable<String>? autofillHints;
-  final TextInputType? keyboardType;
-  final TextInputAction? textInputAction;
-  final FocusNode? focusNode;
-  final ValueChanged<String>? onSubmitted;
+/// The Magic Code mark: a key in a lime glass tile (spec §3.2).
+class _KeyTile extends StatelessWidget {
+  const _KeyTile();
 
-  const _HangukTextField({
-    required this.controller,
-    required this.hint,
-    required this.icon,
-    this.obscureText = false,
-    this.textCapitalization = TextCapitalization.none,
-    this.inputFormatters,
-    this.style,
-    this.autofillHints,
-    this.keyboardType,
-    this.textInputAction,
-    this.focusNode,
-    this.onSubmitted,
-  });
+  static const double _size = 58;
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
-      controller: controller,
-      focusNode: focusNode,
-      obscureText: obscureText,
-      textCapitalization: textCapitalization,
-      inputFormatters: inputFormatters,
-      autofillHints: autofillHints,
-      keyboardType: keyboardType,
-      textInputAction: textInputAction,
-      onSubmitted: onSubmitted,
-      style: style ?? const TextStyle(color: Colors.white),
-      decoration: InputDecoration(
-        hintText: hint,
-        hintStyle: const TextStyle(color: Colors.white70),
-        prefixIcon: Icon(icon, color: Colors.white70, size: 18),
-        filled: true,
-        fillColor: Colors.white.withValues(alpha: 0.06),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+    return Container(
+      width: _size,
+      height: _size,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: SeoulColors.limeFill,
+        borderRadius: SeoulRadii.tileR,
+        border: Border.all(
+          color: SeoulColors.lime.withValues(alpha: 0.35),
+          width: 1,
         ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+        boxShadow: SeoulShadows.limeGlowSmall,
+      ),
+      child: const Icon(Icons.key, size: 24, color: SeoulColors.lime),
+    );
+  }
+}
+
+/// The access-code input: glass fill, JetBrains Mono at 0.3em tracking, and a
+/// lime border + glow the moment a full code is in (spec §3.2).
+class _MagicCodeField extends StatelessWidget {
+  const _MagicCodeField({
+    required this.controller,
+    required this.ready,
+    required this.onSubmitted,
+  });
+
+  final TextEditingController controller;
+
+  /// 8 valid characters entered — border goes lime and the glow comes up.
+  final bool ready;
+
+  final ValueChanged<String> onSubmitted;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedContainer(
+      duration: SeoulMotion.base,
+      curve: SeoulMotion.smooth,
+      decoration: BoxDecoration(
+        color: SeoulColors.glass,
+        borderRadius: SeoulRadii.controlR,
+        border: Border.all(
+          color: ready ? SeoulColors.lime : SeoulColors.glassBorder,
+          width: 1,
         ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Theme.of(context).colorScheme.primary),
+        boxShadow: ready ? SeoulShadows.limeGlowSmall : null,
+      ),
+      child: TextField(
+        controller: controller,
+        textCapitalization: TextCapitalization.characters,
+        // OTP autofill: surfaces SMS-code suggestions on iOS QuickType
+        // and triggers the Android one-time-code retriever.
+        autofillHints: const [AutofillHints.oneTimeCode],
+        keyboardType: TextInputType.visiblePassword,
+        textInputAction: TextInputAction.done,
+        onSubmitted: onSubmitted,
+        inputFormatters: [
+          FilteringTextInputFormatter.allow(RegExp(r'[A-Z0-9a-z]')),
+          LengthLimitingTextInputFormatter(10),
+        ],
+        style: SeoulType.codeInput,
+        cursorColor: SeoulColors.lime,
+        decoration: InputDecoration(
+          // Mask: code shape is enforced by the inputFormatters; not
+          // localized.
+          hintText: 'XXXXXXXX',
+          hintStyle: SeoulType.codeInput.copyWith(color: SeoulColors.textFaint),
+          filled: false,
+          border: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          focusedBorder: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 18,
+          ),
         ),
       ),
     );
   }
 }
 
-class _HangukButton extends StatelessWidget {
-  final String label;
-  final bool loading;
-  final VoidCallback onPressed;
+/// Inline error / success banner.
+///
+/// Keeps the legacy semantic colours: Seoul Night has no error/success token,
+/// and its amber `warning` would read as a non-blocking notice rather than a
+/// failed sign-in.
+class _MessageCard extends StatelessWidget {
+  const _MessageCard({required this.message, required this.tint});
 
-  const _HangukButton({
-    required this.label,
-    required this.loading,
-    required this.onPressed,
-  });
+  final String message;
+  final Color tint;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 50,
-      child: ElevatedButton(
-        onPressed: loading ? null : onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Theme.of(context).colorScheme.primary,
-          foregroundColor: Colors.black, // Dark text on Lime background
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
-          ),
-          elevation: 0,
-        ),
-        child: loading
-            ? const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: Colors.black,
-                ),
-              )
-            : Text(
-                label,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
+    return GlassCard(
+      radius: SeoulRadii.control,
+      padding: const EdgeInsets.all(12),
+      fillColor: tint.withValues(alpha: 0.1),
+      borderColor: tint.withValues(alpha: 0.3),
+      showShadow: false,
+      blur: false,
+      child: Text(
+        message,
+        textAlign: TextAlign.center,
+        style: SeoulType.bodySecondary.copyWith(color: tint),
       ),
     );
   }

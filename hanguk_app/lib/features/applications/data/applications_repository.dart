@@ -160,7 +160,11 @@ final applicationsProvider = FutureProvider<List<StudentApplication>>((
     // Join with institutions table to get university name/location in one call
     final data = await client
         .from('applications')
-        .select('*, university:institutions(id, name_en, city_ko, is_partner)')
+        // name_ko feeds the hangul glyph tile on the application cards
+        // (DESIGN_SPEC §3.4) — the first syllable of the Korean name.
+        .select(
+          '*, university:institutions(id, name_en, name_ko, city_ko, is_partner)',
+        )
         .eq('student_id', user.id)
         .order('created_at', ascending: false)
         // Don't let a stalled/slow connection spin forever — surface an error
@@ -180,6 +184,8 @@ final applicationsProvider = FutureProvider<List<StudentApplication>>((
           id: uniRow['id'] as String,
           name: uniRow['name_en'] as String? ?? 'Unknown University',
           location: uniRow['city_ko'] as String? ?? 'South Korea',
+          nameKo: uniRow['name_ko'] as String?,
+          nameEn: uniRow['name_en'] as String?,
           isPartner: uniRow['is_partner'] as bool? ?? false,
         );
       }
