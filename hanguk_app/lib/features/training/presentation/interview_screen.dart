@@ -123,8 +123,19 @@ class _InterviewScreenState extends ConsumerState<InterviewScreen> {
       // the recorded session. The simpler InterviewFeedbackView is reachable
       // separately if needed.
       return const InterviewAnalyticsView();
-    } else {
+    } else if (state.status == 'active') {
       return const InterviewActiveView();
+    } else {
+      // 'abandoned' (or anything unexpected): never remount the live-call
+      // view against a dead session — return to setup instead.
+      return InterviewSetupView(
+        onHistoryTapped: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const InterviewHistoryView()),
+          );
+        },
+      );
     }
   }
 }

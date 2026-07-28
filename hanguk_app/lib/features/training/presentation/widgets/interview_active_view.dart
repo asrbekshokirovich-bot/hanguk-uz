@@ -67,7 +67,12 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.detached) {
-      if (_isCallActive && !_didEndSession) {
+      // Only auto-end once the interview has actually started. During the
+      // handshake the OS mic-permission dialog (or a notification shade)
+      // can drive the activity to `paused` on some OEMs — auto-ending there
+      // consumed the one-shot _didEndSession latch mid-connect and left the
+      // screen stuck with a dead End button.
+      if (_isCallActive && _firstMessageReceived && !_didEndSession) {
         _didEndSession = true;
         unawaited(_completeAutoEnd());
       }
@@ -90,13 +95,38 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
   Future<void> _startCall() async {
     // Tear down any interview call still live from a previous screen so the
     // two don't talk over each other (and don't freeze the app under the
-    // doubled WebRTC load).
+    // doubled WebRTC load). Guarded: a poisoned previous instance must never
+    // abort THIS start.
     if (_liveInstance != null && !identical(_liveInstance, this)) {
-      _liveInstance!._stopCall();
+      try {
+        _liveInstance!._stopCall();
+      } catch (e) {
+        debugPrint('[VAPI] Previous-instance teardown failed: $e');
+      }
     }
     _liveInstance = this;
 
     setState(() => _isCallActive = true);
+
+    // Connect watchdog, armed BEFORE anything that can hang or throw: if the
+    // interviewer hasn't spoken within 25s of entering this screen — the
+    // handshake stalled, the assistant pipeline died silently ("dead air"),
+    // or a pre-connect exception was swallowed — stop waiting forever and
+    // surface a retryable error. Cancelled by the first speech-start event.
+    _greetTimer?.cancel();
+    _greetTimer = Timer(const Duration(seconds: 25), () {
+      if (!mounted || _firstMessageReceived || _errorMessage != null) return;
+      setState(() {
+        _isCallActive = false;
+        _errorMessage =
+            'The interviewer did not respond. Please go back and try again.';
+      });
+      // Kill whatever half-open call/mic is lingering.
+      try {
+        _stopCall();
+      } catch (_) {}
+    });
+
     final interviewState = ref.read(interviewProvider);
 
     final targetUni =
@@ -105,10 +135,12 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
     final isKorean = interviewState.selectedLanguage == 'ko';
 
     // Address the student by the name from their profile — set at login as
-    // user_metadata.full_name. Empty string when unavailable → generic copy.
+    // user_metadata.full_name. Type-checked (not cast): a non-String value
+    // here used to throw before the try block and silently kill the whole
+    // start sequence.
     final currentUser = Supabase.instance.client.auth.currentUser;
-    final studentName =
-        (currentUser?.userMetadata?['full_name'] as String?)?.trim() ?? '';
+    final rawName = currentUser?.userMetadata?['full_name'];
+    final studentName = rawName is String ? rawName.trim() : '';
 
     // Build the system prompt from state
     String systemPrompt =
@@ -176,14 +208,16 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
       interviewState.selectedLanguage,
     );
 
+    Future<VapiCall>? startFuture;
     try {
       // Audit B5: wrap the Vapi handshake in a 30-second timeout so a
       // stuck WebRTC negotiation surfaces as a real error instead of a
-      // spinner forever.
-      _call = await _client
-          ?.start(
-            waitUntilActive: true,
-            assistant: {
+      // spinner forever. The raw future is kept so a join that completes
+      // AFTER we gave up is torn down instead of lingering as a ghost call
+      // with a live microphone.
+      startFuture = _client?.start(
+        waitUntilActive: true,
+        assistant: {
               'model': {
                 'provider': 'openai',
                 'model': 'gpt-4o',
@@ -212,14 +246,14 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
                   : (studentName.isNotEmpty
                         ? 'Hello $studentName! Are you ready to begin our interview for $targetUni?'
                         : 'Hello! Are you ready to begin our interview for $targetUni?'),
-            },
-          )
-          .timeout(
-            const Duration(seconds: 30),
-            onTimeout: () => throw TimeoutException(
-              'Vapi handshake timed out after 30 seconds.',
-            ),
-          );
+        },
+      );
+      _call = await startFuture?.timeout(
+        const Duration(seconds: 30),
+        onTimeout: () => throw TimeoutException(
+          'Vapi handshake timed out after 30 seconds.',
+        ),
+      );
 
       // Notify the global provider that Vapi is now live
       ref.read(interviewProvider.notifier).setVapiConnected(true);
@@ -227,19 +261,8 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
         ref.read(interviewProvider.notifier).setVapiCallId(_call!.id);
       }
       debugPrint('[VAPI] Connected successfully.');
-
-      // Greeting watchdog: if the interviewer hasn't spoken within 18s of
-      // connecting, stop waiting forever — surface a failure so the user can
-      // go back and retry (the End button works from this state too).
-      _greetTimer?.cancel();
-      _greetTimer = Timer(const Duration(seconds: 18), () {
-        if (!mounted || _firstMessageReceived || _didEndSession) return;
-        setState(() {
-          _isCallActive = false;
-          _errorMessage =
-              'The interviewer did not respond. Please go back and try again.';
-        });
-      });
+      // (Connect watchdog was armed at the top of _startCall — it stays
+      // armed until the first speech-start event cancels it.)
 
       _eventSub = _call?.onEvent.listen((event) {
         if (!mounted) return;
@@ -247,9 +270,53 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
         final eventLabel = event.label;
         final eventValue = event.value;
 
+        // The vendored Vapi SDK emits speech/call lifecycle as TOP-LEVEL
+        // labels ('speech-start', 'speech-end', 'call-start', 'call-end') —
+        // NOT nested inside 'message' payloads. The app previously matched
+        // only the nested variants, which never fire, so the status text
+        // could never leave "…will greet you shortly" even when the AI was
+        // audibly speaking (root cause of the stuck-greetWait bug).
+        if (eventLabel == 'speech-start') {
+          _greetTimer?.cancel();
+          setState(() {
+            _isAI_Speaking = true;
+            _firstMessageReceived = true;
+            _currentWords = '';
+          });
+          return;
+        }
+        if (eventLabel == 'speech-end') {
+          setState(() {
+            _isAI_Speaking = false;
+          });
+          // If the AI has invoked endCall, wait until its closing remark
+          // finishes speaking before tearing down (auto-end path).
+          if (_aiRequestedEnd && !_didEndSession) {
+            _didEndSession = true;
+            _forceEndTimer?.cancel();
+            unawaited(_completeAutoEnd());
+          }
+          return;
+        }
+
         // Catch internal Vapi connection failures and surface them immediately
         if (eventLabel == 'call-end') {
-          debugPrint('[VAPI] Call ended organically.');
+          debugPrint('[VAPI] Call ended.');
+          // The call died before the interviewer ever spoke (assistant
+          // pipeline failure, rejected config, TTS dead-air, network) —
+          // surface it instead of leaving "will greet you shortly" forever.
+          if (!_firstMessageReceived &&
+              !_didEndSession &&
+              _errorMessage == null) {
+            _greetTimer?.cancel();
+            ref.read(interviewProvider.notifier).setVapiConnected(false);
+            setState(() {
+              _isCallActive = false;
+              _errorMessage =
+                  'The call ended before the interviewer could speak. '
+                  'Please try again.';
+            });
+          }
         } else if (eventLabel == 'status-update' ||
             eventLabel == 'statusUpdate') {
           debugPrint('[VAPI STATUS UPDATE] $eventValue');
@@ -358,9 +425,39 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
       debugPrint('Vapi Start Error Type: ${e.runtimeType}');
       debugPrint('Vapi Start Error: $e');
       debugPrint('Vapi StackTrace: $st');
+      // Ghost-call cleanup: our .timeout only abandons the await — the SDK
+      // keeps joining in the background. If that late join eventually
+      // succeeds, stop and dispose the resulting call so no orphaned WebRTC
+      // call keeps the microphone open (the historical "two overlapping
+      // voices" bug).
+      final sf = startFuture;
+      if (sf != null) {
+        unawaited(
+          sf.then(
+            (lateCall) {
+              if (identical(lateCall, _call)) return;
+              try {
+                unawaited(
+                  lateCall.stop().catchError((_) {}).whenComplete(() {
+                    try {
+                      lateCall.dispose();
+                    } catch (_) {}
+                  }),
+                );
+              } catch (_) {
+                try {
+                  lateCall.dispose();
+                } catch (_) {}
+              }
+            },
+            onError: (_) {},
+          ),
+        );
+      }
       // Notify provider of failed connection so UI can react globally
       ref.read(interviewProvider.notifier).setVapiConnected(false);
-      if (mounted) {
+      // Don't overwrite a message the connect watchdog already surfaced.
+      if (mounted && _errorMessage == null) {
         setState(() {
           _isCallActive = false;
           // Expose explicit native parsing errors and connection timeouts dynamically to the UI!
@@ -375,6 +472,12 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
 
   /// Centralized stop/cleanup for the Vapi call.
   /// Always call this instead of calling _call?.dispose() directly.
+  ///
+  /// Every teardown step is individually guarded: `stop()` returns a failed
+  /// Future (VapiCallEndedException) when the call already ended, and
+  /// `dispose()` can throw on a half-initialized CallClient. An unguarded
+  /// throw here used to abort the whole end-flow before the UI sync ran,
+  /// leaving the screen stuck with a dead End button.
   void _stopCall() {
     if (_isStopping) return;
     _isStopping = true;
@@ -383,12 +486,8 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
     _forceEndTimer?.cancel();
     _timeLimitTimer?.cancel();
     _greetTimer?.cancel();
-    _eventSub?.cancel();
-    _call
-        ?.stop(); // Explicit hang-up BEFORE dispose to prevent orphaned WebRTC connections
-    _call?.dispose();
-    _client?.dispose();
-    // Sync disconnected state to global provider safely
+
+    // Sync UI/provider state FIRST so no SDK-teardown failure can prevent it.
     if (mounted) {
       ref.read(interviewProvider.notifier).setVapiConnected(false);
       setState(() {
@@ -396,6 +495,33 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
         _isAI_Speaking = false;
       });
     }
+
+    try {
+      _eventSub?.cancel();
+    } catch (_) {}
+
+    final call = _call;
+    if (call != null) {
+      try {
+        // Explicit hang-up BEFORE dispose (prevents orphaned WebRTC
+        // connections); dispose only after stop() settles so we don't
+        // dispose the CallClient while leave() is still in flight.
+        unawaited(
+          call.stop().catchError((_) {}).whenComplete(() {
+            try {
+              call.dispose();
+            } catch (_) {}
+          }),
+        );
+      } catch (_) {
+        try {
+          call.dispose();
+        } catch (_) {}
+      }
+    }
+    try {
+      _client?.dispose();
+    } catch (_) {}
 
     if (identical(_liveInstance, this)) _liveInstance = null;
   }
@@ -409,11 +535,28 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
   /// Tear down the call and ask the provider to fetch feedback. Riverpod will
   /// flip state.status to 'completed', which causes InterviewScreen to swap
   /// the active view out for the post-session view.
+  ///
+  /// Guaranteed-exit contract: every step is guarded and, whatever happens,
+  /// the provider is left in a state that unmounts this screen — the End
+  /// button must NEVER be a no-op.
   Future<void> _completeAutoEnd() async {
+    // Capture provider handles up-front: the notifier outlives this widget,
+    // so the flow keeps working even if the view unmounts mid-way.
+    final notifier = ref.read(interviewProvider.notifier);
     final lang = ref.read(interviewProvider).selectedLanguage;
-    _stopCall();
-    if (!mounted) return;
-    await ref.read(interviewProvider.notifier).endSession(language: lang);
+    try {
+      _stopCall();
+    } catch (e) {
+      debugPrint('[Interview] _stopCall failed during end: $e');
+    }
+    try {
+      await notifier.endSession(language: lang);
+    } catch (e) {
+      debugPrint('[Interview] endSession failed: $e');
+    }
+    // Last-resort escape hatch: if the session is somehow still 'active'
+    // (or parked on 'abandoned'), force it to idle so the screen exits.
+    notifier.forceIdleIfActive();
   }
 
   void _resetSilenceTimer() {

@@ -440,14 +440,51 @@ class InterviewNotifier extends Notifier<InterviewSessionState> {
 
   // ── End session & feedback ───────────────────────────────────────────────
 
+  /// Reentrancy latch for endSession. Previously the guard piggybacked on
+  /// `state.isLoading`, but ANY stray isLoading=true (e.g. a hung network
+  /// call that never reached its finally) then turned endSession into a
+  /// permanent no-op — the user could never leave the interview screen.
+  bool _ending = false;
+
+  /// Last-resort escape hatch for the interview view: whatever went wrong,
+  /// return the UI to the setup screen (unless the session finished
+  /// normally and is showing feedback).
+  void forceIdleIfActive() {
+    if (state.status == 'active' || state.status == 'abandoned') {
+      state = state.copyWith(
+        status: 'idle',
+        isLoading: false,
+        isProcessing: false,
+        isVapiConnected: false,
+        clearError: true,
+      );
+    }
+  }
+
   Future<Map<String, dynamic>?> endSession({String language = 'ko'}) async {
     final sessionId = state.sessionId;
-    if (sessionId == null) return null;
+    if (sessionId == null) {
+      // Nothing to end — but never leave the screen trapped on 'active'.
+      forceIdleIfActive();
+      return null;
+    }
     // Audit D10: guard against double-fire. Tapping "End Session" twice
     // (or the AppBar end + the auto-end timer triggering simultaneously)
     // would otherwise hit `interview-feedback` twice and produce
     // duplicate feedback rows.
-    if (state.isLoading || state.status == 'completed') return state.feedback;
+    if (_ending || state.status == 'completed') return state.feedback;
+    _ending = true;
+    try {
+      return await _endSessionInner(sessionId, language);
+    } finally {
+      _ending = false;
+    }
+  }
+
+  Future<Map<String, dynamic>?> _endSessionInner(
+    String sessionId,
+    String language,
+  ) async {
 
     // If the interview never produced a real exchange (still connecting, or
     // the student ended right away), there is nothing to analyze. Abandon the
@@ -484,10 +521,14 @@ class InterviewNotifier extends Notifier<InterviewSessionState> {
     try {
       final client = Supabase.instance.client;
 
-      final response = await client.functions.invoke(
-        'interview-feedback',
-        body: {'sessionId': sessionId, 'language': language},
-      );
+      // Timed: a hung feedback call must never trap the user on the
+      // interview screen (the catch below guarantees an exit).
+      final response = await client.functions
+          .invoke(
+            'interview-feedback',
+            body: {'sessionId': sessionId, 'language': language},
+          )
+          .timeout(const Duration(seconds: 25));
 
       final data = response.data as Map<String, dynamic>?;
       if (data == null || data['error'] != null) {
@@ -558,7 +599,22 @@ class InterviewNotifier extends Notifier<InterviewSessionState> {
 
       return fb;
     } on Exception catch (e) {
-      state = state.copyWith(error: 'Failed to end session: ${e.toString()}');
+      // Feedback generation failed (network, timeout, server) — do NOT trap
+      // the user on the interview screen. Exit to setup and mark the row
+      // abandoned in the background.
+      debugPrint('endSession: feedback failed, abandoning session: $e');
+      state = state.copyWith(
+        status: 'idle',
+        isVapiConnected: false,
+        clearError: true,
+      );
+      unawaited(
+        Supabase.instance.client
+            .from('interview_sessions')
+            .update({'status': 'abandoned'})
+            .eq('id', sessionId)
+            .then((_) {}, onError: (_) {}),
+      );
       return null;
     } finally {
       state = state.copyWith(isLoading: false);
