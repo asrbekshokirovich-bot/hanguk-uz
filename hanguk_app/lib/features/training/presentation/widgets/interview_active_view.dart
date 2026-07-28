@@ -759,10 +759,15 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
               _buildStatusText(l),
               textAlign: TextAlign.center,
               style: TextStyle(
+                // Red means a real failure only. "The interviewer is
+                // speaking" used to render in the error colour, which made a
+                // perfectly normal state look like something had gone wrong.
+                // Now: white = the AI is talking, lime = your turn,
+                // red = something failed.
                 color: _errorMessage != null
                     ? AppColors.error
                     : (_isAI_Speaking
-                          ? AppColors.error
+                          ? Colors.white
                           : (_isCallActive
                                 ? AppColors.vibrantLime
                                 : Colors.white54)),
@@ -772,10 +777,19 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
             ),
             const Spacer(),
 
-            // Transcript & controls panel
+            // Transcript & controls panel.
+            //
+            // flex: 3 against the two Spacers (flex 1 each) — with equal flex
+            // the panel only got a third of the free space, and since the End
+            // button + its label take ~110px of that as fixed height, the
+            // transcript area collapsed to a sliver and rendered half-cut
+            // lines. clipBehavior keeps a partially-scrolled line inside the
+            // rounded corners instead of bleeding past the panel edge.
             Flexible(
+              flex: 3,
               child: Container(
-                padding: const EdgeInsets.all(24),
+                clipBehavior: Clip.antiAlias,
+                padding: const EdgeInsets.fromLTRB(24, 18, 24, 8),
                 width: double.infinity,
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.05),
