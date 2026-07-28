@@ -82,7 +82,7 @@ class _WalkaroundRouteEntry extends ConsumerWidget {
     final unisAsync = ref.watch(universitiesProvider);
     return unisAsync.when(
       loading: () => const _RouteLoadingShell(),
-      error: (_, __) => const _RouteMissingShell(),
+      error: (_, _) => const _RouteMissingShell(),
       data: (unis) {
         University? match;
         for (final u in unis) {

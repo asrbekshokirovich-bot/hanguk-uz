@@ -27,11 +27,10 @@ class _MobileMapWidget extends StatefulWidget {
   final String locale;
 
   const _MobileMapWidget({
-    Key? key,
     required this.universities,
     required this.onMarkerClick,
     required this.locale,
-  }) : super(key: key);
+  });
 
   @override
   State<_MobileMapWidget> createState() => _MobileMapWidgetState();

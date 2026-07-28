@@ -156,16 +156,19 @@ class AppLocalizationsRu extends AppLocalizations {
   String get documentsTabTitle => 'Мои документы';
 
   @override
-  String get documentUploadInfo => 'Загрузите корректные PDF или JPEG сканы оригиналов документов. Максимум 10 МБ на файл.';
+  String get documentUploadInfo =>
+      'Загрузите корректные PDF или JPEG сканы оригиналов документов. Максимум 10 МБ на файл.';
 
   @override
   String get documentsRequiredHeading => 'Необходимые документы';
 
   @override
-  String get documentUploadFailed => 'Не удалось загрузить документ. Пожалуйста, попробуйте ещё раз.';
+  String get documentUploadFailed =>
+      'Не удалось загрузить документ. Пожалуйста, попробуйте ещё раз.';
 
   @override
-  String get documentPreviewFailed => 'Не удалось открыть документ. Пожалуйста, попробуйте ещё раз.';
+  String get documentPreviewFailed =>
+      'Не удалось открыть документ. Пожалуйста, попробуйте ещё раз.';
 
   @override
   String get documentLoadError => 'Не удалось загрузить ваши документы.';
@@ -186,25 +189,29 @@ class AppLocalizationsRu extends AppLocalizations {
   String get onboardingStep1Title => 'Отслеживайте заявки';
 
   @override
-  String get onboardingStep1Body => 'Следите за каждой заявкой в университет — от документов до решения — в одном месте.';
+  String get onboardingStep1Body =>
+      'Следите за каждой заявкой в университет — от документов до решения — в одном месте.';
 
   @override
   String get onboardingStep2Title => 'Изучайте вузы и загружайте документы';
 
   @override
-  String get onboardingStep2Body => 'Находите университеты на карте и безопасно загружайте нужные документы.';
+  String get onboardingStep2Body =>
+      'Находите университеты на карте и безопасно загружайте нужные документы.';
 
   @override
   String get onboardingStep3Title => 'Тренируйте интервью с ИИ';
 
   @override
-  String get onboardingStep3Body => 'Репетируйте вступительные интервью с ИИ-коучем и получайте мгновенную обратную связь.';
+  String get onboardingStep3Body =>
+      'Репетируйте вступительные интервью с ИИ-коучем и получайте мгновенную обратную связь.';
 
   @override
   String get appsEmptyTitle => 'Заявок пока нет';
 
   @override
-  String get appsEmptyBody => 'Ваши заявки появятся здесь после подачи в университет.';
+  String get appsEmptyBody =>
+      'Ваши заявки появятся здесь после подачи в университет.';
 
   @override
   String get appsLoadError => 'Не удалось загрузить ваши заявки.';
@@ -397,7 +404,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get notifSettingsEmptyBody =>
-      'Tap "Track this institution" on a university page to follow it. Notification preferences appear here once you have at least one tracked institution.';
+      'Tap \"Track this institution\" on a university page to follow it. Notification preferences appear here once you have at least one tracked institution.';
 
   @override
   String get notifSettingsCalendar => 'Calendar changes';
@@ -526,7 +533,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String grammarReplaceWith(String original, String suggestion) {
-    return 'Replace "$original" with "$suggestion"';
+    return 'Replace \"$original\" with \"$suggestion\"';
   }
 
   @override

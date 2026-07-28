@@ -155,7 +155,7 @@ class SeoulHomeTab extends ConsumerWidget {
     // ── 1. Journey hero ────────────────────────────────────────────────────
     final Widget journeyCard = appsAsync.when(
       loading: () => const _LoadingCard(),
-      error: (_, __) => _ErrorCard(
+      error: (_, _) => _ErrorCard(
         message: l.appsLoadError,
         onRetry: () => ref.invalidate(applicationsProvider),
       ),
@@ -177,7 +177,7 @@ class SeoulHomeTab extends ConsumerWidget {
     // ── 2. Next step: the required-document checklist ──────────────────────
     final Widget nextStepCard = docsAsync.when(
       loading: () => const _LoadingCard(),
-      error: (_, __) => _ErrorCard(
+      error: (_, _) => _ErrorCard(
         message: l.documentLoadError,
         onRetry: () => ref.invalidate(documentsProvider),
       ),
@@ -193,7 +193,7 @@ class SeoulHomeTab extends ConsumerWidget {
     // here would put the same spinner on screen twice.
     final List<Widget> previews = appsAsync.when(
       loading: () => <Widget>[],
-      error: (_, __) => <Widget>[],
+      error: (_, _) => <Widget>[],
       data: (apps) {
         if (apps.isEmpty) return <Widget>[];
         return <Widget>[

@@ -155,16 +155,19 @@ class AppLocalizationsUz extends AppLocalizations {
   String get documentsTabTitle => 'Hujjatlarim';
 
   @override
-  String get documentUploadInfo => 'Asl hujjatlaringizning to‘g‘ri PDF yoki JPEG nusxalarini yuklang. Har bir fayl uchun eng ko‘pi 10MB.';
+  String get documentUploadInfo =>
+      'Asl hujjatlaringizning to‘g‘ri PDF yoki JPEG nusxalarini yuklang. Har bir fayl uchun eng ko‘pi 10MB.';
 
   @override
   String get documentsRequiredHeading => 'Kerakli hujjatlar';
 
   @override
-  String get documentUploadFailed => 'Hujjatingizni yuklab bo‘lmadi. Iltimos, qayta urinib ko‘ring.';
+  String get documentUploadFailed =>
+      'Hujjatingizni yuklab bo‘lmadi. Iltimos, qayta urinib ko‘ring.';
 
   @override
-  String get documentPreviewFailed => 'Hujjatni ochib bo‘lmadi. Iltimos, qayta urinib ko‘ring.';
+  String get documentPreviewFailed =>
+      'Hujjatni ochib bo‘lmadi. Iltimos, qayta urinib ko‘ring.';
 
   @override
   String get documentLoadError => 'Hujjatlaringizni yuklab bo‘lmadi.';
@@ -185,25 +188,30 @@ class AppLocalizationsUz extends AppLocalizations {
   String get onboardingStep1Title => 'Arizalaringizni kuzating';
 
   @override
-  String get onboardingStep1Body => 'Har bir universitet arizasini hujjatlardan qarorgacha bitta joyda kuzating.';
+  String get onboardingStep1Body =>
+      'Har bir universitet arizasini hujjatlardan qarorgacha bitta joyda kuzating.';
 
   @override
-  String get onboardingStep2Title => 'Universitetlarni o\'rganing va hujjat yuklang';
+  String get onboardingStep2Title =>
+      'Universitetlarni o\'rganing va hujjat yuklang';
 
   @override
-  String get onboardingStep2Body => 'Universitetlarni xaritada toping va har biri uchun kerakli hujjatlarni xavfsiz yuklang.';
+  String get onboardingStep2Body =>
+      'Universitetlarni xaritada toping va har biri uchun kerakli hujjatlarni xavfsiz yuklang.';
 
   @override
   String get onboardingStep3Title => 'AI bilan suhbatga tayyorlaning';
 
   @override
-  String get onboardingStep3Body => 'AI murabbiy bilan koreys universitetlari suhbatlarini mashq qiling va darhol fikr-mulohaza oling.';
+  String get onboardingStep3Body =>
+      'AI murabbiy bilan koreys universitetlari suhbatlarini mashq qiling va darhol fikr-mulohaza oling.';
 
   @override
   String get appsEmptyTitle => 'Hozircha arizalar yo\'q';
 
   @override
-  String get appsEmptyBody => 'Universitetga ariza topshirganingizdan so\'ng arizalaringiz shu yerda ko\'rinadi.';
+  String get appsEmptyBody =>
+      'Universitetga ariza topshirganingizdan so\'ng arizalaringiz shu yerda ko\'rinadi.';
 
   @override
   String get appsLoadError => 'Arizalaringizni yuklab bo\'lmadi.';
@@ -239,7 +247,8 @@ class AppLocalizationsUz extends AppLocalizations {
   String get universitiesLoadError => 'Universitetlarni yuklab bo\'lmadi';
 
   @override
-  String get checkConnectionRetry => 'Internetni tekshirib, qayta urinib ko\'ring';
+  String get checkConnectionRetry =>
+      'Internetni tekshirib, qayta urinib ko\'ring';
 
   @override
   String get switchToListView => 'Ro\'yxat ko\'rinishiga o\'tish';
@@ -248,7 +257,8 @@ class AppLocalizationsUz extends AppLocalizations {
   String get switchToMapView => 'Xarita ko\'rinishiga o\'tish';
 
   @override
-  String get chatInputHint => 'Janubiy Koreya haqida xohlagan savolingizni bering...';
+  String get chatInputHint =>
+      'Janubiy Koreya haqida xohlagan savolingizni bering...';
 
   @override
   String get accountTooltip => 'Hisob';
@@ -395,7 +405,7 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get notifSettingsEmptyBody =>
-      'Universitet sahifasida "Bu muassasani kuzatish"ni bosib obuna bo\'ling. Kamida bitta kuzatuv qo\'shilgach, bildirishnoma sozlamalari shu yerda paydo bo\'ladi.';
+      'Universitet sahifasida \"Bu muassasani kuzatish\"ni bosib obuna bo\'ling. Kamida bitta kuzatuv qo\'shilgach, bildirishnoma sozlamalari shu yerda paydo bo\'ladi.';
 
   @override
   String get notifSettingsCalendar => 'Taqvim o\'zgarishlari';
@@ -526,7 +536,7 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String grammarReplaceWith(String original, String suggestion) {
-    return '"$original" o\'rniga "$suggestion" yozing';
+    return '\"$original\" o\'rniga \"$suggestion\" yozing';
   }
 
   @override

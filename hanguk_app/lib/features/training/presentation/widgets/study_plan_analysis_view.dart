@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../design_system/theme/app_colors.dart';
+
+import '../../../../design_system/seoul_night/seoul_night.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../data/study_plan_repository.dart';
 
+/// Step 4 of the drafting wizard: the AI's read on the current draft.
+///
+/// Seoul Night: the feedback itself lives on a glass card, and the
+/// track-mismatch notice is a warning-toned block carrying a [StatusChip]
+/// with the track the session is actually on.
 class StudyPlanAnalysisView extends ConsumerWidget {
   final String documentType;
   const StudyPlanAnalysisView({super.key, required this.documentType});
@@ -18,44 +24,40 @@ class StudyPlanAnalysisView extends ConsumerWidget {
     // loadSession, saveDraft all flip isLoading).
     if (state.isAnalyzing) {
       return const Center(
-        child: CircularProgressIndicator(color: AppColors.vibrantLime),
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(SeoulColors.lime),
+        ),
       );
     }
 
     final analysis = state.analyses.isNotEmpty ? state.analyses.first : null;
 
     return Padding(
-      padding: const EdgeInsets.all(24.0),
+      padding: const EdgeInsets.fromLTRB(
+        SeoulSizes.screenPadding,
+        4,
+        SeoulSizes.screenPadding,
+        20,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            l.analysisFeedbackTitle,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
+          HangulTag(
+            en: l.analysisFeedbackTitle,
+            ko: '피드백',
+            titleStyle: SeoulType.title,
           ),
           const SizedBox(height: 16),
           if (analysis == null) ...[
             const Spacer(),
             Center(
-              child: Text(
-                l.noAnalysisYet,
-                style: const TextStyle(color: Colors.white54),
-              ),
+              child: Text(l.noAnalysisYet, style: SeoulType.bodySecondary),
             ),
             const Spacer(),
           ] else ...[
             Expanded(
-              child: Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppColors.royalBlue.withValues(alpha: 0.05),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.white10),
-                ),
+              child: GlassCard(
+                padding: const EdgeInsets.all(18),
                 child: SingleChildScrollView(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -64,22 +66,20 @@ class StudyPlanAnalysisView extends ConsumerWidget {
                         state.draftContent,
                         state.currentSession?.selectedTrack,
                       ))
-                        _buildTrackWarning(),
+                        _TrackWarning(
+                          trackLabel: _trackLabel(
+                            l,
+                            state.currentSession?.selectedTrack,
+                          ),
+                        ),
                       if (analysis.aiResponse != null &&
                           analysis.aiResponse!.isNotEmpty)
                         Text(
                           analysis.aiResponse!,
-                          style: const TextStyle(
-                            color: Colors.white70,
-                            height: 1.5,
-                            fontSize: 14,
-                          ),
+                          style: SeoulType.bodySecondary,
                         )
                       else
-                        Text(
-                          l.aiReviewedDraft,
-                          style: const TextStyle(color: Colors.white),
-                        ),
+                        Text(l.aiReviewedDraft, style: SeoulType.body),
                     ],
                   ),
                 ),
@@ -87,19 +87,11 @@ class StudyPlanAnalysisView extends ConsumerWidget {
             ),
           ],
           const SizedBox(height: 16),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.white,
-              foregroundColor: Colors.black,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-            ),
+          LimeButton(
+            label: l.returnToDrafting,
             onPressed: () => ref
                 .read(studyPlanSessionProvider.notifier)
                 .updateSessionStep(documentType, 3),
-            child: Text(
-              l.returnToDrafting,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
           ),
         ],
       ),
@@ -130,46 +122,77 @@ class StudyPlanAnalysisView extends ConsumerWidget {
     return false;
   }
 
-  Widget _buildTrackWarning() {
-    return Builder(
-      builder: (context) {
-        // Show the "your draft language doesn't match your chosen track"
-        // notice in the USER's UI language (not the track's language), so
-        // every locale can read it. Previously it was hardcoded per-track
-        // (ko/en/uz only) — see audit U2 / G3·4.
-        final message = AppLocalizations.of(context)!.trackMismatchWarning;
-        return Container(
-          margin: const EdgeInsets.only(bottom: 16),
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Colors.redAccent.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: Colors.redAccent.withValues(alpha: 0.3),
-            ),
-          ),
-          child: Row(
+  /// Display name of the track the session is on. Accepts both the legacy
+  /// ('english'/'korean') and current ('en'/'ko') codes, exactly like
+  /// [_detectTrackMismatch] does.
+  String _trackLabel(AppLocalizations l, String? track) => switch (track) {
+    'korean' || 'ko' => l.trackKorean,
+    _ => l.trackEnglish,
+  };
+}
+
+/// "Your draft's language doesn't match your chosen track."
+///
+/// The notice is shown in the USER's UI language (not the track's language),
+/// so every locale can read it. Previously it was hardcoded per-track
+/// (ko/en/uz only) — see audit U2 / G3·4.
+class _TrackWarning extends StatelessWidget {
+  const _TrackWarning({required this.trackLabel});
+
+  /// Localized name of the track the draft was supposed to be written in.
+  final String trackLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    final message = AppLocalizations.of(context)!.trackMismatchWarning;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: SeoulColors.warningFill,
+        borderRadius: SeoulRadii.tileR,
+        border: Border.all(color: SeoulColors.warning.withValues(alpha: 0.45)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Icon(
                 Icons.warning_amber_rounded,
-                color: Colors.redAccent,
+                color: SeoulColors.warningText,
                 size: 20,
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 10),
               Expanded(
                 child: Text(
                   message,
-                  style: const TextStyle(
-                    color: Colors.redAccent,
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
+                  style: SeoulType.bodySecondary.copyWith(
+                    color: SeoulColors.warningText,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
             ],
           ),
-        );
-      },
+          const SizedBox(height: 10),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: StatusChip(
+                label: trackLabel,
+                tone: StatusTone.warning,
+                ko: '주의',
+                dense: true,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

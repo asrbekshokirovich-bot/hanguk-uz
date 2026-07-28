@@ -7,7 +7,7 @@
 /// Audit B7 / tests target — Vapi has shipped at least four event
 /// shapes for the `endCall` tool invocation. The parser matches all of
 /// them; the test suite asserts each shape.
-library vapi_event_parser;
+library;
 
 /// Returns true when a Vapi `'message'` event with `type ==
 /// 'tool-calls'` or `'function-call'` represents the AI invoking the

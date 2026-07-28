@@ -48,7 +48,7 @@ class AuthRepository {
     String password,
   ) async {
     try {
-      String formattedPhone = '+' + phone.replaceAll(RegExp(r'[^0-9]'), '');
+      String formattedPhone = '+${phone.replaceAll(RegExp(r'[^0-9]'), '')}';
 
       await _auth.signInWithPassword(phone: formattedPhone, password: password);
       return (error: null);
@@ -209,7 +209,7 @@ class AuthRepository {
         // Soft fail on check: proceed to attempt signup anyway if edge function fails
       }
 
-      String formattedPhone = '+' + phone.replaceAll(RegExp(r'[^0-9]'), '');
+      String formattedPhone = '+${phone.replaceAll(RegExp(r'[^0-9]'), '')}';
 
       final res = await _auth.signUp(
         phone: formattedPhone,

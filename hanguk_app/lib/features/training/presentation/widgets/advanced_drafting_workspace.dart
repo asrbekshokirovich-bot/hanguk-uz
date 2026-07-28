@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../design_system/theme/app_colors.dart';
+import '../../../../design_system/seoul_night/seoul_night.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../data/grammar_issue_resolver.dart' as resolver;
 import '../../data/study_plan_repository.dart';
@@ -55,6 +55,11 @@ class _AdvancedDraftingWorkspaceState
   // pauses can fire dozens of paid Edge Function calls per minute.
   DateTime? _lastAiCallAt;
   static const Duration _aiMinInterval = Duration(seconds: 6);
+
+  /// Audit A7: hard cap on the draft length. Also drives the completeness
+  /// meter above the metrics bar, so the student can see how much of the
+  /// allowance is left.
+  static const int _maxChars = 12000;
 
   SaveStatus _saveStatus = SaveStatus.saved;
 
@@ -297,72 +302,26 @@ class _AdvancedDraftingWorkspaceState
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              l.workspaceTitle,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+            Expanded(
+              child: HangulTag(
+                en: l.workspaceTitle,
+                ko: '작성 공간',
+                titleStyle: SeoulType.subtitle,
               ),
             ),
-            Flexible(
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 5,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.royalBlue.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.royalBlue),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.psychology,
-                      size: 14,
-                      color: AppColors.vibrantLime,
-                    ),
-                    const SizedBox(width: 6),
-                    Flexible(
-                      child: Text(
-                        _aiStatusText(l),
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 1,
-                        style: const TextStyle(
-                          color: AppColors.vibrantLime,
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            TextButton(
-              onPressed: () async {
-                // Audit A6: previously this fire-and-forgot. If save
-                // failed the analyzer ran on a stale draft. Now we wait
-                // for the save and bail on failure (the SaveStatus error
-                // tag is shown in the LiveMetricsBar).
-                final saved = await _saveDraft(_controller.text);
-                if (!saved || !mounted) return;
-                ref
-                    .read(studyPlanSessionProvider.notifier)
-                    .analyzeCurrentDraft(widget.documentType);
-                ref
-                    .read(studyPlanSessionProvider.notifier)
-                    .updateSessionStep(widget.documentType, 4);
-              },
-              child: Text(
-                l.workspaceAnalyzeButton,
-                style: const TextStyle(
-                  color: AppColors.royalBlue,
-                  fontWeight: FontWeight.bold,
+            const SizedBox(width: 12),
+            // The AI's live state. Scaled down rather than clipped so a
+            // long localized status never overflows the row.
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 150),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerRight,
+                child: StatusChip(
+                  label: _aiStatusText(l),
+                  tone: StatusTone.lime,
+                  dense: true,
                 ),
               ),
             ),
@@ -372,12 +331,12 @@ class _AdvancedDraftingWorkspaceState
         if (_activeIssues.isNotEmpty)
           Container(
             margin: const EdgeInsets.only(bottom: 12),
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: Colors.redAccent.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
+              color: SeoulColors.warningFill,
+              borderRadius: SeoulRadii.tileR,
               border: Border.all(
-                color: Colors.redAccent.withValues(alpha: 0.3),
+                color: SeoulColors.warning.withValues(alpha: 0.45),
               ),
             ),
             child: Column(
@@ -387,54 +346,53 @@ class _AdvancedDraftingWorkspaceState
                   children: [
                     const Icon(
                       Icons.warning_amber_rounded,
-                      color: Colors.orangeAccent,
+                      color: SeoulColors.warningText,
                       size: 18,
                     ),
                     const SizedBox(width: 8),
-                    Text(
-                      l.aiSupervisionWarningsTitle,
-                      style: const TextStyle(
-                        color: Colors.orangeAccent,
-                        fontWeight: FontWeight.bold,
+                    Expanded(
+                      child: Text(
+                        l.aiSupervisionWarningsTitle,
+                        style: SeoulType.subtitle.copyWith(
+                          fontSize: 14,
+                          color: SeoulColors.warningText,
+                        ),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: _activeIssues.map((issue) {
-                    return ActionChip(
-                      backgroundColor: AppColors.backgroundNavy,
-                      side: BorderSide(
-                        color: Colors.redAccent.withValues(alpha: 0.5),
-                      ),
-                      label: Text(
-                        l.grammarReplaceWith(
-                          issue.originalText,
-                          issue.suggestion,
-                        ),
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: Colors.white,
-                        ),
-                      ),
-                      onPressed: () => _applyGrammarFix(issue),
-                    );
-                  }).toList(),
+                const SizedBox(height: 10),
+                // Capped and scrollable: a long supervision pass can return
+                // a dozen issues, and an unbounded Wrap would squeeze the
+                // editor off the screen when the keyboard is up.
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxHeight: 132),
+                  child: SingleChildScrollView(
+                    child: Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: _activeIssues.map((issue) {
+                        return _FixChip(
+                          label: l.grammarReplaceWith(
+                            issue.originalText,
+                            issue.suggestion,
+                          ),
+                          onTap: () => _applyGrammarFix(issue),
+                        );
+                      }).toList(),
+                    ),
+                  ),
                 ),
               ],
             ),
           ),
         Expanded(
-          child: Container(
+          child: GlassCard(
             padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.05),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-            ),
+            // No backdrop blur: this surface is full-height and repaints on
+            // every keystroke, and the gradient behind it has nothing worth
+            // blurring anyway.
+            blur: false,
             child: KeyboardListener(
               focusNode: _keyboardListenerFocus,
               onKeyEvent: (KeyEvent event) {
@@ -458,7 +416,7 @@ class _AdvancedDraftingWorkspaceState
                   // Personal Statement (~5 000) and a maxed-out Study
                   // Plan (~8 000) with headroom, while keeping AI
                   // supervision token cost bounded.
-                  maxLength: 12000,
+                  maxLength: _maxChars,
                   // Hide the maxLength counter on the field itself; the
                   // LiveMetricsBar already shows word/char counts.
                   maxLengthEnforcement: MaxLengthEnforcement.enforced,
@@ -469,17 +427,20 @@ class _AdvancedDraftingWorkspaceState
                         required bool isFocused,
                         required int? maxLength,
                       }) => null,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    height: 1.5,
-                  ),
+                  cursorColor: SeoulColors.lime,
+                  style: SeoulType.body.copyWith(fontSize: 16, height: 1.5),
                   decoration: InputDecoration(
                     border: InputBorder.none,
+                    isDense: true,
+                    contentPadding: EdgeInsets.zero,
                     hintText: l.draftingHint(
                       widget.documentTitle.toLowerCase(),
                     ),
-                    hintStyle: const TextStyle(color: Colors.white30),
+                    hintStyle: SeoulType.body.copyWith(
+                      fontSize: 16,
+                      height: 1.5,
+                      color: SeoulColors.textFaint,
+                    ),
                   ),
                 ),
               ),
@@ -499,13 +460,81 @@ class _AdvancedDraftingWorkspaceState
           controller: _controller,
           onAccept: _acceptSuggestion,
         ),
+        // How much of the 12 000-character allowance is used. The exact
+        // counts sit right below in the metrics bar.
+        const SizedBox(height: 12),
+        GlowProgressBar(value: _charCount / _maxChars),
+        const SizedBox(height: 8),
         LiveMetricsBar(
           wordCount: _wordCount,
           charCount: _charCount,
           saveStatus: _saveStatus,
           track: currentTrack,
         ),
+        const SizedBox(height: 12),
+        // The primary AI action of the whole wizard — kept at the bottom
+        // of the column so it stays thumb-reachable above the keyboard.
+        LimeButton(
+          icon: Icons.auto_awesome,
+          label: l.workspaceAnalyzeButton,
+          onPressed: () async {
+            // Audit A6: previously this fire-and-forgot. If save
+            // failed the analyzer ran on a stale draft. Now we wait
+            // for the save and bail on failure (the SaveStatus error
+            // tag is shown in the LiveMetricsBar).
+            final saved = await _saveDraft(_controller.text);
+            if (!saved || !mounted) return;
+            ref
+                .read(studyPlanSessionProvider.notifier)
+                .analyzeCurrentDraft(widget.documentType);
+            ref
+                .read(studyPlanSessionProvider.notifier)
+                .updateSessionStep(widget.documentType, 4);
+          },
+        ),
       ],
+    );
+  }
+}
+
+/// One tappable "replace X with Y" fix from the AI supervision pass.
+/// Sized to the 44px minimum even though the pill looks smaller.
+class _FixChip extends StatelessWidget {
+  const _FixChip({required this.label, required this.onTap});
+
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: label,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          constraints: const BoxConstraints(
+            minHeight: SeoulSizes.minTapTarget,
+          ),
+          alignment: Alignment.center,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          decoration: BoxDecoration(
+            color: SeoulColors.glass,
+            // 999 is the design system's pill idiom (see StatusChip).
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(
+              color: SeoulColors.warning.withValues(alpha: 0.45),
+            ),
+          ),
+          child: Text(
+            label,
+            style: SeoulType.bodySecondary.copyWith(
+              fontSize: 13,
+              color: SeoulColors.textPrimary,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -542,85 +571,71 @@ class _GhostSuggestionBar extends StatelessWidget {
         final ghost = controller.ghostText;
         final hasGhost = ghost != null && ghost.isNotEmpty;
         return AnimatedSize(
-          duration: const Duration(milliseconds: 180),
-          curve: Curves.easeOut,
+          duration: SeoulMotion.fast,
+          curve: SeoulMotion.smooth,
           alignment: Alignment.topCenter,
           child: hasGhost
               ? Padding(
                   padding: const EdgeInsets.only(top: 8),
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: onAccept,
-                      borderRadius: BorderRadius.circular(12),
-                      child: Container(
-                        padding: const EdgeInsets.fromLTRB(12, 8, 4, 8),
-                        decoration: BoxDecoration(
-                          color: AppColors.royalBlue.withValues(alpha: 0.18),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: AppColors.royalBlue.withValues(alpha: 0.6),
+                  child: GestureDetector(
+                    onTap: onAccept,
+                    child: Container(
+                      padding: const EdgeInsets.fromLTRB(12, 6, 4, 6),
+                      decoration: BoxDecoration(
+                        // Lime-tinted glass: this is the AI offering
+                        // something, not a warning.
+                        color: SeoulColors.limeFill,
+                        borderRadius: SeoulRadii.tileR,
+                        border: Border.all(
+                          color: SeoulColors.lime.withValues(alpha: 0.35),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.auto_awesome,
+                            size: 16,
+                            color: SeoulColors.lime,
                           ),
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Icons.auto_awesome,
-                              size: 16,
-                              color: AppColors.vibrantLime,
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Semantics(
-                                button: true,
-                                label: l.ghostSuggestionSemantics,
-                                child: Text(
-                                  ghost,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontStyle: FontStyle.italic,
-                                    fontSize: 13,
-                                    height: 1.3,
-                                  ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Semantics(
+                              button: true,
+                              label: l.ghostSuggestionSemantics,
+                              child: Text(
+                                ghost,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: SeoulType.bodySecondary.copyWith(
+                                  fontSize: 13,
+                                  height: 1.3,
+                                  fontStyle: FontStyle.italic,
+                                  color: SeoulColors.textPrimary,
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 8),
-                            // Explicit Accept button — primary action,
-                            // visible label for first-time users.
-                            TextButton.icon(
-                              onPressed: onAccept,
-                              icon: const Icon(Icons.check, size: 16),
-                              label: Text(l.ghostAccept),
-                              style: TextButton.styleFrom(
-                                foregroundColor: AppColors.vibrantLime,
-                                backgroundColor: AppColors.vibrantLime
-                                    .withValues(alpha: 0.12),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                ),
-                                minimumSize: const Size(72, 48),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
+                          ),
+                          const SizedBox(width: 8),
+                          // Explicit Accept affordance — lime-toned but not
+                          // a full LimeButton, so it never competes with the
+                          // Analyze action at the bottom of the workspace.
+                          _GhostAcceptButton(
+                            label: l.ghostAccept,
+                            onTap: onAccept,
+                          ),
+                          // Dismiss — clears the ghost without
+                          // inserting, so the user can keep typing.
+                          IconButton(
+                            onPressed: () => controller.setGhostText(null),
+                            icon: const Icon(Icons.close, size: 18),
+                            color: SeoulColors.textSecondary,
+                            tooltip: l.ghostDismiss,
+                            constraints: const BoxConstraints(
+                              minWidth: SeoulSizes.minTapTarget,
+                              minHeight: SeoulSizes.minTapTarget,
                             ),
-                            // Dismiss — clears the ghost without
-                            // inserting, so the user can keep typing.
-                            IconButton(
-                              onPressed: () => controller.setGhostText(null),
-                              icon: const Icon(Icons.close, size: 18),
-                              color: Colors.white70,
-                              tooltip: l.ghostDismiss,
-                              constraints: const BoxConstraints(
-                                minWidth: 48,
-                                minHeight: 48,
-                              ),
-                            ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -628,6 +643,56 @@ class _GhostSuggestionBar extends StatelessWidget {
               : const SizedBox.shrink(),
         );
       },
+    );
+  }
+}
+
+/// Compact lime affordance inside the ghost-suggestion bar. 44px minimum
+/// so the mobile path stays tappable (audit P0 K5).
+class _GhostAcceptButton extends StatelessWidget {
+  const _GhostAcceptButton({required this.label, required this.onTap});
+
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: label,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          constraints: const BoxConstraints(
+            minWidth: 72,
+            minHeight: SeoulSizes.minTapTarget,
+          ),
+          alignment: Alignment.center,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            color: SeoulColors.limeFill,
+            borderRadius: SeoulRadii.buttonR,
+            border: Border.all(color: SeoulColors.lime),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.check, size: 16, color: SeoulColors.lime),
+              const SizedBox(width: 6),
+              Flexible(
+                child: Text(
+                  label,
+                  overflow: TextOverflow.ellipsis,
+                  style: SeoulType.button.copyWith(
+                    fontSize: 13,
+                    color: SeoulColors.lime,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

@@ -7,7 +7,7 @@
 ///
 /// Lifted out of `advanced_drafting_workspace.dart` so the matching
 /// logic is unit-testable.
-library grammar_issue_resolver;
+library;
 
 class ResolvedIssue {
   const ResolvedIssue({

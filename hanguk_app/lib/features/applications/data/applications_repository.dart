@@ -107,7 +107,7 @@ final suggestedUniversitiesProvider = FutureProvider<List<University>>((
         .toList();
   } catch (e, st) {
     debugPrint('[Suggestions] Failed to fetch fallback suggestions: $e\n$st');
-    throw e;
+    rethrow;
   }
 });
 
@@ -204,6 +204,6 @@ final applicationsProvider = FutureProvider<List<StudentApplication>>((
     debugPrint(
       '[ApplicationsRepository] Failed to fetch applications: $e\n$st',
     );
-    throw e;
+    rethrow;
   }
 });

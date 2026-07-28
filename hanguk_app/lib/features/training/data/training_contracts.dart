@@ -8,7 +8,7 @@
 /// fields downstream.
 ///
 /// Audit B1/B4 (docs/audits/training_audit_2026-05-10.md).
-library training_contracts;
+library;
 
 import 'dart:convert';
 
@@ -118,8 +118,9 @@ class AnalyzeResult {
     }
     try {
       final m = jsonDecode(trimmed);
-      if (m is! Map<String, dynamic>)
+      if (m is! Map<String, dynamic>) {
         return AnalyzeResult(aiResponseText: body);
+      }
       return AnalyzeResult(
         aiResponseText: body,
         overallScore: m['overall_score'] is num

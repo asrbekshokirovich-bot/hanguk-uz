@@ -7,7 +7,7 @@
 /// only have a track string (e.g. a session's `selected_track`) and no
 /// `BuildContext` — those still hit the hand-rolled tables below until
 /// a wider locale-handle plumb-through is done.
-library training_strings;
+library;
 
 import 'package:flutter/widgets.dart';
 import '../../../l10n/app_localizations.dart';

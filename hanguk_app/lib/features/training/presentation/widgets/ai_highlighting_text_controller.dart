@@ -18,7 +18,7 @@ class AiHighlightingTextController extends TextEditingController {
   String? ghostText;
   List<GrammarIssue> issues = [];
 
-  AiHighlightingTextController({String? text}) : super(text: text);
+  AiHighlightingTextController({super.text});
 
   void setGhostText(String? text) {
     if (ghostText != text) {

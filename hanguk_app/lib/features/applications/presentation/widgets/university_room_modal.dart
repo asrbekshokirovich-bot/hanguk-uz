@@ -1,6 +1,4 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/application.dart';
 import '../../../../design_system/theme/app_colors.dart';
 import '../../../../l10n/app_localizations.dart';
@@ -172,7 +170,7 @@ class _UniversityRoomModalState extends State<UniversityRoomModal> {
     final eventsState = _eventsController.state;
     final announcementsState = _announcementsController.state;
 
-    List<UniversityEvent> _getEventsForDay(DateTime day) {
+    List<UniversityEvent> getEventsForDay(DateTime day) {
       if (eventsState.isLoading || eventsState.error != null) return [];
       return eventsState.events.where((e) {
         return e.eventDate.year == day.year &&
@@ -182,8 +180,8 @@ class _UniversityRoomModalState extends State<UniversityRoomModal> {
     }
 
     final selectedEvents = _selectedDay != null
-        ? _getEventsForDay(_selectedDay!)
-        : _getEventsForDay(_focusedDay);
+        ? getEventsForDay(_selectedDay!)
+        : getEventsForDay(_focusedDay);
 
     return DefaultTabController(
       length: 4,
@@ -573,7 +571,7 @@ class _UniversityRoomModalState extends State<UniversityRoomModal> {
                           focusedDay: _focusedDay,
                           selectedDayPredicate: (day) =>
                               isSameDay(_selectedDay, day),
-                          eventLoader: _getEventsForDay,
+                          eventLoader: getEventsForDay,
                           startingDayOfWeek: StartingDayOfWeek.monday,
                           calendarStyle: CalendarStyle(
                             defaultTextStyle: const TextStyle(

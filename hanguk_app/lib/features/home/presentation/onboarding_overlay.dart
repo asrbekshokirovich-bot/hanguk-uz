@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import '../../../design_system/theme/app_colors.dart';
+
+import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../l10n/app_localizations.dart';
 
 /// One-time, skippable first-run orientation shown on Home (audit A9).
@@ -32,8 +33,15 @@ class OnboardingStore {
 }
 
 class _Step {
-  const _Step(this.icon, this.title, this.body);
-  final IconData icon;
+  const _Step(this.glyph, this.ko, this.title, this.body);
+
+  /// The oversized hangul syllable that fronts the step (DESIGN_SPEC §1
+  /// Korean voice). Decorative — stays Korean in every locale.
+  final String glyph;
+
+  /// Small lime hangul label under the title, mirroring the orb dial labels.
+  final String ko;
+
   final String title;
   final String body;
 }
@@ -70,8 +78,8 @@ class _OnboardingOverlayState extends State<OnboardingOverlay> {
       _controller.jumpToPage(_index + 1);
     } else {
       _controller.nextPage(
-        duration: const Duration(milliseconds: 250),
-        curve: Curves.easeOut,
+        duration: SeoulMotion.base,
+        curve: SeoulMotion.smooth,
       );
     }
   }
@@ -79,152 +87,106 @@ class _OnboardingOverlayState extends State<OnboardingOverlay> {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
+    // Glyphs match the orb speed-dial (지원 / 지도 / 면접) so the first thing a
+    // student learns is the same Korean shorthand the shell navigates by.
     final steps = <_Step>[
-      _Step(Icons.school, l.onboardingStep1Title, l.onboardingStep1Body),
-      _Step(Icons.map, l.onboardingStep2Title, l.onboardingStep2Body),
-      _Step(
-        Icons.smart_toy,
-        l.onboardingStep3Title,
-        l.onboardingStep3Body,
-      ),
+      _Step('지', '지원 현황', l.onboardingStep1Title, l.onboardingStep1Body),
+      _Step('도', '대학 지도', l.onboardingStep2Title, l.onboardingStep2Body),
+      _Step('면', '면접 연습', l.onboardingStep3Title, l.onboardingStep3Body),
     ];
     final last = steps.length - 1;
 
-    return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              AppColors.royalBlue,
-              Color(0xFF132A4D),
-              Color(0xFF0F213D),
-              AppColors.backgroundNavy,
-            ],
-          ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              Align(
-                alignment: Alignment.centerRight,
-                child: Padding(
-                  padding: const EdgeInsets.all(8),
-                  child: TextButton(
-                    onPressed: _finish,
-                    child: Text(
-                      l.onboardingSkip,
-                      style: const TextStyle(color: Colors.white70),
-                    ),
+    return SeoulNightScaffold(
+      body: Column(
+        children: [
+          Align(
+            alignment: Alignment.centerRight,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              child: TextButton(
+                onPressed: _finish,
+                style: TextButton.styleFrom(
+                  foregroundColor: SeoulColors.textSecondary,
+                  minimumSize: const Size(
+                    SeoulSizes.minTapTarget,
+                    SeoulSizes.minTapTarget,
                   ),
                 ),
+                child: Text(l.onboardingSkip, style: SeoulType.bodySecondary),
               ),
-              Expanded(
-                child: PageView.builder(
-                  controller: _controller,
-                  itemCount: steps.length,
-                  onPageChanged: (i) => setState(() => _index = i),
-                  itemBuilder: (context, i) {
-                    final s = steps[i];
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 32),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            width: 120,
-                            height: 120,
-                            decoration: BoxDecoration(
-                              color: AppColors.vibrantLime.withValues(
-                                alpha: 0.10,
-                              ),
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: AppColors.vibrantLime.withValues(
-                                  alpha: 0.30,
-                                ),
-                              ),
-                            ),
-                            child: Icon(
-                              s.icon,
-                              size: 56,
-                              color: AppColors.vibrantLime,
-                            ),
-                          ),
-                          const SizedBox(height: 32),
-                          Text(
-                            s.title,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            s.body,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              color: Colors.white70,
-                              fontSize: 15,
-                              height: 1.5,
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-              ),
-              // Page indicator
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(steps.length, (i) {
-                  final active = i == _index;
-                  return AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    margin: const EdgeInsets.symmetric(horizontal: 4),
-                    width: active ? 24 : 8,
-                    height: 8,
-                    decoration: BoxDecoration(
-                      color: active
-                          ? AppColors.vibrantLime
-                          : Colors.white.withValues(alpha: 0.3),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  );
-                }),
-              ),
-              const SizedBox(height: 24),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(32, 0, 32, 32),
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: ElevatedButton(
-                    onPressed: () => _next(last),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.vibrantLime,
-                      foregroundColor: AppColors.pureBlack,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                    ),
-                    child: Text(
-                      _index >= last ? l.onboardingStart : l.onboardingNext,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
-        ),
+          Expanded(
+            child: PageView.builder(
+              controller: _controller,
+              itemCount: steps.length,
+              onPageChanged: (i) => setState(() => _index = i),
+              itemBuilder: (context, i) {
+                final s = steps[i];
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 32),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      HangulGlyphTile(
+                        glyph: s.glyph,
+                        size: 120,
+                        radius: SeoulRadii.hero,
+                      ),
+                      const SizedBox(height: 32),
+                      Text(
+                        s.title,
+                        textAlign: TextAlign.center,
+                        style: SeoulType.headline,
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        s.ko,
+                        textAlign: TextAlign.center,
+                        style: SeoulType.hangulLabel,
+                      ),
+                      const SizedBox(height: 14),
+                      Text(
+                        s.body,
+                        textAlign: TextAlign.center,
+                        style: SeoulType.bodySecondary,
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+          // Page indicator — lime for the active dot (spec §1: lime marks the
+          // active state), neutral glass for the rest.
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(steps.length, (i) {
+              final active = i == _index;
+              return AnimatedContainer(
+                duration: SeoulMotion.fast,
+                curve: SeoulMotion.smooth,
+                margin: const EdgeInsets.symmetric(horizontal: 4),
+                width: active ? 24 : 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  color: active ? SeoulColors.lime : SeoulColors.neutralFill,
+                  // 999 is the design system's pill idiom (see StatusChip).
+                  borderRadius: BorderRadius.circular(999),
+                  boxShadow: active ? SeoulShadows.limeGlowSmall : null,
+                ),
+              );
+            }),
+          ),
+          const SizedBox(height: 24),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(32, 0, 32, 32),
+            child: LimeButton(
+              label: _index >= last ? l.onboardingStart : l.onboardingNext,
+              onPressed: () => _next(last),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -30,21 +30,23 @@ String generateRoadviewHtml(double lat, double lng, String name) {
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
-        html, body { width: 100%; height: 100%; margin: 0; padding: 0; background-color: #0f1626; }
+        /* Seoul Night palette. This is CSS, so the values are literal hex —
+           each one names the `Seoul*` token it mirrors (DESIGN_SPEC §1). */
+        html, body { width: 100%; height: 100%; margin: 0; padding: 0; background-color: #0C1830; /* SeoulColors.mapWater */ }
         #roadview { width: 100%; height: 100%; }
         .loading-container {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            color: white;
+            color: #FFFFFF; /* SeoulColors.textPrimary */
             font-family: sans-serif;
             text-align: center;
             padding: 0 24px;
             max-width: 320px;
         }
-        .loading-container h3 { font-weight: 600; margin-bottom: 8px; }
-        .loading-container p  { color: rgba(255,255,255,0.6); font-size: 13px; margin: 0; }
+        .loading-container h3 { font-weight: 800; font-size: 18px; letter-spacing: -0.2px; margin-bottom: 8px; }
+        .loading-container p  { color: rgba(255,255,255,0.55); /* SeoulColors.textSecondary */ font-size: 13px; margin: 0; }
         * { -webkit-tap-highlight-color: transparent; }
     </style>
 </head>

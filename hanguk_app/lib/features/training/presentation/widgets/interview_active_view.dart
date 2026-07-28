@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:vapi/vapi.dart';
 import 'dart:async';
-import '../../../../design_system/theme/app_colors.dart';
+import '../../../../design_system/seoul_night/seoul_night.dart';
 import '../../../../core/config/app_config.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../data/interview_repository.dart';
@@ -595,8 +595,11 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
       if (l != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(l.noFeedbackAvailable),
-            backgroundColor: AppColors.error,
+            content: Text(
+              l.noFeedbackAvailable,
+              style: SeoulType.body.copyWith(color: SeoulColors.ink),
+            ),
+            backgroundColor: SeoulColors.warning,
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -669,249 +672,141 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
     final l = AppLocalizations.of(context)!;
     final state = ref.watch(interviewProvider);
 
+    // Seoul Night §3.7 — a dark, calm, focused screen: one breathing orb for
+    // the interviewer's voice, the status line on glass, and an End control
+    // that is ALWAYS on screen (connecting or mid-interview). Deliberately no
+    // running transcript: this is a spoken interview and the text only
+    // competed with the End control for space. Speech is still transcribed
+    // and stored — it appears in the post-session feedback and in history.
     return Stack(
       children: [
-        Column(
-          children: [
-            // University Indicator
-            if (state.targetUniversityName != null)
-              Container(
-                margin: const EdgeInsets.only(top: 20),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.vibrantLime.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: AppColors.vibrantLime.withValues(alpha: 0.3),
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.school,
-                      color: AppColors.vibrantLime,
-                      size: 16,
-                    ),
-                    const SizedBox(width: 8),
-                    Flexible(
-                      child: Text(
-                        state.targetUniversityName!,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: AppColors.vibrantLime,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ),
-                  ],
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            SeoulSizes.screenPadding,
+            4,
+            SeoulSizes.screenPadding,
+            20,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (state.targetUniversityName != null)
+                Center(child: _TargetUniPill(name: state.targetUniversityName!)),
+              if (_showCoachingWarning) ...[
+                const SizedBox(height: 12),
+                _CoachingWarning(text: l.coachingFiller),
+              ],
+
+              const Spacer(),
+
+              Center(
+                child: _VoiceOrb(
+                  speaking: _isAI_Speaking,
+                  connected: _isCallActive,
+                  languageTag: state.selectedLanguage.toUpperCase(),
                 ),
               ),
-            if (_showCoachingWarning)
-              Container(
-                margin: const EdgeInsets.only(top: 16),
+              const SizedBox(height: 22),
+
+              GlassCard(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.error.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.error),
+                  horizontal: 18,
+                  vertical: 14,
                 ),
                 child: Text(
-                  '⚠️ ${l.coachingFiller}',
-                  style: const TextStyle(
-                    color: AppColors.error,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  _buildStatusText(l),
+                  textAlign: TextAlign.center,
+                  // Warning tint means a real failure only. "The interviewer
+                  // is speaking" is a perfectly normal state, so it reads as
+                  // plain white; lime = your turn; faint = not connected yet.
+                  style: SeoulType.subtitle.copyWith(color: _statusColor()),
                 ),
               ),
-            const Spacer(),
-            // AI Avatar
-            Container(
-              height: 150,
-              width: 150,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withValues(alpha: 0.05),
-                border: Border.all(
-                  color: _isAI_Speaking
-                      ? AppColors.vibrantLime
-                      : Colors.white10,
-                  width: _isAI_Speaking ? 4 : 1,
-                ),
-                boxShadow: _isAI_Speaking
-                    ? [
-                        BoxShadow(
-                          color: AppColors.vibrantLime.withValues(alpha: 0.5),
-                          blurRadius: 40,
-                        ),
-                      ]
-                    : [],
-              ),
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  const Icon(Icons.psychology, color: Colors.white54, size: 80),
-                  Positioned(
-                    bottom: 10,
-                    right: 10,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.black45,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        state.selectedLanguage.toUpperCase(),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              _buildStatusText(l),
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                // Red means a real failure only. "The interviewer is
-                // speaking" used to render in the error colour, which made a
-                // perfectly normal state look like something had gone wrong.
-                // Now: white = the AI is talking, lime = your turn,
-                // red = something failed.
-                color: _errorMessage != null
-                    ? AppColors.error
-                    : (_isAI_Speaking
-                          ? Colors.white
-                          : (_isCallActive
-                                ? AppColors.vibrantLime
-                                : Colors.white54)),
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const Spacer(),
 
-            // Controls panel: live hints (when the plan enables them) and
-            // the End control. No transcript — see the note below.
-            Flexible(
-              child: Container(
-                clipBehavior: Clip.antiAlias,
-                padding: const EdgeInsets.fromLTRB(24, 18, 24, 8),
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.05),
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(32),
-                  ),
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (state.liveHints.isNotEmpty && _isCallActive) ...[
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        margin: const EdgeInsets.only(bottom: 16),
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: AppColors.royalBlue.withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: AppColors.royalBlue.withValues(alpha: 0.5),
-                          ),
-                        ),
+              const Spacer(),
+
+              if (state.liveHints.isNotEmpty && _isCallActive)
+                Flexible(
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: SingleChildScrollView(
+                      child: GlassCard(
+                        radius: SeoulRadii.control,
+                        padding: const EdgeInsets.all(14),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               l.lifelineHintsTitle,
-                              style: const TextStyle(
-                                color: AppColors.royalBlue,
-                                fontWeight: FontWeight.bold,
+                              style: SeoulType.subtitle.copyWith(
+                                fontSize: 14,
+                                color: SeoulColors.lime,
                               ),
                             ),
                             const SizedBox(height: 8),
                             ...state.liveHints.map(
                               (h) => Padding(
                                 padding: const EdgeInsets.only(bottom: 4),
-                                child: Text(
-                                  '• $h',
-                                  style: const TextStyle(color: Colors.white),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      '•',
+                                      style: SeoulType.bodySecondary.copyWith(
+                                        color: SeoulColors.lime,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        h,
+                                        style: SeoulType.bodySecondary,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
                           ],
                         ),
                       ),
-                    ],
-                    // No live transcript on screen: this is a spoken
-                    // interview, and the running text only competed with the
-                    // End control for space (it rendered as clipped half
-                    // lines). Speech is still transcribed and stored — the
-                    // full conversation appears in the post-session feedback
-                    // and in history.
-                    const SizedBox(height: 8),
-                    GestureDetector(
-                      onTap: () {
-                        // Manual end — converge on the same _completeAutoEnd
-                        // path the AI-driven end uses, so feedback is
-                        // generated and the row transitions to 'completed'.
-                        // Previously this just called _stopCall + pop, which
-                        // left status='active' forever and skipped feedback.
-                        if (_didEndSession) return;
-                        _didEndSession = true;
-                        unawaited(_completeAutoEnd());
-                      },
-                      child: Container(
-                        height: 64,
-                        width: 64,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.white10,
-                          border: Border.all(color: Colors.white30),
-                        ),
-                        child: const Icon(
-                          Icons.close,
-                          color: Colors.white,
-                          size: 32,
-                        ),
-                      ),
                     ),
-                    const SizedBox(height: 12),
-                    Text(
-                      l.endInterview,
-                      style: const TextStyle(
-                        color: Colors.white54,
-                        fontSize: 12,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                  ],
+                  ),
                 ),
+
+              // End control — rendered unconditionally, never behind a state
+              // check, so it is reachable while connecting AND mid-interview.
+              _EndInterviewButton(
+                label: l.endInterview,
+                onTap: () {
+                  // Manual end — converge on the same _completeAutoEnd
+                  // path the AI-driven end uses, so feedback is
+                  // generated and the row transitions to 'completed'.
+                  // Previously this just called _stopCall + pop, which
+                  // left status='active' forever and skipped feedback.
+                  if (_didEndSession) return;
+                  _didEndSession = true;
+                  unawaited(_completeAutoEnd());
+                },
               ),
-            ),
-          ],
+            ],
+          ),
         ),
         if (state.isProcessing || state.isLoading)
           const Center(
-            child: CircularProgressIndicator(color: AppColors.vibrantLime),
+            child: CircularProgressIndicator(color: SeoulColors.lime),
           ),
       ],
     );
+  }
+
+  /// Colour of the status line. Purely presentational — it reads the same
+  /// flags the status string itself is built from.
+  Color _statusColor() {
+    if (_errorMessage != null) return SeoulColors.warningText;
+    if (_isAI_Speaking) return SeoulColors.textPrimary;
+    if (_isCallActive) return SeoulColors.lime;
+    return SeoulColors.textSecondary;
   }
 
   String _buildStatusText(AppLocalizations l) {
@@ -923,5 +818,274 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
     }
     if (_isCallActive) return l.yourTurn;
     return l.connecting;
+  }
+}
+
+/// The interviewer's voice as one calm object (spec §3.7): a 한 mark on glass,
+/// a lime rim and glow while the AI speaks, dimmer while it listens, and the
+/// slow 2.6s breathing ring from spec §1 Motion.
+class _VoiceOrb extends StatefulWidget {
+  const _VoiceOrb({
+    required this.speaking,
+    required this.connected,
+    required this.languageTag,
+  });
+
+  final bool speaking;
+  final bool connected;
+  final String languageTag;
+
+  @override
+  State<_VoiceOrb> createState() => _VoiceOrbState();
+}
+
+class _VoiceOrbState extends State<_VoiceOrb>
+    with SingleTickerProviderStateMixin {
+  static const double _ringSize = 208;
+  static const double _coreSize = 152;
+
+  late final AnimationController _pulse = AnimationController(
+    vsync: this,
+    duration: SeoulMotion.pulse,
+  )..repeat(reverse: true);
+
+  @override
+  void dispose() {
+    _pulse.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _pulse,
+      builder: (context, _) {
+        final t = SeoulMotion.smooth.transform(_pulse.value);
+        final speaking = widget.speaking;
+        final double ringScale = 1.0 + (speaking ? 0.09 : 0.035) * t;
+        final double ringAlpha = speaking ? 0.16 + 0.34 * (1.0 - t) : 0.10;
+
+        return SizedBox(
+          width: _ringSize,
+          height: _ringSize,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Transform.scale(
+                scale: ringScale,
+                child: Container(
+                  width: _ringSize,
+                  height: _ringSize,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: SeoulColors.lime.withValues(alpha: ringAlpha),
+                      width: 2,
+                    ),
+                  ),
+                ),
+              ),
+              AnimatedContainer(
+                duration: SeoulMotion.base,
+                curve: SeoulMotion.smooth,
+                width: _coreSize,
+                height: _coreSize,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: SeoulColors.glass,
+                  border: Border.all(
+                    color: speaking
+                        ? SeoulColors.lime
+                        : SeoulColors.glassBorder,
+                    width: speaking ? 3 : 1,
+                  ),
+                  boxShadow: speaking
+                      ? SeoulShadows.limeGlow
+                      : (widget.connected ? SeoulShadows.limeGlowSmall : null),
+                ),
+                child: Text(
+                  '한',
+                  style: SeoulType.hangulGlyph.copyWith(
+                    fontSize: 58,
+                    fontWeight: FontWeight.w900,
+                    color: speaking
+                        ? SeoulColors.lime
+                        : SeoulColors.textSecondary,
+                  ),
+                ),
+              ),
+              Positioned(
+                bottom: 20,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 9,
+                    vertical: 3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: SeoulColors.neutralFill,
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(color: SeoulColors.glassBorder),
+                  ),
+                  child: Text(
+                    widget.languageTag,
+                    style: SeoulType.eyebrow.copyWith(
+                      color: SeoulColors.textSecondary,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// Lime-tinted pill naming the university this session is aimed at.
+class _TargetUniPill extends StatelessWidget {
+  const _TargetUniPill({required this.name});
+
+  final String name;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+      decoration: BoxDecoration(
+        color: SeoulColors.limeFill,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: SeoulColors.lime.withValues(alpha: 0.35)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(
+            Icons.school,
+            color: SeoulColors.lime,
+            size: 16,
+          ),
+          const SizedBox(width: 8),
+          Flexible(
+            child: Text(
+              name,
+              overflow: TextOverflow.ellipsis,
+              style: SeoulType.caption.copyWith(
+                color: SeoulColors.lime,
+                fontSize: 12.5,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// "You are using too many filler words" nudge. Warning-tinted, not red —
+/// Seoul Night has no raw red (spec §1 Color tokens).
+class _CoachingWarning extends StatelessWidget {
+  const _CoachingWarning({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return GlassCard(
+      radius: SeoulRadii.control,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      fillColor: SeoulColors.warningFill,
+      borderColor: SeoulColors.warning.withValues(alpha: 0.45),
+      showShadow: false,
+      blur: false,
+      child: Row(
+        children: [
+          const Icon(
+            Icons.warning_amber_rounded,
+            size: 18,
+            color: SeoulColors.warningText,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              text,
+              style: SeoulType.bodySecondary.copyWith(
+                color: SeoulColors.warningText,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The always-visible End control. Destructive but legible: a warning-tinted
+/// outline, full width, 52px tall (well over the 44px minimum, spec §4).
+class _EndInterviewButton extends StatefulWidget {
+  const _EndInterviewButton({required this.label, required this.onTap});
+
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  State<_EndInterviewButton> createState() => _EndInterviewButtonState();
+}
+
+class _EndInterviewButtonState extends State<_EndInterviewButton> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: widget.label,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: widget.onTap,
+        onTapDown: (_) => setState(() => _pressed = true),
+        onTapUp: (_) => setState(() => _pressed = false),
+        onTapCancel: () => setState(() => _pressed = false),
+        child: AnimatedScale(
+          scale: _pressed ? SeoulMotion.pressScale : 1.0,
+          duration: SeoulMotion.fast,
+          curve: SeoulMotion.smooth,
+          child: Container(
+            height: SeoulSizes.buttonHeight,
+            alignment: Alignment.center,
+            padding: const EdgeInsets.symmetric(horizontal: 18),
+            decoration: BoxDecoration(
+              color: SeoulColors.warningFill,
+              borderRadius: SeoulRadii.controlR,
+              border: Border.all(
+                color: SeoulColors.warning.withValues(alpha: 0.55),
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.call_end,
+                  size: 18,
+                  color: SeoulColors.warningText,
+                ),
+                const SizedBox(width: 10),
+                Flexible(
+                  child: Text(
+                    widget.label,
+                    overflow: TextOverflow.ellipsis,
+                    style: SeoulType.button.copyWith(
+                      color: SeoulColors.warningText,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }

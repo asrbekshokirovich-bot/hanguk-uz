@@ -351,7 +351,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       children: [
         Column(
           children: [
-            if (header != null) header,
+            ?header,
             Expanded(
               child: IndexedStack(
                 index: current,

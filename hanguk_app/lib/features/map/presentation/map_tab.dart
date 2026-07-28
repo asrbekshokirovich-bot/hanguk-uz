@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../design_system/theme/app_colors.dart';
-import '../../../../l10n/app_localizations.dart';
+
+import '../../../design_system/seoul_night/seoul_night.dart';
+import '../../../l10n/app_localizations.dart';
 import '../data/map_analytics.dart';
 import '../data/map_repository.dart';
 import '../domain/university.dart';
@@ -10,6 +11,12 @@ import 'widgets/university_card.dart';
 import 'widgets/university_detail_sheet.dart';
 import 'widgets/university_map_view.dart';
 
+/// The Map section of the Seoul Night shell (DESIGN_SPEC §3.5).
+///
+/// The section title lives in `HomeScreen._sectionHeader` ("Map · 대학 지도"),
+/// so this tab renders controls only — a glass search field, the list/map
+/// toggle, the filter pills, and then either the dark map card or the glass
+/// university list.
 class MapTab extends ConsumerStatefulWidget {
   const MapTab({super.key});
 
@@ -83,6 +90,14 @@ class _MapTabState extends ConsumerState<MapTab> {
     );
   }
 
+  void _clearFilters() {
+    _searchController.clear();
+    setState(() {
+      _activeFilter = 'all';
+      _searchQuery = '';
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final uniAsync = ref.watch(universitiesProvider);
@@ -113,67 +128,25 @@ class _MapTabState extends ConsumerState<MapTab> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Top Bar ─────────────────────────────────
+            // ── Controls ────────────────────────────────
+            // No title here: HomeScreen already renders the section
+            // header ("Map · 대학 지도") above this tab (spec §2).
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              padding: const EdgeInsets.fromLTRB(
+                SeoulSizes.screenPadding,
+                6,
+                SeoulSizes.screenPadding,
+                0,
+              ),
               child: Row(
                 children: [
-                  // Title
-                  Padding(
-                    padding: const EdgeInsets.only(right: 12),
-                    child: Text(
-                      l.mapTabTitle,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  // Search field
                   Expanded(
-                    child: TextField(
+                    child: _SearchField(
                       controller: _searchController,
-                      style: const TextStyle(color: Colors.white, fontSize: 14),
-                      decoration: InputDecoration(
-                        hintText: l.searchHint,
-                        hintStyle: const TextStyle(
-                          color: Colors.white70,
-                          fontSize: 14,
-                        ),
-                        prefixIcon: const Icon(
-                          Icons.search_rounded,
-                          color: Colors.white70,
-                          size: 20,
-                        ),
-                        filled: true,
-                        fillColor: Colors.white.withValues(alpha: 0.07),
-                        contentPadding: const EdgeInsets.symmetric(
-                          vertical: 10,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(24),
-                          borderSide: BorderSide.none,
-                        ),
-                        suffixIcon: _searchQuery.isNotEmpty
-                            ? Semantics(
-                                label: l.clearSearch,
-                                button: true,
-                                child: GestureDetector(
-                                  onTap: () => _searchController.clear(),
-                                  child: const Icon(
-                                    Icons.close,
-                                    color: Colors.white70,
-                                    size: 18,
-                                  ),
-                                ),
-                              )
-                            : null,
-                      ),
+                      hasQuery: _searchQuery.isNotEmpty,
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  // List / Map toggle
+                  const SizedBox(width: 10),
                   _ToggleButton(
                     isMapMode: _isMapMode,
                     onTap: () => setState(() => _isMapMode = !_isMapMode),
@@ -185,30 +158,33 @@ class _MapTabState extends ConsumerState<MapTab> {
             // ── Filter Chips ─────────────────────────────
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.symmetric(
+                horizontal: SeoulSizes.screenPadding,
+                vertical: 10,
+              ),
               child: Row(
                 children: [
-                  _FilterChip(
+                  SeoulFilterChip(
                     label: l.filterAll,
-                    icon: Icons.school_outlined,
+                    ko: '전체',
                     selected: _activeFilter == 'all',
                     onTap: () => setState(() => _activeFilter = 'all'),
                   ),
                   const SizedBox(width: 8),
-                  _FilterChip(
+                  SeoulFilterChip(
                     label: l.filterPartner,
-                    icon: Icons.handshake_outlined,
+                    ko: '파트너',
                     selected: _activeFilter == 'partner',
                     onTap: () => setState(() => _activeFilter = 'partner'),
                   ),
                   const SizedBox(width: 8),
-                  _FilterChip(
+                  SeoulFilterChip(
                     // Audit M3 (2026-05-11): label changed from "Top
                     // 100" to "Top". The semantics moved from a
                     // numeric `ranking` cap to the categorical `tier`
                     // (0 or 1).
                     label: l.filterTop,
-                    icon: Icons.workspace_premium_outlined,
+                    ko: '상위',
                     selected: _activeFilter == 'top',
                     onTap: () => setState(() => _activeFilter = 'top'),
                   ),
@@ -219,8 +195,18 @@ class _MapTabState extends ConsumerState<MapTab> {
             // ── Content ──────────────────────────────────
             Expanded(
               child: uniAsync.when(
-                loading: () =>
-                    const Center(child: CircularProgressIndicator.adaptive()),
+                loading: () => const Center(
+                  child: SizedBox(
+                    width: 28,
+                    height: 28,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.4,
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        SeoulColors.lime,
+                      ),
+                    ),
+                  ),
+                ),
                 error: (e, _) => _buildErrorState(),
                 data: (unis) {
                   final filtered = _applyFilters(unis);
@@ -232,28 +218,16 @@ class _MapTabState extends ConsumerState<MapTab> {
                   final showEmptyBadge =
                       _isMapMode && filtered.isEmpty && unis.isNotEmpty;
                   return AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 350),
-                    switchInCurve: Curves.easeOut,
-                    switchOutCurve: Curves.easeIn,
+                    duration: SeoulMotion.base,
+                    switchInCurve: SeoulMotion.smooth,
+                    switchOutCurve: SeoulMotion.smooth,
                     child: _isMapMode
-                        ? Stack(
+                        ? _MapCard(
                             key: const ValueKey('map'),
-                            children: [
-                              UniversityMapView(universities: filtered),
-                              if (showEmptyBadge)
-                                Positioned(
-                                  top: 16,
-                                  left: 16,
-                                  right: 16,
-                                  child: _FilterEmptyBadge(
-                                    onClear: () => setState(() {
-                                      _activeFilter = 'all';
-                                      _searchController.clear();
-                                      _searchQuery = '';
-                                    }),
-                                  ),
-                                ),
-                            ],
+                            universities: filtered,
+                            emptyBadge: showEmptyBadge
+                                ? _FilterEmptyBadge(onClear: _clearFilters)
+                                : null,
                           )
                         : _buildList(filtered),
                   );
@@ -271,38 +245,39 @@ class _MapTabState extends ConsumerState<MapTab> {
       final l = AppLocalizations.of(context)!;
       return Center(
         key: const ValueKey('empty'),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(
-              Icons.search_off_rounded,
-              color: Colors.white24,
-              size: 64,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              l.noUniversitiesMatch,
-              style: const TextStyle(color: Colors.white70, fontSize: 14),
-            ),
-            const SizedBox(height: 12),
-            TextButton(
-              onPressed: () {
-                _searchController.clear();
-                setState(() => _activeFilter = 'all');
-              },
-              child: Text(
-                l.clearFilters,
-                style: const TextStyle(color: AppColors.vibrantLime),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+            SeoulSizes.screenPadding,
+            0,
+            SeoulSizes.screenPadding,
+            SeoulSizes.orbClearance,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const HangulGlyphTile(glyph: '찾', size: 64),
+              const SizedBox(height: 18),
+              Text(
+                l.noUniversitiesMatch,
+                textAlign: TextAlign.center,
+                style: SeoulType.bodySecondary,
               ),
-            ),
-          ],
+              const SizedBox(height: 18),
+              LimeButton(
+                label: l.clearFilters,
+                expand: false,
+                onPressed: _clearFilters,
+              ),
+            ],
+          ),
         ),
       );
     }
 
     return ListView.builder(
       key: const ValueKey('list'),
-      padding: const EdgeInsets.only(top: 4, bottom: 80),
+      // Spec §4 / orb clearance: the last row must clear the floating 한 orb.
+      padding: const EdgeInsets.only(top: 4, bottom: SeoulSizes.orbClearance),
       itemCount: unis.length,
       itemBuilder: (ctx, i) => UniversityCard(
         university: unis[i],
@@ -314,64 +289,178 @@ class _MapTabState extends ConsumerState<MapTab> {
   Widget _buildErrorState() {
     final l = AppLocalizations.of(context)!;
     return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: AppColors.error.withValues(alpha: 0.08),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.wifi_off_rounded,
-              color: Colors.white70,
-              size: 40,
-            ),
-          ),
-          const SizedBox(height: 20),
-          Text(
-            l.universitiesLoadError,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            l.checkConnectionRetry,
-            style: const TextStyle(color: Colors.white70, fontSize: 13),
-          ),
-          const SizedBox(height: 20),
-          OutlinedButton.icon(
-            onPressed: () => ref.refresh(universitiesProvider),
-            icon: const Icon(
-              Icons.refresh_rounded,
-              size: 18,
-              color: AppColors.vibrantLime,
-            ),
-            label: Text(
-              l.commonRetry,
-              style: const TextStyle(color: AppColors.vibrantLime),
-            ),
-            style: OutlinedButton.styleFrom(
-              side: BorderSide(
-                color: AppColors.vibrantLime.withValues(alpha: 0.4),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
+          SeoulSizes.screenPadding,
+          0,
+          SeoulSizes.screenPadding,
+          SeoulSizes.orbClearance,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 72,
+              height: 72,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: SeoulColors.glass,
+                shape: BoxShape.circle,
+                border: Border.all(color: SeoulColors.glassBorder, width: 1),
               ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
+              child: const Icon(
+                Icons.wifi_off_rounded,
+                color: SeoulColors.textSecondary,
+                size: 32,
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             ),
-          ),
-        ],
+            const SizedBox(height: 20),
+            Text(
+              l.universitiesLoadError,
+              textAlign: TextAlign.center,
+              style: SeoulType.subtitle,
+            ),
+            const SizedBox(height: 6),
+            Text(
+              l.checkConnectionRetry,
+              textAlign: TextAlign.center,
+              style: SeoulType.bodySecondary,
+            ),
+            const SizedBox(height: 20),
+            LimeButton(
+              label: l.commonRetry,
+              icon: Icons.refresh_rounded,
+              expand: false,
+              onPressed: () => ref.refresh(universitiesProvider),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
 // ── Small reusable widgets ────────────────────────────────────────────────────
+
+/// The dark map surface (spec §3.5): a rounded, hairline-bordered card filled
+/// with `mapWater` so the WebView never flashes white while the tiles load.
+class _MapCard extends StatelessWidget {
+  const _MapCard({super.key, required this.universities, this.emptyBadge});
+
+  final List<University> universities;
+  final Widget? emptyBadge;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        SeoulSizes.screenPadding,
+        2,
+        SeoulSizes.screenPadding,
+        SeoulSizes.screenPadding,
+      ),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: SeoulColors.mapWater,
+          borderRadius: SeoulRadii.cardR,
+          border: Border.all(color: SeoulColors.glassBorder, width: 1),
+          boxShadow: SeoulShadows.card,
+        ),
+        child: ClipRRect(
+          borderRadius: SeoulRadii.cardR,
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: UniversityMapView(universities: universities),
+              ),
+              if (emptyBadge != null)
+                Positioned(top: 14, left: 14, right: 14, child: emptyBadge!),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Glass search pill. 44px minimum so the field itself is a legal tap target,
+/// and the clear affordance gets its own 44px box (spec §4).
+class _SearchField extends StatelessWidget {
+  const _SearchField({required this.controller, required this.hasQuery});
+
+  final TextEditingController controller;
+  final bool hasQuery;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+
+    return Container(
+      constraints: const BoxConstraints(minHeight: SeoulSizes.minTapTarget),
+      decoration: BoxDecoration(
+        color: SeoulColors.glass,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: SeoulColors.glassBorder, width: 1),
+      ),
+      child: TextField(
+        controller: controller,
+        style: SeoulType.bodySecondary.copyWith(
+          color: SeoulColors.textPrimary,
+          fontWeight: FontWeight.w500,
+        ),
+        cursorColor: SeoulColors.lime,
+        textAlignVertical: TextAlignVertical.center,
+        decoration: InputDecoration(
+          isDense: true,
+          hintText: l.searchHint,
+          hintStyle: SeoulType.bodySecondary,
+          filled: false,
+          contentPadding: const EdgeInsets.symmetric(vertical: 12),
+          border: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          focusedBorder: InputBorder.none,
+          prefixIcon: const Padding(
+            padding: EdgeInsets.only(left: 15, right: 9),
+            child: Icon(
+              Icons.search_rounded,
+              color: SeoulColors.textFaint,
+              size: 18,
+            ),
+          ),
+          prefixIconConstraints: const BoxConstraints(
+            minWidth: 0,
+            minHeight: 0,
+          ),
+          suffixIcon: hasQuery
+              ? Semantics(
+                  label: l.clearSearch,
+                  button: true,
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: controller.clear,
+                    child: const SizedBox(
+                      width: SeoulSizes.minTapTarget,
+                      height: SeoulSizes.minTapTarget,
+                      child: Center(
+                        child: Icon(
+                          Icons.close_rounded,
+                          color: SeoulColors.textFaint,
+                          size: 18,
+                        ),
+                      ),
+                    ),
+                  ),
+                )
+              : null,
+          suffixIconConstraints: const BoxConstraints(
+            minWidth: SeoulSizes.minTapTarget,
+            minHeight: SeoulSizes.minTapTarget,
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 class _ToggleButton extends StatelessWidget {
   final bool isMapMode;
@@ -391,87 +480,24 @@ class _ToggleButton extends StatelessWidget {
       child: GestureDetector(
         onTap: onTap,
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 250),
-          padding: const EdgeInsets.all(10),
+          duration: SeoulMotion.fast,
+          curve: SeoulMotion.smooth,
+          width: SeoulSizes.minTapTarget,
+          height: SeoulSizes.minTapTarget,
+          alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: isMapMode
-                ? AppColors.vibrantLime.withValues(alpha: 0.15)
-                : Colors.white.withValues(alpha: 0.07),
-            borderRadius: BorderRadius.circular(12),
+            color: isMapMode ? SeoulColors.lime : SeoulColors.glass,
+            borderRadius: SeoulRadii.controlR,
             border: Border.all(
-              color: isMapMode
-                  ? AppColors.vibrantLime.withValues(alpha: 0.4)
-                  : Colors.white.withValues(alpha: 0.08),
+              color: isMapMode ? SeoulColors.lime : SeoulColors.glassBorder,
+              width: 1,
             ),
+            boxShadow: isMapMode ? SeoulShadows.limeGlowSmall : null,
           ),
           child: Icon(
             isMapMode ? Icons.list_rounded : Icons.map_outlined,
-            color: isMapMode ? AppColors.vibrantLime : Colors.white60,
+            color: isMapMode ? SeoulColors.ink : SeoulColors.textSecondary,
             size: 20,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _FilterChip extends StatelessWidget {
-  final String label;
-  final IconData icon;
-  final bool selected;
-  final VoidCallback onTap;
-
-  const _FilterChip({
-    required this.label,
-    required this.icon,
-    required this.selected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      // Audit M21 (2026-05-12): explicit accessibility labels on the
-      // filter chips and the list/map toggle so screen readers
-      // announce "Top filter, selected" instead of falling back to
-      // the empty Container default.
-      button: true,
-      selected: selected,
-      label: '$label filter',
-      child: GestureDetector(
-        onTap: onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-          decoration: BoxDecoration(
-            color: selected
-                ? AppColors.vibrantLime.withValues(alpha: 0.15)
-                : Colors.white.withValues(alpha: 0.05),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: selected
-                  ? AppColors.vibrantLime.withValues(alpha: 0.5)
-                  : Colors.white.withValues(alpha: 0.08),
-            ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                icon,
-                size: 14,
-                color: selected ? AppColors.vibrantLime : Colors.white70,
-              ),
-              const SizedBox(width: 5),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: selected ? FontWeight.bold : FontWeight.normal,
-                  color: selected ? AppColors.vibrantLime : Colors.white54,
-                ),
-              ),
-            ],
           ),
         ),
       ),
@@ -492,39 +518,34 @@ class _FilterEmptyBadge extends StatelessWidget {
       // active filter.
       liveRegion: true,
       label: l.noUniversitiesMatch,
-      child: Material(
-        color: Colors.transparent,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-          decoration: BoxDecoration(
-            color: Colors.black.withValues(alpha: 0.7),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white24),
-          ),
-          child: Row(
-            children: [
-              const Icon(
-                Icons.filter_list_off,
-                color: AppColors.vibrantLime,
-                size: 18,
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  l.noUniversitiesMatch,
-                  style: const TextStyle(color: Colors.white, fontSize: 13),
+      child: GlassCard(
+        padding: const EdgeInsets.fromLTRB(14, 10, 10, 10),
+        radius: SeoulRadii.tile,
+        child: Row(
+          children: [
+            const Icon(
+              Icons.filter_list_off,
+              color: SeoulColors.lime,
+              size: 18,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                l.noUniversitiesMatch,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: SeoulType.bodySecondary.copyWith(
+                  color: SeoulColors.textPrimary,
                 ),
               ),
-              TextButton(
-                onPressed: onClear,
-                style: TextButton.styleFrom(
-                  foregroundColor: AppColors.vibrantLime,
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                ),
-                child: Text(l.clearFilters),
-              ),
-            ],
-          ),
+            ),
+            const SizedBox(width: 8),
+            SeoulFilterChip(
+              label: l.clearFilters,
+              selected: false,
+              onTap: onClear,
+            ),
+          ],
         ),
       ),
     );

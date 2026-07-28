@@ -148,7 +148,8 @@ class AppLocalizationsKo extends AppLocalizations {
   String get documentsTabTitle => '내 서류';
 
   @override
-  String get documentUploadInfo => '원본 서류의 PDF 또는 JPEG 스캔본을 업로드하세요. 파일당 최대 10MB.';
+  String get documentUploadInfo =>
+      '원본 서류의 PDF 또는 JPEG 스캔본을 업로드하세요. 파일당 최대 10MB.';
 
   @override
   String get documentsRequiredHeading => '필수 서류';
@@ -383,7 +384,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get notifSettingsEmptyBody =>
-      '대학 페이지에서 "이 학교 추적"을 탭하여 팔로우하세요. 추적 중인 학교가 하나 이상 생기면 알림 설정이 여기에 표시됩니다.';
+      '대학 페이지에서 \"이 학교 추적\"을 탭하여 팔로우하세요. 추적 중인 학교가 하나 이상 생기면 알림 설정이 여기에 표시됩니다.';
 
   @override
   String get notifSettingsCalendar => '일정 변경';
@@ -508,7 +509,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String grammarReplaceWith(String original, String suggestion) {
-    return '"$original"을(를) "$suggestion"(으)로 교체';
+    return '\"$original\"을(를) \"$suggestion\"(으)로 교체';
   }
 
   @override
@@ -869,8 +870,7 @@ class AppLocalizationsKo extends AppLocalizations {
       '작성 중인 초안의 언어가 선택한 트랙과 다릅니다. 선택한 언어로 다시 작성해 주세요.';
 
   @override
-  String get interviewStartError =>
-      '면접을 시작할 수 없습니다. 인터넷 연결을 확인하고 다시 시도해 주세요.';
+  String get interviewStartError => '면접을 시작할 수 없습니다. 인터넷 연결을 확인하고 다시 시도해 주세요.';
 
   @override
   String get perAnswerReviewTitle => '답변별 분석';

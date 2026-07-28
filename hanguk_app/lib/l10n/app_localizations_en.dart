@@ -156,16 +156,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get documentsTabTitle => 'My Documents';
 
   @override
-  String get documentUploadInfo => 'Upload valid PDF or JPEG scans of your original documents. Max 10MB per file.';
+  String get documentUploadInfo =>
+      'Upload valid PDF or JPEG scans of your original documents. Max 10MB per file.';
 
   @override
   String get documentsRequiredHeading => 'Required Documents';
 
   @override
-  String get documentUploadFailed => 'Couldn\'t upload your document. Please try again.';
+  String get documentUploadFailed =>
+      'Couldn\'t upload your document. Please try again.';
 
   @override
-  String get documentPreviewFailed => 'Couldn\'t open the document. Please try again.';
+  String get documentPreviewFailed =>
+      'Couldn\'t open the document. Please try again.';
 
   @override
   String get documentLoadError => 'Couldn\'t load your documents.';
@@ -186,25 +189,29 @@ class AppLocalizationsEn extends AppLocalizations {
   String get onboardingStep1Title => 'Track your applications';
 
   @override
-  String get onboardingStep1Body => 'Follow every university application from documents to decision, all in one place.';
+  String get onboardingStep1Body =>
+      'Follow every university application from documents to decision, all in one place.';
 
   @override
   String get onboardingStep2Title => 'Explore universities & upload documents';
 
   @override
-  String get onboardingStep2Body => 'Find universities on the map and securely upload the documents each one needs.';
+  String get onboardingStep2Body =>
+      'Find universities on the map and securely upload the documents each one needs.';
 
   @override
   String get onboardingStep3Title => 'Practice interviews with AI';
 
   @override
-  String get onboardingStep3Body => 'Rehearse Korean admission interviews with the AI coach and get instant feedback.';
+  String get onboardingStep3Body =>
+      'Rehearse Korean admission interviews with the AI coach and get instant feedback.';
 
   @override
   String get appsEmptyTitle => 'No applications yet';
 
   @override
-  String get appsEmptyBody => 'Your applications will appear here once you apply to a university.';
+  String get appsEmptyBody =>
+      'Your applications will appear here once you apply to a university.';
 
   @override
   String get appsLoadError => 'Couldn\'t load your applications.';
@@ -397,7 +404,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notifSettingsEmptyBody =>
-      'Tap "Track this institution" on a university page to follow it. Notification preferences appear here once you have at least one tracked institution.';
+      'Tap \"Track this institution\" on a university page to follow it. Notification preferences appear here once you have at least one tracked institution.';
 
   @override
   String get notifSettingsCalendar => 'Calendar changes';
@@ -526,7 +533,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String grammarReplaceWith(String original, String suggestion) {
-    return 'Replace "$original" with "$suggestion"';
+    return 'Replace \"$original\" with \"$suggestion\"';
   }
 
   @override

@@ -1,6 +1,5 @@
 import 'dart:html' as html;
 import 'dart:ui_web' as ui_web;
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../../../domain/university.dart';
 import '../university_map_html.dart';
@@ -25,11 +24,10 @@ class _WebMapWidget extends StatefulWidget {
   final String locale;
 
   const _WebMapWidget({
-    Key? key,
     required this.universities,
     required this.onMarkerClick,
     required this.locale,
-  }) : super(key: key);
+  });
 
   @override
   State<_WebMapWidget> createState() => _WebMapWidgetState();
