@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Skeleton } from '@/components/ui/skeleton';
 import { InternalNoteCard } from './InternalNoteCard';
 import { MessageBubble } from './MessageBubble';
 import { StreamDivider } from './StreamDivider';
@@ -7,6 +8,8 @@ import type { MessageVM } from './types';
 
 interface MessageStreamProps {
   messages: MessageVM[];
+  /** True while the stream still holds another thread's rows. */
+  loading?: boolean;
   isExpanded: (id: string, hasTranslation: boolean) => boolean;
   translatingId: string | null;
   onToggleTranslation: (message: MessageVM, expanded: boolean) => void;
@@ -19,13 +22,29 @@ interface MessageStreamProps {
  * inbound messages without having to re-read the pane, and auto-scrolls to the
  * newest message whenever the thread grows.
  */
-export function MessageStream({ messages, isExpanded, translatingId, onToggleTranslation }: MessageStreamProps) {
+export function MessageStream({ messages, loading, isExpanded, translatingId, onToggleTranslation }: MessageStreamProps) {
   const { t } = useTranslation();
   const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ block: 'end' });
   }, [messages.length]);
+
+  if (loading) {
+    return (
+      <div
+        className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden px-6 py-5"
+        aria-busy="true"
+        aria-label={t('messages.thread.streamLabel')}
+      >
+        {[0, 1, 2].map((i) => (
+          <div key={i} className={i % 2 === 1 ? 'flex justify-end' : 'flex justify-start'}>
+            <Skeleton className={i % 2 === 1 ? 'h-14 w-[42%] rounded-[14px_14px_4px_14px]' : 'h-16 w-[55%] rounded-[14px_14px_14px_4px]'} />
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div

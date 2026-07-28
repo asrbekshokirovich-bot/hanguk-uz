@@ -6,6 +6,7 @@ import type { ConversationVM, MessageVM, SendLanguage } from './types';
 interface ThreadPaneProps {
   conversation: ConversationVM;
   messages: MessageVM[];
+  messagesLoading: boolean;
   autoTranslate: boolean;
   contextOpen: boolean;
   claiming: boolean;
@@ -24,6 +25,7 @@ interface ThreadPaneProps {
 export function ThreadPane({
   conversation,
   messages,
+  messagesLoading,
   autoTranslate,
   contextOpen,
   claiming,
@@ -51,6 +53,7 @@ export function ThreadPane({
       />
       <MessageStream
         messages={messages}
+        loading={messagesLoading}
         isExpanded={isExpanded}
         translatingId={translatingId}
         onToggleTranslation={onToggleTranslation}

@@ -51,7 +51,12 @@ export default function MessagesContent() {
     fetchMessages,
   } = useMessages();
 
-  const { conversations, loading, refreshAssignments } = useMessagesQueue();
+  // Opening a thread marks it read in the database (MessagesContext.fetchMessages
+  // zeroes `message_threads.unread_count`), but the local `threads` array is not
+  // refetched, so the badge would sit there stale until the next realtime INSERT.
+  // Tracking what this operator has opened clears it immediately.
+  const [locallyRead, setLocallyRead] = useState<Set<string>>(() => new Set());
+  const { conversations, loading, refreshAssignments } = useMessagesQueue(locallyRead);
 
   const [tab, setTab] = useState<QueueTab>('unassigned');
   const [channel, setChannel] = useState<ChannelFilter>('all');
@@ -62,18 +67,45 @@ export default function MessagesContent() {
   const [sending, setSending] = useState(false);
   const [translatingId, setTranslatingId] = useState<string | null>(null);
 
-  const visible = useMemo(
+  const filtered = useMemo(
     () => sortConversations(filterConversations(conversations, tab, channel, query), tab),
     [conversations, tab, channel, query],
   );
 
   // The selection is held as an id, never as a snapshot, so a claim or a new
   // inbound message re-derives the active row instead of showing stale state.
-  const activeId = visible.some((c) => c.threadId === selectedId) ? selectedId : visible[0]?.threadId ?? null;
+  //
+  // It is deliberately sticky against the FULL conversation list rather than
+  // the filtered one. Replying auto-assigns the thread, which drops it out of
+  // the Unassigned tab — matching against `filtered` here would yank the
+  // operator to the top of the queue mid-conversation, right after they sent
+  // a message. The thread stays open until they pick another one.
+  const activeId =
+    selectedId && conversations.some((c) => c.threadId === selectedId)
+      ? selectedId
+      : filtered[0]?.threadId ?? null;
   const active = useMemo<ConversationVM | null>(
     () => conversations.find((c) => c.threadId === activeId) ?? null,
     [conversations, activeId],
   );
+
+  // ...and the open thread stays pinned in the list, so the row the operator
+  // is looking at never vanishes from under them either.
+  const visible = useMemo(() => {
+    if (!active || filtered.some((c) => c.threadId === active.threadId)) return filtered;
+    return [active, ...filtered];
+  }, [filtered, active]);
+
+  // Changing a filter is an explicit "show me something else", so the sticky
+  // selection is released and the first row of the new list opens.
+  const changeTab = useCallback((next: QueueTab) => {
+    setTab(next);
+    setSelectedId(null);
+  }, []);
+  const changeChannel = useCallback((next: ChannelFilter) => {
+    setChannel(next);
+    setSelectedId(null);
+  }, []);
 
   // Mirror the local selection into MessagesContext, which owns the message
   // fetch. Guarded on id so a refetched `threads` array cannot loop.
@@ -87,7 +119,25 @@ export default function MessagesContent() {
     if (thread) setSelectedThread(thread);
   }, [activeId, threads, selectedThread, setSelectedThread]);
 
-  const threadMessages = useThreadMessages(messages);
+  // Whatever is open counts as read for this operator, from the moment it opens.
+  useEffect(() => {
+    if (!activeId) return;
+    setLocallyRead((prev) => (prev.has(activeId) ? prev : new Set(prev).add(activeId)));
+  }, [activeId]);
+
+  // MessagesContext refetches the stream asynchronously after the selection
+  // changes, so for a moment `messages` still holds the PREVIOUS thread.
+  // Rendering that would show one student's conversation under another
+  // student's name, so the stream is treated as loading until the rows match
+  // the open thread. An empty array is a genuinely empty thread, not staleness.
+  const streamMatchesActive =
+    !active || messages.length === 0 || messages[0]?.sender_id === active.senderId;
+  const activeMessages = useMemo(
+    () => (streamMatchesActive ? messages : []),
+    [streamMatchesActive, messages],
+  );
+
+  const threadMessages = useThreadMessages(activeMessages);
   const { autoTranslate, toggleAuto, isExpanded, toggleMessage } = useThreadTranslation(activeId);
   const { student, loading: studentLoading } = useStudentContext(active?.studentId ?? null);
 
@@ -106,8 +156,10 @@ export default function MessagesContent() {
         variant: 'destructive',
       });
     } else {
+      // No automatic tab switch: the thread stays pinned and open where the
+      // operator is already looking. Jumping them to another tab mid-read was
+      // the same disorientation as the post-send jump.
       await refreshAssignments();
-      setTab('mine');
     }
     setClaiming(false);
   }, [active, user, claiming, assignThread, refreshAssignments, toast, t]);
@@ -236,8 +288,8 @@ export default function MessagesContent() {
           tab={tab}
           channel={channel}
           query={query}
-          onTabChange={setTab}
-          onChannelChange={setChannel}
+          onTabChange={changeTab}
+          onChannelChange={changeChannel}
           onQueryChange={setQuery}
           onSelect={handleSelect}
         />
@@ -247,6 +299,7 @@ export default function MessagesContent() {
             <ThreadPane
               conversation={active}
               messages={threadMessages}
+              messagesLoading={!streamMatchesActive}
               autoTranslate={autoTranslate}
               contextOpen={contextOpen}
               claiming={claiming}
