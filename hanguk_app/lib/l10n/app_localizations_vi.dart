@@ -882,4 +882,10 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get interviewStartError =>
       'Không thể bắt đầu phỏng vấn. Vui lòng kiểm tra kết nối và thử lại.';
+
+  @override
+  String get perAnswerReviewTitle => 'Phân tích từng câu trả lời';
+
+  @override
+  String get betterAnswerLabel => 'CÂU TRẢ LỜI TỐT HƠN';
 }

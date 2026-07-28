@@ -197,6 +197,13 @@ class _InterviewAnalyticsViewState
           Colors.orangeAccent,
         ),
 
+        // Answer-by-answer review. The feedback function has always produced
+        // `message_scores` (a per-answer score with what went well, what to
+        // fix, and a stronger sample answer) but nothing rendered it — so the
+        // student was told their overall score without ever seeing WHERE they
+        // went wrong. This section surfaces it.
+        _buildPerAnswerSection(l, fb['message_scores']),
+
         const SizedBox(height: 32),
         // Audit U15: "Start another interview" preserves the in-memory
         // feedback (the prior implementation called resetSession which
@@ -222,6 +229,205 @@ class _InterviewAnalyticsViewState
 
         const SizedBox(height: 48),
       ],
+    );
+  }
+
+  /// Per-answer breakdown: for every answer the student gave, show its score,
+  /// the answer itself (when the transcript is in memory), what worked, what
+  /// to fix, and a stronger sample answer.
+  Widget _buildPerAnswerSection(AppLocalizations l, dynamic rawScores) {
+    if (rawScores is! List || rawScores.isEmpty) return const SizedBox.shrink();
+
+    // Map message_id -> the student's actual words, so the review points at a
+    // concrete answer instead of an opaque id. Empty for history replay,
+    // where only the feedback row is loaded.
+    final byId = <String, String>{
+      for (final m in ref.read(interviewProvider).messages) m.id: m.content,
+    };
+
+    final entries = rawScores.whereType<Map>().toList();
+    if (entries.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 24),
+        Row(
+          children: [
+            const Icon(Icons.fact_check, color: AppColors.vibrantLime, size: 20),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                l.perAnswerReviewTitle,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        for (var i = 0; i < entries.length; i++)
+          _buildAnswerCard(l, entries[i], i + 1, byId),
+      ],
+    );
+  }
+
+  Widget _buildAnswerCard(
+    AppLocalizations l,
+    Map entry,
+    int index,
+    Map<String, String> byId,
+  ) {
+    final score = entry['score'];
+    final answer = byId[entry['message_id']?.toString()];
+    final strengths = (entry['strengths'] as List<dynamic>?) ?? const [];
+    final suggestions = (entry['suggestions'] as List<dynamic>?) ?? const [];
+    final idealHint = entry['ideal_hint']?.toString();
+
+    final scoreValue = score is num ? score.toDouble() : null;
+    final scoreColor = scoreValue == null
+        ? Colors.white54
+        : (scoreValue >= 8
+              ? Colors.greenAccent
+              : (scoreValue >= 5 ? Colors.orangeAccent : Colors.redAccent));
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.04),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.white10),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                '#$index',
+                style: const TextStyle(
+                  color: Colors.white54,
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const Spacer(),
+              if (scoreValue != null)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: scoreColor.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    '${scoreValue.toStringAsFixed(0)}/10',
+                    style: TextStyle(
+                      color: scoreColor,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          if (answer != null && answer.trim().isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              answer,
+              style: const TextStyle(
+                color: Colors.white70,
+                fontSize: 13,
+                fontStyle: FontStyle.italic,
+                height: 1.4,
+              ),
+            ),
+          ],
+          if (strengths.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            ...strengths.map(
+              (s) => _bullet('✓', s.toString(), Colors.greenAccent),
+            ),
+          ],
+          if (suggestions.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            ...suggestions.map(
+              (s) => _bullet('!', s.toString(), Colors.orangeAccent),
+            ),
+          ],
+          if (idealHint != null && idealHint.trim().isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: AppColors.vibrantLime.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: AppColors.vibrantLime.withValues(alpha: 0.25),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l.betterAnswerLabel,
+                    style: const TextStyle(
+                      color: AppColors.vibrantLime,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    idealHint,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 13,
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _bullet(String marker, String text, Color color) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            marker,
+            style: TextStyle(
+              color: color,
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(
+                color: Colors.white70,
+                fontSize: 13,
+                height: 1.4,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

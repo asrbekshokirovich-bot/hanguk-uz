@@ -1630,6 +1630,12 @@ abstract class AppLocalizations {
 
   /// Error banner in InterviewSetupView when startSession() fails (audit G3-5).
   String get interviewStartError;
+
+  /// Section title above the per-answer breakdown in InterviewAnalyticsView.
+  String get perAnswerReviewTitle;
+
+  /// Label above the AI's suggested stronger version of one answer.
+  String get betterAnswerLabel;
 }
 
 class _AppLocalizationsDelegate

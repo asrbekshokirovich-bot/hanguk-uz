@@ -884,4 +884,10 @@ class AppLocalizationsUz extends AppLocalizations {
   @override
   String get interviewStartError =>
       'Suhbatni boshlab bo\'lmadi. Internet aloqasini tekshirib, qayta urinib ko\'ring.';
+
+  @override
+  String get perAnswerReviewTitle => 'Har bir javob tahlili';
+
+  @override
+  String get betterAnswerLabel => 'KUCHLIROQ JAVOB';
 }

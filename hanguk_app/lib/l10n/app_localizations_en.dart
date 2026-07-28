@@ -882,4 +882,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get interviewStartError =>
       'Couldn\'t start the interview. Please check your connection and try again.';
+
+  @override
+  String get perAnswerReviewTitle => 'Answer-by-answer review';
+
+  @override
+  String get betterAnswerLabel => 'A STRONGER ANSWER';
 }

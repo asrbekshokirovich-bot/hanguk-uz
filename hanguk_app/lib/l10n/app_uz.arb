@@ -352,5 +352,7 @@
   "a11yTooltipPlayRecording": "Yozuvni ijro etish",
   "a11yTooltipPauseRecording": "Yozuvni to'xtatish",
   "trackMismatchWarning": "Qoralamangiz tili siz tanlagan yo'nalishga mos kelmayapti. Iltimos, tanlangan tilda qayta yozing.",
-  "interviewStartError": "Suhbatni boshlab bo'lmadi. Internet aloqasini tekshirib, qayta urinib ko'ring."
+  "interviewStartError": "Suhbatni boshlab bo'lmadi. Internet aloqasini tekshirib, qayta urinib ko'ring.",
+  "perAnswerReviewTitle": "Har bir javob tahlili",
+  "betterAnswerLabel": "KUCHLIROQ JAVOB"
 }

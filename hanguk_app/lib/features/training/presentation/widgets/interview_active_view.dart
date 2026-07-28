@@ -233,6 +233,17 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
                 // Korean-native voice for full effect (see AppConfig.voiceIdKo*).
                 'model': 'eleven_turbo_v2_5',
               },
+              // Speech-to-text for the STUDENT's side. Without this Vapi
+              // falls back to its English default, so a Korean-language
+              // interview transcribed the candidate's Korean answers as
+              // garbled English: the interviewer "didn't understand" anything
+              // the student said, and the saved transcript (which the
+              // feedback is scored from) was nonsense.
+              'transcriber': {
+                'provider': 'deepgram',
+                'model': 'nova-2',
+                'language': isKorean ? 'ko' : 'en',
+              },
               'endCallFunctionEnabled': true,
               'recordingEnabled': true,
               // Force the AI to speak first on connect rather than waiting for

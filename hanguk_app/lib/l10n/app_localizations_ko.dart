@@ -857,4 +857,10 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get interviewStartError =>
       '면접을 시작할 수 없습니다. 인터넷 연결을 확인하고 다시 시도해 주세요.';
+
+  @override
+  String get perAnswerReviewTitle => '답변별 분석';
+
+  @override
+  String get betterAnswerLabel => '더 좋은 답변 예시';
 }

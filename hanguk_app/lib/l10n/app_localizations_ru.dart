@@ -882,4 +882,10 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get interviewStartError =>
       'Не удалось начать собеседование. Проверьте подключение и попробуйте снова.';
+
+  @override
+  String get perAnswerReviewTitle => 'Разбор каждого ответа';
+
+  @override
+  String get betterAnswerLabel => 'БОЛЕЕ СИЛЬНЫЙ ОТВЕТ';
 }

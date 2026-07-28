@@ -352,5 +352,7 @@
   "a11yTooltipPlayRecording": "Play recording",
   "a11yTooltipPauseRecording": "Pause recording",
   "trackMismatchWarning": "Язык вашего черновика не совпадает с выбранным направлением. Пожалуйста, перепишите его на выбранном языке.",
-  "interviewStartError": "Не удалось начать собеседование. Проверьте подключение и попробуйте снова."
+  "interviewStartError": "Не удалось начать собеседование. Проверьте подключение и попробуйте снова.",
+  "perAnswerReviewTitle": "Разбор каждого ответа",
+  "betterAnswerLabel": "БОЛЕЕ СИЛЬНЫЙ ОТВЕТ"
 }

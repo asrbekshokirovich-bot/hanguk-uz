@@ -84,7 +84,14 @@ serve(async (req) => {
       .eq("session_id", sessionId)
       .order("created_at", { ascending: true });
 
-    if (messagesError || !messages || messages.length < 2) {
+    // Score whatever the candidate actually said, however short. The old
+    // "at least 2 messages" rule also counted the interviewer's own turns, so
+    // a student who stopped after one answer could still be refused feedback
+    // — they ended up with no result at all for a real attempt. The only case
+    // with genuinely nothing to grade is "the student never spoke".
+    const studentTurns = (messages ?? []).filter((m) => m.role === "student");
+
+    if (messagesError || !messages || studentTurns.length === 0) {
       return new Response(
         JSON.stringify({ error: "Not enough conversation data for feedback" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -121,9 +128,7 @@ IMPORTANT: Evaluate if the student demonstrated knowledge about this specific un
     ).join("\n\n");
 
     // Get student message IDs for per-answer scoring
-    const studentMessageIds = messages
-      .filter(m => m.role === "student")
-      .map(m => m.id);
+    const studentMessageIds = studentTurns.map(m => m.id);
 
     const feedbackLang = language === "uz" ? "Uzbek" : 
                          language === "ru" ? "Russian" :
@@ -154,6 +159,7 @@ SPECIFIC EVALUATION POINTS:
 
 PER-ANSWER SCORING:
 For each student response (identified by message ID), provide individual feedback.
+Be concrete about WHAT went wrong and WHERE: name the weak part of that specific answer, and give a stronger version.
 Student message IDs to score: ${studentMessageIds.join(", ")}
 
 You MUST respond with a valid JSON object in this exact format:
@@ -171,12 +177,13 @@ You MUST respond with a valid JSON object in this exact format:
       "message_id": "<uuid>",
       "score": <number 1-10>,
       "strengths": ["what they did well"],
-      "suggestions": ["how to improve"],
-      "ideal_hint": "brief example of a better response (optional)"
+      "suggestions": ["what was wrong in this answer and how to fix it"],
+      "ideal_hint": "a short example of a stronger version of this answer"
     }
   ]
 }
 
+Write strengths, improvements, detailed_feedback, and every message_scores entry in ${feedbackLang}.
 Be constructive and encouraging while providing actionable suggestions based on typical Korean university interview expectations.
 Include message_scores for EVERY student response in the transcript.`;
 
