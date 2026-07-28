@@ -117,7 +117,7 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
   const sendMessage = async (content: string, source: string, senderId: string) => {
     if (!user) return { error: new Error('Not authenticated') };
 
-    const { error } = await supabase
+    const { data: inserted, error } = await supabase
       .from('messages')
       .insert({
         source,
@@ -127,33 +127,60 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
         status: 'replied',
         replied_by: user.id,
         replied_at: new Date().toISOString(),
-      });
+      })
+      .select('id')
+      .single();
 
-    if (!error) {
-      if (source === 'telegram' && senderId) {
-        try {
-          await supabase.functions.invoke('send-telegram', {
-            body: { chat_id: senderId, text: content },
-          });
-        } catch (telegramError) {
-          console.error('Failed to send Telegram message:', telegramError);
-        }
-      }
-      if (source === 'instagram' && senderId) {
-        try {
-          const { error: igError } = await supabase.functions.invoke('send-instagram', {
-            body: { recipient_id: senderId, text: content },
-          });
-          if (igError) console.error('Failed to send Instagram message:', igError);
-        } catch (instagramError) {
-          console.error('Failed to send Instagram message:', instagramError);
-        }
-      }
-      if (selectedThread) {
-        await fetchMessages(selectedThread);
+    if (error || !inserted) {
+      return { error: error || new Error('Failed to save message') };
+    }
+
+    let sendError: Error | null = null;
+
+    if (source === 'telegram' && senderId) {
+      try {
+        await supabase.functions.invoke('send-telegram', {
+          body: { chat_id: senderId, text: content },
+        });
+      } catch (telegramError) {
+        console.error('Failed to send Telegram message:', telegramError);
       }
     }
-    return { error };
+
+    if (source === 'instagram' && senderId) {
+      try {
+        const { error: igError } = await supabase.functions.invoke('send-instagram', {
+          body: { recipient_id: senderId, text: content },
+        });
+        if (igError) {
+          let detail = '';
+          try {
+            const body = await (igError as any).context?.json?.();
+            detail = body?.error || '';
+          } catch {
+            // ignore body parse errors
+          }
+          sendError = new Error(detail || igError.message || 'Instagram send failed');
+        }
+      } catch (instagramError) {
+        sendError = instagramError instanceof Error ? instagramError : new Error('Instagram send failed');
+      }
+
+      if (sendError) {
+        console.error('Failed to send Instagram message:', sendError);
+        // Remove the optimistic row so the CRM does not show an undelivered message.
+        await supabase
+          .from('messages')
+          .delete()
+          .eq('id', inserted.id)
+          .is('external_id', null);
+      }
+    }
+
+    if (selectedThread) {
+      await fetchMessages(selectedThread);
+    }
+    return { error: sendError };
   };
 
   const archiveThread = async (threadId: string) => {
