@@ -496,8 +496,7 @@ class _UniversityRoomModalState extends State<UniversityRoomModal> {
                           padding: const EdgeInsets.all(16),
                           itemCount: announcementsState.announcements.length,
                           itemBuilder: (context, index) {
-                            final ann =
-                                announcementsState.announcements[index];
+                            final ann = announcementsState.announcements[index];
                             return Container(
                               margin: const EdgeInsets.only(bottom: 12),
                               decoration: BoxDecoration(

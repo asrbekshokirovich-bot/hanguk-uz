@@ -90,13 +90,13 @@ class _ChatTabState extends ConsumerState<ChatTab> {
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              color: SeoulColors.warningFill,
+              color: SeoulColors.dangerFill,
               child: Row(
                 children: [
                   const Icon(
                     Icons.error_outline_rounded,
                     size: 16,
-                    color: SeoulColors.warningText,
+                    color: SeoulColors.dangerText,
                   ),
                   const SizedBox(width: 8),
                   Expanded(
@@ -104,7 +104,7 @@ class _ChatTabState extends ConsumerState<ChatTab> {
                       chatState.error!,
                       style: SeoulType.caption.copyWith(
                         fontSize: 13,
-                        color: SeoulColors.warningText,
+                        color: SeoulColors.dangerText,
                       ),
                     ),
                   ),
@@ -117,9 +117,7 @@ class _ChatTabState extends ConsumerState<ChatTab> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: const BoxDecoration(
-                border: Border(
-                  top: BorderSide(color: SeoulColors.glassBorder),
-                ),
+                border: Border(top: BorderSide(color: SeoulColors.glassBorder)),
               ),
               child: Row(
                 children: [

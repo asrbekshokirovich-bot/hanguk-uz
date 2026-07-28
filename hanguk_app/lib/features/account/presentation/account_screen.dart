@@ -19,9 +19,10 @@ import '../../auth/data/auth_repository.dart';
 /// any app that supports account creation.
 ///
 /// Seoul Night pass: hero identity card + glass rows with hangul glyph
-/// tiles. The destructive action is amber `SeoulColors.warning*`, never a
-/// raw red — depth on this screen comes from glass and glow, and the one
-/// saturated colour left is reserved for danger.
+/// tiles. Deleting an account is irreversible, so it wears
+/// `SeoulColors.danger*` — amber would read as "heads up" for something
+/// that cannot be undone. The tone is desaturated for the navy surface
+/// rather than a raw red.
 class AccountScreen extends ConsumerStatefulWidget {
   const AccountScreen({super.key});
 
@@ -107,6 +108,13 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
     if (!mounted) return;
 
     // Show a non-dismissible progress dialog while the RPC runs.
+    //
+    // Captured before the await: the dialog is non-dismissible and blocks its
+    // own pop, so if this screen unmounts mid-RPC a `mounted`-guarded
+    // teardown would leave the user staring at a spinner they cannot escape
+    // without force-quitting — during account deletion, of all things. The
+    // root navigator outlives the screen, so hold it directly.
+    final rootNavigator = Navigator.of(context, rootNavigator: true);
     showDialog<void>(
       context: context,
       barrierDismissible: false,
@@ -123,9 +131,9 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
       error = e.toString();
     }
 
+    // Tear down the progress dialog first, and unconditionally — see above.
+    if (rootNavigator.canPop()) rootNavigator.pop();
     if (!mounted) return;
-    // Tear down the progress dialog regardless.
-    Navigator.of(context, rootNavigator: true).pop();
 
     if (error != null) {
       final l10n = AppLocalizations.of(context)!;
@@ -139,9 +147,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
             children: [
               Text(
                 l10n.accountDeleteErrorTitle,
-                style: SeoulType.title.copyWith(
-                  color: SeoulColors.warningText,
-                ),
+                style: SeoulType.title.copyWith(color: SeoulColors.dangerText),
               ),
               const SizedBox(height: 12),
               Flexible(
@@ -226,10 +232,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(
-                          l10n.accountSignedInAs,
-                          style: SeoulType.eyebrow,
-                        ),
+                        Text(l10n.accountSignedInAs, style: SeoulType.eyebrow),
                         const SizedBox(height: 6),
                         Text(
                           email ?? phone ?? l10n.accountUnknownAccount,
@@ -282,7 +285,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
               ko: '계정 삭제',
               body: l10n.accountDangerZoneBody,
               danger: true,
-              child: _WarningButton(
+              child: _DangerButton(
                 icon: Icons.delete_forever_rounded,
                 label: l10n.accountDeleteAccount,
                 onPressed: _showDeleteFlow,
@@ -342,9 +345,7 @@ class _AccountCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GlassCard(
       padding: const EdgeInsets.all(18),
-      borderColor: danger
-          ? SeoulColors.warning.withValues(alpha: 0.45)
-          : null,
+      borderColor: danger ? SeoulColors.danger.withValues(alpha: 0.45) : null,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -361,7 +362,7 @@ class _AccountCard extends StatelessWidget {
                       title,
                       style: danger
                           ? SeoulType.subtitle.copyWith(
-                              color: SeoulColors.warningText,
+                              color: SeoulColors.dangerText,
                             )
                           : SeoulType.subtitle,
                       overflow: TextOverflow.ellipsis,
@@ -371,7 +372,7 @@ class _AccountCard extends StatelessWidget {
                       ko,
                       style: danger
                           ? SeoulType.hangulLabel.copyWith(
-                              color: SeoulColors.warning,
+                              color: SeoulColors.dangerText,
                             )
                           : SeoulType.hangulLabel,
                     ),
@@ -459,20 +460,20 @@ class _LegalLink extends StatelessWidget {
   }
 }
 
-/// The destructive action. Amber `SeoulColors.warning*` fill + hairline,
-/// never a raw red hex — see DESIGN_SPEC §1 Semantic.
-class _WarningButton extends StatefulWidget {
-  const _WarningButton({required this.label, this.onPressed, this.icon});
+/// The destructive action. `SeoulColors.danger*` fill + hairline — the
+/// desaturated destructive tone, never a raw red hex.
+class _DangerButton extends StatefulWidget {
+  const _DangerButton({required this.label, this.onPressed, this.icon});
 
   final String label;
   final VoidCallback? onPressed;
   final IconData? icon;
 
   @override
-  State<_WarningButton> createState() => _WarningButtonState();
+  State<_DangerButton> createState() => _DangerButtonState();
 }
 
-class _WarningButtonState extends State<_WarningButton> {
+class _DangerButtonState extends State<_DangerButton> {
   bool _pressed = false;
 
   @override
@@ -487,15 +488,15 @@ class _WarningButtonState extends State<_WarningButton> {
         alignment: Alignment.center,
         padding: const EdgeInsets.symmetric(horizontal: 20),
         decoration: BoxDecoration(
-          color: SeoulColors.warningFill,
+          color: SeoulColors.dangerFill,
           borderRadius: SeoulRadii.controlR,
-          border: Border.all(color: SeoulColors.warning, width: 1),
+          border: Border.all(color: SeoulColors.danger, width: 1),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             if (widget.icon != null) ...[
-              Icon(widget.icon, size: 18, color: SeoulColors.warningText),
+              Icon(widget.icon, size: 18, color: SeoulColors.dangerText),
               const SizedBox(width: 8),
             ],
             Flexible(
@@ -503,9 +504,7 @@ class _WarningButtonState extends State<_WarningButton> {
                 widget.label,
                 textAlign: TextAlign.center,
                 overflow: TextOverflow.ellipsis,
-                style: SeoulType.button.copyWith(
-                  color: SeoulColors.warningText,
-                ),
+                style: SeoulType.button.copyWith(color: SeoulColors.dangerText),
               ),
             ),
           ],
@@ -605,7 +604,7 @@ class _DeleteConfirmDialogState extends State<_DeleteConfirmDialog> {
                 child: Text(
                   l10n.accountDeleteDialogTitle,
                   style: SeoulType.subtitle.copyWith(
-                    color: SeoulColors.warningText,
+                    color: SeoulColors.dangerText,
                   ),
                 ),
               ),
@@ -646,7 +645,7 @@ class _DeleteConfirmDialogState extends State<_DeleteConfirmDialog> {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: SeoulRadii.controlR,
-                borderSide: const BorderSide(color: SeoulColors.warning),
+                borderSide: const BorderSide(color: SeoulColors.danger),
               ),
               border: OutlineInputBorder(
                 borderRadius: SeoulRadii.controlR,
@@ -665,7 +664,7 @@ class _DeleteConfirmDialogState extends State<_DeleteConfirmDialog> {
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: _WarningButton(
+                child: _DangerButton(
                   label: l10n.accountDeleteDialogConfirm,
                   onPressed: _canConfirm
                       ? () => Navigator.of(context).pop(true)
@@ -701,10 +700,7 @@ class _DeletionProgressDialog extends StatelessWidget {
             ),
             const SizedBox(width: 16),
             Flexible(
-              child: Text(
-                l10n.accountDeleteProgress,
-                style: SeoulType.body,
-              ),
+              child: Text(l10n.accountDeleteProgress, style: SeoulType.body),
             ),
           ],
         ),

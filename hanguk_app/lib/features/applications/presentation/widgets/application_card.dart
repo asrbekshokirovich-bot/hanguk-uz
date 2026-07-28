@@ -207,43 +207,49 @@ class _ApplicationCardState extends State<ApplicationCard> {
     );
   }
 
-  /// Status → chip tone, per DESIGN_SPEC §3.4: Submitted = lime,
-  /// In Review = warning, Docs stage = info. A rejection gets the danger tone
-  /// (added to the palette for exactly this); everything else the CRM can
-  /// write that this app does not model falls back to neutral rather than
-  /// guessing at a meaning.
+  /// Status → chip label and tone, per DESIGN_SPEC §3.4.
+  ///
+  /// The chip states *where the application stands*, in the short vocabulary
+  /// the spec asks for — not the raw database value. `sessionStatusLabel` is
+  /// deliberately not used here: it renders "Status: rejected", which shows a
+  /// student an internal enum at the moment they most need a plain sentence.
+  /// The long stage name lives in the journey bar below the chip.
   StatusChip _statusChip(String status, AppLocalizations l) {
     switch (status) {
-      // ── Docs stage → info ──────────────────────────────────────────────
+      // ── Collecting paperwork ───────────────────────────────────────────
       case 'documents_collection':
       case 'visa_documents':
-        return StatusChip(label: l.navDocs, tone: StatusTone.info);
+        return StatusChip(label: l.statusDocs, tone: StatusTone.info, ko: '서류');
 
-      // ── Submitted → lime ───────────────────────────────────────────────
+      // ── Sent to the university ─────────────────────────────────────────
       case 'online_application':
       case 'offline_application':
         return StatusChip(
-          label: _stageLabel(status, l),
+          label: l.statusSubmitted,
           tone: StatusTone.lime,
+          ko: '제출',
         );
 
-      // ── In review → warning ────────────────────────────────────────────
+      // ── Someone is actively assessing it ───────────────────────────────
       case 'interview':
       case 'tuition_payment':
         return StatusChip(
-          label: _stageLabel(status, l),
+          label: l.statusInReview,
           tone: StatusTone.warning,
+          ko: '심사',
         );
+
+      // ── Blocked on the university or the consulate ─────────────────────
       case 'waiting_invoice':
       case 'university_response':
       case 'visa_issue':
         return StatusChip(
-          label: _stageLabel(status, l),
+          label: l.statusWaiting,
           tone: StatusTone.warning,
           ko: ProcessTracker.pendingKo,
         );
 
-      // ── Waiting on staff → neutral ─────────────────────────────────────
+      // ── Waiting on our own staff ───────────────────────────────────────
       case 'pending':
       case 'pending_approval':
         return StatusChip(
@@ -256,18 +262,18 @@ class _ApplicationCardState extends State<ApplicationCard> {
       // would tell the student the opposite of what happened.
       case 'rejected':
         return StatusChip(
-          label: l.sessionStatusLabel(status),
+          label: l.statusRejected,
           tone: StatusTone.danger,
+          ko: '불합격',
         );
 
-      // Anything the CRM writes that this app does not model yet.
+      // A status the CRM writes that this app does not model yet. The raw
+      // value is the honest thing to show — inventing a friendly label for an
+      // unknown state would be worse than admitting we don't know it.
       default:
         return StatusChip(label: l.sessionStatusLabel(status));
     }
   }
-
-  String _stageLabel(String status, AppLocalizations l) =>
-      ProcessTracker.currentStageLabel(status, l) ?? l.sessionStatusLabel(status);
 }
 
 /// Shown in place of the journey bar while a counselor has not approved the

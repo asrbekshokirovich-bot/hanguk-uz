@@ -210,7 +210,9 @@ class ApplicationsTab extends ConsumerWidget {
                 ),
               ),
             ),
-            const SliverToBoxAdapter(child: SizedBox(height: SeoulSizes.orbClearance)),
+            const SliverToBoxAdapter(
+              child: SizedBox(height: SeoulSizes.orbClearance),
+            ),
           ],
         );
       },
@@ -224,7 +226,10 @@ class ApplicationsTab extends ConsumerWidget {
     );
   }
 
-  Widget _buildErrorSliver(AppLocalizations l, {required VoidCallback onRetry}) {
+  Widget _buildErrorSliver(
+    AppLocalizations l, {
+    required VoidCallback onRetry,
+  }) {
     return SliverFillRemaining(
       hasScrollBody: false,
       child: Center(

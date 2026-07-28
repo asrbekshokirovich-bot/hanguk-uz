@@ -117,44 +117,58 @@ class _OnboardingOverlayState extends State<OnboardingOverlay> {
             ),
           ),
           Expanded(
-            child: PageView.builder(
-              controller: _controller,
-              itemCount: steps.length,
-              onPageChanged: (i) => setState(() => _index = i),
-              itemBuilder: (context, i) {
-                final s = steps[i];
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 32),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      HangulGlyphTile(
-                        glyph: s.glyph,
-                        size: 120,
-                        radius: SeoulRadii.hero,
+            child: LayoutBuilder(
+              builder: (context, constraints) => PageView.builder(
+                controller: _controller,
+                itemCount: steps.length,
+                onPageChanged: (i) => setState(() => _index = i),
+                itemBuilder: (context, i) {
+                  final s = steps[i];
+                  // Scrollable, not a fixed centred Column: the glyph tile is a
+                  // hard 120px and the body text scales, so at the OS's largest
+                  // font settings the page overflows its viewport. Centred while
+                  // it fits, scrollable once it doesn't.
+                  return SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 32,
+                      vertical: 16,
+                    ),
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: constraints.maxHeight - 32,
                       ),
-                      const SizedBox(height: 32),
-                      Text(
-                        s.title,
-                        textAlign: TextAlign.center,
-                        style: SeoulType.headline,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          HangulGlyphTile(
+                            glyph: s.glyph,
+                            size: 120,
+                            radius: SeoulRadii.hero,
+                          ),
+                          const SizedBox(height: 32),
+                          Text(
+                            s.title,
+                            textAlign: TextAlign.center,
+                            style: SeoulType.headline,
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            s.ko,
+                            textAlign: TextAlign.center,
+                            style: SeoulType.hangulLabel,
+                          ),
+                          const SizedBox(height: 14),
+                          Text(
+                            s.body,
+                            textAlign: TextAlign.center,
+                            style: SeoulType.bodySecondary,
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 6),
-                      Text(
-                        s.ko,
-                        textAlign: TextAlign.center,
-                        style: SeoulType.hangulLabel,
-                      ),
-                      const SizedBox(height: 14),
-                      Text(
-                        s.body,
-                        textAlign: TextAlign.center,
-                        style: SeoulType.bodySecondary,
-                      ),
-                    ],
-                  ),
-                );
-              },
+                    ),
+                  );
+                },
+              ),
             ),
           ),
           // Page indicator — lime for the active dot (spec §1: lime marks the

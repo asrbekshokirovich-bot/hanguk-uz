@@ -1,23 +1,10 @@
-// TEMPORARY probe — deleted after the review. Reproduces the exact layout
-// skeletons of the restyled interview screens to detect overflow / unbounded
-// constraint failures without needing Vapi or Supabase.
+// TEMPORARY probe — deleted after the review.
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hanguk_app/design_system/seoul_night/seoul_night.dart';
 
-Widget wrap(Widget child, {Size size = const Size(360, 640), double scale = 1.0}) {
-  return MediaQuery(
-    data: MediaQueryData(size: size, textScaler: TextScaler.linear(scale)),
-    child: Directionality(
-      textDirection: TextDirection.ltr,
-      child: MediaQuery.withNoTextScaling(
-        child: const SizedBox.shrink(),
-      ),
-    ),
-  );
-}
-
-/// Mirrors _InterviewActiveViewState.build() exactly (fixed-size parts).
 Widget activeViewSkeleton({
   required bool hints,
   required bool coaching,
@@ -37,20 +24,34 @@ Widget activeViewSkeleton({
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             if (uniPill)
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 14, vertical: 9),
-                  child: Text('Seoul National University'),
+              Center(
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                    const Icon(Icons.school, size: 16),
+                    const SizedBox(width: 8),
+                    Flexible(
+                        child: Text('Seoul National University',
+                            overflow: TextOverflow.ellipsis,
+                            style: SeoulType.caption.copyWith(fontSize: 12.5))),
+                  ]),
                 ),
               ),
             if (coaching) ...[
               const SizedBox(height: 12),
               GlassCard(
                 radius: SeoulRadii.control,
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 blur: false,
-                child: Text('Avoid using filler words!',
-                    style: SeoulType.bodySecondary),
+                child: Row(children: [
+                  const Icon(Icons.warning_amber_rounded, size: 18),
+                  const SizedBox(width: 10),
+                  Expanded(
+                      child: Text('Avoid using filler words!',
+                          style: SeoulType.bodySecondary)),
+                ]),
               ),
             ],
             const Spacer(),
@@ -78,7 +79,7 @@ Widget activeViewSkeleton({
                           Text('Lifeline Hints:', style: SeoulType.subtitle),
                           const SizedBox(height: 8),
                           for (var i = 0; i < 3; i++)
-                            Text('Hint number $i, a reasonably long sentence.',
+                            Text('Hint $i, a reasonably long sentence here.',
                                 style: SeoulType.bodySecondary),
                         ],
                       ),
@@ -111,16 +112,15 @@ Widget host(Widget child, {required Size size, required double scale}) {
         ],
         child: Material(
           color: SeoulColors.royalBlue,
-          child: SizedBox(
+          child: Center(
+            child: SizedBox(
             width: size.width,
             height: size.height,
-            // Mirrors InterviewScreen: header row then Expanded(view).
-            child: Column(
-              children: [
-                const SizedBox(height: 64), // header
-                Expanded(child: child),
-              ],
-            ),
+            child: Column(children: [
+              const SizedBox(height: 64), // InterviewScreen header
+              Expanded(child: child),
+            ]),
+          ),
           ),
         ),
       ),
@@ -128,104 +128,170 @@ Widget host(Widget child, {required Size size, required double scale}) {
   );
 }
 
+/// Pumps and reports overflow pixels (0 = clean) instead of failing.
+Future<String> probe(WidgetTester tester, Widget w) async {
+  final errors = <String>[];
+  final prev = FlutterError.onError;
+  FlutterError.onError = (d) => errors.add(d.toString());
+  await tester.pumpWidget(w);
+  await tester.pump();
+  FlutterError.onError = prev;
+  if (errors.isEmpty) return 'CLEAN';
+  return errors
+      .map((e) => e
+          .split('\n')
+          .where((l) =>
+              l.contains('overflowed') ||
+              l.contains('in question') ||
+              l.contains('constraints:') ||
+              l.contains('creator:'))
+          .join(' // '))
+      .join(' | ');
+}
+
+Future<void> loadRealFonts() async {
+  for (final e in <String, List<String>>{
+    'Inter': [
+      'assets/fonts/Inter-400.ttf',
+      'assets/fonts/Inter-500.ttf',
+      'assets/fonts/Inter-700.ttf',
+      'assets/fonts/Inter-800.ttf',
+    ],
+    'NotoSansKR': ['assets/fonts/NotoSansKR-500.ttf'],
+  }.entries) {
+    final loader = FontLoader(e.key);
+    for (final path in e.value) {
+      loader.addFont(File(path).readAsBytes().then(
+          (b) => ByteData.view(Uint8List.fromList(b).buffer)));
+    }
+    await loader.load();
+  }
+}
+
 void main() {
-  for (final scale in <double>[1.0, 1.3, 2.0]) {
-    for (final size in <Size>[const Size(360, 640), const Size(320, 568)]) {
-      testWidgets('active view ${size.width}x${size.height} @${scale}x',
-          (tester) async {
-        tester.view.physicalSize = size;
-        tester.view.devicePixelRatio = 1.0;
-        addTearDown(tester.view.reset);
-        await tester.pumpWidget(host(
-          activeViewSkeleton(
-            hints: true,
-            coaching: true,
-            uniPill: true,
-            status: 'Connecting — your interviewer will greet you shortly...',
-          ),
-          size: size,
-          scale: scale,
-        ));
-        final errors = <String>[];
-        // ignore: invalid_use_of_protected_member
-        expect(errors, isEmpty);
-      });
+  TestWidgetsFlutterBinding.ensureInitialized();
+  setUpAll(loadRealFonts);
+  final cases = <String, Widget Function()>{
+    'bare (no pill/coach/hints), status=Connecting': () => activeViewSkeleton(
+        hints: false,
+        coaching: false,
+        uniPill: false,
+        status: 'Connecting...'),
+    'pill only, long greetWait status': () => activeViewSkeleton(
+        hints: false,
+        coaching: false,
+        uniPill: true,
+        status: 'Connecting — your interviewer will greet you shortly...'),
+    'pill + coaching, greetWait': () => activeViewSkeleton(
+        hints: false,
+        coaching: true,
+        uniPill: true,
+        status: 'Connecting — your interviewer will greet you shortly...'),
+    'pill + hints, greetWait': () => activeViewSkeleton(
+        hints: true,
+        coaching: false,
+        uniPill: true,
+        status: 'Connecting — your interviewer will greet you shortly...'),
+    'pill + coaching + hints, greetWait': () => activeViewSkeleton(
+        hints: true,
+        coaching: true,
+        uniPill: true,
+        status: 'Connecting — your interviewer will greet you shortly...'),
+    'pill, long error status': () => activeViewSkeleton(
+        hints: false,
+        coaching: false,
+        uniPill: true,
+        status:
+            'Connection interrupted: The interviewer did not respond. Please go back and try again.'),
+  };
+
+  for (final size in <Size>[
+    const Size(412, 915),
+    const Size(390, 844),
+    const Size(360, 640),
+    const Size(320, 568),
+  ]) {
+    for (final scale in <double>[1.0, 1.15, 1.3, 1.5, 2.0]) {
+      for (final entry in cases.entries) {
+        testWidgets(
+            'ACTIVE ${size.width.toInt()}x${size.height.toInt()} @$scale ${entry.key}',
+            (tester) async {
+          final r =
+              await probe(tester, host(entry.value(), size: size, scale: scale));
+          debugPrint(
+              'RESULT|${size.width.toInt()}x${size.height.toInt()}|$scale|${entry.key}|$r');
+        });
+      }
     }
   }
 
-  testWidgets('ConicProgressRing with a long/ugly score label', (tester) async {
-    for (final label in <String>['7', '7.5', '7.333333333333333', '85']) {
-      await tester.pumpWidget(host(
-        Center(
-          child: ConicProgressRing(
-            value: 0.75,
-            size: 104,
-            strokeWidth: 9,
-            label: label,
-            caption: '/ 10',
-            animate: false,
+  testWidgets('RING labels', (tester) async {
+    for (final label in <String>['7', '7.0', '7.5', '7.25', '10']) {
+      for (final scale in <double>[1.0, 1.3, 1.5, 2.0, 3.0]) {
+        final r = await probe(
+          tester,
+          host(
+            Center(
+              child: ConicProgressRing(
+                value: 0.75,
+                size: 104,
+                strokeWidth: 9,
+                label: label,
+                caption: '/ 10',
+                animate: false,
+              ),
+            ),
+            size: const Size(390, 844),
+            scale: scale,
           ),
-        ),
-        size: const Size(360, 640),
-        scale: 1.0,
-      ));
-      await tester.pump();
-      debugPrint('=== label "$label" pumped ===');
+        );
+        debugPrint('RING|"$label"|@$scale|$r');
+      }
     }
   });
 
-  testWidgets('ConicProgressRing label at 2x text scale', (tester) async {
-    await tester.pumpWidget(host(
-      Center(
-        child: ConicProgressRing(
-          value: 0.75,
-          size: 104,
-          strokeWidth: 9,
-          label: '7.5',
-          caption: '/ 10',
-          animate: false,
-        ),
-      ),
-      size: const Size(360, 640),
-      scale: 2.0,
-    ));
-    await tester.pump();
-  });
-
-  testWidgets('LiveMetricsBar-shaped row with long labels', (tester) async {
-    await tester.pumpWidget(host(
-      Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
+  testWidgets('LIVE METRICS BAR', (tester) async {
+    for (final size in <Size>[const Size(390, 844), const Size(320, 568)]) {
+      for (final scale in <double>[1.0, 1.15, 1.3]) {
+        final r = await probe(
+          tester,
+          host(
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text('Words: 1234', style: SeoulType.caption),
-                const SizedBox(width: 16),
-                Text('Characters: 56789', style: SeoulType.caption),
-                const SizedBox(width: 16),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  child: Text('PERSONAL_STATEMENT',
-                      style: SeoulType.eyebrow),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(children: [
+                      Text("So'zlar: 1234", style: SeoulType.caption),
+                      const SizedBox(width: 16),
+                      Text('Belgilar: 11987', style: SeoulType.caption),
+                      const SizedBox(width: 16),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 3),
+                        child: Text('UZBEK', style: SeoulType.eyebrow),
+                      ),
+                    ]),
+                    Row(children: [
+                      const Icon(Icons.cloud_done_outlined, size: 14),
+                      const SizedBox(width: 6),
+                      Text('Saqlash xatosi', style: SeoulType.caption),
+                    ]),
+                  ],
                 ),
-              ],
-            ),
-            Row(
-              children: [
-                const Icon(Icons.cloud_done_outlined, size: 14),
-                const SizedBox(width: 6),
-                Text('Saved', style: SeoulType.caption),
-              ],
-            ),
-          ],
-        ),
-      ),
-      size: const Size(360, 640),
-      scale: 1.0,
-    ));
-    await tester.pump();
+              ),
+              const Spacer(),
+            ]),
+            size: size,
+            scale: scale,
+          ),
+        );
+        debugPrint('METRICS|${size.width.toInt()}|@$scale|$r');
+      }
+    }
   });
 }

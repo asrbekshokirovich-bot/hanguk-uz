@@ -89,9 +89,7 @@ class UniversityAnnouncementsController extends ChangeNotifier {
           .limit(50);
 
       final list = (data as List)
-          .map(
-            (e) => UniversityAnnouncement.fromMap(e as Map<String, dynamic>),
-          )
+          .map((e) => UniversityAnnouncement.fromMap(e as Map<String, dynamic>))
           .toList();
 
       _setState(state.copyWith(announcements: list, isLoading: false));

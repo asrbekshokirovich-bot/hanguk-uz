@@ -23,8 +23,6 @@ class StudyPlanScreen extends ConsumerStatefulWidget {
 }
 
 class _StudyPlanScreenState extends ConsumerState<StudyPlanScreen> {
-  final TextEditingController _draftController = TextEditingController();
-
   @override
   void initState() {
     super.initState();
@@ -33,12 +31,6 @@ class _StudyPlanScreenState extends ConsumerState<StudyPlanScreen> {
           .read(studyPlanSessionProvider.notifier)
           .fetchSessions(widget.documentType);
     });
-  }
-
-  @override
-  void dispose() {
-    _draftController.dispose();
-    super.dispose();
   }
 
   /// Localized header for the current document type. Uses the card-title
@@ -251,16 +243,14 @@ class _StudyPlanScreenState extends ConsumerState<StudyPlanScreen> {
       blur: false,
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
-      onTap: () {
-        ref
-            .read(studyPlanSessionProvider.notifier)
-            .loadSession(widget.documentType, s.id)
-            .then((_) {
-              _draftController.text = ref
-                  .read(documentSessionProvider(widget.documentType))
-                  .draftContent;
-            });
-      },
+      // The drafting step reads `state.draftContent` straight from the
+      // provider, so there is nothing to copy out afterwards. The old
+      // `.then()` wrote into a controller nothing ever read — and wrote it
+      // after an await with no mounted guard, so backing out of a slow load
+      // threw "A TextEditingController was used after being disposed".
+      onTap: () => ref
+          .read(studyPlanSessionProvider.notifier)
+          .loadSession(widget.documentType, s.id),
       child: Row(
         children: [
           HangulGlyphTile(
@@ -291,7 +281,7 @@ class _StudyPlanScreenState extends ConsumerState<StudyPlanScreen> {
           _GlassCircleButton(
             icon: Icons.delete_outline_rounded,
             tooltip: l.a11yTooltipDeleteSession,
-            foreground: SeoulColors.warningText,
+            foreground: SeoulColors.dangerText,
             onTap: () => _confirmDeleteSession(s),
           ),
         ],
@@ -311,9 +301,7 @@ class _StudyPlanScreenState extends ConsumerState<StudyPlanScreen> {
             children: [
               Text(
                 dl.deleteSessionTitle,
-                style: SeoulType.title.copyWith(
-                  color: SeoulColors.warningText,
-                ),
+                style: SeoulType.title.copyWith(color: SeoulColors.dangerText),
               ),
               const SizedBox(height: 12),
               Flexible(
@@ -335,7 +323,7 @@ class _StudyPlanScreenState extends ConsumerState<StudyPlanScreen> {
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: _WarningButton(
+                    child: _DangerButton(
                       label: dl.deleteLabel,
                       onPressed: () {
                         Navigator.pop(context);
@@ -652,7 +640,7 @@ class _StudyPlanScreenState extends ConsumerState<StudyPlanScreen> {
               ],
             );
     }
-    if (track == 'english') {
+    if (normalized == 'english') {
       return isStudyPlan
           ? const _StepOneGuide(
               title: 'Study Plan writing guide',
@@ -887,125 +875,135 @@ class _StudyPlanScreenState extends ConsumerState<StudyPlanScreen> {
           builder: (context, setDialogState) {
             final l = AppLocalizations.of(context)!;
 
-            final dialogState = ref.watch(
-              documentSessionProvider(widget.documentType),
-            );
-
-            return _SeoulDialog(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    widget.documentType == 'study_plan'
-                        ? l.newStudyPlanDialogTitle
-                        : l.newPersonalStatementDialogTitle,
-                    style: SeoulType.title,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(_hangulTitle, style: SeoulType.hangulLabel),
-                  const SizedBox(height: 20),
-                  Flexible(
-                    child: SingleChildScrollView(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Text(
-                            l.selectTargetUniversityStep,
-                            style: SeoulType.eyebrow,
-                          ),
-                          const SizedBox(height: 10),
-                          TargetUniversityPicker(
-                            selectedId: selectedUniId,
-                            onPick: (id, name) => setDialogState(
-                              () => selectedUniId = id,
-                            ),
-                          ),
-                          const SizedBox(height: 22),
-                          Text(
-                            l.selectLanguageTrackStep,
-                            style: SeoulType.eyebrow,
-                          ),
-                          const SizedBox(height: 10),
-                          Row(
+            // Consumer, not the screen's `ref`: `ref.watch` here would mark
+            // the *screen* dirty, not this dialog, so `isLoading` and `error`
+            // never repainted it. The Create button stayed enabled through a
+            // slow request with no spinner and no failure message, and a
+            // second tap created a duplicate session.
+            return Consumer(
+              builder: (context, ref, _) {
+                final dialogState = ref.watch(
+                  documentSessionProvider(widget.documentType),
+                );
+                return _SeoulDialog(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        widget.documentType == 'study_plan'
+                            ? l.newStudyPlanDialogTitle
+                            : l.newPersonalStatementDialogTitle,
+                        style: SeoulType.title,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(_hangulTitle, style: SeoulType.hangulLabel),
+                      const SizedBox(height: 20),
+                      Flexible(
+                        child: SingleChildScrollView(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              Expanded(
-                                child: _TrackChip(
-                                  label: l.trackEnglish,
-                                  ko: '영어',
-                                  isSelected: selectedTrack == 'en',
-                                  icon: Icons.language,
-                                  onTap: () => setDialogState(
-                                    () => selectedTrack = 'en',
-                                  ),
-                                ),
+                              Text(
+                                l.selectTargetUniversityStep,
+                                style: SeoulType.eyebrow,
                               ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: _TrackChip(
-                                  label: l.trackKorean,
-                                  ko: '한국어',
-                                  isSelected: selectedTrack == 'ko',
-                                  icon: Icons.translate,
-                                  onTap: () => setDialogState(
-                                    () => selectedTrack = 'ko',
+                              const SizedBox(height: 10),
+                              TargetUniversityPicker(
+                                selectedId: selectedUniId,
+                                onPick: (id, name) =>
+                                    setDialogState(() => selectedUniId = id),
+                              ),
+                              const SizedBox(height: 22),
+                              Text(
+                                l.selectLanguageTrackStep,
+                                style: SeoulType.eyebrow,
+                              ),
+                              const SizedBox(height: 10),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _TrackChip(
+                                      label: l.trackEnglish,
+                                      ko: '영어',
+                                      isSelected: selectedTrack == 'en',
+                                      icon: Icons.language,
+                                      onTap: () => setDialogState(
+                                        () => selectedTrack = 'en',
+                                      ),
+                                    ),
                                   ),
-                                ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: _TrackChip(
+                                      label: l.trackKorean,
+                                      ko: '한국어',
+                                      isSelected: selectedTrack == 'ko',
+                                      icon: Icons.translate,
+                                      onTap: () => setDialogState(
+                                        () => selectedTrack = 'ko',
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  if (dialogState.error != null) ...[
-                    const SizedBox(height: 16),
-                    Text(
-                      dialogState.error!,
-                      style: SeoulType.caption.copyWith(
-                        color: SeoulColors.warningText,
-                      ),
-                    ),
-                  ],
-                  const SizedBox(height: 20),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: SeoulOutlineButton(
-                          label: l.cancel,
-                          onPressed: dialogState.isLoading
-                              ? null
-                              : () => Navigator.pop(context),
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: LimeButton(
-                          label: l.createSession,
-                          loading: dialogState.isLoading,
-                          onPressed:
-                              (selectedUniId == null || dialogState.isLoading)
-                              ? null
-                              : () async {
-                                  final session = await ref
-                                      .read(studyPlanSessionProvider.notifier)
-                                      .createSession(
-                                        widget.documentType,
-                                        targetUniversityId: selectedUniId,
-                                        selectedTrack: selectedTrack,
-                                      );
+                      if (dialogState.error != null) ...[
+                        const SizedBox(height: 16),
+                        Text(
+                          dialogState.error!,
+                          style: SeoulType.caption.copyWith(
+                            color: SeoulColors.dangerText,
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 20),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: SeoulOutlineButton(
+                              label: l.cancel,
+                              onPressed: dialogState.isLoading
+                                  ? null
+                                  : () => Navigator.pop(context),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: LimeButton(
+                              label: l.createSession,
+                              loading: dialogState.isLoading,
+                              onPressed:
+                                  (selectedUniId == null ||
+                                      dialogState.isLoading)
+                                  ? null
+                                  : () async {
+                                      final session = await ref
+                                          .read(
+                                            studyPlanSessionProvider.notifier,
+                                          )
+                                          .createSession(
+                                            widget.documentType,
+                                            targetUniversityId: selectedUniId,
+                                            selectedTrack: selectedTrack,
+                                          );
 
-                                  if (session != null && context.mounted) {
-                                    Navigator.pop(context);
-                                  }
-                                },
-                        ),
+                                      if (session != null && context.mounted) {
+                                        Navigator.pop(context);
+                                      }
+                                    },
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                ],
-              ),
+                );
+              },
             );
           },
         );
@@ -1237,9 +1235,7 @@ I wish to explicitly state my intention to return to my home country immediately
             child: Row(
               children: [
                 _IconTile(
-                  icon: widget.isEmbassy
-                      ? Icons.account_balance
-                      : Icons.school,
+                  icon: widget.isEmbassy ? Icons.account_balance : Icons.school,
                   size: 36,
                 ),
                 const SizedBox(width: 12),
@@ -1377,20 +1373,20 @@ class _IconTile extends StatelessWidget {
   }
 }
 
-/// The destructive action. Amber `SeoulColors.warning*` fill + hairline,
-/// never a raw red hex — see DESIGN_SPEC §1 Semantic.
-class _WarningButton extends StatefulWidget {
-  const _WarningButton({required this.label, this.onPressed}) : icon = null;
+/// The destructive action. `SeoulColors.danger*` fill + hairline — the
+/// desaturated destructive tone, never a raw red hex.
+class _DangerButton extends StatefulWidget {
+  const _DangerButton({required this.label, this.onPressed}) : icon = null;
 
   final String label;
   final VoidCallback? onPressed;
   final IconData? icon;
 
   @override
-  State<_WarningButton> createState() => _WarningButtonState();
+  State<_DangerButton> createState() => _DangerButtonState();
 }
 
-class _WarningButtonState extends State<_WarningButton> {
+class _DangerButtonState extends State<_DangerButton> {
   bool _pressed = false;
 
   @override
@@ -1405,15 +1401,15 @@ class _WarningButtonState extends State<_WarningButton> {
         alignment: Alignment.center,
         padding: const EdgeInsets.symmetric(horizontal: 20),
         decoration: BoxDecoration(
-          color: SeoulColors.warningFill,
+          color: SeoulColors.dangerFill,
           borderRadius: SeoulRadii.controlR,
-          border: Border.all(color: SeoulColors.warning, width: 1),
+          border: Border.all(color: SeoulColors.danger, width: 1),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             if (widget.icon != null) ...[
-              Icon(widget.icon, size: 18, color: SeoulColors.warningText),
+              Icon(widget.icon, size: 18, color: SeoulColors.dangerText),
               const SizedBox(width: 8),
             ],
             Flexible(
@@ -1421,9 +1417,7 @@ class _WarningButtonState extends State<_WarningButton> {
                 widget.label,
                 textAlign: TextAlign.center,
                 overflow: TextOverflow.ellipsis,
-                style: SeoulType.button.copyWith(
-                  color: SeoulColors.warningText,
-                ),
+                style: SeoulType.button.copyWith(color: SeoulColors.dangerText),
               ),
             ),
           ],
