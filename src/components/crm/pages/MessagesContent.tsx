@@ -1,165 +1,280 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { useMessages } from '@/hooks/useMessages';
-import { useLeads, type CreateLeadData } from '@/hooks/useLeads';
-import { ThreadList } from '@/components/messages/ThreadList';
-import { ChatView } from '@/components/messages/ChatView';
-import { Card, CardContent } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import {
-  MessageSquare,
-  Mail
-} from 'lucide-react';
+import { MessagesQueue } from '@/components/crm/messages/MessagesQueue';
+import { QueueClearState } from '@/components/crm/messages/QueueClearState';
+import { StudentContextRail } from '@/components/crm/messages/StudentContextRail';
+import { ThreadPane } from '@/components/crm/messages/ThreadPane';
+import { filterConversations, sortConversations } from '@/components/crm/messages/queueLogic';
+import { useMessagesQueue } from '@/components/crm/messages/useMessagesQueue';
+import { useStudentContext } from '@/components/crm/messages/useStudentContext';
+import { useThreadMessages } from '@/components/crm/messages/useThreadMessages';
+import { useThreadTranslation } from '@/components/crm/messages/useThreadTranslation';
+import { translateMessage } from '@/components/crm/messages/translateMessage';
+import type {
+  ChannelFilter,
+  ConversationVM,
+  MessageVM,
+  QueueTab,
+  SendLanguage,
+} from '@/components/crm/messages/types';
 
-const LEAD_SOURCES = new Set<CreateLeadData['source']>(['manual', 'telegram', 'instagram', 'call', 'ai_detected']);
-
+/**
+ * CRM → Messages: a shared-queue inbox for call operators.
+ *
+ * Three panes inside the CRM shell — queue, thread, student context — over the
+ * existing `message_threads` / `messages` tables. This file is orchestration
+ * only: filtering lives in `messages/queueLogic`, the Supabase adapters in the
+ * `messages/use*` hooks, and every pixel in the `messages/*` components.
+ *
+ * Channels: Telegram, Instagram and the Hanguk App in-app chat. Only the first
+ * two currently have ingest and relay paths (`telegram-webhook`,
+ * `instagram-webhook`, `send-telegram`, `send-instagram`); the app channel
+ * renders correctly but no producer writes `source = 'app'` yet.
+ */
 export default function MessagesContent() {
   const { t } = useTranslation();
   const { toast } = useToast();
-  const navigate = useNavigate();
-  const { leads, createLead } = useLeads();
+  const { user } = useAuth();
   const {
     threads,
     messages,
     selectedThread,
-    loading,
-    stats,
     setSelectedThread,
     sendMessage,
-    archiveThread
+    archiveThread,
+    assignThread,
+    fetchThreads,
+    fetchMessages,
   } = useMessages();
 
-  const [converting, setConverting] = useState(false);
+  const { conversations, loading, refreshAssignments } = useMessagesQueue();
 
-  // A thread is "already a client" when a lead exists for the same channel +
-  // sender id. We reuse the leads.source / source_id linkage (no extra schema).
-  const linkedLead = useMemo(() => {
-    if (!selectedThread) return null;
-    return leads.find(
-      (l) => l.source === selectedThread.source && l.source_id === selectedThread.sender_id,
-    ) ?? null;
-  }, [leads, selectedThread]);
+  const [tab, setTab] = useState<QueueTab>('unassigned');
+  const [channel, setChannel] = useState<ChannelFilter>('all');
+  const [query, setQuery] = useState('');
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [contextOpen, setContextOpen] = useState(true);
+  const [claiming, setClaiming] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [translatingId, setTranslatingId] = useState<string | null>(null);
 
-  const handleSendMessage = async (content: string) => {
-    if (!selectedThread) return;
-    const { error } = await sendMessage(content, selectedThread.source, selectedThread.sender_id);
+  const visible = useMemo(
+    () => sortConversations(filterConversations(conversations, tab, channel, query), tab),
+    [conversations, tab, channel, query],
+  );
+
+  // The selection is held as an id, never as a snapshot, so a claim or a new
+  // inbound message re-derives the active row instead of showing stale state.
+  const activeId = visible.some((c) => c.threadId === selectedId) ? selectedId : visible[0]?.threadId ?? null;
+  const active = useMemo<ConversationVM | null>(
+    () => conversations.find((c) => c.threadId === activeId) ?? null,
+    [conversations, activeId],
+  );
+
+  // Mirror the local selection into MessagesContext, which owns the message
+  // fetch. Guarded on id so a refetched `threads` array cannot loop.
+  useEffect(() => {
+    if (!activeId) {
+      if (selectedThread) setSelectedThread(null);
+      return;
+    }
+    if (selectedThread?.id === activeId) return;
+    const thread = threads.find((th) => th.id === activeId);
+    if (thread) setSelectedThread(thread);
+  }, [activeId, threads, selectedThread, setSelectedThread]);
+
+  const threadMessages = useThreadMessages(messages);
+  const { autoTranslate, toggleAuto, isExpanded, toggleMessage } = useThreadTranslation(activeId);
+  const { student, loading: studentLoading } = useStudentContext(active?.studentId ?? null);
+
+  const handleSelect = useCallback((conversation: ConversationVM) => {
+    setSelectedId(conversation.threadId);
+  }, []);
+
+  const handleClaim = useCallback(async () => {
+    if (!active || !user || claiming) return;
+    setClaiming(true);
+    const { error } = await assignThread(active.threadId, user.id);
     if (error) {
       toast({
         title: t('common.error'),
-        description: 'Could not send the message. Check that the Instagram/Telegram integration is configured.',
+        description: t('messages.toast.claimFailed'),
         variant: 'destructive',
       });
+    } else {
+      await refreshAssignments();
+      setTab('mine');
     }
-  };
+    setClaiming(false);
+  }, [active, user, claiming, assignThread, refreshAssignments, toast, t]);
 
-  const handleArchive = async () => {
-    if (!selectedThread) return;
-    await archiveThread(selectedThread.id);
-    setSelectedThread(null);
-    toast({
-      title: t('common.success'),
-      description: 'Conversation archived',
-    });
-  };
-
-  const handleConvertToLead = async () => {
-    if (!selectedThread || linkedLead || converting) return;
-    setConverting(true);
-    try {
-      const source = (LEAD_SOURCES.has(selectedThread.source as CreateLeadData['source'])
-        ? selectedThread.source
-        : 'manual') as CreateLeadData['source'];
-      await createLead({
-        full_name: selectedThread.sender_name || `Instagram user ${selectedThread.sender_id.slice(-6)}`,
-        source,
-        source_id: selectedThread.sender_id,
-        status: 'new',
-        notes: `Created from ${selectedThread.source} conversation`,
-      });
-      // createLead surfaces its own success toast and refreshes the leads list,
-      // which flips this thread to the "linked" state.
-    } catch {
+  const handleMarkDone = useCallback(async () => {
+    if (!active) return;
+    const { error } = await archiveThread(active.threadId);
+    if (error) {
       toast({
         title: t('common.error'),
-        description: 'Could not create the lead.',
+        description: t('messages.toast.doneFailed'),
         variant: 'destructive',
       });
-    } finally {
-      setConverting(false);
+      return;
     }
-  };
+    toast({ title: t('messages.toast.doneTitle'), description: t('messages.toast.doneBody') });
+    setSelectedId(null);
+  }, [active, archiveThread, toast, t]);
 
-  const handleViewLead = () => {
-    navigate('/crm/leads');
-  };
+  const handleSend = useCallback(
+    async (text: string, options: { internal: boolean; language: SendLanguage }) => {
+      if (!active || !selectedThread || sending) return;
+      setSending(true);
+
+      if (options.internal) {
+        // Internal notes are stored on the thread but never relayed to the
+        // channel, so they bypass MessagesContext.sendMessage entirely.
+        const { error } = await supabase.from('messages').insert({
+          source: selectedThread.source,
+          sender_id: selectedThread.sender_id,
+          student_id: selectedThread.student_id,
+          content: text,
+          direction: 'outgoing',
+          message_type: 'note',
+          status: 'read',
+          metadata: { internal: true },
+          replied_by: user?.id ?? null,
+          replied_at: new Date().toISOString(),
+        });
+        if (error) {
+          toast({
+            title: t('common.error'),
+            description: t('messages.toast.noteFailed'),
+            variant: 'destructive',
+          });
+        } else {
+          await fetchMessages(selectedThread);
+          await fetchThreads();
+        }
+        setSending(false);
+        return;
+      }
+
+      const { error } = await sendMessage(text, selectedThread.source, selectedThread.sender_id);
+      if (error) {
+        toast({
+          title: t('common.error'),
+          description: error.message || t('messages.toast.sendFailed'),
+          variant: 'destructive',
+        });
+        setSending(false);
+        return;
+      }
+
+      // Replying takes ownership of a conversation nobody had claimed yet.
+      if (!active.isAssigned && user) {
+        await assignThread(active.threadId, user.id);
+        await refreshAssignments();
+      }
+      await fetchThreads();
+      setSending(false);
+    },
+    [
+      active,
+      selectedThread,
+      sending,
+      sendMessage,
+      assignThread,
+      refreshAssignments,
+      fetchThreads,
+      fetchMessages,
+      user,
+      toast,
+      t,
+    ],
+  );
+
+  const handleToggleTranslation = useCallback(
+    async (message: MessageVM, expanded: boolean) => {
+      if (message.translation) {
+        toggleMessage(message.id, expanded);
+        return;
+      }
+      setTranslatingId(message.id);
+      const result = await translateMessage({
+        messageId: message.id,
+        text: message.text,
+        targetLang: 'English',
+      });
+      setTranslatingId(null);
+      if (!result) {
+        toast({
+          title: t('messages.toast.translationUnavailableTitle'),
+          description: t('messages.toast.translationUnavailableBody'),
+        });
+      }
+    },
+    [toggleMessage, toast, t],
+  );
+
+  const unassignedCount = conversations.filter((c) => !c.isAssigned && !c.isDone).length;
+  const mineCount = conversations.filter((c) => c.isMine && !c.isDone).length;
 
   return (
-    <div className="h-[calc(100dvh-8rem)] flex flex-col">
-      <div className="flex-1 flex overflow-hidden rounded-lg border">
-        {/* Stats & Thread List - Hidden on mobile when chat is open */}
-        <div className={`w-full md:w-80 lg:w-96 border-r flex flex-col bg-card ${selectedThread ? 'hidden md:flex' : 'flex'}`}>
-          {/* Stats Cards */}
-          <div className="grid grid-cols-2 gap-2 p-3 border-b">
-            <Card>
-              <CardContent className="p-3 flex items-center gap-2">
-                <div className="p-1.5 bg-destructive/10 rounded">
-                  <Mail className="h-4 w-4 text-destructive" />
-                </div>
-                <div>
-                  <p className="text-lg font-bold">{stats.unread}</p>
-                  <p className="text-[10px] text-muted-foreground">{t('messages.unread')}</p>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-3 flex items-center gap-2">
-                <div className="p-1.5 bg-info/10 rounded">
-                  <MessageSquare className="h-4 w-4 text-info" />
-                </div>
-                <div>
-                  <p className="text-lg font-bold">{stats.total}</p>
-                  <p className="text-[10px] text-muted-foreground">{t('common.all')}</p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+    <div className="flex h-[calc(100dvh-9rem)] min-h-[520px] flex-col">
+      <p className="mb-3 shrink-0 text-xs text-muted-foreground">
+        {t('messages.header.summary', { unassigned: unassignedCount, mine: mineCount })}
+      </p>
 
-          {/* Thread List */}
-          <div className="flex-1 overflow-hidden">
-            <ThreadList
-              threads={threads}
-              selectedThread={selectedThread}
-              loading={loading}
-              onSelectThread={setSelectedThread}
-            />
-          </div>
-        </div>
+      <div className="flex min-h-0 flex-1 overflow-x-auto rounded-lg border border-border">
+        <MessagesQueue
+          conversations={conversations}
+          visible={visible}
+          selectedThreadId={activeId}
+          loading={loading}
+          tab={tab}
+          channel={channel}
+          query={query}
+          onTabChange={setTab}
+          onChannelChange={setChannel}
+          onQueryChange={setQuery}
+          onSelect={handleSelect}
+        />
 
-        {/* Chat View */}
-        <div className={`flex-1 flex flex-col bg-card ${!selectedThread ? 'hidden md:flex' : 'flex'}`}>
-          {selectedThread ? (
-            <ChatView
-              thread={selectedThread}
-              messages={messages}
-              onSendMessage={handleSendMessage}
-              onArchive={handleArchive}
-              onBack={() => setSelectedThread(null)}
-              hasLead={!!linkedLead}
-              converting={converting}
-              onConvertToLead={handleConvertToLead}
-              onViewLead={handleViewLead}
+        {active ? (
+          <>
+            <ThreadPane
+              conversation={active}
+              messages={threadMessages}
+              autoTranslate={autoTranslate}
+              contextOpen={contextOpen}
+              claiming={claiming}
+              sending={sending}
+              translatingId={translatingId}
+              isExpanded={isExpanded}
+              onToggleTranslation={handleToggleTranslation}
+              onToggleAutoTranslate={toggleAuto}
+              onToggleContext={() => setContextOpen((v) => !v)}
+              onClaim={handleClaim}
+              onMarkDone={handleMarkDone}
+              onSend={handleSend}
             />
-          ) : (
-            <div className="flex-1 flex items-center justify-center text-muted-foreground">
-              <div className="text-center">
-                <MessageSquare className="h-16 w-16 mx-auto mb-4 opacity-30" />
-                <p>{t('common.select')} a conversation</p>
-                <p className="text-sm mt-2">Connect Instagram or Telegram in Settings → Integrations</p>
-              </div>
-            </div>
-          )}
-        </div>
+            {contextOpen && (
+              <StudentContextRail conversation={active} student={student} loading={studentLoading} />
+            )}
+          </>
+        ) : (
+          <section className="flex min-w-[520px] flex-1 flex-col bg-background">
+            <QueueClearState
+              onGoToUnassigned={() => {
+                setTab('unassigned');
+                setChannel('all');
+                setQuery('');
+              }}
+            />
+          </section>
+        )}
       </div>
     </div>
   );

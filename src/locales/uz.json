@@ -635,7 +635,125 @@
     "viewLead": "Lidni ko'rish",
     "voiceMessage": "Ovozli xabar",
     "loadingAudio": "Ovozli xabar yuklanmoqda…",
-    "audioUnavailable": "Ovozli xabar mavjud emas"
+    "audioUnavailable": "Ovozli xabar mavjud emas",
+    "tabs": {
+      "label": "Navbat filtri",
+      "unassigned": "Biriktirilmagan",
+      "mine": "Meniki",
+      "all": "Barchasi",
+      "done": "Yakunlangan"
+    },
+    "channels": {
+      "all": "Barcha kanallar",
+      "telegram": "Telegram",
+      "instagram": "Instagram",
+      "app": "Ilova"
+    },
+    "queue": {
+      "label": "Suhbatlar navbati",
+      "searchPlaceholder": "Talaba va xabarlarni qidirish",
+      "shown": "{{count}} ta ko‘rsatilgan",
+      "waiting": "{{time}} kutmoqda",
+      "mine": "Meniki",
+      "noPreview": "Hozircha xabar yo‘q",
+      "emptyTitle": "Suhbatlar yo‘q",
+      "emptyBody": "Boshqa bo‘lim, kanal yoki qidiruv so‘zini sinab ko‘ring."
+    },
+    "thread": {
+      "streamLabel": "Xabarlar tarixi",
+      "unassigned": "Biriktirilmagan",
+      "unassignedWaiting": "Biriktirilmagan · {{time}} kutmoqda",
+      "claim": "Olish",
+      "assignedToYou": "Sizga biriktirilgan",
+      "assignedToOther": "Biriktirilgan",
+      "autoTranslateOn": "Avto-tarjima yoqilgan",
+      "autoTranslateOff": "Avto-tarjima o‘chirilgan",
+      "markDone": "Yakunlash",
+      "toggleContext": "Talaba panelini ochish/yopish",
+      "translationBadge": "{{from}} → {{to}}",
+      "translate": "Tarjima qilish",
+      "hideTranslation": "Tarjimani yashirish",
+      "translating": "Tarjima qilinmoqda…",
+      "internalNoteLabel": "Ichki eslatma · talabaga yuborilmaydi"
+    },
+    "composer": {
+      "label": "Javob yozing",
+      "placeholder": "Javob yozing…  Shablonlar uchun /, yuborish uchun Enter",
+      "savedReplies": "Tayyor javoblar",
+      "internalNote": "Ichki eslatma",
+      "noteBanner": "Ichki eslatma rejimi — bu talabaga yuborilmaydi",
+      "sendIn": "Til",
+      "hintSend": "{{language}} tilida yuboriladi · avto-tarjima",
+      "hintNote": "Faqat xodimlar ko‘radi",
+      "send": "Yuborish",
+      "saveNote": "Eslatmani saqlash"
+    },
+    "savedReplies": {
+      "docs": "Hujjatlar ro‘yxati",
+      "apostille": "Apostil muddati",
+      "payment": "To‘lov ko‘rsatmalari",
+      "call": "Konsultatsiyaga yozilish",
+      "topik": "TOPIK talab qilinmaydi"
+    },
+    "languages": {
+      "uz": "o‘zbek",
+      "ru": "rus",
+      "ko": "koreys",
+      "en": "ingliz"
+    },
+    "stages": {
+      "consultation": "Konsultatsiya",
+      "documents": "Hujjatlar",
+      "application": "Ariza",
+      "visa": "Viza va parvoz",
+      "visaShort": "Viza",
+      "newLead": "Yangi lid",
+      "enrolled": "Qabul qilingan"
+    },
+    "rail": {
+      "label": "Talaba ma’lumoti",
+      "progress": "Ariza jarayoni",
+      "documents": "Hujjatlar",
+      "payment": "To‘lov",
+      "activity": "So‘nggi harakatlar",
+      "ofTotal": "{{total}} dan",
+      "nextInstalment": "Keyingi to‘lov {{date}}",
+      "missingCount": "{{count}} ta yetishmayapti",
+      "complete": "To‘liq",
+      "noStudentTitle": "Talabaga bog‘lanmagan",
+      "noStudentBody": "Ariza ma’lumotini ko‘rish uchun bu suhbatni lidga aylantiring.",
+      "activityCall": "Qo‘ng‘iroq — {{minutes}} daq",
+      "activityDocument": "{{name}} yuklandi",
+      "activityPayment": "To‘lov qabul qilindi",
+      "state": {
+        "done": "bajarilgan",
+        "current": "jarayonda",
+        "todo": "boshlanmagan"
+      },
+      "doc": {
+        "received": "Qabul qilindi",
+        "review": "Tekshiruvda",
+        "missing": "Yo‘q"
+      }
+    },
+    "empty": {
+      "title": "Navbat bo‘sh",
+      "body": "Bu filtrda kutayotgan suhbat yo‘q. Boshqa bo‘limni tanlang yoki Biriktirilmagan navbatdan keyingisini oling.",
+      "cta": "Biriktirilmaganga o‘tish"
+    },
+    "header": {
+      "summary": "Umumiy navbat · {{unassigned}} biriktirilmagan · {{mine}} sizda"
+    },
+    "toast": {
+      "claimFailed": "Suhbatni olishning iloji bo‘lmadi.",
+      "doneFailed": "Suhbatni yakunlashning iloji bo‘lmadi.",
+      "doneTitle": "Yakunlandi",
+      "doneBody": "Suhbat “Yakunlangan” bo‘limiga o‘tdi.",
+      "noteFailed": "Ichki eslatmani saqlashning iloji bo‘lmadi.",
+      "sendFailed": "Xabarni yuborishning iloji bo‘lmadi. Instagram/Telegram integratsiyasini tekshiring.",
+      "translationUnavailableTitle": "Tarjima mavjud emas",
+      "translationUnavailableBody": "Tarjima xizmati hali sozlanmagan. Saqlangan tarjimalar ko‘rinishda qoladi."
+    }
   },
   "errors": {
     "general": "Xatolik yuz berdi",
