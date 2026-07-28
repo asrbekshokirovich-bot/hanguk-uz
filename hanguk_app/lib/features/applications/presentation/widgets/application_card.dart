@@ -208,10 +208,10 @@ class _ApplicationCardState extends State<ApplicationCard> {
   }
 
   /// Status → chip tone, per DESIGN_SPEC §3.4: Submitted = lime,
-  /// In Review = warning, Docs stage = info. Every other status the app
-  /// carries (pending, rejected, and anything the CRM writes that this app
-  /// does not model) falls back to neutral — the design system has no
-  /// destructive tone.
+  /// In Review = warning, Docs stage = info. A rejection gets the danger tone
+  /// (added to the palette for exactly this); everything else the CRM can
+  /// write that this app does not model falls back to neutral rather than
+  /// guessing at a meaning.
   StatusChip _statusChip(String status, AppLocalizations l) {
     switch (status) {
       // ── Docs stage → info ──────────────────────────────────────────────
@@ -252,9 +252,13 @@ class _ApplicationCardState extends State<ApplicationCard> {
         );
 
       // 'rejected' shares the last stage index with 'visa_issue', so it must
-      // never borrow that stage's label.
+      // never borrow that stage's label — a rejection reading "Visa issue"
+      // would tell the student the opposite of what happened.
       case 'rejected':
-        return StatusChip(label: l.sessionStatusLabel(status));
+        return StatusChip(
+          label: l.sessionStatusLabel(status),
+          tone: StatusTone.danger,
+        );
 
       // Anything the CRM writes that this app does not model yet.
       default:

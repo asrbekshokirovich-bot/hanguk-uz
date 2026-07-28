@@ -14,11 +14,6 @@ import 'widgets/application_card.dart';
 import 'widgets/process_tracker.dart';
 import 'widgets/university_room_modal.dart';
 
-/// Clears the 한 orb so the last card is never trapped underneath it
-/// (DESIGN_SPEC §2).
-const double _orbClearance =
-    SeoulSizes.orbBottom + SeoulSizes.orbSize + SeoulSizes.screenPadding;
-
 const EdgeInsets _gutter = EdgeInsets.symmetric(
   horizontal: SeoulSizes.screenPadding,
 );
@@ -96,7 +91,7 @@ class ApplicationsTab extends ConsumerWidget {
                 if (active.isNotEmpty)
                   ..._buildApplicationSection(l.appsActiveHeading, active),
                 const SliverToBoxAdapter(
-                  child: SizedBox(height: _orbClearance),
+                  child: SizedBox(height: SeoulSizes.orbClearance),
                 ),
               ],
             );
@@ -215,7 +210,7 @@ class ApplicationsTab extends ConsumerWidget {
                 ),
               ),
             ),
-            const SliverToBoxAdapter(child: SizedBox(height: _orbClearance)),
+            const SliverToBoxAdapter(child: SizedBox(height: SeoulSizes.orbClearance)),
           ],
         );
       },
