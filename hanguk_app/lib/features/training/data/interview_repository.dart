@@ -449,6 +449,22 @@ class InterviewNotifier extends Notifier<InterviewSessionState> {
     // duplicate feedback rows.
     if (state.isLoading || state.status == 'completed') return state.feedback;
 
+    // If the interview never produced a real exchange (still connecting, or
+    // the student ended right away), there is nothing to analyze. Abandon the
+    // session and drop back to the setup screen instead of calling the
+    // feedback function — which errors/hangs on an empty transcript and would
+    // otherwise leave the student stuck on the "Connecting…" screen with a
+    // dead End button. This makes the End control work at the very start of a
+    // session, not only mid-conversation.
+    final hasTranscript = state.messages.any(
+      (m) => !m.content.contains('[Interview started'),
+    );
+    if (!hasTranscript) {
+      await markAbandoned();
+      state = state.copyWith(status: 'idle', isVapiConnected: false);
+      return null;
+    }
+
     state = state.copyWith(isLoading: true, clearError: true);
 
     try {
