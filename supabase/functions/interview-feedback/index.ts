@@ -139,6 +139,8 @@ Analyze this practice interview transcript and provide detailed feedback.
 
 ${universityContext}
 
+Score honestly on the evidence in the transcript. Do not default to a middling score: a short, vague or off-topic interview should score low (1-4), an average one 5-7, and only a genuinely strong, specific, well-structured interview should score 8-10. Different criteria should usually get different scores.
+
 Evaluate the student on these criteria (score 1-10):
 1. Communication: Clarity, structure, and articulation of answers
 2. Confidence: Composure, self-assurance, and natural delivery
@@ -171,7 +173,7 @@ You MUST respond with a valid JSON object in this exact format:
   "overall_score": <number 1-10>,
   "strengths": ["strength 1", "strength 2", "strength 3"],
   "improvements": ["improvement 1", "improvement 2", "improvement 3"],
-  "detailed_feedback": "A comprehensive paragraph of feedback in ${feedbackLang}. Include specific suggestions like: 'Research more about [university]'s specific programs', 'Prepare concrete examples of why you chose Korea', 'Practice explaining your career goals more clearly', etc.",
+  "detailed_feedback": "A comprehensive paragraph of feedback in ${feedbackLang}, referring to what the student actually said.",
   "message_scores": [
     {
       "message_id": "<uuid>",
@@ -184,7 +186,7 @@ You MUST respond with a valid JSON object in this exact format:
 }
 
 Write strengths, improvements, detailed_feedback, and every message_scores entry in ${feedbackLang}.
-Be constructive and encouraging while providing actionable suggestions based on typical Korean university interview expectations.
+Base every comment on the actual transcript - quote or paraphrase what the student said. Never use generic filler like "good attempt, keep practicing".
 Include message_scores for EVERY student response in the transcript.`;
 
     // Call gemini AI for analysis
@@ -196,64 +198,118 @@ Include message_scores for EVERY student response in the transcript.`;
       );
     }
 
-    const aiResponse = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${geminiApiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "gemini-2.5-flash",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: `Interview Transcript:\n\n${transcript}` },
-        ],
-        max_tokens: 2500,
-      }),
-    });
+    // Extract the JSON object from a model reply, tolerating markdown fences
+    // and any stray prose around it.
+    const parseFeedback = (raw: string) => {
+      let s = (raw ?? "").trim();
+      if (!s) throw new Error("empty content");
+      // strip ```json ... ``` fences
+      s = s.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/, "").trim();
+      const first = s.indexOf("{");
+      const last = s.lastIndexOf("}");
+      if (first === -1 || last <= first) throw new Error("no JSON object found");
+      return JSON.parse(s.slice(first, last + 1));
+    };
+
+    const callModel = async (sys: string, maxTokens: number) => {
+      const res = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${geminiApiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "gemini-2.5-flash",
+          messages: [
+            { role: "system", content: sys },
+            { role: "user", content: `Interview Transcript:\n\n${transcript}` },
+          ],
+          // 2500 was far too low: gemini-2.5-flash spends output tokens on
+          // internal reasoning, so it hit the cap before emitting any JSON.
+          // The content came back empty, parsing failed, and the function
+          // silently saved a hardcoded 7/10 — a fake score the student had
+          // no way to tell apart from a real evaluation.
+          max_tokens: maxTokens,
+          // Deterministic-ish scoring: the same answer shouldn't swing wildly.
+          temperature: 0.3,
+          response_format: { type: "json_object" },
+        }),
+      });
+      return res;
+    };
+
+    let aiResponse = await callModel(systemPrompt, 8000);
 
     if (!aiResponse.ok) {
       const errorText = await aiResponse.text();
       console.error("AI error:", aiResponse.status, errorText);
-      
+
       if (aiResponse.status === 429) {
         return new Response(
           JSON.stringify({ error: "Rate limit exceeded. Please try again later." }),
           { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-      
+
       return new Response(
         JSON.stringify({ error: "Failed to generate feedback" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const aiData = await aiResponse.json();
-    const feedbackText = aiData.choices?.[0]?.message?.content || "";
+    let aiData = await aiResponse.json();
+    let feedbackText = aiData.choices?.[0]?.message?.content || "";
+    let finishReason = aiData.choices?.[0]?.finish_reason;
 
-    // Parse the JSON response
     let feedbackData;
     try {
-      const jsonMatch = feedbackText.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        feedbackData = JSON.parse(jsonMatch[0]);
-      } else {
-        throw new Error("No JSON found in response");
-      }
+      feedbackData = parseFeedback(feedbackText);
     } catch (parseError) {
-      console.error("Failed to parse feedback JSON:", parseError, feedbackText);
-      feedbackData = {
-        communication_score: 7,
-        confidence_score: 7,
-        content_score: 7,
-        language_score: 7,
-        overall_score: 7,
-        strengths: ["Good attempt at practice interview"],
-        improvements: ["Continue practicing to improve"],
-        detailed_feedback: "Thank you for completing the practice interview. Keep practicing to improve your skills.",
-        message_scores: []
-      };
+      console.error(
+        "Feedback parse failed (finish_reason:", finishReason, "):",
+        parseError,
+        "content preview:", String(feedbackText).slice(0, 400)
+      );
+
+      // Retry once WITHOUT the per-answer breakdown. That section is by far
+      // the longest part of the reply, so dropping it leaves plenty of room
+      // for a complete, parseable object — the student still gets real
+      // overall scores instead of a fabricated one.
+      const compactPrompt = systemPrompt
+        .replace(/PER-ANSWER SCORING:[\s\S]*?Student message IDs to score:[^\n]*\n/, "")
+        + "\n\nDo NOT include message_scores. Return only the overall fields.";
+
+      const retry = await callModel(compactPrompt, 4000);
+      if (retry.ok) {
+        aiData = await retry.json();
+        feedbackText = aiData.choices?.[0]?.message?.content || "";
+        finishReason = aiData.choices?.[0]?.finish_reason;
+        try {
+          feedbackData = parseFeedback(feedbackText);
+          feedbackData.message_scores = [];
+        } catch (retryError) {
+          console.error("Retry parse failed too:", retryError);
+        }
+      }
+
+      // Still nothing usable — report the failure. Never invent a score:
+      // a fabricated 7/10 is indistinguishable from a real evaluation and
+      // actively misleads the student about their readiness.
+      if (!feedbackData) {
+        return new Response(
+          JSON.stringify({ error: "Could not analyze this interview. Please try again." }),
+          { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
+
+    // Guard against a well-formed reply that still lacks real scores.
+    if (typeof feedbackData.overall_score !== "number") {
+      console.error("Model returned no overall_score:", String(feedbackText).slice(0, 400));
+      return new Response(
+        JSON.stringify({ error: "Could not analyze this interview. Please try again." }),
+        { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     // Save feedback to database with message_scores

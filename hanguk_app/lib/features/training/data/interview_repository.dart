@@ -611,10 +611,13 @@ class InterviewNotifier extends Notifier<InterviewSessionState> {
       // the user on the interview screen. Exit to setup and mark the row
       // abandoned in the background.
       debugPrint('endSession: feedback failed, abandoning session: $e');
+      // Keep the error on state (don't clear it) so the view can tell the
+      // student the analysis failed instead of silently dropping them back
+      // on the setup screen.
       state = state.copyWith(
         status: 'idle',
         isVapiConnected: false,
-        clearError: true,
+        error: 'feedback_failed',
       );
       unawaited(
         Supabase.instance.client

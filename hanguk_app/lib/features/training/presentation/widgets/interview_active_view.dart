@@ -584,6 +584,24 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
     // Last-resort escape hatch: if the session is somehow still 'active'
     // (or parked on 'abandoned'), force it to idle so the screen exits.
     notifier.forceIdleIfActive();
+
+    // The analysis failed (network, or the model couldn't produce a real
+    // evaluation). Say so — dropping the student back on the setup screen
+    // with no explanation reads like the End button ate their session.
+    if (!mounted) return;
+    final s = ref.read(interviewProvider);
+    if (s.error == 'feedback_failed' && s.feedback == null) {
+      final l = AppLocalizations.of(context);
+      if (l != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(l.noFeedbackAvailable),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
   }
 
   void _resetSilenceTimer() {
