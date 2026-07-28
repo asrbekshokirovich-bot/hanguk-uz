@@ -65,14 +65,6 @@ class DocumentSlot extends StatelessWidget {
   /// DESIGN_SPEC §3.6 — "locked at 45% opacity". No token carries it.
   static const double _lockedOpacity = 0.45;
 
-  /// No ARB keys exist for these yet, so the pre-redesign literals are kept
-  /// verbatim rather than inventing new English copy (see the redesign notes:
-  /// `documentActionUpload`, `documentStatusApproved`,
-  /// `documentStatusPendingReview` are wanted).
-  static const String _uploadLabel = 'Upload';
-  static const String _approvedLabel = 'Approved';
-  static const String _pendingLabel = 'Pending Review';
-
   _SlotState get _state {
     if (isLocked) return _SlotState.locked;
     final doc = uploadedDoc;
@@ -99,17 +91,17 @@ class DocumentSlot extends StatelessWidget {
   }
 
   /// Status pill: Korean word beside the English label (spec §1 Korean voice).
-  Widget _status() {
+  Widget _status(AppLocalizations l) {
     switch (_state) {
       case _SlotState.done:
-        return const StatusChip(
-          label: _approvedLabel,
+        return StatusChip(
+          label: l.documentStatusApproved,
           ko: '완료',
           tone: StatusTone.lime,
         );
       case _SlotState.pending:
-        return const StatusChip(
-          label: _pendingLabel,
+        return StatusChip(
+          label: l.documentStatusPendingReview,
           ko: '대기',
           tone: StatusTone.warning,
         );
@@ -129,7 +121,7 @@ class DocumentSlot extends StatelessWidget {
       case _SlotState.locked:
         return const <Widget>[];
       case _SlotState.missing:
-        return <Widget>[_uploadAction()];
+        return <Widget>[_uploadAction(l)];
       case _SlotState.done:
         // Approved documents can be previewed but not deleted — unchanged.
         return <Widget>[
@@ -150,9 +142,7 @@ class DocumentSlot extends StatelessWidget {
           ),
           _iconAction(
             icon: Icons.delete_outline,
-            // The palette has no destructive token; warning is the closest
-            // "careful" colour in the Seoul Night set.
-            color: SeoulColors.warningText,
+            color: SeoulColors.dangerText,
             tooltip: l.a11yTooltipDeleteDocument,
             onPressed: isUploading ? null : onDeleteTap,
           ),
@@ -176,7 +166,7 @@ class DocumentSlot extends StatelessWidget {
     );
   }
 
-  Widget _uploadAction() {
+  Widget _uploadAction(AppLocalizations l) {
     if (isUploading) {
       return const SizedBox(
         width: SeoulSizes.minTapTarget,
@@ -196,7 +186,7 @@ class DocumentSlot extends StatelessWidget {
 
     if (isPrimaryAction) {
       return LimeButton(
-        label: _uploadLabel,
+        label: l.documentActionUpload,
         icon: Icons.cloud_upload_outlined,
         expand: false,
         height: SeoulSizes.minTapTarget,
@@ -205,7 +195,7 @@ class DocumentSlot extends StatelessWidget {
     }
 
     return SeoulOutlineButton(
-      label: _uploadLabel,
+      label: l.documentActionUpload,
       icon: Icons.cloud_upload_outlined,
       expand: false,
       height: SeoulSizes.minTapTarget,
@@ -275,13 +265,17 @@ class DocumentSlot extends StatelessWidget {
           // Status on the left, actions on the right. The names run long in
           // every locale, so they get the full width of the row above rather
           // than competing with a chip and two buttons.
-          Row(
-            children: [
-              Expanded(
-                child: Align(alignment: Alignment.centerLeft, child: _status()),
-              ),
-              ..._actions(l),
-            ],
+          // Wrap, not Row: at the OS's larger font settings the chip plus two
+          // 48px buttons exceed the row width on a 320pt screen, and
+          // StatusChip's inner Row is MainAxisSize.min with no Flexible, so it
+          // would stripe rather than ellipsise. Wrapping drops the actions to
+          // their own line instead.
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            runSpacing: 8,
+            spacing: 8,
+            children: [_status(l), Row(mainAxisSize: MainAxisSize.min, children: _actions(l))],
           ),
         ],
       ),

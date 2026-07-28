@@ -125,7 +125,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   /// Ask for the microphone before the interview can be reached.
   ///
-  /// The old TrainingTab dialog did this; the orb replaced that entry point,
+  /// The old training-tab dialog did this; the orb replaced that entry point,
   /// and without it a student who had previously denied the permission would
   /// start a real Vapi call that simply never hears them. Runs inside the tap
   /// gesture, as `permission_handler` requires. Web is excluded — browsers
@@ -302,6 +302,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             label: pending > 0 ? 'Review ($pending)' : 'Review',
             icon: Icons.fact_check_outlined,
             height: SeoulSizes.minTapTarget,
+            // Must self-size: this sits in a Positioned with only left/bottom,
+            // so the incoming width constraint is unbounded and the default
+            // `expand` (width: infinity + MainAxisSize.max) would throw.
+            expand: false,
             onPressed: () => context.push('/admin/review'),
           ),
           const SizedBox(height: 12),

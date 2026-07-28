@@ -94,11 +94,24 @@ class _DocumentsTabState extends ConsumerState<DocumentsTab> {
   /// the repository removes storage + row, then the provider is invalidated so
   /// the list and the hero counts refresh together.
   Future<void> _handleDelete(DocumentType type, AppDocument doc) async {
+    final l = AppLocalizations.of(context)!;
     setState(() => _uploadingDocs[type.id] = true);
-    await ref.read(documentsRepositoryProvider).deleteDocument(doc);
-    if (!mounted) return;
-    ref.invalidate(documentsProvider);
-    setState(() => _uploadingDocs[type.id] = false);
+    try {
+      await ref.read(documentsRepositoryProvider).deleteDocument(doc);
+      if (!mounted) return;
+      ref.invalidate(documentsProvider);
+    } catch (e, st) {
+      // Without this the throw escaped to the zone handler, the busy flag was
+      // never cleared, and the row's controls stayed disabled until the app
+      // was restarted — with nothing on screen to say why.
+      await Sentry.captureException(e, stackTrace: st);
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l.deleteFailed(e.toString()))));
+    } finally {
+      if (mounted) setState(() => _uploadingDocs[type.id] = false);
+    }
   }
 
   /// The upload matching a required slot, or null. Same rule the screen has
@@ -155,7 +168,10 @@ class _DocumentsTabState extends ConsumerState<DocumentsTab> {
       ),
       children: [
         _CollectedHero(
-          title: l.documentsTabTitle,
+          // Not the screen name: the shell header already says "Docs · 서류
+          // 목록" directly above, and the section heading below says
+          // "Required documents". This slot states the count.
+          title: l.documentsCollected(collected, total),
           collected: collected,
           total: total,
         ),

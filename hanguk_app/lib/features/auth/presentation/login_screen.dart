@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../design_system/seoul_night/seoul_night.dart';
-import '../../../design_system/theme/app_colors.dart';
 import '../../../l10n/app_localizations.dart';
 import '../data/auth_repository.dart';
 
@@ -235,7 +234,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
 
             // Title + decorative hangul accent (stays Korean in every locale).
             HangulTag(
-              en: l10n.loginStudentPortal,
+              en: l10n.magicCodeTitle,
               ko: '매직 코드',
               titleStyle: SeoulType.headline,
             ),
@@ -246,11 +245,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
 
             // ── Messages ─────────────────────────────────────────────────────
             if (_error != null) ...[
-              _MessageCard(message: _error!, tint: AppColors.error),
+              _MessageCard(
+                message: _error!,
+                tint: SeoulColors.dangerText,
+                fill: SeoulColors.dangerFill,
+              ),
               const SizedBox(height: 16),
             ],
             if (_success != null) ...[
-              _MessageCard(message: _success!, tint: AppColors.success),
+              _MessageCard(
+                message: _success!,
+                tint: SeoulColors.successText,
+                fill: SeoulColors.successFill,
+              ),
               const SizedBox(height: 16),
             ],
 
@@ -283,7 +290,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
           ),
           const SizedBox(height: 20),
           LimeButton(
-            label: l10n.loginAccessCodeButton,
+            label: l10n.welcomeMagicCodeCta,
             loading: _loading,
             onPressed: _handleStudentLogin,
           ),
@@ -387,21 +394,31 @@ class _MagicCodeField extends StatelessWidget {
 
 /// Inline error / success banner.
 ///
-/// Keeps the legacy semantic colours: Seoul Night has no error/success token,
-/// and its amber `warning` would read as a non-blocking notice rather than a
-/// failed sign-in.
+/// The tint is a *text* colour on the Seoul Night navy, so it has to be the
+/// light end of the semantic pair: `AppColors.error` (#DC2626) measures about
+/// 2.1:1 here, well under AA, which would leave the one message explaining a
+/// failed sign-in barely readable.
 class _MessageCard extends StatelessWidget {
-  const _MessageCard({required this.message, required this.tint});
+  const _MessageCard({
+    required this.message,
+    required this.tint,
+    required this.fill,
+  });
 
   final String message;
+
+  /// Text and border colour.
   final Color tint;
+
+  /// Background wash.
+  final Color fill;
 
   @override
   Widget build(BuildContext context) {
     return GlassCard(
       radius: SeoulRadii.control,
       padding: const EdgeInsets.all(12),
-      fillColor: tint.withValues(alpha: 0.1),
+      fillColor: fill,
       borderColor: tint.withValues(alpha: 0.3),
       showShadow: false,
       blur: false,

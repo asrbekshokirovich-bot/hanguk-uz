@@ -892,4 +892,89 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get greetingEvening => '좋은 저녁';
+
+  @override
+  String get welcomeHeadline => '당신의 여정을 환영합니다';
+
+  @override
+  String get welcomeSubtitle => '한국 대학으로 가는 길이 여기서 시작됩니다.';
+
+  @override
+  String get welcomeMagicCodeCta => '매직 코드가 있어요';
+
+  @override
+  String get welcomeExploreCta => '대학 둘러보기';
+
+  @override
+  String get magicCodeTitle => '매직 코드';
+
+  @override
+  String get homeJourneyEyebrow => '나의 여정';
+
+  @override
+  String get homeContinueJourney => '여정 계속하기';
+
+  @override
+  String get homeViewAll => '전체 보기';
+
+  @override
+  String documentsCollected(int collected, int total) {
+    return '$total개 중 $collected개 완료';
+  }
+
+  @override
+  String get documentActionUpload => '업로드';
+
+  @override
+  String get documentStatusApproved => '승인됨';
+
+  @override
+  String get documentStatusPendingReview => '검토 대기';
+
+  @override
+  String get statusDocs => '서류';
+
+  @override
+  String get statusSubmitted => '제출됨';
+
+  @override
+  String get statusInReview => '심사 중';
+
+  @override
+  String get statusWaiting => '대기 중';
+
+  @override
+  String get statusRejected => '불합격';
+
+  @override
+  String get journeyStageDocumentPrep => '서류 준비';
+
+  @override
+  String get journeyStageOnlineApplication => '온라인 지원';
+
+  @override
+  String get journeyStageOfflineApplication => '오프라인 지원';
+
+  @override
+  String get journeyStageInterview => '면접';
+
+  @override
+  String get journeyStageWaitingInvoice => '청구서 대기';
+
+  @override
+  String get journeyStageTuitionPayment => '등록금 납부';
+
+  @override
+  String get journeyStageWaitingAdmission => '입학허가서 대기';
+
+  @override
+  String get journeyStageVisaPreparation => '비자 준비';
+
+  @override
+  String get journeyStageWaitingVisa => '비자 발급 대기';
+
+  @override
+  String mapUniversitiesMapped(int count) {
+    return '$count개 대학 표시됨';
+  }
 }

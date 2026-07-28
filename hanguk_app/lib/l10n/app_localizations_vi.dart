@@ -689,7 +689,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String sessionStepLabel(int step) {
-    return 'Step $step';
+    return 'Bước $step';
   }
 
   @override
@@ -924,4 +924,89 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get greetingEvening => 'Chào buổi tối';
+
+  @override
+  String get welcomeHeadline => 'Chào mừng đến hành trình của bạn';
+
+  @override
+  String get welcomeSubtitle => 'Con đường đến đại học Hàn Quốc bắt đầu từ đây.';
+
+  @override
+  String get welcomeMagicCodeCta => 'Tôi có mã Magic Code';
+
+  @override
+  String get welcomeExploreCta => 'Khám phá các trường';
+
+  @override
+  String get magicCodeTitle => 'Mã Magic Code';
+
+  @override
+  String get homeJourneyEyebrow => 'Hành trình của bạn';
+
+  @override
+  String get homeContinueJourney => 'Tiếp tục hành trình';
+
+  @override
+  String get homeViewAll => 'Xem tất cả';
+
+  @override
+  String documentsCollected(int collected, int total) {
+    return 'Đã có $collected trên $total';
+  }
+
+  @override
+  String get documentActionUpload => 'Tải lên';
+
+  @override
+  String get documentStatusApproved => 'Đã duyệt';
+
+  @override
+  String get documentStatusPendingReview => 'Chờ duyệt';
+
+  @override
+  String get statusDocs => 'Hồ sơ';
+
+  @override
+  String get statusSubmitted => 'Đã nộp';
+
+  @override
+  String get statusInReview => 'Đang xét duyệt';
+
+  @override
+  String get statusWaiting => 'Đang chờ';
+
+  @override
+  String get statusRejected => 'Bị từ chối';
+
+  @override
+  String get journeyStageDocumentPrep => 'Chuẩn bị hồ sơ';
+
+  @override
+  String get journeyStageOnlineApplication => 'Nộp hồ sơ trực tuyến';
+
+  @override
+  String get journeyStageOfflineApplication => 'Nộp hồ sơ trực tiếp';
+
+  @override
+  String get journeyStageInterview => 'Phỏng vấn';
+
+  @override
+  String get journeyStageWaitingInvoice => 'Chờ hóa đơn';
+
+  @override
+  String get journeyStageTuitionPayment => 'Đóng học phí';
+
+  @override
+  String get journeyStageWaitingAdmission => 'Chờ thư mời nhập học';
+
+  @override
+  String get journeyStageVisaPreparation => 'Chuẩn bị visa';
+
+  @override
+  String get journeyStageWaitingVisa => 'Chờ cấp visa';
+
+  @override
+  String mapUniversitiesMapped(int count) {
+    return '$count trường trên bản đồ';
+  }
 }

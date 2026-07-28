@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
-import '../../../../../design_system/theme/app_colors.dart';
+import '../../../../../design_system/seoul_night/seoul_night.dart';
 import '../../../domain/university.dart';
 import '../university_map_html.dart';
 
@@ -47,7 +47,9 @@ class _MobileMapWidgetState extends State<_MobileMapWidget> {
 
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setBackgroundColor(AppColors.backgroundNavy)
+      // Matches the map card the WebView is clipped into, so the seam
+      // between Flutter and the page never shows while tiles load.
+      ..setBackgroundColor(SeoulColors.mapWater)
       ..addJavaScriptChannel(
         'HangukMapChannel',
         onMessageReceived: (JavaScriptMessage message) {

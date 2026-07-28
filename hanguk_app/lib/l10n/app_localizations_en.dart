@@ -924,4 +924,89 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get greetingEvening => 'Good evening';
+
+  @override
+  String get welcomeHeadline => 'Welcome to your journey';
+
+  @override
+  String get welcomeSubtitle => 'Your path to a South Korean university starts here.';
+
+  @override
+  String get welcomeMagicCodeCta => 'I have a magic code';
+
+  @override
+  String get welcomeExploreCta => 'Explore universities';
+
+  @override
+  String get magicCodeTitle => 'Magic code';
+
+  @override
+  String get homeJourneyEyebrow => 'Your journey';
+
+  @override
+  String get homeContinueJourney => 'Continue journey';
+
+  @override
+  String get homeViewAll => 'View all';
+
+  @override
+  String documentsCollected(int collected, int total) {
+    return '$collected of $total collected';
+  }
+
+  @override
+  String get documentActionUpload => 'Upload';
+
+  @override
+  String get documentStatusApproved => 'Approved';
+
+  @override
+  String get documentStatusPendingReview => 'Pending review';
+
+  @override
+  String get statusDocs => 'Documents';
+
+  @override
+  String get statusSubmitted => 'Submitted';
+
+  @override
+  String get statusInReview => 'In review';
+
+  @override
+  String get statusWaiting => 'Waiting';
+
+  @override
+  String get statusRejected => 'Rejected';
+
+  @override
+  String get journeyStageDocumentPrep => 'Document preparation';
+
+  @override
+  String get journeyStageOnlineApplication => 'Online application';
+
+  @override
+  String get journeyStageOfflineApplication => 'Offline application';
+
+  @override
+  String get journeyStageInterview => 'Interview';
+
+  @override
+  String get journeyStageWaitingInvoice => 'Waiting for invoice';
+
+  @override
+  String get journeyStageTuitionPayment => 'Tuition fee payment';
+
+  @override
+  String get journeyStageWaitingAdmission => 'Waiting for admission letter';
+
+  @override
+  String get journeyStageVisaPreparation => 'Preparing for visa application';
+
+  @override
+  String get journeyStageWaitingVisa => 'Waiting for visa issue';
+
+  @override
+  String mapUniversitiesMapped(int count) {
+    return '$count universities mapped';
+  }
 }

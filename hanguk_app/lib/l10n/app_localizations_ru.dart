@@ -689,7 +689,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String sessionStepLabel(int step) {
-    return 'Step $step';
+    return 'Этап $step';
   }
 
   @override
@@ -924,4 +924,89 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get greetingEvening => 'Добрый вечер';
+
+  @override
+  String get welcomeHeadline => 'Добро пожаловать в ваш путь';
+
+  @override
+  String get welcomeSubtitle => 'Ваш путь в университет Южной Кореи начинается здесь.';
+
+  @override
+  String get welcomeMagicCodeCta => 'У меня есть магический код';
+
+  @override
+  String get welcomeExploreCta => 'Посмотреть университеты';
+
+  @override
+  String get magicCodeTitle => 'Магический код';
+
+  @override
+  String get homeJourneyEyebrow => 'Ваш путь';
+
+  @override
+  String get homeContinueJourney => 'Продолжить путь';
+
+  @override
+  String get homeViewAll => 'Показать все';
+
+  @override
+  String documentsCollected(int collected, int total) {
+    return 'Собрано $collected из $total';
+  }
+
+  @override
+  String get documentActionUpload => 'Загрузить';
+
+  @override
+  String get documentStatusApproved => 'Одобрено';
+
+  @override
+  String get documentStatusPendingReview => 'На проверке';
+
+  @override
+  String get statusDocs => 'Документы';
+
+  @override
+  String get statusSubmitted => 'Подано';
+
+  @override
+  String get statusInReview => 'На рассмотрении';
+
+  @override
+  String get statusWaiting => 'Ожидание';
+
+  @override
+  String get statusRejected => 'Отказано';
+
+  @override
+  String get journeyStageDocumentPrep => 'Подготовка документов';
+
+  @override
+  String get journeyStageOnlineApplication => 'Онлайн-заявка';
+
+  @override
+  String get journeyStageOfflineApplication => 'Офлайн-заявка';
+
+  @override
+  String get journeyStageInterview => 'Собеседование';
+
+  @override
+  String get journeyStageWaitingInvoice => 'Ожидание счёта';
+
+  @override
+  String get journeyStageTuitionPayment => 'Оплата обучения';
+
+  @override
+  String get journeyStageWaitingAdmission => 'Ожидание письма о зачислении';
+
+  @override
+  String get journeyStageVisaPreparation => 'Подготовка к визе';
+
+  @override
+  String get journeyStageWaitingVisa => 'Ожидание выдачи визы';
+
+  @override
+  String mapUniversitiesMapped(int count) {
+    return 'На карте: $count';
+  }
 }

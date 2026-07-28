@@ -929,4 +929,89 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get greetingEvening => 'Xayrli kech';
+
+  @override
+  String get welcomeHeadline => 'Yo\'lingizga xush kelibsiz';
+
+  @override
+  String get welcomeSubtitle => 'Janubiy Koreya universitetiga yo\'lingiz shu yerdan boshlanadi.';
+
+  @override
+  String get welcomeMagicCodeCta => 'Menda sehrli kod bor';
+
+  @override
+  String get welcomeExploreCta => 'Universitetlarni ko‘rish';
+
+  @override
+  String get magicCodeTitle => 'Sehrli kod';
+
+  @override
+  String get homeJourneyEyebrow => 'Sizning yo\'lingiz';
+
+  @override
+  String get homeContinueJourney => 'Yo\'lni davom ettirish';
+
+  @override
+  String get homeViewAll => 'Barchasini ko\'rish';
+
+  @override
+  String documentsCollected(int collected, int total) {
+    return '$total tadan $collected tasi yig\'ildi';
+  }
+
+  @override
+  String get documentActionUpload => 'Yuklash';
+
+  @override
+  String get documentStatusApproved => 'Tasdiqlangan';
+
+  @override
+  String get documentStatusPendingReview => 'Tekshiruvda';
+
+  @override
+  String get statusDocs => 'Hujjatlar';
+
+  @override
+  String get statusSubmitted => 'Yuborilgan';
+
+  @override
+  String get statusInReview => 'Ko‘rib chiqilmoqda';
+
+  @override
+  String get statusWaiting => 'Kutilmoqda';
+
+  @override
+  String get statusRejected => 'Rad etilgan';
+
+  @override
+  String get journeyStageDocumentPrep => 'Hujjatlarni tayyorlash';
+
+  @override
+  String get journeyStageOnlineApplication => 'Onlayn ariza';
+
+  @override
+  String get journeyStageOfflineApplication => 'Oflayn ariza';
+
+  @override
+  String get journeyStageInterview => 'Suhbat';
+
+  @override
+  String get journeyStageWaitingInvoice => 'Hisob-fakturani kutish';
+
+  @override
+  String get journeyStageTuitionPayment => 'Kontrakt to\'lovi';
+
+  @override
+  String get journeyStageWaitingAdmission => 'Qabul xatini kutish';
+
+  @override
+  String get journeyStageVisaPreparation => 'Vizaga tayyorgarlik';
+
+  @override
+  String get journeyStageWaitingVisa => 'Viza berilishini kutish';
+
+  @override
+  String mapUniversitiesMapped(int count) {
+    return '$count ta universitet xaritada';
+  }
 }

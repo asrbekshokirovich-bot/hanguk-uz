@@ -1789,6 +1789,175 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Good evening'**
   String get greetingEvening;
+  /// Headline on the Welcome screen, under the 한 tile (DESIGN_SPEC 3.1).
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to your journey'**
+  String get welcomeHeadline;
+
+  /// Supporting line under welcomeHeadline on the Welcome screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Your path to a South Korean university starts here.'**
+  String get welcomeSubtitle;
+
+  /// Primary lime button on the Welcome screen; opens the magic-code login.
+  ///
+  /// In en, this message translates to:
+  /// **'I have a magic code'**
+  String get welcomeMagicCodeCta;
+
+  /// Secondary button on the Welcome screen that opens the guest catalog.
+  /// Currently compiled out behind kGuestModeEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Explore universities'**
+  String get welcomeExploreCta;
+
+  /// Title of the magic-code login screen (DESIGN_SPEC 3.2).
+  ///
+  /// In en, this message translates to:
+  /// **'Magic code'**
+  String get magicCodeTitle;
+
+  /// Eyebrow above the journey hero card on the Home dashboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Your journey'**
+  String get homeJourneyEyebrow;
+
+  /// Lime button on the Home journey hero card; opens Applications.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue journey'**
+  String get homeContinueJourney;
+
+  /// Link at the end of a Home section header; opens the full section.
+  ///
+  /// In en, this message translates to:
+  /// **'View all'**
+  String get homeViewAll;
+
+  /// Count on the Documents hero card: how many required documents have
+  /// been uploaded out of the total.
+  ///
+  /// In en, this message translates to:
+  /// **'{collected} of {total} collected'**
+  String documentsCollected(int collected, int total);
+
+  /// Label on the button that uploads a missing document.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload'**
+  String get documentActionUpload;
+
+  /// Status chip on a document row that a counselor has approved.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved'**
+  String get documentStatusApproved;
+
+  /// Status chip on an uploaded document that has not been reviewed yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending review'**
+  String get documentStatusPendingReview;
+
+  /// Short status chip on an application card: the student is collecting
+  /// documents.
+  ///
+  /// In en, this message translates to:
+  /// **'Documents'**
+  String get statusDocs;
+
+  /// Short status chip on an application card: the application has been
+  /// sent to the university.
+  ///
+  /// In en, this message translates to:
+  /// **'Submitted'**
+  String get statusSubmitted;
+
+  /// Short status chip on an application card: the university or the
+  /// consulate is reviewing it.
+  ///
+  /// In en, this message translates to:
+  /// **'In review'**
+  String get statusInReview;
+
+  /// Short status chip on an application card: waiting on the university or
+  /// the consulate to respond.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting'**
+  String get statusWaiting;
+
+  /// Short status chip on an application card that was rejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected'**
+  String get statusRejected;
+
+  /// Stage 1 of 9 on the application journey bar.
+  ///
+  /// In en, this message translates to:
+  /// **'Document preparation'**
+  String get journeyStageDocumentPrep;
+
+  /// Stage 2 of 9 on the application journey bar.
+  ///
+  /// In en, this message translates to:
+  /// **'Online application'**
+  String get journeyStageOnlineApplication;
+
+  /// Stage 3 of 9 on the application journey bar.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline application'**
+  String get journeyStageOfflineApplication;
+
+  /// Stage 4 of 9 on the application journey bar.
+  ///
+  /// In en, this message translates to:
+  /// **'Interview'**
+  String get journeyStageInterview;
+
+  /// Stage 5 of 9 on the application journey bar.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for invoice'**
+  String get journeyStageWaitingInvoice;
+
+  /// Stage 6 of 9 on the application journey bar.
+  ///
+  /// In en, this message translates to:
+  /// **'Tuition fee payment'**
+  String get journeyStageTuitionPayment;
+
+  /// Stage 7 of 9 on the application journey bar.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for admission letter'**
+  String get journeyStageWaitingAdmission;
+
+  /// Stage 8 of 9 on the application journey bar.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing for visa application'**
+  String get journeyStageVisaPreparation;
+
+  /// Stage 9 of 9 on the application journey bar.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for visa issue'**
+  String get journeyStageWaitingVisa;
+
+  /// Pill over the map showing how many universities have coordinates and
+  /// are therefore drawn as pins.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} universities mapped'**
+  String mapUniversitiesMapped(int count);
+
 }
 
 class _AppLocalizationsDelegate

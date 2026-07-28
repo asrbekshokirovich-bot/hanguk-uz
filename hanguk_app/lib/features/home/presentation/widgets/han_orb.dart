@@ -297,7 +297,7 @@ class _OrbButton extends StatelessWidget {
                   builder: (context, _) {
                     final t = dial.value;
                     return Transform.rotate(
-                      angle: t * 1.5708, // 90°
+                      angle: t * (math.pi / 2),
                       child: Stack(
                         alignment: Alignment.center,
                         children: [
@@ -407,7 +407,7 @@ class _DialRow extends StatelessWidget {
                       vertical: 9,
                     ),
                     decoration: BoxDecoration(
-                      color: SeoulColors.glassBorder,
+                      color: SeoulColors.glass,
                       borderRadius: BorderRadius.circular(999),
                       border: Border.all(color: SeoulColors.glassBorder),
                     ),

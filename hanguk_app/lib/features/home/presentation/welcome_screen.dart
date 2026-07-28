@@ -90,14 +90,14 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
                     const SizedBox(height: 10),
 
                     Text(
-                      l10n.onboardingStart,
+                      l10n.welcomeHeadline,
                       textAlign: TextAlign.center,
                       style: SeoulType.display,
                     ),
                     const SizedBox(height: 10),
 
                     Text(
-                      l10n.onboardingStep1Body,
+                      l10n.welcomeSubtitle,
                       textAlign: TextAlign.center,
                       style: SeoulType.bodySecondary,
                     ),
@@ -129,7 +129,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
                 // The one lime action on this screen (spec §4). Target is
                 // unchanged: the Magic Code portal.
                 LimeButton(
-                  label: l10n.loginSwitchToMagicCode,
+                  label: l10n.welcomeMagicCodeCta,
                   icon: Icons.key,
                   onPressed: () =>
                       context.push('/login', extra: {'magic_code': true}),
@@ -138,7 +138,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
                 if (kGuestModeEnabled) ...[
                   const SizedBox(height: 12),
                   SeoulOutlineButton(
-                    label: l10n.mapTabTitle,
+                    label: l10n.welcomeExploreCta,
                     onPressed: _openGuestExplorer,
                     trailing: const StatusChip(
                       label: '탐색',

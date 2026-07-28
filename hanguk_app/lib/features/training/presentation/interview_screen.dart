@@ -10,7 +10,7 @@ import 'widgets/interview_analytics_view.dart';
 import 'widgets/interview_history_view.dart';
 
 class InterviewScreen extends ConsumerStatefulWidget {
-  /// Optional initial configuration passed from the TrainingTab dialog.
+  /// Optional initial configuration passed by the caller.
   /// When provided, the session starts automatically in initState so the
   /// user sees the interview screen immediately (no dialog blocking).
   final String? initialSessionType;

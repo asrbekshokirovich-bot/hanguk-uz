@@ -100,13 +100,16 @@ final RegExp _hangulStart = RegExp(r'^[가-힣]');
 
 /// Glyph for a university's avatar tile.
 ///
-/// `University.location` is `city_ko`, so for real rows it is Korean (서울,
-/// 대전…) and its first syllable is exactly the accent the spec asks for. The
-/// repository substitutes a Latin fallback when `city_ko` is null, so anything
-/// that is not hangul falls back to the 한 brand mark rather than showing a
-/// stray Latin letter in a hangul tile.
-String _glyphForCity(String? city) {
-  final trimmed = (city ?? '').trim();
+/// Keyed off `name_ko`, exactly as `ApplicationCard` does — the same
+/// application has to wear the same tile on both screens. Deriving it from the
+/// city instead would give every Seoul university an identical 서, which
+/// defeats the point of an avatar.
+///
+/// Falls back to the 한 brand mark rather than putting a stray Latin letter in
+/// a hangul tile, since `name_ko` can be null for a partner that has not been
+/// translated yet.
+String _glyphForKoreanName(String? nameKo) {
+  final trimmed = (nameKo ?? '').trim();
   if (!_hangulStart.hasMatch(trimmed)) return '한';
   return HangulGlyphTile.firstSyllable(trimmed);
 }
@@ -271,9 +274,19 @@ class _JourneyHeroCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // 나의 여정 — "my journey". Decorative accent (spec §1).
+                    Text(l.homeJourneyEyebrow, style: SeoulType.eyebrow),
+                    const SizedBox(height: 2),
                     const Text('나의 여정', style: SeoulType.hangulLabel),
                     const SizedBox(height: 6),
-                    Text(l.sessionStepLabel(step), style: SeoulType.headline),
+                    // Step 0 is not a step. A brand-new application sits at
+                    // 'pending' until a counselor approves it, so say that
+                    // instead of counting a stage the student hasn't reached.
+                    Text(
+                      step == 0
+                          ? l.appsPendingHeading
+                          : l.sessionStepLabel(step),
+                      style: SeoulType.headline,
+                    ),
                     if (name != null) ...[
                       const SizedBox(height: 6),
                       Text(
@@ -298,7 +311,7 @@ class _JourneyHeroCard extends StatelessWidget {
           Align(
             alignment: Alignment.centerLeft,
             child: LimeButton(
-              label: l.navApplications,
+              label: l.homeContinueJourney,
               expand: false,
               onPressed: onContinue,
             ),
@@ -432,8 +445,13 @@ class _SectionHeader extends StatelessWidget {
       child: GestureDetector(
         onTap: onTap,
         behavior: HitTestBehavior.opaque,
-        child: SizedBox(
-          height: SeoulSizes.minTapTarget,
+        child: ConstrainedBox(
+          // A floor, not a ceiling: HangulTag is two lines (~37px at scale
+          // 1.0) and overflows a fixed 44px box at the OS's larger font
+          // settings. This keeps the 44px tap target without capping height.
+          constraints: const BoxConstraints(
+            minHeight: SeoulSizes.minTapTarget,
+          ),
           child: Row(
             children: [
               Expanded(
@@ -481,7 +499,7 @@ class _ApplicationPreviewCard extends StatelessWidget {
 
     final StatusTone tone;
     if (rejected) {
-      tone = StatusTone.warning;
+      tone = StatusTone.danger;
     } else if (step == 0) {
       tone = StatusTone.neutral;
     } else {
@@ -493,7 +511,7 @@ class _ApplicationPreviewCard extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
       child: Row(
         children: [
-          HangulGlyphTile(glyph: _glyphForCity(university?.location)),
+          HangulGlyphTile(glyph: _glyphForKoreanName(university?.nameKo)),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
