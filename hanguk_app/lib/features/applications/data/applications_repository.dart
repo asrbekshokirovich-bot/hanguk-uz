@@ -162,7 +162,10 @@ final applicationsProvider = FutureProvider<List<StudentApplication>>((
         .from('applications')
         .select('*, university:institutions(id, name_en, city_ko, is_partner)')
         .eq('student_id', user.id)
-        .order('created_at', ascending: false);
+        .order('created_at', ascending: false)
+        // Don't let a stalled/slow connection spin forever — surface an error
+        // (with a Retry button) instead. Common on weak mobile networks.
+        .timeout(const Duration(seconds: 20));
 
     debugPrint(
       '[Applications] Query for student ${user.id} returned ${(data as List).length} applications',

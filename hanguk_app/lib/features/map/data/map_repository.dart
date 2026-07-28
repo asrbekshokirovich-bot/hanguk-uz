@@ -37,7 +37,9 @@ final universitiesProvider = FutureProvider<List<University>>((ref) async {
         // No `ranking` column on the new view — `tier` is the closest
         // proxy (0 = flagship, 4 = unclassified). NULLS LAST so
         // unclassified institutions sort to the bottom.
-        .order('tier', ascending: true, nullsFirst: false);
+        .order('tier', ascending: true, nullsFirst: false)
+        // Weak-network guard: fail (→ Retry) instead of an endless spinner.
+        .timeout(const Duration(seconds: 20));
 
     return (data as List).map((row) {
       final map = row as Map<String, dynamic>;
