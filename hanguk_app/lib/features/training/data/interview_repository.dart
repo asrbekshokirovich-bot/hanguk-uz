@@ -450,6 +450,10 @@ class InterviewNotifier extends Notifier<InterviewSessionState> {
   /// return the UI to the setup screen (unless the session finished
   /// normally and is showing feedback).
   void forceIdleIfActive() {
+    // Never yank the screen out from under an end-flow that is still
+    // running (e.g. the AppBar End is generating feedback) — that would
+    // flash the setup view and then bounce to analytics.
+    if (_ending) return;
     if (state.status == 'active' || state.status == 'abandoned') {
       state = state.copyWith(
         status: 'idle',
@@ -546,11 +550,15 @@ class InterviewNotifier extends Notifier<InterviewSessionState> {
       final fb = Map<String, dynamic>.from(fbRaw);
 
       try {
+        // Timed: these run AFTER the feedback is already in hand, so a hang
+        // here must never delay the transition to 'completed' (it would
+        // strand the user on the interview screen with a spinner).
         final row = await client
             .from('interview_feedback')
             .select('session_id')
             .eq('session_id', sessionId)
-            .maybeSingle();
+            .maybeSingle()
+            .timeout(const Duration(seconds: 10));
         if (row == null) {
           await client.from('interview_feedback').insert({
             'session_id': sessionId,
@@ -584,7 +592,7 @@ class InterviewNotifier extends Notifier<InterviewSessionState> {
               'message_scores': fb['message_scores'],
             if (fb['detailed_feedback'] is String)
               'detailed_feedback': fb['detailed_feedback'],
-          });
+          }).timeout(const Duration(seconds: 10));
         }
       } on Exception catch (e) {
         // Non-fatal — the in-memory feedback is still available.

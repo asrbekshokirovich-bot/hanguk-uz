@@ -248,12 +248,26 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
                         : 'Hello! Are you ready to begin our interview for $targetUni?'),
         },
       );
-      _call = await startFuture?.timeout(
+      final connected = await startFuture?.timeout(
         const Duration(seconds: 30),
         onTimeout: () => throw TimeoutException(
           'Vapi handshake timed out after 30 seconds.',
         ),
       );
+
+      // The handshake can finish AFTER we already gave up on it: the 25s
+      // watchdog fired, the user tapped End, or the screen was disposed —
+      // all while the join was still in flight. Wiring this call up now
+      // would leave a live WebRTC call with an open microphone that no
+      // later _stopCall() can reach (teardown is already latched). Tear the
+      // late arrival down instead.
+      if (connected != null &&
+          (_isStopping || _didEndSession || !mounted || _errorMessage != null)) {
+        debugPrint('[VAPI] Handshake completed after teardown — disposing.');
+        _disposeCallSafely(connected);
+        return;
+      }
+      _call = connected;
 
       // Notify the global provider that Vapi is now live
       ref.read(interviewProvider.notifier).setVapiConnected(true);
@@ -302,20 +316,29 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
         // Catch internal Vapi connection failures and surface them immediately
         if (eventLabel == 'call-end') {
           debugPrint('[VAPI] Call ended.');
-          // The call died before the interviewer ever spoke (assistant
-          // pipeline failure, rejected config, TTS dead-air, network) —
-          // surface it instead of leaving "will greet you shortly" forever.
-          if (!_firstMessageReceived &&
-              !_didEndSession &&
-              _errorMessage == null) {
-            _greetTimer?.cancel();
-            ref.read(interviewProvider.notifier).setVapiConnected(false);
-            setState(() {
-              _isCallActive = false;
-              _errorMessage =
-                  'The call ended before the interviewer could speak. '
-                  'Please try again.';
-            });
+          if (_didEndSession) {
+            // Already tearing down (manual End, AI endCall, time limit).
+          } else if (!_firstMessageReceived) {
+            // The call died before the interviewer ever spoke (assistant
+            // pipeline failure, rejected config, TTS dead-air, network) —
+            // surface it instead of leaving "will greet you shortly" forever.
+            if (_errorMessage == null) {
+              _greetTimer?.cancel();
+              ref.read(interviewProvider.notifier).setVapiConnected(false);
+              setState(() {
+                _isCallActive = false;
+                _errorMessage =
+                    'The call ended before the interviewer could speak. '
+                    'Please try again.';
+              });
+            }
+          } else {
+            // The call dropped mid-interview (network loss, server hang-up).
+            // There is a transcript, so finish the session properly rather
+            // than leaving the screen on "Your turn" with a dead call.
+            _didEndSession = true;
+            _forceEndTimer?.cancel();
+            unawaited(_completeAutoEnd());
           }
         } else if (eventLabel == 'status-update' ||
             eventLabel == 'statusUpdate') {
@@ -436,19 +459,7 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
           sf.then(
             (lateCall) {
               if (identical(lateCall, _call)) return;
-              try {
-                unawaited(
-                  lateCall.stop().catchError((_) {}).whenComplete(() {
-                    try {
-                      lateCall.dispose();
-                    } catch (_) {}
-                  }),
-                );
-              } catch (_) {
-                try {
-                  lateCall.dispose();
-                } catch (_) {}
-              }
+              _disposeCallSafely(lateCall);
             },
             onError: (_) {},
           ),
@@ -501,29 +512,34 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
     } catch (_) {}
 
     final call = _call;
-    if (call != null) {
-      try {
-        // Explicit hang-up BEFORE dispose (prevents orphaned WebRTC
-        // connections); dispose only after stop() settles so we don't
-        // dispose the CallClient while leave() is still in flight.
-        unawaited(
-          call.stop().catchError((_) {}).whenComplete(() {
-            try {
-              call.dispose();
-            } catch (_) {}
-          }),
-        );
-      } catch (_) {
-        try {
-          call.dispose();
-        } catch (_) {}
-      }
-    }
+    if (call != null) _disposeCallSafely(call);
     try {
       _client?.dispose();
     } catch (_) {}
 
     if (identical(_liveInstance, this)) _liveInstance = null;
+  }
+
+  /// Hang up and release a Vapi call without ever throwing.
+  ///
+  /// `stop()` returns a failed Future (VapiCallEndedException) when the call
+  /// has already ended, and `dispose()` can throw on a half-initialized
+  /// CallClient — so both are guarded, and dispose runs only after stop()
+  /// settles (disposing while `leave()` is in flight is unsafe).
+  void _disposeCallSafely(VapiCall call) {
+    try {
+      unawaited(
+        call.stop().catchError((_) {}).whenComplete(() {
+          try {
+            call.dispose();
+          } catch (_) {}
+        }),
+      );
+    } catch (_) {
+      try {
+        call.dispose();
+      } catch (_) {}
+    }
   }
 
   /// Detects whether a Vapi 'tool-calls' or 'function-call' event
