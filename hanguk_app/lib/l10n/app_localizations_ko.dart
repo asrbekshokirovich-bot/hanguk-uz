@@ -113,6 +113,20 @@ class AppLocalizationsKo extends AppLocalizations {
   String get virtualWalkaroundTitle => '가상 워크어라운드';
 
   @override
+  String get visitUniversityWebsite => '대학 웹사이트 방문';
+
+  @override
+  String universityTier(int tier) {
+    return '티어 $tier';
+  }
+
+  @override
+  String get universityVerified => '인증됨';
+
+  @override
+  String get universityNextEvent => '다음 일정';
+
+  @override
   String get navApplications => '지원서';
 
   @override
@@ -866,6 +880,9 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get navHome => '홈';
+
+  @override
+  String get navMenu => '메뉴';
 
   @override
   String get greetingMorning => '좋은 아침';

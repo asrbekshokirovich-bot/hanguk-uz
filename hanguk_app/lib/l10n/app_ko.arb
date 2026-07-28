@@ -38,6 +38,11 @@
   "virtualTourTitle": "가상 투어",
   "virtualWalkaroundTitle": "가상 워크어라운드",
 
+  "visitUniversityWebsite": "대학 웹사이트 방문",
+  "universityTier": "티어 {tier}",
+  "universityVerified": "인증됨",
+  "universityNextEvent": "다음 일정",
+
   "navApplications": "지원서",
   "navMap": "지도",
   "navDocs": "서류",
@@ -356,6 +361,7 @@
   "perAnswerReviewTitle": "답변별 분석",
   "betterAnswerLabel": "더 좋은 답변 예시",
   "navHome": "홈",
+  "navMenu": "메뉴",
   "greetingMorning": "좋은 아침",
   "greetingAfternoon": "좋은 오후",
   "greetingEvening": "좋은 저녁"

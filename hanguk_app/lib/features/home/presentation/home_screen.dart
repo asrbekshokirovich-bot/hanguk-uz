@@ -1,12 +1,15 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../../../../design_system/seoul_night/seoul_night.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../applications/presentation/applications_tab.dart';
 import '../../map/presentation/map_tab.dart';
 import '../../documents/presentation/documents_tab.dart';
 import '../../chat/presentation/chat_tab.dart';
+import '../../training/data/interview_repository.dart';
 import '../../training/presentation/interview_screen.dart';
 import '../../training/presentation/study_plan_screen.dart';
 import '../../uni_db/data/admin_review_providers.dart';
@@ -16,18 +19,6 @@ import 'home_tab_provider.dart';
 import 'onboarding_overlay.dart';
 import 'seoul_home_tab.dart';
 import 'widgets/han_orb.dart';
-
-/// Index of each persistent section in the shell's [IndexedStack].
-class SeoulSection {
-  const SeoulSection._();
-
-  static const int home = 0;
-  static const int applications = 1;
-  static const int map = 2;
-  static const int documents = 3;
-
-  static const int count = 4;
-}
 
 /// The Seoul Night shell (DESIGN_SPEC §2).
 ///
@@ -50,6 +41,16 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
+  final HanOrbController _orb = HanOrbController();
+
+  /// Sections the student has actually opened.
+  ///
+  /// [IndexedStack] builds *every* child, so listing MapTab here
+  /// unconditionally would spin up the Kakao WebView (and its JS engine) at
+  /// cold start and keep it running for the whole session. Sections mount on
+  /// first visit and keep their state from then on.
+  final Set<int> _visited = <int>{SeoulSection.home};
+
   @override
   void initState() {
     super.initState();
@@ -59,6 +60,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       await _maybeShowOnboarding();
       await _checkForUpdates();
     });
+  }
+
+  @override
+  void dispose() {
+    _orb.dispose();
+    super.dispose();
   }
 
   Future<void> _maybeShowOnboarding() async {
@@ -85,6 +92,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   void _openAIChat(BuildContext context) {
+    const corners = BorderRadius.vertical(
+      top: Radius.circular(SeoulRadii.hero),
+    );
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -92,13 +102,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       builder: (_) => Container(
         height: MediaQuery.of(context).size.height * 0.9,
         decoration: const BoxDecoration(
-          color: Color(0xFF071221),
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          // The same background as the app itself, so the sheet reads as the
+          // screen sliding up rather than a foreign panel.
+          gradient: SeoulGradients.appBackground,
+          borderRadius: corners,
+          border: Border(
+            top: BorderSide(color: SeoulColors.glassBorder),
+          ),
         ),
-        child: ClipRRect(
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-          child: const ChatTab(),
-        ),
+        child: const ClipRRect(borderRadius: corners, child: ChatTab()),
       ),
     );
   }
@@ -109,6 +121,61 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   void _push(Widget screen) {
     Navigator.of(context).push(MaterialPageRoute(builder: (_) => screen));
+  }
+
+  /// Ask for the microphone before the interview can be reached.
+  ///
+  /// The old TrainingTab dialog did this; the orb replaced that entry point,
+  /// and without it a student who had previously denied the permission would
+  /// start a real Vapi call that simply never hears them. Runs inside the tap
+  /// gesture, as `permission_handler` requires. Web is excluded — browsers
+  /// prompt natively when Vapi opens the stream, and the plugin crashes there.
+  Future<bool> _ensureMicPermission(AppLocalizations l) async {
+    if (kIsWeb) return true;
+
+    final status = await Permission.microphone.request();
+    if (status.isGranted) return true;
+    if (!mounted) return false;
+
+    final messenger = ScaffoldMessenger.of(context);
+    // Audit U16: a permanent denial can only be undone in the OS settings,
+    // so a bare snackbar would be a dead end.
+    if (status.isPermanentlyDenied) {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(l.micBlockedInSettings),
+          action: SnackBarAction(
+            label: l.openSettings,
+            onPressed: openAppSettings,
+          ),
+          duration: const Duration(seconds: 6),
+        ),
+      );
+    } else {
+      messenger.showSnackBar(SnackBar(content: Text(l.micRequired)));
+    }
+    return false;
+  }
+
+  /// `interviewProvider` is not autoDispose, so a finished session's
+  /// `status: 'completed'` outlives the popped screen and InterviewScreen
+  /// would reopen straight onto the previous report. Clear it first — the
+  /// feedback itself is kept, and stays reachable through history.
+  Future<void> _openInterview(AppLocalizations l) async {
+    if (!await _ensureMicPermission(l)) return;
+    if (!mounted) return;
+    ref.read(interviewProvider.notifier).resetForNewSession();
+    _push(const InterviewScreen());
+  }
+
+  /// One section of the [IndexedStack], built lazily.
+  ///
+  /// Hidden sections also have their tickers stopped: a spinner in a section
+  /// nobody is looking at should not keep the app in a permanent animation
+  /// frame loop.
+  Widget _section(int index, int current, Widget Function() build) {
+    if (!_visited.contains(index)) return const SizedBox.shrink();
+    return TickerMode(enabled: index == current, child: build());
   }
 
   List<HanOrbItem> _dialItems(AppLocalizations l, int current) {
@@ -146,7 +213,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         label: l.interviewCardTitle,
         ko: '면접',
         glyph: '면',
-        onTap: () => _push(const InterviewScreen()),
+        onTap: () => _openInterview(l),
       ),
       HanOrbItem(
         label: l.studyPlanCardTitle,
@@ -231,18 +298,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (canReview) ...[
-          FloatingActionButton.extended(
-            heroTag: 'staff_review_fab',
+          SeoulOutlineButton(
+            label: pending > 0 ? 'Review ($pending)' : 'Review',
+            icon: Icons.fact_check_outlined,
+            height: SeoulSizes.minTapTarget,
             onPressed: () => context.push('/admin/review'),
-            backgroundColor: Colors.white,
-            icon: const Icon(Icons.fact_check_outlined, color: Colors.black),
-            label: Text(
-              pending > 0 ? 'Review ($pending)' : 'Review',
-              style: const TextStyle(
-                color: Colors.black,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
           ),
           const SizedBox(height: 12),
         ],
@@ -282,34 +342,77 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final current = ref.watch(homeTabProvider).clamp(0, SeoulSection.count - 1);
     final header = _sectionHeader(l, current);
 
-    return SeoulNightScaffold(
-      body: Stack(
-        children: [
-          Column(
-            children: [
-              if (header != null) header,
-              Expanded(
-                child: IndexedStack(
-                  index: current,
-                  children: [
-                    SeoulHomeTab(onOpenSection: _goToSection),
-                    const ApplicationsTab(),
-                    const MapTab(),
-                    const DocumentsTab(),
-                  ],
-                ),
+    // Deep links write the index straight into the provider, so first-visit
+    // bookkeeping happens here rather than only in `_goToSection`. Mutating a
+    // plain Set during build notifies nothing, so this cannot loop.
+    _visited.add(current);
+
+    final shell = Stack(
+      children: [
+        Column(
+          children: [
+            if (header != null) header,
+            Expanded(
+              child: IndexedStack(
+                index: current,
+                children: [
+                  _section(
+                    SeoulSection.home,
+                    current,
+                    () => SeoulHomeTab(onOpenSection: _goToSection),
+                  ),
+                  _section(
+                    SeoulSection.applications,
+                    current,
+                    () => const ApplicationsTab(),
+                  ),
+                  _section(SeoulSection.map, current, () => const MapTab()),
+                  _section(
+                    SeoulSection.documents,
+                    current,
+                    () => const DocumentsTab(),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
+        ),
 
-          Positioned(
-            left: SeoulSizes.screenPadding,
-            bottom: SeoulSizes.orbBottom,
-            child: _buildAiChatButton(context, l),
-          ),
+        Positioned(
+          left: SeoulSizes.screenPadding,
+          bottom: SeoulSizes.orbBottom,
+          child: _buildAiChatButton(context, l),
+        ),
 
-          HanOrb(items: _dialItems(l, current), tooltip: l.navHome),
-        ],
+        HanOrb(
+          items: _dialItems(l, current),
+          tooltip: l.navMenu,
+          controller: _orb,
+        ),
+      ],
+    );
+
+    // Android hardware BACK. The section header now draws an explicit
+    // back-arrow to Home, so the system button has to honour the same
+    // hierarchy instead of dropping the student out of the app. One PopScope
+    // for both cases: two of them in a single route would each fire on a
+    // blocked pop, closing the dial *and* navigating.
+    return SeoulNightScaffold(
+      body: ValueListenableBuilder<bool>(
+        valueListenable: _orb,
+        builder: (context, orbOpen, child) => PopScope(
+          canPop: !orbOpen && current == SeoulSection.home,
+          onPopInvokedWithResult: (didPop, _) {
+            if (didPop) return;
+            if (_orb.value) {
+              _orb.close();
+              return;
+            }
+            _goToSection(SeoulSection.home);
+          },
+          child: child!,
+        ),
+        child: shell,
       ),
     );
   }

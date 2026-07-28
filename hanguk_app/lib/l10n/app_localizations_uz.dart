@@ -120,6 +120,20 @@ class AppLocalizationsUz extends AppLocalizations {
   String get virtualWalkaroundTitle => 'Virtual Walkaround';
 
   @override
+  String get visitUniversityWebsite => 'Universitet veb-saytiga o\'tish';
+
+  @override
+  String universityTier(int tier) {
+    return 'Daraja $tier';
+  }
+
+  @override
+  String get universityVerified => 'Tasdiqlangan';
+
+  @override
+  String get universityNextEvent => 'Keyingi tadbir';
+
+  @override
   String get navApplications => 'Arizalar';
 
   @override
@@ -893,6 +907,9 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get navHome => 'Bosh sahifa';
+
+  @override
+  String get navMenu => 'Menyu';
 
   @override
   String get greetingMorning => 'Xayrli tong';

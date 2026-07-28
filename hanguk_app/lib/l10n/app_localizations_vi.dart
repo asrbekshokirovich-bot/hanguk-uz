@@ -121,6 +121,20 @@ class AppLocalizationsVi extends AppLocalizations {
   String get virtualWalkaroundTitle => 'Virtual Walkaround';
 
   @override
+  String get visitUniversityWebsite => 'Truy cập website của trường';
+
+  @override
+  String universityTier(int tier) {
+    return 'Bậc $tier';
+  }
+
+  @override
+  String get universityVerified => 'Đã xác minh';
+
+  @override
+  String get universityNextEvent => 'Sự kiện tiếp theo';
+
+  @override
   String get navApplications => 'Đơn';
 
   @override
@@ -891,6 +905,9 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get navHome => 'Trang chủ';
+
+  @override
+  String get navMenu => 'Menu';
 
   @override
   String get greetingMorning => 'Chào buổi sáng';

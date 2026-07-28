@@ -121,6 +121,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get virtualWalkaroundTitle => 'Virtual Walkaround';
 
   @override
+  String get visitUniversityWebsite => 'Visit University Website';
+
+  @override
+  String universityTier(int tier) {
+    return 'Tier $tier';
+  }
+
+  @override
+  String get universityVerified => 'Verified';
+
+  @override
+  String get universityNextEvent => 'Next event';
+
+  @override
   String get navApplications => 'Applications';
 
   @override
@@ -891,6 +905,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get navHome => 'Home';
+
+  @override
+  String get navMenu => 'Menu';
 
   @override
   String get greetingMorning => 'Good morning';

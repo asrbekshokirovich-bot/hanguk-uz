@@ -308,6 +308,33 @@ abstract class AppLocalizations {
   /// **'Virtual Walkaround'**
   String get virtualWalkaroundTitle;
 
+  /// Outline button in the university detail sheet that opens the
+  /// institution's official homepage (institutions.primary_domain).
+  ///
+  /// In en, this message translates to:
+  /// **'Visit University Website'**
+  String get visitUniversityWebsite;
+
+  /// Chip label for a non-top quality tier (2-4) on a university card or
+  /// detail sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Tier {tier}'**
+  String universityTier(int tier);
+
+  /// Chip label shown when the institution holds an IEQAS accreditation.
+  ///
+  /// In en, this message translates to:
+  /// **'Verified'**
+  String get universityVerified;
+
+  /// Chip label preceding the date of the institution's next
+  /// admission-cycle event.
+  ///
+  /// In en, this message translates to:
+  /// **'Next event'**
+  String get universityNextEvent;
+
   /// Bottom-nav label for the Applications tab (opens ApplicationsTab
   /// with AppBar title 'My Applications'). Renamed from navHome in the
   /// 2026-05-12 UI/UX audit P0 #5 — 'Home' was a misnomer because the
@@ -1639,6 +1666,10 @@ abstract class AppLocalizations {
 
   /// Orb speed-dial label for the Home section.
   String get navHome;
+
+  /// Accessibility label for the 한 orb, which opens the navigation
+  /// speed-dial. Must not say 'Home' — activating it opens a menu.
+  String get navMenu;
 
   /// Time-of-day greeting on the Home header (before 12:00).
   String get greetingMorning;

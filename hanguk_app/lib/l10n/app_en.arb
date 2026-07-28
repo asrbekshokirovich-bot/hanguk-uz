@@ -57,6 +57,18 @@
   "virtualWalkaroundTitle": "Virtual Walkaround",
   "@virtualWalkaroundTitle": { "description": "Button label for the Kakao Roadview walkaround." },
 
+  "visitUniversityWebsite": "Visit University Website",
+  "@visitUniversityWebsite": { "description": "Outline button in the university detail sheet that opens the institution's official homepage (institutions.primary_domain)." },
+  "universityTier": "Tier {tier}",
+  "@universityTier": {
+    "description": "Chip label for a non-top quality tier (2-4) on a university card or detail sheet.",
+    "placeholders": { "tier": { "type": "int" } }
+  },
+  "universityVerified": "Verified",
+  "@universityVerified": { "description": "Chip label shown when the institution holds an IEQAS accreditation." },
+  "universityNextEvent": "Next event",
+  "@universityNextEvent": { "description": "Chip label preceding the date of the institution's next admission-cycle event." },
+
   "navApplications": "Applications",
   "@navApplications": { "description": "Bottom-nav label for the Applications tab (opens ApplicationsTab with AppBar title 'My Applications'). Renamed from navHome in the 2026-05-12 UI/UX audit P0 #5 — 'Home' was a misnomer because the tab is the Applications screen, not a landing/home screen." },
   "navMap": "Map",
@@ -643,6 +655,8 @@
   "@betterAnswerLabel": { "description": "Label above the AI's suggested stronger version of one answer." },
   "navHome": "Home",
   "@navHome": { "description": "Orb speed-dial label for the Home section." },
+  "navMenu": "Menu",
+  "@navMenu": { "description": "Accessibility label for the 한 orb, which opens the navigation speed-dial. Must not say \"Home\" \u2014 activating it opens a menu." },
   "greetingMorning": "Good morning",
   "@greetingMorning": { "description": "Time-of-day greeting on the Home header (before 12:00)." },
   "greetingAfternoon": "Good afternoon",

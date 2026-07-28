@@ -38,6 +38,11 @@
   "virtualTourTitle": "Virtual Tour",
   "virtualWalkaroundTitle": "Virtual Walkaround",
 
+  "visitUniversityWebsite": "Перейти на сайт университета",
+  "universityTier": "Уровень {tier}",
+  "universityVerified": "Проверено",
+  "universityNextEvent": "Ближайшее событие",
+
   "navApplications": "Заявки",
   "navMap": "Карта",
   "navDocs": "Документы",
@@ -356,6 +361,7 @@
   "perAnswerReviewTitle": "Разбор каждого ответа",
   "betterAnswerLabel": "БОЛЕЕ СИЛЬНЫЙ ОТВЕТ",
   "navHome": "Главная",
+  "navMenu": "Меню",
   "greetingMorning": "Доброе утро",
   "greetingAfternoon": "Добрый день",
   "greetingEvening": "Добрый вечер"

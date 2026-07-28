@@ -121,6 +121,20 @@ class AppLocalizationsRu extends AppLocalizations {
   String get virtualWalkaroundTitle => 'Virtual Walkaround';
 
   @override
+  String get visitUniversityWebsite => 'Перейти на сайт университета';
+
+  @override
+  String universityTier(int tier) {
+    return 'Уровень $tier';
+  }
+
+  @override
+  String get universityVerified => 'Проверено';
+
+  @override
+  String get universityNextEvent => 'Ближайшее событие';
+
+  @override
   String get navApplications => 'Заявки';
 
   @override
@@ -891,6 +905,9 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get navHome => 'Главная';
+
+  @override
+  String get navMenu => 'Меню';
 
   @override
   String get greetingMorning => 'Доброе утро';

@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -29,6 +30,21 @@ class HanOrbItem {
   final bool active;
 }
 
+/// Lets the surrounding shell observe and close the speed-dial.
+///
+/// The shell needs both: Android's hardware BACK must close an open dial
+/// instead of leaving the app, and that decision has to be made in the
+/// shell's single [PopScope] (two competing PopScopes in one route both fire
+/// on a blocked pop, which would close the dial *and* navigate).
+class HanOrbController extends ValueNotifier<bool> {
+  HanOrbController() : super(false);
+
+  VoidCallback? _closeHandler;
+
+  /// Collapse the dial if it is open. No-op otherwise.
+  void close() => _closeHandler?.call();
+}
+
 /// The 한 orb: the app's only global navigation (DESIGN_SPEC §2).
 ///
 /// A 62px lime circle in the bottom-right corner with a slow pulse ring. Tap
@@ -39,10 +55,20 @@ class HanOrbItem {
 /// last child of a [Stack] that fills the screen, so the scrim covers the
 /// content beneath it.
 class HanOrb extends StatefulWidget {
-  const HanOrb({super.key, required this.items, this.tooltip});
+  const HanOrb({
+    super.key,
+    required this.items,
+    this.tooltip,
+    this.controller,
+  });
 
   final List<HanOrbItem> items;
+
+  /// Accessibility label for the orb itself. This opens a menu — it must not
+  /// be named after any single destination.
   final String? tooltip;
+
+  final HanOrbController? controller;
 
   @override
   State<HanOrb> createState() => _HanOrbState();
@@ -64,37 +90,71 @@ class _HanOrbState extends State<HanOrb> with TickerProviderStateMixin {
   bool _open = false;
 
   @override
+  void initState() {
+    super.initState();
+    widget.controller?._closeHandler = _close;
+  }
+
+  @override
+  void didUpdateWidget(covariant HanOrb oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!identical(oldWidget.controller, widget.controller)) {
+      oldWidget.controller?._closeHandler = null;
+      widget.controller?._closeHandler = _close;
+      widget.controller?.value = _open;
+    }
+  }
+
+  @override
   void dispose() {
+    widget.controller?._closeHandler = null;
     _dial.dispose();
     _pulse.dispose();
     super.dispose();
   }
 
-  void _toggle() {
-    setState(() => _open = !_open);
-    if (_open) {
+  void _setOpen(bool open) {
+    setState(() => _open = open);
+    widget.controller?.value = open;
+    if (open) {
       _dial.forward();
     } else {
       _dial.reverse();
     }
   }
 
+  void _toggle() => _setOpen(!_open);
+
   void _close() {
     if (!_open) return;
-    setState(() => _open = false);
-    _dial.reverse();
+    _setOpen(false);
   }
 
   void _select(HanOrbItem item) {
     _close();
     // Let the dial start collapsing before the section swaps, so the
-    // transition doesn't happen behind a fully-opaque scrim.
-    Future<void>.delayed(SeoulMotion.fast, item.onTap);
+    // transition doesn't happen behind a fully-opaque scrim. The shell can be
+    // torn down inside that window (forced update dialog, sign-out redirect),
+    // so the callback must not run against a dead element.
+    Future<void>.delayed(SeoulMotion.fast).then((_) {
+      if (mounted) item.onTap();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final media = MediaQuery.of(context);
+    // Distance from the bottom of the screen to the first dial row.
+    final dialBottom =
+        SeoulSizes.orbBottom + SeoulSizes.orbSize + 18 + media.padding.bottom;
+    // A seven-row dial is ~450px tall; on a short phone, or at the OS's
+    // largest font setting, it would run off the top of a hard-clipping
+    // Stack with no way to reach the first entries. Cap it and let it
+    // scroll from the bottom up instead.
+    final double dialMaxHeight = math.max(
+      120,
+      media.size.height - dialBottom - media.padding.top - 24,
+    );
 
     return Stack(
       children: [
@@ -124,24 +184,31 @@ class _HanOrbState extends State<HanOrb> with TickerProviderStateMixin {
         // ── Dial items ───────────────────────────────────────────────────
         Positioned(
           right: SeoulSizes.orbRight,
-          bottom:
-              SeoulSizes.orbBottom + SeoulSizes.orbSize + 18 + media.padding.bottom,
-          child: IgnorePointer(
-            ignoring: !_open,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                for (var i = 0; i < widget.items.length; i++)
-                  _DialRow(
-                    item: widget.items[i],
-                    controller: _dial,
-                    // Bottom item leads; the stagger walks up the column.
-                    order: widget.items.length - 1 - i,
-                    total: widget.items.length,
-                    onTap: () => _select(widget.items[i]),
-                  ),
-              ],
+          bottom: dialBottom,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxHeight: dialMaxHeight),
+            child: IgnorePointer(
+              ignoring: !_open,
+              child: SingleChildScrollView(
+                // Anchored at the bottom: the nearest-the-thumb entries are
+                // always the ones on screen.
+                reverse: true,
+                physics: const ClampingScrollPhysics(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    for (var i = 0; i < widget.items.length; i++)
+                      _DialRow(
+                        item: widget.items[i],
+                        controller: _dial,
+                        // Bottom item leads; the stagger walks up the column.
+                        order: widget.items.length - 1 - i,
+                        onTap: () => _select(widget.items[i]),
+                      ),
+                  ],
+                ),
+              ),
             ),
           ),
         ),
@@ -273,7 +340,6 @@ class _DialRow extends StatelessWidget {
     required this.item,
     required this.controller,
     required this.order,
-    required this.total,
     required this.onTap,
   });
 
@@ -282,25 +348,36 @@ class _DialRow extends StatelessWidget {
 
   /// 0 = first to appear.
   final int order;
-  final int total;
   final VoidCallback onTap;
+
+  /// The staggered curve, evaluated by hand.
+  ///
+  /// The obvious spelling is a [CurvedAnimation] with an [Interval], but its
+  /// constructor registers a status listener on the parent that only
+  /// `dispose()` removes — and this runs in `build()`, once per row, on every
+  /// open, close and shell rebuild. Arithmetic keeps it allocation-free.
+  double _progress() {
+    final v = controller.value.clamp(0.0, 1.0);
+    // Collapsing: every row leaves together, so the dial doesn't linger.
+    if (controller.status == AnimationStatus.reverse) {
+      return Curves.easeIn.transform(v);
+    }
+    // 40ms stagger expressed as an interval over the 300ms dial animation.
+    final start = (order * 0.10).clamp(0.0, 0.6);
+    final local = ((v - start) / (1.0 - start)).clamp(0.0, 1.0);
+    return SeoulMotion.springy.transform(local);
+  }
 
   @override
   Widget build(BuildContext context) {
-    // 40ms stagger expressed as an interval over the 300ms dial animation.
-    final start = (order * 0.10).clamp(0.0, 0.6);
-    final anim = CurvedAnimation(
-      parent: controller,
-      curve: Interval(start, 1.0, curve: SeoulMotion.springy),
-      reverseCurve: Interval(0.0, 1.0, curve: Curves.easeIn),
-    );
-
     return AnimatedBuilder(
-      animation: anim,
+      animation: controller,
       builder: (context, child) {
-        final t = anim.value.clamp(0.0, 1.0);
+        // `springy` overshoots past 1.0 — that is the point for the scale, but
+        // Opacity rejects anything outside 0..1.
+        final t = _progress();
         return Opacity(
-          opacity: t,
+          opacity: t.clamp(0.0, 1.0),
           child: Transform.translate(
             offset: Offset(0, (1 - t) * 18),
             child: Transform.scale(scale: 0.9 + 0.1 * t, child: child),
@@ -309,50 +386,60 @@ class _DialRow extends StatelessWidget {
       },
       child: Padding(
         padding: const EdgeInsets.only(bottom: 12),
-        child: GestureDetector(
-          onTap: onTap,
-          behavior: HitTestBehavior.opaque,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Label pill
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 9,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0x1FFFFFFF),
-                  borderRadius: BorderRadius.circular(999),
-                  border: Border.all(color: SeoulColors.glassBorder),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      item.label,
-                      style: SeoulType.subtitle.copyWith(fontSize: 14),
+        child: Semantics(
+          button: true,
+          selected: item.active,
+          label: item.label,
+          child: GestureDetector(
+            onTap: onTap,
+            behavior: HitTestBehavior.opaque,
+            // The pill already carries the label; without this a screen
+            // reader would read the English title, then the decorative
+            // hangul, then the glyph tile.
+            child: ExcludeSemantics(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Label pill
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 9,
                     ),
-                    Text(
-                      item.ko,
-                      style: SeoulType.hangulStatus.copyWith(
-                        color: item.active
-                            ? SeoulColors.lime
-                            : SeoulColors.textFaint,
-                      ),
+                    decoration: BoxDecoration(
+                      color: SeoulColors.glassBorder,
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(color: SeoulColors.glassBorder),
                     ),
-                  ],
-                ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          item.label,
+                          style: SeoulType.subtitle.copyWith(fontSize: 14),
+                        ),
+                        Text(
+                          item.ko,
+                          style: SeoulType.hangulStatus.copyWith(
+                            color: item.active
+                                ? SeoulColors.lime
+                                : SeoulColors.textFaint,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  // Hangul tile — lime when this is the section you're in.
+                  HangulGlyphTile(
+                    glyph: item.glyph,
+                    size: SeoulSizes.dialTile,
+                    active: item.active,
+                  ),
+                ],
               ),
-              const SizedBox(width: 10),
-              // Hangul tile — lime when this is the section you're in.
-              HangulGlyphTile(
-                glyph: item.glyph,
-                size: SeoulSizes.dialTile,
-                active: item.active,
-              ),
-            ],
+            ),
           ),
         ),
       ),

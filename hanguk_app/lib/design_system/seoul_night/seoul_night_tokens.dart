@@ -209,6 +209,15 @@ class SeoulSizes {
   static const double orbRight = 22;
   static const double orbBottom = 34;
 
+  /// Bottom padding every scrollable section must reserve so its last row
+  /// stays clear of the orb.
+  ///
+  /// The orb's tap box is centred on the circle and 24px larger, so it reaches
+  /// `orbBottom + orbSize + 12` from the bottom edge; the rest is air. Use
+  /// this everywhere — a list that ends short of it puts its final action
+  /// underneath the orb, where the dial swallows the tap.
+  static const double orbClearance = orbBottom + orbSize + 32;
+
   /// Speed-dial hangul tile.
   static const double dialTile = 52;
 
