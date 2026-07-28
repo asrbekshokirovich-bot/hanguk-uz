@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../design_system/seoul_night/seoul_night_gallery.dart';
 import '../../features/account/presentation/account_screen.dart';
 import '../../features/auth/data/auth_repository.dart';
 import '../../features/auth/presentation/login_screen.dart';
@@ -207,6 +208,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ..._accountRoutes(),
       ..._mapRoutes(),
       if (kUniDbEnabled) ..._uniDbRoutes(),
+      // Seoul Night design-system gallery. Debug builds only — the flag is
+      // kDebugMode, so the route simply doesn't exist in a release binary.
+      if (kSeoulGalleryEnabled)
+        GoRoute(
+          path: kSeoulGalleryRoute,
+          builder: (context, state) => const SeoulNightGallery(),
+        ),
     ],
     redirect: (context, state) {
       final isLoading = authStateAsync.isLoading;

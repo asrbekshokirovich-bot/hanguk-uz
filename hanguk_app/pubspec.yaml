@@ -112,6 +112,40 @@ flutter:
     - assets/images/
     - assets/virtual_tour/
 
+  # Seoul Night redesign typefaces (DESIGN_SPEC §1 Type). Bundled rather than
+  # fetched at runtime so first launch is correct offline. All three are
+  # subset to what the app actually renders — Noto Sans KR carries only the
+  # hangul used by the UI plus every syllable in institution/city names
+  # (6 MB -> 38 KB per weight). Arbitrary Korean (e.g. AI feedback text) falls
+  # back to the platform Korean font via fontFamilyFallback.
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter-400.ttf
+          weight: 400
+        - asset: assets/fonts/Inter-500.ttf
+          weight: 500
+        - asset: assets/fonts/Inter-600.ttf
+          weight: 600
+        - asset: assets/fonts/Inter-700.ttf
+          weight: 700
+        - asset: assets/fonts/Inter-800.ttf
+          weight: 800
+        - asset: assets/fonts/Inter-900.ttf
+          weight: 900
+    - family: NotoSansKR
+      fonts:
+        - asset: assets/fonts/NotoSansKR-500.ttf
+          weight: 500
+        - asset: assets/fonts/NotoSansKR-700.ttf
+          weight: 700
+        - asset: assets/fonts/NotoSansKR-900.ttf
+          weight: 900
+    - family: JetBrainsMono
+      fonts:
+        - asset: assets/fonts/JetBrainsMono-600.ttf
+          weight: 600
+
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
 

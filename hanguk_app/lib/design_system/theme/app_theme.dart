@@ -1,14 +1,22 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import '../seoul_night/seoul_night_typography.dart';
 import 'app_colors.dart';
 
 class AppTheme {
   // Material 3 Theme for Android
   static ThemeData get materialTheme {
+    final base = ThemeData(useMaterial3: true, brightness: Brightness.dark);
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
       scaffoldBackgroundColor: AppColors.pureBlack,
+      // Seoul Night typography applies app-wide from Prompt 0 so migrated and
+      // not-yet-migrated screens share one typeface. Colours and layout still
+      // come from the legacy theme until each screen's phase lands.
+      fontFamily: SeoulType.inter,
+      fontFamilyFallback: SeoulType.fallback,
+      textTheme: SeoulType.textTheme(base.textTheme),
       colorScheme: const ColorScheme.dark(
         primary: AppColors.vibrantLime,
         onPrimary: AppColors.pureBlack,
