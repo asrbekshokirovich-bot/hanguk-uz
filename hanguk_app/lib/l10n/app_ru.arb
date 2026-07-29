@@ -528,5 +528,9 @@
   "uniDbLoadFailed": "Не удалось загрузить список университетов.",
   "loginSubmitButton": "Войти в систему",
   "welcomeGuestCaption": "Код не нужен — свободно просматривайте, фильтруйте и сравнивайте.",
-  "homeNotifications": "Уведомления"
+  "homeNotifications": "Уведомления",
+  "notifApplicationUpdates": "Обновления заявок",
+  "notifToUpload": "Загрузить",
+  "notifAllCaughtUp": "Всё выполнено",
+  "notifAllCaughtUpBody": "Напоминания о документах и заявках появятся здесь."
 }

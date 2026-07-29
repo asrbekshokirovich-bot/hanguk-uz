@@ -1489,4 +1489,17 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get homeNotifications => 'Уведомления';
+
+  @override
+  String get notifApplicationUpdates => 'Обновления заявок';
+
+  @override
+  String get notifToUpload => 'Загрузить';
+
+  @override
+  String get notifAllCaughtUp => 'Всё выполнено';
+
+  @override
+  String get notifAllCaughtUpBody =>
+      'Напоминания о документах и заявках появятся здесь.';
 }

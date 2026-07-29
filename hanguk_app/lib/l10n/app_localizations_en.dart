@@ -1488,4 +1488,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeNotifications => 'Notifications';
+
+  @override
+  String get notifApplicationUpdates => 'Application updates';
+
+  @override
+  String get notifToUpload => 'To upload';
+
+  @override
+  String get notifAllCaughtUp => 'You\'re all caught up';
+
+  @override
+  String get notifAllCaughtUpBody =>
+      'Reminders about your documents and applications will appear here.';
 }

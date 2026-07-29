@@ -2761,6 +2761,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Notifications'**
   String get homeNotifications;
+
+  /// Section header on the Notifications screen listing each application's current stage.
+  ///
+  /// In en, this message translates to:
+  /// **'Application updates'**
+  String get notifApplicationUpdates;
+
+  /// Chip on a Notifications reminder for a required document not yet uploaded.
+  ///
+  /// In en, this message translates to:
+  /// **'To upload'**
+  String get notifToUpload;
+
+  /// Empty-state title on the Notifications screen when nothing needs attention.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re all caught up'**
+  String get notifAllCaughtUp;
+
+  /// Empty-state body on the Notifications screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders about your documents and applications will appear here.'**
+  String get notifAllCaughtUpBody;
 }
 
 class _AppLocalizationsDelegate

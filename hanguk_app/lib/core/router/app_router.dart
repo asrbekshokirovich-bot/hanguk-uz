@@ -10,6 +10,7 @@ import '../../features/auth/data/auth_repository.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
 import '../../features/home/presentation/home_tab_provider.dart';
+import '../../features/home/presentation/notifications_screen.dart';
 import '../../features/guest/presentation/guest_shell.dart';
 import '../../features/home/presentation/welcome_screen.dart';
 import '../../features/map/data/map_repository.dart';
@@ -45,6 +46,12 @@ part 'app_router.g.dart';
 // deletion flow — see `account_screen.dart`.
 List<RouteBase> _accountRoutes() => [
   GoRoute(path: '/account', builder: (context, state) => const AccountScreen()),
+  // The 한 orb's bell opens this — actionable reminders (documents to submit,
+  // application stages), not the per-institution notification toggles.
+  GoRoute(
+    path: '/notifications',
+    builder: (context, state) => const NotificationsScreen(),
+  ),
 ];
 
 /// Guest Explorer (DESIGN_SPEC 3b). Registered as a plain GoRoute so the

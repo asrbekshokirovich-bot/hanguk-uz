@@ -1438,4 +1438,16 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get homeNotifications => '알림';
+
+  @override
+  String get notifApplicationUpdates => '지원 현황';
+
+  @override
+  String get notifToUpload => '업로드 필요';
+
+  @override
+  String get notifAllCaughtUp => '모두 완료';
+
+  @override
+  String get notifAllCaughtUpBody => '서류와 지원에 대한 알림이 여기에 표시됩니다.';
 }

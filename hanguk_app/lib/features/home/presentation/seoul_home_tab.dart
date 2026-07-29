@@ -317,7 +317,7 @@ class _HomeTopBar extends StatelessWidget {
           button: true,
           label: l.homeNotifications,
           child: GestureDetector(
-            onTap: () => context.push('/notifications/settings'),
+            onTap: () => context.push('/notifications'),
             child: Container(
               width: SeoulSizes.minTapTarget,
               height: SeoulSizes.minTapTarget,

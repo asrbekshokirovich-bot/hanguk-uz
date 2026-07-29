@@ -1484,4 +1484,17 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get homeNotifications => 'Thông báo';
+
+  @override
+  String get notifApplicationUpdates => 'Cập nhật hồ sơ';
+
+  @override
+  String get notifToUpload => 'Cần tải lên';
+
+  @override
+  String get notifAllCaughtUp => 'Đã hoàn tất';
+
+  @override
+  String get notifAllCaughtUpBody =>
+      'Nhắc nhở về hồ sơ và đơn của bạn sẽ hiển thị ở đây.';
 }

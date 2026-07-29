@@ -1493,4 +1493,17 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get homeNotifications => 'Bildirishnomalar';
+
+  @override
+  String get notifApplicationUpdates => 'Ariza yangiliklari';
+
+  @override
+  String get notifToUpload => 'Yuklash kerak';
+
+  @override
+  String get notifAllCaughtUp => 'Hammasi bajarilgan';
+
+  @override
+  String get notifAllCaughtUpBody =>
+      'Hujjatlar va arizalaringiz haqidagi eslatmalar shu yerda chiqadi.';
 }

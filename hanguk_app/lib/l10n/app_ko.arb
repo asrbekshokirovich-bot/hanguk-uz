@@ -528,5 +528,9 @@
   "uniDbLoadFailed": "대학 목록을 불러오지 못했습니다.",
   "loginSubmitButton": "로그인",
   "welcomeGuestCaption": "코드 없이 자유롭게 둘러보고 비교하세요.",
-  "homeNotifications": "알림"
+  "homeNotifications": "알림",
+  "notifApplicationUpdates": "지원 현황",
+  "notifToUpload": "업로드 필요",
+  "notifAllCaughtUp": "모두 완료",
+  "notifAllCaughtUpBody": "서류와 지원에 대한 알림이 여기에 표시됩니다."
 }
