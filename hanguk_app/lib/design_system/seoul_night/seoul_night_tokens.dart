@@ -94,6 +94,11 @@ class SeoulRadii {
   static const double card = 22;
   static const double hero = 24;
 
+  /// Fully rounded — status chips, filter chips, the guest conversion pill.
+  /// Not a real radius so much as "capsule"; kept as a token so the bare
+  /// `999` stops being repeated across feature code.
+  static const double pill = 999;
+
   static const BorderRadius buttonR = BorderRadius.all(Radius.circular(button));
   static const BorderRadius controlR = BorderRadius.all(
     Radius.circular(control),

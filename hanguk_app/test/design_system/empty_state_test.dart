@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hanguk_app/design_system/adaptive/empty_state.dart';
+import 'package:hanguk_app/design_system/seoul_night/seoul_night.dart';
 
 void main() {
   testWidgets('renders headline + subhead without a CTA', (tester) async {
@@ -20,7 +21,8 @@ void main() {
 
     expect(find.text('No items'), findsOneWidget);
     expect(find.text('Start by adding your first item.'), findsOneWidget);
-    expect(find.byType(ElevatedButton), findsNothing);
+    // Seoul Night pass: the CTA is a LimeButton now, not an ElevatedButton.
+    expect(find.byType(LimeButton), findsNothing);
   });
 
   testWidgets('renders CTA when both ctaLabel and onCta provided', (
@@ -41,8 +43,8 @@ void main() {
       ),
     );
 
-    expect(find.byType(ElevatedButton), findsOneWidget);
-    await tester.tap(find.byType(ElevatedButton));
+    expect(find.byType(LimeButton), findsOneWidget);
+    await tester.tap(find.byType(LimeButton));
     expect(tapped, isTrue);
   });
 }

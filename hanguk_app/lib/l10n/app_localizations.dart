@@ -1808,10 +1808,10 @@ abstract class AppLocalizations {
   /// **'I have a magic code'**
   String get welcomeMagicCodeCta;
 
-  /// Secondary button on the Welcome screen that opens the guest catalog. Currently compiled out behind kGuestModeEnabled.
+  /// Secondary Welcome button opening the Guest Explorer (DESIGN_SPEC 3.1/3b).
   ///
   /// In en, this message translates to:
-  /// **'Explore universities'**
+  /// **'Explore Universities'**
   String get welcomeExploreCta;
 
   /// Title of the magic-code login screen (DESIGN_SPEC 3.2).
@@ -1951,6 +1951,792 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} universities mapped'**
   String mapUniversitiesMapped(int count);
+
+  /// Title of the in-app update dialog when a new version is available.
+  ///
+  /// In en, this message translates to:
+  /// **'Update Available'**
+  String get updateAvailableTitle;
+
+  /// Body line of the update dialog. version is e.g. '1.4.2+37'.
+  ///
+  /// In en, this message translates to:
+  /// **'Version {version} is ready to install.'**
+  String updateVersionReady(String version);
+
+  /// Download size line in the update dialog. size is a formatted decimal like '48.3'.
+  ///
+  /// In en, this message translates to:
+  /// **'Size: {size} MB'**
+  String updateSizeMb(String size);
+
+  /// Warning card in the update dialog when the update requires a full reinstall (signing key rotation).
+  ///
+  /// In en, this message translates to:
+  /// **'This update changes the app signing key. After installing you will need to log in again with your magic code.'**
+  String get updateSigningKeyWarning;
+
+  /// Primary (lime) button in the update dialog — starts the download/install.
+  ///
+  /// In en, this message translates to:
+  /// **'Update Now'**
+  String get updateNow;
+
+  /// Secondary (outline) button in the update dialog — dismisses it. Hidden when the update is forced.
+  ///
+  /// In en, this message translates to:
+  /// **'Later'**
+  String get updateLater;
+
+  /// Title of the non-dismissible progress dialog while the APK downloads.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading Update'**
+  String get updateDownloadingTitle;
+
+  /// Progress caption under the download bar. Both values are formatted decimals; total may be '?' when the server sends no Content-Length.
+  ///
+  /// In en, this message translates to:
+  /// **'{downloaded} MB / {total} MB'**
+  String updateDownloadProgress(String downloaded, String total);
+
+  /// Label next to the spinner while the downloaded update is hash-verified and handed to the OS installer.
+  ///
+  /// In en, this message translates to:
+  /// **'Verifying and installing…'**
+  String get updateInstallingLabel;
+
+  /// Title of the update dialog's failure state.
+  ///
+  /// In en, this message translates to:
+  /// **'Update Failed'**
+  String get updateFailedTitle;
+
+  /// Update failure body: network error during download.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not download the update. Please check your internet connection and try again.'**
+  String get updateErrorNetwork;
+
+  /// Update failure body: SHA-256 of the downloaded APK did not match.
+  ///
+  /// In en, this message translates to:
+  /// **'The downloaded file failed integrity verification. Please try again — if the problem repeats, contact your counsellor.'**
+  String get updateErrorHashMismatch;
+
+  /// Update failure body: the OS refused to launch the package installer.
+  ///
+  /// In en, this message translates to:
+  /// **'Installation was blocked by your device. Please grant \"Install unknown apps\" permission for Hanguk in your phone settings, then try again.'**
+  String get updateErrorInstallDenied;
+
+  /// Update failure body: disk full while downloading.
+  ///
+  /// In en, this message translates to:
+  /// **'Not enough storage to download the update. Please free up some space and try again.'**
+  String get updateErrorStorage;
+
+  /// Update failure body: in-app updates unsupported on this OS (e.g. desktop).
+  ///
+  /// In en, this message translates to:
+  /// **'Updates are not available on this platform yet.'**
+  String get updateErrorUnsupportedPlatform;
+
+  /// Update failure body: catch-all for unclassified errors.
+  ///
+  /// In en, this message translates to:
+  /// **'Update failed. Please try again, or contact your counsellor.'**
+  String get updateErrorUnknown;
+
+  /// Eyebrow label in the Guest Explorer header (DESIGN_SPEC 3b).
+  ///
+  /// In en, this message translates to:
+  /// **'Guest Explorer'**
+  String get guestModeEyebrow;
+
+  /// Lime conversion pill in the guest header and orb dial; routes to Magic Code login.
+  ///
+  /// In en, this message translates to:
+  /// **'Join Hanguk'**
+  String get guestJoinCta;
+
+  /// Display headline of the guest Explore section (DESIGN_SPEC screen 8).
+  ///
+  /// In en, this message translates to:
+  /// **'Find Your University'**
+  String get guestExploreTitle;
+
+  /// Count line under the Explore headline.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} universities'**
+  String guestUniversitiesCount(int count);
+
+  /// Guest orb dial label for the Explore section.
+  ///
+  /// In en, this message translates to:
+  /// **'Explore'**
+  String get guestNavExplore;
+
+  /// Guest orb dial label and section title for Compare (DESIGN_SPEC screen 10).
+  ///
+  /// In en, this message translates to:
+  /// **'Compare'**
+  String get guestNavCompare;
+
+  /// Link on Explore showing how many universities are queued for comparison.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare {count}/2'**
+  String guestCompareCount(int count);
+
+  /// Dashed empty-slot card on the guest Compare screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Add from Explore'**
+  String get guestCompareEmptySlot;
+
+  /// Primary conversion CTA under the guest comparison; routes to Magic Code login.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply with Hanguk'**
+  String get guestCompareApplyCta;
+
+  /// One-line reassurance caption under the compare CTA (DESIGN_SPEC screen 10).
+  ///
+  /// In en, this message translates to:
+  /// **'Get a magic code and our team will guide your application from documents to visa.'**
+  String get guestCompareReassurance;
+
+  /// Compare row label: city.
+  ///
+  /// In en, this message translates to:
+  /// **'City'**
+  String get guestRowCity;
+
+  /// Compare row label: tier.
+  ///
+  /// In en, this message translates to:
+  /// **'Tier'**
+  String get guestRowTier;
+
+  /// Compare row label: IEQAS accreditation status.
+  ///
+  /// In en, this message translates to:
+  /// **'IEQAS status'**
+  String get guestRowIeqas;
+
+  /// Compare row label: whether the university is a Hanguk partner.
+  ///
+  /// In en, this message translates to:
+  /// **'Hanguk partner'**
+  String get guestRowPartner;
+
+  /// Compare row label: next verified admission event date.
+  ///
+  /// In en, this message translates to:
+  /// **'Next event'**
+  String get guestRowNextEvent;
+
+  /// Compare row label: official website domain.
+  ///
+  /// In en, this message translates to:
+  /// **'Website'**
+  String get guestRowWebsite;
+
+  /// Generic affirmative value in the compare grid.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes'**
+  String get guestValueYes;
+
+  /// Generic negative value in the compare grid.
+  ///
+  /// In en, this message translates to:
+  /// **'No'**
+  String get guestValueNo;
+
+  /// First tab of the UniversityRoomModal — shows the application's ProcessTracker. Rendered as a SeoulFilterChip with the fixed hangul accent 현황.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get roomTabStatus;
+
+  /// Second tab of the UniversityRoomModal — the realtime room chat. Rendered as a SeoulFilterChip with the fixed hangul accent 대화.
+  ///
+  /// In en, this message translates to:
+  /// **'Discussion'**
+  String get roomTabDiscussion;
+
+  /// Third tab of the UniversityRoomModal — official admission announcements. Rendered as a SeoulFilterChip with the fixed hangul accent 소식.
+  ///
+  /// In en, this message translates to:
+  /// **'News'**
+  String get roomTabNews;
+
+  /// Fourth tab of the UniversityRoomModal — the events calendar. Rendered as a SeoulFilterChip with the fixed hangul accent 일정.
+  ///
+  /// In en, this message translates to:
+  /// **'Calendar'**
+  String get roomTabCalendar;
+
+  /// Section title above the ProcessTracker on the UniversityRoomModal Status tab.
+  ///
+  /// In en, this message translates to:
+  /// **'Application Progress'**
+  String get roomApplicationProgress;
+
+  /// Empty state of the UniversityRoomModal Discussion tab when the room chat has no messages.
+  ///
+  /// In en, this message translates to:
+  /// **'No messages yet. Start the conversation!'**
+  String get roomChatEmpty;
+
+  /// Hint text inside the message composer at the bottom of the UniversityRoomModal Discussion tab.
+  ///
+  /// In en, this message translates to:
+  /// **'Message room...'**
+  String get roomChatHint;
+
+  /// Fallback sender name on a room chat message whose profile has no full name.
+  ///
+  /// In en, this message translates to:
+  /// **'User'**
+  String get roomChatSenderFallback;
+
+  /// Empty state of the UniversityRoomModal News tab when the institution has no crawled announcements.
+  ///
+  /// In en, this message translates to:
+  /// **'No active announcements.'**
+  String get roomNewsEmpty;
+
+  /// Empty state under the calendar on the UniversityRoomModal Calendar tab when the selected day has no events.
+  ///
+  /// In en, this message translates to:
+  /// **'No events to display on this date.'**
+  String get roomEventsEmpty;
+
+  /// Neutral chip at the bottom of the ComingSoonCard placeholder used by uni_db screens before Phase 2 content lands.
+  ///
+  /// In en, this message translates to:
+  /// **'University DB · Phase 0 scaffolded'**
+  String get uniDbPhaseBadge;
+
+  /// Header of the recent-changes glass banner on the Applications tab (HomeRecentChangesBannerSliver).
+  ///
+  /// In en, this message translates to:
+  /// **'Updates from your tracked universities'**
+  String get uniDbRecentChangesTitle;
+
+  /// Relative timestamp on a recent-change line: less than a minute ago.
+  ///
+  /// In en, this message translates to:
+  /// **'just now'**
+  String get timeJustNow;
+
+  /// Relative timestamp on a recent-change line.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes}m ago'**
+  String timeMinutesAgo(int minutes);
+
+  /// Relative timestamp on a recent-change line.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours}h ago'**
+  String timeHoursAgo(int hours);
+
+  /// Relative timestamp on a recent-change line.
+  ///
+  /// In en, this message translates to:
+  /// **'{days}d ago'**
+  String timeDaysAgo(int days);
+
+  /// Section header above the verified-deadline cards on the Applications tab (VerifiedDeadlinesOverlaySliver).
+  ///
+  /// In en, this message translates to:
+  /// **'Verified upcoming deadlines'**
+  String get uniDbVerifiedDeadlinesTitle;
+
+  /// Countdown chip on a VerifiedDeadlineCard when the event date has passed.
+  ///
+  /// In en, this message translates to:
+  /// **'Closed'**
+  String get deadlineClosed;
+
+  /// Countdown chip on a VerifiedDeadlineCard: event is days away.
+  ///
+  /// In en, this message translates to:
+  /// **'in {days}d'**
+  String deadlineInDays(int days);
+
+  /// Countdown chip on a VerifiedDeadlineCard: event is hours away.
+  ///
+  /// In en, this message translates to:
+  /// **'in {hours}h'**
+  String deadlineInHours(int hours);
+
+  /// Countdown chip on a VerifiedDeadlineCard: event is minutes away.
+  ///
+  /// In en, this message translates to:
+  /// **'in {minutes}m'**
+  String deadlineInMinutes(int minutes);
+
+  /// Admission-calendar event label — event_type 'apply_open'.
+  ///
+  /// In en, this message translates to:
+  /// **'Application opens'**
+  String get eventApplyOpen;
+
+  /// Admission-calendar event label — event_type 'apply_close'.
+  ///
+  /// In en, this message translates to:
+  /// **'Application closes'**
+  String get eventApplyClose;
+
+  /// Admission-calendar event label — event_type 'document_submission_deadline'.
+  ///
+  /// In en, this message translates to:
+  /// **'Documents due'**
+  String get eventDocumentsDue;
+
+  /// Admission-calendar event label — event_type 'first_stage_results'.
+  ///
+  /// In en, this message translates to:
+  /// **'1st stage results'**
+  String get eventFirstStageResults;
+
+  /// Admission-calendar event label — event_type 'interview'. Same lemma as journeyStageInterview but scoped to the deadline card so translators can differ.
+  ///
+  /// In en, this message translates to:
+  /// **'Interview'**
+  String get eventInterviewLabel;
+
+  /// Admission-calendar event label — event_type 'practical_exam'.
+  ///
+  /// In en, this message translates to:
+  /// **'Practical exam'**
+  String get eventPracticalExam;
+
+  /// Admission-calendar event label — event_type 'final_results'.
+  ///
+  /// In en, this message translates to:
+  /// **'Final results'**
+  String get eventFinalResults;
+
+  /// Admission-calendar event label — event_type 'additional_admit'.
+  ///
+  /// In en, this message translates to:
+  /// **'Additional admit'**
+  String get eventAdditionalAdmit;
+
+  /// Admission-calendar event label — event_type 'registration_open'.
+  ///
+  /// In en, this message translates to:
+  /// **'Registration opens'**
+  String get eventRegistrationOpen;
+
+  /// Admission-calendar event label — event_type 'registration_close'.
+  ///
+  /// In en, this message translates to:
+  /// **'Registration closes'**
+  String get eventRegistrationClose;
+
+  /// Admission cycle-track label — cycle_track 'foreign'.
+  ///
+  /// In en, this message translates to:
+  /// **'Foreign track'**
+  String get cycleForeign;
+
+  /// Admission cycle-track label — cycle_track 'overseas_korean_full'.
+  ///
+  /// In en, this message translates to:
+  /// **'Overseas Korean (full)'**
+  String get cycleOverseasKoreanFull;
+
+  /// Admission cycle-track label — cycle_track 'overseas_korean_partial'.
+  ///
+  /// In en, this message translates to:
+  /// **'Overseas Korean (partial)'**
+  String get cycleOverseasKoreanPartial;
+
+  /// Admission cycle-track label — cycle_track 'susi'. Korean admission-round proper noun; transliterated, not translated.
+  ///
+  /// In en, this message translates to:
+  /// **'Susi'**
+  String get cycleSusi;
+
+  /// Admission cycle-track label — cycle_track 'jeongsi'. Korean admission-round proper noun; transliterated, not translated.
+  ///
+  /// In en, this message translates to:
+  /// **'Jeongsi'**
+  String get cycleJeongsi;
+
+  /// Admission cycle-track label — cycle_track 'transfer'.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer'**
+  String get cycleTransfer;
+
+  /// Admission cycle-track label — cycle_track 'grad_general'.
+  ///
+  /// In en, this message translates to:
+  /// **'Graduate'**
+  String get cycleGradGeneral;
+
+  /// Admission cycle-track label — cycle_track 'grad_foreign'.
+  ///
+  /// In en, this message translates to:
+  /// **'Graduate (foreign)'**
+  String get cycleGradForeign;
+
+  /// Header of the UniversitySpecificSetupAddon block inside the interview setup view.
+  ///
+  /// In en, this message translates to:
+  /// **'University-specific interview'**
+  String get uniSpecificHeader;
+
+  /// Empty-state body in UniversitySpecificSetupAddon when no institution is picked yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a university above to seed the interviewer with its recruitment unit, requirements, and key deadlines.'**
+  String get uniSpecificPickPrompt;
+
+  /// Error body in UniversitySpecificSetupAddon when recruitmentForInterviewProvider errors.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load recruitment data: {error}\nYou can still run a general interview.'**
+  String uniSpecificLoadError(Object error);
+
+  /// Empty-state body in UniversitySpecificSetupAddon when no verified recruitment row exists. NOTE: '모집요강' is the Korean term for the official admission guideline document and is left untranslated across locales — it is the document name the student encounters on Korean university sites.
+  ///
+  /// In en, this message translates to:
+  /// **'No verified recruitment data for this university yet. The interviewer will fall back to general questions until we ingest its 모집요강.'**
+  String get uniSpecificNoData;
+
+  /// Outline button inside UniversitySpecificSetupAddon empty/error states that flips the session type back to general.
+  ///
+  /// In en, this message translates to:
+  /// **'Try a general interview instead'**
+  String get uniSpecificFallbackButton;
+
+  /// Applicant-category line in the recruitment summary inside UniversitySpecificSetupAddon.
+  ///
+  /// In en, this message translates to:
+  /// **'Track: {category}'**
+  String uniSpecificTrackLabel(String category);
+
+  /// Caption at the bottom of the recruitment summary inside UniversitySpecificSetupAddon.
+  ///
+  /// In en, this message translates to:
+  /// **'The interviewer will draw on this recruitment data when asking questions.'**
+  String get uniSpecificSeedNote;
+
+  /// Fallback department name in the recruitment-summary cycle line when neither department_ko nor faculty_ko is set.
+  ///
+  /// In en, this message translates to:
+  /// **'Recruitment unit'**
+  String get uniSpecificRecruitmentUnitFallback;
+
+  /// Header title of the /institutions/:id detail screen. Paired with the decorative hangul label 대학 정보.
+  ///
+  /// In en, this message translates to:
+  /// **'Institution'**
+  String get uniDbInstitutionTitle;
+
+  /// Empty-state title when the institution id has no row in v_institutions_for_map.
+  ///
+  /// In en, this message translates to:
+  /// **'Institution not found'**
+  String get uniDbNotFoundTitle;
+
+  /// Empty-state body under uniDbNotFoundTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'This university isn\'t in our catalog yet. Please check back soon.'**
+  String get uniDbNotFoundBody;
+
+  /// Section heading on the institution detail screen listing cycle_dates events.
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming deadlines'**
+  String get uniDbUpcomingDeadlines;
+
+  /// Empty-state body of the deadlines section on the institution detail screen.
+  ///
+  /// In en, this message translates to:
+  /// **'No upcoming deadlines announced yet.'**
+  String get uniDbNoDeadlines;
+
+  /// Section heading on the institution detail screen for per-faculty tuition rows.
+  ///
+  /// In en, this message translates to:
+  /// **'Tuition'**
+  String get uniDbTuitionHeading;
+
+  /// Empty-state body of the tuition section.
+  ///
+  /// In en, this message translates to:
+  /// **'Tuition details aren\'t available yet.'**
+  String get uniDbTuitionEmpty;
+
+  /// Section heading on the institution detail screen for admission requirements.
+  ///
+  /// In en, this message translates to:
+  /// **'Requirements'**
+  String get uniDbRequirementsHeading;
+
+  /// Empty-state body of the requirements section.
+  ///
+  /// In en, this message translates to:
+  /// **'Admission requirements aren\'t available yet.'**
+  String get uniDbRequirementsEmpty;
+
+  /// Section heading on the institution detail screen for scholarships.
+  ///
+  /// In en, this message translates to:
+  /// **'Scholarships'**
+  String get uniDbScholarshipsHeading;
+
+  /// Empty-state body of the scholarships section.
+  ///
+  /// In en, this message translates to:
+  /// **'No scholarships listed for this university yet.'**
+  String get uniDbScholarshipsEmpty;
+
+  /// Section heading on the institution detail screen for required documents per applicant category.
+  ///
+  /// In en, this message translates to:
+  /// **'Document checklist'**
+  String get uniDbDocumentChecklistHeading;
+
+  /// Empty-state body of the document checklist section.
+  ///
+  /// In en, this message translates to:
+  /// **'The document checklist isn\'t available yet.'**
+  String get uniDbDocumentsEmpty;
+
+  /// Title of the track/untrack switch card on the institution detail screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Track this institution'**
+  String get uniDbTrackTitle;
+
+  /// Subtitle of the track switch when tracking is ON.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ll see deadlines on the home banner and get push notifications when something changes.'**
+  String get uniDbTrackOnDesc;
+
+  /// Subtitle of the track switch when tracking is OFF.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on to follow deadlines, correction notices, and requirement changes.'**
+  String get uniDbTrackOffDesc;
+
+  /// SnackBar when toggling user_tracked_universities fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not update tracking: {error}'**
+  String uniDbTrackError(Object error);
+
+  /// Primary button on the institution detail screen — mints a signed URL for the admission guideline PDF and opens it externally.
+  ///
+  /// In en, this message translates to:
+  /// **'Open admission guide PDF'**
+  String get uniDbOpenGuidePdf;
+
+  /// Caption shown when the institution has no parsed guideline PDF on file.
+  ///
+  /// In en, this message translates to:
+  /// **'No admission guide PDF available yet.'**
+  String get uniDbNoGuidePdf;
+
+  /// SnackBar when launchUrl returns false for the signed PDF URL.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open the PDF — no app available to handle it.'**
+  String get uniDbPdfNoApp;
+
+  /// SnackBar when the get-pdf-url flow throws.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open PDF: {error}'**
+  String uniDbPdfError(Object error);
+
+  /// Caption above the tuition rows stating the academic year they belong to.
+  ///
+  /// In en, this message translates to:
+  /// **'{year} academic year'**
+  String uniDbAcademicYear(int year);
+
+  /// Caption on a tuition row identifying the semester.
+  ///
+  /// In en, this message translates to:
+  /// **'Semester {number}'**
+  String uniDbSemesterLabel(int number);
+
+  /// Suffix appended to the semester caption when the row is the first (entry) semester.
+  ///
+  /// In en, this message translates to:
+  /// **'first semester'**
+  String get uniDbFirstSemester;
+
+  /// Caption under the tuition amount stating the one-off admission fee. amount is a pre-formatted ₩ value like ₩120,000.
+  ///
+  /// In en, this message translates to:
+  /// **'+ {amount} fee'**
+  String uniDbAdmissionFee(String amount);
+
+  /// Requirements chip stating the GPA floor percentage. GPA is a proper noun.
+  ///
+  /// In en, this message translates to:
+  /// **'GPA ≥ {pct}%'**
+  String uniDbGpaChip(String pct);
+
+  /// Label above the TOPIK-level to award-percentage chips on a scholarship card. TOPIK is a proper noun.
+  ///
+  /// In en, this message translates to:
+  /// **'TOPIK tier table'**
+  String get uniDbTopikTierTable;
+
+  /// Subtitle of an applicant-category group in the document checklist.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{1 document} other{{count} documents}}'**
+  String uniDbDocumentsCount(int count);
+
+  /// Tooltip on the shield icon of a document row that needs an apostille.
+  ///
+  /// In en, this message translates to:
+  /// **'Apostille required'**
+  String get uniDbApostilleRequired;
+
+  /// Caption on the institution header card. date is a pre-formatted yyyy-mm-dd string.
+  ///
+  /// In en, this message translates to:
+  /// **'Last verified: {date}'**
+  String uniDbLastVerified(String date);
+
+  /// Deadline event label for event_type orientation.
+  ///
+  /// In en, this message translates to:
+  /// **'Orientation'**
+  String get eventOrientation;
+
+  /// Deadline event label for event_type semester_start.
+  ///
+  /// In en, this message translates to:
+  /// **'Semester starts'**
+  String get eventSemesterStart;
+
+  /// Tuition faculty group label for faculty_group humanities.
+  ///
+  /// In en, this message translates to:
+  /// **'Humanities'**
+  String get facultyHumanities;
+
+  /// Tuition faculty group label for faculty_group social_science.
+  ///
+  /// In en, this message translates to:
+  /// **'Social Science'**
+  String get facultySocialScience;
+
+  /// Tuition faculty group label for faculty_group natural_science.
+  ///
+  /// In en, this message translates to:
+  /// **'Natural Science'**
+  String get facultyNaturalScience;
+
+  /// Tuition faculty group label for faculty_group engineering.
+  ///
+  /// In en, this message translates to:
+  /// **'Engineering'**
+  String get facultyEngineering;
+
+  /// Tuition faculty group label for faculty_group medical.
+  ///
+  /// In en, this message translates to:
+  /// **'Medical / Pharma'**
+  String get facultyMedical;
+
+  /// Tuition faculty group label for faculty_group arts.
+  ///
+  /// In en, this message translates to:
+  /// **'Arts'**
+  String get facultyArts;
+
+  /// Tuition faculty group label for faculty_group pe.
+  ///
+  /// In en, this message translates to:
+  /// **'Physical Education'**
+  String get facultyPhysicalEducation;
+
+  /// Header title of the /institutions/compare screen. Paired with the decorative hangul label 비교.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare'**
+  String get uniDbCompareTitle;
+
+  /// Empty-state title on the compare screen when no institutions matched the ids.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare universities'**
+  String get uniDbCompareEmptyTitle;
+
+  /// Empty-state body under uniDbCompareEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Track at least two institutions, then return here to compare them.'**
+  String get uniDbCompareEmptyBody;
+
+  /// Hint on the compare screen when only one institution was resolved.
+  ///
+  /// In en, this message translates to:
+  /// **'Need a second university to compare against.'**
+  String get uniDbCompareNeedSecond;
+
+  /// Line under uniDbCompareNeedSecond naming the single selected institution.
+  ///
+  /// In en, this message translates to:
+  /// **'Currently selected: {name}'**
+  String uniDbCompareSelected(String name);
+
+  /// Compare-column field label: the institution's English name.
+  ///
+  /// In en, this message translates to:
+  /// **'English name'**
+  String get uniDbColEnglishName;
+
+  /// Compare-column field label: the institution's Uzbek name.
+  ///
+  /// In en, this message translates to:
+  /// **'Uzbek name'**
+  String get uniDbColUzbekName;
+
+  /// Compare-column field label: date the row was last verified.
+  ///
+  /// In en, this message translates to:
+  /// **'Last verified'**
+  String get uniDbColLastVerified;
+
+  /// Header title of the /applications/tracker screen. Paired with the decorative hangul label 지원 현황.
+  ///
+  /// In en, this message translates to:
+  /// **'Application tracker'**
+  String get uniDbTrackerTitle;
+
+  /// Empty-state title on the application tracker when the user tracks nothing.
+  ///
+  /// In en, this message translates to:
+  /// **'No tracked universities yet'**
+  String get uniDbTrackerEmptyTitle;
+
+  /// Empty-state body under uniDbTrackerEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Track a university on its page and its deadlines will appear here.'**
+  String get uniDbTrackerEmptyBody;
 }
 
 class _AppLocalizationsDelegate

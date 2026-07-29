@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/feature_flags/uni_db_flag.dart';
+import '../../../../design_system/seoul_night/seoul_night.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../data/uni_db_providers.dart';
 import 'verified_deadline_card.dart';
 
@@ -11,6 +13,12 @@ import 'verified_deadline_card.dart';
 /// Renders nothing when:
 ///   * [kUniDbEnabled] is false (production app keeps its old layout), or
 ///   * the user has no tracked universities yet.
+///
+/// Seoul Night pass: the header matches the Applications tab's section
+/// headers (SeoulType.title at the screen gutter) with the 마감 hangul accent
+/// (spec §1 Korean voice). The host scroll view already reserves
+/// `SeoulSizes.orbClearance` after its own content, so this sliver adds no
+/// bottom clearance of its own — it never sits last.
 class VerifiedDeadlinesOverlaySliver extends ConsumerWidget {
   const VerifiedDeadlinesOverlaySliver({super.key});
 
@@ -27,18 +35,34 @@ class VerifiedDeadlinesOverlaySliver extends ConsumerWidget {
         if (rows.isEmpty) {
           return const SliverToBoxAdapter(child: SizedBox.shrink());
         }
+        final l10n = AppLocalizations.of(context)!;
         return SliverMainAxisGroup(
           slivers: [
-            const SliverToBoxAdapter(
+            SliverToBoxAdapter(
               child: Padding(
-                padding: EdgeInsets.fromLTRB(16, 12, 16, 4),
-                child: Text(
-                  'Verified upcoming deadlines',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
+                padding: const EdgeInsets.fromLTRB(
+                  SeoulSizes.screenPadding,
+                  12,
+                  SeoulSizes.screenPadding,
+                  6,
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: [
+                    Flexible(
+                      child: Text(
+                        l10n.uniDbVerifiedDeadlinesTitle,
+                        style: SeoulType.title,
+                      ),
+                    ),
+                    // Padding, not SizedBox: it forwards the baseline the
+                    // Row's baseline alignment needs.
+                    const Padding(
+                      padding: EdgeInsets.only(left: 8),
+                      child: Text('마감', style: SeoulType.hangulLabel),
+                    ),
+                  ],
                 ),
               ),
             ),

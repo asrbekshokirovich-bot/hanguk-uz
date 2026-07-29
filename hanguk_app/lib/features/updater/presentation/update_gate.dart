@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../design_system/seoul_night/seoul_night.dart';
 import '../data/update_telemetry.dart';
 import '../data/updater_repository.dart';
 import 'update_dialog.dart';
@@ -67,7 +68,9 @@ class _UpdateGateState extends ConsumerState<UpdateGate>
             state is UpdateDownloading ||
             state is UpdateInstalling ||
             state is UpdateFailed)
-          const Positioned.fill(child: ColoredBox(color: Colors.black54)),
+          // Seoul Night scrim token (spec §2) instead of raw black54, so the
+          // dim layer matches the orb dial's scrim everywhere else.
+          const Positioned.fill(child: ColoredBox(color: SeoulColors.scrim)),
         if (state is UpdateAvailable ||
             state is UpdateDownloading ||
             state is UpdateInstalling ||

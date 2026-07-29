@@ -1010,4 +1010,465 @@ class AppLocalizationsVi extends AppLocalizations {
   String mapUniversitiesMapped(int count) {
     return '$count trường trên bản đồ';
   }
+
+  @override
+  String get updateAvailableTitle => 'Có bản cập nhật mới';
+
+  @override
+  String updateVersionReady(String version) {
+    return 'Phiên bản $version đã sẵn sàng để cài đặt.';
+  }
+
+  @override
+  String updateSizeMb(String size) {
+    return 'Dung lượng: $size MB';
+  }
+
+  @override
+  String get updateSigningKeyWarning =>
+      'Bản cập nhật này thay đổi khóa ký của ứng dụng. Sau khi cài đặt, bạn sẽ cần đăng nhập lại bằng mã Magic Code của mình.';
+
+  @override
+  String get updateNow => 'Cập nhật ngay';
+
+  @override
+  String get updateLater => 'Để sau';
+
+  @override
+  String get updateDownloadingTitle => 'Đang tải bản cập nhật';
+
+  @override
+  String updateDownloadProgress(String downloaded, String total) {
+    return '$downloaded MB / $total MB';
+  }
+
+  @override
+  String get updateInstallingLabel => 'Đang xác minh và cài đặt…';
+
+  @override
+  String get updateFailedTitle => 'Cập nhật thất bại';
+
+  @override
+  String get updateErrorNetwork =>
+      'Không thể tải bản cập nhật. Vui lòng kiểm tra kết nối internet và thử lại.';
+
+  @override
+  String get updateErrorHashMismatch =>
+      'Tệp đã tải không vượt qua bước kiểm tra tính toàn vẹn. Vui lòng thử lại — nếu vấn đề lặp lại, hãy liên hệ với tư vấn viên của bạn.';
+
+  @override
+  String get updateErrorInstallDenied =>
+      'Thiết bị của bạn đã chặn việc cài đặt. Vui lòng cấp quyền \"Cài đặt ứng dụng không xác định\" cho Hanguk trong cài đặt điện thoại, sau đó thử lại.';
+
+  @override
+  String get updateErrorStorage =>
+      'Không đủ bộ nhớ để tải bản cập nhật. Vui lòng giải phóng dung lượng và thử lại.';
+
+  @override
+  String get updateErrorUnsupportedPlatform =>
+      'Cập nhật chưa khả dụng trên nền tảng này.';
+
+  @override
+  String get updateErrorUnknown =>
+      'Cập nhật thất bại. Vui lòng thử lại hoặc liên hệ với tư vấn viên của bạn.';
+
+  @override
+  String get guestModeEyebrow => 'Chế độ khách';
+
+  @override
+  String get guestJoinCta => 'Tham gia Hanguk';
+
+  @override
+  String get guestExploreTitle => 'Tìm trường đại học của bạn';
+
+  @override
+  String guestUniversitiesCount(int count) {
+    return '$count trường đại học';
+  }
+
+  @override
+  String get guestNavExplore => 'Khám phá';
+
+  @override
+  String get guestNavCompare => 'So sánh';
+
+  @override
+  String guestCompareCount(int count) {
+    return 'So sánh $count/2';
+  }
+
+  @override
+  String get guestCompareEmptySlot => 'Thêm từ Khám phá';
+
+  @override
+  String get guestCompareApplyCta => 'Nộp hồ sơ cùng Hanguk';
+
+  @override
+  String get guestCompareReassurance =>
+      'Nhận mã thần kỳ — đội ngũ của chúng tôi sẽ hướng dẫn bạn từ hồ sơ đến visa.';
+
+  @override
+  String get guestRowCity => 'Thành phố';
+
+  @override
+  String get guestRowTier => 'Hạng';
+
+  @override
+  String get guestRowIeqas => 'Trạng thái IEQAS';
+
+  @override
+  String get guestRowPartner => 'Đối tác Hanguk';
+
+  @override
+  String get guestRowNextEvent => 'Sự kiện tiếp theo';
+
+  @override
+  String get guestRowWebsite => 'Trang web';
+
+  @override
+  String get guestValueYes => 'Có';
+
+  @override
+  String get guestValueNo => 'Không';
+
+  @override
+  String get roomTabStatus => 'Trạng thái';
+
+  @override
+  String get roomTabDiscussion => 'Thảo luận';
+
+  @override
+  String get roomTabNews => 'Tin tức';
+
+  @override
+  String get roomTabCalendar => 'Lịch';
+
+  @override
+  String get roomApplicationProgress => 'Tiến trình hồ sơ';
+
+  @override
+  String get roomChatEmpty =>
+      'Chưa có tin nhắn nào. Hãy bắt đầu cuộc trò chuyện!';
+
+  @override
+  String get roomChatHint => 'Nhắn tin vào phòng...';
+
+  @override
+  String get roomChatSenderFallback => 'Người dùng';
+
+  @override
+  String get roomNewsEmpty => 'Không có thông báo nào.';
+
+  @override
+  String get roomEventsEmpty => 'Không có sự kiện nào vào ngày này.';
+
+  @override
+  String get uniDbPhaseBadge =>
+      'CSDL trường đại học · Giai đoạn 0 đã dựng khung';
+
+  @override
+  String get uniDbRecentChangesTitle =>
+      'Cập nhật từ các trường bạn đang theo dõi';
+
+  @override
+  String get timeJustNow => 'vừa xong';
+
+  @override
+  String timeMinutesAgo(int minutes) {
+    return '$minutes phút trước';
+  }
+
+  @override
+  String timeHoursAgo(int hours) {
+    return '$hours giờ trước';
+  }
+
+  @override
+  String timeDaysAgo(int days) {
+    return '$days ngày trước';
+  }
+
+  @override
+  String get uniDbVerifiedDeadlinesTitle => 'Hạn chót sắp tới đã xác minh';
+
+  @override
+  String get deadlineClosed => 'Đã đóng';
+
+  @override
+  String deadlineInDays(int days) {
+    return 'còn $days ngày';
+  }
+
+  @override
+  String deadlineInHours(int hours) {
+    return 'còn $hours giờ';
+  }
+
+  @override
+  String deadlineInMinutes(int minutes) {
+    return 'còn $minutes phút';
+  }
+
+  @override
+  String get eventApplyOpen => 'Mở nhận hồ sơ';
+
+  @override
+  String get eventApplyClose => 'Đóng nhận hồ sơ';
+
+  @override
+  String get eventDocumentsDue => 'Hạn nộp giấy tờ';
+
+  @override
+  String get eventFirstStageResults => 'Kết quả vòng 1';
+
+  @override
+  String get eventInterviewLabel => 'Phỏng vấn';
+
+  @override
+  String get eventPracticalExam => 'Thi thực hành';
+
+  @override
+  String get eventFinalResults => 'Kết quả cuối cùng';
+
+  @override
+  String get eventAdditionalAdmit => 'Trúng tuyển bổ sung';
+
+  @override
+  String get eventRegistrationOpen => 'Mở đăng ký nhập học';
+
+  @override
+  String get eventRegistrationClose => 'Đóng đăng ký nhập học';
+
+  @override
+  String get cycleForeign => 'Diện sinh viên quốc tế';
+
+  @override
+  String get cycleOverseasKoreanFull => 'Kiều bào Hàn (toàn phần)';
+
+  @override
+  String get cycleOverseasKoreanPartial => 'Kiều bào Hàn (một phần)';
+
+  @override
+  String get cycleSusi => 'Susi';
+
+  @override
+  String get cycleJeongsi => 'Jeongsi';
+
+  @override
+  String get cycleTransfer => 'Chuyển trường';
+
+  @override
+  String get cycleGradGeneral => 'Sau đại học';
+
+  @override
+  String get cycleGradForeign => 'Sau đại học (quốc tế)';
+
+  @override
+  String get uniSpecificHeader => 'Phỏng vấn theo trường cụ thể';
+
+  @override
+  String get uniSpecificPickPrompt =>
+      'Chọn một trường ở trên để người phỏng vấn dựa vào đơn vị tuyển sinh, yêu cầu và các mốc hạn quan trọng của trường đó.';
+
+  @override
+  String uniSpecificLoadError(Object error) {
+    return 'Không tải được dữ liệu tuyển sinh: $error\nBạn vẫn có thể luyện phỏng vấn chung.';
+  }
+
+  @override
+  String get uniSpecificNoData =>
+      'Chưa có dữ liệu tuyển sinh đã xác minh cho trường này. Người phỏng vấn sẽ dùng câu hỏi chung cho đến khi chúng tôi nạp 모집요강 của trường.';
+
+  @override
+  String get uniSpecificFallbackButton => 'Chuyển sang phỏng vấn chung';
+
+  @override
+  String uniSpecificTrackLabel(String category) {
+    return 'Diện: $category';
+  }
+
+  @override
+  String get uniSpecificSeedNote =>
+      'Người phỏng vấn sẽ dựa trên dữ liệu tuyển sinh này khi đặt câu hỏi.';
+
+  @override
+  String get uniSpecificRecruitmentUnitFallback => 'Đơn vị tuyển sinh';
+
+  @override
+  String get uniDbInstitutionTitle => 'Trường đại học';
+
+  @override
+  String get uniDbNotFoundTitle => 'Không tìm thấy trường';
+
+  @override
+  String get uniDbNotFoundBody =>
+      'Trường này chưa có trong danh mục. Vui lòng quay lại sau.';
+
+  @override
+  String get uniDbUpcomingDeadlines => 'Hạn chót sắp tới';
+
+  @override
+  String get uniDbNoDeadlines => 'Chưa có hạn chót nào được công bố.';
+
+  @override
+  String get uniDbTuitionHeading => 'Học phí';
+
+  @override
+  String get uniDbTuitionEmpty => 'Chưa có thông tin học phí.';
+
+  @override
+  String get uniDbRequirementsHeading => 'Yêu cầu';
+
+  @override
+  String get uniDbRequirementsEmpty => 'Chưa có thông tin yêu cầu tuyển sinh.';
+
+  @override
+  String get uniDbScholarshipsHeading => 'Học bổng';
+
+  @override
+  String get uniDbScholarshipsEmpty => 'Chưa có học bổng nào cho trường này.';
+
+  @override
+  String get uniDbDocumentChecklistHeading => 'Danh sách hồ sơ';
+
+  @override
+  String get uniDbDocumentsEmpty => 'Chưa có danh sách hồ sơ.';
+
+  @override
+  String get uniDbTrackTitle => 'Theo dõi trường này';
+
+  @override
+  String get uniDbTrackOnDesc =>
+      'Hạn chót sẽ hiện trên trang chủ và bạn sẽ nhận thông báo đẩy khi có thay đổi.';
+
+  @override
+  String get uniDbTrackOffDesc =>
+      'Bật để theo dõi hạn chót, thông báo đính chính và thay đổi yêu cầu.';
+
+  @override
+  String uniDbTrackError(Object error) {
+    return 'Không thể cập nhật theo dõi: $error';
+  }
+
+  @override
+  String get uniDbOpenGuidePdf => 'Mở PDF hướng dẫn tuyển sinh';
+
+  @override
+  String get uniDbNoGuidePdf => 'Chưa có PDF hướng dẫn tuyển sinh.';
+
+  @override
+  String get uniDbPdfNoApp => 'Không mở được PDF — không có ứng dụng phù hợp.';
+
+  @override
+  String uniDbPdfError(Object error) {
+    return 'Không mở được PDF: $error';
+  }
+
+  @override
+  String uniDbAcademicYear(int year) {
+    return 'Năm học $year';
+  }
+
+  @override
+  String uniDbSemesterLabel(int number) {
+    return 'Học kỳ $number';
+  }
+
+  @override
+  String get uniDbFirstSemester => 'học kỳ đầu';
+
+  @override
+  String uniDbAdmissionFee(String amount) {
+    return '+ $amount phí nhập học';
+  }
+
+  @override
+  String uniDbGpaChip(String pct) {
+    return 'GPA ≥ $pct%';
+  }
+
+  @override
+  String get uniDbTopikTierTable => 'Bảng mức TOPIK';
+
+  @override
+  String uniDbDocumentsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count giấy tờ',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get uniDbApostilleRequired => 'Cần chứng nhận apostille';
+
+  @override
+  String uniDbLastVerified(String date) {
+    return 'Xác minh lần cuối: $date';
+  }
+
+  @override
+  String get eventOrientation => 'Định hướng tân sinh viên';
+
+  @override
+  String get eventSemesterStart => 'Bắt đầu học kỳ';
+
+  @override
+  String get facultyHumanities => 'Nhân văn';
+
+  @override
+  String get facultySocialScience => 'Khoa học xã hội';
+
+  @override
+  String get facultyNaturalScience => 'Khoa học tự nhiên';
+
+  @override
+  String get facultyEngineering => 'Kỹ thuật';
+
+  @override
+  String get facultyMedical => 'Y / Dược';
+
+  @override
+  String get facultyArts => 'Nghệ thuật';
+
+  @override
+  String get facultyPhysicalEducation => 'Giáo dục thể chất';
+
+  @override
+  String get uniDbCompareTitle => 'So sánh';
+
+  @override
+  String get uniDbCompareEmptyTitle => 'So sánh các trường';
+
+  @override
+  String get uniDbCompareEmptyBody =>
+      'Theo dõi ít nhất hai trường rồi quay lại đây để so sánh.';
+
+  @override
+  String get uniDbCompareNeedSecond => 'Cần trường thứ hai để so sánh.';
+
+  @override
+  String uniDbCompareSelected(String name) {
+    return 'Đang chọn: $name';
+  }
+
+  @override
+  String get uniDbColEnglishName => 'Tên tiếng Anh';
+
+  @override
+  String get uniDbColUzbekName => 'Tên tiếng Uzbek';
+
+  @override
+  String get uniDbColLastVerified => 'Xác minh lần cuối';
+
+  @override
+  String get uniDbTrackerTitle => 'Theo dõi hồ sơ';
+
+  @override
+  String get uniDbTrackerEmptyTitle => 'Chưa theo dõi trường nào';
+
+  @override
+  String get uniDbTrackerEmptyBody =>
+      'Theo dõi một trường trên trang của trường đó — hạn chót sẽ hiện ở đây.';
 }

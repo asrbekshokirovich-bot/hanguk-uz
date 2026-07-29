@@ -39,7 +39,10 @@ for loc in LOCALES:
 
 # --- used ------------------------------------------------------------------
 used = {}
-pat = re.compile(r'\b(?:l|l10n|loc|strings|t)\.([a-z]\w*)')
+# `t` is deliberately NOT in this list: it is a common name for a domain
+# object (a tracking row, a term), and matching it reported real fields
+# like `t.intakeYear` as missing translations.
+pat = re.compile(r'\b(?:l|l10n|loc|strings|localizations)\.([a-z]\w*)')
 for dirpath, _dirs, files in os.walk(LIB):
     if os.path.abspath(dirpath).startswith(os.path.abspath(L10N)):
         continue

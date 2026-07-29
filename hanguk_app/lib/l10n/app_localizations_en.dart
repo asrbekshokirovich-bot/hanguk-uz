@@ -936,7 +936,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get welcomeMagicCodeCta => 'I have a magic code';
 
   @override
-  String get welcomeExploreCta => 'Explore universities';
+  String get welcomeExploreCta => 'Explore Universities';
 
   @override
   String get magicCodeTitle => 'Magic code';
@@ -1010,4 +1010,469 @@ class AppLocalizationsEn extends AppLocalizations {
   String mapUniversitiesMapped(int count) {
     return '$count universities mapped';
   }
+
+  @override
+  String get updateAvailableTitle => 'Update Available';
+
+  @override
+  String updateVersionReady(String version) {
+    return 'Version $version is ready to install.';
+  }
+
+  @override
+  String updateSizeMb(String size) {
+    return 'Size: $size MB';
+  }
+
+  @override
+  String get updateSigningKeyWarning =>
+      'This update changes the app signing key. After installing you will need to log in again with your magic code.';
+
+  @override
+  String get updateNow => 'Update Now';
+
+  @override
+  String get updateLater => 'Later';
+
+  @override
+  String get updateDownloadingTitle => 'Downloading Update';
+
+  @override
+  String updateDownloadProgress(String downloaded, String total) {
+    return '$downloaded MB / $total MB';
+  }
+
+  @override
+  String get updateInstallingLabel => 'Verifying and installing…';
+
+  @override
+  String get updateFailedTitle => 'Update Failed';
+
+  @override
+  String get updateErrorNetwork =>
+      'Could not download the update. Please check your internet connection and try again.';
+
+  @override
+  String get updateErrorHashMismatch =>
+      'The downloaded file failed integrity verification. Please try again — if the problem repeats, contact your counsellor.';
+
+  @override
+  String get updateErrorInstallDenied =>
+      'Installation was blocked by your device. Please grant \"Install unknown apps\" permission for Hanguk in your phone settings, then try again.';
+
+  @override
+  String get updateErrorStorage =>
+      'Not enough storage to download the update. Please free up some space and try again.';
+
+  @override
+  String get updateErrorUnsupportedPlatform =>
+      'Updates are not available on this platform yet.';
+
+  @override
+  String get updateErrorUnknown =>
+      'Update failed. Please try again, or contact your counsellor.';
+
+  @override
+  String get guestModeEyebrow => 'Guest Explorer';
+
+  @override
+  String get guestJoinCta => 'Join Hanguk';
+
+  @override
+  String get guestExploreTitle => 'Find Your University';
+
+  @override
+  String guestUniversitiesCount(int count) {
+    return '$count universities';
+  }
+
+  @override
+  String get guestNavExplore => 'Explore';
+
+  @override
+  String get guestNavCompare => 'Compare';
+
+  @override
+  String guestCompareCount(int count) {
+    return 'Compare $count/2';
+  }
+
+  @override
+  String get guestCompareEmptySlot => 'Add from Explore';
+
+  @override
+  String get guestCompareApplyCta => 'Apply with Hanguk';
+
+  @override
+  String get guestCompareReassurance =>
+      'Get a magic code and our team will guide your application from documents to visa.';
+
+  @override
+  String get guestRowCity => 'City';
+
+  @override
+  String get guestRowTier => 'Tier';
+
+  @override
+  String get guestRowIeqas => 'IEQAS status';
+
+  @override
+  String get guestRowPartner => 'Hanguk partner';
+
+  @override
+  String get guestRowNextEvent => 'Next event';
+
+  @override
+  String get guestRowWebsite => 'Website';
+
+  @override
+  String get guestValueYes => 'Yes';
+
+  @override
+  String get guestValueNo => 'No';
+
+  @override
+  String get roomTabStatus => 'Status';
+
+  @override
+  String get roomTabDiscussion => 'Discussion';
+
+  @override
+  String get roomTabNews => 'News';
+
+  @override
+  String get roomTabCalendar => 'Calendar';
+
+  @override
+  String get roomApplicationProgress => 'Application Progress';
+
+  @override
+  String get roomChatEmpty => 'No messages yet. Start the conversation!';
+
+  @override
+  String get roomChatHint => 'Message room...';
+
+  @override
+  String get roomChatSenderFallback => 'User';
+
+  @override
+  String get roomNewsEmpty => 'No active announcements.';
+
+  @override
+  String get roomEventsEmpty => 'No events to display on this date.';
+
+  @override
+  String get uniDbPhaseBadge => 'University DB · Phase 0 scaffolded';
+
+  @override
+  String get uniDbRecentChangesTitle =>
+      'Updates from your tracked universities';
+
+  @override
+  String get timeJustNow => 'just now';
+
+  @override
+  String timeMinutesAgo(int minutes) {
+    return '${minutes}m ago';
+  }
+
+  @override
+  String timeHoursAgo(int hours) {
+    return '${hours}h ago';
+  }
+
+  @override
+  String timeDaysAgo(int days) {
+    return '${days}d ago';
+  }
+
+  @override
+  String get uniDbVerifiedDeadlinesTitle => 'Verified upcoming deadlines';
+
+  @override
+  String get deadlineClosed => 'Closed';
+
+  @override
+  String deadlineInDays(int days) {
+    return 'in ${days}d';
+  }
+
+  @override
+  String deadlineInHours(int hours) {
+    return 'in ${hours}h';
+  }
+
+  @override
+  String deadlineInMinutes(int minutes) {
+    return 'in ${minutes}m';
+  }
+
+  @override
+  String get eventApplyOpen => 'Application opens';
+
+  @override
+  String get eventApplyClose => 'Application closes';
+
+  @override
+  String get eventDocumentsDue => 'Documents due';
+
+  @override
+  String get eventFirstStageResults => '1st stage results';
+
+  @override
+  String get eventInterviewLabel => 'Interview';
+
+  @override
+  String get eventPracticalExam => 'Practical exam';
+
+  @override
+  String get eventFinalResults => 'Final results';
+
+  @override
+  String get eventAdditionalAdmit => 'Additional admit';
+
+  @override
+  String get eventRegistrationOpen => 'Registration opens';
+
+  @override
+  String get eventRegistrationClose => 'Registration closes';
+
+  @override
+  String get cycleForeign => 'Foreign track';
+
+  @override
+  String get cycleOverseasKoreanFull => 'Overseas Korean (full)';
+
+  @override
+  String get cycleOverseasKoreanPartial => 'Overseas Korean (partial)';
+
+  @override
+  String get cycleSusi => 'Susi';
+
+  @override
+  String get cycleJeongsi => 'Jeongsi';
+
+  @override
+  String get cycleTransfer => 'Transfer';
+
+  @override
+  String get cycleGradGeneral => 'Graduate';
+
+  @override
+  String get cycleGradForeign => 'Graduate (foreign)';
+
+  @override
+  String get uniSpecificHeader => 'University-specific interview';
+
+  @override
+  String get uniSpecificPickPrompt =>
+      'Pick a university above to seed the interviewer with its recruitment unit, requirements, and key deadlines.';
+
+  @override
+  String uniSpecificLoadError(Object error) {
+    return 'Could not load recruitment data: $error\nYou can still run a general interview.';
+  }
+
+  @override
+  String get uniSpecificNoData =>
+      'No verified recruitment data for this university yet. The interviewer will fall back to general questions until we ingest its 모집요강.';
+
+  @override
+  String get uniSpecificFallbackButton => 'Try a general interview instead';
+
+  @override
+  String uniSpecificTrackLabel(String category) {
+    return 'Track: $category';
+  }
+
+  @override
+  String get uniSpecificSeedNote =>
+      'The interviewer will draw on this recruitment data when asking questions.';
+
+  @override
+  String get uniSpecificRecruitmentUnitFallback => 'Recruitment unit';
+
+  @override
+  String get uniDbInstitutionTitle => 'Institution';
+
+  @override
+  String get uniDbNotFoundTitle => 'Institution not found';
+
+  @override
+  String get uniDbNotFoundBody =>
+      'This university isn\'t in our catalog yet. Please check back soon.';
+
+  @override
+  String get uniDbUpcomingDeadlines => 'Upcoming deadlines';
+
+  @override
+  String get uniDbNoDeadlines => 'No upcoming deadlines announced yet.';
+
+  @override
+  String get uniDbTuitionHeading => 'Tuition';
+
+  @override
+  String get uniDbTuitionEmpty => 'Tuition details aren\'t available yet.';
+
+  @override
+  String get uniDbRequirementsHeading => 'Requirements';
+
+  @override
+  String get uniDbRequirementsEmpty =>
+      'Admission requirements aren\'t available yet.';
+
+  @override
+  String get uniDbScholarshipsHeading => 'Scholarships';
+
+  @override
+  String get uniDbScholarshipsEmpty =>
+      'No scholarships listed for this university yet.';
+
+  @override
+  String get uniDbDocumentChecklistHeading => 'Document checklist';
+
+  @override
+  String get uniDbDocumentsEmpty =>
+      'The document checklist isn\'t available yet.';
+
+  @override
+  String get uniDbTrackTitle => 'Track this institution';
+
+  @override
+  String get uniDbTrackOnDesc =>
+      'You\'ll see deadlines on the home banner and get push notifications when something changes.';
+
+  @override
+  String get uniDbTrackOffDesc =>
+      'Turn on to follow deadlines, correction notices, and requirement changes.';
+
+  @override
+  String uniDbTrackError(Object error) {
+    return 'Could not update tracking: $error';
+  }
+
+  @override
+  String get uniDbOpenGuidePdf => 'Open admission guide PDF';
+
+  @override
+  String get uniDbNoGuidePdf => 'No admission guide PDF available yet.';
+
+  @override
+  String get uniDbPdfNoApp =>
+      'Could not open the PDF — no app available to handle it.';
+
+  @override
+  String uniDbPdfError(Object error) {
+    return 'Could not open PDF: $error';
+  }
+
+  @override
+  String uniDbAcademicYear(int year) {
+    return '$year academic year';
+  }
+
+  @override
+  String uniDbSemesterLabel(int number) {
+    return 'Semester $number';
+  }
+
+  @override
+  String get uniDbFirstSemester => 'first semester';
+
+  @override
+  String uniDbAdmissionFee(String amount) {
+    return '+ $amount fee';
+  }
+
+  @override
+  String uniDbGpaChip(String pct) {
+    return 'GPA ≥ $pct%';
+  }
+
+  @override
+  String get uniDbTopikTierTable => 'TOPIK tier table';
+
+  @override
+  String uniDbDocumentsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count documents',
+      one: '1 document',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get uniDbApostilleRequired => 'Apostille required';
+
+  @override
+  String uniDbLastVerified(String date) {
+    return 'Last verified: $date';
+  }
+
+  @override
+  String get eventOrientation => 'Orientation';
+
+  @override
+  String get eventSemesterStart => 'Semester starts';
+
+  @override
+  String get facultyHumanities => 'Humanities';
+
+  @override
+  String get facultySocialScience => 'Social Science';
+
+  @override
+  String get facultyNaturalScience => 'Natural Science';
+
+  @override
+  String get facultyEngineering => 'Engineering';
+
+  @override
+  String get facultyMedical => 'Medical / Pharma';
+
+  @override
+  String get facultyArts => 'Arts';
+
+  @override
+  String get facultyPhysicalEducation => 'Physical Education';
+
+  @override
+  String get uniDbCompareTitle => 'Compare';
+
+  @override
+  String get uniDbCompareEmptyTitle => 'Compare universities';
+
+  @override
+  String get uniDbCompareEmptyBody =>
+      'Track at least two institutions, then return here to compare them.';
+
+  @override
+  String get uniDbCompareNeedSecond =>
+      'Need a second university to compare against.';
+
+  @override
+  String uniDbCompareSelected(String name) {
+    return 'Currently selected: $name';
+  }
+
+  @override
+  String get uniDbColEnglishName => 'English name';
+
+  @override
+  String get uniDbColUzbekName => 'Uzbek name';
+
+  @override
+  String get uniDbColLastVerified => 'Last verified';
+
+  @override
+  String get uniDbTrackerTitle => 'Application tracker';
+
+  @override
+  String get uniDbTrackerEmptyTitle => 'No tracked universities yet';
+
+  @override
+  String get uniDbTrackerEmptyBody =>
+      'Track a university on its page and its deadlines will appear here.';
 }

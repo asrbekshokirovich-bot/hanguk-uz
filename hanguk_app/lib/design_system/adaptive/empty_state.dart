@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 
-import '../theme/app_colors.dart';
+import '../seoul_night/seoul_night.dart';
 
 /// Shared empty-state widget for "no rows / no data yet" surfaces.
 ///
 /// Replaces bare placeholder strings with a consistent (icon + headline
 /// + subhead + optional CTA) layout. Used by the Applications, Study
 /// Plan drafts, and Interview-history screens (P1 #25).
+///
+/// Seoul Night pass: token-styled icon disc (the API takes an [IconData],
+/// so a hangul glyph tile is not an option here), [SeoulType] headline and
+/// body, and a [LimeButton] CTA when one is supplied. Public API unchanged.
 class EmptyState extends StatelessWidget {
   const EmptyState({
     super.key,
@@ -34,54 +38,25 @@ class EmptyState extends StatelessWidget {
             width: 88,
             height: 88,
             decoration: BoxDecoration(
-              color: AppColors.vibrantLime.withValues(alpha: 0.08),
+              color: SeoulColors.limeFill,
               shape: BoxShape.circle,
               border: Border.all(
-                color: AppColors.vibrantLime.withValues(alpha: 0.3),
+                color: SeoulColors.lime.withValues(alpha: 0.3),
               ),
             ),
-            child: Icon(icon, size: 40, color: AppColors.vibrantLime),
+            child: Icon(icon, size: 40, color: SeoulColors.lime),
           ),
           const SizedBox(height: 20),
-          Text(
-            headline,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
+          Text(headline, textAlign: TextAlign.center, style: SeoulType.title),
           const SizedBox(height: 8),
           Text(
             subhead,
             textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: Colors.white70,
-              fontSize: 13,
-              height: 1.4,
-            ),
+            style: SeoulType.bodySecondary.copyWith(fontSize: 13),
           ),
           if (ctaLabel != null && onCta != null) ...[
             const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: onCta,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.vibrantLime,
-                foregroundColor: Colors.black,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 14,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: Text(
-                ctaLabel!,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ),
+            LimeButton(label: ctaLabel!, onPressed: onCta, expand: false),
           ],
         ],
       ),

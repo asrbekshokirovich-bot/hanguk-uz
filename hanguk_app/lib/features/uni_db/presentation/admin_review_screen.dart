@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../design_system/seoul_night/seoul_night.dart';
 import '../data/admin_review_providers.dart';
 import '../domain/review_queue_item.dart';
 
@@ -15,6 +16,10 @@ import '../domain/review_queue_item.dart';
 ///
 /// Two-column layout: queue list on the left, item detail on the right.
 /// Three actions: Accept, Edit then Accept, Reject.
+///
+/// Seoul Night pass — visuals only. This surface is staff-only (gated
+/// server-side by `fn_can_review_uni_db`), so its copy deliberately stays
+/// English and out of the ARB files; reviewers are Hanguk staff.
 class AdminReviewScreen extends ConsumerStatefulWidget {
   const AdminReviewScreen({super.key});
 
@@ -44,60 +49,77 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
 
   Widget _buildContent(BuildContext context) {
     final queueAsync = ref.watch(reviewQueueProvider);
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Review queue'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            tooltip: 'Refresh',
-            onPressed: _busy ? null : () => ref.invalidate(reviewQueueProvider),
+    return SeoulNightScaffold(
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _Header(
+            title: 'Review queue',
+            trailing: _GlassCircleButton(
+              icon: Icons.refresh_rounded,
+              tooltip: 'Refresh',
+              onTap: _busy ? null : () => ref.invalidate(reviewQueueProvider),
+            ),
+          ),
+          Expanded(
+            child: queueAsync.when(
+              loading: () => const Center(
+                child: CircularProgressIndicator(color: SeoulColors.lime),
+              ),
+              error: (e, _) => Center(
+                child: Text('Error: $e', style: SeoulType.bodySecondary),
+              ),
+              data: (items) {
+                if (items.isEmpty) {
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(24),
+                      child: Text(
+                        'Queue is empty. Nothing pending right now.',
+                        textAlign: TextAlign.center,
+                        style: SeoulType.bodySecondary,
+                      ),
+                    ),
+                  );
+                }
+                return Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    SizedBox(
+                      width: 360,
+                      child: _QueueList(
+                        items: items,
+                        selected: _selected,
+                        onSelect: (item) => setState(() => _selected = item),
+                      ),
+                    ),
+                    // Hairline between the two panes.
+                    const SizedBox(
+                      width: 1,
+                      child: ColoredBox(color: SeoulColors.glassBorder),
+                    ),
+                    Expanded(
+                      child: _selected == null
+                          ? const Center(
+                              child: Text(
+                                'Select a queue item on the left.',
+                                style: SeoulType.bodySecondary,
+                              ),
+                            )
+                          : _DetailPane(
+                              item: _selected!,
+                              busy: _busy,
+                              onAccept: _onAccept,
+                              onEditAccept: _onEditAccept,
+                              onReject: _onReject,
+                            ),
+                    ),
+                  ],
+                );
+              },
+            ),
           ),
         ],
-      ),
-      body: queueAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Error: $e')),
-        data: (items) {
-          if (items.isEmpty) {
-            return const Center(
-              child: Padding(
-                padding: EdgeInsets.all(24),
-                child: Text(
-                  'Queue is empty. Nothing pending right now.',
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            );
-          }
-          return Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              SizedBox(
-                width: 360,
-                child: _QueueList(
-                  items: items,
-                  selected: _selected,
-                  onSelect: (item) => setState(() => _selected = item),
-                ),
-              ),
-              const VerticalDivider(width: 1),
-              Expanded(
-                child: _selected == null
-                    ? const Center(
-                        child: Text('Select a queue item on the left.'),
-                      )
-                    : _DetailPane(
-                        item: _selected!,
-                        busy: _busy,
-                        onAccept: _onAccept,
-                        onEditAccept: _onEditAccept,
-                        onReject: _onReject,
-                      ),
-              ),
-            ],
-          );
-        },
       ),
     );
   }
@@ -163,6 +185,45 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
   }
 }
 
+/// Top bar: glass back circle, title, optional trailing control.
+class _Header extends StatelessWidget {
+  const _Header({required this.title, this.trailing});
+
+  final String title;
+  final Widget? trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        SeoulSizes.screenPadding,
+        12,
+        SeoulSizes.screenPadding,
+        8,
+      ),
+      child: Row(
+        children: [
+          _GlassCircleButton(
+            icon: Icons.arrow_back_rounded,
+            tooltip: 'Back',
+            onTap: () => Navigator.of(context).maybePop(),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Text(
+              title,
+              style: SeoulType.title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          if (trailing != null) ...[const SizedBox(width: 10), trailing!],
+        ],
+      ),
+    );
+  }
+}
+
 class _QueueList extends StatelessWidget {
   const _QueueList({
     required this.items,
@@ -177,23 +238,46 @@ class _QueueList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView.separated(
+      padding: const EdgeInsets.fromLTRB(SeoulSizes.screenPadding, 4, 12, 24),
       itemCount: items.length,
-      separatorBuilder: (_, _) => const Divider(height: 1),
+      separatorBuilder: (_, _) => const SizedBox(height: 8),
       itemBuilder: (_, i) {
         final item = items[i];
         final isSelected = item.id == selected?.id;
-        return ListTile(
-          selected: isSelected,
-          leading: _PriorityBadge(
-            priority: item.priority,
-            overdue: item.isOverdue,
-          ),
-          title: Text(item.institutionLabel, overflow: TextOverflow.ellipsis),
-          subtitle: Text(
-            '${item.entityType} · ${item.reason}',
-            overflow: TextOverflow.ellipsis,
-          ),
+        return GlassCard(
+          radius: SeoulRadii.tile,
+          blur: false,
+          showShadow: false,
+          padding: const EdgeInsets.all(12),
+          fillColor: isSelected ? SeoulColors.limeFill : null,
+          borderColor: isSelected ? SeoulColors.lime : null,
           onTap: () => onSelect(item),
+          child: Row(
+            children: [
+              _PriorityBadge(priority: item.priority, overdue: item.isOverdue),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      item.institutionLabel,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: SeoulType.subtitle,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${item.entityType} · ${item.reason}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: SeoulType.caption,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         );
       },
     );
@@ -208,20 +292,31 @@ class _PriorityBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = overdue
-        ? Colors.red.shade700
+    // Overdue and P1 demand attention (danger); P2 is a warning; anything
+    // lower is informational.
+    final (Color fill, Color fg) = overdue
+        ? (SeoulColors.dangerFill, SeoulColors.dangerText)
         : switch (priority) {
-            1 => Colors.red.shade400,
-            2 => Colors.orange.shade400,
-            3 => Colors.amber.shade700,
-            _ => Colors.blueGrey,
+            1 => (SeoulColors.dangerFill, SeoulColors.dangerText),
+            2 => (SeoulColors.warningFill, SeoulColors.warningText),
+            3 => (SeoulColors.infoFill, SeoulColors.infoText),
+            _ => (SeoulColors.neutralFill, SeoulColors.textSecondary),
           };
-    return CircleAvatar(
-      radius: 14,
-      backgroundColor: color,
+    return Container(
+      width: 32,
+      height: 32,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: fill,
+        shape: BoxShape.circle,
+        border: Border.all(color: SeoulColors.glassBorder),
+      ),
       child: Text(
         'P$priority',
-        style: const TextStyle(fontSize: 10, color: Colors.white),
+        style: SeoulType.caption.copyWith(
+          color: fg,
+          fontWeight: FontWeight.w700,
+        ),
       ),
     );
   }
@@ -254,68 +349,76 @@ class _DetailPane extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            item.institutionLabel,
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          const SizedBox(height: 4),
+          Text(item.institutionLabel, style: SeoulType.title),
+          const SizedBox(height: 8),
           Wrap(
             spacing: 8,
-            runSpacing: 4,
+            runSpacing: 6,
             children: [
-              Chip(label: Text(item.priorityLabel)),
-              Chip(label: Text(item.reason)),
+              StatusChip(label: item.priorityLabel, tone: StatusTone.info),
+              StatusChip(label: item.reason),
               if (item.accuracySelfScore != null)
-                Chip(
-                  label: Text(
-                    'confidence ${(item.accuracySelfScore! * 100).round()}%',
-                  ),
+                StatusChip(
+                  label:
+                      'confidence ${(item.accuracySelfScore! * 100).round()}%',
                 ),
               if (item.isOverdue)
-                Chip(
-                  label: const Text('OVERDUE'),
-                  backgroundColor: Colors.red.shade100,
-                ),
+                const StatusChip(label: 'OVERDUE', tone: StatusTone.danger),
             ],
           ),
           const SizedBox(height: 12),
           if (item.sourceUrlKo != null)
             Align(
               alignment: Alignment.centerLeft,
-              child: TextButton.icon(
-                icon: const Icon(Icons.open_in_new),
-                label: const Text('Open source page (한국어)'),
+              child: SeoulOutlineButton(
+                icon: Icons.open_in_new,
+                label: 'Open source page (한국어)',
+                expand: false,
+                height: SeoulSizes.minTapTarget,
                 onPressed: () => _launchPdf(context, item.sourceUrlKo!),
               ),
             ),
-          const SizedBox(height: 8),
-          const Text('Extracted payload:'),
-          const SizedBox(height: 4),
+          const SizedBox(height: 12),
+          const Text('Extracted payload:', style: SeoulType.caption),
+          const SizedBox(height: 6),
           Expanded(
-            child: SingleChildScrollView(
-              child: SelectableText(
-                formattedJson,
-                style: const TextStyle(fontFamily: 'monospace', fontSize: 13),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: SeoulColors.neutralFill,
+                borderRadius: SeoulRadii.tileR,
+                border: Border.all(color: SeoulColors.glassBorder),
+              ),
+              child: SingleChildScrollView(
+                child: SelectableText(formattedJson, style: _monoStyle),
               ),
             ),
           ),
-          const Divider(),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
+          const SizedBox(height: 14),
+          // Accept is the queue's one lime action; the other two stay quiet.
+          Wrap(
+            alignment: WrapAlignment.end,
+            spacing: 8,
+            runSpacing: 8,
             children: [
-              OutlinedButton(
+              SeoulOutlineButton(
+                label: 'Reject',
+                expand: false,
+                height: SeoulSizes.minTapTarget,
                 onPressed: busy ? null : () => _confirmReject(context),
-                child: const Text('Reject'),
               ),
-              const SizedBox(width: 8),
-              OutlinedButton(
+              SeoulOutlineButton(
+                label: 'Edit & accept',
+                expand: false,
+                height: SeoulSizes.minTapTarget,
                 onPressed: busy ? null : () => _editAccept(context),
-                child: const Text('Edit & accept'),
               ),
-              const SizedBox(width: 8),
-              FilledButton(
+              LimeButton(
+                label: 'Accept',
+                expand: false,
+                height: SeoulSizes.minTapTarget,
                 onPressed: busy ? null : () => onAccept(item),
-                child: const Text('Accept'),
               ),
             ],
           ),
@@ -371,6 +474,69 @@ class _DetailPane extends StatelessWidget {
   }
 }
 
+/// The reviewer edits raw JSON, so the payload wears the design system's mono
+/// family. Korean values inside the payload fall through the family fallback
+/// rather than rendering tofu — the mono subset only carries the code range.
+const TextStyle _monoStyle = TextStyle(
+  fontFamily: SeoulType.mono,
+  fontFamilyFallback: SeoulType.fallback,
+  fontSize: 13,
+  height: 1.45,
+  color: SeoulColors.textPrimary,
+);
+
+/// Navy-gradient dialog shell shared by the two dialogs below — same idiom as
+/// the Account screen's dialogs.
+class _SeoulDialog extends StatelessWidget {
+  const _SeoulDialog({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: SeoulGradients.appBackground,
+          borderRadius: SeoulRadii.heroR,
+          border: Border.all(color: SeoulColors.heroBorder, width: 1),
+          boxShadow: SeoulShadows.hero,
+        ),
+        child: ClipRRect(
+          borderRadius: SeoulRadii.heroR,
+          child: Padding(padding: const EdgeInsets.all(20), child: child),
+        ),
+      ),
+    );
+  }
+}
+
+/// Seoul Night input decoration for the dialogs' text fields.
+InputDecoration _fieldDecoration({String? label}) {
+  return InputDecoration(
+    labelText: label,
+    labelStyle: SeoulType.bodySecondary,
+    filled: true,
+    fillColor: SeoulColors.neutralFill,
+    contentPadding: const EdgeInsets.all(12),
+    border: const OutlineInputBorder(
+      borderRadius: SeoulRadii.controlR,
+      borderSide: BorderSide(color: SeoulColors.glassBorder),
+    ),
+    enabledBorder: const OutlineInputBorder(
+      borderRadius: SeoulRadii.controlR,
+      borderSide: BorderSide(color: SeoulColors.glassBorder),
+    ),
+    focusedBorder: const OutlineInputBorder(
+      borderRadius: SeoulRadii.controlR,
+      borderSide: BorderSide(color: SeoulColors.lime),
+    ),
+  );
+}
+
 class _EditPayloadDialog extends StatefulWidget {
   const _EditPayloadDialog({required this.initial});
   final Map<String, dynamic> initial;
@@ -412,37 +578,58 @@ class _EditPayloadDialogState extends State<_EditPayloadDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Edit payload'),
-      content: SizedBox(
+    return _SeoulDialog(
+      child: SizedBox(
         width: 700,
-        height: 500,
         child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Expanded(
+            const Text('Edit payload', style: SeoulType.title),
+            const SizedBox(height: 14),
+            SizedBox(
+              height: 420,
               child: TextField(
                 controller: _controller,
                 maxLines: null,
                 expands: true,
-                style: const TextStyle(fontFamily: 'monospace', fontSize: 13),
-                decoration: const InputDecoration(border: OutlineInputBorder()),
+                cursorColor: SeoulColors.lime,
+                style: _monoStyle,
+                decoration: _fieldDecoration(),
               ),
             ),
             if (_error != null)
               Padding(
                 padding: const EdgeInsets.only(top: 8),
-                child: Text(_error!, style: const TextStyle(color: Colors.red)),
+                child: Text(
+                  _error!,
+                  style: SeoulType.caption.copyWith(
+                    color: SeoulColors.dangerText,
+                  ),
+                ),
               ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                SeoulOutlineButton(
+                  label: 'Cancel',
+                  expand: false,
+                  height: SeoulSizes.minTapTarget,
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+                const SizedBox(width: 8),
+                LimeButton(
+                  label: 'Save & accept',
+                  expand: false,
+                  height: SeoulSizes.minTapTarget,
+                  onPressed: _submit,
+                ),
+              ],
+            ),
           ],
         ),
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
-        ),
-        FilledButton(onPressed: _submit, child: const Text('Save & accept')),
-      ],
     );
   }
 }
@@ -474,43 +661,164 @@ class _RejectReasonDialogState extends State<_RejectReasonDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Reject — reason'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          DropdownButton<String>(
-            value: _reason,
-            isExpanded: true,
-            items: _reasons
-                .map((r) => DropdownMenuItem(value: r, child: Text(r)))
-                .toList(),
-            onChanged: (v) => setState(() => _reason = v ?? _reason),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _detail,
-            decoration: const InputDecoration(
-              labelText: 'Detail (optional)',
-              border: OutlineInputBorder(),
+    return _SeoulDialog(
+      child: SizedBox(
+        width: 420,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text('Reject — reason', style: SeoulType.title),
+            const SizedBox(height: 14),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              decoration: BoxDecoration(
+                color: SeoulColors.neutralFill,
+                borderRadius: SeoulRadii.controlR,
+                border: Border.all(color: SeoulColors.glassBorder),
+              ),
+              child: DropdownButton<String>(
+                value: _reason,
+                isExpanded: true,
+                underline: const SizedBox.shrink(),
+                dropdownColor: SeoulColors.royalBlue,
+                borderRadius: SeoulRadii.controlR,
+                iconEnabledColor: SeoulColors.textSecondary,
+                style: SeoulType.body,
+                items: _reasons
+                    .map((r) => DropdownMenuItem(value: r, child: Text(r)))
+                    .toList(),
+                onChanged: (v) => setState(() => _reason = v ?? _reason),
+              ),
             ),
-            maxLines: 3,
-          ),
-        ],
+            const SizedBox(height: 12),
+            TextField(
+              controller: _detail,
+              cursorColor: SeoulColors.lime,
+              style: SeoulType.body,
+              decoration: _fieldDecoration(label: 'Detail (optional)'),
+              maxLines: 3,
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                SeoulOutlineButton(
+                  label: 'Cancel',
+                  expand: false,
+                  height: SeoulSizes.minTapTarget,
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+                const SizedBox(width: 8),
+                _DangerButton(
+                  label: 'Reject',
+                  onPressed: () => Navigator.of(context).pop((
+                    reason: _reason,
+                    detail: _detail.text.trim().isEmpty
+                        ? null
+                        : _detail.text.trim(),
+                  )),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+    );
+  }
+}
+
+/// Destructive confirm: danger fill + border, never lime — rejecting an
+/// extraction is not the screen's "go" action.
+class _DangerButton extends StatefulWidget {
+  const _DangerButton({required this.label, this.onPressed});
+
+  final String label;
+  final VoidCallback? onPressed;
+
+  @override
+  State<_DangerButton> createState() => _DangerButtonState();
+}
+
+class _DangerButtonState extends State<_DangerButton> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final enabled = widget.onPressed != null;
+    return Semantics(
+      button: true,
+      enabled: enabled,
+      label: widget.label,
+      child: GestureDetector(
+        onTap: widget.onPressed,
+        onTapDown: enabled ? (_) => setState(() => _pressed = true) : null,
+        onTapUp: enabled ? (_) => setState(() => _pressed = false) : null,
+        onTapCancel: enabled ? () => setState(() => _pressed = false) : null,
+        child: AnimatedScale(
+          scale: _pressed ? SeoulMotion.pressScale : 1.0,
+          duration: SeoulMotion.fast,
+          curve: SeoulMotion.smooth,
+          child: Container(
+            height: SeoulSizes.minTapTarget,
+            alignment: Alignment.center,
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            decoration: BoxDecoration(
+              color: SeoulColors.dangerFill,
+              borderRadius: SeoulRadii.controlR,
+              border: Border.all(color: SeoulColors.danger, width: 1),
+            ),
+            child: Text(
+              widget.label,
+              style: SeoulType.button.copyWith(color: SeoulColors.dangerText),
+            ),
+          ),
         ),
-        FilledButton(
-          onPressed: () => Navigator.of(context).pop((
-            reason: _reason,
-            detail: _detail.text.trim().isEmpty ? null : _detail.text.trim(),
-          )),
-          child: const Text('Reject'),
+      ),
+    );
+  }
+}
+
+/// Glass circle button (back / refresh). Null [onTap] disables it.
+class _GlassCircleButton extends StatelessWidget {
+  const _GlassCircleButton({
+    required this.icon,
+    required this.tooltip,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final enabled = onTap != null;
+    return Semantics(
+      button: true,
+      enabled: enabled,
+      label: tooltip,
+      child: Tooltip(
+        message: tooltip,
+        child: GestureDetector(
+          onTap: onTap,
+          child: AnimatedOpacity(
+            opacity: enabled ? 1.0 : 0.45,
+            duration: SeoulMotion.fast,
+            child: Container(
+              width: SeoulSizes.minTapTarget,
+              height: SeoulSizes.minTapTarget,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: SeoulColors.glass,
+                border: Border.all(color: SeoulColors.glassBorder),
+              ),
+              child: Icon(icon, size: 20, color: SeoulColors.textPrimary),
+            ),
+          ),
         ),
-      ],
+      ),
     );
   }
 }
@@ -518,35 +826,60 @@ class _RejectReasonDialogState extends State<_RejectReasonDialog> {
 class _LoadingScaffold extends StatelessWidget {
   const _LoadingScaffold();
   @override
-  Widget build(BuildContext context) =>
-      const Scaffold(body: Center(child: CircularProgressIndicator()));
+  Widget build(BuildContext context) => const SeoulNightScaffold(
+    body: Center(child: CircularProgressIndicator(color: SeoulColors.lime)),
+  );
 }
 
 class _ErrorScaffold extends StatelessWidget {
   const _ErrorScaffold({required this.error});
   final String error;
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Review')),
-    body: Center(child: Text(error)),
+  Widget build(BuildContext context) => SeoulNightScaffold(
+    body: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const _Header(title: 'Review'),
+        Expanded(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Text(
+                error,
+                textAlign: TextAlign.center,
+                style: SeoulType.bodySecondary,
+              ),
+            ),
+          ),
+        ),
+      ],
+    ),
   );
 }
 
 class _ForbiddenScaffold extends StatelessWidget {
   const _ForbiddenScaffold();
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Review')),
-    body: const Center(
-      child: Padding(
-        padding: EdgeInsets.all(24),
-        child: Text(
-          'This area is for Hanguk staff only. '
-          'If you should have access, ask an admin to add your '
-          'staff role.',
-          textAlign: TextAlign.center,
+  Widget build(BuildContext context) => const SeoulNightScaffold(
+    body: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _Header(title: 'Review'),
+        Expanded(
+          child: Center(
+            child: Padding(
+              padding: EdgeInsets.all(24),
+              child: Text(
+                'This area is for Hanguk staff only. '
+                'If you should have access, ask an admin to add your '
+                'staff role.',
+                textAlign: TextAlign.center,
+                style: SeoulType.bodySecondary,
+              ),
+            ),
+          ),
         ),
-      ),
+      ],
     ),
   );
 }

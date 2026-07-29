@@ -1,86 +1,149 @@
 import 'package:flutter/material.dart';
 
+import '../../../../design_system/seoul_night/seoul_night.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../domain/upcoming_deadline.dart';
 
 /// Read-only card surfacing one verified upcoming deadline.
 ///
 /// Plan §H.5. The "verified" badge differentiates these from the
 /// user-typed free-text application entries.
+///
+/// Seoul Night pass: glass card with the university's hangul glyph tile and a
+/// countdown [StatusChip] whose tone tracks urgency — lime while the date is
+/// comfortably ahead, warning inside a week, danger once it has passed.
 class VerifiedDeadlineCard extends StatelessWidget {
   const VerifiedDeadlineCard({super.key, required this.deadline, this.onTap});
 
   final UpcomingDeadline deadline;
   final VoidCallback? onTap;
 
+  /// Days within which a deadline reads as urgent (warning tone).
+  static const int _urgentDays = 7;
+
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final countdown = _countdown(deadline.startsAt);
-    final eventLabel = _formatEventType(deadline.eventType);
-    final cycleLabel = _cycleLabel(deadline.cycleTrack);
+    final l10n = AppLocalizations.of(context)!;
+    final eventLabel = _formatEventType(l10n, deadline.eventType);
+    final cycleLabel = _cycleLabel(l10n, deadline.cycleTrack);
+    final nameEn = deadline.nameEn;
 
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return GlassCard(
+      margin: const EdgeInsets.symmetric(
+        horizontal: SeoulSizes.screenPadding,
+        vertical: 6,
+      ),
+      padding: const EdgeInsets.all(16),
+      radius: SeoulRadii.tile,
+      // These render in a list; a saved layer per card is not worth it.
+      blur: false,
+      onTap: onTap,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
+              HangulGlyphTile(
+                glyph: HangulGlyphTile.firstSyllable(
+                  deadline.nameKoShort ?? deadline.nameKo,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
                       deadline.nameKo,
-                      style: theme.textTheme.titleMedium,
+                      style: SeoulType.subtitle,
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                  const _VerifiedBadge(),
-                ],
-              ),
-              if (deadline.nameEn != null && deadline.nameEn!.isNotEmpty)
-                Text(
-                  deadline.nameEn!,
-                  style: theme.textTheme.bodySmall,
-                  overflow: TextOverflow.ellipsis,
+                    if (nameEn != null && nameEn.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        nameEn,
+                        style: SeoulType.caption,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ],
                 ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 4,
-                children: [
-                  if (cycleLabel != null) _Pill(text: cycleLabel),
-                  _Pill(text: eventLabel),
-                  if (deadline.applicantCategory != null)
-                    _Pill(text: deadline.applicantCategory!),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  const Icon(Icons.event, size: 16),
-                  const SizedBox(width: 4),
-                  Text(_formatDate(deadline.startsAt)),
-                  const Spacer(),
-                  Text(countdown, style: theme.textTheme.labelMedium),
-                ],
               ),
             ],
           ),
-        ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 6,
+            children: [
+              // The point of the card: this date came from the verified DB,
+              // not from a student's free-text entry.
+              StatusChip(
+                label: l10n.universityVerified,
+                tone: StatusTone.info,
+                dense: true,
+              ),
+              if (cycleLabel != null)
+                StatusChip(label: cycleLabel, dense: true),
+              StatusChip(label: eventLabel, dense: true),
+              if (deadline.applicantCategory != null)
+                StatusChip(label: deadline.applicantCategory!, dense: true),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              const Icon(
+                Icons.event_outlined,
+                size: 16,
+                color: SeoulColors.textFaint,
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  _formatDate(deadline.startsAt),
+                  style: SeoulType.caption,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 8),
+              _countdownChip(l10n),
+            ],
+          ),
+        ],
       ),
     );
   }
 
-  static String _countdown(DateTime when) {
-    final delta = when.difference(DateTime.now());
-    if (delta.isNegative) return 'closed';
-    if (delta.inDays >= 1) return 'in ${delta.inDays}d';
-    if (delta.inHours >= 1) return 'in ${delta.inHours}h';
-    return 'in ${delta.inMinutes}m';
+  /// Countdown chip, toned by urgency: danger once the date has passed (with
+  /// the 마감 status word), warning within [_urgentDays] days, lime while the
+  /// student is comfortably ahead.
+  StatusChip _countdownChip(AppLocalizations l10n) {
+    final delta = deadline.startsAt.difference(DateTime.now());
+    if (delta.isNegative) {
+      return StatusChip(
+        label: l10n.deadlineClosed,
+        ko: '마감',
+        tone: StatusTone.danger,
+        dense: true,
+      );
+    }
+    final String label;
+    if (delta.inDays >= 1) {
+      label = l10n.deadlineInDays(delta.inDays);
+    } else if (delta.inHours >= 1) {
+      label = l10n.deadlineInHours(delta.inHours);
+    } else {
+      label = l10n.deadlineInMinutes(delta.inMinutes);
+    }
+    return StatusChip(
+      label: label,
+      tone: delta.inDays < _urgentDays ? StatusTone.warning : StatusTone.lime,
+      dense: true,
+    );
   }
 
   static String _formatDate(DateTime when) {
@@ -91,75 +154,36 @@ class VerifiedDeadlineCard extends StatelessWidget {
         '${local.minute.toString().padLeft(2, '0')}';
   }
 
-  static String _formatEventType(String raw) {
+  static String _formatEventType(AppLocalizations l10n, String raw) {
     return switch (raw) {
-      'apply_open' => 'Application opens',
-      'apply_close' => 'Application closes',
-      'document_submission_deadline' => 'Documents due',
-      'first_stage_results' => '1st stage results',
-      'interview' => 'Interview',
-      'practical_exam' => 'Practical exam',
-      'final_results' => 'Final results',
-      'additional_admit' => 'Additional admit',
-      'registration_open' => 'Registration opens',
-      'registration_close' => 'Registration closes',
+      'apply_open' => l10n.eventApplyOpen,
+      'apply_close' => l10n.eventApplyClose,
+      'document_submission_deadline' => l10n.eventDocumentsDue,
+      'first_stage_results' => l10n.eventFirstStageResults,
+      'interview' => l10n.eventInterviewLabel,
+      'practical_exam' => l10n.eventPracticalExam,
+      'final_results' => l10n.eventFinalResults,
+      'additional_admit' => l10n.eventAdditionalAdmit,
+      'registration_open' => l10n.eventRegistrationOpen,
+      'registration_close' => l10n.eventRegistrationClose,
+      // An event type the DB writes that this app does not model yet — the
+      // raw value is the honest thing to show.
       _ => raw,
     };
   }
 
-  static String? _cycleLabel(String? track) {
+  static String? _cycleLabel(AppLocalizations l10n, String? track) {
     if (track == null) return null;
     return switch (track) {
-      'foreign' => 'Foreign track',
-      'overseas_korean_full' => 'Overseas Korean (full)',
-      'overseas_korean_partial' => 'Overseas Korean (partial)',
-      'susi' => 'Susi',
-      'jeongsi' => 'Jeongsi',
-      'transfer' => 'Transfer',
-      'grad_general' => 'Graduate',
-      'grad_foreign' => 'Graduate (foreign)',
+      'foreign' => l10n.cycleForeign,
+      'overseas_korean_full' => l10n.cycleOverseasKoreanFull,
+      'overseas_korean_partial' => l10n.cycleOverseasKoreanPartial,
+      'susi' => l10n.cycleSusi,
+      'jeongsi' => l10n.cycleJeongsi,
+      'transfer' => l10n.cycleTransfer,
+      'grad_general' => l10n.cycleGradGeneral,
+      'grad_foreign' => l10n.cycleGradForeign,
       _ => track,
     };
-  }
-}
-
-class _VerifiedBadge extends StatelessWidget {
-  const _VerifiedBadge();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.secondaryContainer,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: const [
-          Icon(Icons.verified, size: 12),
-          SizedBox(width: 4),
-          Text('verified', style: TextStyle(fontSize: 11)),
-        ],
-      ),
-    );
-  }
-}
-
-class _Pill extends StatelessWidget {
-  const _Pill({required this.text});
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(text, style: const TextStyle(fontSize: 11)),
-    );
   }
 }
