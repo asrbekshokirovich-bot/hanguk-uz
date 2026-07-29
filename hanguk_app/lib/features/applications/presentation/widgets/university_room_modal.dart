@@ -205,8 +205,10 @@ class _UniversityRoomModalState extends State<UniversityRoomModal> {
       child: Text(msg.content, style: SeoulType.body),
     );
 
-    final timestamp =
-        '${msg.createdAt.hour}:${msg.createdAt.minute.toString().padLeft(2, '0')}';
+    // `.toLocal()`, and a padded 24h format: these timestamps come from a
+    // `Z` string, so rendering them raw showed every message 5 hours early in
+    // Tashkent and 9 in Seoul — and `9:05` unpadded read as a broken clock.
+    final timestamp = DateFormat.Hm().format(msg.createdAt.toLocal());
 
     if (isMine) {
       return Padding(
@@ -391,7 +393,7 @@ class _UniversityRoomModalState extends State<UniversityRoomModal> {
                     decoration: BoxDecoration(
                       color: SeoulColors.glassBorder,
                       // 999 is the design system's pill idiom.
-                      borderRadius: BorderRadius.circular(999),
+                      borderRadius: BorderRadius.circular(SeoulRadii.pill),
                     ),
                   ),
                 ),
@@ -730,7 +732,7 @@ class _AnnouncementRow extends StatelessWidget {
                   StatusChip(
                     label: DateFormat(
                       'yyyy-MM-dd',
-                    ).format(announcement.postedAt!),
+                    ).format(announcement.postedAt!.toLocal()),
                     dense: true,
                   ),
                 ],
@@ -788,7 +790,7 @@ class _EventRow extends StatelessWidget {
                 ],
                 const SizedBox(height: 6),
                 StatusChip(
-                  label: DateFormat('hh:mm a').format(event.eventDate),
+                  label: DateFormat.Hm().format(event.eventDate.toLocal()),
                   tone: isDeadline ? StatusTone.warning : StatusTone.neutral,
                   dense: true,
                 ),

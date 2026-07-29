@@ -140,18 +140,43 @@ class _ChangeLine extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          // 정정공고 stays Korean in every locale — it is the official term
-          // the student encounters on Korean university sites.
-          StatusChip(
-            label: correction
-                ? '정정공고'
-                : (change.fieldName ?? change.entityType),
-            tone: correction ? StatusTone.warning : StatusTone.neutral,
-            dense: true,
+          // Flexible, because StatusChip's own ellipsis only engages under a
+          // bounded constraint — as a plain Row child it got an unbounded one
+          // and simply overflowed. A tracked field like
+          // `document_submission_deadline` blew the row by 131px on a 320pt
+          // phone at 2x font.
+          Flexible(
+            child: StatusChip(
+              // 정정공고 stays Korean in every locale — it is the official
+              // term the student encounters on Korean university sites.
+              label: correction
+                  ? '정정공고'
+                  : _humanizeField(change.fieldName ?? change.entityType),
+              tone: correction ? StatusTone.warning : StatusTone.neutral,
+              dense: true,
+            ),
           ),
         ],
       ),
     );
+  }
+
+  /// Turn a database column name into something a person can read.
+  ///
+  /// These are raw identifiers from the change feed — `document_submission_
+  /// deadline`, `admission_cycle` — and the set is open-ended, so they cannot
+  /// all be given translation keys. Un-snaking them is presentation, not
+  /// invention: the student still sees exactly the field that changed, just
+  /// not in database casing.
+  static String _humanizeField(String raw) {
+    final words = raw
+        .split(RegExp(r'[_\s]+'))
+        .where((w) => w.isNotEmpty)
+        .toList(growable: false);
+    if (words.isEmpty) return raw;
+    return words
+        .map((w) => w[0].toUpperCase() + w.substring(1).toLowerCase())
+        .join(' ');
   }
 
   static String _relative(AppLocalizations l10n, DateTime when) {

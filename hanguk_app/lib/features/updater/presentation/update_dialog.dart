@@ -245,7 +245,7 @@ class _DownloadingView extends StatelessWidget {
               // Indeterminate — GlowProgressBar needs a value, so fall back
               // to a token-tinted Material bar in the same pill silhouette.
               ClipRRect(
-                borderRadius: BorderRadius.circular(999),
+                borderRadius: BorderRadius.circular(SeoulRadii.pill),
                 child: const LinearProgressIndicator(
                   minHeight: 8,
                   backgroundColor: SeoulColors.neutralFill,

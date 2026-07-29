@@ -100,3 +100,8 @@ test/**/_tmp_*_test.dart
 tools/kr-500.ttf
 tools/kr-700.ttf
 tools/kr-900.ttf
+
+# Throwaway layout probes. Reviewers write these to measure overflow and tap
+# targets at real device sizes, then delete them; ignoring the prefix means a
+# stray one can never ride along in a commit.
+test/zz_probe_*

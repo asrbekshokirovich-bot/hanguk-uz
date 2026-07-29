@@ -5,6 +5,7 @@ import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../l10n/app_localizations.dart';
 import '../data/uni_db_providers.dart';
 import 'widgets/coming_soon_card.dart';
+import '../../map/data/map_repository.dart';
 
 /// `/notifications/settings` — per-tracked-university notification prefs.
 ///
@@ -115,6 +116,21 @@ class _PrefsCardState extends ConsumerState<_PrefsCard> {
 
   String get _institutionId => widget.row['institution_id'] as String;
 
+  /// The university's name, not its primary key.
+  ///
+  /// This card heads a set of toggles that decide which alerts a student
+  /// gets, so it has to say *which university* — it was rendering the raw
+  /// UUID, leaving no way to tell one card from another. Falls back to the
+  /// id only if the catalogue has not loaded or no longer has the row.
+  String get _institutionName {
+    final unis = ref.watch(universitiesProvider).value;
+    if (unis == null) return _institutionId;
+    for (final u in unis) {
+      if (u.id == _institutionId) return u.name;
+    }
+    return _institutionId;
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -142,7 +158,7 @@ class _PrefsCardState extends ConsumerState<_PrefsCard> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      _institutionId,
+                      _institutionName,
                       style: SeoulType.subtitle,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -224,9 +240,12 @@ class _PrefsCardState extends ConsumerState<_PrefsCard> {
 }
 
 /// One notification preference: title + description on the left, a Seoul
-/// Night toggle on the right. The whole row is left to the toggle's own tap
-/// box — the text is descriptive, not interactive, exactly like the old
-/// SwitchListTile's behaviour with `onChanged` on the switch only.
+/// Night toggle on the right.
+///
+/// The whole row is the tap target, which is what the `SwitchListTile` this
+/// replaced always did. Leaving only the 64px pill live meant tapping the
+/// words "Correction notices" did nothing — a fifth of the row's width was
+/// interactive and the rest looked identical.
 class _ToggleRow extends StatelessWidget {
   const _ToggleRow({
     required this.title,
@@ -242,27 +261,42 @@ class _ToggleRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: SeoulType.body),
-                const SizedBox(height: 2),
-                Text(subtitle, style: SeoulType.caption),
-              ],
-            ),
+    final enabled = onChanged != null;
+    return Semantics(
+      toggled: value,
+      enabled: enabled,
+      label: title,
+      child: GestureDetector(
+        onTap: enabled ? () => onChanged!(!value) : null,
+        behavior: HitTestBehavior.opaque,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title, style: SeoulType.body),
+                    const SizedBox(height: 2),
+                    Text(subtitle, style: SeoulType.caption),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              // The pill no longer needs its own semantics — the row above
+              // announces the switch, and two nested toggles would be read
+              // out twice.
+              ExcludeSemantics(
+                child: _SeoulToggle(
+                  value: value,
+                  semanticLabel: title,
+                  onChanged: onChanged,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 10),
-          _SeoulToggle(
-            value: value,
-            semanticLabel: title,
-            onChanged: onChanged,
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -308,7 +342,7 @@ class _SeoulToggle extends StatelessWidget {
                 padding: const EdgeInsets.all(3),
                 decoration: BoxDecoration(
                   color: value ? SeoulColors.lime : SeoulColors.neutralFill,
-                  borderRadius: BorderRadius.circular(999),
+                  borderRadius: BorderRadius.circular(SeoulRadii.pill),
                   border: Border.all(
                     color: value ? SeoulColors.lime : SeoulColors.glassBorder,
                   ),

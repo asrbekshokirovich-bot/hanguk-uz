@@ -82,39 +82,66 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
                     ),
                   );
                 }
-                return Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    SizedBox(
-                      width: 360,
-                      child: _QueueList(
-                        items: items,
-                        selected: _selected,
-                        onSelect: (item) => setState(() => _selected = item),
-                      ),
-                    ),
-                    // Hairline between the two panes.
-                    const SizedBox(
-                      width: 1,
-                      child: ColoredBox(color: SeoulColors.glassBorder),
-                    ),
-                    Expanded(
-                      child: _selected == null
-                          ? const Center(
-                              child: Text(
-                                'Select a queue item on the left.',
-                                style: SeoulType.bodySecondary,
-                              ),
-                            )
-                          : _DetailPane(
-                              item: _selected!,
-                              busy: _busy,
-                              onAccept: _onAccept,
-                              onEditAccept: _onEditAccept,
-                              onReject: _onReject,
-                            ),
-                    ),
-                  ],
+                // Two panes need room for two panes. A fixed 360px queue
+                // beside an Expanded detail leaves the detail 0px wide at
+                // 360pt and clips the queue by 41px at 320 — a reviewer on a
+                // phone taps an item and nothing appears, with Accept and
+                // Reject laid out into a zero-width box. Below the breakpoint
+                // the queue becomes a full-width list that pushes the detail
+                // on as its own screen instead.
+                return LayoutBuilder(
+                  builder: (context, constraints) {
+                    const queueWidth = 360.0;
+                    // queue + hairline + a detail pane wide enough to hold
+                    // the action row.
+                    final sideBySide = constraints.maxWidth >= queueWidth + 361;
+
+                    final queue = _QueueList(
+                      items: items,
+                      selected: _selected,
+                      onSelect: (item) => setState(() => _selected = item),
+                    );
+
+                    if (!sideBySide) {
+                      if (_selected == null) return queue;
+                      return _DetailPane(
+                        item: _selected!,
+                        busy: _busy,
+                        onBack: () => setState(() => _selected = null),
+                        onAccept: _onAccept,
+                        onEditAccept: _onEditAccept,
+                        onReject: _onReject,
+                      );
+                    }
+
+                    return Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        SizedBox(width: queueWidth, child: queue),
+                        // Hairline between the two panes.
+                        const SizedBox(
+                          width: 1,
+                          child: ColoredBox(color: SeoulColors.glassBorder),
+                        ),
+                        Expanded(
+                          child: _selected == null
+                              ? const Center(
+                                  child: Text(
+                                    'Select a queue item on the left.',
+                                    style: SeoulType.bodySecondary,
+                                  ),
+                                )
+                              : _DetailPane(
+                                  item: _selected!,
+                                  busy: _busy,
+                                  onAccept: _onAccept,
+                                  onEditAccept: _onEditAccept,
+                                  onReject: _onReject,
+                                ),
+                        ),
+                      ],
+                    );
+                  },
                 );
               },
             ),
@@ -326,6 +353,7 @@ class _DetailPane extends StatelessWidget {
   const _DetailPane({
     required this.item,
     required this.busy,
+    this.onBack,
     required this.onAccept,
     required this.onEditAccept,
     required this.onReject,
@@ -333,6 +361,10 @@ class _DetailPane extends StatelessWidget {
 
   final ReviewQueueItem item;
   final bool busy;
+
+  /// Set only in the stacked (narrow) layout, where the detail replaces the
+  /// queue instead of sitting beside it and so needs its own way back.
+  final VoidCallback? onBack;
   final Future<void> Function(ReviewQueueItem) onAccept;
   final Future<void> Function(ReviewQueueItem, Map<String, dynamic>)
   onEditAccept;
@@ -349,7 +381,27 @@ class _DetailPane extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(item.institutionLabel, style: SeoulType.title),
+          if (onBack == null)
+            Text(item.institutionLabel, style: SeoulType.title)
+          else
+            Row(
+              children: [
+                _GlassCircleButton(
+                  icon: Icons.arrow_back_rounded,
+                  tooltip: 'Back to queue',
+                  onTap: onBack!,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    item.institutionLabel,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: SeoulType.title,
+                  ),
+                ),
+              ],
+            ),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
@@ -578,24 +630,35 @@ class _EditPayloadDialogState extends State<_EditPayloadDialog> {
 
   @override
   Widget build(BuildContext context) {
+    // A Dialog clamps itself to `screen - 56`, so a hard 700x(420 + chrome)
+    // could not fit on a phone: measured 39px of horizontal and 38px of
+    // vertical overflow at 320x568, worse at larger fonts. Both axes now
+    // yield — the editor takes the room that is left rather than demanding
+    // a fixed slab.
+    final media = MediaQuery.of(context);
     return _SeoulDialog(
-      child: SizedBox(
-        width: 700,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: 700,
+          maxHeight: media.size.height * 0.8,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const Text('Edit payload', style: SeoulType.title),
             const SizedBox(height: 14),
-            SizedBox(
-              height: 420,
-              child: TextField(
-                controller: _controller,
-                maxLines: null,
-                expands: true,
-                cursorColor: SeoulColors.lime,
-                style: _monoStyle,
-                decoration: _fieldDecoration(),
+            Flexible(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 140),
+                child: TextField(
+                  controller: _controller,
+                  maxLines: null,
+                  expands: true,
+                  cursorColor: SeoulColors.lime,
+                  style: _monoStyle,
+                  decoration: _fieldDecoration(),
+                ),
               ),
             ),
             if (_error != null)
@@ -609,8 +672,12 @@ class _EditPayloadDialogState extends State<_EditPayloadDialog> {
                 ),
               ),
             const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
+            // Wrap, not Row: two intrinsic-width buttons in a Row inside a
+            // dialog get unbounded constraints and simply run off the edge.
+            Wrap(
+              alignment: WrapAlignment.end,
+              spacing: 8,
+              runSpacing: 8,
               children: [
                 SeoulOutlineButton(
                   label: 'Cancel',
@@ -618,7 +685,6 @@ class _EditPayloadDialogState extends State<_EditPayloadDialog> {
                   height: SeoulSizes.minTapTarget,
                   onPressed: () => Navigator.of(context).pop(),
                 ),
-                const SizedBox(width: 8),
                 LimeButton(
                   label: 'Save & accept',
                   expand: false,
