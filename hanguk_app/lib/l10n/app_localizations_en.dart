@@ -1485,4 +1485,7 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get welcomeGuestCaption =>
       'No code needed — browse, filter and compare freely.';
+
+  @override
+  String get homeNotifications => 'Notifications';
 }

@@ -1481,4 +1481,7 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get welcomeGuestCaption =>
       'Không cần mã — tự do duyệt, lọc và so sánh.';
+
+  @override
+  String get homeNotifications => 'Thông báo';
 }

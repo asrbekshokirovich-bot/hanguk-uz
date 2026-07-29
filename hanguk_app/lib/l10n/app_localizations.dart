@@ -2755,6 +2755,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No code needed — browse, filter and compare freely.'**
   String get welcomeGuestCaption;
+
+  /// Accessibility label for the notification bell in the Home top bar (DESIGN_SPEC §3.3).
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get homeNotifications;
 }
 
 class _AppLocalizationsDelegate

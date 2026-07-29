@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../l10n/app_localizations.dart';
@@ -93,6 +95,22 @@ int _collectedDocuments(List<AppDocument> uploaded) {
     }
   }
   return collected;
+}
+
+/// The student's display name for the greeting header.
+///
+/// Same source the interview and study-plan screens read —
+/// `user_metadata.full_name` — so the name is consistent across the app.
+/// Falls back to the email's local part, then to empty (the header then shows
+/// the greeting alone rather than a placeholder name).
+String _studentDisplayName() {
+  final user = Supabase.instance.client.auth.currentUser;
+  final raw = user?.userMetadata?['full_name'];
+  final name = raw is String ? raw.trim() : '';
+  if (name.isNotEmpty) return name;
+  final email = user?.email ?? '';
+  final at = email.indexOf('@');
+  return at > 0 ? email.substring(0, at) : '';
 }
 
 /// Matches a string that opens with a hangul syllable (U+AC00–U+D7A3).
@@ -224,16 +242,113 @@ class SeoulHomeTab extends ConsumerWidget {
         SeoulSizes.orbClearance,
       ),
       children: [
-        Text(_greetingKo(hour), style: SeoulType.hangulLabel),
-        const SizedBox(height: 4),
-        Text(_greeting(l, hour), style: SeoulType.display),
-        const SizedBox(height: 24),
+        // Top bar (spec §3.3): avatar, greeting + name, notification bell.
+        _HomeTopBar(
+          greetingLine: '${_greetingKo(hour)} · ${_greeting(l, hour)}',
+          name: _studentDisplayName(),
+        ),
+        const SizedBox(height: 22),
 
         journeyCard,
         const SizedBox(height: 14),
         nextStepCard,
 
         ...previews,
+      ],
+    );
+  }
+}
+
+/// The Home top bar (spec §3.3): a profile avatar, the greeting with the
+/// student's name, and the notification bell. The avatar and bell both open
+/// the account screen — the app has no separate notifications inbox.
+class _HomeTopBar extends StatelessWidget {
+  const _HomeTopBar({required this.greetingLine, required this.name});
+
+  /// "좋은 저녁 · Good evening" — the hangul greeting and its translation.
+  final String greetingLine;
+
+  /// The student's name, or empty when it isn't known.
+  final String name;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    final initial = name.isNotEmpty ? name.characters.first.toUpperCase() : '한';
+
+    return Row(
+      children: [
+        Semantics(
+          button: true,
+          label: name.isNotEmpty ? name : l.navHome,
+          child: GestureDetector(
+            onTap: () => context.push('/account'),
+            child: Container(
+              width: 46,
+              height: 46,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                gradient: SeoulGradients.heroCard,
+                borderRadius: SeoulRadii.controlR,
+                border: Border.all(color: SeoulColors.heroBorder),
+              ),
+              child: Text(
+                initial,
+                style: SeoulType.subtitle.copyWith(
+                  color: SeoulColors.textPrimary,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 14),
+        Expanded(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                greetingLine,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: SeoulType.caption,
+              ),
+              if (name.isNotEmpty) ...[
+                const SizedBox(height: 2),
+                Text(
+                  name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: SeoulType.title,
+                ),
+              ],
+            ],
+          ),
+        ),
+        const SizedBox(width: 12),
+        Semantics(
+          button: true,
+          label: l.homeNotifications,
+          child: GestureDetector(
+            onTap: () => context.push('/account'),
+            child: Container(
+              width: SeoulSizes.minTapTarget,
+              height: SeoulSizes.minTapTarget,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: SeoulColors.glass,
+                border: Border.all(color: SeoulColors.glassBorder),
+              ),
+              child: const Icon(
+                Icons.notifications_none_rounded,
+                size: 20,
+                color: SeoulColors.textSecondary,
+              ),
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -312,6 +427,8 @@ class _JourneyHeroCard extends StatelessWidget {
             alignment: Alignment.centerLeft,
             child: LimeButton(
               label: l.homeContinueJourney,
+              icon: Icons.arrow_forward_rounded,
+              iconAfterLabel: true,
               expand: false,
               onPressed: onContinue,
             ),
@@ -459,10 +576,18 @@ class _SectionHeader extends StatelessWidget {
                   titleStyle: SeoulType.subtitle,
                 ),
               ),
+              // The prototype's "View All" on the right of the section header.
+              Text(
+                l.homeViewAll,
+                style: SeoulType.caption.copyWith(
+                  color: SeoulColors.textSecondary,
+                ),
+              ),
+              const SizedBox(width: 6),
               const Icon(
                 Icons.arrow_forward_ios_rounded,
-                size: 15,
-                color: SeoulColors.textFaint,
+                size: 13,
+                color: SeoulColors.textSecondary,
               ),
             ],
           ),

@@ -1435,4 +1435,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get welcomeGuestCaption => '코드 없이 자유롭게 둘러보고 비교하세요.';
+
+  @override
+  String get homeNotifications => '알림';
 }

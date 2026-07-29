@@ -527,5 +527,6 @@
   "uniDbTrackerEmptyBody": "대학 페이지에서 팔로우하면 마감일이 여기에 표시됩니다.",
   "uniDbLoadFailed": "대학 목록을 불러오지 못했습니다.",
   "loginSubmitButton": "로그인",
-  "welcomeGuestCaption": "코드 없이 자유롭게 둘러보고 비교하세요."
+  "welcomeGuestCaption": "코드 없이 자유롭게 둘러보고 비교하세요.",
+  "homeNotifications": "알림"
 }

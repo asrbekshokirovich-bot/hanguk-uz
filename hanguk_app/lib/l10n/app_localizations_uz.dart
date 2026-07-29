@@ -1490,4 +1490,7 @@ class AppLocalizationsUz extends AppLocalizations {
   @override
   String get welcomeGuestCaption =>
       'Kod shart emas — bemalol ko\'ring, filtrlang va solishtiring.';
+
+  @override
+  String get homeNotifications => 'Bildirishnomalar';
 }

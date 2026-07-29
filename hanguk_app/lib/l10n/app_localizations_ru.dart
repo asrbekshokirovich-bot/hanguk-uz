@@ -1486,4 +1486,7 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get welcomeGuestCaption =>
       'Код не нужен — свободно просматривайте, фильтруйте и сравнивайте.';
+
+  @override
+  String get homeNotifications => 'Уведомления';
 }

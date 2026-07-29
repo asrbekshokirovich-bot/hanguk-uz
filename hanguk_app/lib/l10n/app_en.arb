@@ -996,5 +996,7 @@
   "loginSubmitButton": "Login to System",
   "@loginSubmitButton": {"description": "Primary submit button on the Magic Code screen (DESIGN_SPEC §3.2). Distinct from welcomeMagicCodeCta, which is the Welcome-screen CTA that opens this screen."},
   "welcomeGuestCaption": "No code needed — browse, filter and compare freely.",
-  "@welcomeGuestCaption": {"description": "Caption under the Welcome screen's 'Explore Universities' guest button (DESIGN_SPEC §3.1)."}
+  "@welcomeGuestCaption": {"description": "Caption under the Welcome screen's 'Explore Universities' guest button (DESIGN_SPEC §3.1)."},
+  "homeNotifications": "Notifications",
+  "@homeNotifications": {"description": "Accessibility label for the notification bell in the Home top bar (DESIGN_SPEC §3.3)."}
 }
