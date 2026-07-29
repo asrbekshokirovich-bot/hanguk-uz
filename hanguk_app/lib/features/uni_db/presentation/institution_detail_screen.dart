@@ -182,7 +182,10 @@ class _HeaderHero extends StatelessWidget {
       if (summary.cityKo != null && summary.cityKo!.trim().isNotEmpty)
         StatusChip(label: summary.cityKo!),
       if (summary.tier != null)
-        StatusChip(label: l.universityTier(summary.tier!), tone: StatusTone.info),
+        StatusChip(
+          label: l.universityTier(summary.tier!),
+          tone: StatusTone.info,
+        ),
       if (summary.ieqasStatus != null)
         StatusChip(
           label: 'IEQAS · ${summary.ieqasStatus}',
@@ -301,7 +304,7 @@ class _TrackToggleState extends ConsumerState<_TrackToggle> {
           trailing: Switch(
             value: tracking,
             onChanged: _busy ? null : (v) => _toggle(v),
-            activeColor: SeoulColors.ink,
+            activeThumbColor: SeoulColors.ink,
             activeTrackColor: SeoulColors.lime,
             inactiveThumbColor: SeoulColors.textSecondary,
             inactiveTrackColor: SeoulColors.neutralFill,
@@ -610,7 +613,10 @@ class _TuitionSection extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(l.uniDbAcademicYear(mostRecentYear), style: SeoulType.eyebrow),
+              Text(
+                l.uniDbAcademicYear(mostRecentYear),
+                style: SeoulType.eyebrow,
+              ),
               const SizedBox(height: 8),
               const Divider(color: SeoulColors.glassBorder, height: 1),
               ...currentRows.map(
@@ -752,7 +758,10 @@ class _RequirementsCard extends StatelessWidget {
                   ko: '면접',
                 ),
               if (r.practicalExamRequired)
-                StatusChip(label: l.eventPracticalExam, tone: StatusTone.warning),
+                StatusChip(
+                  label: l.eventPracticalExam,
+                  tone: StatusTone.warning,
+                ),
             ],
           ),
           if (r.proseKo != null && r.proseKo!.trim().isNotEmpty) ...[
@@ -1039,11 +1048,7 @@ class _CenteredMessage extends StatelessWidget {
           children: [
             Icon(icon, size: 40, color: SeoulColors.textFaint),
             const SizedBox(height: 12),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: SeoulType.subtitle,
-            ),
+            Text(title, textAlign: TextAlign.center, style: SeoulType.subtitle),
             if (body != null) ...[
               const SizedBox(height: 8),
               Text(

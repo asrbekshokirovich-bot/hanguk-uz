@@ -174,14 +174,8 @@ class _CompareColumn extends StatelessWidget {
               ),
             ],
           ),
-          _CompareField(
-            label: l.uniDbColEnglishName,
-            child: _text(i.nameEn),
-          ),
-          _CompareField(
-            label: l.uniDbColUzbekName,
-            child: _text(i.nameUz),
-          ),
+          _CompareField(label: l.uniDbColEnglishName, child: _text(i.nameEn)),
+          _CompareField(label: l.uniDbColUzbekName, child: _text(i.nameUz)),
           _CompareField(label: l.guestRowCity, child: _text(i.cityKo)),
           _CompareField(
             label: l.guestRowTier,
@@ -192,9 +186,7 @@ class _CompareColumn extends StatelessWidget {
                     children: [
                       StatusChip(
                         label: l.universityTier(i.tier!),
-                        tone: i.tier! <= 1
-                            ? StatusTone.lime
-                            : StatusTone.info,
+                        tone: i.tier! <= 1 ? StatusTone.lime : StatusTone.info,
                         dense: true,
                       ),
                       const SizedBox(height: 8),
@@ -242,8 +234,7 @@ class _CompareColumn extends StatelessWidget {
     );
   }
 
-  static String? _date(DateTime? d) =>
-      d?.toIso8601String().split('T').first;
+  static String? _date(DateTime? d) => d?.toIso8601String().split('T').first;
 
   /// Plain value cell; em dash when the institution has no data for the row.
   static Widget _text(String? value) {
@@ -310,11 +301,7 @@ class _CenteredMessage extends StatelessWidget {
           children: [
             Icon(icon, size: 40, color: SeoulColors.textFaint),
             const SizedBox(height: 12),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: SeoulType.subtitle,
-            ),
+            Text(title, textAlign: TextAlign.center, style: SeoulType.subtitle),
             if (body != null) ...[
               const SizedBox(height: 8),
               Text(

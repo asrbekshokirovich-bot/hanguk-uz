@@ -24,8 +24,10 @@ class ComingSoonCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
+    // Scrollable so the card never stripes on a small screen at the OS's
+    // largest font setting — the empty-state bodies run long in ru/vi.
     return Center(
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.all(SeoulSizes.screenPadding),
         child: GlassCard(
           padding: const EdgeInsets.all(24),
