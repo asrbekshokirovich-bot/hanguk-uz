@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../design_system/seoul_night/seoul_night.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../data/draft_spell_checker.dart';
 import '../../data/grammar_issue_resolver.dart' as resolver;
 import '../../data/study_plan_repository.dart';
 import 'ai_highlighting_text_controller.dart';
@@ -50,6 +51,23 @@ class _AdvancedDraftingWorkspaceState
 
   Timer? _saveDebounceTimer;
   Timer? _aiSuggestionTimer;
+
+  // Spell check against the device dictionary. Separate from the AI
+  // supervisor above and deliberately much more eager: it is a local,
+  // offline lookup, so it costs nothing to run while the student types and
+  // is the only thing that can mark a word wrong the moment it is finished.
+  final DraftSpellChecker _spellChecker = DraftSpellChecker();
+  Timer? _spellCheckTimer;
+
+  /// Fires as soon as a word is completed. Anything that ends a word — the
+  /// space bar, a newline, punctuation — means there is a finished word to
+  /// judge, so the check runs immediately instead of waiting out the pause
+  /// timer.
+  static final RegExp _wordBoundary = RegExp(r'[\s.,;:!?)\]}"’”]');
+
+  /// Fallback for mid-word pauses, so a student who stops typing still gets
+  /// told about the word they left unfinished.
+  static const Duration _spellCheckIdle = Duration(milliseconds: 450);
   // Audit A10: rate-cap the AI supervise calls to once every
   // _aiMinInterval. Without it, long sessions of intermittent typing
   // pauses can fire dozens of paid Edge Function calls per minute.
@@ -68,6 +86,20 @@ class _AdvancedDraftingWorkspaceState
 
   _AiStatus _aiContextStatus = _AiStatus.waiting;
   List<GrammarIssue> _activeIssues = [];
+
+  /// Misspellings that came with a replacement, so they can be offered as
+  /// one-tap fixes alongside the AI's. A word the dictionary rejects without
+  /// suggesting anything is still underlined — it just gets no chip, because
+  /// there is nothing to put on it.
+  List<GrammarIssue> _activeSpellingFixes = [];
+
+  /// Every one-tap fix on offer. Merged through the same rule the renderer
+  /// uses, so a chip can never describe a range the underline does not agree
+  /// with — and so the AI's richer rewrite wins a word both flagged.
+  List<GrammarIssue> get _offeredFixes => AiHighlightingTextController.mergeIssues(
+    _activeIssues,
+    _activeSpellingFixes,
+  );
 
   @override
   void initState() {
@@ -92,6 +124,7 @@ class _AdvancedDraftingWorkspaceState
   void dispose() {
     _saveDebounceTimer?.cancel();
     _aiSuggestionTimer?.cancel();
+    _spellCheckTimer?.cancel();
     _controller.removeListener(_onTextChanged);
     _controller.dispose();
     _focusNode.dispose();
@@ -118,6 +151,18 @@ class _AdvancedDraftingWorkspaceState
         .read(studyPlanSessionProvider.notifier)
         .setDraftContent(widget.documentType, text);
 
+    // Spell check. Runs the instant a word is finished; otherwise waits out a
+    // short pause. Both paths are a local dictionary lookup, so unlike the AI
+    // supervisor below there is no cost to keeping up with the typing.
+    _spellCheckTimer?.cancel();
+    final justEndedAWord =
+        text.isNotEmpty && _wordBoundary.hasMatch(text.characters.last);
+    if (justEndedAWord) {
+      unawaited(_runSpellCheck(text));
+    } else {
+      _spellCheckTimer = Timer(_spellCheckIdle, () => _runSpellCheck(text));
+    }
+
     // AI Ghost Text Debounce (1 second)
     _aiSuggestionTimer?.cancel();
     _aiSuggestionTimer = Timer(const Duration(milliseconds: 1000), () {
@@ -142,6 +187,54 @@ class _AdvancedDraftingWorkspaceState
     setState(() {
       _wordCount = wordCount;
       _charCount = text.length;
+    });
+  }
+
+  /// Spell checks [text] and underlines whatever the dictionary rejects.
+  ///
+  /// The draft is checked in the language it is being written in — the track
+  /// shown on the metrics bar — not the language of the app's own interface.
+  /// A student writing an English study plan on a Uzbek-language phone must
+  /// have their English judged as English.
+  Future<void> _runSpellCheck(String text) async {
+    final track = ref
+        .read(documentSessionProvider(widget.documentType))
+        .currentSession
+        ?.selectedTrack;
+    final locale = track == 'ko'
+        ? const Locale('ko', 'KR')
+        : const Locale('en', 'US');
+
+    final found = await _spellChecker.check(locale, text);
+
+    // `null` is "no verdict" — the platform has no dictionary, or this reply
+    // was superseded. Leave the existing marks alone; clearing them would
+    // blink every underline off the screen on a dropped request.
+    if (found == null || !mounted) return;
+
+    // The text may have moved on while we were awaiting. Ranges computed
+    // against the older snapshot would underline the wrong characters, so
+    // drop the result rather than mark the wrong word.
+    if (_controller.text != text) return;
+
+    final issues = <GrammarIssue>[];
+    final fixes = <GrammarIssue>[];
+    for (final m in found) {
+      final issue = GrammarIssue(
+        start: m.start,
+        end: m.end,
+        originalText: m.word,
+        // A chip needs something to insert; underline-only entries keep the
+        // word itself so applying one is a no-op rather than a deletion.
+        suggestion: m.suggestions.isNotEmpty ? m.suggestions.first : m.word,
+      );
+      issues.add(issue);
+      if (m.suggestions.isNotEmpty) fixes.add(issue);
+    }
+
+    _controller.setSpellingIssues(issues);
+    setState(() {
+      _activeSpellingFixes = fixes;
     });
   }
 
@@ -328,7 +421,7 @@ class _AdvancedDraftingWorkspaceState
           ],
         ),
         const SizedBox(height: 12),
-        if (_activeIssues.isNotEmpty)
+        if (_offeredFixes.isNotEmpty)
           Container(
             margin: const EdgeInsets.only(bottom: 12),
             padding: const EdgeInsets.all(14),
@@ -371,7 +464,7 @@ class _AdvancedDraftingWorkspaceState
                     child: Wrap(
                       spacing: 8,
                       runSpacing: 8,
-                      children: _activeIssues.map((issue) {
+                      children: _offeredFixes.map((issue) {
                         return _FixChip(
                           label: l.grammarReplaceWith(
                             issue.originalText,
