@@ -1475,4 +1475,7 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get uniDbTrackerEmptyBody =>
       'Track a university on its page and its deadlines will appear here.';
+
+  @override
+  String get uniDbLoadFailed => 'Couldn\'t load the university list.';
 }

@@ -524,5 +524,6 @@
   "uniDbColLastVerified": "Xác minh lần cuối",
   "uniDbTrackerTitle": "Theo dõi hồ sơ",
   "uniDbTrackerEmptyTitle": "Chưa theo dõi trường nào",
-  "uniDbTrackerEmptyBody": "Theo dõi một trường trên trang của trường đó — hạn chót sẽ hiện ở đây."
+  "uniDbTrackerEmptyBody": "Theo dõi một trường trên trang của trường đó — hạn chót sẽ hiện ở đây.",
+  "uniDbLoadFailed": "Không tải được danh sách trường đại học."
 }

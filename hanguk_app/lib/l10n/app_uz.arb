@@ -524,5 +524,6 @@
   "uniDbColLastVerified": "Oxirgi tekshiruv",
   "uniDbTrackerTitle": "Arizalar kuzatuvi",
   "uniDbTrackerEmptyTitle": "Hali kuzatilayotgan universitetlar yo'q",
-  "uniDbTrackerEmptyBody": "Universitet sahifasida uni kuzatuvga qo'shing — muddatlari shu yerda ko'rinadi."
+  "uniDbTrackerEmptyBody": "Universitet sahifasida uni kuzatuvga qo'shing — muddatlari shu yerda ko'rinadi.",
+  "uniDbLoadFailed": "Universitetlar ro'yxatini yuklab bo'lmadi."
 }

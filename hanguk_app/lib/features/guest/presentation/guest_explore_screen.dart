@@ -25,9 +25,12 @@ class GuestExploreScreen extends ConsumerWidget {
   static List<String> _cityOptions(List<University> unis) {
     final counts = <String, int>{};
     for (final u in unis) {
-      final c = u.location.trim();
-      if (c.isEmpty) continue;
-      counts[c] = (counts[c] ?? 0) + 1;
+      // `hasRealCity`, not just non-empty: `city_ko` is null for 87 of 204
+      // institutions and the repository substitutes 'South Korea'. Counted as
+      // a city it outranked 서울 and led the filter row — a country offered
+      // as a city filter, in English.
+      if (!u.hasRealCity) continue;
+      counts[u.location.trim()] = (counts[u.location.trim()] ?? 0) + 1;
     }
     final cities = counts.keys.toList()
       ..sort((a, b) {
@@ -74,7 +77,7 @@ class GuestExploreScreen extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                l.appsLoadError,
+                l.uniDbLoadFailed,
                 textAlign: TextAlign.center,
                 style: SeoulType.bodySecondary,
               ),
@@ -351,12 +354,17 @@ class _GuestUniversityCard extends StatelessWidget {
                         style: SeoulType.caption,
                       ),
                     ),
-                    if (university.ieqasStatus != null) ...[
+                    // `isAccredited`, not a null check: `ieqas_status` is
+                    // 'none' for 74 of 204 rows, which would render a blue
+                    // pill reading "none" next to the university's city.
+                    if (university.isAccredited) ...[
                       const SizedBox(width: 8),
-                      StatusChip(
-                        label: university.ieqasStatus!,
-                        tone: StatusTone.info,
-                        dense: true,
+                      Flexible(
+                        child: StatusChip(
+                          label: university.ieqasStatus!,
+                          tone: StatusTone.info,
+                          dense: true,
+                        ),
                       ),
                     ],
                   ],

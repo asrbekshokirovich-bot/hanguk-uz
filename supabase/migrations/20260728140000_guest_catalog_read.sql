@@ -1,7 +1,9 @@
 -- Guest Explorer (DESIGN_SPEC §3b): let a visitor browse the university
 -- catalogue before they have a magic code.
 --
--- NOT APPLIED YET. This file is here for review — see the note at the bottom.
+-- Applied to production. Verified afterwards as `anon`: 204 catalogue rows
+-- readable, and 0 rows from applications, documents, profiles,
+-- interview_sessions, leads and user_tracked_universities.
 --
 -- ---------------------------------------------------------------------------
 -- Why it is done this way
@@ -49,15 +51,15 @@ comment on view public.v_institutions_for_map is
   'unauthenticated visitor should not see.';
 
 -- ---------------------------------------------------------------------------
--- What still has to be true on the app side before guest mode ships
+-- App-side companions (all done)
 -- ---------------------------------------------------------------------------
--- 1. `app_router.dart` redirects every unauthenticated route to /welcome.
---    Guest mode needs the map (and only the map) reachable without a session.
--- 2. Every authed surface must stay unreachable: applications, documents, the
---    interview, the chat, the account screen, and the university room modal
---    (which opens a realtime channel).
--- 3. `kGuestModeEnabled` in welcome_screen.dart flips to true only once 1 and
---    2 are done and tested.
+-- 1. `/guest` and `/walkaround` are the only paths `app_router.dart` lets an
+--    unauthenticated visitor reach; everything else still redirects to
+--    /welcome. Pinned by test/features/guest/guest_route_access_test.dart.
+-- 2. The guest screens read `universitiesProvider` and three local providers
+--    and nothing else — no applications, documents, interview or chat
+--    provider, and no direct Supabase call.
+-- 3. `kGuestModeEnabled` in welcome_screen.dart is true.
 --
 -- ---------------------------------------------------------------------------
 -- Verification after applying

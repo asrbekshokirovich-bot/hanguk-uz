@@ -1476,4 +1476,7 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get uniDbTrackerEmptyBody =>
       'Начните отслеживать университет на его странице — дедлайны появятся здесь.';
+
+  @override
+  String get uniDbLoadFailed => 'Не удалось загрузить список университетов.';
 }

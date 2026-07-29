@@ -26,7 +26,11 @@ class GuestMapScreen extends ConsumerWidget {
         SeoulSizes.screenPadding,
         2,
         SeoulSizes.screenPadding,
-        SeoulSizes.orbBottom + 8,
+        // The orb's tap box reaches orbBottom + orbSize + 12 up from the
+        // bottom edge and swallows anything under it — a pin in that corner
+        // was simply not tappable, and a pin is the only way into a
+        // university from here.
+        SeoulSizes.orbBottom + SeoulSizes.orbSize + 12,
       ),
       child: DecoratedBox(
         decoration: BoxDecoration(
@@ -48,7 +52,7 @@ class GuestMapScreen extends ConsumerWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      l.appsLoadError,
+                      l.uniDbLoadFailed,
                       textAlign: TextAlign.center,
                       style: SeoulType.bodySecondary,
                     ),

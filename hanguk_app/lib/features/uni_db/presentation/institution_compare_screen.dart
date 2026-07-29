@@ -124,9 +124,16 @@ class _CompareColumn extends StatelessWidget {
   /// scrolls horizontally for anything wider than the viewport.
   static const double _width = 220;
 
-  /// tier 0 (flagship) → full bar, tier 4 → empty. Tiers run 0–4 on
+  /// tier 0 (flagship) → full bar, tier 3 → nearly empty. Tiers run 0–4 on
   /// `institutions` (see University.isTopTier).
+  ///
+  /// Tier 4 means *unclassified*, not "worst" — 7 institutions carry it — so
+  /// it gets no bar at all. A 0.0 bar reads as "measured and scored zero",
+  /// which is a claim nobody made.
   static double _tierProgress(int tier) => (4 - tier) / 4;
+
+  /// Whether a bar should be drawn for this tier at all.
+  static bool _tierIsRanked(int? tier) => tier != null && tier < 4;
 
   @override
   Widget build(BuildContext context) {
@@ -189,8 +196,10 @@ class _CompareColumn extends StatelessWidget {
                         tone: i.tier! <= 1 ? StatusTone.lime : StatusTone.info,
                         dense: true,
                       ),
-                      const SizedBox(height: 8),
-                      GlowProgressBar(value: _tierProgress(i.tier!)),
+                      if (_tierIsRanked(i.tier)) ...[
+                        const SizedBox(height: 8),
+                        GlowProgressBar(value: _tierProgress(i.tier!)),
+                      ],
                     ],
                   ),
           ),

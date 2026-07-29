@@ -1426,4 +1426,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get uniDbTrackerEmptyBody => '대학 페이지에서 팔로우하면 마감일이 여기에 표시됩니다.';
+
+  @override
+  String get uniDbLoadFailed => '대학 목록을 불러오지 못했습니다.';
 }

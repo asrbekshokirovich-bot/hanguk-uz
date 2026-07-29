@@ -39,10 +39,19 @@ for loc in LOCALES:
 
 # --- used ------------------------------------------------------------------
 used = {}
-# `t` is deliberately NOT in this list: it is a common name for a domain
-# object (a tracking row, a term), and matching it reported real fields
-# like `t.intakeYear` as missing translations.
-pat = re.compile(r'\b(?:l|l10n|loc|strings|localizations)\.([a-z]\w*)')
+# Names a localizations object is actually bound to in this codebase. `t` is
+# deliberately absent — it is a common name for a domain object (a tracking
+# row, a term), and matching it reported real fields like `t.intakeYear` as
+# missing translations.
+pat = re.compile(r'\b(?:l|l10n|localizations)\.([a-z]\w*)')
+
+# Members of String/Object that a same-named local can expose. Without this,
+# `loc.startsWith(...)` on a plain String read as a missing translation key.
+NOT_KEYS = {
+    'startsWith', 'endsWith', 'contains', 'toString', 'trim', 'split',
+    'substring', 'replaceAll', 'toLowerCase', 'toUpperCase', 'isEmpty',
+    'isNotEmpty', 'length', 'hashCode', 'runtimeType', 'indexOf', 'codeUnits',
+}
 for dirpath, _dirs, files in os.walk(LIB):
     if os.path.abspath(dirpath).startswith(os.path.abspath(L10N)):
         continue
@@ -67,7 +76,7 @@ for dirpath, _dirs, files in os.walk(LIB):
 
 unknown = []
 for key, files in sorted(used.items()):
-    if key in declared:
+    if key in declared or key in NOT_KEYS:
         continue
     hit = [f for f in files if f in bound]
     if hit:

@@ -990,5 +990,7 @@
   "uniDbTrackerEmptyTitle": "No tracked universities yet",
   "@uniDbTrackerEmptyTitle": {"description": "Empty-state title on the application tracker when the user tracks nothing."},
   "uniDbTrackerEmptyBody": "Track a university on its page and its deadlines will appear here.",
-  "@uniDbTrackerEmptyBody": {"description": "Empty-state body under uniDbTrackerEmptyTitle."}
+  "@uniDbTrackerEmptyBody": {"description": "Empty-state body under uniDbTrackerEmptyTitle."},
+  "uniDbLoadFailed": "Couldn't load the university list.",
+  "@uniDbLoadFailed": {"description": "Error shown when the public university catalogue fails to load. Distinct from appsLoadError, which names the student's own applications — a guest has none."}
 }

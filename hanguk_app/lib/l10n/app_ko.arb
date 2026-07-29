@@ -524,5 +524,6 @@
   "uniDbColLastVerified": "최종 확인",
   "uniDbTrackerTitle": "지원 현황 트래커",
   "uniDbTrackerEmptyTitle": "팔로우한 대학이 아직 없습니다",
-  "uniDbTrackerEmptyBody": "대학 페이지에서 팔로우하면 마감일이 여기에 표시됩니다."
+  "uniDbTrackerEmptyBody": "대학 페이지에서 팔로우하면 마감일이 여기에 표시됩니다.",
+  "uniDbLoadFailed": "대학 목록을 불러오지 못했습니다."
 }

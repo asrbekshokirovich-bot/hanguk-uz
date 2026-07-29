@@ -2737,6 +2737,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Track a university on its page and its deadlines will appear here.'**
   String get uniDbTrackerEmptyBody;
+
+  /// Error shown when the public university catalogue fails to load. Distinct from appsLoadError, which names the student's own applications — a guest has none.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load the university list.'**
+  String get uniDbLoadFailed;
 }
 
 class _AppLocalizationsDelegate

@@ -1480,4 +1480,7 @@ class AppLocalizationsUz extends AppLocalizations {
   @override
   String get uniDbTrackerEmptyBody =>
       'Universitet sahifasida uni kuzatuvga qo\'shing — muddatlari shu yerda ko\'rinadi.';
+
+  @override
+  String get uniDbLoadFailed => 'Universitetlar ro\'yxatini yuklab bo\'lmadi.';
 }

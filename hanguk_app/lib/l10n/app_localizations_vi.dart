@@ -1471,4 +1471,7 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get uniDbTrackerEmptyBody =>
       'Theo dõi một trường trên trang của trường đó — hạn chót sẽ hiện ở đây.';
+
+  @override
+  String get uniDbLoadFailed => 'Không tải được danh sách trường đại học.';
 }

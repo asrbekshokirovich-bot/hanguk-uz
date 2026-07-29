@@ -31,16 +31,37 @@ class GuestCompareScreen extends ConsumerWidget {
     final ids = ref.watch(guestCompareProvider);
     final unisAsync = ref.watch(universitiesProvider);
 
-    final picked = unisAsync.maybeWhen(
-      data: (unis) => [
-        for (final id in ids)
-          unis
-              .where((u) => u.id == id)
-              .cast<University?>()
-              .firstWhere((u) => true, orElse: () => null),
-      ].whereType<University>().toList(growable: false),
-      orElse: () => const <University>[],
-    );
+    // Pair each id with its row so a slot always knows which id it came
+    // from. Dropping unresolvable ids and then indexing the survivors meant
+    // the ✕ removed the wrong university: with a tray of ['GHOST', 'a'] the
+    // single visible card's ✕ removed 'a', leaving 'GHOST' stranded, one
+    // slot permanently lost and no UI path to clear it.
+    final catalogue = unisAsync.value;
+    final slots = <({String id, University? uni})>[
+      for (final id in ids)
+        (id: id, uni: catalogue?.where((u) => u.id == id).firstOrNull),
+    ];
+
+    // An id the catalogue no longer has — the row left `is_visible_on_map`,
+    // or Retry returned a changed set. Once we know it is gone, drop it:
+    // silently keeping it would hold a slot hostage and leave Explore's
+    // "Compare 1/2" disagreeing with an empty Compare screen.
+    if (catalogue != null) {
+      final stale = slots.where((s) => s.uni == null).map((s) => s.id).toList();
+      if (stale.isNotEmpty) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          final notifier = ref.read(guestCompareProvider.notifier);
+          for (final id in stale) {
+            notifier.remove(id);
+          }
+        });
+      }
+    }
+
+    final picked = slots
+        .where((s) => s.uni != null)
+        .map((s) => s.uni!)
+        .toList(growable: false);
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(
@@ -113,22 +134,37 @@ class _CompareColumn extends StatelessWidget {
     }
 
     final rows = <({String label, String ko, String value, bool lime})>[
-      (label: l.guestRowCity, ko: '도시', value: u.location, lime: false),
+      // `city_ko` is null for 87 of 204 institutions and the repository
+      // substitutes the English literal 'South Korea'. Showing that under
+      // "City" would present a country as a city, so the row is omitted
+      // rather than filled with a placeholder.
+      if (u.hasRealCity)
+        (label: l.guestRowCity, ko: '도시', value: u.location, lime: false),
       if (u.tier != null)
         (
           label: l.guestRowTier,
           ko: '등급',
-          value: u.tier.toString(),
+          // Not the bare integer: the scale is inverted (0 is best) and
+          // unlabelled, so "1" against "3" reads backwards.
+          value: l.universityTier(u.tier!),
           lime: false,
         ),
-      if (u.ieqasStatus != null)
+      // 'none' is a real value for 74 of 204 rows and means *not accredited*
+      // — rendering it verbatim puts the word "none" in a blue chip under
+      // "IEQAS status". Only an actual accreditation is worth a row.
+      if (u.isAccredited)
         (label: l.guestRowIeqas, ko: '인증', value: u.ieqasStatus!, lime: false),
-      (
-        label: l.guestRowPartner,
-        ko: '파트너',
-        value: u.isPartner ? l.guestValueYes : l.guestValueNo,
-        lime: u.isPartner,
-      ),
+      // Partnership is a claim, and it is false for every institution in the
+      // catalogue today. Stating "Hanguk partner: No" on every column of
+      // every comparison — on the same screen as the join CTA — is worse
+      // than saying nothing.
+      if (u.isPartner)
+        (
+          label: l.guestRowPartner,
+          ko: '파트너',
+          value: l.guestValueYes,
+          lime: true,
+        ),
       if (u.primaryDomain != null)
         (
           label: l.guestRowWebsite,
@@ -228,11 +264,21 @@ class _CompareRow extends StatelessWidget {
                 label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: SeoulType.caption.copyWith(color: SeoulColors.textFaint),
+                // `caption` already resolves to textSecondary; textFaint is
+                // 3.57:1 here and these labels are the only thing naming
+                // each value.
+                style: SeoulType.caption,
               ),
             ),
             const SizedBox(width: 4),
-            Text(ko, style: SeoulType.hangulStatus),
+            Flexible(
+              child: Text(
+                ko,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: SeoulType.hangulStatus,
+              ),
+            ),
           ],
         ),
         const SizedBox(height: 2),
@@ -268,7 +314,9 @@ class _EmptySlot extends StatelessWidget {
         child: CustomPaint(
           painter: const _DashedBorderPainter(),
           child: Container(
-            height: 190,
+            // A minimum, not a fixed height: at Android's "Large" font the
+            // label was already clipped, and at 2x it lost 126px.
+            constraints: const BoxConstraints(minHeight: 190),
             alignment: Alignment.center,
             padding: const EdgeInsets.all(16),
             child: Column(

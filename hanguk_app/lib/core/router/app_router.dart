@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../design_system/seoul_night/seoul_night.dart';
+import '../../l10n/app_localizations.dart';
 import '../../design_system/seoul_night/seoul_night_gallery.dart';
 import '../../features/account/presentation/account_screen.dart';
 import '../../features/auth/data/auth_repository.dart';
@@ -131,44 +133,61 @@ class _MapDeepLinkEntry extends ConsumerWidget {
 class _RouteLoadingShell extends StatelessWidget {
   const _RouteLoadingShell();
   @override
-  Widget build(BuildContext context) => const Scaffold(
-    backgroundColor: Color(0xFF0F1626),
-    body: Center(child: CircularProgressIndicator(color: Colors.white70)),
+  Widget build(BuildContext context) => const SeoulNightScaffold(
+    body: Center(child: CircularProgressIndicator(color: SeoulColors.lime)),
   );
 }
 
+/// Shown when a `/walkaround/:id` link names an institution that is not in
+/// the catalogue — a stale share link, or a row that left `is_visible_on_map`.
+///
+/// Reachable anonymously since `/walkaround` was opened to Guest Explorer, so
+/// it is on the design system and localized like any other screen. It must
+/// also not eject a guest: `context.go('/')` sent an unauthenticated visitor
+/// to `/welcome`, so "Back" silently dropped them out of guest mode and lost
+/// their compare tray. Popping returns them wherever they came from.
 class _RouteMissingShell extends StatelessWidget {
   const _RouteMissingShell();
+
   @override
-  Widget build(BuildContext context) => Scaffold(
-    backgroundColor: const Color(0xFF0F1626),
-    body: SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const Icon(Icons.public_off, color: Colors.white54, size: 56),
-            const SizedBox(height: 16),
-            const Text(
-              'University not found',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.white, fontSize: 18),
-            ),
-            const SizedBox(height: 24),
-            TextButton(
-              onPressed: () => context.go('/'),
-              child: const Text(
-                'Back to home',
-                style: TextStyle(color: Colors.white70),
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    final nav = Navigator.of(context);
+    return SeoulNightScaffold(
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(SeoulSizes.screenPadding),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const HangulGlyphTile(glyph: '한', size: 56),
+              const SizedBox(height: 18),
+              Text(
+                l.unknownUniversity,
+                textAlign: TextAlign.center,
+                style: SeoulType.title,
               ),
-            ),
-          ],
+              const SizedBox(height: 24),
+              SeoulOutlineButton(
+                label: l.a11yTooltipBack,
+                expand: false,
+                onPressed: () {
+                  if (nav.canPop()) {
+                    nav.pop();
+                  } else {
+                    // Cold deep-link with nothing behind it. `go('/')` lets
+                    // the redirect decide: home for a student, welcome for a
+                    // visitor.
+                    context.go('/');
+                  }
+                },
+              ),
+            ],
+          ),
         ),
       ),
-    ),
-  );
+    );
+  }
 }
 
 // University DB routes (plan §H.3) — only registered when the

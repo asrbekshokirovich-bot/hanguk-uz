@@ -42,13 +42,32 @@ class _GuestShellState extends ConsumerState<GuestShell> {
   final HanOrbController _orb = HanOrbController();
   late int _section = widget.initialSection;
 
+  /// Sections the visitor has actually opened.
+  ///
+  /// IndexedStack builds every child, so listing Map unconditionally spun up
+  /// the Kakao WebView the moment someone tapped "Explore Universities" —
+  /// an SDK download on mobile data for a visitor who may never open the map,
+  /// and hidden spinners keeping the app in a permanent frame loop. Same
+  /// guard the signed-in shell uses.
+  late final Set<int> _visited = <int>{widget.initialSection};
+
   @override
   void dispose() {
     _orb.dispose();
     super.dispose();
   }
 
-  void _go(int section) => setState(() => _section = section);
+  void _go(int section) => setState(() {
+    _section = section;
+    _visited.add(section);
+  });
+
+  /// One section of the stack, built lazily and with its tickers stopped
+  /// while it is not the visible one.
+  Widget _lazySection(int index, Widget Function() build) {
+    if (!_visited.contains(index)) return const SizedBox.shrink();
+    return TickerMode(enabled: index == _section, child: build());
+  }
 
   /// Every conversion moment lands here.
   void _join() => context.push('/login', extra: {'magic_code': true});
@@ -89,15 +108,11 @@ class _GuestShellState extends ConsumerState<GuestShell> {
       active: _section == GuestSection.compare,
       onTap: () => _go(GuestSection.compare),
     ),
-    // The conversion item. `active` paints its tile lime, which is exactly
-    // the emphasis the spec asks for here.
-    HanOrbItem(
-      label: l.guestJoinCta,
-      ko: '가입',
-      glyph: '가',
-      active: true,
-      onTap: _join,
-    ),
+    // The conversion item. `active` is deliberately false: it paints the
+    // tile lime, but it also sets Semantics(selected: true), which announces
+    // "Join Hanguk" to a screen reader as the section you are currently in.
+    // The header pill already carries the lime emphasis.
+    HanOrbItem(label: l.guestJoinCta, ko: '가입', glyph: '가', onTap: _join),
   ];
 
   Widget _header(AppLocalizations l) {
@@ -163,16 +178,24 @@ class _GuestShellState extends ConsumerState<GuestShell> {
     final l = AppLocalizations.of(context)!;
 
     return SeoulNightScaffold(
-      body: PopScope(
-        canPop: _section == GuestSection.explore,
-        onPopInvokedWithResult: (didPop, _) {
-          if (didPop) return;
-          if (_orb.value) {
-            _orb.close();
-            return;
-          }
-          _go(GuestSection.explore);
-        },
+      // ValueListenableBuilder, because `canPop` has to be recomputed when
+      // the dial opens. Without it BACK on Explore was already "poppable",
+      // so the orb-closing branch never ran and the visitor was ejected to
+      // /welcome — losing their compare tray — instead of the dial closing.
+      body: ValueListenableBuilder<bool>(
+        valueListenable: _orb,
+        builder: (context, orbOpen, child) => PopScope(
+          canPop: !orbOpen && _section == GuestSection.explore,
+          onPopInvokedWithResult: (didPop, _) {
+            if (didPop) return;
+            if (_orb.value) {
+              _orb.close();
+              return;
+            }
+            _go(GuestSection.explore);
+          },
+          child: child!,
+        ),
         child: Stack(
           children: [
             Column(
@@ -182,13 +205,22 @@ class _GuestShellState extends ConsumerState<GuestShell> {
                   child: IndexedStack(
                     index: _section,
                     children: [
-                      GuestExploreScreen(
-                        onOpenCompare: () => _go(GuestSection.compare),
+                      _lazySection(
+                        GuestSection.explore,
+                        () => GuestExploreScreen(
+                          onOpenCompare: () => _go(GuestSection.compare),
+                        ),
                       ),
-                      const GuestMapScreen(),
-                      GuestCompareScreen(
-                        onExplore: () => _go(GuestSection.explore),
-                        onJoin: _join,
+                      _lazySection(
+                        GuestSection.map,
+                        () => const GuestMapScreen(),
+                      ),
+                      _lazySection(
+                        GuestSection.compare,
+                        () => GuestCompareScreen(
+                          onExplore: () => _go(GuestSection.explore),
+                          onJoin: _join,
+                        ),
                       ),
                     ],
                   ),
