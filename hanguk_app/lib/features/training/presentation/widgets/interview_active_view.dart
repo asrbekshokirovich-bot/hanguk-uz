@@ -5,6 +5,7 @@ import 'package:vapi/vapi.dart';
 import 'dart:async';
 import '../../../../design_system/seoul_night/seoul_night.dart';
 import '../../../../core/config/app_config.dart';
+import '../../../../core/platform/screen_awake.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../data/interview_repository.dart';
 import '../../data/vapi_event_parser.dart' as vapi;
@@ -68,6 +69,13 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    // An interview is minutes of the student talking, not touching the phone.
+    // On the normal idle timer the screen dims and locks part-way through:
+    // the End control goes with it, and on Android the resulting pause is
+    // what this screen treats as "end the session". Hold the screen on for
+    // as long as this view is alive — released in dispose(), which is the one
+    // exit every path goes through.
+    unawaited(ScreenAwake.enable());
     _initVapi();
   }
 
@@ -684,6 +692,10 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    // Give the screen back to the normal idle timer. This runs on every way
+    // out of the interview — finished, ended early, errored, or backed out of
+    // — so the hold can't outlive the view and sit there draining the battery.
+    unawaited(ScreenAwake.disable());
     // Delegate to _stopCall for centralized cleanup — ensures stop() is
     // always called before dispose().
     _stopCall();
