@@ -526,5 +526,6 @@
   "uniDbTrackerEmptyTitle": "Hali kuzatilayotgan universitetlar yo'q",
   "uniDbTrackerEmptyBody": "Universitet sahifasida uni kuzatuvga qo'shing — muddatlari shu yerda ko'rinadi.",
   "uniDbLoadFailed": "Universitetlar ro'yxatini yuklab bo'lmadi.",
-  "loginSubmitButton": "Tizimga kirish"
+  "loginSubmitButton": "Tizimga kirish",
+  "welcomeGuestCaption": "Kod shart emas — bemalol ko'ring, filtrlang va solishtiring."
 }

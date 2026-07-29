@@ -1432,4 +1432,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get loginSubmitButton => '로그인';
+
+  @override
+  String get welcomeGuestCaption => '코드 없이 자유롭게 둘러보고 비교하세요.';
 }

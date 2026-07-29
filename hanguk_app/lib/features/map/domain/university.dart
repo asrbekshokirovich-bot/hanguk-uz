@@ -136,8 +136,23 @@ class University {
 
   /// IEQAS "outstanding" or "accredited" status — surfaced as a small
   /// "verified" badge on cards and the detail sheet.
+  ///
+  /// Note `ieqas_status` is `'none'` for 74 of the 204 visible institutions
+  /// and means *not accredited*, so a null check is not enough: rendering the
+  /// raw value puts the literal word "none" in front of a student.
   bool get isAccredited =>
       ieqasStatus == 'outstanding' || ieqasStatus == 'accredited';
+
+  /// Placeholder the repository substitutes when `city_ko` is null — true for
+  /// 87 of the 204 visible institutions.
+  static const String unknownCity = 'South Korea';
+
+  /// Whether [location] is a real city rather than the placeholder.
+  ///
+  /// Without this the placeholder gets treated as data: it became the
+  /// highest-count entry in the guest city filter, outranking 서울, and
+  /// showed up as "City: South Korea" in comparisons.
+  bool get hasRealCity => location.isNotEmpty && location != unknownCity;
 
   /// True when a curated Pannellum tour spec is set for this row.
   bool get hasVirtualTour => virtualTour != null;

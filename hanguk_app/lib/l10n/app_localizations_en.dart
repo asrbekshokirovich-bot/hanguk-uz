@@ -1481,4 +1481,8 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get loginSubmitButton => 'Login to System';
+
+  @override
+  String get welcomeGuestCaption =>
+      'No code needed — browse, filter and compare freely.';
 }

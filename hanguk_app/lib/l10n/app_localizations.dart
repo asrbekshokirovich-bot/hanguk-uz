@@ -2749,6 +2749,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Login to System'**
   String get loginSubmitButton;
+
+  /// Caption under the Welcome screen's 'Explore Universities' guest button (DESIGN_SPEC §3.1).
+  ///
+  /// In en, this message translates to:
+  /// **'No code needed — browse, filter and compare freely.'**
+  String get welcomeGuestCaption;
 }
 
 class _AppLocalizationsDelegate

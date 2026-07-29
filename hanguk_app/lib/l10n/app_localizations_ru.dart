@@ -1482,4 +1482,8 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get loginSubmitButton => 'Войти в систему';
+
+  @override
+  String get welcomeGuestCaption =>
+      'Код не нужен — свободно просматривайте, фильтруйте и сравнивайте.';
 }

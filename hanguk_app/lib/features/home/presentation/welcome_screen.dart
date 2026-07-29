@@ -10,11 +10,11 @@ import '../../updater/presentation/update_dialog.dart';
 /// Guest Explorer (DESIGN_SPEC §3b) — the read-only catalog an external
 /// student browses without a Magic Code.
 ///
-/// Held back. The catalogue screens and the `anon` read policy they need are
-/// a behaviour change, not a visual one, so this build ships the redesign
-/// without them. The button below is written and token-correct but compiled
-/// out.
-const bool kGuestModeEnabled = false;
+/// Live: the `/guest` route serves Explore / Guest Map / Compare from the
+/// `v_institutions_for_map` view, which anon may read (see the migration).
+/// Kept as a flag so the entry point can be pulled without touching the
+/// screens.
+const bool kGuestModeEnabled = true;
 
 /// Welcome (DESIGN_SPEC §3.1).
 ///
@@ -50,10 +50,9 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
     }
   }
 
-  /// Guest Explorer entry (spec §3b). No route to open while
-  /// [kGuestModeEnabled] is false — the button that calls this is compiled
-  /// out.
-  void _openGuestExplorer() {}
+  /// Guest Explorer entry (spec §3b). `push`, not `go`, so backing out of the
+  /// catalogue returns here.
+  void _openGuestExplorer() => context.push('/guest');
 
   @override
   Widget build(BuildContext context) {
@@ -152,11 +151,9 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
                 ],
 
                 const SizedBox(height: 16),
-                // Quiet helper for students without a code yet. Phone sign-up
-                // stays hidden until it ships (no "coming soon" placeholder —
-                // audit A2/S2).
+                // The guest caption under the explore button (spec §3.1).
                 Text(
-                  l10n.loginAccessCodeHelp,
+                  l10n.welcomeGuestCaption,
                   textAlign: TextAlign.center,
                   style: SeoulType.caption,
                 ),

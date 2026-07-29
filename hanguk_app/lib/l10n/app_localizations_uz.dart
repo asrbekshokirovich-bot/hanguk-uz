@@ -1486,4 +1486,8 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get loginSubmitButton => 'Tizimga kirish';
+
+  @override
+  String get welcomeGuestCaption =>
+      'Kod shart emas — bemalol ko\'ring, filtrlang va solishtiring.';
 }

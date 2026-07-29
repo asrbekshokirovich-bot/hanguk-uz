@@ -1477,4 +1477,8 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get loginSubmitButton => 'Đăng nhập';
+
+  @override
+  String get welcomeGuestCaption =>
+      'Không cần mã — tự do duyệt, lọc và so sánh.';
 }
