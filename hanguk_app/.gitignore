@@ -93,3 +93,10 @@ pg.zip
 
 # Scratch probes written by review agents; never part of the suite.
 test/**/_tmp_*_test.dart
+
+# Intermediate weight instances produced by tools/subset_korean_font.py.
+# ~6MB each, fully regenerable from tools/kr-var.ttf, and the subsetter
+# rewrites them on every run — pure churn in a diff.
+tools/kr-500.ttf
+tools/kr-700.ttf
+tools/kr-900.ttf

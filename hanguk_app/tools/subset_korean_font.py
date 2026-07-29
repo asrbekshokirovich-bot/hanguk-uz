@@ -83,6 +83,9 @@ for w in WEIGHTS:
         '--drop-tables+=DSIG',
     ], check=True)
     print(f'  wrote {dest}  {os.path.getsize(dest)/1024:.0f} KB')
+    # The instance is a 6MB stepping stone to the subset; keep it out of the
+    # working tree so it cannot drift into a commit.
+    os.remove(inst_path)
 
 # ---------------------------------------------------------------------------
 # 3. Verify nothing is missing
