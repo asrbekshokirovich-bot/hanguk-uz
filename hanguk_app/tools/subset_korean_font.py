@@ -94,7 +94,9 @@ for w in WEIGHTS:
     ft = TTFont(p)
     for t in ft['cmap'].tables:
         cov |= {chr(c) for c in t.cmap}
-    missing = sorted((korean | symbols) - cov)
+    # U+2715 exists only in source comments, never in a rendered string, and
+    # Noto Sans KR does not carry it at all — so it is not a real gap.
+    missing = sorted((korean | symbols) - cov - {'\u2715'})
     print(f'NotoSansKR-{w}: {len(cov)} glyphs, missing {len(missing)}'
           + (f' -> {"".join(missing)}' if missing else ''))
     bad += len(missing)
