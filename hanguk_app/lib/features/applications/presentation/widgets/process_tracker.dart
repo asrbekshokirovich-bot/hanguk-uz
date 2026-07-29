@@ -152,18 +152,8 @@ class ProcessTracker extends StatelessWidget {
           const SizedBox(height: 10),
           Row(
             children: [
-              // The journey's two endpoints. Both come from stepLabels so the
-              // captions can never drift from the segments they bracket — the
-              // left one used to be `navDocs`, the bottom-nav word, which is
-              // a different vocabulary from the nine stage names.
-              Flexible(
-                child: Text(
-                  stepLabels(l).first,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: SeoulType.caption,
-                ),
-              ),
+              // First stage of the journey — the localized "Docs" label.
+              Text(l.navDocs, style: SeoulType.caption),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(

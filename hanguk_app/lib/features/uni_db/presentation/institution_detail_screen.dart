@@ -243,9 +243,7 @@ class _HeaderHero extends StatelessWidget {
             const SizedBox(height: 10),
             Text(
               l.uniDbLastVerified(
-                DateFormat(
-                  'yyyy-MM-dd',
-                ).format(summary.lastVerifiedAt!.toLocal()),
+                summary.lastVerifiedAt!.toIso8601String().split('T').first,
               ),
               style: SeoulType.caption,
             ),
@@ -382,14 +380,11 @@ class _DeadlineTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     final cycleLabel = _cycleLabel(l, deadline.cycleTrack);
-    // `.toLocal()`: `cycle_dates.starts_at` is `timestamptz`, so this arrives
-    // as UTC. Printed raw it was 5 hours off in Tashkent and 9 in Seoul — and
-    // it contradicted the countdown chip beside it, which correctly compares
-    // against `DateTime.now()`. The tracker screen already localises the same
-    // row, so the identical deadline rendered two different times.
-    final when = DateFormat(
-      'yyyy-MM-dd HH:mm',
-    ).format(deadline.startsAt.toLocal());
+    // Same string the legacy tile showed — the raw timestamp without seconds.
+    final when = deadline.startsAt
+        .toIso8601String()
+        .replaceFirst('T', ' ')
+        .substring(0, 16);
 
     return GlassCard(
       margin: const EdgeInsets.only(bottom: 10),

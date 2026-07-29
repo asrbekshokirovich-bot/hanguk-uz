@@ -10,10 +10,11 @@ import '../../updater/presentation/update_dialog.dart';
 /// Guest Explorer (DESIGN_SPEC §3b) — the read-only catalog an external
 /// student browses without a Magic Code.
 ///
-/// Live: the `/guest` route serves Explore / Guest Map / Compare from the
-/// anon-readable `v_institutions_for_map` view. Kept as a flag so the entry
-/// point can be pulled without reverting the feature.
-const bool kGuestModeEnabled = true;
+/// Held back. The catalogue screens and the `anon` read policy they need are
+/// a behaviour change, not a visual one, so this build ships the redesign
+/// without them. The button below is written and token-correct but compiled
+/// out.
+const bool kGuestModeEnabled = false;
 
 /// Welcome (DESIGN_SPEC §3.1).
 ///
@@ -49,9 +50,10 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
     }
   }
 
-  /// Guest Explorer entry (spec §3b) — a public route, so this works with no
-  /// session. `push`, not `go`: backing out returns here.
-  void _openGuestExplorer() => context.push('/guest');
+  /// Guest Explorer entry (spec §3b). No route to open while
+  /// [kGuestModeEnabled] is false — the button that calls this is compiled
+  /// out.
+  void _openGuestExplorer() {}
 
   @override
   Widget build(BuildContext context) {

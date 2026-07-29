@@ -118,22 +118,17 @@ class _InterviewScreenState extends ConsumerState<InterviewScreen> {
               titleStyle: SeoulType.title,
             ),
           ),
-          // One End control, not two.
-          //
-          // This used to call `endSession()` directly, which runs the
-          // feedback analysis (up to 25s) *before* status flips to
-          // 'completed' — and only that flip swaps the view, disposing
-          // InterviewActiveView and actually hanging up Vapi. So tapping End
-          // in the header left the interviewer talking and the microphone
-          // open for the whole "analysing" window, and skipped the
-          // forceIdleIfActive() escape hatch and the feedback-failure
-          // snackbar that the body control provides. Both now run the same
-          // path; the header is just a second way to reach it.
+          // Unchanged behaviour: the header End control is rendered while the
+          // session row is 'active' and asks the notifier to end it.
           if (state.status == 'active') ...[
             const SizedBox(width: 10),
             _HeaderEndAction(
               label: l.endSession,
-              onTap: InterviewActiveView.endActiveCall,
+              onTap: () async {
+                await ref
+                    .read(interviewProvider.notifier)
+                    .endSession(language: state.selectedLanguage);
+              },
             ),
           ],
         ],

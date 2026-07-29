@@ -1,15 +1,12 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:permission_handler/permission_handler.dart';
 import '../../../../design_system/seoul_night/seoul_night.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../applications/presentation/applications_tab.dart';
 import '../../map/presentation/map_tab.dart';
 import '../../documents/presentation/documents_tab.dart';
 import '../../chat/presentation/chat_tab.dart';
-import '../../training/data/interview_repository.dart';
 import '../../training/presentation/interview_screen.dart';
 import '../../training/presentation/study_plan_screen.dart';
 import '../../uni_db/data/admin_review_providers.dart';
@@ -121,51 +118,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     Navigator.of(context).push(MaterialPageRoute(builder: (_) => screen));
   }
 
-  /// Ask for the microphone before the interview can be reached.
-  ///
-  /// The old training-tab dialog did this; the orb replaced that entry point,
-  /// and without it a student who had previously denied the permission would
-  /// start a real Vapi call that simply never hears them. Runs inside the tap
-  /// gesture, as `permission_handler` requires. Web is excluded — browsers
-  /// prompt natively when Vapi opens the stream, and the plugin crashes there.
-  Future<bool> _ensureMicPermission(AppLocalizations l) async {
-    if (kIsWeb) return true;
-
-    final status = await Permission.microphone.request();
-    if (status.isGranted) return true;
-    if (!mounted) return false;
-
-    final messenger = ScaffoldMessenger.of(context);
-    // Audit U16: a permanent denial can only be undone in the OS settings,
-    // so a bare snackbar would be a dead end.
-    if (status.isPermanentlyDenied) {
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text(l.micBlockedInSettings),
-          action: SnackBarAction(
-            label: l.openSettings,
-            onPressed: openAppSettings,
-          ),
-          duration: const Duration(seconds: 6),
-        ),
-      );
-    } else {
-      messenger.showSnackBar(SnackBar(content: Text(l.micRequired)));
-    }
-    return false;
-  }
-
-  /// `interviewProvider` is not autoDispose, so a finished session's
-  /// `status: 'completed'` outlives the popped screen and InterviewScreen
-  /// would reopen straight onto the previous report. Clear it first — the
-  /// feedback itself is kept, and stays reachable through history.
-  Future<void> _openInterview(AppLocalizations l) async {
-    if (!await _ensureMicPermission(l)) return;
-    if (!mounted) return;
-    ref.read(interviewProvider.notifier).resetForNewSession();
-    _push(const InterviewScreen());
-  }
-
   /// One section of the [IndexedStack], built lazily.
   ///
   /// Hidden sections also have their tickers stopped: a spinner in a section
@@ -211,7 +163,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         label: l.interviewCardTitle,
         ko: '면접',
         glyph: '면',
-        onTap: () => _openInterview(l),
+        onTap: () => _push(const InterviewScreen()),
       ),
       HanOrbItem(
         label: l.studyPlanCardTitle,

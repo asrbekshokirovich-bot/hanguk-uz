@@ -10,7 +10,6 @@ import '../../features/auth/data/auth_repository.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
 import '../../features/home/presentation/home_tab_provider.dart';
-import '../../features/guest/presentation/guest_shell.dart';
 import '../../features/home/presentation/welcome_screen.dart';
 import '../../features/map/data/map_repository.dart';
 import '../../features/map/domain/university.dart';
@@ -45,13 +44,6 @@ part 'app_router.g.dart';
 // deletion flow — see `account_screen.dart`.
 List<RouteBase> _accountRoutes() => [
   GoRoute(path: '/account', builder: (context, state) => const AccountScreen()),
-];
-
-/// Guest Explorer (DESIGN_SPEC 3b). Registered as a plain GoRoute so the
-/// catalogue can be reached without a session — see the redirect below,
-/// which lists `/guest` alongside `/welcome` and `/login`.
-List<RouteBase> _guestRoutes() => [
-  GoRoute(path: '/guest', builder: (context, state) => const GuestShell()),
 ];
 
 List<RouteBase> _mapRoutes() => [
@@ -234,7 +226,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     routes: <RouteBase>[
       ...$appRoutes,
       ..._accountRoutes(),
-      ..._guestRoutes(),
       ..._mapRoutes(),
       if (kUniDbEnabled) ..._uniDbRoutes(),
       // Seoul Night design-system gallery. Debug builds only — the flag is
@@ -252,28 +243,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final loc = state.uri.toString();
       final isGoingToLogin = loc == '/login';
       final isGoingToWelcome = loc == '/welcome';
-      // Guest Explorer is a public surface: it reads only the anon-readable
-      // catalogue view and holds no student data. `/walkaround` rides along
-      // because the guest map's detail sheet opens it — it is a Kakao
-      // panorama of a campus, catalogue content like any other, and it
-      // resolves through the same public view. Without this a guest tapping
-      // it would be bounced out to /welcome mid-browse.
-      final isGoingToGuest =
-          loc.startsWith('/guest') || loc.startsWith('/walkaround');
-
       if (isLoading) return null;
 
-      if (!isAuthenticated &&
-          !isGoingToLogin &&
-          !isGoingToWelcome &&
-          !isGoingToGuest) {
+      if (!isAuthenticated && !isGoingToLogin && !isGoingToWelcome) {
         return '/welcome';
       }
 
-      // A signed-in student has the real thing; guest mode is a lesser view
-      // of it, so send them home rather than letting them land there.
-      if (isAuthenticated &&
-          (isGoingToLogin || isGoingToWelcome || loc.startsWith('/guest'))) {
+      if (isAuthenticated && (isGoingToLogin || isGoingToWelcome)) {
         return '/';
       }
 

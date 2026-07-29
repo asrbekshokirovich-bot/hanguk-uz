@@ -23,6 +23,8 @@ class StudyPlanScreen extends ConsumerStatefulWidget {
 }
 
 class _StudyPlanScreenState extends ConsumerState<StudyPlanScreen> {
+  final TextEditingController _draftController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
@@ -31,6 +33,12 @@ class _StudyPlanScreenState extends ConsumerState<StudyPlanScreen> {
           .read(studyPlanSessionProvider.notifier)
           .fetchSessions(widget.documentType);
     });
+  }
+
+  @override
+  void dispose() {
+    _draftController.dispose();
+    super.dispose();
   }
 
   /// Localized header for the current document type. Uses the card-title
@@ -243,14 +251,16 @@ class _StudyPlanScreenState extends ConsumerState<StudyPlanScreen> {
       blur: false,
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
-      // The drafting step reads `state.draftContent` straight from the
-      // provider, so there is nothing to copy out afterwards. The old
-      // `.then()` wrote into a controller nothing ever read — and wrote it
-      // after an await with no mounted guard, so backing out of a slow load
-      // threw "A TextEditingController was used after being disposed".
-      onTap: () => ref
-          .read(studyPlanSessionProvider.notifier)
-          .loadSession(widget.documentType, s.id),
+      onTap: () {
+        ref
+            .read(studyPlanSessionProvider.notifier)
+            .loadSession(widget.documentType, s.id)
+            .then((_) {
+              _draftController.text = ref
+                  .read(documentSessionProvider(widget.documentType))
+                  .draftContent;
+            });
+      },
       child: Row(
         children: [
           HangulGlyphTile(
@@ -640,7 +650,7 @@ class _StudyPlanScreenState extends ConsumerState<StudyPlanScreen> {
               ],
             );
     }
-    if (normalized == 'english') {
+    if (track == 'english') {
       return isStudyPlan
           ? const _StepOneGuide(
               title: 'Study Plan writing guide',

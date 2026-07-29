@@ -73,26 +73,13 @@ class UniversityChatController extends ChangeNotifier {
     _initializeChannel(universityId);
   }
 
-  /// Set once `dispose()` has run.
-  ///
-  /// `_initializeChannel` makes three awaited round-trips before it has a
-  /// subscription to cancel, so a student who opens Discussion and swipes the
-  /// sheet away inside that window used to leave a realtime channel
-  /// subscribed for the life of the process — with a callback still holding
-  /// this controller. On a flaky connection they accumulate.
-  bool _disposed = false;
-
   void _setState(UniversityChatState newState) {
-    // Same window: notifying a disposed ChangeNotifier throws in debug and
-    // is silently wrong in release.
-    if (_disposed) return;
     state = newState;
     notifyListeners();
   }
 
   @override
   void dispose() {
-    _disposed = true;
     _subscription?.unsubscribe();
     super.dispose();
   }
@@ -194,10 +181,7 @@ class UniversityChatController extends ChangeNotifier {
 
       _setState(state.copyWith(messages: messagesList, isLoading: false));
 
-      // 4. Subscribe to new messages — unless the sheet closed while the
-      // three fetches above were in flight, in which case there is nobody
-      // left to deliver to.
-      if (_disposed) return;
+      // 4. Subscribe to new messages
       _subscription = client
           .channel('public:channel_messages:channel_id=eq.$channelId')
           .onPostgresChanges(
@@ -223,13 +207,6 @@ class UniversityChatController extends ChangeNotifier {
             },
           )
           .subscribe();
-
-      // dispose() can land between the check above and here; it would have
-      // found `_subscription` still null, so tear it down now.
-      if (_disposed) {
-        _subscription?.unsubscribe();
-        _subscription = null;
-      }
     } catch (e, st) {
       debugPrint('[UniversityChatNotifier] Error: $e\n$st');
       _setState(

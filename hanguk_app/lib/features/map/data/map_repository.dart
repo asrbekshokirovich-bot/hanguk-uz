@@ -63,7 +63,7 @@ final universitiesProvider = FutureProvider<List<University>>((ref) async {
       final cityKo = map['city_ko'] as String?;
       final resolvedLocation = (cityKo?.isNotEmpty ?? false)
           ? cityKo!
-          : University.unknownCity;
+          : 'South Korea';
 
       final nextEventRaw = map['next_event_at'] as String?;
       final nextEventAt = (nextEventRaw != null && nextEventRaw.isNotEmpty)
