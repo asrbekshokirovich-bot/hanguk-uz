@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../auth/data/auth_repository.dart';
 import 'home_tab_provider.dart';
 import '../../applications/data/applications_repository.dart';
 import '../../applications/domain/application.dart';
@@ -95,22 +95,6 @@ int _collectedDocuments(List<AppDocument> uploaded) {
     }
   }
   return collected;
-}
-
-/// The student's display name for the greeting header.
-///
-/// Same source the interview and study-plan screens read —
-/// `user_metadata.full_name` — so the name is consistent across the app.
-/// Falls back to the email's local part, then to empty (the header then shows
-/// the greeting alone rather than a placeholder name).
-String _studentDisplayName() {
-  final user = Supabase.instance.client.auth.currentUser;
-  final raw = user?.userMetadata?['full_name'];
-  final name = raw is String ? raw.trim() : '';
-  if (name.isNotEmpty) return name;
-  final email = user?.email ?? '';
-  final at = email.indexOf('@');
-  return at > 0 ? email.substring(0, at) : '';
 }
 
 /// Matches a string that opens with a hangul syllable (U+AC00–U+D7A3).
@@ -243,9 +227,11 @@ class SeoulHomeTab extends ConsumerWidget {
       ),
       children: [
         // Top bar (spec §3.3): avatar, greeting + name, notification bell.
+        // The name comes from `profiles.full_name` via the DB; while it loads
+        // (or if the profile has none) the header shows the greeting alone.
         _HomeTopBar(
           greetingLine: '${_greetingKo(hour)} · ${_greeting(l, hour)}',
-          name: _studentDisplayName(),
+          name: ref.watch(studentFullNameProvider).value ?? '',
         ),
         const SizedBox(height: 22),
 
@@ -260,8 +246,8 @@ class SeoulHomeTab extends ConsumerWidget {
 }
 
 /// The Home top bar (spec §3.3): a profile avatar, the greeting with the
-/// student's name, and the notification bell. The avatar and bell both open
-/// the account screen — the app has no separate notifications inbox.
+/// student's name, and the notification bell. The avatar opens the account
+/// screen; the bell opens the notification settings.
 class _HomeTopBar extends StatelessWidget {
   const _HomeTopBar({required this.greetingLine, required this.name});
 
@@ -331,7 +317,7 @@ class _HomeTopBar extends StatelessWidget {
           button: true,
           label: l.homeNotifications,
           child: GestureDetector(
-            onTap: () => context.push('/account'),
+            onTap: () => context.push('/notifications/settings'),
             child: Container(
               width: SeoulSizes.minTapTarget,
               height: SeoulSizes.minTapTarget,

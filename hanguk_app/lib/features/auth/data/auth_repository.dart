@@ -10,6 +10,26 @@ final authStateProvider = StreamProvider<AuthState>((ref) {
   return ref.watch(authRepositoryProvider).authStateChanges;
 });
 
+/// The signed-in student's display name, read from `profiles.full_name`.
+///
+/// The magic-code login (`student-login-v2`) returns the name but recovers the
+/// session with an empty `user_metadata`, so the profile row — not the JWT — is
+/// the source of truth. Null when there is no session or the profile carries no
+/// name; callers show the greeting alone rather than falling back to the
+/// synthetic `student-<uuid>` email local part.
+final studentFullNameProvider = FutureProvider<String?>((ref) async {
+  final client = Supabase.instance.client;
+  final uid = client.auth.currentUser?.id;
+  if (uid == null) return null;
+  final row = await client
+      .from('profiles')
+      .select('full_name')
+      .eq('user_id', uid)
+      .maybeSingle();
+  final name = row?['full_name'];
+  return name is String && name.trim().isNotEmpty ? name.trim() : null;
+});
+
 /// Mirrors the web Auth system conceptually, but strictly serves Students.
 /// - Inner Student: magic code → `student-login` Edge Function → setSession
 /// - Public Student: phone/password sign-up and sign-in
