@@ -1479,4 +1479,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get uniDbLoadFailed => 'Не удалось загрузить список университетов.';
+
+  @override
+  String get loginSubmitButton => 'Войти в систему';
 }

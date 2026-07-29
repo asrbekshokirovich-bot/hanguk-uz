@@ -1429,4 +1429,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get uniDbLoadFailed => '대학 목록을 불러오지 못했습니다.';
+
+  @override
+  String get loginSubmitButton => '로그인';
 }

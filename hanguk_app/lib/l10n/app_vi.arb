@@ -525,5 +525,6 @@
   "uniDbTrackerTitle": "Theo dõi hồ sơ",
   "uniDbTrackerEmptyTitle": "Chưa theo dõi trường nào",
   "uniDbTrackerEmptyBody": "Theo dõi một trường trên trang của trường đó — hạn chót sẽ hiện ở đây.",
-  "uniDbLoadFailed": "Không tải được danh sách trường đại học."
+  "uniDbLoadFailed": "Không tải được danh sách trường đại học.",
+  "loginSubmitButton": "Đăng nhập"
 }

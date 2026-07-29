@@ -1478,4 +1478,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get uniDbLoadFailed => 'Couldn\'t load the university list.';
+
+  @override
+  String get loginSubmitButton => 'Login to System';
 }

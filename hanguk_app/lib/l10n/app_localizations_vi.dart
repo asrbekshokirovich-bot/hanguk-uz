@@ -1474,4 +1474,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get uniDbLoadFailed => 'Không tải được danh sách trường đại học.';
+
+  @override
+  String get loginSubmitButton => 'Đăng nhập';
 }

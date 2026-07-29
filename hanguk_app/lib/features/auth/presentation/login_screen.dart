@@ -217,84 +217,94 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
+    // AutofillGroup lets iOS surface the OTP autofill chip and Android group
+    // the credential for save-prompt purposes (audit P0 #3).
+    //
+    // The action lives at the bottom (spec §3.2): the mark, title, field and
+    // any message scroll in the space above it, so the "Login to System"
+    // button sits under the thumb and rises above the keyboard when the field
+    // is focused.
     return SeoulNightScaffold(
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(26, 24, 26, 40),
+      body: AutofillGroup(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const SizedBox(height: 24),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(26, 24, 26, 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const SizedBox(height: 24),
 
-            // ── Mark ─────────────────────────────────────────────────────────
-            const Align(
-              alignment: AlignmentDirectional.centerStart,
-              child: _KeyTile(),
-            ),
-            const SizedBox(height: 18),
+                    // ── Mark ───────────────────────────────────────────────
+                    const Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: _KeyTile(),
+                    ),
+                    const SizedBox(height: 18),
 
-            // Title + decorative hangul accent (stays Korean in every locale).
-            HangulTag(
-              en: l10n.magicCodeTitle,
-              ko: '매직 코드',
-              titleStyle: SeoulType.headline,
-            ),
-            const SizedBox(height: 10),
+                    // Title + decorative hangul accent (Korean in every
+                    // locale).
+                    HangulTag(
+                      en: l10n.magicCodeTitle,
+                      ko: '매직 코드',
+                      titleStyle: SeoulType.headline,
+                    ),
+                    const SizedBox(height: 10),
 
-            Text(l10n.loginAccessCodeHelp, style: SeoulType.bodySecondary),
-            const SizedBox(height: 28),
+                    Text(
+                      l10n.loginAccessCodeHelp,
+                      style: SeoulType.bodySecondary,
+                    ),
+                    const SizedBox(height: 28),
 
-            // ── Messages ─────────────────────────────────────────────────────
-            if (_error != null) ...[
-              _MessageCard(
-                message: _error!,
-                tint: SeoulColors.dangerText,
-                fill: SeoulColors.dangerFill,
+                    // ── Messages ───────────────────────────────────────────
+                    if (_error != null) ...[
+                      _MessageCard(
+                        message: _error!,
+                        tint: SeoulColors.dangerText,
+                        fill: SeoulColors.dangerFill,
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+                    if (_success != null) ...[
+                      _MessageCard(
+                        message: _success!,
+                        tint: SeoulColors.successText,
+                        fill: SeoulColors.successFill,
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+
+                    // ── Field ──────────────────────────────────────────────
+                    // Repaints the border/glow as the code is typed — no
+                    // extra state, the controller stays the single source of
+                    // truth.
+                    ValueListenableBuilder<TextEditingValue>(
+                      valueListenable: _codeCtrl,
+                      builder: (context, value, _) => _MagicCodeField(
+                        controller: _codeCtrl,
+                        ready: _isCodeReady(value.text),
+                        onSubmitted: (_) => _handleStudentLogin(),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 16),
-            ],
-            if (_success != null) ...[
-              _MessageCard(
-                message: _success!,
-                tint: SeoulColors.successText,
-                fill: SeoulColors.successFill,
-              ),
-              const SizedBox(height: 16),
-            ],
+            ),
 
-            // ── Form ─────────────────────────────────────────────────────────
-            // Magic Code is the single, finished sign-in path (A2/S2).
-            _buildMagicCodePortal(),
+            // ── Action ─────────────────────────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.fromLTRB(26, 8, 26, 28),
+              child: LimeButton(
+                label: l10n.loginSubmitButton,
+                loading: _loading,
+                onPressed: _handleStudentLogin,
+              ),
+            ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildMagicCodePortal() {
-    final l10n = AppLocalizations.of(context)!;
-    // AutofillGroup lets iOS surface the OTP autofill chip and Android
-    // group the credential for save-prompt purposes (audit P0 #3).
-    return AutofillGroup(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Repaints the field's border/glow as the code is typed — no extra
-          // state, and the controller stays the single source of truth.
-          ValueListenableBuilder<TextEditingValue>(
-            valueListenable: _codeCtrl,
-            builder: (context, value, _) => _MagicCodeField(
-              controller: _codeCtrl,
-              ready: _isCodeReady(value.text),
-              onSubmitted: (_) => _handleStudentLogin(),
-            ),
-          ),
-          const SizedBox(height: 20),
-          LimeButton(
-            label: l10n.welcomeMagicCodeCta,
-            loading: _loading,
-            onPressed: _handleStudentLogin,
-          ),
-        ],
       ),
     );
   }
@@ -375,8 +385,10 @@ class _MagicCodeField extends StatelessWidget {
         cursorColor: SeoulColors.lime,
         decoration: InputDecoration(
           // Mask: code shape is enforced by the inputFormatters; not
-          // localized.
-          hintText: 'XXXXXXXX',
+          // localized. The hyphen is decorative — matching the prototype's
+          // XXXX-XXXX shape — and is stripped from what's typed by the
+          // formatters above.
+          hintText: 'XXXX-XXXX',
           hintStyle: SeoulType.codeInput.copyWith(color: SeoulColors.textFaint),
           filled: false,
           border: InputBorder.none,

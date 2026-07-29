@@ -127,10 +127,13 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // The one lime action on this screen (spec §4). Target is
-                // unchanged: the Magic Code portal.
+                // unchanged: the Magic Code portal. A forward arrow, not a
+                // key — the prototype's CTA points onward into the flow (the
+                // key mark belongs to the Magic Code screen it opens).
                 LimeButton(
                   label: l10n.welcomeMagicCodeCta,
-                  icon: Icons.key,
+                  icon: Icons.arrow_forward_rounded,
+                  iconAfterLabel: true,
                   onPressed: () =>
                       context.push('/login', extra: {'magic_code': true}),
                 ),

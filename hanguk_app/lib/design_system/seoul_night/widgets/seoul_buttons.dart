@@ -12,6 +12,7 @@ class LimeButton extends StatefulWidget {
     required this.label,
     this.onPressed,
     this.icon,
+    this.iconAfterLabel = false,
     this.expand = true,
     this.height = SeoulSizes.buttonHeight,
     this.radius = SeoulRadii.control,
@@ -24,6 +25,10 @@ class LimeButton extends StatefulWidget {
   final VoidCallback? onPressed;
 
   final IconData? icon;
+
+  /// Render [icon] after the label instead of before it — a forward arrow
+  /// that points onward, rather than a leading glyph.
+  final bool iconAfterLabel;
 
   /// Stretch to the available width. Off for inline pills.
   final bool expand;
@@ -59,7 +64,7 @@ class _LimeButtonState extends State<LimeButton> {
             mainAxisSize: widget.expand ? MainAxisSize.max : MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              if (widget.icon != null) ...[
+              if (widget.icon != null && !widget.iconAfterLabel) ...[
                 Icon(widget.icon, size: 18, color: SeoulColors.ink),
                 const SizedBox(width: 8),
               ],
@@ -71,6 +76,10 @@ class _LimeButtonState extends State<LimeButton> {
                   style: SeoulType.button,
                 ),
               ),
+              if (widget.icon != null && widget.iconAfterLabel) ...[
+                const SizedBox(width: 8),
+                Icon(widget.icon, size: 18, color: SeoulColors.ink),
+              ],
             ],
           );
 

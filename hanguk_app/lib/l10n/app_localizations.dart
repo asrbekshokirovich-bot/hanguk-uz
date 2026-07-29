@@ -2743,6 +2743,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Couldn\'t load the university list.'**
   String get uniDbLoadFailed;
+
+  /// Primary submit button on the Magic Code screen (DESIGN_SPEC §3.2). Distinct from welcomeMagicCodeCta, which is the Welcome-screen CTA that opens this screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Login to System'**
+  String get loginSubmitButton;
 }
 
 class _AppLocalizationsDelegate

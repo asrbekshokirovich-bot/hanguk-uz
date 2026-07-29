@@ -1483,4 +1483,7 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get uniDbLoadFailed => 'Universitetlar ro\'yxatini yuklab bo\'lmadi.';
+
+  @override
+  String get loginSubmitButton => 'Tizimga kirish';
 }
