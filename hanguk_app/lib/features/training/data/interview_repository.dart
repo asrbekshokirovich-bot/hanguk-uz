@@ -139,8 +139,15 @@ class InterviewNotifier extends Notifier<InterviewSessionState> {
   // forever in the temp dir.
   final List<String> _ttsFilePaths = [];
 
+  /// True once this notifier has been torn down. `_awaitSavedFeedback` can
+  /// still be sleeping between polls at that point; writing to `state`
+  /// afterwards throws, so it checks this before every write.
+  bool _disposed = false;
+
   @override
   InterviewSessionState build() {
+    _disposed = false;
+    ref.onDispose(() => _disposed = true);
     return const InterviewSessionState();
   }
 
@@ -617,22 +624,25 @@ class InterviewNotifier extends Notifier<InterviewSessionState> {
     } on Exception catch (e) {
       debugPrint('endSession: feedback call failed: $e');
 
-      // The Edge Function writes into public.interview_feedback before it
-      // replies. So a failure here doesn't mean the interview wasn't scored —
-      // it usually means we stopped listening (timeout, dropped connection)
-      // while the analysis was still running or had just finished. Look for
-      // the row before telling the student their interview couldn't be
-      // analysed.
-      try {
-        final saved = await Supabase.instance.client
-            .from('interview_feedback')
-            .select()
-            .eq('session_id', sessionId)
-            .maybeSingle()
-            .timeout(const Duration(seconds: 10));
-
-        if (saved != null && saved['overall_score'] != null) {
-          final fb = Map<String, dynamic>.from(saved);
+      // A failed call does NOT mean the interview went unscored.
+      //
+      // The Edge Function does the analysis and writes the row into
+      // public.interview_feedback regardless of whether we are still on the
+      // line — it keeps running server-side until it finishes (the platform
+      // allows it 150s; ours lands around 40s). So every failure here is
+      // really one of two things:
+      //
+      //   * we hung up while it was still working (our 90s timeout, the phone
+      //     losing signal, the student walking out of the building), or
+      //   * it had already finished and the reply itself was lost.
+      //
+      // Either way the result is coming, or is already there. Waiting for the
+      // row is what makes the result survive a bad connection — it is the
+      // difference between "the network held for 40 uninterrupted seconds"
+      // and "the interview was scored". Poll until it lands.
+      if (mayStillBeRunning(e)) {
+        final fb = await _awaitSavedFeedback(sessionId);
+        if (fb != null) {
           state = state.copyWith(
             status: 'completed',
             feedback: fb,
@@ -641,8 +651,6 @@ class InterviewNotifier extends Notifier<InterviewSessionState> {
           );
           return fb;
         }
-      } on Exception catch (e2) {
-        debugPrint('endSession: saved-feedback lookup failed: $e2');
       }
 
       // Genuinely no result — do NOT trap the user on the interview screen.
@@ -650,6 +658,7 @@ class InterviewNotifier extends Notifier<InterviewSessionState> {
       // Keep the error on state (don't clear it) so the view can tell the
       // student the analysis failed instead of silently dropping them back
       // on the setup screen.
+      if (_disposed) return null;
       state = state.copyWith(
         status: 'idle',
         isVapiConnected: false,
@@ -664,7 +673,106 @@ class InterviewNotifier extends Notifier<InterviewSessionState> {
       );
       return null;
     } finally {
-      state = state.copyWith(isLoading: false);
+      // This can now run well over a minute after the end tap (the poll
+      // below waits for the analysis to land), by which point the notifier
+      // may be gone — writing to `state` then throws out of the finally and
+      // would mask the real result.
+      if (!_disposed) {
+        state = state.copyWith(isLoading: false);
+      }
+    }
+  }
+
+  /// Waits for `interview-feedback` to land its row for [sessionId].
+  ///
+  /// Called only after the direct call already failed. The analysis is still
+  /// running (or has finished) on the server, so this watches the table the
+  /// function writes to instead of depending on an HTTP connection that has
+  /// already proven unreliable.
+  ///
+  /// Checks immediately, then every 3s up to [_feedbackPollWindow]. That
+  /// window is sized against the platform's 150s request ceiling — past it the
+  /// function has been killed and no row is ever coming, so continuing to wait
+  /// would only stall the student.
+  ///
+  /// A poll that returns no row means "not finished yet" and keeps waiting.
+  /// A poll that *throws* means the phone still has no usable connection;
+  /// [_feedbackPollFailureLimit] consecutive throws end the wait, so a student
+  /// who ended the interview with the network genuinely down gets told so in a
+  /// few seconds instead of watching a spinner for the whole window.
+  static const Duration _feedbackPollWindow = Duration(seconds: 75);
+  static const Duration _feedbackPollInterval = Duration(seconds: 3);
+  static const int _feedbackPollFailureLimit = 3;
+
+  /// Whether [error] leaves any chance that the analysis is still coming.
+  ///
+  /// The function replies with a non-2xx status for every case it can name —
+  /// empty transcript, bad session, rate limit, unparseable model output. Those
+  /// are complete answers: no row was written and none ever will be, so waiting
+  /// on them just delays the bad news. What is worth waiting on is the opposite
+  /// shape of failure — we never got a verdict at all.
+  ///
+  /// Getting this wrong is costly in both directions: too strict and a scored
+  /// interview is thrown away, too loose and a student who cannot be scored
+  /// waits out the whole poll window to be told so. Pinned by
+  /// `interview_feedback_recovery_test.dart`.
+  @visibleForTesting
+  static bool mayStillBeRunning(Object error) {
+    // Our own 90s cutoff, or the socket dying under us.
+    if (error is TimeoutException) return true;
+    if (error is SocketException) return true;
+    if (error is http.ClientException) return true;
+
+    if (error is FunctionException) {
+      // 504 is the platform's request-idle timeout and 546 its wall-clock
+      // kill; in both the worker was still alive and can have finished (and
+      // saved) after the gateway stopped waiting. Every other status is the
+      // function's own considered reply.
+      return error.status == 504 || error.status == 546;
+    }
+
+    // Unrecognised failure: a lookup costs one query, a lost result costs the
+    // student their interview.
+    return true;
+  }
+
+  Future<Map<String, dynamic>?> _awaitSavedFeedback(String sessionId) async {
+    final deadline = DateTime.now().add(_feedbackPollWindow);
+    var attempt = 0;
+    var consecutiveFailures = 0;
+
+    while (true) {
+      attempt++;
+      try {
+        final saved = await Supabase.instance.client
+            .from('interview_feedback')
+            .select()
+            .eq('session_id', sessionId)
+            .maybeSingle()
+            .timeout(const Duration(seconds: 10));
+
+        consecutiveFailures = 0;
+        if (saved != null && saved['overall_score'] != null) {
+          debugPrint('endSession: recovered saved feedback on poll $attempt');
+          return Map<String, dynamic>.from(saved);
+        }
+      } on Exception catch (e) {
+        consecutiveFailures++;
+        debugPrint(
+          'endSession: feedback poll $attempt failed '
+          '($consecutiveFailures in a row): $e',
+        );
+        if (consecutiveFailures >= _feedbackPollFailureLimit) return null;
+      }
+
+      if (!DateTime.now().isBefore(deadline)) return null;
+
+      // The notifier can be disposed while we wait (the student backs out of
+      // the interview). Writing to `state` after that throws, so stop.
+      if (_disposed) return null;
+
+      await Future<void>.delayed(_feedbackPollInterval);
+      if (_disposed) return null;
     }
   }
 
