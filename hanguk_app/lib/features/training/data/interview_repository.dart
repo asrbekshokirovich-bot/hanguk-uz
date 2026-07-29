@@ -615,10 +615,38 @@ class InterviewNotifier extends Notifier<InterviewSessionState> {
 
       return fb;
     } on Exception catch (e) {
-      // Feedback generation failed (network, timeout, server) — do NOT trap
-      // the user on the interview screen. Exit to setup and mark the row
-      // abandoned in the background.
-      debugPrint('endSession: feedback failed, abandoning session: $e');
+      debugPrint('endSession: feedback call failed: $e');
+
+      // The Edge Function writes into public.interview_feedback before it
+      // replies. So a failure here doesn't mean the interview wasn't scored —
+      // it usually means we stopped listening (timeout, dropped connection)
+      // while the analysis was still running or had just finished. Look for
+      // the row before telling the student their interview couldn't be
+      // analysed.
+      try {
+        final saved = await Supabase.instance.client
+            .from('interview_feedback')
+            .select()
+            .eq('session_id', sessionId)
+            .maybeSingle()
+            .timeout(const Duration(seconds: 10));
+
+        if (saved != null && saved['overall_score'] != null) {
+          final fb = Map<String, dynamic>.from(saved);
+          state = state.copyWith(
+            status: 'completed',
+            feedback: fb,
+            isVapiConnected: false,
+            clearError: true,
+          );
+          return fb;
+        }
+      } on Exception catch (e2) {
+        debugPrint('endSession: saved-feedback lookup failed: $e2');
+      }
+
+      // Genuinely no result — do NOT trap the user on the interview screen.
+      // Exit to setup and mark the row abandoned in the background.
       // Keep the error on state (don't clear it) so the view can tell the
       // student the analysis failed instead of silently dropping them back
       // on the setup screen.
