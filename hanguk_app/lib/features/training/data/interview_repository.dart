@@ -526,12 +526,18 @@ class InterviewNotifier extends Notifier<InterviewSessionState> {
 
       // Timed: a hung feedback call must never trap the user on the
       // interview screen (the catch below guarantees an exit).
+      //
+      // 90s, not 25: the function makes a second model call whenever the
+      // first reply doesn't parse, and production logs show those runs
+      // finishing at ~40s with a 200. At 25s the app was hanging up on a
+      // request that was about to succeed, so the student saw "couldn't
+      // analyse" for an interview that had in fact been scored and saved.
       final response = await client.functions
           .invoke(
             'interview-feedback',
             body: {'sessionId': sessionId, 'language': language},
           )
-          .timeout(const Duration(seconds: 25));
+          .timeout(const Duration(seconds: 90));
 
       final data = response.data as Map<String, dynamic>?;
       if (data == null || data['error'] != null) {
