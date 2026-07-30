@@ -18,8 +18,7 @@ import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import StudentPortal from "./pages/StudentPortal";
 import { StudentDataProvider } from "./contexts/StudentDataContext";
-import CRMPortal from "./pages/CRMPortal";
-import { IntakeProvider } from "./contexts/IntakeContext";
+import CRMEntry from "./pages/CRMEntry";
 import InterviewPractice from "./pages/InterviewPractice";
 import StudyPlanTrainer from "./pages/StudyPlanTrainer";
 import UniversityStaffPortal from "./pages/UniversityStaffPortal";
@@ -86,7 +85,11 @@ const App = () => (
                     <Route path="/interview-practice" element={<ProtectedRoute><InterviewPractice /></ProtectedRoute>} />
                     <Route path="/study-plan-trainer" element={<ProtectedRoute><StudyPlanTrainer /></ProtectedRoute>} />
                     <Route path="/university-portal" element={<ProtectedRoute><UniversityStaffPortal /></ProtectedRoute>} />
-                    <Route path="/crm/*" element={<IntakeProvider><CRMPortal /></IntakeProvider>} />
+                    {/* CRMEntry decides between the staff CRM and the investor
+                        portal before either mounts, and owns IntakeProvider for
+                        the staff branch — an investor session cannot read
+                        public.intakes, so that provider must not wrap her. */}
+                    <Route path="/crm/*" element={<CRMEntry />} />
                     <Route path="/system-map" element={<SystemMap />} />
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                     <Route path="*" element={<NotFound />} />

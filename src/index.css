@@ -1,3 +1,5 @@
+@import './styles/investor-tokens.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
