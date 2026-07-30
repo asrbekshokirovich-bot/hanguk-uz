@@ -266,6 +266,11 @@
 
   "analysisFeedbackTitle": "Analysis & Feedback",
   "noAnalysisYet": "No analysis generated yet.",
+  "analysisErrorPlanRequired": "Анализ входит в тарифы Premium и No Risk. В вашем текущем тарифе его нет.",
+  "analysisErrorRateLimited": "Слишком много запросов на анализ. Подождите минуту и попробуйте снова.",
+  "analysisErrorServiceDown": "Сервис анализа временно недоступен. Черновик сохранён — попробуйте позже.",
+  "analysisErrorFailed": "Не удалось выполнить анализ. Черновик сохранён — проверьте соединение и попробуйте снова.",
+  "analysisRetryButton": "Повторить",
   "aiReviewedDraft": "AI successfully reviewed your draft.",
   "returnToDrafting": "Return to Drafting",
 

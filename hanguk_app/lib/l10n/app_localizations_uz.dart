@@ -669,6 +669,25 @@ class AppLocalizationsUz extends AppLocalizations {
   String get noAnalysisYet => 'Hozircha tahlil yaratilmagan.';
 
   @override
+  String get analysisErrorPlanRequired =>
+      'Tahlil Premium va No Risk tariflariga kiradi. Sizning hozirgi tarifingizda bu yo\'q.';
+
+  @override
+  String get analysisErrorRateLimited =>
+      'Juda ko\'p tahlil so\'raldi. Bir daqiqa kutib, qayta urinib ko\'ring.';
+
+  @override
+  String get analysisErrorServiceDown =>
+      'Tahlil xizmati vaqtincha ishlamayapti. Qoralamangiz saqlangan — birozdan keyin urinib ko\'ring.';
+
+  @override
+  String get analysisErrorFailed =>
+      'Tahlilni yakunlab bo\'lmadi. Qoralamangiz saqlangan — internetni tekshirib, qayta urinib ko\'ring.';
+
+  @override
+  String get analysisRetryButton => 'Qayta urinish';
+
+  @override
   String get aiReviewedDraft => 'AI qoralamani ko\'rib chiqdi.';
 
   @override

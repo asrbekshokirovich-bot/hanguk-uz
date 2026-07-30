@@ -266,6 +266,11 @@
 
   "analysisFeedbackTitle": "Tahlil va izohlar",
   "noAnalysisYet": "Hozircha tahlil yaratilmagan.",
+  "analysisErrorPlanRequired": "Tahlil Premium va No Risk tariflariga kiradi. Sizning hozirgi tarifingizda bu yo'q.",
+  "analysisErrorRateLimited": "Juda ko'p tahlil so'raldi. Bir daqiqa kutib, qayta urinib ko'ring.",
+  "analysisErrorServiceDown": "Tahlil xizmati vaqtincha ishlamayapti. Qoralamangiz saqlangan — birozdan keyin urinib ko'ring.",
+  "analysisErrorFailed": "Tahlilni yakunlab bo'lmadi. Qoralamangiz saqlangan — internetni tekshirib, qayta urinib ko'ring.",
+  "analysisRetryButton": "Qayta urinish",
   "aiReviewedDraft": "AI qoralamani ko'rib chiqdi.",
   "returnToDrafting": "Qoralamaga qaytish",
 

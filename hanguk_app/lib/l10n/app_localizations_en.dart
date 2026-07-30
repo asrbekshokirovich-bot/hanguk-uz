@@ -666,6 +666,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noAnalysisYet => 'No analysis generated yet.';
 
   @override
+  String get analysisErrorPlanRequired =>
+      'Analysis is part of the Premium and No Risk plans. Your current plan does not include it.';
+
+  @override
+  String get analysisErrorRateLimited =>
+      'Too many analyses just now. Wait a minute and try again.';
+
+  @override
+  String get analysisErrorServiceDown =>
+      'The analysis service is temporarily unavailable. Your draft is saved — try again shortly.';
+
+  @override
+  String get analysisErrorFailed =>
+      'The analysis could not be completed. Your draft is saved — check your connection and try again.';
+
+  @override
+  String get analysisRetryButton => 'Try again';
+
+  @override
   String get aiReviewedDraft => 'AI successfully reviewed your draft.';
 
   @override

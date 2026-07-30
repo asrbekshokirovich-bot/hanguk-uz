@@ -266,6 +266,11 @@
 
   "analysisFeedbackTitle": "Analysis & Feedback",
   "noAnalysisYet": "No analysis generated yet.",
+  "analysisErrorPlanRequired": "Phân tích thuộc gói Premium và No Risk. Gói hiện tại của bạn không bao gồm tính năng này.",
+  "analysisErrorRateLimited": "Quá nhiều yêu cầu phân tích. Hãy đợi một phút rồi thử lại.",
+  "analysisErrorServiceDown": "Dịch vụ phân tích tạm thời không khả dụng. Bản nháp đã được lưu — hãy thử lại sau.",
+  "analysisErrorFailed": "Không thể hoàn tất phân tích. Bản nháp đã được lưu — kiểm tra kết nối và thử lại.",
+  "analysisRetryButton": "Thử lại",
   "aiReviewedDraft": "AI successfully reviewed your draft.",
   "returnToDrafting": "Return to Drafting",
 

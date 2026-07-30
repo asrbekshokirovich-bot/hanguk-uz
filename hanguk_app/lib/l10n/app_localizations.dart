@@ -1298,6 +1298,36 @@ abstract class AppLocalizations {
   /// **'No analysis generated yet.'**
   String get noAnalysisYet;
 
+  /// StudyPlanAnalysisView: shown instead of the empty state when the analyze call was refused because the account's plan does not include the trainer (HTTP 403).
+  ///
+  /// In en, this message translates to:
+  /// **'Analysis is part of the Premium and No Risk plans. Your current plan does not include it.'**
+  String get analysisErrorPlanRequired;
+
+  /// StudyPlanAnalysisView: shown when the analyze call was rate limited (HTTP 429).
+  ///
+  /// In en, this message translates to:
+  /// **'Too many analyses just now. Wait a minute and try again.'**
+  String get analysisErrorRateLimited;
+
+  /// StudyPlanAnalysisView: shown when the analysis backend or upstream model was unavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'The analysis service is temporarily unavailable. Your draft is saved — try again shortly.'**
+  String get analysisErrorServiceDown;
+
+  /// StudyPlanAnalysisView: shown when the analyze call failed for an unclassified reason, e.g. no network.
+  ///
+  /// In en, this message translates to:
+  /// **'The analysis could not be completed. Your draft is saved — check your connection and try again.'**
+  String get analysisErrorFailed;
+
+  /// StudyPlanAnalysisView: button that re-runs the analysis after a failure.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get analysisRetryButton;
+
   /// Fallback body on Step 4 (Feedback) in StudyPlanScreen when the analysis row exists but aiResponse is empty.
   ///
   /// In en, this message translates to:

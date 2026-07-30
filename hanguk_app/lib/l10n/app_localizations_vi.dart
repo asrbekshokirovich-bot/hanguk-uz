@@ -666,6 +666,25 @@ class AppLocalizationsVi extends AppLocalizations {
   String get noAnalysisYet => 'No analysis generated yet.';
 
   @override
+  String get analysisErrorPlanRequired =>
+      'Phân tích thuộc gói Premium và No Risk. Gói hiện tại của bạn không bao gồm tính năng này.';
+
+  @override
+  String get analysisErrorRateLimited =>
+      'Quá nhiều yêu cầu phân tích. Hãy đợi một phút rồi thử lại.';
+
+  @override
+  String get analysisErrorServiceDown =>
+      'Dịch vụ phân tích tạm thời không khả dụng. Bản nháp đã được lưu — hãy thử lại sau.';
+
+  @override
+  String get analysisErrorFailed =>
+      'Không thể hoàn tất phân tích. Bản nháp đã được lưu — kiểm tra kết nối và thử lại.';
+
+  @override
+  String get analysisRetryButton => 'Thử lại';
+
+  @override
   String get aiReviewedDraft => 'AI successfully reviewed your draft.';
 
   @override

@@ -666,6 +666,25 @@ class AppLocalizationsRu extends AppLocalizations {
   String get noAnalysisYet => 'No analysis generated yet.';
 
   @override
+  String get analysisErrorPlanRequired =>
+      'Анализ входит в тарифы Premium и No Risk. В вашем текущем тарифе его нет.';
+
+  @override
+  String get analysisErrorRateLimited =>
+      'Слишком много запросов на анализ. Подождите минуту и попробуйте снова.';
+
+  @override
+  String get analysisErrorServiceDown =>
+      'Сервис анализа временно недоступен. Черновик сохранён — попробуйте позже.';
+
+  @override
+  String get analysisErrorFailed =>
+      'Не удалось выполнить анализ. Черновик сохранён — проверьте соединение и попробуйте снова.';
+
+  @override
+  String get analysisRetryButton => 'Повторить';
+
+  @override
   String get aiReviewedDraft => 'AI successfully reviewed your draft.';
 
   @override

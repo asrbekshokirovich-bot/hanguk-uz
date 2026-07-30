@@ -50,9 +50,22 @@ class StudyPlanAnalysisView extends ConsumerWidget {
           const SizedBox(height: 16),
           if (analysis == null) ...[
             const Spacer(),
-            Center(
-              child: Text(l.noAnalysisYet, style: SeoulType.bodySecondary),
-            ),
+            // A failed analysis used to land on the same neutral "nothing here
+            // yet" as never having run one. The student pressed Analyze, was
+            // moved to this step, and was told nothing — a locked feature, a
+            // dropped connection and a bug all looked identical. Say which.
+            if (_failureMessage(l, state.error) case final String message)
+              _AnalysisFailure(
+                message: message,
+                retryLabel: l.analysisRetryButton,
+                onRetry: () => ref
+                    .read(studyPlanSessionProvider.notifier)
+                    .analyzeCurrentDraft(documentType),
+              )
+            else
+              Center(
+                child: Text(l.noAnalysisYet, style: SeoulType.bodySecondary),
+              ),
             const Spacer(),
           ] else ...[
             Expanded(
@@ -190,6 +203,68 @@ class _TrackWarning extends StatelessWidget {
                 dense: true,
               ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The localized reason the analysis is missing, or null when it simply has
+/// not been run yet.
+///
+/// Only codes this view knows are surfaced. Anything else — a stale or
+/// unrelated error left on the session state — falls back to the neutral
+/// empty state rather than showing a student a string meant for a log.
+String? _failureMessage(AppLocalizations l, String? error) {
+  switch (error) {
+    case analysisErrorPlanRequired:
+      return l.analysisErrorPlanRequired;
+    case analysisErrorRateLimited:
+      return l.analysisErrorRateLimited;
+    case analysisErrorServiceDown:
+      return l.analysisErrorServiceDown;
+    case analysisErrorFailed:
+      return l.analysisErrorFailed;
+  }
+  return null;
+}
+
+/// Why the analysis is not here, and a way to ask again.
+class _AnalysisFailure extends StatelessWidget {
+  const _AnalysisFailure({
+    required this.message,
+    required this.retryLabel,
+    required this.onRetry,
+  });
+
+  final String message;
+  final String retryLabel;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return GlassCard(
+      padding: const EdgeInsets.all(18),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(
+            Icons.error_outline,
+            color: SeoulColors.warningText,
+            size: 28,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            message,
+            textAlign: TextAlign.center,
+            style: SeoulType.bodySecondary,
+          ),
+          const SizedBox(height: 18),
+          SeoulOutlineButton(
+            label: retryLabel,
+            expand: false,
+            onPressed: onRetry,
           ),
         ],
       ),

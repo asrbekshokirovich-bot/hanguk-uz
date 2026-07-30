@@ -641,6 +641,24 @@ class AppLocalizationsKo extends AppLocalizations {
   String get noAnalysisYet => '아직 생성된 분석이 없습니다.';
 
   @override
+  String get analysisErrorPlanRequired =>
+      '분석은 Premium 및 No Risk 플랜에 포함됩니다. 현재 플랜에는 포함되어 있지 않습니다.';
+
+  @override
+  String get analysisErrorRateLimited => '분석 요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.';
+
+  @override
+  String get analysisErrorServiceDown =>
+      '분석 서비스를 일시적으로 사용할 수 없습니다. 초안은 저장되었습니다 — 잠시 후 다시 시도해 주세요.';
+
+  @override
+  String get analysisErrorFailed =>
+      '분석을 완료할 수 없습니다. 초안은 저장되었습니다 — 연결을 확인한 후 다시 시도해 주세요.';
+
+  @override
+  String get analysisRetryButton => '다시 시도';
+
+  @override
   String get aiReviewedDraft => 'AI가 초안을 검토했습니다.';
 
   @override
