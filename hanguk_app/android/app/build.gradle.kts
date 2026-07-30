@@ -34,7 +34,28 @@ android {
     defaultConfig {
         applicationId = "com.hanguk.studentapp.hanguk_app"
         minSdk = flutter.minSdkVersion
-        targetSdk = 35  // Pinned: Play Store 2026 hard requirement
+        // Android 16. Pinned rather than tracking flutter.targetSdkVersion,
+        // because targetSdk is what opts the app into a platform release's
+        // behaviour changes — that should be a deliberate, tested step, not
+        // something a Flutter upgrade does silently underneath us.
+        //
+        // Play requires this to stay within one year of the latest Android
+        // release. It sat at 35 until Play refused further updates:
+        //
+        //   NEXT DEADLINE — raise to 37 (Android 17) before Aug 31, 2027.
+        //
+        // Reviewed for the API 36 behaviour changes before bumping:
+        //   * Edge-to-edge is now unconditional (the opt-out flag is ignored).
+        //     No change here: nothing ever set windowOptOutEdgeToEdgeEnforcement,
+        //     and enforcement already applied at 35 on Android 15. Every screen
+        //     paints through SeoulNightScaffold, whose gradient fills the window
+        //     and whose body is inside a SafeArea.
+        //   * Large screens may no longer have orientation or resizability
+        //     locked. The manifest declares neither screenOrientation nor
+        //     resizeableActivity, so there is nothing to lose.
+        //   * Stricter foreground-service and JobScheduler rules — the app
+        //     declares no foreground service and schedules no jobs.
+        targetSdk = 36
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
