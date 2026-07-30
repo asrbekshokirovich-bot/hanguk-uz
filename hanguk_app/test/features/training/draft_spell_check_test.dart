@@ -28,6 +28,9 @@ SuggestionSpan _span(int start, int end, List<String> suggestions) =>
     SuggestionSpan(TextRange(start: start, end: end), suggestions);
 
 void main() {
+  // The English checker reads its wordlist from the asset bundle.
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   group('the underline never changes the text', () {
     // The renderer slices the draft into spans and advances a cursor. If two
     // flagged ranges overlap it can emit the same characters twice — and the
@@ -195,7 +198,15 @@ void main() {
     });
   });
 
-  group('DraftSpellChecker', () {
+  group('DraftSpellChecker (platform path, Korean)', () {
+    // These drive the device-service path, which since the bundled English
+    // dictionary landed is only reachable for Korean — so they speak ko.
+    // English deliberately never consults the platform (see the en test
+    // below): on ROMs with no spell checker service that path fails every
+    // call, permanently, which is how "the checker does not work at all"
+    // shipped in the first place.
+    const ko = Locale('ko', 'KR');
+
     test('reports the misspelled word and its suggestions', () async {
       final service = _FakeSpellCheckService(
         (_, _) async => [
@@ -205,7 +216,7 @@ void main() {
       final checker = DraftSpellChecker(service: service);
 
       final result = await checker.check(
-        const Locale('en', 'US'),
+        ko,
         'Hi my name is Asrbek. I live in tashkrnt',
       );
 
@@ -220,7 +231,7 @@ void main() {
       final checker = DraftSpellChecker(
         service: _FakeSpellCheckService((_, _) async => null),
       );
-      expect(await checker.check(const Locale('en', 'US'), '   '), isEmpty);
+      expect(await checker.check(ko, '   '), isEmpty);
     });
 
     test('a null reply is "unknown", not "all correct"', () async {
@@ -230,7 +241,7 @@ void main() {
       final checker = DraftSpellChecker(
         service: _FakeSpellCheckService((_, _) async => null),
       );
-      expect(await checker.check(const Locale('en', 'US'), 'hello'), isNull);
+      expect(await checker.check(ko, 'hello'), isNull);
     });
 
     test('ranges past the end of the text are clamped away', () async {
@@ -243,7 +254,7 @@ void main() {
         ),
       );
 
-      final result = await checker.check(const Locale('en', 'US'), 'helo');
+      final result = await checker.check(ko, 'helo');
       expect(result, hasLength(1));
       expect(result!.single.word, 'helo');
       expect(result.single.end, 4);
@@ -255,10 +266,10 @@ void main() {
       );
       final checker = DraftSpellChecker(service: service);
 
-      expect(await checker.check(const Locale('en', 'US'), 'hello'), isNull);
+      expect(await checker.check(ko, 'hello'), isNull);
       expect(checker.availability, SpellCheckAvailability.unavailable);
 
-      expect(await checker.check(const Locale('en', 'US'), 'again'), isNull);
+      expect(await checker.check(ko, 'again'), isNull);
       expect(service.calls, 1, reason: 'must stop asking after the first no');
     });
 
@@ -274,9 +285,9 @@ void main() {
       });
       final checker = DraftSpellChecker(service: service);
 
-      expect(await checker.check(const Locale('en', 'US'), 'hello'), isNull);
+      expect(await checker.check(ko, 'hello'), isNull);
       expect(checker.availability, isNot(SpellCheckAvailability.unavailable));
-      expect(await checker.check(const Locale('en', 'US'), 'hello'), isEmpty);
+      expect(await checker.check(ko, 'hello'), isEmpty);
       expect(checker.availability, SpellCheckAvailability.available);
     });
 
@@ -294,12 +305,12 @@ void main() {
       final checker = DraftSpellChecker(service: service);
 
       for (var i = 0; i < 3; i++) {
-        expect(await checker.check(const Locale('en', 'US'), 'word $i'), isNull);
+        expect(await checker.check(ko, 'word $i'), isNull);
       }
       expect(checker.availability, SpellCheckAvailability.unavailable);
 
       final callsSoFar = service.calls;
-      await checker.check(const Locale('en', 'US'), 'more');
+      await checker.check(ko, 'more');
       expect(service.calls, callsSoFar, reason: 'stop hammering a dead service');
     });
 
@@ -310,8 +321,8 @@ void main() {
       final service = _FakeSpellCheckService((_, _) async => gate.future);
       final checker = DraftSpellChecker(service: service);
 
-      final first = checker.check(const Locale('en', 'US'), 'one');
-      final second = await checker.check(const Locale('en', 'US'), 'two');
+      final first = checker.check(ko, 'one');
+      final second = await checker.check(ko, 'two');
 
       expect(second, isNull, reason: 'declined while one is in flight');
       expect(service.calls, 1, reason: 'only one request may be out');
@@ -320,8 +331,33 @@ void main() {
       expect(await first, isEmpty);
 
       // ...and the checker is usable again once the first one lands.
-      expect(await checker.check(const Locale('en', 'US'), 'three'), isEmpty);
+      expect(await checker.check(ko, 'three'), isEmpty);
       expect(service.calls, 2);
+    });
+  });
+
+  group('DraftSpellChecker (English)', () {
+    // Plain test(), not testWidgets(): the dictionary loads its asset with
+    // real async I/O, which never completes inside testWidgets' fake-async
+    // zone — the test would hang for its full timeout.
+    test('uses the bundled dictionary, never the platform', () async {
+      // The regression that shipped: English checking depended on a device
+      // spell checker service many phones do not have. English must now be
+      // answered from the app's own wordlist with the platform left alone.
+      final service = _FakeSpellCheckService(
+        (_, _) async => throw PlatformException(code: 'no service'),
+      );
+      final checker = DraftSpellChecker(service: service);
+
+      final result = await checker.check(
+        const Locale('en', 'US'),
+        'i am xojamurod ai tahden',
+      );
+
+      expect(service.calls, 0, reason: 'the platform must not be consulted');
+      expect(result, isNotNull);
+      expect(result!.map((m) => m.word), ['xojamurod', 'tahden']);
+      expect(checker.availability, SpellCheckAvailability.available);
     });
   });
 }

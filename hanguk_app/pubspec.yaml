@@ -111,6 +111,18 @@ flutter:
   assets:
     - assets/images/
     - assets/virtual_tour/
+    # English wordlist for the drafting workspace's spell check (~370k words,
+    # sorted, one per line, LF-terminated — LocalDictionary binary-searches
+    # the raw bytes). Bundled because Android only spell checks through a
+    # spell checker *service*, and many shipped ROMs have none: on those
+    # devices the platform checker fails every call, permanently. The essay
+    # is the student's admission document — checking it cannot depend on
+    # which phone they happen to own.
+    - assets/dictionaries/en_words.txt
+    # The 10k most common English words, most frequent first. Only used to
+    # ORDER suggestions — "frend" has many one-edit neighbours (trend, fiend,
+    # friend...) and without frequency the junk wins the three chip slots.
+    - assets/dictionaries/en_ranks.txt
 
   # Seoul Night redesign typefaces (DESIGN_SPEC §1 Type). Bundled rather than
   # fetched at runtime so first launch is correct offline. All three are

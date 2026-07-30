@@ -3,6 +3,8 @@ import 'dart:ui' show Locale;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
+import 'local_dictionary.dart';
+
 /// Whether this device can spell check at all.
 ///
 /// Worth reporting rather than hiding: not every phone can. Android only
@@ -47,12 +49,24 @@ class Misspelling {
   String toString() => 'Misspelling($start-$end, "$word", $suggestions)';
 }
 
-/// Checks a draft against the device's own dictionary.
+/// Checks a draft as the student writes it.
 ///
 /// The drafting workspace already had AI supervision, but it is network-bound,
 /// debounced by a second, and rate-capped to one call every six — it cannot
-/// tell a student that the word they just typed is misspelled. This does, from
-/// the same dictionary the keyboard uses: offline, in milliseconds, per word.
+/// tell a student that the word they just typed is misspelled. This can.
+///
+/// English — the track nearly every student writes in — is checked against
+/// the app's own bundled [LocalDictionary]: offline, in microseconds, and
+/// identical on every phone. It does NOT use the device's spell checker,
+/// because Android only spell checks through a spell checker service and many
+/// shipped ROMs have none — on those the platform fails every call, forever,
+/// and the essay goes unchecked depending on which phone the student owns.
+/// That is exactly what field testing showed.
+///
+/// Korean falls back to the device service via [SpellCheckService] — a Korean
+/// wordlist cannot be meaningfully bundled (agglutination makes plain lookup
+/// wrong), so there the device's own checker is genuinely the only option,
+/// and its absence is reported rather than hidden.
 ///
 /// Wraps [SpellCheckService] rather than [TextField.spellCheckConfiguration]
 /// on purpose. Handing the configuration to the field makes `EditableText`
@@ -100,8 +114,27 @@ class DraftSpellChecker {
   /// the screen. Callers should keep a timer behind an immediate check so a
   /// declined request is retried.
   Future<List<Misspelling>?> check(Locale locale, String text) async {
-    if (_availability == SpellCheckAvailability.unavailable) return null;
     if (text.trim().isEmpty) return const <Misspelling>[];
+
+    // English: the bundled dictionary, never the platform. Deterministic on
+    // every device, no service to be missing, no settings to enable.
+    if (locale.languageCode == 'en') {
+      final dict = await LocalDictionary.load();
+      if (dict != null) {
+        _availability = SpellCheckAvailability.available;
+        return dict.check(text);
+      }
+      // The asset failed to load — a broken build. Fall through and give the
+      // platform a chance rather than doing nothing at all.
+    }
+
+    return _platformCheck(locale, text);
+  }
+
+  /// The device-service path — Korean, or English on a build whose dictionary
+  /// asset is unreadable.
+  Future<List<Misspelling>?> _platformCheck(Locale locale, String text) async {
+    if (_availability == SpellCheckAvailability.unavailable) return null;
     if (_inFlight) return null;
 
     _inFlight = true;
