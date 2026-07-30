@@ -1034,6 +1034,12 @@ abstract class AppLocalizations {
   /// **'AI Supervision Active'**
   String get aiStatusSupervisionActive;
 
+  /// AdvancedDraftingWorkspace AI status when this device has no spell checker service, so typed words cannot be checked against a dictionary.
+  ///
+  /// In en, this message translates to:
+  /// **'Device dictionary unavailable'**
+  String get aiStatusSpellCheckUnavailable;
+
   /// Header above the drafting TextField in AdvancedDraftingWorkspace.
   ///
   /// In en, this message translates to:

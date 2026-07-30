@@ -499,6 +499,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get aiStatusSupervisionActive => 'AI 검토 활성화';
 
   @override
+  String get aiStatusSpellCheckUnavailable => '기기 사전을 사용할 수 없음';
+
+  @override
   String get workspaceTitle => '작업 공간';
 
   @override

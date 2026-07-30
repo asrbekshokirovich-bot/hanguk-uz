@@ -523,6 +523,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get aiStatusSupervisionActive => 'AI Supervision Active';
 
   @override
+  String get aiStatusSpellCheckUnavailable => 'Device dictionary unavailable';
+
+  @override
   String get workspaceTitle => 'Workspace';
 
   @override

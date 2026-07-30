@@ -21,6 +21,11 @@ enum _AiStatus {
   ready,
   predicting,
   supervisionActive,
+
+  /// This device has no spell checker service, so typed words cannot be
+  /// checked against a dictionary. Surfaced rather than hidden: silence here
+  /// is indistinguishable from a checker that is simply broken.
+  spellCheckUnavailable,
 }
 
 class AdvancedDraftingWorkspace extends ConsumerStatefulWidget {
@@ -68,6 +73,10 @@ class _AdvancedDraftingWorkspaceState
   /// Fallback for mid-word pauses, so a student who stops typing still gets
   /// told about the word they left unfinished.
   static const Duration _spellCheckIdle = Duration(milliseconds: 450);
+
+  /// The draft as of the last completed check, so the safety-net timer does
+  /// not re-ask about text that has already been judged.
+  String? _lastSpellCheckedText;
   // Audit A10: rate-cap the AI supervise calls to once every
   // _aiMinInterval. Without it, long sessions of intermittent typing
   // pauses can fire dozens of paid Edge Function calls per minute.
@@ -108,6 +117,25 @@ class _AdvancedDraftingWorkspaceState
     _updateMetrics(widget.initialText);
 
     _controller.addListener(_onTextChanged);
+
+    // Check the draft that is already on screen.
+    //
+    // Every check used to hang off _onTextChanged, so nothing was examined
+    // until the student typed another character. Reopening a saved draft —
+    // the normal way to come back to this screen — showed the text with no
+    // marks on it and the status stuck on its initial "waiting for input",
+    // which reads exactly like a checker that does not work. It never ran.
+    //
+    // Deferred to after the first frame so the provider read below happens
+    // outside build.
+    if (widget.initialText.trim().isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        final text = _controller.text;
+        unawaited(_runSpellCheck(text));
+        unawaited(_generateAiSuggestion(text));
+      });
+    }
   }
 
   @override
@@ -154,13 +182,15 @@ class _AdvancedDraftingWorkspaceState
     // Spell check. Runs the instant a word is finished; otherwise waits out a
     // short pause. Both paths are a local dictionary lookup, so unlike the AI
     // supervisor below there is no cost to keeping up with the typing.
+    // The timer is armed either way, not just on the slow path. Only one
+    // request may be in flight at a time, so an immediate word-boundary check
+    // can be declined while a previous one is still out — and without a timer
+    // behind it that word would simply never be judged. A repeat on identical
+    // text is skipped inside _runSpellCheck, so the safety net costs nothing.
     _spellCheckTimer?.cancel();
-    final justEndedAWord =
-        text.isNotEmpty && _wordBoundary.hasMatch(text.characters.last);
-    if (justEndedAWord) {
+    _spellCheckTimer = Timer(_spellCheckIdle, () => _runSpellCheck(text));
+    if (text.isNotEmpty && _wordBoundary.hasMatch(text.characters.last)) {
       unawaited(_runSpellCheck(text));
-    } else {
-      _spellCheckTimer = Timer(_spellCheckIdle, () => _runSpellCheck(text));
     }
 
     // AI Ghost Text Debounce (1 second)
@@ -205,12 +235,28 @@ class _AdvancedDraftingWorkspaceState
         ? const Locale('ko', 'KR')
         : const Locale('en', 'US');
 
+    // Already judged this exact draft — nothing can have changed.
+    if (text == _lastSpellCheckedText) return;
+
     final found = await _spellChecker.check(locale, text);
 
-    // `null` is "no verdict" — the platform has no dictionary, or this reply
-    // was superseded. Leave the existing marks alone; clearing them would
-    // blink every underline off the screen on a dropped request.
-    if (found == null || !mounted) return;
+    if (!mounted) return;
+
+    // A device with no spell checker service can never answer. Say so in the
+    // status chip: a student typing at a checker that stays silent has no way
+    // to tell "your phone cannot do this" from "this app is broken".
+    if (_spellChecker.availability == SpellCheckAvailability.unavailable) {
+      setState(() {
+        _aiContextStatus = _AiStatus.spellCheckUnavailable;
+      });
+      return;
+    }
+
+    // `null` is "no verdict" — the request was superseded or declined while
+    // another was in flight. Leave the existing marks alone; clearing them
+    // would blink every underline off the screen on a dropped request.
+    if (found == null) return;
+    _lastSpellCheckedText = text;
 
     // The text may have moved on while we were awaiting. Ranges computed
     // against the older snapshot would underline the wrong characters, so
@@ -340,6 +386,7 @@ class _AdvancedDraftingWorkspaceState
       _AiStatus.ready => l.aiStatusReady,
       _AiStatus.predicting => l.aiStatusPredicting,
       _AiStatus.supervisionActive => l.aiStatusSupervisionActive,
+      _AiStatus.spellCheckUnavailable => l.aiStatusSpellCheckUnavailable,
     };
   }
 

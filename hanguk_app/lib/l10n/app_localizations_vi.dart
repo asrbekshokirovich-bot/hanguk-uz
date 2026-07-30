@@ -523,6 +523,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get aiStatusSupervisionActive => 'AI Supervision Active';
 
   @override
+  String get aiStatusSpellCheckUnavailable => 'Từ điển thiết bị không có sẵn';
+
+  @override
   String get workspaceTitle => 'Workspace';
 
   @override

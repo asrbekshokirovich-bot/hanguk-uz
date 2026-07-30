@@ -233,31 +233,6 @@ void main() {
       expect(await checker.check(const Locale('en', 'US'), 'hello'), isNull);
     });
 
-    test('a superseded reply is discarded', () async {
-      // Per-keystroke checks do not come back in order; an older, slower
-      // answer must not overwrite a newer one.
-      final slow = Completer<List<SuggestionSpan>?>();
-      var first = true;
-      final checker = DraftSpellChecker(
-        service: _FakeSpellCheckService((_, _) async {
-          if (first) {
-            first = false;
-            return slow.future;
-          }
-          return <SuggestionSpan>[];
-        }),
-      );
-
-      final stale = checker.check(const Locale('en', 'US'), 'teh');
-      final fresh = await checker.check(const Locale('en', 'US'), 'the cat');
-      slow.complete([
-        _span(0, 3, ['the']),
-      ]);
-
-      expect(await stale, isNull, reason: 'the older answer must be dropped');
-      expect(fresh, isEmpty);
-    });
-
     test('ranges past the end of the text are clamped away', () async {
       final checker = DraftSpellChecker(
         service: _FakeSpellCheckService(
@@ -281,13 +256,13 @@ void main() {
       final checker = DraftSpellChecker(service: service);
 
       expect(await checker.check(const Locale('en', 'US'), 'hello'), isNull);
-      expect(checker.isUnsupported, isTrue);
+      expect(checker.availability, SpellCheckAvailability.unavailable);
 
       expect(await checker.check(const Locale('en', 'US'), 'again'), isNull);
       expect(service.calls, 1, reason: 'must stop asking after the first no');
     });
 
-    test('a platform error does not disable checking', () async {
+    test('one platform error does not disable checking', () async {
       // A transient failure is not the same as "this device cannot do it".
       var thrown = false;
       final service = _FakeSpellCheckService((_, _) async {
@@ -300,8 +275,53 @@ void main() {
       final checker = DraftSpellChecker(service: service);
 
       expect(await checker.check(const Locale('en', 'US'), 'hello'), isNull);
-      expect(checker.isUnsupported, isFalse);
+      expect(checker.availability, isNot(SpellCheckAvailability.unavailable));
       expect(await checker.check(const Locale('en', 'US'), 'hello'), isEmpty);
+      expect(checker.availability, SpellCheckAvailability.available);
+    });
+
+    test('a device that fails every call is given up on', () async {
+      // The Android shape of "this ROM has no spell checker": the native
+      // session comes back null, the call throws, and because the engine only
+      // frees its pending slot on success every later request is refused too.
+      // That never recovers, so it must stop being asked on every keystroke.
+      final service = _FakeSpellCheckService(
+        (_, _) async => throw PlatformException(
+          code: 'error',
+          message: 'Previous spell check request still pending.',
+        ),
+      );
+      final checker = DraftSpellChecker(service: service);
+
+      for (var i = 0; i < 3; i++) {
+        expect(await checker.check(const Locale('en', 'US'), 'word $i'), isNull);
+      }
+      expect(checker.availability, SpellCheckAvailability.unavailable);
+
+      final callsSoFar = service.calls;
+      await checker.check(const Locale('en', 'US'), 'more');
+      expect(service.calls, callsSoFar, reason: 'stop hammering a dead service');
+    });
+
+    test('requests do not overlap', () async {
+      // Overlapping our own requests is what provokes the Android "still
+      // pending" rejection, which would otherwise look like a broken device.
+      final gate = Completer<List<SuggestionSpan>?>();
+      final service = _FakeSpellCheckService((_, _) async => gate.future);
+      final checker = DraftSpellChecker(service: service);
+
+      final first = checker.check(const Locale('en', 'US'), 'one');
+      final second = await checker.check(const Locale('en', 'US'), 'two');
+
+      expect(second, isNull, reason: 'declined while one is in flight');
+      expect(service.calls, 1, reason: 'only one request may be out');
+
+      gate.complete(<SuggestionSpan>[]);
+      expect(await first, isEmpty);
+
+      // ...and the checker is usable again once the first one lands.
+      expect(await checker.check(const Locale('en', 'US'), 'three'), isEmpty);
+      expect(service.calls, 2);
     });
   });
 }

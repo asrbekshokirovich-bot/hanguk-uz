@@ -199,6 +199,7 @@
   "aiStatusReady": "Ready",
   "aiStatusPredicting": "AI Predicting...",
   "aiStatusSupervisionActive": "AI Supervision Active",
+  "aiStatusSpellCheckUnavailable": "Từ điển thiết bị không có sẵn",
   "workspaceTitle": "Workspace",
   "workspaceAnalyzeButton": "Analyze",
   "aiSupervisionWarningsTitle": "AI Supervision Warnings:",

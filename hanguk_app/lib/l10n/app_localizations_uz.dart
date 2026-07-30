@@ -526,6 +526,9 @@ class AppLocalizationsUz extends AppLocalizations {
   String get aiStatusSupervisionActive => 'AI nazorati faol';
 
   @override
+  String get aiStatusSpellCheckUnavailable => 'Qurilma lug\'ati mavjud emas';
+
+  @override
   String get workspaceTitle => 'Ish maydoni';
 
   @override

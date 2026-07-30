@@ -523,6 +523,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get aiStatusSupervisionActive => 'AI Supervision Active';
 
   @override
+  String get aiStatusSpellCheckUnavailable => 'Словарь устройства недоступен';
+
+  @override
   String get workspaceTitle => 'Workspace';
 
   @override

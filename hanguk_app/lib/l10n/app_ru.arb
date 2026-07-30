@@ -199,6 +199,7 @@
   "aiStatusReady": "Ready",
   "aiStatusPredicting": "AI Predicting...",
   "aiStatusSupervisionActive": "AI Supervision Active",
+  "aiStatusSpellCheckUnavailable": "Словарь устройства недоступен",
   "workspaceTitle": "Workspace",
   "workspaceAnalyzeButton": "Analyze",
   "aiSupervisionWarningsTitle": "AI Supervision Warnings:",

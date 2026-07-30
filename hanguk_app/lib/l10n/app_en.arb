@@ -360,6 +360,8 @@
   "@aiStatusPredicting": { "description": "AdvancedDraftingWorkspace AI status when ghost-text continuation is available." },
   "aiStatusSupervisionActive": "AI Supervision Active",
   "@aiStatusSupervisionActive": { "description": "AdvancedDraftingWorkspace AI status when supervise-draft returned issues but no ghost text." },
+  "aiStatusSpellCheckUnavailable": "Device dictionary unavailable",
+  "@aiStatusSpellCheckUnavailable": { "description": "AdvancedDraftingWorkspace AI status when this device has no spell checker service, so typed words cannot be checked against a dictionary." },
   "workspaceTitle": "Workspace",
   "@workspaceTitle": { "description": "Header above the drafting TextField in AdvancedDraftingWorkspace." },
   "workspaceAnalyzeButton": "Analyze",

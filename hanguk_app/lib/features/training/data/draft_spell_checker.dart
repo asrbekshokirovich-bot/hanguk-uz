@@ -3,6 +3,26 @@ import 'dart:ui' show Locale;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
+/// Whether this device can spell check at all.
+///
+/// Worth reporting rather than hiding: not every phone can. Android only
+/// spell checks through a spell checker *service*, and plenty of shipped ROMs
+/// have none installed or none for the language being written — Flutter's own
+/// engine logs "TextServicesManager not supported by device, spell check
+/// disabled" and moves on. A student on such a phone needs to be told their
+/// device cannot do this, not left typing at a checker that silently never
+/// answers.
+enum SpellCheckAvailability {
+  /// No verdict yet — nothing has been checked so far.
+  unknown,
+
+  /// The platform has answered at least once.
+  available,
+
+  /// This device cannot spell check, and asking again will not change that.
+  unavailable,
+}
+
 /// One misspelled word the device dictionary rejected.
 @immutable
 class Misspelling {
@@ -46,46 +66,72 @@ class DraftSpellChecker {
 
   final SpellCheckService _service;
 
-  /// Set once the platform has told us it cannot spell check, so a device
-  /// without a dictionary stops being asked on every keystroke.
-  bool _unsupported = false;
+  SpellCheckAvailability _availability = SpellCheckAvailability.unknown;
+
+  /// What this device turned out to be capable of. Starts
+  /// [SpellCheckAvailability.unknown] and settles on the first real answer.
+  SpellCheckAvailability get availability => _availability;
 
   /// Whether checking has been given up on for this session.
   @visibleForTesting
-  bool get isUnsupported => _unsupported;
+  bool get isUnsupported =>
+      _availability == SpellCheckAvailability.unavailable;
 
-  /// Guards against an older, slower response overwriting a newer one — with
-  /// per-keystroke checks the replies do not necessarily come back in order.
-  int _requestCounter = 0;
+  /// Consecutive platform failures. A device with no spell checker service
+  /// installed fails *every* call, so after a few in a row we stop asking and
+  /// say so instead of retrying forever on every keystroke.
+  int _consecutiveFailures = 0;
+  static const int _failureLimit = 3;
+
+  /// True while a request is out. The Android implementation rejects a second
+  /// request while one is pending ("Previous spell check request still
+  /// pending") and, worse, only clears that pending slot on success — so
+  /// overlapping our own requests both wastes calls and makes a genuine
+  /// wedge indistinguishable from ordinary contention. One at a time.
+  bool _inFlight = false;
 
   /// Spell checks [text] for [locale].
   ///
   /// Returns an empty list when everything is spelled correctly, and `null`
-  /// when no verdict could be obtained at all — the platform has no spell
-  /// checker (web, desktop, an Android build without one), the request was
-  /// superseded, or the call failed. `null` means "unknown", and the caller
-  /// must leave the existing marks alone rather than clearing them, or a
-  /// dropped request would flash every underline off the screen.
+  /// when no verdict could be obtained — this device has no spell checker,
+  /// the call failed, or another request was already in flight. `null` means
+  /// "unknown", and the caller must leave the existing marks alone rather
+  /// than clearing them, or a dropped request would flash every underline off
+  /// the screen. Callers should keep a timer behind an immediate check so a
+  /// declined request is retried.
   Future<List<Misspelling>?> check(Locale locale, String text) async {
-    if (_unsupported) return null;
+    if (_availability == SpellCheckAvailability.unavailable) return null;
     if (text.trim().isEmpty) return const <Misspelling>[];
+    if (_inFlight) return null;
 
-    final int request = ++_requestCounter;
+    _inFlight = true;
 
     List<SuggestionSpan>? spans;
     try {
       spans = await _service.fetchSpellCheckSuggestions(locale, text);
+      _consecutiveFailures = 0;
+      _availability = SpellCheckAvailability.available;
     } on MissingPluginException {
-      // No implementation on this platform — stop asking.
-      _unsupported = true;
+      // No implementation at all — web, desktop. Nothing to retry.
+      _availability = SpellCheckAvailability.unavailable;
       return null;
     } on PlatformException catch (e) {
-      debugPrint('Spell check failed: $e');
+      // On Android this is also what a device with no spell checker service
+      // produces: the native session comes back null, the call throws, and
+      // because the engine only frees its pending slot on success every later
+      // request is refused too. That state never recovers, so stop asking —
+      // and let the caller say why rather than looking broken in silence.
+      _consecutiveFailures++;
+      debugPrint(
+        'Spell check failed ($_consecutiveFailures in a row): $e',
+      );
+      if (_consecutiveFailures >= _failureLimit) {
+        _availability = SpellCheckAvailability.unavailable;
+      }
       return null;
+    } finally {
+      _inFlight = false;
     }
-
-    // A newer request has been issued since; its answer is the current one.
-    if (request != _requestCounter) return null;
 
     // The service returns null both for "request cancelled" and for "this
     // platform has no spell checker". Neither is a clean bill of health.

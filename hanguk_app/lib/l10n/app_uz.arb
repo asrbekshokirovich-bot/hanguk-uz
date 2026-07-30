@@ -199,6 +199,7 @@
   "aiStatusReady": "Tayyor",
   "aiStatusPredicting": "AI taklif bermoqda...",
   "aiStatusSupervisionActive": "AI nazorati faol",
+  "aiStatusSpellCheckUnavailable": "Qurilma lug'ati mavjud emas",
   "workspaceTitle": "Ish maydoni",
   "workspaceAnalyzeButton": "Tahlil",
   "aiSupervisionWarningsTitle": "AI nazorat ogohlantirishlari:",
