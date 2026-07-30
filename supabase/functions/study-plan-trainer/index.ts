@@ -77,30 +77,16 @@ serve(async (req) => {
       );
     }
 
-    // VIP plan check — only PREMIUM and NO RISK plans can use study plan trainer (whitelist approach)
-    const { data: planProfile } = await adminClient
-      .from("profiles")
-      .select("payment_plan")
-      .eq("user_id", user.id)
-      .single();
-
-    // Check if user is staff (staff can always access)
-    const { data: staffRoleCheck } = await adminClient
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", user.id)
-      .limit(1);
-
-    const isStaffUser = staffRoleCheck && staffRoleCheck.length > 0;
-    const vipPlans = ['PREMIUM', 'NO RISK', 'premium', 'no_risk', 'no risk'];
-    const currentPlan = planProfile?.payment_plan || '';
-
-    if (!isStaffUser && !vipPlans.includes(currentPlan)) {
-      return new Response(
-        JSON.stringify({ error: "This feature requires a Premium or No Risk plan" }),
-        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+    // Open to every payment plan (owner's decision, 2026-07-30). This used to
+    // return 403 unless the account was on PREMIUM or NO RISK, which shut out
+    // roughly two thirds of students — everyone on standart, free, tekin_natija
+    // or with no plan recorded at all. Authentication above is the only gate
+    // that remains: the caller must be a signed-in student, and every query
+    // below is still scoped to their own user_id.
+    //
+    // The client keeps its 403 handling (see classifyAnalysisFailure) so that
+    // restoring a gate here surfaces as a clear message rather than an empty
+    // screen, as it did before.
 
     // Get student profile
     const { data: profile } = await adminClient
