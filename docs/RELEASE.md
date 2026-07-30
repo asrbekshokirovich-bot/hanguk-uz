@@ -111,20 +111,78 @@ adb uninstall com.hanguk.studentapp.hanguk_app
 
 ## 4. Upload to Play Console
 
-1. [Play Console](https://play.google.com/console) → select **Hanguk**.
-2. Pick a track. Recommended order for anything non-trivial:
-   **Internal testing** → **Closed/Open testing** → **Production**.
-   Internal testing reaches your own testers within minutes and costs nothing
-   if the build is broken.
-3. **Create new release**.
-4. Upload `app-release.aab`.
-5. **Release notes** — what changed, in the languages your listing supports.
-   Play shows these to users on the update screen.
-6. **Review release** → resolve any errors it lists (warnings are usually fine).
-7. **Start rollout**.
+### 4.1 Pick a track first
 
-For Production, consider a **staged rollout** (10–20% first). If crash reports
-spike you can halt it before it reaches everyone.
+The `.aab` is uploaded into a **track**, not to "the store" directly. Which
+track decides who gets it:
+
+| Track | Who sees it | Review | Use it for |
+|---|---|---|---|
+| Internal testing | Up to 100 email addresses you list | Minutes, usually no full review | Every release. Catch a broken build here. |
+| Closed testing | A tester list or Google Group | Reviewed | Wider pre-release checks |
+| Open testing | Anyone with the opt-in link | Reviewed | Public beta |
+| Production | All users | Reviewed, can take days | The real thing |
+
+Recommended: **Internal testing → Production.** A build that is broken in a way
+`flutter run` did not show costs nothing in internal testing and costs a bad
+review in production.
+
+Internal testing needs a tester list once: **Testing → Internal testing →
+Testers** tab → add your own Google account, save. You then install through the
+opt-in link shown on that page.
+
+### 4.2 Create the release
+
+Play Console → select **Hanguk** → left sidebar → **Testing → Internal testing**
+(or **Release → Production**) → **Create new release**.
+
+### 4.3 Upload the bundle
+
+Drag `app-release.aab` into the App bundles box, or use **Upload**.
+
+Play validates it here. What it checks and what it means:
+
+- **Version code already used** — bump the version, rebuild (§1).
+- **Signed in debug mode / wrong signing key** — `key.properties` problem (§0).
+- **Target API level** — `targetSdk` behind (§5).
+- Warnings about unused permissions or missing symbol files are usually fine.
+
+If **Google Play App Signing** is on (default for new apps), you upload with your
+*upload key* and Google re-signs with the app signing key it holds. The keystore
+in §0 is the upload key — it still must be the same one every time.
+
+### 4.4 Release name and notes
+
+- **Release name** — internal only, users never see it. Defaults to the version
+  code; `1.0.19 (2032)` is a fine convention.
+- **Release notes** — users *do* see these on the update screen, per language.
+  Write them for each language the listing supports. Keep the `<uz-UZ>` style
+  language tags Play generates and put the text inside them.
+
+### 4.5 Review and roll out
+
+**Next** / **Save** → **Review release**. Play lists errors and warnings; errors
+must be cleared. Then **Start rollout to <track>** and confirm.
+
+For **Production**, use a **staged rollout** — start at 10–20%. If crash-free
+rate drops on the **Release → Production** dashboard you can **Halt rollout**
+before it reaches everyone, then fix and ship a new version code.
+
+### 4.6 After rollout — what the statuses mean
+
+| Status | Meaning |
+|---|---|
+| Draft | Created but never submitted. Nothing is live. |
+| In review | Google is reviewing. Hours to several days. |
+| Pending publication | Approved, waiting — usually because **managed publishing** is on. Publish it from **Publishing overview**. |
+| Available / Live | Users can update. Store listing can take a few more hours to show the new version. |
+| Rejected | Read the policy email; fix, bump the version code, re-upload. |
+
+### 4.7 Promoting instead of rebuilding
+
+Once a build passes internal testing, do **not** rebuild for production. Open the
+release in the tested track → **Promote release → Production**. The same
+reviewed artifact moves across, so what users get is exactly what was tested.
 
 ---
 
