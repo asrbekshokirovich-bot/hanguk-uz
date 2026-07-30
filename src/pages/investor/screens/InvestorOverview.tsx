@@ -93,7 +93,6 @@ export default function InvestorOverview() {
   );
 
   const signed = funnel.data?.find((r) => r.stage_order === 1)?.student_count ?? null;
-  const departed = funnel.data?.find((r) => r.stage_order === 6)?.student_count ?? null;
 
   const bestMonth = useMemo(() => {
     if (months.length === 0) return '—';
@@ -237,9 +236,7 @@ export default function InvestorOverview() {
             {signed != null ? count(signed) : '—'}
           </div>
           <p className="mt-1.5 text-[12px] text-muted-foreground">
-            {departed != null && departed > 0
-              ? `${count(departed)} already departed for Korea`
-              : 'None departed for Korea yet'}
+            Departures for Korea are not recorded in the CRM yet
           </p>
           <div className="mt-auto pt-3 text-[12px] text-muted-foreground">
             {activeIntake?.starts_on && activeIntake?.ends_on
@@ -392,8 +389,8 @@ export default function InvestorOverview() {
             )}
           </div>
           <p className="mt-4 px-5 text-[11px] leading-relaxed text-muted-foreground">
-            Documents Ready, Offer Received and Visa Approved are not recorded in the CRM yet, so
-            they read zero until the team starts setting them.
+            Only Signed is recorded in the CRM today. Documents Ready, Submitted, Offer Received,
+            Visa Approved and Departed read zero until the team starts recording them.
           </p>
         </InvestorCard>
 
