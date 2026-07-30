@@ -26,12 +26,14 @@ const Index = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { user, loading } = useAuth();
-  const { isStaff, isUniversityStaff, loading: roleLoading } = useUserRole();
+  const { isStaff, isUniversityStaff, isInvestor, loading: roleLoading } = useUserRole();
 
   // Redirect logged-in users based on role - must be before any conditional returns
   useEffect(() => {
     if (user && !loading && !roleLoading) {
-      if (isUniversityStaff) {
+      if (isInvestor) {
+        navigate('/crm');
+      } else if (isUniversityStaff) {
         navigate('/university-portal');
       } else if (isStaff) {
         navigate('/crm');
@@ -39,7 +41,7 @@ const Index = () => {
         navigate('/portal');
       }
     }
-  }, [user, isStaff, isUniversityStaff, loading, roleLoading, navigate]);
+  }, [user, isStaff, isUniversityStaff, isInvestor, loading, roleLoading, navigate]);
 
   if (loading || roleLoading) {
     return (
