@@ -49,7 +49,7 @@ export default function StudentPortal() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { user, signOut, loading: authLoading } = useAuth();
-  const { isStaff, loading: roleLoading } = useUserRole();
+  const { isStaff, isInvestor, loading: roleLoading } = useUserRole();
   const { applications, documents, universities, suggestions, loading, refetchDocuments, refetchSuggestions } = useStudentData();
   const { isVIP, planLabel, isPremium, isNoRisk, isStandart, isFree, loading: planLoading } = useStudentPlan();
 
@@ -80,10 +80,10 @@ export default function StudentPortal() {
 
   // STRICT ACCESS CONTROL: Redirect staff to CRM immediately
   useEffect(() => {
-    if (!authLoading && !roleLoading && user && isStaff) {
+    if (!authLoading && !roleLoading && user && (isStaff || isInvestor)) {
       navigate('/crm');
     }
-  }, [user, isStaff, authLoading, roleLoading, navigate]);
+  }, [user, isStaff, isInvestor, authLoading, roleLoading, navigate]);
 
   // Redirect non-authenticated users (MUST be before conditional returns)
   useEffect(() => {
