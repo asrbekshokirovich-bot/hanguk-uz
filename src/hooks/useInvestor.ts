@@ -234,6 +234,24 @@ export function useInvestorFunnel(intakeId: string | null) {
   });
 }
 
+// Test/dummy student rows hidden from the investor's Applications screen only.
+// They stay fully intact in the main CRM (Students/Applications) - this list
+// filters the investor-facing query result, nothing upstream.
+const INVESTOR_HIDDEN_STUDENT_NAMES = new Set([
+  "arslanov xojamurod test",
+  'omonova shokhista komil kizi',
+]);
+
+function normalizeInvestorName(name: string) {
+  return name
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/['’ʼ`]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 export function useInvestorApplications(intakeId: string | null) {
   return useQuery({
     queryKey: [KEY, 'applications', intakeId],
@@ -244,7 +262,9 @@ export function useInvestorApplications(intakeId: string | null) {
         .eq('intake_id', intakeId)
         .order('updated_at', { ascending: false });
       if (error) throw error;
-      return (data ?? []) as InvestorApplicationRow[];
+      return ((data ?? []) as InvestorApplicationRow[]).filter(
+        (row) => !INVESTOR_HIDDEN_STUDENT_NAMES.has(normalizeInvestorName(row.student_name ?? '')),
+      );
     },
   });
 }
