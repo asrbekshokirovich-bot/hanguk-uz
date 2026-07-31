@@ -6,17 +6,9 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { EmptyState } from '@/components/ui/empty-state';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import {
   Dialog,
   DialogContent,
@@ -26,23 +18,21 @@ import {
 } from '@/components/ui/dialog';
 import {
   Plus,
-  Download,
   Search,
   GraduationCap,
   MapPin,
-  Clock,
-  ChevronLeft,
-  ChevronRight,
-  Sparkles,
-  CheckCircle2,
   Inbox,
   Loader2,
   Users,
+  Flag,
+  CheckCircle2,
+  FileCheck,
+  Send,
+  Plane,
 } from 'lucide-react';
 import { Tables } from '@/integrations/supabase/types';
 import { cn } from '@/lib/utils';
-import { AdmissionsStats } from './AdmissionsStats';
-import { outcomeOf, type Outcome } from './applicationOutcome';
+import { outcomeOf } from './applicationOutcome';
 
 type TFunc = ReturnType<typeof useTranslation>['t'];
 
@@ -57,17 +47,21 @@ type ApplicationRow = Tables<'applications'> & {
   university?: Tables<'institutions'> | null;
 };
 
-type Stage = 'new' | 'documents' | 'review' | 'submitted' | 'decision';
-type Intake = 'spring2026' | 'fall2026';
+// The five pipeline columns shown in the redesigned board.
+type Stage = 'new' | 'docs' | 'applied' | 'sent' | 'visa';
 type BadgeTone = 'neutral' | 'info' | 'warning' | 'successSoft' | 'destructive';
+
+// Decision-gate sub-states inside the "Original Docs Sent" column.
+type DecisionSub = 'awaiting' | 'accepted_unpaid' | 'not_accepted';
+// Visa journey sub-states inside the "Visa Status" column.
+type VisaSub = 'docs_prep' | 'not_applied' | 'applied' | 'accepted' | 'rejected';
 
 interface ApplicationsContentProps {
   /** Read from the `applications` table (joined with university) — NOT students. */
   applications: ApplicationRow[];
   /** Enriches each application with its applicant's profile + documents. */
   students: StudentProfile[];
-  /** Full uni-db roster (public.institutions) — powers the "New application"
-   *  university picker so a university can be opened before it has any apps. */
+  /** Full uni-db roster (public.institutions) — powers the "New application" picker. */
   universities: Tables<'institutions'>[];
   loading: boolean;
   currentLang: string;
@@ -77,60 +71,45 @@ interface ApplicationsContentProps {
   onCreateApplication: (studentId: string, institutionId: string, degreeLevel: string) => Promise<{ error: unknown }>;
 }
 
-const STAGE_ORDER: Stage[] = ['new', 'documents', 'review', 'submitted', 'decision'];
+const STAGE_ORDER: Stage[] = ['new', 'docs', 'applied', 'sent', 'visa'];
 
-// Every real application status mapped onto one of the five pipeline stages.
+// Every real application status mapped onto one of the five pipeline columns.
 const STATUS_TO_STAGE: Record<string, Stage> = {
   pending: 'new',
   pending_approval: 'new',
   new: 'new',
   draft: 'new',
-  documents_collection: 'documents',
-  documents_translation: 'documents',
-  apostille: 'documents',
-  documents: 'documents',
-  in_review: 'review',
-  university_response: 'review',
-  application_submitted: 'submitted',
-  submitted: 'submitted',
-  online_ariza: 'submitted',
-  visa_documents: 'submitted',
-  completed: 'decision',
-  accepted: 'decision',
-  waitlist: 'decision',
-  rejected: 'decision',
+  documents_collection: 'docs',
+  documents_translation: 'docs',
+  apostille: 'docs',
+  documents: 'docs',
+  in_review: 'applied',
+  university_response: 'applied',
+  application_submitted: 'applied',
+  submitted: 'applied',
+  online_ariza: 'applied',
+  visa_documents: 'visa',
+  completed: 'visa',
+  accepted: 'visa',
+  waitlist: 'sent',
+  rejected: 'sent',
 };
 
-// Representative status written when a student is moved into a stage.
+// Representative status written when a card is advanced to a stage.
 const STAGE_STATUS: Record<Stage, string> = {
   new: 'pending',
-  documents: 'documents_collection',
-  review: 'in_review',
-  submitted: 'application_submitted',
-  decision: 'completed',
+  docs: 'documents_collection',
+  applied: 'application_submitted',
+  sent: 'visa_documents',
+  visa: 'completed',
 };
 
 const STAGE_DOT: Record<Stage, string> = {
   new: 'bg-muted-foreground/60',
-  documents: 'bg-info',
-  review: 'bg-warning',
-  submitted: 'bg-primary',
-  decision: 'bg-success',
-};
-
-const STAGE_BADGE: Record<Stage, BadgeTone> = {
-  new: 'neutral',
-  documents: 'info',
-  review: 'warning',
-  submitted: 'info',
-  decision: 'successSoft',
-};
-
-const OUTCOME_TONE: Record<Outcome, BadgeTone> = {
-  accepted: 'successSoft',
-  waitlist: 'warning',
-  rejected: 'destructive',
-  pending: 'warning',
+  docs: 'bg-info',
+  applied: 'bg-primary',
+  sent: 'bg-warning',
+  visa: 'bg-success',
 };
 
 // Deterministic tonal avatar palette — semantic tokens only.
@@ -142,54 +121,94 @@ const AVATAR_TONES = [
   'bg-warning/10 text-warning',
 ];
 
-// --- UI-only placeholders (schema has no intake/deadline column) -------------
+// ---------------------------------------------------------------------------
+// UI-ONLY PLACEHOLDERS.  The current schema has no column for a student code,
+// the assigned consultant, the chosen program/major, the tuition amount, the
+// visa-document checklist, the application reference number, or a "blocked"
+// flag.  Until those land in the backend we derive each deterministically from
+// the row id (same approach the old board used for intake/deadline), so the
+// board stays stable across renders and still demonstrates every state.
+// ---------------------------------------------------------------------------
+const CONSULTANTS = ['Aziz K.', 'Madina T.', 'Sitora N.'];
+const PROGRAMS = [
+  'Business Administration', 'Korean Language', 'Hotel Management',
+  'Media Communication', 'Computer Engineering', 'Global Business',
+  'Design', 'Logistics', 'Economics', 'Nutrition', 'Tourism',
+  'Automotive Eng.', 'Mechanical Eng.', 'Pharmacy',
+];
+
 function hashInt(seed: string) {
   let hash = 0;
   for (let i = 0; i < seed.length; i += 1) hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
   return hash;
 }
-
 function toneFor(seed: string) {
   return AVATAR_TONES[hashInt(seed) % AVATAR_TONES.length];
 }
-
 function getInitials(name: string | null) {
   if (!name) return 'U';
   return name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
 }
-
-function firstName(name: string | null) {
-  return (name || '—').split(' ')[0];
+function pick<T>(pool: T[], seed: string) {
+  return pool[hashInt(seed) % pool.length];
 }
 
-function placeholderIntake(id: string): Intake {
-  return hashInt(`${id}i`) % 2 === 0 ? 'spring2026' : 'fall2026';
+function studentCode(profile: StudentProfile | undefined, appId: string) {
+  if (profile?.magic_code) return `HK · ${profile.magic_code}`;
+  return `HK · ${hashInt(appId).toString(36).toUpperCase().padStart(6, '0').slice(0, 6)}`;
+}
+function programOf(appId: string) {
+  return pick(PROGRAMS, `${appId}p`);
+}
+function consultantOf(studentId: string) {
+  return pick(CONSULTANTS, studentId);
+}
+function isBlocked(appId: string) {
+  return hashInt(`${appId}b`) % 11 === 0; // ~9% of cards carry a block flag
+}
+function tuitionAmount(appId: string) {
+  return 3000 + (hashInt(`${appId}t`) % 25) * 50; // $3,000 – $4,200
+}
+function visaDocsReady(appId: string) {
+  return hashInt(`${appId}v`) % 8; // 0..7 of 7
 }
 
-// Deterministic placeholder deadline spread across ~6 weeks so the deadline
-// chip demonstrates all states (overdue / urgent / normal).
-function placeholderDeadline(id: string) {
-  const offset = (hashInt(`${id}d`) % 46) - 5; // -5 .. +40 days
-  const d = new Date();
-  d.setHours(0, 0, 0, 0);
-  d.setDate(d.getDate() + offset);
-  return d;
+function daysInStage(app: ApplicationRow) {
+  const base = app.updated_at || app.created_at;
+  if (base) {
+    const d = Math.floor((Date.now() - new Date(base).getTime()) / 86_400_000);
+    if (d >= 0 && d < 400) return d;
+  }
+  return (hashInt(`${app.id}s`) % 12) + 1;
+}
+function fmtDate(iso: string | null, lang: string) {
+  const d = iso ? new Date(iso) : new Date();
+  return d.toLocaleDateString(lang, { day: 'numeric', month: 'short' });
 }
 
-function daysUntil(date: Date) {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return Math.round((date.getTime() - today.getTime()) / 86_400_000);
+// Decision-gate sub-state for a card sitting in the "Original Docs Sent" column.
+function decisionSubOf(app: ApplicationRow): DecisionSub {
+  const outcome = outcomeOf(app);
+  if (outcome === 'rejected') return 'not_accepted';
+  if (outcome === 'accepted') return 'accepted_unpaid';
+  return 'awaiting';
+}
+// Visa-journey sub-state for a card sitting in the "Visa Status" column.
+function visaSubOf(app: ApplicationRow): VisaSub {
+  if (outcomeOf(app) === 'rejected') return 'rejected';
+  const pools: VisaSub[] = ['docs_prep', 'not_applied', 'applied', 'accepted'];
+  return pools[hashInt(`${app.id}vs`) % pools.length];
 }
 
-function deadlineMeta(daysLeft: number, date: Date, lang: string, t: TFunc): { tone: BadgeTone; label: string } {
-  if (daysLeft < 0) return { tone: 'neutral', label: t('applications.closed') };
-  if (daysLeft <= 14) return { tone: 'destructive', label: t('applications.daysLeft', { n: daysLeft }) };
-  const label = date.toLocaleDateString(lang, { day: 'numeric', month: 'short' });
-  return { tone: daysLeft <= 45 ? 'warning' : 'neutral', label };
-}
+const VISA_GROUPS: { sub: VisaSub; dot: string }[] = [
+  { sub: 'docs_prep', dot: 'bg-info' },
+  { sub: 'not_applied', dot: 'bg-warning' },
+  { sub: 'applied', dot: 'bg-primary' },
+  { sub: 'accepted', dot: 'bg-success' },
+  { sub: 'rejected', dot: 'bg-destructive' },
+];
 
-// ---------------------------------------------------------------------------
+// ===========================================================================
 export default function ApplicationsContent({
   applications,
   students,
@@ -203,46 +222,35 @@ export default function ApplicationsContent({
   const { t } = useTranslation();
 
   const [search, setSearch] = useState('');
-  const [intakeFilter, setIntakeFilter] = useState<'all' | Intake>('all');
-  const [officeFilter, setOfficeFilter] = useState<string>('all');
-  const [openUniId, setOpenUniId] = useState<string | null>(null);
+  const [consultantFilter, setConsultantFilter] = useState<string>('all');
+  const [blockedOnly, setBlockedOnly] = useState(false);
   const [overrides, setOverrides] = useState<Record<string, Stage>>({});
   const [movingId, setMovingId] = useState<string | null>(null);
-  // Picker dialogs: universities at the board level, students inside a university.
+  // "New application": pick a university, then pick a student for it.
   const [pickUniOpen, setPickUniOpen] = useState(false);
   const [pickStudentOpen, setPickStudentOpen] = useState(false);
+  const [chosenUni, setChosenUni] = useState<Tables<'institutions'> | null>(null);
 
   const uniName = (uni?: Tables<'institutions'> | null) => {
     if (!uni) return '';
-    // The joined relation comes from the `institutions` table, which only has
-    // name_en / name_ko (+ name_ko_short). Prefer the active language when that
-    // column exists, then fall back to English, then Korean.
     const localized = (uni as Record<string, unknown>)[`name_${currentLang}`];
-    return (
-      (typeof localized === 'string' && localized) ||
-      uni.name_en ||
-      uni.name_ko ||
-      ''
-    );
+    return (typeof localized === 'string' && localized) || uni.name_en || uni.name_ko || '';
   };
-
-  const intakeLabel = (intake: Intake) =>
-    `${t(intake === 'spring2026' ? 'applications.spring' : 'applications.fall')} 2026`;
 
   const stageLabel: Record<Stage, string> = {
-    new: t('applications.colNew'),
-    documents: t('applications.colDocuments'),
-    review: t('applications.colReview'),
-    submitted: t('applications.colSubmitted'),
-    decision: t('applications.colDecision'),
+    new: t('applications.colNew2', { defaultValue: 'New' }),
+    docs: t('applications.colDocsReady', { defaultValue: 'Documents Ready' }),
+    applied: t('applications.colOnlineApplied', { defaultValue: 'Online Application Applied' }),
+    sent: t('applications.colDocsSent', { defaultValue: 'Original Docs Sent' }),
+    visa: t('applications.colVisa', { defaultValue: 'Visa Status' }),
   };
 
-  const degreeLabel: Record<string, string> = {
-    bachelor: t('applications.degreeBachelor', { defaultValue: 'Bakalavr' }),
-    master: t('applications.degreeMaster', { defaultValue: 'Magistratura' }),
-    vocational: t('applications.degreeVocational', { defaultValue: "Kasbiy ta'lim" }),
-    // Historic value: students recorded before the vocational rename stay GKS.
-    gks: t('applications.degreeGks', { defaultValue: 'GKS' }),
+  const visaGroupLabel: Record<VisaSub, string> = {
+    docs_prep: t('applications.visaDocsPrep', { defaultValue: 'Docs being prepared' }),
+    not_applied: t('applications.visaNotApplied', { defaultValue: 'Not applied yet' }),
+    applied: t('applications.visaAwaiting', { defaultValue: 'Applied — awaiting result' }),
+    accepted: t('applications.visaAccepted', { defaultValue: 'Visa accepted' }),
+    rejected: t('applications.visaRejected', { defaultValue: 'Visa rejected' }),
   };
 
   const studentByUserId = useMemo(() => {
@@ -251,111 +259,76 @@ export default function ApplicationsContent({
     return map;
   }, [students]);
 
-  // One enriched record per APPLICATION (= one student attached to one university).
+  // One enriched record per APPLICATION (= one student at one university).
   const rows = useMemo(() => {
-    return applications
-      .map((app) => {
-        const student = studentByUserId.get(app.student_id);
-        const docs = student?.documents ?? [];
-        const docsTotal = docs.length;
-        const docsDone = docs.filter((d) => d.status === 'approved').length;
-        const deadline = placeholderDeadline(app.id);
-        const stage = overrides[app.id] ?? STATUS_TO_STAGE[app.status] ?? 'new';
-        return {
-          app,
-          student,
-          university: app.university ?? null,
-          stage,
-          stageIdx: STAGE_ORDER.indexOf(stage),
-          degree: app.degree_level,
-          intake: placeholderIntake(app.id),
-          office: student?.office_location ?? null,
-          deadline,
-          daysLeft: daysUntil(deadline),
-          docsDone,
-          docsTotal,
-          docsPct: docsTotal ? (docsDone / docsTotal) * 100 : 0,
-          outcome: outcomeOf(app),
-        };
-      })
-      .filter((r) => r.university?.id); // only applications with a resolvable university
-  }, [applications, studentByUserId, overrides]);
+    return applications.map((app) => {
+      const student = studentByUserId.get(app.student_id);
+      const docs = student?.documents ?? [];
+      const docsTotal = docs.length;
+      const docsDone = docs.filter((d) => d.status === 'approved').length;
+      const stage = overrides[app.id] ?? STATUS_TO_STAGE[app.status] ?? 'new';
+      return {
+        app,
+        student,
+        university: app.university ?? null,
+        stage,
+        stageIdx: STAGE_ORDER.indexOf(stage),
+        name: student?.full_name ?? '—',
+        code: studentCode(student, app.id),
+        uni: uniName(app.university) || t('applications.undecided', { defaultValue: 'Undecided' }),
+        program: programOf(app.id),
+        consultant: consultantOf(app.student_id),
+        blocked: isBlocked(app.id),
+        days: daysInStage(app),
+        docsDone,
+        docsTotal,
+        outcome: outcomeOf(app),
+        decisionSub: decisionSubOf(app),
+        visaSub: visaSubOf(app),
+      };
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [applications, studentByUserId, overrides, currentLang]);
 
   type Row = (typeof rows)[number];
 
-  const offices = useMemo(() => {
+  const consultants = useMemo(() => {
     const set = new Set<string>();
-    rows.forEach((r) => r.office && set.add(r.office));
+    rows.forEach((r) => set.add(r.consultant));
     return Array.from(set).sort();
   }, [rows]);
 
-  // Apply intake/office filters at the application level, then group by university.
-  const uniGroups = useMemo(() => {
+  const blockedCount = useMemo(() => rows.filter((r) => r.blocked).length, [rows]);
+
+  const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    const map = new Map<string, { id: string; university: Tables<'institutions'>; apps: Row[] }>();
-    for (const r of rows) {
-      if (intakeFilter !== 'all' && r.intake !== intakeFilter) continue;
-      if (officeFilter !== 'all' && r.office !== officeFilter) continue;
-      const uni = r.university!;
-      const entry = map.get(uni.id) ?? { id: uni.id, university: uni, apps: [] };
-      entry.apps.push(r);
-      map.set(uni.id, entry);
-    }
-    return Array.from(map.values())
-      .map((g) => {
-        const stageIdx = Math.min(...g.apps.map((a) => a.stageIdx));
-        const total = g.apps.length;
-        const advanced = g.apps.filter((a) => a.stageIdx > stageIdx).length;
-        const gating = g.apps.filter((a) => a.stageIdx === stageIdx);
-        const earliest = g.apps.reduce((min, a) => (a.daysLeft < min ? a.daysLeft : min), g.apps[0].daysLeft);
-        const earliestDate = g.apps.reduce((min, a) => (a.deadline < min ? a.deadline : min), g.apps[0].deadline);
-        return {
-          ...g,
-          name: uniName(g.university),
-          city: g.university.city_ko ?? '',
-          stage: STAGE_ORDER[stageIdx],
-          stageIdx,
-          total,
-          advanced,
-          gating,
-          earliest,
-          earliestDate,
-        };
-      })
-      .filter((g) => !q || g.name.toLowerCase().includes(q) || g.city.toLowerCase().includes(q))
-      .sort((a, b) => a.name.localeCompare(b.name));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rows, search, intakeFilter, officeFilter, currentLang]);
+    return rows.filter((r) => {
+      if (consultantFilter !== 'all' && r.consultant !== consultantFilter) return false;
+      if (blockedOnly && !r.blocked) return false;
+      if (!q) return true;
+      return (
+        r.name.toLowerCase().includes(q) ||
+        r.code.toLowerCase().includes(q) ||
+        r.uni.toLowerCase().includes(q) ||
+        r.program.toLowerCase().includes(q)
+      );
+    });
+  }, [rows, search, consultantFilter, blockedOnly]);
 
-  const totalApps = useMemo(() => uniGroups.reduce((a, g) => a + g.total, 0), [uniGroups]);
+  const byStage = (s: Stage) => filtered.filter((r) => r.stage === s);
 
-  // When a university is opened via the picker before it has any applications,
-  // it won't be in `uniGroups` (those are derived from apps). Synthesize an empty
-  // group from the uni-db roster so its (empty) student board can still render.
-  const openGroup = useMemo(() => {
-    if (!openUniId) return null;
-    const existing = uniGroups.find((g) => g.id === openUniId);
-    if (existing) return existing;
-    const uni = universities.find((u) => u.id === openUniId);
-    if (!uni) return null;
+  // ---- header stat chips ----------------------------------------------------
+  const stats = useMemo(() => {
+    const sent = filtered.filter((r) => r.stage === 'sent');
     return {
-      id: uni.id,
-      university: uni,
-      apps: [] as Row[],
-      name: uniName(uni),
-      city: uni.city_ko ?? '',
-      stage: STAGE_ORDER[0],
-      stageIdx: 0,
-      total: 0,
-      advanced: 0,
-      gating: [] as Row[],
-      earliest: 0,
-      earliestDate: new Date(),
+      total: filtered.length,
+      awaiting: sent.filter((r) => r.decisionSub === 'awaiting').length,
+      unpaid: sent.filter((r) => r.decisionSub === 'accepted_unpaid').length,
+      notAccepted: sent.filter((r) => r.decisionSub === 'not_accepted').length,
+      atVisa: filtered.filter((r) => r.stage === 'visa').length,
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [openUniId, uniGroups, universities, currentLang]);
+  }, [filtered]);
 
-  // Application count per university — a subtle "N students" badge in the picker.
   const appCountByUni = useMemo(() => {
     const m = new Map<string, number>();
     for (const a of applications) {
@@ -364,62 +337,51 @@ export default function ApplicationsContent({
     return m;
   }, [applications]);
 
-  // Students who already have an application to the currently-open university —
-  // disabled in the student picker (the (student, institution) pair is UNIQUE).
   const appliedStudentIds = useMemo(() => {
     const set = new Set<string>();
-    if (!openUniId) return set;
+    if (!chosenUni) return set;
     for (const a of applications) {
-      if (a.institution_id === openUniId) set.add(a.student_id);
+      if (a.institution_id === chosenUni.id) set.add(a.student_id);
     }
     return set;
-  }, [applications, openUniId]);
+  }, [applications, chosenUni]);
 
-  // ---- move a single student (application) between stages -------------------
-  const move = async (row: Row, dir: -1 | 1) => {
-    const newIdx = Math.max(0, Math.min(4, row.stageIdx + dir));
-    if (newIdx === row.stageIdx) return;
-    const newStage = STAGE_ORDER[newIdx];
-    setOverrides((o) => ({ ...o, [row.app.id]: newStage })); // optimistic
+  // ---- move a card between columns (or set its status via an action) --------
+  const setStage = async (row: Row, stage: Stage, statusOverride?: string) => {
+    if (row.stage === stage && !statusOverride) return;
+    setOverrides((o) => ({ ...o, [row.app.id]: stage }));
     setMovingId(row.app.id);
-    const { error } = await onUpdateApplicationStatus(row.app.id, STAGE_STATUS[newStage]);
+    const { error } = await onUpdateApplicationStatus(row.app.id, statusOverride ?? STAGE_STATUS[stage]);
     setMovingId(null);
     setOverrides((o) => {
       const next = { ...o };
-      delete next[row.app.id]; // updateApplicationStatus refetches → real data now reflects it
+      delete next[row.app.id];
       return next;
     });
-    if (error) {
-      toast.error(t('common.error', { defaultValue: 'Something went wrong' }));
-    } else {
-      toast.success(t('applications.movedTo', { stage: stageLabel[newStage], defaultValue: `Moved to ${stageLabel[newStage]}` }));
-    }
+    if (error) toast.error(t('common.error', { defaultValue: 'Something went wrong' }));
   };
 
-  // ---- picker flows ---------------------------------------------------------
-  // Board-level "New application" → pick a university → open its student board.
+  // ---- new-application flow --------------------------------------------------
   const handlePickUniversity = (uni: Tables<'institutions'>) => {
+    setChosenUni(uni);
     setPickUniOpen(false);
-    setOpenUniId(uni.id);
+    setPickStudentOpen(true);
   };
-
-  // Inside a university, "Attach student" → pick a student → create the app.
   const handleCreateApplication = async (studentId: string, degreeLevel: string) => {
-    if (!openUniId) return;
-    const { error } = await onCreateApplication(studentId, openUniId, degreeLevel);
+    if (!chosenUni) return;
+    const { error } = await onCreateApplication(studentId, chosenUni.id, degreeLevel);
     if (error) {
       const code = (error as { code?: string })?.code;
       toast.error(
         code === '23505'
-          ? t('applications.duplicateApplication', {
-              defaultValue: 'This student already has an application to this university.',
-            })
+          ? t('applications.duplicateApplication', { defaultValue: 'This student already has an application to this university.' })
           : t('common.error', { defaultValue: 'Something went wrong' }),
       );
       return;
     }
     toast.success(t('applications.applicationCreated', { defaultValue: 'Application created' }));
     setPickStudentOpen(false);
+    setChosenUni(null);
   };
 
   // ----------------------------------------------------------------- loading -
@@ -431,10 +393,7 @@ export default function ApplicationsContent({
             <Skeleton className="mb-2 h-8 w-48" />
             <Skeleton className="h-4 w-64" />
           </div>
-          <div className="flex gap-2">
-            <Skeleton className="h-10 w-24" />
-            <Skeleton className="h-10 w-40" />
-          </div>
+          <Skeleton className="h-10 w-40" />
         </div>
         <Skeleton className="h-12 w-full rounded-xl" />
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
@@ -444,203 +403,27 @@ export default function ApplicationsContent({
     );
   }
 
-  // ===========================================================================
-  // LEVEL 2 — student kanban inside one university
-  // ===========================================================================
-  if (openGroup) {
-    const g = openGroup;
-    const isEmpty = g.total === 0;
-    const isDecision = g.stageIdx === 4 && !isEmpty;
-    const gatingNames = g.gating.map((r) => firstName(r.student?.full_name ?? null)).join(', ');
-    return (
-      <div className="space-y-4">
-        <button
-          onClick={() => setOpenUniId(null)}
-          className="inline-flex items-center gap-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
-        >
-          <ChevronLeft className="h-4 w-4" />
-          {t('applications.backToUniversities')}
-        </button>
-
-        {/* University header card */}
-        <Card className="p-5">
-          <div className="flex flex-wrap items-center gap-4">
-            <div className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-xl bg-info/10">
-              <GraduationCap className="h-6 w-6 text-info" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-2.5">
-                <h1 className="text-2xl font-bold tracking-tight text-foreground">{g.name}</h1>
-                <Badge variant={STAGE_BADGE[g.stage]} className="gap-1.5">
-                  <span className={cn('h-1.5 w-1.5 rounded-full', STAGE_DOT[g.stage])} />
-                  {stageLabel[g.stage]}
-                </Badge>
-              </div>
-              <div className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
-                {g.city && (
-                  <>
-                    <MapPin className="h-3.5 w-3.5" />
-                    {g.city} ·{' '}
-                  </>
-                )}
-                {t('applications.studentsCount', { n: g.total })}
-              </div>
-            </div>
-            <Button variant="highlight" className="gap-2" onClick={() => setPickStudentOpen(true)}>
-              <Plus className="h-4 w-4" />
-              {t('applications.attachStudent')}
-            </Button>
-          </div>
-
-          {/* Auto-stage banner (or empty-uni prompt when no students attached yet) */}
-          <div className="mt-4 flex items-center gap-3 border-t border-border pt-4">
-            <div className={cn('flex h-9 w-9 shrink-0 items-center justify-center rounded-lg', isEmpty ? 'bg-muted' : isDecision ? 'bg-success/10' : 'bg-warning/10')}>
-              {isEmpty ? <Inbox className="h-5 w-5 text-muted-foreground" /> : isDecision ? <CheckCircle2 className="h-5 w-5 text-success" /> : <Sparkles className="h-5 w-5 text-warning" />}
-            </div>
-            <p className="flex-1 text-sm text-muted-foreground">
-              {isEmpty
-                ? t('applications.emptyUniDesc', {
-                    defaultValue: 'No students yet. Attach a student to start applications for this university.',
-                  })
-                : isDecision
-                ? t('applications.allReachedDecision')
-                : t('applications.autoStage', {
-                    stage: stageLabel[g.stage],
-                    next: stageLabel[STAGE_ORDER[g.stageIdx + 1]],
-                    k: g.gating.length,
-                    names: gatingNames,
-                    defaultValue: `Auto-stage: ${stageLabel[g.stage]}. Advances to ${stageLabel[STAGE_ORDER[g.stageIdx + 1]]} when ${g.gating.length} student(s) (${gatingNames}) move up.`,
-                  })}
-            </p>
-            {!isEmpty && (
-              <div className="flex w-32 shrink-0 items-center gap-2">
-                <Progress value={(g.advanced / g.total) * 100} className="h-1.5 flex-1" />
-                <span className="font-mono text-[11px] text-muted-foreground">{g.advanced}/{g.total}</span>
-              </div>
-            )}
-          </div>
-        </Card>
-
-        {/* Student kanban for this university */}
-        <div className="flex gap-3 overflow-x-auto pb-2 lg:grid lg:grid-cols-5 lg:overflow-x-visible">
-          {STAGE_ORDER.map((stage, ci) => {
-            const items = g.apps.filter((r) => r.stageIdx === ci);
-            const gates = ci === g.stageIdx && !isDecision;
-            return (
-              <div
-                key={stage}
-                className={cn(
-                  'flex w-[82vw] shrink-0 flex-col rounded-xl border p-3 sm:w-[300px] lg:w-auto',
-                  gates ? 'border-warning/40 bg-warning/5' : 'border-border bg-muted/40',
-                )}
-              >
-                <div className="mb-3 flex items-center gap-2 px-1">
-                  <span className={cn('h-2 w-2 rounded-sm', STAGE_DOT[stage])} />
-                  <span className="text-[13px] font-bold text-foreground">{stageLabel[stage]}</span>
-                  <span className="ml-auto rounded-full bg-background px-2 text-xs font-semibold text-muted-foreground">{items.length}</span>
-                </div>
-                <div className="flex flex-col gap-2.5">
-                  {items.length === 0 && <p className="py-3 text-center text-xs text-muted-foreground/60">—</p>}
-                  {items.map((r) => {
-                    const dl = deadlineMeta(r.daysLeft, r.deadline, currentLang, t);
-                    return (
-                      <Card
-                        key={r.app.id}
-                        onClick={() => r.student && onOpenStudent(r.student)}
-                        className="cursor-pointer space-y-2.5 p-3 shadow-card transition-all hover:-translate-y-0.5 hover:shadow-raised"
-                      >
-                        <div className="flex items-center gap-2.5">
-                          <Avatar className="h-7 w-7">
-                            <AvatarImage src={r.student?.avatar_url || undefined} />
-                            <AvatarFallback className={cn('text-[10px] font-semibold', toneFor(r.app.student_id))}>
-                              {getInitials(r.student?.full_name ?? null)}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="min-w-0 flex-1">
-                            <div className="truncate text-[12px] font-semibold text-foreground">{r.student?.full_name || '—'}</div>
-                            <div className="truncate text-[11px] text-muted-foreground">{r.degree ? degreeLabel[r.degree] : '—'}</div>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Progress value={r.docsPct} className="h-1.5 flex-1" />
-                          <span className="shrink-0 font-mono text-[10px] text-muted-foreground">{r.docsDone}/{r.docsTotal}</span>
-                        </div>
-                        <div className="flex items-center justify-between gap-1.5">
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            className="h-6 w-6 shrink-0"
-                            disabled={ci === 0 || movingId === r.app.id}
-                            onClick={(e) => { e.stopPropagation(); move(r, -1); }}
-                            title={t('applications.moveBack')}
-                          >
-                            <ChevronLeft className="h-3.5 w-3.5" />
-                          </Button>
-                          {ci === 4 ? (
-                            <Badge variant={OUTCOME_TONE[r.outcome]}>{t(`applications.outcome_${r.outcome}`)}</Badge>
-                          ) : (
-                            <Badge variant={dl.tone} className="gap-1">
-                              <Clock className="h-3 w-3" />
-                              {dl.label}
-                            </Badge>
-                          )}
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            className="h-6 w-6 shrink-0"
-                            disabled={ci === 4 || movingId === r.app.id}
-                            onClick={(e) => { e.stopPropagation(); move(r, 1); }}
-                            title={t('applications.advance')}
-                          >
-                            <ChevronRight className="h-3.5 w-3.5" />
-                          </Button>
-                        </div>
-                      </Card>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        <StudentPickerDialog
-          open={pickStudentOpen}
-          onOpenChange={setPickStudentOpen}
-          students={students}
-          appliedStudentIds={appliedStudentIds}
-          universityName={g.name}
-          onCreate={handleCreateApplication}
-          t={t}
-        />
-      </div>
-    );
-  }
-
-  // ===========================================================================
-  // LEVEL 1 — university board
-  // ===========================================================================
-  const counts = STAGE_ORDER.map((_, i) => uniGroups.filter((g) => g.stageIdx === i).length);
+  const openStudent = (r: Row) => r.student && onOpenStudent(r.student);
 
   return (
     <div className="space-y-4">
-      {/* Page head */}
-      <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
+      {/* ---- header ---- */}
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">{t('navigation.applications')}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            {t('applications.subtitleUni', {
-              unis: uniGroups.length,
-              apps: totalApps,
-              defaultValue: `${uniGroups.length} universities · ${totalApps} applications`,
+            {t('applications.pipelineSubtitle', {
+              n: stats.total,
+              intake: t('applications.intakeLabel', { defaultValue: 'Sep 2026 intake' }),
+              defaultValue: `${stats.total} active applications · 5-stage pipeline · ${t('applications.intakeLabel', { defaultValue: 'Sep 2026 intake' })}`,
             })}
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" className="gap-2" onClick={() => toast.info(t('common.comingSoon', { defaultValue: 'Coming soon' }))}>
-            <Download className="h-4 w-4" />
-            {t('applications.export')}
-          </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <StatChip tone="warning" n={stats.awaiting} label={t('applications.statAwaiting', { defaultValue: 'awaiting decision' })} />
+          <StatChip tone="warning" n={stats.unpaid} label={t('applications.statUnpaid', { defaultValue: 'tuition unpaid' })} />
+          <StatChip tone="destructive" n={stats.notAccepted} label={t('applications.statNotAccepted', { defaultValue: 'not accepted' })} />
+          <StatChip tone="successSoft" n={stats.atVisa} label={t('applications.statAtVisa', { defaultValue: 'at visa stage' })} />
           <Button variant="highlight" className="gap-2" onClick={() => setPickUniOpen(true)}>
             <Plus className="h-4 w-4" />
             {t('applications.newApplication')}
@@ -648,134 +431,114 @@ export default function ApplicationsContent({
         </div>
       </div>
 
-      {/* How-it-works banner */}
-      <div className="flex items-center gap-3 rounded-xl bg-info/10 px-4 py-3">
-        <Sparkles className="h-5 w-5 shrink-0 text-info" />
-        <p className="text-[13px] leading-snug text-muted-foreground">{t('applications.howItWorks')}</p>
-      </div>
-
-      {/* Admissions statistics — accepted by 1/2/3+ universities, waiting, by city & university */}
-      <AdmissionsStats applications={applications} students={students} currentLang={currentLang} />
-
-      {/* Toolbar */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="relative w-[230px]">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder={t('applications.searchUniversities')}
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-9"
-            />
-          </div>
-          <Select value={intakeFilter} onValueChange={(v) => setIntakeFilter(v as 'all' | Intake)}>
-            <SelectTrigger className="w-[150px]"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{t('applications.allIntakes')}</SelectItem>
-              <SelectItem value="spring2026">{intakeLabel('spring2026')}</SelectItem>
-              <SelectItem value="fall2026">{intakeLabel('fall2026')}</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={officeFilter} onValueChange={setOfficeFilter}>
-            <SelectTrigger className="w-[150px]"><SelectValue placeholder={t('applications.allOffices')} /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{t('applications.allOffices')}</SelectItem>
-              {offices.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}
-            </SelectContent>
-          </Select>
+      {/* ---- toolbar: search + consultant chips + blocked filter ---- */}
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="relative w-full max-w-[280px]">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder={t('applications.searchStudentCodeUni', { defaultValue: 'Student, code, university' })}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9"
+          />
         </div>
-        <span className="text-sm font-medium text-muted-foreground">
-          {t('applications.uniCount', { n: uniGroups.length, defaultValue: `${uniGroups.length} universities` })}
-        </span>
+        <div className="flex flex-wrap items-center gap-1.5">
+          <FilterChip active={consultantFilter === 'all'} onClick={() => setConsultantFilter('all')}>
+            {t('applications.allConsultants', { defaultValue: 'All consultants' })}
+          </FilterChip>
+          {consultants.map((c) => (
+            <FilterChip key={c} active={consultantFilter === c} onClick={() => setConsultantFilter(c)}>
+              {c}
+            </FilterChip>
+          ))}
+          <FilterChip active={blockedOnly} tone="destructive" onClick={() => setBlockedOnly((b) => !b)}>
+            <Flag className="h-3 w-3" />
+            {t('applications.blockedOnly', { defaultValue: 'Blocked only' })} · {blockedCount}
+          </FilterChip>
+        </div>
       </div>
 
-      {/* Board */}
-      {uniGroups.length === 0 ? (
+      {/* ---- board ---- */}
+      {filtered.length === 0 ? (
         <EmptyState icon={Inbox} title={t('applications.emptyTitle')} description={t('applications.emptyDesc')} />
       ) : (
-        <div className="flex gap-3 overflow-x-auto pb-2 lg:grid lg:grid-cols-5 lg:overflow-x-visible">
+        <div className="flex gap-3 overflow-x-auto pb-2 lg:grid lg:grid-cols-5 lg:items-start lg:overflow-x-visible">
           {STAGE_ORDER.map((stage, i) => {
-            const items = uniGroups.filter((g) => g.stageIdx === i);
+            const items = byStage(stage);
             return (
-              <div key={stage} className="flex w-[82vw] shrink-0 flex-col rounded-xl border border-border bg-muted/40 p-3 sm:w-[300px] lg:w-auto">
-                <div className="mb-3 flex items-center gap-2 px-1">
+              <div
+                key={stage}
+                className={cn(
+                  'flex w-[85vw] shrink-0 flex-col rounded-xl border p-3 sm:w-[320px] lg:w-auto',
+                  stage === 'sent' ? 'border-warning/40 bg-warning/5' : 'border-border bg-muted/40',
+                )}
+              >
+                <div className="mb-2 flex items-center gap-2 px-1">
                   <span className={cn('h-2 w-2 rounded-sm', STAGE_DOT[stage])} />
                   <span className="text-[13px] font-bold text-foreground">{stageLabel[stage]}</span>
-                  <span className="ml-auto rounded-full bg-background px-2 text-xs font-semibold text-muted-foreground">{counts[i]}</span>
+                  <span className="ml-auto rounded-full bg-background px-2 text-xs font-semibold text-muted-foreground">{items.length}</span>
                 </div>
+
+                {stage === 'sent' && (
+                  <p className="mb-2 px-1 text-[11px] leading-snug text-muted-foreground">
+                    {t('applications.decisionGateNote', { defaultValue: 'Decision gate — cards stay here until accepted and tuition paid.' })}
+                  </p>
+                )}
+
                 <div className="flex flex-col gap-2.5">
-                  {items.length === 0 && <p className="py-4 text-center text-xs text-muted-foreground/60">—</p>}
-                  {items.map((g) => {
-                    const isDecision = g.stageIdx === 4;
-                    const dl = deadlineMeta(g.earliest, g.earliestDate, currentLang, t);
+                  {items.length === 0 && <p className="py-3 text-center text-xs text-muted-foreground/60">—</p>}
+
+                  {stage === 'new' && items.map((r) => (
+                    <BaseCard key={r.app.id} r={r} onClick={() => openStudent(r)} t={t}
+                      footerRight={<span className="text-[11px] text-muted-foreground">{t('applications.dInStage', { n: r.days, defaultValue: `${r.days}d in stage` })}</span>} />
+                  ))}
+
+                  {stage === 'docs' && items.map((r) => (
+                    <BaseCard key={r.app.id} r={r} onClick={() => openStudent(r)} t={t}
+                      footerRight={
+                        <Badge variant={r.docsTotal && r.docsDone >= r.docsTotal ? 'successSoft' : 'info'} className="gap-1">
+                          <FileCheck className="h-3 w-3" />
+                          {r.docsDone}/{r.docsTotal || 6} {t('applications.ready', { defaultValue: 'ready' })}
+                        </Badge>
+                      } />
+                  ))}
+
+                  {stage === 'applied' && items.map((r) => (
+                    <BaseCard key={r.app.id} r={r} onClick={() => openStudent(r)} t={t}
+                      extra={<div className="font-mono text-[10px] text-muted-foreground">Ref {refOf(r)}</div>}
+                      footerRight={<span className="text-[11px] text-muted-foreground">{t('applications.dInStage', { n: r.days, defaultValue: `${r.days}d in stage` })}</span>} />
+                  ))}
+
+                  {stage === 'sent' && items.map((r) => (
+                    <DecisionCard key={r.app.id} r={r} t={t} lang={currentLang} moving={movingId === r.app.id}
+                      onOpen={() => openStudent(r)}
+                      onAccept={() => setStage(r, 'sent', 'accepted')}
+                      onReject={() => setStage(r, 'sent', 'rejected')}
+                      onMarkPaid={() => setStage(r, 'visa', 'visa_documents')}
+                      onRemind={() => toast.success(t('applications.reminderSent', { defaultValue: 'Reminder sent' }))}
+                      onReapply={() => { setChosenUni(null); setPickUniOpen(true); }}
+                      onUndo={() => setStage(r, 'sent', 'application_submitted')} />
+                  ))}
+
+                  {stage === 'visa' && VISA_GROUPS.map(({ sub, dot }) => {
+                    const group = items.filter((r) => r.visaSub === sub);
+                    if (group.length === 0) return null;
                     return (
-                      <Card
-                        key={g.id}
-                        onClick={() => setOpenUniId(g.id)}
-                        className="cursor-pointer space-y-3 p-3.5 shadow-card transition-all hover:-translate-y-0.5 hover:shadow-raised"
-                      >
-                        <div className="flex items-start gap-2.5">
-                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-info/10">
-                            <GraduationCap className="h-5 w-5 text-info" />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <div className="line-clamp-2 text-sm font-bold leading-tight text-foreground">{g.name}</div>
-                            {g.city && (
-                              <div className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
-                                <MapPin className="h-3 w-3" />
-                                {g.city}
-                              </div>
-                            )}
-                          </div>
+                      <div key={sub} className="space-y-2">
+                        <div className="flex items-center gap-1.5 px-1 pt-1">
+                          <span className={cn('h-1.5 w-1.5 rounded-full', dot)} />
+                          <span className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">{visaGroupLabel[sub]}</span>
+                          <span className="ml-auto text-[10px] font-semibold text-muted-foreground">{group.length}</span>
                         </div>
-
-                        {/* avatar stack + count */}
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center">
-                            {g.apps.slice(0, 4).map((r, idx) => (
-                              <Avatar key={r.app.id} className={cn('h-7 w-7 ring-2 ring-card', idx > 0 && '-ml-2')}>
-                                <AvatarImage src={r.student?.avatar_url || undefined} />
-                                <AvatarFallback className={cn('text-[10px] font-semibold', toneFor(r.app.student_id))}>
-                                  {getInitials(r.student?.full_name ?? null)}
-                                </AvatarFallback>
-                              </Avatar>
-                            ))}
-                            {g.apps.length > 4 && (
-                              <div className="-ml-2 flex h-7 w-7 items-center justify-center rounded-full bg-muted text-[10px] font-bold text-muted-foreground ring-2 ring-card">
-                                +{g.apps.length - 4}
-                              </div>
-                            )}
-                          </div>
-                          <span className="text-xs font-semibold text-muted-foreground">
-                            {t('applications.studentsCount', { n: g.total })}
-                          </span>
-                        </div>
-
-                        {/* advancement progress */}
-                        <div className="flex items-center gap-2">
-                          <Progress value={(g.advanced / g.total) * 100} className="h-1.5 flex-1" />
-                          <span className="shrink-0 font-mono text-[10px] text-muted-foreground">{g.advanced}/{g.total}</span>
-                        </div>
-
-                        {/* gating note + deadline */}
-                        <div className="flex items-center justify-between gap-2">
-                          {isDecision ? (
-                            <Badge variant="successSoft" className="gap-1.5">
-                              <span className="h-1.5 w-1.5 rounded-full bg-success" />
-                              {t('applications.allDecided')}
-                            </Badge>
-                          ) : (
-                            <span className="text-[11px] font-medium text-muted-foreground">
-                              {t('applications.toAdvance', { k: g.total - g.advanced, defaultValue: `${g.total - g.advanced} to advance` })}
-                            </span>
-                          )}
-                          <Badge variant={dl.tone} className="gap-1">
-                            <Clock className="h-3 w-3" />
-                            {dl.label}
-                          </Badge>
-                        </div>
-                      </Card>
+                        {group.map((r) => (
+                          <VisaCard key={r.app.id} r={r} sub={sub} t={t} lang={currentLang} moving={movingId === r.app.id}
+                            onOpen={() => openStudent(r)}
+                            onPackReady={() => toast.success(t('applications.visaPackMarked', { defaultValue: 'Visa pack marked ready' }))}
+                            onMarkApplied={() => toast.success(t('applications.visaMarkedApplied', { defaultValue: 'Marked as applied' }))}
+                            onApproved={() => setStage(r, 'visa', 'completed')}
+                            onRefused={() => setStage(r, 'visa', 'rejected')} />
+                        ))}
+                      </div>
                     );
                   })}
                 </div>
@@ -794,21 +557,279 @@ export default function ApplicationsContent({
         onPick={handlePickUniversity}
         t={t}
       />
+      <StudentPickerDialog
+        open={pickStudentOpen}
+        onOpenChange={(o) => { setPickStudentOpen(o); if (!o) setChosenUni(null); }}
+        students={students}
+        appliedStudentIds={appliedStudentIds}
+        universityName={chosenUni ? uniName(chosenUni) : ''}
+        onCreate={handleCreateApplication}
+        t={t}
+      />
     </div>
   );
 }
 
+// Deterministic application reference number, e.g. "KU-2026-4471".
+function refOf(r: { app: ApplicationRow; uni: string }) {
+  const initials = r.uni.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2) || 'UN';
+  return `${initials}-2026-${(hashInt(r.app.id) % 9000 + 1000)}`;
+}
+
 // ===========================================================================
-// University picker — board-level "New application" chooses from the uni-db.
+// Small presentational pieces
+// ===========================================================================
+function StatChip({ tone, n, label }: { tone: BadgeTone; n: number; label: string }) {
+  const toneCls: Record<BadgeTone, string> = {
+    neutral: 'text-muted-foreground',
+    info: 'text-info',
+    warning: 'text-warning',
+    successSoft: 'text-success',
+    destructive: 'text-destructive',
+  };
+  return (
+    <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+      <span className={cn('font-bold', toneCls[tone])}>{n}</span>
+      {label}
+    </span>
+  );
+}
+
+function FilterChip({
+  active, tone, onClick, children,
+}: { active: boolean; tone?: 'destructive'; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        'inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors',
+        active
+          ? tone === 'destructive'
+            ? 'border-destructive/40 bg-destructive/10 text-destructive'
+            : 'border-primary/40 bg-primary/10 text-primary'
+          : 'border-border bg-background text-muted-foreground hover:bg-accent/40',
+      )}
+    >
+      {children}
+    </button>
+  );
+}
+
+type CardRow = {
+  app: ApplicationRow;
+  student?: StudentProfile;
+  name: string;
+  code: string;
+  uni: string;
+  program: string;
+  consultant: string;
+  blocked: boolean;
+  days: number;
+  docsDone: number;
+  docsTotal: number;
+  outcome: ReturnType<typeof outcomeOf>;
+  decisionSub: DecisionSub;
+  visaSub: VisaSub;
+};
+
+// Header shared by every card: avatar, name, code, university · program.
+function CardHead({ r }: { r: CardRow }) {
+  return (
+    <div className="flex items-start gap-2.5">
+      <Avatar className="h-8 w-8">
+        <AvatarImage src={r.student?.avatar_url || undefined} />
+        <AvatarFallback className={cn('text-[10px] font-semibold', toneFor(r.app.student_id))}>
+          {getInitials(r.name === '—' ? null : r.name)}
+        </AvatarFallback>
+      </Avatar>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-1.5">
+          <span className="truncate text-[13px] font-semibold text-foreground">{r.name}</span>
+          {r.blocked && <Flag className="h-3 w-3 shrink-0 text-destructive" />}
+        </div>
+        <div className="font-mono text-[10px] uppercase text-muted-foreground">{r.code}</div>
+      </div>
+    </div>
+  );
+}
+
+function BaseCard({
+  r, onClick, t, extra, footerRight,
+}: {
+  r: CardRow;
+  onClick: () => void;
+  t: TFunc;
+  extra?: React.ReactNode;
+  footerRight?: React.ReactNode;
+}) {
+  return (
+    <Card
+      onClick={onClick}
+      className="cursor-pointer space-y-2 p-3 shadow-card transition-all hover:-translate-y-0.5 hover:shadow-raised"
+    >
+      <CardHead r={r} />
+      <div className="truncate text-[11px] text-muted-foreground">
+        <span className="font-medium text-foreground/80">{r.uni}</span> · {r.program}
+      </div>
+      {extra}
+      <div className="flex items-center justify-between gap-2 pt-0.5">
+        <Badge variant="neutral" className="text-[10px]">{r.consultant}</Badge>
+        {footerRight}
+      </div>
+    </Card>
+  );
+}
+
+function DecisionCard({
+  r, t, lang, moving, onOpen, onAccept, onReject, onMarkPaid, onRemind, onReapply, onUndo,
+}: {
+  r: CardRow; t: TFunc; lang: string; moving: boolean;
+  onOpen: () => void;
+  onAccept: () => void; onReject: () => void;
+  onMarkPaid: () => void; onRemind: () => void;
+  onReapply: () => void; onUndo: () => void;
+}) {
+  const sentDate = fmtDate(r.app.submitted_at || r.app.updated_at, lang);
+  const stop = (e: React.MouseEvent) => e.stopPropagation();
+
+  return (
+    <Card
+      onClick={onOpen}
+      className={cn(
+        'cursor-pointer space-y-2 p-3 shadow-card transition-all hover:shadow-raised',
+        r.decisionSub === 'accepted_unpaid' && 'border-warning/40 bg-warning/5',
+        r.decisionSub === 'not_accepted' && 'border-destructive/30',
+      )}
+    >
+      <div className="flex items-start justify-between gap-2">
+        <CardHead r={r} />
+        {r.decisionSub === 'awaiting' && <Badge variant="warning" className="shrink-0">{t('applications.awaitingDecision', { defaultValue: 'Awaiting decision' })}</Badge>}
+        {r.decisionSub === 'accepted_unpaid' && <Badge variant="warning" className="shrink-0">{t('applications.acceptedUnpaid', { defaultValue: 'Accepted · unpaid' })}</Badge>}
+        {r.decisionSub === 'not_accepted' && <Badge variant="destructive" className="shrink-0">{t('applications.notAccepted', { defaultValue: 'Not accepted' })}</Badge>}
+      </div>
+
+      <div className="truncate text-[11px] text-muted-foreground">
+        <span className="font-medium text-foreground/80">{r.uni}</span> · {r.program}
+      </div>
+      <div className="text-[10px] text-muted-foreground">
+        {t('applications.sentOn', { date: sentDate, defaultValue: `Sent ${sentDate}` })} · {r.consultant}
+      </div>
+
+      {r.decisionSub === 'awaiting' && (
+        <div className="space-y-1.5 border-t border-border pt-2" onClick={stop}>
+          <div className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">{t('applications.universityDecision', { defaultValue: 'University decision' })}</div>
+          <div className="flex gap-1.5">
+            <Button variant="highlight" size="sm" className="h-7 flex-1 text-xs" disabled={moving} onClick={onAccept}>
+              <CheckCircle2 className="h-3.5 w-3.5" />{t('applications.accepted', { defaultValue: 'Accepted' })}
+            </Button>
+            <Button variant="outline" size="sm" className="h-7 flex-1 text-xs" disabled={moving} onClick={onReject}>
+              {t('applications.notAcceptedShort', { defaultValue: 'Not Accepted' })}
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {r.decisionSub === 'accepted_unpaid' && (
+        <div className="space-y-1.5 border-t border-warning/30 pt-2" onClick={stop}>
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold uppercase tracking-wide text-warning">{t('applications.tuitionUnpaid', { defaultValue: 'Tuition fee unpaid' })}</span>
+            <span className="font-mono text-xs font-bold text-foreground">${tuitionAmount(r.app.id).toLocaleString()}</span>
+          </div>
+          <div className="flex gap-1.5">
+            <Button variant="default" size="sm" className="h-7 flex-1 text-xs" disabled={moving} onClick={onMarkPaid}>
+              {t('applications.markTuitionPaid', { defaultValue: 'Mark Tuition Paid' })}
+            </Button>
+            <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={onRemind}>
+              {t('applications.remind', { defaultValue: 'Remind' })}
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {r.decisionSub === 'not_accepted' && (
+        <div className="space-y-1.5 border-t border-border pt-2" onClick={stop}>
+          <p className="text-[10px] leading-snug text-muted-foreground">
+            {t('applications.rejectionNote', { defaultValue: 'Not accepted — suggest another university for this intake.' })}
+          </p>
+          <div className="flex gap-1.5">
+            <Button variant="outline" size="sm" className="h-7 flex-1 text-xs" onClick={onReapply}>
+              {t('applications.reapplyElsewhere', { defaultValue: 'Re-apply Elsewhere' })}
+            </Button>
+            <Button variant="ghost" size="sm" className="h-7 text-xs" disabled={moving} onClick={onUndo}>
+              {t('applications.undo', { defaultValue: 'Undo' })}
+            </Button>
+          </div>
+        </div>
+      )}
+    </Card>
+  );
+}
+
+function VisaCard({
+  r, sub, t, lang, moving, onOpen, onPackReady, onMarkApplied, onApproved, onRefused,
+}: {
+  r: CardRow; sub: VisaSub; t: TFunc; lang: string; moving: boolean;
+  onOpen: () => void;
+  onPackReady: () => void; onMarkApplied: () => void;
+  onApproved: () => void; onRefused: () => void;
+}) {
+  const stop = (e: React.MouseEvent) => e.stopPropagation();
+  const docs = visaDocsReady(r.app.id);
+  const date = fmtDate(r.app.decision_at || r.app.updated_at, lang);
+
+  return (
+    <Card
+      onClick={onOpen}
+      className={cn(
+        'cursor-pointer space-y-2 p-3 shadow-card transition-all hover:shadow-raised',
+        sub === 'accepted' && 'border-success/40 bg-success/5',
+        sub === 'rejected' && 'border-destructive/40 bg-destructive/5',
+      )}
+    >
+      <CardHead r={r} />
+      <div className="truncate text-[11px] text-muted-foreground">
+        <span className="font-medium text-foreground/80">{r.uni}</span> · {r.program}
+      </div>
+
+      <div className="flex items-center gap-1.5 text-[10px]">
+        <Badge variant="successSoft" className="text-[10px]">{t('applications.tuitionPaid', { defaultValue: 'Tuition paid' })}</Badge>
+        {sub === 'docs_prep' && <span className="text-muted-foreground">{t('applications.visaDocsCount', { done: docs, total: 7, defaultValue: `${docs} of 7 visa docs ready` })}</span>}
+        {sub === 'not_applied' && <span className="text-muted-foreground">{t('applications.visaBookSlot', { defaultValue: 'Pack complete · book embassy slot' })}</span>}
+        {sub === 'applied' && <span className="text-muted-foreground">{t('applications.visaAppliedOn', { date, defaultValue: `Applied ${date} · result in ~10d` })}</span>}
+        {sub === 'accepted' && <span className="text-success">{t('applications.visaIssued', { date, defaultValue: `D-2 issued ${date} · departs soon` })}</span>}
+        {sub === 'rejected' && <span className="text-destructive">{t('applications.visaRefusedOn', { date, defaultValue: `Refused ${date} · financial proof` })}</span>}
+      </div>
+
+      {sub === 'docs_prep' && (
+        <Button variant="highlight" size="sm" className="h-7 w-full text-xs" onClick={(e) => { stop(e); onPackReady(); }}>
+          <FileCheck className="h-3.5 w-3.5" />{t('applications.visaPackReady', { defaultValue: 'Visa Pack Ready' })}
+        </Button>
+      )}
+      {sub === 'not_applied' && (
+        <Button variant="highlight" size="sm" className="h-7 w-full text-xs" onClick={(e) => { stop(e); onMarkApplied(); }}>
+          <Send className="h-3.5 w-3.5" />{t('applications.markApplied', { defaultValue: 'Mark Applied' })}
+        </Button>
+      )}
+      {sub === 'applied' && (
+        <div className="flex gap-1.5" onClick={stop}>
+          <Button variant="highlight" size="sm" className="h-7 flex-1 text-xs" disabled={moving} onClick={onApproved}>
+            <Plane className="h-3.5 w-3.5" />{t('applications.visaApproved', { defaultValue: 'Visa Approved' })}
+          </Button>
+          <Button variant="outline" size="sm" className="h-7 flex-1 text-xs" disabled={moving} onClick={onRefused}>
+            {t('applications.visaRefused', { defaultValue: 'Refused' })}
+          </Button>
+        </div>
+      )}
+    </Card>
+  );
+}
+
+// ===========================================================================
+// University picker — "New application" chooses from the uni-db.
 // ===========================================================================
 function UniversityPickerDialog({
-  open,
-  onOpenChange,
-  universities,
-  uniName,
-  appCountByUni,
-  onPick,
-  t,
+  open, onOpenChange, universities, uniName, appCountByUni, onPick, t,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
@@ -819,20 +840,15 @@ function UniversityPickerDialog({
   t: TFunc;
 }) {
   const [search, setSearch] = useState('');
-
   const filtered = useMemo(() => {
-    const named = universities
-      .map((u) => ({ u, name: uniName(u) }))
-      .sort((a, b) => a.name.localeCompare(b.name));
+    const named = universities.map((u) => ({ u, name: uniName(u) })).sort((a, b) => a.name.localeCompare(b.name));
     const q = search.trim().toLowerCase();
     if (!q) return named;
-    return named.filter(
-      ({ u, name }) =>
-        name.toLowerCase().includes(q) ||
-        (u.name_ko ?? '').toLowerCase().includes(q) ||
-        (u.name_en ?? '').toLowerCase().includes(q) ||
-        (u.city_ko ?? '').toLowerCase().includes(q),
-    );
+    return named.filter(({ u, name }) =>
+      name.toLowerCase().includes(q) ||
+      (u.name_ko ?? '').toLowerCase().includes(q) ||
+      (u.name_en ?? '').toLowerCase().includes(q) ||
+      (u.city_ko ?? '').toLowerCase().includes(q));
   }, [universities, uniName, search]);
 
   return (
@@ -844,38 +860,22 @@ function UniversityPickerDialog({
             {t('applications.pickUniversityTitle', { defaultValue: 'Select a university' })}
           </DialogTitle>
           <DialogDescription>
-            {t('applications.pickUniversityDesc', {
-              defaultValue: 'Choose a university from the uni-db to start applications for it.',
-            })}
+            {t('applications.pickUniversityDesc', { defaultValue: 'Choose a university from the uni-db to start an application.' })}
           </DialogDescription>
         </DialogHeader>
-
         <div className="relative">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            autoFocus
-            placeholder={t('applications.searchUniversities')}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
-          />
+          <Input autoFocus placeholder={t('applications.searchUniversities')} value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
         </div>
-
         <div className="max-h-[52vh] overflow-y-auto rounded-md border border-border">
           {filtered.length === 0 ? (
-            <div className="py-8 text-center text-sm text-muted-foreground">
-              {t('applications.noUniversities', { defaultValue: 'No universities found' })}
-            </div>
+            <div className="py-8 text-center text-sm text-muted-foreground">{t('applications.noUniversities', { defaultValue: 'No universities found' })}</div>
           ) : (
             filtered.map(({ u, name }) => {
               const count = appCountByUni.get(u.id) ?? 0;
               return (
-                <button
-                  key={u.id}
-                  type="button"
-                  onClick={() => onPick(u)}
-                  className="flex w-full items-center justify-between gap-3 border-b border-border/50 px-3 py-2.5 text-left transition-colors last:border-0 hover:bg-accent/50"
-                >
+                <button key={u.id} type="button" onClick={() => onPick(u)}
+                  className="flex w-full items-center justify-between gap-3 border-b border-border/50 px-3 py-2.5 text-left transition-colors last:border-0 hover:bg-accent/50">
                   <div className="flex min-w-0 items-center gap-2.5">
                     <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-info/10">
                       <GraduationCap className="h-4 w-4 text-info" />
@@ -883,20 +883,13 @@ function UniversityPickerDialog({
                     <div className="min-w-0">
                       <div className="truncate text-sm font-medium text-foreground">{name}</div>
                       {u.city_ko ? (
-                        <div className="flex items-center gap-1 truncate text-xs text-muted-foreground">
-                          <MapPin className="h-3 w-3" />
-                          {u.city_ko}
-                        </div>
+                        <div className="flex items-center gap-1 truncate text-xs text-muted-foreground"><MapPin className="h-3 w-3" />{u.city_ko}</div>
                       ) : null}
                     </div>
                   </div>
                   <div className="flex shrink-0 items-center gap-1.5">
-                    {u.is_partner ? (
-                      <Badge variant="successSoft">{t('applications.partner', { defaultValue: 'Partner' })}</Badge>
-                    ) : null}
-                    {count > 0 ? (
-                      <Badge variant="info">{t('applications.studentsCount', { n: count })}</Badge>
-                    ) : null}
+                    {u.is_partner ? <Badge variant="successSoft">{t('applications.partner', { defaultValue: 'Partner' })}</Badge> : null}
+                    {count > 0 ? <Badge variant="info">{t('applications.studentsCount', { n: count })}</Badge> : null}
                   </div>
                 </button>
               );
@@ -909,16 +902,10 @@ function UniversityPickerDialog({
 }
 
 // ===========================================================================
-// Student picker — inside a university, "Attach student" creates the app.
+// Student picker — attach a student to the chosen university (creates the app).
 // ===========================================================================
 function StudentPickerDialog({
-  open,
-  onOpenChange,
-  students,
-  appliedStudentIds,
-  universityName,
-  onCreate,
-  t,
+  open, onOpenChange, students, appliedStudentIds, universityName, onCreate, t,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
@@ -939,16 +926,12 @@ function StudentPickerDialog({
   ];
 
   const filtered = useMemo(() => {
-    const sorted = [...students].sort((a, b) =>
-      (a.full_name ?? '').localeCompare(b.full_name ?? ''),
-    );
+    const sorted = [...students].sort((a, b) => (a.full_name ?? '').localeCompare(b.full_name ?? ''));
     const q = search.trim().toLowerCase();
     if (!q) return sorted;
-    return sorted.filter(
-      (s) =>
-        (s.full_name ?? '').toLowerCase().includes(q) ||
-        (s.office_location ?? '').toLowerCase().includes(q),
-    );
+    return sorted.filter((s) =>
+      (s.full_name ?? '').toLowerCase().includes(q) ||
+      (s.office_location ?? '').toLowerCase().includes(q));
   }, [students, search]);
 
   const pick = async (s: StudentProfile) => {
@@ -967,26 +950,15 @@ function StudentPickerDialog({
             {t('applications.pickStudentTitle', { defaultValue: 'Select a student' })}
           </DialogTitle>
           <DialogDescription>
-            {t('applications.pickStudentDesc', {
-              university: universityName,
-              defaultValue: `Attach a student to ${universityName}. This creates their application.`,
-            })}
+            {t('applications.pickStudentDesc', { university: universityName, defaultValue: `Attach a student to ${universityName}. This creates their application.` })}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-1.5">
-          <Label className="text-xs font-medium text-muted-foreground">
-            {t('applications.selectDegree', { defaultValue: 'Daraja' })}
-          </Label>
+          <Label className="text-xs font-medium text-muted-foreground">{t('applications.selectDegree', { defaultValue: 'Daraja' })}</Label>
           <div className="grid grid-cols-3 gap-2">
             {DEGREE_OPTIONS.map((opt) => (
-              <Button
-                key={opt.value}
-                type="button"
-                size="sm"
-                variant={degree === opt.value ? 'default' : 'outline'}
-                onClick={() => setDegree(opt.value)}
-              >
+              <Button key={opt.value} type="button" size="sm" variant={degree === opt.value ? 'default' : 'outline'} onClick={() => setDegree(opt.value)}>
                 {opt.label}
               </Button>
             ))}
@@ -995,57 +967,36 @@ function StudentPickerDialog({
 
         <div className="relative">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            autoFocus
-            placeholder={t('applications.searchStudents', { defaultValue: 'Search students…' })}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
-          />
+          <Input autoFocus placeholder={t('applications.searchStudents', { defaultValue: 'Search students…' })} value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
         </div>
 
         <div className="max-h-[52vh] overflow-y-auto rounded-md border border-border">
           {filtered.length === 0 ? (
-            <div className="py-8 text-center text-sm text-muted-foreground">
-              {t('applications.noStudents', { defaultValue: 'No students found' })}
-            </div>
+            <div className="py-8 text-center text-sm text-muted-foreground">{t('applications.noStudents', { defaultValue: 'No students found' })}</div>
           ) : (
             filtered.map((s) => {
               const applied = appliedStudentIds.has(s.user_id);
               const saving = savingId === s.user_id;
               return (
-                <button
-                  key={s.user_id}
-                  type="button"
-                  disabled={applied || !!savingId}
-                  onClick={() => pick(s)}
+                <button key={s.user_id} type="button" disabled={applied || !!savingId} onClick={() => pick(s)}
                   className={cn(
                     'flex w-full items-center justify-between gap-3 border-b border-border/50 px-3 py-2.5 text-left transition-colors last:border-0',
                     applied ? 'cursor-not-allowed opacity-60' : 'hover:bg-accent/50',
-                  )}
-                >
+                  )}>
                   <div className="flex min-w-0 items-center gap-2.5">
                     <Avatar className="h-8 w-8">
                       <AvatarImage src={s.avatar_url || undefined} />
-                      <AvatarFallback className={cn('text-[10px] font-semibold', toneFor(s.user_id))}>
-                        {getInitials(s.full_name)}
-                      </AvatarFallback>
+                      <AvatarFallback className={cn('text-[10px] font-semibold', toneFor(s.user_id))}>{getInitials(s.full_name)}</AvatarFallback>
                     </Avatar>
                     <div className="min-w-0">
                       <div className="truncate text-sm font-medium text-foreground">{s.full_name || '—'}</div>
-                      {s.office_location ? (
-                        <div className="truncate text-xs text-muted-foreground">{s.office_location}</div>
-                      ) : null}
+                      {s.office_location ? <div className="truncate text-xs text-muted-foreground">{s.office_location}</div> : null}
                     </div>
                   </div>
                   <div className="flex shrink-0 items-center gap-1.5">
-                    {applied ? (
-                      <Badge variant="outline">{t('applications.alreadyApplied', { defaultValue: 'Applied' })}</Badge>
-                    ) : saving ? (
-                      <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                    ) : (
-                      <Plus className="h-4 w-4 text-muted-foreground" />
-                    )}
+                    {applied ? <Badge variant="outline">{t('applications.alreadyApplied', { defaultValue: 'Applied' })}</Badge>
+                      : saving ? <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                      : <Plus className="h-4 w-4 text-muted-foreground" />}
                   </div>
                 </button>
               );
