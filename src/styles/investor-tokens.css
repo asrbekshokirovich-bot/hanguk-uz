@@ -1,0 +1,90 @@
+/* ============================================================================
+   Investor Portal tokens — TOKENS.md.
+   Imported by src/index.css. Nothing in this file overrides an existing value.
+
+   The brief's rule was "add tokens only where TOKENS.md has no equivalent", so
+   most of TOKENS.md maps straight onto what the design system already ships and
+   is NOT repeated here:
+
+     --canvas    -> --background            --surface   -> --card
+     --surface-3 -> --muted                 --line      -> --border
+     --ink       -> --foreground            --ink-2/3   -> --muted-foreground
+     --blue      -> --primary               --lime      -> --accent
+     --blue-500  -> --info                  --blue-400  -> --chart-3
+     --sidebar   -> --sidebar-background    --r-md/--r-sm -> rounded-lg / rounded-md
+     --sh-1      -> .shadow-card            chart palette -> --chart-1..5
+
+   What was genuinely missing: the soft tint fills every status pill and panel
+   needs, the two footnote/divider neutrals, the one lime value that is legible
+   as ink on white, and the royal-blue card shadow. They are added as plain
+   utility classes rather than Tailwind theme colours so tailwind.config.ts does
+   not have to change — the class names below are not Tailwind-generated names,
+   so nothing collides.
+   ========================================================================= */
+
+@layer base {
+  :root {
+    --tint-blue: 216 62% 96%;   /* #EEF3FB net-profit row, selected thread */
+    --tint-lime: 69 67% 90%;    /* #F2F7D6 next-payout panel, lime badge bg */
+    --success-bg: 145 49% 93%;  /* #E5F6EC */
+    --warning-bg: 39 84% 93%;   /* #FCF1DC */
+    --danger-bg: 6 78% 95%;     /* #FCE9E7 */
+    --info-bg: 215 68% 95%;     /* #EAF1FB */
+    --surface-2: 220 60% 99%;   /* #FBFCFE footnote strips */
+    --line-2: 218 31% 95%;      /* #EEF1F6 table row dividers */
+    --lime-700: 68 81% 42%;     /* #A8C014 lime as text/icon on light */
+    --sh-blue: 0 8px 24px rgba(26, 58, 108, 0.28);
+  }
+
+  /* Dark mode is the app's existing theme toggle. TOKENS.md leaves the dark
+     values to the host sheet, so the tints drop to low-lightness versions of
+     the same hue and lime becomes legible at full strength. */
+  .dark {
+    --tint-blue: 217 40% 16%;
+    --tint-lime: 69 28% 16%;
+    --success-bg: 146 40% 14%;
+    --warning-bg: 35 45% 15%;
+    --danger-bg: 4 45% 16%;
+    --info-bg: 214 40% 16%;
+    --surface-2: 218 40% 12%;
+    --line-2: 218 30% 16%;
+    --lime-700: 68 78% 61%;
+    --sh-blue: 0 8px 24px rgba(0, 0, 0, 0.45);
+  }
+}
+
+@layer utilities {
+  .bg-tint-blue { background-color: hsl(var(--tint-blue)); }
+  .bg-tint-lime { background-color: hsl(var(--tint-lime)); }
+  .bg-soft-success { background-color: hsl(var(--success-bg)); }
+  .bg-soft-warning { background-color: hsl(var(--warning-bg)); }
+  .bg-soft-danger { background-color: hsl(var(--danger-bg)); }
+  .bg-soft-info { background-color: hsl(var(--info-bg)); }
+  .bg-soft-surface { background-color: hsl(var(--surface-2)); }
+
+  .border-soft-line { border-color: hsl(var(--line-2)); }
+
+  /* The only lime that may carry ink weight on a light surface. Body text and
+     links stay foreground/primary — lime is an action and an indicator, never
+     a reading colour. */
+  .text-lime-ink { color: hsl(var(--lime-700)); }
+
+  /* --sh-blue: the royal-blue equity and share cards only. */
+  .shadow-blue { box-shadow: var(--sh-blue); }
+
+  /* Motion. The brief specifies an 8px rise; the shared .animate-fade-up in
+     tailwind.config.ts rises 6px and is used by every staff CRM page, so it is
+     left alone and the portal gets its own. Same duration and easing. */
+  @keyframes fade-up-investor {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  .animate-fade-up-investor {
+    animation: fade-up-investor 0.28s cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-fade-up-investor { animation: none !important; }
+  }
+}
