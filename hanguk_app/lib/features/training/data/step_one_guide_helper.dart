@@ -8,7 +8,7 @@
 /// or `'uzbek'` — that the guide-content branches key off.
 ///
 /// Pure Dart so the locale routing is unit-testable.
-library step_one_guide_helper;
+library;
 
 /// Normalize a track value to one of: `'english'`, `'korean'`, `'uzbek'`.
 /// Anything we don't recognize falls back to `'uzbek'` — the largest cohort.

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/feature_flags/uni_db_flag.dart';
+import '../../../../design_system/seoul_night/seoul_night.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../data/recent_changes_provider.dart';
 import '../../domain/recent_change.dart';
 
@@ -11,6 +13,11 @@ import '../../domain/recent_change.dart';
 /// Surfaces nothing when the flag is off or the user isn't tracking any
 /// institution. The banner is a Sliver so it slots into existing
 /// CustomScrollViews.
+///
+/// Seoul Night pass: a glass card matching the Applications tab it sits in.
+/// 변경 — "changes" — is the decorative hangul accent (spec §1 Korean voice);
+/// a correction notice keeps its Korean term 정정공고 on a warning chip, since
+/// that is the word the student meets on the university's own site.
 class HomeRecentChangesBannerSliver extends ConsumerWidget {
   const HomeRecentChangesBannerSliver({super.key});
 
@@ -35,29 +42,44 @@ class HomeRecentChangesBannerSliver extends ConsumerWidget {
             return b.detectedAt.compareTo(a.detectedAt);
           });
         final top = sorted.take(3).toList(growable: false);
+        final l10n = AppLocalizations.of(context)!;
         return SliverToBoxAdapter(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-            child: Card(
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Row(
-                      children: [
-                        Icon(Icons.notifications_active, size: 16),
-                        SizedBox(width: 6),
-                        Text(
-                          'Updates from your tracked universities',
-                          style: TextStyle(fontWeight: FontWeight.w600),
+            padding: const EdgeInsets.fromLTRB(
+              SeoulSizes.screenPadding,
+              8,
+              SeoulSizes.screenPadding,
+              8,
+            ),
+            child: GlassCard(
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
+              // One saved layer saved — the card reads the same without the
+              // backdrop blur against the app gradient (GlassCard guidance).
+              blur: false,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          l10n.uniDbRecentChangesTitle,
+                          style: SeoulType.subtitle,
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    for (final change in top) _ChangeLine(change: change),
-                  ],
-                ),
+                      ),
+                      // Padding, not SizedBox: it forwards the baseline the
+                      // Row's baseline alignment needs.
+                      const Padding(
+                        padding: EdgeInsets.only(left: 8),
+                        child: Text('변경', style: SeoulType.hangulLabel),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  for (final change in top) _ChangeLine(change: change),
+                ],
               ),
             ),
           ),
@@ -74,46 +96,94 @@ class _ChangeLine extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final icon = change.isCorrectionNotice
-        ? const Icon(Icons.priority_high, size: 14)
-        : const Icon(Icons.fiber_manual_record, size: 8);
+    final l10n = AppLocalizations.of(context)!;
+    final correction = change.isCorrectionNotice;
+    final name = change.nameKo.isNotEmpty
+        ? change.nameKo
+        : (change.nameEn ?? '');
+
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 5),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          icon,
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              _summarise(change),
-              style: const TextStyle(fontSize: 13),
+          // Status dot — warning-toned for a correction notice, faint
+          // otherwise. Never lime: nothing here is an action or progress.
+          SizedBox(
+            width: 8,
+            height: 8,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: correction ? SeoulColors.warning : SeoulColors.textFaint,
+              ),
             ),
           ),
-          Text(
-            _relative(change.detectedAt),
-            style: const TextStyle(fontSize: 12),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  name,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: SeoulType.bodySecondary.copyWith(
+                    color: SeoulColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  _relative(l10n, change.detectedAt),
+                  style: SeoulType.caption,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          // Flexible, because StatusChip's own ellipsis only engages under a
+          // bounded constraint — as a plain Row child it got an unbounded one
+          // and simply overflowed. A tracked field like
+          // `document_submission_deadline` blew the row by 131px on a 320pt
+          // phone at 2x font.
+          Flexible(
+            child: StatusChip(
+              // 정정공고 stays Korean in every locale — it is the official
+              // term the student encounters on Korean university sites.
+              label: correction
+                  ? '정정공고'
+                  : _humanizeField(change.fieldName ?? change.entityType),
+              tone: correction ? StatusTone.warning : StatusTone.neutral,
+              dense: true,
+            ),
           ),
         ],
       ),
     );
   }
 
-  static String _summarise(RecentChange change) {
-    final name = change.nameKo.isNotEmpty
-        ? change.nameKo
-        : (change.nameEn ?? '');
-    final tag = change.isCorrectionNotice
-        ? '정정공고'
-        : (change.fieldName ?? change.entityType);
-    return '$name · $tag';
+  /// Turn a database column name into something a person can read.
+  ///
+  /// These are raw identifiers from the change feed — `document_submission_
+  /// deadline`, `admission_cycle` — and the set is open-ended, so they cannot
+  /// all be given translation keys. Un-snaking them is presentation, not
+  /// invention: the student still sees exactly the field that changed, just
+  /// not in database casing.
+  static String _humanizeField(String raw) {
+    final words = raw
+        .split(RegExp(r'[_\s]+'))
+        .where((w) => w.isNotEmpty)
+        .toList(growable: false);
+    if (words.isEmpty) return raw;
+    return words
+        .map((w) => w[0].toUpperCase() + w.substring(1).toLowerCase())
+        .join(' ');
   }
 
-  static String _relative(DateTime when) {
+  static String _relative(AppLocalizations l10n, DateTime when) {
     final delta = DateTime.now().difference(when);
-    if (delta.inMinutes < 1) return 'just now';
-    if (delta.inHours < 1) return '${delta.inMinutes}m ago';
-    if (delta.inDays < 1) return '${delta.inHours}h ago';
-    return '${delta.inDays}d ago';
+    if (delta.inMinutes < 1) return l10n.timeJustNow;
+    if (delta.inHours < 1) return l10n.timeMinutesAgo(delta.inMinutes);
+    if (delta.inDays < 1) return l10n.timeHoursAgo(delta.inHours);
+    return l10n.timeDaysAgo(delta.inDays);
   }
 }

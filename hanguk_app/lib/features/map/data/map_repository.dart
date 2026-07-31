@@ -28,13 +28,18 @@ final universitiesProvider = FutureProvider<List<University>>((ref) async {
           'last_verified_at, next_event_at, '
           // Audit M17 / M18 (2026-05-12): pulled from
           // migration 20260512120000_institutions_virtual_tour.sql.
-          'virtual_tour, walkaround_url',
+          'virtual_tour, walkaround_url, '
+          // primary_domain drives the "Visit University Website" button
+          // (migration 20260728120000). All institutions have it populated.
+          'primary_domain',
         )
         .eq('is_visible_on_map', true)
         // No `ranking` column on the new view — `tier` is the closest
         // proxy (0 = flagship, 4 = unclassified). NULLS LAST so
         // unclassified institutions sort to the bottom.
-        .order('tier', ascending: true, nullsFirst: false);
+        .order('tier', ascending: true, nullsFirst: false)
+        // Weak-network guard: fail (→ Retry) instead of an endless spinner.
+        .timeout(const Duration(seconds: 20));
 
     return (data as List).map((row) {
       final map = row as Map<String, dynamic>;
@@ -58,7 +63,7 @@ final universitiesProvider = FutureProvider<List<University>>((ref) async {
       final cityKo = map['city_ko'] as String?;
       final resolvedLocation = (cityKo?.isNotEmpty ?? false)
           ? cityKo!
-          : 'South Korea';
+          : University.unknownCity;
 
       final nextEventRaw = map['next_event_at'] as String?;
       final nextEventAt = (nextEventRaw != null && nextEventRaw.isNotEmpty)
@@ -85,6 +90,7 @@ final universitiesProvider = FutureProvider<List<University>>((ref) async {
             ? map['virtual_tour'] as Map<String, dynamic>
             : null,
         walkaroundUrl: map['walkaround_url'] as String?,
+        primaryDomain: map['primary_domain'] as String?,
         // Deprecated legacy fields — always null after the migration.
       );
     }).toList();

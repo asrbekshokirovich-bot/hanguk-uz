@@ -3,14 +3,24 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:vapi/vapi.dart';
 import 'dart:async';
-import '../../../../design_system/theme/app_colors.dart';
+import '../../../../design_system/seoul_night/seoul_night.dart';
 import '../../../../core/config/app_config.dart';
+import '../../../../core/platform/screen_awake.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../data/interview_repository.dart';
 import '../../data/vapi_event_parser.dart' as vapi;
 
 class InterviewActiveView extends ConsumerStatefulWidget {
   const InterviewActiveView({super.key});
+
+  /// End the live call from outside this widget — currently the header
+  /// control in [InterviewScreen].
+  ///
+  /// There must be exactly one end path. Calling `endSession()` directly
+  /// runs the feedback analysis first, and only its completion swaps the view
+  /// and disposes this widget, so the microphone stays open for the whole
+  /// analysis window. Routing through here hangs up first, then analyses.
+  static void endActiveCall() => _InterviewActiveViewState._endLiveCall();
 
   @override
   ConsumerState<InterviewActiveView> createState() =>
@@ -22,6 +32,22 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
   VapiClient? _client;
   VapiCall? _call;
   StreamSubscription? _eventSub;
+
+  // Only one live Vapi call may exist at a time. Starting a second interview
+  // before the first tore down left two WebRTC calls running at once —
+  // overlapping voices and, with the doubled audio/WebRTC load, app freezes.
+  // This static handle lets a newly-started interview stop the previous one
+  // before it connects.
+  static _InterviewActiveViewState? _liveInstance;
+
+  /// The single manual-end path, shared by the body button and the header
+  /// control. Latches so a double tap cannot start two teardowns.
+  static void _endLiveCall() {
+    final live = _liveInstance;
+    if (live == null || !live.mounted) return;
+    live._endFromUser();
+  }
+
   bool _isCallActive = false;
   bool _isAI_Speaking = false;
   bool _firstMessageReceived = false;
@@ -37,11 +63,19 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
   bool _didEndSession = false;
   Timer? _forceEndTimer;
   Timer? _timeLimitTimer;
+  Timer? _greetTimer;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    // An interview is minutes of the student talking, not touching the phone.
+    // On the normal idle timer the screen dims and locks part-way through:
+    // the End control goes with it, and on Android the resulting pause is
+    // what this screen treats as "end the session". Hold the screen on for
+    // as long as this view is alive — released in dispose(), which is the one
+    // exit every path goes through.
+    unawaited(ScreenAwake.enable());
     _initVapi();
   }
 
@@ -59,7 +93,12 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.detached) {
-      if (_isCallActive && !_didEndSession) {
+      // Only auto-end once the interview has actually started. During the
+      // handshake the OS mic-permission dialog (or a notification shade)
+      // can drive the activity to `paused` on some OEMs — auto-ending there
+      // consumed the one-shot _didEndSession latch mid-connect and left the
+      // screen stuck with a dead End button.
+      if (_isCallActive && _firstMessageReceived && !_didEndSession) {
         _didEndSession = true;
         unawaited(_completeAutoEnd());
       }
@@ -80,7 +119,45 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
   }
 
   Future<void> _startCall() async {
+    // Tear down any interview call still live from a previous screen so the
+    // two don't talk over each other (and don't freeze the app under the
+    // doubled WebRTC load). Guarded: a poisoned previous instance must never
+    // abort THIS start.
+    if (_liveInstance != null && !identical(_liveInstance, this)) {
+      try {
+        _liveInstance!._stopCall();
+      } catch (e) {
+        debugPrint('[VAPI] Previous-instance teardown failed: $e');
+      }
+    }
+    // `_initVapi` awaited platform init to get here; on web that genuinely
+    // takes time, so a fast back-tap can land first. Registering a dead
+    // instance as the live one would leave the next interview trying to stop
+    // a disposed widget.
+    if (!mounted) return;
+    _liveInstance = this;
+
     setState(() => _isCallActive = true);
+
+    // Connect watchdog, armed BEFORE anything that can hang or throw: if the
+    // interviewer hasn't spoken within 25s of entering this screen — the
+    // handshake stalled, the assistant pipeline died silently ("dead air"),
+    // or a pre-connect exception was swallowed — stop waiting forever and
+    // surface a retryable error. Cancelled by the first speech-start event.
+    _greetTimer?.cancel();
+    _greetTimer = Timer(const Duration(seconds: 25), () {
+      if (!mounted || _firstMessageReceived || _errorMessage != null) return;
+      setState(() {
+        _isCallActive = false;
+        _errorMessage =
+            'The interviewer did not respond. Please go back and try again.';
+      });
+      // Kill whatever half-open call/mic is lingering.
+      try {
+        _stopCall();
+      } catch (_) {}
+    });
+
     final interviewState = ref.read(interviewProvider);
 
     final targetUni =
@@ -89,10 +166,12 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
     final isKorean = interviewState.selectedLanguage == 'ko';
 
     // Address the student by the name from their profile — set at login as
-    // user_metadata.full_name. Empty string when unavailable → generic copy.
+    // user_metadata.full_name. Type-checked (not cast): a non-String value
+    // here used to throw before the try block and silently kill the whole
+    // start sequence.
     final currentUser = Supabase.instance.client.auth.currentUser;
-    final studentName =
-        (currentUser?.userMetadata?['full_name'] as String?)?.trim() ?? '';
+    final rawName = currentUser?.userMetadata?['full_name'];
+    final studentName = rawName is String ? rawName.trim() : '';
 
     // Build the system prompt from state
     String systemPrompt =
@@ -160,50 +239,80 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
       interviewState.selectedLanguage,
     );
 
+    Future<VapiCall>? startFuture;
     try {
       // Audit B5: wrap the Vapi handshake in a 30-second timeout so a
       // stuck WebRTC negotiation surfaces as a real error instead of a
-      // spinner forever.
-      _call = await _client
-          ?.start(
-            waitUntilActive: true,
-            assistant: {
-              'model': {
-                'provider': 'openai',
-                'model': 'gpt-4o',
-                'messages': [
-                  {'role': 'system', 'content': systemPrompt},
-                ],
-              },
-              'voice': {
-                'provider': '11labs',
-                'voiceId': voiceId,
-                // eleven_turbo_v2_5 has materially better Korean prosody than
-                // eleven_multilingual_v2. The voice ID itself must also be a
-                // Korean-native voice for full effect (see AppConfig.voiceIdKo*).
-                'model': 'eleven_turbo_v2_5',
-              },
-              'endCallFunctionEnabled': true,
-              'recordingEnabled': true,
-              // Force the AI to speak first on connect rather than waiting for
-              // user voice activity. Without this flag, Vapi treats the call as
-              // user-initiated and the firstMessage is never delivered.
-              'firstMessageMode': 'assistant-speaks-first',
-              'firstMessage': isKorean
-                  ? (studentName.isNotEmpty
-                        ? '안녕하세요 $studentName님! $targetUni 면접을 시작하겠습니다. 준비되셨나요?'
-                        : '안녕하세요! $targetUni 지원자님, 면접을 시작할 준비가 되셨나요?')
-                  : (studentName.isNotEmpty
-                        ? 'Hello $studentName! Are you ready to begin our interview for $targetUni?'
-                        : 'Hello! Are you ready to begin our interview for $targetUni?'),
-            },
-          )
-          .timeout(
-            const Duration(seconds: 30),
-            onTimeout: () => throw TimeoutException(
-              'Vapi handshake timed out after 30 seconds.',
-            ),
-          );
+      // spinner forever. The raw future is kept so a join that completes
+      // AFTER we gave up is torn down instead of lingering as a ghost call
+      // with a live microphone.
+      startFuture = _client?.start(
+        waitUntilActive: true,
+        assistant: {
+          'model': {
+            'provider': 'openai',
+            'model': 'gpt-4o',
+            'messages': [
+              {'role': 'system', 'content': systemPrompt},
+            ],
+          },
+          'voice': {
+            'provider': '11labs',
+            'voiceId': voiceId,
+            // eleven_turbo_v2_5 has materially better Korean prosody than
+            // eleven_multilingual_v2. The voice ID itself must also be a
+            // Korean-native voice for full effect (see AppConfig.voiceIdKo*).
+            'model': 'eleven_turbo_v2_5',
+          },
+          // Speech-to-text for the STUDENT's side. Without this Vapi
+          // falls back to its English default, so a Korean-language
+          // interview transcribed the candidate's Korean answers as
+          // garbled English: the interviewer "didn't understand" anything
+          // the student said, and the saved transcript (which the
+          // feedback is scored from) was nonsense.
+          'transcriber': {
+            'provider': 'deepgram',
+            'model': 'nova-2',
+            'language': isKorean ? 'ko' : 'en',
+          },
+          'endCallFunctionEnabled': true,
+          'recordingEnabled': true,
+          // Force the AI to speak first on connect rather than waiting for
+          // user voice activity. Without this flag, Vapi treats the call as
+          // user-initiated and the firstMessage is never delivered.
+          'firstMessageMode': 'assistant-speaks-first',
+          'firstMessage': isKorean
+              ? (studentName.isNotEmpty
+                    ? '안녕하세요 $studentName님! $targetUni 면접을 시작하겠습니다. 준비되셨나요?'
+                    : '안녕하세요! $targetUni 지원자님, 면접을 시작할 준비가 되셨나요?')
+              : (studentName.isNotEmpty
+                    ? 'Hello $studentName! Are you ready to begin our interview for $targetUni?'
+                    : 'Hello! Are you ready to begin our interview for $targetUni?'),
+        },
+      );
+      final connected = await startFuture?.timeout(
+        const Duration(seconds: 30),
+        onTimeout: () => throw TimeoutException(
+          'Vapi handshake timed out after 30 seconds.',
+        ),
+      );
+
+      // The handshake can finish AFTER we already gave up on it: the 25s
+      // watchdog fired, the user tapped End, or the screen was disposed —
+      // all while the join was still in flight. Wiring this call up now
+      // would leave a live WebRTC call with an open microphone that no
+      // later _stopCall() can reach (teardown is already latched). Tear the
+      // late arrival down instead.
+      if (connected != null &&
+          (_isStopping ||
+              _didEndSession ||
+              !mounted ||
+              _errorMessage != null)) {
+        debugPrint('[VAPI] Handshake completed after teardown — disposing.');
+        _disposeCallSafely(connected);
+        return;
+      }
+      _call = connected;
 
       // Notify the global provider that Vapi is now live
       ref.read(interviewProvider.notifier).setVapiConnected(true);
@@ -211,6 +320,8 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
         ref.read(interviewProvider.notifier).setVapiCallId(_call!.id);
       }
       debugPrint('[VAPI] Connected successfully.');
+      // (Connect watchdog was armed at the top of _startCall — it stays
+      // armed until the first speech-start event cancels it.)
 
       _eventSub = _call?.onEvent.listen((event) {
         if (!mounted) return;
@@ -218,9 +329,62 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
         final eventLabel = event.label;
         final eventValue = event.value;
 
+        // The vendored Vapi SDK emits speech/call lifecycle as TOP-LEVEL
+        // labels ('speech-start', 'speech-end', 'call-start', 'call-end') —
+        // NOT nested inside 'message' payloads. The app previously matched
+        // only the nested variants, which never fire, so the status text
+        // could never leave "…will greet you shortly" even when the AI was
+        // audibly speaking (root cause of the stuck-greetWait bug).
+        if (eventLabel == 'speech-start') {
+          _greetTimer?.cancel();
+          setState(() {
+            _isAI_Speaking = true;
+            _firstMessageReceived = true;
+            _currentWords = '';
+          });
+          return;
+        }
+        if (eventLabel == 'speech-end') {
+          setState(() {
+            _isAI_Speaking = false;
+          });
+          // If the AI has invoked endCall, wait until its closing remark
+          // finishes speaking before tearing down (auto-end path).
+          if (_aiRequestedEnd && !_didEndSession) {
+            _didEndSession = true;
+            _forceEndTimer?.cancel();
+            unawaited(_completeAutoEnd());
+          }
+          return;
+        }
+
         // Catch internal Vapi connection failures and surface them immediately
         if (eventLabel == 'call-end') {
-          debugPrint('[VAPI] Call ended organically.');
+          debugPrint('[VAPI] Call ended.');
+          if (_didEndSession) {
+            // Already tearing down (manual End, AI endCall, time limit).
+          } else if (!_firstMessageReceived) {
+            // The call died before the interviewer ever spoke (assistant
+            // pipeline failure, rejected config, TTS dead-air, network) —
+            // surface it instead of leaving "will greet you shortly" forever.
+            if (_errorMessage == null) {
+              _greetTimer?.cancel();
+              ref.read(interviewProvider.notifier).setVapiConnected(false);
+              setState(() {
+                _isCallActive = false;
+                _errorMessage =
+                    'The call ended before the interviewer could speak. '
+                    'Please try again.';
+              });
+            }
+          } else {
+            // The call dropped mid-interview (network loss, server hang-up).
+            // There is a transcript, so finish the session properly rather
+            // than leaving the screen on "Your turn" with a dead call.
+            _didEndSession = true;
+            _forceEndTimer?.cancel();
+            unawaited(_completeAutoEnd());
+          }
         } else if (eventLabel == 'status-update' ||
             eventLabel == 'statusUpdate') {
           debugPrint('[VAPI STATUS UPDATE] $eventValue');
@@ -264,6 +428,7 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
           final eventType = eventValue['type'];
 
           if (eventType == 'speech-start') {
+            _greetTimer?.cancel();
             setState(() {
               _isAI_Speaking = true;
               _firstMessageReceived = true;
@@ -328,9 +493,24 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
       debugPrint('Vapi Start Error Type: ${e.runtimeType}');
       debugPrint('Vapi Start Error: $e');
       debugPrint('Vapi StackTrace: $st');
+      // Ghost-call cleanup: our .timeout only abandons the await — the SDK
+      // keeps joining in the background. If that late join eventually
+      // succeeds, stop and dispose the resulting call so no orphaned WebRTC
+      // call keeps the microphone open (the historical "two overlapping
+      // voices" bug).
+      final sf = startFuture;
+      if (sf != null) {
+        unawaited(
+          sf.then((lateCall) {
+            if (identical(lateCall, _call)) return;
+            _disposeCallSafely(lateCall);
+          }, onError: (_) {}),
+        );
+      }
       // Notify provider of failed connection so UI can react globally
       ref.read(interviewProvider.notifier).setVapiConnected(false);
-      if (mounted) {
+      // Don't overwrite a message the connect watchdog already surfaced.
+      if (mounted && _errorMessage == null) {
         setState(() {
           _isCallActive = false;
           // Expose explicit native parsing errors and connection timeouts dynamically to the UI!
@@ -345,6 +525,12 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
 
   /// Centralized stop/cleanup for the Vapi call.
   /// Always call this instead of calling _call?.dispose() directly.
+  ///
+  /// Every teardown step is individually guarded: `stop()` returns a failed
+  /// Future (VapiCallEndedException) when the call already ended, and
+  /// `dispose()` can throw on a half-initialized CallClient. An unguarded
+  /// throw here used to abort the whole end-flow before the UI sync ran,
+  /// leaving the screen stuck with a dead End button.
   void _stopCall() {
     if (_isStopping) return;
     _isStopping = true;
@@ -352,18 +538,49 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
     _silenceTimer?.cancel();
     _forceEndTimer?.cancel();
     _timeLimitTimer?.cancel();
-    _eventSub?.cancel();
-    _call
-        ?.stop(); // Explicit hang-up BEFORE dispose to prevent orphaned WebRTC connections
-    _call?.dispose();
-    _client?.dispose();
-    // Sync disconnected state to global provider safely
+    _greetTimer?.cancel();
+
+    // Sync UI/provider state FIRST so no SDK-teardown failure can prevent it.
     if (mounted) {
       ref.read(interviewProvider.notifier).setVapiConnected(false);
       setState(() {
         _isCallActive = false;
         _isAI_Speaking = false;
       });
+    }
+
+    try {
+      _eventSub?.cancel();
+    } catch (_) {}
+
+    final call = _call;
+    if (call != null) _disposeCallSafely(call);
+    try {
+      _client?.dispose();
+    } catch (_) {}
+
+    if (identical(_liveInstance, this)) _liveInstance = null;
+  }
+
+  /// Hang up and release a Vapi call without ever throwing.
+  ///
+  /// `stop()` returns a failed Future (VapiCallEndedException) when the call
+  /// has already ended, and `dispose()` can throw on a half-initialized
+  /// CallClient — so both are guarded, and dispose runs only after stop()
+  /// settles (disposing while `leave()` is in flight is unsafe).
+  void _disposeCallSafely(VapiCall call) {
+    try {
+      unawaited(
+        call.stop().catchError((_) {}).whenComplete(() {
+          try {
+            call.dispose();
+          } catch (_) {}
+        }),
+      );
+    } catch (_) {
+      try {
+        call.dispose();
+      } catch (_) {}
     }
   }
 
@@ -376,11 +593,58 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
   /// Tear down the call and ask the provider to fetch feedback. Riverpod will
   /// flip state.status to 'completed', which causes InterviewScreen to swap
   /// the active view out for the post-session view.
+  ///
+  /// Guaranteed-exit contract: every step is guarded and, whatever happens,
+  /// the provider is left in a state that unmounts this screen — the End
+  /// button must NEVER be a no-op.
   Future<void> _completeAutoEnd() async {
+    // Capture provider handles up-front: the notifier outlives this widget,
+    // so the flow keeps working even if the view unmounts mid-way.
+    final notifier = ref.read(interviewProvider.notifier);
     final lang = ref.read(interviewProvider).selectedLanguage;
-    _stopCall();
+    try {
+      _stopCall();
+    } catch (e) {
+      debugPrint('[Interview] _stopCall failed during end: $e');
+    }
+    try {
+      await notifier.endSession(language: lang);
+    } catch (e) {
+      debugPrint('[Interview] endSession failed: $e');
+    }
+    // Last-resort escape hatch: if the session is somehow still 'active'
+    // (or parked on 'abandoned'), force it to idle so the screen exits.
+    notifier.forceIdleIfActive();
+
+    // The analysis failed (network, or the model couldn't produce a real
+    // evaluation). Say so — dropping the student back on the setup screen
+    // with no explanation reads like the End button ate their session.
     if (!mounted) return;
-    await ref.read(interviewProvider.notifier).endSession(language: lang);
+    final s = ref.read(interviewProvider);
+    if (s.error == 'feedback_failed' && s.feedback == null) {
+      final l = AppLocalizations.of(context);
+      if (l != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              l.noFeedbackAvailable,
+              style: SeoulType.body.copyWith(color: SeoulColors.ink),
+            ),
+            backgroundColor: SeoulColors.danger,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+  }
+
+  /// Manual end. Converges on the same `_completeAutoEnd` path the AI-driven
+  /// end uses, so the call is torn down first and the row still transitions to
+  /// 'completed' with feedback.
+  void _endFromUser() {
+    if (_didEndSession) return;
+    _didEndSession = true;
+    unawaited(_completeAutoEnd());
   }
 
   void _resetSilenceTimer() {
@@ -428,6 +692,10 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    // Give the screen back to the normal idle timer. This runs on every way
+    // out of the interview — finished, ended early, errored, or backed out of
+    // — so the hold can't outlive the view and sit there draining the battery.
+    unawaited(ScreenAwake.disable());
     // Delegate to _stopCall for centralized cleanup — ensures stop() is
     // always called before dispose().
     _stopCall();
@@ -448,318 +716,165 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
     final l = AppLocalizations.of(context)!;
     final state = ref.watch(interviewProvider);
 
+    // Seoul Night §3.7 — a dark, calm, focused screen: one breathing orb for
+    // the interviewer's voice, the status line on glass, and an End control
+    // that is ALWAYS on screen (connecting or mid-interview). Deliberately no
+    // running transcript: this is a spoken interview and the text only
+    // competed with the End control for space. Speech is still transcribed
+    // and stored — it appears in the post-session feedback and in history.
     return Stack(
       children: [
-        Column(
-          children: [
-            // University Indicator
-            if (state.targetUniversityName != null)
-              Container(
-                margin: const EdgeInsets.only(top: 20),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.vibrantLime.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: AppColors.vibrantLime.withValues(alpha: 0.3),
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.school,
-                      color: AppColors.vibrantLime,
-                      size: 16,
-                    ),
-                    const SizedBox(width: 8),
-                    Flexible(
-                      child: Text(
-                        state.targetUniversityName!,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: AppColors.vibrantLime,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 13,
-                        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            SeoulSizes.screenPadding,
+            4,
+            SeoulSizes.screenPadding,
+            20,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Everything above the End control scrolls.
+              //
+              // It used to be one Column with two Spacers absorbing the
+              // slack. That works at the default font size, but a fixed
+              // 208px orb plus a long error status plus the coaching
+              // banner overflows a 360x640 screen at Android's 200% font
+              // setting — and because the End control is the last child,
+              // the entire overflow lands on it: laid out below the screen
+              // edge, invisible and untappable, with no way to scroll to
+              // it. That is precisely the moment a student most needs to
+              // stop the interview. The control is now pinned outside the
+              // scrollable region, so it cannot be pushed anywhere.
+              Expanded(
+                child: LayoutBuilder(
+                  builder: (context, viewport) => SingleChildScrollView(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: viewport.maxHeight,
                       ),
-                    ),
-                  ],
-                ),
-              ),
-            if (_showCoachingWarning)
-              Container(
-                margin: const EdgeInsets.only(top: 16),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.error.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.error),
-                ),
-                child: Text(
-                  '⚠️ ${l.coachingFiller}',
-                  style: const TextStyle(
-                    color: AppColors.error,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            const Spacer(),
-            // AI Avatar
-            Container(
-              height: 150,
-              width: 150,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withValues(alpha: 0.05),
-                border: Border.all(
-                  color: _isAI_Speaking
-                      ? AppColors.vibrantLime
-                      : Colors.white10,
-                  width: _isAI_Speaking ? 4 : 1,
-                ),
-                boxShadow: _isAI_Speaking
-                    ? [
-                        BoxShadow(
-                          color: AppColors.vibrantLime.withValues(alpha: 0.5),
-                          blurRadius: 40,
-                        ),
-                      ]
-                    : [],
-              ),
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  const Icon(Icons.psychology, color: Colors.white54, size: 80),
-                  Positioned(
-                    bottom: 10,
-                    right: 10,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.black45,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        state.selectedLanguage.toUpperCase(),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              _buildStatusText(l),
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: _errorMessage != null
-                    ? AppColors.error
-                    : (_isAI_Speaking
-                          ? AppColors.error
-                          : (_isCallActive
-                                ? AppColors.vibrantLime
-                                : Colors.white54)),
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const Spacer(),
-
-            // Transcript & controls panel
-            Flexible(
-              child: Container(
-                padding: const EdgeInsets.all(24),
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.05),
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(32),
-                  ),
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (state.liveHints.isNotEmpty && _isCallActive) ...[
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        margin: const EdgeInsets.only(bottom: 16),
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: AppColors.royalBlue.withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: AppColors.royalBlue.withValues(alpha: 0.5),
-                          ),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              l.lifelineHintsTitle,
-                              style: const TextStyle(
-                                color: AppColors.royalBlue,
-                                fontWeight: FontWeight.bold,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          if (state.targetUniversityName != null)
+                            Center(
+                              child: _TargetUniPill(
+                                name: state.targetUniversityName!,
                               ),
                             ),
-                            const SizedBox(height: 8),
-                            ...state.liveHints.map(
-                              (h) => Padding(
-                                padding: const EdgeInsets.only(bottom: 4),
-                                child: Text(
-                                  '• $h',
-                                  style: const TextStyle(color: Colors.white),
-                                ),
-                              ),
-                            ),
+                          if (_showCoachingWarning) ...[
+                            const SizedBox(height: 12),
+                            _CoachingWarning(text: l.coachingFiller),
                           ],
-                        ),
-                      ),
-                    ],
-                    // Audit U14: show a two-sided ledger of the last few
-                    // turns instead of just the very last student utterance.
-                    // While Vapi is mid-utterance, live partial transcript
-                    // is also shown at the top.
-                    Flexible(
-                      child: SingleChildScrollView(
-                        reverse: true,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            if (_isCallActive && _currentWords.isNotEmpty)
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 6,
-                                ),
-                                child: Text(
-                                  _currentWords,
-                                  textAlign: TextAlign.center,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 18,
-                                    height: 1.5,
-                                  ),
-                                ),
+
+                          Center(
+                            child: _VoiceOrb(
+                              speaking: _isAI_Speaking,
+                              connected: _isCallActive,
+                              languageTag: state.selectedLanguage.toUpperCase(),
+                            ),
+                          ),
+                          const SizedBox(height: 22),
+
+                          GlassCard(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 18,
+                              vertical: 14,
+                            ),
+                            child: Text(
+                              _buildStatusText(l),
+                              textAlign: TextAlign.center,
+                              // Warning tint means a real failure only. "The interviewer
+                              // is speaking" is a perfectly normal state, so it reads as
+                              // plain white; lime = your turn; faint = not connected yet.
+                              style: SeoulType.subtitle.copyWith(
+                                color: _statusColor(),
                               ),
-                            for (final m in _lastTurns(state.messages, 6))
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 4,
-                                ),
-                                child: Row(
+                            ),
+                          ),
+
+                          if (state.liveHints.isNotEmpty && _isCallActive)
+                            // Inside the outer scroll view now, so it takes its
+                            // natural height instead of competing with Spacers for
+                            // the slack — and no longer needs a scroller of its own.
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 16),
+                              child: GlassCard(
+                                radius: SeoulRadii.control,
+                                padding: const EdgeInsets.all(14),
+                                child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    SizedBox(
-                                      width: 64,
-                                      child: Text(
-                                        m.role == 'interviewer'
-                                            ? l.speakerAi
-                                            : l.speakerYou,
-                                        textAlign: TextAlign.right,
-                                        style: TextStyle(
-                                          color: m.role == 'interviewer'
-                                              ? AppColors.vibrantLime
-                                              : Colors.white54,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 12,
-                                        ),
+                                    Text(
+                                      l.lifelineHintsTitle,
+                                      style: SeoulType.subtitle.copyWith(
+                                        fontSize: 14,
+                                        color: SeoulColors.lime,
                                       ),
                                     ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Text(
-                                        m.content,
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 14,
-                                          height: 1.45,
+                                    const SizedBox(height: 8),
+                                    ...state.liveHints.map(
+                                      (h) => Padding(
+                                        padding: const EdgeInsets.only(
+                                          bottom: 4,
+                                        ),
+                                        child: Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              '•',
+                                              style: SeoulType.bodySecondary
+                                                  .copyWith(
+                                                    color: SeoulColors.lime,
+                                                  ),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Expanded(
+                                              child: Text(
+                                                h,
+                                                style: SeoulType.bodySecondary,
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
-                          ],
-                        ),
+                            ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    GestureDetector(
-                      onTap: () {
-                        // Manual end — converge on the same _completeAutoEnd
-                        // path the AI-driven end uses, so feedback is
-                        // generated and the row transitions to 'completed'.
-                        // Previously this just called _stopCall + pop, which
-                        // left status='active' forever and skipped feedback.
-                        if (_didEndSession) return;
-                        _didEndSession = true;
-                        unawaited(_completeAutoEnd());
-                      },
-                      child: Container(
-                        height: 64,
-                        width: 64,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.white10,
-                          border: Border.all(color: Colors.white30),
-                        ),
-                        child: const Icon(
-                          Icons.close,
-                          color: Colors.white,
-                          size: 32,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      l.endInterview,
-                      style: const TextStyle(
-                        color: Colors.white54,
-                        fontSize: 12,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                  ],
+                  ),
                 ),
               ),
-            ),
-          ],
+
+              const SizedBox(height: 16),
+              // End control — pinned, rendered unconditionally, never
+              // behind a state check: reachable while connecting AND
+              // mid-interview.
+              _EndInterviewButton(label: l.endInterview, onTap: _endFromUser),
+            ],
+          ),
         ),
         if (state.isProcessing || state.isLoading)
           const Center(
-            child: CircularProgressIndicator(color: AppColors.vibrantLime),
+            child: CircularProgressIndicator(color: SeoulColors.lime),
           ),
       ],
     );
   }
 
-  /// Returns the most-recent [maxTurns] interview messages in
-  /// chronological order, after stripping the synthetic
-  /// "[Interview started …]" sentinel a previous version of
-  /// `sendMessage` used to emit.
-  List<InterviewMessage> _lastTurns(
-    List<InterviewMessage> messages,
-    int maxTurns,
-  ) {
-    final cleaned = messages
-        .where((m) => !m.content.contains('[Interview started'))
-        .toList(growable: false);
-    if (cleaned.length <= maxTurns) return cleaned;
-    return cleaned.sublist(cleaned.length - maxTurns);
+  /// Colour of the status line. Purely presentational — it reads the same
+  /// flags the status string itself is built from.
+  Color _statusColor() {
+    if (_errorMessage != null) return SeoulColors.dangerText;
+    if (_isAI_Speaking) return SeoulColors.textPrimary;
+    if (_isCallActive) return SeoulColors.lime;
+    return SeoulColors.textSecondary;
   }
 
   String _buildStatusText(AppLocalizations l) {
@@ -771,5 +886,270 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
     }
     if (_isCallActive) return l.yourTurn;
     return l.connecting;
+  }
+}
+
+/// The interviewer's voice as one calm object (spec §3.7): a 한 mark on glass,
+/// a lime rim and glow while the AI speaks, dimmer while it listens, and the
+/// slow 2.6s breathing ring from spec §1 Motion.
+class _VoiceOrb extends StatefulWidget {
+  const _VoiceOrb({
+    required this.speaking,
+    required this.connected,
+    required this.languageTag,
+  });
+
+  final bool speaking;
+  final bool connected;
+  final String languageTag;
+
+  @override
+  State<_VoiceOrb> createState() => _VoiceOrbState();
+}
+
+class _VoiceOrbState extends State<_VoiceOrb>
+    with SingleTickerProviderStateMixin {
+  static const double _ringSize = 208;
+  static const double _coreSize = 152;
+
+  late final AnimationController _pulse = AnimationController(
+    vsync: this,
+    duration: SeoulMotion.pulse,
+  )..repeat(reverse: true);
+
+  @override
+  void dispose() {
+    _pulse.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _pulse,
+      builder: (context, _) {
+        final t = SeoulMotion.smooth.transform(_pulse.value);
+        final speaking = widget.speaking;
+        final double ringScale = 1.0 + (speaking ? 0.09 : 0.035) * t;
+        final double ringAlpha = speaking ? 0.16 + 0.34 * (1.0 - t) : 0.10;
+
+        return SizedBox(
+          width: _ringSize,
+          height: _ringSize,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Transform.scale(
+                scale: ringScale,
+                child: Container(
+                  width: _ringSize,
+                  height: _ringSize,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: SeoulColors.lime.withValues(alpha: ringAlpha),
+                      width: 2,
+                    ),
+                  ),
+                ),
+              ),
+              AnimatedContainer(
+                duration: SeoulMotion.base,
+                curve: SeoulMotion.smooth,
+                width: _coreSize,
+                height: _coreSize,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: SeoulColors.glass,
+                  border: Border.all(
+                    color: speaking
+                        ? SeoulColors.lime
+                        : SeoulColors.glassBorder,
+                    width: speaking ? 3 : 1,
+                  ),
+                  boxShadow: speaking
+                      ? SeoulShadows.limeGlow
+                      : (widget.connected ? SeoulShadows.limeGlowSmall : null),
+                ),
+                child: Text(
+                  '한',
+                  style: SeoulType.hangulGlyph.copyWith(
+                    fontSize: 58,
+                    fontWeight: FontWeight.w900,
+                    color: speaking
+                        ? SeoulColors.lime
+                        : SeoulColors.textSecondary,
+                  ),
+                ),
+              ),
+              Positioned(
+                bottom: 20,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 9,
+                    vertical: 3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: SeoulColors.neutralFill,
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(color: SeoulColors.glassBorder),
+                  ),
+                  child: Text(
+                    widget.languageTag,
+                    style: SeoulType.eyebrow.copyWith(
+                      color: SeoulColors.textSecondary,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// Lime-tinted pill naming the university this session is aimed at.
+class _TargetUniPill extends StatelessWidget {
+  const _TargetUniPill({required this.name});
+
+  final String name;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+      decoration: BoxDecoration(
+        color: SeoulColors.limeFill,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: SeoulColors.lime.withValues(alpha: 0.35)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.school, color: SeoulColors.lime, size: 16),
+          const SizedBox(width: 8),
+          Flexible(
+            child: Text(
+              name,
+              overflow: TextOverflow.ellipsis,
+              style: SeoulType.caption.copyWith(
+                color: SeoulColors.lime,
+                fontSize: 12.5,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// "You are using too many filler words" nudge. Warning-tinted, not red —
+/// Uses the `danger*` family — desaturated for the navy surface, not a raw red.
+class _CoachingWarning extends StatelessWidget {
+  const _CoachingWarning({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return GlassCard(
+      radius: SeoulRadii.control,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      fillColor: SeoulColors.dangerFill,
+      borderColor: SeoulColors.danger.withValues(alpha: 0.45),
+      showShadow: false,
+      blur: false,
+      child: Row(
+        children: [
+          const Icon(
+            Icons.warning_amber_rounded,
+            size: 18,
+            color: SeoulColors.dangerText,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              text,
+              style: SeoulType.bodySecondary.copyWith(
+                color: SeoulColors.dangerText,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The always-visible End control. Destructive but legible: a warning-tinted
+/// outline, full width, 52px tall (well over the 44px minimum, spec §4).
+class _EndInterviewButton extends StatefulWidget {
+  const _EndInterviewButton({required this.label, required this.onTap});
+
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  State<_EndInterviewButton> createState() => _EndInterviewButtonState();
+}
+
+class _EndInterviewButtonState extends State<_EndInterviewButton> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: widget.label,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: widget.onTap,
+        onTapDown: (_) => setState(() => _pressed = true),
+        onTapUp: (_) => setState(() => _pressed = false),
+        onTapCancel: () => setState(() => _pressed = false),
+        child: AnimatedScale(
+          scale: _pressed ? SeoulMotion.pressScale : 1.0,
+          duration: SeoulMotion.fast,
+          curve: SeoulMotion.smooth,
+          child: Container(
+            height: SeoulSizes.buttonHeight,
+            alignment: Alignment.center,
+            padding: const EdgeInsets.symmetric(horizontal: 18),
+            decoration: BoxDecoration(
+              color: SeoulColors.warningFill,
+              borderRadius: SeoulRadii.controlR,
+              border: Border.all(
+                color: SeoulColors.warning.withValues(alpha: 0.55),
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.call_end,
+                  size: 18,
+                  color: SeoulColors.warningText,
+                ),
+                const SizedBox(width: 10),
+                Flexible(
+                  child: Text(
+                    widget.label,
+                    overflow: TextOverflow.ellipsis,
+                    style: SeoulType.button.copyWith(
+                      color: SeoulColors.warningText,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }

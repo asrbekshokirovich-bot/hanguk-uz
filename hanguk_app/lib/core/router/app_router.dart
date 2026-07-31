@@ -2,11 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../design_system/seoul_night/seoul_night.dart';
+import '../../l10n/app_localizations.dart';
+import '../../design_system/seoul_night/seoul_night_gallery.dart';
 import '../../features/account/presentation/account_screen.dart';
 import '../../features/auth/data/auth_repository.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
 import '../../features/home/presentation/home_tab_provider.dart';
+import '../../features/home/presentation/notifications_screen.dart';
+import '../../features/guest/presentation/guest_shell.dart';
 import '../../features/home/presentation/welcome_screen.dart';
 import '../../features/map/data/map_repository.dart';
 import '../../features/map/domain/university.dart';
@@ -41,6 +46,19 @@ part 'app_router.g.dart';
 // deletion flow — see `account_screen.dart`.
 List<RouteBase> _accountRoutes() => [
   GoRoute(path: '/account', builder: (context, state) => const AccountScreen()),
+  // The 한 orb's bell opens this — actionable reminders (documents to submit,
+  // application stages), not the per-institution notification toggles.
+  GoRoute(
+    path: '/notifications',
+    builder: (context, state) => const NotificationsScreen(),
+  ),
+];
+
+/// Guest Explorer (DESIGN_SPEC 3b). Registered as a plain GoRoute so the
+/// catalogue can be reached without a session — see the redirect below,
+/// which lists `/guest` alongside `/welcome` and `/login`.
+List<RouteBase> _guestRoutes() => [
+  GoRoute(path: '/guest', builder: (context, state) => const GuestShell()),
 ];
 
 List<RouteBase> _mapRoutes() => [
@@ -81,7 +99,7 @@ class _WalkaroundRouteEntry extends ConsumerWidget {
     final unisAsync = ref.watch(universitiesProvider);
     return unisAsync.when(
       loading: () => const _RouteLoadingShell(),
-      error: (_, __) => const _RouteMissingShell(),
+      error: (_, _) => const _RouteMissingShell(),
       data: (unis) {
         University? match;
         for (final u in unis) {
@@ -110,8 +128,9 @@ class _MapDeepLinkEntry extends ConsumerWidget {
     // Schedule the writes for after first build to avoid mutating
     // providers during the build phase.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // 1 = Map tab in the home bottom-nav (per home_screen.dart).
-      ref.read(homeTabProvider.notifier).setTab(1);
+      // Named, not a literal: the Seoul Night shell added a Home section, so
+      // the old hardcoded `1` now points at Applications.
+      ref.read(homeTabProvider.notifier).setTab(SeoulSection.map);
       ref.read(pendingMapDetailProvider.notifier).set(institutionId);
     });
     return const HomeScreen();
@@ -121,44 +140,61 @@ class _MapDeepLinkEntry extends ConsumerWidget {
 class _RouteLoadingShell extends StatelessWidget {
   const _RouteLoadingShell();
   @override
-  Widget build(BuildContext context) => const Scaffold(
-    backgroundColor: Color(0xFF0F1626),
-    body: Center(child: CircularProgressIndicator(color: Colors.white70)),
+  Widget build(BuildContext context) => const SeoulNightScaffold(
+    body: Center(child: CircularProgressIndicator(color: SeoulColors.lime)),
   );
 }
 
+/// Shown when a `/walkaround/:id` link names an institution that is not in
+/// the catalogue — a stale share link, or a row that left `is_visible_on_map`.
+///
+/// Reachable anonymously since `/walkaround` was opened to Guest Explorer, so
+/// it is on the design system and localized like any other screen. It must
+/// also not eject a guest: `context.go('/')` sent an unauthenticated visitor
+/// to `/welcome`, so "Back" silently dropped them out of guest mode and lost
+/// their compare tray. Popping returns them wherever they came from.
 class _RouteMissingShell extends StatelessWidget {
   const _RouteMissingShell();
+
   @override
-  Widget build(BuildContext context) => Scaffold(
-    backgroundColor: const Color(0xFF0F1626),
-    body: SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const Icon(Icons.public_off, color: Colors.white54, size: 56),
-            const SizedBox(height: 16),
-            const Text(
-              'University not found',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.white, fontSize: 18),
-            ),
-            const SizedBox(height: 24),
-            TextButton(
-              onPressed: () => context.go('/'),
-              child: const Text(
-                'Back to home',
-                style: TextStyle(color: Colors.white70),
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    final nav = Navigator.of(context);
+    return SeoulNightScaffold(
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(SeoulSizes.screenPadding),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const HangulGlyphTile(glyph: '한', size: 56),
+              const SizedBox(height: 18),
+              Text(
+                l.unknownUniversity,
+                textAlign: TextAlign.center,
+                style: SeoulType.title,
               ),
-            ),
-          ],
+              const SizedBox(height: 24),
+              SeoulOutlineButton(
+                label: l.a11yTooltipBack,
+                expand: false,
+                onPressed: () {
+                  if (nav.canPop()) {
+                    nav.pop();
+                  } else {
+                    // Cold deep-link with nothing behind it. `go('/')` lets
+                    // the redirect decide: home for a student, welcome for a
+                    // visitor.
+                    context.go('/');
+                  }
+                },
+              ),
+            ],
+          ),
         ),
       ),
-    ),
-  );
+    );
+  }
 }
 
 // University DB routes (plan §H.3) — only registered when the
@@ -205,8 +241,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     routes: <RouteBase>[
       ...$appRoutes,
       ..._accountRoutes(),
+      ..._guestRoutes(),
       ..._mapRoutes(),
       if (kUniDbEnabled) ..._uniDbRoutes(),
+      // Seoul Night design-system gallery. Debug builds only — the flag is
+      // kDebugMode, so the route simply doesn't exist in a release binary.
+      if (kSeoulGalleryEnabled)
+        GoRoute(
+          path: kSeoulGalleryRoute,
+          builder: (context, state) => const SeoulNightGallery(),
+        ),
     ],
     redirect: (context, state) {
       final isLoading = authStateAsync.isLoading;
@@ -215,14 +259,28 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final loc = state.uri.toString();
       final isGoingToLogin = loc == '/login';
       final isGoingToWelcome = loc == '/welcome';
+      // Guest Explorer is a public surface: it reads only the anon-readable
+      // catalogue view and holds no student data. `/walkaround` rides along
+      // because the guest map's detail sheet opens it — it is a Kakao
+      // panorama of a campus, catalogue content like any other, and it
+      // resolves through the same public view. Without this a guest tapping
+      // it would be bounced out to /welcome mid-browse.
+      final isGoingToGuest =
+          loc.startsWith('/guest') || loc.startsWith('/walkaround');
 
       if (isLoading) return null;
 
-      if (!isAuthenticated && !isGoingToLogin && !isGoingToWelcome) {
+      if (!isAuthenticated &&
+          !isGoingToLogin &&
+          !isGoingToWelcome &&
+          !isGoingToGuest) {
         return '/welcome';
       }
 
-      if (isAuthenticated && (isGoingToLogin || isGoingToWelcome)) {
+      // A signed-in student has the real thing; guest mode is a lesser view
+      // of it, so send them home rather than letting them land there.
+      if (isAuthenticated &&
+          (isGoingToLogin || isGoingToWelcome || loc.startsWith('/guest'))) {
         return '/';
       }
 

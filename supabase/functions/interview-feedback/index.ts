@@ -51,7 +51,7 @@ serve(async (req) => {
     // Verify session belongs to user
     const { data: session, error: sessionError } = await supabase
       .from("interview_sessions")
-      .select("*, target_university_id")
+      .select("*")
       .eq("id", sessionId)
       .eq("student_id", user.id)
       .single();
@@ -84,28 +84,38 @@ serve(async (req) => {
       .eq("session_id", sessionId)
       .order("created_at", { ascending: true });
 
-    if (messagesError || !messages || messages.length < 2) {
+    // Score whatever the candidate actually said, however short. The old
+    // "at least 2 messages" rule also counted the interviewer's own turns, so
+    // a student who stopped after one answer could still be refused feedback
+    // — they ended up with no result at all for a real attempt. The only case
+    // with genuinely nothing to grade is "the student never spoke".
+    const studentTurns = (messages ?? []).filter((m) => m.role === "student");
+
+    if (messagesError || !messages || studentTurns.length === 0) {
       return new Response(
         JSON.stringify({ error: "Not enough conversation data for feedback" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Get university information for context-aware feedback
+    // Get university information for context-aware feedback.
+    // Phase 3R-B: the legacy `universities` table was dropped and the column
+    // renamed to target_institution_id — this block still referenced both,
+    // which made the session SELECT above fail (undefined column) and the
+    // whole function return 404 "Session not found" for every request.
     let universityContext = "";
-    if (session.target_university_id) {
+    if (session.target_institution_id) {
       const { data: university } = await adminClient
-        .from("universities")
-        .select("name_ko, name_en, description_en, ranking, city_en")
-        .eq("id", session.target_university_id)
+        .from("institutions")
+        .select("name_ko, name_en, city_ko, tier")
+        .eq("id", session.target_institution_id)
         .single();
-      
+
       if (university) {
         universityContext = `
-The interview was for: ${university.name_ko || university.name_en}
-Location: ${university.city_en || 'Korea'}
-Ranking: ${university.ranking ? `#${university.ranking}` : 'N/A'}
-${university.description_en ? `About: ${university.description_en.substring(0, 200)}...` : ''}
+The interview was for: ${university.name_en || university.name_ko}
+Location: ${university.city_ko || 'Korea'}
+${university.tier !== null && university.tier !== undefined ? `Quality tier: ${university.tier} (0 = flagship)` : ''}
 
 IMPORTANT: Evaluate if the student demonstrated knowledge about this specific university in their answers.
 `;
@@ -118,9 +128,7 @@ IMPORTANT: Evaluate if the student demonstrated knowledge about this specific un
     ).join("\n\n");
 
     // Get student message IDs for per-answer scoring
-    const studentMessageIds = messages
-      .filter(m => m.role === "student")
-      .map(m => m.id);
+    const studentMessageIds = studentTurns.map(m => m.id);
 
     const feedbackLang = language === "uz" ? "Uzbek" : 
                          language === "ru" ? "Russian" :
@@ -131,7 +139,25 @@ Analyze this practice interview transcript and provide detailed feedback.
 
 ${universityContext}
 
-Evaluate the student on these criteria (score 1-10):
+Score ONLY on evidence present in the transcript. Never award a point for
+something the student did not actually say. If the interview is short, judge
+what is there — do not inflate to be kind, and do not deduct for length alone
+beyond what the band descriptors say.
+
+Use these fixed bands. Pick the band whose description matches the transcript,
+then choose the lower number in that band if the match is partial:
+
+  1-2  Almost nothing usable: no substantive answer, or off-topic throughout.
+  3-4  Answers are present but vague, generic, or very short; no specifics; a
+       reader learns almost nothing concrete about this student.
+  5-6  Adequate: answers address the question with some real content, but stay
+       general, lack examples, or are loosely structured.
+  7-8  Strong: specific, concrete answers with examples or reasons, clearly
+       structured, sustained through the interview.
+  9-10 Excellent: specific, well-evidenced, well-structured AND showing
+       genuine research into Korea / the university; nothing generic.
+
+Evaluate the student on these four criteria (score 1-10 each):
 1. Communication: Clarity, structure, and articulation of answers
 2. Confidence: Composure, self-assurance, and natural delivery
 3. Content: Quality, relevance, and depth of answers. Did they:
@@ -140,7 +166,14 @@ Evaluate the student on these criteria (score 1-10):
    - Demonstrate clear academic/career goals?
    - Explain their interest in their chosen field?
 4. Language: Language proficiency (grammar, vocabulary, fluency)
-5. Overall: Holistic assessment of interview readiness
+
+Do NOT produce an overall score. It is computed from the four criteria above,
+so that the headline number can never disagree with the breakdown shown to the
+student.
+
+For each of the four scores, score_evidence must quote or closely paraphrase
+the part of the transcript that justifies the band you chose. A score with no
+supporting evidence in the transcript is not allowed.
 
 SPECIFIC EVALUATION POINTS:
 - Did they give specific reasons for choosing Korea (culture, education quality, career opportunities)?
@@ -151,30 +184,37 @@ SPECIFIC EVALUATION POINTS:
 
 PER-ANSWER SCORING:
 For each student response (identified by message ID), provide individual feedback.
+Be concrete about WHAT went wrong and WHERE: name the weak part of that specific answer, and give a stronger version.
 Student message IDs to score: ${studentMessageIds.join(", ")}
 
 You MUST respond with a valid JSON object in this exact format:
 {
-  "communication_score": <number 1-10>,
-  "confidence_score": <number 1-10>,
-  "content_score": <number 1-10>,
-  "language_score": <number 1-10>,
-  "overall_score": <number 1-10>,
+  "communication_score": <integer 1-10>,
+  "confidence_score": <integer 1-10>,
+  "content_score": <integer 1-10>,
+  "language_score": <integer 1-10>,
+  "score_evidence": {
+    "communication": "<quote or close paraphrase from the transcript>",
+    "confidence": "<quote or close paraphrase from the transcript>",
+    "content": "<quote or close paraphrase from the transcript>",
+    "language": "<quote or close paraphrase from the transcript>"
+  },
   "strengths": ["strength 1", "strength 2", "strength 3"],
   "improvements": ["improvement 1", "improvement 2", "improvement 3"],
-  "detailed_feedback": "A comprehensive paragraph of feedback in ${feedbackLang}. Include specific suggestions like: 'Research more about [university]'s specific programs', 'Prepare concrete examples of why you chose Korea', 'Practice explaining your career goals more clearly', etc.",
+  "detailed_feedback": "A comprehensive paragraph of feedback in ${feedbackLang}, referring to what the student actually said.",
   "message_scores": [
     {
       "message_id": "<uuid>",
       "score": <number 1-10>,
       "strengths": ["what they did well"],
-      "suggestions": ["how to improve"],
-      "ideal_hint": "brief example of a better response (optional)"
+      "suggestions": ["what was wrong in this answer and how to fix it"],
+      "ideal_hint": "a short example of a stronger version of this answer"
     }
   ]
 }
 
-Be constructive and encouraging while providing actionable suggestions based on typical Korean university interview expectations.
+Write strengths, improvements, detailed_feedback, and every message_scores entry in ${feedbackLang}.
+Base every comment on the actual transcript - quote or paraphrase what the student said. Never use generic filler like "good attempt, keep practicing".
 Include message_scores for EVERY student response in the transcript.`;
 
     // Call gemini AI for analysis
@@ -186,65 +226,154 @@ Include message_scores for EVERY student response in the transcript.`;
       );
     }
 
-    const aiResponse = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${geminiApiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "gemini-2.5-flash",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: `Interview Transcript:\n\n${transcript}` },
-        ],
-        max_tokens: 2500,
-      }),
-    });
+    // Extract the JSON object from a model reply, tolerating markdown fences
+    // and any stray prose around it.
+    const parseFeedback = (raw: string) => {
+      let s = (raw ?? "").trim();
+      if (!s) throw new Error("empty content");
+      // strip ```json ... ``` fences
+      s = s.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/, "").trim();
+      const first = s.indexOf("{");
+      const last = s.lastIndexOf("}");
+      if (first === -1 || last <= first) throw new Error("no JSON object found");
+      return JSON.parse(s.slice(first, last + 1));
+    };
+
+    const callModel = async (sys: string, maxTokens: number) => {
+      const res = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${geminiApiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "gemini-2.5-flash",
+          messages: [
+            { role: "system", content: sys },
+            { role: "user", content: `Interview Transcript:\n\n${transcript}` },
+          ],
+          // 2500 was far too low: gemini-2.5-flash spends output tokens on
+          // internal reasoning, so it hit the cap before emitting any JSON.
+          // The content came back empty, parsing failed, and the function
+          // silently saved a hardcoded 7/10 — a fake score the student had
+          // no way to tell apart from a real evaluation.
+          max_tokens: maxTokens,
+          // 0, not 0.3: the same transcript must produce the same score every
+          // time. At 0.3 a student could re-open the same finished interview
+          // and see a different number, which is exactly what "approximate"
+          // looks like from the outside.
+          temperature: 0,
+          response_format: { type: "json_object" },
+        }),
+      });
+      return res;
+    };
+
+    let aiResponse = await callModel(systemPrompt, 8000);
 
     if (!aiResponse.ok) {
       const errorText = await aiResponse.text();
       console.error("AI error:", aiResponse.status, errorText);
-      
+
       if (aiResponse.status === 429) {
         return new Response(
           JSON.stringify({ error: "Rate limit exceeded. Please try again later." }),
           { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-      
+
       return new Response(
         JSON.stringify({ error: "Failed to generate feedback" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const aiData = await aiResponse.json();
-    const feedbackText = aiData.choices?.[0]?.message?.content || "";
+    let aiData = await aiResponse.json();
+    let feedbackText = aiData.choices?.[0]?.message?.content || "";
+    let finishReason = aiData.choices?.[0]?.finish_reason;
 
-    // Parse the JSON response
     let feedbackData;
     try {
-      const jsonMatch = feedbackText.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        feedbackData = JSON.parse(jsonMatch[0]);
-      } else {
-        throw new Error("No JSON found in response");
-      }
+      feedbackData = parseFeedback(feedbackText);
     } catch (parseError) {
-      console.error("Failed to parse feedback JSON:", parseError, feedbackText);
-      feedbackData = {
-        communication_score: 7,
-        confidence_score: 7,
-        content_score: 7,
-        language_score: 7,
-        overall_score: 7,
-        strengths: ["Good attempt at practice interview"],
-        improvements: ["Continue practicing to improve"],
-        detailed_feedback: "Thank you for completing the practice interview. Keep practicing to improve your skills.",
-        message_scores: []
-      };
+      console.error(
+        "Feedback parse failed (finish_reason:", finishReason, "):",
+        parseError,
+        "content preview:", String(feedbackText).slice(0, 400)
+      );
+
+      // Retry once WITHOUT the per-answer breakdown. That section is by far
+      // the longest part of the reply, so dropping it leaves plenty of room
+      // for a complete, parseable object — the student still gets real
+      // overall scores instead of a fabricated one.
+      const compactPrompt = systemPrompt
+        .replace(/PER-ANSWER SCORING:[\s\S]*?Student message IDs to score:[^\n]*\n/, "")
+        + "\n\nDo NOT include message_scores. Return only the overall fields.";
+
+      const retry = await callModel(compactPrompt, 4000);
+      if (retry.ok) {
+        aiData = await retry.json();
+        feedbackText = aiData.choices?.[0]?.message?.content || "";
+        finishReason = aiData.choices?.[0]?.finish_reason;
+        try {
+          feedbackData = parseFeedback(feedbackText);
+          feedbackData.message_scores = [];
+        } catch (retryError) {
+          console.error("Retry parse failed too:", retryError);
+        }
+      }
+
+      // Still nothing usable — report the failure. Never invent a score:
+      // a fabricated 7/10 is indistinguishable from a real evaluation and
+      // actively misleads the student about their readiness.
+      if (!feedbackData) {
+        return new Response(
+          JSON.stringify({ error: "Could not analyze this interview. Please try again." }),
+          { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
     }
+
+    // ── Make the headline number real ────────────────────────────────────
+    //
+    // The model used to return `overall_score` as its own "holistic" figure,
+    // unconnected to the four criteria. It could — and did — hand back 4/5/3/4
+    // with an overall of 7. That is the approximate score the student was
+    // seeing: a number with nothing behind it.
+    //
+    // The four criteria are the evaluation. The overall is their mean, rounded
+    // half-up, so the headline can never contradict the breakdown printed
+    // directly beneath it, and the same transcript always yields the same
+    // number.
+    const CRITERIA = [
+      "communication_score",
+      "confidence_score",
+      "content_score",
+      "language_score",
+    ] as const;
+
+    const componentScores: number[] = [];
+    for (const key of CRITERIA) {
+      const raw = feedbackData[key];
+      if (typeof raw !== "number" || !Number.isFinite(raw)) {
+        console.error(
+          `Model returned no usable ${key}:`,
+          String(feedbackText).slice(0, 400),
+        );
+        return new Response(
+          JSON.stringify({ error: "Could not analyze this interview. Please try again." }),
+          { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      // Clamp into the band the rubric defines, then store the integer the
+      // student will actually be shown.
+      const clamped = Math.min(10, Math.max(1, Math.round(raw)));
+      feedbackData[key] = clamped;
+      componentScores.push(clamped);
+    }
+
+    const mean = componentScores.reduce((a, b) => a + b, 0) / componentScores.length;
+    feedbackData.overall_score = Math.min(10, Math.max(1, Math.round(mean)));
 
     // Save feedback to database with message_scores
     const { data: savedFeedback, error: saveError } = await adminClient

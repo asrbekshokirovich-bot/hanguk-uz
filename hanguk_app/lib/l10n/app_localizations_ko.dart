@@ -113,6 +113,20 @@ class AppLocalizationsKo extends AppLocalizations {
   String get virtualWalkaroundTitle => '가상 워크어라운드';
 
   @override
+  String get visitUniversityWebsite => '대학 웹사이트 방문';
+
+  @override
+  String universityTier(int tier) {
+    return '티어 $tier';
+  }
+
+  @override
+  String get universityVerified => '인증됨';
+
+  @override
+  String get universityNextEvent => '다음 일정';
+
+  @override
   String get navApplications => '지원서';
 
   @override
@@ -134,7 +148,8 @@ class AppLocalizationsKo extends AppLocalizations {
   String get documentsTabTitle => '내 서류';
 
   @override
-  String get documentUploadInfo => '원본 서류의 PDF 또는 JPEG 스캔본을 업로드하세요. 파일당 최대 10MB.';
+  String get documentUploadInfo =>
+      '원본 서류의 PDF 또는 JPEG 스캔본을 업로드하세요. 파일당 최대 10MB.';
 
   @override
   String get documentsRequiredHeading => '필수 서류';
@@ -369,7 +384,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get notifSettingsEmptyBody =>
-      '대학 페이지에서 "이 학교 추적"을 탭하여 팔로우하세요. 추적 중인 학교가 하나 이상 생기면 알림 설정이 여기에 표시됩니다.';
+      '대학 페이지에서 \"이 학교 추적\"을 탭하여 팔로우하세요. 추적 중인 학교가 하나 이상 생기면 알림 설정이 여기에 표시됩니다.';
 
   @override
   String get notifSettingsCalendar => '일정 변경';
@@ -484,6 +499,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get aiStatusSupervisionActive => 'AI 검토 활성화';
 
   @override
+  String get aiStatusSpellCheckUnavailable => '기기 사전을 사용할 수 없음';
+
+  @override
   String get workspaceTitle => '작업 공간';
 
   @override
@@ -494,7 +512,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String grammarReplaceWith(String original, String suggestion) {
-    return '"$original"을(를) "$suggestion"(으)로 교체';
+    return '\"$original\"을(를) \"$suggestion\"(으)로 교체';
   }
 
   @override
@@ -621,6 +639,24 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get noAnalysisYet => '아직 생성된 분석이 없습니다.';
+
+  @override
+  String get analysisErrorPlanRequired =>
+      '분석은 Premium 및 No Risk 플랜에 포함됩니다. 현재 플랜에는 포함되어 있지 않습니다.';
+
+  @override
+  String get analysisErrorRateLimited => '분석 요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.';
+
+  @override
+  String get analysisErrorServiceDown =>
+      '분석 서비스를 일시적으로 사용할 수 없습니다. 초안은 저장되었습니다 — 잠시 후 다시 시도해 주세요.';
+
+  @override
+  String get analysisErrorFailed =>
+      '분석을 완료할 수 없습니다. 초안은 저장되었습니다 — 연결을 확인한 후 다시 시도해 주세요.';
+
+  @override
+  String get analysisRetryButton => '다시 시도';
 
   @override
   String get aiReviewedDraft => 'AI가 초안을 검토했습니다.';
@@ -849,4 +885,590 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get a11yTooltipPauseRecording => '녹음 일시정지';
+
+  @override
+  String get trackMismatchWarning =>
+      '작성 중인 초안의 언어가 선택한 트랙과 다릅니다. 선택한 언어로 다시 작성해 주세요.';
+
+  @override
+  String get interviewStartError => '면접을 시작할 수 없습니다. 인터넷 연결을 확인하고 다시 시도해 주세요.';
+
+  @override
+  String get perAnswerReviewTitle => '답변별 분석';
+
+  @override
+  String get betterAnswerLabel => '더 좋은 답변 예시';
+
+  @override
+  String get navHome => '홈';
+
+  @override
+  String get navMenu => '메뉴';
+
+  @override
+  String get greetingMorning => '좋은 아침';
+
+  @override
+  String get greetingAfternoon => '좋은 오후';
+
+  @override
+  String get greetingEvening => '좋은 저녁';
+
+  @override
+  String get welcomeHeadline => '당신의 여정을 환영합니다';
+
+  @override
+  String get welcomeSubtitle => '한국 대학으로 가는 길이 여기서 시작됩니다.';
+
+  @override
+  String get welcomeMagicCodeCta => '매직 코드가 있어요';
+
+  @override
+  String get welcomeExploreCta => '대학 둘러보기';
+
+  @override
+  String get magicCodeTitle => '매직 코드';
+
+  @override
+  String get homeJourneyEyebrow => '나의 여정';
+
+  @override
+  String get homeContinueJourney => '여정 계속하기';
+
+  @override
+  String get homeViewAll => '전체 보기';
+
+  @override
+  String documentsCollected(int collected, int total) {
+    return '$total개 중 $collected개 완료';
+  }
+
+  @override
+  String get documentActionUpload => '업로드';
+
+  @override
+  String get documentStatusApproved => '승인됨';
+
+  @override
+  String get documentStatusPendingReview => '검토 대기';
+
+  @override
+  String get statusDocs => '서류';
+
+  @override
+  String get statusSubmitted => '제출됨';
+
+  @override
+  String get statusInReview => '심사 중';
+
+  @override
+  String get statusWaiting => '대기 중';
+
+  @override
+  String get statusRejected => '불합격';
+
+  @override
+  String get journeyStageDocumentPrep => '서류 준비';
+
+  @override
+  String get journeyStageOnlineApplication => '온라인 지원';
+
+  @override
+  String get journeyStageOfflineApplication => '오프라인 지원';
+
+  @override
+  String get journeyStageInterview => '면접';
+
+  @override
+  String get journeyStageWaitingInvoice => '청구서 대기';
+
+  @override
+  String get journeyStageTuitionPayment => '등록금 납부';
+
+  @override
+  String get journeyStageWaitingAdmission => '입학허가서 대기';
+
+  @override
+  String get journeyStageVisaPreparation => '비자 준비';
+
+  @override
+  String get journeyStageWaitingVisa => '비자 발급 대기';
+
+  @override
+  String mapUniversitiesMapped(int count) {
+    return '$count개 대학 표시됨';
+  }
+
+  @override
+  String get updateAvailableTitle => '업데이트 가능';
+
+  @override
+  String updateVersionReady(String version) {
+    return '$version 버전을 설치할 수 있습니다.';
+  }
+
+  @override
+  String updateSizeMb(String size) {
+    return '크기: $size MB';
+  }
+
+  @override
+  String get updateSigningKeyWarning =>
+      '이 업데이트는 앱 서명 키를 변경합니다. 설치 후 매직 코드로 다시 로그인해야 합니다.';
+
+  @override
+  String get updateNow => '지금 업데이트';
+
+  @override
+  String get updateLater => '나중에';
+
+  @override
+  String get updateDownloadingTitle => '업데이트 다운로드 중';
+
+  @override
+  String updateDownloadProgress(String downloaded, String total) {
+    return '$downloaded MB / $total MB';
+  }
+
+  @override
+  String get updateInstallingLabel => '확인 및 설치 중…';
+
+  @override
+  String get updateFailedTitle => '업데이트 실패';
+
+  @override
+  String get updateErrorNetwork =>
+      '업데이트를 다운로드할 수 없습니다. 인터넷 연결을 확인한 후 다시 시도해 주세요.';
+
+  @override
+  String get updateErrorHashMismatch =>
+      '다운로드한 파일이 무결성 검증을 통과하지 못했습니다. 다시 시도해 주세요. 문제가 반복되면 상담사에게 문의하세요.';
+
+  @override
+  String get updateErrorInstallDenied =>
+      '기기에서 설치가 차단되었습니다. 휴대폰 설정에서 Hanguk의 \"알 수 없는 앱 설치\" 권한을 허용한 후 다시 시도해 주세요.';
+
+  @override
+  String get updateErrorStorage =>
+      '업데이트를 다운로드할 저장 공간이 부족합니다. 공간을 확보한 후 다시 시도해 주세요.';
+
+  @override
+  String get updateErrorUnsupportedPlatform => '이 플랫폼에서는 아직 업데이트를 사용할 수 없습니다.';
+
+  @override
+  String get updateErrorUnknown => '업데이트에 실패했습니다. 다시 시도하거나 상담사에게 문의해 주세요.';
+
+  @override
+  String get guestModeEyebrow => '게스트 탐색';
+
+  @override
+  String get guestJoinCta => 'Hanguk 가입';
+
+  @override
+  String get guestExploreTitle => '나의 대학 찾기';
+
+  @override
+  String guestUniversitiesCount(int count) {
+    return '대학 $count곳';
+  }
+
+  @override
+  String get guestNavExplore => '탐색';
+
+  @override
+  String get guestNavCompare => '비교';
+
+  @override
+  String guestCompareCount(int count) {
+    return '비교 $count/2';
+  }
+
+  @override
+  String get guestCompareEmptySlot => '탐색에서 추가';
+
+  @override
+  String get guestCompareApplyCta => 'Hanguk과 함께 지원';
+
+  @override
+  String get guestCompareReassurance => '매직 코드를 받으면 서류부터 비자까지 저희 팀이 안내합니다.';
+
+  @override
+  String get guestRowCity => '도시';
+
+  @override
+  String get guestRowTier => '등급';
+
+  @override
+  String get guestRowIeqas => 'IEQAS 상태';
+
+  @override
+  String get guestRowPartner => 'Hanguk 파트너';
+
+  @override
+  String get guestRowNextEvent => '다음 일정';
+
+  @override
+  String get guestRowWebsite => '웹사이트';
+
+  @override
+  String get guestValueYes => '예';
+
+  @override
+  String get guestValueNo => '아니요';
+
+  @override
+  String get roomTabStatus => '현황';
+
+  @override
+  String get roomTabDiscussion => '토론';
+
+  @override
+  String get roomTabNews => '소식';
+
+  @override
+  String get roomTabCalendar => '일정';
+
+  @override
+  String get roomApplicationProgress => '지원 진행 상황';
+
+  @override
+  String get roomChatEmpty => '아직 메시지가 없습니다. 대화를 시작해 보세요!';
+
+  @override
+  String get roomChatHint => '메시지를 입력하세요...';
+
+  @override
+  String get roomChatSenderFallback => '사용자';
+
+  @override
+  String get roomNewsEmpty => '현재 공지사항이 없습니다.';
+
+  @override
+  String get roomEventsEmpty => '이 날짜에 표시할 일정이 없습니다.';
+
+  @override
+  String get uniDbPhaseBadge => '대학 DB · 0단계 준비됨';
+
+  @override
+  String get uniDbRecentChangesTitle => '추적 중인 대학의 업데이트';
+
+  @override
+  String get timeJustNow => '방금 전';
+
+  @override
+  String timeMinutesAgo(int minutes) {
+    return '$minutes분 전';
+  }
+
+  @override
+  String timeHoursAgo(int hours) {
+    return '$hours시간 전';
+  }
+
+  @override
+  String timeDaysAgo(int days) {
+    return '$days일 전';
+  }
+
+  @override
+  String get uniDbVerifiedDeadlinesTitle => '확인된 예정 마감일';
+
+  @override
+  String get deadlineClosed => '마감됨';
+
+  @override
+  String deadlineInDays(int days) {
+    return '$days일 후';
+  }
+
+  @override
+  String deadlineInHours(int hours) {
+    return '$hours시간 후';
+  }
+
+  @override
+  String deadlineInMinutes(int minutes) {
+    return '$minutes분 후';
+  }
+
+  @override
+  String get eventApplyOpen => '원서 접수 시작';
+
+  @override
+  String get eventApplyClose => '원서 접수 마감';
+
+  @override
+  String get eventDocumentsDue => '서류 제출 마감';
+
+  @override
+  String get eventFirstStageResults => '1단계 발표';
+
+  @override
+  String get eventInterviewLabel => '면접';
+
+  @override
+  String get eventPracticalExam => '실기 시험';
+
+  @override
+  String get eventFinalResults => '최종 발표';
+
+  @override
+  String get eventAdditionalAdmit => '추가 합격';
+
+  @override
+  String get eventRegistrationOpen => '등록 시작';
+
+  @override
+  String get eventRegistrationClose => '등록 마감';
+
+  @override
+  String get cycleForeign => '외국인 전형';
+
+  @override
+  String get cycleOverseasKoreanFull => '재외국민 (전 과정)';
+
+  @override
+  String get cycleOverseasKoreanPartial => '재외국민 (일부 과정)';
+
+  @override
+  String get cycleSusi => '수시';
+
+  @override
+  String get cycleJeongsi => '정시';
+
+  @override
+  String get cycleTransfer => '편입';
+
+  @override
+  String get cycleGradGeneral => '대학원';
+
+  @override
+  String get cycleGradForeign => '대학원 (외국인)';
+
+  @override
+  String get uniSpecificHeader => '대학 맞춤 면접';
+
+  @override
+  String get uniSpecificPickPrompt =>
+      '위에서 대학을 선택하면 해당 대학의 모집단위, 지원 요건, 주요 일정이 면접에 반영됩니다.';
+
+  @override
+  String uniSpecificLoadError(Object error) {
+    return '모집 정보를 불러오지 못했습니다: $error\n일반 면접은 계속 진행할 수 있습니다.';
+  }
+
+  @override
+  String get uniSpecificNoData =>
+      '이 대학의 검증된 모집 정보가 아직 없습니다. 모집요강을 수집할 때까지 일반 질문으로 진행됩니다.';
+
+  @override
+  String get uniSpecificFallbackButton => '일반 면접으로 진행하기';
+
+  @override
+  String uniSpecificTrackLabel(String category) {
+    return '전형: $category';
+  }
+
+  @override
+  String get uniSpecificSeedNote => '면접 질문에 이 모집 정보가 반영됩니다.';
+
+  @override
+  String get uniSpecificRecruitmentUnitFallback => '모집단위';
+
+  @override
+  String get uniDbInstitutionTitle => '대학';
+
+  @override
+  String get uniDbNotFoundTitle => '대학을 찾을 수 없습니다';
+
+  @override
+  String get uniDbNotFoundBody => '이 대학은 아직 카탈로그에 없습니다. 나중에 다시 확인해 주세요.';
+
+  @override
+  String get uniDbUpcomingDeadlines => '다가오는 마감일';
+
+  @override
+  String get uniDbNoDeadlines => '아직 발표된 마감일이 없습니다.';
+
+  @override
+  String get uniDbTuitionHeading => '등록금';
+
+  @override
+  String get uniDbTuitionEmpty => '등록금 정보가 아직 없습니다.';
+
+  @override
+  String get uniDbRequirementsHeading => '지원 자격';
+
+  @override
+  String get uniDbRequirementsEmpty => '입학 요건 정보가 아직 없습니다.';
+
+  @override
+  String get uniDbScholarshipsHeading => '장학금';
+
+  @override
+  String get uniDbScholarshipsEmpty => '이 대학의 장학금 정보가 아직 없습니다.';
+
+  @override
+  String get uniDbDocumentChecklistHeading => '제출 서류';
+
+  @override
+  String get uniDbDocumentsEmpty => '서류 목록이 아직 없습니다.';
+
+  @override
+  String get uniDbTrackTitle => '이 대학 팔로우';
+
+  @override
+  String get uniDbTrackOnDesc => '홈 배너에서 마감일을 확인하고 변경 시 푸시 알림을 받습니다.';
+
+  @override
+  String get uniDbTrackOffDesc => '마감일, 정정공고, 요건 변경을 팔로우하려면 켜세요.';
+
+  @override
+  String uniDbTrackError(Object error) {
+    return '팔로우 설정을 변경하지 못했습니다: $error';
+  }
+
+  @override
+  String get uniDbOpenGuidePdf => '모집요강 PDF 열기';
+
+  @override
+  String get uniDbNoGuidePdf => '모집요강 PDF가 아직 없습니다.';
+
+  @override
+  String get uniDbPdfNoApp => 'PDF를 열 수 없습니다 — 처리할 앱이 없습니다.';
+
+  @override
+  String uniDbPdfError(Object error) {
+    return 'PDF를 열 수 없습니다: $error';
+  }
+
+  @override
+  String uniDbAcademicYear(int year) {
+    return '$year학년도';
+  }
+
+  @override
+  String uniDbSemesterLabel(int number) {
+    return '$number학기';
+  }
+
+  @override
+  String get uniDbFirstSemester => '첫 학기';
+
+  @override
+  String uniDbAdmissionFee(String amount) {
+    return '+ 입학금 $amount';
+  }
+
+  @override
+  String uniDbGpaChip(String pct) {
+    return 'GPA ≥ $pct%';
+  }
+
+  @override
+  String get uniDbTopikTierTable => 'TOPIK 등급표';
+
+  @override
+  String uniDbDocumentsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '서류 $count건',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get uniDbApostilleRequired => '아포스티유 필요';
+
+  @override
+  String uniDbLastVerified(String date) {
+    return '최종 확인: $date';
+  }
+
+  @override
+  String get eventOrientation => '오리엔테이션';
+
+  @override
+  String get eventSemesterStart => '개강';
+
+  @override
+  String get facultyHumanities => '인문계열';
+
+  @override
+  String get facultySocialScience => '사회계열';
+
+  @override
+  String get facultyNaturalScience => '자연계열';
+
+  @override
+  String get facultyEngineering => '공학계열';
+
+  @override
+  String get facultyMedical => '의약계열';
+
+  @override
+  String get facultyArts => '예술계열';
+
+  @override
+  String get facultyPhysicalEducation => '체육계열';
+
+  @override
+  String get uniDbCompareTitle => '비교';
+
+  @override
+  String get uniDbCompareEmptyTitle => '대학 비교';
+
+  @override
+  String get uniDbCompareEmptyBody => '두 개 이상의 대학을 팔로우한 뒤 여기에서 비교하세요.';
+
+  @override
+  String get uniDbCompareNeedSecond => '비교하려면 두 번째 대학이 필요합니다.';
+
+  @override
+  String uniDbCompareSelected(String name) {
+    return '현재 선택: $name';
+  }
+
+  @override
+  String get uniDbColEnglishName => '영문 이름';
+
+  @override
+  String get uniDbColUzbekName => '우즈베크어 이름';
+
+  @override
+  String get uniDbColLastVerified => '최종 확인';
+
+  @override
+  String get uniDbTrackerTitle => '지원 현황 트래커';
+
+  @override
+  String get uniDbTrackerEmptyTitle => '팔로우한 대학이 아직 없습니다';
+
+  @override
+  String get uniDbTrackerEmptyBody => '대학 페이지에서 팔로우하면 마감일이 여기에 표시됩니다.';
+
+  @override
+  String get uniDbLoadFailed => '대학 목록을 불러오지 못했습니다.';
+
+  @override
+  String get loginSubmitButton => '로그인';
+
+  @override
+  String get welcomeGuestCaption => '코드 없이 자유롭게 둘러보고 비교하세요.';
+
+  @override
+  String get homeNotifications => '알림';
+
+  @override
+  String get notifApplicationUpdates => '지원 현황';
+
+  @override
+  String get notifToUpload => '업로드 필요';
+
+  @override
+  String get notifAllCaughtUp => '모두 완료';
+
+  @override
+  String get notifAllCaughtUpBody => '서류와 지원에 대한 알림이 여기에 표시됩니다.';
 }

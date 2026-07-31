@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../../design_system/theme/app_colors.dart';
+import '../../../../design_system/seoul_night/seoul_night.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../domain/university.dart';
 import 'university_detail_sheet.dart';
 
@@ -29,6 +30,7 @@ class _UniversityMapViewState extends State<UniversityMapView> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     return Stack(
       children: [
         Positioned.fill(
@@ -47,15 +49,17 @@ class _UniversityMapViewState extends State<UniversityMapView> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.55),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: AppColors.vibrantLime.withValues(alpha: 0.25),
-                ),
+                color: SeoulColors.glass,
+                borderRadius: BorderRadius.circular(999),
+                border: Border.all(color: SeoulColors.glassBorder),
               ),
               child: Text(
-                '${widget.universities.where((u) => u.latitude != null).length} universities mapped',
-                style: const TextStyle(color: Colors.white70, fontSize: 12),
+                l.mapUniversitiesMapped(
+                  widget.universities.where((u) => u.latitude != null).length,
+                ),
+                style: SeoulType.hangulStatus.copyWith(
+                  color: SeoulColors.textSecondary,
+                ),
               ),
             ),
           ),

@@ -1,14 +1,22 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import '../seoul_night/seoul_night_typography.dart';
 import 'app_colors.dart';
 
 class AppTheme {
   // Material 3 Theme for Android
   static ThemeData get materialTheme {
+    final base = ThemeData(useMaterial3: true, brightness: Brightness.dark);
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
       scaffoldBackgroundColor: AppColors.pureBlack,
+      // Seoul Night typography applies app-wide from Prompt 0 so migrated and
+      // not-yet-migrated screens share one typeface. Colours and layout still
+      // come from the legacy theme until each screen's phase lands.
+      fontFamily: SeoulType.inter,
+      fontFamilyFallback: SeoulType.fallback,
+      textTheme: SeoulType.textTheme(base.textTheme),
       colorScheme: const ColorScheme.dark(
         primary: AppColors.vibrantLime,
         onPrimary: AppColors.pureBlack,
@@ -67,42 +75,6 @@ class AppTheme {
         ),
         hintStyle: const TextStyle(color: Colors.white70),
         prefixIconColor: Colors.white70,
-      ),
-      // Retained for any incidental M2 BottomNavigationBar usage in
-      // dialogs / pickers; the home shell now uses M3 NavigationBar via
-      // AdaptiveBottomNavigation (UI/UX audit P0 #5, 2026-05-12).
-      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-        backgroundColor: Color(0xFF0F213D),
-        selectedItemColor: AppColors.vibrantLime,
-        unselectedItemColor: Colors.white70,
-        type: BottomNavigationBarType.fixed,
-        elevation: 0,
-      ),
-      // Material 3 NavigationBar styling — colour-matched to the legacy
-      // bottomNavigationBarTheme above so the swap is visually
-      // continuous. NavigationBar defaults are otherwise tinted from
-      // ColorScheme.surfaceContainer / .secondaryContainer which would
-      // not match the brand palette.
-      navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: const Color(0xFF0F213D),
-        indicatorColor: AppColors.vibrantLime.withValues(alpha: 0.18),
-        elevation: 0,
-        labelTextStyle: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) {
-            return const TextStyle(
-              color: AppColors.vibrantLime,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-            );
-          }
-          return const TextStyle(color: Colors.white70, fontSize: 12);
-        }),
-        iconTheme: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) {
-            return const IconThemeData(color: AppColors.vibrantLime);
-          }
-          return const IconThemeData(color: Colors.white70);
-        }),
       ),
       tabBarTheme: TabBarThemeData(
         labelColor: AppColors.pureBlack,

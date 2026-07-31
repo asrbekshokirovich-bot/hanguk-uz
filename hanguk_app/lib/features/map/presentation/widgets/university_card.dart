@@ -1,174 +1,127 @@
 import 'package:flutter/material.dart';
-import '../../../../design_system/adaptive/hanguk_card.dart';
-import '../../../../design_system/theme/app_colors.dart';
+
+import '../../../../design_system/seoul_night/seoul_night.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../domain/university.dart';
 
+/// Matches a string that opens with a hangul syllable (U+AC00–U+D7A3).
+final RegExp _hangulStart = RegExp(r'^[가-힣]');
+
+/// A university row in the Map section list (DESIGN_SPEC §3.5).
+///
+/// Seoul Night shape: a glass card carrying the hangul glyph tile (the
+/// university "avatar"), the name with its Korean label underneath, and the
+/// metadata — city, quality tier, partner status — as chips.
+///
+/// The logo image the legacy card fetched is deliberately gone: §1 "Korean
+/// voice" asks for a glyph avatar (서 / 연 / 고) in every list row, and a
+/// bright PNG logo fights the dark surface. The detail sheet still shows the
+/// real logo.
 class UniversityCard extends StatelessWidget {
   final University university;
   final VoidCallback? onTap;
 
   const UniversityCard({super.key, required this.university, this.onTap});
 
+  /// The glyph for the avatar tile: first syllable of the Korean name, then
+  /// of the (Korean) city, then the 한 brand mark. Anything that is not
+  /// hangul falls through so a stray Latin letter never lands in the tile.
+  String get _glyph {
+    for (final candidate in <String?>[
+      university.nameKoShort,
+      university.nameKo,
+      university.location,
+    ]) {
+      final trimmed = (candidate ?? '').trim();
+      if (_hangulStart.hasMatch(trimmed)) {
+        return HangulGlyphTile.firstSyllable(trimmed);
+      }
+    }
+    return '한';
+  }
+
+  /// Korean sub-label beside the name. Falls back to the decorative 대학
+  /// when the institution has no Korean name, or when the resolved display
+  /// name already *is* the Korean one (Korean locale) — repeating it would
+  /// read as a duplicate rather than an accent.
+  String get _koLabel {
+    for (final candidate in <String?>[
+      university.nameKoShort,
+      university.nameKo,
+    ]) {
+      final trimmed = (candidate ?? '').trim();
+      if (trimmed.isNotEmpty && trimmed != university.name) return trimmed;
+    }
+    return '대학';
+  }
+
+  /// City · tier · partner, as chips. Tier semantics are the post-audit-M3
+  /// `tier` (0–4) column: tier ≤ 1 is "Top", 2–4 render the number, and an
+  /// unclassified institution renders no tier chip at all.
+  List<Widget> _chips(AppLocalizations l) {
+    final tier = university.tier;
+    return <Widget>[
+      StatusChip(label: university.location, dense: true),
+      if (tier != null)
+        university.isTopTier
+            ? StatusChip(label: l.filterTop, tone: StatusTone.info, dense: true)
+            : StatusChip(label: l.universityTier(tier), dense: true),
+      if (university.isPartner)
+        StatusChip(
+          label: l.filterPartner,
+          tone: StatusTone.lime,
+          ko: '파트너',
+          dense: true,
+        ),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
-    return HangukCard(
-      onTap: onTap,
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Row(
-        children: [
-          _buildLogo(),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  university.name,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15,
-                    color: Colors.white,
+    final l = AppLocalizations.of(context)!;
+
+    // MergeSemantics on the outside so the button flag and every label inside
+    // collapse into one node — a screen reader announces the whole row once.
+    return MergeSemantics(
+      child: Semantics(
+        button: true,
+        child: GlassCard(
+          onTap: onTap,
+          margin: const EdgeInsets.symmetric(
+            horizontal: SeoulSizes.screenPadding,
+            vertical: 5,
+          ),
+          padding: const EdgeInsets.fromLTRB(15, 15, 13, 15),
+          radius: SeoulRadii.tile,
+          // Dozens of these scroll past; each blurred card would cost its own
+          // saved layer (see GlassCard.blur).
+          blur: false,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  HangulGlyphTile(glyph: _glyph),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: HangulTag(
+                      en: university.name,
+                      ko: _koLabel,
+                      titleStyle: SeoulType.subtitle,
+                    ),
                   ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  university.location,
-                  style: const TextStyle(color: Colors.white54, fontSize: 13),
-                ),
-              ],
-            ),
+                  const SizedBox(width: 6),
+                  const Icon(
+                    Icons.chevron_right_rounded,
+                    color: SeoulColors.textFaint,
+                    size: 20,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Wrap(spacing: 8, runSpacing: 8, children: _chips(l)),
+            ],
           ),
-          const SizedBox(width: 8),
-          _buildTierBadge(),
-          if (university.isPartner) ...[
-            const SizedBox(width: 6),
-            _buildPartnerChip(),
-          ],
-          const SizedBox(width: 4),
-          const Icon(
-            Icons.chevron_right_rounded,
-            color: Colors.white24,
-            size: 20,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLogo() {
-    if (university.logoUrl != null && university.logoUrl!.isNotEmpty) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        // Decorative — the university name sits next to this logo.
-        child: Image.network(
-          university.logoUrl!,
-          width: 48,
-          height: 48,
-          fit: BoxFit.contain,
-          excludeFromSemantics: true,
-          errorBuilder: (_, __, ___) => _fallbackIcon(),
-          loadingBuilder: (context, child, progress) {
-            if (progress == null) return child;
-            return _loadingBox();
-          },
-        ),
-      );
-    }
-    return _fallbackIcon();
-  }
-
-  Widget _fallbackIcon() {
-    return Container(
-      width: 48,
-      height: 48,
-      decoration: BoxDecoration(
-        color: AppColors.vibrantLime.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: AppColors.vibrantLime.withValues(alpha: 0.15),
-        ),
-      ),
-      child: const Icon(
-        Icons.school_outlined,
-        color: AppColors.vibrantLime,
-        size: 24,
-      ),
-    );
-  }
-
-  // Low-contrast placeholder shown during slow logo loads (audit P1).
-  Widget _loadingBox() {
-    return Container(
-      width: 48,
-      height: 48,
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.04),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: const Center(
-        child: SizedBox(
-          width: 18,
-          height: 18,
-          child: CircularProgressIndicator(
-            strokeWidth: 2,
-            color: Colors.white24,
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// Audit M3 (2026-05-11): the legacy `_buildRankBadge` rendered
-  /// `#${ranking}` from a column that no longer exists. Replaced with
-  /// a tier-based "Top" pill: tier 0 (flagship) and tier 1 (top-ranked)
-  /// get highlighted treatment; tier 2–4 show a dimmer "Tier N" label.
-  /// Unclassified institutions (tier == null) render no badge.
-  Widget _buildTierBadge() {
-    final tier = university.tier;
-    if (tier == null) return const SizedBox.shrink();
-
-    final isTop = tier <= 1;
-    final label = isTop ? 'Top' : 'Tier $tier';
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-      decoration: BoxDecoration(
-        color: isTop
-            ? AppColors.vibrantLime.withValues(alpha: 0.15)
-            : Colors.white.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: isTop
-              ? AppColors.vibrantLime.withValues(alpha: 0.4)
-              : Colors.white.withValues(alpha: 0.08),
-        ),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.bold,
-          color: isTop ? AppColors.vibrantLime : Colors.white70,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPartnerChip() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-      decoration: BoxDecoration(
-        color: AppColors.vibrantLime.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: const Text(
-        'Partner',
-        style: TextStyle(
-          fontSize: 10,
-          color: AppColors.vibrantLime,
-          fontWeight: FontWeight.bold,
         ),
       ),
     );

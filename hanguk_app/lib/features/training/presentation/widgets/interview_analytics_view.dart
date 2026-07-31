@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/interview_repository.dart';
-import '../../../../design_system/theme/app_colors.dart';
+import '../../../../design_system/seoul_night/seoul_night.dart';
 import '../../../../l10n/app_localizations.dart';
 import 'package:audioplayers/audioplayers.dart';
 
@@ -43,72 +43,99 @@ class _InterviewAnalyticsViewState
     final l = AppLocalizations.of(context)!;
     final state = ref.watch(interviewProvider);
 
-    return Container(
-      color: AppColors.backgroundNavy,
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Header
-              Row(
-                children: [
-                  if (widget.onBackPressed != null)
-                    IconButton(
-                      icon: const Icon(Icons.arrow_back, color: Colors.white),
-                      tooltip: l.a11yTooltipBack,
-                      onPressed: widget.onBackPressed,
-                    ),
-                  Text(
-                    l.interviewAnalyticsTitle,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
+    // `onBackPressed` is only wired up when this view is pushed as its own
+    // route from the history list. Embedded in InterviewScreen it inherits
+    // that screen's Seoul Night background and header instead of drawing a
+    // second one.
+    final pushed = widget.onBackPressed != null;
+
+    final content = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (pushed)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              SeoulSizes.screenPadding,
+              10,
+              SeoulSizes.screenPadding,
+              10,
+            ),
+            child: Row(
+              children: [
+                Semantics(
+                  button: true,
+                  label: l.a11yTooltipBack,
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: widget.onBackPressed,
+                    child: Container(
+                      width: SeoulSizes.minTapTarget,
+                      height: SeoulSizes.minTapTarget,
+                      alignment: Alignment.center,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: SeoulColors.glass,
+                        border: Border.fromBorderSide(
+                          BorderSide(color: SeoulColors.glassBorder),
+                        ),
+                      ),
+                      child: const Icon(
+                        Icons.arrow_back_rounded,
+                        size: 20,
+                        color: SeoulColors.textPrimary,
+                      ),
                     ),
                   ),
-                ],
-              ),
-              const SizedBox(height: 24),
-
-              // Content
-              Expanded(
-                child: state.isLoading
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const CircularProgressIndicator(
-                              color: AppColors.vibrantLime,
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              l.analyzingTranscript,
-                              style: const TextStyle(color: Colors.white70),
-                            ),
-                          ],
-                        ),
-                      )
-                    : state.feedback == null
-                    ? Center(
-                        child: Text(
-                          state.error ?? l.noFeedbackAvailable,
-                          style: const TextStyle(color: Colors.redAccent),
-                          textAlign: TextAlign.center,
-                        ),
-                      )
-                    : _buildFeedbackContent(
-                        l,
-                        state.feedback!,
-                        widget.overrideVapiCallId ?? state.vapiCallId,
-                      ),
-              ),
-            ],
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: HangulTag(
+                    en: l.interviewAnalyticsTitle,
+                    ko: '면접 결과',
+                    titleStyle: SeoulType.title,
+                  ),
+                ),
+              ],
+            ),
           ),
+        Expanded(
+          child: state.isLoading
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const CircularProgressIndicator(color: SeoulColors.lime),
+                      const SizedBox(height: 16),
+                      Text(
+                        l.analyzingTranscript,
+                        style: SeoulType.bodySecondary,
+                      ),
+                    ],
+                  ),
+                )
+              : state.feedback == null
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(SeoulSizes.screenPadding),
+                    child: Text(
+                      state.error ?? l.noFeedbackAvailable,
+                      textAlign: TextAlign.center,
+                      style: SeoulType.body.copyWith(
+                        color: SeoulColors.dangerText,
+                      ),
+                    ),
+                  ),
+                )
+              : _buildFeedbackContent(
+                  l,
+                  state.feedback!,
+                  widget.overrideVapiCallId ?? state.vapiCallId,
+                ),
         ),
-      ),
+      ],
     );
+
+    return pushed ? SeoulNightScaffold(body: content) : content;
   }
 
   Widget _buildFeedbackContent(
@@ -116,200 +143,364 @@ class _InterviewAnalyticsViewState
     Map<String, dynamic> fb,
     String? vapiCallId,
   ) {
+    final overall = fb['overall_score'];
+    final overallValue = overall is num ? overall.toDouble() : 0.0;
+
     return ListView(
       physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.fromLTRB(
+        SeoulSizes.screenPadding,
+        4,
+        SeoulSizes.screenPadding,
+        48,
+      ),
       children: [
-        // Overall Score Card
-        Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: AppColors.surfaceGlass.withValues(alpha: 0.5),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.borderGlass, width: 1),
-          ),
+        // ── Overall + per-metric scores ─────────────────────────────────
+        HeroCard(
+          watermark: '면접',
+          margin: const EdgeInsets.only(bottom: 18),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                l.overallScoreLabel,
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.6),
-                  fontSize: 14,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                '${fb['overall_score'] ?? 0}/10',
-                style: const TextStyle(
-                  color: AppColors.vibrantLime,
-                  fontSize: 48,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-              const SizedBox(height: 16),
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  _Metric(l.metricCommunication, fb['communication_score']),
-                  _Metric(l.metricConfidence, fb['confidence_score']),
-                  _Metric(l.metricContent, fb['content_score']),
-                  _Metric(l.metricLanguage, fb['language_score']),
+                  ConicProgressRing(
+                    value: overallValue / 10,
+                    size: 104,
+                    strokeWidth: 9,
+                    // Number big, denominator small — a "7.5/10" on one line
+                    // would not fit inside the ring.
+                    label: '${overall ?? 0}',
+                    caption: '/ 10',
+                  ),
+                  const SizedBox(width: 18),
+                  Expanded(
+                    child: HangulTag(
+                      en: l.overallScoreLabel,
+                      ko: '총점',
+                      titleStyle: SeoulType.subtitle,
+                    ),
+                  ),
                 ],
+              ),
+              const SizedBox(height: 22),
+              _ScoreBar(
+                label: l.metricCommunication,
+                score: fb['communication_score'],
+              ),
+              _ScoreBar(
+                label: l.metricConfidence,
+                score: fb['confidence_score'],
+              ),
+              _ScoreBar(label: l.metricContent, score: fb['content_score']),
+              _ScoreBar(
+                label: l.metricLanguage,
+                score: fb['language_score'],
+                last: true,
               ),
             ],
           ),
         ),
 
-        const SizedBox(height: 24),
-
         if (vapiCallId != null) _AudioPlayerWidget(callId: vapiCallId),
 
-        // Strengths & Improvements
-        Text(
-          l.detailedFeedbackTitle,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
+        // ── Long-form review ────────────────────────────────────────────
+        GlassCard(
+          margin: const EdgeInsets.only(bottom: 18),
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              HangulTag(
+                en: l.detailedFeedbackTitle,
+                ko: '상세 평가',
+                titleStyle: SeoulType.subtitle,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                fb['detailed_feedback'] ?? l.detailedFeedbackFallback,
+                style: SeoulType.body,
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: 16),
-        Text(
-          fb['detailed_feedback'] ?? l.detailedFeedbackFallback,
-          style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.9),
-            fontSize: 15,
-            height: 1.5,
-          ),
-        ),
-        const SizedBox(height: 24),
 
         _buildListSection(
           l.strengthsLabel,
+          '강점',
+          StatusTone.lime,
           fb['strengths'] as List<dynamic>?,
-          Icons.thumb_up,
-          Colors.greenAccent,
+          SeoulColors.lime,
         ),
-        const SizedBox(height: 24),
         _buildListSection(
           l.areasToImproveLabel,
+          '개선',
+          StatusTone.warning,
           fb['improvements'] as List<dynamic>?,
-          Icons.build,
-          Colors.orangeAccent,
+          SeoulColors.warningText,
         ),
 
-        const SizedBox(height: 32),
+        // Answer-by-answer review. The feedback function has always produced
+        // `message_scores` (a per-answer score with what went well, what to
+        // fix, and a stronger sample answer) but nothing rendered it — so the
+        // student was told their overall score without ever seeing WHERE they
+        // went wrong. This section surfaces it.
+        _buildPerAnswerSection(l, fb['message_scores']),
+
+        const SizedBox(height: 12),
         // Audit U15: "Start another interview" preserves the in-memory
         // feedback (the prior implementation called resetSession which
         // wiped it). Routes back through the setup view by transitioning
         // status: 'completed' -> 'idle' via resetForNewSession.
-        ElevatedButton.icon(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.vibrantLime,
-            foregroundColor: Colors.black,
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(30),
-            ),
-          ),
-          icon: const Icon(Icons.refresh),
-          label: Text(
-            l.startAnotherInterview,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-          ),
+        LimeButton(
+          label: l.startAnotherInterview,
+          icon: Icons.refresh,
           onPressed: () =>
               ref.read(interviewProvider.notifier).resetForNewSession(),
         ),
-
-        const SizedBox(height: 48),
       ],
     );
   }
 
-  Widget _buildListSection(
-    String title,
-    List<dynamic>? items,
-    IconData icon,
-    Color color,
-  ) {
-    if (items == null || items.isEmpty) return const SizedBox.shrink();
+  /// Per-answer breakdown: for every answer the student gave, show its score,
+  /// the answer itself (when the transcript is in memory), what worked, what
+  /// to fix, and a stronger sample answer.
+  Widget _buildPerAnswerSection(AppLocalizations l, dynamic rawScores) {
+    if (rawScores is! List || rawScores.isEmpty) return const SizedBox.shrink();
+
+    // Map message_id -> the student's actual words, so the review points at a
+    // concrete answer instead of an opaque id. Empty for history replay,
+    // where only the feedback row is loaded.
+    final byId = <String, String>{
+      for (final m in ref.read(interviewProvider).messages) m.id: m.content,
+    };
+
+    final entries = rawScores.whereType<Map>().toList();
+    if (entries.isEmpty) return const SizedBox.shrink();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            Icon(icon, color: color, size: 20),
+            const Icon(Icons.fact_check, color: SeoulColors.lime, size: 18),
             const SizedBox(width: 8),
-            Text(
-              title,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
+            Expanded(
+              child: HangulTag(
+                en: l.perAnswerReviewTitle,
+                ko: '답변별 분석',
+                titleStyle: SeoulType.subtitle,
               ),
             ),
           ],
         ),
         const SizedBox(height: 12),
-        ...items
-            .map(
-              (e) => Padding(
-                padding: const EdgeInsets.only(bottom: 8.0, left: 28.0),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '• ',
-                      style: TextStyle(
-                        color: color,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                    Expanded(
-                      child: Text(
-                        e.toString(),
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.8),
-                          fontSize: 14,
-                        ),
-                      ),
-                    ),
-                  ],
+        for (var i = 0; i < entries.length; i++)
+          _buildAnswerCard(l, entries[i], i + 1, byId),
+      ],
+    );
+  }
+
+  Widget _buildAnswerCard(
+    AppLocalizations l,
+    Map entry,
+    int index,
+    Map<String, String> byId,
+  ) {
+    final score = entry['score'];
+    final answer = byId[entry['message_id']?.toString()];
+    final strengths = (entry['strengths'] as List<dynamic>?) ?? const [];
+    final suggestions = (entry['suggestions'] as List<dynamic>?) ?? const [];
+    final idealHint = entry['ideal_hint']?.toString();
+
+    final scoreValue = score is num ? score.toDouble() : null;
+    // A weak answer reads as `warning`, a middling
+    // one as `info`, a strong one as `lime`.
+    final tone = scoreValue == null
+        ? StatusTone.neutral
+        : (scoreValue >= 8
+              ? StatusTone.lime
+              : (scoreValue >= 5 ? StatusTone.info : StatusTone.warning));
+
+    return GlassCard(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(14),
+      radius: SeoulRadii.tile,
+      // Long list — skip the backdrop layer per card.
+      blur: false,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                '#$index',
+                style: SeoulType.caption.copyWith(
+                  color: SeoulColors.textSecondary,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
-            )
-            .toList(),
-      ],
+              const Spacer(),
+              if (scoreValue != null)
+                StatusChip(
+                  label: '${scoreValue.toStringAsFixed(0)}/10',
+                  tone: tone,
+                  dense: true,
+                ),
+            ],
+          ),
+          if (answer != null && answer.trim().isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              answer,
+              style: SeoulType.bodySecondary.copyWith(
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ],
+          if (strengths.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            ...strengths.map(
+              (s) => _bullet('✓', s.toString(), SeoulColors.lime),
+            ),
+          ],
+          if (suggestions.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            ...suggestions.map(
+              (s) => _bullet('!', s.toString(), SeoulColors.warningText),
+            ),
+          ],
+          if (idealHint != null && idealHint.trim().isNotEmpty) ...[
+            const SizedBox(height: 10),
+            GlassCard(
+              radius: SeoulRadii.control,
+              padding: const EdgeInsets.all(12),
+              fillColor: SeoulColors.limeFill,
+              borderColor: SeoulColors.lime.withValues(alpha: 0.3),
+              showShadow: false,
+              blur: false,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l.betterAnswerLabel,
+                    style: SeoulType.eyebrow.copyWith(color: SeoulColors.lime),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    idealHint,
+                    style: SeoulType.bodySecondary.copyWith(
+                      color: SeoulColors.textPrimary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _bullet(String marker, String text, Color color) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            marker,
+            style: SeoulType.bodySecondary.copyWith(
+              color: color,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(child: Text(text, style: SeoulType.bodySecondary)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildListSection(
+    String title,
+    String ko,
+    StatusTone tone,
+    List<dynamic>? items,
+    Color markerColor,
+  ) {
+    if (items == null || items.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Align(
+            alignment: Alignment.centerLeft,
+            child: StatusChip(label: title, tone: tone, ko: ko),
+          ),
+          const SizedBox(height: 10),
+          GlassCard(
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (final e in items) _bullet('•', e.toString(), markerColor),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
 
-class _Metric extends StatelessWidget {
+/// One sub-score: label, value, and a lime glow bar (spec §3.7).
+class _ScoreBar extends StatelessWidget {
+  const _ScoreBar({
+    required this.label,
+    required this.score,
+    this.last = false,
+  });
+
   final String label;
   final dynamic score;
-  const _Metric(this.label, this.score);
+  final bool last;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(
-          '$score/10',
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
+    final value = score is num ? (score as num).toDouble() : 0.0;
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: last ? 0 : 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  label,
+                  overflow: TextOverflow.ellipsis,
+                  style: SeoulType.caption.copyWith(
+                    color: SeoulColors.textSecondary,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                '${score ?? 0}/10',
+                style: SeoulType.caption.copyWith(
+                  color: SeoulColors.textPrimary,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
           ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.5),
-            fontSize: 11,
-          ),
-        ),
-      ],
+          const SizedBox(height: 7),
+          GlowProgressBar(value: value / 10),
+        ],
+      ),
     );
   }
 }
@@ -394,24 +585,25 @@ class _AudioPlayerWidgetState extends ConsumerState<_AudioPlayerWidget> {
       final errorText = _error == 'audio_recording_not_found'
           ? l.audioRecordingNotFound
           : _error!;
-      return Container(
-        margin: const EdgeInsets.only(bottom: 24),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: AppColors.error.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
-        ),
+      return GlassCard(
+        margin: const EdgeInsets.only(bottom: 18),
+        padding: const EdgeInsets.all(14),
+        fillColor: SeoulColors.dangerFill,
+        borderColor: SeoulColors.danger.withValues(alpha: 0.4),
+        blur: false,
         child: Row(
           children: [
-            const Icon(Icons.error_outline, color: AppColors.error),
-            const SizedBox(width: 16),
+            const Icon(
+              Icons.error_outline,
+              size: 20,
+              color: SeoulColors.dangerText,
+            ),
+            const SizedBox(width: 12),
             Expanded(
               child: Text(
                 errorText,
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.8),
-                  fontSize: 13,
+                style: SeoulType.bodySecondary.copyWith(
+                  color: SeoulColors.dangerText,
                 ),
               ),
             ),
@@ -420,35 +612,33 @@ class _AudioPlayerWidgetState extends ConsumerState<_AudioPlayerWidget> {
       );
     }
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 24),
+    final canPlay = !_isLoading && _recordingUrl != null;
+    final maxSeconds = _duration.inSeconds.toDouble() > 0
+        ? _duration.inSeconds.toDouble()
+        : 1.0;
+
+    return GlassCard(
+      margin: const EdgeInsets.only(bottom: 18),
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceGlass,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.borderGlass),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(Icons.mic, color: AppColors.vibrantLime, size: 20),
+              const Icon(Icons.mic, color: SeoulColors.lime, size: 18),
               const SizedBox(width: 8),
-              Text(
-                l.sessionRecording,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
+              Expanded(
+                child: Text(l.sessionRecording, style: SeoulType.subtitle),
               ),
+              const SizedBox(width: 8),
+              Text('녹음', style: SeoulType.hangulLabel),
               if (_isLoading) ...[
-                const Spacer(),
+                const SizedBox(width: 10),
                 const SizedBox(
                   width: 16,
                   height: 16,
                   child: CircularProgressIndicator(
-                    color: AppColors.vibrantLime,
+                    color: SeoulColors.lime,
                     strokeWidth: 2,
                   ),
                 ),
@@ -458,43 +648,49 @@ class _AudioPlayerWidgetState extends ConsumerState<_AudioPlayerWidget> {
           const SizedBox(height: 12),
           Row(
             children: [
-              // Audit P1: previously `padding: EdgeInsets.zero` with a
-              // 48dp icon left the button visually unbounded — the tap
-              // target met the minimum, but there was no hit-state
-              // padding or static visual region. Wrap in a vibrantLime-
-              // tinted circular surface and give IconButton real padding
-              // so the Material ink ripple has somewhere to land.
-              Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.vibrantLime.withValues(alpha: 0.08),
-                ),
-                child: IconButton(
-                  icon: Icon(
-                    _isPlaying
-                        ? Icons.pause_circle_filled
-                        : Icons.play_circle_fill,
-                    color: _isLoading || _recordingUrl == null
-                        ? Colors.white24
-                        : AppColors.vibrantLime,
-                  ),
-                  iconSize: 48,
-                  tooltip: _isPlaying
-                      ? l.a11yTooltipPauseRecording
-                      : l.a11yTooltipPlayRecording,
-                  padding: const EdgeInsets.all(8),
-                  onPressed: _isLoading || _recordingUrl == null
-                      ? null
-                      : () {
+              // Audit P1: the play control needs a real, statically-sized
+              // visual region so the tap target and the ink ripple agree.
+              Semantics(
+                button: true,
+                label: _isPlaying
+                    ? l.a11yTooltipPauseRecording
+                    : l.a11yTooltipPlayRecording,
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: canPlay
+                      ? () {
                           if (_isPlaying) {
                             _audioPlayer.pause();
                           } else {
                             _audioPlayer.play(UrlSource(_recordingUrl!));
                           }
-                        },
+                        }
+                      : null,
+                  child: Container(
+                    width: 56,
+                    height: 56,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: canPlay
+                          ? SeoulColors.limeFill
+                          : SeoulColors.neutralFill,
+                      border: Border.all(
+                        color: canPlay
+                            ? SeoulColors.lime.withValues(alpha: 0.4)
+                            : SeoulColors.glassBorder,
+                      ),
+                      boxShadow: canPlay ? SeoulShadows.limeGlowSmall : null,
+                    ),
+                    child: Icon(
+                      _isPlaying ? Icons.pause : Icons.play_arrow,
+                      size: 28,
+                      color: canPlay ? SeoulColors.lime : SeoulColors.textFaint,
+                    ),
+                  ),
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 10),
               Expanded(
                 child: Column(
                   children: [
@@ -507,20 +703,17 @@ class _AudioPlayerWidgetState extends ConsumerState<_AudioPlayerWidget> {
                         overlayShape: const RoundSliderOverlayShape(
                           overlayRadius: 14,
                         ),
-                        activeTrackColor: AppColors.vibrantLime,
-                        inactiveTrackColor: Colors.white24,
-                        thumbColor: AppColors.vibrantLime,
+                        activeTrackColor: SeoulColors.lime,
+                        inactiveTrackColor: SeoulColors.neutralFill,
+                        thumbColor: SeoulColors.lime,
+                        overlayColor: SeoulColors.limeFill,
                       ),
                       child: Slider(
                         min: 0,
-                        max: _duration.inSeconds.toDouble() > 0
-                            ? _duration.inSeconds.toDouble()
-                            : 1.0,
+                        max: maxSeconds,
                         value: _position.inSeconds.toDouble().clamp(
                           0.0,
-                          _duration.inSeconds.toDouble() > 0
-                              ? _duration.inSeconds.toDouble()
-                              : 1.0,
+                          maxSeconds,
                         ),
                         onChanged: (value) {
                           if (_recordingUrl != null) {
@@ -536,17 +729,11 @@ class _AudioPlayerWidgetState extends ConsumerState<_AudioPlayerWidget> {
                         children: [
                           Text(
                             _formatDuration(_position),
-                            style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.5),
-                              fontSize: 12,
-                            ),
+                            style: SeoulType.caption,
                           ),
                           Text(
                             _formatDuration(_duration),
-                            style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.5),
-                              fontSize: 12,
-                            ),
+                            style: SeoulType.caption,
                           ),
                         ],
                       ),

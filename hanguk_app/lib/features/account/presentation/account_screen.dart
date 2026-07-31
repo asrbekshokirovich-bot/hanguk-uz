@@ -9,9 +9,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/config/app_config.dart';
-import '../../../design_system/adaptive/hanguk_card.dart';
-import '../../../design_system/adaptive/hanguk_scaffold.dart';
-import '../../../design_system/theme/app_colors.dart';
+import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/data/auth_repository.dart';
 
@@ -19,6 +17,12 @@ import '../../auth/data/auth_repository.dart';
 /// account. The deletion flow is required by both Apple App Store
 /// (Guideline 5.1.1(v)) and Google Play (User Data policy, 2024+) for
 /// any app that supports account creation.
+///
+/// Seoul Night pass: hero identity card + glass rows with hangul glyph
+/// tiles. Deleting an account is irreversible, so it wears
+/// `SeoulColors.danger*` — amber would read as "heads up" for something
+/// that cannot be undone. The tone is desaturated for the navy surface
+/// rather than a raw red.
 class AccountScreen extends ConsumerStatefulWidget {
   const AccountScreen({super.key});
 
@@ -104,6 +108,13 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
     if (!mounted) return;
 
     // Show a non-dismissible progress dialog while the RPC runs.
+    //
+    // Captured before the await: the dialog is non-dismissible and blocks its
+    // own pop, so if this screen unmounts mid-RPC a `mounted`-guarded
+    // teardown would leave the user staring at a spinner they cannot escape
+    // without force-quitting — during account deletion, of all things. The
+    // root navigator outlives the screen, so hold it directly.
+    final rootNavigator = Navigator.of(context, rootNavigator: true);
     showDialog<void>(
       context: context,
       barrierDismissible: false,
@@ -120,31 +131,40 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
       error = e.toString();
     }
 
+    // Tear down the progress dialog first, and unconditionally — see above.
+    if (rootNavigator.canPop()) rootNavigator.pop();
     if (!mounted) return;
-    // Tear down the progress dialog regardless.
-    Navigator.of(context, rootNavigator: true).pop();
 
     if (error != null) {
       final l10n = AppLocalizations.of(context)!;
       final message = error;
       await showDialog<void>(
         context: context,
-        builder: (ctx) => AlertDialog(
-          backgroundColor: const Color(0xFF132A4D),
-          title: Text(
-            l10n.accountDeleteErrorTitle,
-            style: const TextStyle(color: Colors.white),
+        builder: (ctx) => _SeoulDialog(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                l10n.accountDeleteErrorTitle,
+                style: SeoulType.title.copyWith(color: SeoulColors.dangerText),
+              ),
+              const SizedBox(height: 12),
+              Flexible(
+                child: SingleChildScrollView(
+                  child: Text(
+                    l10n.accountDeleteErrorBody(message),
+                    style: SeoulType.bodySecondary,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              SeoulOutlineButton(
+                label: l10n.ok,
+                onPressed: () => Navigator.of(ctx).pop(),
+              ),
+            ],
           ),
-          content: Text(
-            l10n.accountDeleteErrorBody(message),
-            style: const TextStyle(color: Colors.white70),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(ctx).pop(),
-              child: Text(l10n.ok),
-            ),
-          ],
         ),
       );
       return;
@@ -168,216 +188,374 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
     final email = user?.email;
     final phone = user?.phone;
 
-    return HangukScaffold(
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Top bar
-              Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back, color: Colors.white),
-                    tooltip: l10n.accountBackTooltip,
-                    onPressed: () => Navigator.of(context).maybePop(),
+    return SeoulNightScaffold(
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(
+          SeoulSizes.screenPadding,
+          12,
+          SeoulSizes.screenPadding,
+          32,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Top bar — glass back circle + title with its hangul label,
+            // matching the section headers in the Seoul Night shell.
+            Row(
+              children: [
+                _GlassCircleButton(
+                  icon: Icons.arrow_back_rounded,
+                  tooltip: l10n.accountBackTooltip,
+                  onTap: () => Navigator.of(context).maybePop(),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: HangulTag(
+                    en: l10n.accountTitle,
+                    ko: '계정',
+                    titleStyle: SeoulType.title,
                   ),
-                  const SizedBox(width: 8),
-                  Text(
-                    l10n.accountTitle,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+
+            // Identity — the one hero surface on this screen.
+            HeroCard(
+              watermark: '계정',
+              child: Row(
+                children: [
+                  const HangulGlyphTile(glyph: '한', active: true),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(l10n.accountSignedInAs, style: SeoulType.eyebrow),
+                        const SizedBox(height: 6),
+                        Text(
+                          email ?? phone ?? l10n.accountUnknownAccount,
+                          style: SeoulType.subtitle,
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
+            ),
 
-              HangukCard(
-                padding: const EdgeInsets.all(20),
+            const SizedBox(height: 16),
+
+            _AccountCard(
+              glyph: '세',
+              title: l10n.accountSessionLabel,
+              ko: '세션',
+              child: LimeButton(
+                icon: Icons.logout_rounded,
+                label: _signingOut
+                    ? l10n.accountSigningOut
+                    : l10n.accountSignOut,
+                onPressed: _signingOut ? null : _signOut,
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            // P1 #31: data-portability — PIPA + GDPR right.
+            _AccountCard(
+              glyph: '자',
+              title: l10n.accountYourDataLabel,
+              ko: '내 자료',
+              body: l10n.accountYourDataBody,
+              child: SeoulOutlineButton(
+                icon: Icons.download_rounded,
+                label: _exporting
+                    ? l10n.accountPreparingExport
+                    : l10n.accountDownloadMyData,
+                onPressed: _exporting ? null : _exportMyData,
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            _AccountCard(
+              glyph: '삭',
+              title: l10n.accountDangerZoneLabel,
+              ko: '계정 삭제',
+              body: l10n.accountDangerZoneBody,
+              danger: true,
+              child: _DangerButton(
+                icon: Icons.delete_forever_rounded,
+                label: l10n.accountDeleteAccount,
+                onPressed: _showDeleteFlow,
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            // Legal footer. Links are white w/ underline on dark; lime is
+            // reserved for actions/active states only (audit A5/C2).
+            // Wrap, not Row: some locales run long enough to overflow.
+            Wrap(
+              alignment: WrapAlignment.center,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                _LegalLink(
+                  label: l10n.accountPrivacyPolicy,
+                  onTap: () => _openLegal(AppConfig.privacyPolicyUrl),
+                ),
+                const Text(' • ', style: SeoulType.bodySecondary),
+                _LegalLink(
+                  label: l10n.accountTermsOfService,
+                  onTap: () => _openLegal(AppConfig.termsOfServiceUrl),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// One settings block: hangul glyph tile, title + lime hangul label,
+/// optional explanatory body, and the action itself.
+class _AccountCard extends StatelessWidget {
+  const _AccountCard({
+    required this.glyph,
+    required this.title,
+    required this.ko,
+    required this.child,
+    this.body,
+    this.danger = false,
+  });
+
+  final String glyph;
+  final String title;
+  final String ko;
+  final Widget child;
+  final String? body;
+
+  /// Tints the header amber and the hairline warning-coloured. Used by the
+  /// delete-account block only.
+  final bool danger;
+
+  @override
+  Widget build(BuildContext context) {
+    return GlassCard(
+      padding: const EdgeInsets.all(18),
+      borderColor: danger ? SeoulColors.danger.withValues(alpha: 0.45) : null,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              HangulGlyphTile(glyph: glyph, size: 40),
+              const SizedBox(width: 12),
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      l10n.accountSignedInAs,
-                      style: const TextStyle(
-                        color: Colors.white54,
-                        fontSize: 13,
-                      ),
+                      title,
+                      style: danger
+                          ? SeoulType.subtitle.copyWith(
+                              color: SeoulColors.dangerText,
+                            )
+                          : SeoulType.subtitle,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 2),
                     Text(
-                      email ?? phone ?? l10n.accountUnknownAccount,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      ko,
+                      style: danger
+                          ? SeoulType.hangulLabel.copyWith(
+                              color: SeoulColors.dangerText,
+                            )
+                          : SeoulType.hangulLabel,
                     ),
                   ],
                 ),
-              ),
-
-              const SizedBox(height: 16),
-
-              HangukCard(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      l10n.accountSessionLabel,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    ElevatedButton.icon(
-                      icon: const Icon(Icons.logout),
-                      label: Text(
-                        _signingOut
-                            ? l10n.accountSigningOut
-                            : l10n.accountSignOut,
-                      ),
-                      onPressed: _signingOut ? null : _signOut,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white.withValues(alpha: 0.08),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 16),
-
-              // P1 #31: data-portability — PIPA + GDPR right.
-              HangukCard(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      l10n.accountYourDataLabel,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      l10n.accountYourDataBody,
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 13,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    ElevatedButton.icon(
-                      icon: const Icon(Icons.download),
-                      label: Text(
-                        _exporting
-                            ? l10n.accountPreparingExport
-                            : l10n.accountDownloadMyData,
-                      ),
-                      onPressed: _exporting ? null : _exportMyData,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white.withValues(alpha: 0.08),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 16),
-
-              HangukCard(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      l10n.accountDangerZoneLabel,
-                      style: const TextStyle(
-                        color: Colors.redAccent,
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      l10n.accountDangerZoneBody,
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 13,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    ElevatedButton.icon(
-                      icon: const Icon(Icons.delete_forever),
-                      label: Text(l10n.accountDeleteAccount),
-                      onPressed: _showDeleteFlow,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.redAccent,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 24),
-
-              // Legal footer
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  TextButton(
-                    onPressed: () => _openLegal(AppConfig.privacyPolicyUrl),
-                    child: Text(
-                      l10n.accountPrivacyPolicy,
-                      // Links are white w/ underline on dark; lime is reserved
-                      // for actions/active states only (audit A5/C2).
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        decoration: TextDecoration.underline,
-                      ),
-                    ),
-                  ),
-                  const Text(' • ', style: TextStyle(color: Colors.white70)),
-                  TextButton(
-                    onPressed: () => _openLegal(AppConfig.termsOfServiceUrl),
-                    child: Text(
-                      l10n.accountTermsOfService,
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        decoration: TextDecoration.underline,
-                      ),
-                    ),
-                  ),
-                ],
               ),
             ],
           ),
+          if (body != null) ...[
+            const SizedBox(height: 12),
+            Text(body!, style: SeoulType.bodySecondary.copyWith(fontSize: 13)),
+          ],
+          const SizedBox(height: 16),
+          child,
+        ],
+      ),
+    );
+  }
+}
+
+/// 44px glass circle holding one icon — the back affordance used across the
+/// Seoul Night shell (spec §2).
+class _GlassCircleButton extends StatelessWidget {
+  const _GlassCircleButton({
+    required this.icon,
+    required this.tooltip,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: tooltip,
+      child: Tooltip(
+        message: tooltip,
+        child: GestureDetector(
+          onTap: onTap,
+          child: Container(
+            width: SeoulSizes.minTapTarget,
+            height: SeoulSizes.minTapTarget,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: SeoulColors.glass,
+              border: Border.all(color: SeoulColors.glassBorder),
+            ),
+            child: Icon(icon, size: 20, color: SeoulColors.textPrimary),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _LegalLink extends StatelessWidget {
+  const _LegalLink({required this.label, required this.onTap});
+
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextButton(
+      onPressed: onTap,
+      style: TextButton.styleFrom(
+        foregroundColor: SeoulColors.textSecondary,
+        minimumSize: const Size(
+          SeoulSizes.minTapTarget,
+          SeoulSizes.minTapTarget,
+        ),
+      ),
+      child: Text(
+        label,
+        style: SeoulType.bodySecondary.copyWith(
+          decoration: TextDecoration.underline,
+          decorationColor: SeoulColors.textSecondary,
+        ),
+      ),
+    );
+  }
+}
+
+/// The destructive action. `SeoulColors.danger*` fill + hairline — the
+/// desaturated destructive tone, never a raw red hex.
+class _DangerButton extends StatefulWidget {
+  const _DangerButton({required this.label, this.onPressed, this.icon});
+
+  final String label;
+  final VoidCallback? onPressed;
+  final IconData? icon;
+
+  @override
+  State<_DangerButton> createState() => _DangerButtonState();
+}
+
+class _DangerButtonState extends State<_DangerButton> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final enabled = widget.onPressed != null;
+
+    final button = AnimatedOpacity(
+      opacity: enabled ? 1.0 : 0.45,
+      duration: SeoulMotion.fast,
+      child: Container(
+        height: SeoulSizes.buttonHeight,
+        alignment: Alignment.center,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        decoration: BoxDecoration(
+          color: SeoulColors.dangerFill,
+          borderRadius: SeoulRadii.controlR,
+          border: Border.all(color: SeoulColors.danger, width: 1),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (widget.icon != null) ...[
+              Icon(widget.icon, size: 18, color: SeoulColors.dangerText),
+              const SizedBox(width: 8),
+            ],
+            Flexible(
+              child: Text(
+                widget.label,
+                textAlign: TextAlign.center,
+                overflow: TextOverflow.ellipsis,
+                style: SeoulType.button.copyWith(color: SeoulColors.dangerText),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    return Semantics(
+      button: true,
+      enabled: enabled,
+      label: widget.label,
+      child: GestureDetector(
+        onTap: widget.onPressed,
+        onTapDown: enabled ? (_) => setState(() => _pressed = true) : null,
+        onTapUp: enabled ? (_) => setState(() => _pressed = false) : null,
+        onTapCancel: enabled ? () => setState(() => _pressed = false) : null,
+        child: AnimatedScale(
+          scale: _pressed ? SeoulMotion.pressScale : 1.0,
+          duration: SeoulMotion.fast,
+          curve: SeoulMotion.smooth,
+          child: button,
+        ),
+      ),
+    );
+  }
+}
+
+/// Modal shell for Seoul Night: the app background gradient behind a hero
+/// hairline and shadow, so a dialog reads as a raised slice of the app
+/// rather than a flat Material panel.
+class _SeoulDialog extends StatelessWidget {
+  const _SeoulDialog({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: SeoulGradients.appBackground,
+          borderRadius: SeoulRadii.heroR,
+          border: Border.all(color: SeoulColors.heroBorder, width: 1),
+          boxShadow: SeoulShadows.hero,
+        ),
+        child: ClipRRect(
+          borderRadius: SeoulRadii.heroR,
+          child: Padding(padding: const EdgeInsets.all(20), child: child),
         ),
       ),
     );
@@ -413,55 +591,90 @@ class _DeleteConfirmDialogState extends State<_DeleteConfirmDialog> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return AlertDialog(
-      backgroundColor: const Color(0xFF132A4D),
-      title: Text(
-        l10n.accountDeleteDialogTitle,
-        style: const TextStyle(color: Colors.white),
-      ),
-      content: Column(
+    return _SeoulDialog(
+      child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            l10n.accountDeleteDialogBody,
-            style: const TextStyle(color: Colors.white70),
+          Row(
+            children: [
+              const HangulGlyphTile(glyph: '삭', size: 40),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  l10n.accountDeleteDialogTitle,
+                  style: SeoulType.subtitle.copyWith(
+                    color: SeoulColors.dangerText,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Flexible(
+            child: SingleChildScrollView(
+              child: Text(
+                l10n.accountDeleteDialogBody,
+                style: SeoulType.bodySecondary,
+              ),
+            ),
           ),
           const SizedBox(height: 16),
           TextField(
             controller: _confirmCtrl,
             textCapitalization: TextCapitalization.characters,
-            style: const TextStyle(color: Colors.white, letterSpacing: 2),
+            style: SeoulType.codeInput,
+            textAlign: TextAlign.center,
+            cursorColor: SeoulColors.lime,
             decoration: InputDecoration(
               // Hint is the literal sentinel string the controller compares
               // against — must NOT be translated.
               hintText: 'DELETE',
-              hintStyle: const TextStyle(color: Colors.white70),
+              hintStyle: SeoulType.codeInput.copyWith(
+                color: SeoulColors.textFaint,
+              ),
               filled: true,
-              fillColor: Colors.white.withValues(alpha: 0.06),
+              fillColor: SeoulColors.glass,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 14,
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: SeoulRadii.controlR,
+                borderSide: const BorderSide(color: SeoulColors.glassBorder),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: SeoulRadii.controlR,
+                borderSide: const BorderSide(color: SeoulColors.danger),
+              ),
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide.none,
+                borderRadius: SeoulRadii.controlR,
+                borderSide: const BorderSide(color: SeoulColors.glassBorder),
               ),
             ),
           ),
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              Expanded(
+                child: SeoulOutlineButton(
+                  label: l10n.cancel,
+                  onPressed: () => Navigator.of(context).pop(false),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _DangerButton(
+                  label: l10n.accountDeleteDialogConfirm,
+                  onPressed: _canConfirm
+                      ? () => Navigator.of(context).pop(true)
+                      : null,
+                ),
+              ),
+            ],
+          ),
         ],
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(false),
-          child: Text(l10n.cancel),
-        ),
-        ElevatedButton(
-          onPressed: _canConfirm ? () => Navigator.of(context).pop(true) : null,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.redAccent,
-            foregroundColor: Colors.white,
-            disabledBackgroundColor: Colors.redAccent.withValues(alpha: 0.3),
-          ),
-          child: Text(l10n.accountDeleteDialogConfirm),
-        ),
-      ],
     );
   }
 }
@@ -474,24 +687,20 @@ class _DeletionProgressDialog extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     return PopScope(
       canPop: false,
-      child: AlertDialog(
-        backgroundColor: const Color(0xFF132A4D),
-        content: Row(
+      child: _SeoulDialog(
+        child: Row(
           children: [
             const SizedBox(
               width: 28,
               height: 28,
               child: CircularProgressIndicator(
                 strokeWidth: 2,
-                color: AppColors.vibrantLime,
+                valueColor: AlwaysStoppedAnimation<Color>(SeoulColors.lime),
               ),
             ),
             const SizedBox(width: 16),
             Flexible(
-              child: Text(
-                l10n.accountDeleteProgress,
-                style: const TextStyle(color: Colors.white),
-              ),
+              child: Text(l10n.accountDeleteProgress, style: SeoulType.body),
             ),
           ],
         ),

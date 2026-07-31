@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:webview_flutter/webview_flutter.dart';
 
+import '../../../../design_system/seoul_night/seoul_night.dart';
 import '../../../../l10n/app_localizations.dart';
 
 /// Audit M17 (2026-05-12) — Pannellum-backed curated walkaround.
@@ -44,7 +45,7 @@ class _VirtualTourScreenState extends State<VirtualTourScreen> {
     super.initState();
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setBackgroundColor(const Color(0xFF0F1626))
+      ..setBackgroundColor(SeoulColors.mapWater)
       ..addJavaScriptChannel(
         'HangukTourChannel',
         onMessageReceived: _onChannelMessage,
@@ -118,7 +119,7 @@ class _VirtualTourScreenState extends State<VirtualTourScreen> {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     return Scaffold(
-      backgroundColor: const Color(0xFF0F1626),
+      backgroundColor: SeoulColors.mapWater,
       body: Stack(
         children: [
           WebViewWidget(
@@ -135,97 +136,144 @@ class _VirtualTourScreenState extends State<VirtualTourScreen> {
           // wins because the WebView background is opaque.
           if (_failed && l != null)
             Positioned.fill(
-              child: Container(
-                color: const Color(0xFF0F1626).withValues(alpha: 0.92),
-                alignment: Alignment.center,
-                padding: const EdgeInsets.symmetric(horizontal: 32),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.threesixty,
-                      color: Colors.white70,
-                      size: 48,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      l.walkaroundInitErrorTitle,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
+              child: ColoredBox(
+                color: SeoulColors.mapWater.withValues(alpha: 0.92),
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 28),
+                    child: GlassCard(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 28,
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.threesixty,
+                            color: SeoulColors.lime,
+                            size: 40,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            l.walkaroundInitErrorTitle,
+                            textAlign: TextAlign.center,
+                            style: SeoulType.title,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            l.walkaroundInitErrorSubtitle,
+                            textAlign: TextAlign.center,
+                            style: SeoulType.bodySecondary,
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      l.walkaroundInitErrorSubtitle,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ),
 
-          // Back button.
+          // Back button — glass back-circle, spec §2.
           Positioned(
             top: MediaQuery.of(context).padding.top + 16,
-            left: 16,
-            child: Semantics(
-              label: 'Back',
-              button: true,
-              child: InkWell(
-                onTap: () => Navigator.of(context).pop(),
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.6),
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white24),
-                  ),
-                  child: const Icon(
-                    Icons.arrow_back,
-                    color: Colors.white,
-                    size: 24,
-                  ),
-                ),
-              ),
-            ),
+            left: SeoulSizes.screenPadding,
+            child: _TourBackButton(onTap: () => Navigator.of(context).pop()),
           ),
 
-          // Top-right name pill.
+          // Top-right name pill. Top-right, so it never lands under the
+          // bottom-right 한 orb.
           Positioned(
             top: MediaQuery.of(context).padding.top + 16,
-            right: 16,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.6),
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: Colors.white24),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.threesixty, color: Colors.white, size: 16),
-                  const SizedBox(width: 8),
-                  Text(
-                    widget.institutionName,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            right: SeoulSizes.screenPadding,
+            child: _TourPill(label: widget.institutionName),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// 44px glass circle with a back chevron (spec §2).
+class _TourBackButton extends StatelessWidget {
+  const _TourBackButton({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    return Semantics(
+      label: l?.a11yTooltipBack,
+      button: true,
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: Container(
+          width: SeoulSizes.minTapTarget,
+          height: SeoulSizes.minTapTarget,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            // Not `glass` (white @ 7%): this floats over a live
+            // panorama, and a daytime sky makes a white icon on a
+            // white-tinted circle ~1.1:1 — invisible. With no AppBar,
+            // this circle is the only way off the screen. `mapWater`
+            // at 62% keeps it legible whatever the panorama shows.
+            color: SeoulColors.mapWater.withValues(alpha: 0.62),
+            shape: BoxShape.circle,
+            border: Border.all(color: SeoulColors.heroBorder, width: 1),
+            boxShadow: SeoulShadows.card,
+          ),
+          child: const Icon(
+            Icons.arrow_back_rounded,
+            color: SeoulColors.textPrimary,
+            size: 20,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Glass pill naming the campus the panorama belongs to.
+class _TourPill extends StatelessWidget {
+  const _TourPill({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        maxWidth: MediaQuery.of(context).size.width * 0.6,
+      ),
+      child: GlassCard(
+        radius: 999,
+        // Same reason as the back circle: this sits over a live panorama, so
+        // it needs its own dark backing rather than the default glass tint.
+        fillColor: SeoulColors.mapWater.withValues(alpha: 0.62),
+        borderColor: SeoulColors.heroBorder,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.threesixty, color: SeoulColors.lime, size: 15),
+            const SizedBox(width: 8),
+            Flexible(
+              child: Text(
+                label,
+                overflow: TextOverflow.ellipsis,
+                style: SeoulType.caption.copyWith(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: SeoulColors.textPrimary,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            const Text('가상 투어', style: SeoulType.hangulLabel),
+          ],
+        ),
       ),
     );
   }

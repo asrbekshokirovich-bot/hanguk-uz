@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../design_system/theme/app_colors.dart';
+
+import '../../../../design_system/seoul_night/seoul_night.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../data/study_plan_repository.dart';
 
+/// Step 4 of the drafting wizard: the AI's read on the current draft.
+///
+/// Seoul Night: the feedback itself lives on a glass card, and the
+/// track-mismatch notice is a warning-toned block carrying a [StatusChip]
+/// with the track the session is actually on.
 class StudyPlanAnalysisView extends ConsumerWidget {
   final String documentType;
   const StudyPlanAnalysisView({super.key, required this.documentType});
@@ -18,44 +24,53 @@ class StudyPlanAnalysisView extends ConsumerWidget {
     // loadSession, saveDraft all flip isLoading).
     if (state.isAnalyzing) {
       return const Center(
-        child: CircularProgressIndicator(color: AppColors.vibrantLime),
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(SeoulColors.lime),
+        ),
       );
     }
 
     final analysis = state.analyses.isNotEmpty ? state.analyses.first : null;
 
     return Padding(
-      padding: const EdgeInsets.all(24.0),
+      padding: const EdgeInsets.fromLTRB(
+        SeoulSizes.screenPadding,
+        4,
+        SeoulSizes.screenPadding,
+        20,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            l.analysisFeedbackTitle,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
+          HangulTag(
+            en: l.analysisFeedbackTitle,
+            ko: '피드백',
+            titleStyle: SeoulType.title,
           ),
           const SizedBox(height: 16),
           if (analysis == null) ...[
             const Spacer(),
-            Center(
-              child: Text(
-                l.noAnalysisYet,
-                style: const TextStyle(color: Colors.white54),
+            // A failed analysis used to land on the same neutral "nothing here
+            // yet" as never having run one. The student pressed Analyze, was
+            // moved to this step, and was told nothing — a locked feature, a
+            // dropped connection and a bug all looked identical. Say which.
+            if (_failureMessage(l, state.error) case final String message)
+              _AnalysisFailure(
+                message: message,
+                retryLabel: l.analysisRetryButton,
+                onRetry: () => ref
+                    .read(studyPlanSessionProvider.notifier)
+                    .analyzeCurrentDraft(documentType),
+              )
+            else
+              Center(
+                child: Text(l.noAnalysisYet, style: SeoulType.bodySecondary),
               ),
-            ),
             const Spacer(),
           ] else ...[
             Expanded(
-              child: Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppColors.royalBlue.withValues(alpha: 0.05),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.white10),
-                ),
+              child: GlassCard(
+                padding: const EdgeInsets.all(18),
                 child: SingleChildScrollView(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -64,22 +79,20 @@ class StudyPlanAnalysisView extends ConsumerWidget {
                         state.draftContent,
                         state.currentSession?.selectedTrack,
                       ))
-                        _buildTrackWarning(),
+                        _TrackWarning(
+                          trackLabel: _trackLabel(
+                            l,
+                            state.currentSession?.selectedTrack,
+                          ),
+                        ),
                       if (analysis.aiResponse != null &&
                           analysis.aiResponse!.isNotEmpty)
                         Text(
                           analysis.aiResponse!,
-                          style: const TextStyle(
-                            color: Colors.white70,
-                            height: 1.5,
-                            fontSize: 14,
-                          ),
+                          style: SeoulType.bodySecondary,
                         )
                       else
-                        Text(
-                          l.aiReviewedDraft,
-                          style: const TextStyle(color: Colors.white),
-                        ),
+                        Text(l.aiReviewedDraft, style: SeoulType.body),
                     ],
                   ),
                 ),
@@ -87,19 +100,11 @@ class StudyPlanAnalysisView extends ConsumerWidget {
             ),
           ],
           const SizedBox(height: 16),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.white,
-              foregroundColor: Colors.black,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-            ),
+          LimeButton(
+            label: l.returnToDrafting,
             onPressed: () => ref
                 .read(studyPlanSessionProvider.notifier)
                 .updateSessionStep(documentType, 3),
-            child: Text(
-              l.returnToDrafting,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
           ),
         ],
       ),
@@ -115,63 +120,154 @@ class StudyPlanAnalysisView extends ConsumerWidget {
     final hasKorean = koreanReg.hasMatch(content);
     final hasLatin = latinReg.hasMatch(content);
 
-    if (track == 'english' && hasKorean && !hasLatin) return true;
-    if (track == 'korean' && hasLatin && !hasKorean) return true;
+    // Sessions now store 'en'/'ko' (they used to store 'english'/'korean'),
+    // so normalize both old and new codes — otherwise this check silently
+    // never fires for any session created after the code switch.
+    final normalized = switch (track) {
+      'english' || 'en' => 'english',
+      'korean' || 'ko' => 'korean',
+      _ => track,
+    };
+
+    if (normalized == 'english' && hasKorean && !hasLatin) return true;
+    if (normalized == 'korean' && hasLatin && !hasKorean) return true;
 
     return false;
   }
 
-  Widget _buildTrackWarning() {
-    return Builder(
-      builder: (context) {
-        // Hardcoded Uzbek copy was unreadable for Korean / English
-        // speakers — see audit U2. Picks the message from the session
-        // track until full intl wiring lands.
-        return Consumer(
-          builder: (context, ref, _) {
-            final state = ref.watch(documentSessionProvider(documentType));
-            final track = state.currentSession?.selectedTrack ?? 'uzbek';
-            final message = switch (track) {
-              'korean' => '선택한 작성 언어와 본문 언어가 다릅니다. 선택한 언어로 다시 작성해 주세요.',
-              'english' =>
-                'Your draft language does not match the selected track. Please rewrite in the selected language.',
-              _ =>
-                'Sening tracking boshqa edi! Draftini tanlangan tilda yozganingga ishonch hosil qil.',
-            };
-            return Container(
-              margin: const EdgeInsets.only(bottom: 16),
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.redAccent.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: Colors.redAccent.withValues(alpha: 0.3),
+  /// Display name of the track the session is on. Accepts both the legacy
+  /// ('english'/'korean') and current ('en'/'ko') codes, exactly like
+  /// [_detectTrackMismatch] does.
+  String _trackLabel(AppLocalizations l, String? track) => switch (track) {
+    'korean' || 'ko' => l.trackKorean,
+    _ => l.trackEnglish,
+  };
+}
+
+/// "Your draft's language doesn't match your chosen track."
+///
+/// The notice is shown in the USER's UI language (not the track's language),
+/// so every locale can read it. Previously it was hardcoded per-track
+/// (ko/en/uz only) — see audit U2 / G3·4.
+class _TrackWarning extends StatelessWidget {
+  const _TrackWarning({required this.trackLabel});
+
+  /// Localized name of the track the draft was supposed to be written in.
+  final String trackLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    final message = AppLocalizations.of(context)!.trackMismatchWarning;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: SeoulColors.warningFill,
+        borderRadius: SeoulRadii.tileR,
+        border: Border.all(color: SeoulColors.warning.withValues(alpha: 0.45)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(
+                Icons.warning_amber_rounded,
+                color: SeoulColors.warningText,
+                size: 20,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  message,
+                  style: SeoulType.bodySecondary.copyWith(
+                    color: SeoulColors.warningText,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.warning_amber_rounded,
-                    color: Colors.redAccent,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      message,
-                      style: const TextStyle(
-                        color: Colors.redAccent,
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ],
+            ],
+          ),
+          const SizedBox(height: 10),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: StatusChip(
+                label: trackLabel,
+                tone: StatusTone.warning,
+                ko: '주의',
+                dense: true,
               ),
-            );
-          },
-        );
-      },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The localized reason the analysis is missing, or null when it simply has
+/// not been run yet.
+///
+/// Only codes this view knows are surfaced. Anything else — a stale or
+/// unrelated error left on the session state — falls back to the neutral
+/// empty state rather than showing a student a string meant for a log.
+String? _failureMessage(AppLocalizations l, String? error) {
+  switch (error) {
+    case analysisErrorPlanRequired:
+      return l.analysisErrorPlanRequired;
+    case analysisErrorRateLimited:
+      return l.analysisErrorRateLimited;
+    case analysisErrorServiceDown:
+      return l.analysisErrorServiceDown;
+    case analysisErrorFailed:
+      return l.analysisErrorFailed;
+  }
+  return null;
+}
+
+/// Why the analysis is not here, and a way to ask again.
+class _AnalysisFailure extends StatelessWidget {
+  const _AnalysisFailure({
+    required this.message,
+    required this.retryLabel,
+    required this.onRetry,
+  });
+
+  final String message;
+  final String retryLabel;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return GlassCard(
+      padding: const EdgeInsets.all(18),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(
+            Icons.error_outline,
+            color: SeoulColors.warningText,
+            size: 28,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            message,
+            textAlign: TextAlign.center,
+            style: SeoulType.bodySecondary,
+          ),
+          const SizedBox(height: 18),
+          SeoulOutlineButton(
+            label: retryLabel,
+            expand: false,
+            onPressed: onRetry,
+          ),
+        ],
+      ),
     );
   }
 }

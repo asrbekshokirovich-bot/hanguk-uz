@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../../design_system/theme/app_colors.dart';
+import '../../../../design_system/seoul_night/seoul_night.dart';
 import '../../../../l10n/app_localizations.dart';
 
 /// Status tags consumed by [LiveMetricsBar]. `error` was added 2026-05-10
@@ -26,25 +26,38 @@ class LiveMetricsBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.02),
-        borderRadius: BorderRadius.circular(8),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      decoration: const BoxDecoration(
+        color: SeoulColors.neutralFill,
+        borderRadius: SeoulRadii.buttonR,
       ),
+      // Both sides are intrinsically sized, so a plain spaceBetween Row has
+      // nowhere to give: in Uzbek ("So'zlar" / "Belgilar" / "Saqlash xatosi")
+      // it striped the drafting workspace at 1.15 text scale. The metrics
+      // group yields first, since the save status is the part you must be
+      // able to read.
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
-            children: [
-              _buildMetric(l.metricWords, wordCount.toString()),
-              const SizedBox(width: 16),
-              _buildMetric(l.metricCharacters, charCount.toString()),
-              if (track != null) ...[
+          Flexible(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Flexible(
+                  child: _buildMetric(l.metricWords, wordCount.toString()),
+                ),
                 const SizedBox(width: 16),
-                _buildTrackIndicator(track!),
+                Flexible(
+                  child: _buildMetric(l.metricCharacters, charCount.toString()),
+                ),
+                if (track != null) ...[
+                  const SizedBox(width: 16),
+                  _buildTrackIndicator(track!),
+                ],
               ],
-            ],
+            ),
           ),
+          const SizedBox(width: 12),
           _buildSaveStatus(l),
         ],
       ),
@@ -53,17 +66,21 @@ class LiveMetricsBar extends StatelessWidget {
 
   Widget _buildMetric(String label, String value) {
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          '$label: ',
-          style: const TextStyle(color: Colors.white54, fontSize: 12),
+        Flexible(
+          child: Text(
+            '$label: ',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: SeoulType.caption,
+          ),
         ),
         Text(
           value,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 12,
-            fontWeight: FontWeight.bold,
+          style: SeoulType.caption.copyWith(
+            color: SeoulColors.textPrimary,
+            fontWeight: FontWeight.w700,
           ),
         ),
       ],
@@ -78,22 +95,22 @@ class LiveMetricsBar extends StatelessWidget {
     switch (saveStatus) {
       case SaveStatus.unsaved:
         icon = Icons.edit_outlined;
-        color = Colors.white54;
+        color = SeoulColors.textSecondary;
         text = l.saveStatusUnsaved;
         break;
       case SaveStatus.saving:
         icon = Icons.cloud_upload_outlined;
-        color = Colors.orangeAccent;
+        color = SeoulColors.infoText;
         text = l.saveStatusSaving;
         break;
       case SaveStatus.saved:
         icon = Icons.cloud_done_outlined;
-        color = AppColors.vibrantLime;
+        color = SeoulColors.lime;
         text = l.saveStatusSaved;
         break;
       case SaveStatus.error:
         icon = Icons.cloud_off_outlined;
-        color = Colors.redAccent;
+        color = SeoulColors.dangerText;
         text = l.saveStatusError;
         break;
     }
@@ -106,32 +123,28 @@ class LiveMetricsBar extends StatelessWidget {
             height: 12,
             child: CircularProgressIndicator(
               strokeWidth: 2,
-              color: Colors.orangeAccent,
+              color: SeoulColors.infoText,
             ),
           )
         else
           Icon(icon, color: color, size: 14),
         const SizedBox(width: 6),
-        Text(text, style: TextStyle(color: color, fontSize: 12)),
+        Text(text, style: SeoulType.caption.copyWith(color: color)),
       ],
     );
   }
 
   Widget _buildTrackIndicator(String track) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: AppColors.vibrantLime.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: AppColors.vibrantLime.withValues(alpha: 0.3)),
+        color: SeoulColors.limeFill,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: SeoulColors.lime.withValues(alpha: 0.3)),
       ),
       child: Text(
         track.toUpperCase(),
-        style: const TextStyle(
-          color: AppColors.vibrantLime,
-          fontSize: 10,
-          fontWeight: FontWeight.bold,
-        ),
+        style: SeoulType.eyebrow.copyWith(color: SeoulColors.lime),
       ),
     );
   }

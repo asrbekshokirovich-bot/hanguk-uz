@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../design_system/theme/app_colors.dart';
-import '../../../../design_system/adaptive/hanguk_scaffold.dart';
-import '../../../../l10n/app_localizations.dart';
+import '../../../design_system/seoul_night/seoul_night.dart';
+import '../../../l10n/app_localizations.dart';
 import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dart:math';
@@ -55,23 +54,81 @@ class _StudyPlanScreenState extends ConsumerState<StudyPlanScreen> {
       ? l.studyPlanDocumentName
       : l.personalStatementDocumentName;
 
+  /// One-line pitch under the hero title on the landing state.
+  String _documentDesc(AppLocalizations l) =>
+      widget.documentType == 'study_plan'
+      ? l.studyPlanCardDesc
+      : l.personalStatementCardDesc;
+
+  /// Decorative hangul that fronts the document everywhere on this screen —
+  /// stays Korean in every locale (DESIGN_SPEC §1 Korean voice).
+  String get _hangulTitle =>
+      widget.documentType == 'study_plan' ? '학업계획서' : '자기소개서';
+
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     final state = ref.watch(documentSessionProvider(widget.documentType));
 
-    return HangukScaffold(
-      appBar: AppBar(
-        title: Text(_documentTitle(l)),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        actions: [
+    // Pushed route, so no orb sits over this screen and no clearance is
+    // reserved at the bottom.
+    // The previous floatingActionButton mounted a placeholder
+    // StudyPlanChatFab that had no real chat behind it. Removed
+    // 2026-05-10 per training audit P0 #6.
+    return SeoulNightScaffold(
+      body: Column(
+        children: [
+          _buildHeader(l, state),
+          Expanded(
+            child: state.isSessionsLoading && state.currentSession == null
+                ? const Center(
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        SeoulColors.lime,
+                      ),
+                    ),
+                  )
+                : state.currentSession == null
+                ? _buildSessionList(state)
+                : _buildSessionWizard(state),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Glass back circle + the document's title and hangul label, with the
+  /// per-state actions on the right. Replaces the old AppBar so the Seoul
+  /// Night gradient can run edge to edge behind it.
+  Widget _buildHeader(AppLocalizations l, StudyPlanSessionState state) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(SeoulSizes.screenPadding, 10, 8, 4),
+      child: Row(
+        children: [
+          _GlassCircleButton(
+            icon: Icons.arrow_back_rounded,
+            tooltip: l.a11yTooltipBack,
+            onTap: () => Navigator.of(context).maybePop(),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: HangulTag(
+              en: _documentTitle(l),
+              ko: _hangulTitle,
+              titleStyle: SeoulType.title,
+            ),
+          ),
           // Audit H4: dedicated history screen (more detail than the
           // inline session list on the wizard's home step).
           if (state.currentSession == null)
             IconButton(
               tooltip: l.pastDraftsTooltip,
-              icon: const Icon(Icons.history, color: Colors.white),
+              color: SeoulColors.textSecondary,
+              constraints: const BoxConstraints(
+                minWidth: SeoulSizes.minTapTarget,
+                minHeight: SeoulSizes.minTapTarget,
+              ),
+              icon: const Icon(Icons.history),
               onPressed: () => Navigator.of(context).push(
                 MaterialPageRoute<void>(
                   builder: (_) =>
@@ -84,9 +141,13 @@ class _StudyPlanScreenState extends ConsumerState<StudyPlanScreen> {
             // the selected_track switch. Add more fields here as the
             // need surfaces.
             PopupMenuButton<String>(
-              icon: const Icon(Icons.tune, color: Colors.white),
+              icon: const Icon(Icons.tune, color: SeoulColors.textSecondary),
               tooltip: l.sessionSettingsTooltip,
-              color: AppColors.backgroundNavy,
+              color: SeoulColors.royalBlue,
+              shape: const RoundedRectangleBorder(
+                borderRadius: SeoulRadii.controlR,
+                side: BorderSide(color: SeoulColors.glassBorder),
+              ),
               onSelected: (val) async {
                 final session = state.currentSession;
                 if (session == null) return;
@@ -104,22 +165,21 @@ class _StudyPlanScreenState extends ConsumerState<StudyPlanScreen> {
               itemBuilder: (_) => [
                 PopupMenuItem(
                   value: 'track-en',
-                  child: Text(
-                    l.switchTrackEnglish,
-                    style: const TextStyle(color: Colors.white),
-                  ),
+                  child: Text(l.switchTrackEnglish, style: SeoulType.body),
                 ),
                 PopupMenuItem(
                   value: 'track-ko',
-                  child: Text(
-                    l.switchTrackKorean,
-                    style: const TextStyle(color: Colors.white),
-                  ),
+                  child: Text(l.switchTrackKorean, style: SeoulType.body),
                 ),
               ],
             ),
             IconButton(
-              icon: const Icon(Icons.close, color: Colors.white),
+              icon: const Icon(Icons.close),
+              color: SeoulColors.textSecondary,
+              constraints: const BoxConstraints(
+                minWidth: SeoulSizes.minTapTarget,
+                minHeight: SeoulSizes.minTapTarget,
+              ),
               tooltip: l.a11yTooltipCloseSession,
               onPressed: () => ref
                   .read(studyPlanSessionProvider.notifier)
@@ -128,19 +188,6 @@ class _StudyPlanScreenState extends ConsumerState<StudyPlanScreen> {
           ],
         ],
       ),
-      body: SafeArea(
-        child: state.isSessionsLoading && state.currentSession == null
-            ? const Center(
-                child: CircularProgressIndicator(color: AppColors.vibrantLime),
-              )
-            : state.currentSession == null
-            ? _buildSessionList(state)
-            : _buildSessionWizard(state),
-      ),
-      // The previous floatingActionButton mounted a placeholder
-      // StudyPlanChatFab that had no real chat behind it. Removed
-      // 2026-05-10 per training audit P0 #6.
-      floatingActionButton: null,
     );
   }
 
@@ -148,167 +195,160 @@ class _StudyPlanScreenState extends ConsumerState<StudyPlanScreen> {
     final l = AppLocalizations.of(context)!;
     final relevantSessions = state.sessions;
 
-    return Padding(
-      padding: const EdgeInsets.all(24.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(
+        SeoulSizes.screenPadding,
+        12,
+        SeoulSizes.screenPadding,
+        32,
+      ),
+      children: [
+        // The one hero surface on this screen: what the document is, and
+        // the single lime action that starts one.
+        HeroCard(
+          watermark: '한국',
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(_hangulTitle, style: SeoulType.hangulLabel),
+              const SizedBox(height: 6),
+              Text(_documentTitle(l), style: SeoulType.headline),
+              const SizedBox(height: 10),
+              Text(_documentDesc(l), style: SeoulType.bodySecondary),
+              const SizedBox(height: 22),
+              LimeButton(
+                icon: Icons.add_rounded,
+                label: l.createNewSession,
+                onPressed: _showCreateSessionDialog,
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 28),
+        HangulTag(
+          en: l.yourSavedDrafts,
+          ko: '저장된 초안',
+          titleStyle: SeoulType.title,
+        ),
+        const SizedBox(height: 14),
+        if (relevantSessions.isEmpty)
+          GlassCard(
+            padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 18),
+            child: Center(
+              child: Text(l.noPreviousDrafts, style: SeoulType.bodySecondary),
+            ),
+          )
+        else
+          ...relevantSessions.map((s) => _buildSessionRow(l, s)),
+      ],
+    );
+  }
+
+  Widget _buildSessionRow(AppLocalizations l, StudyPlanSession s) {
+    return GlassCard(
+      // Saved drafts can run to a couple of dozen rows; one blur layer each
+      // is not worth it.
+      blur: false,
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(14),
+      onTap: () {
+        ref
+            .read(studyPlanSessionProvider.notifier)
+            .loadSession(widget.documentType, s.id)
+            .then((_) {
+              _draftController.text = ref
+                  .read(documentSessionProvider(widget.documentType))
+                  .draftContent;
+            });
+      },
+      child: Row(
         children: [
-          ElevatedButton.icon(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.vibrantLime,
-              foregroundColor: Colors.black,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-            ),
-            icon: const Icon(Icons.add),
-            label: Text(
-              l.createNewSession,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            onPressed: () {
-              _showCreateSessionDialog();
-            },
+          HangulGlyphTile(
+            glyph: HangulGlyphTile.firstSyllable(_hangulTitle),
+            active: s.status == 'completed',
           ),
-          const SizedBox(height: 32),
-          Text(
-            l.yourSavedDrafts,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 16),
+          const SizedBox(width: 14),
           Expanded(
-            child: relevantSessions.isEmpty
-                ? Center(
-                    child: Text(
-                      l.noPreviousDrafts,
-                      style: const TextStyle(color: Colors.white54),
-                    ),
-                  )
-                : ListView.builder(
-                    itemCount: relevantSessions.length,
-                    itemBuilder: (context, i) {
-                      final s = relevantSessions[i];
-                      return ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        leading: const Icon(
-                          Icons.edit_document,
-                          color: AppColors.royalBlue,
-                        ),
-                        title: Text(
-                          l.savedDraftItemTitle(
-                            s.universityNameEn ?? l.generalDraftLabel,
-                            _documentName(l),
-                          ),
-                          style: const TextStyle(color: Colors.white),
-                        ),
-                        subtitle: Text(
-                          l.sessionStatusLabel(s.status),
-                          style: const TextStyle(color: Colors.white54),
-                        ),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: const Icon(
-                                Icons.delete,
-                                color: AppColors.error,
-                              ),
-                              tooltip: l.a11yTooltipDeleteSession,
-                              onPressed: () {
-                                showDialog(
-                                  context: context,
-                                  builder: (context) {
-                                    final dl = AppLocalizations.of(context)!;
-                                    return AlertDialog(
-                                      backgroundColor: AppColors.backgroundNavy,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(16),
-                                        side: const BorderSide(
-                                          color: Colors.white10,
-                                        ),
-                                      ),
-                                      title: Text(
-                                        dl.deleteSessionTitle,
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                      content: Text(
-                                        dl.deleteSessionBody,
-                                        style: const TextStyle(
-                                          color: Colors.white70,
-                                        ),
-                                      ),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () =>
-                                              Navigator.pop(context),
-                                          child: Text(
-                                            dl.cancel,
-                                            style: const TextStyle(
-                                              color: Colors.white54,
-                                            ),
-                                          ),
-                                        ),
-                                        ElevatedButton(
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: AppColors.error,
-                                            foregroundColor: Colors.white,
-                                          ),
-                                          onPressed: () {
-                                            Navigator.pop(context);
-                                            ref
-                                                .read(
-                                                  studyPlanSessionProvider
-                                                      .notifier,
-                                                )
-                                                .deleteSession(
-                                                  widget.documentType,
-                                                  s.id,
-                                                );
-                                          },
-                                          child: Text(
-                                            dl.deleteLabel,
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    );
-                                  },
-                                );
-                              },
-                            ),
-                            const Icon(
-                              Icons.arrow_forward_ios,
-                              size: 16,
-                              color: Colors.white24,
-                            ),
-                          ],
-                        ),
-                        onTap: () {
-                          ref
-                              .read(studyPlanSessionProvider.notifier)
-                              .loadSession(widget.documentType, s.id)
-                              .then((_) {
-                                _draftController.text = ref
-                                    .read(
-                                      documentSessionProvider(
-                                        widget.documentType,
-                                      ),
-                                    )
-                                    .draftContent;
-                              });
-                        },
-                      );
-                    },
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  l.savedDraftItemTitle(
+                    s.universityNameEn ?? l.generalDraftLabel,
+                    _documentName(l),
                   ),
+                  style: SeoulType.subtitle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                Text(l.sessionStatusLabel(s.status), style: SeoulType.caption),
+              ],
+            ),
+          ),
+          const SizedBox(width: 6),
+          _GlassCircleButton(
+            icon: Icons.delete_outline_rounded,
+            tooltip: l.a11yTooltipDeleteSession,
+            foreground: SeoulColors.dangerText,
+            onTap: () => _confirmDeleteSession(s),
           ),
         ],
       ),
+    );
+  }
+
+  void _confirmDeleteSession(StudyPlanSession s) {
+    showDialog<void>(
+      context: context,
+      builder: (context) {
+        final dl = AppLocalizations.of(context)!;
+        return _SeoulDialog(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                dl.deleteSessionTitle,
+                style: SeoulType.title.copyWith(color: SeoulColors.dangerText),
+              ),
+              const SizedBox(height: 12),
+              Flexible(
+                child: SingleChildScrollView(
+                  child: Text(
+                    dl.deleteSessionBody,
+                    style: SeoulType.bodySecondary,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 22),
+              Row(
+                children: [
+                  Expanded(
+                    child: SeoulOutlineButton(
+                      label: dl.cancel,
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _DangerButton(
+                      label: dl.deleteLabel,
+                      onPressed: () {
+                        Navigator.pop(context);
+                        ref
+                            .read(studyPlanSessionProvider.notifier)
+                            .deleteSession(widget.documentType, s.id);
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -326,35 +366,44 @@ class _StudyPlanScreenState extends ConsumerState<StudyPlanScreen> {
   Widget _buildStepper(int currentStep) {
     final l = AppLocalizations.of(context)!;
     return Padding(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.fromLTRB(SeoulSizes.screenPadding, 8, 20, 12),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildStepIcon(
-            1,
-            currentStep,
-            Icons.info_outline,
-            l.stepperLabelGuide,
+          Expanded(
+            child: _buildStepIcon(
+              1,
+              currentStep,
+              Icons.info_outline,
+              l.stepperLabelGuide,
+            ),
           ),
           _buildConnector(1, currentStep),
-          _buildStepIcon(
-            2,
-            currentStep,
-            Icons.format_quote,
-            l.stepperLabelExample,
+          Expanded(
+            child: _buildStepIcon(
+              2,
+              currentStep,
+              Icons.format_quote,
+              l.stepperLabelExample,
+            ),
           ),
           _buildConnector(2, currentStep),
-          _buildStepIcon(
-            3,
-            currentStep,
-            Icons.edit_document,
-            l.stepperLabelDraft,
+          Expanded(
+            child: _buildStepIcon(
+              3,
+              currentStep,
+              Icons.edit_document,
+              l.stepperLabelDraft,
+            ),
           ),
           _buildConnector(3, currentStep),
-          _buildStepIcon(
-            4,
-            currentStep,
-            Icons.analytics_outlined,
-            l.stepperLabelFeedback,
+          Expanded(
+            child: _buildStepIcon(
+              4,
+              currentStep,
+              Icons.analytics_outlined,
+              l.stepperLabelFeedback,
+            ),
           ),
         ],
       ),
@@ -369,39 +418,61 @@ class _StudyPlanScreenState extends ConsumerState<StudyPlanScreen> {
   ) {
     final isActive = currentStep == step;
     final isPast = currentStep > step;
-    final color = isActive || isPast ? AppColors.vibrantLime : Colors.white24;
+    final reached = isActive || isPast;
 
-    return GestureDetector(
-      onTap: () {
-        if (isPast || isActive) {
-          ref
-              .read(studyPlanSessionProvider.notifier)
-              .updateSessionStep(widget.documentType, step);
-        }
-      },
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: isActive
-                  ? color.withValues(alpha: 0.2)
-                  : Colors.transparent,
-              border: Border.all(color: color, width: 2),
+    return Semantics(
+      button: reached,
+      selected: isActive,
+      label: label,
+      child: GestureDetector(
+        onTap: () {
+          if (reached) {
+            ref
+                .read(studyPlanSessionProvider.notifier)
+                .updateSessionStep(widget.documentType, step);
+          }
+        },
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AnimatedContainer(
+              duration: SeoulMotion.fast,
+              curve: SeoulMotion.smooth,
+              width: SeoulSizes.minTapTarget,
+              height: SeoulSizes.minTapTarget,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: isActive ? SeoulColors.lime : SeoulColors.glass,
+                border: Border.all(
+                  color: reached ? SeoulColors.lime : SeoulColors.glassBorder,
+                  width: 1,
+                ),
+                boxShadow: isActive ? SeoulShadows.limeGlowSmall : null,
+              ),
+              child: Icon(
+                icon,
+                size: 20,
+                color: isActive
+                    ? SeoulColors.ink
+                    : reached
+                    ? SeoulColors.lime
+                    : SeoulColors.textFaint,
+              ),
             ),
-            child: Icon(icon, color: color, size: 20),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              color: color,
-              fontSize: 12,
-              fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+            const SizedBox(height: 6),
+            Text(
+              label,
+              maxLines: 1,
+              textAlign: TextAlign.center,
+              overflow: TextOverflow.ellipsis,
+              style: SeoulType.caption.copyWith(
+                color: reached ? SeoulColors.lime : SeoulColors.textFaint,
+                fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -409,17 +480,20 @@ class _StudyPlanScreenState extends ConsumerState<StudyPlanScreen> {
   Widget _buildConnector(int step, int currentStep) {
     final isActive = currentStep > step;
     return Container(
-      width: 20, // Fixed width instead of Expanded
+      width: 16,
       height: 2,
-      margin: const EdgeInsets.symmetric(horizontal: 4),
-      color: isActive ? AppColors.vibrantLime : Colors.white24,
+      // Sits on the vertical centre of the 44px step circle.
+      margin: const EdgeInsets.only(top: SeoulSizes.minTapTarget / 2 - 1),
+      color: isActive ? SeoulColors.lime : SeoulColors.neutralFill,
     );
   }
 
   Widget _buildCurrentStep(StudyPlanSessionState state, int step) {
     if (state.isLoading) {
       return const Center(
-        child: CircularProgressIndicator(color: AppColors.vibrantLime),
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(SeoulColors.lime),
+        ),
       );
     }
 
@@ -449,35 +523,26 @@ class _StudyPlanScreenState extends ConsumerState<StudyPlanScreen> {
     final guide = _stepOneGuide(track, widget.documentType);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.fromLTRB(
+        SeoulSizes.screenPadding,
+        4,
+        SeoulSizes.screenPadding,
+        28,
+      ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            guide.title,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            guide.intro,
-            style: const TextStyle(
-              color: Colors.white70,
-              fontSize: 16,
-              height: 1.5,
-            ),
-          ),
-          const SizedBox(height: 24),
+          Text(guide.title, style: SeoulType.headline),
+          const SizedBox(height: 14),
+          Text(guide.intro, style: SeoulType.bodySecondary),
+          const SizedBox(height: 22),
           for (var i = 0; i < guide.items.length; i++) ...[
             _buildGuideItem(
               icon: guide.items[i].icon,
               title: guide.items[i].title,
               description: guide.items[i].description,
             ),
-            if (i != guide.items.length - 1) const SizedBox(height: 16),
+            if (i != guide.items.length - 1) const SizedBox(height: 12),
           ],
 
           // Dummy "Tavsiya etilgan videolar (CRM)" video tiles
@@ -485,25 +550,13 @@ class _StudyPlanScreenState extends ConsumerState<StudyPlanScreen> {
           // were 3 placeholder cards with no source URLs and no onTap.
           // Re-add as a real list backed by a training_videos table /
           // CRM-curated provider when the feature is actually built.
-          const SizedBox(height: 32),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.vibrantLime,
-                foregroundColor: Colors.black,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-              ),
-              onPressed: () => ref
-                  .read(studyPlanSessionProvider.notifier)
-                  .updateSessionStep(widget.documentType, 2),
-              child: Text(
-                AppLocalizations.of(context)!.readExamplesButton,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ),
+          const SizedBox(height: 28),
+          LimeButton(
+            label: AppLocalizations.of(context)!.readExamplesButton,
+            onPressed: () => ref
+                .read(studyPlanSessionProvider.notifier)
+                .updateSessionStep(widget.documentType, 2),
           ),
-          const SizedBox(height: 24), // Bottom padding
         ],
       ),
     );
@@ -514,39 +567,21 @@ class _StudyPlanScreenState extends ConsumerState<StudyPlanScreen> {
     required String title,
     required String description,
   }) {
-    return Container(
+    return GlassCard(
+      blur: false,
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.royalBlue.withValues(alpha: 0.3)),
-      ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: AppColors.vibrantLime, size: 24),
-          const SizedBox(width: 16),
+          _IconTile(icon: icon),
+          const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  description,
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 14,
-                    height: 1.4,
-                  ),
-                ),
+                Text(title, style: SeoulType.subtitle),
+                const SizedBox(height: 6),
+                Text(description, style: SeoulType.bodySecondary),
               ],
             ),
           ),
@@ -729,55 +764,49 @@ class _StudyPlanScreenState extends ConsumerState<StudyPlanScreen> {
         state.currentSession?.universityNameEn ?? l.targetUniversityLabel;
 
     return ListView(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.fromLTRB(
+        SeoulSizes.screenPadding,
+        4,
+        SeoulSizes.screenPadding,
+        28,
+      ),
       children: [
-        Row(
-          children: [
-            const Icon(Icons.school, color: AppColors.vibrantLime, size: 24),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    l.targetUniversityLabel,
-                    style: const TextStyle(color: Colors.white70, fontSize: 12),
-                  ),
-                  Text(
-                    uniName,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+        GlassCard(
+          blur: false,
+          padding: const EdgeInsets.all(14),
+          child: Row(
+            children: [
+              // 대 — the first syllable of 대학교 (university).
+              const HangulGlyphTile(glyph: '대'),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(l.targetUniversityLabel, style: SeoulType.eyebrow),
+                    const SizedBox(height: 4),
+                    Text(
+                      uniName,
+                      style: SeoulType.subtitle,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                ],
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: AppColors.vibrantLime.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: AppColors.vibrantLime.withValues(alpha: 0.3),
+                  ],
                 ),
               ),
-              child: Text(
-                state.currentSession?.selectedTrack?.toUpperCase() ??
+              const SizedBox(width: 10),
+              StatusChip(
+                label:
+                    state.currentSession?.selectedTrack?.toUpperCase() ??
                     l.generalDraftLabel.toUpperCase(),
-                style: const TextStyle(
-                  color: AppColors.vibrantLime,
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                ),
+                tone: StatusTone.lime,
+                dense: true,
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-        const SizedBox(height: 24),
-        const Divider(color: Colors.white10),
-        const SizedBox(height: 24),
+        const SizedBox(height: 20),
         _buildExampleContent(uniName),
       ],
     );
@@ -789,14 +818,14 @@ class _StudyPlanScreenState extends ConsumerState<StudyPlanScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _AiExampleCard(
-          key: ValueKey('uni_\${uniName}'),
+          key: ValueKey('uni_$uniName'),
           universityName: uniName,
           index: 1,
           isEmbassy: false,
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 16),
         _AiExampleCard(
-          key: ValueKey('embassy_\${uniName}'),
+          key: ValueKey('embassy_$uniName'),
           // The embassy template uses a fixed addressee label that does
           // not change between sessions; the localized version is read
           // by _AiExampleCard via the embassy flag.
@@ -804,22 +833,13 @@ class _StudyPlanScreenState extends ConsumerState<StudyPlanScreen> {
           index: 2,
           isEmbassy: true,
         ),
-        const SizedBox(height: 32),
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.vibrantLime,
-            foregroundColor: Colors.black,
-            padding: const EdgeInsets.symmetric(vertical: 16),
-          ),
+        const SizedBox(height: 28),
+        LimeButton(
+          label: l.startDraftingButton,
           onPressed: () => ref
               .read(studyPlanSessionProvider.notifier)
               .updateSessionStep(widget.documentType, 3),
-          child: Text(
-            l.startDraftingButton,
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
         ),
-        const SizedBox(height: 24),
       ],
     );
   }
@@ -834,7 +854,12 @@ class _StudyPlanScreenState extends ConsumerState<StudyPlanScreen> {
         ? state.draftContent
         : (state.drafts.isNotEmpty ? state.drafts.first.content : '');
     return Padding(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.fromLTRB(
+        SeoulSizes.screenPadding,
+        4,
+        SeoulSizes.screenPadding,
+        12,
+      ),
       child: AdvancedDraftingWorkspace(
         // ValueKey forces the workspace to remount (and re-seed initialText)
         // when switching between sessions of the same documentType.
@@ -860,148 +885,135 @@ class _StudyPlanScreenState extends ConsumerState<StudyPlanScreen> {
           builder: (context, setDialogState) {
             final l = AppLocalizations.of(context)!;
 
-            return AlertDialog(
-              backgroundColor: AppColors.backgroundNavy,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(24),
-                side: const BorderSide(color: Colors.white10),
-              ),
-              title: Text(
-                widget.documentType == 'study_plan'
-                    ? l.newStudyPlanDialogTitle
-                    : l.newPersonalStatementDialogTitle,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l.selectTargetUniversityStep,
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 13,
+            // Consumer, not the screen's `ref`: `ref.watch` here would mark
+            // the *screen* dirty, not this dialog, so `isLoading` and `error`
+            // never repainted it. The Create button stayed enabled through a
+            // slow request with no spinner and no failure message, and a
+            // second tap created a duplicate session.
+            return Consumer(
+              builder: (context, ref, _) {
+                final dialogState = ref.watch(
+                  documentSessionProvider(widget.documentType),
+                );
+                return _SeoulDialog(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        widget.documentType == 'study_plan'
+                            ? l.newStudyPlanDialogTitle
+                            : l.newPersonalStatementDialogTitle,
+                        style: SeoulType.title,
                       ),
-                    ),
-                    const SizedBox(height: 12),
-                    TargetUniversityPicker(
-                      selectedId: selectedUniId,
-                      onPick: (id, name) => setDialogState(
-                        () => selectedUniId = id,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    Text(
-                      l.selectLanguageTrackStep,
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 13,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _TrackChip(
-                            label: l.trackEnglish,
-                            isSelected: selectedTrack == 'en',
-                            icon: Icons.language,
-                            onTap: () =>
-                                setDialogState(() => selectedTrack = 'en'),
+                      const SizedBox(height: 4),
+                      Text(_hangulTitle, style: SeoulType.hangulLabel),
+                      const SizedBox(height: 20),
+                      Flexible(
+                        child: SingleChildScrollView(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Text(
+                                l.selectTargetUniversityStep,
+                                style: SeoulType.eyebrow,
+                              ),
+                              const SizedBox(height: 10),
+                              TargetUniversityPicker(
+                                selectedId: selectedUniId,
+                                onPick: (id, name) =>
+                                    setDialogState(() => selectedUniId = id),
+                              ),
+                              const SizedBox(height: 22),
+                              Text(
+                                l.selectLanguageTrackStep,
+                                style: SeoulType.eyebrow,
+                              ),
+                              const SizedBox(height: 10),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _TrackChip(
+                                      label: l.trackEnglish,
+                                      ko: '영어',
+                                      isSelected: selectedTrack == 'en',
+                                      icon: Icons.language,
+                                      onTap: () => setDialogState(
+                                        () => selectedTrack = 'en',
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: _TrackChip(
+                                      label: l.trackKorean,
+                                      ko: '한국어',
+                                      isSelected: selectedTrack == 'ko',
+                                      icon: Icons.translate,
+                                      onTap: () => setDialogState(
+                                        () => selectedTrack = 'ko',
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _TrackChip(
-                            label: l.trackKorean,
-                            isSelected: selectedTrack == 'ko',
-                            icon: Icons.translate,
-                            onTap: () =>
-                                setDialogState(() => selectedTrack = 'ko'),
+                      ),
+                      if (dialogState.error != null) ...[
+                        const SizedBox(height: 16),
+                        Text(
+                          dialogState.error!,
+                          style: SeoulType.caption.copyWith(
+                            color: SeoulColors.dangerText,
                           ),
                         ),
                       ],
-                    ),
-                  ],
-                ),
-              ),
-              actions: [
-                if (ref
-                        .watch(documentSessionProvider(widget.documentType))
-                        .error !=
-                    null)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Text(
-                      ref
-                          .watch(documentSessionProvider(widget.documentType))
-                          .error!,
-                      style: const TextStyle(
-                        color: Colors.redAccent,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                TextButton(
-                  onPressed:
-                      ref
-                          .watch(documentSessionProvider(widget.documentType))
-                          .isLoading
-                      ? null
-                      : () => Navigator.pop(context),
-                  child: Text(
-                    l.cancel,
-                    style: const TextStyle(color: Colors.white54),
-                  ),
-                ),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.vibrantLime,
-                    foregroundColor: Colors.black,
-                  ),
-                  onPressed:
-                      (selectedUniId == null ||
-                          ref
-                              .watch(
-                                documentSessionProvider(widget.documentType),
-                              )
-                              .isLoading)
-                      ? null
-                      : () async {
-                          final session = await ref
-                              .read(studyPlanSessionProvider.notifier)
-                              .createSession(
-                                widget.documentType,
-                                targetUniversityId: selectedUniId,
-                                selectedTrack: selectedTrack,
-                              );
-
-                          if (session != null && context.mounted) {
-                            Navigator.pop(context);
-                          }
-                        },
-                  child:
-                      ref
-                          .watch(documentSessionProvider(widget.documentType))
-                          .isLoading
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.black,
+                      const SizedBox(height: 20),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: SeoulOutlineButton(
+                              label: l.cancel,
+                              onPressed: dialogState.isLoading
+                                  ? null
+                                  : () => Navigator.pop(context),
+                            ),
                           ),
-                        )
-                      : Text(
-                          l.createSession,
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                ),
-              ],
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: LimeButton(
+                              label: l.createSession,
+                              loading: dialogState.isLoading,
+                              onPressed:
+                                  (selectedUniId == null ||
+                                      dialogState.isLoading)
+                                  ? null
+                                  : () async {
+                                      final session = await ref
+                                          .read(
+                                            studyPlanSessionProvider.notifier,
+                                          )
+                                          .createSession(
+                                            widget.documentType,
+                                            targetUniversityId: selectedUniId,
+                                            selectedTrack: selectedTrack,
+                                          );
+
+                                      if (session != null && context.mounted) {
+                                        Navigator.pop(context);
+                                      }
+                                    },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+              },
             );
           },
         );
@@ -1036,12 +1048,16 @@ class _GuideItemData {
 
 class _TrackChip extends StatelessWidget {
   final String label;
+
+  /// Decorative hangul under the label — stays Korean in every locale.
+  final String ko;
   final bool isSelected;
   final IconData icon;
   final VoidCallback onTap;
 
   const _TrackChip({
     required this.label,
+    required this.ko,
     required this.isSelected,
     required this.icon,
     required this.onTap,
@@ -1049,28 +1065,46 @@ class _TrackChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isSelected ? AppColors.vibrantLime : Colors.white24;
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        decoration: BoxDecoration(
-          color: isSelected ? color.withValues(alpha: 0.1) : Colors.transparent,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: color, width: 2),
-        ),
-        child: Column(
-          children: [
-            Icon(icon, color: color, size: 24),
-            const SizedBox(height: 8),
-            Text(
-              label,
-              style: TextStyle(
-                color: color,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-              ),
+    final fg = isSelected ? SeoulColors.lime : SeoulColors.textSecondary;
+    return Semantics(
+      button: true,
+      selected: isSelected,
+      label: label,
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: SeoulMotion.fast,
+          curve: SeoulMotion.smooth,
+          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+          decoration: BoxDecoration(
+            color: isSelected ? SeoulColors.limeFill : SeoulColors.glass,
+            borderRadius: SeoulRadii.controlR,
+            border: Border.all(
+              color: isSelected ? SeoulColors.lime : SeoulColors.glassBorder,
+              width: 1,
             ),
-          ],
+            boxShadow: isSelected ? SeoulShadows.limeGlowSmall : null,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, color: fg, size: 22),
+              const SizedBox(height: 8),
+              Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: SeoulType.subtitle.copyWith(fontSize: 14, color: fg),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                ko,
+                style: SeoulType.hangulLabel.copyWith(
+                  color: isSelected ? SeoulColors.lime : SeoulColors.textFaint,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -1093,7 +1127,7 @@ class _AiExampleCard extends StatefulWidget {
 }
 
 class _AiExampleCardState extends State<_AiExampleCard> {
-  late Future<String> _aiFuture;
+  late final String _example;
 
   @override
   void initState() {
@@ -1102,7 +1136,7 @@ class _AiExampleCardState extends State<_AiExampleCard> {
     final String studentName =
         user?.userMetadata?['full_name'] as String? ?? 'A passionate student';
 
-    final List<String> _uniTemplates = [
+    final List<String> uniTemplates = [
       // Template 1: Classic Academic & General Innovation
       '''Dear Admissions Committee at ${widget.universityName},
 
@@ -1157,7 +1191,7 @@ Later in my program, I intend to actively seek out collaborative projects with s
 Post-graduation, my ambition is to launch a multinational trading or consulting firm that facilitates bilateral trade and cultural exchange between my home country and South Korea. The education and experiences I will gain at ${widget.universityName} will serve as the crucial bedrock for this lifelong mission. I am deeply committed to upholding the values of your university and leaving a positive mark on the campus community. Thank you for reviewing my profile.''',
     ];
 
-    final List<String> _embassyTemplates = [
+    final List<String> embassyTemplates = [
       '''To the Respected Consul at the Embassy of the Republic of Korea,
 
 [INTRODUCTION AND VISA PURPOSE]
@@ -1187,145 +1221,265 @@ If granted the visa, my sole priority will be my studies. I have thoroughly plan
 I wish to explicitly state my intention to return to my home country immediately following my graduation. There is a high demand for international experts in my field here, and the degree I earn in South Korea will guarantee me a prestigious leading position in my homeland. I view this educational journey as a critical investment in my future. I kindly ask for a favorable decision on my visa application. Thank you.''',
     ];
 
-    // Pick a truly random template each time the widget is built based on type
+    // These are ready-made sample letters the student can copy and adapt —
+    // NOT live AI output. Pick one at random per card, once, in initState.
+    // (Previously this faked a "thinking" delay + an "AI is writing..."
+    // placeholder, which misled users into thinking the text was being
+    // generated for them in real time.)
     final random = Random();
-    final _templates = widget.isEmbassy ? _embassyTemplates : _uniTemplates;
-    final selectedExample = _templates[random.nextInt(_templates.length)];
-
-    // Simulate thinking time dynamically so cards load progressively
-    _aiFuture = Future.delayed(
-      Duration(milliseconds: 1500 + (widget.index * 900)),
-      () => selectedExample,
-    );
+    final templates = widget.isEmbassy ? embassyTemplates : uniTemplates;
+    _example = templates[random.nextInt(templates.length)];
   }
 
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.royalBlue.withValues(alpha: 0.4)),
-      ),
+    return GlassCard(
+      blur: false,
+      padding: EdgeInsets.zero,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: AppColors.royalBlue.withValues(alpha: 0.7),
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(16),
-              ),
-            ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
             child: Row(
               children: [
-                Icon(
-                  widget.isEmbassy ? Icons.account_balance : Icons.school,
-                  color: Colors.white,
-                  size: 20,
+                _IconTile(
+                  icon: widget.isEmbassy ? Icons.account_balance : Icons.school,
+                  size: 36,
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 12),
                 Expanded(
-                  child: Text(
-                    widget.isEmbassy
-                        ? l.aiExampleEmbassyTitle
-                        : l.aiExampleUniversityTitle(widget.universityName),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        widget.isEmbassy
+                            ? l.aiExampleEmbassyTitle
+                            : l.aiExampleUniversityTitle(widget.universityName),
+                        style: SeoulType.subtitle,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      // 예시 = "example". Decorative, stays Korean.
+                      const Text('예시', style: SeoulType.hangulLabel),
+                    ],
                   ),
                 ),
               ],
             ),
           ),
-          FutureBuilder<String>(
-            future: _aiFuture,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return Padding(
-                  padding: const EdgeInsets.all(32),
-                  child: Column(
-                    children: [
-                      const CircularProgressIndicator(
-                        color: AppColors.vibrantLime,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        l.aiExampleWritingPlaceholder,
-                        style: const TextStyle(color: Colors.white54),
-                      ),
-                    ],
-                  ),
-                );
-              }
-
-              if (snapshot.hasError) {
-                return Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Text(
-                    l.genericError(snapshot.error ?? ''),
-                    style: const TextStyle(color: Colors.red),
-                  ),
-                );
-              }
-
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Text(
-                      snapshot.data!,
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 15,
-                        height: 1.5,
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      left: 16,
-                      right: 16,
-                      bottom: 16,
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        TextButton.icon(
-                          icon: const Icon(Icons.copy, size: 18),
-                          label: Text(l.copyButton),
-                          style: TextButton.styleFrom(
-                            foregroundColor: AppColors.vibrantLime,
+          const Divider(
+            height: 1,
+            thickness: 1,
+            color: SeoulColors.glassBorder,
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(_example, style: SeoulType.bodySecondary),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: SeoulOutlineButton(
+                label: l.copyButton,
+                icon: Icons.copy_rounded,
+                expand: false,
+                height: SeoulSizes.minTapTarget,
+                radius: SeoulRadii.button,
+                onPressed: () {
+                  Clipboard.setData(ClipboardData(text: _example)).then((_) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            l.copiedSnackbar,
+                            style: SeoulType.button,
                           ),
-                          onPressed: () {
-                            Clipboard.setData(
-                              ClipboardData(text: snapshot.data!),
-                            ).then((_) {
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(l.copiedSnackbar),
-                                    backgroundColor: Colors.green,
-                                    behavior: SnackBarBehavior.floating,
-                                  ),
-                                );
-                              }
-                            });
-                          },
+                          backgroundColor: SeoulColors.lime,
+                          behavior: SnackBarBehavior.floating,
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: SeoulRadii.buttonR,
+                          ),
                         ),
-                      ],
-                    ),
-                  ),
-                ],
-              );
-            },
+                      );
+                    }
+                  });
+                },
+              ),
+            ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// 44px glass circle holding one icon — the back/close affordance used
+/// across the Seoul Night shell (spec §2).
+class _GlassCircleButton extends StatelessWidget {
+  const _GlassCircleButton({
+    required this.icon,
+    required this.tooltip,
+    required this.onTap,
+    this.foreground = SeoulColors.textPrimary,
+  });
+
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback onTap;
+  final Color foreground;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: tooltip,
+      child: Tooltip(
+        message: tooltip,
+        child: GestureDetector(
+          onTap: onTap,
+          child: Container(
+            width: SeoulSizes.minTapTarget,
+            height: SeoulSizes.minTapTarget,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: SeoulColors.glass,
+              border: Border.all(color: SeoulColors.glassBorder),
+            ),
+            child: Icon(icon, size: 20, color: foreground),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Rounded glass square holding a lime Material icon — the non-hangul
+/// sibling of [HangulGlyphTile], used where the row has no Korean word.
+class _IconTile extends StatelessWidget {
+  const _IconTile({required this.icon, this.size = SeoulSizes.glyphTile});
+
+  final IconData icon;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: SeoulColors.glass,
+        borderRadius: SeoulRadii.tileR,
+        border: Border.all(color: SeoulColors.glassBorder),
+      ),
+      child: Icon(icon, color: SeoulColors.lime, size: size * 0.46),
+    );
+  }
+}
+
+/// The destructive action. `SeoulColors.danger*` fill + hairline — the
+/// desaturated destructive tone, never a raw red hex.
+class _DangerButton extends StatefulWidget {
+  const _DangerButton({required this.label, this.onPressed}) : icon = null;
+
+  final String label;
+  final VoidCallback? onPressed;
+  final IconData? icon;
+
+  @override
+  State<_DangerButton> createState() => _DangerButtonState();
+}
+
+class _DangerButtonState extends State<_DangerButton> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final enabled = widget.onPressed != null;
+
+    final button = AnimatedOpacity(
+      opacity: enabled ? 1.0 : 0.45,
+      duration: SeoulMotion.fast,
+      child: Container(
+        height: SeoulSizes.buttonHeight,
+        alignment: Alignment.center,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        decoration: BoxDecoration(
+          color: SeoulColors.dangerFill,
+          borderRadius: SeoulRadii.controlR,
+          border: Border.all(color: SeoulColors.danger, width: 1),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (widget.icon != null) ...[
+              Icon(widget.icon, size: 18, color: SeoulColors.dangerText),
+              const SizedBox(width: 8),
+            ],
+            Flexible(
+              child: Text(
+                widget.label,
+                textAlign: TextAlign.center,
+                overflow: TextOverflow.ellipsis,
+                style: SeoulType.button.copyWith(color: SeoulColors.dangerText),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    return Semantics(
+      button: true,
+      enabled: enabled,
+      label: widget.label,
+      child: GestureDetector(
+        onTap: widget.onPressed,
+        onTapDown: enabled ? (_) => setState(() => _pressed = true) : null,
+        onTapUp: enabled ? (_) => setState(() => _pressed = false) : null,
+        onTapCancel: enabled ? () => setState(() => _pressed = false) : null,
+        child: AnimatedScale(
+          scale: _pressed ? SeoulMotion.pressScale : 1.0,
+          duration: SeoulMotion.fast,
+          curve: SeoulMotion.smooth,
+          child: button,
+        ),
+      ),
+    );
+  }
+}
+
+/// Modal shell for Seoul Night: the app background gradient behind a hero
+/// hairline and shadow, so a dialog reads as a raised slice of the app
+/// rather than a flat Material panel.
+class _SeoulDialog extends StatelessWidget {
+  const _SeoulDialog({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: SeoulGradients.appBackground,
+          borderRadius: SeoulRadii.heroR,
+          border: Border.all(color: SeoulColors.heroBorder, width: 1),
+          boxShadow: SeoulShadows.hero,
+        ),
+        child: ClipRRect(
+          borderRadius: SeoulRadii.heroR,
+          child: Padding(padding: const EdgeInsets.all(20), child: child),
+        ),
       ),
     );
   }

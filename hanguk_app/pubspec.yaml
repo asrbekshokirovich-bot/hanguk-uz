@@ -13,7 +13,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # Read more about Android versioning at https://developer.android.com/studio/publish/versioning
 # In iOS, build-name is used as CFBundleShortVersionString while build-number is used as CFBundleVersion.
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.0.18+2031
+version: 1.0.22+2038
 
 environment:
   sdk: ^3.11.4
@@ -111,6 +111,55 @@ flutter:
   assets:
     - assets/images/
     - assets/virtual_tour/
+    # English wordlist for the drafting workspace's spell check (~370k words,
+    # sorted, one per line, LF-terminated — LocalDictionary binary-searches
+    # the raw bytes). Bundled because Android only spell checks through a
+    # spell checker *service*, and many shipped ROMs have none: on those
+    # devices the platform checker fails every call, permanently. The essay
+    # is the student's admission document — checking it cannot depend on
+    # which phone they happen to own.
+    - assets/dictionaries/en_words.txt
+    # The 10k most common English words, most frequent first. Only used to
+    # ORDER suggestions — "frend" has many one-edit neighbours (trend, fiend,
+    # friend...) and without frequency the junk wins the three chip slots.
+    - assets/dictionaries/en_ranks.txt
+
+  # Seoul Night redesign typefaces (DESIGN_SPEC §1 Type). Bundled rather than
+  # fetched at runtime so first launch is correct offline. All three are
+  # subset to what the app actually renders. Noto Sans KR covers the union of
+  # every hangul syllable in lib/ (Dart sources + all five .arb catalogues,
+  # including the full Korean locale) and every syllable occurring in
+  # institution and city names, so the 서/연/고 glyph tiles are right for all
+  # mapped universities — 6 MB becomes 62 KB per weight. Regenerate the subset
+  # whenever new Korean copy is added. Korean from outside the app (AI feedback
+  # text) falls back to the platform font via fontFamilyFallback.
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter-400.ttf
+          weight: 400
+        - asset: assets/fonts/Inter-500.ttf
+          weight: 500
+        - asset: assets/fonts/Inter-600.ttf
+          weight: 600
+        - asset: assets/fonts/Inter-700.ttf
+          weight: 700
+        - asset: assets/fonts/Inter-800.ttf
+          weight: 800
+        - asset: assets/fonts/Inter-900.ttf
+          weight: 900
+    - family: NotoSansKR
+      fonts:
+        - asset: assets/fonts/NotoSansKR-500.ttf
+          weight: 500
+        - asset: assets/fonts/NotoSansKR-700.ttf
+          weight: 700
+        - asset: assets/fonts/NotoSansKR-900.ttf
+          weight: 900
+    - family: JetBrainsMono
+      fonts:
+        - asset: assets/fonts/JetBrainsMono-600.ttf
+          weight: 600
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

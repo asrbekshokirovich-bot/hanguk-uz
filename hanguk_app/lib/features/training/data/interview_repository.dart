@@ -139,8 +139,15 @@ class InterviewNotifier extends Notifier<InterviewSessionState> {
   // forever in the temp dir.
   final List<String> _ttsFilePaths = [];
 
+  /// True once this notifier has been torn down. `_awaitSavedFeedback` can
+  /// still be sleeping between polls at that point; writing to `state`
+  /// afterwards throws, so it checks this before every write.
+  bool _disposed = false;
+
   @override
   InterviewSessionState build() {
+    _disposed = false;
+    ref.onDispose(() => _disposed = true);
     return const InterviewSessionState();
   }
 
@@ -440,24 +447,104 @@ class InterviewNotifier extends Notifier<InterviewSessionState> {
 
   // ── End session & feedback ───────────────────────────────────────────────
 
+  /// Reentrancy latch for endSession. Previously the guard piggybacked on
+  /// `state.isLoading`, but ANY stray isLoading=true (e.g. a hung network
+  /// call that never reached its finally) then turned endSession into a
+  /// permanent no-op — the user could never leave the interview screen.
+  bool _ending = false;
+
+  /// Last-resort escape hatch for the interview view: whatever went wrong,
+  /// return the UI to the setup screen (unless the session finished
+  /// normally and is showing feedback).
+  void forceIdleIfActive() {
+    // Never yank the screen out from under an end-flow that is still
+    // running (e.g. the AppBar End is generating feedback) — that would
+    // flash the setup view and then bounce to analytics.
+    if (_ending) return;
+    if (state.status == 'active' || state.status == 'abandoned') {
+      state = state.copyWith(
+        status: 'idle',
+        isLoading: false,
+        isProcessing: false,
+        isVapiConnected: false,
+        clearError: true,
+      );
+    }
+  }
+
   Future<Map<String, dynamic>?> endSession({String language = 'ko'}) async {
     final sessionId = state.sessionId;
-    if (sessionId == null) return null;
+    if (sessionId == null) {
+      // Nothing to end — but never leave the screen trapped on 'active'.
+      forceIdleIfActive();
+      return null;
+    }
     // Audit D10: guard against double-fire. Tapping "End Session" twice
     // (or the AppBar end + the auto-end timer triggering simultaneously)
     // would otherwise hit `interview-feedback` twice and produce
     // duplicate feedback rows.
-    if (state.isLoading || state.status == 'completed') return state.feedback;
+    if (_ending || state.status == 'completed') return state.feedback;
+    _ending = true;
+    try {
+      return await _endSessionInner(sessionId, language);
+    } finally {
+      _ending = false;
+    }
+  }
+
+  Future<Map<String, dynamic>?> _endSessionInner(
+    String sessionId,
+    String language,
+  ) async {
+    // If the interview never produced a real exchange (still connecting, or
+    // the student ended right away), there is nothing to analyze. Abandon the
+    // session and drop back to the setup screen instead of calling the
+    // feedback function — which errors/hangs on an empty transcript and would
+    // otherwise leave the student stuck on the "Connecting…" screen with a
+    // dead End button. This makes the End control work at the very start of a
+    // session, not only mid-conversation.
+    final hasTranscript = state.messages.any(
+      (m) => !m.content.contains('[Interview started'),
+    );
+    if (!hasTranscript) {
+      // Return to the setup screen instantly so the End button feels
+      // responsive even on a slow network; mark the row abandoned in the
+      // background (inline, so its write can't fight the 'idle' reset).
+      final abandonedId = sessionId;
+      state = state.copyWith(
+        status: 'idle',
+        isVapiConnected: false,
+        isLoading: false,
+      );
+      unawaited(
+        Supabase.instance.client
+            .from('interview_sessions')
+            .update({'status': 'abandoned'})
+            .eq('id', abandonedId)
+            .then((_) {}, onError: (_) {}),
+      );
+      return null;
+    }
 
     state = state.copyWith(isLoading: true, clearError: true);
 
     try {
       final client = Supabase.instance.client;
 
-      final response = await client.functions.invoke(
-        'interview-feedback',
-        body: {'sessionId': sessionId, 'language': language},
-      );
+      // Timed: a hung feedback call must never trap the user on the
+      // interview screen (the catch below guarantees an exit).
+      //
+      // 90s, not 25: the function makes a second model call whenever the
+      // first reply doesn't parse, and production logs show those runs
+      // finishing at ~40s with a 200. At 25s the app was hanging up on a
+      // request that was about to succeed, so the student saw "couldn't
+      // analyse" for an interview that had in fact been scored and saved.
+      final response = await client.functions
+          .invoke(
+            'interview-feedback',
+            body: {'sessionId': sessionId, 'language': language},
+          )
+          .timeout(const Duration(seconds: 90));
 
       final data = response.data as Map<String, dynamic>?;
       if (data == null || data['error'] != null) {
@@ -475,45 +562,52 @@ class InterviewNotifier extends Notifier<InterviewSessionState> {
       final fb = Map<String, dynamic>.from(fbRaw);
 
       try {
+        // Timed: these run AFTER the feedback is already in hand, so a hang
+        // here must never delay the transition to 'completed' (it would
+        // strand the user on the interview screen with a spinner).
         final row = await client
             .from('interview_feedback')
             .select('session_id')
             .eq('session_id', sessionId)
-            .maybeSingle();
+            .maybeSingle()
+            .timeout(const Duration(seconds: 10));
         if (row == null) {
-          await client.from('interview_feedback').insert({
-            'session_id': sessionId,
-            if (fb['overall_score'] is num)
-              'overall_score': (fb['overall_score'] as num).round().clamp(
-                1,
-                10,
-              ),
-            if (fb['communication_score'] is num)
-              'communication_score': (fb['communication_score'] as num)
-                  .round()
-                  .clamp(1, 10),
-            if (fb['confidence_score'] is num)
-              'confidence_score': (fb['confidence_score'] as num).round().clamp(
-                1,
-                10,
-              ),
-            if (fb['content_score'] is num)
-              'content_score': (fb['content_score'] as num).round().clamp(
-                1,
-                10,
-              ),
-            if (fb['language_score'] is num)
-              'language_score': (fb['language_score'] as num).round().clamp(
-                1,
-                10,
-              ),
-            if (fb['strengths'] is List) 'strengths': fb['strengths'],
-            if (fb['improvements'] is List) 'improvements': fb['improvements'],
-            if (fb['message_scores'] is List)
-              'message_scores': fb['message_scores'],
-            if (fb['detailed_feedback'] is String)
-              'detailed_feedback': fb['detailed_feedback'],
-          });
+          await client
+              .from('interview_feedback')
+              .insert({
+                'session_id': sessionId,
+                if (fb['overall_score'] is num)
+                  'overall_score': (fb['overall_score'] as num).round().clamp(
+                    1,
+                    10,
+                  ),
+                if (fb['communication_score'] is num)
+                  'communication_score': (fb['communication_score'] as num)
+                      .round()
+                      .clamp(1, 10),
+                if (fb['confidence_score'] is num)
+                  'confidence_score': (fb['confidence_score'] as num)
+                      .round()
+                      .clamp(1, 10),
+                if (fb['content_score'] is num)
+                  'content_score': (fb['content_score'] as num).round().clamp(
+                    1,
+                    10,
+                  ),
+                if (fb['language_score'] is num)
+                  'language_score': (fb['language_score'] as num).round().clamp(
+                    1,
+                    10,
+                  ),
+                if (fb['strengths'] is List) 'strengths': fb['strengths'],
+                if (fb['improvements'] is List)
+                  'improvements': fb['improvements'],
+                if (fb['message_scores'] is List)
+                  'message_scores': fb['message_scores'],
+                if (fb['detailed_feedback'] is String)
+                  'detailed_feedback': fb['detailed_feedback'],
+              })
+              .timeout(const Duration(seconds: 10));
         }
       } on Exception catch (e) {
         // Non-fatal — the in-memory feedback is still available.
@@ -528,10 +622,157 @@ class InterviewNotifier extends Notifier<InterviewSessionState> {
 
       return fb;
     } on Exception catch (e) {
-      state = state.copyWith(error: 'Failed to end session: ${e.toString()}');
+      debugPrint('endSession: feedback call failed: $e');
+
+      // A failed call does NOT mean the interview went unscored.
+      //
+      // The Edge Function does the analysis and writes the row into
+      // public.interview_feedback regardless of whether we are still on the
+      // line — it keeps running server-side until it finishes (the platform
+      // allows it 150s; ours lands around 40s). So every failure here is
+      // really one of two things:
+      //
+      //   * we hung up while it was still working (our 90s timeout, the phone
+      //     losing signal, the student walking out of the building), or
+      //   * it had already finished and the reply itself was lost.
+      //
+      // Either way the result is coming, or is already there. Waiting for the
+      // row is what makes the result survive a bad connection — it is the
+      // difference between "the network held for 40 uninterrupted seconds"
+      // and "the interview was scored". Poll until it lands.
+      if (mayStillBeRunning(e)) {
+        final fb = await _awaitSavedFeedback(sessionId);
+        if (fb != null) {
+          state = state.copyWith(
+            status: 'completed',
+            feedback: fb,
+            isVapiConnected: false,
+            clearError: true,
+          );
+          return fb;
+        }
+      }
+
+      // Genuinely no result — do NOT trap the user on the interview screen.
+      // Exit to setup and mark the row abandoned in the background.
+      // Keep the error on state (don't clear it) so the view can tell the
+      // student the analysis failed instead of silently dropping them back
+      // on the setup screen.
+      if (_disposed) return null;
+      state = state.copyWith(
+        status: 'idle',
+        isVapiConnected: false,
+        error: 'feedback_failed',
+      );
+      unawaited(
+        Supabase.instance.client
+            .from('interview_sessions')
+            .update({'status': 'abandoned'})
+            .eq('id', sessionId)
+            .then((_) {}, onError: (_) {}),
+      );
       return null;
     } finally {
-      state = state.copyWith(isLoading: false);
+      // This can now run well over a minute after the end tap (the poll
+      // below waits for the analysis to land), by which point the notifier
+      // may be gone — writing to `state` then throws out of the finally and
+      // would mask the real result.
+      if (!_disposed) {
+        state = state.copyWith(isLoading: false);
+      }
+    }
+  }
+
+  /// Waits for `interview-feedback` to land its row for [sessionId].
+  ///
+  /// Called only after the direct call already failed. The analysis is still
+  /// running (or has finished) on the server, so this watches the table the
+  /// function writes to instead of depending on an HTTP connection that has
+  /// already proven unreliable.
+  ///
+  /// Checks immediately, then every 3s up to [_feedbackPollWindow]. That
+  /// window is sized against the platform's 150s request ceiling — past it the
+  /// function has been killed and no row is ever coming, so continuing to wait
+  /// would only stall the student.
+  ///
+  /// A poll that returns no row means "not finished yet" and keeps waiting.
+  /// A poll that *throws* means the phone still has no usable connection;
+  /// [_feedbackPollFailureLimit] consecutive throws end the wait, so a student
+  /// who ended the interview with the network genuinely down gets told so in a
+  /// few seconds instead of watching a spinner for the whole window.
+  static const Duration _feedbackPollWindow = Duration(seconds: 75);
+  static const Duration _feedbackPollInterval = Duration(seconds: 3);
+  static const int _feedbackPollFailureLimit = 3;
+
+  /// Whether [error] leaves any chance that the analysis is still coming.
+  ///
+  /// The function replies with a non-2xx status for every case it can name —
+  /// empty transcript, bad session, rate limit, unparseable model output. Those
+  /// are complete answers: no row was written and none ever will be, so waiting
+  /// on them just delays the bad news. What is worth waiting on is the opposite
+  /// shape of failure — we never got a verdict at all.
+  ///
+  /// Getting this wrong is costly in both directions: too strict and a scored
+  /// interview is thrown away, too loose and a student who cannot be scored
+  /// waits out the whole poll window to be told so. Pinned by
+  /// `interview_feedback_recovery_test.dart`.
+  @visibleForTesting
+  static bool mayStillBeRunning(Object error) {
+    // Our own 90s cutoff, or the socket dying under us.
+    if (error is TimeoutException) return true;
+    if (error is SocketException) return true;
+    if (error is http.ClientException) return true;
+
+    if (error is FunctionException) {
+      // 504 is the platform's request-idle timeout and 546 its wall-clock
+      // kill; in both the worker was still alive and can have finished (and
+      // saved) after the gateway stopped waiting. Every other status is the
+      // function's own considered reply.
+      return error.status == 504 || error.status == 546;
+    }
+
+    // Unrecognised failure: a lookup costs one query, a lost result costs the
+    // student their interview.
+    return true;
+  }
+
+  Future<Map<String, dynamic>?> _awaitSavedFeedback(String sessionId) async {
+    final deadline = DateTime.now().add(_feedbackPollWindow);
+    var attempt = 0;
+    var consecutiveFailures = 0;
+
+    while (true) {
+      attempt++;
+      try {
+        final saved = await Supabase.instance.client
+            .from('interview_feedback')
+            .select()
+            .eq('session_id', sessionId)
+            .maybeSingle()
+            .timeout(const Duration(seconds: 10));
+
+        consecutiveFailures = 0;
+        if (saved != null && saved['overall_score'] != null) {
+          debugPrint('endSession: recovered saved feedback on poll $attempt');
+          return Map<String, dynamic>.from(saved);
+        }
+      } on Exception catch (e) {
+        consecutiveFailures++;
+        debugPrint(
+          'endSession: feedback poll $attempt failed '
+          '($consecutiveFailures in a row): $e',
+        );
+        if (consecutiveFailures >= _feedbackPollFailureLimit) return null;
+      }
+
+      if (!DateTime.now().isBefore(deadline)) return null;
+
+      // The notifier can be disposed while we wait (the student backs out of
+      // the interview). Writing to `state` after that throws, so stop.
+      if (_disposed) return null;
+
+      await Future<void>.delayed(_feedbackPollInterval);
+      if (_disposed) return null;
     }
   }
 

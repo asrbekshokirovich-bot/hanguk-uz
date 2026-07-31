@@ -121,6 +121,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get virtualWalkaroundTitle => 'Virtual Walkaround';
 
   @override
+  String get visitUniversityWebsite => 'Visit University Website';
+
+  @override
+  String universityTier(int tier) {
+    return 'Tier $tier';
+  }
+
+  @override
+  String get universityVerified => 'Verified';
+
+  @override
+  String get universityNextEvent => 'Next event';
+
+  @override
   String get navApplications => 'Applications';
 
   @override
@@ -142,16 +156,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get documentsTabTitle => 'My Documents';
 
   @override
-  String get documentUploadInfo => 'Upload valid PDF or JPEG scans of your original documents. Max 10MB per file.';
+  String get documentUploadInfo =>
+      'Upload valid PDF or JPEG scans of your original documents. Max 10MB per file.';
 
   @override
   String get documentsRequiredHeading => 'Required Documents';
 
   @override
-  String get documentUploadFailed => 'Couldn\'t upload your document. Please try again.';
+  String get documentUploadFailed =>
+      'Couldn\'t upload your document. Please try again.';
 
   @override
-  String get documentPreviewFailed => 'Couldn\'t open the document. Please try again.';
+  String get documentPreviewFailed =>
+      'Couldn\'t open the document. Please try again.';
 
   @override
   String get documentLoadError => 'Couldn\'t load your documents.';
@@ -172,25 +189,29 @@ class AppLocalizationsEn extends AppLocalizations {
   String get onboardingStep1Title => 'Track your applications';
 
   @override
-  String get onboardingStep1Body => 'Follow every university application from documents to decision, all in one place.';
+  String get onboardingStep1Body =>
+      'Follow every university application from documents to decision, all in one place.';
 
   @override
   String get onboardingStep2Title => 'Explore universities & upload documents';
 
   @override
-  String get onboardingStep2Body => 'Find universities on the map and securely upload the documents each one needs.';
+  String get onboardingStep2Body =>
+      'Find universities on the map and securely upload the documents each one needs.';
 
   @override
   String get onboardingStep3Title => 'Practice interviews with AI';
 
   @override
-  String get onboardingStep3Body => 'Rehearse Korean admission interviews with the AI coach and get instant feedback.';
+  String get onboardingStep3Body =>
+      'Rehearse Korean admission interviews with the AI coach and get instant feedback.';
 
   @override
   String get appsEmptyTitle => 'No applications yet';
 
   @override
-  String get appsEmptyBody => 'Your applications will appear here once you apply to a university.';
+  String get appsEmptyBody =>
+      'Your applications will appear here once you apply to a university.';
 
   @override
   String get appsLoadError => 'Couldn\'t load your applications.';
@@ -383,7 +404,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notifSettingsEmptyBody =>
-      'Tap "Track this institution" on a university page to follow it. Notification preferences appear here once you have at least one tracked institution.';
+      'Tap \"Track this institution\" on a university page to follow it. Notification preferences appear here once you have at least one tracked institution.';
 
   @override
   String get notifSettingsCalendar => 'Calendar changes';
@@ -502,6 +523,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get aiStatusSupervisionActive => 'AI Supervision Active';
 
   @override
+  String get aiStatusSpellCheckUnavailable => 'Device dictionary unavailable';
+
+  @override
   String get workspaceTitle => 'Workspace';
 
   @override
@@ -512,7 +536,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String grammarReplaceWith(String original, String suggestion) {
-    return 'Replace "$original" with "$suggestion"';
+    return 'Replace \"$original\" with \"$suggestion\"';
   }
 
   @override
@@ -640,6 +664,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noAnalysisYet => 'No analysis generated yet.';
+
+  @override
+  String get analysisErrorPlanRequired =>
+      'Analysis is part of the Premium and No Risk plans. Your current plan does not include it.';
+
+  @override
+  String get analysisErrorRateLimited =>
+      'Too many analyses just now. Wait a minute and try again.';
+
+  @override
+  String get analysisErrorServiceDown =>
+      'The analysis service is temporarily unavailable. Your draft is saved — try again shortly.';
+
+  @override
+  String get analysisErrorFailed =>
+      'The analysis could not be completed. Your draft is saved — check your connection and try again.';
+
+  @override
+  String get analysisRetryButton => 'Try again';
 
   @override
   String get aiReviewedDraft => 'AI successfully reviewed your draft.';
@@ -874,4 +917,610 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get a11yTooltipPauseRecording => 'Pause recording';
+
+  @override
+  String get trackMismatchWarning =>
+      'Your draft\'s language doesn\'t match the track you chose. Please rewrite it in the selected language.';
+
+  @override
+  String get interviewStartError =>
+      'Couldn\'t start the interview. Please check your connection and try again.';
+
+  @override
+  String get perAnswerReviewTitle => 'Answer-by-answer review';
+
+  @override
+  String get betterAnswerLabel => 'A STRONGER ANSWER';
+
+  @override
+  String get navHome => 'Home';
+
+  @override
+  String get navMenu => 'Menu';
+
+  @override
+  String get greetingMorning => 'Good morning';
+
+  @override
+  String get greetingAfternoon => 'Good afternoon';
+
+  @override
+  String get greetingEvening => 'Good evening';
+
+  @override
+  String get welcomeHeadline => 'Welcome to your journey';
+
+  @override
+  String get welcomeSubtitle =>
+      'Your path to a South Korean university starts here.';
+
+  @override
+  String get welcomeMagicCodeCta => 'I have a magic code';
+
+  @override
+  String get welcomeExploreCta => 'Explore Universities';
+
+  @override
+  String get magicCodeTitle => 'Magic code';
+
+  @override
+  String get homeJourneyEyebrow => 'Your journey';
+
+  @override
+  String get homeContinueJourney => 'Continue journey';
+
+  @override
+  String get homeViewAll => 'View all';
+
+  @override
+  String documentsCollected(int collected, int total) {
+    return '$collected of $total collected';
+  }
+
+  @override
+  String get documentActionUpload => 'Upload';
+
+  @override
+  String get documentStatusApproved => 'Approved';
+
+  @override
+  String get documentStatusPendingReview => 'Pending review';
+
+  @override
+  String get statusDocs => 'Documents';
+
+  @override
+  String get statusSubmitted => 'Submitted';
+
+  @override
+  String get statusInReview => 'In review';
+
+  @override
+  String get statusWaiting => 'Waiting';
+
+  @override
+  String get statusRejected => 'Rejected';
+
+  @override
+  String get journeyStageDocumentPrep => 'Document preparation';
+
+  @override
+  String get journeyStageOnlineApplication => 'Online application';
+
+  @override
+  String get journeyStageOfflineApplication => 'Offline application';
+
+  @override
+  String get journeyStageInterview => 'Interview';
+
+  @override
+  String get journeyStageWaitingInvoice => 'Waiting for invoice';
+
+  @override
+  String get journeyStageTuitionPayment => 'Tuition fee payment';
+
+  @override
+  String get journeyStageWaitingAdmission => 'Waiting for admission letter';
+
+  @override
+  String get journeyStageVisaPreparation => 'Preparing for visa application';
+
+  @override
+  String get journeyStageWaitingVisa => 'Waiting for visa issue';
+
+  @override
+  String mapUniversitiesMapped(int count) {
+    return '$count universities mapped';
+  }
+
+  @override
+  String get updateAvailableTitle => 'Update Available';
+
+  @override
+  String updateVersionReady(String version) {
+    return 'Version $version is ready to install.';
+  }
+
+  @override
+  String updateSizeMb(String size) {
+    return 'Size: $size MB';
+  }
+
+  @override
+  String get updateSigningKeyWarning =>
+      'This update changes the app signing key. After installing you will need to log in again with your magic code.';
+
+  @override
+  String get updateNow => 'Update Now';
+
+  @override
+  String get updateLater => 'Later';
+
+  @override
+  String get updateDownloadingTitle => 'Downloading Update';
+
+  @override
+  String updateDownloadProgress(String downloaded, String total) {
+    return '$downloaded MB / $total MB';
+  }
+
+  @override
+  String get updateInstallingLabel => 'Verifying and installing…';
+
+  @override
+  String get updateFailedTitle => 'Update Failed';
+
+  @override
+  String get updateErrorNetwork =>
+      'Could not download the update. Please check your internet connection and try again.';
+
+  @override
+  String get updateErrorHashMismatch =>
+      'The downloaded file failed integrity verification. Please try again — if the problem repeats, contact your counsellor.';
+
+  @override
+  String get updateErrorInstallDenied =>
+      'Installation was blocked by your device. Please grant \"Install unknown apps\" permission for Hanguk in your phone settings, then try again.';
+
+  @override
+  String get updateErrorStorage =>
+      'Not enough storage to download the update. Please free up some space and try again.';
+
+  @override
+  String get updateErrorUnsupportedPlatform =>
+      'Updates are not available on this platform yet.';
+
+  @override
+  String get updateErrorUnknown =>
+      'Update failed. Please try again, or contact your counsellor.';
+
+  @override
+  String get guestModeEyebrow => 'Guest Explorer';
+
+  @override
+  String get guestJoinCta => 'Join Hanguk';
+
+  @override
+  String get guestExploreTitle => 'Find Your University';
+
+  @override
+  String guestUniversitiesCount(int count) {
+    return '$count universities';
+  }
+
+  @override
+  String get guestNavExplore => 'Explore';
+
+  @override
+  String get guestNavCompare => 'Compare';
+
+  @override
+  String guestCompareCount(int count) {
+    return 'Compare $count/2';
+  }
+
+  @override
+  String get guestCompareEmptySlot => 'Add from Explore';
+
+  @override
+  String get guestCompareApplyCta => 'Apply with Hanguk';
+
+  @override
+  String get guestCompareReassurance =>
+      'Get a magic code and our team will guide your application from documents to visa.';
+
+  @override
+  String get guestRowCity => 'City';
+
+  @override
+  String get guestRowTier => 'Tier';
+
+  @override
+  String get guestRowIeqas => 'IEQAS status';
+
+  @override
+  String get guestRowPartner => 'Hanguk partner';
+
+  @override
+  String get guestRowNextEvent => 'Next event';
+
+  @override
+  String get guestRowWebsite => 'Website';
+
+  @override
+  String get guestValueYes => 'Yes';
+
+  @override
+  String get guestValueNo => 'No';
+
+  @override
+  String get roomTabStatus => 'Status';
+
+  @override
+  String get roomTabDiscussion => 'Discussion';
+
+  @override
+  String get roomTabNews => 'News';
+
+  @override
+  String get roomTabCalendar => 'Calendar';
+
+  @override
+  String get roomApplicationProgress => 'Application Progress';
+
+  @override
+  String get roomChatEmpty => 'No messages yet. Start the conversation!';
+
+  @override
+  String get roomChatHint => 'Message room...';
+
+  @override
+  String get roomChatSenderFallback => 'User';
+
+  @override
+  String get roomNewsEmpty => 'No active announcements.';
+
+  @override
+  String get roomEventsEmpty => 'No events to display on this date.';
+
+  @override
+  String get uniDbPhaseBadge => 'University DB · Phase 0 scaffolded';
+
+  @override
+  String get uniDbRecentChangesTitle =>
+      'Updates from your tracked universities';
+
+  @override
+  String get timeJustNow => 'just now';
+
+  @override
+  String timeMinutesAgo(int minutes) {
+    return '${minutes}m ago';
+  }
+
+  @override
+  String timeHoursAgo(int hours) {
+    return '${hours}h ago';
+  }
+
+  @override
+  String timeDaysAgo(int days) {
+    return '${days}d ago';
+  }
+
+  @override
+  String get uniDbVerifiedDeadlinesTitle => 'Verified upcoming deadlines';
+
+  @override
+  String get deadlineClosed => 'Closed';
+
+  @override
+  String deadlineInDays(int days) {
+    return 'in ${days}d';
+  }
+
+  @override
+  String deadlineInHours(int hours) {
+    return 'in ${hours}h';
+  }
+
+  @override
+  String deadlineInMinutes(int minutes) {
+    return 'in ${minutes}m';
+  }
+
+  @override
+  String get eventApplyOpen => 'Application opens';
+
+  @override
+  String get eventApplyClose => 'Application closes';
+
+  @override
+  String get eventDocumentsDue => 'Documents due';
+
+  @override
+  String get eventFirstStageResults => '1st stage results';
+
+  @override
+  String get eventInterviewLabel => 'Interview';
+
+  @override
+  String get eventPracticalExam => 'Practical exam';
+
+  @override
+  String get eventFinalResults => 'Final results';
+
+  @override
+  String get eventAdditionalAdmit => 'Additional admit';
+
+  @override
+  String get eventRegistrationOpen => 'Registration opens';
+
+  @override
+  String get eventRegistrationClose => 'Registration closes';
+
+  @override
+  String get cycleForeign => 'Foreign track';
+
+  @override
+  String get cycleOverseasKoreanFull => 'Overseas Korean (full)';
+
+  @override
+  String get cycleOverseasKoreanPartial => 'Overseas Korean (partial)';
+
+  @override
+  String get cycleSusi => 'Susi';
+
+  @override
+  String get cycleJeongsi => 'Jeongsi';
+
+  @override
+  String get cycleTransfer => 'Transfer';
+
+  @override
+  String get cycleGradGeneral => 'Graduate';
+
+  @override
+  String get cycleGradForeign => 'Graduate (foreign)';
+
+  @override
+  String get uniSpecificHeader => 'University-specific interview';
+
+  @override
+  String get uniSpecificPickPrompt =>
+      'Pick a university above to seed the interviewer with its recruitment unit, requirements, and key deadlines.';
+
+  @override
+  String uniSpecificLoadError(Object error) {
+    return 'Could not load recruitment data: $error\nYou can still run a general interview.';
+  }
+
+  @override
+  String get uniSpecificNoData =>
+      'No verified recruitment data for this university yet. The interviewer will fall back to general questions until we ingest its 모집요강.';
+
+  @override
+  String get uniSpecificFallbackButton => 'Try a general interview instead';
+
+  @override
+  String uniSpecificTrackLabel(String category) {
+    return 'Track: $category';
+  }
+
+  @override
+  String get uniSpecificSeedNote =>
+      'The interviewer will draw on this recruitment data when asking questions.';
+
+  @override
+  String get uniSpecificRecruitmentUnitFallback => 'Recruitment unit';
+
+  @override
+  String get uniDbInstitutionTitle => 'Institution';
+
+  @override
+  String get uniDbNotFoundTitle => 'Institution not found';
+
+  @override
+  String get uniDbNotFoundBody =>
+      'This university isn\'t in our catalog yet. Please check back soon.';
+
+  @override
+  String get uniDbUpcomingDeadlines => 'Upcoming deadlines';
+
+  @override
+  String get uniDbNoDeadlines => 'No upcoming deadlines announced yet.';
+
+  @override
+  String get uniDbTuitionHeading => 'Tuition';
+
+  @override
+  String get uniDbTuitionEmpty => 'Tuition details aren\'t available yet.';
+
+  @override
+  String get uniDbRequirementsHeading => 'Requirements';
+
+  @override
+  String get uniDbRequirementsEmpty =>
+      'Admission requirements aren\'t available yet.';
+
+  @override
+  String get uniDbScholarshipsHeading => 'Scholarships';
+
+  @override
+  String get uniDbScholarshipsEmpty =>
+      'No scholarships listed for this university yet.';
+
+  @override
+  String get uniDbDocumentChecklistHeading => 'Document checklist';
+
+  @override
+  String get uniDbDocumentsEmpty =>
+      'The document checklist isn\'t available yet.';
+
+  @override
+  String get uniDbTrackTitle => 'Track this institution';
+
+  @override
+  String get uniDbTrackOnDesc =>
+      'You\'ll see deadlines on the home banner and get push notifications when something changes.';
+
+  @override
+  String get uniDbTrackOffDesc =>
+      'Turn on to follow deadlines, correction notices, and requirement changes.';
+
+  @override
+  String uniDbTrackError(Object error) {
+    return 'Could not update tracking: $error';
+  }
+
+  @override
+  String get uniDbOpenGuidePdf => 'Open admission guide PDF';
+
+  @override
+  String get uniDbNoGuidePdf => 'No admission guide PDF available yet.';
+
+  @override
+  String get uniDbPdfNoApp =>
+      'Could not open the PDF — no app available to handle it.';
+
+  @override
+  String uniDbPdfError(Object error) {
+    return 'Could not open PDF: $error';
+  }
+
+  @override
+  String uniDbAcademicYear(int year) {
+    return '$year academic year';
+  }
+
+  @override
+  String uniDbSemesterLabel(int number) {
+    return 'Semester $number';
+  }
+
+  @override
+  String get uniDbFirstSemester => 'first semester';
+
+  @override
+  String uniDbAdmissionFee(String amount) {
+    return '+ $amount fee';
+  }
+
+  @override
+  String uniDbGpaChip(String pct) {
+    return 'GPA ≥ $pct%';
+  }
+
+  @override
+  String get uniDbTopikTierTable => 'TOPIK tier table';
+
+  @override
+  String uniDbDocumentsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count documents',
+      one: '1 document',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get uniDbApostilleRequired => 'Apostille required';
+
+  @override
+  String uniDbLastVerified(String date) {
+    return 'Last verified: $date';
+  }
+
+  @override
+  String get eventOrientation => 'Orientation';
+
+  @override
+  String get eventSemesterStart => 'Semester starts';
+
+  @override
+  String get facultyHumanities => 'Humanities';
+
+  @override
+  String get facultySocialScience => 'Social Science';
+
+  @override
+  String get facultyNaturalScience => 'Natural Science';
+
+  @override
+  String get facultyEngineering => 'Engineering';
+
+  @override
+  String get facultyMedical => 'Medical / Pharma';
+
+  @override
+  String get facultyArts => 'Arts';
+
+  @override
+  String get facultyPhysicalEducation => 'Physical Education';
+
+  @override
+  String get uniDbCompareTitle => 'Compare';
+
+  @override
+  String get uniDbCompareEmptyTitle => 'Compare universities';
+
+  @override
+  String get uniDbCompareEmptyBody =>
+      'Track at least two institutions, then return here to compare them.';
+
+  @override
+  String get uniDbCompareNeedSecond =>
+      'Need a second university to compare against.';
+
+  @override
+  String uniDbCompareSelected(String name) {
+    return 'Currently selected: $name';
+  }
+
+  @override
+  String get uniDbColEnglishName => 'English name';
+
+  @override
+  String get uniDbColUzbekName => 'Uzbek name';
+
+  @override
+  String get uniDbColLastVerified => 'Last verified';
+
+  @override
+  String get uniDbTrackerTitle => 'Application tracker';
+
+  @override
+  String get uniDbTrackerEmptyTitle => 'No tracked universities yet';
+
+  @override
+  String get uniDbTrackerEmptyBody =>
+      'Track a university on its page and its deadlines will appear here.';
+
+  @override
+  String get uniDbLoadFailed => 'Couldn\'t load the university list.';
+
+  @override
+  String get loginSubmitButton => 'Login to System';
+
+  @override
+  String get welcomeGuestCaption =>
+      'No code needed — browse, filter and compare freely.';
+
+  @override
+  String get homeNotifications => 'Notifications';
+
+  @override
+  String get notifApplicationUpdates => 'Application updates';
+
+  @override
+  String get notifToUpload => 'To upload';
+
+  @override
+  String get notifAllCaughtUp => 'You\'re all caught up';
+
+  @override
+  String get notifAllCaughtUpBody =>
+      'Reminders about your documents and applications will appear here.';
 }

@@ -104,30 +104,16 @@ serve(async (req) => {
       );
     }
 
-    // VIP plan check — only PREMIUM and NO RISK plans can use interview practice (whitelist approach)
-    const { data: userProfile } = await adminClient
-      .from("profiles")
-      .select("payment_plan")
-      .eq("user_id", user.id)
-      .single();
-
-    // Check if user is staff (staff can always access)
-    const { data: staffRole } = await adminClient
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", user.id)
-      .limit(1);
-
-    const isStaff = staffRole && staffRole.length > 0;
-    const allowedPlans = ['PREMIUM', 'NO RISK', 'premium', 'no_risk', 'no risk'];
-    const userPlan = userProfile?.payment_plan || '';
-
-    if (!isStaff && !allowedPlans.includes(userPlan)) {
-      return new Response(
-        JSON.stringify({ error: "This feature requires a Premium or No Risk plan" }),
-        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+    // Open to every payment plan (owner's decision, 2026-07-30). This used to
+    // return 403 unless the account was on PREMIUM or NO RISK.
+    //
+    // It also made the interview inconsistent with itself: the spoken path
+    // runs through Vapi and was never gated, while this text path was — so the
+    // same student could hold a voice interview but not a typed one, and
+    // `interview-feedback` would then score either without asking about plans.
+    //
+    // The session ownership check below is unchanged and is what actually
+    // matters: a caller can only ever drive their own interview.
 
     // Verify session belongs to user
     const { data: session, error: sessionError } = await supabase

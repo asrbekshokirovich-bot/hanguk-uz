@@ -308,10 +308,31 @@ abstract class AppLocalizations {
   /// **'Virtual Walkaround'**
   String get virtualWalkaroundTitle;
 
-  /// Bottom-nav label for the Applications tab (opens ApplicationsTab
-  /// with AppBar title 'My Applications'). Renamed from navHome in the
-  /// 2026-05-12 UI/UX audit P0 #5 — 'Home' was a misnomer because the
-  /// tab is the Applications screen, not a landing/home screen.
+  /// Outline button in the university detail sheet that opens the institution's official homepage (institutions.primary_domain).
+  ///
+  /// In en, this message translates to:
+  /// **'Visit University Website'**
+  String get visitUniversityWebsite;
+
+  /// Chip label for a non-top quality tier (2-4) on a university card or detail sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Tier {tier}'**
+  String universityTier(int tier);
+
+  /// Chip label shown when the institution holds an IEQAS accreditation.
+  ///
+  /// In en, this message translates to:
+  /// **'Verified'**
+  String get universityVerified;
+
+  /// Chip label preceding the date of the institution's next admission-cycle event.
+  ///
+  /// In en, this message translates to:
+  /// **'Next event'**
+  String get universityNextEvent;
+
+  /// Bottom-nav label for the Applications tab (opens ApplicationsTab with AppBar title 'My Applications'). Renamed from navHome in the 2026-05-12 UI/UX audit P0 #5 — 'Home' was a misnomer because the tab is the Applications screen, not a landing/home screen.
   ///
   /// In en, this message translates to:
   /// **'Applications'**
@@ -329,8 +350,7 @@ abstract class AppLocalizations {
   /// **'Docs'**
   String get navDocs;
 
-  /// Bottom-nav label for the Training tab. Kept short for the nav bar —
-  /// the full screen title is trainingTabTitle.
+  /// Bottom-nav label for the Training tab. Kept short for the nav bar — the full screen title is trainingTabTitle.
   ///
   /// In en, this message translates to:
   /// **'Training'**
@@ -354,88 +374,199 @@ abstract class AppLocalizations {
   /// **'My Documents'**
   String get documentsTabTitle;
 
-  /// Document tab string (audit A3/A4).
+  /// No description provided for @documentUploadInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload valid PDF or JPEG scans of your original documents. Max 10MB per file.'**
   String get documentUploadInfo;
 
-  /// Document tab string (audit A3/A4).
+  /// No description provided for @documentsRequiredHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Required Documents'**
   String get documentsRequiredHeading;
 
-  /// Document tab string (audit A3/A4).
+  /// No description provided for @documentUploadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t upload your document. Please try again.'**
   String get documentUploadFailed;
 
-  /// Document tab string (audit A3/A4).
+  /// No description provided for @documentPreviewFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t open the document. Please try again.'**
   String get documentPreviewFailed;
 
-  /// Document tab string (audit A3/A4).
+  /// No description provided for @documentLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load your documents.'**
   String get documentLoadError;
 
-  /// Document tab string (audit A3/A4).
+  /// No description provided for @commonRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
   String get commonRetry;
 
-  /// Onboarding string (audit A9).
+  /// No description provided for @onboardingSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
   String get onboardingSkip;
 
-  /// Onboarding string (audit A9).
+  /// No description provided for @onboardingNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
   String get onboardingNext;
 
-  /// Onboarding string (audit A9).
+  /// No description provided for @onboardingStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Get Started'**
   String get onboardingStart;
 
-  /// Onboarding string (audit A9).
+  /// No description provided for @onboardingStep1Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Track your applications'**
   String get onboardingStep1Title;
 
-  /// Onboarding string (audit A9).
+  /// No description provided for @onboardingStep1Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow every university application from documents to decision, all in one place.'**
   String get onboardingStep1Body;
 
-  /// Onboarding string (audit A9).
+  /// No description provided for @onboardingStep2Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Explore universities & upload documents'**
   String get onboardingStep2Title;
 
-  /// Onboarding string (audit A9).
+  /// No description provided for @onboardingStep2Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Find universities on the map and securely upload the documents each one needs.'**
   String get onboardingStep2Body;
 
-  /// Onboarding string (audit A9).
+  /// No description provided for @onboardingStep3Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Practice interviews with AI'**
   String get onboardingStep3Title;
 
-  /// Onboarding string (audit A9).
+  /// No description provided for @onboardingStep3Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Rehearse Korean admission interviews with the AI coach and get instant feedback.'**
   String get onboardingStep3Body;
 
+  /// No description provided for @appsEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No applications yet'**
   String get appsEmptyTitle;
 
+  /// No description provided for @appsEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your applications will appear here once you apply to a university.'**
   String get appsEmptyBody;
 
+  /// No description provided for @appsLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load your applications.'**
   String get appsLoadError;
 
+  /// No description provided for @appsPendingHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending Applications'**
   String get appsPendingHeading;
 
+  /// No description provided for @appsActiveHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Active Applications'**
   String get appsActiveHeading;
 
+  /// No description provided for @searchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search...'**
   String get searchHint;
 
+  /// No description provided for @clearSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear search'**
   String get clearSearch;
 
+  /// No description provided for @filterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
   String get filterAll;
 
+  /// No description provided for @filterPartner.
+  ///
+  /// In en, this message translates to:
+  /// **'Partner'**
   String get filterPartner;
 
+  /// No description provided for @filterTop.
+  ///
+  /// In en, this message translates to:
+  /// **'Top'**
   String get filterTop;
 
+  /// No description provided for @noUniversitiesMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'No universities match this filter'**
   String get noUniversitiesMatch;
 
+  /// No description provided for @clearFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear filters'**
   String get clearFilters;
 
+  /// No description provided for @universitiesLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load universities'**
   String get universitiesLoadError;
 
+  /// No description provided for @checkConnectionRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Check your connection and try again'**
   String get checkConnectionRetry;
 
+  /// No description provided for @switchToListView.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch to list view'**
   String get switchToListView;
 
+  /// No description provided for @switchToMapView.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch to map view'**
   String get switchToMapView;
 
+  /// No description provided for @chatInputHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask anything about South Korea...'**
   String get chatInputHint;
 
-  /// Tooltip for the account icon button in the Applications AppBar —
-  /// opens the AccountScreen with sign-out, data export, and delete
-  /// account.
+  /// Tooltip for the account icon button in the Applications AppBar — opens the AccountScreen with sign-out, data export, and delete account.
   ///
   /// In en, this message translates to:
   /// **'Account'**
@@ -459,20 +590,19 @@ abstract class AppLocalizations {
   /// **'Back'**
   String get accountBackTooltip;
 
-  /// Header shown next to the back arrow at the top of the AccountScreen.
+  /// Header shown next to the back arrow at the top of the AccountScreen. Same lemma as accountTooltip but kept separate so translators can differ between a 'header' and a 'tooltip' if their language calls for it.
   ///
   /// In en, this message translates to:
   /// **'Account'**
   String get accountTitle;
 
-  /// Label above the email/phone of the currently logged-in user.
+  /// Label above the email/phone of the currently logged-in user on the AccountScreen.
   ///
   /// In en, this message translates to:
   /// **'Signed in as'**
   String get accountSignedInAs;
 
-  /// Fallback shown when neither email nor phone is available for the
-  /// current Supabase user.
+  /// Fallback shown when neither email nor phone is available for the current Supabase user.
   ///
   /// In en, this message translates to:
   /// **'(unknown account)'**
@@ -496,20 +626,19 @@ abstract class AppLocalizations {
   /// **'Sign out'**
   String get accountSignOut;
 
-  /// Section header for the data-export card (PIPA + GDPR right to data
-  /// portability).
+  /// Section header for the data-export card on the AccountScreen (PIPA + GDPR right to data portability).
   ///
   /// In en, this message translates to:
   /// **'Your data'**
   String get accountYourDataLabel;
 
-  /// Body copy under the 'Your data' header.
+  /// Body copy under the 'Your data' header, explaining what the JSON export contains.
   ///
   /// In en, this message translates to:
   /// **'Download a JSON copy of everything Hanguk holds about your account — profile, applications, study plans, drafts, interview sessions and feedback.'**
   String get accountYourDataBody;
 
-  /// Label on the data-export button while the call is in flight.
+  /// Label on the export-data button while the export-my-data Edge Function call is in flight.
   ///
   /// In en, this message translates to:
   /// **'Preparing export…'**
@@ -527,25 +656,25 @@ abstract class AppLocalizations {
   /// **'Danger zone'**
   String get accountDangerZoneLabel;
 
-  /// Body copy under the 'Danger zone' header.
+  /// Body copy under the 'Danger zone' header, enumerating exactly what gets deleted and the storage/backup retention windows. Same retention numbers appear in the privacy policy — keep them in sync if the policy is updated.
   ///
   /// In en, this message translates to:
   /// **'Deleting your account is permanent. We will erase your profile, applications, study plans, personal-statement drafts, interview sessions, and transcripts. Documents in storage are removed within 30 days; backups age out within 90 days.'**
   String get accountDangerZoneBody;
 
-  /// Label on the red 'Delete account' button.
+  /// Label on the red 'Delete account' button that opens the confirmation dialog.
   ///
   /// In en, this message translates to:
   /// **'Delete account'**
   String get accountDeleteAccount;
 
-  /// Legal footer link on the AccountScreen.
+  /// Legal footer link on the AccountScreen — opens the privacy policy in the system browser.
   ///
   /// In en, this message translates to:
   /// **'Privacy Policy'**
   String get accountPrivacyPolicy;
 
-  /// Legal footer link on the AccountScreen.
+  /// Legal footer link on the AccountScreen — opens the terms of service in the system browser.
   ///
   /// In en, this message translates to:
   /// **'Terms of Service'**
@@ -557,13 +686,13 @@ abstract class AppLocalizations {
   /// **'Could not delete account'**
   String get accountDeleteErrorTitle;
 
-  /// Body of the AlertDialog shown when fn_delete_my_account RPC throws.
+  /// Body of the AlertDialog shown when fn_delete_my_account RPC throws. Embeds the server error message verbatim so we can debug. Falls back to manual email so the user retains their PIPA/GDPR right to erasure.
   ///
   /// In en, this message translates to:
   /// **'We hit an error while deleting your data:\n\n{error}\n\nPlease email privacy@hanguk.uz so we can finish the deletion for you.'**
   String accountDeleteErrorBody(Object error);
 
-  /// SnackBar message shown when the export-my-data Edge Function fails.
+  /// SnackBar message shown when the export-my-data Edge Function fails. The error is the FunctionException.details or Exception.toString().
   ///
   /// In en, this message translates to:
   /// **'Export failed: {error}'**
@@ -575,20 +704,19 @@ abstract class AppLocalizations {
   /// **'Delete your account?'**
   String get accountDeleteDialogTitle;
 
-  /// Body of the 'type DELETE to confirm' dialog. The literal 'DELETE'
-  /// is intentionally untranslated — the TextField compares against it.
+  /// Body of the 'type DELETE to confirm' dialog. NOTE: the literal word 'DELETE' that the user must type is intentionally left in English in all locales — the TextField controller compares against the uppercase literal 'DELETE'. Translators: leave 'DELETE' as-is and adapt only the surrounding sentence.
   ///
   /// In en, this message translates to:
   /// **'This will permanently delete your account, applications, study plans, personal-statement drafts, interview sessions, and transcripts.\n\nType DELETE to confirm.'**
   String get accountDeleteDialogBody;
 
-  /// Label on the red confirm button at the bottom of the delete dialog.
+  /// Label on the red confirm button at the bottom of the 'type DELETE to confirm' dialog.
   ///
   /// In en, this message translates to:
   /// **'Delete forever'**
   String get accountDeleteDialogConfirm;
 
-  /// Status text shown in the non-dismissible deletion progress dialog.
+  /// Status text shown next to the spinner in the non-dismissible deletion progress dialog.
   ///
   /// In en, this message translates to:
   /// **'Deleting your account…'**
@@ -600,106 +728,106 @@ abstract class AppLocalizations {
   /// **'Student Portal'**
   String get loginStudentPortal;
 
-  /// Help text above the magic-code TextField.
+  /// Help text above the magic-code TextField on the LoginScreen. Explains where the code comes from.
   ///
   /// In en, this message translates to:
   /// **'Enter the 8-character access code (letters and numbers) provided by your consultant or university representative.'**
   String get loginAccessCodeHelp;
 
-  /// Primary button label in magic-code mode.
+  /// Label on the primary sign-in button in magic-code mode.
   ///
   /// In en, this message translates to:
   /// **'Login manually with Access Code'**
   String get loginAccessCodeButton;
 
-  /// Fallback TextButton that returns to the phone-login UI.
+  /// Fallback TextButton under the magic-code form that returns to the phone-login UI. Translators: keep the leading arrow.
   ///
   /// In en, this message translates to:
   /// **'← I actually want to Log in via Phone Number'**
   String get loginSwitchToPhone;
 
-  /// Title of the 'maintenance' card on the LoginScreen.
+  /// Title of the 'maintenance' card shown on the LoginScreen while public phone sign-up is disabled.
   ///
   /// In en, this message translates to:
   /// **'Coming Soon'**
   String get loginComingSoonTitle;
 
-  /// Body of the 'maintenance' card on the LoginScreen.
+  /// Body of the 'maintenance' card. Explains that public sign-up is temporarily disabled and points students at the magic-code flow.
   ///
   /// In en, this message translates to:
   /// **'Public sign up and phone login are currently under maintenance as we upgrade our systems.\n\nStudents: Please use your Magic Access Code to log in for now.'**
   String get loginComingSoonBody;
 
-  /// TextButton inside the 'Coming Soon' card.
+  /// TextButton inside the 'Coming Soon' card that flips the LoginScreen into magic-code mode.
   ///
   /// In en, this message translates to:
   /// **'Switch to Magic Code Login'**
   String get loginSwitchToMagicCode;
 
-  /// Validation error when the phone number on Sign In is invalid.
+  /// Validation error when the phone number on the Sign In tab is empty or too short.
   ///
   /// In en, this message translates to:
   /// **'Please enter a valid phone number (e.g. +12345678).'**
   String get loginErrorInvalidPhone;
 
-  /// Validation error when the password is shorter than 6 chars.
+  /// Validation error when the password is shorter than 6 chars (used on both Sign In and Sign Up).
   ///
   /// In en, this message translates to:
   /// **'Password must be at least 6 characters.'**
   String get loginErrorPasswordTooShort;
 
-  /// Error shown after Supabase signInWithPhone rejects the credentials.
+  /// Error shown after the Supabase signInWithPhone call rejects the credentials. Intentionally vague — does not reveal whether the phone or password was the problem.
   ///
   /// In en, this message translates to:
   /// **'Invalid phone number or password.'**
   String get loginErrorInvalidCredentials;
 
-  /// Validation error when the magic code is too short.
+  /// Validation error when the magic-code TextField is shorter than 6 chars before submission.
   ///
   /// In en, this message translates to:
   /// **'Please enter a valid access code (min 6 characters).'**
   String get loginErrorInvalidAccessCode;
 
-  /// Sign-Up validation error: name is empty.
+  /// Validation error on the Sign Up tab when the name field is empty.
   ///
   /// In en, this message translates to:
   /// **'Full Name is required.'**
   String get signUpErrorNameRequired;
 
-  /// Sign-Up validation error: phone is empty/too short.
+  /// Validation error on the Sign Up tab when the phone field is empty or too short.
   ///
   /// In en, this message translates to:
   /// **'A valid phone number is required (e.g. +12345678).'**
   String get signUpErrorPhoneRequired;
 
-  /// Sign-Up validation error: confirm password mismatch.
+  /// Validation error on the Sign Up tab when password and confirm-password differ.
   ///
   /// In en, this message translates to:
   /// **'Passwords do not match.'**
   String get signUpErrorPasswordMismatch;
 
-  /// Sign-Up success banner.
+  /// Success banner shown on the LoginScreen after Sign Up succeeds; the tab controller then animates back to the Sign In tab.
   ///
   /// In en, this message translates to:
   /// **'Account created successfully! Please log in.'**
   String get signUpSuccess;
 
-  /// AppBar title for the /notifications/settings screen.
+  /// AppBar title for the /notifications/settings screen (per-tracked-university push-notification preferences).
   ///
   /// In en, this message translates to:
   /// **'Notification settings'**
   String get notifSettingsTitle;
 
-  /// Empty-state title on the notification settings screen.
+  /// Empty-state title on the notification settings screen — shown when user_tracked_universities is empty.
   ///
   /// In en, this message translates to:
   /// **'No tracked universities yet'**
   String get notifSettingsEmptyTitle;
 
-  /// Empty-state body on the notification settings screen.
+  /// Empty-state body on the notification settings screen — instructs the user how to start tracking a university.
   ///
   /// In en, this message translates to:
-  /// **'Tap "Track this institution" on a university page to follow it. Notification preferences appear here once you have at least one tracked institution.'**
+  /// **'Tap \"Track this institution\" on a university page to follow it. Notification preferences appear here once you have at least one tracked institution.'**
   String get notifSettingsEmptyBody;
 
   /// SwitchListTile title — toggles notify_on_calendar_change.
@@ -714,13 +842,13 @@ abstract class AppLocalizations {
   /// **'Deadline dates move'**
   String get notifSettingsCalendarDesc;
 
-  /// SwitchListTile title — toggles notify_on_correction.
+  /// SwitchListTile title — toggles notify_on_correction (Korean: 정정공고).
   ///
   /// In en, this message translates to:
   /// **'Correction notices'**
   String get notifSettingsCorrection;
 
-  /// SwitchListTile subtitle for the correction-notice toggle.
+  /// SwitchListTile subtitle for the correction-notice toggle. NOTE: '정정공고' is the Korean university-admission term for an official correction announcement and is left untranslated across locales — it is the term the user actually encounters on Korean university sites.
   ///
   /// In en, this message translates to:
   /// **'정정공고 published — highest priority'**
@@ -732,7 +860,7 @@ abstract class AppLocalizations {
   /// **'Requirement changes'**
   String get notifSettingsRequirement;
 
-  /// SwitchListTile subtitle for the requirement-changes toggle.
+  /// SwitchListTile subtitle for the requirement-changes toggle. 'TOPIK' is a proper noun (test name) and is left untranslated across locales.
   ///
   /// In en, this message translates to:
   /// **'TOPIK / GPA / language test rules change'**
@@ -744,21 +872,19 @@ abstract class AppLocalizations {
   /// **'Scholarship updates'**
   String get notifSettingsScholarship;
 
-  /// SwitchListTile subtitle for the scholarship-updates toggle.
+  /// SwitchListTile subtitle for the scholarship-updates toggle; warns the user that the channel is noisy.
   ///
   /// In en, this message translates to:
   /// **'Off by default — high volume'**
   String get notifSettingsScholarshipDesc;
 
-  /// Centered error message when the notification settings provider
-  /// is in the error state.
+  /// Centered error message when notificationSettingsProvider's AsyncValue is in the error state.
   ///
   /// In en, this message translates to:
   /// **'Error: {error}'**
   String notifSettingsLoadError(Object error);
 
-  /// Label above each per-institution card showing the preferred
-  /// notification language.
+  /// Label above each per-institution card showing the preferred language code stored on the row. The value is a BCP-47 code (e.g. 'en', 'ko').
   ///
   /// In en, this message translates to:
   /// **'Push payload language: {lang}'**
@@ -788,199 +914,205 @@ abstract class AppLocalizations {
   /// **'3. Interviewer Persona'**
   String get interviewDialogStepPersona;
 
-  /// Empty-state body in the training-tab interview-setup dialog.
+  /// Empty-state body in the training-tab interview-setup dialog. Wording differs from noApplicationsBody because it explains how the interview, specifically, tailors to a university.
   ///
   /// In en, this message translates to:
   /// **'Add a target university first — interview practice tailors questions to that school.'**
   String get interviewNoAppsBody;
 
-  /// Track-chip label for Korean.
+  /// Track-chip label for Korean. Used by interview setup AND drafting session dialogs.
   ///
   /// In en, this message translates to:
   /// **'Korean'**
   String get trackKorean;
 
-  /// Track-chip label for English.
+  /// Track-chip label for English. Used by interview setup AND drafting session dialogs.
   ///
   /// In en, this message translates to:
   /// **'English'**
   String get trackEnglish;
 
-  /// Dropdown label for the friendly persona (compact form).
+  /// Dropdown label for the friendly persona on the training-tab quick-setup dialog.
   ///
   /// In en, this message translates to:
   /// **'Friendly admissions officer'**
   String get personaFriendly;
 
-  /// Dropdown label for the strict persona (compact form).
+  /// Dropdown label for the strict persona on the training-tab quick-setup dialog.
   ///
   /// In en, this message translates to:
   /// **'Strict professor'**
   String get personaStrict;
 
-  /// Dropdown label for the impatient persona (compact form).
+  /// Dropdown label for the impatient persona on the training-tab quick-setup dialog.
   ///
   /// In en, this message translates to:
   /// **'Impatient visa officer'**
   String get personaImpatient;
 
-  /// Dropdown label for the friendly persona (capitalised form).
+  /// Dropdown label for the friendly persona on the full InterviewSetupView. Capitalised differently from the training-tab dialog to match the existing UI style.
   ///
   /// In en, this message translates to:
   /// **'Friendly Admissions Officer'**
   String get personaFriendlyCaps;
 
-  /// Dropdown label for the strict persona (capitalised form).
+  /// Dropdown label for the strict persona on the full InterviewSetupView.
   ///
   /// In en, this message translates to:
   /// **'Strict Professor'**
   String get personaStrictCaps;
 
-  /// Dropdown label for the impatient persona (capitalised form).
+  /// Dropdown label for the impatient persona on the full InterviewSetupView.
   ///
   /// In en, this message translates to:
   /// **'Impatient Visa Officer'**
   String get personaImpatientCaps;
 
-  /// SnackBar shown when microphone permission is permanently denied.
+  /// SnackBar shown when the OS reports microphone permission permanently denied. Paired with an 'Open settings' deep-link action.
   ///
   /// In en, this message translates to:
   /// **'Microphone is blocked in system settings.'**
   String get micBlockedInSettings;
 
-  /// Deep-link to OS app-settings.
+  /// SnackBar action label that deep-links into the OS app-settings page so the user can re-enable microphone.
   ///
   /// In en, this message translates to:
   /// **'Open settings'**
   String get openSettings;
 
-  /// Generic error message used in several training-flow loading states.
+  /// Generic 'Error: {error}' inline message used in several training-flow loading states.
   ///
   /// In en, this message translates to:
   /// **'Error: {error}'**
   String genericError(Object error);
 
-  /// Error string when applications provider errors in the picker.
+  /// Error string shown in the InterviewSetupView university picker when the applications provider errors.
   ///
   /// In en, this message translates to:
   /// **'Error loading applications: {error}'**
   String errorLoadingApplications(Object error);
 
-  /// Short empty-state hint inside the InterviewSetupView university picker.
+  /// Short empty-state hint inside the InterviewSetupView university picker. Differs from the longer noApplicationsBody used in the training-tab dialog.
   ///
   /// In en, this message translates to:
   /// **'No applications yet — go to the Applications tab to add one.'**
   String get noAppsInlineHint;
 
-  /// AdvancedDraftingWorkspace AI status — no draft yet.
+  /// AdvancedDraftingWorkspace AI status when no draft text yet.
   ///
   /// In en, this message translates to:
   /// **'Waiting for input...'**
   String get aiStatusWaiting;
 
-  /// AdvancedDraftingWorkspace AI status — rate-cap is in effect.
+  /// AdvancedDraftingWorkspace AI status when the per-minute rate cap is in effect (audit A10). The next supervise call is deferred.
   ///
   /// In en, this message translates to:
   /// **'AI cooling down…'**
   String get aiStatusCoolingDown;
 
-  /// AdvancedDraftingWorkspace AI status — supervise-draft in flight.
+  /// AdvancedDraftingWorkspace AI status while supervise-draft is in flight.
   ///
   /// In en, this message translates to:
   /// **'AI analyzing...'**
   String get aiStatusAnalyzing;
 
-  /// AdvancedDraftingWorkspace AI status — supervise returned empty.
+  /// AdvancedDraftingWorkspace AI status when supervise-draft returned empty (no warnings, no ghost text).
   ///
   /// In en, this message translates to:
   /// **'Ready'**
   String get aiStatusReady;
 
-  /// AdvancedDraftingWorkspace AI status — ghost-text available.
+  /// AdvancedDraftingWorkspace AI status when ghost-text continuation is available.
   ///
   /// In en, this message translates to:
   /// **'AI Predicting...'**
   String get aiStatusPredicting;
 
-  /// AdvancedDraftingWorkspace AI status — issues but no ghost text.
+  /// AdvancedDraftingWorkspace AI status when supervise-draft returned issues but no ghost text.
   ///
   /// In en, this message translates to:
   /// **'AI Supervision Active'**
   String get aiStatusSupervisionActive;
 
-  /// Header above the drafting TextField.
+  /// AdvancedDraftingWorkspace AI status when this device has no spell checker service, so typed words cannot be checked against a dictionary.
+  ///
+  /// In en, this message translates to:
+  /// **'Device dictionary unavailable'**
+  String get aiStatusSpellCheckUnavailable;
+
+  /// Header above the drafting TextField in AdvancedDraftingWorkspace.
   ///
   /// In en, this message translates to:
   /// **'Workspace'**
   String get workspaceTitle;
 
-  /// Right-aligned analyze action in the workspace header.
+  /// Right-aligned action in the AdvancedDraftingWorkspace header that saves the draft and runs full analysis.
   ///
   /// In en, this message translates to:
   /// **'Analyze'**
   String get workspaceAnalyzeButton;
 
-  /// Label above the list of grammar-fix chips.
+  /// Label above the list of grammar-fix chips in AdvancedDraftingWorkspace.
   ///
   /// In en, this message translates to:
   /// **'AI Supervision Warnings:'**
   String get aiSupervisionWarningsTitle;
 
-  /// Action-chip body inside the AI Supervision Warnings list.
+  /// Action-chip body inside the AI Supervision Warnings list. Translators: the quotes around the substrings are part of the UI styling.
   ///
   /// In en, this message translates to:
-  /// **'Replace "{original}" with "{suggestion}"'**
+  /// **'Replace \"{original}\" with \"{suggestion}\"'**
   String grammarReplaceWith(String original, String suggestion);
 
-  /// TextField hint inside AdvancedDraftingWorkspace.
+  /// TextField hint inside AdvancedDraftingWorkspace. documentTitle is a localized document name (e.g. 'Study Plan' / 'Personal Statement').
   ///
   /// In en, this message translates to:
   /// **'Type your {documentTitle} here...'**
   String draftingHint(String documentTitle);
 
-  /// Semantic label on the ghost-text suggestion preview.
+  /// Semantic label on the ghost-text suggestion preview in AdvancedDraftingWorkspace (for screen readers).
   ///
   /// In en, this message translates to:
   /// **'AI suggestion — tap to insert'**
   String get ghostSuggestionSemantics;
 
-  /// Accept ghost suggestion.
+  /// Button label inside the ghost-text suggestion bar — inserts the ghost text at the cursor.
   ///
   /// In en, this message translates to:
   /// **'Accept'**
   String get ghostAccept;
 
-  /// Dismiss ghost suggestion.
+  /// Tooltip on the close (×) button inside the ghost-text suggestion bar.
   ///
   /// In en, this message translates to:
   /// **'Dismiss suggestion'**
   String get ghostDismiss;
 
-  /// AppBar tooltip for the past-drafts action.
+  /// AppBar action tooltip on StudyPlanScreen opening StudyPlanHistoryView.
   ///
   /// In en, this message translates to:
   /// **'Past drafts'**
   String get pastDraftsTooltip;
 
-  /// AppBar tooltip for the per-session settings popup menu.
+  /// AppBar action tooltip on StudyPlanScreen for the per-session settings popup menu.
   ///
   /// In en, this message translates to:
   /// **'Session settings'**
   String get sessionSettingsTooltip;
 
-  /// PopupMenuItem to switch track to English.
+  /// PopupMenuItem inside the session-settings menu on StudyPlanScreen.
   ///
   /// In en, this message translates to:
   /// **'Switch track → English'**
   String get switchTrackEnglish;
 
-  /// PopupMenuItem to switch track to Korean.
+  /// PopupMenuItem inside the session-settings menu on StudyPlanScreen.
   ///
   /// In en, this message translates to:
   /// **'Switch track → Korean'**
   String get switchTrackKorean;
 
-  /// Primary CTA on the StudyPlanScreen session-list.
+  /// Primary CTA on the StudyPlanScreen session-list (empty state of the screen).
   ///
   /// In en, this message translates to:
   /// **'Create New Session'**
@@ -998,49 +1130,49 @@ abstract class AppLocalizations {
   /// **'No previous drafts found.'**
   String get noPreviousDrafts;
 
-  /// Fallback university name when a draft has no target uni.
+  /// Fallback university name shown for drafts that have no target university yet.
   ///
   /// In en, this message translates to:
   /// **'General'**
   String get generalDraftLabel;
 
-  /// Inline-use document name for Study Plan.
+  /// Localized document name. NOT the card title (that's studyPlanCardTitle). Used inline in the saved-drafts list as '{University} Study Plan'.
   ///
   /// In en, this message translates to:
   /// **'Study Plan'**
   String get studyPlanDocumentName;
 
-  /// Inline-use document name for Personal Statement.
+  /// Localized document name. NOT the card title (that's personalStatementCardTitle). Used inline in the saved-drafts list as '{University} Personal Statement'.
   ///
   /// In en, this message translates to:
   /// **'Personal Statement'**
   String get personalStatementDocumentName;
 
-  /// ListTile title in StudyPlanScreen's saved-drafts list.
+  /// ListTile title in StudyPlanScreen's saved-drafts list. Placeholder order may need to swap in some locales — translators may rewrite to '{documentName} for {universityName}'.
   ///
   /// In en, this message translates to:
   /// **'{universityName} {documentName}'**
   String savedDraftItemTitle(String universityName, String documentName);
 
-  /// ListTile subtitle in StudyPlanScreen's saved-drafts list.
+  /// ListTile subtitle in StudyPlanScreen's saved-drafts list. status is the raw status code from the row (e.g. 'in_progress').
   ///
   /// In en, this message translates to:
   /// **'Status: {status}'**
   String sessionStatusLabel(String status);
 
-  /// AlertDialog title for the delete-session confirmation.
+  /// AlertDialog title for the delete-session confirmation in StudyPlanScreen.
   ///
   /// In en, this message translates to:
   /// **'Delete Session'**
   String get deleteSessionTitle;
 
-  /// AlertDialog body for the delete-session confirmation.
+  /// AlertDialog body for the delete-session confirmation in StudyPlanScreen.
   ///
   /// In en, this message translates to:
   /// **'Are you sure you want to delete this session? This action cannot be undone.'**
   String get deleteSessionBody;
 
-  /// Generic delete button label.
+  /// Generic 'Delete' button label used in destructive confirm dialogs across training.
   ///
   /// In en, this message translates to:
   /// **'Delete'**
@@ -1052,145 +1184,175 @@ abstract class AppLocalizations {
   /// **'Guide'**
   String get stepperLabelGuide;
 
-  /// Step 2 label.
+  /// Step 2 label in the StudyPlanScreen wizard stepper.
   ///
   /// In en, this message translates to:
   /// **'Example'**
   String get stepperLabelExample;
 
-  /// Step 3 label.
+  /// Step 3 label in the StudyPlanScreen wizard stepper.
   ///
   /// In en, this message translates to:
   /// **'Draft'**
   String get stepperLabelDraft;
 
-  /// Step 4 label.
+  /// Step 4 label in the StudyPlanScreen wizard stepper.
   ///
   /// In en, this message translates to:
   /// **'Feedback'**
   String get stepperLabelFeedback;
 
-  /// CTA at the bottom of Step 1 (Guide) advancing to Step 2.
+  /// CTA at the bottom of Step 1 (Guide) in StudyPlanScreen advancing to Step 2 (Example).
   ///
   /// In en, this message translates to:
   /// **'Read Examples'**
   String get readExamplesButton;
 
-  /// Section header above the chosen-university row on Step 2.
+  /// Section header above the chosen-university row on Step 2 (Example) in StudyPlanScreen.
   ///
   /// In en, this message translates to:
   /// **'Target University'**
   String get targetUniversityLabel;
 
-  /// CTA at the bottom of Step 2 (Example) advancing to Step 3.
+  /// CTA at the bottom of Step 2 (Example) in StudyPlanScreen advancing to Step 3 (Draft).
   ///
   /// In en, this message translates to:
   /// **'Start Drafting'**
   String get startDraftingButton;
 
-  /// Create-session AlertDialog title for study_plan.
+  /// Create-session AlertDialog title when documentType is study_plan.
   ///
   /// In en, this message translates to:
   /// **'Start New Study Plan'**
   String get newStudyPlanDialogTitle;
 
-  /// Create-session AlertDialog title for personal_statement.
+  /// Create-session AlertDialog title when documentType is personal_statement.
   ///
   /// In en, this message translates to:
   /// **'Start New Personal Statement'**
   String get newPersonalStatementDialogTitle;
 
-  /// Step header inside the StudyPlanScreen create-session dialog.
+  /// Step header inside the create-session dialog on StudyPlanScreen. Same text as interviewDialogStepUniversity but kept separate so translators can change one without the other.
   ///
   /// In en, this message translates to:
   /// **'1. Select Target University'**
   String get selectTargetUniversityStep;
 
-  /// Step header inside the StudyPlanScreen create-session dialog.
+  /// Step header inside the create-session dialog on StudyPlanScreen.
   ///
   /// In en, this message translates to:
   /// **'2. Select Language Track'**
   String get selectLanguageTrackStep;
 
-  /// Primary CTA in the StudyPlanScreen create-session dialog.
+  /// Primary CTA at the bottom of the StudyPlanScreen create-session dialog.
   ///
   /// In en, this message translates to:
   /// **'Create Session'**
   String get createSession;
 
-  /// Header for the embassy-template AI example card.
+  /// Header for the embassy-template AI example card on Step 2 (Example) in StudyPlanScreen.
   ///
   /// In en, this message translates to:
   /// **'Embassy Example'**
   String get aiExampleEmbassyTitle;
 
-  /// Header for the university-template AI example card.
+  /// Header for the university-template AI example card on Step 2 (Example) in StudyPlanScreen.
   ///
   /// In en, this message translates to:
   /// **'Example for {universityName}'**
   String aiExampleUniversityTitle(String universityName);
 
-  /// Subtitle inside the embassy-template AI example card.
+  /// Subtitle inside the embassy-template AI example card, identifying the addressee of the visa application.
   ///
   /// In en, this message translates to:
   /// **'Embassy of the Republic of Korea (Visa)'**
   String get aiExampleEmbassyLabel;
 
-  /// Inline loading text inside the AI example card.
+  /// Inline loading text inside the AI example card while the simulated 'thinking' delay runs.
   ///
   /// In en, this message translates to:
   /// **'AI is writing an example...'**
   String get aiExampleWritingPlaceholder;
 
-  /// Copy-to-clipboard button label.
+  /// Copy-to-clipboard button label inside the AI example card.
   ///
   /// In en, this message translates to:
   /// **'Copy'**
   String get copyButton;
 
-  /// SnackBar after copying.
+  /// SnackBar shown after the AI example text is copied to clipboard.
   ///
   /// In en, this message translates to:
   /// **'Text copied!'**
   String get copiedSnackbar;
 
-  /// Section header on Step 4 (Feedback).
+  /// Section header on Step 4 (Feedback) in StudyPlanScreen.
   ///
   /// In en, this message translates to:
   /// **'Analysis & Feedback'**
   String get analysisFeedbackTitle;
 
-  /// Empty-state body on Step 4 (Feedback).
+  /// Empty-state body on Step 4 (Feedback) in StudyPlanScreen when no analysis row exists.
   ///
   /// In en, this message translates to:
   /// **'No analysis generated yet.'**
   String get noAnalysisYet;
 
-  /// Fallback body on Step 4 (Feedback).
+  /// StudyPlanAnalysisView: shown instead of the empty state when the analyze call was refused because the account's plan does not include the trainer (HTTP 403).
+  ///
+  /// In en, this message translates to:
+  /// **'Analysis is part of the Premium and No Risk plans. Your current plan does not include it.'**
+  String get analysisErrorPlanRequired;
+
+  /// StudyPlanAnalysisView: shown when the analyze call was rate limited (HTTP 429).
+  ///
+  /// In en, this message translates to:
+  /// **'Too many analyses just now. Wait a minute and try again.'**
+  String get analysisErrorRateLimited;
+
+  /// StudyPlanAnalysisView: shown when the analysis backend or upstream model was unavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'The analysis service is temporarily unavailable. Your draft is saved — try again shortly.'**
+  String get analysisErrorServiceDown;
+
+  /// StudyPlanAnalysisView: shown when the analyze call failed for an unclassified reason, e.g. no network.
+  ///
+  /// In en, this message translates to:
+  /// **'The analysis could not be completed. Your draft is saved — check your connection and try again.'**
+  String get analysisErrorFailed;
+
+  /// StudyPlanAnalysisView: button that re-runs the analysis after a failure.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get analysisRetryButton;
+
+  /// Fallback body on Step 4 (Feedback) in StudyPlanScreen when the analysis row exists but aiResponse is empty.
   ///
   /// In en, this message translates to:
   /// **'AI successfully reviewed your draft.'**
   String get aiReviewedDraft;
 
-  /// CTA at the bottom of Step 4 (Feedback).
+  /// CTA at the bottom of Step 4 (Feedback) returning to Step 3 (Draft).
   ///
   /// In en, this message translates to:
   /// **'Return to Drafting'**
   String get returnToDrafting;
 
-  /// AppBar title for StudyPlanHistoryView (study_plan).
+  /// AppBar title for StudyPlanHistoryView when documentType is study_plan.
   ///
   /// In en, this message translates to:
   /// **'Study Plan history'**
   String get studyPlanHistoryTitle;
 
-  /// AppBar title for StudyPlanHistoryView (personal_statement).
+  /// AppBar title for StudyPlanHistoryView when documentType is personal_statement.
   ///
   /// In en, this message translates to:
   /// **'Personal Statement history'**
   String get personalStatementHistoryTitle;
 
-  /// AppBar title for StudyPlanHistoryView (other).
+  /// AppBar title for StudyPlanHistoryView when documentType is unknown.
   ///
   /// In en, this message translates to:
   /// **'Drafting history'**
@@ -1208,25 +1370,25 @@ abstract class AppLocalizations {
   /// **'Start a new session and your drafts will appear here, ordered by most recently edited.'**
   String get noPastDraftsBody;
 
-  /// Fallback on a session card.
+  /// Fallback shown on a StudyPlanHistoryView session card when universityNameEn is null/empty.
   ///
   /// In en, this message translates to:
   /// **'No target university'**
   String get noTargetUniversity;
 
-  /// Step pill on a session card.
+  /// Step pill on a StudyPlanHistoryView session card.
   ///
   /// In en, this message translates to:
   /// **'Step {step}'**
   String sessionStepLabel(int step);
 
-  /// Word-count label in LiveMetricsBar.
+  /// Word-count label in LiveMetricsBar (AdvancedDraftingWorkspace footer).
   ///
   /// In en, this message translates to:
   /// **'Words'**
   String get metricWords;
 
-  /// Character-count label in LiveMetricsBar.
+  /// Character-count label in LiveMetricsBar (AdvancedDraftingWorkspace footer).
   ///
   /// In en, this message translates to:
   /// **'Characters'**
@@ -1250,7 +1412,7 @@ abstract class AppLocalizations {
   /// **'Saved'**
   String get saveStatusSaved;
 
-  /// LiveMetricsBar save-status tag.
+  /// LiveMetricsBar save-status tag (audit U1/A5).
   ///
   /// In en, this message translates to:
   /// **'Save failed'**
@@ -1262,103 +1424,103 @@ abstract class AppLocalizations {
   /// **'Interview Practice'**
   String get interviewPracticeTitle;
 
-  /// Loading caption on InterviewScreen.
+  /// Loading caption on InterviewScreen while startSession() runs after navigation from the training-tab dialog.
   ///
   /// In en, this message translates to:
   /// **'Setting up your interview...'**
   String get interviewSettingUp;
 
-  /// Header on the full InterviewSetupView.
+  /// Header on the full InterviewSetupView (separate from the quick-setup dialog in TrainingTab).
   ///
   /// In en, this message translates to:
   /// **'AI Interview Setup'**
   String get interviewSetupTitle;
 
-  /// Subtitle under InterviewSetupView header.
+  /// Subtitle under the InterviewSetupView header.
   ///
   /// In en, this message translates to:
   /// **'Configure your AI interviewer settings before starting.'**
   String get interviewSetupSubtitle;
 
-  /// Field label for the sessionType dropdown.
+  /// Field label for the sessionType dropdown on InterviewSetupView.
   ///
   /// In en, this message translates to:
   /// **'Interview Type'**
   String get interviewTypeLabel;
 
-  /// sessionType — general.
+  /// sessionType dropdown item — value 'general'.
   ///
   /// In en, this message translates to:
   /// **'General Introduction'**
   String get interviewTypeGeneral;
 
-  /// sessionType — university_specific.
+  /// sessionType dropdown item — value 'university_specific'.
   ///
   /// In en, this message translates to:
   /// **'University Specific'**
   String get interviewTypeUniversitySpecific;
 
-  /// sessionType — visa.
+  /// sessionType dropdown item — value 'visa'.
   ///
   /// In en, this message translates to:
   /// **'Visa / Embassy Check'**
   String get interviewTypeVisa;
 
-  /// Field label for the uni-picker on InterviewSetupView.
+  /// Field label on InterviewSetupView when sessionType == university_specific. Lower-case variant of targetUniversityLabel.
   ///
   /// In en, this message translates to:
   /// **'Target university'**
   String get targetUniversityFieldLabel;
 
-  /// Field label for the language-track picker.
+  /// Field label for the language-track picker on InterviewSetupView.
   ///
   /// In en, this message translates to:
   /// **'Language'**
   String get languageLabel;
 
-  /// Field label for the persona dropdown.
+  /// Field label for the persona dropdown on InterviewSetupView.
   ///
   /// In en, this message translates to:
   /// **'Interviewer Persona'**
   String get interviewerPersonaLabel;
 
-  /// Field label for the focus-topic TextField.
+  /// Field label for the focus-topic TextField on InterviewSetupView.
   ///
   /// In en, this message translates to:
   /// **'Focus Topic (Optional)'**
   String get focusTopicLabel;
 
-  /// TextField hint for the focus-topic field.
+  /// TextField hint for the focus-topic field on InterviewSetupView.
   ///
   /// In en, this message translates to:
   /// **'e.g. Discussing my computer science major...'**
   String get focusTopicHint;
 
-  /// Switch tile title.
+  /// Switch tile title on InterviewSetupView.
   ///
   /// In en, this message translates to:
   /// **'Timed Mode'**
   String get timedModeTitle;
 
-  /// Switch tile subtitle.
+  /// Switch tile subtitle on InterviewSetupView.
   ///
   /// In en, this message translates to:
   /// **'5 minute strict limit'**
   String get timedModeSubtitle;
 
-  /// Primary CTA on InterviewSetupView.
+  /// Primary CTA on InterviewSetupView. Different from startInterview which is used in the quick-setup dialog.
   ///
   /// In en, this message translates to:
   /// **'Start Practice'**
   String get startPracticeButton;
 
-  /// Hint under a disabled Start Practice button.
+  /// Hint shown under a disabled Start Practice button when university_specific is selected but no target uni is picked.
   ///
   /// In en, this message translates to:
   /// **'Pick a target university above to enable.'**
   String get pickUniversityFirstHint;
 
-  /// Coaching warning shown in InterviewActiveView.
+  /// Coaching warning shown in InterviewActiveView when too many filler words detected (≥4).
   ///
   /// In en, this message translates to:
   /// **'Avoid using filler words!'**
@@ -1370,19 +1532,19 @@ abstract class AppLocalizations {
   /// **'💡 Lifeline Hints:'**
   String get lifelineHintsTitle;
 
-  /// Speaker label — interviewer.
+  /// Speaker label in the transcript ledger on InterviewActiveView (interviewer turn).
   ///
   /// In en, this message translates to:
   /// **'AI'**
   String get speakerAi;
 
-  /// Speaker label — user.
+  /// Speaker label in the transcript ledger on InterviewActiveView (user turn).
   ///
   /// In en, this message translates to:
   /// **'You'**
   String get speakerYou;
 
-  /// Error message on a Vapi status-update error.
+  /// Error message shown in InterviewActiveView when a Vapi status-update event signals an error. detail is the truncated error payload (audit U12).
   ///
   /// In en, this message translates to:
   /// **'Connection interrupted: {detail}'**
@@ -1394,13 +1556,13 @@ abstract class AppLocalizations {
   /// **'Interview Analytics'**
   String get interviewAnalyticsTitle;
 
-  /// Loading caption on InterviewAnalyticsView.
+  /// Loading caption on InterviewAnalyticsView while interview-feedback Edge Function runs.
   ///
   /// In en, this message translates to:
   /// **'Analyzing transcript with AI...'**
   String get analyzingTranscript;
 
-  /// Fallback on InterviewAnalyticsView when feedback is null.
+  /// Fallback shown on InterviewAnalyticsView when feedback is null AND state.error is null.
   ///
   /// In en, this message translates to:
   /// **'No feedback available.'**
@@ -1418,31 +1580,31 @@ abstract class AppLocalizations {
   /// **'Communication'**
   String get metricCommunication;
 
-  /// Per-metric label.
+  /// Per-metric label on InterviewAnalyticsView.
   ///
   /// In en, this message translates to:
   /// **'Confidence'**
   String get metricConfidence;
 
-  /// Per-metric label.
+  /// Per-metric label on InterviewAnalyticsView.
   ///
   /// In en, this message translates to:
   /// **'Content'**
   String get metricContent;
 
-  /// Per-metric label.
+  /// Per-metric label on InterviewAnalyticsView.
   ///
   /// In en, this message translates to:
   /// **'Language'**
   String get metricLanguage;
 
-  /// Section header on InterviewAnalyticsView.
+  /// Section header on InterviewAnalyticsView above the long-form review.
   ///
   /// In en, this message translates to:
   /// **'Detailed Feedback'**
   String get detailedFeedbackTitle;
 
-  /// Fallback body when feedback has no detailed_feedback.
+  /// Fallback body when the feedback row has no detailed_feedback field.
   ///
   /// In en, this message translates to:
   /// **'Great job.'**
@@ -1460,19 +1622,19 @@ abstract class AppLocalizations {
   /// **'Areas to Improve'**
   String get areasToImproveLabel;
 
-  /// CTA at the bottom of InterviewAnalyticsView.
+  /// CTA at the bottom of InterviewAnalyticsView returning to InterviewSetupView.
   ///
   /// In en, this message translates to:
   /// **'Start another interview'**
   String get startAnotherInterview;
 
-  /// Header on the audio player widget.
+  /// Header on the audio player widget inside InterviewAnalyticsView.
   ///
   /// In en, this message translates to:
   /// **'Session Recording'**
   String get sessionRecording;
 
-  /// Error string when fetchRecordingUrl returns null.
+  /// Error string shown inside the audio player when fetchRecordingUrl returns null.
   ///
   /// In en, this message translates to:
   /// **'Audio recording not found.'**
@@ -1490,43 +1652,43 @@ abstract class AppLocalizations {
   /// **'No past interviews found.'**
   String get noPastInterviews;
 
-  /// Fallback target name on a session card.
+  /// Fallback target name on an InterviewHistoryView session card when neither the institution embed nor the legacy universities embed had a row.
   ///
   /// In en, this message translates to:
   /// **'Unknown Target'**
   String get unknownTarget;
 
-  /// Fallback target name on a session card.
+  /// Fallback target name on an InterviewHistoryView session card when the institution embed exists but both name_en and name_ko are empty.
   ///
   /// In en, this message translates to:
   /// **'Unknown University'**
   String get unknownUniversity;
 
-  /// SnackBar shown when an abandoned session is tapped.
+  /// SnackBar shown when an abandoned session is tapped on InterviewHistoryView (audit H1).
   ///
   /// In en, this message translates to:
   /// **'This session ended without feedback — no replay available.'**
   String get abandonedSessionNote;
 
-  /// SnackBar shown when an in-progress session is tapped.
+  /// SnackBar shown when an in-progress session is tapped on InterviewHistoryView (audit H1).
   ///
   /// In en, this message translates to:
   /// **'This session is still active. Finish it to see feedback.'**
   String get activeSessionNote;
 
-  /// IconButton tooltip on InterviewHistoryView session cards.
+  /// IconButton tooltip on InterviewHistoryView session cards (audit H2).
   ///
   /// In en, this message translates to:
   /// **'Delete session'**
   String get deleteSessionTooltip;
 
-  /// AlertDialog title for the delete-session confirmation.
+  /// AlertDialog title for the delete-session confirmation on InterviewHistoryView.
   ///
   /// In en, this message translates to:
   /// **'Delete this session?'**
   String get deleteInterviewDialogTitle;
 
-  /// AlertDialog body for the delete-session confirmation.
+  /// AlertDialog body for the delete-session confirmation on InterviewHistoryView.
   ///
   /// In en, this message translates to:
   /// **'The feedback and recording link will be permanently removed.'**
@@ -1538,91 +1700,1127 @@ abstract class AppLocalizations {
   /// **'Delete failed: {error}'**
   String deleteFailed(Object error);
 
-  /// Accessibility tooltip on the floating action button in HomeScreen
-  /// that opens the Hanguk AI chat bottom-sheet (audit P0 #3).
+  /// Accessibility tooltip on the floating action button in HomeScreen that opens the Hanguk AI chat bottom-sheet. Read aloud by screen readers (audit P0 #3).
   ///
   /// In en, this message translates to:
   /// **'Ask Hanguk AI'**
   String get a11yTooltipAskAi;
 
-  /// Accessibility tooltip on the trash-can IconButton in ChatTab's
-  /// AppBar that wipes the in-memory chat transcript (audit P0 #3).
+  /// Accessibility tooltip on the trash-can IconButton in ChatTab's AppBar that wipes the in-memory chat transcript (audit P0 #3).
   ///
   /// In en, this message translates to:
   /// **'Clear chat history'**
   String get a11yTooltipClearChat;
 
-  /// Accessibility tooltip on the send IconButton in ChatTab and
-  /// UniversityRoomModal's discussion-tab composer (audit P0 #3).
+  /// Accessibility tooltip on the send IconButton at the bottom of ChatTab and on the UniversityRoomModal discussion-tab composer (audit P0 #3). Shared between two screens — translators may keep one short phrase.
   ///
   /// In en, this message translates to:
   /// **'Send message'**
   String get a11yTooltipSendMessage;
 
-  /// Accessibility tooltip on the × IconButton at the top-right of
-  /// UniversityRoomModal's header (audit P0 #3).
+  /// Accessibility tooltip on the × IconButton at the top-right of the UniversityRoomModal header that dismisses the bottom-sheet (audit P0 #3).
   ///
   /// In en, this message translates to:
   /// **'Close'**
   String get a11yTooltipClose;
 
-  /// Accessibility tooltip on the eye IconButton inside a DocumentSlot
-  /// row that opens the uploaded file preview (audit P0 #3).
+  /// Accessibility tooltip on the eye IconButton inside a DocumentSlot row that opens the uploaded file preview (audit P0 #3).
   ///
   /// In en, this message translates to:
   /// **'Preview document'**
   String get a11yTooltipPreviewDocument;
 
-  /// Accessibility tooltip on the trash IconButton inside a DocumentSlot
-  /// row that removes an uploaded (non-approved) document (audit P0 #3).
+  /// Accessibility tooltip on the trash IconButton inside a DocumentSlot row that removes an uploaded (non-approved) document (audit P0 #3).
   ///
   /// In en, this message translates to:
   /// **'Delete document'**
   String get a11yTooltipDeleteDocument;
 
-  /// Accessibility tooltip on the history IconButton in InterviewSetupView
-  /// that opens InterviewHistoryView (audit P0 #3).
+  /// Accessibility tooltip on the history IconButton in InterviewSetupView's top-right that opens InterviewHistoryView (audit P0 #3). Same lemma as interviewHistoryTitle but a tooltip — translators may keep them in sync or differ.
   ///
   /// In en, this message translates to:
   /// **'Interview history'**
   String get a11yTooltipInterviewHistory;
 
-  /// Accessibility tooltip on the × IconButton on StudyPlanScreen's
-  /// AppBar that exits the current drafting session (audit P0 #3).
+  /// Accessibility tooltip on the × IconButton on StudyPlanScreen's AppBar that exits the current drafting session back to the saved-drafts list (audit P0 #3).
   ///
   /// In en, this message translates to:
   /// **'Close session'**
   String get a11yTooltipCloseSession;
 
-  /// Accessibility tooltip on the trash IconButton inside a saved-drafts
-  /// ListTile on StudyPlanScreen (audit P0 #3).
+  /// Accessibility tooltip on the trash IconButton inside a saved-drafts ListTile on StudyPlanScreen that removes the draft (audit P0 #3). Same lemma as deleteSessionTooltip (used on InterviewHistoryView) — translators may keep them in sync or differ.
   ///
   /// In en, this message translates to:
   /// **'Delete session'**
   String get a11yTooltipDeleteSession;
 
-  /// Accessibility tooltip on the back-arrow IconButton in training-flow
-  /// views (InterviewHistoryView, InterviewAnalyticsView) (audit P0 #3).
+  /// Accessibility tooltip on the back-arrow IconButton in the training-flow views (InterviewHistoryView header, InterviewAnalyticsView header) (audit P0 #3). Same lemma as accountBackTooltip — translators may keep them in sync or differ.
   ///
   /// In en, this message translates to:
   /// **'Back'**
   String get a11yTooltipBack;
 
-  /// Accessibility tooltip on the audio-playback IconButton inside
-  /// InterviewAnalyticsView's session-recording widget when the
-  /// recording is currently paused/stopped (audit P0 #3).
+  /// Accessibility tooltip on the audio-playback IconButton inside InterviewAnalyticsView's session-recording widget when the recording is currently paused/stopped (audit P0 #3). Paired with a11yTooltipPauseRecording.
   ///
   /// In en, this message translates to:
   /// **'Play recording'**
   String get a11yTooltipPlayRecording;
 
-  /// Accessibility tooltip on the audio-playback IconButton inside
-  /// InterviewAnalyticsView's session-recording widget when the
-  /// recording is currently playing (audit P0 #3).
+  /// Accessibility tooltip on the audio-playback IconButton inside InterviewAnalyticsView's session-recording widget when the recording is currently playing (audit P0 #3). Paired with a11yTooltipPlayRecording.
   ///
   /// In en, this message translates to:
   /// **'Pause recording'**
   String get a11yTooltipPauseRecording;
+
+  /// Warning in StudyPlanAnalysisView when the draft's script doesn't match the selected writing track (audit G3-4).
+  ///
+  /// In en, this message translates to:
+  /// **'Your draft\'s language doesn\'t match the track you chose. Please rewrite it in the selected language.'**
+  String get trackMismatchWarning;
+
+  /// Error banner in InterviewSetupView when startSession() fails (audit G3-5).
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t start the interview. Please check your connection and try again.'**
+  String get interviewStartError;
+
+  /// Section title above the per-answer breakdown in InterviewAnalyticsView.
+  ///
+  /// In en, this message translates to:
+  /// **'Answer-by-answer review'**
+  String get perAnswerReviewTitle;
+
+  /// Label above the AI's suggested stronger version of one answer.
+  ///
+  /// In en, this message translates to:
+  /// **'A STRONGER ANSWER'**
+  String get betterAnswerLabel;
+
+  /// Orb speed-dial label for the Home section.
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get navHome;
+
+  /// Accessibility label for the 한 orb, which opens the navigation speed-dial. Must not say "Home" — activating it opens a menu.
+  ///
+  /// In en, this message translates to:
+  /// **'Menu'**
+  String get navMenu;
+
+  /// Time-of-day greeting on the Home header (before 12:00).
+  ///
+  /// In en, this message translates to:
+  /// **'Good morning'**
+  String get greetingMorning;
+
+  /// Time-of-day greeting on the Home header (12:00-17:59).
+  ///
+  /// In en, this message translates to:
+  /// **'Good afternoon'**
+  String get greetingAfternoon;
+
+  /// Time-of-day greeting on the Home header (18:00 onwards).
+  ///
+  /// In en, this message translates to:
+  /// **'Good evening'**
+  String get greetingEvening;
+
+  /// Headline on the Welcome screen, under the 한 tile (DESIGN_SPEC 3.1).
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to your journey'**
+  String get welcomeHeadline;
+
+  /// Supporting line under welcomeHeadline on the Welcome screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Your path to a South Korean university starts here.'**
+  String get welcomeSubtitle;
+
+  /// Primary lime button on the Welcome screen; opens the magic-code login.
+  ///
+  /// In en, this message translates to:
+  /// **'I have a magic code'**
+  String get welcomeMagicCodeCta;
+
+  /// Secondary Welcome button opening the Guest Explorer (DESIGN_SPEC 3.1/3b).
+  ///
+  /// In en, this message translates to:
+  /// **'Explore Universities'**
+  String get welcomeExploreCta;
+
+  /// Title of the magic-code login screen (DESIGN_SPEC 3.2).
+  ///
+  /// In en, this message translates to:
+  /// **'Magic code'**
+  String get magicCodeTitle;
+
+  /// Eyebrow above the journey hero card on the Home dashboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Your journey'**
+  String get homeJourneyEyebrow;
+
+  /// Lime button on the Home journey hero card; opens Applications.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue journey'**
+  String get homeContinueJourney;
+
+  /// Link at the end of a Home section header; opens the full section.
+  ///
+  /// In en, this message translates to:
+  /// **'View all'**
+  String get homeViewAll;
+
+  /// Count on the Documents hero card: how many required documents have been uploaded out of the total.
+  ///
+  /// In en, this message translates to:
+  /// **'{collected} of {total} collected'**
+  String documentsCollected(int collected, int total);
+
+  /// Label on the button that uploads a missing document.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload'**
+  String get documentActionUpload;
+
+  /// Status chip on a document row that a counselor has approved.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved'**
+  String get documentStatusApproved;
+
+  /// Status chip on an uploaded document that has not been reviewed yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending review'**
+  String get documentStatusPendingReview;
+
+  /// Short status chip on an application card: the student is collecting documents.
+  ///
+  /// In en, this message translates to:
+  /// **'Documents'**
+  String get statusDocs;
+
+  /// Short status chip on an application card: the application has been sent to the university.
+  ///
+  /// In en, this message translates to:
+  /// **'Submitted'**
+  String get statusSubmitted;
+
+  /// Short status chip on an application card: the university or the consulate is reviewing it.
+  ///
+  /// In en, this message translates to:
+  /// **'In review'**
+  String get statusInReview;
+
+  /// Short status chip on an application card: waiting on the university or the consulate to respond.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting'**
+  String get statusWaiting;
+
+  /// Short status chip on an application card that was rejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected'**
+  String get statusRejected;
+
+  /// Stage 1 of 9 on the application journey bar.
+  ///
+  /// In en, this message translates to:
+  /// **'Document preparation'**
+  String get journeyStageDocumentPrep;
+
+  /// Stage 2 of 9 on the application journey bar.
+  ///
+  /// In en, this message translates to:
+  /// **'Online application'**
+  String get journeyStageOnlineApplication;
+
+  /// Stage 3 of 9 on the application journey bar.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline application'**
+  String get journeyStageOfflineApplication;
+
+  /// Stage 4 of 9 on the application journey bar.
+  ///
+  /// In en, this message translates to:
+  /// **'Interview'**
+  String get journeyStageInterview;
+
+  /// Stage 5 of 9 on the application journey bar.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for invoice'**
+  String get journeyStageWaitingInvoice;
+
+  /// Stage 6 of 9 on the application journey bar.
+  ///
+  /// In en, this message translates to:
+  /// **'Tuition fee payment'**
+  String get journeyStageTuitionPayment;
+
+  /// Stage 7 of 9 on the application journey bar.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for admission letter'**
+  String get journeyStageWaitingAdmission;
+
+  /// Stage 8 of 9 on the application journey bar.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing for visa application'**
+  String get journeyStageVisaPreparation;
+
+  /// Stage 9 of 9 on the application journey bar.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for visa issue'**
+  String get journeyStageWaitingVisa;
+
+  /// Pill over the map showing how many universities have coordinates and are therefore drawn as pins.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} universities mapped'**
+  String mapUniversitiesMapped(int count);
+
+  /// Title of the in-app update dialog when a new version is available.
+  ///
+  /// In en, this message translates to:
+  /// **'Update Available'**
+  String get updateAvailableTitle;
+
+  /// Body line of the update dialog. version is e.g. '1.4.2+37'.
+  ///
+  /// In en, this message translates to:
+  /// **'Version {version} is ready to install.'**
+  String updateVersionReady(String version);
+
+  /// Download size line in the update dialog. size is a formatted decimal like '48.3'.
+  ///
+  /// In en, this message translates to:
+  /// **'Size: {size} MB'**
+  String updateSizeMb(String size);
+
+  /// Warning card in the update dialog when the update requires a full reinstall (signing key rotation).
+  ///
+  /// In en, this message translates to:
+  /// **'This update changes the app signing key. After installing you will need to log in again with your magic code.'**
+  String get updateSigningKeyWarning;
+
+  /// Primary (lime) button in the update dialog — starts the download/install.
+  ///
+  /// In en, this message translates to:
+  /// **'Update Now'**
+  String get updateNow;
+
+  /// Secondary (outline) button in the update dialog — dismisses it. Hidden when the update is forced.
+  ///
+  /// In en, this message translates to:
+  /// **'Later'**
+  String get updateLater;
+
+  /// Title of the non-dismissible progress dialog while the APK downloads.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading Update'**
+  String get updateDownloadingTitle;
+
+  /// Progress caption under the download bar. Both values are formatted decimals; total may be '?' when the server sends no Content-Length.
+  ///
+  /// In en, this message translates to:
+  /// **'{downloaded} MB / {total} MB'**
+  String updateDownloadProgress(String downloaded, String total);
+
+  /// Label next to the spinner while the downloaded update is hash-verified and handed to the OS installer.
+  ///
+  /// In en, this message translates to:
+  /// **'Verifying and installing…'**
+  String get updateInstallingLabel;
+
+  /// Title of the update dialog's failure state.
+  ///
+  /// In en, this message translates to:
+  /// **'Update Failed'**
+  String get updateFailedTitle;
+
+  /// Update failure body: network error during download.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not download the update. Please check your internet connection and try again.'**
+  String get updateErrorNetwork;
+
+  /// Update failure body: SHA-256 of the downloaded APK did not match.
+  ///
+  /// In en, this message translates to:
+  /// **'The downloaded file failed integrity verification. Please try again — if the problem repeats, contact your counsellor.'**
+  String get updateErrorHashMismatch;
+
+  /// Update failure body: the OS refused to launch the package installer.
+  ///
+  /// In en, this message translates to:
+  /// **'Installation was blocked by your device. Please grant \"Install unknown apps\" permission for Hanguk in your phone settings, then try again.'**
+  String get updateErrorInstallDenied;
+
+  /// Update failure body: disk full while downloading.
+  ///
+  /// In en, this message translates to:
+  /// **'Not enough storage to download the update. Please free up some space and try again.'**
+  String get updateErrorStorage;
+
+  /// Update failure body: in-app updates unsupported on this OS (e.g. desktop).
+  ///
+  /// In en, this message translates to:
+  /// **'Updates are not available on this platform yet.'**
+  String get updateErrorUnsupportedPlatform;
+
+  /// Update failure body: catch-all for unclassified errors.
+  ///
+  /// In en, this message translates to:
+  /// **'Update failed. Please try again, or contact your counsellor.'**
+  String get updateErrorUnknown;
+
+  /// Eyebrow label in the Guest Explorer header (DESIGN_SPEC 3b).
+  ///
+  /// In en, this message translates to:
+  /// **'Guest Explorer'**
+  String get guestModeEyebrow;
+
+  /// Lime conversion pill in the guest header and orb dial; routes to Magic Code login.
+  ///
+  /// In en, this message translates to:
+  /// **'Join Hanguk'**
+  String get guestJoinCta;
+
+  /// Display headline of the guest Explore section (DESIGN_SPEC screen 8).
+  ///
+  /// In en, this message translates to:
+  /// **'Find Your University'**
+  String get guestExploreTitle;
+
+  /// Count line under the Explore headline.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} universities'**
+  String guestUniversitiesCount(int count);
+
+  /// Guest orb dial label for the Explore section.
+  ///
+  /// In en, this message translates to:
+  /// **'Explore'**
+  String get guestNavExplore;
+
+  /// Guest orb dial label and section title for Compare (DESIGN_SPEC screen 10).
+  ///
+  /// In en, this message translates to:
+  /// **'Compare'**
+  String get guestNavCompare;
+
+  /// Link on Explore showing how many universities are queued for comparison.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare {count}/2'**
+  String guestCompareCount(int count);
+
+  /// Dashed empty-slot card on the guest Compare screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Add from Explore'**
+  String get guestCompareEmptySlot;
+
+  /// Primary conversion CTA under the guest comparison; routes to Magic Code login.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply with Hanguk'**
+  String get guestCompareApplyCta;
+
+  /// One-line reassurance caption under the compare CTA (DESIGN_SPEC screen 10).
+  ///
+  /// In en, this message translates to:
+  /// **'Get a magic code and our team will guide your application from documents to visa.'**
+  String get guestCompareReassurance;
+
+  /// Compare row label: city.
+  ///
+  /// In en, this message translates to:
+  /// **'City'**
+  String get guestRowCity;
+
+  /// Compare row label: tier.
+  ///
+  /// In en, this message translates to:
+  /// **'Tier'**
+  String get guestRowTier;
+
+  /// Compare row label: IEQAS accreditation status.
+  ///
+  /// In en, this message translates to:
+  /// **'IEQAS status'**
+  String get guestRowIeqas;
+
+  /// Compare row label: whether the university is a Hanguk partner.
+  ///
+  /// In en, this message translates to:
+  /// **'Hanguk partner'**
+  String get guestRowPartner;
+
+  /// Compare row label: next verified admission event date.
+  ///
+  /// In en, this message translates to:
+  /// **'Next event'**
+  String get guestRowNextEvent;
+
+  /// Compare row label: official website domain.
+  ///
+  /// In en, this message translates to:
+  /// **'Website'**
+  String get guestRowWebsite;
+
+  /// Generic affirmative value in the compare grid.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes'**
+  String get guestValueYes;
+
+  /// Generic negative value in the compare grid.
+  ///
+  /// In en, this message translates to:
+  /// **'No'**
+  String get guestValueNo;
+
+  /// First tab of the UniversityRoomModal — shows the application's ProcessTracker. Rendered as a SeoulFilterChip with the fixed hangul accent 현황.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get roomTabStatus;
+
+  /// Second tab of the UniversityRoomModal — the realtime room chat. Rendered as a SeoulFilterChip with the fixed hangul accent 대화.
+  ///
+  /// In en, this message translates to:
+  /// **'Discussion'**
+  String get roomTabDiscussion;
+
+  /// Third tab of the UniversityRoomModal — official admission announcements. Rendered as a SeoulFilterChip with the fixed hangul accent 소식.
+  ///
+  /// In en, this message translates to:
+  /// **'News'**
+  String get roomTabNews;
+
+  /// Fourth tab of the UniversityRoomModal — the events calendar. Rendered as a SeoulFilterChip with the fixed hangul accent 일정.
+  ///
+  /// In en, this message translates to:
+  /// **'Calendar'**
+  String get roomTabCalendar;
+
+  /// Section title above the ProcessTracker on the UniversityRoomModal Status tab.
+  ///
+  /// In en, this message translates to:
+  /// **'Application Progress'**
+  String get roomApplicationProgress;
+
+  /// Empty state of the UniversityRoomModal Discussion tab when the room chat has no messages.
+  ///
+  /// In en, this message translates to:
+  /// **'No messages yet. Start the conversation!'**
+  String get roomChatEmpty;
+
+  /// Hint text inside the message composer at the bottom of the UniversityRoomModal Discussion tab.
+  ///
+  /// In en, this message translates to:
+  /// **'Message room...'**
+  String get roomChatHint;
+
+  /// Fallback sender name on a room chat message whose profile has no full name.
+  ///
+  /// In en, this message translates to:
+  /// **'User'**
+  String get roomChatSenderFallback;
+
+  /// Empty state of the UniversityRoomModal News tab when the institution has no crawled announcements.
+  ///
+  /// In en, this message translates to:
+  /// **'No active announcements.'**
+  String get roomNewsEmpty;
+
+  /// Empty state under the calendar on the UniversityRoomModal Calendar tab when the selected day has no events.
+  ///
+  /// In en, this message translates to:
+  /// **'No events to display on this date.'**
+  String get roomEventsEmpty;
+
+  /// Neutral chip at the bottom of the ComingSoonCard placeholder used by uni_db screens before Phase 2 content lands.
+  ///
+  /// In en, this message translates to:
+  /// **'University DB · Phase 0 scaffolded'**
+  String get uniDbPhaseBadge;
+
+  /// Header of the recent-changes glass banner on the Applications tab (HomeRecentChangesBannerSliver).
+  ///
+  /// In en, this message translates to:
+  /// **'Updates from your tracked universities'**
+  String get uniDbRecentChangesTitle;
+
+  /// Relative timestamp on a recent-change line: less than a minute ago.
+  ///
+  /// In en, this message translates to:
+  /// **'just now'**
+  String get timeJustNow;
+
+  /// Relative timestamp on a recent-change line.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes}m ago'**
+  String timeMinutesAgo(int minutes);
+
+  /// Relative timestamp on a recent-change line.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours}h ago'**
+  String timeHoursAgo(int hours);
+
+  /// Relative timestamp on a recent-change line.
+  ///
+  /// In en, this message translates to:
+  /// **'{days}d ago'**
+  String timeDaysAgo(int days);
+
+  /// Section header above the verified-deadline cards on the Applications tab (VerifiedDeadlinesOverlaySliver).
+  ///
+  /// In en, this message translates to:
+  /// **'Verified upcoming deadlines'**
+  String get uniDbVerifiedDeadlinesTitle;
+
+  /// Countdown chip on a VerifiedDeadlineCard when the event date has passed.
+  ///
+  /// In en, this message translates to:
+  /// **'Closed'**
+  String get deadlineClosed;
+
+  /// Countdown chip on a VerifiedDeadlineCard: event is days away.
+  ///
+  /// In en, this message translates to:
+  /// **'in {days}d'**
+  String deadlineInDays(int days);
+
+  /// Countdown chip on a VerifiedDeadlineCard: event is hours away.
+  ///
+  /// In en, this message translates to:
+  /// **'in {hours}h'**
+  String deadlineInHours(int hours);
+
+  /// Countdown chip on a VerifiedDeadlineCard: event is minutes away.
+  ///
+  /// In en, this message translates to:
+  /// **'in {minutes}m'**
+  String deadlineInMinutes(int minutes);
+
+  /// Admission-calendar event label — event_type 'apply_open'.
+  ///
+  /// In en, this message translates to:
+  /// **'Application opens'**
+  String get eventApplyOpen;
+
+  /// Admission-calendar event label — event_type 'apply_close'.
+  ///
+  /// In en, this message translates to:
+  /// **'Application closes'**
+  String get eventApplyClose;
+
+  /// Admission-calendar event label — event_type 'document_submission_deadline'.
+  ///
+  /// In en, this message translates to:
+  /// **'Documents due'**
+  String get eventDocumentsDue;
+
+  /// Admission-calendar event label — event_type 'first_stage_results'.
+  ///
+  /// In en, this message translates to:
+  /// **'1st stage results'**
+  String get eventFirstStageResults;
+
+  /// Admission-calendar event label — event_type 'interview'. Same lemma as journeyStageInterview but scoped to the deadline card so translators can differ.
+  ///
+  /// In en, this message translates to:
+  /// **'Interview'**
+  String get eventInterviewLabel;
+
+  /// Admission-calendar event label — event_type 'practical_exam'.
+  ///
+  /// In en, this message translates to:
+  /// **'Practical exam'**
+  String get eventPracticalExam;
+
+  /// Admission-calendar event label — event_type 'final_results'.
+  ///
+  /// In en, this message translates to:
+  /// **'Final results'**
+  String get eventFinalResults;
+
+  /// Admission-calendar event label — event_type 'additional_admit'.
+  ///
+  /// In en, this message translates to:
+  /// **'Additional admit'**
+  String get eventAdditionalAdmit;
+
+  /// Admission-calendar event label — event_type 'registration_open'.
+  ///
+  /// In en, this message translates to:
+  /// **'Registration opens'**
+  String get eventRegistrationOpen;
+
+  /// Admission-calendar event label — event_type 'registration_close'.
+  ///
+  /// In en, this message translates to:
+  /// **'Registration closes'**
+  String get eventRegistrationClose;
+
+  /// Admission cycle-track label — cycle_track 'foreign'.
+  ///
+  /// In en, this message translates to:
+  /// **'Foreign track'**
+  String get cycleForeign;
+
+  /// Admission cycle-track label — cycle_track 'overseas_korean_full'.
+  ///
+  /// In en, this message translates to:
+  /// **'Overseas Korean (full)'**
+  String get cycleOverseasKoreanFull;
+
+  /// Admission cycle-track label — cycle_track 'overseas_korean_partial'.
+  ///
+  /// In en, this message translates to:
+  /// **'Overseas Korean (partial)'**
+  String get cycleOverseasKoreanPartial;
+
+  /// Admission cycle-track label — cycle_track 'susi'. Korean admission-round proper noun; transliterated, not translated.
+  ///
+  /// In en, this message translates to:
+  /// **'Susi'**
+  String get cycleSusi;
+
+  /// Admission cycle-track label — cycle_track 'jeongsi'. Korean admission-round proper noun; transliterated, not translated.
+  ///
+  /// In en, this message translates to:
+  /// **'Jeongsi'**
+  String get cycleJeongsi;
+
+  /// Admission cycle-track label — cycle_track 'transfer'.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer'**
+  String get cycleTransfer;
+
+  /// Admission cycle-track label — cycle_track 'grad_general'.
+  ///
+  /// In en, this message translates to:
+  /// **'Graduate'**
+  String get cycleGradGeneral;
+
+  /// Admission cycle-track label — cycle_track 'grad_foreign'.
+  ///
+  /// In en, this message translates to:
+  /// **'Graduate (foreign)'**
+  String get cycleGradForeign;
+
+  /// Header of the UniversitySpecificSetupAddon block inside the interview setup view.
+  ///
+  /// In en, this message translates to:
+  /// **'University-specific interview'**
+  String get uniSpecificHeader;
+
+  /// Empty-state body in UniversitySpecificSetupAddon when no institution is picked yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a university above to seed the interviewer with its recruitment unit, requirements, and key deadlines.'**
+  String get uniSpecificPickPrompt;
+
+  /// Error body in UniversitySpecificSetupAddon when recruitmentForInterviewProvider errors.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load recruitment data: {error}\nYou can still run a general interview.'**
+  String uniSpecificLoadError(Object error);
+
+  /// Empty-state body in UniversitySpecificSetupAddon when no verified recruitment row exists. NOTE: '모집요강' is the Korean term for the official admission guideline document and is left untranslated across locales — it is the document name the student encounters on Korean university sites.
+  ///
+  /// In en, this message translates to:
+  /// **'No verified recruitment data for this university yet. The interviewer will fall back to general questions until we ingest its 모집요강.'**
+  String get uniSpecificNoData;
+
+  /// Outline button inside UniversitySpecificSetupAddon empty/error states that flips the session type back to general.
+  ///
+  /// In en, this message translates to:
+  /// **'Try a general interview instead'**
+  String get uniSpecificFallbackButton;
+
+  /// Applicant-category line in the recruitment summary inside UniversitySpecificSetupAddon.
+  ///
+  /// In en, this message translates to:
+  /// **'Track: {category}'**
+  String uniSpecificTrackLabel(String category);
+
+  /// Caption at the bottom of the recruitment summary inside UniversitySpecificSetupAddon.
+  ///
+  /// In en, this message translates to:
+  /// **'The interviewer will draw on this recruitment data when asking questions.'**
+  String get uniSpecificSeedNote;
+
+  /// Fallback department name in the recruitment-summary cycle line when neither department_ko nor faculty_ko is set.
+  ///
+  /// In en, this message translates to:
+  /// **'Recruitment unit'**
+  String get uniSpecificRecruitmentUnitFallback;
+
+  /// Header title of the /institutions/:id detail screen. Paired with the decorative hangul label 대학 정보.
+  ///
+  /// In en, this message translates to:
+  /// **'Institution'**
+  String get uniDbInstitutionTitle;
+
+  /// Empty-state title when the institution id has no row in v_institutions_for_map.
+  ///
+  /// In en, this message translates to:
+  /// **'Institution not found'**
+  String get uniDbNotFoundTitle;
+
+  /// Empty-state body under uniDbNotFoundTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'This university isn\'t in our catalog yet. Please check back soon.'**
+  String get uniDbNotFoundBody;
+
+  /// Section heading on the institution detail screen listing cycle_dates events.
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming deadlines'**
+  String get uniDbUpcomingDeadlines;
+
+  /// Empty-state body of the deadlines section on the institution detail screen.
+  ///
+  /// In en, this message translates to:
+  /// **'No upcoming deadlines announced yet.'**
+  String get uniDbNoDeadlines;
+
+  /// Section heading on the institution detail screen for per-faculty tuition rows.
+  ///
+  /// In en, this message translates to:
+  /// **'Tuition'**
+  String get uniDbTuitionHeading;
+
+  /// Empty-state body of the tuition section.
+  ///
+  /// In en, this message translates to:
+  /// **'Tuition details aren\'t available yet.'**
+  String get uniDbTuitionEmpty;
+
+  /// Section heading on the institution detail screen for admission requirements.
+  ///
+  /// In en, this message translates to:
+  /// **'Requirements'**
+  String get uniDbRequirementsHeading;
+
+  /// Empty-state body of the requirements section.
+  ///
+  /// In en, this message translates to:
+  /// **'Admission requirements aren\'t available yet.'**
+  String get uniDbRequirementsEmpty;
+
+  /// Section heading on the institution detail screen for scholarships.
+  ///
+  /// In en, this message translates to:
+  /// **'Scholarships'**
+  String get uniDbScholarshipsHeading;
+
+  /// Empty-state body of the scholarships section.
+  ///
+  /// In en, this message translates to:
+  /// **'No scholarships listed for this university yet.'**
+  String get uniDbScholarshipsEmpty;
+
+  /// Section heading on the institution detail screen for required documents per applicant category.
+  ///
+  /// In en, this message translates to:
+  /// **'Document checklist'**
+  String get uniDbDocumentChecklistHeading;
+
+  /// Empty-state body of the document checklist section.
+  ///
+  /// In en, this message translates to:
+  /// **'The document checklist isn\'t available yet.'**
+  String get uniDbDocumentsEmpty;
+
+  /// Title of the track/untrack switch card on the institution detail screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Track this institution'**
+  String get uniDbTrackTitle;
+
+  /// Subtitle of the track switch when tracking is ON.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ll see deadlines on the home banner and get push notifications when something changes.'**
+  String get uniDbTrackOnDesc;
+
+  /// Subtitle of the track switch when tracking is OFF.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on to follow deadlines, correction notices, and requirement changes.'**
+  String get uniDbTrackOffDesc;
+
+  /// SnackBar when toggling user_tracked_universities fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not update tracking: {error}'**
+  String uniDbTrackError(Object error);
+
+  /// Primary button on the institution detail screen — mints a signed URL for the admission guideline PDF and opens it externally.
+  ///
+  /// In en, this message translates to:
+  /// **'Open admission guide PDF'**
+  String get uniDbOpenGuidePdf;
+
+  /// Caption shown when the institution has no parsed guideline PDF on file.
+  ///
+  /// In en, this message translates to:
+  /// **'No admission guide PDF available yet.'**
+  String get uniDbNoGuidePdf;
+
+  /// SnackBar when launchUrl returns false for the signed PDF URL.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open the PDF — no app available to handle it.'**
+  String get uniDbPdfNoApp;
+
+  /// SnackBar when the get-pdf-url flow throws.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open PDF: {error}'**
+  String uniDbPdfError(Object error);
+
+  /// Caption above the tuition rows stating the academic year they belong to.
+  ///
+  /// In en, this message translates to:
+  /// **'{year} academic year'**
+  String uniDbAcademicYear(int year);
+
+  /// Caption on a tuition row identifying the semester.
+  ///
+  /// In en, this message translates to:
+  /// **'Semester {number}'**
+  String uniDbSemesterLabel(int number);
+
+  /// Suffix appended to the semester caption when the row is the first (entry) semester.
+  ///
+  /// In en, this message translates to:
+  /// **'first semester'**
+  String get uniDbFirstSemester;
+
+  /// Caption under the tuition amount stating the one-off admission fee. amount is a pre-formatted ₩ value like ₩120,000.
+  ///
+  /// In en, this message translates to:
+  /// **'+ {amount} fee'**
+  String uniDbAdmissionFee(String amount);
+
+  /// Requirements chip stating the GPA floor percentage. GPA is a proper noun.
+  ///
+  /// In en, this message translates to:
+  /// **'GPA ≥ {pct}%'**
+  String uniDbGpaChip(String pct);
+
+  /// Label above the TOPIK-level to award-percentage chips on a scholarship card. TOPIK is a proper noun.
+  ///
+  /// In en, this message translates to:
+  /// **'TOPIK tier table'**
+  String get uniDbTopikTierTable;
+
+  /// Subtitle of an applicant-category group in the document checklist.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{1 document} other{{count} documents}}'**
+  String uniDbDocumentsCount(int count);
+
+  /// Tooltip on the shield icon of a document row that needs an apostille.
+  ///
+  /// In en, this message translates to:
+  /// **'Apostille required'**
+  String get uniDbApostilleRequired;
+
+  /// Caption on the institution header card. date is a pre-formatted yyyy-mm-dd string.
+  ///
+  /// In en, this message translates to:
+  /// **'Last verified: {date}'**
+  String uniDbLastVerified(String date);
+
+  /// Deadline event label for event_type orientation.
+  ///
+  /// In en, this message translates to:
+  /// **'Orientation'**
+  String get eventOrientation;
+
+  /// Deadline event label for event_type semester_start.
+  ///
+  /// In en, this message translates to:
+  /// **'Semester starts'**
+  String get eventSemesterStart;
+
+  /// Tuition faculty group label for faculty_group humanities.
+  ///
+  /// In en, this message translates to:
+  /// **'Humanities'**
+  String get facultyHumanities;
+
+  /// Tuition faculty group label for faculty_group social_science.
+  ///
+  /// In en, this message translates to:
+  /// **'Social Science'**
+  String get facultySocialScience;
+
+  /// Tuition faculty group label for faculty_group natural_science.
+  ///
+  /// In en, this message translates to:
+  /// **'Natural Science'**
+  String get facultyNaturalScience;
+
+  /// Tuition faculty group label for faculty_group engineering.
+  ///
+  /// In en, this message translates to:
+  /// **'Engineering'**
+  String get facultyEngineering;
+
+  /// Tuition faculty group label for faculty_group medical.
+  ///
+  /// In en, this message translates to:
+  /// **'Medical / Pharma'**
+  String get facultyMedical;
+
+  /// Tuition faculty group label for faculty_group arts.
+  ///
+  /// In en, this message translates to:
+  /// **'Arts'**
+  String get facultyArts;
+
+  /// Tuition faculty group label for faculty_group pe.
+  ///
+  /// In en, this message translates to:
+  /// **'Physical Education'**
+  String get facultyPhysicalEducation;
+
+  /// Header title of the /institutions/compare screen. Paired with the decorative hangul label 비교.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare'**
+  String get uniDbCompareTitle;
+
+  /// Empty-state title on the compare screen when no institutions matched the ids.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare universities'**
+  String get uniDbCompareEmptyTitle;
+
+  /// Empty-state body under uniDbCompareEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Track at least two institutions, then return here to compare them.'**
+  String get uniDbCompareEmptyBody;
+
+  /// Hint on the compare screen when only one institution was resolved.
+  ///
+  /// In en, this message translates to:
+  /// **'Need a second university to compare against.'**
+  String get uniDbCompareNeedSecond;
+
+  /// Line under uniDbCompareNeedSecond naming the single selected institution.
+  ///
+  /// In en, this message translates to:
+  /// **'Currently selected: {name}'**
+  String uniDbCompareSelected(String name);
+
+  /// Compare-column field label: the institution's English name.
+  ///
+  /// In en, this message translates to:
+  /// **'English name'**
+  String get uniDbColEnglishName;
+
+  /// Compare-column field label: the institution's Uzbek name.
+  ///
+  /// In en, this message translates to:
+  /// **'Uzbek name'**
+  String get uniDbColUzbekName;
+
+  /// Compare-column field label: date the row was last verified.
+  ///
+  /// In en, this message translates to:
+  /// **'Last verified'**
+  String get uniDbColLastVerified;
+
+  /// Header title of the /applications/tracker screen. Paired with the decorative hangul label 지원 현황.
+  ///
+  /// In en, this message translates to:
+  /// **'Application tracker'**
+  String get uniDbTrackerTitle;
+
+  /// Empty-state title on the application tracker when the user tracks nothing.
+  ///
+  /// In en, this message translates to:
+  /// **'No tracked universities yet'**
+  String get uniDbTrackerEmptyTitle;
+
+  /// Empty-state body under uniDbTrackerEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Track a university on its page and its deadlines will appear here.'**
+  String get uniDbTrackerEmptyBody;
+
+  /// Error shown when the public university catalogue fails to load. Distinct from appsLoadError, which names the student's own applications — a guest has none.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load the university list.'**
+  String get uniDbLoadFailed;
+
+  /// Primary submit button on the Magic Code screen (DESIGN_SPEC §3.2). Distinct from welcomeMagicCodeCta, which is the Welcome-screen CTA that opens this screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Login to System'**
+  String get loginSubmitButton;
+
+  /// Caption under the Welcome screen's 'Explore Universities' guest button (DESIGN_SPEC §3.1).
+  ///
+  /// In en, this message translates to:
+  /// **'No code needed — browse, filter and compare freely.'**
+  String get welcomeGuestCaption;
+
+  /// Accessibility label for the notification bell in the Home top bar (DESIGN_SPEC §3.3).
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get homeNotifications;
+
+  /// Section header on the Notifications screen listing each application's current stage.
+  ///
+  /// In en, this message translates to:
+  /// **'Application updates'**
+  String get notifApplicationUpdates;
+
+  /// Chip on a Notifications reminder for a required document not yet uploaded.
+  ///
+  /// In en, this message translates to:
+  /// **'To upload'**
+  String get notifToUpload;
+
+  /// Empty-state title on the Notifications screen when nothing needs attention.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re all caught up'**
+  String get notifAllCaughtUp;
+
+  /// Empty-state body on the Notifications screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders about your documents and applications will appear here.'**
+  String get notifAllCaughtUpBody;
 }
 
 class _AppLocalizationsDelegate

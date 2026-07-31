@@ -121,6 +121,20 @@ class AppLocalizationsRu extends AppLocalizations {
   String get virtualWalkaroundTitle => 'Virtual Walkaround';
 
   @override
+  String get visitUniversityWebsite => 'Перейти на сайт университета';
+
+  @override
+  String universityTier(int tier) {
+    return 'Уровень $tier';
+  }
+
+  @override
+  String get universityVerified => 'Проверено';
+
+  @override
+  String get universityNextEvent => 'Ближайшее событие';
+
+  @override
   String get navApplications => 'Заявки';
 
   @override
@@ -142,16 +156,19 @@ class AppLocalizationsRu extends AppLocalizations {
   String get documentsTabTitle => 'Мои документы';
 
   @override
-  String get documentUploadInfo => 'Загрузите корректные PDF или JPEG сканы оригиналов документов. Максимум 10 МБ на файл.';
+  String get documentUploadInfo =>
+      'Загрузите корректные PDF или JPEG сканы оригиналов документов. Максимум 10 МБ на файл.';
 
   @override
   String get documentsRequiredHeading => 'Необходимые документы';
 
   @override
-  String get documentUploadFailed => 'Не удалось загрузить документ. Пожалуйста, попробуйте ещё раз.';
+  String get documentUploadFailed =>
+      'Не удалось загрузить документ. Пожалуйста, попробуйте ещё раз.';
 
   @override
-  String get documentPreviewFailed => 'Не удалось открыть документ. Пожалуйста, попробуйте ещё раз.';
+  String get documentPreviewFailed =>
+      'Не удалось открыть документ. Пожалуйста, попробуйте ещё раз.';
 
   @override
   String get documentLoadError => 'Не удалось загрузить ваши документы.';
@@ -172,25 +189,29 @@ class AppLocalizationsRu extends AppLocalizations {
   String get onboardingStep1Title => 'Отслеживайте заявки';
 
   @override
-  String get onboardingStep1Body => 'Следите за каждой заявкой в университет — от документов до решения — в одном месте.';
+  String get onboardingStep1Body =>
+      'Следите за каждой заявкой в университет — от документов до решения — в одном месте.';
 
   @override
   String get onboardingStep2Title => 'Изучайте вузы и загружайте документы';
 
   @override
-  String get onboardingStep2Body => 'Находите университеты на карте и безопасно загружайте нужные документы.';
+  String get onboardingStep2Body =>
+      'Находите университеты на карте и безопасно загружайте нужные документы.';
 
   @override
   String get onboardingStep3Title => 'Тренируйте интервью с ИИ';
 
   @override
-  String get onboardingStep3Body => 'Репетируйте вступительные интервью с ИИ-коучем и получайте мгновенную обратную связь.';
+  String get onboardingStep3Body =>
+      'Репетируйте вступительные интервью с ИИ-коучем и получайте мгновенную обратную связь.';
 
   @override
   String get appsEmptyTitle => 'Заявок пока нет';
 
   @override
-  String get appsEmptyBody => 'Ваши заявки появятся здесь после подачи в университет.';
+  String get appsEmptyBody =>
+      'Ваши заявки появятся здесь после подачи в университет.';
 
   @override
   String get appsLoadError => 'Не удалось загрузить ваши заявки.';
@@ -383,7 +404,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get notifSettingsEmptyBody =>
-      'Tap "Track this institution" on a university page to follow it. Notification preferences appear here once you have at least one tracked institution.';
+      'Tap \"Track this institution\" on a university page to follow it. Notification preferences appear here once you have at least one tracked institution.';
 
   @override
   String get notifSettingsCalendar => 'Calendar changes';
@@ -502,6 +523,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get aiStatusSupervisionActive => 'AI Supervision Active';
 
   @override
+  String get aiStatusSpellCheckUnavailable => 'Словарь устройства недоступен';
+
+  @override
   String get workspaceTitle => 'Workspace';
 
   @override
@@ -512,7 +536,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String grammarReplaceWith(String original, String suggestion) {
-    return 'Replace "$original" with "$suggestion"';
+    return 'Replace \"$original\" with \"$suggestion\"';
   }
 
   @override
@@ -642,6 +666,25 @@ class AppLocalizationsRu extends AppLocalizations {
   String get noAnalysisYet => 'No analysis generated yet.';
 
   @override
+  String get analysisErrorPlanRequired =>
+      'Анализ входит в тарифы Premium и No Risk. В вашем текущем тарифе его нет.';
+
+  @override
+  String get analysisErrorRateLimited =>
+      'Слишком много запросов на анализ. Подождите минуту и попробуйте снова.';
+
+  @override
+  String get analysisErrorServiceDown =>
+      'Сервис анализа временно недоступен. Черновик сохранён — попробуйте позже.';
+
+  @override
+  String get analysisErrorFailed =>
+      'Не удалось выполнить анализ. Черновик сохранён — проверьте соединение и попробуйте снова.';
+
+  @override
+  String get analysisRetryButton => 'Повторить';
+
+  @override
   String get aiReviewedDraft => 'AI successfully reviewed your draft.';
 
   @override
@@ -668,7 +711,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String sessionStepLabel(int step) {
-    return 'Step $step';
+    return 'Этап $step';
   }
 
   @override
@@ -874,4 +917,611 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get a11yTooltipPauseRecording => 'Pause recording';
+
+  @override
+  String get trackMismatchWarning =>
+      'Язык вашего черновика не совпадает с выбранным направлением. Пожалуйста, перепишите его на выбранном языке.';
+
+  @override
+  String get interviewStartError =>
+      'Не удалось начать собеседование. Проверьте подключение и попробуйте снова.';
+
+  @override
+  String get perAnswerReviewTitle => 'Разбор каждого ответа';
+
+  @override
+  String get betterAnswerLabel => 'БОЛЕЕ СИЛЬНЫЙ ОТВЕТ';
+
+  @override
+  String get navHome => 'Главная';
+
+  @override
+  String get navMenu => 'Меню';
+
+  @override
+  String get greetingMorning => 'Доброе утро';
+
+  @override
+  String get greetingAfternoon => 'Добрый день';
+
+  @override
+  String get greetingEvening => 'Добрый вечер';
+
+  @override
+  String get welcomeHeadline => 'Добро пожаловать в ваш путь';
+
+  @override
+  String get welcomeSubtitle =>
+      'Ваш путь в университет Южной Кореи начинается здесь.';
+
+  @override
+  String get welcomeMagicCodeCta => 'У меня есть магический код';
+
+  @override
+  String get welcomeExploreCta => 'Смотреть университеты';
+
+  @override
+  String get magicCodeTitle => 'Магический код';
+
+  @override
+  String get homeJourneyEyebrow => 'Ваш путь';
+
+  @override
+  String get homeContinueJourney => 'Продолжить путь';
+
+  @override
+  String get homeViewAll => 'Показать все';
+
+  @override
+  String documentsCollected(int collected, int total) {
+    return 'Собрано $collected из $total';
+  }
+
+  @override
+  String get documentActionUpload => 'Загрузить';
+
+  @override
+  String get documentStatusApproved => 'Одобрено';
+
+  @override
+  String get documentStatusPendingReview => 'На проверке';
+
+  @override
+  String get statusDocs => 'Документы';
+
+  @override
+  String get statusSubmitted => 'Подано';
+
+  @override
+  String get statusInReview => 'На рассмотрении';
+
+  @override
+  String get statusWaiting => 'Ожидание';
+
+  @override
+  String get statusRejected => 'Отказано';
+
+  @override
+  String get journeyStageDocumentPrep => 'Подготовка документов';
+
+  @override
+  String get journeyStageOnlineApplication => 'Онлайн-заявка';
+
+  @override
+  String get journeyStageOfflineApplication => 'Офлайн-заявка';
+
+  @override
+  String get journeyStageInterview => 'Собеседование';
+
+  @override
+  String get journeyStageWaitingInvoice => 'Ожидание счёта';
+
+  @override
+  String get journeyStageTuitionPayment => 'Оплата обучения';
+
+  @override
+  String get journeyStageWaitingAdmission => 'Ожидание письма о зачислении';
+
+  @override
+  String get journeyStageVisaPreparation => 'Подготовка к визе';
+
+  @override
+  String get journeyStageWaitingVisa => 'Ожидание выдачи визы';
+
+  @override
+  String mapUniversitiesMapped(int count) {
+    return 'На карте: $count';
+  }
+
+  @override
+  String get updateAvailableTitle => 'Доступно обновление';
+
+  @override
+  String updateVersionReady(String version) {
+    return 'Версия $version готова к установке.';
+  }
+
+  @override
+  String updateSizeMb(String size) {
+    return 'Размер: $size МБ';
+  }
+
+  @override
+  String get updateSigningKeyWarning =>
+      'Это обновление меняет ключ подписи приложения. После установки вам нужно будет снова войти с помощью магического кода.';
+
+  @override
+  String get updateNow => 'Обновить сейчас';
+
+  @override
+  String get updateLater => 'Позже';
+
+  @override
+  String get updateDownloadingTitle => 'Загрузка обновления';
+
+  @override
+  String updateDownloadProgress(String downloaded, String total) {
+    return '$downloaded МБ / $total МБ';
+  }
+
+  @override
+  String get updateInstallingLabel => 'Проверка и установка…';
+
+  @override
+  String get updateFailedTitle => 'Не удалось обновить';
+
+  @override
+  String get updateErrorNetwork =>
+      'Не удалось загрузить обновление. Проверьте подключение к интернету и попробуйте снова.';
+
+  @override
+  String get updateErrorHashMismatch =>
+      'Загруженный файл не прошёл проверку целостности. Попробуйте снова — если проблема повторяется, обратитесь к своему консультанту.';
+
+  @override
+  String get updateErrorInstallDenied =>
+      'Установка заблокирована вашим устройством. Разрешите «Установку неизвестных приложений» для Hanguk в настройках телефона и попробуйте снова.';
+
+  @override
+  String get updateErrorStorage =>
+      'Недостаточно памяти для загрузки обновления. Освободите место и попробуйте снова.';
+
+  @override
+  String get updateErrorUnsupportedPlatform =>
+      'Обновления пока недоступны на этой платформе.';
+
+  @override
+  String get updateErrorUnknown =>
+      'Не удалось выполнить обновление. Попробуйте снова или обратитесь к своему консультанту.';
+
+  @override
+  String get guestModeEyebrow => 'Гостевой режим';
+
+  @override
+  String get guestJoinCta => 'Вступить в Hanguk';
+
+  @override
+  String get guestExploreTitle => 'Найдите свой университет';
+
+  @override
+  String guestUniversitiesCount(int count) {
+    return '$count университетов';
+  }
+
+  @override
+  String get guestNavExplore => 'Обзор';
+
+  @override
+  String get guestNavCompare => 'Сравнить';
+
+  @override
+  String guestCompareCount(int count) {
+    return 'Сравнить $count/2';
+  }
+
+  @override
+  String get guestCompareEmptySlot => 'Добавьте из обзора';
+
+  @override
+  String get guestCompareApplyCta => 'Подать через Hanguk';
+
+  @override
+  String get guestCompareReassurance =>
+      'Получите магический код — наша команда проведёт вас от документов до визы.';
+
+  @override
+  String get guestRowCity => 'Город';
+
+  @override
+  String get guestRowTier => 'Уровень';
+
+  @override
+  String get guestRowIeqas => 'Статус IEQAS';
+
+  @override
+  String get guestRowPartner => 'Партнёр Hanguk';
+
+  @override
+  String get guestRowNextEvent => 'Ближайшая дата';
+
+  @override
+  String get guestRowWebsite => 'Сайт';
+
+  @override
+  String get guestValueYes => 'Да';
+
+  @override
+  String get guestValueNo => 'Нет';
+
+  @override
+  String get roomTabStatus => 'Статус';
+
+  @override
+  String get roomTabDiscussion => 'Обсуждение';
+
+  @override
+  String get roomTabNews => 'Новости';
+
+  @override
+  String get roomTabCalendar => 'Календарь';
+
+  @override
+  String get roomApplicationProgress => 'Ход заявки';
+
+  @override
+  String get roomChatEmpty => 'Пока нет сообщений. Начните обсуждение!';
+
+  @override
+  String get roomChatHint => 'Сообщение в комнату...';
+
+  @override
+  String get roomChatSenderFallback => 'Пользователь';
+
+  @override
+  String get roomNewsEmpty => 'Нет актуальных объявлений.';
+
+  @override
+  String get roomEventsEmpty => 'На эту дату событий нет.';
+
+  @override
+  String get uniDbPhaseBadge => 'База университетов · Этап 0 подготовлен';
+
+  @override
+  String get uniDbRecentChangesTitle =>
+      'Обновления отслеживаемых университетов';
+
+  @override
+  String get timeJustNow => 'только что';
+
+  @override
+  String timeMinutesAgo(int minutes) {
+    return '$minutes мин назад';
+  }
+
+  @override
+  String timeHoursAgo(int hours) {
+    return '$hours ч назад';
+  }
+
+  @override
+  String timeDaysAgo(int days) {
+    return '$days дн назад';
+  }
+
+  @override
+  String get uniDbVerifiedDeadlinesTitle => 'Проверенные ближайшие дедлайны';
+
+  @override
+  String get deadlineClosed => 'Закрыто';
+
+  @override
+  String deadlineInDays(int days) {
+    return 'через $days дн';
+  }
+
+  @override
+  String deadlineInHours(int hours) {
+    return 'через $hours ч';
+  }
+
+  @override
+  String deadlineInMinutes(int minutes) {
+    return 'через $minutes мин';
+  }
+
+  @override
+  String get eventApplyOpen => 'Открытие приёма заявок';
+
+  @override
+  String get eventApplyClose => 'Закрытие приёма заявок';
+
+  @override
+  String get eventDocumentsDue => 'Срок подачи документов';
+
+  @override
+  String get eventFirstStageResults => 'Результаты 1-го этапа';
+
+  @override
+  String get eventInterviewLabel => 'Собеседование';
+
+  @override
+  String get eventPracticalExam => 'Практический экзамен';
+
+  @override
+  String get eventFinalResults => 'Итоговые результаты';
+
+  @override
+  String get eventAdditionalAdmit => 'Дополнительный набор';
+
+  @override
+  String get eventRegistrationOpen => 'Начало регистрации';
+
+  @override
+  String get eventRegistrationClose => 'Окончание регистрации';
+
+  @override
+  String get cycleForeign => 'Трек для иностранцев';
+
+  @override
+  String get cycleOverseasKoreanFull => 'Зарубежные корейцы (полный)';
+
+  @override
+  String get cycleOverseasKoreanPartial => 'Зарубежные корейцы (частичный)';
+
+  @override
+  String get cycleSusi => 'Суси (susi)';
+
+  @override
+  String get cycleJeongsi => 'Чонси (jeongsi)';
+
+  @override
+  String get cycleTransfer => 'Перевод';
+
+  @override
+  String get cycleGradGeneral => 'Магистратура';
+
+  @override
+  String get cycleGradForeign => 'Магистратура (иностранцы)';
+
+  @override
+  String get uniSpecificHeader => 'Интервью под конкретный университет';
+
+  @override
+  String get uniSpecificPickPrompt =>
+      'Выберите университет выше, чтобы интервьюер учитывал его направление набора, требования и ключевые даты.';
+
+  @override
+  String uniSpecificLoadError(Object error) {
+    return 'Не удалось загрузить данные о наборе: $error\nВы всё равно можете пройти общее интервью.';
+  }
+
+  @override
+  String get uniSpecificNoData =>
+      'Для этого университета пока нет проверенных данных о наборе. Пока мы не загрузим его 모집요강, интервью будет состоять из общих вопросов.';
+
+  @override
+  String get uniSpecificFallbackButton => 'Пройти общее интервью';
+
+  @override
+  String uniSpecificTrackLabel(String category) {
+    return 'Трек: $category';
+  }
+
+  @override
+  String get uniSpecificSeedNote =>
+      'Интервьюер будет опираться на эти данные о наборе при постановке вопросов.';
+
+  @override
+  String get uniSpecificRecruitmentUnitFallback => 'Направление набора';
+
+  @override
+  String get uniDbInstitutionTitle => 'Университет';
+
+  @override
+  String get uniDbNotFoundTitle => 'Университет не найден';
+
+  @override
+  String get uniDbNotFoundBody =>
+      'Этого университета пока нет в каталоге. Загляните позже.';
+
+  @override
+  String get uniDbUpcomingDeadlines => 'Ближайшие дедлайны';
+
+  @override
+  String get uniDbNoDeadlines => 'Дедлайны пока не объявлены.';
+
+  @override
+  String get uniDbTuitionHeading => 'Стоимость обучения';
+
+  @override
+  String get uniDbTuitionEmpty => 'Данных о стоимости обучения пока нет.';
+
+  @override
+  String get uniDbRequirementsHeading => 'Требования';
+
+  @override
+  String get uniDbRequirementsEmpty =>
+      'Требования к поступлению пока недоступны.';
+
+  @override
+  String get uniDbScholarshipsHeading => 'Стипендии';
+
+  @override
+  String get uniDbScholarshipsEmpty =>
+      'Стипендии для этого университета пока не указаны.';
+
+  @override
+  String get uniDbDocumentChecklistHeading => 'Список документов';
+
+  @override
+  String get uniDbDocumentsEmpty => 'Список документов пока недоступен.';
+
+  @override
+  String get uniDbTrackTitle => 'Отслеживать этот университет';
+
+  @override
+  String get uniDbTrackOnDesc =>
+      'Дедлайны появятся на главном экране, а об изменениях придут push-уведомления.';
+
+  @override
+  String get uniDbTrackOffDesc =>
+      'Включите, чтобы следить за дедлайнами, поправками и изменениями требований.';
+
+  @override
+  String uniDbTrackError(Object error) {
+    return 'Не удалось обновить отслеживание: $error';
+  }
+
+  @override
+  String get uniDbOpenGuidePdf => 'Открыть PDF-руководство по приёму';
+
+  @override
+  String get uniDbNoGuidePdf => 'PDF-руководство по приёму пока недоступно.';
+
+  @override
+  String get uniDbPdfNoApp =>
+      'Не удалось открыть PDF — нет подходящего приложения.';
+
+  @override
+  String uniDbPdfError(Object error) {
+    return 'Не удалось открыть PDF: $error';
+  }
+
+  @override
+  String uniDbAcademicYear(int year) {
+    return '$year учебный год';
+  }
+
+  @override
+  String uniDbSemesterLabel(int number) {
+    return 'Семестр $number';
+  }
+
+  @override
+  String get uniDbFirstSemester => 'первый семестр';
+
+  @override
+  String uniDbAdmissionFee(String amount) {
+    return '+ $amount вступительный взнос';
+  }
+
+  @override
+  String uniDbGpaChip(String pct) {
+    return 'GPA ≥ $pct%';
+  }
+
+  @override
+  String get uniDbTopikTierTable => 'Таблица уровней TOPIK';
+
+  @override
+  String uniDbDocumentsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count документа',
+      many: '$count документов',
+      few: '$count документа',
+      one: '$count документ',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get uniDbApostilleRequired => 'Требуется апостиль';
+
+  @override
+  String uniDbLastVerified(String date) {
+    return 'Последняя проверка: $date';
+  }
+
+  @override
+  String get eventOrientation => 'Ориентация для студентов';
+
+  @override
+  String get eventSemesterStart => 'Начало семестра';
+
+  @override
+  String get facultyHumanities => 'Гуманитарные науки';
+
+  @override
+  String get facultySocialScience => 'Социальные науки';
+
+  @override
+  String get facultyNaturalScience => 'Естественные науки';
+
+  @override
+  String get facultyEngineering => 'Инженерия';
+
+  @override
+  String get facultyMedical => 'Медицина / Фармация';
+
+  @override
+  String get facultyArts => 'Искусство';
+
+  @override
+  String get facultyPhysicalEducation => 'Физическая культура';
+
+  @override
+  String get uniDbCompareTitle => 'Сравнение';
+
+  @override
+  String get uniDbCompareEmptyTitle => 'Сравнить университеты';
+
+  @override
+  String get uniDbCompareEmptyBody =>
+      'Добавьте в отслеживание минимум два университета и вернитесь сюда для сравнения.';
+
+  @override
+  String get uniDbCompareNeedSecond =>
+      'Для сравнения нужен второй университет.';
+
+  @override
+  String uniDbCompareSelected(String name) {
+    return 'Сейчас выбран: $name';
+  }
+
+  @override
+  String get uniDbColEnglishName => 'Название на английском';
+
+  @override
+  String get uniDbColUzbekName => 'Название на узбекском';
+
+  @override
+  String get uniDbColLastVerified => 'Последняя проверка';
+
+  @override
+  String get uniDbTrackerTitle => 'Трекер заявок';
+
+  @override
+  String get uniDbTrackerEmptyTitle => 'Отслеживаемых университетов пока нет';
+
+  @override
+  String get uniDbTrackerEmptyBody =>
+      'Начните отслеживать университет на его странице — дедлайны появятся здесь.';
+
+  @override
+  String get uniDbLoadFailed => 'Не удалось загрузить список университетов.';
+
+  @override
+  String get loginSubmitButton => 'Войти в систему';
+
+  @override
+  String get welcomeGuestCaption =>
+      'Код не нужен — свободно просматривайте, фильтруйте и сравнивайте.';
+
+  @override
+  String get homeNotifications => 'Уведомления';
+
+  @override
+  String get notifApplicationUpdates => 'Обновления заявок';
+
+  @override
+  String get notifToUpload => 'Загрузить';
+
+  @override
+  String get notifAllCaughtUp => 'Всё выполнено';
+
+  @override
+  String get notifAllCaughtUpBody =>
+      'Напоминания о документах и заявках появятся здесь.';
 }

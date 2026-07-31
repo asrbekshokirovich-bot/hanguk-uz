@@ -4,6 +4,25 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+/// Sentinel written into `StudyPlanSessionState.error` when the analysis call
+/// fails, so the feedback step can explain *why* in the student's language.
+///
+/// Codes rather than messages, matching how the interview flow already marks
+/// its own failure (`'feedback_failed'`): the string crosses a layer boundary
+/// and must not carry English prose or an exception dump into the UI.
+const String analysisErrorPlanRequired = 'analysis_plan_required';
+const String analysisErrorRateLimited = 'analysis_rate_limited';
+const String analysisErrorServiceDown = 'analysis_service_down';
+const String analysisErrorFailed = 'analysis_failed';
+
+/// Every code [StudyPlanSessionNotifier.classifyAnalysisFailure] can produce.
+const Set<String> analysisErrorCodes = {
+  analysisErrorPlanRequired,
+  analysisErrorRateLimited,
+  analysisErrorServiceDown,
+  analysisErrorFailed,
+};
+
 class StudyPlanSession {
   final String id;
   final String studentId;
@@ -699,12 +718,43 @@ class StudyPlanSessionNotifier
       );
       return analysis;
     } on Exception catch (e) {
+      debugPrint('analyzeCurrentDraft failed: $e');
       _setState(
         type,
-        _getState(type).copyWith(isAnalyzing: false, error: 'AI Error: $e'),
+        _getState(type).copyWith(
+          isAnalyzing: false,
+          error: classifyAnalysisFailure(e),
+        ),
       );
       return null;
     }
+  }
+
+  /// Reduces a failed analyze call to one of [analysisErrorCodes].
+  ///
+  /// The old behaviour stored `'AI Error: $e'` — a raw
+  /// `FunctionException(status: 403, ...)` dump that no screen displayed, so
+  /// the feedback step simply read "no analysis yet". A student who had just
+  /// pressed Analyze could not tell a locked feature from a network drop from
+  /// a bug. A code can be translated and explained; an exception cannot.
+  @visibleForTesting
+  static String classifyAnalysisFailure(Object error) {
+    if (error is FunctionException) {
+      switch (error.status) {
+        // The trainer is gated to the Premium and No Risk plans.
+        case 403:
+          return analysisErrorPlanRequired;
+        case 429:
+          return analysisErrorRateLimited;
+        // 402 = upstream model unavailable, 5xx = server-side failure.
+        case 402:
+        case 500:
+        case 502:
+        case 503:
+          return analysisErrorServiceDown;
+      }
+    }
+    return analysisErrorFailed;
   }
 
   Future<Map<String, dynamic>?> superviseDraft(

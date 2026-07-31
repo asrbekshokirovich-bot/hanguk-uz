@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../../../design_system/theme/app_colors.dart';
+import '../../../../design_system/seoul_night/seoul_night.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../data/interview_repository.dart';
 import 'interview_analytics_view.dart';
@@ -26,6 +26,9 @@ class _InterviewHistoryViewState extends ConsumerState<InterviewHistoryView> {
   }
 
   Future<void> _loadHistory() async {
+    // Reached from _confirmDelete after two awaits; the catch branch there
+    // already guards, the success path did not.
+    if (!mounted) return;
     setState(() => _isLoading = true);
     final history = await ref
         .read(interviewProvider.notifier)
@@ -41,76 +44,100 @@ class _InterviewHistoryViewState extends ConsumerState<InterviewHistoryView> {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
-    return Container(
-      color: AppColors.backgroundNavy,
-      child: SafeArea(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back, color: Colors.white),
-                    tooltip: l.a11yTooltipBack,
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                  Text(
-                    l.interviewHistoryTitle,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
+
+    return SeoulNightScaffold(
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              SeoulSizes.screenPadding,
+              10,
+              SeoulSizes.screenPadding,
+              10,
             ),
-            Expanded(
-              child: _isLoading
-                  ? const Center(
-                      child: CircularProgressIndicator(
-                        color: AppColors.vibrantLime,
-                      ),
-                    )
-                  : _sessions.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.history,
-                            size: 64,
-                            color: Colors.white.withValues(alpha: 0.2),
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            l.noPastInterviews,
-                            style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.6),
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
-                  : RefreshIndicator(
-                      onRefresh: _loadHistory,
-                      color: AppColors.vibrantLime,
-                      child: ListView.builder(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 8,
+            child: Row(
+              children: [
+                Semantics(
+                  button: true,
+                  label: l.a11yTooltipBack,
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => Navigator.pop(context),
+                    child: Container(
+                      width: SeoulSizes.minTapTarget,
+                      height: SeoulSizes.minTapTarget,
+                      alignment: Alignment.center,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: SeoulColors.glass,
+                        border: Border.fromBorderSide(
+                          BorderSide(color: SeoulColors.glassBorder),
                         ),
-                        itemCount: _sessions.length,
-                        itemBuilder: (context, index) {
-                          final session = _sessions[index];
-                          return _buildSessionCard(session);
-                        },
+                      ),
+                      child: const Icon(
+                        Icons.arrow_back_rounded,
+                        size: 20,
+                        color: SeoulColors.textPrimary,
                       ),
                     ),
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: HangulTag(
+                    en: l.interviewHistoryTitle,
+                    ko: '면접 기록',
+                    titleStyle: SeoulType.title,
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+          Expanded(
+            child: _isLoading
+                ? const Center(
+                    child: CircularProgressIndicator(color: SeoulColors.lime),
+                  )
+                : _sessions.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.history,
+                          size: 56,
+                          color: SeoulColors.textFaint,
+                        ),
+                        const SizedBox(height: 14),
+                        Text(
+                          l.noPastInterviews,
+                          style: SeoulType.bodySecondary,
+                        ),
+                        const SizedBox(height: 6),
+                        Text('기록 없음', style: SeoulType.hangulLabel),
+                      ],
+                    ),
+                  )
+                : RefreshIndicator(
+                    onRefresh: _loadHistory,
+                    color: SeoulColors.lime,
+                    backgroundColor: SeoulColors.royalBlue,
+                    child: ListView.builder(
+                      padding: const EdgeInsets.fromLTRB(
+                        SeoulSizes.screenPadding,
+                        4,
+                        SeoulSizes.screenPadding,
+                        40,
+                      ),
+                      itemCount: _sessions.length,
+                      itemBuilder: (context, index) {
+                        final session = _sessions[index];
+                        return _buildSessionCard(session);
+                      },
+                    ),
+                  ),
+          ),
+        ],
       ),
     );
   }
@@ -142,7 +169,20 @@ class _InterviewHistoryViewState extends ConsumerState<InterviewHistoryView> {
     final isCompleted = status == 'completed';
     final isAbandoned = status == 'abandoned';
 
-    return GestureDetector(
+    // Korean status words (spec §1 Korean voice) stay Korean in every locale;
+    // the tint and the icon carry the same meaning for non-Korean readers.
+    final Color statusColor = isCompleted
+        ? SeoulColors.lime
+        : (isAbandoned ? SeoulColors.textFaint : SeoulColors.warningText);
+    final String statusKo = isCompleted ? '완료' : (isAbandoned ? '중단' : '대기');
+    final IconData statusIcon = isCompleted
+        ? Icons.check_circle_outline
+        : (isAbandoned ? Icons.cancel_outlined : Icons.pending_outlined);
+
+    return GlassCard(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.fromLTRB(14, 12, 6, 12),
+      blur: false,
       onTap: () {
         if (isCompleted) {
           Navigator.push(
@@ -166,81 +206,66 @@ class _InterviewHistoryViewState extends ConsumerState<InterviewHistoryView> {
           );
         }
       },
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: AppColors.surfaceGlass,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.borderGlass),
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
+      child: Row(
+        children: [
+          Container(
+            width: SeoulSizes.minTapTarget,
+            height: SeoulSizes.minTapTarget,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: isCompleted
+                  ? SeoulColors.limeFill
+                  : SeoulColors.neutralFill,
+              border: Border.all(
                 color: isCompleted
-                    ? Colors.greenAccent.withValues(alpha: 0.1)
-                    : (isAbandoned
-                          ? Colors.white12
-                          : Colors.orangeAccent.withValues(alpha: 0.1)),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                isCompleted
-                    ? Icons.check_circle_outline
-                    : (isAbandoned
-                          ? Icons.cancel_outlined
-                          : Icons.pending_outlined),
-                color: isCompleted
-                    ? Colors.greenAccent
-                    : (isAbandoned ? Colors.white54 : Colors.orangeAccent),
+                    ? SeoulColors.lime.withValues(alpha: 0.35)
+                    : SeoulColors.glassBorder,
               ),
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    uniName,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
+            child: Icon(statusIcon, size: 20, color: statusColor),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        uniName,
+                        style: SeoulType.subtitle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    formattedDate,
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.5),
-                      fontSize: 13,
+                    const SizedBox(width: 8),
+                    Text(
+                      statusKo,
+                      style: SeoulType.hangulStatus.copyWith(
+                        color: statusColor,
+                      ),
                     ),
-                  ),
-                ],
-              ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(formattedDate, style: SeoulType.caption),
+              ],
             ),
-            const SizedBox(width: 8),
-            // Audit H2: deletion. Confirms first because the row is gone
-            // for good.
-            IconButton(
-              tooltip: l.deleteSessionTooltip,
-              icon: const Icon(
-                Icons.delete_outline,
-                color: Colors.white70,
-                size: 20,
-              ),
-              onPressed: () => _confirmDelete(session['id'] as String),
+          ),
+          // Audit H2: deletion. Confirms first because the row is gone
+          // for good.
+          IconButton(
+            tooltip: l.deleteSessionTooltip,
+            icon: const Icon(
+              Icons.delete_outline,
+              color: SeoulColors.textSecondary,
+              size: 20,
             ),
-            Icon(
-              Icons.chevron_right,
-              color: Colors.white.withValues(alpha: 0.3),
-            ),
-          ],
-        ),
+            onPressed: () => _confirmDelete(session['id'] as String),
+          ),
+        ],
       ),
     );
   }
@@ -252,27 +277,34 @@ class _InterviewHistoryViewState extends ConsumerState<InterviewHistoryView> {
       builder: (ctx) {
         final dl = AppLocalizations.of(ctx)!;
         return AlertDialog(
-          backgroundColor: AppColors.backgroundNavy,
-          title: Text(
-            dl.deleteInterviewDialogTitle,
-            style: const TextStyle(color: Colors.white),
+          // The deepest opaque navy in the token set — a dialog cannot be
+          // glass, it has to occlude what is behind it.
+          backgroundColor: SeoulColors.mapWater,
+          shape: const RoundedRectangleBorder(
+            borderRadius: SeoulRadii.cardR,
+            side: BorderSide(color: SeoulColors.glassBorder),
           ),
+          title: Text(dl.deleteInterviewDialogTitle, style: SeoulType.title),
           content: Text(
             dl.deleteInterviewDialogBody,
-            style: const TextStyle(color: Colors.white70),
+            style: SeoulType.bodySecondary,
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx, false),
               child: Text(
                 dl.cancel,
-                style: const TextStyle(color: Colors.white54),
+                style: SeoulType.button.copyWith(
+                  color: SeoulColors.textSecondary,
+                ),
               ),
             ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
+            TextButton(
               onPressed: () => Navigator.pop(ctx, true),
-              child: Text(dl.deleteLabel),
+              child: Text(
+                dl.deleteLabel,
+                style: SeoulType.button.copyWith(color: SeoulColors.dangerText),
+              ),
             ),
           ],
         );

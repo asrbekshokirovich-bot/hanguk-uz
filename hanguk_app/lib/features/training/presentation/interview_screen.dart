@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../design_system/theme/app_colors.dart';
-import '../../../../design_system/adaptive/hanguk_scaffold.dart';
+import '../../../../design_system/seoul_night/seoul_night.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../data/interview_repository.dart';
 
@@ -11,7 +10,7 @@ import 'widgets/interview_analytics_view.dart';
 import 'widgets/interview_history_view.dart';
 
 class InterviewScreen extends ConsumerStatefulWidget {
-  /// Optional initial configuration passed from the TrainingTab dialog.
+  /// Optional initial configuration passed by the caller.
   /// When provided, the session starts automatically in initState so the
   /// user sees the interview screen immediately (no dialog blocking).
   final String? initialSessionType;
@@ -34,8 +33,6 @@ class InterviewScreen extends ConsumerStatefulWidget {
 }
 
 class _InterviewScreenState extends ConsumerState<InterviewScreen> {
-  bool _showAnalytics = false;
-
   @override
   void initState() {
     super.initState();
@@ -61,32 +58,81 @@ class _InterviewScreenState extends ConsumerState<InterviewScreen> {
     final l = AppLocalizations.of(context)!;
     final state = ref.watch(interviewProvider);
 
-    return HangukScaffold(
-      appBar: AppBar(
-        title: FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Text(l.interviewPracticeTitle),
-        ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        actions: [
-          if (state.status == 'active')
-            TextButton(
-              onPressed: () async {
+    // Seoul Night: the gradient + ambient glow blobs come from the scaffold,
+    // and the section header replaces the old AppBar (spec §2 — a glass
+    // back-circle, an English title with its small lime hangul label).
+    return SeoulNightScaffold(
+      body: Column(
+        children: [
+          _buildHeader(l, state),
+          Expanded(child: _buildCurrentView(state)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeader(AppLocalizations l, InterviewSessionState state) {
+    final isCompleted = state.status == 'completed';
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        SeoulSizes.screenPadding,
+        10,
+        SeoulSizes.screenPadding,
+        10,
+      ),
+      child: Row(
+        children: [
+          Semantics(
+            button: true,
+            label: l.a11yTooltipBack,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => Navigator.of(context).maybePop(),
+              child: Container(
+                width: SeoulSizes.minTapTarget,
+                height: SeoulSizes.minTapTarget,
+                alignment: Alignment.center,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: SeoulColors.glass,
+                  border: Border.fromBorderSide(
+                    BorderSide(color: SeoulColors.glassBorder),
+                  ),
+                ),
+                child: const Icon(
+                  Icons.arrow_back_rounded,
+                  size: 20,
+                  color: SeoulColors.textPrimary,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: HangulTag(
+              en: isCompleted
+                  ? l.interviewAnalyticsTitle
+                  : l.interviewPracticeTitle,
+              ko: isCompleted ? '면접 결과' : '면접 연습',
+              titleStyle: SeoulType.title,
+            ),
+          ),
+          // Unchanged behaviour: the header End control is rendered while the
+          // session row is 'active' and asks the notifier to end it.
+          if (state.status == 'active') ...[
+            const SizedBox(width: 10),
+            _HeaderEndAction(
+              label: l.endSession,
+              onTap: () async {
                 await ref
                     .read(interviewProvider.notifier)
                     .endSession(language: state.selectedLanguage);
-                // Note: Vapi call cleanup is handled by InterviewActiveView.dispose()
-                // via the centralized _stopCall() method.
               },
-              child: Text(
-                l.endSession,
-                style: const TextStyle(color: AppColors.error),
-              ),
             ),
+          ],
         ],
       ),
-      body: SafeArea(child: _buildCurrentView(state)),
     );
   }
 
@@ -99,12 +145,9 @@ class _InterviewScreenState extends ConsumerState<InterviewScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const CircularProgressIndicator(color: AppColors.vibrantLime),
+              const CircularProgressIndicator(color: SeoulColors.lime),
               const SizedBox(height: 16),
-              Text(
-                l.interviewSettingUp,
-                style: const TextStyle(color: Colors.white70),
-              ),
+              Text(l.interviewSettingUp, style: SeoulType.bodySecondary),
             ],
           ),
         );
@@ -123,8 +166,61 @@ class _InterviewScreenState extends ConsumerState<InterviewScreen> {
       // the recorded session. The simpler InterviewFeedbackView is reachable
       // separately if needed.
       return const InterviewAnalyticsView();
-    } else {
+    } else if (state.status == 'active') {
       return const InterviewActiveView();
+    } else {
+      // 'abandoned' (or anything unexpected): never remount the live-call
+      // view against a dead session — return to setup instead.
+      return InterviewSetupView(
+        onHistoryTapped: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const InterviewHistoryView()),
+          );
+        },
+      );
     }
+  }
+}
+
+/// Compact destructive action in the section header. Warning-tinted rather
+/// than red: `danger*` is the desaturated destructive tone for the navy
+/// for "this needs your attention" (spec §1 Color tokens).
+class _HeaderEndAction extends StatelessWidget {
+  const _HeaderEndAction({required this.label, required this.onTap});
+
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: label,
+      child: Semantics(
+        button: true,
+        label: label,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: onTap,
+          child: Container(
+            width: SeoulSizes.minTapTarget,
+            height: SeoulSizes.minTapTarget,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: SeoulColors.dangerFill,
+              border: Border.all(
+                color: SeoulColors.warning.withValues(alpha: 0.45),
+              ),
+            ),
+            child: const Icon(
+              Icons.call_end,
+              size: 20,
+              color: SeoulColors.dangerText,
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }

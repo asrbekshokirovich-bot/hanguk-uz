@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="_ds/hanguk-design-system-9e4d9ed2-150d-4de2-b701-aa70a4cf7acb/colors_and_type.css">
+  <script src="_ds/hanguk-design-system-9e4d9ed2-150d-4de2-b701-aa70a4cf7acb/_ds_bundle.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;600&family=Noto+Sans+KR:wght@500;700;900&display=swap');
+    html, body { margin: 0; padding: 0; background: #0A0A1A; }
+    a { color: #D4E94C; text-decoration: none; }
+    a:hover { color: #C7E04A; }
+    input::placeholder { color: rgba(255,255,255,0.3); }
+    * { scrollbar-width: none; }
+    *::-webkit-scrollbar { display: none; }
+    @keyframes orbPulse { 0%, 100% { box-shadow: 0 8px 32px rgba(212,233,76,0.45), 0 0 0 0 rgba(212,233,76,0.35); } 50% { box-shadow: 0 8px 32px rgba(212,233,76,0.45), 0 0 0 14px rgba(212,233,76,0); } }
+    @keyframes pinPulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(212,233,76,0.5); } 50% { box-shadow: 0 0 0 10px rgba(212,233,76,0); } }
+  </style>
+</helmet>
+
+<div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 48px 24px; background: #0A0A1A; font-family: Inter, system-ui, sans-serif;">
+  <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ true }}" hint-size="430px,900px">
+    <div style="width: 100%; height: 100%; position: relative; overflow: hidden; background: linear-gradient(150deg, #1A3A6C 0%, #132A4D 38%, #0F213D 66%, #0A0A1A 100%); display: flex; flex-direction: column; font-family: Inter, system-ui, sans-serif;">
+
+      <!-- ambient depth -->
+      <div style="position: absolute; top: -140px; left: -120px; width: 380px; height: 380px; border-radius: 50%; background: radial-gradient(circle, rgba(64,110,190,0.5) 0%, rgba(64,110,190,0) 70%); pointer-events: none;"></div>
+      <div style="position: absolute; bottom: -80px; right: -140px; width: 360px; height: 360px; border-radius: 50%; background: radial-gradient(circle, rgba(212,233,76,0.14) 0%, rgba(212,233,76,0) 70%); pointer-events: none;"></div>
+
+      <!-- ══ WELCOME ══ -->
+      <sc-if value="{{ isWelcome }}" hint-placeholder-val="{{ true }}">
+        <div data-screen-label="Welcome" style="flex: 1; display: flex; flex-direction: column; position: relative; z-index: 1;">
+          <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 26px; padding: 0 32px;">
+            <div style="width: 116px; height: 116px; border-radius: 32px; background: linear-gradient(145deg, #2A4E8C, #16305A); border: 1px solid rgba(255,255,255,0.18); display: flex; align-items: center; justify-content: center; box-shadow: 0 24px 48px rgba(0,0,0,0.5), 0 0 0 6px rgba(212,233,76,0.12), inset 0 1px 0 rgba(255,255,255,0.25);">
+              <span style="font-family: 'Noto Sans KR', sans-serif; font-size: 58px; font-weight: 900; color: #fff;">한</span>
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center;">
+              <span style="font-size: 11px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: #D4E94C;">Hanguk Consulting</span>
+              <span style="font-size: 40px; font-weight: 800; letter-spacing: -0.02em; color: #fff; line-height: 1.08;">Welcome to<br>Your Journey</span>
+              <span style="font-size: 15px; color: rgba(255,255,255,0.55); line-height: 1.5; max-width: 280px;">Your path to a South Korean university starts here.</span>
+              <span style="font-family: 'Noto Sans KR', sans-serif; font-size: 12px; font-weight: 500; color: rgba(255,255,255,0.35); letter-spacing: 0.3em; margin-top: 4px;">한국으로 가는 길</span>
+            </div>
+          </div>
+          <div style="padding: 0 28px 46px; display: flex; flex-direction: column; gap: 12px;">
+            <div onClick="{{ goLogin }}" style="height: 56px; border-radius: 16px; background: linear-gradient(145deg, #E2F26A, #C7E04A); display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer; box-shadow: 0 14px 32px rgba(212,233,76,0.28);" style-active="transform: scale(0.98);">
+              <span style="font-size: 16px; font-weight: 700; color: #0A1A34;">I Have a Magic Code</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0A1A34" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"></path></svg>
+            </div>
+            <div onClick="{{ goGuest }}" style="height: 54px; border-radius: 16px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer;" style-active="transform: scale(0.98);">
+              <span style="font-size: 15px; font-weight: 700; color: #fff;">Explore Universities</span>
+              <span style="font-family: 'Noto Sans KR', sans-serif; font-size: 11px; font-weight: 700; color: #D4E94C; background: rgba(212,233,76,0.12); border: 1px solid rgba(212,233,76,0.3); border-radius: 999px; padding: 3px 9px;">탐색</span>
+            </div>
+            <span style="font-size: 12px; color: rgba(255,255,255,0.35); text-align: center;">No code needed — browse, filter and compare freely.</span>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- ══ MAGIC CODE ══ -->
+      <sc-if value="{{ isLogin }}" hint-placeholder-val="{{ false }}">
+        <div data-screen-label="Magic Code Login" style="flex: 1; display: flex; flex-direction: column; padding: 14px 26px 46px; position: relative; z-index: 1;">
+          <div onClick="{{ goWelcome }}" style="width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); display: flex; align-items: center; justify-content: center; cursor: pointer; margin-top: 44px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg>
+          </div>
+          <div style="margin-top: 40px; display: flex; flex-direction: column; gap: 10px;">
+            <div style="width: 58px; height: 58px; border-radius: 18px; background: rgba(212,233,76,0.12); border: 1px solid rgba(212,233,76,0.35); display: flex; align-items: center; justify-content: center; margin-bottom: 8px; box-shadow: 0 0 24px rgba(212,233,76,0.15);">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#D4E94C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg>
+            </div>
+            <div style="display: flex; align-items: baseline; gap: 10px;">
+              <span style="font-size: 32px; font-weight: 800; letter-spacing: -0.02em; color: #fff;">Magic Code</span>
+              <span style="font-family: 'Noto Sans KR', sans-serif; font-size: 13px; font-weight: 700; color: rgba(212,233,76,0.8);">매직 코드</span>
+            </div>
+            <span style="font-size: 14px; color: rgba(255,255,255,0.55); line-height: 1.5;">Enter the 8-character access code provided by your consultant.</span>
+          </div>
+          <div style="margin-top: 32px; display: flex; flex-direction: column; gap: 14px;">
+            <input value="{{ code }}" onChange="{{ onCode }}" placeholder="XXXX-XXXX" style="height: 62px; background: rgba(255,255,255,0.07); border: 1.5px solid {{ inputBorder }}; border-radius: 16px; padding: 0 20px; font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 600; letter-spacing: 0.3em; color: #fff; outline: none; text-transform: uppercase; backdrop-filter: blur(10px); box-shadow: {{ inputGlow }}; transition: border-color 0.3s ease-out, box-shadow 0.3s ease-out;"></input>
+            <span onClick="{{ fillDemo }}" style="font-size: 13px; font-weight: 600; color: #D4E94C; cursor: pointer; align-self: flex-start; padding: 4px 0;">Use demo code</span>
+          </div>
+          <div style="flex: 1;"></div>
+          <div onClick="{{ login }}" style="height: 56px; border-radius: 16px; background: {{ loginBg }}; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: {{ loginGlow }}; transition: background 0.3s ease-out, box-shadow 0.3s ease-out;">
+            <span style="font-size: 16px; font-weight: 700; color: {{ loginColor }};">Login to System</span>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- ══ STUDENT HOME SHELL ══ -->
+      <sc-if value="{{ isHome }}" hint-placeholder-val="{{ false }}">
+        <div style="flex: 1; display: flex; flex-direction: column; min-height: 0; position: relative; z-index: 1;">
+
+          <sc-if value="{{ vHome }}" hint-placeholder-val="{{ true }}">
+            <div style="padding: 64px 22px 6px; display: flex; align-items: center; gap: 12px;">
+              <div style="width: 44px; height: 44px; border-radius: 14px; background: linear-gradient(145deg, #2A4E8C, #16305A); border: 1px solid rgba(255,255,255,0.14); display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 16px rgba(0,0,0,0.35);">
+                <span style="font-size: 16px; font-weight: 800; color: #fff;">A</span>
+              </div>
+              <div style="flex: 1; display: flex; flex-direction: column; gap: 1px;">
+                <span style="font-size: 12px; font-weight: 500; color: rgba(255,255,255,0.5);">좋은 저녁 · Good evening</span>
+                <span style="font-size: 19px; font-weight: 800; letter-spacing: -0.01em; color: #fff;">Aziz Karimov</span>
+              </div>
+              <div style="width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); display: flex; align-items: center; justify-content: center; position: relative;">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                <div style="position: absolute; top: 9px; right: 10px; width: 7px; height: 7px; border-radius: 50%; background: #D4E94C; box-shadow: 0 0 8px rgba(212,233,76,0.9);"></div>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ vSection }}" hint-placeholder-val="{{ false }}">
+            <div style="padding: 64px 22px 6px; display: flex; align-items: center; gap: 12px;">
+              <div onClick="{{ goHome }}" style="width: 42px; height: 42px; border-radius: 50%; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0;">
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg>
+              </div>
+              <div style="flex: 1; display: flex; align-items: baseline; gap: 9px;">
+                <span style="font-size: 23px; font-weight: 800; letter-spacing: -0.02em; color: #fff;">{{ secTitle }}</span>
+                <span style="font-family: 'Noto Sans KR', sans-serif; font-size: 12px; font-weight: 700; color: rgba(212,233,76,0.8);">{{ secKo }}</span>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ vHome }}" hint-placeholder-val="{{ true }}">
+            <div data-screen-label="Home" style="flex: 1; overflow-y: auto; padding: 14px 22px 130px; display: flex; flex-direction: column; gap: 14px;">
+              <div style="border-radius: 24px; padding: 22px 20px; position: relative; overflow: hidden; background: linear-gradient(140deg, #2A4E8C 0%, #1A3A6C 55%, #142E56 100%); border: 1px solid rgba(255,255,255,0.16); box-shadow: 0 24px 48px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.2);">
+                <div style="position: absolute; top: -60px; right: -50px; width: 200px; height: 200px; border-radius: 50%; background: radial-gradient(circle, rgba(212,233,76,0.2) 0%, rgba(212,233,76,0) 70%);"></div>
+                <div style="position: absolute; right: 14px; bottom: -22px; font-family: 'Noto Sans KR', sans-serif; font-size: 96px; font-weight: 900; color: rgba(255,255,255,0.05); line-height: 1; pointer-events: none;">한국</div>
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                  <div style="display: flex; flex-direction: column; gap: 4px;">
+                    <span style="font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.55);">Your Journey</span>
+                    <span style="font-size: 24px; font-weight: 800; letter-spacing: -0.02em; color: #fff; line-height: 1.15;">Step 4 of 7<br>Submit Applications</span>
+                  </div>
+                  <div style="width: 64px; height: 64px; border-radius: 50%; background: conic-gradient(#D4E94C 0% 57%, rgba(255,255,255,0.14) 57% 100%); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 24px rgba(212,233,76,0.35);">
+                    <div style="width: 50px; height: 50px; border-radius: 50%; background: #16305A; display: flex; align-items: center; justify-content: center;">
+                      <span style="font-size: 14px; font-weight: 800; color: #D4E94C;">57%</span>
+                    </div>
+                  </div>
+                </div>
+                <div onClick="{{ goApps }}" style="margin-top: 18px; height: 46px; border-radius: 14px; background: #D4E94C; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 0 20px; cursor: pointer; box-shadow: 0 10px 24px rgba(212,233,76,0.3);" style-active="transform: scale(0.97);">
+                  <span style="font-size: 14px; font-weight: 700; color: #0A1A34;">Continue Journey</span>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0A1A34" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"></path></svg>
+                </div>
+              </div>
+
+              <div onClick="{{ goDocs }}" style="border-radius: 20px; padding: 16px 18px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); box-shadow: 0 12px 28px rgba(0,0,0,0.3); display: flex; align-items: center; gap: 14px; backdrop-filter: blur(12px); cursor: pointer;">
+                <div style="width: 10px; height: 10px; border-radius: 50%; background: #D4E94C; box-shadow: 0 0 12px rgba(212,233,76,0.8); flex-shrink: 0;"></div>
+                <div style="flex: 1; display: flex; flex-direction: column; gap: 2px;">
+                  <span style="font-size: 14px; font-weight: 700; color: #fff;">Upload your Bank Statement</span>
+                  <span style="font-size: 12px; color: rgba(255,255,255,0.5);">Needed before SNU submission · due in 5 days</span>
+                </div>
+                <span style="font-family: 'Noto Sans KR', sans-serif; font-size: 11px; font-weight: 700; color: #D4E94C; background: rgba(212,233,76,0.12); border: 1px solid rgba(212,233,76,0.3); border-radius: 999px; padding: 4px 10px;">할 일</span>
+              </div>
+
+              <div style="display: flex; align-items: baseline; justify-content: space-between; margin-top: 6px;">
+                <div style="display: flex; align-items: baseline; gap: 8px;">
+                  <span style="font-size: 16px; font-weight: 800; letter-spacing: -0.01em; color: #fff;">Applications</span>
+                  <span style="font-family: 'Noto Sans KR', sans-serif; font-size: 11px; font-weight: 700; color: rgba(212,233,76,0.8);">지원 현황</span>
+                </div>
+                <span onClick="{{ goApps }}" style="font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.45); cursor: pointer;">View All</span>
+              </div>
+
+              <sc-for list="{{ appsShort }}" as="a" hint-placeholder-count="2">
+                <div onClick="{{ goApps }}" style="border-radius: 20px; padding: 16px 18px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); box-shadow: 0 12px 28px rgba(0,0,0,0.3); display: flex; align-items: center; gap: 14px; backdrop-filter: blur(12px); cursor: pointer;">
+                  <div style="width: 46px; height: 46px; border-radius: 14px; background: linear-gradient(145deg, rgba(255,255,255,0.14), rgba(255,255,255,0.05)); border: 1px solid rgba(255,255,255,0.14); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <span style="font-family: 'Noto Sans KR', sans-serif; font-size: 17px; font-weight: 900; color: #fff;">{{ a.glyph }}</span>
+                  </div>
+                  <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px;">
+                    <span style="font-size: 14px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ a.u }}</span>
+                    <div style="height: 5px; background: rgba(255,255,255,0.12); border-radius: 999px; overflow: hidden; max-width: 180px;">
+                      <div style="height: 100%; width: {{ a.prog }}; background: linear-gradient(90deg, #B4CC19, #D4E94C); border-radius: 999px; box-shadow: 0 0 8px rgba(212,233,76,0.6);"></div>
+                    </div>
+                  </div>
+                  <span style="font-size: 11px; font-weight: 700; color: {{ a.stColor }}; background: {{ a.stBg }}; border-radius: 999px; padding: 5px 11px; flex-shrink: 0;">{{ a.status }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ vApps }}" hint-placeholder-val="{{ false }}">
+            <div data-screen-label="Applications" style="flex: 1; overflow-y: auto; padding: 12px 22px 130px; display: flex; flex-direction: column; gap: 14px;">
+              <div style="border-radius: 20px; padding: 18px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); box-shadow: 0 12px 28px rgba(0,0,0,0.3); backdrop-filter: blur(12px); display: flex; flex-direction: column; gap: 12px;">
+                <div style="display: flex; align-items: baseline; justify-content: space-between;">
+                  <span style="font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.5);">Journey</span>
+                  <span style="font-size: 12px; font-weight: 700; color: #D4E94C;">Step 4 · Submit — 제출</span>
+                </div>
+                <div style="display: flex; gap: 5px;">
+                  <sc-for list="{{ steps }}" as="s" hint-placeholder-count="7">
+                    <div style="flex: 1; height: 8px; border-radius: 3px; background: {{ s.bg }}; box-shadow: {{ s.glow }};"></div>
+                  </sc-for>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                  <span style="font-size: 10px; font-weight: 500; color: rgba(255,255,255,0.4);">Docs</span>
+                  <span style="font-size: 10px; font-weight: 500; color: rgba(255,255,255,0.4);">Visa</span>
+                </div>
+              </div>
+
+              <sc-for list="{{ apps }}" as="a" hint-placeholder-count="3">
+                <div style="border-radius: 20px; padding: 18px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); box-shadow: 0 12px 28px rgba(0,0,0,0.3); backdrop-filter: blur(12px); display: flex; flex-direction: column; gap: 13px;">
+                  <div style="display: flex; align-items: center; gap: 13px;">
+                    <div style="width: 46px; height: 46px; border-radius: 14px; background: linear-gradient(145deg, rgba(255,255,255,0.14), rgba(255,255,255,0.05)); border: 1px solid rgba(255,255,255,0.14); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <span style="font-family: 'Noto Sans KR', sans-serif; font-size: 17px; font-weight: 900; color: #fff;">{{ a.glyph }}</span>
+                    </div>
+                    <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px;">
+                      <span style="font-size: 15px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ a.u }}</span>
+                      <span style="font-size: 12px; color: rgba(255,255,255,0.5);">{{ a.city }} · South Korea</span>
+                    </div>
+                    <span style="font-size: 11px; font-weight: 700; color: {{ a.stColor }}; background: {{ a.stBg }}; border-radius: 999px; padding: 5px 11px; flex-shrink: 0;">{{ a.status }}</span>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="flex: 1; height: 6px; background: rgba(255,255,255,0.12); border-radius: 999px; overflow: hidden;">
+                      <div style="height: 100%; width: {{ a.prog }}; background: linear-gradient(90deg, #B4CC19, #D4E94C); border-radius: 999px; box-shadow: 0 0 8px rgba(212,233,76,0.6);"></div>
+                    </div>
+                    <span style="font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.5);">{{ a.prog }}</span>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ vMap }}" hint-placeholder-val="{{ false }}">
+            <div data-screen-label="University Map" style="flex: 1; display: flex; flex-direction: column; min-height: 0; padding-top: 12px;">
+              <div style="height: 250px; position: relative; flex-shrink: 0; overflow: hidden; margin: 0 22px; border-radius: 22px; background: #0C1830; border: 1px solid rgba(255,255,255,0.12); box-shadow: 0 16px 36px rgba(0,0,0,0.4);">
+                <svg viewBox="0 0 200 250" style="position: absolute; inset: 0; width: 100%; height: 100%;" preserveAspectRatio="xMidYMid slice">
+                  <path d="M96 26 C113 22 121 38 116 54 C129 62 123 80 132 90 C141 102 131 119 135 131 C140 150 120 159 116 175 C112 196 99 210 91 195 C84 183 93 167 80 159 C67 149 79 133 70 123 C60 111 73 97 66 85 C60 71 75 60 81 49 C85 39 87 30 96 26 Z" fill="#16305A" stroke="#2E5288" stroke-width="1.4" stroke-linejoin="round"></path>
+                  <ellipse cx="86" cy="222" rx="11" ry="6" fill="#16305A" stroke="#2E5288" stroke-width="1.1"></ellipse>
+                </svg>
+                <sc-for list="{{ pins }}" as="p" hint-placeholder-count="6">
+                  <div style="position: absolute; left: {{ p.x }}; top: {{ p.y }}; width: {{ p.size }}; height: {{ p.size }}; border-radius: 50%; transform: translate(-50%,-50%); background: {{ p.bg }}; border: 2px solid {{ p.border }}; animation: {{ p.anim }};"></div>
+                </sc-for>
+                <div style="position: absolute; left: 14px; bottom: 14px; background: rgba(10,20,40,0.75); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.14); border-radius: 999px; padding: 6px 13px; display: flex; gap: 8px; align-items: baseline;">
+                  <span style="font-family: 'Noto Sans KR', sans-serif; font-size: 11px; font-weight: 700; color: #D4E94C;">대한민국</span>
+                  <span style="font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.7);">38 universities</span>
+                </div>
+              </div>
+              <div style="flex: 1; overflow-y: auto; padding: 14px 22px 130px; display: flex; flex-direction: column; gap: 9px;">
+                <sc-for list="{{ unis }}" as="u" hint-placeholder-count="5">
+                  <div onClick="{{ u.select }}" style="display: flex; align-items: center; gap: 14px; padding: 15px 17px; border-radius: 18px; background: {{ u.bg }}; border: 1px solid {{ u.border }}; box-shadow: {{ u.shadow }}; cursor: pointer; backdrop-filter: blur(12px); transition: background 0.3s ease-out, border-color 0.3s ease-out;">
+                    <div style="width: 11px; height: 11px; border-radius: 50%; background: {{ u.dot }}; box-shadow: {{ u.dotGlow }}; flex-shrink: 0;"></div>
+                    <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px;">
+                      <span style="font-size: 14px; font-weight: 700; color: {{ u.txt }}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ u.n }}</span>
+                      <span style="font-size: 12px; color: {{ u.sub }};">{{ u.c }}</span>
+                    </div>
+                    <span style="font-family: 'Noto Sans KR', sans-serif; font-size: 12px; font-weight: 700; color: {{ u.mark }};">{{ u.tag }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ vDocs }}" hint-placeholder-val="{{ false }}">
+            <div data-screen-label="Documents" style="flex: 1; overflow-y: auto; padding: 12px 22px 130px; display: flex; flex-direction: column; gap: 12px;">
+              <div style="border-radius: 22px; padding: 20px; position: relative; overflow: hidden; background: linear-gradient(140deg, #2A4E8C 0%, #1A3A6C 60%, #142E56 100%); border: 1px solid rgba(255,255,255,0.16); box-shadow: 0 20px 40px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.2); display: flex; align-items: center; gap: 18px;">
+                <div style="position: absolute; top: -50px; right: -40px; width: 180px; height: 180px; border-radius: 50%; background: radial-gradient(circle, rgba(212,233,76,0.18) 0%, rgba(212,233,76,0) 70%);"></div>
+                <div style="width: 68px; height: 68px; border-radius: 50%; background: conic-gradient(#D4E94C 0% 50%, rgba(255,255,255,0.14) 50% 100%); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 24px rgba(212,233,76,0.3); flex-shrink: 0;">
+                  <div style="width: 54px; height: 54px; border-radius: 50%; background: #16305A; display: flex; align-items: center; justify-content: center;">
+                    <span style="font-size: 15px; font-weight: 800; color: #D4E94C;">3/6</span>
+                  </div>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 3px;">
+                  <span style="font-size: 16px; font-weight: 800; color: #fff;">Documents collected</span>
+                  <span style="font-size: 13px; color: rgba(255,255,255,0.55);">3 more to unlock submission</span>
+                  <span style="font-family: 'Noto Sans KR', sans-serif; font-size: 11px; font-weight: 500; color: rgba(255,255,255,0.4);">서류 수집 진행 중</span>
+                </div>
+              </div>
+              <sc-for list="{{ docs }}" as="d" hint-placeholder-count="6">
+                <div style="border-radius: 18px; padding: 15px 17px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); box-shadow: 0 10px 24px rgba(0,0,0,0.28); backdrop-filter: blur(12px); display: flex; align-items: center; gap: 14px; opacity: {{ d.op }};">
+                  <div style="width: 40px; height: 40px; border-radius: 13px; background: {{ d.boxBg }}; border: 1.5px solid {{ d.boxBorder }}; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: {{ d.boxGlow }};">
+                    <span style="font-family: 'Noto Sans KR', sans-serif; font-size: 14px; font-weight: 700; color: {{ d.glyphColor }};">{{ d.koShort }}</span>
+                  </div>
+                  <div style="flex: 1; display: flex; flex-direction: column; gap: 2px;">
+                    <span style="font-size: 14px; font-weight: 700; color: #fff;">{{ d.n }}</span>
+                    <span style="font-size: 12px; color: rgba(255,255,255,0.45);">{{ d.ko }}</span>
+                  </div>
+                  <span style="font-family: 'Noto Sans KR', sans-serif; font-size: 12px; font-weight: 700; color: {{ d.statusColor }};">{{ d.statusKo }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ vTalk }}" hint-placeholder-val="{{ false }}">
+            <div data-screen-label="Interview Practice" style="flex: 1; display: flex; flex-direction: column; min-height: 0; padding-top: 12px;">
+              <div style="margin: 0 22px; border-radius: 22px; padding: 16px 18px; background: linear-gradient(140deg, #2A4E8C 0%, #1A3A6C 60%, #142E56 100%); border: 1px solid rgba(255,255,255,0.16); box-shadow: 0 20px 40px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.2); display: flex; align-items: center; gap: 14px; flex-shrink: 0;">
+                <div style="width: 48px; height: 48px; border-radius: 16px; background: linear-gradient(145deg, #E2F26A, #C7E04A); display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(212,233,76,0.3);">
+                  <span style="font-family: 'Noto Sans KR', sans-serif; font-size: 22px; font-weight: 900; color: #0A1A34;">한</span>
+                </div>
+                <div style="flex: 1; display: flex; flex-direction: column; gap: 2px;">
+                  <span style="font-size: 15px; font-weight: 700; color: #fff;">Hanguk AI Interviewer</span>
+                  <span style="font-size: 12px; color: rgba(255,255,255,0.55);">Speak clearly and at a moderate pace</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 6px; background: rgba(212,233,76,0.12); border: 1px solid rgba(212,233,76,0.3); border-radius: 999px; padding: 5px 11px;">
+                  <div style="width: 7px; height: 7px; border-radius: 50%; background: #D4E94C; box-shadow: 0 0 8px rgba(212,233,76,0.9);"></div>
+                  <span style="font-size: 11px; font-weight: 700; color: #D4E94C;">Live</span>
+                </div>
+              </div>
+              <div style="flex: 1; overflow-y: auto; padding: 16px 22px; display: flex; flex-direction: column; gap: 10px;">
+                <sc-for list="{{ chat }}" as="m" hint-placeholder-count="3">
+                  <div style="max-width: 82%; align-self: {{ m.align }}; background: {{ m.bg }}; border: 1px solid {{ m.border }}; color: {{ m.txt }}; border-radius: 16px; padding: 12px 15px; font-size: 14px; line-height: 1.45; font-weight: 500; box-shadow: 0 8px 20px rgba(0,0,0,0.25); backdrop-filter: blur(10px);">{{ m.t }}</div>
+                </sc-for>
+              </div>
+              <div style="padding: 12px 22px 120px; display: flex; gap: 10px; flex-shrink: 0; align-items: center;">
+                <div style="flex: 1; height: 52px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); border-radius: 16px; display: flex; align-items: center; padding: 0 16px; backdrop-filter: blur(10px);">
+                  <span style="font-size: 14px; color: rgba(255,255,255,0.35);">Type your answer…</span>
+                </div>
+                <div style="width: 52px; height: 52px; background: linear-gradient(145deg, #E2F26A, #C7E04A); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 10px 24px rgba(212,233,76,0.35);" style-active="transform: scale(0.94);">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0A1A34" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+
+          <div onClick="{{ closeDial }}" style="position: absolute; inset: 0; background: rgba(4,8,18,0.6); backdrop-filter: blur(10px); opacity: {{ scrimOpacity }}; pointer-events: {{ scrimEvents }}; transition: opacity 0.3s ease-out; z-index: 5;"></div>
+
+          <sc-for list="{{ dial }}" as="d" hint-placeholder-count="5">
+            <div onClick="{{ d.select }}" style="position: absolute; right: 24px; bottom: {{ d.bottom }}; z-index: 6; display: flex; align-items: center; gap: 12px; cursor: pointer; opacity: {{ d.opacity }}; transform: {{ d.transform }}; transition: all 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.2); transition-delay: {{ d.delay }}; pointer-events: {{ d.events }};">
+              <div style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.16); border-radius: 999px; padding: 8px 16px; backdrop-filter: blur(10px); box-shadow: 0 8px 20px rgba(0,0,0,0.4);">
+                <span style="font-size: 13px; font-weight: 700; color: #fff;">{{ d.en }}</span>
+              </div>
+              <div style="width: 52px; height: 52px; border-radius: 18px; background: {{ d.bg }}; border: 1px solid {{ d.border }}; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 24px rgba(0,0,0,0.45);">
+                <span style="font-family: 'Noto Sans KR', sans-serif; font-size: 16px; font-weight: 900; color: {{ d.color }};">{{ d.ko }}</span>
+              </div>
+            </div>
+          </sc-for>
+
+          <div onClick="{{ toggleDial }}" style="position: absolute; right: 22px; bottom: 34px; width: 62px; height: 62px; border-radius: 50%; background: linear-gradient(145deg, #E2F26A, #C7E04A); display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 7; animation: orbPulse 2.6s ease-in-out infinite; transform: rotate({{ orbRot }}); transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.2);" style-active="transform: scale(0.94);">
+            <span style="font-family: 'Noto Sans KR', sans-serif; font-size: 24px; font-weight: 900; color: #0A1A34; display: {{ hanDisplay }};">한</span>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0A1A34" stroke-width="2.6" stroke-linecap="round" style="display: {{ xDisplay }};"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- ══ GUEST EXPLORER SHELL ══ -->
+      <sc-if value="{{ isGuest }}" hint-placeholder-val="{{ false }}">
+        <div style="flex: 1; display: flex; flex-direction: column; min-height: 0; position: relative; z-index: 1;">
+
+          <!-- guest header -->
+          <div style="padding: 64px 22px 8px; display: flex; align-items: center; gap: 12px;">
+            <div onClick="{{ exitGuest }}" style="width: 42px; height: 42px; border-radius: 14px; background: linear-gradient(145deg, #2A4E8C, #16305A); border: 1px solid rgba(255,255,255,0.14); display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 6px 16px rgba(0,0,0,0.35); flex-shrink: 0;">
+              <span style="font-family: 'Noto Sans KR', sans-serif; font-size: 16px; font-weight: 900; color: #fff;">한</span>
+            </div>
+            <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px;">
+              <span style="font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.45);">Guest Explorer · 탐색 모드</span>
+              <div style="display: flex; align-items: baseline; gap: 8px;">
+                <span style="font-size: 19px; font-weight: 800; letter-spacing: -0.01em; color: #fff;">{{ gTitle }}</span>
+                <span style="font-family: 'Noto Sans KR', sans-serif; font-size: 12px; font-weight: 700; color: rgba(212,233,76,0.8);">{{ gKo }}</span>
+              </div>
+            </div>
+            <div onClick="{{ joinHanguk }}" style="height: 36px; border-radius: 999px; background: linear-gradient(145deg, #E2F26A, #C7E04A); display: flex; align-items: center; gap: 7px; padding: 0 14px; cursor: pointer; box-shadow: 0 8px 20px rgba(212,233,76,0.28); flex-shrink: 0;" style-active="transform: scale(0.96);">
+              <span style="font-size: 12px; font-weight: 800; color: #0A1A34;">Join Hanguk</span>
+              <span style="font-family: 'Noto Sans KR', sans-serif; font-size: 11px; font-weight: 700; color: #0A1A34;">가입</span>
+            </div>
+          </div>
+
+          <!-- ── EXPLORE view ── -->
+          <sc-if value="{{ gExplore }}" hint-placeholder-val="{{ true }}">
+            <div data-screen-label="Guest Explore" style="flex: 1; overflow-y: auto; padding: 10px 22px 130px; display: flex; flex-direction: column; gap: 12px;">
+
+              <div style="display: flex; flex-direction: column; gap: 4px; margin-top: 4px;">
+                <span style="font-size: 30px; font-weight: 800; letter-spacing: -0.02em; color: #fff; line-height: 1.1;">Find Your<br>University</span>
+                <div style="display: flex; align-items: baseline; gap: 9px;">
+                  <span style="font-family: 'Noto Sans KR', sans-serif; font-size: 12px; font-weight: 700; color: #D4E94C;">나의 대학 찾기</span>
+                  <span style="font-size: 12px; color: rgba(255,255,255,0.45);">38 universities · 24 open for Spring 2027</span>
+                </div>
+              </div>
+
+              <!-- search -->
+              <div style="display: flex; align-items: center; gap: 12px; height: 54px; flex-shrink: 0; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.14); border-radius: 16px; padding: 0 16px; backdrop-filter: blur(10px);">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4.35-4.35"></path></svg>
+                <input value="{{ query }}" onChange="{{ onQuery }}" placeholder="Search university or city…" style="flex: 1; background: transparent; border: none; outline: none; font-size: 15px; font-weight: 500; color: #fff; font-family: Inter, system-ui, sans-serif;"></input>
+              </div>
+
+              <!-- city filter -->
+              <div style="display: flex; align-items: center; gap: 8px; overflow-x: auto; flex-shrink: 0; min-height: 40px; padding: 2px 0;">
+                <span style="font-family: 'Noto Sans KR', sans-serif; font-size: 10px; font-weight: 700; color: rgba(212,233,76,0.7); flex-shrink: 0;">도시</span>
+                <sc-for list="{{ cityChips }}" as="c" hint-placeholder-count="4">
+                  <div onClick="{{ c.pick }}" style="padding: 7px 14px; border-radius: 999px; background: {{ c.bg }}; border: 1px solid {{ c.border }}; cursor: pointer; flex-shrink: 0; transition: background 0.3s ease-out;">
+                    <span style="font-size: 12px; font-weight: 700; color: {{ c.txt }}; white-space: nowrap;">{{ c.label }}</span>
+                  </div>
+                </sc-for>
+              </div>
+
+              <!-- faculty filter -->
+              <div style="display: flex; align-items: center; gap: 8px; overflow-x: auto; flex-shrink: 0; min-height: 40px; padding: 2px 0;">
+                <span style="font-family: 'Noto Sans KR', sans-serif; font-size: 10px; font-weight: 700; color: rgba(212,233,76,0.7); flex-shrink: 0;">학부</span>
+                <sc-for list="{{ facChips }}" as="c" hint-placeholder-count="5">
+                  <div onClick="{{ c.pick }}" style="padding: 7px 14px; border-radius: 999px; background: {{ c.bg }}; border: 1px solid {{ c.border }}; cursor: pointer; flex-shrink: 0; transition: background 0.3s ease-out;">
+                    <span style="font-size: 12px; font-weight: 700; color: {{ c.txt }}; white-space: nowrap;">{{ c.label }}</span>
+                  </div>
+                </sc-for>
+              </div>
+
+              <div style="display: flex; align-items: baseline; justify-content: space-between; margin-top: 2px;">
+                <span style="font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.45);">{{ resultCount }}</span>
+                <span onClick="{{ goCompare }}" style="font-size: 12px; font-weight: 700; color: #D4E94C; cursor: pointer;">{{ compareLabel }}</span>
+              </div>
+
+              <sc-for list="{{ results }}" as="u" hint-placeholder-count="4">
+                <div style="border-radius: 20px; padding: 15px 16px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); box-shadow: 0 12px 28px rgba(0,0,0,0.3); backdrop-filter: blur(12px); display: flex; flex-direction: column; gap: 12px;">
+                  <div style="display: flex; align-items: center; gap: 13px;">
+                    <div style="width: 44px; height: 44px; border-radius: 14px; background: linear-gradient(145deg, rgba(255,255,255,0.14), rgba(255,255,255,0.05)); border: 1px solid rgba(255,255,255,0.14); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <span style="font-family: 'Noto Sans KR', sans-serif; font-size: 16px; font-weight: 900; color: #fff;">{{ u.g }}</span>
+                    </div>
+                    <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px;">
+                      <span style="font-size: 14px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ u.n }}</span>
+                      <span style="font-size: 12px; color: rgba(255,255,255,0.5);">{{ u.meta }}</span>
+                    </div>
+                    <span style="font-size: 11px; font-weight: 700; color: {{ u.stTxt }}; background: {{ u.stBg }}; border: 1px solid {{ u.stBorder }}; border-radius: 999px; padding: 5px 10px; flex-shrink: 0; white-space: nowrap;">{{ u.stLabel }}</span>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="flex: 1; font-size: 11px; font-weight: 500; color: rgba(255,255,255,0.4); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ u.tags }}</span>
+                    <div onClick="{{ u.toggleCmp }}" style="height: 32px; border-radius: 999px; display: flex; align-items: center; gap: 6px; padding: 0 12px; cursor: pointer; background: {{ u.cmpBg }}; border: 1px solid {{ u.cmpBorder }}; transition: background 0.3s ease-out;" style-active="transform: scale(0.95);">
+                      <span style="font-size: 12px; font-weight: 800; color: {{ u.cmpTxt }};">{{ u.cmpIcon }}</span>
+                      <span style="font-size: 11px; font-weight: 700; color: {{ u.cmpTxt }};">Compare</span>
+                    </div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <!-- ── GUEST MAP view ── -->
+          <sc-if value="{{ gMap }}" hint-placeholder-val="{{ false }}">
+            <div data-screen-label="Guest Map" style="flex: 1; display: flex; flex-direction: column; min-height: 0; padding-top: 8px;">
+              <div style="height: 250px; position: relative; flex-shrink: 0; overflow: hidden; margin: 0 22px; border-radius: 22px; background: #0C1830; border: 1px solid rgba(255,255,255,0.12); box-shadow: 0 16px 36px rgba(0,0,0,0.4);">
+                <svg viewBox="0 0 200 250" style="position: absolute; inset: 0; width: 100%; height: 100%;" preserveAspectRatio="xMidYMid slice">
+                  <path d="M96 26 C113 22 121 38 116 54 C129 62 123 80 132 90 C141 102 131 119 135 131 C140 150 120 159 116 175 C112 196 99 210 91 195 C84 183 93 167 80 159 C67 149 79 133 70 123 C60 111 73 97 66 85 C60 71 75 60 81 49 C85 39 87 30 96 26 Z" fill="#16305A" stroke="#2E5288" stroke-width="1.4" stroke-linejoin="round"></path>
+                  <ellipse cx="86" cy="222" rx="11" ry="6" fill="#16305A" stroke="#2E5288" stroke-width="1.1"></ellipse>
+                </svg>
+                <sc-for list="{{ gPins }}" as="p" hint-placeholder-count="8">
+                  <div onClick="{{ p.select }}" style="position: absolute; left: {{ p.x }}; top: {{ p.y }}; width: {{ p.size }}; height: {{ p.size }}; border-radius: 50%; transform: translate(-50%,-50%); background: {{ p.bg }}; border: 2px solid {{ p.border }}; animation: {{ p.anim }}; cursor: pointer;"></div>
+                </sc-for>
+                <div style="position: absolute; left: 14px; bottom: 14px; background: rgba(10,20,40,0.75); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.14); border-radius: 999px; padding: 6px 13px; display: flex; gap: 8px; align-items: baseline;">
+                  <span style="font-family: 'Noto Sans KR', sans-serif; font-size: 11px; font-weight: 700; color: #D4E94C;">대한민국</span>
+                  <span style="font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.7);">All 38 universities</span>
+                </div>
+                <div style="position: absolute; right: 14px; bottom: 14px; background: rgba(10,20,40,0.75); backdrop-filter: blur(10px); border: 1px solid rgba(212,233,76,0.3); border-radius: 999px; padding: 6px 13px; display: flex; gap: 6px; align-items: center;">
+                  <div style="width: 7px; height: 7px; border-radius: 50%; background: #D4E94C; box-shadow: 0 0 8px rgba(212,233,76,0.9);"></div>
+                  <span style="font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.7);">Open now</span>
+                </div>
+              </div>
+              <div style="flex: 1; overflow-y: auto; padding: 14px 22px 130px; display: flex; flex-direction: column; gap: 9px;">
+                <sc-for list="{{ gList }}" as="u" hint-placeholder-count="6">
+                  <div onClick="{{ u.select }}" style="display: flex; align-items: center; gap: 14px; padding: 15px 17px; border-radius: 18px; background: {{ u.bg }}; border: 1px solid {{ u.border }}; cursor: pointer; backdrop-filter: blur(12px); transition: background 0.3s ease-out, border-color 0.3s ease-out;">
+                    <div style="width: 11px; height: 11px; border-radius: 50%; background: {{ u.dot }}; box-shadow: {{ u.dotGlow }}; flex-shrink: 0;"></div>
+                    <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px;">
+                      <span style="font-size: 14px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ u.n }}</span>
+                      <span style="font-size: 12px; color: rgba(255,255,255,0.45);">{{ u.meta }}</span>
+                    </div>
+                    <span style="font-family: 'Noto Sans KR', sans-serif; font-size: 11px; font-weight: 700; color: {{ u.stTxt }}; flex-shrink: 0;">{{ u.stKo }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+
+          <!-- ── COMPARE view ── -->
+          <sc-if value="{{ gCompare }}" hint-placeholder-val="{{ false }}">
+            <div data-screen-label="Guest Compare" style="flex: 1; overflow-y: auto; padding: 10px 22px 130px; display: flex; flex-direction: column; gap: 12px;">
+              <span style="font-size: 13px; color: rgba(255,255,255,0.5); line-height: 1.5;">Side-by-side comparison — pick up to 2 universities in Explore.</span>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start;">
+                <sc-for list="{{ compareCols }}" as="col" hint-placeholder-count="2">
+                  <div style="border-radius: 20px; padding: 16px 15px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); box-shadow: 0 12px 28px rgba(0,0,0,0.3); backdrop-filter: blur(12px); display: flex; flex-direction: column; gap: 10px;">
+                    <div style="display: flex; align-items: flex-start; gap: 10px;">
+                      <div style="width: 40px; height: 40px; border-radius: 13px; background: linear-gradient(145deg, rgba(255,255,255,0.14), rgba(255,255,255,0.05)); border: 1px solid rgba(255,255,255,0.14); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                        <span style="font-family: 'Noto Sans KR', sans-serif; font-size: 15px; font-weight: 900; color: #fff;">{{ col.g }}</span>
+                      </div>
+                      <span style="flex: 1; font-size: 13px; font-weight: 700; color: #fff; line-height: 1.25;">{{ col.n }}</span>
+                      <div onClick="{{ col.remove }}" style="width: 24px; height: 24px; border-radius: 50%; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.14); display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0;">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+                      </div>
+                    </div>
+                    <sc-for list="{{ col.rows }}" as="r" hint-placeholder-count="6">
+                      <div style="display: flex; flex-direction: column; gap: 3px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 9px;">
+                        <span style="font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.4);">{{ r.k }}</span>
+                        <span style="font-size: 13px; font-weight: 600; color: {{ r.c }};">{{ r.v }}</span>
+                      </div>
+                    </sc-for>
+                  </div>
+                </sc-for>
+
+                <sc-for list="{{ emptySlots }}" as="e" hint-placeholder-count="0">
+                  <div onClick="{{ goExplore }}" style="border-radius: 20px; min-height: 220px; border: 1.5px dashed rgba(255,255,255,0.2); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; cursor: pointer;">
+                    <div style="width: 40px; height: 40px; border-radius: 50%; background: rgba(212,233,76,0.12); border: 1px solid rgba(212,233,76,0.35); display: flex; align-items: center; justify-content: center;">
+                      <span style="font-size: 18px; font-weight: 800; color: #D4E94C;">+</span>
+                    </div>
+                    <span style="font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.5); text-align: center;">Add from<br>Explore</span>
+                    <span style="font-family: 'Noto Sans KR', sans-serif; font-size: 10px; font-weight: 700; color: rgba(212,233,76,0.7);">탐색에서 추가</span>
+                  </div>
+                </sc-for>
+              </div>
+
+              <div onClick="{{ joinHanguk }}" style="margin-top: 6px; height: 54px; border-radius: 16px; background: linear-gradient(145deg, #E2F26A, #C7E04A); display: flex; align-items: center; justify-content: center; gap: 9px; cursor: pointer; box-shadow: 0 14px 32px rgba(212,233,76,0.28);" style-active="transform: scale(0.98);">
+                <span style="font-size: 15px; font-weight: 700; color: #0A1A34;">Apply with Hanguk</span>
+                <span style="font-family: 'Noto Sans KR', sans-serif; font-size: 11px; font-weight: 700; color: #0A1A34;">가입</span>
+              </div>
+              <span style="font-size: 11px; color: rgba(255,255,255,0.35); text-align: center;">A consultant guides your documents, application and visa.</span>
+            </div>
+          </sc-if>
+
+          <!-- scrim -->
+          <div onClick="{{ closeDial }}" style="position: absolute; inset: 0; background: rgba(4,8,18,0.6); backdrop-filter: blur(10px); opacity: {{ scrimOpacity }}; pointer-events: {{ scrimEvents }}; transition: opacity 0.3s ease-out; z-index: 5;"></div>
+
+          <!-- guest speed-dial -->
+          <sc-for list="{{ gDial }}" as="d" hint-placeholder-count="4">
+            <div onClick="{{ d.select }}" style="position: absolute; right: 24px; bottom: {{ d.bottom }}; z-index: 6; display: flex; align-items: center; gap: 12px; cursor: pointer; opacity: {{ d.opacity }}; transform: {{ d.transform }}; transition: all 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.2); transition-delay: {{ d.delay }}; pointer-events: {{ d.events }};">
+              <div style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.16); border-radius: 999px; padding: 8px 16px; backdrop-filter: blur(10px); box-shadow: 0 8px 20px rgba(0,0,0,0.4);">
+                <span style="font-size: 13px; font-weight: 700; color: #fff;">{{ d.en }}</span>
+              </div>
+              <div style="width: 52px; height: 52px; border-radius: 18px; background: {{ d.bg }}; border: 1px solid {{ d.border }}; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 24px rgba(0,0,0,0.45);">
+                <span style="font-family: 'Noto Sans KR', sans-serif; font-size: 16px; font-weight: 900; color: {{ d.color }};">{{ d.ko }}</span>
+              </div>
+            </div>
+          </sc-for>
+
+          <!-- orb -->
+          <div onClick="{{ toggleDial }}" style="position: absolute; right: 22px; bottom: 34px; width: 62px; height: 62px; border-radius: 50%; background: linear-gradient(145deg, #E2F26A, #C7E04A); display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 7; animation: orbPulse 2.6s ease-in-out infinite; transform: rotate({{ orbRot }}); transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.2);" style-active="transform: scale(0.94);">
+            <span style="font-family: 'Noto Sans KR', sans-serif; font-size: 24px; font-weight: 900; color: #0A1A34; display: {{ hanDisplay }};">한</span>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0A1A34" stroke-width="2.6" stroke-linecap="round" style="display: {{ xDisplay }};"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+          </div>
+        </div>
+      </sc-if>
+    </div>
+  </x-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{
+  &quot;$preview&quot;: { &quot;width&quot;: 560, &quot;height&quot;: 1020 },
+  &quot;startAt&quot;: { &quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;welcome&quot;, &quot;login&quot;, &quot;home&quot;, &quot;guest&quot;], &quot;default&quot;: &quot;guest&quot;, &quot;tsType&quot;: &quot;'welcome' | 'login' | 'home' | 'guest'&quot;, &quot;section&quot;: &quot;Prototype&quot; }
+}">
+class Component extends DCLogic {
+  state = { screen: null, view: 0, open: false, code: '', selUni: 0,
+            gview: 0, query: '', fCity: 'All', fFac: 'All', compare: [0, 2], selGuest: 0 };
+
+  renderVals() {
+    const LIME = '#D4E94C', INK = '#0A1A34';
+    const screen = this.state.screen ?? (this.props.startAt ?? 'welcome');
+    const view = this.state.view;
+    const open = this.state.open;
+
+    // ═══ master university data (guest catalog) ═══
+    const UNIS = [
+      { n: 'Seoul National University', g: '서', city: 'Seoul', fac: ['Engineering', 'CS', 'Business', 'Medicine'], tuition: '$3,800/yr', topik: 'Level 3+', open: true,  rank: '#1',  deadline: 'Sep 12', x: 44, y: 62 },
+      { n: 'KAIST', g: '카', city: 'Daejeon', fac: ['Engineering', 'CS'], tuition: '$3,200/yr', topik: 'None (English)', open: true,  rank: '#2',  deadline: 'Sep 26', x: 52, y: 96 },
+      { n: 'Yonsei University', g: '연', city: 'Seoul', fac: ['Business', 'Medicine', 'CS'], tuition: '$5,400/yr', topik: 'Level 3+', open: true,  rank: '#3',  deadline: 'Sep 19', x: 41, y: 55 },
+      { n: 'Korea University', g: '고', city: 'Seoul', fac: ['Business', 'Law', 'Engineering'], tuition: '$5,100/yr', topik: 'Level 3+', open: false, rank: '#4',  deadline: 'Closed', x: 48, y: 58 },
+      { n: 'Hanyang University', g: '한', city: 'Seoul', fac: ['Engineering', 'CS', 'Arts'], tuition: '$4,900/yr', topik: 'Level 3+', open: true,  rank: '#6',  deadline: 'Oct 3', x: 46, y: 66 },
+      { n: 'Kyung Hee University', g: '경', city: 'Seoul', fac: ['Arts', 'Business', 'Medicine'], tuition: '$4,300/yr', topik: 'Level 2+', open: true,  rank: '#8',  deadline: 'Oct 10', x: 43, y: 70 },
+      { n: 'Pusan National University', g: '부', city: 'Busan', fac: ['Engineering', 'Marine', 'Business'], tuition: '$2,600/yr', topik: 'Level 3+', open: true,  rank: '#9',  deadline: 'Oct 17', x: 56, y: 176 },
+      { n: 'Chungnam National University', g: '충', city: 'Daejeon', fac: ['Engineering', 'Agriculture'], tuition: '$2,300/yr', topik: 'Level 3+', open: false, rank: '#15', deadline: 'Closed', x: 50, y: 102 },
+    ];
+
+    // ═══ student sections & dial ═══
+    const sections = [
+      { ko: '홈', en: 'Home', title: 'Home', titleKo: '홈' },
+      { ko: '지원', en: 'Applications', title: 'Applications', titleKo: '지원 현황' },
+      { ko: '지도', en: 'University Map', title: 'University Map', titleKo: '대학 지도' },
+      { ko: '서류', en: 'Documents', title: 'Documents', titleKo: '서류 목록' },
+      { ko: '면접', en: 'AI Interview', title: 'Interview', titleKo: '면접 연습' },
+    ];
+    const dial = sections.map((s, i) => {
+      const active = i === view;
+      return {
+        ko: s.ko, en: s.en,
+        bottom: (112 + i * 64) + 'px',
+        opacity: open ? '1' : '0',
+        transform: open ? 'translateY(0) scale(1)' : 'translateY(24px) scale(0.7)',
+        delay: open ? (i * 0.04) + 's' : '0s',
+        events: open ? 'auto' : 'none',
+        bg: active ? LIME : 'rgba(19,42,77,0.92)',
+        border: active ? LIME : 'rgba(255,255,255,0.18)',
+        color: active ? INK : '#fff',
+        select: () => this.setState({ view: i, open: false }),
+      };
+    });
+
+    const appsData = [
+      { u: 'Seoul National University', city: 'Seoul', glyph: '서', prog: '55%', status: 'In Review', stColor: '#FFC966', stBg: 'rgba(245,158,11,0.16)' },
+      { u: 'Yonsei University', city: 'Seoul', glyph: '연', prog: '50%', status: 'Submitted', stColor: INK, stBg: LIME },
+      { u: 'Korea University', city: 'Seoul', glyph: '고', prog: '25%', status: 'Docs', stColor: '#9FC0EA', stBg: 'rgba(124,163,217,0.18)' },
+    ];
+
+    const stepsRaw = [1, 1, 1, 0.5, 0, 0, 0];
+    const steps = stepsRaw.map(v => ({
+      bg: v === 1 ? LIME : v === 0.5 ? 'rgba(212,233,76,0.35)' : 'rgba(255,255,255,0.12)',
+      glow: v === 1 ? '0 0 10px rgba(212,233,76,0.4)' : 'none',
+    }));
+
+    const unisRaw = [
+      { n: 'Seoul National University', c: 'Seoul · Gwanak' },
+      { n: 'KAIST', c: 'Daejeon' },
+      { n: 'Yonsei University', c: 'Seoul · Sinchon' },
+      { n: 'Pusan National University', c: 'Busan' },
+      { n: 'Korea University', c: 'Seoul · Anam' },
+    ];
+    const unis = unisRaw.map((u, i) => {
+      const sel = i === this.state.selUni;
+      return {
+        n: u.n, c: u.c,
+        bg: sel ? 'rgba(212,233,76,0.14)' : 'rgba(255,255,255,0.07)',
+        border: sel ? 'rgba(212,233,76,0.5)' : 'rgba(255,255,255,0.12)',
+        shadow: sel ? '0 10px 28px rgba(212,233,76,0.12)' : '0 10px 24px rgba(0,0,0,0.28)',
+        dot: sel ? LIME : 'rgba(255,255,255,0.3)',
+        dotGlow: sel ? '0 0 12px rgba(212,233,76,0.8)' : 'none',
+        txt: '#fff',
+        sub: 'rgba(255,255,255,0.45)',
+        mark: sel ? LIME : 'rgba(255,255,255,0.2)',
+        tag: sel ? '선택' : '',
+        select: () => this.setState({ selUni: i }),
+      };
+    });
+
+    const pinsRaw = [
+      { x: 44, y: 60 }, { x: 52, y: 92 }, { x: 40, y: 116 },
+      { x: 59, y: 124 }, { x: 48, y: 152 }, { x: 54, y: 176 },
+    ];
+    const pins = pinsRaw.map((p, i) => {
+      const sel = i === 0;
+      return {
+        x: p.x + '%', y: p.y + 'px',
+        size: sel ? '15px' : '10px',
+        bg: sel ? LIME : '#2E5288',
+        border: sel ? '#E2F26A' : '#4A72B0',
+        anim: sel ? 'pinPulse 2s ease-in-out infinite' : 'none',
+      };
+    });
+
+    const docsRaw = [
+      { n: 'Passport', ko: '여권', koShort: '여', s: 'done' },
+      { n: 'Diploma', ko: '졸업장', koShort: '졸', s: 'done' },
+      { n: 'Transcript', ko: '성적표', koShort: '성', s: 'done' },
+      { n: 'Photo (3.5×4.5)', ko: '사진', koShort: '사', s: 'pending' },
+      { n: 'Bank Statement', ko: '은행 잔고 증명서', koShort: '은', s: 'pending' },
+      { n: 'Apostille', ko: '아포스티유', koShort: '아', s: 'locked' },
+    ];
+    const docs = docsRaw.map(d => ({
+      n: d.n, ko: d.ko, koShort: d.koShort,
+      op: d.s === 'locked' ? '0.45' : '1',
+      boxBg: d.s === 'done' ? LIME : 'rgba(255,255,255,0.05)',
+      boxBorder: d.s === 'done' ? LIME : 'rgba(255,255,255,0.2)',
+      boxGlow: d.s === 'done' ? '0 0 14px rgba(212,233,76,0.3)' : 'none',
+      glyphColor: d.s === 'done' ? INK : 'rgba(255,255,255,0.6)',
+      statusKo: d.s === 'done' ? '완료' : d.s === 'pending' ? '대기' : '잠김',
+      statusColor: d.s === 'done' ? LIME : d.s === 'pending' ? '#FFC966' : 'rgba(255,255,255,0.35)',
+    }));
+
+    const chatRaw = [
+      { ai: true, t: 'Hello! I\'m Hanguk AI, your interview coach. Why do you want to study in South Korea?' },
+      { ai: false, t: 'I want to study computer science at a top Korean university and work in tech.' },
+      { ai: true, t: 'Great answer. Now tell me — what do you know about the program you applied to?' },
+    ];
+    const chat = chatRaw.map(m => ({
+      t: m.t,
+      align: m.ai ? 'flex-start' : 'flex-end',
+      bg: m.ai ? 'rgba(255,255,255,0.08)' : LIME,
+      border: m.ai ? 'rgba(255,255,255,0.14)' : LIME,
+      txt: m.ai ? '#fff' : INK,
+    }));
+
+    const canLogin = this.state.code.replace(/[^A-Z0-9]/gi, '').length >= 8;
+
+    // ═══ guest mode ═══
+    const gview = this.state.gview;
+    const gsections = [
+      { ko: '탐색', en: 'Explore', title: 'Explore', titleKo: '대학 탐색' },
+      { ko: '지도', en: 'Map', title: 'Korea Map', titleKo: '대학 지도' },
+      { ko: '비교', en: 'Compare', title: 'Compare', titleKo: '대학 비교' },
+    ];
+    const gDial = gsections.map((s, i) => {
+      const active = i === gview;
+      return {
+        ko: s.ko, en: s.en,
+        bottom: (112 + i * 64) + 'px',
+        opacity: open ? '1' : '0',
+        transform: open ? 'translateY(0) scale(1)' : 'translateY(24px) scale(0.7)',
+        delay: open ? (i * 0.04) + 's' : '0s',
+        events: open ? 'auto' : 'none',
+        bg: active ? LIME : 'rgba(19,42,77,0.92)',
+        border: active ? LIME : 'rgba(255,255,255,0.18)',
+        color: active ? INK : '#fff',
+        select: () => this.setState({ gview: i, open: false }),
+      };
+    });
+    gDial.push({
+      ko: '가입', en: 'Join Hanguk',
+      bottom: (112 + 3 * 64) + 'px',
+      opacity: open ? '1' : '0',
+      transform: open ? 'translateY(0) scale(1)' : 'translateY(24px) scale(0.7)',
+      delay: open ? '0.12s' : '0s',
+      events: open ? 'auto' : 'none',
+      bg: 'linear-gradient(145deg, #E2F26A, #C7E04A)',
+      border: LIME, color: INK,
+      select: () => this.setState({ screen: 'login', open: false }),
+    });
+
+    // filters
+    const q = this.state.query.trim().toLowerCase();
+    const fCity = this.state.fCity, fFac = this.state.fFac;
+    const cities = ['All', 'Seoul', 'Daejeon', 'Busan'];
+    const facs = ['All', 'Engineering', 'CS', 'Business', 'Medicine', 'Arts'];
+    const chip = (label, active, pick) => ({
+      label, pick,
+      bg: active ? LIME : 'rgba(255,255,255,0.07)',
+      border: active ? LIME : 'rgba(255,255,255,0.14)',
+      txt: active ? INK : 'rgba(255,255,255,0.7)',
+    });
+    const cityChips = cities.map(c => chip(c, fCity === c, () => this.setState({ fCity: c })));
+    const facChips = facs.map(f => chip(f, fFac === f, () => this.setState({ fFac: f })));
+
+    const compare = this.state.compare;
+    const filtered = UNIS.map((u, i) => ({ u, i })).filter(({ u }) => {
+      if (q && !(u.n.toLowerCase().includes(q) || u.city.toLowerCase().includes(q))) return false;
+      if (fCity !== 'All' && u.city !== fCity) return false;
+      if (fFac !== 'All' && !u.fac.includes(fFac)) return false;
+      return true;
+    });
+
+    const results = filtered.map(({ u, i }) => {
+      const inCmp = compare.includes(i);
+      return {
+        n: u.n, g: u.g,
+        meta: u.city + ' · Rank ' + u.rank + ' · ' + u.tuition,
+        tags: u.fac.join(' · '),
+        stLabel: u.open ? 'Open · 모집 중' : 'Closed · 마감',
+        stTxt: u.open ? LIME : 'rgba(255,255,255,0.45)',
+        stBg: u.open ? 'rgba(212,233,76,0.12)' : 'rgba(255,255,255,0.06)',
+        stBorder: u.open ? 'rgba(212,233,76,0.3)' : 'rgba(255,255,255,0.12)',
+        cmpBg: inCmp ? 'rgba(212,233,76,0.16)' : 'rgba(255,255,255,0.06)',
+        cmpBorder: inCmp ? 'rgba(212,233,76,0.5)' : 'rgba(255,255,255,0.16)',
+        cmpTxt: inCmp ? LIME : 'rgba(255,255,255,0.6)',
+        cmpIcon: inCmp ? '✓' : '+',
+        toggleCmp: () => {
+          const cur = this.state.compare.slice();
+          const at = cur.indexOf(i);
+          if (at >= 0) cur.splice(at, 1);
+          else { cur.push(i); if (cur.length > 2) cur.shift(); }
+          this.setState({ compare: cur });
+        },
+      };
+    });
+
+    const compareCols = compare.map(idx => {
+      const u = UNIS[idx];
+      return {
+        n: u.n, g: u.g,
+        remove: () => this.setState({ compare: this.state.compare.filter(x => x !== idx) }),
+        rows: [
+          { k: 'City · 도시', v: u.city, c: '#fff' },
+          { k: 'Rank · 순위', v: u.rank + ' in Korea', c: '#fff' },
+          { k: 'Tuition · 등록금', v: u.tuition, c: '#fff' },
+          { k: 'TOPIK', v: u.topik, c: '#fff' },
+          { k: 'Deadline · 마감일', v: u.deadline, c: '#fff' },
+          { k: 'Status · 상태', v: u.open ? 'Open · 모집 중' : 'Closed · 마감', c: u.open ? LIME : 'rgba(255,255,255,0.45)' },
+        ],
+      };
+    });
+    const emptySlots = Array.from({ length: Math.max(0, 2 - compare.length) }, (_, i) => ({ i }));
+
+    const gPins = UNIS.map((u, i) => {
+      const sel = i === this.state.selGuest;
+      return {
+        x: u.x + '%', y: u.y + 'px',
+        size: sel ? '15px' : '10px',
+        bg: sel ? LIME : (u.open ? '#3E639F' : '#22406B'),
+        border: sel ? '#E2F26A' : (u.open ? '#5B84C4' : '#3A5C90'),
+        anim: sel ? 'pinPulse 2s ease-in-out infinite' : 'none',
+        select: () => this.setState({ selGuest: i }),
+      };
+    });
+    const gList = UNIS.map((u, i) => {
+      const sel = i === this.state.selGuest;
+      return {
+        n: u.n,
+        meta: u.city + ' · Rank ' + u.rank,
+        bg: sel ? 'rgba(212,233,76,0.14)' : 'rgba(255,255,255,0.07)',
+        border: sel ? 'rgba(212,233,76,0.5)' : 'rgba(255,255,255,0.12)',
+        dot: u.open ? LIME : 'rgba(255,255,255,0.25)',
+        dotGlow: u.open ? '0 0 10px rgba(212,233,76,0.7)' : 'none',
+        stKo: u.open ? '모집 중' : '마감',
+        stTxt: u.open ? LIME : 'rgba(255,255,255,0.35)',
+        select: () => this.setState({ selGuest: i }),
+      };
+    });
+
+    return {
+      isWelcome: screen === 'welcome',
+      isLogin: screen === 'login',
+      isHome: screen === 'home',
+      isGuest: screen === 'guest',
+      goLogin: () => this.setState({ screen: 'login' }),
+      goGuest: () => this.setState({ screen: 'guest', gview: 0, open: false }),
+      goWelcome: () => this.setState({ screen: 'welcome', view: 0, open: false, code: '' }),
+      exitGuest: () => this.setState({ screen: 'welcome', open: false }),
+      joinHanguk: () => this.setState({ screen: 'login', open: false }),
+      login: () => { if (canLogin) this.setState({ screen: 'home', view: 0 }); },
+      fillDemo: () => this.setState({ code: 'HANG-GUK1' }),
+      onCode: (e) => this.setState({ code: e.target.value.toUpperCase() }),
+      code: this.state.code,
+      inputBorder: canLogin ? LIME : 'rgba(255,255,255,0.15)',
+      inputGlow: canLogin ? '0 0 20px rgba(212,233,76,0.2)' : 'none',
+      loginBg: canLogin ? 'linear-gradient(145deg, #E2F26A, #C7E04A)' : 'rgba(212,233,76,0.18)',
+      loginGlow: canLogin ? '0 14px 32px rgba(212,233,76,0.28)' : 'none',
+      loginColor: canLogin ? INK : 'rgba(255,255,255,0.4)',
+
+      vHome: view === 0, vApps: view === 1, vMap: view === 2, vDocs: view === 3, vTalk: view === 4,
+      vSection: view !== 0,
+      secTitle: sections[view].title,
+      secKo: sections[view].titleKo,
+      goHome: () => this.setState({ view: 0, open: false }),
+      goApps: () => this.setState({ view: 1, open: false }),
+      goDocs: () => this.setState({ view: 3, open: false }),
+
+      dial,
+      apps: appsData,
+      appsShort: appsData.slice(0, 2),
+      steps, unis, pins, docs, chat,
+
+      // guest
+      gExplore: gview === 0, gMap: gview === 1, gCompare: gview === 2,
+      gTitle: gsections[gview].title,
+      gKo: gsections[gview].titleKo,
+      gDial,
+      query: this.state.query,
+      onQuery: (e) => this.setState({ query: e.target.value }),
+      cityChips, facChips, results,
+      resultCount: results.length + (results.length === 1 ? ' university' : ' universities'),
+      compareLabel: 'Compare ' + compare.length + '/2 · 비교 →',
+      goCompare: () => this.setState({ gview: 2, open: false }),
+      goExplore: () => this.setState({ gview: 0, open: false }),
+      compareCols, emptySlots,
+      gPins, gList,
+
+      toggleDial: () => this.setState({ open: !open }),
+      closeDial: () => this.setState({ open: false }),
+      scrimOpacity: open ? '1' : '0',
+      scrimEvents: open ? 'auto' : 'none',
+      orbRot: open ? '90deg' : '0deg',
+      hanDisplay: open ? 'none' : 'block',
+      xDisplay: open ? 'block' : 'none',
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../design_system/theme/app_colors.dart';
+import '../../../../design_system/seoul_night/seoul_night.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../uni_db/presentation/widgets/university_specific_cta.dart';
 import '../../data/interview_repository.dart';
@@ -57,268 +57,284 @@ class _InterviewSetupViewState extends ConsumerState<InterviewSetupView> {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     final state = ref.watch(interviewProvider);
+    final canStart = !(_isUniSpecific && _targetUniversityId == null);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24.0),
+      padding: const EdgeInsets.fromLTRB(
+        SeoulSizes.screenPadding,
+        4,
+        SeoulSizes.screenPadding,
+        40,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                l.interviewSetupTitle,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
+          // ── Intro hero (spec §3.7) ──────────────────────────────────────
+          HeroCard(
+            watermark: '면접',
+            margin: const EdgeInsets.only(bottom: 18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const HangulGlyphTile(
+                      glyph: '한',
+                      active: true,
+                      radius: SeoulRadii.control,
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: HangulTag(
+                        en: l.interviewSetupTitle,
+                        ko: '면접 연습',
+                        titleStyle: SeoulType.title,
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.history, color: AppColors.royalBlue),
-                tooltip: l.a11yTooltipInterviewHistory,
-                onPressed: widget.onHistoryTapped,
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            l.interviewSetupSubtitle,
-            style: const TextStyle(color: Colors.white70, fontSize: 16),
-          ),
-          const SizedBox(height: 32),
-
-          _buildLabel(l.interviewTypeLabel),
-          const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.05),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white10),
+                const SizedBox(height: 14),
+                Text(l.interviewSetupSubtitle, style: SeoulType.bodySecondary),
+              ],
             ),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<String>(
-                value: _sessionType,
-                dropdownColor: AppColors.backgroundNavy,
-                isExpanded: true,
-                style: const TextStyle(color: Colors.white, fontSize: 16),
-                items: [
-                  DropdownMenuItem(
-                    value: 'general',
-                    child: Text(l.interviewTypeGeneral),
-                  ),
-                  DropdownMenuItem(
-                    value: 'university_specific',
-                    child: Text(l.interviewTypeUniversitySpecific),
-                  ),
-                  DropdownMenuItem(
-                    value: 'visa',
-                    child: Text(l.interviewTypeVisa),
-                  ),
-                ],
-                onChanged: (val) {
-                  if (val != null) setState(() => _sessionType = val);
-                },
-              ),
+          ),
+
+          // ── Session type ────────────────────────────────────────────────
+          _SectionCard(
+            title: l.interviewTypeLabel,
+            ko: '유형',
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                SeoulFilterChip(
+                  label: l.interviewTypeGeneral,
+                  ko: '일반',
+                  selected: _sessionType == 'general',
+                  onTap: () => setState(() => _sessionType = 'general'),
+                ),
+                SeoulFilterChip(
+                  label: l.interviewTypeUniversitySpecific,
+                  ko: '대학',
+                  selected: _isUniSpecific,
+                  onTap: () =>
+                      setState(() => _sessionType = 'university_specific'),
+                ),
+                SeoulFilterChip(
+                  label: l.interviewTypeVisa,
+                  ko: '비자',
+                  selected: _sessionType == 'visa',
+                  onTap: () => setState(() => _sessionType = 'visa'),
+                ),
+              ],
             ),
           ),
 
           // Audit U10: real uni-picker for university_specific sessions.
           // Previously this view had no way to set targetUniversityId and
           // the addon below fell back to general.
-          if (_isUniSpecific) ...[
-            const SizedBox(height: 16),
-            _buildLabel(l.targetUniversityFieldLabel),
-            const SizedBox(height: 8),
-            TargetUniversityPicker(
-              selectedId: _targetUniversityId,
-              onPick: (id, name) => setState(() {
-                _targetUniversityId = id;
-                _targetUniversityName = name;
-              }),
-            ),
-            // University-specific addon (gated behind UNI_DB_ENABLED).
-            // Reads v_recruitment_for_interview for the chosen
-            // institution; falls back to general if no verified
-            // recruitment data is available.
-            UniversitySpecificSetupAddon(
-              institutionId: _targetUniversityId,
-              onFallbackToGeneral: () =>
-                  setState(() => _sessionType = 'general'),
-            ),
-          ],
-
-          const SizedBox(height: 24),
-
-          _buildLabel(l.languageLabel),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: _LanguageOption(
-                  title: l.trackKorean,
-                  isSelected: _language == 'ko',
-                  onTap: () => setState(() => _language = 'ko'),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _LanguageOption(
-                  title: l.trackEnglish,
-                  isSelected: _language == 'en',
-                  onTap: () => setState(() => _language = 'en'),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-
-          _buildLabel(l.interviewerPersonaLabel),
-          const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.05),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white10),
-            ),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<String>(
-                value: _persona,
-                dropdownColor: AppColors.backgroundNavy,
-                isExpanded: true,
-                style: const TextStyle(color: Colors.white, fontSize: 16),
-                items: [
-                  DropdownMenuItem(
-                    value: 'friendly',
-                    child: Text(l.personaFriendlyCaps),
+          if (_isUniSpecific)
+            _SectionCard(
+              title: l.targetUniversityFieldLabel,
+              ko: '대학 선택',
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  TargetUniversityPicker(
+                    selectedId: _targetUniversityId,
+                    onPick: (id, name) => setState(() {
+                      _targetUniversityId = id;
+                      _targetUniversityName = name;
+                    }),
                   ),
-                  DropdownMenuItem(
-                    value: 'strict',
-                    child: Text(l.personaStrictCaps),
-                  ),
-                  DropdownMenuItem(
-                    value: 'impatient',
-                    child: Text(l.personaImpatientCaps),
+                  // University-specific addon (gated behind UNI_DB_ENABLED).
+                  // Reads v_recruitment_for_interview for the chosen
+                  // institution; falls back to general if no verified
+                  // recruitment data is available.
+                  UniversitySpecificSetupAddon(
+                    institutionId: _targetUniversityId,
+                    onFallbackToGeneral: () =>
+                        setState(() => _sessionType = 'general'),
                   ),
                 ],
-                onChanged: (val) {
-                  if (val != null) setState(() => _persona = val);
-                },
+              ),
+            ),
+
+          // ── Language ────────────────────────────────────────────────────
+          _SectionCard(
+            title: l.languageLabel,
+            ko: '언어',
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                SeoulFilterChip(
+                  label: l.trackKorean,
+                  ko: '한국어',
+                  selected: _language == 'ko',
+                  onTap: () => setState(() => _language = 'ko'),
+                ),
+                SeoulFilterChip(
+                  label: l.trackEnglish,
+                  ko: '영어',
+                  selected: _language == 'en',
+                  onTap: () => setState(() => _language = 'en'),
+                ),
+              ],
+            ),
+          ),
+
+          // ── Interviewer persona ─────────────────────────────────────────
+          _SectionCard(
+            title: l.interviewerPersonaLabel,
+            ko: '면접관',
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                SeoulFilterChip(
+                  label: l.personaFriendlyCaps,
+                  selected: _persona == 'friendly',
+                  onTap: () => setState(() => _persona = 'friendly'),
+                ),
+                SeoulFilterChip(
+                  label: l.personaStrictCaps,
+                  selected: _persona == 'strict',
+                  onTap: () => setState(() => _persona = 'strict'),
+                ),
+                SeoulFilterChip(
+                  label: l.personaImpatientCaps,
+                  selected: _persona == 'impatient',
+                  onTap: () => setState(() => _persona = 'impatient'),
+                ),
+              ],
+            ),
+          ),
+
+          // ── Focus topic ─────────────────────────────────────────────────
+          _SectionCard(
+            title: l.focusTopicLabel,
+            ko: '주제',
+            child: TextField(
+              controller: _focusTopicCtrl,
+              style: SeoulType.body,
+              cursorColor: SeoulColors.lime,
+              decoration: InputDecoration(
+                hintText: l.focusTopicHint,
+                hintStyle: SeoulType.bodySecondary.copyWith(
+                  color: SeoulColors.textFaint,
+                ),
+                filled: true,
+                fillColor: SeoulColors.neutralFill,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 14,
+                ),
+                border: const OutlineInputBorder(
+                  borderRadius: SeoulRadii.controlR,
+                  borderSide: BorderSide(color: SeoulColors.glassBorder),
+                ),
+                enabledBorder: const OutlineInputBorder(
+                  borderRadius: SeoulRadii.controlR,
+                  borderSide: BorderSide(color: SeoulColors.glassBorder),
+                ),
+                focusedBorder: const OutlineInputBorder(
+                  borderRadius: SeoulRadii.controlR,
+                  borderSide: BorderSide(color: SeoulColors.lime),
+                ),
               ),
             ),
           ),
-          const SizedBox(height: 24),
 
-          _buildLabel(l.focusTopicLabel),
-          const SizedBox(height: 8),
-          TextField(
-            controller: _focusTopicCtrl,
-            style: const TextStyle(color: Colors.white),
-            decoration: InputDecoration(
-              hintText: l.focusTopicHint,
-              hintStyle: const TextStyle(color: Colors.white30),
-              filled: true,
-              fillColor: Colors.white.withValues(alpha: 0.05),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none,
-              ),
-            ),
-          ),
-          const SizedBox(height: 24),
-
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColors.royalBlue.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: AppColors.royalBlue.withValues(alpha: 0.3),
-              ),
-            ),
+          // ── Timed mode ──────────────────────────────────────────────────
+          GlassCard(
+            margin: const EdgeInsets.only(bottom: 18),
+            padding: const EdgeInsets.fromLTRB(16, 10, 10, 10),
+            borderColor: _timedMode ? SeoulColors.lime : null,
             child: Row(
               children: [
-                const Icon(Icons.timer, color: AppColors.royalBlue),
-                const SizedBox(width: 16),
+                Icon(
+                  Icons.timer,
+                  size: 20,
+                  color: _timedMode ? SeoulColors.lime : SeoulColors.textFaint,
+                ),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        l.timedModeTitle,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        l.timedModeSubtitle,
-                        style: const TextStyle(
-                          color: Colors.white70,
-                          fontSize: 13,
-                        ),
-                      ),
+                      Text(l.timedModeTitle, style: SeoulType.subtitle),
+                      const SizedBox(height: 2),
+                      Text(l.timedModeSubtitle, style: SeoulType.caption),
                     ],
                   ),
                 ),
-                Switch(
+                _SeoulToggle(
                   value: _timedMode,
-                  activeColor: AppColors.royalBlue,
+                  semanticLabel: l.timedModeTitle,
                   onChanged: (val) => setState(() => _timedMode = val),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 48),
 
-          if (state.isLoading)
-            const Center(
-              child: CircularProgressIndicator(color: AppColors.vibrantLime),
-            )
-          else
-            ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.vibrantLime,
-                foregroundColor: Colors.black,
-                padding: const EdgeInsets.symmetric(vertical: 18),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
-                ),
+          // Audit G3·5: startSession() sets state.error on failure but this
+          // view never surfaced it, so a failed start looked like a silent
+          // freeze. Show a localized banner; it clears automatically because
+          // startSession() runs copyWith(clearError: true) on the next try.
+          if (state.error != null && !state.isLoading) ...[
+            GlassCard(
+              margin: const EdgeInsets.only(bottom: 16),
+              padding: const EdgeInsets.all(14),
+              fillColor: SeoulColors.dangerFill,
+              borderColor: SeoulColors.warning.withValues(alpha: 0.45),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.error_outline,
+                    color: SeoulColors.dangerText,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      l.interviewStartError,
+                      style: SeoulType.bodySecondary.copyWith(
+                        color: SeoulColors.dangerText,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              icon: const Icon(Icons.play_arrow),
-              label: Text(
-                l.startPracticeButton,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
-              onPressed: (_isUniSpecific && _targetUniversityId == null)
-                  ? null
-                  : _start,
             ),
-          if (_isUniSpecific && _targetUniversityId == null)
+          ],
+
+          // The one lime action on this screen (spec §4).
+          LimeButton(
+            label: l.startPracticeButton,
+            icon: Icons.play_arrow,
+            loading: state.isLoading,
+            onPressed: canStart ? _start : null,
+          ),
+          if (!canStart)
             Padding(
-              padding: const EdgeInsets.only(top: 8),
+              padding: const EdgeInsets.only(top: 10),
               child: Text(
                 l.pickUniversityFirstHint,
-                style: const TextStyle(color: Colors.white70, fontSize: 12),
+                textAlign: TextAlign.center,
+                style: SeoulType.caption,
               ),
             ),
-        ],
-      ),
-    );
-  }
 
-  Widget _buildLabel(String text) {
-    return Text(
-      text,
-      style: const TextStyle(
-        color: Colors.white70,
-        fontSize: 14,
-        fontWeight: FontWeight.bold,
+          const SizedBox(height: 12),
+          SeoulOutlineButton(
+            label: l.interviewHistoryTitle,
+            icon: Icons.history,
+            onPressed: widget.onHistoryTapped,
+            trailing: Text('기록', style: SeoulType.hangulLabel),
+          ),
+        ],
       ),
     );
   }
@@ -328,40 +344,111 @@ class _InterviewSetupViewState extends ConsumerState<InterviewSetupView> {
 // (shared with the personal-statement / study-plan setup dialogs) and falls
 // back to the full university list when the student has no applications.
 
-class _LanguageOption extends StatelessWidget {
-  final String title;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  const _LanguageOption({
-    required this.title,
-    required this.isSelected,
-    required this.onTap,
+/// Seoul Night on/off switch: a lime pill with an ink thumb when on, glass
+/// with a faint thumb when off. Hand-rolled rather than a Material [Switch] so
+/// every colour resolves to a token and the control matches the chips beside
+/// it. The 44px outer box is the tap target (spec §4); the pill is smaller.
+class _SeoulToggle extends StatelessWidget {
+  const _SeoulToggle({
+    required this.value,
+    required this.onChanged,
+    required this.semanticLabel,
   });
+
+  final bool value;
+  final ValueChanged<bool> onChanged;
+  final String semanticLabel;
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? AppColors.royalBlue.withValues(alpha: 0.2)
-              : Colors.white.withValues(alpha: 0.05),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isSelected ? AppColors.royalBlue : Colors.white10,
+    return Semantics(
+      toggled: value,
+      label: semanticLabel,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => onChanged(!value),
+        child: SizedBox(
+          width: 64,
+          height: SeoulSizes.minTapTarget,
+          child: Center(
+            child: AnimatedContainer(
+              duration: SeoulMotion.fast,
+              curve: SeoulMotion.smooth,
+              width: 52,
+              height: 30,
+              padding: const EdgeInsets.all(3),
+              decoration: BoxDecoration(
+                color: value ? SeoulColors.lime : SeoulColors.neutralFill,
+                borderRadius: BorderRadius.circular(999),
+                border: Border.all(
+                  color: value ? SeoulColors.lime : SeoulColors.glassBorder,
+                ),
+                boxShadow: value ? SeoulShadows.limeGlowSmall : null,
+              ),
+              child: AnimatedAlign(
+                duration: SeoulMotion.fast,
+                curve: SeoulMotion.smooth,
+                alignment: value ? Alignment.centerRight : Alignment.centerLeft,
+                child: Container(
+                  width: 22,
+                  height: 22,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: value ? SeoulColors.ink : SeoulColors.textSecondary,
+                  ),
+                ),
+              ),
+            ),
           ),
         ),
-        alignment: Alignment.center,
-        child: Text(
-          title,
-          style: TextStyle(
-            color: isSelected ? AppColors.royalBlue : Colors.white70,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+      ),
+    );
+  }
+}
+
+/// One configuration group: a glass surface with an English title, its small
+/// lime hangul label, and the control below (spec §1 Surfaces / Korean voice).
+class _SectionCard extends StatelessWidget {
+  const _SectionCard({
+    required this.title,
+    required this.ko,
+    required this.child,
+  });
+
+  final String title;
+  final String ko;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return GlassCard(
+      margin: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              Flexible(
+                child: Text(
+                  title,
+                  style: SeoulType.subtitle,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              // Padding rather than a SizedBox spacer: it forwards the child's
+              // baseline, which the Row needs for baseline alignment.
+              Padding(
+                padding: const EdgeInsets.only(left: 8),
+                child: Text(ko, style: SeoulType.hangulLabel),
+              ),
+            ],
           ),
-        ),
+          const SizedBox(height: 12),
+          child,
+        ],
       ),
     );
   }

@@ -120,6 +120,20 @@ class AppLocalizationsUz extends AppLocalizations {
   String get virtualWalkaroundTitle => 'Virtual Walkaround';
 
   @override
+  String get visitUniversityWebsite => 'Universitet veb-saytiga o\'tish';
+
+  @override
+  String universityTier(int tier) {
+    return 'Daraja $tier';
+  }
+
+  @override
+  String get universityVerified => 'Tasdiqlangan';
+
+  @override
+  String get universityNextEvent => 'Keyingi tadbir';
+
+  @override
   String get navApplications => 'Arizalar';
 
   @override
@@ -141,16 +155,19 @@ class AppLocalizationsUz extends AppLocalizations {
   String get documentsTabTitle => 'Hujjatlarim';
 
   @override
-  String get documentUploadInfo => 'Asl hujjatlaringizning to‘g‘ri PDF yoki JPEG nusxalarini yuklang. Har bir fayl uchun eng ko‘pi 10MB.';
+  String get documentUploadInfo =>
+      'Asl hujjatlaringizning to‘g‘ri PDF yoki JPEG nusxalarini yuklang. Har bir fayl uchun eng ko‘pi 10MB.';
 
   @override
   String get documentsRequiredHeading => 'Kerakli hujjatlar';
 
   @override
-  String get documentUploadFailed => 'Hujjatingizni yuklab bo‘lmadi. Iltimos, qayta urinib ko‘ring.';
+  String get documentUploadFailed =>
+      'Hujjatingizni yuklab bo‘lmadi. Iltimos, qayta urinib ko‘ring.';
 
   @override
-  String get documentPreviewFailed => 'Hujjatni ochib bo‘lmadi. Iltimos, qayta urinib ko‘ring.';
+  String get documentPreviewFailed =>
+      'Hujjatni ochib bo‘lmadi. Iltimos, qayta urinib ko‘ring.';
 
   @override
   String get documentLoadError => 'Hujjatlaringizni yuklab bo‘lmadi.';
@@ -171,25 +188,30 @@ class AppLocalizationsUz extends AppLocalizations {
   String get onboardingStep1Title => 'Arizalaringizni kuzating';
 
   @override
-  String get onboardingStep1Body => 'Har bir universitet arizasini hujjatlardan qarorgacha bitta joyda kuzating.';
+  String get onboardingStep1Body =>
+      'Har bir universitet arizasini hujjatlardan qarorgacha bitta joyda kuzating.';
 
   @override
-  String get onboardingStep2Title => 'Universitetlarni o\'rganing va hujjat yuklang';
+  String get onboardingStep2Title =>
+      'Universitetlarni o\'rganing va hujjat yuklang';
 
   @override
-  String get onboardingStep2Body => 'Universitetlarni xaritada toping va har biri uchun kerakli hujjatlarni xavfsiz yuklang.';
+  String get onboardingStep2Body =>
+      'Universitetlarni xaritada toping va har biri uchun kerakli hujjatlarni xavfsiz yuklang.';
 
   @override
   String get onboardingStep3Title => 'AI bilan suhbatga tayyorlaning';
 
   @override
-  String get onboardingStep3Body => 'AI murabbiy bilan koreys universitetlari suhbatlarini mashq qiling va darhol fikr-mulohaza oling.';
+  String get onboardingStep3Body =>
+      'AI murabbiy bilan koreys universitetlari suhbatlarini mashq qiling va darhol fikr-mulohaza oling.';
 
   @override
   String get appsEmptyTitle => 'Hozircha arizalar yo\'q';
 
   @override
-  String get appsEmptyBody => 'Universitetga ariza topshirganingizdan so\'ng arizalaringiz shu yerda ko\'rinadi.';
+  String get appsEmptyBody =>
+      'Universitetga ariza topshirganingizdan so\'ng arizalaringiz shu yerda ko\'rinadi.';
 
   @override
   String get appsLoadError => 'Arizalaringizni yuklab bo\'lmadi.';
@@ -225,7 +247,8 @@ class AppLocalizationsUz extends AppLocalizations {
   String get universitiesLoadError => 'Universitetlarni yuklab bo\'lmadi';
 
   @override
-  String get checkConnectionRetry => 'Internetni tekshirib, qayta urinib ko\'ring';
+  String get checkConnectionRetry =>
+      'Internetni tekshirib, qayta urinib ko\'ring';
 
   @override
   String get switchToListView => 'Ro\'yxat ko\'rinishiga o\'tish';
@@ -234,7 +257,8 @@ class AppLocalizationsUz extends AppLocalizations {
   String get switchToMapView => 'Xarita ko\'rinishiga o\'tish';
 
   @override
-  String get chatInputHint => 'Janubiy Koreya haqida xohlagan savolingizni bering...';
+  String get chatInputHint =>
+      'Janubiy Koreya haqida xohlagan savolingizni bering...';
 
   @override
   String get accountTooltip => 'Hisob';
@@ -381,7 +405,7 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get notifSettingsEmptyBody =>
-      'Universitet sahifasida "Bu muassasani kuzatish"ni bosib obuna bo\'ling. Kamida bitta kuzatuv qo\'shilgach, bildirishnoma sozlamalari shu yerda paydo bo\'ladi.';
+      'Universitet sahifasida \"Bu muassasani kuzatish\"ni bosib obuna bo\'ling. Kamida bitta kuzatuv qo\'shilgach, bildirishnoma sozlamalari shu yerda paydo bo\'ladi.';
 
   @override
   String get notifSettingsCalendar => 'Taqvim o\'zgarishlari';
@@ -502,6 +526,9 @@ class AppLocalizationsUz extends AppLocalizations {
   String get aiStatusSupervisionActive => 'AI nazorati faol';
 
   @override
+  String get aiStatusSpellCheckUnavailable => 'Qurilma lug\'ati mavjud emas';
+
+  @override
   String get workspaceTitle => 'Ish maydoni';
 
   @override
@@ -512,7 +539,7 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String grammarReplaceWith(String original, String suggestion) {
-    return '"$original" o\'rniga "$suggestion" yozing';
+    return '\"$original\" o\'rniga \"$suggestion\" yozing';
   }
 
   @override
@@ -640,6 +667,25 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get noAnalysisYet => 'Hozircha tahlil yaratilmagan.';
+
+  @override
+  String get analysisErrorPlanRequired =>
+      'Tahlil Premium va No Risk tariflariga kiradi. Sizning hozirgi tarifingizda bu yo\'q.';
+
+  @override
+  String get analysisErrorRateLimited =>
+      'Juda ko\'p tahlil so\'raldi. Bir daqiqa kutib, qayta urinib ko\'ring.';
+
+  @override
+  String get analysisErrorServiceDown =>
+      'Tahlil xizmati vaqtincha ishlamayapti. Qoralamangiz saqlangan — birozdan keyin urinib ko\'ring.';
+
+  @override
+  String get analysisErrorFailed =>
+      'Tahlilni yakunlab bo\'lmadi. Qoralamangiz saqlangan — internetni tekshirib, qayta urinib ko\'ring.';
+
+  @override
+  String get analysisRetryButton => 'Qayta urinish';
 
   @override
   String get aiReviewedDraft => 'AI qoralamani ko\'rib chiqdi.';
@@ -876,4 +922,610 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get a11yTooltipPauseRecording => 'Yozuvni to\'xtatish';
+
+  @override
+  String get trackMismatchWarning =>
+      'Qoralamangiz tili siz tanlagan yo\'nalishga mos kelmayapti. Iltimos, tanlangan tilda qayta yozing.';
+
+  @override
+  String get interviewStartError =>
+      'Suhbatni boshlab bo\'lmadi. Internet aloqasini tekshirib, qayta urinib ko\'ring.';
+
+  @override
+  String get perAnswerReviewTitle => 'Har bir javob tahlili';
+
+  @override
+  String get betterAnswerLabel => 'KUCHLIROQ JAVOB';
+
+  @override
+  String get navHome => 'Bosh sahifa';
+
+  @override
+  String get navMenu => 'Menyu';
+
+  @override
+  String get greetingMorning => 'Xayrli tong';
+
+  @override
+  String get greetingAfternoon => 'Xayrli kun';
+
+  @override
+  String get greetingEvening => 'Xayrli kech';
+
+  @override
+  String get welcomeHeadline => 'Yo\'lingizga xush kelibsiz';
+
+  @override
+  String get welcomeSubtitle =>
+      'Janubiy Koreya universitetiga yo\'lingiz shu yerdan boshlanadi.';
+
+  @override
+  String get welcomeMagicCodeCta => 'Menda sehrli kod bor';
+
+  @override
+  String get welcomeExploreCta => 'Universitetlarni ko‘rish';
+
+  @override
+  String get magicCodeTitle => 'Sehrli kod';
+
+  @override
+  String get homeJourneyEyebrow => 'Sizning yo\'lingiz';
+
+  @override
+  String get homeContinueJourney => 'Yo\'lni davom ettirish';
+
+  @override
+  String get homeViewAll => 'Barchasini ko\'rish';
+
+  @override
+  String documentsCollected(int collected, int total) {
+    return '$total tadan $collected tasi yig\'ildi';
+  }
+
+  @override
+  String get documentActionUpload => 'Yuklash';
+
+  @override
+  String get documentStatusApproved => 'Tasdiqlangan';
+
+  @override
+  String get documentStatusPendingReview => 'Tekshiruvda';
+
+  @override
+  String get statusDocs => 'Hujjatlar';
+
+  @override
+  String get statusSubmitted => 'Yuborilgan';
+
+  @override
+  String get statusInReview => 'Ko‘rib chiqilmoqda';
+
+  @override
+  String get statusWaiting => 'Kutilmoqda';
+
+  @override
+  String get statusRejected => 'Rad etilgan';
+
+  @override
+  String get journeyStageDocumentPrep => 'Hujjatlarni tayyorlash';
+
+  @override
+  String get journeyStageOnlineApplication => 'Onlayn ariza';
+
+  @override
+  String get journeyStageOfflineApplication => 'Oflayn ariza';
+
+  @override
+  String get journeyStageInterview => 'Suhbat';
+
+  @override
+  String get journeyStageWaitingInvoice => 'Hisob-fakturani kutish';
+
+  @override
+  String get journeyStageTuitionPayment => 'Kontrakt to\'lovi';
+
+  @override
+  String get journeyStageWaitingAdmission => 'Qabul xatini kutish';
+
+  @override
+  String get journeyStageVisaPreparation => 'Vizaga tayyorgarlik';
+
+  @override
+  String get journeyStageWaitingVisa => 'Viza berilishini kutish';
+
+  @override
+  String mapUniversitiesMapped(int count) {
+    return '$count ta universitet xaritada';
+  }
+
+  @override
+  String get updateAvailableTitle => 'Yangilanish mavjud';
+
+  @override
+  String updateVersionReady(String version) {
+    return '$version versiyasi o\'rnatishga tayyor.';
+  }
+
+  @override
+  String updateSizeMb(String size) {
+    return 'Hajmi: $size MB';
+  }
+
+  @override
+  String get updateSigningKeyWarning =>
+      'Bu yangilanish ilovaning imzo kalitini o\'zgartiradi. O\'rnatilgandan so\'ng sehrli kod bilan qayta kirishingiz kerak bo\'ladi.';
+
+  @override
+  String get updateNow => 'Hozir yangilash';
+
+  @override
+  String get updateLater => 'Keyinroq';
+
+  @override
+  String get updateDownloadingTitle => 'Yangilanish yuklab olinmoqda';
+
+  @override
+  String updateDownloadProgress(String downloaded, String total) {
+    return '$downloaded MB / $total MB';
+  }
+
+  @override
+  String get updateInstallingLabel => 'Tekshirilmoqda va o\'rnatilmoqda…';
+
+  @override
+  String get updateFailedTitle => 'Yangilanish amalga oshmadi';
+
+  @override
+  String get updateErrorNetwork =>
+      'Yangilanishni yuklab bo\'lmadi. Internet aloqangizni tekshirib, qayta urinib ko\'ring.';
+
+  @override
+  String get updateErrorHashMismatch =>
+      'Yuklab olingan fayl yaxlitlik tekshiruvidan o\'tmadi. Qayta urinib ko\'ring — muammo takrorlansa, maslahatchingizga murojaat qiling.';
+
+  @override
+  String get updateErrorInstallDenied =>
+      'O\'rnatishni qurilmangiz blokladi. Telefon sozlamalarida Hanguk uchun \"Noma\'lum ilovalarni o\'rnatish\" ruxsatini bering, so\'ng qayta urinib ko\'ring.';
+
+  @override
+  String get updateErrorStorage =>
+      'Yangilanishni yuklab olish uchun xotirada joy yetarli emas. Joy bo\'shatib, qayta urinib ko\'ring.';
+
+  @override
+  String get updateErrorUnsupportedPlatform =>
+      'Bu platformada yangilanishlar hozircha mavjud emas.';
+
+  @override
+  String get updateErrorUnknown =>
+      'Yangilanish amalga oshmadi. Qayta urinib ko\'ring yoki maslahatchingizga murojaat qiling.';
+
+  @override
+  String get guestModeEyebrow => 'Mehmon rejimi';
+
+  @override
+  String get guestJoinCta => 'Hangukka qo‘shilish';
+
+  @override
+  String get guestExploreTitle => 'Universitetingizni toping';
+
+  @override
+  String guestUniversitiesCount(int count) {
+    return '$count ta universitet';
+  }
+
+  @override
+  String get guestNavExplore => 'Kashf etish';
+
+  @override
+  String get guestNavCompare => 'Taqqoslash';
+
+  @override
+  String guestCompareCount(int count) {
+    return 'Taqqoslash $count/2';
+  }
+
+  @override
+  String get guestCompareEmptySlot => 'Kashf etishdan qo‘shing';
+
+  @override
+  String get guestCompareApplyCta => 'Hanguk bilan topshirish';
+
+  @override
+  String get guestCompareReassurance =>
+      'Magic kod oling — jamoamiz hujjatlardan vizagacha butun jarayonda yo‘l ko‘rsatadi.';
+
+  @override
+  String get guestRowCity => 'Shahar';
+
+  @override
+  String get guestRowTier => 'Daraja';
+
+  @override
+  String get guestRowIeqas => 'IEQAS holati';
+
+  @override
+  String get guestRowPartner => 'Hanguk hamkori';
+
+  @override
+  String get guestRowNextEvent => 'Keyingi sana';
+
+  @override
+  String get guestRowWebsite => 'Veb-sayt';
+
+  @override
+  String get guestValueYes => 'Ha';
+
+  @override
+  String get guestValueNo => 'Yo‘q';
+
+  @override
+  String get roomTabStatus => 'Holat';
+
+  @override
+  String get roomTabDiscussion => 'Muhokama';
+
+  @override
+  String get roomTabNews => 'Yangiliklar';
+
+  @override
+  String get roomTabCalendar => 'Taqvim';
+
+  @override
+  String get roomApplicationProgress => 'Ariza jarayoni';
+
+  @override
+  String get roomChatEmpty => 'Hozircha xabarlar yo‘q. Suhbatni boshlang!';
+
+  @override
+  String get roomChatHint => 'Xonaga xabar yozing...';
+
+  @override
+  String get roomChatSenderFallback => 'Foydalanuvchi';
+
+  @override
+  String get roomNewsEmpty => 'Faol e‘lonlar yo‘q.';
+
+  @override
+  String get roomEventsEmpty => 'Bu sanada tadbirlar yo‘q.';
+
+  @override
+  String get uniDbPhaseBadge => 'Universitet bazasi · 0-bosqich tayyorlandi';
+
+  @override
+  String get uniDbRecentChangesTitle =>
+      'Kuzatilayotgan universitetlaringizdagi yangiliklar';
+
+  @override
+  String get timeJustNow => 'hozirgina';
+
+  @override
+  String timeMinutesAgo(int minutes) {
+    return '$minutes daqiqa oldin';
+  }
+
+  @override
+  String timeHoursAgo(int hours) {
+    return '$hours soat oldin';
+  }
+
+  @override
+  String timeDaysAgo(int days) {
+    return '$days kun oldin';
+  }
+
+  @override
+  String get uniDbVerifiedDeadlinesTitle => 'Tasdiqlangan yaqin muddatlar';
+
+  @override
+  String get deadlineClosed => 'Yopilgan';
+
+  @override
+  String deadlineInDays(int days) {
+    return '$days kundan keyin';
+  }
+
+  @override
+  String deadlineInHours(int hours) {
+    return '$hours soatdan keyin';
+  }
+
+  @override
+  String deadlineInMinutes(int minutes) {
+    return '$minutes daqiqadan keyin';
+  }
+
+  @override
+  String get eventApplyOpen => 'Ariza qabuli boshlanadi';
+
+  @override
+  String get eventApplyClose => 'Ariza qabuli tugaydi';
+
+  @override
+  String get eventDocumentsDue => 'Hujjat topshirish muddati';
+
+  @override
+  String get eventFirstStageResults => '1-bosqich natijalari';
+
+  @override
+  String get eventInterviewLabel => 'Suhbat';
+
+  @override
+  String get eventPracticalExam => 'Amaliy imtihon';
+
+  @override
+  String get eventFinalResults => 'Yakuniy natijalar';
+
+  @override
+  String get eventAdditionalAdmit => 'Qo\'shimcha qabul';
+
+  @override
+  String get eventRegistrationOpen => 'Ro\'yxatdan o\'tish boshlanadi';
+
+  @override
+  String get eventRegistrationClose => 'Ro\'yxatdan o\'tish tugaydi';
+
+  @override
+  String get cycleForeign => 'Chet ellik abituriyentlar';
+
+  @override
+  String get cycleOverseasKoreanFull => 'Chet eldagi koreyslar (to\'liq)';
+
+  @override
+  String get cycleOverseasKoreanPartial => 'Chet eldagi koreyslar (qisman)';
+
+  @override
+  String get cycleSusi => 'Susi';
+
+  @override
+  String get cycleJeongsi => 'Jeongsi';
+
+  @override
+  String get cycleTransfer => 'O\'qishni ko\'chirish';
+
+  @override
+  String get cycleGradGeneral => 'Magistratura';
+
+  @override
+  String get cycleGradForeign => 'Magistratura (chet ellik)';
+
+  @override
+  String get uniSpecificHeader => 'Universitetga mos suhbat';
+
+  @override
+  String get uniSpecificPickPrompt =>
+      'Suhbat savollari tanlangan universitetning qabul yo\'nalishi, talablari va asosiy muddatlariga moslashishi uchun yuqoridan universitet tanlang.';
+
+  @override
+  String uniSpecificLoadError(Object error) {
+    return 'Qabul ma\'lumotlarini yuklab bo\'lmadi: $error\nUmumiy suhbatni baribir o\'tkazishingiz mumkin.';
+  }
+
+  @override
+  String get uniSpecificNoData =>
+      'Bu universitet uchun tasdiqlangan qabul ma\'lumotlari hali yo\'q. 모집요강 hujjati qo\'shilgunga qadar suhbat umumiy savollar bilan o\'tadi.';
+
+  @override
+  String get uniSpecificFallbackButton => 'Umumiy suhbatni sinab ko\'ring';
+
+  @override
+  String uniSpecificTrackLabel(String category) {
+    return 'Yo\'nalish: $category';
+  }
+
+  @override
+  String get uniSpecificSeedNote =>
+      'Suhbat savollari ushbu qabul ma\'lumotlariga asoslanadi.';
+
+  @override
+  String get uniSpecificRecruitmentUnitFallback => 'Qabul yo\'nalishi';
+
+  @override
+  String get uniDbInstitutionTitle => 'Universitet';
+
+  @override
+  String get uniDbNotFoundTitle => 'Universitet topilmadi';
+
+  @override
+  String get uniDbNotFoundBody =>
+      'Bu universitet hali katalogimizda yo\'q. Keyinroq qayta tekshirib ko\'ring.';
+
+  @override
+  String get uniDbUpcomingDeadlines => 'Yaqinlashayotgan muddatlar';
+
+  @override
+  String get uniDbNoDeadlines => 'Hozircha e\'lon qilingan muddatlar yo\'q.';
+
+  @override
+  String get uniDbTuitionHeading => 'Kontrakt to\'lovi';
+
+  @override
+  String get uniDbTuitionEmpty =>
+      'Kontrakt to\'lovi ma\'lumotlari hali mavjud emas.';
+
+  @override
+  String get uniDbRequirementsHeading => 'Talablar';
+
+  @override
+  String get uniDbRequirementsEmpty => 'Qabul talablari hali mavjud emas.';
+
+  @override
+  String get uniDbScholarshipsHeading => 'Stipendiyalar';
+
+  @override
+  String get uniDbScholarshipsEmpty =>
+      'Bu universitet uchun hali stipendiyalar ko\'rsatilmagan.';
+
+  @override
+  String get uniDbDocumentChecklistHeading => 'Hujjatlar ro\'yxati';
+
+  @override
+  String get uniDbDocumentsEmpty => 'Hujjatlar ro\'yxati hali mavjud emas.';
+
+  @override
+  String get uniDbTrackTitle => 'Bu universitetni kuzatish';
+
+  @override
+  String get uniDbTrackOnDesc =>
+      'Muddatlar bosh sahifadagi bannerda ko\'rinadi va o\'zgarishlar haqida push-bildirishnoma olasiz.';
+
+  @override
+  String get uniDbTrackOffDesc =>
+      'Muddatlar, tuzatish e\'lonlari va talablar o\'zgarishini kuzatish uchun yoqing.';
+
+  @override
+  String uniDbTrackError(Object error) {
+    return 'Kuzatuvni yangilab bo\'lmadi: $error';
+  }
+
+  @override
+  String get uniDbOpenGuidePdf => 'Qabul yo\'riqnomasi PDF-ini ochish';
+
+  @override
+  String get uniDbNoGuidePdf => 'Qabul yo\'riqnomasi PDF hali mavjud emas.';
+
+  @override
+  String get uniDbPdfNoApp =>
+      'PDF-ni ochib bo\'lmadi — uni ochadigan ilova topilmadi.';
+
+  @override
+  String uniDbPdfError(Object error) {
+    return 'PDF-ni ochib bo\'lmadi: $error';
+  }
+
+  @override
+  String uniDbAcademicYear(int year) {
+    return '$year o\'quv yili';
+  }
+
+  @override
+  String uniDbSemesterLabel(int number) {
+    return '$number-semestr';
+  }
+
+  @override
+  String get uniDbFirstSemester => 'birinchi semestr';
+
+  @override
+  String uniDbAdmissionFee(String amount) {
+    return '+ $amount qabul to\'lovi';
+  }
+
+  @override
+  String uniDbGpaChip(String pct) {
+    return 'GPA ≥ $pct%';
+  }
+
+  @override
+  String get uniDbTopikTierTable => 'TOPIK darajalar jadvali';
+
+  @override
+  String uniDbDocumentsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ta hujjat',
+      one: '1 ta hujjat',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get uniDbApostilleRequired => 'Apostil talab qilinadi';
+
+  @override
+  String uniDbLastVerified(String date) {
+    return 'Oxirgi tekshiruv: $date';
+  }
+
+  @override
+  String get eventOrientation => 'Tanishtiruv kuni';
+
+  @override
+  String get eventSemesterStart => 'Semestr boshlanadi';
+
+  @override
+  String get facultyHumanities => 'Gumanitar fanlar';
+
+  @override
+  String get facultySocialScience => 'Ijtimoiy fanlar';
+
+  @override
+  String get facultyNaturalScience => 'Tabiiy fanlar';
+
+  @override
+  String get facultyEngineering => 'Muhandislik';
+
+  @override
+  String get facultyMedical => 'Tibbiyot / Farmatsiya';
+
+  @override
+  String get facultyArts => 'San\'at';
+
+  @override
+  String get facultyPhysicalEducation => 'Jismoniy tarbiya';
+
+  @override
+  String get uniDbCompareTitle => 'Taqqoslash';
+
+  @override
+  String get uniDbCompareEmptyTitle => 'Universitetlarni taqqoslash';
+
+  @override
+  String get uniDbCompareEmptyBody =>
+      'Kamida ikkita universitetni kuzatuvga qo\'shing, so\'ng taqqoslash uchun shu yerga qayting.';
+
+  @override
+  String get uniDbCompareNeedSecond =>
+      'Taqqoslash uchun ikkinchi universitet kerak.';
+
+  @override
+  String uniDbCompareSelected(String name) {
+    return 'Hozir tanlangan: $name';
+  }
+
+  @override
+  String get uniDbColEnglishName => 'Inglizcha nomi';
+
+  @override
+  String get uniDbColUzbekName => 'O\'zbekcha nomi';
+
+  @override
+  String get uniDbColLastVerified => 'Oxirgi tekshiruv';
+
+  @override
+  String get uniDbTrackerTitle => 'Arizalar kuzatuvi';
+
+  @override
+  String get uniDbTrackerEmptyTitle =>
+      'Hali kuzatilayotgan universitetlar yo\'q';
+
+  @override
+  String get uniDbTrackerEmptyBody =>
+      'Universitet sahifasida uni kuzatuvga qo\'shing — muddatlari shu yerda ko\'rinadi.';
+
+  @override
+  String get uniDbLoadFailed => 'Universitetlar ro\'yxatini yuklab bo\'lmadi.';
+
+  @override
+  String get loginSubmitButton => 'Tizimga kirish';
+
+  @override
+  String get welcomeGuestCaption =>
+      'Kod shart emas — bemalol ko\'ring, filtrlang va solishtiring.';
+
+  @override
+  String get homeNotifications => 'Bildirishnomalar';
+
+  @override
+  String get notifApplicationUpdates => 'Ariza yangiliklari';
+
+  @override
+  String get notifToUpload => 'Yuklash kerak';
+
+  @override
+  String get notifAllCaughtUp => 'Hammasi bajarilgan';
+
+  @override
+  String get notifAllCaughtUpBody =>
+      'Hujjatlar va arizalaringiz haqidagi eslatmalar shu yerda chiqadi.';
 }

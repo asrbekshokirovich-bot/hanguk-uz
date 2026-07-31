@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../design_system/theme/app_colors.dart';
+import '../../../../design_system/seoul_night/seoul_night.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../data/draft_spell_checker.dart';
 import '../../data/grammar_issue_resolver.dart' as resolver;
 import '../../data/study_plan_repository.dart';
 import 'ai_highlighting_text_controller.dart';
@@ -20,6 +21,11 @@ enum _AiStatus {
   ready,
   predicting,
   supervisionActive,
+
+  /// This device has no spell checker service, so typed words cannot be
+  /// checked against a dictionary. Surfaced rather than hidden: silence here
+  /// is indistinguishable from a checker that is simply broken.
+  spellCheckUnavailable,
 }
 
 class AdvancedDraftingWorkspace extends ConsumerStatefulWidget {
@@ -50,11 +56,37 @@ class _AdvancedDraftingWorkspaceState
 
   Timer? _saveDebounceTimer;
   Timer? _aiSuggestionTimer;
+
+  // Spell check against the device dictionary. Separate from the AI
+  // supervisor above and deliberately much more eager: it is a local,
+  // offline lookup, so it costs nothing to run while the student types and
+  // is the only thing that can mark a word wrong the moment it is finished.
+  final DraftSpellChecker _spellChecker = DraftSpellChecker();
+  Timer? _spellCheckTimer;
+
+  /// Fires as soon as a word is completed. Anything that ends a word — the
+  /// space bar, a newline, punctuation — means there is a finished word to
+  /// judge, so the check runs immediately instead of waiting out the pause
+  /// timer.
+  static final RegExp _wordBoundary = RegExp(r'[\s.,;:!?)\]}"’”]');
+
+  /// Fallback for mid-word pauses, so a student who stops typing still gets
+  /// told about the word they left unfinished.
+  static const Duration _spellCheckIdle = Duration(milliseconds: 450);
+
+  /// The draft as of the last completed check, so the safety-net timer does
+  /// not re-ask about text that has already been judged.
+  String? _lastSpellCheckedText;
   // Audit A10: rate-cap the AI supervise calls to once every
   // _aiMinInterval. Without it, long sessions of intermittent typing
   // pauses can fire dozens of paid Edge Function calls per minute.
   DateTime? _lastAiCallAt;
   static const Duration _aiMinInterval = Duration(seconds: 6);
+
+  /// Audit A7: hard cap on the draft length. Also drives the completeness
+  /// meter above the metrics bar, so the student can see how much of the
+  /// allowance is left.
+  static const int _maxChars = 12000;
 
   SaveStatus _saveStatus = SaveStatus.saved;
 
@@ -64,6 +96,20 @@ class _AdvancedDraftingWorkspaceState
   _AiStatus _aiContextStatus = _AiStatus.waiting;
   List<GrammarIssue> _activeIssues = [];
 
+  /// Misspellings that came with a replacement, so they can be offered as
+  /// one-tap fixes alongside the AI's. A word the dictionary rejects without
+  /// suggesting anything is still underlined — it just gets no chip, because
+  /// there is nothing to put on it.
+  List<GrammarIssue> _activeSpellingFixes = [];
+
+  /// Every one-tap fix on offer. Merged through the same rule the renderer
+  /// uses, so a chip can never describe a range the underline does not agree
+  /// with — and so the AI's richer rewrite wins a word both flagged.
+  List<GrammarIssue> get _offeredFixes => AiHighlightingTextController.mergeIssues(
+    _activeIssues,
+    _activeSpellingFixes,
+  );
+
   @override
   void initState() {
     super.initState();
@@ -71,6 +117,25 @@ class _AdvancedDraftingWorkspaceState
     _updateMetrics(widget.initialText);
 
     _controller.addListener(_onTextChanged);
+
+    // Check the draft that is already on screen.
+    //
+    // Every check used to hang off _onTextChanged, so nothing was examined
+    // until the student typed another character. Reopening a saved draft —
+    // the normal way to come back to this screen — showed the text with no
+    // marks on it and the status stuck on its initial "waiting for input",
+    // which reads exactly like a checker that does not work. It never ran.
+    //
+    // Deferred to after the first frame so the provider read below happens
+    // outside build.
+    if (widget.initialText.trim().isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        final text = _controller.text;
+        unawaited(_runSpellCheck(text));
+        unawaited(_generateAiSuggestion(text));
+      });
+    }
   }
 
   @override
@@ -87,6 +152,7 @@ class _AdvancedDraftingWorkspaceState
   void dispose() {
     _saveDebounceTimer?.cancel();
     _aiSuggestionTimer?.cancel();
+    _spellCheckTimer?.cancel();
     _controller.removeListener(_onTextChanged);
     _controller.dispose();
     _focusNode.dispose();
@@ -113,6 +179,20 @@ class _AdvancedDraftingWorkspaceState
         .read(studyPlanSessionProvider.notifier)
         .setDraftContent(widget.documentType, text);
 
+    // Spell check. Runs the instant a word is finished; otherwise waits out a
+    // short pause. Both paths are a local dictionary lookup, so unlike the AI
+    // supervisor below there is no cost to keeping up with the typing.
+    // The timer is armed either way, not just on the slow path. Only one
+    // request may be in flight at a time, so an immediate word-boundary check
+    // can be declined while a previous one is still out — and without a timer
+    // behind it that word would simply never be judged. A repeat on identical
+    // text is skipped inside _runSpellCheck, so the safety net costs nothing.
+    _spellCheckTimer?.cancel();
+    _spellCheckTimer = Timer(_spellCheckIdle, () => _runSpellCheck(text));
+    if (text.isNotEmpty && _wordBoundary.hasMatch(text.characters.last)) {
+      unawaited(_runSpellCheck(text));
+    }
+
     // AI Ghost Text Debounce (1 second)
     _aiSuggestionTimer?.cancel();
     _aiSuggestionTimer = Timer(const Duration(milliseconds: 1000), () {
@@ -137,6 +217,70 @@ class _AdvancedDraftingWorkspaceState
     setState(() {
       _wordCount = wordCount;
       _charCount = text.length;
+    });
+  }
+
+  /// Spell checks [text] and underlines whatever the dictionary rejects.
+  ///
+  /// The draft is checked in the language it is being written in — the track
+  /// shown on the metrics bar — not the language of the app's own interface.
+  /// A student writing an English study plan on a Uzbek-language phone must
+  /// have their English judged as English.
+  Future<void> _runSpellCheck(String text) async {
+    final track = ref
+        .read(documentSessionProvider(widget.documentType))
+        .currentSession
+        ?.selectedTrack;
+    final locale = track == 'ko'
+        ? const Locale('ko', 'KR')
+        : const Locale('en', 'US');
+
+    // Already judged this exact draft — nothing can have changed.
+    if (text == _lastSpellCheckedText) return;
+
+    final found = await _spellChecker.check(locale, text);
+
+    if (!mounted) return;
+
+    // A device with no spell checker service can never answer. Say so in the
+    // status chip: a student typing at a checker that stays silent has no way
+    // to tell "your phone cannot do this" from "this app is broken".
+    if (_spellChecker.availability == SpellCheckAvailability.unavailable) {
+      setState(() {
+        _aiContextStatus = _AiStatus.spellCheckUnavailable;
+      });
+      return;
+    }
+
+    // `null` is "no verdict" — the request was superseded or declined while
+    // another was in flight. Leave the existing marks alone; clearing them
+    // would blink every underline off the screen on a dropped request.
+    if (found == null) return;
+    _lastSpellCheckedText = text;
+
+    // The text may have moved on while we were awaiting. Ranges computed
+    // against the older snapshot would underline the wrong characters, so
+    // drop the result rather than mark the wrong word.
+    if (_controller.text != text) return;
+
+    final issues = <GrammarIssue>[];
+    final fixes = <GrammarIssue>[];
+    for (final m in found) {
+      final issue = GrammarIssue(
+        start: m.start,
+        end: m.end,
+        originalText: m.word,
+        // A chip needs something to insert; underline-only entries keep the
+        // word itself so applying one is a no-op rather than a deletion.
+        suggestion: m.suggestions.isNotEmpty ? m.suggestions.first : m.word,
+      );
+      issues.add(issue);
+      if (m.suggestions.isNotEmpty) fixes.add(issue);
+    }
+
+    _controller.setSpellingIssues(issues);
+    setState(() {
+      _activeSpellingFixes = fixes;
     });
   }
 
@@ -242,6 +386,7 @@ class _AdvancedDraftingWorkspaceState
       _AiStatus.ready => l.aiStatusReady,
       _AiStatus.predicting => l.aiStatusPredicting,
       _AiStatus.supervisionActive => l.aiStatusSupervisionActive,
+      _AiStatus.spellCheckUnavailable => l.aiStatusSpellCheckUnavailable,
     };
   }
 
@@ -297,87 +442,41 @@ class _AdvancedDraftingWorkspaceState
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              l.workspaceTitle,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+            Expanded(
+              child: HangulTag(
+                en: l.workspaceTitle,
+                ko: '작성 공간',
+                titleStyle: SeoulType.subtitle,
               ),
             ),
-            Flexible(
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 5,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.royalBlue.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.royalBlue),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.psychology,
-                      size: 14,
-                      color: AppColors.vibrantLime,
-                    ),
-                    const SizedBox(width: 6),
-                    Flexible(
-                      child: Text(
-                        _aiStatusText(l),
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 1,
-                        style: const TextStyle(
-                          color: AppColors.vibrantLime,
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            TextButton(
-              onPressed: () async {
-                // Audit A6: previously this fire-and-forgot. If save
-                // failed the analyzer ran on a stale draft. Now we wait
-                // for the save and bail on failure (the SaveStatus error
-                // tag is shown in the LiveMetricsBar).
-                final saved = await _saveDraft(_controller.text);
-                if (!saved || !mounted) return;
-                ref
-                    .read(studyPlanSessionProvider.notifier)
-                    .analyzeCurrentDraft(widget.documentType);
-                ref
-                    .read(studyPlanSessionProvider.notifier)
-                    .updateSessionStep(widget.documentType, 4);
-              },
-              child: Text(
-                l.workspaceAnalyzeButton,
-                style: const TextStyle(
-                  color: AppColors.royalBlue,
-                  fontWeight: FontWeight.bold,
+            const SizedBox(width: 12),
+            // The AI's live state. Scaled down rather than clipped so a
+            // long localized status never overflows the row.
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 150),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerRight,
+                child: StatusChip(
+                  label: _aiStatusText(l),
+                  tone: StatusTone.lime,
+                  dense: true,
                 ),
               ),
             ),
           ],
         ),
         const SizedBox(height: 12),
-        if (_activeIssues.isNotEmpty)
+        if (_offeredFixes.isNotEmpty)
           Container(
             margin: const EdgeInsets.only(bottom: 12),
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: Colors.redAccent.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
+              color: SeoulColors.warningFill,
+              borderRadius: SeoulRadii.tileR,
               border: Border.all(
-                color: Colors.redAccent.withValues(alpha: 0.3),
+                color: SeoulColors.warning.withValues(alpha: 0.45),
               ),
             ),
             child: Column(
@@ -387,54 +486,53 @@ class _AdvancedDraftingWorkspaceState
                   children: [
                     const Icon(
                       Icons.warning_amber_rounded,
-                      color: Colors.orangeAccent,
+                      color: SeoulColors.warningText,
                       size: 18,
                     ),
                     const SizedBox(width: 8),
-                    Text(
-                      l.aiSupervisionWarningsTitle,
-                      style: const TextStyle(
-                        color: Colors.orangeAccent,
-                        fontWeight: FontWeight.bold,
+                    Expanded(
+                      child: Text(
+                        l.aiSupervisionWarningsTitle,
+                        style: SeoulType.subtitle.copyWith(
+                          fontSize: 14,
+                          color: SeoulColors.warningText,
+                        ),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: _activeIssues.map((issue) {
-                    return ActionChip(
-                      backgroundColor: AppColors.backgroundNavy,
-                      side: BorderSide(
-                        color: Colors.redAccent.withValues(alpha: 0.5),
-                      ),
-                      label: Text(
-                        l.grammarReplaceWith(
-                          issue.originalText,
-                          issue.suggestion,
-                        ),
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: Colors.white,
-                        ),
-                      ),
-                      onPressed: () => _applyGrammarFix(issue),
-                    );
-                  }).toList(),
+                const SizedBox(height: 10),
+                // Capped and scrollable: a long supervision pass can return
+                // a dozen issues, and an unbounded Wrap would squeeze the
+                // editor off the screen when the keyboard is up.
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxHeight: 132),
+                  child: SingleChildScrollView(
+                    child: Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: _offeredFixes.map((issue) {
+                        return _FixChip(
+                          label: l.grammarReplaceWith(
+                            issue.originalText,
+                            issue.suggestion,
+                          ),
+                          onTap: () => _applyGrammarFix(issue),
+                        );
+                      }).toList(),
+                    ),
+                  ),
                 ),
               ],
             ),
           ),
         Expanded(
-          child: Container(
+          child: GlassCard(
             padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.05),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-            ),
+            // No backdrop blur: this surface is full-height and repaints on
+            // every keystroke, and the gradient behind it has nothing worth
+            // blurring anyway.
+            blur: false,
             child: KeyboardListener(
               focusNode: _keyboardListenerFocus,
               onKeyEvent: (KeyEvent event) {
@@ -458,7 +556,7 @@ class _AdvancedDraftingWorkspaceState
                   // Personal Statement (~5 000) and a maxed-out Study
                   // Plan (~8 000) with headroom, while keeping AI
                   // supervision token cost bounded.
-                  maxLength: 12000,
+                  maxLength: _maxChars,
                   // Hide the maxLength counter on the field itself; the
                   // LiveMetricsBar already shows word/char counts.
                   maxLengthEnforcement: MaxLengthEnforcement.enforced,
@@ -469,17 +567,20 @@ class _AdvancedDraftingWorkspaceState
                         required bool isFocused,
                         required int? maxLength,
                       }) => null,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    height: 1.5,
-                  ),
+                  cursorColor: SeoulColors.lime,
+                  style: SeoulType.body.copyWith(fontSize: 16, height: 1.5),
                   decoration: InputDecoration(
                     border: InputBorder.none,
+                    isDense: true,
+                    contentPadding: EdgeInsets.zero,
                     hintText: l.draftingHint(
                       widget.documentTitle.toLowerCase(),
                     ),
-                    hintStyle: const TextStyle(color: Colors.white30),
+                    hintStyle: SeoulType.body.copyWith(
+                      fontSize: 16,
+                      height: 1.5,
+                      color: SeoulColors.textFaint,
+                    ),
                   ),
                 ),
               ),
@@ -499,13 +600,79 @@ class _AdvancedDraftingWorkspaceState
           controller: _controller,
           onAccept: _acceptSuggestion,
         ),
+        // How much of the 12 000-character allowance is used. The exact
+        // counts sit right below in the metrics bar.
+        const SizedBox(height: 12),
+        GlowProgressBar(value: _charCount / _maxChars),
+        const SizedBox(height: 8),
         LiveMetricsBar(
           wordCount: _wordCount,
           charCount: _charCount,
           saveStatus: _saveStatus,
           track: currentTrack,
         ),
+        const SizedBox(height: 12),
+        // The primary AI action of the whole wizard — kept at the bottom
+        // of the column so it stays thumb-reachable above the keyboard.
+        LimeButton(
+          icon: Icons.auto_awesome,
+          label: l.workspaceAnalyzeButton,
+          onPressed: () async {
+            // Audit A6: previously this fire-and-forgot. If save
+            // failed the analyzer ran on a stale draft. Now we wait
+            // for the save and bail on failure (the SaveStatus error
+            // tag is shown in the LiveMetricsBar).
+            final saved = await _saveDraft(_controller.text);
+            if (!saved || !mounted) return;
+            ref
+                .read(studyPlanSessionProvider.notifier)
+                .analyzeCurrentDraft(widget.documentType);
+            ref
+                .read(studyPlanSessionProvider.notifier)
+                .updateSessionStep(widget.documentType, 4);
+          },
+        ),
       ],
+    );
+  }
+}
+
+/// One tappable "replace X with Y" fix from the AI supervision pass.
+/// Sized to the 44px minimum even though the pill looks smaller.
+class _FixChip extends StatelessWidget {
+  const _FixChip({required this.label, required this.onTap});
+
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: label,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          constraints: const BoxConstraints(minHeight: SeoulSizes.minTapTarget),
+          alignment: Alignment.center,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          decoration: BoxDecoration(
+            color: SeoulColors.glass,
+            // 999 is the design system's pill idiom (see StatusChip).
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(
+              color: SeoulColors.warning.withValues(alpha: 0.45),
+            ),
+          ),
+          child: Text(
+            label,
+            style: SeoulType.bodySecondary.copyWith(
+              fontSize: 13,
+              color: SeoulColors.textPrimary,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -542,85 +709,71 @@ class _GhostSuggestionBar extends StatelessWidget {
         final ghost = controller.ghostText;
         final hasGhost = ghost != null && ghost.isNotEmpty;
         return AnimatedSize(
-          duration: const Duration(milliseconds: 180),
-          curve: Curves.easeOut,
+          duration: SeoulMotion.fast,
+          curve: SeoulMotion.smooth,
           alignment: Alignment.topCenter,
           child: hasGhost
               ? Padding(
                   padding: const EdgeInsets.only(top: 8),
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: onAccept,
-                      borderRadius: BorderRadius.circular(12),
-                      child: Container(
-                        padding: const EdgeInsets.fromLTRB(12, 8, 4, 8),
-                        decoration: BoxDecoration(
-                          color: AppColors.royalBlue.withValues(alpha: 0.18),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: AppColors.royalBlue.withValues(alpha: 0.6),
+                  child: GestureDetector(
+                    onTap: onAccept,
+                    child: Container(
+                      padding: const EdgeInsets.fromLTRB(12, 6, 4, 6),
+                      decoration: BoxDecoration(
+                        // Lime-tinted glass: this is the AI offering
+                        // something, not a warning.
+                        color: SeoulColors.limeFill,
+                        borderRadius: SeoulRadii.tileR,
+                        border: Border.all(
+                          color: SeoulColors.lime.withValues(alpha: 0.35),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.auto_awesome,
+                            size: 16,
+                            color: SeoulColors.lime,
                           ),
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Icons.auto_awesome,
-                              size: 16,
-                              color: AppColors.vibrantLime,
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Semantics(
-                                button: true,
-                                label: l.ghostSuggestionSemantics,
-                                child: Text(
-                                  ghost,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontStyle: FontStyle.italic,
-                                    fontSize: 13,
-                                    height: 1.3,
-                                  ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Semantics(
+                              button: true,
+                              label: l.ghostSuggestionSemantics,
+                              child: Text(
+                                ghost,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: SeoulType.bodySecondary.copyWith(
+                                  fontSize: 13,
+                                  height: 1.3,
+                                  fontStyle: FontStyle.italic,
+                                  color: SeoulColors.textPrimary,
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 8),
-                            // Explicit Accept button — primary action,
-                            // visible label for first-time users.
-                            TextButton.icon(
-                              onPressed: onAccept,
-                              icon: const Icon(Icons.check, size: 16),
-                              label: Text(l.ghostAccept),
-                              style: TextButton.styleFrom(
-                                foregroundColor: AppColors.vibrantLime,
-                                backgroundColor: AppColors.vibrantLime
-                                    .withValues(alpha: 0.12),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                ),
-                                minimumSize: const Size(72, 48),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
+                          ),
+                          const SizedBox(width: 8),
+                          // Explicit Accept affordance — lime-toned but not
+                          // a full LimeButton, so it never competes with the
+                          // Analyze action at the bottom of the workspace.
+                          _GhostAcceptButton(
+                            label: l.ghostAccept,
+                            onTap: onAccept,
+                          ),
+                          // Dismiss — clears the ghost without
+                          // inserting, so the user can keep typing.
+                          IconButton(
+                            onPressed: () => controller.setGhostText(null),
+                            icon: const Icon(Icons.close, size: 18),
+                            color: SeoulColors.textSecondary,
+                            tooltip: l.ghostDismiss,
+                            constraints: const BoxConstraints(
+                              minWidth: SeoulSizes.minTapTarget,
+                              minHeight: SeoulSizes.minTapTarget,
                             ),
-                            // Dismiss — clears the ghost without
-                            // inserting, so the user can keep typing.
-                            IconButton(
-                              onPressed: () => controller.setGhostText(null),
-                              icon: const Icon(Icons.close, size: 18),
-                              color: Colors.white70,
-                              tooltip: l.ghostDismiss,
-                              constraints: const BoxConstraints(
-                                minWidth: 48,
-                                minHeight: 48,
-                              ),
-                            ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -628,6 +781,56 @@ class _GhostSuggestionBar extends StatelessWidget {
               : const SizedBox.shrink(),
         );
       },
+    );
+  }
+}
+
+/// Compact lime affordance inside the ghost-suggestion bar. 44px minimum
+/// so the mobile path stays tappable (audit P0 K5).
+class _GhostAcceptButton extends StatelessWidget {
+  const _GhostAcceptButton({required this.label, required this.onTap});
+
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: label,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          constraints: const BoxConstraints(
+            minWidth: 72,
+            minHeight: SeoulSizes.minTapTarget,
+          ),
+          alignment: Alignment.center,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            color: SeoulColors.limeFill,
+            borderRadius: SeoulRadii.buttonR,
+            border: Border.all(color: SeoulColors.lime),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.check, size: 16, color: SeoulColors.lime),
+              const SizedBox(width: 6),
+              Flexible(
+                child: Text(
+                  label,
+                  overflow: TextOverflow.ellipsis,
+                  style: SeoulType.button.copyWith(
+                    fontSize: 13,
+                    color: SeoulColors.lime,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

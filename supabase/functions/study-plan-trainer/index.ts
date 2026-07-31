@@ -40,7 +40,17 @@ serve(async (req) => {
       );
     }
     
-    const validActions = ['teach', 'analyze', 'chat', 'generate_example'];
+    // 'draft_supervise' is what the drafting workspace calls while the student
+    // types. It was missing from this list, so every live-supervision request
+    // was rejected with 400 "Invalid action" and the workspace never received
+    // a single grammar mark or ghost-text suggestion.
+    const validActions = [
+      'teach',
+      'analyze',
+      'chat',
+      'generate_example',
+      'draft_supervise',
+    ];
     if (!validActions.includes(action)) {
       return new Response(
         JSON.stringify({ error: "Invalid action. Must be teach, analyze, chat, or generate_example" }),
@@ -67,30 +77,16 @@ serve(async (req) => {
       );
     }
 
-    // VIP plan check — only PREMIUM and NO RISK plans can use study plan trainer (whitelist approach)
-    const { data: planProfile } = await adminClient
-      .from("profiles")
-      .select("payment_plan")
-      .eq("user_id", user.id)
-      .single();
-
-    // Check if user is staff (staff can always access)
-    const { data: staffRoleCheck } = await adminClient
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", user.id)
-      .limit(1);
-
-    const isStaffUser = staffRoleCheck && staffRoleCheck.length > 0;
-    const vipPlans = ['PREMIUM', 'NO RISK', 'premium', 'no_risk', 'no risk'];
-    const currentPlan = planProfile?.payment_plan || '';
-
-    if (!isStaffUser && !vipPlans.includes(currentPlan)) {
-      return new Response(
-        JSON.stringify({ error: "This feature requires a Premium or No Risk plan" }),
-        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+    // Open to every payment plan (owner's decision, 2026-07-30). This used to
+    // return 403 unless the account was on PREMIUM or NO RISK, which shut out
+    // roughly two thirds of students — everyone on standart, free, tekin_natija
+    // or with no plan recorded at all. Authentication above is the only gate
+    // that remains: the caller must be a signed-in student, and every query
+    // below is still scoped to their own user_id.
+    //
+    // The client keeps its 403 handling (see classifyAnalysisFailure) so that
+    // restoring a gate here surfaces as a clear message rather than an empty
+    // screen, as it did before.
 
     // Get student profile
     const { data: profile } = await adminClient
@@ -205,7 +201,50 @@ ${applicationsContext}
     let systemPrompt = "";
     let userPrompt = "";
 
-    if (documentType === 'study_plan') {
+    // Live supervision while the student writes. Handled before the
+    // document-type split because the job is the same for a Study Plan and a
+    // Personal Statement: look at the draft as it stands and hand back marks.
+    //
+    // Unlike every other action here, the reply is not prose for the student
+    // to read — it is data the editor renders: `issues` become the red wavy
+    // underlines and the one-tap fix chips, `ghostText` becomes the greyed
+    // continuation the student accepts with Tab. So it must be strict JSON,
+    // and it must be short: this fires repeatedly while someone is typing.
+    const documentLabel = documentType === 'study_plan'
+      ? 'Study Plan'
+      : 'Personal Statement';
+    const isSupervise = action === 'draft_supervise';
+
+    if (isSupervise) {
+      systemPrompt = `You supervise a student writing a ${documentLabel} for a Korean university application, while they type.
+
+Return ONLY a JSON object of this exact shape:
+{
+  "issues": [ { "originalText": "<text exactly as it appears in the draft>", "suggestion": "<the corrected replacement>" } ],
+  "ghostText": "<a short natural continuation of the draft, or an empty string>"
+}
+
+Rules for "issues":
+- "originalText" MUST be copied character-for-character from the draft. It is
+  matched against the draft to position the underline; text that does not
+  appear verbatim is silently dropped and the student sees nothing.
+- Flag only real errors: grammar, verb tense, articles, agreement, plainly
+  wrong word choice, and informal wording that has no place in an application.
+- Do not flag matters of taste, and do not restate the whole sentence — keep
+  "originalText" to the smallest span that is actually wrong.
+- Return at most 6, the most serious first. An empty list is a valid answer.
+
+Rules for "ghostText":
+- At most one sentence continuing from exactly where the draft stops.
+- Return "" if the draft ends mid-word, or if any continuation would be a
+  guess about the student's own life — their city, family, grades, or plans.
+  Inventing those puts words in their mouth that an admissions officer will
+  read as fact.
+
+${universityContext ? `\nTARGET UNIVERSITY:\n${universityContext}` : ''}
+${studentContext}`;
+      userPrompt = `Draft so far:\n---\n${content ?? ''}\n---`;
+    } else if (documentType === 'study_plan') {
       if (action === 'teach') {
         systemPrompt = `You are an expert advisor helping international students write effective Study Plans for Korean university applications.
 
@@ -476,7 +515,16 @@ ${studentContext}`;
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
         ],
-        max_tokens: 3000,
+        // Supervision is machine-read, fires while the student is typing, and
+        // is capped at six issues plus one sentence — it needs a fraction of
+        // the room a full lesson or analysis does, and the student is waiting
+        // on it. The teaching actions keep their original budget.
+        max_tokens: isSupervise ? 1200 : 3000,
+        // Same draft, same marks. Without this the underlines flicker on and
+        // off between keystrokes as the model changes its mind.
+        ...(isSupervise
+          ? { temperature: 0, response_format: { type: "json_object" } }
+          : {}),
       }),
     });
 
@@ -504,7 +552,38 @@ ${studentContext}`;
     }
 
     const aiData = await aiResponse.json();
-    const response = aiData.choices?.[0]?.message?.content || "Sorry, I couldn't generate a response.";
+    const rawContent = aiData.choices?.[0]?.message?.content ?? "";
+
+    let response: string;
+    if (isSupervise) {
+      // The editor accepts the payload only if it starts with '{' and ends
+      // with '}', so hand it exactly that. Models still fence their JSON in
+      // ```json blocks now and then even when asked for a JSON object, and a
+      // fenced reply would be discarded in full — every mark in it lost.
+      //
+      // The parse round-trip is the point: it guarantees what we return is
+      // real JSON rather than something that merely looks like it. Anything
+      // unusable degrades to an empty result, which the editor reads as
+      // "nothing to flag" — never an error in the student's face.
+      response = '{"issues":[],"ghostText":""}';
+      const first = rawContent.indexOf("{");
+      const last = rawContent.lastIndexOf("}");
+      if (first !== -1 && last > first) {
+        try {
+          const parsed = JSON.parse(rawContent.slice(first, last + 1));
+          response = JSON.stringify({
+            issues: Array.isArray(parsed.issues) ? parsed.issues : [],
+            ghostText: typeof parsed.ghostText === "string"
+              ? parsed.ghostText
+              : "",
+          });
+        } catch (e) {
+          console.error("draft_supervise: unparseable model reply:", e);
+        }
+      }
+    } else {
+      response = rawContent || "Sorry, I couldn't generate a response.";
+    }
 
     console.log(`Study plan trainer: ${action} for user ${user.id}`);
 

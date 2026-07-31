@@ -63,8 +63,7 @@ void _handle(_Decisions out, String eventLabel, Object? eventValue) {
 
 void main() {
   group('Vapi integration — happy path', () {
-    test('greet → student answer → AI question → endCall → feedback hook',
-        () {
+    test('greet → student answer → AI question → endCall → feedback hook', () {
       final out = _Decisions();
 
       // 1. Greeting (assistant final transcript).
@@ -123,46 +122,48 @@ void main() {
   });
 
   group('Vapi integration — error path', () {
-    test('call drops mid-session marks the row abandoned, refuses double-end',
-        () {
-      final out = _Decisions();
+    test(
+      'call drops mid-session marks the row abandoned, refuses double-end',
+      () {
+        final out = _Decisions();
 
-      // Greeting + a student answer.
-      _handle(out, 'message', {
-        'type': 'transcript',
-        'role': 'assistant',
-        'transcript': 'Hello!',
-        'transcriptType': 'final',
-      });
-      _handle(out, 'message', {
-        'type': 'transcript',
-        'role': 'user',
-        'transcript': 'Hi.',
-        'transcriptType': 'final',
-      });
+        // Greeting + a student answer.
+        _handle(out, 'message', {
+          'type': 'transcript',
+          'role': 'assistant',
+          'transcript': 'Hello!',
+          'transcriptType': 'final',
+        });
+        _handle(out, 'message', {
+          'type': 'transcript',
+          'role': 'user',
+          'transcript': 'Hi.',
+          'transcriptType': 'final',
+        });
 
-      // Vapi emits a status-update with an error string — WebRTC dropped.
-      _handle(out, 'statusUpdate', 'Error: peer disconnected');
+        // Vapi emits a status-update with an error string — WebRTC dropped.
+        _handle(out, 'statusUpdate', 'Error: peer disconnected');
 
-      expect(out.errorMessage, contains('peer disconnected'));
-      expect(out.abandoned, isTrue);
-      expect(out.didEndSession, isTrue);
+        expect(out.errorMessage, contains('peer disconnected'));
+        expect(out.abandoned, isTrue);
+        expect(out.didEndSession, isTrue);
 
-      // A late "endCall" tool event should not be able to flip the
-      // didEndSession guard a second time (the dispose-time
-      // markAbandoned path already won). We re-fire and assert nothing
-      // changes.
-      final before = out.didEndSession;
-      _handle(out, 'message', {
-        'type': 'tool-calls',
-        'toolCalls': [
-          {
-            'function': {'name': 'endCall'},
-          },
-        ],
-      });
-      _handle(out, 'message', {'type': 'speech-end'});
-      expect(out.didEndSession, equals(before));
-    });
+        // A late "endCall" tool event should not be able to flip the
+        // didEndSession guard a second time (the dispose-time
+        // markAbandoned path already won). We re-fire and assert nothing
+        // changes.
+        final before = out.didEndSession;
+        _handle(out, 'message', {
+          'type': 'tool-calls',
+          'toolCalls': [
+            {
+              'function': {'name': 'endCall'},
+            },
+          ],
+        });
+        _handle(out, 'message', {'type': 'speech-end'});
+        expect(out.didEndSession, equals(before));
+      },
+    );
   });
 }

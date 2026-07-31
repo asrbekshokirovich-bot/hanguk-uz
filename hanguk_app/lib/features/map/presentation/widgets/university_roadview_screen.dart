@@ -3,6 +3,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
+import '../../../../design_system/seoul_night/seoul_night.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../domain/university.dart';
 import 'roadview_html.dart';
@@ -60,15 +61,23 @@ class _UniversityRoadviewScreenState extends State<UniversityRoadviewScreen> {
   void initState() {
     super.initState();
 
-    final htmlContent = generateRoadviewHtml(
-      widget.university.latitude ?? 36.5,
-      widget.university.longitude ?? 127.8,
-      widget.university.name,
-    );
+    final lat = widget.university.latitude;
+    final lng = widget.university.longitude;
+
+    // No coordinates → do NOT fall back to the centre of Korea (36.5, 127.8),
+    // which shows a random rural location that looks nothing like the campus.
+    // Create an empty controller and surface the "no street view" state.
+    if (lat == null || lng == null) {
+      _controller = WebViewController();
+      _state = const _RvNoPano();
+      return;
+    }
+
+    final htmlContent = generateRoadviewHtml(lat, lng, widget.university.name);
 
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setBackgroundColor(const Color(0xFF0F1626))
+      ..setBackgroundColor(SeoulColors.mapWater)
       ..addJavaScriptChannel(
         'HangukRoadviewChannel',
         onMessageReceived: _onChannelMessage,
@@ -124,7 +133,7 @@ class _UniversityRoadviewScreenState extends State<UniversityRoadviewScreen> {
     final l = AppLocalizations.of(context)!;
     final overlay = _overlayCopy(l);
     return Scaffold(
-      backgroundColor: const Color(0xFF0F1626),
+      backgroundColor: SeoulColors.mapWater,
       body: Stack(
         children: [
           // EagerGestureRecognizer prevents WebView gestures from
@@ -143,41 +152,40 @@ class _UniversityRoadviewScreenState extends State<UniversityRoadviewScreen> {
             Positioned.fill(
               child: IgnorePointer(
                 ignoring: _state is _RvReady,
-                child: Container(
-                  color: const Color(0xFF0F1626).withValues(alpha: 0.92),
+                child: ColoredBox(
+                  color: SeoulColors.mapWater.withValues(alpha: 0.92),
                   child: Center(
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 32),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            _state is _RvLoading
-                                ? Icons.hourglass_top
-                                : Icons.directions_walk_outlined,
-                            color: Colors.white70,
-                            size: 48,
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            overlay.title,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
+                      padding: const EdgeInsets.symmetric(horizontal: 28),
+                      child: GlassCard(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 28,
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              _state is _RvLoading
+                                  ? Icons.hourglass_top
+                                  : Icons.directions_walk_outlined,
+                              color: SeoulColors.lime,
+                              size: 40,
                             ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            overlay.subtitle,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              color: Colors.white70,
-                              fontSize: 14,
+                            const SizedBox(height: 16),
+                            Text(
+                              overlay.title,
+                              textAlign: TextAlign.center,
+                              style: SeoulType.title,
                             ),
-                          ),
-                        ],
+                            const SizedBox(height: 8),
+                            Text(
+                              overlay.subtitle,
+                              textAlign: TextAlign.center,
+                              style: SeoulType.bodySecondary,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -185,65 +193,117 @@ class _UniversityRoadviewScreenState extends State<UniversityRoadviewScreen> {
               ),
             ),
 
-          // Back button overlay.
+          // Back button overlay — glass back-circle, spec §2.
           Positioned(
             top: MediaQuery.of(context).padding.top + 16,
-            left: 16,
-            child: Semantics(
-              label: 'Back',
-              button: true,
-              child: InkWell(
-                onTap: () => Navigator.of(context).pop(),
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.6),
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white24),
-                  ),
-                  child: const Icon(
-                    Icons.arrow_back,
-                    color: Colors.white,
-                    size: 24,
-                  ),
-                ),
-              ),
-            ),
+            left: SeoulSizes.screenPadding,
+            child: _GlassBackButton(onTap: () => Navigator.of(context).pop()),
           ),
 
-          // Label overlay (top-right pill).
+          // Label overlay (top-right pill). Top-right, so it never lands
+          // under the bottom-right 한 orb.
           Positioned(
             top: MediaQuery.of(context).padding.top + 16,
-            right: 16,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.6),
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: Colors.white24),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(
-                    Icons.directions_walk,
-                    color: Colors.white,
-                    size: 16,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    widget.university.name,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
-                  ),
-                ],
-              ),
+            right: SeoulSizes.screenPadding,
+            child: _CampusPill(
+              icon: Icons.directions_walk,
+              label: widget.university.name,
+              ko: '캠퍼스',
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// 44px glass circle with a back chevron — the header affordance the spec
+/// gives every pushed screen (§2).
+class _GlassBackButton extends StatelessWidget {
+  const _GlassBackButton({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    return Semantics(
+      label: l.a11yTooltipBack,
+      button: true,
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: Container(
+          width: SeoulSizes.minTapTarget,
+          height: SeoulSizes.minTapTarget,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            // Not `glass` (white @ 7%): this floats over a live
+            // panorama, and a daytime sky makes a white icon on a
+            // white-tinted circle ~1.1:1 — invisible. With no AppBar,
+            // this circle is the only way off the screen. `mapWater`
+            // at 62% keeps it legible whatever the panorama shows.
+            color: SeoulColors.mapWater.withValues(alpha: 0.62),
+            shape: BoxShape.circle,
+            border: Border.all(color: SeoulColors.heroBorder, width: 1),
+            boxShadow: SeoulShadows.card,
+          ),
+          child: const Icon(
+            Icons.arrow_back_rounded,
+            color: SeoulColors.textPrimary,
+            size: 20,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Glass pill naming what the full-bleed WebView is showing.
+class _CampusPill extends StatelessWidget {
+  const _CampusPill({
+    required this.icon,
+    required this.label,
+    required this.ko,
+  });
+
+  final IconData icon;
+  final String label;
+  final String ko;
+
+  @override
+  Widget build(BuildContext context) {
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        maxWidth: MediaQuery.of(context).size.width * 0.6,
+      ),
+      child: GlassCard(
+        radius: 999,
+        // Same reason as the back circle: this sits over a live panorama, so
+        // it needs its own dark backing rather than the default glass tint.
+        fillColor: SeoulColors.mapWater.withValues(alpha: 0.62),
+        borderColor: SeoulColors.heroBorder,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: SeoulColors.lime, size: 15),
+            const SizedBox(width: 8),
+            Flexible(
+              child: Text(
+                label,
+                overflow: TextOverflow.ellipsis,
+                style: SeoulType.caption.copyWith(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: SeoulColors.textPrimary,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(ko, style: SeoulType.hangulLabel),
+          ],
+        ),
       ),
     );
   }
