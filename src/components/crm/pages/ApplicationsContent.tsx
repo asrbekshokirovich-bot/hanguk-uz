@@ -462,14 +462,14 @@ export default function ApplicationsContent({
       {filtered.length === 0 ? (
         <EmptyState icon={Inbox} title={t('applications.emptyTitle')} description={t('applications.emptyDesc')} />
       ) : (
-        <div className="flex gap-3 overflow-x-auto pb-2 lg:grid lg:grid-cols-5 lg:items-start lg:overflow-x-visible">
+        <div className="flex items-start gap-3 overflow-x-auto pb-2">
           {STAGE_ORDER.map((stage, i) => {
             const items = byStage(stage);
             return (
               <div
                 key={stage}
                 className={cn(
-                  'flex w-[85vw] shrink-0 flex-col rounded-xl border p-3 sm:w-[320px] lg:w-auto',
+                  'flex w-[85vw] shrink-0 flex-col rounded-xl border p-3 sm:w-[340px]',
                   stage === 'sent' ? 'border-warning/40 bg-warning/5' : 'border-border bg-muted/40',
                 )}
               >
