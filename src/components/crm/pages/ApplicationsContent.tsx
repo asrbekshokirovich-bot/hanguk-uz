@@ -462,7 +462,7 @@ export default function ApplicationsContent({
       {filtered.length === 0 ? (
         <EmptyState icon={Inbox} title={t('applications.emptyTitle')} description={t('applications.emptyDesc')} />
       ) : (
-        <div className="flex items-start gap-3 overflow-x-auto pb-2">
+        <div className="flex min-h-[calc(100vh-320px)] items-start gap-3 overflow-x-auto pb-2">
           {STAGE_ORDER.map((stage, i) => {
             const items = byStage(stage);
             return (
