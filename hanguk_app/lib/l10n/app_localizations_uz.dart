@@ -1493,6 +1493,67 @@ class AppLocalizationsUz extends AppLocalizations {
   String get uniDbColLastVerified => 'Oxirgi tekshiruv';
 
   @override
+  String get uniDbColTuition => 'Kontrakt / semestr';
+
+  @override
+  String get uniDbColKorean => 'Koreys tili darajasi';
+
+  @override
+  String get uniDbColNextDeadline => 'Keyingi muddat';
+
+  @override
+  String get uniDbColInterview => 'Suhbat';
+
+  @override
+  String get uniDbColDocuments => 'Hujjatlar';
+
+  @override
+  String get uniDbNotPublishedYet => 'Hali e\'lon qilinmagan';
+
+  @override
+  String get uniDbTopikNoMinimum => 'Minimal daraja ko\'rsatilmagan';
+
+  @override
+  String get uniDbTopikDeferred => 'Keyinroq topshirish mumkin';
+
+  @override
+  String get uniDbLowest => 'Eng past';
+
+  @override
+  String get uniDbTentative => 'Sana tasdiqlanmagan';
+
+  @override
+  String uniDbScholarshipsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ta stipendiya',
+      one: '1 ta stipendiya',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get uniDbInterviewRequired => 'Talab qilinadi';
+
+  @override
+  String get uniDbInterviewNotRequired => 'Talab qilinmaydi';
+
+  @override
+  String get uniDbViewFullDetails => 'To\'liq ma\'lumotni ko\'rish';
+
+  @override
+  String get uniDbCompareSelectHint => 'Taqqoslash uchun 2-3 ta universitetni tanlang';
+
+  @override
+  String uniDbCompareCta(int count) {
+    return 'Taqqoslash: $count';
+  }
+
+  @override
+  String get uniDbCompareAction => 'Universitetlarni taqqoslash';
+
+  @override
   String get uniDbTrackerTitle => 'Arizalar kuzatuvi';
 
   @override

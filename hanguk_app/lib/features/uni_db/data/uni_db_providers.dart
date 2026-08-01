@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/feature_flags/uni_db_flag.dart';
 import '../domain/document_requirement_row.dart';
+import '../domain/institution_facts.dart';
 import '../domain/institution_summary.dart';
 import '../domain/recruitment_target.dart';
 import '../domain/requirements_row.dart';
@@ -33,20 +34,273 @@ final institutionDetailProvider =
     });
 
 /// Institution comparison — `/institutions/compare?ids=a,b,c`.
+///
+/// Keyed by the raw comma-separated id string rather than a `List<String>`
+/// on purpose: a Riverpod family looks its argument up with `==`, and two
+/// equal lists are never `==`, so a list key silently creates a fresh
+/// provider (and a fresh network request) on every rebuild that rebuilt the
+/// list. A `String` key has value equality, so the result caches properly.
+/// Use [parseInstitutionIds] to split it.
 final compareInstitutionsProvider =
-    FutureProvider.family<List<InstitutionSummary>, List<String>>((
+    FutureProvider.family<List<InstitutionSummary>, String>((
       ref,
-      ids,
+      idsCsv,
     ) async {
+      final ids = parseInstitutionIds(idsCsv);
       if (!kUniDbEnabled || ids.isEmpty) return const [];
       final client = Supabase.instance.client;
       final rows = await client
           .from('v_institutions_for_map')
           .select()
           .inFilter('id', ids);
-      return (rows as List)
-          .map((r) => InstitutionSummary.fromMap(r as Map<String, dynamic>))
-          .toList(growable: false);
+      final byId = <String, InstitutionSummary>{};
+      for (final r in rows as List) {
+        final summary = InstitutionSummary.fromMap(r as Map<String, dynamic>);
+        byId[summary.id] = summary;
+      }
+      // Preserve the order the student picked the institutions in — the
+      // `in.(...)` filter returns rows in whatever order Postgres chooses,
+      // and a comparison whose columns reshuffle between loads is confusing.
+      return [
+        for (final id in ids)
+          if (byId[id] != null) byId[id]!,
+      ];
+    });
+
+/// Splits the `ids` query parameter of `/institutions/compare` into ids,
+/// dropping blanks and duplicates while preserving order.
+List<String> parseInstitutionIds(String idsCsv) {
+  final seen = <String>{};
+  return [
+    for (final part in idsCsv.split(','))
+      if (part.trim().isNotEmpty && seen.add(part.trim())) part.trim(),
+  ];
+}
+
+/// The comparable facts (tuition, TOPIK, next deadline, scholarships,
+/// paperwork) for a set of institutions, keyed by institution id.
+///
+/// The per-institution providers below each fetch one institution's rows,
+/// which the detail screen uses five times over for a single university. A
+/// comparison of three would be fifteen round trips, so this provider issues
+/// **five bulk queries** filtered with `in.(...)` and reduces the rows into
+/// one [InstitutionFacts] per id.
+///
+/// Institutions the queries return no rows for still get a map entry — an
+/// [InstitutionFacts.empty] — so the compare grid can tell "nothing
+/// published yet" apart from "id not in the result".
+///
+/// Reads `requirements` / `documents_required` through their `admission_cycles`
+/// parent with `status = 'verified'`, matching
+/// [institutionRequirementsProvider]: an unreviewed extraction must never
+/// reach a student as a fact.
+///
+/// Keyed by comma-separated ids for the same cache-correctness reason as
+/// [compareInstitutionsProvider].
+final compareFactsProvider =
+    FutureProvider.family<Map<String, InstitutionFacts>, String>((
+      ref,
+      idsCsv,
+    ) async {
+      final ids = parseInstitutionIds(idsCsv);
+      if (!kUniDbEnabled || ids.isEmpty) return const {};
+      final client = Supabase.instance.client;
+      final nowIso = DateTime.now().toIso8601String();
+
+      // Five requests in flight at once. `Future.wait<dynamic>` because each
+      // builder resolves to its own row shape; every result is cast below.
+      final results = await Future.wait<dynamic>([
+        client
+            .from('tuition')
+            .select(
+              'institution_id, academic_year, amount_krw, admission_fee_krw',
+            )
+            .inFilter('institution_id', ids),
+        client
+            .from('requirements')
+            .select(
+              'topik_min_level, topik_deferred, english_test, gpa_floor_pct, '
+              'interview_required, '
+              'admission_cycles!inner(institution_id, status)',
+            )
+            .inFilter('admission_cycles.institution_id', ids)
+            .eq('admission_cycles.status', 'verified'),
+        client
+            .from('scholarships')
+            .select()
+            .inFilter('institution_id', ids)
+            .order('scope')
+            .order('award_value', ascending: false, nullsFirst: false),
+        client
+            .from('cycle_dates')
+            .select(
+              'event_type, starts_at, is_tentative, '
+              'admission_cycles!inner(institution_id)',
+            )
+            .inFilter('admission_cycles.institution_id', ids)
+            .gte('starts_at', nowIso)
+            .order('starts_at'),
+        client
+            .from('documents_required')
+            .select('id, admission_cycles!inner(institution_id, status)')
+            .inFilter('admission_cycles.institution_id', ids)
+            .eq('admission_cycles.status', 'verified'),
+      ]);
+
+      final tuitionRows = (results[0] as List).cast<Map<String, dynamic>>();
+      final requirementRows = (results[1] as List).cast<Map<String, dynamic>>();
+      final scholarshipRows = (results[2] as List).cast<Map<String, dynamic>>();
+      final deadlineRows = (results[3] as List).cast<Map<String, dynamic>>();
+      final documentRows = (results[4] as List).cast<Map<String, dynamic>>();
+
+      // ── Tuition: newest academic_year per institution wins ──────────────
+      final latestYear = <String, int>{};
+      for (final row in tuitionRows) {
+        final id = row['institution_id'] as String?;
+        final year = (row['academic_year'] as num?)?.toInt();
+        if (id == null || year == null) continue;
+        final current = latestYear[id];
+        if (current == null || year > current) latestYear[id] = year;
+      }
+
+      final tuitionMin = <String, int>{};
+      final tuitionMax = <String, int>{};
+      final admissionFee = <String, int>{};
+      for (final row in tuitionRows) {
+        final id = row['institution_id'] as String?;
+        if (id == null) continue;
+        final year = (row['academic_year'] as num?)?.toInt();
+        if (year != latestYear[id]) continue;
+        final amount = (row['amount_krw'] as num?)?.toInt();
+        if (amount != null && amount > 0) {
+          final min = tuitionMin[id];
+          final max = tuitionMax[id];
+          if (min == null || amount < min) tuitionMin[id] = amount;
+          if (max == null || amount > max) tuitionMax[id] = amount;
+        }
+        final fee = (row['admission_fee_krw'] as num?)?.toInt();
+        if (fee != null && fee > 0) {
+          final current = admissionFee[id];
+          if (current == null || fee > current) admissionFee[id] = fee;
+        }
+      }
+
+      // ── Requirements: the most permissive value across verified tracks ──
+      // A university with a TOPIK 3 track and a TOPIK 5 track is open to a
+      // level-3 applicant, so the minimum is the honest headline. Interview
+      // is the opposite: any track requiring one means "prepare for one".
+      final topikMin = <String, int>{};
+      final topikDeferred = <String, bool>{};
+      final englishTest = <String, String>{};
+      final gpaFloor = <String, double>{};
+      final interview = <String, bool>{};
+      final hasRequirements = <String, bool>{};
+      for (final row in requirementRows) {
+        final cycle = row['admission_cycles'] as Map<String, dynamic>?;
+        final id = cycle?['institution_id'] as String?;
+        if (id == null) continue;
+        hasRequirements[id] = true;
+
+        final topik = (row['topik_min_level'] as num?)?.toInt();
+        if (topik != null) {
+          final current = topikMin[id];
+          if (current == null || topik < current) topikMin[id] = topik;
+        }
+        if ((row['topik_deferred'] as bool?) ?? false) {
+          topikDeferred[id] = true;
+        }
+        if ((row['interview_required'] as bool?) ?? false) {
+          interview[id] = true;
+        }
+        final gpa = (row['gpa_floor_pct'] as num?)?.toDouble();
+        if (gpa != null) {
+          final current = gpaFloor[id];
+          if (current == null || gpa < current) gpaFloor[id] = gpa;
+        }
+        if (!englishTest.containsKey(id)) {
+          final label = _englishTestLabel(row['english_test']);
+          if (label != null) englishTest[id] = label;
+        }
+      }
+
+      // ── Scholarships: count + the first row, which the query already
+      // ordered national-scope-first then by descending award value. ───────
+      final scholarshipCount = <String, int>{};
+      final bestScholarship = <String, ScholarshipRow>{};
+      for (final row in scholarshipRows) {
+        final id = row['institution_id'] as String?;
+        if (id == null) continue;
+        scholarshipCount[id] = (scholarshipCount[id] ?? 0) + 1;
+        bestScholarship.putIfAbsent(id, () => ScholarshipRow.fromMap(row));
+      }
+
+      // ── Calendar: rows arrive ordered by starts_at, so the first hit per
+      // institution is the soonest one. ───────────────────────────────────
+      final nextEvent = <String, Map<String, dynamic>>{};
+      for (final row in deadlineRows) {
+        final cycle = row['admission_cycles'] as Map<String, dynamic>?;
+        final id = cycle?['institution_id'] as String?;
+        if (id == null) continue;
+        nextEvent.putIfAbsent(id, () => row);
+      }
+
+      final documentCount = <String, int>{};
+      for (final row in documentRows) {
+        final cycle = row['admission_cycles'] as Map<String, dynamic>?;
+        final id = cycle?['institution_id'] as String?;
+        if (id == null) continue;
+        documentCount[id] = (documentCount[id] ?? 0) + 1;
+      }
+
+      return {
+        for (final id in ids)
+          id: InstitutionFacts(
+            institutionId: id,
+            academicYear: latestYear[id],
+            tuitionMinKrw: tuitionMin[id],
+            tuitionMaxKrw: tuitionMax[id],
+            admissionFeeKrw: admissionFee[id],
+            topikMinLevel: topikMin[id],
+            topikDeferred: topikDeferred[id] ?? false,
+            englishTestLabel: englishTest[id],
+            gpaFloorPct: gpaFloor[id],
+            interviewRequired: interview[id] ?? false,
+            hasRequirementsRow: hasRequirements[id] ?? false,
+            nextDeadlineEvent: nextEvent[id]?['event_type'] as String?,
+            nextDeadlineAt: nextEvent[id] == null
+                ? null
+                : DateTime.tryParse(
+                    nextEvent[id]!['starts_at']?.toString() ?? '',
+                  ),
+            nextDeadlineIsTentative:
+                (nextEvent[id]?['is_tentative'] as bool?) ?? false,
+            scholarshipCount: scholarshipCount[id] ?? 0,
+            bestScholarship: bestScholarship[id],
+            documentCount: documentCount[id] ?? 0,
+          ),
+      };
+    });
+
+/// `requirements.english_test` jsonb → "TOEFL iBT 80". Mirrors
+/// [RequirementsRow.englishTestLabel], which operates on a parsed row this
+/// bulk reducer never builds.
+String? _englishTestLabel(dynamic englishTest) {
+  final map = (englishTest as Map?)?.cast<String, dynamic>();
+  if (map == null || map.isEmpty) return null;
+  final type = map['type'] as String?;
+  if (type == null) return null;
+  final score = map['min_score'] ?? map['score'] ?? map['minimum'];
+  return score == null ? type : '$type $score';
+}
+
+/// Single-institution facts, for the map detail sheet's quick-facts strip.
+/// A one-id case of [compareFactsProvider] — the csv key of a single id is
+/// just the id, so a sheet opened before a comparison shares its cache entry
+/// with nothing, but a sheet reopened for the same university hits the cache.
+final institutionFactsProvider =
+    FutureProvider.family<InstitutionFacts, String>((ref, id) async {
+      final facts = await ref.watch(compareFactsProvider(id).future);
+      return facts[id] ?? InstitutionFacts.empty(id);
     });
 
 /// User-tracked summary — `/applications/tracker`.

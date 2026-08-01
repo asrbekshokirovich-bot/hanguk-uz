@@ -21,7 +21,25 @@ class UniversityCard extends StatelessWidget {
   final University university;
   final VoidCallback? onTap;
 
-  const UniversityCard({super.key, required this.university, this.onTap});
+  /// Compare mode: swaps the chevron for a checkbox and makes [onTap] mean
+  /// "toggle selection" rather than "open the detail sheet".
+  final bool selectable;
+
+  /// Whether this row is part of the current comparison selection.
+  final bool selected;
+
+  /// False dims the row and drops [onTap] — used when the comparison is
+  /// already at its cap and this row is not one of the picks.
+  final bool enabled;
+
+  const UniversityCard({
+    super.key,
+    required this.university,
+    this.onTap,
+    this.selectable = false,
+    this.selected = false,
+    this.enabled = true,
+  });
 
   /// The glyph for the avatar tile: first syllable of the Korean name, then
   /// of the (Korean) city, then the 한 brand mark. Anything that is not
@@ -84,43 +102,64 @@ class UniversityCard extends StatelessWidget {
     // collapse into one node — a screen reader announces the whole row once.
     return MergeSemantics(
       child: Semantics(
-        button: true,
-        child: GlassCard(
-          onTap: onTap,
-          margin: const EdgeInsets.symmetric(
-            horizontal: SeoulSizes.screenPadding,
-            vertical: 5,
-          ),
-          padding: const EdgeInsets.fromLTRB(15, 15, 13, 15),
-          radius: SeoulRadii.tile,
-          // Dozens of these scroll past; each blurred card would cost its own
-          // saved layer (see GlassCard.blur).
-          blur: false,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  HangulGlyphTile(glyph: _glyph),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: HangulTag(
-                      en: university.name,
-                      ko: _koLabel,
-                      titleStyle: SeoulType.subtitle,
+        button: !selectable,
+        // In compare mode the row is a checkbox, and a screen reader should
+        // say so — and say whether it is currently picked.
+        checked: selectable ? selected : null,
+        enabled: enabled,
+        child: Opacity(
+          opacity: enabled ? 1 : 0.45,
+          child: GlassCard(
+            onTap: enabled ? onTap : null,
+            margin: const EdgeInsets.symmetric(
+              horizontal: SeoulSizes.screenPadding,
+              vertical: 5,
+            ),
+            padding: const EdgeInsets.fromLTRB(15, 15, 13, 15),
+            radius: SeoulRadii.tile,
+            // Dozens of these scroll past; each blurred card would cost its
+            // own saved layer (see GlassCard.blur).
+            blur: false,
+            // A lime hairline is the selected state — the fill stays glass so
+            // a selected row still reads as the same surface.
+            borderColor: selectable && selected ? SeoulColors.lime : null,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    HangulGlyphTile(glyph: _glyph),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: HangulTag(
+                        en: university.name,
+                        ko: _koLabel,
+                        titleStyle: SeoulType.subtitle,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 6),
-                  const Icon(
-                    Icons.chevron_right_rounded,
-                    color: SeoulColors.textFaint,
-                    size: 20,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Wrap(spacing: 8, runSpacing: 8, children: _chips(l)),
-            ],
+                    const SizedBox(width: 6),
+                    if (selectable)
+                      Icon(
+                        selected
+                            ? Icons.check_circle_rounded
+                            : Icons.radio_button_unchecked_rounded,
+                        color: selected
+                            ? SeoulColors.lime
+                            : SeoulColors.textFaint,
+                        size: 22,
+                      )
+                    else
+                      const Icon(
+                        Icons.chevron_right_rounded,
+                        color: SeoulColors.textFaint,
+                        size: 20,
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Wrap(spacing: 8, runSpacing: 8, children: _chips(l)),
+              ],
+            ),
           ),
         ),
       ),

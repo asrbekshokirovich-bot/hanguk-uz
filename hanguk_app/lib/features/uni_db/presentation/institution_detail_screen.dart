@@ -12,6 +12,7 @@ import '../domain/institution_summary.dart';
 import '../domain/requirements_row.dart';
 import '../domain/scholarship_row.dart';
 import '../domain/upcoming_deadline.dart';
+import 'event_labels.dart';
 
 /// `/institutions/:id` — per-institution detail page.
 ///
@@ -379,7 +380,7 @@ class _DeadlineTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
-    final cycleLabel = _cycleLabel(l, deadline.cycleTrack);
+    final trackLabel = cycleLabel(l, deadline.cycleTrack);
     // Same string the legacy tile showed — the raw timestamp without seconds.
     final when = deadline.startsAt
         .toIso8601String()
@@ -404,14 +405,14 @@ class _DeadlineTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  _eventLabel(l, deadline.eventType),
+                  eventLabel(l, deadline.eventType),
                   style: SeoulType.subtitle,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  cycleLabel == null ? when : '$when · $cycleLabel',
+                  trackLabel == null ? when : '$when · $trackLabel',
                   style: SeoulType.caption,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -467,43 +468,6 @@ class _DeadlineTile extends StatelessWidget {
     'orientation' => Icons.school,
     'semester_start' => Icons.calendar_today,
     _ => Icons.event,
-  };
-}
-
-/// event_type → localized label. Same mapping as VerifiedDeadlineCard, plus
-/// the two calendar-tail events only this screen surfaces.
-String _eventLabel(AppLocalizations l, String eventType) => switch (eventType) {
-  'apply_open' => l.eventApplyOpen,
-  'apply_close' => l.eventApplyClose,
-  'document_submission_deadline' => l.eventDocumentsDue,
-  'first_stage_results' => l.eventFirstStageResults,
-  'interview' => l.eventInterviewLabel,
-  'practical_exam' => l.eventPracticalExam,
-  'final_results' => l.eventFinalResults,
-  'additional_admit' => l.eventAdditionalAdmit,
-  'registration_open' => l.eventRegistrationOpen,
-  'registration_close' => l.eventRegistrationClose,
-  'orientation' => l.eventOrientation,
-  'semester_start' => l.eventSemesterStart,
-  // An event type the DB writes that this app does not model yet — the raw
-  // value is the honest thing to show.
-  _ => eventType.replaceAll('_', ' '),
-};
-
-/// cycle_track / applicant_category → localized label, raw value as fallback.
-/// Same mapping as VerifiedDeadlineCard.
-String? _cycleLabel(AppLocalizations l, String? track) {
-  if (track == null) return null;
-  return switch (track) {
-    'foreign' => l.cycleForeign,
-    'overseas_korean_full' => l.cycleOverseasKoreanFull,
-    'overseas_korean_partial' => l.cycleOverseasKoreanPartial,
-    'susi' => l.cycleSusi,
-    'jeongsi' => l.cycleJeongsi,
-    'transfer' => l.cycleTransfer,
-    'grad_general' => l.cycleGradGeneral,
-    'grad_foreign' => l.cycleGradForeign,
-    _ => track,
   };
 }
 
@@ -736,7 +700,7 @@ class _RequirementsCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            _cycleLabel(l, r.applicantCategory) ?? r.applicantCategory,
+            cycleLabel(l, r.applicantCategory) ?? r.applicantCategory,
             style: SeoulType.subtitle,
           ),
           const SizedBox(height: 10),
@@ -869,7 +833,7 @@ class _ScholarshipCard extends StatelessWidget {
               children: s.applicantCategories!
                   .map(
                     (c) =>
-                        StatusChip(label: _cycleLabel(l, c) ?? c, dense: true),
+                        StatusChip(label: cycleLabel(l, c) ?? c, dense: true),
                   )
                   .toList(),
             ),
@@ -918,7 +882,7 @@ class _DocumentsSection extends ConsumerWidget {
                     ).copyWith(dividerColor: Colors.transparent),
                     child: ExpansionTile(
                       title: Text(
-                        _cycleLabel(l, entry.key) ?? entry.key,
+                        cycleLabel(l, entry.key) ?? entry.key,
                         style: SeoulType.subtitle,
                       ),
                       subtitle: Text(

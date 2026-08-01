@@ -1440,6 +1440,66 @@ class AppLocalizationsKo extends AppLocalizations {
   String get uniDbColLastVerified => '최종 확인';
 
   @override
+  String get uniDbColTuition => '학기당 등록금';
+
+  @override
+  String get uniDbColKorean => '한국어 수준';
+
+  @override
+  String get uniDbColNextDeadline => '다음 일정';
+
+  @override
+  String get uniDbColInterview => '면접';
+
+  @override
+  String get uniDbColDocuments => '서류';
+
+  @override
+  String get uniDbNotPublishedYet => '아직 공개되지 않음';
+
+  @override
+  String get uniDbTopikNoMinimum => '최소 등급 미기재';
+
+  @override
+  String get uniDbTopikDeferred => '추후 제출 가능';
+
+  @override
+  String get uniDbLowest => '최저';
+
+  @override
+  String get uniDbTentative => '확정되지 않은 일정';
+
+  @override
+  String uniDbScholarshipsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '장학금 $count건',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get uniDbInterviewRequired => '필수';
+
+  @override
+  String get uniDbInterviewNotRequired => '해당 없음';
+
+  @override
+  String get uniDbViewFullDetails => '상세 정보 보기';
+
+  @override
+  String get uniDbCompareSelectHint => '비교할 대학을 2~3곳 선택하세요';
+
+  @override
+  String uniDbCompareCta(int count) {
+    return '$count곳 비교';
+  }
+
+  @override
+  String get uniDbCompareAction => '대학 비교';
+
+  @override
   String get uniDbTrackerTitle => '지원 현황 트래커';
 
   @override
