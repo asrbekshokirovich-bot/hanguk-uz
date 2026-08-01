@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -5,6 +7,7 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/router/app_router.dart';
 import 'design_system/theme/app_theme.dart';
+import 'features/map/data/map_repository.dart';
 import 'features/uni_db/data/push_token_bootstrap.dart';
 import 'features/updater/presentation/update_gate.dart';
 import 'l10n/app_localizations.dart';
@@ -35,7 +38,24 @@ Future<void> main() async {
     debugPrint('Supabase init error (offline mode): $e');
   }
 
-  runApp(const ProviderScope(child: HangukApp()));
+  // Warm the Map tab's institutions query as soon as Supabase is ready,
+  // instead of waiting for the user to open the tab. The Map screen also
+  // has to load the Kakao Maps SDK from a foreign CDN, so overlapping that
+  // wait with this one (rather than doing them back-to-back) cuts the
+  // perceived "Map is slow to open" delay roughly in half.
+  final container = ProviderContainer();
+  unawaited(() async {
+    try {
+      await container.read(universitiesProvider.future);
+    } catch (_) {
+      // Swallowed on purpose — MapTab's own FutureProvider watch surfaces
+      // the real error (with a Retry button) once the user opens the tab.
+    }
+  }());
+
+  runApp(
+    UncontrolledProviderScope(container: container, child: const HangukApp()),
+  );
 }
 
 /// Lightweight splash shown while Supabase initialises (prevents ANR).

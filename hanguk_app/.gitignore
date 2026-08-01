@@ -53,6 +53,8 @@ node_modules/
 android/key.properties
 **/*.jks
 **/*.keystore
+android/*.pem
+android/.new_keystore_password.txt
 
 # Claude Code — local-only settings (per-machine permissions/cache).
 .claude/settings.local.json
