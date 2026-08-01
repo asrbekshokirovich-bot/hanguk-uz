@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -46,7 +48,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   /// unconditionally would spin up the Kakao WebView (and its JS engine) at
   /// cold start and keep it running for the whole session. Sections mount on
   /// first visit and keep their state from then on.
+  ///
+  /// Map is the one exception: it's pre-warmed a few seconds after Home
+  /// settles (see [_preloadMapTimer] below), trading some background
+  /// battery/memory for an instant-feeling tab instead of the multi-second
+  /// wait for the Kakao/Leaflet WebView to fetch its SDK over the network.
   final Set<int> _visited = <int>{SeoulSection.home};
+  Timer? _preloadMapTimer;
 
   @override
   void initState() {
@@ -57,10 +65,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       await _maybeShowOnboarding();
       await _checkForUpdates();
     });
+    // Give the Home screen's own first paint (and the onboarding/update
+    // checks above) a head start before spending network + a JS engine on
+    // a tab the student hasn't asked for yet.
+    _preloadMapTimer = Timer(const Duration(seconds: 2), () {
+      if (mounted) setState(() => _visited.add(SeoulSection.map));
+    });
   }
 
   @override
   void dispose() {
+    _preloadMapTimer?.cancel();
     _orb.dispose();
     super.dispose();
   }
