@@ -124,6 +124,16 @@ String generateMapHtml(List<University> universities, {String locale = 'en'}) {
             text-align: center;
             padding: 40% 24px 0;
         }
+        .hg-map-retry {
+            display: inline-block;
+            margin-top: 14px;
+            padding: 8px 18px;
+            border-radius: 999px;
+            background: #D4E94C; /* SeoulColors.lime */
+            color: #0A1A34; /* SeoulColors.ink */
+            font-weight: 700;
+            font-size: 13px;
+        }
     </style>
 </head>
 <body>
@@ -134,10 +144,24 @@ String generateMapHtml(List<University> universities, {String locale = 'en'}) {
             if (window.parent) window.parent.postMessage({ type: 'HangukMapClick', id: id }, '*');
         }
 
-        function mapMessage(text) {
+        function mapMessage(text, showRetry) {
+            var retryHtml = showRetry
+                ? "<br><span class='hg-map-retry' onclick='location.reload()'>Qayta urinish</span>"
+                : "";
             document.getElementById('map').innerHTML =
-                "<div class='hg-map-message'>" + text + "</div>";
+                "<div class='hg-map-message'>" + text + retryHtml + "</div>";
         }
+
+        // Watchdog: if neither Kakao nor the Leaflet/OSM fallback finished
+        // initialising within 8s (both are external CDNs, so a weak or
+        // filtered mobile connection can leave the map silently blank
+        // forever otherwise), show an explicit retry affordance instead of
+        // an unexplained dark rectangle.
+        setTimeout(function() {
+            if (!mapInitialized) {
+                mapMessage("Xarita yuklanmadi. Internet aloqasini tekshiring.", true);
+            }
+        }, 8000);
 
         // Lime glow pin as an SVG data URI. encodeURIComponent keeps the
         // '#' of each hex colour valid inside the data: URI.
