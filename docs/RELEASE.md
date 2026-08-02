@@ -206,6 +206,58 @@ the comment above `targetSdk` for how each was resolved.
 
 ---
 
+## 6. Building in CI instead
+
+`.github/workflows/android-release.yml` runs §2 on a GitHub runner, so a
+release does not depend on which laptop has Flutter and the keystore on it.
+Actions tab → **Android release bundle** → **Run workflow**. It produces the
+`.aab` (and, by default, a release APK for on-device testing) as workflow
+artifacts. Uploading to Play is still manual — §4 is unchanged.
+
+CI checks two things a local build only warns about:
+
+- the keystore's SHA-1 must equal the upload key certificate in Play Console,
+  asserted before the build and again against the finished bundle's signer;
+- the signing secrets must all be present, so the debug-signing fallback in
+  §0 can never quietly produce an artifact.
+
+`EXPECTED_UPLOAD_KEY_SHA1` in the workflow holds that fingerprint. It is a
+public certificate, not a secret. **If the upload key is ever reset, update it
+in the same commit as the new secret** — otherwise every build fails the assert.
+
+### One-time secret setup
+
+On the machine that holds the keystore, base64 it:
+
+```powershell
+# PowerShell
+[Convert]::ToBase64String([IO.File]::ReadAllBytes("C:\path\to\hanguk-upload.jks")) | Set-Clipboard
+```
+
+```bash
+# macOS / Linux
+base64 -w0 ~/keys/hanguk-upload.jks | pbcopy   # or | xclip -selection clipboard
+```
+
+Then **Settings → Secrets and variables → Actions → New repository secret**:
+
+| Secret | Value |
+|---|---|
+| `ANDROID_KEYSTORE_BASE64` | the base64 string above |
+| `ANDROID_KEYSTORE_PASSWORD` | `storePassword` from `key.properties` |
+| `ANDROID_KEY_ALIAS` | `keyAlias` |
+| `ANDROID_KEY_PASSWORD` | `keyPassword` |
+
+Optional, both with working defaults in `AppConfig` — omit and the build still
+succeeds: `SENTRY_DSN`, `KAKAO_JS_KEY`.
+
+This puts the upload key in GitHub's secret store. Anyone who can push a
+workflow to this repo can then sign builds with it, so treat write access as
+equivalent to holding the key. Keep the original `.jks` and its passwords backed
+up offline regardless — GitHub secrets are write-only and cannot be read back.
+
+---
+
 ## Common rejections
 
 | Play says | Cause |
