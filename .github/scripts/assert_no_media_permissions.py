@@ -28,6 +28,7 @@ import sys
 import xml.etree.ElementTree as ET
 
 ANDROID_NAME = "{http://schemas.android.com/apk/res/android}name"
+TOOLS_NODE = "{http://schemas.android.com/tools}node"
 
 BANNED = {
     "android.permission.READ_MEDIA_IMAGES",
@@ -36,9 +37,19 @@ BANNED = {
 
 
 def offenders(path):
-    """Banned permissions this manifest requests, sorted."""
+    """Banned permissions this manifest requests, sorted.
+
+    A tools:node="remove" entry is a merge directive, not a request — it is
+    the mechanism that strips these. It does not survive into a merged
+    manifest, so this only matters when the script is pointed at the source
+    manifest, where treating it as a request would report the fix as the bug.
+    """
     root = ET.parse(path).getroot()
-    requested = {p.get(ANDROID_NAME) for p in root.iter("uses-permission")}
+    requested = {
+        p.get(ANDROID_NAME)
+        for p in root.iter("uses-permission")
+        if p.get(TOOLS_NODE) != "remove"
+    }
     return sorted(requested & BANNED)
 
 
