@@ -15,15 +15,16 @@
              receives a grant for it. No storage permission is involved at any
              API level.
            * Nothing reads the media store, enumerates the gallery, or asks for
-             these permissions at runtime. `image_picker` is in pubspec but is
-             not imported anywhere; permission_handler is used only by
+             these permissions at runtime. permission_handler is used only by
              packages/vapi, and only for the microphone.
 
-         So the declarations below were doing nothing except blocking release.
-         node="remove" rather than plain deletion because plugin manifests
-         (image_picker_android, permission_handler_android) merge these in on
-         their own — deleting our copies alone would leave them in the merged
-         manifest and Play would flag the build again.
+         The dead image_picker dependency that dragged these in was dropped
+         separately, which removes one source. node="remove" stays because it
+         is not the only one: permission_handler_android declares them too, so
+         deleting our own lines is not enough to keep them out of the merged
+         manifest. The 2041 build bears this out — it still carries
+         READ_MEDIA_AUDIO from a plugin, and only the two entries named here
+         are actually absent.
 
          If a feature ever genuinely needs gallery access, reach for the
          Android photo picker (PickVisualMedia) first; it needs no permission.
