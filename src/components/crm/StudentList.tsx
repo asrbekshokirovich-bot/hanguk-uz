@@ -45,6 +45,7 @@ import {
   Trash2,
   ArrowRight,
   ChevronRight,
+  RotateCcw,
 } from 'lucide-react';
 import { Tables } from '@/integrations/supabase/types';
 import { normalizePlanName } from '@/hooks/useStudentPlan';
@@ -60,6 +61,8 @@ type StudentProfile = Tables<'profiles'> & {
   /** Computed upstream by useCRMData (not columns on profiles). */
   paymentStatus?: string;
   initialPaymentOverdue?: boolean;
+  /** Exempt for the active season only — see useCRMData. */
+  freeReapplication?: boolean;
 };
 
 type Tone = 'lime' | 'info' | 'neutral' | 'successSoft' | 'warning' | 'destructive';
@@ -685,7 +688,15 @@ export function StudentList({
                       <span className="line-clamp-1">{uni || '—'}</span>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={plan.tone}>{plan.label}</Badge>
+                      <div className="flex flex-wrap items-center gap-1">
+                        <Badge variant={plan.tone}>{plan.label}</Badge>
+                        {student.freeReapplication && (
+                          <Badge variant="successSoft" className="gap-1">
+                            <RotateCcw className="h-3 w-3" />
+                            {t('crm.freeReapplicationShort')}
+                          </Badge>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell className="hidden lg:table-cell">
                       <div className="flex items-center gap-2">
@@ -738,6 +749,12 @@ export function StudentList({
                     )}
                   </div>
                   <div className="flex items-center gap-1.5">
+                    {student.freeReapplication && (
+                      <Badge variant="successSoft" className="gap-1">
+                        <RotateCcw className="h-3 w-3" />
+                        {t('crm.freeReapplicationShort')}
+                      </Badge>
+                    )}
                     <Badge variant={plan.tone}>{plan.label}</Badge>
                     <Button
                       variant="ghost"

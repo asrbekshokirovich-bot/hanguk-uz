@@ -20,10 +20,11 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Tables } from '@/integrations/supabase/types';
-import { User, Phone, MapPin, Calendar, CreditCard, Pencil, Languages, Crown, CheckCircle, AlertCircle, GraduationCap, Plus, Trash2, Sparkles } from 'lucide-react';
+import { User, Phone, MapPin, Calendar, CreditCard, Pencil, Languages, Crown, CheckCircle, AlertCircle, GraduationCap, Plus, Trash2, Sparkles, RotateCcw } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { useActiveIntake } from '@/contexts/IntakeContext';
 import { ContractUpload } from './ContractUpload';
 
 type StudentProfile = Tables<'profiles'>;
@@ -148,6 +149,7 @@ function AutoBadge({ source }: { source: string | null | undefined }) {
 export function EditStudentDialog({ open, onOpenChange, student, onSuccess }: EditStudentDialogProps) {
   const { t } = useTranslation();
   const { toast } = useToast();
+  const { activeIntakeId } = useActiveIntake();
   const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -161,6 +163,9 @@ export function EditStudentDialog({ open, onOpenChange, student, onSuccess }: Ed
     languageTrack: '',
     notes: '',
     isGksApplicant: false,
+    // Lives on student_intakes, not profiles — see the free re-application
+    // block below for why it has to be per-season.
+    freeReapplication: false,
   });
   const [phones, setPhones] = useState<PhoneEntry[]>([]);
   const [removedPhoneIds, setRemovedPhoneIds] = useState<string[]>([]);
@@ -178,8 +183,26 @@ export function EditStudentDialog({ open, onOpenChange, student, onSuccess }: Ed
       languageTrack: student.language_track || '',
       notes: student.notes || '',
       isGksApplicant: student.is_gks_applicant || false,
+      freeReapplication: false,
     });
     setRemovedPhoneIds([]);
+
+    // Read the exemption off this season's membership rather than trusting the
+    // caller to have passed it — the dialog is opened from several screens and
+    // the prop is a bare profile row.
+    if (activeIntakeId) {
+      (async () => {
+        const { data } = await supabase
+          .from('student_intakes')
+          .select('is_free_reapplication')
+          .eq('student_id', student.user_id)
+          .eq('intake_id', activeIntakeId)
+          .maybeSingle();
+        if (data) {
+          setFormData((prev) => ({ ...prev, freeReapplication: data.is_free_reapplication }));
+        }
+      })();
+    }
 
     // Load the student's phone numbers.
     (async () => {
@@ -198,7 +221,7 @@ export function EditStudentDialog({ open, onOpenChange, student, onSuccess }: Ed
         setPhones(fallback.length > 0 ? fallback : [{ phone: '', label: 'own', is_primary: true }]);
       }
     })();
-  }, [student]);
+  }, [student, activeIntakeId]);
 
   const updatePhone = (index: number, patch: Partial<PhoneEntry>) => {
     setPhones((prev) => prev.map((p, i) => (i === index ? { ...p, ...patch } : p)));
@@ -229,7 +252,10 @@ export function EditStudentDialog({ open, onOpenChange, student, onSuccess }: Ed
     }
     if (!filledPhones.some((p) => p.is_primary)) filledPhones[0].is_primary = true;
 
-    if (!formData.contractDate) {
+    // The contract date exists to derive payment due dates. A free
+    // re-application has no payments this season, so there is nothing to derive
+    // and nothing to insist on — the student's paid season already carries it.
+    if (!formData.contractDate && !formData.freeReapplication) {
       toast({ title: t('common.error'), description: 'Contract date is required to calculate payment due dates', variant: 'destructive' });
       return;
     }
@@ -278,6 +304,18 @@ export function EditStudentDialog({ open, onOpenChange, student, onSuccess }: Ed
           await supabase.from('student_phones')
             .insert({ student_id: student.user_id, phone: p.phone, label: p.label || null, is_primary: p.is_primary });
         }
+      }
+
+      // Per-season, so it goes on the membership row rather than the profile.
+      // Scoped to the CRM's active season: flipping it here must not change
+      // what the student owes for any other intake they belong to.
+      if (activeIntakeId) {
+        const { error: intakeError } = await supabase
+          .from('student_intakes')
+          .update({ is_free_reapplication: formData.freeReapplication })
+          .eq('student_id', student.user_id)
+          .eq('intake_id', activeIntakeId);
+        if (intakeError) throw intakeError;
       }
 
       toast({ title: t('common.success'), description: 'Student updated successfully' });
@@ -466,6 +504,30 @@ export function EditStudentDialog({ open, onOpenChange, student, onSuccess }: Ed
           {/* Payment Plan & Contract */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">{t('crm.paymentContract')}</h3>
+
+            {/* Free re-application — this season only.
+                Sits above the plan because it overrides it: when it is on, the
+                plan below still describes the student, but nothing is expected
+                for this season. It is stored per season (student_intakes), so
+                the intake they already paid for is untouched. */}
+            <div className="flex items-center space-x-3 p-4 border rounded-lg bg-muted/40">
+              <Checkbox
+                id="freeReapplication"
+                checked={formData.freeReapplication}
+                onCheckedChange={(checked) =>
+                  setFormData({ ...formData, freeReapplication: checked === true })
+                }
+              />
+              <div className="flex-1">
+                <Label htmlFor="freeReapplication" className="flex items-center gap-2 cursor-pointer">
+                  <RotateCcw className="h-5 w-5 text-success" />
+                  <span className="font-medium">{t('crm.freeReapplication')}</span>
+                </Label>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {t('crm.freeReapplicationHint')}
+                </p>
+              </div>
+            </div>
 
             {/* Plan Selection Cards */}
             <div className="space-y-2">
