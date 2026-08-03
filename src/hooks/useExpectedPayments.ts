@@ -29,6 +29,8 @@ type StudentProfile = Tables<'profiles'> & {
   applications?: (Tables<'applications'> & {
     university?: Tables<'universities'>;
   })[];
+  /** Set by useCRMData from the active season's student_intakes row. */
+  freeReapplication?: boolean;
 };
 
 /**
@@ -43,6 +45,11 @@ export function useExpectedPayments(
     const result: ExpectedPayment[] = [];
 
     students.forEach(student => {
+      // A free re-application owes nothing for this season. The plan lives on
+      // the profile and is season-independent, so a student carried over after
+      // a visa refusal would otherwise have the same plan expected again here,
+      // on top of the season they already paid for.
+      if (student.freeReapplication) return;
       if (!student.payment_plan) return; // Skip students without a plan
 
       const plan = getPlanByValue(student.payment_plan);

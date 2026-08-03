@@ -5127,18 +5127,21 @@ export type Database = {
           created_at: string
           id: string
           intake_id: string
+          is_free_reapplication: boolean
           student_id: string
         }
         Insert: {
           created_at?: string
           id?: string
           intake_id: string
+          is_free_reapplication?: boolean
           student_id: string
         }
         Update: {
           created_at?: string
           id?: string
           intake_id?: string
+          is_free_reapplication?: boolean
           student_id?: string
         }
         Relationships: [

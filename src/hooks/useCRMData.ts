@@ -13,6 +13,14 @@ type StudentProfile = Tables<'profiles'> & {
   documents?: Tables<'documents'>[];
   paymentStatus?: string | null;
   initialPaymentOverdue?: boolean;
+  /**
+   * This season is a free re-application, so nothing is owed for it.
+   *
+   * Read off the student's `student_intakes` row for the active season, not
+   * off the profile — the profile's plan is season-independent, and a student
+   * carried over after a visa refusal paid for the season they came from.
+   */
+  freeReapplication?: boolean;
 };
 
 type ApplicationWithUniversity = Tables<'applications'> & {
@@ -38,7 +46,7 @@ export function useCRMData() {
       // where a role that can't read `documents` (e.g. call_operator) saw fewer.
       const { data: memberships, error: membershipError } = await supabase
         .from('student_intakes')
-        .select('student_id')
+        .select('student_id, is_free_reapplication')
         .eq('intake_id', activeIntakeId);
 
       if (membershipError) {
@@ -48,6 +56,12 @@ export function useCRMData() {
       }
 
       const memberIds = new Set((memberships ?? []).map((m) => m.student_id));
+      // Exempt for THIS season only. The same student can be billed normally
+      // in another season, which is the whole point of holding the flag here
+      // rather than on the profile.
+      const freeReapplicationIds = new Set(
+        (memberships ?? []).filter((m) => m.is_free_reapplication).map((m) => m.student_id),
+      );
 
       // Staff are never students.
       const { data: staffRoles, error: staffError } = await supabase
@@ -145,6 +159,13 @@ export function useCRMData() {
       const initialOverdueByStudent = new Map<string, boolean>();
       for (const profile of memberProfiles) {
         const uid = profile.user_id;
+        // Nothing is owed for a free re-application, so nothing can be late.
+        // Without this the exempt student still turns red for missing a
+        // payment we are not asking them to make.
+        if (freeReapplicationIds.has(uid)) {
+          initialOverdueByStudent.set(uid, false);
+          continue;
+        }
         if (!profile.contract_date || !profile.payment_plan) {
           initialOverdueByStudent.set(uid, false);
           continue;
@@ -177,6 +198,7 @@ export function useCRMData() {
         documents: docsByStudent.get(profile.user_id) || [],
         paymentStatus: paymentStatusByStudent.get(profile.user_id) || null,
         initialPaymentOverdue: initialOverdueByStudent.get(profile.user_id) || false,
+        freeReapplication: freeReapplicationIds.has(profile.user_id),
       }));
 
       setStudents(studentsWithData);
