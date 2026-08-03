@@ -75,9 +75,10 @@ export function useDashboardStats() {
         taskLowCount,
         taskUrgentCount,
         // Per-intake roster = explicit membership (role-independent), plus staff
-        // ids so we can exclude them.
+        // ids so we can exclude them, plus the profiles the roster resolves to.
         membersRes,
         staffRolesRes,
+        profileIdsRes,
       ] = await Promise.all([
         applyIntake(supabase.from('applications').select('id, status, created_at, student_id'), activeIntakeId),
         applyIntake(supabase.from('documents').select('id', { count: 'exact', head: true }).eq('status', 'uploaded'), activeIntakeId),
@@ -96,17 +97,29 @@ export function useDashboardStats() {
         applyIntake(supabase.from('tasks').select('id', { count: 'exact', head: true }).eq('priority', 'urgent').neq('status', 'completed').neq('status', 'cancelled'), activeIntakeId),
         supabase.from('student_intakes').select('student_id').eq('intake_id', activeIntakeId),
         supabase.from('user_roles').select('user_id'),
+        supabase.from('profiles').select('user_id'),
       ]);
 
       const applications = applicationsRes.data || [];
       const calls = callsRes.data || [];
       const tasks = pendingTasksRes.data || [];
 
-      // Per-intake student count = members of this season, excluding staff.
+      // Per-intake student count = members of this season, excluding staff, and
+      // only those the roster actually resolves to a profile.
+      //
+      // The last condition is what keeps this tile honest. A student_intakes
+      // row can outlive the profile it points at, and useCRMData — which feeds
+      // the Students screen — intersects membership with profiles, so those
+      // rows show up nowhere in the UI. Counting raw memberships here made the
+      // dashboard read 8 while the list showed 4, with no way to reach the
+      // missing four.
       const staffIds = new Set((staffRolesRes.data || []).map((r) => r.user_id));
+      const profileIds = new Set((profileIdsRes.data || []).map((p) => p.user_id));
       const studentIds = new Set<string>();
       for (const m of (membersRes.data || [])) {
-        if (m.student_id && !staffIds.has(m.student_id)) studentIds.add(m.student_id);
+        if (m.student_id && !staffIds.has(m.student_id) && profileIds.has(m.student_id)) {
+          studentIds.add(m.student_id);
+        }
       }
       const totalStudents = studentIds.size;
       const activeApplications = applications.filter(
