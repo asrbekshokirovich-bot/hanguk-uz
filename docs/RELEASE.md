@@ -206,6 +206,58 @@ the comment above `targetSdk` for how each was resolved.
 
 ---
 
+## 6. Building in CI instead
+
+`.github/workflows/android-release.yml` runs §2 on a GitHub runner, so a
+release does not depend on which laptop has Flutter and the keystore on it.
+Actions tab → **Android release bundle** → **Run workflow**. It produces the
+`.aab` (and, by default, a release APK for on-device testing) as workflow
+artifacts. Uploading to Play is still manual — §4 is unchanged.
+
+CI checks two things a local build only warns about:
+
+- the keystore's SHA-1 must equal the upload key certificate in Play Console,
+  asserted before the build and again against the finished bundle's signer;
+- the signing secrets must all be present, so the debug-signing fallback in
+  §0 can never quietly produce an artifact.
+
+`EXPECTED_UPLOAD_KEY_SHA1` in the workflow holds that fingerprint. It is a
+public certificate, not a secret. **If the upload key is ever reset, update it
+in the same commit as the new secret** — otherwise every build fails the assert.
+
+### One-time secret setup
+
+On the machine that holds the keystore, base64 it:
+
+```powershell
+# PowerShell
+[Convert]::ToBase64String([IO.File]::ReadAllBytes("C:\path\to\hanguk-upload.jks")) | Set-Clipboard
+```
+
+```bash
+# macOS / Linux
+base64 -w0 ~/keys/hanguk-upload.jks | pbcopy   # or | xclip -selection clipboard
+```
+
+Then **Settings → Secrets and variables → Actions → New repository secret**:
+
+| Secret | Value |
+|---|---|
+| `ANDROID_KEYSTORE_BASE64` | the base64 string above |
+| `ANDROID_KEYSTORE_PASSWORD` | `storePassword` from `key.properties` |
+| `ANDROID_KEY_ALIAS` | `keyAlias` |
+| `ANDROID_KEY_PASSWORD` | `keyPassword` |
+
+Optional, both with working defaults in `AppConfig` — omit and the build still
+succeeds: `SENTRY_DSN`, `KAKAO_JS_KEY`.
+
+This puts the upload key in GitHub's secret store. Anyone who can push a
+workflow to this repo can then sign builds with it, so treat write access as
+equivalent to holding the key. Keep the original `.jks` and its passwords backed
+up offline regardless — GitHub secrets are write-only and cannot be read back.
+
+---
+
 ## Common rejections
 
 | Play says | Cause |
@@ -214,4 +266,36 @@ the comment above `targetSdk` for how each was resolved.
 | Version code already used | `versionCode` not bumped — see §1. |
 | Target API level too low | `targetSdk` behind — see §5. |
 | Deceptive / unauthorised app installation | Built without `STORE_BUILD=true`, leaving the APK self-updater live — see §2. |
-| Permission not declared | `REQUEST_INSTALL_PACKAGES` and the media permissions in `AndroidManifest.xml` need a declaration in the Console's App content section. |
+| Permission not declared | `REQUEST_INSTALL_PACKAGES` in `AndroidManifest.xml` needs a declaration in the Console's App content section. |
+| Use alternative system pickers for photos / videos | The bundle holds `READ_MEDIA_IMAGES` / `READ_MEDIA_VIDEO`. Blocked 2040. They are stripped with `tools:node="remove"` in `AndroidManifest.xml` — the app picks files through SAF, which needs no permission. If this reappears, a plugin has started merging them back in — see below. |
+
+### Checking the merged manifest
+
+What Play reads is the *merged* manifest, not `android/app/src/main/AndroidManifest.xml`. A
+plugin can add a permission our source never mentions, so check the merged
+output after building rather than trusting the source:
+
+```powershell
+Get-ChildItem -Recurse hanguk_app\build\app\intermediates -Filter AndroidManifest.xml |
+  Select-String READ_MEDIA
+```
+
+From `cmd` rather than PowerShell:
+
+```
+findstr /s /c:"READ_MEDIA" build\app\intermediates\*.xml
+```
+
+No output means the permissions are gone. Search rather than opening a fixed
+path: a release build writes four of these, AGP nests each under the task that
+produced it, and the directory names have changed between AGP versions. At the
+time of writing the two that matter are
+
+```
+merged_manifests\release\processReleaseManifest\AndroidManifest.xml
+packaged_manifests\release\processReleaseManifestForPackage\AndroidManifest.xml
+```
+
+the second being what actually goes into the bundle.
+
+The CI job in §6 runs this check on every build.

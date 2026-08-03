@@ -1,6 +1,46 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+
+    <!-- Play policy block (2026-08-03, version code 2040): "Use alternative
+         system pickers for photos / videos". Apps targeting API 33+ may only
+         hold READ_MEDIA_IMAGES / READ_MEDIA_VIDEO if a system picker cannot
+         provide core functionality. Ours can:
+
+           * The only file access in the app is document upload
+             (features/documents/presentation/documents_tab.dart), which calls
+             FilePicker with FileType.custom. On Android that goes through the
+             Storage Access Framework — the user picks one file and the app
+             receives a grant for it. No storage permission is involved at any
+             API level.
+           * Nothing reads the media store, enumerates the gallery, or asks for
+             these permissions at runtime. permission_handler is used only by
+             packages/vapi, and only for the microphone.
+
+         The dead image_picker dependency that dragged these in was dropped
+         separately, which removes one source. node="remove" stays because it
+         is not the only one: permission_handler_android declares them too, so
+         deleting our own lines is not enough to keep them out of the merged
+         manifest. The 2041 build bears this out — it still carries
+         READ_MEDIA_AUDIO from a plugin, and only the two entries named here
+         are actually absent.
+
+         If a feature ever genuinely needs gallery access, reach for the
+         Android photo picker (PickVisualMedia) first; it needs no permission.
+         Only if that is provably insufficient should these come back, and then
+         the Play Console declaration under App content has to come back too. -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" tools:node="remove" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" tools:node="remove" />
+    <!-- Superseded by the READ_MEDIA_* split on API 33+, so this is inert
+         there. Capped explicitly so it cannot be read as a broad storage
+         request under the same policy. SAF does not need it below 33 either;
+         it stays only because plugin manifests declare it and capping is
+         cheaper than fighting the merge. -->
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32"
+        tools:replace="android:maxSdkVersion" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />

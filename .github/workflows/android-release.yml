@@ -1,0 +1,269 @@
+name: Android release bundle
+
+# Builds a Play-ready, upload-key-signed .aab for the student app
+# (com.hanguk.studentapp.hanguk_app) and attaches it as a workflow artifact.
+# Manual only — releasing is a deliberate act, not something a push should do.
+#
+# The build steps mirror docs/RELEASE.md §2. What CI adds over building on a
+# laptop is that the two failure modes that doc warns about are checked rather
+# than trusted:
+#
+#   * a missing key.properties silently falling back to DEBUG signing, and
+#   * signing with a keystore that is not the one Play expects.
+#
+# Both are asserted below and fail the job loudly instead of producing an
+# artifact Play will reject.
+#
+# Required repo secrets (Settings -> Secrets and variables -> Actions):
+#   ANDROID_KEYSTORE_BASE64   base64 of the upload keystore (.jks)
+#   ANDROID_KEYSTORE_PASSWORD storePassword
+#   ANDROID_KEY_ALIAS         alias of the key inside the keystore
+#   ANDROID_KEY_PASSWORD      keyPassword (often the same as storePassword)
+#
+# Optional secrets — every one of these has a working default compiled into
+# AppConfig, so omitting them builds a valid app (see docs/RELEASE.md §2):
+#   SENTRY_DSN, KAKAO_JS_KEY
+
+on:
+  workflow_dispatch:
+    inputs:
+      flutter_version:
+        description: "Flutter version to build with. Blank = latest stable."
+        required: false
+        default: ""
+      build_apk:
+        description: "Also build an APK for on-device testing before uploading"
+        type: boolean
+        required: false
+        default: true
+
+concurrency:
+  group: android-release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  # The upload key certificate shown in Play Console -> App signing. This is a
+  # public certificate fingerprint, not a secret. Pinning it here turns "signed
+  # with the wrong key" from a rejected upload into a failed build.
+  #
+  # If the upload key is ever reset (Play Console -> Request upload key reset),
+  # update this to the new fingerprint in the same commit as the new secret.
+  EXPECTED_UPLOAD_KEY_SHA1: "8B:BE:B0:6C:B5:A3:A5:DD:E0:B2:8C:F6:30:56:FD:0A:E9:F4:88:0B"
+
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: hanguk_app
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          # build.gradle.kts pins source/target compatibility to 17.
+          java-version: "17"
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ inputs.flutter_version }}
+          cache: true
+
+      - name: Report toolchain and version being built
+        run: |
+          flutter --version
+          echo "pubspec version: $(grep '^version:' pubspec.yaml)"
+
+      # ── Signing ────────────────────────────────────────────────────────────
+      # build.gradle.kts falls back to debug signing when key.properties is
+      # absent and only warns. Fail here instead: a debug-signed bundle looks
+      # like a successful build right up until Play refuses it.
+      - name: Require signing secrets
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          missing=""
+          [ -n "$KEYSTORE_B64" ]      || missing="$missing ANDROID_KEYSTORE_BASE64"
+          [ -n "$KEYSTORE_PASSWORD" ] || missing="$missing ANDROID_KEYSTORE_PASSWORD"
+          [ -n "$KEY_ALIAS" ]         || missing="$missing ANDROID_KEY_ALIAS"
+          [ -n "$KEY_PASSWORD" ]      || missing="$missing ANDROID_KEY_PASSWORD"
+          if [ -n "$missing" ]; then
+            echo "::error::Missing signing secret(s):$missing — see docs/RELEASE.md §0."
+            exit 1
+          fi
+
+      - name: Restore keystore and key.properties
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          keystore="$GITHUB_WORKSPACE/hanguk_app/android/upload-keystore.jks"
+          printf '%s' "$KEYSTORE_B64" | base64 -d > "$keystore"
+          chmod 600 "$keystore"
+          # Absolute path — the template allows a path relative to android/,
+          # but an absolute one removes any doubt about what Gradle resolves.
+          {
+            echo "storeFile=$keystore"
+            echo "storePassword=$KEYSTORE_PASSWORD"
+            echo "keyAlias=$KEY_ALIAS"
+            echo "keyPassword=$KEY_PASSWORD"
+          } > android/key.properties
+          chmod 600 android/key.properties
+
+      - name: Assert the keystore is the one Play expects
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          keystore="$GITHUB_WORKSPACE/hanguk_app/android/upload-keystore.jks"
+          actual=$(keytool -list -v -keystore "$keystore" -alias "$KEY_ALIAS" \
+                     -storepass "$KEYSTORE_PASSWORD" 2>/dev/null \
+                   | grep -E '^[[:space:]]*SHA1:' | head -1 | sed 's/.*SHA1: *//' | tr -d '[:space:]')
+          if [ -z "$actual" ]; then
+            echo "::error::Could not read a SHA-1 for alias '$KEY_ALIAS'. Wrong alias or wrong password?"
+            exit 1
+          fi
+          expected=$(printf '%s' "$EXPECTED_UPLOAD_KEY_SHA1" | tr -d '[:space:]')
+          if [ "$actual" != "$expected" ]; then
+            echo "::error::Keystore does not match the upload key registered with Play."
+            echo "  expected $expected"
+            echo "  actual   $actual"
+            echo "Play would reject this bundle. Check ANDROID_KEYSTORE_BASE64 / ANDROID_KEY_ALIAS."
+            exit 1
+          fi
+          echo "Upload key matches Play: $actual"
+
+      # ── Build ──────────────────────────────────────────────────────────────
+      - name: flutter pub get
+        run: flutter pub get
+
+      - name: Collect optional dart-defines
+        id: defines
+        env:
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          KAKAO_JS_KEY: ${{ secrets.KAKAO_JS_KEY }}
+        run: |
+          # STORE_BUILD=true is mandatory: without it kIsStoreBuild stays false
+          # and the in-app APK self-updater remains active, which violates
+          # Play's policy on distributing apps outside the store.
+          defines="--dart-define=STORE_BUILD=true"
+          [ -n "$SENTRY_DSN" ]   && defines="$defines --dart-define=SENTRY_DSN=$SENTRY_DSN"
+          [ -n "$KAKAO_JS_KEY" ] && defines="$defines --dart-define=KAKAO_JS_KEY=$KAKAO_JS_KEY"
+          echo "flags=$defines" >> "$GITHUB_OUTPUT"
+          # Log which optional defines were supplied, never their values.
+          echo "SENTRY_DSN supplied:   $([ -n "$SENTRY_DSN" ]   && echo yes || echo 'no (crash reporting no-ops)')"
+          echo "KAKAO_JS_KEY supplied: $([ -n "$KAKAO_JS_KEY" ] && echo yes || echo 'no (AppConfig default)')"
+
+      - name: Build app bundle
+        run: flutter build appbundle --release ${{ steps.defines.outputs.flags }}
+
+      - name: Build APK for on-device testing
+        if: ${{ inputs.build_apk }}
+        run: flutter build apk --release ${{ steps.defines.outputs.flags }}
+
+      # ── Verify what was actually produced ──────────────────────────────────
+      # Play blocked version code 2040 for holding READ_MEDIA_IMAGES /
+      # READ_MEDIA_VIDEO when a system picker would do. AndroidManifest.xml
+      # strips them with tools:node="remove", but a plugin bump can merge them
+      # back in silently — the app manifest looks clean, the merged one is not.
+      # Catch that here rather than four hours into a release.
+      - name: Assert no broad media permissions survived the manifest merge
+        run: |
+          # Both trees matter, and they are not the same file: merged_manifest(s)
+          # is the merge result, packaged_manifests is what is actually written
+          # into the bundle. AGP nests each under the task that produced it and
+          # has renamed those directories between versions, so search rather
+          # than name a path.
+          manifests=$(find build/app/intermediates -name AndroidManifest.xml \
+                        \( -path '*merged*' -o -path '*packaged*' \) 2>/dev/null)
+          if [ -z "$manifests" ]; then
+            echo "::error::No merged or packaged manifest found under build/app/intermediates."
+            echo "AGP likely moved the output path — fix this check rather than deleting it."
+            exit 1
+          fi
+          echo "Checking:"; echo "$manifests" | sed 's/^/  /'
+          echo "$manifests" | python3 "$GITHUB_WORKSPACE/.github/scripts/assert_no_media_permissions.py"
+
+      # Belt and braces over the pre-build keystore assert: this reads the
+      # signer out of the finished bundle, so it also catches Gradle having
+      # picked a different signing config than we intended.
+      - name: Assert the bundle is signed with the upload key
+        run: |
+          aab=build/app/outputs/bundle/release/app-release.aab
+          block=$(unzip -Z1 "$aab" 'META-INF/*.RSA' 'META-INF/*.EC' 'META-INF/*.DSA' 2>/dev/null | head -1)
+          if [ -z "$block" ]; then
+            echo "::error::No signature block in $aab — the bundle is unsigned."
+            exit 1
+          fi
+          unzip -p "$aab" "$block" > /tmp/signer.p7
+          actual=$(openssl pkcs7 -inform DER -in /tmp/signer.p7 -print_certs \
+                   | openssl x509 -noout -fingerprint -sha1 \
+                   | sed 's/.*=//' | tr -d '[:space:]')
+          expected=$(printf '%s' "$EXPECTED_UPLOAD_KEY_SHA1" | tr -d '[:space:]')
+          if [ "$actual" != "$expected" ]; then
+            echo "::error::Bundle was signed with $actual, expected $expected."
+            exit 1
+          fi
+          echo "Bundle signed with the upload key: $actual"
+
+      - name: Summarise the release
+        run: |
+          version=$(grep '^version:' pubspec.yaml | sed 's/version: *//')
+          name=${version%%+*}
+          code=${version##*+}
+          {
+            echo "### Android release bundle"
+            echo ""
+            echo "| | |"
+            echo "|---|---|"
+            echo "| Package | \`com.hanguk.studentapp.hanguk_app\` |"
+            echo "| versionName | \`$name\` |"
+            echo "| versionCode | \`$code\` |"
+            echo "| Signed with | upload key \`$EXPECTED_UPLOAD_KEY_SHA1\` |"
+            echo "| Commit | \`${GITHUB_SHA:0:7}\` |"
+            echo ""
+            echo "Download the artifact below, then Play Console → **Testing → Internal testing**"
+            echo "→ Create new release → upload the \`.aab\`. Promote to Production once it checks out"
+            echo "(docs/RELEASE.md §4)."
+            echo ""
+            echo "versionCode \`$code\` must be higher than anything already uploaded, or Play"
+            echo "rejects it at the upload step."
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "artifact_name=hanguk-$name-$code" >> "$GITHUB_ENV"
+
+      - name: Upload bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.artifact_name }}-aab
+          path: hanguk_app/build/app/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload test APK
+        if: ${{ inputs.build_apk }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.artifact_name }}-apk
+          path: hanguk_app/build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
+          retention-days: 30
+
+      # Runners are ephemeral, but an early `exit 1` above should not leave the
+      # key sitting in a workspace that a later step or cache could pick up.
+      - name: Shred signing material
+        if: always()
+        run: |
+          shred -u "$GITHUB_WORKSPACE/hanguk_app/android/upload-keystore.jks" 2>/dev/null || true
+          shred -u android/key.properties 2>/dev/null || true
