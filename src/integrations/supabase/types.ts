@@ -3948,6 +3948,7 @@ export type Database = {
           full_name: string | null
           id: string
           ielts_score: number | null
+          is_demo: boolean
           is_gks_applicant: boolean | null
           korean_region_preference: string | null
           language_track: string | null
@@ -3999,6 +4000,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           ielts_score?: number | null
+          is_demo?: boolean
           is_gks_applicant?: boolean | null
           korean_region_preference?: string | null
           language_track?: string | null
@@ -4050,6 +4052,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           ielts_score?: number | null
+          is_demo?: boolean
           is_gks_applicant?: boolean | null
           korean_region_preference?: string | null
           language_track?: string | null

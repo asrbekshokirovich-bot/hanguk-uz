@@ -234,23 +234,17 @@ export function useInvestorFunnel(intakeId: string | null) {
   });
 }
 
-// Test/dummy student rows hidden from the investor's Applications screen only.
-// They stay fully intact in the main CRM (Students/Applications) - this list
-// filters the investor-facing query result, nothing upstream.
-const INVESTOR_HIDDEN_STUDENT_NAMES = new Set([
-  "arslanov xojamurod test",
-  'omonova shokhista komil kizi',
-]);
-
-function normalizeInvestorName(name: string) {
-  return name
-    .toLowerCase()
-    .normalize('NFKD')
-    .replace(/[̀-ͯ]/g, '')
-    .replace(/['’ʼ`]/g, '')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
+// What the investor may not see is now decided in SQL, by
+// v_investor_applications and v_investor_season_funnel: demo accounts
+// (profiles.is_demo) and free re-applications
+// (student_intakes.is_free_reapplication) are excluded there.
+//
+// This used to be a list of student names matched here. Two things were wrong
+// with that. It only reached the Applications screen — the funnel count is
+// computed in SQL and counted the same students anyway, so the two screens
+// disagreed. And one of the names was a real student being hidden because
+// there was no way to express what she is; she is a free re-application, and
+// saying so is what the flag does.
 
 export function useInvestorApplications(intakeId: string | null) {
   return useQuery({
@@ -262,9 +256,7 @@ export function useInvestorApplications(intakeId: string | null) {
         .eq('intake_id', intakeId)
         .order('updated_at', { ascending: false });
       if (error) throw error;
-      return ((data ?? []) as InvestorApplicationRow[]).filter(
-        (row) => !INVESTOR_HIDDEN_STUDENT_NAMES.has(normalizeInvestorName(row.student_name ?? '')),
-      );
+      return (data ?? []) as InvestorApplicationRow[];
     },
   });
 }
