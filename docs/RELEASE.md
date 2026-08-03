@@ -266,4 +266,5 @@ up offline regardless — GitHub secrets are write-only and cannot be read back.
 | Version code already used | `versionCode` not bumped — see §1. |
 | Target API level too low | `targetSdk` behind — see §5. |
 | Deceptive / unauthorised app installation | Built without `STORE_BUILD=true`, leaving the APK self-updater live — see §2. |
-| Permission not declared | `REQUEST_INSTALL_PACKAGES` and the media permissions in `AndroidManifest.xml` need a declaration in the Console's App content section. |
+| Permission not declared | `REQUEST_INSTALL_PACKAGES` in `AndroidManifest.xml` needs a declaration in the Console's App content section. |
+| Use alternative system pickers for photos / videos | The bundle holds `READ_MEDIA_IMAGES` / `READ_MEDIA_VIDEO`. Blocked 2040. They are stripped with `tools:node="remove"` in `AndroidManifest.xml` — the app picks files through SAF, which needs no permission. If this reappears, a plugin has started merging them back in; check the merged manifest under `build/app/intermediates/merged_manifests/`. |
