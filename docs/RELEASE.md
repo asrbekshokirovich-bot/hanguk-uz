@@ -267,4 +267,22 @@ up offline regardless — GitHub secrets are write-only and cannot be read back.
 | Target API level too low | `targetSdk` behind — see §5. |
 | Deceptive / unauthorised app installation | Built without `STORE_BUILD=true`, leaving the APK self-updater live — see §2. |
 | Permission not declared | `REQUEST_INSTALL_PACKAGES` in `AndroidManifest.xml` needs a declaration in the Console's App content section. |
-| Use alternative system pickers for photos / videos | The bundle holds `READ_MEDIA_IMAGES` / `READ_MEDIA_VIDEO`. Blocked 2040. They are stripped with `tools:node="remove"` in `AndroidManifest.xml` — the app picks files through SAF, which needs no permission. If this reappears, a plugin has started merging them back in; check the merged manifest under `build/app/intermediates/merged_manifests/`. |
+| Use alternative system pickers for photos / videos | The bundle holds `READ_MEDIA_IMAGES` / `READ_MEDIA_VIDEO`. Blocked 2040. They are stripped with `tools:node="remove"` in `AndroidManifest.xml` — the app picks files through SAF, which needs no permission. If this reappears, a plugin has started merging them back in — see below. |
+
+### Checking the merged manifest
+
+What Play reads is the *merged* manifest, not `android/app/src/main/AndroidManifest.xml`. A
+plugin can add a permission our source never mentions, so check the merged
+output after building rather than trusting the source:
+
+```powershell
+Get-ChildItem -Recurse hanguk_app\build\app\intermediates -Filter AndroidManifest.xml |
+  Select-String READ_MEDIA
+```
+
+No output means the permissions are gone. Search rather than opening a fixed
+path — AGP nests the file by task name
+(`merged_manifests\release\processReleaseManifest\...` at the time of writing)
+and has moved it between versions.
+
+The CI job in §6 runs this check on every build.
