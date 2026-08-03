@@ -688,15 +688,7 @@ export function StudentList({
                       <span className="line-clamp-1">{uni || '—'}</span>
                     </TableCell>
                     <TableCell>
-                      <div className="flex flex-wrap items-center gap-1">
-                        <Badge variant={plan.tone}>{plan.label}</Badge>
-                        {student.freeReapplication && (
-                          <Badge variant="successSoft" className="gap-1">
-                            <RotateCcw className="h-3 w-3" />
-                            {t('crm.freeReapplicationShort')}
-                          </Badge>
-                        )}
-                      </div>
+                      <Badge variant={plan.tone}>{plan.label}</Badge>
                     </TableCell>
                     <TableCell className="hidden lg:table-cell">
                       <div className="flex items-center gap-2">
@@ -705,7 +697,19 @@ export function StudentList({
                       </div>
                     </TableCell>
                     <TableCell>
-                      {payment ? <ToneBadge tone={payment.tone} dot>{payment.label}</ToneBadge> : <span className="text-muted-foreground">—</span>}
+                      {/* The exemption belongs here rather than beside the plan:
+                          it is the answer to "why is nothing owed", and the
+                          plan it sits next to is still the student's real one. */}
+                      {student.freeReapplication ? (
+                        <Badge variant="successSoft" className="gap-1">
+                          <RotateCcw className="h-3 w-3" />
+                          {t('crm.freeReapplicationShort')}
+                        </Badge>
+                      ) : payment ? (
+                        <ToneBadge tone={payment.tone} dot>{payment.label}</ToneBadge>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
                     </TableCell>
                     <TableCell>
                       <ChevronRight className="h-4 w-4 text-muted-foreground" />
@@ -749,12 +753,6 @@ export function StudentList({
                     )}
                   </div>
                   <div className="flex items-center gap-1.5">
-                    {student.freeReapplication && (
-                      <Badge variant="successSoft" className="gap-1">
-                        <RotateCcw className="h-3 w-3" />
-                        {t('crm.freeReapplicationShort')}
-                      </Badge>
-                    )}
                     <Badge variant={plan.tone}>{plan.label}</Badge>
                     <Button
                       variant="ghost"
@@ -783,7 +781,16 @@ export function StudentList({
 
                 <div className="mt-3 flex items-center justify-between gap-2">
                   {stage ? <Badge variant={stage.tone}>{stage.label}</Badge> : <span />}
-                  {payment && <ToneBadge tone={payment.tone} dot>{payment.label}</ToneBadge>}
+                  {/* Same slot as the payment chip, for the same reason as the
+                      table: it explains the absence of one. */}
+                  {student.freeReapplication ? (
+                    <Badge variant="successSoft" className="gap-1">
+                      <RotateCcw className="h-3 w-3" />
+                      {t('crm.freeReapplicationShort')}
+                    </Badge>
+                  ) : (
+                    payment && <ToneBadge tone={payment.tone} dot>{payment.label}</ToneBadge>
+                  )}
                 </div>
               </Card>
             );
