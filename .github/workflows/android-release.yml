@@ -181,20 +181,26 @@ jobs:
       # Catch that here rather than four hours into a release.
       - name: Assert no broad media permissions survived the manifest merge
         run: |
-          manifests=$(find build/app/intermediates -name AndroidManifest.xml -path '*merged*' 2>/dev/null)
+          # Both trees matter, and they are not the same file: merged_manifest(s)
+          # is the merge result, packaged_manifests is what is actually written
+          # into the bundle. AGP nests each under the task that produced it and
+          # has renamed those directories between versions, so search rather
+          # than name a path.
+          manifests=$(find build/app/intermediates -name AndroidManifest.xml \
+                        \( -path '*merged*' -o -path '*packaged*' \) 2>/dev/null)
           if [ -z "$manifests" ]; then
-            echo "::error::No merged manifest found under build/app/intermediates."
+            echo "::error::No merged or packaged manifest found under build/app/intermediates."
             echo "AGP likely moved the output path — fix this check rather than deleting it."
             exit 1
           fi
           echo "Checking:"; echo "$manifests" | sed 's/^/  /'
           if echo "$manifests" | xargs grep -l -E 'READ_MEDIA_IMAGES|READ_MEDIA_VIDEO' 2>/dev/null; then
-            echo "::error::The merged manifest requests READ_MEDIA_IMAGES and/or READ_MEDIA_VIDEO."
+            echo "::error::The manifest above requests READ_MEDIA_IMAGES and/or READ_MEDIA_VIDEO."
             echo "Play rejects this under the photo and video permissions policy."
             echo "A dependency is merging them in. Add a tools:node=\"remove\" entry, or drop the plugin."
             exit 1
           fi
-          echo "No broad media permissions in the merged manifest."
+          echo "No broad media permissions in the merged or packaged manifest."
 
       # Belt and braces over the pre-build keystore assert: this reads the
       # signer out of the finished bundle, so it also catches Gradle having

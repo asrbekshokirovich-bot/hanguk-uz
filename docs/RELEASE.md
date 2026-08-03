@@ -280,9 +280,22 @@ Get-ChildItem -Recurse hanguk_app\build\app\intermediates -Filter AndroidManifes
   Select-String READ_MEDIA
 ```
 
+From `cmd` rather than PowerShell:
+
+```
+findstr /s /c:"READ_MEDIA" build\app\intermediates\*.xml
+```
+
 No output means the permissions are gone. Search rather than opening a fixed
-path — AGP nests the file by task name
-(`merged_manifests\release\processReleaseManifest\...` at the time of writing)
-and has moved it between versions.
+path: a release build writes four of these, AGP nests each under the task that
+produced it, and the directory names have changed between AGP versions. At the
+time of writing the two that matter are
+
+```
+merged_manifests\release\processReleaseManifest\AndroidManifest.xml
+packaged_manifests\release\processReleaseManifestForPackage\AndroidManifest.xml
+```
+
+the second being what actually goes into the bundle.
 
 The CI job in §6 runs this check on every build.
