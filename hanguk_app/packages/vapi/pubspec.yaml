@@ -18,9 +18,11 @@ dependencies:
 
   
   # Mobile-specific dependencies
-  daily_flutter: ^0.31.0
-  # Note: permission_handler is constrained by daily_flutter 0.31.0
-  # which requires ^11.3.1. Update when daily_flutter supports ^12.0.0
+  # Bumped from 0.31.0 (2026-08-03): the 0.31.0 build of libdaily-flutter.so
+  # is only 4 KB-page-aligned, which Play Console rejects under the 16 KB
+  # native library requirement (enforced Nov 1, 2025). 0.39.0 ships a
+  # 16 KB-aligned build.
+  daily_flutter: ^0.39.0
   permission_handler: ^11.3.1
   
   # Web-specific dependencies
