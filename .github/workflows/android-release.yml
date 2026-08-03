@@ -194,13 +194,7 @@ jobs:
             exit 1
           fi
           echo "Checking:"; echo "$manifests" | sed 's/^/  /'
-          if echo "$manifests" | xargs grep -l -E 'READ_MEDIA_IMAGES|READ_MEDIA_VIDEO' 2>/dev/null; then
-            echo "::error::The manifest above requests READ_MEDIA_IMAGES and/or READ_MEDIA_VIDEO."
-            echo "Play rejects this under the photo and video permissions policy."
-            echo "A dependency is merging them in. Add a tools:node=\"remove\" entry, or drop the plugin."
-            exit 1
-          fi
-          echo "No broad media permissions in the merged or packaged manifest."
+          echo "$manifests" | python3 "$GITHUB_WORKSPACE/.github/scripts/assert_no_media_permissions.py"
 
       # Belt and braces over the pre-build keystore assert: this reads the
       # signer out of the finished bundle, so it also catches Gradle having
