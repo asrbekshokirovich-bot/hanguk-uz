@@ -10,6 +10,12 @@ export interface TelegramSendOptions {
   reply_markup?: unknown;
   disable_web_page_preview?: boolean;
   reply_to_message_id?: number;
+  /**
+   * Send on behalf of a linked Telegram Business account instead of as the bot.
+   * The client sees the reply from the account they wrote to; without it the
+   * answer arrives in a different conversation from the one they are reading.
+   */
+  business_connection_id?: string;
 }
 
 export interface TelegramApiResult<T = unknown> {

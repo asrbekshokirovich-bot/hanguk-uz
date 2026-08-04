@@ -75,7 +75,15 @@ async function storeMessage(supabase: Any, m: {
     student_id: m.studentId ?? null, // BEFORE INSERT trigger fills this if null
     metadata: { telegram_chat_id: m.chatId, ...(m.extraMeta ?? {}) },
   });
-  if (error) console.error("storeMessage error:", error.message);
+  // Throw rather than log-and-continue. The handler answers Telegram with 200
+  // regardless (see the catch below), so a swallowed failure here meant the
+  // message was gone with nothing to show for it: not in the inbox, and not in
+  // the logs beyond one line with no chat or content to trace it back to.
+  if (error) {
+    throw new Error(
+      `storeMessage failed for chat ${m.chatId} (${m.direction}, ${m.type ?? "text"}): ${error.message}`,
+    );
+  }
 }
 
 async function bumpThread(supabase: Any, chatId: string, name: string, direction: "incoming" | "outgoing"): Promise<void> {
@@ -136,21 +144,194 @@ async function upsertLead(supabase: Any, chatId: string, fields: Record<string, 
   return data;
 }
 
+const STAFF_ROLES = ["owner", "admin", "call_operator"];
+
+/** The URL Telegram must be told to deliver updates to — this function's own. */
+const WEBHOOK_URL = `${SUPABASE_URL}/functions/v1/telegram-webhook`;
+
+/**
+ * Is the caller staff? Used to gate the admin actions below.
+ *
+ * Telegram itself never sends an Authorization header, so an update can never
+ * satisfy this and can never reach an admin branch.
+ */
+async function isStaff(supabase: Any, req: Request): Promise<boolean> {
+  const jwt = (req.headers.get("Authorization") || "").replace("Bearer ", "").trim();
+  if (!jwt) return false;
+  const { data, error } = await supabase.auth.getUser(jwt);
+  if (error || !data?.user) return false;
+  const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", data.user.id);
+  return (roles || []).some((r: { role: string }) => STAFF_ROLES.includes(r.role));
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   const ok = () => new Response(JSON.stringify({ ok: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  const json = (body: unknown, status = 200) =>
+    new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
   try {
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
     if (req.method !== "POST") {
-      return new Response(JSON.stringify({ message: "Telegram webhook endpoint", configured: !!BOT_TOKEN }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      // `configured` only says the bot token is present. It says nothing about
+      // whether Telegram is actually delivering here — that is what silently
+      // stopped, with this endpoint answering 200 the whole time. `?action=status`
+      // asks Telegram itself, and is the first thing to check when the inbox
+      // goes quiet.
+      const action = new URL(req.url).searchParams.get("action");
+      if (action === "status") {
+        if (!BOT_TOKEN) return json({ error: "TELEGRAM_BOT_TOKEN is not configured" }, 500);
+        if (!(await isStaff(supabase, req))) return json({ error: "Forbidden: staff role required" }, 403);
+        const res = await fetch(`${TG_API}/getWebhookInfo`);
+        const info = await res.json().catch(() => ({}));
+        const allowed: string[] = info?.result?.allowed_updates ?? [];
+        const { data: connections } = await supabase
+          .from("telegram_business_connections")
+          .select("owner_username, user_chat_id, is_enabled, can_reply, updated_at")
+          .order("updated_at", { ascending: false });
+        const live = (connections ?? []).find((c) => c.is_enabled);
+        return json({
+          expected_url: WEBHOOK_URL,
+          registered_url: info?.result?.url ?? null,
+          matches: info?.result?.url === WEBHOOK_URL,
+          pending_update_count: info?.result?.pending_update_count ?? null,
+          last_error_date: info?.result?.last_error_date ?? null,
+          last_error_message: info?.result?.last_error_message ?? null,
+          // Telegram only delivers what the registration asked for. A webhook
+          // registered before business support was added is subscribed to
+          // `message` alone and will never receive a single business update —
+          // it looks perfectly healthy while the company account stays silent.
+          business_updates_subscribed: allowed.length === 0
+            ? false
+            : allowed.includes("business_message"),
+          business_account: live
+            ? {
+              username: live.owner_username,
+              chat_id: live.user_chat_id,
+              can_reply: live.can_reply,
+            }
+            : null,
+        });
+      }
+      return json({ message: "Telegram webhook endpoint", configured: !!BOT_TOKEN });
     }
 
     const update = await req.json();
+
+    // Point Telegram back at this function. Staff-gated; see isStaff above for
+    // why an update cannot land here.
+    if (update?.action === "register") {
+      if (!BOT_TOKEN) return json({ error: "TELEGRAM_BOT_TOKEN is not configured" }, 500);
+      if (!(await isStaff(supabase, req))) return json({ error: "Forbidden: staff role required" }, 403);
+      const res = await fetch(`${TG_API}/setWebhook`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          url: WEBHOOK_URL,
+          // Telegram sends only what is listed here, and the business_* types
+          // are NOT in the default set — omitting them is a silent way to
+          // receive nothing from the company account.
+          allowed_updates: [
+            "message",
+            "callback_query",
+            "business_connection",
+            "business_message",
+            "edited_business_message",
+          ],
+        }),
+      });
+      const result = await res.json().catch(() => ({}));
+      if (!result?.ok) return json({ ok: false, error: result?.description || "setWebhook failed" }, 502);
+      return json({ ok: true, url: WEBHOOK_URL, description: result?.description });
+    }
     console.log("Telegram update:", JSON.stringify(update));
+
+    // --- Business account linked / unlinked / rights changed --------------
+    if (update.business_connection) {
+      const bc = update.business_connection;
+      // Telegram moved from a flat `can_reply` to a `rights` object; accept
+      // either so a link made from an older or newer client both work.
+      const canReply = bc.rights
+        ? !!bc.rights.can_reply
+        : !!bc.can_reply;
+      const { error } = await supabase.from("telegram_business_connections").upsert({
+        id: String(bc.id),
+        user_chat_id: String(bc.user_chat_id),
+        owner_user_id: bc.user?.id != null ? String(bc.user.id) : null,
+        owner_username: bc.user?.username ?? null,
+        is_enabled: bc.is_enabled !== false,
+        can_reply: canReply,
+        raw: bc,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: "id" });
+      if (error) throw new Error(`business_connection upsert: ${error.message}`);
+      console.log(`business_connection ${bc.id}: enabled=${bc.is_enabled !== false} can_reply=${canReply}`);
+      return ok();
+    }
+
+    // --- Message in a chat of the connected business account --------------
+    // Covers both directions: what a client writes to the company account, and
+    // what staff answer from their own phone. Both belong in the inbox, or the
+    // CRM shows half a conversation.
+    if (update.business_message || update.edited_business_message) {
+      const bm = update.business_message || update.edited_business_message;
+      const connectionId = String(bm.business_connection_id ?? "");
+
+      const { data: conn } = await supabase
+        .from("telegram_business_connections")
+        .select("owner_user_id")
+        .eq("id", connectionId)
+        .maybeSingle();
+
+      // A message whose sender is the account owner is staff replying from
+      // their phone; anything else is the client writing in.
+      const senderId = String(bm.from?.id ?? "");
+      const outgoing = !!conn?.owner_user_id && senderId === conn.owner_user_id;
+
+      // Thread by the *client's* chat, never the owner's, so both directions
+      // land in one conversation.
+      const chatId = String(bm.chat?.id ?? "");
+      if (!chatId) return ok();
+
+      const clientName = [bm.chat?.first_name, bm.chat?.last_name].filter(Boolean).join(" ")
+        || bm.chat?.username || bm.chat?.title || "Telegram user";
+      const senderName = outgoing ? "Hanguk Consulting" : clientName;
+
+      const identity = await resolveIdentity(supabase, "telegram", chatId, { displayName: clientName });
+      await bumpThread(supabase, chatId, clientName, outgoing ? "outgoing" : "incoming");
+      if (identity.studentId) {
+        await supabase.from("message_threads").update({ student_id: identity.studentId })
+          .eq("source", "telegram").eq("sender_id", chatId).is("student_id", null);
+      }
+
+      const messageType = bm.photo ? "image" : bm.voice ? "voice" : bm.document ? "file" : "text";
+      const voiceMeta = bm.voice ? await storeVoice(supabase, chatId, bm.message_id, bm.voice) : null;
+
+      await storeMessage(supabase, {
+        chatId,
+        messageId: bm.message_id,
+        senderName,
+        content: bm.text || bm.caption || (bm.voice ? "🎤 Voice message" : "[Media message]"),
+        direction: outgoing ? "outgoing" : "incoming",
+        type: messageType,
+        studentId: identity.studentId,
+        extraMeta: {
+          // send-telegram reads this back to answer as the account.
+          business_connection_id: connectionId,
+          telegram_user_id: senderId,
+          username: bm.from?.username ?? null,
+          lead_id: identity.leadId,
+          media_type: bm.voice ? "voice" : bm.photo ? "image" : bm.document ? "file" : null,
+          media_path: voiceMeta?.path ?? null,
+          media_mime: voiceMeta?.mime ?? null,
+          media_duration: voiceMeta?.duration ?? null,
+          media_size: voiceMeta?.size ?? null,
+        },
+      });
+      return ok();
+    }
 
     // --- Button press (degree choice) ------------------------------------
     if (update.callback_query) {
