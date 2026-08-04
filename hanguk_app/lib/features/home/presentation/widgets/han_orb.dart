@@ -253,23 +253,37 @@ class _OrbButton extends StatelessWidget {
           height: SeoulSizes.orbSize + 24,
           child: Stack(
             alignment: Alignment.center,
+            // The pulse ring now grows past this box (62 * 1.55 = 96 > 86).
+            // Stack clips to its bounds by default, which would square off the
+            // halo at full expansion. Letting it overflow keeps the box — and
+            // so the orb's centre and tap target — exactly where they were.
+            clipBehavior: Clip.none,
             children: [
               // Pulse ring — a lime halo that expands and fades, then repeats.
+              //
+              // Widened and brightened after watching guest sessions: students
+              // landed on Explore and never touched the orb, so they never saw
+              // Map or Compare at all. Against a dark, static screen the old
+              // ring read as decoration. It now travels further and holds more
+              // of its opacity, so the one moving thing on the screen is also
+              // the one thing to press. Fades out entirely while the dial is
+              // open — by then it has done its job and would only compete with
+              // the items.
               AnimatedBuilder(
-                animation: pulse,
+                animation: Listenable.merge([pulse, dial]),
                 builder: (context, _) {
                   final t = pulse.value;
                   return IgnorePointer(
                     child: Opacity(
-                      opacity: (1 - t) * 0.45,
+                      opacity: (1 - t) * 0.7 * (1 - dial.value),
                       child: Container(
-                        width: SeoulSizes.orbSize * (1 + t * 0.38),
-                        height: SeoulSizes.orbSize * (1 + t * 0.38),
+                        width: SeoulSizes.orbSize * (1 + t * 0.55),
+                        height: SeoulSizes.orbSize * (1 + t * 0.55),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: SeoulColors.lime.withValues(alpha: 0.55),
-                            width: 2,
+                            color: SeoulColors.lime.withValues(alpha: 0.8),
+                            width: 2.5,
                           ),
                         ),
                       ),
@@ -285,7 +299,17 @@ class _OrbButton extends StatelessWidget {
                 decoration: const BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: SeoulGradients.limeButton,
-                  boxShadow: SeoulShadows.limeGlow,
+                  // Brighter than the shared limeGlow: this is the only
+                  // control on the screen, and it has to win against a full
+                  // page of content behind it.
+                  boxShadow: [
+                    BoxShadow(
+                      color: Color(0x8CD4E94C), // 0.55
+                      blurRadius: 40,
+                      spreadRadius: 2,
+                      offset: Offset(0, 10),
+                    ),
+                  ],
                 ),
                 child: AnimatedBuilder(
                   animation: dial,
