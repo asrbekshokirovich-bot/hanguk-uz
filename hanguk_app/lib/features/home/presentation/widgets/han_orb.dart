@@ -292,57 +292,73 @@ class _OrbButton extends StatelessWidget {
                 },
               ),
 
-              Container(
-                width: SeoulSizes.orbSize,
-                height: SeoulSizes.orbSize,
-                alignment: Alignment.center,
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: SeoulGradients.limeButton,
-                  // Brighter than the shared limeGlow: this is the only
-                  // control on the screen, and it has to win against a full
-                  // page of content behind it.
-                  boxShadow: [
-                    BoxShadow(
-                      color: Color(0x8CD4E94C), // 0.55
-                      blurRadius: 40,
-                      spreadRadius: 2,
-                      offset: Offset(0, 10),
+              // The glow itself breathes — the orb reads as a star catching
+              // the light rather than a flat button. One smooth sine over the
+              // pulse cycle, so it never flickers or draws attention to a
+              // seam; the halo swells and dims, the lime face does not move.
+              AnimatedBuilder(
+                animation: pulse,
+                builder: (context, child) {
+                  final twinkle =
+                      0.5 - 0.5 * math.cos(pulse.value * 2 * math.pi);
+                  return DecoratedBox(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: SeoulColors.lime.withValues(
+                            alpha: 0.4 + 0.45 * twinkle,
+                          ),
+                          blurRadius: 28 + 26 * twinkle,
+                          spreadRadius: 1 + 6 * twinkle,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-                child: AnimatedBuilder(
-                  animation: dial,
-                  builder: (context, _) {
-                    final t = dial.value;
-                    return Transform.rotate(
-                      angle: t * (math.pi / 2),
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          Opacity(
-                            opacity: 1 - t,
-                            child: Text(
-                              '한',
-                              style: SeoulType.hangulGlyph.copyWith(
-                                fontSize: 26,
-                                fontWeight: FontWeight.w900,
+                    child: child,
+                  );
+                },
+                child: Container(
+                  width: SeoulSizes.orbSize,
+                  height: SeoulSizes.orbSize,
+                  alignment: Alignment.center,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: SeoulGradients.limeButton,
+                  ),
+                  child: AnimatedBuilder(
+                    animation: dial,
+                    builder: (context, _) {
+                      final t = dial.value;
+                      return Transform.rotate(
+                        angle: t * (math.pi / 2),
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Opacity(
+                              opacity: 1 - t,
+                              child: Text(
+                                '한',
+                                style: SeoulType.hangulGlyph.copyWith(
+                                  fontSize: 26,
+                                  fontWeight: FontWeight.w900,
+                                  color: SeoulColors.ink,
+                                ),
+                              ),
+                            ),
+                            Opacity(
+                              opacity: t,
+                              child: const Icon(
+                                Icons.close_rounded,
+                                size: 26,
                                 color: SeoulColors.ink,
                               ),
                             ),
-                          ),
-                          Opacity(
-                            opacity: t,
-                            child: const Icon(
-                              Icons.close_rounded,
-                              size: 26,
-                              color: SeoulColors.ink,
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
+                          ],
+                        ),
+                      );
+                    },
+                  ),
                 ),
               ),
             ],
