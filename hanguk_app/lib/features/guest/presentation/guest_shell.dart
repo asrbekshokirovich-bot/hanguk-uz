@@ -178,6 +178,10 @@ class _GuestShellState extends ConsumerState<GuestShell> {
     final l = AppLocalizations.of(context)!;
 
     return SeoulNightScaffold(
+      // Visitors arrive here first and mostly never press the orb. Taking the
+      // background down a notch leaves the orb as the brightest thing on the
+      // screen, which is the whole point of it.
+      dim: 0.22,
       // ValueListenableBuilder, because `canPop` has to be recomputed when
       // the dial opens. Without it BACK on Explore was already "poppable",
       // so the orb-closing branch never ran and the visitor was ejected to

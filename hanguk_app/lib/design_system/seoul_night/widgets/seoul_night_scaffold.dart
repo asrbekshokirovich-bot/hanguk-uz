@@ -18,6 +18,7 @@ class SeoulNightScaffold extends StatelessWidget {
     this.safeArea = true,
     this.resizeToAvoidBottomInset = true,
     this.extendBodyBehindAppBar = true,
+    this.dim = 0,
   });
 
   final Widget body;
@@ -32,6 +33,11 @@ class SeoulNightScaffold extends StatelessWidget {
 
   final bool resizeToAvoidBottomInset;
   final bool extendBodyBehindAppBar;
+
+  /// Black veil painted over the gradient and the glow blobs, but under [body].
+  /// 0 leaves the background exactly as designed; the guest screen turns it up
+  /// a little so the orb reads as the one bright thing on it.
+  final double dim;
 
   @override
   Widget build(BuildContext context) {
@@ -52,6 +58,12 @@ class SeoulNightScaffold extends StatelessWidget {
         child: Stack(
           children: [
             const Positioned.fill(child: IgnorePointer(child: _GlowBlobs())),
+            if (dim > 0)
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: ColoredBox(color: Colors.black.withValues(alpha: dim)),
+                ),
+              ),
             content,
           ],
         ),

@@ -3,17 +3,29 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../design_system/seoul_night/seoul_night.dart';
 import '../data/update_telemetry.dart';
-import '../data/updater_repository.dart';
-import 'update_dialog.dart';
 
-/// Lifecycle-aware wrapper that:
-///   1. Pings version telemetry on first build (after auth resolves).
-///   2. Checks for updates on app launch + every foreground transition
-///      (debounced by [UpdaterNotifier._checkDebounce]).
-///   3. Renders [UpdateDialog] above the wrapped child whenever the
-///      [updaterProvider] state is non-idle.
+/// Pings version telemetry on first build and on every foreground transition.
+///
+/// It used to also run the APK self-updater: check `app_versions`, download a
+/// build from Supabase Storage, and hand it to the OS installer. That is gone.
+///
+/// Two reasons, either of which is enough:
+///
+///   * Play blocked version 2041 over `REQUEST_INSTALL_PACKAGES` — an app may
+///     only hold it if installing apps is its core purpose — and rolled users
+///     back to the previous version. The permission is now stripped from the
+///     manifest, so the installer step cannot succeed in any build.
+///   * `build_config.dart` says this gate "is bypassed at the MaterialApp
+///     .builder level" for store builds. It never was: main.dart mounted it
+///     unconditionally, so the self-updater ran on Play installs too — the
+///     exact behaviour the policy forbids, and the reason students saw
+///     "Yangilanish amalga oshmadi" on a build that had nothing to update to.
+///
+/// Updates come from Play now, through
+/// `features/updater/data/play_in_app_update.dart`. The repository, dialog and
+/// error codes are left in the tree for the non-store distribution path they
+/// were written for; nothing mounts them.
 ///
 /// Wrap your app root: `MaterialApp(builder: (ctx, child) => UpdateGate(child: child!))`.
 class UpdateGate extends ConsumerStatefulWidget {
@@ -51,32 +63,11 @@ class _UpdateGateState extends ConsumerState<UpdateGate>
 
   Future<void> _checkAndPing() async {
     if (!mounted) return;
-    // Telemetry ping is fire-and-forget; never blocks the update check.
+    // Fire-and-forget: nothing waits on it, and a failed ping must never be
+    // visible to the student.
     unawaited(ref.read(updateTelemetryProvider).ping());
-    await ref.read(updaterProvider.notifier).check();
   }
 
   @override
-  Widget build(BuildContext context) {
-    final state = ref.watch(updaterProvider);
-    return Stack(
-      children: [
-        widget.child,
-        // Render the dialog as an overlay only when state is non-trivial.
-        // The dialog is empty for Idle/Checking, so this Stack stays cheap.
-        if (state is UpdateAvailable ||
-            state is UpdateDownloading ||
-            state is UpdateInstalling ||
-            state is UpdateFailed)
-          // Seoul Night scrim token (spec §2) instead of raw black54, so the
-          // dim layer matches the orb dial's scrim everywhere else.
-          const Positioned.fill(child: ColoredBox(color: SeoulColors.scrim)),
-        if (state is UpdateAvailable ||
-            state is UpdateDownloading ||
-            state is UpdateInstalling ||
-            state is UpdateFailed)
-          const Center(child: UpdateDialog()),
-      ],
-    );
-  }
+  Widget build(BuildContext context) => widget.child;
 }
