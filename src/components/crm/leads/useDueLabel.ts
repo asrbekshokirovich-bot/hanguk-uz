@@ -18,11 +18,14 @@ export function formatDue(minutes: number | null, t: Translate): string {
   if (minutes === null) return t('leads.worklist.unscheduled');
   if (minutes < 0) {
     const overdue = Math.abs(minutes);
-    return overdue >= 60
-      ? t('leads.worklist.overdueHours', { n: Math.round(overdue / 60) })
-      : t('leads.worklist.overdueMinutes', { n: overdue });
+    // A follow-up months past due is common in a queue nobody has worked, and
+    // "2915 hours overdue" is a number no operator can read. Escalate the unit.
+    // Day counts are pluralised, so they pass `count` rather than `n`.
+    if (overdue >= 1440) return t('leads.worklist.overdueDays', { count: Math.round(overdue / 1440) });
+    if (overdue >= 60) return t('leads.worklist.overdueHours', { n: Math.round(overdue / 60) });
+    return t('leads.worklist.overdueMinutes', { n: overdue });
   }
   if (minutes < 60) return t('leads.worklist.inMinutes', { n: minutes });
   if (minutes < 1440) return t('leads.worklist.inHours', { n: Math.round(minutes / 60) });
-  return t('leads.worklist.inDays', { n: Math.round(minutes / 1440) });
+  return t('leads.worklist.inDays', { count: Math.round(minutes / 1440) });
 }

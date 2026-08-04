@@ -394,32 +394,37 @@ const LeadsContent = () => {
         onToggleDetail={detail.toggle}
       />
 
-      <div className="relative flex min-h-0 flex-1 overflow-x-auto">
-        <section className="min-w-[866px] flex-1 overflow-y-auto bg-background px-4 py-3.5">
-          {handoff && <HandoffBanner message={handoff} onDismiss={() => setHandoff(null)} />}
-          {loading ? (
-            <div className="flex flex-col gap-1.5">
-              {Array.from({ length: 6 }).map((_, index) => (
-                <Skeleton key={index} className="h-16 rounded-lg" />
-              ))}
-            </div>
-          ) : bands.length === 0 ? (
-            <WorklistEmpty onAddLead={openAddWizard} />
-          ) : (
-            bands.map((band) => (
-              <WorklistBand key={band.key} band={band.key} count={band.rows.length}>
-                {band.rows.map((lead) => (
-                  <LeadRow
-                    key={lead.id}
-                    lead={lead}
-                    selected={lead.id === selectedId}
-                    onSelect={handleSelect}
-                    onCall={handleCall}
-                  />
+      {/* The *worklist* scrolls horizontally when it gets tight, not the
+          workspace — scrolling the workspace pushes the detail pane off the
+          right edge and clips it, which is exactly what it must never do. */}
+      <div className="relative flex min-h-0 flex-1">
+        <section className="min-w-0 flex-1 overflow-auto bg-background">
+          <div className="min-w-[866px] px-4 py-3.5">
+            {handoff && <HandoffBanner message={handoff} onDismiss={() => setHandoff(null)} />}
+            {loading ? (
+              <div className="flex flex-col gap-1.5">
+                {Array.from({ length: 6 }).map((_, index) => (
+                  <Skeleton key={index} className="h-16 rounded-lg" />
                 ))}
-              </WorklistBand>
-            ))
-          )}
+              </div>
+            ) : bands.length === 0 ? (
+              <WorklistEmpty onAddLead={openAddWizard} />
+            ) : (
+              bands.map((band) => (
+                <WorklistBand key={band.key} band={band.key} count={band.rows.length}>
+                  {band.rows.map((lead) => (
+                    <LeadRow
+                      key={lead.id}
+                      lead={lead}
+                      selected={lead.id === selectedId}
+                      onSelect={handleSelect}
+                      onCall={handleCall}
+                    />
+                  ))}
+                </WorklistBand>
+              ))
+            )}
+            </div>
         </section>
 
         {/* Scrim, overlay mode only. Clicking it closes the pane; Escape does

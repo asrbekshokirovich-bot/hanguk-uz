@@ -468,11 +468,14 @@
       "attempts": "{{n}}× qo‘ng‘iroq",
       "noGoal": "Maqsad belgilanmagan",
       "unscheduled": "Rejalashtirilmagan",
+      "overdueDays_one": "{{count}} kun kechikdi",
+      "overdueDays_other": "{{count}} kun kechikdi",
       "overdueHours": "{{n}} soat kechikdi",
       "overdueMinutes": "{{n}} daqiqa kechikdi",
       "inMinutes": "{{n}} daqiqadan so‘ng",
       "inHours": "{{n}} soatdan so‘ng",
-      "inDays": "{{n}} kundan so‘ng",
+      "inDays_one": "{{count}} kundan so‘ng",
+      "inDays_other": "{{count}} kundan so‘ng",
       "clearTitle": "Ish ro‘yxati bo‘sh",
       "clearBody": "Bu filtrga mos lead yo‘q. Manba yoki «Bugun qo‘ng‘iroq» filtrini tozalang yoki lead qo‘shing.",
       "tier": {
@@ -864,7 +867,8 @@
       "today": "Bugun",
       "tomorrow": "Ertaga",
       "overdue": "{{n}} kun kechikdi",
-      "inDays": "{{n}} kundan keyin"
+      "inDays_one": "{{count}} kundan so‘ng",
+      "inDays_other": "{{count}} kundan so‘ng"
     }
   },
   "messages": {

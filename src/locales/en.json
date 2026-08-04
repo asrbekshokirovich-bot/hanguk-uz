@@ -421,11 +421,14 @@
       "attempts": "{{n}}× called",
       "noGoal": "No goal set",
       "unscheduled": "Not scheduled",
+      "overdueDays_one": "{{count}} day overdue",
+      "overdueDays_other": "{{count}} days overdue",
       "overdueHours": "{{n}}h overdue",
       "overdueMinutes": "{{n}}m overdue",
       "inMinutes": "in {{n}}m",
       "inHours": "in {{n}}h",
-      "inDays": "in {{n}} days",
+      "inDays_one": "in {{count}} day",
+      "inDays_other": "in {{count}} days",
       "clearTitle": "Worklist is clear",
       "clearBody": "No leads match this filter. Clear the source or Call Today filter, or add a lead manually.",
       "tier": {
@@ -817,7 +820,8 @@
       "today": "Today",
       "tomorrow": "Tomorrow",
       "overdue": "{{n}}d overdue",
-      "inDays": "In {{n}}d"
+      "inDays_one": "in {{count}} day",
+      "inDays_other": "in {{count}} days"
     }
   },
   "messages": {
