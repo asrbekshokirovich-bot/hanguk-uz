@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import {
   Instagram,
   Send,
@@ -33,6 +34,32 @@ async function probe(fn: string): Promise<Record<string, unknown> | null> {
   try {
     const res = await fetch(webhookUrl(fn), {
       headers: PUBLISHABLE_KEY ? { apikey: PUBLISHABLE_KEY } : undefined,
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Ask Telegram where it is actually delivering updates.
+ *
+ * The plain probe above only reports whether the bot token exists. That is what
+ * this card used to call "Connected", and it stayed green through a week-long
+ * outage: the token was set the whole time, Telegram just was not sending
+ * anything here. Staff-gated, so it needs the caller's session.
+ */
+async function telegramStatus(): Promise<Record<string, unknown> | null> {
+  try {
+    const { data } = await supabase.auth.getSession();
+    const token = data.session?.access_token;
+    if (!token) return null;
+    const res = await fetch(`${webhookUrl('telegram-webhook')}?action=status`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        ...(PUBLISHABLE_KEY ? { apikey: PUBLISHABLE_KEY } : {}),
+      },
     });
     if (!res.ok) return null;
     return await res.json();
@@ -82,6 +109,7 @@ export default function IntegrationsSettings() {
   const [instagram, setInstagram] = useState<IntegrationStatus>({ state: 'checking' });
   const [telegram, setTelegram] = useState<IntegrationStatus>({ state: 'checking' });
   const [refreshing, setRefreshing] = useState(false);
+  const [connecting, setConnecting] = useState(false);
 
   const check = useCallback(async () => {
     setRefreshing(true);
@@ -102,12 +130,71 @@ export default function IntegrationsSettings() {
 
     if (!tg) {
       setTelegram({ state: 'unknown', detail: 'Could not reach the webhook function.' });
+    } else if (!tg.configured) {
+      setTelegram({ state: 'not_configured', detail: 'The TELEGRAM_BOT_TOKEN secret is not set.' });
     } else {
-      setTelegram({ state: tg.configured ? 'connected' : 'not_configured' });
+      // Token exists. That is not the same as Telegram delivering here, so ask
+      // Telegram itself before claiming the channel works.
+      const live = await telegramStatus();
+      if (!live) {
+        setTelegram({
+          state: 'unknown',
+          detail: 'Bot token is set, but the delivery status could not be read. Staff sign-in is required to check.',
+        });
+      } else if (!live.registered_url) {
+        setTelegram({
+          state: 'partial',
+          detail: 'Telegram is not delivering anywhere. Messages sent to the bot are lost. Press Connect.',
+        });
+      } else if (!live.matches) {
+        setTelegram({
+          state: 'partial',
+          detail: `Telegram is delivering to ${live.registered_url} instead of this CRM. Press Connect to repoint it.`,
+        });
+      } else if (live.last_error_message) {
+        setTelegram({
+          state: 'partial',
+          detail: `Telegram's last delivery failed: ${live.last_error_message}`,
+        });
+      } else {
+        const pending = Number(live.pending_update_count ?? 0);
+        setTelegram({
+          state: 'connected',
+          detail: pending > 0 ? `${pending} update(s) queued at Telegram and not yet delivered.` : undefined,
+        });
+      }
     }
 
     setRefreshing(false);
   }, []);
+
+  /** Point Telegram back at this CRM. Uses the bot token held by the function. */
+  const connectTelegram = async () => {
+    setConnecting(true);
+    const { data, error } = await supabase.functions.invoke('telegram-webhook', {
+      body: { action: 'register' },
+    });
+    setConnecting(false);
+
+    if (error || !(data as { ok?: boolean })?.ok) {
+      let detail = '';
+      try {
+        const body = await (error as { context?: { json?: () => Promise<{ error?: string }> } })?.context?.json?.();
+        detail = body?.error || '';
+      } catch {
+        // Not JSON — fall through to the generic message.
+      }
+      toast({
+        title: 'Could not connect Telegram',
+        description: detail || error?.message || 'Telegram rejected the webhook registration.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    toast({ title: 'Telegram connected', description: 'Messages to the bot will now arrive in the inbox.' });
+    check();
+  };
 
   useEffect(() => {
     check();
@@ -220,10 +307,21 @@ export default function IntegrationsSettings() {
             {telegram.detail && <p className="text-xs text-amber-600">{telegram.detail}</p>}
           </div>
           <Separator />
-          <p className="text-sm text-muted-foreground">
-            Set the <code className="text-xs">TELEGRAM_BOT_TOKEN</code> secret, then register the URL above with
-            BotFather’s <code className="text-xs">setWebhook</code>.
-          </p>
+          <div className="flex flex-wrap items-center gap-3">
+            <Button onClick={connectTelegram} disabled={connecting || telegram.state === 'not_configured'}>
+              {connecting ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4 mr-2" />
+              )}
+              {telegram.state === 'connected' ? 'Reconnect' : 'Connect'}
+            </Button>
+            <p className="text-sm text-muted-foreground">
+              {telegram.state === 'not_configured'
+                ? 'Set the TELEGRAM_BOT_TOKEN secret first.'
+                : 'Registers the URL above with Telegram, using the bot token already stored in Supabase.'}
+            </p>
+          </div>
         </CardContent>
       </Card>
     </div>
