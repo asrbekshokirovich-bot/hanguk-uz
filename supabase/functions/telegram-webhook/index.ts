@@ -186,6 +186,12 @@ serve(async (req) => {
         if (!(await isStaff(supabase, req))) return json({ error: "Forbidden: staff role required" }, 403);
         const res = await fetch(`${TG_API}/getWebhookInfo`);
         const info = await res.json().catch(() => ({}));
+        const allowed: string[] = info?.result?.allowed_updates ?? [];
+        const { data: connections } = await supabase
+          .from("telegram_business_connections")
+          .select("owner_username, user_chat_id, is_enabled, can_reply, updated_at")
+          .order("updated_at", { ascending: false });
+        const live = (connections ?? []).find((c) => c.is_enabled);
         return json({
           expected_url: WEBHOOK_URL,
           registered_url: info?.result?.url ?? null,
@@ -193,6 +199,20 @@ serve(async (req) => {
           pending_update_count: info?.result?.pending_update_count ?? null,
           last_error_date: info?.result?.last_error_date ?? null,
           last_error_message: info?.result?.last_error_message ?? null,
+          // Telegram only delivers what the registration asked for. A webhook
+          // registered before business support was added is subscribed to
+          // `message` alone and will never receive a single business update —
+          // it looks perfectly healthy while the company account stays silent.
+          business_updates_subscribed: allowed.length === 0
+            ? false
+            : allowed.includes("business_message"),
+          business_account: live
+            ? {
+              username: live.owner_username,
+              chat_id: live.user_chat_id,
+              can_reply: live.can_reply,
+            }
+            : null,
         });
       }
       return json({ message: "Telegram webhook endpoint", configured: !!BOT_TOKEN });
@@ -210,7 +230,16 @@ serve(async (req) => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           url: WEBHOOK_URL,
-          allowed_updates: ["message", "callback_query"],
+          // Telegram sends only what is listed here, and the business_* types
+          // are NOT in the default set — omitting them is a silent way to
+          // receive nothing from the company account.
+          allowed_updates: [
+            "message",
+            "callback_query",
+            "business_connection",
+            "business_message",
+            "edited_business_message",
+          ],
         }),
       });
       const result = await res.json().catch(() => ({}));
@@ -218,6 +247,91 @@ serve(async (req) => {
       return json({ ok: true, url: WEBHOOK_URL, description: result?.description });
     }
     console.log("Telegram update:", JSON.stringify(update));
+
+    // --- Business account linked / unlinked / rights changed --------------
+    if (update.business_connection) {
+      const bc = update.business_connection;
+      // Telegram moved from a flat `can_reply` to a `rights` object; accept
+      // either so a link made from an older or newer client both work.
+      const canReply = bc.rights
+        ? !!bc.rights.can_reply
+        : !!bc.can_reply;
+      const { error } = await supabase.from("telegram_business_connections").upsert({
+        id: String(bc.id),
+        user_chat_id: String(bc.user_chat_id),
+        owner_user_id: bc.user?.id != null ? String(bc.user.id) : null,
+        owner_username: bc.user?.username ?? null,
+        is_enabled: bc.is_enabled !== false,
+        can_reply: canReply,
+        raw: bc,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: "id" });
+      if (error) throw new Error(`business_connection upsert: ${error.message}`);
+      console.log(`business_connection ${bc.id}: enabled=${bc.is_enabled !== false} can_reply=${canReply}`);
+      return ok();
+    }
+
+    // --- Message in a chat of the connected business account --------------
+    // Covers both directions: what a client writes to the company account, and
+    // what staff answer from their own phone. Both belong in the inbox, or the
+    // CRM shows half a conversation.
+    if (update.business_message || update.edited_business_message) {
+      const bm = update.business_message || update.edited_business_message;
+      const connectionId = String(bm.business_connection_id ?? "");
+
+      const { data: conn } = await supabase
+        .from("telegram_business_connections")
+        .select("owner_user_id")
+        .eq("id", connectionId)
+        .maybeSingle();
+
+      // A message whose sender is the account owner is staff replying from
+      // their phone; anything else is the client writing in.
+      const senderId = String(bm.from?.id ?? "");
+      const outgoing = !!conn?.owner_user_id && senderId === conn.owner_user_id;
+
+      // Thread by the *client's* chat, never the owner's, so both directions
+      // land in one conversation.
+      const chatId = String(bm.chat?.id ?? "");
+      if (!chatId) return ok();
+
+      const clientName = [bm.chat?.first_name, bm.chat?.last_name].filter(Boolean).join(" ")
+        || bm.chat?.username || bm.chat?.title || "Telegram user";
+      const senderName = outgoing ? "Hanguk Consulting" : clientName;
+
+      const identity = await resolveIdentity(supabase, "telegram", chatId, { displayName: clientName });
+      await bumpThread(supabase, chatId, clientName, outgoing ? "outgoing" : "incoming");
+      if (identity.studentId) {
+        await supabase.from("message_threads").update({ student_id: identity.studentId })
+          .eq("source", "telegram").eq("sender_id", chatId).is("student_id", null);
+      }
+
+      const messageType = bm.photo ? "image" : bm.voice ? "voice" : bm.document ? "file" : "text";
+      const voiceMeta = bm.voice ? await storeVoice(supabase, chatId, bm.message_id, bm.voice) : null;
+
+      await storeMessage(supabase, {
+        chatId,
+        messageId: bm.message_id,
+        senderName,
+        content: bm.text || bm.caption || (bm.voice ? "🎤 Voice message" : "[Media message]"),
+        direction: outgoing ? "outgoing" : "incoming",
+        type: messageType,
+        studentId: identity.studentId,
+        extraMeta: {
+          // send-telegram reads this back to answer as the account.
+          business_connection_id: connectionId,
+          telegram_user_id: senderId,
+          username: bm.from?.username ?? null,
+          lead_id: identity.leadId,
+          media_type: bm.voice ? "voice" : bm.photo ? "image" : bm.document ? "file" : null,
+          media_path: voiceMeta?.path ?? null,
+          media_mime: voiceMeta?.mime ?? null,
+          media_duration: voiceMeta?.duration ?? null,
+          media_size: voiceMeta?.size ?? null,
+        },
+      });
+      return ok();
+    }
 
     // --- Button press (degree choice) ------------------------------------
     if (update.callback_query) {

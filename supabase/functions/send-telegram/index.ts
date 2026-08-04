@@ -66,7 +66,44 @@ serve(async (req) => {
       return json({ error: "Missing required fields: chat_id, text" }, 400);
     }
 
+    // Answer as the company account when this chat belongs to one.
+    //
+    // Clients write to @hangukuz_consulting, not to the bot, so a reply that
+    // leaves as the bot arrives in a different conversation from the one they
+    // are looking at. The connection id is stamped on every business message by
+    // the webhook; the most recent one for this chat is the live link.
+    const { data: lastBusinessMessage } = await supabase
+      .from("messages")
+      .select("metadata")
+      .eq("source", "telegram")
+      .eq("sender_id", String(chat_id))
+      .not("metadata->>business_connection_id", "is", null)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    const connectionId = (lastBusinessMessage?.metadata as { business_connection_id?: string } | null)
+      ?.business_connection_id;
+
+    let businessConnectionId: string | undefined;
+    if (connectionId) {
+      const { data: conn } = await supabase
+        .from("telegram_business_connections")
+        .select("is_enabled, can_reply")
+        .eq("id", connectionId)
+        .maybeSingle();
+      // Sending with a disabled or read-only connection is rejected by
+      // Telegram; fall back to the bot rather than failing the reply outright.
+      if (conn?.is_enabled && conn?.can_reply) businessConnectionId = connectionId;
+      else if (conn) {
+        console.warn(
+          `business connection ${connectionId} unusable (enabled=${conn.is_enabled} can_reply=${conn.can_reply}); sending as bot`,
+        );
+      }
+    }
+
     const result = await sendTelegramMessage(TELEGRAM_BOT_TOKEN, String(chat_id), String(text), {
+      ...(businessConnectionId ? { business_connection_id: businessConnectionId } : {}),
       ...(parse_mode ? { parse_mode } : {}),
       ...(reply_markup ? { reply_markup } : {}),
     });

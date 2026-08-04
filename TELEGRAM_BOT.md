@@ -88,6 +88,46 @@ a new lead appears under **CRM → Leads**, and the conversation appears under
 The inbox thread and the lead share the Telegram id (`message_threads.sender_id`
 == `leads.source_id`), so staff can correlate them by phone/name.
 
+## The company account (Telegram Business)
+
+Most clients do not write to the bot. They write to **@hangukuz_consulting**,
+the company's own Telegram account — and the Bot API cannot see those chats at
+all. That is the gap `telegram-userbot` was filling: an MTProto process signed
+in as the account, mirroring its chats. Unofficial, session-expiring, hosted off
+this project, and when it stopped on 2026-07-28 nothing here could tell.
+
+Telegram Business is the supported route, and the account already has the
+Premium it requires.
+
+### One-time setup
+
+1. In Telegram, on the **company account**: Settings → **Telegram Business** →
+   **Chatbots**.
+2. Enter the bot's username and enable **Reply to messages** — without that
+   right the bot can read the chats but not answer them.
+3. In the CRM: Settings → Integrations → Telegram → **Connect**. This
+   re-registers the webhook including the `business_*` update types.
+
+Step 3 is not optional after step 2. Telegram delivers only the update types the
+webhook registration asked for, and `business_message` is **not** in the default
+set — a webhook registered before this existed receives `message` only, looks
+entirely healthy, and never sees a single message sent to the company account.
+The status card reports this as `business_updates_subscribed`.
+
+### What it does
+
+- Messages to the company account arrive in the inbox as normal Telegram
+  messages, so no CRM screen changes.
+- Replies from staff on their own phone arrive too, marked outgoing — the CRM
+  shows the whole conversation rather than half of it.
+- Replies sent from the CRM leave **as the account**, so they land in the
+  conversation the client is actually reading. `send-telegram` looks up the
+  connection id stamped on the chat's last business message; with no connection,
+  or one that is disabled or read-only, it falls back to sending as the bot.
+
+`telegram-userbot/` stays in the repo for now but is no longer the intended
+path. Once Business is confirmed working, that Railway process can be retired.
+
 ## When the inbox goes quiet
 
 Telegram stopping is silent by design: nothing errors, the endpoint keeps

@@ -156,11 +156,33 @@ export default function IntegrationsSettings() {
           state: 'partial',
           detail: `Telegram's last delivery failed: ${live.last_error_message}`,
         });
-      } else {
-        const pending = Number(live.pending_update_count ?? 0);
+      } else if (!live.business_updates_subscribed) {
         setTelegram({
-          state: 'connected',
-          detail: pending > 0 ? `${pending} update(s) queued at Telegram and not yet delivered.` : undefined,
+          state: 'partial',
+          detail:
+            'The bot receives its own chats, but not the company account\'s. Press Connect to subscribe to business messages.',
+        });
+      } else {
+        const account = live.business_account as
+          | { username?: string; can_reply?: boolean }
+          | null;
+        const pending = Number(live.pending_update_count ?? 0);
+        const notes: string[] = [];
+        if (!account) {
+          notes.push(
+            'No business account linked yet — messages sent to the company account will not appear. Link the bot in Telegram → Settings → Telegram Business → Chatbots.',
+          );
+        } else if (!account.can_reply) {
+          notes.push(
+            `@${account.username ?? 'the account'} is linked but the bot cannot reply. Enable "Reply to messages" for it in Telegram Business → Chatbots.`,
+          );
+        } else {
+          notes.push(`Answering as @${account.username ?? 'the linked account'}.`);
+        }
+        if (pending > 0) notes.push(`${pending} update(s) queued at Telegram.`);
+        setTelegram({
+          state: account?.can_reply ? 'connected' : 'partial',
+          detail: notes.join(' '),
         });
       }
     }
