@@ -41,7 +41,27 @@
         android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32"
         tools:replace="android:maxSdkVersion" />
-    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <!-- Play policy block (2026-08-04, enforced the same day): "Request Install
+         Packages Permission: Permission use is not directly related to your
+         app's core purpose". The permission may only be held by apps whose core
+         purpose is installing other apps — file managers, browsers, alternative
+         stores. A study-abroad consultancy is not one, and Play rolled users
+         back to the previous version over it.
+
+         It was here for the APK self-updater (features/updater — download a
+         build from Supabase Storage and install it). Store builds already do
+         not use that path: kIsStoreBuild disables it and they update through
+         Play's own flow (features/updater/data/play_in_app_update.dart). But
+         Play reads the manifest, not the runtime flag, so the declaration alone
+         was enough to fail review — exactly what build_config.dart warned about
+         when it noted the compile-time flag was "the primary defense" and a
+         flavored manifest would be needed eventually.
+
+         node="remove" rather than deletion because install_plugin declares the
+         permission in its own manifest and the merge would put it straight
+         back. The self-updater cannot install APKs without it; that is the
+         intended outcome, and it changes nothing for anyone on Play. -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" tools:node="remove" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
 

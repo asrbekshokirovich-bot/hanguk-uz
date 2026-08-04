@@ -179,7 +179,7 @@ jobs:
       # strips them with tools:node="remove", but a plugin bump can merge them
       # back in silently — the app manifest looks clean, the merged one is not.
       # Catch that here rather than four hours into a release.
-      - name: Assert no broad media permissions survived the manifest merge
+      - name: Assert no Play-blocked permission survived the manifest merge
         run: |
           # Both trees matter, and they are not the same file: merged_manifest(s)
           # is the merge result, packaged_manifests is what is actually written

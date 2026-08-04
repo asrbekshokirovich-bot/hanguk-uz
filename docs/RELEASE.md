@@ -66,6 +66,14 @@ app keeps its self-updater active — the flow that downloads and installs an AP
 from Supabase Storage. That violates Google Play's policy on distributing
 apps outside the store. The flag is the primary defence; do not omit it.
 
+It is not a sufficient one, though, and 2041 proved it. The flag decides what
+the app *does*; Play decides on what the manifest *declares*, without running
+anything. `REQUEST_INSTALL_PACKAGES` sat in the manifest for the self-updater,
+the flag switched that updater off, and Play blocked the release and rolled
+users back regardless. The permission is now stripped with `tools:node="remove"`
+and CI asserts it stays out of the built manifest. Treat any permission the app
+does not need as a release risk even when no code path reaches it.
+
 Optional defines:
 
 | Define | Effect if omitted |
@@ -266,7 +274,7 @@ up offline regardless — GitHub secrets are write-only and cannot be read back.
 | Version code already used | `versionCode` not bumped — see §1. |
 | Target API level too low | `targetSdk` behind — see §5. |
 | Deceptive / unauthorised app installation | Built without `STORE_BUILD=true`, leaving the APK self-updater live — see §2. |
-| Permission not declared | `REQUEST_INSTALL_PACKAGES` in `AndroidManifest.xml` needs a declaration in the Console's App content section. |
+| Request Install Packages Permission: not related to your app's core purpose | The bundle holds `REQUEST_INSTALL_PACKAGES`. Blocked 2041, and Play rolled users back to the previous version. It was there for the APK self-updater; store builds already update through Play instead, so it is stripped with `tools:node="remove"`. |
 | Use alternative system pickers for photos / videos | The bundle holds `READ_MEDIA_IMAGES` / `READ_MEDIA_VIDEO`. Blocked 2040. They are stripped with `tools:node="remove"` in `AndroidManifest.xml` — the app picks files through SAF, which needs no permission. If this reappears, a plugin has started merging them back in — see below. |
 
 ### Checking the merged manifest
