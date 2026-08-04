@@ -422,6 +422,46 @@
       }
     },
     "nextCall": {
+      "title": "Next call",
+      "scheduled": "Scheduled {{when}}",
+      "whyTitle": "Why Hanguk AI chose this",
+      "suggestsInstead": "Hanguk AI suggests instead",
+      "useAiPlan": "Use the AI plan",
+      "assignManually": "Assign manually",
+      "setByOperator": "Set by {{name}}",
+      "manualReason": "Assigned manually by {{name}}.",
+      "goalSetNote": "Next-call goal set manually — {{goal}}",
+      "timingSetNote": "Next call rescheduled manually — {{when}}",
+      "adoptedNote": "Adopted the Hanguk AI plan — {{goal}}",
+      "goals": {
+        "qualifyBudgetIntake": "Qualify budget & intake",
+        "sendPlanComparison": "Send plan comparison",
+        "bookConsultation": "Book consultation",
+        "confirmAttendance": "Confirm attendance",
+        "sendDocumentChecklist": "Send document checklist",
+        "closeContract": "Close — contract & payment",
+        "finalAttempt": "Final attempt before parking",
+        "retryDifferentTime": "Retry at a different time of day",
+        "messageOnSource": "Message on {{source}} first",
+        "callbackAgreed": "Callback at the agreed time"
+      },
+      "timings": {
+        "in1h": "In 1h",
+        "today17": "Today 17:00",
+        "tomorrow10": "Tomorrow 10:00",
+        "in3days": "In 3 days"
+      },
+      "why": {
+        "finalAttempt": "{{n}} unanswered attempts against a {{tier}} score. One last try in two days, then park as Cold rather than keep spending calls.",
+        "messageOnSource": "Three misses by phone. This lead arrived on {{source}}, so a written message is more likely to get a reply than a fourth ring.",
+        "retryDifferentTime": "Both attempts landed in the same window. Shifting a few hours is the cheapest way to convert a no-answer.",
+        "callbackAgreed": "The student named the time. A missed callback is the most common reason a warm lead goes quiet — honour it exactly.",
+        "confirmAttendance": "The consultation is on the calendar. A same-day confirmation call cuts no-shows sharply.",
+        "gapsMany": "{{n}} qualification fields are still empty. No plan can be quoted, and the contract cannot be raised, until they are on record.",
+        "gapsOne": "Only one field is missing. Close that gap and this lead is contract-ready.",
+        "closeNow": "Fully qualified, {{tier}} score, and the {{intake}} intake closes soon. Move to contract today rather than scheduling another touch.",
+        "keepMomentum": "Qualified but the intake is far out. Keep momentum with materials, then book the consultation."
+      },
       "aiChip": "AI",
       "setByAi": "Set by Hanguk AI"
     },

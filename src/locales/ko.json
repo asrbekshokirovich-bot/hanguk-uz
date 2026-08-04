@@ -419,6 +419,46 @@
       }
     },
     "nextCall": {
+      "title": "다음 통화",
+      "scheduled": "예정: {{when}}",
+      "whyTitle": "Hanguk AI가 이렇게 정한 이유",
+      "suggestsInstead": "Hanguk AI의 대안 제안",
+      "useAiPlan": "AI 계획 적용",
+      "assignManually": "직접 지정",
+      "setByOperator": "{{name}} 설정",
+      "manualReason": "{{name}}이(가) 직접 지정함.",
+      "goalSetNote": "다음 통화 목표를 직접 설정함 — {{goal}}",
+      "timingSetNote": "다음 통화 일정을 직접 변경함 — {{when}}",
+      "adoptedNote": "Hanguk AI 계획을 적용함 — {{goal}}",
+      "goals": {
+        "qualifyBudgetIntake": "예산 및 입학 시기 확인",
+        "sendPlanComparison": "플랜 비교 자료 발송",
+        "bookConsultation": "상담 예약",
+        "confirmAttendance": "참석 확인",
+        "sendDocumentChecklist": "서류 체크리스트 발송",
+        "closeContract": "마무리 — 계약 및 결제",
+        "finalAttempt": "보류 전 마지막 시도",
+        "retryDifferentTime": "다른 시간대에 재시도",
+        "messageOnSource": "먼저 {{source}}(으)로 메시지",
+        "callbackAgreed": "합의한 시간에 재통화"
+      },
+      "timings": {
+        "in1h": "1시간 후",
+        "today17": "오늘 17:00",
+        "tomorrow10": "내일 10:00",
+        "in3days": "3일 후"
+      },
+      "why": {
+        "finalAttempt": "{{tier}} 점수에 무응답 {{n}}회. 이틀 뒤 마지막으로 한 번 더 시도하고, 계속 통화를 쓰기보다 콜드로 보류하세요.",
+        "messageOnSource": "전화로 세 번 놓쳤습니다. 이 리드는 {{source}}에서 유입되었으므로 네 번째 통화보다 문자 메시지가 답을 받을 가능성이 높습니다.",
+        "retryDifferentTime": "두 번 모두 같은 시간대였습니다. 몇 시간 옮기는 것이 무응답을 해결하는 가장 값싼 방법입니다.",
+        "callbackAgreed": "학생이 직접 시간을 정했습니다. 놓친 재통화는 웜 리드가 조용해지는 가장 흔한 이유입니다.",
+        "confirmAttendance": "상담이 이미 일정에 있습니다. 당일 확인 통화는 노쇼를 크게 줄입니다.",
+        "gapsMany": "자격 항목 {{n}}개가 비어 있습니다. 기록되기 전에는 어떤 플랜도 제시할 수 없고 계약도 진행할 수 없습니다.",
+        "gapsOne": "한 항목만 비어 있습니다. 이 공백을 채우면 계약 준비가 끝납니다.",
+        "closeNow": "자격이 모두 충족되었고 점수는 {{tier}}이며 {{intake}} 입학이 곧 마감됩니다. 접촉을 더 잡기보다 오늘 계약으로 넘어가세요.",
+        "keepMomentum": "자격은 충족되었지만 입학까지 시간이 있습니다. 자료로 관심을 유지한 뒤 상담을 예약하세요."
+      },
       "aiChip": "AI",
       "setByAi": "Hanguk AI가 설정함"
     },

@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ATTEMPT_ALARM, isOverdue } from './worklistLogic';
 import { useDueLabel } from './useDueLabel';
+import { isGoalKey } from './nextCall';
 import type { LeadVM } from './types';
 
 interface LeadRowProps {
@@ -95,7 +96,7 @@ export function LeadRow({ lead, selected, onSelect, onCall }: LeadRowProps) {
       {/* 4 — next call */}
       <div className="min-w-[200px] flex-[1.2] overflow-hidden">
         <div className="flex items-center gap-1.5 overflow-hidden">
-          {lead.nextCall?.setBy.kind === 'ai' && (
+          {lead.aiInForce && (
             <span
               title={t('leads.nextCall.setByAi')}
               className="flex shrink-0 items-center gap-0.5 rounded bg-spring/15 px-1 py-0.5 text-[8.5px] font-bold tracking-wide text-spring"
@@ -105,7 +106,9 @@ export function LeadRow({ lead, selected, onSelect, onCall }: LeadRowProps) {
             </span>
           )}
           <span className="truncate text-[12.5px] font-semibold text-muted-foreground">
-            {lead.nextCall?.goal ?? t('leads.worklist.noGoal')}
+            {isGoalKey(lead.nextCall.goal)
+              ? t(`leads.nextCall.goals.${lead.nextCall.goal}`)
+              : lead.nextCall.goal}
           </span>
         </div>
         <div

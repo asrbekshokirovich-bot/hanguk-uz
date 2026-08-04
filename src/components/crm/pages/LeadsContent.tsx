@@ -12,6 +12,9 @@ import { WorklistEmpty } from '@/components/crm/leads/WorklistEmpty';
 import { LeadDetailPane } from '@/components/crm/leads/LeadDetailPane';
 import { useLeadWorklist } from '@/components/crm/leads/useLeadWorklist';
 import { useDetailDock } from '@/components/crm/leads/useDetailDock';
+import { useNextCallWriter } from '@/components/crm/leads/useNextCallWriter';
+import { resolveTiming } from '@/components/crm/leads/aiPlanner';
+import type { AiPlan, GoalKey, TimingKey } from '@/components/crm/leads/aiPlanner';
 import { buildBands, filterLeads, worklistStats } from '@/components/crm/leads/worklistLogic';
 import type { QualificationKey } from '@/components/crm/leads/qualification';
 import type { LeadVM, SourceFilter } from '@/components/crm/leads/types';
@@ -34,13 +37,17 @@ import type { CreateLeadData } from '@/contexts/LeadsContext';
 const LeadsContent = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
-  const { createLead } = useLeads();
+  const { createLead, refetch } = useLeads();
+  // The operator's display name, for the "Set by …" badge on a manual override.
+  const operatorName =
+    (user?.user_metadata?.full_name as string | undefined) ?? user?.email ?? t('leads.unassigned');
 
   // One clock for the whole render pass, so the score, the bands and every due
   // line agree with each other. Re-created only when the component re-mounts.
   const [now] = useState(() => new Date());
-  const { rows, loading, refreshHistory } = useLeadWorklist(now);
+  const { rows, loading, refreshHistory } = useLeadWorklist(now, operatorName);
   const detail = useDetailDock();
+  const nextCallWriter = useNextCallWriter();
 
   const [query, setQuery] = useState('');
   const [source, setSource] = useState<SourceFilter>('all');
@@ -77,6 +84,76 @@ const LeadsContent = () => {
   // Click-to-call is not wired to telephony yet; selecting the lead is what the
   // Call button can honestly do until the dispositions land in step 4.
   const handleCall = (lead: LeadVM) => setSelectedId(lead.id);
+
+  /**
+   * Saves a next-call assignment and logs it, then refreshes both the lead
+   * rows and the history so the pane reflects what was actually written.
+   */
+  const saveNextCall = async (
+    lead: LeadVM,
+    goal: string,
+    dueAt: string,
+    reason: string,
+    byAi: boolean,
+    note: string,
+  ) => {
+    if (!user) return;
+    setBusy(true);
+    try {
+      const saved = await nextCallWriter.write({
+        leadId: lead.id,
+        goal,
+        dueAt,
+        reason,
+        operatorId: byAi ? null : user.id,
+      });
+      if (!saved) return;
+      await supabase.from('lead_notes').insert({
+        lead_id: lead.id,
+        content: note,
+        contact_type: 'note',
+        created_by: user.id,
+      });
+      await Promise.all([refetch(), refreshHistory()]);
+    } catch (error) {
+      console.error('Failed to set the next call:', error);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  /** Manual goal: keeps whatever timing is already on the board. */
+  const handlePickGoal = (lead: LeadVM, goal: GoalKey) =>
+    saveNextCall(
+      lead,
+      goal,
+      lead.nextCall.dueAt ?? lead.aiSuggestion.dueAt,
+      t('leads.nextCall.manualReason', { name: operatorName }),
+      false,
+      t('leads.nextCall.goalSetNote', { goal: t(`leads.nextCall.goals.${goal}`) }),
+    );
+
+  /** Manual timing: keeps whatever goal is already on the board. */
+  const handlePickTiming = (lead: LeadVM, timing: TimingKey) =>
+    saveNextCall(
+      lead,
+      lead.nextCall.goal,
+      resolveTiming(timing, new Date()),
+      t('leads.nextCall.manualReason', { name: operatorName }),
+      false,
+      t('leads.nextCall.timingSetNote', { when: t(`leads.nextCall.timings.${timing}`) }),
+    );
+
+  /** Revert to the AI's plan, goal and timing together. */
+  const handleUseAiPlan = (lead: LeadVM, suggestion: AiPlan) =>
+    saveNextCall(
+      lead,
+      suggestion.goal,
+      suggestion.dueAt,
+      t(suggestion.reasonKey, suggestion.reasonVars),
+      true,
+      t('leads.nextCall.adoptedNote', { goal: t(`leads.nextCall.goals.${suggestion.goal}`) }),
+    );
 
   /** Writes an unanswered qualification field into the touch history. */
   const handleAsk = async (lead: LeadVM, key: QualificationKey) => {
@@ -186,7 +263,12 @@ const LeadsContent = () => {
             docked={detail.docked}
             onClose={detail.close}
             onAsk={handleAsk}
-            busy={busy}
+            onPickGoal={handlePickGoal}
+            onPickTiming={handlePickTiming}
+            onUseAiPlan={handleUseAiPlan}
+            operatorName={operatorName}
+            now={now}
+            busy={busy || nextCallWriter.saving}
           />
         )}
       </div>

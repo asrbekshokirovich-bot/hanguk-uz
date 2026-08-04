@@ -469,6 +469,46 @@
       }
     },
     "nextCall": {
+      "title": "Keyingi qo‘ng‘iroq",
+      "scheduled": "Rejalashtirilgan: {{when}}",
+      "whyTitle": "Hanguk AI nega shuni tanladi",
+      "suggestsInstead": "Hanguk AI buning o‘rniga taklif qiladi",
+      "useAiPlan": "AI rejasini qo‘llash",
+      "assignManually": "Qo‘lda belgilash",
+      "setByOperator": "{{name}} belgiladi",
+      "manualReason": "{{name}} tomonidan qo‘lda belgilandi.",
+      "goalSetNote": "Keyingi qo‘ng‘iroq maqsadi qo‘lda belgilandi — {{goal}}",
+      "timingSetNote": "Keyingi qo‘ng‘iroq qo‘lda ko‘chirildi — {{when}}",
+      "adoptedNote": "Hanguk AI rejasi qabul qilindi — {{goal}}",
+      "goals": {
+        "qualifyBudgetIntake": "Byudjet va qabulni aniqlash",
+        "sendPlanComparison": "Tariflar taqqoslamasini yuborish",
+        "bookConsultation": "Konsultatsiyaga yozish",
+        "confirmAttendance": "Kelishini tasdiqlash",
+        "sendDocumentChecklist": "Hujjatlar ro‘yxatini yuborish",
+        "closeContract": "Yakunlash — shartnoma va to‘lov",
+        "finalAttempt": "To‘xtatishdan oldingi so‘nggi urinish",
+        "retryDifferentTime": "Kunning boshqa vaqtida qayta urinish",
+        "messageOnSource": "Avval {{source}} orqali xabar yozish",
+        "callbackAgreed": "Kelishilgan vaqtda qayta qo‘ng‘iroq"
+      },
+      "timings": {
+        "in1h": "1 soatdan so‘ng",
+        "today17": "Bugun 17:00",
+        "tomorrow10": "Ertaga 10:00",
+        "in3days": "3 kundan so‘ng"
+      },
+      "why": {
+        "finalAttempt": "{{tier}} ball bilan {{n}} marta javob bo‘lmadi. Ikki kundan keyin so‘nggi urinish, so‘ng qo‘ng‘iroqlarni sarflashdan ko‘ra «Sovuq» deb belgilash.",
+        "messageOnSource": "Telefonda uch marta javob bo‘lmadi. Bu lead {{source}} orqali kelgan, shuning uchun yozma xabar to‘rtinchi qo‘ng‘iroqdan ko‘ra ko‘proq javob beradi.",
+        "retryDifferentTime": "Ikkala urinish ham bir xil vaqtga to‘g‘ri keldi. Bir necha soatga surish — javobsiz qo‘ng‘iroqni hal qilishning eng arzon yo‘li.",
+        "callbackAgreed": "Talaba vaqtni o‘zi aytdi. O‘tkazib yuborilgan qayta qo‘ng‘iroq — iliq leadning jimib qolishining eng keng tarqalgan sababi.",
+        "confirmAttendance": "Konsultatsiya taqvimda. O‘sha kuni tasdiqlash qo‘ng‘irog‘i kelmay qolishni keskin kamaytiradi.",
+        "gapsMany": "{{n}} ta malaka maydoni hali bo‘sh. Ular yozilmaguncha hech qaysi tarifni taklif qilib bo‘lmaydi va shartnoma tuzilmaydi.",
+        "gapsOne": "Faqat bitta maydon yetishmayapti. Shuni to‘ldirsangiz, lead shartnomaga tayyor.",
+        "closeNow": "To‘liq malakali, {{tier}} ball va {{intake}} qabuli tez orada yopiladi. Yana bir aloqa rejalashtirgandan ko‘ra bugun shartnomaga o‘ting.",
+        "keepMomentum": "Malakali, lekin qabulgacha ancha vaqt bor. Materiallar bilan qiziqishni saqlang, so‘ng konsultatsiyaga yozing."
+      },
       "aiChip": "AI",
       "setByAi": "Hanguk AI belgiladi"
     },

@@ -1,4 +1,5 @@
 import type { Lead } from '@/contexts/LeadsContext';
+import type { AiPlan } from './aiPlanner';
 
 /**
  * View-model types for the CRM → Leads call worklist.
@@ -19,6 +20,14 @@ import type { Lead } from '@/contexts/LeadsContext';
 export type LeadRecord = Lead & {
   target_intake?: string | null;
   exam_type?: string | null;
+  /**
+   * Added by `20260804120000_leads_next_call.sql`. Optional because the
+   * worklist has to render against a database where that migration has not
+   * been applied yet — the AI's standing plan simply stands in, undurably.
+   */
+  next_call_goal?: string | null;
+  next_call_set_by?: string | null;
+  next_call_reason?: string | null;
 };
 
 /** Operator-facing stage. Derived from `leads.status` + the call history. */
@@ -48,7 +57,8 @@ export type NextCallSetter = { kind: 'ai' } | { kind: 'operator'; name: string }
  */
 export interface NextCall {
   goal: string;
-  dueAt: string;
+  /** Null when nothing is actually scheduled yet. */
+  dueAt: string | null;
   setBy: NextCallSetter;
   reason: string;
 }
@@ -79,7 +89,10 @@ export interface LeadVM {
   score: number;
   tier: LeadTier;
   factors: ScoreFactors;
-  nextCall: NextCall | null;
+  nextCall: NextCall;
+  /** What Hanguk AI would choose right now, shown when it is overridden. */
+  aiSuggestion: AiPlan;
+  aiInForce: boolean;
   /** Minutes until the next call; negative when overdue. Null when unscheduled. */
   dueInMinutes: number | null;
   history: TouchEntry[];

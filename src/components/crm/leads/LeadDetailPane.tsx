@@ -5,9 +5,11 @@ import { formatDistanceToNowStrict } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ScoreBreakdown } from './ScoreBreakdown';
+import { NextCallCard } from './NextCallCard';
 import { QualificationList } from './QualificationList';
 import { TouchHistory } from './TouchHistory';
 import type { QualificationKey } from './qualification';
+import type { AiPlan, GoalKey, TimingKey } from './aiPlanner';
 import type { LeadVM } from './types';
 
 interface LeadDetailPaneProps {
@@ -15,6 +17,11 @@ interface LeadDetailPaneProps {
   docked: boolean;
   onClose: () => void;
   onAsk: (lead: LeadVM, key: QualificationKey) => void;
+  onPickGoal: (lead: LeadVM, goal: GoalKey) => void;
+  onPickTiming: (lead: LeadVM, timing: TimingKey) => void;
+  onUseAiPlan: (lead: LeadVM, suggestion: AiPlan) => void;
+  operatorName: string;
+  now: Date;
   busy: boolean;
 }
 
@@ -27,7 +34,18 @@ interface LeadDetailPaneProps {
  * the pane when it opens as an overlay so a keyboard user is not left behind
  * on the worklist.
  */
-export function LeadDetailPane({ lead, docked, onClose, onAsk, busy }: LeadDetailPaneProps) {
+export function LeadDetailPane({
+  lead,
+  docked,
+  onClose,
+  onAsk,
+  onPickGoal,
+  onPickTiming,
+  onUseAiPlan,
+  operatorName,
+  now,
+  busy,
+}: LeadDetailPaneProps) {
   const { t } = useTranslation();
   const paneRef = useRef<HTMLElement>(null);
 
@@ -120,6 +138,15 @@ export function LeadDetailPane({ lead, docked, onClose, onAsk, busy }: LeadDetai
       </header>
 
       <ScoreBreakdown lead={lead} />
+      <NextCallCard
+        plan={{ current: lead.nextCall, suggestion: lead.aiSuggestion, aiInForce: lead.aiInForce }}
+        now={now}
+        operatorName={operatorName}
+        onPickGoal={(goal) => onPickGoal(lead, goal)}
+        onPickTiming={(timing) => onPickTiming(lead, timing)}
+        onUseAiPlan={(suggestion) => onUseAiPlan(lead, suggestion)}
+        busy={busy}
+      />
       <QualificationList lead={lead} onAsk={(key) => onAsk(lead, key)} busy={busy} />
       <TouchHistory lead={lead} />
     </aside>

@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useLeads } from '@/hooks/useLeads';
 import { leadScore, scoreFactors, tierFor } from './leadScore';
 import { minutesUntil } from './worklistLogic';
+import { resolveNextCall } from './nextCall';
 import type { LeadRecord, LeadStage, LeadVM, TouchEntry } from './types';
 
 /**
@@ -67,7 +68,7 @@ export interface LeadWorklist {
   refreshHistory: () => Promise<void>;
 }
 
-export function useLeadWorklist(now: Date): LeadWorklist {
+export function useLeadWorklist(now: Date, operatorName: string): LeadWorklist {
   const { leads, loading } = useLeads();
   const [notesByLead, setNotesByLead] = useState<Record<string, NoteRow[]>>({});
   const [notesLoading, setNotesLoading] = useState(true);
@@ -139,6 +140,9 @@ export function useLeadWorklist(now: Date): LeadWorklist {
       }));
       const original = firstByPhone.get(normalisePhone(lead.phone));
       const isCopy = !!original && original.id !== lead.id;
+      const stage = deriveStage(lead, notes);
+      const attempts = notes.filter((note) => note.contact_type === 'call').length;
+      const plan = resolveNextCall(lead, attempts, stage, now, operatorName);
 
       return {
         id: lead.id,
@@ -150,14 +154,14 @@ export function useLeadWorklist(now: Date): LeadWorklist {
         referred: !!lead.referred_by_student_id,
         owner: lead.assignee?.full_name ?? null,
         createdAt: lead.created_at,
-        stage: deriveStage(lead, notes),
-        attempts: notes.filter((note) => note.contact_type === 'call').length,
+        stage,
+        attempts,
         score,
         tier: tierFor(score),
         factors,
-        // The next call's goal and author land in step 3; the worklist only
-        // needs its timing, which `next_follow_up` already carries.
-        nextCall: null,
+        nextCall: plan.current,
+        aiSuggestion: plan.suggestion,
+        aiInForce: plan.aiInForce,
         dueInMinutes: minutesUntil(lead.next_follow_up, now),
         history,
         duplicateOfId: isCopy ? original.id : null,
@@ -165,7 +169,7 @@ export function useLeadWorklist(now: Date): LeadWorklist {
         lead,
       } satisfies LeadVM;
     });
-  }, [leads, notesByLead, now]);
+  }, [leads, notesByLead, now, operatorName]);
 
   return { rows, loading: loading || notesLoading, refreshHistory: fetchNotes };
 }
