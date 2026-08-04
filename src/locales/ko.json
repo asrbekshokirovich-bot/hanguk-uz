@@ -311,6 +311,47 @@
     }
   },
   "leads": {
+    "dispositions": {
+      "title": "이번 통화 기록",
+      "reached": "통화 성공",
+      "no_answer": "무응답",
+      "callback": "나중에 재통화",
+      "wrong_number": "잘못된 번호",
+      "attemptsNote_other": "지금까지 {{count}}회 시도 · 담당 {{owner}}",
+      "aiReplanNote": "Hanguk AI가 다음 통화를 설정함 — {{goal}}",
+      "notes": {
+        "reached": "통화 성공 — 학생과 상담함",
+        "no_answer": "무응답 ({{n}}회차 시도)",
+        "callback": "학생 요청으로 재통화 예약함",
+        "wrong_number": "잘못된 번호로 확인됨 — 목록에서 제외",
+        "booked": "상담 예약됨"
+      }
+    },
+    "duplicate": {
+      "title": "중복 가능성",
+      "note": "이전 리드 “{{name}}”와(과) 전화번호가 같습니다.",
+      "merge": "병합",
+      "keepBoth": "둘 다 유지",
+      "mergedNote": "이전 기록 “{{name}}”(으)로 병합함",
+      "mergedIntoNote": "중복 리드 “{{name}}”를 이 기록으로 병합함",
+      "keptBothNote": "별개의 사람으로 표시 — 중복 아님"
+    },
+    "convertPanel": {
+      "book": "상담 예약",
+      "convert": "계약으로 전환",
+      "convertNote": "학생 기록을 생성하고 서류 패키지를 엽니다.",
+      "blocked_other": "전환하기 전에 자격 항목 {{count}}개를 더 채우세요 — 누락: {{fields}}.",
+      "convertedNote": "계약으로 전환됨 — 학생 기록 생성",
+      "lost": "실패로 표시",
+      "lostNote": "실패로 표시함"
+    },
+    "handoff": {
+      "dismiss": "닫기",
+      "converted": "{{name}} 전환 완료 — 계약이 생성되었고 서류 패키지가 담당자에게 열렸습니다.",
+      "removed": "{{name}} 제외됨 — 잘못된 번호입니다.",
+      "merged": "{{name}}을(를) 이전 기록으로 병합했습니다.",
+      "lost": "{{name}}을(를) 실패로 표시했습니다. 사유는 리드 기록에 저장됩니다."
+    },
     "detail": {
       "paneLabel": "리드 상세",
       "showToggle": "리드 상세",

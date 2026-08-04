@@ -314,6 +314,49 @@
     }
   },
   "leads": {
+    "dispositions": {
+      "title": "Log this call",
+      "reached": "Reached",
+      "no_answer": "No answer",
+      "callback": "Callback later",
+      "wrong_number": "Wrong number",
+      "attemptsNote_one": "{{count}} attempt so far · owner {{owner}}",
+      "attemptsNote_other": "{{count}} attempts so far · owner {{owner}}",
+      "aiReplanNote": "Hanguk AI set the next call — {{goal}}",
+      "notes": {
+        "reached": "Reached — spoke with the student",
+        "no_answer": "No answer (attempt {{n}})",
+        "callback": "Callback scheduled at the student's request",
+        "wrong_number": "Wrong number reported — removed from the worklist",
+        "booked": "Consultation booked"
+      }
+    },
+    "duplicate": {
+      "title": "Possible duplicate",
+      "note": "Same phone number as the earlier lead “{{name}}”.",
+      "merge": "Merge",
+      "keepBoth": "Keep both",
+      "mergedNote": "Merged into the earlier record “{{name}}”",
+      "mergedIntoNote": "Duplicate lead “{{name}}” merged into this record",
+      "keptBothNote": "Marked as a distinct person — duplicate dismissed"
+    },
+    "convertPanel": {
+      "book": "Book Consultation",
+      "convert": "Convert to Contract",
+      "convertNote": "Creates the student record and opens their document pack.",
+      "blocked_one": "Fill in {{count}} more qualification field before converting — still missing: {{fields}}.",
+      "blocked_other": "Fill in {{count}} more qualification fields before converting — still missing: {{fields}}.",
+      "convertedNote": "Converted to a contract — student record created",
+      "lost": "Mark Lost",
+      "lostNote": "Marked Lost"
+    },
+    "handoff": {
+      "dismiss": "Dismiss",
+      "converted": "{{name}} converted — contract created and the document pack is now open for the preparers.",
+      "removed": "{{name}} removed — wrong number reported.",
+      "merged": "{{name}} merged into the earlier record.",
+      "lost": "{{name}} marked Lost. The reason is saved to the lead record."
+    },
     "detail": {
       "paneLabel": "Lead detail",
       "showToggle": "Lead Detail",

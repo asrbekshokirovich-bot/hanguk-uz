@@ -5,12 +5,15 @@ import { formatDistanceToNowStrict } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ScoreBreakdown } from './ScoreBreakdown';
+import { CallDispositions } from './CallDispositions';
+import { DuplicateBanner } from './DuplicateBanner';
+import { ConvertPanel } from './ConvertPanel';
 import { NextCallCard } from './NextCallCard';
 import { QualificationList } from './QualificationList';
 import { TouchHistory } from './TouchHistory';
 import type { QualificationKey } from './qualification';
 import type { AiPlan, GoalKey, TimingKey } from './aiPlanner';
-import type { LeadVM } from './types';
+import type { Disposition, LeadVM } from './types';
 
 interface LeadDetailPaneProps {
   lead: LeadVM | null;
@@ -20,6 +23,14 @@ interface LeadDetailPaneProps {
   onPickGoal: (lead: LeadVM, goal: GoalKey) => void;
   onPickTiming: (lead: LeadVM, timing: TimingKey) => void;
   onUseAiPlan: (lead: LeadVM, suggestion: AiPlan) => void;
+  /** False once the operator has answered the duplicate question. */
+  showDuplicate: boolean;
+  onLogCall: (lead: LeadVM, disposition: Disposition) => void;
+  onMerge: (lead: LeadVM) => void;
+  onKeepBoth: (lead: LeadVM) => void;
+  onBook: (lead: LeadVM) => void;
+  onConvert: (lead: LeadVM) => void;
+  onLost: (lead: LeadVM) => void;
   operatorName: string;
   now: Date;
   busy: boolean;
@@ -42,6 +53,13 @@ export function LeadDetailPane({
   onPickGoal,
   onPickTiming,
   onUseAiPlan,
+  showDuplicate,
+  onLogCall,
+  onMerge,
+  onKeepBoth,
+  onBook,
+  onConvert,
+  onLost,
   operatorName,
   now,
   busy,
@@ -137,7 +155,11 @@ export function LeadDetailPane({
         </div>
       </header>
 
+      {lead.duplicateOfId && showDuplicate && (
+        <DuplicateBanner lead={lead} onMerge={onMerge} onKeepBoth={onKeepBoth} busy={busy} />
+      )}
       <ScoreBreakdown lead={lead} />
+      <CallDispositions lead={lead} onLog={onLogCall} busy={busy} />
       <NextCallCard
         plan={{ current: lead.nextCall, suggestion: lead.aiSuggestion, aiInForce: lead.aiInForce }}
         now={now}
@@ -149,6 +171,7 @@ export function LeadDetailPane({
       />
       <QualificationList lead={lead} onAsk={(key) => onAsk(lead, key)} busy={busy} />
       <TouchHistory lead={lead} />
+      <ConvertPanel lead={lead} onBook={onBook} onConvert={onConvert} onLost={onLost} busy={busy} />
     </aside>
   );
 }

@@ -13,11 +13,15 @@ import { LeadDetailPane } from '@/components/crm/leads/LeadDetailPane';
 import { useLeadWorklist } from '@/components/crm/leads/useLeadWorklist';
 import { useDetailDock } from '@/components/crm/leads/useDetailDock';
 import { useNextCallWriter } from '@/components/crm/leads/useNextCallWriter';
+import { HandoffBanner } from '@/components/crm/leads/HandoffBanner';
+import { BOOK_EFFECT, dispositionEffect } from '@/components/crm/leads/dispositions';
+import { aiPlan } from '@/components/crm/leads/aiPlanner';
 import { resolveTiming } from '@/components/crm/leads/aiPlanner';
 import type { AiPlan, GoalKey, TimingKey } from '@/components/crm/leads/aiPlanner';
 import { buildBands, filterLeads, worklistStats } from '@/components/crm/leads/worklistLogic';
 import type { QualificationKey } from '@/components/crm/leads/qualification';
-import type { LeadVM, SourceFilter } from '@/components/crm/leads/types';
+import type { Disposition, LeadVM, SourceFilter } from '@/components/crm/leads/types';
+import type { DispositionEffect } from '@/components/crm/leads/dispositions';
 import type { ContactOutcome, ContactType } from '@/hooks/useLeadNotes';
 import type { CreateLeadData } from '@/contexts/LeadsContext';
 
@@ -37,7 +41,7 @@ import type { CreateLeadData } from '@/contexts/LeadsContext';
 const LeadsContent = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
-  const { createLead, refetch } = useLeads();
+  const { createLead, refetch, convertToStudent } = useLeads();
   // The operator's display name, for the "Set by …" badge on a manual override.
   const operatorName =
     (user?.user_metadata?.full_name as string | undefined) ?? user?.email ?? t('leads.unassigned');
@@ -55,6 +59,11 @@ const LeadsContent = () => {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [addOpen, setAddOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+  // The lime strip that explains why a row just vanished from the worklist.
+  const [handoff, setHandoff] = useState<string | null>(null);
+  // "Keep both" has no column to be stored in, so the dismissal lasts for the
+  // session. The decision itself is logged to the touch history either way.
+  const [dismissedDuplicates, setDismissedDuplicates] = useState<string[]>([]);
   const [students, setStudents] = useState<{ user_id: string; full_name: string | null }[]>([]);
 
   const visible = useMemo(
@@ -81,9 +90,174 @@ const LeadsContent = () => {
     detail.show();
   };
 
-  // Click-to-call is not wired to telephony yet; selecting the lead is what the
-  // Call button can honestly do until the dispositions land in step 4.
-  const handleCall = (lead: LeadVM) => setSelectedId(lead.id);
+  // Click-to-call has no telephony binding in this app, so the row's Call
+  // button opens the lead ready to log the outcome rather than dialling.
+  const handleCall = (lead: LeadVM) => {
+    setSelectedId(lead.id);
+    detail.show();
+  };
+
+  /** One `lead_notes` row. Every state change on this page leaves a trace. */
+  const logTouch = async (leadId: string, content: string, outcome?: string, type = 'note') => {
+    if (!user) return;
+    const { error } = await supabase.from('lead_notes').insert({
+      lead_id: leadId,
+      content,
+      contact_type: type,
+      outcome: outcome ?? null,
+      contacted_at: new Date().toISOString().split('T')[0],
+      created_by: user.id,
+    });
+    if (error) console.error('Failed to write the touch history:', error);
+  };
+
+  /**
+   * Applies a call outcome: move the stage, count the attempt, write the
+   * history, then let Hanguk AI re-plan the next call from the new state.
+   *
+   * The AI's plan is written as part of the same action rather than left for
+   * the operator, because a logged call with no next step is exactly how a
+   * lead goes quiet.
+   */
+  const applyOutcome = async (lead: LeadVM, effect: DispositionEffect, note: string) => {
+    if (!user) return;
+    setBusy(true);
+    try {
+      const { error } = await supabase
+        .from('leads')
+        .update({
+          status: effect.status,
+          last_contacted_at: new Date().toISOString(),
+        })
+        .eq('id', lead.id);
+      if (error) throw error;
+
+      await logTouch(lead.id, note, effect.outcome, 'call');
+
+      if (effect.plan) {
+        const plan = aiPlan({
+          lead: lead.lead,
+          attempts: lead.attempts,
+          outcome: effect.plan,
+          now: new Date(),
+        });
+        const reason = t(plan.reasonKey, plan.reasonVars);
+        await nextCallWriter.write({
+          leadId: lead.id,
+          goal: plan.goal,
+          dueAt: plan.dueAt,
+          reason,
+          operatorId: null,
+        });
+        await logTouch(
+          lead.id,
+          t('leads.dispositions.aiReplanNote', {
+            goal: t(`leads.nextCall.goals.${plan.goal}`),
+          }),
+        );
+      }
+
+      if (effect.removes) {
+        setSelectedId(null);
+        setHandoff(t('leads.handoff.removed', { name: lead.name }));
+      }
+      await Promise.all([refetch(), refreshHistory()]);
+    } catch (error) {
+      console.error('Failed to log the call:', error);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleLogCall = (lead: LeadVM, disposition: Disposition) => {
+    const effect = dispositionEffect(disposition);
+    return applyOutcome(
+      lead,
+      effect,
+      t(`leads.dispositions.notes.${disposition}`, { n: lead.attempts + 1 }),
+    );
+  };
+
+  const handleBook = (lead: LeadVM) =>
+    applyOutcome(lead, BOOK_EFFECT, t('leads.dispositions.notes.booked'));
+
+  /**
+   * Merge marks the newer record lost and points it at the original, so the
+   * earlier history stays the one the office works from. A real field-level
+   * merge belongs in a server function; this is the conservative half of it.
+   */
+  const handleMerge = async (lead: LeadVM) => {
+    if (!lead.duplicateOfId) return;
+    setBusy(true);
+    try {
+      const { error } = await supabase
+        .from('leads')
+        .update({ status: 'lost', notes: `Merged into lead ${lead.duplicateOfId}` })
+        .eq('id', lead.id);
+      if (error) throw error;
+      await logTouch(lead.id, t('leads.duplicate.mergedNote', { name: lead.duplicateNote }));
+      await logTouch(lead.duplicateOfId, t('leads.duplicate.mergedIntoNote', { name: lead.name }));
+      setSelectedId(null);
+      setHandoff(t('leads.handoff.merged', { name: lead.name }));
+      await Promise.all([refetch(), refreshHistory()]);
+    } catch (error) {
+      console.error('Failed to merge the duplicate:', error);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  /**
+   * Keep both is a judgement, not a no-op — two siblings can share a phone —
+   * so it is logged, even though nothing on the record changes.
+   */
+  const handleKeepBoth = async (lead: LeadVM) => {
+    setBusy(true);
+    try {
+      await logTouch(lead.id, t('leads.duplicate.keptBothNote'));
+      setDismissedDuplicates((prev) => [...prev, lead.id]);
+      await refreshHistory();
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  /**
+   * Convert hands the lead to the existing `convertToStudent` flow, which
+   * creates the student record and the contract. The lime strip then names the
+   * document pack the preparers pick up — the same handoff Documents consumes.
+   */
+  const handleConvert = async (lead: LeadVM) => {
+    setBusy(true);
+    try {
+      const result = await convertToStudent(lead.id);
+      if (!result.success) return;
+      await logTouch(lead.id, t('leads.convertPanel.convertedNote'));
+      setSelectedId(null);
+      setHandoff(t('leads.handoff.converted', { name: lead.name }));
+      await Promise.all([refetch(), refreshHistory()]);
+    } catch (error) {
+      console.error('Failed to convert the lead:', error);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleLost = async (lead: LeadVM) => {
+    setBusy(true);
+    try {
+      const { error } = await supabase.from('leads').update({ status: 'lost' }).eq('id', lead.id);
+      if (error) throw error;
+      await logTouch(lead.id, t('leads.convertPanel.lostNote'));
+      setSelectedId(null);
+      setHandoff(t('leads.handoff.lost', { name: lead.name }));
+      await Promise.all([refetch(), refreshHistory()]);
+    } catch (error) {
+      console.error('Failed to mark the lead lost:', error);
+    } finally {
+      setBusy(false);
+    }
+  };
 
   /**
    * Saves a next-call assignment and logs it, then refreshes both the lead
@@ -222,6 +396,7 @@ const LeadsContent = () => {
 
       <div className="relative flex min-h-0 flex-1 overflow-x-auto">
         <section className="min-w-[866px] flex-1 overflow-y-auto bg-background px-4 py-3.5">
+          {handoff && <HandoffBanner message={handoff} onDismiss={() => setHandoff(null)} />}
           {loading ? (
             <div className="flex flex-col gap-1.5">
               {Array.from({ length: 6 }).map((_, index) => (
@@ -266,6 +441,13 @@ const LeadsContent = () => {
             onPickGoal={handlePickGoal}
             onPickTiming={handlePickTiming}
             onUseAiPlan={handleUseAiPlan}
+            showDuplicate={!!selected && !dismissedDuplicates.includes(selected.id)}
+            onLogCall={handleLogCall}
+            onMerge={handleMerge}
+            onKeepBoth={handleKeepBoth}
+            onBook={handleBook}
+            onConvert={handleConvert}
+            onLost={handleLost}
             operatorName={operatorName}
             now={now}
             busy={busy || nextCallWriter.saving}

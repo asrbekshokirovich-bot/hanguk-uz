@@ -361,6 +361,49 @@
     }
   },
   "leads": {
+    "dispositions": {
+      "title": "Ushbu qo‘ng‘iroqni yozib qo‘yish",
+      "reached": "Gaplashdim",
+      "no_answer": "Javob yo‘q",
+      "callback": "Keyinroq qayta qo‘ng‘iroq",
+      "wrong_number": "Noto‘g‘ri raqam",
+      "attemptsNote_one": "Hozircha {{count}} urinish · mas’ul {{owner}}",
+      "attemptsNote_other": "Hozircha {{count}} urinish · mas’ul {{owner}}",
+      "aiReplanNote": "Hanguk AI keyingi qo‘ng‘iroqni belgiladi — {{goal}}",
+      "notes": {
+        "reached": "Gaplashildi — talaba bilan suhbat bo‘ldi",
+        "no_answer": "Javob yo‘q ({{n}}-urinish)",
+        "callback": "Talabaning iltimosiga ko‘ra qayta qo‘ng‘iroq rejalashtirildi",
+        "wrong_number": "Noto‘g‘ri raqam — ish ro‘yxatidan olib tashlandi",
+        "booked": "Konsultatsiya band qilindi"
+      }
+    },
+    "duplicate": {
+      "title": "Ehtimoliy dublikat",
+      "note": "Avvalgi “{{name}}” lead bilan bir xil telefon raqami.",
+      "merge": "Birlashtirish",
+      "keepBoth": "Ikkalasini qoldirish",
+      "mergedNote": "Avvalgi “{{name}}” yozuviga birlashtirildi",
+      "mergedIntoNote": "“{{name}}” dublikat lead shu yozuvga birlashtirildi",
+      "keptBothNote": "Alohida shaxs sifatida belgilandi — dublikat rad etildi"
+    },
+    "convertPanel": {
+      "book": "Konsultatsiyaga yozish",
+      "convert": "Shartnomaga o‘tkazish",
+      "convertNote": "Talaba yozuvini yaratadi va uning hujjatlar to‘plamini ochadi.",
+      "blocked_one": "O‘tkazishdan oldin yana {{count}} ta malaka maydonini to‘ldiring — yetishmayapti: {{fields}}.",
+      "blocked_other": "O‘tkazishdan oldin yana {{count}} ta malaka maydonini to‘ldiring — yetishmayapti: {{fields}}.",
+      "convertedNote": "Shartnomaga o‘tkazildi — talaba yozuvi yaratildi",
+      "lost": "Yo‘qotilgan deb belgilash",
+      "lostNote": "Yo‘qotilgan deb belgilandi"
+    },
+    "handoff": {
+      "dismiss": "Yopish",
+      "converted": "{{name}} o‘tkazildi — shartnoma tuzildi va hujjatlar to‘plami tayyorlovchilar uchun ochildi.",
+      "removed": "{{name}} olib tashlandi — noto‘g‘ri raqam.",
+      "merged": "{{name}} avvalgi yozuvga birlashtirildi.",
+      "lost": "{{name}} yo‘qotilgan deb belgilandi. Sababi lead yozuviga saqlandi."
+    },
     "detail": {
       "paneLabel": "Lead ma’lumoti",
       "showToggle": "Lead ma’lumoti",
