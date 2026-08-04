@@ -5,6 +5,36 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
+/**
+ * Mint a session for `email` without reading or writing the stored password.
+ *
+ * The magic code has already proved who this is by the time we get here, so a
+ * one-time token is enough. Returns null rather than throwing, so the caller
+ * can fall back to the legacy password path and a failure here cannot lock
+ * students out.
+ */
+// deno-lint-ignore no-explicit-any
+async function mintSessionWithoutPassword(admin: any, email: string): Promise<any | null> {
+  try {
+    const { data: link, error: linkErr } = await admin.auth.admin.generateLink({
+      type: 'magiclink',
+      email,
+    });
+    const hashedToken = link?.properties?.hashed_token;
+    if (linkErr || !hashedToken) return null;
+
+    // GoTrue has spelled this OTP type both ways across versions; try the
+    // specific one first and fall back rather than guessing wrong.
+    for (const type of ['magiclink', 'email']) {
+      const { data, error } = await admin.auth.verifyOtp({ token_hash: hashedToken, type });
+      if (!error && data?.session) return data.session;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 Deno.serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -196,8 +226,27 @@ Deno.serve(async (req) => {
 
       session = sessionData.session;
     } else {
-      // User exists — sign in with stable password (no password reset needed)
+      // User exists — mint a session without touching the stored password.
+      //
+      // The password dance below authenticates by *setting* a password derived
+      // here, resetting the account's real one whenever the derived value does
+      // not match. For students whose accounts came from `create-student`
+      // (name-based emails, with a password staff chose) it never matches, so
+      // the first magic-code login silently overwrote a working credential.
+      //
+      // The magic code already proved who this is. A one-time token is enough,
+      // and leaves the password alone. Falls through to the old path if the
+      // exchange is unavailable, so this cannot lock anyone out.
       const email = existingUser.email!;
+
+      const otpSession = await mintSessionWithoutPassword(supabaseAdmin, email);
+      if (otpSession) {
+        userId = existingUser.id;
+        if (profile.user_id !== existingUser.id) {
+          await supabaseAdmin.from('profiles').update({ user_id: existingUser.id }).eq('id', profile.id);
+        }
+        session = otpSession;
+      } else {
       // Ensure profile.user_id is pointing to this auth user (may have drifted)
       if (profile.user_id !== existingUser.id) {
         console.log(`Correcting profile.user_id from ${profile.user_id} to ${existingUser.id}`);
@@ -244,6 +293,7 @@ Deno.serve(async (req) => {
         session = retryData.session;
       } else {
         session = sessionData.session;
+      }
       }
     }
 
