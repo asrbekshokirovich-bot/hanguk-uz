@@ -1,9 +1,9 @@
-<#
+﻿<#
 .SYNOPSIS
     Builds the Play Store bundle (.aab) for the Hanguk student app.
 
 .DESCRIPTION
-    Does every step of docs/RELEASE.md §0-§3 in one go, and refuses to hand you
+    Does every step of docs/RELEASE.md steps 0-3 in one go, and refuses to hand you
     a bundle Play will reject:
 
       * finds the upload keystore and checks its SHA-1 against the certificate
@@ -13,7 +13,7 @@
       * builds with --dart-define=STORE_BUILD=true, which is not optional:
         without it the app keeps its APK self-updater active and Play blocks
         the release (this is what happened to 2041)
-      * verifies the finished bundle carries the upload certificate — Gradle
+      * verifies the finished bundle carries the upload certificate - Gradle
         falls back to *debug* signing when key.properties is missing and only
         whispers about it in the log, and Play rejects the result
 
@@ -136,7 +136,7 @@ Step 4 'Keystore Play kutayotgani ekanligini tekshirish'
 
 $m = [regex]::Match($listing, 'SHA1:\s*([0-9A-Fa-f:]{40,})')
 if (-not $m.Success) {
-    Warn 'SHA-1 o''qib bo''lmadi — tekshiruv o''tkazib yuborildi.'
+    Warn 'SHA-1 o''qib bo''lmadi - tekshiruv o''tkazib yuborildi.'
 } else {
     $actual = $m.Groups[1].Value.Trim().ToUpper()
     if ($actual -ne $ExpectedSha1.ToUpper()) {
@@ -186,7 +186,7 @@ $KeyProps = Join-Path $AppDir 'android\key.properties'
     "keyAlias=$KeyAlias"
     "keyPassword=$KeyPassword"
 ) | Set-Content -Path $KeyProps -Encoding ASCII
-Ok "$KeyProps  (gitignored — hech qachon commit bo'lmaydi)"
+Ok "$KeyProps  (gitignored - hech qachon commit bo'lmaydi)"
 
 # ------------------------------------------------------------------ build ---
 Step 7 'Bundle qurilmoqda (10-20 daqiqa)'
@@ -196,7 +196,7 @@ try {
     & flutter pub get
     if ($LASTEXITCODE -ne 0) { Die 'flutter pub get muvaffaqiyatsiz.' }
 
-    # STORE_BUILD=true is mandatory — see the .DESCRIPTION above.
+    # STORE_BUILD=true is mandatory - see the .DESCRIPTION above.
     & flutter build appbundle --release --dart-define=STORE_BUILD=true
     if ($LASTEXITCODE -ne 0) { Die 'flutter build appbundle muvaffaqiyatsiz.' }
 } finally {
@@ -213,10 +213,10 @@ Step 8 'Bundle imzosi tekshirilmoqda'
 $certOut = Invoke-Native { & $Keytool -printcert -jarfile $Aab 2>&1 } | Out-String
 $cm = [regex]::Match($certOut, 'SHA1:\s*([0-9A-Fa-f:]{40,})')
 if (-not $cm.Success) {
-    Warn 'Imzo o''qib bo''lmadi — Play yuklashda o''zi aytadi.'
+    Warn 'Imzo o''qib bo''lmadi - Play yuklashda o''zi aytadi.'
 } elseif ($cm.Groups[1].Value.Trim().ToUpper() -ne $ExpectedSha1.ToUpper()) {
     Die @"
-Bundle NOTO'G'RI kalit bilan imzolangan — Play uni rad etadi.
+Bundle NOTO'G'RI kalit bilan imzolangan - Play uni rad etadi.
 
   kutilgan: $ExpectedSha1
   topilgan: $($cm.Groups[1].Value.Trim().ToUpper())
@@ -250,7 +250,7 @@ Write-Host '========================================================' -Foregroun
 Write-Host ''
 Write-Host " Fayl:  $Aab"
 Write-Host ''
-Write-Host ' Keyingi qadamlar (docs/RELEASE.md §4):'
+Write-Host ' Keyingi qadamlar (docs/RELEASE.md step 4):'
 Write-Host '   1. Play Console -> Hanguk -> Testing -> Internal testing'
 Write-Host '   2. Create new release -> shu .aab faylni tashlang'
 Write-Host '   3. Eski version code''larni HAMMA trekda deactivate qiling'
