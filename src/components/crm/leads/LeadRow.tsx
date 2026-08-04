@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ATTEMPT_ALARM, isOverdue } from './worklistLogic';
 import { useDueLabel } from './useDueLabel';
 import { isGoalKey } from './nextCall';
+import { formatCity, formatPhone } from './format';
 import type { LeadVM } from './types';
 
 interface LeadRowProps {
@@ -89,7 +90,7 @@ export function LeadRow({ lead, selected, onSelect, onCall }: LeadRowProps) {
           </span>
         </div>
         <div className="mt-0.5 truncate font-mono text-[11px] text-muted-foreground">
-          {[lead.phone, lead.city].filter(Boolean).join(' · ') || '—'}
+          {[formatPhone(lead.phone), formatCity(lead.city)].filter(Boolean).join(' · ') || '—'}
         </div>
       </div>
 

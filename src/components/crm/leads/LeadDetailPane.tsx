@@ -13,6 +13,7 @@ import { QualificationList } from './QualificationList';
 import { TouchHistory } from './TouchHistory';
 import type { QualificationKey } from './qualification';
 import type { AiPlan, GoalKey, TimingKey } from './aiPlanner';
+import { formatCity, formatPhone } from './format';
 import type { Disposition, LeadVM } from './types';
 
 interface LeadDetailPaneProps {
@@ -103,7 +104,7 @@ export function LeadDetailPane({
 
   const pills = [
     t(`leads.sources.${lead.source}`),
-    lead.city,
+    formatCity(lead.city),
     t('leads.detail.ownerPill', { name: lead.owner ?? t('leads.unassigned') }),
     t('leads.detail.agePill', {
       age: formatDistanceToNowStrict(new Date(lead.createdAt)),
@@ -131,7 +132,7 @@ export function LeadDetailPane({
           </Avatar>
           <div className="min-w-0 flex-1">
             <h2 className="truncate text-base font-bold text-foreground">{lead.name}</h2>
-            <p className="mt-0.5 truncate font-mono text-xs text-muted-foreground">{lead.phone ?? '—'}</p>
+            <p className="mt-0.5 truncate font-mono text-xs text-muted-foreground">{formatPhone(lead.phone) ?? '—'}</p>
           </div>
           <button
             type="button"

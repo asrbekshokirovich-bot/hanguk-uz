@@ -423,11 +423,18 @@
       "attempts": "{{n}}× звонков",
       "noGoal": "Цель не задана",
       "unscheduled": "Не запланировано",
+      "overdueDays_one": "просрочено на {{count}} день",
+      "overdueDays_few": "просрочено на {{count}} дня",
+      "overdueDays_many": "просрочено на {{count}} дней",
+      "overdueDays_other": "просрочено на {{count}} дней",
       "overdueHours": "просрочено на {{n}} ч",
       "overdueMinutes": "просрочено на {{n}} мин",
       "inMinutes": "через {{n}} мин",
       "inHours": "через {{n}} ч",
-      "inDays": "через {{n}} дн.",
+      "inDays_one": "через {{count}} день",
+      "inDays_few": "через {{count}} дня",
+      "inDays_many": "через {{count}} дней",
+      "inDays_other": "через {{count}} дней",
       "clearTitle": "Список звонков пуст",
       "clearBody": "Нет лидов по этому фильтру. Снимите фильтр источника или «Звонить сегодня» либо добавьте лид.",
       "tier": {
@@ -819,7 +826,10 @@
       "today": "Сегодня",
       "tomorrow": "Завтра",
       "overdue": "просрочено на {{n}} дн.",
-      "inDays": "через {{n}} дн."
+      "inDays_one": "через {{count}} день",
+      "inDays_few": "через {{count}} дня",
+      "inDays_many": "через {{count}} дней",
+      "inDays_other": "через {{count}} дней"
     }
   },
   "messages": {

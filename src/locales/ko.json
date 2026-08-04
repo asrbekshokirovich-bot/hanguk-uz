@@ -416,11 +416,12 @@
       "attempts": "{{n}}회 통화",
       "noGoal": "목표 미설정",
       "unscheduled": "미예정",
+      "overdueDays_other": "{{count}}일 지연",
       "overdueHours": "{{n}}시간 지연",
       "overdueMinutes": "{{n}}분 지연",
       "inMinutes": "{{n}}분 후",
       "inHours": "{{n}}시간 후",
-      "inDays": "{{n}}일 후",
+      "inDays_other": "{{count}}일 후",
       "clearTitle": "통화 목록이 비었습니다",
       "clearBody": "이 필터에 해당하는 리드가 없습니다. 유입 경로나 오늘 통화 필터를 해제하거나 리드를 추가하세요.",
       "tier": {
@@ -773,7 +774,7 @@
       "today": "오늘",
       "tomorrow": "내일",
       "overdue": "{{n}}일 초과",
-      "inDays": "{{n}}일 후"
+      "inDays_other": "{{count}}일 후"
     }
   },
   "messages": {

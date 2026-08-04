@@ -1,3 +1,4 @@
+import { formatCity, formatPhone } from './format';
 import type { BandKey, LeadVM, SourceFilter, WorklistBand } from './types';
 
 /**
@@ -33,11 +34,25 @@ export function isOverdue(lead: LeadVM): boolean {
   return lead.dueInMinutes !== null && lead.dueInMinutes < 0;
 }
 
-/** Search matches name, phone, city and the programme the lead asked about. */
+/**
+ * Search matches name, phone, city and the programme the lead asked about.
+ *
+ * Both the stored and the displayed forms are searched, so typing what is on
+ * screen ("Tashkent city", "+998 94") finds the row even though the record
+ * holds `tashkent_city` and `941966909`.
+ */
 export function matchesQuery(lead: LeadVM, query: string): boolean {
   const q = query.trim().toLowerCase();
   if (!q) return true;
-  const haystack = [lead.name, lead.phone, lead.city, lead.lead.preferred_program, lead.lead.preferred_university]
+  const haystack = [
+    lead.name,
+    lead.phone,
+    formatPhone(lead.phone),
+    lead.city,
+    formatCity(lead.city),
+    lead.lead.preferred_program,
+    lead.lead.preferred_university,
+  ]
     .filter(Boolean)
     .join(' ')
     .toLowerCase();
