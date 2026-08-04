@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Phone, Plus, Search } from 'lucide-react';
+import { Phone, Plus, Search, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Lead } from '@/contexts/LeadsContext';
 import type { SourceFilter } from './types';
@@ -16,6 +16,8 @@ interface LeadsFilterStripProps {
   onCallTodayToggle: () => void;
   stats: WorklistStats;
   onAddLead: () => void;
+  detailOpen: boolean;
+  onToggleDetail: () => void;
 }
 
 /**
@@ -34,6 +36,8 @@ export function LeadsFilterStrip({
   onCallTodayToggle,
   stats,
   onAddLead,
+  detailOpen,
+  onToggleDetail,
 }: LeadsFilterStripProps) {
   const { t } = useTranslation();
 
@@ -105,6 +109,17 @@ export function LeadsFilterStrip({
             </span>
           </div>
         ))}
+
+        {/* Available at every width — docked or overlay, the pane is optional. */}
+        <button
+          type="button"
+          aria-pressed={detailOpen}
+          onClick={onToggleDetail}
+          className="flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md border border-border px-3 text-[12.5px] font-semibold text-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+        >
+          <User className="h-3.5 w-3.5 text-muted-foreground" aria-hidden />
+          {detailOpen ? t('leads.detail.hideToggle') : t('leads.detail.showToggle')}
+        </button>
 
         <button
           type="button"

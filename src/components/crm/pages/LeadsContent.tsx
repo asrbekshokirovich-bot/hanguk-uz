@@ -9,8 +9,11 @@ import { LeadsFilterStrip } from '@/components/crm/leads/LeadsFilterStrip';
 import { LeadRow } from '@/components/crm/leads/LeadRow';
 import { WorklistBand } from '@/components/crm/leads/WorklistBand';
 import { WorklistEmpty } from '@/components/crm/leads/WorklistEmpty';
+import { LeadDetailPane } from '@/components/crm/leads/LeadDetailPane';
 import { useLeadWorklist } from '@/components/crm/leads/useLeadWorklist';
+import { useDetailDock } from '@/components/crm/leads/useDetailDock';
 import { buildBands, filterLeads, worklistStats } from '@/components/crm/leads/worklistLogic';
+import type { QualificationKey } from '@/components/crm/leads/qualification';
 import type { LeadVM, SourceFilter } from '@/components/crm/leads/types';
 import type { ContactOutcome, ContactType } from '@/hooks/useLeadNotes';
 import type { CreateLeadData } from '@/contexts/LeadsContext';
@@ -36,13 +39,15 @@ const LeadsContent = () => {
   // One clock for the whole render pass, so the score, the bands and every due
   // line agree with each other. Re-created only when the component re-mounts.
   const [now] = useState(() => new Date());
-  const { rows, loading } = useLeadWorklist(now);
+  const { rows, loading, refreshHistory } = useLeadWorklist(now);
+  const detail = useDetailDock();
 
   const [query, setQuery] = useState('');
   const [source, setSource] = useState<SourceFilter>('all');
   const [callToday, setCallToday] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [addOpen, setAddOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
   const [students, setStudents] = useState<{ user_id: string; full_name: string | null }[]>([]);
 
   const visible = useMemo(
@@ -54,11 +59,44 @@ const LeadsContent = () => {
   // source must not hide how much work is actually overdue.
   const stats = useMemo(() => worklistStats(rows), [rows]);
 
-  const handleSelect = (lead: LeadVM) => setSelectedId(lead.id);
+  // The selected lead is resolved out of the live rows rather than held as an
+  // object, so the pane re-renders from fresh data after every write.
+  const selected = useMemo(
+    () => visible.find((lead) => lead.id === selectedId) ?? null,
+    [visible, selectedId],
+  );
+
+  const handleSelect = (lead: LeadVM) => {
+    setSelectedId(lead.id);
+    // Picking a row is a deliberate act, so it opens the pane at any width.
+    // Only *first paint* defaults closed in overlay mode, so no row's Call
+    // button is ever covered before the operator has asked for the pane.
+    detail.show();
+  };
 
   // Click-to-call is not wired to telephony yet; selecting the lead is what the
   // Call button can honestly do until the dispositions land in step 4.
   const handleCall = (lead: LeadVM) => setSelectedId(lead.id);
+
+  /** Writes an unanswered qualification field into the touch history. */
+  const handleAsk = async (lead: LeadVM, key: QualificationKey) => {
+    if (!user) return;
+    setBusy(true);
+    try {
+      const { error } = await supabase.from('lead_notes').insert({
+        lead_id: lead.id,
+        content: t('leads.detail.askedNote', { field: t(`leads.qualification.${key}`) }),
+        contact_type: 'note',
+        created_by: user.id,
+      });
+      if (error) throw error;
+      await refreshHistory();
+    } catch (error) {
+      console.error('Failed to flag a qualification field:', error);
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const handleCreateLead = async (
     data: CreateLeadData,
@@ -101,6 +139,8 @@ const LeadsContent = () => {
         onCallTodayToggle={() => setCallToday((prev) => !prev)}
         stats={stats}
         onAddLead={openAddWizard}
+        detailOpen={detail.open}
+        onToggleDetail={detail.toggle}
       />
 
       <div className="relative flex min-h-0 flex-1 overflow-x-auto">
@@ -129,6 +169,26 @@ const LeadsContent = () => {
             ))
           )}
         </section>
+
+        {/* Scrim, overlay mode only. Clicking it closes the pane; Escape does
+            the same, handled inside the pane. */}
+        {!detail.docked && detail.open && (
+          <div
+            role="presentation"
+            onClick={detail.close}
+            className="absolute inset-0 z-20 cursor-pointer bg-foreground/30"
+          />
+        )}
+
+        {detail.open && (
+          <LeadDetailPane
+            lead={selected}
+            docked={detail.docked}
+            onClose={detail.close}
+            onAsk={handleAsk}
+            busy={busy}
+          />
+        )}
       </div>
 
       <AddLeadWizard
