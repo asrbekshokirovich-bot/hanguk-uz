@@ -361,6 +361,60 @@
     }
   },
   "leads": {
+    "worklist": {
+      "searchPlaceholder": "Ism, telefon, shahar",
+      "logCall": "Qo‘ng‘iroqni yozib qo‘yish",
+      "uncalled": "Qo‘ng‘iroq qilinmagan",
+      "attempts": "{{n}}× qo‘ng‘iroq",
+      "noGoal": "Maqsad belgilanmagan",
+      "unscheduled": "Rejalashtirilmagan",
+      "overdueHours": "{{n}} soat kechikdi",
+      "overdueMinutes": "{{n}} daqiqa kechikdi",
+      "inMinutes": "{{n}} daqiqadan so‘ng",
+      "inHours": "{{n}} soatdan so‘ng",
+      "inDays": "{{n}} kundan so‘ng",
+      "clearTitle": "Ish ro‘yxati bo‘sh",
+      "clearBody": "Bu filtrga mos lead yo‘q. Manba yoki «Bugun qo‘ng‘iroq» filtrini tozalang yoki lead qo‘shing.",
+      "tier": {
+        "hot": "Issiq",
+        "warm": "Iliq",
+        "cold": "Sovuq"
+      },
+      "stage": {
+        "new": "Yangi",
+        "attempting": "Urinilmoqda",
+        "contacted": "Bog‘lanilgan",
+        "booked": "Band qilingan"
+      },
+      "stats": {
+        "uncalled": "qo‘ng‘iroqsiz",
+        "overdue": "kechikkan",
+        "booked": "band",
+        "avgScore": "o‘rtacha ball"
+      }
+    },
+    "bands": {
+      "overdue": {
+        "label": "Kechikkan aloqa",
+        "hint": "Va’da qilingan qo‘ng‘iroqlar kechikdi — avval shularni yoping"
+      },
+      "new": {
+        "label": "Yangi — hech qo‘ng‘iroq qilinmagan",
+        "hint": "Birinchi javob vaqti ketmoqda"
+      },
+      "booked": {
+        "label": "Konsultatsiyalar band",
+        "hint": "O‘sha kuni ertalab kelishini tasdiqlang"
+      },
+      "working": {
+        "label": "Ishlanmoqda",
+        "hint": "Suhbatda, keyingi aloqa rejalashtirilgan"
+      }
+    },
+    "nextCall": {
+      "aiChip": "AI",
+      "setByAi": "Hanguk AI belgiladi"
+    },
     "intel": {
       "title": "AI lidlar tahlili",
       "refresh": "Yangilash",

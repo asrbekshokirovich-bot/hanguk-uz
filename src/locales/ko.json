@@ -311,6 +311,60 @@
     }
   },
   "leads": {
+    "worklist": {
+      "searchPlaceholder": "이름, 전화번호, 도시",
+      "logCall": "통화 기록",
+      "uncalled": "미통화",
+      "attempts": "{{n}}회 통화",
+      "noGoal": "목표 미설정",
+      "unscheduled": "미예정",
+      "overdueHours": "{{n}}시간 지연",
+      "overdueMinutes": "{{n}}분 지연",
+      "inMinutes": "{{n}}분 후",
+      "inHours": "{{n}}시간 후",
+      "inDays": "{{n}}일 후",
+      "clearTitle": "통화 목록이 비었습니다",
+      "clearBody": "이 필터에 해당하는 리드가 없습니다. 유입 경로나 오늘 통화 필터를 해제하거나 리드를 추가하세요.",
+      "tier": {
+        "hot": "핫",
+        "warm": "웜",
+        "cold": "콜드"
+      },
+      "stage": {
+        "new": "신규",
+        "attempting": "시도 중",
+        "contacted": "통화함",
+        "booked": "예약됨"
+      },
+      "stats": {
+        "uncalled": "미통화",
+        "overdue": "지연",
+        "booked": "예약",
+        "avgScore": "평균 점수"
+      }
+    },
+    "bands": {
+      "overdue": {
+        "label": "지연된 후속 통화",
+        "hint": "약속한 통화가 지연됨 — 먼저 처리하세요"
+      },
+      "new": {
+        "label": "신규 — 미통화",
+        "hint": "첫 응대 시간이 흐르고 있습니다"
+      },
+      "booked": {
+        "label": "상담 예약",
+        "hint": "당일 오전에 참석을 확인하세요"
+      },
+      "working": {
+        "label": "진행 중",
+        "hint": "대화 중, 다음 접촉 예정"
+      }
+    },
+    "nextCall": {
+      "aiChip": "AI",
+      "setByAi": "Hanguk AI가 설정함"
+    },
     "intel": {
       "title": "AI 리드 인텔리전스",
       "refresh": "새로고침",

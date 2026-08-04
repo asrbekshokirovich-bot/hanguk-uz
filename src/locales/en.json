@@ -314,6 +314,60 @@
     }
   },
   "leads": {
+    "worklist": {
+      "searchPlaceholder": "Name, phone, city",
+      "logCall": "Log a call",
+      "uncalled": "Uncalled",
+      "attempts": "{{n}}× called",
+      "noGoal": "No goal set",
+      "unscheduled": "Not scheduled",
+      "overdueHours": "{{n}}h overdue",
+      "overdueMinutes": "{{n}}m overdue",
+      "inMinutes": "in {{n}}m",
+      "inHours": "in {{n}}h",
+      "inDays": "in {{n}} days",
+      "clearTitle": "Worklist is clear",
+      "clearBody": "No leads match this filter. Clear the source or Call Today filter, or add a lead manually.",
+      "tier": {
+        "hot": "Hot",
+        "warm": "Warm",
+        "cold": "Cold"
+      },
+      "stage": {
+        "new": "New",
+        "attempting": "Attempting",
+        "contacted": "Contacted",
+        "booked": "Booked"
+      },
+      "stats": {
+        "uncalled": "uncalled",
+        "overdue": "overdue",
+        "booked": "booked",
+        "avgScore": "avg score"
+      }
+    },
+    "bands": {
+      "overdue": {
+        "label": "Overdue follow-up",
+        "hint": "Promised callbacks past due — clear these first"
+      },
+      "new": {
+        "label": "New — never called",
+        "hint": "First-response clock is running"
+      },
+      "booked": {
+        "label": "Consultations booked",
+        "hint": "Confirm attendance the morning of"
+      },
+      "working": {
+        "label": "Working",
+        "hint": "In conversation, next touch scheduled"
+      }
+    },
+    "nextCall": {
+      "aiChip": "AI",
+      "setByAi": "Set by Hanguk AI"
+    },
     "intel": {
       "title": "AI Leads Intelligence",
       "refresh": "Refresh",
