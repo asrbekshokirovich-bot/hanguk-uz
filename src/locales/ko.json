@@ -311,6 +311,198 @@
     }
   },
   "leads": {
+    "dispositions": {
+      "title": "이번 통화 기록",
+      "reached": "통화 성공",
+      "no_answer": "무응답",
+      "callback": "나중에 재통화",
+      "wrong_number": "잘못된 번호",
+      "attemptsNote_other": "지금까지 {{count}}회 시도 · 담당 {{owner}}",
+      "aiReplanNote": "Hanguk AI가 다음 통화를 설정함 — {{goal}}",
+      "notes": {
+        "reached": "통화 성공 — 학생과 상담함",
+        "no_answer": "무응답 ({{n}}회차 시도)",
+        "callback": "학생 요청으로 재통화 예약함",
+        "wrong_number": "잘못된 번호로 확인됨 — 목록에서 제외",
+        "booked": "상담 예약됨"
+      }
+    },
+    "duplicate": {
+      "title": "중복 가능성",
+      "note": "이전 리드 “{{name}}”와(과) 전화번호가 같습니다.",
+      "merge": "병합",
+      "keepBoth": "둘 다 유지",
+      "mergedNote": "이전 기록 “{{name}}”(으)로 병합함",
+      "mergedIntoNote": "중복 리드 “{{name}}”를 이 기록으로 병합함",
+      "keptBothNote": "별개의 사람으로 표시 — 중복 아님"
+    },
+    "convertPanel": {
+      "book": "상담 예약",
+      "convert": "계약으로 전환",
+      "convertNote": "학생 기록을 생성하고 서류 패키지를 엽니다.",
+      "blocked_other": "전환하기 전에 자격 항목 {{count}}개를 더 채우세요 — 누락: {{fields}}.",
+      "convertedNote": "계약으로 전환됨 — 학생 기록 생성",
+      "lost": "실패로 표시",
+      "lostNote": "실패로 표시함"
+    },
+    "handoff": {
+      "dismiss": "닫기",
+      "converted": "{{name}} 전환 완료 — 계약이 생성되었고 서류 패키지가 담당자에게 열렸습니다.",
+      "removed": "{{name}} 제외됨 — 잘못된 번호입니다.",
+      "merged": "{{name}}을(를) 이전 기록으로 병합했습니다.",
+      "lost": "{{name}}을(를) 실패로 표시했습니다. 사유는 리드 기록에 저장됩니다."
+    },
+    "detail": {
+      "paneLabel": "리드 상세",
+      "showToggle": "리드 상세",
+      "hideToggle": "상세 숨기기",
+      "close": "리드 상세 닫기",
+      "emptyTitle": "선택된 리드 없음",
+      "emptyBody": "목록에서 행을 선택하면 점수 분석, 자격 요건, 통화 작업을 볼 수 있습니다.",
+      "ownerPill": "담당 {{name}}",
+      "agePill": "{{age}} 전",
+      "scoreTitle": "리드 점수",
+      "scoreNote": {
+        "hot": "우선 처리 — 관심과 예산이 강합니다.",
+        "warm": "진행할 가치 있음 — 한두 가지 공백이 있습니다.",
+        "cold": "신호가 약합니다. 통화를 더 쓰기 전에 자격을 확인하세요."
+      },
+      "strength": {
+        "strong": "강함",
+        "partial": "부분",
+        "weak": "약함"
+      },
+      "qualificationTitle": "자격 요건",
+      "missingCount": "{{n}}개 누락",
+      "askOnCall": "통화에서 질문",
+      "askedNote": "“{{field}}” 항목을 다음 통화에서 질문하도록 표시함",
+      "historyTitle": "접촉 이력",
+      "historyEmpty": "아직 기록된 연락이 없습니다."
+    },
+    "factors": {
+      "intent": "관심 신호",
+      "budget": "예산 적합도",
+      "education": "학력",
+      "language": "한국어 / TOPIK",
+      "timing": "입학 시기"
+    },
+    "qualification": {
+      "education": "학력",
+      "intake": "목표 입학",
+      "plan": "플랜 관심",
+      "topik": "TOPIK",
+      "korean": "한국어 수준",
+      "values": {
+        "high_school": "고등학교",
+        "bachelor": "학사",
+        "master": "석사",
+        "phd": "박사",
+        "other": "기타",
+        "under_5000": "$5,000 미만",
+        "5000_10000": "$5,000 – $10,000",
+        "10000_20000": "$10,000 – $20,000",
+        "20000_plus": "$20,000+",
+        "scholarship": "장학금 희망",
+        "spring_2025": "2025 봄",
+        "fall_2025": "2025 가을",
+        "spring_2026": "2026 봄",
+        "fall_2026": "2026 가을"
+      }
+    },
+    "worklist": {
+      "searchPlaceholder": "이름, 전화번호, 도시",
+      "logCall": "통화 기록",
+      "uncalled": "미통화",
+      "attempts": "{{n}}회 통화",
+      "noGoal": "목표 미설정",
+      "unscheduled": "미예정",
+      "overdueHours": "{{n}}시간 지연",
+      "overdueMinutes": "{{n}}분 지연",
+      "inMinutes": "{{n}}분 후",
+      "inHours": "{{n}}시간 후",
+      "inDays": "{{n}}일 후",
+      "clearTitle": "통화 목록이 비었습니다",
+      "clearBody": "이 필터에 해당하는 리드가 없습니다. 유입 경로나 오늘 통화 필터를 해제하거나 리드를 추가하세요.",
+      "tier": {
+        "hot": "핫",
+        "warm": "웜",
+        "cold": "콜드"
+      },
+      "stage": {
+        "new": "신규",
+        "attempting": "시도 중",
+        "contacted": "통화함",
+        "booked": "예약됨"
+      },
+      "stats": {
+        "uncalled": "미통화",
+        "overdue": "지연",
+        "booked": "예약",
+        "avgScore": "평균 점수"
+      }
+    },
+    "bands": {
+      "overdue": {
+        "label": "지연된 후속 통화",
+        "hint": "약속한 통화가 지연됨 — 먼저 처리하세요"
+      },
+      "new": {
+        "label": "신규 — 미통화",
+        "hint": "첫 응대 시간이 흐르고 있습니다"
+      },
+      "booked": {
+        "label": "상담 예약",
+        "hint": "당일 오전에 참석을 확인하세요"
+      },
+      "working": {
+        "label": "진행 중",
+        "hint": "대화 중, 다음 접촉 예정"
+      }
+    },
+    "nextCall": {
+      "title": "다음 통화",
+      "scheduled": "예정: {{when}}",
+      "whyTitle": "Hanguk AI가 이렇게 정한 이유",
+      "suggestsInstead": "Hanguk AI의 대안 제안",
+      "useAiPlan": "AI 계획 적용",
+      "assignManually": "직접 지정",
+      "setByOperator": "{{name}} 설정",
+      "manualReason": "{{name}}이(가) 직접 지정함.",
+      "goalSetNote": "다음 통화 목표를 직접 설정함 — {{goal}}",
+      "timingSetNote": "다음 통화 일정을 직접 변경함 — {{when}}",
+      "adoptedNote": "Hanguk AI 계획을 적용함 — {{goal}}",
+      "goals": {
+        "qualifyBudgetIntake": "예산 및 입학 시기 확인",
+        "sendPlanComparison": "플랜 비교 자료 발송",
+        "bookConsultation": "상담 예약",
+        "confirmAttendance": "참석 확인",
+        "sendDocumentChecklist": "서류 체크리스트 발송",
+        "closeContract": "마무리 — 계약 및 결제",
+        "finalAttempt": "보류 전 마지막 시도",
+        "retryDifferentTime": "다른 시간대에 재시도",
+        "messageOnSource": "먼저 {{source}}(으)로 메시지",
+        "callbackAgreed": "합의한 시간에 재통화"
+      },
+      "timings": {
+        "in1h": "1시간 후",
+        "today17": "오늘 17:00",
+        "tomorrow10": "내일 10:00",
+        "in3days": "3일 후"
+      },
+      "why": {
+        "finalAttempt": "{{tier}} 점수에 무응답 {{n}}회. 이틀 뒤 마지막으로 한 번 더 시도하고, 계속 통화를 쓰기보다 콜드로 보류하세요.",
+        "messageOnSource": "전화로 세 번 놓쳤습니다. 이 리드는 {{source}}에서 유입되었으므로 네 번째 통화보다 문자 메시지가 답을 받을 가능성이 높습니다.",
+        "retryDifferentTime": "두 번 모두 같은 시간대였습니다. 몇 시간 옮기는 것이 무응답을 해결하는 가장 값싼 방법입니다.",
+        "callbackAgreed": "학생이 직접 시간을 정했습니다. 놓친 재통화는 웜 리드가 조용해지는 가장 흔한 이유입니다.",
+        "confirmAttendance": "상담이 이미 일정에 있습니다. 당일 확인 통화는 노쇼를 크게 줄입니다.",
+        "gapsMany": "자격 항목 {{n}}개가 비어 있습니다. 기록되기 전에는 어떤 플랜도 제시할 수 없고 계약도 진행할 수 없습니다.",
+        "gapsOne": "한 항목만 비어 있습니다. 이 공백을 채우면 계약 준비가 끝납니다.",
+        "closeNow": "자격이 모두 충족되었고 점수는 {{tier}}이며 {{intake}} 입학이 곧 마감됩니다. 접촉을 더 잡기보다 오늘 계약으로 넘어가세요.",
+        "keepMomentum": "자격은 충족되었지만 입학까지 시간이 있습니다. 자료로 관심을 유지한 뒤 상담을 예약하세요."
+      },
+      "aiChip": "AI",
+      "setByAi": "Hanguk AI가 설정함"
+    },
     "intel": {
       "title": "AI 리드 인텔리전스",
       "refresh": "새로고침",
