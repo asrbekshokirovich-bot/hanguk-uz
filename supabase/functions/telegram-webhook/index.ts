@@ -75,7 +75,15 @@ async function storeMessage(supabase: Any, m: {
     student_id: m.studentId ?? null, // BEFORE INSERT trigger fills this if null
     metadata: { telegram_chat_id: m.chatId, ...(m.extraMeta ?? {}) },
   });
-  if (error) console.error("storeMessage error:", error.message);
+  // Throw rather than log-and-continue. The handler answers Telegram with 200
+  // regardless (see the catch below), so a swallowed failure here meant the
+  // message was gone with nothing to show for it: not in the inbox, and not in
+  // the logs beyond one line with no chat or content to trace it back to.
+  if (error) {
+    throw new Error(
+      `storeMessage failed for chat ${m.chatId} (${m.direction}, ${m.type ?? "text"}): ${error.message}`,
+    );
+  }
 }
 
 async function bumpThread(supabase: Any, chatId: string, name: string, direction: "incoming" | "outgoing"): Promise<void> {
@@ -136,20 +144,79 @@ async function upsertLead(supabase: Any, chatId: string, fields: Record<string, 
   return data;
 }
 
+const STAFF_ROLES = ["owner", "admin", "call_operator"];
+
+/** The URL Telegram must be told to deliver updates to — this function's own. */
+const WEBHOOK_URL = `${SUPABASE_URL}/functions/v1/telegram-webhook`;
+
+/**
+ * Is the caller staff? Used to gate the admin actions below.
+ *
+ * Telegram itself never sends an Authorization header, so an update can never
+ * satisfy this and can never reach an admin branch.
+ */
+async function isStaff(supabase: Any, req: Request): Promise<boolean> {
+  const jwt = (req.headers.get("Authorization") || "").replace("Bearer ", "").trim();
+  if (!jwt) return false;
+  const { data, error } = await supabase.auth.getUser(jwt);
+  if (error || !data?.user) return false;
+  const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", data.user.id);
+  return (roles || []).some((r: { role: string }) => STAFF_ROLES.includes(r.role));
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   const ok = () => new Response(JSON.stringify({ ok: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  const json = (body: unknown, status = 200) =>
+    new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
   try {
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
     if (req.method !== "POST") {
-      return new Response(JSON.stringify({ message: "Telegram webhook endpoint", configured: !!BOT_TOKEN }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      // `configured` only says the bot token is present. It says nothing about
+      // whether Telegram is actually delivering here — that is what silently
+      // stopped, with this endpoint answering 200 the whole time. `?action=status`
+      // asks Telegram itself, and is the first thing to check when the inbox
+      // goes quiet.
+      const action = new URL(req.url).searchParams.get("action");
+      if (action === "status") {
+        if (!BOT_TOKEN) return json({ error: "TELEGRAM_BOT_TOKEN is not configured" }, 500);
+        if (!(await isStaff(supabase, req))) return json({ error: "Forbidden: staff role required" }, 403);
+        const res = await fetch(`${TG_API}/getWebhookInfo`);
+        const info = await res.json().catch(() => ({}));
+        return json({
+          expected_url: WEBHOOK_URL,
+          registered_url: info?.result?.url ?? null,
+          matches: info?.result?.url === WEBHOOK_URL,
+          pending_update_count: info?.result?.pending_update_count ?? null,
+          last_error_date: info?.result?.last_error_date ?? null,
+          last_error_message: info?.result?.last_error_message ?? null,
+        });
+      }
+      return json({ message: "Telegram webhook endpoint", configured: !!BOT_TOKEN });
     }
 
     const update = await req.json();
+
+    // Point Telegram back at this function. Staff-gated; see isStaff above for
+    // why an update cannot land here.
+    if (update?.action === "register") {
+      if (!BOT_TOKEN) return json({ error: "TELEGRAM_BOT_TOKEN is not configured" }, 500);
+      if (!(await isStaff(supabase, req))) return json({ error: "Forbidden: staff role required" }, 403);
+      const res = await fetch(`${TG_API}/setWebhook`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          url: WEBHOOK_URL,
+          allowed_updates: ["message", "callback_query"],
+        }),
+      });
+      const result = await res.json().catch(() => ({}));
+      if (!result?.ok) return json({ ok: false, error: result?.description || "setWebhook failed" }, 502);
+      return json({ ok: true, url: WEBHOOK_URL, description: result?.description });
+    }
     console.log("Telegram update:", JSON.stringify(update));
 
     // --- Button press (degree choice) ------------------------------------

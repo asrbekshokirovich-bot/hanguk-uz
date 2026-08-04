@@ -51,6 +51,49 @@ interface MessagesContextType {
 
 const MessagesContext = createContext<MessagesContextType | undefined>(undefined);
 
+/**
+ * How an outbound reply reaches each channel.
+ *
+ * Both channels go through the same delivery path deliberately. They used to
+ * differ: Instagram checked the invoke result and rolled the optimistic row
+ * back on failure, Telegram did neither. Since `functions.invoke` resolves with
+ * `{ error }` rather than throwing, Telegram's try/catch never fired — a reply
+ * the bot never delivered stayed in the inbox marked `replied`, and staff had
+ * no way to know. One table, one code path, so they cannot drift again.
+ */
+const DELIVERY_BY_SOURCE: Record<string, { fn: string; body: (senderId: string, text: string) => Record<string, string> } | undefined> = {
+  telegram: { fn: 'send-telegram', body: (senderId, text) => ({ chat_id: senderId, text }) },
+  instagram: { fn: 'send-instagram', body: (senderId, text) => ({ recipient_id: senderId, text }) },
+};
+
+/** Invoke a send function and return the failure, or null if it delivered. */
+async function deliver(
+  delivery: { fn: string; body: (senderId: string, text: string) => Record<string, string> },
+  senderId: string,
+  text: string,
+): Promise<Error | null> {
+  try {
+    const { error } = await supabase.functions.invoke(delivery.fn, {
+      body: delivery.body(senderId, text),
+    });
+    if (!error) return null;
+
+    // A non-2xx from the function arrives as FunctionsHttpError, whose body
+    // carries the real reason ("chat not found", "TELEGRAM_BOT_TOKEN is not
+    // configured", ...). Surface that rather than the generic wrapper message.
+    let detail = '';
+    try {
+      const body = await (error as { context?: { json?: () => Promise<{ error?: string }> } }).context?.json?.();
+      detail = body?.error || '';
+    } catch {
+      // Body was not JSON — fall back to the wrapper message.
+    }
+    return new Error(detail || error.message || `${delivery.fn} failed`);
+  } catch (thrown) {
+    return thrown instanceof Error ? thrown : new Error(`${delivery.fn} failed`);
+  }
+}
+
 export function MessagesProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const [threads, setThreads] = useState<MessageThread[]>([]);
@@ -135,40 +178,17 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
       return { error: error || new Error('Failed to save message') };
     }
 
+    const delivery = DELIVERY_BY_SOURCE[source];
     let sendError: Error | null = null;
 
-    if (source === 'telegram' && senderId) {
-      try {
-        await supabase.functions.invoke('send-telegram', {
-          body: { chat_id: senderId, text: content },
-        });
-      } catch (telegramError) {
-        console.error('Failed to send Telegram message:', telegramError);
-      }
-    }
-
-    if (source === 'instagram' && senderId) {
-      try {
-        const { error: igError } = await supabase.functions.invoke('send-instagram', {
-          body: { recipient_id: senderId, text: content },
-        });
-        if (igError) {
-          let detail = '';
-          try {
-            const body = await (igError as any).context?.json?.();
-            detail = body?.error || '';
-          } catch {
-            // ignore body parse errors
-          }
-          sendError = new Error(detail || igError.message || 'Instagram send failed');
-        }
-      } catch (instagramError) {
-        sendError = instagramError instanceof Error ? instagramError : new Error('Instagram send failed');
-      }
+    if (delivery && senderId) {
+      sendError = await deliver(delivery, senderId, content);
 
       if (sendError) {
-        console.error('Failed to send Instagram message:', sendError);
-        // Remove the optimistic row so the CRM does not show an undelivered message.
+        console.error(`Failed to send ${source} message:`, sendError);
+        // Remove the optimistic row so the CRM does not show an undelivered
+        // message. Guarded on external_id being null so an inbound echo that
+        // arrived in the meantime is never deleted.
         await supabase
           .from('messages')
           .delete()
