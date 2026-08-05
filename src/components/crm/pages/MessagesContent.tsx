@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMessages } from '@/hooks/useMessages';
 import { useToast } from '@/hooks/use-toast';
+import type { Message } from '@/contexts/MessagesContext';
 import { MessagesQueue } from '@/components/crm/messages/MessagesQueue';
 import { QueueClearState } from '@/components/crm/messages/QueueClearState';
 import { StudentContextRail } from '@/components/crm/messages/StudentContextRail';
@@ -30,20 +31,18 @@ import type {
  * only: filtering lives in `messages/queueLogic`, the Supabase adapters in the
  * `messages/use*` hooks, and every pixel in the `messages/*` components.
  *
+ * Sending is Telegram-style: `MessagesContext.sendMessage` inserts the real
+ * row with `delivery_status = 'sending'` and shows it at once; the edge
+ * function / userbot flips it to 'sent' or 'failed' via a realtime UPDATE.
+ * There is no synthetic "pending bubble" layer here any more — the row in the
+ * stream IS the source of truth, so a failure keeps the bubble on screen with
+ * its error and a Retry instead of silently vanishing.
+ *
  * Channels: Telegram, Instagram and the Hanguk App in-app chat. Only the first
  * two currently have ingest and relay paths (`telegram-webhook`,
  * `instagram-webhook`, `send-telegram`, `send-instagram`); the app channel
  * renders correctly but no producer writes `source = 'app'` yet.
  */
-/** An outbound message shown before the server has confirmed it. */
-interface PendingMessage {
-  id: string;
-  threadId: string;
-  text: string;
-  internal: boolean;
-  createdAt: string;
-}
-
 export default function MessagesContent() {
   const { t } = useTranslation();
   const { toast } = useToast();
@@ -54,10 +53,12 @@ export default function MessagesContent() {
     selectedThread,
     setSelectedThread,
     sendMessage,
+    retryMessage,
+    appendLocalMessage,
     archiveThread,
     assignThread,
-    fetchThreads,
-    fetchMessages,
+    hasMoreMessages,
+    loadOlderMessages,
   } = useMessages();
 
   // Opening a thread marks it read in the database (MessagesContext.fetchMessages
@@ -74,8 +75,6 @@ export default function MessagesContent() {
   const [contextOpen, setContextOpen] = useState(true);
   const [claiming, setClaiming] = useState(false);
   const [translatingId, setTranslatingId] = useState<string | null>(null);
-  const [pending, setPending] = useState<PendingMessage[]>([]);
-  const optimisticSeq = useRef(0);
 
   const filtered = useMemo(
     () => sortConversations(filterConversations(conversations, tab, channel, query), tab),
@@ -147,36 +146,7 @@ export default function MessagesContent() {
     [streamMatchesActive, messages],
   );
 
-  const confirmedMessages = useThreadMessages(activeMessages);
-
-  // Retire an optimistic bubble as soon as the real row for it comes back.
-  useEffect(() => {
-    if (pending.length === 0) return;
-    const landed = new Set(
-      confirmedMessages.filter((m) => m.kind === 'out' || m.kind === 'note').map((m) => m.text),
-    );
-    setPending((prev) => prev.filter((p) => !landed.has(p.text)));
-  }, [confirmedMessages, pending.length]);
-
-  const threadMessages = useMemo<MessageVM[]>(() => {
-    const mine = pending.filter((p) => p.threadId === activeId);
-    if (mine.length === 0) return confirmedMessages;
-    return [
-      ...confirmedMessages,
-      ...mine.map<MessageVM>((p) => ({
-        id: p.id,
-        kind: p.internal ? 'note' : 'out',
-        text: p.text,
-        createdAt: p.createdAt,
-        senderLabel: null,
-        deliveryStatus: null,
-        translation: null,
-        translatable: false,
-        media: null,
-        pending: true,
-      })),
-    ];
-  }, [confirmedMessages, pending, activeId]);
+  const threadMessages = useThreadMessages(activeMessages);
   const { autoTranslate, toggleAuto, isExpanded, toggleMessage } = useThreadTranslation(activeId);
   const { student, loading: studentLoading } = useStudentContext(active?.studentId ?? null);
 
@@ -222,40 +192,27 @@ export default function MessagesContent() {
     async (text: string, options: { internal: boolean; language: SendLanguage }): Promise<boolean> => {
       if (!active || !selectedThread) return false;
 
-      // Show the bubble immediately. Everything below — the insert, the
-      // Telegram/Instagram relay, the assignment write and the refetches — is
-      // several seconds of round trips, and the operator should not be staring
-      // at a frozen composer for any of it.
-      const optimisticId = `pending-${optimisticSeq.current++}`;
-      const optimistic: PendingMessage = {
-        id: optimisticId,
-        threadId: active.threadId,
-        text,
-        internal: options.internal,
-        createdAt: new Date().toISOString(),
-      };
-      setPending((prev) => [...prev, optimistic]);
-
-      const dropOptimistic = () =>
-        setPending((prev) => prev.filter((p) => p.id !== optimisticId));
-
       if (options.internal) {
         // Internal notes are stored on the thread but never relayed to the
-        // channel, so they bypass MessagesContext.sendMessage entirely.
-        const { error } = await supabase.from('messages').insert({
-          source: selectedThread.source,
-          sender_id: selectedThread.sender_id,
-          student_id: selectedThread.student_id,
-          content: text,
-          direction: 'outgoing',
-          message_type: 'note',
-          status: 'read',
-          metadata: { internal: true },
-          replied_by: user?.id ?? null,
-          replied_at: new Date().toISOString(),
-        });
-        if (error) {
-          dropOptimistic();
+        // channel, so they bypass MessagesContext.sendMessage entirely. The
+        // inserted row is appended locally so the note appears instantly.
+        const { data: inserted, error } = await supabase
+          .from('messages')
+          .insert({
+            source: selectedThread.source,
+            sender_id: selectedThread.sender_id,
+            student_id: selectedThread.student_id,
+            content: text,
+            direction: 'outgoing',
+            message_type: 'note',
+            status: 'read',
+            metadata: { internal: true },
+            replied_by: user?.id ?? null,
+            replied_at: new Date().toISOString(),
+          })
+          .select('*')
+          .single();
+        if (error || !inserted) {
           toast({
             title: t('common.error'),
             description: t('messages.toast.noteFailed'),
@@ -263,13 +220,20 @@ export default function MessagesContent() {
           });
           return false;
         }
-        void fetchMessages(selectedThread);
+        appendLocalMessage(inserted as unknown as Message);
         return true;
       }
 
-      const { error } = await sendMessage(text, selectedThread.source, selectedThread.sender_id);
-      if (error) {
-        dropOptimistic();
+      // The real row is inserted and rendered by MessagesContext before the
+      // channel round trip. `queued` distinguishes "the row exists but the
+      // relay failed" (bubble stays with its error + Retry, keep the draft
+      // cleared) from "nothing was saved at all" (restore the draft).
+      const { error, queued } = await sendMessage(
+        text,
+        selectedThread.source,
+        selectedThread.sender_id,
+      );
+      if (error && !queued) {
         toast({
           title: t('common.error'),
           description: error.message || t('messages.toast.sendFailed'),
@@ -277,28 +241,42 @@ export default function MessagesContent() {
         });
         return false;
       }
+      if (error) {
+        toast({
+          title: t('common.error'),
+          description: error.message || t('messages.toast.sendFailed'),
+          variant: 'destructive',
+        });
+        return true;
+      }
 
       // Replying takes ownership of a conversation nobody had claimed yet.
-      // Deliberately not awaited: the message is already delivered and on
+      // Deliberately not awaited: the message is already on its way and on
       // screen, so the bookkeeping must not hold the composer hostage.
       if (!active.isAssigned && user) {
         void assignThread(active.threadId, user.id).then(() => refreshAssignments());
       }
-      void fetchThreads();
       return true;
     },
     [
       active,
       selectedThread,
       sendMessage,
+      appendLocalMessage,
       assignThread,
       refreshAssignments,
-      fetchThreads,
-      fetchMessages,
       user,
       toast,
       t,
     ],
+  );
+
+  const handleRetry = useCallback(
+    (messageId: string) => {
+      const row = messages.find((m) => m.id === messageId);
+      if (row) void retryMessage(row);
+    },
+    [messages, retryMessage],
   );
 
   const handleToggleTranslation = useCallback(
@@ -354,11 +332,14 @@ export default function MessagesContent() {
               conversation={active}
               messages={threadMessages}
               messagesLoading={!streamMatchesActive}
+              hasMore={hasMoreMessages}
               autoTranslate={autoTranslate}
               contextOpen={contextOpen}
               claiming={claiming}
               translatingId={translatingId}
               isExpanded={isExpanded}
+              onLoadOlder={loadOlderMessages}
+              onRetry={handleRetry}
               onToggleTranslation={handleToggleTranslation}
               onToggleAutoTranslate={toggleAuto}
               onToggleContext={() => setContextOpen((v) => !v)}
