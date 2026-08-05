@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -19,6 +19,10 @@ export interface Message {
   replied_at: string | null;
   metadata: any;
   created_at: string;
+  /** 'sending' | 'sent' | 'failed' for outgoing rows; null on inbound/legacy. */
+  delivery_status?: 'sending' | 'sent' | 'failed' | null;
+  delivery_error?: string | null;
+  client_msg_id?: string | null;
 }
 
 export interface MessageThread {
@@ -33,6 +37,8 @@ export interface MessageThread {
   status: 'active' | 'archived';
   created_at: string;
   lastMessage?: Message;
+  /** Latest assignee, resolved server-side by get_thread_previews. */
+  assigned_to?: string | null;
 }
 
 interface MessagesContextType {
@@ -40,47 +46,55 @@ interface MessagesContextType {
   messages: Message[];
   selectedThread: MessageThread | null;
   loading: boolean;
+  hasMoreMessages: boolean;
   stats: any;
   setSelectedThread: (thread: MessageThread | null) => void;
   fetchThreads: () => Promise<void>;
   fetchMessages: (thread: MessageThread) => Promise<void>;
-  sendMessage: (content: string, source: string, senderId: string) => Promise<{ error: Error | null }>;
+  loadOlderMessages: () => Promise<void>;
+  sendMessage: (
+    content: string,
+    source: string,
+    senderId: string,
+  ) => Promise<{ error: Error | null; queued: boolean }>;
+  retryMessage: (message: Message) => Promise<{ error: Error | null }>;
+  appendLocalMessage: (message: Message) => void;
   archiveThread: (threadId: string) => Promise<{ error: Error | null }>;
   assignThread: (threadId: string, userId: string) => Promise<{ error: Error | null }>;
 }
 
 const MessagesContext = createContext<MessagesContextType | undefined>(undefined);
 
+const PAGE_SIZE = 50;
+
 /**
- * How an outbound reply reaches each channel.
- *
- * Both channels go through the same delivery path deliberately. They used to
- * differ: Instagram checked the invoke result and rolled the optimistic row
- * back on failure, Telegram did neither. Since `functions.invoke` resolves with
- * `{ error }` rather than throwing, Telegram's try/catch never fired — a reply
- * the bot never delivered stayed in the inbox marked `replied`, and staff had
- * no way to know. One table, one code path, so they cannot drift again.
+ * How an outbound reply reaches each channel. Both channels share one delivery
+ * path so their failure handling cannot drift. The inserted row's id travels
+ * as message_id so the edge function stamps delivery_status ('sent'/'failed')
+ * on the exact row the operator is looking at.
  */
-const DELIVERY_BY_SOURCE: Record<string, { fn: string; body: (senderId: string, text: string) => Record<string, string> } | undefined> = {
-  telegram: { fn: 'send-telegram', body: (senderId, text) => ({ chat_id: senderId, text }) },
-  instagram: { fn: 'send-instagram', body: (senderId, text) => ({ recipient_id: senderId, text }) },
+const DELIVERY_BY_SOURCE: Record<
+  string,
+  { fn: string; body: (senderId: string, text: string, messageId: string) => Record<string, string> } | undefined
+> = {
+  telegram: { fn: 'send-telegram', body: (senderId, text, messageId) => ({ chat_id: senderId, text, message_id: messageId }) },
+  instagram: { fn: 'send-instagram', body: (senderId, text, messageId) => ({ recipient_id: senderId, text, message_id: messageId }) },
 };
 
 /** Invoke a send function and return the failure, or null if it delivered. */
 async function deliver(
-  delivery: { fn: string; body: (senderId: string, text: string) => Record<string, string> },
+  delivery: { fn: string; body: (senderId: string, text: string, messageId: string) => Record<string, string> },
   senderId: string,
   text: string,
+  messageId: string,
 ): Promise<Error | null> {
   try {
     const { error } = await supabase.functions.invoke(delivery.fn, {
-      body: delivery.body(senderId, text),
+      body: delivery.body(senderId, text, messageId),
     });
     if (!error) return null;
-
-    // A non-2xx from the function arrives as FunctionsHttpError, whose body
-    // carries the real reason ("chat not found", "TELEGRAM_BOT_TOKEN is not
-    // configured", ...). Surface that rather than the generic wrapper message.
+    // A non-2xx arrives as FunctionsHttpError whose body carries the real
+    // reason ("24-hour window expired", ...). Surface that, not the wrapper.
     let detail = '';
     try {
       const body = await (error as { context?: { json?: () => Promise<{ error?: string }> } }).context?.json?.();
@@ -94,170 +108,374 @@ async function deliver(
   }
 }
 
+/** Map one get_thread_previews row onto the MessageThread shape. */
+function rowToThread(row: any): MessageThread {
+  return {
+    id: row.id,
+    source: row.source,
+    sender_id: row.sender_id,
+    sender_name: row.sender_name,
+    sender_avatar: row.sender_avatar,
+    student_id: row.student_id,
+    last_message_at: row.last_message_at,
+    unread_count: row.unread_count ?? 0,
+    status: row.status,
+    created_at: row.last_message_at,
+    assigned_to: row.assigned_to ?? null,
+    lastMessage: row.last_created_at
+      ? ({
+          id: `preview-${row.id}`,
+          source: row.source,
+          external_id: null,
+          sender_name: row.sender_name,
+          sender_id: row.sender_id,
+          sender_avatar: null,
+          content: row.last_content ?? '',
+          message_type: row.last_message_type ?? 'text',
+          direction: row.last_direction ?? 'incoming',
+          status: 'read',
+          student_id: row.student_id,
+          assigned_to: null,
+          replied_by: null,
+          replied_at: null,
+          metadata: row.last_metadata ?? null,
+          created_at: row.last_created_at,
+          delivery_status: row.last_delivery_status ?? null,
+        } as Message)
+      : undefined,
+  };
+}
+
+function sortThreads(list: MessageThread[]): MessageThread[] {
+  return [...list].sort(
+    (a, b) => new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime(),
+  );
+}
+
 export function MessagesProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const [threads, setThreads] = useState<MessageThread[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [selectedThread, setSelectedThread] = useState<MessageThread | null>(null);
   const [loading, setLoading] = useState(true);
-
-  const fetchThreads = async () => {
-    const { data, error } = await supabase
-      .from('message_threads')
-      .select('*')
-      .order('last_message_at', { ascending: false });
-
-    if (!error && data) {
-      const senderIds = data.map(t => t.sender_id);
-      const { data: allMessages } = await supabase
-        .from('messages')
-        .select('*')
-        .in('sender_id', senderIds)
-        .order('created_at', { ascending: false });
-
-      const lastMessageMap = new Map<string, Message>();
-      (allMessages || []).forEach(msg => {
-        const key = `${msg.source}:${msg.sender_id}`;
-        if (!lastMessageMap.has(key)) {
-          lastMessageMap.set(key, msg as Message);
-        }
-      });
-
-      const threadsWithMessages = data.map(thread => ({
-        ...thread,
-        lastMessage: lastMessageMap.get(`${thread.source}:${thread.sender_id}`) || undefined,
-      }));
-      setThreads(threadsWithMessages as MessageThread[]);
-    }
-    setLoading(false);
-  };
-
-  const fetchMessages = async (thread: MessageThread) => {
-    const { data, error } = await supabase
-      .from('messages')
-      .select('*')
-      .eq('source', thread.source)
-      .eq('sender_id', thread.sender_id)
-      .order('created_at', { ascending: true });
-
-    if (!error && data) {
-      setMessages(data as Message[]);
-      
-      await supabase
-        .from('messages')
-        .update({ status: 'read' })
-        .eq('source', thread.source)
-        .eq('sender_id', thread.sender_id)
-        .eq('status', 'unread');
-
-      await supabase
-        .from('message_threads')
-        .update({ unread_count: 0 })
-        .eq('id', thread.id);
-    }
-  };
-
-  const sendMessage = async (content: string, source: string, senderId: string) => {
-    if (!user) return { error: new Error('Not authenticated') };
-
-    const { data: inserted, error } = await supabase
-      .from('messages')
-      .insert({
-        source,
-        sender_id: senderId,
-        content,
-        direction: 'outgoing',
-        status: 'replied',
-        replied_by: user.id,
-        replied_at: new Date().toISOString(),
-      })
-      .select('id')
-      .single();
-
-    if (error || !inserted) {
-      return { error: error || new Error('Failed to save message') };
-    }
-
-    const delivery = DELIVERY_BY_SOURCE[source];
-    let sendError: Error | null = null;
-
-    if (delivery && senderId) {
-      sendError = await deliver(delivery, senderId, content);
-
-      if (sendError) {
-        console.error(`Failed to send ${source} message:`, sendError);
-        // Remove the optimistic row so the CRM does not show an undelivered
-        // message. Guarded on external_id being null so an inbound echo that
-        // arrived in the meantime is never deleted.
-        await supabase
-          .from('messages')
-          .delete()
-          .eq('id', inserted.id)
-          .is('external_id', null);
-      }
-    }
-
-    if (selectedThread) {
-      await fetchMessages(selectedThread);
-    }
-    return { error: sendError };
-  };
-
-  const archiveThread = async (threadId: string) => {
-    const { error } = await supabase
-      .from('message_threads')
-      .update({ status: 'archived' })
-      .eq('id', threadId);
-
-    if (!error) {
-      await fetchThreads();
-    }
-    return { error };
-  };
-
-  const assignThread = async (threadId: string, userId: string) => {
-    const thread = threads.find(t => t.id === threadId);
-    if (!thread) return { error: new Error('Thread not found') };
-
-    const { error } = await supabase
-      .from('messages')
-      .update({ assigned_to: userId })
-      .eq('source', thread.source)
-      .eq('sender_id', thread.sender_id);
-
-    return { error };
-  };
+  const [hasMoreMessages, setHasMoreMessages] = useState(false);
+  const loadingOlder = useRef(false);
 
   const selectedThreadRef = useRef(selectedThread);
   selectedThreadRef.current = selectedThread;
+  const messagesRef = useRef(messages);
+  messagesRef.current = messages;
+
+  /**
+   * One RPC returns every thread with its preview and latest assignee —
+   * previously this was two unbounded queries (all threads + ALL messages).
+   */
+  const fetchThreads = useCallback(async () => {
+    const { data, error } = await (supabase.rpc as any)('get_thread_previews');
+    if (!error && data) {
+      setThreads((data as any[]).map(rowToThread));
+    }
+    setLoading(false);
+  }, []);
+
+  /** Latest page only — older pages stream in via loadOlderMessages. */
+  const fetchMessages = useCallback(async (thread: MessageThread) => {
+    const { data, error } = await (supabase.rpc as any)('get_thread_messages', {
+      p_source: thread.source,
+      p_sender_id: thread.sender_id,
+      p_limit: PAGE_SIZE,
+    });
+    if (error || !data) return;
+    // A slower response for a thread the operator has already left must not
+    // overwrite the stream they are looking at now.
+    const current = selectedThreadRef.current;
+    if (current && current.id !== thread.id) return;
+
+    const page = (data as Message[]).slice().reverse();
+    setMessages(page);
+    setHasMoreMessages((data as any[]).length === PAGE_SIZE);
+
+    // Mark-read bookkeeping must never block rendering the stream.
+    void supabase
+      .from('messages')
+      .update({ status: 'read' })
+      .eq('source', thread.source)
+      .eq('sender_id', thread.sender_id)
+      .eq('status', 'unread');
+    void supabase.from('message_threads').update({ unread_count: 0 }).eq('id', thread.id);
+    setThreads((prev) => prev.map((t) => (t.id === thread.id ? { ...t, unread_count: 0 } : t)));
+  }, []);
+
+  /** Keyset pagination: everything strictly older than the oldest loaded row. */
+  const loadOlderMessages = useCallback(async () => {
+    const thread = selectedThreadRef.current;
+    const oldest = messagesRef.current[0];
+    if (!thread || !oldest || loadingOlder.current) return;
+    loadingOlder.current = true;
+    try {
+      const { data, error } = await (supabase.rpc as any)('get_thread_messages', {
+        p_source: thread.source,
+        p_sender_id: thread.sender_id,
+        p_before: oldest.created_at,
+        p_before_id: oldest.id,
+        p_limit: PAGE_SIZE,
+      });
+      if (!error && data) {
+        const page = (data as Message[]).slice().reverse();
+        setMessages((prev) => {
+          const ids = new Set(prev.map((m) => m.id));
+          return [...page.filter((m) => !ids.has(m.id)), ...prev];
+        });
+        setHasMoreMessages((data as any[]).length === PAGE_SIZE);
+      }
+    } finally {
+      loadingOlder.current = false;
+    }
+  }, []);
+
+  /** Insert or replace a message row in the open stream (dedupes by id). */
+  const upsertMessageRow = useCallback((row: Message) => {
+    const sel = selectedThreadRef.current;
+    if (!sel || row.source !== sel.source || row.sender_id !== sel.sender_id) return;
+    setMessages((prev) => {
+      const idx = prev.findIndex((m) => m.id === row.id);
+      if (idx >= 0) {
+        const next = [...prev];
+        next[idx] = { ...next[idx], ...row };
+        return next;
+      }
+      const next = [...prev, row];
+      next.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+      return next;
+    });
+  }, []);
+
+  /** Reflect a new/changed message in the thread list without refetching. */
+  const bumpThreadPreview = useCallback(
+    (row: Message) => {
+      setThreads((prev) => {
+        const idx = prev.findIndex((t) => t.source === row.source && t.sender_id === row.sender_id);
+        if (idx < 0) {
+          // Unknown thread — a brand-new conversation. Refresh the list once.
+          void fetchThreads();
+          return prev;
+        }
+        const t = prev[idx];
+        const isNewer =
+          !t.lastMessage || new Date(row.created_at).getTime() >= new Date(t.lastMessage.created_at).getTime();
+        if (!isNewer) return prev;
+        const next = [...prev];
+        next[idx] = {
+          ...t,
+          lastMessage: row,
+          last_message_at:
+            new Date(row.created_at).getTime() > new Date(t.last_message_at).getTime()
+              ? row.created_at
+              : t.last_message_at,
+        };
+        return sortThreads(next);
+      });
+    },
+    [fetchThreads],
+  );
+
+  /** Used by the internal-notes write path so a note appears instantly. */
+  const appendLocalMessage = useCallback(
+    (row: Message) => {
+      upsertMessageRow(row);
+      bumpThreadPreview(row);
+    },
+    [upsertMessageRow, bumpThreadPreview],
+  );
+
+  const markRowFailed = useCallback(async (id: string, detail: string) => {
+    setMessages((prev) =>
+      prev.map((m) => (m.id === id ? { ...m, delivery_status: 'failed', delivery_error: detail } : m)),
+    );
+    // The edge function usually stamps this itself; this covers the invoke
+    // never reaching it (network drop, timeouts).
+    await supabase
+      .from('messages')
+      .update({ delivery_status: 'failed', delivery_error: detail.slice(0, 500) } as any)
+      .eq('id', id)
+      .is('external_id', null);
+  }, []);
+
+  /**
+   * Telegram-style sending: the row is inserted as delivery_status='sending'
+   * and shown immediately; the edge function (or the userbot, via DB triggers)
+   * flips it to 'sent' or 'failed', which arrives back as a realtime UPDATE
+   * and turns the clock into a tick. A failed bubble STAYS in the stream with
+   * its error and a Retry — it is never silently deleted.
+   */
+  const sendMessage = useCallback(
+    async (content: string, source: string, senderId: string) => {
+      if (!user) return { error: new Error('Not authenticated'), queued: false };
+
+      const { data: inserted, error } = await supabase
+        .from('messages')
+        .insert({
+          source,
+          sender_id: senderId,
+          content,
+          direction: 'outgoing',
+          status: 'replied',
+          replied_by: user.id,
+          replied_at: new Date().toISOString(),
+          delivery_status: 'sending',
+          client_msg_id: crypto.randomUUID(),
+        } as any)
+        .select('*')
+        .single();
+
+      if (error || !inserted) {
+        return { error: error ? new Error(error.message) : new Error('Failed to save message'), queued: false };
+      }
+
+      const row = inserted as unknown as Message;
+      upsertMessageRow(row);
+      bumpThreadPreview(row);
+
+      const delivery = DELIVERY_BY_SOURCE[source];
+      let sendError: Error | null = null;
+      if (delivery && senderId) {
+        sendError = await deliver(delivery, senderId, content, row.id);
+        if (sendError) {
+          console.error(`Failed to send ${source} message:`, sendError);
+          await markRowFailed(row.id, sendError.message);
+        }
+      }
+      return { error: sendError, queued: true };
+    },
+    [user, upsertMessageRow, bumpThreadPreview, markRowFailed],
+  );
+
+  /** Re-deliver a failed row. Same id, same text — no retyping, no duplicate. */
+  const retryMessage = useCallback(
+    async (message: Message) => {
+      const delivery = DELIVERY_BY_SOURCE[message.source];
+      if (!delivery || !message.sender_id) return { error: new Error('Unsupported channel') };
+      setMessages((prev) =>
+        prev.map((m) => (m.id === message.id ? { ...m, delivery_status: 'sending', delivery_error: null } : m)),
+      );
+      await supabase
+        .from('messages')
+        .update({ delivery_status: 'sending', delivery_error: null } as any)
+        .eq('id', message.id)
+        .is('external_id', null);
+      const err = await deliver(delivery, message.sender_id, message.content, message.id);
+      if (err) await markRowFailed(message.id, err.message);
+      return { error: err };
+    },
+    [markRowFailed],
+  );
+
+  const archiveThread = useCallback(async (threadId: string) => {
+    const { error } = await supabase.from('message_threads').update({ status: 'archived' }).eq('id', threadId);
+    if (!error) {
+      setThreads((prev) => prev.map((t) => (t.id === threadId ? { ...t, status: 'archived' as const } : t)));
+    }
+    return { error };
+  }, []);
+
+  const assignThread = useCallback(
+    async (threadId: string, userId: string) => {
+      const thread = threads.find((t) => t.id === threadId);
+      if (!thread) return { error: new Error('Thread not found') };
+      const { error } = await supabase
+        .from('messages')
+        .update({ assigned_to: userId })
+        .eq('source', thread.source)
+        .eq('sender_id', thread.sender_id);
+      if (!error) {
+        setThreads((prev) => prev.map((t) => (t.id === threadId ? { ...t, assigned_to: userId } : t)));
+      }
+      return { error };
+    },
+    [threads],
+  );
+
   const fetchThreadsRef = useRef(fetchThreads);
   fetchThreadsRef.current = fetchThreads;
-  const fetchMessagesRef = useRef(fetchMessages);
-  fetchMessagesRef.current = fetchMessages;
+  const upsertRef = useRef(upsertMessageRow);
+  upsertRef.current = upsertMessageRow;
+  const bumpRef = useRef(bumpThreadPreview);
+  bumpRef.current = bumpThreadPreview;
 
   useEffect(() => {
     fetchThreadsRef.current();
 
-    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+    // Realtime, applied IN PLACE. The old subscription refetched the entire
+    // thread list and stream (with an 800ms debounce) on every INSERT — that
+    // full-reload cascade was why the inbox never felt like a messenger.
     const channel = supabase
-      .channel('messages-changes-globalctx')
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'messages' },
-        () => {
-          if (debounceTimer) clearTimeout(debounceTimer);
-          debounceTimer = setTimeout(() => {
-            fetchThreadsRef.current();
-            if (selectedThreadRef.current) {
-              fetchMessagesRef.current(selectedThreadRef.current);
-            }
-          }, 800);
+      .channel('messages-live')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
+        const row = payload.new as Message;
+        upsertRef.current(row);
+        bumpRef.current(row);
+        const sel = selectedThreadRef.current;
+        if (
+          sel &&
+          row.source === sel.source &&
+          row.sender_id === sel.sender_id &&
+          row.direction === 'incoming'
+        ) {
+          // The operator is looking at this thread, so it is read on arrival.
+          void supabase.from('messages').update({ status: 'read' }).eq('id', row.id);
+          void supabase.from('message_threads').update({ unread_count: 0 }).eq('id', sel.id);
         }
-      )
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages' }, (payload) => {
+        const row = payload.new as Message;
+        upsertRef.current(row); // delivery ticks flip here
+        // Keep the preview's tick in sync when the last message settles.
+        setThreads((prev) => {
+          const idx = prev.findIndex((t) => t.source === row.source && t.sender_id === row.sender_id);
+          if (idx < 0) return prev;
+          const t = prev[idx];
+          if (!t.lastMessage || new Date(t.lastMessage.created_at).getTime() > new Date(row.created_at).getTime()) {
+            return prev;
+          }
+          const next = [...prev];
+          next[idx] = { ...t, lastMessage: { ...t.lastMessage, ...row } };
+          return next;
+        });
+      })
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'messages' }, (payload) => {
+        const oldId = (payload.old as { id?: string })?.id;
+        if (oldId) setMessages((prev) => prev.filter((m) => m.id !== oldId));
+      })
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'message_threads' }, () => {
+        void fetchThreadsRef.current();
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'message_threads' }, (payload) => {
+        const row = payload.new as any;
+        setThreads((prev) => {
+          const idx = prev.findIndex((t) => t.id === row.id);
+          if (idx < 0) {
+            void fetchThreadsRef.current();
+            return prev;
+          }
+          const sel = selectedThreadRef.current;
+          const next = [...prev];
+          next[idx] = {
+            ...next[idx],
+            last_message_at: row.last_message_at ?? next[idx].last_message_at,
+            // The open thread reads as zero locally even if the server count
+            // ticked up before our mark-read write landed.
+            unread_count: sel?.id === row.id ? 0 : row.unread_count ?? next[idx].unread_count,
+            status: row.status ?? next[idx].status,
+            sender_name: row.sender_name ?? next[idx].sender_name,
+            sender_avatar: row.sender_avatar ?? next[idx].sender_avatar,
+            student_id: row.student_id ?? next[idx].student_id,
+          };
+          return sortThreads(next);
+        });
+      })
       .subscribe();
 
     return () => {
-      if (debounceTimer) clearTimeout(debounceTimer);
       supabase.removeChannel(channel);
     };
   }, []);
@@ -265,30 +483,39 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (selectedThread) {
       fetchMessages(selectedThread);
+    } else {
+      setMessages([]);
+      setHasMoreMessages(false);
     }
-  }, [selectedThread]);
+  }, [selectedThread, fetchMessages]);
 
   const stats = {
     total: threads.length,
     unread: threads.reduce((acc, t) => acc + t.unread_count, 0),
-    telegram: threads.filter(t => t.source === 'telegram').length,
-    instagram: threads.filter(t => t.source === 'instagram').length,
+    telegram: threads.filter((t) => t.source === 'telegram').length,
+    instagram: threads.filter((t) => t.source === 'instagram').length,
   };
 
   return (
-    <MessagesContext.Provider value={{
-      threads,
-      messages,
-      selectedThread,
-      loading,
-      stats,
-      setSelectedThread,
-      fetchThreads,
-      fetchMessages,
-      sendMessage,
-      archiveThread,
-      assignThread,
-    }}>
+    <MessagesContext.Provider
+      value={{
+        threads,
+        messages,
+        selectedThread,
+        loading,
+        hasMoreMessages,
+        stats,
+        setSelectedThread,
+        fetchThreads,
+        fetchMessages,
+        loadOlderMessages,
+        sendMessage,
+        retryMessage,
+        appendLocalMessage,
+        archiveThread,
+        assignThread,
+      }}
+    >
       {children}
     </MessagesContext.Provider>
   );
