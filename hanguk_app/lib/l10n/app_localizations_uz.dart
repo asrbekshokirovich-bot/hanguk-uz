@@ -953,7 +953,7 @@ class AppLocalizationsUz extends AppLocalizations {
   String get greetingEvening => 'Xayrli kech';
 
   @override
-  String get welcomeHeadline => 'Yo\'lingizga xush kelibsiz';
+  String get welcomeHeadline => 'Xush kelibsiz';
 
   @override
   String get welcomeSubtitle =>
