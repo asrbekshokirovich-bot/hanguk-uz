@@ -13,53 +13,24 @@ import type { ConversationVM } from './types';
 /**
  * Adapts the global `MessagesContext` into the shared-queue view model.
  *
- * Two facts the context does not expose are fetched here, each in a single
- * batched query:
- *
- * 1. ASSIGNMENT. `message_threads` has no `assigned_to` column, but
- *    `messages.assigned_to` does exist (and was previously written but never
- *    read). A thread counts as claimed when ANY of its messages carries an
- *    assignee — deriving it from the newest message alone would silently
- *    un-claim a thread the moment a new inbound message arrived.
- *
- * 2. STAGE. The queue row shows the student's pipeline stage, folded from
- *    `applications.status` onto the 4-step ladder in `stages.ts`.
- *
- * Both maps refresh whenever the thread list changes, so a claim made in this
- * tab (or another operator's tab, via the context's realtime subscription)
- * lands without a manual reload.
+ * Assignment now arrives WITH the thread list: `get_thread_previews` resolves
+ * each thread's latest assignee server-side, so the old client-side scan of
+ * every assigned message in the database is gone. Only the pipeline stage
+ * (from `applications.status`) still needs its own batched query.
  */
 export function useMessagesQueue(locallyRead: ReadonlySet<string> = new Set()) {
   const { t } = useTranslation();
   const { user } = useAuth();
-  const { threads, loading } = useMessages();
+  const { threads, loading, fetchThreads } = useMessages();
 
-  /** `${source}:${sender_id}` → assignee user id. */
-  const [assignments, setAssignments] = useState<Map<string, string>>(new Map());
   /** `profiles.user_id` → most advanced `applications.status`. */
   const [stages, setStages] = useState<Map<string, string>>(new Map());
 
-  const threadKey = threads.map((th) => `${th.source}:${th.sender_id}`).join('|');
   const studentKey = threads
     .map((th) => th.student_id)
     .filter((id): id is string => !!id)
     .sort()
     .join('|');
-
-  const loadAssignments = useCallback(async () => {
-    const { data, error } = await supabase
-      .from('messages')
-      .select('source, sender_id, assigned_to')
-      .not('assigned_to', 'is', null);
-
-    if (error || !data) return;
-    const map = new Map<string, string>();
-    for (const row of data) {
-      if (!row.sender_id || !row.assigned_to) continue;
-      map.set(`${row.source}:${row.sender_id}`, row.assigned_to);
-    }
-    setAssignments(map);
-  }, []);
 
   const loadStages = useCallback(async (studentIds: string[]) => {
     if (studentIds.length === 0) {
@@ -88,20 +59,20 @@ export function useMessagesQueue(locallyRead: ReadonlySet<string> = new Set()) {
   }, []);
 
   useEffect(() => {
-    // threadKey changes whenever the thread list is refetched.
-    void loadAssignments();
-  }, [threadKey, loadAssignments]);
-
-  useEffect(() => {
     void loadStages(studentKey ? studentKey.split('|') : []);
   }, [studentKey, loadStages]);
+
+  // Claims made elsewhere land via the context's realtime subscription; a
+  // manual refresh is one cheap RPC now, kept for the post-claim path.
+  const refreshAssignments = useCallback(async () => {
+    await fetchThreads();
+  }, [fetchThreads]);
 
   const conversations = useMemo<ConversationVM[]>(() => {
     const now = Date.now();
     return threads.map((th: MessageThread) => {
       const channel = toChannelId(th.source);
-      const key = `${th.source}:${th.sender_id}`;
-      const assignee = assignments.get(key) ?? null;
+      const assignee = th.assigned_to ?? null;
       const last = th.lastMessage;
       const name = th.sender_name?.trim() || channelHandle(channel, th.sender_id, th.sender_name);
 
@@ -126,9 +97,9 @@ export function useMessagesQueue(locallyRead: ReadonlySet<string> = new Set()) {
         unreadCount: locallyRead.has(th.id) ? 0 : th.unread_count ?? 0,
       };
     });
-  }, [threads, assignments, stages, user?.id, t, locallyRead]);
+  }, [threads, stages, user?.id, t, locallyRead]);
 
-  return { conversations, loading, refreshAssignments: loadAssignments };
+  return { conversations, loading, refreshAssignments };
 }
 
 /**
