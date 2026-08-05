@@ -46,6 +46,7 @@ export function useThreadMessages(messages: Message[]) {
           createdAt: m.created_at,
           senderLabel: null,
           deliveryStatus: null,
+          deliveryError: null,
           translation: null,
           translatable: false,
           media: null,
@@ -68,7 +69,12 @@ export function useThreadMessages(messages: Message[]) {
         media,
         createdAt: m.created_at,
         senderLabel: kind === 'in' ? null : (staffId ? staffNames.get(staffId) ?? null : null),
-        deliveryStatus: kind === 'out' ? m.status : null,
+        // Real delivery lifecycle (sending → sent / failed) written by the
+        // send functions and the userbot triggers; legacy rows fall back to
+        // 'sent' so old history doesn't render as unconfirmed.
+        deliveryStatus: kind === 'out' ? m.delivery_status ?? 'sent' : null,
+        deliveryError: kind === 'out' ? m.delivery_error ?? null : null,
+        pending: kind === 'out' && m.delivery_status === 'sending',
         translation: readCachedTranslation(m.metadata),
         translatable: !media && looksNonEnglish(m.content),
       });
