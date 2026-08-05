@@ -550,5 +550,6 @@
   "guestContactInstagramHint": "Студенты, кампусы, будни",
   "guestContactCall": "Позвонить",
   "guestContactJoinHint": "Уже есть магический код?",
-  "guestContactLaunchFailed": "Не удалось открыть ссылку."
+  "guestContactLaunchFailed": "Не удалось открыть ссылку.",
+  "guestContactCta": "Связаться"
 }

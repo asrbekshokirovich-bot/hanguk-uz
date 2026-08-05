@@ -1557,4 +1557,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get guestContactLaunchFailed => 'Không mở được liên kết này.';
+
+  @override
+  String get guestContactCta => 'Liên hệ';
 }

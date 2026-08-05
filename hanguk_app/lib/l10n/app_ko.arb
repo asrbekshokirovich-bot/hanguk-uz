@@ -550,5 +550,6 @@
   "guestContactInstagramHint": "학생, 캠퍼스, 일상",
   "guestContactCall": "전화하기",
   "guestContactJoinHint": "매직 코드가 있으신가요?",
-  "guestContactLaunchFailed": "이 링크를 열 수 없습니다."
+  "guestContactLaunchFailed": "이 링크를 열 수 없습니다.",
+  "guestContactCta": "문의하기"
 }

@@ -1568,4 +1568,7 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get guestContactLaunchFailed => 'Bu havolani ochib bo\'lmadi.';
+
+  @override
+  String get guestContactCta => 'Bog\'lanish';
 }

@@ -2096,6 +2096,12 @@ abstract class AppLocalizations {
   /// **'Join Hanguk'**
   String get guestJoinCta;
 
+  /// Lime pill in the guest header; opens the contact sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact us'**
+  String get guestContactCta;
+
   /// Eyebrow above the title of the guest contact sheet.
   ///
   /// In en, this message translates to:

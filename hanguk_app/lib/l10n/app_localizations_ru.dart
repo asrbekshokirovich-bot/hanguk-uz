@@ -1560,4 +1560,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get guestContactLaunchFailed => 'Не удалось открыть ссылку.';
+
+  @override
+  String get guestContactCta => 'Связаться';
 }

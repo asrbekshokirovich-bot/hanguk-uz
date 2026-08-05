@@ -1507,4 +1507,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get guestContactLaunchFailed => '이 링크를 열 수 없습니다.';
+
+  @override
+  String get guestContactCta => '문의하기';
 }

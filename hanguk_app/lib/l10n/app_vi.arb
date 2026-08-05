@@ -550,5 +550,6 @@
   "guestContactInstagramHint": "Sinh viên, khuôn viên, đời sống",
   "guestContactCall": "Gọi điện",
   "guestContactJoinHint": "Bạn đã có mã magic?",
-  "guestContactLaunchFailed": "Không mở được liên kết này."
+  "guestContactLaunchFailed": "Không mở được liên kết này.",
+  "guestContactCta": "Liên hệ"
 }

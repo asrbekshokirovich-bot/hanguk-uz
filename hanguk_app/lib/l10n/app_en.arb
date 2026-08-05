@@ -1042,5 +1042,7 @@
   "guestContactJoinHint": "Already have a magic code?",
   "@guestContactJoinHint": {"description": "Second line under the magic-code login row of the contact sheet."},
   "guestContactLaunchFailed": "Couldn't open that link on this device.",
-  "@guestContactLaunchFailed": {"description": "SnackBar when no app can open the tapped contact link."}
+  "@guestContactLaunchFailed": {"description": "SnackBar when no app can open the tapped contact link."},
+  "guestContactCta": "Contact us",
+  "@guestContactCta": {"description": "Lime pill in the guest header; opens the contact sheet."}
 }

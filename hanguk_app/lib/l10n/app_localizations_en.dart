@@ -1562,4 +1562,7 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get guestContactLaunchFailed =>
       'Couldn\'t open that link on this device.';
+
+  @override
+  String get guestContactCta => 'Contact us';
 }

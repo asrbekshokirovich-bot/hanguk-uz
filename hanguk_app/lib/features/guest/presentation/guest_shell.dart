@@ -27,9 +27,9 @@ class GuestSection {
 /// Read-only by construction. There is no journey, no documents and no
 /// interview here, and the shell never touches a provider that needs a
 /// session: everything on screen comes from `universitiesProvider`, which
-/// reads the public `v_institutions_for_map` view. Every conversion moment —
-/// the header pill, the dial's last item, the compare CTA — routes to the
-/// magic-code login.
+/// reads the public `v_institutions_for_map` view. The dial's last item and
+/// the compare CTA route to the magic-code login; the header pill opens the
+/// contact sheet, which keeps that login as its last row.
 class GuestShell extends ConsumerStatefulWidget {
   const GuestShell({super.key, this.initialSection = GuestSection.explore});
 
@@ -173,7 +173,10 @@ class _GuestShellState extends ConsumerState<GuestShell> {
             ),
           ),
           const SizedBox(width: 10),
-          _JoinPill(label: l.guestJoinCta, onTap: _contact),
+          // Short on purpose: "Join Hanguk" was ellipsised to "Hangukk…" in
+          // the width the header can spare, and the pill no longer goes to
+          // the login anyway — it opens the contact sheet.
+          _JoinPill(label: l.guestContactCta, ko: '문의', onTap: _contact),
         ],
       ),
     );
@@ -247,9 +250,16 @@ class _GuestShellState extends ConsumerState<GuestShell> {
 
 /// The lime conversion pill in the guest header.
 class _JoinPill extends StatelessWidget {
-  const _JoinPill({required this.label, required this.onTap});
+  const _JoinPill({
+    required this.label,
+    required this.ko,
+    required this.onTap,
+  });
 
   final String label;
+
+  /// The Hangul chip riding alongside the label.
+  final String ko;
   final VoidCallback onTap;
 
   @override
@@ -285,7 +295,7 @@ class _JoinPill extends StatelessWidget {
               ),
               const SizedBox(width: 6),
               Text(
-                '가입',
+                ko,
                 style: SeoulType.hangulStatus.copyWith(color: SeoulColors.ink),
               ),
             ],

@@ -550,5 +550,6 @@
   "guestContactInstagramHint": "Talabalar, kampuslar, kundalik hayot",
   "guestContactCall": "Qo'ng'iroq qilish",
   "guestContactJoinHint": "Sizda maxfiy kod bormi?",
-  "guestContactLaunchFailed": "Bu havolani ochib bo'lmadi."
+  "guestContactLaunchFailed": "Bu havolani ochib bo'lmadi.",
+  "guestContactCta": "Bog'lanish"
 }
