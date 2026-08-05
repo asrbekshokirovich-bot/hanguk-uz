@@ -56,6 +56,7 @@ interface MessagesContextType {
     content: string,
     source: string,
     senderId: string,
+    file?: File | null,
   ) => Promise<{ error: Error | null; queued: boolean }>;
   retryMessage: (message: Message) => Promise<{ error: Error | null }>;
   appendLocalMessage: (message: Message) => void;
@@ -67,30 +68,74 @@ const MessagesContext = createContext<MessagesContextType | undefined>(undefined
 
 const PAGE_SIZE = 50;
 
+const CHAT_MEDIA_BUCKET = 'chat-media';
+
+/** Attachment already uploaded to the chat-media bucket, ready to relay. */
+interface OutboundMedia {
+  media_path: string;
+  media_mime: string;
+  media_filename: string | null;
+}
+
+type DeliveryBody = (
+  senderId: string,
+  text: string,
+  messageId: string,
+  media: OutboundMedia | null,
+) => Record<string, unknown>;
+
 /**
  * How an outbound reply reaches each channel. Both channels share one delivery
  * path so their failure handling cannot drift. The inserted row's id travels
  * as message_id so the edge function stamps delivery_status ('sent'/'failed')
- * on the exact row the operator is looking at.
+ * on the exact row the operator is looking at. Media travels as the storage
+ * path — the edge functions mint their own signed URLs from it.
  */
-const DELIVERY_BY_SOURCE: Record<
-  string,
-  { fn: string; body: (senderId: string, text: string, messageId: string) => Record<string, string> } | undefined
-> = {
-  telegram: { fn: 'send-telegram', body: (senderId, text, messageId) => ({ chat_id: senderId, text, message_id: messageId }) },
-  instagram: { fn: 'send-instagram', body: (senderId, text, messageId) => ({ recipient_id: senderId, text, message_id: messageId }) },
+const DELIVERY_BY_SOURCE: Record<string, { fn: string; body: DeliveryBody } | undefined> = {
+  telegram: {
+    fn: 'send-telegram',
+    body: (senderId, text, messageId, media) => ({
+      chat_id: senderId,
+      text,
+      message_id: messageId,
+      ...(media
+        ? { media_path: media.media_path, media_mime: media.media_mime, media_filename: media.media_filename }
+        : {}),
+    }),
+  },
+  instagram: {
+    fn: 'send-instagram',
+    body: (senderId, text, messageId, media) => ({
+      recipient_id: senderId,
+      text,
+      message_id: messageId,
+      ...(media ? { media_path: media.media_path, media_mime: media.media_mime } : {}),
+    }),
+  },
 };
+
+/** Pull relay-ready media info back out of a stored row's metadata (for Retry). */
+function mediaFromMetadata(metadata: any): OutboundMedia | null {
+  const path = metadata?.media_path;
+  if (!path) return null;
+  return {
+    media_path: String(path),
+    media_mime: String(metadata?.media_mime ?? 'application/octet-stream'),
+    media_filename: metadata?.media_filename ? String(metadata.media_filename) : null,
+  };
+}
 
 /** Invoke a send function and return the failure, or null if it delivered. */
 async function deliver(
-  delivery: { fn: string; body: (senderId: string, text: string, messageId: string) => Record<string, string> },
+  delivery: { fn: string; body: DeliveryBody },
   senderId: string,
   text: string,
   messageId: string,
+  media: OutboundMedia | null,
 ): Promise<Error | null> {
   try {
     const { error } = await supabase.functions.invoke(delivery.fn, {
-      body: delivery.body(senderId, text, messageId),
+      body: delivery.body(senderId, text, messageId, media),
     });
     if (!error) return null;
     // A non-2xx arrives as FunctionsHttpError whose body carries the real
@@ -307,10 +352,36 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
    * flips it to 'sent' or 'failed', which arrives back as a realtime UPDATE
    * and turns the clock into a tick. A failed bubble STAYS in the stream with
    * its error and a Retry — it is never silently deleted.
+   *
+   * Attachments upload to the private chat-media bucket FIRST, so a failed
+   * upload costs nothing — no orphan bubble, the composer keeps the draft.
+   * The row then carries media_path/media_mime/... in metadata, which is both
+   * what MessageAttachment renders from and what Retry re-delivers from.
    */
   const sendMessage = useCallback(
-    async (content: string, source: string, senderId: string) => {
+    async (content: string, source: string, senderId: string, file?: File | null) => {
       if (!user) return { error: new Error('Not authenticated'), queued: false };
+
+      let media: OutboundMedia | null = null;
+      let mediaMeta: Record<string, unknown> | null = null;
+      if (file) {
+        const safeName = (file.name || 'file').replace(/[^\w.\-]+/g, '_').slice(-80);
+        const path = `outgoing/${senderId || 'unknown'}/${Date.now()}-${safeName}`;
+        const mime = file.type || 'application/octet-stream';
+        const { error: uploadError } = await supabase.storage
+          .from(CHAT_MEDIA_BUCKET)
+          .upload(path, file, { contentType: mime });
+        if (uploadError) {
+          return { error: new Error(uploadError.message), queued: false };
+        }
+        media = { media_path: path, media_mime: mime, media_filename: file.name || null };
+        mediaMeta = {
+          media_path: path,
+          media_mime: mime,
+          media_size: file.size,
+          media_filename: file.name || null,
+        };
+      }
 
       const { data: inserted, error } = await supabase
         .from('messages')
@@ -324,6 +395,12 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
           replied_at: new Date().toISOString(),
           delivery_status: 'sending',
           client_msg_id: crypto.randomUUID(),
+          ...(media
+            ? {
+                message_type: media.media_mime.startsWith('image/') ? 'image' : 'file',
+                metadata: mediaMeta,
+              }
+            : {}),
         } as any)
         .select('*')
         .single();
@@ -339,7 +416,7 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
       const delivery = DELIVERY_BY_SOURCE[source];
       let sendError: Error | null = null;
       if (delivery && senderId) {
-        sendError = await deliver(delivery, senderId, content, row.id);
+        sendError = await deliver(delivery, senderId, content, row.id, media);
         if (sendError) {
           console.error(`Failed to send ${source} message:`, sendError);
           await markRowFailed(row.id, sendError.message);
@@ -350,7 +427,7 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
     [user, upsertMessageRow, bumpThreadPreview, markRowFailed],
   );
 
-  /** Re-deliver a failed row. Same id, same text — no retyping, no duplicate. */
+  /** Re-deliver a failed row. Same id, same content — no retyping, no duplicate. */
   const retryMessage = useCallback(
     async (message: Message) => {
       const delivery = DELIVERY_BY_SOURCE[message.source];
@@ -363,7 +440,13 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
         .update({ delivery_status: 'sending', delivery_error: null } as any)
         .eq('id', message.id)
         .is('external_id', null);
-      const err = await deliver(delivery, message.sender_id, message.content, message.id);
+      const err = await deliver(
+        delivery,
+        message.sender_id,
+        message.content,
+        message.id,
+        mediaFromMetadata(message.metadata),
+      );
       if (err) await markRowFailed(message.id, err.message);
       return { error: err };
     },
