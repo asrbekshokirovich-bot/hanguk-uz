@@ -538,5 +538,17 @@
   "notifApplicationUpdates": "Ariza yangiliklari",
   "notifToUpload": "Yuklash kerak",
   "notifAllCaughtUp": "Hammasi bajarilgan",
-  "notifAllCaughtUpBody": "Hujjatlar va arizalaringiz haqidagi eslatmalar shu yerda chiqadi."
+  "notifAllCaughtUpBody": "Hujjatlar va arizalaringiz haqidagi eslatmalar shu yerda chiqadi.",
+  "guestContactEyebrow": "Hanguk Consulting",
+  "guestContactTitle": "Biz bilan bog'laning",
+  "guestContactSubtitle": "Qulay kanalni tanlang — hammasida javob beramiz.",
+  "guestContactTelegramChannel": "Telegram kanal",
+  "guestContactTelegramChannelHint": "Yangiliklar, muddatlar va qabullar",
+  "guestContactTelegramDirect": "Telegramda yozish",
+  "guestContactTelegramDirectHint": "Maslahatchiga to'g'ridan-to'g'ri savol bering",
+  "guestContactInstagram": "Instagram",
+  "guestContactInstagramHint": "Talabalar, kampuslar, kundalik hayot",
+  "guestContactCall": "Qo'ng'iroq qilish",
+  "guestContactJoinHint": "Sizda maxfiy kod bormi?",
+  "guestContactLaunchFailed": "Bu havolani ochib bo'lmadi."
 }

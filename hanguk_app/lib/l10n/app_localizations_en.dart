@@ -1523,4 +1523,43 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get notifAllCaughtUpBody =>
       'Reminders about your documents and applications will appear here.';
+
+  @override
+  String get guestContactEyebrow => 'Hanguk Consulting';
+
+  @override
+  String get guestContactTitle => 'Get in touch';
+
+  @override
+  String get guestContactSubtitle =>
+      'Pick a channel — we answer on all of them.';
+
+  @override
+  String get guestContactTelegramChannel => 'Telegram channel';
+
+  @override
+  String get guestContactTelegramChannelHint =>
+      'News, deadlines and open intakes';
+
+  @override
+  String get guestContactTelegramDirect => 'Message us on Telegram';
+
+  @override
+  String get guestContactTelegramDirectHint => 'Ask a consultant directly';
+
+  @override
+  String get guestContactInstagram => 'Instagram';
+
+  @override
+  String get guestContactInstagramHint => 'Students, campuses, daily life';
+
+  @override
+  String get guestContactCall => 'Call us';
+
+  @override
+  String get guestContactJoinHint => 'Already have a magic code?';
+
+  @override
+  String get guestContactLaunchFailed =>
+      'Couldn\'t open that link on this device.';
 }

@@ -8,6 +8,7 @@ import '../../home/presentation/widgets/han_orb.dart';
 import 'guest_compare_screen.dart';
 import 'guest_explore_screen.dart';
 import 'guest_map_screen.dart';
+import 'widgets/contact_sheet.dart';
 
 /// Sections of the guest shell (DESIGN_SPEC §3b).
 class GuestSection {
@@ -71,6 +72,11 @@ class _GuestShellState extends ConsumerState<GuestShell> {
 
   /// Every conversion moment lands here.
   void _join() => context.push('/login', extra: {'magic_code': true});
+
+  /// The header pill opens the contact sheet — Telegram channel, a direct
+  /// message, Instagram and the phone — with the magic-code login kept as its
+  /// last row so the conversion path is not lost.
+  void _contact() => ContactSheet.show(context, onJoin: _join);
 
   /// The 한 tile exits guest mode entirely (spec §3b).
   void _exit() => context.go('/welcome');
@@ -167,7 +173,7 @@ class _GuestShellState extends ConsumerState<GuestShell> {
             ),
           ),
           const SizedBox(width: 10),
-          _JoinPill(label: l.guestJoinCta, onTap: _join),
+          _JoinPill(label: l.guestJoinCta, onTap: _contact),
         ],
       ),
     );

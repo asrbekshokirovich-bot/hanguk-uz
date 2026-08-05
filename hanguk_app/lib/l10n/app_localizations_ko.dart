@@ -1471,4 +1471,40 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get notifAllCaughtUpBody => '서류와 지원에 대한 알림이 여기에 표시됩니다.';
+
+  @override
+  String get guestContactEyebrow => 'Hanguk Consulting';
+
+  @override
+  String get guestContactTitle => '문의하기';
+
+  @override
+  String get guestContactSubtitle => '편한 채널을 선택하세요 — 모두 답변드립니다.';
+
+  @override
+  String get guestContactTelegramChannel => '텔레그램 채널';
+
+  @override
+  String get guestContactTelegramChannelHint => '소식, 마감일, 모집 정보';
+
+  @override
+  String get guestContactTelegramDirect => '텔레그램으로 문의';
+
+  @override
+  String get guestContactTelegramDirectHint => '상담사에게 바로 물어보세요';
+
+  @override
+  String get guestContactInstagram => '인스타그램';
+
+  @override
+  String get guestContactInstagramHint => '학생, 캠퍼스, 일상';
+
+  @override
+  String get guestContactCall => '전화하기';
+
+  @override
+  String get guestContactJoinHint => '매직 코드가 있으신가요?';
+
+  @override
+  String get guestContactLaunchFailed => '이 링크를 열 수 없습니다.';
 }

@@ -2096,6 +2096,78 @@ abstract class AppLocalizations {
   /// **'Join Hanguk'**
   String get guestJoinCta;
 
+  /// Eyebrow above the title of the guest contact sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Hanguk Consulting'**
+  String get guestContactEyebrow;
+
+  /// Title of the contact sheet opened by the lime pill in the guest header.
+  ///
+  /// In en, this message translates to:
+  /// **'Get in touch'**
+  String get guestContactTitle;
+
+  /// Sub-line of the guest contact sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a channel — we answer on all of them.'**
+  String get guestContactSubtitle;
+
+  /// Contact sheet row opening the Hanguk Consulting Telegram channel.
+  ///
+  /// In en, this message translates to:
+  /// **'Telegram channel'**
+  String get guestContactTelegramChannel;
+
+  /// Second line under the Telegram channel row.
+  ///
+  /// In en, this message translates to:
+  /// **'News, deadlines and open intakes'**
+  String get guestContactTelegramChannelHint;
+
+  /// Contact sheet row opening a direct Telegram chat with a consultant.
+  ///
+  /// In en, this message translates to:
+  /// **'Message us on Telegram'**
+  String get guestContactTelegramDirect;
+
+  /// Second line under the direct Telegram row.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask a consultant directly'**
+  String get guestContactTelegramDirectHint;
+
+  /// Contact sheet row opening the Instagram page.
+  ///
+  /// In en, this message translates to:
+  /// **'Instagram'**
+  String get guestContactInstagram;
+
+  /// Second line under the Instagram row.
+  ///
+  /// In en, this message translates to:
+  /// **'Students, campuses, daily life'**
+  String get guestContactInstagramHint;
+
+  /// Contact sheet row placing a phone call; the number is shown beneath it.
+  ///
+  /// In en, this message translates to:
+  /// **'Call us'**
+  String get guestContactCall;
+
+  /// Second line under the magic-code login row of the contact sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Already have a magic code?'**
+  String get guestContactJoinHint;
+
+  /// SnackBar when no app can open the tapped contact link.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t open that link on this device.'**
+  String get guestContactLaunchFailed;
+
   /// Display headline of the guest Explore section (DESIGN_SPEC screen 8).
   ///
   /// In en, this message translates to:
