@@ -7,11 +7,14 @@ interface ThreadPaneProps {
   conversation: ConversationVM;
   messages: MessageVM[];
   messagesLoading: boolean;
+  hasMore: boolean;
   autoTranslate: boolean;
   contextOpen: boolean;
   claiming: boolean;
   translatingId: string | null;
   isExpanded: (id: string, hasTranslation: boolean) => boolean;
+  onLoadOlder: () => Promise<void>;
+  onRetry: (messageId: string) => void;
   onToggleTranslation: (message: MessageVM, expanded: boolean) => void;
   onToggleAutoTranslate: () => void;
   onToggleContext: () => void;
@@ -25,11 +28,14 @@ export function ThreadPane({
   conversation,
   messages,
   messagesLoading,
+  hasMore,
   autoTranslate,
   contextOpen,
   claiming,
   translatingId,
   isExpanded,
+  onLoadOlder,
+  onRetry,
   onToggleTranslation,
   onToggleAutoTranslate,
   onToggleContext,
@@ -52,6 +58,9 @@ export function ThreadPane({
       <MessageStream
         messages={messages}
         loading={messagesLoading}
+        hasMore={hasMore}
+        onLoadOlder={onLoadOlder}
+        onRetry={onRetry}
         isExpanded={isExpanded}
         translatingId={translatingId}
         onToggleTranslation={onToggleTranslation}
