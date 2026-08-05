@@ -82,15 +82,20 @@ export interface MessageVM {
   createdAt: string;
   /** Display name of the staff member, for `out` and `note`. */
   senderLabel: string | null;
-  /** `messages.status` rendered as "Sent" / "Read". */
+  /**
+   * Delivery lifecycle for `out` bubbles: 'sending' | 'sent' | 'failed'
+   * (`messages.delivery_status`). Rendered as clock / tick / red retry.
+   */
   deliveryStatus: string | null;
+  /** Why delivery failed (`messages.delivery_error`), shown under the bubble. */
+  deliveryError?: string | null;
   /** Cached translation, or null when none has been produced yet. */
   translation: MessageTranslation | null;
   /** True when the body is not English and a translation is offerable. */
   translatable: boolean;
   /** Voice note / image / file attachment, or null for a plain text message. */
   media: MessageMedia | null;
-  /** True for an optimistic bubble that has not been confirmed by the server. */
+  /** True while the server has not yet confirmed delivery. */
   pending?: boolean;
 }
 
