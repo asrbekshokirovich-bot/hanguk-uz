@@ -206,7 +206,7 @@ class _HanTile extends StatelessWidget {
           child: ClipRRect(
             borderRadius: SeoulRadii.heroR,
             child: Image.asset(
-              'assets/images/app_icon.png',
+              'assets/images/brand_mark.png',
               width: _size,
               height: _size,
               fit: BoxFit.cover,
