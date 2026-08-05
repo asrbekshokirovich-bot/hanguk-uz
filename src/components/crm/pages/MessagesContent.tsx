@@ -189,7 +189,10 @@ export default function MessagesContent() {
   }, [active, archiveThread, toast, t]);
 
   const handleSend = useCallback(
-    async (text: string, options: { internal: boolean; language: SendLanguage }): Promise<boolean> => {
+    async (
+      text: string,
+      options: { internal: boolean; language: SendLanguage; file?: File | null },
+    ): Promise<boolean> => {
       if (!active || !selectedThread) return false;
 
       if (options.internal) {
@@ -228,11 +231,21 @@ export default function MessagesContent() {
       // channel round trip. `queued` distinguishes "the row exists but the
       // relay failed" (bubble stays with its error + Retry, keep the draft
       // cleared) from "nothing was saved at all" (restore the draft).
-      const { error, queued } = await sendMessage(
-        text,
-        selectedThread.source,
-        selectedThread.sender_id,
-      );
+      //
+      // Instagram DMs have no captions, so text + attachment goes out as two
+      // messages — the file first, then the text — exactly like the IG app.
+      // Telegram carries the text as the media caption in a single message.
+      const file = options.file ?? null;
+      const send = (body: string, f?: File | null) =>
+        sendMessage(body, selectedThread.source, selectedThread.sender_id, f);
+      let result: { error: Error | null; queued: boolean };
+      if (file && text && selectedThread.source === 'instagram') {
+        result = await send('', file);
+        if (!result.error) result = await send(text);
+      } else {
+        result = await send(text, file);
+      }
+      const { error, queued } = result;
       if (error && !queued) {
         toast({
           title: t('common.error'),
