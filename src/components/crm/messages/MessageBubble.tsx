@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { AlertCircle, Check, Clock, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MessageAttachment } from './MessageAttachment';
 import type { MessageVM } from './types';
@@ -8,23 +9,24 @@ interface MessageBubbleProps {
   expanded: boolean;
   translating: boolean;
   onToggleTranslation: () => void;
+  /** Re-deliver a failed outbound message. Present only for `out` bubbles. */
+  onRetry?: () => void;
 }
 
 /**
- * Inbound / outbound bubble with the inline translation block.
+ * Inbound / outbound bubble with the inline translation block and, for
+ * outbound messages, the Telegram-style delivery lifecycle:
  *
- * Translation is the key feature of this redesign, so it lives INSIDE the
- * bubble under a dashed divider rather than in a tooltip or a side panel: the
- * operator reads the original and the English at the same glance, and the
- * `Uzbek → English` badge makes the direction explicit.
+ *   🕐 sending → ✓ sent → (on failure) red bubble + reason + Retry.
  *
- * The toggle is a real button whose label carries its state
- * ("Translate" / "Hide translation"), so it reads correctly to a screen reader
- * without a separate aria-label.
+ * A failed message never disappears — the operator sees exactly what did not
+ * go out and resends it with one click, without retyping.
  */
-export function MessageBubble({ message: m, expanded, translating, onToggleTranslation }: MessageBubbleProps) {
+export function MessageBubble({ message: m, expanded, translating, onToggleTranslation, onRetry }: MessageBubbleProps) {
   const { t, i18n } = useTranslation();
   const outbound = m.kind === 'out';
+  const failed = outbound && m.deliveryStatus === 'failed';
+  const sending = outbound && m.deliveryStatus === 'sending';
   const time = new Date(m.createdAt).toLocaleTimeString(i18n.language, { hour: '2-digit', minute: '2-digit' });
 
   return (
@@ -33,10 +35,11 @@ export function MessageBubble({ message: m, expanded, translating, onToggleTrans
         <div
           className={cn(
             'px-3.5 py-2.5 shadow-card transition-opacity',
-            m.pending && 'opacity-60',
+            sending && 'opacity-60',
             outbound
               ? 'rounded-[14px_14px_4px_14px] bg-primary'
               : 'rounded-[14px_14px_14px_4px] border border-border bg-card',
+            failed && 'ring-2 ring-destructive/60',
           )}
         >
           {m.media && (
@@ -87,6 +90,25 @@ export function MessageBubble({ message: m, expanded, translating, onToggleTrans
           )}
         </div>
 
+        {failed && (
+          <div className="mt-1.5 flex items-center justify-end gap-2 px-0.5">
+            <AlertCircle className="h-3.5 w-3.5 shrink-0 text-destructive" aria-hidden="true" />
+            <span className="max-w-[380px] truncate text-[11px] font-medium text-destructive">
+              {m.deliveryError || t('messages.thread.sendFailed', 'Not delivered')}
+            </span>
+            {onRetry && (
+              <button
+                type="button"
+                onClick={onRetry}
+                className="flex min-h-0 min-w-0 items-center gap-1 rounded-sm border border-destructive/40 px-1.5 py-0.5 text-[11px] font-semibold text-destructive transition-colors hover:bg-destructive/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <RefreshCw className="h-3 w-3" aria-hidden="true" />
+                {t('messages.thread.retry', 'Retry')}
+              </button>
+            )}
+          </div>
+        )}
+
         <div
           className={cn(
             'mt-1.5 flex items-center gap-2.5 px-0.5',
@@ -102,14 +124,17 @@ export function MessageBubble({ message: m, expanded, translating, onToggleTrans
             />
           )}
 
-          <span className="text-[11px] font-medium text-muted-foreground">
-            {[
-              outbound ? m.senderLabel : null,
-              m.pending ? t('messages.thread.sending') : time,
-              outbound && !m.pending ? m.deliveryStatus : null,
-            ]
+          <span className="flex items-center gap-1 text-[11px] font-medium text-muted-foreground">
+            {[outbound ? m.senderLabel : null, sending ? t('messages.thread.sending') : time]
               .filter(Boolean)
               .join(' · ')}
+            {outbound && !failed && (
+              sending ? (
+                <Clock className="h-3 w-3" aria-label={t('messages.thread.sending')} />
+              ) : (
+                <Check className="h-3.5 w-3.5 text-primary" aria-label={t('messages.thread.sent', 'Sent')} />
+              )
+            )}
           </span>
 
           {!outbound && m.translatable && (
