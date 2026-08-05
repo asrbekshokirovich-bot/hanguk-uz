@@ -953,7 +953,7 @@ class AppLocalizationsUz extends AppLocalizations {
   String get greetingEvening => 'Xayrli kech';
 
   @override
-  String get welcomeHeadline => 'Yo\'lingizga xush kelibsiz';
+  String get welcomeHeadline => 'Xush kelibsiz';
 
   @override
   String get welcomeSubtitle =>
@@ -1528,4 +1528,47 @@ class AppLocalizationsUz extends AppLocalizations {
   @override
   String get notifAllCaughtUpBody =>
       'Hujjatlar va arizalaringiz haqidagi eslatmalar shu yerda chiqadi.';
+
+  @override
+  String get guestContactEyebrow => 'Hanguk Consulting';
+
+  @override
+  String get guestContactTitle => 'Biz bilan bog\'laning';
+
+  @override
+  String get guestContactSubtitle =>
+      'Qulay kanalni tanlang — hammasida javob beramiz.';
+
+  @override
+  String get guestContactTelegramChannel => 'Telegram kanal';
+
+  @override
+  String get guestContactTelegramChannelHint =>
+      'Yangiliklar, muddatlar va qabullar';
+
+  @override
+  String get guestContactTelegramDirect => 'Telegramda yozish';
+
+  @override
+  String get guestContactTelegramDirectHint =>
+      'Maslahatchiga to\'g\'ridan-to\'g\'ri savol bering';
+
+  @override
+  String get guestContactInstagram => 'Instagram';
+
+  @override
+  String get guestContactInstagramHint =>
+      'Talabalar, kampuslar, kundalik hayot';
+
+  @override
+  String get guestContactCall => 'Qo\'ng\'iroq qilish';
+
+  @override
+  String get guestContactJoinHint => 'Sizda maxfiy kod bormi?';
+
+  @override
+  String get guestContactLaunchFailed => 'Bu havolani ochib bo\'lmadi.';
+
+  @override
+  String get guestContactCta => 'Bog\'lanish';
 }

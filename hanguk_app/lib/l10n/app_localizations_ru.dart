@@ -1524,4 +1524,43 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get notifAllCaughtUpBody =>
       'Напоминания о документах и заявках появятся здесь.';
+
+  @override
+  String get guestContactEyebrow => 'Hanguk Consulting';
+
+  @override
+  String get guestContactTitle => 'Свяжитесь с нами';
+
+  @override
+  String get guestContactSubtitle => 'Выберите удобный канал — отвечаем везде.';
+
+  @override
+  String get guestContactTelegramChannel => 'Telegram-канал';
+
+  @override
+  String get guestContactTelegramChannelHint => 'Новости, сроки и наборы';
+
+  @override
+  String get guestContactTelegramDirect => 'Написать в Telegram';
+
+  @override
+  String get guestContactTelegramDirectHint => 'Задайте вопрос консультанту';
+
+  @override
+  String get guestContactInstagram => 'Instagram';
+
+  @override
+  String get guestContactInstagramHint => 'Студенты, кампусы, будни';
+
+  @override
+  String get guestContactCall => 'Позвонить';
+
+  @override
+  String get guestContactJoinHint => 'Уже есть магический код?';
+
+  @override
+  String get guestContactLaunchFailed => 'Не удалось открыть ссылку.';
+
+  @override
+  String get guestContactCta => 'Связаться';
 }

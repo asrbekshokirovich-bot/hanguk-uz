@@ -199,11 +199,18 @@ class _HanTile extends StatelessWidget {
             borderRadius: SeoulRadii.heroR,
             border: Border.all(color: SeoulColors.heroBorder, width: 1),
           ),
-          child: Text(
-            '한',
-            style: SeoulType.hangulGlyph.copyWith(
-              fontSize: _size * 0.5,
-              fontWeight: FontWeight.w900,
+          // The real brand mark, not the bare 한 syllable the tile used to
+          // typeset: the logo carries the arc under the glyph, which no font
+          // gives us. Its navy plate matches the hero gradient, so it is
+          // clipped to the tile radius and fills it edge to edge.
+          child: ClipRRect(
+            borderRadius: SeoulRadii.heroR,
+            child: Image.asset(
+              'assets/images/brand_mark.png',
+              width: _size,
+              height: _size,
+              fit: BoxFit.cover,
+              filterQuality: FilterQuality.medium,
             ),
           ),
         ),

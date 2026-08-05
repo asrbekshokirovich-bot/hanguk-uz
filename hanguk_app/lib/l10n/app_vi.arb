@@ -538,5 +538,18 @@
   "notifApplicationUpdates": "Cập nhật hồ sơ",
   "notifToUpload": "Cần tải lên",
   "notifAllCaughtUp": "Đã hoàn tất",
-  "notifAllCaughtUpBody": "Nhắc nhở về hồ sơ và đơn của bạn sẽ hiển thị ở đây."
+  "notifAllCaughtUpBody": "Nhắc nhở về hồ sơ và đơn của bạn sẽ hiển thị ở đây.",
+  "guestContactEyebrow": "Hanguk Consulting",
+  "guestContactTitle": "Liên hệ với chúng tôi",
+  "guestContactSubtitle": "Chọn kênh bạn thích — chúng tôi trả lời ở mọi kênh.",
+  "guestContactTelegramChannel": "Kênh Telegram",
+  "guestContactTelegramChannelHint": "Tin tức, hạn nộp và đợt tuyển sinh",
+  "guestContactTelegramDirect": "Nhắn tin Telegram",
+  "guestContactTelegramDirectHint": "Hỏi trực tiếp tư vấn viên",
+  "guestContactInstagram": "Instagram",
+  "guestContactInstagramHint": "Sinh viên, khuôn viên, đời sống",
+  "guestContactCall": "Gọi điện",
+  "guestContactJoinHint": "Bạn đã có mã magic?",
+  "guestContactLaunchFailed": "Không mở được liên kết này.",
+  "guestContactCta": "Liên hệ"
 }

@@ -538,5 +538,18 @@
   "notifApplicationUpdates": "지원 현황",
   "notifToUpload": "업로드 필요",
   "notifAllCaughtUp": "모두 완료",
-  "notifAllCaughtUpBody": "서류와 지원에 대한 알림이 여기에 표시됩니다."
+  "notifAllCaughtUpBody": "서류와 지원에 대한 알림이 여기에 표시됩니다.",
+  "guestContactEyebrow": "Hanguk Consulting",
+  "guestContactTitle": "문의하기",
+  "guestContactSubtitle": "편한 채널을 선택하세요 — 모두 답변드립니다.",
+  "guestContactTelegramChannel": "텔레그램 채널",
+  "guestContactTelegramChannelHint": "소식, 마감일, 모집 정보",
+  "guestContactTelegramDirect": "텔레그램으로 문의",
+  "guestContactTelegramDirectHint": "상담사에게 바로 물어보세요",
+  "guestContactInstagram": "인스타그램",
+  "guestContactInstagramHint": "학생, 캠퍼스, 일상",
+  "guestContactCall": "전화하기",
+  "guestContactJoinHint": "매직 코드가 있으신가요?",
+  "guestContactLaunchFailed": "이 링크를 열 수 없습니다.",
+  "guestContactCta": "문의하기"
 }

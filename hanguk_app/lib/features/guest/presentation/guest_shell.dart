@@ -8,6 +8,7 @@ import '../../home/presentation/widgets/han_orb.dart';
 import 'guest_compare_screen.dart';
 import 'guest_explore_screen.dart';
 import 'guest_map_screen.dart';
+import 'widgets/contact_sheet.dart';
 
 /// Sections of the guest shell (DESIGN_SPEC §3b).
 class GuestSection {
@@ -26,9 +27,9 @@ class GuestSection {
 /// Read-only by construction. There is no journey, no documents and no
 /// interview here, and the shell never touches a provider that needs a
 /// session: everything on screen comes from `universitiesProvider`, which
-/// reads the public `v_institutions_for_map` view. Every conversion moment —
-/// the header pill, the dial's last item, the compare CTA — routes to the
-/// magic-code login.
+/// reads the public `v_institutions_for_map` view. The dial's last item and
+/// the compare CTA route to the magic-code login; the header pill opens the
+/// contact sheet, which keeps that login as its last row.
 class GuestShell extends ConsumerStatefulWidget {
   const GuestShell({super.key, this.initialSection = GuestSection.explore});
 
@@ -71,6 +72,11 @@ class _GuestShellState extends ConsumerState<GuestShell> {
 
   /// Every conversion moment lands here.
   void _join() => context.push('/login', extra: {'magic_code': true});
+
+  /// The header pill opens the contact sheet — Telegram channel, a direct
+  /// message, Instagram and the phone — with the magic-code login kept as its
+  /// last row so the conversion path is not lost.
+  void _contact() => ContactSheet.show(context, onJoin: _join);
 
   /// The 한 tile exits guest mode entirely (spec §3b).
   void _exit() => context.go('/welcome');
@@ -167,7 +173,10 @@ class _GuestShellState extends ConsumerState<GuestShell> {
             ),
           ),
           const SizedBox(width: 10),
-          _JoinPill(label: l.guestJoinCta, onTap: _join),
+          // Short on purpose: "Join Hanguk" was ellipsised to "Hangukk…" in
+          // the width the header can spare, and the pill no longer goes to
+          // the login anyway — it opens the contact sheet.
+          _JoinPill(label: l.guestContactCta, ko: '문의', onTap: _contact),
         ],
       ),
     );
@@ -241,9 +250,16 @@ class _GuestShellState extends ConsumerState<GuestShell> {
 
 /// The lime conversion pill in the guest header.
 class _JoinPill extends StatelessWidget {
-  const _JoinPill({required this.label, required this.onTap});
+  const _JoinPill({
+    required this.label,
+    required this.ko,
+    required this.onTap,
+  });
 
   final String label;
+
+  /// The Hangul chip riding alongside the label.
+  final String ko;
   final VoidCallback onTap;
 
   @override
@@ -279,7 +295,7 @@ class _JoinPill extends StatelessWidget {
               ),
               const SizedBox(width: 6),
               Text(
-                '가입',
+                ko,
                 style: SeoulType.hangulStatus.copyWith(color: SeoulColors.ink),
               ),
             ],

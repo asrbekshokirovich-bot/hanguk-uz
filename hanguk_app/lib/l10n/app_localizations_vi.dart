@@ -1519,4 +1519,45 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get notifAllCaughtUpBody =>
       'Nhắc nhở về hồ sơ và đơn của bạn sẽ hiển thị ở đây.';
+
+  @override
+  String get guestContactEyebrow => 'Hanguk Consulting';
+
+  @override
+  String get guestContactTitle => 'Liên hệ với chúng tôi';
+
+  @override
+  String get guestContactSubtitle =>
+      'Chọn kênh bạn thích — chúng tôi trả lời ở mọi kênh.';
+
+  @override
+  String get guestContactTelegramChannel => 'Kênh Telegram';
+
+  @override
+  String get guestContactTelegramChannelHint =>
+      'Tin tức, hạn nộp và đợt tuyển sinh';
+
+  @override
+  String get guestContactTelegramDirect => 'Nhắn tin Telegram';
+
+  @override
+  String get guestContactTelegramDirectHint => 'Hỏi trực tiếp tư vấn viên';
+
+  @override
+  String get guestContactInstagram => 'Instagram';
+
+  @override
+  String get guestContactInstagramHint => 'Sinh viên, khuôn viên, đời sống';
+
+  @override
+  String get guestContactCall => 'Gọi điện';
+
+  @override
+  String get guestContactJoinHint => 'Bạn đã có mã magic?';
+
+  @override
+  String get guestContactLaunchFailed => 'Không mở được liên kết này.';
+
+  @override
+  String get guestContactCta => 'Liên hệ';
 }
