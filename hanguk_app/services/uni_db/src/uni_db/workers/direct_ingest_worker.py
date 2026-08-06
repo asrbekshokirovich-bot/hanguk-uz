@@ -37,7 +37,6 @@ import httpx
 
 from ..config import settings
 from .fetch_worker import (
-    MAX_PDF_BYTES,
     RunParse,
     _default_run_parse,
     _default_store_blob,
@@ -114,12 +113,6 @@ async def fetch_uningested_sources(
     )
 
 
-def _cap(data: bytes, mime: str) -> tuple[bytes | None, str]:
-    if len(data) > MAX_PDF_BYTES:
-        return None, f"pdf too large ({len(data)} bytes)"
-    return data, mime
-
-
 async def _get(
     http: httpx.AsyncClient, url: str, headers: dict[str, str]
 ) -> tuple[bytes, str]:
@@ -145,7 +138,7 @@ async def resolve_to_pdf(
     data, raw_mime = await _get(http, url, base)
     mime, _reason = decide_mime(data, raw_mime)
     if mime is not None:
-        return _cap(data, mime)
+        return data, mime
 
     resolved = await generic_resolve(url, http, url)
     if resolved is None:
@@ -154,7 +147,7 @@ async def resolve_to_pdf(
     mime, reason = decide_mime(data, raw_mime)
     if mime is None:
         return None, reason or "resolved link was not a PDF"
-    return _cap(data, mime)
+    return data, mime
 
 
 async def process_one_source(
