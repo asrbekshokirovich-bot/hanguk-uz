@@ -21,6 +21,7 @@ import { useInvestorSeason } from '@/contexts/InvestorSeasonContext';
 import {
   useInvestorApplications,
   useInvestorFunnel,
+  useInvestorLeadSummary,
   useInvestorMonthly,
   useInvestorPayouts,
   useInvestorPosition,
@@ -61,7 +62,17 @@ import {
  *    underneath. Nothing is summed across currencies.
  * ------------------------------------------------------------------------ */
 
-const FUNNEL_TONES: ChartTone[] = ['royal', 'blue', 'blue', 'lime', 'lime', 'success'];
+// Keyed by stage_order, not by position: the funnel view added a stage 0
+// (Leads) and an array index would have shifted every colour by one.
+const FUNNEL_TONES: Record<number, ChartTone> = {
+  0: 'slate',
+  1: 'royal',
+  2: 'blue',
+  3: 'blue',
+  4: 'lime',
+  5: 'lime',
+  6: 'success',
+};
 
 export default function InvestorOverview() {
   const { activeIntakeId, activeIntake, intakes } = useInvestorSeason();
@@ -70,6 +81,7 @@ export default function InvestorOverview() {
   const position = useInvestorPosition(activeIntakeId);
   const monthly = useInvestorMonthly(activeIntakeId);
   const funnel = useInvestorFunnel(activeIntakeId);
+  const leads = useInvestorLeadSummary(activeIntakeId);
   const applications = useInvestorApplications(activeIntakeId);
   const payouts = useInvestorPayouts();
 
@@ -93,6 +105,7 @@ export default function InvestorOverview() {
   );
 
   const signed = funnel.data?.find((r) => r.stage_order === 1)?.student_count ?? null;
+  const leadTotal = leads.data ? Number(leads.data.total_leads) : null;
 
   const bestMonth = useMemo(() => {
     if (months.length === 0) return '—';
@@ -236,7 +249,13 @@ export default function InvestorOverview() {
             {signed != null ? count(signed) : '—'}
           </div>
           <p className="mt-1.5 text-[12px] text-muted-foreground">
-            Departures for Korea are not recorded in the CRM yet
+            {leads.data
+              ? `From ${count(Number(leads.data.total_leads))} lead${Number(leads.data.total_leads) === 1 ? '' : 's'}${
+                  leads.data.conversion_pct != null
+                    ? ` · ${percent(Number(leads.data.conversion_pct), 1)} converted`
+                    : ''
+                }`
+              : 'Departures for Korea are not recorded in the CRM yet'}
           </p>
           <div className="mt-auto pt-3 text-[12px] text-muted-foreground">
             {activeIntake?.starts_on && activeIntake?.ends_on
@@ -363,12 +382,12 @@ export default function InvestorOverview() {
             title="Season Pipeline"
             subtitle={
               signed != null
-                ? `${count(signed)} signed · ${count(applications.data?.length ?? 0)} applications`
+                ? `${leadTotal != null ? `${count(leadTotal)} leads · ` : ''}${count(signed)} signed · ${count(applications.data?.length ?? 0)} applications`
                 : undefined
             }
             action={
               <Link
-                to="/crm/investor/applications"
+                to="/crm/investor/leads"
                 className="inline-flex items-center text-[13px] font-semibold text-primary hover:underline"
               >
                 All applications →
@@ -383,14 +402,14 @@ export default function InvestorOverview() {
                 rows={(funnel.data ?? []).map((r) => ({
                   stage: r.stage,
                   value: Number(r.student_count),
-                  tone: FUNNEL_TONES[r.stage_order - 1] ?? 'slate',
+                  tone: FUNNEL_TONES[r.stage_order] ?? 'slate',
                 }))}
               />
             )}
           </div>
           <p className="mt-4 px-5 text-[11px] leading-relaxed text-muted-foreground">
-            Only Signed is recorded in the CRM today. Documents Ready, Submitted, Offer Received,
-            Visa Approved and Departed read zero until the team starts recording them.
+            Leads and Signed are recorded in the CRM today. Documents Ready, Submitted, Offer
+            Received, Visa Approved and Departed read zero until the team starts recording them.
           </p>
         </InvestorCard>
 

@@ -12,6 +12,7 @@ import { relativeTime } from '@/lib/investorFormat';
 import InvestorOverview from './screens/InvestorOverview';
 import InvestorFinance from './screens/InvestorFinance';
 import InvestorApplications from './screens/InvestorApplications';
+import InvestorLeads from './screens/InvestorLeads';
 import InvestorMessages from './screens/InvestorMessages';
 
 const HOME = '/crm/investor/overview';
@@ -87,6 +88,7 @@ function InvestorShell() {
                 <Route path="investor/overview" element={<InvestorOverview />} />
                 <Route path="investor/finance" element={<InvestorFinance />} />
                 <Route path="investor/applications" element={<InvestorApplications />} />
+                <Route path="investor/leads" element={<InvestorLeads />} />
                 <Route path="investor/messages" element={<InvestorMessages />} />
                 {/* Anywhere else under /crm/* - including /crm itself and every
                     staff route - lands back on Overview. */}

@@ -38,7 +38,17 @@ import { count, humanizeLineItem, percent, relativeTime } from '@/lib/investorFo
  * starts recording those stages.
  * ------------------------------------------------------------------------ */
 
-const FUNNEL_TONES: ChartTone[] = ['royal', 'blue', 'blue', 'lime', 'lime', 'success'];
+// Keyed by stage_order, not by position: the funnel view added a stage 0
+// (Leads) and an array index would have shifted every colour by one.
+const FUNNEL_TONES: Record<number, ChartTone> = {
+  0: 'slate',
+  1: 'royal',
+  2: 'blue',
+  3: 'blue',
+  4: 'lime',
+  5: 'lime',
+  6: 'success',
+};
 const UNTRACKED_STAGES = new Set(['Documents Ready', 'Offer Received', 'Visa Approved']);
 
 const STATUS_TONE: Record<string, PillTone> = {
@@ -109,7 +119,7 @@ export default function InvestorApplications() {
 
       {/* ------------------------------------------------------- funnel row */}
       {(funnel.data ?? []).length > 0 && (
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-7">
         {(funnel.data ?? []).map((stage) => (
           <InvestorCard key={stage.stage} className="flex flex-col overflow-hidden p-0">
             <div className="p-4 pb-3">
@@ -124,7 +134,7 @@ export default function InvestorApplications() {
               )}
             </div>
             <div className="mt-auto">
-              <ToneRule tone={FUNNEL_TONES[stage.stage_order - 1] ?? 'slate'} />
+              <ToneRule tone={FUNNEL_TONES[stage.stage_order] ?? 'slate'} />
             </div>
           </InvestorCard>
         ))}

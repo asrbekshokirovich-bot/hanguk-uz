@@ -91,6 +91,35 @@ export interface InvestorFunnelRow {
   student_count: number;
 }
 
+/** Counts only. The `leads` table holds names, phones and emails; the
+ *  v_investor_lead_* views deliberately expose none of them. */
+export interface InvestorLeadSummaryRow {
+  intake_id: string;
+  total_leads: number;
+  new_leads: number;
+  contacted_leads: number;
+  qualified_leads: number;
+  converted_leads: number;
+  lost_leads: number;
+  leads_last_30_days: number;
+  conversion_pct: number | null;
+}
+
+export interface InvestorLeadSourceRow {
+  intake_id: string;
+  source: string;
+  lead_count: number;
+  converted_count: number;
+  converted_pct: number | null;
+}
+
+export interface InvestorLeadMonthlyRow {
+  intake_id: string;
+  month: string;
+  lead_count: number;
+  converted_count: number;
+}
+
 export interface InvestorApplicationRow {
   application_id: string;
   intake_id: string;
@@ -230,6 +259,52 @@ export function useInvestorFunnel(intakeId: string | null) {
         .order('stage_order', { ascending: true });
       if (error) throw error;
       return (data ?? []) as InvestorFunnelRow[];
+    },
+  });
+}
+
+/** Season lead totals. One row, or none when the season is below her floor. */
+export function useInvestorLeadSummary(intakeId: string | null) {
+  return useQuery({
+    queryKey: [KEY, 'leads', intakeId],
+    enabled: !!intakeId,
+    queryFn: async (): Promise<InvestorLeadSummaryRow | null> => {
+      const { data, error } = await rel('v_investor_season_leads')
+        .select('*')
+        .eq('intake_id', intakeId)
+        .maybeSingle();
+      if (error) throw error;
+      return (data ?? null) as InvestorLeadSummaryRow | null;
+    },
+  });
+}
+
+export function useInvestorLeadSources(intakeId: string | null) {
+  return useQuery({
+    queryKey: [KEY, 'lead-sources', intakeId],
+    enabled: !!intakeId,
+    queryFn: async (): Promise<InvestorLeadSourceRow[]> => {
+      const { data, error } = await rel('v_investor_lead_sources')
+        .select('*')
+        .eq('intake_id', intakeId)
+        .order('lead_count', { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as InvestorLeadSourceRow[];
+    },
+  });
+}
+
+export function useInvestorLeadMonthly(intakeId: string | null) {
+  return useQuery({
+    queryKey: [KEY, 'lead-monthly', intakeId],
+    enabled: !!intakeId,
+    queryFn: async (): Promise<InvestorLeadMonthlyRow[]> => {
+      const { data, error } = await rel('v_investor_lead_monthly')
+        .select('*')
+        .eq('intake_id', intakeId)
+        .order('month', { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as InvestorLeadMonthlyRow[];
     },
   });
 }
