@@ -41,9 +41,6 @@ from ..parse.pdf_resolvers import (
 
 log = logging.getLogger(__name__)
 
-# Korean admissions PDFs run ~200 KiB-4 MiB; cap each download well above that.
-MAX_PDF_BYTES = 20 * 1024 * 1024
-
 
 # --- pure helpers ----------------------------------------------------------
 
@@ -246,8 +243,6 @@ async def process_one(
     )
     resp.raise_for_status()
     data = resp.content
-    if len(data) > MAX_PDF_BYTES:
-        return False, f"pdf too large ({len(data)} bytes)"
 
     raw_mime = (resp.headers.get("content-type") or "").split(";", 1)[0].strip()
     mime, err = decide_mime(data, raw_mime)

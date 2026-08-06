@@ -92,6 +92,30 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     p_todo.add_argument("--limit", type=int, default=20,
                         help="Max institutions to return (keep subscription usage bounded)")
+    p_todo.add_argument("--cooldown-days", type=int, default=3,
+                        help="Skip institutions flagged (via flag-blocked or an "
+                             "ingest-url failure) within this many days, so a "
+                             "site that just 503'd isn't re-browsed every run "
+                             "(default 3)")
+    p_todo.add_argument("--include-flagged", action="store_true",
+                        help="Ignore the cooldown and include recently-flagged "
+                             "institutions anyway")
+
+    p_flag = sub.add_parser(
+        "flag-blocked",
+        help="Record that an institution's site could not be reached/verified "
+             "this run (e.g. HTTP 503, bot-blocked) so `todo` skips it for the "
+             "cooldown window instead of re-browsing a dead end every night. "
+             "Writes to proposed_sources for staff visibility.",
+    )
+    p_flag.add_argument("--institution", required=True,
+                        help="institutions.id (UUID)")
+    p_flag.add_argument("--reason", required=True,
+                        help="Why the site/candidate couldn't be used, e.g. "
+                             "'HTTP 503 on admissions page, no candidate PDF found'")
+    p_flag.add_argument("--url", default=None,
+                        help="URL to flag (default: the institution's known "
+                             "admissions_url)")
 
     p_ingest_url = sub.add_parser(
         "ingest-url",
@@ -112,6 +136,15 @@ def _build_parser() -> argparse.ArgumentParser:
     p_ingest_url.add_argument("--term", choices=["spring", "fall"], default=None,
                               help="Target semester the PDF must match (spring = 전기/1학기, "
                                    "fall = 후기/2학기). Only meaningful together with --year.")
+
+    p_backfill = sub.add_parser(
+        "backfill-review-queue",
+        help="Recover succeeded extraction_jobs that never got a review_queue "
+             "row (a historical gap in the pre-require_approval config) so "
+             "they can finally be approved and published. DB-only, no LLM.",
+    )
+    p_backfill.add_argument("--limit", type=int, default=500,
+                            help="Max orphaned succeeded jobs to backfill this run")
 
     p_publish = sub.add_parser(
         "publish",
@@ -160,12 +193,21 @@ def main(argv: list[str] | None = None) -> int:
             limit=args.limit, year=args.year, per_institution=args.per_institution,
         ))
     if args.cmd == "todo":
-        return asyncio.run(_todo(limit=args.limit))
+        return asyncio.run(_todo(
+            limit=args.limit, cooldown_days=args.cooldown_days,
+            include_flagged=args.include_flagged,
+        ))
+    if args.cmd == "flag-blocked":
+        return asyncio.run(_flag_blocked(
+            institution_id=args.institution, reason=args.reason, url=args.url,
+        ))
     if args.cmd == "ingest-url":
         return asyncio.run(_ingest_url(
             institution_id=args.institution, url=args.url,
             year=args.year, term=args.term,
         ))
+    if args.cmd == "backfill-review-queue":
+        return asyncio.run(_backfill_review_queue(limit=args.limit))
     if args.cmd == "publish":
         return asyncio.run(_publish(limit=args.limit))
     if args.cmd == "propose-sources":
@@ -421,6 +463,26 @@ async def _retry_failed(*, limit: int) -> int:
     return 0
 
 
+async def _backfill_review_queue(*, limit: int) -> int:
+    """Recover succeeded extraction_jobs with no review_queue row.
+    DB-only (no LLM/HTTP), so it just needs `SUPABASE_DB_URL`.
+    """
+    if not settings.supabase_db_url:
+        print("SUPABASE_DB_URL is not set; cannot backfill.", file=sys.stderr)
+        return 2
+
+    from .workers import backfill_review_worker
+
+    conn = await db.connect()
+    try:
+        run = await backfill_review_worker.backfill_missing_review(conn, limit=limit)
+    finally:
+        await conn.close()
+
+    print(f"backfill-review-queue: found={run.found} inserted={run.inserted}")
+    return 0
+
+
 async def _publish(*, limit: int) -> int:
     """Normalize approved review items into the public tables the app reads.
     DB-only (no LLM/HTTP), so it just needs `SUPABASE_DB_URL`.
@@ -560,10 +622,15 @@ async def _find_guidelines(*, limit: int, year: int | None, per_institution: int
     return 0
 
 
-async def _todo(*, limit: int) -> int:
+async def _todo(*, limit: int, cooldown_days: int = 3, include_flagged: bool = False) -> int:
     """Print, as JSON, institutions that still need a current-cycle guideline —
     the Routine agent's work list. Each item: id, name, admissions_url, domain.
     DB-only, no LLM, no external API — just needs SUPABASE_DB_URL.
+
+    By default, institutions flagged within `cooldown_days` (via `flag-blocked`,
+    or automatically whenever `ingest-url` couldn't fetch/verify a candidate)
+    are excluded — a site that just returned HTTP 503 is not worth re-browsing
+    from scratch on the very next run. `--include-flagged` overrides this.
     """
     if not settings.supabase_db_url:
         print("SUPABASE_DB_URL is not set; cannot list work.", file=sys.stderr)
@@ -588,15 +655,67 @@ async def _todo(*, limit: int) -> int:
                         and g.parse_status <> 'failed'
                         and g.fetched_at > now() - interval '120 days'
                    )
+               and (
+                     $2
+                     or not exists (
+                          select 1 from public.proposed_sources ps
+                           where ps.url_ko = i.primary_admissions_url_ko
+                             and ps.status = 'pending_review'
+                             and ps.proposed_at > now() - make_interval(days => $3::int)
+                        )
+                   )
              order by i.is_partner desc nulls last, i.tier asc nulls last, i.name_ko asc
              limit $1
             """,
-            limit,
+            limit, include_flagged, cooldown_days,
         )
     finally:
         await conn.close()
 
     print(_json.dumps([dict(r) for r in rows], ensure_ascii=False, indent=2))
+    return 0
+
+
+async def _flag_blocked(*, institution_id: str, reason: str, url: str | None) -> int:
+    """Record that an institution's site couldn't be reached/verified this run,
+    so `todo` skips it for the cooldown window instead of re-browsing a dead
+    end every night. Writes to `proposed_sources` (same HITL queue ingest-url's
+    fail-closed skips use) for staff visibility. DB-only, no LLM/HTTP.
+    """
+    if not settings.supabase_db_url:
+        print("SUPABASE_DB_URL is not set; cannot flag.", file=sys.stderr)
+        return 2
+
+    from uuid import UUID
+
+    from .workers.guideline_finder_worker import record_proposed_note
+
+    try:
+        inst_uuid = UUID(institution_id)
+    except ValueError:
+        print(f"--institution must be a UUID, got {institution_id!r}", file=sys.stderr)
+        return 2
+
+    conn = await db.connect()
+    try:
+        row = await conn.fetchrow(
+            "select name_ko, primary_admissions_url_ko, primary_domain "
+            "from public.institutions where id=$1",
+            inst_uuid,
+        )
+        if row is None:
+            print(f"institution {institution_id} not found", file=sys.stderr)
+            return 2
+
+        target_url = url or row["primary_admissions_url_ko"] or f"https://{row['primary_domain']}/"
+        name = row["name_ko"] or institution_id
+        await record_proposed_note(
+            conn, target_url, name, f"{name}: {reason}", proposed_by="manual",
+        )
+    finally:
+        await conn.close()
+
+    print(f"flag-blocked: recorded {target_url!r} for institution={institution_id}")
     return 0
 
 

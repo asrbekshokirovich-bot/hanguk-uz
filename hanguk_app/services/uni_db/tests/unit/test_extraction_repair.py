@@ -244,9 +244,10 @@ class TestPruneDontReject:
 
 class TestCliTimeouts:
     def test_documents_required_gets_long_timeout(self) -> None:
-        assert llm_anthropic._cli_timeout_for("documents_required") == 900.0
-        assert llm_anthropic._cli_timeout_for("document_checklist") == 900.0
-        assert llm_anthropic._cli_timeout_for("scholarships") == 600.0
+        assert llm_anthropic._cli_timeout_for("documents_required") == 1800.0
+        assert llm_anthropic._cli_timeout_for("document_checklist") == 1800.0
+        assert llm_anthropic._cli_timeout_for("scholarships") == 900.0
+        assert llm_anthropic._cli_timeout_for("requirements") == 900.0
 
     def test_other_groups_keep_default(self) -> None:
         assert llm_anthropic._cli_timeout_for("calendar") == 240.0
@@ -270,5 +271,5 @@ class TestCliTimeouts:
         result = llm_anthropic.extract_field_group(
             field_group="documents_required", archetype="H", source_text_ko="x",
         )
-        assert captured["timeout"] == 900.0
+        assert captured["timeout"] == 1800.0
         assert result.llm_provider == "claude_cli"

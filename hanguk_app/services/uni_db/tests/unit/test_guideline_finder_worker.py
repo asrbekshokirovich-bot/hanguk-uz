@@ -436,15 +436,62 @@ async def test_ingest_url_identity_reject_skips() -> None:
     )
     assert outcome == "skipped"
     assert parsed == []
+    # A single caller-supplied URL that fails identity is worth a human look —
+    # unlike process_one_institution's multi-candidate loop, there's no next
+    # candidate to fall back to, so this must not vanish silently.
+    assert any("insert into public.proposed_sources" in e for e in conn.executed)
 
 
 async def test_ingest_url_resolve_none_skips() -> None:
+    conn = _Conn()
     outcome, note = await gfw.ingest_one_url(
-        _Conn(), _row(), "https://inha.ac.kr/page.html",
+        conn, _row(), "https://inha.ac.kr/page.html",
         resolve=_resolve_none, store_blob=_store, run_parse=_make_parse([]),
     )
     assert outcome == "skipped"
     assert note == "not a pdf"
+    assert any("insert into public.proposed_sources" in e for e in conn.executed)
+
+
+async def test_ingest_url_records_reject_note_with_custom_recorder() -> None:
+    notes, record = _notes_sink()
+    outcome, _ = await gfw.ingest_one_url(
+        _Conn(), _row(), "https://inha.ac.kr/wrong.pdf",
+        resolve=_resolve_ok, store_blob=_store, run_parse=_make_parse([]),
+        identity_check=lambda _data, _row: False,
+        record_note=record,
+    )
+    assert outcome == "skipped"
+    assert len(notes) == 1
+    assert "rejected" in notes[0][1]
+
+
+async def test_ingest_url_records_resolve_failure_with_custom_recorder() -> None:
+    notes, record = _notes_sink()
+    outcome, note = await gfw.ingest_one_url(
+        _Conn(), _row(), "https://inha.ac.kr/page.html",
+        resolve=_resolve_none, store_blob=_store, run_parse=_make_parse([]),
+        record_note=record,
+    )
+    assert outcome == "skipped"
+    assert len(notes) == 1
+    assert note in notes[0][1]
+
+
+async def test_ingest_url_records_unexpected_error() -> None:
+    notes, record = _notes_sink()
+
+    def _boom_store(*_a, **_kw):
+        raise RuntimeError("storage down")
+
+    outcome, note = await gfw.ingest_one_url(
+        _Conn(), _row(), "https://inha.ac.kr/guide.pdf",
+        resolve=_resolve_ok, store_blob=_boom_store, run_parse=_make_parse([]),
+        record_note=record,
+    )
+    assert outcome == "error"
+    assert "storage down" in note
+    assert len(notes) == 1 and "unexpected error" in notes[0][1]
 
 
 # --------------------------------------------------------------------------- #
@@ -455,10 +502,34 @@ async def test_ingest_url_resolve_none_skips() -> None:
 def _notes_sink():
     notes: list[tuple[str, str]] = []
 
-    async def record(_conn, url: str, _title, note: str) -> None:
+    async def record(_conn, url: str, _title, note: str, **_kw) -> None:
         notes.append((url, note))
 
     return notes, record
+
+
+async def test_record_proposed_note_passes_through_source_type_and_proposed_by() -> None:
+    calls: list[tuple] = []
+
+    class _SpyConn:
+        async def execute(self, sql: str, *args: object) -> str:
+            calls.append((" ".join(sql.split()), args))
+            return "OK"
+
+    await gfw.record_proposed_note(
+        _SpyConn(), "https://inha.ac.kr/blocked", "인하대학교",
+        "인하대학교: PDF fetch failed — HTTP 503",
+        source_type="university_admission_board", proposed_by="manual",
+    )
+    assert len(calls) == 1
+    sql, args = calls[0]
+    assert "insert into public.proposed_sources" in sql
+    assert "proposed_at = now()" in sql  # repeat occurrences stay near the front
+    assert args == (
+        "https://inha.ac.kr/blocked", "인하대학교",
+        "인하대학교: PDF fetch failed — HTTP 503",
+        "university_admission_board", "manual",
+    )
 
 
 async def test_stale_cycle_records_not_yet_published_and_does_not_ingest() -> None:

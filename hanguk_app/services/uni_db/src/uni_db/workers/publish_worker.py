@@ -107,10 +107,6 @@ def _j(value: object) -> str | None:
     return json.dumps(value, ensure_ascii=False) if value not in (None, {}, []) else None
 
 
-def _arr(value: object) -> list | None:
-    return value if isinstance(value, list) else None
-
-
 def infer_year(payload: dict, *, default: int) -> int:
     blob = json.dumps(payload, ensure_ascii=False)
     years = [int(y) for y in _YEAR_RE.findall(blob)]
@@ -409,10 +405,12 @@ async def _publish_scholarships(conn, rec, payload) -> int:
                  award_type, award_value, applicant_categories, topik_tier_table,
                  ielts_tier_table, eligibility_predicate, prose_ko, source_text_ko,
                  extractor_confidence, needs_attention, attention_reason)
-               values ($1,$2,$3,$4,$5,$6,$7,$8::jsonb,$9::jsonb,$10::jsonb,$11,$12,$13,$14,$15)""",
+               values ($1,$2,$3,$4,$5,$6,
+                 (select array_agg(v) from jsonb_array_elements_text($7::jsonb) v),
+                 $8::jsonb,$9::jsonb,$10::jsonb,$11,$12,$13,$14,$15)""",
             rec["institution_id"], r["scope"], r["name_ko"], r.get("name_en"),
             r["award_type"], r.get("award_value"),
-            _arr(r.get("applicant_categories")), _j(r.get("topik_tier_table")),
+            _j(r.get("applicant_categories")), _j(r.get("topik_tier_table")),
             _j(r.get("ielts_tier_table")), _j(r.get("eligibility_predicate")),
             r.get("prose_ko"), r.get("source_text_ko"), r.get("extractor_confidence"),
             bool(rec.get("_na", False)), rec.get("_ar"),
@@ -615,7 +613,15 @@ async def _publish_documents(conn, rec, payload) -> int:
             """insert into public.documents_required (cycle_id, applicant_category,
                  document_type, is_required, is_apostille_required, country_specific,
                  notes_ko, source_text_ko, needs_attention, attention_reason)
-               values ($1,$2,$3,$4,$5,$6::jsonb,$7,$8,$9,$10)""",
+               values ($1,$2,$3,$4,$5,$6::jsonb,$7,$8,$9,$10)
+               on conflict (cycle_id, document_type, applicant_category) do update set
+                 is_required = excluded.is_required,
+                 is_apostille_required = excluded.is_apostille_required,
+                 country_specific = excluded.country_specific,
+                 notes_ko = excluded.notes_ko,
+                 source_text_ko = excluded.source_text_ko,
+                 needs_attention = excluded.needs_attention,
+                 attention_reason = excluded.attention_reason""",
             cycle_id, category_for(r),
             first_doc_name(r), bool(r.get("is_required", True)),
             bool(r.get("is_apostille_required") or r.get("is_notarization_required") or False),

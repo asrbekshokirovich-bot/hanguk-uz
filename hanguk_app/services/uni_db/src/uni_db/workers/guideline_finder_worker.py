@@ -124,24 +124,35 @@ def _normalize_identity(result: IdentityDecision | bool) -> IdentityDecision:
 
 
 async def record_proposed_note(
-    conn: asyncpg.Connection, url: str, title: str | None, note: str
+    conn: asyncpg.Connection,
+    url: str,
+    title: str | None,
+    note: str,
+    *,
+    source_type: str = "university_admission_board",
+    proposed_by: str = "naver_search",
 ) -> None:
     """Default RecordNoteFn: file the candidate + why it was NOT ingested into
     `proposed_sources` (pending_review) so fail-closed skips stay visible to a
-    human instead of vanishing into logs. Idempotent on url_ko."""
+    human instead of vanishing into logs. Idempotent on url_ko — a repeat
+    occurrence refreshes `proposed_at` (so a still-happening failure stays
+    near the front of the HITL queue) instead of creating a duplicate row."""
     await conn.execute(
         """
         insert into public.proposed_sources
           (url_ko, source_type, proposed_by, candidate_title, review_notes)
-        values ($1, 'university_admission_board', 'naver_search', $2, $3)
+        values ($1, $4, $5, $2, $3)
         on conflict (url_ko) do update
           set review_notes = excluded.review_notes,
               candidate_title = coalesce(excluded.candidate_title,
-                                         proposed_sources.candidate_title)
+                                         proposed_sources.candidate_title),
+              proposed_at = now()
         """,
         url,
         title,
         note[:1000],
+        source_type,
+        proposed_by,
     )
 
 
@@ -438,6 +449,16 @@ async def ingest_one_url(
     try:
         data, mime = await resolve(url)
         if data is None:
+            # Every resolve failure (HTTP block/503, too-large, non-PDF, network
+            # error) is recorded — this is the Routine agent's own manually
+            # researched URL, not one of several search candidates, so losing
+            # it silently means re-discovering it from scratch (and re-hitting
+            # the same blocked host) on every future run.
+            await recorder(
+                conn, url, name,
+                f"{name}: PDF fetch failed — {mime}",
+                proposed_by="manual",
+            )
             return "skipped", mime  # `mime` carries the skip reason
         sha256 = hashlib.sha256(data).hexdigest()
         if await _known_hash(conn, sha256):
@@ -448,18 +469,25 @@ async def ingest_one_url(
             verdict = gate.verdict
             if gate.decision == "stale":
                 await recorder(
-                    conn, url, None,
+                    conn, url, name,
                     f"{name}: target-cycle guideline not yet published — {gate.note}",
+                    proposed_by="manual",
                 )
                 return "skipped", gate.note
             if gate.decision in ("unreadable", "error"):
                 await recorder(
-                    conn, url, None,
+                    conn, url, name,
                     f"{name}: candidate NOT ingested (identity unverifiable, "
                     f"fail-closed) — {gate.note}",
+                    proposed_by="manual",
                 )
                 return "skipped", gate.note
             if gate.decision != "accept":
+                await recorder(
+                    conn, url, name,
+                    f"{name}: candidate NOT ingested (identity rejected) — {gate.note}",
+                    proposed_by="manual",
+                )
                 return "skipped", gate.note
         stored = store_blob(data, sha256=sha256, mime=mime)
         gd_id = await insert_guideline_document(
@@ -477,6 +505,16 @@ async def ingest_one_url(
         return "ingested", str(gd_id)
     except Exception as exc:
         log.warning("ingest_one_url: %s — %s", url, str(exc)[:160])
+        try:
+            await recorder(
+                conn, url, name,
+                f"{name}: candidate NOT ingested (unexpected error) — "
+                f"{type(exc).__name__}: {exc}",
+                proposed_by="manual",
+            )
+        except Exception:  # the DB/conn itself may be what's broken — never
+            # let the recording attempt shadow the real error being reported.
+            log.warning("ingest_one_url: failed to record note for %s", url)
         return "error", f"{type(exc).__name__}: {exc}"
 
 

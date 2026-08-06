@@ -705,22 +705,27 @@ def _parse_extraction_output(raw: str, field_group: str) -> dict[str, Any]:
 # is FATAL — the group's data is lost for that document, with no retry. A
 # ceiling must therefore clear the SLOWEST healthy generation, not the average.
 #
-# Sizing is grounded in extraction_jobs latency data (2026-07): the two
-# text-heaviest groups routinely generate past the old walls and were being
-# guillotined mid-output —
-#   • scholarships       — 16 fatal timeouts pinned at exactly 240s, while
-#                          healthy runs already reach into that window. 600s.
-#   • documents_required — still dying at exactly 480s on the 2026-07-16 run;
-#                          healthy runs reach ~480s of generation. 900s.
-# The per-group Uzbek `_uz` addendum roughly doubles output on these two
-# groups, which is what pushed them past the old ceilings. The lighter groups
-# (calendar / requirements / tuition) finish well inside the default and keep
-# it, so a genuine hang there still fails fast.
+# Sizing is grounded in extraction_jobs latency data. The 2026-07 pass bumped
+# scholarships/documents_required off the 240s default; re-checking against
+# claude_cli-only latency (2026-08) showed the prior ceilings were already
+# behind their own healthy tail, plus a third group hitting the untouched
+# default constantly —
+#   • requirements       — NOT in this table (240s default) yet 82/82 of its
+#                          failures were exactly "timed out after 240s",
+#                          while healthy runs reach up to 1121s (p95 377s). 900s.
+#   • scholarships       — healthy runs now reach 716s, past the 600s ceiling
+#                          set for it last round — 37/37 failures timed out. 900s.
+#   • documents_required — healthy runs reach 1381s, past the 900s ceiling —
+#                          18/24 failures timed out. 1800s.
+# document_checklist mirrors documents_required (same archetype family, no
+# separate latency signal yet). calendar/tuition stay on the 240s default —
+# their healthy tails (383s/415s) are outliers, not a systemic wall-hit.
 _CLI_TIMEOUT_DEFAULT_SEC = 240.0
 _CLI_TIMEOUT_BY_GROUP: dict[str, float] = {
-    "scholarships": 600.0,
-    "documents_required": 900.0,
-    "document_checklist": 900.0,
+    "requirements": 900.0,
+    "scholarships": 900.0,
+    "documents_required": 1800.0,
+    "document_checklist": 1800.0,
 }
 
 
