@@ -45,6 +45,7 @@ const ADVANCED_STATUSES = new Set([
   'application_submitted',
   'submitted',
   'online_ariza',
+  'originals_sent',
   'visa_documents',
   'completed',
   'accepted',

@@ -17,7 +17,18 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
   Plus,
+  ArrowRight,
   Search,
   GraduationCap,
   MapPin,
@@ -88,6 +99,7 @@ const STATUS_TO_STAGE: Record<string, Stage> = {
   application_submitted: 'applied',
   submitted: 'applied',
   online_ariza: 'applied',
+  originals_sent: 'sent',
   visa_documents: 'visa',
   completed: 'visa',
   accepted: 'visa',
@@ -100,8 +112,8 @@ const STAGE_STATUS: Record<Stage, string> = {
   new: 'pending',
   docs: 'documents_collection',
   applied: 'application_submitted',
-  sent: 'visa_documents',
-  visa: 'completed',
+  sent: 'originals_sent',
+  visa: 'visa_documents',
 };
 
 const STAGE_DOT: Record<Stage, string> = {
@@ -361,6 +373,27 @@ export default function ApplicationsContent({
     if (error) toast.error(t('common.error', { defaultValue: 'Something went wrong' }));
   };
 
+  // ---- "advance to next stage" with confirmation ----------------------------
+  // Every column except the last one gets a card action that pushes the student
+  // one step down STAGE_ORDER. The move only happens after the staff member
+  // confirms in the dialog below.
+  const [pendingAdvance, setPendingAdvance] = useState<Row | null>(null);
+
+  const nextStageOf = (stage: Stage): Stage | null => {
+    const next = STAGE_ORDER[STAGE_ORDER.indexOf(stage) + 1];
+    return next ?? null;
+  };
+
+  const confirmAdvance = async () => {
+    const row = pendingAdvance;
+    setPendingAdvance(null);
+    if (!row) return;
+    const next = nextStageOf(row.stage);
+    if (!next) return;
+    await setStage(row, next);
+    toast.success(t('applications.advanced', { defaultValue: 'Moved to the next stage' }));
+  };
+
   // ---- new-application flow --------------------------------------------------
   const handlePickUniversity = (uni: Tables<'institutions'>) => {
     setChosenUni(uni);
@@ -490,11 +523,13 @@ export default function ApplicationsContent({
 
                   {stage === 'new' && items.map((r) => (
                     <BaseCard key={r.app.id} r={r} onClick={() => openStudent(r)} t={t}
+                      moving={movingId === r.app.id} onAdvance={() => setPendingAdvance(r)}
                       footerRight={<span className="text-[11px] text-muted-foreground">{t('applications.dInStage', { n: r.days, defaultValue: `${r.days}d in stage` })}</span>} />
                   ))}
 
                   {stage === 'docs' && items.map((r) => (
                     <BaseCard key={r.app.id} r={r} onClick={() => openStudent(r)} t={t}
+                      moving={movingId === r.app.id} onAdvance={() => setPendingAdvance(r)}
                       footerRight={
                         <Badge variant={r.docsTotal && r.docsDone >= r.docsTotal ? 'successSoft' : 'info'} className="gap-1">
                           <FileCheck className="h-3 w-3" />
@@ -505,6 +540,7 @@ export default function ApplicationsContent({
 
                   {stage === 'applied' && items.map((r) => (
                     <BaseCard key={r.app.id} r={r} onClick={() => openStudent(r)} t={t}
+                      moving={movingId === r.app.id} onAdvance={() => setPendingAdvance(r)}
                       extra={<div className="font-mono text-[10px] text-muted-foreground">Ref {refOf(r)}</div>}
                       footerRight={<span className="text-[11px] text-muted-foreground">{t('applications.dInStage', { n: r.days, defaultValue: `${r.days}d in stage` })}</span>} />
                   ))}
@@ -517,7 +553,8 @@ export default function ApplicationsContent({
                       onMarkPaid={() => setStage(r, 'visa', 'visa_documents')}
                       onRemind={() => toast.success(t('applications.reminderSent', { defaultValue: 'Reminder sent' }))}
                       onReapply={() => { setChosenUni(null); setPickUniOpen(true); }}
-                      onUndo={() => setStage(r, 'sent', 'application_submitted')} />
+                      onUndo={() => setStage(r, 'sent', 'application_submitted')}
+                      onAdvance={() => setPendingAdvance(r)} />
                   ))}
 
                   {stage === 'visa' && VISA_GROUPS.map(({ sub, dot }) => {
@@ -566,6 +603,30 @@ export default function ApplicationsContent({
         onCreate={handleCreateApplication}
         t={t}
       />
+
+      <AlertDialog open={!!pendingAdvance} onOpenChange={(o) => { if (!o) setPendingAdvance(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t('applications.advanceConfirmTitle', { defaultValue: 'Move to the next stage?' })}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingAdvance && t('applications.advanceConfirmBody', {
+                name: pendingAdvance.name,
+                from: stageLabel[pendingAdvance.stage],
+                to: stageLabel[nextStageOf(pendingAdvance.stage) ?? pendingAdvance.stage],
+                defaultValue: `Move ${pendingAdvance.name} from "${stageLabel[pendingAdvance.stage]}" to "${stageLabel[nextStageOf(pendingAdvance.stage) ?? pendingAdvance.stage]}"?`,
+              })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('common.cancel', { defaultValue: 'Cancel' })}</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmAdvance}>
+              {t('common.yes', { defaultValue: 'Yes' })}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
@@ -654,14 +715,32 @@ function CardHead({ r }: { r: CardRow }) {
   );
 }
 
+// Card action that asks the parent to open the "advance to next stage" confirm.
+function AdvanceButton({ t, moving, onAdvance }: { t: TFunc; moving: boolean; onAdvance: () => void }) {
+  return (
+    <Button
+      variant="highlight"
+      size="sm"
+      className="h-7 w-full text-xs"
+      disabled={moving}
+      onClick={(e) => { e.stopPropagation(); onAdvance(); }}
+    >
+      {t('applications.advanceCta', { defaultValue: 'Move to next stage' })}
+      <ArrowRight className="h-3.5 w-3.5" />
+    </Button>
+  );
+}
+
 function BaseCard({
-  r, onClick, t, extra, footerRight,
+  r, onClick, t, extra, footerRight, moving, onAdvance,
 }: {
   r: CardRow;
   onClick: () => void;
   t: TFunc;
   extra?: React.ReactNode;
   footerRight?: React.ReactNode;
+  moving?: boolean;
+  onAdvance?: () => void;
 }) {
   return (
     <Card
@@ -677,18 +756,20 @@ function BaseCard({
         <Badge variant="neutral" className="text-[10px]">{r.consultant}</Badge>
         {footerRight}
       </div>
+      {onAdvance && <AdvanceButton t={t} moving={!!moving} onAdvance={onAdvance} />}
     </Card>
   );
 }
 
 function DecisionCard({
-  r, t, lang, moving, onOpen, onAccept, onReject, onMarkPaid, onRemind, onReapply, onUndo,
+  r, t, lang, moving, onOpen, onAccept, onReject, onMarkPaid, onRemind, onReapply, onUndo, onAdvance,
 }: {
   r: CardRow; t: TFunc; lang: string; moving: boolean;
   onOpen: () => void;
   onAccept: () => void; onReject: () => void;
   onMarkPaid: () => void; onRemind: () => void;
   onReapply: () => void; onUndo: () => void;
+  onAdvance: () => void;
 }) {
   const sentDate = fmtDate(r.app.submitted_at || r.app.updated_at, lang);
   const stop = (e: React.MouseEvent) => e.stopPropagation();
@@ -762,6 +843,8 @@ function DecisionCard({
           </div>
         </div>
       )}
+
+      <AdvanceButton t={t} moving={moving} onAdvance={onAdvance} />
     </Card>
   );
 }
