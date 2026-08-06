@@ -43,6 +43,7 @@ import {
   GraduationCap,
   ScrollText,
   Trash2,
+  CalendarArrowUp,
   ArrowRight,
   ChevronRight,
   RotateCcw,
@@ -52,6 +53,7 @@ import { normalizePlanName } from '@/hooks/useStudentPlan';
 import { cn } from '@/lib/utils';
 import { AddStudentDialog } from './AddStudentDialog';
 import { DeleteStudentDialog } from './DeleteStudentDialog';
+import { TransferStudentDialog } from './TransferStudentDialog';
 
 type StudentProfile = Tables<'profiles'> & {
   applications?: (Tables<'applications'> & {
@@ -176,6 +178,13 @@ export function StudentList({
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [studentToDelete, setStudentToDelete] = useState<StudentProfile | null>(null);
+  const [transferDialogOpen, setTransferDialogOpen] = useState(false);
+  const [studentToTransfer, setStudentToTransfer] = useState<StudentProfile | null>(null);
+
+  const askTransfer = (student: StudentProfile) => {
+    setStudentToTransfer(student);
+    setTransferDialogOpen(true);
+  };
   const [convertingLeadId, setConvertingLeadId] = useState<string | null>(null);
 
   const getUniversityName = (university?: Tables<'universities'>) => {
@@ -712,7 +721,21 @@ export function StudentList({
                       )}
                     </TableCell>
                     <TableCell>
-                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                      <div className="flex items-center justify-end gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                          title={t('crm.transferAction', { defaultValue: 'Move to next season' })}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            askTransfer(student);
+                          }}
+                        >
+                          <CalendarArrowUp className="h-4 w-4" />
+                        </Button>
+                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                      </div>
                     </TableCell>
                   </TableRow>
                 );
@@ -754,6 +777,18 @@ export function StudentList({
                   </div>
                   <div className="flex items-center gap-1.5">
                     <Badge variant={plan.tone}>{plan.label}</Badge>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-muted-foreground opacity-0 transition-opacity hover:text-foreground group-hover:opacity-100"
+                      title={t('crm.transferAction', { defaultValue: 'Move to next season' })}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        askTransfer(student);
+                      }}
+                    >
+                      <CalendarArrowUp className="h-4 w-4" />
+                    </Button>
                     <Button
                       variant="ghost"
                       size="icon"
@@ -806,6 +841,14 @@ export function StudentList({
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
         student={studentToDelete}
+        onSuccess={onRefresh}
+      />
+
+      {/* Move Student To Next Season Dialog */}
+      <TransferStudentDialog
+        open={transferDialogOpen}
+        onOpenChange={setTransferDialogOpen}
+        student={studentToTransfer}
         onSuccess={onRefresh}
       />
     </div>
