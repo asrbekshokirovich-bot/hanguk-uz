@@ -21,16 +21,15 @@ defaults so the module unit-tests without them.
 
 from __future__ import annotations
 
-import asyncio
 import hashlib
 import logging
-import random
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from uuid import UUID
 
 import asyncpg
-import httpx
+
+from .. import retry as retry_policy
 
 log = logging.getLogger(__name__)
 
@@ -40,88 +39,10 @@ RunParseGroups = Callable[
     [asyncpg.Connection, UUID, bytes, tuple[str, ...]], Awaitable[None]
 ]
 
-# --- Transient-failure retry policy --------------------------------------
-#
-# A stored-blob download (Supabase Storage) or the db-exec HTTP round trip
-# can hit a transient network hiccup — a read timeout, a dropped connection,
-# a 5xx from an overloaded endpoint. Those are worth a few retries within
-# THIS run. Everything else (a corrupt PDF, a schema failure, a genuine hash
-# mismatch) is a real failure and must fail immediately, not retry.
-#
-# Retries are capped and jittered-backoff so a flaky/rate-limiting host
-# doesn't get hammered into tighter bot-protection or an IP block. Once the
-# schedule below is exhausted the job is left 'failed' for the *next*
-# scheduled run to pick up, rather than retried forever in this one.
-RETRYABLE_ERRORS: tuple[type[BaseException], ...] = (
-    TimeoutError,
-    ConnectionError,
-    httpx.TimeoutException,
-    httpx.TransportError,
-)
-RETRYABLE_STATUS_CODES = frozenset({408, 429, 500, 502, 503, 504})
-
-# (min, max) jittered sleep window before each retry attempt, in order.
-_RETRY_BACKOFF_WINDOWS_SEC: tuple[tuple[float, float], ...] = (
-    (5.0, 10.0),
-    (20.0, 30.0),
-    (60.0, 60.0),
-)
-_MAX_RETRY_ATTEMPTS = len(_RETRY_BACKOFF_WINDOWS_SEC)
-
-
-def _status_code_of(exc: BaseException) -> int | None:
-    """Extract an HTTP status code from either an httpx.HTTPStatusError or a
-    storage3.exceptions.StorageApiError (which carries `.status` instead of
-    a `.response`)."""
-    response = getattr(exc, "response", None)
-    status = response.status_code if response is not None else getattr(exc, "status", None)
-    try:
-        return int(status) if status is not None else None
-    except (TypeError, ValueError):
-        return None
-
-
-def _retry_after_sec(exc: BaseException) -> float | None:
-    """A server-supplied Retry-After (seconds), when present — takes
-    priority over the fixed backoff schedule."""
-    response = getattr(exc, "response", None)
-    headers = getattr(response, "headers", None)
-    value = headers.get("retry-after") if headers else None
-    if value is None:
-        return None
-    try:
-        return float(value)
-    except ValueError:
-        return None
-
-
-def _is_retryable(exc: BaseException) -> bool:
-    if isinstance(exc, RETRYABLE_ERRORS):
-        return True
-    return _status_code_of(exc) in RETRYABLE_STATUS_CODES
-
-
-async def _with_retry(attempt: Callable[[], Awaitable[None]], *, label: str) -> None:
-    """Run `attempt()`, retrying transient network/5xx failures with a
-    capped, jittered backoff (honoring Retry-After when the error carries
-    one). Non-retryable errors, and retryable ones that exhaust the
-    schedule, propagate on their final try."""
-    for retry_num in range(_MAX_RETRY_ATTEMPTS + 1):
-        try:
-            await attempt()
-            return
-        except Exception as exc:
-            if not _is_retryable(exc) or retry_num >= _MAX_RETRY_ATTEMPTS:
-                raise
-            wait = _retry_after_sec(exc)
-            if wait is None:
-                low, high = _RETRY_BACKOFF_WINDOWS_SEC[retry_num]
-                wait = random.uniform(low, high)
-            log.warning(
-                "retry_failed: %s transient %s — retry %d/%d in %.0fs",
-                label, type(exc).__name__, retry_num + 1, _MAX_RETRY_ATTEMPTS, wait,
-            )
-            await asyncio.sleep(wait)
+# Retryable-failure policy (network timeouts, 5xx, empty responses) lives in
+# `uni_db.retry` — shared with the PDF-download path (direct_ingest_worker).
+# A corrupt PDF, a schema failure, or a genuine hash mismatch is a real
+# failure and must fail immediately here, never retried.
 
 
 # Latest job per (document, field_group); only 'failed' ones are candidates.
@@ -254,7 +175,7 @@ async def retry_failed(
             await run_parse_groups(conn, gd_id, data, groups)
 
         try:
-            await _with_retry(
+            await retry_policy.with_retry(
                 _attempt, label=f"{str(gd_id)[:8]} ({','.join(groups)})",
             )
         except _HashMismatch as exc:

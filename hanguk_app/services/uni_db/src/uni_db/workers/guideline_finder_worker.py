@@ -90,13 +90,21 @@ class IdentityDecision:
       * ``stale``       — a real guideline, but for an OLDER cycle than the
                           target: the school hasn't published the target
                           cycle yet. Recorded, never ingested.
+      * ``review``      — the verifier rejected the document as 재외국민-only
+                          (overseas-Korean, not a foreign-national audience),
+                          but the page text ALSO carries an independent
+                          foreign-admission signal the single LLM pass could
+                          have missed (a combined booklet, an adjacent
+                          section). Never auto-ingested — recorded for a
+                          human to glance at, instead of an automatic,
+                          unrecoverable reject on one signal alone.
       * ``unreadable``  — the head text couldn't be extracted, so identity is
                           unverifiable. FAIL CLOSED: not ingested; recorded to
                           proposed_sources for a human look.
       * ``error``       — the verifier itself errored. FAIL CLOSED as above.
     """
 
-    decision: str  # accept | reject | stale | unreadable | error
+    decision: str  # accept | reject | stale | review | unreadable | error
     note: str
     verdict: IdentityVerdict | None = None
 
@@ -383,6 +391,14 @@ async def process_one_institution(
                         f"unverifiable, fail-closed) — {gate.note}",
                     )
                     continue
+                if gate.decision == "review":
+                    last_note = gate.note
+                    await recorder(
+                        conn, cand.url, cand.title,
+                        f"{name}: candidate NOT ingested (ambiguous audience, "
+                        f"needs manual review) — {gate.note}",
+                    )
+                    continue
                 if gate.decision != "accept":
                     last_note = gate.note
                     continue
@@ -482,6 +498,14 @@ async def ingest_one_url(
                     proposed_by="manual",
                 )
                 return "skipped", gate.note
+            if gate.decision == "review":
+                await recorder(
+                    conn, url, name,
+                    f"{name}: candidate NOT ingested (ambiguous audience, "
+                    f"needs manual review) — {gate.note}",
+                    proposed_by="manual",
+                )
+                return "skipped", gate.note
             if gate.decision != "accept":
                 await recorder(
                     conn, url, name,
@@ -537,6 +561,23 @@ def _make_default_resolve(http: httpx.AsyncClient) -> ResolveFn:
     return resolve
 
 
+# A document whose LLM verdict is 재외국민-only (overseas_korean) still gets a
+# second, independent look before it's rejected outright: these keywords mark
+# a foreign-national (외국인) admission track the single LLM pass could have
+# missed (a combined 재외국민+외국인 booklet, an adjacent section it didn't
+# read far enough to see). None of this ever auto-accepts the document — it
+# only decides whether a reject is final or gets a human's eyes first.
+_FOREIGN_ADMISSION_SIGNAL_RE = re.compile(
+    r"외국인\s*(?:전형|입학|모집|유학생)|국제입학|international\s+admission"
+    r"|foreign\s+(?:student|applicant|national)|spring\s+intake|유학생\s*(?:전형|입학)",
+    re.IGNORECASE,
+)
+
+
+def _has_foreign_admission_signal(text: str) -> bool:
+    return bool(_FOREIGN_ADMISSION_SIGNAL_RE.search(text))
+
+
 def make_identity_check(target_year: int, target_term: str | None = None) -> IdentityCheckFn:
     """Gate 0 as an IdentityCheckFn: read the PDF's first pages and ask the
     verifier whether it's this university's target-cycle foreign-applicant
@@ -547,6 +588,14 @@ def make_identity_check(target_year: int, target_term: str | None = None) -> Ide
     is how unverifiable HWP/board blobs and old-cycle PDFs got stored). A
     genuine guideline whose cycle is OLDER than the target is classified
     ``stale`` so the caller records "not yet published" instead of ingesting.
+
+    A rejection is still fail-closed (never auto-ingested), but a document
+    rejected SPECIFICALLY for being 재외국민-only audience gets one more,
+    independent check — a keyword scan of the same head text — before the
+    reject is treated as final. A hit downgrades it to ``review`` instead of
+    ``reject`` (see `_has_foreign_admission_signal`): don't block on a single
+    signal (the LLM's own audience call) when a second, cheap signal
+    disagrees.
     """
     from ..verify.agents import check_identity
 
@@ -593,6 +642,24 @@ def make_identity_check(target_year: int, target_term: str | None = None) -> Ide
             )
             log.info("guideline_finder: STALE cycle for %s — %s", row["name_ko"], note)
             return IdentityDecision(decision="stale", note=note, verdict=verdict)
+        if (
+            verdict.document_kind == "guideline"
+            and verdict.matches_target_university
+            and verdict.matches_target_cycle
+            and not verdict.serves_foreign_applicants
+            and verdict.audience == "overseas_korean"
+            and _has_foreign_admission_signal(head)
+        ):
+            note = (
+                "verifier says 재외국민-only, but the page text also carries a "
+                "foreign-national admission signal — needs a human look, not "
+                "an automatic reject"
+            )
+            log.info(
+                "guideline_finder: REVIEW (ambiguous audience) for %s — %s",
+                row["name_ko"], note,
+            )
+            return IdentityDecision(decision="review", note=note, verdict=verdict)
         note = verdict.reject_reason or verdict.document_kind
         log.info("guideline_finder: identity REJECT for %s — %s", row["name_ko"], note)
         return IdentityDecision(

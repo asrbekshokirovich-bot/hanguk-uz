@@ -661,3 +661,116 @@ async def test_ingest_one_url_stale_records_and_skips() -> None:
     assert outcome == "skipped"
     assert note == "2026 doc"
     assert len(notes) == 1
+
+
+# --- softened category gate: 재외국민-only reject + a foreign-admission signal ---
+
+
+class TestForeignAdmissionSignal:
+    def test_detects_foreign_admission_keywords(self) -> None:
+        assert gfw._has_foreign_admission_signal("2027학년도 외국인전형 모집요강")
+        assert gfw._has_foreign_admission_signal("국제입학 안내")
+        assert gfw._has_foreign_admission_signal("Foreign Student Admission Guide")
+        assert gfw._has_foreign_admission_signal("2027 Spring Intake for international students")
+
+    def test_no_hit_on_pure_overseas_korean_text(self) -> None:
+        assert not gfw._has_foreign_admission_signal("2027학년도 재외국민 특별전형 모집요강 안내")
+
+
+async def test_review_decision_is_not_ingested_but_recorded_distinctly() -> None:
+    """A 'review' decision (soft-rejected, ambiguous audience) must never
+    reach guideline_documents — same fail-closed contract as stale/unreadable
+    — but its note is distinguishable from a hard reject."""
+    conn = _Conn()
+    parsed: list = []
+    notes, record = _notes_sink()
+
+    async def resolve(u: str):
+        return PDF, "application/pdf"
+
+    async def parse(c, gd, d):  # pragma: no cover — must never run
+        parsed.append(gd)
+
+    outcome, note, _seen = await gfw.process_one_institution(
+        conn, _row(), keywords=["모집요강"], year=2027, per_institution=3,
+        search_site=_search_returning(
+            _ann("https://inha.ac.kr/재외국민_모집요강.pdf", "재외국민 모집요강"),
+        ),
+        resolve=resolve, store_blob=_store, run_parse=parse,
+        identity_check=lambda d, r: gfw.IdentityDecision(
+            decision="review",
+            note="재외국민-only verdict, but page also mentions 외국인전형",
+        ),
+        record_note=record,
+    )
+    assert outcome == "skipped"
+    assert parsed == []
+    assert not any("insert into public.guideline_documents" in e for e in conn.executed)
+    assert len(notes) == 1
+    assert "manual review" in notes[0][1]
+
+
+async def test_ingest_one_url_review_records_and_skips() -> None:
+    notes, record = _notes_sink()
+    outcome, note = await gfw.ingest_one_url(
+        _Conn(), _row(), "https://inha.ac.kr/ambiguous.pdf",
+        resolve=_resolve_ok, store_blob=_store, run_parse=_make_parse([]),
+        identity_check=lambda d, r: gfw.IdentityDecision(
+            decision="review", note="ambiguous audience",
+        ),
+        record_note=record,
+    )
+    assert outcome == "skipped"
+    assert note == "ambiguous audience"
+    assert len(notes) == 1
+    assert "manual review" in notes[0][1]
+
+
+async def test_identity_check_downgrades_to_review_when_foreign_signal_present(
+    monkeypatch,
+) -> None:
+    """make_identity_check(): a verifier reject of 재외국민-only audience is
+    downgraded to 'review' (not a hard 'reject') when the page text also
+    carries an independent foreign-admission signal — the softened gate."""
+    import uni_db.verify.agents as agents_mod
+    from uni_db.verify.models import IdentityVerdict
+
+    verdict = IdentityVerdict(
+        document_kind="guideline", university_name_ko_in_doc="인하대학교",
+        matches_target_university=True, academic_year_in_doc=2027,
+        term_in_doc="spring", matches_target_cycle=True, audience="overseas_korean",
+        serves_foreign_applicants=False, is_old_or_superseded=False, confidence=0.9,
+    )
+    monkeypatch.setattr(agents_mod, "check_identity", lambda **_kw: verdict)
+    monkeypatch.setattr(
+        gfw, "pdf_head_text",
+        lambda data, **_kw: "2027학년도 재외국민 및 외국인전형 모집요강 안내",
+    )
+
+    check = gfw.make_identity_check(2027, "spring")
+    decision = check(b"%PDF-fake", _row())
+    assert decision.decision == "review"
+
+
+async def test_identity_check_still_hard_rejects_without_foreign_signal(monkeypatch) -> None:
+    """Same 재외국민-only verdict, but no independent signal on the page — the
+    reject stands (the softened gate never auto-accepts, and doesn't turn
+    EVERY overseas-Korean doc into a review either)."""
+    import uni_db.verify.agents as agents_mod
+    from uni_db.verify.models import IdentityVerdict
+
+    verdict = IdentityVerdict(
+        document_kind="guideline", university_name_ko_in_doc="인하대학교",
+        matches_target_university=True, academic_year_in_doc=2027,
+        term_in_doc="spring", matches_target_cycle=True, audience="overseas_korean",
+        serves_foreign_applicants=False, is_old_or_superseded=False, confidence=0.9,
+    )
+    monkeypatch.setattr(agents_mod, "check_identity", lambda **_kw: verdict)
+    monkeypatch.setattr(
+        gfw, "pdf_head_text",
+        lambda data, **_kw: "2027학년도 재외국민 특별전형 모집요강 안내",
+    )
+
+    check = gfw.make_identity_check(2027, "spring")
+    decision = check(b"%PDF-fake", _row())
+    assert decision.decision == "reject"

@@ -3,8 +3,10 @@
 DB and blob storage are faked. Covers: grouping failed jobs per document,
 re-parsing ONLY the failed field groups, the content-hash guard (a stored
 blob that no longer matches guideline_documents.file_hash_sha256 is skipped,
-never re-extracted), batch error isolation, and the transient-failure retry
-policy (network hiccups/5xx retried with backoff, real failures are not).
+never re-extracted), and batch error isolation. The transient-failure retry
+POLICY itself (backoff schedule, Retry-After, retryable-vs-not) is covered in
+test_retry.py — here we only check the worker wires a transient blob-fetch
+failure through to a retry, and that a hash mismatch is never retried.
 """
 
 from __future__ import annotations
@@ -14,6 +16,7 @@ from uuid import UUID, uuid4
 
 import httpx
 
+from uni_db import retry as retry_policy
 from uni_db.workers import retry_failed_worker as rf
 
 
@@ -114,13 +117,13 @@ async def test_limit_bounds_jobs_picked_up() -> None:
     assert run.jobs_seen == 2 and run.documents == 2
 
 
-async def test_transient_network_error_is_retried_then_succeeds(monkeypatch) -> None:
+async def test_transient_blob_fetch_error_is_retried_then_succeeds(monkeypatch) -> None:
     sleeps: list[float] = []
 
     async def _fake_sleep(sec: float) -> None:
         sleeps.append(sec)
 
-    monkeypatch.setattr(rf.asyncio, "sleep", _fake_sleep)
+    monkeypatch.setattr(retry_policy.asyncio, "sleep", _fake_sleep)
 
     gd = uuid4()
     data = b"%PDF-fake"
@@ -148,7 +151,7 @@ async def test_non_retryable_error_fails_immediately_without_sleep(monkeypatch) 
     async def _fake_sleep(sec: float) -> None:
         raise AssertionError("must not sleep/retry a non-transient failure")
 
-    monkeypatch.setattr(rf.asyncio, "sleep", _fake_sleep)
+    monkeypatch.setattr(retry_policy.asyncio, "sleep", _fake_sleep)
 
     gd = uuid4()
     data = b"%PDF-fake"
@@ -163,73 +166,11 @@ async def test_non_retryable_error_fails_immediately_without_sleep(monkeypatch) 
     assert run.errors == 1 and run.retried == 0
 
 
-async def test_retries_exhausted_still_counts_as_error(monkeypatch) -> None:
-    sleeps: list[float] = []
-
-    async def _fake_sleep(sec: float) -> None:
-        sleeps.append(sec)
-
-    monkeypatch.setattr(rf.asyncio, "sleep", _fake_sleep)
-
-    gd = uuid4()
-    data = b"%PDF-fake"
-    conn = _Conn([_rec(gd, "calendar", data)])
-    attempts = {"n": 0}
-
-    def fetch_blob(path: str) -> bytes:
-        attempts["n"] += 1
-        raise httpx.ConnectError("connection refused")
-
-    async def run_parse(c, gd_id, blob, groups):  # pragma: no cover — never reached
-        pass
-
-    run = await rf.retry_failed(
-        conn, limit=10, fetch_blob=fetch_blob, run_parse_groups=run_parse,
-    )
-    assert run.errors == 1 and run.retried == 0
-    # capped: initial attempt + _MAX_RETRY_ATTEMPTS retries, not one per call.
-    assert attempts["n"] == rf._MAX_RETRY_ATTEMPTS + 1
-    assert len(sleeps) == rf._MAX_RETRY_ATTEMPTS
-
-
-async def test_retry_after_header_overrides_backoff_schedule(monkeypatch) -> None:
-    sleeps: list[float] = []
-
-    async def _fake_sleep(sec: float) -> None:
-        sleeps.append(sec)
-
-    monkeypatch.setattr(rf.asyncio, "sleep", _fake_sleep)
-
-    gd = uuid4()
-    data = b"%PDF-fake"
-    conn = _Conn([_rec(gd, "calendar", data)])
-    attempts = {"n": 0}
-    request = httpx.Request("GET", "https://example.ac.kr/guide.pdf")
-    response = httpx.Response(503, headers={"retry-after": "3"}, request=request)
-
-    def fetch_blob(path: str) -> bytes:
-        attempts["n"] += 1
-        if attempts["n"] == 1:
-            raise httpx.HTTPStatusError(
-                "service unavailable", request=request, response=response,
-            )
-        return data
-
-    async def run_parse(c, gd_id, blob, groups):
-        pass
-
-    run = await rf.retry_failed(
-        conn, limit=10, fetch_blob=fetch_blob, run_parse_groups=run_parse,
-    )
-    assert run.retried == 1
-    assert sleeps == [3.0]  # Retry-After wins over the 5-10s default window
-
-
 async def test_hash_mismatch_is_not_retried(monkeypatch) -> None:
     async def _fake_sleep(sec: float) -> None:
         raise AssertionError("a hash mismatch is not a transient failure")
 
-    monkeypatch.setattr(rf.asyncio, "sleep", _fake_sleep)
+    monkeypatch.setattr(retry_policy.asyncio, "sleep", _fake_sleep)
 
     gd = uuid4()
     conn = _Conn([_rec(gd, "tuition", hash_override="deadbeef" * 8)])

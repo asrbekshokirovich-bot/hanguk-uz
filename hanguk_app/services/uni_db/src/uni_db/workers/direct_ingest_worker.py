@@ -29,12 +29,14 @@ import hashlib
 import logging
 import re
 from collections.abc import Awaitable, Callable
-from typing import Any
+from typing import Any, Final
+from urllib.parse import urlsplit
 from uuid import UUID
 
 import asyncpg
 import httpx
 
+from .. import retry as retry_policy
 from ..config import settings
 from .fetch_worker import (
     RunParse,
@@ -57,6 +59,33 @@ _PLACEHOLDER_INSTITUTION_TYPE = "private"
 
 # A page→PDF resolver: (url, http_client, referer) -> ResolvedPdf | None.
 GenericResolve = Callable[[str, httpx.AsyncClient, str | None], Awaitable[Any]]
+
+# A fetch that redirects OFF the requested host onto one of these landed on a
+# login wall, not a missing/blocked document (KOREATECH's admissions page
+# redirecting to tsso.koreatech.ac.kr is the case that motivated this).
+_AUTH_HOST_LABELS: Final[frozenset[str]] = frozenset(
+    {"sso", "tsso", "login", "auth", "idp", "cas", "sso2", "passport"}
+)
+_AUTH_PATH_HINTS: Final[tuple[str, ...]] = ("/sso/", "/login", "/signin", "/cas/", "/auth/")
+
+
+class AuthBlockedError(RuntimeError):
+    """The fetch redirected to an SSO/login page instead of serving the
+    requested document. Not transient (retrying can't get past a login
+    wall) and not "no PDF found" (the document may well exist behind auth)
+    — categorized separately so it surfaces as "manual access required"
+    rather than a generic fetch failure."""
+
+
+def _looks_like_auth_wall(original_url: str, final_url: httpx.URL) -> bool:
+    orig_host = urlsplit(original_url).netloc.lower().split(":", 1)[0]
+    final_host = (final_url.host or "").lower()
+    if not final_host or final_host == orig_host:
+        return False
+    if final_host.split(".")[0] in _AUTH_HOST_LABELS:
+        return True
+    path = (final_url.path or "").lower()
+    return any(hint in path for hint in _AUTH_PATH_HINTS)
 
 
 def korean_name_from_title(title: str | None) -> str | None:
@@ -116,13 +145,29 @@ async def fetch_uningested_sources(
 async def _get(
     http: httpx.AsyncClient, url: str, headers: dict[str, str]
 ) -> tuple[bytes, str]:
-    resp = await http.get(
-        url,
-        headers=headers,
-        follow_redirects=True,
-        timeout=settings.http_request_timeout_sec,
-    )
-    resp.raise_for_status()
+    """GET `url`, retrying transient failures (timeouts, connection errors,
+    408/429/500/502/503/504, an empty 2xx body) with backoff — see
+    `uni_db.retry`. A real 4xx (403 bot-block, 404 dead link, ...) is not
+    retried; it's the caller's job to record that as a skip."""
+
+    async def _attempt() -> httpx.Response:
+        resp = await http.get(
+            url,
+            headers=headers,
+            follow_redirects=True,
+            timeout=settings.http_request_timeout_sec,
+        )
+        if _looks_like_auth_wall(url, resp.url):
+            raise AuthBlockedError(
+                f"redirected to a login/SSO page ({resp.url.host}) instead of "
+                f"serving the document — needs manual access"
+            )
+        resp.raise_for_status()
+        if not resp.content:
+            raise retry_policy.EmptyResponseError(f"empty response body from {url}")
+        return resp
+
+    resp = await retry_policy.with_retry(_attempt, label=url)
     return resp.content, (resp.headers.get("content-type") or "").split(";", 1)[0].strip()
 
 
@@ -131,22 +176,43 @@ async def resolve_to_pdf(
 ) -> tuple[bytes | None, str]:
     """Return (data, mime) for a usable PDF, or (None, reason).
 
-    Tries the URL as a direct file first; if it's an HTML page, runs the generic
-    resolver to find the download link on it.
+    Tries the URL as a direct file first; if it's an HTML page, runs the
+    generic resolver to find the download link on it. The skip reason is
+    prefixed so a caller (and a human triaging proposed_sources) can tell
+    the failure modes apart at a glance:
+
+      * ``blocked_by_auth: ...`` — landed on an SSO/login wall; retrying
+        won't help, this needs a human with real credentials.
+      * ``no_pdf_found: ...``    — the page was reachable but no attachment
+        matched; the document may still exist deeper on the site (a board,
+        a notice, the international-office pages) — worth a closer manual
+        look, not a dead end.
     """
     base = {"User-Agent": settings.http_user_agent}
-    data, raw_mime = await _get(http, url, base)
+    try:
+        data, raw_mime = await _get(http, url, base)
+    except AuthBlockedError as exc:
+        return None, f"blocked_by_auth: {exc}"
     mime, _reason = decide_mime(data, raw_mime)
     if mime is not None:
         return data, mime
 
     resolved = await generic_resolve(url, http, url)
     if resolved is None:
-        return None, "URL is not a direct PDF and no download link found on the page"
-    data, raw_mime = await _get(http, resolved.url, {**base, "Referer": url, **dict(resolved.headers)})
+        return None, (
+            "no_pdf_found: URL is not a direct PDF and no download link found "
+            "on the page (try the site's attachment/notice/board or "
+            "international-office pages)"
+        )
+    try:
+        data, raw_mime = await _get(
+            http, resolved.url, {**base, "Referer": url, **dict(resolved.headers)}
+        )
+    except AuthBlockedError as exc:
+        return None, f"blocked_by_auth: {exc}"
     mime, reason = decide_mime(data, raw_mime)
     if mime is None:
-        return None, reason or "resolved link was not a PDF"
+        return None, f"no_pdf_found: {reason or 'resolved link was not a PDF'}"
     return data, mime
 
 
