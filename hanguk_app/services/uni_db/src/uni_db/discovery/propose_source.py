@@ -110,7 +110,10 @@ _INSERT_SQL = """
 insert into public.proposed_sources (
   url_ko, source_type, proposed_by,
   candidate_title, candidate_snippet, matched_keywords
-) values ($1, $2, $3, $4, $5, $6)
+) values (
+  $1, $2, $3, $4, $5,
+  (select array_agg(v) from jsonb_array_elements_text($6::jsonb) v)
+)
 on conflict (url_ko) do update
   set candidate_title   = coalesce(public.proposed_sources.candidate_title,
                                    excluded.candidate_title),
@@ -153,7 +156,11 @@ async def propose(
         candidate.proposed_by,
         candidate.candidate_title,
         candidate.candidate_snippet,
-        list(matched),
+        # jsonb text, not a raw Python list: the HTTP db-exec transport
+        # JSON-encodes list params, which Postgres can't read back as a
+        # native array literal directly (see publish_worker._j / ADR — the
+        # scholarships.applicant_categories fix for the same root cause).
+        json.dumps(list(matched), ensure_ascii=False),
     )
     log.info(
         "proposed_source: id=%s url=%s by=%s matches=%d",

@@ -54,3 +54,16 @@ async def test_flag_blocked_rejects_non_uuid(monkeypatch: pytest.MonkeyPatch) ->
     assert await cli._flag_blocked(
         institution_id="not-a-uuid", reason="HTTP 503", url=None,
     ) == 2
+
+
+def test_backfill_review_queue_arg_defaults() -> None:
+    args = cli._build_parser().parse_args(["backfill-review-queue"])
+    assert args.cmd == "backfill-review-queue"
+    assert args.limit == 500
+
+
+async def test_backfill_review_queue_refuses_without_db_url(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(cli.settings, "supabase_db_url", "")
+    assert await cli._backfill_review_queue(limit=500) == 2

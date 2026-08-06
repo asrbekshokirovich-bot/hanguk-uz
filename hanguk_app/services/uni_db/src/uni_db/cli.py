@@ -137,6 +137,15 @@ def _build_parser() -> argparse.ArgumentParser:
                               help="Target semester the PDF must match (spring = 전기/1학기, "
                                    "fall = 후기/2학기). Only meaningful together with --year.")
 
+    p_backfill = sub.add_parser(
+        "backfill-review-queue",
+        help="Recover succeeded extraction_jobs that never got a review_queue "
+             "row (a historical gap in the pre-require_approval config) so "
+             "they can finally be approved and published. DB-only, no LLM.",
+    )
+    p_backfill.add_argument("--limit", type=int, default=500,
+                            help="Max orphaned succeeded jobs to backfill this run")
+
     p_publish = sub.add_parser(
         "publish",
         help="Normalize approved review items into the public tables the app reads "
@@ -197,6 +206,8 @@ def main(argv: list[str] | None = None) -> int:
             institution_id=args.institution, url=args.url,
             year=args.year, term=args.term,
         ))
+    if args.cmd == "backfill-review-queue":
+        return asyncio.run(_backfill_review_queue(limit=args.limit))
     if args.cmd == "publish":
         return asyncio.run(_publish(limit=args.limit))
     if args.cmd == "propose-sources":
@@ -449,6 +460,26 @@ async def _retry_failed(*, limit: int) -> int:
         f"retried={run.retried} hash_mismatch={run.hash_mismatch} "
         f"errors={run.errors}"
     )
+    return 0
+
+
+async def _backfill_review_queue(*, limit: int) -> int:
+    """Recover succeeded extraction_jobs with no review_queue row.
+    DB-only (no LLM/HTTP), so it just needs `SUPABASE_DB_URL`.
+    """
+    if not settings.supabase_db_url:
+        print("SUPABASE_DB_URL is not set; cannot backfill.", file=sys.stderr)
+        return 2
+
+    from .workers import backfill_review_worker
+
+    conn = await db.connect()
+    try:
+        run = await backfill_review_worker.backfill_missing_review(conn, limit=limit)
+    finally:
+        await conn.close()
+
+    print(f"backfill-review-queue: found={run.found} inserted={run.inserted}")
     return 0
 
 
