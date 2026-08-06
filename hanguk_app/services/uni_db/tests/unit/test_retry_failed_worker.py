@@ -3,7 +3,10 @@
 DB and blob storage are faked. Covers: grouping failed jobs per document,
 re-parsing ONLY the failed field groups, the content-hash guard (a stored
 blob that no longer matches guideline_documents.file_hash_sha256 is skipped,
-never re-extracted), and batch error isolation.
+never re-extracted), and batch error isolation. The transient-failure retry
+POLICY itself (backoff schedule, Retry-After, retryable-vs-not) is covered in
+test_retry.py — here we only check the worker wires a transient blob-fetch
+failure through to a retry, and that a hash mismatch is never retried.
 """
 
 from __future__ import annotations
@@ -11,6 +14,9 @@ from __future__ import annotations
 import hashlib
 from uuid import UUID, uuid4
 
+import httpx
+
+from uni_db import retry as retry_policy
 from uni_db.workers import retry_failed_worker as rf
 
 
@@ -109,3 +115,76 @@ async def test_limit_bounds_jobs_picked_up() -> None:
         conn, limit=2, fetch_blob=lambda path: data, run_parse_groups=run_parse,
     )
     assert run.jobs_seen == 2 and run.documents == 2
+
+
+async def test_transient_blob_fetch_error_is_retried_then_succeeds(monkeypatch) -> None:
+    sleeps: list[float] = []
+
+    async def _fake_sleep(sec: float) -> None:
+        sleeps.append(sec)
+
+    monkeypatch.setattr(retry_policy.asyncio, "sleep", _fake_sleep)
+
+    gd = uuid4()
+    data = b"%PDF-fake"
+    conn = _Conn([_rec(gd, "calendar", data)])
+    attempts = {"n": 0}
+
+    def fetch_blob(path: str) -> bytes:
+        attempts["n"] += 1
+        if attempts["n"] == 1:
+            raise httpx.ReadTimeout("timed out")
+        return data
+
+    async def run_parse(c, gd_id, blob, groups):
+        pass
+
+    run = await rf.retry_failed(
+        conn, limit=10, fetch_blob=fetch_blob, run_parse_groups=run_parse,
+    )
+    assert run.retried == 1 and run.errors == 0
+    assert attempts["n"] == 2
+    assert len(sleeps) == 1
+
+
+async def test_non_retryable_error_fails_immediately_without_sleep(monkeypatch) -> None:
+    async def _fake_sleep(sec: float) -> None:
+        raise AssertionError("must not sleep/retry a non-transient failure")
+
+    monkeypatch.setattr(retry_policy.asyncio, "sleep", _fake_sleep)
+
+    gd = uuid4()
+    data = b"%PDF-fake"
+    conn = _Conn([_rec(gd, "calendar", data)])
+
+    async def run_parse(c, gd_id, blob, groups):
+        raise RuntimeError("schema validation failed")
+
+    run = await rf.retry_failed(
+        conn, limit=10, fetch_blob=lambda path: data, run_parse_groups=run_parse,
+    )
+    assert run.errors == 1 and run.retried == 0
+
+
+async def test_hash_mismatch_is_not_retried(monkeypatch) -> None:
+    async def _fake_sleep(sec: float) -> None:
+        raise AssertionError("a hash mismatch is not a transient failure")
+
+    monkeypatch.setattr(retry_policy.asyncio, "sleep", _fake_sleep)
+
+    gd = uuid4()
+    conn = _Conn([_rec(gd, "tuition", hash_override="deadbeef" * 8)])
+    attempts = {"n": 0}
+
+    def fetch_blob(path: str) -> bytes:
+        attempts["n"] += 1
+        return b"%PDF-other"
+
+    async def run_parse(c, gd_id, blob, groups):  # pragma: no cover — must not run
+        pass
+
+    run = await rf.retry_failed(
+        conn, limit=10, fetch_blob=fetch_blob, run_parse_groups=run_parse,
+    )
+    assert run.hash_mismatch == 1
+    assert attempts["n"] == 1

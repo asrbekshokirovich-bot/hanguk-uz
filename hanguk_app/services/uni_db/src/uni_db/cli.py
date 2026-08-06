@@ -116,6 +116,14 @@ def _build_parser() -> argparse.ArgumentParser:
     p_flag.add_argument("--url", default=None,
                         help="URL to flag (default: the institution's known "
                              "admissions_url)")
+    p_flag.add_argument("--name", default=None,
+                        help="Expected institution name — an optional safety check. "
+                             "Prefer the Korean name (name_en is often NULL, so an "
+                             "English name may not cross-match); if given and it "
+                             "doesn't match the --institution UUID's recorded name, "
+                             "the write is refused instead of silently flagging the "
+                             "wrong school (a copy-pasted-wrong-UUID mistake this "
+                             "has caught).")
 
     p_ingest_url = sub.add_parser(
         "ingest-url",
@@ -136,6 +144,14 @@ def _build_parser() -> argparse.ArgumentParser:
     p_ingest_url.add_argument("--term", choices=["spring", "fall"], default=None,
                               help="Target semester the PDF must match (spring = 전기/1학기, "
                                    "fall = 후기/2학기). Only meaningful together with --year.")
+    p_ingest_url.add_argument("--name", default=None,
+                              help="Expected institution name — an optional safety check. "
+                                   "Prefer the Korean name (name_en is often NULL, so an "
+                                   "English name may not cross-match); if given and it "
+                                   "doesn't match the --institution UUID's recorded name, "
+                                   "the write is refused instead of ingesting into the "
+                                   "wrong school (a copy-pasted-wrong-UUID mistake this "
+                                   "has caught).")
 
     p_backfill = sub.add_parser(
         "backfill-review-queue",
@@ -200,11 +216,12 @@ def main(argv: list[str] | None = None) -> int:
     if args.cmd == "flag-blocked":
         return asyncio.run(_flag_blocked(
             institution_id=args.institution, reason=args.reason, url=args.url,
+            name=args.name,
         ))
     if args.cmd == "ingest-url":
         return asyncio.run(_ingest_url(
             institution_id=args.institution, url=args.url,
-            year=args.year, term=args.term,
+            year=args.year, term=args.term, name=args.name,
         ))
     if args.cmd == "backfill-review-queue":
         return asyncio.run(_backfill_review_queue(limit=args.limit))
@@ -676,7 +693,43 @@ async def _todo(*, limit: int, cooldown_days: int = 3, include_flagged: bool = F
     return 0
 
 
-async def _flag_blocked(*, institution_id: str, reason: str, url: str | None) -> int:
+def _institution_name_mismatch(
+    *, provided: str | None, name_ko: str | None, name_en: str | None,
+) -> str | None:
+    """A safety net against a copy-pasted-wrong-UUID operator mistake (this
+    has happened for real: a --institution UUID that resolved to a DIFFERENT
+    school than the one the operator meant, silently mis-flagging it).
+
+    `provided` is optional and off by default — existing callers that don't
+    pass --name are unaffected. When given, it's cross-checked against the
+    institution's recorded name the same way Gate 0's identity check
+    compares a document's stated university (`verify.agents.names_match`:
+    strip the 대학교/University suffix, substring either direction). Returns
+    an error message to print-and-abort on, or None when it matches (or no
+    name was supplied to check).
+
+    This is deliberately strict, not a fuzzy alias table: a name that's
+    merely SIMILAR to the right one (e.g. an old/alternate spelling) can
+    still fail this check, requiring the operator to double-check by hand.
+    That's the intended failure mode — fail closed on an ID that might be
+    wrong, rather than silently trust it.
+    """
+    if provided is None:
+        return None
+    from .verify.agents import names_match
+
+    if names_match(provided, name_ko, name_en):
+        return None
+    return (
+        f"--name {provided!r} does not match the institution's recorded name "
+        f"(name_ko={name_ko!r}, name_en={name_en!r}) for this --institution UUID "
+        f"— refusing to write. Double-check the UUID."
+    )
+
+
+async def _flag_blocked(
+    *, institution_id: str, reason: str, url: str | None, name: str | None = None,
+) -> int:
     """Record that an institution's site couldn't be reached/verified this run,
     so `todo` skips it for the cooldown window instead of re-browsing a dead
     end every night. Writes to `proposed_sources` (same HITL queue ingest-url's
@@ -699,12 +752,18 @@ async def _flag_blocked(*, institution_id: str, reason: str, url: str | None) ->
     conn = await db.connect()
     try:
         row = await conn.fetchrow(
-            "select name_ko, primary_admissions_url_ko, primary_domain "
+            "select name_ko, name_en, primary_admissions_url_ko, primary_domain "
             "from public.institutions where id=$1",
             inst_uuid,
         )
         if row is None:
             print(f"institution {institution_id} not found", file=sys.stderr)
+            return 2
+        mismatch = _institution_name_mismatch(
+            provided=name, name_ko=row["name_ko"], name_en=row["name_en"],
+        )
+        if mismatch:
+            print(f"flag-blocked: {mismatch}", file=sys.stderr)
             return 2
 
         target_url = url or row["primary_admissions_url_ko"] or f"https://{row['primary_domain']}/"
@@ -720,7 +779,8 @@ async def _flag_blocked(*, institution_id: str, reason: str, url: str | None) ->
 
 
 async def _ingest_url(*, institution_id: str, url: str,
-                      year: int | None = None, term: str | None = None) -> int:
+                      year: int | None = None, term: str | None = None,
+                      name: str | None = None) -> int:
     """LIVE: ingest+parse one guideline PDF at a caller-supplied URL for one
     institution — the URL is found by the Routine agent's own web research, so
     there is NO search backend (no Naver). With UNI_DB_LLM_BACKEND=claude_cli the
@@ -759,6 +819,12 @@ async def _ingest_url(*, institution_id: str, url: str,
         )
         if row is None:
             print(f"institution {institution_id} not found", file=sys.stderr)
+            return 2
+        mismatch = _institution_name_mismatch(
+            provided=name, name_ko=row["name_ko"], name_en=row["name_en"],
+        )
+        if mismatch:
+            print(f"ingest-url: {mismatch}", file=sys.stderr)
             return 2
 
         # Target cycle: an explicit --year (with optional --term) wins; else

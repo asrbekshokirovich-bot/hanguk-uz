@@ -29,6 +29,8 @@ from uuid import UUID
 
 import asyncpg
 
+from .. import retry as retry_policy
+
 log = logging.getLogger(__name__)
 
 FetchBlob = Callable[[str], bytes]
@@ -36,6 +38,12 @@ FetchBlob = Callable[[str], bytes]
 RunParseGroups = Callable[
     [asyncpg.Connection, UUID, bytes, tuple[str, ...]], Awaitable[None]
 ]
+
+# Retryable-failure policy (network timeouts, 5xx, empty responses) lives in
+# `uni_db.retry` — shared with the PDF-download path (direct_ingest_worker).
+# A corrupt PDF, a schema failure, or a genuine hash mismatch is a real
+# failure and must fail immediately here, never retried.
+
 
 # Latest job per (document, field_group); only 'failed' ones are candidates.
 # `limit` bounds the number of failed JOBS picked up this run (they are then
@@ -61,6 +69,17 @@ select l.guideline_document_id,
  order by gd.fetched_at desc nulls last
  limit $1
 """
+
+
+class _HashMismatch(Exception):
+    """Internal signal: stored blob no longer matches its recorded hash.
+    Not in RETRYABLE_ERRORS — waiting out a network blip can't fix a blob
+    that genuinely changed, so this must never be retried."""
+
+    def __init__(self, actual: str, expected: str) -> None:
+        super().__init__(f"{actual} != {expected}")
+        self.actual = actual
+        self.expected = expected
 
 
 @dataclass(frozen=True, slots=True)
@@ -139,20 +158,33 @@ async def retry_failed(
     retried = hash_mismatch = errors = 0
     for gd_id, entry in by_doc.items():
         groups: tuple[str, ...] = tuple(dict.fromkeys(entry["groups"]))
-        try:
-            data = fetch_blob(entry["storage_path"])
-            expected = entry["file_hash_sha256"]
+        storage_path = entry["storage_path"]
+        expected = entry["file_hash_sha256"]
+
+        async def _attempt(
+            storage_path: str = storage_path,
+            expected: str | None = expected,
+            gd_id: UUID = gd_id,
+            groups: tuple[str, ...] = groups,
+        ) -> None:
+            data = fetch_blob(storage_path)
             if expected:
                 actual = hashlib.sha256(data).hexdigest()
                 if actual != expected:
-                    hash_mismatch += 1
-                    log.warning(
-                        "retry_failed: %s stored blob hash %s != recorded %s; "
-                        "skipping (won't re-extract a changed/corrupt blob)",
-                        str(gd_id)[:8], actual[:12], str(expected)[:12],
-                    )
-                    continue
+                    raise _HashMismatch(actual, expected)
             await run_parse_groups(conn, gd_id, data, groups)
+
+        try:
+            await retry_policy.with_retry(
+                _attempt, label=f"{str(gd_id)[:8]} ({','.join(groups)})",
+            )
+        except _HashMismatch as exc:
+            hash_mismatch += 1
+            log.warning(
+                "retry_failed: %s stored blob hash %s != recorded %s; "
+                "skipping (won't re-extract a changed/corrupt blob)",
+                str(gd_id)[:8], exc.actual[:12], exc.expected[:12],
+            )
         except Exception as exc:  # one bad document must not abort the batch
             errors += 1
             log.warning(
