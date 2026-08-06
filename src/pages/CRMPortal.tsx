@@ -325,6 +325,7 @@ export default function CRMPortal() {
               loading={loading}
               currentLang={currentLang}
               onUpdateDocumentStatus={updateDocumentStatus}
+              onUpdateApplicationStatus={updateApplicationStatus}
             />
           </SafeSuspense>
         );
