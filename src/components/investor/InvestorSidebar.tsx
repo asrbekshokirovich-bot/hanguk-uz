@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from 'react-router-dom';
-import { GraduationCap, LayoutGrid, Lock, LogOut, MessageSquare, Wallet } from 'lucide-react';
+import { GraduationCap, LayoutGrid, Lock, LogOut, MessageSquare, Users, Wallet } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   Sidebar,
@@ -21,6 +21,7 @@ const NAV = [
   { title: 'Overview', url: '/crm/investor/overview', icon: LayoutGrid },
   { title: 'Finance', url: '/crm/investor/finance', icon: Wallet },
   { title: 'Applications', url: '/crm/investor/applications', icon: GraduationCap },
+  { title: 'Leads', url: '/crm/investor/leads', icon: Users },
   { title: 'Messages', url: '/crm/investor/messages', icon: MessageSquare },
 ] as const;
 
