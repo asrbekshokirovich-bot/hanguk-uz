@@ -13,7 +13,7 @@ import {
   FolderOpen,
   MessageSquare,
   CheckCircle2,
-  Send,
+  ArrowRight,
   Sparkles,
 } from 'lucide-react';
 import { Tables } from '@/integrations/supabase/types';
@@ -29,10 +29,29 @@ interface DocumentsContentProps {
   loading: boolean;
   currentLang: string;
   onUpdateDocumentStatus: (documentId: string, newStatus: string, notes?: string) => Promise<{ error: unknown }>;
+  /** Advances the student's application row when their pack is fully verified. */
+  onUpdateApplicationStatus?: (applicationId: string, status: string) => Promise<{ error: unknown }>;
 }
 
 type PackFilter = 'all' | 'application' | 'visa';
-type Stage = 'new_intake' | 'collecting' | 'translation_apostille' | 'ready' | 'sent';
+type Stage = 'new_intake' | 'collecting' | 'translation_apostille' | 'ready' | 'advanced';
+
+// The status written on the application row when a completed pack is pushed to
+// the next pipeline step. Matches ApplicationsContent's `docs` → `applied` move.
+const NEXT_APPLICATION_STATUS = 'application_submitted';
+const ADVANCED_STATUSES = new Set([
+  'in_review',
+  'university_response',
+  'application_submitted',
+  'submitted',
+  'online_ariza',
+  'originals_sent',
+  'visa_documents',
+  'completed',
+  'accepted',
+  'waitlist',
+  'rejected',
+]);
 type SlotState = 'verified' | 'received' | 'missing';
 
 // ---------------------------------------------------------------------------
@@ -89,12 +108,15 @@ function slotState(doc: Tables<'documents'> | undefined): SlotState {
 }
 
 // ===========================================================================
-export default function DocumentsContent({ students, loading, currentLang, onUpdateDocumentStatus }: DocumentsContentProps) {
+export default function DocumentsContent({ students, loading, currentLang, onUpdateDocumentStatus, onUpdateApplicationStatus }: DocumentsContentProps) {
   const [search, setSearch] = useState('');
   const [packFilter, setPackFilter] = useState<PackFilter>('all');
   const [stageFilter, setStageFilter] = useState<Stage | 'all'>('all');
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [sentIds, setSentIds] = useState<Set<string>>(new Set()); // UI-only: "sent to university" flag (no backend column yet)
+  // Locally advanced packs — keeps the card in its new stage until the parent
+  // refetches the application row.
+  const [advancedIds, setAdvancedIds] = useState<Set<string>>(new Set());
+  const [advancing, setAdvancing] = useState(false);
   const [busySlot, setBusySlot] = useState<string | null>(null);
 
   const packs = useMemo(() => {
@@ -108,9 +130,9 @@ export default function DocumentsContent({ students, loading, currentLang, onUpd
         app?.university?.name_en ||
         app?.university?.name_ko ||
         '—';
-      const sent = sentIds.has(s.user_id);
+      const advanced = advancedIds.has(s.user_id) || ADVANCED_STATUSES.has(app?.status ?? '');
       let stage: Stage = 'new_intake';
-      if (sent) stage = 'sent';
+      if (advanced) stage = 'advanced';
       else if (verifiedCount === CHECKLIST.length) stage = 'ready';
       else if (verifiedCount >= 3) stage = 'translation_apostille';
       else if (verifiedCount > 0 || docs.length > 0) stage = 'collecting';
@@ -120,6 +142,7 @@ export default function DocumentsContent({ students, loading, currentLang, onUpd
         verifiedCount,
         uniName,
         program: app?.degree_level ?? '',
+        applicationId: app?.id ?? null,
         stage,
         preparer: pick(CONSULTANTS, `${s.user_id}p`),
         consultant: pick(CONSULTANTS, `${s.user_id}c`),
@@ -127,10 +150,10 @@ export default function DocumentsContent({ students, loading, currentLang, onUpd
       };
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [students, sentIds, currentLang]);
+  }, [students, advancedIds, currentLang]);
 
   const stageCounts = useMemo(() => {
-    const c: Record<Stage, number> = { new_intake: 0, collecting: 0, translation_apostille: 0, ready: 0, sent: 0 };
+    const c: Record<Stage, number> = { new_intake: 0, collecting: 0, translation_apostille: 0, ready: 0, advanced: 0 };
     packs.forEach((p) => { c[p.stage] += 1; });
     return c;
   }, [packs]);
@@ -155,7 +178,7 @@ export default function DocumentsContent({ students, loading, currentLang, onUpd
     collecting: 'Collecting',
     translation_apostille: 'Translation & Apostille',
     ready: 'Ready',
-    sent: 'Sent',
+    advanced: 'Keyingi bosqichda',
   };
 
   const markVerified = async (documentId: string) => {
@@ -176,9 +199,21 @@ export default function DocumentsContent({ students, loading, currentLang, onUpd
     // upload happens from the student portal. This just nudges the workflow.
     toast.info("Hujjat talaba tomonidan yuklanishi kerak");
   };
-  const sendOriginals = (userId: string) => {
-    setSentIds((s) => new Set(s).add(userId));
-    toast.success("Asl hujjatlar universitetga yuborildi deb belgilandi");
+  // All six slots verified → push the student onto the next pipeline stage.
+  const advanceToNextStage = async (userId: string, applicationId: string | null) => {
+    if (!applicationId || !onUpdateApplicationStatus) {
+      toast.error("Talabaning arizasi topilmadi — avval universitet biriktiring");
+      return;
+    }
+    setAdvancing(true);
+    const { error } = await onUpdateApplicationStatus(applicationId, NEXT_APPLICATION_STATUS);
+    setAdvancing(false);
+    if (error) {
+      toast.error("Nimadir xato ketdi");
+      return;
+    }
+    setAdvancedIds((s) => new Set(s).add(userId));
+    toast.success("Talaba keyingi bosqichga o'tkazildi");
   };
 
   if (loading) {
@@ -368,18 +403,20 @@ export default function DocumentsContent({ students, loading, currentLang, onUpd
 
               <div className="mt-3 flex items-center justify-between gap-3 border-t border-border pt-3">
                 <p className="text-xs text-muted-foreground">
-                  {selected.verifiedCount < CHECKLIST.length
-                    ? `To'plam yuborilishidan oldin barcha hujjatlar tasdiqlanishi kerak. ${CHECKLIST.length - selected.verifiedCount} ta qoldi.`
-                    : 'Barcha hujjatlar tasdiqlangan.'}
+                  {selected.stage === 'advanced'
+                    ? 'Barcha hujjatlar tasdiqlangan — talaba keyingi bosqichda.'
+                    : selected.verifiedCount < CHECKLIST.length
+                      ? `Keyingi bosqichga o'tkazishdan oldin barcha hujjatlar tasdiqlanishi kerak. ${CHECKLIST.length - selected.verifiedCount} ta qoldi.`
+                      : 'Barcha hujjatlar tasdiqlangan — keyingi bosqichga o\'tkazish mumkin.'}
                 </p>
                 <Button
                   variant="highlight"
                   className="shrink-0 gap-2"
-                  disabled={selected.verifiedCount < CHECKLIST.length || sentIds.has(selected.student.user_id)}
-                  onClick={() => sendOriginals(selected.student.user_id)}
+                  disabled={selected.verifiedCount < CHECKLIST.length || selected.stage === 'advanced' || advancing}
+                  onClick={() => advanceToNextStage(selected.student.user_id, selected.applicationId)}
                 >
-                  <Send className="h-4 w-4" />
-                  {sentIds.has(selected.student.user_id) ? 'Yuborildi' : 'Universitetga yuborish'}
+                  <ArrowRight className="h-4 w-4" />
+                  {selected.stage === 'advanced' ? "O'tkazildi" : "Keyingi bosqichga o'tkazish"}
                 </Button>
               </div>
             </Card>
