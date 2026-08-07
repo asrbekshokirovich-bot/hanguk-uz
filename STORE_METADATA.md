@@ -2,6 +2,16 @@
 
 This file contains all store descriptions and metadata for Apple App Store and Google Play Store submissions.
 
+> **Every bullet below has to be findable in the shipped app.** App Review
+> rejected the 2026-08-07 submission on guideline 2.3 over one line of App
+> Store Connect copy — "Compare programs, tuition, location, and scholarship
+> eligibility" — because no screen in the app compares tuition or scholarship
+> eligibility. The compare screen shows city, tier, IEQAS accreditation and
+> partner status; tuition and scholarship rows exist only on the institution
+> pages, which have no navigation entry point yet. Do not paste a feature list
+> into App Store Connect that is wider than this file, and do not widen this
+> file ahead of the app. See `hanguk_app/store/APP_REVIEW_2026-08-07.md`.
+
 ---
 
 ## English (Default)
@@ -30,7 +40,7 @@ FEATURES:
 • Track your university applications in real-time
 • Upload and manage required documents
 • Practice for admission interviews with AI
-• Compare universities on an interactive map
+• Browse Korean universities on an interactive map, then compare two of them side by side (city, tier, IEQAS accreditation, partner status)
 • Get personalized AI assistance for your journey
 • Multi-language support (Uzbek, Russian, English, Korean)
 
@@ -66,7 +76,7 @@ IMKONIYATLAR:
 • Universitet arizalaringizni real vaqtda kuzating
 • Kerakli hujjatlarni yuklang va boshqaring
 • AI bilan qabul suhbatlariga tayyorlaning
-• Interaktiv xaritada universitetlarni solishtiring
+• Koreya universitetlarini interaktiv xaritada ko'ring va ikkitasini yonma-yon solishtiring (shahar, daraja, IEQAS akkreditatsiyasi, hamkorlik holati)
 • Sayohatingiz uchun shaxsiy AI yordamini oling
 • Ko'p tilli qo'llab-quvvatlash (O'zbek, Rus, Ingliz, Koreys)
 
@@ -102,7 +112,7 @@ Hanguk Consulting помогает студентам подавать заяв�
 • Отслеживайте ваши заявки в университеты в реальном времени
 • Загружайте и управляйте необходимыми документами
 • Практикуйте собеседования с ИИ
-• Сравнивайте университеты на интерактивной карте
+• Смотрите корейские университеты на интерактивной карте и сравнивайте два из них рядом (город, уровень, аккредитация IEQAS, партнёрский статус)
 • Получайте персональную помощь ИИ
 • Многоязычная поддержка (Узбекский, Русский, Английский, Корейский)
 
@@ -138,7 +148,7 @@ Hanguk Consulting은 전문적인 안내와 지원으로 한국 대학 진학을
 • 대학 지원 현황을 실시간으로 추적
 • 필요한 서류를 업로드하고 관리
 • AI와 함께 입학 면접 연습
-• 인터랙티브 지도에서 대학교 비교
+• 인터랙티브 지도에서 한국 대학을 둘러보고 두 곳을 나란히 비교 (도시, 등급, IEQAS 인증, 제휴 여부)
 • 맞춤형 AI 지원 서비스
 • 다국어 지원 (우즈베크어, 러시아어, 영어, 한국어)
 
@@ -153,7 +163,7 @@ Hanguk Consulting은 전문적인 안내와 지원으로 한국 대학 진학을
 
 - **Privacy Policy:** https://hanguk.uz/privacy
 - **Terms of Service:** https://hanguk.uz/terms
-- **Support URL:** https://hanguk.uz
+- **Support URL:** https://hanguk.uz/support
 - **Marketing URL:** https://hanguk.uz
 
 ---

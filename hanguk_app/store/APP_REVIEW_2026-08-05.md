@@ -1,5 +1,12 @@
 # App Review rejection — 2026-08-05
 
+> **Not approved.** The resubmission was rejected again on 2026-08-07, on two
+> different guidelines — see `APP_REVIEW_2026-08-07.md`. Neither of the items
+> below was cited a second time, but the build reviewed on 2026-08-07 was
+> **1.0 (2042)**, which predates the device-family fix in § 1, so treat § 1 as
+> unverified rather than closed. Re-read both sections before every
+> submission. Release mechanics live in `docs/RELEASE_IOS.md`.
+
 Submission `3c58bd49-edd3-4679-9173-308569b3bc9a`, version 1.0 (2039),
 reviewed on iPad Air 11-inch (M3). Two guidelines were cited. Neither is a
 crash or a code defect — one is a build setting plus the screenshot set, the
