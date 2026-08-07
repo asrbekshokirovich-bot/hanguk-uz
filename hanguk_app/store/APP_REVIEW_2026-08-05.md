@@ -1,5 +1,12 @@
 # App Review rejection — 2026-08-05
 
+> **Resolved 2026-08-07. Hanguk is live on the App Store.** The resubmission
+> (`1.0.26+2043`, iPhone-only, with the demo Magic Code in App Review
+> Information) was approved. This file is kept as the record of what Apple
+> cited and what fixed it — both citations are things a future release can
+> reintroduce, so re-read § 1 and § 2 before every submission.
+> Ongoing release steps live in `docs/RELEASE_IOS.md`.
+
 Submission `3c58bd49-edd3-4679-9173-308569b3bc9a`, version 1.0 (2039),
 reviewed on iPad Air 11-inch (M3). Two guidelines were cited. Neither is a
 crash or a code defect — one is a build setting plus the screenshot set, the
