@@ -16,6 +16,7 @@ import Auth from "./pages/Auth";
 import Install from "./pages/Install";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
+import Support from "./pages/Support";
 import StudentPortal from "./pages/StudentPortal";
 import { StudentDataProvider } from "./contexts/StudentDataContext";
 import CRMEntry from "./pages/CRMEntry";
@@ -81,6 +82,9 @@ const App = () => (
                     <Route path="/install" element={<Install />} />
                     <Route path="/privacy" element={<Privacy />} />
                     <Route path="/terms" element={<Terms />} />
+                    {/* Support URL given to App Store Connect and Play (App
+                        Review guideline 1.5, 2026-08-07). Must stay public. */}
+                    <Route path="/support" element={<Support />} />
                     <Route path="/portal" element={<StudentDataProvider><StudentPortal /></StudentDataProvider>} />
                     <Route path="/interview-practice" element={<ProtectedRoute><InterviewPractice /></ProtectedRoute>} />
                     <Route path="/study-plan-trainer" element={<ProtectedRoute><StudyPlanTrainer /></ProtectedRoute>} />

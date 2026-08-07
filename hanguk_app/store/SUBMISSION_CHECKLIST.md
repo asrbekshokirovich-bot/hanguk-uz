@@ -7,12 +7,14 @@ release of Hanguk to the **Apple App Store** and **Google Play Store**.
 Start at § 1 if you have never published an app before; otherwise skip
 to whichever step you are on.
 
-> **The first release has shipped.** Hanguk went live on the **App Store** on
-> 2026-08-07 (`1.0.26+2043`) and is on **Google Play**. The one-time setup in
-> this file — enrollment, bundle ID, keystore, listing creation — is done and
-> does not need repeating.
+> **Where this stands.** The one-time setup in this file — enrollment, bundle
+> ID, keystore, listing creation — is done and does not need repeating.
+> Google Play is live. The **App Store submission is still in review rounds**:
+> rejected 2026-08-05 (device family, demo account) and again 2026-08-07
+> (Support URL, inaccurate metadata). Open rejections and what each needs:
+> `APP_REVIEW_2026-08-05.md`, `APP_REVIEW_2026-08-07.md`.
 >
-> For *updates*, use the per-store release guides instead:
+> For the build-and-submit mechanics, use the per-store release guides:
 > `docs/RELEASE_IOS.md` (App Store) and `docs/RELEASE.md` (Google Play).
 
 Companion files:

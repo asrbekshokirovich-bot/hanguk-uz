@@ -7,9 +7,10 @@ How to ship a new version of the student app to the App Store. Companion to
 
 App: **Hanguk** · bundle ID `com.hanguk.studentapp.hangukApp`
 
-Status: **live on the App Store** since 2026-08-07 (first public release,
-`1.0.26+2043`, approved after the 2026-08-05 rejection round — see
-`hanguk_app/store/APP_REVIEW_2026-08-05.md`).
+Status: **not live yet.** The first release is in review rounds — rejected on
+2026-08-05 (device family, demo account) and again on 2026-08-07 (Support URL,
+inaccurate metadata). Read `hanguk_app/store/APP_REVIEW_2026-08-07.md` before
+resubmitting; § 6 below links each open item to the guideline it came from.
 
 ---
 
@@ -159,6 +160,16 @@ App Store Connect → **Hanguk → + Version** → fill in:
   password fields, plus a note explaining the single-field login (2.1(a)).
   Wording: `hanguk_app/store/APP_REVIEW_2026-08-05.md` § 2.
   Never commit the code itself; paste it into App Store Connect.
+
+- **Support URL** (App Information, not the version page) — must reach a live
+  public page carrying support information; `https://hanguk.uz/support`, served
+  by `src/pages/Support.tsx`. A parked domain or a landing page is guideline
+  1.5, which is what 2026-08-07 was rejected on. Open it in a private window
+  first.
+- **Description / promotional text / screenshot captions** — every feature
+  named must be findable in the submitted build without a deep link. Keep the
+  copy no wider than `STORE_METADATA.md`; the 2026-08-07 rejection was one
+  sentence claiming a tuition-and-scholarship comparison the app does not have.
 
 Then **Add for Review → Submit**.
 
