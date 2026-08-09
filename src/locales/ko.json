@@ -193,7 +193,8 @@
     "staffTabHelper": "아이디와 비밀번호가 있는 Hanguk 직원용입니다.",
     "registerTabHelper": "게스트로 지원 현황을 확인하려면 계정을 만드세요.",
     "staffSignIn": "직원 로그인",
-    "createAccount": "계정 만들기"
+    "createAccount": "계정 만들기",
+    "guestLoginHelper": "이메일과 비밀번호로 등록한 계정에 로그인하세요."
   },
   "navigation": {
     "home": "홈",

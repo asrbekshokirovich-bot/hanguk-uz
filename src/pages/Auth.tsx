@@ -65,7 +65,13 @@ export default function Auth() {
         .eq('id', 'main')
         .maybeSingle() as { data: { owner_created: boolean } | null, error: any };
 
-      if (!error && data) {
+      if (error) {
+        // Couldn't verify setup state (network / RLS). Never expose the
+        // one-time owner-creation screen to the public on a transient failure —
+        // fall back to the normal login/sign-up view instead.
+        setIsSetupMode(false);
+        (window as any).__IS_SETUP_MODE_CACHED__ = false;
+      } else if (data) {
         setOwnerExists(data.owner_created);
         setIsSetupMode(!data.owner_created);
 
@@ -73,7 +79,7 @@ export default function Auth() {
         (window as any).__OWNER_EXISTS_CACHED__ = data.owner_created;
         (window as any).__IS_SETUP_MODE_CACHED__ = !data.owner_created;
       } else {
-        // If no settings exist, we need setup
+        // No settings row at all → genuine first run, show owner setup.
         setIsSetupMode(true);
         (window as any).__IS_SETUP_MODE_CACHED__ = true;
       }
@@ -468,10 +474,21 @@ export default function Auth() {
               </form>
             ) : activeTab === 'registrate' ? (
               <div>
-                <button type="button" onClick={() => setActiveTab('student')} className="mb-3 text-sm font-medium text-muted-foreground hover:text-foreground">← {t('common.back', { defaultValue: 'Back' })}</button>
-                <h1 className="text-2xl font-extrabold tracking-tight text-foreground">{t('auth.tabRegistrate')}</h1>
+                <button type="button" onClick={() => { setActiveTab('student'); setIsGuestLoginMode(false); }} className="mb-3 text-sm font-medium text-muted-foreground hover:text-foreground">← {t('common.back', { defaultValue: 'Back' })}</button>
+                <h1 className="text-2xl font-extrabold tracking-tight text-foreground">
+                  {isGuestLoginMode ? t('auth.loginTitle') : t('auth.tabRegistrate')}
+                </h1>
+                {/* Login / Sign up switcher — both flows are first-class */}
+                <div className="mt-4 grid grid-cols-2 gap-2">
+                  <button type="button" onClick={() => setIsGuestLoginMode(false)} className={cn('flex h-11 items-center justify-center gap-2 rounded-md border text-sm font-semibold transition-colors', !isGuestLoginMode ? 'border-primary bg-info/10 text-primary' : 'border-border text-muted-foreground hover:text-foreground')}>
+                    {t('auth.signup')}
+                  </button>
+                  <button type="button" onClick={() => setIsGuestLoginMode(true)} className={cn('flex h-11 items-center justify-center gap-2 rounded-md border text-sm font-semibold transition-colors', isGuestLoginMode ? 'border-primary bg-info/10 text-primary' : 'border-border text-muted-foreground hover:text-foreground')}>
+                    {t('auth.login')}
+                  </button>
+                </div>
                 <div className="mt-3 rounded-lg border border-primary/20 bg-primary/5 p-3">
-                  <p className="text-center text-sm text-muted-foreground">{t('auth.registerTabHelper')}</p>
+                  <p className="text-center text-sm text-muted-foreground">{isGuestLoginMode ? t('auth.guestLoginHelper', { defaultValue: 'Sign in to the account you registered with your email and password.' }) : t('auth.registerTabHelper')}</p>
                 </div>
                 {isGuestLoginMode ? (
                   <form onSubmit={handleLogin} className="mt-4 space-y-4">
@@ -533,11 +550,6 @@ export default function Auth() {
                     </Button>
                   </form>
                 )}
-                <div className="mt-4 text-center">
-                  <Button variant="link" size="sm" onClick={() => setIsGuestLoginMode(!isGuestLoginMode)} className="text-xs text-muted-foreground hover:text-primary transition-colors">
-                    {isGuestLoginMode ? t('auth.registerNewAccount') : t('auth.haveAccountMsg')}
-                  </Button>
-                </div>
               </div>
             ) : (
               <div>

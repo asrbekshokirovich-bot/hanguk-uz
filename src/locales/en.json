@@ -194,7 +194,8 @@
     "staffTabHelper": "For Hanguk staff with a username and password.",
     "registerTabHelper": "Create an account to track your applications as a guest.",
     "staffSignIn": "Staff Sign-In",
-    "createAccount": "Create Account"
+    "createAccount": "Create Account",
+    "guestLoginHelper": "Sign in to the account you registered with your email and password."
   },
   "navigation": {
     "home": "Home",

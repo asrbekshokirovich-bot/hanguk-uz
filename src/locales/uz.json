@@ -243,7 +243,8 @@
     "staffTabHelper": "Login va parolga ega Hanguk xodimlari uchun.",
     "registerTabHelper": "Mehmon sifatida arizalarni kuzatish uchun hisob yarating.",
     "staffSignIn": "Xodim kirishi",
-    "createAccount": "Hisob yaratish"
+    "createAccount": "Hisob yaratish",
+    "guestLoginHelper": "Elektron pochta va parolingiz bilan ro'yxatdan o'tgan hisobingizga kiring."
   },
   "navigation": {
     "home": "Bosh sahifa",
