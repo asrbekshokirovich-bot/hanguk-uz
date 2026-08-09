@@ -1489,6 +1489,67 @@ class AppLocalizationsEn extends AppLocalizations {
   String get uniDbColLastVerified => 'Last verified';
 
   @override
+  String get uniDbColTuition => 'Tuition / semester';
+
+  @override
+  String get uniDbColKorean => 'Korean level';
+
+  @override
+  String get uniDbColNextDeadline => 'Next deadline';
+
+  @override
+  String get uniDbColInterview => 'Interview';
+
+  @override
+  String get uniDbColDocuments => 'Documents';
+
+  @override
+  String get uniDbNotPublishedYet => 'Not published yet';
+
+  @override
+  String get uniDbTopikNoMinimum => 'No minimum stated';
+
+  @override
+  String get uniDbTopikDeferred => 'Can submit later';
+
+  @override
+  String get uniDbLowest => 'Lowest';
+
+  @override
+  String get uniDbTentative => 'Date not confirmed';
+
+  @override
+  String uniDbScholarshipsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count scholarships',
+      one: '1 scholarship',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get uniDbInterviewRequired => 'Required';
+
+  @override
+  String get uniDbInterviewNotRequired => 'Not required';
+
+  @override
+  String get uniDbViewFullDetails => 'View full details';
+
+  @override
+  String get uniDbCompareSelectHint => 'Select 2–3 universities to compare';
+
+  @override
+  String uniDbCompareCta(int count) {
+    return 'Compare $count';
+  }
+
+  @override
+  String get uniDbCompareAction => 'Compare universities';
+
+  @override
   String get uniDbTrackerTitle => 'Application tracker';
 
   @override

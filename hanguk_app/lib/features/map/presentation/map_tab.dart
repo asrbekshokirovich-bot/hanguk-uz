@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../l10n/app_localizations.dart';
@@ -33,6 +34,19 @@ class _MapTabState extends ConsumerState<MapTab> {
   // to "top-100".
   String _activeFilter = 'all'; // 'all' | 'partner' | 'top'
   String _searchQuery = '';
+
+  /// Compare mode: tapping a row selects it instead of opening its sheet,
+  /// and the action bar at the foot of the list opens
+  /// `/institutions/compare?ids=…` for the selection.
+  bool _compareMode = false;
+
+  /// Selected institution ids, insertion-ordered so the compare columns
+  /// appear in the order the student picked them.
+  final Set<String> _selectedForCompare = <String>{};
+
+  /// Three 220px columns is already a horizontal scroll on a phone; more
+  /// than that stops being a comparison and becomes a list.
+  static const int _maxCompare = 3;
 
   @override
   void initState() {
@@ -88,6 +102,42 @@ class _MapTabState extends ConsumerState<MapTab> {
       backgroundColor: Colors.transparent,
       builder: (_) => UniversityDetailSheet(university: u),
     );
+  }
+
+  /// Enter compare mode. Selection happens in the list — the map's markers
+  /// have no room for a checked state — so this switches out of map mode.
+  void _startCompare() {
+    setState(() {
+      _compareMode = true;
+      _isMapMode = false;
+    });
+  }
+
+  void _cancelCompare() {
+    setState(() {
+      _compareMode = false;
+      _selectedForCompare.clear();
+    });
+  }
+
+  void _toggleCompareSelection(University u) {
+    setState(() {
+      if (_selectedForCompare.remove(u.id)) return;
+      if (_selectedForCompare.length >= _maxCompare) return;
+      _selectedForCompare.add(u.id);
+    });
+  }
+
+  void _openComparison() {
+    if (_selectedForCompare.length < 2) return;
+    final ids = _selectedForCompare.join(',');
+    // Leave compare mode behind so returning from the comparison lands on a
+    // normal list rather than a stale selection.
+    setState(() {
+      _compareMode = false;
+      _selectedForCompare.clear();
+    });
+    context.push('/institutions/compare?ids=$ids');
   }
 
   void _clearFilters() {
@@ -147,10 +197,19 @@ class _MapTabState extends ConsumerState<MapTab> {
                     ),
                   ),
                   const SizedBox(width: 10),
-                  _ToggleButton(
-                    isMapMode: _isMapMode,
-                    onTap: () => setState(() => _isMapMode = !_isMapMode),
-                  ),
+                  if (!_compareMode)
+                    _CompareButton(
+                      tooltip: l.uniDbCompareAction,
+                      onTap: _startCompare,
+                    ),
+                  if (!_compareMode) const SizedBox(width: 10),
+                  // Hidden while selecting: compare mode is a list-only
+                  // interaction, and Cancel on the bar is the way out.
+                  if (!_compareMode)
+                    _ToggleButton(
+                      isMapMode: _isMapMode,
+                      onTap: () => setState(() => _isMapMode = !_isMapMode),
+                    ),
                 ],
               ),
             ),
@@ -191,6 +250,17 @@ class _MapTabState extends ConsumerState<MapTab> {
                 ],
               ),
             ),
+
+            // The compare bar sits above the list, not at the foot of the
+            // screen: the 한 orb and the AI-chat button float over the
+            // bottom of every tab (see HomeScreen's Stack), and the orb's
+            // tap box would swallow presses on a bar down there.
+            if (_compareMode)
+              _CompareActionBar(
+                selectedCount: _selectedForCompare.length,
+                onCancel: _cancelCompare,
+                onCompare: _openComparison,
+              ),
 
             // ── Content ──────────────────────────────────
             Expanded(
@@ -279,10 +349,24 @@ class _MapTabState extends ConsumerState<MapTab> {
       // Spec §4 / orb clearance: the last row must clear the floating 한 orb.
       padding: const EdgeInsets.only(top: 4, bottom: SeoulSizes.orbClearance),
       itemCount: unis.length,
-      itemBuilder: (ctx, i) => UniversityCard(
-        university: unis[i],
-        onTap: () => _showDetail(ctx, unis[i]),
-      ),
+      itemBuilder: (ctx, i) {
+        final u = unis[i];
+        final selected = _selectedForCompare.contains(u.id);
+        return UniversityCard(
+          university: u,
+          selectable: _compareMode,
+          selected: selected,
+          // At the cap, the unselected rows stop responding rather than
+          // silently dropping someone's earlier pick.
+          enabled:
+              !_compareMode ||
+              selected ||
+              _selectedForCompare.length < _maxCompare,
+          onTap: _compareMode
+              ? () => _toggleCompareSelection(u)
+              : () => _showDetail(ctx, u),
+        );
+      },
     );
   }
 
@@ -461,6 +545,105 @@ class _SearchField extends StatelessWidget {
             minHeight: SeoulSizes.minTapTarget,
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Enters compare mode. Same glass square as [_ToggleButton], never the lime
+/// fill — §4 keeps lime for the one primary action, which in compare mode is
+/// the "Compare" button in [_CompareActionBar].
+class _CompareButton extends StatelessWidget {
+  const _CompareButton({required this.tooltip, required this.onTap});
+
+  final String tooltip;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: tooltip,
+      child: Tooltip(
+        message: tooltip,
+        child: GestureDetector(
+          onTap: onTap,
+          child: Container(
+            width: SeoulSizes.minTapTarget,
+            height: SeoulSizes.minTapTarget,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: SeoulColors.glass,
+              borderRadius: SeoulRadii.controlR,
+              border: Border.all(color: SeoulColors.glassBorder, width: 1),
+            ),
+            child: const Icon(
+              Icons.compare_arrows_rounded,
+              color: SeoulColors.textSecondary,
+              size: 20,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The foot of the list while compare mode is on: how many are picked, a way
+/// out, and the lime action that opens the comparison. Disabled until two
+/// are selected — one university is not a comparison.
+class _CompareActionBar extends StatelessWidget {
+  const _CompareActionBar({
+    required this.selectedCount,
+    required this.onCancel,
+    required this.onCompare,
+  });
+
+  final int selectedCount;
+  final VoidCallback onCancel;
+  final VoidCallback onCompare;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    final ready = selectedCount >= 2;
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(
+        SeoulSizes.screenPadding,
+        0,
+        SeoulSizes.screenPadding,
+        8,
+      ),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: SeoulColors.glass,
+        borderRadius: SeoulRadii.tileR,
+        border: Border.all(color: SeoulColors.glassBorder),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              l.uniDbCompareSelectHint,
+              style: SeoulType.bodySecondary,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          const SizedBox(width: 12),
+          SeoulOutlineButton(
+            label: l.cancel,
+            expand: false,
+            onPressed: onCancel,
+          ),
+          const SizedBox(width: 10),
+          LimeButton(
+            label: l.uniDbCompareCta(selectedCount),
+            expand: false,
+            onPressed: ready ? onCompare : null,
+          ),
+        ],
       ),
     );
   }

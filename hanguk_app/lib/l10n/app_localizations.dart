@@ -2834,6 +2834,108 @@ abstract class AppLocalizations {
   /// **'Last verified'**
   String get uniDbColLastVerified;
 
+  /// Compare-column field label above the per-semester tuition figure or range.
+  ///
+  /// In en, this message translates to:
+  /// **'Tuition / semester'**
+  String get uniDbColTuition;
+
+  /// Compare-column field label above the TOPIK minimum and other entry-test requirements.
+  ///
+  /// In en, this message translates to:
+  /// **'Korean level'**
+  String get uniDbColKorean;
+
+  /// Compare-column field label above the soonest upcoming admission-calendar event.
+  ///
+  /// In en, this message translates to:
+  /// **'Next deadline'**
+  String get uniDbColNextDeadline;
+
+  /// Compare-column field label above whether an admission interview is required.
+  ///
+  /// In en, this message translates to:
+  /// **'Interview'**
+  String get uniDbColInterview;
+
+  /// Compare-column field label above the count of required application documents.
+  ///
+  /// In en, this message translates to:
+  /// **'Documents'**
+  String get uniDbColDocuments;
+
+  /// Shown in a compare cell when the university's admission guideline has not been parsed and reviewed yet. Deliberately not a blank or a zero, which would read as 'free' or 'not required'.
+  ///
+  /// In en, this message translates to:
+  /// **'Not published yet'**
+  String get uniDbNotPublishedYet;
+
+  /// Shown in the Korean-level cell when a reviewed admission cycle names no TOPIK floor. Distinct from uniDbNotPublishedYet, which means the guideline itself is unparsed.
+  ///
+  /// In en, this message translates to:
+  /// **'No minimum stated'**
+  String get uniDbTopikNoMinimum;
+
+  /// Chip shown when the university lets an applicant submit their TOPIK result after admission rather than with the application.
+  ///
+  /// In en, this message translates to:
+  /// **'Can submit later'**
+  String get uniDbTopikDeferred;
+
+  /// Chip accenting the cheapest tuition, or the lowest TOPIK requirement, among the universities currently being compared. Shown only when more than one of them published the figure.
+  ///
+  /// In en, this message translates to:
+  /// **'Lowest'**
+  String get uniDbLowest;
+
+  /// Caption under a deadline the university has published as provisional (cycle_dates.is_tentative).
+  ///
+  /// In en, this message translates to:
+  /// **'Date not confirmed'**
+  String get uniDbTentative;
+
+  /// Number of scholarships listed for a university in the compare grid.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{1 scholarship} other{{count} scholarships}}'**
+  String uniDbScholarshipsCount(int count);
+
+  /// Interview cell value when at least one reviewed admission track requires an interview.
+  ///
+  /// In en, this message translates to:
+  /// **'Required'**
+  String get uniDbInterviewRequired;
+
+  /// Interview cell value when reviewed admission tracks exist and none of them requires an interview.
+  ///
+  /// In en, this message translates to:
+  /// **'Not required'**
+  String get uniDbInterviewNotRequired;
+
+  /// Action on the map detail sheet that opens the full institution page (/institutions/:id) with tuition, requirements, scholarships and the document checklist.
+  ///
+  /// In en, this message translates to:
+  /// **'View full details'**
+  String get uniDbViewFullDetails;
+
+  /// Hint shown in the map list while the user is picking universities to compare.
+  ///
+  /// In en, this message translates to:
+  /// **'Select 2–3 universities to compare'**
+  String get uniDbCompareSelectHint;
+
+  /// Button that opens the comparison for the universities the user selected in the map list.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare {count}'**
+  String uniDbCompareCta(int count);
+
+  /// Tooltip on the map-list button that starts selecting universities to compare.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare universities'**
+  String get uniDbCompareAction;
+
   /// Header title of the /applications/tracker screen. Paired with the decorative hangul label 지원 현황.
   ///
   /// In en, this message translates to:

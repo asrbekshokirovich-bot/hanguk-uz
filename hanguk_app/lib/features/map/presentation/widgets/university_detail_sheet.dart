@@ -10,6 +10,9 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../design_system/seoul_night/seoul_night.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../uni_db/data/uni_db_providers.dart';
+import '../../../uni_db/domain/institution_facts.dart';
+import '../../../uni_db/presentation/event_labels.dart';
 import '../../data/map_analytics.dart';
 import '../../domain/university.dart';
 import 'virtual_tour_screen.dart';
@@ -162,16 +165,16 @@ class UniversityDetailSheet extends ConsumerWidget {
                           // signals sourced from `v_institutions_for_map`.
                           _buildSignalsRow(l),
 
-                          // Audit M4 (2026-05-11): the legacy rows for
-                          // Annual Tuition, Acceptance Rate and the
-                          // "About" description block were removed. Those
-                          // signals lived on the dropped `universities`
-                          // table and don't have a 1:1 mapping on
-                          // `institutions`. They are surfaced in
-                          // `InstitutionDetailScreen` (uni_db feature)
-                          // when present. Leaving the rows here would
-                          // always render them empty and make the sheet
-                          // look broken.
+                          // Audit M4 (2026-05-11) removed the legacy
+                          // Annual Tuition / Acceptance Rate rows: they
+                          // read from the dropped `universities` table and
+                          // always rendered empty. The facts strip below
+                          // restores the same *questions* from the uni_db
+                          // tables that actually hold the answers, and
+                          // renders nothing at all when a university has
+                          // no reviewed guideline yet.
+                          _QuickFacts(institutionId: university.id),
+
                           const SizedBox(height: 20),
                           const Divider(
                             color: SeoulColors.glassBorder,
@@ -213,7 +216,18 @@ class UniversityDetailSheet extends ConsumerWidget {
         university.latitude != null && university.longitude != null;
     final primaryDomain = university.primaryDomain;
 
-    final actions = <Widget>[];
+    final actions = <Widget>[
+      // The route to everything the guideline actually says — tuition,
+      // requirements, scholarships, the document checklist and the full
+      // deadline calendar. `/institutions/:id` has existed since the uni_db
+      // Phase 3 work but nothing navigated to it, so the detail screen was
+      // unreachable from the app.
+      SeoulOutlineButton(
+        label: l.uniDbViewFullDetails,
+        icon: Icons.article_outlined,
+        onPressed: () => context.push('/institutions/${university.id}'),
+      ),
+    ];
 
     if (hasCuratedTour) {
       actions.add(
@@ -403,3 +417,109 @@ class UniversityDetailSheet extends ConsumerWidget {
     }
   }
 }
+
+/// The three facts a student weighs before tapping through: what it costs,
+/// what Korean level it asks for, and when the next date is.
+///
+/// Sourced from [institutionFactsProvider] — the same reduced rows the
+/// compare grid uses, so a figure never disagrees between the two screens.
+/// Renders nothing while loading, on error, or when the institution has no
+/// reviewed guideline: a sheet that silently stays as it was is better than
+/// one that flashes a row of em dashes over the map.
+class _QuickFacts extends ConsumerWidget {
+  const _QuickFacts({required this.institutionId});
+
+  final String institutionId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context)!;
+    final facts = ref.watch(institutionFactsProvider(institutionId)).valueOrNull;
+    if (facts == null || !facts.hasAnyData) return const SizedBox.shrink();
+
+    final rows = <Widget>[
+      if (facts.tuitionLabel != null)
+        _FactRow(
+          icon: Icons.payments_outlined,
+          label: l.uniDbColTuition,
+          value: facts.tuitionLabel!,
+        ),
+      if (facts.hasRequirementsRow)
+        _FactRow(
+          icon: Icons.translate_rounded,
+          label: l.uniDbColKorean,
+          value: facts.topikLabel ?? l.uniDbTopikNoMinimum,
+        ),
+      if (facts.nextDeadlineAt != null && facts.nextDeadlineEvent != null)
+        _FactRow(
+          icon: Icons.event_outlined,
+          label: eventLabel(l, facts.nextDeadlineEvent!),
+          value: DateFormat.yMMMd().format(facts.nextDeadlineAt!),
+        ),
+      if (facts.scholarshipCount > 0)
+        _FactRow(
+          icon: Icons.school_outlined,
+          label: l.uniDbScholarshipsHeading,
+          value: l.uniDbScholarshipsCount(facts.scholarshipCount),
+        ),
+    ];
+    if (rows.isEmpty) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (var i = 0; i < rows.length; i++) ...[
+            if (i > 0) const SizedBox(height: 10),
+            rows[i],
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Icon, eyebrow label, then the value pushed to the trailing edge.
+class _FactRow extends StatelessWidget {
+  const _FactRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return MergeSemantics(
+      child: Row(
+        children: [
+          Icon(icon, size: 16, color: SeoulColors.textFaint),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              label,
+              style: SeoulType.bodySecondary,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Flexible(
+            child: Text(
+              value,
+              style: SeoulType.body,
+              textAlign: TextAlign.end,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+

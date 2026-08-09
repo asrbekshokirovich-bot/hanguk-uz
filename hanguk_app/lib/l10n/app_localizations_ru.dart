@@ -1490,6 +1490,69 @@ class AppLocalizationsRu extends AppLocalizations {
   String get uniDbColLastVerified => 'Последняя проверка';
 
   @override
+  String get uniDbColTuition => 'Стоимость / семестр';
+
+  @override
+  String get uniDbColKorean => 'Уровень корейского';
+
+  @override
+  String get uniDbColNextDeadline => 'Ближайший срок';
+
+  @override
+  String get uniDbColInterview => 'Собеседование';
+
+  @override
+  String get uniDbColDocuments => 'Документы';
+
+  @override
+  String get uniDbNotPublishedYet => 'Пока не опубликовано';
+
+  @override
+  String get uniDbTopikNoMinimum => 'Минимум не указан';
+
+  @override
+  String get uniDbTopikDeferred => 'Можно подать позже';
+
+  @override
+  String get uniDbLowest => 'Минимум';
+
+  @override
+  String get uniDbTentative => 'Дата не подтверждена';
+
+  @override
+  String uniDbScholarshipsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count стипендии',
+      many: '$count стипендий',
+      few: '$count стипендии',
+      one: '1 стипендия',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get uniDbInterviewRequired => 'Требуется';
+
+  @override
+  String get uniDbInterviewNotRequired => 'Не требуется';
+
+  @override
+  String get uniDbViewFullDetails => 'Подробная информация';
+
+  @override
+  String get uniDbCompareSelectHint => 'Выберите 2-3 университета для сравнения';
+
+  @override
+  String uniDbCompareCta(int count) {
+    return 'Сравнить: $count';
+  }
+
+  @override
+  String get uniDbCompareAction => 'Сравнить университеты';
+
+  @override
   String get uniDbTrackerTitle => 'Трекер заявок';
 
   @override

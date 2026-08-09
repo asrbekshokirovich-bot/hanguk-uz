@@ -1485,6 +1485,66 @@ class AppLocalizationsVi extends AppLocalizations {
   String get uniDbColLastVerified => 'Xác minh lần cuối';
 
   @override
+  String get uniDbColTuition => 'Học phí / học kỳ';
+
+  @override
+  String get uniDbColKorean => 'Trình độ tiếng Hàn';
+
+  @override
+  String get uniDbColNextDeadline => 'Hạn sắp tới';
+
+  @override
+  String get uniDbColInterview => 'Phỏng vấn';
+
+  @override
+  String get uniDbColDocuments => 'Hồ sơ';
+
+  @override
+  String get uniDbNotPublishedYet => 'Chưa công bố';
+
+  @override
+  String get uniDbTopikNoMinimum => 'Không nêu mức tối thiểu';
+
+  @override
+  String get uniDbTopikDeferred => 'Có thể nộp sau';
+
+  @override
+  String get uniDbLowest => 'Thấp nhất';
+
+  @override
+  String get uniDbTentative => 'Ngày chưa xác nhận';
+
+  @override
+  String uniDbScholarshipsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count học bổng',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get uniDbInterviewRequired => 'Bắt buộc';
+
+  @override
+  String get uniDbInterviewNotRequired => 'Không bắt buộc';
+
+  @override
+  String get uniDbViewFullDetails => 'Xem thông tin đầy đủ';
+
+  @override
+  String get uniDbCompareSelectHint => 'Chọn 2-3 trường để so sánh';
+
+  @override
+  String uniDbCompareCta(int count) {
+    return 'So sánh $count';
+  }
+
+  @override
+  String get uniDbCompareAction => 'So sánh các trường';
+
+  @override
   String get uniDbTrackerTitle => 'Theo dõi hồ sơ';
 
   @override

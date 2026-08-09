@@ -1,20 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../map/data/map_repository.dart';
 import '../../map/domain/university.dart';
+import '../../uni_db/data/uni_db_providers.dart';
+import '../../uni_db/domain/institution_facts.dart';
+import '../../uni_db/presentation/event_labels.dart';
 import '../data/guest_compare_provider.dart';
 
 /// Guest Compare (DESIGN_SPEC screen 10) — two glass columns side by side.
 ///
 /// The prototype's rows are City, Rank, Tuition, TOPIK, Deadline, Status.
-/// Only City survives contact with the data: `v_institutions_for_map` has no
-/// rank, no tuition, no TOPIK requirement, and `next_event_at` is null for
-/// every row. Rather than render six labels with four blanks — or worse,
-/// invent numbers — the grid shows the fields that exist: city, tier, IEQAS
-/// accreditation, partner status and the official domain.
+/// City, tier, IEQAS accreditation, partner status and the official domain
+/// come from `v_institutions_for_map`, which the [University] rows carry.
+///
+/// Tuition, TOPIK and Deadline are *not* on that view — which is why this
+/// screen used to omit them — but they do exist, one level down, in the
+/// `tuition`, `requirements` and `cycle_dates` tables behind the reviewed
+/// admission cycles. [compareFactsProvider] reduces those into an
+/// [InstitutionFacts] per institution, so the prototype's rows can finally
+/// be rendered from real data.
+///
+/// The rule the screen was built on still holds: a row appears only when its
+/// value is real. An institution whose guideline has not been parsed and
+/// reviewed yet simply shows fewer rows — nothing is invented, and nothing
+/// blank is labelled.
 class GuestCompareScreen extends ConsumerWidget {
   const GuestCompareScreen({
     super.key,
@@ -63,6 +76,12 @@ class GuestCompareScreen extends ConsumerWidget {
         .map((s) => s.uni!)
         .toList(growable: false);
 
+    // One bulk fetch for both columns. Keyed by the csv of the picked ids,
+    // so it re-runs when the tray changes and caches while it doesn't.
+    final facts = ref
+        .watch(compareFactsProvider(picked.map((u) => u.id).join(',')))
+        .valueOrNull;
+
     return ListView(
       padding: const EdgeInsets.fromLTRB(
         SeoulSizes.screenPadding,
@@ -77,6 +96,7 @@ class GuestCompareScreen extends ConsumerWidget {
             Expanded(
               child: _CompareColumn(
                 university: picked.isNotEmpty ? picked[0] : null,
+                facts: picked.isNotEmpty ? facts?[picked[0].id] : null,
                 onRemove: picked.isNotEmpty
                     ? () => ref
                           .read(guestCompareProvider.notifier)
@@ -89,6 +109,7 @@ class GuestCompareScreen extends ConsumerWidget {
             Expanded(
               child: _CompareColumn(
                 university: picked.length > 1 ? picked[1] : null,
+                facts: picked.length > 1 ? facts?[picked[1].id] : null,
                 onRemove: picked.length > 1
                     ? () => ref
                           .read(guestCompareProvider.notifier)
@@ -116,11 +137,18 @@ class GuestCompareScreen extends ConsumerWidget {
 class _CompareColumn extends StatelessWidget {
   const _CompareColumn({
     required this.university,
+    required this.facts,
     required this.onRemove,
     required this.onAdd,
   });
 
   final University? university;
+
+  /// Tuition / TOPIK / deadline / scholarships for this column, or null
+  /// while the bulk query is in flight or if the institution has no
+  /// reviewed guideline. Null simply means those rows are omitted.
+  final InstitutionFacts? facts;
+
   final VoidCallback? onRemove;
   final VoidCallback onAdd;
 
@@ -133,7 +161,41 @@ class _CompareColumn extends StatelessWidget {
       return _EmptySlot(label: l.guestCompareEmptySlot, onTap: onAdd);
     }
 
+    final f = facts;
     final rows = <({String label, String ko, String value, bool lime})>[
+      // The three the prototype asked for, now that there is somewhere real
+      // to read them from. Each is omitted rather than blanked when the
+      // institution's guideline has not been parsed and reviewed yet.
+      if (f != null && f.tuitionLabel != null)
+        (
+          label: l.uniDbColTuition,
+          ko: '등록금',
+          value: f.tuitionLabel!,
+          lime: false,
+        ),
+      if (f != null && f.hasRequirementsRow)
+        (
+          label: l.uniDbColKorean,
+          ko: '한국어',
+          // A reviewed cycle that sets no TOPIK floor is a real answer, and
+          // a materially good one for a beginner — worth the row.
+          value: f.topikLabel ?? l.uniDbTopikNoMinimum,
+          lime: false,
+        ),
+      if (f != null && f.nextDeadlineAt != null && f.nextDeadlineEvent != null)
+        (
+          label: eventLabel(l, f.nextDeadlineEvent!),
+          ko: '일정',
+          value: DateFormat.yMMMd().format(f.nextDeadlineAt!),
+          lime: false,
+        ),
+      if (f != null && f.scholarshipCount > 0)
+        (
+          label: l.uniDbScholarshipsHeading,
+          ko: '장학금',
+          value: l.uniDbScholarshipsCount(f.scholarshipCount),
+          lime: true,
+        ),
       // `city_ko` is null for 87 of 204 institutions and the repository
       // substitutes the English literal 'South Korea'. Showing that under
       // "City" would present a country as a city, so the row is omitted
