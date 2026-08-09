@@ -27,3 +27,6 @@ hanguk_uz_redesign/
 *.sw?
 applications_kanban_package/
 leads_redesign_package/
+
+# Generated Uzbek voice bake-off samples (audio + comparison page)
+voice-samples/

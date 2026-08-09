@@ -43,6 +43,11 @@ verify_jwt = false
 [functions.voip-webhook]
 verify_jwt = false
 
+# AI phone agent brain (Phase 1). Called by the voice platform (Vapi/LiveKit) as
+# a tool/webhook; authenticated by the x-voice-agent-secret shared header.
+[functions.voice-agent-brain]
+verify_jwt = false
+
 # Internal workers — authenticated by the service-role key in the Authorization
 # header (checked inside the function), invoked server-to-server / by cron.
 [functions.process-call-recording]
