@@ -1,0 +1,20 @@
+# Optional YAML config. Point the CLI at it with:  uzum-scraper --config config.yaml ...
+# Anything omitted here falls back to environment variables / .env, then defaults.
+# Precedence (highest first): CLI flag > YAML config > environment > built-in default.
+
+auth_token: ""          # Bearer token (without the "Bearer " prefix)
+iid: ""                 # x-iid header; blank => auto-generated & cached
+language: uz-UZ         # uz-UZ | ru-RU | en-US
+
+# Politeness
+min_delay: 0.7          # seconds between requests
+jitter: 0.6             # random extra delay, 0..jitter seconds
+max_retries: 5
+timeout: 30
+
+# Endpoints (only change if Uzum moves hosts)
+rest_base: https://api.uzum.uz/api
+graphql_url: https://graphql.uzum.uz/
+
+# Output
+output_dir: ./data
