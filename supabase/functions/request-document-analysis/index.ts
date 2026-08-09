@@ -9,6 +9,9 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 const STAFF_ROLES = ["owner", "admin", "document_handler", "call_operator"];
+// Mirrors comm_processing_jobs.max_attempts (table default). A job at this many
+// attempts is permanently failed and no longer claimable.
+const MAX_ATTEMPTS = 3;
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -40,17 +43,35 @@ Deno.serve(async (req) => {
     }
 
     const limit = Math.max(1, Math.min(12, Number(body.limit) || 6));
-    const { data: jobs } = await admin.from("comm_processing_jobs")
-      .select("ref_id, attempts, max_attempts, status")
-      .eq("job_type", "document_extract").in("status", ["pending", "error"])
-      .order("created_at", { ascending: true }).limit(limit);
-    const claimable = (jobs ?? []).filter((j: any) => (j.attempts ?? 0) < (j.max_attempts ?? 3));
-    let processed = 0;
-    for (const j of claimable) { const r = await invokeOne(j.ref_id); if (r.ok) processed++; }
 
+    // Optional: requeue documents that previously exhausted their retries so a
+    // fresh "read everything" pass gives them one more chance. The client only
+    // sets this on the first batch of a drain, never on the background auto-run.
+    if (body.reset_errors) {
+      await admin.from("comm_processing_jobs")
+        .update({ status: "pending", attempts: 0, last_error: null })
+        .eq("job_type", "document_extract").eq("status", "error");
+    }
+
+    // Claim jobs that are actually worth attempting: pending, or errored but
+    // still under max_attempts (= MAX_ATTEMPTS). Filtering on attempts in SQL is
+    // what keeps permanently-failed jobs from sitting at the front of the queue
+    // and starving the rest — every backfilled job shares one created_at, so we
+    // also add id as a stable tiebreak for deterministic ordering.
+    const { data: jobs } = await admin.from("comm_processing_jobs")
+      .select("ref_id")
+      .eq("job_type", "document_extract").in("status", ["pending", "error"])
+      .lt("attempts", MAX_ATTEMPTS)
+      .order("created_at", { ascending: true }).order("id", { ascending: true })
+      .limit(limit);
+    let processed = 0;
+    for (const j of (jobs ?? [])) { const r = await invokeOne((j as any).ref_id); if (r.ok) processed++; }
+
+    // Remaining counts only claimable jobs (excludes exhausted errors) so the
+    // client's drain loop reaches 0 and terminates instead of spinning forever.
     const { count: remaining } = await admin.from("comm_processing_jobs")
       .select("*", { count: "exact", head: true })
-      .eq("job_type", "document_extract").in("status", ["pending", "error"]);
+      .eq("job_type", "document_extract").in("status", ["pending", "error"]).lt("attempts", MAX_ATTEMPTS);
     return json({ ok: true, processed, remaining: remaining ?? 0 });
   } catch (err) {
     return json({ error: err instanceof Error ? err.message : "Internal error" }, 500);

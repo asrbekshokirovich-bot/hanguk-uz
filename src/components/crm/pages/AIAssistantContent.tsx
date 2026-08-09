@@ -69,22 +69,41 @@ export default function AIAssistantContent() {
   };
 
   // Reads the student files (OCR + extraction) so the AI can answer about their
-  // contents. Drains the queue in batches; safe to run repeatedly.
-  const indexDocuments = async () => {
+  // contents. Drains the whole queue in small batches; safe to run repeatedly.
+  // `auto` runs it silently in the background (no toasts) when the page opens.
+  const indexDocuments = async (opts?: { auto?: boolean }) => {
     if (indexing) return;
     setIndexing(true);
     let processedTotal = 0;
+    let prevRemaining = Infinity;
+    let stalls = 0;
     try {
-      for (let i = 0; i < 300; i++) {
-        const { data, error: invErr } = await supabase.functions.invoke('request-document-analysis', { body: { limit: 8 } });
+      for (let i = 0; i < 400; i++) {
+        const { data, error: invErr } = await supabase.functions.invoke('request-document-analysis', {
+          // Retry previously-exhausted documents once, only on a manual run.
+          body: { limit: 4, reset_errors: i === 0 && !opts?.auto },
+        });
         if (invErr) throw new Error(invErr.message);
-        processedTotal += data?.processed || 0;
-        setDocRemaining(data?.remaining ?? 0);
-        if (!data || (data.remaining ?? 0) === 0 || (data.processed ?? 0) === 0) break;
+        const processed = data?.processed ?? 0;
+        const remaining = data?.remaining ?? 0;
+        processedTotal += processed;
+        setDocRemaining(remaining);
+        // Stop once the backlog of claimable jobs is drained.
+        if (remaining === 0) break;
+        // No-progress guard: if a batch reads nothing and the backlog isn't
+        // shrinking, give up after a few tries instead of spinning forever.
+        if (processed === 0 && remaining >= prevRemaining) {
+          if (++stalls >= 3) break;
+        } else {
+          stalls = 0;
+        }
+        prevRemaining = remaining;
       }
-      toast({ title: 'Documents indexed', description: `Read ${processedTotal} file(s). Hanguk AI can now answer about their contents.` });
+      if (!opts?.auto || processedTotal > 0) {
+        toast({ title: 'Documents indexed', description: `Read ${processedTotal} file(s). Hanguk AI can now answer about their contents.` });
+      }
     } catch (e) {
-      toast({ title: 'Indexing stopped', description: e instanceof Error ? e.message : 'Unknown error', variant: 'destructive' });
+      if (!opts?.auto) toast({ title: 'Indexing stopped', description: e instanceof Error ? e.message : 'Unknown error', variant: 'destructive' });
     } finally {
       setIndexing(false);
     }
@@ -134,6 +153,18 @@ export default function AIAssistantContent() {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
+
+  // Automatically read any not-yet-indexed documents in the background when the
+  // assistant opens, so the AI always answers from the full set of files without
+  // anyone having to remember to click "Read all documents". Runs once per mount
+  // and exits immediately when the backlog is already drained.
+  const autoIndexedRef = useRef(false);
+  useEffect(() => {
+    if (autoIndexedRef.current) return;
+    autoIndexedRef.current = true;
+    void indexDocuments({ auto: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleSend = () => {
     if (!input.trim() || isLoading) return;
@@ -318,7 +349,7 @@ export default function AIAssistantContent() {
                 <Button
                   variant="ghost"
                   className="w-full justify-start gap-3 h-auto py-3 px-3 bg-info/10 text-info hover:bg-info/20"
-                  onClick={indexDocuments}
+                  onClick={() => indexDocuments()}
                   disabled={indexing}
                 >
                   {indexing ? <Loader2 className="h-5 w-5 animate-spin flex-shrink-0" /> : <FileText className="h-5 w-5 flex-shrink-0" />}
