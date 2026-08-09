@@ -1,8 +1,15 @@
 {
   "intake": {
     "label": "모집",
-    "season": { "spring": "봄", "fall": "가을" },
-    "status": { "open": "모집중", "planning": "준비중", "closed": "마감" },
+    "season": {
+      "spring": "봄",
+      "fall": "가을"
+    },
+    "status": {
+      "open": "모집중",
+      "planning": "준비중",
+      "closed": "마감"
+    },
     "previousYear": "이전 연도",
     "nextYear": "다음 연도",
     "banner": {
@@ -1405,7 +1412,7 @@
     },
     "tabs": {
       "queue": "승인 대기열",
-      "flags": "확인 필요"
+      "links": "링크"
     },
     "rail": {
       "header": "대기열 — {{n}}개 대학",
@@ -1543,13 +1550,18 @@
       "accessTitle": "접근 제한",
       "accessBody": "대학 데이터를 볼 권한이 없습니다."
     },
-    "flags": {
-      "banner": "이 기록들은 자동 게시되었지만 스캐너 신뢰도가 낮아 표시되었습니다. 이미 학생에게 공개 중이며, 점검용입니다.",
-      "count": "플래그 {{n}}개",
-      "search": "대학, 섹션, 사유…",
-      "emptyTitle": "표시된 항목 없음",
-      "emptyBody": "표시된 기록이 없습니다.",
-      "emptyFiltered": "검색에 맞는 기록이 없습니다."
+    "links": {
+      "banner": "야간 스캐너가 열지 못한 링크입니다(한국 사이트 차단). 원본 링크를 직접 열고 필요하면 PDF를 업로드하세요.",
+      "search": "링크, 제목 또는 사유…",
+      "untitled": "제목 없는 링크",
+      "fromRoutine": "Routine 수집",
+      "fromSearch": "검색 수집",
+      "open": "링크 열기",
+      "dismiss": "닫기",
+      "dismissed": "목록에서 링크를 제거했습니다.",
+      "emptyTitle": "열지 못한 링크 없음",
+      "emptyBody": "스캐너가 모든 사이트에 접속했습니다 — 대기 중인 링크가 없습니다.",
+      "emptyFiltered": "검색과 일치하는 링크가 없습니다."
     }
   }
 }

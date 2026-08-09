@@ -1,8 +1,15 @@
 {
   "intake": {
     "label": "Intake",
-    "season": { "spring": "Spring", "fall": "Fall" },
-    "status": { "open": "Open", "planning": "Planning", "closed": "Closed" },
+    "season": {
+      "spring": "Spring",
+      "fall": "Fall"
+    },
+    "status": {
+      "open": "Open",
+      "planning": "Planning",
+      "closed": "Closed"
+    },
     "previousYear": "Previous year",
     "nextYear": "Next year",
     "banner": {
@@ -1455,7 +1462,7 @@
     },
     "tabs": {
       "queue": "Approval queue",
-      "flags": "Needs attention"
+      "links": "Links"
     },
     "rail": {
       "header": "Queue — {{n}} universities",
@@ -1583,13 +1590,18 @@
       "accessTitle": "Access restricted",
       "accessBody": "You don't have permission to view university data."
     },
-    "flags": {
-      "banner": "These records were auto-published but flagged because the scanner's confidence was low. They are already visible to students — for spot-checking only.",
-      "count": "{{n}} flag(s)",
-      "search": "University, section or reason…",
-      "emptyTitle": "Nothing flagged",
-      "emptyBody": "There are no flagged records.",
-      "emptyFiltered": "No flagged records match your search."
+    "links": {
+      "banner": "The nightly scanner could not open these links (Korean sites block it). Open the original link by hand and upload the PDF if needed.",
+      "search": "Link, title or reason…",
+      "untitled": "Untitled link",
+      "fromRoutine": "Found by Routine",
+      "fromSearch": "Found by search",
+      "open": "Open link",
+      "dismiss": "Dismiss",
+      "dismissed": "Link removed from the list.",
+      "emptyTitle": "No unopened links",
+      "emptyBody": "The scanner reached every site — nothing is waiting.",
+      "emptyFiltered": "No link matches your search."
     }
   }
 }

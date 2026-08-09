@@ -1,8 +1,15 @@
 {
   "intake": {
     "label": "Mavsum",
-    "season": { "spring": "Bahor", "fall": "Kuz" },
-    "status": { "open": "Ochiq", "planning": "Rejalashtirilmoqda", "closed": "Yopilgan" },
+    "season": {
+      "spring": "Bahor",
+      "fall": "Kuz"
+    },
+    "status": {
+      "open": "Ochiq",
+      "planning": "Rejalashtirilmoqda",
+      "closed": "Yopilgan"
+    },
     "previousYear": "Oldingi yil",
     "nextYear": "Keyingi yil",
     "banner": {
@@ -1494,7 +1501,7 @@
     },
     "tabs": {
       "queue": "Tasdiqlash navbati",
-      "flags": "E'tibor kerak"
+      "links": "Havolalar"
     },
     "rail": {
       "header": "Navbat — {{n}} universitet",
@@ -1632,13 +1639,18 @@
       "accessTitle": "Ruxsat yo'q",
       "accessBody": "Universitet ma'lumotlarini ko'rish uchun sizda ruxsat yo'q."
     },
-    "flags": {
-      "banner": "Bu yozuvlar avto-e'lon qilingan, lekin skaner ishonchi past bo'lgani uchun belgilangan. Ular allaqachon talabalarga ko'rinadi — faqat ko'zdan kechirish uchun.",
-      "count": "{{n}} ta bayroq",
-      "search": "Universitet, bo'lim yoki sabab…",
-      "emptyTitle": "Hech narsa belgilanmagan",
-      "emptyBody": "Belgilangan yozuvlar yo'q.",
-      "emptyFiltered": "Qidiruvga mos yozuv topilmadi."
+    "links": {
+      "banner": "Bu havolalarni tungi skaner ocholmadi (koreys saytlari bloklamoqda). Original havolani qo'lda oching va kerak bo'lsa PDF'ni yuklang.",
+      "search": "Havola, sarlavha yoki sabab…",
+      "untitled": "Sarlavhasiz havola",
+      "fromRoutine": "Routine topgan",
+      "fromSearch": "Qidiruv topgan",
+      "open": "Havolani ochish",
+      "dismiss": "Yopish",
+      "dismissed": "Havola ro'yxatdan olib tashlandi.",
+      "emptyTitle": "Ochilmagan havola yo'q",
+      "emptyBody": "Skaner hamma saytga kira oldi — kutayotgan havola yo'q.",
+      "emptyFiltered": "Qidiruvga mos havola topilmadi."
     }
   }
 }
