@@ -1601,7 +1601,20 @@
       "dismissed": "Link removed from the list.",
       "emptyTitle": "No unopened links",
       "emptyBody": "The scanner reached every site — nothing is waiting.",
-      "emptyFiltered": "No link matches your search."
+      "emptyFiltered": "No link matches your search.",
+      "upload": {
+        "action": "Add PDF",
+        "title": "Upload the PDF by hand",
+        "description": "Open the link, download the 모집요강 PDF and drop it here. It is queued for analysis and the result shows up in the approval queue.",
+        "searchPlaceholder": "Search a university (name or domain)…",
+        "noMatch": "No matching university.",
+        "choose": "Choose a PDF file",
+        "cancel": "Cancel",
+        "submit": "Upload",
+        "queued": "PDF uploaded — queued for analysis.",
+        "notPdf": "Only PDF files can be uploaded.",
+        "tooLarge": "File too large (max {{mb}} MB)."
+      }
     }
   }
 }
