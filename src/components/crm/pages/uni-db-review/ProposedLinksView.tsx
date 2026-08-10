@@ -19,6 +19,7 @@ import {
   type ProposedSourceRow,
 } from '@/hooks/useProposedSources';
 import { fmtDateKST } from './reviewGroups';
+import { LinkPdfUpload } from './LinkPdfUpload';
 
 /**
  * "Havolalar" tab — the links the nightly Routine could not fetch itself.
@@ -92,6 +93,13 @@ function LinkRow({
       ) : null}
 
       <div className="flex flex-wrap items-center gap-2 pt-0.5">
+        <LinkPdfUpload
+          url={row.url_ko}
+          candidateTitle={row.candidate_title}
+          // The PDF is in the pipeline now, so the link has done its job —
+          // clear it from the queue with the same dismiss path.
+          onUploaded={() => onDismiss(row)}
+        />
         <Button asChild size="sm" variant="outline" className="h-8">
           <a href={row.url_ko} target="_blank" rel="noopener noreferrer">
             <ExternalLink className="mr-1.5 h-[14px] w-[14px]" />

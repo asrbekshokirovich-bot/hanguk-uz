@@ -1650,7 +1650,13 @@
       "dismissed": "Havola ro'yxatdan olib tashlandi.",
       "emptyTitle": "Ochilmagan havola yo'q",
       "emptyBody": "Skaner hamma saytga kira oldi — kutayotgan havola yo'q.",
-      "emptyFiltered": "Qidiruvga mos havola topilmadi."
+      "emptyFiltered": "Qidiruvga mos havola topilmadi.",
+      "uploadPdf": "PDF yuklash",
+      "pickUni": "Universitetni tanlang",
+      "searchUni": "Universitet qidirish…",
+      "noUni": "Universitet topilmadi.",
+      "notPdf": "Faqat PDF fayl yuklang.",
+      "uploaded": "PDF yuklandi — {{uni}} uchun tahlilga navbatga qo'yildi."
     }
   }
 }
