@@ -5,6 +5,7 @@ import {
   AlertTriangle,
   CheckCircle2,
   ExternalLink,
+  FileUp,
   Link2,
   Loader2,
   RefreshCw,
@@ -19,6 +20,7 @@ import {
   type ProposedSourceRow,
 } from '@/hooks/useProposedSources';
 import { fmtDateKST } from './reviewGroups';
+import { UploadGuidelineDialog } from './UploadGuidelineDialog';
 
 /**
  * "Havolalar" tab — the links the nightly Routine could not fetch itself.
@@ -49,6 +51,7 @@ function LinkRow({
 }) {
   const { t } = useTranslation();
   const fromRoutine = row.proposed_by === 'manual';
+  const [uploadOpen, setUploadOpen] = useState(false);
 
   return (
     <div className="flex flex-col gap-2 rounded-xl border border-border bg-card p-4 px-[18px] shadow-sm">
@@ -100,6 +103,15 @@ function LinkRow({
         </Button>
         <Button
           size="sm"
+          variant="outline"
+          className="h-8"
+          onClick={() => setUploadOpen(true)}
+        >
+          <FileUp className="mr-1.5 h-[14px] w-[14px]" />
+          {t('uniReview.links.upload.action')}
+        </Button>
+        <Button
+          size="sm"
           variant="ghost"
           className="h-8 text-muted-foreground"
           disabled={dismissing}
@@ -113,6 +125,8 @@ function LinkRow({
           {t('uniReview.links.dismiss')}
         </Button>
       </div>
+
+      <UploadGuidelineDialog open={uploadOpen} onOpenChange={setUploadOpen} url={row.url_ko} />
     </div>
   );
 }

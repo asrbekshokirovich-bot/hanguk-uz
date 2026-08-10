@@ -1650,7 +1650,20 @@
       "dismissed": "Havola ro'yxatdan olib tashlandi.",
       "emptyTitle": "Ochilmagan havola yo'q",
       "emptyBody": "Skaner hamma saytga kira oldi — kutayotgan havola yo'q.",
-      "emptyFiltered": "Qidiruvga mos havola topilmadi."
+      "emptyFiltered": "Qidiruvga mos havola topilmadi.",
+      "upload": {
+        "action": "PDF qo'shish",
+        "title": "Qo'lda PDF yuklash",
+        "description": "Havolani ochib, 모집요강 PDF'ini yuklab oling va shu yerga qo'shing. Fayl tahlil navbatiga tushadi va natija tasdiqlash navbatida ko'rinadi.",
+        "searchPlaceholder": "Universitetni qidiring (nomi yoki domeni)…",
+        "noMatch": "Mos universitet topilmadi.",
+        "choose": "PDF faylni tanlash",
+        "cancel": "Bekor qilish",
+        "submit": "Yuklash",
+        "queued": "PDF yuklandi — tahlil navbatiga qo'shildi.",
+        "notPdf": "Faqat PDF fayl yuklash mumkin.",
+        "tooLarge": "Fayl juda katta (maksimum {{mb}} MB)."
+      }
     }
   }
 }

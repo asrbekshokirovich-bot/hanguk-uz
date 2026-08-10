@@ -1561,7 +1561,20 @@
       "dismissed": "목록에서 링크를 제거했습니다.",
       "emptyTitle": "열지 못한 링크 없음",
       "emptyBody": "스캐너가 모든 사이트에 접속했습니다 — 대기 중인 링크가 없습니다.",
-      "emptyFiltered": "검색과 일치하는 링크가 없습니다."
+      "emptyFiltered": "검색과 일치하는 링크가 없습니다.",
+      "upload": {
+        "action": "PDF 추가",
+        "title": "PDF 직접 업로드",
+        "description": "링크를 열어 모집요강 PDF를 내려받은 뒤 여기에 올리세요. 분석 대기열에 등록되고 결과는 승인 대기열에 표시됩니다.",
+        "searchPlaceholder": "대학 검색(이름 또는 도메인)…",
+        "noMatch": "일치하는 대학이 없습니다.",
+        "choose": "PDF 파일 선택",
+        "cancel": "취소",
+        "submit": "업로드",
+        "queued": "PDF를 업로드했습니다 — 분석 대기열에 등록됨.",
+        "notPdf": "PDF 파일만 업로드할 수 있습니다.",
+        "tooLarge": "파일이 너무 큽니다(최대 {{mb}} MB)."
+      }
     }
   }
 }
