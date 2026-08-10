@@ -1543,6 +1543,14 @@
       "staleTitle": "Hujjat maqsadli mavsumdan eskiroq mavsumga tegishli — eskirgan ma'lumot",
       "stale": "eskirgan"
     },
+    "cycleFilter": {
+      "hiddenCount": "Boshqa qabul mavsumlariga oid {{n}} ta hujjat yashirilgan",
+      "showingAll": "Barcha mavsumlar ko'rsatilmoqda",
+      "showAll": "Barcha mavsumlarni ko'rsatish",
+      "currentOnly": "Faqat joriy mavsum",
+      "emptyCurrentCycleTitle": "Ushbu mavsum uchun navbatda hech narsa yo'q",
+      "emptyOtherCycles": "Boshqa mavsumlardan {{n}} ta element yashirilgan — ko'rish uchun almashtiring."
+    },
     "actions": {
       "approve": "Tasdiqlash",
       "approveTitle": "Tasdiqlash va talabalarga e'lon qilish",

@@ -1504,6 +1504,14 @@
       "staleTitle": "Document describes an older cycle than the crawl target — stale data",
       "stale": "stale"
     },
+    "cycleFilter": {
+      "hiddenCount": "{{n}} document(s) from other admission cycles are hidden",
+      "showingAll": "Showing all cycles",
+      "showAll": "Show all cycles",
+      "currentOnly": "Current cycle only",
+      "emptyCurrentCycleTitle": "Nothing pending for this cycle",
+      "emptyOtherCycles": "{{n}} item(s) from other cycles are hidden — switch to see them."
+    },
     "actions": {
       "approve": "Approve",
       "approveTitle": "Approve and publish to students",

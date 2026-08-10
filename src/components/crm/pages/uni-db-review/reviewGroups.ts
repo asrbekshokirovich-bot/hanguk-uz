@@ -1,6 +1,7 @@
 import type { LucideIcon } from 'lucide-react';
 import { CalendarClock, GraduationCap, Banknote, FileText, Award } from 'lucide-react';
 import type { ReviewQueueRow } from '@/hooks/useReviewQueue';
+import type { Intake } from '@/contexts/IntakeContext';
 import { parseReliability, rollupColor, type ReliabilityColor } from '../reliability';
 
 /**
@@ -20,6 +21,21 @@ export interface GuidelineGroup {
   storagePath: string | null;
   guidelineDocId: string | null;
   rows: ReviewQueueRow[];
+}
+
+/**
+ * Whether `row`'s classified admission cycle (guideline_documents.academic_year
+ * / semester, surfaced as doc_academic_year/doc_semester) matches the given
+ * intake — the global season/year switcher (`IntakeContext.activeIntake`) that
+ * "re-scopes the entire app" per its own docstring, but which the review queue
+ * previously ignored, so every cycle ever crawled piled up in one undivided
+ * list. Rows with no classified cycle (doc_academic_year == null) always match
+ * — an unclassified document still needs review and shouldn't silently vanish.
+ */
+export function matchesIntakeCycle(row: ReviewQueueRow, intake: Intake | null): boolean {
+  if (!intake) return true;
+  if (row.doc_academic_year == null) return true;
+  return row.doc_academic_year === intake.year && row.doc_semester === intake.season;
 }
 
 export function groupRows(rows: ReviewQueueRow[]): GuidelineGroup[] {
