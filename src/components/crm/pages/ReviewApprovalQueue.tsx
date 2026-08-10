@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Loader2, RefreshCw, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { Loader2, RefreshCw, CheckCircle2, AlertTriangle, Layers } from 'lucide-react';
 import { toast } from 'sonner';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { useActiveIntake } from '@/contexts/IntakeContext';
 import {
   useReviewQueue,
   useReviewActions,
@@ -14,6 +15,7 @@ import {
   groupRows,
   sortGroups,
   mergeWithDecided,
+  matchesIntakeCycle,
   openRollup,
   shortName,
   sectionLabelKey,
@@ -43,15 +45,27 @@ export function ReviewApprovalQueue() {
   const { t } = useTranslation();
   const { data: rows = [], isLoading, error, refetch } = useReviewQueue();
   const { accept, reject, flagSourceWrong } = useReviewActions();
+  const { activeIntake } = useActiveIntake();
 
   const [decided, setDecided] = useState<DecidedMap>({});
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [rejectingRowId, setRejectingRowId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState<RejectionReason>('hallucinated_field');
+  const [showAllCycles, setShowAllCycles] = useState(false);
+
+  const merged = useMemo(() => mergeWithDecided(rows, decided), [rows, decided]);
+  // The global season/year switcher (top bar) is meant to scope the whole app —
+  // by default only show queue rows whose classified cycle matches it, so a
+  // 2027 selection doesn't drown in backlog from 2026 and earlier cycles.
+  const cycleFiltered = useMemo(
+    () => (showAllCycles ? merged : merged.filter((r) => matchesIntakeCycle(r, activeIntake))),
+    [merged, showAllCycles, activeIntake],
+  );
+  const hiddenByCycleCount = merged.length - cycleFiltered.length;
 
   const sorted = useMemo(
-    () => sortGroups(groupRows(mergeWithDecided(rows, decided)), decided),
-    [rows, decided],
+    () => sortGroups(groupRows(cycleFiltered), decided),
+    [cycleFiltered, decided],
   );
 
   // Pin the default selection (first after sort) once data arrives — a
@@ -172,7 +186,42 @@ export function ReviewApprovalQueue() {
     );
   }
 
+  const cycleToggle = (count: number) => (
+    <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-muted/40 px-3 py-2 text-[12.5px] text-muted-foreground">
+      <span className="flex items-center gap-1.5">
+        <Layers className="h-3.5 w-3.5" />
+        {showAllCycles
+          ? t('uniReview.cycleFilter.showingAll')
+          : t('uniReview.cycleFilter.hiddenCount', { n: count })}
+      </span>
+      <Button
+        variant="ghost"
+        size="sm"
+        className="h-7 px-2 text-[12.5px]"
+        onClick={() => setShowAllCycles((v) => !v)}
+      >
+        {showAllCycles ? t('uniReview.cycleFilter.currentOnly') : t('uniReview.cycleFilter.showAll')}
+      </Button>
+    </div>
+  );
+
   if (sorted.length === 0) {
+    if (hiddenByCycleCount > 0 && !showAllCycles) {
+      return (
+        <div>
+          {cycleToggle(hiddenByCycleCount)}
+          <Card>
+            <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+              <CheckCircle2 className="mb-3 h-10 w-10 text-success" />
+              <h3 className="font-medium">{t('uniReview.cycleFilter.emptyCurrentCycleTitle')}</h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {t('uniReview.cycleFilter.emptyOtherCycles', { n: hiddenByCycleCount })}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      );
+    }
     return (
       <Card>
         <CardContent className="flex flex-col items-center justify-center py-16 text-center">
@@ -185,36 +234,39 @@ export function ReviewApprovalQueue() {
   }
 
   return (
-    <div className="grid items-start gap-4 lg:grid-cols-[318px_minmax(0,1fr)]">
-      <ReviewTriageRail
-        groups={sorted}
-        decided={decided}
-        selectedKey={selected?.key ?? null}
-        onSelect={(key) => {
-          setSelectedKey(key);
-          setRejectingRowId(null);
-        }}
-      />
-      {selected ? (
-        <ReviewGuidelineDetail
-          group={selected}
+    <div>
+      {hiddenByCycleCount > 0 || showAllCycles ? cycleToggle(hiddenByCycleCount) : null}
+      <div className="grid items-start gap-4 lg:grid-cols-[318px_minmax(0,1fr)]">
+        <ReviewTriageRail
+          groups={sorted}
           decided={decided}
-          rejectingRowId={rejectingRowId}
-          rejectReason={rejectReason}
-          onReasonChange={setRejectReason}
-          onStartReject={(row) => setRejectingRowId(row.id)}
-          onCancelReject={() => setRejectingRowId(null)}
-          handlers={handlers}
-          actingRowId={actingRowId || null}
-          hasNext={!!nextPending}
-          onNext={() => {
-            if (nextPending) {
-              setSelectedKey(nextPending.key);
-              setRejectingRowId(null);
-            }
+          selectedKey={selected?.key ?? null}
+          onSelect={(key) => {
+            setSelectedKey(key);
+            setRejectingRowId(null);
           }}
         />
-      ) : null}
+        {selected ? (
+          <ReviewGuidelineDetail
+            group={selected}
+            decided={decided}
+            rejectingRowId={rejectingRowId}
+            rejectReason={rejectReason}
+            onReasonChange={setRejectReason}
+            onStartReject={(row) => setRejectingRowId(row.id)}
+            onCancelReject={() => setRejectingRowId(null)}
+            handlers={handlers}
+            actingRowId={actingRowId || null}
+            hasNext={!!nextPending}
+            onNext={() => {
+              if (nextPending) {
+                setSelectedKey(nextPending.key);
+                setRejectingRowId(null);
+              }
+            }}
+          />
+        ) : null}
+      </div>
     </div>
   );
 }

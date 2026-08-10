@@ -3,6 +3,7 @@ import { useQueryClient, useIsFetching } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { useCanReviewUniDb } from '@/hooks/useCanReviewUniDb';
 import { useReviewQueue } from '@/hooks/useReviewQueue';
+import { useActiveIntake } from '@/contexts/IntakeContext';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
@@ -11,7 +12,7 @@ import { CrawlTargetPanel } from './CrawlTargetPanel';
 import { ReviewApprovalQueue } from './ReviewApprovalQueue';
 import { useProposedSources } from '@/hooks/useProposedSources';
 import { ProposedLinksView } from './uni-db-review/ProposedLinksView';
-import { groupRows } from './uni-db-review/reviewGroups';
+import { groupRows, matchesIntakeCycle } from './uni-db-review/reviewGroups';
 
 /**
  * University-data review, redesigned per design_handoff/uni_db_review:
@@ -36,8 +37,14 @@ export function UniDbReviewContent() {
   const fetching = useIsFetching({ queryKey: ['uni_db'] });
   const { data: queueRows = [] } = useReviewQueue(canReview);
   const { data: linkRows = [] } = useProposedSources(canReview);
+  const { activeIntake } = useActiveIntake();
 
-  const pendingCount = useMemo(() => groupRows(queueRows).length, [queueRows]);
+  // Matches the queue tab's default view (current cycle only) so the badge
+  // count doesn't imply more work is pending than what's actually shown.
+  const pendingCount = useMemo(
+    () => groupRows(queueRows.filter((r) => matchesIntakeCycle(r, activeIntake))).length,
+    [queueRows, activeIntake],
+  );
 
   if (loading) {
     return (
