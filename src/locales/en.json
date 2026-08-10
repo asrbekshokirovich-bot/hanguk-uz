@@ -1601,7 +1601,13 @@
       "dismissed": "Link removed from the list.",
       "emptyTitle": "No unopened links",
       "emptyBody": "The scanner reached every site — nothing is waiting.",
-      "emptyFiltered": "No link matches your search."
+      "emptyFiltered": "No link matches your search.",
+      "uploadPdf": "Upload PDF",
+      "pickUni": "Pick a university",
+      "searchUni": "Search universities…",
+      "noUni": "No university found.",
+      "notPdf": "Please choose a PDF file.",
+      "uploaded": "PDF uploaded — queued for analysis for {{uni}}."
     }
   }
 }
