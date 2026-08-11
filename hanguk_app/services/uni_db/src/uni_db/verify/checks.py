@@ -81,24 +81,60 @@ def _num(value: object) -> float | None:
 # ---------------------------------------------------------------------------
 
 _MIN_QUOTE_LEN = 12
-_CHUNK = 20
-_MIN_CHUNK = 10
+# Shortest run of quote characters that counts as evidence rather than
+# coincidence. Korean is dense — 8 chars is already several syllable blocks.
+_MIN_RUN = 8
+# Fraction of the quote that must be covered by such runs.
+_MIN_COVERAGE = 0.75
+
+
+def _covered_fraction(nq: str, norm_pdf: str) -> float:
+    """How much of the quote is made of runs (>= _MIN_RUN chars) found in the PDF.
+
+    Walks the quote left to right; at each position takes the LONGEST run
+    starting there that occurs in the PDF and skips past it. Coverage is those
+    runs' total length over the quote's length, so it does not depend on where
+    the reformatting falls — or on how long the quote is.
+    """
+    n = len(nq)
+    if n == 0:
+        return 1.0
+    covered = i = 0
+    while i < n:
+        best = 0
+        lo, hi = _MIN_RUN, n - i
+        while lo <= hi:                      # binary search: runs are prefix-closed
+            mid = (lo + hi) // 2
+            if nq[i:i + mid] in norm_pdf:
+                best = mid
+                lo = mid + 1
+            else:
+                hi = mid - 1
+        if best:
+            covered += best
+            i += best
+        else:
+            i += 1
+    return covered / n
 
 
 def _quote_grounded(nq: str, norm_pdf: str) -> bool:
     """Whitespace-insensitive grounding: the quote is grounded if it appears
-    whole, or if a MAJORITY of its ~20-char chunks appear. Chunking tolerates
-    interior reformatting (e.g. the model rewriting a date `2026년 9월 1일` →
-    `2026.9.1`) — which would defeat a whole-string or prefix-only match — while
-    a fabricated quote, sharing no long run with the source, still fails."""
+    whole, or if at least `_MIN_COVERAGE` of it is covered by runs found in the
+    PDF. That tolerates interior reformatting (a date rewritten `2026년 9월 1일`
+    → `2026.9.1`, or a table row the model stitched from a header cell and a
+    body cell that sit apart in the extracted text) while a fabricated quote,
+    sharing no long run with the source, still fails.
+
+    Coverage replaced a majority-of-fixed-20-char-chunks vote, which made
+    strictness *inversely* proportional to quote length: a 23-char quote became
+    one chunk that had to match exactly — zero tolerance — while an 81-char
+    quote could be 40 characters wrong and still pass. Short, genuine quotes
+    were the common case, so most `quote_not_in_source` flags were false.
+    """
     if not nq or nq in norm_pdf:
         return True
-    chunks = [nq[i:i + _CHUNK] for i in range(0, len(nq), _CHUNK)]
-    chunks = [c for c in chunks if len(c) >= _MIN_CHUNK]
-    if not chunks:
-        return True
-    hits = sum(1 for c in chunks if c in norm_pdf)
-    return hits * 2 >= len(chunks)
+    return _covered_fraction(nq, norm_pdf) >= _MIN_COVERAGE
 
 
 def check_grounding_deterministic(

@@ -172,6 +172,42 @@ class TestGroundingDeterministic:
         )
         assert out == []
 
+    def test_short_quote_survives_a_small_gap(self) -> None:
+        # A table row the model stitched from a header cell and a body cell that
+        # sit apart in the extracted text: everything but the "국적 증빙" prefix is
+        # verbatim. The old majority-of-20-char-chunks vote turned a quote this
+        # short into a single chunk that had to match exactly, so this was
+        # flagged as fabricated.
+        pdf = "제출서류 안내\n해당자만 본인 외국인등록증(앞·뒷면) ○\n학력 증빙 졸업증명서 ○"
+        out = checks.check_grounding_deterministic(
+            "documents_required",
+            {"rows": [{"source_text_ko": "국적 증빙 해당자만 본인 외국인등록증(앞·뒷면) ○"}]},
+            pdf,
+        )
+        assert out == []
+
+    def test_strictness_does_not_depend_on_quote_length(self) -> None:
+        # Two quotes with the same verbatim ratio (~86% grounded, the rest
+        # invented) must get the same verdict regardless of length. Under the
+        # chunk vote the verdict flipped with length alone: a short quote
+        # collapsed to one chunk that had to match exactly, while a long one
+        # could lose 40 characters and still pass.
+        pdf = checks._norm("가나다라마바사아자차카타파하" * 20)
+        unit = "가나다라마바사아자차카타파하" * 3   # 42 grounded chars
+        short = checks._norm(unit + "Z" * 7)
+        long = checks._norm(unit * 4 + "Z" * 28)
+        assert checks._quote_grounded(short, pdf) == checks._quote_grounded(long, pdf)
+        assert checks._quote_grounded(short, pdf) is True
+
+    def test_coverage_separates_real_from_fabricated(self) -> None:
+        pdf = checks._norm(
+            "원서접수 및 서류제출(전형료납부) 2023.10.04.(수) ~ 11.30.(목) 서류제출 마감 2023.12.04.(월)"
+        )
+        real = checks._norm("원서접수 및 서류제출(전형료납부) ~ 11.30.(목)")
+        fake = checks._norm("본교는 모든 외국인 학생에게 기숙사를 무상으로 제공합니다")
+        assert checks._covered_fraction(real, pdf) >= checks._MIN_COVERAGE
+        assert checks._covered_fraction(fake, pdf) < 0.4
+
 
 # --------------------------------------------------------------------------- #
 # Gate 3 — consensus
