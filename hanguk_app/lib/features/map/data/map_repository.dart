@@ -31,7 +31,12 @@ final universitiesProvider = FutureProvider<List<University>>((ref) async {
           'virtual_tour, walkaround_url, '
           // primary_domain drives the "Visit University Website" button
           // (migration 20260728120000). All institutions have it populated.
-          'primary_domain',
+          'primary_domain, '
+          // True when we hold a non-superseded admission cycle for the CRM's
+          // default intake (migration 20260914000000). Guest Explore lists
+          // only these, so the flag follows `intakes.is_default` rather than
+          // any hardcoded season.
+          'has_intake_data',
         )
         .eq('is_visible_on_map', true)
         // No `ranking` column on the new view — `tier` is the closest
@@ -91,6 +96,11 @@ final universitiesProvider = FutureProvider<List<University>>((ref) async {
             : null,
         walkaroundUrl: map['walkaround_url'] as String?,
         primaryDomain: map['primary_domain'] as String?,
+        // Defaults false: a client reading an older view (or a cached row
+        // written before the column existed) should not claim coverage it
+        // cannot show. Explore then lists nothing rather than everything,
+        // which is the visible, reportable failure of the two.
+        hasIntakeData: map['has_intake_data'] as bool? ?? false,
         // Deprecated legacy fields — always null after the migration.
       );
     }).toList();

@@ -90,7 +90,17 @@ class GuestExploreScreen extends ConsumerWidget {
           ),
         ),
       ),
-      data: (unis) {
+      data: (all) {
+        // Only the institutions we hold researched admission data for. The
+        // catalogue carries 204 visible rows but a published guideline for 45
+        // of them; listing all 204 presented a name-and-a-pin as an equal to a
+        // school whose deadlines, requirements and documents we have actually
+        // read. `hasIntakeData` tracks the CRM's default intake, so a newly
+        // approved guideline joins this list on the next refresh and a season
+        // rollover drops last season's coverage — no list to maintain.
+        final unis = all
+            .where((u) => u.hasIntakeData)
+            .toList(growable: false);
         final cities = _cityOptions(unis);
         final results = _apply(unis, query, city);
 
@@ -103,12 +113,32 @@ class GuestExploreScreen extends ConsumerWidget {
           ),
           children: [
             Text(l.guestExploreTitle, style: SeoulType.display),
-            const SizedBox(height: 4),
-            Text('나의 대학 찾기', style: SeoulType.hangulLabel),
-            const SizedBox(height: 6),
-            Text(
-              l.guestUniversitiesCount(unis.length),
-              style: SeoulType.bodySecondary,
+            const SizedBox(height: 5),
+            // The Hangul label and the catalogue size share a line. Stacked,
+            // the header ran four deep — title, Hangul, count, then the search
+            // field — and pushed the first result off a small screen.
+            Row(
+              children: [
+                Flexible(
+                  child: Text(
+                    '나의 대학 찾기',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: SeoulType.hangulLabel,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text('·', style: SeoulType.caption),
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Text(
+                    l.guestUniversitiesCount(unis.length),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: SeoulType.caption,
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 16),
 
@@ -150,7 +180,13 @@ class GuestExploreScreen extends ConsumerWidget {
               children: [
                 Expanded(
                   child: Text(
-                    l.guestUniversitiesCount(results.length),
+                    // Only once the list is narrowed. Unfiltered, this said
+                    // exactly what the header two lines up already said, and
+                    // the repetition made the second one read as a different
+                    // number the reader had to reconcile.
+                    results.length == unis.length
+                        ? ''
+                        : l.guestUniversitiesCount(results.length),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: SeoulType.caption,
