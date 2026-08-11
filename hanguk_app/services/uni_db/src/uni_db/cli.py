@@ -62,6 +62,23 @@ def _build_parser() -> argparse.ArgumentParser:
     p_retry.add_argument("--limit", type=int, default=25,
                          help="Max failed extraction jobs to retry this run")
 
+    p_requeue = sub.add_parser(
+        "requeue-rejected",
+        help="LIVE: re-extract sections a reviewer REJECTED for a model-side "
+             "reason (hallucinated_field/ocr_garbled/wrong_archetype/other) "
+             "from the already-stored PDF, so they come back as fresh review "
+             "cards. wrong_year/source_404 are not re-extracted — those flip "
+             "the document to parse_status='failed' at reject time so the "
+             "next crawl re-fetches it.",
+    )
+    p_requeue.add_argument("--limit", type=int, default=25,
+                           help="Max rejected cards to requeue this run")
+    p_requeue.add_argument(
+        "--max-rejects", type=int, default=None,
+        help="Stop re-extracting a (document, field group) once it has been "
+             "rejected this many times (default: worker's MAX_REJECTS)",
+    )
+
     p_ingest = sub.add_parser(
         "ingest-direct",
         help="LIVE: fetch+extract guides from auto-discovered (promoted) sources "
@@ -202,6 +219,9 @@ def main(argv: list[str] | None = None) -> int:
                                     pending_only=args.pending_only))
     if args.cmd == "retry-failed":
         return asyncio.run(_retry_failed(limit=args.limit))
+    if args.cmd == "requeue-rejected":
+        return asyncio.run(_requeue_rejected(limit=args.limit,
+                                             max_rejects=args.max_rejects))
     if args.cmd == "ingest-direct":
         return asyncio.run(_ingest_direct(limit=args.limit))
     if args.cmd == "find-guidelines":
@@ -497,6 +517,47 @@ async def _backfill_review_queue(*, limit: int) -> int:
         await conn.close()
 
     print(f"backfill-review-queue: found={run.found} inserted={run.inserted}")
+    return 0
+
+
+async def _requeue_rejected(*, limit: int, max_rejects: int | None = None) -> int:
+    """LIVE: put reviewer-rejected sections back in the review queue.
+
+    Re-extracts ONLY the rejected field group, and only when the rejection
+    blamed the extraction rather than the document — reading the same PDF
+    again cannot fix a wrong_year or a source_404, so those flip the document
+    to parse_status='failed' at reject time and wait for the next crawl.
+    Reads the stored blob (no re-download from ac.kr; SHA-256 verified first)
+    and makes LLM calls, so it's gated on `UNI_DB_LIVE_APIS` + `SUPABASE_DB_URL`.
+    """
+    if not settings.live_apis:
+        print(
+            "requeue-rejected needs UNI_DB_LIVE_APIS=true (it re-runs LLM "
+            "extraction). Refusing. See docs/credentials.md.",
+            file=sys.stderr,
+        )
+        return 2
+    if not settings.supabase_db_url:
+        print("SUPABASE_DB_URL is not set; cannot requeue rejected cards.",
+              file=sys.stderr)
+        return 2
+
+    from .workers import rejected_requeue_worker
+
+    kwargs = {} if max_rejects is None else {"max_rejects": max_rejects}
+    conn = await db.connect()
+    try:
+        run = await rejected_requeue_worker.requeue_rejected(
+            conn, limit=limit, **kwargs
+        )
+    finally:
+        await conn.close()
+
+    print(
+        f"requeue-rejected: cards_seen={run.cards_seen} documents={run.documents} "
+        f"requeued={run.requeued} hash_mismatch={run.hash_mismatch} "
+        f"errors={run.errors}"
+    )
     return 0
 
 
