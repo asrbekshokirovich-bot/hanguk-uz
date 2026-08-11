@@ -1144,6 +1144,12 @@ class AppLocalizationsUz extends AppLocalizations {
   String get guestRowIeqas => 'IEQAS holati';
 
   @override
+  String get ieqasOutstanding => 'IEQAS a\'lo';
+
+  @override
+  String get ieqasAccredited => 'IEQAS akkreditatsiya';
+
+  @override
   String get guestRowPartner => 'Hanguk hamkori';
 
   @override

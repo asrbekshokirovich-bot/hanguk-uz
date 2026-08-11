@@ -428,6 +428,8 @@
   "guestRowCity": "Город",
   "guestRowTier": "Уровень",
   "guestRowIeqas": "Статус IEQAS",
+  "ieqasOutstanding": "IEQAS высшая",
+  "ieqasAccredited": "IEQAS аккредитация",
   "guestRowPartner": "Партнёр Hanguk",
   "guestRowNextEvent": "Ближайшая дата",
   "guestRowWebsite": "Сайт",

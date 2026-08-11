@@ -1102,6 +1102,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get guestRowIeqas => 'IEQAS 상태';
 
   @override
+  String get ieqasOutstanding => 'IEQAS 우수';
+
+  @override
+  String get ieqasAccredited => 'IEQAS 인증';
+
+  @override
   String get guestRowPartner => 'Hanguk 파트너';
 
   @override

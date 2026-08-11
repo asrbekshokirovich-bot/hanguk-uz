@@ -5,6 +5,7 @@ import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../map/data/map_repository.dart';
 import '../../map/domain/university.dart';
+import '../../map/presentation/ieqas_label.dart';
 import '../data/guest_compare_provider.dart';
 
 /// Guest Compare (DESIGN_SPEC screen 10) — two glass columns side by side.
@@ -166,13 +167,14 @@ List<_RowSpec> _rowSchema(AppLocalizations l, List<University> picked) {
       read: (u) => u.tier != null ? l.universityTier(u.tier!) : null,
       lime: false,
     ),
-    // 'none' is a real value for 74 of 204 rows and means *not accredited*
-    // — rendering it verbatim puts the word "none" under "IEQAS status".
-    // Only an actual accreditation is worth a value.
+    // `ieqasLabel` returns null for 'none' — a real value for 74 of 204 rows,
+    // meaning *not accredited*, which rendered verbatim put the word "none"
+    // under "IEQAS status". It also keeps the database enum off the screen:
+    // the value here used to be the bare English "outstanding".
     (
       label: l.guestRowIeqas,
       ko: '인증',
-      read: (u) => u.isAccredited ? u.ieqasStatus : null,
+      read: (u) => ieqasLabel(l, u.ieqasStatus),
       lime: false,
     ),
     // Partnership is a claim, and it is false for every institution in the

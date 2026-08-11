@@ -428,6 +428,8 @@
   "guestRowCity": "도시",
   "guestRowTier": "등급",
   "guestRowIeqas": "IEQAS 상태",
+  "ieqasOutstanding": "IEQAS 우수",
+  "ieqasAccredited": "IEQAS 인증",
   "guestRowPartner": "Hanguk 파트너",
   "guestRowNextEvent": "다음 일정",
   "guestRowWebsite": "웹사이트",
