@@ -142,7 +142,7 @@ def test_lane_reasons_are_disjoint_and_cover_every_reject_reason() -> None:
         "wrong_year", "wrong_archetype", "hallucinated_field",
         "ocr_garbled", "source_404", "other",
     }
-    assert rr.EXTRACTION_LANE_REASONS | rr.SOURCE_LANE_REASONS == accepted
+    assert accepted == (rr.EXTRACTION_LANE_REASONS | rr.SOURCE_LANE_REASONS)
     assert not (rr.EXTRACTION_LANE_REASONS & rr.SOURCE_LANE_REASONS)
 
     # Re-reading the same bytes cannot fix a wrong document, so those two
