@@ -4,8 +4,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../updater/data/updater_repository.dart';
-import '../../updater/presentation/update_dialog.dart';
 
 /// Guest Explorer (DESIGN_SPEC §3b) — the read-only catalog an external
 /// student browses without a Magic Code.
@@ -29,26 +27,16 @@ class WelcomeScreen extends ConsumerStatefulWidget {
 }
 
 class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _checkForUpdates();
-    });
-  }
-
-  Future<void> _checkForUpdates() async {
-    final repo = ref.read(updaterRepositoryProvider);
-    final versionInfo = await repo.checkForUpdate();
-    if (!mounted) return;
-    if (versionInfo is UpdateAvailable) {
-      showDialog(
-        context: context,
-        barrierDismissible: !versionInfo.effectivelyForced,
-        builder: (context) => const UpdateDialog(),
-      );
-    }
-  }
+  // No update check here. This screen used to run the APK self-updater on
+  // first frame — read `app_versions`, then open UpdateDialog to download a
+  // build from Supabase Storage — which is what put "Update Failed" in front
+  // of a student before they had touched anything.
+  //
+  // Removing that gate from `UpdateGate` (a3370d5) missed this call site and
+  // the one in home_screen, so the dialog kept appearing on the two screens
+  // students actually land on. Updates come from Play now, through
+  // `features/updater/data/play_in_app_update.dart`; nothing in the app
+  // should be downloading an APK itself.
 
   /// Guest Explorer entry (spec §3b). `push`, not `go`, so backing out of the
   /// catalogue returns here.

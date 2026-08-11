@@ -12,8 +12,6 @@ import '../../chat/presentation/chat_tab.dart';
 import '../../training/presentation/interview_screen.dart';
 import '../../training/presentation/study_plan_screen.dart';
 import '../../uni_db/data/admin_review_providers.dart';
-import '../../updater/data/updater_repository.dart';
-import '../../updater/presentation/update_dialog.dart';
 import 'home_tab_provider.dart';
 import 'onboarding_overlay.dart';
 import 'seoul_home_tab.dart';
@@ -60,14 +58,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      // First-run orientation (audit A9) before the update prompt so a new
-      // student is oriented before anything else competes for attention.
+      // First-run orientation (audit A9). The APK self-updater used to run
+      // right after this; see _checkForUpdates' removal note below.
       await _maybeShowOnboarding();
-      await _checkForUpdates();
     });
-    // Give the Home screen's own first paint (and the onboarding/update
-    // checks above) a head start before spending network + a JS engine on
-    // a tab the student hasn't asked for yet.
+    // Give the Home screen's own first paint (and the onboarding check
+    // above) a head start before spending network + a JS engine on a tab
+    // the student hasn't asked for yet.
     _preloadMapTimer = Timer(const Duration(seconds: 2), () {
       if (mounted) setState(() => _visited.add(SeoulSection.map));
     });
@@ -90,18 +87,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Future<void> _checkForUpdates() async {
-    final repo = ref.read(updaterRepositoryProvider);
-    final versionInfo = await repo.checkForUpdate();
-    if (!mounted) return;
-    if (versionInfo is UpdateAvailable) {
-      showDialog(
-        context: context,
-        barrierDismissible: !versionInfo.effectivelyForced,
-        builder: (context) => const UpdateDialog(),
-      );
-    }
-  }
+  // No _checkForUpdates here. It read `app_versions` and opened UpdateDialog
+  // to download a build from Supabase Storage — the APK self-updater Play
+  // blocked version 2041 over, and the source of the "Update Failed" dialog
+  // students met on launch. Pulling it out of `UpdateGate` (a3370d5) missed
+  // this call site and welcome_screen's, so it kept running on both screens a
+  // student lands on. Updates come from Play now, through
+  // `features/updater/data/play_in_app_update.dart`.
 
   void _openAIChat(BuildContext context) {
     const corners = BorderRadius.vertical(
