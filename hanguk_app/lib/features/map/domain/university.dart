@@ -75,6 +75,14 @@ class University {
   // This replaces the deprecated `website` field below (which was always null).
   final String? primaryDomain;
 
+  // True when this institution has a non-superseded admission cycle for the
+  // intake the CRM has marked default — i.e. we hold researched admission
+  // data for the season currently on sale, not just a name and a map pin.
+  // Sourced from `v_institutions_for_map.has_intake_data`
+  // (migration 20260914000000), which is computed against
+  // `intakes.is_default` so it moves with the season on its own.
+  final bool hasIntakeData;
+
   // ── Deprecated legacy fields ────────────────────────────────────────────
   // Kept nullable so existing widgets continue to compile during the
   // transition. The repository always emits `null` — these fields used
@@ -113,6 +121,7 @@ class University {
     this.virtualTour,
     this.walkaroundUrl,
     this.primaryDomain,
+    this.hasIntakeData = false,
     // ignore: deprecated_member_use_from_same_package
     this.ranking,
     // ignore: deprecated_member_use_from_same_package

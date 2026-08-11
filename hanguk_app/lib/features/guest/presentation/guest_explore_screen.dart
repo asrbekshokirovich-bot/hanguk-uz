@@ -90,7 +90,17 @@ class GuestExploreScreen extends ConsumerWidget {
           ),
         ),
       ),
-      data: (unis) {
+      data: (all) {
+        // Only the institutions we hold researched admission data for. The
+        // catalogue carries 204 visible rows but a published guideline for 45
+        // of them; listing all 204 presented a name-and-a-pin as an equal to a
+        // school whose deadlines, requirements and documents we have actually
+        // read. `hasIntakeData` tracks the CRM's default intake, so a newly
+        // approved guideline joins this list on the next refresh and a season
+        // rollover drops last season's coverage — no list to maintain.
+        final unis = all
+            .where((u) => u.hasIntakeData)
+            .toList(growable: false);
         final cities = _cityOptions(unis);
         final results = _apply(unis, query, city);
 
