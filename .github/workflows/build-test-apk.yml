@@ -1,0 +1,97 @@
+name: Build test APK
+
+# An installable APK of the student app, published at a stable URL.
+#
+# `android-release.yml` builds the Play-ready bundle, but it requires the
+# upload-key secrets and fails loudly without them — by design, since a
+# debug-signed artifact must never reach Play. That makes it the wrong tool for
+# "let me see the change on my phone", which is the loop this workflow closes:
+# no secrets, debug signing (build.gradle.kts falls back when key.properties is
+# absent), installable by sideload, NOT a Play artifact.
+#
+# The APK is attached to a rolling GitHub Release rather than an Actions
+# artifact. Release assets download from one unchanging URL with no login and
+# no zip to unpack, and reusing a single tag replaces the previous asset each
+# run so storage never accumulates:
+#
+#   https://github.com/asrbekshokirovich-bot/hanguk-uz/releases/download/app-apk-latest/app-release.apk
+#
+# Because it is debug-signed, it will not install over a Play-signed copy —
+# uninstall that first.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'hanguk_app/**'
+      - '.github/workflows/build-test-apk.yml'
+
+concurrency:
+  group: build-test-apk
+  cancel-in-progress: true
+
+jobs:
+  build-apk:
+    name: Build student app APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # Needed to publish the APK as a Release asset.
+    permissions:
+      contents: write
+    defaults:
+      run:
+        working-directory: hanguk_app
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: flutter pub get
+        run: flutter pub get
+
+      # Fails the build on a real analyzer error before spending eight minutes
+      # compiling something that cannot work.
+      - name: flutter analyze
+        run: flutter analyze lib test
+
+      - name: Build release APK
+        run: flutter build apk --release
+
+      - name: Publish APK to a GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG="app-apk-latest"
+          # Drop the previous rolling release and tag so only the newest asset
+          # is kept and the download URL stays the same.
+          gh release delete "$TAG" --yes --cleanup-tag || true
+          gh release create "$TAG" \
+            build/app/outputs/flutter-apk/app-release.apk \
+            --title "Latest test APK" \
+            --notes "Debug-signed test build from ${GITHUB_SHA} on ${GITHUB_REF_NAME}. Sideload only — not a Play artifact. Uninstall any Play-signed copy first." \
+            --prerelease \
+            --target "$GITHUB_SHA"
+
+      # Secondary copy for anyone already on the run page. continue-on-error so
+      # a full artifact-storage quota cannot fail the build — the Release above
+      # is the reliable path.
+      - name: Upload APK artifact (best-effort)
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: hanguk-student-app-apk
+          path: hanguk_app/build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
+          retention-days: 5
