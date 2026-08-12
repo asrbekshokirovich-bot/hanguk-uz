@@ -1,7 +1,6 @@
 {
   "@@locale": "ko",
   "@@x-translator-status": "TODO: translate. Most older strings still English seeds. walkaround/virtualTour translated. 2026-05-12 i18n adoption pass: training tab + bottom-nav + tab titles translated. 2026-05-12 i18n phase 2: account + auth + notification settings translated. 2026-05-12 i18n phase 3: training/drafting workspace translated; previously English-seeded training keys now have real Korean translations.",
-
   "trainingTabTitle": "트레이닝 센터",
   "trainingTabSubtitle": "AI 가이드 트레이닝 모듈로 대학 지원을 준비하세요.",
   "studyPlanCardTitle": "학업 계획서 작성기",
@@ -24,7 +23,6 @@
   "aiSpeaking": "면접관이 말하는 중...",
   "wrappingUp": "면접을 마무리하는 중...",
   "micRequired": "면접을 위해 마이크 권한이 필요합니다.",
-
   "walkaroundLoadingTitle": "캠퍼스 워크어라운드 로딩 중",
   "walkaroundLoadingSubtitle": "캠퍼스 주변 거리뷰를 가져오는 중입니다.",
   "walkaroundNoPanoTitle": "이 위치의 거리뷰가 없습니다",
@@ -37,17 +35,14 @@
   "walkaroundInitErrorSubtitle": "워크어라운드 시작 중 오류가 발생했습니다. 다시 시도해 주세요.",
   "virtualTourTitle": "가상 투어",
   "virtualWalkaroundTitle": "가상 워크어라운드",
-
   "visitUniversityWebsite": "대학 웹사이트 방문",
   "universityTier": "티어 {tier}",
   "universityVerified": "인증됨",
   "universityNextEvent": "다음 일정",
-
   "navApplications": "지원서",
   "navMap": "지도",
   "navDocs": "서류",
   "navTraining": "트레이닝",
-
   "applicationsTabTitle": "내 지원서",
   "mapTabTitle": "대학교",
   "documentsTabTitle": "내 서류",
@@ -83,12 +78,9 @@
   "switchToListView": "목록 보기로 전환",
   "switchToMapView": "지도 보기로 전환",
   "chatInputHint": "한국에 대해 무엇이든 물어보세요...",
-
   "accountTooltip": "계정",
-
   "ok": "확인",
   "loadingLabel": "로딩 중...",
-
   "accountBackTooltip": "뒤로",
   "accountTitle": "계정",
   "accountSignedInAs": "로그인 계정",
@@ -109,20 +101,23 @@
   "accountDeleteErrorBody": "데이터 삭제 중 오류가 발생했습니다:\n\n{error}\n\n삭제를 완료할 수 있도록 privacy@hanguk.uz로 이메일을 보내주세요.",
   "@accountDeleteErrorBody": {
     "placeholders": {
-      "error": { "type": "Object" }
+      "error": {
+        "type": "Object"
+      }
     }
   },
   "accountExportFailed": "내보내기 실패: {error}",
   "@accountExportFailed": {
     "placeholders": {
-      "error": { "type": "Object" }
+      "error": {
+        "type": "Object"
+      }
     }
   },
   "accountDeleteDialogTitle": "계정을 삭제하시겠습니까?",
   "accountDeleteDialogBody": "계정, 지원서, 학습 계획, 자기소개서 초안, 모의 면접 세션 및 기록이 영구적으로 삭제됩니다.\n\n계속하려면 DELETE를 입력하세요.",
   "accountDeleteDialogConfirm": "영구 삭제",
   "accountDeleteProgress": "계정 삭제 중...",
-
   "loginStudentPortal": "학생 포털",
   "loginAccessCodeHelp": "컨설턴트 또는 대학 담당자가 제공한 8자리 액세스 코드(영문과 숫자)를 입력하세요.",
   "loginAccessCodeButton": "액세스 코드로 로그인",
@@ -138,7 +133,6 @@
   "signUpErrorPhoneRequired": "유효한 전화번호가 필요합니다 (예: +12345678).",
   "signUpErrorPasswordMismatch": "비밀번호가 일치하지 않습니다.",
   "signUpSuccess": "계정이 생성되었습니다. 로그인해 주세요.",
-
   "notifSettingsTitle": "알림 설정",
   "notifSettingsEmptyTitle": "추적 중인 대학이 없습니다",
   "notifSettingsEmptyBody": "대학 페이지에서 \"이 학교 추적\"을 탭하여 팔로우하세요. 추적 중인 학교가 하나 이상 생기면 알림 설정이 여기에 표시됩니다.",
@@ -153,22 +147,27 @@
   "notifSettingsLoadError": "오류: {error}",
   "@notifSettingsLoadError": {
     "placeholders": {
-      "error": { "type": "Object" }
+      "error": {
+        "type": "Object"
+      }
     }
   },
   "notifSettingsPushLanguage": "푸시 알림 언어: {lang}",
   "@notifSettingsPushLanguage": {
     "placeholders": {
-      "lang": { "type": "String" }
+      "lang": {
+        "type": "String"
+      }
     }
   },
   "notifSettingsUpdateError": "설정을 업데이트하지 못했습니다: {error}",
   "@notifSettingsUpdateError": {
     "placeholders": {
-      "error": { "type": "Object" }
+      "error": {
+        "type": "Object"
+      }
     }
   },
-
   "interviewDialogStepUniversity": "1. 대상 대학 선택",
   "interviewDialogStepTrack": "2. 면접 트랙 선택",
   "interviewDialogStepPersona": "3. 면접관 성격",
@@ -185,14 +184,21 @@
   "openSettings": "설정 열기",
   "genericError": "오류: {error}",
   "@genericError": {
-    "placeholders": { "error": { "type": "Object" } }
+    "placeholders": {
+      "error": {
+        "type": "Object"
+      }
+    }
   },
   "errorLoadingApplications": "지원서를 불러오지 못했습니다: {error}",
   "@errorLoadingApplications": {
-    "placeholders": { "error": { "type": "Object" } }
+    "placeholders": {
+      "error": {
+        "type": "Object"
+      }
+    }
   },
   "noAppsInlineHint": "아직 지원서가 없습니다 — 지원서 탭에서 추가하세요.",
-
   "aiStatusWaiting": "입력 대기 중...",
   "aiStatusCoolingDown": "AI 잠시 대기 중…",
   "aiStatusAnalyzing": "AI 분석 중...",
@@ -206,18 +212,25 @@
   "grammarReplaceWith": "\"{original}\"을(를) \"{suggestion}\"(으)로 교체",
   "@grammarReplaceWith": {
     "placeholders": {
-      "original": { "type": "String" },
-      "suggestion": { "type": "String" }
+      "original": {
+        "type": "String"
+      },
+      "suggestion": {
+        "type": "String"
+      }
     }
   },
   "draftingHint": "{documentTitle}을(를) 여기에 입력하세요...",
   "@draftingHint": {
-    "placeholders": { "documentTitle": { "type": "String" } }
+    "placeholders": {
+      "documentTitle": {
+        "type": "String"
+      }
+    }
   },
   "ghostSuggestionSemantics": "AI 제안 — 탭하여 삽입",
   "ghostAccept": "사용",
   "ghostDismiss": "제안 닫기",
-
   "pastDraftsTooltip": "이전 초안",
   "sessionSettingsTooltip": "세션 설정",
   "switchTrackEnglish": "트랙 전환 → 영어",
@@ -231,13 +244,21 @@
   "savedDraftItemTitle": "{universityName} {documentName}",
   "@savedDraftItemTitle": {
     "placeholders": {
-      "universityName": { "type": "String" },
-      "documentName": { "type": "String" }
+      "universityName": {
+        "type": "String"
+      },
+      "documentName": {
+        "type": "String"
+      }
     }
   },
   "sessionStatusLabel": "상태: {status}",
   "@sessionStatusLabel": {
-    "placeholders": { "status": { "type": "String" } }
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
   },
   "deleteSessionTitle": "세션 삭제",
   "deleteSessionBody": "이 세션을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
@@ -257,13 +278,16 @@
   "aiExampleEmbassyTitle": "대사관 예시",
   "aiExampleUniversityTitle": "{universityName} 예시",
   "@aiExampleUniversityTitle": {
-    "placeholders": { "universityName": { "type": "String" } }
+    "placeholders": {
+      "universityName": {
+        "type": "String"
+      }
+    }
   },
   "aiExampleEmbassyLabel": "주한 대한민국 대사관 (비자)",
   "aiExampleWritingPlaceholder": "AI가 예시를 작성 중입니다...",
   "copyButton": "복사",
   "copiedSnackbar": "텍스트가 복사되었습니다!",
-
   "analysisFeedbackTitle": "분석 및 피드백",
   "noAnalysisYet": "아직 생성된 분석이 없습니다.",
   "analysisErrorPlanRequired": "분석은 Premium 및 No Risk 플랜에 포함됩니다. 현재 플랜에는 포함되어 있지 않습니다.",
@@ -273,7 +297,6 @@
   "analysisRetryButton": "다시 시도",
   "aiReviewedDraft": "AI가 초안을 검토했습니다.",
   "returnToDrafting": "초안으로 돌아가기",
-
   "studyPlanHistoryTitle": "학업 계획서 기록",
   "personalStatementHistoryTitle": "자기소개서 기록",
   "draftingHistoryTitle": "초안 기록",
@@ -282,19 +305,20 @@
   "noTargetUniversity": "대상 대학 없음",
   "sessionStepLabel": "단계 {step}",
   "@sessionStepLabel": {
-    "placeholders": { "step": { "type": "int" } }
+    "placeholders": {
+      "step": {
+        "type": "int"
+      }
+    }
   },
-
   "metricWords": "단어",
   "metricCharacters": "글자",
   "saveStatusUnsaved": "저장 안 됨",
   "saveStatusSaving": "저장 중...",
   "saveStatusSaved": "저장됨",
   "saveStatusError": "저장 실패",
-
   "interviewPracticeTitle": "면접 연습",
   "interviewSettingUp": "면접을 준비하는 중...",
-
   "interviewSetupTitle": "AI 면접 설정",
   "interviewSetupSubtitle": "면접을 시작하기 전 AI 면접관 설정을 확인하세요.",
   "interviewTypeLabel": "면접 유형",
@@ -310,16 +334,18 @@
   "timedModeSubtitle": "5분 엄격 제한",
   "startPracticeButton": "연습 시작",
   "pickUniversityFirstHint": "위에서 대상 대학을 먼저 선택하세요.",
-
   "coachingFiller": "추임새를 자제하세요!",
   "lifelineHintsTitle": "💡 도움 힌트:",
   "speakerAi": "AI",
   "speakerYou": "본인",
   "connectionInterrupted": "연결이 중단되었습니다: {detail}",
   "@connectionInterrupted": {
-    "placeholders": { "detail": { "type": "String" } }
+    "placeholders": {
+      "detail": {
+        "type": "String"
+      }
+    }
   },
-
   "interviewAnalyticsTitle": "면접 분석",
   "analyzingTranscript": "AI가 대화 기록을 분석하는 중...",
   "noFeedbackAvailable": "피드백을 사용할 수 없습니다.",
@@ -335,7 +361,6 @@
   "startAnotherInterview": "다른 면접 시작",
   "sessionRecording": "세션 녹음",
   "audioRecordingNotFound": "오디오 녹음을 찾을 수 없습니다.",
-
   "interviewHistoryTitle": "면접 기록",
   "noPastInterviews": "지난 면접 기록이 없습니다.",
   "unknownTarget": "알 수 없는 대상",
@@ -347,9 +372,12 @@
   "deleteInterviewDialogBody": "피드백과 녹음 링크가 영구적으로 삭제됩니다.",
   "deleteFailed": "삭제 실패: {error}",
   "@deleteFailed": {
-    "placeholders": { "error": { "type": "Object" } }
+    "placeholders": {
+      "error": {
+        "type": "Object"
+      }
+    }
   },
-
   "a11yTooltipAskAi": "Hanguk AI에 질문하기",
   "a11yTooltipClearChat": "채팅 기록 지우기",
   "a11yTooltipSendMessage": "메시지 보내기",
@@ -398,7 +426,6 @@
   "journeyStageVisaPreparation": "비자 준비",
   "journeyStageWaitingVisa": "비자 발급 대기",
   "mapUniversitiesMapped": "{count}개 대학 표시됨",
-
   "updateAvailableTitle": "업데이트 가능",
   "updateVersionReady": "{version} 버전을 설치할 수 있습니다.",
   "updateSizeMb": "크기: {size} MB",
@@ -433,9 +460,18 @@
   "guestRowPartner": "Hanguk 파트너",
   "guestRowNextEvent": "다음 일정",
   "guestRowWebsite": "웹사이트",
+  "guestRowTuition": "등록금",
+  "guestRowApplication": "원서접수",
+  "guestRowDocDeadline": "서류 마감",
+  "guestRowTopik": "TOPIK",
+  "guestRowEnglish": "영어",
+  "guestRowInterview": "면접",
+  "guestRowDocuments": "제출서류",
+  "guestTuitionYearNote": "{year}년 기준",
+  "guestDocumentsCount": "{count}종",
+  "guestApostilleShort": "아포스티유 필요",
   "guestValueYes": "예",
   "guestValueNo": "아니요",
-  "welcomeExploreCta": "대학 둘러보기",
   "roomTabStatus": "현황",
   "roomTabDiscussion": "토론",
   "roomTabNews": "소식",

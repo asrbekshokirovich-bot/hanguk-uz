@@ -3,19 +3,24 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../map/data/map_repository.dart';
 import '../../map/domain/university.dart';
 import '../../map/presentation/ieqas_label.dart';
+import '../../uni_db/data/approved_universities_provider.dart';
 import '../data/guest_compare_provider.dart';
 
 /// Guest Compare (DESIGN_SPEC screen 10) — two glass columns side by side.
 ///
 /// The prototype's rows are City, Rank, Tuition, TOPIK, Deadline, Status.
-/// Only City survives contact with the data: `v_institutions_for_map` has no
+/// Read off `v_institutions_for_map`, only City survived: that view has no
 /// rank, no tuition, no TOPIK requirement, and `next_event_at` is null for
-/// every row. Rather than render six labels with four blanks — or worse,
-/// invent numbers — the grid shows the fields that exist: city, tier, IEQAS
-/// accreditation, partner status and the official domain.
+/// every row — so the grid showed city, tier, IEQAS accreditation, partner
+/// status and the official domain, none of which decides where anyone applies.
+///
+/// Tuition, the application window, the document deadline, the TOPIK floor,
+/// English and the interview do exist; they live in the approved review rather
+/// than the catalogue row. The screen now reads `approvedCatalogueProvider`,
+/// which carries both, and a student compares on what they actually choose on.
+/// Rank is still absent, and still not invented.
 ///
 /// Which of those five appear is decided ONCE for the pair, not per column.
 /// Each column used to build its own row list from its own university, so a
@@ -39,14 +44,19 @@ class GuestCompareScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context)!;
     final ids = ref.watch(guestCompareProvider);
-    final unisAsync = ref.watch(universitiesProvider);
+    // The approved catalogue, not the map list: Compare is reached from
+    // Explore, which lists only approved institutions, and the detail rows
+    // below come from the same fetch.
+    final catalogueAsync = ref.watch(approvedCatalogueProvider);
 
     // Pair each id with its row so a slot always knows which id it came
     // from. Dropping unresolvable ids and then indexing the survivors meant
     // the ✕ removed the wrong university: with a tray of ['GHOST', 'a'] the
     // single visible card's ✕ removed 'a', leaving 'GHOST' stranded, one
     // slot permanently lost and no UI path to clear it.
-    final catalogue = unisAsync.value;
+    final catalogue = catalogueAsync.value?.universities;
+    final details =
+        catalogueAsync.value?.details ?? const <String, ApprovedAdmission>{};
     final slots = <({String id, University? uni})>[
       for (final id in ids)
         (id: id, uni: catalogue?.where((u) => u.id == id).firstOrNull),
@@ -74,7 +84,7 @@ class GuestCompareScreen extends ConsumerWidget {
         .toList(growable: false);
 
     // The row schema both columns render, decided across the pair.
-    final schema = _rowSchema(l, picked);
+    final schema = _rowSchema(l, picked, details);
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(
@@ -94,6 +104,7 @@ class GuestCompareScreen extends ConsumerWidget {
               Expanded(
                 child: _CompareColumn(
                   university: picked.isNotEmpty ? picked[0] : null,
+                  admission: picked.isNotEmpty ? details[picked[0].id] : null,
                   schema: schema,
                   onRemove: picked.isNotEmpty
                       ? () => ref
@@ -107,6 +118,7 @@ class GuestCompareScreen extends ConsumerWidget {
               Expanded(
                 child: _CompareColumn(
                   university: picked.length > 1 ? picked[1] : null,
+                  admission: picked.length > 1 ? details[picked[1].id] : null,
                   schema: schema,
                   onRemove: picked.length > 1
                       ? () => ref
@@ -134,12 +146,29 @@ class GuestCompareScreen extends ConsumerWidget {
 
 /// One comparable field: its labels, how to read it off a university, and
 /// whether a present value is worth the lime accent.
+///
+/// `read` takes the admission detail as well as the institution, because the
+/// fields a student actually compares on — fee, dates, language bar — live in
+/// the approved review rather than in the catalogue row. It is null for an
+/// institution whose detail has not loaded.
 typedef _RowSpec = ({
   String label,
   String ko,
-  String? Function(University) read,
+  String? Function(University, ApprovedAdmission?) read,
   bool lime,
 });
+
+/// 3169000 → "3,169,000". Thousands separators only; the ₩ is added by the
+/// caller so the number formatting stays one job.
+String _krw(int value) {
+  final s = value.toString();
+  final b = StringBuffer();
+  for (var i = 0; i < s.length; i++) {
+    if (i > 0 && (s.length - i) % 3 == 0) b.write(',');
+    b.write(s[i]);
+  }
+  return b.toString();
+}
 
 /// Value shown for a university that has nothing for a row the other one does.
 const String _missing = '—';
@@ -147,7 +176,11 @@ const String _missing = '—';
 /// The rows to render, chosen across the pair: a field appears when ANY of the
 /// picked universities has it. Order is fixed, so the schema is stable while
 /// the tray changes and rows do not reshuffle under the reader.
-List<_RowSpec> _rowSchema(AppLocalizations l, List<University> picked) {
+List<_RowSpec> _rowSchema(
+  AppLocalizations l,
+  List<University> picked,
+  Map<String, ApprovedAdmission> details,
+) {
   final all = <_RowSpec>[
     // `city_ko` is null for 87 of 204 institutions and the repository
     // substitutes the English literal 'South Korea'. Showing that under
@@ -156,7 +189,7 @@ List<_RowSpec> _rowSchema(AppLocalizations l, List<University> picked) {
     (
       label: l.guestRowCity,
       ko: '도시',
-      read: (u) => u.hasRealCity ? u.location : null,
+      read: (u, _) => u.hasRealCity ? u.location : null,
       lime: false,
     ),
     (
@@ -164,7 +197,7 @@ List<_RowSpec> _rowSchema(AppLocalizations l, List<University> picked) {
       ko: '등급',
       // Not the bare integer: the scale is inverted (0 is best) and
       // unlabelled, so "1" against "3" reads backwards.
-      read: (u) => u.tier != null ? l.universityTier(u.tier!) : null,
+      read: (u, _) => u.tier != null ? l.universityTier(u.tier!) : null,
       lime: false,
     ),
     // `ieqasLabel` returns null for 'none' — a real value for 74 of 204 rows,
@@ -174,7 +207,7 @@ List<_RowSpec> _rowSchema(AppLocalizations l, List<University> picked) {
     (
       label: l.guestRowIeqas,
       ko: '인증',
-      read: (u) => ieqasLabel(l, u.ieqasStatus),
+      read: (u, _) => ieqasLabel(l, u.ieqasStatus),
       lime: false,
     ),
     // Partnership is a claim, and it is false for every institution in the
@@ -185,18 +218,107 @@ List<_RowSpec> _rowSchema(AppLocalizations l, List<University> picked) {
     (
       label: l.guestRowPartner,
       ko: '파트너',
-      read: (u) => u.isPartner ? l.guestValueYes : null,
+      read: (u, _) => u.isPartner ? l.guestValueYes : null,
       lime: true,
     ),
     (
       label: l.guestRowWebsite,
       ko: '웹사이트',
-      read: (u) => u.primaryDomain,
+      read: (u, _) => u.primaryDomain,
+      lime: false,
+    ),
+
+    // ── What the approved review established ─────────────────────────────
+    // The fields a student actually chooses on. They live in
+    // `v_guest_approved_admissions`, not in the catalogue row, which is why
+    // this screen's docstring above says tuition and TOPIK do not exist —
+    // they did not, in the map view it used to read.
+    (
+      label: l.guestRowTuition,
+      ko: '등록금',
+      read: (_, a) {
+        final min = a?.tuitionMinKrw;
+        if (a == null || min == null) return null;
+        final max = a.tuitionMaxKrw;
+        // One row per faculty group, so the spread is the honest answer.
+        final amount = (max != null && max != min)
+            ? '${_krw(min)}–${_krw(max)} ₩'
+            : '${_krw(min)} ₩';
+        // Korean guidelines quote the current year's fees, so every figure in
+        // the catalogue today is 2026 while most intakes are 2027. Name the
+        // year rather than letting last year's number pass as the intake's.
+        return a.tuitionIsFromAnotherYear
+            ? '$amount · ${l.guestTuitionYearNote(a.tuitionAcademicYear!)}'
+            : amount;
+      },
+      lime: false,
+    ),
+    (
+      label: l.guestRowApplication,
+      ko: '원서접수',
+      read: (_, a) {
+        if (a == null) return null;
+        final start = a.applicationStart;
+        final end = a.applicationEnd;
+        if (start == null && end == null) return null;
+        // An open end is not the same as no window; show the half we know.
+        return '${start ?? _missing} → ${end ?? _missing}';
+      },
+      lime: false,
+    ),
+    (
+      label: l.guestRowDocDeadline,
+      ko: '서류 마감',
+      read: (_, a) => a?.documentDeadline,
+      lime: false,
+    ),
+    (
+      label: l.guestRowTopik,
+      ko: '한국어',
+      // The floor across this year's tracks, so "≥" rather than a bare level:
+      // it is the lowest bar that gets a student in, not a fixed requirement.
+      read: (_, a) => a?.topikMinLevel != null ? '≥ ${a!.topikMinLevel}' : null,
+      lime: false,
+    ),
+    (
+      label: l.guestRowEnglish,
+      ko: '영어',
+      // Only the affirmative. `english_accepted` false means no English test
+      // is named in the requirements, which is not the same as English being
+      // refused — rendering "No" would state something the review did not.
+      read: (_, a) => a?.englishAccepted == true ? l.guestValueYes : null,
+      lime: true,
+    ),
+    (
+      label: l.guestRowInterview,
+      ko: '면접',
+      // Both answers here: the review does say when there is no interview, and
+      // for a student weighing two schools that is worth as much as a yes.
+      read: (_, a) => switch (a?.interviewRequired) {
+        true => l.guestValueYes,
+        false => l.guestValueNo,
+        null => null,
+      },
+      lime: false,
+    ),
+    (
+      label: l.guestRowDocuments,
+      ko: '제출서류',
+      read: (_, a) {
+        final count = a?.requiredDocumentCount ?? 0;
+        if (count == 0) return null;
+        final label = l.guestDocumentsCount(count);
+        // Apostille decides whether assembling the file takes a week or a
+        // month, so it belongs beside the count rather than a screen away.
+        return a?.apostilleRequired == true
+            ? '$label · ${l.guestApostilleShort}'
+            : label;
+      },
       lime: false,
     ),
   ];
   return all
-      .where((r) => picked.any((u) => r.read(u) != null))
+      .where((r) => picked.any((u) => r.read(u, details[u.id]) != null))
       .toList(growable: false);
 }
 
@@ -204,12 +326,18 @@ List<_RowSpec> _rowSchema(AppLocalizations l, List<University> picked) {
 class _CompareColumn extends StatelessWidget {
   const _CompareColumn({
     required this.university,
+    required this.admission,
     required this.schema,
     required this.onRemove,
     required this.onAdd,
   });
 
   final University? university;
+
+  /// What the approved review established about this institution, or null
+  /// while the catalogue is still loading.
+  final ApprovedAdmission? admission;
+
   final List<_RowSpec> schema;
   final VoidCallback? onRemove;
   final VoidCallback onAdd;
@@ -278,10 +406,10 @@ class _CompareColumn extends StatelessWidget {
             _CompareRow(
               label: r.label,
               ko: r.ko,
-              value: r.read(u) ?? _missing,
+              value: r.read(u, admission) ?? _missing,
               // The accent marks a value that is actually there; an em dash
               // in lime would read as a highlighted answer.
-              lime: r.lime && r.read(u) != null,
+              lime: r.lime && r.read(u, admission) != null,
             ),
             const SizedBox(height: 10),
           ],

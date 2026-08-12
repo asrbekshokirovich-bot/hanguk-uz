@@ -16,9 +16,9 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:hanguk_app/features/guest/data/guest_compare_provider.dart';
 import 'package:hanguk_app/features/guest/presentation/guest_compare_screen.dart';
-import 'package:hanguk_app/features/map/data/map_repository.dart';
 import 'package:hanguk_app/features/map/domain/university.dart';
 import 'package:hanguk_app/features/map/presentation/ieqas_label.dart';
+import 'package:hanguk_app/features/uni_db/data/approved_universities_provider.dart';
 import 'package:hanguk_app/l10n/app_localizations.dart';
 
 /// A university carrying only the fields named — everything else absent, so a
@@ -46,9 +46,18 @@ University _uni(
   );
 }
 
-Future<void> _pump(WidgetTester tester, List<University> catalogue) async {
+Future<void> _pump(
+  WidgetTester tester,
+  List<University> catalogue, {
+  Map<String, ApprovedAdmission> details = const {},
+}) async {
   final container = ProviderContainer(
-    overrides: [universitiesProvider.overrideWith((ref) async => catalogue)],
+    overrides: [
+      approvedCatalogueProvider.overrideWith(
+        (ref) async =>
+            ApprovedCatalogue(universities: catalogue, details: details),
+      ),
+    ],
   );
   addTearDown(container.dispose);
   // `toggle` is the only way in, which is also how Explore fills the tray.

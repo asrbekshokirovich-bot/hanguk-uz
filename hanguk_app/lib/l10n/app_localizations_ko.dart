@@ -1117,6 +1117,40 @@ class AppLocalizationsKo extends AppLocalizations {
   String get guestRowWebsite => '웹사이트';
 
   @override
+  String get guestRowTuition => '등록금';
+
+  @override
+  String get guestRowApplication => '원서접수';
+
+  @override
+  String get guestRowDocDeadline => '서류 마감';
+
+  @override
+  String get guestRowTopik => 'TOPIK';
+
+  @override
+  String get guestRowEnglish => '영어';
+
+  @override
+  String get guestRowInterview => '면접';
+
+  @override
+  String get guestRowDocuments => '제출서류';
+
+  @override
+  String guestTuitionYearNote(int year) {
+    return '$year년 기준';
+  }
+
+  @override
+  String guestDocumentsCount(int count) {
+    return '$count종';
+  }
+
+  @override
+  String get guestApostilleShort => '아포스티유 필요';
+
+  @override
   String get guestValueYes => '예';
 
   @override
