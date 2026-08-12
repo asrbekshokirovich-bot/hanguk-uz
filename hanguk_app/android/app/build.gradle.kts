@@ -73,6 +73,29 @@ android {
                 storePassword = keystoreProperties["storePassword"] as String
             }
         }
+
+        // Sideload test builds get a STABLE key, checked in beside this file.
+        //
+        // Android's default debug keystore is generated per machine, and on a
+        // CI runner that means per RUN. Every test APK was therefore signed by
+        // a different key, so it could not install over the previous one:
+        // Android refuses the update, usually without an error the person
+        // installing ever sees. They tap install, nothing happens, and they go
+        // on using the old build believing it is the new one — which is
+        // exactly what happened here, across several rounds of "it did not
+        // change".
+        //
+        // This key is a throwaway with a published password. It is NOT the
+        // Play upload key (that one lives in repo secrets and is loaded via
+        // key.properties above), it never signs anything Play sees, and
+        // possessing it grants nothing but the ability to build a test APK
+        // that updates another test APK.
+        getByName("debug") {
+            storeFile = file("sideload-test.keystore")
+            storePassword = "hanguktest"
+            keyAlias = "sideload-test"
+            keyPassword = "hanguktest"
+        }
     }
 
     buildTypes {

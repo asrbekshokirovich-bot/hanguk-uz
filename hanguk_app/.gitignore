@@ -53,6 +53,10 @@ node_modules/
 android/key.properties
 **/*.jks
 **/*.keystore
+# …except the sideload TEST key, which must be stable so each test APK can
+# install over the last one. Throwaway, published password, never signs a Play
+# artifact — see the comment in android/app/build.gradle.kts.
+!android/app/sideload-test.keystore
 android/*.pem
 android/.new_keystore_password.txt
 
