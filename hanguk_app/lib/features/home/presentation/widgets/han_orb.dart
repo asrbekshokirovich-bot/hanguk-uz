@@ -189,19 +189,26 @@ class _HanOrbState extends State<HanOrb> with TickerProviderStateMixin {
                 // always the ones on screen.
                 reverse: true,
                 physics: const ClampingScrollPhysics(),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    for (var i = 0; i < widget.items.length; i++)
-                      _DialRow(
-                        item: widget.items[i],
-                        controller: _dial,
-                        // Bottom item leads; the stagger walks up the column.
-                        order: widget.items.length - 1 - i,
-                        onTap: () => _select(widget.items[i]),
-                      ),
-                  ],
+                // Every pill takes the width of the longest one, so the dial
+                // reads as a single column with one left edge. Sized to their
+                // own labels they stepped in and out — "Bosh sahifa" against
+                // "Suhbatga tayyorgarlik" — and a ragged stack of seven looks
+                // like scattered chips rather than a menu.
+                child: IntrinsicWidth(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      for (var i = 0; i < widget.items.length; i++)
+                        _DialRow(
+                          item: widget.items[i],
+                          controller: _dial,
+                          // Bottom item leads; the stagger walks up the column.
+                          order: widget.items.length - 1 - i,
+                          onTap: () => _select(widget.items[i]),
+                        ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -433,36 +440,39 @@ class _DialRow extends StatelessWidget {
             // hangul, then the glyph tile.
             child: ExcludeSemantics(
               child: Row(
-                mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Label pill
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 9,
-                    ),
-                    decoration: BoxDecoration(
-                      color: SeoulColors.glass,
-                      borderRadius: BorderRadius.circular(999),
-                      border: Border.all(color: SeoulColors.glassBorder),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          item.label,
-                          style: SeoulType.subtitle.copyWith(fontSize: 14),
-                        ),
-                        Text(
-                          item.ko,
-                          style: SeoulType.hangulStatus.copyWith(
-                            color: item.active
-                                ? SeoulColors.lime
-                                : SeoulColors.textFaint,
+                  // Label pill. Expanded, not sized to its own text: the
+                  // IntrinsicWidth above hands every row the width of the
+                  // longest label so the column keeps one left edge.
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 9,
+                      ),
+                      decoration: BoxDecoration(
+                        color: SeoulColors.glass,
+                        borderRadius: BorderRadius.circular(999),
+                        border: Border.all(color: SeoulColors.glassBorder),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            item.label,
+                            style: SeoulType.subtitle.copyWith(fontSize: 14),
                           ),
-                        ),
-                      ],
+                          Text(
+                            item.ko,
+                            style: SeoulType.hangulStatus.copyWith(
+                              color: item.active
+                                  ? SeoulColors.lime
+                                  : SeoulColors.textFaint,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                   const SizedBox(width: 10),
