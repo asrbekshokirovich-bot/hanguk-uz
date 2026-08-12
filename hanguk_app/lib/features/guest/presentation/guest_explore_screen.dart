@@ -3,9 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../map/data/map_repository.dart';
 import '../../map/domain/university.dart';
 import '../../map/presentation/ieqas_label.dart';
+import '../../uni_db/data/approved_universities_provider.dart';
 import '../data/guest_compare_provider.dart';
 
 /// Guest Explore — the catalogue browser (DESIGN_SPEC screen 8).
@@ -62,7 +62,7 @@ class GuestExploreScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context)!;
-    final unisAsync = ref.watch(universitiesProvider);
+    final unisAsync = ref.watch(approvedUniversitiesProvider);
     final query = ref.watch(guestSearchProvider);
     final city = ref.watch(guestCityFilterProvider);
     final compare = ref.watch(guestCompareProvider);
@@ -85,23 +85,19 @@ class GuestExploreScreen extends ConsumerWidget {
               const SizedBox(height: 16),
               SeoulOutlineButton(
                 label: l.commonRetry,
-                onPressed: () => ref.invalidate(universitiesProvider),
+                onPressed: () => ref.invalidate(approvedUniversitiesProvider),
               ),
             ],
           ),
         ),
       ),
-      data: (all) {
-        // Only the institutions we hold researched admission data for. The
-        // catalogue carries 204 visible rows but a published guideline for 45
-        // of them; listing all 204 presented a name-and-a-pin as an equal to a
-        // school whose deadlines, requirements and documents we have actually
-        // read. `hasIntakeData` tracks the CRM's default intake, so a newly
-        // approved guideline joins this list on the next refresh and a season
-        // rollover drops last season's coverage — no list to maintain.
-        final unis = all
-            .where((u) => u.hasIntakeData)
-            .toList(growable: false);
+      data: (unis) {
+        // The list arrives already limited to institutions the review queue
+        // has approved — see `approvedUniversitiesProvider`. It used to be the
+        // whole catalogue narrowed here by `hasIntakeData`, which answered 45
+        // against an approved set of 57: that flag follows the CRM's default
+        // intake, so it counted cycles carrying no extracted field at all and
+        // dropped institutions approved for any other year.
         final cities = _cityOptions(unis);
         final results = _apply(unis, query, city);
 

@@ -4,8 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../design_system/seoul_night/seoul_night.dart';
 import '../../../../l10n/app_localizations.dart';
-import '../../map/data/map_repository.dart';
 import '../../map/domain/university.dart';
+import '../../uni_db/data/approved_universities_provider.dart';
 import '../../uni_db/presentation/widgets/home_recent_changes_banner.dart';
 import '../../uni_db/presentation/widgets/verified_deadlines_overlay.dart';
 import '../data/applications_repository.dart';
@@ -65,8 +65,9 @@ class ApplicationsTab extends ConsumerWidget {
 
         appsAsync.when(
           data: (apps) {
-            // No applications yet → let the student browse every university
-            // (read-only). They cannot apply from here; staff do that in CRM.
+            // No applications yet → let the student browse the approved
+            // universities (read-only). They cannot apply from here; staff do
+            // that in CRM.
             if (apps.isEmpty) {
               return _buildBrowseUniversities(ref, l);
             }
@@ -162,8 +163,14 @@ class ApplicationsTab extends ConsumerWidget {
   }
 
   // ── Read-only university list, shown when the student has no applications ─
+  //
+  // Only the institutions the review queue has approved. This listed the whole
+  // catalogue — 204 institutions, most of them a name and a pin — so a student
+  // who had not applied anywhere opened Applications onto a wall of schools we
+  // hold nothing for. `approvedUniversitiesProvider` is the same list Explore
+  // shows, so the two can never disagree.
   Widget _buildBrowseUniversities(WidgetRef ref, AppLocalizations l) {
-    final unisAsync = ref.watch(universitiesProvider);
+    final unisAsync = ref.watch(approvedUniversitiesProvider);
     return unisAsync.when(
       data: (unis) {
         if (unis.isEmpty) {
@@ -221,7 +228,7 @@ class ApplicationsTab extends ConsumerWidget {
       ),
       error: (err, stack) => _buildErrorSliver(
         l,
-        onRetry: () => ref.invalidate(universitiesProvider),
+        onRetry: () => ref.invalidate(approvedUniversitiesProvider),
       ),
     );
   }
