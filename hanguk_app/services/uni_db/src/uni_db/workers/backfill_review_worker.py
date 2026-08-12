@@ -10,12 +10,18 @@ extractions sitting with `status='succeeded'` and no way to ever be approved
 or published, because `publish_worker` only reads rows that came through
 `review_queue`.
 
-This worker finds every succeeded extraction_job with no matching
-review_queue row and inserts one (`status='open'`, so a human confirms
-before it publishes rather than silently backdating months-old data straight
-into the app). Idempotent — the same NOT EXISTS check excludes a job once
-its row exists, so re-running only picks up newly-orphaned jobs (belt and
-suspenders in case the dead branch above is ever reachable again).
+This worker finds succeeded extraction_jobs that never reached review and
+inserts a review_queue row (`status='open'`, so a human confirms before it
+publishes rather than silently backdating months-old data straight into the
+app). Idempotent — a job is excluded once its row exists, so re-running only
+picks up newly-orphaned jobs (belt and suspenders in case the dead branch
+above is ever reachable again).
+
+It queues at most one row per (guideline document, field group): the
+pipeline produces many jobs per section, and queueing each orphan gave the
+reviewer the same section two and three times over. See `_FETCH_SQL`. The
+`trg_supersede_stale_review_rows` trigger (migration 20260919000000) is the
+backstop for every other insert path.
 
 DB-only — no LLM, no HTTP; the extraction already succeeded.
 """
@@ -29,14 +35,44 @@ import asyncpg
 
 log = logging.getLogger(__name__)
 
+# One row per SECTION, not per job.
+#
+# The original query asked "does this job have a review row?"
+# (`rq.entity_id = ej.id`). The pipeline creates many jobs for the same
+# (guideline document, field group) — up to 41 for a single pairing — so every
+# orphaned job looked like fresh work and got its own card. That is how the
+# reviewer ended up with the same section queued two and three times within
+# minutes on 2026-08-06.
+#
+# Two guards now:
+#   * `not exists` over the whole section, so a section that already has a live
+#     card is skipped entirely rather than queued again;
+#   * `distinct on (document, field_group)` keeping the newest job, so a
+#     section with a dozen orphans contributes one row, not a dozen.
+#
+# Jobs with no document or field group cannot be grouped into a section and
+# keep the old per-job behaviour — there is nothing to collide with.
 _FETCH_SQL = """
-select ej.id as extraction_job_id, ej.field_group
+select distinct on (ej.guideline_document_id, ej.field_group)
+       ej.id as extraction_job_id, ej.field_group
   from public.extraction_jobs ej
-  left join public.review_queue rq
-    on rq.entity_id = ej.id and rq.entity_type = 'extraction_jobs'
  where ej.status = 'succeeded'
-   and rq.id is null
- order by ej.ended_at asc nulls last
+   and not exists (
+     select 1
+       from public.review_queue rq
+      where rq.entity_type = 'extraction_jobs'
+        and rq.entity_id = ej.id
+   )
+   and not exists (
+     select 1
+       from public.review_queue rq
+       join public.extraction_jobs sib on sib.id = rq.entity_id
+      where rq.entity_type = 'extraction_jobs'
+        and rq.status in ('open', 'in_review')
+        and sib.guideline_document_id is not distinct from ej.guideline_document_id
+        and sib.field_group is not distinct from ej.field_group
+   )
+ order by ej.guideline_document_id, ej.field_group, ej.ended_at desc nulls last
  limit $1
 """
 
