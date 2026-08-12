@@ -47,6 +47,32 @@ size you never expanded, and that alone re-triggers this rejection.
 
 ---
 
+## 1b. Where the failing screenshots came from
+
+Found while capturing replacements, and it explains all three rejections
+rather than just this one.
+
+`public/screenshots/` held twelve files that every store doc pointed at as
+*the* screenshot set. They were **AI-generated marketing art, not this
+app**: a phone bezel drawn around an invented blue-and-white interface,
+a headline over a gradient, and body text that is not real words —
+"Futtless Tracks", "Prqdnaction", "Ersen's Listles ilea Ltaid". The real
+app is dark navy and lime. They were also JPEGs carrying a `.png`
+extension, sized 1024×1920 and 1088×1920, which is not a size any iPhone
+has.
+
+Worse, `STORE_METADATA.md` and `STORE_DEPLOYMENT.md` both recommended a
+screenshot order that **opened with Welcome and Login** — the two screens
+Apple names explicitly as not counting as the app in use.
+
+So anyone following this repository's own instructions would upload
+marketing renders led by a login screen, and draw guideline 2.3.3 again.
+That is what happened three times.
+
+Fixed on this branch: the twelve files are deleted, and both documents now
+carry the real capture list, the real sizes, and an explicit rule that
+Welcome and Login must not appear at all.
+
 ## 2. What to do, in order
 
 Step 1 is what actually removes the iPad slots. Step 2 is the belt to
@@ -157,7 +183,20 @@ empty. Apple re-checks both before reading the reply.
   iPad slots empty and to sweep them per-locale in Media Manager, and a
   "Rejected 2026-08-12" section records why a stale hidden size is enough
   to fail on its own.
+- **Deleted `public/screenshots/` (12 files)** — the AI-generated marketing
+  renders described in § 1b.
+- `STORE_METADATA.md` and `STORE_DEPLOYMENT.md` — asset paths, sizes and
+  screenshot order corrected; Welcome and Login ruled out explicitly.
+- `tools/store/capture_screenshots.cjs` + `tools/store/README.md` — a
+  capture harness that drives a real build, so the set is photographed
+  rather than assembled.
+- `listings/screenshots/captured/` — the first three real frames
+  (Explore, Map, Compare) at 1320×2868.
+- `STORE_METADATA.md` compare bullet, all four languages — widened to
+  match what Guest Compare actually renders since commit `0023a97`
+  (tuition, application window, document deadline, TOPIK, English-taught,
+  interview). Scholarship and rank stay out; they still do not exist.
 
-No source change was needed: the iPhone-only configuration is already
-correct in `ios/`, and the fix reaches Apple by uploading a build, not by
-editing code.
+No source change was needed for the rejection itself: the iPhone-only
+configuration is already correct in `ios/`, and that half of the fix
+reaches Apple by uploading a build, not by editing code.

@@ -99,6 +99,13 @@ function serve(root, port) {
  * frames — that is the cheapest reliable "it has stopped animating" signal,
  * and it keeps us from photographing a half-built list.
  */
+/**
+ * Whether the engine gave us an accessibility tree this run. Flutter builds
+ * that expose no semantics placeholder leave `tapLabel` with nothing to
+ * match, which is why the guest walkthrough taps coordinates instead.
+ */
+let semanticsAvailable = false;
+
 async function waitForFlutter(page, { timeout = 90000 } = {}) {
   // 'attached' rather than 'visible': the engine's host element carries no
   // intrinsic box in some renderers, so a visibility check can time out on a
@@ -108,7 +115,7 @@ async function waitForFlutter(page, { timeout = 90000 } = {}) {
     timeout,
   });
   await page.waitForTimeout(3000);
-  await enableSemantics(page);
+  semanticsAvailable = await enableSemantics(page);
 }
 
 async function waitUntilStill(page, { tries = 12, gap = 700 } = {}) {
@@ -144,11 +151,14 @@ async function shoot(page, outDir, index, name) {
  * can target. Without this the script can only click blind coordinates.
  */
 async function enableSemantics(page) {
-  await page.evaluate(() => {
+  const found = await page.evaluate(() => {
     const ph = document.querySelector('flt-semantics-placeholder');
-    if (ph) ph.click();
+    if (!ph) return false;
+    ph.click();
+    return true;
   });
-  await page.waitForTimeout(1200);
+  await page.waitForTimeout(found ? 1200 : 0);
+  return found;
 }
 
 /** Tap by the visible label Flutter exposes through its semantics tree. */
@@ -347,6 +357,17 @@ async function main() {
       console.log('\nno --code given; skipping the signed-in screens');
       console.log('the guest shots alone are NOT enough for guideline 2.3.3');
     } else {
+      // Be honest about this up front rather than letting four screens fail
+      // one by one and look like a flake.
+      if (!semanticsAvailable) {
+        console.log('\nWARNING: this build exposes no accessibility tree, so the');
+        console.log('signed-in walkthrough below — which navigates the dial by');
+        console.log('label — cannot find its targets and will skip each screen.');
+        console.log('Re-run with --keep-open, open the dial by hand, and record');
+        console.log('each item\'s position as a viewport fraction, the way the');
+        console.log('guest walkthrough above already does.');
+      }
+
       console.log('\nsigning in');
       await page.goto(`${base}/#/login`, { waitUntil: 'load' });
       await waitForFlutter(page);
