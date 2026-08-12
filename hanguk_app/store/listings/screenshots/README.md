@@ -12,7 +12,7 @@ both stores want flattened PNGs.
 | 6.9" iPhone (iPhone 16 Pro Max) | 1320 × 2868 | **Required** for any submission. | 3–10 screenshots. |
 | 6.7" iPhone (iPhone 14 Pro Max / 15 Plus / etc.) | 1290 × 2796 | Strongly recommended fallback for older devices. | Auto-scaled from 6.9" if absent. |
 | 6.5" iPhone (iPhone 11 Pro Max / Xs Max) | 1284 × 2778 | Optional. | Auto-scaled. |
-| iPad Pro 13" (M4) | 2064 × 2752 | Not required. | `TARGETED_DEVICE_FAMILY = "1"` (iPhone only) since the 2026-08-05 rejection, so App Store Connect no longer asks for an iPad set and review runs on iPhone. |
+| iPad — **every** size (13", 12.9", 11") | — | **Leave empty.** | `TARGETED_DEVICE_FAMILY = "1"` (iPhone only) since the 2026-08-05 rejection. An iPhone-only app does not need iPad screenshots, and an empty slot cannot fail 2.3.3. Do not fill these by re-cropping the iPhone captures — a stretched iPhone frame is exactly the "does not reflect the UI of the app" case Apple rejects. Sweep them in Media Manager per locale; see "Rejected 2026-08-12". |
 
 Locales: at minimum `en-US`, `ko`, `uz` (Apple uses `uz` not `uz-UZ`).
 File each set in a localized subfolder: `app-store/<locale>/screenshots/`.
@@ -67,3 +67,25 @@ of the screenshots". Hard rules that follow from that:
 - Re-check every size in App Store Connect via **"View All Sizes in Media
   Manager"**; an old marketing set can survive there on a size you never
   opened, and that alone re-triggers this rejection.
+
+### Rejected 2026-08-12 — guideline 2.3.3, again
+
+Same submission, same guideline, narrowed to one size: "the 13-inch iPad
+screenshots do not show the actual app in use in the majority of the
+screenshots". The 2026-08-05 cleanup fixed what was visible on the default
+size and missed the 13-inch iPad set hiding behind **View All Sizes in
+Media Manager**.
+
+Two rules follow, and they are cheap to obey:
+
+- **Sweep every size, in every locale, every time** — `en-US`, `ko`, `uz`.
+  The Media Manager is per-locale; a stale set in one locale fails the
+  whole submission just as a stale set in `en-US` does.
+- **Keep all iPad sizes empty.** The app is iPhone-only, so nothing is
+  required there, and nothing there can be wrong.
+
+Root cause for this round was not the assets alone: Apple was still
+reviewing build **1.0 (2042)**, which predates the iPhone-only fix, so
+App Store Connect kept the iPad slots live and review kept running on an
+iPad. Full write-up and the resubmission sequence:
+[`../../APP_REVIEW_2026-08-12.md`](../../APP_REVIEW_2026-08-12.md).
