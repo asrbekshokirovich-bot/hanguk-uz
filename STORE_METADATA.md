@@ -5,12 +5,24 @@ This file contains all store descriptions and metadata for Apple App Store and G
 > **Every bullet below has to be findable in the shipped app.** App Review
 > rejected the 2026-08-07 submission on guideline 2.3 over one line of App
 > Store Connect copy — "Compare programs, tuition, location, and scholarship
-> eligibility" — because no screen in the app compares tuition or scholarship
-> eligibility. The compare screen shows city, tier, IEQAS accreditation and
-> partner status; tuition and scholarship rows exist only on the institution
-> pages, which have no navigation entry point yet. Do not paste a feature list
-> into App Store Connect that is wider than this file, and do not widen this
-> file ahead of the app. See `hanguk_app/store/APP_REVIEW_2026-08-07.md`.
+> eligibility" — because at that time no screen compared tuition or
+> scholarship eligibility. Do not paste a feature list into App Store Connect
+> that is wider than this file, and do not widen this file ahead of the app.
+> See `hanguk_app/store/APP_REVIEW_2026-08-07.md`.
+>
+> **The compare rows have since grown, and the bullet was widened to match.**
+> Commit `0023a97` ("compare on the fee, the dates and the language bar")
+> moved Guest Compare onto `approvedCatalogueProvider`, so
+> `lib/features/guest/presentation/guest_compare_screen.dart` now renders
+> city, tier, IEQAS status, Hanguk partner, website, **tuition, application
+> window, document deadline, TOPIK requirement, English-taught, interview**
+> and document count. That is reachable without an account: Welcome →
+> Explore Universities → add two → Compare. Photographed in
+> `hanguk_app/store/listings/screenshots/captured/`.
+>
+> **Still absent, still not to be claimed:** scholarship eligibility and
+> rank. Neither exists on any screen. If either is ever added, widen this
+> file first and only then the store copy.
 
 ---
 
@@ -40,7 +52,7 @@ FEATURES:
 • Track your university applications in real-time
 • Upload and manage required documents
 • Practice for admission interviews with AI
-• Browse Korean universities on an interactive map, then compare two of them side by side (city, tier, IEQAS accreditation, partner status)
+• Browse Korean universities on an interactive map, then compare two of them side by side — city, tier, IEQAS accreditation, partner status, tuition, application window, document deadline, TOPIK requirement, English-taught and interview
 • Get personalized AI assistance for your journey
 • Multi-language support (Uzbek, Russian, English, Korean)
 
@@ -76,7 +88,7 @@ IMKONIYATLAR:
 • Universitet arizalaringizni real vaqtda kuzating
 • Kerakli hujjatlarni yuklang va boshqaring
 • AI bilan qabul suhbatlariga tayyorlaning
-• Koreya universitetlarini interaktiv xaritada ko'ring va ikkitasini yonma-yon solishtiring (shahar, daraja, IEQAS akkreditatsiyasi, hamkorlik holati)
+• Koreya universitetlarini interaktiv xaritada ko'ring va ikkitasini yonma-yon solishtiring — shahar, daraja, IEQAS akkreditatsiyasi, hamkorlik holati, o'qish to'lovi, ariza muddati, hujjat topshirish muddati, TOPIK talabi, ingliz tilida o'qitish va suhbat
 • Sayohatingiz uchun shaxsiy AI yordamini oling
 • Ko'p tilli qo'llab-quvvatlash (O'zbek, Rus, Ingliz, Koreys)
 
@@ -112,7 +124,7 @@ Hanguk Consulting помогает студентам подавать заяв�
 • Отслеживайте ваши заявки в университеты в реальном времени
 • Загружайте и управляйте необходимыми документами
 • Практикуйте собеседования с ИИ
-• Смотрите корейские университеты на интерактивной карте и сравнивайте два из них рядом (город, уровень, аккредитация IEQAS, партнёрский статус)
+• Смотрите корейские университеты на интерактивной карте и сравнивайте два из них рядом — город, уровень, аккредитация IEQAS, партнёрский статус, стоимость обучения, сроки подачи, срок подачи документов, требование TOPIK, обучение на английском и собеседование
 • Получайте персональную помощь ИИ
 • Многоязычная поддержка (Узбекский, Русский, Английский, Корейский)
 
@@ -148,7 +160,7 @@ Hanguk Consulting은 전문적인 안내와 지원으로 한국 대학 진학을
 • 대학 지원 현황을 실시간으로 추적
 • 필요한 서류를 업로드하고 관리
 • AI와 함께 입학 면접 연습
-• 인터랙티브 지도에서 한국 대학을 둘러보고 두 곳을 나란히 비교 (도시, 등급, IEQAS 인증, 제휴 여부)
+• 인터랙티브 지도에서 한국 대학을 둘러보고 두 곳을 나란히 비교 — 도시, 등급, IEQAS 인증, 제휴 여부, 등록금, 원서접수 기간, 서류 마감, TOPIK 요건, 영어 트랙, 면접
 • 맞춤형 AI 지원 서비스
 • 다국어 지원 (우즈베크어, 러시아어, 영어, 한국어)
 
@@ -174,42 +186,55 @@ Hanguk Consulting은 전문적인 안내와 지원으로 한국 대학 진학을
 |-------|-----------|------------|
 | App Icon | `public/icon-1024.png` | 1024×1024 |
 | Splash Screen | `public/splash-2732.png` | 1920×1920 |
-| iOS Screenshot 1 | `public/screenshots/ios-1-welcome.png` | 1024×1920 |
-| iOS Screenshot 2 | `public/screenshots/ios-2-login.png` | 1024×1920 |
-| iOS Screenshot 3 | `public/screenshots/ios-3-dashboard.png` | 1024×1920 |
-| iOS Screenshot 4 | `public/screenshots/ios-4-map.png` | 1024×1920 |
-| iOS Screenshot 5 | `public/screenshots/ios-5-interview.png` | 1024×1920 |
-| iOS Screenshot 6 | `public/screenshots/ios-6-languages.png` | 1024×1920 |
-| Android Screenshot 1 | `public/screenshots/android-1-welcome.png` | 1088×1920 |
-| Android Screenshot 2 | `public/screenshots/android-2-login.png` | 1088×1920 |
-| Android Screenshot 3 | `public/screenshots/android-3-dashboard.png` | 1088×1920 |
-| Android Screenshot 4 | `public/screenshots/android-4-map.png` | 1088×1920 |
-| Android Screenshot 5 | `public/screenshots/android-5-interview.png` | 1088×1920 |
-| Android Screenshot 6 | `public/screenshots/android-6-languages.png` | 1088×1920 |
+| Store screenshots | `hanguk_app/store/listings/screenshots/captured/` | 1320×2868 (6.9" iPhone) |
+
+> The twelve files that used to sit in `public/screenshots/` were **deleted on
+> 2026-08-12**. They were AI-generated marketing renders — a phone bezel drawn
+> around an invented blue-and-white UI, headline text over a gradient, and
+> body copy that was not real words ("Futtless Tracks", "Prqdnaction"). They
+> showed no part of this app, which is dark navy and lime. They were also
+> JPEGs carrying a `.png` extension, at 1024×1920 and 1088×1920 — not a size
+> any iPhone has.
+>
+> Uploading them is what failed guideline 2.3.3 on 2026-08-05 and again on
+> 2026-08-12. Do not restore them or anything like them. Capture real frames
+> with `hanguk_app/tools/store/capture_screenshots.cjs`.
 
 ---
 
 ## Screenshot Order (Recommended)
 
-1. **Welcome** - First impression of the app
-2. **Login** - Easy access for students and staff
-3. **Dashboard** - Application tracking features
-4. **Map** - University exploration
-5. **Interview** - AI interview practice
-6. **Languages** - Multi-language support
+**Never lead with Welcome or Login.** Apple does not count a splash,
+welcome or sign-in screen as the app in use, and an order that opened with
+those two is what drew the 2.3.3 rejections. They must not appear in the set
+at all.
+
+1. **Map** — the national university map, markers plotted
+2. **Explore** — the searchable institution list with city filters
+3. **Compare** — two universities side by side, both columns filled
+4. **Documents** — uploaded application documents, list populated
+5. **Study Plan** — a plan with its generated steps
+6. **Interview** — an active session with a live transcript
+
+Every frame must be a real capture from a signed-in session with real data.
+An empty tab reads as functionality the reviewer could not reach, which
+draws the same rejection by another name. Full capture list and rules:
+`hanguk_app/store/listings/screenshots/README.md`.
 
 ---
 
 ## App Store Notes
 
 ### Apple App Store
-- Use iOS screenshots (1024×1920) - may need to scale to 1284×2778 for 6.5" display
+- Screenshots must be **1320×2868** (6.9" iPhone, the required size). Flattened PNG, no alpha channel
+- Leave **every iPad size empty** — the app is iPhone-only (`TARGETED_DEVICE_FAMILY = "1"`)
+- Sweep every size through **View All Sizes in Media Manager**, in every locale
 - App icon must have NO transparency
 - Subtitle limited to 30 characters
 - Keywords limited to 100 characters total
 
 ### Google Play Store
-- Use Android screenshots (1088×1920)
+- Reuse the captured phone screenshots (1320×2868 is within Play's limits)
 - Short description limited to 80 characters
 - Full description limited to 4000 characters
 - Feature graphic recommended: 1024×500

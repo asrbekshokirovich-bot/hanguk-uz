@@ -47,6 +47,16 @@ It renders in EN / UZ / RU / KO off the app's current locale, like
 
 ## 2. Guideline 2.3 — Accurate Metadata
 
+> **Superseded in part, 2026-08-12.** The finding below was correct when
+> written. Commit `0023a97` has since moved Guest Compare onto
+> `approvedCatalogueProvider`, so the screen a guest can actually reach now
+> shows tuition, the application window, the document deadline, the TOPIK
+> floor, English-taught and interview alongside city, tier, IEQAS and
+> partner status — photographed in `listings/screenshots/captured/`.
+> `STORE_METADATA.md` has been widened to match. **Scholarship eligibility
+> and rank are still absent and must still not be claimed.** Read the
+> section below as history, not as the current state.
+
 **What Apple said.** They could not locate the feature described as
 "Compare programs, tuition, location, and scholarship eligibility".
 

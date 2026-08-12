@@ -178,16 +178,23 @@ See `STORE_METADATA.md` for complete multi-language store descriptions (English,
 |-------|----------|
 | App Icon (1024×1024) | `public/icon-1024.png` |
 | Splash Screen | `public/splash-2732.png` |
-| iOS Screenshots (6) | `public/screenshots/ios-*.png` |
-| Android Screenshots (6) | `public/screenshots/android-*.png` |
+| Store screenshots | `hanguk_app/store/listings/screenshots/captured/` |
+
+The generated set that used to live in `public/screenshots/` was deleted on
+2026-08-12: it was AI-generated marketing art, not this app, and uploading it
+failed guideline 2.3.3 twice. Capture real frames with
+`hanguk_app/tools/store/capture_screenshots.cjs`.
 
 ### Screenshot Order
-1. Welcome - First impression
-2. Login - Easy access
-3. Dashboard - Application tracking
-4. Map - University exploration
-5. Interview - AI practice
-6. Languages - Multi-language support
+**Welcome and Login must not appear at all** — Apple does not count them as
+the app in use, and leading with them is what drew the rejections.
+
+1. Map - the national university map
+2. Explore - searchable institution list
+3. Compare - two universities side by side, both filled
+4. Documents - uploaded documents, populated
+5. Study Plan - a plan with its steps
+6. Interview - an active session with transcript
 
 ---
 
@@ -195,10 +202,12 @@ See `STORE_METADATA.md` for complete multi-language store descriptions (English,
 
 ### Required Dimensions
 
-**iOS**:
-- 6.5" iPhone: 1284 x 2778 px
-- 5.5" iPhone: 1242 x 2208 px
-- 12.9" iPad: 2048 x 2732 px
+**iOS** (the app is iPhone-only — `TARGETED_DEVICE_FAMILY = "1"`):
+- 6.9" iPhone: 1320 x 2868 px — **required**
+- 6.5" iPhone: 1284 x 2778 px — optional, auto-scaled from 6.9"
+- iPad, every size: **leave empty**. An iPhone-only app needs none, and an
+  empty slot cannot fail guideline 2.3.3. Stale assets hide behind
+  "View All Sizes in Media Manager" — sweep them there, in every locale.
 
 **Android**:
 - Phone: 1080 x 1920 px minimum
@@ -206,12 +215,15 @@ See `STORE_METADATA.md` for complete multi-language store descriptions (English,
 - Tablet 10": 1920 x 1200 px
 
 ### Recommended Screenshots
-1. Home/Dashboard view
-2. University map
-3. Application tracker
-4. Document upload
-5. AI chat/Interview practice
-6. Multi-language support showcase
+Real captures only, from a signed-in session with real data. No splash, no
+welcome, no login, no device bezels, no headline slides, no empty tabs.
+
+1. University map
+2. Explore / institution list
+3. Compare, both columns filled
+4. Document upload, populated
+5. Study plan with its steps
+6. Interview practice, transcript visible
 
 ---
 
