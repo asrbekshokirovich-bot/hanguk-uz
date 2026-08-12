@@ -1,5 +1,10 @@
 # Screenshot requirements
 
+> Capture them with `tools/store/capture_screenshots.cjs`, which drives a
+> real build and photographs what it renders — see
+> [`tools/store/README.md`](../../../tools/store/README.md). Frames captured
+> so far live in [`captured/`](captured/).
+
 Both stores require localized screenshots captured from a real release
 build. Do NOT shop these — Apple rejects mockup-style screenshots that
 don't show the actual UI. Do NOT include alpha channels or transparency;
