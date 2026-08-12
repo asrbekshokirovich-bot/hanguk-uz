@@ -1570,7 +1570,20 @@
     "tui": {
       "faculty": "Faculty",
       "perSemester": "Tuition / semester",
-      "admissionFee": "Admission fee"
+      "admissionFee": "Admission fee",
+      "fac": {
+        "medicine": "Medicine",
+        "dentistry": "Dentistry",
+        "veterinary": "Veterinary",
+        "pharmacy": "Pharmacy",
+        "theology": "Theology",
+        "interdisciplinary": "Interdisciplinary",
+        "humanities": "Humanities",
+        "social": "Social sciences",
+        "natural_science": "Natural sciences",
+        "engineering": "Engineering",
+        "arts_pe": "Arts & PE"
+      }
     },
     "docs": {
       "required": "Required",
