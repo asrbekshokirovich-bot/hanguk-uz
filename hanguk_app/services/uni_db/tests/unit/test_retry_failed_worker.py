@@ -21,12 +21,24 @@ from uni_db.workers import retry_failed_worker as rf
 
 
 class _Conn:
+    """Fake connection that mirrors _FETCH_FAILED_SQL's two bound parameters.
+
+    The skip filter really lives in SQL (`not (field_group = any($2))`); this
+    reproduces it so the worker's behaviour around it is testable without a
+    database, and records the args so a test can catch the worker forgetting to
+    bind them at all.
+    """
+
     def __init__(self, records: list[dict]) -> None:
         self._records = records
+        self.last_args: tuple[object, ...] = ()
 
     async def fetch(self, sql: str, *args: object) -> list[dict]:
+        self.last_args = args
         limit = args[0]
-        return self._records[: int(limit)]  # type: ignore[arg-type]
+        skip = set(args[1]) if len(args) > 1 else set()  # type: ignore[arg-type]
+        rows = [r for r in self._records if r["field_group"] not in skip]
+        return rows[: int(limit)]  # type: ignore[arg-type]
 
 
 def _rec(gd_id: UUID, group: str, data: bytes = b"%PDF-fake",
@@ -188,3 +200,82 @@ async def test_hash_mismatch_is_not_retried(monkeypatch) -> None:
     )
     assert run.hash_mismatch == 1
     assert attempts["n"] == 1
+
+
+async def test_skipped_group_is_never_fetched_or_extracted() -> None:
+    # One serialized ~4-minute model call per group: a group no screen renders
+    # is wall-clock spent on nothing. Skipping must drop it from the candidate
+    # set entirely, not extract it and discard the result.
+    gd = uuid4()
+    data = b"%PDF-fake"
+    conn = _Conn([_rec(gd, "scholarships", data), _rec(gd, "calendar", data)])
+    calls: list[tuple[UUID, tuple[str, ...]]] = []
+
+    async def run_parse(c, gd_id, blob, groups):
+        calls.append((gd_id, groups))
+
+    run = await rf.retry_failed(
+        conn, limit=10, skip_groups=("scholarships",),
+        fetch_blob=lambda path: data, run_parse_groups=run_parse,
+    )
+
+    assert run.jobs_seen == 1
+    assert calls == [(gd, ("calendar",))]
+
+
+async def test_document_whose_only_failure_is_skipped_is_not_opened() -> None:
+    # Its PDF must not even be downloaded — that is the saving.
+    gd = uuid4()
+    fetched: list[str] = []
+
+    def fetch_blob(path: str) -> bytes:
+        fetched.append(path)
+        return b"%PDF-fake"
+
+    async def run_parse(c, gd_id, blob, groups):
+        raise AssertionError("nothing should be extracted")
+
+    run = await rf.retry_failed(
+        _Conn([_rec(gd, "scholarships")]), limit=10,
+        skip_groups=("scholarships",),
+        fetch_blob=fetch_blob, run_parse_groups=run_parse,
+    )
+
+    assert run.jobs_seen == 0 and run.documents == 0 and run.retried == 0
+    assert fetched == []
+
+
+async def test_no_skip_list_leaves_the_backlog_untouched() -> None:
+    gd = uuid4()
+    conn = _Conn([_rec(gd, "scholarships"), _rec(gd, "calendar")])
+
+    async def run_parse(c, gd_id, blob, groups):
+        pass
+
+    run = await rf.retry_failed(
+        conn, limit=10, fetch_blob=lambda p: b"%PDF-fake",
+        run_parse_groups=run_parse,
+    )
+
+    assert run.jobs_seen == 2
+    # Bound as an empty array rather than omitted, so the one statement serves
+    # both cases.
+    assert conn.last_args[1] == []
+
+
+async def test_skip_groups_reach_the_query() -> None:
+    # Guards the wiring: a worker that accepted the argument and dropped it
+    # would still pass the behaviour tests above if the fake defaulted to no
+    # filtering.
+    conn = _Conn([])
+
+    async def run_parse(c, gd_id, blob, groups):
+        pass
+
+    await rf.retry_failed(
+        conn, limit=5, skip_groups=("scholarships", "document_checklist"),
+        fetch_blob=lambda p: b"", run_parse_groups=run_parse,
+    )
+
+    assert conn.last_args[0] == 5
+    assert conn.last_args[1] == ["scholarships", "document_checklist"]

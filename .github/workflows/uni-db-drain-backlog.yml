@@ -1,0 +1,137 @@
+name: uni-db drain extraction backlog
+
+# Re-run FAILED extractions until the guest screens are full.
+#
+# 57 institutions are approved and visible in the app, but only a handful carry
+# the four things a student actually chooses on — tuition, the application
+# window, the TOPIK floor, the language requirement. The data is not missing
+# from the source: every one of the 57 has its 모집요강 stored, and extraction
+# succeeded for all of them at least once. What is missing is the ~490 field
+# extractions that died on CLI timeouts, a 401 during one session, or a schema
+# rejection. `retry-failed` re-reads the STORED PDF (no crawling, hash verified)
+# and re-runs only the groups whose latest job failed.
+#
+# Why a workflow and not a person running it: draining the backlog is many
+# hours of model calls. That cannot live in an interactive session — an
+# ephemeral container restarts and takes the run with it, which is exactly how
+# the first attempt was lost. Here it runs on GitHub, resumes on the next tick,
+# and needs nobody watching.
+#
+# It converges on its own: every run takes the next slice of whatever is still
+# failing, and when nothing is left `jobs_seen=0` and the run is a no-op. Safe
+# to leave scheduled forever — it costs nothing once the backlog is empty.
+#
+# Ordering is deliberate. `scholarships` is skipped by default: no screen in
+# the app renders it, and it is ~104 of the ~490 jobs. Drain it later by
+# dispatching with skip_groups empty.
+#
+# Required repo secrets (same ones uni-db-auto-crawl.yml already uses):
+#   UNI_DB_SUPABASE_DB_URL, UNI_DB_SUPABASE_URL,
+#   UNI_DB_SUPABASE_SERVICE_ROLE_KEY, UNI_DB_ANTHROPIC_API_KEY
+
+on:
+  schedule:
+    # Every 3 hours. Each run works for up to ~2.5h, so the ticks chain into
+    # near-continuous progress without ever overlapping (see `concurrency`).
+    - cron: "0 */3 * * *"
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: "Max failed extraction jobs to pick up this run"
+        default: "120"
+        required: false
+      skip_groups:
+        description: "Field groups to leave in the backlog (comma-separated). Empty = drain everything."
+        default: "scholarships"
+        required: false
+
+# Never two drains at once — they would fight over the same failed jobs, and
+# the LLM budget. A running one always wins; the next tick picks up after.
+concurrency:
+  group: uni-db-drain-backlog
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  drain:
+    name: Re-extract failed field groups
+    runs-on: ubuntu-latest
+    # Under GitHub's 6h job ceiling with room to spare; the step below stops
+    # itself before this fires so the run always ends cleanly.
+    timeout-minutes: 170
+    defaults:
+      run:
+        working-directory: hanguk_app/services/uni_db
+    env:
+      # Calls the paid LLM. Does NOT crawl — every PDF is read from storage.
+      UNI_DB_LIVE_APIS: "true"
+      UNI_DB_LIVE_CRAWL: "false"
+      UNI_DB_ENV: "production"
+      SUPABASE_DB_URL: ${{ secrets.UNI_DB_SUPABASE_DB_URL }}
+      SUPABASE_URL: ${{ secrets.UNI_DB_SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.UNI_DB_SUPABASE_SERVICE_ROLE_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.UNI_DB_ANTHROPIC_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: hanguk_app/services/uni_db/pyproject.toml
+
+      - name: Install service (base deps — no torch/Playwright)
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+
+      - name: Check required secrets are set
+        run: |
+          if [ -z "${SUPABASE_DB_URL}" ] || [ -z "${ANTHROPIC_API_KEY}" ]; then
+            echo "::error::Missing secrets. Add UNI_DB_SUPABASE_DB_URL and UNI_DB_ANTHROPIC_API_KEY in Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+
+      # Loop rather than one big --limit: each pass commits its results, so a
+      # timeout or a runner eviction costs the pass in flight, not the run.
+      # Stops early the moment a pass reports jobs_seen=0 — the backlog is
+      # empty and there is nothing to bill for.
+      - name: Re-extract failed jobs
+        env:
+          LIMIT: ${{ github.event.inputs.limit || '120' }}
+          SKIP_GROUPS: ${{ github.event.inputs.skip_groups || 'scholarships' }}
+          # Leave ~20 minutes under the job timeout for the publish step below.
+          DEADLINE_MIN: "145"
+        run: |
+          set -uo pipefail
+          started=$(date +%s)
+          pass=0
+          while :; do
+            pass=$((pass + 1))
+            elapsed=$(( ($(date +%s) - started) / 60 ))
+            if [ "$elapsed" -ge "$DEADLINE_MIN" ]; then
+              echo "::notice::Stopping after ${elapsed}m — next scheduled run continues."
+              break
+            fi
+            echo "--- pass ${pass} (${elapsed}m elapsed) ---"
+            out=$(uni-db retry-failed --limit "$LIMIT" --skip-groups "$SKIP_GROUPS" 2>&1 | tee /dev/stderr | tail -1)
+            case "$out" in
+              *"jobs_seen=0 "*)
+                echo "::notice::Backlog empty for skip_groups='${SKIP_GROUPS}'. Nothing left to re-extract."
+                break
+                ;;
+            esac
+          done
+
+      # Move anything a reviewer has approved into the tables the app reads.
+      # DB-only and idempotent, so it is safe on every run and keeps the app in
+      # step with the review queue without a separate trigger.
+      - name: Publish approved items
+        continue-on-error: true
+        run: uni-db publish --limit 1000
+
+      - name: Report what is still missing
+        continue-on-error: true
+        run: uni-db todo || true

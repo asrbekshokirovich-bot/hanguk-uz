@@ -12,6 +12,11 @@ something re-runs them. This worker does exactly that:
     file_hash_sha256 before spending any LLM budget on a corrupt/changed blob;
   * re-extracts ONLY the failed field groups (parse_worker's `only_groups`),
     so a document that failed one group out of five is billed for one;
+  * optionally skips field groups the caller does not need (`skip_groups`).
+    Every extraction is one serialized model call taking ~4 minutes, so a
+    group nothing reads is hours of wall-clock spent on nothing: draining the
+    backlog for the guest screens does not need `scholarships`, which no
+    screen renders, and skipping it drops ~104 of ~497 jobs;
   * persists through the normal persist_outcome path, so review-queue dedup
     supersedes stale cards and the human-in-the-loop gate is untouched.
 
@@ -23,7 +28,7 @@ from __future__ import annotations
 
 import hashlib
 import logging
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable, Callable, Sequence
 from dataclasses import dataclass
 from uuid import UUID
 
@@ -47,7 +52,9 @@ RunParseGroups = Callable[
 
 # Latest job per (document, field_group); only 'failed' ones are candidates.
 # `limit` bounds the number of failed JOBS picked up this run (they are then
-# grouped per document so each PDF is parsed once).
+# grouped per document so each PDF is parsed once). `$2` is the field groups to
+# skip — an empty array skips nothing, so the one statement serves both cases
+# rather than branching the SQL.
 _FETCH_FAILED_SQL = """
 with latest as (
   select distinct on (ej.guideline_document_id, ej.field_group)
@@ -66,6 +73,7 @@ select l.guideline_document_id,
   join public.guideline_documents gd on gd.id = l.guideline_document_id
  where l.status = 'failed'
    and gd.storage_path is not null
+   and not (l.field_group = any($2::text[]))
  order by gd.fetched_at desc nulls last
  limit $1
 """
@@ -119,23 +127,30 @@ async def _default_run_parse_groups(
 
 
 async def fetch_failed_jobs(
-    conn: asyncpg.Connection, *, limit: int
+    conn: asyncpg.Connection, *, limit: int,
+    skip_groups: Sequence[str] = (),
 ) -> list[asyncpg.Record]:
-    return await conn.fetch(_FETCH_FAILED_SQL, limit)
+    return await conn.fetch(_FETCH_FAILED_SQL, limit, list(skip_groups))
 
 
 async def retry_failed(
     conn: asyncpg.Connection,
     *,
     limit: int,
+    skip_groups: Sequence[str] = (),
     fetch_blob: FetchBlob | None = None,
     run_parse_groups: RunParseGroups | None = None,
 ) -> RetryRun:
-    """Re-run up to `limit` failed extraction jobs from stored blobs."""
+    """Re-run up to `limit` failed extraction jobs from stored blobs.
+
+    `skip_groups` drops field groups from the candidate set entirely — they are
+    neither counted nor re-extracted, so a run that skips them is shorter by
+    exactly their share of the backlog.
+    """
     fetch_blob = fetch_blob or _default_fetch_blob
     run_parse_groups = run_parse_groups or _default_run_parse_groups
 
-    records = await fetch_failed_jobs(conn, limit=limit)
+    records = await fetch_failed_jobs(conn, limit=limit, skip_groups=skip_groups)
 
     # Group failed jobs per document so each PDF is fetched/parsed once.
     by_doc: dict[UUID, dict] = {}
@@ -151,8 +166,9 @@ async def retry_failed(
         entry["groups"].append(r["field_group"])
 
     log.info(
-        "retry_failed: %d failed job(s) across %d document(s)",
+        "retry_failed: %d failed job(s) across %d document(s)%s",
         len(records), len(by_doc),
+        f" (skipping {','.join(skip_groups)})" if skip_groups else "",
     )
 
     retried = hash_mismatch = errors = 0

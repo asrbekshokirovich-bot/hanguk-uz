@@ -61,6 +61,13 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     p_retry.add_argument("--limit", type=int, default=25,
                          help="Max failed extraction jobs to retry this run")
+    p_retry.add_argument(
+        "--skip-groups", default="",
+        help="Comma-separated field groups to leave in the backlog. Each "
+             "extraction is one serialized ~4-minute model call, so skipping a "
+             "group nothing reads is hours saved: no screen renders "
+             "'scholarships', and it is ~104 of ~497 outstanding jobs.",
+    )
 
     p_requeue = sub.add_parser(
         "requeue-rejected",
@@ -218,7 +225,12 @@ def main(argv: list[str] | None = None) -> int:
         return asyncio.run(_reparse(limit=args.limit, institution=args.institution,
                                     pending_only=args.pending_only))
     if args.cmd == "retry-failed":
-        return asyncio.run(_retry_failed(limit=args.limit))
+        return asyncio.run(_retry_failed(
+            limit=args.limit,
+            skip_groups=tuple(
+                g.strip() for g in args.skip_groups.split(",") if g.strip()
+            ),
+        ))
     if args.cmd == "requeue-rejected":
         return asyncio.run(_requeue_rejected(limit=args.limit,
                                              max_rejects=args.max_rejects))
@@ -466,7 +478,7 @@ async def _reparse(*, limit: int, institution: str | None, pending_only: bool = 
     return 0
 
 
-async def _retry_failed(*, limit: int) -> int:
+async def _retry_failed(*, limit: int, skip_groups: tuple[str, ...] = ()) -> int:
     """LIVE: re-run failed extraction jobs from already-stored guideline PDFs.
     Reads blobs from storage (no re-download from ac.kr; the stored blob's
     SHA-256 is verified against guideline_documents first) and re-extracts
@@ -488,7 +500,9 @@ async def _retry_failed(*, limit: int) -> int:
 
     conn = await db.connect()
     try:
-        run = await retry_failed_worker.retry_failed(conn, limit=limit)
+        run = await retry_failed_worker.retry_failed(
+            conn, limit=limit, skip_groups=skip_groups,
+        )
     finally:
         await conn.close()
 
