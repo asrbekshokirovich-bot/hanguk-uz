@@ -1154,6 +1154,40 @@ class AppLocalizationsVi extends AppLocalizations {
   String get guestRowWebsite => 'Trang web';
 
   @override
+  String get guestRowTuition => 'Học phí';
+
+  @override
+  String get guestRowApplication => 'Nộp hồ sơ';
+
+  @override
+  String get guestRowDocDeadline => 'Hạn nộp giấy tờ';
+
+  @override
+  String get guestRowTopik => 'TOPIK';
+
+  @override
+  String get guestRowEnglish => 'Tiếng Anh';
+
+  @override
+  String get guestRowInterview => 'Phỏng vấn';
+
+  @override
+  String get guestRowDocuments => 'Giấy tờ';
+
+  @override
+  String guestTuitionYearNote(int year) {
+    return 'số liệu năm $year';
+  }
+
+  @override
+  String guestDocumentsCount(int count) {
+    return '$count loại';
+  }
+
+  @override
+  String get guestApostilleShort => 'cần apostille';
+
+  @override
   String get guestValueYes => 'Có';
 
   @override

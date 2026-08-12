@@ -1159,6 +1159,40 @@ class AppLocalizationsUz extends AppLocalizations {
   String get guestRowWebsite => 'Veb-sayt';
 
   @override
+  String get guestRowTuition => 'Kontrakt narxi';
+
+  @override
+  String get guestRowApplication => 'Ariza topshirish';
+
+  @override
+  String get guestRowDocDeadline => 'Hujjat muddati';
+
+  @override
+  String get guestRowTopik => 'TOPIK';
+
+  @override
+  String get guestRowEnglish => 'Ingliz tili';
+
+  @override
+  String get guestRowInterview => 'Suhbat';
+
+  @override
+  String get guestRowDocuments => 'Kerakli hujjatlar';
+
+  @override
+  String guestTuitionYearNote(int year) {
+    return '$year yil ma’lumoti';
+  }
+
+  @override
+  String guestDocumentsCount(int count) {
+    return '$count xil';
+  }
+
+  @override
+  String get guestApostilleShort => 'apostil kerak';
+
+  @override
   String get guestValueYes => 'Ha';
 
   @override

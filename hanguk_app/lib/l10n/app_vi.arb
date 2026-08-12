@@ -1,7 +1,6 @@
 {
   "@@locale": "vi",
   "@@x-translator-status": "TODO: translate. English seeds copied verbatim.",
-
   "trainingTabTitle": "Training Center",
   "trainingTabSubtitle": "Prepare for your university applications with AI-guided training modules.",
   "studyPlanCardTitle": "Study Plan Builder",
@@ -24,7 +23,6 @@
   "aiSpeaking": "Interviewer is speaking...",
   "wrappingUp": "Wrapping up the interview...",
   "micRequired": "Microphone access is required for the interview.",
-
   "walkaroundLoadingTitle": "Loading campus walkaround",
   "walkaroundLoadingSubtitle": "Fetching street view near campus.",
   "walkaroundNoPanoTitle": "No street view here",
@@ -37,17 +35,14 @@
   "walkaroundInitErrorSubtitle": "Something went wrong starting the walkaround. Please try again.",
   "virtualTourTitle": "Virtual Tour",
   "virtualWalkaroundTitle": "Virtual Walkaround",
-
   "visitUniversityWebsite": "Truy cập website của trường",
   "universityTier": "Bậc {tier}",
   "universityVerified": "Đã xác minh",
   "universityNextEvent": "Sự kiện tiếp theo",
-
   "navApplications": "Đơn",
   "navMap": "Bản đồ",
   "navDocs": "Tài liệu",
   "navTraining": "Đào tạo",
-
   "applicationsTabTitle": "Đơn của tôi",
   "mapTabTitle": "Trường đại học",
   "documentsTabTitle": "Tài liệu của tôi",
@@ -83,12 +78,9 @@
   "switchToListView": "Switch to list view",
   "switchToMapView": "Switch to map view",
   "chatInputHint": "Ask anything about South Korea...",
-
   "accountTooltip": "Tài khoản",
-
   "ok": "OK",
   "loadingLabel": "Loading...",
-
   "accountBackTooltip": "Back",
   "accountTitle": "Account",
   "accountSignedInAs": "Signed in as",
@@ -109,20 +101,23 @@
   "accountDeleteErrorBody": "We hit an error while deleting your data:\n\n{error}\n\nPlease email privacy@hanguk.uz so we can finish the deletion for you.",
   "@accountDeleteErrorBody": {
     "placeholders": {
-      "error": { "type": "Object" }
+      "error": {
+        "type": "Object"
+      }
     }
   },
   "accountExportFailed": "Export failed: {error}",
   "@accountExportFailed": {
     "placeholders": {
-      "error": { "type": "Object" }
+      "error": {
+        "type": "Object"
+      }
     }
   },
   "accountDeleteDialogTitle": "Delete your account?",
   "accountDeleteDialogBody": "This will permanently delete your account, applications, study plans, personal-statement drafts, interview sessions, and transcripts.\n\nType DELETE to confirm.",
   "accountDeleteDialogConfirm": "Delete forever",
   "accountDeleteProgress": "Deleting your account…",
-
   "loginStudentPortal": "Student Portal",
   "loginAccessCodeHelp": "Enter the 8-character access code (letters and numbers) provided by your consultant or university representative.",
   "loginAccessCodeButton": "Login manually with Access Code",
@@ -138,7 +133,6 @@
   "signUpErrorPhoneRequired": "A valid phone number is required (e.g. +12345678).",
   "signUpErrorPasswordMismatch": "Passwords do not match.",
   "signUpSuccess": "Account created successfully! Please log in.",
-
   "notifSettingsTitle": "Notification settings",
   "notifSettingsEmptyTitle": "No tracked universities yet",
   "notifSettingsEmptyBody": "Tap \"Track this institution\" on a university page to follow it. Notification preferences appear here once you have at least one tracked institution.",
@@ -153,22 +147,27 @@
   "notifSettingsLoadError": "Error: {error}",
   "@notifSettingsLoadError": {
     "placeholders": {
-      "error": { "type": "Object" }
+      "error": {
+        "type": "Object"
+      }
     }
   },
   "notifSettingsPushLanguage": "Push payload language: {lang}",
   "@notifSettingsPushLanguage": {
     "placeholders": {
-      "lang": { "type": "String" }
+      "lang": {
+        "type": "String"
+      }
     }
   },
   "notifSettingsUpdateError": "Could not update preference: {error}",
   "@notifSettingsUpdateError": {
     "placeholders": {
-      "error": { "type": "Object" }
+      "error": {
+        "type": "Object"
+      }
     }
   },
-
   "interviewDialogStepUniversity": "1. Select Target University",
   "interviewDialogStepTrack": "2. Select Interview Track",
   "interviewDialogStepPersona": "3. Interviewer Persona",
@@ -185,14 +184,21 @@
   "openSettings": "Open settings",
   "genericError": "Error: {error}",
   "@genericError": {
-    "placeholders": { "error": { "type": "Object" } }
+    "placeholders": {
+      "error": {
+        "type": "Object"
+      }
+    }
   },
   "errorLoadingApplications": "Error loading applications: {error}",
   "@errorLoadingApplications": {
-    "placeholders": { "error": { "type": "Object" } }
+    "placeholders": {
+      "error": {
+        "type": "Object"
+      }
+    }
   },
   "noAppsInlineHint": "No applications yet — go to the Applications tab to add one.",
-
   "aiStatusWaiting": "Waiting for input...",
   "aiStatusCoolingDown": "AI cooling down…",
   "aiStatusAnalyzing": "AI analyzing...",
@@ -206,18 +212,25 @@
   "grammarReplaceWith": "Replace \"{original}\" with \"{suggestion}\"",
   "@grammarReplaceWith": {
     "placeholders": {
-      "original": { "type": "String" },
-      "suggestion": { "type": "String" }
+      "original": {
+        "type": "String"
+      },
+      "suggestion": {
+        "type": "String"
+      }
     }
   },
   "draftingHint": "Type your {documentTitle} here...",
   "@draftingHint": {
-    "placeholders": { "documentTitle": { "type": "String" } }
+    "placeholders": {
+      "documentTitle": {
+        "type": "String"
+      }
+    }
   },
   "ghostSuggestionSemantics": "AI suggestion — tap to insert",
   "ghostAccept": "Accept",
   "ghostDismiss": "Dismiss suggestion",
-
   "pastDraftsTooltip": "Past drafts",
   "sessionSettingsTooltip": "Session settings",
   "switchTrackEnglish": "Switch track → English",
@@ -231,13 +244,21 @@
   "savedDraftItemTitle": "{universityName} {documentName}",
   "@savedDraftItemTitle": {
     "placeholders": {
-      "universityName": { "type": "String" },
-      "documentName": { "type": "String" }
+      "universityName": {
+        "type": "String"
+      },
+      "documentName": {
+        "type": "String"
+      }
     }
   },
   "sessionStatusLabel": "Status: {status}",
   "@sessionStatusLabel": {
-    "placeholders": { "status": { "type": "String" } }
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
   },
   "deleteSessionTitle": "Delete Session",
   "deleteSessionBody": "Are you sure you want to delete this session? This action cannot be undone.",
@@ -257,13 +278,16 @@
   "aiExampleEmbassyTitle": "Embassy Example",
   "aiExampleUniversityTitle": "Example for {universityName}",
   "@aiExampleUniversityTitle": {
-    "placeholders": { "universityName": { "type": "String" } }
+    "placeholders": {
+      "universityName": {
+        "type": "String"
+      }
+    }
   },
   "aiExampleEmbassyLabel": "Embassy of the Republic of Korea (Visa)",
   "aiExampleWritingPlaceholder": "AI is writing an example...",
   "copyButton": "Copy",
   "copiedSnackbar": "Text copied!",
-
   "analysisFeedbackTitle": "Analysis & Feedback",
   "noAnalysisYet": "No analysis generated yet.",
   "analysisErrorPlanRequired": "Phân tích thuộc gói Premium và No Risk. Gói hiện tại của bạn không bao gồm tính năng này.",
@@ -273,7 +297,6 @@
   "analysisRetryButton": "Thử lại",
   "aiReviewedDraft": "AI successfully reviewed your draft.",
   "returnToDrafting": "Return to Drafting",
-
   "studyPlanHistoryTitle": "Study Plan history",
   "personalStatementHistoryTitle": "Personal Statement history",
   "draftingHistoryTitle": "Drafting history",
@@ -282,19 +305,20 @@
   "noTargetUniversity": "No target university",
   "sessionStepLabel": "Bước {step}",
   "@sessionStepLabel": {
-    "placeholders": { "step": { "type": "int" } }
+    "placeholders": {
+      "step": {
+        "type": "int"
+      }
+    }
   },
-
   "metricWords": "Words",
   "metricCharacters": "Characters",
   "saveStatusUnsaved": "Unsaved",
   "saveStatusSaving": "Saving...",
   "saveStatusSaved": "Saved",
   "saveStatusError": "Save failed",
-
   "interviewPracticeTitle": "Interview Practice",
   "interviewSettingUp": "Setting up your interview...",
-
   "interviewSetupTitle": "AI Interview Setup",
   "interviewSetupSubtitle": "Configure your AI interviewer settings before starting.",
   "interviewTypeLabel": "Interview Type",
@@ -310,16 +334,18 @@
   "timedModeSubtitle": "5 minute strict limit",
   "startPracticeButton": "Start Practice",
   "pickUniversityFirstHint": "Pick a target university above to enable.",
-
   "coachingFiller": "Avoid using filler words!",
   "lifelineHintsTitle": "💡 Lifeline Hints:",
   "speakerAi": "AI",
   "speakerYou": "You",
   "connectionInterrupted": "Connection interrupted: {detail}",
   "@connectionInterrupted": {
-    "placeholders": { "detail": { "type": "String" } }
+    "placeholders": {
+      "detail": {
+        "type": "String"
+      }
+    }
   },
-
   "interviewAnalyticsTitle": "Interview Analytics",
   "analyzingTranscript": "Analyzing transcript with AI...",
   "noFeedbackAvailable": "No feedback available.",
@@ -335,7 +361,6 @@
   "startAnotherInterview": "Start another interview",
   "sessionRecording": "Session Recording",
   "audioRecordingNotFound": "Audio recording not found.",
-
   "interviewHistoryTitle": "Interview History",
   "noPastInterviews": "No past interviews found.",
   "unknownTarget": "Unknown Target",
@@ -347,9 +372,12 @@
   "deleteInterviewDialogBody": "The feedback and recording link will be permanently removed.",
   "deleteFailed": "Delete failed: {error}",
   "@deleteFailed": {
-    "placeholders": { "error": { "type": "Object" } }
+    "placeholders": {
+      "error": {
+        "type": "Object"
+      }
+    }
   },
-
   "a11yTooltipAskAi": "Ask Hanguk AI",
   "a11yTooltipClearChat": "Clear chat history",
   "a11yTooltipSendMessage": "Send message",
@@ -398,7 +426,6 @@
   "journeyStageVisaPreparation": "Chuẩn bị visa",
   "journeyStageWaitingVisa": "Chờ cấp visa",
   "mapUniversitiesMapped": "{count} trường trên bản đồ",
-
   "updateAvailableTitle": "Có bản cập nhật mới",
   "updateVersionReady": "Phiên bản {version} đã sẵn sàng để cài đặt.",
   "updateSizeMb": "Dung lượng: {size} MB",
@@ -433,9 +460,18 @@
   "guestRowPartner": "Đối tác Hanguk",
   "guestRowNextEvent": "Sự kiện tiếp theo",
   "guestRowWebsite": "Trang web",
+  "guestRowTuition": "Học phí",
+  "guestRowApplication": "Nộp hồ sơ",
+  "guestRowDocDeadline": "Hạn nộp giấy tờ",
+  "guestRowTopik": "TOPIK",
+  "guestRowEnglish": "Tiếng Anh",
+  "guestRowInterview": "Phỏng vấn",
+  "guestRowDocuments": "Giấy tờ",
+  "guestTuitionYearNote": "số liệu năm {year}",
+  "guestDocumentsCount": "{count} loại",
+  "guestApostilleShort": "cần apostille",
   "guestValueYes": "Có",
   "guestValueNo": "Không",
-  "welcomeExploreCta": "Khám phá các trường",
   "roomTabStatus": "Trạng thái",
   "roomTabDiscussion": "Thảo luận",
   "roomTabNews": "Tin tức",

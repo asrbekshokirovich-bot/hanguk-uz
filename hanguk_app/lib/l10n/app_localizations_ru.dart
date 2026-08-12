@@ -1154,6 +1154,40 @@ class AppLocalizationsRu extends AppLocalizations {
   String get guestRowWebsite => 'Сайт';
 
   @override
+  String get guestRowTuition => 'Стоимость обучения';
+
+  @override
+  String get guestRowApplication => 'Приём заявок';
+
+  @override
+  String get guestRowDocDeadline => 'Срок подачи документов';
+
+  @override
+  String get guestRowTopik => 'TOPIK';
+
+  @override
+  String get guestRowEnglish => 'Английский';
+
+  @override
+  String get guestRowInterview => 'Собеседование';
+
+  @override
+  String get guestRowDocuments => 'Документы';
+
+  @override
+  String guestTuitionYearNote(int year) {
+    return 'данные за $year год';
+  }
+
+  @override
+  String guestDocumentsCount(int count) {
+    return '$count видов';
+  }
+
+  @override
+  String get guestApostilleShort => 'нужен апостиль';
+
+  @override
   String get guestValueYes => 'Да';
 
   @override

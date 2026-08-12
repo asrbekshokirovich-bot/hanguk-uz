@@ -2096,84 +2096,6 @@ abstract class AppLocalizations {
   /// **'Join Hanguk'**
   String get guestJoinCta;
 
-  /// Lime pill in the guest header; opens the contact sheet.
-  ///
-  /// In en, this message translates to:
-  /// **'Contact us'**
-  String get guestContactCta;
-
-  /// Eyebrow above the title of the guest contact sheet.
-  ///
-  /// In en, this message translates to:
-  /// **'Hanguk Consulting'**
-  String get guestContactEyebrow;
-
-  /// Title of the contact sheet opened by the lime pill in the guest header.
-  ///
-  /// In en, this message translates to:
-  /// **'Get in touch'**
-  String get guestContactTitle;
-
-  /// Sub-line of the guest contact sheet.
-  ///
-  /// In en, this message translates to:
-  /// **'Pick a channel — we answer on all of them.'**
-  String get guestContactSubtitle;
-
-  /// Contact sheet row opening the Hanguk Consulting Telegram channel.
-  ///
-  /// In en, this message translates to:
-  /// **'Telegram channel'**
-  String get guestContactTelegramChannel;
-
-  /// Second line under the Telegram channel row.
-  ///
-  /// In en, this message translates to:
-  /// **'News, deadlines and open intakes'**
-  String get guestContactTelegramChannelHint;
-
-  /// Contact sheet row opening a direct Telegram chat with a consultant.
-  ///
-  /// In en, this message translates to:
-  /// **'Message us on Telegram'**
-  String get guestContactTelegramDirect;
-
-  /// Second line under the direct Telegram row.
-  ///
-  /// In en, this message translates to:
-  /// **'Ask a consultant directly'**
-  String get guestContactTelegramDirectHint;
-
-  /// Contact sheet row opening the Instagram page.
-  ///
-  /// In en, this message translates to:
-  /// **'Instagram'**
-  String get guestContactInstagram;
-
-  /// Second line under the Instagram row.
-  ///
-  /// In en, this message translates to:
-  /// **'Students, campuses, daily life'**
-  String get guestContactInstagramHint;
-
-  /// Contact sheet row placing a phone call; the number is shown beneath it.
-  ///
-  /// In en, this message translates to:
-  /// **'Call us'**
-  String get guestContactCall;
-
-  /// Second line under the magic-code login row of the contact sheet.
-  ///
-  /// In en, this message translates to:
-  /// **'Already have a magic code?'**
-  String get guestContactJoinHint;
-
-  /// SnackBar when no app can open the tapped contact link.
-  ///
-  /// In en, this message translates to:
-  /// **'Couldn\'t open that link on this device.'**
-  String get guestContactLaunchFailed;
-
   /// Display headline of the guest Explore section (DESIGN_SPEC screen 8).
   ///
   /// In en, this message translates to:
@@ -2269,6 +2191,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Website'**
   String get guestRowWebsite;
+
+  /// Compare row label: tuition per semester.
+  ///
+  /// In en, this message translates to:
+  /// **'Tuition'**
+  String get guestRowTuition;
+
+  /// Compare row label: the application window.
+  ///
+  /// In en, this message translates to:
+  /// **'Application'**
+  String get guestRowApplication;
+
+  /// Compare row label: document submission deadline.
+  ///
+  /// In en, this message translates to:
+  /// **'Document deadline'**
+  String get guestRowDocDeadline;
+
+  /// Compare row label: the lowest TOPIK level accepted.
+  ///
+  /// In en, this message translates to:
+  /// **'TOPIK'**
+  String get guestRowTopik;
+
+  /// Compare row label: whether an English test is named in the requirements.
+  ///
+  /// In en, this message translates to:
+  /// **'English'**
+  String get guestRowEnglish;
+
+  /// Compare row label: whether an interview is required.
+  ///
+  /// In en, this message translates to:
+  /// **'Interview'**
+  String get guestRowInterview;
+
+  /// Compare row label: how many kinds of document are required.
+  ///
+  /// In en, this message translates to:
+  /// **'Documents'**
+  String get guestRowDocuments;
+
+  /// Appended to a tuition figure whose academic year differs from the intake — Korean guidelines quote the current year's fees.
+  ///
+  /// In en, this message translates to:
+  /// **'{year} figure'**
+  String guestTuitionYearNote(int year);
+
+  /// Number of DISTINCT required document types.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} types'**
+  String guestDocumentsCount(int count);
+
+  /// Appended to the documents value when at least one required document needs an apostille.
+  ///
+  /// In en, this message translates to:
+  /// **'apostille needed'**
+  String get guestApostilleShort;
 
   /// Generic affirmative value in the compare grid.
   ///
@@ -2911,6 +2893,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Reminders about your documents and applications will appear here.'**
   String get notifAllCaughtUpBody;
+
+  /// Eyebrow above the title of the guest contact sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Hanguk Consulting'**
+  String get guestContactEyebrow;
+
+  /// Title of the contact sheet opened by the lime pill in the guest header.
+  ///
+  /// In en, this message translates to:
+  /// **'Get in touch'**
+  String get guestContactTitle;
+
+  /// Sub-line of the guest contact sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a channel — we answer on all of them.'**
+  String get guestContactSubtitle;
+
+  /// Contact sheet row opening the Hanguk Consulting Telegram channel.
+  ///
+  /// In en, this message translates to:
+  /// **'Telegram channel'**
+  String get guestContactTelegramChannel;
+
+  /// Second line under the Telegram channel row.
+  ///
+  /// In en, this message translates to:
+  /// **'News, deadlines and open intakes'**
+  String get guestContactTelegramChannelHint;
+
+  /// Contact sheet row opening a direct Telegram chat with a consultant.
+  ///
+  /// In en, this message translates to:
+  /// **'Message us on Telegram'**
+  String get guestContactTelegramDirect;
+
+  /// Second line under the direct Telegram row.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask a consultant directly'**
+  String get guestContactTelegramDirectHint;
+
+  /// Contact sheet row opening the Instagram page.
+  ///
+  /// In en, this message translates to:
+  /// **'Instagram'**
+  String get guestContactInstagram;
+
+  /// Second line under the Instagram row.
+  ///
+  /// In en, this message translates to:
+  /// **'Students, campuses, daily life'**
+  String get guestContactInstagramHint;
+
+  /// Contact sheet row placing a phone call; the number is shown beneath it.
+  ///
+  /// In en, this message translates to:
+  /// **'Call us'**
+  String get guestContactCall;
+
+  /// Second line under the magic-code login row of the contact sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Already have a magic code?'**
+  String get guestContactJoinHint;
+
+  /// SnackBar when no app can open the tapped contact link.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t open that link on this device.'**
+  String get guestContactLaunchFailed;
+
+  /// Lime pill in the guest header; opens the contact sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact us'**
+  String get guestContactCta;
 }
 
 class _AppLocalizationsDelegate

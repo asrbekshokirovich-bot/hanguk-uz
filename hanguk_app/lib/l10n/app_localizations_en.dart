@@ -1154,6 +1154,40 @@ class AppLocalizationsEn extends AppLocalizations {
   String get guestRowWebsite => 'Website';
 
   @override
+  String get guestRowTuition => 'Tuition';
+
+  @override
+  String get guestRowApplication => 'Application';
+
+  @override
+  String get guestRowDocDeadline => 'Document deadline';
+
+  @override
+  String get guestRowTopik => 'TOPIK';
+
+  @override
+  String get guestRowEnglish => 'English';
+
+  @override
+  String get guestRowInterview => 'Interview';
+
+  @override
+  String get guestRowDocuments => 'Documents';
+
+  @override
+  String guestTuitionYearNote(int year) {
+    return '$year figure';
+  }
+
+  @override
+  String guestDocumentsCount(int count) {
+    return '$count types';
+  }
+
+  @override
+  String get guestApostilleShort => 'apostille needed';
+
+  @override
   String get guestValueYes => 'Yes';
 
   @override
