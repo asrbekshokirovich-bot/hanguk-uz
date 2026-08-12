@@ -62,8 +62,15 @@ jobs:
 
       # Fails the build on a real analyzer error before spending eight minutes
       # compiling something that cannot work.
+      #
+      # `--no-fatal-infos` because the tree carries 14 pre-existing lint infos
+      # (deprecated `dart:js`, `avoid_print` in a web helper, naming nits) and
+      # bare `flutter analyze` exits 1 on any issue at all. Without it this
+      # gate blocked every APK over style suggestions that have nothing to do
+      # with whether the build works. Warnings and errors are still fatal,
+      # which is the whole point of the step.
       - name: flutter analyze
-        run: flutter analyze lib test
+        run: flutter analyze --no-fatal-infos lib test
 
       - name: Build release APK
         run: flutter build apk --release
