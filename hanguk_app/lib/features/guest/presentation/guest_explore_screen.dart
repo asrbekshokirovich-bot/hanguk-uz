@@ -5,6 +5,7 @@ import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../map/data/map_repository.dart';
 import '../../map/domain/university.dart';
+import '../../map/presentation/ieqas_label.dart';
 import '../data/guest_compare_provider.dart';
 
 /// Guest Explore — the catalogue browser (DESIGN_SPEC screen 8).
@@ -354,6 +355,7 @@ class _GuestUniversityCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
+    final ieqas = ieqasLabel(l, university.ieqasStatus);
 
     return GlassCard(
       margin: const EdgeInsets.only(bottom: 12),
@@ -390,14 +392,17 @@ class _GuestUniversityCard extends StatelessWidget {
                         style: SeoulType.caption,
                       ),
                     ),
-                    // `isAccredited`, not a null check: `ieqas_status` is
-                    // 'none' for 74 of 204 rows, which would render a blue
-                    // pill reading "none" next to the university's city.
-                    if (university.isAccredited) ...[
+                    // Keyed on the label, not on `isAccredited`: the chip
+                    // appears exactly when there is something to write in it.
+                    // `ieqas_status` is 'none' for 74 of 204 rows — a blue
+                    // pill reading "none" beside the city — and the label was
+                    // the raw enum, so students met the bare English word
+                    // "outstanding" on an otherwise Uzbek card.
+                    if (ieqas != null) ...[
                       const SizedBox(width: 8),
                       Flexible(
                         child: StatusChip(
-                          label: university.ieqasStatus!,
+                          label: ieqas,
                           tone: StatusTone.info,
                           dense: true,
                         ),

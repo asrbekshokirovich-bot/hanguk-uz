@@ -428,6 +428,8 @@
   "guestRowCity": "Thành phố",
   "guestRowTier": "Hạng",
   "guestRowIeqas": "Trạng thái IEQAS",
+  "ieqasOutstanding": "IEQAS xuất sắc",
+  "ieqasAccredited": "IEQAS công nhận",
   "guestRowPartner": "Đối tác Hanguk",
   "guestRowNextEvent": "Sự kiện tiếp theo",
   "guestRowWebsite": "Trang web",

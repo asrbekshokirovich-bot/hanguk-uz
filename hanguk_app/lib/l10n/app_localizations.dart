@@ -2240,6 +2240,18 @@ abstract class AppLocalizations {
   /// **'IEQAS status'**
   String get guestRowIeqas;
 
+  /// Chip on a university card: the Ministry of Education's top IEQAS grade for hosting international students.
+  ///
+  /// In en, this message translates to:
+  /// **'IEQAS outstanding'**
+  String get ieqasOutstanding;
+
+  /// Chip on a university card: the standard IEQAS accreditation for hosting international students.
+  ///
+  /// In en, this message translates to:
+  /// **'IEQAS accredited'**
+  String get ieqasAccredited;
+
   /// Compare row label: whether the university is a Hanguk partner.
   ///
   /// In en, this message translates to:

@@ -1139,6 +1139,12 @@ class AppLocalizationsRu extends AppLocalizations {
   String get guestRowIeqas => 'Статус IEQAS';
 
   @override
+  String get ieqasOutstanding => 'IEQAS высшая';
+
+  @override
+  String get ieqasAccredited => 'IEQAS аккредитация';
+
+  @override
   String get guestRowPartner => 'Партнёр Hanguk';
 
   @override

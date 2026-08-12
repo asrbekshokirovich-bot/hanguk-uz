@@ -1139,6 +1139,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get guestRowIeqas => 'IEQAS status';
 
   @override
+  String get ieqasOutstanding => 'IEQAS outstanding';
+
+  @override
+  String get ieqasAccredited => 'IEQAS accredited';
+
+  @override
   String get guestRowPartner => 'Hanguk partner';
 
   @override

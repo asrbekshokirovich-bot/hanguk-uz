@@ -18,6 +18,7 @@ import 'package:hanguk_app/features/guest/data/guest_compare_provider.dart';
 import 'package:hanguk_app/features/guest/presentation/guest_compare_screen.dart';
 import 'package:hanguk_app/features/map/data/map_repository.dart';
 import 'package:hanguk_app/features/map/domain/university.dart';
+import 'package:hanguk_app/features/map/presentation/ieqas_label.dart';
 import 'package:hanguk_app/l10n/app_localizations.dart';
 
 /// A university carrying only the fields named — everything else absent, so a
@@ -102,10 +103,16 @@ void main() {
       _uni('b', name: 'Beta University', city: 'Busan', ieqas: 'accredited'),
     ]);
 
+    final l = AppLocalizations.of(
+      tester.element(find.byType(GuestCompareScreen)),
+    )!;
+
     // Exactly two blanks: Alpha's missing IEQAS and Beta's missing tier.
     expect(find.text('—'), findsNWidgets(2));
-    // The values that do exist are still rendered.
-    expect(find.text('accredited'), findsOneWidget);
+    // The value that does exist is still rendered — as its label, not as the
+    // 'accredited' database enum it used to print.
+    expect(find.text(ieqasLabel(l, 'accredited')!), findsOneWidget);
+    expect(find.text('accredited'), findsNothing);
   });
 
   testWidgets('a field neither side has is left out entirely', (tester) async {

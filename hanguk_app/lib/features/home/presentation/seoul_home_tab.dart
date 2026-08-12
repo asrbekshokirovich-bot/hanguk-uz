@@ -427,6 +427,19 @@ class _JourneyHeroCard extends StatelessWidget {
 
 /// Shown instead of the hero when the student has no applications at all —
 /// there is no journey to report yet, so nothing is invented.
+///
+/// It occupies the hero slot rather than sitting in it as a quiet glass row.
+/// A new student's Home is otherwise two small cards over most of a screen of
+/// empty navy, and the one surface with real presence — gradient, watermark,
+/// lime bloom — was reserved for students who already have an application,
+/// which is to say the ones who need the encouragement least. Same card, two
+/// moods: the eyebrow and 나의 여정 label are carried over from
+/// [_JourneyHeroCard] so the screen reads as one thing filling in rather than
+/// two different layouts.
+///
+/// No progress ring and no lime button. The ring would draw a journey that has
+/// not started, and the whole card is already the way in — the chevron says so
+/// without a second, competing target.
 class _EmptyJourneyCard extends StatelessWidget {
   const _EmptyJourneyCard({required this.onTap});
 
@@ -436,28 +449,50 @@ class _EmptyJourneyCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
 
-    return GlassCard(
+    return HeroCard(
       onTap: onTap,
-      padding: const EdgeInsets.all(18),
-      child: Row(
+      watermark: '한국',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const HangulGlyphTile(glyph: '지'),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(l.appsEmptyTitle, style: SeoulType.subtitle),
-                const SizedBox(height: 4),
-                Text(l.appsEmptyBody, style: SeoulType.caption),
-              ],
-            ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(l.homeJourneyEyebrow, style: SeoulType.eyebrow),
+                    const SizedBox(height: 2),
+                    const Text('나의 여정', style: SeoulType.hangulLabel),
+                    const SizedBox(height: 8),
+                    Text(l.appsEmptyTitle, style: SeoulType.headline),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 14),
+              // 지원 — "application". Hero scale, matching the ring it stands
+              // in for on the other side of this card.
+              const HangulGlyphTile(glyph: '지', size: 64),
+            ],
           ),
-          const SizedBox(width: 10),
-          const Icon(
-            Icons.arrow_forward_ios_rounded,
-            size: 15,
-            color: SeoulColors.textFaint,
+          const SizedBox(height: 12),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Text(l.appsEmptyBody, style: SeoulType.bodySecondary),
+              ),
+              const SizedBox(width: 10),
+              const Padding(
+                padding: EdgeInsets.only(top: 3),
+                child: Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 15,
+                  color: SeoulColors.textFaint,
+                ),
+              ),
+            ],
           ),
         ],
       ),

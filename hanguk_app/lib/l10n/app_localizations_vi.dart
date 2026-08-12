@@ -1139,6 +1139,12 @@ class AppLocalizationsVi extends AppLocalizations {
   String get guestRowIeqas => 'Trạng thái IEQAS';
 
   @override
+  String get ieqasOutstanding => 'IEQAS xuất sắc';
+
+  @override
+  String get ieqasAccredited => 'IEQAS công nhận';
+
+  @override
   String get guestRowPartner => 'Đối tác Hanguk';
 
   @override
