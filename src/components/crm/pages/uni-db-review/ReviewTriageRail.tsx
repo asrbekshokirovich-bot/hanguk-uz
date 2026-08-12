@@ -122,6 +122,14 @@ export function ReviewTriageRail({
                       ? t('uniReview.rail.sub', { n: r.open.length, p: minConf })
                       : t('uniReview.rail.subNoConf', { n: r.open.length })}
                   </span>
+                  {/* One card now covers the whole university, so say when its
+                      sections come from more than one guideline document —
+                      otherwise the section count looks inexplicably large. */}
+                  {g.documents.length > 1 ? (
+                    <span className="text-[11.5px] font-medium text-muted-foreground/80">
+                      {t('uniReview.rail.docs', { n: g.documents.length })}
+                    </span>
+                  ) : null}
                 </>
               )}
             </div>

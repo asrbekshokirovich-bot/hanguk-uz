@@ -1510,7 +1510,8 @@
       "chipGreen": "Tayyor",
       "done": "Yakunlandi",
       "sub": "{{n}} bo'lim · min. ishonch {{p}}%",
-      "subNoConf": "{{n}} bo'lim"
+      "subNoConf": "{{n}} bo'lim",
+      "docs": "{{n}} ta hujjat"
     },
     "detail": {
       "sourcePage": "Manba sahifa",
@@ -1519,7 +1520,9 @@
       "pdfError": "PDFni ochib bo'lmadi.",
       "progress": "{{decided}}/{{total}} hal qilindi",
       "allDone": "Bu universitet bo'yicha barcha bo'limlar hal qilindi.",
-      "next": "Keyingisi →"
+      "next": "Keyingisi →",
+      "docUnclassified": "Mavsum aniqlanmagan",
+      "docSections": "{{n}} bo'lim"
     },
     "section": {
       "calendar": "Muddatlar va ariza to'lovi",
