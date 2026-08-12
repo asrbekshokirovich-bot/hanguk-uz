@@ -9,7 +9,12 @@ import type { RejectionReason, ReviewQueueRow } from '@/hooks/useReviewQueue';
 import { useActiveIntake } from '@/contexts/IntakeContext';
 import { parseReliability } from '../reliability';
 import { confidencePct, minLaneConfidence } from '../reviewLogic';
-import { institutionName, type DecidedMap, type GuidelineGroup } from './reviewGroups';
+import {
+  documentCycleLabel,
+  institutionName,
+  type DecidedMap,
+  type GuidelineGroup,
+} from './reviewGroups';
 import { ReviewSectionCard, type SectionCardHandlers } from './ReviewSectionCard';
 import { SectionBody } from './ReviewSectionBodies';
 
@@ -83,6 +88,7 @@ export function ReviewGuidelineDetail({
   // Min confidence across this guideline's SUCCEEDED lanes only — a failed
   // lane must not drag the number to 0% (Phase 3).
   const minConf = confidencePct(minLaneConfidence(group.rows));
+  const multiDoc = group.documents.length > 1;
 
   const decidedN = group.rows.filter((r) => decided[r.id]).length;
   const totalN = group.rows.length;
@@ -98,7 +104,11 @@ export function ReviewGuidelineDetail({
               <span className="text-lg font-bold leading-tight tracking-[-0.01em]">
                 {institutionName(group)}
               </span>
-              {intakePill ? (
+              {/* The pill names the crawl target's cycle, which is only ever
+                  true of the whole panel when one document is on show. With
+                  several it would assert one intake over documents that may
+                  belong to different ones — each strip below carries its own. */}
+              {intakePill && !multiDoc ? (
                 <span className="inline-flex h-[22px] items-center rounded-full bg-info/10 px-2.5 text-[11.5px] font-semibold text-info">
                   {intakePill}
                 </span>
@@ -115,7 +125,10 @@ export function ReviewGuidelineDetail({
               </span>
             ) : null}
           </div>
-          <div className="flex items-center gap-2">
+          {/* Same reasoning: these point at one document, so they only belong
+              in the header when there is one. Otherwise each strip carries its
+              own pair. */}
+          <div className={cn('flex items-center gap-2', multiDoc && 'hidden')}>
             {group.sourceUrl ? (
               <Button
                 size="sm"
@@ -172,25 +185,68 @@ export function ReviewGuidelineDetail({
         ) : null}
       </div>
 
-      {group.rows.map((row) => (
-        <ReviewSectionCard
-          key={row.id}
-          row={row}
-          decided={decided[row.id]}
-          isRejecting={rejectingRowId === row.id}
-          rejectReason={rejectReason}
-          onReasonChange={onReasonChange}
-          onStartReject={() => onStartReject(row)}
-          onCancelReject={onCancelReject}
-          handlers={handlers}
-          acting={actingRowId === row.id}
-        >
-          <SectionBody
-            row={row}
-            noteDetail={parseReliability(row.reviewer_notes, row.needs_attention).detail}
-          />
-        </ReviewSectionCard>
-      ))}
+      {group.documents.map((doc) => {
+        // With one document the strip would just repeat the header, so the
+        // common case looks exactly as it did before. With several, each
+        // document announces its own cycle and source — the sections below a
+        // strip belong to that document and no other.
+        const multi = group.documents.length > 1;
+        const cycle = documentCycleLabel(doc, t);
+        return (
+          <div key={doc.key} className="flex min-w-0 flex-col gap-3">
+            {multi ? (
+              <div className="mt-1 flex flex-wrap items-center gap-2.5 rounded-[10px] border border-border/60 bg-secondary/40 px-3.5 py-2">
+                <FileText className="h-[15px] w-[15px] shrink-0 text-muted-foreground" />
+                <span className="text-[12.5px] font-semibold">
+                  {cycle ?? t('uniReview.detail.docUnclassified')}
+                </span>
+                <span className="text-[11.5px] text-muted-foreground/80">
+                  {t('uniReview.detail.docSections', { n: doc.rows.length })}
+                </span>
+                <span className="flex-1" />
+                {doc.sourceUrl ? (
+                  <Button size="sm" variant="ghost" className="h-7 text-muted-foreground hover:text-foreground" asChild>
+                    <a href={doc.sourceUrl} target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="h-3.5 w-3.5" />
+                      {t('uniReview.detail.sourcePage')}
+                    </a>
+                  </Button>
+                ) : null}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-7"
+                  onClick={() => openPdf(t, doc.guidelineDocId, doc.storagePath)}
+                  disabled={!doc.guidelineDocId && !doc.storagePath}
+                >
+                  <FileText className="h-3.5 w-3.5" />
+                  {t('uniReview.detail.openPdf')}
+                </Button>
+              </div>
+            ) : null}
+
+            {doc.rows.map((row) => (
+              <ReviewSectionCard
+                key={row.id}
+                row={row}
+                decided={decided[row.id]}
+                isRejecting={rejectingRowId === row.id}
+                rejectReason={rejectReason}
+                onReasonChange={onReasonChange}
+                onStartReject={() => onStartReject(row)}
+                onCancelReject={onCancelReject}
+                handlers={handlers}
+                acting={actingRowId === row.id}
+              >
+                <SectionBody
+                  row={row}
+                  noteDetail={parseReliability(row.reviewer_notes, row.needs_attention).detail}
+                />
+              </ReviewSectionCard>
+            ))}
+          </div>
+        );
+      })}
     </div>
   );
 }

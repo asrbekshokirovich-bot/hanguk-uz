@@ -36,6 +36,12 @@ export interface ReviewQueueRow {
   // the UI keeps working before the migration/backfill are applied.
   doc_academic_year?: number | null;
   doc_semester?: string | null;
+  // Added by migration 20260918000000 — the owning institution. This is the
+  // triage rail's grouping key: without it the rail grouped by guideline
+  // document, so a university with three stored guidelines appeared as three
+  // identical cards. Optional so the UI degrades to per-document grouping if
+  // the migration has not been applied yet.
+  institution_id?: string | null;
 }
 
 export type RejectionReason =
