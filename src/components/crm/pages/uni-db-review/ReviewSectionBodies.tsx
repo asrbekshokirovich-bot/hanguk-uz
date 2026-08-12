@@ -347,19 +347,45 @@ export function TuitionBody({ row, noteDetail }: { row: ReviewQueueRow; noteDeta
         <span className="text-right">{t('uniReview.tui.admissionFee')}</span>
       </div>
       {rows.map((r, i) => {
+        // The faculty as the document prints it is the row's identity. The
+        // bucket is a filter and is often absent by design — a line covering
+        // two faculties reports none rather than guessing one. Older rows
+        // predate `faculty_ko`, so the bucket still stands in for them.
         const fac = str(r.faculty_group);
         const facLabel = fac ? t(`uniReview.tui.fac.${fac}`, { defaultValue: fac }) : null;
+        const name = str(r.faculty_uz) ?? str(r.faculty_ko) ?? facLabel;
+        // Show the bucket beside the name only when it adds something the
+        // name does not already say.
+        const showGroup = !!facLabel && !!str(r.faculty_ko);
         const warn = !!fac && !!noteDetail && noteDetail.includes(fac);
         const sem = fmtKRW(r.amount_krw);
         const fee = fmtKRW(r.admission_fee_krw ?? r.admission_fee);
+        // The line the amount was read from. Without it a reviewer cannot
+        // tell two same-looking rows apart, nor check a figure against the PDF.
+        const source = str(r.source_text_ko);
         return (
           <div
             key={i}
             className="grid min-w-[520px] grid-cols-[minmax(0,1fr)_170px_140px] items-baseline gap-3 border-t border-border/60 px-3.5 py-[9px]"
           >
-            <span className="inline-flex min-w-0 items-center gap-1.5 text-[13px] font-semibold">
-              <span className="min-w-0 break-words">{facLabel ?? <Ns />}</span>
-              {warn ? <AlertTriangle className="h-[13px] w-[13px] shrink-0 text-warning" /> : null}
+            <span className="flex min-w-0 flex-col gap-0.5">
+              <span className="inline-flex min-w-0 items-center gap-1.5 text-[13px] font-semibold">
+                <span className="min-w-0 break-words">{name ?? <Ns />}</span>
+                {showGroup ? (
+                  <span className="shrink-0 rounded-full bg-secondary px-1.5 py-px text-[10px] font-medium text-muted-foreground/80">
+                    {facLabel}
+                  </span>
+                ) : null}
+                {warn ? <AlertTriangle className="h-[13px] w-[13px] shrink-0 text-warning" /> : null}
+              </span>
+              {source ? (
+                <span
+                  className="min-w-0 break-words text-[11px] leading-[1.45] text-muted-foreground/70"
+                  lang="ko"
+                >
+                  {source}
+                </span>
+              ) : null}
             </span>
             <span
               className={cn(

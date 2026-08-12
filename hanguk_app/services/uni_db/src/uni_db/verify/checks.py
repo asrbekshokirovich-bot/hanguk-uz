@@ -395,7 +395,12 @@ def critical_signature(field_group: str, parsed_output: object) -> dict[str, Any
         by_fac: dict[str, int] = {}
         for row in rows:
             amt = _num(row.get("amount_krw"))
-            fac = row.get("faculty_group")
+            # `faculty_group` is nullable by design — a line covering two
+            # faculties reports no bucket rather than guessing one. Keying on
+            # the bucket alone would collapse every such row under a single
+            # empty key and blind the swap check, so fall back to the verbatim
+            # faculty, which is what actually identifies the row.
+            fac = row.get("faculty_group") or row.get("faculty_ko")
             if amt is not None and fac:
                 key = str(fac)
                 by_fac[key] = min(by_fac.get(key, int(amt)), int(amt))

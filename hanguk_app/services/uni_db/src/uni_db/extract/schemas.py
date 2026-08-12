@@ -114,10 +114,26 @@ TUITION_SCHEMA: dict[str, Any] = {
                 # Extra per-row fields (notes_ko, is_correction_notice, …) are
                 # kept rather than failing the whole tuition group.
                 "additionalProperties": True,
-                "required": ["faculty_group", "academic_year",
+                # `faculty_ko` carries the identity, `faculty_group` is only a
+                # filter. Requiring the bucket forced a one-of-eleven guess on
+                # lines that genuinely span two faculties — "공학·예능"
+                # (engineering AND arts) has no single right answer, so the
+                # model picked differently on each run and the same printed
+                # line surfaced twice under different buckets. Measured on 219
+                # production rows: 23 buckets were contradicted by the Korean
+                # in their own source text, and one line was tagged both
+                # arts_pe and engineering.
+                "required": ["faculty_ko", "academic_year",
                              "semester_number", "amount_krw", "source_text_ko"],
                 "properties": {
-                    "faculty_group":      {"type": "string"},
+                    # The faculty exactly as printed — Korean, English, or a
+                    # mix of both. Never translated, never normalised.
+                    "faculty_ko":         {"type": "string"},
+                    "faculty_uz":         {"type": ["string", "null"]},
+                    # Nullable and no longer required: a line that covers two
+                    # faculties, or none of the eleven, reports no bucket
+                    # rather than a guess.
+                    "faculty_group":      {"type": ["string", "null"]},
                     "academic_year":      {"type": "integer"},
                     "semester_number":    {"type": "integer", "minimum": 1, "maximum": 12},
                     "amount_krw":         {"type": "integer", "minimum": 0},
