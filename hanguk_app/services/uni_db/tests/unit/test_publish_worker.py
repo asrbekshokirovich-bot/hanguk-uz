@@ -472,3 +472,81 @@ class TestRequirementsProgramHelpers:
     def test_degree_levels_for_track(self) -> None:
         assert pw._degree_levels_for_track("grad_foreign") == ("master", "graduate")
         assert pw._degree_levels_for_track("foreign") == ("bachelor", "undergraduate")
+
+
+# --------------------------------------------------------------------------- #
+# tuition — entry semester only
+#
+# Korean guidelines quote two figures per faculty, 첫 학기 등록금 and 두 번째 학기
+# 이후 등록금, and the extraction emits both. Only the first is a number anyone
+# acts on. Publishing the pair put the same faculty in the table twice at two
+# prices, which is what the review card was rendering as apparent duplicates
+# and what made the guest card quote a fee the student cannot pay until they
+# are already enrolled.
+
+async def test_only_the_first_semester_row_is_published() -> None:
+    cy = date.today().year
+    rec = _rec("tuition", {"rows": [
+        {"faculty_group": "인문", "academic_year": cy, "semester_number": 1,
+         "amount_krw": 4_496_000, "is_first_semester": True,
+         "source_text_ko": "인문대학 4,496,000원"},
+        {"faculty_group": "인문", "academic_year": cy, "semester_number": 2,
+         "amount_krw": 4_298_000, "is_first_semester": False,
+         "source_text_ko": "인문대학 4,298,000원"},
+    ]})
+    conn = _Conn([rec])
+    run = await pw.publish_pending(conn)
+
+    assert run.rows_written == 1
+    rows = conn.inserts_into("tuition")
+    assert len(rows) == 1
+    assert 4_496_000 in rows[0]
+    assert 4_298_000 not in rows[0]
+
+
+async def test_a_missing_flag_falls_back_to_the_semester_number() -> None:
+    # The model omits `is_first_semester` often enough that the pair would
+    # otherwise both publish.
+    cy = date.today().year
+    rec = _rec("tuition", {"rows": [
+        {"faculty_group": "공학", "academic_year": cy, "semester_number": 1,
+         "amount_krw": 5_592_000, "source_text_ko": "공과대학 5,592,000원"},
+        {"faculty_group": "공학", "academic_year": cy, "semester_number": 2,
+         "amount_krw": 5_394_000, "source_text_ko": "공과대학 5,394,000원"},
+    ]})
+    conn = _Conn([rec])
+    await pw.publish_pending(conn)
+
+    rows = conn.inserts_into("tuition")
+    assert len(rows) == 1
+    assert 5_592_000 in rows[0]
+
+
+async def test_a_single_undifferentiated_row_still_publishes() -> None:
+    # Most guidelines draw no distinction at all; dropping those would lose a
+    # real fee to a split their own document never made.
+    cy = date.today().year
+    rec = _rec("tuition", {"rows": [
+        {"faculty_group": "전체", "academic_year": cy,
+         "amount_krw": 3_235_000, "source_text_ko": "전체 3,235,000원"},
+    ]})
+    conn = _Conn([rec])
+    await pw.publish_pending(conn)
+
+    rows = conn.inserts_into("tuition")
+    assert len(rows) == 1
+    assert 3_235_000 in rows[0]
+
+
+async def test_the_published_row_is_marked_as_the_entry_semester() -> None:
+    # Whatever the payload claimed, what lands is the entry fee — so the flag
+    # must say so, or the guest view's first-semester preference reads a lie.
+    cy = date.today().year
+    rec = _rec("tuition", {"rows": [
+        {"faculty_group": "인문", "academic_year": cy, "semester_number": 1,
+         "amount_krw": 4_496_000, "source_text_ko": "인문대학 4,496,000원"},
+    ]})
+    conn = _Conn([rec])
+    await pw.publish_pending(conn)
+
+    assert conn.inserts_into("tuition")[0][6] is True
