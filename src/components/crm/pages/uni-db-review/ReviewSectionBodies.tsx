@@ -333,9 +333,32 @@ export function RequirementsBody({ row }: { row: ReviewQueueRow }) {
 // tuition — bordered per-faculty table; consensus-flagged rows get a warning.
 // ---------------------------------------------------------------------------
 
+/** The fee a student pays to enrol — the only one this table shows.
+ *
+ * Korean guidelines quote two figures per faculty, 첫 학기 등록금 and 두 번째 학기
+ * 이후 등록금, and the extraction emits both. Rendered as-is that put the same
+ * faculty on screen twice at two prices — six faculties reading as twelve rows,
+ * looking like an extraction bug rather than the document's own structure.
+ *
+ * The later figure is not published either (publish_worker._publish_tuition),
+ * so showing it here would offer a reviewer a row their approval does not act
+ * on.
+ *
+ * Falls back to the semester number when the model omits the flag, and keeps a
+ * row that states neither: most guidelines draw no distinction at all, and
+ * dropping those would hide a real fee behind a split their document never
+ * made.
+ */
+export function isEntrySemester(r: Record<string, unknown>): boolean {
+  if (typeof r.is_first_semester === 'boolean') return r.is_first_semester;
+  const sem = r.semester_number ?? r.semester;
+  const n = typeof sem === 'number' ? sem : parseInt(String(sem ?? ''), 10);
+  return Number.isNaN(n) ? true : n === 1;
+}
+
 export function TuitionBody({ row, noteDetail }: { row: ReviewQueueRow; noteDetail: string | null }) {
   const { t } = useTranslation();
-  const rows = getArray(row.parsed_output, 'rows');
+  const rows = getArray(row.parsed_output, 'rows').filter(isEntrySemester);
   if (rows.length === 0) return <Ns className="text-[13px]" />;
   return (
     // Fixed money columns — scroll inside the card on narrow widths instead

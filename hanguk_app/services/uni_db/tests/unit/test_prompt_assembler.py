@@ -15,6 +15,7 @@ import pytest
 
 from uni_db.extract.prompt_assembler import (
     GlossaryEntry,
+    assemble_combined_prompt,
     assemble_prompt,
     lookup_schema,
 )
@@ -162,3 +163,62 @@ class TestMockedLLMRoundTrip:
 
         # Just to make sure the round-trip is JSON-clean.
         json.dumps(mock_response, ensure_ascii=False)
+
+
+class TestVerbatimQuoteRule:
+    """`source_text_ko` is a citation a reviewer can ctrl-F, not a description.
+
+    "preserve verbatim" alone was not enough. Against real guidelines the model
+    built sentences of its own — joining a faculty cell to a number cell with
+    an em dash and adding a label the document never used:
+
+        "융합인재대학 — 첫 학기 등록금 5,339,000원"
+
+    No such string is in the source, so every row like it is flagged
+    `quote_not_in_source` and the card goes RED — burying a correct extraction
+    under a citation problem, and taking away the one thing that would let a
+    reviewer check it quickly.
+    """
+
+    def _user(self) -> str:
+        return assemble_prompt(
+            field_group="tuition", archetype="H",
+            source_text_ko="인문대학 4,496,000원",
+        ).user
+
+    def test_the_quote_must_be_an_unbroken_substring(self) -> None:
+        user = self._user()
+        assert "UNBROKEN" in user
+        assert "CHARACTER-FOR-CHARACTER" in user
+
+    def test_it_forbids_the_failure_modes_seen_in_the_wild(self) -> None:
+        user = self._user()
+        # Joining separated cells is exactly what produced the em-dash
+        # sentences, and adding a label is the other half of it.
+        assert "join fragments" in user
+        assert "add words, labels, dashes" in user
+        assert "summarise" in user
+
+    def test_it_says_what_to_do_when_the_value_spans_cells(self) -> None:
+        # A rule that only forbids leaves the model to invent a way out.
+        user = self._user()
+        assert "carries the number" in user
+        assert "extractor_confidence" in user
+
+    def test_it_states_the_consequence(self) -> None:
+        # Without this the model trades a "nicer" quote against correctness.
+        assert "fabricated" in self._user()
+
+    def test_the_source_span_still_reaches_the_model(self) -> None:
+        # The rule must not have displaced the payload it describes.
+        assert "인문대학 4,496,000원" in self._user()
+
+    def test_the_combined_call_carries_the_same_rule(self) -> None:
+        # Single-call mode shares the failure mode, so it must share the rule.
+        user = assemble_combined_prompt(
+            archetype="H",
+            source_text_ko="인문대학 4,496,000원",
+            groups=("tuition", "calendar"),
+        ).user
+        assert "UNBROKEN" in user
+        assert "인문대학 4,496,000원" in user

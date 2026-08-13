@@ -489,3 +489,70 @@ def test_parse_require_approval_queues_everything_open() -> None:
     assert all(e["status"] == "open" for e in ej)         # nothing auto-approved
     assert all(str(e["rationale"]).startswith("[") for e in ej)  # reliability note attached
 
+
+
+class TestConsensusMissingIsNotGreen:
+    """A card nothing cross-checked must not wear the colour of one that was.
+
+    `consensus` comes back empty in two very different situations: every
+    independent re-extraction agreed and there was no disagreement to report,
+    or the gate never ran — the backend capped the level, or each re-extraction
+    threw and the vote shrank to one. Before `consensus_expected` the verdict
+    could not tell them apart, so an unverified tuition table reached a
+    reviewer wearing the same green as a verified one.
+    """
+
+    def test_unrun_consensus_is_amber_not_green(self) -> None:
+        report = aggregate(field_group="tuition", consensus_expected=True)
+        assert report.overall == "amber"
+        assert report.consensus_missing is True
+
+    def test_and_the_note_says_so_in_words(self) -> None:
+        note = aggregate(field_group="tuition", consensus_expected=True).to_review_note()
+        assert "consensus NOT RUN" in note
+
+    def test_agreement_with_nothing_to_report_stays_green(self) -> None:
+        # Consensus ran and every field was unanimous — the honest green.
+        cons = [
+            ConsensusField(
+                field_group="tuition", field="fac:humanities",
+                values=[1, 1, 1], agreement=1.0, unanimous=True,
+            )
+        ]
+        report = aggregate(
+            field_group="tuition", consensus_fields=cons, consensus_expected=True,
+        )
+        assert report.overall == "green"
+        assert report.consensus_missing is False
+
+    def test_a_level_that_never_promised_consensus_stays_green(self) -> None:
+        # `balanced` does not run the gate at all, so its absence is not a gap.
+        report = aggregate(field_group="tuition", consensus_expected=False)
+        assert report.overall == "green"
+        assert report.consensus_missing is False
+
+    def test_disagreement_still_outranks_a_mere_gap(self) -> None:
+        cons = [
+            ConsensusField(
+                field_group="tuition", field="fac:humanities",
+                values=[1, 2, 1], agreement=2 / 3, unanimous=False,
+            )
+        ]
+        report = aggregate(
+            field_group="tuition", consensus_fields=cons, consensus_expected=True,
+        )
+        assert report.overall == "red"
+
+    def test_rollup_holds_the_document_back_for_one_unchecked_group(self) -> None:
+        # Averaging the gap away would let a document pass on the strength of
+        # the groups that did get cross-checked.
+        checked = aggregate(
+            field_group="calendar",
+            consensus_fields=[
+                ConsensusField(field_group="calendar", field="ev:apply_open",
+                               values=[1, 1, 1], agreement=1.0, unanimous=True)
+            ],
+            consensus_expected=True,
+        )
+        unchecked = aggregate(field_group="tuition", consensus_expected=True)
+        assert rollup(None, [checked, unchecked]).overall == "amber"

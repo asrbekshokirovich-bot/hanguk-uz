@@ -69,6 +69,17 @@ jobs:
       UNI_DB_LIVE_APIS: "true"
       UNI_DB_LIVE_CRAWL: "false"
       UNI_DB_ENV: "production"
+      # Pinned, not left to the config default. `maximum` is what makes a card
+      # worth trusting: each field group is re-extracted independently and the
+      # critical figures must agree, an LLM judge hunts every quote in the
+      # source, and three adversarial critics try to break the result. The
+      # subscription backend caps this at `balanced` to stay under its
+      # concurrency limits — this job runs on the API key, where it does not.
+      UNI_DB_VERIFY_LEVEL: "maximum"
+      # Five independent extractions rather than three: with three, one bad
+      # run makes 2-1 and the majority still looks like a majority. Five turns
+      # the same single outlier into 4-1 and leaves room for a second.
+      UNI_DB_CONSENSUS_RUNS: "5"
       SUPABASE_DB_URL: ${{ secrets.UNI_DB_SUPABASE_DB_URL }}
       SUPABASE_URL: ${{ secrets.UNI_DB_SUPABASE_URL }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.UNI_DB_SUPABASE_SERVICE_ROLE_KEY }}
@@ -102,8 +113,9 @@ jobs:
         env:
           LIMIT: ${{ github.event.inputs.limit || '120' }}
           SKIP_GROUPS: ${{ github.event.inputs.skip_groups || 'scholarships' }}
-          # Leave ~20 minutes under the job timeout for the publish step below.
-          DEADLINE_MIN: "145"
+          # Leave room under the job timeout for the re-verify and publish
+          # steps below.
+          DEADLINE_MIN: "80"
         run: |
           set -uo pipefail
           started=$(date +%s)
@@ -124,6 +136,24 @@ jobs:
                 ;;
             esac
           done
+
+      # Phase 2 — re-verify what SUCCEEDED under the weaker gauntlet.
+      #
+      # Draining failed jobs only reaches documents that errored. Everything
+      # that succeeded on the subscription backend was capped at `balanced`:
+      # deterministic checks only, no consensus, no judge, no critics. Those
+      # cards are already in the queue looking no different from cross-checked
+      # ones, and re-running them here is what puts every university through
+      # the same gauntlet.
+      #
+      # Least-recently-parsed first (the worker's own order), so each run takes
+      # the next slice and the catalogue comes round over successive ticks.
+      # continue-on-error and a small limit: this is the lower-priority half,
+      # and it must never cost the run its publish step.
+      - name: Re-verify already-parsed documents
+        continue-on-error: true
+        timeout-minutes: 60
+        run: uni-db reparse --limit 8
 
       # Move anything a reviewer has approved into the tables the app reads.
       # DB-only and idempotent, so it is safe on every run and keeps the app in

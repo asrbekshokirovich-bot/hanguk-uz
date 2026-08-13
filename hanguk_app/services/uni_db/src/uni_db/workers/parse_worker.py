@@ -303,6 +303,10 @@ def _verify_group(
     if level == "off":
         return None
     live = settings.live_apis
+    # What the configured level PROMISES. If the promise cannot be kept — a
+    # re-extraction throws, or the backend caps the level — the report says so
+    # instead of coming out the same colour as a genuinely cross-checked one.
+    consensus_expected = level == "maximum" and live and settings.consensus_runs > 1
     runs: list[dict[str, object]] = [primary.parsed_output]
     if level == "maximum" and live:
         for _ in range(max(0, settings.consensus_runs - 1)):
@@ -325,6 +329,7 @@ def _verify_group(
         target_term=target_term,
         use_grounding_llm=use_llm,
         use_critics=use_llm,
+        consensus_expected=consensus_expected,
     )
 
 

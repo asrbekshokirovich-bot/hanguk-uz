@@ -355,15 +355,33 @@ async def get_or_create_cycle(
 
 
 async def _publish_tuition(conn, rec, payload) -> int:
+    """Publish the ENTRY-semester fee only.
+
+    Korean guidelines quote two figures per faculty — 첫 학기 등록금 and 두 번째
+    학기 이후 등록금 — and the extraction emits both. Only the first is a number
+    anyone acts on: it is what a student pays to start, it is what the guest
+    card shows, and the review card was rendering the pair as two identical
+    faculty rows at two prices with nothing to tell them apart.
+
+    The later-semester figure is dropped here rather than filtered downstream,
+    so what a reviewer approves on the card is exactly what lands in the table.
+    It is recoverable at any time by re-extracting the stored PDF; keeping it
+    around unshown was the worse of the two, because it would surface later in
+    something that reads the table without knowing about the split.
+    """
     n = 0
     for r in _rows(payload):
         amount = tuition_amount(r)
         if amount is None:
             continue
+        # `is_first_semester` absent → fall back to the semester number, which
+        # is how the pair is distinguished when the model omits the flag.
+        sem_no = _as_int(r.get("semester_number") or r.get("semester")) or 1
+        if not bool(r.get("is_first_semester", sem_no == 1)):
+            continue
         # Clamp the semester into the table's 1..12 CHECK so one odd value
         # ("semester": "1학기" → 1; 0 → 1) doesn't error the whole item.
-        sem = _as_int(r.get("semester_number") or r.get("semester")) or 1
-        sem = min(max(sem, 1), 12)
+        sem = min(max(sem_no, 1), 12)
         year = _as_int(r.get("academic_year") or r.get("year")) or rec["_year"]
         await conn.execute(
             """insert into public.tuition (institution_id, faculty_group, academic_year,
@@ -372,7 +390,7 @@ async def _publish_tuition(conn, rec, payload) -> int:
                values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)""",
             rec["institution_id"], tuition_faculty(r),
             year, sem, amount,
-            _as_int(r.get("admission_fee_krw")), bool(r.get("is_first_semester", sem == 1)),
+            _as_int(r.get("admission_fee_krw")), True,
             r.get("source_text_ko"), r.get("extractor_confidence"),
             bool(rec.get("_na", False)), rec.get("_ar"),
         )
