@@ -1573,8 +1573,15 @@
         "arts_pe": "Искусство и физкультура",
         "humanities": "Гуманитарные науки",
         "engineering": "Инженерия",
-        "natural_science": "Естественные науки"
-      }
+        "natural_science": "Естественные науки",
+        "medicine": "Медицина",
+        "dentistry": "Стоматология",
+        "veterinary": "Ветеринария",
+        "pharmacy": "Фармацевтика",
+        "theology": "Теология",
+        "interdisciplinary": "Междисциплинарный"
+      },
+      "sourceLabel": "Источник"
     },
     "docs": {
       "required": "Обязателен",

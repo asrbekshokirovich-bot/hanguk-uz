@@ -1567,7 +1567,16 @@
     "tui": {
       "faculty": "Faculty",
       "perSemester": "Tuition / semester",
-      "admissionFee": "Admission fee"
+      "admissionFee": "Admission fee",
+      "fac": {
+        "medicine": "Medicine",
+        "dentistry": "Dentistry",
+        "veterinary": "Veterinary",
+        "pharmacy": "Pharmacy",
+        "theology": "Theology",
+        "interdisciplinary": "Interdisciplinary"
+      },
+      "sourceLabel": "Source"
     },
     "docs": {
       "required": "Required",

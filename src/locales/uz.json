@@ -1612,8 +1612,15 @@
         "arts_pe": "San'at va jismoniy tarbiya",
         "humanities": "Gumanitar fanlar",
         "engineering": "Muhandislik",
-        "natural_science": "Tabiiy fanlar"
-      }
+        "natural_science": "Tabiiy fanlar",
+        "medicine": "Tibbiyot",
+        "dentistry": "Stomatologiya",
+        "veterinary": "Veterinariya",
+        "pharmacy": "Farmatsevtika",
+        "theology": "Ilohiyot",
+        "interdisciplinary": "Fanlararo"
+      },
+      "sourceLabel": "Manba"
     },
     "docs": {
       "required": "Majburiy",

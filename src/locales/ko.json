@@ -1523,8 +1523,15 @@
         "arts_pe": "예체능계열",
         "humanities": "인문계열",
         "engineering": "공학계열",
-        "natural_science": "자연과학계열"
-      }
+        "natural_science": "자연과학계열",
+        "medicine": "의학",
+        "dentistry": "치의학",
+        "veterinary": "수의학",
+        "pharmacy": "약학",
+        "theology": "신학",
+        "interdisciplinary": "융합"
+      },
+      "sourceLabel": "출처"
     },
     "docs": {
       "required": "필수",

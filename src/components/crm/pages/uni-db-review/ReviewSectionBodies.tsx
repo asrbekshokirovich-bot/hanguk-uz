@@ -333,9 +333,49 @@ export function RequirementsBody({ row }: { row: ReviewQueueRow }) {
 // tuition — bordered per-faculty table; consensus-flagged rows get a warning.
 // ---------------------------------------------------------------------------
 
+/** The fee a student pays to enrol — the only one this table shows.
+ *
+ * Korean guidelines quote two figures per faculty, 첫 학기 등록금 and 두 번째 학기
+ * 이후 등록금, and the extraction emits both. Rendered as-is that put the same
+ * faculty on screen twice at two prices with nothing to tell the rows apart —
+ * six faculties reading as twelve, and looking like an extraction bug rather
+ * than the document's own structure. The later figure is not published either
+ * (see publish_worker._publish_tuition), so showing it here would offer a
+ * reviewer a row their approval does not act on.
+ *
+ * Falls back to the semester number when the model omits the flag, and keeps a
+ * row that states neither: most guidelines draw no distinction at all.
+ */
+export function isEntrySemester(r: Record<string, unknown>): boolean {
+  if (typeof r.is_first_semester === 'boolean') return r.is_first_semester;
+  const sem = r.semester_number ?? r.semester;
+  const n = typeof sem === 'number' ? sem : parseInt(String(sem ?? ''), 10);
+  return Number.isNaN(n) ? true : n === 1;
+}
+
+/** The faculty as the guideline names it, for a bucket that collapses several.
+ *
+ * `faculty_group` is one of eleven fixed buckets, so two different colleges can
+ * land in the same one — Hankuk's 융합인재대학 and its Cultural & Technology
+ * 융합대학 both became `interdisciplinary`, and the table showed that word four
+ * times. The real names are in the row; they were just never rendered.
+ *
+ * The quote leads with the faculty and ends with the amount, so the segment
+ * before the first dash is the name. When there is no dash the whole string is
+ * used — trimmed for display, never parsed for meaning.
+ */
+export function facultyDetail(r: Record<string, unknown>): string | null {
+  const src = str(r.source_text_uz) ?? str(r.source_text_ko);
+  if (!src) return null;
+  const head = src.split(/\s[—–-]\s/)[0].trim();
+  const text = head.length > 0 ? head : src.trim();
+  return text.length > 120 ? `${text.slice(0, 119)}…` : text;
+}
+
 export function TuitionBody({ row, noteDetail }: { row: ReviewQueueRow; noteDetail: string | null }) {
   const { t } = useTranslation();
-  const rows = getArray(row.parsed_output, 'rows');
+  const all = getArray(row.parsed_output, 'rows');
+  const rows = all.filter(isEntrySemester);
   if (rows.length === 0) return <Ns className="text-[13px]" />;
   return (
     // Fixed money columns — scroll inside the card on narrow widths instead
@@ -350,6 +390,7 @@ export function TuitionBody({ row, noteDetail }: { row: ReviewQueueRow; noteDeta
         const fac = str(r.faculty_group);
         const facLabel = fac ? t(`uniReview.tui.fac.${fac}`, { defaultValue: fac }) : null;
         const warn = !!fac && !!noteDetail && noteDetail.includes(fac);
+        const detail = facultyDetail(r);
         const sem = fmtKRW(r.amount_krw);
         const fee = fmtKRW(r.admission_fee_krw ?? r.admission_fee);
         return (
@@ -357,9 +398,16 @@ export function TuitionBody({ row, noteDetail }: { row: ReviewQueueRow; noteDeta
             key={i}
             className="grid min-w-[520px] grid-cols-[minmax(0,1fr)_170px_140px] items-baseline gap-3 border-t border-border/60 px-3.5 py-[9px]"
           >
-            <span className="inline-flex min-w-0 items-center gap-1.5 text-[13px] font-semibold">
-              <span className="min-w-0 break-words">{facLabel ?? <Ns />}</span>
-              {warn ? <AlertTriangle className="h-[13px] w-[13px] shrink-0 text-warning" /> : null}
+            <span className="inline-flex min-w-0 flex-col gap-0.5 text-[13px] font-semibold">
+              <span className="inline-flex min-w-0 items-center gap-1.5">
+                <span className="min-w-0 break-words">{facLabel ?? <Ns />}</span>
+                {warn ? <AlertTriangle className="h-[13px] w-[13px] shrink-0 text-warning" /> : null}
+              </span>
+              {detail ? (
+                <span className="min-w-0 break-words text-[11px] font-normal leading-snug text-muted-foreground">
+                  {detail}
+                </span>
+              ) : null}
             </span>
             <span
               className={cn(
