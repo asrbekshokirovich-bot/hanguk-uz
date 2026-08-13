@@ -54,6 +54,18 @@ class ReliabilityReport:
     critic_issues: list[CriticIssue] = field(default_factory=list)
     consensus: list[ConsensusField] = field(default_factory=list)
 
+    #: The configured level promised to cross-check this extraction against
+    #: independent re-extractions, and that did not happen — the backend capped
+    #: the level, or every re-extraction threw and the vote shrank to one.
+    #:
+    #: It cannot be derived from `consensus` being empty, because empty also
+    #: means "ran, and every field agreed". Before this flag the verdict could
+    #: not tell those apart, so an unverified tuition table reached a reviewer
+    #: wearing the same green as a verified one. At rollup it must be carried
+    #: from the per-group reports rather than recomputed: one group's populated
+    #: list would otherwise mask another group's gap.
+    consensus_missing: bool = False
+
     @property
     def is_red(self) -> bool:
         return self.overall == "red"
@@ -62,6 +74,11 @@ class ReliabilityReport:
         """Compact reviewer-facing summary for review_queue.reviewer_notes."""
         lines = [f"[{self.overall.upper()}] reliability"
                  + (f" · {self.field_group}" if self.field_group else "")]
+        if self.consensus_missing:
+            lines.append(
+                "  consensus NOT RUN — no independent re-extraction agreed this; "
+                "check the figures against the source yourself"
+            )
         if self.identity and not self.identity.accepted:
             lines.append(f"  identity: REJECTED — {self.identity.reject_reason or 'failed'}")
         for c in self.consensus:
@@ -89,6 +106,8 @@ def aggregate(
     sanity_issues: list[SanityIssue] | None = None,
     critic_issues: list[CriticIssue] | None = None,
     consensus_fields: list[ConsensusField] | None = None,
+    consensus_expected: bool = False,
+    consensus_missing: bool | None = None,
 ) -> ReliabilityReport:
     grounding_issues = grounding_issues or []
     sanity_issues = sanity_issues or []
@@ -102,8 +121,16 @@ def aggregate(
         or any(not cf.unanimous for cf in consensus_fields)
         or any(s.severity == "high" for s in sanity_issues)
     )
+    # Absence of evidence, not evidence of error — so amber, not red. The
+    # point is that it must not read as green: a card nothing cross-checked
+    # looked exactly like one three independent extractions agreed on, which is
+    # how an unverified tuition table reaches a reviewer wearing the same
+    # colour as a verified one.
+    if consensus_missing is None:
+        consensus_missing = consensus_expected and not consensus_fields
     amber = (
-        bool(grounding_issues)
+        consensus_missing
+        or bool(grounding_issues)
         or any(c.severity in ("medium", "low") for c in critic_issues)
         or any(s.severity in ("medium", "low") for s in sanity_issues)
         # A cycle mismatch is no longer an amber case: IdentityVerdict.accepted
@@ -119,6 +146,7 @@ def aggregate(
         sanity_issues=sanity_issues,
         critic_issues=critic_issues,
         consensus=consensus_fields,
+        consensus_missing=consensus_missing,
     )
 
 
@@ -132,6 +160,7 @@ def verify_extraction(
     target_term: str | None = None,
     use_grounding_llm: bool = True,
     use_critics: bool = True,
+    consensus_expected: bool = False,
     grounding_fn: GroundingFn | None = None,
     critics_fn: CriticsFn | None = None,
 ) -> ReliabilityReport:
@@ -142,7 +171,9 @@ def verify_extraction(
     injectable so this unit-tests without network.
     """
     if not runs:
-        return aggregate(field_group=field_group)
+        return aggregate(
+            field_group=field_group, consensus_expected=consensus_expected,
+        )
     primary = runs[0]
     rows = _rows(primary)
 
@@ -174,6 +205,7 @@ def verify_extraction(
         sanity_issues=sanity,
         critic_issues=critics,
         consensus_fields=cons,
+        consensus_expected=consensus_expected,
     )
 
 
@@ -190,6 +222,11 @@ def rollup(identity: IdentityVerdict | None, reports: list[ReliabilityReport]) -
         sanity_issues=sanity,
         critic_issues=critics,
         consensus_fields=cons,
+        # One group that nothing cross-checked is enough to hold the whole
+        # document back from green. Passed explicitly, not re-derived: `cons`
+        # here is every group's fields concatenated, so a populated list from
+        # one group would hide the gap in another.
+        consensus_missing=any(r.consensus_missing for r in reports),
     )
 
 
