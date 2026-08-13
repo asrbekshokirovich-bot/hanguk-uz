@@ -65,7 +65,9 @@ class _SeqClient:
 
 
 _VALID_TUITION = {"rows": [{
-    "faculty_group": "인문", "academic_year": 2027, "semester_number": 1,
+    # `faculty_ko` is the required identity; the bucket is an optional filter.
+    "faculty_ko": "인문계", "faculty_group": "인문",
+    "academic_year": 2027, "semester_number": 1,
     "amount_krw": 4_800_000, "source_text_ko": "인문계 4,800,000원",
 }]}
 

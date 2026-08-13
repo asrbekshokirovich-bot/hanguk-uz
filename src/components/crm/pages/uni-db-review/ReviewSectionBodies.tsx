@@ -337,14 +337,17 @@ export function RequirementsBody({ row }: { row: ReviewQueueRow }) {
  *
  * Korean guidelines quote two figures per faculty, 첫 학기 등록금 and 두 번째 학기
  * 이후 등록금, and the extraction emits both. Rendered as-is that put the same
- * faculty on screen twice at two prices with nothing to tell the rows apart —
- * six faculties reading as twelve, and looking like an extraction bug rather
- * than the document's own structure. The later figure is not published either
- * (see publish_worker._publish_tuition), so showing it here would offer a
- * reviewer a row their approval does not act on.
+ * faculty on screen twice at two prices — six faculties reading as twelve rows,
+ * looking like an extraction bug rather than the document's own structure.
+ *
+ * The later figure is not published either (publish_worker._publish_tuition),
+ * so showing it here would offer a reviewer a row their approval does not act
+ * on.
  *
  * Falls back to the semester number when the model omits the flag, and keeps a
- * row that states neither: most guidelines draw no distinction at all.
+ * row that states neither: most guidelines draw no distinction at all, and
+ * dropping those would hide a real fee behind a split their document never
+ * made.
  */
 export function isEntrySemester(r: Record<string, unknown>): boolean {
   if (typeof r.is_first_semester === 'boolean') return r.is_first_semester;
@@ -353,29 +356,9 @@ export function isEntrySemester(r: Record<string, unknown>): boolean {
   return Number.isNaN(n) ? true : n === 1;
 }
 
-/** The faculty as the guideline names it, for a bucket that collapses several.
- *
- * `faculty_group` is one of eleven fixed buckets, so two different colleges can
- * land in the same one — Hankuk's 융합인재대학 and its Cultural & Technology
- * 융합대학 both became `interdisciplinary`, and the table showed that word four
- * times. The real names are in the row; they were just never rendered.
- *
- * The quote leads with the faculty and ends with the amount, so the segment
- * before the first dash is the name. When there is no dash the whole string is
- * used — trimmed for display, never parsed for meaning.
- */
-export function facultyDetail(r: Record<string, unknown>): string | null {
-  const src = str(r.source_text_uz) ?? str(r.source_text_ko);
-  if (!src) return null;
-  const head = src.split(/\s[—–-]\s/)[0].trim();
-  const text = head.length > 0 ? head : src.trim();
-  return text.length > 120 ? `${text.slice(0, 119)}…` : text;
-}
-
 export function TuitionBody({ row, noteDetail }: { row: ReviewQueueRow; noteDetail: string | null }) {
   const { t } = useTranslation();
-  const all = getArray(row.parsed_output, 'rows');
-  const rows = all.filter(isEntrySemester);
+  const rows = getArray(row.parsed_output, 'rows').filter(isEntrySemester);
   if (rows.length === 0) return <Ns className="text-[13px]" />;
   return (
     // Fixed money columns — scroll inside the card on narrow widths instead
@@ -387,25 +370,43 @@ export function TuitionBody({ row, noteDetail }: { row: ReviewQueueRow; noteDeta
         <span className="text-right">{t('uniReview.tui.admissionFee')}</span>
       </div>
       {rows.map((r, i) => {
+        // The faculty as the document prints it is the row's identity. The
+        // bucket is a filter and is often absent by design — a line covering
+        // two faculties reports none rather than guessing one. Older rows
+        // predate `faculty_ko`, so the bucket still stands in for them.
         const fac = str(r.faculty_group);
         const facLabel = fac ? t(`uniReview.tui.fac.${fac}`, { defaultValue: fac }) : null;
+        const name = str(r.faculty_uz) ?? str(r.faculty_ko) ?? facLabel;
+        // Show the bucket beside the name only when it adds something the
+        // name does not already say.
+        const showGroup = !!facLabel && !!str(r.faculty_ko);
         const warn = !!fac && !!noteDetail && noteDetail.includes(fac);
-        const detail = facultyDetail(r);
         const sem = fmtKRW(r.amount_krw);
         const fee = fmtKRW(r.admission_fee_krw ?? r.admission_fee);
+        // The line the amount was read from. Without it a reviewer cannot
+        // tell two same-looking rows apart, nor check a figure against the PDF.
+        const source = str(r.source_text_ko);
         return (
           <div
             key={i}
             className="grid min-w-[520px] grid-cols-[minmax(0,1fr)_170px_140px] items-baseline gap-3 border-t border-border/60 px-3.5 py-[9px]"
           >
-            <span className="inline-flex min-w-0 flex-col gap-0.5 text-[13px] font-semibold">
-              <span className="inline-flex min-w-0 items-center gap-1.5">
-                <span className="min-w-0 break-words">{facLabel ?? <Ns />}</span>
+            <span className="flex min-w-0 flex-col gap-0.5">
+              <span className="inline-flex min-w-0 items-center gap-1.5 text-[13px] font-semibold">
+                <span className="min-w-0 break-words">{name ?? <Ns />}</span>
+                {showGroup ? (
+                  <span className="shrink-0 rounded-full bg-secondary px-1.5 py-px text-[10px] font-medium text-muted-foreground/80">
+                    {facLabel}
+                  </span>
+                ) : null}
                 {warn ? <AlertTriangle className="h-[13px] w-[13px] shrink-0 text-warning" /> : null}
               </span>
-              {detail ? (
-                <span className="min-w-0 break-words text-[11px] font-normal leading-snug text-muted-foreground">
-                  {detail}
+              {source ? (
+                <span
+                  className="min-w-0 break-words text-[11px] leading-[1.45] text-muted-foreground/70"
+                  lang="ko"
+                >
+                  {source}
                 </span>
               ) : null}
             </span>

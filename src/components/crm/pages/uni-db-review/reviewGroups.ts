@@ -12,20 +12,52 @@ import { parseReliability, rollupColor, type ReliabilityColor } from '../reliabi
  * (design_handoff/uni_db_review/README.md).
  */
 
+/** One guideline document inside a university's group. */
+export interface DocumentBlock {
+  key: string;
+  guidelineDocId: string | null;
+  sourceUrl: string | null;
+  storagePath: string | null;
+  academicYear: number | null;
+  semester: string | null;
+  rows: ReviewQueueRow[];
+}
+
 export interface GuidelineGroup {
   key: string;
   nameKo: string | null;
   nameEn: string | null;
+  /** First document's source/PDF — the header uses these when there is only one. */
   sourceUrl: string | null;
   storagePath: string | null;
   guidelineDocId: string | null;
+  /** Every row in the group, flat, in document order. */
   rows: ReviewQueueRow[];
+  /** The group's rows split by guideline document, in first-seen order. */
+  documents: DocumentBlock[];
 }
 
+/**
+ * One group per UNIVERSITY, not per guideline document.
+ *
+ * Grouping on `guideline_document_id` put a university with three stored
+ * guidelines into three separate rail cards — three "KAIST / 한국과학기술원"
+ * entries whose only visible difference was a section count, so a reviewer
+ * could not tell which was which and the same university's work was scattered.
+ *
+ * The documents are kept as a nested level rather than flattened away: two
+ * guidelines can describe different intakes (2027 spring vs 2027 fall), and
+ * merging their sections into one undifferentiated list would let a reviewer
+ * approve a spring figure believing it was autumn's. One card to find the
+ * university; the document boundary stays visible inside it.
+ *
+ * Falls back to the old per-document key when `institution_id` is absent, so
+ * the UI still groups sensibly before migration 20260918000000 is applied.
+ */
 export function groupRows(rows: ReviewQueueRow[]): GuidelineGroup[] {
   const map = new Map<string, GuidelineGroup>();
   for (const row of rows) {
-    const key = row.guideline_document_id ?? row.id;
+    const key = row.institution_id ?? row.guideline_document_id ?? row.id;
     let g = map.get(key);
     if (!g) {
       g = {
@@ -36,12 +68,46 @@ export function groupRows(rows: ReviewQueueRow[]): GuidelineGroup[] {
         storagePath: row.storage_path,
         guidelineDocId: row.guideline_document_id,
         rows: [],
+        documents: [],
       };
       map.set(key, g);
     }
     g.rows.push(row);
+
+    const docKey = row.guideline_document_id ?? row.id;
+    let doc = g.documents.find((d) => d.key === docKey);
+    if (!doc) {
+      doc = {
+        key: docKey,
+        guidelineDocId: row.guideline_document_id,
+        sourceUrl: row.source_url_ko,
+        storagePath: row.storage_path,
+        academicYear: row.doc_academic_year ?? null,
+        semester: row.doc_semester ?? null,
+        rows: [],
+      };
+      g.documents.push(doc);
+    }
+    doc.rows.push(row);
   }
   return [...map.values()];
+}
+
+/**
+ * "2027 · Bahor" for a document strip, or null when the document was never
+ * classified. Never guesses: an unclassified document says so rather than
+ * borrowing the crawl target's cycle.
+ */
+export function documentCycleLabel(
+  doc: DocumentBlock,
+  t: (key: string) => string,
+): string | null {
+  if (doc.academicYear == null && !doc.semester) return null;
+  const season = doc.semester
+    ? t(`uniReview.crawl.${doc.semester === 'spring' ? 'spring' : 'fall'}`)
+    : null;
+  if (doc.academicYear == null) return season;
+  return season ? `${doc.academicYear} · ${season}` : String(doc.academicYear);
 }
 
 // ---------------------------------------------------------------------------

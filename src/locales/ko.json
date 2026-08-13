@@ -1421,7 +1421,8 @@
       "chipGreen": "준비됨",
       "done": "완료",
       "sub": "{{n}}개 섹션 · 최소 신뢰도 {{p}}%",
-      "subNoConf": "{{n}}개 섹션"
+      "subNoConf": "{{n}}개 섹션",
+      "docs": "문서 {{n}}건"
     },
     "detail": {
       "sourcePage": "출처 페이지",
@@ -1430,7 +1431,9 @@
       "pdfError": "PDF를 열 수 없습니다.",
       "progress": "{{decided}}/{{total}} 결정됨",
       "allDone": "이 대학의 모든 섹션이 결정되었습니다.",
-      "next": "다음 →"
+      "next": "다음 →",
+      "docUnclassified": "학기 미분류",
+      "docSections": "{{n}}개 섹션"
     },
     "section": {
       "calendar": "일정 및 전형료",
@@ -1529,9 +1532,8 @@
         "veterinary": "수의학",
         "pharmacy": "약학",
         "theology": "신학",
-        "interdisciplinary": "융합"
-      },
-      "sourceLabel": "출처"
+        "interdisciplinary": "융합·자유전공"
+      }
     },
     "docs": {
       "required": "필수",

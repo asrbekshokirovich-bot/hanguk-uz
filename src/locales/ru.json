@@ -1471,7 +1471,8 @@
       "chipGreen": "Готово",
       "done": "Завершено",
       "sub": "{{n}} разд. · мин. надёжность {{p}}%",
-      "subNoConf": "{{n}} разд."
+      "subNoConf": "{{n}} разд.",
+      "docs": "{{n}} док."
     },
     "detail": {
       "sourcePage": "Страница-источник",
@@ -1480,7 +1481,9 @@
       "pdfError": "Не удалось открыть PDF.",
       "progress": "{{decided}}/{{total}} решено",
       "allDone": "Все разделы по этому университету решены.",
-      "next": "Следующий →"
+      "next": "Следующий →",
+      "docUnclassified": "Сезон не определён",
+      "docSections": "{{n}} разд."
     },
     "section": {
       "calendar": "Сроки и сбор за заявку",
@@ -1579,9 +1582,8 @@
         "veterinary": "Ветеринария",
         "pharmacy": "Фармацевтика",
         "theology": "Теология",
-        "interdisciplinary": "Междисциплинарный"
-      },
-      "sourceLabel": "Источник"
+        "interdisciplinary": "Междисциплинарное"
+      }
     },
     "docs": {
       "required": "Обязателен",

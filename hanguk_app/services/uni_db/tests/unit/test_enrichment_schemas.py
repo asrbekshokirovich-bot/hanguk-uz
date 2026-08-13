@@ -194,9 +194,21 @@ class TestExtraRowFieldsAccepted:
 
     def test_tuition_row_extra_fields(self) -> None:
         _validate("tuition", {"rows": [{
+            "faculty_ko": "인문계열",
             "faculty_group": "humanities", "academic_year": 2026,
             "semester_number": 1, "amount_krw": 4800000, "source_text_ko": "x",
             "notes_ko": "입학금 포함", "is_correction_notice": False,
+        }]})
+
+    def test_tuition_row_accepts_a_null_faculty_group(self) -> None:
+        # A line covering two faculties reports no bucket rather than guessing
+        # one — "공학·예능" is engineering AND arts, and forcing a choice is
+        # what made the same printed line surface twice under different
+        # buckets. The verbatim name still identifies the row.
+        _validate("tuition", {"rows": [{
+            "faculty_ko": "공학·예능", "faculty_group": None,
+            "academic_year": 2026, "semester_number": 1,
+            "amount_krw": 4043000, "source_text_ko": "공학·예능 4,043,000",
         }]})
 
     def test_scholarships_row_extra_fields(self) -> None:

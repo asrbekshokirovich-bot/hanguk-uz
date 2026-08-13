@@ -1471,7 +1471,8 @@
       "chipGreen": "Ready",
       "done": "Completed",
       "sub": "{{n}} section(s) · min. confidence {{p}}%",
-      "subNoConf": "{{n}} section(s)"
+      "subNoConf": "{{n}} section(s)",
+      "docs": "{{n}} documents"
     },
     "detail": {
       "sourcePage": "Source page",
@@ -1480,7 +1481,9 @@
       "pdfError": "Could not open the PDF.",
       "progress": "{{decided}}/{{total}} decided",
       "allDone": "All sections for this university have been decided.",
-      "next": "Next →"
+      "next": "Next →",
+      "docUnclassified": "Cycle not classified",
+      "docSections": "{{n}} sections"
     },
     "section": {
       "calendar": "Deadlines & application fee",
@@ -1574,9 +1577,13 @@
         "veterinary": "Veterinary",
         "pharmacy": "Pharmacy",
         "theology": "Theology",
-        "interdisciplinary": "Interdisciplinary"
-      },
-      "sourceLabel": "Source"
+        "interdisciplinary": "Interdisciplinary",
+        "humanities": "Humanities",
+        "social": "Social sciences",
+        "natural_science": "Natural sciences",
+        "engineering": "Engineering",
+        "arts_pe": "Arts & PE"
+      }
     },
     "docs": {
       "required": "Required",
