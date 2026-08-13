@@ -186,6 +186,41 @@ def _uzbek_translation_addendum() -> str:
     )
 
 
+# `source_text_ko` is a CITATION, not a description. It exists so a reviewer
+# can find the claim in the PDF in seconds, and so `check_grounding_deterministic`
+# can verify it is really there.
+#
+# "preserve verbatim" alone was not enough. Against real guidelines the model
+# routinely built a sentence of its own — joining a faculty cell to a number
+# cell with an em dash and adding a label the document never used:
+#
+#     "융합인재대학 — 첫 학기 등록금 5,339,000원"
+#
+# Nothing like that string occurs in the source. Every such row is flagged
+# `quote_not_in_source` and the whole card goes RED, so a correct extraction is
+# buried under a citation problem — and the reviewer loses the one tool that
+# would let them check it quickly.
+_VERBATIM_RULE = (
+    "Source span (Korean source-of-truth). `source_text_ko` MUST be an "
+    "UNBROKEN, CHARACTER-FOR-CHARACTER substring of the span below — one "
+    "continuous run of text you could find with ctrl-F.\n"
+    "\n"
+    "  * Do NOT join fragments that are separated in the source (different "
+    "table cells, different lines) into one string.\n"
+    "  * Do NOT add words, labels, dashes or punctuation the source does not "
+    "have.\n"
+    "  * Do NOT summarise, translate or reword — that is what `notes_ko` and "
+    "the `_uz` fields are for.\n"
+    "  * If the value spans separated cells, quote the ONE fragment that "
+    "carries the number and lower `extractor_confidence`.\n"
+    "\n"
+    "A quote that does not occur literally in the span is treated as "
+    "fabricated and fails the whole extraction, however correct the numbers "
+    "are.\n"
+    "\n"
+)
+
+
 def assemble_prompt(
     *,
     field_group: FieldGroup,
@@ -230,11 +265,10 @@ def assemble_prompt(
     )
 
     user = (
-        "Source span (Korean source-of-truth — preserve verbatim in "
-        "`source_text_ko` for every emitted row):\n\n"
-        "```\n"
-        f"{source_text_ko}\n"
-        "```\n"
+        _VERBATIM_RULE
+        + "```\n"
+        + f"{source_text_ko}\n"
+        + "```\n"
     )
 
     estimated = _estimate_tokens(system) + _estimate_tokens(user)
@@ -310,11 +344,10 @@ def assemble_combined_prompt(
         if section
     )
     user = (
-        "Source span (Korean source-of-truth — preserve verbatim in "
-        "`source_text_ko` for every emitted row):\n\n"
-        "```\n"
-        f"{source_text_ko}\n"
-        "```\n"
+        _VERBATIM_RULE
+        + "```\n"
+        + f"{source_text_ko}\n"
+        + "```\n"
     )
     return AssembledPrompt(
         system=system,
