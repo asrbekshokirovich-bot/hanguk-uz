@@ -20,6 +20,12 @@ export interface DispositionEffect {
   status: LeadRecord['status'];
   /** Whether this counts as an attempt against the number. */
   countsAsAttempt: boolean;
+  /**
+   * `lead_notes.contact_type` for the history row. This is what the attempt
+   * counter is derived from, so it has to agree with `countsAsAttempt`:
+   * only a `call` touch is an attempt against the number.
+   */
+  touchType: 'call' | 'meeting';
   /** `lead_notes.outcome` for the history row. */
   outcome: string;
   /** The planner outcome this disposition triggers, if any. */
@@ -45,6 +51,7 @@ const TABLE: Record<Disposition, DispositionEffect> = {
     stage: 'contacted',
     status: 'contacted',
     countsAsAttempt: true,
+    touchType: 'call',
     outcome: 'answered',
     plan: 'reached',
     removes: false,
@@ -53,6 +60,7 @@ const TABLE: Record<Disposition, DispositionEffect> = {
     stage: 'attempting',
     status: 'contacted',
     countsAsAttempt: true,
+    touchType: 'call',
     outcome: 'no_answer',
     plan: 'no_answer',
     removes: false,
@@ -61,6 +69,7 @@ const TABLE: Record<Disposition, DispositionEffect> = {
     stage: 'contacted',
     status: 'contacted',
     countsAsAttempt: true,
+    touchType: 'call',
     outcome: 'callback_requested',
     plan: 'callback',
     removes: false,
@@ -69,6 +78,7 @@ const TABLE: Record<Disposition, DispositionEffect> = {
     stage: null,
     status: 'lost',
     countsAsAttempt: true,
+    touchType: 'call',
     outcome: 'not_interested',
     plan: null,
     removes: true,
@@ -87,6 +97,7 @@ export const BOOK_EFFECT: DispositionEffect = {
   stage: 'booked',
   status: 'qualified',
   countsAsAttempt: false,
+  touchType: 'meeting',
   outcome: 'interested',
   plan: 'booked',
   removes: false,

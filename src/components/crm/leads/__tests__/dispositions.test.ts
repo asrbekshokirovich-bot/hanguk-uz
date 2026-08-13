@@ -24,6 +24,15 @@ describe('the disposition table', () => {
     }
   });
 
+  it('keeps the touch type consistent with the attempt rule', () => {
+    // The attempt counter is derived by counting `call` touches, so a touch
+    // typed `call` *is* an attempt. If these two disagree, booking a
+    // consultation silently bumps the lead's attempt count.
+    for (const effect of [...DISPOSITIONS.map(dispositionEffect), BOOK_EFFECT]) {
+      expect(effect.touchType === 'call').toBe(effect.countsAsAttempt);
+    }
+  });
+
   it('removes the lead only on a wrong number', () => {
     const removing = DISPOSITIONS.filter((d) => dispositionEffect(d).removes);
     expect(removing).toEqual(['wrong_number']);

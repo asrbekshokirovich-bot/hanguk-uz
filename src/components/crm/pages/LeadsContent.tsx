@@ -132,7 +132,9 @@ const LeadsContent = () => {
         .eq('id', lead.id);
       if (error) throw error;
 
-      await logTouch(lead.id, note, effect.outcome, 'call');
+      // The touch type decides whether this lands on the attempt counter —
+      // booking a consultation is not another unanswered ring.
+      await logTouch(lead.id, note, effect.outcome, effect.touchType);
 
       if (effect.plan) {
         const plan = aiPlan({
