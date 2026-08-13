@@ -33,6 +33,16 @@ function str(v: unknown): string | null {
   return typeof v === 'string' && v.trim() ? v.trim() : null;
 }
 
+/** A finite number from a value the extractor may have emitted as a string. */
+function num(v: unknown): number | null {
+  if (typeof v === 'number') return Number.isFinite(v) ? v : null;
+  if (typeof v === 'string' && v.trim()) {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : null;
+  }
+  return null;
+}
+
 function humanize(v: unknown): string | null {
   const s = str(v);
   if (!s) return null;
@@ -333,16 +343,56 @@ export function RequirementsBody({ row }: { row: ReviewQueueRow }) {
 // tuition — bordered per-faculty table; consensus-flagged rows get a warning.
 // ---------------------------------------------------------------------------
 
+/**
+ * The identity a tuition row is grouped and sorted by: the printed faculty
+ * when we have it, else the bucket.
+ */
+export function tuitionKey(r: Record<string, unknown>): string {
+  return str(r.faculty_uz) ?? str(r.faculty_ko) ?? str(r.faculty_group) ?? '';
+}
+
+/**
+ * Korean universities charge more in the semester that carries 입학금, so one
+ * faculty legitimately appears twice at two prices. Without this column the
+ * pair reads as a duplicated faculty with a random price difference — which is
+ * exactly how it was reported.
+ *
+ * Read from `semester_number` alone. `is_first_semester` is NOT "this is
+ * semester 1": the extraction prompt defines it as "this amount includes
+ * 입학금", and 83 production rows carry semester_number=1 with the flag false.
+ * Using it here would mislabel every one of them.
+ */
+export function semesterLabel(r: Record<string, unknown>, t: TFunction): string | null {
+  const n = num(r.semester_number);
+  if (n === null) return null;
+  if (n === 1) return t('uniReview.tui.sem.first');
+  if (n === 2) return t('uniReview.tui.sem.fromSecond');
+  return t('uniReview.tui.sem.nth', { n });
+}
+
 export function TuitionBody({ row, noteDetail }: { row: ReviewQueueRow; noteDetail: string | null }) {
   const { t } = useTranslation();
-  const rows = getArray(row.parsed_output, 'rows');
-  if (rows.length === 0) return <Ns className="text-[13px]" />;
+  const parsed = getArray(row.parsed_output, 'rows');
+  if (parsed.length === 0) return <Ns className="text-[13px]" />;
+  // Faculty first, then semester, so a faculty's two prices sit next to each
+  // other instead of scattered down the list. Stable within a key: equal rows
+  // keep the extractor's order.
+  const rows = parsed
+    .map((r, i) => ({ r, i }))
+    .sort((a, b) => {
+      const byFac = tuitionKey(a.r).localeCompare(tuitionKey(b.r));
+      if (byFac !== 0) return byFac;
+      const bySem = (num(a.r.semester_number) ?? 0) - (num(b.r.semester_number) ?? 0);
+      return bySem !== 0 ? bySem : a.i - b.i;
+    })
+    .map(({ r }) => r);
   return (
     // Fixed money columns — scroll inside the card on narrow widths instead
     // of colliding with or clipping the faculty column.
     <div className="overflow-x-auto rounded-[10px] border border-border/60">
-      <div className="grid min-w-[520px] grid-cols-[minmax(0,1fr)_170px_140px] gap-3 bg-secondary/50 px-3.5 py-2 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-muted-foreground/80">
+      <div className="grid min-w-[620px] grid-cols-[minmax(0,1fr)_150px_150px_130px] gap-3 bg-secondary/50 px-3.5 py-2 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-muted-foreground/80">
         <span>{t('uniReview.tui.faculty')}</span>
+        <span>{t('uniReview.tui.semester')}</span>
         <span className="text-right">{t('uniReview.tui.perSemester')}</span>
         <span className="text-right">{t('uniReview.tui.admissionFee')}</span>
       </div>
@@ -363,15 +413,29 @@ export function TuitionBody({ row, noteDetail }: { row: ReviewQueueRow; noteDeta
         // The line the amount was read from. Without it a reviewer cannot
         // tell two same-looking rows apart, nor check a figure against the PDF.
         const source = str(r.source_text_ko);
+        const semLabel = semesterLabel(r, t);
+        // The rows are sorted by faculty, so a repeat is the same faculty's
+        // other semester. Dimming it makes the pair read as one faculty with
+        // two prices rather than as the same faculty listed twice.
+        const repeat = i > 0 && tuitionKey(rows[i - 1]) === tuitionKey(r) && !!tuitionKey(r);
         return (
           <div
             key={i}
-            className="grid min-w-[520px] grid-cols-[minmax(0,1fr)_170px_140px] items-baseline gap-3 border-t border-border/60 px-3.5 py-[9px]"
+            className={cn(
+              'grid min-w-[620px] grid-cols-[minmax(0,1fr)_150px_150px_130px] items-baseline gap-3 px-3.5 py-[9px]',
+              // Keep the pair visually joined: only a new faculty starts a rule.
+              repeat ? 'border-t border-dashed border-border/40' : 'border-t border-border/60',
+            )}
           >
             <span className="flex min-w-0 flex-col gap-0.5">
-              <span className="inline-flex min-w-0 items-center gap-1.5 text-[13px] font-semibold">
+              <span
+                className={cn(
+                  'inline-flex min-w-0 items-center gap-1.5 text-[13px] font-semibold',
+                  repeat && 'font-normal text-muted-foreground/70',
+                )}
+              >
                 <span className="min-w-0 break-words">{name ?? <Ns />}</span>
-                {showGroup ? (
+                {showGroup && !repeat ? (
                   <span className="shrink-0 rounded-full bg-secondary px-1.5 py-px text-[10px] font-medium text-muted-foreground/80">
                     {facLabel}
                   </span>
@@ -386,6 +450,9 @@ export function TuitionBody({ row, noteDetail }: { row: ReviewQueueRow; noteDeta
                   {source}
                 </span>
               ) : null}
+            </span>
+            <span className="text-[12px] text-muted-foreground">
+              {semLabel ?? <Ns />}
             </span>
             <span
               className={cn(

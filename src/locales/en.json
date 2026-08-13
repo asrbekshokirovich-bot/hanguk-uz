@@ -1583,6 +1583,12 @@
         "natural_science": "Natural sciences",
         "engineering": "Engineering",
         "arts_pe": "Arts & PE"
+      },
+      "semester": "Semester",
+      "sem": {
+        "first": "1st semester",
+        "fromSecond": "from 2nd semester",
+        "nth": "semester {{n}}"
       }
     },
     "docs": {
