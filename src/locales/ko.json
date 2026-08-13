@@ -1533,6 +1533,12 @@
         "pharmacy": "약학",
         "theology": "신학",
         "interdisciplinary": "융합·자유전공"
+      },
+      "semester": "학기",
+      "sem": {
+        "first": "첫 학기",
+        "fromSecond": "두 번째 학기 이후",
+        "nth": "{{n}}학기"
       }
     },
     "docs": {

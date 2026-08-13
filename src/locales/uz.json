@@ -1622,6 +1622,12 @@
         "pharmacy": "Farmatsevtika",
         "theology": "Ilohiyot",
         "interdisciplinary": "Fanlararo"
+      },
+      "semester": "Semestr",
+      "sem": {
+        "first": "1-semestr",
+        "fromSecond": "2-semestrdan keyin",
+        "nth": "{{n}}-semestr"
       }
     },
     "docs": {
