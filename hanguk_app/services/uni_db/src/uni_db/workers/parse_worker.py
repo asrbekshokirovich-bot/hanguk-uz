@@ -171,13 +171,26 @@ def parse_one_document(
                     "extract: extraction failed for %s: %s: %s",
                     group, type(exc).__name__, str(exc)[:160],
                 )
-                # Credit-balance failures are pointless to retry — a human must
-                # top up. The watchdog turns the first one into a loud alert.
+                # Credit-balance and rejected-key failures are pointless to
+                # retry — a human must top up or replace the secret. The
+                # watchdog turns the first one into a loud alert.
                 watchdog.record_llm_error(str(exc))
                 results.append(_failed_result(
                     group,
                     violation=f"{type(exc).__name__}: {exc}",
                     latency_ms=int((time.monotonic() - started) * 1000)))
+                # A dead credential fails every remaining group identically.
+                # Stop here rather than record four more failures that say the
+                # same thing — each one becomes a job a later retry pass picks
+                # up and fails again. What was extracted before the break is
+                # kept and persisted; the caller checks the same flag and ends
+                # the run.
+                if watchdog.fatal_alert() is not None:
+                    log.error(
+                        "extract: aborting document after %s — the credential "
+                        "is broken, not this field group", type(exc).__name__,
+                    )
+                    break
                 continue
 
         # If a row's source span was clipped mid-word, the model never saw the

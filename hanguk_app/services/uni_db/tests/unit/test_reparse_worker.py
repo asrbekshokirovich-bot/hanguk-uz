@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from uuid import uuid4
 
+from uni_db.watchdog import watchdog
 from uni_db.workers import reparse_worker
 
 
@@ -107,3 +108,47 @@ async def test_pending_only_success_does_not_touch_status() -> None:
     )
     assert (ok, fail) == (1, 0)
     assert conn.executed == []
+
+
+async def test_a_rejected_key_stops_the_batch() -> None:
+    watchdog.reset()
+    rows = [{"id": uuid4(), "storage_path": f"{i}.pdf"} for i in range(8)]
+    seen: list = []
+
+    async def fake_parse(conn, gd_id, data) -> None:
+        seen.append(gd_id)
+        watchdog.record_llm_error("AuthenticationError: Error code: 401")
+
+    try:
+        ok, fail = await reparse_worker.reparse_pending(
+            _FakeConn(rows), limit=10, fetch_blob=lambda p: b"%PDF",
+            run_parse=fake_parse,
+        )
+    finally:
+        watchdog.reset()
+    assert len(seen) == 1 and (ok, fail) == (1, 0)
+
+
+async def test_a_rejected_key_never_marks_an_upload_permanently_failed() -> None:
+    """pending_only flips a document that fails to parse_status='failed', and
+    nothing retries that state. On a dead credential the document is fine and
+    the key is not — marking it would quietly lose a good upload."""
+    watchdog.reset()
+    rows = [{"id": uuid4(), "storage_path": "a.pdf"},
+            {"id": uuid4(), "storage_path": "b.pdf"}]
+    conn = _RecordingConn(rows)
+
+    async def failing_parse(c, gd_id, data) -> None:
+        raise RuntimeError(
+            "AuthenticationError: Error code: 401 - invalid x-api-key"
+        )
+
+    try:
+        await reparse_worker.reparse_pending(
+            conn, limit=10, pending_only=True, fetch_blob=lambda p: b"%PDF",
+            run_parse=failing_parse,
+        )
+    finally:
+        watchdog.reset()
+
+    assert conn.executed == [], "marked a good upload failed on a bad key"
