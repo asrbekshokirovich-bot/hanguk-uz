@@ -1,0 +1,13 @@
+/* ============================================================
+   HANGUK DESIGN SYSTEM — root stylesheet
+   Single entry point for consumers: link this one file.
+   It pulls in both the foundational tokens/type and the
+   evolved "premium" redesign theme (light + dark).
+   ============================================================ */
+
+/* Foundational color + type tokens (semantic vars + type scale) */
+@import url('./colors_and_type.css');
+
+/* Evolved premium theme — refined neutrals, elevation, light + dark.
+   Toggle dark via <html data-theme="dark"> (or .dark). */
+@import url('./redesign/theme.css');

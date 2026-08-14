@@ -701,6 +701,118 @@
       "step3Desc": "University and program preferences",
       "step4Title": "First Contact",
       "step4Desc": "Log your initial conversation"
+    },
+    "intake": {
+      "subtitle": "Click a row to fill in the student's details",
+      "newLead": "+ New lead",
+      "newTitle": "New lead",
+      "empty": "No leads yet. Add one with “+ New lead”.",
+      "openRow": "Open {{name}}'s details",
+      "allRequired": "All fields are required",
+      "optional": "(optional)",
+      "noteHint": "You can come back and change the note at any time.",
+      "fixAll": "Fill in every field",
+      "save": "Save",
+      "saving": "Saving…",
+      "followUpPrefix": "Follow up: {{when}}",
+      "scheduled": "Scheduled: {{when}}",
+      "dayOfMonth": "{{day}} {{month}}",
+      "columns": {
+        "student": "Student",
+        "phone": "Phone",
+        "channel": "Channel",
+        "city": "City",
+        "source": "Source",
+        "level": "Track",
+        "semester": "Semester",
+        "cert": "Certificate",
+        "age": "Age",
+        "status": "Status"
+      },
+      "status": {
+        "complete": "Complete",
+        "incomplete": "Incomplete"
+      },
+      "sections": {
+        "personal": "Personal details",
+        "education": "Education",
+        "contactSource": "How they reached us",
+        "note": "Note"
+      },
+      "fields": {
+        "firstName": "First name",
+        "lastName": "Family name",
+        "phone": "Phone number",
+        "age": "Age",
+        "city": "City of residence",
+        "cert": "Language certificate",
+        "level": "Study track",
+        "semester": "Semester",
+        "channel": "How did they contact us?",
+        "source": "How did they find us?",
+        "sourceNote": "Details",
+        "note": "Additional note",
+        "followUp": "Follow-up date"
+      },
+      "placeholders": {
+        "firstName": "For example: Muhammad",
+        "lastName": "For example: Eshmurodov",
+        "phone": "+998 90 123 45 67",
+        "age": "18",
+        "city": "Select a city",
+        "cert": "Select a certificate",
+        "sourceNote": "For example: recommended by their friend Dilnoza / Tashkent education fair",
+        "note": "For example: first conversation, call back in two days"
+      },
+      "errors": {
+        "firstName": "Enter the first name",
+        "lastName": "Enter the family name",
+        "phone": "Enter the full phone number",
+        "age": "Enter the age (15-45)",
+        "city": "Select a city",
+        "cert": "Select a language certificate",
+        "level": "Select a study track",
+        "semester": "Select a semester",
+        "channel": "Select a contact channel",
+        "source": "Select a source"
+      },
+      "quick": {
+        "tomorrow": "Tomorrow",
+        "inWeek": "In a week"
+      },
+      "relative": {
+        "today": "today",
+        "tomorrow": "tomorrow",
+        "inDays_one": "in {{count}} days",
+        "inDays_other": "in {{count}} days",
+        "overdueDays_one": "{{count}} days overdue",
+        "overdueDays_other": "{{count}} days overdue"
+      },
+      "added": {
+        "today": "added today",
+        "days_one": "{{count}} days ago",
+        "days_other": "{{count}} days ago",
+        "weeks_one": "{{count}} weeks ago",
+        "weeks_other": "{{count}} weeks ago",
+        "months_one": "{{count}} months ago",
+        "months_other": "{{count}} months ago",
+        "years_one": "{{count}} years ago",
+        "years_other": "{{count}} years ago"
+      },
+      "months": [
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December"
+      ]
     }
   },
   "universities": {

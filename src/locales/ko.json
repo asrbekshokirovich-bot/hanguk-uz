@@ -694,6 +694,112 @@
       "step3Desc": "대학 및 프로그램 선호도",
       "step4Title": "첫 연락",
       "step4Desc": "첫 대화 기록"
+    },
+    "intake": {
+      "subtitle": "행을 눌러 학생 정보를 입력하세요",
+      "newLead": "+ 신규 리드",
+      "newTitle": "신규 리드",
+      "empty": "아직 리드가 없습니다. “+ 신규 리드”로 추가하세요.",
+      "openRow": "{{name}} 정보 열기",
+      "allRequired": "모든 항목은 필수입니다",
+      "optional": "(선택)",
+      "noteHint": "메모는 언제든지 다시 수정할 수 있습니다.",
+      "fixAll": "모든 항목을 입력하세요",
+      "save": "저장",
+      "saving": "저장 중…",
+      "followUpPrefix": "재연락: {{when}}",
+      "scheduled": "예정: {{when}}",
+      "dayOfMonth": "{{month}} {{day}}일",
+      "columns": {
+        "student": "학생",
+        "phone": "전화",
+        "channel": "채널",
+        "city": "도시",
+        "source": "유입 경로",
+        "level": "과정",
+        "semester": "학기",
+        "cert": "어학 성적",
+        "age": "나이",
+        "status": "상태"
+      },
+      "status": {
+        "complete": "작성 완료",
+        "incomplete": "미완성"
+      },
+      "sections": {
+        "personal": "인적 사항",
+        "education": "학업",
+        "contactSource": "문의 경로",
+        "note": "메모"
+      },
+      "fields": {
+        "firstName": "이름",
+        "lastName": "성",
+        "phone": "전화번호",
+        "age": "나이",
+        "city": "거주 도시",
+        "cert": "어학 성적",
+        "level": "희망 과정",
+        "semester": "희망 학기",
+        "channel": "어떤 경로로 연락했나요?",
+        "source": "저희를 어떻게 알게 되었나요?",
+        "sourceNote": "상세",
+        "note": "추가 메모",
+        "followUp": "재연락 날짜"
+      },
+      "placeholders": {
+        "firstName": "예: Muhammad",
+        "lastName": "예: Eshmurodov",
+        "phone": "+998 90 123 45 67",
+        "age": "18",
+        "city": "도시를 선택하세요",
+        "cert": "어학 성적을 선택하세요",
+        "sourceNote": "예: 친구 Dilnoza의 추천 / 타슈켄트 유학 박람회",
+        "note": "예: 첫 상담, 이틀 뒤 재연락 필요"
+      },
+      "errors": {
+        "firstName": "이름을 입력하세요",
+        "lastName": "성을 입력하세요",
+        "phone": "전화번호를 모두 입력하세요",
+        "age": "나이를 입력하세요 (15-45)",
+        "city": "도시를 선택하세요",
+        "cert": "어학 성적을 선택하세요",
+        "level": "과정을 선택하세요",
+        "semester": "학기를 선택하세요",
+        "channel": "연락 채널을 선택하세요",
+        "source": "유입 경로를 선택하세요"
+      },
+      "quick": {
+        "tomorrow": "내일",
+        "inWeek": "일주일 뒤"
+      },
+      "relative": {
+        "today": "오늘",
+        "tomorrow": "내일",
+        "inDays_other": "{{count}}일 뒤",
+        "overdueDays_other": "{{count}}일 지남"
+      },
+      "added": {
+        "today": "오늘 등록",
+        "days_other": "{{count}}일 전",
+        "weeks_other": "{{count}}주 전",
+        "months_other": "{{count}}개월 전",
+        "years_other": "{{count}}년 전"
+      },
+      "months": [
+        "1월",
+        "2월",
+        "3월",
+        "4월",
+        "5월",
+        "6월",
+        "7월",
+        "8월",
+        "9월",
+        "10월",
+        "11월",
+        "12월"
+      ]
     }
   },
   "universities": {
