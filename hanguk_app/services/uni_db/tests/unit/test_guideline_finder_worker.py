@@ -774,3 +774,75 @@ async def test_identity_check_still_hard_rejects_without_foreign_signal(monkeypa
     check = gfw.make_identity_check(2027, "spring")
     decision = check(b"%PDF-fake", _row())
     assert decision.decision == "reject"
+
+
+class TestApplicantAudienceRanking:
+    """재외국민 is not 외국인.
+
+    외국인 is a foreign national — the CRM's students. 재외국민 is an overseas
+    KOREAN national and 새터민 a North Korean defector; both are Korean citizens
+    on a domestic quota with different requirements and a different fee table,
+    and an Uzbek applicant cannot use either. The rank key used to treat the two
+    as one signal (`"외국인" not in t and "재외국민" not in t`), so a
+    Korean-citizens-only booklet tied with a genuine foreign guide and could take
+    its place in the per-institution cap.
+    """
+
+    def test_foreign_guide_outranks_korean_citizen_guide(self) -> None:
+        foreign = gfw._rank_key(
+            "https://korea.ac.kr/b.pdf", "2027학년도 외국인전형 모집요강", year=2027
+        )
+        citizens = gfw._rank_key(
+            "https://korea.ac.kr/a.pdf",
+            "2027학년도 재외국민(정원외2%)/새터민 모집요강",
+            year=2027,
+        )
+        # Same year, same 모집요강, same .pdf — only the audience differs, and
+        # the citizens-only one has the SHORTER url, which used to win the tie.
+        assert foreign < citizens
+
+    def test_a_combined_booklet_counts_as_foreign(self) -> None:
+        # The common real-world case: one guide covering both audiences. It
+        # names 외국인, so it is a foreign guide and must not be demoted.
+        combined = gfw._rank_key(
+            "https://x.ac.kr/c.pdf",
+            "2027학년도 재외국민과 외국인 특별전형 모집요강",
+            year=2027,
+        )
+        foreign = gfw._rank_key(
+            "https://x.ac.kr/c.pdf", "2027학년도 외국인전형 모집요강", year=2027
+        )
+        assert combined == foreign
+
+    def test_a_korean_citizen_guide_ranks_below_an_unsignalled_one(self) -> None:
+        # Wrong audience is worse than no audience stated: a plain 모집요강 may
+        # still turn out to cover foreign applicants; a 재외국민 booklet will not.
+        citizens = gfw._rank_key(
+            "https://x.ac.kr/a.pdf", "2027학년도 재외국민 모집요강", year=2027
+        )
+        neutral = gfw._rank_key(
+            "https://x.ac.kr/a.pdf", "2027학년도 모집요강", year=2027
+        )
+        assert neutral < citizens
+
+    def test_the_track_is_read_from_the_url_when_the_title_omits_it(self) -> None:
+        # Boards that title the post with only the university name still carry
+        # the track in the file path.
+        foreign = gfw._rank_key(
+            "https://x.ac.kr/2027_모집요강_외국인전형.pdf", "덕성여자대학교", year=2027
+        )
+        citizens = gfw._rank_key(
+            "https://x.ac.kr/2027_모집요강_재외국민.pdf", "덕성여자대학교", year=2027
+        )
+        assert foreign < citizens
+
+    def test_year_and_모집요강_still_outrank_audience(self) -> None:
+        # Audience sits BELOW year in the key on purpose: a foreign guide for
+        # the wrong year is still the wrong document.
+        right_year_citizens = gfw._rank_key(
+            "https://x.ac.kr/a.pdf", "2027학년도 재외국민 모집요강", year=2027
+        )
+        wrong_year_foreign = gfw._rank_key(
+            "https://x.ac.kr/a.pdf", "2025학년도 외국인전형 모집요강", year=2027
+        )
+        assert right_year_citizens < wrong_year_foreign

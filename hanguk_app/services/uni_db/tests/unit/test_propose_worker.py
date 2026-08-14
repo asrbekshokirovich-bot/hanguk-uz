@@ -233,3 +233,42 @@ async def test_targeted_caps_results_per_university() -> None:
     )
     assert len(propose.seen) == 3   # 5 found, capped to 3
     assert run.proposed == 3
+
+
+class TestAudienceCap:
+    """The per-university cap must not spend a slot on the wrong audience.
+
+    `cap_per_university` keeps only the best N candidates. Before the audience
+    term, a 재외국민 (overseas-Korean, i.e. Korean citizen) page and a genuine
+    외국인 page tied on every field the key looked at — both carry 모집요강 and
+    both carry 전형 — so the shorter URL decided, and a university could be
+    represented in the queue solely by a guide its foreign applicants cannot use.
+    """
+
+    def _c(self, url: str, title: str) -> Candidate:
+        return Candidate(url_ko=url, proposed_by="naver_search", candidate_title=title)
+
+    def test_the_foreign_page_survives_a_cap_of_one(self) -> None:
+        citizens = self._c(
+            "https://korea.ac.kr/a", "2027학년도 재외국민 특별전형 모집요강"
+        )
+        foreign = self._c(
+            "https://korea.ac.kr/bbbbbbbb", "2027학년도 외국인 특별전형 모집요강"
+        )
+        # citizens first in input AND with the shorter URL — the old key kept it.
+        kept = propose_worker.cap_per_university([citizens, foreign], 1)
+        assert [c.candidate_title for c in kept] == [foreign.candidate_title]
+
+    def test_a_combined_page_is_not_demoted(self) -> None:
+        combined = self._c(
+            "https://x.ac.kr/a", "2027학년도 재외국민과 외국인 특별전형 모집요강"
+        )
+        other = self._c("https://x.ac.kr/bbbbbbbb", "2027학년도 모집요강 안내")
+        kept = propose_worker.cap_per_university([other, combined], 1)
+        assert [c.candidate_title for c in kept] == [combined.candidate_title]
+
+    def test_procurement_noise_still_loses_to_everything(self) -> None:
+        noise = self._c("https://x.ac.kr/a", "외국인 모집요강 제작업체 선정입찰")
+        citizens = self._c("https://x.ac.kr/bbbbbbbb", "2027학년도 재외국민 모집요강")
+        kept = propose_worker.cap_per_university([noise, citizens], 1)
+        assert [c.candidate_title for c in kept] == [citizens.candidate_title]

@@ -13,6 +13,8 @@ Used by:
 
 from __future__ import annotations
 
+import re
+
 # ---------------------------------------------------------------------------
 # Primary admission vocabulary — the 16 anchor terms from audit §6.3.
 # A post matching any of these is a strong admission signal.
@@ -162,3 +164,51 @@ def is_disallowed_url(url: str) -> bool:
     if leftmost in {"en", "english"}:
         return True
     return False
+
+
+# ---------------------------------------------------------------------------
+# Applicant audience — who a guideline is actually FOR.
+# ---------------------------------------------------------------------------
+#
+# 외국인 is a FOREIGN NATIONAL. 재외국민 is an overseas KOREAN national, and
+# 새터민 / 북한이탈주민 are North Korean defectors — all three of the latter are
+# Korean citizens applying under a domestic quota, on different requirements
+# (no TOPIK floor, no apostilled foreign diploma, a different fee table) and
+# often at a different price. An Uzbek student cannot apply on any of them, so
+# a guideline written only for them is not merely lower-value: it is the wrong
+# document, and publishing its figures would quote a student a price and a
+# requirement set they can never be held to.
+#
+# Most universities publish one combined "재외국민과 외국인 특별전형 모집요강",
+# which is correct — it contains 외국인 and so ranks as a foreign guide. Some
+# publish the two separately, and it is the separate 재외국민 booklet that must
+# never be picked in place of the 외국인 one.
+_FOREIGN_AUDIENCE_RE = re.compile(r"외국인|유학생|국제학생|국제입학|international|foreign")
+_KOREAN_CITIZEN_AUDIENCE_RE = re.compile(r"재외국민|새터민|북한이탈|탈북")
+
+# Ordinal values, ascending = better. Named so a caller reading a sort key can
+# see which end is preferred.
+AUDIENCE_FOREIGN = 0
+AUDIENCE_UNKNOWN = 1
+AUDIENCE_KOREAN_CITIZEN = 2
+
+
+def audience_rank(text: str) -> int:
+    """Rank text (a title, a URL, or both) by who the guideline serves.
+
+    Three values rather than a boolean, because "wrong audience" and "no
+    signal" are not the same thing. Both proposers cap how many candidates
+    they keep per university, so a 재외국민-only booklet that merely TIED with
+    a genuine 외국인 guide could take its place in the cap and be the one a
+    university was represented by — which is how Korea University's
+    "2027학년도 재외국민(정원외2%)/새터민 모집요강" reached the review queue as
+    if it were an international-student guide.
+
+    Checked foreign-first so a combined booklet naming both audiences ranks as
+    foreign, which is what it is.
+    """
+    if _FOREIGN_AUDIENCE_RE.search(text):
+        return AUDIENCE_FOREIGN
+    if _KOREAN_CITIZEN_AUDIENCE_RE.search(text):
+        return AUDIENCE_KOREAN_CITIZEN
+    return AUDIENCE_UNKNOWN
