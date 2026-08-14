@@ -32,6 +32,12 @@ export interface Lead {
   korean_level: string | null;
   preferred_start_date: string | null;
   how_heard: string | null;
+  /** Intake fields — see the `leads_intake_fields` migration. */
+  age: number | null;
+  cert_level: string | null;
+  contact_channel: string | null;
+  source_note: string | null;
+  target_intake: string | null;
   priority_score: number | null;
   next_follow_up: string | null;
   last_contacted_at: string | null;
@@ -69,6 +75,11 @@ export interface CreateLeadData {
   korean_level?: string;
   preferred_start_date?: string;
   how_heard?: string;
+  age?: number | null;
+  cert_level?: string | null;
+  contact_channel?: string | null;
+  source_note?: string | null;
+  target_intake?: string | null;
   next_follow_up?: string;
   last_contacted_at?: string;
   contract_number?: string;

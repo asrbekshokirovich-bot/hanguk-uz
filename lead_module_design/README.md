@@ -64,10 +64,23 @@ quyidagicha tushadi:
 Yangi maydonlar (semestr, sertifikat, aniq yosh) kerak bo'lsa migratsiya
 qilinadi — buni implementatsiya bosqichida hal qilinadi.
 
-## Qanday ishlatiladi
-1. `Lead-Module-Preview.dc.html` ni brauzerda oching va dizaynni ko'rib chiqing.
-2. `KICKOFF_PROMPT.md` ni Claude Code'ga bering — u haqiqiy kodni o'qib,
-   reja tuzib, bosqichma-bosqich qurib chiqadi.
+## Holati: qurib bo'lindi ✅
 
-> Bu paket **dizayn manbai**, ishlab chiqarish kodi emas. Amaldagi lead
-> sahifasi `src/components/crm/leads/` ichida.
+Dizayn amaldagi ilovaga ko'chirildi. Kod:
+
+| Nima | Qayerda |
+|---|---|
+| Sahifa (ro'yxat + oyna orkestratsiyasi) | `src/components/crm/pages/LeadsContent.tsx` |
+| Jadval | `src/components/crm/leads/intake/LeadsTable.tsx` |
+| To'ldirish oynasi | `src/components/crm/leads/intake/LeadIntakeScreen.tsx` |
+| Qoidalar (validatsiya, to'liqlik, sana) | `src/components/crm/leads/intake/intakeForm.ts` |
+| Javob ro'yxatlari (shahar, sertifikat, kanal, manba) | `src/components/crm/leads/intake/options.ts` |
+| Yangi ustunlar | `supabase/migrations/20260814110000_leads_intake_fields.sql` |
+| Testlar | `src/components/crm/leads/intake/__tests__/` |
+
+Oq/qorong'i rejim alohida qilinmadi — ilovaning mavjud tokenlari (`--primary`
+#1A3A6C, `--accent` #D4E94C) allaqachon dizayndagi ranglar, shuning uchun
+ikkala rejim ham o'zidan kelib chiqadi.
+
+Bu papka **manba dizayn** sifatida qoladi: keyingi o'zgarishlarda solishtirish
+uchun `Lead-Module-Preview.dc.html` ni brauzerda ochish mumkin.
