@@ -1530,7 +1530,8 @@
       "tuition": "Fakultetlar va kontrakt",
       "documents_required": "Kerakli hujjatlar",
       "scholarships": "Stipendiyalar",
-      "unknown": "Boshqa bo'lim"
+      "unknown": "Boshqa bo'lim",
+      "documentFlag": "Hujjatni bo'lish kerak"
     },
     "rel": {
       "red": "Tuzatish kerak",
@@ -1666,6 +1667,21 @@
       "noUni": "Universitet topilmadi.",
       "notPdf": "Faqat PDF fayl yuklang.",
       "uploaded": "PDF yuklandi — {{uni}} uchun tahlilga navbatga qo'yildi."
+    },
+    "docFlag": {
+      "splitTitle": "Bu PDF ichida bakalavr va magistratura qabuli aralash",
+      "splitWhat": "Bitta faylda ikki xil bosqichning shartlari va narxlari yonma-yon turibdi. Ulardan olingan raqamlar aralashib ketishi mumkin — masalan magistratura kontrakti bakalavrniki bo'lib chiqishi.",
+      "genericTitle": "Bu hujjat bo'yicha ogohlantirish",
+      "genericWhat": "Tizim bu PDFda muammo topdi. Tafsiloti quyida.",
+      "levels": "Topilgan bosqichlar:",
+      "action": "Bu karta ma'lumot kartasi emas — tasdiqlaydigan raqam yo'q. Hujjatni ikkita alohida qabul mavsumiga bo'lgandan keyin \"Tasdiqlash\" bilan ro'yxatdan olib tashlang; agar bo'linish noto'g'ri aniqlangan bo'lsa, \"Rad etish\" ni bosing.",
+      "rawToggle": "Texnik tafsilot",
+      "level": {
+        "associate": "Kollej (전문학사)",
+        "bachelor": "Bakalavr (학사)",
+        "master": "Magistratura (석사)",
+        "doctoral": "Doktorantura (박사)"
+      }
     }
   }
 }

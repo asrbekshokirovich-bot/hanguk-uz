@@ -3,6 +3,8 @@ import type { ReviewQueueRow } from '@/hooks/useReviewQueue';
 import {
   groupRows,
   documentCycleLabel,
+  isDocumentFlag,
+  sectionLabelKey,
 } from '../uni-db-review/reviewGroups';
 
 /**
@@ -152,5 +154,53 @@ describe('documentCycleLabel', () => {
       }),
     ]);
     expect(documentCycleLabel(g.documents[0], t)).toBe('2027');
+  });
+});
+
+/**
+ * A document-level flag is not a section card.
+ *
+ * The parser raises these against `guideline_documents`, so the dashboard
+ * view's field_group and parsed_output — both taken from its extraction_jobs
+ * join — are NULL. The card therefore fell through to "Boshqa bo'lim" /
+ * "Ko'rsatilmagan": a title that named nothing, a body that showed nothing,
+ * and an Approve/Reject pair over it. The reviewer read that as "the AI
+ * extracted nothing", when the explanation was sitting in reviewer_notes the
+ * whole time.
+ */
+describe('document-level flags', () => {
+  const flag = row({
+    id: 'flag-1',
+    entity_type: 'guideline_documents',
+    field_group: null,
+    parsed_output: null,
+    reviewer_notes:
+      "Combined undergraduate + graduate guideline detected (level=undergraduate " +
+      "combined=True levels=['bachelor', 'master', 'doctoral'] ...).",
+  });
+
+  it('is recognised by entity_type', () => {
+    expect(isDocumentFlag(flag)).toBe(true);
+  });
+
+  it('gets its own label instead of "other section"', () => {
+    expect(sectionLabelKey(flag)).toBe('uniReview.section.documentFlag');
+  });
+
+  it('does not swallow an ordinary card whose field_group is missing', () => {
+    // Same NULL field_group, different cause — an extraction row that went
+    // missing. That is genuinely an unknown section and must stay one.
+    const orphan = row({ id: 'orphan', field_group: null });
+    expect(isDocumentFlag(orphan)).toBe(false);
+    expect(sectionLabelKey(orphan)).toBe('uniReview.section.unknown');
+  });
+
+  it('still maps the five real sections and their aliases', () => {
+    expect(sectionLabelKey(row({ id: 'a', field_group: 'tuition' }))).toBe(
+      'uniReview.section.tuition',
+    );
+    expect(sectionLabelKey(row({ id: 'b', field_group: 'admission_periods' }))).toBe(
+      'uniReview.section.calendar',
+    );
   });
 });

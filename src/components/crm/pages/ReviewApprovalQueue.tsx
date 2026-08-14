@@ -95,7 +95,7 @@ export function ReviewApprovalQueue() {
             toast.success(
               t('uniReview.toast.approved', {
                 uni: g ? shortName(g) : '—',
-                section: t(sectionLabelKey(row.field_group)),
+                section: t(sectionLabelKey(row)),
               }),
             );
           },
@@ -113,7 +113,7 @@ export function ReviewApprovalQueue() {
             toast.success(
               t('uniReview.toast.rejected', {
                 uni: g ? shortName(g) : '—',
-                section: t(sectionLabelKey(row.field_group)),
+                section: t(sectionLabelKey(row)),
               }),
             );
           },

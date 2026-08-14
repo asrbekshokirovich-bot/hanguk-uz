@@ -10,7 +10,7 @@ import {
   classifyTrack,
   mapCalendarEvents,
 } from '../reviewLogic';
-import { fmtKRW, fmtDateKST } from './reviewGroups';
+import { fmtKRW, fmtDateKST, isDocumentFlag } from './reviewGroups';
 
 /**
  * Per-field-group section bodies (design §B): only the decision-critical
@@ -597,6 +597,89 @@ export function ScholarshipsBody({ row }: { row: ReviewQueueRow }) {
 }
 
 // ---------------------------------------------------------------------------
+// document flag — the card is about the PDF, not about extracted data.
+// ---------------------------------------------------------------------------
+
+/**
+ * The degree levels the parser found mixed in one document, read out of the
+ * note it wrote: `... levels=['bachelor', 'master', 'doctoral'] ...`.
+ *
+ * Returns [] when the note does not carry them, and the caller then shows the
+ * note as-is. Nothing is ever hidden because a pattern failed to match.
+ */
+function parseDegreeLevels(note: string | null | undefined): string[] {
+  const m = /levels=\[([^\]]*)\]/.exec(note ?? '');
+  if (!m) return [];
+  return Array.from(m[1].matchAll(/'([a-z_]+)'/g), (x) => x[1]);
+}
+
+/**
+ * Body for a document-level flag.
+ *
+ * These cards used to fall through the dispatcher's `default:` and render the
+ * muted "Ko'rsatilmagan" — a card with a title of "Other section", no content,
+ * and an Approve/Reject pair, which no reviewer could act on and which reads
+ * as "the AI extracted nothing". The parser's explanation was in the row the
+ * whole time; this renders it.
+ */
+function DocumentFlagBody({ row }: { row: ReviewQueueRow }) {
+  const { t } = useTranslation();
+  const note = str(row.reviewer_notes);
+  const levels = parseDegreeLevels(note);
+  const isSplit = levels.length > 0 || /combined undergraduate/i.test(note ?? '');
+
+  return (
+    <div className="flex flex-col gap-2.5">
+      <div className="flex items-start gap-2 rounded-[10px] bg-warning/10 p-2.5 px-3.5 text-warning">
+        <AlertTriangle className="mt-0.5 h-[15px] w-[15px] shrink-0" />
+        <div className="flex min-w-0 flex-col gap-1">
+          <span className="text-[13px] font-semibold leading-normal">
+            {t(isSplit ? 'uniReview.docFlag.splitTitle' : 'uniReview.docFlag.genericTitle')}
+          </span>
+          <span className="text-[12.5px] font-medium leading-normal text-warning/90">
+            {t(isSplit ? 'uniReview.docFlag.splitWhat' : 'uniReview.docFlag.genericWhat')}
+          </span>
+        </div>
+      </div>
+
+      {levels.length > 0 ? (
+        <div className="flex flex-wrap items-center gap-[7px]">
+          <span className="text-[12.5px] text-muted-foreground">
+            {t('uniReview.docFlag.levels')}
+          </span>
+          {levels.map((lvl) => (
+            <span
+              key={lvl}
+              className="inline-flex min-h-6 items-center rounded-lg border border-border/60 bg-secondary/50 px-2.5 py-0.5 text-[11.5px] font-semibold"
+            >
+              {t(`uniReview.docFlag.level.${lvl}`, { defaultValue: lvl })}
+            </span>
+          ))}
+        </div>
+      ) : null}
+
+      <span className="text-[12.5px] leading-normal text-muted-foreground">
+        {t('uniReview.docFlag.action')}
+      </span>
+
+      {/* The parser's raw sentence, kept verbatim: it names the exact signals
+          and offsets, and a reviewer chasing a wrong split needs them. */}
+      {note ? (
+        <details className="group">
+          <summary className="cursor-pointer list-none text-[11.5px] font-medium text-muted-foreground/80 hover:text-foreground">
+            <ChevronDown className="mr-1 inline h-3 w-3 transition-transform group-open:rotate-180" />
+            {t('uniReview.docFlag.rawToggle')}
+          </summary>
+          <p className="mt-1.5 break-words rounded-[10px] bg-secondary/50 p-2.5 px-3 font-mono text-[11px] leading-relaxed text-muted-foreground">
+            {note}
+          </p>
+        </details>
+      ) : null}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Dispatcher.
 // ---------------------------------------------------------------------------
 
@@ -607,6 +690,11 @@ export function SectionBody({
   row: ReviewQueueRow;
   noteDetail: string | null;
 }): ReactNode {
+  // Document-level flags carry no parsed_output by design — they are about
+  // the PDF, not about a field group — so they must not fall through to the
+  // "Ko'rsatilmagan" default below.
+  if (isDocumentFlag(row)) return <DocumentFlagBody row={row} />;
+
   switch (row.field_group) {
     case 'calendar':
       return <CalendarBody row={row} />;
