@@ -35,6 +35,7 @@ import asyncpg
 import httpx
 
 from ..discovery.adapters.naver_search_adapter import NaverSearchAdapter
+from ..discovery.keywords_ko import audience_rank
 from ..discovery.models import Announcement
 from ..parse.cycle_detect import cycle_is_older
 from ..verify.models import IdentityVerdict
@@ -212,19 +213,23 @@ def build_search_keywords(year: int) -> list[str]:
 
 def _rank_key(
     url: str, title: str | None, *, year: int
-) -> tuple[bool, bool, bool, bool, bool, int]:
+) -> tuple[bool, bool, bool, int, bool, int]:
     """Sort key (ascending = best first): drop procurement noise, then prefer a
     모집요강, the TARGET YEAR, a foreign-applicant guide, a direct PDF, then the
     shorter URL. Year is ranked ABOVE direct-PDF-ness on purpose so a current-year
     board page beats an old-year direct PDF (which the identity gate would reject
-    anyway) instead of being attempted first."""
+    anyway) instead of being attempted first.
+
+    The audience term is an ordinal, not a boolean — see `_audience_rank`. Both
+    the title and the URL are read: some boards title the post with only the
+    university name and carry the track in the file path."""
     t = title or ""
     u = url.lower()
     return (
         bool(_PROCUREMENT_NOISE_RE.search(t)),
         "모집요강" not in t and "모집요강" not in u,
         str(year) not in t and str(year) not in u,
-        "외국인" not in t and "재외국민" not in t,
+        audience_rank(f"{t} {u}"),
         not u.endswith(".pdf"),
         len(url),
     )

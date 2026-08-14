@@ -31,6 +31,7 @@ from ..discovery.adapters.naver_search_adapter import (
     DEFAULT_DISCOVERY_KEYWORDS,
     NaverSearchAdapter,
 )
+from ..discovery.keywords_ko import audience_rank
 from ..discovery.models import Announcement
 from ..discovery.propose_source import Candidate, ProposeOutcome, propose_batch
 
@@ -178,13 +179,20 @@ def registrable_domain(url_or_host: str) -> str:
     return ".".join(parts)
 
 
-def _candidate_rank_key(c: Candidate) -> tuple[bool, bool, bool, int]:
+def _candidate_rank_key(c: Candidate) -> tuple[bool, bool, int, bool, int]:
     """Sort key (ascending = best first): real admission guide before procurement
-    noise, 모집요강 before not, 전형 before not, then shorter URL."""
+    noise, 모집요강 before not, a FOREIGN-applicant guide before a Korean-citizen
+    one, 전형 before not, then shorter URL.
+
+    The audience term ranks above 전형 because both a 외국인전형 and a
+    재외국민전형 page carry 전형: without it the two tied and the per-university
+    cap could keep the wrong one and drop the right one. See `audience_rank` —
+    a combined 재외국민+외국인 page counts as foreign, which it is."""
     title = c.candidate_title or ""
     return (
         bool(_PROCUREMENT_NOISE_RE.search(title)),
         "모집요강" not in title,
+        audience_rank(f"{title} {c.url_ko.lower()}"),
         "전형" not in title,
         len(c.url_ko),
     )
