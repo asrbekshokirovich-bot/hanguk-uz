@@ -35,6 +35,7 @@ from uuid import UUID
 import asyncpg
 
 from .. import retry as retry_policy
+from ..watchdog import watchdog
 
 log = logging.getLogger(__name__)
 
@@ -97,6 +98,10 @@ class RetryRun:
     retried: int          # documents actually re-parsed
     hash_mismatch: int    # skipped — stored blob no longer matches its hash
     errors: int           # documents whose retry raised
+    # Set when the run stopped early because the credential is broken (a
+    # rejected key, an empty balance). Callers surface it instead of reporting
+    # an ordinary short run — see `uni-db retry-failed`, which exits nonzero.
+    fatal: str | None = None
 
 
 def _default_fetch_blob(storage_path: str) -> bytes:
@@ -172,7 +177,23 @@ async def retry_failed(
     )
 
     retried = hash_mismatch = errors = 0
+    fatal: str | None = None
     for gd_id, entry in by_doc.items():
+        # A broken credential is not a per-document failure — it fails all of
+        # them, and every failure is written back as a job the NEXT run picks
+        # up. Left running, the backlog this worker exists to drain grows
+        # instead: one invalid key turned ~500 failed jobs into ~75,000 in a
+        # single day. Stop at the first one and let the caller report it.
+        alert = watchdog.fatal_alert()
+        if alert is not None:
+            fatal = alert.code
+            log.error(
+                "retry_failed: stopping after %d of %d document(s) — %s: %s",
+                retried + errors + hash_mismatch, len(by_doc),
+                alert.code, alert.detail,
+            )
+            break
+
         groups: tuple[str, ...] = tuple(dict.fromkeys(entry["groups"]))
         storage_path = entry["storage_path"]
         expected = entry["file_hash_sha256"]
@@ -208,6 +229,10 @@ async def retry_failed(
                 str(gd_id)[:8], ",".join(groups),
                 type(exc).__name__, str(exc)[:160],
             )
+            # An LLM error can escape the whole document, not just one field
+            # group — feed it here too so the loop guard above sees a dead
+            # credential wherever it surfaced.
+            watchdog.record_llm_error(str(exc))
         else:
             retried += 1
             log.info(
@@ -215,10 +240,18 @@ async def retry_failed(
                 str(gd_id)[:8], ",".join(groups),
             )
 
+    # The break above runs before the alert can be raised by the LAST
+    # document, so check once more on the way out.
+    if fatal is None:
+        alert = watchdog.fatal_alert()
+        if alert is not None:
+            fatal = alert.code
+
     return RetryRun(
         jobs_seen=len(records),
         documents=len(by_doc),
         retried=retried,
         hash_mismatch=hash_mismatch,
         errors=errors,
+        fatal=fatal,
     )

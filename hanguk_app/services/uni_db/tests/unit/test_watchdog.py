@@ -74,6 +74,64 @@ class TestCreditBalance:
         assert _codes(wd) == set()
 
 
+class TestAuthFailure:
+    def test_detects_the_sdk_401_shape(self) -> None:
+        wd = RunWatchdog()
+        wd.record_llm_error(
+            "AuthenticationError: Error code: 401 - {'type': 'error', 'error': "
+            "{'type': 'authentication_error', 'message': 'invalid x-api-key'}}"
+        )
+        assert _codes(wd) == {"api_auth_failure"}
+
+    def test_a_bare_401_in_a_message_does_not_fire(self) -> None:
+        # '401' shows up in amounts, ids and byte counts. Only the shapes the
+        # SDK actually raises may trip this, or a run drains itself on noise.
+        wd = RunWatchdog()
+        wd.record_llm_error("APITimeoutError: read timed out after 401 seconds")
+        wd.record_llm_error("ValueError: tuition amount_krw=5401000 out of range")
+        assert _codes(wd) == set()
+
+    def test_fires_once_across_many_rejections(self) -> None:
+        wd = RunWatchdog()
+        for _ in range(50):
+            wd.record_llm_error("AuthenticationError: Error code: 401")
+        assert len(wd.alerts()) == 1
+
+
+class TestFatalAlert:
+    def test_auth_and_credit_failures_are_fatal(self) -> None:
+        for message in (
+            "AuthenticationError: Error code: 401 - invalid x-api-key",
+            "BadRequestError: Your credit balance is too low",
+        ):
+            wd = RunWatchdog()
+            wd.record_llm_error(message)
+            alert = wd.fatal_alert()
+            assert alert is not None and alert.code in {
+                "api_auth_failure", "api_credit_balance",
+            }
+
+    def test_run_health_alerts_are_not_fatal(self) -> None:
+        # An empty-payload spike or a CLI streak is worth shouting about, but
+        # the next document may still succeed — they must not stop a drain.
+        wd = RunWatchdog()
+        for _ in range(20):
+            wd.record_payload(empty=True)
+        for _ in range(3):
+            wd.record_cli_exit(1)
+        assert len(wd.alerts()) == 2
+        assert wd.fatal_alert() is None
+
+    def test_quiet_run_has_none(self) -> None:
+        assert RunWatchdog().fatal_alert() is None
+
+    def test_reset_clears_it(self) -> None:
+        wd = RunWatchdog()
+        wd.record_llm_error("AuthenticationError: Error code: 401")
+        wd.reset()
+        assert wd.fatal_alert() is None
+
+
 class TestCliFailureStreak:
     def test_three_genuine_failures_fire(self) -> None:
         wd = RunWatchdog()

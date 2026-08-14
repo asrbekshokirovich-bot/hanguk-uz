@@ -15,6 +15,12 @@ ALERT [code]`) the first time it is detected in a run:
   api_credit_balance       — the Anthropic API reported a credit-balance /
                              billing error (retrying is pointless; a human
                              must top up)
+  api_auth_failure         — the Anthropic API rejected the key (401). Same
+                             shape as the credit-balance case and, unlike a
+                             timeout, it will not fix itself: every call for
+                             the rest of the run fails identically and each
+                             one writes a `failed` extraction job that a
+                             later retry pass will pick up and fail again
   cli_failure_streak       — 3 consecutive `claude` CLI calls failed with a
                              nonzero exit that is NOT a transient usage limit
                              (usage limits self-heal and are retried by the
@@ -50,6 +56,28 @@ _CREDIT_BALANCE_MARKERS = (
     "billing_error",
 )
 
+# Case-insensitive substrings that mark a rejected API key (e.g.
+# "AuthenticationError: Error code: 401 - {'error': {'type':
+# 'authentication_error', 'message': 'invalid x-api-key'}}").
+#
+# `401` alone is deliberately NOT a marker: it appears in amounts, ids and
+# byte counts. The markers below only match the shapes the SDK actually
+# raises.
+_AUTH_FAILURE_MARKERS = (
+    "authenticationerror",
+    "authentication_error",
+    "invalid x-api-key",
+    "invalid api key",
+    "error code: 401",
+    "status code 401",
+)
+
+# Alert codes where continuing the run is pure waste: every subsequent call
+# fails the same way, and each failure is written to the database as a job a
+# future run will retry. A caller draining a backlog must stop on these — see
+# `fatal_alert()`.
+_FATAL_CODES = ("api_auth_failure", "api_credit_balance")
+
 
 @dataclass(frozen=True, slots=True)
 class WatchdogAlert:
@@ -75,6 +103,23 @@ class RunWatchdog:
     def alerts(self) -> tuple[WatchdogAlert, ...]:
         with self._lock:
             return tuple(self._alerts.values())
+
+    def fatal_alert(self) -> WatchdogAlert | None:
+        """The alert, if any, that makes continuing this run pointless.
+
+        A rejected key or an empty balance does not heal between calls. Long
+        loops (retry-failed, reparse, a scheduled drain) must check this
+        between units of work and stop, rather than spend the rest of their
+        deadline turning one broken credential into thousands of `failed`
+        rows — which is exactly what happened on 2026-08-12, when a bad key
+        took the failed-jobs table from ~500 to ~75,000 in a day.
+        """
+        with self._lock:
+            for code in _FATAL_CODES:
+                alert = self._alerts.get(code)
+                if alert is not None:
+                    return alert
+        return None
 
     def _fire(self, code: str, detail: str) -> None:
         with self._lock:
@@ -116,11 +161,19 @@ class RunWatchdog:
             )
 
     def record_llm_error(self, message: str) -> None:
-        """An extraction/verification LLM call failed; detect credit-balance
-        errors, where retrying is pointless and a human must intervene."""
+        """An extraction/verification LLM call failed; detect the failures
+        where retrying is pointless and a human must intervene — an exhausted
+        balance and a rejected key."""
         low = (message or "").lower()
         if any(marker in low for marker in _CREDIT_BALANCE_MARKERS):
             self._fire("api_credit_balance", (message or "")[:300])
+        if any(marker in low for marker in _AUTH_FAILURE_MARKERS):
+            self._fire(
+                "api_auth_failure",
+                "the Anthropic API rejected the key — replace the "
+                "ANTHROPIC_API_KEY secret; nothing can be extracted until it "
+                f"is valid. First error: {(message or '')[:220]}",
+            )
 
     def record_cli_exit(self, returncode: int, *, usage_limited: bool = False) -> None:
         """One `claude` CLI invocation finished. A streak of genuine (non-

@@ -17,6 +17,7 @@ from uuid import UUID, uuid4
 import httpx
 
 from uni_db import retry as retry_policy
+from uni_db.watchdog import watchdog
 from uni_db.workers import retry_failed_worker as rf
 
 
@@ -279,3 +280,72 @@ async def test_skip_groups_reach_the_query() -> None:
 
     assert conn.last_args[0] == 5
     assert conn.last_args[1] == ["scholarships", "document_checklist"]
+
+
+async def test_a_rejected_key_stops_the_batch_instead_of_burning_it() -> None:
+    """The 2026-08-12 regression, in one test.
+
+    An invalid API key fails every document identically, and each failure is
+    written back as a job the NEXT run picks up — so a worker that keeps going
+    grows the backlog it exists to drain. Here the first document trips the
+    watchdog; the remaining nine must never be opened.
+    """
+    watchdog.reset()
+    docs = [uuid4() for _ in range(10)]
+    conn = _Conn([_rec(gd, "calendar") for gd in docs])
+    seen: list[UUID] = []
+
+    async def run_parse(c, gd_id, blob, groups):
+        seen.append(gd_id)
+        # What parse_worker does on an LLM exception, minus the database.
+        watchdog.record_llm_error(
+            "AuthenticationError: Error code: 401 - invalid x-api-key"
+        )
+
+    try:
+        run = await rf.retry_failed(
+            conn, limit=50, fetch_blob=lambda p: b"%PDF-fake",
+            run_parse_groups=run_parse,
+        )
+    finally:
+        watchdog.reset()
+
+    assert len(seen) == 1, "kept calling on a dead credential"
+    assert run.fatal == "api_auth_failure"
+    assert run.jobs_seen == 10 and run.retried == 1
+
+
+async def test_a_healthy_run_reports_no_fatal() -> None:
+    watchdog.reset()
+    docs = [uuid4() for _ in range(3)]
+    conn = _Conn([_rec(gd, "calendar") for gd in docs])
+
+    async def run_parse(c, gd_id, blob, groups):
+        pass
+
+    run = await rf.retry_failed(
+        conn, limit=50, fetch_blob=lambda p: b"%PDF-fake",
+        run_parse_groups=run_parse,
+    )
+    assert run.fatal is None and run.retried == 3
+
+
+async def test_an_ordinary_document_failure_does_not_stop_the_batch() -> None:
+    # The isolation the worker already had must survive the new break: a
+    # broken PDF is one document's problem, not the run's.
+    watchdog.reset()
+    docs = [uuid4() for _ in range(4)]
+    conn = _Conn([_rec(gd, "calendar") for gd in docs])
+    seen: list[UUID] = []
+
+    async def run_parse(c, gd_id, blob, groups):
+        seen.append(gd_id)
+        if len(seen) == 1:
+            raise ValueError("no text extracted from stored PDF")
+
+    run = await rf.retry_failed(
+        conn, limit=50, fetch_blob=lambda p: b"%PDF-fake",
+        run_parse_groups=run_parse,
+    )
+    assert len(seen) == 4
+    assert run.errors == 1 and run.retried == 3 and run.fatal is None

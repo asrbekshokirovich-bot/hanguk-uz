@@ -18,7 +18,13 @@ import {
 import { useActiveIntake } from '@/contexts/IntakeContext';
 import { itemConfidence, confidencePct, isFailedExtraction } from '../reviewLogic';
 import { parseReliability, type ReliabilityColor } from '../reliability';
-import { SECTION_ICON, firstNoteLine, sectionLabelKey, type DecidedInfo } from './reviewGroups';
+import {
+  firstNoteLine,
+  isDocumentFlag,
+  sectionIcon,
+  sectionLabelKey,
+  type DecidedInfo,
+} from './reviewGroups';
 
 /**
  * One section card (design §B): icon tile + title + reliability pill +
@@ -99,12 +105,17 @@ export function ReviewSectionCard({
 }) {
   const { t } = useTranslation();
   const rel = parseReliability(row.reviewer_notes, row.needs_attention);
-  const Icon = SECTION_ICON[row.field_group ?? ''] ?? SECTION_ICON.documents_required;
+  const Icon = sectionIcon(row);
   // Failed lane → "extraction failed" pill, never "confidence 0%" (Phase 3:
   // itemConfidence returns null for a failed lane).
   const laneFailed = isFailedExtraction(row.parsed_output);
   const conf = confidencePct(itemConfidence(row));
-  const note = rel.color === 'red' || rel.color === 'amber' ? firstNoteLine(rel.detail) : null;
+  // On a document flag the notes ARE the explanation, and the body renders
+  // them in full — repeating the first line above it would say it twice.
+  const note =
+    !isDocumentFlag(row) && (rel.color === 'red' || rel.color === 'amber')
+      ? firstNoteLine(rel.detail)
+      : null;
 
   return (
     <div className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4 px-[18px] shadow-sm">
@@ -112,7 +123,7 @@ export function ReviewSectionCard({
         <span className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-[9px] bg-secondary text-muted-foreground">
           <Icon className="h-4 w-4" />
         </span>
-        <span className="text-[14.5px] font-semibold">{t(sectionLabelKey(row.field_group))}</span>
+        <span className="text-[14.5px] font-semibold">{t(sectionLabelKey(row))}</span>
         {rel.color ? (
           <span
             className={cn(

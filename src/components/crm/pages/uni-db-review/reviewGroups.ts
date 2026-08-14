@@ -1,5 +1,12 @@
 import type { LucideIcon } from 'lucide-react';
-import { CalendarClock, GraduationCap, Banknote, FileText, Award } from 'lucide-react';
+import {
+  CalendarClock,
+  GraduationCap,
+  Banknote,
+  FileText,
+  Award,
+  SplitSquareVertical,
+} from 'lucide-react';
 import type { ReviewQueueRow } from '@/hooks/useReviewQueue';
 import { parseReliability, rollupColor, type ReliabilityColor } from '../reliability';
 
@@ -196,8 +203,27 @@ const SECTION_ALIAS: Record<string, string> = {
   document_checklist: 'documents_required',
 };
 
-export function sectionLabelKey(fieldGroup: string | null): string {
-  const canonical = SECTION_ALIAS[fieldGroup ?? ''] ?? fieldGroup;
+/**
+ * A card that flags the DOCUMENT rather than reviewing extracted data.
+ *
+ * The parser raises these when the PDF itself is wrong-shaped — today the only
+ * kind is the combined undergraduate + graduate guideline, which has to be
+ * split into two admission cycles before any of its figures mean anything.
+ * They are inserted against `guideline_documents`, so the dashboard view's
+ * `field_group` and `parsed_output` (both taken from the extraction_jobs join)
+ * are NULL, and the explanation lives in `reviewer_notes`.
+ *
+ * Detected on entity_type, not on a null field_group: an ordinary section card
+ * whose extraction row went missing would also have a null field_group, and
+ * the two must not be shown as the same thing.
+ */
+export function isDocumentFlag(row: ReviewQueueRow): boolean {
+  return row.entity_type === 'guideline_documents';
+}
+
+export function sectionLabelKey(row: ReviewQueueRow): string {
+  if (isDocumentFlag(row)) return 'uniReview.section.documentFlag';
+  const canonical = SECTION_ALIAS[row.field_group ?? ''] ?? row.field_group;
   return (SECTION_ORDER as readonly string[]).includes(canonical ?? '')
     ? `uniReview.section.${canonical}`
     : 'uniReview.section.unknown';
@@ -210,6 +236,11 @@ export const SECTION_ICON: Record<string, LucideIcon> = {
   documents_required: FileText,
   scholarships: Award,
 };
+
+export function sectionIcon(row: ReviewQueueRow): LucideIcon {
+  if (isDocumentFlag(row)) return SplitSquareVertical;
+  return SECTION_ICON[row.field_group ?? ''] ?? SECTION_ICON.documents_required;
+}
 
 // ---------------------------------------------------------------------------
 // Formats (design tokens: mono, space thousands, DD.MM.YYYY · HH:mm KST).

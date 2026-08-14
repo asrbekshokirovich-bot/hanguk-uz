@@ -474,7 +474,16 @@ async def _reparse(*, limit: int, institution: str | None, pending_only: bool = 
     finally:
         await conn.close()
 
-    print(f"reparse: re-extracted ok={ok} failed={fail}")
+    from .watchdog import watchdog
+
+    alert = watchdog.fatal_alert()
+    print(
+        f"reparse: re-extracted ok={ok} failed={fail}"
+        + (f" fatal={alert.code}" if alert else "")
+    )
+    if alert is not None:
+        print(f"reparse: aborted — {alert.detail}", file=sys.stderr)
+        return 3
     return 0
 
 
@@ -510,7 +519,21 @@ async def _retry_failed(*, limit: int, skip_groups: tuple[str, ...] = ()) -> int
         f"retry-failed: jobs_seen={run.jobs_seen} documents={run.documents} "
         f"retried={run.retried} hash_mismatch={run.hash_mismatch} "
         f"errors={run.errors}"
+        + (f" fatal={run.fatal}" if run.fatal else "")
     )
+    # Exit 3, not 0, when the credential is broken. A caller that loops this
+    # command (the drain workflow) has no other way to tell "the backlog is
+    # being worked through" from "every call is being rejected and the failed
+    # count is climbing" — both look like a short run.
+    if run.fatal:
+        print(
+            f"retry-failed: aborted — {run.fatal}. "
+            "Replace the ANTHROPIC_API_KEY / UNI_DB_ANTHROPIC_API_KEY secret "
+            "(or top up the balance) before running this again; until then "
+            "every extraction fails and each failure enlarges the backlog.",
+            file=sys.stderr,
+        )
+        return 3
     return 0
 
 

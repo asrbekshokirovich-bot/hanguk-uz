@@ -107,8 +107,17 @@ jobs:
 
       # Loop rather than one big --limit: each pass commits its results, so a
       # timeout or a runner eviction costs the pass in flight, not the run.
-      # Stops early the moment a pass reports jobs_seen=0 — the backlog is
-      # empty and there is nothing to bill for.
+      #
+      # Three exits, and the third one is the reason this comment is long.
+      # The loop originally stopped only on an empty backlog or the deadline,
+      # so when the API key was rejected on 2026-08-12 it kept calling for
+      # eighteen hours across six scheduled runs. Every call returned 401,
+      # every 401 was recorded as a failed extraction job, and every failed
+      # job became a candidate for the next pass: the failed-jobs table went
+      # from ~500 to ~75,000 and the review queue emptied. A loop whose only
+      # stop conditions are "done" and "out of time" turns a broken
+      # credential into a self-feeding backlog. `retry-failed` now exits 3 on
+      # a fatal credential error and the run stops on it.
       - name: Re-extract failed jobs
         env:
           LIMIT: ${{ github.event.inputs.limit || '120' }}
@@ -128,7 +137,14 @@ jobs:
               break
             fi
             echo "--- pass ${pass} (${elapsed}m elapsed) ---"
-            out=$(uni-db retry-failed --limit "$LIMIT" --skip-groups "$SKIP_GROUPS" 2>&1 | tee /dev/stderr | tail -1)
+            # `set -o pipefail` above makes this assignment carry uni-db's
+            # exit status through `tee`/`tail`, so `rc` is the command's own.
+            out=$(uni-db retry-failed --limit "$LIMIT" --skip-groups "$SKIP_GROUPS" 2>&1 | tee /dev/stderr | tail -2 | tr '\n' ' ')
+            rc=$?
+            if [ "$rc" -eq 3 ]; then
+              echo "::error::Extraction credential rejected — every LLM call is failing and each failure enlarges the backlog. Replace the UNI_DB_ANTHROPIC_API_KEY secret (Settings → Secrets and variables → Actions), then re-run this workflow. Stopped after ${pass} pass(es)."
+              exit 1
+            fi
             case "$out" in
               *"jobs_seen=0 "*)
                 echo "::notice::Backlog empty for skip_groups='${SKIP_GROUPS}'. Nothing left to re-extract."
