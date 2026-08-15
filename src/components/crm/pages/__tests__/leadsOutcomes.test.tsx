@@ -171,3 +171,76 @@ describe('LeadsContent outcomes', () => {
     expect(screen.getByText('Rad Lead')).toBeInTheDocument();
   });
 });
+
+describe('LeadsContent search', () => {
+  const roster = [
+    lead({ id: 'a', full_name: 'Muhammad Eshmurodov', city: 'Toshkent' }),
+    lead({ id: 'b', full_name: 'Aziza Rahimova', city: 'Samarqand', phone: '+998 90 111 22 33' }),
+    lead({ id: 'c', full_name: 'Bekzod Aliyev', status: 'lost', city: 'Toshkent' }),
+  ];
+
+  it('narrows the list to what was typed', async () => {
+    await renderPage(roster);
+    expect(screen.getByText('Muhammad Eshmurodov')).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText('Leadlarni qidirish'), { target: { value: 'aziza' } });
+
+    expect(screen.getByText('Aziza Rahimova')).toBeInTheDocument();
+    expect(screen.queryByText('Muhammad Eshmurodov')).not.toBeInTheDocument();
+  });
+
+  it('finds a lead by part of the phone number', async () => {
+    await renderPage(roster);
+    fireEvent.change(screen.getByLabelText('Leadlarni qidirish'), {
+      target: { value: '90 111' },
+    });
+    expect(screen.getByText('Aziza Rahimova')).toBeInTheDocument();
+  });
+
+  it('counts the matches on the filter each lead belongs to', async () => {
+    await renderPage(roster);
+    fireEvent.change(screen.getByLabelText('Leadlarni qidirish'), {
+      target: { value: 'toshkent' },
+    });
+
+    // One active match and one rejected — visible without leaving this filter.
+    expect(screen.getByRole('button', { name: /Ishlanmoqda 1/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Rad etilganlar 1/ })).toBeInTheDocument();
+  });
+
+  it('says so when nothing matches, rather than looking empty', async () => {
+    await renderPage(roster);
+    fireEvent.change(screen.getByLabelText('Leadlarni qidirish'), {
+      target: { value: 'nobody here' },
+    });
+    expect(screen.getByText(/mos lead yo‘q/)).toBeInTheDocument();
+  });
+
+  it('filters by a picked value once the panel is opened', async () => {
+    await renderPage(roster);
+    fireEvent.click(screen.getByRole('button', { name: /Filtrlar/ }));
+    fireEvent.change(screen.getByLabelText('Shahar'), { target: { value: 'Samarqand' } });
+
+    expect(screen.getByText('Aziza Rahimova')).toBeInTheDocument();
+    expect(screen.queryByText('Muhammad Eshmurodov')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Filtrlar 1/ })).toBeInTheDocument();
+  });
+
+  it('puts every lead back when the search is cleared', async () => {
+    await renderPage(roster);
+    fireEvent.change(screen.getByLabelText('Leadlarni qidirish'), { target: { value: 'aziza' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Hammasini tozalash' }));
+
+    expect(screen.getByText('Muhammad Eshmurodov')).toBeInTheDocument();
+    expect(screen.getByText('Aziza Rahimova')).toBeInTheDocument();
+  });
+
+  it('jumps to the search box on "/"', async () => {
+    await renderPage(roster);
+    const box = screen.getByLabelText('Leadlarni qidirish');
+    expect(box).not.toHaveFocus();
+
+    fireEvent.keyDown(window, { key: '/' });
+    expect(box).toHaveFocus();
+  });
+});

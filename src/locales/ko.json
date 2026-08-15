@@ -835,6 +835,24 @@
       },
       "restore": {
         "action": "되돌리기"
+      },
+      "search": {
+        "label": "리드 검색",
+        "placeholder": "이름, 전화, 도시, 메모… 또는 city:Samarqand",
+        "clearQuery": "검색어 지우기",
+        "filters": "필터",
+        "clearAll": "모두 지우기",
+        "any": "전체",
+        "results_one": "{{count}}건 검색됨",
+        "results_other": "{{count}}건 검색됨",
+        "noMatches": "조건에 맞는 리드가 없습니다. 필터를 줄여 보세요.",
+        "hint": "단어를 입력하면 모든 항목에서 찾고, 한 항목만 지정할 수도 있습니다: name:, phone:, city:, source:, channel:, level:, semester:, cert:, note:, age:. 구절은 따옴표로 묶으세요.",
+        "followUp": {
+          "overdue": "기한 지남",
+          "today": "오늘",
+          "week": "일주일 이내",
+          "none": "날짜 없음"
+        }
       }
     }
   },
