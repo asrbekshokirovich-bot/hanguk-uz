@@ -280,8 +280,11 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
       toast.info('Conversion already in progress...');
       return { success: false };
     }
-    convertingIds.current.add(leadId);
 
+    // Both checks run before the lead is marked in-flight: returning early
+    // after marking it would leave the id in the set for the rest of the
+    // session, and every later attempt on that lead would be refused as
+    // "already in progress".
     const lead = leads.find(l => l.id === leadId);
     if (!lead) {
       toast.error('Lead not found');
@@ -292,6 +295,8 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
       toast.error('This lead has already been converted to a student');
       return { success: false };
     }
+
+    convertingIds.current.add(leadId);
 
     const tryCreateStudent = async (includePhone: boolean) => {
       const { data, error } = await supabase.functions.invoke('create-student', {
