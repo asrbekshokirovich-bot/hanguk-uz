@@ -868,7 +868,7 @@
         "label": "Lead holati",
         "active": "Ishlanmoqda",
         "converted": "O‘quvchilar",
-        "rejected": "Rad etilgan"
+        "rejected": "Rad etilganlar"
       },
       "emptyBy": {
         "active": "Ishlanayotgan lead yo‘q. “+ Yangi lead” orqali qo‘shing.",
