@@ -70,6 +70,37 @@ o'zingizga ochiq bo'lishi uchun `VITE_DEV_HOST=127.0.0.1` qo'ying.
 
 ---
 
+## Muammolar
+
+### `npm install` `sharp` da to'xtaydi
+
+```
+npm error path ...\node_modules\sharp
+npm error sharp: Installation error: aborted
+```
+
+`sharp` — bu app ikonkalarini yasaydigan `@capacitor/assets` ning ichki paketi.
+U o'rnatishda GitHub'dan binar fayl yuklaydi, sekin internetda uzilib qoladi.
+Ilovani ishga tushirish uchun u **kerak emas**, shuning uchun u
+`optionalDependencies` ga o'tkazilgan — endi u yiqilsa ham `npm install`
+davom etadi.
+
+Baribir to'xtasa:
+```sh
+npm install --ignore-scripts
+```
+
+### `'vite' is not recognized`
+
+`npm install` oxirigacha yetmagan — node_modules to'liq emas. Yuqoridagi
+buyruq bilan qayta o'rnating.
+
+### Port band (`EADDRINUSE`)
+
+`.env` ga boshqa port yozing: `VITE_DEV_PORT=5173`
+
+---
+
 ## Lead moduli dizayni
 
 Dizayn manbasi `lead_module_design/` papkasida (Design Code eksporti).
