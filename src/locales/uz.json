@@ -774,11 +774,14 @@
         "semester": "Semestr",
         "cert": "Sertifikat",
         "age": "Yosh",
-        "status": "Holat"
+        "status": "Holat",
+        "actions": "Amallar"
       },
       "status": {
         "complete": "To‘ldirilgan",
-        "incomplete": "To‘liq emas"
+        "incomplete": "To‘liq emas",
+        "converted": "O‘quvchi",
+        "rejected": "Rad etilgan"
       },
       "sections": {
         "personal": "Shaxsiy ma’lumotlar",
@@ -859,7 +862,39 @@
         "oktabr",
         "noyabr",
         "dekabr"
-      ]
+      ],
+      "working": "Bajarilmoqda…",
+      "tabs": {
+        "label": "Lead holati",
+        "active": "Ishlanmoqda",
+        "converted": "O‘quvchilar",
+        "rejected": "Rad etilgan"
+      },
+      "emptyBy": {
+        "active": "Ishlanayotgan lead yo‘q. “+ Yangi lead” orqali qo‘shing.",
+        "converted": "Hali birorta lead o‘quvchiga aylantirilmagan.",
+        "rejected": "Rad etilgan lead yo‘q."
+      },
+      "convert": {
+        "action": "O‘quvchiga",
+        "title": "Lead o‘quvchiga aylantirilsinmi?",
+        "body": "{{name}} uchun o‘quvchi akkaunti ochiladi va sehrli kod beriladi. Lead “O‘quvchilar” ro‘yxatiga o‘tadi.",
+        "confirm": "Aylantirish",
+        "done": "Allaqachon o‘quvchi",
+        "needsComplete": "Aylantirishdan oldin barcha maydonlarni to‘ldiring"
+      },
+      "reject": {
+        "action": "Rad etish",
+        "title": "Lead rad etilsinmi?",
+        "body": "{{name}} ishchi ro‘yxatdan chiqariladi. Keyinroq qaytarishingiz mumkin.",
+        "confirm": "Rad etish",
+        "reason": "Sabab",
+        "detail": "Izoh",
+        "detailPlaceholder": "Masalan: boshqa qo‘ng‘iroq qilmaslikni so‘radi"
+      },
+      "restore": {
+        "action": "Qaytarish"
+      }
     }
   },
   "universities": {

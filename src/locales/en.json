@@ -727,11 +727,14 @@
         "semester": "Semester",
         "cert": "Certificate",
         "age": "Age",
-        "status": "Status"
+        "status": "Status",
+        "actions": "Actions"
       },
       "status": {
         "complete": "Complete",
-        "incomplete": "Incomplete"
+        "incomplete": "Incomplete",
+        "converted": "Student",
+        "rejected": "Rejected"
       },
       "sections": {
         "personal": "Personal details",
@@ -812,7 +815,39 @@
         "October",
         "November",
         "December"
-      ]
+      ],
+      "working": "Working…",
+      "tabs": {
+        "label": "Lead state",
+        "active": "In progress",
+        "converted": "Students",
+        "rejected": "Rejected"
+      },
+      "emptyBy": {
+        "active": "No leads in progress. Add one with “+ New lead”.",
+        "converted": "No lead has been turned into a student yet.",
+        "rejected": "No rejected leads."
+      },
+      "convert": {
+        "action": "To student",
+        "title": "Turn this lead into a student?",
+        "body": "A student account is created for {{name}} and a magic code is issued. The lead moves to the Students list.",
+        "confirm": "Convert",
+        "done": "Already a student",
+        "needsComplete": "Fill in every field before converting"
+      },
+      "reject": {
+        "action": "Reject",
+        "title": "Reject this lead?",
+        "body": "{{name}} is taken out of the working list. You can restore them later.",
+        "confirm": "Reject",
+        "reason": "Reason",
+        "detail": "Details",
+        "detailPlaceholder": "For example: asked us not to call again"
+      },
+      "restore": {
+        "action": "Restore"
+      }
     }
   },
   "universities": {

@@ -46,12 +46,24 @@ const lead = (overrides: Partial<Lead> = {}): Lead =>
     ...overrides,
   }) as Lead;
 
+const table = (props: Partial<React.ComponentProps<typeof LeadsTable>> = {}) => (
+  <LeadsTable
+    leads={[lead()]}
+    onOpen={vi.fn()}
+    onConvert={vi.fn()}
+    onReject={vi.fn()}
+    onRestore={vi.fn()}
+    now={NOW}
+    {...props}
+  />
+);
+
 describe('LeadsTable', () => {
   it('renders every column heading from the design', () => {
-    renderWithI18n(<LeadsTable leads={[lead()]} onOpen={vi.fn()} now={NOW} />);
+    renderWithI18n(table());
     for (const heading of [
       "O‘quvchi", 'Telefon', 'Kanal', 'Shahar', 'Manba',
-      "Yo‘nalish", 'Semestr', 'Sertifikat', 'Yosh', 'Holat',
+      "Yo‘nalish", 'Semestr', 'Sertifikat', 'Yosh', 'Holat', 'Amallar',
     ]) {
       expect(screen.getByText(heading)).toBeInTheDocument();
     }
@@ -59,30 +71,24 @@ describe('LeadsTable', () => {
 
   it('marks a fully answered lead complete and a half-filled one incomplete', () => {
     renderWithI18n(
-      <LeadsTable
-        leads={[lead(), lead({ id: 'lead-2', full_name: 'Aziza Rahimova', city: null })]}
-        onOpen={vi.fn()}
-        now={NOW}
-      />,
+      table({ leads: [lead(), lead({ id: 'lead-2', full_name: 'Aziza Rahimova', city: null })] }),
     );
     expect(screen.getByText('To‘ldirilgan')).toBeInTheDocument();
     expect(screen.getByText('To‘liq emas')).toBeInTheDocument();
   });
 
   it('shows a dash for an unanswered cell rather than an empty one', () => {
-    renderWithI18n(<LeadsTable leads={[lead({ city: null })]} onOpen={vi.fn()} now={NOW} />);
+    renderWithI18n(table({ leads: [lead({ city: null })] }));
     expect(screen.getAllByText('—').length).toBeGreaterThan(0);
   });
 
   it('shows the follow-up line only when a date is set', () => {
-    const { rerender } = renderWithI18n(
-      <LeadsTable leads={[lead()]} onOpen={vi.fn()} now={NOW} />,
-    );
+    const { rerender } = renderWithI18n(table());
     expect(screen.queryByText(/Qayta aloqa:/)).not.toBeInTheDocument();
 
     rerender(
       <I18nextProvider i18n={i18n}>
-        <LeadsTable leads={[lead({ next_follow_up: '2026-08-15' })]} onOpen={vi.fn()} now={NOW} />
+        {table({ leads: [lead({ next_follow_up: '2026-08-15' })] })}
       </I18nextProvider>,
     );
     expect(screen.getByText(/Qayta aloqa: 15-avgust · ertaga/)).toBeInTheDocument();
@@ -91,14 +97,48 @@ describe('LeadsTable', () => {
   it('opens the lead that was clicked', () => {
     const onOpen = vi.fn();
     const target = lead();
-    renderWithI18n(<LeadsTable leads={[target]} onOpen={onOpen} now={NOW} />);
+    renderWithI18n(table({ leads: [target], onOpen }));
     fireEvent.click(screen.getByRole('button', { name: /Muhammad Eshmurodov/ }));
     expect(onOpen).toHaveBeenCalledWith(target);
   });
 
   it('reads the created-at line as a relative age', () => {
-    renderWithI18n(<LeadsTable leads={[lead()]} onOpen={vi.fn()} now={NOW} />);
+    renderWithI18n(table());
     expect(screen.getByText('3 kun oldin')).toBeInTheDocument();
+  });
+
+  it('offers convert and reject on a lead still being worked', () => {
+    const onConvert = vi.fn();
+    const onReject = vi.fn();
+    const target = lead();
+    renderWithI18n(table({ leads: [target], onConvert, onReject }));
+
+    fireEvent.click(screen.getByRole('button', { name: /O‘quvchiga/ }));
+    fireEvent.click(screen.getByRole('button', { name: /Rad etish/ }));
+    expect(onConvert).toHaveBeenCalledWith(target);
+    expect(onReject).toHaveBeenCalledWith(target);
+  });
+
+  it('blocks conversion until the record is fully answered', () => {
+    renderWithI18n(table({ leads: [lead({ city: null })] }));
+    expect(screen.getByRole('button', { name: /O‘quvchiga/ })).toBeDisabled();
+  });
+
+  it('replaces the actions with a restore button on a rejected lead', () => {
+    const onRestore = vi.fn();
+    const target = lead({ status: 'lost' });
+    renderWithI18n(table({ leads: [target], onRestore }));
+
+    expect(screen.getByText('Rad etilgan')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Rad etish/ })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Qaytarish/ }));
+    expect(onRestore).toHaveBeenCalledWith(target);
+  });
+
+  it('shows a converted lead as a student, with no further actions', () => {
+    renderWithI18n(table({ leads: [lead({ status: 'converted' })] }));
+    expect(screen.getByText('Allaqachon o‘quvchi')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Rad etish/ })).not.toBeInTheDocument();
   });
 });
 
