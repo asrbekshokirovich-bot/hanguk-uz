@@ -8,7 +8,10 @@
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "design": "node scripts/serve-static.mjs lead_module_design 8099"
   },
   "dependencies": {
     "@capacitor/android": "^8.0.1",

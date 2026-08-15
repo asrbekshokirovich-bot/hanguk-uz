@@ -7,8 +7,10 @@ import { VitePWA } from "vite-plugin-pwa";
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   server: {
-    host: "::",
-    port: 8080,
+    // IPv4 by default: "::" fails with EAFNOSUPPORT on hosts without IPv6
+    // (containers, some corporate networks). Override with VITE_DEV_HOST.
+    host: process.env.VITE_DEV_HOST || "0.0.0.0",
+    port: Number(process.env.VITE_DEV_PORT) || 8080,
   },
   plugins: [
     react(),

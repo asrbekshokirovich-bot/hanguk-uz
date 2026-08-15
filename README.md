@@ -1,73 +1,137 @@
-# Welcome to your Lovable project
+# Hanguk Consulting
 
-## Project info
+Janubiy Koreya universitetlariga ariza berish platformasi — o'quvchi portali va
+ichki CRM (leadlar, arizalar, hujjatlar, suhbatga tayyorgarlik).
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+Texnologiyalar: **Vite · React 18 · TypeScript · Tailwind · shadcn-ui · Supabase**
 
-## How can I edit this code?
+---
 
-There are several ways of editing your application.
+## Local serverda ishga tushirish
 
-**Use Lovable**
+### 1. Talablar
+- **Node.js 20+** va npm ([nvm](https://github.com/nvm-sh/nvm#installing-and-updating) orqali o'rnatish qulay)
+- Git
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
+Tekshirish:
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+node -v   # v20 yoki undan yuqori
+npm -v
 ```
 
-**Edit a file directly in GitHub**
+### 2. Kodni olish va paketlarni o'rnatish
+```sh
+git clone <REPO_URL>
+cd hanguk-uz
+npm install
+```
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### 3. Muhit o'zgaruvchilari
+Loyihada ishlaydigan `.env` allaqachon bor. Agar o'zingizning Supabase
+loyihangizga ulanmoqchi bo'lsangiz:
+```sh
+cp .env.example .env
+```
+va qiymatlarni Supabase panelidagi **Project Settings → API** dan to'ldiring.
 
-**Use GitHub Codespaces**
+`.env` bo'lmasa yoki `VITE_SUPABASE_URL` bo'sh bo'lsa, ilova brauzerda oq ekran
+bilan ochiladi va konsolda `supabaseUrl is required` xatosi chiqadi.
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### 4. Ishga tushirish
+```sh
+npm run dev
+```
+Brauzerda oching: **http://localhost:8080**
 
-## What technologies are used for this project?
+Kod o'zgarganda sahifa avtomatik yangilanadi (HMR).
 
-This project is built with:
+---
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## Buyruqlar
 
-## How can I deploy this project?
+| Buyruq | Nima qiladi |
+|---|---|
+| `npm run dev` | Dev server, http://localhost:8080 |
+| `npm run build` | Production build → `dist/` |
+| `npm run preview` | `dist/` ni local serverda ochish (build'ni tekshirish uchun) |
+| `npm test` | Testlarni bir marta ishga tushirish (Vitest) |
+| `npm run test:watch` | Testlarni kuzatuv rejimida |
+| `npm run lint` | ESLint |
+| `npm run design` | Lead moduli dizayn preview'i, http://localhost:8099 |
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+### Portni o'zgartirish
+8080 band bo'lsa, `.env` ga qo'shing:
+```sh
+VITE_DEV_PORT=5173
+```
+Server standart holatda `0.0.0.0` da tinglaydi — ya'ni bir tarmoqdagi
+telefondan ham `http://<kompyuter-IP>:8080` orqali ochsa bo'ladi. Faqat
+o'zingizga ochiq bo'lishi uchun `VITE_DEV_HOST=127.0.0.1` qo'ying.
 
-## Can I connect a custom domain to my Lovable project?
+---
 
-Yes, you can!
+## Lead moduli dizayni
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+Dizayn manbasi `lead_module_design/` papkasida (Design Code eksporti).
+Ko'rish uchun:
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+```sh
+npm run design
+```
+So'ng **http://localhost:8099/Lead-Module-Preview.dc.html** ni oching.
+
+> Preview React'ni CDN'dan (unpkg.com) yuklaydi, shuning uchun **birinchi
+> ochishda internet kerak**. Internetsiz sahifa bo'sh qoladi va konsolda
+> `failed to load ... react.production.min.js` chiqadi.
+
+Dizayn amaldagi ilovaga allaqachon ko'chirilgan — kod
+`src/components/crm/leads/intake/` da. Batafsil: `lead_module_design/README.md`.
+
+---
+
+## Loyiha tuzilishi
+
+```
+src/
+  components/crm/       # CRM: leadlar, arizalar, hujjatlar
+  components/student/   # O'quvchi portali
+  contexts/             # React kontekstlari (auth, leads, ...)
+  integrations/supabase/# Supabase klienti va tiplari (avtomatik generatsiya)
+  pages/                # Route sahifalari
+supabase/migrations/    # Ma'lumotlar bazasi migratsiyalari
+lead_module_design/     # Lead moduli dizayn paketi (manba, kod emas)
+hanguk_app/             # Flutter mobil ilova (alohida loyiha)
+scripts/                # Yordamchi skriptlar
+```
+
+Asosiy route'lar: `/` (landing), `/auth` (kirish), `/portal` (o'quvchi),
+`/crm/*` (ichki CRM — kirish talab qilinadi).
+
+---
+
+## Testlar
+
+```sh
+npm test
+```
+Testlar `src/**/*.test.tsx` shaklida, komponent yonidagi `__tests__/`
+papkalarida turadi. Vitest + Testing Library, muhit: jsdom.
+
+---
+
+## Mobil ilova (Capacitor)
+
+```sh
+npm run build
+npx cap sync
+npx cap open android   # yoki ios
+```
+
+`hanguk_app/` — alohida Flutter loyihasi, o'z README'si bilan.
+
+---
+
+## Deploy
+
+- Web: Vercel (`vercel.json` mavjud)
+- Do'konlar: `STORE_DEPLOYMENT.md`, `STORE_METADATA.md`

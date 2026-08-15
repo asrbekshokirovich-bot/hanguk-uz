@@ -34,9 +34,9 @@ describe("ProcessTracker", () => {
     );
     // apostille is index 2 — steps 0,1 completed, step 2 current, steps 3-6 upcoming
     const dots = container.querySelectorAll(".rounded-full.flex.items-center.justify-center");
-    // Completed dots (index 0, 1) should have bg-green-500
-    expect(dots[0]).toHaveClass("bg-green-500");
-    expect(dots[1]).toHaveClass("bg-green-500");
+    // Completed dots (index 0, 1) should have bg-success
+    expect(dots[0]).toHaveClass("bg-success");
+    expect(dots[1]).toHaveClass("bg-success");
     // Current dot (index 2) should have bg-primary
     expect(dots[2]).toHaveClass("bg-primary");
     // Upcoming dots (index 3+) should have border-2

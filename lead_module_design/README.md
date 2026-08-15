@@ -5,9 +5,19 @@ Lead ro'yxati va lead ma'lumotlarini to'ldirish oynasining to'liq dizayni
 rejim bilan.
 
 ## Nima bor
-- **`Lead-Module-Preview.dc.html`** — dizaynning o'zi. Brauzerda ochiladi,
-  internetsiz ishlaydi. Yuqori o'ng burchakdan **Oq / Qorong'i** rejimni
-  almashtirish, qatorga bosib to'ldirish oynasini ochish mumkin.
+- **`Lead-Module-Preview.dc.html`** — dizaynning o'zi. Yuqori o'ng burchakdan
+  **Oq / Qorong'i** rejimni almashtirish, qatorga bosib to'ldirish oynasini
+  ochish mumkin.
+
+  Ochish uchun loyiha ildizida:
+  ```sh
+  npm run design
+  ```
+  so'ng http://localhost:8099/Lead-Module-Preview.dc.html
+
+  Faylni to'g'ridan-to'g'ri `file://` orqali ochish ishlamaydi — preview
+  runtime'i skriptlarni yuklashi uchun http kerak. Shuningdek React CDN'dan
+  (unpkg.com) yuklanadi, ya'ni **internet talab qilinadi**.
 - **`support.js`** — preview'ni ishlatuvchi runtime (Design Code).
 - **`_ds/`** — Hanguk dizayn tizimi: ranglar, tipografiya, komponent uslublari.
 - **`reference/`** — asl skrinshot.
