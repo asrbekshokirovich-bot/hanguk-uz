@@ -53,6 +53,7 @@ const table = (props: Partial<React.ComponentProps<typeof LeadsTable>> = {}) => 
     onConvert={vi.fn()}
     onReject={vi.fn()}
     onRestore={vi.fn()}
+    busy={false}
     now={NOW}
     {...props}
   />
@@ -122,6 +123,12 @@ describe('LeadsTable', () => {
   it('blocks conversion until the record is fully answered', () => {
     renderWithI18n(table({ leads: [lead({ city: null })] }));
     expect(screen.getByRole('button', { name: /O‘quvchiga/ })).toBeDisabled();
+  });
+
+  it('holds every action while a write is in flight', () => {
+    renderWithI18n(table({ busy: true }));
+    expect(screen.getByRole('button', { name: /O‘quvchiga/ })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /Rad etish/ })).toBeDisabled();
   });
 
   it('replaces the actions with a restore button on a rejected lead', () => {

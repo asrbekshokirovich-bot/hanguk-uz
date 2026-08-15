@@ -881,7 +881,8 @@
         "body": "{{name}} uchun o‘quvchi akkaunti ochiladi va sehrli kod beriladi. Lead “O‘quvchilar” ro‘yxatiga o‘tadi.",
         "confirm": "Aylantirish",
         "done": "Allaqachon o‘quvchi",
-        "needsComplete": "Aylantirishdan oldin barcha maydonlarni to‘ldiring"
+        "needsComplete": "Aylantirishdan oldin barcha maydonlarni to‘ldiring",
+        "duplicate": "Diqqat: bu ism yoki telefon raqamli o‘quvchi allaqachon bor. Aylantirilsa, ikkinchi akkaunt ochiladi."
       },
       "reject": {
         "action": "Rad etish",

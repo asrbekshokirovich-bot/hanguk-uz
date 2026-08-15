@@ -127,7 +127,10 @@ const LeadsContent = () => {
     setBusy(true);
     try {
       await updateLead(lead.id, {
-        status: 'new',
+        // Back to where the lead was before it was rejected: a record someone
+        // had already spoken to is not a new lead, and calling it one would put
+        // it back at the top of the call list.
+        status: lead.last_contacted_at ? 'contacted' : 'new',
         // `updateLead` treats `undefined` as "leave alone", so an emptied note
         // is written as a blank string rather than silently kept.
         notes: noteWithoutRejection(lead.notes),
@@ -157,8 +160,10 @@ const LeadsContent = () => {
           </button>
         </div>
 
+        {/* Toggle buttons rather than a tablist: there is one list below them
+            that they filter, not three panels to switch between. */}
         <div
-          role="tablist"
+          role="group"
           aria-label={t('leads.intake.tabs.label')}
           className="mb-5 flex flex-wrap gap-2"
         >
@@ -166,8 +171,7 @@ const LeadsContent = () => {
             <button
               key={key}
               type="button"
-              role="tab"
-              aria-selected={tab === key}
+              aria-pressed={tab === key}
               onClick={() => setTab(key)}
               className={cn(
                 'min-h-10 rounded-full border px-4 text-[13px] font-semibold transition',
@@ -200,6 +204,7 @@ const LeadsContent = () => {
             onConvert={(lead) => setPending({ mode: 'convert', lead })}
             onReject={(lead) => setPending({ mode: 'reject', lead })}
             onRestore={handleRestore}
+            busy={busy}
             now={now}
           />
         )}

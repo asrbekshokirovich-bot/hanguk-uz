@@ -68,6 +68,15 @@ export const LeadOutcomeDialog = ({
           </DialogDescription>
         </DialogHeader>
 
+        {/* A name or phone that already belongs to a student. Warned rather than
+            blocked: the match is fuzzy, so refusing outright would strand the
+            namesakes — but converting anyway opens a second account. */}
+        {converting && lead.isAlreadyStudent && (
+          <p className="rounded-[10px] border border-destructive/40 bg-destructive/10 px-3 py-2.5 text-[13px] text-destructive">
+            {t('leads.intake.convert.duplicate')}
+          </p>
+        )}
+
         {!converting && (
           <div className="flex flex-col gap-4">
             <div className="flex flex-col gap-2">

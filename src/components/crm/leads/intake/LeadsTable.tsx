@@ -15,6 +15,8 @@ interface LeadsTableProps {
   onReject: (lead: Lead) => void;
   /** Put a rejected lead back into the active list. */
   onRestore: (lead: Lead) => void;
+  /** A write is in flight; the actions are held so none of them fires twice. */
+  busy: boolean;
   now: Date;
 }
 
@@ -49,6 +51,7 @@ export const LeadsTable = ({
   onConvert,
   onReject,
   onRestore,
+  busy,
   now,
 }: LeadsTableProps) => {
   const { t } = useTranslation();
@@ -174,7 +177,7 @@ export const LeadsTable = ({
                     <button
                       type="button"
                       onClick={() => onConvert(lead)}
-                      disabled={!convertible}
+                      disabled={busy || !convertible}
                       title={convertible ? undefined : t('leads.intake.convert.needsComplete')}
                       className={cn(
                         actionClass,
@@ -187,6 +190,7 @@ export const LeadsTable = ({
                     <button
                       type="button"
                       onClick={() => onReject(lead)}
+                      disabled={busy}
                       className={cn(
                         actionClass,
                         'border-border text-muted-foreground hover:border-destructive hover:text-destructive',
@@ -202,6 +206,7 @@ export const LeadsTable = ({
                   <button
                     type="button"
                     onClick={() => onRestore(lead)}
+                    disabled={busy}
                     className={cn(actionClass, 'border-border text-muted-foreground hover:bg-muted')}
                   >
                     <RotateCcw className="h-3.5 w-3.5" aria-hidden />

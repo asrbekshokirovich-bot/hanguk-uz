@@ -834,7 +834,8 @@
         "body": "A student account is created for {{name}} and a magic code is issued. The lead moves to the Students list.",
         "confirm": "Convert",
         "done": "Already a student",
-        "needsComplete": "Fill in every field before converting"
+        "needsComplete": "Fill in every field before converting",
+        "duplicate": "Careful: a student with this name or phone number already exists. Converting creates a second account."
       },
       "reject": {
         "action": "Reject",
