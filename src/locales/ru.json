@@ -866,6 +866,26 @@
       },
       "restore": {
         "action": "Вернуть"
+      },
+      "search": {
+        "label": "Поиск лидов",
+        "placeholder": "Имя, телефон, город, заметка… или city:Samarqand",
+        "clearQuery": "Очистить поиск",
+        "filters": "Фильтры",
+        "clearAll": "Сбросить всё",
+        "any": "Любой",
+        "results_one": "Найден {{count}} лид",
+        "results_few": "Найдено {{count}} лида",
+        "results_many": "Найдено {{count}} лидов",
+        "results_other": "Найдено {{count}} лидов",
+        "noMatches": "Нет лидов по этому запросу. Уберите часть фильтров.",
+        "hint": "Слова ищутся по всем полям, либо укажите одно: name:, phone:, city:, source:, channel:, level:, semester:, cert:, note:, age:. Фразу берите в кавычки.",
+        "followUp": {
+          "overdue": "Просрочен",
+          "today": "Сегодня",
+          "week": "В течение недели",
+          "none": "Без даты"
+        }
       }
     }
   },

@@ -848,6 +848,24 @@
       },
       "restore": {
         "action": "Restore"
+      },
+      "search": {
+        "label": "Search leads",
+        "placeholder": "Name, phone, city, note… or city:Samarqand",
+        "clearQuery": "Clear the search",
+        "filters": "Filters",
+        "clearAll": "Clear all",
+        "any": "Any",
+        "results_one": "{{count}} lead found",
+        "results_other": "{{count}} leads found",
+        "noMatches": "No lead matches this search. Try fewer filters.",
+        "hint": "Type words to search every field, or narrow one: name:, phone:, city:, source:, channel:, level:, semester:, cert:, note:, age:. Quote a phrase to keep it together.",
+        "followUp": {
+          "overdue": "Overdue",
+          "today": "Today",
+          "week": "Within a week",
+          "none": "No date set"
+        }
       }
     }
   },

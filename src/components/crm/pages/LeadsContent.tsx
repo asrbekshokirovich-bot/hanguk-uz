@@ -4,6 +4,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import { useLeads } from '@/hooks/useLeads';
 import { LeadsTable } from '@/components/crm/leads/intake/LeadsTable';
+import { LeadsSearchBar } from '@/components/crm/leads/intake/LeadsSearchBar';
 import { LeadIntakeScreen } from '@/components/crm/leads/intake/LeadIntakeScreen';
 import {
   LeadOutcomeDialog,
@@ -16,6 +17,12 @@ import {
   isLeadComplete,
   leadDataFromForm,
 } from '@/components/crm/leads/intake/intakeForm';
+import {
+  type LeadFilters,
+  EMPTY_FILTERS,
+  filterLeads,
+  hasActiveSearch,
+} from '@/components/crm/leads/intake/leadSearch';
 import {
   type LeadOutcome,
   leadOutcome,
@@ -54,10 +61,17 @@ const LeadsContent = () => {
   const [tab, setTab] = useState<LeadOutcome>('active');
   // The convert/reject confirmation, or `null` when nothing is pending.
   const [pending, setPending] = useState<{ mode: OutcomeMode; lead: Lead } | null>(null);
+  const [filters, setFilters] = useState<LeadFilters>(EMPTY_FILTERS);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+
+  // Search first, then group: the counts on the filter buttons then say where
+  // the matches actually are, so a search that hits only rejected leads is
+  // visible from the active tab instead of reading as "no such person".
+  const matching = useMemo(() => filterLeads(leads, filters, now), [leads, filters, now]);
 
   const byOutcome = useMemo(() => {
     const groups: Record<LeadOutcome, Lead[]> = { active: [], converted: [], rejected: [] };
-    for (const lead of leads) groups[leadOutcome(lead)].push(lead);
+    for (const lead of matching) groups[leadOutcome(lead)].push(lead);
     for (const group of Object.values(groups)) {
       group.sort((a, b) => {
         const aComplete = isLeadComplete(a);
@@ -67,7 +81,7 @@ const LeadsContent = () => {
       });
     }
     return groups;
-  }, [leads]);
+  }, [matching]);
 
   const shown = byOutcome[tab];
 
@@ -187,6 +201,15 @@ const LeadsContent = () => {
           ))}
         </div>
 
+        <LeadsSearchBar
+          filters={filters}
+          onChange={setFilters}
+          open={filtersOpen}
+          onOpenChange={setFiltersOpen}
+          resultCount={matching.length}
+          now={now}
+        />
+
         {loading ? (
           <div className="flex flex-col gap-1.5">
             {Array.from({ length: 6 }).map((_, index) => (
@@ -195,7 +218,11 @@ const LeadsContent = () => {
           </div>
         ) : shown.length === 0 ? (
           <div className="rounded-xl border border-border bg-card px-6 py-16 text-center">
-            <p className="text-sm text-muted-foreground">{t(`leads.intake.emptyBy.${tab}`)}</p>
+            <p className="text-sm text-muted-foreground">
+              {hasActiveSearch(filters)
+                ? t('leads.intake.search.noMatches')
+                : t(`leads.intake.emptyBy.${tab}`)}
+            </p>
           </div>
         ) : (
           <LeadsTable

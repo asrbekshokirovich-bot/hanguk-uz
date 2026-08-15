@@ -895,6 +895,24 @@
       },
       "restore": {
         "action": "Qaytarish"
+      },
+      "search": {
+        "label": "Leadlarni qidirish",
+        "placeholder": "Ism, telefon, shahar, izoh… yoki city:Samarqand",
+        "clearQuery": "Qidiruvni tozalash",
+        "filters": "Filtrlar",
+        "clearAll": "Hammasini tozalash",
+        "any": "Barchasi",
+        "results_one": "{{count}} ta lead topildi",
+        "results_other": "{{count}} ta lead topildi",
+        "noMatches": "Bu qidiruvga mos lead yo‘q. Filtrlarni kamaytiring.",
+        "hint": "So‘z yozsangiz barcha maydonlar bo‘yicha qidiriladi, yoki bittasini tanlang: name:, phone:, city:, source:, channel:, level:, semester:, cert:, note:, age:. Ibora qo‘shtirnoq ichida yoziladi.",
+        "followUp": {
+          "overdue": "Muddati o‘tgan",
+          "today": "Bugun",
+          "week": "Bir hafta ichida",
+          "none": "Sana yo‘q"
+        }
       }
     }
   },
