@@ -44,6 +44,14 @@ on:
         description: "Field groups to leave in the backlog (comma-separated). Empty = drain everything."
         default: "scholarships"
         required: false
+      reparse_mode:
+        description: "Which documents the re-verify step takes: 'backlog' (least-parsed first) or 'open-cards' (what the reviewer is looking at)"
+        default: "backlog"
+        required: false
+      reparse_limit:
+        description: "Max documents for the re-verify step"
+        default: "8"
+        required: false
 
 # Never two drains at once — they would fight over the same failed jobs, and
 # the LLM budget. A running one always wins; the next tick picks up after.
@@ -167,10 +175,22 @@ jobs:
       # the next slice and the catalogue comes round over successive ticks.
       # continue-on-error and a small limit: this is the lower-priority half,
       # and it must never cost the run its publish step.
+      # `reparse_mode: open-cards` re-does exactly what the reviewer has on
+      # screen; the default drains the least-parsed backlog instead. Two
+      # genuinely different jobs — a document whose card is open may have been
+      # parsed several times and sorts LAST under the backlog order.
       - name: Re-verify already-parsed documents
         continue-on-error: true
         timeout-minutes: 60
-        run: uni-db reparse --limit 8
+        env:
+          REPARSE_MODE: ${{ github.event.inputs.reparse_mode || 'backlog' }}
+          REPARSE_LIMIT: ${{ github.event.inputs.reparse_limit || '8' }}
+        run: |
+          if [ "$REPARSE_MODE" = "open-cards" ]; then
+            uni-db reparse --limit "$REPARSE_LIMIT" --open-cards
+          else
+            uni-db reparse --limit "$REPARSE_LIMIT"
+          fi
 
       # Move anything a reviewer has approved into the tables the app reads.
       # DB-only and idempotent, so it is safe on every run and keeps the app in
