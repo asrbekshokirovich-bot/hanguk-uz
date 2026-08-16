@@ -1,0 +1,16 @@
+-- Fix: profile inserts/updates failed for staff with
+--   "permission denied for function hanguk_normalize_name".
+--
+-- 20260612000100_ai_student_search_harden.sql revoked EXECUTE on
+-- hanguk_normalize_name from anon/authenticated to keep it off the public REST
+-- surface. But that function is also referenced by the functional index
+--   idx_profiles_fullname_trgm ON profiles USING gin (hanguk_normalize_name(full_name) ...)
+-- Postgres evaluates an index expression as the role performing the write, so
+-- every INSERT/UPDATE on profiles by an authenticated staff user re-evaluated
+-- the function and tripped the missing EXECUTE grant. This broke EditStudentDialog
+-- ("Failed to update student") for all staff edits, not just phone changes.
+--
+-- hanguk_normalize_name is a pure IMMUTABLE text helper (no table access, not
+-- SECURITY DEFINER), so exposing EXECUTE is harmless. Restore the grant so the
+-- index can be maintained on writes. normalize_phone is granted the same way.
+grant execute on function public.hanguk_normalize_name(text) to anon, authenticated;
