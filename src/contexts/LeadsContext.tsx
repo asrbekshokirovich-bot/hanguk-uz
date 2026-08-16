@@ -32,6 +32,12 @@ export interface Lead {
   korean_level: string | null;
   preferred_start_date: string | null;
   how_heard: string | null;
+  /** Intake fields — see the `leads_intake_fields` migration. */
+  age: number | null;
+  cert_level: string | null;
+  contact_channel: string | null;
+  source_note: string | null;
+  target_intake: string | null;
   priority_score: number | null;
   next_follow_up: string | null;
   last_contacted_at: string | null;
@@ -69,6 +75,11 @@ export interface CreateLeadData {
   korean_level?: string;
   preferred_start_date?: string;
   how_heard?: string;
+  age?: number | null;
+  cert_level?: string | null;
+  contact_channel?: string | null;
+  source_note?: string | null;
+  target_intake?: string | null;
   next_follow_up?: string;
   last_contacted_at?: string;
   contract_number?: string;
@@ -269,8 +280,11 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
       toast.info('Conversion already in progress...');
       return { success: false };
     }
-    convertingIds.current.add(leadId);
 
+    // Both checks run before the lead is marked in-flight: returning early
+    // after marking it would leave the id in the set for the rest of the
+    // session, and every later attempt on that lead would be refused as
+    // "already in progress".
     const lead = leads.find(l => l.id === leadId);
     if (!lead) {
       toast.error('Lead not found');
@@ -281,6 +295,8 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
       toast.error('This lead has already been converted to a student');
       return { success: false };
     }
+
+    convertingIds.current.add(leadId);
 
     const tryCreateStudent = async (includePhone: boolean) => {
       const { data, error } = await supabase.functions.invoke('create-student', {

@@ -748,6 +748,154 @@
       "step3Desc": "Universitet va dastur afzalliklari",
       "step4Title": "Birinchi aloqa",
       "step4Desc": "Dastlabki suhbatni yozing"
+    },
+    "intake": {
+      "subtitle": "Qatorga bosib o‘quvchi ma’lumotlarini to‘ldiring",
+      "newLead": "+ Yangi lead",
+      "newTitle": "Yangi lead",
+      "empty": "Hozircha lead yo‘q. “+ Yangi lead” tugmasi orqali qo‘shing.",
+      "openRow": "{{name}} ma’lumotlarini ochish",
+      "allRequired": "Barcha maydonlar majburiy",
+      "optional": "(majburiy emas)",
+      "noteHint": "Izohni keyin qayta kirib har doim o‘zgartirish mumkin.",
+      "fixAll": "Barcha maydonlarni to‘ldiring",
+      "save": "Saqlash",
+      "saving": "Saqlanmoqda…",
+      "followUpPrefix": "Qayta aloqa: {{when}}",
+      "scheduled": "Rejalashtirilgan: {{when}}",
+      "dayOfMonth": "{{day}}-{{month}}",
+      "columns": {
+        "student": "O‘quvchi",
+        "phone": "Telefon",
+        "channel": "Kanal",
+        "city": "Shahar",
+        "source": "Manba",
+        "level": "Yo‘nalish",
+        "semester": "Semestr",
+        "cert": "Sertifikat",
+        "age": "Yosh",
+        "status": "Holat",
+        "actions": "Amallar"
+      },
+      "status": {
+        "complete": "To‘ldirilgan",
+        "incomplete": "To‘liq emas",
+        "converted": "O‘quvchi",
+        "rejected": "Rad etilgan"
+      },
+      "sections": {
+        "personal": "Shaxsiy ma’lumotlar",
+        "education": "Ta’lim",
+        "contactSource": "Bog‘lanish manbasi",
+        "note": "Izoh"
+      },
+      "fields": {
+        "firstName": "Ism",
+        "lastName": "Familiya",
+        "phone": "Telefon raqami",
+        "age": "Yoshi",
+        "city": "Yashash shahri",
+        "cert": "Til sertifikati",
+        "level": "Ta’lim yo‘nalishi",
+        "semester": "Semestr",
+        "channel": "Biz bilan nima orqali bog‘landi?",
+        "source": "Bizni qanday topdi?",
+        "sourceNote": "Aniqlashtirish",
+        "note": "Qo‘shimcha izoh",
+        "followUp": "Qayta aloqa sanasi"
+      },
+      "placeholders": {
+        "firstName": "Masalan: Muhammad",
+        "lastName": "Masalan: Eshmurodov",
+        "phone": "+998 90 123 45 67",
+        "age": "18",
+        "city": "Shaharni tanlang",
+        "cert": "Sertifikatni tanlang",
+        "sourceNote": "Masalan: do‘sti Dilnoza tavsiya qildi / Toshkent ta’lim ko‘rgazmasi",
+        "note": "Masalan: Birinchi marta gaplashdim, 2 kundan keyin qayta aloqaga chiqish kerak"
+      },
+      "errors": {
+        "firstName": "Ismni kiriting",
+        "lastName": "Familiyani kiriting",
+        "phone": "Telefon raqamini to‘liq kiriting",
+        "age": "Yoshni kiriting (15-45)",
+        "city": "Shaharni tanlang",
+        "cert": "Til sertifikatini tanlang",
+        "level": "Yo‘nalishni tanlang",
+        "semester": "Semestrni tanlang",
+        "channel": "Bog‘lanish kanalini tanlang",
+        "source": "Manbani tanlang"
+      },
+      "quick": {
+        "tomorrow": "Ertaga",
+        "inWeek": "1 haftadan keyin"
+      },
+      "relative": {
+        "today": "bugun",
+        "tomorrow": "ertaga",
+        "inDays_one": "{{count}} kundan keyin",
+        "inDays_other": "{{count}} kundan keyin",
+        "overdueDays_one": "{{count}} kun kechikdi",
+        "overdueDays_other": "{{count}} kun kechikdi"
+      },
+      "added": {
+        "today": "bugun qo‘shildi",
+        "days_one": "{{count}} kun oldin",
+        "days_other": "{{count}} kun oldin",
+        "weeks_one": "{{count}} hafta oldin",
+        "weeks_other": "{{count}} hafta oldin",
+        "months_one": "{{count}} oy oldin",
+        "months_other": "{{count}} oy oldin",
+        "years_one": "{{count}} yil oldin",
+        "years_other": "{{count}} yil oldin"
+      },
+      "months": [
+        "yanvar",
+        "fevral",
+        "mart",
+        "aprel",
+        "may",
+        "iyun",
+        "iyul",
+        "avgust",
+        "sentabr",
+        "oktabr",
+        "noyabr",
+        "dekabr"
+      ],
+      "working": "Bajarilmoqda…",
+      "tabs": {
+        "label": "Lead holati",
+        "active": "Ishlanmoqda",
+        "converted": "O‘quvchilar",
+        "rejected": "Rad etilganlar"
+      },
+      "emptyBy": {
+        "active": "Ishlanayotgan lead yo‘q. “+ Yangi lead” orqali qo‘shing.",
+        "converted": "Hali birorta lead o‘quvchiga aylantirilmagan.",
+        "rejected": "Rad etilgan lead yo‘q."
+      },
+      "convert": {
+        "action": "O‘quvchiga",
+        "title": "Lead o‘quvchiga aylantirilsinmi?",
+        "body": "{{name}} uchun o‘quvchi akkaunti ochiladi va sehrli kod beriladi. Lead “O‘quvchilar” ro‘yxatiga o‘tadi.",
+        "confirm": "Aylantirish",
+        "done": "Allaqachon o‘quvchi",
+        "needsComplete": "Aylantirishdan oldin barcha maydonlarni to‘ldiring",
+        "duplicate": "Diqqat: bu ism yoki telefon raqamli o‘quvchi allaqachon bor. Aylantirilsa, ikkinchi akkaunt ochiladi."
+      },
+      "reject": {
+        "action": "Rad etish",
+        "title": "Lead rad etilsinmi?",
+        "body": "{{name}} ishchi ro‘yxatdan chiqariladi. Keyinroq qaytarishingiz mumkin.",
+        "confirm": "Rad etish",
+        "reason": "Sabab",
+        "detail": "Izoh",
+        "detailPlaceholder": "Masalan: boshqa qo‘ng‘iroq qilmaslikni so‘radi"
+      },
+      "restore": {
+        "action": "Qaytarish"
+      }
     }
   },
   "universities": {

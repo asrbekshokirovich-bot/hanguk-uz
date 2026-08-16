@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/hanguk-design-system-9e4d9ed2-150d-4de2-b701-aa70a4cf7acb/colors_and_type.css">
+<link rel="stylesheet" href="_ds/hanguk-design-system-9e4d9ed2-150d-4de2-b701-aa70a4cf7acb/styles.css">
+<script src="_ds/hanguk-design-system-9e4d9ed2-150d-4de2-b701-aa70a4cf7acb/_ds_bundle.js"></script>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#EFF2F5;font-family:'Inter',system-ui,sans-serif}
+  a{color:#1A3A6C;text-decoration:none}
+  a:hover{color:#132D53}
+  input,select,button{font-family:inherit}
+  input::placeholder{color:#98A6BC}
+  @keyframes slideUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+</style>
+</helmet>
+
+<div style="min-height:100vh;background:var(--s-page,#EFF2F5);color:var(--s-text,#0A1A34);{{ themeVars }}">
+
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 28px;background:var(--s-bar,#FFFFFF);border-bottom:1px solid var(--s-border,#D9DFE8)">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="width:34px;height:34px;border-radius:9px;background:#1A3A6C;color:#fff;display:grid;place-items:center;font-weight:800;font-size:16px">한</div>
+      <div style="font-weight:700;font-size:15px;letter-spacing:-0.01em">Hanguk CRM</div>
+      <div style="width:1px;height:20px;background:var(--s-border,#D9DFE8)"></div>
+      <div style="font-size:13px;color:var(--s-muted,#52627A)">Leadlar</div>
+    </div>
+    <div style="display:flex;gap:6px;padding:4px;border-radius:999px;background:var(--s-chip,#EFF2F5)">
+      <button onClick="{{ setLight }}" style="border:0;background:var(--s-tab-light,#FFFFFF);color:var(--s-tab-light-fg,#0A1A34);padding:7px 16px;border-radius:999px;font-size:13px;font-weight:600;cursor:pointer">Oq</button>
+      <button onClick="{{ setDark }}" style="border:0;background:var(--s-tab-dark,transparent);color:var(--s-tab-dark-fg,#52627A);padding:7px 16px;border-radius:999px;font-size:13px;font-weight:600;cursor:pointer">Qorong'i</button>
+    </div>
+  </div>
+
+  <div style="max-width:1180px;margin:0 auto;padding:32px 28px 80px">
+    <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:24px">
+      <div>
+        <div style="font-weight:700;font-size:28px;letter-spacing:-0.015em">Leadlar</div>
+        <div style="font-size:14px;color:var(--s-muted,#52627A);margin-top:6px">Qatorga bosib o'quvchi ma'lumotlarini to'ldiring</div>
+      </div>
+      <button onClick="{{ openNew }}" style="border:0;background:var(--s-btn,#1A3A6C);color:var(--s-btn-fg,#FFFFFF);padding:12px 20px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;min-height:44px">+ Yangi lead</button>
+    </div>
+
+    <div style="background:var(--s-surface,#FFFFFF);border:1px solid var(--s-border,#D9DFE8);border-radius:12px;box-shadow:var(--s-shadow,0 4px 12px rgba(10,26,52,0.08));overflow-x:auto"><div style="min-width:1260px">
+      <div style="display:grid;grid-template-columns:2.1fr 1.2fr 1fr 0.9fr 1fr 0.9fr 1fr 0.5fr 1fr 1fr;gap:14px;padding:14px 20px;background:var(--s-thead,#F6F8FA);border-bottom:1px solid var(--s-border,#D9DFE8);font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--s-muted,#52627A)">
+        <div>O'quvchi</div><div>Telefon</div><div>Kanal</div><div>Shahar</div><div>Manba</div><div>Yo'nalish</div><div>Semestr</div><div>Sertifikat</div><div>Yosh</div><div>Holat</div>
+      </div>
+      <sc-for list="{{ rows }}" as="row" hint-placeholder-count="5">
+        <div onClick="{{ row.open }}" style="display:grid;grid-template-columns:2.1fr 1.2fr 1fr 0.9fr 1fr 0.9fr 1fr 0.5fr 1fr 1fr;gap:14px;align-items:center;padding:14px 20px;border-bottom:1px solid var(--s-border-soft,#EDF1F6);cursor:pointer;font-size:14px" style-hover="background:var(--s-hover,#F6F8FA)">
+          <div style="display:flex;align-items:center;gap:12px;min-width:0">
+            <div style="width:36px;height:36px;flex:none;border-radius:999px;background:var(--s-avatar,#EFF2F5);color:var(--s-avatar-fg,#1A3A6C);display:grid;place-items:center;font-weight:700;font-size:12px">{{ row.initials }}</div>
+            <div style="min-width:0">
+              <div style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ row.name }}</div>
+              <div style="font-size:12px;color:var(--s-muted,#52627A);margin-top:2px">{{ row.added }}</div>
+              <sc-if value="{{ row.hasFollowUp }}">
+                <div style="font-size:12px;font-weight:600;color:#B4CC19;margin-top:3px">Qayta aloqa: {{ row.followUpLabel }}</div>
+              </sc-if>
+            </div>
+          </div>
+          <div style="font-variant-numeric:tabular-nums">{{ row.phone }}</div>
+          <div>
+            <span style="display:inline-block;padding:4px 10px;border-radius:999px;background:var(--s-chip,#EFF2F5);color:var(--s-muted2,#52627A);font-size:12px;font-weight:600">{{ row.channel }}</span>
+          </div>
+          <div style="color:var(--s-muted2,#52627A)">{{ row.city }}</div>
+          <div style="min-width:0;color:var(--s-muted2,#52627A);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ row.source }}</div>
+          <div style="color:var(--s-muted2,#52627A)">{{ row.level }}</div>
+          <div style="color:var(--s-muted2,#52627A);white-space:nowrap">{{ row.semester }}</div>
+          <div style="color:var(--s-muted2,#52627A)">{{ row.cert }}</div>
+          <div style="color:var(--s-muted2,#52627A)">{{ row.age }}</div>
+          <div>
+            <sc-if value="{{ row.complete }}" hint-placeholder-val="{{ true }}">
+              <span style="display:inline-block;padding:5px 12px;border-radius:999px;background:#D4E94C;color:#0A1A34;font-size:12px;font-weight:700">To'ldirilgan</span>
+            </sc-if>
+            <sc-if value="{{ row.incomplete }}">
+              <span style="display:inline-block;padding:5px 12px;border-radius:999px;background:var(--s-chip,#EFF2F5);color:var(--s-muted,#52627A);font-size:12px;font-weight:600">To'liq emas</span>
+            </sc-if>
+          </div>
+        </div>
+      </sc-for>
+      </div>
+    </div>
+  </div>
+
+  <sc-if value="{{ isOpen }}" hint-placeholder-val="{{ true }}">
+    <div style="position:fixed;inset:0;z-index:60;background:var(--s-page,#EFF2F5);display:flex;flex-direction:column;animation:slideUp .3s ease-out">
+      <div style="flex:none;display:flex;align-items:center;gap:14px;padding:18px 28px;background:var(--s-bar,#FFFFFF);border-bottom:1px solid var(--s-border,#D9DFE8)">
+        <div style="width:42px;height:42px;border-radius:999px;background:var(--s-avatar,#EFF2F5);color:var(--s-avatar-fg,#1A3A6C);display:grid;place-items:center;font-weight:700;font-size:14px">{{ activeInitials }}</div>
+        <div>
+          <div style="font-weight:700;font-size:18px;letter-spacing:-0.01em">{{ activeTitle }}</div>
+          <div style="font-size:13px;color:var(--s-muted,#52627A);margin-top:2px">Barcha maydonlar majburiy</div>
+        </div>
+      </div>
+
+      <div style="flex:1;overflow-y:auto;padding:36px 28px 40px">
+        <div style="max-width:840px;margin:0 auto;display:flex;flex-direction:column;gap:28px">
+
+          <div style="background:var(--s-surface,#FFFFFF);border:1px solid var(--s-border,#D9DFE8);border-radius:14px;padding:28px">
+            <div style="font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--s-muted,#52627A);margin-bottom:20px">Shaxsiy ma'lumotlar</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <label style="font-size:13px;font-weight:600">Ism</label>
+                <input value="{{ form.firstName }}" onChange="{{ setFirstName }}" placeholder="Masalan: Muhammad" style="height:46px;padding:0 14px;border-radius:10px;border:1px solid var(--s-input-border,#D9DFE8);background:var(--s-input,#FFFFFF);color:var(--s-text,#0A1A34);font-size:15px;outline:none" style-focus="border-color:#C7E04A;box-shadow:0 0 0 3px rgba(199,224,74,0.35)">
+                <sc-if value="{{ errFirstName }}">
+                  <div style="font-size:12px;color:#EF4444">Ismni kiriting</div>
+                </sc-if>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <label style="font-size:13px;font-weight:600">Familiya</label>
+                <input value="{{ form.lastName }}" onChange="{{ setLastName }}" placeholder="Masalan: Eshmurodov" style="height:46px;padding:0 14px;border-radius:10px;border:1px solid var(--s-input-border,#D9DFE8);background:var(--s-input,#FFFFFF);color:var(--s-text,#0A1A34);font-size:15px;outline:none" style-focus="border-color:#C7E04A;box-shadow:0 0 0 3px rgba(199,224,74,0.35)">
+                <sc-if value="{{ errLastName }}">
+                  <div style="font-size:12px;color:#EF4444">Familiyani kiriting</div>
+                </sc-if>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <label style="font-size:13px;font-weight:600">Telefon raqami</label>
+                <input value="{{ form.phone }}" onChange="{{ setPhone }}" placeholder="+998 90 123 45 67" style="height:46px;padding:0 14px;border-radius:10px;border:1px solid var(--s-input-border,#D9DFE8);background:var(--s-input,#FFFFFF);color:var(--s-text,#0A1A34);font-size:15px;font-variant-numeric:tabular-nums;outline:none" style-focus="border-color:#C7E04A;box-shadow:0 0 0 3px rgba(199,224,74,0.35)">
+                <sc-if value="{{ errPhone }}">
+                  <div style="font-size:12px;color:#EF4444">Telefon raqamini to'liq kiriting</div>
+                </sc-if>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <label style="font-size:13px;font-weight:600">Yoshi</label>
+                <input value="{{ form.age }}" onChange="{{ setAge }}" placeholder="18" style="height:46px;padding:0 14px;border-radius:10px;border:1px solid var(--s-input-border,#D9DFE8);background:var(--s-input,#FFFFFF);color:var(--s-text,#0A1A34);font-size:15px;font-variant-numeric:tabular-nums;outline:none" style-focus="border-color:#C7E04A;box-shadow:0 0 0 3px rgba(199,224,74,0.35)">
+                <sc-if value="{{ errAge }}">
+                  <div style="font-size:12px;color:#EF4444">Yoshni kiriting (15-45)</div>
+                </sc-if>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px;grid-column:span 2">
+                <label style="font-size:13px;font-weight:600">Yashash shahri</label>
+                <select value="{{ form.city }}" onChange="{{ setCity }}" style="height:46px;padding:0 12px;border-radius:10px;border:1px solid var(--s-input-border,#D9DFE8);background:var(--s-input,#FFFFFF);color:var(--s-text,#0A1A34);font-size:15px;outline:none">
+                  <option value="">Shaharni tanlang</option>
+                  <option value="Toshkent">Toshkent</option>
+                  <option value="Samarqand">Samarqand</option>
+                  <option value="Buxoro">Buxoro</option>
+                  <option value="Andijon">Andijon</option>
+                  <option value="Farg'ona">Farg'ona</option>
+                  <option value="Namangan">Namangan</option>
+                  <option value="Qarshi">Qarshi</option>
+                  <option value="Nukus">Nukus</option>
+                  <option value="Urganch">Urganch</option>
+                  <option value="Jizzax">Jizzax</option>
+                  <option value="Navoiy">Navoiy</option>
+                  <option value="Termiz">Termiz</option>
+                  <option value="Guliston">Guliston</option>
+                </select>
+                <sc-if value="{{ errCity }}">
+                  <div style="font-size:12px;color:#EF4444">Shaharni tanlang</div>
+                </sc-if>
+              </div>
+            </div>
+          </div>
+
+          <div style="background:var(--s-surface,#FFFFFF);border:1px solid var(--s-border,#D9DFE8);border-radius:14px;padding:28px">
+            <div style="font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--s-muted,#52627A);margin-bottom:20px">Ta'lim</div>
+            <div style="display:flex;flex-direction:column;gap:24px">
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <label style="font-size:13px;font-weight:600">Til sertifikati</label>
+                <select value="{{ form.cert }}" onChange="{{ setCert }}" style="height:46px;padding:0 12px;border-radius:10px;border:1px solid var(--s-input-border,#D9DFE8);background:var(--s-input,#FFFFFF);color:var(--s-text,#0A1A34);font-size:15px;outline:none">
+                  <option value="">Sertifikatni tanlang</option>
+                  <option value="Yo'q">Yo'q</option>
+                  <option value="TOPIK 1">TOPIK 1</option>
+                  <option value="TOPIK 2">TOPIK 2</option>
+                  <option value="TOPIK 3">TOPIK 3</option>
+                  <option value="TOPIK 4">TOPIK 4</option>
+                  <option value="TOPIK 5">TOPIK 5</option>
+                  <option value="TOPIK 6">TOPIK 6</option>
+                  <option value="IELTS 5.5">IELTS 5.5</option>
+                  <option value="IELTS 6.0">IELTS 6.0</option>
+                  <option value="IELTS 6.5">IELTS 6.5</option>
+                  <option value="IELTS 7.0+">IELTS 7.0+</option>
+                  <option value="TOEFL">TOEFL</option>
+                </select>
+                <sc-if value="{{ errCert }}">
+                  <div style="font-size:12px;color:#EF4444">Til sertifikatini tanlang</div>
+                </sc-if>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <label style="font-size:13px;font-weight:600">Ta'lim yo'nalishi</label>
+                <div style="display:flex;gap:12px;flex-wrap:wrap">
+                  <sc-if value="{{ isVocational }}">
+                    <button onClick="{{ pickVocational }}" style="min-height:46px;padding:0 26px;border-radius:10px;border:2px solid #1A3A6C;background:#1A3A6C;color:#FFFFFF;font-size:14px;font-weight:700;cursor:pointer">Kasbiy ta'lim</button>
+                  </sc-if>
+                  <sc-if value="{{ notVocational }}" hint-placeholder-val="{{ true }}">
+                    <button onClick="{{ pickVocational }}" style="min-height:46px;padding:0 26px;border-radius:10px;border:1px solid var(--s-input-border,#D9DFE8);background:var(--s-input,#FFFFFF);color:var(--s-text,#0A1A34);font-size:14px;font-weight:600;cursor:pointer">Kasbiy ta'lim</button>
+                  </sc-if>
+                  <sc-if value="{{ isBachelor }}" hint-placeholder-val="{{ true }}">
+                    <button onClick="{{ pickBachelor }}" style="min-height:46px;padding:0 26px;border-radius:10px;border:2px solid #1A3A6C;background:#1A3A6C;color:#FFFFFF;font-size:14px;font-weight:700;cursor:pointer">Bakalavr</button>
+                  </sc-if>
+                  <sc-if value="{{ notBachelor }}">
+                    <button onClick="{{ pickBachelor }}" style="min-height:46px;padding:0 26px;border-radius:10px;border:1px solid var(--s-input-border,#D9DFE8);background:var(--s-input,#FFFFFF);color:var(--s-text,#0A1A34);font-size:14px;font-weight:600;cursor:pointer">Bakalavr</button>
+                  </sc-if>
+                  <sc-if value="{{ isMaster }}">
+                    <button onClick="{{ pickMaster }}" style="min-height:46px;padding:0 26px;border-radius:10px;border:2px solid #1A3A6C;background:#1A3A6C;color:#FFFFFF;font-size:14px;font-weight:700;cursor:pointer">Magistr</button>
+                  </sc-if>
+                  <sc-if value="{{ notMaster }}" hint-placeholder-val="{{ true }}">
+                    <button onClick="{{ pickMaster }}" style="min-height:46px;padding:0 26px;border-radius:10px;border:1px solid var(--s-input-border,#D9DFE8);background:var(--s-input,#FFFFFF);color:var(--s-text,#0A1A34);font-size:14px;font-weight:600;cursor:pointer">Magistr</button>
+                  </sc-if>
+                  <sc-if value="{{ isGks }}">
+                    <button onClick="{{ pickGks }}" style="min-height:46px;padding:0 26px;border-radius:10px;border:2px solid #1A3A6C;background:#1A3A6C;color:#FFFFFF;font-size:14px;font-weight:700;cursor:pointer">GKS</button>
+                  </sc-if>
+                  <sc-if value="{{ notGks }}" hint-placeholder-val="{{ true }}">
+                    <button onClick="{{ pickGks }}" style="min-height:46px;padding:0 26px;border-radius:10px;border:1px solid var(--s-input-border,#D9DFE8);background:var(--s-input,#FFFFFF);color:var(--s-text,#0A1A34);font-size:14px;font-weight:600;cursor:pointer">GKS</button>
+                  </sc-if>
+                </div>
+                <sc-if value="{{ errLevel }}">
+                  <div style="font-size:12px;color:#EF4444">Yo'nalishni tanlang</div>
+                </sc-if>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <label style="font-size:13px;font-weight:600">Semestr</label>
+                <div style="display:flex;gap:10px;flex-wrap:wrap">
+                  <sc-for list="{{ semesters }}" as="sem" hint-placeholder-count="4">
+                    <button onClick="{{ sem.pick }}" style="min-height:44px;padding:0 20px;border-radius:999px;border:1px solid {{ sem.border }};background:{{ sem.bg }};color:{{ sem.fg }};font-size:14px;font-weight:600;cursor:pointer">{{ sem.label }}</button>
+                  </sc-for>
+                </div>
+                <sc-if value="{{ errSemester }}">
+                  <div style="font-size:12px;color:#EF4444">Semestrni tanlang</div>
+                </sc-if>
+              </div>
+
+            </div>
+          </div>
+
+          <div style="background:var(--s-surface,#FFFFFF);border:1px solid var(--s-border,#D9DFE8);border-radius:14px;padding:28px">
+            <div style="font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--s-muted,#52627A);margin-bottom:20px">Bog'lanish manbasi</div>
+            <div style="display:flex;flex-direction:column;gap:24px">
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <label style="font-size:13px;font-weight:600">Biz bilan nima orqali bog'landi?</label>
+                <div style="display:flex;gap:10px;flex-wrap:wrap">
+                  <sc-for list="{{ channels }}" as="ch" hint-placeholder-count="5">
+                    <button onClick="{{ ch.pick }}" style="min-height:44px;padding:0 20px;border-radius:999px;border:1px solid {{ ch.border }};background:{{ ch.bg }};color:{{ ch.fg }};font-size:14px;font-weight:600;cursor:pointer">{{ ch.label }}</button>
+                  </sc-for>
+                </div>
+                <sc-if value="{{ errChannel }}">
+                  <div style="font-size:12px;color:#EF4444">Bog'lanish kanalini tanlang</div>
+                </sc-if>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <label style="font-size:13px;font-weight:600">Bizni qanday topdi?</label>
+                <div style="display:flex;gap:10px;flex-wrap:wrap">
+                  <sc-for list="{{ sources }}" as="src" hint-placeholder-count="6">
+                    <button onClick="{{ src.pick }}" style="min-height:44px;padding:0 20px;border-radius:999px;border:1px solid {{ src.border }};background:{{ src.bg }};color:{{ src.fg }};font-size:14px;font-weight:600;cursor:pointer">{{ src.label }}</button>
+                  </sc-for>
+                </div>
+                <sc-if value="{{ errSource }}">
+                  <div style="font-size:12px;color:#EF4444">Manbani tanlang</div>
+                </sc-if>
+              </div>
+              <sc-if value="{{ needsSourceNote }}">
+                <div style="display:flex;flex-direction:column;gap:8px">
+                  <label style="font-size:13px;font-weight:600">Aniqlashtirish</label>
+                  <input value="{{ form.sourceNote }}" onChange="{{ setSourceNote }}" placeholder="Masalan: do'sti Dilnoza tavsiya qildi / Toshkent ta'lim ko'rgazmasi" style="height:46px;padding:0 14px;border-radius:10px;border:1px solid var(--s-input-border,#D9DFE8);background:var(--s-input,#FFFFFF);color:var(--s-text,#0A1A34);font-size:15px;outline:none" style-focus="border-color:#C7E04A;box-shadow:0 0 0 3px rgba(199,224,74,0.35)">
+                </div>
+              </sc-if>
+            </div>
+          </div>
+
+          <div style="background:var(--s-surface,#FFFFFF);border:1px solid var(--s-border,#D9DFE8);border-radius:14px;padding:28px">
+            <div style="font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--s-muted,#52627A);margin-bottom:20px">Izoh</div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <label style="font-size:13px;font-weight:600">Qo'shimcha izoh <span style="font-weight:500;color:var(--s-muted,#52627A)">(majburiy emas)</span></label>
+              <textarea value="{{ form.note }}" onChange="{{ setNote }}" rows="4" placeholder="Masalan: Birinchi marta gaplashdim, 2 kundan keyin qayta aloqaga chiqish kerak" style="padding:12px 14px;border-radius:10px;border:1px solid var(--s-input-border,#D9DFE8);background:var(--s-input,#FFFFFF);color:var(--s-text,#0A1A34);font-size:15px;line-height:1.5;outline:none;resize:vertical" style-focus="border-color:#C7E04A;box-shadow:0 0 0 3px rgba(199,224,74,0.35)"></textarea>
+              <div style="font-size:12px;color:var(--s-muted,#52627A)">Izohni keyin qayta kirib har doim o'zgartirish mumkin.</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px;margin-top:24px">
+              <label style="font-size:13px;font-weight:600">Qayta aloqa sanasi</label>
+              <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+                <input type="date" value="{{ form.followUp }}" onChange="{{ setFollowUp }}" style="height:46px;padding:0 14px;border-radius:10px;border:1px solid var(--s-input-border,#D9DFE8);background:var(--s-input,#FFFFFF);color:var(--s-text,#0A1A34);font-size:15px;outline:none" style-focus="border-color:#C7E04A;box-shadow:0 0 0 3px rgba(199,224,74,0.35)">
+                <button onClick="{{ tomorrow }}" style="min-height:46px;padding:0 18px;border-radius:10px;border:1px solid var(--s-input-border,#D9DFE8);background:transparent;color:var(--s-text,#0A1A34);font-size:13px;font-weight:600;cursor:pointer">Ertaga</button>
+                <button onClick="{{ inWeek }}" style="min-height:46px;padding:0 18px;border-radius:10px;border:1px solid var(--s-input-border,#D9DFE8);background:transparent;color:var(--s-text,#0A1A34);font-size:13px;font-weight:600;cursor:pointer">1 haftadan keyin</button>
+              </div>
+              <sc-if value="{{ hasFollowUp }}">
+                <div style="font-size:13px;color:var(--s-muted,#52627A)">Rejalashtirilgan: {{ followUpLabel }}</div>
+              </sc-if>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div style="flex:none;display:flex;align-items:center;justify-content:flex-end;gap:20px;padding:18px 28px;background:var(--s-bar,#FFFFFF);border-top:1px solid var(--s-border,#D9DFE8)">
+        <sc-if value="{{ hasErrors }}">
+          <div style="font-size:13px;color:#EF4444;font-weight:500">Barcha maydonlarni to'ldiring</div>
+        </sc-if>
+        <button onClick="{{ save }}" style="border:0;background:var(--s-btn,#1A3A6C);color:var(--s-btn-fg,#FFFFFF);min-height:46px;padding:0 34px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer" style-hover="opacity:0.9">Saqlash</button>
+      </div>
+    </div>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;'light' | 'dark'&quot;,&quot;section&quot;:&quot;Ko'rinish&quot;}}">
+const LIGHT = {
+  '--s-page': '#EFF2F5', '--s-bar': '#FFFFFF', '--s-surface': '#FFFFFF',
+  '--s-text': '#0A1A34', '--s-muted': '#52627A', '--s-muted2': '#52627A',
+  '--s-border': '#D9DFE8', '--s-border-soft': '#EDF1F6', '--s-thead': '#F6F8FA',
+  '--s-hover': '#F6F8FA', '--s-chip': '#EFF2F5', '--s-avatar': '#EFF2F5',
+  '--s-avatar-fg': '#1A3A6C', '--s-input': '#FFFFFF', '--s-input-border': '#D9DFE8',
+  '--s-btn': '#1A3A6C', '--s-btn-fg': '#FFFFFF',
+  '--s-shadow': '0 4px 12px rgba(10,26,52,0.08)',
+  '--s-tab-light': '#FFFFFF', '--s-tab-light-fg': '#0A1A34',
+  '--s-tab-dark': 'transparent', '--s-tab-dark-fg': '#52627A'
+};
+const DARK = {
+  '--s-page': 'linear-gradient(135deg,#1A3A6C 0%,#132A4D 45%,#0F213D 75%,#0A0A1A 100%) fixed',
+  '--s-bar': 'rgba(7,18,33,0.72)', '--s-surface': 'rgba(255,255,255,0.07)',
+  '--s-text': '#FFFFFF', '--s-muted': '#95A6C0', '--s-muted2': '#C6D2E4',
+  '--s-border': 'rgba(255,255,255,0.14)', '--s-border-soft': 'rgba(255,255,255,0.08)',
+  '--s-thead': 'rgba(255,255,255,0.04)', '--s-hover': 'rgba(255,255,255,0.06)',
+  '--s-chip': 'rgba(255,255,255,0.10)', '--s-avatar': 'rgba(255,255,255,0.12)',
+  '--s-avatar-fg': '#D4E94C', '--s-input': 'rgba(255,255,255,0.06)',
+  '--s-input-border': 'rgba(255,255,255,0.18)',
+  '--s-btn': '#D4E94C', '--s-btn-fg': '#0A1A34', '--s-shadow': 'none',
+  '--s-tab-light': 'transparent', '--s-tab-light-fg': '#95A6C0',
+  '--s-tab-dark': 'rgba(255,255,255,0.14)', '--s-tab-dark-fg': '#FFFFFF'
+};
+
+const EMPTY = { firstName: '', lastName: '', phone: '', cert: '', city: '', age: '', level: '', semester: '', note: '', followUp: '', channel: '', source: '', sourceNote: '' };
+
+const YEAR = new Date().getFullYear();
+const SEMESTERS = ['Bahorgi ' + YEAR, 'Kuzgi ' + YEAR, 'Bahorgi ' + (YEAR + 1), 'Kuzgi ' + (YEAR + 1)];
+const CHANNELS = ['Instagram', 'Telegram', 'Telefon', 'WhatsApp', 'Ofisga keldi', 'Sayt formasi'];
+const SOURCES = ['Ijtimoiy tarmoq reklamasi', 'Instagram sahifasi', 'Telegram kanali', 'Do\u2018sti / tanishi tavsiyasi', 'Tadbir yoki ko\u2018rgazma', 'Google qidiruv', 'YouTube / TikTok', 'Boshqa'];
+const NEEDS_NOTE = ['Do\u2018sti / tanishi tavsiyasi', 'Tadbir yoki ko\u2018rgazma', 'Boshqa'];
+
+class Component extends DCLogic {
+  state = {
+    theme: null,
+    openId: null,
+    form: { ...EMPTY },
+    showErrors: false,
+    leads: [
+      { id: 1, firstName: 'Muhammad', lastName: 'Eshmurodov', phone: '+998 94 196 69 89', city: 'Toshkent', level: 'Bakalavr', cert: '', age: '', channel: 'Instagram', source: 'Instagram sahifasi', added: '5 oy oldin' },
+      { id: 2, firstName: 'Dilnoza', lastName: 'Qodirova', phone: '+998 90 331 24 07', city: 'Samarqand', level: 'Magistr', cert: 'TOPIK 4', age: '23', channel: 'Telegram', source: 'Telegram kanali', added: '3 kun oldin' },
+      { id: 3, firstName: 'Sardor', lastName: 'Yo\u2018ldoshev', phone: '+998 93 704 18 52', city: 'Farg\u2018ona', level: 'Bakalavr', cert: 'IELTS 6.0', age: '18', channel: 'Telefon', source: 'Do\u2018sti / tanishi tavsiyasi', sourceNote: 'Do\u2018sti Dilnoza tavsiya qildi', added: '1 hafta oldin' },
+      { id: 4, firstName: 'Aziza', lastName: 'Rahimova', phone: '+998 97 512 66 31', city: '', level: '', cert: '', age: '', channel: 'Instagram', source: 'Instagram sahifasi', added: '2 hafta oldin' },
+      { id: 5, firstName: 'Jasur', lastName: 'Toshmatov', phone: '+998 91 220 45 90', city: 'Nukus', level: 'Bakalavr', cert: 'TOPIK 2', age: '19', channel: 'Ofisga keldi', source: 'Tadbir yoki ko\u2018rgazma', sourceNote: 'Toshkent ta\u2018lim ko\u2018rgazmasi', added: '1 oy oldin' }
+    ]
+  };
+
+  theme() { return this.state.theme || this.props.theme || 'light'; }
+
+  initials(l) {
+    const a = (l.firstName || '').trim()[0] || '';
+    const b = (l.lastName || '').trim()[0] || '';
+    return (b + a).toUpperCase() || '??';
+  }
+
+  complete(l) {
+    return !!(l.firstName && l.lastName && l.phone && l.city && l.level && l.cert && l.age && l.channel && l.source && l.semester);
+  }
+
+  open(lead) {
+    this.setState({ openId: lead.id, form: { ...EMPTY, ...lead }, showErrors: false });
+  }
+
+  errors() {
+    const f = this.state.form;
+    const digits = (f.phone || '').replace(/\D/g, '');
+    const age = parseInt(f.age, 10);
+    return {
+      firstName: !(f.firstName || '').trim(),
+      lastName: !(f.lastName || '').trim(),
+      phone: digits.length < 9,
+      city: !f.city,
+      cert: !f.cert,
+      age: !(age >= 15 && age <= 45),
+      level: !f.level,
+      semester: !f.semester,
+      channel: !f.channel,
+      source: !f.source
+    };
+  }
+
+  addDays(n) {
+    const d = new Date();
+    d.setDate(d.getDate() + n);
+    const v = d.toISOString().slice(0, 10);
+    this.setState(s => ({ form: { ...s.form, followUp: v } }));
+  }
+
+  dateLabel(v) {
+    if (!v) return '';
+    const months = ['yanvar', 'fevral', 'mart', 'aprel', 'may', 'iyun', 'iyul', 'avgust', 'sentabr', 'oktabr', 'noyabr', 'dekabr'];
+    const d = new Date(v + 'T00:00:00');
+    if (isNaN(d)) return v;
+    const days = Math.round((d - new Date(new Date().toDateString())) / 86400000);
+    const rel = days === 0 ? 'bugun' : days === 1 ? 'ertaga' : days > 1 ? days + ' kundan keyin' : Math.abs(days) + ' kun kechikdi';
+    return d.getDate() + '-' + months[d.getMonth()] + ' \u00b7 ' + rel;
+  }
+
+  set(key) {
+    return (e) => {
+      const v = e.target.value;
+      this.setState(s => ({ form: { ...s.form, [key]: v } }));
+    };
+  }
+
+  save = () => {
+    const errs = this.errors();
+    if (Object.keys(errs).some(k => errs[k])) { this.setState({ showErrors: true }); return; }
+    const f = this.state.form;
+    this.setState(s => {
+      const exists = s.leads.some(l => l.id === s.openId);
+      const leads = exists
+        ? s.leads.map(l => (l.id === s.openId ? { ...l, ...f } : l))
+        : [{ ...f, id: s.openId, added: 'Hozir qo\u2018shildi' }, ...s.leads];
+      return { leads, openId: null, showErrors: false, form: { ...EMPTY } };
+    });
+  };
+
+  renderVals() {
+    const t = this.theme();
+    const tokens = t === 'dark' ? DARK : LIGHT;
+    const themeVars = Object.keys(tokens).map(k => k + ':' + tokens[k]).join(';');
+    const errs = this.errors();
+    const show = this.state.showErrors;
+    const f = this.state.form;
+    const dark = t === 'dark';
+    const chip = (list, key) => list.map(label => {
+      const on = f[key] === label;
+      return {
+        label,
+        pick: () => this.setState(s => ({ form: { ...s.form, [key]: label } })),
+        bg: on ? (dark ? '#D4E94C' : '#1A3A6C') : 'transparent',
+        fg: on ? (dark ? '#0A1A34' : '#FFFFFF') : (dark ? '#FFFFFF' : '#0A1A34'),
+        border: on ? (dark ? '#D4E94C' : '#1A3A6C') : (dark ? 'rgba(255,255,255,0.18)' : '#D9DFE8')
+      };
+    });
+    const activeName = ((f.lastName || '') + ' ' + (f.firstName || '')).trim();
+
+    return {
+      themeVars,
+      setLight: () => this.setState({ theme: 'light' }),
+      setDark: () => this.setState({ theme: 'dark' }),
+      rows: this.state.leads.map(l => ({
+        initials: this.initials(l),
+        name: ((l.lastName || '') + ' ' + (l.firstName || '')).trim(),
+        added: l.added,
+        phone: l.phone || '\u2014',
+        city: l.city || '\u2014',
+        level: l.level || '\u2014',
+        semester: l.semester || '\u2014',
+        cert: l.cert || '\u2014',
+        age: l.age || '\u2014',
+        channel: l.channel || '\u2014',
+        source: l.sourceNote || l.source || '',
+        hasFollowUp: !!l.followUp,
+        followUpLabel: this.dateLabel(l.followUp),
+        complete: this.complete(l),
+        incomplete: !this.complete(l),
+        open: () => this.open(l)
+      })),
+      isOpen: this.state.openId !== null,
+      openNew: () => this.setState({ openId: Date.now(), form: { ...EMPTY }, showErrors: false }),
+      activeInitials: this.initials(f),
+      activeTitle: activeName || 'Yangi o\u2018quvchi',
+      form: f,
+      setFirstName: this.set('firstName'),
+      setLastName: this.set('lastName'),
+      setPhone: this.set('phone'),
+      setAge: this.set('age'),
+      setCity: this.set('city'),
+      setCert: this.set('cert'),
+      semesters: chip(SEMESTERS, 'semester'),
+      errSemester: show && errs.semester,
+      channels: chip(CHANNELS, 'channel'),
+      sources: chip(SOURCES, 'source'),
+      needsSourceNote: NEEDS_NOTE.indexOf(f.source) !== -1,
+      setSourceNote: this.set('sourceNote'),
+      errChannel: show && errs.channel,
+      errSource: show && errs.source,
+      setNote: this.set('note'),
+      setFollowUp: this.set('followUp'),
+      tomorrow: () => this.addDays(1),
+      inWeek: () => this.addDays(7),
+      hasFollowUp: !!f.followUp,
+      followUpLabel: this.dateLabel(f.followUp),
+      isBachelor: f.level === 'Bakalavr',
+      notBachelor: f.level !== 'Bakalavr',
+      isMaster: f.level === 'Magistr',
+      notMaster: f.level !== 'Magistr',
+      pickBachelor: () => this.setState(s => ({ form: { ...s.form, level: 'Bakalavr' } })),
+      pickMaster: () => this.setState(s => ({ form: { ...s.form, level: 'Magistr' } })),
+      isGks: f.level === 'GKS',
+      notGks: f.level !== 'GKS',
+      pickGks: () => this.setState(s => ({ form: { ...s.form, level: 'GKS' } })),
+      isVocational: f.level === 'Kasbiy ta\'lim',
+      notVocational: f.level !== 'Kasbiy ta\'lim',
+      pickVocational: () => this.setState(s => ({ form: { ...s.form, level: 'Kasbiy ta\'lim' } })),
+      errFirstName: show && errs.firstName,
+      errLastName: show && errs.lastName,
+      errPhone: show && errs.phone,
+      errAge: show && errs.age,
+      errCity: show && errs.city,
+      errCert: show && errs.cert,
+      errLevel: show && errs.level,
+      hasErrors: show && Object.keys(errs).some(k => errs[k]),
+      save: this.save
+    };
+  }
+}
+
+</script>
+</body>
+</html>

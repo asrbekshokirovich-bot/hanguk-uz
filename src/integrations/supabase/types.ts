@@ -3074,11 +3074,14 @@ export type Database = {
       }
       leads: {
         Row: {
+          age: number | null
           ai_summary: string | null
           assigned_to: string | null
           birth_date: string | null
           budget_range: string | null
+          cert_level: string | null
           city: string | null
+          contact_channel: string | null
           contract_date: string | null
           contract_number: string | null
           converted_to_student_id: string | null
@@ -3111,16 +3114,20 @@ export type Database = {
           referred_by_student_id: string | null
           source: string
           source_id: string | null
+          source_note: string | null
           status: string
           target_intake: string | null
           updated_at: string
         }
         Insert: {
+          age?: number | null
           ai_summary?: string | null
           assigned_to?: string | null
           birth_date?: string | null
           budget_range?: string | null
+          cert_level?: string | null
           city?: string | null
+          contact_channel?: string | null
           contract_date?: string | null
           contract_number?: string | null
           converted_to_student_id?: string | null
@@ -3153,16 +3160,20 @@ export type Database = {
           referred_by_student_id?: string | null
           source?: string
           source_id?: string | null
+          source_note?: string | null
           status?: string
           target_intake?: string | null
           updated_at?: string
         }
         Update: {
+          age?: number | null
           ai_summary?: string | null
           assigned_to?: string | null
           birth_date?: string | null
           budget_range?: string | null
+          cert_level?: string | null
           city?: string | null
+          contact_channel?: string | null
           contract_date?: string | null
           contract_number?: string | null
           converted_to_student_id?: string | null
@@ -3195,6 +3206,7 @@ export type Database = {
           referred_by_student_id?: string | null
           source?: string
           source_id?: string | null
+          source_note?: string | null
           status?: string
           target_intake?: string | null
           updated_at?: string
