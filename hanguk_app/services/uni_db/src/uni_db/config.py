@@ -88,6 +88,14 @@ class Settings(BaseSettings):
     # of OCR cleanup load sustained for 4 weeks (ADR-002 reversal trigger).
     ocr_provider: str = Field(default="easyocr", alias="UNI_DB_OCR_PROVIDER")
 
+    # Remote document conversion (parse/convert_remote.py). The LAST tier for
+    # a non-PDF guideline, after hwp5txt and LibreOffice — and on a CI runner
+    # the ONLY one, because neither of those is installed there. Empty = the
+    # tier is off and non-PDF payloads fail exactly as they did before.
+    cloudconvert_api_key: str = Field(
+        default="", alias="CLOUDCONVERT_API_KEY"
+    )
+
     # PDF blob storage backend — ADR-009 default is `supabase_storage`.
     # `r2` kept as a fallback config knob but R2 is no longer the primary.
     blob_storage_backend: str = Field(

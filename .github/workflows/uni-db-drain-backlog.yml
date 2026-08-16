@@ -84,6 +84,7 @@ jobs:
       SUPABASE_URL: ${{ secrets.UNI_DB_SUPABASE_URL }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.UNI_DB_SUPABASE_SERVICE_ROLE_KEY }}
       ANTHROPIC_API_KEY: ${{ secrets.UNI_DB_ANTHROPIC_API_KEY }}
+      CLOUDCONVERT_API_KEY: ${{ secrets.UNI_DB_CLOUDCONVERT_API_KEY }}
     steps:
       - uses: actions/checkout@v4
 

@@ -21,6 +21,7 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass
 
+from . import convert_remote as remote_convert
 from .format_convert import IMAGE_FORMATS, extract_hwp, sniff_format
 from .pdf_text import ExtractedPdf, extract_text_pymupdf
 
@@ -39,7 +40,8 @@ class OrchestratorDecision:
     """Records why a particular tier was chosen — useful for HITL ops
     to debug why a PDF landed in the OCR queue."""
 
-    tier: str                  # 'pymupdf' | 'ocr_fallback' | 'hwp_convert' | 'image_ocr'
+    tier: str                  # 'pymupdf' | 'ocr_fallback' | 'hwp_convert'
+    #                            | 'image_ocr' | 'remote_convert'
     reason: str
     pages_with_text_layer: int
     pages_below_threshold: int
@@ -88,6 +90,34 @@ def extract(pdf_bytes: bytes) -> tuple[ExtractedPdf, OrchestratorDecision]:
                 chars_per_page_avg=float(len(ocr_result.text)),
             ),
         )
+
+    if fmt == "unknown" and remote_convert.is_configured():
+        # Nine of the twelve dead blobs are here: stored under a lying
+        # content-type (`application/download`, `application/x-msdownload`)
+        # and unidentifiable by magic bytes at our end either. Handing the
+        # bytes to a service that detects the format itself is the only way
+        # left short of a human opening each one — and it is strictly better
+        # than the current outcome, which is PyMuPDF throwing on byte one.
+        try:
+            remote = remote_convert.convert_to_pdf(pdf_bytes, input_format=None)
+        except remote_convert.RemoteConversionError as exc:
+            # Fall through to the PDF tiers: the sniffer can be wrong in the
+            # other direction too (a PDF with junk prepended past the 1 KiB
+            # window), and PyMuPDF's own error is the more useful one then.
+            log.info("extract: remote conversion of unknown payload failed: %s", exc)
+        else:
+            converted = extract_text_pymupdf(remote.pdf_bytes)
+            return converted, OrchestratorDecision(
+                tier="remote_convert",
+                reason=(
+                    f"payload format unrecognised locally; {remote.provider} "
+                    "detected it and returned a PDF"
+                ),
+                pages_with_text_layer=converted.page_count,
+                pages_below_threshold=0,
+                chars_per_page_avg=len(converted.text)
+                / max(converted.page_count, 1),
+            )
 
     primary = extract_text_pymupdf(pdf_bytes)
     decision = _decide(primary)

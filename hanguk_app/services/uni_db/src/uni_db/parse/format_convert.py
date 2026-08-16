@@ -27,6 +27,7 @@ import subprocess
 import tempfile
 from pathlib import Path
 
+from . import convert_remote as remote_convert
 from .pdf_text import ExtractedPdf, extract_text_pymupdf
 
 log = logging.getLogger(__name__)
@@ -156,5 +157,32 @@ def extract_hwp(data: bytes, *, fmt: str = "hwp") -> ExtractedPdf:
             )
         except Exception as exc:
             errors.append(f"libreoffice: {exc}")
+
+    # Third tier: a converter that needs nothing installed. This is not a
+    # nice-to-have — on the CI runner the two tiers above are BOTH absent
+    # (pyhwp is not a dependency, no workflow installs LibreOffice), so this
+    # is the only one that can run there, and it is why the stored HWPs have
+    # sat unparsed. Skipped silently when unconfigured so a keyless
+    # deployment fails with the same message it always did.
+    if remote_convert.is_configured():
+        try:
+            remote = remote_convert.convert_to_pdf(
+                data,
+                # hwpx is genuinely not offered; asking anyway would spend a
+                # job and five minutes of polling to be told so.
+                input_format="hwp" if fmt == "hwp" else None,
+                filename=f"guideline{suffix}",
+            )
+            converted = extract_text_pymupdf(remote.pdf_bytes)
+            return ExtractedPdf(
+                text=converted.text,
+                page_count=converted.page_count,
+                has_text_layer=converted.has_text_layer,
+                extractor=f"{remote.provider}+pymupdf",
+            )
+        except Exception as exc:
+            errors.append(f"{type(exc).__name__}: {exc}")
+    else:
+        errors.append("remote conversion not configured (CLOUDCONVERT_API_KEY)")
 
     raise RuntimeError("HWP conversion failed — " + "; ".join(errors))
