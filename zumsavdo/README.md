@@ -19,6 +19,34 @@ npm run preview    # yigʻilgan versiyani koʻrish
 npm run typecheck  # TypeScript tekshiruvi
 ```
 
+## Vercel'da alohida sayt
+
+ZumSavdo omborning ildizida emas, `zumsavdo/` papkasida turadi, shuning uchun
+u **alohida** Vercel loyihasi sifatida joylanadi va ildizdagi Hanguk
+deploy'iga tegmaydi.
+
+Vercel panelida: **Add New → Project** → shu omborni tanlang va:
+
+| Sozlama | Qiymat |
+|---|---|
+| Root Directory | `zumsavdo` |
+| Framework | Vite (o'zi aniqlaydi) |
+| Build Command | `npm run build` |
+| Output Directory | `dist` |
+
+Environment Variables (Production va Preview uchun ham):
+
+```
+VITE_SUPABASE_URL       = https://<project-ref>.supabase.co
+VITE_SUPABASE_ANON_KEY  = <publishable-key>
+```
+
+Faqat shu ikkitasi. Service role kaliti bu yerga **hech qachon** qo'yilmaydi —
+u brauzerga tushib, omborga yozish huquqini ochib yuboradi.
+
+`vercel.json` dagi rewrite qoidasi shart: `/sotuvchi/9103` kabi manzil to'g'ridan
+ochilganda statik hosting uni fayl deb izlab 404 qaytaradi.
+
 ## Manzillar
 
 Har bir sahifa **id** boʻyicha ochiladi — nomga bogʻlanmaydi, chunki Uzumda nom
