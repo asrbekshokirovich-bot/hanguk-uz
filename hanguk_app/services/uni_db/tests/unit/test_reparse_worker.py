@@ -152,3 +152,50 @@ async def test_a_rejected_key_never_marks_an_upload_permanently_failed() -> None
         watchdog.reset()
 
     assert conn.executed == [], "marked a good upload failed on a bad key"
+
+
+class TestOpenCardsMode:
+    """Re-do what the reviewer is looking at, not the least-parsed backlog.
+
+    These are genuinely different sets. The default order is
+    `parsed_version asc`, so a document whose card is open — often parsed
+    several times already — sorts LAST and a bounded backlog run never
+    reaches it. Asking for "re-analyse the review section" and getting the
+    backlog instead is a silent wrong answer.
+    """
+
+    class _SqlConn:
+        def __init__(self) -> None:
+            self.sql = ""
+
+        async def fetch(self, sql: str, *args: object) -> list[dict]:
+            self.sql = sql
+            return []
+
+    async def test_filters_on_open_cards(self) -> None:
+        conn = self._SqlConn()
+        await reparse_worker.fetch_documents(conn, limit=5, open_cards_only=True)
+        assert "review_queue" in conn.sql
+        assert "rq.status = 'open'" in conn.sql
+
+    async def test_covers_both_card_shapes(self) -> None:
+        # A field-group card points at an extraction job; a document-level
+        # flag points at the document itself. Missing either would leave part
+        # of the queue silently un-refreshed — and 11 of the 35 open cards are
+        # document-level flags.
+        conn = self._SqlConn()
+        await reparse_worker.fetch_documents(conn, limit=5, open_cards_only=True)
+        assert "extraction_jobs" in conn.sql
+        assert "'guideline_documents'" in conn.sql
+
+    async def test_off_by_default(self) -> None:
+        conn = self._SqlConn()
+        await reparse_worker.fetch_documents(conn, limit=5)
+        assert "review_queue" not in conn.sql
+
+    async def test_composes_with_institution(self) -> None:
+        conn = self._SqlConn()
+        await reparse_worker.fetch_documents(
+            conn, limit=5, open_cards_only=True, institution_id=uuid4(),
+        )
+        assert "review_queue" in conn.sql and "institution_id" in conn.sql

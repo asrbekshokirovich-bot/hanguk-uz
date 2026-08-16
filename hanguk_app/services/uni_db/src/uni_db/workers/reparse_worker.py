@@ -36,17 +36,38 @@ def _default_fetch_blob(storage_path: str) -> bytes:
 async def fetch_documents(
     conn: asyncpg.Connection, *, limit: int,
     institution_id: UUID | None = None, pending_only: bool = False,
+    open_cards_only: bool = False,
 ) -> list[asyncpg.Record]:
     """Stored guideline documents to re-extract (least-recently-parsed first).
 
     pending_only=True targets only never-parsed (parse_status='pending')
     documents — i.e. freshly uploaded PDFs — so the manual-upload engine drains
     new uploads without re-extracting (and re-billing) already-parsed docs.
+
+    open_cards_only=True targets the documents a reviewer is actually looking
+    at: those behind a row still sitting in the review queue. The default
+    order — least-parsed first — is the right one for draining a backlog and
+    the wrong one for "re-do what is on screen", because a document whose card
+    is open may well have been parsed several times already and sorts last.
+    Re-extraction supersedes the open card through the normal persist path, so
+    this replaces what the reviewer sees rather than stacking beside it.
     """
     where = ["storage_path is not null"]
     params: list[object] = [limit]
     if pending_only:
         where.append("parse_status = 'pending'")
+    if open_cards_only:
+        # Both card shapes: a field-group card points at an extraction job,
+        # a document-level flag points at the document itself. Missing either
+        # would silently leave part of the queue un-refreshed.
+        where.append(
+            "(id in (select ej.guideline_document_id from public.review_queue rq "
+            "          join public.extraction_jobs ej on ej.id = rq.entity_id "
+            "         where rq.status = 'open' and rq.entity_type = 'extraction_jobs') "
+            " or id in (select rq.entity_id from public.review_queue rq "
+            "            where rq.status = 'open' "
+            "              and rq.entity_type = 'guideline_documents'))"
+        )
     if institution_id is not None:
         params.append(institution_id)
         where.append(f"institution_id = ${len(params)}")
@@ -65,6 +86,7 @@ async def reparse_pending(
     limit: int,
     institution_id: UUID | None = None,
     pending_only: bool = False,
+    open_cards_only: bool = False,
     fetch_blob: FetchBlob | None = None,
     run_parse: RunParse | None = None,
 ) -> tuple[int, int]:
@@ -80,7 +102,8 @@ async def reparse_pending(
         run_parse = _default_run_parse
 
     docs = await fetch_documents(
-        conn, limit=limit, institution_id=institution_id, pending_only=pending_only
+        conn, limit=limit, institution_id=institution_id,
+        pending_only=pending_only, open_cards_only=open_cards_only,
     )
     log.info("reparse_worker: %d document(s) to re-extract%s",
              len(docs), " (pending-only)" if pending_only else "")

@@ -52,6 +52,11 @@ def _build_parser() -> argparse.ArgumentParser:
     p_reparse.add_argument("--pending-only", action="store_true",
                            help="Only never-parsed (uploaded) docs; mark failures "
                                 "'failed' so a broken PDF isn't re-billed each run")
+    p_reparse.add_argument("--open-cards", action="store_true",
+                           help="Only documents behind a card still open in the "
+                                "review queue — re-do what the reviewer is "
+                                "actually looking at, rather than the "
+                                "least-parsed backlog")
 
     p_retry = sub.add_parser(
         "retry-failed",
@@ -230,7 +235,8 @@ def main(argv: list[str] | None = None) -> int:
         return asyncio.run(_run_pipeline(limit=args.limit))
     if args.cmd == "reparse":
         return asyncio.run(_reparse(limit=args.limit, institution=args.institution,
-                                    pending_only=args.pending_only))
+                                    pending_only=args.pending_only,
+                                    open_cards_only=args.open_cards))
     if args.cmd == "retry-failed":
         return asyncio.run(_retry_failed(
             limit=args.limit,
@@ -445,7 +451,9 @@ async def _run_pipeline(*, limit: int) -> int:
     return 0
 
 
-async def _reparse(*, limit: int, institution: str | None, pending_only: bool = False) -> int:
+async def _reparse(*, limit: int, institution: str | None,
+                   pending_only: bool = False,
+                   open_cards_only: bool = False) -> int:
     """LIVE: re-extract already-stored guideline documents so the latest
     extraction/normalization fixes apply to existing data (the old review
     cards are superseded via dedup). Reads PDFs from storage — does NOT
@@ -478,7 +486,8 @@ async def _reparse(*, limit: int, institution: str | None, pending_only: bool = 
                 print(f"No institution with primary_domain={institution!r}.", file=sys.stderr)
                 return 2
         ok, fail = await reparse_worker.reparse_pending(
-            conn, limit=limit, institution_id=institution_id, pending_only=pending_only,
+            conn, limit=limit, institution_id=institution_id,
+            pending_only=pending_only, open_cards_only=open_cards_only,
         )
     finally:
         await conn.close()
