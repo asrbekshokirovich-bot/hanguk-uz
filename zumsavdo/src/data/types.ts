@@ -41,8 +41,15 @@ export interface Product {
 export interface ShopDay {
   shopId: number;
   date: string; // YYYY-MM-DD
-  /** Shop.ordersQuantity farqi — ANIQ. */
-  orders: number;
+  /**
+   * Shop.ordersQuantity farqi — ANIQ.
+   *
+   * `null` — kun chegarasidagi oʻlchov yoʻq, shuning uchun farq hisoblanmagan.
+   * Bunday kunga nol yozish "sotuv boʻlmagan" degan yolgʻon javob beradi.
+   */
+  orders: number | null;
+  /** Farq ikki haqiqiy oʻlchovga tayanadimi. */
+  ordersCertain: boolean;
   /** Oʻrtacha chek uchun ishlatiladigan narx (soʻm). */
   avgPrice: number;
   /** Shu kuni nechta sweep tushgani va nechtasi kutilgani. */

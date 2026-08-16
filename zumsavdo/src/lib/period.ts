@@ -1,4 +1,4 @@
-import { DATA_START, addDays, daysBetween, today } from "./dates";
+import { addDays, dataStart, daysBetween, today } from "./dates";
 
 export type PeriodId = "today" | "7d" | "30d" | "custom";
 
@@ -19,7 +19,7 @@ export const PERIOD_CHOICES: { id: PeriodId; label: string }[] = [
 
 /** Davr hech qachon maʻlumot boshlanishidan orqaga chiqmaydi. */
 function clampFrom(from: string): string {
-  return from < DATA_START ? DATA_START : from;
+  return from < dataStart() ? dataStart() : from;
 }
 
 export function makePeriod(id: PeriodId, from?: string, to?: string): Period {

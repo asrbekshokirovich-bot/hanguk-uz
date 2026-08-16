@@ -24,14 +24,20 @@ import type {
  * ulanganda bu fayl HTTP chaqiruvlariga aylanadi, sahifalar oʻzgarmaydi.
  */
 
-const data = getDataset();
+/**
+ * Faol toʻplam har chaqiruvda oʻqiladi — ombor yuklangach u almashadi va
+ * modul darajasidagi nusxa eskirib qolmasligi kerak.
+ */
+function db() {
+  return getDataset();
+}
 
 /** Davr ichidagi kunlar indekslari. */
 function sliceIndexes(period: Period): number[] {
-  const first = daysBetween(data.dates[0], period.from);
-  const last = daysBetween(data.dates[0], period.to);
+  const first = daysBetween(db().dates[0], period.from);
+  const last = daysBetween(db().dates[0], period.to);
   const out: number[] = [];
-  for (let i = Math.max(0, first); i <= Math.min(data.dates.length - 1, last); i++) {
+  for (let i = Math.max(0, first); i <= Math.min(db().dates.length - 1, last); i++) {
     out.push(i);
   }
   return out;
@@ -44,35 +50,35 @@ function sum(values: number[]): number {
 // ---------------------------------------------------------------- holat
 
 export function getStatus(): SweepStatus {
-  return data.status;
+  return db().status;
 }
 
 export function getDates(): string[] {
-  return data.dates;
+  return db().dates;
 }
 
 // ---------------------------------------------------------------- xomashyo
 
 export function getShop(id: number): Shop | undefined {
-  return data.shops.find((s) => s.id === id);
+  return db().shops.find((s) => s.id === id);
 }
 
 export function getProduct(id: number): Product | undefined {
-  return data.products.find((p) => p.id === id);
+  return db().products.find((p) => p.id === id);
 }
 
 export function getCategory(id: number): Category | undefined {
-  return data.categories.find((c) => c.id === id);
+  return db().categories.find((c) => c.id === id);
 }
 
 export function shopProductCount(shopId: number): number {
-  return data.productsByShop.get(shopId)?.length ?? 0;
+  return db().productsByShop.get(shopId)?.length ?? 0;
 }
 
 export function categoryCounts(categoryId: number): { products: number; shops: number } {
   return {
-    products: data.productsByCategory.get(categoryId)?.length ?? 0,
-    shops: data.shopsByCategory.get(categoryId)?.length ?? 0,
+    products: db().productsByCategory.get(categoryId)?.length ?? 0,
+    shops: db().shopsByCategory.get(categoryId)?.length ?? 0,
   };
 }
 
@@ -85,25 +91,45 @@ export function categoryCounts(categoryId: number): { products: number; shops: n
  * aks holda tushib qolgan yarim kun oʻsish yoki pasayish deb oʻqiladi.
  */
 function ordersMetric(days: ShopDay[], indexes: number[], period: Period): Metric {
-  const value = sum(indexes.map((i) => days[i]?.orders ?? 0));
-  if (period.id !== "today") return { value, certainty: "exact" };
+  const value = sum(indexes.map((i) => ordersOf(days[i])));
+  const notes: string[] = [];
 
-  const last = days[indexes[indexes.length - 1]];
-  const note = last
-    ? `${last.sweeps}/${last.sweepsExpected} oʻlchov tushgan`
-    : undefined;
-  return { value, certainty: "exact", note };
+  if (period.id === "today") {
+    const last = days[indexes[indexes.length - 1]];
+    if (last) notes.push(`${last.sweeps}/${last.sweepsExpected} oʻlchov tushgan`);
+  }
+
+  const missing = countMissing(days, indexes);
+  if (missing > 0) {
+    notes.push(`${missing} kun uchun oʻlchov yetmagan — u yigʻindiga kirmadi`);
+  }
+
+  return { value, certainty: "exact", note: notes.join(" · ") || undefined };
+}
+
+/**
+ * Oʻlchovi yoʻq kun nol deb sanaladi, lekin bu izohda aytiladi.
+ *
+ * Nolni jimgina qoʻshish yigʻindini pasaytiradi va sotuvchi buni tushish deb
+ * oʻqiydi — shuning uchun tushib qolgan kunlar soni har doim yoziladi.
+ */
+function ordersOf(day: ShopDay | undefined): number {
+  return day?.orders ?? 0;
+}
+
+function countMissing(days: ShopDay[], indexes: number[]): number {
+  return indexes.filter((i) => days[i] && days[i].orders === null).length;
 }
 
 /** Aylanma — TAXMINIY. Dona × narx, shuning uchun hech qachon aniq emas. */
 function revenueMetric(days: ShopDay[], indexes: number[]): Metric {
-  const value = sum(indexes.map((i) => (days[i]?.orders ?? 0) * (days[i]?.avgPrice ?? 0)));
+  const value = sum(indexes.map((i) => ordersOf(days[i]) * (days[i]?.avgPrice ?? 0)));
   return { value, certainty: "approx" };
 }
 
 function shopDailyOrders(shopId: number, indexes: number[]): SeriesPoint[] {
-  const days = data.shopDays.get(shopId) ?? [];
-  return indexes.map((i) => ({ date: data.dates[i], value: days[i]?.orders ?? 0 }));
+  const days = db().shopDays.get(shopId) ?? [];
+  return indexes.map((i) => ({ date: db().dates[i], value: ordersOf(days[i]) }));
 }
 
 // ---------------------------------------------------------------- bosh sahifa
@@ -118,28 +144,34 @@ export function marketSummary(period: Period): MarketSummary {
   const indexes = sliceIndexes(period);
   let orders = 0;
   let revenue = 0;
-  const daily = indexes.map((i) => ({ date: data.dates[i], value: 0 }));
+  const daily = indexes.map((i) => ({ date: db().dates[i], value: 0 }));
+  let missing = 0;
 
-  for (const shop of data.shops) {
-    const days = data.shopDays.get(shop.id) ?? [];
+  for (const shop of db().shops) {
+    const days = db().shopDays.get(shop.id) ?? [];
     indexes.forEach((i, slot) => {
       const day = days[i];
       if (!day) return;
-      orders += day.orders;
-      revenue += day.orders * day.avgPrice;
-      daily[slot].value += day.orders;
+      const value = ordersOf(day);
+      if (day.orders === null) missing++;
+      orders += value;
+      revenue += value * day.avgPrice;
+      daily[slot].value += value;
     });
   }
 
   const lastIndex = indexes[indexes.length - 1];
-  const anyShop = data.shopDays.get(data.shops[0].id) ?? [];
-  const note =
-    period.id === "today" && anyShop[lastIndex]
-      ? `${anyShop[lastIndex].sweeps}/${anyShop[lastIndex].sweepsExpected} oʻlchov tushgan`
-      : undefined;
+  const anyShop = db().shopDays.get(db().shops[0]?.id ?? 0) ?? [];
+  const notes: string[] = [];
+  if (period.id === "today" && anyShop[lastIndex]) {
+    notes.push(`${anyShop[lastIndex].sweeps}/${anyShop[lastIndex].sweepsExpected} oʻlchov tushgan`);
+  }
+  if (missing > 0) {
+    notes.push(`${missing} sotuvchi-kun uchun oʻlchov yetmagan`);
+  }
 
   return {
-    orders: { value: orders, certainty: "exact", note },
+    orders: { value: orders, certainty: "exact", note: notes.join(" · ") || undefined },
     revenue: { value: revenue, certainty: "approx" },
     daily,
   };
@@ -154,14 +186,14 @@ export interface RankedShop {
 
 export function shopsRanked(period: Period): RankedShop[] {
   const indexes = sliceIndexes(period);
-  return data.shops
+  return db().shops
     .map((shop) => {
-      const days = data.shopDays.get(shop.id) ?? [];
+      const days = db().shopDays.get(shop.id) ?? [];
       return {
         shop,
         categoryName: getCategory(shop.categoryId)?.name ?? "",
-        orders: sum(indexes.map((i) => days[i]?.orders ?? 0)),
-        revenue: sum(indexes.map((i) => (days[i]?.orders ?? 0) * (days[i]?.avgPrice ?? 0))),
+        orders: sum(indexes.map((i) => ordersOf(days[i]))),
+        revenue: sum(indexes.map((i) => ordersOf(days[i]) * (days[i]?.avgPrice ?? 0))),
       };
     })
     .sort((a, b) => b.orders - a.orders);
@@ -176,18 +208,18 @@ export interface RankedCategory {
 
 export function categoriesRanked(period: Period): RankedCategory[] {
   const indexes = sliceIndexes(period);
-  return data.categories
+  return db().categories
     .map((category) => {
-      const shopIds = data.shopsByCategory.get(category.id) ?? [];
+      const shopIds = db().shopsByCategory.get(category.id) ?? [];
       let orders = 0;
       let revenue = 0;
       for (const id of shopIds) {
-        const days = data.shopDays.get(id) ?? [];
+        const days = db().shopDays.get(id) ?? [];
         for (const i of indexes) {
           const day = days[i];
           if (!day) continue;
-          orders += day.orders;
-          revenue += day.orders * day.avgPrice;
+          orders += ordersOf(day);
+          revenue += ordersOf(day) * day.avgPrice;
         }
       }
       return { category, orders, revenue, shopCount: shopIds.length };
@@ -209,12 +241,12 @@ export function shopRank(shopId: number): Rank | null {
   if (!shop) return null;
   const period = rankPeriod();
   const indexes = sliceIndexes(period);
-  const siblings = data.shopsByCategory.get(shop.categoryId) ?? [];
+  const siblings = db().shopsByCategory.get(shop.categoryId) ?? [];
 
   const scored = siblings
     .map((id) => {
-      const days = data.shopDays.get(id) ?? [];
-      return { id, orders: sum(indexes.map((i) => days[i]?.orders ?? 0)) };
+      const days = db().shopDays.get(id) ?? [];
+      return { id, orders: sum(indexes.map((i) => ordersOf(days[i]))) };
     })
     .sort((a, b) => b.orders - a.orders);
 
@@ -235,11 +267,11 @@ export function productRank(productId: number): Rank | null {
   if (!product) return null;
   const period = rankPeriod();
   const indexes = sliceIndexes(period);
-  const siblings = data.productsByCategory.get(product.categoryId) ?? [];
+  const siblings = db().productsByCategory.get(product.categoryId) ?? [];
 
   const scored = siblings
     .map((id) => {
-      const days = data.productDays.get(id) ?? [];
+      const days = db().productDays.get(id) ?? [];
       return { id, units: sum(indexes.map((i) => days[i]?.soldUnits ?? 0)) };
     })
     .sort((a, b) => b.units - a.units);
@@ -264,33 +296,33 @@ export function search(kind: SearchKind, query: string, limit = 8): SearchHit[] 
   const indexes = sliceIndexes(period);
 
   if (kind === "shop") {
-    return data.shops
+    return db().shops
       .map((shop) => ({ shop, score: matchScore(shop.name, query) }))
       .filter((x) => x.score >= 0)
       .sort((a, b) => b.score - a.score)
       .slice(0, limit)
       .map(({ shop }) => {
-        const days = data.shopDays.get(shop.id) ?? [];
+        const days = db().shopDays.get(shop.id) ?? [];
         return {
           kind,
           id: shop.id,
           name: shop.name,
           context: getCategory(shop.categoryId)?.name ?? "",
-          orders: sum(indexes.map((i) => days[i]?.orders ?? 0)),
-          revenue: sum(indexes.map((i) => (days[i]?.orders ?? 0) * (days[i]?.avgPrice ?? 0))),
+          orders: sum(indexes.map((i) => ordersOf(days[i]))),
+          revenue: sum(indexes.map((i) => ordersOf(days[i]) * (days[i]?.avgPrice ?? 0))),
           rank: shopRank(shop.id),
         };
       });
   }
 
   if (kind === "product") {
-    return data.products
+    return db().products
       .map((product) => ({ product, score: matchScore(product.name, query) }))
       .filter((x) => x.score >= 0)
       .sort((a, b) => b.score - a.score)
       .slice(0, limit)
       .map(({ product }) => {
-        const days = data.productDays.get(product.id) ?? [];
+        const days = db().productDays.get(product.id) ?? [];
         const units = sum(indexes.map((i) => days[i]?.soldUnits ?? 0));
         const revenue = sum(indexes.map((i) => (days[i]?.soldUnits ?? 0) * (days[i]?.price ?? 0)));
         return {
@@ -305,7 +337,7 @@ export function search(kind: SearchKind, query: string, limit = 8): SearchHit[] 
       });
   }
 
-  return data.categories
+  return db().categories
     .map((category) => ({ category, score: matchScore(category.name, query) }))
     .filter((x) => x.score >= 0)
     .sort((a, b) => b.score - a.score)
@@ -358,22 +390,22 @@ export function shopView(shopId: number, period: Period): ShopView | null {
   if (!shop) return null;
 
   const indexes = sliceIndexes(period);
-  const days = data.shopDays.get(shopId) ?? [];
-  const siblings = data.shopsByCategory.get(shop.categoryId) ?? [];
+  const days = db().shopDays.get(shopId) ?? [];
+  const siblings = db().shopsByCategory.get(shop.categoryId) ?? [];
 
   const categoryDaily = indexes.map((i) => {
     let total = 0;
-    for (const id of siblings) total += data.shopDays.get(id)?.[i]?.orders ?? 0;
-    return { date: data.dates[i], value: siblings.length ? total / siblings.length : 0 };
+    for (const id of siblings) total += ordersOf(db().shopDays.get(id)?.[i]);
+    return { date: db().dates[i], value: siblings.length ? total / siblings.length : 0 };
   });
 
-  const productIds = data.productsByShop.get(shopId) ?? [];
-  const lastIndex = indexes[indexes.length - 1] ?? data.dates.length - 1;
+  const productIds = db().productsByShop.get(shopId) ?? [];
+  const lastIndex = indexes[indexes.length - 1] ?? db().dates.length - 1;
 
   const products: ShopProductRow[] = productIds
     .map((id) => {
       const product = getProduct(id)!;
-      const series = data.productDays.get(id) ?? [];
+      const series = db().productDays.get(id) ?? [];
       const last = series[lastIndex];
       return {
         product,
@@ -432,12 +464,12 @@ export function productView(productId: number, period: Period): ProductView | nu
   if (!shop) return null;
 
   const indexes = sliceIndexes(period);
-  const series = data.productDays.get(productId) ?? [];
+  const series = db().productDays.get(productId) ?? [];
   const lastIndex = indexes[indexes.length - 1] ?? series.length - 1;
   const last = series[lastIndex];
 
   const pick = (read: (d: ProductDay) => number): SeriesPoint[] =>
-    indexes.map((i) => ({ date: data.dates[i], value: series[i] ? read(series[i]) : 0 }));
+    indexes.map((i) => ({ date: db().dates[i], value: series[i] ? read(series[i]) : 0 }));
 
   return {
     product,
@@ -456,7 +488,7 @@ export function productView(productId: number, period: Period): ProductView | nu
       stock: pick((d) => d.stock),
       reviews: pick((d) => d.reviews),
     },
-    outOfStockDates: indexes.filter((i) => series[i]?.outOfStock).map((i) => data.dates[i]),
+    outOfStockDates: indexes.filter((i) => series[i]?.outOfStock).map((i) => db().dates[i]),
     events: productEvents(series).filter((e) => e.date >= period.from && e.date <= period.to),
   };
 }
@@ -498,25 +530,26 @@ export function categoryView(categoryId: number, period: Period): CategoryView |
   if (!category) return null;
 
   const indexes = sliceIndexes(period);
-  const shopIds = data.shopsByCategory.get(categoryId) ?? [];
-  const productIds = data.productsByCategory.get(categoryId) ?? [];
+  const shopIds = db().shopsByCategory.get(categoryId) ?? [];
+  const productIds = db().productsByCategory.get(categoryId) ?? [];
 
   let orders = 0;
   let revenue = 0;
-  const daily = indexes.map((i) => ({ date: data.dates[i], value: 0 }));
+  const daily = indexes.map((i) => ({ date: db().dates[i], value: 0 }));
 
   const shops: RankedShop[] = shopIds
     .map((id) => {
       const shop = getShop(id)!;
-      const days = data.shopDays.get(id) ?? [];
+      const days = db().shopDays.get(id) ?? [];
       let shopOrders = 0;
       let shopRevenue = 0;
       indexes.forEach((i, slot) => {
         const day = days[i];
         if (!day) return;
-        shopOrders += day.orders;
-        shopRevenue += day.orders * day.avgPrice;
-        daily[slot].value += day.orders;
+        const value = ordersOf(day);
+        shopOrders += value;
+        shopRevenue += value * day.avgPrice;
+        daily[slot].value += value;
       });
       orders += shopOrders;
       revenue += shopRevenue;
@@ -524,11 +557,11 @@ export function categoryView(categoryId: number, period: Period): CategoryView |
     })
     .sort((a, b) => b.orders - a.orders);
 
-  const lastIndex = indexes[indexes.length - 1] ?? data.dates.length - 1;
+  const lastIndex = indexes[indexes.length - 1] ?? db().dates.length - 1;
   const products = productIds
     .map((id) => {
       const product = getProduct(id)!;
-      const series = data.productDays.get(id) ?? [];
+      const series = db().productDays.get(id) ?? [];
       return {
         product,
         units: sum(indexes.map((i) => series[i]?.soldUnits ?? 0)),

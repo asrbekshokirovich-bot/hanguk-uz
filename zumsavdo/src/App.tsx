@@ -6,12 +6,13 @@ import { ShopPage } from "@/pages/Shop";
 import { ProductPage } from "@/pages/Product";
 import { CategoryPage } from "@/pages/Category";
 import { NotFoundPage } from "@/pages/NotFound";
+import type { BootResult } from "@/data/bootstrap";
 
 /**
  * Manzillar id boʻyicha: /sotuvchi/9103, /mahsulot/560305, /turkum/1007.
  * Nomga bogʻlanmaydi — Uzumda nom istalgan kuni oʻzgarishi mumkin, id esa yoʻq.
  */
-export function App() {
+export function App({ boot }: { boot: BootResult }) {
   const location = useLocation();
 
   useEffect(() => {
@@ -32,6 +33,15 @@ export function App() {
       </header>
 
       <main className="wrap">
+        {/* Namuna raqamlari hech qachon haqiqiy oʻlchov kabi koʻrinmasligi kerak. */}
+        {boot.mode === "sample" && (
+          <div className="callout warn" style={{ marginTop: 14 }}>
+            <b>Bu namuna maʻlumot — Uzumdan olingan emas.</b>{" "}
+            {boot.fallbackReason}{" "}
+            Haqiqiy oʻlchovlar uchun <code>zumsavdo/ingest</code> sweepini ishga tushiring.
+          </div>
+        )}
+
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/sotuvchi/:id" element={<ShopPage />} />

@@ -1,11 +1,11 @@
-import { DATA_START, formatDate, today } from "@/lib/dates";
+import { dataStart, formatDate, today } from "@/lib/dates";
 import { PERIOD_CHOICES, type Period, type PeriodId } from "@/lib/period";
 
 /**
  * Davr tanlash.
  *
- * 28.07.2026 dan oldingi sanalar oʻchirilgan — undan oldin hech qanday oʻlchov
- * yoʻq. Ularni ochiq qoldirish "nol buyurtma" degan yolgʻon javob beradi.
+ * Eng eski oʻlchovdan oldingi sanalar oʻchirilgan — undan oldin hech narsa
+ * yigʻilmagan. Ularni ochiq qoldirish "nol buyurtma" degan yolgʻon javob beradi.
  */
 export function PeriodPicker({
   period,
@@ -21,7 +21,7 @@ export function PeriodPicker({
       <header>
         <h2>Davr</h2>
         <span className="hint">
-          Maʻlumot {formatDate(DATA_START)} dan yigʻilgan — undan oldingi sanalar mavjud emas.
+          Maʻlumot {formatDate(dataStart())} dan yigʻilgan — undan oldingi sanalar mavjud emas.
         </span>
       </header>
       <div className="body">
@@ -46,7 +46,7 @@ export function PeriodPicker({
               <input
                 type="date"
                 value={period.from}
-                min={DATA_START}
+                min={dataStart()}
                 max={max}
                 onChange={(e) => onChange("custom", e.target.value, period.to)}
               />
@@ -57,7 +57,7 @@ export function PeriodPicker({
               <input
                 type="date"
                 value={period.to}
-                min={DATA_START}
+                min={dataStart()}
                 max={max}
                 onChange={(e) => onChange("custom", period.from, e.target.value)}
               />

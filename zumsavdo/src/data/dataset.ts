@@ -1,4 +1,4 @@
-import { DATA_START, fromKey, rangeKeys, today } from "@/lib/dates";
+import { dataStart, fromKey, rangeKeys, today } from "@/lib/dates";
 import type {
   Category,
   ChangeEvent,
@@ -150,7 +150,7 @@ const SWEEPS_PER_DAY = 12;
 
 function buildDataset(): Dataset {
   const end = today();
-  const dates = rangeKeys(DATA_START, end);
+  const dates = rangeKeys(dataStart(), end);
   const r = rng(20260728);
 
   const categories: Category[] = CATEGORY_NAMES.map((name, i) => ({
@@ -380,6 +380,9 @@ function buildShopSeries(
       shopId: shop.id,
       date,
       orders: Math.round(orders * partial),
+      // Namuna toʻplamida oʻlchov har doim toʻliq — bu yerda "yetmagan kun"
+      // holati yoʻq, u faqat haqiqiy omborda uchraydi.
+      ordersCertain: true,
       avgPrice,
       sweeps,
       sweepsExpected: SWEEPS_PER_DAY,
@@ -470,9 +473,18 @@ function followUpUnits(days: ProductDay[], at: number): string | undefined {
 export function shopEvents(days: ShopDay[]): ChangeEvent[] {
   const events: ChangeEvent[] = [];
   for (let i = 3; i < days.length; i++) {
-    const baseline = average(days.slice(Math.max(0, i - 4), i).map((d) => d.orders));
+    // Oʻlchovi yoʻq kun hodisa yaratmaydi: yoʻq maʻlumot tushish emas.
+    const today = days[i].orders;
+    if (today === null) continue;
+    const window = days
+      .slice(Math.max(0, i - 4), i)
+      .map((d) => d.orders)
+      .filter((n): n is number => n !== null);
+    if (window.length < 3) continue;
+
+    const baseline = average(window);
     if (baseline < 4) continue;
-    const change = (days[i].orders - baseline) / baseline;
+    const change = (today - baseline) / baseline;
     if (Math.abs(change) < 0.35) continue;
     const up = change > 0;
     events.push({
@@ -493,7 +505,17 @@ export function average(values: number[]): number {
 
 let cached: Dataset | null = null;
 
+/**
+ * Faol toʻplam.
+ *
+ * Ombor ulanganda `setDataset` bilan almashtiriladi; ulanmagan boʻlsa namuna
+ * toʻplami ishlatiladi, shunda panel kredensialsiz ham ochiladi.
+ */
 export function getDataset(): Dataset {
   if (!cached) cached = buildDataset();
   return cached;
+}
+
+export function setDataset(dataset: Dataset): void {
+  cached = dataset;
 }

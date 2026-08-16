@@ -88,15 +88,85 @@ src/
   pages/          Home, Shop, Product, Category, NotFound
 ```
 
-## Maʻlumot manbai
+## Maʻlumot oqimi
 
-Hozircha `src/data/dataset.ts` seed boʻyicha barqaror namuna toʻplamini
-yaratadi: 2026-07-28 dan bugungacha, ~60 sotuvchi, ~400 mahsulot, 10 turkum.
-Toʻplam taxminiy oʻlchovning zaifligini ataylab saqlaydi — tovar oraliqda
-keltirilgan kunlarda sotuvning bir qismi koʻrinmay qoladi, chunki interfeys
-buni koʻrsatishi kerak.
+```
+manba  →  xom oʻlchov  →  kunlik yigʻindi  →  panel
+          (observation)   (bazada, SQL)      (faqat oʻqiydi)
+```
 
-Uzumni sweep qiluvchi haqiqiy backend ulanganda faqat `src/data/api.ts`
-HTTP chaqiruvlariga aylantiriladi — sahifalar va komponentlar tegilmaydi.
-`types.ts` dagi maydonlar oʻsha manbaning nomlariga qarab tanlangan
-(`Shop.ordersQuantity`, `MotivationAction.text`).
+Kunlik raqam **hech qachon** manbadan toʻgʻridan-toʻgʻri olinmaydi. Uzum
+buyurtmani kümülativ hisoblagich sifatida beradi (`Shop.ordersQuantity`), kunlik
+son esa ikki oʻlchov farqi. Farq bazada hisoblanadi — bitta joyda, bitta
+qoida bilan.
+
+Shu ajratishning natijasi: kun chegarasidagi oʻlchov tushmagan boʻlsa,
+buyurtma `null` boʻlib qoladi va panel uni yigʻindiga qoʻshmaydi hamda nechta
+kun tushib qolganini yozadi. Bunday kunga nol yozish "sotuv boʻlmagan" degan
+yolgʻon javob beradi.
+
+Sotuv (dona) esa qoldiqning **ketma-ket oʻlchovlar orasidagi pasayishlari**
+yigʻindisi. Kun ichida bir necha marta oʻlchash shuning uchun muhim: kunlik
+yagona farq olinsa, oraliqda keltirilgan tovar sotuvni butunlay yashiradi.
+
+## Ombor (Supabase)
+
+Jadvallar `zumsavdo` sxemasida; panel ularni `public.zs_*` koʻrinishlari orqali
+oʻqiydi, yozuvchi esa `public.zs_ingest_batch` funksiyasi orqali yozadi.
+
+| Jadval | Nima |
+|---|---|
+| `category`, `shop`, `product` | lugʻatlar |
+| `sweep` | bitta yigʻish sessiyasi: qamrov, xato soni |
+| `shop_observation` | kümülativ hisoblagichning bir ondagi holati |
+| `product_observation` | narx, qoldiq, sharh, haftalik xaridor |
+| `shop_day`, `product_day` | kunlik yigʻindi (`rollup_days` hisoblaydi) |
+
+Panelga faqat oʻqish kaliti beriladi (`VITE_SUPABASE_ANON_KEY`) — yozish huquqi
+yoʻq. Service role kaliti faqat `ingest/.env` da qoladi va brauzerga tushmaydi.
+
+Ombor sozlanmagan boʻlsa panel namuna toʻplami bilan ochiladi va yuqorida
+**"Bu namuna maʻlumot"** ogohlantirishi turadi — namuna raqami hech qachon
+haqiqiy oʻlchov kabi koʻrinmasligi kerak.
+
+## Yigʻuvchi (`ingest/`)
+
+```bash
+cd zumsavdo/ingest
+npm install
+cp .env.example .env      # toʻldiring
+npm run sweep             # oʻlchov oling va kunlik yigʻindini yangilang
+npm run sweep -- --probe  # manba javobini oʻzgartirmasdan bosib chiqaradi
+npm run rollup            # faqat qayta hisoblash
+```
+
+Manbalar `ZUMSAVDO_SOURCE` bilan tanlanadi:
+
+- **`sample`** — namuna oʻlchovlari. Kredensialsiz ham butun quvurni (sxema,
+  farq hisobi, aniq/taxminiy ajratmasi) tekshirib koʻrish uchun.
+- **`uzum-catalog`** — Uzum katalogi. Ruxsat talab qiladi, pastga qarang.
+
+### Uzum katalogiga kirish — hozircha yopiq
+
+`graphql.uzum.uz` brauzerdan kelmagan soʻrovni chekkasidayoq rad etadi:
+
+```
+HTTP/2 401
+x-ext-authz-check-result: denied
+```
+
+Yigʻuvchi bu himoyani aylanib oʻtishga urinmaydi — rad javobi kelsa sweep
+darhol toʻxtaydi va sababi yoziladi. Kirish huquqi Uzumdan **rasmiy** olinishi
+va `UZUM_CATALOG_HEADERS` ga qoʻyilishi kerak.
+
+`sources/catalog-queries.mjs` dagi GraphQL soʻrovlari jonli sxemaga qarshi
+tekshirilmagan (tekshirishning imkoni boʻlmadi). Ruxsat olingach
+`npm run sweep -- --probe` javobni toʻliq bosib chiqaradi va maydon nomlarini
+oʻsha bitta faylda tuzatish kifoya.
+
+### Oʻz doʻkoningiz uchun rasmiy yoʻl
+
+`api-seller.uzum.uz` — Uzumning sotuvchilar uchun rasmiy API'si; token
+`seller.uzum.uz` kabinetida olinadi. U butun bozorni emas, **oʻz doʻkoningiz**
+maʻlumotini beradi (buyurtma, mahsulot, narx, qoldiq) va katalogdan farqli
+oʻlaroq captcha bilan yopilmagan.

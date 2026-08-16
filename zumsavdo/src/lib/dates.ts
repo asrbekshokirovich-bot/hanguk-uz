@@ -1,10 +1,19 @@
 /**
  * Sana yordamchilari.
  *
- * Tizimda maʻlumot 2026-07-28 dan boshlanadi — undan oldin hech qanday oʻlchov
- * yoʻq, shuning uchun oldingi sanalar interfeysda oʻchirilgan boʻlishi kerak.
+ * Maʻlumot boshlanish sanasi qatʻiy emas — u ombordagi eng eski oʻlchovdan
+ * olinadi. Undan oldingi sanalar interfeysda oʻchirilgan boʻlishi kerak:
+ * ochiq qoldirilsa, panel "nol buyurtma" degan yolgʻon javob beradi.
  */
-export const DATA_START = "2026-07-28";
+let dataStartKey = "2026-07-28";
+
+export function setDataStart(key: string) {
+  if (/^\d{4}-\d{2}-\d{2}$/.test(key)) dataStartKey = key;
+}
+
+export function dataStart(): string {
+  return dataStartKey;
+}
 
 /** Sanani mahalliy vaqt zonasida YYYY-MM-DD ga aylantiradi. */
 export function toKey(d: Date): string {
@@ -41,7 +50,7 @@ export function rangeKeys(from: string, to: string): string[] {
 /** Bugungi kun — maʻlumot boshlanishidan oldin boʻlolmaydi. */
 export function today(): string {
   const now = toKey(new Date());
-  return now < DATA_START ? DATA_START : now;
+  return now < dataStart() ? dataStart() : now;
 }
 
 const MONTHS_UZ = [
