@@ -114,6 +114,13 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Print (as JSON) the institutions that still need a current-cycle "
              "guideline — the Routine agent's work list for ingest-url.",
     )
+    p_conv = sub.add_parser(
+        "convert-check",
+        help="Diagnose the non-PDF guideline blobs: what each one REALLY is, "
+             "and what the conversion tiers make of it. Read-only.",
+    )
+    p_conv.add_argument("--limit", type=int, default=20)
+
     p_todo.add_argument("--limit", type=int, default=20,
                         help="Max institutions to return (keep subscription usage bounded)")
     p_todo.add_argument("--cooldown-days", type=int, default=3,
@@ -245,6 +252,8 @@ def main(argv: list[str] | None = None) -> int:
             limit=args.limit, cooldown_days=args.cooldown_days,
             include_flagged=args.include_flagged,
         ))
+    if args.cmd == "convert-check":
+        return asyncio.run(_convert_check(limit=args.limit))
     if args.cmd == "flag-blocked":
         return asyncio.run(_flag_blocked(
             institution_id=args.institution, reason=args.reason, url=args.url,
@@ -534,6 +543,61 @@ async def _retry_failed(*, limit: int, skip_groups: tuple[str, ...] = ()) -> int
             file=sys.stderr,
         )
         return 3
+    return 0
+
+
+async def _convert_check(*, limit: int) -> int:
+    """Say what each non-PDF blob REALLY is, and what happens to it.
+
+    Written because the first live run of the remote-conversion tier produced
+    a green workflow, twelve unchanged documents, and no way to tell which of
+    three very different things had happened: the tier was unconfigured, it
+    was never reached, or it ran and failed. The per-document line below
+    distinguishes all three, and prints LAST so a log tail can reach it.
+
+    Read-only: downloads each stored blob and sniffs it. No conversion, no
+    LLM, no writes.
+    """
+    if not settings.supabase_db_url:
+        print("SUPABASE_DB_URL is not set.", file=sys.stderr)
+        return 2
+
+    from .parse import convert_remote
+    from .parse.format_convert import sniff_format
+    from .storage import supabase_storage
+
+    conn = await db.connect()
+    try:
+        rows = await conn.fetch(
+            """
+            select gd.storage_path, gd.mime_type, gd.parse_status,
+                   coalesce(i.name_en, i.name_ko) as uni
+              from public.guideline_documents gd
+              left join public.institutions i on i.id = gd.institution_id
+             where gd.storage_path is not null
+               and gd.storage_path !~ '\\.pdf$'
+             order by gd.parse_status, 1
+             limit $1
+            """,
+            limit,
+        )
+    finally:
+        await conn.close()
+
+    print(f"remote conversion configured: {convert_remote.is_configured()}")
+    print(f"{'REAL':<8} {'STORED MIME':<26} {'STATUS':<10} UNIVERSITY")
+    counts: dict[str, int] = {}
+    for r in rows:
+        try:
+            data = supabase_storage.fetch_blob(r["storage_path"])
+            fmt = sniff_format(data)
+        except Exception as exc:  # a blob we cannot even read is its own answer
+            fmt = f"ERR:{type(exc).__name__}"
+        counts[fmt] = counts.get(fmt, 0) + 1
+        print(f"{fmt:<8} {(r['mime_type'] or '-')[:26]:<26} "
+              f"{r['parse_status']:<10} {r['uni']}")
+    print("convert-check totals: " + ", ".join(
+        f"{k}={v}" for k, v in sorted(counts.items())) or "none")
     return 0
 
 
