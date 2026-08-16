@@ -91,7 +91,13 @@ def extract(pdf_bytes: bytes) -> tuple[ExtractedPdf, OrchestratorDecision]:
             ),
         )
 
-    if fmt == "unknown" and remote_convert.is_configured():
+    # `zip` belongs here as much as `unknown` does. Korean CMSes routinely
+    # serve an attachment as a zip container, and `sniff_format` reports that
+    # honestly — but the first cut of this branch matched only `unknown`, so
+    # every zipped payload fell straight through to PyMuPDF and threw on byte
+    # one, in about a second. Fast, and indistinguishable in the run summary
+    # from a conversion that was never attempted.
+    if fmt in ("unknown", "zip") and remote_convert.is_configured():
         # Nine of the twelve dead blobs are here: stored under a lying
         # content-type (`application/download`, `application/x-msdownload`)
         # and unidentifiable by magic bytes at our end either. Handing the

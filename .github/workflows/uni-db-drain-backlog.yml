@@ -179,6 +179,14 @@ jobs:
         continue-on-error: true
         run: uni-db publish --limit 1000
 
+      # Diagnose the non-PDF blobs LAST, so a log tail always reaches it.
+      # A green run with twelve unchanged documents told us nothing; this line
+      # per document says what each blob really is and whether the remote
+      # tier is even configured.
+      - name: What the unreadable blobs actually are
+        continue-on-error: true
+        run: uni-db convert-check --limit 20 || true
+
       - name: Report what is still missing
         continue-on-error: true
         run: uni-db todo || true
