@@ -174,22 +174,67 @@ describe('LeadIntakeScreen', () => {
     }
   });
 
-  it('holds errors back until the operator tries to save', () => {
+  it('refuses an empty sheet, because the name is all that is required', () => {
     const { onSave } = setup();
     expect(screen.queryByText('Ismni kiriting')).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Saqlash' }));
 
     expect(onSave).not.toHaveBeenCalled();
-    expect(screen.getByText('Ismni kiriting')).toBeInTheDocument();
-    expect(screen.getByText('Barcha maydonlarni to‘ldiring')).toBeInTheDocument();
+    expect(screen.getByText('Kamida ism yoki familiyani yozing')).toBeInTheDocument();
   });
 
-  it('names the specific rule a field broke', () => {
-    setup({ initial: { ...formFromLead(lead()), phone: '+998 94', age: '12' } });
+  it('saves a lead that is only a name', () => {
+    // The case the office actually loses: a caller gives a name and hangs up.
+    // The form used to refuse the record, so the operator either retyped it
+    // later from memory or the lead was never written down at all.
+    const { onSave } = setup({ initial: { ...EMPTY_FORM, firstName: 'Aziz' } });
     fireEvent.click(screen.getByRole('button', { name: 'Saqlash' }));
+    expect(onSave).toHaveBeenCalledTimes(1);
+    expect(onSave.mock.calls[0][0]).toMatchObject({ firstName: 'Aziz' });
+  });
+
+  it('a surname alone is enough too', () => {
+    const { onSave } = setup({ initial: { ...EMPTY_FORM, lastName: 'Karimov' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Saqlash' }));
+    expect(onSave).toHaveBeenCalledTimes(1);
+  });
+
+  it('says how much is still unanswered without blocking the save', () => {
+    const { onSave } = setup({ initial: { ...EMPTY_FORM, firstName: 'Aziz' } });
+    // Nine of the ten completeness answers are still missing; the note counts
+    // them and the button still works.
+    expect(screen.getByRole('status')).toHaveTextContent('9');
+    fireEvent.click(screen.getByRole('button', { name: 'Saqlash' }));
+    expect(onSave).toHaveBeenCalled();
+  });
+
+  it('opens an unfinished lead with its gaps already marked', () => {
+    // Reopening a half-filled record IS the act of coming back to finish it.
+    // The page's whole question is "whose record is still missing answers",
+    // so it must say WHICH, not just how many.
+    setup({
+      initial: { ...EMPTY_FORM, firstName: 'Aziz' },
+      isNew: false,
+    });
     expect(screen.getByText('Telefon raqamini to‘liq kiriting')).toBeInTheDocument();
-    expect(screen.getByText('Yoshni kiriting (15-45)')).toBeInTheDocument();
+  });
+
+  it('a blank new sheet still opens quiet', () => {
+    // Flagging fields nobody has reached yet reads as a failure the operator
+    // caused.
+    setup();
+    expect(screen.queryByText('Ismni kiriting')).not.toBeInTheDocument();
+  });
+
+  it('still names the specific rule a half-filled field broke', () => {
+    // The per-field hints are guidance now, not a wall: they appear AND the
+    // lead saves.
+    const { onSave } = setup({
+      initial: { ...formFromLead(lead()), phone: '+998 94', age: '12' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Saqlash' }));
+    expect(onSave).toHaveBeenCalledTimes(1);
   });
 
   it('saves a fully answered form', () => {

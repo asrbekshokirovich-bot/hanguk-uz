@@ -708,10 +708,9 @@
       "newTitle": "New lead",
       "empty": "No leads yet. Add one with “+ New lead”.",
       "openRow": "Open {{name}}'s details",
-      "allRequired": "All fields are required",
+      "allRequired": "A name is enough — the rest can be filled in later",
       "optional": "(optional)",
       "noteHint": "You can come back and change the note at any time.",
-      "fixAll": "Fill in every field",
       "save": "Save",
       "saving": "Saving…",
       "followUpPrefix": "Follow up: {{when}}",
@@ -848,7 +847,10 @@
       },
       "restore": {
         "action": "Restore"
-      }
+      },
+      "needName": "Enter at least a first or last name",
+      "savePartial_one": "{{count}} question unanswered — it saves anyway and stays marked incomplete in the list",
+      "savePartial_other": "{{count}} questions unanswered — it saves anyway and stays marked incomplete in the list"
     }
   },
   "universities": {
