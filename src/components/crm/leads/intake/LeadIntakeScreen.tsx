@@ -35,6 +35,16 @@ interface LeadIntakeScreenProps {
   busy: boolean;
   onClose: () => void;
   onSave: (form: IntakeForm) => void;
+  /**
+   * Save the form, then open the convert confirmation. Saving first is not a
+   * convenience: conversion reads the STORED record, so converting straight
+   * off a freshly-typed form would open a student account from the previous,
+   * emptier version of it. Absent on a new sheet — there is nothing to
+   * convert until it exists.
+   */
+  onConvert?: (form: IntakeForm) => void;
+  /** Delete this record outright. Absent when the operator may not delete. */
+  onDelete?: () => void;
 }
 
 /* ── shared field chrome ───────────────────────────────────────────────── */
@@ -149,6 +159,8 @@ export const LeadIntakeScreen = ({
   busy,
   onClose,
   onSave,
+  onConvert,
+  onDelete,
 }: LeadIntakeScreenProps) => {
   const { t } = useTranslation();
   const relative = useRelativeDate(now);
@@ -495,7 +507,20 @@ export const LeadIntakeScreen = ({
         </div>
       </div>
 
-      <footer className="flex flex-none items-center justify-end gap-5 border-t border-border bg-card px-5 py-4 sm:px-7">
+      <footer className="flex flex-none flex-wrap items-center justify-end gap-x-5 gap-y-3 border-t border-border bg-card px-5 py-4 sm:px-7">
+        {/* Delete sits hard left, away from the two buttons that keep the
+            record, so the destructive one is never the neighbour of the one
+            the operator reaches for by muscle memory. */}
+        {onDelete && (
+          <button
+            type="button"
+            onClick={onDelete}
+            disabled={busy}
+            className="mr-auto min-h-11 rounded-[10px] px-4 text-[15px] font-semibold text-destructive transition hover:bg-destructive/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive disabled:opacity-60"
+          >
+            {t('leads.intake.delete.action')}
+          </button>
+        )}
         {showErrors && hasErrors(blocking) ? (
           <p role="status" className="text-[13px] font-medium text-destructive">
             {t('leads.intake.needName')}
@@ -512,10 +537,25 @@ export const LeadIntakeScreen = ({
           type="button"
           onClick={handleSave}
           disabled={busy}
-          className="min-h-11 rounded-[10px] bg-primary px-8 text-[15px] font-bold text-primary-foreground transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60"
+          className="min-h-11 rounded-[10px] border border-input px-6 text-[15px] font-bold transition hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60"
         >
           {busy ? t('leads.intake.saving') : t('leads.intake.save')}
         </button>
+        {/* Only once the sheet in front of the operator answers everything.
+            Reading the FORM rather than the stored lead is deliberate: the
+            button has to appear the moment the last field is filled, which is
+            exactly when the operator is holding a signed contract. The click
+            saves first, so what gets converted is what they can see. */}
+        {onConvert && missing === 0 && (
+          <button
+            type="button"
+            onClick={() => onConvert(form)}
+            disabled={busy}
+            className="min-h-11 rounded-[10px] bg-primary px-8 text-[15px] font-bold text-primary-foreground transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60"
+          >
+            {t('leads.intake.convertFull')}
+          </button>
+        )}
       </footer>
     </div>
   );

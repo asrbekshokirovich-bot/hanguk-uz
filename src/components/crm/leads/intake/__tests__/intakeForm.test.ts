@@ -7,6 +7,7 @@ import {
   hasErrors,
   initialsOf,
   isLeadComplete,
+  matchesLeadQuery,
   isoDaysFromNow,
   joinName,
   leadDataFromForm,
@@ -272,5 +273,50 @@ describe('options', () => {
     expect(needsSourceNote('Boshqa')).toBe(true);
     expect(needsSourceNote('Instagram sahifasi')).toBe(false);
     expect(needsSourceNote('')).toBe(false);
+  });
+});
+
+describe('matchesLeadQuery', () => {
+  const person = (over: Partial<Lead> = {}): Lead =>
+    ({
+      id: 'l',
+      full_name: 'Aziz Karimov',
+      phone: '+998 90 123-45-67',
+      status: 'new',
+      created_at: '2026-01-01T00:00:00Z',
+      ...over,
+    }) as Lead;
+
+  it('matches a first name and a surname, either case', () => {
+    expect(matchesLeadQuery(person(), 'aziz')).toBe(true);
+    expect(matchesLeadQuery(person(), 'KARIMOV')).toBe(true);
+    expect(matchesLeadQuery(person(), 'rim')).toBe(true);
+  });
+
+  it('matches a phone however either side is punctuated', () => {
+    // The same number is stored as '+998 90 123-45-67' and typed as any of
+    // these; a literal comparison would miss every one.
+    for (const typed of ['901234567', '90 123 45 67', '+998901234567', '1234567']) {
+      expect(matchesLeadQuery(person(), typed)).toBe(true);
+    }
+  });
+
+  it('an empty or blank query keeps everyone', () => {
+    expect(matchesLeadQuery(person(), '')).toBe(true);
+    expect(matchesLeadQuery(person(), '   ')).toBe(true);
+  });
+
+  it('a word with no digits is never treated as a phone', () => {
+    // phoneDigits('aziz') is '', and ''.includes('') is true — so a naive
+    // implementation matches every lead that has a phone at all.
+    expect(matchesLeadQuery(person({ full_name: 'Bek Tursunov' }), 'aziz')).toBe(false);
+  });
+
+  it('does not match a lead with no phone on a numeric query', () => {
+    expect(matchesLeadQuery(person({ phone: null }), '901')).toBe(false);
+  });
+
+  it('says no when nothing matches', () => {
+    expect(matchesLeadQuery(person(), 'zzz')).toBe(false);
   });
 });
