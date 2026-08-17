@@ -701,10 +701,9 @@
       "newTitle": "신규 리드",
       "empty": "아직 리드가 없습니다. “+ 신규 리드”로 추가하세요.",
       "openRow": "{{name}} 정보 열기",
-      "allRequired": "모든 항목은 필수입니다",
+      "allRequired": "이름만 있으면 됩니다 — 나머지는 나중에 채워도 됩니다",
       "optional": "(선택)",
       "noteHint": "메모는 언제든지 다시 수정할 수 있습니다.",
-      "fixAll": "모든 항목을 입력하세요",
       "save": "저장",
       "saving": "저장 중…",
       "followUpPrefix": "재연락: {{when}}",
@@ -835,7 +834,10 @@
       },
       "restore": {
         "action": "되돌리기"
-      }
+      },
+      "needName": "이름 또는 성을 최소한 하나 입력하세요",
+      "savePartial_one": "미답변 {{count}}개 — 그대로 저장되며 목록에 미완료로 표시됩니다",
+      "savePartial_other": "미답변 {{count}}개 — 그대로 저장되며 목록에 미완료로 표시됩니다"
     }
   },
   "universities": {

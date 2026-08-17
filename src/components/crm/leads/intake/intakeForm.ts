@@ -161,6 +161,38 @@ export const validateIntake = (form: IntakeForm): IntakeErrors => {
 export const hasErrors = (errors: IntakeErrors) => Object.keys(errors).length > 0;
 
 /**
+ * The far smaller set that must hold before a lead can be SAVED.
+ *
+ * Saving and completing are different questions, and conflating them cost the
+ * office real leads: a caller who gives a name and hangs up before the rest is
+ * still a lead worth keeping, but the form refused the record and the operator
+ * was left retyping it later from memory — or not at all.
+ *
+ * Only the name is required, for two reasons that are not style preferences:
+ * `leads.full_name` is NOT NULL in the database, and a record nobody can
+ * search by is one nobody will ever pick up again. Everything else is
+ * genuinely nullable in the schema and `leadDataFromForm` already turns a
+ * blank into null, so a partial row stores exactly as well as a whole one.
+ *
+ * `validateIntake` is deliberately left alone: it defines COMPLETE, which the
+ * list badge, the incomplete-first sort and the convert gate all read. Loosen
+ * that and every half-filled lead would start claiming it was finished.
+ */
+export const validateSavable = (form: IntakeForm): IntakeErrors => {
+  const errors: IntakeErrors = {};
+  // Either part will do. Operators often have only a first name on a cold
+  // call, and demanding a surname is the same wall in a smaller doorway.
+  if (!form.firstName.trim() && !form.lastName.trim()) {
+    errors.firstName = true;
+  }
+  return errors;
+};
+
+/** How many of the completeness answers are still outstanding. */
+export const missingCount = (form: IntakeForm): number =>
+  Object.keys(validateIntake(form)).length;
+
+/**
  * Whether a saved lead carries every answer the intake form asks for.
  *
  * Read straight off the record rather than off a stored flag, so a lead

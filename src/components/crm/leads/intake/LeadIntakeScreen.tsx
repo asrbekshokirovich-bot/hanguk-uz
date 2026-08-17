@@ -21,6 +21,8 @@ import {
   isoDaysFromNow,
   joinName,
   validateIntake,
+  validateSavable,
+  missingCount,
 } from './intakeForm';
 import { useRelativeDate } from './useRelativeDate';
 
@@ -154,10 +156,19 @@ export const LeadIntakeScreen = ({
   const [showErrors, setShowErrors] = useState(false);
 
   // Re-seed when the operator opens a different lead without closing first.
+  //
+  // An EXISTING record that is still missing answers opens with its hints
+  // already showing. Hiding them until a save attempt was right when the form
+  // refused to save without them — flagging a field nobody had reached yet
+  // reads as a failure the operator caused. Now that a half-filled lead saves,
+  // reopening one is precisely the act of coming back to finish it, and the
+  // whole page exists to answer "whose record is still missing answers": the
+  // operator should see WHICH, not just how many. A blank new sheet still
+  // starts quiet.
   useEffect(() => {
     setForm(initial);
-    setShowErrors(false);
-  }, [initial]);
+    setShowErrors(!isNew && hasErrors(validateIntake(initial)));
+  }, [initial, isNew]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -177,8 +188,14 @@ export const LeadIntakeScreen = ({
   /** Errors are only shown once the operator has tried to save. */
   const errorShown = (key: IntakeErrorKey) => showErrors && Boolean(errors[key]);
 
+  // What blocks the save is only the name — see `validateSavable`. The rest of
+  // `errors` still drives the per-field hints, so the operator can see what is
+  // outstanding without being stopped by it.
+  const blocking = useMemo(() => validateSavable(form), [form]);
+  const missing = useMemo(() => missingCount(form), [form]);
+
   const handleSave = () => {
-    if (hasErrors(errors)) {
+    if (hasErrors(blocking)) {
       setShowErrors(true);
       return;
     }
@@ -479,11 +496,18 @@ export const LeadIntakeScreen = ({
       </div>
 
       <footer className="flex flex-none items-center justify-end gap-5 border-t border-border bg-card px-5 py-4 sm:px-7">
-        {showErrors && hasErrors(errors) && (
+        {showErrors && hasErrors(blocking) ? (
           <p role="status" className="text-[13px] font-medium text-destructive">
-            {t('leads.intake.fixAll')}
+            {t('leads.intake.needName')}
           </p>
-        )}
+        ) : missing > 0 ? (
+          // Not an error — a note. The lead saves as it is and comes back to
+          // the top of the list marked incomplete, which is where the office
+          // finds it again.
+          <p role="status" className="text-[13px] font-medium text-muted-foreground">
+            {t('leads.intake.savePartial', { count: missing })}
+          </p>
+        ) : null}
         <button
           type="button"
           onClick={handleSave}

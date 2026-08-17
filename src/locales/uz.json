@@ -755,10 +755,9 @@
       "newTitle": "Yangi lead",
       "empty": "Hozircha lead yo‘q. “+ Yangi lead” tugmasi orqali qo‘shing.",
       "openRow": "{{name}} ma’lumotlarini ochish",
-      "allRequired": "Barcha maydonlar majburiy",
+      "allRequired": "Ism kifoya — qolganini keyin to‘ldirsangiz bo‘ladi",
       "optional": "(majburiy emas)",
       "noteHint": "Izohni keyin qayta kirib har doim o‘zgartirish mumkin.",
-      "fixAll": "Barcha maydonlarni to‘ldiring",
       "save": "Saqlash",
       "saving": "Saqlanmoqda…",
       "followUpPrefix": "Qayta aloqa: {{when}}",
@@ -895,7 +894,10 @@
       },
       "restore": {
         "action": "Qaytarish"
-      }
+      },
+      "needName": "Kamida ism yoki familiyani yozing",
+      "savePartial_one": "{{count}} ta savol javobsiz — saqlansa ham bo‘ladi, ro‘yxatda “to‘liq emas” bo‘lib turadi",
+      "savePartial_other": "{{count}} ta savol javobsiz — saqlansa ham bo‘ladi, ro‘yxatda “to‘liq emas” bo‘lib turadi"
     }
   },
   "universities": {
