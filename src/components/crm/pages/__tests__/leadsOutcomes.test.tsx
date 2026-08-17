@@ -20,9 +20,6 @@ const createLead = vi.fn().mockResolvedValue({});
 const refetch = vi.fn().mockResolvedValue(undefined);
 const deleteLead = vi.fn().mockResolvedValue(undefined);
 
-/** Whether the signed-in user may delete. Flipped per test. */
-let isAdmin = true;
-
 let leads: Lead[] = [];
 
 vi.mock('@/hooks/useLeads', () => ({
@@ -37,12 +34,6 @@ vi.mock('@/hooks/useLeads', () => ({
   }),
 }));
 
-// `useUserRole` reaches for `useAuth`, which needs a provider these tests do
-// not mount. The role is a one-line input to the page, so it is supplied
-// directly rather than standing up auth around every case.
-vi.mock('@/hooks/useUserRole', () => ({
-  useUserRole: () => ({ isAdmin }),
-}));
 
 const i18n = createInstance();
 i18n.use(initReactI18next).init({
@@ -83,7 +74,6 @@ const renderPage = async (rows: Lead[]) => {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  isAdmin = true;
 });
 
 describe('LeadsContent outcomes', () => {
@@ -239,13 +229,19 @@ describe('LeadsContent delete', () => {
     await waitFor(() => expect(deleteLead).toHaveBeenCalledWith('a'));
   });
 
-  it('is hidden from someone the database would refuse anyway', async () => {
-    // `leads` has an admin-only DELETE policy; offering the button to everyone
-    // would be a dead end dressed as a choice.
-    isAdmin = false;
+  it('is offered on every existing lead, whatever the operator\'s role', async () => {
+    // The page no longer asks who is signed in: "Staff can delete leads"
+    // (migration 20260817060000) covers every role that may work a lead, so a
+    // role check here would hide a button the database would honour.
     const rows = [lead({ id: 'a', full_name: 'Aziz Karimov' })];
     await renderPage(rows);
     fireEvent.click(screen.getByRole('button', { name: /Aziz Karimov/ }));
+    expect(await screen.findByRole('button', { name: 'O‘chirish' })).toBeInTheDocument();
+  });
+
+  it('is not offered on a blank new sheet — there is nothing to delete', async () => {
+    await renderPage([]);
+    fireEvent.click(screen.getByRole('button', { name: '+ Yangi lead' }));
     await screen.findByRole('button', { name: 'Saqlash' });
     expect(screen.queryByRole('button', { name: 'O‘chirish' })).not.toBeInTheDocument();
   });

@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Search } from 'lucide-react';
-import { useUserRole } from '@/hooks/useUserRole';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import { useLeads } from '@/hooks/useLeads';
@@ -48,10 +47,6 @@ const LeadsContent = () => {
   const { t } = useTranslation();
   const { leads, loading, createLead, updateLead, convertToStudent, deleteLead, refetch } =
     useLeads();
-  // Deleting a lead is an admin-only policy in the database ("Admins can
-  // delete leads"). Showing the button to everyone would offer an action that
-  // fails at the row-level check — a dead end dressed as a choice.
-  const { isAdmin } = useUserRole();
 
   // One clock for the render pass, so the table's "3 days ago", the form's
   // "tomorrow" button and the semester list all agree with each other.
@@ -285,10 +280,13 @@ const LeadsContent = () => {
           onConvert={
             editing === 'new' ? undefined : (form) => void handleConvertFromSheet(editing, form)
           }
+          // Offered to every role that may work a lead — the operator on the
+          // call is the one who learns there will be no contract. The database
+          // agrees ("Staff can delete leads", migration 20260817060000); a
+          // button the row-level check would refuse is a dead end dressed as a
+          // choice, so the two have to say the same thing.
           onDelete={
-            editing === 'new' || !isAdmin
-              ? undefined
-              : () => setPending({ mode: 'delete', lead: editing })
+            editing === 'new' ? undefined : () => setPending({ mode: 'delete', lead: editing })
           }
         />
       )}
