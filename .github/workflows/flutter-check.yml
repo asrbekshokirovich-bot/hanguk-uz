@@ -89,5 +89,15 @@ jobs:
       - name: Analyze
         run: flutter analyze --no-fatal-infos
 
+      # `manual` is the repo's own tag for tests that are not meant to run in
+      # an ordinary pass: test/vapi_test.dart and test/vapi_connection_test.dart
+      # both open a real WebRTC call against the live Vapi API. On a runner
+      # with no audio device they cannot pass, and every attempt spends real
+      # credits. Excluded here rather than deleted — they are useful when
+      # someone is deliberately debugging the voice pipeline.
+      #
+      # Not put in a dart_test.yaml on purpose: that would also change what
+      # `flutter test` does on a developer's machine, which is their call and
+      # not a side effect of adding CI.
       - name: Test
-        run: flutter test --reporter expanded
+        run: flutter test --exclude-tags manual --reporter expanded
