@@ -236,6 +236,7 @@
     "invalidCredentials": "Noto'g'ri ma'lumotlar",
     "invalidFormat": "Noto'g'ri format",
     "studentNotFound": "Talaba topilmadi",
+    "serverUnreachable": "Serverga ulanib bo'lmadi. Aloqani tekshirib, qayta urinib ko'ring.",
     "registeredSuccess": "Muvaffaqiyatli ro'yxatdan o'tdingiz",
     "dataSaved": "Ma'lumotlar saqlandi",
     "username": "Foydalanuvchi nomi",

@@ -1600,4 +1600,27 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get guestContactCta => 'Liên hệ';
+
+  @override
+  String get aiReportAction => 'Báo cáo';
+
+  @override
+  String get aiReportTitle => 'Báo cáo phản hồi này';
+
+  @override
+  String get aiReportBody =>
+      'Cho chúng tôi biết phản hồi AI này có vấn đề gì. Đội ngũ của chúng tôi xem xét mọi báo cáo.';
+
+  @override
+  String get aiReportReasonHint => 'Có vấn đề gì? (không bắt buộc)';
+
+  @override
+  String get aiReportSubmit => 'Gửi báo cáo';
+
+  @override
+  String get aiReportThanks =>
+      'Cảm ơn bạn. Đội ngũ của chúng tôi sẽ xem xét phản hồi này.';
+
+  @override
+  String get aiReportFailed => 'Không gửi được báo cáo. Vui lòng thử lại.';
 }

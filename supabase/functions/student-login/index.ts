@@ -1,3 +1,19 @@
+// ⚠️ DEAD — nothing calls this. Use `student-login-v2`.
+//
+// v1 was kept deployed "for 48-hour rollback safety" when v2 landed and then
+// forgotten for months, during which `src/pages/Auth.tsx` still pointed here.
+// That mattered on 2026-08-14: the profile lookup below reports *any* error as
+// "Failed to verify code", so a Cloudflare 522 from an unreachable database
+// reads to the student as a bad access code. On iOS that wording cost an App
+// Store rejection under guideline 2.1(a); the web was one outage away from the
+// same dead end. v2 retries the transient class and answers
+// SERVICE_UNAVAILABLE / 503 instead.
+//
+// The web client moved to v2 on 2026-08-17, so this function now has no
+// callers in either app. It is left deployed rather than deleted only because
+// undeploying is someone's decision to take deliberately — if nothing appears
+// in its logs for a week, delete it. Do not add callers; fix v2 instead.
+
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {

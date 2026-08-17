@@ -1603,4 +1603,27 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get guestContactCta => 'Связаться';
+
+  @override
+  String get aiReportAction => 'Пожаловаться';
+
+  @override
+  String get aiReportTitle => 'Пожаловаться на этот ответ';
+
+  @override
+  String get aiReportBody =>
+      'Расскажите, что не так с этим ответом ИИ. Наша команда рассматривает каждую жалобу.';
+
+  @override
+  String get aiReportReasonHint => 'Что с ним не так? (необязательно)';
+
+  @override
+  String get aiReportSubmit => 'Отправить жалобу';
+
+  @override
+  String get aiReportThanks => 'Спасибо. Наша команда рассмотрит этот ответ.';
+
+  @override
+  String get aiReportFailed =>
+      'Не удалось отправить жалобу. Попробуйте ещё раз.';
 }

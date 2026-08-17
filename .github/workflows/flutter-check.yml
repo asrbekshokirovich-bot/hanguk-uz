@@ -1,0 +1,103 @@
+name: Flutter analyze and test
+
+# Static analysis and the unit test suite for the student app, on Linux.
+#
+# ios-verify.yml proves the iOS build; nothing proved the Dart. Every change to
+# hanguk_app/lib so far has been merged without being compiled — the auth
+# repository retry work and its test file included — because there was no job
+# that ran `flutter analyze` or `flutter test` at all.
+#
+# Deliberately ubuntu, not macOS: analysis and unit tests need no Xcode, and at
+# a tenth of the per-minute cost this can run on every change to the app
+# instead of the narrow iOS path filter.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'hanguk_app/lib/**'
+      - 'hanguk_app/test/**'
+      - 'hanguk_app/packages/**'
+      - 'hanguk_app/pubspec.yaml'
+      - 'hanguk_app/pubspec.lock'
+      - 'hanguk_app/analysis_options.yaml'
+      - '.github/workflows/flutter-check.yml'
+  pull_request:
+    paths:
+      - 'hanguk_app/lib/**'
+      - 'hanguk_app/test/**'
+      - 'hanguk_app/packages/**'
+      - 'hanguk_app/pubspec.yaml'
+      - 'hanguk_app/pubspec.lock'
+      - 'hanguk_app/analysis_options.yaml'
+      - '.github/workflows/flutter-check.yml'
+  workflow_dispatch:
+    inputs:
+      flutter_version:
+        description: "Flutter version to build with. Blank = latest stable."
+        required: false
+        default: ""
+
+concurrency:
+  group: flutter-check-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: hanguk_app
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ inputs.flutter_version }}
+          cache: true
+
+      - name: Report toolchain
+        run: flutter --version
+
+      - name: Resolve Dart dependencies
+        run: flutter pub get
+
+      # The generated AppLocalizations files are committed, so a hand-edited
+      # ARB and a hand-edited .dart can drift apart silently — the app would
+      # build and simply show the wrong language. Regenerate and fail if the
+      # result differs from what is checked in.
+      - name: Assert generated localizations match the ARB files
+        run: |
+          flutter gen-l10n
+          if ! git diff --quiet -- lib/l10n; then
+            echo "::error::lib/l10n is out of date with the .arb files."
+            echo "Someone edited a generated app_localizations*.dart by hand, or added an"
+            echo "ARB key without regenerating. Run 'flutter gen-l10n' in hanguk_app and"
+            echo "commit the result. Diff:"
+            git --no-pager diff --stat -- lib/l10n
+            git --no-pager diff -- lib/l10n | head -200
+            exit 1
+          fi
+          echo "lib/l10n is in sync with the ARB files."
+
+      - name: Analyze
+        run: flutter analyze --no-fatal-infos
+
+      # `manual` is the repo's own tag for tests that are not meant to run in
+      # an ordinary pass: test/vapi_test.dart and test/vapi_connection_test.dart
+      # both open a real WebRTC call against the live Vapi API. On a runner
+      # with no audio device they cannot pass, and every attempt spends real
+      # credits. Excluded here rather than deleted — they are useful when
+      # someone is deliberately debugging the voice pipeline.
+      #
+      # Not put in a dart_test.yaml on purpose: that would also change what
+      # `flutter test` does on a developer's machine, which is their call and
+      # not a side effect of adding CI.
+      - name: Test
+        run: flutter test --exclude-tags manual --reporter expanded

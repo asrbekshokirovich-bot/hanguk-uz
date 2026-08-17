@@ -589,5 +589,33 @@
   "guestContactCall": "Qo'ng'iroq qilish",
   "guestContactJoinHint": "Sizda maxfiy kod bormi?",
   "guestContactLaunchFailed": "Bu havolani ochib bo'lmadi.",
-  "guestContactCta": "Bog'lanish"
+  "guestContactCta": "Bog'lanish",
+  "aiReportAction": "Shikoyat",
+  "@aiReportAction": {
+    "description": "Button under an AI answer that opens the report sheet."
+  },
+  "aiReportTitle": "Ushbu javob ustidan shikoyat",
+  "@aiReportTitle": {
+    "description": "Title of the sheet for reporting an AI response."
+  },
+  "aiReportBody": "Ushbu AI javobida nima noto‘g‘ri ekanini yozing. Jamoamiz har bir shikoyatni ko‘rib chiqadi.",
+  "@aiReportBody": {
+    "description": "Explanation inside the AI report sheet."
+  },
+  "aiReportReasonHint": "Nimasi noto‘g‘ri? (ixtiyoriy)",
+  "@aiReportReasonHint": {
+    "description": "Placeholder in the optional free-text field of the AI report sheet."
+  },
+  "aiReportSubmit": "Shikoyatni yuborish",
+  "@aiReportSubmit": {
+    "description": "Primary action of the AI report sheet."
+  },
+  "aiReportThanks": "Rahmat. Jamoamiz ushbu javobni ko‘rib chiqadi.",
+  "@aiReportThanks": {
+    "description": "Confirmation shown after an AI report is stored."
+  },
+  "aiReportFailed": "Shikoyatni yuborib bo‘lmadi. Qaytadan urinib ko‘ring.",
+  "@aiReportFailed": {
+    "description": "Shown when storing an AI report failed."
+  }
 }
