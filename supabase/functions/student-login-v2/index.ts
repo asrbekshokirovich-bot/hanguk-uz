@@ -306,7 +306,11 @@ async function mintSessionWithoutPassword(
     const { data: link, error: linkErr } = await withRetry('auth.generateLink', () =>
       admin.auth.admin.generateLink({ type: 'magiclink', email }),
     )
-    const hashedToken = link?.properties?.hashed_token
+    // The cast is load-bearing at deploy time: `withRetry` widens `data` to a
+    // generic, and generateLink's response type does not survive that on its
+    // own. Carried over from what is running in production.
+    const hashedToken = (link as { properties?: { hashed_token?: string } } | null)
+      ?.properties?.hashed_token
     if (linkErr || !hashedToken) return null
 
     // GoTrue has spelled this OTP type both ways across versions; try the
