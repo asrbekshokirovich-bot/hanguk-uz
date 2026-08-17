@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils';
 import type { Lead } from '@/contexts/LeadsContext';
 import { REJECT_REASONS } from './outcome';
 
-export type OutcomeMode = 'convert' | 'reject';
+export type OutcomeMode = 'convert' | 'reject' | 'delete';
 
 interface LeadOutcomeDialogProps {
   mode: OutcomeMode;
@@ -53,18 +53,27 @@ export const LeadOutcomeDialog = ({
   }, [lead.id, mode]);
 
   const converting = mode === 'convert';
+  const deleting = mode === 'delete';
+  // Only rejection collects a reason; the other two are a plain yes/no.
+  const asking = mode === 'reject';
 
   return (
     <Dialog open onOpenChange={(open) => !open && onCancel()}>
       <DialogContent className="sm:max-w-[460px]">
         <DialogHeader>
           <DialogTitle>
-            {converting ? t('leads.intake.convert.title') : t('leads.intake.reject.title')}
+            {converting
+              ? t('leads.intake.convert.title')
+              : deleting
+                ? t('leads.intake.delete.title')
+                : t('leads.intake.reject.title')}
           </DialogTitle>
           <DialogDescription>
             {converting
               ? t('leads.intake.convert.body', { name: lead.full_name })
-              : t('leads.intake.reject.body', { name: lead.full_name })}
+              : deleting
+                ? t('leads.intake.delete.body', { name: lead.full_name })
+                : t('leads.intake.reject.body', { name: lead.full_name })}
           </DialogDescription>
         </DialogHeader>
 
@@ -77,7 +86,7 @@ export const LeadOutcomeDialog = ({
           </p>
         )}
 
-        {!converting && (
+        {asking && (
           <div className="flex flex-col gap-4">
             <div className="flex flex-col gap-2">
               <label htmlFor="reject-reason" className="text-[13px] font-semibold">
@@ -127,7 +136,7 @@ export const LeadOutcomeDialog = ({
           </button>
           <button
             type="button"
-            onClick={() => onConfirm(converting ? '' : reason, converting ? '' : detail)}
+            onClick={() => onConfirm(asking ? reason : '', asking ? detail : '')}
             disabled={busy}
             className={cn(
               'min-h-11 rounded-[10px] px-6 text-sm font-bold transition hover:opacity-90',
@@ -141,7 +150,9 @@ export const LeadOutcomeDialog = ({
               ? t('leads.intake.working')
               : converting
                 ? t('leads.intake.convert.confirm')
-                : t('leads.intake.reject.confirm')}
+                : deleting
+                  ? t('leads.intake.delete.confirm')
+                  : t('leads.intake.reject.confirm')}
           </button>
         </DialogFooter>
       </DialogContent>

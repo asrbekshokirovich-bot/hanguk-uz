@@ -18,6 +18,10 @@ const updateLead = vi.fn().mockResolvedValue(undefined);
 const convertToStudent = vi.fn().mockResolvedValue({ success: true });
 const createLead = vi.fn().mockResolvedValue({});
 const refetch = vi.fn().mockResolvedValue(undefined);
+const deleteLead = vi.fn().mockResolvedValue(undefined);
+
+/** Whether the signed-in user may delete. Flipped per test. */
+let isAdmin = true;
 
 let leads: Lead[] = [];
 
@@ -28,8 +32,16 @@ vi.mock('@/hooks/useLeads', () => ({
     createLead,
     updateLead,
     convertToStudent,
+    deleteLead,
     refetch,
   }),
+}));
+
+// `useUserRole` reaches for `useAuth`, which needs a provider these tests do
+// not mount. The role is a one-line input to the page, so it is supplied
+// directly rather than standing up auth around every case.
+vi.mock('@/hooks/useUserRole', () => ({
+  useUserRole: () => ({ isAdmin }),
 }));
 
 const i18n = createInstance();
@@ -71,6 +83,7 @@ const renderPage = async (rows: Lead[]) => {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  isAdmin = true;
 });
 
 describe('LeadsContent outcomes', () => {
@@ -169,5 +182,71 @@ describe('LeadsContent outcomes', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /Rad etilganlar/ }));
     expect(screen.getByText('Rad Lead')).toBeInTheDocument();
+  });
+});
+
+describe('LeadsContent search', () => {
+  it('narrows the list by name and by phone, ignoring punctuation', async () => {
+    const rows = [
+      lead({ id: 'a', full_name: 'Aziz Karimov', phone: '+998 90 123-45-67' }),
+      lead({ id: 'b', full_name: 'Bek Tursunov', phone: '+998 91 765-43-21' }),
+    ];
+    await renderPage(rows);
+    const box = screen.getByLabelText('Lidlarni qidirish');
+
+    fireEvent.change(box, { target: { value: 'tursun' } });
+    await waitFor(() => expect(screen.queryByText('Aziz Karimov')).not.toBeInTheDocument());
+    expect(screen.getByText('Bek Tursunov')).toBeInTheDocument();
+
+    fireEvent.change(box, { target: { value: '901234567' } });
+    await waitFor(() => expect(screen.getByText('Aziz Karimov')).toBeInTheDocument());
+    expect(screen.queryByText('Bek Tursunov')).not.toBeInTheDocument();
+  });
+
+  it('clearing the box brings everyone back', async () => {
+    const rows = [lead({ id: 'a', full_name: 'Aziz Karimov' })];
+    await renderPage(rows);
+    const box = screen.getByLabelText('Lidlarni qidirish');
+    fireEvent.change(box, { target: { value: 'zzz' } });
+    await waitFor(() => expect(screen.queryByText('Aziz Karimov')).not.toBeInTheDocument());
+    fireEvent.change(box, { target: { value: '' } });
+    await waitFor(() => expect(screen.getByText('Aziz Karimov')).toBeInTheDocument());
+  });
+
+  it('says the search came up empty rather than the list being empty', async () => {
+    const rows = [lead({ id: 'a', full_name: 'Aziz Karimov' })];
+    await renderPage(rows);
+    fireEvent.change(screen.getByLabelText('Lidlarni qidirish'), {
+      target: { value: 'zzz' },
+    });
+    await waitFor(() =>
+      expect(screen.getByText(/hech narsa topilmadi/)).toBeInTheDocument(),
+    );
+  });
+});
+
+describe('LeadsContent delete', () => {
+  it('is offered to an admin, behind a confirmation', async () => {
+    const rows = [lead({ id: 'a', full_name: 'Aziz Karimov' })];
+    await renderPage(rows);
+    fireEvent.click(screen.getByRole('button', { name: /Aziz Karimov/ }));
+
+    fireEvent.click(await screen.findByRole('button', { name: 'O‘chirish' }));
+    // Nothing is destroyed on the first click.
+    expect(deleteLead).not.toHaveBeenCalled();
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Ha, o‘chirilsin' }));
+    await waitFor(() => expect(deleteLead).toHaveBeenCalledWith('a'));
+  });
+
+  it('is hidden from someone the database would refuse anyway', async () => {
+    // `leads` has an admin-only DELETE policy; offering the button to everyone
+    // would be a dead end dressed as a choice.
+    isAdmin = false;
+    const rows = [lead({ id: 'a', full_name: 'Aziz Karimov' })];
+    await renderPage(rows);
+    fireEvent.click(screen.getByRole('button', { name: /Aziz Karimov/ }));
+    await screen.findByRole('button', { name: 'Saqlash' });
+    expect(screen.queryByRole('button', { name: 'O‘chirish' })).not.toBeInTheDocument();
   });
 });

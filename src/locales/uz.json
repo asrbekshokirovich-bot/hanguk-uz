@@ -897,7 +897,17 @@
       },
       "needName": "Kamida ism yoki familiyani yozing",
       "savePartial_one": "{{count}} ta savol javobsiz — saqlansa ham bo‘ladi, ro‘yxatda “to‘liq emas” bo‘lib turadi",
-      "savePartial_other": "{{count}} ta savol javobsiz — saqlansa ham bo‘ladi, ro‘yxatda “to‘liq emas” bo‘lib turadi"
+      "savePartial_other": "{{count}} ta savol javobsiz — saqlansa ham bo‘ladi, ro‘yxatda “to‘liq emas” bo‘lib turadi",
+      "searchPlaceholder": "Ism, familiya yoki telefon",
+      "searchLabel": "Lidlarni qidirish",
+      "noMatches": "“{{query}}” bo‘yicha hech narsa topilmadi",
+      "convertFull": "Talabaga aylantirish",
+      "delete": {
+        "action": "O‘chirish",
+        "title": "Lidni o‘chirish",
+        "body": "{{name}} butunlay o‘chiriladi. Bu amalni qaytarib bo‘lmaydi.",
+        "confirm": "Ha, o‘chirilsin"
+      }
     }
   },
   "universities": {

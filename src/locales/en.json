@@ -850,7 +850,17 @@
       },
       "needName": "Enter at least a first or last name",
       "savePartial_one": "{{count}} question unanswered — it saves anyway and stays marked incomplete in the list",
-      "savePartial_other": "{{count}} questions unanswered — it saves anyway and stays marked incomplete in the list"
+      "savePartial_other": "{{count}} questions unanswered — it saves anyway and stays marked incomplete in the list",
+      "searchPlaceholder": "Name, surname or phone",
+      "searchLabel": "Search leads",
+      "noMatches": "Nothing matches “{{query}}”",
+      "convertFull": "Convert to student",
+      "delete": {
+        "action": "Delete",
+        "title": "Delete this lead",
+        "body": "{{name}} will be removed for good. This cannot be undone.",
+        "confirm": "Yes, delete"
+      }
     }
   },
   "universities": {

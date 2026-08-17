@@ -193,6 +193,36 @@ export const missingCount = (form: IntakeForm): number =>
   Object.keys(validateIntake(form)).length;
 
 /**
+ * Whether a lead answers to what the operator typed in the search box.
+ *
+ * Matches a name fragment or a phone fragment, because those are the two
+ * things a caller gives: "this is Aziz" or a number on the screen.
+ *
+ * Phone is compared DIGITS ONLY on both sides. The same person is stored as
+ * `+998 90 123-45-67` and searched for as `901234567` or `90 123 45 67`, and a
+ * literal comparison would miss every one of those. Name is folded to
+ * lowercase; Uzbek and Russian both case-fold correctly under `toLowerCase`
+ * for the letters these names actually use.
+ *
+ * An empty or whitespace-only query matches everything — the box is a filter,
+ * not a mode, and clearing it must restore the full list.
+ */
+export const matchesLeadQuery = (lead: Lead, query: string): boolean => {
+  const needle = query.trim().toLowerCase();
+  if (!needle) return true;
+
+  if ((lead.full_name ?? '').toLowerCase().includes(needle)) return true;
+
+  // Only treat the query as a phone when it actually contains digits;
+  // otherwise `phoneDigits('aziz')` is '' and would match every lead that has
+  // a phone at all.
+  const digits = phoneDigits(query);
+  if (digits && phoneDigits(lead.phone ?? '').includes(digits)) return true;
+
+  return false;
+};
+
+/**
  * Whether a saved lead carries every answer the intake form asks for.
  *
  * Read straight off the record rather than off a stored flag, so a lead

@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Search } from 'lucide-react';
+import { useUserRole } from '@/hooks/useUserRole';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import { useLeads } from '@/hooks/useLeads';
@@ -14,6 +16,7 @@ import {
   type IntakeForm,
   formFromLead,
   isLeadComplete,
+  matchesLeadQuery,
   leadDataFromForm,
 } from '@/components/crm/leads/intake/intakeForm';
 import {
@@ -43,7 +46,12 @@ const TABS: LeadOutcome[] = ['active', 'converted', 'rejected'];
  */
 const LeadsContent = () => {
   const { t } = useTranslation();
-  const { leads, loading, createLead, updateLead, convertToStudent, refetch } = useLeads();
+  const { leads, loading, createLead, updateLead, convertToStudent, deleteLead, refetch } =
+    useLeads();
+  // Deleting a lead is an admin-only policy in the database ("Admins can
+  // delete leads"). Showing the button to everyone would offer an action that
+  // fails at the row-level check — a dead end dressed as a choice.
+  const { isAdmin } = useUserRole();
 
   // One clock for the render pass, so the table's "3 days ago", the form's
   // "tomorrow" button and the semester list all agree with each other.
@@ -54,10 +62,18 @@ const LeadsContent = () => {
   const [tab, setTab] = useState<LeadOutcome>('active');
   // The convert/reject confirmation, or `null` when nothing is pending.
   const [pending, setPending] = useState<{ mode: OutcomeMode; lead: Lead } | null>(null);
+  const [query, setQuery] = useState('');
 
+  // The search narrows the groups BEFORE they are counted, so the tab badges
+  // answer "which list is this person in" rather than staying at their
+  // unfiltered totals. Someone who searches a phone number and finds nothing
+  // under Active can see at a glance that the match sits under Converted.
   const byOutcome = useMemo(() => {
     const groups: Record<LeadOutcome, Lead[]> = { active: [], converted: [], rejected: [] };
-    for (const lead of leads) groups[leadOutcome(lead)].push(lead);
+    for (const lead of leads) {
+      if (!matchesLeadQuery(lead, query)) continue;
+      groups[leadOutcome(lead)].push(lead);
+    }
     for (const group of Object.values(groups)) {
       group.sort((a, b) => {
         const aComplete = isLeadComplete(a);
@@ -67,7 +83,7 @@ const LeadsContent = () => {
       });
     }
     return groups;
-  }, [leads]);
+  }, [leads, query]);
 
   const shown = byOutcome[tab];
 
@@ -107,7 +123,11 @@ const LeadsContent = () => {
       if (mode === 'convert') {
         const { success } = await convertToStudent(lead.id);
         if (!success) return;
+        setEditing(null);
         setTab('converted');
+      } else if (mode === 'delete') {
+        await deleteLead(lead.id);
+        setEditing(null);
       } else {
         await updateLead(lead.id, {
           status: 'lost',
@@ -121,6 +141,29 @@ const LeadsContent = () => {
     } finally {
       setBusy(false);
     }
+  };
+
+  /**
+   * Convert straight from the open sheet.
+   *
+   * The form is saved first because `convertToStudent` reads the STORED
+   * record: converting off unsaved edits would open a student account from the
+   * previous, emptier version of the lead — and the operator would have no way
+   * to tell, because the screen in front of them shows the newer one.
+   */
+  const handleConvertFromSheet = async (lead: Lead, form: IntakeForm) => {
+    setBusy(true);
+    try {
+      await updateLead(lead.id, leadDataFromForm(form));
+      await refetch();
+    } catch (error) {
+      // Do not offer to convert a record we failed to write.
+      console.error('Failed to save before converting:', error);
+      return;
+    } finally {
+      setBusy(false);
+    }
+    setPending({ mode: 'convert', lead });
   };
 
   const handleRestore = async (lead: Lead) => {
@@ -161,12 +204,28 @@ const LeadsContent = () => {
         </div>
 
         {/* Toggle buttons rather than a tablist: there is one list below them
-            that they filter, not three panels to switch between. */}
-        <div
-          role="group"
-          aria-label={t('leads.intake.tabs.label')}
-          className="mb-5 flex flex-wrap gap-2"
-        >
+            that they filter, not three panels to switch between. The search box
+            sits with them because it filters that same list. */}
+        <div className="mb-5 flex flex-wrap items-center gap-x-3 gap-y-2">
+          <div className="relative min-w-[240px] flex-1 sm:max-w-[340px]">
+            <Search
+              aria-hidden
+              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+            />
+            <input
+              type="search"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder={t('leads.intake.searchPlaceholder')}
+              aria-label={t('leads.intake.searchLabel')}
+              className="h-10 w-full rounded-full border border-input bg-background pl-9 pr-3 text-[13px] outline-none transition focus:border-accent focus:ring-[3px] focus:ring-accent/35"
+            />
+          </div>
+          <div
+            role="group"
+            aria-label={t('leads.intake.tabs.label')}
+            className="flex flex-wrap gap-2"
+          >
           {TABS.map((key) => (
             <button
               key={key}
@@ -185,6 +244,7 @@ const LeadsContent = () => {
               <span className="ml-1.5 tabular-nums opacity-80">{byOutcome[key].length}</span>
             </button>
           ))}
+          </div>
         </div>
 
         {loading ? (
@@ -195,7 +255,11 @@ const LeadsContent = () => {
           </div>
         ) : shown.length === 0 ? (
           <div className="rounded-xl border border-border bg-card px-6 py-16 text-center">
-            <p className="text-sm text-muted-foreground">{t(`leads.intake.emptyBy.${tab}`)}</p>
+            <p className="text-sm text-muted-foreground">
+              {query.trim()
+                ? t('leads.intake.noMatches', { query: query.trim() })
+                : t(`leads.intake.emptyBy.${tab}`)}
+            </p>
           </div>
         ) : (
           <LeadsTable
@@ -218,6 +282,14 @@ const LeadsContent = () => {
           busy={busy}
           onClose={() => setEditing(null)}
           onSave={handleSave}
+          onConvert={
+            editing === 'new' ? undefined : (form) => void handleConvertFromSheet(editing, form)
+          }
+          onDelete={
+            editing === 'new' || !isAdmin
+              ? undefined
+              : () => setPending({ mode: 'delete', lead: editing })
+          }
         />
       )}
 
