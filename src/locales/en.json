@@ -187,6 +187,7 @@
     "invalidCredentials": "Invalid credentials",
     "invalidFormat": "Invalid format",
     "studentNotFound": "Student not found",
+    "serverUnreachable": "We could not reach the server. Please check your connection and try again.",
     "registeredSuccess": "Successfully registered",
     "dataSaved": "Data has been saved",
     "username": "Username",

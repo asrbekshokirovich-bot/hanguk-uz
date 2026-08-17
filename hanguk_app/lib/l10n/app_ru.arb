@@ -589,5 +589,33 @@
   "guestContactCall": "Позвонить",
   "guestContactJoinHint": "Уже есть магический код?",
   "guestContactLaunchFailed": "Не удалось открыть ссылку.",
-  "guestContactCta": "Связаться"
+  "guestContactCta": "Связаться",
+  "aiReportAction": "Пожаловаться",
+  "@aiReportAction": {
+    "description": "Button under an AI answer that opens the report sheet."
+  },
+  "aiReportTitle": "Пожаловаться на этот ответ",
+  "@aiReportTitle": {
+    "description": "Title of the sheet for reporting an AI response."
+  },
+  "aiReportBody": "Расскажите, что не так с этим ответом ИИ. Наша команда рассматривает каждую жалобу.",
+  "@aiReportBody": {
+    "description": "Explanation inside the AI report sheet."
+  },
+  "aiReportReasonHint": "Что с ним не так? (необязательно)",
+  "@aiReportReasonHint": {
+    "description": "Placeholder in the optional free-text field of the AI report sheet."
+  },
+  "aiReportSubmit": "Отправить жалобу",
+  "@aiReportSubmit": {
+    "description": "Primary action of the AI report sheet."
+  },
+  "aiReportThanks": "Спасибо. Наша команда рассмотрит этот ответ.",
+  "@aiReportThanks": {
+    "description": "Confirmation shown after an AI report is stored."
+  },
+  "aiReportFailed": "Не удалось отправить жалобу. Попробуйте ещё раз.",
+  "@aiReportFailed": {
+    "description": "Shown when storing an AI report failed."
+  }
 }

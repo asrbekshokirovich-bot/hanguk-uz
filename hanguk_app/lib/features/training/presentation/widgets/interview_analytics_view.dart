@@ -4,6 +4,8 @@ import '../../data/interview_repository.dart';
 import '../../../../design_system/seoul_night/seoul_night.dart';
 import '../../../../l10n/app_localizations.dart';
 import 'package:audioplayers/audioplayers.dart';
+import '../../../moderation/data/ai_report_repository.dart';
+import '../../../moderation/presentation/ai_report_sheet.dart';
 
 class InterviewAnalyticsView extends ConsumerStatefulWidget {
   final VoidCallback? onBackPressed;
@@ -221,6 +223,20 @@ class _InterviewAnalyticsViewState
                 fb['detailed_feedback'] ?? l.detailedFeedbackFallback,
                 style: SeoulType.body,
               ),
+
+              // Reporting generated feedback (App Store guideline 1.2). The
+              // long-form review is the interview's open-ended AI output —
+              // the scores above are numbers, this is where it can say
+              // something wrong or worse about a student's answers.
+              if (fb['detailed_feedback'] is String &&
+                  (fb['detailed_feedback'] as String).trim().isNotEmpty)
+                Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: _InterviewReportAction(
+                    text: fb['detailed_feedback'] as String,
+                    vapiCallId: vapiCallId,
+                  ),
+                ),
             ],
           ),
         ),
@@ -744,6 +760,59 @@ class _AudioPlayerWidgetState extends ConsumerState<_AudioPlayerWidget> {
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// "Report" under the interview's long-form AI review.
+///
+/// Same affordance as the one under an AI chat answer, kept visually identical
+/// so the mechanism reads as one feature rather than two — see
+/// `features/chat/presentation/widgets/chat_message_bubble.dart`.
+class _InterviewReportAction extends StatelessWidget {
+  const _InterviewReportAction({required this.text, this.vapiCallId});
+
+  final String text;
+
+  /// Ties a report back to the recorded call staff can listen to.
+  final String? vapiCallId;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: InkWell(
+        onTap: () => showAiReportSheet(
+          context,
+          surface: AiSurface.interview,
+          reportedText: text,
+          reportContext: {
+            if (vapiCallId != null) 'vapi_call_id': vapiCallId,
+            'locale': Localizations.localeOf(context).languageCode,
+          },
+        ),
+        borderRadius: BorderRadius.circular(SeoulRadii.control),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.outlined_flag,
+                size: 13,
+                color: SeoulColors.textFaint,
+              ),
+              const SizedBox(width: 4),
+              Text(
+                l10n.aiReportAction,
+                style: SeoulType.caption.copyWith(color: SeoulColors.textFaint),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

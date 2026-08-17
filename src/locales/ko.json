@@ -186,6 +186,7 @@
     "invalidCredentials": "잘못된 자격 증명",
     "invalidFormat": "잘못된 형식",
     "studentNotFound": "학생을 찾을 수 없음",
+    "serverUnreachable": "서버에 연결할 수 없습니다. 연결을 확인한 후 다시 시도해 주세요.",
     "registeredSuccess": "성공적으로 등록되었습니다",
     "dataSaved": "데이터가 저장되었습니다",
     "username": "사용자 이름",

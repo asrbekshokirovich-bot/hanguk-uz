@@ -1962,5 +1962,33 @@
   "guestContactCta": "Contact us",
   "@guestContactCta": {
     "description": "Lime pill in the guest header; opens the contact sheet."
+  },
+  "aiReportAction": "Report",
+  "@aiReportAction": {
+    "description": "Button under an AI answer that opens the report sheet."
+  },
+  "aiReportTitle": "Report this response",
+  "@aiReportTitle": {
+    "description": "Title of the sheet for reporting an AI response."
+  },
+  "aiReportBody": "Tell us what is wrong with this AI response. Our team reviews every report.",
+  "@aiReportBody": {
+    "description": "Explanation inside the AI report sheet."
+  },
+  "aiReportReasonHint": "What is wrong with it? (optional)",
+  "@aiReportReasonHint": {
+    "description": "Placeholder in the optional free-text field of the AI report sheet."
+  },
+  "aiReportSubmit": "Send report",
+  "@aiReportSubmit": {
+    "description": "Primary action of the AI report sheet."
+  },
+  "aiReportThanks": "Thank you. Our team will review this response.",
+  "@aiReportThanks": {
+    "description": "Confirmation shown after an AI report is stored."
+  },
+  "aiReportFailed": "Could not send the report. Please try again.",
+  "@aiReportFailed": {
+    "description": "Shown when storing an AI report failed."
   }
 }

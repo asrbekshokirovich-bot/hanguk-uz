@@ -1611,4 +1611,27 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get guestContactCta => 'Bog\'lanish';
+
+  @override
+  String get aiReportAction => 'Shikoyat';
+
+  @override
+  String get aiReportTitle => 'Ushbu javob ustidan shikoyat';
+
+  @override
+  String get aiReportBody =>
+      'Ushbu AI javobida nima noto‘g‘ri ekanini yozing. Jamoamiz har bir shikoyatni ko‘rib chiqadi.';
+
+  @override
+  String get aiReportReasonHint => 'Nimasi noto‘g‘ri? (ixtiyoriy)';
+
+  @override
+  String get aiReportSubmit => 'Shikoyatni yuborish';
+
+  @override
+  String get aiReportThanks => 'Rahmat. Jamoamiz ushbu javobni ko‘rib chiqadi.';
+
+  @override
+  String get aiReportFailed =>
+      'Shikoyatni yuborib bo‘lmadi. Qaytadan urinib ko‘ring.';
 }

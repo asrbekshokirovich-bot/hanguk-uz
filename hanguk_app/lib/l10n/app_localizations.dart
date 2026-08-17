@@ -2971,6 +2971,49 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Contact us'**
   String get guestContactCta;
+
+
+  /// Button under an AI answer that opens the report sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Report'**
+  String get aiReportAction;
+
+  /// Title of the sheet for reporting an AI response.
+  ///
+  /// In en, this message translates to:
+  /// **'Report this response'**
+  String get aiReportTitle;
+
+  /// Explanation inside the AI report sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Tell us what is wrong with this AI response. Our team reviews every report.'**
+  String get aiReportBody;
+
+  /// Placeholder in the optional free-text field of the AI report sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'What is wrong with it? (optional)'**
+  String get aiReportReasonHint;
+
+  /// Primary action of the AI report sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Send report'**
+  String get aiReportSubmit;
+
+  /// Confirmation shown after an AI report is stored.
+  ///
+  /// In en, this message translates to:
+  /// **'Thank you. Our team will review this response.'**
+  String get aiReportThanks;
+
+  /// Shown when storing an AI report failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not send the report. Please try again.'**
+  String get aiReportFailed;
 }
 
 class _AppLocalizationsDelegate

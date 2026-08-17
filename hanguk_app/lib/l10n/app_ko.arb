@@ -589,5 +589,33 @@
   "guestContactCall": "전화하기",
   "guestContactJoinHint": "매직 코드가 있으신가요?",
   "guestContactLaunchFailed": "이 링크를 열 수 없습니다.",
-  "guestContactCta": "문의하기"
+  "guestContactCta": "문의하기",
+  "aiReportAction": "신고",
+  "@aiReportAction": {
+    "description": "Button under an AI answer that opens the report sheet."
+  },
+  "aiReportTitle": "이 답변 신고",
+  "@aiReportTitle": {
+    "description": "Title of the sheet for reporting an AI response."
+  },
+  "aiReportBody": "이 AI 답변의 어떤 점이 문제인지 알려주세요. 저희 팀이 모든 신고를 검토합니다.",
+  "@aiReportBody": {
+    "description": "Explanation inside the AI report sheet."
+  },
+  "aiReportReasonHint": "무엇이 문제인가요? (선택)",
+  "@aiReportReasonHint": {
+    "description": "Placeholder in the optional free-text field of the AI report sheet."
+  },
+  "aiReportSubmit": "신고 보내기",
+  "@aiReportSubmit": {
+    "description": "Primary action of the AI report sheet."
+  },
+  "aiReportThanks": "감사합니다. 저희 팀이 이 답변을 검토하겠습니다.",
+  "@aiReportThanks": {
+    "description": "Confirmation shown after an AI report is stored."
+  },
+  "aiReportFailed": "신고를 보내지 못했습니다. 다시 시도해 주세요.",
+  "@aiReportFailed": {
+    "description": "Shown when storing an AI report failed."
+  }
 }

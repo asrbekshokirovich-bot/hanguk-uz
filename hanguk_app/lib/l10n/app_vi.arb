@@ -589,5 +589,33 @@
   "guestContactCall": "Gọi điện",
   "guestContactJoinHint": "Bạn đã có mã magic?",
   "guestContactLaunchFailed": "Không mở được liên kết này.",
-  "guestContactCta": "Liên hệ"
+  "guestContactCta": "Liên hệ",
+  "aiReportAction": "Báo cáo",
+  "@aiReportAction": {
+    "description": "Button under an AI answer that opens the report sheet."
+  },
+  "aiReportTitle": "Báo cáo phản hồi này",
+  "@aiReportTitle": {
+    "description": "Title of the sheet for reporting an AI response."
+  },
+  "aiReportBody": "Cho chúng tôi biết phản hồi AI này có vấn đề gì. Đội ngũ của chúng tôi xem xét mọi báo cáo.",
+  "@aiReportBody": {
+    "description": "Explanation inside the AI report sheet."
+  },
+  "aiReportReasonHint": "Có vấn đề gì? (không bắt buộc)",
+  "@aiReportReasonHint": {
+    "description": "Placeholder in the optional free-text field of the AI report sheet."
+  },
+  "aiReportSubmit": "Gửi báo cáo",
+  "@aiReportSubmit": {
+    "description": "Primary action of the AI report sheet."
+  },
+  "aiReportThanks": "Cảm ơn bạn. Đội ngũ của chúng tôi sẽ xem xét phản hồi này.",
+  "@aiReportThanks": {
+    "description": "Confirmation shown after an AI report is stored."
+  },
+  "aiReportFailed": "Không gửi được báo cáo. Vui lòng thử lại.",
+  "@aiReportFailed": {
+    "description": "Shown when storing an AI report failed."
+  }
 }

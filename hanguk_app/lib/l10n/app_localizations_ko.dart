@@ -1550,4 +1550,25 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get guestContactCta => '문의하기';
+
+  @override
+  String get aiReportAction => '신고';
+
+  @override
+  String get aiReportTitle => '이 답변 신고';
+
+  @override
+  String get aiReportBody => '이 AI 답변의 어떤 점이 문제인지 알려주세요. 저희 팀이 모든 신고를 검토합니다.';
+
+  @override
+  String get aiReportReasonHint => '무엇이 문제인가요? (선택)';
+
+  @override
+  String get aiReportSubmit => '신고 보내기';
+
+  @override
+  String get aiReportThanks => '감사합니다. 저희 팀이 이 답변을 검토하겠습니다.';
+
+  @override
+  String get aiReportFailed => '신고를 보내지 못했습니다. 다시 시도해 주세요.';
 }

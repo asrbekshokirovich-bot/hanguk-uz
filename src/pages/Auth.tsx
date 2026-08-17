@@ -18,6 +18,104 @@ const usernameSchema = z.string().min(3).max(20).regex(/^[a-zA-Z0-9_]+$/, 'Only 
 const passwordSchema = z.string().min(6);
 const magicCodeSchema = z.string().min(6).max(10).regex(/^[A-Z0-9]+$/, 'Invalid code format');
 
+// ─── Magic-code sign-in ──────────────────────────────────────────────────────
+//
+// App Review rejected the iOS app on 2026-08-14 (guideline 2.1(a)) because
+// this exact flow reported a database outage as a bad access code. The Flutter
+// client and `student-login-v2` were fixed the same day; this file was not,
+// and it was still calling `student-login` (v1), which returns "Failed to
+// verify code" for *any* lookup error including a Cloudflare 522. Staff and
+// guests signing in on the web would hit the same dead end on the next
+// outage.
+//
+// Two changes: v2 instead of v1, and the transient class retried rather than
+// treated as a verdict on the code.
+
+/** Attempt delays in ms. Three attempts total. */
+const LOGIN_RETRY_DELAYS_MS = [400, 1200];
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+type StudentLoginResult =
+  | { kind: 'session'; session: { access_token: string; refresh_token: string }; profile?: { full_name?: string } }
+  | { kind: 'error'; messageKey: string };
+
+/**
+ * Maps `student-login-v2`'s typed error codes to a locale key.
+ *
+ * `SERVICE_UNAVAILABLE` and the legacy `CODE_LOOKUP_FAILED` both mean the
+ * server could not be reached — never that the code is wrong — so they must
+ * not land on `studentNotFound`. That conflation is what the reviewer saw.
+ */
+function messageKeyForLoginError(code: string | undefined): string {
+  switch (code) {
+    case 'CODE_NOT_FOUND':
+      return 'auth.studentNotFound';
+    case 'CODE_REQUIRED':
+    case 'BAD_INPUT':
+      return 'auth.invalidFormat';
+    case 'STAFF_BLOCKED':
+      return 'auth.invalidCredentials';
+    case 'SERVICE_UNAVAILABLE':
+    case 'CODE_LOOKUP_FAILED':
+      return 'auth.serverUnreachable';
+    default:
+      return 'auth.serverUnreachable';
+  }
+}
+
+/**
+ * One magic-code exchange, with the transient class retried.
+ *
+ * supabase-js v2 returns `data: null` and a `FunctionsHttpError` for any
+ * non-2xx, with the body reachable only through `error.context` — the old
+ * code read `data.error`, which is always undefined on a failure and is why
+ * every server error fell through to the "non-2xx" string match below it.
+ */
+async function invokeStudentLogin(normalizedCode: string): Promise<StudentLoginResult> {
+  for (let attempt = 0; ; attempt++) {
+    const { data, error } = await supabase.functions.invoke('student-login-v2', {
+      body: { magicCode: normalizedCode },
+    });
+
+    if (!error) {
+      if (data?.session) {
+        return { kind: 'session', session: data.session, profile: data.profile };
+      }
+      // 2xx with no session should not happen; treat it as a server fault
+      // rather than silently doing nothing, which is what used to happen.
+      return { kind: 'error', messageKey: 'auth.serverUnreachable' };
+    }
+
+    const ctx = (error as { context?: Response }).context;
+    let code: string | undefined;
+    if (ctx && typeof ctx.json === 'function') {
+      try {
+        code = (await ctx.clone().json())?.error;
+      } catch {
+        // Not JSON — a gateway error page, which is itself the transient case.
+      }
+    }
+
+    const status = ctx?.status;
+    const transient =
+      code === 'SERVICE_UNAVAILABLE' ||
+      code === 'CODE_LOOKUP_FAILED' ||
+      status === 408 ||
+      status === 429 ||
+      (typeof status === 'number' && status >= 500) ||
+      // FunctionsFetchError: the request never reached the function.
+      status === undefined;
+
+    if (transient && attempt < LOGIN_RETRY_DELAYS_MS.length) {
+      await sleep(LOGIN_RETRY_DELAYS_MS[attempt]);
+      continue;
+    }
+
+    return { kind: 'error', messageKey: messageKeyForLoginError(code) };
+  }
+}
+
 export default function Auth() {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -183,49 +281,35 @@ export default function Auth() {
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke('student-login', {
-        body: { magicCode: normalizedCode },
-      });
+      const result = await invokeStudentLogin(normalizedCode);
 
-      if (error || data?.error) {
-        // If it's a generic Supabase client error for non-2xx, 
-        // the actual error message might be in the data body
-        const msg = data?.error || error?.message || 'Login failed';
-        throw new Error(msg);
-      }
-
-      if (data?.session) {
-        // Set the session in Supabase client
+      if (result.kind === 'session') {
         const { error: sessionError } = await supabase.auth.setSession({
-          access_token: data.session.access_token,
-          refresh_token: data.session.refresh_token,
+          access_token: result.session.access_token,
+          refresh_token: result.session.refresh_token,
         });
 
-        if (sessionError) {
-          throw sessionError;
-        }
+        if (sessionError) throw sessionError;
 
         toast({
           title: t('auth.loginSuccess'),
-          description: `Welcome, ${data.profile?.full_name || 'Student'}!`
+          description: `Welcome, ${result.profile?.full_name || 'Student'}!`,
         });
         navigate('/'); // Let Index.tsx handle role-based routing
+        return;
       }
-    } catch (error: any) {
-      console.error('[Auth] Student login error details:', error);
-
-      // Agar xato "non-2xx" yoki "Invalid code" bo'lsa, demak talaba topilmagan
-      const errorStr = error.message || '';
-      const isNotFound =
-        errorStr.includes('Invalid code') ||
-        errorStr.includes('No profile found') ||
-        errorStr.includes('non-2xx') ||
-        errorStr.includes('401');
 
       toast({
         title: t('auth.loginError'),
-        description: isNotFound ? t('auth.studentNotFound') : (error.message || 'Error occurred'),
-        variant: 'destructive'
+        description: t(result.messageKey),
+        variant: 'destructive',
+      });
+    } catch (error: any) {
+      console.error('[Auth] Student login error details:', error);
+      toast({
+        title: t('auth.loginError'),
+        description: error?.message || 'Error occurred',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);

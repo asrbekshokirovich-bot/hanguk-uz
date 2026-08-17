@@ -157,6 +157,22 @@ jobs:
 
           echo "PERMISSION_MICROPHONE=1 present in $(grep -c 'PERMISSION_MICROPHONE=1' "$pbxproj") build configurations."
 
+      # ios/Podfile.lock is not in the repository, so CocoaPods resolves fresh
+      # versions on every machine and the iOS dependency set is still not
+      # reproducible even with the Podfile committed. That is how a sentry-cocoa
+      # the app had never been built against reached a build.
+      #
+      # Generating the lock needs macOS, which only exists here, so publish the
+      # one this job produced: download it, commit it, and every later run —
+      # local or CI — resolves the same versions. After that this artifact is
+      # just a diff of what changed.
+      - name: Upload the resolved Podfile.lock
+        uses: actions/upload-artifact@v4
+        with:
+          name: Podfile.lock
+          path: hanguk_app/ios/Podfile.lock
+          if-no-files-found: error
+
       # ── Assertion 1 ────────────────────────────────────────────────────────
       - name: Build (release, unsigned)
         run: flutter build ios --release --no-codesign --dart-define=STORE_BUILD=true

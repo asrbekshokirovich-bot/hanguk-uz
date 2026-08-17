@@ -1605,4 +1605,26 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get guestContactCta => 'Contact us';
+
+  @override
+  String get aiReportAction => 'Report';
+
+  @override
+  String get aiReportTitle => 'Report this response';
+
+  @override
+  String get aiReportBody =>
+      'Tell us what is wrong with this AI response. Our team reviews every report.';
+
+  @override
+  String get aiReportReasonHint => 'What is wrong with it? (optional)';
+
+  @override
+  String get aiReportSubmit => 'Send report';
+
+  @override
+  String get aiReportThanks => 'Thank you. Our team will review this response.';
+
+  @override
+  String get aiReportFailed => 'Could not send the report. Please try again.';
 }

@@ -10,6 +10,28 @@
 	<string>Hanguk App needs speech recognition to transcribe your spoken answers during AI mock interviews.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Hanguk App needs microphone access to record your voice during AI mock interviews.</string>
+	<!-- Export compliance. Answering here means App Store Connect stops asking
+	     on every single upload, which is friction the release process does not
+	     need. `false` is the declaration that the app uses no non-exempt
+	     encryption; the basis for it, so the next person can re-check rather
+	     than trust it:
+
+	       * All network traffic is HTTPS/TLS provided by the OS — exempt.
+	       * `flutter_secure_storage` stores through the iOS Keychain — Apple's
+	         own encryption, exempt.
+	       * `crypto` is used for SHA-256 verification of downloaded artifacts.
+	         Hashing is not encryption — exempt.
+	       * `pointycastle` arrives transitively under `dart_jsonwebtoken` and
+	         is used to verify JWT signatures. Digital signature and
+	         authentication are named exemptions.
+
+	     Nothing in the app implements or ships its own encryption algorithm.
+	     If that changes — encrypting stored documents with a bundled cipher,
+	     say — this becomes `true` and the annual self-classification report
+	     applies. It is a legal declaration, so confirm it before the next
+	     submission rather than inheriting it. -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
