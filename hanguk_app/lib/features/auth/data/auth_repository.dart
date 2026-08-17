@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -29,6 +31,88 @@ final studentFullNameProvider = FutureProvider<String?>((ref) async {
   final name = row?['full_name'];
   return name is String && name.trim().isNotEmpty ? name.trim() : null;
 });
+
+// ─── Transient backend failures ──────────────────────────────────────────────
+//
+// App Review rejected build 1.0 (2042) under guideline 2.1(a) on 2026-08-14:
+// "we are unable to log in and an error message is displayed". The reviewer's
+// code was correct — the project's REST origin was returning Cloudflare 522s
+// that evening, so the magic-code call failed twice on infrastructure and the
+// screen showed a dead end with no way forward.
+//
+// The server side now retries and reports SERVICE_UNAVAILABLE / 503 instead of
+// a verdict on the code. The client half is here: a blip that clears in a
+// second should never reach the student at all, and one that doesn't clear
+// should say what it is.
+
+/// Thrown internally when a magic-code attempt failed on infrastructure
+/// rather than on the code. Never escapes [AuthRepository].
+class _TransientBackendFailure implements Exception {
+  const _TransientBackendFailure(this.detail);
+  final String detail;
+}
+
+/// Delays between magic-code attempts. Three attempts, ~1.6 s worst case.
+const _kTransientRetryDelays = <Duration>[
+  Duration(milliseconds: 400),
+  Duration(milliseconds: 1200),
+];
+
+/// True when [error] is the backend being briefly unreachable rather than an
+/// answer about this sign-in.
+///
+/// Deliberately string- and type-name-based rather than importing `dart:io`:
+/// the same repository compiles for web, where `SocketException` does not
+/// exist and `http`'s `ClientException` takes its place.
+@visibleForTesting
+bool isTransientBackendFailure(Object error) {
+  if (error is TimeoutException) return true;
+
+  if (error is FunctionException) {
+    // 503 is what student-login-v2 now returns for an unreachable database;
+    // 502/504/522/524 come from the gateway itself when the function never
+    // answered. 408/429 are "ask again".
+    final status = error.status;
+    if (status == 408 || status == 429 || (status >= 500 && status <= 599)) {
+      return true;
+    }
+    final details = error.details;
+    if (details is Map) {
+      final code = details['error']?.toString();
+      // CODE_LOOKUP_FAILED is the pre-fix spelling of the same condition — a
+      // server still running the old build must not read as a bad code.
+      if (code == 'SERVICE_UNAVAILABLE' || code == 'CODE_LOOKUP_FAILED') {
+        return true;
+      }
+    }
+  }
+
+  final name = error.runtimeType.toString();
+  if (name == 'SocketException' ||
+      name == 'ClientException' ||
+      name == 'HandshakeException' ||
+      name == 'HttpException') {
+    return true;
+  }
+
+  final text = error.toString().toLowerCase();
+  const transient = <String>[
+    'connection timed out',
+    'connection closed',
+    'connection refused',
+    'connection reset',
+    'connection attempt failed',
+    'failed host lookup',
+    'network is unreachable',
+    'software caused connection abort',
+    'timed out',
+    'timeout',
+    'bad gateway',
+    'service unavailable',
+    'temporarily unavailable',
+  ];
+  return transient.any(text.contains);
+}
 
 /// Mirrors the web Auth system conceptually, but strictly serves Students.
 /// - Inner Student: magic code → `student-login` Edge Function → setSession
@@ -92,14 +176,42 @@ class AuthRepository {
   ///
   /// Maps typed server errors (CODE_NOT_FOUND, STAFF_BLOCKED, etc.) to
   /// human-readable messages.
+  ///
+  /// Retries the transient class — see [isTransientBackendFailure]. A database
+  /// that is briefly unreachable is not an answer about the student's code, and
+  /// the 2026-08-14 App Review rejection is what one unretried blip costs.
   Future<({String? error, String? studentName})> signInWithMagicCode(
     String magicCode,
   ) async {
+    final normalized = magicCode.trim().toUpperCase().replaceAll(
+      RegExp(r'\s+'),
+      '',
+    );
+
+    for (var attempt = 0; ; attempt++) {
+      try {
+        return await _magicCodeAttempt(normalized);
+      } on _TransientBackendFailure catch (e) {
+        if (attempt < _kTransientRetryDelays.length) {
+          await Future<void>.delayed(_kTransientRetryDelays[attempt]);
+          continue;
+        }
+        return (
+          error: _messageFor('SERVICE_UNAVAILABLE', e.detail),
+          studentName: null,
+        );
+      }
+    }
+  }
+
+  /// One attempt at the magic-code exchange.
+  ///
+  /// Throws [_TransientBackendFailure] when the attempt died on infrastructure;
+  /// every other outcome comes back as a value for the caller to show.
+  Future<({String? error, String? studentName})> _magicCodeAttempt(
+    String normalized,
+  ) async {
     try {
-      final normalized = magicCode.trim().toUpperCase().replaceAll(
-        RegExp(r'\s+'),
-        '',
-      );
       final response = await _client.functions.invoke(
         'student-login-v2',
         body: {'magicCode': normalized},
@@ -152,6 +264,9 @@ class AuthRepository {
       final studentName = profile?['full_name']?.toString();
       return (error: null, studentName: studentName);
     } on FunctionException catch (e) {
+      if (isTransientBackendFailure(e)) {
+        throw _TransientBackendFailure('HTTP ${e.status}');
+      }
       // FunctionException.details may carry our typed error code if v2
       // returned a non-2xx response that supabase_flutter wrapped.
       if (e.details is Map) {
@@ -173,6 +288,12 @@ class AuthRepository {
         studentName: null,
       );
     } catch (e) {
+      // Socket resets, DNS failures, TLS handshakes, request timeouts: the
+      // app is online enough to have tried and the backend did not answer.
+      // Retryable, and not the student's problem to diagnose.
+      if (isTransientBackendFailure(e)) {
+        throw _TransientBackendFailure(e.runtimeType.toString());
+      }
       return (
         error: _messageFor('INTERNAL_ERROR', e.toString()),
         studentName: null,
@@ -189,8 +310,12 @@ class AuthRepository {
         return 'Please enter a valid 6–10 character access code.';
       case 'CODE_NOT_FOUND':
         return "We don't recognise this code. Please double-check it with your counsellor.";
+      case 'SERVICE_UNAVAILABLE':
       case 'CODE_LOOKUP_FAILED':
-        return 'Server error while verifying your code. Please contact your counsellor.';
+        // Not a verdict on the code — the server could not be reached. Saying
+        // "contact your counsellor" here, as this used to, sends a student
+        // (and an App Review reviewer) chasing a problem that clears itself.
+        return 'We could not reach the server. Please check your connection and tap sign in again.';
       case 'STAFF_BLOCKED':
         return 'Staff members must use username/password sign-in, not a magic code.';
       case 'AUTH_CREATE_FAILED':
