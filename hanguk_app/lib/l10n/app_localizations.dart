@@ -2972,7 +2972,6 @@ abstract class AppLocalizations {
   /// **'Contact us'**
   String get guestContactCta;
 
-
   /// Button under an AI answer that opens the report sheet.
   ///
   /// In en, this message translates to:
