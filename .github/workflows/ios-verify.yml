@@ -111,15 +111,17 @@ jobs:
       - name: Resolve Dart dependencies
         run: flutter pub get
 
-      # Generates ios/Flutter/Generated.xcconfig, which `pod install` needs to
-      # find FLUTTER_ROOT. Split from the build so a Podfile fault below is
-      # attributed to CocoaPods rather than buried in a compile log.
-      - name: Configure the Xcode project
+      # Runs pod install itself, and stops before compiling — so a Podfile
+      # fault fails here with CocoaPods' own message rather than being buried
+      # in a compile log.
+      #
+      # An explicit `pod install` afterwards would be redundant, and worse:
+      # running it a second time over an already-integrated project warns
+      # "CocoaPods did not set the base configuration of your project because
+      # your project already has a custom config set", which reads like a real
+      # problem and is not one.
+      - name: Configure the Xcode project (runs pod install)
         run: flutter build ios --config-only --release --no-codesign --dart-define=STORE_BUILD=true
-
-      - name: pod install
-        working-directory: hanguk_app/ios
-        run: pod install
 
       # ── Assertion 2 ────────────────────────────────────────────────────────
       # The macros land in every pod target, so presence in the generated
