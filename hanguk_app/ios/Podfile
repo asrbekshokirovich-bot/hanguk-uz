@@ -50,7 +50,14 @@
 # NS*UsageDescription to ios/Runner/Info.plist. One without the other either
 # fails silently (macro off) or fails validation (string missing).
 
-platform :ios, '13.0'
+# 15.0, not the 13.0 in project.pbxproj. Flutter 3.47 enforces a 15.0 minimum
+# and rewrites project.pbxproj, AppFrameworkInfo.plist and this file on every
+# build if they say otherwise ("Updating minimum iOS deployment target to
+# 15.0"). The shipped app therefore already requires iOS 15; saying so here
+# stops the tool editing a committed file behind our back. project.pbxproj is
+# left alone deliberately — raising its target is the same fact but reads as a
+# product decision, and it belongs in a commit that says so.
+platform :ios, '15.0'
 
 # CocoaPods analytics sends network stats synchronously affecting flutter build latency.
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'

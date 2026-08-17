@@ -100,6 +100,39 @@ dev_dependencies:
 # The following section is specific to Flutter packages.
 flutter:
 
+  # Swift Package Manager integration is off for iOS.
+  #
+  # Flutter 3.47 turns SPM on by default and routes any plugin that supports
+  # it through SPM instead of CocoaPods. Five of this project's plugins do not
+  # support it and fall back — daily_flutter, flutter_secure_storage,
+  # install_plugin, open_filex, permission_handler_apple — but sentry_flutter
+  # does, and going through SPM it resolves a sentry-cocoa newer than the
+  # 8.46.0 its podspec pins. The result is a compile error in a dependency:
+  #
+  #   Swift Compiler Error (Xcode): Value of type 'SentryBinaryImageCache'
+  #   has no member 'image'
+  #   sentry_flutter-8.14.2/.../SentryFlutterPlugin.swift:265:92
+  #
+  # Caught by .github/workflows/ios-verify.yml on its first run, 2026-08-17.
+  # The iOS build did not work from a clean checkout on current stable.
+  #
+  # This project is configured for CocoaPods — ios/Podfile is committed and
+  # carries the PERMISSION_* macros the microphone depends on — so pinning
+  # the whole build to that one integration path is the smaller change. The
+  # alternative is upgrading sentry_flutter until its Swift matches whatever
+  # SPM resolves, which is a moving target and touches error reporting.
+  #
+  # Revisit when sentry_flutter's SPM manifest and podspec agree on a
+  # sentry-cocoa version, or when the other five plugins adopt SPM and the
+  # CocoaPods path stops being the one that has to work.
+  #
+  # Spelled `config: enable-swift-package-manager: false`, not the top-level
+  # `disable-swift-package-manager: true` most search results still show —
+  # Flutter moved the key and now refuses `pub get` outright if it finds the
+  # old one.
+  config:
+    enable-swift-package-manager: false
+
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.

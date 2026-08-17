@@ -1,0 +1,210 @@
+name: iOS build verification
+
+# Compiles the student app for iOS without signing it, and asserts the three
+# things that have each cost an App Store submission.
+#
+# No secrets. `--no-codesign` skips certificates entirely, so this cannot
+# produce an uploadable IPA — that is deliberate. Releasing stays a deliberate
+# act on a machine with the signing identity, exactly like
+# android-release.yml. What CI adds is that the settings the release depends
+# on are checked rather than trusted.
+#
+# ── What is asserted, and why each one is here ─────────────────────────────
+#
+# 1. `ios/Podfile` resolves and the app compiles.
+#    The Podfile did not exist in this repository until 2026-08-17. Every
+#    archive was built against one generated locally by `flutter build ipa`,
+#    so nothing about the iOS build configuration was reproducible or
+#    reviewable. Now that it is committed, a broken edit to it must fail here
+#    rather than on someone's laptop the evening a release is due.
+#
+# 2. `PERMISSION_MICROPHONE=1` actually reaches the Pods project.
+#    permission_handler_apple defaults all nineteen PERMISSION_* macros to 0
+#    in PermissionHandlerEnums.h, so the microphone strategy is compiled out
+#    unless the Podfile turns it on — and when it is out,
+#    `Permission.microphone.request()` returns `denied` without ever showing
+#    an iOS dialog and the AI mock interview never hears the student. The
+#    Podfile's post_install appends to GCC_PREPROCESSOR_DEFINITIONS rather
+#    than using `||=`, because the widely-copied `||=` form assigns only when
+#    the setting is nil and silently swallows the macros otherwise. That is a
+#    silent failure with no build error and no runtime error, which is
+#    precisely what a test is for.
+#
+# 3. `UIDeviceFamily` is `[1]` in the built app.
+#    The 2026-08-05 and 2026-08-12 rejections were both downstream of the app
+#    being submitted as iPad-eligible: App Store Connect keeps every iPad
+#    screenshot slot live, review runs on an iPad, and a stale asset in a
+#    hidden size fails guideline 2.3.3 on its own. `TARGETED_DEVICE_FAMILY`
+#    is "1" in all three build configurations today; this makes a regression
+#    a red check instead of a rejection letter six weeks later.
+#
+# ── What it cannot do ──────────────────────────────────────────────────────
+#
+# It cannot confirm the microphone *prompt* appears. That needs a real device
+# and a human watching for the permission sheet — run an AI mock interview on
+# hardware before submitting. Everything up to the prompt is checked here.
+#
+# ── Cost ───────────────────────────────────────────────────────────────────
+#
+# macOS runners bill at 10x the Linux rate, so the paths filter below keeps
+# this off the critical path: it fires only when the iOS project, the
+# dependency set, the vapi package (which owns the only permission request in
+# the codebase) or this file changes. On a normal Dart-only commit it does not
+# run at all.
+
+# The two path lists are duplicated rather than shared through a YAML anchor:
+# the Actions workflow parser does not support anchors, and a workflow that
+# fails to parse never runs at all.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'hanguk_app/ios/**'
+      - 'hanguk_app/pubspec.yaml'
+      - 'hanguk_app/pubspec.lock'
+      - 'hanguk_app/packages/vapi/**'
+      - '.github/workflows/ios-verify.yml'
+  pull_request:
+    paths:
+      - 'hanguk_app/ios/**'
+      - 'hanguk_app/pubspec.yaml'
+      - 'hanguk_app/pubspec.lock'
+      - 'hanguk_app/packages/vapi/**'
+      - '.github/workflows/ios-verify.yml'
+  workflow_dispatch:
+    inputs:
+      flutter_version:
+        description: "Flutter version to build with. Blank = latest stable."
+        required: false
+        default: ""
+
+concurrency:
+  group: ios-verify-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: macos-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: hanguk_app
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ inputs.flutter_version }}
+          cache: true
+
+      - name: Report toolchain and version being built
+        run: |
+          flutter --version
+          xcodebuild -version
+          echo "pubspec version: $(grep '^version:' pubspec.yaml)"
+
+      - name: Resolve Dart dependencies
+        run: flutter pub get
+
+      # Runs pod install itself, and stops before compiling — so a Podfile
+      # fault fails here with CocoaPods' own message rather than being buried
+      # in a compile log.
+      #
+      # An explicit `pod install` afterwards would be redundant, and worse:
+      # running it a second time over an already-integrated project warns
+      # "CocoaPods did not set the base configuration of your project because
+      # your project already has a custom config set", which reads like a real
+      # problem and is not one.
+      - name: Configure the Xcode project (runs pod install)
+        run: flutter build ios --config-only --release --no-codesign --dart-define=STORE_BUILD=true
+
+      # ── Assertion 2 ────────────────────────────────────────────────────────
+      # The macros land in every pod target, so presence in the generated
+      # project is enough to prove the post_install hook ran and its output
+      # survived. Both polarities are checked: MICROPHONE=1 alone would also
+      # pass if someone replaced the list with a single entry, and losing the
+      # zeros would mean the rest of the list stopped being applied.
+      - name: Assert the microphone permission is compiled in
+        working-directory: hanguk_app/ios
+        run: |
+          pbxproj=Pods/Pods.xcodeproj/project.pbxproj
+          if [ ! -f "$pbxproj" ]; then
+            echo "::error::$pbxproj not found — pod install did not generate a Pods project."
+            exit 1
+          fi
+
+          if ! grep -q 'PERMISSION_MICROPHONE=1' "$pbxproj"; then
+            echo "::error::PERMISSION_MICROPHONE=1 is missing from the Pods project."
+            echo "The microphone strategy will be compiled out of permission_handler_apple:"
+            echo "Permission.microphone.request() returns denied with no iOS dialog, and the"
+            echo "AI mock interview starts with no microphone. Check the post_install hook in"
+            echo "ios/Podfile — if it was changed to '||=', the macros are being dropped"
+            echo "whenever GCC_PREPROCESSOR_DEFINITIONS is already set."
+            exit 1
+          fi
+
+          if ! grep -q 'PERMISSION_CONTACTS=0' "$pbxproj"; then
+            echo "::error::The PERMISSION_* list is only partly applied — PERMISSION_CONTACTS=0"
+            echo "is missing while PERMISSION_MICROPHONE=1 is present. Expected the whole list"
+            echo "from ios/Podfile."
+            exit 1
+          fi
+
+          echo "PERMISSION_MICROPHONE=1 present in $(grep -c 'PERMISSION_MICROPHONE=1' "$pbxproj") build configurations."
+
+      # ── Assertion 1 ────────────────────────────────────────────────────────
+      - name: Build (release, unsigned)
+        run: flutter build ios --release --no-codesign --dart-define=STORE_BUILD=true
+
+      # ── Assertion 3 ────────────────────────────────────────────────────────
+      # Read from the *built* Info.plist, not from project.pbxproj: the point
+      # is what the archive would carry, and the two can disagree.
+      - name: Assert the build is iPhone-only
+        run: |
+          plist=build/ios/iphoneos/Runner.app/Info.plist
+          families=$(/usr/libexec/PlistBuddy -c "Print :UIDeviceFamily" "$plist" | grep -oE '[0-9]+' | sort -u | tr '\n' ' ' | sed 's/ $//')
+
+          echo "UIDeviceFamily = [$families]"
+          if [ "$families" != "1" ]; then
+            echo "::error::Expected UIDeviceFamily [1] (iPhone only), got [$families]."
+            echo "An iPad-eligible binary makes App Store Connect keep every iPad screenshot"
+            echo "slot live and makes review run on an iPad — the shape of the 2026-08-05 and"
+            echo "2026-08-12 rejections. Check TARGETED_DEVICE_FAMILY in all three build"
+            echo "configurations of ios/Runner.xcodeproj/project.pbxproj."
+            exit 1
+          fi
+
+      # A macro without its purpose string is the other half of the same bug:
+      # iOS terminates the app when AVCaptureDevice is asked for audio and
+      # NSMicrophoneUsageDescription is absent.
+      - name: Assert the microphone purpose string ships
+        run: |
+          plist=build/ios/iphoneos/Runner.app/Info.plist
+          if ! /usr/libexec/PlistBuddy -c "Print :NSMicrophoneUsageDescription" "$plist" >/dev/null 2>&1; then
+            echo "::error::NSMicrophoneUsageDescription is missing from the built Info.plist."
+            echo "With PERMISSION_MICROPHONE=1 the app calls AVCaptureDevice for audio, and iOS"
+            echo "terminates an app that does so without a purpose string."
+            exit 1
+          fi
+          echo "NSMicrophoneUsageDescription: $(/usr/libexec/PlistBuddy -c "Print :NSMicrophoneUsageDescription" "$plist")"
+
+      - name: Summary
+        run: |
+          {
+            echo "### iOS verification passed"
+            echo
+            echo "| check | result |"
+            echo "| --- | --- |"
+            echo "| Podfile resolves, app compiles | ok |"
+            echo "| \`PERMISSION_MICROPHONE=1\` in Pods project | ok |"
+            echo "| \`UIDeviceFamily\` | \`[1]\` |"
+            echo "| \`NSMicrophoneUsageDescription\` | present |"
+            echo
+            echo "Still needs a human: run an AI mock interview on a real device and confirm"
+            echo "the microphone permission sheet appears. CI cannot see that prompt."
+          } >> "$GITHUB_STEP_SUMMARY"
