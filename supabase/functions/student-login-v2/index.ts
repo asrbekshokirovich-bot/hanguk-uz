@@ -41,6 +41,7 @@ type ErrorCode =
   | 'AUTH_CREATE_FAILED'
   | 'AUTH_SIGNIN_FAILED'
   | 'SERVER_MISCONFIGURED'
+  | 'SERVICE_UNAVAILABLE'
   | 'INTERNAL_ERROR'
 
 function errorResponse(
@@ -58,6 +59,165 @@ function logEvent(event: Record<string, unknown>): void {
   // One JSON line per request — easy to filter in the Supabase logs view.
   // eslint-disable-next-line no-console
   console.log(JSON.stringify({ ts: new Date().toISOString(), ...event }))
+}
+
+// ── Transient upstream failures ──────────────────────────────────────────────
+//
+// App Review, 2026-08-14 19:47 UTC. The reviewer entered the correct demo code
+// twice and was told "Server error while verifying your code. Please contact
+// your counsellor." Both attempts are in the logs, and neither was about the
+// code: the project's REST origin was returning Cloudflare **522 Connection
+// timed out** for ~90 minutes that evening, so `from('profiles')` came back
+// with a 20 KB HTML error page in `error.message`. This function read that as
+// CODE_LOOKUP_FAILED, answered 500, and the app showed a dead end. Guideline
+// 2.1(a) rejection.
+//
+// A blip in the database is not something the login path can prevent. Turning
+// a blip into a hard failure is. Every call below now retries the transient
+// class, and what survives the retries is reported as SERVICE_UNAVAILABLE /
+// 503 — "the server is unreachable, try again" — never as a verdict on the
+// student's code.
+
+/** Attempt delays in ms. Three attempts total; ~1.2 s worst case added. */
+const RETRY_DELAYS_MS = [300, 900]
+
+/** Raised when every attempt at an upstream call hit the transient class. */
+class TransientUpstreamError extends Error {
+  constructor(readonly stage: string, readonly detail: string) {
+    super(`${stage}: ${detail}`)
+    this.name = 'TransientUpstreamError'
+  }
+}
+
+function messageOf(err: unknown): string {
+  if (!err) return ''
+  if (err instanceof Error) return err.message
+  if (typeof err === 'string') return err
+  if (typeof err === 'object' && 'message' in err) {
+    return String((err as { message?: unknown }).message ?? '')
+  }
+  return String(err)
+}
+
+/**
+ * Keep `detail` readable in logs and in the response body.
+ *
+ * The 2026-08-14 failure logged an entire Cloudflare error page — 20 KB of
+ * markup per attempt — which is how a two-line diagnosis ended up buried.
+ * HTML never carries information the caller needs, so it is replaced by the
+ * status line rather than truncated.
+ */
+function summarize(err: unknown): string {
+  const raw = messageOf(err).trim()
+  if (/<!DOCTYPE html|<html[\s>]/i.test(raw)) {
+    const title = raw.match(/<title>([^<]{0,120})<\/title>/i)?.[1]?.trim()
+    return title ? `upstream returned HTML: ${title}` : 'upstream returned an HTML error page'
+  }
+  return raw.length > 300 ? `${raw.slice(0, 300)}…` : raw
+}
+
+/**
+ * True when the failure is the infrastructure being briefly unreachable
+ * rather than an answer about this request.
+ *
+ * The 522 case is the reason this exists: PostgREST is behind Cloudflare, so
+ * an origin timeout arrives as an HTML page in `error.message` with no code
+ * and no status — indistinguishable from a real lookup error unless the shape
+ * of the body is inspected. Postgres' own "server is having a moment" codes
+ * (statement timeout, too many connections, connection failure) are here too.
+ */
+function isTransientFailure(err: unknown): boolean {
+  if (!err) return false
+
+  const raw = messageOf(err)
+  // A gateway error page — 502/503/504/522/524 all render as one.
+  if (/<!DOCTYPE html|<html[\s>]/i.test(raw)) return true
+
+  const lowered = raw.toLowerCase()
+  const TRANSIENT_TEXT = [
+    'connection timed out',
+    'connection closed',
+    'connection refused',
+    'connection reset',
+    'connection terminated',
+    'error sending request',
+    'fetch failed',
+    'network error',
+    'socket hang up',
+    'timeout',
+    'timed out',
+    'temporarily unavailable',
+    'too many clients',
+    'service unavailable',
+    'bad gateway',
+    'gateway time-out',
+    'gateway timeout',
+    'econnreset',
+    'econnrefused',
+    'etimedout',
+    'enotfound',
+  ]
+  if (TRANSIENT_TEXT.some((t) => lowered.includes(t))) return true
+
+  // Postgres SQLSTATEs that mean "retry", not "you asked for the wrong thing".
+  const code = String((err as { code?: unknown }).code ?? '')
+  const TRANSIENT_SQLSTATES = [
+    '08000', '08003', '08006', '08001', '08004', // connection exceptions
+    '53300', // too_many_connections
+    '53400', // configuration_limit_exceeded
+    '57014', // query_canceled (statement timeout)
+    '57P01', '57P02', '57P03', // admin shutdown / crash shutdown / cannot connect now
+    'XX000', // internal_error — PostgREST surfaces pooler faults as this
+  ]
+  if (TRANSIENT_SQLSTATES.includes(code)) return true
+
+  const status = Number((err as { status?: unknown }).status ?? NaN)
+  return status === 408 || status === 429 || (status >= 500 && status <= 599)
+}
+
+/**
+ * Run `fn` until it succeeds or stops failing transiently.
+ *
+ * `fn` returns supabase-js' `{ data, error }` shape. A non-transient `error`
+ * is handed straight back for the caller to interpret; only the transient
+ * class is retried, and exhausting the attempts throws
+ * [TransientUpstreamError] so the caller cannot mistake infrastructure for a
+ * verdict.
+ */
+async function withRetry<T>(
+  stage: string,
+  // PromiseLike, not Promise: PostgREST query builders are thenables, so a
+  // `Promise` signature would reject `from(...).select(...)` at type-check.
+  fn: () => PromiseLike<{ data: T; error: unknown }>,
+): Promise<{ data: T; error: unknown }> {
+  let last: unknown = null
+
+  for (let attempt = 0; attempt <= RETRY_DELAYS_MS.length; attempt++) {
+    let result: { data: T; error: unknown }
+    try {
+      result = await fn()
+    } catch (thrown) {
+      // supabase-js throws rather than returning `{ error }` for network-level
+      // faults (the admin/auth calls especially). Same class, same handling.
+      if (!isTransientFailure(thrown)) throw thrown
+      result = { data: null as T, error: thrown }
+    }
+
+    if (!result.error || !isTransientFailure(result.error)) return result
+
+    last = result.error
+    if (attempt < RETRY_DELAYS_MS.length) {
+      logEvent({
+        result: 'RETRY',
+        stage,
+        attempt: attempt + 1,
+        detail: summarize(last),
+      })
+      await new Promise((r) => setTimeout(r, RETRY_DELAYS_MS[attempt]))
+    }
+  }
+
+  throw new TransientUpstreamError(stage, summarize(last))
 }
 
 function isDuplicateEmailError(err: unknown): boolean {
@@ -83,7 +243,14 @@ async function findExistingAuthUser(
   deterministicEmail: string,
 ): Promise<{ id: string; email: string } | null> {
   // Primary: O(1) lookup by id.
-  const { data: byId } = await admin.auth.admin.getUserById(profileUserId)
+  //
+  // Retried: an unreachable GoTrue here returns no user, which sends the
+  // caller into the create branch for a student who already has an account —
+  // duplicate email, race path, AUTH_CREATE_FAILED. A blip must not look like
+  // a missing account.
+  const { data: byId } = await withRetry('auth.getUserById', () =>
+    admin.auth.admin.getUserById(profileUserId),
+  )
   if (byId?.user) {
     return { id: byId.user.id, email: byId.user.email ?? deterministicEmail }
   }
@@ -93,7 +260,9 @@ async function findExistingAuthUser(
   // auth_email column for true O(1).
   const PAGE_LIMIT = 25
   for (let page = 1; page <= PAGE_LIMIT; page++) {
-    const { data: list } = await admin.auth.admin.listUsers({ page, perPage: 1000 })
+    const { data: list } = await withRetry('auth.listUsers', () =>
+      admin.auth.admin.listUsers({ page, perPage: 1000 }),
+    )
     if (!list?.users || list.users.length === 0) return null
     const found = list.users.find((u) => u.email === deterministicEmail)
     if (found) return { id: found.id, email: found.email ?? deterministicEmail }
@@ -120,6 +289,13 @@ async function findExistingAuthUser(
  *
  * Returns null rather than throwing: the caller falls back to the password path
  * so a failure here cannot lock students out.
+ *
+ * The one thing it does throw on is [TransientUpstreamError]. The fallback is
+ * the path that rewrites the stored password (Bug F above), and taking it
+ * because GoTrue was unreachable for a second would spend a student's real
+ * credential on a network blip. Unreachable is not the same as unsupported:
+ * the first is worth retrying and then reporting, the second is what the
+ * fallback is for.
  */
 async function mintSessionWithoutPassword(
   admin: ReturnType<typeof createClient>,
@@ -127,24 +303,34 @@ async function mintSessionWithoutPassword(
   email: string,
 ): Promise<{ session: unknown } | null> {
   try {
-    const { data: link, error: linkErr } = await admin.auth.admin.generateLink({
-      type: 'magiclink',
-      email,
-    })
-    const hashedToken = link?.properties?.hashed_token
+    const { data: link, error: linkErr } = await withRetry('auth.generateLink', () =>
+      admin.auth.admin.generateLink({ type: 'magiclink', email }),
+    )
+    // The cast is load-bearing at deploy time: `withRetry` widens `data` to a
+    // generic, and generateLink's response type does not survive that on its
+    // own. Carried over from what is running in production.
+    const hashedToken = (link as { properties?: { hashed_token?: string } } | null)
+      ?.properties?.hashed_token
     if (linkErr || !hashedToken) return null
 
     // GoTrue has spelled this OTP type both ways across versions; try the
     // specific one first and fall back rather than guessing wrong.
+    //
+    // A wrong `type` fails non-transiently, which is the whole point of the
+    // loop, so withRetry hands that error straight back and the next spelling
+    // is tried. Only unreachability is retried, and only that escapes.
     for (const type of ['magiclink', 'email'] as const) {
-      const { data, error } = await signInClient.auth.verifyOtp({
-        token_hash: hashedToken,
-        type,
-      })
+      const { data, error } = await withRetry(`auth.verifyOtp:${type}`, () =>
+        signInClient.auth.verifyOtp({ token_hash: hashedToken, type }),
+      )
       if (!error && data?.session) return { session: data.session }
     }
     return null
-  } catch {
+  } catch (err) {
+    // Unreachable GoTrue must reach the caller: falling through to the
+    // password path would rewrite this student's stored credential over a
+    // network blip. Everything else degrades to the fallback as before.
+    if (err instanceof TransientUpstreamError) throw err
     return null
   }
 }
@@ -186,15 +372,18 @@ Deno.serve(async (req) => {
       auth: { autoRefreshToken: false, persistSession: false },
     })
 
-    const { data: profile, error: profileErr } = await admin
-      .from('profiles')
-      .select('id, user_id, full_name, magic_code')
-      .eq('magic_code', normalizedCode)
-      .maybeSingle()
+    // The 2026-08-14 rejection lives on this line. See the retry block above.
+    const { data: profile, error: profileErr } = await withRetry('profiles.lookup', () =>
+      admin
+        .from('profiles')
+        .select('id, user_id, full_name, magic_code')
+        .eq('magic_code', normalizedCode)
+        .maybeSingle(),
+    )
 
     if (profileErr) {
-      logEvent({ result: 'CODE_LOOKUP_FAILED', code_mask: codeMask, detail: profileErr.message })
-      return errorResponse('CODE_LOOKUP_FAILED', profileErr.message, 500)
+      logEvent({ result: 'CODE_LOOKUP_FAILED', code_mask: codeMask, detail: summarize(profileErr) })
+      return errorResponse('CODE_LOOKUP_FAILED', summarize(profileErr), 500)
     }
     if (!profile) {
       logEvent({ result: 'CODE_NOT_FOUND', code_mask: codeMask })
@@ -202,10 +391,15 @@ Deno.serve(async (req) => {
     }
 
     // Reject staff (CRM owners / admins / call operators / etc).
-    const { data: roles } = await admin
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', profile.user_id)
+    //
+    // Retried for the same reason the profile lookup is, but read the other
+    // way round: an unreachable table yields no roles, and no roles reads as
+    // "not staff". Failing open on this one is the safe direction — a student
+    // signs in — but it should be because the query answered, not because it
+    // never landed.
+    const { data: roles } = await withRetry('user_roles.lookup', () =>
+      admin.from('user_roles').select('role').eq('user_id', profile.user_id),
+    )
     const isStaff = (roles ?? []).some((r) =>
       ['staff', 'admin', 'owner', 'call_operator', 'document_handler'].includes(
         String(r.role),
@@ -327,25 +521,27 @@ Deno.serve(async (req) => {
       mintedBy = 'password'
       const stablePassword = `student-${authUser.id}-hanguk-A1!`
 
-      let { data: sessionData, error: signInErr } = await signInClient.auth.signInWithPassword({
-        email: authUser.email,
-        password: stablePassword,
-      })
+      let { data: sessionData, error: signInErr } = await withRetry('auth.signInWithPassword', () =>
+        signInClient.auth.signInWithPassword({
+          email: authUser!.email,
+          password: stablePassword,
+        }),
+      )
 
       if (signInErr) {
-        const { error: updateErr } = await admin.auth.admin.updateUserById(authUser.id, {
-          password: stablePassword,
-        })
+        const { error: updateErr } = await withRetry('auth.updateUserById', () =>
+          admin.auth.admin.updateUserById(authUser!.id, { password: stablePassword }),
+        )
         if (updateErr) {
           logEvent({
             result: 'AUTH_SIGNIN_FAILED',
             code_mask: codeMask,
             branch,
-            detail: `password reset failed: ${updateErr.message}`,
+            detail: `password reset failed: ${summarize(updateErr)}`,
           })
           return errorResponse(
             'AUTH_SIGNIN_FAILED',
-            `Password reset failed: ${updateErr.message}`,
+            `Password reset failed: ${summarize(updateErr)}`,
             500,
           )
         }
@@ -355,18 +551,22 @@ Deno.serve(async (req) => {
           branch,
           detail: 'OTP mint unavailable and stored password did not match — password was rewritten',
         })
-        ;({ data: sessionData, error: signInErr } = await signInClient.auth.signInWithPassword({
-          email: authUser.email,
-          password: stablePassword,
-        }))
+        ;({ data: sessionData, error: signInErr } = await withRetry(
+          'auth.signInWithPassword.retry',
+          () =>
+            signInClient.auth.signInWithPassword({
+              email: authUser!.email,
+              password: stablePassword,
+            }),
+        ))
         if (signInErr) {
           logEvent({
             result: 'AUTH_SIGNIN_FAILED',
             code_mask: codeMask,
             branch,
-            detail: signInErr.message,
+            detail: summarize(signInErr),
           })
-          return errorResponse('AUTH_SIGNIN_FAILED', signInErr.message, 500)
+          return errorResponse('AUTH_SIGNIN_FAILED', summarize(signInErr), 500)
         }
       }
       session = sessionData?.session ?? null
@@ -416,7 +616,37 @@ Deno.serve(async (req) => {
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     )
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Unexpected error'
+    // Infrastructure that stayed unreachable across every retry. It is not a
+    // fault in the request and must not read like one: 503 tells the client to
+    // come back, and the client says so to the student instead of sending them
+    // to their counsellor over a code that was correct all along.
+    if (error instanceof TransientUpstreamError) {
+      logEvent({
+        result: 'SERVICE_UNAVAILABLE',
+        code_mask: codeMask,
+        branch,
+        stage: error.stage,
+        detail: error.detail,
+        durationMs: Date.now() - startedAt,
+      })
+      return errorResponse('SERVICE_UNAVAILABLE', `${error.stage}: ${error.detail}`, 503)
+    }
+
+    // A network fault thrown from somewhere without a retry wrapper reads the
+    // same way to the student, so classify it the same way.
+    if (isTransientFailure(error)) {
+      logEvent({
+        result: 'SERVICE_UNAVAILABLE',
+        code_mask: codeMask,
+        branch,
+        stage: 'unwrapped',
+        detail: summarize(error),
+        durationMs: Date.now() - startedAt,
+      })
+      return errorResponse('SERVICE_UNAVAILABLE', summarize(error), 503)
+    }
+
+    const message = error instanceof Error ? summarize(error) : 'Unexpected error'
     logEvent({ result: 'INTERNAL_ERROR', code_mask: codeMask, detail: message })
     return errorResponse('INTERNAL_ERROR', message, 500)
   }

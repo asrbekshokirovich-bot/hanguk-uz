@@ -1,0 +1,137 @@
+# iOS CocoaPods configuration.
+#
+# This file was missing from the repository until 2026-08-17, which is a
+# problem in itself: `flutter build ipa` generates one from the Flutter
+# template when it is absent, so the permission configuration below lived
+# only on whichever machine happened to build the archive — invisible in
+# review, unreproducible on a fresh clone, and different for every builder.
+#
+# ── Why the PERMISSION_* macros matter here ────────────────────────────────
+#
+# `permission_handler_apple` compiles each permission strategy behind a
+# preprocessor guard, and `Classes/PermissionHandlerEnums.h` defaults **every**
+# one of them to 0. Nothing is compiled in unless this Podfile says so. The
+# microphone strategy is guarded like this:
+#
+#   AudioVideoPermissionStrategy.m
+#     #if PERMISSION_CAMERA | PERMISSION_MICROPHONE   <- both 0 by default
+#     ...
+#     } else if (permission == PermissionGroupMicrophone) {
+#         #if PERMISSION_MICROPHONE
+#         mediaType = AVMediaTypeAudio;
+#         #else
+#         completionHandler(PermissionStatusDenied);   <- what shipped
+#         return;
+#         #endif
+#
+# So without `PERMISSION_MICROPHONE=1`, `Permission.microphone.request()` in
+# `packages/vapi/lib/src/platform/mobile/vapi_mobile_client.dart` returns
+# `denied` immediately — no iOS permission dialog is ever shown. That method
+# retries once, gets `denied` again, and returns silently (the
+# `openAppSettings()` escape only fires on `permanentlyDenied`, which this
+# never is). The AI mock interview then starts with no microphone and never
+# hears the student.
+#
+# That is one of the six App Store screenshots and a headline feature, and it
+# is a deterministic guideline 2.1(a) rejection, not an intermittent one.
+#
+# ── What is enabled, and why nothing else is ───────────────────────────────
+#
+# `Permission.microphone` is the only permission the codebase requests —
+# `grep -rn "Permission\." lib/ packages/` returns exactly the two calls in
+# vapi_mobile_client.dart. Camera and photo access go through `file_picker`
+# and the system pickers, which do not use permission_handler, so their
+# strategies stay off: every handler compiled in is an Apple-privacy API
+# linked into the binary, and one without a matching purpose string in
+# Info.plist is what draws ITMS-90683 on upload.
+#
+# If a future feature calls `Permission.camera`, `Permission.photos` or
+# `Permission.notification`, flip the macro here **and** add the matching
+# NS*UsageDescription to ios/Runner/Info.plist. One without the other either
+# fails silently (macro off) or fails validation (string missing).
+
+platform :ios, '13.0'
+
+# CocoaPods analytics sends network stats synchronously affecting flutter build latency.
+ENV['COCOAPODS_DISABLE_STATS'] = 'true'
+
+project 'Runner', {
+  'Debug' => :debug,
+  'Profile' => :release,
+  'Release' => :release,
+}
+
+def flutter_root
+  generated_xcode_build_settings_path = File.expand_path(File.join('..', 'Flutter', 'Generated.xcconfig'), __FILE__)
+  unless File.exist?(generated_xcode_build_settings_path)
+    raise "#{generated_xcode_build_settings_path} must exist. If you're running pod install manually, make sure flutter pub get is executed first"
+  end
+
+  File.foreach(generated_xcode_build_settings_path) do |line|
+    matches = line.match(/FLUTTER_ROOT\=(.*)/)
+    return matches[1].strip if matches
+  end
+  raise "FLUTTER_ROOT not found in #{generated_xcode_build_settings_path}. Try deleting Generated.xcconfig, then run flutter pub get"
+end
+
+require File.expand_path(File.join('packages', 'flutter_tools', 'bin', 'podhelper'), flutter_root)
+
+flutter_ios_podfile_setup
+
+target 'Runner' do
+  use_frameworks!
+  use_modular_headers!
+
+  flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
+
+  target 'RunnerTests' do
+    inherit! :search_paths
+  end
+end
+
+# The full macro list, every one stated explicitly rather than left to the
+# header default. The default is already 0, so the zeros below change nothing
+# at build time — they are here so that "is the microphone on?" is answered by
+# reading this file, and so that turning one on is an edit rather than a
+# discovery.
+PERMISSION_MACROS = %w[
+  PERMISSION_EVENTS=0
+  PERMISSION_EVENTS_FULL_ACCESS=0
+  PERMISSION_REMINDERS=0
+  PERMISSION_CONTACTS=0
+  PERMISSION_CAMERA=0
+  PERMISSION_MICROPHONE=1
+  PERMISSION_SPEECH_RECOGNIZER=0
+  PERMISSION_PHOTOS=0
+  PERMISSION_PHOTOS_ADD_ONLY=0
+  PERMISSION_LOCATION=0
+  PERMISSION_LOCATION_WHENINUSE=0
+  PERMISSION_LOCATION_ALWAYS=0
+  PERMISSION_NOTIFICATIONS=0
+  PERMISSION_MEDIA_LIBRARY=0
+  PERMISSION_SENSORS=0
+  PERMISSION_BLUETOOTH=0
+  PERMISSION_APP_TRACKING_TRANSPARENCY=0
+  PERMISSION_CRITICAL_ALERTS=0
+  PERMISSION_ASSISTANT=0
+].freeze
+
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    flutter_additional_ios_build_settings(target)
+
+    target.build_configurations.each do |config|
+      # Append rather than `||=`. The common snippet assigns only when the
+      # setting is nil, so anything that has already written
+      # GCC_PREPROCESSOR_DEFINITIONS — CocoaPods or
+      # flutter_additional_ios_build_settings above — silently swallows the
+      # macros and the microphone goes back to being compiled out. Normalise
+      # the value first: CocoaPods hands back a String for a single entry and
+      # an Array for several.
+      existing = config.build_settings['GCC_PREPROCESSOR_DEFINITIONS']
+      existing = ['$(inherited)'] if existing.nil?
+      existing = [existing] if existing.is_a?(String)
+      config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] = existing + PERMISSION_MACROS
+    end
+  end
+end

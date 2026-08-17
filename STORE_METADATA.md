@@ -23,6 +23,31 @@ This file contains all store descriptions and metadata for Apple App Store and G
 > **Still absent, still not to be claimed:** scholarship eligibility and
 > rank. Neither exists on any screen. If either is ever added, widen this
 > file first and only then the store copy.
+>
+> **A row that exists is not a row that is filled** (added 2026-08-17). The
+> compare screen renders every field above, but the data behind it is thin,
+> measured against production:
+>
+> | | count |
+> | --- | --- |
+> | institutions visible on the map | **204** |
+> | with any approved admission record | 53 |
+> | with an interview answer | 50 |
+> | with a TOPIK level | 31 |
+> | **with tuition** | **4** |
+>
+> A reviewer picking two universities off the map sees tuition on both in
+> roughly one pair in two thousand. A description that leads with "compare
+> tuition" is therefore accurate about the *screen* and misleading about the
+> *app*, which is the distinction guideline 2.3 turns on — and this
+> submission has already been rejected twice on metadata. The bullets below
+> are worded to say which fields depend on a published guideline rather than
+> promising all of them for every university.
+>
+> Widen them back the moment the extraction backlog is drained
+> (`.github/workflows/uni-db-drain-backlog.yml` — ~490 field extractions
+> failed). Re-run the query in `hanguk_app/store/APP_REVIEW_2026-08-14.md`
+> before doing so.
 
 ---
 
@@ -36,7 +61,7 @@ This file contains all store descriptions and metadata for Apple App Store and G
 
 ### Keywords
 ```
-korea, university, study abroad, education, application, student, scholarship, korean language, admission, visa
+korea,university,study abroad,education,application,student,TOPIK,korean language,admission,visa
 ```
 
 ### Short Description (80 characters)
@@ -52,7 +77,8 @@ FEATURES:
 • Track your university applications in real-time
 • Upload and manage required documents
 • Practice for admission interviews with AI
-• Browse Korean universities on an interactive map, then compare two of them side by side — city, tier, IEQAS accreditation, partner status, tuition, application window, document deadline, TOPIK requirement, English-taught and interview
+• Browse Korean universities on an interactive map, then compare two of them side by side — city, tier, IEQAS accreditation, partner status and website
+• For universities whose admission guideline we have already published, the comparison also shows tuition, the application window, the document deadline, the TOPIK requirement, English-taught tracks and whether an interview is required
 • Get personalized AI assistance for your journey
 • Multi-language support (Uzbek, Russian, English, Korean)
 
@@ -72,7 +98,7 @@ Start your path to studying in South Korea today!
 
 ### Keywords
 ```
-koreya, universitet, chet elda o'qish, ta'lim, ariza, talaba, stipendiya, koreys tili, qabul, viza
+koreya,universitet,chet elda o'qish,ta'lim,ariza,talaba,TOPIK,koreys tili,qabul,viza
 ```
 
 ### Short Description
@@ -88,7 +114,8 @@ IMKONIYATLAR:
 • Universitet arizalaringizni real vaqtda kuzating
 • Kerakli hujjatlarni yuklang va boshqaring
 • AI bilan qabul suhbatlariga tayyorlaning
-• Koreya universitetlarini interaktiv xaritada ko'ring va ikkitasini yonma-yon solishtiring — shahar, daraja, IEQAS akkreditatsiyasi, hamkorlik holati, o'qish to'lovi, ariza muddati, hujjat topshirish muddati, TOPIK talabi, ingliz tilida o'qitish va suhbat
+• Koreya universitetlarini interaktiv xaritada ko'ring va ikkitasini yonma-yon solishtiring — shahar, daraja, IEQAS akkreditatsiyasi, hamkorlik holati va veb-sayt
+• Qabul qo'llanmasi biz tomonidan e'lon qilingan universitetlar uchun taqqoslash o'qish to'lovi, ariza muddati, hujjat topshirish muddati, TOPIK talabi, ingliz tilidagi yo'nalish va suhbat talabini ham ko'rsatadi
 • Sayohatingiz uchun shaxsiy AI yordamini oling
 • Ko'p tilli qo'llab-quvvatlash (O'zbek, Rus, Ingliz, Koreys)
 
@@ -108,7 +135,7 @@ Janubiy Koreyada o'qish yo'lingizni bugun boshlang!
 
 ### Keywords
 ```
-корея, университет, обучение за рубежом, образование, заявка, студент, стипендия, корейский язык, поступление, виза
+корея,университет,учеба за рубежом,образование,заявка,студент,TOPIK,корейский язык,поступление,виза
 ```
 
 ### Short Description
@@ -124,7 +151,8 @@ Hanguk Consulting помогает студентам подавать заяв�
 • Отслеживайте ваши заявки в университеты в реальном времени
 • Загружайте и управляйте необходимыми документами
 • Практикуйте собеседования с ИИ
-• Смотрите корейские университеты на интерактивной карте и сравнивайте два из них рядом — город, уровень, аккредитация IEQAS, партнёрский статус, стоимость обучения, сроки подачи, срок подачи документов, требование TOPIK, обучение на английском и собеседование
+• Смотрите корейские университеты на интерактивной карте и сравнивайте два из них рядом — город, уровень, аккредитация IEQAS, партнёрский статус и сайт
+• Для университетов, чьи правила приёма мы уже опубликовали, сравнение также показывает стоимость обучения, сроки подачи, срок подачи документов, требование TOPIK, обучение на английском и наличие собеседования
 • Получайте персональную помощь ИИ
 • Многоязычная поддержка (Узбекский, Русский, Английский, Корейский)
 
@@ -144,7 +172,7 @@ Hanguk Consulting помогает студентам подавать заяв�
 
 ### Keywords
 ```
-한국, 대학, 유학, 교육, 지원, 학생, 장학금, 한국어, 입학, 비자
+한국,대학,유학,교육,지원,학생,TOPIK,한국어,입학,비자
 ```
 
 ### Short Description
@@ -160,7 +188,8 @@ Hanguk Consulting은 전문적인 안내와 지원으로 한국 대학 진학을
 • 대학 지원 현황을 실시간으로 추적
 • 필요한 서류를 업로드하고 관리
 • AI와 함께 입학 면접 연습
-• 인터랙티브 지도에서 한국 대학을 둘러보고 두 곳을 나란히 비교 — 도시, 등급, IEQAS 인증, 제휴 여부, 등록금, 원서접수 기간, 서류 마감, TOPIK 요건, 영어 트랙, 면접
+• 인터랙티브 지도에서 한국 대학을 둘러보고 두 곳을 나란히 비교 — 도시, 등급, IEQAS 인증, 제휴 여부, 웹사이트
+• 모집요강을 이미 게시한 대학의 경우 등록금, 원서접수 기간, 서류 마감, TOPIK 요건, 영어 트랙, 면접 여부까지 함께 비교
 • 맞춤형 AI 지원 서비스
 • 다국어 지원 (우즈베크어, 러시아어, 영어, 한국어)
 
