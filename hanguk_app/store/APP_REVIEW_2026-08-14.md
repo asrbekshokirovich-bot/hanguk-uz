@@ -55,20 +55,81 @@ and the auth log carries a matching `request_timeout` / 504 on `/token`. The
 review landed inside a ~90-minute window in which the project was
 intermittently unreachable.
 
-### Why the window is suspicious rather than random
+### Why the origin could not answer
 
-18:00–20:00 UTC is 23:00–01:00 Asia/Tashkent, and the nightly guideline crawl
-is scheduled at **00:00 / 02:00 Asia/Tashkent** — owned by a Claude Routine,
-not by `.github/workflows/uni-db-auto-crawl.yml` (that file is
-`workflow_dispatch`-only precisely so the two do not double-run). That
-pipeline connects over `UNI_DB_SUPABASE_DB_URL`, i.e. **direct Postgres, not
-PostgREST**, so its load never appears in `edge_logs` — which matches what the
-logs show: almost no HTTP traffic, and an origin that could not answer any of
-it.
+Not the nightly crawl. That was the first guess — the window is 23:00–01:00
+Asia/Tashkent and the guideline crawl runs at 00:00 / 02:00 — and the database
+says otherwise. Checkpoints through the whole window wrote **5 buffers (0.0%)**;
+there was no write load at all.
 
-This is correlation, not proof; the crawl's own run log is the place to
-confirm it. Either way the sequence to check is the same, and it is listed in
-§3.
+`postgres_logs` names the failure instead. From 18:35 to 20:08, a steady
+stream of:
+
+```
+ERROR: canceling statement due to statement timeout
+  query: BEGIN ISOLATION LEVEL READ COMMITTED READ WRITE
+  query: SET client_encoding = 'UTF8'
+  query: ABORT
+  user:  authenticator (PostgREST 14.4)
+```
+
+`BEGIN` and `SET client_encoding` are microsecond statements. Hitting a
+**120-second** `statement_timeout` means those backends were not getting CPU
+at all. No OOM, no shutdown, no restart, no "too many connections" — the
+database was alive and starved.
+
+**What was starving it: pg_cron job 1, `uni-db-notify-tracked-changes`,
+scheduled `* * * * *`.**
+
+```
+2026-08-14 18:34:00  failed   10.0 s  job startup timeout   <- 522s start here
+2026-08-14 18:38:00  failed   99.0 s  job startup timeout
+2026-08-14 18:59:31  failed  472.1 s  job startup timeout
+2026-08-14 19:23:53  failed  564.5 s  job startup timeout
+2026-08-14 19:40:03  failed  544.5 s  job startup timeout   <- review at 19:47
+2026-08-14 20:07:12  failed   13.6 s  job startup timeout
+```
+
+`job startup timeout` is pg_cron failing to launch a background worker. This
+instance is Nano: `shared_buffers` 224 MB, `max_connections` 60, and
+**`max_worker_processes` 6** — shared between pg_cron, pg_net, and parallel
+workers. The job fires every minute regardless of whether the last one
+finished, so once slots are contended the attempts stack, each burning
+10–560 seconds, and everything else queues behind them.
+
+It is not a one-off. Failures per day for job 1:
+
+| Aug 11 | Aug 12 | Aug 13 | **Aug 14** | Aug 15 | Aug 16 | Aug 17 |
+| --- | --- | --- | --- | --- | --- | --- |
+| 0 | 122 | 561 | **266** | 454 | 0 | 0 |
+
+Four consecutive bad days, and review landed in the middle of them. 2 105
+failed runs since 2026-06-20.
+
+### The job was doing nothing
+
+Every reply in `net._http_response` is the same:
+
+```json
+{"ok":true,"skipped":"push_disabled"}
+```
+
+And `change_event_outbox` — the queue this job exists to drain — holds 299
+rows, oldest **2026-05-23**, every one `pending`, **0 with `sent_at`, 0
+attempts, 0 errors**. The consumer has never claimed a row. Push is off, the
+edge function returns immediately, and the schedule has been paying
+worker-slot rent for three months for nothing. Eleven events were queued in
+the last 24 hours; the per-minute cadence is not carrying any load either.
+
+Two tables are unpruned on the back of it: `cron.job_run_details` at 116 906
+rows / 21 MB (nothing has ever cleaned it — job 1 alone adds 1 440 rows a
+day), and `net._http_response` at 41 MB for 361 live rows.
+
+`hanguk_app/supabase/migrations/20260920000000_cron_notify_backoff_and_run_details_gc.sql`
+backs the schedule off to `*/5` and adds the missing retention job. That
+lowers the pressure; it does not remove it. **The structural fix is moving off
+Nano** — a production app serving students, plus an AI extraction pipeline,
+on 0.5 GB and six worker slots, will keep finding this edge.
 
 ---
 
@@ -119,13 +180,43 @@ the first attempt, because `CODE_NOT_FOUND` is not transient.
 
 ## 3. What to do, in order
 
-### Step 0 — confirm the outage is understood, not just survived
+### Step 0 — stop the database starving itself
 
-Read the 2026-08-14 run log of the nightly crawl Routine. If it was running
-18:00–20:00 UTC, the fix is to throttle its connection use or move it off the
-hours when review is likely to run; the retries above are a seatbelt, not a
-substitute. If it was **not** running, the origin failed on its own and the
-project's compute size is the thing to look at.
+The retries in §2 are a seatbelt. They do not stop the outage, and a long
+enough one still fails a review. Apply the migration:
+
+```bash
+supabase db push   # or apply 20260920000000_cron_notify_backoff_and_run_details_gc.sql
+```
+
+Then reclaim the bloat. `VACUUM FULL` takes an ACCESS EXCLUSIVE lock, so run
+it when nobody is signed in — it is seconds on tables this size:
+
+```sql
+vacuum (full, analyze) net._http_response;   -- 41 MB holding 361 live rows
+vacuum (full, analyze) cron.job_run_details; -- after the first GC run prunes it
+```
+
+Confirm it took, a day later:
+
+```sql
+select count(*) filter (where status = 'failed') as failed, count(*) as total
+  from cron.job_run_details
+ where jobid = 1 and start_time > now() - interval '24 hours';
+-- expect failed = 0 and total ≈ 288 (was 1 440)
+```
+
+**Then decide about compute.** Nano gives this project 0.5 GB, 60 connections
+and six worker slots, shared between the student app, the CRM, pg_net,
+pg_cron and the extraction pipeline. Every fix above buys headroom inside
+that envelope; none of them enlarges it. If the app is going to the App
+Store, the instance should be one that does not fall over unattended for
+ninety minutes.
+
+If push is not shipping soon, consider unscheduling job 1 outright rather
+than running it every five minutes — the outbox has not been drained since
+May, so nothing is lost by pausing it, and it is one less thing competing for
+a worker slot.
 
 ### Step 1 — deploy the Edge Function
 
@@ -225,6 +316,9 @@ Send this **after** the function is deployed and the new build is attached.
   student to their counsellor over a network blip.
 - `hanguk_app/test/features/auth/auth_repository_test.dart` — classification
   tests, including the exact 2026-08-14 response shape.
+- `hanguk_app/supabase/migrations/20260920000000_cron_notify_backoff_and_run_details_gc.sql`
+  — the per-minute notify cron backed off to `*/5`, and the retention job
+  `cron.job_run_details` never had.
 - This file.
 
 No change to the Magic Code screen itself: the failure was never in the UI,
