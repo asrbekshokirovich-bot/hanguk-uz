@@ -305,7 +305,98 @@ Send this **after** the function is deployed and the new build is attached.
 
 ---
 
-## 5. Repository changes on this branch
+## 5. Two more rejections waiting, found while fixing this one
+
+Both are fixed on this branch. Neither was cited by Apple yet, because on
+2026-08-14 review never got past the sign-in screen.
+
+### 5a. The microphone was compiled out — AI mock interview cannot hear anyone
+
+`permission_handler_apple` 9.4.7 guards every permission strategy behind a
+preprocessor macro, and `Classes/PermissionHandlerEnums.h` defaults **all
+nineteen of them to 0**. Nothing is compiled in unless the Podfile says so:
+
+```objc
+// AudioVideoPermissionStrategy.m
+} else if (permission == PermissionGroupMicrophone) {
+    #if PERMISSION_MICROPHONE
+    mediaType = AVMediaTypeAudio;
+    #else
+    completionHandler(PermissionStatusDenied);   // <- what shipped
+    return;
+    #endif
+```
+
+**`hanguk_app/ios/Podfile` did not exist in this repository.** It is not
+gitignored — check `ios/.gitignore`, it is simply absent — so `flutter build
+ipa` generated one from the Flutter template on whichever machine built the
+archive, and the macro configuration lived only there.
+
+Without `PERMISSION_MICROPHONE=1`, `Permission.microphone.request()` in
+`packages/vapi/lib/src/platform/mobile/vapi_mobile_client.dart` returns
+`denied` immediately and **no iOS permission dialog is ever shown**. The
+method retries once, gets `denied` again, and returns silently — its
+`openAppSettings()` escape only fires on `permanentlyDenied`, which this never
+is. The interview then starts with no microphone.
+
+That is a headline feature, one of the six store screenshots, and a
+deterministic 2.1(a) failure — harder than the login one, because it does not
+need an outage to reproduce.
+
+`ios/Podfile` is now committed, with `PERMISSION_MICROPHONE=1` and the other
+eighteen macros stated explicitly at 0. `Permission.microphone` is the only
+permission the codebase requests — `grep -rn "Permission\." lib/ packages/`
+returns exactly the two calls above — and every handler left off is one fewer
+Apple-privacy API linked without a purpose string.
+
+> **Verify on the first build after this lands.** If the build machine already
+> had a working Podfile, this replaces it. Confirm the microphone prompt
+> appears when starting an interview on a device, and that `pod install` still
+> resolves.
+
+### 5b. The compare feature is described but mostly empty
+
+The store description led with tuition and TOPIK comparison. The screen
+renders those rows; the data behind them does not exist for most
+universities. Measured against production on 2026-08-17:
+
+| | count |
+| --- | --- |
+| institutions visible on the map | **204** |
+| with any approved admission record | 53 |
+| with an interview answer | 50 |
+| with a TOPIK level | 31 |
+| **with tuition** | **4** |
+
+A reviewer picking two universities off the map sees tuition on both in about
+one pair in two thousand. Guideline 2.3 turns on exactly this distinction —
+accurate about the screen, misleading about the app — and this submission has
+already been rejected twice on metadata.
+
+`STORE_METADATA.md` now splits the bullet in all four locales: the fields that
+are always present stay in the first line, and tuition, application window,
+document deadline, TOPIK, English track and interview move to a second line
+scoped to *"universities whose admission guideline we have already
+published."* True as written, and it stops being a limitation the moment
+`.github/workflows/uni-db-drain-backlog.yml` drains the ~490 failed field
+extractions.
+
+Two smaller things went with it:
+
+- **`scholarship` removed from the keyword list** in all four locales. The
+  file's own note says scholarship eligibility "is still absent, still not to
+  be claimed" — a keyword for a feature that does not exist is guideline
+  2.3.7. Replaced with `TOPIK`, which the app does show.
+- **Keyword lines brought under Apple's 100-character limit.** English was
+  111 and Russian 117; App Store Connect will not accept either. Spaces after
+  the commas are dead weight — Apple counts them and documents comma-separated
+  without them — so removing them fixed English (96) and Uzbek (84) outright,
+  and Russian needed `обучение за рубежом` shortened to `учеба за рубежом`
+  (99). Korean is 33.
+
+---
+
+## 6. Repository changes on this branch
 
 - `supabase/functions/student-login-v2/index.ts` — `withRetry`,
   `isTransientFailure`, `summarize`, the `SERVICE_UNAVAILABLE` / 503 code, and
@@ -319,6 +410,13 @@ Send this **after** the function is deployed and the new build is attached.
 - `hanguk_app/supabase/migrations/20260920000000_cron_notify_backoff_and_run_details_gc.sql`
   — the per-minute notify cron backed off to `*/5`, and the retention job
   `cron.job_run_details` never had.
+- `hanguk_app/ios/Podfile` — new. `PERMISSION_MICROPHONE=1` and the other
+  eighteen macros at 0, so the microphone strategy is compiled in and the
+  configuration is version-controlled rather than local to a build machine
+  (§5a).
+- `STORE_METADATA.md` — compare bullet split per locale, `scholarship`
+  dropped from the keywords, keyword lines brought under 100 characters
+  (§5b).
 - This file.
 
 No change to the Magic Code screen itself: the failure was never in the UI,
