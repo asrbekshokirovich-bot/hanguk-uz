@@ -56,6 +56,34 @@ _CLI_TIMEOUT_SEC = 240.0
 # subscription-backed Claude calls at once — concurrent calls spike usage and
 # trip rate limits. Even though the pipeline is already sequential, this is a
 # hard guarantee: at most ONE `claude` subprocess runs at any moment.
+# Extraction is text-in, text-out: the Korean source span is IN the prompt and
+# the answer must come from it. But `claude -p` is an agent, not a completion
+# endpoint — left alone it runs with its full tool set in whatever directory
+# the worker happens to be in, which here is the repository.
+#
+# It used them. Observed in a live drain, the model answered a `documents_required`
+# extraction with "I looked at the actual pipeline files this prompt is drawn
+# from (`src/...`)" instead of returning JSON — three of eight calls in one
+# shard were retried for this. Every one of those is a wasted couple of
+# minutes, and a model grounding an admissions answer in our source tree
+# rather than in the 모집요강 is a correctness problem, not just a slow one.
+#
+# The list is explicit because nothing else works: `--tools ""` and
+# `--allowed-tools ""` were both probed against this CLI (2.1.234) and left
+# every tool enabled — only `--disallowed-tools <names>` actually blocks them.
+# It is therefore a DENYLIST, with a denylist's failure mode: a tool added to
+# a future CLI is not covered. Keep it a superset of what
+# `claude -p "list your built-in tools"` reports; the unparseable-response
+# retry is the backstop if one slips through.
+_DISALLOWED_TOOLS: tuple[str, ...] = (
+    "Agent", "Artifact", "Bash", "BashOutput", "Edit", "Glob", "Grep",
+    "KillBash", "ListAgents", "ListMcpResourcesTool", "Monitor", "MultiEdit",
+    "NotebookEdit", "Read", "ReadMcpResourceTool", "ReadNotifications", "REPL",
+    "ReportFindings", "ScheduleWakeup", "SendUserFile",
+    "ShowOnboardingRolePicker", "Skill", "SuggestSkills", "Task", "TodoWrite",
+    "Tmux", "ToolSearch", "WebFetch", "WebSearch", "Workflow", "Write",
+)
+
 _CLI_LOCK = threading.Lock()
 
 # In-process side of the semaphore, built once per concurrency value. Cached
@@ -336,6 +364,8 @@ def run_claude_cli_result(
             _cli_model(model),
             "--append-system-prompt-file",
             sys_file.name,
+            "--disallowed-tools",
+            ",".join(_DISALLOWED_TOOLS),
         ]
 
         budget = max(0, settings.claude_cli_retry_budget_sec)
