@@ -170,6 +170,26 @@ def _cli_model(model: str) -> str:
     return "sonnet"
 
 
+def _envelope_reason(text: str) -> str | None:
+    """The human-readable reason out of a CLI JSON envelope, if that is what
+    `text` is. Returns None for anything that is not such an envelope, so the
+    caller can fall back to the raw output."""
+    stripped = (text or "").strip()
+    if not stripped.startswith("{"):
+        return None
+    try:
+        envelope = json.loads(stripped)
+    except json.JSONDecodeError:
+        return None
+    if not isinstance(envelope, dict):
+        return None
+    for key in ("result", "error", "message"):
+        value = envelope.get(key)
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+    return None
+
+
 def _is_usage_limit(text: str) -> bool:
     """True if error output looks like a transient usage/rate/capacity limit."""
     low = (text or "").lower()
@@ -291,6 +311,13 @@ def _one_call(cmd: list[str], user: str, timeout: float) -> CliCallResult:
         # with a broken run and no way to tell auth from a missing binary from
         # a sandbox refusal. Fall back to stdout so the record says something.
         detail = (proc.stderr or "").strip() or (proc.stdout or "").strip()
+        # The CLI often exits nonzero AND prints its usual JSON envelope. In
+        # that envelope the human-readable reason is `result`, and it sits
+        # after a long `usage` block — so truncating the raw JSON to a few
+        # hundred characters keeps the accounting and throws away the cause.
+        # The 2026-08-18 failures read "...cache_read_input_tokens:0,output_
+        # tokens:" and stopped, which named nothing at all.
+        detail = _envelope_reason(detail) or detail
         stderr = detail[:300] or "(no output on stderr or stdout)"
         limited = _is_usage_limit(detail)
         # Phase 3 watchdog: a streak of GENUINE nonzero exits (not usage
