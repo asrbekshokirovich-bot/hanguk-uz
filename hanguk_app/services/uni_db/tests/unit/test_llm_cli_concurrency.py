@@ -114,3 +114,39 @@ class TestSlotPaths:
 
     def test_one_slot_is_one_path(self) -> None:
         assert llm_cli._slot_paths(1) == [llm_cli._CLI_LOCKFILE]
+
+
+class TestToolsAreDisabled:
+    """The extraction call must not be able to read the repository.
+
+    `claude -p` is an agent, not a completion endpoint. Left unrestricted it
+    runs with its full tool set in the worker's working directory — and in a
+    live drain it did exactly that, answering an extraction with "I looked at
+    the actual pipeline files this prompt is drawn from" instead of JSON.
+    Three of eight calls in one shard were retried for it.
+    """
+
+    def test_command_disables_tools(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        seen: dict[str, list[str]] = {}
+
+        def fake_one_call(cmd, user, timeout):
+            seen["cmd"] = cmd
+            raise llm_cli.ClaudeCliError("stop here — the command is what we assert on")
+
+        monkeypatch.setattr(llm_cli, "_one_call", fake_one_call)
+        monkeypatch.setattr(llm_cli.settings, "claude_cli_retry_budget_sec", 0)
+        with pytest.raises(llm_cli.ClaudeCliError):
+            llm_cli.run_claude_cli_result("sys", "user", "claude-sonnet-4-6")
+
+        cmd = seen["cmd"]
+        assert "--disallowed-tools" in cmd, cmd
+        blocked = set(cmd[cmd.index("--disallowed-tools") + 1].split(","))
+        # The ones that would actually reach the repository or the network.
+        for tool in ("Bash", "Read", "Glob", "Grep", "Write", "Edit", "WebFetch"):
+            assert tool in blocked, f"{tool} is not blocked"
+
+    def test_denylist_has_no_blank_entries(self) -> None:
+        # A stray empty string would render as ",," and could be read as a
+        # wildcard or silently dropped by the CLI's parser.
+        assert all(t and t.strip() == t for t in llm_cli._DISALLOWED_TOOLS)
+        assert len(set(llm_cli._DISALLOWED_TOOLS)) == len(llm_cli._DISALLOWED_TOOLS)
