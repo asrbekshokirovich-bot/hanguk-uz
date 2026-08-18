@@ -193,18 +193,19 @@ def _cli_serialized():
         paths = _slot_paths(slots)
         while True:
             for path in paths:
-                lock_fh = open(path, "w")
-                try:
-                    fcntl.flock(lock_fh, fcntl.LOCK_EX | fcntl.LOCK_NB)
-                except OSError:
-                    lock_fh.close()
-                    continue
-                try:
-                    yield
-                    return
-                finally:
-                    fcntl.flock(lock_fh, fcntl.LOCK_UN)
-                    lock_fh.close()
+                # `continue` and `return` both leave the `with`, so the handle
+                # is closed on every path out — including the one where this
+                # slot was already taken.
+                with open(path, "w") as lock_fh:
+                    try:
+                        fcntl.flock(lock_fh, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                    except OSError:
+                        continue
+                    try:
+                        yield
+                        return
+                    finally:
+                        fcntl.flock(lock_fh, fcntl.LOCK_UN)
             time.sleep(0.25)
     finally:
         sem.release()

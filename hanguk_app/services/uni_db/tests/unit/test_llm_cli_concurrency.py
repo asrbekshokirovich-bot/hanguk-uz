@@ -87,9 +87,8 @@ class TestConcurrencySlots:
         lock = threading.Lock()
 
         def worker(i: int) -> None:
-            with llm_cli._cli_serialized():
-                with lock:
-                    done.append(i)
+            with llm_cli._cli_serialized(), lock:
+                done.append(i)
 
         threads = [threading.Thread(target=worker, args=(i,)) for i in range(8)]
         for t in threads:
