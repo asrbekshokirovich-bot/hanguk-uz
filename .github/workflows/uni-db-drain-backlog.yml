@@ -28,6 +28,15 @@ name: uni-db drain extraction backlog
 # Required repo secrets (same ones uni-db-auto-crawl.yml already uses):
 #   UNI_DB_SUPABASE_DB_URL, UNI_DB_SUPABASE_URL,
 #   UNI_DB_SUPABASE_SERVICE_ROLE_KEY, UNI_DB_ANTHROPIC_API_KEY
+#
+# Two ways to pay for the model calls. The default is the API key, billed per
+# token. Dispatching with `llm_backend: claude_cli` runs the same work through
+# the `claude` CLI on a Claude subscription instead — no API key, no per-token
+# bill — which is what unblocks a drain when the API balance is empty. It needs
+# UNI_DB_CLAUDE_CODE_OAUTH_TOKEN (`claude setup-token`) and is slower: the CLI
+# backend serializes its calls to one at a time, and the reliability gauntlet
+# drops from `maximum` to `balanced`. Cards still go through staff approval
+# either way, so the floor on what reaches a student does not move.
 
 on:
   schedule:
@@ -51,6 +60,10 @@ on:
       reparse_limit:
         description: "Max documents for the re-verify step"
         default: "8"
+        required: false
+      llm_backend:
+        description: "'anthropic' (API key, billed per token) or 'claude_cli' (Claude subscription, no per-token bill)"
+        default: "anthropic"
         required: false
 
 # Never two drains at once — they would fight over the same failed jobs, and
@@ -80,9 +93,15 @@ jobs:
       # Pinned, not left to the config default. `maximum` is what makes a card
       # worth trusting: each field group is re-extracted independently and the
       # critical figures must agree, an LLM judge hunts every quote in the
-      # source, and three adversarial critics try to break the result. The
-      # subscription backend caps this at `balanced` to stay under its
-      # concurrency limits — this job runs on the API key, where it does not.
+      # source, and three adversarial critics try to break the result.
+      #
+      # On `claude_cli` this value is not what runs: `effective_verify_level`
+      # caps the subscription backend at `balanced` (deterministic grounding
+      # and sanity, no judges, no consensus) because the heavy levels fan out
+      # ~35 nested `claude` calls per document and trip usage limits. Pinning
+      # `maximum` here is still right — it is what the API backend uses, and
+      # the cap is applied by the code that knows the backend rather than by
+      # whoever dispatched the run.
       UNI_DB_VERIFY_LEVEL: "maximum"
       # Five independent extractions rather than three: with three, one bad
       # run makes 2-1 and the majority still looks like a majority. Five turns
@@ -93,6 +112,15 @@ jobs:
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.UNI_DB_SUPABASE_SERVICE_ROLE_KEY }}
       ANTHROPIC_API_KEY: ${{ secrets.UNI_DB_ANTHROPIC_API_KEY }}
       CLOUDCONVERT_API_KEY: ${{ secrets.UNI_DB_CLOUDCONVERT_API_KEY }}
+      # Which backend does the extracting. Scheduled ticks send no inputs, so
+      # they keep running on the API key exactly as before; `claude_cli` is
+      # something a human chooses when dispatching, most usefully when the API
+      # balance is empty and the work should not wait for a top-up.
+      UNI_DB_LLM_BACKEND: ${{ github.event.inputs.llm_backend || 'anthropic' }}
+      # Read by the `claude` CLI itself, not by our code — the CLI backend
+      # shells out and the subprocess inherits this. Minted with
+      # `claude setup-token` (a subscription token, NOT an API key).
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.UNI_DB_CLAUDE_CODE_OAUTH_TOKEN }}
     steps:
       - uses: actions/checkout@v4
 
@@ -107,11 +135,33 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e .
 
+      # Only on the subscription backend, and only then: the API path must not
+      # pay a minute of npm install for a binary it never runs.
+      - name: Install the Claude CLI (subscription backend only)
+        if: env.UNI_DB_LLM_BACKEND == 'claude_cli'
+        run: npm install -g @anthropic-ai/claude-code
+
+      # The two backends need DIFFERENT credentials, so checking for the API
+      # key unconditionally would fail a keyless run that is correctly
+      # configured — and, worse, would pass a `claude_cli` run whose token is
+      # missing, which then dies one document at a time.
       - name: Check required secrets are set
         run: |
-          if [ -z "${SUPABASE_DB_URL}" ] || [ -z "${ANTHROPIC_API_KEY}" ]; then
-            echo "::error::Missing secrets. Add UNI_DB_SUPABASE_DB_URL and UNI_DB_ANTHROPIC_API_KEY in Settings → Secrets and variables → Actions."
+          if [ -z "${SUPABASE_DB_URL}" ]; then
+            echo "::error::Missing secret UNI_DB_SUPABASE_DB_URL (Settings → Secrets and variables → Actions)."
             exit 1
+          fi
+          if [ "${UNI_DB_LLM_BACKEND}" = "claude_cli" ]; then
+            if [ -z "${CLAUDE_CODE_OAUTH_TOKEN}" ]; then
+              echo "::error::Backend 'claude_cli' needs UNI_DB_CLAUDE_CODE_OAUTH_TOKEN. Mint it with 'claude setup-token' and add it in Settings → Secrets and variables → Actions."
+              exit 1
+            fi
+            echo "::notice::Backend claude_cli — running on the Claude subscription, no per-token bill. Verify level is capped at 'balanced'."
+          else
+            if [ -z "${ANTHROPIC_API_KEY}" ]; then
+              echo "::error::Missing secret UNI_DB_ANTHROPIC_API_KEY (Settings → Secrets and variables → Actions)."
+              exit 1
+            fi
           fi
 
       # Loop rather than one big --limit: each pass commits its results, so a
@@ -151,7 +201,12 @@ jobs:
             out=$(uni-db retry-failed --limit "$LIMIT" --skip-groups "$SKIP_GROUPS" 2>&1 | tee /dev/stderr | tail -2 | tr '\n' ' ')
             rc=$?
             if [ "$rc" -eq 3 ]; then
-              echo "::error::Extraction credential rejected — every LLM call is failing and each failure enlarges the backlog. Replace the UNI_DB_ANTHROPIC_API_KEY secret (Settings → Secrets and variables → Actions), then re-run this workflow. Stopped after ${pass} pass(es)."
+              if [ "${UNI_DB_LLM_BACKEND}" = "claude_cli" ]; then
+                bad_secret="UNI_DB_CLAUDE_CODE_OAUTH_TOKEN (re-mint with 'claude setup-token')"
+              else
+                bad_secret="UNI_DB_ANTHROPIC_API_KEY"
+              fi
+              echo "::error::Extraction credential rejected or out of balance — every LLM call is failing and each failure enlarges the backlog. Fix ${bad_secret} in Settings → Secrets and variables → Actions, then re-run. Stopped after ${pass} pass(es)."
               exit 1
             fi
             case "$out" in

@@ -199,3 +199,58 @@ class TestOpenCardsMode:
             conn, limit=5, open_cards_only=True, institution_id=uuid4(),
         )
         assert "review_queue" in conn.sql and "institution_id" in conn.sql
+
+
+class TestFailedDocsSelector:
+    """`--failed-docs` targets documents stuck at parse_status='failed'.
+
+    Nothing else reaches them. `retry-failed` works from extraction jobs, and
+    the 2026-08 dead-key rows that marked many of these documents failed have
+    since been archived — so the documents now have no job rows to be found
+    through at all. The backlog order does not save them either: it sorts by
+    `parsed_version asc`, and a document that failed after hundreds of
+    attempts sorts last, which is why the order is flipped for this selector.
+    """
+
+    class _SqlConn:
+        def __init__(self) -> None:
+            self.sql = ""
+
+        async def fetch(self, sql: str, *args: object) -> list[dict]:
+            self.sql = sql
+            return []
+
+    async def test_filters_on_failed_status(self) -> None:
+        conn = self._SqlConn()
+        await reparse_worker.fetch_documents(conn, limit=5, failed_only=True)
+        assert "parse_status = 'failed'" in conn.sql
+
+    async def test_orders_most_attempted_first(self) -> None:
+        conn = self._SqlConn()
+        await reparse_worker.fetch_documents(conn, limit=5, failed_only=True)
+        assert "order by parsed_version desc" in conn.sql
+
+    async def test_backlog_order_is_unchanged(self) -> None:
+        # The default must keep sorting least-parsed first; flipping it for
+        # everyone would turn the backlog drain into a re-run of the documents
+        # that have already had the most money spent on them.
+        conn = self._SqlConn()
+        await reparse_worker.fetch_documents(conn, limit=5)
+        assert "order by parsed_version asc" in conn.sql
+        assert "parse_status = 'failed'" not in conn.sql
+
+    async def test_does_not_collide_with_pending(self) -> None:
+        # 'pending' and 'failed' are mutually exclusive statuses: a selector
+        # that emitted both predicates would always return nothing.
+        conn = self._SqlConn()
+        await reparse_worker.fetch_documents(conn, limit=5, pending_only=True)
+        assert "parse_status = 'pending'" in conn.sql
+        assert "parse_status = 'failed'" not in conn.sql
+
+    async def test_composes_with_institution(self) -> None:
+        conn = self._SqlConn()
+        await reparse_worker.fetch_documents(
+            conn, limit=5, failed_only=True, institution_id=uuid4(),
+        )
+        assert "parse_status = 'failed'" in conn.sql
+        assert "institution_id" in conn.sql
