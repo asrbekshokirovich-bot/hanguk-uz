@@ -8,6 +8,7 @@ silently admitted more than it promised would be worse than no setting.
 
 from __future__ import annotations
 
+import json
 import threading
 import time
 from pathlib import Path
@@ -150,3 +151,45 @@ class TestToolsAreDisabled:
         # wildcard or silently dropped by the CLI's parser.
         assert all(t and t.strip() == t for t in llm_cli._DISALLOWED_TOOLS)
         assert len(set(llm_cli._DISALLOWED_TOOLS)) == len(llm_cli._DISALLOWED_TOOLS)
+
+
+class TestErrorReasonIsReadable:
+    """A failing CLI call must record WHY, not its token accounting.
+
+    On 2026-08-18 every failure read:
+
+        claude CLI exited 1: {"is_error":true,"duration_api_ms":0,...
+        "cache_read_input_tokens":0,"output_tokens":
+
+    The CLI exits nonzero and still prints its usual JSON envelope, in which
+    the human-readable reason is `result` — and `result` sits AFTER a long
+    `usage` block. Truncating the raw JSON kept the accounting and threw away
+    the cause, which left an operator unable to tell auth from a missing
+    binary from a sandbox refusal.
+    """
+
+    def test_reason_is_lifted_out_of_the_envelope(self) -> None:
+        envelope = json.dumps({
+            "is_error": True,
+            "duration_api_ms": 0,
+            "usage": {"input_tokens": 0, "cache_read_input_tokens": 0},
+            "result": "Invalid API key · Please run /login",
+        })
+        assert llm_cli._envelope_reason(envelope) == "Invalid API key · Please run /login"
+
+    def test_falls_back_through_other_key_names(self) -> None:
+        assert llm_cli._envelope_reason('{"error": "boom"}') == "boom"
+        assert llm_cli._envelope_reason('{"message": "boom"}') == "boom"
+
+    def test_plain_text_is_left_alone(self) -> None:
+        # Not an envelope — the caller must keep using the raw output.
+        assert llm_cli._envelope_reason("command not found: claude") is None
+        assert llm_cli._envelope_reason("") is None
+
+    def test_malformed_json_is_left_alone(self) -> None:
+        # Truncated output is exactly the case that produced this bug; it must
+        # degrade to the raw text rather than raising.
+        assert llm_cli._envelope_reason('{"is_error":true,"usage":{"in') is None
+
+    def test_envelope_without_a_reason_is_left_alone(self) -> None:
+        assert llm_cli._envelope_reason('{"is_error": true, "usage": {}}') is None
