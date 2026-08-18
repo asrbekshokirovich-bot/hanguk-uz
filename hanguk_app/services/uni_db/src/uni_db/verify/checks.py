@@ -25,11 +25,29 @@ from .models import ConsensusField, GroundingIssue, SanityIssue
 
 _WS_RE = re.compile(r"\s+")
 
+# C0 control characters other than tab/newline/carriage-return. Some Korean
+# PDFs carry their word separator as U+0001 rather than a space — 연암공과대학교's
+# 2027 guideline has 3,022 of them in 40k characters, roughly one per word.
+# `\s` does not match those, so they survived normalisation on the PDF side
+# while the model's quote (written with real spaces) had its spaces stripped,
+# and every citation in such a document failed to match:
+#
+#   quote  -> "13.일반한국어능력시험3급이상취득자격증빙서류"
+#   pdf    -> "13.\x01일반\x01한국어능력시험\x013급이상..."
+#
+# The card then went red with `quote_not_in_source` — a fabricated-citation
+# warning — on an extraction that was entirely correct and a quote that is in
+# the document verbatim. Stripping them here makes the comparison see the text
+# a reader sees.
+_CTRL_RE = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
+
 
 def _norm(text: str | None) -> str:
     """Whitespace-insensitive form. Korean PDF text extraction inserts/drops
-    spaces unpredictably, so we compare with all whitespace removed."""
-    return _WS_RE.sub("", text or "")
+    spaces unpredictably, so we compare with all whitespace removed — and with
+    C0 control characters removed too, since some PDFs use those as the word
+    separator instead of a space (see `_CTRL_RE`)."""
+    return _WS_RE.sub("", _CTRL_RE.sub("", text or ""))
 
 
 def _iter_rows(parsed_output: object) -> list[dict[str, Any]]:
