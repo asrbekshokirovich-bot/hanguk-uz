@@ -86,3 +86,56 @@ class TestClassifyDegreeLevel:
         assert c.has_graduate
         assert not c.has_undergraduate
         assert not c.is_combined
+
+
+class TestExplicitGraduateProgramme:
+    """`has_graduate` and "this document has a graduate section" are not the
+    same claim, and the difference is what made half the split cards useless.
+
+    `has_graduate` is a substring count over the whole PDF: one occurrence of
+    대학원 sets it. That is right for "does the word appear" and wrong for
+    "does this file contain graduate admission", because an undergraduate
+    guideline routinely mentions 대학원 in passing.
+    """
+
+    def test_passing_mention_is_not_an_explicit_programme(self) -> None:
+        c = classify_degree_level(
+            title="2027학년도 외국인 학부 신입학 모집요강",
+            first_pages_text=(
+                "외국인 학부 신입학 전형. 졸업 후 대학원 진학 시 별도 안내를 참고하십시오."
+            ),
+        )
+        # The loose signal fires — that part is unchanged and intended.
+        assert c.has_graduate
+        assert c.is_combined
+        # But nothing here names a graduate programme.
+        assert not c.has_explicit_graduate_program
+
+    def test_named_masters_programme_is_explicit(self) -> None:
+        c = classify_degree_level(
+            title="2027 외국인 학부 및 대학원 모집요강",
+            first_pages_text="학부 신입학 전형 안내. 대학원 석사과정 외국인 전형 안내.",
+        )
+        assert c.has_explicit_graduate_program
+
+    def test_doctoral_is_explicit(self) -> None:
+        c = classify_degree_level(
+            title="외국인 학부 신입학",
+            first_pages_text="학사과정 모집. 박사과정 외국인 전형도 함께 안내합니다.",
+        )
+        assert c.has_explicit_graduate_program
+
+    def test_integrated_is_explicit(self) -> None:
+        c = classify_degree_level(
+            title="외국인 학부 신입학",
+            first_pages_text="학사과정 모집. 석박사통합 과정 안내.",
+        )
+        assert c.has_explicit_graduate_program
+
+    def test_undergraduate_only_has_neither(self) -> None:
+        c = classify_degree_level(
+            title="2027학년도 외국인 학부 신입학 모집요강",
+            first_pages_text="외국인 학부 신입학 전형 안내. 학사과정 모집단위.",
+        )
+        assert not c.has_graduate
+        assert not c.has_explicit_graduate_program
