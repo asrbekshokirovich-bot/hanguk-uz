@@ -556,3 +556,70 @@ class TestConsensusMissingIsNotGreen:
         )
         unchecked = aggregate(field_group="tuition", consensus_expected=True)
         assert rollup(None, [checked, unchecked]).overall == "amber"
+
+
+class TestGroundingIgnoresControlCharacters:
+    """A PDF that separates words with U+0001 must not make every citation
+    look fabricated.
+
+    Some Korean guideline PDFs carry their word separator as a C0 control
+    character rather than a space. 연암공과대학교's 2027 guideline has 3,022 of
+    them across 40k characters — roughly one per word. `\\s` does not match
+    those, so they survived normalisation on the PDF side while the model's
+    quote (written with real spaces) had its spaces stripped:
+
+        quote  -> "13.일반한국어능력시험3급이상취득자격증빙서류"
+        pdf    -> "13.\\x01일반\\x01한국어능력시험\\x013급이상..."
+
+    Every row in that document was flagged `quote_not_in_source` — the
+    fabricated-citation warning — on an extraction that was entirely correct
+    and quotes that appear in the file verbatim. Checked against the real
+    document: 4 false flags before this, 0 after.
+    """
+
+    QUOTE = "13. 일반 한국어능력시험 3급 이상 취득 자격 증빙 서류"
+
+    def _payload(self, quote: str) -> dict:
+        return {"rows": [{"source_text_ko": quote}]}
+
+    def test_quote_grounds_through_u0001_separators(self) -> None:
+        pdf = "2027학년도\x01모집요강\x0113.\x01일반\x01한국어능력시험\x013급\x01이상\x01취득\x01자격\x01증빙\x01서류"
+        out = checks.check_grounding_deterministic(
+            "requirements", self._payload(self.QUOTE), pdf
+        )
+        assert out == [], out
+
+    def test_still_grounds_through_ordinary_spacing(self) -> None:
+        # The behaviour that already worked must keep working.
+        pdf = f"2027학년도 모집요강\n{self.QUOTE}\n기타"
+        out = checks.check_grounding_deterministic(
+            "requirements", self._payload(self.QUOTE), pdf
+        )
+        assert out == []
+
+    def test_a_fabricated_quote_is_still_caught(self) -> None:
+        # The point of the check survives: stripping control characters must
+        # not make everything match.
+        pdf = "2027학년도\x01모집요강\x01전형료\x0150,000원\x01납부"
+        out = checks.check_grounding_deterministic(
+            "requirements",
+            self._payload("지원자는 TOEFL 100점 이상을 제출해야 한다"),
+            pdf,
+        )
+        assert len(out) == 1
+        assert out[0].problem == "quote_not_in_source"
+
+    def test_control_chars_in_the_quote_itself_are_tolerated(self) -> None:
+        # The model sometimes echoes the separator back inside its citation.
+        pdf = f"모집요강 {self.QUOTE} 기타"
+        echoed = self.QUOTE.replace(" ", "\x01")
+        out = checks.check_grounding_deterministic(
+            "requirements", self._payload(echoed), pdf
+        )
+        assert out == []
+
+    def test_newlines_and_tabs_are_left_to_the_whitespace_rule(self) -> None:
+        # \n and \t are legitimate layout, already handled by _WS_RE; the new
+        # class must not be so wide that it changes how they normalise.
+        assert checks._norm("a\nb\tc") == "abc"
+        assert checks._norm("a\x01b\x0cc") == "abc"
