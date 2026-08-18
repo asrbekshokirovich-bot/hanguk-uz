@@ -10,7 +10,7 @@ import pytest
 
 from uni_db.config import settings
 from uni_db.extract import llm_cli
-from uni_db.watchdog import RunWatchdog, watchdog
+from uni_db.watchdog import CLI_FAILURE_STREAK_LIMIT, RunWatchdog, watchdog
 
 
 def _codes(wd: RunWatchdog) -> set[str]:
@@ -111,16 +111,33 @@ class TestFatalAlert:
                 "api_auth_failure", "api_credit_balance",
             }
 
-    def test_run_health_alerts_are_not_fatal(self) -> None:
-        # An empty-payload spike or a CLI streak is worth shouting about, but
-        # the next document may still succeed — they must not stop a drain.
+    def test_empty_payload_spike_is_not_fatal(self) -> None:
+        # A spike of empty payloads is worth shouting about, but the next
+        # document may genuinely succeed — a bad slice on one PDF says nothing
+        # about the next one. This must not stop a drain.
         wd = RunWatchdog()
         for _ in range(20):
             wd.record_payload(empty=True)
+        assert len(wd.alerts()) == 1
+        assert wd.fatal_alert() is None
+
+    def test_cli_failure_streak_is_fatal(self) -> None:
+        # This assertion used to be the opposite, on the same reasoning as the
+        # empty-payload case — and that reasoning does not hold here.
+        # `record_cli_exit`'s own docstring says a genuine nonzero streak means
+        # "the CLI itself is broken — auth, binary, sandbox", which is a
+        # property of the process, not of the document. The next call fails
+        # identically.
+        #
+        # The 2026-08-18 drain proved it: a CLI exiting 1 on every call wrote
+        # 380 failed jobs in fourteen minutes before a human cancelled it,
+        # because this returned None.
+        wd = RunWatchdog()
         for _ in range(3):
             wd.record_cli_exit(1)
-        assert len(wd.alerts()) == 2
-        assert wd.fatal_alert() is None
+        alert = wd.fatal_alert()
+        assert alert is not None
+        assert alert.code == "cli_failure_streak"
 
     def test_quiet_run_has_none(self) -> None:
         assert RunWatchdog().fatal_alert() is None
@@ -210,3 +227,50 @@ class TestCliWiring:
                     llm_cli.run_claude_cli("s", "u", "claude-sonnet-4-6")
         assert {a.code for a in watchdog.alerts()} == set()
         watchdog.reset()
+
+
+class TestCliFailureStreakIsFatal:
+    """A broken CLI must stop the run, not fill the table with failures.
+
+    The guard was written after the 2026-08 dead-key incident and only knew
+    the API backend's signatures. On 2026-08-18 the first drain on the
+    `claude_cli` backend met a CLI that exited 1 on every call.
+    `record_cli_exit` fired its alert correctly — but `cli_failure_streak` was
+    not in `_FATAL_CODES`, so `fatal_alert()` returned None, no worker broke,
+    and the loop wrote 380 failed jobs in fourteen minutes before a human
+    cancelled it. Exactly the self-feeding backlog the guard exists to stop,
+    reproduced on the other backend.
+    """
+
+    def test_streak_becomes_a_fatal_alert(self) -> None:
+        w = RunWatchdog()
+        for _ in range(CLI_FAILURE_STREAK_LIMIT):
+            w.record_cli_exit(1)
+        alert = w.fatal_alert()
+        assert alert is not None, "a broken CLI must stop the run"
+        assert alert.code == "cli_failure_streak"
+
+    def test_below_the_limit_is_not_fatal(self) -> None:
+        # One bad call is a bad call; the streak is what means "broken".
+        w = RunWatchdog()
+        for _ in range(CLI_FAILURE_STREAK_LIMIT - 1):
+            w.record_cli_exit(1)
+        assert w.fatal_alert() is None
+
+    def test_a_success_resets_the_streak(self) -> None:
+        w = RunWatchdog()
+        for _ in range(CLI_FAILURE_STREAK_LIMIT - 1):
+            w.record_cli_exit(1)
+        w.record_cli_exit(0)
+        for _ in range(CLI_FAILURE_STREAK_LIMIT - 1):
+            w.record_cli_exit(1)
+        assert w.fatal_alert() is None
+
+    def test_usage_limits_never_become_fatal(self) -> None:
+        # A usage limit self-heals: the backend waits out the window and
+        # resumes. Stopping the run on it would throw away a drain that was
+        # about to continue.
+        w = RunWatchdog()
+        for _ in range(CLI_FAILURE_STREAK_LIMIT * 3):
+            w.record_cli_exit(1, usage_limited=True)
+        assert w.fatal_alert() is None

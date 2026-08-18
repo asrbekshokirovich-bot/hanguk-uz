@@ -76,7 +76,20 @@ _AUTH_FAILURE_MARKERS = (
 # fails the same way, and each failure is written to the database as a job a
 # future run will retry. A caller draining a backlog must stop on these — see
 # `fatal_alert()`.
-_FATAL_CODES = ("api_auth_failure", "api_credit_balance")
+#
+# `cli_failure_streak` belongs here and was missing, which cost a real run.
+# The guard was written after the 2026-08 dead-key incident and only knew the
+# API backend's signatures. On 2026-08-18 the first drain on the `claude_cli`
+# backend hit a CLI that exited 1 on every call; `record_cli_exit` fired its
+# alert correctly, but because the code was not in this tuple `fatal_alert()`
+# returned None, no worker broke, and the loop wrote **380 failed jobs in
+# fourteen minutes** before a human cancelled it — the same self-feeding
+# backlog the guard exists to prevent, reproduced on the other backend.
+#
+# The rule this encodes: a fatal code is one where the NEXT call fails for the
+# same reason as the last. That is a property of the failure, not of which
+# backend produced it, so any new backend's equivalent belongs here too.
+_FATAL_CODES = ("api_auth_failure", "api_credit_balance", "cli_failure_streak")
 
 
 @dataclass(frozen=True, slots=True)
