@@ -57,6 +57,11 @@ def _build_parser() -> argparse.ArgumentParser:
                                 "review queue — re-do what the reviewer is "
                                 "actually looking at, rather than the "
                                 "least-parsed backlog")
+    p_reparse.add_argument("--failed-docs", action="store_true",
+                           help="Only documents at parse_status='failed'. They "
+                                "are unreachable from retry-failed, which works "
+                                "from extraction jobs, and sort last under the "
+                                "backlog order")
 
     p_retry = sub.add_parser(
         "retry-failed",
@@ -236,7 +241,8 @@ def main(argv: list[str] | None = None) -> int:
     if args.cmd == "reparse":
         return asyncio.run(_reparse(limit=args.limit, institution=args.institution,
                                     pending_only=args.pending_only,
-                                    open_cards_only=args.open_cards))
+                                    open_cards_only=args.open_cards,
+                                    failed_only=args.failed_docs))
     if args.cmd == "retry-failed":
         return asyncio.run(_retry_failed(
             limit=args.limit,
@@ -453,7 +459,8 @@ async def _run_pipeline(*, limit: int) -> int:
 
 async def _reparse(*, limit: int, institution: str | None,
                    pending_only: bool = False,
-                   open_cards_only: bool = False) -> int:
+                   open_cards_only: bool = False,
+                   failed_only: bool = False) -> int:
     """LIVE: re-extract already-stored guideline documents so the latest
     extraction/normalization fixes apply to existing data (the old review
     cards are superseded via dedup). Reads PDFs from storage — does NOT
@@ -488,6 +495,7 @@ async def _reparse(*, limit: int, institution: str | None,
         ok, fail = await reparse_worker.reparse_pending(
             conn, limit=limit, institution_id=institution_id,
             pending_only=pending_only, open_cards_only=open_cards_only,
+            failed_only=failed_only,
         )
     finally:
         await conn.close()
