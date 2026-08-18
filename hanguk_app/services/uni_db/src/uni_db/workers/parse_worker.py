@@ -269,21 +269,67 @@ def parse_one_document(
         seg_desc = ", ".join(
             f"{s.level}@{s.start_offset}" for s in segments
         )
-        review_entries.append(
-            {
-                "entity_type": "guideline_documents",
-                "entity_id": guideline_document_id,
-                "reason": "high_difficulty_field",
-                "priority": 2,
-                "field_group": "degree_split",
-                "rationale": (
-                    "Combined undergraduate + graduate guideline detected "
-                    f"({degree.rationale}). Split into separate admission "
-                    f"cycles (undergrad → foreign, graduate → grad_foreign). "
-                    f"Segments: {seg_desc}."
-                ),
-            }
-        )
+        # Two detectors have to agree before a human is told to split a file.
+        #
+        # `classify_degree_level` counts SUBSTRINGS over the whole document, so
+        # one occurrence of 대학원 anywhere — "대학원 진학 시" in a footnote —
+        # sets has_graduate and therefore is_combined. `split_by_degree` looks
+        # for section HEADERS and was written precisely to reject that stray
+        # mention; its docstring says so. When it returns a single segment
+        # there is no boundary in the document, and the card was telling a
+        # reviewer to split at a place that does not exist.
+        #
+        # Measured on this database: of 25 split cards ever raised, 13 carried
+        # `Segments: <level>@0.` — one segment, nothing to split — and 11 of
+        # those rested on a single grad_general hit with no 석사/박사 anywhere.
+        # Roughly half the cards in this category were unactionable.
+        #
+        # So the header detector decides. When it finds a boundary the card is
+        # raised as before, with offsets a reviewer can act on. When it does
+        # not, the outcome depends on how specific the other detector's
+        # evidence was: a named graduate programme (석사/박사/석박사통합) with
+        # no section header is a genuine ambiguity worth a look, while a bare
+        # 대학원 mention is a false positive and must not become a card.
+        if len(segments) >= 2:
+            review_entries.append(
+                {
+                    "entity_type": "guideline_documents",
+                    "entity_id": guideline_document_id,
+                    "reason": "high_difficulty_field",
+                    "priority": 2,
+                    "field_group": "degree_split",
+                    "rationale": (
+                        "Combined undergraduate + graduate guideline detected "
+                        f"({degree.rationale}). Split into separate admission "
+                        f"cycles (undergrad → foreign, graduate → grad_foreign). "
+                        f"Segments: {seg_desc}."
+                    ),
+                }
+            )
+        elif degree.has_explicit_graduate_program:
+            review_entries.append(
+                {
+                    "entity_type": "guideline_documents",
+                    "entity_id": guideline_document_id,
+                    "reason": "high_difficulty_field",
+                    "priority": 3,
+                    "field_group": "degree_check",
+                    "rationale": (
+                        "Graduate programme named but no degree section header "
+                        f"found ({degree.rationale}). The document may cover one "
+                        "level only, or the split heuristic may have missed its "
+                        "heading — check before trusting the extracted figures. "
+                        "No split boundary was located, so there is nothing to "
+                        f"split at. Segments: {seg_desc}."
+                    ),
+                }
+            )
+        else:
+            log.info(
+                "degree: combined signalled but no section boundary and no named "
+                "graduate programme for %s (%s) — not raising a split card",
+                str(guideline_document_id)[:8], degree.rationale,
+            )
 
     return ParseOutcome(
         guideline_document_id=guideline_document_id,

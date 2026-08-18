@@ -53,6 +53,14 @@ class DegreeClassification:
     is_combined: bool
     confidence: float
     rationale: str
+    # True only when the document names a specific graduate PROGRAMME
+    # (석사 / 박사 / 석박사통합), as opposed to merely containing the word
+    # 대학원 somewhere. `has_graduate` is satisfied by the latter, which is
+    # why it must not be the sole basis for telling a reviewer that a
+    # document mixes two admission levels: "대학원 진학 시" in an
+    # undergraduate footnote sets it, and that is a sentence about the
+    # future, not a graduate admission section.
+    has_explicit_graduate_program: bool = False
 
     @property
     def requires_split(self) -> bool:
@@ -183,6 +191,7 @@ def classify_degree_level(
         is_combined=is_combined,
         confidence=confidence,
         rationale=rationale,
+        has_explicit_graduate_program=bool(n_master or n_doctoral or n_integrated),
     )
 
 
