@@ -247,6 +247,24 @@ class TestFailedDocsSelector:
         assert "parse_status = 'pending'" in conn.sql
         assert "parse_status = 'failed'" not in conn.sql
 
+    async def test_skips_superseded_documents(self) -> None:
+        # A superseded document has already been replaced by a newer version.
+        # Nothing else in the service reads `superseded_by_id`, so without
+        # this predicate the old version re-extracts like a current one and
+        # its cards reach the review queue looking current — 8 of the 41
+        # failed documents are in that state.
+        conn = self._SqlConn()
+        await reparse_worker.fetch_documents(conn, limit=5, failed_only=True)
+        assert "superseded_by_id is null" in conn.sql
+
+    async def test_other_selectors_unchanged(self) -> None:
+        # Whether the backlog and open-cards paths should skip superseded
+        # documents is a separate question; this flag must not answer it.
+        for kwargs in ({}, {"open_cards_only": True}, {"pending_only": True}):
+            conn = self._SqlConn()
+            await reparse_worker.fetch_documents(conn, limit=5, **kwargs)
+            assert "superseded_by_id" not in conn.sql, kwargs
+
     async def test_composes_with_institution(self) -> None:
         conn = self._SqlConn()
         await reparse_worker.fetch_documents(
