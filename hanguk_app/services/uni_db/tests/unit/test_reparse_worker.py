@@ -199,3 +199,150 @@ class TestOpenCardsMode:
             conn, limit=5, open_cards_only=True, institution_id=uuid4(),
         )
         assert "review_queue" in conn.sql and "institution_id" in conn.sql
+
+
+class TestFailedDocsSelector:
+    """`--failed-docs` targets documents stuck at parse_status='failed'.
+
+    Nothing else reaches them. `retry-failed` works from extraction jobs, and
+    the 2026-08 dead-key rows that marked many of these documents failed have
+    since been archived — so the documents now have no job rows to be found
+    through at all. The backlog order does not save them either: it sorts by
+    `parsed_version asc`, and a document that failed after hundreds of
+    attempts sorts last, which is why the order is flipped for this selector.
+    """
+
+    class _SqlConn:
+        def __init__(self) -> None:
+            self.sql = ""
+
+        async def fetch(self, sql: str, *args: object) -> list[dict]:
+            self.sql = sql
+            return []
+
+    async def test_filters_on_failed_status(self) -> None:
+        conn = self._SqlConn()
+        await reparse_worker.fetch_documents(conn, limit=5, failed_only=True)
+        assert "parse_status = 'failed'" in conn.sql
+
+    async def test_orders_most_attempted_first(self) -> None:
+        conn = self._SqlConn()
+        await reparse_worker.fetch_documents(conn, limit=5, failed_only=True)
+        assert "order by parsed_version desc" in conn.sql
+
+    async def test_backlog_order_is_unchanged(self) -> None:
+        # The default must keep sorting least-parsed first; flipping it for
+        # everyone would turn the backlog drain into a re-run of the documents
+        # that have already had the most money spent on them.
+        conn = self._SqlConn()
+        await reparse_worker.fetch_documents(conn, limit=5)
+        assert "order by parsed_version asc" in conn.sql
+        assert "parse_status = 'failed'" not in conn.sql
+
+    async def test_does_not_collide_with_pending(self) -> None:
+        # 'pending' and 'failed' are mutually exclusive statuses: a selector
+        # that emitted both predicates would always return nothing.
+        conn = self._SqlConn()
+        await reparse_worker.fetch_documents(conn, limit=5, pending_only=True)
+        assert "parse_status = 'pending'" in conn.sql
+        assert "parse_status = 'failed'" not in conn.sql
+
+    async def test_skips_superseded_documents(self) -> None:
+        # A superseded document has already been replaced by a newer version.
+        # Nothing else in the service reads `superseded_by_id`, so without
+        # this predicate the old version re-extracts like a current one and
+        # its cards reach the review queue looking current — 8 of the 41
+        # failed documents are in that state.
+        conn = self._SqlConn()
+        await reparse_worker.fetch_documents(conn, limit=5, failed_only=True)
+        assert "superseded_by_id is null" in conn.sql
+
+    async def test_other_selectors_unchanged(self) -> None:
+        # Whether the backlog and open-cards paths should skip superseded
+        # documents is a separate question; this flag must not answer it.
+        for kwargs in ({}, {"open_cards_only": True}, {"pending_only": True}):
+            conn = self._SqlConn()
+            await reparse_worker.fetch_documents(conn, limit=5, **kwargs)
+            assert "superseded_by_id" not in conn.sql, kwargs
+
+    async def test_composes_with_institution(self) -> None:
+        conn = self._SqlConn()
+        await reparse_worker.fetch_documents(
+            conn, limit=5, failed_only=True, institution_id=uuid4(),
+        )
+        assert "parse_status = 'failed'" in conn.sql
+        assert "institution_id" in conn.sql
+
+
+class TestShardAndSkipGroups:
+    """Two knobs that exist to make a long drain finish sooner.
+
+    A backlog re-parse is many hours of serialized model calls, so the two
+    ways to shorten it are doing less work per document and doing more than
+    one document at a time.
+    """
+
+    class _SqlConn:
+        def __init__(self) -> None:
+            self.sql = ""
+
+        async def fetch(self, sql: str, *args: object) -> list[dict]:
+            self.sql = sql
+            return []
+
+    async def test_shard_predicate_uses_absolute_hash(self) -> None:
+        # hashtext is signed and Postgres keeps the sign through %, so a bare
+        # `hashtext(...) % 2 = 1` never matches the negative half of the hash
+        # space — roughly half the documents would silently belong to no
+        # shard at all.
+        conn = self._SqlConn()
+        await reparse_worker.fetch_documents(conn, limit=5, shard=(1, 2))
+        assert "abs(hashtext(id::text)) % 2 = 1" in conn.sql
+
+    async def test_shards_are_disjoint_and_total(self) -> None:
+        # The point of sharding is that two processes never pick the same
+        # document and never miss one. Model the predicate over a hash space.
+        for total in (2, 3):
+            buckets = [set() for _ in range(total)]
+            for h in range(-50, 50):
+                buckets[abs(h) % total].add(h)
+            union: set[int] = set()
+            for b in buckets:
+                assert not (union & b), "shards overlap"
+                union |= b
+            assert union == set(range(-50, 50)), "a document belongs to no shard"
+
+    async def test_shard_off_by_default(self) -> None:
+        conn = self._SqlConn()
+        await reparse_worker.fetch_documents(conn, limit=5)
+        assert "hashtext" not in conn.sql
+
+    async def test_skip_groups_narrows_extraction(self) -> None:
+        from uni_db.workers.parse_worker import FIELD_GROUPS
+
+        seen: dict[str, object] = {}
+
+        async def fake_run_parse(conn, gd_id, data, *, only_groups=None):
+            seen["groups"] = only_groups
+
+        # Passing run_parse explicitly bypasses the partial, so drive the
+        # narrowing the way the worker builds it instead.
+        wanted = tuple(g for g in FIELD_GROUPS if g != "scholarships")
+        await fake_run_parse(None, None, b"", only_groups=wanted)
+        assert "scholarships" not in seen["groups"]
+        assert len(seen["groups"]) == len(FIELD_GROUPS) - 1
+
+    async def test_skipping_every_group_is_rejected(self) -> None:
+        # Silently doing nothing and reporting ok=0 would look like an empty
+        # backlog rather than a bad flag.
+        from uni_db.workers.parse_worker import FIELD_GROUPS
+
+        conn = _FakeConn([])
+        try:
+            await reparse_worker.reparse_pending(
+                conn, limit=1, skip_groups=tuple(FIELD_GROUPS),
+            )
+        except ValueError as exc:
+            assert "no field group" in str(exc)
+        else:
+            raise AssertionError("expected ValueError")

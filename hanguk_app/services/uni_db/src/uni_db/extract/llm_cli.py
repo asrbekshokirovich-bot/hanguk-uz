@@ -56,7 +56,50 @@ _CLI_TIMEOUT_SEC = 240.0
 # subscription-backed Claude calls at once — concurrent calls spike usage and
 # trip rate limits. Even though the pipeline is already sequential, this is a
 # hard guarantee: at most ONE `claude` subprocess runs at any moment.
+# Extraction is text-in, text-out: the Korean source span is IN the prompt and
+# the answer must come from it. But `claude -p` is an agent, not a completion
+# endpoint — left alone it runs with its full tool set in whatever directory
+# the worker happens to be in, which here is the repository.
+#
+# It used them. Observed in a live drain, the model answered a `documents_required`
+# extraction with "I looked at the actual pipeline files this prompt is drawn
+# from (`src/...`)" instead of returning JSON — three of eight calls in one
+# shard were retried for this. Every one of those is a wasted couple of
+# minutes, and a model grounding an admissions answer in our source tree
+# rather than in the 모집요강 is a correctness problem, not just a slow one.
+#
+# The list is explicit because nothing else works: `--tools ""` and
+# `--allowed-tools ""` were both probed against this CLI (2.1.234) and left
+# every tool enabled — only `--disallowed-tools <names>` actually blocks them.
+# It is therefore a DENYLIST, with a denylist's failure mode: a tool added to
+# a future CLI is not covered. Keep it a superset of what
+# `claude -p "list your built-in tools"` reports; the unparseable-response
+# retry is the backstop if one slips through.
+_DISALLOWED_TOOLS: tuple[str, ...] = (
+    "Agent", "Artifact", "Bash", "BashOutput", "Edit", "Glob", "Grep",
+    "KillBash", "ListAgents", "ListMcpResourcesTool", "Monitor", "MultiEdit",
+    "NotebookEdit", "Read", "ReadMcpResourceTool", "ReadNotifications", "REPL",
+    "ReportFindings", "ScheduleWakeup", "SendUserFile",
+    "ShowOnboardingRolePicker", "Skill", "SuggestSkills", "Task", "TodoWrite",
+    "Tmux", "ToolSearch", "WebFetch", "WebSearch", "Workflow", "Write",
+)
+
 _CLI_LOCK = threading.Lock()
+
+# In-process side of the semaphore, built once per concurrency value. Cached
+# because `_cli_serialized` reads the setting on every call and a fresh
+# semaphore each time would enforce nothing at all.
+_CLI_SEMAPHORES: dict[int, threading.BoundedSemaphore] = {}
+_CLI_SEM_GUARD = threading.Lock()
+
+
+def _sem_for(slots: int) -> threading.BoundedSemaphore:
+    with _CLI_SEM_GUARD:
+        sem = _CLI_SEMAPHORES.get(slots)
+        if sem is None:
+            sem = threading.BoundedSemaphore(slots)
+            _CLI_SEMAPHORES[slots] = sem
+        return sem
 
 # Cross-process serialization. The threading lock above only covers one Python
 # process; if the crawl agent spawns two `uni-db` subprocesses (or two Routines
@@ -133,25 +176,67 @@ def _is_usage_limit(text: str) -> bool:
     return any(marker in low for marker in _USAGE_LIMIT_MARKERS)
 
 
+def _slot_paths(slots: int) -> list[Path]:
+    """One lock file per concurrency slot.
+
+    Slot 0 keeps the original filename so a process running at concurrency 1
+    still contends with an older process that predates this setting, rather
+    than silently running beside it.
+    """
+    if slots <= 1:
+        return [_CLI_LOCKFILE]
+    return [_CLI_LOCKFILE] + [
+        _CLI_LOCKFILE.with_name(f"{_CLI_LOCKFILE.name}.{i}") for i in range(1, slots)
+    ]
+
+
 @contextlib.contextmanager
 def _cli_serialized():
-    """Hold both the in-process and cross-process locks for one CLI call.
+    """Hold one of the N concurrency slots for the duration of a CLI call.
+
+    At the default concurrency of 1 this is the original behaviour: one
+    threading lock, one exclusive file lock, at most one `claude` subprocess
+    anywhere on the host.
+
+    Above 1 the single lock becomes a counting semaphore. In-process that is
+    `BoundedSemaphore`; across processes it is a POOL of lock files, each
+    tried non-blocking in turn — the first one that is free is this call's
+    slot. Polling rather than blocking on a chosen file is deliberate:
+    blocking on one file would queue behind whoever holds it while another
+    slot sat idle. A quarter-second poll is free next to calls that run for
+    minutes.
 
     The `fcntl` file lock is best-effort: on platforms without it (non-Unix),
-    the threading lock alone still serializes within the process.
+    the in-process semaphore alone limits concurrency.
     """
-    with _CLI_LOCK:
+    slots = max(1, int(getattr(settings, "claude_cli_concurrency", 1) or 1))
+    sem = _sem_for(slots)
+    sem.acquire()
+    try:
         try:
             import fcntl
         except ImportError:  # pragma: no cover — Unix-only sandbox in practice
             yield
             return
-        with open(_CLI_LOCKFILE, "w") as lock_fh:
-            fcntl.flock(lock_fh, fcntl.LOCK_EX)
-            try:
-                yield
-            finally:
-                fcntl.flock(lock_fh, fcntl.LOCK_UN)
+        paths = _slot_paths(slots)
+        while True:
+            for path in paths:
+                # `continue` and `return` both leave the `with`, so the handle
+                # is closed on every path out — including the one where this
+                # slot was already taken.
+                with open(path, "w") as lock_fh:
+                    try:
+                        fcntl.flock(lock_fh, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                    except OSError:
+                        continue
+                    try:
+                        yield
+                        return
+                    finally:
+                        fcntl.flock(lock_fh, fcntl.LOCK_UN)
+            time.sleep(0.25)
+    finally:
+        sem.release()
 
 
 def _envelope_usage(envelope: dict) -> dict[str, int]:
@@ -279,6 +364,8 @@ def run_claude_cli_result(
             _cli_model(model),
             "--append-system-prompt-file",
             sys_file.name,
+            "--disallowed-tools",
+            ",".join(_DISALLOWED_TOOLS),
         ]
 
         budget = max(0, settings.claude_cli_retry_budget_sec)

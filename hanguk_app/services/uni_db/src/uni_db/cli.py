@@ -57,6 +57,21 @@ def _build_parser() -> argparse.ArgumentParser:
                                 "review queue — re-do what the reviewer is "
                                 "actually looking at, rather than the "
                                 "least-parsed backlog")
+    p_reparse.add_argument("--skip-groups", default="",
+                           help="Field groups to leave out (comma-separated). "
+                                "Each group is one serialized model call of a "
+                                "couple of minutes, so skipping one no screen "
+                                "renders — e.g. scholarships — is a fifth off "
+                                "the run")
+    p_reparse.add_argument("--shard", default=None, metavar="I/N",
+                           help="Take only shard I of N (e.g. 0/2). Two "
+                                "processes with 0/2 and 1/2 split the same "
+                                "selection and never pick the same document")
+    p_reparse.add_argument("--failed-docs", action="store_true",
+                           help="Only documents at parse_status='failed'. They "
+                                "are unreachable from retry-failed, which works "
+                                "from extraction jobs, and sort last under the "
+                                "backlog order")
 
     p_retry = sub.add_parser(
         "retry-failed",
@@ -236,7 +251,13 @@ def main(argv: list[str] | None = None) -> int:
     if args.cmd == "reparse":
         return asyncio.run(_reparse(limit=args.limit, institution=args.institution,
                                     pending_only=args.pending_only,
-                                    open_cards_only=args.open_cards))
+                                    open_cards_only=args.open_cards,
+                                    failed_only=args.failed_docs,
+                                    shard=args.shard,
+                                    skip_groups=tuple(
+                                        g.strip() for g in args.skip_groups.split(",")
+                                        if g.strip()
+                                    )))
     if args.cmd == "retry-failed":
         return asyncio.run(_retry_failed(
             limit=args.limit,
@@ -453,7 +474,10 @@ async def _run_pipeline(*, limit: int) -> int:
 
 async def _reparse(*, limit: int, institution: str | None,
                    pending_only: bool = False,
-                   open_cards_only: bool = False) -> int:
+                   open_cards_only: bool = False,
+                   failed_only: bool = False,
+                   shard: str | None = None,
+                   skip_groups: tuple[str, ...] = ()) -> int:
     """LIVE: re-extract already-stored guideline documents so the latest
     extraction/normalization fixes apply to existing data (the old review
     cards are superseded via dedup). Reads PDFs from storage — does NOT
@@ -472,6 +496,23 @@ async def _reparse(*, limit: int, institution: str | None,
         return 2
 
 
+    # Parsed before connecting: a typo in --shard should cost nothing.
+    shard_pair: tuple[int, int] | None = None
+    if shard:
+        try:
+            index_s, _, total_s = shard.partition("/")
+            shard_pair = (int(index_s), int(total_s))
+        except ValueError:
+            print(f"--shard must look like I/N (got {shard!r}).", file=sys.stderr)
+            return 2
+        index, total = shard_pair
+        if total < 1 or not (0 <= index < total):
+            print(
+                f"--shard {shard!r} is out of range: need 0 <= I < N and N >= 1.",
+                file=sys.stderr,
+            )
+            return 2
+
     from .workers import reparse_worker
 
     conn = await db.connect()
@@ -488,6 +529,7 @@ async def _reparse(*, limit: int, institution: str | None,
         ok, fail = await reparse_worker.reparse_pending(
             conn, limit=limit, institution_id=institution_id,
             pending_only=pending_only, open_cards_only=open_cards_only,
+            failed_only=failed_only, shard=shard_pair, skip_groups=skip_groups,
         )
     finally:
         await conn.close()

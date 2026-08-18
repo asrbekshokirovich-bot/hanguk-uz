@@ -36,13 +36,24 @@ def _default_fetch_blob(storage_path: str) -> bytes:
 async def fetch_documents(
     conn: asyncpg.Connection, *, limit: int,
     institution_id: UUID | None = None, pending_only: bool = False,
-    open_cards_only: bool = False,
+    open_cards_only: bool = False, failed_only: bool = False,
+    shard: tuple[int, int] | None = None,
 ) -> list[asyncpg.Record]:
     """Stored guideline documents to re-extract (least-recently-parsed first).
 
     pending_only=True targets only never-parsed (parse_status='pending')
     documents — i.e. freshly uploaded PDFs — so the manual-upload engine drains
     new uploads without re-extracting (and re-billing) already-parsed docs.
+
+    failed_only=True targets documents whose parse_status is 'failed'. These do
+    NOT come back on their own: `retry-failed` works from extraction jobs, and
+    the 2026-08 dead-key rows that marked many of them failed have since been
+    archived, so those documents now have no job rows to be found through. The
+    default backlog order is also wrong for them — it sorts by parsed_version
+    ascending, and a document that failed after many attempts sorts last.
+    Ordering is flipped to most-attempted-first here for the same reason
+    `open_cards_only` flips it: the caller asked for a specific set, not for
+    the backlog.
 
     open_cards_only=True targets the documents a reviewer is actually looking
     at: those behind a row still sitting in the review queue. The default
@@ -68,13 +79,41 @@ async def fetch_documents(
             "            where rq.status = 'open' "
             "              and rq.entity_type = 'guideline_documents'))"
         )
+    if shard is not None:
+        index, total = shard
+        # Split the SAME selection across N processes with no coordination
+        # between them: each takes the ids whose hash falls in its bucket, so
+        # two runs never pick the same document and never need a claim table.
+        # `abs()` because hashtext is signed and Postgres' % keeps the sign,
+        # which would leave the negative half of the space unclaimed.
+        where.append(f"abs(hashtext(id::text)) % {int(total)} = {int(index)}")
+    if failed_only:
+        where.append("parse_status = 'failed'")
+        # Skip documents a newer version has already replaced. Nothing else in
+        # the pipeline reads `superseded_by_id` — grep the service and this is
+        # the only reference — so a superseded document re-extracts exactly
+        # like a current one and its cards arrive in the review queue looking
+        # current. Of the 41 failed documents, 8 are superseded: a fifth of
+        # the run spent producing review work about guidelines that have
+        # already been withdrawn.
+        #
+        # Scoped to this selector on purpose. Whether the backlog and
+        # open-cards paths should skip superseded documents too is a real
+        # question, but changing what they select is not something to slip in
+        # under a flag that was added for a different reason.
+        where.append("superseded_by_id is null")
     if institution_id is not None:
         params.append(institution_id)
         where.append(f"institution_id = ${len(params)}")
+    order = (
+        "parsed_version desc, fetched_at desc nulls last"
+        if failed_only
+        else "parsed_version asc, fetched_at desc nulls last"
+    )
     sql = (
         "select id, storage_path from public.guideline_documents "
         f"where {' and '.join(where)} "
-        "order by parsed_version asc, fetched_at desc nulls last "
+        f"order by {order} "
         "limit $1"
     )
     return await conn.fetch(sql, *params)
@@ -87,6 +126,9 @@ async def reparse_pending(
     institution_id: UUID | None = None,
     pending_only: bool = False,
     open_cards_only: bool = False,
+    failed_only: bool = False,
+    shard: tuple[int, int] | None = None,
+    skip_groups: tuple[str, ...] = (),
     fetch_blob: FetchBlob | None = None,
     run_parse: RunParse | None = None,
 ) -> tuple[int, int]:
@@ -95,18 +137,42 @@ async def reparse_pending(
     When pending_only is set, only never-parsed (uploaded) docs are processed and
     a document that fails is flipped to parse_status='failed', so a broken PDF is
     not re-extracted (and re-billed) on every run.
+
+    failed_only selects the documents already sitting at parse_status='failed'.
+    It does not flip status on failure the way pending_only does: they are
+    already marked failed, and re-marking a document that has just failed again
+    for a NEW reason would overwrite nothing useful while hiding that the run
+    happened at all.
     """
     fetch_blob = fetch_blob or _default_fetch_blob
     if run_parse is None:
+        from functools import partial
+
         from .fetch_worker import _default_run_parse
-        run_parse = _default_run_parse
+        from .parse_worker import FIELD_GROUPS
+
+        if skip_groups:
+            wanted = tuple(g for g in FIELD_GROUPS if g not in set(skip_groups))
+            if not wanted:
+                raise ValueError(
+                    f"skip_groups={skip_groups!r} leaves no field group to extract"
+                )
+            run_parse = partial(_default_run_parse, only_groups=wanted)
+        else:
+            run_parse = _default_run_parse
 
     docs = await fetch_documents(
         conn, limit=limit, institution_id=institution_id,
         pending_only=pending_only, open_cards_only=open_cards_only,
+        failed_only=failed_only, shard=shard,
     )
-    log.info("reparse_worker: %d document(s) to re-extract%s",
-             len(docs), " (pending-only)" if pending_only else "")
+    selector = (
+        " (pending-only)" if pending_only
+        else " (open-cards)" if open_cards_only
+        else " (failed-docs)" if failed_only
+        else ""
+    )
+    log.info("reparse_worker: %d document(s) to re-extract%s", len(docs), selector)
     ok = fail = 0
     for d in docs:
         # A rejected key or an empty balance fails every remaining document
