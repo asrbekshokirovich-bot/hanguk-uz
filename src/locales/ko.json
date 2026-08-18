@@ -1671,7 +1671,9 @@
       "gpaMin": "{{p}}% 이상",
       "majors": "모집 단위:",
       "heritageShow": "표시: 재외국민 전형 {{n}}개 (외국인 전형 아님)",
-      "heritageHide": "숨기기: 재외국민 전형 {{n}}개 (외국인 전형 아님)"
+      "heritageHide": "숨기기: 재외국민 전형 {{n}}개 (외국인 전형 아님)",
+      "otherTest": "기타 시험",
+      "noThreshold": "요강에 최저 점수 미명시"
     },
     "tui": {
       "faculty": "계열",

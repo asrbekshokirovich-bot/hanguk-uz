@@ -148,9 +148,17 @@ export function CalendarBody({ row }: { row: ReviewQueueRow }) {
 // requirements — stat tiles per foreign track + collapsed heritage tracks.
 // ---------------------------------------------------------------------------
 
-interface Stat {
+export interface Stat {
   k: string;
   v: string | null;
+  /**
+   * Why the headline value is what it is, when "Ha" on its own would be a
+   * worse answer than the truth. Two cases produce it: the guideline names a
+   * test we have no number for (a university's own English paper), and the
+   * guideline requires a certificate but states no minimum score. Both used
+   * to render as a bare "Ha", which reads as the extractor having given up.
+   */
+  note?: string | null;
   warn?: boolean;
   show: boolean;
 }
@@ -182,11 +190,36 @@ function englishValue(t: TFunction, row: Record<string, unknown>): string | null
       if (typeof o[k] === 'number') return `${label} ${o[k]}+`;
     }
     if (o.deferred === true) return t('uniReview.req.deferred');
+    // No number anywhere, but the guideline described the requirement in
+    // prose — most often a university's OWN English paper. Labelling that
+    // "IELTS: Ha" is not merely vague, it names the wrong exam.
+    if (typeof o.other_ko === 'string' && o.other_ko.trim()) {
+      return t('uniReview.req.otherTest');
+    }
   }
   return null;
 }
 
-function trackStats(t: TFunction, r: Record<string, unknown>): Stat[] {
+/**
+ * The sentence under a requirement chip.
+ *
+ * Measured on this database: of 69 rows where English is required, 55 carry a
+ * usable number, 5 carry only `other_ko` prose, and 9 carry nothing at all.
+ * TOPIK is required on 139 rows, 7 of them with no level. Every one of those
+ * 16 rendered as a bare "Ha", which reads as a failed extraction — when in
+ * most cases the guideline itself simply never states a threshold, and saying
+ * so is the accurate answer.
+ */
+function englishNote(t: TFunction, row: Record<string, unknown>): string | null {
+  const e = row.english_test;
+  if (e && typeof e === 'object' && !Array.isArray(e)) {
+    const o = e as Record<string, unknown>;
+    if (typeof o.other_ko === 'string' && o.other_ko.trim()) return o.other_ko.trim();
+  }
+  return null;
+}
+
+export function trackStats(t: TFunction, r: Record<string, unknown>): Stat[] {
   const topikConcrete =
     typeof r.topik_min_level === 'number'
       ? t('uniReview.req.topikLevel', { n: r.topik_min_level })
@@ -197,14 +230,36 @@ function trackStats(t: TFunction, r: Record<string, unknown>): Stat[] {
     r.gpa_floor_pct !== null && r.gpa_floor_pct !== undefined
       ? t('uniReview.req.gpaMin', { p: r.gpa_floor_pct })
       : null;
+  // "Required, but we have no number" is a real answer and a different one
+  // from "required, threshold X". Said out loud it stops a reviewer chasing an
+  // extraction bug that is not there; left as a bare "Ha" it looks like one.
+  const unstated = t('uniReview.req.noThreshold');
+  const topikValue = statusText(t, r.topik_status, topikConcrete);
+  const englishConcrete = englishValue(t, r);
+  const englishText = statusText(t, r.english_status, englishConcrete);
+  const gpaValue = statusText(t, r.gpa_status, gpaConcrete);
+  const bare = (value: string | null, concrete: string | null) =>
+    value !== null && concrete === null && value === t('uniReview.req.yes');
+
   return [
-    { k: t('uniReview.req.topik'), v: statusText(t, r.topik_status, topikConcrete), show: true },
     {
-      k: t('uniReview.req.english'),
-      v: statusText(t, r.english_status, englishValue(t, r)),
+      k: t('uniReview.req.topik'),
+      v: topikValue,
+      note: bare(topikValue, topikConcrete) ? unstated : null,
       show: true,
     },
-    { k: t('uniReview.req.gpa'), v: statusText(t, r.gpa_status, gpaConcrete), show: true },
+    {
+      k: t('uniReview.req.english'),
+      v: englishText,
+      note: englishNote(t, r) ?? (bare(englishText, englishConcrete) ? unstated : null),
+      show: true,
+    },
+    {
+      k: t('uniReview.req.gpa'),
+      v: gpaValue,
+      note: bare(gpaValue, gpaConcrete) ? unstated : null,
+      show: true,
+    },
     {
       k: t('uniReview.req.interview'),
       v:
@@ -275,6 +330,17 @@ export function RequirementsBody({ row }: { row: ReviewQueueRow }) {
                     <span className="break-words text-[15px] font-bold">
                       {s.v ?? <Ns className="text-[13px]" />}
                     </span>
+                    {s.note ? (
+                      // Clamped rather than truncated with an ellipsis: the
+                      // Korean source sentences run long, and the tile is
+                      // 140px wide. `title` keeps the whole thing reachable.
+                      <span
+                        title={s.note}
+                        className="line-clamp-3 break-words text-[11px] font-normal leading-snug text-muted-foreground"
+                      >
+                        {s.note}
+                      </span>
+                    ) : null}
                   </div>
                 ))}
             </div>

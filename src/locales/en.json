@@ -1727,7 +1727,9 @@
       "gpaMin": "Above {{p}}%",
       "majors": "Majors:",
       "heritageShow": "Show: {{n}} Korean-heritage track(s) (not for foreign applicants)",
-      "heritageHide": "Hide: {{n}} Korean-heritage track(s) (not for foreign applicants)"
+      "heritageHide": "Hide: {{n}} Korean-heritage track(s) (not for foreign applicants)",
+      "otherTest": "Other exam",
+      "noThreshold": "the guideline states no minimum score"
     },
     "tui": {
       "faculty": "Faculty",

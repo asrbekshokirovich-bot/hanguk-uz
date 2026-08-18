@@ -1766,7 +1766,9 @@
       "gpaMin": "{{p}}% dan yuqori",
       "majors": "Yo'nalishlar:",
       "heritageShow": "Ko'rsatish: {{n}} ta koreys-diaspora yo'nalishi (xorijliklarga tegishli emas)",
-      "heritageHide": "Yashirish: {{n}} ta koreys-diaspora yo'nalishi (xorijliklarga tegishli emas)"
+      "heritageHide": "Yashirish: {{n}} ta koreys-diaspora yo'nalishi (xorijliklarga tegishli emas)",
+      "otherTest": "Boshqa imtihon",
+      "noThreshold": "hujjatda aniq ball ko'rsatilmagan"
     },
     "tui": {
       "faculty": "Fakultet",
