@@ -40,6 +40,17 @@ class Settings(BaseSettings):
     claude_cli_retry_budget_sec: int = Field(
         default=7200, alias="UNI_DB_CLI_RETRY_BUDGET_SEC"
     )
+    # How many `claude` calls may run at once (claude_cli backend only).
+    # Default 1 — the original hard guarantee, and the right value for the
+    # nightly crawl, which shares the subscription with whoever is using it.
+    # Raise it to drain a backlog faster, understanding the trade: the
+    # subscription's usage window is consumed N times as fast, so the wall
+    # clock does not simply divide by N once a limit is reached. Hitting one
+    # is not fatal — the backend waits out the window and resumes — but the
+    # speed-up is a hope, not an arithmetic certainty.
+    claude_cli_concurrency: int = Field(
+        default=1, ge=1, le=8, alias="UNI_DB_CLI_CONCURRENCY"
+    )
 
     # Database transport:
     #   postgres — asyncpg direct connection (default; needs raw TCP to 5432)

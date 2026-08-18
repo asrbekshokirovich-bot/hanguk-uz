@@ -90,8 +90,21 @@ def _default_store_blob(data: bytes, *, sha256: str, mime: str) -> Any:
     return supabase_storage.store_blob(data, sha256=sha256, mime=mime)
 
 
-async def _default_run_parse(conn: asyncpg.Connection, gd_id: UUID, data: bytes) -> None:
-    """Extract text → parse field groups → persist extraction_jobs/review_queue."""
+async def _default_run_parse(
+    conn: asyncpg.Connection,
+    gd_id: UUID,
+    data: bytes,
+    *,
+    only_groups: tuple[str, ...] | None = None,
+) -> None:
+    """Extract text → parse field groups → persist extraction_jobs/review_queue.
+
+    `only_groups` narrows the extraction to a subset of FIELD_GROUPS. Callers
+    reach it through a partial, so the (conn, gd_id, data) shape the worker
+    protocols expect is unchanged. Every group is one serialized model call of
+    a couple of minutes, so a group nothing renders is not a rounding error —
+    `scholarships` alone is a fifth of the wall-clock of a full re-parse.
+    """
     from ..parse.extract_orchestrator import extract as extract_pdf
     from .parse_worker import parse_one_document, persist_outcome
 
@@ -109,6 +122,7 @@ async def _default_run_parse(conn: asyncpg.Connection, gd_id: UUID, data: bytes)
         guideline_document_id=gd_id,
         pdf_text_first_pages=head,
         pdf_text_full=extracted.text,
+        only_groups=only_groups,
     )
     await persist_outcome(conn, outcome)
 

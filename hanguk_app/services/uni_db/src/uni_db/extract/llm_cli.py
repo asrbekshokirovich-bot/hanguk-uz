@@ -58,6 +58,21 @@ _CLI_TIMEOUT_SEC = 240.0
 # hard guarantee: at most ONE `claude` subprocess runs at any moment.
 _CLI_LOCK = threading.Lock()
 
+# In-process side of the semaphore, built once per concurrency value. Cached
+# because `_cli_serialized` reads the setting on every call and a fresh
+# semaphore each time would enforce nothing at all.
+_CLI_SEMAPHORES: dict[int, threading.BoundedSemaphore] = {}
+_CLI_SEM_GUARD = threading.Lock()
+
+
+def _sem_for(slots: int) -> threading.BoundedSemaphore:
+    with _CLI_SEM_GUARD:
+        sem = _CLI_SEMAPHORES.get(slots)
+        if sem is None:
+            sem = threading.BoundedSemaphore(slots)
+            _CLI_SEMAPHORES[slots] = sem
+        return sem
+
 # Cross-process serialization. The threading lock above only covers one Python
 # process; if the crawl agent spawns two `uni-db` subprocesses (or two Routines
 # fire), each has its own threading lock and they could still call `claude`
@@ -133,25 +148,66 @@ def _is_usage_limit(text: str) -> bool:
     return any(marker in low for marker in _USAGE_LIMIT_MARKERS)
 
 
+def _slot_paths(slots: int) -> list[Path]:
+    """One lock file per concurrency slot.
+
+    Slot 0 keeps the original filename so a process running at concurrency 1
+    still contends with an older process that predates this setting, rather
+    than silently running beside it.
+    """
+    if slots <= 1:
+        return [_CLI_LOCKFILE]
+    return [_CLI_LOCKFILE] + [
+        _CLI_LOCKFILE.with_name(f"{_CLI_LOCKFILE.name}.{i}") for i in range(1, slots)
+    ]
+
+
 @contextlib.contextmanager
 def _cli_serialized():
-    """Hold both the in-process and cross-process locks for one CLI call.
+    """Hold one of the N concurrency slots for the duration of a CLI call.
+
+    At the default concurrency of 1 this is the original behaviour: one
+    threading lock, one exclusive file lock, at most one `claude` subprocess
+    anywhere on the host.
+
+    Above 1 the single lock becomes a counting semaphore. In-process that is
+    `BoundedSemaphore`; across processes it is a POOL of lock files, each
+    tried non-blocking in turn — the first one that is free is this call's
+    slot. Polling rather than blocking on a chosen file is deliberate:
+    blocking on one file would queue behind whoever holds it while another
+    slot sat idle. A quarter-second poll is free next to calls that run for
+    minutes.
 
     The `fcntl` file lock is best-effort: on platforms without it (non-Unix),
-    the threading lock alone still serializes within the process.
+    the in-process semaphore alone limits concurrency.
     """
-    with _CLI_LOCK:
+    slots = max(1, int(getattr(settings, "claude_cli_concurrency", 1) or 1))
+    sem = _sem_for(slots)
+    sem.acquire()
+    try:
         try:
             import fcntl
         except ImportError:  # pragma: no cover — Unix-only sandbox in practice
             yield
             return
-        with open(_CLI_LOCKFILE, "w") as lock_fh:
-            fcntl.flock(lock_fh, fcntl.LOCK_EX)
-            try:
-                yield
-            finally:
-                fcntl.flock(lock_fh, fcntl.LOCK_UN)
+        paths = _slot_paths(slots)
+        while True:
+            for path in paths:
+                lock_fh = open(path, "w")
+                try:
+                    fcntl.flock(lock_fh, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                except OSError:
+                    lock_fh.close()
+                    continue
+                try:
+                    yield
+                    return
+                finally:
+                    fcntl.flock(lock_fh, fcntl.LOCK_UN)
+                    lock_fh.close()
+            time.sleep(0.25)
+    finally:
+        sem.release()
 
 
 def _envelope_usage(envelope: dict) -> dict[str, int]:
