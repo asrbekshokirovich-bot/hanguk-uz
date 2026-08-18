@@ -80,6 +80,19 @@ async def fetch_documents(
         )
     if failed_only:
         where.append("parse_status = 'failed'")
+        # Skip documents a newer version has already replaced. Nothing else in
+        # the pipeline reads `superseded_by_id` — grep the service and this is
+        # the only reference — so a superseded document re-extracts exactly
+        # like a current one and its cards arrive in the review queue looking
+        # current. Of the 41 failed documents, 8 are superseded: a fifth of
+        # the run spent producing review work about guidelines that have
+        # already been withdrawn.
+        #
+        # Scoped to this selector on purpose. Whether the backlog and
+        # open-cards paths should skip superseded documents too is a real
+        # question, but changing what they select is not something to slip in
+        # under a flag that was added for a different reason.
+        where.append("superseded_by_id is null")
     if institution_id is not None:
         params.append(institution_id)
         where.append(f"institution_id = ${len(params)}")
