@@ -285,8 +285,14 @@ def _one_call(cmd: list[str], user: str, timeout: float) -> CliCallResult:
         ) from exc
 
     if proc.returncode != 0:
-        stderr = (proc.stderr or "")[:300]
-        limited = _is_usage_limit(proc.stderr or "")
+        # The CLI does not reliably use stderr. The 2026-08-18 drain failed
+        # 380 times with the message "claude CLI exited 1: " and nothing after
+        # the colon, because the reason was on stdout — leaving the operator
+        # with a broken run and no way to tell auth from a missing binary from
+        # a sandbox refusal. Fall back to stdout so the record says something.
+        detail = (proc.stderr or "").strip() or (proc.stdout or "").strip()
+        stderr = detail[:300] or "(no output on stderr or stdout)"
+        limited = _is_usage_limit(detail)
         # Phase 3 watchdog: a streak of GENUINE nonzero exits (not usage
         # limits, which self-heal via the retry loop) means the CLI is broken.
         watchdog.record_cli_exit(proc.returncode, usage_limited=limited)
