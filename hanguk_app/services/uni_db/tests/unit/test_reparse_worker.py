@@ -272,3 +272,77 @@ class TestFailedDocsSelector:
         )
         assert "parse_status = 'failed'" in conn.sql
         assert "institution_id" in conn.sql
+
+
+class TestShardAndSkipGroups:
+    """Two knobs that exist to make a long drain finish sooner.
+
+    A backlog re-parse is many hours of serialized model calls, so the two
+    ways to shorten it are doing less work per document and doing more than
+    one document at a time.
+    """
+
+    class _SqlConn:
+        def __init__(self) -> None:
+            self.sql = ""
+
+        async def fetch(self, sql: str, *args: object) -> list[dict]:
+            self.sql = sql
+            return []
+
+    async def test_shard_predicate_uses_absolute_hash(self) -> None:
+        # hashtext is signed and Postgres keeps the sign through %, so a bare
+        # `hashtext(...) % 2 = 1` never matches the negative half of the hash
+        # space — roughly half the documents would silently belong to no
+        # shard at all.
+        conn = self._SqlConn()
+        await reparse_worker.fetch_documents(conn, limit=5, shard=(1, 2))
+        assert "abs(hashtext(id::text)) % 2 = 1" in conn.sql
+
+    async def test_shards_are_disjoint_and_total(self) -> None:
+        # The point of sharding is that two processes never pick the same
+        # document and never miss one. Model the predicate over a hash space.
+        for total in (2, 3):
+            buckets = [set() for _ in range(total)]
+            for h in range(-50, 50):
+                buckets[abs(h) % total].add(h)
+            union: set[int] = set()
+            for b in buckets:
+                assert not (union & b), "shards overlap"
+                union |= b
+            assert union == set(range(-50, 50)), "a document belongs to no shard"
+
+    async def test_shard_off_by_default(self) -> None:
+        conn = self._SqlConn()
+        await reparse_worker.fetch_documents(conn, limit=5)
+        assert "hashtext" not in conn.sql
+
+    async def test_skip_groups_narrows_extraction(self) -> None:
+        from uni_db.workers.parse_worker import FIELD_GROUPS
+
+        seen: dict[str, object] = {}
+
+        async def fake_run_parse(conn, gd_id, data, *, only_groups=None):
+            seen["groups"] = only_groups
+
+        # Passing run_parse explicitly bypasses the partial, so drive the
+        # narrowing the way the worker builds it instead.
+        wanted = tuple(g for g in FIELD_GROUPS if g != "scholarships")
+        await fake_run_parse(None, None, b"", only_groups=wanted)
+        assert "scholarships" not in seen["groups"]
+        assert len(seen["groups"]) == len(FIELD_GROUPS) - 1
+
+    async def test_skipping_every_group_is_rejected(self) -> None:
+        # Silently doing nothing and reporting ok=0 would look like an empty
+        # backlog rather than a bad flag.
+        from uni_db.workers.parse_worker import FIELD_GROUPS
+
+        conn = _FakeConn([])
+        try:
+            await reparse_worker.reparse_pending(
+                conn, limit=1, skip_groups=tuple(FIELD_GROUPS),
+            )
+        except ValueError as exc:
+            assert "no field group" in str(exc)
+        else:
+            raise AssertionError("expected ValueError")

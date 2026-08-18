@@ -37,6 +37,7 @@ async def fetch_documents(
     conn: asyncpg.Connection, *, limit: int,
     institution_id: UUID | None = None, pending_only: bool = False,
     open_cards_only: bool = False, failed_only: bool = False,
+    shard: tuple[int, int] | None = None,
 ) -> list[asyncpg.Record]:
     """Stored guideline documents to re-extract (least-recently-parsed first).
 
@@ -78,6 +79,14 @@ async def fetch_documents(
             "            where rq.status = 'open' "
             "              and rq.entity_type = 'guideline_documents'))"
         )
+    if shard is not None:
+        index, total = shard
+        # Split the SAME selection across N processes with no coordination
+        # between them: each takes the ids whose hash falls in its bucket, so
+        # two runs never pick the same document and never need a claim table.
+        # `abs()` because hashtext is signed and Postgres' % keeps the sign,
+        # which would leave the negative half of the space unclaimed.
+        where.append(f"abs(hashtext(id::text)) % {int(total)} = {int(index)}")
     if failed_only:
         where.append("parse_status = 'failed'")
         # Skip documents a newer version has already replaced. Nothing else in
@@ -118,6 +127,8 @@ async def reparse_pending(
     pending_only: bool = False,
     open_cards_only: bool = False,
     failed_only: bool = False,
+    shard: tuple[int, int] | None = None,
+    skip_groups: tuple[str, ...] = (),
     fetch_blob: FetchBlob | None = None,
     run_parse: RunParse | None = None,
 ) -> tuple[int, int]:
@@ -135,13 +146,25 @@ async def reparse_pending(
     """
     fetch_blob = fetch_blob or _default_fetch_blob
     if run_parse is None:
+        from functools import partial
+
         from .fetch_worker import _default_run_parse
-        run_parse = _default_run_parse
+        from .parse_worker import FIELD_GROUPS
+
+        if skip_groups:
+            wanted = tuple(g for g in FIELD_GROUPS if g not in set(skip_groups))
+            if not wanted:
+                raise ValueError(
+                    f"skip_groups={skip_groups!r} leaves no field group to extract"
+                )
+            run_parse = partial(_default_run_parse, only_groups=wanted)
+        else:
+            run_parse = _default_run_parse
 
     docs = await fetch_documents(
         conn, limit=limit, institution_id=institution_id,
         pending_only=pending_only, open_cards_only=open_cards_only,
-        failed_only=failed_only,
+        failed_only=failed_only, shard=shard,
     )
     selector = (
         " (pending-only)" if pending_only
