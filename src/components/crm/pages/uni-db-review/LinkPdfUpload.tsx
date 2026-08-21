@@ -16,6 +16,11 @@ import {
 import { cn } from '@/lib/utils';
 import { edgeFunctionError } from '@/lib/edgeFunctionError';
 import {
+  MAX_GUIDELINE_PDF_MB,
+  fileSizeMb,
+  isTooLarge,
+} from '@/lib/guidelinePdf';
+import {
   institutionLabel,
   matchInstitution,
   type MatchableInstitution,
@@ -93,6 +98,13 @@ export function LinkPdfUpload({
       !file.name.toLowerCase().endsWith('.pdf')
     ) {
       toast.error(t('uniReview.links.notPdf'));
+      return;
+    }
+    // Catch an oversize file before spending a base64 round trip on it.
+    if (isTooLarge(file)) {
+      toast.error(
+        t('uniReview.links.tooLarge', { size: fileSizeMb(file), max: MAX_GUIDELINE_PDF_MB }),
+      );
       return;
     }
     setUploading(true);

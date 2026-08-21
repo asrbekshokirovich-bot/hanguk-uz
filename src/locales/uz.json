@@ -1830,6 +1830,7 @@
       "searchUni": "Universitet qidirish…",
       "noUni": "Universitet topilmadi.",
       "notPdf": "Faqat PDF fayl yuklang.",
+      "tooLarge": "Fayl juda katta: {{size}} MB. Chegara — {{max}} MB.",
       "uploaded": "PDF yuklandi — {{uni}} uchun tahlilga navbatga qo'yildi."
     },
     "docFlag": {

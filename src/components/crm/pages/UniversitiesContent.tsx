@@ -29,6 +29,7 @@ import { useMemo, useState, useRef, useEffect, type ChangeEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useUniversities, type Institution } from '@/hooks/useUniversities';
 import { edgeFunctionError } from '@/lib/edgeFunctionError';
+import { MAX_GUIDELINE_PDF_MB, fileSizeMb, isTooLarge } from '@/lib/guidelinePdf';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -227,6 +228,15 @@ export default function UniversitiesContent() {
     if (!file || !institutionId) return;
     if (file.type && file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
       toast({ title: 'Please choose a PDF file', variant: 'destructive' });
+      return;
+    }
+    // Catch an oversize file before spending a base64 round trip on it.
+    if (isTooLarge(file)) {
+      toast({
+        title: 'File too large',
+        description: `${fileSizeMb(file)} MB — the limit is ${MAX_GUIDELINE_PDF_MB} MB.`,
+        variant: 'destructive',
+      });
       return;
     }
     setUploadingId(institutionId);
