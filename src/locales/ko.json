@@ -1730,10 +1730,12 @@
       "emptyBody": "스캐너가 모든 사이트에 접속했습니다 — 대기 중인 링크가 없습니다.",
       "emptyFiltered": "검색과 일치하는 링크가 없습니다.",
       "uploadPdf": "PDF 업로드",
+      "uploadFailed": "PDF 업로드에 실패했습니다.",
       "pickUni": "대학 선택",
       "searchUni": "대학 검색…",
       "noUni": "대학을 찾을 수 없습니다.",
       "notPdf": "PDF 파일만 업로드하세요.",
+      "tooLarge": "파일이 너무 큽니다: {{size}} MB. 상한은 {{max}} MB입니다.",
       "uploaded": "PDF 업로드 완료 — {{uni}} 분석 대기열에 추가했습니다."
     },
     "docFlag": {

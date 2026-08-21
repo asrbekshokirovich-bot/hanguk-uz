@@ -1783,10 +1783,12 @@
       "emptyBody": "The scanner reached every site — nothing is waiting.",
       "emptyFiltered": "No link matches your search.",
       "uploadPdf": "Upload PDF",
+      "uploadFailed": "Upload failed.",
       "pickUni": "Pick a university",
       "searchUni": "Search universities…",
       "noUni": "No university found.",
       "notPdf": "Please choose a PDF file.",
+      "tooLarge": "File too large: {{size}} MB. The limit is {{max}} MB.",
       "uploaded": "PDF uploaded — queued for analysis for {{uni}}."
     },
     "docFlag": {

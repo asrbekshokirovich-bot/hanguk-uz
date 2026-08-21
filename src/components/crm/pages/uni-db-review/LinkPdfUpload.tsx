@@ -14,6 +14,12 @@ import {
   CommandList,
 } from '@/components/ui/command';
 import { cn } from '@/lib/utils';
+import { edgeFunctionError } from '@/lib/edgeFunctionError';
+import {
+  MAX_GUIDELINE_PDF_MB,
+  fileSizeMb,
+  isTooLarge,
+} from '@/lib/guidelinePdf';
 import {
   institutionLabel,
   matchInstitution,
@@ -94,13 +100,22 @@ export function LinkPdfUpload({
       toast.error(t('uniReview.links.notPdf'));
       return;
     }
+    // Catch an oversize file before spending a base64 round trip on it.
+    if (isTooLarge(file)) {
+      toast.error(
+        t('uniReview.links.tooLarge', { size: fileSizeMb(file), max: MAX_GUIDELINE_PDF_MB }),
+      );
+      return;
+    }
     setUploading(true);
     try {
       const file_base64 = await fileToBase64(file);
       const { data, error } = await supabase.functions.invoke('upload-guideline', {
         body: { institution_id: chosen.id, file_base64, filename: file.name },
       });
-      if (error) throw error;
+      // A non-2xx never populates `data`, so the function's own reason
+      // ("Forbidden — staff only", "Not a PDF", ...) lives on the error.
+      if (error) throw await edgeFunctionError(error, t('uniReview.links.uploadFailed'));
       if (data?.error) throw new Error(String(data.error));
       toast.success(t('uniReview.links.uploaded', { uni: institutionLabel(chosen) }));
       onUploaded();

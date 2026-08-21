@@ -3,6 +3,7 @@ import type { TFunction } from 'i18next';
 import { Check, ExternalLink, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { edgeFunctionErrorMessage } from '@/lib/edgeFunctionError';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import type { RejectionReason, ReviewQueueRow } from '@/hooks/useReviewQueue';
@@ -42,7 +43,7 @@ async function openPdf(
   const { data, error } = await supabase.functions.invoke('get-pdf-url', { body });
   const signed = (data as { signed_url?: string } | null)?.signed_url;
   if (error || !signed) {
-    toast.error(error?.message || t('uniReview.detail.pdfError'));
+    toast.error(await edgeFunctionErrorMessage(error, t('uniReview.detail.pdfError')));
     return;
   }
   window.open(signed, '_blank', 'noopener,noreferrer');

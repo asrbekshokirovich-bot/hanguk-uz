@@ -28,6 +28,8 @@
 import { useMemo, useState, useRef, useEffect, type ChangeEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useUniversities, type Institution } from '@/hooks/useUniversities';
+import { edgeFunctionError } from '@/lib/edgeFunctionError';
+import { MAX_GUIDELINE_PDF_MB, fileSizeMb, isTooLarge } from '@/lib/guidelinePdf';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -228,13 +230,22 @@ export default function UniversitiesContent() {
       toast({ title: 'Please choose a PDF file', variant: 'destructive' });
       return;
     }
+    // Catch an oversize file before spending a base64 round trip on it.
+    if (isTooLarge(file)) {
+      toast({
+        title: 'File too large',
+        description: `${fileSizeMb(file)} MB — the limit is ${MAX_GUIDELINE_PDF_MB} MB.`,
+        variant: 'destructive',
+      });
+      return;
+    }
     setUploadingId(institutionId);
     try {
       const file_base64 = await fileToBase64(file);
       const { data, error } = await supabase.functions.invoke('upload-guideline', {
         body: { institution_id: institutionId, file_base64, filename: file.name },
       });
-      if (error) throw error;
+      if (error) throw await edgeFunctionError(error, 'Upload failed');
       if (data?.error) throw new Error(String(data.error));
       toast({ title: 'PDF uploaded', description: 'Queued for analysis.' });
       loadStatus();

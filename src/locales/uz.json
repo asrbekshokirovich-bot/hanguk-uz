@@ -1825,10 +1825,12 @@
       "emptyBody": "Skaner hamma saytga kira oldi — kutayotgan havola yo'q.",
       "emptyFiltered": "Qidiruvga mos havola topilmadi.",
       "uploadPdf": "PDF yuklash",
+      "uploadFailed": "PDF yuklanmadi.",
       "pickUni": "Universitetni tanlang",
       "searchUni": "Universitet qidirish…",
       "noUni": "Universitet topilmadi.",
       "notPdf": "Faqat PDF fayl yuklang.",
+      "tooLarge": "Fayl juda katta: {{size}} MB. Chegara — {{max}} MB.",
       "uploaded": "PDF yuklandi — {{uni}} uchun tahlilga navbatga qo'yildi."
     },
     "docFlag": {

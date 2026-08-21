@@ -19,7 +19,13 @@ const corsHeaders = {
 
 const BUCKET = "guideline-blobs";
 const STAFF_ROLES = ["owner", "admin", "document_handler", "university_staff"];
-const MAX_BYTES = 25 * 1024 * 1024; // 25 MB
+// Upper bound on an accepted upload. This is our own guard, not the only one:
+// the file travels base64'd inside the JSON request body (~33% inflation), so a
+// large enough upload is cut off by the platform before this function runs and
+// fails with no reason attached. Raising this ceiling widens what we accept; it
+// does not lift that transport limit. Moving to a signed upload URL would.
+// Keep in sync with MAX_GUIDELINE_PDF_BYTES in src/lib/guidelinePdf.ts.
+const MAX_BYTES = 100 * 1024 * 1024; // 100 MB
 
 function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
@@ -35,6 +41,22 @@ function base64ToBytes(b64: string): Uint8Array {
   const out = new Uint8Array(bin.length);
   for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
   return out;
+}
+
+const PDF_HEADER = [0x25, 0x50, 0x44, 0x46, 0x2d]; // "%PDF-"
+const PDF_HEADER_SCAN_BYTES = 1024;
+
+/** Offset of the "%PDF-" marker within the first 1 KiB, or -1 if absent. */
+function findPdfHeader(bytes: Uint8Array): number {
+  const limit = Math.min(bytes.length, PDF_HEADER_SCAN_BYTES) - PDF_HEADER.length;
+  for (let i = 0; i <= limit; i++) {
+    let hit = true;
+    for (let j = 0; j < PDF_HEADER.length; j++) {
+      if (bytes[i + j] !== PDF_HEADER[j]) { hit = false; break; }
+    }
+    if (hit) return i;
+  }
+  return -1;
 }
 
 async function sha256Hex(bytes: Uint8Array): Promise<string> {
@@ -79,9 +101,14 @@ Deno.serve(async (req) => {
   try { bytes = base64ToBytes(body.file_base64); } catch { return json({ error: "Invalid base64" }, 400); }
   if (bytes.byteLength === 0) return json({ error: "Empty file" }, 400);
   if (bytes.byteLength > MAX_BYTES) return json({ error: `File too large (max ${MAX_BYTES / 1024 / 1024} MB)` }, 400);
-  // Magic bytes: a real PDF starts with "%PDF".
-  if (!(bytes[0] === 0x25 && bytes[1] === 0x50 && bytes[2] === 0x44 && bytes[3] === 0x46)) {
-    return json({ error: "Not a PDF (expected a %PDF header)" }, 400);
+  // Magic bytes. The marker may sit anywhere in the first kilobyte, not at
+  // offset 0: Korean university CMSes prepend junk bytes to the download, and
+  // ISO 32000 lets the header be preceded by other content (readers scan the
+  // first 1 KiB for it, which is why such a file opens fine in a browser and
+  // parses fine downstream). Requiring offset 0 rejected exactly those files.
+  // Same rule as the pipeline's own sniffer, uni_db/parse/format_convert.py.
+  if (findPdfHeader(bytes) < 0) {
+    return json({ error: "Not a PDF (no %PDF- marker in the first 1 KiB)" }, 400);
   }
 
   // 3) Institution must exist.
