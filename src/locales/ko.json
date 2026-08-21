@@ -1730,6 +1730,7 @@
       "emptyBody": "스캐너가 모든 사이트에 접속했습니다 — 대기 중인 링크가 없습니다.",
       "emptyFiltered": "검색과 일치하는 링크가 없습니다.",
       "uploadPdf": "PDF 업로드",
+      "uploadFailed": "PDF 업로드에 실패했습니다.",
       "pickUni": "대학 선택",
       "searchUni": "대학 검색…",
       "noUni": "대학을 찾을 수 없습니다.",

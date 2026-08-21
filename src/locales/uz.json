@@ -1825,6 +1825,7 @@
       "emptyBody": "Skaner hamma saytga kira oldi — kutayotgan havola yo'q.",
       "emptyFiltered": "Qidiruvga mos havola topilmadi.",
       "uploadPdf": "PDF yuklash",
+      "uploadFailed": "PDF yuklanmadi.",
       "pickUni": "Universitetni tanlang",
       "searchUni": "Universitet qidirish…",
       "noUni": "Universitet topilmadi.",

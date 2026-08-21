@@ -28,6 +28,7 @@
 import { useMemo, useState, useRef, useEffect, type ChangeEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useUniversities, type Institution } from '@/hooks/useUniversities';
+import { edgeFunctionError } from '@/lib/edgeFunctionError';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -234,7 +235,7 @@ export default function UniversitiesContent() {
       const { data, error } = await supabase.functions.invoke('upload-guideline', {
         body: { institution_id: institutionId, file_base64, filename: file.name },
       });
-      if (error) throw error;
+      if (error) throw await edgeFunctionError(error, 'Upload failed');
       if (data?.error) throw new Error(String(data.error));
       toast({ title: 'PDF uploaded', description: 'Queued for analysis.' });
       loadStatus();

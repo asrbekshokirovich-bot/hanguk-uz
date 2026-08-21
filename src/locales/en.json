@@ -1783,6 +1783,7 @@
       "emptyBody": "The scanner reached every site — nothing is waiting.",
       "emptyFiltered": "No link matches your search.",
       "uploadPdf": "Upload PDF",
+      "uploadFailed": "Upload failed.",
       "pickUni": "Pick a university",
       "searchUni": "Search universities…",
       "noUni": "No university found.",
