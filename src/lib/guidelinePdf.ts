@@ -12,7 +12,7 @@
  */
 
 /** Keep in sync with MAX_BYTES in supabase/functions/upload-guideline/index.ts. */
-export const MAX_GUIDELINE_PDF_BYTES = 25 * 1024 * 1024;
+export const MAX_GUIDELINE_PDF_BYTES = 100 * 1024 * 1024;
 
 export const MAX_GUIDELINE_PDF_MB = MAX_GUIDELINE_PDF_BYTES / 1024 / 1024;
 

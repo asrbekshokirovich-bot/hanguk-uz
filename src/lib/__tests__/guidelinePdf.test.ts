@@ -8,7 +8,7 @@ import {
 
 function fileOfSize(bytes: number, name = 'guideline.pdf', type = 'application/pdf'): File {
   const f = new File(['x'], name, { type });
-  // Constructing a real 25 MB blob per case is wasteful; size is the only
+  // Constructing a real multi-megabyte blob per case is wasteful; size is the only
   // property under test.
   Object.defineProperty(f, 'size', { value: bytes });
   return f;

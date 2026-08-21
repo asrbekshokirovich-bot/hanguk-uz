@@ -19,7 +19,13 @@ const corsHeaders = {
 
 const BUCKET = "guideline-blobs";
 const STAFF_ROLES = ["owner", "admin", "document_handler", "university_staff"];
-const MAX_BYTES = 25 * 1024 * 1024; // 25 MB
+// Upper bound on an accepted upload. This is our own guard, not the only one:
+// the file travels base64'd inside the JSON request body (~33% inflation), so a
+// large enough upload is cut off by the platform before this function runs and
+// fails with no reason attached. Raising this ceiling widens what we accept; it
+// does not lift that transport limit. Moving to a signed upload URL would.
+// Keep in sync with MAX_GUIDELINE_PDF_BYTES in src/lib/guidelinePdf.ts.
+const MAX_BYTES = 100 * 1024 * 1024; // 100 MB
 
 function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
