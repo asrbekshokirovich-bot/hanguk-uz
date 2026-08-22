@@ -38,6 +38,11 @@ export function UniDbReviewContent() {
   const { data: linkRows = [] } = useProposedSources(canReview);
 
   const pendingCount = useMemo(() => groupRows(queueRows).length, [queueRows]);
+  const linkCount = useMemo(() => {
+    const seen = new Set<string>();
+    for (const r of linkRows) seen.add((r.candidate_title ?? r.url_ko).trim().toLowerCase());
+    return seen.size;
+  }, [linkRows]);
 
   if (loading) {
     return (
@@ -97,7 +102,7 @@ export function UniDbReviewContent() {
           >
             {t('uniReview.tabs.links')}
             <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-info/10 px-1.5 text-[11px] font-bold text-info">
-              {linkRows.length}
+              {linkCount}
             </span>
           </TabsTrigger>
         </TabsList>
