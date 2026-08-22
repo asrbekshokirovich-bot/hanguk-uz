@@ -40,7 +40,15 @@ export function UniDbReviewContent() {
   const pendingCount = useMemo(() => groupRows(queueRows).length, [queueRows]);
   const linkCount = useMemo(() => {
     const seen = new Set<string>();
-    for (const r of linkRows) seen.add((r.candidate_title ?? r.url_ko).trim().toLowerCase());
+    for (const r of linkRows) {
+      let host: string | null = null;
+      try {
+        const h = new URL(r.url_ko).hostname.toLowerCase().replace(/^www\./, '');
+        const parts = h.split('.');
+        host = parts.length > 2 ? parts.slice(-2).join('.') : h;
+      } catch { /* use title fallback */ }
+      seen.add(host ?? (r.candidate_title ?? r.url_ko).trim().toLowerCase());
+    }
     return seen.size;
   }, [linkRows]);
 
