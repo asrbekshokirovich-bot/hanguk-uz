@@ -42,10 +42,10 @@ const KAIST = 'inst-kaist';
 describe('groupRows', () => {
   it('puts one university with three guideline documents into a single card', () => {
     const rows = [
-      row({ id: 'a', institution_id: KAIST, guideline_document_id: 'doc-1' }),
-      row({ id: 'b', institution_id: KAIST, guideline_document_id: 'doc-2' }),
-      row({ id: 'c', institution_id: KAIST, guideline_document_id: 'doc-3' }),
-      row({ id: 'd', institution_id: KAIST, guideline_document_id: 'doc-1' }),
+      row({ id: 'a', institution_id: KAIST, guideline_document_id: 'doc-1', field_group: 'tuition' }),
+      row({ id: 'b', institution_id: KAIST, guideline_document_id: 'doc-2', field_group: 'tuition' }),
+      row({ id: 'c', institution_id: KAIST, guideline_document_id: 'doc-3', field_group: 'tuition' }),
+      row({ id: 'd', institution_id: KAIST, guideline_document_id: 'doc-1', field_group: 'requirements' }),
     ];
 
     const groups = groupRows(rows);
@@ -57,9 +57,9 @@ describe('groupRows', () => {
 
   it('keeps the documents separate inside the card, in first-seen order', () => {
     const rows = [
-      row({ id: 'a', institution_id: KAIST, guideline_document_id: 'doc-1' }),
-      row({ id: 'b', institution_id: KAIST, guideline_document_id: 'doc-2' }),
-      row({ id: 'c', institution_id: KAIST, guideline_document_id: 'doc-1' }),
+      row({ id: 'a', institution_id: KAIST, guideline_document_id: 'doc-1', field_group: 'tuition' }),
+      row({ id: 'b', institution_id: KAIST, guideline_document_id: 'doc-2', field_group: 'tuition' }),
+      row({ id: 'c', institution_id: KAIST, guideline_document_id: 'doc-1', field_group: 'requirements' }),
     ];
 
     const [g] = groupRows(rows);
@@ -95,6 +95,19 @@ describe('groupRows', () => {
     ];
 
     expect(groupRows(rows)).toHaveLength(2);
+  });
+
+  it('deduplicates rows sharing the same section within a document', () => {
+    const rows = [
+      row({ id: 'old', institution_id: KAIST, guideline_document_id: 'doc-1', field_group: 'tuition', created_at: '2026-08-06T10:00:00Z' }),
+      row({ id: 'new', institution_id: KAIST, guideline_document_id: 'doc-1', field_group: 'tuition', created_at: '2026-08-06T10:05:00Z' }),
+      row({ id: 'other', institution_id: KAIST, guideline_document_id: 'doc-1', field_group: 'requirements', created_at: '2026-08-06T10:00:00Z' }),
+    ];
+
+    const [g] = groupRows(rows);
+    // Only 2 rows survive: the newer tuition + the requirements row
+    expect(g.rows).toHaveLength(2);
+    expect(g.rows.map((r) => r.id).sort()).toEqual(['new', 'other']);
   });
 
   it('carries each document its own cycle, not the group\'s first', () => {

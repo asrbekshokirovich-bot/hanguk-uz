@@ -98,7 +98,47 @@ export function groupRows(rows: ReviewQueueRow[]): GuidelineGroup[] {
     }
     doc.rows.push(row);
   }
+
+  // Deduplicate: keep only the newest row per section within each document.
+  // The backfill worker can insert multiple rows for the same
+  // (guideline_document, field_group) because it lacks the supersede guard
+  // that parse_worker has. Until migration 20260919 is applied, collapse
+  // them here so the reviewer doesn't see the same card 2–3 times.
+  for (const g of map.values()) {
+    g.documents = g.documents.map((doc) => ({
+      ...doc,
+      rows: deduplicateSection(doc.rows),
+    }));
+    g.rows = g.documents.flatMap((d) => d.rows);
+  }
+
   return [...map.values()];
+}
+
+/**
+ * Within one document block, if multiple rows share the same section key
+ * (field_group for extraction_jobs, or note-pattern for document flags),
+ * keep only the one created most recently.
+ */
+function deduplicateSection(rows: ReviewQueueRow[]): ReviewQueueRow[] {
+  const seen = new Map<string, ReviewQueueRow>();
+  // Rows arrive ordered by (priority, created_at) from the view — later =
+  // newer, so the last one wins.
+  for (const row of rows) {
+    const sectionKey = sectionDedupeKey(row);
+    const existing = seen.get(sectionKey);
+    if (!existing || row.created_at > existing.created_at) {
+      seen.set(sectionKey, row);
+    }
+  }
+  return [...seen.values()];
+}
+
+function sectionDedupeKey(row: ReviewQueueRow): string {
+  if (row.entity_type === 'guideline_documents') {
+    return isDegreeCheckFlag(row) ? '__doc_check__' : '__doc_split__';
+  }
+  return row.field_group ?? row.id;
 }
 
 /**
