@@ -29,7 +29,7 @@ import { useMemo, useState, useRef, useEffect, type ChangeEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useUniversities, type Institution } from '@/hooks/useUniversities';
 import { edgeFunctionError } from '@/lib/edgeFunctionError';
-import { MAX_GUIDELINE_PDF_MB, fileSizeMb, isTooLarge } from '@/lib/guidelinePdf';
+import { MAX_GUIDELINE_PDF_MB, fileSizeMb, isTooLarge, uploadGuidelineViaSignedUrl } from '@/lib/guidelinePdf';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -145,14 +145,7 @@ function fieldsToPayload(f: FormFields): Partial<Institution> {
 
 const DOC_STATUS_REFRESH_MS = 30_000;
 
-function fileToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result));
-    reader.onerror = () => reject(reader.error ?? new Error('read failed'));
-    reader.readAsDataURL(file);
-  });
-}
+
 
 /** Latest guideline-PDF status per institution, shown on each card. */
 function UploadStatusBadge({ status }: { status?: string }) {
@@ -241,12 +234,13 @@ export default function UniversitiesContent() {
     }
     setUploadingId(institutionId);
     try {
-      const file_base64 = await fileToBase64(file);
-      const { data, error } = await supabase.functions.invoke('upload-guideline', {
-        body: { institution_id: institutionId, file_base64, filename: file.name },
-      });
-      if (error) throw await edgeFunctionError(error, 'Upload failed');
-      if (data?.error) throw new Error(String(data.error));
+      await uploadGuidelineViaSignedUrl(
+        supabase,
+        institutionId,
+        file,
+        (err, fallback) => edgeFunctionError(err, fallback),
+        'Upload failed',
+      );
       toast({ title: 'PDF uploaded', description: 'Queued for analysis.' });
       loadStatus();
     } catch (err) {

@@ -19,6 +19,7 @@ import {
   MAX_GUIDELINE_PDF_MB,
   fileSizeMb,
   isTooLarge,
+  uploadGuidelineViaSignedUrl,
 } from '@/lib/guidelinePdf';
 import {
   institutionLabel,
@@ -56,15 +57,6 @@ function useInstitutions() {
       if (error) throw error;
       return (data ?? []) as MatchableInstitution[];
     },
-  });
-}
-
-function fileToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result));
-    reader.onerror = () => reject(reader.error ?? new Error('read failed'));
-    reader.readAsDataURL(file);
   });
 }
 
@@ -109,14 +101,13 @@ export function LinkPdfUpload({
     }
     setUploading(true);
     try {
-      const file_base64 = await fileToBase64(file);
-      const { data, error } = await supabase.functions.invoke('upload-guideline', {
-        body: { institution_id: chosen.id, file_base64, filename: file.name },
-      });
-      // A non-2xx never populates `data`, so the function's own reason
-      // ("Forbidden — staff only", "Not a PDF", ...) lives on the error.
-      if (error) throw await edgeFunctionError(error, t('uniReview.links.uploadFailed'));
-      if (data?.error) throw new Error(String(data.error));
+      await uploadGuidelineViaSignedUrl(
+        supabase,
+        chosen.id,
+        file,
+        (err, fallback) => edgeFunctionError(err, fallback),
+        t('uniReview.links.uploadFailed'),
+      );
       toast.success(t('uniReview.links.uploaded', { uni: institutionLabel(chosen) }));
       onUploaded();
     } catch (err) {
