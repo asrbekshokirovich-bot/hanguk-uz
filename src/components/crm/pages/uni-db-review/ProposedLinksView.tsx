@@ -157,6 +157,18 @@ function GroupCard({
   );
 }
 
+function domainKey(url: string): string | null {
+  try {
+    const host = new URL(url).hostname.toLowerCase().replace(/^www\./, '');
+    // Strip the first subdomain if it looks like a section (ipsi., board., admission.)
+    const parts = host.split('.');
+    if (parts.length > 2) return parts.slice(-2).join('.');
+    return host;
+  } catch {
+    return null;
+  }
+}
+
 export function ProposedLinksView() {
   const { t } = useTranslation();
   const { data: rows = [], isLoading, error, refetch } = useProposedSources();
@@ -176,7 +188,8 @@ export function ProposedLinksView() {
 
     const map = new Map<string, ProposedGroup>();
     for (const row of filtered) {
-      const key = (row.candidate_title ?? row.url_ko).trim().toLowerCase();
+      // Group by domain first (most reliable), then by candidate_title.
+      const key = domainKey(row.url_ko) ?? (row.candidate_title ?? row.url_ko).trim().toLowerCase();
       let g = map.get(key);
       if (!g) {
         g = { title: row.candidate_title ?? row.url_ko, rows: [] };
