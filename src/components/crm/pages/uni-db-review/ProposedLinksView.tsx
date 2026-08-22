@@ -157,13 +157,17 @@ function GroupCard({
   );
 }
 
+const TWO_PART_TLDS = new Set(['ac.kr', 'co.kr', 'or.kr', 'go.kr', 'ne.kr', 're.kr', 'ed.jp', 'ac.jp', 'co.jp', 'ac.uk', 'co.uk']);
+
 function domainKey(url: string): string | null {
   try {
     const host = new URL(url).hostname.toLowerCase().replace(/^www\./, '');
-    // Strip the first subdomain if it looks like a section (ipsi., board., admission.)
     const parts = host.split('.');
-    if (parts.length > 2) return parts.slice(-2).join('.');
-    return host;
+    if (parts.length <= 2) return host;
+    const tail2 = parts.slice(-2).join('.');
+    // For two-part TLDs like ac.kr, keep 3 segments (e.g. kbc.ac.kr)
+    if (TWO_PART_TLDS.has(tail2) && parts.length > 2) return parts.slice(-3).join('.');
+    return tail2;
   } catch {
     return null;
   }

@@ -43,9 +43,14 @@ export function UniDbReviewContent() {
     for (const r of linkRows) {
       let host: string | null = null;
       try {
+        const TWO_PART = ['ac.kr','co.kr','or.kr','go.kr'];
         const h = new URL(r.url_ko).hostname.toLowerCase().replace(/^www\./, '');
         const parts = h.split('.');
-        host = parts.length > 2 ? parts.slice(-2).join('.') : h;
+        if (parts.length <= 2) host = h;
+        else {
+          const tail2 = parts.slice(-2).join('.');
+          host = TWO_PART.includes(tail2) ? parts.slice(-3).join('.') : tail2;
+        }
       } catch { /* use title fallback */ }
       seen.add(host ?? (r.candidate_title ?? r.url_ko).trim().toLowerCase());
     }
