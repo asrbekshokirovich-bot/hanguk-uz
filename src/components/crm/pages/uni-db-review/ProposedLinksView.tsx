@@ -21,30 +21,17 @@ import {
 import { fmtDateKST } from './reviewGroups';
 import { LinkPdfUpload } from './LinkPdfUpload';
 
-interface ProposedGroup {
-  title: string;
-  rows: ProposedSourceRow[];
-}
-
 /**
  * "Havolalar" tab — the links the nightly Routine could not fetch itself.
  *
- * This replaces the old read-only "E'tibor kerak" tab. That tab listed
- * already-published low-confidence rows (v_needs_attention), which was noise:
- * the data was live either way and nothing could be done from there. What
- * actually blocks the pipeline is Korean university sites refusing the
- * crawler — so the finder files the original 모집요강 URL into
- * `proposed_sources` with the failure reason, and this view hands that link to
- * a human to open by hand. Rows carrying `proposed_by = 'manual'` are the
- * Routine's own researched URLs (its "I could not get in, here is the link"
- * output) and sort first.
+ * Each proposed source row gets its own card — one link, one card.
  */
 
 function isBlockedNote(note: string | null): boolean {
   return !!note && /fetch failed|403|401|blocked|forbidden|timeout|ssl|refused/i.test(note);
 }
 
-function LinkEntry({
+function LinkCard({
   row,
   onDismiss,
   dismissing,
@@ -54,9 +41,29 @@ function LinkEntry({
   dismissing: boolean;
 }) {
   const { t } = useTranslation();
+  const hasRoutine = row.proposed_by === 'manual';
 
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4 px-[18px] shadow-sm">
+      <div className="flex flex-wrap items-center gap-2.5">
+        <span className="text-sm font-semibold">
+          {row.candidate_title ?? row.url_ko}
+        </span>
+        <span className="flex-1" />
+        {hasRoutine ? (
+          <span className="inline-flex h-[22px] items-center rounded-full bg-warning/10 px-2.5 text-[11.5px] font-semibold text-warning">
+            {t('uniReview.links.fromRoutine')}
+          </span>
+        ) : (
+          <span className="inline-flex h-[22px] items-center rounded-full bg-info/10 px-2.5 text-[11.5px] font-semibold text-info">
+            {t('uniReview.links.fromSearch')}
+          </span>
+        )}
+        <span className="whitespace-nowrap font-mono text-[11.5px] text-muted-foreground/80">
+          {fmtDateKST(row.proposed_at)?.split(' · ')[0] ?? ''}
+        </span>
+      </div>
+
       <a
         href={row.url_ko}
         target="_blank"
@@ -108,78 +115,13 @@ function LinkEntry({
   );
 }
 
-function GroupCard({
-  group,
-  onDismiss,
-  dismissingId,
-}: {
-  group: ProposedGroup;
-  onDismiss: (row: ProposedSourceRow) => void;
-  dismissingId: string | null;
-}) {
-  const { t } = useTranslation();
-  const hasRoutine = group.rows.some((r) => r.proposed_by === 'manual');
-  const latestDate = group.rows
-    .map((r) => r.proposed_at)
-    .sort()
-    .pop();
-
-  return (
-    <div className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4 px-[18px] shadow-sm">
-      <div className="flex flex-wrap items-center gap-2.5">
-        <span className="text-sm font-semibold">
-          {group.title || t('uniReview.links.untitled')}
-        </span>
-        <span className="flex-1" />
-        {hasRoutine ? (
-          <span className="inline-flex h-[22px] items-center rounded-full bg-warning/10 px-2.5 text-[11.5px] font-semibold text-warning">
-            {t('uniReview.links.fromRoutine')}
-          </span>
-        ) : (
-          <span className="inline-flex h-[22px] items-center rounded-full bg-info/10 px-2.5 text-[11.5px] font-semibold text-info">
-            {t('uniReview.links.fromSearch')}
-          </span>
-        )}
-        <span className="whitespace-nowrap font-mono text-[11.5px] text-muted-foreground/80">
-          {fmtDateKST(latestDate)?.split(' · ')[0] ?? ''}
-        </span>
-      </div>
-
-      {group.rows.map((row) => (
-        <LinkEntry
-          key={row.id}
-          row={row}
-          onDismiss={onDismiss}
-          dismissing={dismissingId === row.id}
-        />
-      ))}
-    </div>
-  );
-}
-
-const TWO_PART_TLDS = new Set(['ac.kr', 'co.kr', 'or.kr', 'go.kr', 'ne.kr', 're.kr', 'ed.jp', 'ac.jp', 'co.jp', 'ac.uk', 'co.uk']);
-
-function domainKey(url: string): string | null {
-  try {
-    const host = new URL(url).hostname.toLowerCase().replace(/^www\./, '');
-    const parts = host.split('.');
-    if (parts.length <= 2) return host;
-    const tail2 = parts.slice(-2).join('.');
-    // For two-part TLDs like ac.kr, keep 3 segments (e.g. kbc.ac.kr)
-    if (TWO_PART_TLDS.has(tail2) && parts.length > 2) return parts.slice(-3).join('.');
-    return tail2;
-  } catch {
-    return null;
-  }
-}
-
 export function ProposedLinksView() {
   const { t } = useTranslation();
   const { data: rows = [], isLoading, error, refetch } = useProposedSources();
   const dismiss = useDismissProposedSource();
   const [search, setSearch] = useState('');
 
-  const groups = useMemo(() => {
+  const visible = useMemo(() => {
     const q = search.trim().toLowerCase();
     const filtered = q
       ? rows.filter(
@@ -190,22 +132,9 @@ export function ProposedLinksView() {
         )
       : rows;
 
-    const map = new Map<string, ProposedGroup>();
-    for (const row of filtered) {
-      // Group by domain first (most reliable), then by candidate_title.
-      const key = domainKey(row.url_ko) ?? (row.candidate_title ?? row.url_ko).trim().toLowerCase();
-      let g = map.get(key);
-      if (!g) {
-        g = { title: row.candidate_title ?? row.url_ko, rows: [] };
-        map.set(key, g);
-      }
-      g.rows.push(row);
-    }
-
-    return [...map.values()].sort(
+    return [...filtered].sort(
       (a, b) =>
-        Number(b.rows.some((r) => r.proposed_by === 'manual')) -
-        Number(a.rows.some((r) => r.proposed_by === 'manual')),
+        Number(b.proposed_by === 'manual') - Number(a.proposed_by === 'manual'),
     );
   }, [rows, search]);
 
@@ -256,7 +185,7 @@ export function ProposedLinksView() {
         className="w-64"
       />
 
-      {groups.length === 0 ? (
+      {visible.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-16 text-center">
             <CheckCircle2 className="mb-3 h-10 w-10 text-success" />
@@ -267,12 +196,12 @@ export function ProposedLinksView() {
           </CardContent>
         </Card>
       ) : (
-        groups.map((group) => (
-          <GroupCard
-            key={group.title}
-            group={group}
+        visible.map((row) => (
+          <LinkCard
+            key={row.id}
+            row={row}
             onDismiss={onDismiss}
-            dismissingId={dismiss.isPending ? (dismiss.variables?.id ?? null) : null}
+            dismissing={dismiss.isPending && dismiss.variables?.id === row.id}
           />
         ))
       )}
