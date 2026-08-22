@@ -1653,7 +1653,8 @@
       "documents_required": "Required documents",
       "scholarships": "Scholarships",
       "unknown": "Other section",
-      "documentFlag": "Document needs splitting"
+      "documentFlag": "Document needs splitting",
+      "documentCheck": "Document needs a check"
     },
     "rel": {
       "red": "Needs fixing",
@@ -1796,6 +1797,9 @@
       "splitWhat": "One file carries the requirements and fees of two different degree levels side by side. Figures taken from it can cross over — a graduate tuition can surface as an undergraduate one.",
       "genericTitle": "Warning about this document",
       "genericWhat": "The parser found a problem with this PDF. Details below.",
+      "checkTitle": "A graduate programme is named, but no section header was found",
+      "checkWhat": "The document names a graduate programme, but no section header separating it from the undergraduate part was found. It may cover one level only, or the heading may have been missed.",
+      "checkAction": "No split boundary was found — there is nothing to split, so the document does not need to be divided. Read it before trusting the figures: if it covers a single level, clear it with \"Approve\"; if it really does mix two levels, press \"Reject\".",
       "levels": "Levels found:",
       "action": "This is not a data card — there is no figure to approve. Split the document into two separate admission cycles, then clear it with \"Approve\"; if the split was detected wrongly, press \"Reject\".",
       "rawToggle": "Technical detail",

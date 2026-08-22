@@ -10,7 +10,7 @@ import {
   classifyTrack,
   mapCalendarEvents,
 } from '../reviewLogic';
-import { fmtKRW, fmtDateKST, isDocumentFlag } from './reviewGroups';
+import { fmtKRW, fmtDateKST, isDocumentFlag, isDegreeCheckFlag } from './reviewGroups';
 
 /**
  * Per-field-group section bodies (design §B): only the decision-critical
@@ -692,7 +692,22 @@ function DocumentFlagBody({ row }: { row: ReviewQueueRow }) {
   const { t } = useTranslation();
   const note = str(row.reviewer_notes);
   const levels = parseDegreeLevels(note);
-  const isSplit = levels.length > 0 || /combined undergraduate/i.test(note ?? '');
+  // A degree-check card names levels too, so `levels.length` cannot decide the
+  // copy: that card exists precisely because no split point was found, and the
+  // split wording would tell the reviewer to make a cut the parser ruled out.
+  const isCheck = isDegreeCheckFlag(row);
+  const isSplit =
+    !isCheck && (levels.length > 0 || /combined undergraduate/i.test(note ?? ''));
+  const titleKey = isCheck
+    ? 'uniReview.docFlag.checkTitle'
+    : isSplit
+      ? 'uniReview.docFlag.splitTitle'
+      : 'uniReview.docFlag.genericTitle';
+  const whatKey = isCheck
+    ? 'uniReview.docFlag.checkWhat'
+    : isSplit
+      ? 'uniReview.docFlag.splitWhat'
+      : 'uniReview.docFlag.genericWhat';
 
   return (
     <div className="flex flex-col gap-2.5">
@@ -700,10 +715,10 @@ function DocumentFlagBody({ row }: { row: ReviewQueueRow }) {
         <AlertTriangle className="mt-0.5 h-[15px] w-[15px] shrink-0" />
         <div className="flex min-w-0 flex-col gap-1">
           <span className="text-[13px] font-semibold leading-normal">
-            {t(isSplit ? 'uniReview.docFlag.splitTitle' : 'uniReview.docFlag.genericTitle')}
+            {t(titleKey)}
           </span>
           <span className="text-[12.5px] font-medium leading-normal text-warning/90">
-            {t(isSplit ? 'uniReview.docFlag.splitWhat' : 'uniReview.docFlag.genericWhat')}
+            {t(whatKey)}
           </span>
         </div>
       </div>
@@ -725,7 +740,7 @@ function DocumentFlagBody({ row }: { row: ReviewQueueRow }) {
       ) : null}
 
       <span className="text-[12.5px] leading-normal text-muted-foreground">
-        {t('uniReview.docFlag.action')}
+        {t(isCheck ? 'uniReview.docFlag.checkAction' : 'uniReview.docFlag.action')}
       </span>
 
       {/* The parser's raw sentence, kept verbatim: it names the exact signals
