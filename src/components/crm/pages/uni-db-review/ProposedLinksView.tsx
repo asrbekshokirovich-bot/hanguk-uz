@@ -21,6 +21,11 @@ import {
 import { fmtDateKST } from './reviewGroups';
 import { LinkPdfUpload } from './LinkPdfUpload';
 
+interface ProposedGroup {
+  title: string;
+  rows: ProposedSourceRow[];
+}
+
 /**
  * "Havolalar" tab — the links the nightly Routine could not fetch itself.
  *
@@ -39,7 +44,7 @@ function isBlockedNote(note: string | null): boolean {
   return !!note && /fetch failed|403|401|blocked|forbidden|timeout|ssl|refused/i.test(note);
 }
 
-function LinkRow({
+function LinkEntry({
   row,
   onDismiss,
   dismissing,
@@ -49,29 +54,9 @@ function LinkRow({
   dismissing: boolean;
 }) {
   const { t } = useTranslation();
-  const fromRoutine = row.proposed_by === 'manual';
 
   return (
-    <div className="flex flex-col gap-2 rounded-xl border border-border bg-card p-4 px-[18px] shadow-sm">
-      <div className="flex flex-wrap items-center gap-2.5">
-        <span className="text-sm font-semibold">
-          {row.candidate_title || t('uniReview.links.untitled')}
-        </span>
-        <span className="flex-1" />
-        {fromRoutine ? (
-          <span className="inline-flex h-[22px] items-center rounded-full bg-warning/10 px-2.5 text-[11.5px] font-semibold text-warning">
-            {t('uniReview.links.fromRoutine')}
-          </span>
-        ) : (
-          <span className="inline-flex h-[22px] items-center rounded-full bg-info/10 px-2.5 text-[11.5px] font-semibold text-info">
-            {t('uniReview.links.fromSearch')}
-          </span>
-        )}
-        <span className="whitespace-nowrap font-mono text-[11.5px] text-muted-foreground/80">
-          {fmtDateKST(row.proposed_at)?.split(' · ')[0] ?? ''}
-        </span>
-      </div>
-
+    <div className="flex flex-col gap-1.5">
       <a
         href={row.url_ko}
         target="_blank"
@@ -96,8 +81,6 @@ function LinkRow({
         <LinkPdfUpload
           url={row.url_ko}
           candidateTitle={row.candidate_title}
-          // The PDF is in the pipeline now, so the link has done its job —
-          // clear it from the queue with the same dismiss path.
           onUploaded={() => onDismiss(row)}
         />
         <Button asChild size="sm" variant="outline" className="h-8">
@@ -125,13 +108,62 @@ function LinkRow({
   );
 }
 
+function GroupCard({
+  group,
+  onDismiss,
+  dismissingId,
+}: {
+  group: ProposedGroup;
+  onDismiss: (row: ProposedSourceRow) => void;
+  dismissingId: string | null;
+}) {
+  const { t } = useTranslation();
+  const hasRoutine = group.rows.some((r) => r.proposed_by === 'manual');
+  const latestDate = group.rows
+    .map((r) => r.proposed_at)
+    .sort()
+    .pop();
+
+  return (
+    <div className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4 px-[18px] shadow-sm">
+      <div className="flex flex-wrap items-center gap-2.5">
+        <span className="text-sm font-semibold">
+          {group.title || t('uniReview.links.untitled')}
+        </span>
+        <span className="flex-1" />
+        {hasRoutine ? (
+          <span className="inline-flex h-[22px] items-center rounded-full bg-warning/10 px-2.5 text-[11.5px] font-semibold text-warning">
+            {t('uniReview.links.fromRoutine')}
+          </span>
+        ) : (
+          <span className="inline-flex h-[22px] items-center rounded-full bg-info/10 px-2.5 text-[11.5px] font-semibold text-info">
+            {t('uniReview.links.fromSearch')}
+          </span>
+        )}
+        <span className="whitespace-nowrap font-mono text-[11.5px] text-muted-foreground/80">
+          {fmtDateKST(latestDate)?.split(' · ')[0] ?? ''}
+        </span>
+      </div>
+
+      {group.rows.map((row) => (
+        <LinkEntry
+          key={row.id}
+          row={row}
+          onDismiss={onDismiss}
+          dismissing={dismissingId === row.id}
+        />
+      ))}
+    </div>
+  );
+}
+
 export function ProposedLinksView() {
   const { t } = useTranslation();
   const { data: rows = [], isLoading, error, refetch } = useProposedSources();
   const dismiss = useDismissProposedSource();
   const [search, setSearch] = useState('');
 
-  const visible = useMemo(() => {
+  const groups = useMemo(() => {
     const q = search.trim().toLowerCase();
     const filtered = q
       ? rows.filter(
@@ -141,10 +173,22 @@ export function ProposedLinksView() {
             (r.review_notes ?? '').toLowerCase().includes(q),
         )
       : rows;
-    // The Routine's own blocked URLs first — those are the ones a human has to
-    // open by hand; search candidates are lower-value leads.
-    return [...filtered].sort(
-      (a, b) => Number(b.proposed_by === 'manual') - Number(a.proposed_by === 'manual'),
+
+    const map = new Map<string, ProposedGroup>();
+    for (const row of filtered) {
+      const key = (row.candidate_title ?? row.url_ko).trim().toLowerCase();
+      let g = map.get(key);
+      if (!g) {
+        g = { title: row.candidate_title ?? row.url_ko, rows: [] };
+        map.set(key, g);
+      }
+      g.rows.push(row);
+    }
+
+    return [...map.values()].sort(
+      (a, b) =>
+        Number(b.rows.some((r) => r.proposed_by === 'manual')) -
+        Number(a.rows.some((r) => r.proposed_by === 'manual')),
     );
   }, [rows, search]);
 
@@ -195,7 +239,7 @@ export function ProposedLinksView() {
         className="w-64"
       />
 
-      {visible.length === 0 ? (
+      {groups.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-16 text-center">
             <CheckCircle2 className="mb-3 h-10 w-10 text-success" />
@@ -206,12 +250,12 @@ export function ProposedLinksView() {
           </CardContent>
         </Card>
       ) : (
-        visible.map((row) => (
-          <LinkRow
-            key={row.id}
-            row={row}
+        groups.map((group) => (
+          <GroupCard
+            key={group.title}
+            group={group}
             onDismiss={onDismiss}
-            dismissing={dismiss.isPending && dismiss.variables?.id === row.id}
+            dismissingId={dismiss.isPending ? (dismiss.variables?.id ?? null) : null}
           />
         ))
       )}
