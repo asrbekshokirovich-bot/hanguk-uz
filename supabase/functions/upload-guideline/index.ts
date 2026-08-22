@@ -1,11 +1,15 @@
-// upload-guideline — the new ingestion front door.
+// upload-guideline — the ingestion front door for staff-uploaded PDFs.
 //
-// A staff member finds a university's current admission-guideline PDF (모집요강)
-// and uploads it here. This function stores the PDF in the private
-// `guideline-blobs` bucket and inserts a `guideline_documents` row with
-// parse_status='pending', which the extraction pipeline picks up, analyzes
-// (Claude), and publishes. This replaces the brittle crawl/fetch/resolver layer
-// with a human-picked PDF — no scraping, no per-site selectors.
+// Supports two flows:
+//   1. DIRECT (legacy): send `file_base64` in the body — works for small files
+//      but hits Supabase compute/body limits for anything over ~4 MB.
+//   2. SIGNED URL (recommended): two-step flow that avoids sending the file
+//      through the edge function at all:
+//        a. POST { mode: "create_upload_url", institution_id, filename }
+//           → returns { upload_url, upload_token, storage_path }
+//        b. Client PUTs the raw file bytes to `upload_url` (with the token).
+//        c. POST { mode: "register", institution_id, storage_path, filename }
+//           → validates the blob, inserts the guideline_documents row.
 //
 // Auth: caller must be signed-in staff (owner / admin / document_handler /
 // university_staff). verify_jwt=false in config; the role check is enforced here.
@@ -19,12 +23,6 @@ const corsHeaders = {
 
 const BUCKET = "guideline-blobs";
 const STAFF_ROLES = ["owner", "admin", "document_handler", "university_staff"];
-// Upper bound on an accepted upload. This is our own guard, not the only one:
-// the file travels base64'd inside the JSON request body (~33% inflation), so a
-// large enough upload is cut off by the platform before this function runs and
-// fails with no reason attached. Raising this ceiling widens what we accept; it
-// does not lift that transport limit. Moving to a signed upload URL would.
-// Keep in sync with MAX_GUIDELINE_PDF_BYTES in src/lib/guidelinePdf.ts.
 const MAX_BYTES = 100 * 1024 * 1024; // 100 MB
 
 function json(body: unknown, status = 200): Response {
@@ -35,7 +33,6 @@ function json(body: unknown, status = 200): Response {
 }
 
 function base64ToBytes(b64: string): Uint8Array {
-  // Tolerate a `data:application/pdf;base64,...` prefix from the browser.
   const clean = b64.includes(",") ? b64.slice(b64.indexOf(",") + 1) : b64;
   const bin = atob(clean);
   const out = new Uint8Array(bin.length);
@@ -46,7 +43,6 @@ function base64ToBytes(b64: string): Uint8Array {
 const PDF_HEADER = [0x25, 0x50, 0x44, 0x46, 0x2d]; // "%PDF-"
 const PDF_HEADER_SCAN_BYTES = 1024;
 
-/** Offset of the "%PDF-" marker within the first 1 KiB, or -1 if absent. */
 function findPdfHeader(bytes: Uint8Array): number {
   const limit = Math.min(bytes.length, PDF_HEADER_SCAN_BYTES) - PDF_HEADER.length;
   for (let i = 0; i <= limit; i++) {
@@ -68,6 +64,48 @@ function safeName(name: string): string {
   return (name || "guideline.pdf").replace(/[^A-Za-z0-9._-]/g, "_").slice(-80);
 }
 
+async function authenticateStaff(req: Request, supabaseUrl: string, anonKey: string, serviceKey: string) {
+  const authHeader = req.headers.get("authorization") || "";
+  if (!authHeader) return { error: json({ error: "Unauthorized" }, 401) };
+  const userClient = createClient(supabaseUrl, anonKey, { global: { headers: { Authorization: authHeader } } });
+  const { data: { user }, error: authErr } = await userClient.auth.getUser();
+  if (authErr || !user) return { error: json({ error: "Unauthorized" }, 401) };
+
+  const admin = createClient(supabaseUrl, serviceKey);
+  const { data: roles } = await admin.from("user_roles").select("role").eq("user_id", user.id);
+  if (!(roles ?? []).some((r: any) => STAFF_ROLES.includes(r.role))) {
+    return { error: json({ error: "Forbidden — staff only" }, 403) };
+  }
+  return { user, admin };
+}
+
+async function insertGuidelineDoc(
+  admin: any,
+  institutionId: string,
+  storagePath: string,
+  hash: string,
+  sizeBytes: number,
+  filename: string,
+) {
+  const nowIso = new Date().toISOString();
+  const { data: doc, error: insErr } = await admin
+    .from("guideline_documents")
+    .upsert({
+      institution_id: institutionId,
+      source_url_ko: `manual-upload:${filename}`,
+      storage_path: storagePath,
+      file_hash_sha256: hash,
+      file_size_bytes: sizeBytes,
+      mime_type: "application/pdf",
+      parse_status: "pending",
+      fetched_at: nowIso,
+      last_checked_at: nowIso,
+    }, { onConflict: "file_hash_sha256" })
+    .select("id, institution_id, parse_status")
+    .single();
+  return { doc, insErr };
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
@@ -76,78 +114,135 @@ Deno.serve(async (req) => {
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
 
-  // 1) Authenticate the caller and require a staff role.
-  const authHeader = req.headers.get("authorization") || "";
-  if (!authHeader) return json({ error: "Unauthorized" }, 401);
-  const userClient = createClient(supabaseUrl, anonKey, { global: { headers: { Authorization: authHeader } } });
-  const { data: { user }, error: authErr } = await userClient.auth.getUser();
-  if (authErr || !user) return json({ error: "Unauthorized" }, 401);
+  const body = await req.json().catch(() => null) as Record<string, any> | null;
+  if (!body) return json({ error: "Invalid JSON body" }, 400);
 
-  const admin = createClient(supabaseUrl, serviceKey);
-  const { data: roles } = await admin.from("user_roles").select("role").eq("user_id", user.id);
-  if (!(roles ?? []).some((r: any) => STAFF_ROLES.includes(r.role))) {
-    return json({ error: "Forbidden — staff only" }, 403);
+  const mode = body.mode as string | undefined;
+
+  // ── Mode: create_upload_url ──────────────────────────────────────────
+  // Returns a signed upload URL so the client can PUT the file directly
+  // to Storage without going through this function's memory.
+  if (mode === "create_upload_url") {
+    if (!body.institution_id) return json({ error: "Missing institution_id" }, 400);
+
+    const auth = await authenticateStaff(req, supabaseUrl, anonKey, serviceKey);
+    if (auth.error) return auth.error;
+    const admin = auth.admin!;
+
+    const { data: inst } = await admin.from("institutions").select("id").eq("id", body.institution_id).maybeSingle();
+    if (!inst) return json({ error: "Unknown institution_id" }, 404);
+
+    const filename = safeName(body.filename ?? "guideline.pdf");
+    const storagePath = `manual/${body.institution_id}/${Date.now()}_${filename}`;
+
+    const { data: signedData, error: signErr } = await admin.storage
+      .from(BUCKET)
+      .createSignedUploadUrl(storagePath);
+
+    if (signErr || !signedData) {
+      return json({ error: `Failed to create upload URL: ${signErr?.message ?? "unknown"}` }, 500);
+    }
+
+    return json({
+      upload_url: signedData.signedUrl,
+      upload_token: signedData.token,
+      storage_path: storagePath,
+      filename,
+    });
   }
 
-  // 2) Parse + validate the upload.
-  const body = await req.json().catch(() => null) as
-    | { institution_id?: string; file_base64?: string; filename?: string }
-    | null;
-  if (!body?.institution_id || !body?.file_base64) {
+  // ── Mode: register ───────────────────────────────────────────────────
+  // The file is already in Storage (via signed URL upload). Download it
+  // with service role, validate, hash, and insert the DB row.
+  if (mode === "register") {
+    if (!body.institution_id || !body.storage_path) {
+      return json({ error: "Missing institution_id or storage_path" }, 400);
+    }
+
+    const auth = await authenticateStaff(req, supabaseUrl, anonKey, serviceKey);
+    if (auth.error) return auth.error;
+    const admin = auth.admin!;
+
+    const { data: inst } = await admin.from("institutions").select("id").eq("id", body.institution_id).maybeSingle();
+    if (!inst) return json({ error: "Unknown institution_id" }, 404);
+
+    // Download the blob to validate and hash it.
+    const { data: blob, error: dlErr } = await admin.storage
+      .from(BUCKET)
+      .download(body.storage_path);
+
+    if (dlErr || !blob) {
+      return json({ error: `File not found in storage: ${dlErr?.message ?? "unknown"}` }, 400);
+    }
+
+    const bytes = new Uint8Array(await blob.arrayBuffer());
+    if (bytes.byteLength === 0) return json({ error: "Empty file" }, 400);
+    if (bytes.byteLength > MAX_BYTES) {
+      await admin.storage.from(BUCKET).remove([body.storage_path]);
+      return json({ error: `File too large (max ${MAX_BYTES / 1024 / 1024} MB)` }, 400);
+    }
+    if (findPdfHeader(bytes) < 0) {
+      await admin.storage.from(BUCKET).remove([body.storage_path]);
+      return json({ error: "Not a PDF (no %PDF- marker in the first 1 KiB)" }, 400);
+    }
+
+    const hash = await sha256Hex(bytes);
+    const filename = safeName(body.filename ?? "guideline.pdf");
+
+    const { doc, insErr } = await insertGuidelineDoc(
+      admin, body.institution_id, body.storage_path, hash, bytes.byteLength, filename,
+    );
+
+    if (insErr) {
+      await admin.storage.from(BUCKET).remove([body.storage_path]);
+      return json({ error: `DB insert failed: ${insErr.message}` }, 500);
+    }
+
+    return json({
+      ok: true,
+      guideline_document_id: doc.id,
+      institution_id: doc.institution_id,
+      parse_status: doc.parse_status,
+      storage_path: body.storage_path,
+      note: "Queued for extraction (parse_status=pending).",
+    });
+  }
+
+  // ── Legacy mode: file_base64 ─────────────────────────────────────────
+  if (!body.institution_id || !body.file_base64) {
     return json({ error: "Missing institution_id or file_base64" }, 400);
   }
+
+  const auth = await authenticateStaff(req, supabaseUrl, anonKey, serviceKey);
+  if (auth.error) return auth.error;
+  const admin = auth.admin!;
 
   let bytes: Uint8Array;
   try { bytes = base64ToBytes(body.file_base64); } catch { return json({ error: "Invalid base64" }, 400); }
   if (bytes.byteLength === 0) return json({ error: "Empty file" }, 400);
   if (bytes.byteLength > MAX_BYTES) return json({ error: `File too large (max ${MAX_BYTES / 1024 / 1024} MB)` }, 400);
-  // Magic bytes. The marker may sit anywhere in the first kilobyte, not at
-  // offset 0: Korean university CMSes prepend junk bytes to the download, and
-  // ISO 32000 lets the header be preceded by other content (readers scan the
-  // first 1 KiB for it, which is why such a file opens fine in a browser and
-  // parses fine downstream). Requiring offset 0 rejected exactly those files.
-  // Same rule as the pipeline's own sniffer, uni_db/parse/format_convert.py.
   if (findPdfHeader(bytes) < 0) {
     return json({ error: "Not a PDF (no %PDF- marker in the first 1 KiB)" }, 400);
   }
 
-  // 3) Institution must exist.
   const { data: inst } = await admin.from("institutions").select("id").eq("id", body.institution_id).maybeSingle();
   if (!inst) return json({ error: "Unknown institution_id" }, 404);
 
-  // 4) Hash for idempotency (guideline_documents has UNIQUE(file_hash_sha256)).
   const hash = await sha256Hex(bytes);
   const filename = safeName(body.filename ?? "guideline.pdf");
   const storagePath = `manual/${body.institution_id}/${Date.now()}_${filename}`;
 
-  // 5) Upload to the private bucket (service role bypasses storage RLS).
   const up = await admin.storage.from(BUCKET).upload(storagePath, bytes, {
     contentType: "application/pdf",
     upsert: false,
   });
   if (up.error) return json({ error: `Storage upload failed: ${up.error.message}` }, 500);
 
-  // 6) Upsert the guideline_documents row → pending for extraction. Re-uploading
-  //    the same PDF (same hash) refreshes the row and re-queues it.
-  const nowIso = new Date().toISOString();
-  const { data: doc, error: insErr } = await admin
-    .from("guideline_documents")
-    .upsert({
-      institution_id: body.institution_id,
-      source_url_ko: `manual-upload:${filename}`,
-      storage_path: storagePath,
-      file_hash_sha256: hash,
-      file_size_bytes: bytes.byteLength,
-      mime_type: "application/pdf",
-      parse_status: "pending",
-      fetched_at: nowIso,
-      last_checked_at: nowIso,
-    }, { onConflict: "file_hash_sha256" })
-    .select("id, institution_id, parse_status")
-    .single();
+  const { doc, insErr } = await insertGuidelineDoc(
+    admin, body.institution_id, storagePath, hash, bytes.byteLength, filename,
+  );
 
   if (insErr) {
-    // Avoid orphan blobs if the DB write fails.
     await admin.storage.from(BUCKET).remove([storagePath]);
     return json({ error: `DB insert failed: ${insErr.message}` }, 500);
   }
