@@ -4,6 +4,7 @@ import {
   groupRows,
   documentCycleLabel,
   isDocumentFlag,
+  isDegreeCheckFlag,
   sectionLabelKey,
 } from '../uni-db-review/reviewGroups';
 
@@ -185,6 +186,48 @@ describe('document-level flags', () => {
 
   it('gets its own label instead of "other section"', () => {
     expect(sectionLabelKey(flag)).toBe('uniReview.section.documentFlag');
+  });
+
+  /**
+   * The parser raises a second, weaker document card: a graduate programme is
+   * named but no section header separates it, so there is no boundary to cut
+   * at. It says so in the note. The UI used to render it with the split copy
+   * — "this file mixes two levels, divide it into two admission cycles" —
+   * because it decided on `levels=[...]`, which BOTH cards carry. The reviewer
+   * was told to perform a split the parser had just ruled out.
+   *
+   * `field_group` cannot be the discriminator here: review_queue has no such
+   * column, the document-level insert never writes one, and the view sources
+   * it from the extraction_jobs join, which is NULL for these rows.
+   */
+  const checkFlag = row({
+    id: 'flag-2',
+    entity_type: 'guideline_documents',
+    field_group: null,
+    parsed_output: null,
+    reviewer_notes:
+      'Graduate programme named but no degree section header found ' +
+      "(level=undergraduate combined=True levels=['bachelor', 'master'] " +
+      'signals=[grad_general x1, master x1, undergrad x1]). No split boundary ' +
+      'was located, so there is nothing to split at. Segments: undergraduate@0.',
+  });
+
+  it('separates "nothing to split at" from a real split', () => {
+    expect(isDegreeCheckFlag(checkFlag)).toBe(true);
+    expect(isDegreeCheckFlag(flag)).toBe(false);
+  });
+
+  it('gives the no-boundary card its own label, not the split one', () => {
+    expect(sectionLabelKey(checkFlag)).toBe('uniReview.section.documentCheck');
+    expect(sectionLabelKey(flag)).toBe('uniReview.section.documentFlag');
+  });
+
+  it('still treats the no-boundary card as a document flag', () => {
+    expect(isDocumentFlag(checkFlag)).toBe(true);
+  });
+
+  it('never calls an ordinary section card a degree check', () => {
+    expect(isDegreeCheckFlag(row({ id: 'x', field_group: 'tuition' }))).toBe(false);
   });
 
   it('does not swallow an ordinary card whose field_group is missing', () => {

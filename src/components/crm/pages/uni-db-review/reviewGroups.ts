@@ -6,6 +6,7 @@ import {
   FileText,
   Award,
   SplitSquareVertical,
+  FileSearch,
 } from 'lucide-react';
 import type { ReviewQueueRow } from '@/hooks/useReviewQueue';
 import { parseReliability, rollupColor, type ReliabilityColor } from '../reliability';
@@ -221,7 +222,32 @@ export function isDocumentFlag(row: ReviewQueueRow): boolean {
   return row.entity_type === 'guideline_documents';
 }
 
+/**
+ * A document flag that found NO place to split at.
+ *
+ * The parser raises two different document cards and distinguishes them by
+ * `field_group` ('degree_split' vs 'degree_check') — but that key never
+ * reaches us: `review_queue` has no field_group column, the document-level
+ * insert writes only (entity_type, entity_id, reason, priority,
+ * reviewer_notes), and the dashboard view takes field_group from the
+ * extraction_jobs join, which is NULL for these rows. What does survive is the
+ * note the parser wrote, so the wording is the discriminator.
+ *
+ * It matters because the two cards ask for opposite things. A real split card
+ * carries segment offsets and means "cut this file in two". This one means
+ * "a graduate programme is named but no section header was found — read the
+ * document before trusting its figures", and it says outright that there is
+ * nothing to split at. Rendering it with the split copy tells the reviewer to
+ * perform a cut the parser just said does not exist.
+ */
+export function isDegreeCheckFlag(row: ReviewQueueRow): boolean {
+  if (!isDocumentFlag(row)) return false;
+  const note = row.reviewer_notes ?? '';
+  return /no split boundary|no degree section header/i.test(note);
+}
+
 export function sectionLabelKey(row: ReviewQueueRow): string {
+  if (isDegreeCheckFlag(row)) return 'uniReview.section.documentCheck';
   if (isDocumentFlag(row)) return 'uniReview.section.documentFlag';
   const canonical = SECTION_ALIAS[row.field_group ?? ''] ?? row.field_group;
   return (SECTION_ORDER as readonly string[]).includes(canonical ?? '')
@@ -238,6 +264,7 @@ export const SECTION_ICON: Record<string, LucideIcon> = {
 };
 
 export function sectionIcon(row: ReviewQueueRow): LucideIcon {
+  if (isDegreeCheckFlag(row)) return FileSearch;
   if (isDocumentFlag(row)) return SplitSquareVertical;
   return SECTION_ICON[row.field_group ?? ''] ?? SECTION_ICON.documents_required;
 }

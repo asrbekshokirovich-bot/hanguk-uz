@@ -1692,7 +1692,8 @@
       "documents_required": "Kerakli hujjatlar",
       "scholarships": "Stipendiyalar",
       "unknown": "Boshqa bo'lim",
-      "documentFlag": "Hujjatni bo'lish kerak"
+      "documentFlag": "Hujjatni bo'lish kerak",
+      "documentCheck": "Hujjatni tekshirish kerak"
     },
     "rel": {
       "red": "Tuzatish kerak",
@@ -1838,6 +1839,9 @@
       "splitWhat": "Bitta faylda ikki xil bosqichning shartlari va narxlari yonma-yon turibdi. Ulardan olingan raqamlar aralashib ketishi mumkin — masalan magistratura kontrakti bakalavrniki bo'lib chiqishi.",
       "genericTitle": "Bu hujjat bo'yicha ogohlantirish",
       "genericWhat": "Tizim bu PDFda muammo topdi. Tafsiloti quyida.",
+      "checkTitle": "Magistratura eslatilgan, lekin bo'lim sarlavhasi topilmadi",
+      "checkWhat": "Hujjatda magistratura dasturi nomi uchraydi, lekin uni bakalavrdan ajratadigan bo'lim sarlavhasi topilmadi. Ehtimol hujjat faqat bitta bosqichga tegishli, yoki sarlavha e'tibordan chetda qolgan.",
+      "checkAction": "Bo'linish nuqtasi topilmadi — bo'linadigan joy yo'q, hujjatni bo'lish shart emas. Raqamlarga ishonishdan oldin hujjatni ko'zdan kechiring: agar u bitta bosqichga tegishli bo'lsa, \"Tasdiqlash\" bilan ro'yxatdan olib tashlang; agar ichida haqiqatan ikki bosqich aralash bo'lsa, \"Rad etish\" ni bosing.",
       "levels": "Topilgan bosqichlar:",
       "action": "Bu karta ma'lumot kartasi emas — tasdiqlaydigan raqam yo'q. Hujjatni ikkita alohida qabul mavsumiga bo'lgandan keyin \"Tasdiqlash\" bilan ro'yxatdan olib tashlang; agar bo'linish noto'g'ri aniqlangan bo'lsa, \"Rad etish\" ni bosing.",
       "rawToggle": "Texnik tafsilot",
