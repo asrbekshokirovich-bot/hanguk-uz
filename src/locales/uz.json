@@ -1835,7 +1835,10 @@
       "noUni": "Universitet topilmadi.",
       "notPdf": "Faqat PDF fayl yuklang.",
       "tooLarge": "Fayl juda katta: {{size}} MB. Chegara — {{max}} MB.",
-      "uploaded": "PDF yuklandi — {{uni}} uchun tahlilga navbatga qo'yildi."
+      "uploaded": "PDF yuklandi — {{uni}} uchun tahlilga navbatga qo'yildi.",
+      "closedByPerson": "Avval yopilgan",
+      "closedByCrawler": "Yuklab bo'lmagan",
+      "reopenedTitle": "Bu havola avval yopilgan edi — qayta ko'rib chiqish uchun chiqarildi"
     },
     "docFlag": {
       "splitTitle": "Bu PDF ichida bakalavr va magistratura qabuli aralash",
