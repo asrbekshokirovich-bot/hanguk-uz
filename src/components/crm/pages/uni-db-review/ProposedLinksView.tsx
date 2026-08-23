@@ -59,6 +59,20 @@ function LinkCard({
             {t('uniReview.links.fromSearch')}
           </span>
         )}
+        {row.was_closed ? (
+          /* Without this the card looks untouched, and the operator re-does
+             work someone already did. The two cases read differently: a person
+             judged this link, or the crawler recorded why it could not fetch
+             it. */
+          <span
+            className="inline-flex h-[22px] items-center rounded-full bg-warning/10 px-2.5 text-[11.5px] font-semibold text-warning"
+            title={t('uniReview.links.reopenedTitle')}
+          >
+            {t(row.closed_by_person
+              ? 'uniReview.links.closedByPerson'
+              : 'uniReview.links.closedByCrawler')}
+          </span>
+        ) : null}
         <span className="whitespace-nowrap font-mono text-[11.5px] text-muted-foreground/80">
           {fmtDateKST(row.proposed_at)?.split(' · ')[0] ?? ''}
         </span>

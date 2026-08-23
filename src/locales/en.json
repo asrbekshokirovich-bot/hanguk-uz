@@ -1793,7 +1793,10 @@
       "noUni": "No university found.",
       "notPdf": "Please choose a PDF file.",
       "tooLarge": "File too large: {{size}} MB. The limit is {{max}} MB.",
-      "uploaded": "PDF uploaded — queued for analysis for {{uni}}."
+      "uploaded": "PDF uploaded — queued for analysis for {{uni}}.",
+      "closedByPerson": "Closed earlier",
+      "closedByCrawler": "Could not be fetched",
+      "reopenedTitle": "This link was closed before — brought back for another look"
     },
     "docFlag": {
       "splitTitle": "This PDF mixes undergraduate and graduate admission",
