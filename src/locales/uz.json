@@ -1838,7 +1838,20 @@
       "uploaded": "PDF yuklandi — {{uni}} uchun tahlilga navbatga qo'yildi.",
       "closedByPerson": "Avval yopilgan",
       "closedByCrawler": "Yuklab bo'lmagan",
-      "reopenedTitle": "Bu havola avval yopilgan edi — qayta ko'rib chiqish uchun chiqarildi"
+      "reopenedTitle": "Bu havola avval yopilgan edi — qayta ko'rib chiqish uchun chiqarildi",
+      "reasonLabel": "Yopish sababi:",
+      "confirmDismiss": "Yopish",
+      "detailPlaceholder": "Izoh (ixtiyoriy; \"Boshqa\" uchun majburiy)",
+      "dismissedWithReason": "Havola yopildi — {{reason}}",
+      "reasons": {
+        "not_2027": "2027 emas (boshqa yil)",
+        "already_have": "Bu hujjat bazada bor",
+        "uploaded": "PDF qo'lda yuklandi",
+        "no_guideline": "Sahifada qabul qo'llanmasi yo'q",
+        "site_dead": "Sayt/havola ishlamaydi",
+        "not_relevant": "Bizga tegishli emas",
+        "other": "Boshqa"
+      }
     },
     "docFlag": {
       "splitTitle": "Bu PDF ichida bakalavr va magistratura qabuli aralash",

@@ -35,7 +35,33 @@ export interface ProposedSourceRow {
   /** True when a person closed it, false when the crawler did. */
   closed_by_person?: boolean | null;
   reviewed_at?: string | null;
+  dismiss_reason?: string | null;
+  dismiss_detail?: string | null;
 }
+
+/**
+ * Why a reviewer closed a link. Drawn from what actually happened to the 407
+ * links reopened on 2026-08-23, so picking one describes a real case rather
+ * than a category invented for the dropdown.
+ */
+export type LinkDismissReason =
+  | 'not_2027'
+  | 'already_have'
+  | 'uploaded'
+  | 'no_guideline'
+  | 'site_dead'
+  | 'not_relevant'
+  | 'other';
+
+export const LINK_DISMISS_REASONS: LinkDismissReason[] = [
+  'not_2027',
+  'already_have',
+  'uploaded',
+  'no_guideline',
+  'site_dead',
+  'not_relevant',
+  'other',
+];
 
 const PROPOSED_SOURCES_KEY = ['uni_db', 'proposed_sources'] as const;
 
@@ -52,7 +78,8 @@ export function useProposedSources(enabled = true) {
         .from('v_proposed_links_dashboard')
         .select(
           'id, url_ko, source_type, proposed_by, proposed_at, candidate_title, ' +
-            'candidate_snippet, review_notes, status, was_closed, closed_by_person, reviewed_at',
+            'candidate_snippet, review_notes, status, was_closed, closed_by_person, ' +
+            'reviewed_at, dismiss_reason, dismiss_detail',
         )
         .order('proposed_at', { ascending: false })
         .limit(500);
@@ -75,8 +102,9 @@ export function useProposedSources(enabled = true) {
  */
 export function useDismissProposedSource() {
   const qc = useQueryClient();
-  return useMutation<void, Error, { id: string }>({
-    mutationFn: async ({ id }) => {
+  return useMutation<void, Error,
+    { id: string; reason: LinkDismissReason; detail?: string }>({
+    mutationFn: async ({ id, reason, detail }) => {
       const { data: auth } = await supabase.auth.getUser();
       const { error } = await supabase
         .from('proposed_sources')
@@ -84,6 +112,10 @@ export function useDismissProposedSource() {
           status: 'dismissed',
           reviewed_at: new Date().toISOString(),
           reviewed_by: auth.user?.id ?? null,
+          // The reason is the point. Closing 2 511 links without one is why
+          // working out which deserved to come back meant regex over prose.
+          dismiss_reason: reason,
+          dismiss_detail: detail?.trim() || null,
         })
         .eq('id', id);
       if (error) throw error;
