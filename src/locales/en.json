@@ -1796,7 +1796,20 @@
       "uploaded": "PDF uploaded — queued for analysis for {{uni}}.",
       "closedByPerson": "Closed earlier",
       "closedByCrawler": "Could not be fetched",
-      "reopenedTitle": "This link was closed before — brought back for another look"
+      "reopenedTitle": "This link was closed before — brought back for another look",
+      "reasonLabel": "Reason for closing:",
+      "confirmDismiss": "Close",
+      "detailPlaceholder": "Note (optional; required for \"Other\")",
+      "dismissedWithReason": "Link closed — {{reason}}",
+      "reasons": {
+        "not_2027": "Not 2027 (another year)",
+        "already_have": "Already in the database",
+        "uploaded": "PDF uploaded by hand",
+        "no_guideline": "Page has no admission guideline",
+        "site_dead": "Site or link is dead",
+        "not_relevant": "Not relevant to us",
+        "other": "Other"
+      }
     },
     "docFlag": {
       "splitTitle": "This PDF mixes undergraduate and graduate admission",
