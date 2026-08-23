@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from uuid import uuid4
 
-from uni_db.verify import agents, checks
+from uni_db.verify import agents, checks, engine
 from uni_db.verify.engine import aggregate, rollup, verify_extraction
 from uni_db.verify.models import (
     ConsensusField,
@@ -623,3 +623,102 @@ class TestGroundingIgnoresControlCharacters:
         # class must not be so wide that it changes how they normalise.
         assert checks._norm("a\nb\tc") == "abc"
         assert checks._norm("a\x01b\x0cc") == "abc"
+
+
+class TestEmptyPayloadIsNotGreen:
+    """A card with nothing on it must not claim its checks passed.
+
+    Every signal comes back clean for an empty extraction, and each for the
+    same reason: there is nothing to find. `verify_extraction` skips both LLM
+    gates when there are no rows (`if use_grounding_llm and rows`, `if
+    use_critics and rows`), sanity checks find no bad value in an absent one,
+    and consensus over identical emptiness is unanimous.
+
+    The reviewer then sees "Tekshiruvlar o'tdi · ishonch 60%" above a body
+    reading "Ko'rsatilmagan" — the badge asserting the opposite of the card.
+    Reported from production on a `tuition` card.
+    """
+
+    def test_empty_rows_are_amber_not_green(self) -> None:
+        report = verify_extraction(
+            field_group="tuition",
+            runs=[{"rows": []}],
+            pdf_text="2027학년도 모집요강 등록금 안내",
+            source_text_ko="",
+            target_year=2027,
+            use_grounding_llm=False,
+            use_critics=False,
+        )
+        assert report.overall == "amber", report.overall
+
+    def test_no_runs_at_all_is_amber(self) -> None:
+        report = verify_extraction(
+            field_group="tuition", runs=[], pdf_text="", source_text_ko="",
+            target_year=2027,
+        )
+        assert report.overall == "amber"
+
+    def test_a_populated_payload_can_still_be_green(self) -> None:
+        # The fix must not paint every card amber — a clean extraction with
+        # content keeps its green.
+        report = verify_extraction(
+            field_group="tuition",
+            runs=[{"rows": [{"amount_krw": 4_000_000, "source_text_ko": "등록금 400만원"}]}],
+            pdf_text="등록금 400만원",
+            source_text_ko="등록금 400만원",
+            target_year=2027,
+            use_grounding_llm=False,
+            use_critics=False,
+        )
+        assert report.overall == "green", report.overall
+
+    def test_periods_only_counts_as_content(self) -> None:
+        # A calendar payload can carry `periods` and no rows/events. `_rows`
+        # is empty there, but the card renders the periods — so it is not an
+        # empty card and must not be downgraded for emptiness.
+        assert engine._rendered_items({"periods": [{"application_fee_krw": 60000}]}) == 1
+        assert engine._rendered_items({"rows": [], "events": [], "periods": []}) == 0
+
+    def test_emptiness_alone_never_reaches_red(self) -> None:
+        # Absence of evidence is not evidence of error: an empty card is
+        # unreviewed, not wrong.
+        report = engine.aggregate(field_group="tuition", payload_empty=True)
+        assert report.overall == "amber"
+
+
+class TestGroundingFlagSaysWhy:
+    """`quote_not_in_source` must carry the numbers that distinguish its causes.
+
+    A quote can fail three different ways — fabricated, a page-long block the
+    model pasted whole, or a genuine citation sitting just under the bar after
+    a table reflow — and they need different responses. The flag used to say
+    only "quote_not_in_source" plus 120 characters of Korean, which separates
+    none of them.
+
+    Measured on production: among cards that went through the gauntlet, 39%
+    carried this flag before the U+0001 fix and 58% after (n=26), so the
+    control-character case was real but not the dominant cause. The next
+    occurrence should answer the question instead of raising it again.
+    """
+
+    def test_message_carries_coverage_and_length(self) -> None:
+        pdf = "2027학년도 모집요강 등록금 안내 장학금 신청 방법"
+        payload = {"rows": [{"source_text_ko": "지원자는 반드시 TOEFL 120점을 제출해야 하며 별도 서류가 필요하다"}]}
+        out = checks.check_grounding_deterministic("requirements", payload, pdf)
+        assert len(out) == 1
+        msg = out[0].quote or ""
+        assert "coverage" in msg, msg
+        assert "chars]" in msg, msg
+
+    def test_a_grounded_quote_still_raises_nothing(self) -> None:
+        pdf = "2027학년도 모집요강 등록금 400만원 안내"
+        payload = {"rows": [{"source_text_ko": "등록금 400만원"}]}
+        assert checks.check_grounding_deterministic("tuition", payload, pdf) == []
+
+    def test_the_original_quote_is_still_readable_in_the_message(self) -> None:
+        # The prefix must not push the Korean out of the message entirely —
+        # a reviewer still needs to see what was cited.
+        pdf = "관계 없는 내용"
+        quote = "TOEFL 120점 이상 제출" * 3
+        out = checks.check_grounding_deterministic("requirements", {"rows": [{"source_text_ko": quote}]}, pdf)
+        assert "TOEFL" in (out[0].quote or "")

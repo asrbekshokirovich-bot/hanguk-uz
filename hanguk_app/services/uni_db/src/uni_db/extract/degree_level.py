@@ -82,9 +82,52 @@ _ASSOCIATE = ("전문학사", "전문대학", "전문대", "2년제", "3년제",
 _UNDERGRAD_WEAK = ("신입학", "수시모집", "정시모집")
 
 
+# Substrings that look like a degree marker but are the tail of an ordinary
+# noun. Korean writes compounds without spaces, so a plain `"석사" in text`
+# test matches inside longer words — and junior-college guidelines are full of
+# them, because they list the certificates their graduates can earn:
+#
+#   투자분석사, 사회조사분석사, 빅데이터분석사, 재무빅데이터분석사
+#            └ 분석사 = "analyst", and it ENDS IN 석사.
+#
+# All three colleges flagged on 2026-08-23 (신안산대, 가톨릭상지대, 한국골프대)
+# were pure 전문대 undergraduate guidelines whose only "master's" evidence was
+# a certificate list. `대학원` behaved the same way: every occurrence was
+# "대학원 진학(가능)" — a careers line about where graduates can go next, not a
+# graduate admission section.
+_MARKER_EXCLUSIONS: dict[str, tuple[str, ...]] = {
+    # A marker only counts if it is NOT part of one of these longer words.
+    "석사": ("분석사",),
+    "대학원": ("대학원 진학", "대학원진학", "대학원 진학가능"),
+    # "간호학 박사들로 구성된 교수진" — a faculty's credentials, seen on 혜전대학교.
+    # A plural of people is never a programme on offer.
+    "박사": ("박사들",),
+}
+
+# Deliberately NOT excluded: 전문기술석사 (professional technical master's).
+# 혜전대학교 runs one and says so, so its card rests on a real signal and a
+# human glancing at it is the right outcome. The exclusions above remove
+# matches that are not degrees at all; they are not a knob for tuning the
+# queue down to zero, which would blind the detector to the case it exists
+# for.
+
+
+def _occurrences(text: str, marker: str) -> int:
+    """How many times `marker` appears NOT inside one of its exclusions."""
+    excl = _MARKER_EXCLUSIONS.get(marker)
+    if not excl:
+        return text.count(marker)
+    total = text.count(marker)
+    for word in excl:
+        # Each exclusion word contains the marker exactly once in practice;
+        # subtracting its count removes those matches from the tally.
+        total -= text.count(word)
+    return max(0, total)
+
+
 def _count(text: str, markers: tuple[str, ...]) -> int:
     low = text.lower()
-    return sum(1 for m in markers if m.lower() in low)
+    return sum(1 for m in markers if _occurrences(low, m.lower()) > 0)
 
 
 def classify_degree_level(

@@ -108,6 +108,7 @@ def aggregate(
     consensus_fields: list[ConsensusField] | None = None,
     consensus_expected: bool = False,
     consensus_missing: bool | None = None,
+    payload_empty: bool = False,
 ) -> ReliabilityReport:
     grounding_issues = grounding_issues or []
     sanity_issues = sanity_issues or []
@@ -128,8 +129,20 @@ def aggregate(
     # colour as a verified one.
     if consensus_missing is None:
         consensus_missing = consensus_expected and not consensus_fields
+    # An extraction with nothing in it is the purest case of the rule above,
+    # and it was the one the rule missed. `verify_extraction` skips BOTH LLM
+    # gates when there are no rows (`if use_grounding_llm and rows`, `if
+    # use_critics and rows`), sanity checks find nothing to complain about in
+    # an empty payload, and consensus over identical emptiness is unanimous —
+    # so every signal comes back clean and the card is graded green.
+    #
+    # A reviewer then sees "Tekshiruvlar o'tdi · ishonch 60%" above a body
+    # that says "Ko'rsatilmagan", which is the badge asserting the opposite of
+    # what the card shows. Nothing was checked, because there was nothing to
+    # check; that is amber by the same reasoning as `consensus_missing`.
     amber = (
         consensus_missing
+        or payload_empty
         or bool(grounding_issues)
         or any(c.severity in ("medium", "low") for c in critic_issues)
         or any(s.severity in ("medium", "low") for s in sanity_issues)
@@ -173,9 +186,14 @@ def verify_extraction(
     if not runs:
         return aggregate(
             field_group=field_group, consensus_expected=consensus_expected,
+            payload_empty=True,
         )
     primary = runs[0]
     rows = _rows(primary)
+    # Counted over everything the app renders, not just what feeds the LLM
+    # gates: a calendar payload carrying only `periods` has something to show
+    # a reviewer even though `_rows` (rows + events) is empty.
+    payload_empty = not _rendered_items(primary)
 
     grounding = check_grounding_deterministic(field_group, primary, pdf_text)
     if use_grounding_llm and rows:
@@ -206,6 +224,7 @@ def verify_extraction(
         critic_issues=critics,
         consensus_fields=cons,
         consensus_expected=consensus_expected,
+        payload_empty=payload_empty,
     )
 
 
@@ -239,6 +258,23 @@ def _rows(parsed_output: object) -> list[dict[str, Any]]:
         if isinstance(seq, list):
             out.extend(r for r in seq if isinstance(r, dict))
     return out
+
+
+def _rendered_items(parsed_output: object) -> int:
+    """How many items the review card will actually show.
+
+    Wider than `_rows` on purpose: that one selects what the LLM gates read,
+    this one answers "is there anything on this card at all", which is the
+    question the reliability badge is making a claim about.
+    """
+    if not isinstance(parsed_output, dict):
+        return 0
+    total = 0
+    for key in ("rows", "events", "periods"):
+        seq = parsed_output.get(key)
+        if isinstance(seq, list):
+            total += sum(1 for r in seq if isinstance(r, dict))
+    return total
 
 
 def _default_grounding_fn(
