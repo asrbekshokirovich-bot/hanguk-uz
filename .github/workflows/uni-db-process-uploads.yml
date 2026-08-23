@@ -61,6 +61,18 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e .
 
+      - name: Install OCR lane (easyocr + CPU-only torch)
+        # Without this the OCR tier is unreachable: every routing branch for it
+        # exists and UNI_DB_LIVE_APIS is already true, but `pip install -e .`
+        # brings no extras, so `import easyocr` raised and the orchestrator fell
+        # back to the empty text layer. Twelve stored guidelines were unreadable
+        # for that reason alone.
+        # The CPU wheel index keeps this to ~250 MB instead of the ~2 GB CUDA
+        # build; the pip cache above makes repeat runs cheap.
+        run: |
+          pip install --extra-index-url https://download.pytorch.org/whl/cpu \
+            -e ".[ocr]"
+
       - name: Check required secrets are set
         run: |
           if [ -z "${SUPABASE_DB_URL}" ] || [ -z "${ANTHROPIC_API_KEY}" ]; then

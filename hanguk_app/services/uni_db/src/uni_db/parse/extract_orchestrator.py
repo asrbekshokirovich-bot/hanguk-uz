@@ -129,7 +129,7 @@ def extract(pdf_bytes: bytes) -> tuple[ExtractedPdf, OrchestratorDecision]:
     decision = _decide(primary)
 
     if decision.tier == "pymupdf":
-        return primary, decision
+        return _fill_sparse_pages(pdf_bytes, primary, decision)
 
     # OCR fallback. Imported lazily so the heavy easyocr stack only
     # loads when actually needed.
@@ -149,6 +149,80 @@ def extract(pdf_bytes: bytes) -> tuple[ExtractedPdf, OrchestratorDecision]:
             extractor=ocr_result.extractor,
         ),
         decision,
+    )
+
+
+def _fill_sparse_pages(
+    pdf_bytes: bytes, primary: ExtractedPdf, decision: OrchestratorDecision
+) -> tuple[ExtractedPdf, OrchestratorDecision]:
+    """OCR the individual pages PyMuPDF came back empty on, keep the rest.
+
+    `_decide` works on the document average, and an average is exactly the
+    wrong statistic for the failure this repairs. 동국대's 49-page guideline
+    averages 437 chars/page — five times the scanned-page threshold, so the
+    whole-document OCR lane never fires — yet 13 of its pages hold under 80
+    characters each. Those pages are its 전형일정 and 제출서류 tables, drawn as
+    vectors: the headings extract, the table bodies do not, and what reaches
+    the model is "구분 일정 세부 사항" followed by nothing. Three dates survive
+    in the entire file.
+
+    Measured over 46 cached guidelines the separation is clean: the median
+    document has 5% of its pages under the threshold and only that one exceeds
+    25%. Documents that read fine sit at 6-7%, and their few sparse pages are
+    covers and section dividers — which `ocr_pdf_pages` skips outright,
+    because a page with no image and no drawing has nothing to recognise.
+
+    So no new document-level threshold is introduced. Each page is judged on
+    its own, PyMuPDF's text is kept wherever it worked, and OCR fills only the
+    gaps. A failure here is logged and swallowed: a partially-read document is
+    still worth more than none.
+    """
+    if not primary.pages:
+        return primary, decision
+    sparse = [
+        i for i, page in enumerate(primary.pages)
+        if len(page.strip()) < SCANNED_PAGE_CHAR_THRESHOLD
+    ]
+    if not sparse:
+        return primary, decision
+
+    try:
+        from .ocr_easyocr import ocr_pdf_pages
+
+        filled = ocr_pdf_pages(pdf_bytes, sparse)
+    except Exception as exc:  # OCR is an enhancement, never a gate
+        log.warning("extract: per-page OCR failed (%s); keeping text layer only",
+                    type(exc).__name__)
+        return primary, decision
+
+    if not filled:
+        return primary, decision
+
+    pages = list(primary.pages)
+    for index, text in filled.items():
+        pages[index] = text
+    merged = "\n".join(pages)
+    log.info("extract: OCR filled %d of %d sparse page(s); %d -> %d chars",
+             len(filled), len(sparse), len(primary.text), len(merged))
+    return (
+        ExtractedPdf(
+            text=merged,
+            page_count=primary.page_count,
+            has_text_layer=True,
+            extractor=f"{primary.extractor}+easyocr-pages",
+            pages=tuple(pages),
+        ),
+        OrchestratorDecision(
+            tier="pymupdf+page_ocr",
+            reason=(
+                f"text layer adequate overall ({decision.chars_per_page_avg:.0f} "
+                f"chars/page) but {len(sparse)} page(s) were near-empty; "
+                f"OCR recovered {len(filled)}"
+            ),
+            pages_with_text_layer=primary.page_count - len(sparse),
+            pages_below_threshold=len(sparse),
+            chars_per_page_avg=len(merged) / max(primary.page_count, 1),
+        ),
     )
 
 
