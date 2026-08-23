@@ -28,6 +28,17 @@ class ExtractedPdf:
     has_text_layer: bool
     extractor: str       # "pymupdf" | "pdfplumber" | "naver-clova-stub"
 
+    #: Per-page text, in page order. Defaults to empty so every existing
+    #: construction site (OCR adapters, HWP converter, the remote-conversion
+    #: lane) keeps working unchanged — only `extract_text_pymupdf` fills it.
+    #:
+    #: The orchestrator needs it because a document-wide chars/page average
+    #: hides the case this exists for: 동국대's 49-page guideline averages 437
+    #: chars/page — comfortably above the scanned-page threshold — while 13 of
+    #: its pages carry under 80 characters each. Those are its tables, drawn as
+    #: vectors, and the average of the readable heading pages buries them.
+    pages: tuple[str, ...] = ()
+
 
 def extract_text_pymupdf(pdf_bytes: bytes) -> ExtractedPdf:
     """Layer 1 — PyMuPDF.
@@ -60,6 +71,7 @@ def extract_text_pymupdf(pdf_bytes: bytes) -> ExtractedPdf:
             page_count=page_count,
             has_text_layer=has_text_layer,
             extractor="pymupdf",
+            pages=tuple(text_chunks),
         )
     finally:
         doc.close()

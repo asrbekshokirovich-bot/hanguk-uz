@@ -99,3 +99,95 @@ class TestOrchestratorDecisionImmutability:
         # Frozen dataclass — direct attribute assignment must raise.
         with pytest.raises((AttributeError, Exception)):
             decision.tier = "should_not_assign"  # type: ignore[misc]
+
+
+class TestPerPageOcrFill:
+    """A document-wide average hides a document whose TABLES are unreadable.
+
+    동국대's 49-page guideline averages 440 chars/page — five times the
+    scanned-page threshold, so the whole-document OCR lane never fires. Yet 13
+    of its pages hold under 80 characters: its 전형일정 and 제출서류 tables,
+    drawn as vectors. The headings extract, the table bodies do not, and three
+    dates survive in the entire file. Running the real fix over that PDF took
+    the text from 21 555 to 29 720 chars and the dates from 3 to 12.
+    """
+
+    def _doc(self, pages: tuple[str, ...]):
+        return ExtractedPdf(
+            text="\n".join(pages),
+            page_count=len(pages),
+            has_text_layer=True,
+            extractor="pymupdf",
+            pages=pages,
+        )
+
+    def test_sparse_pages_are_ocred_and_spliced(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        pages = ("full page " * 40, "", "full page " * 40)
+        calls: dict[str, object] = {}
+
+        def fake_ocr(pdf_bytes, page_numbers):
+            calls["pages"] = list(page_numbers)
+            return {1: "전형일정 2027. 1. 21."}
+
+        monkeypatch.setattr(
+            "uni_db.parse.ocr_easyocr.ocr_pdf_pages", fake_ocr, raising=False
+        )
+        result, decision = extract_orchestrator._fill_sparse_pages(
+            b"%PDF-", self._doc(pages),
+            extract_orchestrator._decide(self._doc(pages)),
+        )
+        assert calls["pages"] == [1], "only the empty page should be OCRed"
+        assert "전형일정 2027. 1. 21." in result.text
+        assert result.pages[0] == pages[0], "good pages must be left untouched"
+        assert decision.tier == "pymupdf+page_ocr"
+        assert result.extractor == "pymupdf+easyocr-pages"
+
+    def test_document_with_no_sparse_page_is_untouched(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        # The common case. It must not pay the OCR cost, and must not even
+        # import the heavy stack.
+        def explode(*_a, **_k):
+            raise AssertionError("OCR must not run when every page has text")
+
+        monkeypatch.setattr(
+            "uni_db.parse.ocr_easyocr.ocr_pdf_pages", explode, raising=False
+        )
+        pages = ("text " * 40, "text " * 40)
+        doc = self._doc(pages)
+        result, decision = extract_orchestrator._fill_sparse_pages(
+            b"%PDF-", doc, extract_orchestrator._decide(doc)
+        )
+        assert result is doc
+        assert decision.tier == "pymupdf"
+
+    def test_ocr_failure_keeps_the_text_layer(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        # A partially-read document is worth more than none, so an OCR error
+        # must degrade to what PyMuPDF managed rather than losing the parse.
+        def boom(*_a, **_k):
+            raise RuntimeError("easyocr is not installed")
+
+        monkeypatch.setattr(
+            "uni_db.parse.ocr_easyocr.ocr_pdf_pages", boom, raising=False
+        )
+        doc = self._doc(("text " * 40, ""))
+        result, decision = extract_orchestrator._fill_sparse_pages(
+            b"%PDF-", doc, extract_orchestrator._decide(doc)
+        )
+        assert result is doc
+        assert decision.tier == "pymupdf"
+
+    def test_older_extractors_without_per_page_text_are_skipped(self) -> None:
+        # HWP conversion, the remote-convert lane and the OCR adapters all
+        # build an ExtractedPdf without `pages`. They must pass straight
+        # through rather than being treated as one giant sparse page.
+        doc = ExtractedPdf(text="x" * 900, page_count=1, has_text_layer=True,
+                           extractor="hwp5txt")
+        result, decision = extract_orchestrator._fill_sparse_pages(
+            b"%PDF-", doc, extract_orchestrator._decide(doc)
+        )
+        assert result is doc
