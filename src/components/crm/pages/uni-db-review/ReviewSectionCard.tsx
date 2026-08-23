@@ -23,6 +23,7 @@ import {
   isDocumentFlag,
   sectionIcon,
   sectionLabelKey,
+  serverRejection,
   type DecidedInfo,
 } from './reviewGroups';
 
@@ -106,6 +107,10 @@ export function ReviewSectionCard({
   const { t } = useTranslation();
   const rel = parseReliability(row.reviewer_notes, row.needs_attention);
   const Icon = sectionIcon(row);
+  // A row the queue is showing again because it was rejected earlier, not
+  // decided in this session. The buttons stay live: approving is how a wrong
+  // rejection gets reversed.
+  const rejected = decided ? null : serverRejection(row);
   // Failed lane → "extraction failed" pill, never "confidence 0%" (Phase 3:
   // itemConfidence returns null for a failed lane).
   const laneFailed = isFailedExtraction(row.parsed_output);
@@ -133,6 +138,15 @@ export function ReviewSectionCard({
           >
             <span className="h-1.5 w-1.5 rounded-full bg-current" />
             {t(`uniReview.rel.${rel.color}`)}
+          </span>
+        ) : null}
+        {rejected ? (
+          <span
+            className="inline-flex h-[22px] items-center gap-1.5 rounded-full bg-destructive/10 px-2.5 text-[11.5px] font-semibold text-destructive"
+            title={t('uniReview.rejected.badgeTitle')}
+          >
+            <X className="h-3 w-3" strokeWidth={2.5} />
+            {t('uniReview.rejected.badge')}
           </span>
         ) : null}
         <CycleBadge row={row} />
@@ -245,6 +259,19 @@ export function ReviewSectionCard({
 
       {!decided ? (
         <>
+          {rejected ? (
+            <div className="flex items-start gap-2 rounded-[10px] bg-destructive/10 p-2.5 px-3.5 text-destructive">
+              <X className="mt-0.5 h-[15px] w-[15px] shrink-0" strokeWidth={2.5} />
+              <span className="min-w-0 break-words text-[12.5px] font-medium leading-normal">
+                {t('uniReview.rejected.note', {
+                  reason: rejected.reasonKey
+                    ? t(`uniReview.reasons.${rejected.reasonKey}`)
+                    : t('uniReview.reasons.other'),
+                })}
+                {rejected.detail ? ` — ${rejected.detail}` : ''}
+              </span>
+            </div>
+          ) : null}
           {note ? (
             <div
               className={cn(

@@ -1639,7 +1639,9 @@
       "hallucinated_field": "오류 / 지어낸 데이터",
       "ocr_garbled": "OCR 텍스트 깨짐",
       "source_404": "출처 열림 안 됨",
-      "other": "기타"
+      "other": "기타",
+      "wrong_source": "잘못된 원본 PDF",
+      "auto_no_data": "자동: 데이터 없음"
     },
     "ns": "명시 없음",
     "cal": {
@@ -1756,6 +1758,11 @@
         "master": "석사",
         "doctoral": "박사"
       }
+    },
+    "rejected": {
+      "badge": "거절됨",
+      "badgeTitle": "이 섹션은 이전에 거절되었습니다. 승인하면 해당 결정이 취소됩니다.",
+      "note": "이전에 거절됨 — {{reason}}"
     }
   }
 }

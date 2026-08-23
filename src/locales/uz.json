@@ -1734,7 +1734,9 @@
       "hallucinated_field": "Xato / to'qilgan ma'lumot",
       "ocr_garbled": "OCR matni buzilgan",
       "source_404": "Manba ochilmadi",
-      "other": "Boshqa"
+      "other": "Boshqa",
+      "wrong_source": "Manba PDF noto'g'ri",
+      "auto_no_data": "Avtomatik: ma'lumot topilmadi"
     },
     "ns": "Ko'rsatilmagan",
     "cal": {
@@ -1851,6 +1853,11 @@
         "master": "Magistratura (석사)",
         "doctoral": "Doktorantura (박사)"
       }
+    },
+    "rejected": {
+      "badge": "Rad etilgan",
+      "badgeTitle": "Bu bo'lim avval rad etilgan. Tasdiqlash bosilsa, qaror bekor qilinadi.",
+      "note": "Avval rad etilgan — {{reason}}"
     }
   }
 }

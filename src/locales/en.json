@@ -1695,7 +1695,9 @@
       "hallucinated_field": "Wrong / fabricated data",
       "ocr_garbled": "OCR text garbled",
       "source_404": "Source won't open",
-      "other": "Other"
+      "other": "Other",
+      "wrong_source": "Wrong source PDF",
+      "auto_no_data": "Automatic: no data found"
     },
     "ns": "Not specified",
     "cal": {
@@ -1809,6 +1811,11 @@
         "master": "Master's (석사)",
         "doctoral": "Doctoral (박사)"
       }
+    },
+    "rejected": {
+      "badge": "Rejected",
+      "badgeTitle": "This section was rejected earlier. Approving reverses that decision.",
+      "note": "Rejected earlier — {{reason}}"
     }
   }
 }
