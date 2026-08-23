@@ -292,9 +292,15 @@ export function isDegreeCheckFlag(row: ReviewQueueRow): boolean {
 
 /**
  * Reason codes that can appear on a rejected row, beyond the six a reviewer
- * can pick in the UI. `wrong_source` is written by fn_flag_source_wrong,
- * `auto_no_data` by the pipeline when an extraction came back empty — neither
- * is in REVIEW_REJECTION_REASONS, so both need their own label.
+ * can pick in the UI:
+ *
+ *   `wrong_source`      — written by fn_flag_source_wrong
+ *   `auto_no_data`      — written by the pipeline when an extraction is empty
+ *   `empty_extraction`  — a corrected label, see migration 20260823140000
+ *
+ * None of the three is in REVIEW_REJECTION_REASONS, and together they account
+ * for more than 300 live rows, so falling back to "Boshqa" would mislabel most
+ * of the rejected queue.
  */
 const KNOWN_REJECT_REASONS = new Set([
   'wrong_year',
@@ -305,6 +311,7 @@ const KNOWN_REJECT_REASONS = new Set([
   'other',
   'wrong_source',
   'auto_no_data',
+  'empty_extraction',
 ]);
 
 export interface ServerRejection {

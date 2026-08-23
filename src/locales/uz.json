@@ -1736,7 +1736,8 @@
       "source_404": "Manba ochilmadi",
       "other": "Boshqa",
       "wrong_source": "Manba PDF noto'g'ri",
-      "auto_no_data": "Avtomatik: ma'lumot topilmadi"
+      "auto_no_data": "Avtomatik: ma'lumot topilmadi",
+      "empty_extraction": "AI hech narsa chiqarmadi (manba joyida)"
     },
     "ns": "Ko'rsatilmagan",
     "cal": {
