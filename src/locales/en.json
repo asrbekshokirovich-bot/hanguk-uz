@@ -1697,7 +1697,8 @@
       "source_404": "Source won't open",
       "other": "Other",
       "wrong_source": "Wrong source PDF",
-      "auto_no_data": "Automatic: no data found"
+      "auto_no_data": "Automatic: no data found",
+      "empty_extraction": "Extraction returned nothing (source is fine)"
     },
     "ns": "Not specified",
     "cal": {

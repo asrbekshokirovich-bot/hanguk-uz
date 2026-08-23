@@ -289,15 +289,20 @@ describe('serverRejection', () => {
       .toEqual({ reasonKey: 'wrong_year', detail: null });
   });
 
-  it('knows the two codes the UI cannot produce', () => {
+  it('knows the three codes the UI cannot produce', () => {
     // wrong_source comes from fn_flag_source_wrong, auto_no_data from the
-    // pipeline. Neither is in REVIEW_REJECTION_REASONS, and both are common
-    // enough in the live table that falling back to "other" would mislabel
-    // more than 200 rows.
+    // pipeline, empty_extraction from migration 20260823140000. None is in
+    // REVIEW_REJECTION_REASONS, and together they are most of the rejected
+    // queue — falling back to "other" would mislabel over 300 rows.
     expect(serverRejection(row({ id: 'e', status: 'rejected', reviewer_notes: 'wrong_source: 404' }))?.reasonKey)
       .toBe('wrong_source');
     expect(serverRejection(row({ id: 'f', status: 'rejected', reviewer_notes: 'auto_no_data' }))?.reasonKey)
       .toBe('auto_no_data');
+    expect(
+      serverRejection(
+        row({ id: 'i', status: 'rejected', reviewer_notes: 'empty_extraction: manba tekshirildi' }),
+      ),
+    ).toEqual({ reasonKey: 'empty_extraction', detail: 'manba tekshirildi' });
   });
 
   it('keeps an unrecognised note verbatim instead of dropping it', () => {

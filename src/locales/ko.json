@@ -1641,7 +1641,8 @@
       "source_404": "출처 열림 안 됨",
       "other": "기타",
       "wrong_source": "잘못된 원본 PDF",
-      "auto_no_data": "자동: 데이터 없음"
+      "auto_no_data": "자동: 데이터 없음",
+      "empty_extraction": "추출 결과 없음 (원본은 정상)"
     },
     "ns": "명시 없음",
     "cal": {
