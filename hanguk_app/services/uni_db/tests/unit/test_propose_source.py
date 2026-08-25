@@ -5,10 +5,13 @@ fakes; these tests cover the deterministic gate logic that decides
 whether a candidate is even worth proposing.
 """
 
+from uuid import UUID
+
 from uni_db.discovery.propose_source import (
     Candidate,
     evaluate_candidate,
     matched_keywords_for,
+    propose,
 )
 
 
@@ -109,3 +112,42 @@ class TestPriorityImpliedByMatchCount:
         ok, _, matched = evaluate_candidate(c)
         assert ok is True
         assert "정정공고" in matched
+
+
+class _FakeConn:
+    """Minimal asyncpg stand-in: the first fetchval is the
+    already-in-announcement_sources probe, the second is the insert."""
+
+    def __init__(self, *, already_live: object, insert_returns: object) -> None:
+        self._answers = [already_live, insert_returns]
+        self.calls = 0
+
+    async def fetchval(self, _sql: str, *_args: object) -> object:
+        self.calls += 1
+        return self._answers.pop(0)
+
+
+_GOOD = Candidate(
+    url_ko="https://ipsi.silla.ac.kr/notice/2027",
+    proposed_by="naver_search",
+    candidate_title="2027학년도 외국인전형 모집요강",
+)
+
+
+class TestProposeInsertOutcome:
+    async def test_blocked_host_reports_not_inserted(self) -> None:
+        # trg_proposed_sources_block_host returns NULL for a host on
+        # blocked_link_hosts, so `returning id` yields nothing. Without the
+        # None check the worker would count a phantom insert and log id=None.
+        conn = _FakeConn(already_live=None, insert_returns=None)
+        outcome = await propose(conn, _GOOD)
+        assert outcome.inserted is False
+        assert outcome.proposed_id is None
+        assert "blocked" in outcome.reason
+
+    async def test_normal_insert_reports_the_new_id(self) -> None:
+        new_id = UUID("11111111-2222-3333-4444-555555555555")
+        conn = _FakeConn(already_live=None, insert_returns=new_id)
+        outcome = await propose(conn, _GOOD)
+        assert outcome.inserted is True
+        assert outcome.proposed_id == new_id

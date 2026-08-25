@@ -162,6 +162,16 @@ async def propose(
         # scholarships.applicant_categories fix for the same root cause).
         json.dumps(list(matched), ensure_ascii=False),
     )
+    if new_id is None:
+        # `trg_proposed_sources_block_host` returns NULL for a host on
+        # `blocked_link_hosts`, so the insert is skipped and `returning id`
+        # yields nothing. Reporting that as inserted=True would put a
+        # phantom `id=None` line in the discovery log for every blocked
+        # candidate of every sweep.
+        log.info(
+            "proposed_source: %s is on a blocked host; skipped", candidate.url_ko
+        )
+        return ProposeOutcome(inserted=False, reason="host is blocked")
     log.info(
         "proposed_source: id=%s url=%s by=%s matches=%d",
         new_id,
