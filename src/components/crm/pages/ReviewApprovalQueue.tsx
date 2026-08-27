@@ -102,24 +102,39 @@ export function ReviewApprovalQueue() {
           onError: (e) => toast.error(e.message),
         },
       ),
-    onConfirmReject: (row, reason) =>
-      reject.mutate(
-        { queueItemId: row.id, reason },
-        {
-          onSuccess: () => {
-            markDecided(row, 'rejected', t(`uniReview.reasons.${reason}`));
-            setRejectingRowId(null);
-            const g = groupOf(row);
-            toast.success(
-              t('uniReview.toast.rejected', {
-                uni: g ? shortName(g) : '—',
-                section: t(sectionLabelKey(row)),
-              }),
-            );
+    onConfirmReject: (row, reason) => {
+      const g = groupOf(row);
+      const allRows = g?.rows ?? [row];
+      const reasonLabel = t(`uniReview.reasons.${reason}`);
+      let completed = 0;
+      let failed = false;
+      for (const r of allRows) {
+        reject.mutate(
+          { queueItemId: r.id, reason },
+          {
+            onSuccess: () => {
+              markDecided(r, 'rejected', reasonLabel);
+              completed++;
+              if (completed === allRows.length && !failed) {
+                setRejectingRowId(null);
+                toast.success(
+                  t('uniReview.toast.rejected', {
+                    uni: g ? shortName(g) : '—',
+                    section: t(sectionLabelKey(row)),
+                  }),
+                );
+              }
+            },
+            onError: (e) => {
+              if (!failed) {
+                failed = true;
+                toast.error(e.message);
+              }
+            },
           },
-          onError: (e) => toast.error(e.message),
-        },
-      ),
+        );
+      }
+    },
     onFlagSource: (row) =>
       flagSourceWrong.mutate(
         { queueItemId: row.id },

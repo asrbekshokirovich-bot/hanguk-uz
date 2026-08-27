@@ -75,10 +75,6 @@ function LinkCard({
           </span>
         )}
         {row.was_closed ? (
-          /* Without this the card looks untouched, and the operator re-does
-             work someone already did. The two cases read differently: a person
-             judged this link, or the crawler recorded why it could not fetch
-             it. */
           <span
             className="inline-flex h-[22px] items-center rounded-full bg-warning/10 px-2.5 text-[11.5px] font-semibold text-warning"
             title={t('uniReview.links.reopenedTitle')}
