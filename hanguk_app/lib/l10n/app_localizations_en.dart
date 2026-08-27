@@ -1194,6 +1194,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get guestValueNo => 'No';
 
   @override
+  String get guestSaveToggle => 'Save';
+
+  @override
   String get roomTabStatus => 'Status';
 
   @override

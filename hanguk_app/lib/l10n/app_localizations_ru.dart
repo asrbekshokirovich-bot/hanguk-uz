@@ -1194,6 +1194,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get guestValueNo => 'Нет';
 
   @override
+  String get guestSaveToggle => 'Сохранить';
+
+  @override
   String get roomTabStatus => 'Статус';
 
   @override

@@ -1194,6 +1194,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get guestValueNo => 'Không';
 
   @override
+  String get guestSaveToggle => 'Lưu';
+
+  @override
   String get roomTabStatus => 'Trạng thái';
 
   @override
