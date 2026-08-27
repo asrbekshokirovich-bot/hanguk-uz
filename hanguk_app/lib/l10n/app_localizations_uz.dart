@@ -1199,6 +1199,9 @@ class AppLocalizationsUz extends AppLocalizations {
   String get guestValueNo => 'Yo‘q';
 
   @override
+  String get guestSaveToggle => 'Saqlash';
+
+  @override
   String get roomTabStatus => 'Holat';
 
   @override

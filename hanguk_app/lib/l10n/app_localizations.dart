@@ -2264,6 +2264,12 @@ abstract class AppLocalizations {
   /// **'No'**
   String get guestValueNo;
 
+  /// Semantics label for the heart button on a Guest Explore card — an in-session shortlist toggle, not persisted.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get guestSaveToggle;
+
   /// First tab of the UniversityRoomModal — shows the application's ProcessTracker. Rendered as a SeoulFilterChip with the fixed hangul accent 현황.
   ///
   /// In en, this message translates to:

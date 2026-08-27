@@ -1157,6 +1157,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get guestValueNo => '아니요';
 
   @override
+  String get guestSaveToggle => '저장';
+
+  @override
   String get roomTabStatus => '현황';
 
   @override

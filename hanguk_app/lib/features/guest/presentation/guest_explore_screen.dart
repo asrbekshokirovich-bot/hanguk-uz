@@ -8,14 +8,20 @@ import '../../map/presentation/ieqas_label.dart';
 import '../../uni_db/data/approved_universities_provider.dart';
 import '../data/guest_compare_provider.dart';
 
-/// Guest Explore — the catalogue browser (DESIGN_SPEC screen 8).
+/// Guest Explore — the catalogue browser (DESIGN_SPEC screen 8), redesigned
+/// as a two-column card grid (2026-08 discovery-screen redesign).
 ///
-/// What the prototype shows and this does not: a faculty filter row, a
-/// tuition figure, a rank, and an Open 모집 중 / Closed 마감 status chip.
-/// None of those exist in `v_institutions_for_map` — `next_event_at` in
-/// particular is null for all 204 rows, so an "open for Spring 2027" chip
-/// would be telling a student something nobody knows. Only real fields are
-/// rendered; the layout is the prototype's.
+/// The redesign mock (a Pinterest-style product grid) puts four stat rows
+/// on every card — contract fee, entry requirement, deadline, dorm price —
+/// plus a star rating. Read off `v_guest_approved_admissions` (via
+/// [approvedCatalogueProvider], the same source [GuestCompareScreen] already
+/// uses), three of those are real: tuition, the TOPIK floor and the document
+/// deadline. There is no dorm-price column anywhere in the schema, no GPA
+/// requirement, and no rating of any kind — the mock's "4.x" was a hash of
+/// the name's length, not a measurement of anything. Only real fields are
+/// rendered, and only where that institution's approved review actually
+/// carries them: a card renders the rows it has, not a grid of dashes for
+/// the fields most institutions don't.
 class GuestExploreScreen extends ConsumerWidget {
   const GuestExploreScreen({super.key, required this.onOpenCompare});
 
@@ -62,12 +68,16 @@ class GuestExploreScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context)!;
-    final unisAsync = ref.watch(approvedUniversitiesProvider);
+    // The approved catalogue, not the bare map list: the redesigned card
+    // shows tuition/TOPIK/deadline, which live in `details`
+    // (`v_guest_approved_admissions`) alongside the university rows.
+    final catalogueAsync = ref.watch(approvedCatalogueProvider);
     final query = ref.watch(guestSearchProvider);
     final city = ref.watch(guestCityFilterProvider);
     final compare = ref.watch(guestCompareProvider);
+    final saved = ref.watch(guestSavedProvider);
 
-    return unisAsync.when(
+    return catalogueAsync.when(
       loading: () => const Center(
         child: CircularProgressIndicator(color: SeoulColors.lime),
       ),
@@ -85,19 +95,15 @@ class GuestExploreScreen extends ConsumerWidget {
               const SizedBox(height: 16),
               SeoulOutlineButton(
                 label: l.commonRetry,
-                onPressed: () => ref.invalidate(approvedUniversitiesProvider),
+                onPressed: () => ref.invalidate(approvedCatalogueProvider),
               ),
             ],
           ),
         ),
       ),
-      data: (unis) {
-        // The list arrives already limited to institutions the review queue
-        // has approved — see `approvedUniversitiesProvider`. It used to be the
-        // whole catalogue narrowed here by `hasIntakeData`, which answered 45
-        // against an approved set of 57: that flag follows the CRM's default
-        // intake, so it counted cycles carrying no extracted field at all and
-        // dropped institutions approved for any other year.
+      data: (catalogue) {
+        final unis = catalogue.universities;
+        final details = catalogue.details;
         final cities = _cityOptions(unis);
         final results = _apply(unis, query, city);
 
@@ -109,35 +115,11 @@ class GuestExploreScreen extends ConsumerWidget {
             SeoulSizes.orbClearance,
           ),
           children: [
-            Text(l.guestExploreTitle, style: SeoulType.display),
-            const SizedBox(height: 5),
-            // The Hangul label and the catalogue size share a line. Stacked,
-            // the header ran four deep — title, Hangul, count, then the search
-            // field — and pushed the first result off a small screen.
-            Row(
-              children: [
-                Flexible(
-                  child: Text(
-                    '나의 대학 찾기',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: SeoulType.hangulLabel,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Text('·', style: SeoulType.caption),
-                const SizedBox(width: 8),
-                Flexible(
-                  child: Text(
-                    l.guestUniversitiesCount(unis.length),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: SeoulType.caption,
-                  ),
-                ),
-              ],
+            _ExploreHero(
+              title: l.guestExploreTitle,
+              count: l.guestUniversitiesCount(unis.length),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 18),
 
             _SearchField(
               value: query,
@@ -254,16 +236,99 @@ class GuestExploreScreen extends ConsumerWidget {
                 ),
               )
             else
-              for (final u in results)
-                _GuestUniversityCard(
-                  university: u,
-                  selected: compare.contains(u.id),
-                  onToggleCompare: () =>
-                      ref.read(guestCompareProvider.notifier).toggle(u.id),
+              // Two-column grid, built as manual row pairs rather than a
+              // GridView: cards render only the stat rows their university
+              // actually has, so heights vary card to card — a fixed-height
+              // GridDelegate would either clip the taller cards or leave the
+              // shorter ones padded with dead space.
+              for (var i = 0; i < results.length; i += 2)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 14),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: _GuestUniversityGridCard(
+                          university: results[i],
+                          admission: details[results[i].id],
+                          compareSelected: compare.contains(results[i].id),
+                          saved: saved.contains(results[i].id),
+                          onToggleCompare: () => ref
+                              .read(guestCompareProvider.notifier)
+                              .toggle(results[i].id),
+                          onToggleSaved: () => ref
+                              .read(guestSavedProvider.notifier)
+                              .toggle(results[i].id),
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: i + 1 < results.length
+                            ? _GuestUniversityGridCard(
+                                university: results[i + 1],
+                                admission: details[results[i + 1].id],
+                                compareSelected: compare.contains(
+                                  results[i + 1].id,
+                                ),
+                                saved: saved.contains(results[i + 1].id),
+                                onToggleCompare: () => ref
+                                    .read(guestCompareProvider.notifier)
+                                    .toggle(results[i + 1].id),
+                                onToggleSaved: () => ref
+                                    .read(guestSavedProvider.notifier)
+                                    .toggle(results[i + 1].id),
+                              )
+                            : const SizedBox.shrink(),
+                      ),
+                    ],
+                  ),
                 ),
           ],
         );
       },
+    );
+  }
+}
+
+/// The lime-tinted promo card above the search field: title, hangul accent
+/// and the catalogue size. Purely chrome — no per-university claim, so
+/// unlike the redesign mock it does not carry a global "IEQAS accredited"
+/// eyebrow (accreditation varies per institution; see
+/// [_GuestUniversityGridCard]).
+class _ExploreHero extends StatelessWidget {
+  const _ExploreHero({required this.title, required this.count});
+
+  final String title;
+  final String count;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        borderRadius: SeoulRadii.cardR,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            SeoulColors.lime.withValues(alpha: 0.16),
+            SeoulColors.glass,
+          ],
+        ),
+        border: Border.all(color: SeoulColors.lime.withValues(alpha: 0.28)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text('나의 대학 찾기', style: SeoulType.hangulLabel),
+          const SizedBox(height: 8),
+          Text(title, style: SeoulType.display),
+          const SizedBox(height: 6),
+          Text(count, style: SeoulType.bodySecondary),
+        ],
+      ),
     );
   }
 }
@@ -336,110 +401,367 @@ class _SearchFieldState extends State<_SearchField> {
   }
 }
 
-/// One result row: glyph tile, name, city, and the compare toggle.
-class _GuestUniversityCard extends StatelessWidget {
-  const _GuestUniversityCard({
+/// 3169000 → "3,169,000". Thousands separators only; the ₩ belongs to the
+/// caller so the number formatting stays one job.
+String _krw(int value) {
+  final s = value.toString();
+  final b = StringBuffer();
+  for (var i = 0; i < s.length; i++) {
+    if (i > 0 && (s.length - i) % 3 == 0) b.write(',');
+    b.write(s[i]);
+  }
+  return b.toString();
+}
+
+/// One card in the two-column grid: a logo tile with a save toggle, the
+/// name and city, then whichever of tuition / TOPIK / deadline this
+/// university's approved review actually established, and a compare toggle.
+class _GuestUniversityGridCard extends StatelessWidget {
+  const _GuestUniversityGridCard({
     required this.university,
-    required this.selected,
+    required this.admission,
+    required this.compareSelected,
+    required this.saved,
     required this.onToggleCompare,
+    required this.onToggleSaved,
   });
 
   final University university;
-  final bool selected;
+
+  /// What the approved review established for this institution's most
+  /// recent intake year, or null if it has none on record.
+  final ApprovedAdmission? admission;
+
+  final bool compareSelected;
+  final bool saved;
   final VoidCallback onToggleCompare;
+  final VoidCallback onToggleSaved;
+
+  String? get _tuition {
+    final a = admission;
+    final min = a?.tuitionMinKrw;
+    if (a == null || min == null) return null;
+    final max = a.tuitionMaxKrw;
+    return max != null && max != min
+        ? '${_krw(min)}–${_krw(max)} ₩'
+        : '${_krw(min)} ₩';
+  }
+
+  String? get _topik {
+    final level = admission?.topikMinLevel;
+    return level != null ? '≥ $level' : null;
+  }
+
+  /// Document deadline first — it is the date a student actually needs to
+  /// hit — falling back to the application window's close.
+  String? get _deadline =>
+      admission?.documentDeadline ?? admission?.applicationEnd;
 
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     final ieqas = ieqasLabel(l, university.ieqasStatus);
+    final rows = <(String, String)>[
+      if (_tuition != null) (l.guestRowTuition, _tuition!),
+      if (_topik != null) (l.guestRowTopik, _topik!),
+      if (_deadline != null) (l.guestRowDocDeadline, _deadline!),
+    ];
 
     return GlassCard(
-      margin: const EdgeInsets.only(bottom: 12),
       radius: SeoulRadii.tile,
       blur: false,
-      fillColor: selected ? SeoulColors.limeFill : null,
-      borderColor: selected ? SeoulColors.lime : null,
-      child: Row(
+      padding: const EdgeInsets.all(12),
+      borderColor: compareSelected ? SeoulColors.lime : null,
+      fillColor: compareSelected ? SeoulColors.limeFill : null,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          HangulGlyphTile(
-            glyph: HangulGlyphTile.firstSyllable(university.nameKo),
-            active: selected,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
+          AspectRatio(
+            aspectRatio: 1,
+            child: Stack(
               children: [
-                Text(
-                  university.name,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: SeoulType.subtitle,
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Flexible(
-                      child: Text(
-                        university.location,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: SeoulType.caption,
-                      ),
-                    ),
-                    // Keyed on the label, not on `isAccredited`: the chip
-                    // appears exactly when there is something to write in it.
-                    // `ieqas_status` is 'none' for 74 of 204 rows — a blue
-                    // pill reading "none" beside the city — and the label was
-                    // the raw enum, so students met the bare English word
-                    // "outstanding" on an otherwise Uzbek card.
-                    if (ieqas != null) ...[
-                      const SizedBox(width: 8),
-                      Flexible(
-                        child: StatusChip(
-                          label: ieqas,
-                          tone: StatusTone.info,
-                          dense: true,
-                        ),
-                      ),
-                    ],
-                  ],
+                Positioned.fill(child: _Logo(university: university)),
+                Positioned(
+                  top: 6,
+                  right: 6,
+                  child: _SaveButton(
+                    label: l.guestSaveToggle,
+                    active: saved,
+                    onTap: onToggleSaved,
+                  ),
                 ),
               ],
             ),
           ),
-          const SizedBox(width: 10),
-          Semantics(
-            button: true,
-            selected: selected,
-            label: l.guestNavCompare,
-            child: GestureDetector(
-              onTap: onToggleCompare,
-              behavior: HitTestBehavior.opaque,
-              child: Container(
-                width: SeoulSizes.minTapTarget,
-                height: SeoulSizes.minTapTarget,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: selected ? SeoulColors.lime : SeoulColors.glass,
-                  border: Border.all(
-                    color: selected
-                        ? SeoulColors.lime
-                        : SeoulColors.glassBorder,
+          const SizedBox(height: 10),
+          Text(
+            university.name,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: SeoulType.subtitle.copyWith(fontSize: 14),
+          ),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              Flexible(
+                child: Text(
+                  university.location,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: SeoulType.caption,
+                ),
+              ),
+              if (ieqas != null) ...[
+                const SizedBox(width: 6),
+                Flexible(
+                  child: StatusChip(
+                    label: ieqas,
+                    tone: StatusTone.info,
+                    dense: true,
                   ),
-                  boxShadow: selected ? SeoulShadows.limeGlowSmall : null,
                 ),
-                child: Icon(
-                  selected ? Icons.check_rounded : Icons.add_rounded,
-                  size: 20,
-                  color: selected ? SeoulColors.ink : SeoulColors.textSecondary,
+              ],
+            ],
+          ),
+          if (rows.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.only(top: 10),
+              decoration: const BoxDecoration(
+                border: Border(
+                  top: BorderSide(color: SeoulColors.glassBorder),
                 ),
+              ),
+              child: Column(
+                children: [
+                  for (final r in rows) _StatRow(label: r.$1, value: r.$2),
+                ],
+              ),
+            ),
+          ],
+          const SizedBox(height: 10),
+          _CompareToggleButton(
+            label: l.guestNavCompare,
+            selected: compareSelected,
+            onTap: onToggleCompare,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The institution's real logo, falling back to the hangul glyph avatar when
+/// there is none (or it fails to load) — same treatment as the map detail
+/// sheet's `_buildAvatar`, so a student sees the same image both places.
+class _Logo extends StatelessWidget {
+  const _Logo({required this.university});
+
+  final University university;
+
+  @override
+  Widget build(BuildContext context) {
+    final url = university.logoUrl;
+    final glyph = HangulGlyphTile.firstSyllable(university.nameKo);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: SeoulColors.glass,
+        borderRadius: SeoulRadii.tileR,
+        border: Border.all(color: SeoulColors.glassBorder),
+      ),
+      child: url == null || url.isEmpty
+          ? Center(
+              child: Text(
+                glyph,
+                style: SeoulType.hangulGlyph.copyWith(fontSize: 30),
+              ),
+            )
+          : Padding(
+              padding: const EdgeInsets.all(16),
+              child: Image.network(
+                url,
+                fit: BoxFit.contain,
+                excludeFromSemantics: true,
+                errorBuilder: (_, _, _) => Center(
+                  child: Text(
+                    glyph,
+                    style: SeoulType.hangulGlyph.copyWith(fontSize: 30),
+                  ),
+                ),
+                loadingBuilder: (context, child, progress) {
+                  if (progress == null) return child;
+                  return const Center(
+                    child: SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          SeoulColors.textFaint,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+    );
+  }
+}
+
+/// Heart toggle over the logo tile — an in-session shortlist, not a saved
+/// application or anything persisted (see `guestSavedProvider`).
+class _SaveButton extends StatelessWidget {
+  const _SaveButton({
+    required this.label,
+    required this.active,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool active;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      selected: active,
+      label: label,
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: Container(
+          width: 30,
+          height: 30,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: active
+                ? SeoulColors.lime
+                : SeoulColors.mapWater.withValues(alpha: 0.72),
+            border: Border.all(
+              color: active ? SeoulColors.lime : SeoulColors.glassBorder,
+            ),
+          ),
+          child: Icon(
+            active ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+            size: 15,
+            color: active ? SeoulColors.ink : SeoulColors.textSecondary,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _StatRow extends StatelessWidget {
+  const _StatRow({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: SeoulType.caption.copyWith(fontSize: 10.5),
+            ),
+          ),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              value,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.right,
+              style: const TextStyle(
+                fontFamily: SeoulType.inter,
+                fontFamilyFallback: SeoulType.fallback,
+                fontSize: 11,
+                height: 1.3,
+                fontWeight: FontWeight.w700,
+                color: SeoulColors.textPrimary,
               ),
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// The per-card "add to compare" action. Reuses [l.guestNavCompare] for both
+/// states — the nav tab, the tray count and this button all say the same
+/// word ("Taqqoslash"), and the checkmark icon carries the selected state
+/// rather than a second competing label.
+class _CompareToggleButton extends StatelessWidget {
+  const _CompareToggleButton({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: label,
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: Container(
+          width: double.infinity,
+          height: 36,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            borderRadius: SeoulRadii.buttonR,
+            color: selected ? SeoulColors.lime : SeoulColors.glass,
+            border: Border.all(
+              color: selected ? SeoulColors.lime : SeoulColors.glassBorder,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                selected ? Icons.check_rounded : Icons.add_rounded,
+                size: 15,
+                color: selected ? SeoulColors.ink : SeoulColors.textSecondary,
+              ),
+              const SizedBox(width: 5),
+              Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontFamily: SeoulType.inter,
+                  fontFamilyFallback: SeoulType.fallback,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: selected
+                      ? SeoulColors.ink
+                      : SeoulColors.textSecondary,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

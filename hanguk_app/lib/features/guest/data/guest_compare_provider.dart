@@ -67,3 +67,24 @@ final guestCityFilterProvider =
     NotifierProvider<GuestCityFilterNotifier, String?>(
       GuestCityFilterNotifier.new,
     );
+
+/// Universities a visitor has hearted while browsing Explore.
+///
+/// A shortlist aid only — session-scoped like [guestCompareProvider], not
+/// synced anywhere. There is no guest account for it to belong to, so
+/// persisting it server-side is not a fetch away; it just resets when the
+/// visitor leaves guest mode, same as their compare tray.
+class GuestSavedNotifier extends Notifier<Set<String>> {
+  @override
+  Set<String> build() => const <String>{};
+
+  void toggle(String id) {
+    final next = {...state};
+    if (!next.remove(id)) next.add(id);
+    state = next;
+  }
+}
+
+final guestSavedProvider = NotifierProvider<GuestSavedNotifier, Set<String>>(
+  GuestSavedNotifier.new,
+);

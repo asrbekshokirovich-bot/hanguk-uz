@@ -1406,6 +1406,10 @@
   "@guestValueNo": {
     "description": "Generic negative value in the compare grid."
   },
+  "guestSaveToggle": "Save",
+  "@guestSaveToggle": {
+    "description": "Semantics label for the heart button on a Guest Explore card — an in-session shortlist toggle, not persisted."
+  },
   "roomTabStatus": "Status",
   "@roomTabStatus": {
     "description": "First tab of the UniversityRoomModal — shows the application's ProcessTracker. Rendered as a SeoulFilterChip with the fixed hangul accent 현황."

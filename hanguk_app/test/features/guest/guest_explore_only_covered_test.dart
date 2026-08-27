@@ -36,11 +36,20 @@ University _uni(String id, {required String name, required String city}) {
 }
 
 /// [approved] is what the provider resolves to — i.e. already narrowed.
+///
+/// Overrides `approvedCatalogueProvider`, not the derived
+/// `approvedUniversitiesProvider`: the screen now reads the catalogue
+/// directly (it needs `details` too, for the card's tuition/TOPIK/deadline
+/// rows), and overriding the derived provider alone would leave that read
+/// hitting the real network call.
 Future<void> _pump(WidgetTester tester, List<University> approved) async {
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
-        approvedUniversitiesProvider.overrideWith((ref) async => approved),
+        approvedCatalogueProvider.overrideWith(
+          (ref) async =>
+              ApprovedCatalogue(universities: approved, details: const {}),
+        ),
       ],
       child: MaterialApp(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
