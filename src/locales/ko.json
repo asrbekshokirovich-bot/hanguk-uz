@@ -1621,7 +1621,12 @@
       "rejectReason": "거절 사유:",
       "confirmReject": "거절 확정",
       "cancel": "취소",
-      "flagSource": "출처 오류 — 이 PDF의 모든 섹션 거절"
+      "flagSource": "출처 오류 — 이 PDF의 모든 섹션 거절",
+      "edit": "수정",
+      "editTitle": "승인하기 전에 추출된 데이터를 수정하세요",
+      "saveEdit": "저장하고 승인",
+      "editInvalidJson": "잘못된 JSON — 저장하기 전에 구문을 수정하세요",
+      "editPayloadEmpty": "수정된 데이터는 비어 있을 수 없습니다"
     },
     "decided": {
       "approved": "승인됨 — 학생에게 게시됨",

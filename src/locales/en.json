@@ -1677,7 +1677,12 @@
       "rejectReason": "Rejection reason:",
       "confirmReject": "Confirm rejection",
       "cancel": "Cancel",
-      "flagSource": "Wrong source — reject every section from this PDF"
+      "flagSource": "Wrong source — reject every section from this PDF",
+      "edit": "Edit",
+      "editTitle": "Correct the extracted data before approving",
+      "saveEdit": "Save & approve",
+      "editInvalidJson": "Invalid JSON — fix the syntax before saving",
+      "editPayloadEmpty": "The corrected payload can't be empty"
     },
     "decided": {
       "approved": "Approved — published to students",
