@@ -4,12 +4,14 @@ import { Loader2, RefreshCw, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   useReviewQueue,
   useReviewActions,
   type ReviewQueueRow,
   type RejectionReason,
 } from '@/hooks/useReviewQueue';
+import { supabase } from '@/integrations/supabase/client';
 import {
   groupRows,
   sortGroups,
@@ -43,6 +45,7 @@ export function ReviewApprovalQueue() {
   const { t } = useTranslation();
   const { data: rows = [], isLoading, error, refetch } = useReviewQueue();
   const { accept, reject, flagSourceWrong } = useReviewActions();
+  const qc = useQueryClient();
 
   const [decided, setDecided] = useState<DecidedMap>({});
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
@@ -102,37 +105,34 @@ export function ReviewApprovalQueue() {
           onError: (e) => toast.error(e.message),
         },
       ),
-    onConfirmReject: (row, reason) => {
+    onConfirmReject: async (row, reason) => {
       const g = groupOf(row);
       const allRows = g?.rows ?? [row];
       const reasonLabel = t(`uniReview.reasons.${reason}`);
-      let completed = 0;
-      let failed = false;
-      for (const r of allRows) {
-        reject.mutate(
-          { queueItemId: r.id, reason },
-          {
-            onSuccess: () => {
-              markDecided(r, 'rejected', reasonLabel);
-              completed++;
-              if (completed === allRows.length && !failed) {
-                setRejectingRowId(null);
-                toast.success(
-                  t('uniReview.toast.rejected', {
-                    uni: g ? shortName(g) : '—',
-                    section: t(sectionLabelKey(row)),
-                  }),
-                );
-              }
-            },
-            onError: (e) => {
-              if (!failed) {
-                failed = true;
-                toast.error(e.message);
-              }
-            },
-          },
+      try {
+        await Promise.all(
+          allRows.map((r) =>
+            supabase
+              .rpc('fn_review_reject' as never, {
+                queue_item_id: r.id,
+                reason,
+              } as never)
+              .then(({ error: e }) => {
+                if (e) throw new Error(e.message);
+              }),
+          ),
         );
+        for (const r of allRows) markDecided(r, 'rejected', reasonLabel);
+        setRejectingRowId(null);
+        qc.invalidateQueries({ queryKey: ['uni_db', 'review_queue_dashboard'] });
+        toast.success(
+          t('uniReview.toast.rejected', {
+            uni: g ? shortName(g) : '—',
+            section: t(sectionLabelKey(row)),
+          }),
+        );
+      } catch (e) {
+        toast.error(e instanceof Error ? e.message : String(e));
       }
     },
     onFlagSource: (row) =>
