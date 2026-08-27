@@ -1734,7 +1734,10 @@
       "hallucinated_field": "Xato / to'qilgan ma'lumot",
       "ocr_garbled": "OCR matni buzilgan",
       "source_404": "Manba ochilmadi",
-      "other": "Boshqa"
+      "other": "Boshqa",
+      "wrong_source": "Manba PDF noto'g'ri",
+      "auto_no_data": "Avtomatik: ma'lumot topilmadi",
+      "empty_extraction": "AI hech narsa chiqarmadi (manba joyida)"
     },
     "ns": "Ko'rsatilmagan",
     "cal": {
@@ -1832,7 +1835,23 @@
       "noUni": "Universitet topilmadi.",
       "notPdf": "Faqat PDF fayl yuklang.",
       "tooLarge": "Fayl juda katta: {{size}} MB. Chegara — {{max}} MB.",
-      "uploaded": "PDF yuklandi — {{uni}} uchun tahlilga navbatga qo'yildi."
+      "uploaded": "PDF yuklandi — {{uni}} uchun tahlilga navbatga qo'yildi.",
+      "closedByPerson": "Avval yopilgan",
+      "closedByCrawler": "Yuklab bo'lmagan",
+      "reopenedTitle": "Bu havola avval yopilgan edi — qayta ko'rib chiqish uchun chiqarildi",
+      "reasonLabel": "Yopish sababi:",
+      "confirmDismiss": "Yopish",
+      "detailPlaceholder": "Izoh (ixtiyoriy; \"Boshqa\" uchun majburiy)",
+      "dismissedWithReason": "Havola yopildi — {{reason}}",
+      "reasons": {
+        "not_2027": "2027 emas (boshqa yil)",
+        "already_have": "Bu hujjat bazada bor",
+        "uploaded": "PDF qo'lda yuklandi",
+        "no_guideline": "Sahifada qabul qo'llanmasi yo'q",
+        "site_dead": "Sayt/havola ishlamaydi",
+        "not_relevant": "Bizga tegishli emas",
+        "other": "Boshqa"
+      }
     },
     "docFlag": {
       "splitTitle": "Bu PDF ichida bakalavr va magistratura qabuli aralash",
@@ -1851,6 +1870,11 @@
         "master": "Magistratura (석사)",
         "doctoral": "Doktorantura (박사)"
       }
+    },
+    "rejected": {
+      "badge": "Rad etilgan",
+      "badgeTitle": "Bu bo'lim avval rad etilgan. Tasdiqlash bosilsa, qaror bekor qilinadi.",
+      "note": "Avval rad etilgan — {{reason}}"
     }
   }
 }

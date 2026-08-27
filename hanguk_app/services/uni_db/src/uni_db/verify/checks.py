@@ -166,15 +166,30 @@ def check_grounding_deterministic(
         quote = row.get("source_text_ko")
         if not isinstance(quote, str) or len(quote.strip()) < _MIN_QUOTE_LEN:
             continue
-        if _quote_grounded(_norm(quote), norm_pdf):
+        nq = _norm(quote)
+        if _quote_grounded(nq, norm_pdf):
             continue
+        # Say WHY, not just that. "quote_not_in_source" followed by 120
+        # characters of Korean tells a reviewer nothing they can act on, and
+        # tells the next engineer even less: a quote can fail for being
+        # fabricated, for being a page-long block the model pasted whole, or
+        # for sitting just under the coverage bar after a table reflow. Those
+        # need different responses, and the numbers separate them.
+        #
+        # This was learnt the expensive way on the CLI backend, where every
+        # failure recorded its token accounting and not its reason, and the
+        # cause stayed unknown across three runs.
+        coverage = _covered_fraction(nq, norm_pdf) if nq else 0.0
         issues.append(
             GroundingIssue(
                 field_group=field_group,
                 row_index=i,
                 field="source_text_ko",
                 problem="quote_not_in_source",
-                quote=quote[:120],
+                quote=(
+                    f"[coverage {coverage:.2f} < {_MIN_COVERAGE:.2f}, "
+                    f"quote {len(quote)} chars] {quote[:120]}"
+                ),
             )
         )
     return issues

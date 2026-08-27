@@ -63,10 +63,19 @@ dev = [
 heavy = [
   "camelot-py[cv]>=0.11",
   "playwright>=1.47",              # JS-heavy ac.kr sites in Phase 1+
-  # ADR-002: EasyOCR for image-only Korean PDFs. Pulls torch as a
-  # transitive dep (~2 GB) — that's why it's in the heavy extras.
-  # The model files (ko + en) auto-download to ~/.EasyOCR/ on first
-  # use (~80 MB).
+  "easyocr>=1.7",
+]
+# OCR on its own, without camelot's OpenCV stack or a browser download.
+# `heavy` was the only home for easyocr, and the document-processing
+# workflows install `pip install -e .` with no extras at all — so the OCR
+# lane was unreachable in production even though UNI_DB_LIVE_APIS was true
+# and every routing branch for it existed. Twelve stored guidelines had no
+# readable text for that reason.
+#
+# Still not cheap: easyocr pulls torch transitively (~2 GB installed, CPU
+# wheel), plus a one-time ~80 MB model download to ~/.EasyOCR/ on first
+# call. Install it in the workflows that actually read documents, not in CI.
+ocr = [
   "easyocr>=1.7",
 ]
 

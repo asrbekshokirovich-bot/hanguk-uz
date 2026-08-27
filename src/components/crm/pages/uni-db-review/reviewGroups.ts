@@ -286,6 +286,67 @@ export function isDegreeCheckFlag(row: ReviewQueueRow): boolean {
   return /no split boundary|no degree section header/i.test(note);
 }
 
+// ---------------------------------------------------------------------------
+// Rejected rows that are back in the queue (migration 20260823120000).
+// ---------------------------------------------------------------------------
+
+/**
+ * Reason codes that can appear on a rejected row, beyond the six a reviewer
+ * can pick in the UI:
+ *
+ *   `wrong_source`      — written by fn_flag_source_wrong
+ *   `auto_no_data`      — written by the pipeline when an extraction is empty
+ *   `empty_extraction`  — a corrected label, see migration 20260823140000
+ *
+ * None of the three is in REVIEW_REJECTION_REASONS, and together they account
+ * for more than 300 live rows, so falling back to "Boshqa" would mislabel most
+ * of the rejected queue.
+ */
+const KNOWN_REJECT_REASONS = new Set([
+  'wrong_year',
+  'wrong_archetype',
+  'hallucinated_field',
+  'ocr_garbled',
+  'source_404',
+  'other',
+  'wrong_source',
+  'auto_no_data',
+  'empty_extraction',
+]);
+
+export interface ServerRejection {
+  /** i18n key under `uniReview.reasons`, or null when the code is unknown. */
+  reasonKey: string | null;
+  /** Free text the reviewer typed, when there was any. */
+  detail: string | null;
+}
+
+/**
+ * The rejection recorded on the server for a row the queue is showing again.
+ *
+ * Since migration 20260823120000 the dashboard also returns `rejected` rows, so
+ * a card can arrive already carrying a verdict. It must SAY so: the reject
+ * action overwrites `reviewer_notes` with "<reason>: <detail>", wiping the
+ * "[RED]/[AMBER]" prefix the reliability strip keys on — so without this the
+ * row would render with no pill and no note, indistinguishable from a fresh
+ * card nobody has looked at.
+ *
+ * Returns null for anything not rejected, and for a locally-decided row (the
+ * decided strip already speaks for those).
+ */
+export function serverRejection(row: ReviewQueueRow): ServerRejection | null {
+  if (row.status !== 'rejected') return null;
+  const note = (row.reviewer_notes ?? '').trim();
+  const sep = note.indexOf(':');
+  const head = (sep === -1 ? note : note.slice(0, sep)).trim();
+  const tail = sep === -1 ? '' : note.slice(sep + 1).trim();
+  if (KNOWN_REJECT_REASONS.has(head)) {
+    return { reasonKey: head, detail: tail || null };
+  }
+  // Unrecognised shape — show the note verbatim rather than dropping it.
+  return { reasonKey: null, detail: note || null };
+}
+
 export function sectionLabelKey(row: ReviewQueueRow): string {
   if (isDegreeCheckFlag(row)) return 'uniReview.section.documentCheck';
   if (isDocumentFlag(row)) return 'uniReview.section.documentFlag';

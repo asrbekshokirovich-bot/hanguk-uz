@@ -32,6 +32,7 @@ Phase 2 status:
 from __future__ import annotations
 
 import logging
+from collections.abc import Sequence
 from dataclasses import dataclass
 from functools import lru_cache
 from typing import Any
@@ -132,6 +133,55 @@ def _ocr_image_bytes_live(image_bytes: bytes) -> OcrResult:
         cost_usd_estimate=0.0,
         extractor="easyocr-image",
     )
+
+
+def ocr_pdf_pages(pdf_bytes: bytes, page_numbers: Sequence[int]) -> dict[int, str]:
+    """OCR only the given 0-based pages. Returns {page_index: text}.
+
+    Whole-document OCR is the wrong tool for a PDF whose text layer is mostly
+    fine: it is ~2-4 s per page on CPU, and it would also discard good text in
+    favour of a lossier reading of the same pixels. What these documents need
+    is the opposite — keep PyMuPDF's text everywhere it worked, and OCR only
+    the pages where it returned nothing.
+
+    A page with neither an image nor a vector drawing is skipped: there is
+    nothing on it to recognise, so rasterising it would spend seconds to
+    produce an empty string. That is the common case for a section-divider
+    page, which is exactly the kind of page that trips a low-text test.
+    """
+    if not page_numbers:
+        return {}
+    if not settings.live_apis:
+        log.info("EasyOCR is stubbed (UNI_DB_LIVE_APIS=false).")
+        return {n: "<easyocr stubbed in mock mode — no text extracted>"
+                for n in page_numbers}
+
+    try:
+        import pymupdf  # type: ignore[import-not-found]
+    except ImportError as exc:  # pragma: no cover
+        raise RuntimeError("pymupdf required for OCR rasterisation") from exc
+
+    reader = _get_reader()
+    out: dict[int, str] = {}
+    doc = pymupdf.open(stream=pdf_bytes, filetype="pdf")
+    try:
+        for n in page_numbers:
+            if n < 0 or n >= doc.page_count:
+                continue
+            page = doc[n]
+            if not page.get_images() and not page.get_drawings():
+                log.debug("ocr: page %d has no image or drawing; skipping", n)
+                continue
+            pix = page.get_pixmap(dpi=200)
+            results = reader.readtext(
+                pix.tobytes("png"), detail=0, paragraph=True
+            )
+            text = "\n".join(results).strip()
+            if text:
+                out[n] = text
+    finally:
+        doc.close()
+    return out
 
 
 def _ocr_pdf_bytes_live(pdf_bytes: bytes) -> OcrResult:

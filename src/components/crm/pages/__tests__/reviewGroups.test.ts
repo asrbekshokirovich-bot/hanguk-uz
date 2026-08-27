@@ -6,6 +6,7 @@ import {
   isDocumentFlag,
   isDegreeCheckFlag,
   sectionLabelKey,
+  serverRejection,
 } from '../uni-db-review/reviewGroups';
 
 /**
@@ -258,5 +259,61 @@ describe('document-level flags', () => {
     expect(sectionLabelKey(row({ id: 'b', field_group: 'admission_periods' }))).toBe(
       'uniReview.section.calendar',
     );
+  });
+});
+
+/**
+ * Rejected rows returned to the queue (migration 20260823120000).
+ *
+ * `fn_review_reject` overwrites `reviewer_notes` with "<reason>: <detail>",
+ * which destroys the "[RED]/[AMBER]" prefix the reliability strip reads. So a
+ * re-surfaced rejected card has no pill and no note of its own — if the UI did
+ * not read the verdict back out of that string, it would look exactly like a
+ * fresh card nobody had judged, and a reviewer would re-do the same work.
+ */
+describe('serverRejection', () => {
+  it('says nothing about a row that is not rejected', () => {
+    expect(serverRejection(row({ id: 'a', status: 'open' }))).toBeNull();
+    expect(serverRejection(row({ id: 'b', status: 'in_review' }))).toBeNull();
+  });
+
+  it('splits the reason code from the reviewer\'s free text', () => {
+    const r = serverRejection(
+      row({ id: 'c', status: 'rejected', reviewer_notes: 'source_404: link is dead' }),
+    );
+    expect(r).toEqual({ reasonKey: 'source_404', detail: 'link is dead' });
+  });
+
+  it('handles a bare reason with no detail', () => {
+    expect(serverRejection(row({ id: 'd', status: 'rejected', reviewer_notes: 'wrong_year' })))
+      .toEqual({ reasonKey: 'wrong_year', detail: null });
+  });
+
+  it('knows the three codes the UI cannot produce', () => {
+    // wrong_source comes from fn_flag_source_wrong, auto_no_data from the
+    // pipeline, empty_extraction from migration 20260823140000. None is in
+    // REVIEW_REJECTION_REASONS, and together they are most of the rejected
+    // queue — falling back to "other" would mislabel over 300 rows.
+    expect(serverRejection(row({ id: 'e', status: 'rejected', reviewer_notes: 'wrong_source: 404' }))?.reasonKey)
+      .toBe('wrong_source');
+    expect(serverRejection(row({ id: 'f', status: 'rejected', reviewer_notes: 'auto_no_data' }))?.reasonKey)
+      .toBe('auto_no_data');
+    expect(
+      serverRejection(
+        row({ id: 'i', status: 'rejected', reviewer_notes: 'empty_extraction: manba tekshirildi' }),
+      ),
+    ).toEqual({ reasonKey: 'empty_extraction', detail: 'manba tekshirildi' });
+  });
+
+  it('keeps an unrecognised note verbatim instead of dropping it', () => {
+    const r = serverRejection(
+      row({ id: 'g', status: 'rejected', reviewer_notes: 'rejected by hand in SQL' }),
+    );
+    expect(r).toEqual({ reasonKey: null, detail: 'rejected by hand in SQL' });
+  });
+
+  it('survives a rejected row with no note at all', () => {
+    expect(serverRejection(row({ id: 'h', status: 'rejected', reviewer_notes: null })))
+      .toEqual({ reasonKey: null, detail: null });
   });
 });

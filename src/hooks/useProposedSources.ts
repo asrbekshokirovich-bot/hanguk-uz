@@ -27,7 +27,41 @@ export interface ProposedSourceRow {
   candidate_snippet: string | null;
   /** Why it was not ingested — the blocked/failed reason line. */
   review_notes: string | null;
+  /** Added by migration 20260823170000. Optional so the UI degrades if the
+   *  view is not deployed yet. */
+  status?: string | null;
+  /** True when this link was closed before and has been brought back. */
+  was_closed?: boolean | null;
+  /** True when a person closed it, false when the crawler did. */
+  closed_by_person?: boolean | null;
+  reviewed_at?: string | null;
+  dismiss_reason?: string | null;
+  dismiss_detail?: string | null;
 }
+
+/**
+ * Why a reviewer closed a link. Drawn from what actually happened to the 407
+ * links reopened on 2026-08-23, so picking one describes a real case rather
+ * than a category invented for the dropdown.
+ */
+export type LinkDismissReason =
+  | 'not_2027'
+  | 'already_have'
+  | 'uploaded'
+  | 'no_guideline'
+  | 'site_dead'
+  | 'not_relevant'
+  | 'other';
+
+export const LINK_DISMISS_REASONS: LinkDismissReason[] = [
+  'not_2027',
+  'already_have',
+  'uploaded',
+  'no_guideline',
+  'site_dead',
+  'not_relevant',
+  'other',
+];
 
 const PROPOSED_SOURCES_KEY = ['uni_db', 'proposed_sources'] as const;
 
@@ -37,12 +71,16 @@ export function useProposedSources(enabled = true) {
     enabled,
     refetchInterval: 60_000,
     queryFn: async () => {
+      // The view, not the table: which closed links deserve to come back is a
+      // rule with four cases behind it (see migration 20260823170000), and it
+      // belongs next to the data rather than restated in every client.
       const { data, error } = await supabase
-        .from('proposed_sources')
+        .from('v_proposed_links_dashboard')
         .select(
-          'id, url_ko, source_type, proposed_by, proposed_at, candidate_title, candidate_snippet, review_notes',
+          'id, url_ko, source_type, proposed_by, proposed_at, candidate_title, ' +
+            'candidate_snippet, review_notes, status, was_closed, closed_by_person, ' +
+            'reviewed_at, dismiss_reason, dismiss_detail',
         )
-        .eq('status', 'pending_review')
         .order('proposed_at', { ascending: false })
         .limit(500);
       if (error) throw error;
@@ -53,22 +91,31 @@ export function useProposedSources(enabled = true) {
 
 /**
  * Dismiss a link once a human has dealt with it (opened it, uploaded the PDF
- * by hand, or judged it useless). Only `rejected` is offered: `approved` fires
- * `trg_proposed_source_promote`, which promotes the URL into
+ * by hand, or judged it useless). `approved` is deliberately not offered: it
+ * fires `trg_proposed_source_promote`, which promotes the URL into
  * `announcement_sources` and puts it back in the crawler's path — the wrong
  * outcome for a host that is blocking us.
+ *
+ * Writes `dismissed`, not `rejected`. Since migration 20260823170000 the tab
+ * shows rejected links again, so writing `rejected` here would put the card
+ * straight back on the screen the moment it was closed.
  */
 export function useDismissProposedSource() {
   const qc = useQueryClient();
-  return useMutation<void, Error, { id: string }>({
-    mutationFn: async ({ id }) => {
+  return useMutation<void, Error,
+    { id: string; reason: LinkDismissReason; detail?: string }>({
+    mutationFn: async ({ id, reason, detail }) => {
       const { data: auth } = await supabase.auth.getUser();
       const { error } = await supabase
         .from('proposed_sources')
         .update({
-          status: 'rejected',
+          status: 'dismissed',
           reviewed_at: new Date().toISOString(),
           reviewed_by: auth.user?.id ?? null,
+          // The reason is the point. Closing 2 511 links without one is why
+          // working out which deserved to come back meant regex over prose.
+          dismiss_reason: reason,
+          dismiss_detail: detail?.trim() || null,
         })
         .eq('id', id);
       if (error) throw error;

@@ -1695,7 +1695,10 @@
       "hallucinated_field": "Wrong / fabricated data",
       "ocr_garbled": "OCR text garbled",
       "source_404": "Source won't open",
-      "other": "Other"
+      "other": "Other",
+      "wrong_source": "Wrong source PDF",
+      "auto_no_data": "Automatic: no data found",
+      "empty_extraction": "Extraction returned nothing (source is fine)"
     },
     "ns": "Not specified",
     "cal": {
@@ -1790,7 +1793,23 @@
       "noUni": "No university found.",
       "notPdf": "Please choose a PDF file.",
       "tooLarge": "File too large: {{size}} MB. The limit is {{max}} MB.",
-      "uploaded": "PDF uploaded — queued for analysis for {{uni}}."
+      "uploaded": "PDF uploaded — queued for analysis for {{uni}}.",
+      "closedByPerson": "Closed earlier",
+      "closedByCrawler": "Could not be fetched",
+      "reopenedTitle": "This link was closed before — brought back for another look",
+      "reasonLabel": "Reason for closing:",
+      "confirmDismiss": "Close",
+      "detailPlaceholder": "Note (optional; required for \"Other\")",
+      "dismissedWithReason": "Link closed — {{reason}}",
+      "reasons": {
+        "not_2027": "Not 2027 (another year)",
+        "already_have": "Already in the database",
+        "uploaded": "PDF uploaded by hand",
+        "no_guideline": "Page has no admission guideline",
+        "site_dead": "Site or link is dead",
+        "not_relevant": "Not relevant to us",
+        "other": "Other"
+      }
     },
     "docFlag": {
       "splitTitle": "This PDF mixes undergraduate and graduate admission",
@@ -1809,6 +1828,11 @@
         "master": "Master's (석사)",
         "doctoral": "Doctoral (박사)"
       }
+    },
+    "rejected": {
+      "badge": "Rejected",
+      "badgeTitle": "This section was rejected earlier. Approving reverses that decision.",
+      "note": "Rejected earlier — {{reason}}"
     }
   }
 }
