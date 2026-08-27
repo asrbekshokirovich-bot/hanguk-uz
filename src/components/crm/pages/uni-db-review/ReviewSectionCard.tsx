@@ -1,8 +1,9 @@
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { AlertTriangle, Check, Flag, Loader2, X } from 'lucide-react';
+import { AlertTriangle, Check, Flag, Loader2, Pencil, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
@@ -46,6 +47,7 @@ export interface SectionCardHandlers {
   onApprove: (row: ReviewQueueRow) => void;
   onConfirmReject: (row: ReviewQueueRow, reason: RejectionReason) => void;
   onFlagSource: (row: ReviewQueueRow) => void;
+  onConfirmEdit: (row: ReviewQueueRow, correctedJson: string) => void;
 }
 
 /**
@@ -89,6 +91,11 @@ export function ReviewSectionCard({
   onReasonChange,
   onStartReject,
   onCancelReject,
+  isEditing,
+  editDraft,
+  onEditDraftChange,
+  onStartEdit,
+  onCancelEdit,
   handlers,
   acting,
   children,
@@ -100,6 +107,11 @@ export function ReviewSectionCard({
   onReasonChange: (r: RejectionReason) => void;
   onStartReject: () => void;
   onCancelReject: () => void;
+  isEditing: boolean;
+  editDraft: string;
+  onEditDraftChange: (v: string) => void;
+  onStartEdit: () => void;
+  onCancelEdit: () => void;
   handlers: SectionCardHandlers;
   acting: boolean;
   children: ReactNode;
@@ -164,7 +176,7 @@ export function ReviewSectionCard({
         ) : null}
         <span className="flex-1" />
         {acting ? <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" /> : null}
-        {!decided && !isRejecting ? (
+        {!decided && !isRejecting && !isEditing ? (
           <>
             <Button
               size="sm"
@@ -179,6 +191,17 @@ export function ReviewSectionCard({
             <Button
               size="sm"
               variant="outline"
+              className="h-8 text-muted-foreground"
+              onClick={onStartEdit}
+              disabled={acting}
+              title={t('uniReview.actions.editTitle')}
+            >
+              <Pencil className="h-3.5 w-3.5" />
+              {t('uniReview.actions.edit')}
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
               className="h-8 text-muted-foreground hover:border-transparent hover:bg-destructive/10 hover:text-destructive"
               onClick={onStartReject}
               disabled={acting}
@@ -188,6 +211,38 @@ export function ReviewSectionCard({
           </>
         ) : null}
       </div>
+
+      {isEditing && !decided ? (
+        <div className="flex animate-fade-up flex-col gap-2 rounded-[10px] bg-secondary/60 p-3 px-3.5">
+          <span className="text-[12.5px] font-semibold">{t('uniReview.actions.editTitle')}</span>
+          <Textarea
+            value={editDraft}
+            onChange={(e) => onEditDraftChange(e.target.value)}
+            className="min-h-[160px] font-mono text-[12px]"
+            disabled={acting}
+          />
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              className="h-[30px]"
+              onClick={() => handlers.onConfirmEdit(row, editDraft)}
+              disabled={acting}
+            >
+              {t('uniReview.actions.saveEdit')}
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-[30px] w-[30px] p-0 text-muted-foreground"
+              onClick={onCancelEdit}
+              disabled={acting}
+              title={t('uniReview.actions.cancel')}
+            >
+              <X className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+        </div>
+      ) : null}
 
       {isRejecting && !decided ? (
         <div className="flex animate-fade-up flex-col gap-2 rounded-[10px] bg-destructive/10 p-3 px-3.5">

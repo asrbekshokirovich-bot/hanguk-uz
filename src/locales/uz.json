@@ -1716,7 +1716,12 @@
       "rejectReason": "Rad etish sababi:",
       "confirmReject": "Rad etishni tasdiqlash",
       "cancel": "Bekor qilish",
-      "flagSource": "Manba noto'g'ri — bu PDFdagi barcha bo'limlarni rad etish"
+      "flagSource": "Manba noto'g'ri — bu PDFdagi barcha bo'limlarni rad etish",
+      "edit": "Tahrirlash",
+      "editTitle": "Tasdiqlashdan oldin chiqarilgan ma'lumotni to'g'rilash",
+      "saveEdit": "Saqlash va tasdiqlash",
+      "editInvalidJson": "JSON noto'g'ri — saqlashdan oldin sintaksisni tuzating",
+      "editPayloadEmpty": "To'g'irlangan ma'lumot bo'sh bo'lishi mumkin emas"
     },
     "decided": {
       "approved": "Tasdiqlandi — talabalarga e'lon qilindi",

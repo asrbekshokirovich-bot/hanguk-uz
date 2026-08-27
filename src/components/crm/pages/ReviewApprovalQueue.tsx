@@ -44,13 +44,15 @@ import { type SectionCardHandlers } from './uni-db-review/ReviewSectionCard';
 export function ReviewApprovalQueue() {
   const { t } = useTranslation();
   const { data: rows = [], isLoading, error, refetch } = useReviewQueue();
-  const { accept, reject, flagSourceWrong } = useReviewActions();
+  const { accept, reject, flagSourceWrong, editAccept } = useReviewActions();
   const qc = useQueryClient();
 
   const [decided, setDecided] = useState<DecidedMap>({});
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [rejectingRowId, setRejectingRowId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState<RejectionReason>('hallucinated_field');
+  const [editingRowId, setEditingRowId] = useState<string | null>(null);
+  const [editDraft, setEditDraft] = useState('');
 
   const sorted = useMemo(
     () => sortGroups(groupRows(mergeWithDecided(rows, decided)), decided),
@@ -135,6 +137,36 @@ export function ReviewApprovalQueue() {
         toast.error(e instanceof Error ? e.message : String(e));
       }
     },
+    onConfirmEdit: (row, correctedJson) => {
+      let corrected: Record<string, unknown>;
+      try {
+        corrected = JSON.parse(correctedJson);
+      } catch {
+        toast.error(t('uniReview.actions.editInvalidJson'));
+        return;
+      }
+      if (!corrected || typeof corrected !== 'object' || Object.keys(corrected).length === 0) {
+        toast.error(t('uniReview.actions.editPayloadEmpty'));
+        return;
+      }
+      editAccept.mutate(
+        { queueItemId: row.id, correctedPayload: corrected },
+        {
+          onSuccess: () => {
+            markDecided(row, 'approved');
+            setEditingRowId(null);
+            const g = groupOf(row);
+            toast.success(
+              t('uniReview.toast.approved', {
+                uni: g ? shortName(g) : '—',
+                section: t(sectionLabelKey(row)),
+              }),
+            );
+          },
+          onError: (e) => toast.error(e.message),
+        },
+      );
+    },
     onFlagSource: (row) =>
       flagSourceWrong.mutate(
         { queueItemId: row.id },
@@ -163,6 +195,7 @@ export function ReviewApprovalQueue() {
     (accept.isPending && accept.variables?.queueItemId) ||
     (reject.isPending && reject.variables?.queueItemId) ||
     (flagSourceWrong.isPending && flagSourceWrong.variables?.queueItemId) ||
+    (editAccept.isPending && editAccept.variables?.queueItemId) ||
     null;
 
   if (isLoading) {
@@ -217,8 +250,20 @@ export function ReviewApprovalQueue() {
           rejectingRowId={rejectingRowId}
           rejectReason={rejectReason}
           onReasonChange={setRejectReason}
-          onStartReject={(row) => setRejectingRowId(row.id)}
+          onStartReject={(row) => {
+            setEditingRowId(null);
+            setRejectingRowId(row.id);
+          }}
           onCancelReject={() => setRejectingRowId(null)}
+          editingRowId={editingRowId}
+          editDraft={editDraft}
+          onEditDraftChange={setEditDraft}
+          onStartEdit={(row) => {
+            setRejectingRowId(null);
+            setEditingRowId(row.id);
+            setEditDraft(JSON.stringify(row.parsed_output ?? {}, null, 2));
+          }}
+          onCancelEdit={() => setEditingRowId(null)}
           handlers={handlers}
           actingRowId={actingRowId || null}
           hasNext={!!nextPending}
