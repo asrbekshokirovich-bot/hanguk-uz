@@ -219,17 +219,6 @@ export function ReviewSectionCard({
             <Button
               size="sm"
               variant="outline"
-              className="h-8 text-muted-foreground"
-              onClick={onStartEdit}
-              disabled={acting}
-              title={t('uniReview.actions.editTitle')}
-            >
-              <Pencil className="h-3.5 w-3.5" />
-              {t('uniReview.actions.edit')}
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
               className="h-8 text-muted-foreground hover:border-transparent hover:bg-destructive/10 hover:text-destructive"
               onClick={onStartReject}
               disabled={acting}

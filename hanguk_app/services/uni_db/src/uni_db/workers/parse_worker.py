@@ -551,6 +551,86 @@ def _queue_entry_for(
     }
 
 
+# Matches publish_worker._DEFAULT_CATEGORY — kept as a local constant rather
+# than importing across worker modules for a single shared literal.
+_DEFAULT_APPLICANT_CATEGORY = "외국인전형"
+
+
+async def _auto_split_by_degree(
+    conn: asyncpg.Connection,
+    guideline_document_id: UUID,
+) -> bool:
+    """Create the two admission_cycles a degree_split card asks for, without
+    waiting on a reviewer to click "Bo'lish" — the split itself is
+    mechanical (two cycle rows, same track names every time), not a
+    judgement call. Mirrors fn_split_guideline_document_by_degree, which
+    stays in place as the manual fallback for whatever this cannot resolve
+    (e.g. no intake to anchor the new cycles to).
+
+    Returns True once both rows exist. False means persist_outcome should
+    fall back to raising a normal review card instead.
+    """
+    institution_id = await conn.fetchval(
+        "select institution_id from public.guideline_documents where id = $1",
+        guideline_document_id,
+    )
+    if institution_id is None:
+        log.warning(
+            "degree auto-split: guideline_document %s has no institution_id, "
+            "falling back to a reviewer card",
+            str(guideline_document_id)[:8],
+        )
+        return False
+
+    existing = await conn.fetchrow(
+        """
+        select intake_year, intake_term from public.admission_cycles
+         where guideline_document_id = $1
+         order by created_at asc
+         limit 1
+        """,
+        guideline_document_id,
+    )
+    year = existing["intake_year"] if existing else None
+    term = existing["intake_term"] if existing else None
+
+    if year is None or term is None:
+        default_intake = await conn.fetchrow(
+            'select "year", season from public.intakes where is_default limit 1'
+        )
+        if default_intake is None:
+            log.warning(
+                "degree auto-split: no default intake configured, cannot split "
+                "document %s automatically — falling back to a reviewer card",
+                str(guideline_document_id)[:8],
+            )
+            return False
+        year, term = default_intake["year"], default_intake["season"]
+
+    attention_note = (
+        "Split from a combined undergraduate+graduate guideline — pending "
+        "re-extraction for this track."
+    )
+    for track in ("foreign", "grad_foreign"):
+        await conn.execute(
+            """
+            insert into public.admission_cycles
+              (institution_id, intake_year, intake_term, cycle_track, round_number,
+               applicant_category, guideline_document_id, status,
+               needs_attention, attention_reason)
+            values ($1,$2,$3,$4,1,$5,$6,'unverified',true,$7)
+            on conflict (institution_id, intake_year, intake_term, cycle_track,
+                         round_number, applicant_category)
+              do update set guideline_document_id = excluded.guideline_document_id,
+                            needs_attention        = true,
+                            updated_at              = now()
+            """,
+            institution_id, year, term, track,
+            _DEFAULT_APPLICANT_CATEGORY, guideline_document_id, attention_note,
+        )
+    return True
+
+
 async def persist_outcome(
     conn: asyncpg.Connection,
     outcome: ParseOutcome,
@@ -658,6 +738,32 @@ async def persist_outcome(
     # so they are inserted once here rather than inside the per-result loop.
     for entry in outcome.review_queue_entries:
         if entry.get("entity_type") == "guideline_documents":
+            split_resolved = False
+            if entry.get("field_group") == "degree_split":
+                split_resolved = await _auto_split_by_degree(
+                    conn, outcome.guideline_document_id
+                )
+
+            if split_resolved:
+                # The split it would have asked a reviewer to perform already
+                # happened — log it as a resolved row instead of an open card
+                # so the decision stays auditable without blocking the rail.
+                await conn.execute(
+                    """
+                    insert into public.review_queue (
+                      entity_type, entity_id, reason, priority,
+                      reviewer_notes, status, resolved_at
+                    ) values ($1,$2,$3,$4,$5,'approved',now())
+                    """,
+                    "guideline_documents",
+                    outcome.guideline_document_id,
+                    entry["reason"],
+                    entry["priority"],
+                    entry["rationale"] + "\n[auto-split] resolved automatically "
+                    "— cycles created, no reviewer action needed.",
+                )
+                continue
+
             await conn.execute(
                 """
                 insert into public.review_queue (
