@@ -22,6 +22,18 @@ containing every dated event in that section.
 - If the span contains 정정공고 / 변경공고 / 일정변경, treat the dates as
   the AMENDED values and set `is_correction_notice=true` on each event.
 - Footnote markers (`※`, `*`, `비고`) → preserve in `notes_ko`.
+- **Multiple application rounds**: Korean universities often run several
+  separate application rounds per semester, each with its own deadlines —
+  labelled `1차 모집` / `2차 모집` / `3차 모집` / `4차 모집`, or `1st Round` /
+  `2nd Round` / `3rd Round` / `4th Round`, or sometimes just `수시1차` /
+  `수시2차` / `정시`. When the source distinguishes rounds like this, tag
+  **every** `events[]` item and `periods[]` entry belonging to that round
+  with `round_label` set to the label AS WRITTEN in the source (e.g.
+  `"1차"`, `"2차 모집"`, `"3rd Round"`) — do not translate or renumber it.
+  Emit a SEPARATE set of events/periods for each round; never merge two
+  rounds' dates into one event or silently keep only one round. When the
+  document does not distinguish rounds at all (a single admission cycle),
+  leave `round_label` as `null` on every item — do not invent a round.
 
 ## Date format coverage
 
@@ -85,12 +97,57 @@ field selection (which event_type) and faithful preservation of source.
 ## Enrichment: periods[] (per admission cycle & language track)
 
 In addition to `events[]`, emit a `periods` array — one object per admission
-cycle / language track in the guideline. Each period (use null for anything not stated):
+cycle / language track / round in the guideline. Each period (use null for anything not stated):
 - `language_track`: "korean" or "english" (which curriculum track this governs)
 - `program_level`: e.g. "undergraduate" | "master" | "doctoral"
+- `round_label`: same convention as `events[].round_label` above — the round
+  as written in the source (`"1차"`, `"2차"`, ...), or `null` for a single-round document
 - `online_application_start` / `online_application_end` (YYYY-MM-DD)
 - `offline_application_start` / `offline_application_end` (null if no offline/visit route)
 - `interview_start` / `interview_end` (null if no interview)
 - `application_start` / `application_end`, `document_deadline`, `result_announcement` (dates)
 - `application_fee_krw` (KRW number), `application_fee_usd` (if stated)
 - `source_text_ko`: the verbatim Korean line(s) these dates/fees came from
+
+## Few-shot: multiple rounds
+
+**Input**:
+
+```
+■ 모집 일정
+[1차 모집]
+원서접수: 2026.09.01(월) ~ 09.15(화)
+합격자 발표: 2026.09.25(금)
+
+[2차 모집]
+원서접수: 2026.10.05(월) ~ 10.19(월)
+합격자 발표: 2026.10.30(금)
+```
+
+**Output** (excerpt — note each round's events carry its own `round_label`,
+and the two `apply_close` events are NOT merged into one):
+
+```json
+{
+  "events": [
+    {"event_type":"apply_open","starts_at":"2026-09-01T00:00:00+09:00",
+     "round_label":"1차","source_text_ko":"[1차 모집] 원서접수: 2026.09.01(월)",
+     "is_tentative":true,"extractor_confidence":0.93},
+    {"event_type":"apply_close","starts_at":"2026-09-15T00:00:00+09:00",
+     "round_label":"1차","source_text_ko":"~ 09.15(화)",
+     "is_tentative":true,"extractor_confidence":0.93},
+    {"event_type":"final_results","starts_at":"2026-09-25T00:00:00+09:00",
+     "round_label":"1차","source_text_ko":"합격자 발표: 2026.09.25(금)",
+     "is_tentative":true,"extractor_confidence":0.9},
+    {"event_type":"apply_open","starts_at":"2026-10-05T00:00:00+09:00",
+     "round_label":"2차","source_text_ko":"[2차 모집] 원서접수: 2026.10.05(월)",
+     "is_tentative":true,"extractor_confidence":0.93},
+    {"event_type":"apply_close","starts_at":"2026-10-19T00:00:00+09:00",
+     "round_label":"2차","source_text_ko":"~ 10.19(월)",
+     "is_tentative":true,"extractor_confidence":0.93},
+    {"event_type":"final_results","starts_at":"2026-10-30T00:00:00+09:00",
+     "round_label":"2차","source_text_ko":"합격자 발표: 2026.10.30(금)",
+     "is_tentative":true,"extractor_confidence":0.9}
+  ]
+}
+```

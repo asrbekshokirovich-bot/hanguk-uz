@@ -177,6 +177,34 @@ async def test_calendar_periods_to_admission_periods() -> None:
     assert run.rows_written == 1
 
 
+def test_round_number_for_parses_the_leading_digit() -> None:
+    assert pw._round_number_for("1차") == 1
+    assert pw._round_number_for("2차 모집") == 2
+    assert pw._round_number_for("3rd Round") == 3
+    assert pw._round_number_for(None) == 1
+    assert pw._round_number_for("no digits here") == 1
+
+
+async def test_calendar_two_rounds_publish_as_two_separate_rows() -> None:
+    # Before round_number, a second round's ON CONFLICT insert overwrote the
+    # first — only the last-published round ever survived. Two round_label'd
+    # periods must now each get their own row, not collapse into one.
+    cy = date.today().year
+    rec = _rec("calendar", {"events": [], "periods": [
+        {"program_level": "undergraduate", "round_label": "1차",
+         "application_start": f"{cy}-09-01", "application_end": f"{cy}-09-15"},
+        {"program_level": "undergraduate", "round_label": "2차",
+         "application_start": f"{cy}-10-05", "application_end": f"{cy}-10-19"},
+    ]})
+    conn = _Conn([rec])
+    run = await pw.publish_pending(conn)
+    inserts = conn.inserts_into("university_admission_periods")
+    assert len(inserts) == 2
+    assert run.rows_written == 2
+    round_numbers = {args[5] for args in inserts}  # round_number is the 6th positional arg
+    assert round_numbers == {1, 2}
+
+
 async def test_reviewer_edit_takes_precedence() -> None:
     rec = _rec("scholarships",
                {"rows": [{"scope": "university", "name_ko": "RAW",
