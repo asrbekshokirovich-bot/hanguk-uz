@@ -1826,6 +1826,10 @@
       "checkAction": "No split boundary was found — there is nothing to split, so the document does not need to be divided. Read it before trusting the figures: if it covers a single level, clear it with \"Approve\"; if it really does mix two levels, press \"Reject\".",
       "levels": "Levels found:",
       "action": "This is not a data card — there is no figure to approve. Split the document into two separate admission cycles, then clear it with \"Approve\"; if the split was detected wrongly, press \"Reject\".",
+      "splitActionHint": "\"Split\" creates separate admission cycles for the undergraduate and graduate tracks and clears this card. Each track's data fills in during the next review pass.",
+      "splitAction": "Split",
+      "splitActionTitle": "Split this document into separate undergraduate and graduate admission cycles",
+      "splitDone": "Document split — two separate admission cycles created",
       "rawToggle": "Technical detail",
       "level": {
         "associate": "Associate (전문학사)",

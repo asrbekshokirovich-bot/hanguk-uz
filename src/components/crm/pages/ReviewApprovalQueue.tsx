@@ -53,6 +53,7 @@ export function ReviewApprovalQueue() {
   const [rejectReason, setRejectReason] = useState<RejectionReason>('hallucinated_field');
   const [editingRowId, setEditingRowId] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState('');
+  const [splittingRowId, setSplittingRowId] = useState<string | null>(null);
 
   const sorted = useMemo(
     () => sortGroups(groupRows(mergeWithDecided(rows, decided)), decided),
@@ -167,6 +168,23 @@ export function ReviewApprovalQueue() {
         },
       );
     },
+    onSplit: async (row) => {
+      setSplittingRowId(row.id);
+      try {
+        const { error } = await supabase.rpc(
+          'fn_split_guideline_document_by_degree' as never,
+          { p_document_id: row.entity_id } as never,
+        );
+        if (error) throw new Error(error.message);
+        markDecided(row, 'approved');
+        qc.invalidateQueries({ queryKey: ['uni_db', 'review_queue_dashboard'] });
+        toast.success(t('uniReview.docFlag.splitDone'));
+      } catch (e) {
+        toast.error(e instanceof Error ? e.message : String(e));
+      } finally {
+        setSplittingRowId(null);
+      }
+    },
     onFlagSource: (row) =>
       flagSourceWrong.mutate(
         { queueItemId: row.id },
@@ -196,6 +214,7 @@ export function ReviewApprovalQueue() {
     (reject.isPending && reject.variables?.queueItemId) ||
     (flagSourceWrong.isPending && flagSourceWrong.variables?.queueItemId) ||
     (editAccept.isPending && editAccept.variables?.queueItemId) ||
+    splittingRowId ||
     null;
 
   if (isLoading) {
