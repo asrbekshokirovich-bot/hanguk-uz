@@ -53,120 +53,7 @@ export function ReviewApprovalQueue() {
   const [rejectReason, setRejectReason] = useState<RejectionReason>('hallucinated_field');
   const [editingRowId, setEditingRowId] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState('');
-
-  const sorted = useMemo(
-    () => sortGroups(groupRows(mergeWithDecided(rows, decided)), decided),
-    [rows, decided],
-  );
-
-  // Pin the default selection (first after sort) once data arrives — a
-  // per-render fallback would make the focused university jump when a
-  // decision re-sorts the rail.
-  useEffect(() => {
-    if (!selectedKey && sorted.length > 0) setSelectedKey(sorted[0].key);
-  }, [selectedKey, sorted]);
-
-  const selected: GuidelineGroup | null = useMemo(() => {
-    if (sorted.length === 0) return null;
-    return sorted.find((g) => g.key === selectedKey) ?? sorted[0];
-  }, [sorted, selectedKey]);
-
-  const nextPending = useMemo(
-    () =>
-      selected
-        ? sorted.find((g) => g.key !== selected.key && !openRollup(g, decided).done) ?? null
-        : null,
-    [sorted, selected, decided],
-  );
-
-  const groupOf = (row: ReviewQueueRow): GuidelineGroup | undefined =>
-    sorted.find((g) => g.rows.some((r) => r.id === row.id));
-
-  const markDecided = (
-    row: ReviewQueueRow,
-    status: 'approved' | 'rejected',
-    reasonLabel?: string,
-  ) =>
-    setDecided((d) => ({ ...d, [row.id]: { status, reasonLabel, row } }));
-
-  const handlers: SectionCardHandlers = {
-    onApprove: (row) =>
-      accept.mutate(
-        { queueItemId: row.id },
-        {
-          onSuccess: () => {
-            markDecided(row, 'approved');
-            const g = groupOf(row);
-            toast.success(
-              t('uniReview.toast.approved', {
-                uni: g ? shortName(g) : '—',
-                section: t(sectionLabelKey(row)),
-              }),
-            );
-          },
-          onError: (e) => toast.error(e.message),
-        },
-      ),
-    onConfirmReject: async (row, reason) => {
-      const g = groupOf(row);
-      const allRows = g?.rows ?? [row];
-      const reasonLabel = t(`uniReview.reasons.${reason}`);
-      try {
-        await Promise.all(
-          allRows.map((r) =>
-            supabase
-              .rpc('fn_review_reject' as never, {
-                queue_item_id: r.id,
-                reason,
-              } as never)
-              .then(({ error: e }) => {
-                if (e) throw new Error(e.message);
-              }),
-          ),
-        );
-        for (const r of allRows) markDecided(r, 'rejected', reasonLabel);
-        setRejectingRowId(null);
-        qc.invalidateQueries({ queryKey: ['uni_db', 'review_queue_dashboard'] });
-        toast.success(
-          t('uniReview.toast.rejected', {
-            uni: g ? shortName(g) : '—',
-            section: t(sectionLabelKey(row)),
-          }),
-        );
-      } catch (e) {
-        toast.error(e instanceof Error ? e.message : String(e));
-      }
-    },
-    onConfirmEdit: (row, correctedJson) => {
-      let corrected: Record<string, unknown>;
-      try {
-        corrected = JSON.parse(correctedJson);
-      } catch {
-        toast.error(t('uniReview.actions.editInvalidJson'));
-        return;
-      }
-      if (!corrected || typeof corrected !== 'object' || Object.keys(corrected).length === 0) {
-        toast.error(t('uniReview.actions.editPayloadEmpty'));
-        return;
-      }
-      editAccept.mutate(
-        { queueItemId: row.id, correctedPayload: corrected },
-        {
-          onSuccess: () => {
-            markDecided(row, 'approved');
-            setEditingRowId(null);
-            const g = groupOf(row);
-            toast.success(
-              t('uniReview.toast.approved', {
-                uni: g ? shortName(g) : '—',
-                section: t(sectionLabelKey(row)),
-              }),
-            );
-          },
-          onError: (e) => toast.error(e.message),
-        },
-      );
-    },
+  const [splittingRowId, setSplittingRowId] = useState<string | null>(null);
     onFlagSource: (row) =>
       flagSourceWrong.mutate(
         { queueItemId: row.id },
@@ -196,6 +83,7 @@ export function ReviewApprovalQueue() {
     (reject.isPending && reject.variables?.queueItemId) ||
     (flagSourceWrong.isPending && flagSourceWrong.variables?.queueItemId) ||
     (editAccept.isPending && editAccept.variables?.queueItemId) ||
+    splittingRowId ||
     null;
 
   if (isLoading) {

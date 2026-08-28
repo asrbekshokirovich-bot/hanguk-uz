@@ -1868,6 +1868,10 @@
       "checkAction": "Bo'linish nuqtasi topilmadi — bo'linadigan joy yo'q, hujjatni bo'lish shart emas. Raqamlarga ishonishdan oldin hujjatni ko'zdan kechiring: agar u bitta bosqichga tegishli bo'lsa, \"Tasdiqlash\" bilan ro'yxatdan olib tashlang; agar ichida haqiqatan ikki bosqich aralash bo'lsa, \"Rad etish\" ni bosing.",
       "levels": "Topilgan bosqichlar:",
       "action": "Bu karta ma'lumot kartasi emas — tasdiqlaydigan raqam yo'q. Hujjatni ikkita alohida qabul mavsumiga bo'lgandan keyin \"Tasdiqlash\" bilan ro'yxatdan olib tashlang; agar bo'linish noto'g'ri aniqlangan bo'lsa, \"Rad etish\" ni bosing.",
+      "splitActionHint": "\"Bo'lish\" tugmasi bakalavr va magistratura uchun alohida qabul mavsumlarini yaratadi va bu kartani yopadi. Har bir bosqichning aniq ma'lumotlari keyingi tekshiruv bosqichida to'ldiriladi.",
+      "splitAction": "Bo'lish",
+      "splitActionTitle": "Hujjatni bakalavr va magistratura uchun alohida qabul mavsumlariga bo'lish",
+      "splitDone": "Hujjat bo'lindi — ikkita alohida qabul mavsumi yaratildi",
       "rawToggle": "Texnik tafsilot",
       "level": {
         "associate": "Kollej (전문학사)",

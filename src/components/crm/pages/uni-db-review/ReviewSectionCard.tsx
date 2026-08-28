@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { AlertTriangle, Check, Flag, Loader2, Pencil, X } from 'lucide-react';
+import { AlertTriangle, Check, Flag, Loader2, Pencil, Split, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -21,6 +21,7 @@ import { itemConfidence, confidencePct, isFailedExtraction } from '../reviewLogi
 import { parseReliability, type ReliabilityColor } from '../reliability';
 import {
   firstNoteLine,
+  isDegreeSplitFlag,
   isDocumentFlag,
   sectionIcon,
   sectionLabelKey,
@@ -48,6 +49,7 @@ export interface SectionCardHandlers {
   onConfirmReject: (row: ReviewQueueRow, reason: RejectionReason) => void;
   onFlagSource: (row: ReviewQueueRow) => void;
   onConfirmEdit: (row: ReviewQueueRow, correctedJson: string) => void;
+  onSplit: (row: ReviewQueueRow) => void;
 }
 
 /**
@@ -178,16 +180,42 @@ export function ReviewSectionCard({
         {acting ? <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" /> : null}
         {!decided && !isRejecting && !isEditing ? (
           <>
-            <Button
-              size="sm"
-              className="h-8"
-              onClick={() => handlers.onApprove(row)}
-              disabled={acting}
-              title={t('uniReview.actions.approveTitle')}
-            >
-              <Check className="h-3.5 w-3.5" strokeWidth={2.5} />
-              {t('uniReview.actions.approve')}
-            </Button>
+            {isDegreeSplitFlag(row) ? (
+              <Button
+                size="sm"
+                className="h-8"
+                onClick={() => handlers.onSplit(row)}
+                disabled={acting}
+                title={t('uniReview.docFlag.splitActionTitle')}
+              >
+                <Split className="h-3.5 w-3.5" />
+                {t('uniReview.docFlag.splitAction')}
+              </Button>
+            ) : (
+              <Button
+                size="sm"
+                className="h-8"
+                onClick={() => handlers.onApprove(row)}
+                disabled={acting}
+                title={t('uniReview.actions.approveTitle')}
+              >
+                <Check className="h-3.5 w-3.5" strokeWidth={2.5} />
+                {t('uniReview.actions.approve')}
+              </Button>
+            )}
+            {!isDocumentFlag(row) ? (
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-8 text-muted-foreground"
+                onClick={onStartEdit}
+                disabled={acting}
+                title={t('uniReview.actions.editTitle')}
+              >
+                <Pencil className="h-3.5 w-3.5" />
+                {t('uniReview.actions.edit')}
+              </Button>
+            ) : null}
             <Button
               size="sm"
               variant="outline"

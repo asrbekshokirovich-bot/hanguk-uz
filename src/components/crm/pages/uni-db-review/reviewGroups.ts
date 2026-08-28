@@ -286,6 +286,18 @@ export function isDegreeCheckFlag(row: ReviewQueueRow): boolean {
   return /no split boundary|no degree section header/i.test(note);
 }
 
+/**
+ * A document flag that DID find a boundary — parse_worker's degree_split
+ * card. Matches the same phrase fn_split_guideline_document_by_degree uses
+ * to find its target row, so "the button shows" and "the RPC will resolve
+ * this row" never disagree.
+ */
+export function isDegreeSplitFlag(row: ReviewQueueRow): boolean {
+  if (!isDocumentFlag(row) || isDegreeCheckFlag(row)) return false;
+  const note = row.reviewer_notes ?? '';
+  return /split into separate admission/i.test(note);
+}
+
 // ---------------------------------------------------------------------------
 // Rejected rows that are back in the queue (migration 20260823120000).
 // ---------------------------------------------------------------------------

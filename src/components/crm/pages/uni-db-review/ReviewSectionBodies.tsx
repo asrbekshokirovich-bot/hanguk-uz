@@ -10,7 +10,13 @@ import {
   classifyTrack,
   mapCalendarEvents,
 } from '../reviewLogic';
-import { fmtKRW, fmtDateKST, isDocumentFlag, isDegreeCheckFlag } from './reviewGroups';
+import {
+  fmtKRW,
+  fmtDateKST,
+  isDocumentFlag,
+  isDegreeCheckFlag,
+  isDegreeSplitFlag,
+} from './reviewGroups';
 
 /**
  * Per-field-group section bodies (design §B): only the decision-critical
@@ -696,8 +702,7 @@ function DocumentFlagBody({ row }: { row: ReviewQueueRow }) {
   // copy: that card exists precisely because no split point was found, and the
   // split wording would tell the reviewer to make a cut the parser ruled out.
   const isCheck = isDegreeCheckFlag(row);
-  const isSplit =
-    !isCheck && (levels.length > 0 || /combined undergraduate/i.test(note ?? ''));
+  const isSplit = isDegreeSplitFlag(row);
   const titleKey = isCheck
     ? 'uniReview.docFlag.checkTitle'
     : isSplit
@@ -740,7 +745,13 @@ function DocumentFlagBody({ row }: { row: ReviewQueueRow }) {
       ) : null}
 
       <span className="text-[12.5px] leading-normal text-muted-foreground">
-        {t(isCheck ? 'uniReview.docFlag.checkAction' : 'uniReview.docFlag.action')}
+        {t(
+          isCheck
+            ? 'uniReview.docFlag.checkAction'
+            : isSplit
+              ? 'uniReview.docFlag.splitActionHint'
+              : 'uniReview.docFlag.action',
+        )}
       </span>
 
       {/* The parser's raw sentence, kept verbatim: it names the exact signals
