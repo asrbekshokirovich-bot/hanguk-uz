@@ -75,13 +75,20 @@ const SLOT_KEY: Record<string, string> = {
 
 const EMPH_SLOTS = new Set(['applyClose', 'docsDeadline']);
 
-/** One line per dated event — two intake rounds stack instead of colliding. */
+/**
+ * One line per dated event — two intake rounds stack instead of colliding.
+ * When the extractor tagged an event with round_label (1차/2차/3차/4차 모집,
+ * or "1st Round" etc.), that label is prefixed so a reviewer can tell which
+ * round each stacked date belongs to instead of guessing from order.
+ */
 function calValueLines(t: TFunction, events: Array<Record<string, unknown>>): string[] {
   return events
     .map((e) => {
       const d = fmtDateKST(e.starts_at);
       if (!d) return null;
-      return e.is_tentative ? `${d} ${t('uniReview.cal.tentative')}` : d;
+      const dated = e.is_tentative ? `${d} ${t('uniReview.cal.tentative')}` : d;
+      const round = typeof e.round_label === 'string' ? e.round_label.trim() : '';
+      return round ? `${round}: ${dated}` : dated;
     })
     .filter((l): l is string => l !== null);
 }
@@ -92,20 +99,32 @@ export function CalendarBody({ row }: { row: ReviewQueueRow }) {
   const periods = getArray(row.parsed_output, 'periods');
   const { slots } = mapCalendarEvents(events);
 
-  const offlineStart = periods.map((p) => fmtDateKST(p.offline_application_start)).find(Boolean);
-  const offlineEnd = periods.map((p) => fmtDateKST(p.offline_application_end)).find(Boolean);
-  const offline = offlineStart ? (offlineEnd ? `${offlineStart} – ${offlineEnd}` : offlineStart) : null;
+  /** Prefix a period-derived value with its round_label, same convention as calValueLines. */
+  const roundPrefix = (p: Record<string, unknown>) =>
+    typeof p.round_label === 'string' && p.round_label.trim() ? `${p.round_label.trim()}: ` : '';
 
-  const fee = periods
-    .map((p) => fmtKRW(p.application_fee_krw))
-    .find((v): v is string => v !== null);
+  const offlineLines = periods
+    .map((p) => {
+      const start = fmtDateKST(p.offline_application_start);
+      const end = fmtDateKST(p.offline_application_end);
+      if (!start) return null;
+      return `${roundPrefix(p)}${end ? `${start} – ${end}` : start}`;
+    })
+    .filter((l): l is string => l !== null);
+
+  const feeLines = periods
+    .map((p) => {
+      const krw = fmtKRW(p.application_fee_krw);
+      return krw ? `${roundPrefix(p)}${krw}` : null;
+    })
+    .filter((l): l is string => l !== null);
 
   const rows: Array<{ key: string; lines: string[]; emph: boolean }> = [
     ...slots.map((s) => {
       const key = SLOT_KEY[s.label] ?? s.label;
       return { key, lines: calValueLines(t, s.events), emph: EMPH_SLOTS.has(key) };
     }),
-    { key: 'offline', lines: offline ? [offline] : [], emph: false },
+    { key: 'offline', lines: offlineLines, emph: false },
   ];
 
   return (
@@ -143,7 +162,15 @@ export function CalendarBody({ row }: { row: ReviewQueueRow }) {
       <div className="flex items-center justify-between gap-3 rounded-[10px] border border-border/60 bg-secondary/50 p-2.5 px-3.5">
         <span className="text-[13px] font-semibold">{t('uniReview.cal.fee')}</span>
         <span className="min-w-0 break-words text-right font-mono text-[13px] font-bold">
-          {fee ?? <Ns />}
+          {feeLines.length ? (
+            feeLines.map((line, i) => (
+              <span key={i} className="block">
+                {line}
+              </span>
+            ))
+          ) : (
+            <Ns />
+          )}
         </span>
       </div>
     </div>

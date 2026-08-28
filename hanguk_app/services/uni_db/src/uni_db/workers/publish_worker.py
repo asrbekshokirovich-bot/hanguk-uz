@@ -650,6 +650,19 @@ async def _publish_documents(conn, rec, payload) -> int:
     return n
 
 
+def _round_number_for(round_label) -> int:
+    """Map a free-text round label ("1차", "2차 모집", "3rd Round", ...) to
+    the round_number this row is stored under. Extracts the first digit;
+    anything unlabeled or unparseable is round 1 — the same identity every
+    single-round document has always published under, so this never breaks
+    existing rows.
+    """
+    if not isinstance(round_label, str):
+        return 1
+    m = re.search(r"\d", round_label)
+    return int(m.group(0)) if m else 1
+
+
 async def _publish_calendar(conn, rec, payload) -> int:
     periods = payload.get("periods")
     periods = periods if isinstance(periods, list) else []
@@ -660,14 +673,14 @@ async def _publish_calendar(conn, rec, payload) -> int:
             continue
         await conn.execute(
             """insert into public.university_admission_periods (institution_id,
-                 semester, year, program_level, language_track,
+                 semester, year, program_level, language_track, round_number,
                  application_start, application_end, document_deadline,
                  result_announcement, online_application_start, online_application_end,
                  offline_application_start, offline_application_end,
                  interview_start, interview_end, application_fee_krw, application_fee_usd,
                  needs_attention, attention_reason)
-               values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19)
-               on conflict (institution_id, semester, year, program_level, language_track)
+               values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20)
+               on conflict (institution_id, semester, year, program_level, language_track, round_number)
                do update set
                  application_start = excluded.application_start,
                  application_end = excluded.application_end,
@@ -686,6 +699,7 @@ async def _publish_calendar(conn, rec, payload) -> int:
                  updated_at = now()""",
             rec["institution_id"], semester, rec["_year"],
             program_level_for(p.get("program_level")), language_track_for(p.get("language_track")),
+            _round_number_for(p.get("round_label")),
             _as_date(p.get("application_start")), _as_date(p.get("application_end")),
             _as_date(p.get("document_deadline")), _as_date(p.get("result_announcement")),
             _as_date(p.get("online_application_start")), _as_date(p.get("online_application_end")),

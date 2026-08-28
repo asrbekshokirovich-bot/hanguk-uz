@@ -67,6 +67,11 @@ CALENDAR_SCHEMA: dict[str, Any] = {
                     "correction_text_ko":   {"type": ["string", "null"]},
                     "admission_track":      {"type": ["string", "null"]},
                     "target_semester":      {"type": ["string", "null"]},
+                    # Which application round these dates belong to (모집 차수),
+                    # when the guideline distinguishes 1차/2차/3차/4차 모집 or
+                    # 1st/2nd/3rd/4th Round with separate deadlines. Null when
+                    # the document has only one round or does not label it.
+                    "round_label":          {"type": ["string", "null"]},
                     "source_text_ko":{"type": "string"},
                     "extractor_confidence": {"type": "number", "minimum": 0, "maximum": 1},
                 },
@@ -83,6 +88,9 @@ CALENDAR_SCHEMA: dict[str, Any] = {
                 "properties": {
                     "language_track":  {"type": ["string", "null"], "enum": [None, "korean", "english"]},
                     "program_level":   {"type": ["string", "null"]},
+                    # Same round label as events[].round_label — one periods[]
+                    # entry per (language_track, program_level, round).
+                    "round_label":     {"type": ["string", "null"]},
                     "online_application_start":  {"type": ["string", "null"]},
                     "online_application_end":    {"type": ["string", "null"]},
                     "offline_application_start": {"type": ["string", "null"]},
