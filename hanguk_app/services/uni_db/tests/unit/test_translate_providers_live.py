@@ -104,6 +104,7 @@ class TestClaudeMockPath:
 @pytest.fixture
 def claude_live(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr(claude_adapter.settings, "live_apis", True)
+    monkeypatch.setattr(claude_adapter.settings, "llm_backend", "anthropic")
     monkeypatch.setattr(claude_adapter.settings, "anthropic_api_key", "sk-ant-test")
     monkeypatch.setattr(
         claude_adapter.settings, "anthropic_model_translate", "claude-sonnet-4-6"
@@ -116,6 +117,7 @@ class TestClaudeLivePath:
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         monkeypatch.setattr(claude_adapter.settings, "live_apis", True)
+        monkeypatch.setattr(claude_adapter.settings, "llm_backend", "anthropic")
         monkeypatch.setattr(claude_adapter.settings, "anthropic_api_key", "")
         with pytest.raises(RuntimeError, match="ANTHROPIC_API_KEY"):
             claude_adapter.translate(

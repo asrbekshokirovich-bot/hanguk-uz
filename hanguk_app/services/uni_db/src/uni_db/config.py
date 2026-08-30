@@ -28,7 +28,7 @@ class Settings(BaseSettings):
     #                the running Claude Code session's subscription (NO api key,
     #                no per-token bill). Used when the crawl runs inside a Claude
     #                Routine so the whole pipeline stays keyless.
-    llm_backend: str = Field(default="anthropic", alias="UNI_DB_LLM_BACKEND")
+    llm_backend: str = Field(default="claude_cli", alias="UNI_DB_LLM_BACKEND")
     # Path/name of the claude CLI binary (claude_cli backend only).
     claude_cli_bin: str = Field(default="claude", alias="UNI_DB_CLAUDE_CLI")
     # Usage-limit resilience (claude_cli backend only). When a subscription

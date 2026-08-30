@@ -68,17 +68,23 @@ def translate(
             via_pivot=pivot is not None,
         )
 
-    if not settings.anthropic_api_key:
-        raise RuntimeError(
-            "ANTHROPIC_API_KEY is not set; cannot call Claude translation. "
-            "Unset UNI_DB_LIVE_APIS to use the deterministic mock path."
+    if settings.llm_backend == "claude_cli":
+        text = _call_cli_translate(
+            source_text_ko=source_text_ko,
+            target_lang=target_lang,
+            pivot=pivot,
         )
-
-    text = _call_anthropic_translate(
-        source_text_ko=source_text_ko,
-        target_lang=target_lang,
-        pivot=pivot,
-    )
+    else:
+        if not settings.anthropic_api_key:
+            raise RuntimeError(
+                "ANTHROPIC_API_KEY is not set; cannot call Claude translation. "
+                "Unset UNI_DB_LIVE_APIS to use the deterministic mock path."
+            )
+        text = _call_anthropic_translate(
+            source_text_ko=source_text_ko,
+            target_lang=target_lang,
+            pivot=pivot,
+        )
     return TranslationOutput(
         text_value=text,
         provider="claude",
@@ -196,3 +202,27 @@ def _extract_text(response: Any) -> str:
     if not parts:
         raise RuntimeError("Claude translation response had no text blocks")
     return "".join(parts)
+
+
+def _call_cli_translate(
+    *,
+    source_text_ko: str,
+    target_lang: TargetLang,
+    pivot: TargetLang | None,
+) -> str:
+    """Translation via the keyless Claude CLI backend."""
+    from ..extract.llm_cli import run_claude_cli
+
+    target_name = _LANG_NAMES.get(target_lang, target_lang)
+    system_text = _build_system_prompt(
+        target_lang=target_lang,
+        target_name=target_name,
+        pivot=pivot,
+    )
+    raw = run_claude_cli(
+        system_text,
+        source_text_ko,
+        settings.anthropic_model_translate,
+        timeout=120.0,
+    )
+    return _strip_fences(raw)
