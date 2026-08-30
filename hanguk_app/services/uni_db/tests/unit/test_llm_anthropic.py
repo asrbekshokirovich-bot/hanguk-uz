@@ -112,6 +112,7 @@ def live_settings(monkeypatch: pytest.MonkeyPatch):
     Returns a recorder dict that some tests use to assert side effects.
     """
     monkeypatch.setattr(llm_anthropic.settings, "live_apis", True)
+    monkeypatch.setattr(llm_anthropic.settings, "llm_backend", "anthropic")
     monkeypatch.setattr(llm_anthropic.settings, "anthropic_api_key", "sk-ant-test")
     monkeypatch.setattr(
         llm_anthropic.settings, "anthropic_model_extract", "claude-sonnet-4-6"
@@ -162,6 +163,7 @@ class TestLivePathDefenses:
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         monkeypatch.setattr(llm_anthropic.settings, "live_apis", True)
+        monkeypatch.setattr(llm_anthropic.settings, "llm_backend", "anthropic")
         monkeypatch.setattr(llm_anthropic.settings, "anthropic_api_key", "")
 
         # _get_client should never be called; the API-key guard fires first.
