@@ -53,8 +53,10 @@ jobs:
       SUPABASE_DB_URL: ${{ secrets.UNI_DB_SUPABASE_DB_URL }}
       SUPABASE_URL: ${{ secrets.UNI_DB_SUPABASE_URL }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.UNI_DB_SUPABASE_SERVICE_ROLE_KEY }}
+      UNI_DB_LLM_BACKEND: "claude_cli"
       ANTHROPIC_API_KEY: ${{ secrets.UNI_DB_ANTHROPIC_API_KEY }}
       CLOUDCONVERT_API_KEY: ${{ secrets.UNI_DB_CLOUDCONVERT_API_KEY }}
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.UNI_DB_CLAUDE_CODE_OAUTH_TOKEN }}
       NAVER_SEARCH_CLIENT_ID: ${{ secrets.UNI_DB_NAVER_SEARCH_CLIENT_ID }}
       NAVER_SEARCH_CLIENT_SECRET: ${{ secrets.UNI_DB_NAVER_SEARCH_CLIENT_SECRET }}
       DEEPL_API_KEY: ${{ secrets.UNI_DB_DEEPL_API_KEY }}
@@ -84,12 +86,26 @@ jobs:
           pip install --extra-index-url https://download.pytorch.org/whl/cpu \
             -e ".[ocr]"
 
+      - name: Install the Claude CLI (subscription backend only)
+        if: env.UNI_DB_LLM_BACKEND == 'claude_cli'
+        run: npm install -g @anthropic-ai/claude-code
+
       - name: Check required secrets are set
         run: |
-          if [ -z "${SUPABASE_DB_URL}" ] || [ -z "${ANTHROPIC_API_KEY}" ] \
-             || [ -z "${NAVER_SEARCH_CLIENT_ID}" ] || [ -z "${NAVER_SEARCH_CLIENT_SECRET}" ]; then
-            echo "::error::Missing secrets. Add UNI_DB_SUPABASE_DB_URL, UNI_DB_ANTHROPIC_API_KEY, UNI_DB_NAVER_SEARCH_CLIENT_ID and UNI_DB_NAVER_SEARCH_CLIENT_SECRET in Settings → Secrets and variables → Actions."
+          if [ -z "${SUPABASE_DB_URL}" ] || [ -z "${NAVER_SEARCH_CLIENT_ID}" ] || [ -z "${NAVER_SEARCH_CLIENT_SECRET}" ]; then
+            echo "::error::Missing secrets. Add UNI_DB_SUPABASE_DB_URL, UNI_DB_NAVER_SEARCH_CLIENT_ID and UNI_DB_NAVER_SEARCH_CLIENT_SECRET in Settings → Secrets and variables → Actions."
             exit 1
+          fi
+          if [ "${UNI_DB_LLM_BACKEND}" = "claude_cli" ]; then
+            if [ -z "${CLAUDE_CODE_OAUTH_TOKEN}" ]; then
+              echo "::error::Backend 'claude_cli' needs UNI_DB_CLAUDE_CODE_OAUTH_TOKEN. Mint it with 'claude setup-token' and add it in Settings → Secrets and variables → Actions."
+              exit 1
+            fi
+          else
+            if [ -z "${ANTHROPIC_API_KEY}" ]; then
+              echo "::error::Missing secret UNI_DB_ANTHROPIC_API_KEY (Settings → Secrets and variables → Actions)."
+              exit 1
+            fi
           fi
 
       # 1) Search every institution's own domain for the target cycle's 모집요강,

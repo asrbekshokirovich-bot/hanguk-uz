@@ -62,8 +62,8 @@ on:
         default: "8"
         required: false
       llm_backend:
-        description: "'anthropic' (API key, billed per token) or 'claude_cli' (Claude subscription, no per-token bill)"
-        default: "anthropic"
+        description: "'claude_cli' (Claude subscription, no per-token bill) or 'anthropic' (API key, billed per token)"
+        default: "claude_cli"
         required: false
 
 # Never two drains at once — they would fight over the same failed jobs, and
@@ -116,7 +116,7 @@ jobs:
       # they keep running on the API key exactly as before; `claude_cli` is
       # something a human chooses when dispatching, most usefully when the API
       # balance is empty and the work should not wait for a top-up.
-      UNI_DB_LLM_BACKEND: ${{ github.event.inputs.llm_backend || 'anthropic' }}
+      UNI_DB_LLM_BACKEND: ${{ github.event.inputs.llm_backend || 'claude_cli' }}
       # Read by the `claude` CLI itself, not by our code — the CLI backend
       # shells out and the subprocess inherits this. Minted with
       # `claude setup-token` (a subscription token, NOT an API key).
