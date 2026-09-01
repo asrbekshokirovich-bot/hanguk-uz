@@ -578,3 +578,130 @@ async def test_the_published_row_is_marked_as_the_entry_semester() -> None:
     await pw.publish_pending(conn)
 
     assert conn.inserts_into("tuition")[0][6] is True
+
+
+class TestPublishedOutcome:
+    """2026-09-01 audit finding: `published_outcome` (CHECK 'published'/
+    'held'/'skipped' — verified against the live schema) has existed since
+    migration 20260801001000 but was never written; 286 rows in production
+    carried a `published_at` timestamp with no recorded outcome, so
+    'approved but held for a stale cycle' was indistinguishable from
+    'actually reached students' without re-deriving it from other columns.
+    """
+
+    def _outcome_calls(self, conn: _Conn) -> list[tuple]:
+        return [
+            args for sql, args in conn.executes
+            if "update public.review_queue" in sql and "published_outcome" in sql
+        ]
+
+    async def test_a_successfully_published_item_is_marked_published(self) -> None:
+        cy = date.today().year
+        rec = _rec("tuition", {"rows": [
+            {"faculty_group": "전체", "academic_year": cy,
+             "amount_krw": 3_000_000, "source_text_ko": "3,000,000원"},
+        ]})
+        conn = _Conn([rec])
+        await pw.publish_pending(conn)
+
+        calls = self._outcome_calls(conn)
+        assert len(calls) == 1
+        assert calls[0] == (rec["queue_id"], "published")
+
+    async def test_a_skipped_item_is_marked_skipped_not_published(self) -> None:
+        rec = _rec("scholarships", {"rows": []})  # empty → unpublishable
+        conn = _Conn([rec])
+        await pw.publish_pending(conn)
+
+        calls = self._outcome_calls(conn)
+        assert len(calls) == 1
+        assert calls[0] == (rec["queue_id"], "skipped")
+
+    async def test_a_held_stale_cycle_item_is_marked_held_not_published(self) -> None:
+        cy = date.today().year
+        rec = _rec(
+            "tuition",
+            {"rows": [{"faculty_group": "전체", "academic_year": cy - 5,
+                       "amount_krw": 3_000_000, "source_text_ko": "구 등록금"}]},
+            source_url_ko="https://old.ac.kr/2020_guideline.pdf",
+        )
+        conn = _Conn([rec])
+        await pw.publish_pending(conn)
+
+        calls = self._outcome_calls(conn)
+        assert len(calls) == 1
+        assert calls[0] == (rec["queue_id"], "held")
+
+
+class TestOnConflictWiring:
+    """2026-09-01: uq_tuition_natural_key / uq_requirements_natural_key /
+    uq_scholarships_natural_key now exist in production (applied the same
+    day these regression tests were written), and the INSERTs into those
+    tables were unconditional — no ON CONFLICT — until this pass. Once the
+    constraint exists, an unhandled duplicate errors per-item instead of
+    silently duplicating (caught by publish_pending's own try/except, not
+    fatal, but every re-extraction of already-published content would
+    fail to update rather than refresh). These tests pin the ON CONFLICT
+    clause staying present on each of the three affected INSERTs — this
+    exact class of dedup logic has regressed multiple times in this
+    codebase's history (see git log: five separate link/card dedup fixes).
+    documents_required is intentionally excluded: it already had its own
+    correct ON CONFLICT (cycle_id, document_type, applicant_category)
+    against a pre-existing NULLS NOT DISTINCT index, unrelated to this pass.
+    """
+
+    def _sql_for(self, conn: _Conn, table: str) -> str:
+        hits = [sql for sql, _ in conn.executes if f"insert into public.{table} " in sql]
+        assert hits, f"no insert into {table} was executed"
+        return hits[0]
+
+    async def test_tuition_insert_has_on_conflict(self) -> None:
+        cy = date.today().year
+        rec = _rec("tuition", {"rows": [
+            {"faculty_group": "전체", "academic_year": cy,
+             "amount_krw": 3_000_000, "source_text_ko": "3,000,000원"},
+        ]})
+        conn = _Conn([rec])
+        await pw.publish_pending(conn)
+        sql = self._sql_for(conn, "tuition")
+        assert "on conflict" in sql
+        assert "do update set" in sql
+        assert "amount_krw = excluded.amount_krw" in sql
+
+    async def test_requirements_insert_has_on_conflict(self) -> None:
+        rec = _rec("requirements", {"rows": [
+            {"topik_min_level": 3, "prose_ko": "TOPIK 3급 이상",
+             "source_text_ko": "TOPIK 3급 이상"},
+        ]})
+        conn = _Conn([rec])
+        await pw.publish_pending(conn)
+        sql = self._sql_for(conn, "requirements")
+        assert "on conflict" in sql
+        assert "do update set" in sql
+
+    async def test_scholarships_insert_has_on_conflict(self) -> None:
+        rec = _rec("scholarships", {"rows": [
+            {"scope": "university", "name_ko": "성적우수 장학금", "award_type": "tuition_pct",
+             "award_value": 50, "source_text_ko": "성적우수 장학금 50%"},
+        ]})
+        conn = _Conn([rec])
+        await pw.publish_pending(conn)
+        sql = self._sql_for(conn, "scholarships")
+        assert "on conflict" in sql
+        assert "do update set" in sql
+
+    async def test_requirements_embedded_tuition_insert_has_on_conflict(self) -> None:
+        """The per-track tuition figure embedded inside a requirements row
+        publishes to the tuition table via a SECOND insert site
+        (_publish_requirements, not _publish_tuition) — easy to patch one
+        and miss the other, so this is covered separately."""
+        cy = date.today().year
+        rec = _rec("requirements", {"rows": [
+            {"prose_ko": "req", "source_text_ko": "req",
+             "tuition": {"amount_krw": 4_000_000, "academic_year": cy, "semester_number": 1}},
+        ]})
+        conn = _Conn([rec])
+        await pw.publish_pending(conn)
+        sql = self._sql_for(conn, "tuition")
+        assert "on conflict" in sql
+        assert "do update set" in sql

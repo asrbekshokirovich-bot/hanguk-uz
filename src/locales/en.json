@@ -1682,7 +1682,8 @@
       "editTitle": "Correct the extracted data before approving",
       "saveEdit": "Save & approve",
       "editInvalidJson": "Invalid JSON — fix the syntax before saving",
-      "editPayloadEmpty": "The corrected payload can't be empty"
+      "editPayloadEmpty": "The corrected payload can't be empty",
+      "editSchemaInvalid": "This doesn't match the {{section}} format: {{detail}}"
     },
     "decided": {
       "approved": "Approved — published to students",

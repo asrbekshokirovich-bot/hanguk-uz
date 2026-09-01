@@ -12,6 +12,7 @@ import {
   type RejectionReason,
 } from '@/hooks/useReviewQueue';
 import { supabase } from '@/integrations/supabase/client';
+import { validateParsedOutput } from './reviewLogic';
 import {
   groupRows,
   sortGroups,
@@ -112,30 +113,50 @@ export function ReviewApprovalQueue() {
       const g = groupOf(row);
       const allRows = g?.rows ?? [row];
       const reasonLabel = t(`uniReview.reasons.${reason}`);
-      try {
-        await Promise.all(
-          allRows.map((r) =>
-            supabase
-              .rpc('fn_review_reject' as never, {
-                queue_item_id: r.id,
-                reason,
-              } as never)
-              .then(({ error: e }) => {
-                if (e) throw new Error(e.message);
-              }),
-          ),
-        );
-        for (const r of allRows) markDecided(r, 'rejected', reasonLabel);
-        setRejectingRowId(null);
-        qc.invalidateQueries({ queryKey: ['uni_db', 'review_queue_dashboard'] });
+      // 2026-09-01: Promise.all meant one row that could not be rejected
+      // (e.g. already approved earlier this session) threw for the WHOLE
+      // batch — the other rows' rejections had already committed
+      // server-side by then, but markDecided never ran for any of them, so
+      // the rail kept showing already-rejected cards as actionable for up
+      // to the next 60s refetch. Settle every row on its own outcome.
+      const settled = await Promise.allSettled(
+        allRows.map((r) =>
+          supabase
+            .rpc('fn_review_reject' as never, {
+              queue_item_id: r.id,
+              reason,
+            } as never)
+            .then(({ error: e }) => {
+              if (e) throw new Error(e.message);
+              return r;
+            }),
+        ),
+      );
+      const succeeded = allRows.filter((_, i) => settled[i].status === 'fulfilled');
+      const failures = settled.filter(
+        (s): s is PromiseRejectedResult => s.status === 'rejected',
+      );
+      for (const r of succeeded) markDecided(r, 'rejected', reasonLabel);
+      setRejectingRowId(null);
+      qc.invalidateQueries({ queryKey: ['uni_db', 'review_queue_dashboard'] });
+      if (succeeded.length > 0) {
         toast.success(
           t('uniReview.toast.rejected', {
             uni: g ? shortName(g) : '—',
             section: t(sectionLabelKey(row)),
           }),
         );
-      } catch (e) {
-        toast.error(e instanceof Error ? e.message : String(e));
+      }
+      if (failures.length > 0) {
+        const detail =
+          failures[0].reason instanceof Error
+            ? failures[0].reason.message
+            : String(failures[0].reason);
+        toast.error(
+          allRows.length > 1
+            ? `${failures.length}/${allRows.length} sections could not be rejected: ${detail}`
+            : detail,
+        );
       }
     },
     onConfirmEdit: (row, correctedJson) => {
@@ -148,6 +169,26 @@ export function ReviewApprovalQueue() {
       }
       if (!corrected || typeof corrected !== 'object' || Object.keys(corrected).length === 0) {
         toast.error(t('uniReview.actions.editPayloadEmpty'));
+        return;
+      }
+      // 2026-09-01: this only ever checked "is it non-empty JSON" — a typo'd
+      // key, a string where a number belongs, or an array under the wrong
+      // key name (`rows` vs `events`) would publish verbatim as the
+      // approved truth, since publish_worker trusts reviewer_decision over
+      // the model's own (schema-validated) parsed_output. The per-field-group
+      // zod schema already exists for exactly this; it was just never called.
+      const validation = validateParsedOutput(row.field_group, corrected);
+      if (!validation.ok) {
+        const detail = validation.errors
+          .slice(0, 3)
+          .map((e) => `${e.path}: ${e.message}`)
+          .join('; ');
+        toast.error(
+          t('uniReview.actions.editSchemaInvalid', {
+            section: t(sectionLabelKey(row)),
+            detail,
+          }),
+        );
         return;
       }
       editAccept.mutate(

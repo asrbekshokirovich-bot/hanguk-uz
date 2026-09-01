@@ -138,3 +138,12 @@ jobs:
       - name: Translate
         continue-on-error: true
         run: python scripts/run_translate_once.py --limit 100
+
+      # 5) 2026-09-01 audit fix: see uni-db-process-uploads.yml for the full
+      #    rationale. This workflow is dispatch-only (no cron — the daily
+      #    discovery sweep is owned by an out-of-repo Claude Routine per the
+      #    header above), so a wide window here is a manual-run sanity check,
+      #    not the primary detector; process-uploads/drain-backlog cover the
+      #    scheduled cadence.
+      - name: Check pipeline watchdog for fatal alerts
+        run: uni-db check-watchdog-alerts --window-minutes 1440

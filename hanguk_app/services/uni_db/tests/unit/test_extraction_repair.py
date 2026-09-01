@@ -251,9 +251,18 @@ class TestCliTimeouts:
         assert llm_anthropic._cli_timeout_for("scholarships") == 900.0
         assert llm_anthropic._cli_timeout_for("requirements") == 900.0
 
-    def test_other_groups_keep_default(self) -> None:
-        assert llm_anthropic._cli_timeout_for("calendar") == 240.0
-        assert llm_anthropic._cli_timeout_for("tuition") == 240.0
+    def test_calendar_and_tuition_have_dedicated_ceilings(self) -> None:
+        """2026-09-01 audit re-check: both were left on the 240s default on
+        the theory their healthy tails were outliers. A same-day sample
+        showed calendar alone losing 36/46 of the day's failures to that
+        ceiling, with p95 sitting exactly on it — a distribution truncated
+        by its own cap, not a genuinely slow minority. See the comment on
+        _CLI_TIMEOUT_BY_GROUP for the full measurement."""
+        assert llm_anthropic._cli_timeout_for("calendar") == 900.0
+        assert llm_anthropic._cli_timeout_for("tuition") == 600.0
+
+    def test_unmapped_group_keeps_default(self) -> None:
+        assert llm_anthropic._cli_timeout_for("some_future_group") == 240.0
 
     def test_cli_backend_passes_timeout_through(
         self, monkeypatch: pytest.MonkeyPatch

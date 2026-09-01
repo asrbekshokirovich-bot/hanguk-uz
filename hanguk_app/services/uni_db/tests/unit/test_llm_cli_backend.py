@@ -214,6 +214,88 @@ def test_run_claude_cli_does_not_retry_a_genuine_error(monkeypatch):
     assert not slept
 
 
+# --- 2026-09-01: session-limit classification, reset-time sleep, timeout retry
+
+def test_is_usage_limit_recognizes_session_limit():
+    """The Claude Code subscription's own throttle message must be classified
+    as transient, not a genuine failure — see llm_cli._USAGE_LIMIT_MARKERS'
+    2026-09-01 comment for why this previously fell through every marker."""
+    assert llm_cli._is_usage_limit("You've hit your session limit \u00b7 resets 3pm (UTC)")
+
+
+def test_seconds_until_reset_parses_and_rolls_to_next_day():
+    from datetime import datetime, timezone
+
+    at_1400 = datetime(2026, 9, 1, 14, 0, tzinfo=timezone.utc)
+    assert llm_cli._seconds_until_reset(
+        "You've hit your session limit \u00b7 resets 3pm (UTC)", now=at_1400
+    ) == 3600.0
+
+    past_reset = datetime(2026, 9, 1, 16, 0, tzinfo=timezone.utc)
+    assert llm_cli._seconds_until_reset("resets 3pm (UTC)", now=past_reset) == 23 * 3600.0
+
+    assert llm_cli._seconds_until_reset("schema validation failed") is None
+
+
+def test_run_claude_cli_sleeps_until_reset_time_not_generic_backoff(monkeypatch):
+    """A session-limit error naming a reset clock time should produce one
+    sleep close to that duration, not the short exponential-backoff step."""
+    limited = json.dumps({"type": "result", "subtype": "error_during_execution",
+                          "is_error": True,
+                          "result": "You've hit your session limit \u00b7 resets 3pm (UTC)"})
+    ok = json.dumps({"type": "result", "subtype": "success", "is_error": False, "result": "hi"})
+    calls = {"n": 0}
+
+    def fake_run(*a, **k):
+        calls["n"] += 1
+        return _fake_completed(limited if calls["n"] == 1 else ok)
+
+    slept: list[float] = []
+    monkeypatch.setattr(subprocess, "run", fake_run)
+    monkeypatch.setattr(llm_cli.time, "sleep", lambda s: slept.append(s))
+    monkeypatch.setattr(settings, "claude_cli_retry_budget_sec", 7200)
+    monkeypatch.setattr(
+        llm_cli, "_seconds_until_reset",
+        lambda text, now=None: 3600.0 if "session limit" in text else None,
+    )
+
+    assert llm_cli.run_claude_cli("s", "u", "claude-sonnet-4-6") == "hi"
+    assert calls["n"] == 2
+    assert slept == [3630.0]  # reset_wait + 30s margin, not the ~60s base backoff
+
+
+def test_run_claude_cli_result_retries_once_on_timeout_then_succeeds(monkeypatch):
+    """A killed-for-timeout subprocess gets one retry at 1.5x the ceiling
+    before the group is treated as lost — see _call_with_timeout_retry."""
+    ok = json.dumps({"type": "result", "subtype": "success", "is_error": False, "result": "hi"})
+    calls: list[float] = []
+
+    def fake_run(*a, timeout=None, **k):
+        calls.append(timeout)
+        if len(calls) == 1:
+            raise subprocess.TimeoutExpired(cmd="claude", timeout=timeout)
+        return _fake_completed(ok)
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+    monkeypatch.setattr(settings, "claude_cli_retry_budget_sec", 7200)
+
+    out = llm_cli.run_claude_cli("s", "u", "claude-sonnet-4-6", timeout=240.0)
+    assert out == "hi"
+    assert calls == [240.0, 360.0]  # 1.5x on the retry
+
+
+def test_run_claude_cli_result_fails_after_second_timeout(monkeypatch):
+    """Two timeouts in a row are treated as genuinely stuck, not retried forever."""
+    def fake_run(*a, timeout=None, **k):
+        raise subprocess.TimeoutExpired(cmd="claude", timeout=timeout)
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+    monkeypatch.setattr(settings, "claude_cli_retry_budget_sec", 7200)
+
+    with pytest.raises(llm_cli.ClaudeCliError):
+        llm_cli.run_claude_cli("s", "u", "claude-sonnet-4-6", timeout=240.0)
+
+
 def test_effective_verify_level_caps_on_claude_cli(monkeypatch):
     # API backend: level passes through unchanged
     monkeypatch.setattr(settings, "llm_backend", "anthropic")
