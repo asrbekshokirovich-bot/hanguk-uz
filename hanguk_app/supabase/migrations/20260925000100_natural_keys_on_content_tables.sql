@@ -24,6 +24,18 @@
 -- in all four tables before this migration was applied; all four
 -- uq_*_natural_key indexes confirmed present in pg_indexes afterward.
 --
+-- SUPERSEDED IN PART: uq_documents_required_natural_key was dropped ~10
+-- minutes later by 20260925000300_drop_redundant_documents_required_index.sql
+-- — documents_required already had correct protection this migration was
+-- not aware of (see that file for what was missed and why). The tuition/
+-- requirements/scholarships indexes below are unaffected and remain in place.
+--
+-- ON CONFLICT wiring for tuition/requirements/scholarships (the "LIVE RISK"
+-- paragraph below described) shipped the same session as application code —
+-- see publish_worker.py's _publish_tuition / _publish_requirements /
+-- _publish_scholarships. documents_required needed no such change: its
+-- existing ON CONFLICT already targeted the correct pre-existing index.
+--
 -- LIVE RISK NOW IN EFFECT until the follow-up below lands: these
 -- constraints exist, but publish_worker's INSERTs still have no ON
 -- CONFLICT clause. A re-extraction that would previously have silently
