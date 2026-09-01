@@ -24,6 +24,7 @@ import { User, Phone, Calendar, CreditCard, KeyRound, Copy, CheckCircle, Crown, 
 import { cn } from '@/lib/utils';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ContractUpload } from './ContractUpload';
+import { applyDiscount, formatAmount } from '@/hooks/useStudentPlan';
 
 interface AddStudentDialogProps {
   open: boolean;
@@ -112,6 +113,7 @@ const emptyForm = () => ({
   phones: [{ phone: '', label: 'own' }] as PhoneEntry[],
   paymentPlan: '',
   paymentMode: 'one_time',
+  discountPercent: '0',
   contractDate: '',
   contractUrl: '',
   isGksApplicant: false,
@@ -169,6 +171,9 @@ export function AddStudentDialog({ open, onOpenChange, onSuccess }: AddStudentDi
     if (!requireField(!!formData.contractDate, 'Contract date is required')) return;
     if (!requireField(!!formData.contractUrl, 'Contract file is required')) return;
 
+    const discountPercent = Number(formData.discountPercent) || 0;
+    if (!requireField(discountPercent >= 0 && discountPercent <= 100, 'Discount must be between 0 and 100')) return;
+
     setLoading(true);
 
     try {
@@ -185,6 +190,7 @@ export function AddStudentDialog({ open, onOpenChange, onSuccess }: AddStudentDi
           })),
           paymentPlan: formData.paymentPlan || null,
           paymentMode: formData.paymentMode || 'one_time',
+          discountPercent,
           contractDate: formData.contractDate || null,
           contractUrl: formData.contractUrl || null,
           isGksApplicant: formData.isGksApplicant || false,
@@ -518,6 +524,21 @@ export function AddStudentDialog({ open, onOpenChange, onSuccess }: AddStudentDi
                   </div>
                 </div>
 
+                <div className="space-y-2">
+                  <Label htmlFor="discountPercent">Discount (%)</Label>
+                  <Input
+                    id="discountPercent"
+                    type="number"
+                    min={0}
+                    max={100}
+                    step="0.01"
+                    value={formData.discountPercent}
+                    onChange={(e) => setFormData({ ...formData, discountPercent: e.target.value })}
+                    placeholder="0"
+                  />
+                  <p className="text-xs text-muted-foreground">Sale/discount percentage off the plan price, 0–100. Leave 0 for no discount.</p>
+                </div>
+
                 {/* Contract Upload — required */}
                 <ContractUpload
                   value={formData.contractUrl}
@@ -529,15 +550,23 @@ export function AddStudentDialog({ open, onOpenChange, onSuccess }: AddStudentDi
                     {(() => {
                       const plan = PAYMENT_PLANS.find(p => p.value === formData.paymentPlan);
                       if (!plan) return null;
-                      const price = formData.paymentMode === 'installment' ? plan.priceInstallment : plan.priceOneTime;
-                      const formatted = plan.currency === 'UZS'
-                        ? `${price.toLocaleString()} UZS`
-                        : `$${price.toLocaleString()} USD`;
+                      const listPrice = formData.paymentMode === 'installment' ? plan.priceInstallment : plan.priceOneTime;
+                      const discountPercent = Math.min(100, Math.max(0, Number(formData.discountPercent) || 0));
+                      const finalPrice = applyDiscount(listPrice, discountPercent);
                       return (
-                        <div className="flex items-center gap-2">
-                          <CreditCard className="h-4 w-4" />
-                          <span>💳 Total: {formatted}{formData.paymentMode === 'installment' ? ' (2 payments)' : ' (one-time)'}</span>
-                          {plan.isVIP && <Badge variant="default" className="ml-auto bg-gradient-to-r from-warning to-warning text-white border-0 text-xs">VIP</Badge>}
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <CreditCard className="h-4 w-4" />
+                            {discountPercent > 0 ? (
+                              <span>
+                                💳 List: {formatAmount(listPrice, plan.currency)} −{discountPercent}% → Total: {formatAmount(finalPrice, plan.currency)}
+                                {formData.paymentMode === 'installment' ? ' (2 payments)' : ' (one-time)'}
+                              </span>
+                            ) : (
+                              <span>💳 Total: {formatAmount(finalPrice, plan.currency)}{formData.paymentMode === 'installment' ? ' (2 payments)' : ' (one-time)'}</span>
+                            )}
+                            {plan.isVIP && <Badge variant="default" className="ml-auto bg-gradient-to-r from-warning to-warning text-white border-0 text-xs">VIP</Badge>}
+                          </div>
                         </div>
                       );
                     })()}

@@ -1,10 +1,11 @@
 import { useMemo } from 'react';
 import { Tables } from '@/integrations/supabase/types';
 import { Payment } from './usePayments';
-import { 
-  getPlanByValue, 
+import {
+  getPlanByValue,
   formatAmount,
-  calculateFirstPaymentDueDate 
+  calculateFirstPaymentDueDate,
+  applyDiscount,
 } from './useStudentPlan';
 
 export interface ExpectedPayment {
@@ -31,6 +32,8 @@ type StudentProfile = Tables<'profiles'> & {
   })[];
   /** Set by useCRMData from the active season's student_intakes row. */
   freeReapplication?: boolean;
+  /** Set by useCRMData from the active season's student_intakes row. */
+  discountPercent?: number;
 };
 
 /**
@@ -57,10 +60,11 @@ export function useExpectedPayments(
 
       const studentPayments = payments.filter(p => p.student_id === student.user_id);
       const mode = student.payment_mode || 'one_time';
+      const discountPercent = student.discountPercent || 0;
 
       if (mode === 'one_time') {
         // Single payment expected
-        const expectedAmount = plan.priceOneTime;
+        const expectedAmount = applyDiscount(plan.priceOneTime, discountPercent);
         const paidAmount = studentPayments.reduce((sum, p) => sum + Number(p.paid_amount), 0);
         const remainingAmount = Math.max(0, expectedAmount - paidAmount);
 
@@ -90,8 +94,8 @@ export function useExpectedPayments(
         });
       } else {
         // Split payments - track first and second separately
-        const firstPaymentExpected = plan.firstPayment;
-        const secondPaymentExpected = plan.secondPayment;
+        const firstPaymentExpected = applyDiscount(plan.firstPayment, discountPercent);
+        const secondPaymentExpected = applyDiscount(plan.secondPayment, discountPercent);
         
         // Calculate paid amounts for each payment type
         const firstPayments = studentPayments.filter(

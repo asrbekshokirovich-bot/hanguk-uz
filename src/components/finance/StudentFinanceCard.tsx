@@ -31,6 +31,7 @@ interface StudentFinanceCardProps {
     applications?: (Tables<'applications'> & {
       university?: Tables<'universities'>;
     })[];
+    discountPercent?: number;
   };
   payments: Payment[];
   onRecordPayment?: () => void;
@@ -51,7 +52,7 @@ export function StudentFinanceCard({
   const financeData = useMemo(() => {
     if (!plan) return null;
 
-    const schedule = getPaymentSchedule(student.payment_plan || '', paymentMode, student.contract_date);
+    const schedule = getPaymentSchedule(student.payment_plan || '', paymentMode, student.contract_date, student.discountPercent || 0);
     if (!schedule) return null;
 
     // Get actual payments for this student

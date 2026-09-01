@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,6 +6,9 @@ import { Separator } from '@/components/ui/separator';
 import { Logo } from '@/components/Logo';
 import { Download, Printer } from 'lucide-react';
 import { Payment } from '@/hooks/usePayments';
+import { supabase } from '@/integrations/supabase/client';
+import { useActiveIntake } from '@/contexts/IntakeContext';
+import { getPaymentAmount } from '@/hooks/useStudentPlan';
 
 interface InvoiceViewProps {
   payment: Payment;
@@ -15,6 +18,46 @@ interface InvoiceViewProps {
 export function InvoiceView({ payment, onClose }: InvoiceViewProps) {
   const { t } = useTranslation();
   const invoiceRef = useRef<HTMLDivElement>(null);
+  const { activeIntakeId } = useActiveIntake();
+  const [discountInfo, setDiscountInfo] = useState<{ percent: number; plan: string; mode: string } | null>(null);
+
+  // Reconstruct the list price for display: fetch the student's plan/mode and
+  // this season's discount, then recompute the undiscounted amount through
+  // the same helper that produced the stored (discounted) payments.amount.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (!payment.student_id || (payment.payment_type !== 'initial_deposit' && payment.payment_type !== 'remaining_payment')) {
+        setDiscountInfo(null);
+        return;
+      }
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('payment_plan, payment_mode')
+        .eq('user_id', payment.student_id)
+        .maybeSingle();
+      if (cancelled || !profile?.payment_plan) return;
+
+      let discount = 0;
+      if (activeIntakeId) {
+        const { data: intake } = await supabase
+          .from('student_intakes')
+          .select('discount_percent')
+          .eq('student_id', payment.student_id)
+          .eq('intake_id', activeIntakeId)
+          .maybeSingle();
+        discount = Number(intake?.discount_percent) || 0;
+      }
+      if (!cancelled) {
+        setDiscountInfo(
+          discount > 0
+            ? { percent: discount, plan: profile.payment_plan, mode: profile.payment_mode || 'one_time' }
+            : null
+        );
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [payment.student_id, payment.payment_type, activeIntakeId]);
 
   const formatCurrency = (amount: number, currency: string) => {
     return new Intl.NumberFormat('en-US', {
@@ -22,6 +65,15 @@ export function InvoiceView({ payment, onClose }: InvoiceViewProps) {
       currency: currency,
     }).format(amount);
   };
+
+  const listPrice = discountInfo
+    ? getPaymentAmount(
+        discountInfo.plan,
+        discountInfo.mode,
+        payment.payment_type as 'initial_deposit' | 'remaining_payment',
+        0
+      ).amount
+    : 0;
 
   const handlePrint = () => {
     window.print();
@@ -116,6 +168,18 @@ export function InvoiceView({ payment, onClose }: InvoiceViewProps) {
 
           {/* Totals */}
           <div className="space-y-2 pt-4">
+            {discountInfo && listPrice > Number(payment.amount) && (
+              <>
+                <div className="flex justify-between text-muted-foreground">
+                  <span>List Price</span>
+                  <span>{formatCurrency(listPrice, payment.currency)}</span>
+                </div>
+                <div className="flex justify-between text-muted-foreground">
+                  <span>Discount (−{discountInfo.percent}%)</span>
+                  <span>−{formatCurrency(listPrice - Number(payment.amount), payment.currency)}</span>
+                </div>
+              </>
+            )}
             <div className="flex justify-between">
               <span className="text-muted-foreground">{t('payments.totalAmount')}</span>
               <span className="font-medium">{formatCurrency(Number(payment.amount), payment.currency)}</span>

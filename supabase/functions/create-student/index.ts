@@ -56,7 +56,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { fullName, phone, phones, officeLocation, paymentPlan, paymentMode, contractDate, contractUrl, isGksApplicant, intakeId, languageTrack } = await req.json();
+    const { fullName, phone, phones, officeLocation, paymentPlan, paymentMode, contractDate, contractUrl, isGksApplicant, intakeId, languageTrack, discountPercent } = await req.json();
 
     // Region, birth date and language track are intentionally NOT accepted here —
     // they are filled automatically from the student's passport/certificates and
@@ -76,6 +76,19 @@ Deno.serve(async (req) => {
     if (missing.length > 0) {
       return new Response(
         JSON.stringify({ error: `Missing required field(s): ${missing.join(', ')}` }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Discount % is optional (defaults to 0 = no discount) but must be a
+    // valid 0-100 number when provided; this is the server-side enforcement
+    // point since the DB CHECK constraint would otherwise be the only guard.
+    const rawDiscount = discountPercent === undefined || discountPercent === null || discountPercent === ''
+      ? 0
+      : Number(discountPercent);
+    if (Number.isNaN(rawDiscount) || rawDiscount < 0 || rawDiscount > 100) {
+      return new Response(
+        JSON.stringify({ error: 'Discount percent must be a number between 0 and 100' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -298,7 +311,7 @@ Deno.serve(async (req) => {
       const { error: enrollError } = await supabaseAdmin
         .from('student_intakes')
         .upsert(
-          { student_id: studentUserId, intake_id: intakeForStudent },
+          { student_id: studentUserId, intake_id: intakeForStudent, discount_percent: rawDiscount },
           { onConflict: 'student_id,intake_id' },
         );
       if (enrollError) console.error('Failed to enroll student in intake:', enrollError);

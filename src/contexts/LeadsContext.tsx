@@ -307,6 +307,7 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
           officeLocation: lead.city || null,
           paymentPlan: lead.payment_plan || null,
           paymentMode: 'one_time',
+          discountPercent: 0,
           contractDate: lead.contract_date || new Date().toISOString().split('T')[0],
           languageTrack: lead.korean_level ? 'korean' : lead.english_level ? 'english' : 'korean',
           intakeId: activeIntakeId,

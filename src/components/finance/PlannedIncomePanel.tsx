@@ -21,8 +21,9 @@ import {
 } from '@/hooks/useStudentPlan';
 
 interface PlannedIncomePanelProps {
-  students: (Tables<'profiles'> & { 
-    applications?: Tables<'applications'>[]; 
+  students: (Tables<'profiles'> & {
+    applications?: Tables<'applications'>[];
+    discountPercent?: number;
   })[];
   payments: Payment[];
   loading: boolean;
@@ -41,11 +42,11 @@ export function PlannedIncomePanel({ students, payments, loading }: PlannedIncom
         s => normalizePlanName(s.payment_plan) === plan.value
       );
       
-      // Calculate expected income
+      // Calculate expected income (discounted per-student)
       let expectedTotal = 0;
       planStudents.forEach(student => {
         const mode = student.payment_mode || 'one_time';
-        const { amount } = getPlanPrice(plan.value, mode);
+        const { amount } = getPlanPrice(plan.value, mode, student.discountPercent || 0);
         expectedTotal += amount;
       });
 

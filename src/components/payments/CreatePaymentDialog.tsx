@@ -21,12 +21,13 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Plus, Info, Calendar } from 'lucide-react';
 import { Tables } from '@/integrations/supabase/types';
-import { PAYMENT_PLANS, getPlanByValue, formatPlanAmount, calculateDueDate } from '@/hooks/useStudentPlan';
+import { PAYMENT_PLANS, getPlanByValue, formatPlanAmount, calculateDueDate, applyDiscount } from '@/hooks/useStudentPlan';
 
 interface CreatePaymentDialogProps {
-  students: (Tables<'profiles'> & { 
+  students: (Tables<'profiles'> & {
     applications?: Tables<'applications'>[];
     contract_date?: string | null;
+    discountPercent?: number;
   })[];
   onCreatePayment: (payment: {
     student_id: string;
@@ -58,26 +59,27 @@ export function CreatePaymentDialog({ students, onCreatePayment }: CreatePayment
   const studentPaymentMode = selectedStudent?.payment_mode || 'one_time';
   const isInstallment = studentPaymentMode === 'installment';
   const contractDate = selectedStudent?.contract_date;
+  const discountPercent = selectedStudent?.discountPercent || 0;
 
   // Auto-populate amount and due date when student or payment type changes
   useEffect(() => {
     if (studentPlan && selectedStudent) {
       let amount: number;
-      
+
       if (isInstallment) {
         // Use correct split amounts
         if (form.payment_type === 'initial_deposit') {
-          amount = studentPlan.firstPayment;
+          amount = applyDiscount(studentPlan.firstPayment, discountPercent);
         } else if (form.payment_type === 'remaining_payment') {
-          amount = studentPlan.secondPayment;
+          amount = applyDiscount(studentPlan.secondPayment, discountPercent);
         } else {
           amount = 0;
         }
       } else {
         // For one-time, show full amount
-        amount = studentPlan.priceOneTime;
+        amount = applyDiscount(studentPlan.priceOneTime, discountPercent);
       }
-      
+
       // Calculate due date based on contract date and payment type (7 working days)
       const dueDate = calculateDueDate(contractDate || null, form.payment_type, studentPaymentMode);
       
@@ -88,7 +90,7 @@ export function CreatePaymentDialog({ students, onCreatePayment }: CreatePayment
         due_date: dueDate,
       }));
     }
-  }, [selectedStudent?.user_id, studentPlan, studentPaymentMode, form.payment_type, contractDate, isInstallment]);
+  }, [selectedStudent?.user_id, studentPlan, studentPaymentMode, form.payment_type, contractDate, isInstallment, discountPercent]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -120,24 +122,27 @@ export function CreatePaymentDialog({ students, onCreatePayment }: CreatePayment
     }
   };
 
-  // Get expected amounts for display
+  // Get expected (discounted) amounts for display
   const getExpectedAmounts = () => {
     if (!studentPlan) return null;
-    
+
     if (isInstallment) {
+      const firstPayment = applyDiscount(studentPlan.firstPayment, discountPercent);
+      const secondPayment = applyDiscount(studentPlan.secondPayment, discountPercent);
       return {
-        total: studentPlan.priceInstallment,
-        firstPayment: studentPlan.firstPayment,
-        secondPayment: studentPlan.secondPayment,
-        label: `${formatPlanAmount(studentPlan.firstPayment, studentPlan.currency)} + ${formatPlanAmount(studentPlan.secondPayment, studentPlan.currency)}`,
+        total: firstPayment + secondPayment,
+        firstPayment,
+        secondPayment,
+        label: `${formatPlanAmount(firstPayment, studentPlan.currency)} + ${formatPlanAmount(secondPayment, studentPlan.currency)}`,
       };
     }
-    
+
+    const priceOneTime = applyDiscount(studentPlan.priceOneTime, discountPercent);
     return {
-      total: studentPlan.priceOneTime,
-      firstPayment: studentPlan.priceOneTime,
+      total: priceOneTime,
+      firstPayment: priceOneTime,
       secondPayment: 0,
-      label: formatPlanAmount(studentPlan.priceOneTime, studentPlan.currency),
+      label: formatPlanAmount(priceOneTime, studentPlan.currency),
     };
   };
 
@@ -197,10 +202,11 @@ export function CreatePaymentDialog({ students, onCreatePayment }: CreatePayment
                 </div>
               )}
               <p className="text-xs text-muted-foreground">
-                {isInstallment 
+                {isInstallment
                   ? `1st: ${formatPlanAmount(expectedAmounts?.firstPayment || 0, studentPlan.currency)} | 2nd: ${formatPlanAmount(expectedAmounts?.secondPayment || 0, studentPlan.currency)}`
-                  : `Total: ${formatPlanAmount(studentPlan.priceOneTime, studentPlan.currency)}`
+                  : `Total: ${formatPlanAmount(expectedAmounts?.total || 0, studentPlan.currency)}`
                 }
+                {discountPercent > 0 && ` (−${discountPercent}% applied)`}
               </p>
             </div>
           )}
