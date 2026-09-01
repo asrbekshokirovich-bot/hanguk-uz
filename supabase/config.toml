@@ -16,6 +16,14 @@ verify_jwt = false
 [functions.telegram-ingest]
 verify_jwt = false
 
+# AI voice agent: worker POSTs finished calls here (auth via x-ingest-secret).
+[functions.ai-call-ingest]
+verify_jwt = false
+
+# AI voice agent: staff trigger to place an outbound call (JWT + role checked).
+[functions.ai-place-call]
+verify_jwt = true
+
 [functions.create-staff]
 verify_jwt = false
 
