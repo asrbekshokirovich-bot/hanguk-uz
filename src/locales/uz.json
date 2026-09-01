@@ -1757,7 +1757,9 @@
       "regOpen": "Ro'yxatdan o'tish boshlanishi",
       "regClose": "Ro'yxatdan o'tish tugashi",
       "orientation": "Tanishtiruv kuni",
-      "offline": "Oflayn ariza"
+      "offline": "Oflayn ariza",
+      "supplementary": "Qo'shimcha qabul (추가합격)",
+      "supplementaryWaves": "{{count}} to'lqin"
     },
     "req": {
       "foreignTrack": "Xorijiy fuqarolar ({{cat}})",

@@ -1730,7 +1730,9 @@
       "regOpen": "Начало регистрации",
       "regClose": "Конец регистрации",
       "orientation": "День ориентации",
-      "offline": "Бумажная заявка"
+      "offline": "Бумажная заявка",
+      "supplementary": "Дополнительный набор (추가합격)",
+      "supplementaryWaves": "{{count}} волн"
     },
     "req": {
       "foreignTrack": "Иностранные граждане ({{cat}})",

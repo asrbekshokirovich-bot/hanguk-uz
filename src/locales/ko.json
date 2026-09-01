@@ -1662,7 +1662,9 @@
       "regOpen": "등록 시작",
       "regClose": "등록 마감",
       "orientation": "오리엔테이션",
-      "offline": "서면 접수"
+      "offline": "서면 접수",
+      "supplementary": "추가합격 (미등록 충원)",
+      "supplementaryWaves": "{{count}}차"
     },
     "req": {
       "foreignTrack": "외국인 지원자 ({{cat}})",

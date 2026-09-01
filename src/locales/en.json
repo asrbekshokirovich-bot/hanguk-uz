@@ -1718,7 +1718,9 @@
       "regOpen": "Registration opens",
       "regClose": "Registration closes",
       "orientation": "Orientation day",
-      "offline": "Offline application"
+      "offline": "Offline application",
+      "supplementary": "Supplementary admission (추가합격)",
+      "supplementaryWaves": "{{count}} waves"
     },
     "req": {
       "foreignTrack": "International applicants ({{cat}})",
