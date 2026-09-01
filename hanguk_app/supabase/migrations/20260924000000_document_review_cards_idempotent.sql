@@ -143,6 +143,15 @@ create index if not exists review_queue_document_field_group_idx
 -- now falls back to the review_queue column when the extraction_jobs join has
 -- none. Document rows therefore arrive at the client already labelled
 -- 'degree_split' / 'degree_check'.
+--
+-- One correction to 20260918000000 while we are here. That migration copied
+-- the view body from an older revision and wrote `where rq.status = 'open'`,
+-- dropping the 'in_review' and 'rejected' statuses that 20260823120000 and
+-- 20260913000000 had deliberately added — the whole point of those two being
+-- that a rejected row comes BACK to the dashboard so a reviewer can revisit
+-- it. The live database still has the three-status filter, so replacing the
+-- view with the repo's own 20260918000000 text would have silently switched
+-- that feature off. The filter below is the one production actually runs.
 create or replace view public.v_review_queue_dashboard
 with (security_invoker = true)
 as
@@ -190,7 +199,7 @@ from review_queue rq
   left join guideline_documents gd_direct
     on gd_direct.id = rq.entity_id and rq.entity_type = 'guideline_documents'
   left join institutions i_gd on i_gd.id = gd_direct.institution_id
-where rq.status = 'open'
+where rq.status in ('open', 'in_review', 'rejected')
 order by rq.priority, rq.created_at;
 
 comment on view public.v_review_queue_dashboard is
@@ -198,7 +207,8 @@ comment on view public.v_review_queue_dashboard is
   'institution_id is the grouping key for the triage rail: one card per '
   'university, with that university''s guideline documents nested inside. '
   'field_group comes from the extraction job when there is one, and from '
-  'review_queue.field_group for document-level cards.';
+  'review_queue.field_group for document-level cards. Rejected rows stay '
+  'visible so a reviewer can revisit them (20260823120000).';
 
 -- ---------------------------------------------------------------------------
 -- 4. Clear the backlog this bug created.
