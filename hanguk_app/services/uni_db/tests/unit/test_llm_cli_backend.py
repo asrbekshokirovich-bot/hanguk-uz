@@ -231,3 +231,74 @@ def test_effective_verify_level_caps_on_claude_cli(monkeypatch):
     assert settings.effective_verify_level == "off"
     monkeypatch.setattr(settings, "verify_level", "balanced")
     assert settings.effective_verify_level == "balanced"
+
+
+class TestSubscriptionCredentialIsUsed:
+    """The keyless backend must actually be keyless.
+
+    Claude Code ranks ANTHROPIC_API_KEY above CLAUDE_CODE_OAUTH_TOKEN, and in
+    the `-p` mode this backend uses the key is always used when present. The
+    subprocess inherited the parent environment, and every CI workflow here
+    sets a key at job level next to UNI_DB_LLM_BACKEND=claude_cli — so the
+    OAuth token was never reached and every call was billed to the key. When
+    that balance ran out, extraction stopped repo-wide.
+    """
+
+    def test_api_key_is_hidden_from_the_cli(self, monkeypatch) -> None:
+        from uni_db.extract import llm_cli
+
+        monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-ant-should-not-be-used")
+        monkeypatch.setenv("CLAUDE_CODE_OAUTH_TOKEN", "oauth-token")
+        monkeypatch.setattr(
+            llm_cli.settings, "claude_cli_allow_api_key", False, raising=False
+        )
+
+        env = llm_cli._cli_env()
+
+        assert "ANTHROPIC_API_KEY" not in env
+        # The credential the backend is supposed to use must survive.
+        assert env["CLAUDE_CODE_OAUTH_TOKEN"] == "oauth-token"
+
+    def test_the_escape_hatch_still_passes_the_key(self, monkeypatch) -> None:
+        from uni_db.extract import llm_cli
+
+        monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-ant-deliberate")
+        monkeypatch.setattr(
+            llm_cli.settings, "claude_cli_allow_api_key", True, raising=False
+        )
+
+        assert llm_cli._cli_env()["ANTHROPIC_API_KEY"] == "sk-ant-deliberate"
+
+    def test_no_key_set_is_not_an_error(self, monkeypatch) -> None:
+        from uni_db.extract import llm_cli
+
+        monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+        monkeypatch.setattr(
+            llm_cli.settings, "claude_cli_allow_api_key", False, raising=False
+        )
+
+        assert "ANTHROPIC_API_KEY" not in llm_cli._cli_env()
+
+    def test_the_subprocess_actually_gets_that_environment(self, monkeypatch) -> None:
+        # The guarantee is worthless if _cli_env is correct but unused.
+        from uni_db.extract import llm_cli
+
+        monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-ant-should-not-be-used")
+        monkeypatch.setattr(
+            llm_cli.settings, "claude_cli_allow_api_key", False, raising=False
+        )
+        seen: dict = {}
+
+        class _Proc:
+            returncode = 0
+            stdout = '{"result": "ok", "usage": {}}'
+            stderr = ""
+
+        def _fake_run(cmd, **kwargs):
+            seen.update(kwargs)
+            return _Proc()
+
+        monkeypatch.setattr(llm_cli.subprocess, "run", _fake_run)
+        llm_cli._one_call(["claude", "-p"], "hi", 10.0)
+
+        assert "ANTHROPIC_API_KEY" not in seen["env"]

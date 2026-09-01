@@ -5,6 +5,7 @@ import {
   documentCycleLabel,
   isDocumentFlag,
   isDegreeCheckFlag,
+  isDegreeSplitFlag,
   sectionLabelKey,
   serverRejection,
 } from '../uni-db-review/reviewGroups';
@@ -315,5 +316,59 @@ describe('serverRejection', () => {
   it('survives a rejected row with no note at all', () => {
     expect(serverRejection(row({ id: 'h', status: 'rejected', reviewer_notes: null })))
       .toEqual({ reasonKey: null, detail: null });
+  });
+});
+
+describe('document card type comes from field_group, not from prose', () => {
+  /**
+   * Migration 20260924000000 gives review_queue a field_group column and the
+   * dashboard view surfaces it for document-level rows. That column is now
+   * the discriminator; the reviewer_notes regexes remain only as the fallback
+   * for rows written before the migration.
+   *
+   * The regex was fragile in a way that failed silently: rewording one
+   * sentence in parse_worker.py turned the split button off, with no error
+   * anywhere. These tests pin the new precedence so the fallback cannot
+   * quietly become load-bearing again.
+   */
+  it('trusts field_group over a note that says the opposite', () => {
+    const splitByColumn = row({
+      id: 'col-split',
+      entity_type: 'guideline_documents',
+      field_group: 'degree_split',
+      parsed_output: null,
+      reviewer_notes: 'Reworded by a later commit — no split boundary phrase here.',
+    });
+    expect(isDegreeSplitFlag(splitByColumn)).toBe(true);
+    expect(isDegreeCheckFlag(splitByColumn)).toBe(false);
+
+    const checkByColumn = row({
+      id: 'col-check',
+      entity_type: 'guideline_documents',
+      field_group: 'degree_check',
+      parsed_output: null,
+      reviewer_notes: 'Split into separate admission cycles.',
+    });
+    expect(isDegreeCheckFlag(checkByColumn)).toBe(true);
+    expect(isDegreeSplitFlag(checkByColumn)).toBe(false);
+  });
+
+  it('still reads legacy rows, which have no field_group', () => {
+    const legacy = row({
+      id: 'legacy',
+      entity_type: 'guideline_documents',
+      field_group: null,
+      parsed_output: null,
+      reviewer_notes:
+        'Combined undergraduate + graduate guideline detected. Split into ' +
+        'separate admission cycles. Segments: undergraduate@0, graduate@4210.',
+    });
+    expect(isDegreeSplitFlag(legacy)).toBe(true);
+  });
+
+  it('does not read a section field_group as a document card', () => {
+    const section = row({ id: 'sec', field_group: 'tuition' });
+    expect(isDegreeSplitFlag(section)).toBe(false);
+    expect(isDegreeCheckFlag(section)).toBe(false);
   });
 });

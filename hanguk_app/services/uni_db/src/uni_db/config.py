@@ -51,6 +51,18 @@ class Settings(BaseSettings):
     claude_cli_concurrency: int = Field(
         default=1, ge=1, le=8, alias="UNI_DB_CLI_CONCURRENCY"
     )
+    # Let the `claude` subprocess see ANTHROPIC_API_KEY (claude_cli backend
+    # only). Default False, because Claude Code's authentication precedence
+    # puts the API key ABOVE CLAUDE_CODE_OAUTH_TOKEN and, in the `-p` mode this
+    # backend uses, "the key is always used when present" — so a key left in
+    # the environment silently turns the keyless backend back into a metered
+    # one. That is what happened here: every claude_cli call was billed to the
+    # API key until the balance ran out, and from 21 Aug 2026 every extraction
+    # failed with "Credit balance is too low". Set true only if you genuinely
+    # want this backend on a key.
+    claude_cli_allow_api_key: bool = Field(
+        default=False, alias="UNI_DB_CLAUDE_CLI_ALLOW_API_KEY"
+    )
 
     # Database transport:
     #   postgres — asyncpg direct connection (default; needs raw TCP to 5432)
