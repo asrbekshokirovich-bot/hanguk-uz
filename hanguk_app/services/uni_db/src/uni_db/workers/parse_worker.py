@@ -795,10 +795,13 @@ async def persist_outcome(
             # added in 20260924000000 drops the insert when this document
             # already has a live or decided card for the same key.
             #
-            # Before that key was carried through, every re-parse — the
+            # Without it this INSERT is unconditional: a re-parse — the
             # nightly crawl, drain-backlog every three hours, retry-failed —
-            # inserted the same card again, so a reviewer's approval never
-            # held and the queue regrew what they had just cleared.
+            # would re-raise a card a reviewer had already decided. Measured
+            # on production before the migration, that had not yet happened
+            # (zero cards raised after a decision), so this closes a real gap
+            # rather than a bleeding one. 20260924000000's header has the
+            # numbers.
             await conn.execute(
                 """
                 insert into public.review_queue (

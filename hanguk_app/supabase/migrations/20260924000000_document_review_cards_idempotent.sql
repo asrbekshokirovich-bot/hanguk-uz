@@ -1,8 +1,13 @@
--- Document-level review cards stop coming back after a reviewer decides them.
+-- A document-level review card is raised at most once per document.
 --
--- The complaint: the same "Hujjatni tekshirish kerak" (degree_check) card
--- reappeared for months. Approving it did nothing durable, because approval
--- resolves a review_queue ROW and the card is regenerated from the PDF:
+-- Where this came from: a reviewer reported seeing the same "Hujjatni
+-- tekshirish kerak" (degree_check) card for months and asked why approving
+-- it never made it go away.
+--
+-- The first theory was that approval did not stick — that the nightly
+-- uni-db-auto-crawl, the three-hourly drain-backlog and retry-failed each
+-- re-ran the parse and re-inserted the card the reviewer had just cleared.
+-- The mechanism for that is certainly present:
 --
 --   * parse_worker.persist_outcome inserts document-level entries with a bare
 --     INSERT — no supersede, no "already decided?" check (unlike the
@@ -12,9 +17,24 @@
 --     entries (entity_type = 'guideline_documents') have their own, separate
 --     duplication and are left alone here."
 --
--- So every nightly uni-db-auto-crawl, every three-hourly drain-backlog, every
--- retry-failed re-ran the parse and inserted the card again. A reviewer could
--- never win: the queue regrew what they had just cleared.
+-- The production data does not support the theory, and it is worth writing
+-- that down rather than leaving a tidy story that is not true. Measured
+-- before this migration ran: across every document-level card ever raised,
+-- the number raised after an earlier card for the same (document,
+-- field_group) had been approved or rejected was ZERO. Every degree_check
+-- document carried exactly one card. Only two documents had a duplicate at
+-- all — two degree_split rows raised while the first was still open, never
+-- after a decision.
+--
+-- What the reviewer was actually seeing was the same card TEXT on a new
+-- university each time the crawler found another guideline: eight documents
+-- between 22 Aug and 1 Sep, four approved, four still open. The cure for
+-- that is the detector work in this branch, not this migration.
+--
+-- This migration stays because the gap is real even though it had not yet
+-- fired: nothing in the database stopped a re-parse from re-raising a
+-- decided card, and the next enqueue path to be added would inherit the
+-- same trap. It is insurance with a measured premium, not a bug fix.
 --
 -- Two things are missing and both are added here.
 --
@@ -211,8 +231,12 @@ comment on view public.v_review_queue_dashboard is
   'visible so a reviewer can revisit them (20260823120000).';
 
 -- ---------------------------------------------------------------------------
--- 4. Clear the backlog this bug created.
+-- 4. Clear whatever duplicates exist.
 -- ---------------------------------------------------------------------------
+-- On the production database this touches two documents (the two duplicate
+-- degree_split rows described in the header) and nothing else. It is written
+-- generally anyway, since another database may have more.
+--
 -- Where the same (document, field_group) has several live cards, keep the
 -- newest and retire the rest. Same semantics as 20260919000000's supersede:
 -- status becomes 'superseded', nothing is deleted, the audit trail stands.
@@ -235,9 +259,9 @@ update public.review_queue rq
  where ranked.id = rq.id
    and ranked.rn > 1;
 
--- And where a reviewer already decided a card, retire the copies that came
--- back after their decision — those are precisely the ones the reviewer kept
--- seeing again.
+-- And where a reviewer already decided a card, retire any copy raised after
+-- their decision. Production has none of these — see the header — so this is
+-- a no-op there and a safety net elsewhere.
 update public.review_queue rq
    set status = 'superseded'
  where rq.entity_type = 'guideline_documents'
