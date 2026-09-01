@@ -1875,6 +1875,69 @@
       "badge": "Rad etilgan",
       "badgeTitle": "Bu bo'lim avval rad etilgan. Tasdiqlash bosilsa, qaror bekor qilinadi.",
       "note": "Avval rad etilgan — {{reason}}"
+    },
+    "edit": {
+      "editBtn": "Tahrirlash",
+      "saveAccept": "Saqlash va tasdiqlash",
+      "cancel": "Bekor qilish",
+      "rawJson": "JSON ko'rinishi",
+      "form": "Forma ko'rinishi",
+      "noRows": "Hali ma'lumot yo'q.",
+      "row": "Qator",
+      "event": "Hodisa",
+      "remove": "O'chirish",
+      "addRow": "Qator qo'shish",
+      "addEvent": "Hodisa qo'shish",
+      "invalidFix": "Saqlashdan oldin tuzating:",
+      "boolYes": "Ha",
+      "boolNo": "Yo'q",
+      "boolUnset": "— (tanlanmagan)",
+      "statusOptions": {
+        "required": "Talab qilinadi",
+        "not_required": "Talab qilinmaydi",
+        "not_stated": "Ko'rsatilmagan"
+      },
+      "requirements": {
+        "applicant_category": "Abituriyent kategoriyasi",
+        "topik_status": "TOPIK holati",
+        "topik_min_level": "TOPIK minimal daraja",
+        "english_status": "Ingliz tili holati",
+        "gpa_status": "GPA holati",
+        "gpa_floor_pct": "Minimal GPA (%)",
+        "interview_required": "Suhbat bormi?",
+        "practical_exam_required": "Amaliy imtihon bormi?",
+        "prose_ko": "Talablar matni (koreys.)"
+      },
+      "documents_required": {
+        "document_type": "Hujjat turi",
+        "is_required": "Majburiymi?",
+        "is_apostille_required": "Apostil kerakmi?",
+        "applies_to_round": "Qaysi bosqich",
+        "deadline": "Topshirish muddati",
+        "notes_ko": "Izoh (koreys.)"
+      },
+      "scholarships": {
+        "name_ko": "Nomi (koreys.)",
+        "name_en": "Nomi (ingliz.)",
+        "scope": "Qamrov",
+        "award_type": "Mukofot turi",
+        "award_value": "Mukofot miqdori",
+        "prose_ko": "Shart-sharoitlar (koreys.)"
+      },
+      "tuition": {
+        "faculty_group": "Fakultet guruhi",
+        "academic_year": "O'quv yili",
+        "semester_number": "Semestr",
+        "amount_krw": "Kontrakt (KRW)",
+        "admission_fee_krw": "Kirish to'lovi (KRW)",
+        "is_first_semester": "Birinchi semestrmi?"
+      },
+      "calendar": {
+        "event_type": "Hodisa turi",
+        "starts_at": "Boshlanish sanasi",
+        "is_tentative": "Taxminiy sana?",
+        "notes_ko": "Izoh (koreys.)"
+      }
     }
   }
 }

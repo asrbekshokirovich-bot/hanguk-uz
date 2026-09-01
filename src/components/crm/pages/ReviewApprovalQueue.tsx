@@ -42,12 +42,13 @@ import { type SectionCardHandlers } from './uni-db-review/ReviewSectionCard';
 export function ReviewApprovalQueue() {
   const { t } = useTranslation();
   const { data: rows = [], isLoading, error, refetch } = useReviewQueue();
-  const { accept, reject, flagSourceWrong } = useReviewActions();
+  const { accept, editAccept, reject, flagSourceWrong } = useReviewActions();
 
   const [decided, setDecided] = useState<DecidedMap>({});
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [rejectingRowId, setRejectingRowId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState<RejectionReason>('hallucinated_field');
+  const [editingRowId, setEditingRowId] = useState<string | null>(null);
 
   const sorted = useMemo(
     () => sortGroups(groupRows(mergeWithDecided(rows, decided)), decided),
@@ -102,6 +103,24 @@ export function ReviewApprovalQueue() {
           onError: (e) => toast.error(e.message),
         },
       ),
+    onEditAccept: (row, correctedPayload) =>
+      editAccept.mutate(
+        { queueItemId: row.id, correctedPayload },
+        {
+          onSuccess: () => {
+            markDecided(row, 'approved');
+            setEditingRowId(null);
+            const g = groupOf(row);
+            toast.success(
+              t('uniReview.toast.approved', {
+                uni: g ? shortName(g) : '—',
+                section: t(sectionLabelKey(row)),
+              }),
+            );
+          },
+          onError: (e) => toast.error(e.message),
+        },
+      ),
     onConfirmReject: (row, reason) =>
       reject.mutate(
         { queueItemId: row.id, reason },
@@ -125,8 +144,6 @@ export function ReviewApprovalQueue() {
         { queueItemId: row.id },
         {
           onSuccess: (n) => {
-            // The RPC rejects every open item sharing the source PDF — mirror
-            // that locally so all of the guideline's cards collapse at once.
             const g = groupOf(row);
             const reasonLabel = t('uniReview.decided.sourceWrong');
             setDecided((d) => {
@@ -146,6 +163,7 @@ export function ReviewApprovalQueue() {
 
   const actingRowId =
     (accept.isPending && accept.variables?.queueItemId) ||
+    (editAccept.isPending && editAccept.variables?.queueItemId) ||
     (reject.isPending && reject.variables?.queueItemId) ||
     (flagSourceWrong.isPending && flagSourceWrong.variables?.queueItemId) ||
     null;
@@ -193,6 +211,7 @@ export function ReviewApprovalQueue() {
         onSelect={(key) => {
           setSelectedKey(key);
           setRejectingRowId(null);
+          setEditingRowId(null);
         }}
       />
       {selected ? (
@@ -202,8 +221,17 @@ export function ReviewApprovalQueue() {
           rejectingRowId={rejectingRowId}
           rejectReason={rejectReason}
           onReasonChange={setRejectReason}
-          onStartReject={(row) => setRejectingRowId(row.id)}
+          onStartReject={(row) => {
+            setRejectingRowId(row.id);
+            setEditingRowId(null);
+          }}
           onCancelReject={() => setRejectingRowId(null)}
+          editingRowId={editingRowId}
+          onStartEdit={(row) => {
+            setEditingRowId(row.id);
+            setRejectingRowId(null);
+          }}
+          onCancelEdit={() => setEditingRowId(null)}
           handlers={handlers}
           actingRowId={actingRowId || null}
           hasNext={!!nextPending}
@@ -211,6 +239,7 @@ export function ReviewApprovalQueue() {
             if (nextPending) {
               setSelectedKey(nextPending.key);
               setRejectingRowId(null);
+              setEditingRowId(null);
             }
           }}
         />

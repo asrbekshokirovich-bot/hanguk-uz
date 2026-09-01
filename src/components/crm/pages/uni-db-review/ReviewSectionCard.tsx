@@ -1,6 +1,6 @@
-import type { ReactNode } from 'react';
+import { type ReactNode, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { AlertTriangle, Check, Flag, Loader2, X } from 'lucide-react';
+import { AlertTriangle, Check, Flag, Loader2, Pencil, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
@@ -16,7 +16,13 @@ import {
   type ReviewQueueRow,
 } from '@/hooks/useReviewQueue';
 import { useActiveIntake } from '@/contexts/IntakeContext';
-import { itemConfidence, confidencePct, isFailedExtraction } from '../reviewLogic';
+import {
+  itemConfidence,
+  confidencePct,
+  isFailedExtraction,
+  validateParsedOutput,
+} from '../reviewLogic';
+import { StructuredReviewEditor } from '../ReviewEditor';
 import { parseReliability, type ReliabilityColor } from '../reliability';
 import {
   firstNoteLine,
@@ -46,6 +52,7 @@ export interface SectionCardHandlers {
   onApprove: (row: ReviewQueueRow) => void;
   onConfirmReject: (row: ReviewQueueRow, reason: RejectionReason) => void;
   onFlagSource: (row: ReviewQueueRow) => void;
+  onEditAccept: (row: ReviewQueueRow, correctedPayload: Record<string, unknown>) => void;
 }
 
 /**
@@ -89,6 +96,9 @@ export function ReviewSectionCard({
   onReasonChange,
   onStartReject,
   onCancelReject,
+  isEditing,
+  onStartEdit,
+  onCancelEdit,
   handlers,
   acting,
   children,
@@ -100,6 +110,9 @@ export function ReviewSectionCard({
   onReasonChange: (r: RejectionReason) => void;
   onStartReject: () => void;
   onCancelReject: () => void;
+  isEditing: boolean;
+  onStartEdit: () => void;
+  onCancelEdit: () => void;
   handlers: SectionCardHandlers;
   acting: boolean;
   children: ReactNode;
@@ -107,20 +120,32 @@ export function ReviewSectionCard({
   const { t } = useTranslation();
   const rel = parseReliability(row.reviewer_notes, row.needs_attention);
   const Icon = sectionIcon(row);
-  // A row the queue is showing again because it was rejected earlier, not
-  // decided in this session. The buttons stay live: approving is how a wrong
-  // rejection gets reversed.
   const rejected = decided ? null : serverRejection(row);
-  // Failed lane → "extraction failed" pill, never "confidence 0%" (Phase 3:
-  // itemConfidence returns null for a failed lane).
   const laneFailed = isFailedExtraction(row.parsed_output);
   const conf = confidencePct(itemConfidence(row));
-  // On a document flag the notes ARE the explanation, and the body renders
-  // them in full — repeating the first line above it would say it twice.
   const note =
     !isDocumentFlag(row) && (rel.color === 'red' || rel.color === 'amber')
       ? firstNoteLine(rel.detail)
       : null;
+  const canEdit = !isDocumentFlag(row);
+
+  const [editValue, setEditValue] = useState<Record<string, unknown>>({});
+
+  useEffect(() => {
+    if (isEditing) {
+      const po = row.parsed_output;
+      setEditValue(
+        po && typeof po === 'object' && !Array.isArray(po)
+          ? (structuredClone(po) as Record<string, unknown>)
+          : {},
+      );
+    }
+  }, [isEditing, row.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const editValid = useMemo(
+    () => (isEditing ? validateParsedOutput(row.field_group, editValue) : { ok: true, errors: [] }),
+    [isEditing, row.field_group, editValue],
+  );
 
   return (
     <div className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4 px-[18px] shadow-sm">
@@ -164,8 +189,20 @@ export function ReviewSectionCard({
         ) : null}
         <span className="flex-1" />
         {acting ? <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" /> : null}
-        {!decided && !isRejecting ? (
+        {!decided && !isRejecting && !isEditing ? (
           <>
+            {canEdit ? (
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-8 text-muted-foreground"
+                onClick={onStartEdit}
+                disabled={acting}
+              >
+                <Pencil className="h-3.5 w-3.5" />
+                {t('uniReview.edit.editBtn')}
+              </Button>
+            ) : null}
             <Button
               size="sm"
               className="h-8"
@@ -188,6 +225,37 @@ export function ReviewSectionCard({
           </>
         ) : null}
       </div>
+
+      {isEditing && !decided ? (
+        <div className="flex animate-fade-up flex-col gap-3">
+          <StructuredReviewEditor
+            fieldGroup={row.field_group}
+            value={editValue}
+            onChange={setEditValue}
+            disabled={acting}
+          />
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              size="sm"
+              className="h-8"
+              onClick={() => handlers.onEditAccept(row, editValue)}
+              disabled={acting || !editValid.ok}
+            >
+              <Check className="h-3.5 w-3.5" strokeWidth={2.5} />
+              {t('uniReview.edit.saveAccept')}
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-8 text-muted-foreground"
+              onClick={onCancelEdit}
+              disabled={acting}
+            >
+              {t('uniReview.edit.cancel')}
+            </Button>
+          </div>
+        </div>
+      ) : null}
 
       {isRejecting && !decided ? (
         <div className="flex animate-fade-up flex-col gap-2 rounded-[10px] bg-destructive/10 p-3 px-3.5">
@@ -257,7 +325,7 @@ export function ReviewSectionCard({
         </div>
       ) : null}
 
-      {!decided ? (
+      {!decided && !isEditing ? (
         <>
           {rejected ? (
             <div className="flex items-start gap-2 rounded-[10px] bg-destructive/10 p-2.5 px-3.5 text-destructive">

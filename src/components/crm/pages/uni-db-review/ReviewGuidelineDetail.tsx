@@ -67,6 +67,9 @@ export function ReviewGuidelineDetail({
   onReasonChange,
   onStartReject,
   onCancelReject,
+  editingRowId,
+  onStartEdit,
+  onCancelEdit,
   handlers,
   actingRowId,
   hasNext,
@@ -79,6 +82,9 @@ export function ReviewGuidelineDetail({
   onReasonChange: (r: RejectionReason) => void;
   onStartReject: (row: ReviewQueueRow) => void;
   onCancelReject: () => void;
+  editingRowId: string | null;
+  onStartEdit: (row: ReviewQueueRow) => void;
+  onCancelEdit: () => void;
   handlers: SectionCardHandlers;
   actingRowId: string | null;
   hasNext: boolean;
@@ -236,6 +242,9 @@ export function ReviewGuidelineDetail({
                 onReasonChange={onReasonChange}
                 onStartReject={() => onStartReject(row)}
                 onCancelReject={onCancelReject}
+                isEditing={editingRowId === row.id}
+                onStartEdit={() => onStartEdit(row)}
+                onCancelEdit={onCancelEdit}
                 handlers={handlers}
                 acting={actingRowId === row.id}
               >

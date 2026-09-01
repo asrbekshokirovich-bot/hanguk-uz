@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -76,7 +77,7 @@ const FORM_FIELDS: Record<string, FormField[]> = {
   ],
 };
 
-const UNSET = '— (unset)';
+const UNSET = '__UNSET__';
 
 function asRecord(v: unknown): Record<string, unknown> {
   return v && typeof v === 'object' && !Array.isArray(v) ? (v as Record<string, unknown>) : {};
@@ -98,6 +99,7 @@ function FieldInput({
   disabled?: boolean;
   onChange: (next: unknown) => void;
 }) {
+  const { t } = useTranslation();
   if (field.type === 'textarea') {
     return (
       <Textarea
@@ -115,10 +117,10 @@ function FieldInput({
         disabled={disabled}
         value={typeof value === 'number' ? String(value) : ''}
         onChange={(e) => {
-          const t = e.target.value.trim();
-          if (t === '') return onChange(null);
-          const n = Number(t);
-          onChange(Number.isFinite(n) ? n : t); // non-numeric kept verbatim so validation flags it
+          const v = e.target.value.trim();
+          if (v === '') return onChange(null);
+          const n = Number(v);
+          onChange(Number.isFinite(n) ? n : v);
         }}
       />
     );
@@ -135,9 +137,9 @@ function FieldInput({
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="true">Yes</SelectItem>
-          <SelectItem value="false">No</SelectItem>
-          <SelectItem value={UNSET}>{UNSET}</SelectItem>
+          <SelectItem value="true">{t('uniReview.edit.boolYes')}</SelectItem>
+          <SelectItem value="false">{t('uniReview.edit.boolNo')}</SelectItem>
+          <SelectItem value={UNSET}>{t('uniReview.edit.boolUnset')}</SelectItem>
         </SelectContent>
       </Select>
     );
@@ -156,10 +158,10 @@ function FieldInput({
         <SelectContent>
           {(field.options ?? []).map((o) => (
             <SelectItem key={o} value={o}>
-              {o}
+              {t(`uniReview.edit.statusOptions.${o}`, { defaultValue: o })}
             </SelectItem>
           ))}
-          <SelectItem value={UNSET}>{UNSET}</SelectItem>
+          <SelectItem value={UNSET}>{t('uniReview.edit.boolUnset')}</SelectItem>
         </SelectContent>
       </Select>
     );
@@ -207,13 +209,13 @@ export function StructuredReviewEditor({
   onChange: (next: Record<string, unknown>) => void;
   disabled?: boolean;
 }) {
+  const { t } = useTranslation();
   const [mode, setMode] = useState<'form' | 'json'>(
     FORM_FIELDS[fieldGroup ?? ''] ? 'form' : 'json',
   );
   const [rawText, setRawText] = useState(() => JSON.stringify(value, null, 2));
   const [rawError, setRawError] = useState<string | null>(null);
 
-  // Re-seed the JSON textarea when entering JSON mode or when the item changes.
   useEffect(() => {
     if (mode === 'json') {
       setRawText(JSON.stringify(value, null, 2));
@@ -226,6 +228,9 @@ export function StructuredReviewEditor({
   const key = itemsKey(fieldGroup);
   const items = getItems(value, key);
   const validation = useMemo(() => validateParsedOutput(fieldGroup, value), [fieldGroup, value]);
+
+  const fieldLabel = (f: FormField) =>
+    t(`uniReview.edit.${fieldGroup}.${f.key}`, { defaultValue: f.label });
 
   const updateItem = (index: number, fieldKey: string, next: unknown) => {
     const cloned = structuredClone(value) as Record<string, unknown>;
@@ -254,10 +259,10 @@ export function StructuredReviewEditor({
     onChange(cloned);
   };
 
-  const onRawChange = (t: string) => {
-    setRawText(t);
+  const onRawChange = (raw: string) => {
+    setRawText(raw);
     try {
-      const parsed = JSON.parse(t);
+      const parsed = JSON.parse(raw);
       if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) {
         setRawError('Top level must be a JSON object');
         return;
@@ -279,15 +284,14 @@ export function StructuredReviewEditor({
           className="h-7 text-xs"
           onClick={() => setMode((m) => (m === 'form' ? 'json' : 'form'))}
           disabled={disabled || !fields}
-          title={!fields ? 'No structured form for this field group' : undefined}
         >
           {mode === 'form' ? (
             <>
-              <Code2 className="h-3.5 w-3.5 mr-1.5" /> Raw JSON
+              <Code2 className="h-3.5 w-3.5 mr-1.5" /> {t('uniReview.edit.rawJson')}
             </>
           ) : (
             <>
-              <FormInput className="h-3.5 w-3.5 mr-1.5" /> Structured form
+              <FormInput className="h-3.5 w-3.5 mr-1.5" /> {t('uniReview.edit.form')}
             </>
           )}
         </Button>
@@ -312,14 +316,15 @@ export function StructuredReviewEditor({
         <div className="space-y-3">
           {items.length === 0 ? (
             <p className="text-xs text-muted-foreground italic rounded-md border border-dashed p-3">
-              No {key} yet.
+              {t('uniReview.edit.noRows')}
             </p>
           ) : (
             items.map((row, idx) => (
               <div key={idx} className="rounded-lg border p-3 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-medium text-muted-foreground">
-                    {key === 'events' ? 'Event' : 'Row'} {idx + 1}
+                    {t(key === 'events' ? 'uniReview.edit.event' : 'uniReview.edit.row')}{' '}
+                    {idx + 1}
                   </span>
                   <Button
                     type="button"
@@ -329,13 +334,13 @@ export function StructuredReviewEditor({
                     onClick={() => removeItem(idx)}
                     disabled={disabled}
                   >
-                    <Trash2 className="h-3.5 w-3.5 mr-1" /> Remove
+                    <Trash2 className="h-3.5 w-3.5 mr-1" /> {t('uniReview.edit.remove')}
                   </Button>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
                   {fields.map((f) => (
                     <div key={f.key} className={f.type === 'textarea' ? 'sm:col-span-2' : ''}>
-                      <Label className="text-xs text-muted-foreground">{f.label}</Label>
+                      <Label className="text-xs text-muted-foreground">{fieldLabel(f)}</Label>
                       <FieldInput
                         field={f}
                         value={row[f.key]}
@@ -349,7 +354,8 @@ export function StructuredReviewEditor({
             ))
           )}
           <Button type="button" variant="outline" size="sm" onClick={addItem} disabled={disabled}>
-            <Plus className="h-3.5 w-3.5 mr-1.5" /> Add {key === 'events' ? 'event' : 'row'}
+            <Plus className="h-3.5 w-3.5 mr-1.5" />{' '}
+            {t(key === 'events' ? 'uniReview.edit.addEvent' : 'uniReview.edit.addRow')}
           </Button>
         </div>
       )}
