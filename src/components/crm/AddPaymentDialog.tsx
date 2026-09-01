@@ -23,7 +23,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useActiveIntake } from '@/contexts/IntakeContext';
 import { CreditCard, Calendar, DollarSign, Info, AlertCircle } from 'lucide-react';
-import { getPlanByValue, formatPlanAmount, calculateDueDate, applyDiscount } from '@/hooks/useStudentPlan';
+import { getPlanByValue, formatPlanAmount, calculateDueDate, applyDiscount, getPaymentAmount } from '@/hooks/useStudentPlan';
 import { allocateOperationalFund } from '@/hooks/useOperationalFund';
 import { distributeIncomeFromPayment } from '@/hooks/useIncomeDistribution';
 import { allocateBudgetsForPayment } from '@/hooks/useStudentBudgets';
@@ -224,6 +224,14 @@ export function AddPaymentDialog({
       const amount = Number(formData.amount);
       const paidAmount = Number(formData.paidAmount) || 0;
       const gatewayFee = Number(formData.gatewayFee) || 0;
+      // Snapshot the undiscounted list price for the investor P&L's
+      // informational "discounts given" line — computed via the same helper
+      // with discount=0, so it can never drift from the discounted `amount`.
+      const paymentType = formData.paymentType as 'initial_deposit' | 'remaining_payment' | 'other';
+      const listAmount =
+        discountPercent > 0 && planInfo && paymentType !== 'other'
+          ? getPaymentAmount(effectivePlan || '', studentPaymentMode, paymentType, 0).amount
+          : null;
 
       // Create the payment record.
       // NOTE: a DB trigger (payments_idempotent_initial_deposit) silently swallows
@@ -237,6 +245,7 @@ export function AddPaymentDialog({
           student_id: studentId,
           payment_type: formData.paymentType,
           amount,
+          list_amount: listAmount,
           paid_amount: paidAmount,
           currency: formData.currency,
           status: paidAmount >= amount ? 'completed' : paidAmount > 0 ? 'partial' : 'pending',

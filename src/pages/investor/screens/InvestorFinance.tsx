@@ -76,8 +76,14 @@ export default function InvestorFinance() {
 
   const revenueLines = lines.filter((l) => l.side === 'revenue');
   const expenseLines = lines.filter((l) => l.side === 'expense');
+  // Informational only: revenue above is already net of any per-student
+  // discount (payments.amount is stored post-discount), so this never
+  // subtracts from revenueTotal/netTotal — it only explains the gap between
+  // a discounted student's list price and what was actually contracted.
+  const discountLines = lines.filter((l) => l.side === 'discount');
   const revenueTotal = revenueLines.reduce((s, l) => s + Number(l.amount), 0);
   const expenseTotal = expenseLines.reduce((s, l) => s + Number(l.amount), 0);
+  const discountTotal = discountLines.reduce((s, l) => s + Number(l.amount), 0);
   const netTotal = revenueTotal - expenseTotal;
   const marginPct = revenueTotal > 0 ? (netTotal * 100) / revenueTotal : null;
   const expensePct = revenueTotal > 0 ? (expenseTotal * 100) / revenueTotal : null;
@@ -177,6 +183,23 @@ export default function InvestorFinance() {
                   totalLabel="Total Revenue"
                   totalPct={revenueTotal > 0 ? 100 : null}
                 />
+                {discountTotal > 0 && (
+                  <>
+                    <PnlSection
+                      heading="Discounts given"
+                      rows={discountLines}
+                      total={discountTotal}
+                      totalLabel="Total Discounts Given"
+                      totalPct={
+                        revenueTotal > 0 ? (discountTotal * 100) / revenueTotal : null
+                      }
+                    />
+                    <p className="-mt-3 mb-5 text-[12px] text-muted-foreground">
+                      Informational only — revenue above already reflects these discounts; this
+                      line is not subtracted again.
+                    </p>
+                  </>
+                )}
                 <PnlSection
                   heading="Operating expenses"
                   rows={expenseLines}

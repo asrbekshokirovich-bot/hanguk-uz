@@ -21,7 +21,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Plus, Info, Calendar } from 'lucide-react';
 import { Tables } from '@/integrations/supabase/types';
-import { PAYMENT_PLANS, getPlanByValue, formatPlanAmount, calculateDueDate, applyDiscount } from '@/hooks/useStudentPlan';
+import { PAYMENT_PLANS, getPlanByValue, formatPlanAmount, calculateDueDate, applyDiscount, getPaymentAmount } from '@/hooks/useStudentPlan';
 
 interface CreatePaymentDialogProps {
   students: (Tables<'profiles'> & {
@@ -34,6 +34,7 @@ interface CreatePaymentDialogProps {
     application_id?: string;
     payment_type: 'initial_deposit' | 'remaining_payment' | 'other';
     amount: number;
+    listAmount?: number;
     currency?: string;
     due_date?: string;
     notes?: string;
@@ -97,11 +98,19 @@ export function CreatePaymentDialog({ students, onCreatePayment }: CreatePayment
     if (!form.student_id || !form.amount) return;
 
     setLoading(true);
+    // Snapshot the undiscounted list price alongside a discounted amount, for
+    // the investor P&L's informational "discounts given" line — computed via
+    // the same helper with discount=0, so it can never drift from `amount`.
+    const listAmount =
+      discountPercent > 0 && studentPlan && form.payment_type !== 'other'
+        ? getPaymentAmount(selectedStudent?.payment_plan || '', studentPaymentMode, form.payment_type, 0).amount
+        : undefined;
     const { error } = await onCreatePayment({
       student_id: form.student_id,
       application_id: form.application_id || undefined,
       payment_type: form.payment_type,
       amount: parseFloat(form.amount),
+      listAmount,
       currency: form.currency,
       due_date: form.due_date || undefined,
       notes: form.notes || undefined,

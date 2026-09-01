@@ -3674,6 +3674,7 @@ export type Database = {
           id: string
           intake_id: string | null
           invoice_number: string | null
+          list_amount: number | null
           notes: string | null
           paid_amount: number
           paid_at: string | null
@@ -3693,6 +3694,7 @@ export type Database = {
           id?: string
           intake_id?: string | null
           invoice_number?: string | null
+          list_amount?: number | null
           notes?: string | null
           paid_amount?: number
           paid_at?: string | null
@@ -3712,6 +3714,7 @@ export type Database = {
           id?: string
           intake_id?: string | null
           invoice_number?: string | null
+          list_amount?: number | null
           notes?: string | null
           paid_amount?: number
           paid_at?: string | null
