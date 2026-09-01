@@ -36,6 +36,7 @@ from __future__ import annotations
 import contextlib
 import json
 import logging
+import os
 import subprocess
 import tempfile
 import threading
@@ -279,6 +280,44 @@ def _envelope_usage(envelope: dict) -> dict[str, int]:
     }
 
 
+def _cli_env() -> dict[str, str]:
+    """The environment the `claude` subprocess runs in.
+
+    The point of this backend is stated in the module docstring: "the whole
+    crawl pipeline runs with NO ANTHROPIC_API_KEY and no per-token bill". The
+    subprocess inherited the parent environment, so that was only true when the
+    operator happened not to have a key set — and every CI workflow here sets
+    one at job level alongside UNI_DB_LLM_BACKEND=claude_cli.
+
+    That is not a harmless leftover. Claude Code's authentication precedence
+    puts ANTHROPIC_API_KEY (rank 3) above CLAUDE_CODE_OAUTH_TOKEN (rank 5),
+    and for the print mode this file uses the docs are explicit: "In
+    non-interactive mode (-p), the key is always used when present." So every
+    `claude` call the crawl has ever made was billed to the API key, and the
+    OAuth token minted with `claude setup-token` was never reached.
+
+    The symptom that led here: from 21 Aug 2026 essentially every extraction
+    job failed with "Credit balance is too low" — on BOTH backends, because
+    they were both spending the same balance. The pipeline kept crawling and
+    kept marking documents parsed, so reviewers were handed cards with no
+    extracted data behind them.
+
+    Stripping the key here rather than in the workflows means the guarantee
+    holds however the process is launched — CI, a Claude Routine, or a laptop.
+    `UNI_DB_CLAUDE_CLI_ALLOW_API_KEY=true` opts back out for anyone who really
+    does want this backend on a key.
+    """
+    env = os.environ.copy()
+    if settings.claude_cli_allow_api_key:
+        return env
+    if env.pop("ANTHROPIC_API_KEY", None):
+        log.debug(
+            "claude_cli: ANTHROPIC_API_KEY removed from the CLI environment so "
+            "the subscription credential is used instead"
+        )
+    return env
+
+
 def _one_call(cmd: list[str], user: str, timeout: float) -> CliCallResult:
     """Run the `claude` CLI once and return its result text + token usage.
 
@@ -295,6 +334,7 @@ def _one_call(cmd: list[str], user: str, timeout: float) -> CliCallResult:
                 capture_output=True,
                 text=True,
                 timeout=timeout,
+                env=_cli_env(),
             )
     except subprocess.TimeoutExpired as exc:
         raise ClaudeCliError(f"claude CLI timed out after {timeout:.0f}s") from exc
