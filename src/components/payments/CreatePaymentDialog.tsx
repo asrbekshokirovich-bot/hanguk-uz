@@ -215,7 +215,7 @@ export function CreatePaymentDialog({ students, onCreatePayment }: CreatePayment
                   ? `1st: ${formatPlanAmount(expectedAmounts?.firstPayment || 0, studentPlan.currency)} | 2nd: ${formatPlanAmount(expectedAmounts?.secondPayment || 0, studentPlan.currency)}`
                   : `Total: ${formatPlanAmount(expectedAmounts?.total || 0, studentPlan.currency)}`
                 }
-                {discountPercent > 0 && ` (−${discountPercent}% applied)`}
+                {discountPercent > 0 && t('payments.discountAppliedNote', { percent: discountPercent })}
               </p>
             </div>
           )}

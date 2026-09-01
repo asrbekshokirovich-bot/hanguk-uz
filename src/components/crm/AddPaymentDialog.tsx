@@ -442,7 +442,7 @@ export function AddPaymentDialog({
                 <Badge variant="secondary">{expectedAmounts.label}</Badge>
               )}
               {discountPercent > 0 && (
-                <Badge variant="default" className="bg-success/20 text-success-foreground border-0">−{discountPercent}% discount applied</Badge>
+                <Badge variant="default" className="bg-success/20 text-success-foreground border-0">{t('crm.discountAppliedBadge', { percent: discountPercent })}</Badge>
               )}
             </div>
             {contractDate && (

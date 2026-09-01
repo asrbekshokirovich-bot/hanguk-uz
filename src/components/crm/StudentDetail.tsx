@@ -2229,6 +2229,9 @@ export function StudentDetail({
         onOpenChange={(o) => !o && setEditingPayment(null)}
         payment={editingPayment}
         onSuccess={fetchPayments}
+        studentPlan={student.payment_plan}
+        studentPaymentMode={student.payment_mode}
+        discountPercent={student.discountPercent}
       />
 
       <AddPaymentDialog

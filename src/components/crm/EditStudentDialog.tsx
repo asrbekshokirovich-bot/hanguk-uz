@@ -276,7 +276,7 @@ export function EditStudentDialog({ open, onOpenChange, student, onSuccess }: Ed
 
     const discountPercent = Math.min(100, Math.max(0, Number(formData.discountPercent) || 0));
     if (Number.isNaN(Number(formData.discountPercent))) {
-      toast({ title: t('common.error'), description: 'Discount must be a number between 0 and 100', variant: 'destructive' });
+      toast({ title: t('common.error'), description: t('crm.discountValidationError'), variant: 'destructive' });
       return;
     }
 
@@ -293,7 +293,7 @@ export function EditStudentDialog({ open, onOpenChange, student, onSuccess }: Ed
         .eq('status', 'pending');
 
       if (pendingError) {
-        toast({ title: t('common.error'), description: 'Failed to check pending payments before applying the discount', variant: 'destructive' });
+        toast({ title: t('common.error'), description: t('crm.discountRewriteCheckError'), variant: 'destructive' });
         return;
       }
 
@@ -312,7 +312,7 @@ export function EditStudentDialog({ open, onOpenChange, student, onSuccess }: Ed
           return `${p.payment_type}: ${Number(p.amount).toLocaleString()} → ${newAmount.toLocaleString()}`;
         });
         const confirmed = window.confirm(
-          `Changing the discount will recompute ${rewriteable.length} pending payment amount(s) for this season:\n\n${lines.join('\n')}\n\nPartial/completed payments keep their recorded amounts. Continue?`
+          t('crm.discountRewriteConfirm', { count: rewriteable.length, lines: lines.join('\n') })
         );
         if (!confirmed) return;
       }
@@ -327,7 +327,7 @@ export function EditStudentDialog({ open, onOpenChange, student, onSuccess }: Ed
         ).amount;
         const { error: rewriteError } = await supabase.from('payments').update({ amount: newAmount }).eq('id', p.id);
         if (rewriteError) {
-          toast({ title: t('common.error'), description: `Failed to update a pending payment amount: ${rewriteError.message}`, variant: 'destructive' });
+          toast({ title: t('common.error'), description: t('crm.discountRewriteUpdateError', { message: rewriteError.message }), variant: 'destructive' });
           setLoading(false);
           return;
         }
@@ -662,7 +662,10 @@ export function EditStudentDialog({ open, onOpenChange, student, onSuccess }: Ed
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="discountPercent">Discount (%){formData.freeReapplication && ' (exempt this season)'}</Label>
+                <Label htmlFor="discountPercent">
+                  {t('crm.discountPercent')}
+                  {formData.freeReapplication && t('crm.discountExemptSuffix')}
+                </Label>
                 <Input
                   id="discountPercent"
                   type="number"

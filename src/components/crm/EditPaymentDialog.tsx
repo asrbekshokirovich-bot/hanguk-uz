@@ -22,6 +22,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { AlertCircle, Pencil } from 'lucide-react';
 import { calculateGatewayFee, getGatewayFeeRate, PAYMENT_METHODS_WITH_FEES } from '@/lib/paymentUtils';
+import { getPaymentAmount } from '@/hooks/useStudentPlan';
 
 export interface EditablePayment {
   id: string;
@@ -47,6 +48,11 @@ interface EditPaymentDialogProps {
   onOpenChange: (open: boolean) => void;
   payment: EditablePayment | null;
   onSuccess: () => void;
+  /** Student's plan/mode/discount, so the dialog can hint the discounted
+   *  expected amount instead of letting staff re-type the list price. */
+  studentPlan?: string | null;
+  studentPaymentMode?: string | null;
+  discountPercent?: number;
 }
 
 /**
@@ -58,7 +64,15 @@ interface EditPaymentDialogProps {
  * fires on creation — re-running those would double-count. The dialog warns the
  * operator to re-check Finance after changing an amount.
  */
-export function EditPaymentDialog({ open, onOpenChange, payment, onSuccess }: EditPaymentDialogProps) {
+export function EditPaymentDialog({
+  open,
+  onOpenChange,
+  payment,
+  onSuccess,
+  studentPlan,
+  studentPaymentMode,
+  discountPercent = 0,
+}: EditPaymentDialogProps) {
   const { t } = useTranslation();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
@@ -93,6 +107,19 @@ export function EditPaymentDialog({ open, onOpenChange, payment, onSuccess }: Ed
   const fee = Number(form.gatewayFee) || 0;
   const netIncome = paid - fee;
   const nextStatus = total > 0 && paid >= total ? 'completed' : paid > 0 ? 'partial' : 'pending';
+
+  // Discounted expected amount for this payment_type, so a staff member
+  // correcting a payment doesn't accidentally re-type the undiscounted list
+  // price. Only meaningful for the two plan-derived types.
+  const expectedAmount =
+    studentPlan && (payment?.payment_type === 'initial_deposit' || payment?.payment_type === 'remaining_payment')
+      ? getPaymentAmount(
+          studentPlan,
+          studentPaymentMode || 'one_time',
+          payment.payment_type,
+          discountPercent
+        ).amount
+      : null;
 
   const handleSave = async () => {
     if (!payment) return;
@@ -163,6 +190,13 @@ export function EditPaymentDialog({ open, onOpenChange, payment, onSuccess }: Ed
                 value={form.amount}
                 onChange={(e) => setForm({ ...form, amount: e.target.value })}
               />
+              {expectedAmount != null && expectedAmount !== total && (
+                <p className="text-xs text-muted-foreground">
+                  {discountPercent > 0
+                    ? `Chegirmali kutilgan summa (−${discountPercent}%): ${expectedAmount.toLocaleString()}`
+                    : `Kutilgan summa: ${expectedAmount.toLocaleString()}`}
+                </p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="edit-paid">To'langan summa</Label>

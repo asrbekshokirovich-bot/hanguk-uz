@@ -171,11 +171,11 @@ export function InvoiceView({ payment, onClose }: InvoiceViewProps) {
             {discountInfo && listPrice > Number(payment.amount) && (
               <>
                 <div className="flex justify-between text-muted-foreground">
-                  <span>List Price</span>
+                  <span>{t('payments.listPrice')}</span>
                   <span>{formatCurrency(listPrice, payment.currency)}</span>
                 </div>
                 <div className="flex justify-between text-muted-foreground">
-                  <span>Discount (−{discountInfo.percent}%)</span>
+                  <span>{t('payments.discount')} (−{discountInfo.percent}%)</span>
                   <span>−{formatCurrency(listPrice - Number(payment.amount), payment.currency)}</span>
                 </div>
               </>

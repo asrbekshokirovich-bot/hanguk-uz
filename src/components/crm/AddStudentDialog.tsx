@@ -172,7 +172,7 @@ export function AddStudentDialog({ open, onOpenChange, onSuccess }: AddStudentDi
     if (!requireField(!!formData.contractUrl, 'Contract file is required')) return;
 
     const discountPercent = Number(formData.discountPercent) || 0;
-    if (!requireField(discountPercent >= 0 && discountPercent <= 100, 'Discount must be between 0 and 100')) return;
+    if (!requireField(discountPercent >= 0 && discountPercent <= 100, t('crm.discountValidationError'))) return;
 
     setLoading(true);
 
@@ -525,7 +525,7 @@ export function AddStudentDialog({ open, onOpenChange, onSuccess }: AddStudentDi
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="discountPercent">Discount (%)</Label>
+                  <Label htmlFor="discountPercent">{t('crm.discountPercent')}</Label>
                   <Input
                     id="discountPercent"
                     type="number"
@@ -536,7 +536,7 @@ export function AddStudentDialog({ open, onOpenChange, onSuccess }: AddStudentDi
                     onChange={(e) => setFormData({ ...formData, discountPercent: e.target.value })}
                     placeholder="0"
                   />
-                  <p className="text-xs text-muted-foreground">Sale/discount percentage off the plan price, 0–100. Leave 0 for no discount.</p>
+                  <p className="text-xs text-muted-foreground">{t('crm.discountPercentHint')}</p>
                 </div>
 
                 {/* Contract Upload — required */}
