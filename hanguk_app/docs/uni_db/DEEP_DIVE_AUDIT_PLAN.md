@@ -69,7 +69,7 @@ The practical shape of the eventual fix is already visible in this diagnosis (le
 
 ### A.5 Cross-cutting themes the audit must treat as first-class
 
-- **Security is the most urgent item and it is not narrow.** A production **service-role JWT** (`scripts/_fix_env.py`) and a production **DB superuser password** `Hanguk2026!` (`scripts/legacy_merge/*.mjs`) are committed to git; a deployed **`db-exec` edge function runs arbitrary SQL**; the review RPCs let **any authenticated user act as any staff reviewer** (`coalesce(reviewer_user_id, auth.uid())`); and **`compare-universities` is fully unauthenticated**, leaking staff-only `institution_notes` and acting as an open metered LLM proxy. The DB is shared with the entire CRM (student PII, payments, Instagram tokens), so the blast radius is the whole business.
+- **Security is the most urgent item and it is not narrow.** A production **service-role JWT** (`scripts/_fix_env.py`) and a production **DB superuser password** `<redacted — see file>` (`scripts/legacy_merge/*.mjs`) are committed to git; a deployed **`db-exec` edge function runs arbitrary SQL**; the review RPCs let **any authenticated user act as any staff reviewer** (`coalesce(reviewer_user_id, auth.uid())`); and **`compare-universities` is fully unauthenticated**, leaking staff-only `institution_notes` and acting as an open metered LLM proxy. The DB is shared with the entire CRM (student PII, payments, Instagram tokens), so the blast radius is the whole business.
 - **Two migration histories target one project and have provably diverged from it** — one migration references a column that does not exist; a fresh `db reset` cannot replay; `config.toml` even points at the *wrong* project id.
 - **A third, undocumented LLM provider (Google Gemini)** powers reviewer-facing translation and the staff assistant — so reviewers approve Gemini-English while students read Claude-Uzbek for the same Korean source.
 - **The "brain" is unversioned.** The scheduled Claude routine's prompt, schedule, and environment exist only in someone's Claude account — no `CLAUDE.md`, no run journal (`crawl_runs` is never written), no wired alerting (Sentry is dead config), no deadman check.
@@ -96,7 +96,7 @@ Phases are ordered by urgency and by the two agreed priorities. Phase 0 is a saf
 **Why first:** committed live credentials and an arbitrary-SQL endpoint mean the audit itself, and the repo, are sitting on a live compromise path. This phase is *contain the bleeding*, not *redesign security* (that is Phase 7).
 
 **Targets & method**
-- Confirm exposure and blast radius, read-only: decode the committed JWT (`scripts/_fix_env.py`) for ref/exp; locate the pooler password `Hanguk2026!` (`scripts/legacy_merge/check_partners.mjs:3`, `find_all_orphans.mjs:3`, `fix_sync_relations.mjs:3`); confirm `db-exec` is deployed (`list_edge_functions`).
+- Confirm exposure and blast radius, read-only: decode the committed JWT (`scripts/_fix_env.py`) for ref/exp; locate the pooler password `<redacted — see file>` (`scripts/legacy_merge/check_partners.mjs:3`, `find_all_orphans.mjs:3`, `fix_sync_relations.mjs:3`); confirm `db-exec` is deployed (`list_edge_functions`).
 - Search full git history for both secrets (`git log -p --all -S`), since purging the working tree is not enough.
 - Enumerate what each credential can reach (it is the *whole* shared DB, not just uni_db).
 
@@ -255,7 +255,7 @@ The deep read already surfaced concrete issues with evidence. The audit's job is
 | # | Severity | Finding | Evidence anchor |
 |---|---|---|---|
 | 1 | Critical | Production service-role JWT committed to repo | `scripts/_fix_env.py:4-9` |
-| 2 | Critical | Production DB superuser password `Hanguk2026!` committed | `scripts/legacy_merge/check_partners.mjs:3` |
+| 2 | Critical | Production DB superuser password `<redacted — see file>` committed | `scripts/legacy_merge/check_partners.mjs:3` |
 | 3 | Critical | `db-exec` runs arbitrary SQL with service-role power | `supabase/functions/db-exec/index.ts` |
 | 4 | Critical | Any authenticated user can act as any reviewer (`reviewer_user_id` override) | `…/20260701001000_…:51`, `20260823120000` |
 | 5 | Critical | `compare-universities` fully unauthenticated, leaks staff `institution_notes` | `supabase/config.toml:114`, `compare-universities/index.ts:118-162` |
