@@ -556,8 +556,28 @@ def _queue_entry_for(
             "priority": 3 if score >= 0.7 else 2,
         }
 
-    if verdict.requires_hitl:
-        # Publish anyway, but flag it for triage.
+    if color == "red":
+        # 2026-09-01 audit fix: this branch previously never consulted the
+        # reliability report at all — a fabricated citation (quote not in
+        # source), a stale-cycle date, or non-unanimous consensus across
+        # re-extractions could still publish with nothing but an advisory
+        # needs_attention flag, because only verdict.requires_hitl (the
+        # model's own self-reported confidence) gated auto-publish. RED is
+        # the gauntlet's strongest signal and now always waits for a human,
+        # matching what require_approval=true would already do for it.
+        return {
+            **base,
+            "status": "open",
+            "needs_attention": True,
+            "reason": "high_difficulty_field",
+            "priority": 1,
+        }
+
+    if verdict.requires_hitl or color == "amber":
+        # Publish anyway, but flag it for triage. AMBER (consensus missing,
+        # a grounding issue, or a medium/low critic or sanity finding) is
+        # now treated the same as a low self-confidence score, instead of
+        # being silently dropped into the clean branch below.
         return {
             **base,
             "status": "approved",
@@ -566,7 +586,10 @@ def _queue_entry_for(
             "priority": 3 if score >= 0.7 else 2,
         }
 
-    # Clean, high-confidence → publish without a flag.
+    # Clean, high-confidence, and — whenever a report ran — GREEN.
+    # `color` is None only if the gauntlet itself errored; that case falls
+    # through to here unchanged, preserving the existing "verification must
+    # never lose a good extraction" invariant from the call site above.
     return {
         **base,
         "status": "approved",

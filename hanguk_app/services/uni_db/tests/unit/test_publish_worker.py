@@ -578,3 +578,56 @@ async def test_the_published_row_is_marked_as_the_entry_semester() -> None:
     await pw.publish_pending(conn)
 
     assert conn.inserts_into("tuition")[0][6] is True
+
+
+class TestPublishedOutcome:
+    """2026-09-01 audit finding: `published_outcome` (CHECK 'published'/
+    'held'/'skipped' — verified against the live schema) has existed since
+    migration 20260801001000 but was never written; 286 rows in production
+    carried a `published_at` timestamp with no recorded outcome, so
+    'approved but held for a stale cycle' was indistinguishable from
+    'actually reached students' without re-deriving it from other columns.
+    """
+
+    def _outcome_calls(self, conn: _Conn) -> list[tuple]:
+        return [
+            args for sql, args in conn.executes
+            if "update public.review_queue" in sql and "published_outcome" in sql
+        ]
+
+    async def test_a_successfully_published_item_is_marked_published(self) -> None:
+        cy = date.today().year
+        rec = _rec("tuition", {"rows": [
+            {"faculty_group": "전체", "academic_year": cy,
+             "amount_krw": 3_000_000, "source_text_ko": "3,000,000원"},
+        ]})
+        conn = _Conn([rec])
+        await pw.publish_pending(conn)
+
+        calls = self._outcome_calls(conn)
+        assert len(calls) == 1
+        assert calls[0] == (rec["queue_id"], "published")
+
+    async def test_a_skipped_item_is_marked_skipped_not_published(self) -> None:
+        rec = _rec("scholarships", {"rows": []})  # empty → unpublishable
+        conn = _Conn([rec])
+        await pw.publish_pending(conn)
+
+        calls = self._outcome_calls(conn)
+        assert len(calls) == 1
+        assert calls[0] == (rec["queue_id"], "skipped")
+
+    async def test_a_held_stale_cycle_item_is_marked_held_not_published(self) -> None:
+        cy = date.today().year
+        rec = _rec(
+            "tuition",
+            {"rows": [{"faculty_group": "전체", "academic_year": cy - 5,
+                       "amount_krw": 3_000_000, "source_text_ko": "구 등록금"}]},
+            source_url_ko="https://old.ac.kr/2020_guideline.pdf",
+        )
+        conn = _Conn([rec])
+        await pw.publish_pending(conn)
+
+        calls = self._outcome_calls(conn)
+        assert len(calls) == 1
+        assert calls[0] == (rec["queue_id"], "held")

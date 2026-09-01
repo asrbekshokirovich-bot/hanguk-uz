@@ -1721,7 +1721,8 @@
       "editTitle": "Tasdiqlashdan oldin chiqarilgan ma'lumotni to'g'rilash",
       "saveEdit": "Saqlash va tasdiqlash",
       "editInvalidJson": "JSON noto'g'ri — saqlashdan oldin sintaksisni tuzating",
-      "editPayloadEmpty": "To'g'irlangan ma'lumot bo'sh bo'lishi mumkin emas"
+      "editPayloadEmpty": "To'g'irlangan ma'lumot bo'sh bo'lishi mumkin emas",
+      "editSchemaInvalid": "{{section}} formatiga mos kelmaydi: {{detail}}"
     },
     "decided": {
       "approved": "Tasdiqlandi — talabalarga e'lon qilindi",

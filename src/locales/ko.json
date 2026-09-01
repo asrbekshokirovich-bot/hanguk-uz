@@ -1626,7 +1626,8 @@
       "editTitle": "승인하기 전에 추출된 데이터를 수정하세요",
       "saveEdit": "저장하고 승인",
       "editInvalidJson": "잘못된 JSON — 저장하기 전에 구문을 수정하세요",
-      "editPayloadEmpty": "수정된 데이터는 비어 있을 수 없습니다"
+      "editPayloadEmpty": "수정된 데이터는 비어 있을 수 없습니다",
+      "editSchemaInvalid": "{{section}} 형식과 일치하지 않습니다: {{detail}}"
     },
     "decided": {
       "approved": "승인됨 — 학생에게 게시됨",

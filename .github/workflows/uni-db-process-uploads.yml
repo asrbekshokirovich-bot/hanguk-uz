@@ -113,3 +113,17 @@ jobs:
       - name: Translate
         continue-on-error: true
         run: python scripts/run_translate_once.py --limit 100
+
+      # 4) 2026-09-01 audit fix: public.pipeline_watchdog_log is written
+      #    hourly by DB-side functions (fn_routine_supervisor / fn_pipeline_
+      #    watchdog via pg_cron) but nothing ever read it — both August
+      #    outages (a dead API key running 18h across six scheduled runs; a
+      #    drained subscription balance producing zero extractions for 11
+      #    days) were found by a human noticing stale data days later, even
+      #    though the table had already logged the exact condition. This
+      #    step fails the run (and so triggers GitHub's failure-email to the
+      #    repo's default recipients, the escalation channel that already
+      #    exists) the first time a fatal-class alert is fresh. Deliberately
+      #    NOT continue-on-error — a silent step here is the bug being fixed.
+      - name: Check pipeline watchdog for fatal alerts
+        run: uni-db check-watchdog-alerts --window-minutes 90

@@ -736,14 +736,14 @@ async def publish_pending(conn: asyncpg.Connection, *, limit: int = 200) -> Publ
         publisher = _PUBLISHERS.get(rec["field_group"])
         if publisher is None or _is_unpublishable(payload):
             skipped += 1
-            await _mark_published(conn, rec["queue_id"])  # nothing to do, don't re-scan
+            await _mark_published(conn, rec["queue_id"], outcome="skipped")  # nothing to do, don't re-scan
             continue
         if is_stale_cycle(payload, rec.get("source_url_ko"), floor=floor):
             held += 1
             log.info("publish_worker: HOLD %s (%s) — past-cycle source (newest %d < %d)",
                      str(rec["queue_id"])[:8], rec["field_group"],
                      max(detected_years(payload, rec.get("source_url_ko"))), floor)
-            await _mark_published(conn, rec["queue_id"])  # processed; re-ingest brings a fresh cycle
+            await _mark_published(conn, rec["queue_id"], outcome="held")  # processed; re-ingest brings a fresh cycle
             continue
         rec["_year"] = infer_year(payload, default=default_year)
         rec["_term"] = infer_term(payload)
@@ -770,7 +770,7 @@ async def publish_pending(conn: asyncpg.Connection, *, limit: int = 200) -> Publ
                         str(rec["queue_id"])[:8], rec["field_group"],
                         type(exc).__name__, str(exc)[:160])
             continue
-        await _mark_published(conn, rec["queue_id"])
+        await _mark_published(conn, rec["queue_id"], outcome="published")
         published += 1
         rows_written += n
         log.info("publish_worker: %s %s → %d row(s)",
@@ -782,7 +782,24 @@ async def publish_pending(conn: asyncpg.Connection, *, limit: int = 200) -> Publ
     )
 
 
-async def _mark_published(conn: asyncpg.Connection, queue_id: UUID) -> None:
+async def _mark_published(
+    conn: asyncpg.Connection, queue_id: UUID, *, outcome: str
+) -> None:
+    """Stamp `published_at` AND `published_outcome`.
+
+    2026-09-01 audit finding: `published_outcome` (CHECK 'published'/'held'/
+    'skipped', added by migration 20260801001000) has existed since 2026-08
+    but was never written — every branch below only ever set `published_at`,
+    so 286 rows carried a timestamp with no recorded outcome and "approved
+    but held for a stale cycle" was indistinguishable from "actually reached
+    students" without re-deriving it from other columns. `outcome` is
+    required (no silent default) so a future call site cannot reintroduce
+    the same gap by omission.
+    """
     await conn.execute(
-        "update public.review_queue set published_at = now() where id = $1", queue_id
+        "update public.review_queue "
+        "set published_at = now(), published_outcome = $2 "
+        "where id = $1",
+        queue_id,
+        outcome,
     )
