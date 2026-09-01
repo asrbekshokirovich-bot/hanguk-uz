@@ -35,15 +35,17 @@
 -- FUNCTION preserves existing GRANTs when the signature is unchanged, so no
 -- REGRANT is needed here.
 --
--- NOT APPLIED to production by this commit — see AUDIT_RESULTS.md /
--- HEALTH_IMPLEMENTATION_PLAN.md for why (this repo's own migration history
--- shows two prior incidents from unreviewed live changes: a dead API key
--- and a broken CLI both went undetected for days, and one migration's view
--- body was found to have silently diverged from production). This is a
--- narrowly-scoped, single-line-per-function, easily-reversible fix for a
--- live, actively exploitable privilege escalation — recommended for prompt
--- review and application, not deferred to a maintenance window the way
--- credential rotation is.
+-- APPLIED 2026-09-01 ~17:12 UTC via Supabase MCP apply_migration, on
+-- explicit owner instruction ("GO") following review of this file. Verified
+-- immediately after against live pg_proc: all four functions' bodies now
+-- contain the auth.role() = 'service_role' guard, and proacl (grants) came
+-- back byte-identical to before the change — postgres/authenticated/
+-- service_role/uni_db_ci, confirming CREATE OR REPLACE FUNCTION preserved
+-- existing GRANTs as expected. get_advisors(security) re-run afterward
+-- showed anon_security_definer_function_executable drop from 14 to 13
+-- findings, with fn_split_guideline_document_by_degree no longer named —
+-- confirming the REVOKE below actually took effect, not just the four
+-- function bodies.
 
 begin;
 

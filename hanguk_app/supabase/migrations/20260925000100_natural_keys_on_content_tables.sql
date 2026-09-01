@@ -14,8 +14,25 @@
 -- scholarships/documents_required, with a constraint that coalesces every
 -- nullable key column to a stable sentinel instead.
 --
--- NOT APPLIED to production by this commit — see the dedup script's header
--- for the review path.
+-- APPLIED 2026-09-01 ~17:15 UTC via Supabase MCP apply_migration, on
+-- explicit owner instruction ("GO"). scripts/dedupe_before_natural_keys.sql
+-- ran first: 60 tuition + 21 requirements + 2 scholarships rows deleted
+-- (documents_required already showed 0 duplicate groups at the time this
+-- ran — the audit's original 169-group count had already been resolved by
+-- ongoing pipeline activity in the ~2h between the audit and this apply).
+-- Verification re-query after deletion showed 0 remaining duplicate groups
+-- in all four tables before this migration was applied; all four
+-- uq_*_natural_key indexes confirmed present in pg_indexes afterward.
+--
+-- LIVE RISK NOW IN EFFECT until the follow-up below lands: these
+-- constraints exist, but publish_worker's INSERTs still have no ON
+-- CONFLICT clause. A re-extraction that would previously have silently
+-- duplicated a row will now raise a unique-violation instead — caught by
+-- publish_worker's existing per-item try/except (errors += 1, item stays
+-- unpublished, the batch continues), so this cannot crash a scheduled run,
+-- but re-published content will silently fail to UPDATE until that code
+-- change ships. Treat wiring ON CONFLICT DO UPDATE into publish_worker.py
+-- as the immediate next step, not an optional follow-up.
 
 begin;
 

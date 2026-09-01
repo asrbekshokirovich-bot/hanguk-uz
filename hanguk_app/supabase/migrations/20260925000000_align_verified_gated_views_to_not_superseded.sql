@@ -33,10 +33,21 @@
 -- "needs checking" marker rather than hide the row, matching how the guest
 -- views already treat it.
 --
--- NOT APPLIED to production by this commit. Prepared for review; the CI
--- migration-replay job (if the audit's Stage 7 fresh-replay fix lands
--- first) and a staging dry-run are the intended path before `supabase db
--- push` / an owner-approved apply_migration call.
+-- APPLIED 2026-09-01 17:04 UTC via Supabase MCP apply_migration, on
+-- explicit owner instruction ("GO") following review of this file. Verified
+-- immediately after: security_invoker=on intact on both views (queried
+-- pg_class.reloptions); admission_cycles rows passing the new filter went
+-- from 0 (status='verified') to 485 (status<>'superseded'). Both views
+-- still returned 0 rows post-apply — NOT a failure of this migration, but
+-- two separate, already-documented empty tables downstream: cycle_dates
+-- (0 rows — publish_worker writes calendar data to
+-- university_admission_periods instead) and user_tracked_universities
+-- (0 rows — no student has ever tracked a university) block
+-- v_user_upcoming_deadlines; recruitment_units (0 rows — that extraction
+-- group was never dispatched, see AUDIT_RESULTS.md Phase 3) blocks
+-- v_recruitment_for_interview. This migration removed a real defect
+-- (a status no row could ever hold); it was not sufficient on its own to
+-- populate these two views, which need their own fixes tracked separately.
 --
 -- security_invoker=on is restated explicitly on both CREATE OR REPLACE VIEW
 -- statements below — a bare CREATE OR REPLACE VIEW clears the prior

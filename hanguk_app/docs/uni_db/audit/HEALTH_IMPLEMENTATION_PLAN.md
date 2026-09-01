@@ -75,6 +75,15 @@ calendar.
 
 ## Stage 2 — Open the exit  ·  ~1–2 days  ·  converts work already done into value
 
+> **Update 2026-09-01 ~17:15 UTC:** 2.1 and the constraint half of 2.3 are
+> applied to production — see migrations `20260925000000` and `20260925000100`
+> for what ran and what each verification check found (both views still
+> return 0 rows for reasons unrelated to this fix — `cycle_dates` and
+> `user_tracked_universities` are separately empty). 2.3's `ON CONFLICT`
+> code change is **not** done yet and is now urgent: the constraints exist
+> in production, so an unhandled duplicate now errors per-item (caught, not
+> fatal) instead of silently duplicating.
+
 Nothing above matters to a student until this is fixed. 492 items have been approved;
 **65 ever published**; **0** cycles are `verified`.
 
@@ -186,6 +195,12 @@ Automatic discovery has been dead **50 days** (`crawl_runs`) and **98 days**
 ---
 
 ## Stage 6 — Security  ·  owner-scheduled
+
+> **Update 2026-09-01 ~17:12 UTC:** the "no downtime" half below is applied
+> to production — see migration `20260925000200`. Verified: all four
+> function bodies carry the fix, grants unchanged, and
+> `get_advisors(security)`'s anon-executable count dropped by exactly one.
+> Credential rotation and the rest of this stage are unchanged — still owner-scheduled.
 
 **No downtime (do now):**
 - Review RPCs must ignore a caller-supplied `reviewer_user_id` unless the caller is

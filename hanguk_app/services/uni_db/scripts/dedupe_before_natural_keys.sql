@@ -16,11 +16,22 @@
 -- `20260925000100_natural_keys_on_content_tables.sql` can succeed — CREATE
 -- UNIQUE INDEX fails outright if duplicates under that key still exist.
 --
--- Run by a human against a staging clone first. This is DML that deletes
--- rows — follow the same review discipline as scripts/backfill_auto_approve.sql
--- and scripts/publish_backlog.sql (the repo's existing convention for
--- one-off, human-run production SQL, as opposed to a versioned migration).
--- NOT executed by this commit.
+-- EXECUTED against production 2026-09-01 ~17:14 UTC via Supabase MCP
+-- execute_sql, on explicit owner instruction ("GO"). Run table-by-table
+-- (not as this single transactional script) so each DELETE's row count
+-- could be checked against the immediately-preceding live re-count before
+-- moving to the next table. Live counts at execution time had already
+-- shifted from the audit's 209/2h-earlier snapshot — documents_required
+-- showed 0 duplicate groups (already clean) — so only tuition/
+-- requirements/scholarships needed deletion:
+--   tuition:       24 groups → 60 rows deleted (returned ids matched count)
+--   requirements:  12 groups → 21 rows deleted (returned ids matched count)
+--   scholarships:   2 groups →  2 rows deleted (returned ids matched count)
+--   documents_required: 0 groups, nothing to delete
+-- Verification SELECT re-run after all deletes: 0 remaining duplicate
+-- groups in all four tables. Companion migration
+-- 20260925000100_natural_keys_on_content_tables.sql applied immediately
+-- after and succeeded (would have failed outright otherwise).
 
 begin;
 
