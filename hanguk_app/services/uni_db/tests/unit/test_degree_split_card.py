@@ -130,3 +130,51 @@ class TestSplitCard:
                 if "Split into separate admission" in rationale:
                     segs = rationale.split("Segments:")[1]
                     assert segs.count("@") >= 2, rationale
+
+
+# A junior-college guideline whose only graduate evidence is a careers
+# sentence deep in the file — the document from the reported card. The
+# sentence used to be read as a graduate SECTION HEADER, which produced a
+# single `graduate` segment and a degree_check card on a document with no
+# graduate admission in it at all.
+_CAREERS_SENTENCE_LATE = (
+    "2027학년도 전문대학 외국인 신입생 모집요강\n"
+    "외국인 학부 신입학 전형 안내.\n"
+) + "본문 내용 " * 4000 + (
+    "\n졸업생은 박사 과정 진학이 가능합니다.\n"
+    "취득 가능 자격증: 투자분석사, 사회조사분석사\n"
+)
+
+
+class TestProseIsNotAHeader:
+    def test_late_careers_sentence_raises_no_card(self) -> None:
+        entries = _doc_entries(
+            _CAREERS_SENTENCE_LATE, "2027학년도 전문대학 외국인 신입생 모집요강"
+        )
+        assert entries == [], entries
+
+    def test_a_real_graduate_heading_still_splits(self) -> None:
+        # Same document, but the graduate term opens a line as a numbered
+        # section title with an admission word after it. That is a heading,
+        # and it must still produce an actionable split card.
+        text = (
+            "2027학년도 외국인 모집요강\n"
+            "1. 외국인 학부 신입학 전형\n"
+        ) + "학부 본문 " * 200 + (
+            "\n2. 석사 과정 모집 안내\n"
+        ) + "대학원 본문 " * 200
+        entries = _doc_entries(text, "2027학년도 외국인 모집요강")
+        assert len(entries) == 1, entries
+        assert entries[0]["field_group"] == "degree_split"
+
+    def test_no_undergraduate_anchor_means_no_check_card(self) -> None:
+        # The two detectors contradict each other: the classifier calls the
+        # document undergraduate, the segmenter puts the whole file in a
+        # graduate segment. There is no undergraduate section for a boundary
+        # to have been missed after, so there is nothing to ask a reviewer.
+        text = (
+            "2027학년도 신입생 모집요강\n"
+            "일반대학원 외국인 석사 모집 안내\n"
+        ) + "본문 내용 " * 200 + "\n학부 졸업자 지원 가능. 학사 학위 소지자.\n"
+        for entry in _doc_entries(text, "2027학년도 신입생 모집요강"):
+            assert entry["field_group"] != "degree_check", entry

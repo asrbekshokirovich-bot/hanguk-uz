@@ -262,8 +262,9 @@ def parse_one_document(
     # mis-parsed as one undergraduate document. Flag it (document-level) so a
     # reviewer splits it into separate admission cycles. The split boundaries
     # are computed here for the reviewer/publish layer. Skipped on partial
-    # (retry-failed) runs — the full parse already flagged it and there is no
-    # dedup for document-level entries.
+    # (retry-failed) runs — the full parse already flagged it. (Re-raising the
+    # same card is also a no-op since 20260924000000, which deduplicates
+    # document-level rows on (entity_id, field_group) in the database.)
     if degree.is_combined and wanted is None:
         segments = split_by_degree(pdf_text_full)
         seg_desc = ", ".join(
@@ -306,7 +307,31 @@ def parse_one_document(
                     ),
                 }
             )
-        elif degree.has_explicit_graduate_program:
+        # Case (a): the header detector anchored the document as
+        # UNDERGRADUATE (it found an undergraduate section header and no
+        # graduate one) while the classifier named a specific graduate
+        # programme somewhere in the text. That is the one shape where
+        # "the split heuristic may have missed a heading" is a real
+        # possibility, so it is the one shape that still earns a card.
+        #
+        # Case (b) — a single GRADUATE segment while the classifier calls the
+        # document undergraduate — is not an ambiguity, it is the two
+        # detectors contradicting each other about the document's own level.
+        # There is no undergraduate section for a boundary to have been
+        # missed after, so a card asking a reviewer to "check the split"
+        # describes nothing they can act on. This is the shape that kept
+        # coming back: a junior-college guideline whose only graduate
+        # evidence was a careers sentence deep in the file, read as a
+        # graduate section header. `degree_sections` no longer reads prose as
+        # a header, so this branch should now be rare — it stays as the
+        # backstop, and it logs rather than enqueues.
+        #
+        # Case (c) — no header at all — was already silent and stays silent.
+        elif (
+            degree.has_explicit_graduate_program
+            and segments[0].level == "undergraduate"
+            and segments[0].header
+        ):
             review_entries.append(
                 {
                     "entity_type": "guideline_documents",
@@ -326,9 +351,9 @@ def parse_one_document(
             )
         else:
             log.info(
-                "degree: combined signalled but no section boundary and no named "
-                "graduate programme for %s (%s) — not raising a split card",
-                str(guideline_document_id)[:8], degree.rationale,
+                "degree: combined signalled but no actionable boundary for %s "
+                "(%s; segments: %s) — not raising a card",
+                str(guideline_document_id)[:8], degree.rationale, seg_desc,
             )
 
     return ParseOutcome(
@@ -752,8 +777,8 @@ async def persist_outcome(
                     """
                     insert into public.review_queue (
                       entity_type, entity_id, reason, priority,
-                      reviewer_notes, status, resolved_at
-                    ) values ($1,$2,$3,$4,$5,'approved',now())
+                      reviewer_notes, field_group, status, resolved_at
+                    ) values ($1,$2,$3,$4,$5,$6,'approved',now())
                     """,
                     "guideline_documents",
                     outcome.guideline_document_id,
@@ -761,20 +786,32 @@ async def persist_outcome(
                     entry["priority"],
                     entry["rationale"] + "\n[auto-split] resolved automatically "
                     "— cycles created, no reviewer action needed.",
+                    entry.get("field_group"),
                 )
                 continue
 
+            # `field_group` is what makes this insert idempotent. It is the
+            # deduplication key for document-level cards, and the trigger
+            # added in 20260924000000 drops the insert when this document
+            # already has a live or decided card for the same key.
+            #
+            # Before that key was carried through, every re-parse — the
+            # nightly crawl, drain-backlog every three hours, retry-failed —
+            # inserted the same card again, so a reviewer's approval never
+            # held and the queue regrew what they had just cleared.
             await conn.execute(
                 """
                 insert into public.review_queue (
-                  entity_type, entity_id, reason, priority, reviewer_notes
-                ) values ($1,$2,$3,$4,$5)
+                  entity_type, entity_id, reason, priority, reviewer_notes,
+                  field_group
+                ) values ($1,$2,$3,$4,$5,$6)
                 """,
                 "guideline_documents",
                 outcome.guideline_document_id,
                 entry["reason"],
                 entry["priority"],
                 entry["rationale"],
+                entry.get("field_group"),
             )
 
     await conn.execute(
