@@ -30,6 +30,7 @@ import { allocateBudgetsForPayment } from '@/hooks/useStudentBudgets';
 import { createBonusForPayment } from '@/hooks/useStaffBonuses';
 import { calculateGatewayFee, getGatewayFeeRate, PAYMENT_METHODS_WITH_FEES } from '@/lib/paymentUtils';
 import { MultiReceiptUpload } from '@/components/payments/MultiReceiptUpload';
+import { DateField } from '@/components/ui/date-field';
 
 interface AddPaymentDialogProps {
   open: boolean;
@@ -565,12 +566,10 @@ export function AddPaymentDialog({
           <div className="space-y-2">
             <Label htmlFor="dueDate">Due Date</Label>
             <div className="relative">
-              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
+              <DateField
                 id="dueDate"
-                type="date"
                 value={formData.dueDate}
-                onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
+                onChange={(v) => setFormData({ ...formData, dueDate: v })}
                 className="pl-9"
               />
             </div>
