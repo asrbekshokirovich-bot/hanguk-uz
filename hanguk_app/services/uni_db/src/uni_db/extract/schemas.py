@@ -72,6 +72,30 @@ CALENDAR_SCHEMA: dict[str, Any] = {
                     # 1st/2nd/3rd/4th Round with separate deadlines. Null when
                     # the document has only one round or does not label it.
                     "round_label":          {"type": ["string", "null"]},
+                    # What that label actually IS. `round_label` is free text,
+                    # and Korean guidelines number four different things with
+                    # 차, so the label alone cannot be read as "another
+                    # application round":
+                    #
+                    #   application   — a real 모집 차수, with its own 원서접수
+                    #   supplementary — 추가합격 / 미등록 충원 / 추합: the waves
+                    #                   that call up the next candidates after
+                    #                   the main results. Numbered 1차/2차/3차/
+                    #                   4차 and published by almost EVERY
+                    #                   university, single-round ones included
+                    #                   — which is why every card in the review
+                    #                   queue looked like it had four rounds.
+                    #   season        — 수시 / 정시: admission seasons
+                    #   term          — 전기 / 후기: semesters
+                    #
+                    # Measured on the live corpus before this field existed: of
+                    # 334 round-labelled events only 102 carried an N차 label at
+                    # all — the other 232 were seasons, semesters or 충원 — and
+                    # several of the 102 were 추가합격 waves too.
+                    "round_kind": {
+                        "type": ["string", "null"],
+                        "enum": [None, "application", "supplementary", "season", "term"],
+                    },
                     "source_text_ko":{"type": "string"},
                     "extractor_confidence": {"type": "number", "minimum": 0, "maximum": 1},
                 },
@@ -91,6 +115,14 @@ CALENDAR_SCHEMA: dict[str, Any] = {
                     # Same round label as events[].round_label — one periods[]
                     # entry per (language_track, program_level, round).
                     "round_label":     {"type": ["string", "null"]},
+                    # Same vocabulary as events[].round_kind. A periods[] entry
+                    # should normally be 'application': a 추가합격 wave has no
+                    # application window of its own, so it does not describe a
+                    # period a student can apply in.
+                    "round_kind": {
+                        "type": ["string", "null"],
+                        "enum": [None, "application", "supplementary", "season", "term"],
+                    },
                     "online_application_start":  {"type": ["string", "null"]},
                     "online_application_end":    {"type": ["string", "null"]},
                     "offline_application_start": {"type": ["string", "null"]},

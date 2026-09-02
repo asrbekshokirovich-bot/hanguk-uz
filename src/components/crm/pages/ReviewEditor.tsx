@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -18,14 +20,40 @@ import {
   type ValidationError,
 } from './reviewLogic';
 
-type FormFieldType = 'text' | 'textarea' | 'number' | 'boolean' | 'enum';
+type FormFieldType = 'text' | 'textarea' | 'number' | 'boolean' | 'enum' | 'datetime';
 
 interface FormField {
   key: string;
+  /** i18n key under `uniReview.edit.f.` — the reviewer is not an engineer. */
   label: string;
   type: FormFieldType;
   options?: string[];
+  /** Human labels for an enum, keyed under `uniReview.edit.o.`. */
+  optionLabels?: boolean;
 }
+
+/**
+ * Event types a reviewer will actually meet. The extractor may emit others
+ * (the schema has a long tail plus an `other` catch-all); an unrecognised
+ * value is preserved and shown as-is rather than silently rewritten.
+ */
+const EVENT_TYPE_OPTIONS = [
+  'apply_open',
+  'apply_close',
+  'document_submission_deadline',
+  'first_stage_results',
+  'interview',
+  'practical_exam',
+  'final_results',
+  'additional_admit',
+  'registration_open',
+  'registration_close',
+  'orientation',
+  'semester_start',
+  'other',
+];
+
+const ROUND_KIND_OPTIONS = ['application', 'supplementary', 'season', 'term'];
 
 const STATUS_OPTIONS = ['required', 'not_required', 'not_stated'];
 
@@ -34,49 +62,81 @@ const STATUS_OPTIONS = ['required', 'not_required', 'not_stated'];
 // country_specific), so the structured form never silently drops extractor data.
 const FORM_FIELDS: Record<string, FormField[]> = {
   requirements: [
-    { key: 'applicant_category', label: 'Applicant category (track)', type: 'text' },
-    { key: 'topik_status', label: 'TOPIK status', type: 'enum', options: STATUS_OPTIONS },
-    { key: 'topik_min_level', label: 'TOPIK min level', type: 'number' },
-    { key: 'english_status', label: 'English status', type: 'enum', options: STATUS_OPTIONS },
-    { key: 'gpa_status', label: 'GPA status', type: 'enum', options: STATUS_OPTIONS },
-    { key: 'gpa_floor_pct', label: 'GPA floor (%)', type: 'number' },
-    { key: 'interview_required', label: 'Interview required?', type: 'boolean' },
-    { key: 'practical_exam_required', label: 'Practical exam?', type: 'boolean' },
-    { key: 'prose_ko', label: 'Eligibility (Korean)', type: 'textarea' },
+    { key: 'applicant_category', label: 'applicantCategory', type: 'text' },
+    { key: 'topik_status', label: 'topikStatus', type: 'enum', options: STATUS_OPTIONS, optionLabels: true },
+    { key: 'topik_min_level', label: 'topikMinLevel', type: 'number' },
+    { key: 'english_status', label: 'englishStatus', type: 'enum', options: STATUS_OPTIONS, optionLabels: true },
+    { key: 'gpa_status', label: 'gpaStatus', type: 'enum', options: STATUS_OPTIONS, optionLabels: true },
+    { key: 'gpa_floor_pct', label: 'gpaFloorPct', type: 'number' },
+    { key: 'interview_required', label: 'interviewRequired', type: 'boolean' },
+    { key: 'practical_exam_required', label: 'practicalExamRequired', type: 'boolean' },
+    { key: 'prose_ko', label: 'proseKo', type: 'textarea' },
   ],
   documents_required: [
-    { key: 'document_type', label: 'Document type', type: 'text' },
-    { key: 'is_required', label: 'Required?', type: 'boolean' },
-    { key: 'is_apostille_required', label: 'Apostille required?', type: 'boolean' },
-    { key: 'applies_to_round', label: 'Applies to round', type: 'text' },
-    { key: 'deadline', label: 'Deadline', type: 'text' },
-    { key: 'notes_ko', label: 'Notes (Korean)', type: 'textarea' },
+    { key: 'document_type', label: 'documentType', type: 'text' },
+    { key: 'is_required', label: 'isRequired', type: 'boolean' },
+    { key: 'is_apostille_required', label: 'apostilleRequired', type: 'boolean' },
+    { key: 'applies_to_round', label: 'appliesToRound', type: 'text' },
+    { key: 'deadline', label: 'deadline', type: 'text' },
+    { key: 'notes_ko', label: 'notesKo', type: 'textarea' },
   ],
   scholarships: [
-    { key: 'name_ko', label: 'Name (Korean)', type: 'text' },
-    { key: 'name_en', label: 'Name (English)', type: 'text' },
-    { key: 'scope', label: 'Scope', type: 'text' },
-    { key: 'award_type', label: 'Award type', type: 'text' },
-    { key: 'award_value', label: 'Award value', type: 'number' },
-    { key: 'prose_ko', label: 'Eligibility (Korean)', type: 'textarea' },
+    { key: 'name_ko', label: 'nameKo', type: 'text' },
+    { key: 'name_en', label: 'nameEn', type: 'text' },
+    { key: 'scope', label: 'scope', type: 'text' },
+    { key: 'award_type', label: 'awardType', type: 'text' },
+    { key: 'award_value', label: 'awardValue', type: 'number' },
+    { key: 'prose_ko', label: 'proseKo', type: 'textarea' },
   ],
   tuition: [
-    { key: 'faculty_group', label: 'Faculty group', type: 'text' },
-    { key: 'academic_year', label: 'Academic year', type: 'text' },
-    { key: 'semester_number', label: 'Semester', type: 'text' },
-    { key: 'amount_krw', label: 'Tuition (KRW)', type: 'number' },
-    { key: 'admission_fee_krw', label: 'Admission fee (KRW)', type: 'number' },
-    { key: 'is_first_semester', label: 'First semester?', type: 'boolean' },
+    { key: 'faculty_group', label: 'facultyGroup', type: 'text' },
+    { key: 'academic_year', label: 'academicYear', type: 'text' },
+    { key: 'semester_number', label: 'semesterNumber', type: 'text' },
+    { key: 'amount_krw', label: 'amountKrw', type: 'number' },
+    { key: 'admission_fee_krw', label: 'admissionFeeKrw', type: 'number' },
+    { key: 'is_first_semester', label: 'isFirstSemester', type: 'boolean' },
   ],
   calendar: [
-    { key: 'event_type', label: 'Event type', type: 'text' },
-    { key: 'starts_at', label: 'Starts at (ISO)', type: 'text' },
-    { key: 'is_tentative', label: 'Tentative?', type: 'boolean' },
-    { key: 'notes_ko', label: 'Notes (Korean)', type: 'textarea' },
+    { key: 'event_type', label: 'eventType', type: 'enum', options: EVENT_TYPE_OPTIONS, optionLabels: true },
+    { key: 'starts_at', label: 'startsAt', type: 'datetime' },
+    { key: 'ends_at', label: 'endsAt', type: 'datetime' },
+    { key: 'is_tentative', label: 'isTentative', type: 'boolean' },
+    { key: 'round_label', label: 'roundLabel', type: 'text' },
+    { key: 'round_kind', label: 'roundKind', type: 'enum', options: ROUND_KIND_OPTIONS, optionLabels: true },
+    { key: 'notes_ko', label: 'notesKo', type: 'textarea' },
   ],
 };
 
-const UNSET = '— (unset)';
+const UNSET = '\u2014';
+
+/**
+ * Every stored timestamp is KST-anchored (`YYYY-MM-DDTHH:MM:SS+09:00`), which
+ * is what the extraction prompt guarantees. The reviewer sees a date/time
+ * picker showing exactly those Korean wall-clock digits.
+ *
+ * The conversion is deliberately string surgery rather than `new Date(...)`:
+ * routing through a Date would render the value in the BROWSER's timezone, so
+ * a reviewer in Tashkent (UTC+5) would open a 09:00 KST deadline, see 05:00,
+ * and "correct" it — silently moving a real deadline by four hours. Slicing
+ * the offset off and putting it back keeps the stored value byte-identical
+ * unless the reviewer actually edits it.
+ */
+export function isoToLocalInput(v: unknown): string {
+  if (typeof v !== 'string') return '';
+  const m = /^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})/.exec(v);
+  return m ? `${m[1]}T${m[2]}` : '';
+}
+
+export function localInputToIso(input: string, previous: unknown): string | null {
+  if (!input) return null;
+  const m = /^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})/.exec(input);
+  if (!m) return null;
+  // Preserve whatever offset the extractor stored; default to KST, which is
+  // what the prompt emits and what every guideline states its dates in.
+  const prev = typeof previous === 'string' ? previous : '';
+  const offset = /([+-]\d{2}:\d{2}|Z)$/.exec(prev)?.[1] ?? '+09:00';
+  return `${m[1]}T${m[2]}:00${offset}`;
+}
 
 function asRecord(v: unknown): Record<string, unknown> {
   return v && typeof v === 'object' && !Array.isArray(v) ? (v as Record<string, unknown>) : {};
@@ -92,12 +152,24 @@ function FieldInput({
   value,
   disabled,
   onChange,
+  t,
 }: {
   field: FormField;
   value: unknown;
   disabled?: boolean;
   onChange: (next: unknown) => void;
+  t: TFunction;
 }) {
+  if (field.type === 'datetime') {
+    return (
+      <Input
+        type="datetime-local"
+        disabled={disabled}
+        value={isoToLocalInput(value)}
+        onChange={(e) => onChange(localInputToIso(e.target.value, value))}
+      />
+    );
+  }
   if (field.type === 'textarea') {
     return (
       <Textarea
@@ -135,8 +207,8 @@ function FieldInput({
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="true">Yes</SelectItem>
-          <SelectItem value="false">No</SelectItem>
+          <SelectItem value="true">{t('uniReview.edit.yes')}</SelectItem>
+          <SelectItem value="false">{t('uniReview.edit.no')}</SelectItem>
           <SelectItem value={UNSET}>{UNSET}</SelectItem>
         </SelectContent>
       </Select>
@@ -154,11 +226,15 @@ function FieldInput({
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          {(field.options ?? []).map((o) => (
-            <SelectItem key={o} value={o}>
-              {o}
-            </SelectItem>
-          ))}
+          {/* An extractor value outside the list stays selectable, so
+              opening the form never rewrites data the reviewer did not touch. */}
+          {[...new Set([...(field.options ?? []), ...(current !== UNSET ? [current] : [])])].map(
+            (o) => (
+              <SelectItem key={o} value={o}>
+                {field.optionLabels ? t(`uniReview.edit.o.${o}`, { defaultValue: o }) : o}
+              </SelectItem>
+            ),
+          )}
           <SelectItem value={UNSET}>{UNSET}</SelectItem>
         </SelectContent>
       </Select>
@@ -173,12 +249,12 @@ function FieldInput({
   );
 }
 
-function ValidationErrors({ errors }: { errors: ValidationError[] }) {
+function ValidationErrors({ errors, label }: { errors: ValidationError[]; label: string }) {
   if (errors.length === 0) return null;
   return (
     <div className="rounded-md border border-destructive/40 bg-destructive/5 p-2 space-y-1">
       <p className="text-xs font-medium text-destructive flex items-center gap-1">
-        <AlertCircle className="h-3.5 w-3.5 shrink-0" /> Invalid — fix before saving:
+        <AlertCircle className="h-3.5 w-3.5 shrink-0" /> {label}
       </p>
       <ul className="text-xs text-destructive/90 list-disc pl-5 space-y-0.5">
         {errors.slice(0, 8).map((e, i) => (
@@ -207,6 +283,7 @@ export function StructuredReviewEditor({
   onChange: (next: Record<string, unknown>) => void;
   disabled?: boolean;
 }) {
+  const { t } = useTranslation();
   const [mode, setMode] = useState<'form' | 'json'>(
     FORM_FIELDS[fieldGroup ?? ''] ? 'form' : 'json',
   );
@@ -283,11 +360,11 @@ export function StructuredReviewEditor({
         >
           {mode === 'form' ? (
             <>
-              <Code2 className="h-3.5 w-3.5 mr-1.5" /> Raw JSON
+              <Code2 className="h-3.5 w-3.5 mr-1.5" /> {t('uniReview.edit.rawJson')}
             </>
           ) : (
             <>
-              <FormInput className="h-3.5 w-3.5 mr-1.5" /> Structured form
+              <FormInput className="h-3.5 w-3.5 mr-1.5" /> {t('uniReview.edit.form')}
             </>
           )}
         </Button>
@@ -312,14 +389,14 @@ export function StructuredReviewEditor({
         <div className="space-y-3">
           {items.length === 0 ? (
             <p className="text-xs text-muted-foreground italic rounded-md border border-dashed p-3">
-              No {key} yet.
+              {t('uniReview.edit.empty')}
             </p>
           ) : (
             items.map((row, idx) => (
               <div key={idx} className="rounded-lg border p-3 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-medium text-muted-foreground">
-                    {key === 'events' ? 'Event' : 'Row'} {idx + 1}
+                    {t(key === 'events' ? 'uniReview.edit.event' : 'uniReview.edit.row')} {idx + 1}
                   </span>
                   <Button
                     type="button"
@@ -329,18 +406,29 @@ export function StructuredReviewEditor({
                     onClick={() => removeItem(idx)}
                     disabled={disabled}
                   >
-                    <Trash2 className="h-3.5 w-3.5 mr-1" /> Remove
+                    <Trash2 className="h-3.5 w-3.5 mr-1" /> {t('uniReview.edit.remove')}
                   </Button>
                 </div>
+                {typeof row.source_text_ko === 'string' && row.source_text_ko.trim() ? (
+                  // The verbatim Korean line this row came from. A reviewer
+                  // correcting a date needs to see what the PDF actually said,
+                  // and it is the audit anchor — never editable here.
+                  <p className="rounded bg-muted/60 px-2 py-1.5 font-mono text-[11.5px] leading-relaxed text-muted-foreground">
+                    {row.source_text_ko as string}
+                  </p>
+                ) : null}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
                   {fields.map((f) => (
                     <div key={f.key} className={f.type === 'textarea' ? 'sm:col-span-2' : ''}>
-                      <Label className="text-xs text-muted-foreground">{f.label}</Label>
+                      <Label className="text-xs text-muted-foreground">
+                        {t(`uniReview.edit.f.${f.label}`, { defaultValue: f.label })}
+                      </Label>
                       <FieldInput
                         field={f}
                         value={row[f.key]}
                         disabled={disabled}
                         onChange={(next) => updateItem(idx, f.key, next)}
+                        t={t}
                       />
                     </div>
                   ))}
@@ -349,12 +437,15 @@ export function StructuredReviewEditor({
             ))
           )}
           <Button type="button" variant="outline" size="sm" onClick={addItem} disabled={disabled}>
-            <Plus className="h-3.5 w-3.5 mr-1.5" /> Add {key === 'events' ? 'event' : 'row'}
+            <Plus className="h-3.5 w-3.5 mr-1.5" />{' '}
+            {t(key === 'events' ? 'uniReview.edit.addEvent' : 'uniReview.edit.addRow')}
           </Button>
         </div>
       )}
 
-      {!validation.ok ? <ValidationErrors errors={validation.errors} /> : null}
+      {!validation.ok ? (
+        <ValidationErrors errors={validation.errors} label={t('uniReview.edit.invalid')} />
+      ) : null}
     </div>
   );
 }

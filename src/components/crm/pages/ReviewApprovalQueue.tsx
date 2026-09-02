@@ -53,7 +53,7 @@ export function ReviewApprovalQueue() {
   const [rejectingRowId, setRejectingRowId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState<RejectionReason>('hallucinated_field');
   const [editingRowId, setEditingRowId] = useState<string | null>(null);
-  const [editDraft, setEditDraft] = useState('');
+  const [editDraft, setEditDraft] = useState<Record<string, unknown>>({});
   const [splittingRowId, setSplittingRowId] = useState<string | null>(null);
 
   const sorted = useMemo(
@@ -159,14 +159,9 @@ export function ReviewApprovalQueue() {
         );
       }
     },
-    onConfirmEdit: (row, correctedJson) => {
-      let corrected: Record<string, unknown>;
-      try {
-        corrected = JSON.parse(correctedJson);
-      } catch {
-        toast.error(t('uniReview.actions.editInvalidJson'));
-        return;
-      }
+    onConfirmEdit: (row, corrected) => {
+      // The draft is a real object now — the editor owns its shape, so there
+      // is no JSON to parse and no syntax error to report.
       if (!corrected || typeof corrected !== 'object' || Object.keys(corrected).length === 0) {
         toast.error(t('uniReview.actions.editPayloadEmpty'));
         return;
@@ -321,7 +316,7 @@ export function ReviewApprovalQueue() {
           onStartEdit={(row) => {
             setRejectingRowId(null);
             setEditingRowId(row.id);
-            setEditDraft(JSON.stringify(row.parsed_output ?? {}, null, 2));
+            setEditDraft(structuredClone((row.parsed_output ?? {}) as Record<string, unknown>));
           }}
           onCancelEdit={() => setEditingRowId(null)}
           handlers={handlers}
