@@ -19,6 +19,8 @@ export interface ReviewQueueRow {
   storage_path: string | null;
   guideline_document_id: string | null;
   field_group: string | null;
+  /** A correction saved but not yet approved (fn_review_save_edit). */
+  reviewer_decision: Record<string, unknown> | null;
   parsed_output: unknown | null;
   accuracy_self_score: number | null;
   // Added by migration 20260523150000 — lowest per-row extractor confidence.
@@ -114,6 +116,22 @@ export function useReviewActions() {
     onSuccess: invalidate,
   });
 
+  // Save the reviewer's corrections WITHOUT approving them. Approving is a
+  // separate click, because "the data now matches the PDF" and "this may go
+  // to a student" are separate judgements.
+  const saveEdit = useMutation<string, Error, EditAcceptArgs>({
+    mutationFn: async ({ queueItemId, correctedPayload, reviewerNotes }) => {
+      const { data, error } = await supabase.rpc('fn_review_save_edit' as never, {
+        queue_item_id: queueItemId,
+        corrected_payload: correctedPayload,
+        reviewer_notes: reviewerNotes ?? null,
+      } as never);
+      if (error) throw new Error(error.message);
+      return data as unknown as string;
+    },
+    onSuccess: invalidate,
+  });
+
   const editAccept = useMutation<string, Error, EditAcceptArgs>({
     mutationFn: async ({ queueItemId, correctedPayload, reviewerNotes }) => {
       const { data, error } = await supabase.rpc('fn_review_edit_accept' as never, {
@@ -154,5 +172,5 @@ export function useReviewActions() {
     onSuccess: invalidate,
   });
 
-  return { accept, editAccept, reject, flagSourceWrong };
+  return { accept, saveEdit, editAccept, reject, flagSourceWrong };
 }

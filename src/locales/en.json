@@ -1680,9 +1680,10 @@
       "flagSource": "Wrong source — reject every section from this PDF",
       "edit": "Edit",
       "editTitle": "Correct the extracted data before approving",
-      "saveEdit": "Save & approve",
+      "saveEdit": "Save",
       "editInvalidJson": "Invalid JSON — fix the syntax before saving",
-      "editPayloadEmpty": "The corrected payload can't be empty"
+      "editPayloadEmpty": "The corrected payload can't be empty",
+      "savedNotApproved": "Correction saved — not approved yet"
     },
     "decided": {
       "approved": "Approved — published to students",
@@ -1692,7 +1693,8 @@
     "toast": {
       "approved": "Approved — {{uni}}: {{section}}",
       "rejected": "Rejected — {{uni}}: {{section}}",
-      "flagged": "{{n}} section(s) rejected — source flagged as wrong"
+      "flagged": "{{n}} section(s) rejected — source flagged as wrong",
+      "saved": "Saved"
     },
     "reasons": {
       "wrong_year": "Wrong year / cycle",
