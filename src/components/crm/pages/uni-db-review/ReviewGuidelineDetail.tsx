@@ -85,8 +85,8 @@ export function ReviewGuidelineDetail({
   onStartReject: (row: ReviewQueueRow) => void;
   onCancelReject: () => void;
   editingRowId: string | null;
-  editDraft: string;
-  onEditDraftChange: (v: string) => void;
+  editDraft: Record<string, unknown>;
+  onEditDraftChange: (v: Record<string, unknown>) => void;
   onStartEdit: (row: ReviewQueueRow) => void;
   onCancelEdit: () => void;
   handlers: SectionCardHandlers;

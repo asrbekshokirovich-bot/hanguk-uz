@@ -1,9 +1,9 @@
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AlertTriangle, Check, Flag, Loader2, Pencil, Split, X } from 'lucide-react';
+import { StructuredReviewEditor } from '../ReviewEditor';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
@@ -48,7 +48,7 @@ export interface SectionCardHandlers {
   onApprove: (row: ReviewQueueRow) => void;
   onConfirmReject: (row: ReviewQueueRow, reason: RejectionReason) => void;
   onFlagSource: (row: ReviewQueueRow) => void;
-  onConfirmEdit: (row: ReviewQueueRow, correctedJson: string) => void;
+  onConfirmEdit: (row: ReviewQueueRow, corrected: Record<string, unknown>) => void;
   onSplit: (row: ReviewQueueRow) => void;
 }
 
@@ -110,8 +110,8 @@ export function ReviewSectionCard({
   onStartReject: () => void;
   onCancelReject: () => void;
   isEditing: boolean;
-  editDraft: string;
-  onEditDraftChange: (v: string) => void;
+  editDraft: Record<string, unknown>;
+  onEditDraftChange: (v: Record<string, unknown>) => void;
   onStartEdit: () => void;
   onCancelEdit: () => void;
   handlers: SectionCardHandlers;
@@ -232,10 +232,12 @@ export function ReviewSectionCard({
       {isEditing && !decided ? (
         <div className="flex animate-fade-up flex-col gap-2 rounded-[10px] bg-secondary/60 p-3 px-3.5">
           <span className="text-[12.5px] font-semibold">{t('uniReview.actions.editTitle')}</span>
-          <Textarea
+          {/* Was a raw JSON textarea. The people who approve these cards do
+              not write JSON, and a stray comma silently blocked the save. */}
+          <StructuredReviewEditor
+            fieldGroup={row.field_group ?? null}
             value={editDraft}
-            onChange={(e) => onEditDraftChange(e.target.value)}
-            className="min-h-[160px] font-mono text-[12px]"
+            onChange={onEditDraftChange}
             disabled={acting}
           />
           <div className="flex items-center gap-2">
