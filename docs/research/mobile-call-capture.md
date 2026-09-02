@@ -355,15 +355,28 @@ The owner already has a **YINGXIN GSM‑3G desk phone** ("录音固话") — a S
 landline‑style handset with a dedicated **REC** button, caller‑ID, redial and an
 attached cordless handset. This is the same idea as the GSM‑gateway row above,
 scaled down to one desk and one SIM, with **no PBX, no Asterisk, and no Android
-app** for that line at all:
+app** for that line at all. It is also architecturally a different, easier problem
+than the mobile‑phone routes in §2.3: the SIM plugs directly into this device and
+it *is* the telephone, so there is no OS security boundary between an app and the
+call — the firmware has direct, unrestricted access to both sides of the audio.
+"Automatic recording" here is a manufacturer feature switch, not a workaround.
 
-- **Recording:** confirmed **automatic** on this unit — every call on that SIM is
-  captured with no one having to press anything, which is a real advantage over
-  the on‑device mobile routes in §2.3, all of which are best‑effort.
-- **Getting recordings out:** device‑dependent (removable memory card, USB‑to‑PC,
-  or menu‑playback‑only) — **still to confirm** on this exact unit; check the
-  phone's own menu/manual or the model number for the precise method. This is the
-  one thing that decides how much work the CRM side needs.
+- **Recording:** the owner reports this unit records automatically, and that
+  matches the product line — **automatic recording (自动录音)** is explicitly
+  advertised across multiple YINGXIN SIM‑card desk‑phone listings (e.g. the
+  sibling model "YINGXIN 238": "自动录音・答录・专业录音・行政律师电话"), as
+  a standard feature, not a manual‑REC‑only device. Could not locate the manual
+  for this exact "GSM‑3G" nameplate, so **confirm on the unit itself**: press
+  **菜单 MENU** and look for a recording‑settings submenu (Off / Manual /
+  Auto‑all‑calls) — if it is currently on Manual, switching to Auto is a menu
+  toggle, no hack or firmware change needed.
+- **Getting recordings out:** the same product line commonly stores recordings on
+  a **removable SD/TF memory card** (up to 32 GB on sibling models, sometimes
+  bundled with the phone) — check for a card slot on this unit. If confirmed,
+  export is simply: pop the card out, read it on any computer or card reader, no
+  proprietary software or USB pairing needed. This is the best case of the three
+  export methods considered and would make the "Import mobile recordings" screen
+  below a plain file upload.
 - **CRM integration (small build, not yet started):** because there is no API,
   recordings arrive as a batch of audio files, not a live webhook. A short admin
   **"Import mobile recordings"** screen would let staff upload a pulled batch,
