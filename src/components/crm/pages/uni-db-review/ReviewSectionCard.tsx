@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AlertTriangle, Check, Flag, Loader2, Pencil, Split, X } from 'lucide-react';
 import { StructuredReviewEditor } from '../ReviewEditor';
+import { validateParsedOutput } from '../reviewLogic';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
@@ -120,6 +121,8 @@ export function ReviewSectionCard({
   children: ReactNode;
 }) {
   const { t } = useTranslation();
+  // Save is only offered when the payload actually validates.
+  const editValid = validateParsedOutput(row.field_group ?? null, editDraft).ok;
   const rel = parseReliability(row.reviewer_notes, row.needs_attention);
   const Icon = sectionIcon(row);
   // A row the queue is showing again because it was rejected earlier, not
@@ -256,11 +259,16 @@ export function ReviewSectionCard({
                 "Saqlash va tasdiqlash" button published the card the instant a
                 correction was typed, with no chance to re-read it against the
                 PDF first. */}
+            {/* Disabled while the payload does not validate. It used to be
+                clickable, so a reviewer could press Save on a card the schema
+                rejects and get a server error for something the screen had
+                already told them. */}
             <Button
               size="sm"
               className="h-[30px]"
               onClick={() => handlers.onSaveEdit(row, editDraft)}
-              disabled={acting}
+              disabled={acting || !editValid}
+              title={editValid ? undefined : t('uniReview.edit.invalid')}
             >
               {t('uniReview.actions.saveEdit')}
             </Button>

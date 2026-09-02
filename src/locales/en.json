@@ -1915,7 +1915,8 @@
         "supplementary": "Supplementary wave",
         "season": "Admission season (수시/정시)",
         "term": "Semester (전기/후기)"
-      }
+      },
+      "emptyHint": "Nothing was extracted for this section. Open the PDF and enter it by hand, or reject the card."
     }
   }
 }

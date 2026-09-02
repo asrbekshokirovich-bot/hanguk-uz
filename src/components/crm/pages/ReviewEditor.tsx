@@ -287,6 +287,13 @@ export function StructuredReviewEditor({
   const [mode, setMode] = useState<'form' | 'json'>(
     FORM_FIELDS[fieldGroup ?? ''] ? 'form' : 'json',
   );
+  // An extraction that produced nothing opens this editor with an empty
+  // payload, and the schema rightly says `events: Required`. Showing that as a
+  // red error before the reviewer has typed anything reads as "you have done
+  // something wrong" when they have not even started — and six cards in the
+  // queue are in exactly that state. Errors appear once there is something to
+  // be wrong about: the reviewer edited, or the payload already has items.
+  const [touched, setTouched] = useState(false);
   const [rawText, setRawText] = useState(() => JSON.stringify(value, null, 2));
   const [rawError, setRawError] = useState<string | null>(null);
 
@@ -304,6 +311,11 @@ export function StructuredReviewEditor({
   const items = getItems(value, key);
   const validation = useMemo(() => validateParsedOutput(fieldGroup, value), [fieldGroup, value]);
 
+  const change = (next: Record<string, unknown>) => {
+    setTouched(true);
+    onChange(next);
+  };
+
   const updateItem = (index: number, fieldKey: string, next: unknown) => {
     const cloned = structuredClone(value) as Record<string, unknown>;
     const arr = Array.isArray(cloned[key]) ? (cloned[key] as Array<Record<string, unknown>>) : [];
@@ -312,7 +324,7 @@ export function StructuredReviewEditor({
     else row[fieldKey] = next;
     arr[index] = row;
     cloned[key] = arr;
-    onChange(cloned);
+    change(cloned);
   };
 
   const addItem = () => {
@@ -320,7 +332,7 @@ export function StructuredReviewEditor({
     const arr = Array.isArray(cloned[key]) ? (cloned[key] as Array<Record<string, unknown>>) : [];
     arr.push({});
     cloned[key] = arr;
-    onChange(cloned);
+    change(cloned);
   };
 
   const removeItem = (index: number) => {
@@ -328,7 +340,7 @@ export function StructuredReviewEditor({
     const arr = Array.isArray(cloned[key]) ? (cloned[key] as Array<Record<string, unknown>>) : [];
     arr.splice(index, 1);
     cloned[key] = arr;
-    onChange(cloned);
+    change(cloned);
   };
 
   const onRawChange = (t: string) => {
@@ -340,7 +352,7 @@ export function StructuredReviewEditor({
         return;
       }
       setRawError(null);
-      onChange(parsed as Record<string, unknown>);
+      change(parsed as Record<string, unknown>);
     } catch (err) {
       setRawError(err instanceof Error ? err.message : 'Invalid JSON');
     }
@@ -388,8 +400,8 @@ export function StructuredReviewEditor({
       ) : (
         <div className="space-y-3">
           {items.length === 0 ? (
-            <p className="text-xs text-muted-foreground italic rounded-md border border-dashed p-3">
-              {t('uniReview.edit.empty')}
+            <p className="rounded-md border border-dashed p-3 text-xs italic text-muted-foreground">
+              {t('uniReview.edit.emptyHint')}
             </p>
           ) : (
             items.map((row, idx) => (
@@ -443,7 +455,7 @@ export function StructuredReviewEditor({
         </div>
       )}
 
-      {!validation.ok ? (
+      {!validation.ok && (touched || items.length > 0) ? (
         <ValidationErrors errors={validation.errors} label={t('uniReview.edit.invalid')} />
       ) : null}
     </div>
