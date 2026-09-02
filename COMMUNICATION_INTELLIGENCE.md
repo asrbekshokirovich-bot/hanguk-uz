@@ -179,6 +179,14 @@ phone allows it — upload the recording into the same transcription/analysis
 pipeline. Feasibility research, Android constraints, and the phased plan live in
 [`docs/research/mobile-call-capture.md`](docs/research/mobile-call-capture.md).
 
+### Planned — self-hosted call queuing (ACD) and IVR
+Decision: no Mediateka, no cloud PBX subscription — a self-hosted Asterisk/
+FreePBX box (one-time GSM-gateway hardware purchase, free software, a spare PC)
+distributes incoming calls fairly across staff and offers a simple press-1/
+press-2 menu, with Hanguk's existing `staff_presence` table as the natural
+"skip whoever's away" signal. Research and the concrete build order live in
+[`docs/research/call-routing-ivr.md`](docs/research/call-routing-ivr.md).
+
 ### Later — Instagram
 Schema + inbox already tolerate `source='instagram'`. Add an `instagram-webhook`
 (Meta Graph API) once a Business/Professional account + Facebook Page exist.
