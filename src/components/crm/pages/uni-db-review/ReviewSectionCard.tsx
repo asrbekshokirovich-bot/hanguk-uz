@@ -48,6 +48,7 @@ export interface SectionCardHandlers {
   onApprove: (row: ReviewQueueRow) => void;
   onConfirmReject: (row: ReviewQueueRow, reason: RejectionReason) => void;
   onFlagSource: (row: ReviewQueueRow) => void;
+  onSaveEdit: (row: ReviewQueueRow, corrected: Record<string, unknown>) => void;
   onConfirmEdit: (row: ReviewQueueRow, corrected: Record<string, unknown>) => void;
   onSplit: (row: ReviewQueueRow) => void;
 }
@@ -229,6 +230,16 @@ export function ReviewSectionCard({
         ) : null}
       </div>
 
+      {/* A correction is saved but nobody has approved it yet. Without this
+          the card looks identical to an untouched one, and the reviewer who
+          comes back tomorrow cannot tell that the work is already done. */}
+      {!isEditing && !decided && row.reviewer_decision ? (
+        <div className="flex items-center gap-2 rounded-[10px] border border-info/30 bg-info/10 px-3.5 py-2 text-[12.5px] text-info">
+          <Check className="h-3.5 w-3.5 shrink-0" />
+          {t('uniReview.actions.savedNotApproved')}
+        </div>
+      ) : null}
+
       {isEditing && !decided ? (
         <div className="flex animate-fade-up flex-col gap-2 rounded-[10px] bg-secondary/60 p-3 px-3.5">
           <span className="text-[12.5px] font-semibold">{t('uniReview.actions.editTitle')}</span>
@@ -241,10 +252,14 @@ export function ReviewSectionCard({
             disabled={acting}
           />
           <div className="flex items-center gap-2">
+            {/* Save and approve are separate on purpose. The single
+                "Saqlash va tasdiqlash" button published the card the instant a
+                correction was typed, with no chance to re-read it against the
+                PDF first. */}
             <Button
               size="sm"
               className="h-[30px]"
-              onClick={() => handlers.onConfirmEdit(row, editDraft)}
+              onClick={() => handlers.onSaveEdit(row, editDraft)}
               disabled={acting}
             >
               {t('uniReview.actions.saveEdit')}

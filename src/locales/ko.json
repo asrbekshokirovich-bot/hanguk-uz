@@ -1624,10 +1624,11 @@
       "flagSource": "출처 오류 — 이 PDF의 모든 섹션 거절",
       "edit": "수정",
       "editTitle": "승인하기 전에 추출된 데이터를 수정하세요",
-      "saveEdit": "저장하고 승인",
+      "saveEdit": "저장",
       "editInvalidJson": "잘못된 JSON — 저장하기 전에 구문을 수정하세요",
       "editPayloadEmpty": "수정된 데이터는 비어 있을 수 없습니다",
-      "editSchemaInvalid": "{{section}} 형식과 일치하지 않습니다: {{detail}}"
+      "editSchemaInvalid": "{{section}} 형식과 일치하지 않습니다: {{detail}}",
+      "savedNotApproved": "수정 저장됨 — 승인 대기"
     },
     "decided": {
       "approved": "승인됨 — 학생에게 게시됨",
@@ -1637,7 +1638,8 @@
     "toast": {
       "approved": "승인됨 — {{uni}}: {{section}}",
       "rejected": "거절됨 — {{uni}}: {{section}}",
-      "flagged": "{{n}}개 섹션 거절됨 — 출처 오류로 표시"
+      "flagged": "{{n}}개 섹션 거절됨 — 출처 오류로 표시",
+      "saved": "저장되었습니다"
     },
     "reasons": {
       "wrong_year": "잘못된 연도 / 모집",
