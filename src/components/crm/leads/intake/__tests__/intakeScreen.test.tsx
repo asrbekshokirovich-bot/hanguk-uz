@@ -269,11 +269,17 @@ describe('LeadIntakeScreen', () => {
   it('fills the follow-up date from the quick buttons', () => {
     setup();
     fireEvent.click(screen.getByRole('button', { name: 'Ertaga' }));
-    expect(screen.getByLabelText('Qayta aloqa sanasi')).toHaveValue('2026-08-15');
+    // The field reads day-month-year now. `<input type="date">` rendered in
+    // the BROWSER's locale, which showed staff here 08/15/2026 — month first —
+    // and 02/03 is a different date depending on who is reading it.
+    expect(screen.getByLabelText('Qayta aloqa sanasi')).toHaveValue('15.08.2026');
+    // The summary line is rendered from the form's own state, so this asserts
+    // the stored value is still the ISO date the column expects — only the
+    // display order changed.
     expect(screen.getByText(/Rejalashtirilgan: 15-avgust · ertaga/)).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: '1 haftadan keyin' }));
-    expect(screen.getByLabelText('Qayta aloqa sanasi')).toHaveValue('2026-08-21');
+    expect(screen.getByLabelText('Qayta aloqa sanasi')).toHaveValue('21.08.2026');
   });
 
   it('records a single choice per group', () => {
