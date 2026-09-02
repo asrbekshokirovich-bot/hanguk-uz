@@ -105,6 +105,27 @@ export function useReviewActions() {
 
   const invalidate = () => qc.invalidateQueries({ queryKey: REVIEW_QUEUE_KEY });
 
+  /**
+   * Patch one row in the cache instead of refetching the queue.
+   *
+   * Every mutation used to end in `invalidate()`, and the dashboard query is
+   * `select *` over 138 rows carrying their whole `parsed_output` — measured
+   * at 1.8 MB and 229 ms of server time, before the round trip from Tashkent
+   * to a Seoul database, the JSON parse, and re-rendering every card. That is
+   * what a reviewer felt when they pressed Saqlash: the button did its work in
+   * a few milliseconds and then the screen waited on a megabyte and a half of
+   * data it already had.
+   *
+   * These three mutations each change exactly one row, and they change fields
+   * this client already knows the new value of. So write it locally.
+   * `flagSourceWrong` still invalidates — it resolves every row sharing a PDF,
+   * and this client does not know which ones.
+   */
+  const patchRow = (queueItemId: string, patch: Partial<ReviewQueueRow>) =>
+    qc.setQueryData<ReviewQueueRow[]>(REVIEW_QUEUE_KEY, (rows) =>
+      rows?.map((r) => (r.id === queueItemId ? { ...r, ...patch } : r)),
+    );
+
   const accept = useMutation<string, Error, AcceptArgs>({
     mutationFn: async ({ queueItemId }) => {
       const { data, error } = await supabase.rpc('fn_review_accept' as never, {
@@ -113,7 +134,7 @@ export function useReviewActions() {
       if (error) throw new Error(error.message);
       return data as unknown as string;
     },
-    onSuccess: invalidate,
+    onSuccess: (_id, { queueItemId }) => patchRow(queueItemId, { status: 'approved' }),
   });
 
   // Save the reviewer's corrections WITHOUT approving them. Approving is a
@@ -129,7 +150,8 @@ export function useReviewActions() {
       if (error) throw new Error(error.message);
       return data as unknown as string;
     },
-    onSuccess: invalidate,
+    onSuccess: (_id, { queueItemId, correctedPayload }) =>
+      patchRow(queueItemId, { status: 'in_review', reviewer_decision: correctedPayload }),
   });
 
   const editAccept = useMutation<string, Error, EditAcceptArgs>({
@@ -142,7 +164,8 @@ export function useReviewActions() {
       if (error) throw new Error(error.message);
       return data as unknown as string;
     },
-    onSuccess: invalidate,
+    onSuccess: (_id, { queueItemId, correctedPayload }) =>
+      patchRow(queueItemId, { status: 'approved', reviewer_decision: correctedPayload }),
   });
 
   const reject = useMutation<string, Error, RejectArgs>({
@@ -155,7 +178,7 @@ export function useReviewActions() {
       if (error) throw new Error(error.message);
       return data as unknown as string;
     },
-    onSuccess: invalidate,
+    onSuccess: (_id, { queueItemId }) => patchRow(queueItemId, { status: 'rejected' }),
   });
 
   // Marks the whole source document bad and rejects every open queue item that
