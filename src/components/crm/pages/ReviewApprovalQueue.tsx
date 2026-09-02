@@ -45,7 +45,7 @@ import { type SectionCardHandlers } from './uni-db-review/ReviewSectionCard';
 export function ReviewApprovalQueue() {
   const { t } = useTranslation();
   const { data: rows = [], isLoading, error, refetch } = useReviewQueue();
-  const { accept, reject, flagSourceWrong, editAccept } = useReviewActions();
+  const { accept, reject, flagSourceWrong, editAccept, saveEdit } = useReviewActions();
   const qc = useQueryClient();
 
   const [decided, setDecided] = useState<DecidedMap>({});
@@ -158,6 +158,22 @@ export function ReviewApprovalQueue() {
             : detail,
         );
       }
+    },
+    onSaveEdit: (row, corrected) => {
+      if (!corrected || typeof corrected !== 'object' || Object.keys(corrected).length === 0) {
+        toast.error(t('uniReview.actions.editPayloadEmpty'));
+        return;
+      }
+      saveEdit.mutate(
+        { queueItemId: row.id, correctedPayload: corrected },
+        {
+          onSuccess: () => {
+            setEditingRowId(null);
+            toast.success(t('uniReview.toast.saved'));
+          },
+          onError: (e) => toast.error(e.message),
+        },
+      );
     },
     onConfirmEdit: (row, corrected) => {
       // The draft is a real object now — the editor owns its shape, so there
@@ -316,7 +332,13 @@ export function ReviewApprovalQueue() {
           onStartEdit={(row) => {
             setRejectingRowId(null);
             setEditingRowId(row.id);
-            setEditDraft(structuredClone((row.parsed_output ?? {}) as Record<string, unknown>));
+            // Reopen on what the reviewer saved, not on the extractor's original —
+            // otherwise a save the database accepted looks lost on screen.
+            setEditDraft(
+              structuredClone(
+                (row.reviewer_decision ?? row.parsed_output ?? {}) as Record<string, unknown>,
+              ),
+            );
           }}
           onCancelEdit={() => setEditingRowId(null)}
           handlers={handlers}

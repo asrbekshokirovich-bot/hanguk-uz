@@ -1719,10 +1719,11 @@
       "flagSource": "Manba noto'g'ri — bu PDFdagi barcha bo'limlarni rad etish",
       "edit": "Tahrirlash",
       "editTitle": "Tasdiqlashdan oldin chiqarilgan ma'lumotni to'g'rilash",
-      "saveEdit": "Saqlash va tasdiqlash",
+      "saveEdit": "Saqlash",
       "editInvalidJson": "JSON noto'g'ri — saqlashdan oldin sintaksisni tuzating",
       "editPayloadEmpty": "To'g'irlangan ma'lumot bo'sh bo'lishi mumkin emas",
-      "editSchemaInvalid": "{{section}} formatiga mos kelmaydi: {{detail}}"
+      "editSchemaInvalid": "{{section}} formatiga mos kelmaydi: {{detail}}",
+      "savedNotApproved": "Tuzatish saqlandi — tasdiqlash kutilmoqda"
     },
     "decided": {
       "approved": "Tasdiqlandi — talabalarga e'lon qilindi",
@@ -1732,7 +1733,8 @@
     "toast": {
       "approved": "Tasdiqlandi — {{uni}}: {{section}}",
       "rejected": "Rad etildi — {{uni}}: {{section}}",
-      "flagged": "{{n}} ta bo'lim rad etildi — manba xato deb belgilandi"
+      "flagged": "{{n}} ta bo'lim rad etildi — manba xato deb belgilandi",
+      "saved": "Saqlandi"
     },
     "reasons": {
       "wrong_year": "Noto'g'ri yil / mavsum",
