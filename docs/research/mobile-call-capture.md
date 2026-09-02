@@ -39,10 +39,12 @@ Capacitor staff app (`com.hanguk.app`), in this order:
 
 **The honest alternative.** Everything Android makes hard becomes trivial if the
 SIM leaves the phone: a **GSM gateway** in the office holding the same SIM, or
-mobile/FMC numbers from Mediateka (already integrated via `voip-webhook`).
-Recording there is a checkbox and works 100 % of the time. It costs hardware or a
-monthly fee and changes how staff dial. Section 6 compares the two so the choice
-is deliberate.
+mobile/FMC numbers from Mediateka (already integrated via `voip-webhook`), or —
+cheapest of all for a single line — a **SIM‑card desk phone with a built‑in
+recorder** (the owner already has one, see §6.1: confirmed automatic recording,
+no PBX, no Android app). Recording there is solved and works 100 % of the time;
+it costs hardware or a monthly fee and only covers calls taken at that seat.
+Section 6 compares the options so the choice is deliberate.
 
 ---
 
@@ -346,6 +348,38 @@ If the requirement "staff keep using their personal phones and SIMs on the move"
 is firm, the on‑device plan is the right one and the gateway is the escape hatch
 for audio. If it is negotiable, the gateway route removes every risk in §5 except
 the legal one.
+
+### 6.1 A cheaper single‑seat version: a SIM‑card desk phone with built‑in recording
+
+The owner already has a **YINGXIN GSM‑3G desk phone** ("录音固话") — a SIM‑card‑operated
+landline‑style handset with a dedicated **REC** button, caller‑ID, redial and an
+attached cordless handset. This is the same idea as the GSM‑gateway row above,
+scaled down to one desk and one SIM, with **no PBX, no Asterisk, and no Android
+app** for that line at all:
+
+- **Recording:** confirmed **automatic** on this unit — every call on that SIM is
+  captured with no one having to press anything, which is a real advantage over
+  the on‑device mobile routes in §2.3, all of which are best‑effort.
+- **Getting recordings out:** device‑dependent (removable memory card, USB‑to‑PC,
+  or menu‑playback‑only) — **still to confirm** on this exact unit; check the
+  phone's own menu/manual or the model number for the precise method. This is the
+  one thing that decides how much work the CRM side needs.
+- **CRM integration (small build, not yet started):** because there is no API,
+  recordings arrive as a batch of audio files, not a live webhook. A short admin
+  **"Import mobile recordings"** screen would let staff upload a pulled batch,
+  showing each file's timestamp; staff pick the matching caller from the number
+  (visible on the phone's caller‑ID log) and the student/lead, same
+  `resolveIdentity` linking as everywhere else, then hand off into the existing
+  `calls` → `process-call-recording` pipeline unchanged. Materially smaller than
+  building `mobile-call-ingest` and a Kotlin plugin — no foreground service, no
+  accessibility hacks, no OEM battery‑killer fight.
+- **Limitation:** it only covers calls taken **at that desk**, on that one SIM. It
+  is a strong complement to, not a replacement for, the mobile Call Sync plan in
+  §3 for staff who take calls away from a desk.
+
+Worth doing regardless of the mobile‑app decision: it is the fastest way to get
+one line's calls reliably recorded and searchable today, and the import screen it
+needs is a natural first slice of Phase 2's upload/matching UI.
 
 ---
 
