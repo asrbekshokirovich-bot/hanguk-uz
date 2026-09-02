@@ -1957,7 +1957,8 @@
         "supplementary": "Qo'shimcha qabul to'lqini",
         "season": "Qabul mavsumi (수시/정시)",
         "term": "Semestr (전기/후기)"
-      }
+      },
+      "emptyHint": "Bu bo'limdan hech narsa chiqarilmagan. PDF ni ochib qo'lda kiritishingiz yoki kartochkani rad etishingiz mumkin."
     }
   }
 }
