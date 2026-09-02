@@ -106,6 +106,33 @@ actually own in Tashkent (Xiaomi‑heavy market → route A), and there is **no 
 that Google guarantees**. The plan therefore treats audio as an adapter chosen per
 device, with metadata sync as the guaranteed baseline.
 
+#### Device note — Samsung Galaxy A33 5G (the school's current phone)
+
+Checked specifically because it is the device Phase 0 will run on:
+
+- **Route A (OEM built‑in recorder) is unlikely to be available.** Samsung's
+  native call recording is enabled per‑region via CSC code; the confirmed‑enabled
+  list (Phone app → ⋮ → Settings → "Record calls") includes the US, Vietnam,
+  Ukraine, Israel and India — Uzbekistan is not on it. **Verify on the actual
+  handset before assuming it's absent**, since it costs nothing to check.
+- **Route B (accessibility + `VOICE_RECOGNITION`) is the fallback, but the
+  Galaxy A‑series is a documented weak spot.** Multiple Galaxy A owners (A14,
+  A33, A50) report the far‑end voice is missing or faint with third‑party
+  recorders on Android 10+ — Samsung's audio‑routing software makes the
+  workaround less reliable here than on, say, a Xiaomi phone. If Voice Recognition
+  mode yields one‑sided audio, Cube ACR's own fallback is **Microphone mode**
+  (records via the live mic instead of the call stream) — lower quality, but
+  reliably two‑way. Bluetooth/wired‑headset calls do not record under either
+  mode; this is an Android limitation, not app‑specific.
+- **Recommended app for Phase 0:** **Cube ACR**, installed from its
+  **Galaxy Store build** (`com.catalinagroup.callrecorder.sgs`), which ships a
+  companion "Helper" app for better Samsung compatibility, rather than the
+  generic sideloaded APK from the vendor's site.
+- **If two‑way audio matters more than easy setup:** **ACR Phone** via its
+  **Shizuku** method gives real two‑way recording (including Bluetooth) without
+  the accessibility trick, at the cost of re‑enabling Shizuku's wireless‑debugging
+  toggle after every reboot — acceptable for one owner's phone, not for a fleet.
+
 ### 2.4 Distribution and app‑store hygiene
 
 - Ship the recorder as a **product flavor** (`callsync`) of the Capacitor app or
