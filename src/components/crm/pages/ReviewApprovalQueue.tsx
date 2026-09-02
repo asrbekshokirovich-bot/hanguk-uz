@@ -12,7 +12,7 @@ import {
   type RejectionReason,
 } from '@/hooks/useReviewQueue';
 import { supabase } from '@/integrations/supabase/client';
-import { validateParsedOutput } from './reviewLogic';
+import { asRecord, savedCorrection, validateParsedOutput } from './reviewLogic';
 import {
   groupRows,
   sortGroups,
@@ -332,13 +332,16 @@ export function ReviewApprovalQueue() {
           onStartEdit={(row) => {
             setRejectingRowId(null);
             setEditingRowId(row.id);
-            // Reopen on what the reviewer saved, not on the extractor's original —
-            // otherwise a save the database accepted looks lost on screen.
-            setEditDraft(
-              structuredClone(
-                (row.reviewer_decision ?? row.parsed_output ?? {}) as Record<string, unknown>,
-              ),
-            );
+            // Reopen on what the reviewer saved, not on the extractor's
+            // original — otherwise a save the database accepted looks lost on
+            // screen. But `reviewer_decision` is an overloaded column:
+            // fn_review_reject stores the REJECTION REASON in it, shaped
+            // {reason, detail}. Seeding the editor from that showed "nothing
+            // was extracted" on a card holding 18 real events, and a Save on
+            // that empty form wrote the reason and an empty array back over
+            // the correction slot. So only a payload that actually carries
+            // this field group's items counts as a correction.
+            setEditDraft(structuredClone(savedCorrection(row) ?? asRecord(row.parsed_output)));
           }}
           onCancelEdit={() => setEditingRowId(null)}
           handlers={handlers}

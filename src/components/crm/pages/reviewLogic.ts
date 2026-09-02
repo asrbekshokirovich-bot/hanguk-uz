@@ -425,3 +425,54 @@ export function countryRules(row: Record<string, unknown>): CountryRule[] {
   }
   return out;
 }
+
+// ---------------------------------------------------------------------------
+// reviewer_decision is an overloaded column
+// ---------------------------------------------------------------------------
+
+/**
+ * `review_queue.reviewer_decision` holds two unrelated things.
+ *
+ *   fn_review_edit_accept / fn_review_save_edit  → a corrected payload
+ *   fn_review_reject                             → {reason, detail}
+ *
+ * Nothing in the schema separates them, and reading one as the other is not a
+ * cosmetic mistake. Seeding the edit panel from a rejection reason showed
+ * "nothing was extracted for this section" on a card holding eighteen real
+ * events; pressing Save there then wrote `{reason, detail, events: []}` into
+ * the correction slot, and publish_worker reads
+ * `reviewer_decision or parsed_output` — so approving that row would have
+ * published an empty calendar for a university that has one. Production had
+ * exactly one row in that state, caught before it was approved.
+ *
+ * A correction is recognised by carrying this field group's items key. A
+ * rejection reason never does.
+ */
+export function isCorrectionPayload(fieldGroup: string | null, value: unknown): boolean {
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) return false;
+  const v = value as Record<string, unknown>;
+  // A top-level `reason` marks a rejection, and that verdict does not change
+  // because the object also picked up an items array along the way — the
+  // production row was exactly {reason, detail, events: []}, a reason object
+  // that a Save on the blank form it produced had added an empty array to.
+  // No extraction payload has a top-level `reason`.
+  if ('reason' in v) return false;
+  return Array.isArray(v[itemsKey(fieldGroup)]);
+}
+
+/** The saved correction for this row, or null when there is none. */
+export function savedCorrection(row: {
+  field_group: string | null;
+  reviewer_decision: unknown;
+}): Record<string, unknown> | null {
+  return isCorrectionPayload(row.field_group, row.reviewer_decision)
+    ? (row.reviewer_decision as Record<string, unknown>)
+    : null;
+}
+
+/** Narrow an unknown to a plain object, defaulting to `{}`. */
+export function asRecord(v: unknown): Record<string, unknown> {
+  return v !== null && typeof v === 'object' && !Array.isArray(v)
+    ? (v as Record<string, unknown>)
+    : {};
+}
