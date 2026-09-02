@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { isoToLocalInput, localInputToIso } from '../ReviewEditor';
+import { savedCorrection } from '../reviewLogic';
 
 /**
  * The edit form shows Korean wall-clock time in a date/time picker.
@@ -56,5 +57,47 @@ describe('KST timestamps in the edit form', () => {
 
   it('rejects a half-typed value instead of storing it', () => {
     expect(localInputToIso('2026-09', '')).toBeNull();
+  });
+});
+
+describe('reviewer_decision carries two different things', () => {
+  /**
+   * `fn_review_reject` stores {reason, detail} in the same column
+   * `fn_review_save_edit` stores a corrected payload in. Reading one as the
+   * other emptied a card that held eighteen events, and a Save on the
+   * resulting blank form wrote the reason back into the correction slot —
+   * which publish_worker would have published as the section's content.
+   */
+  const row = (reviewer_decision: unknown, field_group = 'calendar') => ({
+    field_group,
+    reviewer_decision,
+  });
+
+  it('does not mistake a rejection reason for a correction', () => {
+    expect(savedCorrection(row({ reason: 'other', detail: null }))).toBeNull();
+    expect(savedCorrection(row({ reason: 'source_404', detail: null }))).toBeNull();
+  });
+
+  it('rejects the mixture a blank Save produced', () => {
+    // {reason, detail, events: []} — the exact row found in production.
+    expect(savedCorrection(row({ reason: 'other', detail: null, events: [] }))).toBeNull();
+  });
+
+  it('accepts a real correction', () => {
+    const payload = { events: [{ starts_at: '2026-09-09T09:00:00+09:00' }] };
+    expect(savedCorrection(row(payload))).toEqual(payload);
+  });
+
+  it('uses the right items key per field group', () => {
+    expect(savedCorrection(row({ rows: [{ amount_krw: 1 }] }, 'tuition'))).not.toBeNull();
+    // calendar keeps its data in events[], so rows[] is not its correction
+    expect(savedCorrection(row({ rows: [] }, 'calendar'))).toBeNull();
+  });
+
+  it('treats an absent or malformed decision as no correction', () => {
+    expect(savedCorrection(row(null))).toBeNull();
+    expect(savedCorrection(row(undefined))).toBeNull();
+    expect(savedCorrection(row([]))).toBeNull();
+    expect(savedCorrection(row('events'))).toBeNull();
   });
 });
