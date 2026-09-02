@@ -170,6 +170,15 @@ those outgoing messages are mirrored); media file download/storage.
   model decides when to pull context; embed documents for vector search (only call
   transcripts are embedded today).
 
+### Planned — Mobile call capture (staff personal phones)
+Staff mostly call students from their own SIMs, which the Mediateka PBX never
+sees. A native **Call Sync** module in the Capacitor staff app will log every call
+on a chosen SIM (number, direction, duration, SIM) into `calls` with
+`voip_provider = 'mobile'`, link it through the identity spine, and — where the
+phone allows it — upload the recording into the same transcription/analysis
+pipeline. Feasibility research, Android constraints, and the phased plan live in
+[`docs/research/mobile-call-capture.md`](docs/research/mobile-call-capture.md).
+
 ### Later — Instagram
 Schema + inbox already tolerate `source='instagram'`. Add an `instagram-webhook`
 (Meta Graph API) once a Business/Professional account + Facebook Page exist.
