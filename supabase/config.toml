@@ -12,8 +12,13 @@ verify_jwt = false
 [functions.instagram-webhook]
 verify_jwt = false
 
+# Staff-only: the CRM inbox calls it with the operator's JWT. The function
+# checks the caller itself, but the gateway should refuse an anonymous request
+# before it ever runs. This said `false` while production ran `true`, and the
+# first CI deploy pushed the repo's weaker value over the live one — drift in
+# the other direction, and a reminder that config.toml is deployed too.
 [functions.send-instagram]
-verify_jwt = false
+verify_jwt = true
 
 [functions.send-telegram]
 verify_jwt = false
