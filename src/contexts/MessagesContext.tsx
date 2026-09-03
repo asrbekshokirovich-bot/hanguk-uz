@@ -217,7 +217,13 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
    */
   const fetchThreads = useCallback(async () => {
     const { data, error } = await (supabase.rpc as any)('get_thread_previews');
-    if (!error && data) {
+    if (error) {
+      // An inbox that failed to load and an inbox with nothing in it look
+      // identical on screen. This error was read by nothing at all; at minimum
+      // it belongs in the console so "where are my conversations" has an
+      // answer.
+      console.error('get_thread_previews failed', error);
+    } else if (data) {
       setThreads((data as any[]).map(rowToThread));
     }
     setLoading(false);
@@ -230,7 +236,11 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
       p_sender_id: thread.sender_id,
       p_limit: PAGE_SIZE,
     });
-    if (error || !data) return;
+    if (error) {
+      console.error('get_thread_messages failed', error);
+      return;
+    }
+    if (!data) return;
     // A slower response for a thread the operator has already left must not
     // overwrite the stream they are looking at now.
     const current = selectedThreadRef.current;
@@ -566,7 +576,15 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
           return sortThreads(next);
         });
       })
-      .subscribe();
+      .subscribe((status) => {
+        // Without this the realtime channel could drop and the inbox would
+        // simply stop updating — no error, no indicator, messages arriving
+        // that nobody sees until the page is reloaded.
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+          console.error(`messages realtime channel ${status} — refreshing`);
+          void fetchThreadsRef.current();
+        }
+      });
 
     return () => {
       supabase.removeChannel(channel);

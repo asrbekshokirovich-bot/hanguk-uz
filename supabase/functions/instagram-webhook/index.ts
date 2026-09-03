@@ -148,18 +148,29 @@ Deno.serve(async (req) => {
 
   const raw = await req.text();
   const cfg = await getConfig();
+  // Fail closed. This used to skip verification entirely when no app secret was
+  // configured, so an unauthenticated POST to a known URL was written straight
+  // into `messages` and `instagram_comments` — and the only trace was a warning
+  // string stashed in a column nobody reads. The secret is configured; a
+  // request arriving without a valid signature is not from Meta.
+  //
+  // Note `getConfig()` swallows its own error, so a transient failure reading
+  // instagram_app_config would leave `cfg` null: with the old code that turned
+  // signature checking OFF for that request. Now it turns the request away.
   const appSecret = Deno.env.get("IG_APP_SECRET") || cfg?.app_secret;
-  if (appSecret) {
-    const sigOk = await verifySignature(raw, req.headers.get("x-hub-signature-256"), appSecret);
-    if (!sigOk) return new Response("Invalid signature", { status: 401 });
+  if (!appSecret) {
+    console.error("instagram-webhook: no app secret available — refusing to process unverified payload");
+    return new Response("Signature verification unavailable", { status: 503 });
   }
+  const sigOk = await verifySignature(raw, req.headers.get("x-hub-signature-256"), appSecret);
+  if (!sigOk) return new Response("Invalid signature", { status: 401 });
 
   let body: any;
   try { body = JSON.parse(raw); } catch { return new Response("Bad JSON", { status: 400 }); }
 
   // Store raw first, then process — always ACK 200 so Meta doesn't disable the subscription.
   const { data: eventRow } = await admin.from("instagram_webhook_events")
-    .insert({ event_kind: classify(body), payload: body, processed: false, error: appSecret ? null : "WARNING: processed without signature check (app_secret not configured)" })
+    .insert({ event_kind: classify(body), payload: body, processed: false })
     .select("id").single();
 
   try {
