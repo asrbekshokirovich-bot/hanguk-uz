@@ -1107,7 +1107,10 @@
       "hintSend": "{{language}} tilida yuboriladi · avto-tarjima",
       "hintNote": "Faqat xodimlar ko‘radi",
       "send": "Yuborish",
-      "saveNote": "Eslatmani saqlash"
+      "saveNote": "Eslatmani saqlash",
+      "attach": "Fayl biriktirish",
+      "removeAttachment": "Faylni olib tashlash",
+      "fileTooLarge": "Fayl juda katta ({{limit}} gacha)"
     },
     "savedReplies": {
       "docs": "Hujjatlar ro‘yxati",
@@ -1173,7 +1176,9 @@
       "noteFailed": "Ichki eslatmani saqlashning iloji bo‘lmadi.",
       "sendFailed": "Xabarni yuborishning iloji bo‘lmadi. Instagram/Telegram integratsiyasini tekshiring.",
       "translationUnavailableTitle": "Tarjima mavjud emas",
-      "translationUnavailableBody": "Tarjima xizmati hali sozlanmagan. Saqlangan tarjimalar ko‘rinishda qoladi."
+      "translationUnavailableBody": "Tarjima xizmati hali sozlanmagan. Saqlangan tarjimalar ko‘rinishda qoladi.",
+      "translateFailed": "Tarjima qilinmadi",
+      "sentUntranslated": "Xabar asl tilida yuborildi."
     },
     "media": {
       "voice": "Ovozli xabar",
@@ -1181,6 +1186,10 @@
       "file": "Fayl",
       "loading": "Ilova yuklanmoqda…",
       "unavailable": "Ilova mavjud emas"
+    },
+    "day": {
+      "today": "Bugun",
+      "yesterday": "Kecha"
     }
   },
   "errors": {

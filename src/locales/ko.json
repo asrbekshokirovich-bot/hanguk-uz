@@ -1007,7 +1007,10 @@
       "hintSend": "{{language}}(으)로 전송 · 자동 번역",
       "hintNote": "직원에게만 표시",
       "send": "보내기",
-      "saveNote": "메모 저장"
+      "saveNote": "메모 저장",
+      "attach": "파일 첨부",
+      "removeAttachment": "첨부 파일 제거",
+      "fileTooLarge": "파일이 너무 큽니다 ({{limit}}까지)"
     },
     "savedReplies": {
       "docs": "서류 체크리스트",
@@ -1073,7 +1076,9 @@
       "noteFailed": "내부 메모를 저장할 수 없습니다.",
       "sendFailed": "메시지를 보낼 수 없습니다. 인스타그램/텔레그램 연동을 확인하세요.",
       "translationUnavailableTitle": "번역을 사용할 수 없음",
-      "translationUnavailableBody": "번역 서비스가 아직 설정되지 않았습니다. 저장된 번역은 계속 표시됩니다."
+      "translationUnavailableBody": "번역 서비스가 아직 설정되지 않았습니다. 저장된 번역은 계속 표시됩니다.",
+      "translateFailed": "번역하지 못했습니다",
+      "sentUntranslated": "메시지가 원문 그대로 전송되었습니다."
     },
     "media": {
       "voice": "음성 메시지",
@@ -1081,6 +1086,10 @@
       "file": "파일",
       "loading": "첨부파일 불러오는 중…",
       "unavailable": "첨부파일을 사용할 수 없습니다"
+    },
+    "day": {
+      "today": "오늘",
+      "yesterday": "어제"
     }
   },
   "errors": {

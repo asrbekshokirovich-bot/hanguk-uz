@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { useStaffMentions } from '@/hooks/useStaffMentions';
 import type { Message } from '@/contexts/MessagesContext';
 import { looksNonEnglish } from './queueLogic';
@@ -22,7 +23,7 @@ function dayKey(iso: string): string {
 }
 
 export function useThreadMessages(messages: Message[]) {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { staffList } = useStaffMentions();
 
   const staffNames = useMemo(() => {
@@ -42,7 +43,7 @@ export function useThreadMessages(messages: Message[]) {
         out.push({
           id: `day-${day}`,
           kind: 'event',
-          text: formatDayLabel(m.created_at, i18n.language),
+          text: formatDayLabel(m.created_at, i18n.language, t),
           createdAt: m.created_at,
           senderLabel: null,
           deliveryStatus: null,
@@ -84,13 +85,20 @@ export function useThreadMessages(messages: Message[]) {
   }, [messages, staffNames, i18n.language]);
 }
 
-/** "Today" / "Yesterday" / "12 June" for the stream's day dividers. */
-function formatDayLabel(iso: string, locale: string): string {
+/**
+ * "Bugun" / "Kecha" / "12 iyun" for the stream's day dividers.
+ *
+ * The two relative labels were English string literals while everything around
+ * them was translated, so an operator working in Uzbek got "Today" over the
+ * top of today's messages. The absolute dates were always localised — only the
+ * two hardest-coded ones were not.
+ */
+function formatDayLabel(iso: string, locale: string, t: TFunction): string {
   const d = new Date(iso);
   const now = new Date();
-  if (d.toDateString() === now.toDateString()) return 'Today';
+  if (d.toDateString() === now.toDateString()) return t('messages.day.today');
   const yesterday = new Date(now);
   yesterday.setDate(now.getDate() - 1);
-  if (d.toDateString() === yesterday.toDateString()) return 'Yesterday';
+  if (d.toDateString() === yesterday.toDateString()) return t('messages.day.yesterday');
   return d.toLocaleDateString(locale, { day: 'numeric', month: 'long' });
 }
