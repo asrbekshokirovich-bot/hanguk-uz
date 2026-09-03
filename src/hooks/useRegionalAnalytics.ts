@@ -84,7 +84,7 @@ export function useRegionalAnalytics() {
       // Leads and students are scoped to the active intake so the map matches
       // the rest of the CRM.
       const [leadsRes, profilesRes, membersRes] = await Promise.all([
-        applyIntake(supabase.from('leads').select('id, city'), activeIntakeId),
+        applyIntake(supabase.from('leads').select('id, city').eq('qualified', true), activeIntakeId),
         supabase.from('profiles').select('user_id, city, office_location'),
         applyIntake(supabase.from('student_intakes').select('student_id'), activeIntakeId),
       ]);
