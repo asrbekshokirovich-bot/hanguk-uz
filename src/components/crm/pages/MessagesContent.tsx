@@ -269,7 +269,19 @@ export default function MessagesContent() {
       // Deliberately not awaited: the message is already on its way and on
       // screen, so the bookkeeping must not hold the composer hostage.
       if (!active.isAssigned && user) {
-        void assignThread(active.threadId, user.id).then(() => refreshAssignments());
+        void assignThread(active.threadId, user.id).then(({ error }) => {
+          // Silently failing here leaves the conversation unclaimed after a
+          // reply, so a second operator can pick it up and answer twice.
+          if (error) {
+            toast({
+              title: t('common.error'),
+              description: t('messages.toast.claimFailed'),
+              variant: 'destructive',
+            });
+            return;
+          }
+          void refreshAssignments();
+        });
       }
       return true;
     },
@@ -287,11 +299,23 @@ export default function MessagesContent() {
   );
 
   const handleRetry = useCallback(
-    (messageId: string) => {
+    async (messageId: string) => {
       const row = messages.find((m) => m.id === messageId);
-      if (row) void retryMessage(row);
+      if (!row) return;
+      // A retry that fails used to look exactly like one still in flight: the
+      // returned error was dropped, and the only signal was the bubble
+      // flipping back — which does not happen at all if the row has since
+      // left the open stream.
+      const { error } = await retryMessage(row);
+      if (error) {
+        toast({
+          title: t('common.error'),
+          description: error.message || t('messages.toast.sendFailed'),
+          variant: 'destructive',
+        });
+      }
     },
-    [messages, retryMessage],
+    [messages, retryMessage, toast, t],
   );
 
   const handleToggleTranslation = useCallback(

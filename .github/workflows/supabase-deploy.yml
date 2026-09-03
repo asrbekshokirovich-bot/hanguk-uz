@@ -89,6 +89,8 @@ jobs:
             instagram-send
             instagram-token-refresh
             telegram-outbox
+            send-telegram
+            telegram-webhook
           "
 
           for fn in $FUNCTIONS; do

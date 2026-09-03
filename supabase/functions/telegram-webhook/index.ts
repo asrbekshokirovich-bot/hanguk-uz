@@ -144,6 +144,23 @@ async function upsertLead(supabase: Any, chatId: string, fields: Record<string, 
   return data;
 }
 
+/**
+ * Shared secret Telegram echoes back in X-Telegram-Bot-Api-Secret-Token.
+ *
+ * Until 2026-09-03 this endpoint had no authentication of any kind: the POST
+ * handler went straight from `req.json()` into writing `messages`, `leads` and
+ * `telegram_business_connections`. Anyone who knew the URL could inject a
+ * conversation, invent a lead, or register a business connection. The staff
+ * check in this file guards only ?action=status and action:"register" — never
+ * the update path.
+ *
+ * Set TELEGRAM_WEBHOOK_SECRET, then press Connect in the CRM so setWebhook
+ * registers it. While it is unset the endpoint keeps accepting updates and
+ * logs a warning on every one, because failing closed on a secret nobody has
+ * configured yet would take the channel down instead of securing it.
+ */
+const WEBHOOK_SECRET = Deno.env.get("TELEGRAM_WEBHOOK_SECRET");
+
 const STAFF_ROLES = ["owner", "admin", "call_operator"];
 
 /** The URL Telegram must be told to deliver updates to — this function's own. */
@@ -220,6 +237,22 @@ serve(async (req) => {
 
     const update = await req.json();
 
+    // Reject forged updates. `action: "register"` is a CRM call rather than a
+    // Telegram delivery, so it authenticates with a staff JWT below instead.
+    if (update?.action !== "register") {
+      const presented = req.headers.get("x-telegram-bot-api-secret-token");
+      if (WEBHOOK_SECRET) {
+        if (presented !== WEBHOOK_SECRET) {
+          console.error("telegram-webhook: rejected update with bad or missing secret token");
+          return json({ error: "Forbidden" }, 403);
+        }
+      } else {
+        console.warn(
+          "telegram-webhook: TELEGRAM_WEBHOOK_SECRET is not set — this endpoint accepts unauthenticated updates",
+        );
+      }
+    }
+
     // Point Telegram back at this function. Staff-gated; see isStaff above for
     // why an update cannot land here.
     if (update?.action === "register") {
@@ -240,11 +273,19 @@ serve(async (req) => {
             "business_message",
             "edited_business_message",
           ],
+          // Telegram returns this on every delivery, which is how the handler
+          // above tells a real update from anything else pointed at the URL.
+          ...(WEBHOOK_SECRET ? { secret_token: WEBHOOK_SECRET } : {}),
         }),
       });
       const result = await res.json().catch(() => ({}));
       if (!result?.ok) return json({ ok: false, error: result?.description || "setWebhook failed" }, 502);
-      return json({ ok: true, url: WEBHOOK_URL, description: result?.description });
+      return json({
+        ok: true,
+        url: WEBHOOK_URL,
+        description: result?.description,
+        secret_token_set: !!WEBHOOK_SECRET,
+      });
     }
     console.log("Telegram update:", JSON.stringify(update));
 
@@ -448,8 +489,13 @@ Savolingiz bo'lsa, shu yerda — Telegram orqali — bemalol yozing. 💬 Xodiml
     return ok();
   } catch (error: unknown) {
     console.error("telegram-webhook error:", error);
-    // 200 so Telegram doesn't disable the webhook on a transient error.
+    // 500, not 200. Telegram retries a failed delivery; answering 200 threw
+    // the message away and left a console line as the only trace. Retrying is
+    // safe now that (source, external_id) is unique, so a redelivery of a
+    // message that did land is rejected by the database rather than
+    // duplicated. Telegram backs off and gives up rather than disabling the
+    // webhook, so a persistent bug costs a few retries, not the channel.
     return new Response(JSON.stringify({ ok: false, error: error instanceof Error ? error.message : "error" }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 });
