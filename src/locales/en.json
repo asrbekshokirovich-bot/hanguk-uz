@@ -1060,7 +1060,10 @@
       "hintSend": "Sends in {{language}} · auto-translated",
       "hintNote": "Visible to staff only",
       "send": "Send",
-      "saveNote": "Save note"
+      "saveNote": "Save note",
+      "attach": "Attach a file",
+      "removeAttachment": "Remove attachment",
+      "fileTooLarge": "File is too large (up to {{limit}})"
     },
     "savedReplies": {
       "docs": "Document checklist",
@@ -1126,7 +1129,9 @@
       "noteFailed": "Could not save the internal note.",
       "sendFailed": "Could not send the message. Check that the Instagram/Telegram integration is configured.",
       "translationUnavailableTitle": "Translation unavailable",
-      "translationUnavailableBody": "No translation service is configured yet. Cached translations still display."
+      "translationUnavailableBody": "No translation service is configured yet. Cached translations still display.",
+      "translateFailed": "Could not translate",
+      "sentUntranslated": "The message was sent in the original language."
     },
     "media": {
       "voice": "Voice message",
@@ -1134,6 +1139,10 @@
       "file": "File",
       "loading": "Loading attachment…",
       "unavailable": "Attachment unavailable"
+    },
+    "day": {
+      "today": "Today",
+      "yesterday": "Yesterday"
     }
   },
   "errors": {

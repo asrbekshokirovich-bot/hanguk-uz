@@ -91,6 +91,7 @@ jobs:
             telegram-outbox
             send-telegram
             telegram-webhook
+            translate-message
           "
 
           for fn in $FUNCTIONS; do

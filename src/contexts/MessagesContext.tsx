@@ -229,6 +229,33 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
     setLoading(false);
   }, []);
 
+  /**
+   * One conversation, merged in place.
+   *
+   * Realtime patches rows locally, but two cases used to fall back to
+   * `fetchThreads()`: a brand new thread, and an update for a thread not yet in
+   * the list. Both reloaded all 285 previews — so a message from someone the
+   * operator had never spoken to reloaded the whole inbox, and the busier the
+   * school got the more often it happened. The information needed is one row.
+   */
+  const fetchOneThread = useCallback(async (threadId: string) => {
+    const { data, error } = await (supabase.rpc as any)('get_thread_preview', { p_id: threadId });
+    if (error) {
+      console.error('get_thread_preview failed', error);
+      return;
+    }
+    const row = (data as any[])?.[0];
+    if (!row) return;
+    const thread = rowToThread(row);
+    setThreads((prev) => {
+      const idx = prev.findIndex((t) => t.id === thread.id);
+      if (idx < 0) return sortThreads([thread, ...prev]);
+      const next = [...prev];
+      next[idx] = { ...next[idx], ...thread };
+      return sortThreads(next);
+    });
+  }, []);
+
   /** Latest page only — older pages stream in via loadOlderMessages. */
   const fetchMessages = useCallback(async (thread: MessageThread) => {
     const { data, error } = await (supabase.rpc as any)('get_thread_messages', {
@@ -496,6 +523,8 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
 
   const fetchThreadsRef = useRef(fetchThreads);
   fetchThreadsRef.current = fetchThreads;
+  const fetchOneRef = useRef(fetchOneThread);
+  fetchOneRef.current = fetchOneThread;
   const upsertRef = useRef(upsertMessageRow);
   upsertRef.current = upsertMessageRow;
   const bumpRef = useRef(bumpThreadPreview);
@@ -549,15 +578,17 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
         const oldId = (payload.old as { id?: string })?.id;
         if (oldId) setMessages((prev) => prev.filter((m) => m.id !== oldId));
       })
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'message_threads' }, () => {
-        void fetchThreadsRef.current();
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'message_threads' }, (payload) => {
+        const id = (payload.new as { id?: string })?.id;
+        if (id) void fetchOneRef.current(id);
       })
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'message_threads' }, (payload) => {
         const row = payload.new as any;
         setThreads((prev) => {
           const idx = prev.findIndex((t) => t.id === row.id);
           if (idx < 0) {
-            void fetchThreadsRef.current();
+            // Not in the list yet: pull that one conversation, not all of them.
+            void fetchOneRef.current(row.id);
             return prev;
           }
           const sel = selectedThreadRef.current;

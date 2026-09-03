@@ -135,3 +135,8 @@ verify_jwt = true
 # service-role key, so the gateway checks the JWT.
 [functions.channel-health-check]
 verify_jwt = true
+
+# Short-text translation for the inbox — staff JWT, checked at the gateway and
+# again inside the function against the messaging roles.
+[functions.translate-message]
+verify_jwt = true

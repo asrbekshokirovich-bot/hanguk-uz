@@ -21,7 +21,10 @@ interface ThreadPaneProps {
   onClaim: () => void;
   onMarkDone: () => void;
   onLinkContact?: () => void;
-  onSend: (text: string, options: { internal: boolean; language: SendLanguage }) => Promise<boolean>;
+  onSend: (
+    text: string,
+    options: { internal: boolean; language: SendLanguage; file?: File | null },
+  ) => Promise<boolean>;
 }
 
 /** Centre pane: header, message stream, composer. */
