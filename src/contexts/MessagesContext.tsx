@@ -240,14 +240,17 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
     setMessages(page);
     setHasMoreMessages((data as any[]).length === PAGE_SIZE);
 
-    // Mark-read bookkeeping must never block rendering the stream.
-    void supabase
-      .from('messages')
-      .update({ status: 'read' })
-      .eq('source', thread.source)
-      .eq('sender_id', thread.sender_id)
-      .eq('status', 'unread');
-    void supabase.from('message_threads').update({ unread_count: 0 }).eq('id', thread.id);
+    // Mark-read bookkeeping must never block rendering the stream, but it must
+    // not vanish either. This was two independent updates with their results
+    // thrown away, which is how `messages.status` and the thread's counter
+    // drifted twenty-fold apart without anyone seeing an error. One RPC does
+    // both, and a failure at least reaches the console instead of nowhere.
+    void (supabase.rpc as any)('mark_thread_read', {
+      p_source: thread.source,
+      p_sender_id: thread.sender_id,
+    }).then(({ error }: { error: unknown }) => {
+      if (error) console.error('mark_thread_read failed', error);
+    });
     setThreads((prev) => prev.map((t) => (t.id === thread.id ? { ...t, unread_count: 0 } : t)));
   }, []);
 
@@ -505,8 +508,12 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
           row.direction === 'incoming'
         ) {
           // The operator is looking at this thread, so it is read on arrival.
-          void supabase.from('messages').update({ status: 'read' }).eq('id', row.id);
-          void supabase.from('message_threads').update({ unread_count: 0 }).eq('id', sel.id);
+          void (supabase.rpc as any)('mark_thread_read', {
+            p_source: sel.source,
+            p_sender_id: sel.sender_id,
+          }).then(({ error }: { error: unknown }) => {
+            if (error) console.error('mark_thread_read failed', error);
+          });
         }
       })
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages' }, (payload) => {
