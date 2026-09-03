@@ -1,319 +1,345 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
+// instagram-webhook — Meta webhook endpoint for Instagram DMs + comments.
+// GET  = subscription verification handshake (hub.verify_token).
+// POST = event delivery, authenticated via X-Hub-Signature-256 (HMAC-SHA256 with app secret).
+// DMs land in messages/message_threads (source='instagram'); comments land in instagram_comments.
+//
+// NOTE ON HISTORY: what this repo held until 2026-09-03 was an older, simpler
+// version of this function that had not run in production for months — the
+// deployed one had been edited in the Supabase dashboard and never committed.
+// This file is now the deployed implementation, brought back under version
+// control, plus the two fixes below. Editing a function in the dashboard means
+// the next `supabase functions deploy` from a checkout silently reverts it;
+// deploy from the repo.
+//
+// deno-lint-ignore-file no-explicit-any
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { ensureIdentity, resolveIdentity } from "../_shared/identity.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-hub-signature-256, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+
+const CHAT_MEDIA_BUCKET = "chat-media";
+const MAX_MEDIA_BYTES = 20 * 1024 * 1024;
+
+const MEDIA_TO_TYPE: Record<string, string> = {
+  image: "image", video: "file", audio: "voice", file: "file",
+  share: "text", story_mention: "text", ig_reel: "text", reel: "text", template: "text", like_heart: "text",
 };
 
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-
-// Meta / Instagram credentials (set as Supabase function secrets)
-const INSTAGRAM_VERIFY_TOKEN = Deno.env.get("INSTAGRAM_VERIFY_TOKEN");
-const INSTAGRAM_ACCESS_TOKEN = Deno.env.get("INSTAGRAM_ACCESS_TOKEN");
-const INSTAGRAM_APP_SECRET = Deno.env.get("INSTAGRAM_APP_SECRET");
-const GRAPH_API_VERSION = Deno.env.get("INSTAGRAM_GRAPH_API_VERSION") || "v21.0";
-const GRAPH_API_HOST = Deno.env.get("INSTAGRAM_GRAPH_API_HOST") || "graph.instagram.com";
-const GRAPH_BASE = `https://${GRAPH_API_HOST}/${GRAPH_API_VERSION}`;
-
-type MessageType = "text" | "image" | "file" | "voice";
-
-interface IgAttachment {
-  type?: string;
-  payload?: { url?: string };
+async function getConfig(): Promise<any | null> {
+  const { data } = await admin.from("instagram_app_config").select("*").eq("id", "main").maybeSingle();
+  return data ?? null;
 }
 
-interface IgMessage {
-  mid?: string;
-  text?: string;
-  is_echo?: boolean;
-  is_deleted?: boolean;
-  attachments?: IgAttachment[];
+async function getAccount(igUserId?: string | null): Promise<any | null> {
+  if (igUserId) {
+    const { data } = await admin.from("instagram_accounts").select("*").eq("ig_user_id", String(igUserId)).eq("active", true).maybeSingle();
+    if (data) return data;
+  }
+  const { data } = await admin.from("instagram_accounts").select("*").eq("active", true).order("connected_at").limit(1).maybeSingle();
+  return data ?? null;
 }
 
-interface IgMessagingEvent {
-  sender?: { id?: string };
-  recipient?: { id?: string };
-  timestamp?: number;
-  message?: IgMessage;
-}
-
-interface IgEntry {
-  id?: string;
-  time?: number;
-  messaging?: IgMessagingEvent[];
+async function verifySignature(rawBody: string, header: string | null, appSecret: string): Promise<boolean> {
+  if (!header || !header.startsWith("sha256=")) return false;
+  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(appSecret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const mac = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(rawBody));
+  const expected = "sha256=" + Array.from(new Uint8Array(mac)).map((b) => b.toString(16).padStart(2, "0")).join("");
+  // constant-time compare
+  if (expected.length !== header.length) return false;
+  let diff = 0;
+  for (let i = 0; i < expected.length; i++) diff |= expected.charCodeAt(i) ^ header.charCodeAt(i);
+  return diff === 0;
 }
 
 /**
- * Verify Meta's X-Hub-Signature-256 header against the raw body using the app
- * secret. Returns true when the signature matches. When no app secret is
- * configured we skip verification (best-effort) and log a warning.
+ * Copy an attachment out of Meta's CDN and into our own storage.
+ *
+ * `payload.url` is a signed CDN link that expires within days, so a picture a
+ * student sent worked in the hour it arrived and was a dead link by the time
+ * anyone went back to look at it. Both Telegram ingest paths already download
+ * into the `chat-media` bucket; this is the same thing, keyed the same way.
+ *
+ * Best-effort: a failure keeps the message (with the original URL still in
+ * metadata) rather than dropping it, and an oversized file is skipped, not
+ * truncated.
  */
-async function verifySignature(rawBody: string, signatureHeader: string | null): Promise<boolean> {
-  if (!INSTAGRAM_APP_SECRET) {
-    console.warn("INSTAGRAM_APP_SECRET not set — skipping webhook signature verification");
-    return true;
-  }
-  if (!signatureHeader) return false;
-
-  const expected = signatureHeader.replace(/^sha256=/i, "").trim();
-  const key = await crypto.subtle.importKey(
-    "raw",
-    new TextEncoder().encode(INSTAGRAM_APP_SECRET),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign"],
-  );
-  const sigBuf = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(rawBody));
-  const actual = [...new Uint8Array(sigBuf)].map((b) => b.toString(16).padStart(2, "0")).join("");
-
-  if (actual.length !== expected.length) return false;
-  // constant-time comparison
-  let mismatch = 0;
-  for (let i = 0; i < actual.length; i++) {
-    mismatch |= actual.charCodeAt(i) ^ expected.charCodeAt(i);
-  }
-  return mismatch === 0;
-}
-
-/** Map an Instagram attachment to a CRM message type + human-readable summary. */
-function describeAttachment(att: IgAttachment): { content: string; type: MessageType } {
-  switch ((att.type || "").toLowerCase()) {
-    case "image":
-      return { content: "📷 [Image]", type: "image" };
-    case "audio":
-      return { content: "🎤 [Voice message]", type: "voice" };
-    case "video":
-      return { content: "🎬 [Video]", type: "file" };
-    case "file":
-      return { content: "📎 [File]", type: "file" };
-    case "share":
-      return { content: "🔗 [Shared post]", type: "file" };
-    case "story_mention":
-      return { content: "📖 [Story mention]", type: "file" };
-    case "reel":
-    case "ig_reel":
-      return { content: "🎞️ [Reel]", type: "file" };
-    case "like_heart":
-      return { content: "❤️", type: "text" };
-    default:
-      return { content: "[Attachment]", type: "file" };
-  }
-}
-
-/**
- * Look up the Instagram user's display name / username / avatar so the CRM
- * shows a real person instead of a numeric ID. Best-effort: any failure just
- * leaves us with a generic name and no avatar.
- */
-async function fetchSenderProfile(
+async function storeMedia(
   igsid: string,
-): Promise<{ name: string | null; avatar: string | null }> {
-  if (!INSTAGRAM_ACCESS_TOKEN) return { name: null, avatar: null };
+  mid: string,
+  index: number,
+  att: any,
+): Promise<{ path: string; mime: string; size: number } | null> {
+  const url = att?.payload?.url;
+  if (!url) return null;
+
   try {
-    const url = `${GRAPH_BASE}/${igsid}?fields=name,username,profile_pic&access_token=${INSTAGRAM_ACCESS_TOKEN}`;
     const res = await fetch(url);
     if (!res.ok) {
-      console.warn(`Profile lookup for ${igsid} failed: ${res.status} ${await res.text()}`);
-      return { name: null, avatar: null };
+      console.warn(`ig media fetch failed for ${mid}: ${res.status}`);
+      return null;
     }
-    const profile = await res.json();
-    const name = profile.name || (profile.username ? `@${profile.username}` : null);
-    return { name, avatar: profile.profile_pic || null };
+
+    const declared = Number(res.headers.get("content-length") ?? 0);
+    if (declared > MAX_MEDIA_BYTES) {
+      console.warn(`ig media ${mid} too large (${declared}b) — keeping link only`);
+      return null;
+    }
+
+    const bytes = new Uint8Array(await res.arrayBuffer());
+    if (bytes.byteLength > MAX_MEDIA_BYTES) {
+      console.warn(`ig media ${mid} too large (${bytes.byteLength}b) — keeping link only`);
+      return null;
+    }
+
+    const mime = res.headers.get("content-type")?.split(";")[0]?.trim() || "application/octet-stream";
+    const safeSender = igsid.replace(/[^A-Za-z0-9_-]/g, "");
+    const safeId = mid.replace(/[^A-Za-z0-9_-]/g, "").slice(-64) || crypto.randomUUID();
+    const path = `instagram/${safeSender}/${safeId}-${index}.${extensionFor(mime, att?.type)}`;
+
+    const { error } = await admin.storage
+      .from(CHAT_MEDIA_BUCKET)
+      .upload(path, bytes, { contentType: mime, upsert: true });
+
+    if (error) {
+      console.error("ig media upload failed:", error.message);
+      return null;
+    }
+    return { path, mime, size: bytes.byteLength };
   } catch (e) {
-    console.warn("Profile lookup error:", e);
-    return { name: null, avatar: null };
+    console.warn("ig media store error:", e);
+    return null;
   }
 }
 
-serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+function extensionFor(mime: string, attType?: string): string {
+  const known: Record<string, string> = {
+    "image/jpeg": "jpg",
+    "image/png": "png",
+    "image/webp": "webp",
+    "image/gif": "gif",
+    "video/mp4": "mp4",
+    "audio/mp4": "m4a",
+    "audio/mpeg": "mp3",
+    "audio/ogg": "ogg",
+    "application/pdf": "pdf",
+  };
+  if (known[mime]) return known[mime];
+  const sub = mime.split("/")[1];
+  if (sub && /^[a-z0-9]{1,5}$/.test(sub)) return sub;
+  return attType === "audio" ? "m4a" : "bin";
+}
 
+Deno.serve(async (req) => {
   const url = new URL(req.url);
 
-  // --- GET: webhook verification handshake + status ---
   if (req.method === "GET") {
     const mode = url.searchParams.get("hub.mode");
     const token = url.searchParams.get("hub.verify_token");
-    const challenge = url.searchParams.get("hub.challenge");
-
-    // Meta verification: echo the challenge back as plain text when the token matches.
-    if (mode === "subscribe" && token) {
-      if (INSTAGRAM_VERIFY_TOKEN && token === INSTAGRAM_VERIFY_TOKEN) {
-        console.log("Instagram webhook verified");
-        return new Response(challenge ?? "", {
-          status: 200,
-          headers: { ...corsHeaders, "Content-Type": "text/plain" },
-        });
-      }
-      console.error("Instagram webhook verification failed: token mismatch");
-      return new Response("Forbidden", { status: 403, headers: corsHeaders });
+    const challenge = url.searchParams.get("hub.challenge") ?? "";
+    const cfg = await getConfig();
+    const expected = Deno.env.get("IG_VERIFY_TOKEN") || cfg?.verify_token;
+    if (mode === "subscribe" && expected && token === expected) {
+      return new Response(challenge, { status: 200 });
     }
-
-    // Plain status probe (used by the CRM Settings → Integrations panel).
-    return new Response(
-      JSON.stringify({
-        message: "Instagram webhook endpoint",
-        verify_token_configured: !!INSTAGRAM_VERIFY_TOKEN,
-        access_token_configured: !!INSTAGRAM_ACCESS_TOKEN,
-        app_secret_configured: !!INSTAGRAM_APP_SECRET,
-        configured: !!(INSTAGRAM_VERIFY_TOKEN && INSTAGRAM_ACCESS_TOKEN),
-        graph_base: GRAPH_BASE,
-        setup_instructions:
-          "In the Meta App dashboard, add this URL as the Instagram webhook callback, set the Verify Token to match INSTAGRAM_VERIFY_TOKEN, subscribe to the 'messages' field, and set INSTAGRAM_ACCESS_TOKEN / INSTAGRAM_APP_SECRET secrets.",
-      }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } },
-    );
+    return new Response("Forbidden", { status: 403 });
   }
 
-  if (req.method !== "POST") {
-    return new Response("Method not allowed", { status: 405, headers: corsHeaders });
+  if (req.method !== "POST") return new Response("Method Not Allowed", { status: 405 });
+
+  const raw = await req.text();
+  const cfg = await getConfig();
+  const appSecret = Deno.env.get("IG_APP_SECRET") || cfg?.app_secret;
+  if (appSecret) {
+    const sigOk = await verifySignature(raw, req.headers.get("x-hub-signature-256"), appSecret);
+    if (!sigOk) return new Response("Invalid signature", { status: 401 });
   }
 
-  // --- POST: incoming messaging events ---
-  const rawBody = await req.text();
+  let body: any;
+  try { body = JSON.parse(raw); } catch { return new Response("Bad JSON", { status: 400 }); }
 
-  // Validate the payload really came from Meta before trusting it.
-  const signatureOk = await verifySignature(rawBody, req.headers.get("x-hub-signature-256"));
-  if (!signatureOk) {
-    console.error("Instagram webhook signature verification failed");
-    return new Response(JSON.stringify({ error: "Invalid signature" }), {
-      status: 401,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
-
-  let body: { object?: string; entry?: IgEntry[] };
-  try {
-    body = JSON.parse(rawBody);
-  } catch (_e) {
-    // Not JSON — ack so Meta doesn't disable the webhook; nothing to process.
-    return new Response(JSON.stringify({ ok: true }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
-
-  const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+  // Store raw first, then process — always ACK 200 so Meta doesn't disable the subscription.
+  const { data: eventRow } = await admin.from("instagram_webhook_events")
+    .insert({ event_kind: classify(body), payload: body, processed: false, error: appSecret ? null : "WARNING: processed without signature check (app_secret not configured)" })
+    .select("id").single();
 
   try {
-    const entries = Array.isArray(body.entry) ? body.entry : [];
-    // Cache profile lookups within a single webhook delivery.
-    const profileCache = new Map<string, { name: string | null; avatar: string | null }>();
-
-    for (const entry of entries) {
-      const events = Array.isArray(entry.messaging) ? entry.messaging : [];
-
-      for (const event of events) {
-        const message = event.message;
-        if (!message) continue; // read receipts, reactions, postbacks — ignore
-
-        // Skip echoes (messages the business account sent) and deletions —
-        // CRM-originated replies are already stored when staff send them.
-        if (message.is_echo || message.is_deleted) {
-          console.log("Skipping echo/deleted message", message.mid);
-          continue;
-        }
-
-        const igsid = event.sender?.id;
-        if (!igsid) continue;
-        const recipientId = event.recipient?.id ?? null;
-        const mid = message.mid ?? null;
-
-        // Idempotency: Meta retries deliveries. Don't double-store / double-count.
-        if (mid) {
-          const { data: existing } = await supabase
-            .from("messages")
-            .select("id")
-            .eq("source", "instagram")
-            .eq("external_id", mid)
-            .maybeSingle();
-          if (existing) {
-            console.log("Duplicate message ignored", mid);
-            continue;
-          }
-        }
-
-        // Resolve content + type from text or the first attachment.
-        let content = message.text ?? "";
-        let messageType: MessageType = "text";
-        const attachments = Array.isArray(message.attachments) ? message.attachments : [];
-        if (!content && attachments.length > 0) {
-          const described = describeAttachment(attachments[0]);
-          content = described.content;
-          messageType = described.type;
-        }
-        if (!content) content = "[Empty message]";
-
-        // Enrich the sender so staff see a real name/avatar, not an IGSID.
-        let profile = profileCache.get(igsid);
-        if (!profile) {
-          profile = await fetchSenderProfile(igsid);
-          profileCache.set(igsid, profile);
-        }
-        const senderName = profile.name || `Instagram user ${igsid.slice(-6)}`;
-
-        // Atomic thread upsert + unread increment (shared with Telegram).
-        const { error: threadError } = await supabase.rpc("increment_thread_unread", {
-          p_source: "instagram",
-          p_sender_id: igsid,
-          p_sender_name: senderName,
-        });
-        if (threadError) console.error("Thread upsert error:", threadError);
-
-        // Persist the avatar on the thread when we have one.
-        if (profile.avatar) {
-          await supabase
-            .from("message_threads")
-            .update({ sender_avatar: profile.avatar })
-            .eq("source", "instagram")
-            .eq("sender_id", igsid);
-        }
-
-        const createdAt = event.timestamp
-          ? new Date(event.timestamp).toISOString()
-          : new Date().toISOString();
-
-        const { error: msgError } = await supabase.from("messages").insert({
-          source: "instagram",
-          external_id: mid,
-          sender_id: igsid,
-          sender_name: senderName,
-          sender_avatar: profile.avatar,
-          content,
-          message_type: messageType,
-          direction: "incoming",
-          status: "unread",
-          created_at: createdAt,
-          metadata: {
-            instagram_igsid: igsid,
-            instagram_recipient_id: recipientId,
-            instagram_message_id: mid,
-            attachments,
-          },
-        });
-        if (msgError) {
-          console.error("Message insert error:", msgError);
-          continue;
-        }
-
-        console.log(`Stored Instagram message from ${senderName} (${igsid})`);
-      }
-    }
-
-    return new Response(JSON.stringify({ ok: true }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    console.error("Error processing Instagram webhook:", error);
-    // Ack 200 so Meta doesn't auto-disable the subscription on transient errors.
-    return new Response(JSON.stringify({ ok: false, error: errorMessage }), {
-      status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    await processPayload(body, cfg);
+    if (eventRow) await admin.from("instagram_webhook_events").update({ processed: true }).eq("id", eventRow.id);
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    console.error("instagram-webhook processing error:", msg);
+    if (eventRow) await admin.from("instagram_webhook_events").update({ error: msg }).eq("id", eventRow.id);
   }
+  return new Response("EVENT_RECEIVED", { status: 200 });
 });
+
+function classify(body: any): string {
+  const entry = body?.entry?.[0];
+  if (entry?.messaging?.length) {
+    const m = entry.messaging[0];
+    if (m.message) return "message";
+    if (m.reaction) return "reaction";
+    if (m.read) return "seen";
+    return "messaging_other";
+  }
+  const field = entry?.changes?.[0]?.field;
+  if (field === "comments" || field === "live_comments") return "comment";
+  return "other";
+}
+
+async function processPayload(body: any, cfg: any): Promise<void> {
+  if (body?.object !== "instagram" || !Array.isArray(body?.entry)) return;
+  const ver = cfg?.graph_version || "v25.0";
+  const errors: string[] = [];
+
+  for (const entry of body.entry) {
+    const account = await getAccount(entry?.id ? String(entry.id) : null);
+
+    for (const m of entry?.messaging ?? []) {
+      try { await handleMessage(m, account, ver); }
+      catch (e) { errors.push(`message: ${e instanceof Error ? e.message : e}`); }
+    }
+    for (const ch of entry?.changes ?? []) {
+      if (ch?.field !== "comments" && ch?.field !== "live_comments") continue;
+      try { await handleComment(ch.value, entry, account); }
+      catch (e) { errors.push(`comment: ${e instanceof Error ? e.message : e}`); }
+    }
+  }
+  if (errors.length) throw new Error(errors.join(" | "));
+}
+
+async function handleMessage(m: any, account: any, ver: string): Promise<void> {
+  const msg = m?.message;
+  if (!msg || m.reaction || m.read) return; // reactions/read receipts: raw log only
+  if (msg.is_deleted) return;
+
+  const isEcho = msg.is_echo === true;
+  const partnerRaw = isEcho ? m.recipient?.id : m.sender?.id;
+  if (!partnerRaw) return;
+  const partnerId = String(partnerRaw);
+  const mid = String(msg.mid ?? `${partnerId}:${m.timestamp}`);
+
+  // Dedupe (echoes of messages we sent via API are already inserted by instagram-send).
+  const { data: existing } = await admin.from("messages").select("id").eq("source", "instagram").eq("external_id", mid).maybeSingle();
+  if (existing) return;
+
+  // Display name: reuse existing thread's name, else fetch profile from Graph (best effort).
+  let displayName: string | null = null;
+  let username: string | null = null;
+  const { data: thread } = await admin.from("message_threads").select("id, sender_name").eq("source", "instagram").eq("sender_id", partnerId).maybeSingle();
+  if (thread?.sender_name) displayName = thread.sender_name;
+  if (!displayName && account?.access_token) {
+    try {
+      const r = await fetch(`https://graph.instagram.com/${ver}/${partnerId}?fields=name,username&access_token=${encodeURIComponent(account.access_token)}`);
+      if (r.ok) {
+        const p = await r.json();
+        username = p?.username ?? null;
+        displayName = p?.name || (username ? `@${username}` : null);
+      }
+    } catch { /* best effort */ }
+  }
+  displayName = displayName ?? `IG ${partnerId.slice(-6)}`;
+
+  // Whose conversation is this? resolveIdentity alone answers "nobody" for
+  // every Instagram account, because an IGSID matches no phone, no student and
+  // no lead — which is why all 226 of these threads were anonymous. A person
+  // who writes to the school is a lead whether or not they typed a phone
+  // number, so ensureIdentity creates one on first contact (keyed on
+  // source+source_id, so a second message reuses it) and records the mapping.
+  //
+  // Echoes are OUR outgoing messages: they must resolve the person, never
+  // invent one, or a staff reply to a thread nobody answered would create a
+  // second lead for the same account.
+  const identity = isEcho
+    ? await resolveIdentity(admin as any, "instagram", partnerId, {})
+    : await ensureIdentity(admin as any, "instagram", partnerId, {
+      displayName,
+      identifierLabel: username ? `@${username}` : null,
+      leadFields: { contact_channel: "instagram" },
+    });
+  if (identity.displayName && !thread?.sender_name) displayName = identity.displayName;
+
+  const attachments: any[] = Array.isArray(msg.attachments) ? msg.attachments : [];
+  const attachType = attachments[0]?.type ?? null;
+  const messageType = attachType ? (MEDIA_TO_TYPE[attachType] ?? "file") : "text";
+  let content = (msg.text ?? "").trim();
+  if (!content && attachments.length) {
+    content = attachments.map((a) => `[${a?.type ?? "attachment"}]${a?.payload?.url ? " " + a.payload.url : ""}`).join("\n");
+  }
+  if (!content) content = "[empty]";
+
+  const direction = isEcho ? "outgoing" : "incoming";
+  const createdAt = m.timestamp ? new Date(Number(m.timestamp)).toISOString() : new Date().toISOString();
+
+  const { error: threadErr } = await admin.rpc("upsert_message_thread", {
+    p_source: "instagram", p_sender_id: partnerId, p_sender_name: displayName, p_sender_avatar: null,
+    p_student_id: identity.studentId, p_last_message_at: createdAt, p_direction: direction,
+  });
+  if (threadErr) throw new Error(`thread upsert: ${threadErr.message}`);
+
+  // Pull every attachment out of Meta's expiring CDN before storing the row.
+  const storedMedia = await Promise.all(
+    attachments.map((a, i) => storeMedia(partnerId, mid, i, a)),
+  );
+  const primary = storedMedia.find((s) => s !== null) ?? null;
+
+  const { error: msgErr } = await admin.from("messages").insert({
+    source: "instagram", external_id: mid, sender_id: partnerId, sender_name: displayName,
+    content, message_type: messageType, direction,
+    status: direction === "incoming" ? "unread" : "read",
+    student_id: identity.studentId, created_at: createdAt,
+    metadata: {
+      igsid: partnerId, mid, username, lead_id: identity.leadId, is_echo: isEcho,
+      account_ig_id: account?.ig_user_id ?? null,
+      reply_to: msg.reply_to ?? null,
+      attachments: attachments.map((a, i) => ({
+        type: a?.type ?? null,
+        url: a?.payload?.url ?? null,
+        media_path: storedMedia[i]?.path ?? null,
+        media_mime: storedMedia[i]?.mime ?? null,
+        media_size: storedMedia[i]?.size ?? null,
+      })),
+      // Mirrored at the top level too: the message renderer reads these keys
+      // for Telegram media and now finds them for Instagram as well.
+      ...(primary ? { media_path: primary.path, media_mime: primary.mime, media_size: primary.size } : {}),
+    },
+  });
+  if (msgErr) throw new Error(`message insert: ${msgErr.message}`);
+}
+
+async function handleComment(value: any, entry: any, account: any): Promise<void> {
+  if (!value?.id) return;
+  const fromId = value?.from?.id ? String(value.from.id) : null;
+  const fromUsername = value?.from?.username ?? null;
+  const isFromMe = !!(account && fromId && (fromId === String(account.ig_user_id) || (fromUsername && fromUsername === account.username)));
+
+  let identity = { studentId: null as string | null, leadId: null as string | null };
+  if (!isFromMe && fromId) {
+    const r = await resolveIdentity(admin as any, "instagram", fromId, {
+      displayName: fromUsername ? `@${fromUsername}` : null,
+      identifierLabel: fromUsername ? `@${fromUsername}` : null,
+    });
+    identity = { studentId: r.studentId, leadId: r.leadId };
+  }
+
+  const ts = value?.timestamp ? new Date(isNaN(Number(value.timestamp)) ? value.timestamp : Number(value.timestamp) * (String(value.timestamp).length <= 10 ? 1000 : 1)).toISOString()
+    : entry?.time ? new Date(Number(entry.time) * (String(entry.time).length <= 10 ? 1000 : 1)).toISOString()
+    : new Date().toISOString();
+
+  const { error } = await admin.from("instagram_comments").upsert({
+    comment_id: String(value.id),
+    media_id: value?.media?.id ? String(value.media.id) : null,
+    media_product_type: value?.media?.media_product_type ?? null,
+    parent_comment_id: value?.parent_id ? String(value.parent_id) : null,
+    from_ig_id: fromId,
+    from_username: fromUsername,
+    text: value?.text ?? null,
+    commented_at: ts,
+    is_from_me: isFromMe,
+    status: isFromMe ? "ignored" : "new",
+    student_id: identity.studentId,
+    lead_id: identity.leadId,
+    raw: value,
+  }, { onConflict: "comment_id", ignoreDuplicates: true });
+  if (error) throw new Error(`comment upsert: ${error.message}`);
+}

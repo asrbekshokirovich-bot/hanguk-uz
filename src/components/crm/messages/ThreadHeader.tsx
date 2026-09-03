@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { CheckCheck, Languages, PanelRight } from 'lucide-react';
+import { CheckCheck, Languages, PanelRight, UserPlus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { CHANNELS } from './channels';
 import { ChannelAvatar } from './ChannelAvatar';
@@ -15,6 +15,8 @@ interface ThreadHeaderProps {
   onToggleAutoTranslate: () => void;
   onMarkDone: () => void;
   onToggleContext: () => void;
+  /** Opens the attach-to-person dialog. Absent for channels we cannot key on. */
+  onLinkContact?: () => void;
 }
 
 /**
@@ -39,6 +41,7 @@ export function ThreadHeader({
   onToggleAutoTranslate,
   onMarkDone,
   onToggleContext,
+  onLinkContact,
 }: ThreadHeaderProps) {
   const { t } = useTranslation();
   const meta = `${t(CHANNELS[c.channel].labelKey)} · ${c.handle} · ${c.stage}`;
@@ -93,6 +96,19 @@ export function ThreadHeader({
             {t('messages.thread.assignedToOther')}
           </span>
         ) : null}
+
+        {onLinkContact && (
+          <IconAction
+            label={
+              c.studentId
+                ? t('messages.thread.relinkContact')
+                : t('messages.thread.linkContact')
+            }
+            active={!c.studentId}
+            onClick={onLinkContact}
+            icon={<UserPlus className="h-4 w-4" aria-hidden="true" />}
+          />
+        )}
 
         <IconAction
           label={autoTrLabel}
