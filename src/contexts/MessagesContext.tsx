@@ -468,11 +468,14 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
     async (threadId: string, userId: string) => {
       const thread = threads.find((t) => t.id === threadId);
       if (!thread) return { error: new Error('Thread not found') };
+      // One row. This used to stamp `assigned_to` onto every message in the
+      // conversation — hundreds of UPDATEs for one click on Claim, every one of
+      // them broadcast to every open CRM tab through realtime. The assignee is
+      // a fact about the thread, and now lives on it.
       const { error } = await supabase
-        .from('messages')
-        .update({ assigned_to: userId })
-        .eq('source', thread.source)
-        .eq('sender_id', thread.sender_id);
+        .from('message_threads')
+        .update({ assigned_to: userId, assigned_at: new Date().toISOString() })
+        .eq('id', threadId);
       if (!error) {
         setThreads((prev) => prev.map((t) => (t.id === threadId ? { ...t, assigned_to: userId } : t)));
       }
