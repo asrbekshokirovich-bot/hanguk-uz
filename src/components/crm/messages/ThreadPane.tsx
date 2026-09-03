@@ -20,6 +20,7 @@ interface ThreadPaneProps {
   onToggleContext: () => void;
   onClaim: () => void;
   onMarkDone: () => void;
+  onLinkContact?: () => void;
   onSend: (text: string, options: { internal: boolean; language: SendLanguage }) => Promise<boolean>;
 }
 
@@ -41,6 +42,7 @@ export function ThreadPane({
   onToggleContext,
   onClaim,
   onMarkDone,
+  onLinkContact,
   onSend,
 }: ThreadPaneProps) {
   return (
@@ -54,6 +56,7 @@ export function ThreadPane({
         onToggleAutoTranslate={onToggleAutoTranslate}
         onMarkDone={onMarkDone}
         onToggleContext={onToggleContext}
+        onLinkContact={onLinkContact}
       />
       <MessageStream
         messages={messages}

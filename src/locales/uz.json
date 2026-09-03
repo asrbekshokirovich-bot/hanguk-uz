@@ -1093,7 +1093,9 @@
       "hideTranslation": "Tarjimani yashirish",
       "translating": "Tarjima qilinmoqda…",
       "sending": "Yuborilmoqda…",
-      "internalNoteLabel": "Ichki eslatma · talabaga yuborilmaydi"
+      "internalNoteLabel": "Ichki eslatma · talabaga yuborilmaydi",
+      "linkContact": "Talaba yoki lidga biriktirish",
+      "relinkContact": "Biriktirishni o'zgartirish"
     },
     "composer": {
       "label": "Javob yozing",
@@ -1960,5 +1962,21 @@
       },
       "emptyHint": "Bu bo'limdan hech narsa chiqarilmagan. PDF ni ochib qo'lda kiritishingiz yoki kartochkani rad etishingiz mumkin."
     }
+  },
+  "linkContact": {
+    "title": "{{name}} — kimga biriktiramiz?",
+    "hintPhone": "Bu raqam qaysi talaba yoki lidga tegishli ekanini tanlang. Keyingi qo'ng'iroqlar avtomatik bog'lanadi.",
+    "hintChat": "Bu suhbat qaysi talaba yoki lidga tegishli ekanini tanlang. Keyingi xabarlar avtomatik bog'lanadi.",
+    "searchPlaceholder": "Ism yoki telefon bo'yicha qidirish…",
+    "searching": "Qidirilmoqda…",
+    "noMatches": "Hech narsa topilmadi.",
+    "noPhone": "Telefon yo'q",
+    "student": "Talaba",
+    "lead": "Lid",
+    "linked": "Biriktirildi",
+    "linkedBody": "Endi {{name}} ga biriktirilgan.",
+    "failed": "Biriktirib bo'lmadi",
+    "noIdentifierTitle": "Biriktirish uchun ma'lumot yo'q",
+    "noIdentifierBody": "Bu suhbatda ishlatib bo'ladigan identifikator yo'q."
   }
 }

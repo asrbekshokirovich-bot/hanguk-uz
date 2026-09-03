@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useMessages } from '@/hooks/useMessages';
 import { useToast } from '@/hooks/use-toast';
 import type { Message } from '@/contexts/MessagesContext';
+import { LinkContactDialog } from '@/components/calls/LinkContactDialog';
 import { MessagesQueue } from '@/components/crm/messages/MessagesQueue';
 import { QueueClearState } from '@/components/crm/messages/QueueClearState';
 import { StudentContextRail } from '@/components/crm/messages/StudentContextRail';
@@ -75,6 +76,7 @@ export default function MessagesContent() {
   const [contextOpen, setContextOpen] = useState(true);
   const [claiming, setClaiming] = useState(false);
   const [translatingId, setTranslatingId] = useState<string | null>(null);
+  const [linkOpen, setLinkOpen] = useState(false);
 
   const filtered = useMemo(
     () => sortConversations(filterConversations(conversations, tab, channel, query), tab),
@@ -315,6 +317,19 @@ export default function MessagesContent() {
     [toggleMessage, toast, t],
   );
 
+  // Attaching a conversation to a person is keyed on the RAW thread row, not on
+  // the view model: `ConversationVM.channel` collapses whatsapp/manual into
+  // 'app', and what goes into `communication_identities.channel` has to be the
+  // real source or the identity will never be found again. 'app'/'manual'
+  // threads have no external account to key on, so they get no button.
+  const linkChannel =
+    selectedThread?.id === activeId &&
+    (selectedThread?.source === 'telegram' ||
+      selectedThread?.source === 'instagram' ||
+      selectedThread?.source === 'whatsapp')
+      ? (selectedThread.source as 'telegram' | 'instagram' | 'whatsapp')
+      : null;
+
   const unassignedCount = conversations.filter((c) => !c.isAssigned && !c.isDone).length;
   const mineCount = conversations.filter((c) => c.isMine && !c.isDone).length;
 
@@ -359,9 +374,20 @@ export default function MessagesContent() {
               onClaim={handleClaim}
               onMarkDone={handleMarkDone}
               onSend={handleSend}
+              onLinkContact={linkChannel ? () => setLinkOpen(true) : undefined}
             />
             {contextOpen && (
               <StudentContextRail conversation={active} student={student} loading={studentLoading} />
+            )}
+            {linkChannel && selectedThread && (
+              <LinkContactDialog
+                channel={linkChannel}
+                identifier={selectedThread.sender_id}
+                identifierLabel={active.name}
+                open={linkOpen}
+                onOpenChange={setLinkOpen}
+                onLinked={refreshAssignments}
+              />
             )}
           </>
         ) : (

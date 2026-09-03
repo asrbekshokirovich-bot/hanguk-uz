@@ -1046,7 +1046,9 @@
       "hideTranslation": "Hide translation",
       "translating": "Translating…",
       "sending": "Sending…",
-      "internalNoteLabel": "Internal note · not sent to student"
+      "internalNoteLabel": "Internal note · not sent to student",
+      "linkContact": "Attach to a student or lead",
+      "relinkContact": "Change who this is attached to"
     },
     "composer": {
       "label": "Write a reply",
@@ -1918,5 +1920,21 @@
       },
       "emptyHint": "Nothing was extracted for this section. Open the PDF and enter it by hand, or reject the card."
     }
+  },
+  "linkContact": {
+    "title": "Attach {{name}} to…",
+    "hintPhone": "Pick the student or lead this number belongs to. Future calls will link automatically.",
+    "hintChat": "Pick the student or lead this chat belongs to. Future messages will link automatically.",
+    "searchPlaceholder": "Search by name or phone…",
+    "searching": "Searching…",
+    "noMatches": "No matches.",
+    "noPhone": "No phone",
+    "student": "Student",
+    "lead": "Lead",
+    "linked": "Linked",
+    "linkedBody": "Now attached to {{name}}.",
+    "failed": "Could not link contact",
+    "noIdentifierTitle": "Nothing to attach",
+    "noIdentifierBody": "This conversation has no usable identifier."
   }
 }

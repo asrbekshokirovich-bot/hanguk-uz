@@ -189,6 +189,94 @@ export async function resolveIdentity(
   return EMPTY;
 }
 
+/**
+ * Resolve, and when nobody is on the other end, create the lead ourselves.
+ *
+ * resolveIdentity() answers "who is this?" and returns nothing when the answer
+ * is "we have never seen them". For a channel that carries no phone number
+ * that is the answer for *everybody*: Instagram gave us 226 conversations and
+ * zero links, because an IGSID matches no profile, no student_phones row and
+ * no lead, and there was nothing else to try.
+ *
+ * A person who writes to the school is a lead whether or not they typed a
+ * phone number, so this creates one. The lead is keyed on (source, source_id)
+ * — the same key telegram-webhook's upsertLead uses — so a second message from
+ * the same account finds the existing lead instead of making another, and the
+ * identity row makes every later lookup a single indexed read.
+ *
+ * The link is recorded as `unverified`: we know this account wrote to us, we
+ * do not know that the human behind it is who the display name claims. Staff
+ * confirming it through the CRM overwrites that with `confirmed`.
+ */
+export async function ensureIdentity(
+  supabaseAdmin: SupabaseAdmin,
+  channel: Channel,
+  rawIdentifier: string | null | undefined,
+  opts: {
+    displayName?: string | null;
+    phone?: string | null;
+    identifierLabel?: string | null;
+    /** Extra columns for the lead, e.g. { contact_channel: "instagram" }. */
+    leadFields?: Record<string, unknown>;
+  } = {},
+): Promise<ResolvedIdentity> {
+  const resolved = await resolveIdentity(supabaseAdmin, channel, rawIdentifier, opts);
+  if (resolved.studentId || resolved.leadId) return resolved;
+  if (!rawIdentifier) return EMPTY;
+
+  const identifier = channel === "phone"
+    ? normalizePhone(rawIdentifier)
+    : String(rawIdentifier).trim();
+  if (!identifier) return EMPTY;
+
+  const displayName = opts.displayName?.trim() || opts.identifierLabel?.trim() ||
+    `${channel} ${identifier.slice(-6)}`;
+
+  // Reuse a lead this account already created (the identity row may be missing
+  // even when the lead is not — e.g. rows written before this function existed).
+  const { data: existingLead } = await supabaseAdmin
+    .from("leads")
+    .select("id, full_name")
+    .eq("source", channel)
+    .eq("source_id", identifier)
+    .maybeSingle();
+
+  let leadId = (existingLead as any)?.id ?? null;
+
+  if (!leadId) {
+    const { data: created, error } = await supabaseAdmin
+      .from("leads")
+      .insert({
+        full_name: displayName,
+        source: channel,
+        source_id: identifier,
+        status: "new",
+        ...(opts.phone ? { phone: normalizePhone(opts.phone) } : {}),
+        ...(opts.leadFields ?? {}),
+      })
+      .select("id")
+      .single();
+
+    if (error || !created) {
+      console.error("ensureIdentity: lead insert failed:", error?.message);
+      return EMPTY;
+    }
+    leadId = (created as any).id;
+  }
+
+  await upsertIdentity(supabaseAdmin, {
+    channel,
+    identifier,
+    identifier_label: opts.identifierLabel ?? null,
+    lead_id: leadId,
+    display_name: displayName,
+    confidence: "unverified",
+    source: "auto",
+  });
+
+  return { studentId: null, leadId, displayName, confidence: "unverified" };
+}
+
 /** Insert-or-ignore an identity mapping (unique on channel+identifier). */
 async function upsertIdentity(
   supabaseAdmin: SupabaseAdmin,
