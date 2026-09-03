@@ -1,4 +1,10 @@
-project_id = "hyvxwlwttzxzrkfolivo"
+# Hanguk 2026 — the live project this repo actually runs against.
+#
+# This said "hyvxwlwttzxzrkfolivo" until 2026-09-03: a project that no longer
+# exists. Anyone running `supabase link` or `supabase functions deploy` from a
+# checkout was pointed at nothing, which is one reason every change to this
+# database was made by hand in the dashboard instead.
+project_id = "lysjdtyanhdfphqyijsr"
 
 [functions.telegram-webhook]
 verify_jwt = false
@@ -120,3 +126,7 @@ verify_jwt = false
 [functions.db-exec]
 verify_jwt = true
 
+# Health heartbeat for the messaging channels. Called hourly by pg_cron with the
+# service-role key, so the gateway checks the JWT.
+[functions.channel-health-check]
+verify_jwt = true

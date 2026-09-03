@@ -1,0 +1,141 @@
+# Deploy edge functions to production from this repository.
+#
+# Until now nothing ever did. There was no workflow for functions or for
+# migrations, so the only way to change anything in Supabase was to edit it by
+# hand in the dashboard — and a repository that is never deployed from can only
+# drift. By September 2026 the live `instagram-webhook` was months ahead of the
+# copy in this repo, and deploying the repo copy would have destroyed a working
+# function. That is the failure this workflow exists to end.
+#
+# WHY AN EXPLICIT LIST INSTEAD OF DEPLOYING EVERYTHING
+#
+# `supabase functions deploy` with no arguments would push all 46 functions in
+# this directory over production — including the ones whose repo copy is still
+# behind what is live. That would cause exactly the outage this is meant to
+# prevent, on the first run. So a function joins FUNCTIONS below only once
+# somebody has compared it against the deployed version and confirmed the repo
+# copy is the newer, correct one. Growing this list IS the reconciliation work;
+# when every live function is on it, the dashboard stops being a deploy path.
+#
+# MIGRATIONS ARE DELIBERATELY NOT RUN HERE
+#
+# `supabase db push` is absent on purpose. Production's migration history and
+# this directory share NOT ONE version: 211 recorded there, 134 files here,
+# zero overlap. Production's history came from the dashboard and from
+# `apply_migration`, which stamps its own timestamp and ignores the filename,
+# so the two ledgers could never converge on their own. Turning on `db push`
+# today would make the CLI believe all 134 local migrations are unapplied and
+# replay them against a database that already has that schema.
+#
+# Fixing that means a baseline: dump the live schema as a single migration,
+# archive the old files, and `supabase migration repair` the remote history to
+# match. It rewrites history and needs a person who can restore a backup if it
+# goes wrong, so it is not automated here. `schema-snapshot` below is the safe
+# half — it keeps a readable copy of the real schema in the repo so the drift
+# is at least visible while that decision waits.
+
+name: Supabase deploy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'supabase/functions/**'
+      - 'supabase/config.toml'
+      - '.github/workflows/supabase-deploy.yml'
+  workflow_dispatch:
+    inputs:
+      snapshot_schema:
+        description: 'Also dump the live schema into supabase/schema/production.sql'
+        type: boolean
+        default: false
+
+concurrency:
+  group: supabase-deploy
+  cancel-in-progress: false
+
+env:
+  SUPABASE_PROJECT_ID: lysjdtyanhdfphqyijsr
+
+jobs:
+  functions:
+    name: Deploy verified edge functions
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Deploy
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          # Verified against the deployed version. Add a function here only
+          # after checking that the repo copy is the newer one.
+          # Verified on 2026-09-03: for each of these, the deployed source was
+          # read out of production and this repo now holds that exact code (or,
+          # for the first two, code deployed FROM here). Everything else stays
+          # out until somebody does the same comparison — `send-instagram` is
+          # why: the repo held version 1 while production ran version 9.
+          FUNCTIONS="
+            instagram-webhook
+            channel-health-check
+            send-instagram
+            instagram-send
+            instagram-token-refresh
+            telegram-outbox
+          "
+
+          for fn in $FUNCTIONS; do
+            echo "::group::$fn"
+            supabase functions deploy "$fn" \
+              --project-ref "$SUPABASE_PROJECT_ID" \
+              --use-api
+            echo "::endgroup::"
+          done
+
+  schema-snapshot:
+    name: Snapshot the live schema
+    if: github.event_name == 'workflow_dispatch' && inputs.snapshot_schema
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      # Not a migration and not applied to anything — a readable record of what
+      # production actually looks like, so a change made outside the repo is
+      # visible as a diff in the next snapshot instead of staying invisible for
+      # months.
+      - name: Dump
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: |
+          set -euo pipefail
+          mkdir -p supabase/schema
+          supabase link --project-ref "$SUPABASE_PROJECT_ID"
+          supabase db dump --schema public -f supabase/schema/production.sql
+
+      - name: Commit if it changed
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- supabase/schema/production.sql; then
+            echo "Schema unchanged."
+            exit 0
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add supabase/schema/production.sql
+          git commit -m "chore(supabase): refresh production schema snapshot"
+          git push
