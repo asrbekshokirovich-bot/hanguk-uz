@@ -307,6 +307,14 @@
     "freeReapplication": "Повторная подача — бесплатно",
     "freeReapplicationHint": "Повторная подача в этом сезоне без оплаты после отказа в визе — оплата за этот набор не ожидается. На другие сезоны не влияет.",
     "freeReapplicationShort": "Повтор бесплатно",
+    "discountPercent": "Скидка (%)",
+    "discountPercentHint": "Процент скидки от цены плана, 0–100. Оставьте 0, если скидки нет.",
+    "discountExemptSuffix": " (освобождён в этом сезоне)",
+    "discountAppliedBadge": "Применена скидка −{{percent}}%",
+    "discountValidationError": "Скидка должна быть от 0 до 100",
+    "discountRewriteConfirm": "Изменение скидки пересчитает суммы {{count}} ожидающих платежей за этот сезон:\n\n{{lines}}\n\nЧастично/полностью оплаченные платежи не изменятся. Продолжить?",
+    "discountRewriteCheckError": "Не удалось проверить ожидающие платежи перед применением скидки",
+    "discountRewriteUpdateError": "Не удалось обновить сумму ожидающего платежа: {{message}}",
     "birthDate": "Дата рождения",
     "officeLocation": "Местоположение офиса",
     "region": "Регион",
@@ -952,7 +960,10 @@
     "overdue": "Просрочен",
     "invoice": "Счёт",
     "receipt": "Квитанция",
-    "recordPayment": "Записать платёж"
+    "recordPayment": "Записать платёж",
+    "listPrice": "Цена по прайсу",
+    "discount": "Скидка",
+    "discountAppliedNote": " (−{{percent}}% применено)"
   },
   "tasks": {
     "title": "Задачи",

@@ -80,12 +80,15 @@ import { SuggestUniversityDialog } from './SuggestUniversityDialog';
 import { useUniversities } from '@/hooks/useUniversities';
 import AITranslationPage from '@/components/crm/pages/AITranslationPage';
 import { ClickToCall } from '@/components/calls/ClickToCall';
+import { getPlanByValue, applyDiscount, formatAmount } from '@/hooks/useStudentPlan';
 
 type StudentProfile = Tables<'profiles'> & {
   applications?: (Tables<'applications'> & {
     university?: Tables<'universities'>;
   })[];
   documents?: Tables<'documents'>[];
+  /** Sale/discount percentage for the active season — see useCRMData. */
+  discountPercent?: number;
 };
 
 interface StudentDetailProps {
@@ -870,13 +873,23 @@ export function StudentDetail({
 
   const getPaymentPlanDescription = (planValue: string | null) => {
     const plan = paymentPlans.find(p => p.value === planValue?.toLowerCase());
-    if (!plan) return '';
+    const canonicalPlan = getPlanByValue(planValue || '');
+    if (!plan || !canonicalPlan) return '';
 
     const isInstallment = student.payment_mode === 'installment';
-    const price = isInstallment ? plan.priceInstallment : plan.priceOneTime;
     const modeLabel = isInstallment ? '(2 payments)' : '(one-time)';
     const extra = plan.extra ? ` - ${plan.extra}` : '';
+    const discountPercent = student.discountPercent || 0;
 
+    if (discountPercent > 0) {
+      const listAmount = isInstallment ? canonicalPlan.priceInstallment : canonicalPlan.priceOneTime;
+      const finalAmount = isInstallment
+        ? applyDiscount(canonicalPlan.firstPayment, discountPercent) + applyDiscount(canonicalPlan.secondPayment, discountPercent)
+        : applyDiscount(canonicalPlan.priceOneTime, discountPercent);
+      return `${formatAmount(listAmount, canonicalPlan.currency)} −${discountPercent}% → ${formatAmount(finalAmount, canonicalPlan.currency)} ${modeLabel}${extra}`;
+    }
+
+    const price = isInstallment ? plan.priceInstallment : plan.priceOneTime;
     return `${price} ${modeLabel}${extra}`;
   };
 
@@ -2216,6 +2229,9 @@ export function StudentDetail({
         onOpenChange={(o) => !o && setEditingPayment(null)}
         payment={editingPayment}
         onSuccess={fetchPayments}
+        studentPlan={student.payment_plan}
+        studentPaymentMode={student.payment_mode}
+        discountPercent={student.discountPercent}
       />
 
       <AddPaymentDialog

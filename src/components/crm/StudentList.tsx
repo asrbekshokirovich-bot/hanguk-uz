@@ -65,6 +65,8 @@ type StudentProfile = Tables<'profiles'> & {
   initialPaymentOverdue?: boolean;
   /** Exempt for the active season only — see useCRMData. */
   freeReapplication?: boolean;
+  /** Sale/discount percentage for the active season — see useCRMData. */
+  discountPercent?: number;
 };
 
 type Tone = 'lime' | 'info' | 'neutral' | 'successSoft' | 'warning' | 'destructive';

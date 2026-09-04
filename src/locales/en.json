@@ -307,6 +307,14 @@
     "freeReapplication": "Free re-application",
     "freeReapplicationHint": "Re-sent this season at no cost after a visa refusal — no payment is expected for this intake. Other seasons are unaffected.",
     "freeReapplicationShort": "Free re-apply",
+    "discountPercent": "Discount (%)",
+    "discountPercentHint": "Sale/discount percentage off the plan price, 0–100. Leave 0 for no discount.",
+    "discountExemptSuffix": " (exempt this season)",
+    "discountAppliedBadge": "−{{percent}}% discount applied",
+    "discountValidationError": "Discount must be between 0 and 100",
+    "discountRewriteConfirm": "Changing the discount will recompute {{count}} pending payment amount(s) for this season:\n\n{{lines}}\n\nPartial/completed payments keep their recorded amounts. Continue?",
+    "discountRewriteCheckError": "Failed to check pending payments before applying the discount",
+    "discountRewriteUpdateError": "Failed to update a pending payment amount: {{message}}",
     "birthDate": "Birth Date",
     "officeLocation": "Office Location",
     "languageTrack": "Language Track",
@@ -934,7 +942,10 @@
     "overdue": "Overdue",
     "invoice": "Invoice",
     "receipt": "Receipt",
-    "recordPayment": "Record Payment"
+    "recordPayment": "Record Payment",
+    "listPrice": "List Price",
+    "discount": "Discount",
+    "discountAppliedNote": " (−{{percent}}% applied)"
   },
   "tasks": {
     "title": "Tasks",

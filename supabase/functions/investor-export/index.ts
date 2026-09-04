@@ -257,10 +257,19 @@ function pnlPdf(b: Bundle): Uint8Array {
 
   for (const cur of list) {
     const rows = b.pnl.filter((r) => r.currency === cur);
-    const income = rows.filter((r) => r.side === 'income');
+    // v_investor_season_pnl emits side='revenue' (not 'income') — see the
+    // matching UI filter in InvestorFinance.tsx.
+    const income = rows.filter((r) => r.side === 'revenue');
     const expense = rows.filter((r) => r.side === 'expense');
+    // Informational only: the gap between a discounted student's undiscounted
+    // plan price and the price actually contracted. Revenue above is already
+    // the discounted (net) amount actually collected, so this line never
+    // feeds into revenue/expense/net — it only explains why revenue per
+    // student can read below the published plan price.
+    const discount = rows.filter((r) => r.side === 'discount');
     const revenue = income.reduce((n, r) => n + num(r.amount), 0);
     const spend = expense.reduce((n, r) => n + num(r.amount), 0);
+    const discountGiven = discount.reduce((n, r) => n + num(r.amount), 0);
 
     sectionTitle(doc, cur);
     row(doc, 'Line item', [`Amount (${cur})`, '% of rev'], { muted: true });
@@ -274,6 +283,14 @@ function pnlPdf(b: Bundle): Uint8Array {
     }
     row(doc, 'Total revenue', [money(revenue), '100.0%'], { bold: true });
     doc.down(8);
+
+    if (discountGiven > 0) {
+      row(doc, 'Discounts given (informational, not deducted from revenue)', [], { bold: true });
+      for (const r of discount) {
+        row(doc, humanizeLineItem(r.line_item), [money(r.amount), pct(r.pct_of_revenue)]);
+      }
+      doc.down(8);
+    }
 
     row(doc, 'Expenses', [], { bold: true });
     if (expense.length === 0) {
@@ -340,6 +357,11 @@ function seasonReportPdf(b: Bundle): Uint8Array {
     row(doc, 'Nothing has been recorded for this season yet', ['-'], { muted: true });
   } else {
     row(doc, `Revenue (${headline.currency})`, [money(headline.season_revenue)]);
+    if (num(headline.season_discounts_given) > 0) {
+      row(doc, `Discounts given (${headline.currency}, informational)`, [
+        money(headline.season_discounts_given),
+      ], { muted: true });
+    }
     row(doc, `Expenses (${headline.currency})`, [money(headline.season_expenses)]);
     row(doc, `Net profit (${headline.currency})`, [money(headline.season_net_profit)], {
       bold: true,
@@ -406,8 +428,11 @@ function pnlXlsx(b: Bundle): Uint8Array {
 
   for (const cur of currencies(b.pnl)) {
     const rows = b.pnl.filter((r) => r.currency === cur);
-    const revenue = rows.filter((r) => r.side === 'income').reduce((n, r) => n + num(r.amount), 0);
+    // v_investor_season_pnl emits side='revenue' (not 'income').
+    const revenue = rows.filter((r) => r.side === 'revenue').reduce((n, r) => n + num(r.amount), 0);
     const spend = rows.filter((r) => r.side === 'expense').reduce((n, r) => n + num(r.amount), 0);
+    // 'discount' rows are informational (see pnlPdf) and intentionally excluded
+    // from this net-profit total, which must stay revenue - expenses.
     pnlRows.push([cur, 'Total', 'Net profit', revenue - spend, null]);
   }
 

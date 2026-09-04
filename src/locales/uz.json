@@ -356,6 +356,14 @@
     "freeReapplication": "Qayta topshirish — tekin",
     "freeReapplicationHint": "Viza rad etilgani uchun bu mavsumda tekin qayta topshiriladi — bu mavsum uchun to'lov kutilmaydi. Boshqa mavsumlarga ta'sir qilmaydi.",
     "freeReapplicationShort": "Tekin qayta",
+    "discountPercent": "Chegirma (%)",
+    "discountPercentHint": "Reja narxidan chegirma foizi, 0–100. Chegirma yo'q bo'lsa 0 qoldiring.",
+    "discountExemptSuffix": " (bu mavsum uchun ozod qilingan)",
+    "discountAppliedBadge": "−{{percent}}% chegirma qo'llanildi",
+    "discountValidationError": "Chegirma 0 dan 100 gacha bo'lishi kerak",
+    "discountRewriteConfirm": "Chegirmani o'zgartirish bu mavsum uchun {{count}} ta kutilayotgan to'lov summasini qayta hisoblaydi:\n\n{{lines}}\n\nQisman/to'liq to'langan to'lovlar o'zgarmaydi. Davom etilsinmi?",
+    "discountRewriteCheckError": "Chegirmani qo'llashdan oldin kutilayotgan to'lovlarni tekshirib bo'lmadi",
+    "discountRewriteUpdateError": "Kutilayotgan to'lov summasini yangilab bo'lmadi: {{message}}",
     "birthDate": "Tug'ilgan sana",
     "officeLocation": "Ofis manzili",
     "region": "Viloyat",
@@ -981,7 +989,10 @@
     "overdue": "Muddati o'tgan",
     "invoice": "Hisob-faktura",
     "receipt": "Kvitansiya",
-    "recordPayment": "To'lovni qayd qilish"
+    "recordPayment": "To'lovni qayd qilish",
+    "listPrice": "Ro'yxat narxi",
+    "discount": "Chegirma",
+    "discountAppliedNote": " (−{{percent}}% qo'llanildi)"
   },
   "tasks": {
     "title": "Vazifalar",

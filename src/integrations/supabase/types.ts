@@ -3674,6 +3674,7 @@ export type Database = {
           id: string
           intake_id: string | null
           invoice_number: string | null
+          list_amount: number | null
           notes: string | null
           paid_amount: number
           paid_at: string | null
@@ -3693,6 +3694,7 @@ export type Database = {
           id?: string
           intake_id?: string | null
           invoice_number?: string | null
+          list_amount?: number | null
           notes?: string | null
           paid_amount?: number
           paid_at?: string | null
@@ -3712,6 +3714,7 @@ export type Database = {
           id?: string
           intake_id?: string | null
           invoice_number?: string | null
+          list_amount?: number | null
           notes?: string | null
           paid_amount?: number
           paid_at?: string | null
@@ -5140,6 +5143,7 @@ export type Database = {
       student_intakes: {
         Row: {
           created_at: string
+          discount_percent: number
           id: string
           intake_id: string
           is_free_reapplication: boolean
@@ -5147,6 +5151,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          discount_percent?: number
           id?: string
           intake_id: string
           is_free_reapplication?: boolean
@@ -5154,6 +5159,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          discount_percent?: number
           id?: string
           intake_id?: string
           is_free_reapplication?: boolean

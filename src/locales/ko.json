@@ -306,6 +306,14 @@
     "freeReapplication": "무료 재지원",
     "freeReapplicationHint": "비자 거부 후 이번 시즌에 무료로 재지원 — 이번 모집에 대한 결제는 청구되지 않습니다. 다른 시즌에는 영향이 없습니다.",
     "freeReapplicationShort": "무료 재지원",
+    "discountPercent": "할인율 (%)",
+    "discountPercentHint": "플랜 가격에서 할인되는 비율, 0–100. 할인이 없으면 0으로 두세요.",
+    "discountExemptSuffix": " (이번 시즌 면제)",
+    "discountAppliedBadge": "−{{percent}}% 할인 적용됨",
+    "discountValidationError": "할인율은 0에서 100 사이여야 합니다",
+    "discountRewriteConfirm": "할인율을 변경하면 이번 시즌의 대기 중인 결제 {{count}}건의 금액이 재계산됩니다:\n\n{{lines}}\n\n부분/완료된 결제 금액은 변경되지 않습니다. 계속하시겠습니까?",
+    "discountRewriteCheckError": "할인을 적용하기 전에 대기 중인 결제를 확인하지 못했습니다",
+    "discountRewriteUpdateError": "대기 중인 결제 금액을 업데이트하지 못했습니다: {{message}}",
     "birthDate": "생년월일",
     "officeLocation": "사무실 위치",
     "region": "지역",
@@ -882,7 +890,10 @@
     "overdue": "연체",
     "invoice": "청구서",
     "receipt": "영수증",
-    "recordPayment": "결제 기록"
+    "recordPayment": "결제 기록",
+    "listPrice": "정가",
+    "discount": "할인",
+    "discountAppliedNote": " (−{{percent}}% 적용됨)"
   },
   "tasks": {
     "title": "작업",

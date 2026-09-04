@@ -27,6 +27,7 @@ import { DateField } from '@/components/ui/date-field';
 import { cn } from '@/lib/utils';
 import { useActiveIntake } from '@/contexts/IntakeContext';
 import { ContractUpload } from './ContractUpload';
+import { applyDiscount, formatAmount, getPaymentAmount } from '@/hooks/useStudentPlan';
 
 type StudentProfile = Tables<'profiles'>;
 
@@ -159,6 +160,9 @@ export function EditStudentDialog({ open, onOpenChange, student, onSuccess }: Ed
     city: '',
     paymentPlan: '',
     paymentMode: 'one_time',
+    // Lives on student_intakes, not profiles — same per-season grain as
+    // freeReapplication below.
+    discountPercent: '0',
     contractDate: '',
     contractUrl: '',
     languageTrack: '',
@@ -170,6 +174,9 @@ export function EditStudentDialog({ open, onOpenChange, student, onSuccess }: Ed
   });
   const [phones, setPhones] = useState<PhoneEntry[]>([]);
   const [removedPhoneIds, setRemovedPhoneIds] = useState<string[]>([]);
+  // What the discount actually was when the dialog loaded — used to detect an
+  // edit and to gate the pending-payment rewrite confirm (D9 in the plan).
+  const [originalDiscountPercent, setOriginalDiscountPercent] = useState(0);
 
   useEffect(() => {
     if (!student) return;
@@ -179,6 +186,7 @@ export function EditStudentDialog({ open, onOpenChange, student, onSuccess }: Ed
       city: student.city || '',
       paymentPlan: student.payment_plan || '',
       paymentMode: student.payment_mode || 'one_time',
+      discountPercent: '0',
       contractDate: student.contract_date || '',
       contractUrl: student.contract_url || '',
       languageTrack: student.language_track || '',
@@ -187,20 +195,26 @@ export function EditStudentDialog({ open, onOpenChange, student, onSuccess }: Ed
       freeReapplication: false,
     });
     setRemovedPhoneIds([]);
+    setOriginalDiscountPercent(0);
 
-    // Read the exemption off this season's membership rather than trusting the
-    // caller to have passed it — the dialog is opened from several screens and
-    // the prop is a bare profile row.
+    // Read the exemption + discount off this season's membership rather than
+    // trusting the caller to have passed them — the dialog is opened from
+    // several screens and the prop is a bare profile row.
     if (activeIntakeId) {
       (async () => {
         const { data } = await supabase
           .from('student_intakes')
-          .select('is_free_reapplication')
+          .select('is_free_reapplication, discount_percent')
           .eq('student_id', student.user_id)
           .eq('intake_id', activeIntakeId)
           .maybeSingle();
         if (data) {
-          setFormData((prev) => ({ ...prev, freeReapplication: data.is_free_reapplication }));
+          setFormData((prev) => ({
+            ...prev,
+            freeReapplication: data.is_free_reapplication,
+            discountPercent: String(data.discount_percent ?? 0),
+          }));
+          setOriginalDiscountPercent(Number(data.discount_percent) || 0);
         }
       })();
     }
@@ -261,7 +275,67 @@ export function EditStudentDialog({ open, onOpenChange, student, onSuccess }: Ed
       return;
     }
 
-    setLoading(true);
+    const discountPercent = Math.min(100, Math.max(0, Number(formData.discountPercent) || 0));
+    if (Number.isNaN(Number(formData.discountPercent))) {
+      toast({ title: t('common.error'), description: t('crm.discountValidationError'), variant: 'destructive' });
+      return;
+    }
+
+    // D9: editing the discount rewrites only PENDING payment amounts for this
+    // season, after an explicit confirm. Partial/completed rows are never
+    // touched here — they already have money attached and the completion
+    // gate/allocation chain must not be triggered from an edit dialog.
+    if (activeIntakeId && discountPercent !== originalDiscountPercent && formData.paymentPlan) {
+      const { data: pendingPayments, error: pendingError } = await supabase
+        .from('payments')
+        .select('id, amount, payment_type')
+        .eq('student_id', student.user_id)
+        .eq('intake_id', activeIntakeId)
+        .eq('status', 'pending');
+
+      if (pendingError) {
+        toast({ title: t('common.error'), description: t('crm.discountRewriteCheckError'), variant: 'destructive' });
+        return;
+      }
+
+      const rewriteable = (pendingPayments || []).filter(
+        (p) => p.payment_type === 'initial_deposit' || p.payment_type === 'remaining_payment'
+      );
+
+      if (rewriteable.length > 0) {
+        const lines = rewriteable.map((p) => {
+          const newAmount = getPaymentAmount(
+            formData.paymentPlan,
+            formData.paymentMode,
+            p.payment_type as 'initial_deposit' | 'remaining_payment',
+            discountPercent
+          ).amount;
+          return `${p.payment_type}: ${Number(p.amount).toLocaleString()} → ${newAmount.toLocaleString()}`;
+        });
+        const confirmed = window.confirm(
+          t('crm.discountRewriteConfirm', { count: rewriteable.length, lines: lines.join('\n') })
+        );
+        if (!confirmed) return;
+      }
+
+      setLoading(true);
+      for (const p of rewriteable) {
+        const newAmount = getPaymentAmount(
+          formData.paymentPlan,
+          formData.paymentMode,
+          p.payment_type as 'initial_deposit' | 'remaining_payment',
+          discountPercent
+        ).amount;
+        const { error: rewriteError } = await supabase.from('payments').update({ amount: newAmount }).eq('id', p.id);
+        if (rewriteError) {
+          toast({ title: t('common.error'), description: t('crm.discountRewriteUpdateError', { message: rewriteError.message }), variant: 'destructive' });
+          setLoading(false);
+          return;
+        }
+      }
+    } else {
+      setLoading(true);
+    }
 
     try {
       const primary = filledPhones.find((p) => p.is_primary) ?? filledPhones[0];
@@ -313,7 +387,7 @@ export function EditStudentDialog({ open, onOpenChange, student, onSuccess }: Ed
       if (activeIntakeId) {
         const { error: intakeError } = await supabase
           .from('student_intakes')
-          .update({ is_free_reapplication: formData.freeReapplication })
+          .update({ is_free_reapplication: formData.freeReapplication, discount_percent: discountPercent })
           .eq('student_id', student.user_id)
           .eq('intake_id', activeIntakeId);
         if (intakeError) throw intakeError;
@@ -587,6 +661,26 @@ export function EditStudentDialog({ open, onOpenChange, student, onSuccess }: Ed
               </div>
 
               <div className="space-y-2">
+                <Label htmlFor="discountPercent">
+                  {t('crm.discountPercent')}
+                  {formData.freeReapplication && t('crm.discountExemptSuffix')}
+                </Label>
+                <Input
+                  id="discountPercent"
+                  type="number"
+                  min={0}
+                  max={100}
+                  step="0.01"
+                  value={formData.discountPercent}
+                  onChange={(e) => setFormData({ ...formData, discountPercent: e.target.value })}
+                  disabled={formData.freeReapplication}
+                  placeholder="0"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
                 <Label htmlFor="contractDate" className="flex items-center gap-1">
                   {t('crm.contractDate')} *
                   <span className="text-xs text-muted-foreground">(required)</span>
@@ -621,14 +715,20 @@ export function EditStudentDialog({ open, onOpenChange, student, onSuccess }: Ed
                 {(() => {
                   const plan = PAYMENT_PLANS.find(p => p.value === formData.paymentPlan);
                   if (!plan) return null;
-                  const price = formData.paymentMode === 'installment' ? plan.priceInstallment : plan.priceOneTime;
-                  const formatted = plan.currency === 'UZS'
-                    ? `${price.toLocaleString()} UZS`
-                    : `$${price.toLocaleString()} USD`;
+                  const listPrice = formData.paymentMode === 'installment' ? plan.priceInstallment : plan.priceOneTime;
+                  const discountPercent = formData.freeReapplication ? 0 : Math.min(100, Math.max(0, Number(formData.discountPercent) || 0));
+                  const finalPrice = applyDiscount(listPrice, discountPercent);
                   return (
                     <div className="flex items-center gap-2">
                       <CreditCard className="h-4 w-4" />
-                      <span>💳 Total: {formatted}{formData.paymentMode === 'installment' ? ' (2 payments)' : ' (one-time)'}</span>
+                      {discountPercent > 0 ? (
+                        <span>
+                          💳 List: {formatAmount(listPrice, plan.currency)} −{discountPercent}% → Total: {formatAmount(finalPrice, plan.currency)}
+                          {formData.paymentMode === 'installment' ? ' (2 payments)' : ' (one-time)'}
+                        </span>
+                      ) : (
+                        <span>💳 Total: {formatAmount(finalPrice, plan.currency)}{formData.paymentMode === 'installment' ? ' (2 payments)' : ' (one-time)'}</span>
+                      )}
                       {plan.isVIP && <Badge variant="default" className="ml-auto bg-gradient-to-r from-warning to-warning text-white border-0 text-xs">VIP</Badge>}
                     </div>
                   );

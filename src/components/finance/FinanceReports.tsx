@@ -25,17 +25,18 @@ import {
 } from 'lucide-react';
 import { Tables } from '@/integrations/supabase/types';
 import { Payment } from '@/hooks/usePayments';
-import { 
-  getPlanByValue, 
+import {
+  getPlanByValue,
   formatAmount,
   getPlanPrice,
   PAYMENT_PLANS,
-  isPaymentOverdue
+  isPaymentOverdue,
+  normalizePlanName
 } from '@/hooks/useStudentPlan';
 import { format, startOfMonth, endOfMonth, eachMonthOfInterval, subMonths } from 'date-fns';
 
 interface FinanceReportsProps {
-  students: Tables<'profiles'>[];
+  students: (Tables<'profiles'> & { discountPercent?: number })[];
   payments: Payment[];
 }
 
@@ -82,7 +83,7 @@ export function FinanceReports({ students, payments }: FinanceReportsProps) {
     
     return PAYMENT_PLANS.map(plan => {
       const count = studentsWithPlans.filter(
-        s => s.payment_plan?.toLowerCase() === plan.value
+        s => normalizePlanName(s.payment_plan) === plan.value
       ).length;
       
       return {
@@ -99,7 +100,7 @@ export function FinanceReports({ students, payments }: FinanceReportsProps) {
     
     return PAYMENT_PLANS.map(plan => {
       const planStudents = studentsWithPlans.filter(
-        s => s.payment_plan?.toLowerCase() === plan.value
+        s => normalizePlanName(s.payment_plan) === plan.value
       );
 
       let expected = 0;
@@ -107,7 +108,7 @@ export function FinanceReports({ students, payments }: FinanceReportsProps) {
 
       planStudents.forEach(student => {
         const mode = student.payment_mode || 'one_time';
-        const { amount } = getPlanPrice(plan.value, mode);
+        const { amount } = getPlanPrice(plan.value, mode, student.discountPercent || 0);
         expected += amount;
 
         const studentPayments = payments.filter(p => p.student_id === student.user_id);

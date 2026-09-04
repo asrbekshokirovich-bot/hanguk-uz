@@ -23,7 +23,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useActiveIntake } from '@/contexts/IntakeContext';
 import { CreditCard, Calendar, DollarSign, Info, AlertCircle } from 'lucide-react';
-import { getPlanByValue, formatPlanAmount, calculateDueDate } from '@/hooks/useStudentPlan';
+import { getPlanByValue, formatPlanAmount, calculateDueDate, applyDiscount, getPaymentAmount } from '@/hooks/useStudentPlan';
 import { allocateOperationalFund } from '@/hooks/useOperationalFund';
 import { distributeIncomeFromPayment } from '@/hooks/useIncomeDistribution';
 import { allocateBudgetsForPayment } from '@/hooks/useStudentBudgets';
@@ -39,6 +39,7 @@ interface AddPaymentDialogProps {
   studentPlan?: string | null;
   studentPaymentMode?: string | null;
   contractDate?: string | null;
+  discountPercent?: number;
   existingPayments?: Array<{ payment_type: string; status: string }>;
   onSuccess: () => void;
 }
@@ -57,12 +58,13 @@ const CURRENCIES = [
 export function AddPaymentDialog({ 
   open, 
   onOpenChange, 
-  studentId, 
+  studentId,
   studentPlan: planValue,
   studentPaymentMode = 'one_time',
   contractDate,
+  discountPercent: discountPercentProp,
   existingPayments = [],
-  onSuccess 
+  onSuccess
 }: AddPaymentDialogProps) {
   const { t } = useTranslation();
   const { toast } = useToast();
@@ -70,10 +72,14 @@ export function AddPaymentDialog({
   const { activeIntakeId } = useActiveIntake();
   const [loading, setLoading] = useState(false);
   const [fetchedPlan, setFetchedPlan] = useState<string | null>(null);
+  const [fetchedDiscount, setFetchedDiscount] = useState<number | null>(null);
 
-  // Fallback: fetch plan from database if prop not provided
+  // Fallback: fetch plan + discount from the database if the props weren't
+  // provided (some callers only pass studentId). The discount lives on the
+  // active season's student_intakes row, same grain as is_free_reapplication.
   useEffect(() => {
-    if (!planValue && studentId && open) {
+    if (!studentId || !open) return;
+    if (!planValue) {
       supabase
         .from('profiles')
         .select('payment_plan, payment_mode')
@@ -85,11 +91,23 @@ export function AddPaymentDialog({
           }
         });
     }
-  }, [planValue, studentId, open]);
+    if (discountPercentProp === undefined && activeIntakeId) {
+      supabase
+        .from('student_intakes')
+        .select('discount_percent')
+        .eq('student_id', studentId)
+        .eq('intake_id', activeIntakeId)
+        .maybeSingle()
+        .then(({ data }) => {
+          setFetchedDiscount(Number(data?.discount_percent) || 0);
+        });
+    }
+  }, [planValue, studentId, open, discountPercentProp, activeIntakeId]);
 
-  // Use fetched plan as fallback
+  // Use fetched plan/discount as fallback
   const effectivePlan = planValue || fetchedPlan;
-  
+  const discountPercent = discountPercentProp ?? fetchedDiscount ?? 0;
+
   const planInfo = getPlanByValue(effectivePlan || '');
   const isInstallment = studentPaymentMode === 'installment';
   
@@ -104,16 +122,16 @@ export function AddPaymentDialog({
     return 'other';
   };
 
-  // Calculate initial expected amount based on plan
+  // Calculate initial expected amount based on plan (discounted)
   const getInitialAmount = () => {
     if (!planInfo) return '';
     const paymentType = getDefaultPaymentType();
     if (isInstallment) {
-      if (paymentType === 'initial_deposit') return planInfo.firstPayment.toString();
-      if (paymentType === 'remaining_payment') return planInfo.secondPayment.toString();
+      if (paymentType === 'initial_deposit') return applyDiscount(planInfo.firstPayment, discountPercent).toString();
+      if (paymentType === 'remaining_payment') return applyDiscount(planInfo.secondPayment, discountPercent).toString();
       return '';
     }
-    return planInfo.priceOneTime.toString();
+    return applyDiscount(planInfo.priceOneTime, discountPercent).toString();
   };
 
   const [formData, setFormData] = useState({
@@ -150,28 +168,28 @@ export function AddPaymentDialog({
     if (planInfo) {
       if (isInstallment) {
         if (paymentType === 'initial_deposit') {
-          amount = planInfo.firstPayment;
+          amount = applyDiscount(planInfo.firstPayment, discountPercent);
         } else if (paymentType === 'remaining_payment') {
-          amount = planInfo.secondPayment;
+          amount = applyDiscount(planInfo.secondPayment, discountPercent);
         }
       } else {
         // For one-time, initial deposit is full amount
         if (paymentType === 'initial_deposit') {
-          amount = planInfo.priceOneTime;
+          amount = applyDiscount(planInfo.priceOneTime, discountPercent);
         }
       }
     }
-    
+
     // Calculate due date based on contract date (7 working days)
     const dueDate = calculateDueDate(contractDate || null, paymentType, studentPaymentMode);
-    
+
     setFormData(prev => ({
       ...prev,
       amount: amount > 0 ? amount.toString() : prev.amount,
       currency: planInfo?.currency || prev.currency,
       dueDate,
     }));
-  }, [planInfo, studentPaymentMode, open, formData.paymentType, contractDate, isInstallment]);
+  }, [planInfo, studentPaymentMode, open, formData.paymentType, contractDate, isInstallment, discountPercent]);
 
   // Re-apply the correct default payment type when the dialog opens or once the
   // existing payments finish loading. The initial useState value is computed on mount,
@@ -207,6 +225,14 @@ export function AddPaymentDialog({
       const amount = Number(formData.amount);
       const paidAmount = Number(formData.paidAmount) || 0;
       const gatewayFee = Number(formData.gatewayFee) || 0;
+      // Snapshot the undiscounted list price for the investor P&L's
+      // informational "discounts given" line — computed via the same helper
+      // with discount=0, so it can never drift from the discounted `amount`.
+      const paymentType = formData.paymentType as 'initial_deposit' | 'remaining_payment' | 'other';
+      const listAmount =
+        discountPercent > 0 && planInfo && paymentType !== 'other'
+          ? getPaymentAmount(effectivePlan || '', studentPaymentMode, paymentType, 0).amount
+          : null;
 
       // Create the payment record.
       // NOTE: a DB trigger (payments_idempotent_initial_deposit) silently swallows
@@ -220,6 +246,7 @@ export function AddPaymentDialog({
           student_id: studentId,
           payment_type: formData.paymentType,
           amount,
+          list_amount: listAmount,
           paid_amount: paidAmount,
           currency: formData.currency,
           status: paidAmount >= amount ? 'completed' : paidAmount > 0 ? 'partial' : 'pending',
@@ -304,26 +331,29 @@ export function AddPaymentDialog({
 
         // ONLY allocate budgets and distributions when payment is FULLY COMPLETED
         const isFullyCompleted = paidAmount >= amount;
-        
+        // Cap the allocation input at the expected amount, matching usePayments.ts —
+        // an overpayment beyond what was owed should not inflate the distributed base.
+        const allocationAmount = Math.min(paidAmount, amount);
+
         if (isFullyCompleted) {
           console.log('🎉 Payment fully completed! Triggering allocations...');
-          
+
           // Auto-distribute operational fund (monthly salaries/rent/utilities)
-          await allocateOperationalFund(payment.id, studentId, paidAmount);
-          
+          await allocateOperationalFund(payment.id, studentId, allocationAmount);
+
           // Auto-allocate student budgets
           if (effectivePlan) {
             await allocateBudgetsForPayment(studentId, effectivePlan, payment.id, activeIntakeId);
           }
-          
+
           // Auto-create staff bonus for this student (if not already exists)
           if (effectivePlan) {
             await createBonusForPayment(studentId, effectivePlan);
           }
-          
+
           // Auto-distribute income to owners (after deducting operational fund + student budgets + bonus)
-          await distributeIncomeFromPayment(payment.id, paidAmount, studentId);
-          
+          await distributeIncomeFromPayment(payment.id, allocationAmount, studentId);
+
           window.dispatchEvent(new CustomEvent('operational-fund-updated'));
         } else {
           console.log(`⏳ Payment still partial (${paidAmount}/${amount}). No allocations yet.`);
@@ -362,24 +392,27 @@ export function AddPaymentDialog({
 
   const netIncome = (Number(formData.paidAmount) || 0) - (Number(formData.gatewayFee) || 0);
 
-  // Get expected amounts for display
+  // Get expected (discounted) amounts for display
   const getExpectedAmounts = () => {
     if (!planInfo) return null;
-    
+
     if (isInstallment) {
+      const firstPayment = applyDiscount(planInfo.firstPayment, discountPercent);
+      const secondPayment = applyDiscount(planInfo.secondPayment, discountPercent);
       return {
-        total: planInfo.priceInstallment,
-        firstPayment: planInfo.firstPayment,
-        secondPayment: planInfo.secondPayment,
-        label: `${formatPlanAmount(planInfo.firstPayment, planInfo.currency)} + ${formatPlanAmount(planInfo.secondPayment, planInfo.currency)} = ${formatPlanAmount(planInfo.priceInstallment, planInfo.currency)}`,
+        total: firstPayment + secondPayment,
+        firstPayment,
+        secondPayment,
+        label: `${formatPlanAmount(firstPayment, planInfo.currency)} + ${formatPlanAmount(secondPayment, planInfo.currency)} = ${formatPlanAmount(firstPayment + secondPayment, planInfo.currency)}`,
       };
     }
-    
+
+    const priceOneTime = applyDiscount(planInfo.priceOneTime, discountPercent);
     return {
-      total: planInfo.priceOneTime,
-      firstPayment: planInfo.priceOneTime,
+      total: priceOneTime,
+      firstPayment: priceOneTime,
       secondPayment: 0,
-      label: formatPlanAmount(planInfo.priceOneTime, planInfo.currency),
+      label: formatPlanAmount(priceOneTime, planInfo.currency),
     };
   };
 
@@ -408,6 +441,9 @@ export function AddPaymentDialog({
               <Badge variant="outline">{isInstallment ? '2 Installments' : 'One-time'}</Badge>
               {expectedAmounts && (
                 <Badge variant="secondary">{expectedAmounts.label}</Badge>
+              )}
+              {discountPercent > 0 && (
+                <Badge variant="default" className="bg-success/20 text-success-foreground border-0">{t('crm.discountAppliedBadge', { percent: discountPercent })}</Badge>
               )}
             </div>
             {contractDate && (
