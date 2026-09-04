@@ -163,8 +163,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
             });
           },
         );
+    // The await above now lasts up to 34 seconds instead of two, which turns a
+    // theoretical race into a likely one: background the app, or let the router
+    // pop this screen, and every setState below fires on a disposed State and
+    // throws. One guard, immediately after the await, covers all of them.
+    if (!mounted) return;
     _setLoading(false);
-    if (mounted) setState(() => _retryNotice = null);
+    setState(() => _retryNotice = null);
 
     if (result.error != null) {
       // Server-side error string passes through unchanged; the
