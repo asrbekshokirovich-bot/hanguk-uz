@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../l10n/app_localizations.dart';
@@ -46,6 +47,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
   bool _loading = false;
   String? _error;
   String? _success;
+
+  /// "Still trying (2/6)" while the repository works through its backoff.
+  ///
+  /// Without this the app looks frozen for up to half a minute when the
+  /// backend is briefly unreachable — and a reviewer who sees a frozen screen
+  /// reports a bug just as readily as one who sees an error.
+  String? _retryNotice;
+
+  /// Set once a sign-in attempt has failed on infrastructure rather than on
+  /// the code. It offers the way out of the screen — see the guest button in
+  /// [build] and the note on 2.1(a) there.
+  bool _offerGuest = false;
 
   @override
   void initState() {
@@ -128,18 +141,49 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     }
 
     _setError(null);
+    setState(() {
+      _offerGuest = false;
+      _retryNotice = null;
+    });
     _setLoading(true);
     final result = await ref
         .read(authRepositoryProvider)
-        .signInWithMagicCode(code);
+        .signInWithMagicCode(
+          code,
+          onRetry: (attempt, total) {
+            if (!mounted) return;
+            final l10n = AppLocalizations.of(context)!;
+            setState(() {
+              // Reuses an existing key on purpose: `flutter gen-l10n` cannot be
+              // run where this was written, so a new .arb entry would compile
+              // everywhere except here — and an untested l10n change on the
+              // login screen is exactly the risk this patch exists to remove.
+              // The counter carries the extra meaning and needs no translation.
+              _retryNotice = '${l10n.connecting} ($attempt/$total)';
+            });
+          },
+        );
     _setLoading(false);
+    if (mounted) setState(() => _retryNotice = null);
 
     if (result.error != null) {
       // Server-side error string passes through unchanged; the
       // auth_repository normalizes it for display.
       _setError(result.error);
+      // A sign-in that failed on infrastructure must not leave the app with
+      // nothing to look at. Six App Review rejections, and on 2026-09-01 the
+      // reviewer's three requests were answered by the hosting gateway with
+      // HTTP 502 before they reached our code — the app was blameless and was
+      // rejected anyway, under 2.1(a), because the login screen was as far as
+      // anyone got. Guest mode already shows the universities, the map and the
+      // comparison; offering it here means a backend blip costs the visitor a
+      // sign-in, not the whole app.
+      if (result.transient) {
+        setState(() => _offerGuest = true);
+      }
     }
   }
+
 
   // ─── Public Student Sign Up (Phone) ─────────────────────────────────────────
 
@@ -265,6 +309,34 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                         message: _error!,
                         tint: SeoulColors.dangerText,
                         fill: SeoulColors.dangerFill,
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+                    // Sign-in is retrying underneath. Saying so is the whole
+                    // point: half a minute of a spinner reads as a hung app.
+                    if (_retryNotice != null) ...[
+                      _MessageCard(
+                        message: _retryNotice!,
+                        tint: SeoulColors.infoText,
+                        fill: SeoulColors.infoFill,
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+                    // The way out when sign-in failed on infrastructure. On
+                    // 2026-09-01 the reviewer's three requests were answered
+                    // by the hosting gateway with HTTP 502 before they reached
+                    // our code, and the app was rejected under 2.1(a) because
+                    // the login screen was as far as anyone got. Guest mode
+                    // already shows the universities, the map and the
+                    // comparison — so a backend blip now costs a sign-in, not
+                    // the whole app.
+                    if (_offerGuest) ...[
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton(
+                          onPressed: () => context.go('/guest'),
+                          child: Text(l10n.welcomeExploreCta),
+                        ),
                       ),
                       const SizedBox(height: 16),
                     ],
