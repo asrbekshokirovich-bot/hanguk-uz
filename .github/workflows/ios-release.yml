@@ -1,0 +1,269 @@
+name: iOS release to App Store Connect
+
+# One button. Build, verify, sign, upload, attach to the version, push the
+# listing text and the screenshots — then stop, so a person still decides when
+# to submit for review.
+#
+# ── WHY ────────────────────────────────────────────────────────────────────
+#
+# Six rejections between 2026-08-05 and 2026-09-01. Four of them were not
+# defects in the app; they were steps somebody had to remember:
+#
+#   * the build was uploaded but never attached to the version, so three
+#     consecutive reviews examined an old binary,
+#   * stale iPad screenshots survived in slots visible only through Media
+#     Manager,
+#   * the support URL pointed at a domain with no support page,
+#   * the description was corrected in one language and left stale in another.
+#
+# Nothing here is clever. It is the same checklist, executed by something that
+# does not get tired at eleven at night. ios-verify.yml already asserts the
+# build settings on every PR; this workflow is the release itself.
+#
+# ── ONE-TIME SETUP (the person with the Apple account does this once) ──────
+#
+# Settings -> Secrets and variables -> Actions -> New repository secret:
+#
+#   ASC_KEY_ID        App Store Connect -> Users and Access -> Integrations ->
+#                     App Store Connect API -> generate a key with the
+#                     "App Manager" role. This is the Key ID column.
+#   ASC_ISSUER_ID     The Issuer ID shown above the key list on that page.
+#   ASC_KEY_P8        The downloaded AuthKey_XXXXXXXX.p8, base64-encoded:
+#                       base64 -i AuthKey_XXXXXXXX.p8 | pbcopy
+#                     Apple lets you download it exactly once.
+#
+#   IOS_DIST_CERT_P12       An Apple Distribution certificate exported from
+#                           Keychain Access as .p12 (with its private key),
+#                           base64-encoded.
+#   IOS_DIST_CERT_PASSWORD  The password set during that export.
+#   IOS_PROVISIONING_PROFILE  The App Store provisioning profile for
+#                           com.hanguk.studentapp.hangukApp
+#                           (developer.apple.com -> Profiles), base64-encoded.
+#
+#   DEMO_MAGIC_CODE   The App Review demo code. A secret on purpose: it is a
+#                     working credential for a real account and must never be
+#                     committed. fastlane writes it to disk for the length of
+#                     the upload and deletes it again.
+#
+# The certificate and profile expire (a year, and a year). When they do, this
+# job fails loudly with a signing error rather than shipping something broken.
+#
+# ── COST ──────────────────────────────────────────────────────────────────
+#
+# macOS runners bill at 10x Linux. Manual dispatch only; never on push.
+
+on:
+  workflow_dispatch:
+    inputs:
+      lane:
+        description: "release = build + upload + metadata. metadata = listing text and screenshots only, no build."
+        type: choice
+        options: [release, metadata]
+        default: release
+      build_number:
+        description: "iOS build number. Blank = the +NNNN from pubspec.yaml. Must be higher than anything already uploaded."
+        required: false
+        default: ""
+      flutter_version:
+        description: "Flutter version to build with. Blank = latest stable."
+        required: false
+        default: ""
+
+concurrency:
+  group: ios-release
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  BUNDLE_ID: com.hanguk.studentapp.hangukApp
+
+jobs:
+  release:
+    runs-on: macos-15
+    timeout-minutes: 90
+    defaults:
+      run:
+        working-directory: hanguk_app
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Refuse to run without the credentials
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+          DEMO_MAGIC_CODE: ${{ secrets.DEMO_MAGIC_CODE }}
+          IOS_DIST_CERT_P12: ${{ secrets.IOS_DIST_CERT_P12 }}
+          IOS_PROVISIONING_PROFILE: ${{ secrets.IOS_PROVISIONING_PROFILE }}
+        run: |
+          set -euo pipefail
+          # Failing here costs ten seconds. Failing at the upload step costs
+          # forty minutes of a 10x-priced runner and reads like a mystery.
+          missing=""
+          for v in ASC_KEY_ID ASC_ISSUER_ID ASC_KEY_P8 DEMO_MAGIC_CODE; do
+            [ -n "${!v:-}" ] || missing="$missing $v"
+          done
+          if [ "${{ inputs.lane }}" = "release" ]; then
+            for v in IOS_DIST_CERT_P12 IOS_PROVISIONING_PROFILE; do
+              [ -n "${!v:-}" ] || missing="$missing $v"
+            done
+          fi
+          if [ -n "$missing" ]; then
+            echo "::error::Missing repository secrets:$missing"
+            echo "See the header of .github/workflows/ios-release.yml for how to create each one."
+            exit 1
+          fi
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ inputs.flutter_version }}
+          cache: true
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+          working-directory: hanguk_app/ios
+
+      - name: Resolve the build number
+        id: ver
+        run: |
+          set -euo pipefail
+          # pubspec's `version: 1.0.27+2044` is the default. A manual override
+          # exists because App Store Connect rejects a build number it has
+          # already seen, and re-uploading after a failed submission is
+          # ordinary.
+          if [ -n "${{ inputs.build_number }}" ]; then
+            n="${{ inputs.build_number }}"
+          else
+            n="$(grep -m1 '^version:' pubspec.yaml | sed 's/.*+//')"
+          fi
+          name="$(grep -m1 '^version:' pubspec.yaml | sed 's/^version: *//; s/+.*//')"
+          echo "build=$n"   >> "$GITHUB_OUTPUT"
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+          echo "Building $name ($n)"
+
+      # ── Signing ─────────────────────────────────────────────────────────
+      # A throwaway keychain, unlocked for this job and destroyed with the
+      # runner. Nothing is written to the default login keychain, and the
+      # certificate never touches a developer's laptop.
+      - name: Install the signing identity
+        if: inputs.lane == 'release'
+        env:
+          IOS_DIST_CERT_P12: ${{ secrets.IOS_DIST_CERT_P12 }}
+          IOS_DIST_CERT_PASSWORD: ${{ secrets.IOS_DIST_CERT_PASSWORD }}
+          IOS_PROVISIONING_PROFILE: ${{ secrets.IOS_PROVISIONING_PROFILE }}
+        run: |
+          set -euo pipefail
+          KEYCHAIN="$RUNNER_TEMP/ios-release.keychain-db"
+          PASS="$(uuidgen)"
+
+          security create-keychain -p "$PASS" "$KEYCHAIN"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN"
+          security unlock-keychain -p "$PASS" "$KEYCHAIN"
+
+          echo "$IOS_DIST_CERT_P12" | base64 --decode > "$RUNNER_TEMP/dist.p12"
+          security import "$RUNNER_TEMP/dist.p12" -k "$KEYCHAIN" \
+            -P "$IOS_DIST_CERT_PASSWORD" -T /usr/bin/codesign -T /usr/bin/security
+          # Without this, codesign blocks on a GUI prompt no one can answer
+          # and the job hangs until the timeout.
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$PASS" "$KEYCHAIN" >/dev/null
+          security list-keychains -d user -s "$KEYCHAIN" $(security list-keychains -d user | tr -d '"')
+
+          PROFILES="$HOME/Library/MobileDevice/Provisioning Profiles"
+          mkdir -p "$PROFILES"
+          echo "$IOS_PROVISIONING_PROFILE" | base64 --decode > "$RUNNER_TEMP/profile.mobileprovision"
+          UUID="$(security cms -D -i "$RUNNER_TEMP/profile.mobileprovision" \
+                  | plutil -extract UUID raw -)"
+          cp "$RUNNER_TEMP/profile.mobileprovision" "$PROFILES/$UUID.mobileprovision"
+          echo "PROFILE_UUID=$UUID" >> "$GITHUB_ENV"
+
+          rm -f "$RUNNER_TEMP/dist.p12"
+          security find-identity -v -p codesigning "$KEYCHAIN"
+
+      - name: Write the export options
+        if: inputs.lane == 'release'
+        run: |
+          set -euo pipefail
+          TEAM="$(security cms -D -i "$RUNNER_TEMP/profile.mobileprovision" \
+                  | plutil -extract TeamIdentifier.0 raw -)"
+          NAME="$(security cms -D -i "$RUNNER_TEMP/profile.mobileprovision" \
+                  | plutil -extract Name raw -)"
+          cat > "$RUNNER_TEMP/ExportOptions.plist" <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>teamID</key><string>$TEAM</string>
+            <key>signingStyle</key><string>manual</string>
+            <key>uploadSymbols</key><true/>
+            <key>provisioningProfiles</key><dict>
+              <key>$BUNDLE_ID</key><string>$NAME</string>
+            </dict>
+          </dict></plist>
+          PLIST
+          plutil -lint "$RUNNER_TEMP/ExportOptions.plist"
+
+      # ── Build ───────────────────────────────────────────────────────────
+      - name: Build the IPA
+        if: inputs.lane == 'release'
+        run: |
+          set -euo pipefail
+          flutter --version
+          flutter pub get
+          # STORE_BUILD=true removes the in-app self-update path. Google Play
+          # blocked a release over it once; an App Store binary without it
+          # invites guideline 2.5.2.
+          flutter build ipa --release \
+            --dart-define=STORE_BUILD=true \
+            --build-name="${{ steps.ver.outputs.name }}" \
+            --build-number="${{ steps.ver.outputs.build }}" \
+            --export-options-plist="$RUNNER_TEMP/ExportOptions.plist"
+          ls -la build/ios/ipa/
+
+      - name: Name the IPA what fastlane expects
+        if: inputs.lane == 'release'
+        run: |
+          set -euo pipefail
+          # `flutter build ipa` names the file after the Xcode scheme's display
+          # name, which is not stable across Flutter versions. The Fastfile
+          # looks for one path, so normalize rather than guess.
+          src="$(ls build/ios/ipa/*.ipa | head -1)"
+          [ "$src" = "build/ios/ipa/hanguk_app.ipa" ] || mv "$src" build/ios/ipa/hanguk_app.ipa
+          ls -la build/ios/ipa/hanguk_app.ipa
+
+      # ── Upload ──────────────────────────────────────────────────────────
+      - name: Upload and push metadata
+        working-directory: hanguk_app/ios
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+          DEMO_MAGIC_CODE: ${{ secrets.DEMO_MAGIC_CODE }}
+          FASTLANE_SKIP_UPDATE_CHECK: "1"
+          FASTLANE_HIDE_CHANGELOG: "1"
+          # Apple's API returns 429 during busy periods; deliver retries rather
+          # than failing a forty-minute job on a transient throttle.
+          SPACESHIP_TIMEOUT: "120"
+        run: bundle exec fastlane ${{ inputs.lane }}
+
+      - name: Keep the IPA for the record
+        if: inputs.lane == 'release'
+        uses: actions/upload-artifact@v4
+        with:
+          name: hanguk-ios-${{ steps.ver.outputs.name }}-${{ steps.ver.outputs.build }}
+          path: hanguk_app/build/ios/ipa/*.ipa
+          retention-days: 30
+          if-no-files-found: error
+
+      - name: What happens next
+        run: |
+          echo "### iOS release finished" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Version **${{ steps.ver.outputs.name }} (${{ steps.ver.outputs.build }})** is uploaded, attached to the version, and the listing is current in en-US, ko and ru." >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "**Nothing has been submitted for review.** Open App Store Connect, check the page once, and press Submit for Review." >> "$GITHUB_STEP_SUMMARY"

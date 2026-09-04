@@ -27,3 +27,17 @@ hanguk_uz_redesign/
 *.sw?
 applications_kanban_package/
 leads_redesign_package/
+
+# App Review's demo Magic Code is a working credential for a real account.
+# fastlane writes these two files from the DEMO_MAGIC_CODE secret for the
+# length of an upload and deletes them again; if a local run is interrupted
+# they can survive, and they must never reach a commit.
+hanguk_app/ios/fastlane/metadata/review_information/demo_user.txt
+hanguk_app/ios/fastlane/metadata/review_information/demo_password.txt
+hanguk_app/ios/fastlane/report.xml
+hanguk_app/ios/fastlane/Preview.html
+
+# Assembled from store/listings/screenshots/captured at release time by
+# ios/fastlane/Fastfile. Committing it would be a second copy of the same
+# megabytes, free to drift from the first.
+hanguk_app/ios/fastlane/screenshots/*/

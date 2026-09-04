@@ -1,0 +1,35 @@
+HOW TO SIGN IN
+
+The app has a single field on the sign-in screen: a Magic Code. Please
+enter the demo code shown in the User Name field. The same value is
+repeated in the Password field because App Store Connect requires both
+fields; the app itself asks for the code only once.
+
+The code is case-insensitive and 8 characters long.
+
+ABOUT THE PREVIOUS REVIEW (2026-09-01)
+
+The sign-in failure reported in that review was an outage at our hosting
+provider's gateway, not a fault in the app. Our request logs show the
+three sign-in attempts from the review device were answered with HTTP 502
+in 6-12 ms, with an empty deployment identifier, before they reached our
+authentication service; requests from other regions minutes later
+succeeded normally. The submitted payloads were well-formed and contained
+the correct demo code.
+
+This build makes that class of failure non-blocking:
+
+- Sign-in retries a transient network failure over a 34-second window
+  with exponential backoff.
+- Each retry is displayed, so the app never appears frozen while working.
+- If sign-in still fails for infrastructure reasons, the app offers Guest
+  Explorer, where the university catalogue, the interactive map and the
+  comparison tool are fully usable without an account. A backend
+  interruption can no longer block access to the app.
+
+WHAT TO TRY
+
+After signing in: Study Plan (a plan is already in progress on the demo
+account), Personal Statement (a saved draft is present), Documents (one
+uploaded file), Explore and the university map, and the AI mock
+interview, which requests microphone permission.
