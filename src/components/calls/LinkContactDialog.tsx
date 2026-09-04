@@ -62,7 +62,7 @@ export function LinkContactDialog({
       const [students, leads] = await Promise.all([
         supabase.from('profiles').select('user_id, full_name, phone')
           .or(`full_name.ilike.${like},phone.ilike.${like}`).limit(8),
-        supabase.from('leads').select('id, full_name, phone')
+        supabase.from('leads').select('id, full_name, phone').eq('qualified', true)
           .or(`full_name.ilike.${like},phone.ilike.${like}`).limit(8),
       ]);
       if (!active) return;
