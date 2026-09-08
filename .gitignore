@@ -41,3 +41,8 @@ hanguk_app/ios/fastlane/Preview.html
 # ios/fastlane/Fastfile. Committing it would be a second copy of the same
 # megabytes, free to drift from the first.
 hanguk_app/ios/fastlane/screenshots/*/
+
+# Secrets — never commit. .env.edge held the service-role key until 2026-09-07.
+.env
+.env.*
+!.env.example
