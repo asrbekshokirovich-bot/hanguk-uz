@@ -4,6 +4,7 @@ import { BarChart3, Search, X } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import { useLeads } from '@/hooks/useLeads';
+import { useUserRole } from '@/hooks/useUserRole';
 import { LeadsTable } from '@/components/crm/leads/intake/LeadsTable';
 import { LeadIntakeScreen } from '@/components/crm/leads/intake/LeadIntakeScreen';
 import {
@@ -48,6 +49,7 @@ const LeadsContent = () => {
   const { t } = useTranslation();
   const { leads, loading, createLead, updateLead, convertToStudent, deleteLead, refetch } =
     useLeads();
+  const { isCallOperator } = useUserRole();
 
   // One clock for the render pass, so the table's "3 days ago", the form's
   // "tomorrow" button and the semester list all agree with each other.
@@ -179,7 +181,6 @@ const LeadsContent = () => {
   const handleCallResult = async (lead: Lead, result: string) => {
     try {
       await updateLead(lead.id, { call_result: result || null } as any);
-      await refetch();
     } catch (error) {
       console.error('Failed to update call result:', error);
     }
@@ -214,14 +215,16 @@ const LeadsContent = () => {
             <p className="mt-1.5 text-sm text-muted-foreground">{t('leads.intake.subtitle')}</p>
           </div>
           <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => setStatsOpen(true)}
-              className="min-h-11 rounded-[10px] border border-input bg-background px-5 text-sm font-bold text-foreground transition hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              <BarChart3 className="mr-2 inline-block h-4 w-4" aria-hidden />
-              {t('leads.intake.report.title')}
-            </button>
+            {isCallOperator && (
+              <button
+                type="button"
+                onClick={() => setStatsOpen(true)}
+                className="min-h-11 rounded-[10px] border border-input bg-background px-5 text-sm font-bold text-foreground transition hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <BarChart3 className="mr-2 inline-block h-4 w-4" aria-hidden />
+                {t('leads.intake.report.title')}
+              </button>
+            )}
             <button
               type="button"
               onClick={() => setEditing('new')}
