@@ -140,3 +140,24 @@ verify_jwt = true
 # again inside the function against the messaging roles.
 [functions.translate-message]
 verify_jwt = true
+
+# --- Recovered 2026-09-07: functions that lived only on the live project -----
+
+# Click-to-call via Mediateka CRM-API. Staff JWT checked at the gateway and
+# again inside (owner/admin).
+[functions.mediateka-makecall]
+verify_jwt = true
+
+# TEMPORARY Uzbek TTS bake-off (ElevenLabs vs Azure). Gated by
+# VOICE_BAKEOFF_SECRET query param, so no JWT at the gateway.
+[functions.voice-bakeoff-tmp]
+verify_jwt = false
+
+# Retired 410 stub. Safe to delete here and on the server.
+[functions.tmp-voice-transcribe]
+verify_jwt = true
+
+# Hourly infra probe (API keys, call pipeline, Mediateka feed) → Telegram.
+# Called by pg_cron with the service-role key; the function re-checks the role.
+[functions.infra-health-check]
+verify_jwt = true
