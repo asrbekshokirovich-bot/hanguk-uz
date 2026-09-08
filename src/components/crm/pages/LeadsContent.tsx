@@ -4,7 +4,7 @@ import { BarChart3, Search, X } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import { useLeads } from '@/hooks/useLeads';
-import { useUserRole } from '@/hooks/useUserRole';
+import { useAuth } from '@/contexts/AuthContext';
 import { LeadsTable } from '@/components/crm/leads/intake/LeadsTable';
 import { LeadIntakeScreen } from '@/components/crm/leads/intake/LeadIntakeScreen';
 import {
@@ -49,7 +49,8 @@ const LeadsContent = () => {
   const { t } = useTranslation();
   const { leads, loading, createLead, updateLead, convertToStudent, deleteLead, refetch } =
     useLeads();
-  const { isCallOperator } = useUserRole();
+  const { user } = useAuth();
+  const canSeeReport = user?.id === '0525a29d-32ce-4c3e-94b1-bddf42a776f9';
 
   // One clock for the render pass, so the table's "3 days ago", the form's
   // "tomorrow" button and the semester list all agree with each other.
@@ -215,7 +216,7 @@ const LeadsContent = () => {
             <p className="mt-1.5 text-sm text-muted-foreground">{t('leads.intake.subtitle')}</p>
           </div>
           <div className="flex items-center gap-3">
-            {isCallOperator && (
+            {canSeeReport && (
               <button
                 type="button"
                 onClick={() => setStatsOpen(true)}
