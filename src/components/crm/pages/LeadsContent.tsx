@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Search } from 'lucide-react';
+import { BarChart3, ChevronDown, Search } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import { useLeads } from '@/hooks/useLeads';
@@ -24,6 +24,7 @@ import {
   noteWithRejection,
   noteWithoutRejection,
 } from '@/components/crm/leads/intake/outcome';
+import { CALL_RESULTS } from '@/components/crm/leads/intake/options';
 import type { Lead } from '@/contexts/LeadsContext';
 
 const TABS: LeadOutcome[] = ['active', 'converted', 'rejected'];
@@ -81,6 +82,20 @@ const LeadsContent = () => {
   }, [leads, query]);
 
   const shown = byOutcome[tab];
+
+  const [statsOpen, setStatsOpen] = useState(false);
+
+  const callStats = useMemo(() => {
+    const total = leads.length;
+    const counts: Record<string, number> = { notContacted: 0 };
+    for (const r of CALL_RESULTS) counts[r] = 0;
+    for (const lead of leads) {
+      if (!lead.call_result) counts.notContacted++;
+      else if (lead.call_result in counts) counts[lead.call_result]++;
+    }
+    const pct = (n: number) => (total ? Math.round((n / total) * 100) : 0);
+    return { total, counts, pct };
+  }, [leads]);
 
   // Held as a memo rather than copied into the screen's state on open, so
   // reopening the same lead after a save starts from what was actually stored.
@@ -206,6 +221,96 @@ const LeadsContent = () => {
             {t('leads.intake.newLead')}
           </button>
         </div>
+
+        {!loading && leads.length > 0 && (
+          <div className="mb-5">
+            <button
+              type="button"
+              onClick={() => setStatsOpen((o) => !o)}
+              className={cn(
+                'flex w-full items-center gap-2 rounded-xl border px-5 py-3 text-left text-sm font-semibold transition',
+                'hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                statsOpen
+                  ? 'border-primary/30 bg-primary/5'
+                  : 'border-border bg-card',
+              )}
+            >
+              <BarChart3 className="h-4 w-4 text-primary" aria-hidden />
+              {t('leads.intake.report.title')}
+              <ChevronDown
+                className={cn(
+                  'ml-auto h-4 w-4 text-muted-foreground transition-transform',
+                  statsOpen && 'rotate-180',
+                )}
+                aria-hidden
+              />
+            </button>
+            {statsOpen && (
+              <div className="mt-2 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                <div className="rounded-xl border border-border bg-card px-4 py-3.5">
+                  <div className="text-xs font-medium text-muted-foreground">
+                    {t('leads.intake.report.notContacted')}
+                  </div>
+                  <div className="mt-1 flex items-baseline gap-2">
+                    <span className="text-2xl font-bold tabular-nums">{callStats.counts.notContacted}</span>
+                    <span className="text-xs tabular-nums text-muted-foreground">{callStats.pct(callStats.counts.notContacted)}%</span>
+                  </div>
+                  <div className="mt-2 h-1.5 rounded-full bg-muted">
+                    <div
+                      className="h-full rounded-full bg-muted-foreground/40 transition-all"
+                      style={{ width: `${callStats.pct(callStats.counts.notContacted)}%` }}
+                    />
+                  </div>
+                </div>
+                <div className="rounded-xl border border-emerald-400/30 bg-emerald-50/50 px-4 py-3.5 dark:bg-emerald-950/20">
+                  <div className="text-xs font-medium text-emerald-700 dark:text-emerald-400">
+                    Gaplashildi
+                  </div>
+                  <div className="mt-1 flex items-baseline gap-2">
+                    <span className="text-2xl font-bold tabular-nums text-emerald-700 dark:text-emerald-400">{callStats.counts['Gaplashildi']}</span>
+                    <span className="text-xs tabular-nums text-emerald-600/70 dark:text-emerald-500/70">{callStats.pct(callStats.counts['Gaplashildi'])}%</span>
+                  </div>
+                  <div className="mt-2 h-1.5 rounded-full bg-emerald-200/50 dark:bg-emerald-900/30">
+                    <div
+                      className="h-full rounded-full bg-emerald-500 transition-all"
+                      style={{ width: `${callStats.pct(callStats.counts['Gaplashildi'])}%` }}
+                    />
+                  </div>
+                </div>
+                <div className="rounded-xl border border-amber-400/30 bg-amber-50/50 px-4 py-3.5 dark:bg-amber-950/20">
+                  <div className="text-xs font-medium text-amber-700 dark:text-amber-400">
+                    Telefon ko&apos;tarmadi
+                  </div>
+                  <div className="mt-1 flex items-baseline gap-2">
+                    <span className="text-2xl font-bold tabular-nums text-amber-700 dark:text-amber-400">{callStats.counts["Telefon ko'tarmadi"]}</span>
+                    <span className="text-xs tabular-nums text-amber-600/70 dark:text-amber-500/70">{callStats.pct(callStats.counts["Telefon ko'tarmadi"])}%</span>
+                  </div>
+                  <div className="mt-2 h-1.5 rounded-full bg-amber-200/50 dark:bg-amber-900/30">
+                    <div
+                      className="h-full rounded-full bg-amber-500 transition-all"
+                      style={{ width: `${callStats.pct(callStats.counts["Telefon ko'tarmadi"])}%` }}
+                    />
+                  </div>
+                </div>
+                <div className="rounded-xl border border-red-400/30 bg-red-50/50 px-4 py-3.5 dark:bg-red-950/20">
+                  <div className="text-xs font-medium text-red-700 dark:text-red-400">
+                    Nomer xato
+                  </div>
+                  <div className="mt-1 flex items-baseline gap-2">
+                    <span className="text-2xl font-bold tabular-nums text-red-700 dark:text-red-400">{callStats.counts['Nomer xato']}</span>
+                    <span className="text-xs tabular-nums text-red-600/70 dark:text-red-500/70">{callStats.pct(callStats.counts['Nomer xato'])}%</span>
+                  </div>
+                  <div className="mt-2 h-1.5 rounded-full bg-red-200/50 dark:bg-red-900/30">
+                    <div
+                      className="h-full rounded-full bg-red-500 transition-all"
+                      style={{ width: `${callStats.pct(callStats.counts['Nomer xato'])}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Toggle buttons rather than a tablist: there is one list below them
             that they filter, not three panels to switch between. The search box

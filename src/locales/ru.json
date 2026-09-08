@@ -737,6 +737,10 @@
         "status": "Статус",
         "actions": "Действия"
       },
+      "report": {
+        "title": "Отчёт по звонкам",
+        "notContacted": "Не связались"
+      },
       "status": {
         "complete": "Заполнено",
         "incomplete": "Не заполнено",

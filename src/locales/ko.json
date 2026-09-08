@@ -724,6 +724,10 @@
         "status": "상태",
         "actions": "작업"
       },
+      "report": {
+        "title": "통화 결과 보고서",
+        "notContacted": "미연락"
+      },
       "status": {
         "complete": "작성 완료",
         "incomplete": "미완성",
