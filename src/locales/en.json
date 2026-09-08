@@ -731,6 +731,10 @@
         "status": "Status",
         "actions": "Actions"
       },
+      "report": {
+        "title": "Call Result Report",
+        "notContacted": "Not contacted"
+      },
       "status": {
         "complete": "Complete",
         "incomplete": "Incomplete",
