@@ -720,6 +720,7 @@
         "semester": "학기",
         "cert": "어학 성적",
         "age": "나이",
+        "callResult": "통화 결과",
         "status": "상태",
         "actions": "작업"
       },

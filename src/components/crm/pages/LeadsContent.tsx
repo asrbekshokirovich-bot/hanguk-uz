@@ -161,6 +161,15 @@ const LeadsContent = () => {
     setPending({ mode: 'convert', lead });
   };
 
+  const handleCallResult = async (lead: Lead, result: string) => {
+    try {
+      await updateLead(lead.id, { call_result: result || null } as any);
+      await refetch();
+    } catch (error) {
+      console.error('Failed to update call result:', error);
+    }
+  };
+
   const handleRestore = async (lead: Lead) => {
     setBusy(true);
     try {
@@ -263,6 +272,7 @@ const LeadsContent = () => {
             onConvert={(lead) => setPending({ mode: 'convert', lead })}
             onReject={(lead) => setPending({ mode: 'reject', lead })}
             onRestore={handleRestore}
+            onCallResult={handleCallResult}
             busy={busy}
             now={now}
           />
