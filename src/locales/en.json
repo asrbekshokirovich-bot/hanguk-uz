@@ -727,6 +727,7 @@
         "semester": "Semester",
         "cert": "Certificate",
         "age": "Age",
+        "callResult": "Call Result",
         "status": "Status",
         "actions": "Actions"
       },

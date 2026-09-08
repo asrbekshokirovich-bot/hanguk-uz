@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import { describeDate, initialsOf, isLeadComplete, splitName } from './intakeForm';
 import { canConvertLead, leadOutcome } from './outcome';
 import { useRelativeDate } from './useRelativeDate';
+import { CALL_RESULTS } from './options';
 
 interface LeadsTableProps {
   leads: Lead[];
@@ -15,13 +16,15 @@ interface LeadsTableProps {
   onReject: (lead: Lead) => void;
   /** Put a rejected lead back into the active list. */
   onRestore: (lead: Lead) => void;
+  /** Update call result for a lead. */
+  onCallResult: (lead: Lead, result: string) => void;
   /** A write is in flight; the actions are held so none of them fires twice. */
   busy: boolean;
   now: Date;
 }
 
 /** Column widths, kept in one place so the header and the rows cannot drift. */
-const GRID = 'grid-cols-[2.1fr_1.2fr_1fr_0.9fr_1fr_0.9fr_1fr_0.6fr_0.6fr_1fr_1.4fr]';
+const GRID = 'grid-cols-[2.1fr_1.2fr_1fr_0.9fr_1fr_0.9fr_1fr_0.6fr_0.6fr_1.1fr_1fr_1.4fr]';
 
 /** A dash reads as "not answered"; an empty cell reads as a rendering bug. */
 const Cell = ({ value, className }: { value: string | null; className?: string }) => (
@@ -51,6 +54,7 @@ export const LeadsTable = ({
   onConvert,
   onReject,
   onRestore,
+  onCallResult,
   busy,
   now,
 }: LeadsTableProps) => {
@@ -76,6 +80,7 @@ export const LeadsTable = ({
           <div>{t('leads.intake.columns.semester')}</div>
           <div>{t('leads.intake.columns.cert')}</div>
           <div>{t('leads.intake.columns.age')}</div>
+          <div>{t('leads.intake.columns.callResult')}</div>
           <div>{t('leads.intake.columns.status')}</div>
           <div>{t('leads.intake.columns.actions')}</div>
         </div>
@@ -146,6 +151,30 @@ export const LeadsTable = ({
                 <Cell value={lead.target_intake} className="whitespace-nowrap" />
                 <Cell value={lead.cert_level} />
                 <Cell value={lead.age == null ? null : String(lead.age)} className="tabular-nums" />
+              </div>
+
+              <div className="relative z-10">
+                <select
+                  value={lead.call_result ?? ''}
+                  onChange={(e) => {
+                    e.stopPropagation();
+                    onCallResult(lead, e.target.value);
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                  className={cn(
+                    'w-full cursor-pointer rounded-md border px-2 py-1.5 text-xs font-semibold transition',
+                    'bg-card focus:outline-none focus:ring-2 focus:ring-ring',
+                    !lead.call_result && 'text-muted-foreground',
+                    lead.call_result === 'Gaplashildi' && 'border-emerald-400/50 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400',
+                    lead.call_result === "Telefon ko'tarmadi" && 'border-amber-400/50 bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400',
+                    lead.call_result === 'Nomer xato' && 'border-red-400/50 bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400',
+                  )}
+                >
+                  <option value="">—</option>
+                  {CALL_RESULTS.map((r) => (
+                    <option key={r} value={r}>{r}</option>
+                  ))}
+                </select>
               </div>
 
               <div className="pointer-events-none">

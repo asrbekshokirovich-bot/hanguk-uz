@@ -90,6 +90,9 @@ export const semesterOptions = (now: Date = new Date()): string[] => {
   return [`Bahorgi ${year}`, `Kuzgi ${year}`, `Bahorgi ${year + 1}`, `Kuzgi ${year + 1}`];
 };
 
+/** Call result options. Stored in `call_result`. */
+export const CALL_RESULTS = ['Gaplashildi', 'Telefon ko\'tarmadi', 'Nomer xato'] as const;
+
 /** The age band the intake form accepts. The column allows a wider range. */
 export const MIN_AGE = 15;
 export const MAX_AGE = 45;

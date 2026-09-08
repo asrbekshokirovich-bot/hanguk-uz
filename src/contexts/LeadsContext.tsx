@@ -44,6 +44,7 @@ export interface Lead {
   contract_number: string | null;
   contract_date: string | null;
   payment_plan: string | null;
+  call_result: string | null;
   assignee?: {
     full_name: string | null;
   };
@@ -80,6 +81,7 @@ export interface CreateLeadData {
   contact_channel?: string | null;
   source_note?: string | null;
   target_intake?: string | null;
+  call_result?: string | null;
   next_follow_up?: string;
   last_contacted_at?: string;
   contract_number?: string;
