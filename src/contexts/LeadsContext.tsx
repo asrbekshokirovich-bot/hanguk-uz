@@ -144,7 +144,11 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
     try {
       setLoading(true);
       const [{ data, error }, { data: studentProfiles }, { data: allProfiles }] = await Promise.all([
-        applyIntake(supabase.from('leads').select('*'), activeIntakeId),
+        // Only qualified rows. A conversation with no phone number is a contact,
+        // not a lead — see leads.qualified. Without this filter the 192 Instagram
+        // handles auto-created from chats sit in the pipeline as unworkable rows
+        // and distort every count on the page.
+        applyIntake(supabase.from('leads').select('*').eq('qualified', true), activeIntakeId),
         supabase.from('profiles').select('full_name, phone, magic_code').not('magic_code', 'is', null),
         supabase.from('profiles').select('user_id, full_name'),
       ]);

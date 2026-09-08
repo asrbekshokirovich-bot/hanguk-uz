@@ -1046,7 +1046,9 @@
       "hideTranslation": "Hide translation",
       "translating": "Translating…",
       "sending": "Sending…",
-      "internalNoteLabel": "Internal note · not sent to student"
+      "internalNoteLabel": "Internal note · not sent to student",
+      "linkContact": "Attach to a student or lead",
+      "relinkContact": "Change who this is attached to"
     },
     "composer": {
       "label": "Write a reply",
@@ -1058,7 +1060,10 @@
       "hintSend": "Sends in {{language}} · auto-translated",
       "hintNote": "Visible to staff only",
       "send": "Send",
-      "saveNote": "Save note"
+      "saveNote": "Save note",
+      "attach": "Attach a file",
+      "removeAttachment": "Remove attachment",
+      "fileTooLarge": "File is too large (up to {{limit}})"
     },
     "savedReplies": {
       "docs": "Document checklist",
@@ -1124,7 +1129,9 @@
       "noteFailed": "Could not save the internal note.",
       "sendFailed": "Could not send the message. Check that the Instagram/Telegram integration is configured.",
       "translationUnavailableTitle": "Translation unavailable",
-      "translationUnavailableBody": "No translation service is configured yet. Cached translations still display."
+      "translationUnavailableBody": "No translation service is configured yet. Cached translations still display.",
+      "translateFailed": "Could not translate",
+      "sentUntranslated": "The message was sent in the original language."
     },
     "media": {
       "voice": "Voice message",
@@ -1132,6 +1139,10 @@
       "file": "File",
       "loading": "Loading attachment…",
       "unavailable": "Attachment unavailable"
+    },
+    "day": {
+      "today": "Today",
+      "yesterday": "Yesterday"
     }
   },
   "errors": {
@@ -1677,7 +1688,14 @@
       "rejectReason": "Rejection reason:",
       "confirmReject": "Confirm rejection",
       "cancel": "Cancel",
-      "flagSource": "Wrong source — reject every section from this PDF"
+      "flagSource": "Wrong source — reject every section from this PDF",
+      "edit": "Edit",
+      "editTitle": "Correct the extracted data before approving",
+      "saveEdit": "Save",
+      "editInvalidJson": "Invalid JSON — fix the syntax before saving",
+      "editPayloadEmpty": "The corrected payload can't be empty",
+      "editSchemaInvalid": "This doesn't match the {{section}} format: {{detail}}",
+      "savedNotApproved": "Correction saved — not approved yet"
     },
     "decided": {
       "approved": "Approved — published to students",
@@ -1687,7 +1705,8 @@
     "toast": {
       "approved": "Approved — {{uni}}: {{section}}",
       "rejected": "Rejected — {{uni}}: {{section}}",
-      "flagged": "{{n}} section(s) rejected — source flagged as wrong"
+      "flagged": "{{n}} section(s) rejected — source flagged as wrong",
+      "saved": "Saved"
     },
     "reasons": {
       "wrong_year": "Wrong year / cycle",
@@ -1713,7 +1732,9 @@
       "regOpen": "Registration opens",
       "regClose": "Registration closes",
       "orientation": "Orientation day",
-      "offline": "Offline application"
+      "offline": "Offline application",
+      "supplementary": "Supplementary admission (추가합격)",
+      "supplementaryWaves": "{{count}} waves"
     },
     "req": {
       "foreignTrack": "International applicants ({{cat}})",
@@ -1821,6 +1842,10 @@
       "checkAction": "No split boundary was found — there is nothing to split, so the document does not need to be divided. Read it before trusting the figures: if it covers a single level, clear it with \"Approve\"; if it really does mix two levels, press \"Reject\".",
       "levels": "Levels found:",
       "action": "This is not a data card — there is no figure to approve. Split the document into two separate admission cycles, then clear it with \"Approve\"; if the split was detected wrongly, press \"Reject\".",
+      "splitActionHint": "\"Split\" creates separate admission cycles for the undergraduate and graduate tracks and clears this card. Each track's data fills in during the next review pass.",
+      "splitAction": "Split",
+      "splitActionTitle": "Split this document into separate undergraduate and graduate admission cycles",
+      "splitDone": "Document split — two separate admission cycles created",
       "rawToggle": "Technical detail",
       "level": {
         "associate": "Associate (전문학사)",
@@ -1833,6 +1858,92 @@
       "badge": "Rejected",
       "badgeTitle": "This section was rejected earlier. Approving reverses that decision.",
       "note": "Rejected earlier — {{reason}}"
+    },
+    "edit": {
+      "form": "Form",
+      "rawJson": "Raw JSON",
+      "empty": "Nothing here yet.",
+      "event": "Event",
+      "row": "Row",
+      "remove": "Remove",
+      "addEvent": "Add event",
+      "addRow": "Add row",
+      "yes": "Yes",
+      "no": "No",
+      "invalid": "Invalid — fix before saving:",
+      "f": {
+        "applicantCategory": "Applicant category (track)",
+        "topikStatus": "TOPIK status",
+        "topikMinLevel": "TOPIK min level",
+        "englishStatus": "English status",
+        "gpaStatus": "GPA status",
+        "gpaFloorPct": "GPA floor (%)",
+        "interviewRequired": "Interview required?",
+        "practicalExamRequired": "Practical exam?",
+        "proseKo": "Eligibility (Korean)",
+        "documentType": "Document type",
+        "isRequired": "Required?",
+        "apostilleRequired": "Apostille required?",
+        "appliesToRound": "Applies to round",
+        "deadline": "Deadline",
+        "notesKo": "Notes (Korean)",
+        "nameKo": "Name (Korean)",
+        "nameEn": "Name (English)",
+        "scope": "Scope",
+        "awardType": "Award type",
+        "awardValue": "Award value",
+        "facultyGroup": "Faculty group",
+        "academicYear": "Academic year",
+        "semesterNumber": "Semester",
+        "amountKrw": "Tuition (KRW)",
+        "admissionFeeKrw": "Admission fee (KRW)",
+        "isFirstSemester": "First semester?",
+        "eventType": "Event type",
+        "startsAt": "Starts (Korea time)",
+        "endsAt": "Ends (Korea time)",
+        "isTentative": "Tentative?",
+        "roundLabel": "Round label",
+        "roundKind": "Round kind"
+      },
+      "o": {
+        "required": "Required",
+        "not_required": "Not required",
+        "not_stated": "Not stated",
+        "apply_open": "Applications open",
+        "apply_close": "Applications close",
+        "document_submission_deadline": "Document deadline",
+        "first_stage_results": "First-stage results",
+        "interview": "Interview",
+        "practical_exam": "Practical exam",
+        "final_results": "Final results",
+        "additional_admit": "Supplementary admission",
+        "registration_open": "Registration opens",
+        "registration_close": "Registration closes",
+        "orientation": "Orientation",
+        "semester_start": "Semester start",
+        "other": "Other",
+        "application": "Application round",
+        "supplementary": "Supplementary wave",
+        "season": "Admission season (수시/정시)",
+        "term": "Semester (전기/후기)"
+      },
+      "emptyHint": "Nothing was extracted for this section. Open the PDF and enter it by hand, or reject the card."
     }
+  },
+  "linkContact": {
+    "title": "Attach {{name}} to…",
+    "hintPhone": "Pick the student or lead this number belongs to. Future calls will link automatically.",
+    "hintChat": "Pick the student or lead this chat belongs to. Future messages will link automatically.",
+    "searchPlaceholder": "Search by name or phone…",
+    "searching": "Searching…",
+    "noMatches": "No matches.",
+    "noPhone": "No phone",
+    "student": "Student",
+    "lead": "Lead",
+    "linked": "Linked",
+    "linkedBody": "Now attached to {{name}}.",
+    "failed": "Could not link contact",
+    "noIdentifierTitle": "Nothing to attach",
+    "noIdentifierBody": "This conversation has no usable identifier."
   }
 }

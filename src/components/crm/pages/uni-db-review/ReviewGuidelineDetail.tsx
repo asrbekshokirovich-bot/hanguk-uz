@@ -68,6 +68,8 @@ export function ReviewGuidelineDetail({
   onStartReject,
   onCancelReject,
   editingRowId,
+  editDraft,
+  onEditDraftChange,
   onStartEdit,
   onCancelEdit,
   handlers,
@@ -83,6 +85,8 @@ export function ReviewGuidelineDetail({
   onStartReject: (row: ReviewQueueRow) => void;
   onCancelReject: () => void;
   editingRowId: string | null;
+  editDraft: Record<string, unknown>;
+  onEditDraftChange: (v: Record<string, unknown>) => void;
   onStartEdit: (row: ReviewQueueRow) => void;
   onCancelEdit: () => void;
   handlers: SectionCardHandlers;
@@ -243,6 +247,8 @@ export function ReviewGuidelineDetail({
                 onStartReject={() => onStartReject(row)}
                 onCancelReject={onCancelReject}
                 isEditing={editingRowId === row.id}
+                editDraft={editDraft}
+                onEditDraftChange={onEditDraftChange}
                 onStartEdit={() => onStartEdit(row)}
                 onCancelEdit={onCancelEdit}
                 handlers={handlers}

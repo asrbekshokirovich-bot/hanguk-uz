@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useMessages } from '@/hooks/useMessages';
 import { useToast } from '@/hooks/use-toast';
 import type { Message } from '@/contexts/MessagesContext';
+import { LinkContactDialog } from '@/components/calls/LinkContactDialog';
 import { MessagesQueue } from '@/components/crm/messages/MessagesQueue';
 import { QueueClearState } from '@/components/crm/messages/QueueClearState';
 import { StudentContextRail } from '@/components/crm/messages/StudentContextRail';
@@ -14,7 +15,7 @@ import { useMessagesQueue } from '@/components/crm/messages/useMessagesQueue';
 import { useStudentContext } from '@/components/crm/messages/useStudentContext';
 import { useThreadMessages } from '@/components/crm/messages/useThreadMessages';
 import { useThreadTranslation } from '@/components/crm/messages/useThreadTranslation';
-import { translateMessage } from '@/components/crm/messages/translateMessage';
+import { translateMessage, translateTexts } from '@/components/crm/messages/translateMessage';
 import type {
   ChannelFilter,
   ConversationVM,
@@ -44,7 +45,7 @@ import type {
  * renders correctly but no producer writes `source = 'app'` yet.
  */
 export default function MessagesContent() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { toast } = useToast();
   const { user } = useAuth();
   const {
@@ -75,6 +76,7 @@ export default function MessagesContent() {
   const [contextOpen, setContextOpen] = useState(true);
   const [claiming, setClaiming] = useState(false);
   const [translatingId, setTranslatingId] = useState<string | null>(null);
+  const [linkOpen, setLinkOpen] = useState(false);
 
   const filtered = useMemo(
     () => sortConversations(filterConversations(conversations, tab, channel, query), tab),
@@ -190,7 +192,7 @@ export default function MessagesContent() {
 
   const handleSend = useCallback(
     async (
-      text: string,
+      rawText: string,
       options: { internal: boolean; language: SendLanguage; file?: File | null },
     ): Promise<boolean> => {
       if (!active || !selectedThread) return false;
@@ -236,6 +238,31 @@ export default function MessagesContent() {
       // messages — the file first, then the text — exactly like the IG app.
       // Telegram carries the text as the media caption in a single message.
       const file = options.file ?? null;
+
+      // The send-language chip used to be decorative: the operator picked
+      // "KO" and the Uzbek text went out untouched. It now means what it says
+      // — the message is translated before it is relayed, and the original is
+      // kept in metadata so the operator can see what they typed.
+      //
+      // Only when the chip differs from the interface language, so the common
+      // case (writing Uzbek, sending Uzbek) costs no round trip.
+      let text = rawText;
+      const uiLang = (i18n.language || 'uz').slice(0, 2).toUpperCase();
+      if (text && options.language && options.language !== uiLang) {
+        const [translated] = await translateTexts([text], options.language);
+        if (translated && translated.trim()) {
+          text = translated.trim();
+        } else {
+          // Sending the original beats not sending: the operator can see what
+          // went out and say it again in the other language if it matters.
+          toast({
+            title: t('messages.toast.translateFailed'),
+            description: t('messages.toast.sentUntranslated'),
+            variant: 'destructive',
+          });
+        }
+      }
+
       const send = (body: string, f?: File | null) =>
         sendMessage(body, selectedThread.source, selectedThread.sender_id, f);
       let result: { error: Error | null; queued: boolean };
@@ -267,7 +294,19 @@ export default function MessagesContent() {
       // Deliberately not awaited: the message is already on its way and on
       // screen, so the bookkeeping must not hold the composer hostage.
       if (!active.isAssigned && user) {
-        void assignThread(active.threadId, user.id).then(() => refreshAssignments());
+        void assignThread(active.threadId, user.id).then(({ error }) => {
+          // Silently failing here leaves the conversation unclaimed after a
+          // reply, so a second operator can pick it up and answer twice.
+          if (error) {
+            toast({
+              title: t('common.error'),
+              description: t('messages.toast.claimFailed'),
+              variant: 'destructive',
+            });
+            return;
+          }
+          void refreshAssignments();
+        });
       }
       return true;
     },
@@ -285,11 +324,23 @@ export default function MessagesContent() {
   );
 
   const handleRetry = useCallback(
-    (messageId: string) => {
+    async (messageId: string) => {
       const row = messages.find((m) => m.id === messageId);
-      if (row) void retryMessage(row);
+      if (!row) return;
+      // A retry that fails used to look exactly like one still in flight: the
+      // returned error was dropped, and the only signal was the bubble
+      // flipping back — which does not happen at all if the row has since
+      // left the open stream.
+      const { error } = await retryMessage(row);
+      if (error) {
+        toast({
+          title: t('common.error'),
+          description: error.message || t('messages.toast.sendFailed'),
+          variant: 'destructive',
+        });
+      }
     },
-    [messages, retryMessage],
+    [messages, retryMessage, toast, t],
   );
 
   const handleToggleTranslation = useCallback(
@@ -314,6 +365,19 @@ export default function MessagesContent() {
     },
     [toggleMessage, toast, t],
   );
+
+  // Attaching a conversation to a person is keyed on the RAW thread row, not on
+  // the view model: `ConversationVM.channel` collapses whatsapp/manual into
+  // 'app', and what goes into `communication_identities.channel` has to be the
+  // real source or the identity will never be found again. 'app'/'manual'
+  // threads have no external account to key on, so they get no button.
+  const linkChannel =
+    selectedThread?.id === activeId &&
+    (selectedThread?.source === 'telegram' ||
+      selectedThread?.source === 'instagram' ||
+      selectedThread?.source === 'whatsapp')
+      ? (selectedThread.source as 'telegram' | 'instagram' | 'whatsapp')
+      : null;
 
   const unassignedCount = conversations.filter((c) => !c.isAssigned && !c.isDone).length;
   const mineCount = conversations.filter((c) => c.isMine && !c.isDone).length;
@@ -359,9 +423,20 @@ export default function MessagesContent() {
               onClaim={handleClaim}
               onMarkDone={handleMarkDone}
               onSend={handleSend}
+              onLinkContact={linkChannel ? () => setLinkOpen(true) : undefined}
             />
             {contextOpen && (
               <StudentContextRail conversation={active} student={student} loading={studentLoading} />
+            )}
+            {linkChannel && selectedThread && (
+              <LinkContactDialog
+                channel={linkChannel}
+                identifier={selectedThread.sender_id}
+                identifierLabel={active.name}
+                open={linkOpen}
+                onOpenChange={setLinkOpen}
+                onLinked={refreshAssignments}
+              />
             )}
           </>
         ) : (

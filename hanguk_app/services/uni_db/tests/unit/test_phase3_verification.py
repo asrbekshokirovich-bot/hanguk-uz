@@ -93,3 +93,26 @@ class TestSharedEventTypeTable:
         ]}
         issues = _issues(payload)
         assert any(i.problem == "out_of_order_dates" for i in issues)
+
+    def test_ordering_check_is_scoped_per_round(self) -> None:
+        # 2차's apply_open legitimately falls after 1차's final_results — that
+        # is two separate rounds, not one out-of-order round. Comparing
+        # across rounds (the old event_type-only keying) would have raised a
+        # false out_of_order_dates here.
+        payload = {"events": [
+            {"event_type": "apply_open", "starts_at": "2026-09-01", "round_label": "1차"},
+            {"event_type": "apply_close", "starts_at": "2026-09-15", "round_label": "1차"},
+            {"event_type": "final_results", "starts_at": "2026-09-25", "round_label": "1차"},
+            {"event_type": "apply_open", "starts_at": "2026-10-05", "round_label": "2차"},
+            {"event_type": "apply_close", "starts_at": "2026-10-19", "round_label": "2차"},
+        ]}
+        issues = _issues(payload)
+        assert not any(i.problem == "out_of_order_dates" for i in issues)
+
+    def test_ordering_check_still_catches_a_real_defect_within_one_round(self) -> None:
+        payload = {"events": [
+            {"event_type": "apply_open", "starts_at": "2026-09-15", "round_label": "1차"},
+            {"event_type": "apply_close", "starts_at": "2026-09-01", "round_label": "1차"},
+        ]}
+        issues = _issues(payload)
+        assert any(i.problem == "out_of_order_dates" for i in issues)

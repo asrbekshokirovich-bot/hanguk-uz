@@ -387,7 +387,18 @@ async def _publish_tuition(conn, rec, payload) -> int:
             """insert into public.tuition (institution_id, faculty_group, academic_year,
                  semester_number, amount_krw, admission_fee_krw, is_first_semester,
                  source_text_ko, extractor_confidence, needs_attention, attention_reason)
-               values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)""",
+               values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+               on conflict (institution_id,
+                 (coalesce(recruitment_unit_id, '00000000-0000-0000-0000-000000000000'::uuid)),
+                 academic_year, semester_number, faculty_group)
+               do update set
+                 amount_krw = excluded.amount_krw,
+                 admission_fee_krw = excluded.admission_fee_krw,
+                 is_first_semester = excluded.is_first_semester,
+                 source_text_ko = excluded.source_text_ko,
+                 extractor_confidence = excluded.extractor_confidence,
+                 needs_attention = excluded.needs_attention,
+                 attention_reason = excluded.attention_reason""",
             rec["institution_id"], tuition_faculty(r),
             year, sem, amount,
             _as_int(r.get("admission_fee_krw")), True,
@@ -425,7 +436,21 @@ async def _publish_scholarships(conn, rec, payload) -> int:
                  extractor_confidence, needs_attention, attention_reason)
                values ($1,$2,$3,$4,$5,$6,
                  (select array_agg(v) from jsonb_array_elements_text($7::jsonb) v),
-                 $8::jsonb,$9::jsonb,$10::jsonb,$11,$12,$13,$14,$15)""",
+                 $8::jsonb,$9::jsonb,$10::jsonb,$11,$12,$13,$14,$15)
+               on conflict (institution_id, (coalesce(name_ko, '')),
+                 (coalesce(award_type, '')), (coalesce(award_value::text, '')))
+               do update set
+                 scope = excluded.scope,
+                 name_en = excluded.name_en,
+                 applicant_categories = excluded.applicant_categories,
+                 topik_tier_table = excluded.topik_tier_table,
+                 ielts_tier_table = excluded.ielts_tier_table,
+                 eligibility_predicate = excluded.eligibility_predicate,
+                 prose_ko = excluded.prose_ko,
+                 source_text_ko = excluded.source_text_ko,
+                 extractor_confidence = excluded.extractor_confidence,
+                 needs_attention = excluded.needs_attention,
+                 attention_reason = excluded.attention_reason""",
             rec["institution_id"], r["scope"], r["name_ko"], r.get("name_en"),
             r["award_type"], r.get("award_value"),
             _j(r.get("applicant_categories")), _j(r.get("topik_tier_table")),
@@ -586,7 +611,22 @@ async def _publish_requirements(conn, rec, payload) -> int:
                  topik_min_level, topik_deferred, korean_hours_min, english_test,
                  gpa_floor_pct, interview_required, practical_exam_required, prose_ko,
                  source_text_ko, extractor_confidence, needs_attention, attention_reason)
-               values ($1,$2,$3,$4,$5,$6::jsonb,$7,$8,$9,$10,$11,$12,$13,$14)""",
+               values ($1,$2,$3,$4,$5,$6::jsonb,$7,$8,$9,$10,$11,$12,$13,$14)
+               on conflict (cycle_id, (coalesce(applicant_category, '')),
+                 (coalesce(recruitment_unit_id, '00000000-0000-0000-0000-000000000000'::uuid)),
+                 (md5(coalesce(prose_ko, ''))))
+               do update set
+                 topik_min_level = excluded.topik_min_level,
+                 topik_deferred = excluded.topik_deferred,
+                 korean_hours_min = excluded.korean_hours_min,
+                 english_test = excluded.english_test,
+                 gpa_floor_pct = excluded.gpa_floor_pct,
+                 interview_required = excluded.interview_required,
+                 practical_exam_required = excluded.practical_exam_required,
+                 source_text_ko = excluded.source_text_ko,
+                 extractor_confidence = excluded.extractor_confidence,
+                 needs_attention = excluded.needs_attention,
+                 attention_reason = excluded.attention_reason""",
             cycle_id, category_for(r),
             r.get("topik_min_level"), bool(r.get("topik_deferred", False)),
             korean_hours if isinstance(korean_hours, int) else None,
@@ -612,7 +652,18 @@ async def _publish_requirements(conn, rec, payload) -> int:
                 """insert into public.tuition (institution_id, faculty_group, academic_year,
                      semester_number, amount_krw, admission_fee_krw, is_first_semester,
                      source_text_ko, extractor_confidence, needs_attention, attention_reason)
-                   values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)""",
+                   values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+                   on conflict (institution_id,
+                     (coalesce(recruitment_unit_id, '00000000-0000-0000-0000-000000000000'::uuid)),
+                     academic_year, semester_number, faculty_group)
+                   do update set
+                     amount_krw = excluded.amount_krw,
+                     admission_fee_krw = excluded.admission_fee_krw,
+                     is_first_semester = excluded.is_first_semester,
+                     source_text_ko = excluded.source_text_ko,
+                     extractor_confidence = excluded.extractor_confidence,
+                     needs_attention = excluded.needs_attention,
+                     attention_reason = excluded.attention_reason""",
                 rec["institution_id"], "전체",
                 _as_int(tuition_obj.get("academic_year")) or rec["_year"],
                 sem, amount, _as_int(tuition_obj.get("admission_fee_krw")),
@@ -650,6 +701,19 @@ async def _publish_documents(conn, rec, payload) -> int:
     return n
 
 
+def _round_number_for(round_label) -> int:
+    """Map a free-text round label ("1차", "2차 모집", "3rd Round", ...) to
+    the round_number this row is stored under. Extracts the first digit;
+    anything unlabeled or unparseable is round 1 — the same identity every
+    single-round document has always published under, so this never breaks
+    existing rows.
+    """
+    if not isinstance(round_label, str):
+        return 1
+    m = re.search(r"\d", round_label)
+    return int(m.group(0)) if m else 1
+
+
 async def _publish_calendar(conn, rec, payload) -> int:
     periods = payload.get("periods")
     periods = periods if isinstance(periods, list) else []
@@ -660,14 +724,14 @@ async def _publish_calendar(conn, rec, payload) -> int:
             continue
         await conn.execute(
             """insert into public.university_admission_periods (institution_id,
-                 semester, year, program_level, language_track,
+                 semester, year, program_level, language_track, round_number,
                  application_start, application_end, document_deadline,
                  result_announcement, online_application_start, online_application_end,
                  offline_application_start, offline_application_end,
                  interview_start, interview_end, application_fee_krw, application_fee_usd,
                  needs_attention, attention_reason)
-               values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19)
-               on conflict (institution_id, semester, year, program_level, language_track)
+               values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20)
+               on conflict (institution_id, semester, year, program_level, language_track, round_number)
                do update set
                  application_start = excluded.application_start,
                  application_end = excluded.application_end,
@@ -686,6 +750,7 @@ async def _publish_calendar(conn, rec, payload) -> int:
                  updated_at = now()""",
             rec["institution_id"], semester, rec["_year"],
             program_level_for(p.get("program_level")), language_track_for(p.get("language_track")),
+            _round_number_for(p.get("round_label")),
             _as_date(p.get("application_start")), _as_date(p.get("application_end")),
             _as_date(p.get("document_deadline")), _as_date(p.get("result_announcement")),
             _as_date(p.get("online_application_start")), _as_date(p.get("online_application_end")),
@@ -722,14 +787,14 @@ async def publish_pending(conn: asyncpg.Connection, *, limit: int = 200) -> Publ
         publisher = _PUBLISHERS.get(rec["field_group"])
         if publisher is None or _is_unpublishable(payload):
             skipped += 1
-            await _mark_published(conn, rec["queue_id"])  # nothing to do, don't re-scan
+            await _mark_published(conn, rec["queue_id"], outcome="skipped")  # nothing to do, don't re-scan
             continue
         if is_stale_cycle(payload, rec.get("source_url_ko"), floor=floor):
             held += 1
             log.info("publish_worker: HOLD %s (%s) — past-cycle source (newest %d < %d)",
                      str(rec["queue_id"])[:8], rec["field_group"],
                      max(detected_years(payload, rec.get("source_url_ko"))), floor)
-            await _mark_published(conn, rec["queue_id"])  # processed; re-ingest brings a fresh cycle
+            await _mark_published(conn, rec["queue_id"], outcome="held")  # processed; re-ingest brings a fresh cycle
             continue
         rec["_year"] = infer_year(payload, default=default_year)
         rec["_term"] = infer_term(payload)
@@ -756,7 +821,7 @@ async def publish_pending(conn: asyncpg.Connection, *, limit: int = 200) -> Publ
                         str(rec["queue_id"])[:8], rec["field_group"],
                         type(exc).__name__, str(exc)[:160])
             continue
-        await _mark_published(conn, rec["queue_id"])
+        await _mark_published(conn, rec["queue_id"], outcome="published")
         published += 1
         rows_written += n
         log.info("publish_worker: %s %s → %d row(s)",
@@ -768,7 +833,24 @@ async def publish_pending(conn: asyncpg.Connection, *, limit: int = 200) -> Publ
     )
 
 
-async def _mark_published(conn: asyncpg.Connection, queue_id: UUID) -> None:
+async def _mark_published(
+    conn: asyncpg.Connection, queue_id: UUID, *, outcome: str
+) -> None:
+    """Stamp `published_at` AND `published_outcome`.
+
+    2026-09-01 audit finding: `published_outcome` (CHECK 'published'/'held'/
+    'skipped', added by migration 20260801001000) has existed since 2026-08
+    but was never written — every branch below only ever set `published_at`,
+    so 286 rows carried a timestamp with no recorded outcome and "approved
+    but held for a stale cycle" was indistinguishable from "actually reached
+    students" without re-deriving it from other columns. `outcome` is
+    required (no silent default) so a future call site cannot reintroduce
+    the same gap by omission.
+    """
     await conn.execute(
-        "update public.review_queue set published_at = now() where id = $1", queue_id
+        "update public.review_queue "
+        "set published_at = now(), published_outcome = $2 "
+        "where id = $1",
+        queue_id,
+        outcome,
     )

@@ -23,6 +23,7 @@ import { Tables } from '@/integrations/supabase/types';
 import { User, Phone, MapPin, Calendar, CreditCard, Pencil, Languages, Crown, CheckCircle, AlertCircle, GraduationCap, Plus, Trash2, Sparkles, RotateCcw } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
+import { DateField } from '@/components/ui/date-field';
 import { cn } from '@/lib/utils';
 import { useActiveIntake } from '@/contexts/IntakeContext';
 import { ContractUpload } from './ContractUpload';
@@ -421,12 +422,10 @@ export function EditStudentDialog({ open, onOpenChange, student, onSuccess }: Ed
                   <AutoBadge source={student?.birth_date_source} />
                 </Label>
                 <div className="relative">
-                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
+                  <DateField
                     id="birthDate"
-                    type="date"
                     value={formData.birthDate}
-                    onChange={(e) => setFormData({ ...formData, birthDate: e.target.value })}
+                    onChange={(v) => setFormData({ ...formData, birthDate: v })}
                     className="pl-9"
                   />
                 </div>
@@ -593,12 +592,10 @@ export function EditStudentDialog({ open, onOpenChange, student, onSuccess }: Ed
                   <span className="text-xs text-muted-foreground">(required)</span>
                 </Label>
                 <div className="relative">
-                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
+                  <DateField
                     id="contractDate"
-                    type="date"
                     value={formData.contractDate}
-                    onChange={(e) => setFormData({ ...formData, contractDate: e.target.value })}
+                    onChange={(v) => setFormData({ ...formData, contractDate: v })}
                     className={cn("pl-9", !formData.contractDate && "border-warning")}
                     required
                   />

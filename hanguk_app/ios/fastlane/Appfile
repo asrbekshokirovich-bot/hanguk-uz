@@ -1,0 +1,8 @@
+# Identity only. Every credential comes from the environment at run time —
+# nothing secret belongs in this repository.
+#
+# `apple_id` is deliberately absent: authentication is by App Store Connect
+# API key (see Fastfile), which needs no Apple ID, no password and no
+# two-factor prompt. That is what makes an unattended release possible.
+
+app_identifier("com.hanguk.studentapp.hangukApp")

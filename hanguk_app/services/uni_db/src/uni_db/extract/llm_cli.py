@@ -36,11 +36,14 @@ from __future__ import annotations
 import contextlib
 import json
 import logging
+import os
+import re
 import subprocess
 import tempfile
 import threading
 import time
 from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from ..config import settings
@@ -132,7 +135,50 @@ _USAGE_LIMIT_MARKERS = (
     "too many requests",
     "quota",
     "please wait",
+    # 2026-09-01: the Claude Code subscription's own throttle reads
+    # "You've hit your session limit \u00b7 resets 3pm (UTC)" and matched
+    # none of the markers above, so it was raised as a plain ClaudeCliError
+    # (fatal, counted toward watchdog.record_cli_exit's failure streak)
+    # instead of the transient _UsageLimitError it actually is. Three of
+    # these in a row could trip the fatal cli_failure_streak alert and abort
+    # an otherwise-healthy scheduled run over something that clears itself
+    # on a clock, not a code fix.
+    "session limit",
 )
+
+# Matches "resets 3pm (UTC)" / "resets at 15:30 UTC" / "reset at 9am (utc)"
+# out of a usage-limit error message, so the retry can sleep until the
+# actual reset clock time instead of polling on the generic exponential
+# backoff below.
+_RESET_TIME_RE = re.compile(
+    r"resets?\s+(?:at\s+)?(\d{1,2})(?::(\d{2}))?\s*([ap]m)?\s*\(?\s*utc\s*\)?",
+    re.IGNORECASE,
+)
+
+
+def _seconds_until_reset(text: str, *, now: datetime | None = None) -> float | None:
+    """Seconds until the "resets HH(:MM)(am/pm) (UTC)" clock time named in a
+    usage-limit error message, or None if the message names no such time.
+    """
+    match = _RESET_TIME_RE.search(text or "")
+    if not match:
+        return None
+    hour = int(match.group(1))
+    minute = int(match.group(2) or 0)
+    if not (0 <= hour <= 23 and 0 <= minute <= 59):
+        return None
+    meridiem = (match.group(3) or "").lower()
+    if meridiem == "pm" and hour != 12:
+        hour += 12
+    elif meridiem == "am" and hour == 12:
+        hour = 0
+    if hour > 23:
+        return None
+    now = now or datetime.now(timezone.utc)
+    reset = now.replace(hour=hour, minute=minute, second=0, microsecond=0)
+    if reset <= now:
+        reset += timedelta(days=1)
+    return (reset - now).total_seconds()
 
 
 @dataclass(frozen=True, slots=True)
@@ -154,6 +200,15 @@ class ClaudeCliError(RuntimeError):
 
 class _UsageLimitError(ClaudeCliError):
     """A transient subscription usage/rate limit — retry after a wait."""
+
+
+class _CliTimeoutError(ClaudeCliError):
+    """The `claude` subprocess itself was killed for exceeding its timeout.
+
+    Distinct from ClaudeCliError so `_call_with_timeout_retry` can give a
+    slow-but-otherwise-healthy generation one longer attempt before treating
+    it as fatal — see that function's docstring for the 2026-09-01 context.
+    """
 
 
 def _cli_model(model: str) -> str:
@@ -279,6 +334,44 @@ def _envelope_usage(envelope: dict) -> dict[str, int]:
     }
 
 
+def _cli_env() -> dict[str, str]:
+    """The environment the `claude` subprocess runs in.
+
+    The point of this backend is stated in the module docstring: "the whole
+    crawl pipeline runs with NO ANTHROPIC_API_KEY and no per-token bill". The
+    subprocess inherited the parent environment, so that was only true when the
+    operator happened not to have a key set — and every CI workflow here sets
+    one at job level alongside UNI_DB_LLM_BACKEND=claude_cli.
+
+    That is not a harmless leftover. Claude Code's authentication precedence
+    puts ANTHROPIC_API_KEY (rank 3) above CLAUDE_CODE_OAUTH_TOKEN (rank 5),
+    and for the print mode this file uses the docs are explicit: "In
+    non-interactive mode (-p), the key is always used when present." So every
+    `claude` call the crawl has ever made was billed to the API key, and the
+    OAuth token minted with `claude setup-token` was never reached.
+
+    The symptom that led here: from 21 Aug 2026 essentially every extraction
+    job failed with "Credit balance is too low" — on BOTH backends, because
+    they were both spending the same balance. The pipeline kept crawling and
+    kept marking documents parsed, so reviewers were handed cards with no
+    extracted data behind them.
+
+    Stripping the key here rather than in the workflows means the guarantee
+    holds however the process is launched — CI, a Claude Routine, or a laptop.
+    `UNI_DB_CLAUDE_CLI_ALLOW_API_KEY=true` opts back out for anyone who really
+    does want this backend on a key.
+    """
+    env = os.environ.copy()
+    if settings.claude_cli_allow_api_key:
+        return env
+    if env.pop("ANTHROPIC_API_KEY", None):
+        log.debug(
+            "claude_cli: ANTHROPIC_API_KEY removed from the CLI environment so "
+            "the subscription credential is used instead"
+        )
+    return env
+
+
 def _one_call(cmd: list[str], user: str, timeout: float) -> CliCallResult:
     """Run the `claude` CLI once and return its result text + token usage.
 
@@ -295,9 +388,10 @@ def _one_call(cmd: list[str], user: str, timeout: float) -> CliCallResult:
                 capture_output=True,
                 text=True,
                 timeout=timeout,
+                env=_cli_env(),
             )
     except subprocess.TimeoutExpired as exc:
-        raise ClaudeCliError(f"claude CLI timed out after {timeout:.0f}s") from exc
+        raise _CliTimeoutError(f"claude CLI timed out after {timeout:.0f}s") from exc
     except FileNotFoundError as exc:
         raise ClaudeCliError(
             f"claude CLI binary not found: {settings.claude_cli_bin!r}. "
@@ -350,6 +444,30 @@ def _one_call(cmd: list[str], user: str, timeout: float) -> CliCallResult:
         cached_input_tokens=tokens["cached"],
         cache_write_tokens=tokens["cache_write"],
     )
+
+
+def _call_with_timeout_retry(cmd: list[str], user: str, timeout: float) -> CliCallResult:
+    """One usage-limit attempt's worth of calling `claude`, retrying once at
+    1.5x the timeout if the process is killed for running out of time.
+
+    2026-09-01 audit re-check: with no per-group ceiling raised, a timeout was
+    unconditionally fatal — the field group's data was lost for that
+    document with no second chance. calendar alone lost 36/46 of one day's
+    failures this way. A slow-but-healthy generation and a genuinely stuck
+    one look identical from the outside until you wait a bit longer, so one
+    retry at a longer ceiling is cheap insurance against the former; a
+    second timeout is treated as genuinely stuck and still propagates.
+    """
+    try:
+        return _one_call(cmd, user, timeout)
+    except _CliTimeoutError:
+        longer = timeout * 1.5
+        log.warning(
+            "claude CLI timed out after %.0fs; retrying once at %.0fs",
+            timeout,
+            longer,
+        )
+        return _one_call(cmd, user, longer)
 
 
 def run_claude_cli(
@@ -408,7 +526,7 @@ def run_claude_cli_result(
         while True:
             attempt += 1
             try:
-                return _one_call(cmd, user, timeout)
+                return _call_with_timeout_retry(cmd, user, timeout)
             except _UsageLimitError as exc:
                 remaining = deadline - time.monotonic()
                 if remaining <= 0:
@@ -417,7 +535,16 @@ def run_claude_cli_result(
                         f"({budget / 3600:.1f}h) exhausted after {attempt} "
                         f"attempts: {exc}"
                     ) from exc
-                wait = min(sleep_for, _CLI_RETRY_MAX_SLEEP_SEC, remaining)
+                # A message naming an explicit reset clock time (e.g. the
+                # subscription's own "resets 3pm (UTC)" session limit) sleeps
+                # once for close to the right duration instead of polling on
+                # the generic exponential backoff below.
+                reset_wait = _seconds_until_reset(str(exc))
+                if reset_wait is not None:
+                    wait = max(5.0, min(reset_wait + 30.0, remaining))
+                else:
+                    wait = min(sleep_for, _CLI_RETRY_MAX_SLEEP_SEC, remaining)
+                    sleep_for = min(sleep_for * 2, _CLI_RETRY_MAX_SLEEP_SEC)
                 log.warning(
                     "claude CLI usage-limited (attempt %d); waiting %.0fs then "
                     "retrying (%.0fs of budget left): %s",
@@ -427,6 +554,5 @@ def run_claude_cli_result(
                     exc,
                 )
                 time.sleep(wait)
-                sleep_for = min(sleep_for * 2, _CLI_RETRY_MAX_SLEEP_SEC)
     finally:
         Path(sys_file.name).unlink(missing_ok=True)

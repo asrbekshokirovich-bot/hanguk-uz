@@ -1,0 +1,191 @@
+# iOS release, start to finish, without a person in the middle.
+#
+# WHY THIS EXISTS
+#
+# The app was rejected six times between August and September 2026. Four of
+# those rejections were not defects. They were steps somebody had to remember:
+#
+#   * the build was uploaded but never attached to the version (three reviews
+#     in a row therefore examined an old binary),
+#   * stale iPad screenshots stayed in slots that are only visible through
+#     Media Manager,
+#   * the support URL pointed at a domain with no support page,
+#   * the description was corrected in one language and left stale in another.
+#
+# Every one of those is a thing a machine does not forget. So they are all
+# below, and the person releasing presses one button.
+#
+# WHAT THE LANES DO
+#
+#   release   build, verify, upload the binary, attach it to the version,
+#             push metadata and screenshots. Stops before "Submit for
+#             Review" — a human still decides when to submit.
+#   metadata  the same metadata push with no build. For fixing a description
+#             without waiting on a compile.
+#   verify    the pre-flight assertions alone, no credentials needed.
+#
+# AUTHENTICATION
+#
+# An App Store Connect API key (.p8), not an Apple ID. It does not expire on
+# a password change, has no two-factor prompt, and can be revoked in one
+# click without touching anybody's personal account.
+
+default_platform(:ios)
+
+APP_ID       = "com.hanguk.studentapp.hangukApp"
+IPA_PATH     = "../build/ios/ipa/hanguk_app.ipa"
+APP_PLIST    = "../build/ios/iphoneos/Runner.app/Info.plist"
+
+platform :ios do
+
+  # ───────────────────────────────────────────────────────────────────────
+  # Credentials
+  # ───────────────────────────────────────────────────────────────────────
+
+  def api_key
+    app_store_connect_api_key(
+      key_id:      ENV.fetch("ASC_KEY_ID"),
+      issuer_id:   ENV.fetch("ASC_ISSUER_ID"),
+      key_content: ENV.fetch("ASC_KEY_P8"),   # the .p8 body, base64
+      is_key_content_base64: true,
+      in_house: false,
+    )
+  end
+
+  # ───────────────────────────────────────────────────────────────────────
+  # Pre-flight: the assertions that each cost a submission once
+  # ───────────────────────────────────────────────────────────────────────
+
+  desc "Assert the built app is iPhone-only and built for the store"
+  lane :verify do
+    UI.user_error!("No built app at #{APP_PLIST} — run the build first.") unless File.exist?(APP_PLIST)
+
+    # Rejected 2026-08-05 and 2026-08-12, both downstream of one setting.
+    # Submitting as iPad-eligible keeps every iPad screenshot slot live, sends
+    # review to an iPad, and lets one stale asset in a hidden size fail 2.3.3
+    # on its own. TARGETED_DEVICE_FAMILY is "1" in all three configurations;
+    # this checks what actually came out of the compiler.
+    family = sh("/usr/libexec/PlistBuddy -c 'Print :UIDeviceFamily' '#{APP_PLIST}'", log: false)
+    unless family.gsub(/\s+/, "") == "Array{1}"
+      UI.user_error!("UIDeviceFamily is not [1] — the build is iPad-eligible.\n#{family}")
+    end
+    UI.success("UIDeviceFamily = [1] (iPhone only)")
+
+    # STORE_BUILD=true removes the in-app self-update path. Google Play blocked
+    # a release over it once; shipping an App Store binary without it invites
+    # 2.5.2 (an app that downloads code).
+    store_flag = sh("/usr/libexec/PlistBuddy -c 'Print :HangukStoreBuild' '#{APP_PLIST}' 2>/dev/null || echo MISSING", log: false).strip
+    if store_flag == "MISSING"
+      UI.important("Info.plist carries no HangukStoreBuild marker — cannot verify --dart-define=STORE_BUILD=true from the binary.")
+    elsif store_flag != "true"
+      UI.user_error!("HangukStoreBuild is '#{store_flag}', not 'true' — built without --dart-define=STORE_BUILD=true.")
+    else
+      UI.success("STORE_BUILD = true")
+    end
+  end
+
+  # ───────────────────────────────────────────────────────────────────────
+  # Metadata
+  # ───────────────────────────────────────────────────────────────────────
+
+  desc "Push listing text and screenshots, no binary"
+  lane :metadata do
+    deliver_everything(skip_binary_upload: true)
+  end
+
+  # ───────────────────────────────────────────────────────────────────────
+  # The whole release
+  # ───────────────────────────────────────────────────────────────────────
+
+  desc "Upload the built IPA, attach it to the version, and push metadata"
+  lane :release do
+    verify
+    UI.user_error!("No IPA at #{IPA_PATH}") unless File.exist?(IPA_PATH)
+    deliver_everything(skip_binary_upload: false)
+
+    UI.success("Uploaded and attached. Nothing has been submitted for review —")
+    UI.success("open App Store Connect, read the page once, and press Submit.")
+  end
+
+  # ───────────────────────────────────────────────────────────────────────
+
+  # `screenshots/<locale>/` is assembled, not committed. The captures live once,
+  # where the capture tool writes them, and are copied into the layout deliver
+  # expects at release time — so there is no second copy of four megabytes of
+  # PNGs to drift out of date with the first.
+  #
+  # The locale names differ on the two sides: the capture tool speaks the app's
+  # language codes (`en`), the App Store speaks its own (`en-US`). A locale with
+  # no captures is left empty on purpose — App Store Connect falls back to the
+  # primary language, which beats shipping a stale set.
+  CAPTURES  = "../store/listings/screenshots/captured/iphone-6.9"
+  LOCALE_MAP = { "en" => "en-US", "ko" => "ko", "ru" => "ru" }
+
+  private_lane :assemble_screenshots do
+    LOCALE_MAP.each do |app_locale, store_locale|
+      src = File.join(CAPTURES, app_locale)
+      dst = File.join("screenshots", store_locale)
+      FileUtils.rm_rf(dst)
+      FileUtils.mkdir_p(dst)
+      pngs = Dir.glob(File.join(src, "*.png")).sort
+      FileUtils.cp(pngs, dst)
+      UI.message("#{store_locale}: #{pngs.length} screenshot(s)")
+    end
+
+    if Dir.glob("screenshots/en-US/*.png").empty?
+      UI.user_error!("No en-US screenshots. The App Store requires at least one, " \
+                     "and overwrite_screenshots would delete the live set.")
+    end
+  end
+
+  private_lane :deliver_everything do |options|
+    assemble_screenshots
+
+    # The demo code never lives in this repository — it is a working
+    # credential for a real account. deliver reads it from these two files, so
+    # the caller writes them from a secret and deletes them afterwards.
+    demo = ENV["DEMO_MAGIC_CODE"]
+    UI.user_error!("DEMO_MAGIC_CODE is not set — App Review needs it.") if demo.to_s.strip.empty?
+    File.write("metadata/review_information/demo_user.txt",     demo)
+    File.write("metadata/review_information/demo_password.txt", demo)
+
+    begin
+      upload_to_app_store(
+        api_key: api_key,
+        app_identifier: APP_ID,
+        ipa: options[:skip_binary_upload] ? nil : IPA_PATH,
+        skip_binary_upload: options[:skip_binary_upload],
+
+        # The four rejections this file exists to prevent:
+        #
+        # overwrite_screenshots deletes every screenshot in App Store Connect
+        # that is not present locally. `screenshots/` holds iPhone 6.9"
+        # captures and nothing else, so the iPad slots — including the ones
+        # only Media Manager shows — are emptied on every run. An empty slot
+        # cannot fail 2.3.3; a forgotten one does.
+        overwrite_screenshots: true,
+        skip_screenshots: false,
+
+        # metadata/ carries en-US, ko and ru. All three are written every
+        # time, so a description cannot be current in one language and stale
+        # in another. (Apple has no Uzbek App Store localization — the store
+        # listing is Russian for that audience.)
+        skip_metadata: false,
+
+        # Uploading a build does not attach it to the version. That single
+        # missed click caused three consecutive reviews to examine an old
+        # binary. Left at its default, deliver attaches the build it just
+        # uploaded — or, with skip_binary_upload, the newest processed one.
+        automatic_release: false,
+        submit_for_review: false,
+        force: true,             # no HTML preview prompt; CI has no browser
+        precheck_include_in_app_purchases: false,
+        run_precheck_before_submit: false,
+      )
+    ensure
+      # Never leave a live credential on disk, whatever happened above.
+      File.delete("metadata/review_information/demo_user.txt")     rescue nil
+      File.delete("metadata/review_information/demo_password.txt") rescue nil
+    end
+  end
+end

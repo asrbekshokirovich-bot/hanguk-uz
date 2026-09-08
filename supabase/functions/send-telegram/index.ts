@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { sendTelegramMessage } from "../_shared/telegram.ts";
+import { sendTelegramMedia, sendTelegramMessage } from "../_shared/telegram.ts";
 
 // Outgoing Telegram messages. Called by the CRM inbox (MessagesContext.sendMessage)
 // when staff reply to a Telegram thread.
@@ -20,6 +20,62 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 const STAFF_ROLES = ["owner", "admin", "call_operator"];
+const CHAT_MEDIA_BUCKET = "chat-media";
+const MEDIA_URL_TTL_SECONDS = 3600;
+
+type Admin = ReturnType<typeof createClient>;
+
+/** Best-effort update of the CRM row this send belongs to. */
+async function markRow(
+  supabase: Admin,
+  rowId: unknown,
+  patch: Record<string, unknown>,
+): Promise<void> {
+  if (!rowId) return;
+  const { error } = await supabase.from("messages").update(patch).eq("id", String(rowId));
+  if (error) console.error("send-telegram: could not update message row:", error.message);
+}
+
+/**
+ * Mark the outgoing row delivered, unless the echo beat us to it.
+ *
+ * A business-account reply comes back through the webhook as an ordinary
+ * message with the same Telegram id. Whichever arrives second must not create
+ * a duplicate: if the echo already wrote a row for this id, the CRM's own row
+ * is the redundant one and goes.
+ */
+async function stampSent(
+  supabase: Admin,
+  rowId: unknown,
+  chatId: string,
+  externalId: string,
+): Promise<void> {
+  const { data: echo } = await supabase
+    .from("messages")
+    .select("id")
+    .eq("source", "telegram")
+    .eq("external_id", externalId)
+    .maybeSingle();
+
+  if (!rowId) return;
+
+  if (echo) {
+    await supabase.from("messages").delete().eq("id", String(rowId)).is("external_id", null);
+    return;
+  }
+
+  const { error } = await supabase
+    .from("messages")
+    .update({ external_id: externalId, delivery_status: "sent", delivery_error: null })
+    .eq("id", String(rowId));
+
+  // 23505: the echo landed between the check and the update. Same conclusion.
+  if (error && (error as { code?: string }).code === "23505") {
+    await supabase.from("messages").delete().eq("id", String(rowId)).is("external_id", null);
+  } else if (error) {
+    console.error(`send-telegram: could not stamp row for chat ${chatId}:`, error.message);
+  }
+}
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -61,9 +117,25 @@ serve(async (req) => {
     }
 
     // --- Send ---
-    const { chat_id, text, parse_mode, reply_markup } = await req.json();
-    if (!chat_id || !text) {
-      return json({ error: "Missing required fields: chat_id, text" }, 400);
+    // message_id / media_path were being sent by the CRM and ignored here.
+    // Two consequences, both live: an attachment on a Telegram reply was
+    // dropped on the floor (stored, rendered in the CRM, never delivered), and
+    // the row was never stamped with an external_id, so the delivery trigger
+    // could not fire and every delivered message sat under a "sending" clock
+    // for ever. send-instagram had handled both for weeks.
+    const {
+      chat_id,
+      text,
+      parse_mode,
+      reply_markup,
+      message_id: rowId,
+      media_path: mediaPath,
+      media_mime: mediaMime,
+      media_filename: mediaFilename,
+    } = await req.json();
+
+    if (!chat_id || (!text && !mediaPath)) {
+      return json({ error: "Missing required fields: chat_id, and text or media_path" }, 400);
     }
 
     // Answer as the company account when this chat belongs to one.
@@ -102,14 +174,54 @@ serve(async (req) => {
       }
     }
 
-    const result = await sendTelegramMessage(TELEGRAM_BOT_TOKEN, String(chat_id), String(text), {
+    const shared = {
       ...(businessConnectionId ? { business_connection_id: businessConnectionId } : {}),
       ...(parse_mode ? { parse_mode } : {}),
       ...(reply_markup ? { reply_markup } : {}),
-    });
+    };
+
+    let result;
+    if (mediaPath) {
+      // Telegram fetches the file from a URL, so a short-lived signed link to
+      // the private bucket is enough — no multipart upload from here.
+      const { data: signed, error: signErr } = await supabase.storage
+        .from(CHAT_MEDIA_BUCKET)
+        .createSignedUrl(String(mediaPath), MEDIA_URL_TTL_SECONDS);
+
+      if (signErr || !signed?.signedUrl) {
+        const reason = "Could not create a URL for the attachment";
+        await markRow(supabase, rowId, { delivery_status: "failed", delivery_error: reason });
+        return json({ ok: false, error: reason }, 500);
+      }
+
+      result = await sendTelegramMedia(
+        TELEGRAM_BOT_TOKEN,
+        String(chat_id),
+        signed.signedUrl,
+        String(mediaMime || "application/octet-stream"),
+        {
+          ...shared,
+          ...(text ? { caption: String(text) } : {}),
+          ...(mediaFilename ? { filename: String(mediaFilename) } : {}),
+        },
+      );
+    } else {
+      result = await sendTelegramMessage(TELEGRAM_BOT_TOKEN, String(chat_id), String(text), shared);
+    }
 
     if (!result.ok) {
-      return json({ ok: false, error: result.description || "Telegram API error" }, 502);
+      const reason = result.description || "Telegram API error";
+      await markRow(supabase, rowId, { delivery_status: "failed", delivery_error: reason });
+      return json({ ok: false, error: reason }, 502);
+    }
+
+    // Stamp the row the operator is looking at. The external_id also lets the
+    // business-message echo coming back through the webhook recognise this as
+    // a message we already have (unique index on source + external_id) instead
+    // of showing the reply twice.
+    const sentId = (result.result as { message_id?: number } | undefined)?.message_id ?? null;
+    if (sentId != null) {
+      await stampSent(supabase, rowId, String(chat_id), String(sentId));
     }
 
     return json({ ok: true, result: result.result });

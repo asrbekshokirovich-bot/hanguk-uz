@@ -23,6 +23,7 @@ import { useActiveIntake } from '@/contexts/IntakeContext';
 import { User, Phone, Calendar, CreditCard, KeyRound, Copy, CheckCircle, Crown, AlertCircle, GraduationCap, Plus, Trash2, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Checkbox } from '@/components/ui/checkbox';
+import { DateField } from '@/components/ui/date-field';
 import { ContractUpload } from './ContractUpload';
 
 interface AddStudentDialogProps {
@@ -480,12 +481,10 @@ export function AddStudentDialog({ open, onOpenChange, onSuccess }: AddStudentDi
                       <span className="text-xs text-muted-foreground">(required)</span>
                     </Label>
                     <div className="relative">
-                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
+                      <DateField
                         id="contractDate"
-                        type="date"
                         value={formData.contractDate}
-                        onChange={(e) => setFormData({ ...formData, contractDate: e.target.value })}
+                        onChange={(v) => setFormData({ ...formData, contractDate: v })}
                         className={cn("pl-9", !formData.contractDate && "border-warning")}
                         required
                       />

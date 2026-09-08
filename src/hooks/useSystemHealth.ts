@@ -97,7 +97,7 @@ export function useSystemHealth(
       ] = await Promise.all([
         supabase.from('payments').select('status', { count: 'exact', head: false }),
         supabase.from('tasks').select('status', { count: 'exact', head: false }),
-        supabase.from('leads').select('status, updated_at', { count: 'exact', head: false }),
+        supabase.from('leads').select('status, updated_at', { count: 'exact', head: false }).eq('qualified', true),
         supabase.from('message_threads').select('unread_count'),
         supabase.from('applications').select('status, updated_at', { count: 'exact', head: false }),
         supabase.from('profiles').select('id', { count: 'exact', head: true }),

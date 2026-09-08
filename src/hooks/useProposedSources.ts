@@ -106,7 +106,7 @@ export function useDismissProposedSource() {
     { id: string; reason: LinkDismissReason; detail?: string }>({
     mutationFn: async ({ id, reason, detail }) => {
       const { data: auth } = await supabase.auth.getUser();
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('proposed_sources')
         .update({
           status: 'dismissed',
@@ -117,8 +117,24 @@ export function useDismissProposedSource() {
           dismiss_reason: reason,
           dismiss_detail: detail?.trim() || null,
         })
-        .eq('id', id);
+        .eq('id', id)
+        .select('id');
       if (error) throw error;
+      // 2026-09-01: RLS on proposed_sources admits only
+      // profiles.role in ('admin', 'uni_db_reviewer') — narrower than
+      // fn_can_review_uni_db, which is what actually gates who sees this
+      // tab (any user_roles staff: owner, call_operator, document_handler,
+      // university_staff). Without checking the returned rows, an update
+      // from one of those wider roles matched zero rows, came back with no
+      // error, and this mutation still reported success — the operator saw
+      // the link disappear from the list on refetch and believed it was
+      // closed, while it stayed live and reachable by the crawler.
+      if (!data || data.length === 0) {
+        throw new Error(
+          'This account cannot close links — ask an admin or reviewer, ' +
+            'or the link may already be handled.',
+        );
+      }
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: PROPOSED_SOURCES_KEY }),
   });

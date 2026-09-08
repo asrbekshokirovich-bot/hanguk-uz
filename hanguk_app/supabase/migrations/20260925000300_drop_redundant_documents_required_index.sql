@@ -1,0 +1,35 @@
+-- Follow-up to 20260925000100_natural_keys_on_content_tables.sql, applied
+-- the same session, ~10 minutes later.
+--
+-- That migration added uq_documents_required_natural_key on the premise
+-- (stated in AUDIT_RESULTS.md and the original migration header) that
+-- documents_required had no natural-key uniqueness at all. It already did:
+-- `documents_required_cycle_doc_cat_uniq`, a pre-existing
+-- `UNIQUE (cycle_id, document_type, applicant_category) NULLS NOT DISTINCT`
+-- index — exactly the right fix for the "NULL is distinct from NULL"
+-- problem this whole exercise was chasing on tuition/requirements/
+-- scholarships. publish_worker._publish_documents already targets it with
+-- its own `ON CONFLICT (cycle_id, document_type, applicant_category) DO
+-- UPDATE` and has been upserting correctly against it all along — which is
+-- also the real explanation for why the dedupe script found 0 duplicate
+-- groups in documents_required immediately before this: it was already
+-- clean, not because nothing had ever been published there.
+--
+-- The gap: the original audit's live-schema check queried only
+-- `pg_constraint` (`contype in ('u','p')`), which does not list a bare
+-- unique INDEX that is not backed by a table CONSTRAINT. A real blind spot
+-- in that read-only pass, not a change in the table's actual protection —
+-- caught only once ON CONFLICT wiring for the other three tables required
+-- reading _publish_documents' existing insert and finding it already had one.
+--
+-- Two differently-keyed unique indexes on the same table is not incorrect,
+-- but it is redundant, costs an extra write on every insert, and adds
+-- unvetted risk: a legitimate row could collide on the new key's content
+-- hash (notes_ko + source_text_ko) without colliding on the real,
+-- already-used key (document_type + applicant_category). Removing it.
+--
+-- APPLIED 2026-09-01 ~17:35 UTC via Supabase MCP apply_migration, on the
+-- same "GO" authorization as the migration this corrects — this file
+-- documents that application rather than proposing a new one.
+
+drop index if exists public.uq_documents_required_natural_key;

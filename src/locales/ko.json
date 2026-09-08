@@ -993,7 +993,9 @@
       "hideTranslation": "번역 숨기기",
       "translating": "번역 중…",
       "sending": "보내는 중…",
-      "internalNoteLabel": "내부 메모 · 학생에게 전송되지 않음"
+      "internalNoteLabel": "내부 메모 · 학생에게 전송되지 않음",
+      "linkContact": "학생 또는 리드에 연결",
+      "relinkContact": "연결 대상 변경"
     },
     "composer": {
       "label": "답장 작성",
@@ -1005,7 +1007,10 @@
       "hintSend": "{{language}}(으)로 전송 · 자동 번역",
       "hintNote": "직원에게만 표시",
       "send": "보내기",
-      "saveNote": "메모 저장"
+      "saveNote": "메모 저장",
+      "attach": "파일 첨부",
+      "removeAttachment": "첨부 파일 제거",
+      "fileTooLarge": "파일이 너무 큽니다 ({{limit}}까지)"
     },
     "savedReplies": {
       "docs": "서류 체크리스트",
@@ -1071,7 +1076,9 @@
       "noteFailed": "내부 메모를 저장할 수 없습니다.",
       "sendFailed": "메시지를 보낼 수 없습니다. 인스타그램/텔레그램 연동을 확인하세요.",
       "translationUnavailableTitle": "번역을 사용할 수 없음",
-      "translationUnavailableBody": "번역 서비스가 아직 설정되지 않았습니다. 저장된 번역은 계속 표시됩니다."
+      "translationUnavailableBody": "번역 서비스가 아직 설정되지 않았습니다. 저장된 번역은 계속 표시됩니다.",
+      "translateFailed": "번역하지 못했습니다",
+      "sentUntranslated": "메시지가 원문 그대로 전송되었습니다."
     },
     "media": {
       "voice": "음성 메시지",
@@ -1079,6 +1086,10 @@
       "file": "파일",
       "loading": "첨부파일 불러오는 중…",
       "unavailable": "첨부파일을 사용할 수 없습니다"
+    },
+    "day": {
+      "today": "오늘",
+      "yesterday": "어제"
     }
   },
   "errors": {
@@ -1621,7 +1632,14 @@
       "rejectReason": "거절 사유:",
       "confirmReject": "거절 확정",
       "cancel": "취소",
-      "flagSource": "출처 오류 — 이 PDF의 모든 섹션 거절"
+      "flagSource": "출처 오류 — 이 PDF의 모든 섹션 거절",
+      "edit": "수정",
+      "editTitle": "승인하기 전에 추출된 데이터를 수정하세요",
+      "saveEdit": "저장",
+      "editInvalidJson": "잘못된 JSON — 저장하기 전에 구문을 수정하세요",
+      "editPayloadEmpty": "수정된 데이터는 비어 있을 수 없습니다",
+      "editSchemaInvalid": "{{section}} 형식과 일치하지 않습니다: {{detail}}",
+      "savedNotApproved": "수정 저장됨 — 승인 대기"
     },
     "decided": {
       "approved": "승인됨 — 학생에게 게시됨",
@@ -1631,7 +1649,8 @@
     "toast": {
       "approved": "승인됨 — {{uni}}: {{section}}",
       "rejected": "거절됨 — {{uni}}: {{section}}",
-      "flagged": "{{n}}개 섹션 거절됨 — 출처 오류로 표시"
+      "flagged": "{{n}}개 섹션 거절됨 — 출처 오류로 표시",
+      "saved": "저장되었습니다"
     },
     "reasons": {
       "wrong_year": "잘못된 연도 / 모집",
@@ -1657,7 +1676,9 @@
       "regOpen": "등록 시작",
       "regClose": "등록 마감",
       "orientation": "오리엔테이션",
-      "offline": "서면 접수"
+      "offline": "서면 접수",
+      "supplementary": "추가합격 (미등록 충원)",
+      "supplementaryWaves": "{{count}}차"
     },
     "req": {
       "foreignTrack": "외국인 지원자 ({{cat}})",
@@ -1768,6 +1789,10 @@
       "checkAction": "분할 지점을 찾지 못했습니다 — 나눌 곳이 없으므로 문서를 분할할 필요가 없습니다. 수치를 신뢰하기 전에 문서를 확인하세요: 한 과정만 다룬다면 \"승인\"으로 정리하고, 실제로 두 과정이 섞여 있다면 \"거부\"를 누르세요.",
       "levels": "발견된 과정:",
       "action": "이것은 데이터 카드가 아니며 승인할 수치가 없습니다. 문서를 두 개의 모집 주기로 나눈 뒤 \"승인\"으로 정리하세요. 분리가 잘못 감지되었다면 \"거절\"을 누르세요.",
+      "splitActionHint": "\"분할\" 버튼은 학부와 대학원 모집 주기를 각각 생성하고 이 카드를 정리합니다. 각 과정의 세부 데이터는 다음 검토 단계에서 채워집니다.",
+      "splitAction": "분할",
+      "splitActionTitle": "이 문서를 학부와 대학원 모집 주기로 분할합니다",
+      "splitDone": "문서가 분할되었습니다 — 두 개의 모집 주기가 생성되었습니다",
       "rawToggle": "기술 세부 정보",
       "level": {
         "associate": "전문학사",
@@ -1780,6 +1805,92 @@
       "badge": "거절됨",
       "badgeTitle": "이 섹션은 이전에 거절되었습니다. 승인하면 해당 결정이 취소됩니다.",
       "note": "이전에 거절됨 — {{reason}}"
+    },
+    "edit": {
+      "form": "입력 폼",
+      "rawJson": "JSON",
+      "empty": "아직 항목이 없습니다.",
+      "event": "일정",
+      "row": "행",
+      "remove": "삭제",
+      "addEvent": "일정 추가",
+      "addRow": "행 추가",
+      "yes": "예",
+      "no": "아니오",
+      "invalid": "오류 — 저장 전에 수정하세요:",
+      "f": {
+        "applicantCategory": "지원자 전형",
+        "topikStatus": "TOPIK 요건",
+        "topikMinLevel": "TOPIK 최소 등급",
+        "englishStatus": "영어 요건",
+        "gpaStatus": "학점 요건",
+        "gpaFloorPct": "최소 학점 (%)",
+        "interviewRequired": "면접 필요?",
+        "practicalExamRequired": "실기 있음?",
+        "proseKo": "지원자격 (원문)",
+        "documentType": "서류 종류",
+        "isRequired": "필수?",
+        "apostilleRequired": "아포스티유 필요?",
+        "appliesToRound": "해당 차수",
+        "deadline": "마감",
+        "notesKo": "비고 (원문)",
+        "nameKo": "명칭 (한국어)",
+        "nameEn": "명칭 (영어)",
+        "scope": "범위",
+        "awardType": "장학 유형",
+        "awardValue": "장학 금액",
+        "facultyGroup": "계열",
+        "academicYear": "학년도",
+        "semesterNumber": "학기",
+        "amountKrw": "등록금 (KRW)",
+        "admissionFeeKrw": "입학금 (KRW)",
+        "isFirstSemester": "첫 학기?",
+        "eventType": "일정 종류",
+        "startsAt": "시작 (KST)",
+        "endsAt": "종료 (KST)",
+        "isTentative": "예정?",
+        "roundLabel": "차수 표기",
+        "roundKind": "차수 종류"
+      },
+      "o": {
+        "required": "필수",
+        "not_required": "불필요",
+        "not_stated": "미기재",
+        "apply_open": "원서접수 시작",
+        "apply_close": "원서접수 마감",
+        "document_submission_deadline": "서류제출 마감",
+        "first_stage_results": "1단계 발표",
+        "interview": "면접",
+        "practical_exam": "실기고사",
+        "final_results": "최종 발표",
+        "additional_admit": "추가합격",
+        "registration_open": "등록 시작",
+        "registration_close": "등록 마감",
+        "orientation": "오리엔테이션",
+        "semester_start": "개강",
+        "other": "기타",
+        "application": "모집 차수",
+        "supplementary": "추가합격 차수",
+        "season": "수시/정시",
+        "term": "전기/후기"
+      },
+      "emptyHint": "이 항목에서 추출된 내용이 없습니다. PDF를 열어 직접 입력하거나 카드를 반려하세요."
     }
+  },
+  "linkContact": {
+    "title": "{{name}} 연결 대상",
+    "hintPhone": "이 번호의 학생 또는 리드를 선택하세요. 이후 통화는 자동으로 연결됩니다.",
+    "hintChat": "이 대화의 학생 또는 리드를 선택하세요. 이후 메시지는 자동으로 연결됩니다.",
+    "searchPlaceholder": "이름 또는 전화번호 검색…",
+    "searching": "검색 중…",
+    "noMatches": "일치하는 항목이 없습니다.",
+    "noPhone": "전화번호 없음",
+    "student": "학생",
+    "lead": "리드",
+    "linked": "연결됨",
+    "linkedBody": "{{name}}에 연결되었습니다.",
+    "failed": "연결하지 못했습니다",
+    "noIdentifierTitle": "연결할 대상이 없습니다",
+    "noIdentifierBody": "이 대화에는 사용할 수 있는 식별자가 없습니다."
   }
 }

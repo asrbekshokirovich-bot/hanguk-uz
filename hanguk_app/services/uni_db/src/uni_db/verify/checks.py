@@ -237,24 +237,37 @@ def _sanity_calendar(
     target_term: str | None = None,
 ) -> list[SanityIssue]:
     issues: list[SanityIssue] = []
-    first: dict[str, datetime] = {}
+    # Keyed by (round_label, event_type) rather than event_type alone — a
+    # 2차 apply_close must not be checked against a 1차 first_stage_results;
+    # each round's own dates must be internally ordered. Unlabeled rounds
+    # (round_label is None/absent, the vast majority of documents) all fall
+    # under the same `None` bucket, so a single-round document's behavior is
+    # unchanged.
+    first: dict[tuple[str | None, str], datetime] = {}
     for row in _iter_rows(parsed_output):
         et = canonical_event_type(row.get("event_type"))
         dt = _as_date(row.get("starts_at"))
-        if isinstance(et, str) and dt is not None and et not in first:
-            first[et] = dt
-    present = [(et, first[et]) for et in _CAL_ORDER if et in first]
-    for (a_name, a_dt), (b_name, b_dt) in pairwise(present):
-        if a_dt > b_dt:
-            issues.append(
-                SanityIssue(
-                    field_group="calendar",
-                    field=f"{a_name}→{b_name}",
-                    severity="high",
-                    problem="out_of_order_dates",
-                    detail=f"{a_name} {a_dt.date()} is after {b_name} {b_dt.date()}",
+        round_label = row.get("round_label") if isinstance(row.get("round_label"), str) else None
+        key = (round_label, et)
+        if isinstance(et, str) and dt is not None and key not in first:
+            first[key] = dt
+    rounds = {rl for rl, _ in first}
+    for round_label in rounds:
+        present = [
+            (et, first[(round_label, et)]) for et in _CAL_ORDER if (round_label, et) in first
+        ]
+        prefix = f"[{round_label}] " if round_label else ""
+        for (a_name, a_dt), (b_name, b_dt) in pairwise(present):
+            if a_dt > b_dt:
+                issues.append(
+                    SanityIssue(
+                        field_group="calendar",
+                        field=f"{prefix}{a_name}→{b_name}",
+                        severity="high",
+                        problem="out_of_order_dates",
+                        detail=f"{prefix}{a_name} {a_dt.date()} is after {b_name} {b_dt.date()}",
+                    )
                 )
-            )
     # Same ordering rule on the PUBLISHED period rows (what applicants see).
     for idx, p in enumerate(_list(parsed_output, "periods")):
         seq = [(f, _as_date(p.get(f))) for f in _PERIOD_ORDER]
