@@ -222,7 +222,7 @@ const LeadsContent = () => {
           </button>
         </div>
 
-        {!loading && leads.length > 0 && (
+        {!loading && (
           <div className="mb-5">
             <button
               type="button"
@@ -237,6 +237,7 @@ const LeadsContent = () => {
             >
               <BarChart3 className="h-4 w-4 text-primary" aria-hidden />
               {t('leads.intake.report.title')}
+              <span className="ml-1 text-xs font-normal text-muted-foreground">({leads.length})</span>
               <ChevronDown
                 className={cn(
                   'ml-auto h-4 w-4 text-muted-foreground transition-transform',
