@@ -72,7 +72,6 @@ Deno.serve(async (req) => {
     if (phoneList.length === 0) missing.push('at least one phone number');
     if (!paymentPlan) missing.push('payment plan');
     if (!contractDate) missing.push('contract date');
-    if (!contractUrl) missing.push('contract file');
     if (missing.length > 0) {
       return new Response(
         JSON.stringify({ error: `Missing required field(s): ${missing.join(', ')}` }),
