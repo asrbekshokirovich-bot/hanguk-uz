@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { BarChart3, ChevronDown, Search } from 'lucide-react';
+import { BarChart3, Search, X } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import { useLeads } from '@/hooks/useLeads';
@@ -213,105 +213,24 @@ const LeadsContent = () => {
             <h1 className="text-[28px] font-bold tracking-[-0.015em]">{t('navigation.leads')}</h1>
             <p className="mt-1.5 text-sm text-muted-foreground">{t('leads.intake.subtitle')}</p>
           </div>
-          <button
-            type="button"
-            onClick={() => setEditing('new')}
-            className="min-h-11 rounded-[10px] bg-primary px-5 text-sm font-bold text-primary-foreground transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            {t('leads.intake.newLead')}
-          </button>
-        </div>
-
-        {!loading && (
-          <div className="mb-5">
+          <div className="flex items-center gap-3">
             <button
               type="button"
-              onClick={() => setStatsOpen((o) => !o)}
-              className={cn(
-                'flex w-full items-center gap-2 rounded-xl border px-5 py-3 text-left text-sm font-semibold transition',
-                'hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                statsOpen
-                  ? 'border-primary/30 bg-primary/5'
-                  : 'border-border bg-card',
-              )}
+              onClick={() => setStatsOpen(true)}
+              className="min-h-11 rounded-[10px] border border-input bg-background px-5 text-sm font-bold text-foreground transition hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
-              <BarChart3 className="h-4 w-4 text-primary" aria-hidden />
+              <BarChart3 className="mr-2 inline-block h-4 w-4" aria-hidden />
               {t('leads.intake.report.title')}
-              <span className="ml-1 text-xs font-normal text-muted-foreground">({leads.length})</span>
-              <ChevronDown
-                className={cn(
-                  'ml-auto h-4 w-4 text-muted-foreground transition-transform',
-                  statsOpen && 'rotate-180',
-                )}
-                aria-hidden
-              />
             </button>
-            {statsOpen && (
-              <div className="mt-2 grid grid-cols-2 gap-3 sm:grid-cols-4">
-                <div className="rounded-xl border border-border bg-card px-4 py-3.5">
-                  <div className="text-xs font-medium text-muted-foreground">
-                    {t('leads.intake.report.notContacted')}
-                  </div>
-                  <div className="mt-1 flex items-baseline gap-2">
-                    <span className="text-2xl font-bold tabular-nums">{callStats.counts.notContacted}</span>
-                    <span className="text-xs tabular-nums text-muted-foreground">{callStats.pct(callStats.counts.notContacted)}%</span>
-                  </div>
-                  <div className="mt-2 h-1.5 rounded-full bg-muted">
-                    <div
-                      className="h-full rounded-full bg-muted-foreground/40 transition-all"
-                      style={{ width: `${callStats.pct(callStats.counts.notContacted)}%` }}
-                    />
-                  </div>
-                </div>
-                <div className="rounded-xl border border-emerald-400/30 bg-emerald-50/50 px-4 py-3.5 dark:bg-emerald-950/20">
-                  <div className="text-xs font-medium text-emerald-700 dark:text-emerald-400">
-                    Gaplashildi
-                  </div>
-                  <div className="mt-1 flex items-baseline gap-2">
-                    <span className="text-2xl font-bold tabular-nums text-emerald-700 dark:text-emerald-400">{callStats.counts['Gaplashildi']}</span>
-                    <span className="text-xs tabular-nums text-emerald-600/70 dark:text-emerald-500/70">{callStats.pct(callStats.counts['Gaplashildi'])}%</span>
-                  </div>
-                  <div className="mt-2 h-1.5 rounded-full bg-emerald-200/50 dark:bg-emerald-900/30">
-                    <div
-                      className="h-full rounded-full bg-emerald-500 transition-all"
-                      style={{ width: `${callStats.pct(callStats.counts['Gaplashildi'])}%` }}
-                    />
-                  </div>
-                </div>
-                <div className="rounded-xl border border-amber-400/30 bg-amber-50/50 px-4 py-3.5 dark:bg-amber-950/20">
-                  <div className="text-xs font-medium text-amber-700 dark:text-amber-400">
-                    Telefon ko&apos;tarmadi
-                  </div>
-                  <div className="mt-1 flex items-baseline gap-2">
-                    <span className="text-2xl font-bold tabular-nums text-amber-700 dark:text-amber-400">{callStats.counts["Telefon ko'tarmadi"]}</span>
-                    <span className="text-xs tabular-nums text-amber-600/70 dark:text-amber-500/70">{callStats.pct(callStats.counts["Telefon ko'tarmadi"])}%</span>
-                  </div>
-                  <div className="mt-2 h-1.5 rounded-full bg-amber-200/50 dark:bg-amber-900/30">
-                    <div
-                      className="h-full rounded-full bg-amber-500 transition-all"
-                      style={{ width: `${callStats.pct(callStats.counts["Telefon ko'tarmadi"])}%` }}
-                    />
-                  </div>
-                </div>
-                <div className="rounded-xl border border-red-400/30 bg-red-50/50 px-4 py-3.5 dark:bg-red-950/20">
-                  <div className="text-xs font-medium text-red-700 dark:text-red-400">
-                    Nomer xato
-                  </div>
-                  <div className="mt-1 flex items-baseline gap-2">
-                    <span className="text-2xl font-bold tabular-nums text-red-700 dark:text-red-400">{callStats.counts['Nomer xato']}</span>
-                    <span className="text-xs tabular-nums text-red-600/70 dark:text-red-500/70">{callStats.pct(callStats.counts['Nomer xato'])}%</span>
-                  </div>
-                  <div className="mt-2 h-1.5 rounded-full bg-red-200/50 dark:bg-red-900/30">
-                    <div
-                      className="h-full rounded-full bg-red-500 transition-all"
-                      style={{ width: `${callStats.pct(callStats.counts['Nomer xato'])}%` }}
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
+            <button
+              type="button"
+              onClick={() => setEditing('new')}
+              className="min-h-11 rounded-[10px] bg-primary px-5 text-sm font-bold text-primary-foreground transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              {t('leads.intake.newLead')}
+            </button>
           </div>
-        )}
+        </div>
 
         {/* Toggle buttons rather than a tablist: there is one list below them
             that they filter, not three panels to switch between. The search box
@@ -415,6 +334,52 @@ const LeadsContent = () => {
           onCancel={() => setPending(null)}
           onConfirm={handleConfirm}
         />
+      )}
+
+      {statsOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+          onClick={() => setStatsOpen(false)}
+        >
+          <div
+            className="relative mx-4 w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setStatsOpen(false)}
+              className="absolute right-4 top-4 rounded-md p-1 text-muted-foreground transition hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              aria-label={t('common.close')}
+            >
+              <X className="h-4 w-4" />
+            </button>
+
+            <h2 className="mb-1 text-lg font-bold">{t('leads.intake.report.title')}</h2>
+            <p className="mb-5 text-sm text-muted-foreground">
+              {t('navigation.leads')}: {callStats.total}
+            </p>
+
+            <div className="flex flex-col gap-3">
+              {[
+                { key: 'notContacted', label: t('leads.intake.report.notContacted') },
+                ...CALL_RESULTS.map((r) => ({ key: r, label: r })),
+              ].map(({ key, label }) => (
+                <div
+                  key={key}
+                  className="flex items-center justify-between rounded-xl border border-border bg-background px-4 py-3"
+                >
+                  <span className="text-sm font-medium">{label}</span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-lg font-bold tabular-nums">{callStats.counts[key]}</span>
+                    <span className="min-w-[3ch] text-right text-xs text-muted-foreground tabular-nums">
+                      {callStats.pct(callStats.counts[key])}%
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -162,12 +162,9 @@ export const LeadsTable = ({
                   }}
                   onClick={(e) => e.stopPropagation()}
                   className={cn(
-                    'w-full cursor-pointer rounded-md border px-2 py-1.5 text-xs font-semibold transition',
+                    'w-full cursor-pointer rounded-md border border-input px-2 py-1.5 text-xs font-semibold transition',
                     'bg-card focus:outline-none focus:ring-2 focus:ring-ring',
                     !lead.call_result && 'text-muted-foreground',
-                    lead.call_result === 'Gaplashildi' && 'border-emerald-400/50 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400',
-                    lead.call_result === "Telefon ko'tarmadi" && 'border-amber-400/50 bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400',
-                    lead.call_result === 'Nomer xato' && 'border-red-400/50 bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400',
                   )}
                 >
                   <option value="">—</option>
