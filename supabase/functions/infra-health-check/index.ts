@@ -8,9 +8,13 @@
 //   elevenlabs_key   GET /v1/user with ELEVENLABS_API_KEY → must be 200
 //   gemini_key       GET /v1beta/models with GEMINI_API_KEY → must be 200
 //   call_jobs        comm_processing_jobs in status=error (last 24h) → must be 0
-//   mediateka_feed   hours since last voip_webhook_captures row → informational,
-//                    fails only if the feed was alive in the last 7d and then
-//                    went silent > 48h (so a deliberately unused PBX is quiet)
+//   mediateka_feed   hours since last voip_webhook_captures row → fails past 24h
+//
+// mediateka_feed used to stay ok while the feed had been silent for 94 days: it
+// only alarmed if the feed had been alive within the previous 7 days, so a
+// long-dead integration read as healthy. That is the same blind spot that let
+// the ElevenLabs key sit invalid for three months. A silent feed is a fault
+// whatever its cause, so the window is now a plain threshold.
 //
 // Alerts on the TRANSITION only (ok→fail, fail→ok), state kept in infra_health.
 // Telegram delivery reuses TELEGRAM_BOT_TOKEN + ALERT_TELEGRAM_CHAT_ID, same as
@@ -32,6 +36,9 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const TELEGRAM_BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN");
 const ALERT_CHAT_ID = Deno.env.get("ALERT_TELEGRAM_CHAT_ID");
+
+/** How long the Mediateka webhook feed may stay quiet before it counts as broken. */
+const MEDIATEKA_SILENT_HOURS = 24;
 
 type State = "ok" | "fail";
 interface CheckResult { check: string; state: State; detail: string; }
@@ -74,7 +81,7 @@ async function runChecks(supabase: ReturnType<typeof createClient>): Promise<Che
     else out.push({ check: "call_jobs", state: (count ?? 0) === 0 ? "ok" : "fail", detail: `${count ?? 0} ta xatoli job (24 soat)` });
   }
 
-  // 4. Mediateka feed — only alarm if it was alive recently and then stopped
+  // 4. Mediateka feed — silent for more than a day is a fault, full stop
   {
     const { data } = await supabase
       .from("voip_webhook_captures")
@@ -84,9 +91,11 @@ async function runChecks(supabase: ReturnType<typeof createClient>): Promise<Che
       .maybeSingle();
     const last = data?.received_at ? new Date(data.received_at as string) : null;
     const hours = last ? Math.round((Date.now() - last.getTime()) / 3600e3) : null;
-    const wasAliveThisWeek = hours !== null && hours < 24 * 7;
-    const state: State = wasAliveThisWeek && hours! > 48 ? "fail" : "ok";
-    out.push({ check: "mediateka_feed", state, detail: hours === null ? "hech qachon" : `oxirgi webhook ${hours} soat oldin` });
+    const state: State = hours !== null && hours <= MEDIATEKA_SILENT_HOURS ? "ok" : "fail";
+    const detail = hours === null
+      ? "hech qachon webhook kelmagan"
+      : `oxirgi webhook ${hours} soat oldin` + (state === "fail" ? ` (chegara: ${MEDIATEKA_SILENT_HOURS} soat)` : "");
+    out.push({ check: "mediateka_feed", state, detail });
   }
 
   return out;
@@ -102,7 +111,9 @@ const LABEL: Record<string, string> = {
 function compose(r: CheckResult): string {
   const name = LABEL[r.check] ?? r.check;
   return r.state === "fail"
-    ? `🔴 ${name}: ishlamayapti\n${r.detail}\nSupabase → Edge Functions → Secrets ni tekshiring.`
+    ? `🔴 ${name}: ishlamayapti\n${r.detail}\n${r.check === "mediateka_feed"
+        ? "Mediateka ulanishini va webhook manzilini tekshiring."
+        : "Supabase → Edge Functions → Secrets ni tekshiring."}`
     : `🟢 ${name}: yana ishlayapti (${r.detail})`;
 }
 
