@@ -27,6 +27,7 @@ import { DateField } from '@/components/ui/date-field';
 import { cn } from '@/lib/utils';
 import { useActiveIntake } from '@/contexts/IntakeContext';
 import { ContractUpload } from './ContractUpload';
+import { getPlanByValue, calculateFirstPaymentDueDate } from '@/hooks/useStudentPlan';
 
 type StudentProfile = Tables<'profiles'>;
 
@@ -317,6 +318,69 @@ export function EditStudentDialog({ open, onOpenChange, student, onSuccess }: Ed
           .eq('student_id', student.user_id)
           .eq('intake_id', activeIntakeId);
         if (intakeError) throw intakeError;
+      }
+
+      // Auto-create pending payment records when a paid plan is selected.
+      const selectedPlan = formData.paymentPlan ? getPlanByValue(formData.paymentPlan) : undefined;
+      if (
+        selectedPlan &&
+        formData.paymentPlan !== 'free' &&
+        !formData.freeReapplication &&
+        activeIntakeId
+      ) {
+        const { data: existingPayments } = await supabase
+          .from('payments')
+          .select('id')
+          .eq('student_id', student.user_id)
+          .eq('intake_id', activeIntakeId);
+
+        if (!existingPayments || existingPayments.length === 0) {
+          const paymentRows: Array<Record<string, unknown>> = [];
+
+          if (formData.paymentMode === 'installment') {
+            paymentRows.push(
+              {
+                student_id: student.user_id,
+                payment_type: 'initial_deposit',
+                amount: selectedPlan.firstPayment,
+                paid_amount: 0,
+                currency: selectedPlan.currency,
+                status: 'pending',
+                due_date: calculateFirstPaymentDueDate(formData.contractDate || null),
+                intake_id: activeIntakeId,
+              },
+              {
+                student_id: student.user_id,
+                payment_type: 'remaining_payment',
+                amount: selectedPlan.secondPayment,
+                paid_amount: 0,
+                currency: selectedPlan.currency,
+                status: 'pending',
+                due_date: null,
+                intake_id: activeIntakeId,
+              },
+            );
+          } else {
+            paymentRows.push({
+              student_id: student.user_id,
+              payment_type: 'initial_deposit',
+              amount: selectedPlan.priceOneTime,
+              paid_amount: 0,
+              currency: selectedPlan.currency,
+              status: 'pending',
+              due_date: calculateFirstPaymentDueDate(formData.contractDate || null),
+              intake_id: activeIntakeId,
+            });
+          }
+
+          const { error: paymentError } = await supabase
+            .from('payments')
+            .insert(paymentRows as any);
+
+          if (paymentError) {
+            console.error('Failed to create payment records:', paymentError);
+          }
+        }
       }
 
       toast({ title: t('common.success'), description: 'Student updated successfully' });
