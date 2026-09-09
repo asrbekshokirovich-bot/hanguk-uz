@@ -44,7 +44,7 @@ const FIELDS: { field: string; uz: string }[] = [
   { field: "target_intake",        uz: "qaysi qabulga: masalan 2027 bahor / 2027 kuz" },
   { field: "budget_range",         uz: "aytilgan byudjeti" },
   { field: "how_heard",            uz: "bizni qayerdan bilgani" },
-  { field: "interest_level",       uz: "qiziqish darajasi: low | medium | high" },
+  { field: "interest_level",       uz: "qiziqish darajasi: low | medium | high (mezon quyida)" },
   { field: "call_result",          uz: "qo'ng'iroq natijasi bir jumlada" },
   { field: "next_follow_up",       uz: "kelishilgan keyingi aloqa sanasi (YYYY-MM-DD), agar aytilgan bo'lsa" },
 ];
@@ -58,11 +58,58 @@ const GLOSSARY = `Sohaga oid atamalar (transkripsiyada buzilgan bo'lishi mumkin,
 - D-2 — talaba vizasi. D-4 — til kursi vizasi.
 - "til kursi", "bakalavr", "magistratura" — o'qish turlari.`;
 
+/**
+ * How committed the caller actually is.
+ *
+ * Written as a rule about behaviour, not as a list of phrases. Uzbek carries a
+ * lot of polite non-commitment, and a prompt that names specific formulas
+ * teaches the model to look for those exact words — every other polite form
+ * then slips through and lands as high. The opposite error is as bad: a polite
+ * formula sitting next to a real commitment ("I will send the documents
+ * tomorrow") must still read as high, or the grade punishes courtesy.
+ *
+ * The test the model applies is therefore: is there a concrete step, and is it
+ * the CALLER who takes it — not how warm the sentence sounds.
+ *
+ * The medium/low line is drawn on whether the caller ASKED for anything. A first
+ * pass put both "I am still thinking it over" and "I will try, I will call you
+ * myself" in the same band, and the model graded a polite brush-off as medium.
+ * Wanting something is observable in a transcript; interest is not.
+ *
+ * Sharpening that line then swallowed the case it should not touch: a call that
+ * dropped on a bad line also "puts the conversation off", so the model started
+ * grading unusable calls as low. Hence the precedence rule at the end — a call
+ * that never reached the subject is not a lukewarm lead, it is no reading at all,
+ * and a field left empty is the honest answer.
+ */
+const INTEREST_RUBRIC = `interest_level uchun mezon:
+- high — mijoz aniq qadam qo'ydi yoki qo'yishga rozi bo'ldi: sana yoki vaqt kelishildi,
+  hujjat yuborishga rozi bo'ldi yoki yubordi, uchrashuvga kelishini aytdi, to'lov bo'yicha
+  aniq qadam bor.
+- medium — aniq qadam yo'q, lekin mijoz suhbatda FAOL qatnashdi: savol berdi, tafsilot
+  yoki shart-sharoit so'radi, narx bilan qiziqdi.
+- low — mijoz na aniq qadam qo'ydi, na biror narsa so'radi: suhbatni keyinga surdi,
+  umumiy javob bilan cheklandi, yoki qiziqmasligini bildirdi.
+
+Ikki muhim qoida:
+1. Muloyim ibora o'z-o'zidan bahoni pasaytirmaydi. Agar o'sha jumlada yoki suhbatning
+   boshqa joyida aniq qadam ham bo'lsa — qadam hal qiladi, ibora emas.
+2. Qadamni MIJOZ qo'yishi kerak. Operator taklif qilgan sana yoki harakat mijozning
+   roziligisiz baho uchun hisobga olinmaydi.
+
+Hammasidan ustun turadigan qoida: agar suhbat mavzuga umuman yetib bormagan bo'lsa —
+texnik uzilish, aloqa yomon, noto'g'ri raqam, yoki mijoz masala bo'yicha umuman gapirmadi —
+interest_level maydonini UMUMAN qaytarma. Bunday holatni "low" deb baholama: "low" bu
+"qiziqmadi" degani, "suhbat bo'lmadi" degani emas. Xuddi shunday, "medium" ham
+"o'rtacha qiziqish" degani, "bilmayman" degani emas.`;
+
 function buildPrompt(transcript: string): string {
   const fieldList = FIELDS.map((f) => `- ${f.field}: ${f.uz}`).join("\n");
   return `Sen HANGUK ta'lim konsalting kompaniyasining CRM tizimidasan. Quyida operator va mijoz o'rtasidagi telefon suhbati transkripsiyasi berilgan. Sening vazifang — mijoz kartochkasi uchun faqat suhbatda AYTILGAN ma'lumotlarni ajratib olish.
 
 ${GLOSSARY}
+
+${INTEREST_RUBRIC}
 
 Qat'iy qoidalar:
 1. Faqat transkripsiyada bor narsani yoz. Taxmin qilma, mantiqan chiqarma, to'ldirib yubormа.
@@ -96,13 +143,23 @@ Deno.serve(async (req) => {
     const dry = !!body.dry;
     if (!callId) return json({ error: "Missing call_id" }, 400);
 
-    const { data: call } = await supabase
+    const { data: callRow } = await supabase
       .from("calls").select("id, lead_id, student_id").eq("id", callId).maybeSingle();
-    if (!call) return json({ error: "Call not found" }, 404);
+    const call = callRow ?? { id: callId, lead_id: null, student_id: null };
+    if (!callRow && !dry) return json({ error: "Call not found" }, 404);
 
-    const { data: transcript } = await supabase
-      .from("call_transcripts").select("full_text").eq("call_id", callId).maybeSingle();
-    const text = (transcript as { full_text: string } | null)?.full_text ?? "";
+    // A dry run may carry its own transcript. That is how the rubric is tested
+    // against cases the recordings do not contain yet, without inventing call
+    // rows to hold them. Never allowed outside dry mode: a suggestion must be
+    // traceable to a real call.
+    let text = "";
+    if (dry && typeof body.transcript === "string" && body.transcript.trim()) {
+      text = body.transcript;
+    } else {
+      const { data: transcript } = await supabase
+        .from("call_transcripts").select("full_text").eq("call_id", callId).maybeSingle();
+      text = (transcript as { full_text: string } | null)?.full_text ?? "";
+    }
     if (!text.trim()) return json({ error: "No transcript for this call" }, 404);
 
     const res = await fetch(
