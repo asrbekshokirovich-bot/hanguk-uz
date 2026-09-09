@@ -15,7 +15,12 @@
 // Alerts on the TRANSITION only (ok→fail, fail→ok), state kept in infra_health.
 // Telegram delivery reuses TELEGRAM_BOT_TOKEN + ALERT_TELEGRAM_CHAT_ID, same as
 // channel-health-check. ?dry=1 returns the board without recording or alerting.
-// Called hourly by pg_cron with the service-role key.
+// Called hourly by pg_cron.
+//
+// AUTH: verify_jwt is off at the gateway because the new sb_secret_ API keys
+// are not JWTs and can only travel in the `apikey` header. The caller is
+// checked here instead: a secret key in `apikey`, or — during the migration off
+// the leaked legacy key — a service_role JWT in `Authorization: Bearer`.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 
 const corsHeaders = {
@@ -120,10 +125,7 @@ async function sendTelegram(text: string): Promise<boolean> {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
-  // The gateway (verify_jwt=true) has already checked the signature; here we
-  // only insist the caller is the service role, not a staff or anon JWT.
-  const auth = (req.headers.get("authorization") || "").replace(/^Bearer\s+/i, "").trim();
-  if (!isServiceRole(auth)) return json({ error: "Unauthorized" }, 401);
+  if (!authorized(req)) return json({ error: "Unauthorized" }, 401);
 
   const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
   const dry = new URL(req.url).searchParams.get("dry") === "1";
@@ -161,14 +163,30 @@ Deno.serve(async (req) => {
   }
 });
 
-function isServiceRole(jwt: string): boolean {
-  if (jwt === SERVICE_KEY) return true;
+/** A secret key in `apikey`, or a service_role JWT in `Authorization: Bearer`. */
+function authorized(req: Request): boolean {
+  const apikey = (req.headers.get("apikey") || "").trim();
+  if (apikey.startsWith("sb_secret_") && knownSecretKeys().includes(apikey)) return true;
+
+  const bearer = (req.headers.get("authorization") || "").replace(/^Bearer\s+/i, "").trim();
+  if (!bearer) return false;
+  if (bearer === SERVICE_KEY) return true;
   try {
-    const payload = jwt.split(".")[1];
+    const payload = bearer.split(".")[1];
     const pad = payload + "=".repeat((4 - payload.length % 4) % 4);
     const claims = JSON.parse(atob(pad.replace(/-/g, "+").replace(/_/g, "/")));
     return claims?.role === "service_role";
   } catch (_e) { return false; }
+}
+
+/** Every sb_secret_ key configured for this project, whatever it is named. */
+function knownSecretKeys(): string[] {
+  try {
+    const raw = Deno.env.get("SUPABASE_SECRET_KEYS");
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Object.values(parsed).filter((v): v is string => typeof v === "string");
+  } catch (_e) { return []; }
 }
 
 function json(body: unknown, status = 200): Response {

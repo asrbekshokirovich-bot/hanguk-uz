@@ -6,9 +6,13 @@
 // does. It sends on the TRANSITION only — going quiet, and coming back — so a
 // channel that stays broken over a weekend produces one message, not fifty.
 //
-// Called hourly by pg_cron with the service-role key. Also safe to call by
-// hand from the CRM to check the current picture: pass ?dry=1 to see the state
-// without recording alerts.
+// Called hourly by pg_cron. Also safe to call by hand from the CRM to check the
+// current picture: pass ?dry=1 to see the state without recording alerts.
+//
+// AUTH: verify_jwt is off at the gateway because the new sb_secret_ API keys
+// are not JWTs and can only travel in the `apikey` header. The caller is
+// checked in `authorized()` below instead — without it this endpoint would be
+// open to anyone, and it both writes state and sends Telegram messages.
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 
@@ -92,6 +96,8 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  if (!authorized(req)) return json({ error: "Unauthorized" }, 401);
+
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
   const dry = new URL(req.url).searchParams.get("dry") === "1";
 
@@ -127,6 +133,32 @@ serve(async (req) => {
     return json({ ok: false, error: message }, 500);
   }
 });
+
+/** A secret key in `apikey`, or a service_role JWT in `Authorization: Bearer`. */
+function authorized(req: Request): boolean {
+  const apikey = (req.headers.get("apikey") || "").trim();
+  if (apikey.startsWith("sb_secret_") && knownSecretKeys().includes(apikey)) return true;
+
+  const bearer = (req.headers.get("authorization") || "").replace(/^Bearer\s+/i, "").trim();
+  if (!bearer) return false;
+  if (bearer === SUPABASE_SERVICE_ROLE_KEY) return true;
+  try {
+    const payload = bearer.split(".")[1];
+    const pad = payload + "=".repeat((4 - payload.length % 4) % 4);
+    const claims = JSON.parse(atob(pad.replace(/-/g, "+").replace(/_/g, "/")));
+    return claims?.role === "service_role";
+  } catch (_e) { return false; }
+}
+
+/** Every sb_secret_ key configured for this project, whatever it is named. */
+function knownSecretKeys(): string[] {
+  try {
+    const raw = Deno.env.get("SUPABASE_SECRET_KEYS");
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Object.values(parsed).filter((v): v is string => typeof v === "string");
+  } catch (_e) { return []; }
+}
 
 function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
