@@ -131,10 +131,12 @@ verify_jwt = false
 [functions.db-exec]
 verify_jwt = true
 
-# Health heartbeat for the messaging channels. Called hourly by pg_cron with the
-# service-role key, so the gateway checks the JWT.
+# Health heartbeat for the messaging channels, called hourly by pg_cron.
+# verify_jwt is off so pg_cron can authenticate with an sb_secret_ key in the
+# `apikey` header (secret keys are not JWTs, so they cannot go in Authorization
+# and the gateway's JWT check cannot see them). The function checks the caller.
 [functions.channel-health-check]
-verify_jwt = true
+verify_jwt = false
 
 # Short-text translation for the inbox — staff JWT, checked at the gateway and
 # again inside the function against the messaging roles.
@@ -158,6 +160,7 @@ verify_jwt = false
 verify_jwt = true
 
 # Hourly infra probe (API keys, call pipeline, Mediateka feed) → Telegram.
-# Called by pg_cron with the service-role key; the function re-checks the role.
+# Called by pg_cron with an sb_secret_ key in the `apikey` header; verify_jwt is
+# off for the same reason as channel-health-check, and the function checks it.
 [functions.infra-health-check]
-verify_jwt = true
+verify_jwt = false
