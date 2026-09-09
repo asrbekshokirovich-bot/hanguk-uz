@@ -164,3 +164,9 @@ verify_jwt = true
 # off for the same reason as channel-health-check, and the function checks it.
 [functions.infra-health-check]
 verify_jwt = false
+
+# Proposes lead-card values from a call transcript, for an operator to accept.
+# Called server-to-server with a secret key in `apikey`, so the gateway's JWT
+# check cannot see it; the function checks the caller itself.
+[functions.suggest-lead-fields]
+verify_jwt = false

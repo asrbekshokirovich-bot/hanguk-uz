@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { resolveIdentity } from "../_shared/identity.ts";
+import { resolveIdentity } from "./_shared/identity.ts";
 
 /**
  * Best-effort nudge to the call-intelligence worker. The DB trigger already
@@ -127,6 +127,14 @@ serve(async (req) => {
   }
 
   try {
+    // --- Provider routing ---
+    // Asterisk posts to /voip-webhook/asterisk. A path rather than a header, so
+    // the provider is obvious in the logs and in the capture row, and a
+    // misconfigured PBX can never fall through into the Mediateka parser.
+    if (url.pathname.replace(/\/+$/, '').endsWith('/asterisk')) {
+      return await handleAsterisk(req, supabaseAdmin, payload);
+    }
+
     // --- Authentication ---
     // Mediateka uses MEDIATEKA_WEBHOOK_SECRET (set in CRM-da avtorizatsiya qilish uchun kalit).
     // If the env var is set, we require the secret in the request — but only
@@ -161,6 +169,9 @@ serve(async (req) => {
       (typeof payload.crm_token === 'string' && typeof payload.callid === 'string');
 
     let callData;
+    // The PBX extension that handled the call (Mediateka `ext`, later the
+    // Asterisk channel's extension). Resolved to a person via staff_extensions.
+    let staffExtension: string | null = null;
 
     if (isMediateka) {
       const cmd = String(payload.cmd ?? '').toLowerCase();
@@ -236,8 +247,7 @@ serve(async (req) => {
         ended_at: endedAt,
         voip_provider: 'mediateka',
       };
-      // ext (701) preserved for a later staff_id mapping migration; not stored yet.
-      void ext;
+      staffExtension = ext;
     } else if (isVoximplant) {
       const voximplantApiKey = Deno.env.get('VOXIMPLANT_API_KEY');
       const incomingApiKey = (payload.api_key as string) || req.headers.get('x-api-key');
@@ -304,6 +314,28 @@ serve(async (req) => {
       leadId = resolved.leadId;
     }
 
+    // Extension → operator. A call with no mapping keeps staff_id null rather
+    // than guessing: an unmapped extension is a configuration gap, and a wrong
+    // owner is worse than none once screen-pop and per-operator stats read it.
+    let staffId: string | null = null;
+    if (staffExtension) {
+      const provider = String(callData.voip_provider ?? '');
+      const { data: mapped, error: mapError } = await supabaseAdmin
+        .from('staff_extensions')
+        .select('staff_id')
+        .eq('provider', provider)
+        .eq('extension', staffExtension)
+        .eq('is_active', true)
+        .maybeSingle();
+      if (mapError) {
+        console.error('staff_extensions lookup failed:', mapError.message);
+      } else if (mapped) {
+        staffId = (mapped as { staff_id: string }).staff_id;
+      } else {
+        console.warn(`No active staff_extensions row for ${provider} ext=${staffExtension}`);
+      }
+    }
+
     const { data: existingCall } = await supabaseAdmin
       .from('calls')
       .select('id')
@@ -323,6 +355,7 @@ serve(async (req) => {
           // Keep an existing student link; backfill it (and the lead link) when
           // the identity spine now resolves a match it didn't have before.
           ...(studentId ? { student_id: studentId } : {}),
+          ...(staffId ? { staff_id: staffId } : {}),
           lead_id: leadId,
           updated_at: new Date().toISOString(),
         })
@@ -343,6 +376,7 @@ serve(async (req) => {
           ended_at: callData.ended_at,
           voip_provider: callData.voip_provider,
           student_id: studentId,
+          staff_id: staffId,
           lead_id: leadId,
         })
         .select('id')
@@ -372,6 +406,201 @@ serve(async (req) => {
     });
   }
 });
+
+
+function json(body: unknown, status = 200): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  });
+}
+
+/**
+ * Asterisk / FreePBX feed.
+ *
+ * Reached at /voip-webhook/asterisk — a path, not a header, so a misconfigured
+ * PBX can never be mistaken for Mediateka: the provider is visible in the logs
+ * and in voip_webhook_captures.url before anything is parsed.
+ *
+ * Expected body (JSON), one POST per event:
+ *   { event: 'start' | 'answer' | 'hangup' | 'recording',
+ *     uniqueid: '1757400000.123',        // Asterisk channel uniqueid — our call key
+ *     ext: '1001',                       // operator's extension
+ *     phone: '998901234567',             // the other party
+ *     direction: 'outgoing' | 'incoming',
+ *     started_at?, answered_at?, ended_at?,   // ISO 8601
+ *     duration?: 42,                     // billsec — talk time, not ring time
+ *     hangupcause?: 16,                  // Q.850 cause, hangup only
+ *     recording_path?: '2026/09/1757400000.123.mp3' }  // recording only
+ *
+ * Authenticated with ASTERISK_WEBHOOK_SECRET in the `x-webhook-secret` header.
+ * Fails closed: with no secret configured the endpoint refuses everything, so a
+ * half-finished PBX setup cannot write calls anonymously.
+ */
+async function handleAsterisk(
+  req: Request,
+  supabaseAdmin: ReturnType<typeof createClient>,
+  payload: Record<string, unknown>,
+): Promise<Response> {
+  const secret = Deno.env.get('ASTERISK_WEBHOOK_SECRET');
+  if (!secret) {
+    console.error('ASTERISK_WEBHOOK_SECRET is not configured — refusing Asterisk events');
+    return json({ error: 'Asterisk endpoint not configured' }, 503);
+  }
+  const provided = (req.headers.get('x-webhook-secret') || String(payload.secret ?? '')).trim();
+  if (provided !== secret) {
+    console.error('Asterisk secret mismatch');
+    return json({ error: 'Unauthorized' }, 401);
+  }
+
+  const event = String(payload.event ?? '').toLowerCase();
+  const uniqueid = String(payload.uniqueid ?? '').trim();
+  if (!uniqueid) return json({ error: 'Missing uniqueid' }, 400);
+
+  const { data: existing } = await supabaseAdmin
+    .from('calls')
+    .select('id, answered_at')
+    .eq('external_call_id', uniqueid)
+    .maybeSingle();
+  const existingRow = existing as { id: string; answered_at: string | null } | null;
+
+  // ---- recording: the office uploader finished pushing the file. This is the
+  // event the transcription worker waits for — hangup arrives while the file is
+  // still on the PBX disk, so starting analysis there would find nothing.
+  if (event === 'recording') {
+    const path = String(payload.recording_path ?? '').trim();
+    if (!path) return json({ error: 'Missing recording_path' }, 400);
+    if (!existingRow) return json({ error: 'Unknown uniqueid for recording' }, 404);
+
+    // A signed URL so the worker can fetch the object over plain HTTP. It
+    // expires; recording_path is the durable reference the CRM re-signs from.
+    const { data: signed, error: signError } = await supabaseAdmin
+      .storage.from('call-recordings').createSignedUrl(path, 60 * 60 * 24);
+    if (signError) {
+      console.error('createSignedUrl failed:', signError.message);
+      return json({ error: 'Could not sign recording URL' }, 502);
+    }
+
+    const { error: recError } = await supabaseAdmin
+      .from('calls')
+      .update({
+        recording_path: path,
+        recording_url: signed?.signedUrl ?? null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', existingRow.id);
+    if (recError) throw recError;
+
+    invokeCallProcessor(existingRow.id);
+    return json({ success: true, call_id: existingRow.id, analysis: 'queued' });
+  }
+
+  const ext = payload.ext ? String(payload.ext) : null;
+  const phone = String(payload.phone ?? '').trim();
+  const direction = String(payload.direction ?? 'incoming').toLowerCase() === 'outgoing'
+    ? 'outgoing'
+    : 'incoming';
+
+  // Extension → operator, same rule as Mediateka: no mapping means no owner,
+  // never a guessed one.
+  let staffId: string | null = null;
+  if (ext) {
+    const { data: mapped, error: mapError } = await supabaseAdmin
+      .from('staff_extensions')
+      .select('staff_id')
+      .eq('provider', 'asterisk')
+      .eq('extension', ext)
+      .eq('is_active', true)
+      .maybeSingle();
+    if (mapError) console.error('staff_extensions lookup failed:', mapError.message);
+    else if (mapped) staffId = (mapped as { staff_id: string }).staff_id;
+    else console.warn(`No active staff_extensions row for asterisk ext=${ext}`);
+  }
+
+  let studentId: string | null = null;
+  let leadId: string | null = null;
+  if (phone) {
+    const resolved = await resolveIdentity(supabaseAdmin, 'phone', phone);
+    studentId = resolved.studentId;
+    leadId = resolved.leadId;
+  }
+
+  const answeredAt = payload.answered_at ? String(payload.answered_at) : null;
+
+  // `start` and `answer` leave the call open; only `hangup` decides an outcome.
+  let status = 'no_answer';
+  let endedAt: string | null = null;
+  let duration = 0;
+
+  if (event === 'hangup') {
+    const cause = parseInt(String(payload.hangupcause ?? ''), 10);
+    const everAnswered = !!(answeredAt || existingRow?.answered_at);
+    status = mapAsteriskHangupCause(cause, everAnswered);
+    endedAt = payload.ended_at ? String(payload.ended_at) : new Date().toISOString();
+    // billsec: talk time. Ring time is not conversation and must not inflate it.
+    duration = parseInt(String(payload.duration ?? '0'), 10) || 0;
+  }
+
+  if (existingRow) {
+    const { error } = await supabaseAdmin
+      .from('calls')
+      .update({
+        ...(event === 'hangup' ? { status, ended_at: endedAt, duration } : {}),
+        ...(answeredAt ? { answered_at: answeredAt } : {}),
+        ...(studentId ? { student_id: studentId } : {}),
+        ...(staffId ? { staff_id: staffId } : {}),
+        lead_id: leadId,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', existingRow.id);
+    if (error) throw error;
+    return json({ success: true, call_id: existingRow.id, event });
+  }
+
+  const { data: inserted, error: insertError } = await supabaseAdmin
+    .from('calls')
+    .insert({
+      external_call_id: uniqueid,
+      phone_number: phone || 'unknown',
+      direction,
+      status,
+      duration,
+      started_at: payload.started_at ? String(payload.started_at) : new Date().toISOString(),
+      answered_at: answeredAt,
+      ended_at: endedAt,
+      voip_provider: 'asterisk',
+      student_id: studentId,
+      staff_id: staffId,
+      lead_id: leadId,
+    })
+    .select('id')
+    .single();
+  if (insertError) throw insertError;
+
+  return json({ success: true, call_id: (inserted as { id: string })?.id, event });
+}
+
+/**
+ * Q.850 hangup causes → our call statuses.
+ *
+ * Without this every Asterisk call would land as 'completed', because that is
+ * what a "the channel closed" event looks like if you don't read the cause.
+ * `everAnswered` decides the ambiguous ones: a channel that closed normally but
+ * was never picked up is a missed call, not a conversation.
+ */
+function mapAsteriskHangupCause(cause: number, everAnswered: boolean): string {
+  switch (cause) {
+    case 16: return everAnswered ? 'completed' : 'no_answer'; // normal clearing
+    case 17: return 'busy';                                   // user busy
+    case 18: return 'no_answer';                              // no user responding
+    case 19: return 'no_answer';                              // no answer from user
+    case 21: return 'failed';                                 // call rejected
+    case 20: return 'missed';                                 // subscriber absent
+    case 34: return 'failed';                                 // no circuit available
+    case 38: return 'failed';                                 // network out of order
+    default: return everAnswered ? 'completed' : 'failed';
+  }
+}
 
 function mapVoximplantStatus(result: string): string {
   const r = result.toLowerCase();
