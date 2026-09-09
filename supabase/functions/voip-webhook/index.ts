@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { resolveIdentity } from "../_shared/identity.ts";
+import { resolveIdentity } from "./_shared/identity.ts";
 
 /**
  * Best-effort nudge to the call-intelligence worker. The DB trigger already
@@ -161,6 +161,9 @@ serve(async (req) => {
       (typeof payload.crm_token === 'string' && typeof payload.callid === 'string');
 
     let callData;
+    // The PBX extension that handled the call (Mediateka `ext`, later the
+    // Asterisk channel's extension). Resolved to a person via staff_extensions.
+    let staffExtension: string | null = null;
 
     if (isMediateka) {
       const cmd = String(payload.cmd ?? '').toLowerCase();
@@ -236,8 +239,7 @@ serve(async (req) => {
         ended_at: endedAt,
         voip_provider: 'mediateka',
       };
-      // ext (701) preserved for a later staff_id mapping migration; not stored yet.
-      void ext;
+      staffExtension = ext;
     } else if (isVoximplant) {
       const voximplantApiKey = Deno.env.get('VOXIMPLANT_API_KEY');
       const incomingApiKey = (payload.api_key as string) || req.headers.get('x-api-key');
@@ -304,6 +306,28 @@ serve(async (req) => {
       leadId = resolved.leadId;
     }
 
+    // Extension → operator. A call with no mapping keeps staff_id null rather
+    // than guessing: an unmapped extension is a configuration gap, and a wrong
+    // owner is worse than none once screen-pop and per-operator stats read it.
+    let staffId: string | null = null;
+    if (staffExtension) {
+      const provider = String(callData.voip_provider ?? '');
+      const { data: mapped, error: mapError } = await supabaseAdmin
+        .from('staff_extensions')
+        .select('staff_id')
+        .eq('provider', provider)
+        .eq('extension', staffExtension)
+        .eq('is_active', true)
+        .maybeSingle();
+      if (mapError) {
+        console.error('staff_extensions lookup failed:', mapError.message);
+      } else if (mapped) {
+        staffId = (mapped as { staff_id: string }).staff_id;
+      } else {
+        console.warn(`No active staff_extensions row for ${provider} ext=${staffExtension}`);
+      }
+    }
+
     const { data: existingCall } = await supabaseAdmin
       .from('calls')
       .select('id')
@@ -323,6 +347,7 @@ serve(async (req) => {
           // Keep an existing student link; backfill it (and the lead link) when
           // the identity spine now resolves a match it didn't have before.
           ...(studentId ? { student_id: studentId } : {}),
+          ...(staffId ? { staff_id: staffId } : {}),
           lead_id: leadId,
           updated_at: new Date().toISOString(),
         })
@@ -343,6 +368,7 @@ serve(async (req) => {
           ended_at: callData.ended_at,
           voip_provider: callData.voip_provider,
           student_id: studentId,
+          staff_id: staffId,
           lead_id: leadId,
         })
         .select('id')
