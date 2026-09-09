@@ -702,15 +702,16 @@ def _parse_extraction_output(raw: str, field_group: str) -> dict[str, Any]:
 
 # CLI wall-clock ceilings, per field group. Each bounds the `claude`
 # subprocess itself (not the wait for the single-agent lock), and hitting one
-# is FATAL — the group's data is lost for that document, with no retry. A
-# ceiling must therefore clear the SLOWEST healthy generation, not the average.
+# is FATAL — the group's data is lost for that document, with no retry (a
+# retry is layered on top in llm_cli.run_claude_cli_result). A ceiling must
+# therefore clear the SLOWEST healthy generation, not the average.
 #
 # Sizing is grounded in extraction_jobs latency data. The 2026-07 pass bumped
 # scholarships/documents_required off the 240s default; re-checking against
 # claude_cli-only latency (2026-08) showed the prior ceilings were already
 # behind their own healthy tail, plus a third group hitting the untouched
 # default constantly —
-#   • requirements       — NOT in this table (240s default) yet 82/82 of its
+#   • requirements       — was on the 240s default, yet 82/82 of its
 #                          failures were exactly "timed out after 240s",
 #                          while healthy runs reach up to 1121s (p95 377s). 900s.
 #   • scholarships       — healthy runs now reach 716s, past the 600s ceiling
@@ -718,10 +719,21 @@ def _parse_extraction_output(raw: str, field_group: str) -> dict[str, Any]:
 #   • documents_required — healthy runs reach 1381s, past the 900s ceiling —
 #                          18/24 failures timed out. 1800s.
 # document_checklist mirrors documents_required (same archetype family, no
-# separate latency signal yet). calendar/tuition stay on the 240s default —
-# their healthy tails (383s/415s) are outliers, not a systemic wall-hit.
+# separate latency signal yet).
+#
+# 2026-09-01 audit re-check: calendar/tuition had been left on the 240s
+# default on the theory their healthy tails (383s/415s) were outliers. A
+# same-day sample (129 jobs, post claude_cli cutover) showed that was no
+# longer true — calendar alone lost 36/46 of the day's failures to the
+# timeout, with its p95 sitting exactly on 240s (a distribution truncated by
+# its own ceiling) and a genuine success at 428s; every group with a real
+# ceiling above had zero timeouts the same day. Bumped both, sized the same
+# way as the groups above — clearing the observed tail with headroom, not
+# the median.
 _CLI_TIMEOUT_DEFAULT_SEC = 240.0
 _CLI_TIMEOUT_BY_GROUP: dict[str, float] = {
+    "calendar": 900.0,
+    "tuition": 600.0,
     "requirements": 900.0,
     "scholarships": 900.0,
     "documents_required": 1800.0,

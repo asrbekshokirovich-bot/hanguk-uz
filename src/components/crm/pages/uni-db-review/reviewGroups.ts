@@ -263,15 +263,26 @@ export function isDocumentFlag(row: ReviewQueueRow): boolean {
 }
 
 /**
- * A document flag that found NO place to split at.
+ * The parser's own name for a document card, when we have it.
  *
- * The parser raises two different document cards and distinguishes them by
- * `field_group` ('degree_split' vs 'degree_check') — but that key never
- * reaches us: `review_queue` has no field_group column, the document-level
- * insert writes only (entity_type, entity_id, reason, priority,
- * reviewer_notes), and the dashboard view takes field_group from the
- * extraction_jobs join, which is NULL for these rows. What does survive is the
- * note the parser wrote, so the wording is the discriminator.
+ * `review_queue.field_group` (migration 20260924000000) is where the parser
+ * now records which of the two document cards it raised, and the dashboard
+ * view falls back to it when the extraction_jobs join has no field_group —
+ * which is always, for these rows.
+ *
+ * Before that column existed the card type had to be inferred from the
+ * wording of `reviewer_notes`, which meant one reworded sentence in
+ * parse_worker.py silently turned the split button off. The note regexes
+ * below stay as the fallback for rows written before the migration; they are
+ * no longer the primary discriminator.
+ */
+function documentCardKind(row: ReviewQueueRow): 'degree_split' | 'degree_check' | null {
+  const fg = row.field_group ?? null;
+  return fg === 'degree_split' || fg === 'degree_check' ? fg : null;
+}
+
+/**
+ * A document flag that found NO place to split at.
  *
  * It matters because the two cards ask for opposite things. A real split card
  * carries segment offsets and means "cut this file in two". This one means
@@ -282,18 +293,23 @@ export function isDocumentFlag(row: ReviewQueueRow): boolean {
  */
 export function isDegreeCheckFlag(row: ReviewQueueRow): boolean {
   if (!isDocumentFlag(row)) return false;
+  const kind = documentCardKind(row);
+  if (kind !== null) return kind === 'degree_check';
   const note = row.reviewer_notes ?? '';
   return /no split boundary|no degree section header/i.test(note);
 }
 
 /**
  * A document flag that DID find a boundary — parse_worker's degree_split
- * card. Matches the same phrase fn_split_guideline_document_by_degree uses
- * to find its target row, so "the button shows" and "the RPC will resolve
- * this row" never disagree.
+ * card. The note fallback still matches the same phrase
+ * fn_split_guideline_document_by_degree searches for, so on pre-migration
+ * rows "the button shows" and "the RPC will resolve this row" never
+ * disagree.
  */
 export function isDegreeSplitFlag(row: ReviewQueueRow): boolean {
   if (!isDocumentFlag(row) || isDegreeCheckFlag(row)) return false;
+  const kind = documentCardKind(row);
+  if (kind !== null) return kind === 'degree_split';
   const note = row.reviewer_notes ?? '';
   return /split into separate admission/i.test(note);
 }

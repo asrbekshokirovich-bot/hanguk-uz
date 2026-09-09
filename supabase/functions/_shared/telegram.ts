@@ -69,6 +69,45 @@ export function sendTelegramMessage(
   });
 }
 
+/**
+ * Send a file to a chat, picking the Telegram method that matches its type.
+ *
+ * Telegram accepts a URL and fetches the bytes itself, so this takes a signed
+ * URL from the `chat-media` bucket rather than uploading a multipart body.
+ *
+ * The method matters to the recipient, not just to us: a voice note sent with
+ * sendDocument arrives as a file to download instead of a playable bubble, and
+ * a photo sent as a document loses its preview.
+ *
+ * A caption rides along when there is text, but Telegram caps captions at 1024
+ * characters; longer text is left to the caller to send as its own message
+ * rather than being silently truncated.
+ */
+export function sendTelegramMedia(
+  token: string,
+  chatId: string | number,
+  fileUrl: string,
+  mime: string,
+  options: TelegramSendOptions & { caption?: string; filename?: string } = {},
+): Promise<TelegramApiResult> {
+  const { caption, filename, ...rest } = options;
+  const kind = mime.startsWith("image/") && mime !== "image/gif"
+    ? { method: "sendPhoto", field: "photo" }
+    : mime.startsWith("video/")
+    ? { method: "sendVideo", field: "video" }
+    : mime.startsWith("audio/")
+    ? { method: "sendVoice", field: "voice" }
+    : { method: "sendDocument", field: "document" };
+
+  return callTelegram(token, kind.method, {
+    chat_id: chatId,
+    [kind.field]: fileUrl,
+    ...(caption && caption.length <= 1024 ? { caption } : {}),
+    ...(kind.method === "sendDocument" && filename ? { filename } : {}),
+    ...rest,
+  });
+}
+
 /** Acknowledge a callback query so the client stops showing a loading spinner. */
 export function answerCallbackQuery(
   token: string,

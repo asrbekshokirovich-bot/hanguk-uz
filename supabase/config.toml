@@ -1,4 +1,10 @@
-project_id = "hyvxwlwttzxzrkfolivo"
+# Hanguk 2026 — the live project this repo actually runs against.
+#
+# This said "hyvxwlwttzxzrkfolivo" until 2026-09-03: a project that no longer
+# exists. Anyone running `supabase link` or `supabase functions deploy` from a
+# checkout was pointed at nothing, which is one reason every change to this
+# database was made by hand in the dashboard instead.
+project_id = "lysjdtyanhdfphqyijsr"
 
 [functions.telegram-webhook]
 verify_jwt = false
@@ -6,8 +12,13 @@ verify_jwt = false
 [functions.instagram-webhook]
 verify_jwt = false
 
+# Staff-only: the CRM inbox calls it with the operator's JWT. The function
+# checks the caller itself, but the gateway should refuse an anonymous request
+# before it ever runs. This said `false` while production ran `true`, and the
+# first CI deploy pushed the repo's weaker value over the live one — drift in
+# the other direction, and a reminder that config.toml is deployed too.
 [functions.send-instagram]
-verify_jwt = false
+verify_jwt = true
 
 [functions.send-telegram]
 verify_jwt = false
@@ -120,3 +131,42 @@ verify_jwt = false
 [functions.db-exec]
 verify_jwt = true
 
+# Health heartbeat for the messaging channels, called hourly by pg_cron.
+# verify_jwt is off so pg_cron can authenticate with an sb_secret_ key in the
+# `apikey` header (secret keys are not JWTs, so they cannot go in Authorization
+# and the gateway's JWT check cannot see them). The function checks the caller.
+[functions.channel-health-check]
+verify_jwt = false
+
+# Short-text translation for the inbox — staff JWT, checked at the gateway and
+# again inside the function against the messaging roles.
+[functions.translate-message]
+verify_jwt = true
+
+# --- Recovered 2026-09-07: functions that lived only on the live project -----
+
+# Click-to-call via Mediateka CRM-API. Staff JWT checked at the gateway and
+# again inside (owner/admin).
+[functions.mediateka-makecall]
+verify_jwt = true
+
+# TEMPORARY Uzbek TTS bake-off (ElevenLabs vs Azure). Gated by
+# VOICE_BAKEOFF_SECRET query param, so no JWT at the gateway.
+[functions.voice-bakeoff-tmp]
+verify_jwt = false
+
+# Retired 410 stub. Safe to delete here and on the server.
+[functions.tmp-voice-transcribe]
+verify_jwt = true
+
+# Hourly infra probe (API keys, call pipeline, Mediateka feed) → Telegram.
+# Called by pg_cron with an sb_secret_ key in the `apikey` header; verify_jwt is
+# off for the same reason as channel-health-check, and the function checks it.
+[functions.infra-health-check]
+verify_jwt = false
+
+# Proposes lead-card values from a call transcript, for an operator to accept.
+# Called server-to-server with a secret key in `apikey`, so the gateway's JWT
+# check cannot see it; the function checks the caller itself.
+[functions.suggest-lead-fields]
+verify_jwt = false

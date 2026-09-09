@@ -17,6 +17,12 @@ import {
   isDegreeCheckFlag,
   isDegreeSplitFlag,
 } from './reviewGroups';
+import {
+  applicationLabels,
+  isSupplementary,
+  partitionByRound,
+  waveCount,
+} from './rounds';
 
 /**
  * Per-field-group section bodies (design §B): only the decision-critical
@@ -80,6 +86,10 @@ const EMPH_SLOTS = new Set(['applyClose', 'docsDeadline']);
  * When the extractor tagged an event with round_label (1차/2차/3차/4차 모집,
  * or "1st Round" etc.), that label is prefixed so a reviewer can tell which
  * round each stacked date belongs to instead of guessing from order.
+ *
+ * 추가합격 waves never reach here — CalendarBody partitions them out first
+ * (see ./rounds), because they are numbered 1차–4차 too and stacking them
+ * beside the real dates is what made every university look four-round.
  */
 function calValueLines(t: TFunction, events: Array<Record<string, unknown>>): string[] {
   return events
@@ -95,8 +105,16 @@ function calValueLines(t: TFunction, events: Array<Record<string, unknown>>): st
 
 export function CalendarBody({ row }: { row: ReviewQueueRow }) {
   const { t } = useTranslation();
-  const events = getArray(row.parsed_output, 'events');
-  const periods = getArray(row.parsed_output, 'periods');
+  const allEvents = getArray(row.parsed_output, 'events');
+  const allPeriods = getArray(row.parsed_output, 'periods');
+
+  // Replacement waves out of the way first. They are dates a reviewer should
+  // still see, but they are not rounds, and mixing them into the date rows is
+  // the bug this partition exists for.
+  const { main: events, supplementary } = partitionByRound(allEvents);
+  const appLabels = applicationLabels(allEvents);
+  const periods = allPeriods.filter((p) => !isSupplementary(p, appLabels));
+
   const { slots } = mapCalendarEvents(events);
 
   /** Prefix a period-derived value with its round_label, same convention as calValueLines. */
@@ -126,6 +144,25 @@ export function CalendarBody({ row }: { row: ReviewQueueRow }) {
     }),
     { key: 'offline', lines: offlineLines, emph: false },
   ];
+
+  // One row for the whole 추가합격 block: how many waves and over what dates.
+  // A reviewer needs to know it exists; they do not need four date rows for
+  // it, and an applicant cannot act on it in advance.
+  const suppLines = (() => {
+    if (!supplementary.length) return [];
+    const dates = supplementary
+      .map((e) => fmtDateKST(e.starts_at))
+      .filter((d): d is string => Boolean(d))
+      .sort();
+    const n = waveCount(supplementary);
+    const span = dates.length
+      ? dates[0] === dates[dates.length - 1]
+        ? dates[0]
+        : `${dates[0]} – ${dates[dates.length - 1]}`
+      : '';
+    const waves = t('uniReview.cal.supplementaryWaves', { count: n });
+    return [span ? `${span} · ${waves}` : waves];
+  })();
 
   return (
     <div className="flex flex-col gap-3">
@@ -159,6 +196,16 @@ export function CalendarBody({ row }: { row: ReviewQueueRow }) {
           </div>
         ))}
       </div>
+      {suppLines.length > 0 && (
+        <div className="flex items-baseline justify-between gap-3 rounded-[10px] border border-border/60 bg-secondary/30 p-2.5 px-3.5">
+          <span className="shrink-0 text-[13px] text-muted-foreground">
+            {t('uniReview.cal.supplementary')}
+          </span>
+          <span className="min-w-0 break-words text-right font-mono text-[12.5px] font-medium">
+            {suppLines[0]}
+          </span>
+        </div>
+      )}
       <div className="flex items-center justify-between gap-3 rounded-[10px] border border-border/60 bg-secondary/50 p-2.5 px-3.5">
         <span className="text-[13px] font-semibold">{t('uniReview.cal.fee')}</span>
         <span className="min-w-0 break-words text-right font-mono text-[13px] font-bold">

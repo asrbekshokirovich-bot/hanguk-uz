@@ -217,10 +217,43 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
    */
   const fetchThreads = useCallback(async () => {
     const { data, error } = await (supabase.rpc as any)('get_thread_previews');
-    if (!error && data) {
+    if (error) {
+      // An inbox that failed to load and an inbox with nothing in it look
+      // identical on screen. This error was read by nothing at all; at minimum
+      // it belongs in the console so "where are my conversations" has an
+      // answer.
+      console.error('get_thread_previews failed', error);
+    } else if (data) {
       setThreads((data as any[]).map(rowToThread));
     }
     setLoading(false);
+  }, []);
+
+  /**
+   * One conversation, merged in place.
+   *
+   * Realtime patches rows locally, but two cases used to fall back to
+   * `fetchThreads()`: a brand new thread, and an update for a thread not yet in
+   * the list. Both reloaded all 285 previews — so a message from someone the
+   * operator had never spoken to reloaded the whole inbox, and the busier the
+   * school got the more often it happened. The information needed is one row.
+   */
+  const fetchOneThread = useCallback(async (threadId: string) => {
+    const { data, error } = await (supabase.rpc as any)('get_thread_preview', { p_id: threadId });
+    if (error) {
+      console.error('get_thread_preview failed', error);
+      return;
+    }
+    const row = (data as any[])?.[0];
+    if (!row) return;
+    const thread = rowToThread(row);
+    setThreads((prev) => {
+      const idx = prev.findIndex((t) => t.id === thread.id);
+      if (idx < 0) return sortThreads([thread, ...prev]);
+      const next = [...prev];
+      next[idx] = { ...next[idx], ...thread };
+      return sortThreads(next);
+    });
   }, []);
 
   /** Latest page only — older pages stream in via loadOlderMessages. */
@@ -230,7 +263,11 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
       p_sender_id: thread.sender_id,
       p_limit: PAGE_SIZE,
     });
-    if (error || !data) return;
+    if (error) {
+      console.error('get_thread_messages failed', error);
+      return;
+    }
+    if (!data) return;
     // A slower response for a thread the operator has already left must not
     // overwrite the stream they are looking at now.
     const current = selectedThreadRef.current;
@@ -240,14 +277,17 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
     setMessages(page);
     setHasMoreMessages((data as any[]).length === PAGE_SIZE);
 
-    // Mark-read bookkeeping must never block rendering the stream.
-    void supabase
-      .from('messages')
-      .update({ status: 'read' })
-      .eq('source', thread.source)
-      .eq('sender_id', thread.sender_id)
-      .eq('status', 'unread');
-    void supabase.from('message_threads').update({ unread_count: 0 }).eq('id', thread.id);
+    // Mark-read bookkeeping must never block rendering the stream, but it must
+    // not vanish either. This was two independent updates with their results
+    // thrown away, which is how `messages.status` and the thread's counter
+    // drifted twenty-fold apart without anyone seeing an error. One RPC does
+    // both, and a failure at least reaches the console instead of nowhere.
+    void (supabase.rpc as any)('mark_thread_read', {
+      p_source: thread.source,
+      p_sender_id: thread.sender_id,
+    }).then(({ error }: { error: unknown }) => {
+      if (error) console.error('mark_thread_read failed', error);
+    });
     setThreads((prev) => prev.map((t) => (t.id === thread.id ? { ...t, unread_count: 0 } : t)));
   }, []);
 
@@ -465,11 +505,14 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
     async (threadId: string, userId: string) => {
       const thread = threads.find((t) => t.id === threadId);
       if (!thread) return { error: new Error('Thread not found') };
+      // One row. This used to stamp `assigned_to` onto every message in the
+      // conversation — hundreds of UPDATEs for one click on Claim, every one of
+      // them broadcast to every open CRM tab through realtime. The assignee is
+      // a fact about the thread, and now lives on it.
       const { error } = await supabase
-        .from('messages')
-        .update({ assigned_to: userId })
-        .eq('source', thread.source)
-        .eq('sender_id', thread.sender_id);
+        .from('message_threads')
+        .update({ assigned_to: userId, assigned_at: new Date().toISOString() })
+        .eq('id', threadId);
       if (!error) {
         setThreads((prev) => prev.map((t) => (t.id === threadId ? { ...t, assigned_to: userId } : t)));
       }
@@ -480,6 +523,8 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
 
   const fetchThreadsRef = useRef(fetchThreads);
   fetchThreadsRef.current = fetchThreads;
+  const fetchOneRef = useRef(fetchOneThread);
+  fetchOneRef.current = fetchOneThread;
   const upsertRef = useRef(upsertMessageRow);
   upsertRef.current = upsertMessageRow;
   const bumpRef = useRef(bumpThreadPreview);
@@ -505,8 +550,12 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
           row.direction === 'incoming'
         ) {
           // The operator is looking at this thread, so it is read on arrival.
-          void supabase.from('messages').update({ status: 'read' }).eq('id', row.id);
-          void supabase.from('message_threads').update({ unread_count: 0 }).eq('id', sel.id);
+          void (supabase.rpc as any)('mark_thread_read', {
+            p_source: sel.source,
+            p_sender_id: sel.sender_id,
+          }).then(({ error }: { error: unknown }) => {
+            if (error) console.error('mark_thread_read failed', error);
+          });
         }
       })
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages' }, (payload) => {
@@ -529,15 +578,17 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
         const oldId = (payload.old as { id?: string })?.id;
         if (oldId) setMessages((prev) => prev.filter((m) => m.id !== oldId));
       })
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'message_threads' }, () => {
-        void fetchThreadsRef.current();
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'message_threads' }, (payload) => {
+        const id = (payload.new as { id?: string })?.id;
+        if (id) void fetchOneRef.current(id);
       })
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'message_threads' }, (payload) => {
         const row = payload.new as any;
         setThreads((prev) => {
           const idx = prev.findIndex((t) => t.id === row.id);
           if (idx < 0) {
-            void fetchThreadsRef.current();
+            // Not in the list yet: pull that one conversation, not all of them.
+            void fetchOneRef.current(row.id);
             return prev;
           }
           const sel = selectedThreadRef.current;
@@ -556,7 +607,15 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
           return sortThreads(next);
         });
       })
-      .subscribe();
+      .subscribe((status) => {
+        // Without this the realtime channel could drop and the inbox would
+        // simply stop updating — no error, no indicator, messages arriving
+        // that nobody sees until the page is reloaded.
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+          console.error(`messages realtime channel ${status} — refreshing`);
+          void fetchThreadsRef.current();
+        }
+      });
 
     return () => {
       supabase.removeChannel(channel);

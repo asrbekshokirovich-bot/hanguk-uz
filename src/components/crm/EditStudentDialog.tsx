@@ -23,10 +23,11 @@ import { Tables } from '@/integrations/supabase/types';
 import { User, Phone, MapPin, Calendar, CreditCard, Pencil, Languages, Crown, CheckCircle, AlertCircle, GraduationCap, Plus, Trash2, Sparkles, RotateCcw } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
+import { DateField } from '@/components/ui/date-field';
 import { cn } from '@/lib/utils';
 import { useActiveIntake } from '@/contexts/IntakeContext';
 import { ContractUpload } from './ContractUpload';
-import { applyDiscount, formatAmount, getPaymentAmount } from '@/hooks/useStudentPlan';
+import { applyDiscount, formatAmount, getPaymentAmount, getPlanByValue, calculateFirstPaymentDueDate } from '@/hooks/useStudentPlan';
 
 type StudentProfile = Tables<'profiles'>;
 
@@ -392,6 +393,72 @@ export function EditStudentDialog({ open, onOpenChange, student, onSuccess }: Ed
         if (intakeError) throw intakeError;
       }
 
+      // Auto-create pending payment records when a paid plan is selected.
+      const selectedPlan = formData.paymentPlan ? getPlanByValue(formData.paymentPlan) : undefined;
+      if (
+        selectedPlan &&
+        formData.paymentPlan !== 'free' &&
+        !formData.freeReapplication &&
+        activeIntakeId
+      ) {
+        const { data: existingPayments } = await supabase
+          .from('payments')
+          .select('id')
+          .eq('student_id', student.user_id)
+          .eq('intake_id', activeIntakeId);
+
+        if (!existingPayments || existingPayments.length === 0) {
+          const paymentRows: Array<Record<string, unknown>> = [];
+
+          if (formData.paymentMode === 'installment') {
+            paymentRows.push(
+              {
+                student_id: student.user_id,
+                payment_type: 'initial_deposit',
+                amount: applyDiscount(selectedPlan.firstPayment, discountPercent),
+                list_amount: discountPercent > 0 ? selectedPlan.firstPayment : null,
+                paid_amount: 0,
+                currency: selectedPlan.currency,
+                status: 'pending',
+                due_date: calculateFirstPaymentDueDate(formData.contractDate || null),
+                intake_id: activeIntakeId,
+              },
+              {
+                student_id: student.user_id,
+                payment_type: 'remaining_payment',
+                amount: applyDiscount(selectedPlan.secondPayment, discountPercent),
+                list_amount: discountPercent > 0 ? selectedPlan.secondPayment : null,
+                paid_amount: 0,
+                currency: selectedPlan.currency,
+                status: 'pending',
+                due_date: null,
+                intake_id: activeIntakeId,
+              },
+            );
+          } else {
+            paymentRows.push({
+              student_id: student.user_id,
+              payment_type: 'initial_deposit',
+              amount: applyDiscount(selectedPlan.priceOneTime, discountPercent),
+              list_amount: discountPercent > 0 ? selectedPlan.priceOneTime : null,
+              paid_amount: 0,
+              currency: selectedPlan.currency,
+              status: 'pending',
+              due_date: calculateFirstPaymentDueDate(formData.contractDate || null),
+              intake_id: activeIntakeId,
+            });
+          }
+
+          const { error: paymentError } = await supabase
+            .from('payments')
+            .insert(paymentRows as any);
+
+          if (paymentError) {
+            console.error('Failed to create payment records:', paymentError);
+          }
+        }
+      }
+
       toast({ title: t('common.success'), description: 'Student updated successfully' });
       onOpenChange(false);
       onSuccess();
@@ -495,12 +562,10 @@ export function EditStudentDialog({ open, onOpenChange, student, onSuccess }: Ed
                   <AutoBadge source={student?.birth_date_source} />
                 </Label>
                 <div className="relative">
-                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
+                  <DateField
                     id="birthDate"
-                    type="date"
                     value={formData.birthDate}
-                    onChange={(e) => setFormData({ ...formData, birthDate: e.target.value })}
+                    onChange={(v) => setFormData({ ...formData, birthDate: v })}
                     className="pl-9"
                   />
                 </div>
@@ -687,12 +752,10 @@ export function EditStudentDialog({ open, onOpenChange, student, onSuccess }: Ed
                   <span className="text-xs text-muted-foreground">(required)</span>
                 </Label>
                 <div className="relative">
-                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
+                  <DateField
                     id="contractDate"
-                    type="date"
                     value={formData.contractDate}
-                    onChange={(e) => setFormData({ ...formData, contractDate: e.target.value })}
+                    onChange={(v) => setFormData({ ...formData, contractDate: v })}
                     className={cn("pl-9", !formData.contractDate && "border-warning")}
                     required
                   />

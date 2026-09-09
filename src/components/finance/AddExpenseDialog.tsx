@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { DateField } from '@/components/ui/date-field';
 import {
   Select,
   SelectContent,
@@ -227,11 +228,9 @@ export function AddExpenseDialog({ onSuccess, trigger }: AddExpenseDialogProps) 
           <div className="space-y-2">
             <Label>Sana</Label>
             <div className="relative">
-              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="date"
+              <DateField
                 value={form.transaction_date}
-                onChange={(e) => setForm({ ...form, transaction_date: e.target.value })}
+                onChange={(v) => setForm({ ...form, transaction_date: v })}
                 className="pl-9"
               />
             </div>

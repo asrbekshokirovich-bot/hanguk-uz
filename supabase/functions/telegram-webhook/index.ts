@@ -114,17 +114,87 @@ async function fetchTelegramFile(fileId: string): Promise<{ bytes: Uint8Array; f
   }
 }
 
-/** Download a voice note and store it in the private chat-media bucket. */
-async function storeVoice(supabase: Any, chatId: string, messageId: number | string, voice: Any):
-  Promise<{ path: string; mime: string; duration: number | null; size: number } | null> {
-  const file = await fetchTelegramFile(voice.file_id);
+/** What kind of attachment, if any, this Telegram message carries.
+ *
+ * Photos arrive as an array of the same image at several resolutions; the last
+ * entry is the largest, which is the one worth keeping.
+ */
+function describeMedia(m: Any): {
+  type: "image" | "voice" | "video" | "audio" | "file";
+  fileId: string;
+  mime: string;
+  filename: string | null;
+  duration: number | null;
+} | null {
+  if (m.photo?.length)   return { type: "image", fileId: m.photo[m.photo.length - 1].file_id,
+                                  mime: "image/jpeg", filename: null, duration: null };
+  if (m.voice)           return { type: "voice", fileId: m.voice.file_id,
+                                  mime: m.voice.mime_type || "audio/ogg", filename: null,
+                                  duration: m.voice.duration ?? null };
+  if (m.video)           return { type: "video", fileId: m.video.file_id,
+                                  mime: m.video.mime_type || "video/mp4",
+                                  filename: m.video.file_name ?? null, duration: m.video.duration ?? null };
+  if (m.video_note)      return { type: "video", fileId: m.video_note.file_id,
+                                  mime: "video/mp4", filename: null, duration: m.video_note.duration ?? null };
+  if (m.audio)           return { type: "audio", fileId: m.audio.file_id,
+                                  mime: m.audio.mime_type || "audio/mpeg",
+                                  filename: m.audio.file_name ?? null, duration: m.audio.duration ?? null };
+  if (m.animation)       return { type: "video", fileId: m.animation.file_id,
+                                  mime: m.animation.mime_type || "video/mp4",
+                                  filename: m.animation.file_name ?? null, duration: null };
+  if (m.sticker)         return { type: "image", fileId: m.sticker.file_id,
+                                  mime: m.sticker.is_animated ? "application/x-tgsticker" : "image/webp",
+                                  filename: null, duration: null };
+  if (m.document)        return { type: "file", fileId: m.document.file_id,
+                                  mime: m.document.mime_type || "application/octet-stream",
+                                  filename: m.document.file_name ?? null, duration: null };
+  return null;
+}
+
+/** The text shown in the thread list for a message that is only an attachment. */
+function captionFor(media: ReturnType<typeof describeMedia>): string {
+  switch (media?.type) {
+    case "image": return "🖼 Rasm";
+    case "voice": return "🎤 Voice message";
+    case "video": return "🎬 Video";
+    case "audio": return "🎵 Audio";
+    case "file":  return "📎 Fayl";
+    default:      return "[Media message]";
+  }
+}
+
+/** Pull an attachment's bytes into the private chat-media bucket.
+ *
+ * This used to handle voice notes and nothing else. Everything else was
+ * labelled — `message_type: 'file'`, `media_type: 'image'` — and then never
+ * fetched, so `media_path` stayed null and the CRM showed "attachment not
+ * available" for every photo, video and document a student ever sent. The
+ * label was there; the file never was.
+ *
+ * A link would not have worked either: Telegram's own file URLs expire and
+ * carry the bot token, so the bytes have to be ours.
+ */
+async function storeTelegramMedia(
+  supabase: Any,
+  chatId: string,
+  messageId: number | string,
+  media: NonNullable<ReturnType<typeof describeMedia>>,
+): Promise<{ path: string; mime: string; filename: string | null; duration: number | null; size: number } | null> {
+  const file = await fetchTelegramFile(media.fileId);
   if (!file) return null;
-  const mime = voice.mime_type || "audio/ogg";
-  const ext = file.filePath.includes(".") ? file.filePath.split(".").pop() : "ogg";
+  const ext = file.filePath.includes(".") ? file.filePath.split(".").pop() : "bin";
   const path = `telegram/${chatId}/${messageId}.${ext}`;
-  const up = await supabase.storage.from("chat-media").upload(path, file.bytes, { contentType: mime, upsert: true });
-  if (up.error) { console.error("voice upload failed:", up.error.message); return null; }
-  return { path, mime, duration: voice.duration ?? null, size: file.bytes.byteLength };
+  const up = await supabase.storage.from("chat-media")
+    .upload(path, file.bytes, { contentType: media.mime, upsert: true });
+  if (up.error) {
+    // A failed download must not lose the message itself: the text, the sender
+    // and the timestamp are still worth having, and the operator can ask for
+    // the file again.
+    console.error("media upload failed:", up.error.message);
+    return null;
+  }
+  return { path, mime: media.mime, filename: media.filename, duration: media.duration,
+           size: file.bytes.byteLength };
 }
 
 /** Find-or-create the lead for this chat (keyed by source_id = chatId). */
@@ -143,6 +213,23 @@ async function upsertLead(supabase: Any, chatId: string, fields: Record<string, 
   if (error) { console.error("lead insert error:", error.message); return null; }
   return data;
 }
+
+/**
+ * Shared secret Telegram echoes back in X-Telegram-Bot-Api-Secret-Token.
+ *
+ * Until 2026-09-03 this endpoint had no authentication of any kind: the POST
+ * handler went straight from `req.json()` into writing `messages`, `leads` and
+ * `telegram_business_connections`. Anyone who knew the URL could inject a
+ * conversation, invent a lead, or register a business connection. The staff
+ * check in this file guards only ?action=status and action:"register" — never
+ * the update path.
+ *
+ * Set TELEGRAM_WEBHOOK_SECRET, then press Connect in the CRM so setWebhook
+ * registers it. While it is unset the endpoint keeps accepting updates and
+ * logs a warning on every one, because failing closed on a secret nobody has
+ * configured yet would take the channel down instead of securing it.
+ */
+const WEBHOOK_SECRET = Deno.env.get("TELEGRAM_WEBHOOK_SECRET");
 
 const STAFF_ROLES = ["owner", "admin", "call_operator"];
 
@@ -220,6 +307,22 @@ serve(async (req) => {
 
     const update = await req.json();
 
+    // Reject forged updates. `action: "register"` is a CRM call rather than a
+    // Telegram delivery, so it authenticates with a staff JWT below instead.
+    if (update?.action !== "register") {
+      const presented = req.headers.get("x-telegram-bot-api-secret-token");
+      if (WEBHOOK_SECRET) {
+        if (presented !== WEBHOOK_SECRET) {
+          console.error("telegram-webhook: rejected update with bad or missing secret token");
+          return json({ error: "Forbidden" }, 403);
+        }
+      } else {
+        console.warn(
+          "telegram-webhook: TELEGRAM_WEBHOOK_SECRET is not set — this endpoint accepts unauthenticated updates",
+        );
+      }
+    }
+
     // Point Telegram back at this function. Staff-gated; see isStaff above for
     // why an update cannot land here.
     if (update?.action === "register") {
@@ -240,11 +343,19 @@ serve(async (req) => {
             "business_message",
             "edited_business_message",
           ],
+          // Telegram returns this on every delivery, which is how the handler
+          // above tells a real update from anything else pointed at the URL.
+          ...(WEBHOOK_SECRET ? { secret_token: WEBHOOK_SECRET } : {}),
         }),
       });
       const result = await res.json().catch(() => ({}));
       if (!result?.ok) return json({ ok: false, error: result?.description || "setWebhook failed" }, 502);
-      return json({ ok: true, url: WEBHOOK_URL, description: result?.description });
+      return json({
+        ok: true,
+        url: WEBHOOK_URL,
+        description: result?.description,
+        secret_token_set: !!WEBHOOK_SECRET,
+      });
     }
     console.log("Telegram update:", JSON.stringify(update));
 
@@ -306,14 +417,15 @@ serve(async (req) => {
           .eq("source", "telegram").eq("sender_id", chatId).is("student_id", null);
       }
 
-      const messageType = bm.photo ? "image" : bm.voice ? "voice" : bm.document ? "file" : "text";
-      const voiceMeta = bm.voice ? await storeVoice(supabase, chatId, bm.message_id, bm.voice) : null;
+      const media = describeMedia(bm);
+      const messageType = media ? media.type : "text";
+      const mediaMeta = media ? await storeTelegramMedia(supabase, chatId, bm.message_id, media) : null;
 
       await storeMessage(supabase, {
         chatId,
         messageId: bm.message_id,
         senderName,
-        content: bm.text || bm.caption || (bm.voice ? "🎤 Voice message" : "[Media message]"),
+        content: bm.text || bm.caption || captionFor(media),
         direction: outgoing ? "outgoing" : "incoming",
         type: messageType,
         studentId: identity.studentId,
@@ -323,11 +435,12 @@ serve(async (req) => {
           telegram_user_id: senderId,
           username: bm.from?.username ?? null,
           lead_id: identity.leadId,
-          media_type: bm.voice ? "voice" : bm.photo ? "image" : bm.document ? "file" : null,
-          media_path: voiceMeta?.path ?? null,
-          media_mime: voiceMeta?.mime ?? null,
-          media_duration: voiceMeta?.duration ?? null,
-          media_size: voiceMeta?.size ?? null,
+          media_type: media?.type ?? null,
+          media_path: mediaMeta?.path ?? null,
+          media_mime: mediaMeta?.mime ?? null,
+          media_filename: mediaMeta?.filename ?? null,
+          media_duration: mediaMeta?.duration ?? null,
+          media_size: mediaMeta?.size ?? null,
         },
       });
       return ok();
@@ -425,31 +538,38 @@ Savolingiz bo'lsa, shu yerda — Telegram orqali — bemalol yozing. 💬 Xodiml
         .eq("source", "telegram").eq("sender_id", chatId).is("student_id", null);
     }
 
-    // Voice note: pull the audio bytes into chat-media so staff can play it back.
-    const voiceMeta = message.voice
-      ? await storeVoice(supabase, chatId, message.message_id, message.voice)
+    // Pull the attachment's bytes into chat-media so staff can open it. Every
+    // kind, not only voice notes — see storeTelegramMedia.
+    const media = describeMedia(message);
+    const mediaMeta = media
+      ? await storeTelegramMedia(supabase, chatId, message.message_id, media)
       : null;
-    const messageType = message.photo ? "image" : message.voice ? "voice" : message.document ? "file" : "text";
-    const content = message.text || message.caption ||
-      (message.voice ? "🎤 Voice message" : "[Media message]");
+    const messageType = media ? media.type : "text";
+    const content = message.text || message.caption || captionFor(media);
 
     await storeMessage(supabase, {
       chatId, messageId: message.message_id, senderName: fromName, content, direction: "incoming",
       type: messageType, studentId: identity.studentId,
       extraMeta: {
         telegram_user_id: tgUserId, username, lead_id: identity.leadId,
-        media_type: message.voice ? "voice" : message.photo ? "image" : message.document ? "file" : null,
-        media_path: voiceMeta?.path ?? null,
-        media_mime: voiceMeta?.mime ?? null,
-        media_duration: voiceMeta?.duration ?? null,
-        media_size: voiceMeta?.size ?? null,
+        media_type: media?.type ?? null,
+        media_path: mediaMeta?.path ?? null,
+        media_mime: mediaMeta?.mime ?? null,
+        media_filename: mediaMeta?.filename ?? null,
+        media_duration: mediaMeta?.duration ?? null,
+        media_size: mediaMeta?.size ?? null,
       },
     });
     return ok();
   } catch (error: unknown) {
     console.error("telegram-webhook error:", error);
-    // 200 so Telegram doesn't disable the webhook on a transient error.
+    // 500, not 200. Telegram retries a failed delivery; answering 200 threw
+    // the message away and left a console line as the only trace. Retrying is
+    // safe now that (source, external_id) is unique, so a redelivery of a
+    // message that did land is rejected by the database rather than
+    // duplicated. Telegram backs off and gives up rather than disabling the
+    // webhook, so a persistent bug costs a few retries, not the channel.
     return new Response(JSON.stringify({ ok: false, error: error instanceof Error ? error.message : "error" }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 });

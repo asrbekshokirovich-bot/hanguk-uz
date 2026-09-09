@@ -19,7 +19,11 @@ both stores want flattened PNGs.
 | 6.5" iPhone (iPhone 11 Pro Max / Xs Max) | 1284 × 2778 | Optional. | Auto-scaled. |
 | iPad — **every** size (13", 12.9", 11") | — | **Leave empty.** | `TARGETED_DEVICE_FAMILY = "1"` (iPhone only) since the 2026-08-05 rejection. An iPhone-only app does not need iPad screenshots, and an empty slot cannot fail 2.3.3. Do not fill these by re-cropping the iPhone captures — a stretched iPhone frame is exactly the "does not reflect the UI of the app" case Apple rejects. Sweep them in Media Manager per locale; see "Rejected 2026-08-12". |
 
-Locales: at minimum `en-US`, `ko`, `uz` (Apple uses `uz` not `uz-UZ`).
+Locales: `en-US`, `ko`, `ru`. **There is no Uzbek App Store localization** —
+Apple's list of 50 does not include it, so an earlier instruction here to file
+screenshots under `uz` could never have worked. Russian is the listing language
+for the Uzbek audience. (Google Play *does* have `uz`; that is where the
+confusion came from.)
 File each set in a localized subfolder: `app-store/<locale>/screenshots/`.
 
 ## Google Play
@@ -83,7 +87,11 @@ Media Manager**.
 
 Two rules follow, and they are cheap to obey:
 
-- **Sweep every size, in every locale, every time** — `en-US`, `ko`, `uz`.
+- **Sweep every size, in every locale, every time** — `en-US`, `ko`, `ru`.
+  As of 2026-09-04 this is done for you: `ios/fastlane` runs
+  `overwrite_screenshots: true`, so anything not in
+  `ios/fastlane/screenshots/` is deleted from App Store Connect on every
+  release. Sweeping by hand is no longer part of the process.
   The Media Manager is per-locale; a stale set in one locale fails the
   whole submission just as a stale set in `en-US` does.
 - **Keep all iPad sizes empty.** The app is iPhone-only, so nothing is

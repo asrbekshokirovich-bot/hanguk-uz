@@ -2,6 +2,8 @@
 
 Phase 0 commands:
   review-digest          Print HITL review queue as Markdown digest.
+  check-watchdog-alerts  Fail if a fatal pipeline_watchdog_log alert fired
+                         recently — the escalation this project did not have.
   parse  --fixture NAME  Run extraction (mocked LLM) against a fixture PDF.
   schema-check           Verify migrations parse and that tables-of-record
                          are referenced by views.
@@ -28,6 +30,15 @@ def _build_parser() -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="cmd", required=True)
 
     p_review = sub.add_parser("review-digest", help="Print HITL queue as markdown")
+
+    p_watchdog = sub.add_parser(
+        "check-watchdog-alerts",
+        help="Exit nonzero if a fatal pipeline_watchdog_log alert fired recently",
+    )
+    p_watchdog.add_argument(
+        "--window-minutes", type=int, default=90,
+        help="How far back to look (default 90 — covers a 30-60min cron with margin)",
+    )
     p_review.add_argument("--limit", type=int, default=20)
 
     p_parse = sub.add_parser("parse", help="Run extraction over a fixture PDF")
@@ -244,6 +255,8 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.cmd == "review-digest":
         return asyncio.run(_review_digest(limit=args.limit))
+    if args.cmd == "check-watchdog-alerts":
+        return asyncio.run(_check_watchdog_alerts(window_minutes=args.window_minutes))
     if args.cmd == "parse":
         return asyncio.run(_parse_fixture(name=args.fixture))
     if args.cmd == "run-pipeline":
@@ -395,6 +408,79 @@ async def _review_digest(*, limit: int) -> int:
     ]
     print(render_digest(queue=queue, accuracy=accuracy, overdue=overdue))
     return 0
+
+
+async def _check_watchdog_alerts(*, window_minutes: int) -> int:
+    """Query `public.pipeline_watchdog_log` for the last `window_minutes` and
+    fail loudly (nonzero exit + GitHub Actions `::error::` annotations) if a
+    fatal-class alert fired — see hitl.watchdog_alerts for why this exists
+    and why it fails the run instead of paging a chat.
+
+    Read-only against production; safe to run every scheduled tick.
+    """
+    import json as _json
+
+    from .hitl.watchdog_alerts import (
+        WatchdogAlert,
+        classify,
+        format_github_annotations,
+        since_cutoff,
+    )
+
+    if not settings.supabase_db_url:
+        print(
+            "check-watchdog-alerts: SUPABASE_DB_URL not set — nothing to check "
+            "(this is a no-op outside a live environment, not a failure)."
+        )
+        return 0
+
+    from .db import acquire
+
+    cutoff = since_cutoff(window_minutes)
+    async with acquire() as conn:
+        rows = await conn.fetch(
+            """
+            select action, details, created_at
+              from public.pipeline_watchdog_log
+             where created_at > $1
+             order by created_at asc
+            """,
+            cutoff,
+        )
+
+    def _parsed_details(raw: object) -> dict:
+        # This pool registers no jsonb codec (see fetch_worker.py / publish_
+        # worker.py doing the same json.loads for the same reason), so a
+        # jsonb column comes back as a JSON string, not a dict — decode it,
+        # tolerating a connection that DOES hand back a dict already (e.g. a
+        # future HTTP-transport caller) and any malformed/empty value.
+        if isinstance(raw, dict):
+            return raw
+        if not raw:
+            return {}
+        try:
+            parsed = _json.loads(raw)
+        except (TypeError, ValueError):
+            return {}
+        return parsed if isinstance(parsed, dict) else {}
+
+    alerts = [
+        WatchdogAlert(action=r["action"], details=_parsed_details(r["details"]), created_at=r["created_at"])
+        for r in rows
+    ]
+    if not alerts:
+        print(f"check-watchdog-alerts: clean — no alerts in the last {window_minutes} minutes.")
+        return 0
+
+    for line in format_github_annotations(alerts):
+        print(line)
+
+    fatal, advisory = classify(alerts)
+    print(
+        f"check-watchdog-alerts: {len(fatal)} fatal, {len(advisory)} advisory "
+        f"alert(s) in the last {window_minutes} minutes."
+    )
+    return 1 if fatal else 0
 
 
 async def _parse_fixture(*, name: str) -> int:

@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { DateField } from '@/components/ui/date-field';
 import {
   Dialog,
   DialogContent,
@@ -159,10 +160,9 @@ export function TaskForm({ task, open, onOpenChange, onSave, staffMembers }: Tas
 
           <div className="space-y-2">
             <Label>{t('tasks.dueDate')}</Label>
-            <Input
-              type="date"
+            <DateField
               value={form.due_date}
-              onChange={(e) => setForm({ ...form, due_date: e.target.value })}
+              onChange={(v) => setForm({ ...form, due_date: v })}
             />
           </div>
 

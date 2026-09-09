@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Search } from 'lucide-react';
+import { BarChart3, Search, X } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import { useLeads } from '@/hooks/useLeads';
+import { useAuth } from '@/contexts/AuthContext';
 import { LeadsTable } from '@/components/crm/leads/intake/LeadsTable';
 import { LeadIntakeScreen } from '@/components/crm/leads/intake/LeadIntakeScreen';
 import {
@@ -24,6 +25,7 @@ import {
   noteWithRejection,
   noteWithoutRejection,
 } from '@/components/crm/leads/intake/outcome';
+import { CALL_RESULTS } from '@/components/crm/leads/intake/options';
 import type { Lead } from '@/contexts/LeadsContext';
 
 const TABS: LeadOutcome[] = ['active', 'converted', 'rejected'];
@@ -47,6 +49,8 @@ const LeadsContent = () => {
   const { t } = useTranslation();
   const { leads, loading, createLead, updateLead, convertToStudent, deleteLead, refetch } =
     useLeads();
+  const { user } = useAuth();
+  const canSeeReport = user?.id === '0525a29d-32ce-4c3e-94b1-bddf42a776f9';
 
   // One clock for the render pass, so the table's "3 days ago", the form's
   // "tomorrow" button and the semester list all agree with each other.
@@ -81,6 +85,20 @@ const LeadsContent = () => {
   }, [leads, query]);
 
   const shown = byOutcome[tab];
+
+  const [statsOpen, setStatsOpen] = useState(false);
+
+  const callStats = useMemo(() => {
+    const total = leads.length;
+    const counts: Record<string, number> = { notContacted: 0 };
+    for (const r of CALL_RESULTS) counts[r] = 0;
+    for (const lead of leads) {
+      if (!lead.call_result) counts.notContacted++;
+      else if (lead.call_result in counts) counts[lead.call_result]++;
+    }
+    const pct = (n: number) => (total ? Math.round((n / total) * 100) : 0);
+    return { total, counts, pct };
+  }, [leads]);
 
   // Held as a memo rather than copied into the screen's state on open, so
   // reopening the same lead after a save starts from what was actually stored.
@@ -161,6 +179,14 @@ const LeadsContent = () => {
     setPending({ mode: 'convert', lead });
   };
 
+  const handleCallResult = async (lead: Lead, result: string) => {
+    try {
+      await updateLead(lead.id, { call_result: result || null } as any);
+    } catch (error) {
+      console.error('Failed to update call result:', error);
+    }
+  };
+
   const handleRestore = async (lead: Lead) => {
     setBusy(true);
     try {
@@ -189,13 +215,25 @@ const LeadsContent = () => {
             <h1 className="text-[28px] font-bold tracking-[-0.015em]">{t('navigation.leads')}</h1>
             <p className="mt-1.5 text-sm text-muted-foreground">{t('leads.intake.subtitle')}</p>
           </div>
-          <button
-            type="button"
-            onClick={() => setEditing('new')}
-            className="min-h-11 rounded-[10px] bg-primary px-5 text-sm font-bold text-primary-foreground transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            {t('leads.intake.newLead')}
-          </button>
+          <div className="flex items-center gap-3">
+            {canSeeReport && (
+              <button
+                type="button"
+                onClick={() => setStatsOpen(true)}
+                className="min-h-11 rounded-[10px] border border-input bg-background px-5 text-sm font-bold text-foreground transition hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <BarChart3 className="mr-2 inline-block h-4 w-4" aria-hidden />
+                {t('leads.intake.report.title')}
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => setEditing('new')}
+              className="min-h-11 rounded-[10px] bg-primary px-5 text-sm font-bold text-primary-foreground transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              {t('leads.intake.newLead')}
+            </button>
+          </div>
         </div>
 
         {/* Toggle buttons rather than a tablist: there is one list below them
@@ -263,6 +301,7 @@ const LeadsContent = () => {
             onConvert={(lead) => setPending({ mode: 'convert', lead })}
             onReject={(lead) => setPending({ mode: 'reject', lead })}
             onRestore={handleRestore}
+            onCallResult={handleCallResult}
             busy={busy}
             now={now}
           />
@@ -299,6 +338,52 @@ const LeadsContent = () => {
           onCancel={() => setPending(null)}
           onConfirm={handleConfirm}
         />
+      )}
+
+      {statsOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+          onClick={() => setStatsOpen(false)}
+        >
+          <div
+            className="relative mx-4 w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setStatsOpen(false)}
+              className="absolute right-4 top-4 rounded-md p-1 text-muted-foreground transition hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              aria-label={t('common.close')}
+            >
+              <X className="h-4 w-4" />
+            </button>
+
+            <h2 className="mb-1 text-lg font-bold">{t('leads.intake.report.title')}</h2>
+            <p className="mb-5 text-sm text-muted-foreground">
+              {t('navigation.leads')}: {callStats.total}
+            </p>
+
+            <div className="flex flex-col gap-3">
+              {[
+                { key: 'notContacted', label: t('leads.intake.report.notContacted') },
+                ...CALL_RESULTS.map((r) => ({ key: r, label: r })),
+              ].map(({ key, label }) => (
+                <div
+                  key={key}
+                  className="flex items-center justify-between rounded-xl border border-border bg-background px-4 py-3"
+                >
+                  <span className="text-sm font-medium">{label}</span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-lg font-bold tabular-nums">{callStats.counts[key]}</span>
+                    <span className="min-w-[3ch] text-right text-xs text-muted-foreground tabular-nums">
+                      {callStats.pct(callStats.counts[key])}%
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

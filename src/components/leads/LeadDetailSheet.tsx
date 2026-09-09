@@ -19,6 +19,7 @@ import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { DateField } from '@/components/ui/date-field';
 import { Lead, CreateLeadData } from '@/hooks/useLeads';
 import { useLeadNotes, LeadNote, ContactType, ContactOutcome, AddNoteData } from '@/hooks/useLeadNotes';
 import { supabase } from '@/integrations/supabase/client';
@@ -721,10 +722,9 @@ export const LeadDetailSheet: React.FC<LeadDetailSheetProps> = ({
                             </div>
                             <div className="space-y-2">
                               <Label className="text-xs text-muted-foreground">Shartnoma sanasi</Label>
-                              <Input
-                                type="date"
+                              <DateField
                                 value={formData.contract_date || ''}
-                                onChange={(e) => updateField('contract_date', e.target.value)}
+                                onChange={(v) => updateField('contract_date', v)}
                               />
                             </div>
                           </div>
@@ -791,10 +791,9 @@ export const LeadDetailSheet: React.FC<LeadDetailSheetProps> = ({
                               </div>
                               <div className="space-y-2">
                                 <Label className="text-xs text-muted-foreground">Shartnoma sanasi</Label>
-                                <Input
-                                  type="date"
+                                <DateField
                                   value={contractEditData.contract_date}
-                                  onChange={(e) => setContractEditData(prev => ({ ...prev, contract_date: e.target.value }))}
+                                  onChange={(v) => setContractEditData(prev => ({ ...prev, contract_date: v }))}
                                 />
                               </div>
                             </div>

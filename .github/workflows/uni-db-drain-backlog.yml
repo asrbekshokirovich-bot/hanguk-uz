@@ -266,3 +266,9 @@ jobs:
         continue-on-error: true
         run: uni-db convert-check --limit 20 || true
 
+      # 2026-09-01 audit fix: see uni-db-process-uploads.yml for the full
+      # rationale. This job runs every 3h, so a 4h window comfortably covers
+      # one missed tick without re-alerting on the same incident forever.
+      - name: Check pipeline watchdog for fatal alerts
+        run: uni-db check-watchdog-alerts --window-minutes 240
+

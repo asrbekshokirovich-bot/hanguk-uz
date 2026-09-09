@@ -1,9 +1,10 @@
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AlertTriangle, Check, Flag, Loader2, Pencil, Split, X } from 'lucide-react';
+import { StructuredReviewEditor } from '../ReviewEditor';
+import { validateParsedOutput } from '../reviewLogic';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
@@ -17,7 +18,13 @@ import {
   type ReviewQueueRow,
 } from '@/hooks/useReviewQueue';
 import { useActiveIntake } from '@/contexts/IntakeContext';
-import { itemConfidence, confidencePct, isFailedExtraction } from '../reviewLogic';
+import {
+  itemConfidence,
+  confidencePct,
+  isFailedExtraction,
+  savedCorrection,
+  validateParsedOutput,
+} from '../reviewLogic';
 import { parseReliability, type ReliabilityColor } from '../reliability';
 import {
   firstNoteLine,
@@ -48,7 +55,8 @@ export interface SectionCardHandlers {
   onApprove: (row: ReviewQueueRow) => void;
   onConfirmReject: (row: ReviewQueueRow, reason: RejectionReason) => void;
   onFlagSource: (row: ReviewQueueRow) => void;
-  onConfirmEdit: (row: ReviewQueueRow, correctedJson: string) => void;
+  onSaveEdit: (row: ReviewQueueRow, corrected: Record<string, unknown>) => void;
+  onConfirmEdit: (row: ReviewQueueRow, corrected: Record<string, unknown>) => void;
   onSplit: (row: ReviewQueueRow) => void;
 }
 
@@ -110,8 +118,8 @@ export function ReviewSectionCard({
   onStartReject: () => void;
   onCancelReject: () => void;
   isEditing: boolean;
-  editDraft: string;
-  onEditDraftChange: (v: string) => void;
+  editDraft: Record<string, unknown>;
+  onEditDraftChange: (v: Record<string, unknown>) => void;
   onStartEdit: () => void;
   onCancelEdit: () => void;
   handlers: SectionCardHandlers;
@@ -119,6 +127,8 @@ export function ReviewSectionCard({
   children: ReactNode;
 }) {
   const { t } = useTranslation();
+  // Save is only offered when the payload actually validates.
+  const editValid = validateParsedOutput(row.field_group ?? null, editDraft).ok;
   const rel = parseReliability(row.reviewer_notes, row.needs_attention);
   const Icon = sectionIcon(row);
   // A row the queue is showing again because it was rejected earlier, not
@@ -229,21 +239,42 @@ export function ReviewSectionCard({
         ) : null}
       </div>
 
+      {/* A correction is saved but nobody has approved it yet. Without this
+          the card looks identical to an untouched one, and the reviewer who
+          comes back tomorrow cannot tell that the work is already done. */}
+      {!isEditing && !decided && savedCorrection(row) ? (
+        <div className="flex items-center gap-2 rounded-[10px] border border-info/30 bg-info/10 px-3.5 py-2 text-[12.5px] text-info">
+          <Check className="h-3.5 w-3.5 shrink-0" />
+          {t('uniReview.actions.savedNotApproved')}
+        </div>
+      ) : null}
+
       {isEditing && !decided ? (
         <div className="flex animate-fade-up flex-col gap-2 rounded-[10px] bg-secondary/60 p-3 px-3.5">
           <span className="text-[12.5px] font-semibold">{t('uniReview.actions.editTitle')}</span>
-          <Textarea
+          {/* Was a raw JSON textarea. The people who approve these cards do
+              not write JSON, and a stray comma silently blocked the save. */}
+          <StructuredReviewEditor
+            fieldGroup={row.field_group ?? null}
             value={editDraft}
-            onChange={(e) => onEditDraftChange(e.target.value)}
-            className="min-h-[160px] font-mono text-[12px]"
+            onChange={onEditDraftChange}
             disabled={acting}
           />
           <div className="flex items-center gap-2">
+            {/* Save and approve are separate on purpose. The single
+                "Saqlash va tasdiqlash" button published the card the instant a
+                correction was typed, with no chance to re-read it against the
+                PDF first. */}
+            {/* Disabled while the payload does not validate. It used to be
+                clickable, so a reviewer could press Save on a card the schema
+                rejects and get a server error for something the screen had
+                already told them. */}
             <Button
               size="sm"
               className="h-[30px]"
-              onClick={() => handlers.onConfirmEdit(row, editDraft)}
-              disabled={acting}
+              onClick={() => handlers.onSaveEdit(row, editDraft)}
+              disabled={acting || !editValid}
+              title={editValid ? undefined : t('uniReview.edit.invalid')}
             >
               {t('uniReview.actions.saveEdit')}
             </Button>

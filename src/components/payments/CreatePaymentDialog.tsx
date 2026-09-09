@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { DateField } from '@/components/ui/date-field';
 import { Plus, Info, Calendar } from 'lucide-react';
 import { Tables } from '@/integrations/supabase/types';
 import { PAYMENT_PLANS, getPlanByValue, formatPlanAmount, calculateDueDate, applyDiscount, getPaymentAmount } from '@/hooks/useStudentPlan';
@@ -290,10 +291,9 @@ export function CreatePaymentDialog({ students, onCreatePayment }: CreatePayment
 
           <div className="space-y-2">
             <Label>{t('payments.dueDate')}</Label>
-            <Input
-              type="date"
+            <DateField
               value={form.due_date}
-              onChange={(e) => setForm({ ...form, due_date: e.target.value })}
+              onChange={(v) => setForm({ ...form, due_date: v })}
             />
           </div>
 

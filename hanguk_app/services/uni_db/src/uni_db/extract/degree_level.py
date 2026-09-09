@@ -27,6 +27,7 @@ phrases above count.
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from typing import Literal
 
@@ -111,6 +112,44 @@ _MARKER_EXCLUSIONS: dict[str, tuple[str, ...]] = {
 # queue down to zero, which would blind the detector to the case it exists
 # for.
 
+# The list above is a hand-maintained blacklist, and it only ever covers the
+# phrasings someone has already seen fail. "대학원 진학" is in it; "박사 과정
+# 진학이 가능합니다" — the same sentence about the same thing, one word longer
+# — is not, and that is the sentence behind the card that kept coming back.
+#
+# The generalisation the blacklist was reaching for: a graduate degree term
+# followed by one of these words is describing where a graduate goes NEXT, or
+# what a person already holds. Neither is a programme this document admits to.
+#
+#   졸업 후 박사 과정 진학이 가능합니다        → a careers line
+#   석사 학위 소지자 우대                       → an eligibility condition
+#   박사 과정 이수자로 구성된 교수진            → a faculty's credentials
+#
+# An admission section never reads that way; it says 모집 / 전형 / 선발.
+#
+# This suppresses the OCCURRENCE, not the marker: if the same document also
+# names the programme in a clean context, `_count` walks on to that occurrence
+# and the signal still lands. So a real graduate guideline is unaffected — it
+# has admission sentences, not only careers sentences.
+_CAREERS_TAIL = re.compile(
+    r"[^\n]{0,12}?(?:진학|졸업|취득|소지|이수|수료|출신|우대|자격증)"
+)
+
+# Only the graduate families are read this way. Over-detected graduate
+# evidence is what raises degree cards on undergraduate documents; the
+# undergraduate and associate markers are not part of that failure and are
+# left alone rather than tuned speculatively.
+_CAREERS_SENSITIVE: frozenset[str] = frozenset(
+    m.lower() for m in _GRAD_GENERAL + _MASTER + _DOCTORAL + _INTEGRATED
+)
+
+
+def _is_careers_mention(low: str, marker: str, end: int) -> bool:
+    """True when the occurrence ending at `end` is a careers/credential line."""
+    if marker not in _CAREERS_SENSITIVE:
+        return False
+    return _CAREERS_TAIL.match(low, end) is not None
+
 
 def _occurrences(text: str, marker: str) -> int:
     """How many times `marker` appears NOT inside one of its exclusions."""
@@ -125,9 +164,57 @@ def _occurrences(text: str, marker: str) -> int:
     return max(0, total)
 
 
+def _excluded_at(low: str, marker: str, idx: int) -> bool:
+    """True when the match at `idx` is really part of an exclusion word."""
+    for word in _MARKER_EXCLUSIONS.get(marker, ()):
+        inner = word.find(marker)
+        if inner == -1 or idx - inner < 0:
+            continue
+        if low.startswith(word, idx - inner):
+            return True
+    return False
+
+
 def _count(text: str, markers: tuple[str, ...]) -> int:
+    """How many DISTINCT markers of this family the text actually contains.
+
+    Marker families nest: `_DOCTORAL` holds both 박사 and 박사과정, and
+    `_ASSOCIATE` holds both 전문대학 and 전문대. A naive "is each marker a
+    substring?" test therefore scored a single word twice — one 박사과정
+    produced `doctoral×2`, one 전문대학 produced `associate×2`. Those tallies
+    are not cosmetic: they feed `_score`, and they are printed into the
+    reviewer's rationale as `signals=[…]`, where ×2 reads as two independent
+    pieces of evidence. On the junior-college guidelines that kept raising
+    degree cards, every one of those ×2s was a single word.
+
+    So matches are claimed longest-marker-first and a claimed span is spent:
+    a shorter marker scores only where it appears on its own. One 박사과정 is
+    now `doctoral×1`; a 박사과정 heading plus a separate 박사 elsewhere is
+    still ×2, because that genuinely is two mentions.
+    """
     low = text.lower()
-    return sum(1 for m in markers if _occurrences(low, m.lower()) > 0)
+    claimed: list[tuple[int, int]] = []
+    hits = 0
+    # Longest first, so the specific marker claims the characters before the
+    # generic substring of it can score on the same word.
+    for marker in sorted({m.lower() for m in markers}, key=len, reverse=True):
+        start = 0
+        while True:
+            idx = low.find(marker, start)
+            if idx == -1:
+                break
+            start = idx + 1
+            end = idx + len(marker)
+            if _excluded_at(low, marker, idx):
+                continue
+            if _is_careers_mention(low, marker, end):
+                continue
+            if any(cs < end and idx < ce for cs, ce in claimed):
+                continue
+            claimed.append((idx, end))
+            hits += 1
+            break  # one hit is enough — this counts distinct markers
+    return hits
 
 
 def classify_degree_level(
@@ -138,12 +225,25 @@ def classify_degree_level(
 ) -> DegreeClassification:
     """Classify the degree level of a guideline.
 
-    Title hits weigh double — the title/heading is the most reliable
-    degree signal. `full_text` (when supplied) is scanned for combined
-    detection so a graduate section deep in the document still counts.
+    Title hits weigh more — the title/heading is the most reliable degree
+    signal, and `_score` boosts on it. `full_text` (when supplied) is
+    scanned for combined detection so a graduate section deep in the
+    document still counts.
+
+    The scan text is deduplicated. It used to be built as
+    `title + title + first_pages + full_text`, which put the same characters
+    into it two and three times over: `first_pages_text` is a prefix of
+    `full_text` in every caller, and the title is repeated on purpose. That
+    was harmless while counting was presence-based, but it defeats the
+    span-claiming in `_count` — one 박사과정 in the first pages appears
+    twice in `scan`, so 박사과정 claims one copy and 박사 the other, and the
+    ×2 the fix removes comes straight back. Each character now appears once.
     """
     title = title or ""
-    scan = "\n".join(p for p in (title, title, first_pages_text, full_text or "") if p)
+    body = full_text or first_pages_text or ""
+    if first_pages_text and first_pages_text not in body:
+        body = f"{first_pages_text}\n{body}"
+    scan = "\n".join(p for p in (title, body) if p)
 
     n_grad_general = _count(scan, _GRAD_GENERAL)
     n_master = _count(scan, _MASTER)

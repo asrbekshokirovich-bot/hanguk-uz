@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { DateField } from '@/components/ui/date-field';
 import {
   CERTIFICATES,
   CHANNELS,
@@ -475,12 +476,11 @@ export const LeadIntakeScreen = ({
                 {t('leads.intake.fields.followUp')}
               </label>
               <div className="flex flex-wrap items-center gap-3">
-                <input
+                <DateField
                   id="intake-follow-up"
-                  type="date"
                   value={form.followUp}
-                  onChange={(event) => set('followUp')(event.target.value)}
-                  className={fieldClass}
+                  onChange={(v) => set('followUp')(v)}
+                  className="min-w-[190px]"
                 />
                 <button
                   type="button"

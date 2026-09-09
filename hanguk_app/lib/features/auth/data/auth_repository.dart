@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -45,6 +46,10 @@ final studentFullNameProvider = FutureProvider<String?>((ref) async {
 // second should never reach the student at all, and one that doesn't clear
 // should say what it is.
 
+/// Jitter source for the retry backoff. Seeded from the clock, not fixed:
+/// two devices retrying in lockstep is the thing jitter exists to prevent.
+final _random = Random();
+
 /// Thrown internally when a magic-code attempt failed on infrastructure
 /// rather than on the code. Never escapes [AuthRepository].
 class _TransientBackendFailure implements Exception {
@@ -52,10 +57,27 @@ class _TransientBackendFailure implements Exception {
   final String detail;
 }
 
-/// Delays between magic-code attempts. Three attempts, ~1.6 s worst case.
+/// Delays between magic-code attempts.
+///
+/// Widened on 2026-09-03 after the SIXTH rejection. On 2026-09-01 at 09:52 UTC
+/// the reviewer's three attempts — 1.7 seconds apart in total — every one of
+/// them received HTTP 502 from the hosting gateway before reaching our code,
+/// while 811 other requests that day succeeded. A 1.7-second window is not a
+/// retry policy, it is three tries at the same instant: any platform blip
+/// longer than a breath outlives it.
+///
+/// Review is a single attempt with no second chance, so this trades up to ~34
+/// seconds of patience for not being rejected again. A student in a taxi with
+/// bad signal benefits from exactly the same thing.
+///
+/// Jitter matters more than it looks: without it, three clients hitting a
+/// recovering gateway retry in lockstep and knock it over again.
 const _kTransientRetryDelays = <Duration>[
-  Duration(milliseconds: 400),
-  Duration(milliseconds: 1200),
+  Duration(milliseconds: 500),
+  Duration(seconds: 2),
+  Duration(seconds: 4),
+  Duration(seconds: 8),
+  Duration(seconds: 12),
 ];
 
 /// True when [error] is the backend being briefly unreachable rather than an
@@ -180,9 +202,16 @@ class AuthRepository {
   /// Retries the transient class — see [isTransientBackendFailure]. A database
   /// that is briefly unreachable is not an answer about the student's code, and
   /// the 2026-08-14 App Review rejection is what one unretried blip costs.
-  Future<({String? error, String? studentName})> signInWithMagicCode(
-    String magicCode,
-  ) async {
+  /// The `transient` flag is what lets the screen tell "your code is wrong"
+  /// apart from "we could not reach the server" without matching on the
+  /// message text — which is a bug waiting for the day somebody rewords it.
+  Future<({String? error, String? studentName, bool transient})>
+  signInWithMagicCode(
+    String magicCode, {
+    /// Called before each retry with (attempt, totalAttempts) so the screen can
+    /// say "still trying" instead of showing nothing for half a minute.
+    void Function(int attempt, int total)? onRetry,
+  }) async {
     final normalized = magicCode.trim().toUpperCase().replaceAll(
       RegExp(r'\s+'),
       '',
@@ -193,12 +222,18 @@ class AuthRepository {
         return await _magicCodeAttempt(normalized);
       } on _TransientBackendFailure catch (e) {
         if (attempt < _kTransientRetryDelays.length) {
-          await Future<void>.delayed(_kTransientRetryDelays[attempt]);
+          // Up to 250 ms of jitter so simultaneous clients do not retry in
+          // lockstep against a gateway that is only just coming back.
+          final base = _kTransientRetryDelays[attempt];
+          final jitter = Duration(milliseconds: _random.nextInt(250));
+          onRetry?.call(attempt + 1, _kTransientRetryDelays.length + 1);
+          await Future<void>.delayed(base + jitter);
           continue;
         }
         return (
           error: _messageFor('SERVICE_UNAVAILABLE', e.detail),
           studentName: null,
+          transient: true,
         );
       }
     }
@@ -208,7 +243,8 @@ class AuthRepository {
   ///
   /// Throws [_TransientBackendFailure] when the attempt died on infrastructure;
   /// every other outcome comes back as a value for the caller to show.
-  Future<({String? error, String? studentName})> _magicCodeAttempt(
+  Future<({String? error, String? studentName, bool transient})>
+  _magicCodeAttempt(
     String normalized,
   ) async {
     try {
@@ -218,7 +254,11 @@ class AuthRepository {
       );
 
       if (response.data == null) {
-        return (error: _messageFor('INTERNAL_ERROR', null), studentName: null);
+        return (
+          error: _messageFor('INTERNAL_ERROR', null),
+          studentName: null,
+          transient: false,
+        );
       }
 
       final data = response.data as Map<String, dynamic>;
@@ -227,7 +267,11 @@ class AuthRepository {
       final errorCode = data['error'] as String?;
       if (errorCode != null) {
         final detail = data['detail']?.toString();
-        return (error: _messageFor(errorCode, detail), studentName: null);
+        return (
+          error: _messageFor(errorCode, detail),
+          studentName: null,
+          transient: false,
+        );
       }
 
       final session = data['session'] as Map<String, dynamic>?;
@@ -236,6 +280,7 @@ class AuthRepository {
         return (
           error: _messageFor('INTERNAL_ERROR', 'session missing'),
           studentName: null,
+          transient: false,
         );
       }
 
@@ -262,7 +307,7 @@ class AuthRepository {
 
       final profile = data['profile'] as Map<String, dynamic>?;
       final studentName = profile?['full_name']?.toString();
-      return (error: null, studentName: studentName);
+      return (error: null, studentName: studentName, transient: false);
     } on FunctionException catch (e) {
       if (isTransientBackendFailure(e)) {
         throw _TransientBackendFailure('HTTP ${e.status}');
@@ -275,17 +320,20 @@ class AuthRepository {
           return (
             error: _messageFor(m['error'].toString(), m['detail']?.toString()),
             studentName: null,
+            transient: false,
           );
         }
       }
       return (
         error: _messageFor('INTERNAL_ERROR', e.details?.toString()),
         studentName: null,
+        transient: false,
       );
     } on AuthException catch (e) {
       return (
         error: _messageFor('AUTH_SIGNIN_FAILED', e.message),
         studentName: null,
+        transient: false,
       );
     } catch (e) {
       // Socket resets, DNS failures, TLS handshakes, request timeouts: the
@@ -297,6 +345,7 @@ class AuthRepository {
       return (
         error: _messageFor('INTERNAL_ERROR', e.toString()),
         studentName: null,
+        transient: false,
       );
     }
   }
