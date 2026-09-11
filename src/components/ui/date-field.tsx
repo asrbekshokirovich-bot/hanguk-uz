@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useState } from 'react';
+import { forwardRef, useCallback, useEffect, useRef, useState } from 'react';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
@@ -83,6 +83,7 @@ export const DateField = forwardRef<HTMLInputElement, DateFieldProps>(
     ref,
   ) => {
     const [text, setText] = useState(() => isoToDisplay(value));
+    const pickerRef = useRef<HTMLInputElement>(null);
 
     // Follow the form when it changes underneath us (dialog reopened on a
     // different student, a reset), but never while the user is mid-type: that
@@ -95,9 +96,36 @@ export const DateField = forwardRef<HTMLInputElement, DateFieldProps>(
 
     const incomplete = text.length > 0 && displayToIso(text) === null;
 
+    const openPicker = useCallback(() => {
+      pickerRef.current?.showPicker?.();
+    }, []);
+
     return (
       <div className={cn('relative', className)}>
-        <CalendarIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <button
+          type="button"
+          tabIndex={-1}
+          disabled={disabled}
+          onClick={openPicker}
+          className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground transition hover:text-foreground disabled:pointer-events-none"
+        >
+          <CalendarIcon className="h-4 w-4" />
+        </button>
+        <input
+          ref={pickerRef}
+          type="date"
+          tabIndex={-1}
+          aria-hidden
+          className="pointer-events-none invisible absolute left-0 top-0 h-0 w-0"
+          value={value}
+          onChange={(e) => {
+            const iso = e.target.value;
+            if (iso) {
+              onChange(iso);
+              setText(isoToDisplay(iso));
+            }
+          }}
+        />
         <Input
           ref={ref}
           id={id}
