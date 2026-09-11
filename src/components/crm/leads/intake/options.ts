@@ -42,7 +42,7 @@ export const CERTIFICATES = [
 ] as const;
 
 /** Study tracks. Stored in `education_level`. */
-export const LEVELS = [‘Kasbiy ta’lim’, ‘Bakalavr’, ‘Magistr’, ‘GKS’, ‘HanBox’] as const;
+export const LEVELS = ['Kasbiy ta’lim', 'Bakalavr', 'Magistr', 'GKS', 'HanBox'] as const;
 
 /** How the lead reached us. Stored in `contact_channel`. */
 export const CHANNELS = [
