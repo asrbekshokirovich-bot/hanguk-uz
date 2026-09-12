@@ -170,13 +170,18 @@ export default function Auth() {
         // Cache findings
         (window as any).__OWNER_EXISTS_CACHED__ = data.owner_created;
         (window as any).__IS_SETUP_MODE_CACHED__ = !data.owner_created;
-      } else {
-        // If no settings exist, we need setup
+        (window as any).__OWNER_CHECK_CACHED__ = true;
+      } else if (!error && !data) {
+        // Row genuinely missing — first-ever deploy, setup is needed.
         setIsSetupMode(true);
         (window as any).__IS_SETUP_MODE_CACHED__ = true;
+        (window as any).__OWNER_CHECK_CACHED__ = true;
+      } else {
+        // Query failed (network, timeout, RLS). Show the normal login
+        // instead of the setup form — the owner already exists in prod.
+        setOwnerExists(true);
+        setIsSetupMode(false);
       }
-
-      (window as any).__OWNER_CHECK_CACHED__ = true;
       setCheckingSetup(false);
     };
 
