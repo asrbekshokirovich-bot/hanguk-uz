@@ -4,7 +4,7 @@ import { Tables } from '@/integrations/supabase/types';
 import { toast } from 'sonner';
 import { useActiveIntake } from '@/contexts/IntakeContext';
 import { applyIntake } from '@/lib/intakeQuery';
-import { getPlanByValue, calculateFirstPaymentDueDate } from '@/hooks/useStudentPlan';
+import { getPlanByValue, calculateFirstPaymentDueDate, applyDiscount } from '@/hooks/useStudentPlan';
 
 type StudentProfile = Tables<'profiles'> & {
   applications?: (Tables<'applications'> & {
@@ -21,6 +21,12 @@ type StudentProfile = Tables<'profiles'> & {
    * carried over after a visa refusal paid for the season they came from.
    */
   freeReapplication?: boolean;
+  /**
+   * Sale/discount percentage (0-100) for this season, read off the
+   * student's `student_intakes` row — same per-season grain as
+   * freeReapplication, since billing modifiers live on the membership row.
+   */
+  discountPercent?: number;
 };
 
 type ApplicationWithUniversity = Tables<'applications'> & {
@@ -46,7 +52,7 @@ export function useCRMData() {
       // where a role that can't read `documents` (e.g. call_operator) saw fewer.
       const { data: memberships, error: membershipError } = await supabase
         .from('student_intakes')
-        .select('student_id, is_free_reapplication')
+        .select('student_id, is_free_reapplication, discount_percent')
         .eq('intake_id', activeIntakeId);
 
       if (membershipError) {
@@ -61,6 +67,9 @@ export function useCRMData() {
       // rather than on the profile.
       const freeReapplicationIds = new Set(
         (memberships ?? []).filter((m) => m.is_free_reapplication).map((m) => m.student_id),
+      );
+      const discountByStudent = new Map(
+        (memberships ?? []).map((m) => [m.student_id, Number(m.discount_percent) || 0]),
       );
 
       // Staff are never students.
@@ -176,7 +185,11 @@ export function useCRMData() {
           continue;
         }
         const mode = profile.payment_mode || 'one_time';
-        const expectedInitial = mode === 'installment' ? plan.firstPayment : plan.priceOneTime;
+        const discountPercent = discountByStudent.get(uid) || 0;
+        const expectedInitial = applyDiscount(
+          mode === 'installment' ? plan.firstPayment : plan.priceOneTime,
+          discountPercent,
+        );
         const dueDate = calculateFirstPaymentDueDate(profile.contract_date);
         const today = new Date().toISOString().split('T')[0];
         if (today <= dueDate) {
@@ -199,6 +212,7 @@ export function useCRMData() {
         paymentStatus: paymentStatusByStudent.get(profile.user_id) || null,
         initialPaymentOverdue: initialOverdueByStudent.get(profile.user_id) || false,
         freeReapplication: freeReapplicationIds.has(profile.user_id),
+        discountPercent: discountByStudent.get(profile.user_id) || 0,
       }));
 
       setStudents(studentsWithData);

@@ -78,6 +78,10 @@ export function usePayments() {
     application_id?: string;
     payment_type: 'initial_deposit' | 'remaining_payment' | 'other';
     amount: number;
+    /** Undiscounted plan price for this installment, only when a discount
+     *  applies — feeds the investor P&L's informational "discounts given"
+     *  line. Omit (or pass equal to amount) when no discount applies. */
+    listAmount?: number;
     currency?: string;
     due_date?: string;
     notes?: string;
@@ -89,6 +93,7 @@ export function usePayments() {
         application_id: payment.application_id || null,
         payment_type: payment.payment_type,
         amount: payment.amount,
+        list_amount: payment.listAmount && payment.listAmount > payment.amount ? payment.listAmount : null,
         currency: payment.currency || 'USD',
         due_date: payment.due_date || null,
         notes: payment.notes || null,

@@ -185,34 +185,60 @@ export function getPlanByValue(value: string) {
   return PAYMENT_PLANS.find(p => p.value === normalized);
 }
 
-export function getPlanPrice(planValue: string, mode: string = 'one_time') {
+/**
+ * Apply a 0-100 discount percentage to an amount, rounded to the nearest
+ * whole currency unit. This is the ONLY rounding rule for discounted
+ * amounts in the app — used identically by writers (payment prefills) and
+ * readers (expected-payment derivations) so a discounted expected amount
+ * and a discounted stored amount are always bit-for-bit equal.
+ */
+export function applyDiscount(amount: number, discountPercent: number | null | undefined): number {
+  const pct = Math.min(100, Math.max(0, discountPercent || 0));
+  if (pct === 0) return amount;
+  return Math.round(amount * (1 - pct / 100));
+}
+
+export function getPlanPrice(planValue: string, mode: string = 'one_time', discountPercent: number = 0) {
   const plan = getPlanByValue(planValue);
   if (!plan) return { amount: 0, currency: 'UZS' };
-  
+
   const amount = mode === 'installment' ? plan.priceInstallment : plan.priceOneTime;
-  return { amount, currency: plan.currency };
+  return { amount: applyDiscount(amount, discountPercent), currency: plan.currency };
 }
 
 // Get specific payment amount based on payment type
-export function getPaymentAmount(planValue: string, mode: string = 'one_time', paymentType: 'first_payment' | 'second_payment' | 'initial_deposit' | 'remaining_payment' = 'first_payment') {
+export function getPaymentAmount(planValue: string, mode: string = 'one_time', paymentType: 'first_payment' | 'second_payment' | 'initial_deposit' | 'remaining_payment' = 'first_payment', discountPercent: number = 0) {
   const plan = getPlanByValue(planValue);
   if (!plan) return { amount: 0, currency: 'UZS' };
-  
+
   // For one-time payment, everything is in the first payment
   if (mode === 'one_time') {
-    return { amount: plan.priceOneTime, currency: plan.currency };
+    return { amount: applyDiscount(plan.priceOneTime, discountPercent), currency: plan.currency };
   }
-  
+
   // For split payments, return the specific amount
   const isFirstPayment = paymentType === 'first_payment' || paymentType === 'initial_deposit';
   const amount = isFirstPayment ? plan.firstPayment : plan.secondPayment;
-  return { amount, currency: plan.currency };
+  return { amount: applyDiscount(amount, discountPercent), currency: plan.currency };
 }
 
 // Legacy function for backward compatibility
-export function getInstallmentAmount(planValue: string, mode: string = 'one_time', installmentNumber: 1 | 2 = 1) {
+export function getInstallmentAmount(planValue: string, mode: string = 'one_time', installmentNumber: 1 | 2 = 1, discountPercent: number = 0) {
   const paymentType = installmentNumber === 1 ? 'first_payment' : 'second_payment';
-  return getPaymentAmount(planValue, mode, paymentType);
+  return getPaymentAmount(planValue, mode, paymentType, discountPercent);
+}
+
+/**
+ * List price + discounted price side by side, for previews (Add/Edit
+ * Student dialogs, StudentDetail). Returns null for unknown plans.
+ */
+export function getStudentPricing(planValue: string, mode: string = 'one_time', discountPercent: number = 0) {
+  const plan = getPlanByValue(planValue);
+  if (!plan) return null;
+
+  const list = mode === 'installment' ? plan.priceInstallment : plan.priceOneTime;
+  const discounted = applyDiscount(list, discountPercent);
+  return { list, discounted, currency: plan.currency, discountPercent: Math.min(100, Math.max(0, discountPercent || 0)) };
 }
 
 /**
@@ -312,40 +338,45 @@ export function formatAmount(amount: number, currency: string) {
 }
 
 // Get payment schedule for a student
-export function getPaymentSchedule(planValue: string, mode: string = 'one_time', contractDate: string | null) {
+export function getPaymentSchedule(planValue: string, mode: string = 'one_time', contractDate: string | null, discountPercent: number = 0) {
   const plan = getPlanByValue(planValue);
   if (!plan) return null;
-  
+
   if (mode === 'one_time') {
+    const amount = applyDiscount(plan.priceOneTime, discountPercent);
     return {
-      totalAmount: plan.priceOneTime,
+      totalAmount: amount,
       currency: plan.currency,
       payments: [{
         type: 'full_payment',
         label: 'Full Payment',
-        amount: plan.priceOneTime,
+        amount,
         dueDate: calculateFirstPaymentDueDate(contractDate),
         triggerType: 'contract_based',
       }],
     };
   }
-  
-  // Split payment (installment)
+
+  // Split payment (installment): each installment is discounted
+  // independently and the total is the sum of the discounted parts, so a
+  // fully-paid discounted student's payment rows always add up to totalAmount.
+  const firstAmount = applyDiscount(plan.firstPayment, discountPercent);
+  const secondAmount = applyDiscount(plan.secondPayment, discountPercent);
   return {
-    totalAmount: plan.priceInstallment,
+    totalAmount: firstAmount + secondAmount,
     currency: plan.currency,
     payments: [
       {
         type: 'first_payment',
         label: '1st Payment',
-        amount: plan.firstPayment,
+        amount: firstAmount,
         dueDate: calculateFirstPaymentDueDate(contractDate),
         triggerType: 'contract_based',
       },
       {
         type: 'second_payment',
         label: '2nd Payment',
-        amount: plan.secondPayment,
+        amount: secondAmount,
         dueDate: null, // Will be set when admission is confirmed
         triggerType: 'admission_trigger',
         triggerDescription: 'Due 7 working days after university admission',

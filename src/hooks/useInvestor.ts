@@ -58,6 +58,11 @@ export interface InvestorPositionRow {
   season_expenses: number;
   season_net_profit: number;
   profit_share: number;
+  /** Informational only — the gap between discounted students' list and
+   *  contracted prices. Never subtracted from season_revenue/net_profit,
+   *  which are already net of any discount (payments.amount is stored
+   *  post-discount). */
+  season_discounts_given: number;
 }
 
 export type InvestorIdentity = Pick<
@@ -73,12 +78,17 @@ export interface InvestorMonthlyRow {
   expenses: number;
   net: number;
   margin_pct: number | null;
+  /** Informational only — see InvestorPositionRow.season_discounts_given. */
+  discounts_given: number;
 }
 
 export interface InvestorPnlRow {
   intake_id: string;
   currency: string;
-  side: 'revenue' | 'expense';
+  /** 'discount' rows are informational only — excluded from revenue_total
+   *  (the pct_of_revenue denominator) and must never be summed into revenue
+   *  or net profit. */
+  side: 'revenue' | 'expense' | 'discount';
   line_item: string;
   amount: number;
   pct_of_revenue: number | null;

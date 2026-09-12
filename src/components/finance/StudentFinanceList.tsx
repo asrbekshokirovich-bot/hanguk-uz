@@ -23,6 +23,7 @@ interface StudentFinanceListProps {
     applications?: (Tables<'applications'> & {
       university?: Tables<'universities'>;
     })[];
+    discountPercent?: number;
   })[];
   payments: Payment[];
   onRefresh: () => void;

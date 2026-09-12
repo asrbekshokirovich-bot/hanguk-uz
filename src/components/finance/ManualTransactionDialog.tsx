@@ -32,7 +32,7 @@ import { distributeIncomeFromPayment } from '@/hooks/useIncomeDistribution';
 import { allocateBudgetsForPayment } from '@/hooks/useStudentBudgets';
 
 interface ManualTransactionDialogProps {
-  students: Tables<'profiles'>[];
+  students: (Tables<'profiles'> & { discountPercent?: number })[];
   onSuccess: () => void;
 }
 
@@ -73,19 +73,21 @@ export function ManualTransactionDialog({ students, onSuccess }: ManualTransacti
   const studentPlan = getPlanByValue(selectedStudent?.payment_plan || '');
   const studentPaymentMode = selectedStudent?.payment_mode || 'one_time';
   const isInstallment = studentPaymentMode === 'installment';
+  const discountPercent = selectedStudent?.discountPercent || 0;
 
-  // Auto-populate amount based on plan and payment type
+  // Auto-populate amount (discounted) based on plan and payment type
   useEffect(() => {
     if (studentPlan && selectedStudent) {
       const paymentType = form.payment_type as 'initial_deposit' | 'remaining_payment' | 'other';
-      
+
       if (paymentType !== 'other') {
         const { amount, currency } = getPaymentAmount(
           selectedStudent.payment_plan || '',
           studentPaymentMode,
-          paymentType
+          paymentType,
+          discountPercent
         );
-        
+
         setForm(prev => ({
           ...prev,
           amount: amount.toString(),
@@ -93,7 +95,7 @@ export function ManualTransactionDialog({ students, onSuccess }: ManualTransacti
         }));
       }
     }
-  }, [selectedStudent?.user_id, form.payment_type, studentPlan, studentPaymentMode]);
+  }, [selectedStudent?.user_id, form.payment_type, studentPlan, studentPaymentMode, discountPercent]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -161,6 +163,19 @@ export function ManualTransactionDialog({ students, onSuccess }: ManualTransacti
           console.log(`⏳ Payment still partial (${newPaidAmount}/${existingPayment.amount}). No allocations yet.`);
         }
       } else {
+        // Snapshot the undiscounted list price for the investor P&L's
+        // informational "discounts given" line — computed via the same
+        // helper with discount=0, so it can never drift from `amount`.
+        const listAmount =
+          discountPercent > 0 && studentPlan && form.payment_type !== 'other'
+            ? getPaymentAmount(
+                selectedStudent?.payment_plan || '',
+                studentPaymentMode,
+                form.payment_type as 'initial_deposit' | 'remaining_payment',
+                0
+              ).amount
+            : null;
+
         // Create new payment record
         const { data: newPayment, error: paymentError } = await supabase
           .from('payments')
@@ -168,6 +183,7 @@ export function ManualTransactionDialog({ students, onSuccess }: ManualTransacti
             student_id: form.student_id,
             payment_type: form.payment_type,
             amount: amount,
+            list_amount: listAmount,
             paid_amount: amount,
             currency: form.currency,
             status: 'completed', // New payment with full amount = completed
