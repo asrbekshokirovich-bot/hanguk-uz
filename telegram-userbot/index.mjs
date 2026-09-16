@@ -346,11 +346,33 @@ async function startAccount(account) {
   const selfId = String(me.id);
   console.log(`[${account.label}] connected as ${me.username ? "@" + me.username : me.firstName} (${selfId})`);
 
+  // Fill the entity cache before listening, or nothing will be mirrored.
+  //
+  // Telegram delivers a private message as `UpdateShortMessage`, which carries
+  // the peer's id and nothing else. `message.getChat()` then has to look that
+  // peer up, and on a freshly restored session the cache is empty, so it
+  // returns undefined — which `isMirrorablePeer` rejects, dropping the message
+  // with no error and no log. Every incoming message vanished exactly that way
+  // until the dialog list was pulled once. Pulling it here is what fills the
+  // cache, and it is the same set of chats the account can receive from.
+  await client.getDialogs({ limit: 200 })
+    .then(() => { client._hangukDialogsPrimed = true; })
+    .catch((e) => console.error(`[${account.label}] could not prime dialogs:`, e?.message || e));
+
   client.addEventHandler(async (event) => {
     try {
       const message = event.message;
       if (!message || !message.isPrivate) return; // 1:1 chats only
       const peer = await message.getChat();
+      // Say so rather than dropping it silently. An unresolvable chat is the
+      // failure that cost an evening: the mirror looked healthy, the logs were
+      // empty, and every message was going in the bin one line below this.
+      if (!peer) {
+        console.error(
+          `[${account.label}] message ${message.id} skipped: chat could not be resolved`,
+        );
+        return;
+      }
       if (!isMirrorablePeer(peer, selfId)) return;
       // Named `payload`, not `event`. It used to be `const event`, which is
       // block-scoped and so shadowed the parameter for the whole try — making
