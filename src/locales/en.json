@@ -1068,7 +1068,15 @@
       "saveNote": "Save note",
       "attach": "Attach a file",
       "removeAttachment": "Remove attachment",
-      "fileTooLarge": "File is too large (up to {{limit}})"
+      "fileTooLarge": "File is too large (up to {{limit}})",
+      "recordVoice": "Record a voice message",
+      "recording": "Recording",
+      "stopRecording": "Stop",
+      "cancelRecording": "Cancel",
+      "removeVoice": "Remove voice message",
+      "micDenied": "Microphone access was denied. Allow it in your browser settings.",
+      "voiceUnsupported": "This browser cannot record voice messages.",
+      "voiceFailed": "The recording failed. Try again."
     },
     "savedReplies": {
       "docs": "Document checklist",

@@ -57,6 +57,7 @@ interface MessagesContextType {
     source: string,
     senderId: string,
     file?: File | null,
+    durationSeconds?: number | null,
   ) => Promise<{ error: Error | null; queued: boolean }>;
   retryMessage: (message: Message) => Promise<{ error: Error | null }>;
   appendLocalMessage: (message: Message) => void;
@@ -69,6 +70,19 @@ const MessagesContext = createContext<MessagesContextType | undefined>(undefined
 const PAGE_SIZE = 50;
 
 const CHAT_MEDIA_BUCKET = 'chat-media';
+
+/**
+ * What the thread should render an attachment as.
+ *
+ * Audio has to come out as 'voice' or `MessageAttachment` draws a download card
+ * instead of the player, and the recording the operator just made comes back
+ * looking like a stray file they have to save to hear.
+ */
+function messageTypeFor(mime: string): 'image' | 'voice' | 'file' {
+  if (mime.startsWith('image/')) return 'image';
+  if (mime.startsWith('audio/')) return 'voice';
+  return 'file';
+}
 
 /** Attachment already uploaded to the chat-media bucket, ready to relay. */
 interface OutboundMedia {
@@ -399,7 +413,13 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
    * what MessageAttachment renders from and what Retry re-delivers from.
    */
   const sendMessage = useCallback(
-    async (content: string, source: string, senderId: string, file?: File | null) => {
+    async (
+      content: string,
+      source: string,
+      senderId: string,
+      file?: File | null,
+      durationSeconds?: number | null,
+    ) => {
       if (!user) return { error: new Error('Not authenticated'), queued: false };
 
       let media: OutboundMedia | null = null;
@@ -420,6 +440,10 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
           media_mime: mime,
           media_size: file.size,
           media_filename: file.name || null,
+          // The player in the thread draws its bar from this. A voice note
+          // without it renders as a track of unknown length that jumps to the
+          // end on the first tick.
+          media_duration: durationSeconds ?? null,
         };
       }
 
@@ -437,7 +461,7 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
           client_msg_id: crypto.randomUUID(),
           ...(media
             ? {
-                message_type: media.media_mime.startsWith('image/') ? 'image' : 'file',
+                message_type: messageTypeFor(media.media_mime),
                 metadata: mediaMeta,
               }
             : {}),
