@@ -59,7 +59,11 @@ function loadAccounts() {
   throw new Error("Set TG_SESSION (from login) or TG_ACCOUNTS.");
 }
 
-const MAX_MEDIA_BYTES = 10 * 1024 * 1024; // 10MB — voice notes are tiny; this keeps the ingest payload sane.
+// Attachments travel to the ingest function base64-encoded inside the JSON
+// body, which inflates them by about a third, so this sits well under the 20MB
+// the ingest function itself accepts. Anything larger is logged and skipped
+// rather than sent and rejected.
+const MAX_MEDIA_BYTES = 10 * 1024 * 1024;
 
 function mediaType(message) {
   const m = message.media;
@@ -89,15 +93,51 @@ function voiceMime(message) {
 /** Download a voice note's bytes and inline them (base64) onto the event so the
  *  ingest function can store them. Best-effort: on any failure we just mirror
  *  the message without audio. Only voice is fetched (keeps payloads small). */
+/** The mime type and filename of whatever this message carries. */
+function mediaMeta(message) {
+  const doc = message.media?.document;
+  // A photo has no document; Telegram serves it as JPEG.
+  if (!doc) return { mime: "image/jpeg", filename: null };
+  const named = (doc.attributes || []).find((a) => a.className === "DocumentAttributeFilename");
+  return {
+    mime: doc.mimeType || "application/octet-stream",
+    filename: named?.fileName ?? null,
+  };
+}
+
+/**
+ * Pull an attachment's bytes onto the event so `telegram-ingest` can store them.
+ *
+ * This used to fetch voice notes and nothing else. Every photo, document and
+ * video was labelled and then never downloaded, so `media_path` stayed null and
+ * the CRM showed "Ilova mavjud emas" on each one — a client sends their passport
+ * scan, the operator sees a grey box. `telegram-webhook` had the identical
+ * defect and was fixed for the bot path; this is the same fix for the account
+ * path, and the ingest function has always accepted any kind.
+ *
+ * Best effort by design: a download that fails or is too big still mirrors the
+ * message, because the text, the sender and the timestamp are worth having on
+ * their own and the operator can ask for the file again.
+ */
 async function attachMedia(client, message, event) {
-  if (event.message.media_type !== "voice") return event;
+  const kind = event.message.media_type;
+  if (!kind) return event;
   try {
     const buf = await client.downloadMedia(message, {});
-    if (buf && buf.length && buf.length <= MAX_MEDIA_BYTES) {
-      event.message.media_base64 = Buffer.from(buf).toString("base64");
-      event.message.media_mime = voiceMime(message);
-      event.message.media_duration = voiceDuration(message);
+    if (!buf || !buf.length) return event;
+    if (buf.length > MAX_MEDIA_BYTES) {
+      // Say so. A silent skip here is how the grey boxes went unexplained.
+      console.error(
+        `[${event.account?.label ?? "?"}] ${kind} on message ${message.id} not mirrored: ` +
+          `${buf.length} bytes exceeds the ${MAX_MEDIA_BYTES} byte inline limit`,
+      );
+      return event;
     }
+    const { mime, filename } = mediaMeta(message);
+    event.message.media_base64 = Buffer.from(buf).toString("base64");
+    event.message.media_mime = kind === "voice" ? voiceMime(message) : mime;
+    event.message.media_filename = filename;
+    if (kind === "voice") event.message.media_duration = voiceDuration(message);
   } catch (e) {
     console.error("media download failed:", e?.message || e);
   }
@@ -155,8 +195,9 @@ async function backfill(client, account, selfId) {
       const events = [];
       for (const m of raw) events.push(await attachMedia(client, m, toEvent(account, peer, m)));
       events.reverse(); // oldest first so threads order naturally
-      // Size-aware posting: a media-bearing event (base64 audio) goes on its own
-      // so a backfill batch never balloons past the ingest request limit.
+      // Size-aware posting: a media-bearing event carries its bytes base64 in
+      // the body, so it goes on its own rather than letting a backfill batch
+      // balloon past the ingest request limit.
       let batch = [];
       for (const ev of events) {
         if (ev.message.media_base64) {
