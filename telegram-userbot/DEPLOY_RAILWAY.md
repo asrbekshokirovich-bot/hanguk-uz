@@ -53,6 +53,26 @@ Redeploy. Check the **Logs** — you should see `connected as …` and
 `Userbot running`. Send yourself a test message and watch it appear in the CRM
 **Messages** tab.
 
+## Step 5 — Let the CRM send through it
+Only after Step 4 is confirmed working:
+
+1. Supabase → Edge Functions → Secrets → set `TELEGRAM_SEND_VIA_USERBOT` = `1`.
+   Replies written in the CRM inbox now go to the queue instead of the Bot API.
+   Nothing in the CRM screens changes.
+2. Reply to your test chat from the CRM and confirm it arrives **from the
+   account**, not from the bot.
+3. Only then, in Telegram on the company account: Settings → **Telegram
+   Business** → **Chatbots** → remove the bot.
+
+The order matters. Between removing the bot and having the userbot live,
+messages sent to the company account reach nothing at all.
+
+**Confirming liveness.** The userbot reports in every minute. If it stops for
+more than five minutes, `infra-health-check` sends a Telegram alert, and
+`send-telegram` refuses new replies with "Telegram userbot is not running"
+rather than queueing them where nobody will send them. To check by hand, look
+at `telegram_userbot_status.last_seen_at`.
+
 ---
 
 ## More accounts
