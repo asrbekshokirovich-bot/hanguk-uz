@@ -82,6 +82,11 @@ jobs:
           # for the first two, code deployed FROM here). Everything else stays
           # out until somebody does the same comparison — `send-instagram` is
           # why: the repo held version 1 while production ran version 9.
+          # Verified on 2026-09-16: `infra-health-check` live version 7 was read
+          # out of production and matched this repo's copy line for line, so the
+          # userbot heartbeat check added on top of it is the newer code. It had
+          # to join the list: left off, that check would sit in the repo while
+          # production kept running a health probe that cannot see the userbot.
           FUNCTIONS="
             instagram-webhook
             channel-health-check
@@ -92,6 +97,7 @@ jobs:
             send-telegram
             telegram-webhook
             translate-message
+            infra-health-check
           "
 
           for fn in $FUNCTIONS; do
