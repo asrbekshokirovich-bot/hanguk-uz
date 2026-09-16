@@ -159,6 +159,8 @@ interface StudentComment {
 interface PaymentRecord {
   id: string;
   amount: number;
+  /** Price before the season discount; null when the student paid list price. */
+  list_amount: number | null;
   paid_amount: number;
   payment_type: string;
   status: string;

@@ -87,6 +87,27 @@ export function AddPaymentDialog({
     }
   }, [planValue, studentId, open]);
 
+  // The season discount for this student, if there is one. It lives on
+  // student_intakes and never reached the payment: the operator typed the list
+  // price, the discount stayed on the student card, and the row looked
+  // half-paid forever -- which also meant `isFullyCompleted` never fired, so
+  // budgets, bonuses and income distribution were silently skipped for every
+  // discounted student. Fetch it so the insert can record both numbers.
+  const [discountPercent, setDiscountPercent] = useState(0);
+  useEffect(() => {
+    if (!studentId || !activeIntakeId || !open) {
+      setDiscountPercent(0);
+      return;
+    }
+    supabase
+      .from('student_intakes')
+      .select('discount_percent')
+      .eq('student_id', studentId)
+      .eq('intake_id', activeIntakeId)
+      .maybeSingle()
+      .then(({ data }) => setDiscountPercent(Number(data?.discount_percent) || 0));
+  }, [studentId, activeIntakeId, open]);
+
   // Use fetched plan as fallback
   const effectivePlan = planValue || fetchedPlan;
   
@@ -204,7 +225,13 @@ export function AddPaymentDialog({
     setLoading(true);
 
     try {
-      const amount = Number(formData.amount);
+      // The field holds the list price. With a season discount the student owes
+      // less, and both numbers are kept: list_amount feeds the P&L discount
+      // line, amount is what is actually due.
+      const listAmount = Number(formData.amount);
+      const amount = discountPercent > 0
+        ? Math.round(listAmount * (1 - discountPercent / 100))
+        : listAmount;
       const paidAmount = Number(formData.paidAmount) || 0;
       const gatewayFee = Number(formData.gatewayFee) || 0;
 
@@ -220,6 +247,7 @@ export function AddPaymentDialog({
           student_id: studentId,
           payment_type: formData.paymentType,
           amount,
+          list_amount: discountPercent > 0 ? listAmount : null,
           paid_amount: paidAmount,
           currency: formData.currency,
           status: paidAmount >= amount ? 'completed' : paidAmount > 0 ? 'partial' : 'pending',
@@ -488,7 +516,9 @@ export function AddPaymentDialog({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="amount">Expected Amount *</Label>
+              <Label htmlFor="amount">
+                {discountPercent > 0 ? 'List Price (before discount) *' : 'Expected Amount *'}
+              </Label>
               <div className="relative">
                 <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -504,6 +534,16 @@ export function AddPaymentDialog({
               {planInfo && formData.amount && (
                 <p className="text-xs text-muted-foreground">
                   = {formatPlanAmount(Number(formData.amount), formData.currency)}
+                </p>
+              )}
+              {discountPercent > 0 && Number(formData.amount) > 0 && (
+                <p className="text-xs font-medium text-amber-600 dark:text-amber-500">
+                  &minus;{discountPercent}% &rarr;{' '}
+                  {formatPlanAmount(
+                    Math.round(Number(formData.amount) * (1 - discountPercent / 100)),
+                    formData.currency,
+                  )}{' '}
+                  due
                 </p>
               )}
             </div>
