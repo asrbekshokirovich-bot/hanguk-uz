@@ -23,6 +23,27 @@ const STAFF_ROLES = ["owner", "admin", "call_operator"];
 const CHAT_MEDIA_BUCKET = "chat-media";
 const MEDIA_URL_TTL_SECONDS = 3600;
 
+/**
+ * Send as the account over MTProto instead of through the bot.
+ *
+ * Set this when no bot is connected in Telegram Business. A connected chatbot
+ * makes Telegram's Android app open the BOT when anyone adds the account's
+ * phone number as a contact (bugs.telegram.org/c/65751); disconnecting it is
+ * the only cure, and then the Bot API can no longer see those chats at all.
+ * With this on, replies go to `telegram_outbox` and the userbot sends them.
+ */
+const SEND_VIA_USERBOT = (Deno.env.get("TELEGRAM_SEND_VIA_USERBOT") ?? "").trim() === "1";
+
+/**
+ * How stale a userbot heartbeat may be before we refuse to queue behind it.
+ *
+ * Queueing for a process that is not running is worse than failing: the
+ * operator sees the reply leave, the client never receives it, and nothing
+ * says so. The userbot beats every minute, so a few minutes of slack absorbs a
+ * restart without hiding a dead session.
+ */
+const USERBOT_STALE_MINUTES = 5;
+
 type Admin = ReturnType<typeof createClient>;
 
 /** Best-effort update of the CRM row this send belongs to. */
@@ -90,10 +111,10 @@ serve(async (req) => {
   }
 
   try {
-    if (!TELEGRAM_BOT_TOKEN) {
-      console.error("send-telegram called but TELEGRAM_BOT_TOKEN is not set");
-      return json({ error: "TELEGRAM_BOT_TOKEN is not configured" }, 500);
-    }
+    // The bot token is checked further down, past the userbot branch. Only the
+    // bot path needs it: on the userbot path there may be no bot at all, which
+    // is the point of it, and demanding one here would fail every reply on a
+    // correctly configured install.
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
@@ -136,6 +157,55 @@ serve(async (req) => {
 
     if (!chat_id || (!text && !mediaPath)) {
       return json({ error: "Missing required fields: chat_id, and text or media_path" }, 400);
+    }
+
+    // --- Route to the userbot when the bot is not the send path -------------
+    if (SEND_VIA_USERBOT) {
+      const cutoff = new Date(Date.now() - USERBOT_STALE_MINUTES * 60_000).toISOString();
+      const { data: live } = await supabase
+        .from("telegram_userbot_status")
+        .select("account_label, last_seen_at")
+        .gte("last_seen_at", cutoff)
+        .order("last_seen_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (!live) {
+        // Fail in the operator's face rather than into a queue nobody drains.
+        const reason = "Telegram userbot is not running — the reply was not sent";
+        await markRow(supabase, rowId, { delivery_status: "failed", delivery_error: reason });
+        return json({ ok: false, error: reason }, 503);
+      }
+
+      const { error: queueError } = await supabase.from("telegram_outbox").insert({
+        // Null would let any account claim it; naming the live one keeps a
+        // reply on the account the client has been talking to.
+        account_label: live.account_label,
+        chat_id: String(chat_id),
+        text: text ? String(text) : null,
+        media_path: mediaPath ? String(mediaPath) : null,
+        media_mime: mediaMime ? String(mediaMime) : null,
+        media_filename: mediaFilename ? String(mediaFilename) : null,
+        // Carries the outcome back onto this exact row once the userbot reports.
+        message_id: rowId ? String(rowId) : null,
+        requested_by: userData.user.id,
+      });
+
+      if (queueError) {
+        await markRow(supabase, rowId, { delivery_status: "failed", delivery_error: queueError.message });
+        return json({ ok: false, error: queueError.message }, 500);
+      }
+
+      // Not delivered yet — `complete_telegram_outbox` stamps 'sent' and the
+      // external id when the userbot has actually handed it to Telegram.
+      await markRow(supabase, rowId, { delivery_status: "sending", delivery_error: null });
+      return json({ ok: true, queued: true, account_label: live.account_label });
+    }
+
+    // --- Bot path -----------------------------------------------------------
+    if (!TELEGRAM_BOT_TOKEN) {
+      console.error("send-telegram called but TELEGRAM_BOT_TOKEN is not set");
+      return json({ error: "TELEGRAM_BOT_TOKEN is not configured" }, 500);
     }
 
     // Answer as the company account when this chat belongs to one.

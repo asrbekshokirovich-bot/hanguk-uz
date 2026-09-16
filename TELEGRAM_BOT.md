@@ -125,8 +125,81 @@ The status card reports this as `business_updates_subscribed`.
   connection id stamped on the chat's last business message; with no connection,
   or one that is disabled or read-only, it falls back to sending as the bot.
 
-`telegram-userbot/` stays in the repo for now but is no longer the intended
-path. Once Business is confirmed working, that Railway process can be retired.
+### The cost of connecting a bot
+
+A connected chatbot has a defect of Telegram's own, confirmed on 2026-09-16.
+When anyone adds the company account's phone number as a new contact on
+Android (Contacts → Add Contact → Create), the app opens the chat with
+**@hangukConsultingBot** instead of the account. The contact saves correctly
+and `t.me/+<number>` opens the right chat, so only that one flow is wrong.
+
+Everything was tried against it. Narrowing "Chats the bot can access", removing
+the Contacts category, cutting the bot's rights to read and reply only: no
+effect. Disconnecting the bot fixes it instantly and reconnecting brings it
+back, which is the whole diagnosis — it is the connection itself, not its
+configuration. Telegram Desktop is unaffected, so it is a client bug, reported
+as [bugs.telegram.org/c/65751](https://bugs.telegram.org/c/65751).
+
+Telegram offers exactly two ways into these chats and no third: connect a bot,
+or sign in as the account over MTProto. So if the contact flow has to work, the
+bot has to go, and the account path has to carry the traffic. That is what
+`telegram-userbot/` is for, and it is a supported path again rather than
+leftover code.
+
+## The account path (MTProto userbot)
+
+No bot is connected, so the contact defect cannot occur. The process signs in
+as the account, mirrors both directions into the inbox, and sends the CRM's
+replies as the account.
+
+```
+Client ──▶ @hangukuz_consulting ──▶ userbot (MTProto) ──▶ telegram-ingest ──▶ inbox
+CRM reply ──▶ send-telegram ──▶ telegram_outbox ──▶ userbot claims ──▶ client
+```
+
+| Piece | Role |
+|---|---|
+| `telegram-userbot/` | Signs in as the account. Mirrors in, sends out, beats every minute. |
+| `telegram-ingest` | Incoming direction; resolves the student/lead and stores the message. |
+| `telegram-outbox` | The send queue: `claim`, `complete`, `heartbeat`. |
+| `telegram_outbox` | One row per queued reply. |
+| `telegram_userbot_status` | Last heartbeat per account. |
+
+### Switching to it
+
+1. Deploy `telegram-userbot/` and log in as the company account — see
+   [`telegram-userbot/DEPLOY_RAILWAY.md`](telegram-userbot/DEPLOY_RAILWAY.md).
+2. Set `TELEGRAM_SEND_VIA_USERBOT=1` in the Supabase function secrets. Replies
+   then go to the queue instead of the Bot API. Nothing in the CRM UI changes.
+3. Only once the userbot is live, disconnect the bot in Telegram →
+   Settings → Telegram Business → Chatbots.
+
+Order matters. Between disconnecting the bot and the userbot running, messages
+to the company account reach nothing at all.
+
+To go back, unset `TELEGRAM_SEND_VIA_USERBOT` and reconnect the bot, then press
+**Connect** in the CRM so the webhook re-registers the `business_*` updates.
+
+### Why replies fail loudly
+
+`send-telegram` refuses to queue when no userbot has beaten within five
+minutes, and marks the reply failed. Queueing for a process that is not running
+is worse than an error: the operator watches the message leave, the client
+never receives it, and nothing says so.
+
+### The heartbeat
+
+An MTProto session dies quietly — a revoked device, a changed password, a
+container that never came back. On 2026-07-28 it did exactly that and the inbox
+stayed silent for a week while every status page read green. The userbot now
+reports liveness every minute into `telegram_userbot_status`, and
+`infra-health-check` alarms on the transition when that timestamp goes stale.
+
+Live mirroring in that process had also never worked: the event handler
+declared `const event` inside its own `try`, shadowing the parameter it was
+reading, so every message threw before reaching the ingest call. Only
+`npm run backfill`, which takes another path, ever delivered anything. Fixed
+2026-09-16.
 
 ## When the inbox goes quiet
 

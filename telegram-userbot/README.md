@@ -1,10 +1,22 @@
 # Hanguk Telegram userbot
 
-Mirrors **staff personal-account** Telegram chats into the Hanguk CRM. Students
-message staff on their personal Telegram, so we log in as those accounts over
-MTProto and forward every 1:1 message (incoming **and** the staff's own
-outgoing replies) to the `telegram-ingest` edge function, which links each chat
-to a student/lead and stores it.
+Carries the CRM's Telegram traffic for a **personal account** — the company
+account or a staff one — in both directions, by signing in as that account over
+MTProto.
+
+| Direction | What happens |
+|---|---|
+| Inbound | Every 1:1 message, incoming and the account's own replies, is POSTed to `telegram-ingest`, which links the chat to a student/lead and stores it. |
+| Outbound | Replies written in the CRM inbox are claimed from the `telegram-outbox` queue and sent **as the account**. |
+| Liveness | A heartbeat every minute, so a dead session shows up as an alert instead of a silent inbox. |
+
+**Why not a bot.** Telegram's supported route, a chatbot connected via Telegram
+Business, makes Telegram's Android app open the **bot** when anyone adds the
+account's phone number as a contact
+([bugs.telegram.org/c/65751](https://bugs.telegram.org/c/65751)). Disconnecting
+the bot is the only cure, and then the Bot API cannot see those chats at all.
+No bot is connected on this path. See [`../TELEGRAM_BOT.md`](../TELEGRAM_BOT.md)
+for the full comparison and the switch-over order.
 
 > This is an **always-on** process and **cannot** run as a Supabase Edge
 > Function (it needs a persistent connection). Host it on a small VM / Railway /
@@ -39,6 +51,20 @@ npm install
 ```
 Set the **same** `TELEGRAM_INGEST_SECRET` here and on the Supabase function
 (Supabase → Edge Functions → secrets).
+
+Sending needs no extra variable: the queue endpoint is derived from
+`INGEST_URL`, because a second URL can only ever be wrong if it differs from
+the first. Override it with `OUTBOX_URL` only if they really are on different
+hosts. Two more knobs exist and rarely need touching:
+
+| Variable | Default | What it does |
+|---|---|---|
+| `OUTBOX_POLL_MS` | `3000` | How often the send queue is polled. |
+| `HEARTBEAT_MS` | `60000` | How often liveness is reported. Keep it well under the 5-minute staleness threshold that `send-telegram` and `infra-health-check` both use. |
+
+For the CRM to route replies here at all, set `TELEGRAM_SEND_VIA_USERBOT=1` in
+the Supabase function secrets. Until then `send-telegram` keeps using the Bot
+API and this queue stays empty.
 
 ### 3. Log in each staff account (one-time)
 ```bash

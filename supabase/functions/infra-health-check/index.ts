@@ -9,6 +9,8 @@
 //   gemini_key       GET /v1beta/models with GEMINI_API_KEY → must be 200
 //   call_jobs        comm_processing_jobs in status=error (last 24h) → must be 0
 //   mediateka_feed   hours since last voip_webhook_captures row → fails past 24h
+//   telegram_userbot minutes since the MTProto userbot's heartbeat → fails past 5
+//                    (only when TELEGRAM_SEND_VIA_USERBOT=1)
 //
 // mediateka_feed used to stay ok while the feed had been silent for 94 days: it
 // only alarmed if the feed had been alive within the previous 7 days, so a
@@ -39,6 +41,14 @@ const ALERT_CHAT_ID = Deno.env.get("ALERT_TELEGRAM_CHAT_ID");
 
 /** How long the Mediateka webhook feed may stay quiet before it counts as broken. */
 const MEDIATEKA_SILENT_HOURS = 24;
+
+/**
+ * How long the Telegram userbot may go without a heartbeat before it counts as
+ * dead. It beats every minute, so this absorbs a restart without hiding an
+ * expired session. Kept in step with the same threshold in send-telegram,
+ * which refuses to queue replies behind a userbot this quiet.
+ */
+const USERBOT_STALE_MINUTES = 5;
 
 type State = "ok" | "fail";
 interface CheckResult { check: string; state: State; detail: string; }
@@ -98,6 +108,32 @@ async function runChecks(supabase: ReturnType<typeof createClient>): Promise<Che
     out.push({ check: "mediateka_feed", state, detail });
   }
 
+  // 5. Telegram userbot — only when it is the send path
+  //
+  // The MTProto session dies quietly: a revoked device, a changed password, a
+  // container that never came back. On 2026-07-28 it did exactly that and the
+  // inbox stayed silent for a week with every status page green. The userbot
+  // beats every minute, so a timestamp that stops moving is the fault itself.
+  // Checked only when TELEGRAM_SEND_VIA_USERBOT is on, because on the bot path
+  // there is no userbot to be missing.
+  if ((Deno.env.get("TELEGRAM_SEND_VIA_USERBOT") ?? "").trim() === "1") {
+    const { data } = await supabase
+      .from("telegram_userbot_status")
+      .select("account_label, last_seen_at")
+      .order("last_seen_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    const last = data?.last_seen_at ? new Date(data.last_seen_at as string) : null;
+    const minutes = last ? Math.round((Date.now() - last.getTime()) / 60_000) : null;
+    const state: State = minutes !== null && minutes <= USERBOT_STALE_MINUTES ? "ok" : "fail";
+    const detail = minutes === null
+      ? "userbot hech qachon ishga tushmagan"
+      : `oxirgi signal ${minutes} daqiqa oldin (${data?.account_label ?? "?"})` +
+        (state === "fail" ? ` — chegara: ${USERBOT_STALE_MINUTES} daqiqa` : "");
+    out.push({ check: "telegram_userbot", state, detail });
+  }
+
   return out;
 }
 
@@ -106,14 +142,29 @@ const LABEL: Record<string, string> = {
   gemini_key: "Gemini API kaliti",
   call_jobs: "Qo'ng'iroq tahlili (process-call-recording)",
   mediateka_feed: "Mediateka webhook oqimi",
+  telegram_userbot: "Telegram userbot (akkaunt sessiyasi)",
+};
+
+/**
+ * What to do about it, per check.
+ *
+ * An alert that names the wrong remedy is worse than a terse one: it sends
+ * whoever is holding the phone to a settings page that was never the problem.
+ * The default suits the API-key checks, which are the majority.
+ */
+const HINT: Record<string, string> = {
+  mediateka_feed: "Mediateka ulanishini va webhook manzilini tekshiring.",
+  telegram_userbot:
+    "Railway'dagi userbot to'xtagan yoki sessiyasi tugagan. Logini tekshiring; " +
+    "sessiya bekor qilingan bo'lsa LOGIN_MODE=1 bilan qayta kiring.",
 };
 
 function compose(r: CheckResult): string {
   const name = LABEL[r.check] ?? r.check;
   return r.state === "fail"
-    ? `🔴 ${name}: ishlamayapti\n${r.detail}\n${r.check === "mediateka_feed"
-        ? "Mediateka ulanishini va webhook manzilini tekshiring."
-        : "Supabase → Edge Functions → Secrets ni tekshiring."}`
+    ? `🔴 ${name}: ishlamayapti\n${r.detail}\n${
+      HINT[r.check] ?? "Supabase → Edge Functions → Secrets ni tekshiring."
+    }`
     : `🟢 ${name}: yana ishlayapti (${r.detail})`;
 }
 
