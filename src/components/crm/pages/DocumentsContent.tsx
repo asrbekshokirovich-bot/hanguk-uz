@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { Tables } from '@/integrations/supabase/types';
 import { cn } from '@/lib/utils';
+import { buildApplicationPack, slotLabel } from '@/lib/studentDocSlots';
 
 type StudentProfile = Tables<'profiles'> & {
   applications?: (Tables<'applications'> & { university?: Tables<'institutions'> })[];
@@ -52,23 +53,15 @@ const ADVANCED_STATUSES = new Set([
   'waitlist',
   'rejected',
 ]);
-type SlotState = 'verified' | 'received' | 'missing';
-
 // ---------------------------------------------------------------------------
-// The "Application pack" checklist. The `documents` table has no fixed slot
-// column — a row is matched to a slot the same way the student-facing upload
-// screen does it (see DocumentUpload.matchesDocSlot): a `[slotId]` tag in the
-// name, or a filename prefixed with `slotId-`. Untagged rows simply won't
-// match any slot and the slot shows as "Missing" until one is uploaded/tagged.
+// The "Application pack" checklist is the list of slots the student portal
+// asks for at contract signing (src/lib/studentDocSlots.ts). The `documents`
+// table has no slot column — an uploaded row is matched to a slot by the
+// `[slotId]` tag the portal writes into `name` (or the `slotId-` filename
+// prefix), with the same matcher the portal and the translation workflow use,
+// so a document the student really uploaded can never show up here as
+// missing.
 // ---------------------------------------------------------------------------
-const CHECKLIST: { id: string; label: string; note: string }[] = [
-  { id: 'passport_copy', label: 'Passport copy', note: 'Bio page, colour scan, valid 2+ years' },
-  { id: 'school_diploma', label: 'School diploma (attestat)', note: 'Original + notarised copy' },
-  { id: 'diploma_transcript', label: 'Diploma transcript', note: 'All years, stamped by school' },
-  { id: 'apostille', label: 'Apostille', note: 'Ministry of Justice · 5–7 working days' },
-  { id: 'certified_translation', label: 'Certified translation (KO/EN)', note: 'Sworn translator, stamped' },
-  { id: 'personal_statement', label: 'Personal statement', note: "Student-written · AI content not allowed" },
-];
 
 const CONSULTANTS = ['Aziz K.', 'Madina T.', 'Sitora N.'];
 
@@ -89,24 +82,6 @@ function fmtDate(iso: string | null | undefined, lang: string) {
   return new Date(iso).toLocaleDateString(lang, { day: 'numeric', month: 'short' });
 }
 
-function matchesSlot(d: Tables<'documents'>, slotId: string) {
-  const nameLower = (d.name || '').toLowerCase();
-  const parts = (d.file_path || '').split('/');
-  const filename = (parts[parts.length - 1] || '').toLowerCase();
-  return nameLower.includes(`[${slotId}]`) || filename.startsWith(`${slotId}-`) || filename.startsWith(`${slotId}.`);
-}
-
-function slotDoc(docs: Tables<'documents'>[], slotId: string) {
-  const matches = docs.filter((d) => matchesSlot(d, slotId));
-  if (matches.length === 0) return undefined;
-  return matches.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
-}
-
-function slotState(doc: Tables<'documents'> | undefined): SlotState {
-  if (!doc) return 'missing';
-  return doc.status === 'approved' ? 'verified' : 'received';
-}
-
 // ===========================================================================
 export default function DocumentsContent({ students, loading, currentLang, onUpdateDocumentStatus, onUpdateApplicationStatus }: DocumentsContentProps) {
   const [search, setSearch] = useState('');
@@ -122,8 +97,7 @@ export default function DocumentsContent({ students, loading, currentLang, onUpd
   const packs = useMemo(() => {
     return students.map((s) => {
       const docs = s.documents ?? [];
-      const slots = CHECKLIST.map((c) => ({ ...c, doc: slotDoc(docs, c.id), state: slotState(slotDoc(docs, c.id)) }));
-      const verifiedCount = slots.filter((sl) => sl.state === 'verified').length;
+      const { slots, requiredTotal, requiredVerified: verifiedCount } = buildApplicationPack(docs);
       const app = s.applications?.[0];
       const uniName =
         (app?.university && ((app.university as Record<string, unknown>)[`name_${currentLang}`] as string)) ||
@@ -133,13 +107,14 @@ export default function DocumentsContent({ students, loading, currentLang, onUpd
       const advanced = advancedIds.has(s.user_id) || ADVANCED_STATUSES.has(app?.status ?? '');
       let stage: Stage = 'new_intake';
       if (advanced) stage = 'advanced';
-      else if (verifiedCount === CHECKLIST.length) stage = 'ready';
-      else if (verifiedCount >= 3) stage = 'translation_apostille';
+      else if (verifiedCount === requiredTotal) stage = 'ready';
+      else if (verifiedCount >= Math.ceil(requiredTotal / 2)) stage = 'translation_apostille';
       else if (verifiedCount > 0 || docs.length > 0) stage = 'collecting';
       return {
         student: s,
         slots,
         verifiedCount,
+        requiredTotal,
         uniName,
         program: app?.degree_level ?? '',
         applicationId: app?.id ?? null,
@@ -149,7 +124,6 @@ export default function DocumentsContent({ students, loading, currentLang, onUpd
         deadline: fmtDate(new Date(Date.now() + (hashInt(`${s.user_id}d`) % 30 + 5) * 86_400_000).toISOString(), currentLang),
       };
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [students, advancedIds, currentLang]);
 
   const stageCounts = useMemo(() => {
@@ -194,12 +168,7 @@ export default function DocumentsContent({ students, loading, currentLang, onUpd
     if (error) toast.error("Nimadir xato ketdi");
     else toast.success("Talaba qayta yuklashi so'raldi");
   };
-  const markReceived = () => {
-    // No staff-side "receive on behalf of student" upload flow yet — the real
-    // upload happens from the student portal. This just nudges the workflow.
-    toast.info("Hujjat talaba tomonidan yuklanishi kerak");
-  };
-  // All six slots verified → push the student onto the next pipeline stage.
+  // All required slots verified → push the student onto the next pipeline stage.
   const advanceToNextStage = async (userId: string, applicationId: string | null) => {
     if (!applicationId || !onUpdateApplicationStatus) {
       toast.error("Talabaning arizasi topilmadi — avval universitet biriktiring");
@@ -294,8 +263,8 @@ export default function DocumentsContent({ students, loading, currentLang, onUpd
                   <Badge variant="info" className="text-[10px]">{stageLabel[p.stage]}</Badge>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Progress value={(p.verifiedCount / CHECKLIST.length) * 100} className="h-1.5 flex-1" />
-                  <span className="shrink-0 font-mono text-[10px] text-muted-foreground">{p.verifiedCount}/{CHECKLIST.length}</span>
+                  <Progress value={(p.verifiedCount / p.requiredTotal) * 100} className="h-1.5 flex-1" />
+                  <span className="shrink-0 font-mono text-[10px] text-muted-foreground">{p.verifiedCount}/{p.requiredTotal}</span>
                 </div>
               </Card>
             ))
@@ -353,8 +322,8 @@ export default function DocumentsContent({ students, loading, currentLang, onUpd
 
               <div className="flex items-center gap-2 border-t border-border pt-3">
                 <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Tasdiqlangan</span>
-                <Progress value={(selected.verifiedCount / CHECKLIST.length) * 100} className="h-1.5 flex-1" />
-                <span className="font-mono text-xs font-semibold text-foreground">{selected.verifiedCount}/{CHECKLIST.length}</span>
+                <Progress value={(selected.verifiedCount / selected.requiredTotal) * 100} className="h-1.5 flex-1" />
+                <span className="font-mono text-xs font-semibold text-foreground">{selected.verifiedCount}/{selected.requiredTotal}</span>
               </div>
             </Card>
 
@@ -362,38 +331,41 @@ export default function DocumentsContent({ students, loading, currentLang, onUpd
               <div className="mb-3 flex items-center justify-between">
                 <h3 className="text-sm font-bold text-foreground">Ariza to'plami ro'yxati</h3>
                 <span className="text-xs text-muted-foreground">
-                  {CHECKLIST.length - selected.verifiedCount === 0 ? 'Hammasi tayyor' : `${CHECKLIST.length - selected.verifiedCount} ta qoldi`}
+                  {selected.requiredTotal - selected.verifiedCount === 0 ? 'Hammasi tayyor' : `${selected.requiredTotal - selected.verifiedCount} ta qoldi`}
                 </span>
               </div>
               <div className="divide-y divide-border">
-                {selected.slots.map((sl, idx) => (
-                  <div key={sl.id} className="flex items-center justify-between gap-3 py-3">
+                {selected.slots.map(({ slot, doc, state }, idx) => (
+                  <div key={slot.id} className="flex items-center justify-between gap-3 py-3">
                     <div className="flex items-start gap-3">
                       <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-muted text-[10px] font-bold text-muted-foreground">
                         {idx + 1}
                       </span>
                       <div>
-                        <div className="text-[13px] font-semibold text-foreground">{sl.label}</div>
-                        <div className="text-[11px] text-muted-foreground">{sl.note}</div>
+                        <div className="flex flex-wrap items-center gap-1.5 text-[13px] font-semibold text-foreground">
+                          {slotLabel(slot.name, currentLang)}
+                          {!slot.required && <Badge variant="neutral" className="text-[10px] font-medium">Ixtiyoriy</Badge>}
+                        </div>
+                        {slot.note && <div className="text-[11px] text-muted-foreground">{slotLabel(slot.note, currentLang)}</div>}
                       </div>
                     </div>
                     <div className="flex shrink-0 items-center gap-1.5">
-                      {sl.state === 'verified' && <Badge variant="successSoft" className="gap-1"><CheckCircle2 className="h-3 w-3" />Tasdiqlangan</Badge>}
-                      {sl.state === 'received' && (
+                      {state === 'verified' && <Badge variant="successSoft" className="gap-1"><CheckCircle2 className="h-3 w-3" />Tasdiqlangan</Badge>}
+                      {state === 'received' && doc && (
                         <>
                           <Badge variant="warning">Qabul qilindi</Badge>
-                          <Button size="sm" variant="default" className="h-7 text-xs" disabled={busySlot === sl.doc?.id} onClick={() => sl.doc && markVerified(sl.doc.id)}>
+                          <Button size="sm" variant="default" className="h-7 text-xs" disabled={busySlot === doc.id} onClick={() => markVerified(doc.id)}>
                             Tarjimaga
                           </Button>
-                          <Button size="sm" variant="outline" className="h-7 text-xs" disabled={busySlot === sl.doc?.id} onClick={() => sl.doc && requestAgain(sl.doc.id)}>
+                          <Button size="sm" variant="outline" className="h-7 text-xs" disabled={busySlot === doc.id} onClick={() => requestAgain(doc.id)}>
                             Qayta so'rash
                           </Button>
                         </>
                       )}
-                      {sl.state === 'missing' && (
+                      {state === 'missing' && (
                         <>
                           <Badge variant="neutral">Yo'q</Badge>
-                          <Button size="sm" variant="default" className="h-7 text-xs" onClick={markReceived}>Qabul qilindi deb belgilash</Button>
+                          <span className="text-[11px] text-muted-foreground">Talaba yuklashi kerak</span>
                         </>
                       )}
                     </div>
@@ -405,14 +377,14 @@ export default function DocumentsContent({ students, loading, currentLang, onUpd
                 <p className="text-xs text-muted-foreground">
                   {selected.stage === 'advanced'
                     ? 'Barcha hujjatlar tasdiqlangan — talaba keyingi bosqichda.'
-                    : selected.verifiedCount < CHECKLIST.length
-                      ? `Keyingi bosqichga o'tkazishdan oldin barcha hujjatlar tasdiqlanishi kerak. ${CHECKLIST.length - selected.verifiedCount} ta qoldi.`
+                    : selected.verifiedCount < selected.requiredTotal
+                      ? `Keyingi bosqichga o'tkazishdan oldin barcha hujjatlar tasdiqlanishi kerak. ${selected.requiredTotal - selected.verifiedCount} ta qoldi.`
                       : 'Barcha hujjatlar tasdiqlangan — keyingi bosqichga o\'tkazish mumkin.'}
                 </p>
                 <Button
                   variant="highlight"
                   className="shrink-0 gap-2"
-                  disabled={selected.verifiedCount < CHECKLIST.length || selected.stage === 'advanced' || advancing}
+                  disabled={selected.verifiedCount < selected.requiredTotal || selected.stage === 'advanced' || advancing}
                   onClick={() => advanceToNextStage(selected.student.user_id, selected.applicationId)}
                 >
                   <ArrowRight className="h-4 w-4" />
@@ -459,8 +431,10 @@ function HandlingHistory({ docs, lang }: { docs: Tables<'documents'>[]; lang: st
   const events = useMemo(() => {
     const list: { at: string; text: string }[] = [];
     docs.forEach((d) => {
-      list.push({ at: d.created_at, text: `"${d.name}" hujjati qabul qilindi` });
-      if (d.reviewed_at) list.push({ at: d.reviewed_at, text: `"${d.name}" hujjati ko'rib chiqildi` });
+      list.push({ at: d.created_at, text: `"${d.name}" hujjati yuklandi` });
+      if (d.reviewed_at) {
+        list.push({ at: d.reviewed_at, text: `"${d.name}" hujjati ${d.status === 'approved' ? 'tasdiqlandi' : "ko'rib chiqildi"}` });
+      }
     });
     return list.sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime()).slice(0, 8);
   }, [docs]);
