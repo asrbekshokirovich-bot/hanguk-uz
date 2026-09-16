@@ -26,6 +26,8 @@ import { calculateGatewayFee, getGatewayFeeRate, PAYMENT_METHODS_WITH_FEES } fro
 export interface EditablePayment {
   id: string;
   amount: number;
+  /** Price before the season discount; null when the student paid list price. */
+  list_amount: number | null;
   paid_amount: number;
   payment_type: string;
   status: string;
@@ -65,6 +67,7 @@ export function EditPaymentDialog({ open, onOpenChange, payment, onSuccess }: Ed
 
   const [form, setForm] = useState({
     amount: '',
+    listAmount: '',
     paidAmount: '',
     paymentMethod: 'cash',
     gatewayFee: '0',
@@ -77,6 +80,7 @@ export function EditPaymentDialog({ open, onOpenChange, payment, onSuccess }: Ed
     if (open && payment) {
       setForm({
         amount: String(payment.amount ?? ''),
+        listAmount: payment.list_amount == null ? '' : String(payment.list_amount),
         paidAmount: String(payment.paid_amount ?? ''),
         paymentMethod: payment.transactions?.[0]?.payment_method || 'cash',
         gatewayFee: String(payment.transactions?.[0]?.gateway_fee ?? 0),
@@ -89,9 +93,12 @@ export function EditPaymentDialog({ open, onOpenChange, payment, onSuccess }: Ed
     String(calculateGatewayFee(Number(paidAmount) || 0, method));
 
   const total = Number(form.amount) || 0;
+  const listTotal = Number(form.listAmount) || 0;
   const paid = Number(form.paidAmount) || 0;
   const fee = Number(form.gatewayFee) || 0;
   const netIncome = paid - fee;
+  // Shown for confirmation only. `payments_sync_status` derives the stored
+  // status from paid_amount, so this no longer has to be sent.
   const nextStatus = total > 0 && paid >= total ? 'completed' : paid > 0 ? 'partial' : 'pending';
 
   const handleSave = async () => {
@@ -107,8 +114,8 @@ export function EditPaymentDialog({ open, onOpenChange, payment, onSuccess }: Ed
         .from('payments')
         .update({
           amount: total,
+          list_amount: listTotal > 0 ? listTotal : null,
           paid_amount: paid,
-          status: nextStatus,
           notes: form.notes || null,
           paid_at: paid > 0 ? payment.paid_at ?? new Date().toISOString() : null,
         })
@@ -163,6 +170,22 @@ export function EditPaymentDialog({ open, onOpenChange, payment, onSuccess }: Ed
                 value={form.amount}
                 onChange={(e) => setForm({ ...form, amount: e.target.value })}
               />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-list">Chegirmagacha narx</Label>
+              <Input
+                id="edit-list"
+                type="number"
+                placeholder="chegirma yo'q"
+                value={form.listAmount}
+                onChange={(e) => setForm({ ...form, listAmount: e.target.value })}
+              />
+              {listTotal > total && total > 0 && (
+                <p className="text-xs font-medium text-amber-600 dark:text-amber-500">
+                  Chegirma: {(listTotal - total).toLocaleString('en-US')} (
+                  {Math.round(((listTotal - total) / listTotal) * 100)}%)
+                </p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="edit-paid">To'langan summa</Label>
