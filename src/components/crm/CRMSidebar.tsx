@@ -92,6 +92,7 @@ function buildGroups(
         { title: t('navigation.students'), url: '/crm/students', icon: Users, visible: true },
         { title: t('navigation.applications'), url: '/crm/applications', icon: GraduationCap, visible: isAdmin },
         { title: t('navigation.documents'), url: '/crm/documents', icon: FolderOpen, visible: isAdmin || isDocumentHandler },
+        { title: "So'rovnomalar", url: '/crm/surveys', icon: ClipboardCheck, visible: isAdmin },
       ],
     },
     {
@@ -117,7 +118,6 @@ function buildGroups(
         { title: t('navigation.universities'), url: '/crm/universities', icon: GraduationCap, visible: isAdmin },
         { title: t('navigation.aiTranslation'), url: '/crm/translation', icon: Languages, visible: isAdmin, highlight: true },
         { title: t('navigation.kakaoMap'), url: '/crm/kakao-map', icon: MapPin, visible: isAdmin, highlight: true },
-        { title: "So'rovnomalar", url: '/crm/surveys', icon: ClipboardCheck, visible: isAdmin },
       ],
     },
     {
