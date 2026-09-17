@@ -58,6 +58,30 @@ async function tgAnswerCallback(id: string): Promise<void> {
   } catch (_e) { /* ignore */ }
 }
 
+/**
+ * Try to resolve a Telegram chat by username when chat_id lookup failed.
+ * If found, also persist the chat_id mapping for O(1) future lookups.
+ */
+async function resolveByUsername(
+  supabase: Any, chatId: string, username: string | null, displayName: string,
+): Promise<{ studentId: string | null; leadId: string | null; displayName: string | null; confidence: string | null }> {
+  if (!username) return { studentId: null, leadId: null, displayName: null, confidence: null };
+  const variants = [`@${username}`, username];
+  for (const v of variants) {
+    const id = await resolveIdentity(supabase, "telegram", v, { displayName });
+    if (id.studentId || id.leadId) {
+      await supabase.from("communication_identities").upsert(
+        { channel: "telegram", identifier: chatId, identifier_label: `@${username}`,
+          student_id: id.studentId, lead_id: id.leadId, display_name: id.displayName,
+          confidence: id.confidence, source: "auto" },
+        { onConflict: "channel,identifier", ignoreDuplicates: false },
+      );
+      return id;
+    }
+  }
+  return { studentId: null, leadId: null, displayName: null, confidence: null };
+}
+
 async function storeMessage(supabase: Any, m: {
   chatId: string; messageId?: number | string | null; senderName: string;
   content: string; direction: "incoming" | "outgoing"; type?: string;
@@ -406,11 +430,15 @@ serve(async (req) => {
       const chatId = String(bm.chat?.id ?? "");
       if (!chatId) return ok();
 
+      const clientUsername = bm.chat?.username ?? null;
       const clientName = [bm.chat?.first_name, bm.chat?.last_name].filter(Boolean).join(" ")
-        || bm.chat?.username || bm.chat?.title || "Telegram user";
+        || clientUsername || bm.chat?.title || "Telegram user";
       const senderName = outgoing ? "Hanguk Consulting" : clientName;
 
-      const identity = await resolveIdentity(supabase, "telegram", chatId, { displayName: clientName });
+      let identity = await resolveIdentity(supabase, "telegram", chatId, { displayName: clientName });
+      if (!identity.studentId && !identity.leadId) {
+        identity = await resolveByUsername(supabase, chatId, clientUsername, clientName);
+      }
       await bumpThread(supabase, chatId, clientName, outgoing ? "outgoing" : "incoming");
       if (identity.studentId) {
         await supabase.from("message_threads").update({ student_id: identity.studentId })
@@ -531,7 +559,10 @@ Savolingiz bo'lsa, shu yerda — Telegram orqali — bemalol yozing. 💬 Xodiml
     }
 
     // --- Any other message: just capture (trigger links by identity) -----
-    const identity = await resolveIdentity(supabase, "telegram", chatId, { displayName: fromName });
+    let identity = await resolveIdentity(supabase, "telegram", chatId, { displayName: fromName });
+    if (!identity.studentId && !identity.leadId) {
+      identity = await resolveByUsername(supabase, chatId, username, fromName);
+    }
     await bumpThread(supabase, chatId, fromName, "incoming");
     if (identity.studentId) {
       await supabase.from("message_threads").update({ student_id: identity.studentId })
@@ -560,6 +591,26 @@ Savolingiz bo'lsa, shu yerda — Telegram orqali — bemalol yozing. 💬 Xodiml
         media_size: mediaMeta?.size ?? null,
       },
     });
+
+    // Auto-request phone sharing for unidentified first-time chats.
+    // Only ask once: if a lead already exists for this chatId, the person
+    // was seen before (via /start or a previous request) — don't re-ask.
+    if (!identity.studentId && !identity.leadId) {
+      const { data: existingLead } = await supabase.from("leads")
+        .select("id").eq("source", "telegram").eq("source_id", chatId).maybeSingle();
+      if (!existingLead) {
+        await upsertLead(supabase, chatId, { full_name: fromName });
+        const sent = await tgSend(chatId,
+          `Assalomu alaykum! 👋\n\nSizni aniqlab olishimiz uchun telefon raqamingizni ulashing — shunda xabarlaringiz profilingizga bog'lanadi va menejerimiz tezroq javob beradi.`,
+          { keyboard: [[{ text: "📱 Telefon raqamni ulashish", request_contact: true }]], resize_keyboard: true, one_time_keyboard: true });
+        if (sent) {
+          await bumpThread(supabase, chatId, fromName, "outgoing");
+          await storeMessage(supabase, { chatId, messageId: sent.message_id, senderName: "Hanguk bot",
+            content: "Telefon raqam so'raldi (avtomatik identifikatsiya).", direction: "outgoing" });
+        }
+      }
+    }
+
     return ok();
   } catch (error: unknown) {
     console.error("telegram-webhook error:", error);
