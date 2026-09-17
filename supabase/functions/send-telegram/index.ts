@@ -171,35 +171,37 @@ serve(async (req) => {
         .maybeSingle();
 
       if (!live) {
-        // Fail in the operator's face rather than into a queue nobody drains.
-        const reason = "Telegram userbot is not running — the reply was not sent";
-        await markRow(supabase, rowId, { delivery_status: "failed", delivery_error: reason });
-        return json({ ok: false, error: reason }, 503);
+        if (TELEGRAM_BOT_TOKEN) {
+          // Userbot is dead but the bot token exists — fall through to Bot API.
+          console.warn("send-telegram: userbot stale, falling back to Bot API");
+        } else {
+          const reason = "Telegram userbot is not running — the reply was not sent";
+          await markRow(supabase, rowId, { delivery_status: "failed", delivery_error: reason });
+          return json({ ok: false, error: reason }, 503);
+        }
       }
 
-      const { error: queueError } = await supabase.from("telegram_outbox").insert({
-        // Null would let any account claim it; naming the live one keeps a
-        // reply on the account the client has been talking to.
-        account_label: live.account_label,
-        chat_id: String(chat_id),
-        text: text ? String(text) : null,
-        media_path: mediaPath ? String(mediaPath) : null,
-        media_mime: mediaMime ? String(mediaMime) : null,
-        media_filename: mediaFilename ? String(mediaFilename) : null,
-        // Carries the outcome back onto this exact row once the userbot reports.
-        message_id: rowId ? String(rowId) : null,
-        requested_by: userData.user.id,
-      });
+      if (live) {
+        const { error: queueError } = await supabase.from("telegram_outbox").insert({
+          account_label: live.account_label,
+          chat_id: String(chat_id),
+          text: text ? String(text) : null,
+          media_path: mediaPath ? String(mediaPath) : null,
+          media_mime: mediaMime ? String(mediaMime) : null,
+          media_filename: mediaFilename ? String(mediaFilename) : null,
+          message_id: rowId ? String(rowId) : null,
+          requested_by: userData.user.id,
+        });
 
-      if (queueError) {
-        await markRow(supabase, rowId, { delivery_status: "failed", delivery_error: queueError.message });
-        return json({ ok: false, error: queueError.message }, 500);
+        if (queueError) {
+          await markRow(supabase, rowId, { delivery_status: "failed", delivery_error: queueError.message });
+          return json({ ok: false, error: queueError.message }, 500);
+        }
+
+        await markRow(supabase, rowId, { delivery_status: "sending", delivery_error: null });
+        return json({ ok: true, queued: true, account_label: live.account_label });
       }
-
-      // Not delivered yet — `complete_telegram_outbox` stamps 'sent' and the
-      // external id when the userbot has actually handed it to Telegram.
-      await markRow(supabase, rowId, { delivery_status: "sending", delivery_error: null });
-      return json({ ok: true, queued: true, account_label: live.account_label });
+      // Userbot dead + bot token exists → fall through to Bot API below.
     }
 
     // --- Bot path -----------------------------------------------------------
