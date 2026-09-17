@@ -10,23 +10,18 @@ import '../../applications/presentation/widgets/process_tracker.dart';
 import '../../documents/data/documents_repository.dart';
 import '../../documents/domain/document.dart';
 import '../../documents/domain/document_type.dart';
+import '../../uni_db/data/notification_store.dart';
 import 'home_tab_provider.dart';
 
 /// The notifications the 한 orb's bell opens (`/notifications`).
 ///
-/// Not a settings screen and not a raw feed — it surfaces the things a student
-/// actually has to act on, from data the app already holds:
-///  * required documents not yet uploaded (document submission), and
-///  * where each application stands in the pipeline (interview, visa
-///    preparation, and so on).
-///
-/// Everything here is derived from `documentsProvider` / `applicationsProvider`;
-/// nothing is invented. When there is nothing to act on it says so rather than
-/// showing an empty list.
+/// Surfaces:
+///  * received push notifications (surveys, announcements),
+///  * required documents not yet uploaded, and
+///  * where each application stands in the pipeline.
 class NotificationsScreen extends ConsumerWidget {
   const NotificationsScreen({super.key});
 
-  /// Locale-appropriate document name.
   String _docName(DocumentType t, String locale) {
     switch (locale) {
       case 'uz':
@@ -38,8 +33,6 @@ class NotificationsScreen extends ConsumerWidget {
     }
   }
 
-  /// Same match rule as the Documents tab and the Home dashboard: the uploader
-  /// stamps the type id into both the display name and the storage path.
   bool _isUploaded(DocumentType type, List<AppDocument> uploaded) {
     for (final doc in uploaded) {
       if (doc.name.contains('[${type.id}]') ||
@@ -62,8 +55,8 @@ class NotificationsScreen extends ConsumerWidget {
 
     final docsAsync = ref.watch(documentsProvider);
     final appsAsync = ref.watch(applicationsProvider);
+    final pushNotifications = ref.watch(notificationStoreProvider);
 
-    // ── Documents still to submit ──────────────────────────────────────────
     final List<DocumentType> missingDocs = docsAsync.maybeWhen(
       data: (uploaded) => DocumentConstants.requiredDocuments
           .where((t) => !_isUploaded(t, uploaded))
@@ -71,21 +64,29 @@ class NotificationsScreen extends ConsumerWidget {
       orElse: () => const <DocumentType>[],
     );
 
-    // ── Where each application stands ──────────────────────────────────────
     final List<StudentApplication> apps = appsAsync.maybeWhen(
       data: (list) => list,
       orElse: () => const <StudentApplication>[],
     );
 
     final loading = docsAsync.isLoading || appsAsync.isLoading;
-    final nothing = !loading && missingDocs.isEmpty && apps.isEmpty;
+    final nothing = !loading &&
+        missingDocs.isEmpty &&
+        apps.isEmpty &&
+        pushNotifications.isEmpty;
 
     return SeoulNightScaffold(
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _Header(title: l.homeNotifications),
+            _Header(
+              title: l.homeNotifications,
+              showMarkRead: pushNotifications.any((n) => !n.read),
+              onMarkAllRead: () {
+                ref.read(notificationStoreProvider.notifier).markAllRead();
+              },
+            ),
             Expanded(
               child: loading
                   ? const Center(
@@ -104,6 +105,20 @@ class NotificationsScreen extends ConsumerWidget {
                         32,
                       ),
                       children: [
+                        // ── Push notifications ──
+                        if (pushNotifications.isNotEmpty) ...[
+                          const _SectionLabel(
+                            en: 'Bildirishnomalar',
+                            ko: '푸시 알림',
+                          ),
+                          const SizedBox(height: 10),
+                          for (final n in pushNotifications) ...[
+                            _PushNotificationCard(item: n),
+                            const SizedBox(height: 10),
+                          ],
+                          const SizedBox(height: 10),
+                        ],
+                        // ── Documents still to submit ──
                         if (missingDocs.isNotEmpty) ...[
                           _SectionLabel(
                             en: l.documentsRequiredHeading,
@@ -128,6 +143,7 @@ class NotificationsScreen extends ConsumerWidget {
                           ],
                           const SizedBox(height: 10),
                         ],
+                        // ── Application updates ──
                         if (apps.isNotEmpty) ...[
                           _SectionLabel(
                             en: l.notifApplicationUpdates,
@@ -173,11 +189,16 @@ class NotificationsScreen extends ConsumerWidget {
   }
 }
 
-/// The glass back-circle + title, matching the section headers elsewhere.
 class _Header extends StatelessWidget {
-  const _Header({required this.title});
+  const _Header({
+    required this.title,
+    this.showMarkRead = false,
+    this.onMarkAllRead,
+  });
 
   final String title;
+  final bool showMarkRead;
+  final VoidCallback? onMarkAllRead;
 
   @override
   Widget build(BuildContext context) {
@@ -211,13 +232,29 @@ class _Header extends StatelessWidget {
           Expanded(
             child: HangulTag(en: title, ko: '알림', titleStyle: SeoulType.title),
           ),
+          if (showMarkRead)
+            GestureDetector(
+              onTap: onMarkAllRead,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: SeoulColors.glass,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: SeoulColors.glassBorder),
+                ),
+                child: Text(
+                  "O'qildi",
+                  style: SeoulType.caption.copyWith(color: SeoulColors.lime),
+                ),
+              ),
+            ),
         ],
       ),
     );
   }
 }
 
-/// A small uppercase-eyebrow + hangul section divider.
 class _SectionLabel extends StatelessWidget {
   const _SectionLabel({required this.en, required this.ko});
 
@@ -245,7 +282,94 @@ class _SectionLabel extends StatelessWidget {
   }
 }
 
-/// One actionable reminder.
+class _PushNotificationCard extends StatelessWidget {
+  const _PushNotificationCard({required this.item});
+
+  final NotificationItem item;
+
+  String _timeAgo(DateTime dt) {
+    final diff = DateTime.now().difference(dt);
+    if (diff.inMinutes < 1) return "hozirgina";
+    if (diff.inMinutes < 60) return "${diff.inMinutes} daqiqa oldin";
+    if (diff.inHours < 24) return "${diff.inHours} soat oldin";
+    if (diff.inDays < 7) return "${diff.inDays} kun oldin";
+    return "${dt.day}.${dt.month.toString().padLeft(2, '0')}";
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GlassCard(
+      blur: false,
+      padding: const EdgeInsets.all(14),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: item.read
+                  ? SeoulColors.glass
+                  : SeoulColors.lime.withValues(alpha: 0.15),
+              border: Border.all(
+                color: item.read ? SeoulColors.glassBorder : SeoulColors.lime,
+              ),
+            ),
+            child: Icon(
+              Icons.notifications_rounded,
+              size: 20,
+              color: item.read ? SeoulColors.textFaint : SeoulColors.lime,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: SeoulType.subtitle.copyWith(
+                    fontWeight: item.read ? FontWeight.w400 : FontWeight.w600,
+                  ),
+                ),
+                if (item.body.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    item.body,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    style: SeoulType.bodySecondary,
+                  ),
+                ],
+                const SizedBox(height: 6),
+                Text(
+                  _timeAgo(item.receivedAt),
+                  style: SeoulType.caption.copyWith(
+                    color: SeoulColors.textFaint,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (!item.read)
+            Container(
+              width: 8,
+              height: 8,
+              margin: const EdgeInsets.only(top: 6, left: 8),
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                color: SeoulColors.lime,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
 class _ReminderCard extends StatelessWidget {
   const _ReminderCard({
     required this.glyph,
