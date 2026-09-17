@@ -12,7 +12,7 @@ export default function Privacy() {
   const content = {
     en: {
       title: 'Privacy Policy',
-      lastUpdated: 'Last Updated: January 2025',
+      lastUpdated: 'Last Updated: September 2026',
       intro: 'Hanguk Consulting ("we", "our", or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, and safeguard your information when you use our mobile application and services.',
       sections: [
         {
@@ -41,6 +41,7 @@ export default function Privacy() {
           title: '4. Third-Party Services',
           content: `We use the following third-party services:
 • Supabase (Database and Authentication)
+• Firebase Cloud Messaging (Push Notifications)
 • Mapbox (Maps and Location Services)
 • ElevenLabs (Voice Services)
 These services have their own privacy policies and data handling practices.`
@@ -62,7 +63,7 @@ These services have their own privacy policies and data handling practices.`
     },
     uz: {
       title: 'Maxfiylik siyosati',
-      lastUpdated: 'Oxirgi yangilanish: 2025-yil yanvar',
+      lastUpdated: 'Oxirgi yangilanish: 2026-yil sentyabr',
       intro: 'Hanguk Consulting ("biz") sizning maxfiyligingizni himoya qilishga sodiqmiz. Ushbu Maxfiylik siyosati mobil ilovamiz va xizmatlarimizdan foydalanganingizda ma\'lumotlaringizni qanday to\'plashimiz, ishlatishimiz va himoya qilishimizni tushuntiradi.',
       sections: [
         {
@@ -91,6 +92,7 @@ These services have their own privacy policies and data handling practices.`
           title: '4. Uchinchi tomon xizmatlari',
           content: `Biz quyidagi uchinchi tomon xizmatlaridan foydalanamiz:
 • Supabase (Ma'lumotlar bazasi va Autentifikatsiya)
+• Firebase Cloud Messaging (Push bildirishnomalar)
 • Mapbox (Xaritalar va Joylashuv xizmatlari)
 • ElevenLabs (Ovozli xizmatlar)
 Bu xizmatlar o'zlarining maxfiylik siyosatlariga ega.`
@@ -112,7 +114,7 @@ Bu xizmatlar o'zlarining maxfiylik siyosatlariga ega.`
     },
     ru: {
       title: 'Политика конфиденциальности',
-      lastUpdated: 'Последнее обновление: Январь 2025',
+      lastUpdated: 'Последнее обновление: Сентябрь 2026',
       intro: 'Hanguk Consulting ("мы") стремится защитить вашу конфиденциальность. Эта Политика конфиденциальности объясняет, как мы собираем, используем и защищаем вашу информацию при использовании нашего мобильного приложения и услуг.',
       sections: [
         {
@@ -141,6 +143,7 @@ Bu xizmatlar o'zlarining maxfiylik siyosatlariga ega.`
           title: '4. Сторонние сервисы',
           content: `Мы используем следующие сторонние сервисы:
 • Supabase (База данных и Аутентификация)
+• Firebase Cloud Messaging (Push-уведомления)
 • Mapbox (Карты и Геолокация)
 • ElevenLabs (Голосовые сервисы)
 Эти сервисы имеют собственные политики конфиденциальности.`
@@ -162,7 +165,7 @@ Bu xizmatlar o'zlarining maxfiylik siyosatlariga ega.`
     },
     ko: {
       title: '개인정보 처리방침',
-      lastUpdated: '최종 업데이트: 2025년 1월',
+      lastUpdated: '최종 업데이트: 2026년 9월',
       intro: 'Hanguk Consulting("당사")은 귀하의 개인정보 보호를 위해 최선을 다하고 있습니다. 본 개인정보 처리방침은 귀하가 당사의 모바일 애플리케이션 및 서비스를 이용할 때 정보를 수집, 사용 및 보호하는 방법을 설명합니다.',
       sections: [
         {
@@ -191,6 +194,7 @@ Bu xizmatlar o'zlarining maxfiylik siyosatlariga ega.`
           title: '4. 제3자 서비스',
           content: `다음 제3자 서비스를 사용합니다:
 • Supabase (데이터베이스 및 인증)
+• Firebase Cloud Messaging (푸시 알림)
 • Mapbox (지도 및 위치 서비스)
 • ElevenLabs (음성 서비스)
 이러한 서비스는 자체 개인정보 처리방침을 가지고 있습니다.`
