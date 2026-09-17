@@ -326,6 +326,7 @@ export default function CRMPortal() {
               currentLang={currentLang}
               onUpdateDocumentStatus={updateDocumentStatus}
               onUpdateApplicationStatus={updateApplicationStatus}
+              onDocumentsChanged={refetchStudents}
             />
           </SafeSuspense>
         );

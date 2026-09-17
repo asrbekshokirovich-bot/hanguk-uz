@@ -14,6 +14,8 @@ export interface StudentDocSlot {
    * and can be verified, but never blocks "advance to the next stage".
    */
   required: boolean;
+  /** Staff can upload this document from the CRM on the student's behalf. */
+  staffUpload?: boolean;
 }
 
 /**
@@ -53,6 +55,7 @@ export const APPLICATION_PACK_SLOTS: StudentDocSlot[] = [
     name: { uz: 'Til sertifikat nusxasi', en: 'Language certificate copy', ru: 'Копия языкового сертификата' },
     note: { uz: 'Kamida IELTS 5.5 yoki TOPIK 2', en: 'Min. IELTS 5.5 or TOPIK 2', ru: 'Мин. IELTS 5.5 или TOPIK 2' },
     required: true,
+    staffUpload: true,
   },
   {
     id: 'photo',

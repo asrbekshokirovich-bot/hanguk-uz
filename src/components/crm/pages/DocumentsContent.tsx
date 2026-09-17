@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -15,10 +15,18 @@ import {
   CheckCircle2,
   ArrowRight,
   Sparkles,
+  Upload,
+  Loader2,
 } from 'lucide-react';
 import { Tables } from '@/integrations/supabase/types';
 import { cn } from '@/lib/utils';
-import { buildApplicationPack, slotLabel } from '@/lib/studentDocSlots';
+import { buildApplicationPack, slotLabel, type StudentDocSlot } from '@/lib/studentDocSlots';
+import { supabase } from '@/integrations/supabase/client';
+import { getStudentActiveIntakeId } from '@/lib/studentIntake';
+
+const STUDENT_DOCS_BUCKET = 'student-documents';
+const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
+const ACCEPTED_TYPES = ['application/pdf', 'image/jpeg', 'image/png'];
 
 type StudentProfile = Tables<'profiles'> & {
   applications?: (Tables<'applications'> & { university?: Tables<'institutions'> })[];
@@ -32,6 +40,8 @@ interface DocumentsContentProps {
   onUpdateDocumentStatus: (documentId: string, newStatus: string, notes?: string) => Promise<{ error: unknown }>;
   /** Advances the student's application row when their pack is fully verified. */
   onUpdateApplicationStatus?: (applicationId: string, status: string) => Promise<{ error: unknown }>;
+  /** Called after staff upload a document, so the parent refetches students. */
+  onDocumentsChanged?: () => void;
 }
 
 type PackFilter = 'all' | 'application' | 'visa';
@@ -83,7 +93,7 @@ function fmtDate(iso: string | null | undefined, lang: string) {
 }
 
 // ===========================================================================
-export default function DocumentsContent({ students, loading, currentLang, onUpdateDocumentStatus, onUpdateApplicationStatus }: DocumentsContentProps) {
+export default function DocumentsContent({ students, loading, currentLang, onUpdateDocumentStatus, onUpdateApplicationStatus, onDocumentsChanged }: DocumentsContentProps) {
   const [search, setSearch] = useState('');
   const [packFilter, setPackFilter] = useState<PackFilter>('all');
   const [stageFilter, setStageFilter] = useState<Stage | 'all'>('all');
@@ -93,6 +103,10 @@ export default function DocumentsContent({ students, loading, currentLang, onUpd
   const [advancedIds, setAdvancedIds] = useState<Set<string>>(new Set());
   const [advancing, setAdvancing] = useState(false);
   const [busySlot, setBusySlot] = useState<string | null>(null);
+  // Staff upload: which slot the hidden file input is currently serving.
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadTarget, setUploadTarget] = useState<{ studentId: string; slot: StudentDocSlot; existing?: Tables<'documents'> } | null>(null);
+  const [uploadingSlot, setUploadingSlot] = useState<string | null>(null);
 
   const packs = useMemo(() => {
     return students.map((s) => {
@@ -168,6 +182,72 @@ export default function DocumentsContent({ students, loading, currentLang, onUpd
     if (error) toast.error("Nimadir xato ketdi");
     else toast.success("Talaba qayta yuklashi so'raldi");
   };
+  const pickFile = (studentId: string, slot: StudentDocSlot, existing?: Tables<'documents'>) => {
+    setUploadTarget({ studentId, slot, existing });
+    fileInputRef.current?.click();
+  };
+
+  // Mirrors the student portal's upload (DocumentUpload.tsx): same bucket,
+  // `<studentId>/<slotId>-…` path and `[slotId]` name tag, so the slot matcher
+  // picks the file up exactly as if the student had uploaded it.
+  const handleFileChosen = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    const target = uploadTarget;
+    if (!file || !target) return;
+    if (!ACCEPTED_TYPES.includes(file.type)) {
+      toast.error('Faqat PDF, JPG yoki PNG fayl yuklash mumkin');
+      return;
+    }
+    if (file.size > MAX_UPLOAD_BYTES) {
+      toast.error('Fayl hajmi 10 MB dan oshmasligi kerak');
+      return;
+    }
+
+    const { studentId, slot, existing } = target;
+    setUploadingSlot(slot.id);
+    let storedPath: string | null = null;
+    try {
+      // Replacing: drop the old row first (documents_student_doc_type_unique).
+      if (existing) {
+        const { error: delErr } = await supabase.from('documents').delete().eq('id', existing.id);
+        if (delErr) throw new Error("Eski faylni almashtirishga ruxsat yo'q");
+        await supabase.storage.from(STUDENT_DOCS_BUCKET).remove([existing.file_path]);
+      }
+
+      const ext = file.name.split('.').pop()?.toLowerCase() || 'pdf';
+      const path = `${studentId}/${slot.id}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from(STUDENT_DOCS_BUCKET)
+        .upload(path, file, { cacheControl: '3600', upsert: false });
+      if (upErr) throw upErr;
+      storedPath = path;
+
+      const intakeId = await getStudentActiveIntakeId(studentId);
+      const { error: dbErr } = await supabase.from('documents').insert({
+        student_id: studentId,
+        name: `[${slot.id}] ${file.name}`,
+        file_path: path,
+        file_type: file.type,
+        file_size: file.size,
+        status: 'uploaded',
+        ...(intakeId ? { intake_id: intakeId } : {}),
+      });
+      if (dbErr) throw dbErr;
+      storedPath = null;
+
+      toast.success(`${slotLabel(slot.name, currentLang)} yuklandi`);
+      onDocumentsChanged?.();
+    } catch (err) {
+      if (storedPath) await supabase.storage.from(STUDENT_DOCS_BUCKET).remove([storedPath]);
+      console.error('[DocumentsContent] staff upload failed', err);
+      toast.error(err instanceof Error ? err.message : 'Yuklashda xatolik');
+    } finally {
+      setUploadingSlot(null);
+      setUploadTarget(null);
+    }
+  };
+
   // All required slots verified → push the student onto the next pipeline stage.
   const advanceToNextStage = async (userId: string, applicationId: string | null) => {
     if (!applicationId || !onUpdateApplicationStatus) {
@@ -199,6 +279,14 @@ export default function DocumentsContent({ students, loading, currentLang, onUpd
 
   return (
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-[320px_1fr] lg:items-start">
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".pdf,.jpg,.jpeg,.png"
+        className="hidden"
+        onChange={handleFileChosen}
+        data-testid="staff-doc-upload-input"
+      />
       {/* ---- left rail: search, pack tabs, stage chips, student list ---- */}
       <div className="space-y-3">
         <div className="relative">
@@ -365,8 +453,20 @@ export default function DocumentsContent({ students, loading, currentLang, onUpd
                       {state === 'missing' && (
                         <>
                           <Badge variant="neutral">Yo'q</Badge>
-                          <span className="text-[11px] text-muted-foreground">Talaba yuklashi kerak</span>
+                          {!slot.staffUpload && <span className="text-[11px] text-muted-foreground">Talaba yuklashi kerak</span>}
                         </>
+                      )}
+                      {slot.staffUpload && state !== 'verified' && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-7 gap-1 text-xs"
+                          disabled={uploadingSlot !== null}
+                          onClick={() => pickFile(selected.student.user_id, slot, doc)}
+                        >
+                          {uploadingSlot === slot.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Upload className="h-3 w-3" />}
+                          {state === 'missing' ? 'Yuklash' : 'Almashtirish'}
+                        </Button>
                       )}
                     </div>
                   </div>

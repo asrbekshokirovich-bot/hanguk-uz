@@ -4,6 +4,9 @@ import type { ComponentProps } from 'react';
 import type { Tables } from '@/integrations/supabase/types';
 import DocumentsContent from '../DocumentsContent';
 
+vi.mock('@/integrations/supabase/client', () => ({ supabase: {} }));
+vi.mock('@/lib/studentIntake', () => ({ getStudentActiveIntakeId: vi.fn().mockResolvedValue(null) }));
+
 /**
  * The Hujjatlar page used to check uploads against six invented slot ids, so a
  * student with seven real uploads showed 0/6 and every row said "missing".
@@ -93,5 +96,13 @@ describe('DocumentsContent application pack', () => {
     setup();
     expect(screen.getByText('"[diploma] QR CODE.pdf" hujjati yuklandi')).toBeInTheDocument();
     expect(screen.queryByText(/hujjati qabul qilindi/)).not.toBeInTheDocument();
+  });
+});
+
+describe('staff upload of the language certificate (TOPIK)', () => {
+  it('shows an upload button on the language certificate slot only', () => {
+    setup();
+    const buttons = screen.getAllByRole('button', { name: /Yuklash|Almashtirish/ });
+    expect(buttons).toHaveLength(1);
   });
 });
