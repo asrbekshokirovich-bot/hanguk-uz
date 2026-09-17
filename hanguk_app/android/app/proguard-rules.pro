@@ -98,6 +98,14 @@
 # ── url_launcher / open_filex ──────────────────────────────────────────────
 -keep class io.flutter.plugins.urllauncher.** { *; }
 
+# ── flutter_local_notifications ────────────────────────────────────────────
+-keep class com.dexterous.** { *; }
+-dontwarn com.dexterous.**
+
+# ── Firebase Messaging ─────────────────────────────────────────────────────
+-keep class com.google.firebase.messaging.** { *; }
+-dontwarn com.google.firebase.messaging.**
+
 # ── Suppress noisy warnings from transitively-included libraries ───────────
 -dontwarn javax.annotation.**
 -dontwarn org.bouncycastle.**
