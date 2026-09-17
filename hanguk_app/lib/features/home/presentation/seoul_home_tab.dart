@@ -11,6 +11,7 @@ import '../../applications/domain/application.dart';
 import '../../documents/data/documents_repository.dart';
 import '../../documents/domain/document.dart';
 import '../../documents/domain/document_type.dart';
+import '../../surveys/data/survey_repository.dart';
 
 /// Length of the application pipeline.
 ///
@@ -240,6 +241,9 @@ class SeoulHomeTab extends ConsumerWidget {
         nextStepCard,
 
         ...previews,
+
+        // ── 4. Active survey banner ───────────────────────────────────────
+        _SurveyBanner(surveys: ref.watch(activeSurveysProvider)),
       ],
     );
   }
@@ -757,6 +761,62 @@ class _ErrorCard extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _SurveyBanner extends StatelessWidget {
+  const _SurveyBanner({required this.surveys});
+
+  final AsyncValue<List<Survey>> surveys;
+
+  @override
+  Widget build(BuildContext context) {
+    return surveys.when(
+      loading: () => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
+      data: (list) {
+        final pending = list.where((s) => !s.isCompleted).toList();
+        if (pending.isEmpty) return const SizedBox.shrink();
+
+        return Padding(
+          padding: const EdgeInsets.only(top: 20),
+          child: GlassCard(
+            onTap: () => context.push('/surveys'),
+            child: Row(
+              children: [
+                const HangulGlyphTile(glyph: '설', size: 40),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        pending.length == 1
+                            ? pending.first.title
+                            : "${pending.length} ta so'rovnoma",
+                        style: SeoulType.subtitle,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        "To'ldirish kutilmoqda",
+                        style: SeoulType.caption,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                StatusChip(
+                  label: '${pending.length}',
+                  tone: StatusTone.info,
+                  ko: '새',
+                  dense: true,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

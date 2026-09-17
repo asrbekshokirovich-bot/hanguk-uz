@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,9 +10,15 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/router/app_router.dart';
 import 'design_system/theme/app_theme.dart';
 import 'features/map/data/map_repository.dart';
+import 'features/uni_db/data/fcm_token_source.dart';
 import 'features/uni_db/data/push_token_bootstrap.dart';
 import 'features/updater/presentation/update_gate.dart';
 import 'l10n/app_localizations.dart';
+
+@pragma('vm:entry-point')
+Future<void> _firebaseBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+}
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,6 +31,14 @@ Future<void> main() async {
       options.dsn = sentryDsn;
       options.tracesSampleRate = 0.1;
     });
+  }
+
+  // Initialize Firebase for push notifications.
+  try {
+    await Firebase.initializeApp();
+    FirebaseMessaging.onBackgroundMessage(_firebaseBackgroundHandler);
+  } catch (e) {
+    debugPrint('Firebase init error: $e');
   }
 
   // Show a splash while Supabase initializes — prevents ANR on slow emulators
@@ -103,11 +119,8 @@ class HangukApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final goRouter = ref.watch(appRouterProvider);
 
-    // Read once so the bootstrap subscribes to auth-state changes.
-    // Without this, the provider stays cold and tokens never register.
-    // The provider is no-op until a PushTokenSource is configured (after
-    // a Firebase / APNs / VAPID SDK is wired into the app).
-    ref.read(pushTokenBootstrapProvider);
+    // Wire FCM token source and start listening to auth-state changes.
+    ref.read(pushTokenBootstrapProvider).setTokenSource(fcmTokenSource);
 
     return MaterialApp.router(
       title: 'Hanguk Student App',

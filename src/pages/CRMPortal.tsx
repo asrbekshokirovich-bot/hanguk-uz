@@ -63,6 +63,7 @@ const SettingsContent = lazy(() => import('@/components/crm/pages/SettingsConten
 const KakaoMapContent = lazy(() => import('@/components/crm/pages/KakaoMapContent'));
 const UniDbReviewContent = lazy(() => import('@/components/crm/pages/UniDbReviewContent'));
 const ManageIntakesContent = lazy(() => import('@/components/crm/pages/ManageIntakesContent'));
+const SurveysContent = lazy(() => import('@/components/crm/pages/SurveysContent'));
 
 // Access denied component
 const AccessDenied = () => (
@@ -141,6 +142,7 @@ export default function CRMPortal() {
     if (currentPath.startsWith('/crm/communication')) return 'communication';
     if (currentPath.startsWith('/crm/kakao-map')) return 'kakao-map';
     if (currentPath.startsWith('/crm/admin/uni-db-review')) return 'uni-db-review';
+    if (currentPath.startsWith('/crm/surveys')) return 'surveys';
     return 'dashboard';
   };
 
@@ -408,6 +410,8 @@ export default function CRMPortal() {
         return <SafeSuspense><KakaoMapContent /></SafeSuspense>;
       case 'uni-db-review':
         return <SafeSuspense><UniDbReviewContent /></SafeSuspense>;
+      case 'surveys':
+        return <SafeSuspense><SurveysContent /></SafeSuspense>;
       default:
         return (
           <CRMDashboard
