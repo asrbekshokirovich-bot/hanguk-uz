@@ -1,5 +1,6 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -50,7 +51,15 @@ Future<void> initNotificationService({ProviderContainer? container}) async {
   await androidPlugin?.createNotificationChannel(fgChannel);
 
   FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
+
+  // Notifications received while backgrounded are written to disk by the
+  // background isolate; the in-memory list must be re-read on resume.
+  _lifecycleListener ??= AppLifecycleListener(
+    onResume: () => _container?.read(notificationStoreProvider.notifier).refresh(),
+  );
 }
+
+AppLifecycleListener? _lifecycleListener;
 
 void _handleForegroundMessage(RemoteMessage message) {
   final notification = message.notification;
@@ -98,14 +107,13 @@ void _persistNotification(String? title, String? body, Map<String, dynamic> data
 Future<void> persistBackgroundNotification(RemoteMessage message) async {
   final notification = message.notification;
   if (notification == null) return;
-  // Background handler runs without the Riverpod container, so persist
-  // directly via the store's file-based approach.
-  final store = NotificationStore();
-  // Give the store time to load from disk before adding.
-  await Future<void>.delayed(const Duration(milliseconds: 200));
-  await store.add(NotificationItem(
-    title: notification.title ?? '',
-    body: notification.body ?? '',
+  final title = notification.title ?? '';
+  final body = notification.body ?? '';
+  if (title.isEmpty && body.isEmpty) return;
+  // Runs in the background isolate where no ProviderContainer exists.
+  await NotificationStorage.append(NotificationItem(
+    title: title,
+    body: body,
     receivedAt: DateTime.now(),
     data: message.data,
   ));
