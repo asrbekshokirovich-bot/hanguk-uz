@@ -29,7 +29,15 @@ class NotificationItem {
   final String body;
   final DateTime receivedAt;
   final Map<String, dynamic> data;
-  bool read;
+  final bool read;
+
+  NotificationItem copyWith({bool? read}) => NotificationItem(
+        title: title,
+        body: body,
+        receivedAt: receivedAt,
+        data: data,
+        read: read ?? this.read,
+      );
 
   Map<String, dynamic> toJson() => {
         'title': title,
@@ -42,66 +50,91 @@ class NotificationItem {
 
 const _maxItems = 50;
 
-class NotificationStore extends StateNotifier<List<NotificationItem>> {
-  NotificationStore() : super(const []) {
-    _load();
+/// Plain file-backed storage. Has no Riverpod dependency so it can be used
+/// from the FCM background isolate, where no ProviderContainer exists.
+class NotificationStorage {
+  NotificationStorage._();
+
+  static Future<File> _file() async {
+    final dir = await getApplicationDocumentsDirectory();
+    return File('${dir.path}/push_notifications.json');
   }
 
-  File? _file;
+  static Future<List<NotificationItem>> load() async {
+    try {
+      final file = await _file();
+      if (!await file.exists()) return const [];
+      final raw = await file.readAsString();
+      if (raw.trim().isEmpty) return const [];
+      final decoded = jsonDecode(raw);
+      if (decoded is! List) return const [];
+      return decoded
+          .whereType<Map>()
+          .map((m) => NotificationItem.fromJson(Map<String, dynamic>.from(m)))
+          .toList();
+    } catch (e) {
+      debugPrint('NotificationStorage load error: $e');
+      return const [];
+    }
+  }
 
-  Future<File> _getFile() async {
-    if (_file != null) return _file!;
-    final dir = await getApplicationDocumentsDirectory();
-    _file = File('${dir.path}/push_notifications.json');
-    return _file!;
+  static Future<void> save(List<NotificationItem> items) async {
+    try {
+      final file = await _file();
+      await file.writeAsString(
+        jsonEncode(items.map((n) => n.toJson()).toList()),
+        flush: true,
+      );
+    } catch (e) {
+      debugPrint('NotificationStorage save error: $e');
+    }
+  }
+
+  static List<NotificationItem> prepend(
+    List<NotificationItem> items,
+    NotificationItem item,
+  ) {
+    final updated = [item, ...items];
+    return updated.length > _maxItems ? updated.sublist(0, _maxItems) : updated;
+  }
+
+  /// Load → prepend → save, for callers without access to the provider.
+  static Future<void> append(NotificationItem item) async {
+    final items = await load();
+    await save(prepend(items, item));
+  }
+}
+
+class NotificationStore extends Notifier<List<NotificationItem>> {
+  @override
+  List<NotificationItem> build() {
+    _load();
+    return const [];
   }
 
   Future<void> _load() async {
-    try {
-      final file = await _getFile();
-      if (!file.existsSync()) return;
-      final raw = await file.readAsString();
-      final list = (jsonDecode(raw) as List)
-          .cast<Map<String, dynamic>>()
-          .map(NotificationItem.fromJson)
-          .toList();
-      state = list;
-    } catch (e) {
-      debugPrint('NotificationStore load error: $e');
-    }
+    final items = await NotificationStorage.load();
+    if (!ref.mounted) return;
+    state = items;
   }
 
-  Future<void> _save() async {
-    try {
-      final file = await _getFile();
-      await file.writeAsString(jsonEncode(state.map((n) => n.toJson()).toList()));
-    } catch (e) {
-      debugPrint('NotificationStore save error: $e');
-    }
-  }
+  /// Re-reads from disk. Called when the app returns to the foreground so
+  /// notifications persisted by the background isolate become visible.
+  Future<void> refresh() => _load();
 
   Future<void> add(NotificationItem item) async {
-    final updated = [item, ...state];
-    if (updated.length > _maxItems) {
-      state = updated.sublist(0, _maxItems);
-    } else {
-      state = updated;
-    }
-    await _save();
+    state = NotificationStorage.prepend(state, item);
+    await NotificationStorage.save(state);
   }
 
   Future<void> markAllRead() async {
-    state = [
-      for (final n in state)
-        if (n.read) n else (n..read = true),
-    ];
-    await _save();
+    if (state.every((n) => n.read)) return;
+    state = [for (final n in state) n.read ? n : n.copyWith(read: true)];
+    await NotificationStorage.save(state);
   }
-
-  int get unreadCount => state.where((n) => !n.read).length;
 }
 
 final notificationStoreProvider =
-    StateNotifierProvider<NotificationStore, List<NotificationItem>>(
-  (ref) => NotificationStore(),
+    NotifierProvider<NotificationStore, List<NotificationItem>>(
+  NotificationStore.new,
 );
