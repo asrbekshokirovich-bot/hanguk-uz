@@ -181,6 +181,23 @@ export default function SurveysContent() {
       if (qErr) throw qErr;
 
       toast.success("So'rovnoma yaratildi");
+
+      // Send push notification to all users about the new survey
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.access_token) {
+          await supabase.functions.invoke('send-push-notification', {
+            body: {
+              title: "Yangi so'rovnoma!",
+              body: title.trim(),
+              data: { type: 'survey', survey_id: (survey as Record<string, unknown>).id as string },
+            },
+          });
+        }
+      } catch {
+        // Push notification failure should not block survey creation
+      }
+
       setShowCreate(false);
       resetForm();
       fetchSurveys();
