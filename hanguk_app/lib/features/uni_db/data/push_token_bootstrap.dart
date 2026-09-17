@@ -47,6 +47,9 @@ class PushTokenBootstrap {
   /// start() or after — the next signedIn event will pick it up.
   void setTokenSource(PushTokenSource source) {
     _source = source;
+    if (Supabase.instance.client.auth.currentUser != null) {
+      _maybeRegister();
+    }
   }
 
   /// Begin listening to auth state changes. Returns the running
