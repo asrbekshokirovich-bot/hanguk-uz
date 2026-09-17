@@ -19,6 +19,7 @@ import 'l10n/app_localizations.dart';
 @pragma('vm:entry-point')
 Future<void> _firebaseBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
+  await persistBackgroundNotification(message);
 }
 
 Future<void> main() async {
@@ -38,7 +39,6 @@ Future<void> main() async {
   try {
     await Firebase.initializeApp();
     FirebaseMessaging.onBackgroundMessage(_firebaseBackgroundHandler);
-    await initNotificationService();
   } catch (e) {
     debugPrint('Firebase init error: $e');
   }
@@ -62,6 +62,15 @@ Future<void> main() async {
   // wait with this one (rather than doing them back-to-back) cuts the
   // perceived "Map is slow to open" delay roughly in half.
   final container = ProviderContainer();
+
+  // Initialize notification service with the Riverpod container so incoming
+  // push notifications are persisted to the local notification history.
+  try {
+    await initNotificationService(container: container);
+  } catch (e) {
+    debugPrint('Notification service init error: $e');
+  }
+
   unawaited(() async {
     try {
       await container.read(universitiesProvider.future);

@@ -1,6 +1,9 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'notification_store.dart';
 
 const _bgChannelId = 'hanguk_default';
 
@@ -14,7 +17,11 @@ const _fgChannelName = 'Hanguk Foreground';
 
 final _localNotifications = FlutterLocalNotificationsPlugin();
 
-Future<void> initNotificationService() async {
+ProviderContainer? _container;
+
+Future<void> initNotificationService({ProviderContainer? container}) async {
+  _container = container;
+
   const androidSettings =
       AndroidInitializationSettings('@mipmap/launcher_icon');
   const initSettings = InitializationSettings(android: androidSettings);
@@ -42,13 +49,17 @@ Future<void> initNotificationService() async {
   );
   await androidPlugin?.createNotificationChannel(fgChannel);
 
-  FirebaseMessaging.onMessage.listen(_showForegroundNotification);
+  FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
 }
 
-void _showForegroundNotification(RemoteMessage message) {
+void _handleForegroundMessage(RemoteMessage message) {
   final notification = message.notification;
   if (notification == null) return;
 
+  // Save to local history.
+  _persistNotification(notification.title, notification.body, message.data);
+
+  // Show heads-up notification.
   try {
     _localNotifications.show(
       DateTime.now().millisecondsSinceEpoch ~/ 1000,
@@ -68,4 +79,34 @@ void _showForegroundNotification(RemoteMessage message) {
   } catch (e) {
     debugPrint('Foreground notification show failed: $e');
   }
+}
+
+void _persistNotification(String? title, String? body, Map<String, dynamic> data) {
+  if ((title == null || title.isEmpty) && (body == null || body.isEmpty)) return;
+  final store = _container?.read(notificationStoreProvider.notifier);
+  if (store == null) return;
+  store.add(NotificationItem(
+    title: title ?? '',
+    body: body ?? '',
+    receivedAt: DateTime.now(),
+    data: data,
+  ));
+}
+
+/// Called from the background message handler to persist notifications
+/// received while the app was in the background.
+Future<void> persistBackgroundNotification(RemoteMessage message) async {
+  final notification = message.notification;
+  if (notification == null) return;
+  // Background handler runs without the Riverpod container, so persist
+  // directly via the store's file-based approach.
+  final store = NotificationStore();
+  // Give the store time to load from disk before adding.
+  await Future<void>.delayed(const Duration(milliseconds: 200));
+  await store.add(NotificationItem(
+    title: notification.title ?? '',
+    body: notification.body ?? '',
+    receivedAt: DateTime.now(),
+    data: message.data,
+  ));
 }

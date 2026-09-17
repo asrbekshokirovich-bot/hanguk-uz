@@ -12,6 +12,7 @@ import '../../documents/data/documents_repository.dart';
 import '../../documents/domain/document.dart';
 import '../../documents/domain/document_type.dart';
 import '../../surveys/data/survey_repository.dart';
+import '../../uni_db/data/notification_store.dart';
 
 /// Length of the application pipeline.
 ///
@@ -252,7 +253,7 @@ class SeoulHomeTab extends ConsumerWidget {
 /// The Home top bar (spec §3.3): a profile avatar, the greeting with the
 /// student's name, and the notification bell. The avatar opens the account
 /// screen; the bell opens the notification settings.
-class _HomeTopBar extends StatelessWidget {
+class _HomeTopBar extends ConsumerWidget {
   const _HomeTopBar({required this.greetingLine, required this.name});
 
   /// "좋은 저녁 · Good evening" — the hangul greeting and its translation.
@@ -262,9 +263,11 @@ class _HomeTopBar extends StatelessWidget {
   final String name;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context)!;
     final initial = name.isNotEmpty ? name.characters.first.toUpperCase() : '한';
+    final unreadCount =
+        ref.watch(notificationStoreProvider).where((n) => !n.read).length;
 
     return Row(
       children: [
@@ -322,20 +325,47 @@ class _HomeTopBar extends StatelessWidget {
           label: l.homeNotifications,
           child: GestureDetector(
             onTap: () => context.push('/notifications'),
-            child: Container(
-              width: SeoulSizes.minTapTarget,
-              height: SeoulSizes.minTapTarget,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: SeoulColors.glass,
-                border: Border.all(color: SeoulColors.glassBorder),
-              ),
-              child: const Icon(
-                Icons.notifications_none_rounded,
-                size: 20,
-                color: SeoulColors.textSecondary,
-              ),
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Container(
+                  width: SeoulSizes.minTapTarget,
+                  height: SeoulSizes.minTapTarget,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: SeoulColors.glass,
+                    border: Border.all(color: SeoulColors.glassBorder),
+                  ),
+                  child: const Icon(
+                    Icons.notifications_none_rounded,
+                    size: 20,
+                    color: SeoulColors.textSecondary,
+                  ),
+                ),
+                if (unreadCount > 0)
+                  Positioned(
+                    top: -2,
+                    right: -2,
+                    child: Container(
+                      width: 18,
+                      height: 18,
+                      alignment: Alignment.center,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: SeoulColors.lime,
+                      ),
+                      child: Text(
+                        unreadCount > 9 ? '9+' : '$unreadCount',
+                        style: const TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF0A0A1A),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ),
         ),
