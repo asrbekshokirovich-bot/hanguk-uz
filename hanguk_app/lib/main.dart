@@ -11,6 +11,7 @@ import 'core/router/app_router.dart';
 import 'design_system/theme/app_theme.dart';
 import 'features/map/data/map_repository.dart';
 import 'features/uni_db/data/fcm_token_source.dart';
+import 'features/uni_db/data/notification_service.dart';
 import 'features/uni_db/data/push_token_bootstrap.dart';
 import 'features/updater/presentation/update_gate.dart';
 import 'l10n/app_localizations.dart';
@@ -37,6 +38,7 @@ Future<void> main() async {
   try {
     await Firebase.initializeApp();
     FirebaseMessaging.onBackgroundMessage(_firebaseBackgroundHandler);
+    await initNotificationService();
   } catch (e) {
     debugPrint('Firebase init error: $e');
   }
