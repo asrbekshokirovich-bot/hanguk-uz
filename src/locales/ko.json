@@ -1015,7 +1015,15 @@
       "saveNote": "메모 저장",
       "attach": "파일 첨부",
       "removeAttachment": "첨부 파일 제거",
-      "fileTooLarge": "파일이 너무 큽니다 ({{limit}}까지)"
+      "fileTooLarge": "파일이 너무 큽니다 ({{limit}}까지)",
+      "recordVoice": "음성 메시지 녹음",
+      "recording": "녹음 중",
+      "stopRecording": "중지",
+      "cancelRecording": "취소",
+      "removeVoice": "음성 메시지 제거",
+      "micDenied": "마이크 접근이 거부되었습니다. 브라우저 설정에서 허용해 주세요.",
+      "voiceUnsupported": "이 브라우저는 음성 녹음을 지원하지 않습니다.",
+      "voiceFailed": "녹음에 실패했습니다. 다시 시도해 주세요."
     },
     "savedReplies": {
       "docs": "서류 체크리스트",

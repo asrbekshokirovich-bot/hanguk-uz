@@ -1,7 +1,8 @@
-import { useRef, useState, type KeyboardEvent } from 'react';
+import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ArrowRight, Paperclip, StickyNote, X, Zap } from 'lucide-react';
+import { ArrowRight, Mic, Paperclip, Square, StickyNote, X, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useVoiceRecorder, type VoiceRecording } from '@/hooks/useVoiceRecorder';
 import { SavedRepliesPanel } from './SavedRepliesPanel';
 import { SEND_LANGUAGES } from './languages';
 import { SendLanguageChips } from './SendLanguageChips';
@@ -10,8 +11,20 @@ import type { SavedReply, SendLanguage } from './types';
 interface ComposerProps {
   onSend: (
     text: string,
-    options: { internal: boolean; language: SendLanguage; file?: File | null },
+    options: {
+      internal: boolean;
+      language: SendLanguage;
+      file?: File | null;
+      durationSeconds?: number | null;
+    },
   ) => Promise<boolean>;
+}
+
+/** mm:ss for the timer beside the stop button. */
+function clock(seconds: number): string {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}:${String(s).padStart(2, '0')}`;
 }
 
 /**
@@ -45,6 +58,66 @@ export function Composer({ onSend }: ComposerProps) {
   const [fileError, setFileError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // A finished recording waiting to be sent. It travels the same path as an
+  // attachment — upload to chat-media, then relay — and carries its measured
+  // length so the bubble's player has a bar to draw.
+  const [voice, setVoice] = useState<VoiceRecording | null>(null);
+  const recorder = useVoiceRecorder();
+
+  // Revoking is deliberately explicit rather than tied to the `voice` state.
+  // An effect keyed on it would fire between the optimistic clear and the
+  // restore that a failed send performs, killing the URL of the very recording
+  // it just handed back — the preview would go silent on the one path where
+  // the operator most needs to hear it again.
+  const voiceUrlRef = useRef<string | null>(null);
+
+  /** Drop a staged recording and release its object URL. */
+  const clearVoice = () => {
+    if (voiceUrlRef.current) {
+      URL.revokeObjectURL(voiceUrlRef.current);
+      voiceUrlRef.current = null;
+    }
+    setVoice(null);
+  };
+
+  const stageVoice = (recording: VoiceRecording) => {
+    voiceUrlRef.current = recording.url;
+    setVoice(recording);
+  };
+
+  // Leaving the thread must not leak the blob of a recording never sent.
+  useEffect(() => {
+    return () => {
+      if (voiceUrlRef.current) URL.revokeObjectURL(voiceUrlRef.current);
+    };
+  }, []);
+
+  const beginRecording = async () => {
+    setFileError(null);
+    clearVoice();
+    const ok = await recorder.start();
+    if (!ok) {
+      setFileError(
+        recorder.error === 'unsupported'
+          ? t('messages.composer.voiceUnsupported')
+          : t('messages.composer.micDenied'),
+      );
+    }
+  };
+
+  const endRecording = async () => {
+    const result = await recorder.stop();
+    if (!result) {
+      setFileError(t('messages.composer.voiceFailed'));
+      return;
+    }
+    // Replaces any picked file: one attachment per message, and the operator
+    // just chose which one by recording it.
+    setFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+    stageVoice(result);
+  };
+
   const pickFile = (chosen: File | null) => {
     if (chosen && chosen.size > MAX_ATTACHMENT_BYTES) {
       setFileError(t('messages.composer.fileTooLarge', { limit: '20 MB' }));
@@ -52,6 +125,7 @@ export function Composer({ onSend }: ComposerProps) {
       return;
     }
     setFileError(null);
+    clearVoice();
     setFile(chosen);
   };
 
@@ -59,24 +133,38 @@ export function Composer({ onSend }: ComposerProps) {
     const text = draft.trim();
     // An attachment on its own is a complete message; requiring text would
     // make sending a photo mean typing something first.
-    if (!text && !file) return;
+    if (!text && !file && !voice) return;
     // Clear FIRST. Waiting for the insert, the channel relay and two refetches
     // before emptying the box made Enter feel like it had not registered; the
     // operator would sit staring at their own text for seconds. The draft is
     // put back only if the send actually failed.
     const wasNote = noteMode;
-    const wasFile = file;
+    const wasVoice = voice;
+    const wasFile = wasVoice ? wasVoice.file : file;
     setDraft('');
     setNoteMode(false);
     setShowSnippets(false);
     setFile(null);
+    setVoice(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
-    const ok = await onSend(text, { internal: wasNote, language, file: wasFile });
-    if (!ok) {
-      setDraft(text);
-      setNoteMode(wasNote);
-      setFile(wasFile);
+    const ok = await onSend(text, {
+      internal: wasNote,
+      language,
+      file: wasFile,
+      durationSeconds: wasVoice?.durationSeconds ?? null,
+    });
+    if (ok) {
+      // Only now is the local copy safe to release: the bubble in the thread
+      // plays from storage, not from this URL.
+      if (wasVoice) clearVoice();
+      return;
     }
+    // Put everything back exactly as it was, recording included: re-recording a
+    // reply because the relay failed is the one thing nobody wants to do twice.
+    setDraft(text);
+    setNoteMode(wasNote);
+    if (wasVoice) stageVoice(wasVoice);
+    else setFile(wasFile);
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -121,6 +209,60 @@ export function Composer({ onSend }: ComposerProps) {
             >
               <X className="h-3.5 w-3.5" aria-hidden="true" />
               <span className="sr-only">{t('messages.composer.removeAttachment')}</span>
+            </button>
+          </div>
+        )}
+
+        {recorder.isRecording && (
+          <div className="flex items-center gap-2.5 border-b border-border bg-destructive/10 px-3.5 py-2">
+            <span
+              className="h-2 w-2 shrink-0 animate-pulse rounded-full bg-destructive"
+              aria-hidden="true"
+            />
+            <span className="text-xs font-semibold text-destructive">
+              {t('messages.composer.recording')}
+            </span>
+            <span className="font-mono text-xs tabular-nums text-destructive/80">
+              {clock(recorder.elapsedSeconds)}
+            </span>
+            <div className="ml-auto flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => {
+                  recorder.cancel();
+                  setFileError(null);
+                }}
+                className="flex h-7 min-h-0 items-center rounded-sm px-2 text-xs font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                {t('messages.composer.cancelRecording')}
+              </button>
+              <button
+                type="button"
+                onClick={() => void endRecording()}
+                className="flex h-7 min-h-0 items-center gap-1.5 rounded-sm bg-destructive px-2.5 text-xs font-semibold text-destructive-foreground transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <Square className="h-3 w-3 fill-current" aria-hidden="true" />
+                {t('messages.composer.stopRecording')}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {voice && (
+          <div className="flex items-center gap-2 border-b border-border bg-muted/40 px-3.5 py-2">
+            <Mic className="h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
+            <audio controls preload="metadata" src={voice.url} className="h-8 max-w-[260px]" />
+            <span className="font-mono text-[11px] tabular-nums text-muted-foreground">
+              {clock(voice.durationSeconds)}
+            </span>
+            <button
+              type="button"
+              onClick={() => clearVoice()}
+              title={t('messages.composer.removeVoice')}
+              className="ml-auto flex h-6 w-6 min-h-0 min-w-0 shrink-0 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <X className="h-3.5 w-3.5" aria-hidden="true" />
+              <span className="sr-only">{t('messages.composer.removeVoice')}</span>
             </button>
           </div>
         )}
@@ -174,6 +316,22 @@ export function Composer({ onSend }: ComposerProps) {
             <span className="sr-only">{t('messages.composer.attach')}</span>
           </button>
 
+          {/* An internal note is never relayed, so recording one would send the
+              audio nowhere. Hidden outright where the browser cannot encode
+              Opus, rather than offered and then failing on the click. */}
+          {recorder.supported && !noteMode && (
+            <button
+              type="button"
+              onClick={() => void beginRecording()}
+              disabled={recorder.isRecording}
+              title={t('messages.composer.recordVoice')}
+              className="flex h-8 min-h-0 items-center gap-1.5 rounded-sm border border-border bg-card px-2.5 text-xs font-semibold text-foreground/75 transition-colors hover:bg-muted disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <Mic className="h-3.5 w-3.5" aria-hidden="true" />
+              <span className="sr-only">{t('messages.composer.recordVoice')}</span>
+            </button>
+          )}
+
           <button
             type="button"
             onClick={() => setNoteMode((v) => !v)}
@@ -200,7 +358,7 @@ export function Composer({ onSend }: ComposerProps) {
             <button
               type="button"
               onClick={() => void submit()}
-              disabled={!draft.trim() && !file}
+              disabled={(!draft.trim() && !file && !voice) || recorder.isRecording}
               className="flex h-10 min-h-0 items-center gap-1.5 rounded-md bg-primary px-4 text-[13px] font-semibold text-primary-foreground transition hover:brightness-110 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card"
             >
               {noteMode ? t('messages.composer.saveNote') : t('messages.composer.send')}

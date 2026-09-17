@@ -23,7 +23,12 @@ interface ThreadPaneProps {
   onLinkContact?: () => void;
   onSend: (
     text: string,
-    options: { internal: boolean; language: SendLanguage; file?: File | null },
+    options: {
+      internal: boolean;
+      language: SendLanguage;
+      file?: File | null;
+      durationSeconds?: number | null;
+    },
   ) => Promise<boolean>;
 }
 

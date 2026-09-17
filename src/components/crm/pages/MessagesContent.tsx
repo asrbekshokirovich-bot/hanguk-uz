@@ -193,7 +193,12 @@ export default function MessagesContent() {
   const handleSend = useCallback(
     async (
       rawText: string,
-      options: { internal: boolean; language: SendLanguage; file?: File | null },
+      options: {
+        internal: boolean;
+        language: SendLanguage;
+        file?: File | null;
+        durationSeconds?: number | null;
+      },
     ): Promise<boolean> => {
       if (!active || !selectedThread) return false;
 
@@ -264,7 +269,15 @@ export default function MessagesContent() {
       }
 
       const send = (body: string, f?: File | null) =>
-        sendMessage(body, selectedThread.source, selectedThread.sender_id, f);
+        sendMessage(
+          body,
+          selectedThread.source,
+          selectedThread.sender_id,
+          f,
+          // Only meaningful for a voice note, and only on the message that
+          // actually carries the audio.
+          f ? options.durationSeconds ?? null : null,
+        );
       let result: { error: Error | null; queued: boolean };
       if (file && text && selectedThread.source === 'instagram') {
         result = await send('', file);

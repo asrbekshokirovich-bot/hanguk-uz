@@ -1115,7 +1115,15 @@
       "saveNote": "Eslatmani saqlash",
       "attach": "Fayl biriktirish",
       "removeAttachment": "Faylni olib tashlash",
-      "fileTooLarge": "Fayl juda katta ({{limit}} gacha)"
+      "fileTooLarge": "Fayl juda katta ({{limit}} gacha)",
+      "recordVoice": "Ovozli xabar yozish",
+      "recording": "Yozilmoqda",
+      "stopRecording": "To‘xtatish",
+      "cancelRecording": "Bekor qilish",
+      "removeVoice": "Ovozli xabarni olib tashlash",
+      "micDenied": "Mikrofonga ruxsat berilmadi. Brauzer sozlamalaridan ruxsat bering.",
+      "voiceUnsupported": "Bu brauzer ovoz yozishni qo‘llab-quvvatlamaydi.",
+      "voiceFailed": "Ovoz yozib olinmadi. Qayta urinib ko‘ring."
     },
     "savedReplies": {
       "docs": "Hujjatlar ro‘yxati",
