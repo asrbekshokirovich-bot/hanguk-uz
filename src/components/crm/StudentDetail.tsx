@@ -80,6 +80,7 @@ import { SuggestUniversityDialog } from './SuggestUniversityDialog';
 import { useUniversities } from '@/hooks/useUniversities';
 import AITranslationPage from '@/components/crm/pages/AITranslationPage';
 import { ClickToCall } from '@/components/calls/ClickToCall';
+import { StudentContacts } from './StudentContacts';
 
 type StudentProfile = Tables<'profiles'> & {
   applications?: (Tables<'applications'> & {
@@ -1103,6 +1104,7 @@ export function StudentDetail({
                 <Languages className="h-3 w-3" />
                 Tarjima
               </TabsTrigger>
+              <TabsTrigger value="contacts">Kontaktlar</TabsTrigger>
               <TabsTrigger value="comments">Comments</TabsTrigger>
             </TabsList>
 
@@ -2049,6 +2051,10 @@ export function StudentDetail({
             </TabsContent>
 
             {/* Comments Tab */}
+            <TabsContent value="contacts" className="mt-6">
+              <StudentContacts studentId={student.user_id} />
+            </TabsContent>
+
             <TabsContent value="comments" className="space-y-4 mt-6">
               <Card className="border-primary/50">
                 <CardHeader className="pb-2">
