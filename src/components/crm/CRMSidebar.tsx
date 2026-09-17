@@ -87,11 +87,11 @@ function buildGroups(
       icon: Home,
       visible: true,
       items: [
-        { title: t('navigation.dashboard'), url: '/crm', icon: Home, visible: true },
-        { title: 'Hanguk AI', url: '/crm/ai', icon: Bot, visible: true, highlight: true },
+        { title: t('navigation.dashboard'), url: '/crm', icon: Home, visible: isAdmin },
+        { title: 'Hanguk AI', url: '/crm/ai', icon: Bot, visible: isAdmin, highlight: true },
         { title: t('navigation.students'), url: '/crm/students', icon: Users, visible: true },
-        { title: t('navigation.applications'), url: '/crm/applications', icon: GraduationCap, visible: true },
-        { title: t('navigation.documents'), url: '/crm/documents', icon: FolderOpen, visible: true },
+        { title: t('navigation.applications'), url: '/crm/applications', icon: GraduationCap, visible: isAdmin },
+        { title: t('navigation.documents'), url: '/crm/documents', icon: FolderOpen, visible: isAdmin || isDocumentHandler },
       ],
     },
     {
@@ -101,7 +101,7 @@ function buildGroups(
       visible: true,
       items: [
         { title: t('navigation.messages'), url: '/crm/messages', icon: MessageSquare, visible: true },
-        { title: t('common.phone'), url: '/crm/calls', icon: Phone, visible: true },
+        { title: t('common.phone'), url: '/crm/calls', icon: Phone, visible: isAdmin },
         { title: t('navigation.liveCall'), url: '/crm/communication', icon: Radio, visible: false, highlight: true },
         { title: t('navigation.leads'), url: '/crm/leads', icon: UserPlus, visible: true, highlight: true },
       ],
@@ -113,10 +113,10 @@ function buildGroups(
       visible: true,
       items: [
         { title: t('navigation.tasks'), url: '/crm/tasks', icon: ClipboardList, visible: true },
-        { title: t('navigation.calendar'), url: '/crm/calendar', icon: Calendar, visible: true },
-        { title: t('navigation.universities'), url: '/crm/universities', icon: GraduationCap, visible: true },
-        { title: t('navigation.aiTranslation'), url: '/crm/translation', icon: Languages, visible: true, highlight: true },
-        { title: t('navigation.kakaoMap'), url: '/crm/kakao-map', icon: MapPin, visible: true, highlight: true },
+        { title: t('navigation.calendar'), url: '/crm/calendar', icon: Calendar, visible: isAdmin },
+        { title: t('navigation.universities'), url: '/crm/universities', icon: GraduationCap, visible: isAdmin },
+        { title: t('navigation.aiTranslation'), url: '/crm/translation', icon: Languages, visible: isAdmin, highlight: true },
+        { title: t('navigation.kakaoMap'), url: '/crm/kakao-map', icon: MapPin, visible: isAdmin, highlight: true },
       ],
     },
     {
@@ -140,17 +140,17 @@ function buildGroups(
       id: 'admin',
       title: t('navigation.admin'),
       icon: Shield,
-      visible: true,
+      visible: isAdmin,
       items: [
-        { title: t('navigation.staff'), url: '/crm/staff', icon: Users, visible: true },
+        { title: t('navigation.staff'), url: '/crm/staff', icon: Users, visible: isAdmin },
         {
           title: 'Review',
           url: '/crm/admin/uni-db-review',
           icon: ClipboardCheck,
-          visible: canReviewUniDb,
+          visible: canReviewUniDb && isAdmin,
           highlight: true,
         },
-        { title: t('navigation.settings'), url: '/crm/settings', icon: Settings, visible: true },
+        { title: t('navigation.settings'), url: '/crm/settings', icon: Settings, visible: isAdmin },
       ],
     },
   ];
