@@ -107,13 +107,13 @@ serve(async (req) => {
       });
     }
 
-    const { data: profile } = await supabase
-      .from("profiles")
+    const { data: userRole } = await supabase
+      .from("user_roles")
       .select("role")
-      .eq("id", user.id)
+      .eq("user_id", user.id)
       .single();
 
-    if (!profile || !STAFF_ROLES.includes(profile.role)) {
+    if (!userRole || !STAFF_ROLES.includes(userRole.role)) {
       return new Response(JSON.stringify({ error: "Forbidden" }), {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },

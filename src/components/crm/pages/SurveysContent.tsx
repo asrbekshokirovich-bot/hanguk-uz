@@ -184,18 +184,20 @@ export default function SurveysContent() {
 
       // Send push notification to all users about the new survey
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session?.access_token) {
-          await supabase.functions.invoke('send-push-notification', {
-            body: {
-              title: "Yangi so'rovnoma!",
-              body: title.trim(),
-              data: { type: 'survey', survey_id: (survey as Record<string, unknown>).id as string },
-            },
-          });
+        const { data: pushResult, error: pushError } = await supabase.functions.invoke('send-push-notification', {
+          body: {
+            title: "Yangi so'rovnoma!",
+            body: title.trim(),
+            data: { type: 'survey', survey_id: (survey as Record<string, unknown>).id as string },
+          },
+        });
+        if (pushError) {
+          toast.error(`Bildirishnoma yuborilmadi: ${pushError.message}`);
+        } else if (pushResult?.sent > 0) {
+          toast.success(`${pushResult.sent} ta foydalanuvchiga bildirishnoma yuborildi`);
         }
       } catch {
-        // Push notification failure should not block survey creation
+        // Network failure — survey was already created successfully
       }
 
       setShowCreate(false);
