@@ -81,6 +81,7 @@ const App = () => (
                     <Route path="/auth" element={<Auth />} />
                     <Route path="/install" element={<Install />} />
                     <Route path="/privacy" element={<Privacy />} />
+                    <Route path="/privacy-policy" element={<Privacy />} />
                     <Route path="/terms" element={<Terms />} />
                     {/* Support URL given to App Store Connect and Play (App
                         Review guideline 1.5, 2026-08-07). Must stay public. */}
