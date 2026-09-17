@@ -66,7 +66,8 @@ async function resolveByUsername(
   supabase: Any, chatId: string, username: string | null, displayName: string,
 ): Promise<{ studentId: string | null; leadId: string | null; displayName: string | null; confidence: string | null }> {
   if (!username) return { studentId: null, leadId: null, displayName: null, confidence: null };
-  const variants = [`@${username}`, username];
+  const u = username.toLowerCase();
+  const variants = [`@${u}`, u];
   for (const v of variants) {
     const id = await resolveIdentity(supabase, "telegram", v, { displayName });
     if (id.studentId || id.leadId) {
