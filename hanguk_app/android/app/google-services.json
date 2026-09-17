@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "483080149914",
+    "project_id": "hanguk-consulting",
+    "storage_bucket": "hanguk-consulting.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:483080149914:android:f5003a8b75b7648aa5b823",
+        "android_client_info": {
+          "package_name": "com.hanguk.studentapp.hanguk_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAnnc389PsYpn6dioQ5OLA5bt9Adtj0HUA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

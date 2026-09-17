@@ -117,6 +117,7 @@ function buildGroups(
         { title: t('navigation.universities'), url: '/crm/universities', icon: GraduationCap, visible: isAdmin },
         { title: t('navigation.aiTranslation'), url: '/crm/translation', icon: Languages, visible: isAdmin, highlight: true },
         { title: t('navigation.kakaoMap'), url: '/crm/kakao-map', icon: MapPin, visible: isAdmin, highlight: true },
+        { title: "So'rovnomalar", url: '/crm/surveys', icon: ClipboardCheck, visible: isAdmin },
       ],
     },
     {

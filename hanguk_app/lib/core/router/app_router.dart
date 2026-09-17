@@ -17,6 +17,8 @@ import '../../features/map/data/map_repository.dart';
 import '../../features/map/domain/university.dart';
 import '../../features/map/presentation/map_deeplink_provider.dart';
 import '../../features/map/presentation/widgets/university_roadview_screen.dart';
+import '../../features/surveys/presentation/surveys_screen.dart';
+import '../../features/surveys/presentation/survey_detail_screen.dart';
 import '../../features/uni_db/presentation/admin_review_screen.dart';
 import '../../features/uni_db/presentation/application_tracker_screen.dart';
 import '../../features/uni_db/presentation/institution_compare_screen.dart';
@@ -59,6 +61,21 @@ List<RouteBase> _accountRoutes() => [
 /// which lists `/guest` alongside `/welcome` and `/login`.
 List<RouteBase> _guestRoutes() => [
   GoRoute(path: '/guest', builder: (context, state) => const GuestShell()),
+];
+
+List<RouteBase> _surveyRoutes() => [
+  GoRoute(
+    path: '/surveys',
+    builder: (context, state) => const SurveysScreen(),
+  ),
+  GoRoute(
+    path: '/surveys/:id',
+    builder: (context, state) {
+      final id = state.pathParameters['id'] ?? '';
+      final title = state.extra is String ? state.extra as String : null;
+      return SurveyDetailScreen(surveyId: id, surveyTitle: title);
+    },
+  ),
 ];
 
 List<RouteBase> _mapRoutes() => [
@@ -242,6 +259,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ...$appRoutes,
       ..._accountRoutes(),
       ..._guestRoutes(),
+      ..._surveyRoutes(),
       ..._mapRoutes(),
       if (kUniDbEnabled) ..._uniDbRoutes(),
       // Seoul Night design-system gallery. Debug builds only — the flag is
