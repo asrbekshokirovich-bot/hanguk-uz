@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -15,6 +15,8 @@ import {
   CheckCircle2,
   ArrowRight,
   Sparkles,
+  Upload,
+  Loader2,
 } from 'lucide-react';
 import { Tables } from '@/integrations/supabase/types';
 import { cn } from '@/lib/utils';
@@ -30,6 +32,8 @@ interface DocumentsContentProps {
   loading: boolean;
   currentLang: string;
   onUpdateDocumentStatus: (documentId: string, newStatus: string, notes?: string) => Promise<{ error: unknown }>;
+  /** Staff attaches a file to a `staffUpload` slot (e.g. the TOPIK certificate) on the student's behalf. */
+  onUploadDocument: (studentId: string, slotId: string, file: File) => Promise<{ error: unknown }>;
   /** Advances the student's application row when their pack is fully verified. */
   onUpdateApplicationStatus?: (applicationId: string, status: string) => Promise<{ error: unknown }>;
 }
@@ -83,7 +87,7 @@ function fmtDate(iso: string | null | undefined, lang: string) {
 }
 
 // ===========================================================================
-export default function DocumentsContent({ students, loading, currentLang, onUpdateDocumentStatus, onUpdateApplicationStatus }: DocumentsContentProps) {
+export default function DocumentsContent({ students, loading, currentLang, onUpdateDocumentStatus, onUploadDocument, onUpdateApplicationStatus }: DocumentsContentProps) {
   const [search, setSearch] = useState('');
   const [packFilter, setPackFilter] = useState<PackFilter>('all');
   const [stageFilter, setStageFilter] = useState<Stage | 'all'>('all');
@@ -93,6 +97,11 @@ export default function DocumentsContent({ students, loading, currentLang, onUpd
   const [advancedIds, setAdvancedIds] = useState<Set<string>>(new Set());
   const [advancing, setAdvancing] = useState(false);
   const [busySlot, setBusySlot] = useState<string | null>(null);
+  // Staff upload into a slot: one hidden file input for the whole checklist,
+  // the row that opened it is remembered until the file comes back.
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const uploadTargetRef = useRef<{ studentId: string; slotId: string; label: string } | null>(null);
+  const [uploadingSlot, setUploadingSlot] = useState<string | null>(null);
 
   const packs = useMemo(() => {
     return students.map((s) => {
@@ -161,12 +170,30 @@ export default function DocumentsContent({ students, loading, currentLang, onUpd
     setBusySlot(null);
     if (error) toast.error("Nimadir xato ketdi");
   };
-  const requestAgain = async (documentId: string) => {
+  // Rejecting deletes the row so the slot resets. On a slot the student never
+  // uploads, that is simply "remove", not "ask the student again".
+  const requestAgain = async (documentId: string, staffUploaded: boolean) => {
     setBusySlot(documentId);
     const { error } = await onUpdateDocumentStatus(documentId, 'rejected');
     setBusySlot(null);
     if (error) toast.error("Nimadir xato ketdi");
-    else toast.success("Talaba qayta yuklashi so'raldi");
+    else toast.success(staffUploaded ? "Hujjat o'chirildi" : "Talaba qayta yuklashi so'raldi");
+  };
+  const pickFile = (studentId: string, slotId: string, label: string) => {
+    uploadTargetRef.current = { studentId, slotId, label };
+    fileInputRef.current?.click();
+  };
+  const handleFileChosen = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    const target = uploadTargetRef.current;
+    e.target.value = '';
+    if (!file || !target) return;
+    setUploadingSlot(target.slotId);
+    const { error } = await onUploadDocument(target.studentId, target.slotId, file);
+    setUploadingSlot(null);
+    uploadTargetRef.current = null;
+    if (error) toast.error("Yuklab bo'lmadi");
+    else toast.success(`${target.label} yuklandi`);
   };
   // All required slots verified → push the student onto the next pipeline stage.
   const advanceToNextStage = async (userId: string, applicationId: string | null) => {
@@ -328,6 +355,14 @@ export default function DocumentsContent({ students, loading, currentLang, onUpd
             </Card>
 
             <Card className="p-5">
+              <input
+                ref={fileInputRef}
+                type="file"
+                className="hidden"
+                accept="application/pdf,image/jpeg,image/png,image/webp,.pdf,.jpg,.jpeg,.png,.webp"
+                aria-label="Hujjat faylini tanlash"
+                onChange={handleFileChosen}
+              />
               <div className="mb-3 flex items-center justify-between">
                 <h3 className="text-sm font-bold text-foreground">Ariza to'plami ro'yxati</h3>
                 <span className="text-xs text-muted-foreground">
@@ -357,15 +392,28 @@ export default function DocumentsContent({ students, loading, currentLang, onUpd
                           <Button size="sm" variant="default" className="h-7 text-xs" disabled={busySlot === doc.id} onClick={() => markVerified(doc.id)}>
                             Tarjimaga
                           </Button>
-                          <Button size="sm" variant="outline" className="h-7 text-xs" disabled={busySlot === doc.id} onClick={() => requestAgain(doc.id)}>
-                            Qayta so'rash
+                          <Button size="sm" variant="outline" className="h-7 text-xs" disabled={busySlot === doc.id} onClick={() => requestAgain(doc.id, !!slot.staffUpload)}>
+                            {slot.staffUpload ? "O'chirish" : "Qayta so'rash"}
                           </Button>
                         </>
                       )}
                       {state === 'missing' && (
                         <>
                           <Badge variant="neutral">Yo'q</Badge>
-                          <span className="text-[11px] text-muted-foreground">Talaba yuklashi kerak</span>
+                          {slot.staffUpload ? (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-7 gap-1 text-xs"
+                              disabled={uploadingSlot === slot.id}
+                              onClick={() => pickFile(selected.student.user_id, slot.id, slotLabel(slot.name, currentLang))}
+                            >
+                              {uploadingSlot === slot.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Upload className="h-3 w-3" />}
+                              {uploadingSlot === slot.id ? 'Yuklanmoqda…' : 'Yuklash'}
+                            </Button>
+                          ) : (
+                            <span className="text-[11px] text-muted-foreground">Talaba yuklashi kerak</span>
+                          )}
                         </>
                       )}
                     </div>

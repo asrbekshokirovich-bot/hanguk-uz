@@ -51,31 +51,36 @@ const student = {
   ],
 } as unknown as Student;
 
-const setup = () => {
+const setup = (students: Student[] = [student]) => {
   const onUpdateDocumentStatus = vi.fn().mockResolvedValue({ error: null });
+  const onUploadDocument = vi.fn().mockResolvedValue({ error: null });
   render(
     <DocumentsContent
-      students={[student]}
+      students={students}
       loading={false}
       currentLang="uz"
       onUpdateDocumentStatus={onUpdateDocumentStatus}
+      onUploadDocument={onUploadDocument}
       onUpdateApplicationStatus={vi.fn().mockResolvedValue({ error: null })}
     />,
   );
-  return { onUpdateDocumentStatus };
+  return { onUpdateDocumentStatus, onUploadDocument };
 };
 
 describe('DocumentsContent application pack', () => {
   it('shows each real upload as received instead of missing', () => {
     setup();
-    // Seven uploads awaiting review, two required slots genuinely empty.
+    // Seven uploads awaiting review; the father's ID, the marriage certificate
+    // and the staff-only TOPIK slot are empty, but only the first two are on
+    // the student to upload.
     expect(screen.getAllByText('Qabul qilindi')).toHaveLength(7);
-    expect(screen.getAllByText("Yo'q")).toHaveLength(2);
+    expect(screen.getAllByText("Yo'q")).toHaveLength(3);
     expect(screen.getAllByText('Talaba yuklashi kerak')).toHaveLength(2);
-    // The counter is over the 8 required slots; the marriage certificate is optional.
+    // The counter is over the 8 required slots; the marriage and TOPIK
+    // certificates are optional.
     expect(screen.getAllByText('0/8').length).toBeGreaterThan(0);
     expect(screen.getByText('8 ta qoldi')).toBeInTheDocument();
-    expect(screen.getByText('Ixtiyoriy')).toBeInTheDocument();
+    expect(screen.getAllByText('Ixtiyoriy')).toHaveLength(2);
     // Slots carry the portal's own wording, not the old English mock labels.
     expect(screen.getByText('Diplom yoki attestat nusxasi')).toBeInTheDocument();
     expect(screen.queryByText('Passport copy')).not.toBeInTheDocument();
@@ -87,6 +92,29 @@ describe('DocumentsContent application pack', () => {
     const { onUpdateDocumentStatus } = setup();
     fireEvent.click(screen.getAllByText('Tarjimaga')[0]);
     await waitFor(() => expect(onUpdateDocumentStatus).toHaveBeenCalledWith('doc-applicant_id_card', 'approved'));
+  });
+
+  it('lets staff upload the TOPIK certificate into its own slot', async () => {
+    const { onUploadDocument } = setup();
+    expect(screen.getByText('TOPIK sertifikati nusxasi')).toBeInTheDocument();
+    // The only upload control on the page belongs to the TOPIK row.
+    fireEvent.click(screen.getByText('Yuklash'));
+    const file = new File(['topik'], 'TOPIK 4.pdf', { type: 'application/pdf' });
+    fireEvent.change(screen.getByLabelText('Hujjat faylini tanlash'), { target: { files: [file] } });
+    await waitFor(() => expect(onUploadDocument).toHaveBeenCalledWith('u1', 'topik_certificate', file));
+  });
+
+  it('removes a staff-uploaded TOPIK certificate instead of asking the student again', async () => {
+    const withTopik = {
+      ...student,
+      documents: [...(student as unknown as { documents: Tables<'documents'>[] }).documents, doc('topik_certificate', 'TOPIK.pdf')],
+    } as unknown as Student;
+    const { onUpdateDocumentStatus } = setup([withTopik]);
+    // Received like any other upload, but its reset action is a plain delete.
+    expect(screen.getAllByText('Qabul qilindi')).toHaveLength(8);
+    expect(screen.queryByText('Yuklash')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByText("O'chirish"));
+    await waitFor(() => expect(onUpdateDocumentStatus).toHaveBeenCalledWith('doc-topik_certificate', 'rejected'));
   });
 
   it('describes uploads as uploaded, not accepted, in the history', () => {

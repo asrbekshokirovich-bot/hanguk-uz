@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { useActiveIntake } from '@/contexts/IntakeContext';
 import { applyIntake } from '@/lib/intakeQuery';
 import { getPlanByValue, calculateFirstPaymentDueDate } from '@/hooks/useStudentPlan';
+import { findStudentDoc } from '@/lib/translationDocuments';
 
 type StudentProfile = Tables<'profiles'> & {
   applications?: (Tables<'applications'> & {
@@ -279,6 +280,46 @@ export function useCRMData() {
     return { error };
   };
 
+  // Staff attaches a file to one of the student's checklist slots (the CRM-only
+  // slots in studentDocSlots.ts, e.g. the TOPIK certificate). Written with the
+  // same contract the portal and StudentDetail use — `[slotId]` tag in `name`,
+  // `slotId-` filename prefix, the active intake stamped on — so the pack
+  // checklist, the translation workflow and the student's page all see it.
+  const uploadStudentDocument = async (studentId: string, slotId: string, file: File) => {
+    // One row per (student, slot) — documents_student_doc_type_unique — so an
+    // older upload for the slot has to go first. Row before file: a stray
+    // storage object is harmless, a row pointing at nothing is not.
+    const existing = findStudentDoc(students.find((s) => s.user_id === studentId)?.documents ?? [], slotId);
+    if (existing) {
+      const { error: deleteError } = await supabase.from('documents').delete().eq('id', existing.id);
+      if (deleteError) return { error: deleteError };
+      await supabase.storage.from('student-documents').remove([existing.file_path]);
+    }
+
+    const ext = file.name.split('.').pop() || 'bin';
+    const filePath = `${studentId}/${slotId}-${Date.now()}.${ext}`;
+    const { error: uploadError } = await supabase.storage.from('student-documents').upload(filePath, file);
+    if (uploadError) return { error: uploadError };
+
+    const { error } = await supabase.from('documents').insert({
+      student_id: studentId,
+      name: `[${slotId}] ${file.name}`,
+      file_path: filePath,
+      file_type: file.type,
+      file_size: file.size,
+      status: 'uploaded',
+      ...(activeIntakeId ? { intake_id: activeIntakeId } : {}),
+    });
+    if (error) {
+      // Don't leave an orphaned file behind a failed insert.
+      await supabase.storage.from('student-documents').remove([filePath]);
+      return { error };
+    }
+
+    await fetchStudents();
+    return { error: null };
+  };
+
   const updateDocumentStatus = async (documentId: string, newStatus: string, notes?: string) => {
     if (newStatus === 'rejected') {
       // Fetch the file path first
@@ -352,5 +393,6 @@ export function useCRMData() {
     updateApplicationStatus,
     createApplication,
     updateDocumentStatus,
+    uploadStudentDocument,
   };
 }

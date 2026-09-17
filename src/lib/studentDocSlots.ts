@@ -14,11 +14,18 @@ export interface StudentDocSlot {
    * and can be verified, but never blocks "advance to the next stage".
    */
   required: boolean;
+  /**
+   * The portal never asks the student for this slot; staff attach the file from
+   * the CRM's Hujjatlar page instead, so an empty row offers an upload button
+   * rather than "the student has to upload it".
+   */
+  staffUpload?: boolean;
 }
 
 /**
  * The application pack: the documents the student portal asks for at contract
- * signing (`requiredDocuments` in src/components/student/DocumentUpload.tsx).
+ * signing (`requiredDocuments` in src/components/student/DocumentUpload.tsx),
+ * plus the CRM-only slots staff fill in themselves (`staffUpload`).
  * The ids must stay identical to the portal's — they are the only link between
  * an uploaded row and a checklist slot.
  */
@@ -53,6 +60,17 @@ export const APPLICATION_PACK_SLOTS: StudentDocSlot[] = [
     name: { uz: 'Til sertifikat nusxasi', en: 'Language certificate copy', ru: 'Копия языкового сертификата' },
     note: { uz: 'Kamida IELTS 5.5 yoki TOPIK 2', en: 'Min. IELTS 5.5 or TOPIK 2', ru: 'Мин. IELTS 5.5 или TOPIK 2' },
     required: true,
+  },
+  // A TOPIK certificate usually reaches the consultant after the pack was
+  // opened (results come out weeks after the exam), so staff attach it here
+  // rather than the student. It never gates the pack — the language slot
+  // above already does.
+  {
+    id: 'topik_certificate',
+    name: { uz: 'TOPIK sertifikati nusxasi', en: 'TOPIK certificate copy', ru: 'Копия сертификата TOPIK' },
+    note: { uz: "Agar mavjud bo'lsa — xodim yuklaydi", en: 'If applicable — uploaded by staff', ru: 'При наличии — загружает сотрудник' },
+    required: false,
+    staffUpload: true,
   },
   {
     id: 'photo',
