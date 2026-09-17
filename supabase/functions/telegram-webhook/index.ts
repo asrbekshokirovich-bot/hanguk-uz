@@ -100,11 +100,10 @@ async function storeMessage(supabase: Any, m: {
     student_id: m.studentId ?? null, // BEFORE INSERT trigger fills this if null
     metadata: { telegram_chat_id: m.chatId, ...(m.extraMeta ?? {}) },
   });
-  // Throw rather than log-and-continue. The handler answers Telegram with 200
-  // regardless (see the catch below), so a swallowed failure here meant the
-  // message was gone with nothing to show for it: not in the inbox, and not in
-  // the logs beyond one line with no chat or content to trace it back to.
   if (error) {
+    // Duplicate key means Telegram re-delivered an update we already stored —
+    // safe to ignore; the message is already in the inbox.
+    if (error.code === "23505") return;
     throw new Error(
       `storeMessage failed for chat ${m.chatId} (${m.direction}, ${m.type ?? "text"}): ${error.message}`,
     );
