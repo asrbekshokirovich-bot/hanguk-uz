@@ -44,10 +44,39 @@ interface Survey {
   response_count: number;
 }
 
+type QuestionType =
+  | 'single_choice'
+  | 'multiple_choice'
+  | 'text'
+  | 'rating'
+  | 'email'
+  | 'phone'
+  | 'number'
+  | 'long_text'
+  | 'date';
+
+/** Types that collect a value per student rather than a vote. Aggregating
+ *  these by value is meaningless — every student has their own email. */
+const DATA_TYPES: QuestionType[] = ['text', 'email', 'phone', 'number', 'long_text', 'date'];
+
+const CHOICE_TYPES: QuestionType[] = ['single_choice', 'multiple_choice'];
+
+const TYPE_LABELS: Record<QuestionType, string> = {
+  single_choice: 'Bitta tanlov',
+  multiple_choice: "Ko'p tanlov",
+  text: 'Matn',
+  rating: 'Baho (1-5)',
+  email: 'Email',
+  phone: 'Telefon',
+  number: 'Raqam',
+  long_text: 'Uzun matn',
+  date: 'Sana',
+};
+
 interface Question {
   id?: string;
   question_text: string;
-  question_type: 'single_choice' | 'multiple_choice' | 'text' | 'rating';
+  question_type: QuestionType;
   options: string[] | null;
   sort_order: number;
   is_required: boolean;
@@ -60,12 +89,29 @@ interface ResponseSummary {
   total: number;
 }
 
+interface RespondentRow {
+  user_id: string;
+  name: string;
+  answers: Record<string, unknown>;
+}
+
+/** Renders a stored jsonb answer for a table cell. */
+function formatAnswer(value: unknown): string {
+  if (value === null || value === undefined) return '';
+  if (Array.isArray(value)) return value.join(', ');
+  return String(value);
+}
+
 export default function SurveysContent() {
   const [surveys, setSurveys] = useState<Survey[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
   const [showResponses, setShowResponses] = useState<string | null>(null);
   const [responseSummary, setResponseSummary] = useState<ResponseSummary[]>([]);
+  const [responseColumns, setResponseColumns] = useState<
+    { id: string; text: string }[]
+  >([]);
+  const [respondents, setRespondents] = useState<RespondentRow[]>([]);
   const [responsesLoading, setResponsesLoading] = useState(false);
 
   const [title, setTitle] = useState('');
@@ -167,9 +213,9 @@ export default function SurveysContent() {
         survey_id: (survey as Record<string, unknown>).id as string,
         question_text: q.question_text.trim(),
         question_type: q.question_type,
-        options: q.question_type === 'text' || q.question_type === 'rating'
-          ? null
-          : (q.options ?? []).filter(o => o.trim()),
+        options: CHOICE_TYPES.includes(q.question_type)
+          ? (q.options ?? []).filter(o => o.trim())
+          : null,
         sort_order: i,
         is_required: q.is_required,
       }));
@@ -253,8 +299,47 @@ export default function SurveysContent() {
     const qIds = qs.map((q: Record<string, unknown>) => q.id as string);
     const { data: responses } = await supabase
       .from('survey_responses')
-      .select('question_id, answer')
+      .select('question_id, answer, user_id')
       .in('question_id', qIds);
+
+    // Per-student table: one row per respondent, one column per question.
+    // This is the view that matters for collected records (email, phone,
+    // parents' details) — the aggregate below only suits choice questions.
+    const byUser: Record<string, Record<string, unknown>> = {};
+    for (const r of responses ?? []) {
+      const row = r as Record<string, unknown>;
+      const uid = row.user_id as string;
+      if (!byUser[uid]) byUser[uid] = {};
+      byUser[uid][row.question_id as string] = row.answer;
+    }
+
+    const userIds = Object.keys(byUser);
+    const nameMap: Record<string, string> = {};
+    if (userIds.length > 0) {
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('user_id, full_name, phone')
+        .in('user_id', userIds);
+      for (const p of profiles ?? []) {
+        const row = p as Record<string, unknown>;
+        nameMap[row.user_id as string] =
+          (row.full_name as string) || (row.phone as string) || '';
+      }
+    }
+
+    setResponseColumns(
+      qs.map((q: Record<string, unknown>) => ({
+        id: q.id as string,
+        text: q.question_text as string,
+      }))
+    );
+    setRespondents(
+      userIds.map((uid) => ({
+        user_id: uid,
+        name: nameMap[uid] || 'Nomaʻlum',
+        answers: byUser[uid],
+      }))
+    );
 
     const summary: ResponseSummary[] = qs.map((q: Record<string, unknown>) => {
       const qId = q.id as string;
@@ -483,9 +568,14 @@ export default function SurveysContent() {
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
+                              <SelectItem value="text">Matn</SelectItem>
+                              <SelectItem value="long_text">Uzun matn</SelectItem>
+                              <SelectItem value="email">Email</SelectItem>
+                              <SelectItem value="phone">Telefon</SelectItem>
+                              <SelectItem value="number">Raqam</SelectItem>
+                              <SelectItem value="date">Sana</SelectItem>
                               <SelectItem value="single_choice">Bitta tanlov</SelectItem>
                               <SelectItem value="multiple_choice">Ko'p tanlov</SelectItem>
-                              <SelectItem value="text">Matn</SelectItem>
                               <SelectItem value="rating">Baho (1-5)</SelectItem>
                             </SelectContent>
                           </Select>
@@ -498,7 +588,7 @@ export default function SurveysContent() {
                           </div>
                         </div>
 
-                        {(q.question_type === 'single_choice' || q.question_type === 'multiple_choice') && (
+                        {CHOICE_TYPES.includes(q.question_type) && (
                           <div className="space-y-2 pl-4">
                             {(q.options ?? []).map((opt, oIdx) => (
                               <div key={oIdx} className="flex gap-2">
@@ -557,7 +647,7 @@ export default function SurveysContent() {
 
       {/* Responses dialog */}
       <Dialog open={!!showResponses} onOpenChange={() => setShowResponses(null)}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Natijalar</DialogTitle>
           </DialogHeader>
@@ -571,6 +661,54 @@ export default function SurveysContent() {
               Hali javoblar yo'q
             </div>
           ) : (
+          <Tabs defaultValue="table">
+            <TabsList>
+              <TabsTrigger value="table">
+                Jadval ({respondents.length})
+              </TabsTrigger>
+              <TabsTrigger value="summary">Umumiy</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="table">
+              {respondents.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  Hali javoblar yo'q
+                </div>
+              ) : (
+                <div className="overflow-x-auto rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="sticky left-0 bg-background min-w-[160px]">
+                          Talaba
+                        </TableHead>
+                        {responseColumns.map((c) => (
+                          <TableHead key={c.id} className="min-w-[160px]">
+                            {c.text}
+                          </TableHead>
+                        ))}
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {respondents.map((r) => (
+                        <TableRow key={r.user_id}>
+                          <TableCell className="sticky left-0 bg-background font-medium">
+                            {r.name}
+                          </TableCell>
+                          {responseColumns.map((c) => (
+                            <TableCell key={c.id} className="whitespace-pre-wrap">
+                              {formatAnswer(r.answers[c.id])}
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="summary">
             <div className="space-y-6">
               {responseSummary.map((item, idx) => (
                 <Card key={idx}>
@@ -583,11 +721,11 @@ export default function SurveysContent() {
                   <CardContent>
                     {item.answers.length === 0 ? (
                       <p className="text-sm text-muted-foreground">Javoblar yo'q</p>
-                    ) : item.question_type === 'text' ? (
+                    ) : DATA_TYPES.includes(item.question_type as QuestionType) ? (
                       <div className="space-y-2">
                         {item.answers.map((a, i) => (
                           <div key={i} className="text-sm bg-muted rounded-md p-2">
-                            {String(a.answer)}
+                            {formatAnswer(a.answer)}
                             {a.count > 1 && (
                               <Badge variant="neutral" className="ml-2">
                                 ×{a.count}
@@ -607,7 +745,7 @@ export default function SurveysContent() {
                             return (
                               <div key={i} className="space-y-1">
                                 <div className="flex justify-between text-sm">
-                                  <span>{String(a.answer)}</span>
+                                  <span>{formatAnswer(a.answer)}</span>
                                   <span className="text-muted-foreground">
                                     {a.count} ({pct}%)
                                   </span>
@@ -627,6 +765,8 @@ export default function SurveysContent() {
                 </Card>
               ))}
             </div>
+            </TabsContent>
+          </Tabs>
           )}
         </DialogContent>
       </Dialog>
