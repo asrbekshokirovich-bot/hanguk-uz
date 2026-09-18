@@ -141,8 +141,13 @@ ishlatilmaydi.
 
 Har soat — yetarli. Universitetlar e'lonni yiliga bir necha marta chiqaradi,
 shuning uchun bir soat kechikish sezilmaydi. Kamroq xohlasangiz
-`.github/workflows/uni-watch.yml` faylidagi `cron: "0 * * * *"` ni
-`"0 */3 * * *"` (3 soatda bir) qilib o'zgartiring.
+`.github/workflows/uni-watch.yml` faylidagi `cron: "17 * * * *"` ni
+`"17 */3 * * *"` (3 soatda bir) qilib o'zgartiring.
+
+**Nega 17-daqiqa, soat boshi emas?** Soat boshi (`0 * * * *`) — GitHub'dagi eng
+band daqiqa. Navbat to'lib ketsa yurish kechikmaydi, balki **umuman tashlab
+yuboriladi**. Buni amalda ko'rdik: `0 * * * *` bilan ketma-ket ikki soat o'tib,
+birorta yurish bo'lmadi. Daqiqani o'zgartirsangiz — toq raqam tanlang.
 
 ---
 

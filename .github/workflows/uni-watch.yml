@@ -31,7 +31,19 @@ name: uni-watch — qabul e'lonlarini kuzatish
 
 on:
   schedule:
-    - cron: "0 * * * *" # every hour
+    # 17 minutes past, NOT on the hour.
+    #
+    # The first version of this used "0 * * * *" and the 15:00 and 16:00 slots
+    # both passed with zero runs — while 1671 scheduled runs in this same repo
+    # prove schedules work here. The top of the hour is the most contended
+    # minute on GitHub's shared scheduler: everybody writes `0 * * * *`, the
+    # queue saturates, and GitHub's own docs say a schedule event may be
+    # dropped entirely rather than delayed. An odd minute sits outside that
+    # spike.
+    #
+    # Nothing depends on the exact minute — the watcher compares against its
+    # own ledger, not against a clock.
+    - cron: "17 * * * *"
   workflow_dispatch:
     inputs:
       limit:
