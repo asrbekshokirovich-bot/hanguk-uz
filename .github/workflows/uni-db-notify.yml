@@ -39,8 +39,21 @@ name: uni-db notify new guidelines
 # Scheduled runs fire only from the DEFAULT branch — this activates once merged.
 
 on:
-  schedule:
-    - cron: "10 * * * *" # hourly at :10 — after, not during, the nightly sweep
+  # SCHEDULE OFF — nothing upstream is producing rows for it to announce.
+  #
+  # This job reports what the uni_db pipeline finds, and that pipeline's
+  # discovery half is the Claude Routine "Uni-DB guideline crawl — 01:00
+  # Tashkent", disabled on 2026-09-18 alongside the Supabase egress incident.
+  # An hourly tick against a lane nobody is feeding would burn 24 runs a day to
+  # find nothing, and would fail every hour on a missing secret — turning the
+  # owner's inbox into noise, which is the opposite of what a notifier is for.
+  #
+  # The hourly duty the owner actually asked for is uni-watch.yml, which stands
+  # alone and does not depend on this pipeline at all.
+  #
+  # Re-enable this line when that Routine is switched back on:
+  # schedule:
+  #   - cron: "10 * * * *"
   workflow_dispatch:
     inputs:
       limit:
