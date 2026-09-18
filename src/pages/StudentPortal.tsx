@@ -42,14 +42,17 @@ import {
   Lock,
   Crown,
   Search,
-  Loader2
+  Loader2,
+  ClipboardList
 } from 'lucide-react';
+import { usePendingSurveys } from '@/hooks/usePendingSurveys';
 
 export default function StudentPortal() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { user, signOut, loading: authLoading } = useAuth();
   const { isStaff, isInvestor, loading: roleLoading } = useUserRole();
+  const pendingSurveys = usePendingSurveys();
   const { applications, documents, universities, suggestions, loading, refetchDocuments, refetchSuggestions } = useStudentData();
   const { isVIP, planLabel, isPremium, isNoRisk, isStandart, isFree, loading: planLoading } = useStudentPlan();
 
@@ -200,6 +203,22 @@ export default function StudentPortal() {
                   <TabsTrigger value="documents" className="flex items-center gap-2">
                     <FileText className="h-4 w-4" />
                     {t('navigation.documents')}
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="surveys"
+                    className="flex items-center gap-2"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      navigate('/surveys');
+                    }}
+                  >
+                    <ClipboardList className="h-4 w-4" />
+                    {t('navigation.surveys', "So'rovnomalar")}
+                    {pendingSurveys > 0 && (
+                      <span className="ml-1 rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-foreground">
+                        {pendingSurveys}
+                      </span>
+                    )}
                   </TabsTrigger>
                   <TabsTrigger
                     value="interview"
@@ -359,6 +378,29 @@ export default function StudentPortal() {
                 </DrawerDescription>
               </DrawerHeader>
               <div className="p-4 flex flex-col gap-3">
+                <Button
+                  variant="outline"
+                  className="w-full justify-start h-14"
+                  onClick={() => navigate('/surveys')}
+                >
+                  <ClipboardList className="h-5 w-5 mr-3" />
+                  <div className="flex flex-col items-start text-left">
+                    <span className="font-medium">
+                      {t('navigation.surveys', "So'rovnomalar")}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {pendingSurveys > 0
+                        ? `${pendingSurveys} ta to'ldirilmagan`
+                        : "To'ldirilgan"}
+                    </span>
+                  </div>
+                  {pendingSurveys > 0 && (
+                    <span className="ml-auto rounded-full bg-primary px-2 py-0.5 text-xs font-bold text-primary-foreground">
+                      {pendingSurveys}
+                    </span>
+                  )}
+                </Button>
+
                 <Button
                   variant="outline"
                   className="w-full justify-start h-14"
