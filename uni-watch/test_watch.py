@@ -324,3 +324,107 @@ def test_real_board_rows_survive_the_menu_filter():
     for row in rows:
         html = f'<a href="/b/1">{row}</a>'
         assert len(watch.extract_candidates(html, "https://e.ac.kr")) == 1, row
+
+
+# --- the "is Telegram working?" button --------------------------------------
+
+
+def test_test_message_refuses_without_credentials(monkeypatch, capsys):
+    """It must fail loudly. Printing nothing would look exactly like success."""
+    monkeypatch.delenv("TELEGRAM_BOT_TOKEN", raising=False)
+    monkeypatch.delenv("TELEGRAM_CHAT_ID", raising=False)
+    sent = []
+    monkeypatch.setattr(watch, "send_telegram", lambda *a, **k: sent.append(a))
+
+    rc = asyncio.run(watch.run(limit=None, dry_run=False, test_message=True))
+
+    assert rc == 1
+    assert sent == []
+    assert "TELEGRAM_BOT_TOKEN" in capsys.readouterr().err
+
+
+def test_test_message_names_only_the_missing_one(monkeypatch, capsys):
+    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "t")
+    monkeypatch.delenv("TELEGRAM_CHAT_ID", raising=False)
+
+    asyncio.run(watch.run(limit=None, dry_run=False, test_message=True))
+
+    err = capsys.readouterr().err
+    assert "TELEGRAM_CHAT_ID" in err
+    assert "TELEGRAM_BOT_TOKEN" not in err
+
+
+def test_test_message_sends_and_never_touches_the_universities(monkeypatch):
+    """The whole point is to isolate the Telegram half: a site being down must
+    not make a working bot look broken."""
+    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "tok")
+    monkeypatch.setenv("TELEGRAM_CHAT_ID", "42")
+    sent = {}
+
+    async def fake_send(text, *, token, chat_id):
+        sent.update(text=text, token=token, chat_id=chat_id)
+
+    monkeypatch.setattr(watch, "send_telegram", fake_send)
+    monkeypatch.setattr(
+        watch, "load_universities",
+        lambda *a, **k: (_ for _ in ()).throw(AssertionError("must not load")),
+    )
+
+    rc = asyncio.run(watch.run(limit=None, dry_run=False, test_message=True))
+
+    assert rc == 0
+    assert sent["token"] == "tok" and sent["chat_id"] == "42"
+    assert "sinov" in sent["text"].lower()
+
+
+def test_telegram_failure_says_what_telegram_said(monkeypatch):
+    """Verified against the real API: a bad token really does answer
+    "Unauthorized". Surfacing that beats "Client error '404'" for a reader who
+    is not a programmer — it names the fix."""
+
+    class Resp:
+        status_code = 401
+
+        def json(self):
+            return {"ok": False, "description": "Unauthorized"}
+
+    class Client:
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *a):
+            return False
+
+        async def post(self, *a, **k):
+            return Resp()
+
+    monkeypatch.setattr(watch.httpx, "AsyncClient", lambda **k: Client())
+
+    with pytest.raises(RuntimeError, match="Unauthorized"):
+        asyncio.run(watch.send_telegram("x", token="bad", chat_id="1"))
+
+
+def test_a_non_json_reply_still_raises_something_readable(monkeypatch):
+    """A proxy or an outage can return HTML. Falling over on .json() would
+    hide the delivery failure behind a parse error."""
+
+    class Resp:
+        status_code = 502
+
+        def json(self):
+            raise ValueError("not json")
+
+    class Client:
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *a):
+            return False
+
+        async def post(self, *a, **k):
+            return Resp()
+
+    monkeypatch.setattr(watch.httpx, "AsyncClient", lambda **k: Client())
+
+    with pytest.raises(RuntimeError, match="502"):
+        asyncio.run(watch.send_telegram("x", token="t", chat_id="1"))

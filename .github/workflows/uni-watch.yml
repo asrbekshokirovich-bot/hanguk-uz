@@ -42,6 +42,10 @@ on:
         description: "Xabarni yubormasdan, faqat ko'rsatish"
         type: boolean
         default: false
+      test_message:
+        description: "SINOV: Telegram ishlayaptimi? Darhol sinov xabari yuboradi, saytlarni tekshirmaydi"
+        type: boolean
+        default: false
 
 # Two runs must never write state.json at once — the later push would clobber
 # the earlier one's memory and re-announce what it had just reported.
@@ -79,7 +83,12 @@ jobs:
           # the shell line.
           LIMIT: ${{ github.event.inputs.limit }}
           DRY_RUN: ${{ github.event.inputs.dry_run }}
+          TEST_MESSAGE: ${{ github.event.inputs.test_message }}
         run: |
+          if [ "$TEST_MESSAGE" = "true" ]; then
+            python watch.py --test-message
+            exit $?
+          fi
           ARGS=()
           if [ -n "$LIMIT" ]; then ARGS+=(--limit "$LIMIT"); fi
           if [ "$DRY_RUN" = "true" ]; then ARGS+=(--dry-run); fi

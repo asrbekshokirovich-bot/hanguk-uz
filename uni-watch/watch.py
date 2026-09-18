@@ -349,18 +349,65 @@ async def send_telegram(text: str, *, token: str, chat_id: str) -> None:
                 "disable_web_page_preview": True,
             },
         )
-        resp.raise_for_status()
-        # Telegram answers 200 + {"ok": false} for a bad chat id or a blocked
-        # bot, so the status code alone would hide a total delivery failure.
+    # Telegram explains itself in the body on every failure — a wrong chat id
+    # gives "chat not found", a wrong token "Unauthorized". Reading that BEFORE
+    # the status code is what turns an opaque "Client error 400" into the
+    # actual fix, which matters when the person reading the log is the owner
+    # and not a programmer. `ok` is false on every failure, so this covers the
+    # 200-with-ok:false case too.
+    try:
         body = resp.json()
-        if not body.get("ok"):
-            raise RuntimeError(f"Telegram: {body.get('description', body)}")
+    except ValueError:
+        body = {}
+    if not body.get("ok"):
+        reason = body.get("description") or f"HTTP {resp.status_code}"
+        raise RuntimeError(f"Telegram xabarni qabul qilmadi: {reason}")
 
 
 # --- the run ---------------------------------------------------------------
 
 
-async def run(*, limit: int | None, dry_run: bool) -> int:
+async def send_test_message() -> int:
+    """Prove the Telegram half works, on its own, in one click.
+
+    Without this there is no way for the owner to tell a working setup from a
+    broken one. The first real run deliberately announces nothing (it is
+    recording the boards), and later runs say nothing when there is no news —
+    so "no message arrived" is the correct behaviour in both the healthy case
+    and the case where the token is wrong. Somebody who is not a programmer
+    cannot be asked to tell those apart by reading a log.
+    """
+    token = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
+    chat_id = os.environ.get("TELEGRAM_CHAT_ID", "").strip()
+
+    if not token or not chat_id:
+        missing = " va ".join(
+            n for n, v in (("TELEGRAM_BOT_TOKEN", token), ("TELEGRAM_CHAT_ID", chat_id))
+            if not v
+        )
+        print(
+            f"XATO: {missing} qo'yilmagan.\n"
+            "GitHub → Settings → Secrets and variables → Actions bo'limiga qo'shing.",
+            file=sys.stderr,
+        )
+        return 1
+
+    await send_telegram(
+        "✅ <b>uni-watch ulandi</b>\n\n"
+        "Telegram sozlamasi to'g'ri. Endi har soatda universitet saytlari "
+        "tekshiriladi va yangi qabul e'loni chiqsa shu yerga xabar keladi.\n\n"
+        "<i>Bu sinov xabari — e'lon emas.</i>",
+        token=token,
+        chat_id=chat_id,
+    )
+    print("Sinov xabari yuborildi. Telegram'ni tekshiring.")
+    return 0
+
+
+async def run(*, limit: int | None, dry_run: bool, test_message: bool = False) -> int:
+    if test_message:
+        return await send_test_message()
+
     universities = load_universities()
     if limit:
         universities = universities[:limit]
@@ -444,8 +491,12 @@ def main(argv: list[str] | None = None) -> int:
                    help="Faqat birinchi N ta universitetni tekshirish (sinov uchun)")
     p.add_argument("--dry-run", action="store_true",
                    help="Xabarni ekranga chiqarish, Telegram'ga yubormaslik")
+    p.add_argument("--test-message", action="store_true",
+                   help="Telegram sozlamasini tekshirish: sinov xabari yuboradi "
+                        "va to'xtaydi. Saytlar tekshirilmaydi.")
     args = p.parse_args(argv)
-    return asyncio.run(run(limit=args.limit, dry_run=args.dry_run))
+    return asyncio.run(run(limit=args.limit, dry_run=args.dry_run,
+                           test_message=args.test_message))
 
 
 if __name__ == "__main__":

@@ -26,7 +26,7 @@ Havola — universitetning o'z sahifasi, bir bosishda ochiladi.
 
 ---
 
-## Sozlash — 3 qadam, ~10 daqiqa
+## Sozlash — 4 qadam, ~10 daqiqa
 
 Kod yozish shart emas. Hammasi brauzerda.
 
@@ -64,7 +64,24 @@ Kod yozish shart emas. Hammasi brauzerda.
    | `TELEGRAM_BOT_TOKEN` | 1-qadamdagi token |
    | `TELEGRAM_CHAT_ID` | 2-qadamdagi raqam |
 
-**Tamom.** Har soat boshida tizim o'zi tekshiradi.
+### 4-qadam. Ishlayotganini tekshiring (30 soniya)
+
+**Actions** → **uni-watch** → **Run workflow** → **`test_message`** katagiga
+belgi (✓) qo'ying → **Run workflow**.
+
+Telegram'ga shunday xabar kelishi kerak:
+
+> ✅ **uni-watch ulandi**
+> Telegram sozlamasi to'g'ri. Endi har soatda universitet saytlari
+> tekshiriladi va yangi qabul e'loni chiqsa shu yerga xabar keladi.
+
+**Kelsa — hammasi tayyor.** Kelmasa, yurish ichidagi xatoga qarang:
+
+| Xato | Ma'nosi | Yechim |
+|---|---|---|
+| `Unauthorized` | Token noto'g'ri | 1-qadamni qayta qiling |
+| `chat not found` | Chat ID noto'g'ri yoki botga `/start` bosilmagan | 2-qadamni qayta qiling |
+| `TELEGRAM_... qo'yilmagan` | Secret qo'shilmagan yoki nomi xato | 3-qadamni qayta qiling |
 
 ---
 
@@ -87,6 +104,10 @@ Tekshirildi: 20, yangi e'lon: 0, ochilmadi: 6
 > **Birinchi yurish har doim `yangi e'lon: 0` beradi.** Bu xato emas: tizim
 > avval hozirgi e'lonlarni eslab oladi, keyin faqat **yangi** qo'shilganini
 > aytadi. Aks holda birinchi xabar 5000 ta eski e'lon bilan kelardi.
+>
+> Shuning uchun "xabar kelmadi" degani "buzuq" degani EMAS. Telegram
+> ishlayotganiga ishonch hosil qilish uchun yuqoridagi `test_message`
+> tugmasini ishlating — u darhol xabar yuboradi.
 
 ---
 
@@ -132,7 +153,7 @@ shuning uchun bir soat kechikish sezilmaydi. Kamroq xohlasangiz
 | `universities.csv` | 408 ta universitet ro'yxati. Tahrirlash mumkin. |
 | `watch.py` | Butun dastur. Bitta fayl. |
 | `state.json` | Qaysi e'lon aytilganining ro'yxati. Tizim o'zi yozadi. |
-| `test_watch.py` | 31 ta tekshiruv. |
+| `test_watch.py` | 36 ta tekshiruv. |
 | `requirements.txt` | 2 ta kutubxona. |
 
 ## Dasturchi uchun
@@ -143,6 +164,7 @@ python -m venv .venv && . .venv/bin/activate
 pip install -r requirements.txt pytest
 
 python watch.py --limit 20 --dry-run   # sinov: yubormaydi, ko'rsatadi
+python watch.py --test-message         # Telegram ulanishini tekshirish
 python -m pytest test_watch.py -q      # testlar
 ```
 
