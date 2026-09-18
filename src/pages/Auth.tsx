@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -119,6 +119,7 @@ async function invokeStudentLogin(normalizedCode: string): Promise<StudentLoginR
 export default function Auth() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { signInWithUsername, signInGuest, signUpGuest, signUpOwner, user } = useAuth();
   const { toast } = useToast();
 
@@ -191,7 +192,14 @@ export default function Auth() {
   // Redirect if already logged in
   useEffect(() => {
     if (user) {
-      navigate('/');
+      // A survey link shared over Telegram sends a signed-out student here
+      // with ?next=/surveys/<id>; without this they land on / and the link
+      // is lost. Only same-site paths are honoured — a leading "//" would
+      // be a protocol-relative URL to someone else's host.
+      const next = searchParams.get('next');
+      const safeNext =
+        next && next.startsWith('/') && !next.startsWith('//') ? next : '/';
+      navigate(safeNext);
       return;
     }
 
@@ -200,7 +208,7 @@ export default function Auth() {
     if (guestSession) {
       navigate('/guest-portal');
     }
-  }, [user, navigate]);
+  }, [user, navigate, searchParams]);
 
   if (user) {
     return null;
