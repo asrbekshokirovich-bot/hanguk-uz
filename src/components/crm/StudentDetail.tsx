@@ -625,6 +625,9 @@ export function StudentDetail({
     { id: 'bank_statement', nameUz: "Bank ma'lumotnomasi asl nusxasi", nameEn: "Original bank statement", nameRu: "Оригинал банковской справки", required: false },
     { id: 'recommendation', nameUz: "Tavsiyanoma (Magistratura/PhD)", nameEn: "Recommendation letter", nameRu: "Рекомендательное письмо", required: false },
     { id: 'autobiography', nameUz: "Avtobiografiya va o'qish reja", nameEn: "Autobiography and study plan", nameRu: "Автобиография и план обучения", required: false },
+    // Attached by staff from the Hujjatlar page (studentDocSlots.ts); listed
+    // here so it shows in its own slot instead of under "other uploaded files".
+    { id: 'topik_certificate', nameUz: "TOPIK sertifikati nusxasi", nameEn: "TOPIK certificate copy", nameRu: "Копия сертификата TOPIK", required: false },
   ];
 
   const crmTranslationSlots: Record<string, { id: string; nameUz: string; nameEn: string; nameRu: string; required: boolean }> = {
