@@ -13,8 +13,14 @@ name: uni-db process uploads
 # Scheduled runs fire only from the DEFAULT branch — this activates once merged.
 
 on:
-  schedule:
-    - cron: "*/30 * * * *"   # every 30 min — drain new uploads promptly
+  # SCHEDULE DISABLED 2026-09-18 — paused alongside uni-db-drain-backlog while
+  # the Supabase egress blowout is fixed. This workflow re-downloads stored PDFs
+  # from Storage every 30 minutes, so it adds to the same egress bill. It is not
+  # the main culprit (reparse downloads once per run, not inside a retry loop),
+  # but it stays off until the blob cache lands.
+  #
+  # schedule:
+  #   - cron: "*/30 * * * *"   # every 30 min — drain new uploads promptly
   workflow_dispatch:
     inputs:
       limit:

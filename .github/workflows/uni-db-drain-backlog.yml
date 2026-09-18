@@ -39,10 +39,23 @@ name: uni-db drain extraction backlog
 # either way, so the floor on what reaches a student does not move.
 
 on:
-  schedule:
-    # Every 3 hours. Each run works for up to ~2.5h, so the ticks chain into
-    # near-continuous progress without ever overlapping (see `concurrency`).
-    - cron: "0 */3 * * *"
+  # SCHEDULE DISABLED 2026-09-18 — this workflow exhausted the Supabase egress
+  # quota (~270 GB/day) and took the whole project offline with HTTP 402.
+  #
+  # Cause: 8 large PDFs whose `calendar` extraction always dies on the 240s CLI
+  # timeout. `extraction_jobs` has no attempt counter and no terminal failure
+  # state, so retry_failed_worker re-nominates the same documents forever; the
+  # `while :` loop below re-ran that selector for 80 minutes every 3 hours, and
+  # `fetch_blob` sits inside the 4-try retry wrapper with no blob cache. The
+  # same 8 files were downloaded ~1610 times each.
+  #
+  # Re-enable ONLY after: an attempt cap in retry_failed_worker (see
+  # rejected_requeue_worker's MAX_REJECTS), fetch_blob moved out of the retry
+  # closure, a blob cache, and a terminal state for documents that can never
+  # parse. Until then this stays manual-only.
+  #
+  # schedule:
+  #   - cron: "0 */3 * * *"
   workflow_dispatch:
     inputs:
       limit:
