@@ -5,6 +5,40 @@ import 'package:go_router/go_router.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../data/survey_repository.dart';
 
+/// True when an answer actually carries a value. A field the student typed
+/// into and then cleared leaves an empty string behind, which must not pass
+/// as an answer to a required question.
+bool _hasValue(dynamic answer) {
+  if (answer == null) return false;
+  if (answer is String) return answer.trim().isNotEmpty;
+  if (answer is List) return answer.isNotEmpty;
+  return true;
+}
+
+/// Error message for a value that does not fit its field type, or null when
+/// it is acceptable. Blank is not an error here — required-ness is a
+/// separate check.
+String? validateSurveyAnswer(SurveyQuestion question, dynamic answer) {
+  if (answer is! String) return null;
+  final text = answer.trim();
+  if (text.isEmpty) return null;
+
+  switch (question.questionType) {
+    case 'email':
+      final ok = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(text);
+      return ok ? null : "${question.questionText}: email manzil noto'g'ri";
+    case 'phone':
+      final digits = text.replaceAll(RegExp(r'[^0-9]'), '');
+      final ok = digits.length >= 7 && digits.length <= 15;
+      return ok ? null : "${question.questionText}: telefon raqam noto'g'ri";
+    case 'number':
+      final ok = num.tryParse(text) != null;
+      return ok ? null : '${question.questionText}: faqat raqam kiriting';
+    default:
+      return null;
+  }
+}
+
 class SurveyDetailScreen extends ConsumerStatefulWidget {
   const SurveyDetailScreen({
     super.key,
@@ -25,27 +59,42 @@ class _SurveyDetailScreenState extends ConsumerState<SurveyDetailScreen> {
   bool _submitting = false;
   bool _submitted = false;
 
-  Future<void> _submit(List<SurveyQuestion> questions) async {
-    final unanswered = questions.where(
-      (q) => q.isRequired && !q.hasAnswer && !_answers.containsKey(q.id),
-    );
-    if (unanswered.isNotEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            "Barcha majburiy savollarga javob bering",
-            style: SeoulType.body.copyWith(color: SeoulColors.ink),
-          ),
-          backgroundColor: SeoulColors.lime,
+  bool _isAnswered(SurveyQuestion q) =>
+      _answers.containsKey(q.id) ? _hasValue(_answers[q.id]) : q.hasAnswer;
+
+  void _warn(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style: SeoulType.body.copyWith(color: SeoulColors.ink),
         ),
-      );
+        backgroundColor: SeoulColors.lime,
+      ),
+    );
+  }
+
+  Future<void> _submit(List<SurveyQuestion> questions) async {
+    if (questions.any((q) => q.isRequired && !_isAnswered(q))) {
+      _warn('Barcha majburiy savollarga javob bering');
       return;
+    }
+
+    for (final q in questions) {
+      final error = validateSurveyAnswer(q, _answers[q.id]);
+      if (error != null) {
+        _warn(error);
+        return;
+      }
     }
 
     setState(() => _submitting = true);
 
     try {
       for (final entry in _answers.entries) {
+        // An optional field the student opened and left blank has nothing to
+        // store; writing "" would just look like a real answer in the CRM.
+        if (!_hasValue(entry.value)) continue;
         await submitSurveyResponse(
           surveyId: widget.surveyId,
           questionId: entry.key,
@@ -174,7 +223,7 @@ class _SurveyDetailScreenState extends ConsumerState<SurveyDetailScreen> {
         }
 
         final allAnswered = questions.every(
-          (q) => !q.isRequired || q.hasAnswer || _answers.containsKey(q.id),
+          (q) => !q.isRequired || _isAnswered(q),
         );
 
         return ListView.builder(
@@ -296,9 +345,34 @@ class _QuestionCard extends StatelessWidget {
         return _buildMultipleChoice();
       case 'rating':
         return _buildRating();
+      case 'date':
+        return _DateAnswerField(
+          value: currentAnswer is String ? currentAnswer as String : null,
+          onChanged: onChanged,
+        );
+      case 'email':
+        return _buildTextInput(
+          hint: 'misol@mail.com',
+          keyboardType: TextInputType.emailAddress,
+          maxLines: 1,
+        );
+      case 'phone':
+        return _buildTextInput(
+          hint: '+998 90 123 45 67',
+          keyboardType: TextInputType.phone,
+          maxLines: 1,
+        );
+      case 'number':
+        return _buildTextInput(
+          hint: 'Raqam kiriting',
+          keyboardType: TextInputType.number,
+          maxLines: 1,
+        );
+      case 'long_text':
+        return _buildTextInput(hint: 'Batafsil yozing...', maxLines: 6);
       case 'text':
       default:
-        return _buildTextInput();
+        return _buildTextInput(hint: 'Javobingizni yozing...', maxLines: 3);
     }
   }
 
@@ -416,22 +490,37 @@ class _QuestionCard extends StatelessWidget {
     );
   }
 
-  Widget _buildTextInput() {
+  Widget _buildTextInput({
+    required String hint,
+    required int maxLines,
+    TextInputType? keyboardType,
+  }) {
     return _TextAnswerField(
+      key: ValueKey(question.id),
       initialValue: currentAnswer is String ? currentAnswer as String : '',
       onChanged: onChanged,
+      hint: hint,
+      maxLines: maxLines,
+      keyboardType: keyboardType,
     );
   }
 }
 
 class _TextAnswerField extends StatefulWidget {
   const _TextAnswerField({
+    super.key,
     required this.initialValue,
     required this.onChanged,
+    required this.hint,
+    required this.maxLines,
+    this.keyboardType,
   });
 
   final String initialValue;
   final ValueChanged<dynamic> onChanged;
+  final String hint;
+  final int maxLines;
+  final TextInputType? keyboardType;
 
   @override
   State<_TextAnswerField> createState() => _TextAnswerFieldState();
@@ -457,10 +546,11 @@ class _TextAnswerFieldState extends State<_TextAnswerField> {
     return TextField(
       controller: _controller,
       onChanged: (value) => widget.onChanged(value),
-      maxLines: 3,
+      maxLines: widget.maxLines,
+      keyboardType: widget.keyboardType,
       style: SeoulType.body,
       decoration: InputDecoration(
-        hintText: 'Javobingizni yozing...',
+        hintText: widget.hint,
         hintStyle: SeoulType.bodySecondary,
         filled: true,
         fillColor: SeoulColors.glass,
@@ -476,6 +566,56 @@ class _TextAnswerFieldState extends State<_TextAnswerField> {
           borderRadius: BorderRadius.circular(SeoulRadii.control),
           borderSide: const BorderSide(color: SeoulColors.lime),
         ),
+      ),
+    );
+  }
+}
+
+class _DateAnswerField extends StatelessWidget {
+  const _DateAnswerField({required this.value, required this.onChanged});
+
+  final String? value;
+  final ValueChanged<dynamic> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final parsed = value != null && value!.isNotEmpty
+        ? DateTime.tryParse(value!)
+        : null;
+
+    return GlassCard(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+      onTap: () async {
+        final now = DateTime.now();
+        final picked = await showDatePicker(
+          context: context,
+          initialDate: parsed ?? DateTime(now.year - 18),
+          firstDate: DateTime(1940),
+          lastDate: DateTime(now.year + 10),
+        );
+        if (picked != null) {
+          onChanged(
+            '${picked.year.toString().padLeft(4, '0')}-'
+            '${picked.month.toString().padLeft(2, '0')}-'
+            '${picked.day.toString().padLeft(2, '0')}',
+          );
+        }
+      },
+      child: Row(
+        children: [
+          const Icon(
+            Icons.calendar_today_rounded,
+            size: 18,
+            color: SeoulColors.textFaint,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              parsed != null ? value! : 'Sanani tanlang',
+              style: parsed != null ? SeoulType.body : SeoulType.bodySecondary,
+            ),
+          ),
+        ],
       ),
     );
   }
