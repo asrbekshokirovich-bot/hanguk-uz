@@ -197,6 +197,14 @@ class Settings(BaseSettings):
     http_jitter_min_sec: int = Field(default=2, alias="HTTP_JITTER_MIN_SEC")
     http_jitter_max_sec: int = Field(default=15, alias="HTTP_JITTER_MAX_SEC")
 
+    # Telegram alerts — where `uni-db notify-new` announces newly-found
+    # guidelines. Deliberately NOT the customer-facing bot from
+    # TELEGRAM_BOT.md: that bot's webhook writes every incoming chat into
+    # `leads`, so the operator messaging it to get a chat id would file
+    # themselves as a prospective student. Use a separate alerts bot.
+    telegram_bot_token: str = Field(default="", alias="UNI_DB_TELEGRAM_BOT_TOKEN")
+    telegram_chat_id: str = Field(default="", alias="UNI_DB_TELEGRAM_CHAT_ID")
+
     # Observability
     sentry_dsn: str = Field(default="", alias="SENTRY_DSN")
     log_level: str = Field(default="INFO", alias="LOG_LEVEL")

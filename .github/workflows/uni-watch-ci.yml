@@ -1,0 +1,63 @@
+name: uni-watch CI
+
+# Runs uni-watch's tests on every change to it.
+#
+# Without this the 31 tests exist but nothing executes them: uni-db-ci.yml is
+# scoped to hanguk_app/services/uni_db/**, so a change to watch.py would reach
+# the hourly schedule unchecked — and the first sign of a mistake would be
+# either silence (the watcher stops reporting) or a burst of false alarms.
+# Both are exactly what the tests are written to catch.
+#
+# Offline: no network, no Telegram, no university sites.
+
+on:
+  pull_request:
+    paths:
+      - "uni-watch/**"
+      - ".github/workflows/uni-watch-ci.yml"
+  push:
+    branches: [main]
+    paths:
+      - "uni-watch/**"
+      - ".github/workflows/uni-watch-ci.yml"
+
+concurrency:
+  group: uni-watch-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: uni-watch
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: uni-watch/requirements.txt
+
+      - name: Install
+        run: pip install -r requirements.txt pytest
+
+      - name: Tests
+        run: python -m pytest test_watch.py -q
+
+      # The CSV is data, not code, and a hand-edit is the likeliest way to
+      # break this system — one malformed row and a university silently stops
+      # being watched. Loading it here turns that into a failed check.
+      - name: universities.csv o'qiladimi
+        run: |
+          python -c "
+          import watch
+          unis = watch.load_universities()
+          print(f'{len(unis)} ta universitet o\'qildi')
+          assert len(unis) > 300, 'ro\'yxat kutilganidan kichik'
+          "
