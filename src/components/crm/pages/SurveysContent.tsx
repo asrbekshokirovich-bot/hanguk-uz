@@ -29,7 +29,7 @@ import {
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Trash2, GripVertical, Eye, BarChart3 } from 'lucide-react';
+import { Plus, Trash2, GripVertical, Eye, BarChart3, Link2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Survey {
@@ -269,6 +269,21 @@ export default function SurveysContent() {
     fetchSurveys();
   };
 
+  /** The link staff send to students over Telegram. Students fill surveys on
+   *  the site, not in the app — the survey screens shipped in 1.0.27 and the
+   *  store is still on 1.0.26. */
+  const copyLink = async (id: string) => {
+    const url = `${window.location.origin}/surveys/${id}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success('Havola nusxalandi');
+    } catch {
+      // Clipboard needs a secure context and permission; show the link so it
+      // can still be copied by hand.
+      toast.info(url, { duration: 15000 });
+    }
+  };
+
   const deleteSurvey = async (id: string) => {
     if (!confirm("Bu so'rovnomani o'chirmoqchimisiz?")) return;
     const { error } = await supabase.from('surveys').delete().eq('id', id);
@@ -482,6 +497,14 @@ export default function SurveysContent() {
                       {new Date(survey.created_at).toLocaleDateString('uz')}
                     </TableCell>
                     <TableCell className="text-right space-x-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        title="Havolani nusxalash"
+                        onClick={() => copyLink(survey.id)}
+                      >
+                        <Link2 className="h-4 w-4" />
+                      </Button>
                       <Button
                         variant="ghost"
                         size="sm"

@@ -19,6 +19,8 @@ import Terms from "./pages/Terms";
 import Support from "./pages/Support";
 import StudentPortal from "./pages/StudentPortal";
 import { StudentDataProvider } from "./contexts/StudentDataContext";
+import SurveyList from "./pages/SurveyList";
+import SurveyFill from "./pages/SurveyFill";
 import CRMEntry from "./pages/CRMEntry";
 import InterviewPractice from "./pages/InterviewPractice";
 import StudyPlanTrainer from "./pages/StudyPlanTrainer";
@@ -87,6 +89,14 @@ const App = () => (
                         Review guideline 1.5, 2026-08-07). Must stay public. */}
                     <Route path="/support" element={<Support />} />
                     <Route path="/portal" element={<StudentDataProvider><StudentPortal /></StudentDataProvider>} />
+                    {/* Students fill surveys here rather than in the app: the
+                        survey screens shipped in 1.0.27 and the store is still
+                        on 1.0.26, so a link is the only route that reaches
+                        them today. Not wrapped in ProtectedRoute — the page
+                        shows its own sign-in prompt so a shared link survives
+                        the round trip through /auth. */}
+                    <Route path="/surveys" element={<SurveyList />} />
+                    <Route path="/surveys/:id" element={<SurveyFill />} />
                     <Route path="/interview-practice" element={<ProtectedRoute><InterviewPractice /></ProtectedRoute>} />
                     <Route path="/study-plan-trainer" element={<ProtectedRoute><StudyPlanTrainer /></ProtectedRoute>} />
                     <Route path="/university-portal" element={<ProtectedRoute><UniversityStaffPortal /></ProtectedRoute>} />
