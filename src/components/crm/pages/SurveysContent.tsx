@@ -284,6 +284,13 @@ export default function SurveysContent() {
     }
   };
 
+  /** Opens the student's own form. Staff cannot reach it through /portal —
+   *  that route bounces anyone with a staff role — so without this there is
+   *  no way to see what was actually sent out. */
+  const openAsStudent = (id: string) => {
+    window.open(`/surveys/${id}`, '_blank', 'noopener');
+  };
+
   const deleteSurvey = async (id: string) => {
     if (!confirm("Bu so'rovnomani o'chirmoqchimisiz?")) return;
     const { error } = await supabase.from('surveys').delete().eq('id', id);
@@ -497,6 +504,14 @@ export default function SurveysContent() {
                       {new Date(survey.created_at).toLocaleDateString('uz')}
                     </TableCell>
                     <TableCell className="text-right space-x-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        title="Talaba ko'radigan shaklni ochish"
+                        onClick={() => openAsStudent(survey.id)}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
                       <Button
                         variant="ghost"
                         size="sm"
