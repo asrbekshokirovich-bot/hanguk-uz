@@ -1,0 +1,129 @@
+name: uni-db notify new guidelines
+
+# Telegram the operator when a new 모집요강 lands in the database.
+#
+# This is the missing half of the pipeline. Discovery has worked for months —
+# 98 new guideline documents were stored in the 30 days to 2026-09-18 — but the
+# only human signal was the nightly task's "run finished" push, which reports
+# counters, not schools. So "연세대 opened 2027 spring admission" sat in Postgres
+# until somebody thought to look. `uni-db notify-new` reads what is new and says
+# so, once, on Telegram.
+#
+# WHY THIS ONE MAY RUN HOURLY WHEN THE OTHERS MAY NOT
+#
+# uni-db-drain-backlog and uni-db-process-uploads are suspended because they
+# re-download stored PDFs and blew ~270 GB/day of Supabase egress (see their
+# headers). This job downloads nothing: one indexed SELECT over
+# guideline_documents and, only when there is news, one HTTPS POST to Telegram.
+# A run that finds nothing is a few kilobytes and exits in seconds, so an
+# hourly cadence costs effectively nothing and cannot repeat that incident.
+#
+# It is also deliberately independent of WHICH lane found the document. The
+# nightly Claude Routine, a staff upload via the `upload-guideline` function,
+# and a manual `uni-db-auto-crawl` dispatch all write the same table, so all
+# three get announced without any of them knowing this workflow exists.
+#
+# Required repo secrets (Settings → Secrets and variables → Actions):
+#   UNI_DB_SUPABASE_DB_URL      — already used by the other uni-db workflows
+#   UNI_DB_TELEGRAM_BOT_TOKEN   — NEW: a dedicated alerts bot from @BotFather.
+#   UNI_DB_TELEGRAM_CHAT_ID     — NEW: the operator's Telegram chat id.
+#
+# Use a SEPARATE bot from the customer-facing one in TELEGRAM_BOT.md. That
+# bot's webhook files every incoming chat into `leads`, so messaging it to
+# obtain a chat id would register the operator as a prospective student.
+#
+# Without the two Telegram secrets the job still runs and still succeeds; it
+# logs how many guidelines it WOULD have announced and marks nothing, so
+# nothing is lost by turning the channel on later.
+#
+# Scheduled runs fire only from the DEFAULT branch — this activates once merged.
+
+on:
+  schedule:
+    - cron: "10 * * * *" # hourly at :10 — after, not during, the nightly sweep
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: "Max guidelines to announce in one message"
+        default: "50"
+        required: false
+      max_age_hours:
+        description: "Ignore documents fetched longer ago than this (hours)"
+        default: "48"
+        required: false
+      dry_run:
+        description: "Print the message instead of sending it"
+        type: boolean
+        default: false
+      mark_seen:
+        description: "ONE-TIME SETUP: mark everything already stored as announced, send nothing"
+        type: boolean
+        default: false
+
+# Two ticks must never announce the same find twice. The ledger
+# (`guideline_notifications`) already makes that safe, but serializing removes
+# the window entirely.
+concurrency:
+  group: uni-db-notify
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: hanguk_app/services/uni_db
+    env:
+      # No crawling and no LLM here — both master switches stay off, which is
+      # what guarantees this job can never make a paid call.
+      UNI_DB_ENV: "production"
+      SUPABASE_DB_URL: ${{ secrets.UNI_DB_SUPABASE_DB_URL }}
+      SUPABASE_URL: ${{ secrets.UNI_DB_SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.UNI_DB_SUPABASE_SERVICE_ROLE_KEY }}
+      UNI_DB_TELEGRAM_BOT_TOKEN: ${{ secrets.UNI_DB_TELEGRAM_BOT_TOKEN }}
+      UNI_DB_TELEGRAM_CHAT_ID: ${{ secrets.UNI_DB_TELEGRAM_CHAT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: hanguk_app/services/uni_db/pyproject.toml
+
+      # Base deps only. The OCR/torch extras the crawl workflows install are
+      # ~250 MB and touch nothing on this path.
+      - name: Install service
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+
+      - name: Check the database secret is set
+        run: |
+          if [ -z "${SUPABASE_DB_URL}" ]; then
+            echo "::error::Missing UNI_DB_SUPABASE_DB_URL (Settings → Secrets and variables → Actions)."
+            exit 1
+          fi
+          if [ -z "${UNI_DB_TELEGRAM_BOT_TOKEN}" ] || [ -z "${UNI_DB_TELEGRAM_CHAT_ID}" ]; then
+            echo "::warning::Telegram not configured — the run will report new guidelines in the log but send nothing. Add UNI_DB_TELEGRAM_BOT_TOKEN and UNI_DB_TELEGRAM_CHAT_ID."
+          fi
+
+      - name: Announce new guidelines
+        env:
+          # Dispatch inputs go through env, never inlined into the shell line.
+          LIMIT: ${{ github.event.inputs.limit || '50' }}
+          MAX_AGE_HOURS: ${{ github.event.inputs.max_age_hours || '48' }}
+          DRY_RUN: ${{ github.event.inputs.dry_run }}
+          MARK_SEEN: ${{ github.event.inputs.mark_seen }}
+        run: |
+          if [ "$MARK_SEEN" = "true" ]; then
+            uni-db notify-new --mark-seen
+            exit 0
+          fi
+          ARGS=(--limit "$LIMIT" --max-age-hours "$MAX_AGE_HOURS")
+          if [ "$DRY_RUN" = "true" ]; then ARGS+=(--dry-run); fi
+          uni-db notify-new "${ARGS[@]}"

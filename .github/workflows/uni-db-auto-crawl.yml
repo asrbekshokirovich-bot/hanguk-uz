@@ -60,6 +60,8 @@ jobs:
       NAVER_SEARCH_CLIENT_ID: ${{ secrets.UNI_DB_NAVER_SEARCH_CLIENT_ID }}
       NAVER_SEARCH_CLIENT_SECRET: ${{ secrets.UNI_DB_NAVER_SEARCH_CLIENT_SECRET }}
       DEEPL_API_KEY: ${{ secrets.UNI_DB_DEEPL_API_KEY }}
+      UNI_DB_TELEGRAM_BOT_TOKEN: ${{ secrets.UNI_DB_TELEGRAM_BOT_TOKEN }}
+      UNI_DB_TELEGRAM_CHAT_ID: ${{ secrets.UNI_DB_TELEGRAM_CHAT_ID }}
     steps:
       - uses: actions/checkout@v4
 
@@ -138,6 +140,17 @@ jobs:
       - name: Translate
         continue-on-error: true
         run: python scripts/run_translate_once.py --limit 100
+
+      # 4b) Tell the operator what this sweep actually found. uni-db-notify.yml
+      #     polls hourly and would catch these anyway; announcing here as well
+      #     means the news arrives when the sweep ends instead of up to an hour
+      #     later. The `guideline_notifications` ledger makes the overlap a
+      #     no-op — whichever runs first is the one that sends.
+      #     Never fatal: a sweep that ingested guidelines succeeded even if
+      #     Telegram is down or not yet configured.
+      - name: Notify the operator about new guidelines
+        continue-on-error: true
+        run: uni-db notify-new --limit 50
 
       # 5) 2026-09-01 audit fix: see uni-db-process-uploads.yml for the full
       #    rationale. This workflow is dispatch-only (no cron — the daily

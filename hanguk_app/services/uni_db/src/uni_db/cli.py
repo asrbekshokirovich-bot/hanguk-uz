@@ -23,6 +23,7 @@ from pathlib import Path
 
 from . import db
 from .config import settings
+from .workers import notify_worker
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -244,6 +245,26 @@ def _build_parser() -> argparse.ArgumentParser:
                                 "targeted: search inside each known university domain "
                                 "for its foreign-applicant (외국인/재외국민) page")
 
+    p_notify = sub.add_parser(
+        "notify-new",
+        help="Telegram the operator about guideline documents found since the last "
+             "run. DB + one HTTPS call, no LLM — cheap enough to run hourly.",
+    )
+    p_notify.add_argument("--limit", type=int, default=50,
+                          help="Max documents to announce in one run (default 50)")
+    p_notify.add_argument("--max-age-hours", type=int,
+                          default=notify_worker.MAX_AGE_HOURS,
+                          help="Ignore documents fetched longer ago than this "
+                               f"(default {notify_worker.MAX_AGE_HOURS}h). Stops a "
+                               "misconfigured run announcing the whole backlog.")
+    p_notify.add_argument("--dry-run", action="store_true",
+                          help="Print the message that would be sent; send nothing, "
+                               "mark nothing")
+    p_notify.add_argument("--mark-seen", action="store_true",
+                          help="ONE-TIME SETUP: record every already-stored document "
+                               "as announced without sending anything, so the first "
+                               "real run only reports genuinely new finds")
+
     sub.add_parser("schema-check", help="Lint the migrations directory")
     return parser
 
@@ -291,6 +312,11 @@ def main(argv: list[str] | None = None) -> int:
         return asyncio.run(_todo(
             limit=args.limit, cooldown_days=args.cooldown_days,
             include_flagged=args.include_flagged,
+        ))
+    if args.cmd == "notify-new":
+        return asyncio.run(_notify_new(
+            limit=args.limit, max_age_hours=args.max_age_hours,
+            dry_run=args.dry_run, mark_seen=args.mark_seen,
         ))
     if args.cmd == "convert-check":
         return asyncio.run(_convert_check(limit=args.limit))
@@ -936,6 +962,74 @@ async def _find_guidelines(*, limit: int, year: int | None, per_institution: int
         f"(verify={settings.verify_level}, approval_required={settings.require_approval})"
     )
     return 0
+
+
+async def _notify_new(
+    *, limit: int, max_age_hours: int, dry_run: bool, mark_seen: bool
+) -> int:
+    """Announce newly-stored guideline documents on Telegram.
+
+    DB read + at most one HTTPS POST, no crawling and no LLM, so unlike the
+    sweep itself this is cheap enough to run every hour. It needs only
+    SUPABASE_DB_URL; without the Telegram settings it reports what it would
+    have sent and marks nothing, so switching the channel on later loses no
+    announcement.
+    """
+    import httpx
+
+    if not settings.supabase_db_url:
+        print("SUPABASE_DB_URL is not set; cannot read new guidelines.", file=sys.stderr)
+        return 2
+
+    conn = await db.connect()
+    try:
+        if mark_seen:
+            seeded = await notify_worker.mark_seen(conn)
+            print(
+                f"notify-new: seeded {seeded} existing document(s) as already "
+                "announced. Future runs report only new finds."
+            )
+            return 0
+
+        token = settings.telegram_bot_token.strip()
+        chat_id = settings.telegram_chat_id.strip()
+        has_channel = bool(token and chat_id)
+
+        if dry_run or not has_channel:
+            run = await notify_worker.notify_new_guidelines(
+                conn, None if not has_channel else _noop_sender,
+                limit=limit, max_age_hours=max_age_hours, dry_run=True,
+            )
+            if run.found:
+                items = await notify_worker.fetch_unannounced(
+                    conn, limit=limit, max_age_hours=max_age_hours
+                )
+                print(notify_worker.format_message(items))
+        else:
+            async with httpx.AsyncClient(
+                timeout=settings.http_request_timeout_sec
+            ) as http:
+                send = notify_worker.make_telegram_sender(
+                    http, bot_token=token, chat_id=chat_id
+                )
+                run = await notify_worker.notify_new_guidelines(
+                    conn, send, limit=limit, max_age_hours=max_age_hours,
+                )
+    finally:
+        await conn.close()
+
+    print(
+        f"notify-new: found={run.found} sent={run.sent} marked={run.marked}"
+        + (" (no Telegram channel configured)" if run.skipped_no_channel else "")
+    )
+    # A missing channel is a configuration gap the operator should see in the
+    # run log, but it must not fail the sweep that just succeeded.
+    return 0
+
+
+async def _noop_sender(_text: str) -> None:
+    """Placeholder sender for `--dry-run`; never invoked (dry_run short-circuits)."""
+    raise AssertionError("dry-run must not send")
 
 
 async def _todo(*, limit: int, cooldown_days: int = 3, include_flagged: bool = False) -> int:
