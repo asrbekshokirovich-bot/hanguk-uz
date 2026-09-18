@@ -1,0 +1,110 @@
+name: uni-watch — qabul e'lonlarini kuzatish
+
+# Checks every Korean university's admission page each hour and sends one
+# Telegram message when something new appears.
+#
+# Self-contained: it reads uni-watch/universities.csv, writes uni-watch/state.json
+# and talks to Telegram. It touches no database, no Supabase project and none of
+# the CRM code in this repository, so nothing it does can affect them — and
+# nothing that happens to them can stop it.
+#
+# WHY THE STATE FILE IS COMMITTED BACK
+#
+# A watcher has to remember what it already reported, or it repeats itself every
+# hour until its reader mutes it. The usual answer is a database; this uses a
+# file in the repo instead. That keeps the whole system to one moving part, and
+# it means the owner can open state.json and read it — which is worth more here
+# than any query language, because the owner is not a programmer.
+#
+# The commit only happens when something actually changed, so a quiet hour
+# leaves no trace in the history.
+#
+# Required repo secrets (Settings → Secrets and variables → Actions):
+#   TELEGRAM_BOT_TOKEN   — from @BotFather
+#   TELEGRAM_CHAT_ID     — your own chat id
+#
+# Without them the run still succeeds and prints what it WOULD have sent, and
+# deliberately does not save state — so nothing is lost by setting them later.
+#
+# Scheduled runs fire only from the DEFAULT branch: this starts working once
+# merged to main, not while it sits on a branch.
+
+on:
+  schedule:
+    - cron: "0 * * * *" # every hour
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: "Faqat birinchi N ta universitetni tekshirish (sinov uchun). Bo'sh = hammasi"
+        required: false
+        default: ""
+      dry_run:
+        description: "Xabarni yubormasdan, faqat ko'rsatish"
+        type: boolean
+        default: false
+
+# Two runs must never write state.json at once — the later push would clobber
+# the earlier one's memory and re-announce what it had just reported.
+concurrency:
+  group: uni-watch
+  cancel-in-progress: false
+
+permissions:
+  contents: write # to commit state.json back
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: uni-watch
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: uni-watch/requirements.txt
+
+      - name: Install
+        run: pip install -r requirements.txt
+
+      - name: Tekshirish
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          # Dispatch inputs reach the script through env, never inlined into
+          # the shell line.
+          LIMIT: ${{ github.event.inputs.limit }}
+          DRY_RUN: ${{ github.event.inputs.dry_run }}
+        run: |
+          ARGS=()
+          if [ -n "$LIMIT" ]; then ARGS+=(--limit "$LIMIT"); fi
+          if [ "$DRY_RUN" = "true" ]; then ARGS+=(--dry-run); fi
+          python watch.py "${ARGS[@]}"
+
+      - name: Yangi holatni saqlash
+        run: |
+          if git diff --quiet -- state.json; then
+            echo "O'zgarish yo'q — commit qilinmadi."
+            exit 0
+          fi
+          git config user.name "uni-watch"
+          git config user.email "uni-watch@users.noreply.github.com"
+          git add state.json
+          git commit -m "chore(uni-watch): kuzatilgan e'lonlar ro'yxati yangilandi"
+          # The branch can move under us between checkout and push (a merge, or
+          # a manual dispatch racing the schedule). Rebasing onto whatever is
+          # there keeps this run's memory instead of failing the job.
+          for attempt in 1 2 3; do
+            if git pull --rebase --autostash origin "${GITHUB_REF_NAME}" && git push; then
+              echo "Saqlandi."
+              exit 0
+            fi
+            echo "Push muvaffaqiyatsiz (urinish $attempt) — qayta urinilmoqda."
+            sleep $((attempt * 5))
+          done
+          echo "::error::state.json saqlanmadi — keyingi yurish ba'zi e'lonlarni takrorlashi mumkin."
+          exit 1
