@@ -117,9 +117,13 @@ export default function SurveysContent() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [questions, setQuestions] = useState<Question[]>([
-    { question_text: '', question_type: 'single_choice', options: [''], sort_order: 0, is_required: true },
+    { question_text: '', question_type: 'text', options: null, sort_order: 0, is_required: true },
   ]);
   const [saving, setSaving] = useState(false);
+  // Shown inside the dialog. A toast alone is not enough here: the dialog
+  // sits at z-50 over a black overlay, so a validation toast can land behind
+  // it and pressing Yaratish then looks like nothing happened at all.
+  const [formError, setFormError] = useState<string | null>(null);
 
   const fetchSurveys = async () => {
     setLoading(true);
@@ -184,13 +188,29 @@ export default function SurveysContent() {
   }, []);
 
   const handleCreate = async () => {
+    setFormError(null);
+
     if (!title.trim()) {
-      toast.error("Sarlavhani kiriting");
+      setFormError("Sarlavhani kiriting — yuqoridagi birinchi katak bo'sh.");
+      toast.error('Sarlavhani kiriting');
       return;
     }
     const validQuestions = questions.filter(q => q.question_text.trim());
     if (validQuestions.length === 0) {
+      setFormError(
+        "Kamida bitta savol matnini yozing — «1-savol» katagi bo'sh."
+      );
       toast.error("Kamida bitta savol qo'shing");
+      return;
+    }
+    const emptyChoice = validQuestions.find(
+      q => CHOICE_TYPES.includes(q.question_type) &&
+        (q.options ?? []).filter(o => o.trim()).length === 0
+    );
+    if (emptyChoice) {
+      setFormError(
+        `«${emptyChoice.question_text}» tanlov savoli — kamida bitta variant yozing.`
+      );
       return;
     }
 
@@ -250,7 +270,9 @@ export default function SurveysContent() {
       resetForm();
       fetchSurveys();
     } catch (err) {
-      toast.error(`Xatolik: ${err}`);
+      const message = err instanceof Error ? err.message : String(err);
+      setFormError(`Saqlashda xatolik: ${message}`);
+      toast.error(`Xatolik: ${message}`);
     } finally {
       setSaving(false);
     }
@@ -392,10 +414,11 @@ export default function SurveysContent() {
   };
 
   const resetForm = () => {
+    setFormError(null);
     setTitle('');
     setDescription('');
     setQuestions([
-      { question_text: '', question_type: 'single_choice', options: [''], sort_order: 0, is_required: true },
+      { question_text: '', question_type: 'text', options: null, sort_order: 0, is_required: true },
     ]);
   };
 
@@ -404,8 +427,8 @@ export default function SurveysContent() {
       ...questions,
       {
         question_text: '',
-        question_type: 'single_choice',
-        options: [''],
+        question_type: 'text',
+        options: null,
         sort_order: questions.length,
         is_required: true,
       },
@@ -420,6 +443,17 @@ export default function SurveysContent() {
   const updateQuestion = (idx: number, field: keyof Question, value: unknown) => {
     const updated = [...questions];
     (updated[idx] as Record<string, unknown>)[field] = value;
+
+    // Switching to a choice type with no options would render an empty block
+    // with nothing to type into, so seed the first variant.
+    if (
+      field === 'question_type' &&
+      CHOICE_TYPES.includes(value as QuestionType) &&
+      (updated[idx].options ?? []).length === 0
+    ) {
+      updated[idx].options = [''];
+    }
+
     setQuestions(updated);
   };
 
@@ -671,6 +705,12 @@ export default function SurveysContent() {
               ))}
             </div>
           </div>
+
+          {formError && (
+            <div className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+              {formError}
+            </div>
+          )}
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowCreate(false)}>
