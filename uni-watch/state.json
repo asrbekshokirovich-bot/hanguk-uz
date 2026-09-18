@@ -1,1 +1,1097 @@
-{"version": 1, "seen": {}, "last_run": null}
+{
+ "last_run": "2026-09-18T15:09:51+00:00",
+ "seen": {
+  "http://enter.konkuk.ac.kr/submenu.do?menuurl=k8b%2fCUaWlntKYwhT%2fh%2bKUA%3d%3d&": [],
+  "https://adm-u.postech.ac.kr/": [
+   "56b913b1ba53fb78",
+   "39b98a7fbf8c4edc",
+   "465979de78e06745",
+   "094ee6e2eb2ed247",
+   "468ac310c86975d8",
+   "077897fa03e3e72e",
+   "757e351ac4b0c510"
+  ],
+  "https://adm-u.unist.ac.kr/": [
+   "f20e30a3679daf64",
+   "f9f25a442610ebbf",
+   "d37f050d37d9ca0c",
+   "e008bda4defcbe06",
+   "ee6d1d74ca27c2df",
+   "c1e9e989970c6019"
+  ],
+  "https://admission.cau.ac.kr/main.do": [
+   "8f22cd899c6a28ca",
+   "eafa953334455cce",
+   "e515d886a93c34aa",
+   "b92cc9d3b9f74e56",
+   "03e74e08e08e672a",
+   "f49dad18f8d60bec",
+   "6967832cebba2cfc",
+   "546fa72852a2ed60",
+   "fda85801e8209f61",
+   "ac3e88627a7acdb1",
+   "7c62185cf0aee87d",
+   "59e70f9a20d03662",
+   "629d5ee598ec3788"
+  ],
+  "https://admission.cdu.ac.kr/": [
+   "3e177c35e7ec91cd",
+   "fe7a70d4e168c405",
+   "046a0dcd9137fca0",
+   "445cbeb119e75866"
+  ],
+  "https://admission.cha.ac.kr/": [
+   "39f15fe828b2ba4f",
+   "f900402b6e017dd7",
+   "3ecd913aafbb15e8",
+   "fe0f3ae1762ad3f8",
+   "2ce4ec91cb80d791"
+  ],
+  "https://admission.daejin.ac.kr/main.do": [
+   "25810f65649d2d1c"
+  ],
+  "https://admission.dnue.ac.kr/ipsi/Main.do": [],
+  "https://admission.ewha.ac.kr/admission/html/main/main.asp": [
+   "708d8927b22b88c8",
+   "00edfefcdb87c88f",
+   "86b137020ce2f41a",
+   "267032e598cbbb9d",
+   "e02073c312f8c701",
+   "af7f5881dd513d81",
+   "d7c8630ea7eeeb5f",
+   "0d36840849a01da7",
+   "e84ac4a4f3e8f8bc",
+   "2320a716bf8caec3",
+   "d0b58c4baa8a8d5e",
+   "7f5104038996b1a2",
+   "77d0896af4172bb3",
+   "c78232a82be3c617",
+   "93949d00e7054c84",
+   "b2033c3d89c16110",
+   "0c404bceac39ea9e",
+   "13a8ffbebf627f97",
+   "9ded1a16bd1d21ee",
+   "3d5cfdda3499ddd2",
+   "86b4ed1ee24a6ada",
+   "3bbb16f623ad10bb",
+   "f9f701557fac27e4",
+   "2035f830cb9ccdcd",
+   "441a13f39648afae",
+   "a0887e0be47c9ece",
+   "896b2e4e84117d56"
+  ],
+  "https://admission.hallym.ac.kr/": [],
+  "https://admission.inha.ac.kr/cms/FR_CON/index.do?MENU_ID=170": [],
+  "https://admission.inu.ac.kr/main.do": [
+   "1333b878ef9ada7c",
+   "772a6d2f5f420924",
+   "ab4f6936fb8791c5",
+   "23eff2cb135377bb",
+   "39ebd8172c311c0a",
+   "6d841975698427f6"
+  ],
+  "https://admission.jnu.ac.kr/": [
+   "ae0910cdf584d94e",
+   "0e2c9bcfd6024495"
+  ],
+  "https://admission.kangnam.ac.kr/main.htm": [
+   "847553c52577796f",
+   "ba4d3b78321fbd7c",
+   "a8ff3e85694b0609"
+  ],
+  "https://admission.kentech.ac.kr/ipsi": [
+   "9779ce288d91044e",
+   "aea995ed999c7a1b",
+   "59db7f92228ce672",
+   "1264767a12d48f12",
+   "13875e3ec782971f",
+   "c44ddb56c48fa5b1",
+   "4d5a44bb14de6210",
+   "66d00b88c2021ee6",
+   "da50f828537aba7d",
+   "8a1d8d8592dd119d",
+   "d45074436ad87146",
+   "bafa809828e0f6a9",
+   "6a3d2ee3b9f962be",
+   "7358b9de488bdaac",
+   "fb7ca7212ea46a72",
+   "6b14a1f762910951",
+   "74e8cabe3e287184",
+   "a23dc40686f97204",
+   "6db102c45ce3adc1",
+   "868e4a6f0aac9844"
+  ],
+  "https://admission.knou.ac.kr/": [],
+  "https://admission.scu.ac.kr/": [],
+  "https://admission.seoultech.ac.kr/": [],
+  "https://admission.skku.edu/admission/html/abroad/notice.html": [
+   "d1ce8d69c161df98",
+   "d4c23f019ce75174",
+   "aa8e22a841cf2d50"
+  ],
+  "https://admission.smu.ac.kr/": [],
+  "https://admission.snu.ac.kr/international/notice": [
+   "5782c96dd46ef73f",
+   "a78a5afa58f19a58",
+   "9c4cd0026aa16e93",
+   "bfbd236f569543d1",
+   "6b79360822f91005",
+   "9d26304677071944",
+   "c0e395154e89bb9d",
+   "bfb4ba0a216086b3",
+   "1e4596c69d0988a4"
+  ],
+  "https://admission.snue.ac.kr/": [],
+  "https://admission.sookmyung.ac.kr/": [],
+  "https://admission.ssu.ac.kr/": [
+   "e73d1af33a32fc2a",
+   "02218ee40a06a1ff",
+   "ecc922329be6841b",
+   "edab5e2dadaec459",
+   "74f69925147a5e40",
+   "fcd7dc8a2c09404d",
+   "42280035f0369496",
+   "39a5c42950f0214d",
+   "ed4fec2db7e3224f",
+   "92a211916ffb54c5",
+   "091d0058658d659d",
+   "252deb8102430eec",
+   "f4d19b2c0400c65f"
+  ],
+  "https://admission.sunlin.ac.kr/": [
+   "bf3fddb8a21a1a8c",
+   "86558fafdec7e223",
+   "5ea3296e7ce7372c",
+   "a39d11cbaa561ab3",
+   "aa44a0e0f0166b81",
+   "c63b528c76a757c0",
+   "2cf164497024874b",
+   "01784baefee0b6f4",
+   "67c037723192a85f",
+   "70609060758c8dc1",
+   "118b043736212384"
+  ],
+  "https://admission.swu.ac.kr/": [],
+  "https://admission.uos.ac.kr/": [],
+  "https://admission.yonsei.ac.kr/": [],
+  "https://admissions.handong.edu/": [
+   "f35ad60b1fa8f3e0",
+   "605d1dccc99c05bb",
+   "47b7d7639af92f51",
+   "ddff33ed8ae073bc",
+   "31673bd13edfc05e",
+   "956b29e5e12bc287",
+   "7f49eae48b6959a5",
+   "1ce44e116f91f01c",
+   "cbeb866e867f74ac",
+   "ea8b4e27b0c20427"
+  ],
+  "https://adms.hufs.ac.kr/index.do": [
+   "841de9cf2c1fa51e",
+   "9a3acf488d041945",
+   "172d054ceeb7a1f2",
+   "5c2daa4b56847b17",
+   "09fc695bc95ff315",
+   "bd10a7f4878d5771",
+   "22272966e87a3ed0",
+   "f207428e873a2070",
+   "3e4fdf133dc426ef",
+   "f8736435bfb88a7e",
+   "3365f66c6c4bbdfa",
+   "3f7d58c6711ed753",
+   "811e9a260fe27110"
+  ],
+  "https://aks.ac.kr": [],
+  "https://apply.iscu.ac.kr/": [
+   "86cc3acc9aeffc17"
+  ],
+  "https://apply.sau.ac.kr/": [
+   "cd835fecf8da185f",
+   "50b894b30c36502d"
+  ],
+  "https://apply.swc.ac.kr/": [],
+  "https://assist.ac.kr": [],
+  "https://baewha.ac.kr": [],
+  "https://berea.ac.kr": [],
+  "https://csj.ac.kr": [
+   "42a21b5cecaa9626"
+  ],
+  "https://cst.ac.kr": [],
+  "https://cup.ac.kr": [],
+  "https://dhu.ac.kr": [],
+  "https://dongbang.ac.kr": [],
+  "https://dst.ac.kr": [],
+  "https://dsu.ac.kr": [],
+  "https://ent.donga.ac.kr/": [
+   "e24c023fc290d021",
+   "fe87a14f98f34ca5",
+   "d0bc7ae8f323a683",
+   "014fe9f672705d6f"
+  ],
+  "https://ent.hs.ac.kr/": [
+   "ec053fdd17c338c5",
+   "5ae3967f0c4ef41a",
+   "8a3aeb1b669076fa",
+   "ea1ffe9d1444f120",
+   "9e7ad43454cf685c",
+   "89678b79aad46c99",
+   "60f2d8210f7c6883",
+   "c05a96fd456422f5",
+   "ed5ec89ff5bc92ab",
+   "28e5957fe2c33832",
+   "3eaeadbae5150c9c"
+  ],
+  "https://ent.wsi.ac.kr/": [
+   "0b89b7275d4e99be",
+   "1090306868c1857e"
+  ],
+  "https://ent.wsu.ac.kr/": [
+   "c374d0ae4820789e",
+   "21082414265b743c"
+  ],
+  "https://enter.anyang.ac.kr/main/": [
+   "fc4f46c20c797160",
+   "79cc396d7797ddc3"
+  ],
+  "https://enter.bnue.ac.kr/": [],
+  "https://enter.bufs.ac.kr/": [
+   "51fbccd4d81106c4"
+  ],
+  "https://enter.chugye.ac.kr/": [],
+  "https://enter.chungwoon.ac.kr/enter/index.do": [
+   "c16d966b22553df2",
+   "6ef4c5a541743466",
+   "9df7c29555b3dc07",
+   "463ab71cc6bf48b4",
+   "8d7239f7a82d15e7",
+   "b2dfe235d2d8344b",
+   "fa430f2e98e91576",
+   "19bce2bed89ea898",
+   "1d5b1c60c2d394bd"
+  ],
+  "https://enter.dcu.ac.kr/": [],
+  "https://enter.duksung.ac.kr/sub/?m_type=JEOEGUK": [
+   "fb2a8671f60aeeba",
+   "80761d6d70248714",
+   "d5001f55b76b655a",
+   "2e9d35f00a18cd66"
+  ],
+  "https://enter.hansung.ac.kr/": [],
+  "https://enter.jbnu.ac.kr/submenu.do?menuurl=rOjsbGuR5i0fqsax24xcPQ%3D%3D&": [
+   "5c96ce9cc0214b2a",
+   "1924a3c08de3fe8d",
+   "72989713d2642e04",
+   "e0500f547c3824fb",
+   "9aba1f6c936cc0aa",
+   "f0995fb9a4b03f41",
+   "8285a963946421ed",
+   "76ab1093c505465c",
+   "ad1b97fc5b7a9c19",
+   "a42d42dbe5a5742c"
+  ],
+  "https://enter.kku.ac.kr/": [],
+  "https://enter.pcu.ac.kr/": [
+   "f86a5c3dab122ac4"
+  ],
+  "https://enter.yu.ac.kr/": [],
+  "https://entr.ttc.ac.kr/": [],
+  "https://entrance.gnue.ac.kr/": [],
+  "https://entrance.ptu.ac.kr/": [],
+  "https://exam.shu.ac.kr/": [
+   "6964ca0bb449d94a"
+  ],
+  "https://ghent.ac.kr": [],
+  "https://global.kduniv.ac.kr/iphak/": [],
+  "https://go.cufs.ac.kr/": [],
+  "https://go.cuk.edu/index.do": [],
+  "https://go.global.ac.kr/": [
+   "f18f3969ffb9f161",
+   "95610f1c6135f236",
+   "eea9fc3b52ea17ef",
+   "0653ded3e2bb8560",
+   "90005d1141230036",
+   "a32215d633888a83",
+   "7850d65e4c3190ff"
+  ],
+  "https://go.hanyang.ac.kr/web/notice/notice_list.do?m_type=JEOEGUK": [],
+  "https://go.hycu.ac.kr/": [
+   "12bb95ddbcbd27ad"
+  ],
+  "https://go.khcu.ac.kr/": [
+   "542bb98d0becc52d",
+   "6d3e97e7715d0bc4",
+   "ceec7dedd9d93853",
+   "51c17e405f830dd9",
+   "50ff532e1ce51a40"
+  ],
+  "https://go.pusan.ac.kr/": [],
+  "https://go.sangji.ac.kr/kor/index.do": [
+   "407107e2501f9158",
+   "38aa39a414af2b89"
+  ],
+  "https://go.sdu.ac.kr/": [],
+  "https://go.sjcu.ac.kr/": [
+   "5e92e18c31f346cf"
+  ],
+  "https://go.skuniv.ac.kr/": [
+   "73ba7fdf55c2b8b5",
+   "2b03f13ac879eae8",
+   "2329755617f5b65b",
+   "ce134a4f53ecc83b",
+   "91d3686d4ad8e0bc",
+   "6707e075023b484f",
+   "1098802dcef6f46b",
+   "249213976ea5b914",
+   "09d904505cfc8309",
+   "95e86e72309dc196",
+   "bc781e2dc54e3d0c"
+  ],
+  "https://go.wdu.ac.kr/": [],
+  "https://gyu.ac.kr": [],
+  "https://hapdong.ac.kr": [],
+  "https://helper.hanseo.ac.kr/html/kr/sub1/sub1_0101.html": [
+   "7d330a2b017eb694"
+  ],
+  "https://htus.ac.kr": [],
+  "https://hyo.ac.kr": [],
+  "https://iadmission.khu.ac.kr/": [
+   "713626eff5c32941",
+   "490b4e8b5948c43e",
+   "09c00bdf65e6e917",
+   "74f02814991cbb47",
+   "c661b9df68961b21",
+   "7c427ef94ff9e006",
+   "ee1f8129694bb28a",
+   "2cdc972800ae6e5a",
+   "7240547601080931",
+   "561b8c0a2af5b74c",
+   "6a73f295a2bf0b48",
+   "f073f5bd62c14621",
+   "39453a78ace99b01",
+   "05102de58b751312",
+   "726ab2bacc212982",
+   "4c03bc55435a6799",
+   "2a94dcca2b791238",
+   "bfe3571a03a0fa71"
+  ],
+  "https://iat.kookmin.ac.kr/": [
+   "953a0be303122d3f"
+  ],
+  "https://ibhak.gimcheon.ac.kr/": [
+   "993ce8ee4846ea05",
+   "4adf98d5b53d3810"
+  ],
+  "https://ibhak.kau.ac.kr/": [
+   "f8b66315db3fe663",
+   "c3f37b5797fc93e3",
+   "230dc8d25cd31584",
+   "375b498c13163c31",
+   "29be3ab5a9029b71",
+   "9988e5d19af79f73",
+   "14ac4e9d745494f3",
+   "e76177ccb4b6383c",
+   "410f27c0f5ca2c6e"
+  ],
+  "https://ibsi.cu.ac.kr/intro.html": [
+   "c7fd4204e3f71611"
+  ],
+  "https://ibsi.hannam.ac.kr/adms4/main/index_main.asp": [
+   "3e6d2a463d34a732",
+   "0fb6768b7e84c7d2",
+   "fad40341bd8a0709",
+   "5a8b4bcfb62c8f5f",
+   "0d0ecaf058605f2c",
+   "bf58f105e0ecb9b0",
+   "435dbdc023a6592e",
+   "d8f791e76013e723",
+   "849a8fa5bfd582bf",
+   "8793d692cfb8089c",
+   "60ad4a91b091a4dd",
+   "bbb69741492a3a83",
+   "3f8fcf54b5a699f3",
+   "b9b4e7f2b069ffc6",
+   "7d0ee7ae92661c89",
+   "6f69bc1456ee6fa6",
+   "f20668367b94638e",
+   "07ff326a2707b247"
+  ],
+  "https://ibsi.jejunu.ac.kr/10000048": [
+   "1a6b7eb268191ce7",
+   "ae3ee40d2b501fc3",
+   "287cd5a43d85d1da",
+   "d6e434a00730b5e5",
+   "59544323f929a263",
+   "79c1586b0afa8039",
+   "5ac05d0ba49692f2"
+  ],
+  "https://ibsi.jhc.ac.kr/": [
+   "0da2bf0f128c3b6d",
+   "2d97e410e7947b98",
+   "1b4cd33863bcda83"
+  ],
+  "https://ibsi.kiu.ac.kr/admission/intro_susi.htm": [
+   "b10580b72e2bd18b"
+  ],
+  "https://iccu.ac.kr": [
+   "22bd4475f35f2867"
+  ],
+  "https://igse.ac.kr": [
+   "009eb125e750ff69",
+   "b2aa08ab8a9456d0",
+   "f816ace8755efd9e"
+  ],
+  "https://ilove.sunmoon.ac.kr/main.do": [
+   "c5f8929eb5a7cbd5"
+  ],
+  "https://info.kimpo.ac.kr/EnterLogin.aspx": [],
+  "https://info.masan.ac.kr/": [
+   "79fc74f1ae2e6d76",
+   "6be1723cc500ce20",
+   "e78ecbce86050e49",
+   "be2e1b82a8c4d32f",
+   "38ca97b39cf81ab2",
+   "df01b77a6500374c",
+   "6eb1b4469647da51",
+   "9ee4597adb599f1b"
+  ],
+  "https://international.knu.ac.kr/": [],
+  "https://iphak.ansan.ac.kr/iphak": [
+   "ff89d34674aad309",
+   "640f1fbca58f8278",
+   "ee3a41e503b26a5d",
+   "914c0f64cef8a1e8",
+   "a34a412dc4957394",
+   "7c610443fa6848ab",
+   "dcf0c604affc0acb",
+   "bc8c237d25e5c86d",
+   "3a25667d7d5c64e2",
+   "ac8372d35e44e180",
+   "31c8e8c177b27715",
+   "4310354cd669a446",
+   "89f050dffe87e38b",
+   "e97b0c3b27b0b187",
+   "39fbcbf5888b5840",
+   "a04563612750045d",
+   "5baba6ec78cc9321"
+  ],
+  "https://iphak.jangan.ac.kr/": [
+   "23caaf59c9a2d6fb"
+  ],
+  "https://iphak.kumoh.ac.kr/": [
+   "59cf82ceacdccd03",
+   "502703ef08e41632",
+   "d84c9ef0586e7bdb",
+   "2549c0b04ccb19b9",
+   "7dde5697f0684455",
+   "f1b3cda4344958f4",
+   "dc6d73f86c71c98a",
+   "b9f19d82b3049647",
+   "c500f0ca9f206a23",
+   "1a0d8a5cd51a48ce",
+   "18308fd4a2e19035",
+   "02a5f021d0aaae04",
+   "ba25f3767a0c96b8",
+   "59c6600798433689"
+  ],
+  "https://iphak.kw.ac.kr/main.php": [
+   "88fdd21af2d6d00d",
+   "ecce8488186cfcef",
+   "4191320a3ba0b1a0",
+   "8578afe1e103e484",
+   "9f426fbf8f16c356",
+   "22eac9aaeba15752",
+   "621e285d5aa08878"
+  ],
+  "https://iphak.kyungmin.ac.kr/": [],
+  "https://iphak.mju.ac.kr/main/index.php": [
+   "ff1fb43acde9accb",
+   "f1ee867b9248133a"
+  ],
+  "https://iphak.osan.ac.kr/": [
+   "8ea34c3627bfd967",
+   "10482c79afde56b9",
+   "383adc0d740967ee"
+  ],
+  "https://iphak.pknu.ac.kr/pknu/index.htm": [
+   "d1b26886b35cd685",
+   "4972872d112a214c",
+   "34a3b2ba25c83b91",
+   "c221dcab45efcd0f",
+   "0e88f226cb42e2f4",
+   "b6068f65a1772fee",
+   "01e229b7b8d345d2",
+   "80f2736f123dfe36",
+   "da86123cb3e64d7a",
+   "d2f71a2f13e0c179",
+   "f874fe6546abc4a8",
+   "618d103a3e5d37b6"
+  ],
+  "https://iphak.uhs.ac.kr/": [],
+  "https://iphak.yonam.ac.kr/": [],
+  "https://ipsi.anu.ac.kr/": [],
+  "https://ipsi.asc.ac.kr/ascc/index.do": [
+   "2bcf3a3bb96a64eb",
+   "509c61d5c2b216d0",
+   "3b8a2218aa6d870a"
+  ],
+  "https://ipsi.bc.ac.kr/ipsi/main.do": [],
+  "https://ipsi.bist.ac.kr/": [],
+  "https://ipsi.bscu.ac.kr/ipsi/index.do": [
+   "efb4aa18c832c289"
+  ],
+  "https://ipsi.bu.ac.kr/": [],
+  "https://ipsi.chu.ac.kr/": [],
+  "https://ipsi.chungbuk.ac.kr/kor/bbs/BBSMSTR_000000000017/lst.do": [
+   "4f4ebef46cb85a9d",
+   "f02206cc5ef3a68e",
+   "04190e9d5678d157",
+   "25d3e1e967fd280a",
+   "04cd34eca1f1ee45",
+   "80d4a93623101fac",
+   "9e209d135412130d",
+   "db52849ea4951183",
+   "d2724dea3b1271b0",
+   "447ecaa257e28379",
+   "bb5ebdf70a920367",
+   "2654862cb8d13156",
+   "c24fb6dea4b44114",
+   "79370accca413938",
+   "cc05e1fdc5772406",
+   "ee0b1b5d620ee938"
+  ],
+  "https://ipsi.cku.ac.kr/sites/iphak/index.do": [
+   "94ad1d85ee859359",
+   "137bda068a004352",
+   "eb2111b7f9f4a3c4",
+   "c4361e1f562f49c1",
+   "2642f432b7cdb876",
+   "d714769365165484",
+   "9e347eddcbace581",
+   "bc8c4f898674425d",
+   "b4b9648acb56a3e6",
+   "982bee69b56a7be1",
+   "67070742f86ae1fb",
+   "a80ce5cc12f6b3a0",
+   "a6cb0f8c4b431960",
+   "55e4ba847e9bbd0e",
+   "b8a2c67f8e0de103",
+   "1b9839a5c504d34d",
+   "606fa90629b3e325"
+  ],
+  "https://ipsi.cnu.ac.kr/": [
+   "bc024e7732bb6254"
+  ],
+  "https://ipsi.daegu.ac.kr/kor/29/pdfViewer/CAT077": [
+   "dee7f1a262445e19",
+   "c9bf3d9fdeacdece"
+  ],
+  "https://ipsi.ddu.ac.kr/index.do": [
+   "4c19750b7d1909b0",
+   "702f3cad869802fc",
+   "2cace3badb1ff214",
+   "1e902a8090a502c6",
+   "e19f9d2db0a4f80e",
+   "03602466ce0e189c",
+   "3ca67e384d2dd645",
+   "c22707e84842a7c7"
+  ],
+  "https://ipsi.deu.ac.kr/main.do": [
+   "0ffc594d340a3375"
+  ],
+  "https://ipsi.dgau.ac.kr/": [
+   "21ab3bf6e1a9e2e0",
+   "01c9a00b2671e2b2",
+   "5731a74be5ff420f",
+   "4c793b89efb0542e",
+   "cf2d6bfa0c18aa64",
+   "dd6b86f9beae1d44"
+  ],
+  "https://ipsi.dima.ac.kr/": [
+   "4548fedddf8b5754",
+   "7aecdfa6272f7a1e",
+   "6e7b4cc32739c7a9"
+  ],
+  "https://ipsi.dongduk.ac.kr/": [],
+  "https://ipsi.dongguk.ac.kr/": [],
+  "https://ipsi.dongguk.edu/admission/html/abroad/guide.asp": [
+   "958d04edef240ea4",
+   "e66feb7f66d064b3"
+  ],
+  "https://ipsi.dongnam.ac.kr/": [
+   "57fe00757646686c",
+   "34d04160e4ae3345",
+   "86d29a8bbcc6f1a9",
+   "6359bc33dd277c20"
+  ],
+  "https://ipsi.dongseo.ac.kr/": [],
+  "https://ipsi.dongyang.ac.kr/dongyang_ipsi/index.do": [
+   "6a1f1427977b05cf",
+   "14ea6433fc05fdcd",
+   "95b2e2a31a101ad5",
+   "d697afe16610e59d",
+   "a0bc27cab7c48acf",
+   "be2bd7d81b57dda0",
+   "d6fd854e8928b778"
+  ],
+  "https://ipsi.dyu.ac.kr/": [
+   "f60c759a7136cba5"
+  ],
+  "https://ipsi.gimhae.ac.kr/": [
+   "e524f1fb5579b6a4"
+  ],
+  "https://ipsi.ginue.ac.kr/": [],
+  "https://ipsi.gpc.ac.kr/": [
+   "d8a9140352a8d90a",
+   "7ac0420b179896a5",
+   "763ede6379483412"
+  ],
+  "https://ipsi.gumi.ac.kr/admission/index.htm": [
+   "17ea255987e3f8ec",
+   "e81e11689a91b78f",
+   "652df1208b71037e"
+  ],
+  "https://ipsi.gw.ac.kr/": [],
+  "https://ipsi.halla.ac.kr/": [],
+  "https://ipsi.hknu.ac.kr/": [
+   "a7c8cc076e1b567f",
+   "5efcdcaed6319c0a",
+   "6af224a8a12813f4",
+   "715f45439fe23627",
+   "158ccad62a2a878e",
+   "8528baa4567486ad"
+  ],
+  "https://ipsi.hoseo.ac.kr/main.do": [
+   "8d801d0f481ff5b9",
+   "bbaa538a927b408d"
+  ],
+  "https://ipsi.inhatc.ac.kr/": [],
+  "https://ipsi.joongbu.ac.kr/ipsi/": [
+   "2fd03a4035ef08fd",
+   "821eea9aa79f1c09",
+   "0f13dc161be7a9d9",
+   "33bc6a319d12d278",
+   "413572b5dcfd59db",
+   "eedf99f1886400eb",
+   "de8451aee844c6e0",
+   "b50fc55fbc16d869",
+   "bd9adc4b5e34b0f5",
+   "c0d7c99b96342726",
+   "ffd0f1b354a6fdb0",
+   "b91727f5c4222f4b",
+   "01e177daa87ea5d9",
+   "52155a97d1d2e729",
+   "fe38e8d335da7ad7"
+  ],
+  "https://ipsi.jwu.ac.kr/site/siteView.jwu": [],
+  "https://ipsi.kaywon.ac.kr/": [
+   "3d33b1b90f7c984e",
+   "aeea7ea8a2432242",
+   "e4448a65ff980080",
+   "8d6bafbd79d82f69",
+   "b6cb988a13dde4db",
+   "28312c7dcf8c87b0",
+   "0e766818742e14d4"
+  ],
+  "https://ipsi.kbtus.ac.kr/index.asp": [],
+  "https://ipsi.kcn.ac.kr/": [],
+  "https://ipsi.kdu.ac.kr/": [],
+  "https://ipsi.kongju.ac.kr/kor": [
+   "1e2ae0df3b0f4466",
+   "269f8b8ddb268d01",
+   "7f59ebdd315a1e4f",
+   "7cb705462e69719d",
+   "7bd9a855e0bd362b",
+   "04277e2201c30da1",
+   "bf76e4628490ff19",
+   "2f37557fbd9c0275",
+   "25d502016f416dc8",
+   "dcf4ce342353dd80",
+   "8c35043e621f2a5a",
+   "a1d78b0ded76aa47",
+   "538395a426b92619",
+   "0ed31fea21bd8871",
+   "35dd9edf6ebf5917",
+   "bc5d454774439220",
+   "63d2a98d88a36ad6",
+   "30dc424aa27c30aa",
+   "4753677e9c3cc5e1",
+   "c95a269d6e6f3d90",
+   "28b5c5bd2d068727"
+  ],
+  "https://ipsi.kopo.ac.kr/": [],
+  "https://ipsi.kornu.ac.kr/ipsi/index.do": [],
+  "https://ipsi.kwu.ac.kr/": [],
+  "https://ipsi.kyungnam.ac.kr/": [
+   "e205ff719dacb434",
+   "9fbffc5077e79072",
+   "f42d3428615bf363",
+   "f08349aa5be6b084",
+   "99fc45d6df3e82f0",
+   "65c3ecc41beda317",
+   "e4b3276df8caeac5",
+   "e6bd3b68dfeb79fc"
+  ],
+  "https://ipsi.mjc.ac.kr/mjcIndex.do": [
+   "f27caa400eab2c63",
+   "d42ddd388765ba18"
+  ],
+  "https://ipsi.nambu.ac.kr/": [
+   "0d49d6112e436701",
+   "b32d3358d420dd49",
+   "48107d53219dc92d",
+   "4d99faf867d4c2cd",
+   "5d9fdf1ff08ae504",
+   "3c78cbf1c5db9515",
+   "a314c9b4d50693fe",
+   "148eee0e863897d9",
+   "fc81c2edf8d52a98",
+   "e11a666391a09c69"
+  ],
+  "https://ipsi.scau.ac.kr/Default.aspx": [
+   "e1bb3754284c4aaa",
+   "5545e3eacca26f66"
+  ],
+  "https://ipsi.sch.ac.kr/main.do": [
+   "0251a3107a0a26da",
+   "e1ca70aa40bc30ee",
+   "051d1fc135c18026",
+   "4db5ffff0102d0d8",
+   "71b5a4bafaa88122",
+   "bf3e0c58e8229850",
+   "37397d46e70d8340",
+   "086388372d5e4ae2",
+   "0c3edec4802804e3"
+  ],
+  "https://ipsi.sejong.ac.kr/": [
+   "711c4bd017f8002f",
+   "30ab6bef7515a9ff",
+   "a15904a66b6939f2",
+   "37880b549e81e422"
+  ],
+  "https://ipsi.shinhan.ac.kr/": [
+   "e6c40d962726ace9",
+   "e41b6cbc8c7626bb"
+  ],
+  "https://ipsi.shinsung.ac.kr/main.do": [
+   "3414689f3996c9d6"
+  ],
+  "https://ipsi.silla.ac.kr/": [],
+  "https://ipsi.ssc.ac.kr/": [],
+  "https://ipsi.stu.ac.kr/": [],
+  "https://ipsi.sungkyul.ac.kr/": [],
+  "https://ipsi.sungshin.ac.kr/": [],
+  "https://ipsi.suwon.ac.kr/": [
+   "bc219b7e354da051",
+   "9b32b6fcfda16888",
+   "ff96df166264206f",
+   "b4623eeb130dc168",
+   "312a7c31561d6fc7",
+   "b18ed78e31a601f8",
+   "0492fb2049ecc46d"
+  ],
+  "https://ipsi.syu.ac.kr/": [],
+  "https://ipsi.u1.ac.kr/": [
+   "fd841f7f924ef4d2",
+   "f26c11a2cec9d33b",
+   "a947dec7926013d5",
+   "1efa68c1ee854232",
+   "ca2247f5040fdba8",
+   "72b0b623f76d43ac"
+  ],
+  "https://ipsi.uu.ac.kr/": [
+   "dbb728f2ab2a62cc",
+   "5daf4d4d59edbae3",
+   "dbbc6ad0d02e4555",
+   "a81f43be17292b94"
+  ],
+  "https://ipsi.wku.ac.kr/main.do": [
+   "7b232ff46ae3c5f0",
+   "baa150c11da15445",
+   "3cef19649b6533ae",
+   "0d3a1c0a9923fef9",
+   "f75b930e5a0ac451",
+   "9fd03046d5000c7b",
+   "6786270bda18f584"
+  ],
+  "https://ipsi.yeonsung.ac.kr/ipsi/index.do": [],
+  "https://ipsi.yit.ac.kr/ipsi/index.do": [],
+  "https://ipsi.ysc.ac.kr/ipsi/": [
+   "fffb2cfd0b4223f6"
+  ],
+  "https://jesus.ac.kr": [
+   "56be94c9c3398240",
+   "49cc0f0b8c12c313",
+   "ea3919222de79914",
+   "8fe16d8972c4007d",
+   "58cf70006e51f500"
+  ],
+  "https://jj.ac.kr": [],
+  "https://kbsu.ac.kr": [],
+  "https://kbu.ac.kr/kor/CMS/Contents/Contents.do?mCode=MN376": [],
+  "https://kcgu.ac.kr": [],
+  "https://kings.ac.kr": [],
+  "https://kkot.ac.kr": [
+   "027be278e674051b"
+  ],
+  "https://kookje.ac.kr": [],
+  "https://kopo.ac.kr": [],
+  "https://kscms.ks.ac.kr/ia/CMS/Contents/Contents.do?mCode=MN056": [
+   "1597ca473a0eefa5",
+   "f9af6c710eb34d43",
+   "1f6c469c2d72296e",
+   "77bf386bdedf7a20",
+   "10a832af48135366",
+   "09552581db6ee96a"
+  ],
+  "https://masonkorea.gmu.edu": [],
+  "https://ncc.re.kr": [],
+  "https://nonghyup.ac.kr": [],
+  "https://ocu.ac.kr": [],
+  "https://oku.korea.ac.kr/oku/cms/FR_CON/index.do?MENU_ID=700": [],
+  "https://sejong.hongik.ac.kr": [
+   "c03d0ec37b3128e7",
+   "2994fdda30239cc5"
+  ],
+  "https://seowon.ac.kr": [],
+  "https://sky.yuhan.ac.kr/": [
+   "721f896263f324ab"
+  ],
+  "https://smit.ac.kr": [],
+  "https://sufs.ac.kr": [],
+  "https://sunykorea.ac.kr": [],
+  "https://taejae.ac.kr": [],
+  "https://tk.ac.kr": [],
+  "https://tsu.ac.kr": [],
+  "https://ttgu.ac.kr": [],
+  "https://tukorea.ac.kr": [],
+  "https://univ.namhae.ac.kr/iphak/web/main/mainPage.do": [
+   "5c9b02ab2be35d95"
+  ],
+  "https://ust.ac.kr": [
+   "09ed5988be584a74"
+  ],
+  "https://www.acts.ac.kr/admission/design/index.asp": [
+   "a92859ca4b07c225",
+   "f1b5b96fc23faba3",
+   "4a9998503d306293",
+   "9b1b38d8a32eba7e",
+   "bd5a689e6081359f",
+   "238ae5496e325efd",
+   "04d9effea94cb7b6",
+   "462cc7887c59838d",
+   "1ed76846e255d3b2",
+   "18bdfbd5b88b684b",
+   "222cf236f14d9358",
+   "7ce1590c97f62a31"
+  ],
+  "https://www.ajou.ac.kr/kr/admission/list01.do": [],
+  "https://www.bdu.ac.kr/ent/index.do": [],
+  "https://www.bible.ac.kr/": [],
+  "https://www.bsks.ac.kr/": [],
+  "https://www.catholic.ac.kr/ko/academics/adm_foreigner.do": [],
+  "https://www.ccn.ac.kr/Admission/": [],
+  "https://www.changwon.ac.kr/ipsi/": [],
+  "https://www.cje.ac.kr/": [],
+  "https://www.cju.ac.kr/ipsi/index.do": [
+   "a4bf09fe18aae25a",
+   "847dc3624df4a7ac",
+   "8c5a75eb81be8639",
+   "fb234d0ba1376ce4",
+   "b29c9d6c0b9fd75f",
+   "0e896564b336b72c"
+  ],
+  "https://www.cnc.ac.kr/": [],
+  "https://www.cnsu.ac.kr/": [],
+  "https://www.cnue.ac.kr/": [
+   "fe194b4ef583e607"
+  ],
+  "https://www.cpu.ac.kr/": [
+   "ef227961c38277cd",
+   "3844ff93f04ad606",
+   "c368350c58fc3844",
+   "3c8a8c8b858db231"
+  ],
+  "https://www.ctc.ac.kr/": [],
+  "https://www.daelim.ac.kr/ent/index.do": [
+   "5e87b7bda0f795e0",
+   "21bc1488cb06c0fe",
+   "7c8073451a0ff839",
+   "930ac6e312f22f46"
+  ],
+  "https://www.daewon.ac.kr/mbs/ipsi/": [
+   "b6928cb84b4ddec9"
+  ],
+  "https://www.dankook.ac.kr/web/kor/-329": [
+   "5b6bf9ace4be5076"
+  ],
+  "https://www.dit.ac.kr/ipsi/": [
+   "c6bcc74e9b93e162",
+   "4320145a5ed496ef",
+   "9ea461cf4802bb90"
+  ],
+  "https://www.dju.ac.kr/intro/global/cntnts.html?mi=7425": [
+   "c0885fb9e9f6809f",
+   "a3895a868cd8b784"
+  ],
+  "https://www.dsu.ac.kr/": [],
+  "https://www.gc.ac.kr/ipsi/2021/index.asp": [
+   "9dee9096f26efbe5"
+  ],
+  "https://www.ggu.ac.kr/matriculation": [],
+  "https://www.gist.ac.kr/gadm/": [],
+  "https://www.gjcu.ac.kr/": [],
+  "https://www.gjue.ac.kr/html/ipsi/index.html": [],
+  "https://www.gnu.ac.kr/international/cm/cntnts/cntntsView.do?mi=8178&cntntsId=4380": [
+   "46d6959129822e48",
+   "c9220744132328ae",
+   "9b3cad33e85a6811"
+  ],
+  "https://www.gtec.ac.kr/ipsi/index.do": [
+   "469f56128e914c06",
+   "bcffdca343c8514f",
+   "ce9dc8681d94886b",
+   "3f5d6e5f8f4abfa1",
+   "862786a93ca55fa8",
+   "6a0e4363696638b6",
+   "af2744482ae426d4",
+   "8d08aa2eb9b8950f",
+   "5792f9b90a307807",
+   "8ebf8815388a655a",
+   "3b3b06db6ff9388d",
+   "c6b141756823f5a1",
+   "6ffec86683a63256",
+   "a049a4b850fa0c80"
+  ],
+  "https://www.hanbat.ac.kr/admission/": [
+   "b741440a726ce26e",
+   "a9e60659ec97f7de"
+  ],
+  "https://www.hansei.ac.kr/": [],
+  "https://www.hit.ac.kr/": [],
+  "https://www.hongik.ac.kr/kr/admission/undergraduate-admission.do": [
+   "1e514c5cfca81fc1",
+   "514c7a4d84c99b4d",
+   "ef7ea48ae9dd02c9",
+   "5a29c3131240805e",
+   "c282a19a2f675f88",
+   "ed25a24e280e82ac",
+   "c98ae8d1bec0ae6b",
+   "9e1be04dd5ecd7b0",
+   "661a82d7957f4e97"
+  ],
+  "https://www.howon.ac.kr/web/_admission/": [
+   "ced7eedc42ec3af1",
+   "4b69c56b046eb633",
+   "7b4b6b58ea313ca8",
+   "6612fad9b4be68ae",
+   "3f2958d290012adf"
+  ],
+  "https://www.hsc.ac.kr/": [],
+  "https://www.hscu.ac.kr/": [],
+  "https://www.hywoman.ac.kr/": [],
+  "https://www.jbsc.ac.kr/portal/ipsi/main/main.do": [
+   "f79baa21a47e1708"
+  ],
+  "https://www.karts.ac.kr/usr/gfa/guideline.do?fileUsage=GUIDELINE_COLLEGE": [
+   "106ace6cff9bef7d"
+  ],
+  "https://www.kcu.ac/": [],
+  "https://www.kdischool.ac.kr/": [
+   "5437e46f6cc5e8b0"
+  ],
+  "https://www.kg.ac.kr/": [],
+  "https://www.kmou.ac.kr/ipsi/": [
+   "0b1c2bb9632b959d",
+   "83c6aaa7cebf5d66",
+   "a06dbff89fb3c1b9"
+  ],
+  "https://www.knsu.ac.kr/ipsi/rolling/application.do": [
+   "aaad4da6aee39f59",
+   "87055cd38f29407f",
+   "a31b4e0f0eab1a43",
+   "99c1ab148b3e3dd5",
+   "be01b218753b0c63",
+   "7f024e64302c7eb8",
+   "9d9d75ef6a1c856e",
+   "58f85b811c5f72b3",
+   "edf91bfaa1614c9f",
+   "68c18608b8b820b6",
+   "3d347f8fb2dfcf67"
+  ],
+  "https://www.konyang.ac.kr/prog/info/ipsi/sub03_01/foreigner/list.do": [
+   "ac374d2af234351d"
+  ],
+  "https://www.kunsan.ac.kr/inter/index.kunsan?menuCd=DOM_000013303001000000": [
+   "6427288b7c64201b",
+   "16f00a8610b1aa91",
+   "04a9c10f68cf6f05"
+  ],
+  "https://www.kyonggi.ac.kr/international_kgu/contents.do?key=7538": [
+   "22b955094340d4fd",
+   "4a5fa7347adda40a",
+   "1af6753f3d1a62de",
+   "98efc3c26f4a6c1b",
+   "73d8410fd7fe803d",
+   "cfbd9a2a6dca9bcf",
+   "92a6173770c2052e",
+   "08a6ad06732385fc"
+  ],
+  "https://www.mcu.ac.kr/ipsi/co/contentsView.php?pageID=ipsi0203000000": [],
+  "https://www.mkc.ac.kr/": [],
+  "https://www.mmu.ac.kr/admission/": [
+   "f5073203a63c5c83",
+   "9617beecbae7cf5b",
+   "d4506cb23ef40e5b",
+   "192c287bf187fcff",
+   "2560ad9acfc64a6b"
+  ],
+  "https://www.motor.ac.kr/": [],
+  "https://www.msu.ac.kr/": [],
+  "https://www.nsu.ac.kr/": [
+   "6faaffc5d47a11e3"
+  ],
+  "https://www.paekche.ac.kr/ict/ipsi_new/": [
+   "8c6e13761cffcb77",
+   "eeee1ec523e84b6e"
+  ],
+  "https://www.pro.ac.kr/": [],
+  "https://www.scnu.ac.kr/iphak/main.do": [
+   "d581de1136f9d059"
+  ],
+  "https://www.seoil.ac.kr/ipsi/index.do": [
+   "4378c2aa84d31215"
+  ],
+  "https://www.seoularts.ac.kr/": [],
+  "https://www.seoyeong.ac.kr/": [],
+  "https://www.sgu.ac.kr/": [
+   "81fd829e15e62469",
+   "daa1b1ea33cc8173"
+  ],
+  "https://www.sjs.ac.kr/admission/main/index.php": [],
+  "https://www.songgok.ac.kr/": [],
+  "https://www.tw.ac.kr/": [
+   "33973af3b3d68013",
+   "d6c4e389a7d131c4",
+   "a48b9259b1a0fdc3"
+  ],
+  "https://www.uc.ac.kr/ipsi/": [],
+  "https://www.ulsan.ac.kr/iphak/Main.do": [
+   "016fcc1d0c3e2f69",
+   "ecab6561c5c7b103",
+   "b1d9868c7854e253"
+  ],
+  "https://www.ut.ac.kr/ipsi.do": [
+   "6e5dbd9f76b62e51",
+   "c46c972ddca8b899",
+   "b289e4f6a5e23a04",
+   "0f90fa4c31c12c21"
+  ],
+  "https://www.world.ac.kr/": [],
+  "https://www.yewon.ac.kr/": [],
+  "https://www.yncu.ac.kr/": [],
+  "https://www.ysu.ac.kr/ipsi/Main.do": [],
+  "https://ycc.ac.kr": [],
+  "https://yongin.ac.kr": []
+ },
+ "version": 1
+}
