@@ -1,5 +1,5 @@
 {
- "last_run": "2026-09-18T15:09:51+00:00",
+ "last_run": "2026-09-18T15:22:43+00:00",
  "seen": {
   "http://enter.konkuk.ac.kr/submenu.do?menuurl=k8b%2fCUaWlntKYwhT%2fh%2bKUA%3d%3d&": [],
   "https://adm-u.postech.ac.kr/": [
@@ -52,6 +52,7 @@
   ],
   "https://admission.dnue.ac.kr/ipsi/Main.do": [],
   "https://admission.ewha.ac.kr/admission/html/main/main.asp": [
+   "708d8927b22b88c8",
    "00edfefcdb87c88f",
    "86b137020ce2f41a",
    "267032e598cbbb9d",
@@ -93,6 +94,7 @@
    "ae0910cdf584d94e",
    "0e2c9bcfd6024495"
   ],
+  "https://admission.kaist.ac.kr/intl-undergraduate/notice": [],
   "https://admission.kangnam.ac.kr/main.htm": [
    "847553c52577796f",
    "ba4d3b78321fbd7c",
@@ -124,6 +126,8 @@
   "https://admission.scu.ac.kr/": [],
   "https://admission.seoultech.ac.kr/": [],
   "https://admission.skku.edu/admission/html/abroad/notice.html": [
+   "5b3a3a14e3502c73",
+   "60432f0a2d908a35",
    "d1ce8d69c161df98",
    "d4c23f019ce75174",
    "aa8e22a841cf2d50"
@@ -256,6 +260,7 @@
   "https://enter.bufs.ac.kr/": [
    "51fbccd4d81106c4"
   ],
+  "https://enter.chsu.ac.kr/": [],
   "https://enter.chugye.ac.kr/": [],
   "https://enter.chungwoon.ac.kr/enter/index.do": [
    "c16d966b22553df2",
@@ -289,6 +294,7 @@
    "a42d42dbe5a5742c"
   ],
   "https://enter.kku.ac.kr/": [],
+  "https://enter.mokwon.ac.kr/": [],
   "https://enter.pcu.ac.kr/": [
    "f86a5c3dab122ac4"
   ],
@@ -354,6 +360,7 @@
   "https://htus.ac.kr": [],
   "https://hyo.ac.kr": [],
   "https://iadmission.khu.ac.kr/": [
+   "713626eff5c32941",
    "490b4e8b5948c43e",
    "09c00bdf65e6e917",
    "74f02814991cbb47",
@@ -558,6 +565,7 @@
    "ee0b1b5d620ee938"
   ],
   "https://ipsi.cku.ac.kr/sites/iphak/index.do": [
+   "94ad1d85ee859359",
    "137bda068a004352",
    "eb2111b7f9f4a3c4",
    "c4361e1f562f49c1",
@@ -578,6 +586,7 @@
   "https://ipsi.cnu.ac.kr/": [
    "bc024e7732bb6254"
   ],
+  "https://ipsi.daedong.ac.kr/main.do": [],
   "https://ipsi.daegu.ac.kr/kor/29/pdfViewer/CAT077": [
    "dee7f1a262445e19",
    "c9bf3d9fdeacdece"
@@ -661,6 +670,7 @@
    "8d801d0f481ff5b9",
    "bbaa538a927b408d"
   ],
+  "https://ipsi.induk.ac.kr/": [],
   "https://ipsi.inhatc.ac.kr/": [],
   "https://ipsi.joongbu.ac.kr/ipsi/": [
    "2fd03a4035ef08fd",
@@ -986,9 +996,11 @@
   "https://www.hsc.ac.kr/": [],
   "https://www.hscu.ac.kr/": [],
   "https://www.hywoman.ac.kr/": [],
+  "https://www.ikw.ac.kr/worldle/page/3879/2759.tc?protocol=http": [],
   "https://www.jbsc.ac.kr/portal/ipsi/main/main.do": [
    "f79baa21a47e1708"
   ],
+  "https://www.jnue.ac.kr/": [],
   "https://www.karts.ac.kr/usr/gfa/guideline.do?fileUsage=GUIDELINE_COLLEGE": [
    "106ace6cff9bef7d"
   ],
@@ -1046,6 +1058,11 @@
   "https://www.msu.ac.kr/": [],
   "https://www.nsu.ac.kr/": [
    "6faaffc5d47a11e3"
+  ],
+  "https://www.ok.ac.kr/ipsi/index.do": [
+   "c258ba0001bb4cf0",
+   "8717da6fd9f80d72",
+   "877059269740afa1"
   ],
   "https://www.paekche.ac.kr/ict/ipsi_new/": [
    "8c6e13761cffcb77",
