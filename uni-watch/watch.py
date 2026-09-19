@@ -41,7 +41,7 @@ import sys
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from urllib.parse import urljoin, urlparse
+from urllib.parse import urljoin, urlparse, urlunparse
 
 import httpx
 from bs4 import BeautifulSoup
@@ -49,6 +49,7 @@ from bs4 import BeautifulSoup
 HERE = Path(__file__).parent
 UNIVERSITIES_CSV = HERE / "universities.csv"
 STATE_FILE = HERE / "state.json"
+FAILING_FILE = HERE / "ochilmagan-saytlar.md"
 
 # Bumped whenever the key derivation changes. A mismatch makes load_state
 # re-seed silently instead of announcing the whole corpus as new.
@@ -63,6 +64,17 @@ STATE_VERSION = 2
 CONCURRENCY = 8
 
 REQUEST_TIMEOUT_SEC = 20
+
+# Fallback attempts get a shorter leash. A third of the list fails, and at the
+# full timeout those retries alone could outlast the job: 139 failures times
+# four guesses at 20s, eight at a time, is half an hour on their own. A stale
+# address that is going to answer answers quickly; one that hangs for eight
+# seconds was not the fix.
+FALLBACK_TIMEOUT_SEC = 8
+
+# Guesses per failing address. Beyond this the ladder stops paying for itself
+# and starts costing the sweep its runtime.
+MAX_FALLBACKS = 4
 
 # A real, identifiable agent. Korean university sites block the default Python
 # one outright, and an operator who blocks this should be able to see who it is.
@@ -279,8 +291,18 @@ def is_admission_link(title: str, href: str) -> bool:
     )
 
 
-def extract_candidates(html: str, page_url: str) -> list[Candidate]:
-    """Every link on the page that reads like an admission announcement."""
+def extract_candidates(
+    html: str, page_url: str, canonical_url: str | None = None
+) -> list[Candidate]:
+    """Every link on the page that reads like an admission announcement.
+
+    `canonical_url` is the address this university is KEYED by — the row in the
+    CSV. It matters only for JavaScript rows, which have no address of their
+    own and borrow the page's: keying those on the page actually fetched would
+    make a board re-announce itself in full the first time a fallback address
+    was used.
+    """
+    canonical_url = canonical_url or page_url
     soup = BeautifulSoup(html, "html.parser")
     seen_keys: set[str] = set()
     out: list[Candidate] = []
@@ -300,7 +322,7 @@ def extract_candidates(html: str, page_url: str) -> list[Candidate]:
         else:
             # JavaScript-driven board: the page itself is the only address we
             # can give, and `key` keeps the rows apart by title.
-            url = page_url
+            url = canonical_url
 
         c = Candidate(title=a.get_text(" ", strip=True), url=url)
         if c.key in seen_keys:
@@ -311,10 +333,95 @@ def extract_candidates(html: str, page_url: str) -> list[Candidate]:
     return out
 
 
-async def fetch_page(client: httpx.AsyncClient, url: str) -> str:
-    resp = await client.get(url)
+class FetchFailed(Exception):
+    """Every address for one university failed. Carries the original reason."""
+
+
+def url_variants(url: str) -> list[str]:
+    """Other addresses worth trying when the one in the CSV fails.
+
+    A third of the list was unreachable on the first full sweep, and the
+    errors were not mysterious — they were four ordinary kinds of stale
+    address, each with an obvious second guess:
+
+      * DNS fails on `gangdong.ac.kr` because the site only answers on
+        `www.` (or the reverse).
+      * A 404 on `admission.kangwon.ac.kr/...?bbsNo=373` means that board was
+        renumbered; the host itself is alive and its front page still links to
+        the notices.
+      * `CERTIFICATE_VERIFY_FAILED` is usually a server that forgot to send
+        its intermediate certificate. Plain http reaches the same public page.
+        Nothing here is secret and nothing is sent — only a notice board is
+        read — so a downgrade costs nothing, and it is attempted ONLY after
+        https has already failed, never instead of it.
+      * A university that moved its admissions site off a subdomain still
+        answers on the bare domain.
+
+    Hand-editing 139 rows would fix today's list and rot by next semester.
+    Trying the obvious variants fixes them as they break, without anyone
+    watching.
+    """
+    p = urlparse(url)
+    if not p.netloc:
+        return []
+
+    host, out = p.netloc, []
+
+    def add(u: str) -> None:
+        if u != url and u not in out:
+            out.append(u)
+
+    # www. on or off — the single most common cause of a dead hostname.
+    other_host = host[4:] if host.startswith("www.") else f"www.{host}"
+    add(urlunparse(p._replace(netloc=other_host)))
+
+    # The host's front page, for a board that was renumbered or moved.
+    if p.path.strip("/") or p.query:
+        add(urlunparse(p._replace(path="/", query="", fragment="")))
+        add(urlunparse(p._replace(netloc=other_host, path="/", query="",
+                                  fragment="")))
+
+    # Last resort: the same pages over http, for a broken certificate chain.
+    if p.scheme == "https":
+        add(urlunparse(p._replace(scheme="http")))
+        add(urlunparse(p._replace(scheme="http", path="/", query="",
+                                  fragment="")))
+
+    return out
+
+
+async def fetch_page(
+    client: httpx.AsyncClient, url: str, timeout: float | None = None
+) -> str:
+    resp = await client.get(url) if timeout is None else await client.get(
+        url, timeout=timeout
+    )
     resp.raise_for_status()
     return resp.text
+
+
+async def fetch_with_fallbacks(
+    client: httpx.AsyncClient, url: str
+) -> tuple[str, str, str | None]:
+    """Fetch `url`, falling back to its variants. Returns (html, used_url, note).
+
+    `note` names the variant when one was needed, so a sweep that only works
+    through a fallback is visible rather than silently fine — a CSV row that
+    always needs the same fallback is a row somebody should fix properly.
+    """
+    try:
+        return await fetch_page(client, url), url, None
+    except Exception as first:  # noqa: BLE001 — the whole point is to try on
+        first_error = f"{type(first).__name__}: {str(first)[:110]}"
+
+    for alt in url_variants(url)[:MAX_FALLBACKS]:
+        try:
+            html = await fetch_page(client, alt, timeout=FALLBACK_TIMEOUT_SEC)
+        except Exception:  # noqa: BLE001 — a failed guess is not news
+            continue
+        return html, alt, f"asosiy manzil ishlamadi ({first_error}) → {alt}"
+
+    raise FetchFailed(first_error)
 
 
 async def check_university(
@@ -326,11 +433,20 @@ async def check_university(
     """Returns (university, genuinely-new items, error message or None)."""
     async with sem:
         try:
-            html = await fetch_page(client, uni.url)
+            html, used_url, note = await fetch_with_fallbacks(client, uni.url)
+        except FetchFailed as exc:
+            return uni, [], str(exc)
         except Exception as exc:  # noqa: BLE001 — one site must never stop the sweep
             return uni, [], f"{type(exc).__name__}: {str(exc)[:120]}"
 
-    candidates = extract_candidates(html, uni.url)
+    if note:
+        print(f"  tiklandi: {uni.display} — {note}", file=sys.stderr)
+
+    # Relative links resolve against the address actually fetched, but a
+    # JavaScript row falls back to the CSV address. Otherwise the day a site
+    # starts needing a fallback, every key on it would change and the whole
+    # board would re-announce as new.
+    candidates = extract_candidates(html, used_url, canonical_url=uni.url)
     known = state_seen.get(uni.url)
 
     if known is None:
@@ -416,6 +532,37 @@ async def send_telegram(text: str, *, token: str, chat_id: str) -> None:
     if not body.get("ok"):
         reason = body.get("description") or f"HTTP {resp.status_code}"
         raise RuntimeError(f"Telegram xabarni qabul qilmadi: {reason}")
+
+
+def write_failing_report(
+    errors: list[tuple[University, str]], checked: int,
+    path: Path = FAILING_FILE,
+) -> None:
+    """Write the unreachable universities to a file the owner can open.
+
+    The run log shows ten of them and then "…va yana 129 ta", so a third of the
+    list was silently outside the watch with no way to see which third. A
+    committed file makes that visible, diffable, and fixable one row at a time:
+    the owner edits universities.csv, the next run drops the row from here.
+    """
+    lines = [
+        "# Ochilmagan universitet saytlari",
+        "",
+        f"Oxirgi tekshiruv: {datetime.now(timezone.utc).isoformat(timespec='seconds')}",
+        f"Tekshirildi: {checked} ta · Ochilmadi: {len(errors)} ta",
+        "",
+        "Bu saytlar kuzatuvdan TASHQARIDA. Tuzatish uchun `universities.csv`",
+        "faylidagi mos qatorning manzilini to'g'rilang — keyingi yurishda",
+        "bu ro'yxatdan tushadi.",
+        "",
+        "| Universitet | Manzil | Sabab |",
+        "|---|---|---|",
+    ]
+    for uni, err in sorted(errors, key=lambda e: e[0].name_ko):
+        reason = err.replace("|", "/").replace("\n", " ")[:110]
+        lines.append(f"| {uni.display} | {uni.url} | {reason} |")
+    lines.append("")
+    path.write_text("\n".join(lines), encoding="utf-8")
 
 
 # --- the run ---------------------------------------------------------------
@@ -506,7 +653,13 @@ async def run(*, limit: int | None, dry_run: bool, test_message: bool = False) -
     for uni, err in errors[:10]:
         print(f"  ochilmadi: {uni.display} — {err}", file=sys.stderr)
     if len(errors) > 10:
-        print(f"  …va yana {len(errors) - 10} ta", file=sys.stderr)
+        print(f"  …va yana {len(errors) - 10} ta — to'liq ro'yxat: "
+              f"{FAILING_FILE.name}", file=sys.stderr)
+
+    # Only on a full sweep: a --limit run would otherwise rewrite the report
+    # from a fraction of the list and read as though the rest had recovered.
+    if limit is None:
+        write_failing_report(errors, len(universities))
 
     token = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
     chat_id = os.environ.get("TELEGRAM_CHAT_ID", "").strip()

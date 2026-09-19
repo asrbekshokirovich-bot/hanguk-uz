@@ -123,7 +123,7 @@ class FakeClient:
     def __init__(self, html: str = PAGE, fail: bool = False) -> None:
         self.html, self.fail = html, fail
 
-    async def get(self, url: str):
+    async def get(self, url: str, timeout: float | None = None):
         if self.fail:
             raise ConnectionError("site down")
         return self
@@ -519,3 +519,131 @@ def test_the_current_version_is_kept(tmp_path):
 
 def test_a_fresh_state_carries_the_current_version(tmp_path):
     assert watch.load_state(tmp_path / "nope.json")["version"] == watch.STATE_VERSION
+
+
+# --- fallback addresses for a stale CSV row --------------------------------
+
+
+def test_www_is_toggled_both_ways():
+    """The commonest dead hostname: the site answers only on www., or only
+    without it."""
+    assert "https://www.e.ac.kr/x" in watch.url_variants("https://e.ac.kr/x")
+    assert "https://e.ac.kr/x" in watch.url_variants("https://www.e.ac.kr/x")
+
+
+def test_a_renumbered_board_falls_back_to_the_host_root():
+    """Kangwon's board 404s on ?bbsNo=373; the host itself is alive."""
+    v = watch.url_variants("https://admission.e.ac.kr/list.do?bbsNo=373")
+    assert "https://admission.e.ac.kr/" in v
+
+
+def test_http_is_offered_only_after_https():
+    """A broken certificate chain still serves the same public notice board.
+    The downgrade must come last, never instead of https."""
+    v = watch.url_variants("https://e.ac.kr/x")
+    assert "http://e.ac.kr/x" in v
+    assert v.index("http://e.ac.kr/x") > 0
+
+
+def test_an_http_row_is_never_upgraded_into_a_loop():
+    assert all(u.startswith("http://") for u in watch.url_variants("http://e.ac.kr/x"))
+
+
+def test_variants_never_repeat_the_original():
+    url = "https://e.ac.kr/x"
+    assert url not in watch.url_variants(url)
+
+
+def test_a_junk_url_yields_no_variants():
+    assert watch.url_variants("not-a-url") == []
+
+
+class FlakyClient:
+    """Fails for every address except `works`."""
+
+    def __init__(self, works: str, html: str = PAGE) -> None:
+        self.works, self.html, self.tried = works, html, []
+
+    async def get(self, url: str, timeout: float | None = None):
+        self.tried.append(url)
+        if url != self.works:
+            raise ConnectionError("nope")
+        return self
+
+    def raise_for_status(self) -> None:
+        pass
+
+    @property
+    def text(self) -> str:
+        return self.html
+
+
+def test_a_fallback_address_rescues_the_university():
+    uni = University(name_ko="가", name_en="A", url="https://e.ac.kr/x")
+    client = FlakyClient("https://www.e.ac.kr/x")
+    seen: dict = {}
+
+    _, fresh, err = _check(uni, seen, client)
+
+    assert err is None, "the www. variant should have been found"
+    assert uni.url in seen, "state must be keyed by the CSV address, not the fallback"
+
+
+def test_keys_do_not_change_when_a_fallback_is_used():
+    """Otherwise the day a site starts needing a fallback, its whole board
+    re-announces as new."""
+    js = '<a href="javascript:v(1)">2027학년도 외국인 모집요강</a>'
+    direct = watch.extract_candidates(js, "https://e.ac.kr/x")
+    viaalt = watch.extract_candidates(
+        js, "https://www.e.ac.kr/x", canonical_url="https://e.ac.kr/x"
+    )
+    assert direct[0].key == viaalt[0].key
+
+
+def test_relative_links_still_resolve_against_the_page_actually_fetched():
+    found = watch.extract_candidates(
+        '<a href="b/7">2027학년도 외국인 모집요강</a>',
+        "https://www.e.ac.kr/a/", canonical_url="https://e.ac.kr/a/",
+    )
+    assert found[0].url == "https://www.e.ac.kr/a/b/7"
+
+
+def test_every_address_failing_reports_the_original_reason():
+    uni = University(name_ko="가", name_en="A", url="https://e.ac.kr/x")
+    _, fresh, err = _check(uni, {}, FlakyClient("https://nothing-matches/"))
+
+    assert fresh == [] and err
+    assert "ConnectionError" in err
+    assert uni.url not in {}, "a total failure must not count as first sight"
+
+
+# --- the unreachable-sites report ------------------------------------------
+
+
+def test_the_report_lists_every_failure(tmp_path):
+    """Ten in the log and "…and 129 more" left a third of the list invisible."""
+    errs = [
+        (University(name_ko=f"대{n}", name_en=f"U{n}", url=f"https://e{n}.ac.kr"),
+         "ConnectError: dead")
+        for n in range(40)
+    ]
+    p = tmp_path / "r.md"
+    watch.write_failing_report(errs, 408, p)
+
+    text = p.read_text(encoding="utf-8")
+    assert "408" in text and "40" in text
+    for n in (0, 17, 39):
+        assert f"https://e{n}.ac.kr" in text
+
+
+def test_the_report_cannot_break_its_own_table(tmp_path):
+    """A pipe inside an error message would split the markdown row."""
+    errs = [(University(name_ko="가", name_en="A", url="https://e.ac.kr"),
+             "weird | error\nwith newline")]
+    p = tmp_path / "r.md"
+    watch.write_failing_report(errs, 1, p)
+
+    body = [ln for ln in p.read_text(encoding="utf-8").splitlines()
+            if ln.startswith("| 가")]
+    assert len(body) == 1
+    assert body[0].count("|") == 4
