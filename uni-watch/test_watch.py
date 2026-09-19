@@ -647,3 +647,18 @@ def test_the_report_cannot_break_its_own_table(tmp_path):
             if ln.startswith("| 가")]
     assert len(body) == 1
     assert body[0].count("|") == 4
+
+
+def test_http_is_tried_within_the_cap():
+    """Ordering is not cosmetic: MAX_FALLBACKS cuts the ladder off, and the
+    first version put http behind two root variants — so the 23 universities
+    failing on a bad certificate never had the one fix that works tried."""
+    url = "https://admission.e.ac.kr/admission/html/main/main.asp"
+    tried = watch.url_variants(url)[: watch.MAX_FALLBACKS]
+    assert "http://admission.e.ac.kr/admission/html/main/main.asp" in tried
+
+
+def test_the_cap_still_leaves_room_for_the_root_fallback():
+    url = "https://admission.e.ac.kr/list.do?bbsNo=373"
+    tried = watch.url_variants(url)[: watch.MAX_FALLBACKS]
+    assert "https://admission.e.ac.kr/" in tried

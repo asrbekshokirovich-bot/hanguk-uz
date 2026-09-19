@@ -375,16 +375,22 @@ def url_variants(url: str) -> list[str]:
     other_host = host[4:] if host.startswith("www.") else f"www.{host}"
     add(urlunparse(p._replace(netloc=other_host)))
 
+    # The same page over http, second. Ordering is not cosmetic: MAX_FALLBACKS
+    # cuts the ladder off, and the first version of this put http last, behind
+    # two root variants. The 23 universities failing on CERTIFICATE_VERIFY_FAILED
+    # and SSLV3_ALERT_HANDSHAKE_FAILURE — the exact failures http fixes — never
+    # had it tried. A dead host rejects http just as fast as https, so paying
+    # for this early costs those cases nothing.
+    if p.scheme == "https":
+        add(urlunparse(p._replace(scheme="http")))
+
     # The host's front page, for a board that was renumbered or moved.
     if p.path.strip("/") or p.query:
         add(urlunparse(p._replace(path="/", query="", fragment="")))
+        if p.scheme == "https":
+            add(urlunparse(p._replace(scheme="http", path="/", query="",
+                                      fragment="")))
         add(urlunparse(p._replace(netloc=other_host, path="/", query="",
-                                  fragment="")))
-
-    # Last resort: the same pages over http, for a broken certificate chain.
-    if p.scheme == "https":
-        add(urlunparse(p._replace(scheme="http")))
-        add(urlunparse(p._replace(scheme="http", path="/", query="",
                                   fragment="")))
 
     return out
