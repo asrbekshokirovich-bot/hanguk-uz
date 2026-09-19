@@ -92,7 +92,7 @@ function buildGroups(
         { title: t('navigation.students'), url: '/crm/students', icon: Users, visible: true },
         { title: t('navigation.applications'), url: '/crm/applications', icon: GraduationCap, visible: isAdmin },
         { title: t('navigation.documents'), url: '/crm/documents', icon: FolderOpen, visible: isAdmin || isDocumentHandler },
-        { title: "So'rovnomalar", url: '/crm/surveys', icon: ClipboardCheck, visible: isAdmin },
+        { title: "So'rovnomalar", url: '/crm/surveys', icon: ClipboardCheck, visible: isAdmin || isDocumentHandler },
       ],
     },
     {
