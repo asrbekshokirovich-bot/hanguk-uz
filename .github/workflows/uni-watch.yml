@@ -71,7 +71,7 @@ permissions:
 jobs:
   watch:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     defaults:
       run:
         working-directory: uni-watch
@@ -108,13 +108,16 @@ jobs:
 
       - name: Yangi holatni saqlash
         run: |
-          if git diff --quiet -- state.json; then
+          if git diff --quiet -- state.json ochilmagan-saytlar.md; then
             echo "O'zgarish yo'q — commit qilinmadi."
             exit 0
           fi
           git config user.name "uni-watch"
           git config user.email "uni-watch@users.noreply.github.com"
-          git add state.json
+          # The failure report rides along: it is how the owner sees which
+          # universities are outside the watch, and it is only true if it is
+          # written by the same run that produced state.json.
+          git add state.json ochilmagan-saytlar.md
           git commit -m "chore(uni-watch): kuzatilgan e'lonlar ro'yxati yangilandi"
           # The branch can move under us between checkout and push (a merge, or
           # a manual dispatch racing the schedule). Rebasing onto whatever is
