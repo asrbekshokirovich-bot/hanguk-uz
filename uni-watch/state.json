@@ -1,5 +1,5 @@
 {
- "last_run": "2026-09-19T06:43:57+00:00",
+ "last_run": "2026-09-19T07:10:11+00:00",
  "seen": {
   "http://enter.konkuk.ac.kr/submenu.do?menuurl=k8b%2fCUaWlntKYwhT%2fh%2bKUA%3d%3d&": [],
   "https://adm-u.postech.ac.kr/": [
@@ -94,11 +94,13 @@
    "ae0910cdf584d94e",
    "0e2c9bcfd6024495"
   ],
+  "https://admission.kaist.ac.kr/intl-undergraduate/notice": [],
   "https://admission.kangnam.ac.kr/main.htm": [
    "847553c52577796f",
    "ba4d3b78321fbd7c",
    "a8ff3e85694b0609"
   ],
+  "https://admission.kangwon.ac.kr/admission/selectBbsNttList.do?bbsNo=373": [],
   "https://admission.kentech.ac.kr/ipsi": [
    "9779ce288d91044e",
    "aea995ed999c7a1b",
@@ -213,12 +215,17 @@
   "https://apply.swc.ac.kr/": [],
   "https://assist.ac.kr": [],
   "https://baewha.ac.kr": [],
+  "https://bau.ac.kr": [],
   "https://berea.ac.kr": [],
+  "https://bpu.ac.kr": [
+   "c4f9fbdb3681e662"
+  ],
   "https://csj.ac.kr": [
    "42a21b5cecaa9626"
   ],
   "https://cst.ac.kr": [],
   "https://cup.ac.kr": [],
+  "https://dcatholic.ac.kr": [],
   "https://dhu.ac.kr": [],
   "https://dongbang.ac.kr": [],
   "https://dst.ac.kr": [],
@@ -303,7 +310,9 @@
   "https://exam.shu.ac.kr/": [
    "6964ca0bb449d94a"
   ],
+  "https://exam.ync.ac.kr/": [],
   "https://ghent.ac.kr": [],
+  "https://gknu.ac.kr": [],
   "https://global.kduniv.ac.kr/iphak/": [],
   "https://go.cufs.ac.kr/": [],
   "https://go.cuk.edu/index.do": [],
@@ -351,12 +360,19 @@
   ],
   "https://go.wdu.ac.kr/": [],
   "https://gyu.ac.kr": [],
+  "https://hanil.ac.kr": [],
+  "https://hanyeong.ac.kr": [],
   "https://hapdong.ac.kr": [],
   "https://helper.hanseo.ac.kr/html/kr/sub1/sub1_0101.html": [
    "7d330a2b017eb694"
   ],
+  "https://hosan.ac.kr": [],
   "https://htus.ac.kr": [],
   "https://hyo.ac.kr": [],
+  "https://i.chosun.ac.kr/intro": [
+   "6109b94d69ceecde",
+   "1acb6321c83198cc"
+  ],
   "https://iadmission.khu.ac.kr/": [
    "713626eff5c32941",
    "490b4e8b5948c43e",
@@ -446,6 +462,7 @@
   "https://ilove.sunmoon.ac.kr/main.do": [
    "c5f8929eb5a7cbd5"
   ],
+  "https://inco.kmu.ac.kr/sites/asiacenter/index.do": [],
   "https://info.kimpo.ac.kr/EnterLogin.aspx": [],
   "https://info.masan.ac.kr/": [
    "79fc74f1ae2e6d76",
@@ -828,6 +845,7 @@
    "58cf70006e51f500"
   ],
   "https://jj.ac.kr": [],
+  "https://kbc.ac.kr": [],
   "https://kbsu.ac.kr": [],
   "https://kbu.ac.kr/kor/CMS/Contents/Contents.do?mCode=MN376": [],
   "https://kcgu.ac.kr": [],
@@ -837,11 +855,21 @@
   ],
   "https://kookje.ac.kr": [],
   "https://kopo.ac.kr": [],
+  "https://kscms.ks.ac.kr/ia/CMS/Contents/Contents.do?mCode=MN056": [
+   "1597ca473a0eefa5",
+   "f9af6c710eb34d43",
+   "1f6c469c2d72296e",
+   "77bf386bdedf7a20",
+   "10a832af48135366",
+   "09552581db6ee96a"
+  ],
   "https://masonkorea.gmu.edu": [],
   "https://ncc.re.kr": [],
   "https://nonghyup.ac.kr": [],
   "https://ocu.ac.kr": [],
   "https://oku.korea.ac.kr/oku/cms/FR_CON/index.do?MENU_ID=700": [],
+  "https://sangha.ac.kr": [],
+  "https://sc.ac.kr": [],
   "https://sejong.hongik.ac.kr": [
    "c03d0ec37b3128e7",
    "2994fdda30239cc5"
@@ -851,6 +879,7 @@
    "721f896263f324ab"
   ],
   "https://smit.ac.kr": [],
+  "https://snjc.ac.kr": [],
   "https://sufs.ac.kr": [],
   "https://sunykorea.ac.kr": [],
   "https://taejae.ac.kr": [],
@@ -858,12 +887,14 @@
   "https://tsu.ac.kr": [],
   "https://ttgu.ac.kr": [],
   "https://tukorea.ac.kr": [],
+  "https://ube.ac.kr": [],
   "https://univ.namhae.ac.kr/iphak/web/main/mainPage.do": [
    "5c9b02ab2be35d95"
   ],
   "https://ust.ac.kr": [
    "09ed5988be584a74"
   ],
+  "https://wgst.ac.kr": [],
   "https://www.acts.ac.kr/admission/design/index.asp": [
    "a92859ca4b07c225",
    "f1b5b96fc23faba3",
@@ -882,9 +913,14 @@
   "https://www.bdu.ac.kr/ent/index.do": [],
   "https://www.bible.ac.kr/": [],
   "https://www.bsks.ac.kr/": [],
+  "https://www.busanarts.ac.kr/": [],
+  "https://www.calvin.ac.kr/": [
+   "d901584300bbad97"
+  ],
   "https://www.catholic.ac.kr/ko/academics/adm_foreigner.do": [],
   "https://www.ccn.ac.kr/Admission/": [],
   "https://www.changwon.ac.kr/ipsi/": [],
+  "https://www.chongshin.ac.kr/mbs/admission/": [],
   "https://www.cje.ac.kr/": [],
   "https://www.cju.ac.kr/ipsi/index.do": [
    "a4bf09fe18aae25a",
@@ -918,6 +954,8 @@
   "https://www.dankook.ac.kr/web/kor/-329": [
    "5b6bf9ace4be5076"
   ],
+  "https://www.dgist.ac.kr/gadm/": [],
+  "https://www.dist.ac.kr/": [],
   "https://www.dit.ac.kr/ipsi/": [
    "c6bcc74e9b93e162",
    "4320145a5ed496ef",
@@ -962,6 +1000,7 @@
   ],
   "https://www.hansei.ac.kr/": [],
   "https://www.hit.ac.kr/": [],
+  "https://www.hj.ac.kr/": [],
   "https://www.hongik.ac.kr/kr/admission/undergraduate-admission.do": [
    "1e514c5cfca81fc1",
    "514c7a4d84c99b4d",
@@ -987,10 +1026,12 @@
   "https://www.jbsc.ac.kr/portal/ipsi/main/main.do": [
    "f79baa21a47e1708"
   ],
+  "https://www.jeiu.ac.kr/": [],
   "https://www.jnue.ac.kr/": [],
   "https://www.karts.ac.kr/usr/gfa/guideline.do?fileUsage=GUIDELINE_COLLEGE": [
    "106ace6cff9bef7d"
   ],
+  "https://www.kcu.ac.kr/": [],
   "https://www.kcu.ac/": [],
   "https://www.kdischool.ac.kr/": [
    "5437e46f6cc5e8b0"
@@ -1017,6 +1058,8 @@
   "https://www.konyang.ac.kr/prog/info/ipsi/sub03_01/foreigner/list.do": [
    "ac374d2af234351d"
   ],
+  "https://www.koreatech.ac.kr/ipsi/": [],
+  "https://www.ktc.ac.kr/": [],
   "https://www.kunsan.ac.kr/inter/index.kunsan?menuCd=DOM_000013303001000000": [
    "6427288b7c64201b",
    "16f00a8610b1aa91",
@@ -1043,6 +1086,7 @@
   ],
   "https://www.motor.ac.kr/": [],
   "https://www.msu.ac.kr/": [],
+  "https://www.mtu.ac.kr/kor/CMS/Contents/Contents.do?mCode=MN147": [],
   "https://www.nsu.ac.kr/": [
    "6faaffc5d47a11e3"
   ],
@@ -1056,9 +1100,11 @@
    "eeee1ec523e84b6e"
   ],
   "https://www.pro.ac.kr/": [],
+  "https://www.puts.ac.kr/": [],
   "https://www.scnu.ac.kr/iphak/main.do": [
    "d581de1136f9d059"
   ],
+  "https://www.sdc.ac.kr/": [],
   "https://www.seoil.ac.kr/ipsi/index.do": [
    "4378c2aa84d31215"
   ],
@@ -1068,7 +1114,16 @@
    "81fd829e15e62469",
    "daa1b1ea33cc8173"
   ],
+  "https://www.sjs.ac.kr/admission/main/index.php": [],
   "https://www.songgok.ac.kr/": [],
+  "https://www.songho.ac.kr/iphak/index.do": [
+   "bba5f1e19cbbbf04",
+   "51ef7291aac189dc",
+   "4a4b8a5927659288",
+   "f632eeaf2f90fea6",
+   "9fa20bbf0e9dc6ed"
+  ],
+  "https://www.sungsim.ac.kr/": [],
   "https://www.tu.ac.kr/iphak/sub01_01.do": [
    "d6c007c4bc604da1"
   ],
