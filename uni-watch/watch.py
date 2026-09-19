@@ -50,6 +50,12 @@ HERE = Path(__file__).parent
 UNIVERSITIES_CSV = HERE / "universities.csv"
 STATE_FILE = HERE / "state.json"
 
+# Bumped whenever the key derivation changes. A mismatch makes load_state
+# re-seed silently instead of announcing the whole corpus as new.
+#   1 → 2: view counters (조회수) stripped before hashing, after the same three
+#          SKKU notices were re-announced on almost every run.
+STATE_VERSION = 2
+
 # How many university sites to fetch at once. Each one is a different host, so
 # this is not hammering anybody; it is what turns a 20-minute sweep into a
 # 2-minute one, which is what keeps the hourly schedule inside GitHub's free
@@ -133,8 +139,13 @@ class Candidate:
         those distinct; including the URL keeps two identically-titled notices
         (a yearly repost) distinct.
         """
-        raw = f"{self.url}||{_normalize(self.title)}"
+        raw = f"{self.url}||{_key_text(self.title)}"
         return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:16]
+
+    @property
+    def display_title(self) -> str:
+        """The title as a person should read it — counters removed."""
+        return _normalize(_strip_counters(self.title))
 
 
 @dataclass(frozen=True, slots=True)
@@ -145,7 +156,35 @@ class Finding:
 
 def _normalize(text: str) -> str:
     """Collapse whitespace so a board reflowing its HTML is not "new"."""
-    return re.sub(r"\s+", " ", text or "").strip().lower()
+    return re.sub(r"\s+", " ", text or "").strip()
+
+
+# A view counter inside the link text. Korean boards routinely render a row as
+# "공지 2027학년도 … 작성일 : 2026-09-09 조회수 : 5592", and 조회수 is the number of
+# times the notice has been VIEWED — it changes whenever anybody opens the
+# page, including this watcher. Keying on it made the same three SKKU notices
+# look new on almost every run (3 → 5 → 7 → 9 → 10 → 12 remembered keys for a
+# board with three items), and every one of those was a false alarm delivered
+# to the operator's phone.
+_COUNTER_RE = re.compile(
+    r"(조회수|조회|추천|좋아요|hits?|views?)\s*[:：]?\s*[\d,]+", re.IGNORECASE
+)
+
+# Belt and braces for boards that print a bare counter with no label. A run of
+# four or more digits is a counter or an id, never something a reader needs —
+# except a year, which is the single most important word in these titles and is
+# therefore excluded. Three-digit runs are left alone: "500명 모집" is content.
+_LONG_NUMBER_RE = re.compile(r"(?<!\d)(?!20\d{2}(?!\d))\d{4,}(?!\d)")
+
+
+def _strip_counters(text: str) -> str:
+    """Drop view/like counters. They are noise to a reader and poison to a key."""
+    return _COUNTER_RE.sub(" ", text or "")
+
+
+def _key_text(title: str) -> str:
+    """The part of a title that identifies the notice rather than its traffic."""
+    return _normalize(_LONG_NUMBER_RE.sub("#", _strip_counters(title))).lower()
 
 
 # --- reading the inputs ----------------------------------------------------
@@ -168,21 +207,36 @@ def load_universities(path: Path = UNIVERSITIES_CSV) -> list[University]:
     return out
 
 
+def _empty_state() -> dict:
+    return {"version": STATE_VERSION, "seen": {}, "last_run": None}
+
+
 def load_state(path: Path = STATE_FILE) -> dict:
-    """Missing or corrupt state means "seed everything, tell nobody".
+    """Missing, corrupt, or stale-format state means "seed everything, tell nobody".
 
     Treating a damaged file as empty is safe in exactly one direction: the
     worst case is one quiet run. Treating it as a crash would leave the watcher
     dead until somebody noticed, which is the failure this whole program is
     meant to prevent.
+
+    The version check matters just as much. Any change to how a key is derived
+    makes every stored key meaningless — not wrong in a way that hides notices,
+    but wrong in a way that makes all 700 of them look new at once, which would
+    fire that entire backlog at the operator's phone in a single message. So a
+    key-format change bumps STATE_VERSION, and the run that first sees the new
+    version re-seeds in silence exactly as if it had never run before.
     """
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
-        if isinstance(data, dict) and isinstance(data.get("seen"), dict):
+        if (
+            isinstance(data, dict)
+            and isinstance(data.get("seen"), dict)
+            and data.get("version") == STATE_VERSION
+        ):
             return data
     except (OSError, json.JSONDecodeError):
         pass
-    return {"version": 1, "seen": {}, "last_run": None}
+    return _empty_state()
 
 
 def save_state(state: dict, path: Path = STATE_FILE) -> None:
@@ -327,7 +381,7 @@ def format_message(findings: list[Finding]) -> str:
         for item in f.items:
             if shown >= MAX_ITEMS_PER_MESSAGE:
                 break
-            lines.append(f"   • {_esc(item.title[:160])}")
+            lines.append(f"   • {_esc(item.display_title[:160])}")
             lines.append(f"     {_esc(item.url)}")
             shown += 1
         lines.append("")
