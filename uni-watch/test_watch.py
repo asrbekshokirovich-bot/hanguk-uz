@@ -428,3 +428,94 @@ def test_a_non_json_reply_still_raises_something_readable(monkeypatch):
 
     with pytest.raises(RuntimeError, match="502"):
         asyncio.run(watch.send_telegram("x", token="t", chat_id="1"))
+
+
+# --- view counters: the false-alarm bug ------------------------------------
+
+
+def _skku(views: int) -> str:
+    """A verbatim SKKU board row, with only its view counter changed."""
+    return (
+        '<a href="/notice">공지 2027학년도 전기 재외국민 특별전형 최초 합격자 발표 '
+        f'작성일 : 2026-09-09 조회수 : {views}</a>'
+    )
+
+
+def test_a_changing_view_counter_is_not_a_new_notice():
+    """The bug this exists to stop: 조회수 counts page VIEWS, so it moves every
+    time anybody — including this watcher — opens the board. Keying on it
+    re-announced the same three SKKU notices on almost every run."""
+    page = "https://admission.skku.edu/admission/html/abroad/notice.html"
+    a = watch.extract_candidates(_skku(5592), page)
+    b = watch.extract_candidates(_skku(5610), page)
+
+    assert a and b
+    assert a[0].key == b[0].key
+
+
+def test_counters_do_not_reach_the_message():
+    page = "https://e.ac.kr/notice"
+    item = watch.extract_candidates(_skku(5592), page)[0]
+
+    assert "조회수" not in item.display_title
+    assert "5592" not in item.display_title
+    assert "최초 합격자 발표" in item.display_title
+
+
+def test_the_year_survives_the_number_scrub():
+    """Years are the main thing that tells two cycles apart — scrubbing them
+    would merge 2027 and 2028 into one notice and hide a real find."""
+    page = "https://e.ac.kr/notice"
+    a = watch.extract_candidates('<a href="/x">2027학년도 외국인 모집요강</a>', page)
+    b = watch.extract_candidates('<a href="/x">2028학년도 외국인 모집요강</a>', page)
+
+    assert a[0].key != b[0].key
+
+
+def test_short_numbers_stay_meaningful():
+    """"500명" is content, not a counter; two intakes differing only by it
+    must stay distinct."""
+    page = "https://e.ac.kr/notice"
+    a = watch.extract_candidates('<a href="/x">2027학년도 외국인 500명 모집요강</a>', page)
+    b = watch.extract_candidates('<a href="/x">2027학년도 외국인 300명 모집요강</a>', page)
+
+    assert a[0].key != b[0].key
+
+
+def test_a_genuinely_different_notice_still_differs():
+    page = "https://e.ac.kr/notice"
+    a = watch.extract_candidates(_skku(100), page)
+    b = watch.extract_candidates(
+        '<a href="/notice">공지 2027학년도 전기 재외국민 특별전형 모집요강 '
+        '작성일 : 2026-05-29 조회수 : 100</a>', page
+    )
+    assert a[0].key != b[0].key
+
+
+# --- state format migration ------------------------------------------------
+
+
+def test_an_old_state_version_re_seeds_instead_of_announcing_everything(tmp_path):
+    """Changing how a key is derived makes every stored key meaningless. Read
+    as-is, all ~700 would look new and fire at the operator in one burst."""
+    p = tmp_path / "state.json"
+    p.write_text(
+        json.dumps({"version": 1, "seen": {"https://e.ac.kr": ["oldkey"]}}),
+        encoding="utf-8",
+    )
+    assert watch.load_state(p)["seen"] == {}
+
+
+def test_the_current_version_is_kept(tmp_path):
+    p = tmp_path / "state.json"
+    p.write_text(
+        json.dumps(
+            {"version": watch.STATE_VERSION, "seen": {"https://e.ac.kr": ["k"]}}
+        ),
+        encoding="utf-8",
+    )
+    assert watch.load_state(p)["seen"] == {"https://e.ac.kr": ["k"]}
+
+
+def test_a_fresh_state_carries_the_current_version(tmp_path):
+    assert watch.load_state(tmp_path / "nope.json")["version"] == watch.STATE_VERSION
