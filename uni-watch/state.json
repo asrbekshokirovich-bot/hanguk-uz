@@ -1,5 +1,5 @@
 {
- "last_run": "2026-09-19T11:02:10+00:00",
+ "last_run": "2026-09-19T14:30:05+00:00",
  "seen": {
   "http://enter.konkuk.ac.kr/submenu.do?menuurl=k8b%2fCUaWlntKYwhT%2fh%2bKUA%3d%3d&": [],
   "https://adm-u.postech.ac.kr/": [
@@ -124,6 +124,7 @@
    "868e4a6f0aac9844"
   ],
   "https://admission.knou.ac.kr/": [],
+  "https://admission.ltu.ac.kr/": [],
   "https://admission.scu.ac.kr/": [],
   "https://admission.seoultech.ac.kr/": [],
   "https://admission.skku.edu/admission/html/abroad/notice.html": [
@@ -312,7 +313,12 @@
   "https://exam.shu.ac.kr/": [
    "6964ca0bb449d94a"
   ],
-  "https://exam.ync.ac.kr/": [],
+  "https://exam.ync.ac.kr/": [
+   "bfcbaa31f4f9a30c",
+   "9edd57837cda5354",
+   "f51172b6b2059655",
+   "05689b644bdbb2c8"
+  ],
   "https://ghent.ac.kr": [],
   "https://gknu.ac.kr": [],
   "https://global.kduniv.ac.kr/iphak/": [],
@@ -1095,6 +1101,9 @@
    "6faaffc5d47a11e3"
   ],
   "https://www.ok.ac.kr/ipsi/index.do": [
+   "e3bf1257d24dc260",
+   "41323cda2c4206df",
+   "5b9c5da9c5c8c771",
    "c258ba0001bb4cf0",
    "8717da6fd9f80d72",
    "877059269740afa1"
