@@ -1,5 +1,5 @@
 {
- "last_run": "2026-09-19T07:10:11+00:00",
+ "last_run": "2026-09-19T07:17:50+00:00",
  "seen": {
   "http://enter.konkuk.ac.kr/submenu.do?menuurl=k8b%2fCUaWlntKYwhT%2fh%2bKUA%3d%3d&": [],
   "https://adm-u.postech.ac.kr/": [
@@ -220,6 +220,7 @@
   "https://bpu.ac.kr": [
    "c4f9fbdb3681e662"
   ],
+  "https://ch.ac.kr": [],
   "https://csj.ac.kr": [
    "42a21b5cecaa9626"
   ],
@@ -672,6 +673,7 @@
    "652df1208b71037e"
   ],
   "https://ipsi.gw.ac.kr/": [],
+  "https://ipsi.halla.ac.kr/": [],
   "https://ipsi.hknu.ac.kr/": [
    "a7c8cc076e1b567f",
    "5efcdcaed6319c0a",
@@ -834,6 +836,7 @@
   ],
   "https://ipsi.yeonsung.ac.kr/ipsi/index.do": [],
   "https://ipsi.yit.ac.kr/ipsi/index.do": [],
+  "https://ipsi.yju.ac.kr/ipsi/index.do": [],
   "https://ipsi.ysc.ac.kr/ipsi/": [
    "fffb2cfd0b4223f6"
   ],
@@ -1105,6 +1108,7 @@
    "d581de1136f9d059"
   ],
   "https://www.sdc.ac.kr/": [],
+  "https://www.semyung.ac.kr/ipsi.do": [],
   "https://www.seoil.ac.kr/ipsi/index.do": [
    "4378c2aa84d31215"
   ],
