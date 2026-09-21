@@ -91,6 +91,11 @@ jobs:
           # out of production and matched this repo's copy exactly, so the two
           # new document descriptions are the newer code. Its verify_jwt = false
           # already had its own config.toml entry, so the deploy keeps it.
+          # Verified on 2026-09-21: `send-push-notification` live version 2 was
+          # read out of production and matched this repo's copy, which is the
+          # one PR #281 fixed. It had to join the list — left off, the repo held
+          # the only copy that lets document_handler notify anyone, while
+          # production kept answering 403 and surveys went out silently.
           FUNCTIONS="
             instagram-webhook
             channel-health-check
@@ -103,6 +108,7 @@ jobs:
             translate-message
             infra-health-check
             validate-document
+            send-push-notification
           "
 
           for fn in $FUNCTIONS; do

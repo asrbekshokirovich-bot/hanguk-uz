@@ -29,7 +29,7 @@ import {
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Trash2, GripVertical, Eye, BarChart3, Link2 } from 'lucide-react';
+import { Plus, Trash2, GripVertical, Eye, BarChart3, Link2, Bell, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Survey {
@@ -120,6 +120,7 @@ export default function SurveysContent() {
     { question_text: '', question_type: 'text', options: null, sort_order: 0, is_required: true },
   ]);
   const [saving, setSaving] = useState(false);
+  const [sendingPush, setSendingPush] = useState<string | null>(null);
   // Shown inside the dialog. A toast alone is not enough here: the dialog
   // sits at z-50 over a black overlay, so a validation toast can land behind
   // it and pressing Yaratish then looks like nothing happened at all.
@@ -248,23 +249,7 @@ export default function SurveysContent() {
 
       toast.success("So'rovnoma yaratildi");
 
-      // Send push notification to all users about the new survey
-      try {
-        const { data: pushResult, error: pushError } = await supabase.functions.invoke('send-push-notification', {
-          body: {
-            title: "Yangi so'rovnoma!",
-            body: title.trim(),
-            data: { type: 'survey', survey_id: (survey as Record<string, unknown>).id as string },
-          },
-        });
-        if (pushError) {
-          toast.error(`Bildirishnoma yuborilmadi: ${pushError.message}`);
-        } else if (pushResult?.sent > 0) {
-          toast.success(`${pushResult.sent} ta foydalanuvchiga bildirishnoma yuborildi`);
-        }
-      } catch {
-        // Network failure — survey was already created successfully
-      }
+      await sendPush((survey as Record<string, unknown>).id as string, title.trim());
 
       setShowCreate(false);
       resetForm();
@@ -275,6 +260,44 @@ export default function SurveysContent() {
       toast.error(`Xatolik: ${message}`);
     } finally {
       setSaving(false);
+    }
+  };
+
+  /**
+   * Notifies everyone who has a push token. Split out of the create flow so a
+   * survey that went out without a notification can still get one: the first
+   * real survey was created by a document_handler, the function answered 403,
+   * and there was no second way to send it — the notification is only ever
+   * offered at creation time. Reports what actually happened either way,
+   * because a silent failure here is indistinguishable from success.
+   */
+  const sendPush = async (surveyId: string, surveyTitle: string) => {
+    setSendingPush(surveyId);
+    try {
+      const { data: pushResult, error: pushError } = await supabase.functions.invoke('send-push-notification', {
+        body: {
+          title: "Yangi so'rovnoma!",
+          body: surveyTitle,
+          data: { type: 'survey', survey_id: surveyId },
+        },
+      });
+      if (pushError) {
+        toast.error(`Bildirishnoma yuborilmadi: ${pushError.message}`);
+        return;
+      }
+      const sent = (pushResult as { sent?: number } | null)?.sent ?? 0;
+      if (sent > 0) {
+        toast.success(`${sent} ta qurilmaga bildirishnoma yuborildi`);
+      } else {
+        // Every student without the app installed falls in here. Saying so
+        // beats a success toast that reached nobody.
+        toast.warning("Bildirishnoma hech kimga bormadi — ilova o'rnatgan foydalanuvchi topilmadi");
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      toast.error(`Bildirishnoma yuborilmadi: ${message}`);
+    } finally {
+      setSendingPush(null);
     }
   };
 
@@ -553,6 +576,17 @@ export default function SurveysContent() {
                         onClick={() => copyLink(survey.id)}
                       >
                         <Link2 className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        title="Bildirishnomani qayta yuborish"
+                        disabled={sendingPush === survey.id}
+                        onClick={() => sendPush(survey.id, survey.title)}
+                      >
+                        {sendingPush === survey.id
+                          ? <Loader2 className="h-4 w-4 animate-spin" />
+                          : <Bell className="h-4 w-4" />}
                       </Button>
                       <Button
                         variant="ghost"

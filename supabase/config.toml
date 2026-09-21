@@ -42,6 +42,11 @@ verify_jwt = false
 [functions.translate-document]
 verify_jwt = false
 
+# Staff-only: the CRM calls it with the operator's JWT and the function checks
+# the role itself. Pinned so the gateway keeps refusing anonymous callers.
+[functions.send-push-notification]
+verify_jwt = true
+
 [functions.translate-parsed-output]
 verify_jwt = true
 
