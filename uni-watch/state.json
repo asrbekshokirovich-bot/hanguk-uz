@@ -1,5 +1,5 @@
 {
- "last_run": "2026-09-20T21:36:23+00:00",
+ "last_run": "2026-09-21T00:21:30+00:00",
  "seen": {
   "http://enter.konkuk.ac.kr/submenu.do?menuurl=k8b%2fCUaWlntKYwhT%2fh%2bKUA%3d%3d&": [],
   "https://adm-u.postech.ac.kr/": [
@@ -94,7 +94,10 @@
    "ae0910cdf584d94e",
    "0e2c9bcfd6024495"
   ],
-  "https://admission.kaist.ac.kr/intl-undergraduate/notice": [],
+  "https://admission.kaist.ac.kr/intl-undergraduate/notice": [
+   "bcaaeccecbd06d27",
+   "43ebd8a3fafe3608"
+  ],
   "https://admission.kangnam.ac.kr/main.htm": [
    "847553c52577796f",
    "ba4d3b78321fbd7c",
@@ -820,6 +823,12 @@
   ],
   "https://ipsi.syu.ac.kr/": [],
   "https://ipsi.u1.ac.kr/": [
+   "2bb8479ad801d54e",
+   "54e6bedec420689a",
+   "bb5a27a837264bea",
+   "d979ba0effcb9eab",
+   "af291318330877cd",
+   "65a867b3262ce685",
    "fd841f7f924ef4d2",
    "eb085110b6a673cc",
    "d89c43bcf441d0b0",
