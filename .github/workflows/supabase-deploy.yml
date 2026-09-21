@@ -90,8 +90,7 @@ jobs:
           # Verified on 2026-09-21: `validate-document` live version 43 was read
           # out of production and matched this repo's copy exactly, so the two
           # new document descriptions are the newer code. Its verify_jwt = false
-          # is now pinned in config.toml — without that entry this first deploy
-          # would have flipped the live setting to true.
+          # already had its own config.toml entry, so the deploy keeps it.
           FUNCTIONS="
             instagram-webhook
             channel-health-check
