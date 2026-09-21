@@ -82,6 +82,31 @@ describe('buildApplicationPack', () => {
     expect(pack.slots.every((s) => s.state === 'missing')).toBe(true);
   });
 
+  it('carries TOPIK and the apostille in the pack without gating on them', () => {
+    const ids = APPLICATION_PACK_SLOTS.map((s) => s.id);
+    expect(ids).toContain('topik_certificate');
+    expect(ids).toContain('diploma_apostille');
+
+    const slots = byId([
+      row('topik_certificate', 'TOPIK.pdf', 'approved'),
+      row('diploma_apostille', 'APOSTILLE.pdf'),
+    ]);
+    expect(slots.topik_certificate.state).toBe('verified');
+    expect(slots.diploma_apostille.state).toBe('received');
+
+    // Neither may block "advance to the next stage" — the students already in
+    // the system predate both slots.
+    expect(slots.topik_certificate.slot.required).toBe(false);
+    expect(slots.diploma_apostille.slot.required).toBe(false);
+  });
+
+  it('does not let the language certificate fill the TOPIK slot, or the diploma fill the apostille', () => {
+    const slots = byId([row('language_certificate', 'IELTS.pdf'), row('diploma', 'DIPLOMA.pdf')]);
+    expect(slots.topik_certificate.state).toBe('missing');
+    expect(slots.diploma_apostille.state).toBe('missing');
+    expect(slots.language_certificate.state).toBe('received');
+  });
+
   it('accepts the legacy applicant_passport tag for the foreign passport slot', () => {
     expect(byId([row('applicant_passport', 'OLD.pdf')]).foreign_passport.state).toBe('received');
   });

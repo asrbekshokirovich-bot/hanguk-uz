@@ -68,14 +68,17 @@ const setup = () => {
 describe('DocumentsContent application pack', () => {
   it('shows each real upload as received instead of missing', () => {
     setup();
-    // Seven uploads awaiting review, two required slots genuinely empty.
+    // Seven uploads awaiting review; four pack slots genuinely empty — the
+    // father's ID card plus the three optional ones (marriage certificate,
+    // TOPIK, diploma apostille).
     expect(screen.getAllByText('Qabul qilindi')).toHaveLength(7);
-    expect(screen.getAllByText("Yo'q")).toHaveLength(2);
-    expect(screen.getAllByText('Talaba yuklashi kerak')).toHaveLength(2);
-    // The counter is over the 8 required slots; the marriage certificate is optional.
+    expect(screen.getAllByText("Yo'q")).toHaveLength(4);
+    expect(screen.getAllByText('Talaba yuklashi kerak')).toHaveLength(4);
+    // The counter is over the 8 required slots only, so the optional three
+    // never move it: one required slot empty still reads 0/8 verified.
     expect(screen.getAllByText('0/8').length).toBeGreaterThan(0);
     expect(screen.getByText('8 ta qoldi')).toBeInTheDocument();
-    expect(screen.getByText('Ixtiyoriy')).toBeInTheDocument();
+    expect(screen.getAllByText('Ixtiyoriy')).toHaveLength(3);
     // Slots carry the portal's own wording, not the old English mock labels.
     expect(screen.getByText('Diplom yoki attestat nusxasi')).toBeInTheDocument();
     expect(screen.queryByText('Passport copy')).not.toBeInTheDocument();

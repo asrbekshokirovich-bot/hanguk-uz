@@ -108,18 +108,34 @@ const requiredDocuments: DocumentType[] = [
     nameRu: "Копия языкового сертификата (мин. IELTS 5.5 или TOPIK 2)",
     required: true
   },
-  { 
+  // Separate from language_certificate on purpose: that slot stays as it is for
+  // IELTS, and a student holding both uploads each under its own row.
+  {
+    id: 'topik_certificate',
+    nameUz: "TOPIK sertifikati nusxasi",
+    nameEn: "TOPIK certificate copy",
+    nameRu: "Копия сертификата TOPIK",
+    required: true
+  },
+  {
     id: 'photo',
     nameUz: "Rasm (3.5x4.5)",
     nameEn: "Photo (3.5x4.5 cm)",
     nameRu: "Фото (3.5x4.5 см)",
     required: true
   },
-  { 
+  {
     id: 'diploma',
     nameUz: "Diplom yoki attestat nusxasi",
     nameEn: "Diploma or certificate copy",
     nameRu: "Копия диплома или аттестата",
+    required: true
+  },
+  {
+    id: 'diploma_apostille',
+    nameUz: "Diplom / Attestat apostili",
+    nameEn: "Diploma / certificate apostille",
+    nameRu: "Апостиль диплома / аттестата",
     required: true
   },
   { 
@@ -141,8 +157,10 @@ const translationSlots: Record<string, DocumentType> = {
   
   birth_certificate: { id: 'birth_certificate_translation', nameUz: "Tug'ilganlik guvohnomasi tarjimasi", nameEn: "Birth certificate translation", nameRu: "Перевод свидетельства о рождении" },
   language_certificate: { id: 'language_certificate_translation', nameUz: "Til sertifikat tarjimasi", nameEn: "Language certificate translation", nameRu: "Перевод языкового сертификата" },
+  topik_certificate: { id: 'topik_certificate_translation', nameUz: "TOPIK sertifikati tarjimasi", nameEn: "TOPIK certificate translation", nameRu: "Перевод сертификата TOPIK" },
   photo: { id: 'photo_translation', nameUz: "Rasm tarjimasi", nameEn: "Photo translation", nameRu: "Перевод фото" },
   diploma: { id: 'diploma_translation', nameUz: "Diplom tarjimasi", nameEn: "Diploma translation", nameRu: "Перевод диплома" },
+  diploma_apostille: { id: 'diploma_apostille_translation', nameUz: "Apostil tarjimasi", nameEn: "Apostille translation", nameRu: "Перевод апостиля" },
   marriage_certificate: { id: 'marriage_certificate_translation', nameUz: "Nikoh guvohnomasi tarjimasi", nameEn: "Marriage certificate translation", nameRu: "Перевод свидетельства о браке" },
 };
 

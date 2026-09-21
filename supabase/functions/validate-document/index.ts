@@ -84,10 +84,20 @@ serve(async (req) => {
         en: "Document photo (3.5x4.5 cm)",
         ru: "Фото для документов (3.5x4.5 см)"
       },
+      topik_certificate: {
+        uz: "TOPIK sertifikati (koreys tili darajasi)",
+        en: "TOPIK certificate (Korean language proficiency)",
+        ru: "Сертификат TOPIK (уровень корейского языка)"
+      },
       diploma: {
         uz: "Diplom yoki attestat",
         en: "Diploma or certificate",
         ru: "Диплом или аттестат"
+      },
+      diploma_apostille: {
+        uz: "Diplom yoki attestatga qo'yilgan apostil shtampi",
+        en: "Apostille stamp issued for a diploma or school certificate",
+        ru: "Апостиль на дипломе или аттестате"
       },
       bank_statement: {
         uz: "Bank ma'lumotnomasi",

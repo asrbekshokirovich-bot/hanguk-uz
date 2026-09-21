@@ -87,6 +87,11 @@ jobs:
           # userbot heartbeat check added on top of it is the newer code. It had
           # to join the list: left off, that check would sit in the repo while
           # production kept running a health probe that cannot see the userbot.
+          # Verified on 2026-09-21: `validate-document` live version 43 was read
+          # out of production and matched this repo's copy exactly, so the two
+          # new document descriptions are the newer code. Its verify_jwt = false
+          # is now pinned in config.toml — without that entry this first deploy
+          # would have flipped the live setting to true.
           FUNCTIONS="
             instagram-webhook
             channel-health-check
@@ -98,6 +103,7 @@ jobs:
             telegram-webhook
             translate-message
             infra-health-check
+            validate-document
           "
 
           for fn in $FUNCTIONS; do

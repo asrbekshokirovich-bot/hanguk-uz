@@ -54,6 +54,15 @@ export const APPLICATION_PACK_SLOTS: StudentDocSlot[] = [
     note: { uz: 'Kamida IELTS 5.5 yoki TOPIK 2', en: 'Min. IELTS 5.5 or TOPIK 2', ru: 'Мин. IELTS 5.5 или TOPIK 2' },
     required: true,
   },
+  // TOPIK and the apostille sit in the contract pack and are shown with it, but
+  // they do not gate "advance to the next stage": every student already in the
+  // system predates these two slots, and gating on them would freeze all of
+  // them at once. Same treatment `marriage_certificate` already gets.
+  {
+    id: 'topik_certificate',
+    name: { uz: 'TOPIK sertifikati nusxasi', en: 'TOPIK certificate copy', ru: 'Копия сертификата TOPIK' },
+    required: false,
+  },
   {
     id: 'photo',
     name: { uz: 'Rasm (3.5x4.5)', en: 'Photo (3.5x4.5 cm)', ru: 'Фото (3.5x4.5 см)' },
@@ -63,6 +72,11 @@ export const APPLICATION_PACK_SLOTS: StudentDocSlot[] = [
     id: 'diploma',
     name: { uz: 'Diplom yoki attestat nusxasi', en: 'Diploma or certificate copy', ru: 'Копия диплома или аттестата' },
     required: true,
+  },
+  {
+    id: 'diploma_apostille',
+    name: { uz: 'Diplom / Attestat apostili', en: 'Diploma / certificate apostille', ru: 'Апостиль диплома / аттестата' },
+    required: false,
   },
   // The portal asks every student for this, but only married applicants have
   // one, so it is shown without gating the pack.
