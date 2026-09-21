@@ -46,6 +46,7 @@ const MonthlyContent = lazy(() => import('@/components/finance/MonthlyPaymentsPa
 const ScheduledPaymentsContent = lazy(() => import('@/components/finance/ScheduledPaymentsPanel').then(m => ({ default: m.ScheduledPaymentsPanel })));
 const DistributionContent = lazy(() => import('@/components/finance/IncomeDistributionPanel').then(m => ({ default: m.IncomeDistributionPanel })));
 const BonusesContent = lazy(() => import('@/components/finance/StaffBonusesPanel').then(m => ({ default: m.StaffBonusesPanel })));
+const UniversityCatalogContent = lazy(() => import('@/components/crm/pages/UniversityCatalogContent'));
 const UniversitiesContent = lazy(() => import('@/components/crm/pages/UniversitiesContent'));
 const TasksContent = lazy(() => import('@/components/crm/pages/TasksContent'));
 const MessagesContent = lazy(() => import('@/components/crm/pages/MessagesContent'));
@@ -142,6 +143,7 @@ export default function CRMPortal() {
     if (currentPath.startsWith('/crm/communication')) return 'communication';
     if (currentPath.startsWith('/crm/kakao-map')) return 'kakao-map';
     if (currentPath.startsWith('/crm/admin/uni-db-review')) return 'uni-db-review';
+    if (currentPath.startsWith('/crm/admin/institutions')) return 'institutions';
     if (currentPath.startsWith('/crm/surveys')) return 'surveys';
     return 'dashboard';
   };
@@ -383,6 +385,8 @@ export default function CRMPortal() {
         if (!isOwner) return <AccessDenied />;
         return <FinanceReportsWrapper />;
       case 'universities':
+        return <SafeSuspense><UniversityCatalogContent /></SafeSuspense>;
+      case 'institutions':
         return <SafeSuspense><UniversitiesContent /></SafeSuspense>;
       case 'tasks':
         return <SafeSuspense><TasksContent /></SafeSuspense>;

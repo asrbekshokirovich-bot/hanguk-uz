@@ -480,7 +480,9 @@ export default function UniversitiesContent() {
                       {uploadingId === row.id
                         ? <Loader2 className="h-4 w-4 mr-1 animate-spin" />
                         : <UploadCloud className="h-4 w-4 mr-1" />}
-                      Upload
+                      {/* "PDF" nomda turibdi: Universitetlar katalogidagi yuklash
+                          tugmasi .xlsx kutadi, bu esa guideline PDF'ini. */}
+                      Upload PDF
                     </Button>
                     <Button
                       size="sm"
