@@ -422,5 +422,15 @@ BEGIN
 END;
 $$;
 
-REVOKE ALL ON FUNCTION public.import_university_guideline(jsonb) FROM PUBLIC;
+-- Funksiyalarni anon rolidan yopamiz.
+--
+-- Diqqat: `REVOKE ... FROM PUBLIC` bu yerda yetarli emas. Loyihada public
+-- sxemadagi yangi funksiyalarga default privilege orqali anon, authenticated
+-- va service_role ga EXECUTE beriladi; bular alohida rol grantlari bo'lgani
+-- uchun PUBLIC'dan revoke qilish ularga tegmaydi — anon'ni nomma-nom aytish
+-- kerak. Natija mavjud fn_can_review_uni_db bilan bir xil bo'ladi.
+REVOKE ALL ON FUNCTION public.import_university_guideline(jsonb) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.import_university_guideline(jsonb) TO authenticated;
+
+REVOKE ALL ON FUNCTION public.is_non_investor_staff() FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.is_non_investor_staff() TO authenticated;

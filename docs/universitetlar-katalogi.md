@@ -99,7 +99,9 @@ tortiladi.
 
 **Ruxsatlar (RLS):** investordan boshqa har qanday xodim o'qiy oladi; yozish
 faqat `owner` va `admin` uchun. Import `import_university_guideline(payload)`
-RPC'si orqali ketadi va rolni o'zi ham tekshiradi.
+RPC'si orqali ketadi va rolni o'zi ham tekshiradi. Ikkala yangi funksiya
+`anon` rolidan yopilgan — tizimga kirmagan foydalanuvchi ularni chaqira
+olmaydi.
 
 ## Kod
 
