@@ -76,7 +76,10 @@ async function getAccessToken(sa: ServiceAccount): Promise<string> {
   return tokenData.access_token;
 }
 
-const STAFF_ROLES = ["owner", "admin"];
+// document_handler joined this list once the CRM let that role run surveys:
+// it could create a survey but every notification call came back 403, so a
+// survey went out silently and nobody was told about it.
+const STAFF_ROLES = ["owner", "admin", "document_handler"];
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
