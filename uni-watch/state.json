@@ -1,5 +1,5 @@
 {
- "last_run": "2026-09-21T05:09:23+00:00",
+ "last_run": "2026-09-21T10:48:41+00:00",
  "seen": {
   "http://enter.konkuk.ac.kr/submenu.do?menuurl=k8b%2fCUaWlntKYwhT%2fh%2bKUA%3d%3d&": [],
   "https://adm-u.postech.ac.kr/": [
@@ -354,6 +354,7 @@
   ],
   "https://go.pusan.ac.kr/": [],
   "https://go.sangji.ac.kr/kor/index.do": [
+   "782ce0bd1c1d06c4",
    "407107e2501f9158",
    "38aa39a414af2b89"
   ],
@@ -468,6 +469,7 @@
    "b10580b72e2bd18b"
   ],
   "https://iccu.ac.kr": [
+   "d3804f99c51d2fac",
    "22bd4475f35f2867"
   ],
   "https://igse.ac.kr": [
@@ -876,6 +878,7 @@
   "https://kcgu.ac.kr": [],
   "https://kings.ac.kr": [],
   "https://kkot.ac.kr": [
+   "a0fcc318fc62f90a",
    "027be278e674051b"
   ],
   "https://kookje.ac.kr": [],
