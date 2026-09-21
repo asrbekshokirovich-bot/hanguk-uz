@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { isValidElement, useEffect, useMemo, useState, type ReactNode } from 'react';
 import {
   Sheet,
   SheetContent,
@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { EmptyState } from '@/components/ui/empty-state';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
   Select,
   SelectContent,
@@ -26,24 +27,43 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { cn } from '@/lib/utils';
 import {
+  Award,
   CalendarClock,
+  ChevronDown,
+  ClipboardList,
+  Database,
   ExternalLink,
   FileSpreadsheet,
   FileText,
+  Info,
+  Landmark,
+  Languages,
   Loader2,
+  Mail,
   MapPin,
+  Phone,
   Search,
   UploadCloud,
+  Users,
 } from 'lucide-react';
 import {
   useGuidelineDetail,
   type CatalogEntry,
+  type GuidelineDoc,
   type GuidelineFaculty,
   type GuidelineFull,
   type GuidelineRound,
 } from '@/hooks/useUniversityCatalog';
-import { admissionLabel, cityLabel, displayName, formatMoney, periodLabel } from './format';
+import {
+  admissionLabel,
+  cityLabel,
+  contractRange,
+  displayName,
+  formatMoney,
+  periodLabel,
+} from './format';
 
 interface Props {
   entry: CatalogEntry | null;
@@ -54,20 +74,106 @@ interface Props {
   uploading: boolean;
 }
 
-function Field({ label, value }: { label: string; value: unknown }) {
-  if (value === null || value === undefined || value === '') return null;
+// ---------------------------------------------------------------------------
+// Qayta ishlatiladigan bo'laklar
+// ---------------------------------------------------------------------------
+
+const isEmpty = (v: unknown) => v === null || v === undefined || v === '';
+
+/** Bir qarashda o'qiladigan raqam: sarlavha ustida kichik, qiymat yirik. */
+function StatTile({
+  label,
+  value,
+  hint,
+}: {
+  label: string;
+  value: string | null;
+  hint?: string | null;
+}) {
   return (
-    <div className="space-y-0.5">
-      <p className="text-xs text-muted-foreground">{label}</p>
-      <p className="text-sm whitespace-pre-wrap break-words">{String(value)}</p>
+    <div className="rounded-lg border bg-muted/30 px-3 py-2">
+      <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p className={cn('mt-0.5 font-semibold', value ? 'text-base' : 'text-base text-muted-foreground')}>
+        {value ?? '—'}
+      </p>
+      {hint && <p className="text-[11px] text-muted-foreground">{hint}</p>}
     </div>
   );
 }
 
-function yesNo(value: unknown): string | null {
-  if (value === true) return 'ha';
-  if (value === false) return "yo'q";
-  return (value as string) ?? null;
+function InfoCard({
+  icon: Icon,
+  title,
+  children,
+}: {
+  icon: typeof Info;
+  title: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className="rounded-lg border">
+      <header className="flex items-center gap-2 border-b bg-muted/30 px-3 py-2">
+        <Icon className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+        <h4 className="text-sm font-semibold">{title}</h4>
+      </header>
+      <div className="space-y-2 p-3">{children}</div>
+    </section>
+  );
+}
+
+/**
+ * Yorliq chapda, qiymat o'ngda — ko'z bitta ustun bo'ylab yuguradi.
+ *
+ * `value` — `unknown`, chunki GuidelineFull universitet varag'ining barcha
+ * ustunlarini `Record<string, unknown>` sifatida olib keladi. Havola kabi
+ * tayyor element bo'lsa o'zi chiziladi, qolgani matnga o'giriladi.
+ */
+function Row({ label, value }: { label: string; value: unknown }) {
+  if (isEmpty(value)) return null;
+  return (
+    <div className="flex items-baseline justify-between gap-4 border-b border-border/40 py-1 last:border-0">
+      <span className="shrink-0 text-xs text-muted-foreground">{label}</span>
+      <span className="min-w-0 break-words text-right text-sm">
+        {isValidElement(value) ? value : String(value)}
+      </span>
+    </div>
+  );
+}
+
+/**
+ * Uzun izoh. Guideline izohlari ba'zan bir necha abzats bo'ladi va yig'ilmasa
+ * butun bo'limni bosib ketadi — shuning uchun 3 qatordan keyin yig'iladi.
+ */
+function Note({ label, text }: { label?: string; text: unknown }) {
+  const [open, setOpen] = useState(false);
+  if (isEmpty(text)) return null;
+
+  const body = String(text);
+  const long = body.length > 180;
+
+  return (
+    <div className="space-y-1 pt-1">
+      {label && <p className="text-xs text-muted-foreground">{label}</p>}
+      <p className={cn('whitespace-pre-wrap text-sm leading-relaxed', !open && long && 'line-clamp-3')}>
+        {body}
+      </p>
+      {long && (
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          className="text-xs font-medium text-primary hover:underline"
+        >
+          {open ? 'Yig‘ish' : 'To‘liq o‘qish'}
+        </button>
+      )}
+    </div>
+  );
+}
+
+function yesNoBadge(value: unknown, label: string) {
+  if (value === true) return <Badge variant="successSoft">{label}</Badge>;
+  if (value === false) return <Badge variant="neutral">{label} — yo‘q</Badge>;
+  return null;
 }
 
 /** "2026-09-21 09:00 — 2026-10-02 17:00" yoki bo'sh bo'lsa null. */
@@ -86,94 +192,178 @@ const HOLAT_VARIANT: Record<string, 'successSoft' | 'warning' | 'info' | 'neutra
   etap_yoq: 'neutral',
 };
 
+// ---------------------------------------------------------------------------
+// Umumiy
+// ---------------------------------------------------------------------------
+
 function UmumiyTab({ g }: { g: GuidelineFull }) {
-  const money = (key: string) => formatMoney(g[key] as number | null, g.narx_valyuta);
+  // GuidelineFull — GuidelineSummary'ning kengaytmasi, shuning uchun katalog
+  // kartasi bilan bir xil formatlash ishlatiladi.
+  const kontrakt = contractRange(g);
+
+  const til = [
+    g.topik_min !== null ? { label: 'TOPIK', value: g.topik_min } : null,
+    g.ielts_min !== null ? { label: 'IELTS', value: g.ielts_min } : null,
+    g.toefl_ibt_min !== null ? { label: 'TOEFL iBT', value: g.toefl_ibt_min } : null,
+  ].filter(Boolean) as { label: string; value: number }[];
+
+  const manba = [
+    ['Guideline sarlavhasi', g.guideline_sarlavha],
+    ['PDF fayli', g.guideline_fayl],
+    ['Excel fayli', g.fayl_nomi],
+    ['Tahlil sanasi', g.tahlil_sanasi],
+    ['Format versiyasi', g.format_versiya],
+    ['guideline_id', g.guideline_id],
+    ['Sahifalar', g.sahifalar],
+  ] as const;
 
   return (
-    <div className="space-y-5">
-      <section className="space-y-3">
-        <h4 className="text-sm font-semibold">Ariza</h4>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <Field label="Ariza sayti" value={g.ariza_sayti} />
-          <Field
-            label="Ariza to'lovi"
+    <div className="space-y-3">
+      {/* 1. Pul — eng ko'p so'raladigan raqamlar birinchi qatorda */}
+      <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
+        <StatTile
+          label="Ariza to'lovi"
+          value={
+            isEmpty(g.ariza_tolovi)
+              ? null
+              : formatMoney(g.ariza_tolovi as number, g.ariza_tolovi_valyuta as string)
+          }
+        />
+        <StatTile
+          label="Kontrakt"
+          value={kontrakt}
+          hint={kontrakt ? `/ ${periodLabel(g.kontrakt_davri) ?? 'semestr'}` : null}
+        />
+        <StatTile
+          label="Kirish to'lovi"
+          value={isEmpty(g.kirish_tolovi) ? null : formatMoney(g.kirish_tolovi as number, g.narx_valyuta)}
+        />
+        <StatTile
+          label="Bank statement"
+          value={
+            isEmpty(g.bank_summa)
+              ? null
+              : formatMoney(g.bank_summa as number, g.bank_valyuta as string)
+          }
+        />
+      </div>
+
+      {/* 2. Til — qaysi talaba mos kelishini shu hal qiladi */}
+      <InfoCard icon={Languages} title="Til talablari">
+        <div className="flex flex-wrap items-center gap-1.5">
+          {yesNoBadge(g.korean_track, 'Korean track')}
+          {yesNoBadge(g.english_track, 'English track')}
+        </div>
+        {til.length > 0 && (
+          <div className="grid grid-cols-3 gap-2 pt-1">
+            {til.map((t) => (
+              <div key={t.label} className="rounded-md border bg-muted/20 px-2 py-1.5 text-center">
+                <p className="text-[11px] text-muted-foreground">{t.label}</p>
+                <p className="text-sm font-semibold">{t.value}</p>
+              </div>
+            ))}
+          </div>
+        )}
+        <Note text={g.til_izoh} />
+      </InfoCard>
+
+      {/* 3. Ariza va bank — yonma-yon, chunki ikkalasi ham qisqa */}
+      <div className="grid gap-3 xl:grid-cols-2">
+        <InfoCard icon={FileText} title="Ariza">
+          <Row
+            label="Sayt"
             value={
-              g.ariza_tolovi
-                ? formatMoney(g.ariza_tolovi as number, g.ariza_tolovi_valyuta as string)
-                : null
+              g.ariza_sayti ? (
+                <a
+                  href={String(g.ariza_sayti)}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1 text-primary hover:underline"
+                >
+                  {String(g.ariza_sayti).replace(/^https?:\/\//, '')}
+                  <ExternalLink className="h-3 w-3" aria-hidden="true" />
+                </a>
+              ) : null
             }
           />
-          <Field label="To'lash usuli" value={g.ariza_tolovi_usuli} />
-          <Field label="Kirish to'lovi (입학금)" value={g.kirish_tolovi ? money('kirish_tolovi') : null} />
-        </div>
-      </section>
+          <Note label="To'lash usuli" text={g.ariza_tolovi_usuli} />
+        </InfoCard>
 
-      <section className="space-y-3">
-        <h4 className="text-sm font-semibold">Til talablari</h4>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <Field label="Korean track" value={yesNo(g.korean_track)} />
-          <Field label="English track" value={yesNo(g.english_track)} />
-          <Field label="TOPIK (eng kami)" value={g.topik_min} />
-          <Field label="IELTS (eng kami)" value={g.ielts_min} />
-          <Field label="TOEFL iBT (eng kami)" value={g.toefl_ibt_min} />
-        </div>
-        <Field label="Izoh" value={g.til_izoh} />
-      </section>
+        <InfoCard icon={Landmark} title="Bank statement">
+          <Row label="Bank turi" value={g.bank_turi} />
+          <Row label="Qachon" value={g.bank_vaqti} />
+          <Row label="Saqlash muddati" value={g.bank_saqlash_muddati} />
+          <Note text={g.bank_izoh} />
+        </InfoCard>
+      </div>
 
-      <section className="space-y-3">
-        <h4 className="text-sm font-semibold">Bank statement</h4>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <Field
-            label="Summa"
-            value={g.bank_summa ? formatMoney(g.bank_summa as number, g.bank_valyuta as string) : null}
+      {/* 4. Tavsiyanoma va kontakt */}
+      <div className="grid gap-3 xl:grid-cols-2">
+        <InfoCard icon={Award} title="Tavsiyanoma">
+          <Row label="Talab qilinadimi" value={g.tavsiyanoma} />
+          <Note text={g.tavsiyanoma_izoh} />
+        </InfoCard>
+
+        <InfoCard icon={Phone} title="International office">
+          <div className="flex flex-wrap gap-x-4 gap-y-1">
+            {g.io_telefon && (
+              <a
+                href={`tel:${String(g.io_telefon).replace(/\s/g, '')}`}
+                className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline"
+              >
+                <Phone className="h-3.5 w-3.5" aria-hidden="true" />
+                {String(g.io_telefon)}
+              </a>
+            )}
+            {g.io_email && (
+              <a
+                href={`mailto:${String(g.io_email)}`}
+                className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline"
+              >
+                <Mail className="h-3.5 w-3.5" aria-hidden="true" />
+                {String(g.io_email)}
+              </a>
+            )}
+          </div>
+          <Row label="Pochta indeksi" value={g.io_zip} />
+          <Note label="Manzil (EN)" text={g.io_manzil_en} />
+          <Note label="Manzil (KR)" text={g.io_manzil_kr} />
+          <Note label="Hujjat yuborish manzili" text={g.hujjat_yuborish_manzili} />
+        </InfoCard>
+      </div>
+
+      {/* 5. Umumiy shartlar — uzun, o'zining kartasida */}
+      {!isEmpty(g.izoh) && (
+        <InfoCard icon={Info} title="Umumiy shartlar">
+          <Note text={g.izoh} />
+        </InfoCard>
+      )}
+
+      {/* 6. Manba — kundalik ish uchun emas, yopiq turadi */}
+      <Collapsible>
+        <CollapsibleTrigger className="group flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-sm text-muted-foreground hover:bg-muted/30">
+          <Database className="h-4 w-4" aria-hidden="true" />
+          Manba
+          <ChevronDown
+            className="ml-auto h-4 w-4 transition-transform group-data-[state=open]:rotate-180"
+            aria-hidden="true"
           />
-          <Field label="Bank turi" value={g.bank_turi} />
-          <Field label="Qachon" value={g.bank_vaqti} />
-          <Field label="Saqlash muddati" value={g.bank_saqlash_muddati} />
-        </div>
-        <Field label="Izoh" value={g.bank_izoh} />
-      </section>
-
-      <section className="space-y-3">
-        <h4 className="text-sm font-semibold">Tavsiyanoma</h4>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <Field label="Talab qilinadimi" value={g.tavsiyanoma} />
-        </div>
-        <Field label="Izoh" value={g.tavsiyanoma_izoh} />
-      </section>
-
-      <section className="space-y-3">
-        <h4 className="text-sm font-semibold">International office</h4>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <Field label="Telefon" value={g.io_telefon} />
-          <Field label="Email" value={g.io_email} />
-          <Field label="Pochta indeksi" value={g.io_zip} />
-        </div>
-        <Field label="Manzil (EN)" value={g.io_manzil_en} />
-        <Field label="Manzil (KR)" value={g.io_manzil_kr} />
-        <Field label="Hujjat yuborish manzili" value={g.hujjat_yuborish_manzili} />
-      </section>
-
-      <section className="space-y-3">
-        <h4 className="text-sm font-semibold">Umumiy shartlar</h4>
-        <Field label="Izoh" value={g.izoh} />
-      </section>
-
-      <section className="space-y-3 border-t pt-4">
-        <h4 className="text-sm font-semibold text-muted-foreground">Manba</h4>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <Field label="Guideline sarlavhasi" value={g.guideline_sarlavha} />
-          <Field label="PDF fayli" value={g.guideline_fayl} />
-          <Field label="Excel fayli" value={g.fayl_nomi} />
-          <Field label="Tahlil sanasi" value={g.tahlil_sanasi} />
-          <Field label="Format versiyasi" value={g.format_versiya} />
-          <Field label="guideline_id" value={g.guideline_id} />
-        </div>
-        <Field label="Sahifalar" value={g.sahifalar} />
-      </section>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <div className="space-y-2 rounded-b-lg border border-t-0 px-3 py-2">
+            {manba.map(([label, value]) => (
+              <Row key={label} label={label} value={value} />
+            ))}
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
     </div>
   );
 }
+
+// ---------------------------------------------------------------------------
+// Muddatlar
+// ---------------------------------------------------------------------------
 
 function MuddatlarTab({ rounds }: { rounds: GuidelineRound[] }) {
   const stages = useMemo(() => {
@@ -191,38 +381,52 @@ function MuddatlarTab({ rounds }: { rounds: GuidelineRound[] }) {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       {stages.map(([bosqich, steps]) => (
-        <section key={bosqich} className="space-y-2">
-          <h4 className="text-sm font-semibold">{bosqich}-bosqich</h4>
-          <div className="space-y-2">
+        <section key={bosqich} className="rounded-lg border">
+          <header className="flex items-center gap-2 border-b bg-muted/30 px-3 py-2">
+            <CalendarClock className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+            <h4 className="text-sm font-semibold">{bosqich}-bosqich</h4>
+            <span className="ml-auto text-xs text-muted-foreground">{steps.length} etap</span>
+          </header>
+          <ol className="divide-y">
             {steps.map((r) => {
               const range = rangeLabel(r);
               return (
-                <div key={r.id} className="rounded-md border border-border/60 p-2.5">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <span className="text-sm font-medium">
-                      {r.etap_raqam}. {r.etap_nomi}
-                    </span>
+                <li key={r.id} className="flex gap-3 px-3 py-2">
+                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-muted text-[11px] font-semibold text-muted-foreground">
+                    {r.etap_raqam}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+                      <span className="text-sm font-medium">{r.etap_nomi}</span>
+                      <span className="text-sm text-muted-foreground">
+                        {range ?? 'Sana ko‘rsatilmagan'}
+                      </span>
+                    </div>
                     {r.holat && (
-                      <Badge variant={HOLAT_VARIANT[r.holat] ?? 'neutral'}>{r.holat}</Badge>
+                      <Badge
+                        variant={HOLAT_VARIANT[r.holat] ?? 'neutral'}
+                        className="mt-1 text-[11px]"
+                      >
+                        {r.holat}
+                      </Badge>
                     )}
+                    <Note text={r.izoh} />
                   </div>
-                  <p className="mt-0.5 text-sm text-muted-foreground">
-                    {range ?? 'Sana ko‘rsatilmagan'}
-                  </p>
-                  {r.izoh && (
-                    <p className="mt-1 text-xs text-muted-foreground whitespace-pre-wrap">{r.izoh}</p>
-                  )}
-                </div>
+                </li>
               );
             })}
-          </div>
+          </ol>
         </section>
       ))}
     </div>
   );
 }
+
+// ---------------------------------------------------------------------------
+// Fakultetlar
+// ---------------------------------------------------------------------------
 
 function FakultetlarTab({
   faculties,
@@ -246,7 +450,7 @@ function FakultetlarTab({
   }, [faculties, query, track]);
 
   if (faculties.length === 0) {
-    return <EmptyState icon={FileText} title="Fakultetlar kiritilmagan" />;
+    return <EmptyState icon={Users} title="Fakultetlar kiritilmagan" />;
   }
 
   return (
@@ -277,7 +481,7 @@ function FakultetlarTab({
         {filtered.length} / {faculties.length} fakultet
       </p>
 
-      <div className="rounded-md border">
+      <div className="rounded-lg border">
         <Table>
           <TableHeader>
             <TableRow>
@@ -300,7 +504,7 @@ function FakultetlarTab({
                       {[f.kollej_en, f.kollej_kr].filter(Boolean).join(' · ')}
                     </p>
                   )}
-                  {f.izoh && <p className="mt-1 text-xs text-muted-foreground">{f.izoh}</p>}
+                  <Note text={f.izoh} />
                 </TableCell>
                 <TableCell className="align-top">
                   {f.track && (
@@ -335,6 +539,82 @@ function FakultetlarTab({
   );
 }
 
+// ---------------------------------------------------------------------------
+// Hujjatlar
+// ---------------------------------------------------------------------------
+
+function HujjatlarTab({ docs }: { docs: GuidelineDoc[] }) {
+  if (docs.length === 0) {
+    return <EmptyState icon={ClipboardList} title="Hujjatlar kiritilmagan" />;
+  }
+
+  return (
+    <div className="rounded-lg border">
+      <ol className="divide-y">
+        {docs.map((d) => (
+          <li key={d.id} className="flex gap-3 px-3 py-2">
+            <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-muted text-[11px] font-semibold text-muted-foreground">
+              {d.tartib}
+            </span>
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium">
+                    {d.hujjat_nomi ?? d.hujjat_nomi_asl ?? '—'}
+                  </p>
+                  {d.hujjat_nomi_asl && d.hujjat_nomi && (
+                    <p className="text-xs text-muted-foreground">{d.hujjat_nomi_asl}</p>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-1">
+                  {d.majburiy && (
+                    <Badge variant={d.majburiy === 'ha' ? 'info' : 'neutral'}>
+                      {d.majburiy === 'ha' ? 'majburiy' : d.majburiy}
+                    </Badge>
+                  )}
+                  {d.apostil === 'ha' && <Badge variant="warning">apostil</Badge>}
+                  {d.notarial_tarjima === 'ha' && <Badge variant="warning">notarial tarjima</Badge>}
+                </div>
+              </div>
+              {[d.shakli, d.kimlar_uchun, d.muddat, d.muddat_turi].some(Boolean) && (
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  {[d.shakli, d.kimlar_uchun, d.muddat, d.muddat_turi].filter(Boolean).join(' · ')}
+                </p>
+              )}
+              <Note text={d.izoh} />
+            </div>
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+
+/** Yorliq: belgi + nom + soni. Soni 0 bo'lsa ko'rsatilmaydi. */
+function TabLabel({
+  icon: Icon,
+  label,
+  count,
+}: {
+  icon: typeof Info;
+  label: string;
+  count?: number;
+}) {
+  return (
+    <span className="flex items-center gap-1.5">
+      <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
+      <span className="truncate">{label}</span>
+      {count !== undefined && count > 0 && (
+        <span className="rounded-full bg-muted-foreground/15 px-1.5 text-[11px] font-medium tabular-nums">
+          {count}
+        </span>
+      )}
+    </span>
+  );
+}
+
 export function GuidelineDetailSheet({
   entry,
   open,
@@ -361,9 +641,9 @@ export function GuidelineDetailSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-full sm:max-w-3xl overflow-y-auto">
+      <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-3xl">
         <SheetHeader className="space-y-1 text-left">
-          <SheetTitle className="pr-8">{name?.primary ?? ''}</SheetTitle>
+          <SheetTitle className="pr-8 leading-tight">{name?.primary ?? ''}</SheetTitle>
           <SheetDescription asChild>
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
               {name?.secondary && <span>{name.secondary}</span>}
@@ -404,12 +684,7 @@ export function GuidelineDetailSheet({
             </Select>
           )}
           {canUpload && entry && (
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={uploading}
-              onClick={() => onUpload(entry)}
-            >
+            <Button variant="outline" size="sm" disabled={uploading} onClick={() => onUpload(entry)}>
               {uploading ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (
@@ -444,71 +719,44 @@ export function GuidelineDetailSheet({
             />
           ) : detail.data ? (
             <Tabs defaultValue="umumiy">
-              <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="umumiy">Umumiy</TabsTrigger>
-                <TabsTrigger value="muddatlar">Muddatlar</TabsTrigger>
-                <TabsTrigger value="fakultetlar">
-                  Fakultetlar ({detail.data.faculties.length})
+              {/* Yorliqlar uzun ro'yxatlar ustida ham ko'rinib tursin */}
+              <TabsList className="sticky top-0 z-10 grid h-auto w-full grid-cols-4 gap-1 p-1">
+                <TabsTrigger value="umumiy" className="py-1.5">
+                  <TabLabel icon={Info} label="Umumiy" />
                 </TabsTrigger>
-                <TabsTrigger value="hujjatlar">
-                  Hujjatlar ({detail.data.docs.length})
+                <TabsTrigger value="muddatlar" className="py-1.5">
+                  <TabLabel
+                    icon={CalendarClock}
+                    label="Muddatlar"
+                    count={detail.data.rounds.length}
+                  />
+                </TabsTrigger>
+                <TabsTrigger value="fakultetlar" className="py-1.5">
+                  <TabLabel icon={Users} label="Fakultetlar" count={detail.data.faculties.length} />
+                </TabsTrigger>
+                <TabsTrigger value="hujjatlar" className="py-1.5">
+                  <TabLabel
+                    icon={ClipboardList}
+                    label="Hujjatlar"
+                    count={detail.data.docs.length}
+                  />
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="umumiy" className="mt-4">
+              <TabsContent value="umumiy" className="mt-3">
                 <UmumiyTab g={detail.data.guideline} />
               </TabsContent>
-              <TabsContent value="muddatlar" className="mt-4">
+              <TabsContent value="muddatlar" className="mt-3">
                 <MuddatlarTab rounds={detail.data.rounds} />
               </TabsContent>
-              <TabsContent value="fakultetlar" className="mt-4">
+              <TabsContent value="fakultetlar" className="mt-3">
                 <FakultetlarTab
                   faculties={detail.data.faculties}
                   currency={detail.data.guideline.narx_valyuta}
                 />
               </TabsContent>
-              <TabsContent value="hujjatlar" className="mt-4">
-                {detail.data.docs.length === 0 ? (
-                  <EmptyState icon={FileText} title="Hujjatlar kiritilmagan" />
-                ) : (
-                  <div className="space-y-2">
-                    {detail.data.docs.map((d) => (
-                      <div key={d.id} className="rounded-md border border-border/60 p-2.5">
-                        <div className="flex flex-wrap items-start justify-between gap-2">
-                          <div className="min-w-0">
-                            <p className="text-sm font-medium">
-                              {d.tartib}. {d.hujjat_nomi ?? d.hujjat_nomi_asl ?? '—'}
-                            </p>
-                            {d.hujjat_nomi_asl && d.hujjat_nomi && (
-                              <p className="text-xs text-muted-foreground">{d.hujjat_nomi_asl}</p>
-                            )}
-                          </div>
-                          <div className="flex flex-wrap gap-1">
-                            {d.majburiy && (
-                              <Badge variant={d.majburiy === 'ha' ? 'info' : 'neutral'}>
-                                {d.majburiy === 'ha' ? 'majburiy' : d.majburiy}
-                              </Badge>
-                            )}
-                            {d.apostil === 'ha' && <Badge variant="warning">apostil</Badge>}
-                            {d.notarial_tarjima === 'ha' && (
-                              <Badge variant="warning">notarial tarjima</Badge>
-                            )}
-                          </div>
-                        </div>
-                        <p className="mt-0.5 text-xs text-muted-foreground">
-                          {[d.shakli, d.kimlar_uchun, d.muddat, d.muddat_turi]
-                            .filter(Boolean)
-                            .join(' · ')}
-                        </p>
-                        {d.izoh && (
-                          <p className="mt-1 text-xs text-muted-foreground whitespace-pre-wrap">
-                            {d.izoh}
-                          </p>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
+              <TabsContent value="hujjatlar" className="mt-3">
+                <HujjatlarTab docs={detail.data.docs} />
               </TabsContent>
             </Tabs>
           ) : null}
