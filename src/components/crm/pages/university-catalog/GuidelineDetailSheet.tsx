@@ -56,6 +56,7 @@ import {
   type GuidelineFull,
   type GuidelineRound,
 } from '@/hooks/useUniversityCatalog';
+import type { UploadDaraja } from '../UniversityCatalogContent';
 import {
   admissionLabel,
   cityLabel,
@@ -65,12 +66,17 @@ import {
   periodLabel,
 } from './format';
 
+const UPLOAD_BUTTONS: { daraja: UploadDaraja; label: string }[] = [
+  { daraja: 'bakalavr', label: 'Excel bakalavr' },
+  { daraja: 'magistratura', label: 'Excel magistr' },
+];
+
 interface Props {
   entry: CatalogEntry | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   canUpload: boolean;
-  onUpload: (entry: CatalogEntry) => void;
+  onUpload: (entry: CatalogEntry, daraja: UploadDaraja) => void;
   uploading: boolean;
 }
 
@@ -683,16 +689,24 @@ export function GuidelineDetailSheet({
               </SelectContent>
             </Select>
           )}
-          {canUpload && entry && (
-            <Button variant="outline" size="sm" disabled={uploading} onClick={() => onUpload(entry)}>
-              {uploading ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <UploadCloud className="mr-2 h-4 w-4" />
-              )}
-              Excel yuklash
-            </Button>
-          )}
+          {canUpload &&
+            entry &&
+            UPLOAD_BUTTONS.map((b) => (
+              <Button
+                key={b.daraja}
+                variant="outline"
+                size="sm"
+                disabled={uploading}
+                onClick={() => onUpload(entry, b.daraja)}
+              >
+                {uploading ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <UploadCloud className="mr-2 h-4 w-4" />
+                )}
+                {b.label}
+              </Button>
+            ))}
         </div>
 
         <div className="mt-4">

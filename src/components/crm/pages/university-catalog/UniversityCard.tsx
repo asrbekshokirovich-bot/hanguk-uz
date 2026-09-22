@@ -28,6 +28,8 @@ export function UniversityCard({ entry, onOpen }: Props) {
   const badges = languageBadges(latest);
   const admission = admissionLabel(latest);
   const period = periodLabel(latest?.kontrakt_davri);
+  const hasBakalavr = entry.guidelines.some((g) => g.daraja === 'bakalavr');
+  const hasMagistr = entry.guidelines.some((g) => g.daraja === 'magistratura');
 
   return (
     <Card
@@ -112,6 +114,16 @@ export function UniversityCard({ entry, onOpen }: Props) {
             Excel yuklanmagan
           </div>
         )}
+
+        {/* Bakalavr va magistr fayllari alohida yuklanadi — ikkalasi ham bormi shu yerdan ko'rinadi. */}
+        <div className="flex flex-wrap gap-1.5">
+          <Badge variant={hasBakalavr ? 'successSoft' : 'neutral'} className="text-[11px]">
+            Bakalavr {hasBakalavr ? '✓' : '—'}
+          </Badge>
+          <Badge variant={hasMagistr ? 'successSoft' : 'neutral'} className="text-[11px]">
+            Magistr {hasMagistr ? '✓' : '—'}
+          </Badge>
+        </div>
       </CardContent>
     </Card>
   );

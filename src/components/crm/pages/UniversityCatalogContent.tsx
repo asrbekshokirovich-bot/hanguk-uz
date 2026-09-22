@@ -72,6 +72,14 @@ const INSTITUTION_TYPES = [
 
 const TEMPLATE_URL = '/templates/universitet-guideline-shablon.xlsx';
 
+/** Excel yuklash tugmalari faqat shu ikki daraja uchun — qolgani ("transfer" va h.k.) hozircha alohida tugma olmaydi. */
+export type UploadDaraja = 'bakalavr' | 'magistratura';
+
+const UPLOAD_BUTTONS: { daraja: UploadDaraja; label: string }[] = [
+  { daraja: 'bakalavr', label: 'Excel bakalavr' },
+  { daraja: 'magistratura', label: 'Excel magistr' },
+];
+
 interface UploadReport {
   fileName: string;
   errors: string[];
@@ -109,9 +117,10 @@ export default function UniversityCatalogContent() {
   const [newFields, setNewFields] = useState(emptyNewInstitution);
 
   // Yuklash bitta universitet kartasidan ham, yuqoridagi umumiy tugmadan ham
-  // boshlanishi mumkin — maqsad shu ref'da turadi.
+  // boshlanishi mumkin — maqsad shu ref'da turadi. Tugma "bakalavr" yoki
+  // "magistr" ekani ham shu yerda saqlanadi, faylni tekshirishda solishtirish uchun.
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const uploadTarget = useRef<string | null>(null);
+  const uploadTarget = useRef<{ institutionId: string | null; daraja: UploadDaraja } | null>(null);
 
   const filtered = useMemo(
     () => entries.filter((e) => matchesFilter(e, filter) && matchesSearch(e, search)),
@@ -127,17 +136,17 @@ export default function UniversityCatalogContent() {
 
   const resetPaging = () => setVisible(PAGE_SIZE);
 
-  const startUpload = (institutionId: string | null) => {
-    uploadTarget.current = institutionId;
+  const startUpload = (institutionId: string | null, daraja: UploadDaraja) => {
+    uploadTarget.current = { institutionId, daraja };
     fileInputRef.current?.click();
   };
 
   const onFileChosen = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     e.target.value = ''; // bir xil faylni qayta tanlash mumkin bo'lsin
-    const institutionId = uploadTarget.current;
+    const target = uploadTarget.current;
     uploadTarget.current = null;
-    if (!file) return;
+    if (!file || !target) return;
 
     if (!file.name.toLowerCase().endsWith('.xlsx')) {
       toast({ title: '.xlsx fayl tanlang', variant: 'destructive' });
@@ -150,8 +159,29 @@ export default function UniversityCatalogContent() {
       return;
     }
 
+    // Xodim "Excel bakalavr" tugmasidan magistratura faylini yuklab qo'ymasin —
+    // fayldagi daraja bosilgan tugmaga mos kelishi shart.
+    const fileDaraja = parsed.payload.universitet.daraja;
+    if (fileDaraja !== target.daraja) {
+      const expectedLabel = UPLOAD_BUTTONS.find((b) => b.daraja === target.daraja)?.label ?? target.daraja;
+      setReport({
+        fileName: file.name,
+        errors: [
+          fileDaraja
+            ? `"${expectedLabel}" tugmasi bosildi, lekin fayldagi daraja — "${fileDaraja}". To'g'ri tugmani tanlang.`
+            : `"${expectedLabel}" tugmasi bosildi, lekin faylda "daraja" ustuni to'ldirilmagan.`,
+        ],
+        warnings: parsed.warnings,
+        imported: null,
+      });
+      return;
+    }
+
     try {
-      const outcome = await importGuideline.mutateAsync({ payload: parsed.payload, institutionId });
+      const outcome = await importGuideline.mutateAsync({
+        payload: parsed.payload,
+        institutionId: target.institutionId,
+      });
       setReport({
         fileName: file.name,
         errors: [],
@@ -249,18 +279,21 @@ export default function UniversityCatalogContent() {
                   Shablon
                 </a>
               </Button>
-              <Button
-                size="sm"
-                onClick={() => startUpload(null)}
-                disabled={importGuideline.isPending}
-              >
-                {importGuideline.isPending ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <UploadCloud className="mr-2 h-4 w-4" />
-                )}
-                Excel yuklash
-              </Button>
+              {UPLOAD_BUTTONS.map((b) => (
+                <Button
+                  key={b.daraja}
+                  size="sm"
+                  onClick={() => startUpload(null, b.daraja)}
+                  disabled={importGuideline.isPending}
+                >
+                  {importGuideline.isPending ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <UploadCloud className="mr-2 h-4 w-4" />
+                  )}
+                  {b.label}
+                </Button>
+              ))}
             </div>
           )}
         </div>
@@ -331,7 +364,7 @@ export default function UniversityCatalogContent() {
         open={detailOpen}
         onOpenChange={setDetailOpen}
         canUpload={canEdit}
-        onUpload={(entry) => startUpload(entry.institution.id)}
+        onUpload={(entry, daraja) => startUpload(entry.institution.id, daraja)}
         uploading={importGuideline.isPending}
       />
 
