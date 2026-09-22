@@ -111,6 +111,15 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
   const { activeIntakeId } = useActiveIntake();
   const convertingIds = useRef(new Set<string>());
   const fetchLeadsRef = useRef<() => Promise<void>>();
+  // True once the list has rendered real data at least once. The realtime
+  // subscription below re-fetches after *every* write to `leads` — including
+  // an operator's own edit, a second later, through its own debounce — so
+  // without this a single call-result click on a long list flips `loading`
+  // back to true, the table unmounts for the skeleton, and the operator's
+  // scroll position (and the row they were on) is gone: the list reappears
+  // at the top, which reads as "marking it jumped the row to #1". The
+  // skeleton is worth showing exactly once, before there is anything to lose.
+  const hasLoadedOnceRef = useRef(false);
 
   const sortLeads = (leadsToSort: Lead[]): Lead[] => {
     return [...leadsToSort].sort((a, b) => {
@@ -143,8 +152,9 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const fetchLeads = async () => {
+    const isInitialLoad = !hasLoadedOnceRef.current;
     try {
-      setLoading(true);
+      if (isInitialLoad) setLoading(true);
       const [{ data, error }, { data: studentProfiles }, { data: allProfiles }] = await Promise.all([
         // Only qualified rows. A conversation with no phone number is a contact,
         // not a lead — see leads.qualified. Without this filter the 192 Instagram
@@ -178,10 +188,11 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
       }));
 
       setLeads(sortLeads(enrichedLeads as Lead[]));
+      hasLoadedOnceRef.current = true;
     } catch (error) {
       console.error('Error fetching leads:', error);
     } finally {
-      setLoading(false);
+      if (isInitialLoad) setLoading(false);
     }
   };
 
