@@ -708,6 +708,7 @@
       "save": "저장",
       "saving": "저장 중…",
       "followUpPrefix": "재연락: {{when}}",
+      "sortOverdueFirst": "지연된 순서로",
       "scheduled": "예정: {{when}}",
       "dayOfMonth": "{{month}} {{day}}일",
       "columns": {

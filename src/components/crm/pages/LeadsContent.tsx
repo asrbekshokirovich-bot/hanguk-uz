@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { BarChart3, Search, X } from 'lucide-react';
+import { BarChart3, Clock, Search, X } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import { useLeads } from '@/hooks/useLeads';
@@ -62,6 +62,11 @@ const LeadsContent = () => {
   // The convert/reject confirmation, or `null` when nothing is pending.
   const [pending, setPending] = useState<{ mode: OutcomeMode; lead: Lead } | null>(null);
   const [query, setQuery] = useState('');
+  // Off by default: the incomplete-first order is what empties the intake
+  // queue. This is an operator's explicit choice to work the phone instead —
+  // "who is overdue right now" — so it only ever applies to the active tab,
+  // where a follow-up date means anything.
+  const [sortByFollowUp, setSortByFollowUp] = useState(false);
 
   // The search narrows the groups BEFORE they are counted, so the tab badges
   // answer "which list is this person in" rather than staying at their
@@ -73,16 +78,28 @@ const LeadsContent = () => {
       if (!matchesLeadQuery(lead, query)) continue;
       groups[leadOutcome(lead)].push(lead);
     }
-    for (const group of Object.values(groups)) {
-      group.sort((a, b) => {
-        const aComplete = isLeadComplete(a);
-        const bComplete = isLeadComplete(b);
-        if (aComplete !== bComplete) return aComplete ? 1 : -1;
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-      });
-    }
+    const byCompleteness = (a: Lead, b: Lead) => {
+      const aComplete = isLeadComplete(a);
+      const bComplete = isLeadComplete(b);
+      if (aComplete !== bComplete) return aComplete ? 1 : -1;
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    };
+    // Earliest due date first, so the most overdue call leads the list;
+    // nothing scheduled sinks to the bottom rather than clumping at either
+    // end, since "no date" is not the same claim as "due right now".
+    const byFollowUp = (a: Lead, b: Lead) => {
+      const aDue = a.next_follow_up ? new Date(a.next_follow_up).getTime() : null;
+      const bDue = b.next_follow_up ? new Date(b.next_follow_up).getTime() : null;
+      if (aDue === null && bDue === null) return byCompleteness(a, b);
+      if (aDue === null) return 1;
+      if (bDue === null) return -1;
+      return aDue - bDue;
+    };
+    groups.active.sort(sortByFollowUp ? byFollowUp : byCompleteness);
+    groups.converted.sort(byCompleteness);
+    groups.rejected.sort(byCompleteness);
     return groups;
-  }, [leads, query]);
+  }, [leads, query, sortByFollowUp]);
 
   const shown = byOutcome[tab];
 
@@ -278,6 +295,30 @@ const LeadsContent = () => {
             </button>
           ))}
           </div>
+
+          {/* Only the active tab carries a next-call date worth ordering
+              by — a converted or rejected lead has nothing left to call
+              about. Off by default because the incomplete-first order is
+              what actually empties the intake queue; this is for the
+              operator who is working the phone instead and wants to know
+              exactly who is overdue right now. */}
+          {tab === 'active' && (
+            <button
+              type="button"
+              aria-pressed={sortByFollowUp}
+              onClick={() => setSortByFollowUp((v) => !v)}
+              className={cn(
+                'inline-flex min-h-10 items-center gap-1.5 rounded-full border px-4 text-[13px] font-semibold transition',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                sortByFollowUp
+                  ? 'border-primary bg-primary text-primary-foreground'
+                  : 'border-input bg-background text-muted-foreground hover:bg-muted',
+              )}
+            >
+              <Clock className="h-3.5 w-3.5" aria-hidden />
+              {t('leads.intake.sortOverdueFirst')}
+            </button>
+          )}
         </div>
 
         {loading ? (
