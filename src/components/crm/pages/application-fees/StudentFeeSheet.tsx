@@ -230,7 +230,17 @@ export function StudentFeeSheet({ studentId, studentName, open, onOpenChange }: 
 
         <InstitutionPickerDialog
           open={pickerForKey !== null}
-          onOpenChange={(o) => !o && setPickerForKey(null)}
+          onOpenChange={(o) => {
+            if (o) return;
+            setPickerForKey(null);
+            // Ichma-ich Radix dialoglar (bu panel + tanlash oynasi) ba'zan
+            // <body>'dagi pointer-events qulfini yopilgandan keyin ham
+            // qaytarib bermaydi — natijada "Saqlash" kabi tugmalar hech
+            // qanday xatosiz bosilmay qoladi. Ehtiyot chorasi sifatida tozalaymiz.
+            requestAnimationFrame(() => {
+              document.body.style.pointerEvents = '';
+            });
+          }}
           onPick={(inst) => {
             if (pickerForKey) updateBlock(pickerForKey, { institution: inst });
           }}
