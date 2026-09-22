@@ -123,12 +123,12 @@ export function StudentFeeSheet({ studentId, studentName, open, onOpenChange }: 
                   key={block.key}
                   className="grid gap-2 rounded-lg border bg-background p-3 sm:grid-cols-[1fr_1fr_1fr_auto] sm:items-start"
                 >
-                  <div className="space-y-1">
+                  <div className="min-w-0 space-y-1">
                     <p className="text-xs text-muted-foreground">Universitet</p>
                     <Button
                       type="button"
                       variant="outline"
-                      className="w-full justify-start truncate"
+                      className="w-full min-w-0 justify-start"
                       onClick={() => setPickerForKey(block.key)}
                     >
                       <GraduationCap className="mr-2 h-4 w-4 shrink-0 text-muted-foreground" />
@@ -137,7 +137,7 @@ export function StudentFeeSheet({ studentId, studentName, open, onOpenChange }: 
                       </span>
                     </Button>
                   </div>
-                  <div className="space-y-1">
+                  <div className="min-w-0 space-y-1">
                     <p className="text-xs text-muted-foreground">Summa (₩)</p>
                     <Input
                       inputMode="numeric"
@@ -146,7 +146,7 @@ export function StudentFeeSheet({ studentId, studentName, open, onOpenChange }: 
                       onChange={(e) => updateBlock(block.key, { amount: e.target.value.replace(/\D/g, '') })}
                     />
                   </div>
-                  <div className="space-y-1">
+                  <div className="min-w-0 space-y-1">
                     <p className="text-xs text-muted-foreground">Chek</p>
                     <FeeReceiptUpload
                       value={block.receipt}

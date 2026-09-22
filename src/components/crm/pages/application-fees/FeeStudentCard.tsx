@@ -39,9 +39,7 @@ export function FeeStudentCard({ entry, onOpen }: Props) {
           <AvatarFallback className="text-xs font-semibold">{getInitials(entry.full_name)}</AvatarFallback>
         </Avatar>
         <div className="min-w-0 flex-1">
-          <p className="truncate font-medium leading-snug" title={entry.full_name ?? undefined}>
-            {entry.full_name || '—'}
-          </p>
+          <p className="break-words font-medium leading-snug">{entry.full_name || '—'}</p>
           {entry.office_location && (
             <p className="truncate text-xs text-muted-foreground">{entry.office_location}</p>
           )}
