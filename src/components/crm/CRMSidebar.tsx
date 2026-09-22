@@ -94,6 +94,7 @@ function buildGroups(
         { title: t('navigation.applications'), url: '/crm/applications', icon: GraduationCap, visible: isAdmin },
         { title: t('navigation.documents'), url: '/crm/documents', icon: FolderOpen, visible: isAdmin || isDocumentHandler },
         { title: t('navigation.universities'), url: '/crm/universities', icon: GraduationCap, visible: true },
+        { title: 'Application fee', url: '/crm/application-fees', icon: Receipt, visible: isDocumentHandler },
         { title: "So'rovnomalar", url: '/crm/surveys', icon: ClipboardCheck, visible: isAdmin || isDocumentHandler },
       ],
     },
