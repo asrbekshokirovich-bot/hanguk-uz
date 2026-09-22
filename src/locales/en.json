@@ -715,6 +715,7 @@
       "save": "Save",
       "saving": "Saving…",
       "followUpPrefix": "Follow up: {{when}}",
+      "sortOverdueFirst": "Overdue first",
       "scheduled": "Scheduled: {{when}}",
       "dayOfMonth": "{{day}} {{month}}",
       "columns": {
