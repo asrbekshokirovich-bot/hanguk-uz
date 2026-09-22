@@ -762,7 +762,6 @@
       "save": "Saqlash",
       "saving": "Saqlanmoqda…",
       "followUpPrefix": "Qayta aloqa: {{when}}",
-      "sortOverdueFirst": "Kechiktirilganlar birinchi",
       "scheduled": "Rejalashtirilgan: {{when}}",
       "dayOfMonth": "{{day}}-{{month}}",
       "columns": {

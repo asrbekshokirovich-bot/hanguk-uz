@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { BarChart3, Clock, Search, X } from 'lucide-react';
+import { BarChart3, Search, X } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import { useLeads } from '@/hooks/useLeads';
@@ -35,10 +35,11 @@ const TABS: LeadOutcome[] = ['active', 'converted', 'rejected'];
  *
  * The page answers one question — *whose record is still missing answers* — and
  * gives the operator the form to fix it, plus the two ways a record leaves the
- * list: converted into a student, or rejected as not worth working. Rows are
- * ordered by completeness before recency: the list exists to be emptied of
- * half-filled records, and sorting the finished ones to the top would hide the
- * work.
+ * list: converted into a student, or rejected as not worth working. The active
+ * tab is ordered by next follow-up date, earliest first, so the sequence of
+ * who to call — today, then tomorrow, then later — is always visible without
+ * anything to toggle. Converted and rejected rows, which have no call left to
+ * make, fall back to completeness before recency.
  *
  * The form's rules live in `leads/intake/intakeForm`, the answer lists in
  * `leads/intake/options`, what counts as converted or rejected in
@@ -62,11 +63,6 @@ const LeadsContent = () => {
   // The convert/reject confirmation, or `null` when nothing is pending.
   const [pending, setPending] = useState<{ mode: OutcomeMode; lead: Lead } | null>(null);
   const [query, setQuery] = useState('');
-  // Off by default: the incomplete-first order is what empties the intake
-  // queue. This is an operator's explicit choice to work the phone instead —
-  // "who is overdue right now" — so it only ever applies to the active tab,
-  // where a follow-up date means anything.
-  const [sortByFollowUp, setSortByFollowUp] = useState(false);
 
   // The search narrows the groups BEFORE they are counted, so the tab badges
   // answer "which list is this person in" rather than staying at their
@@ -84,9 +80,10 @@ const LeadsContent = () => {
       if (aComplete !== bComplete) return aComplete ? 1 : -1;
       return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     };
-    // Earliest due date first, so the most overdue call leads the list;
-    // nothing scheduled sinks to the bottom rather than clumping at either
-    // end, since "no date" is not the same claim as "due right now".
+    // Earliest due date first, so the operator always sees who to call today,
+    // then tomorrow, then the day after, in that order; nothing scheduled
+    // sinks to the bottom rather than clumping at either end, since "no date"
+    // is not the same claim as "due right now".
     const byFollowUp = (a: Lead, b: Lead) => {
       const aDue = a.next_follow_up ? new Date(a.next_follow_up).getTime() : null;
       const bDue = b.next_follow_up ? new Date(b.next_follow_up).getTime() : null;
@@ -95,11 +92,11 @@ const LeadsContent = () => {
       if (bDue === null) return -1;
       return aDue - bDue;
     };
-    groups.active.sort(sortByFollowUp ? byFollowUp : byCompleteness);
+    groups.active.sort(byFollowUp);
     groups.converted.sort(byCompleteness);
     groups.rejected.sort(byCompleteness);
     return groups;
-  }, [leads, query, sortByFollowUp]);
+  }, [leads, query]);
 
   const shown = byOutcome[tab];
 
@@ -295,30 +292,6 @@ const LeadsContent = () => {
             </button>
           ))}
           </div>
-
-          {/* Only the active tab carries a next-call date worth ordering
-              by — a converted or rejected lead has nothing left to call
-              about. Off by default because the incomplete-first order is
-              what actually empties the intake queue; this is for the
-              operator who is working the phone instead and wants to know
-              exactly who is overdue right now. */}
-          {tab === 'active' && (
-            <button
-              type="button"
-              aria-pressed={sortByFollowUp}
-              onClick={() => setSortByFollowUp((v) => !v)}
-              className={cn(
-                'inline-flex min-h-10 items-center gap-1.5 rounded-full border px-4 text-[13px] font-semibold transition',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                sortByFollowUp
-                  ? 'border-primary bg-primary text-primary-foreground'
-                  : 'border-input bg-background text-muted-foreground hover:bg-muted',
-              )}
-            >
-              <Clock className="h-3.5 w-3.5" aria-hidden />
-              {t('leads.intake.sortOverdueFirst')}
-            </button>
-          )}
         </div>
 
         {loading ? (
