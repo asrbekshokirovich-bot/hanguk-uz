@@ -65,6 +65,7 @@ const KakaoMapContent = lazy(() => import('@/components/crm/pages/KakaoMapConten
 const UniDbReviewContent = lazy(() => import('@/components/crm/pages/UniDbReviewContent'));
 const ManageIntakesContent = lazy(() => import('@/components/crm/pages/ManageIntakesContent'));
 const SurveysContent = lazy(() => import('@/components/crm/pages/SurveysContent'));
+const ApplicationFeeContent = lazy(() => import('@/components/crm/pages/ApplicationFeeContent'));
 
 // Access denied component
 const AccessDenied = () => (
@@ -130,6 +131,7 @@ export default function CRMPortal() {
     if (currentPath.startsWith('/crm/finance')) return 'finance';
     if (currentPath.startsWith('/crm/payments')) return 'finance'; // Legacy redirect
     if (currentPath.startsWith('/crm/universities')) return 'universities';
+    if (currentPath.startsWith('/crm/application-fees')) return 'application-fees';
     if (currentPath.startsWith('/crm/tasks')) return 'tasks';
     if (currentPath.startsWith('/crm/messages')) return 'messages';
     if (currentPath.startsWith('/crm/calls')) return 'calls';
@@ -386,6 +388,9 @@ export default function CRMPortal() {
         return <FinanceReportsWrapper />;
       case 'universities':
         return <SafeSuspense><UniversityCatalogContent /></SafeSuspense>;
+      case 'application-fees':
+        if (!isDocumentHandler) return <AccessDenied />;
+        return <SafeSuspense><ApplicationFeeContent /></SafeSuspense>;
       case 'institutions':
         return <SafeSuspense><UniversitiesContent /></SafeSuspense>;
       case 'tasks':
