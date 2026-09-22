@@ -14,6 +14,7 @@ import {
 import {
   EMPTY_FORM,
   type IntakeForm,
+  describeDate,
   formFromLead,
   isLeadComplete,
   matchesLeadQuery,
@@ -36,10 +37,12 @@ const TABS: LeadOutcome[] = ['active', 'converted', 'rejected'];
  * The page answers one question — *whose record is still missing answers* — and
  * gives the operator the form to fix it, plus the two ways a record leaves the
  * list: converted into a student, or rejected as not worth working. The active
- * tab is ordered by next follow-up date, earliest first, so the sequence of
- * who to call — today, then tomorrow, then later — is always visible without
- * anything to toggle. Converted and rejected rows, which have no call left to
- * make, fall back to completeness before recency.
+ * tab is ordered by next follow-up date — due today or later comes first,
+ * earliest first, so the sequence of who to call next is always visible
+ * without anything to toggle — with overdue rows grouped underneath instead
+ * of leading the list, so they don't bury what's actually due right now.
+ * Converted and rejected rows, which have no call left to make, fall back to
+ * completeness before recency.
  *
  * The form's rules live in `leads/intake/intakeForm`, the answer lists in
  * `leads/intake/options`, what counts as converted or rejected in
@@ -80,23 +83,29 @@ const LeadsContent = () => {
       if (aComplete !== bComplete) return aComplete ? 1 : -1;
       return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     };
-    // Earliest due date first, so the operator always sees who to call today,
-    // then tomorrow, then the day after, in that order; nothing scheduled
-    // sinks to the bottom rather than clumping at either end, since "no date"
-    // is not the same claim as "due right now".
+    // Due today or later comes first, earliest first, so the operator sees
+    // who to call today, then tomorrow, then the day after. A lead already
+    // overdue sinks below that — it still needs a call, but a queue led by
+    // "51 days late" buries the ones that are actually due right now, so
+    // overdue rows are grouped and pushed under the upcoming ones instead
+    // (still earliest-overdue-first within that group). Nothing scheduled
+    // sinks lowest of all, below even the overdue ones.
     const byFollowUp = (a: Lead, b: Lead) => {
-      const aDue = a.next_follow_up ? new Date(a.next_follow_up).getTime() : null;
-      const bDue = b.next_follow_up ? new Date(b.next_follow_up).getTime() : null;
-      if (aDue === null && bDue === null) return byCompleteness(a, b);
-      if (aDue === null) return 1;
-      if (bDue === null) return -1;
-      return aDue - bDue;
+      const aOffset = describeDate(a.next_follow_up ?? '', now)?.offsetDays ?? null;
+      const bOffset = describeDate(b.next_follow_up ?? '', now)?.offsetDays ?? null;
+      if (aOffset === null && bOffset === null) return byCompleteness(a, b);
+      if (aOffset === null) return 1;
+      if (bOffset === null) return -1;
+      const aOverdue = aOffset < 0;
+      const bOverdue = bOffset < 0;
+      if (aOverdue !== bOverdue) return aOverdue ? 1 : -1;
+      return aOffset - bOffset;
     };
     groups.active.sort(byFollowUp);
     groups.converted.sort(byCompleteness);
     groups.rejected.sort(byCompleteness);
     return groups;
-  }, [leads, query]);
+  }, [leads, query, now]);
 
   const shown = byOutcome[tab];
 
