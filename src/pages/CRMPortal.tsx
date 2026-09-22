@@ -58,6 +58,7 @@ const ApplicationsContent = lazy(() => import('@/components/crm/pages/Applicatio
 const DocumentsContent = lazy(() => import('@/components/crm/pages/DocumentsContent'));
 const AITranslationPage = lazy(() => import('@/components/crm/pages/AITranslationPage'));
 const LeadsContent = lazy(() => import('@/components/crm/pages/LeadsContent'));
+const LeadProfileContent = lazy(() => import('@/components/crm/pages/LeadProfileContent'));
 const CommunicationContent = lazy(() => import('@/components/crm/pages/CommunicationContent'));
 const CalendarContent = lazy(() => import('@/components/crm/pages/CalendarContent'));
 const SettingsContent = lazy(() => import('@/components/crm/pages/SettingsContent'));
@@ -114,6 +115,10 @@ export default function CRMPortal() {
 
   // Determine current view from URL
   const currentPath = location.pathname;
+  // A lead id in the URL turns the leads section into one customer's profile.
+  const leadProfileId = currentPath.match(
+    /^\/crm\/leads\/([0-9a-fA-F-]{36})/,
+  )?.[1] ?? null;
   const getActiveView = () => {
     if (currentPath === '/crm' || currentPath === '/crm/') return 'dashboard';
     if (currentPath.startsWith('/crm/ai')) return 'ai';
@@ -135,6 +140,9 @@ export default function CRMPortal() {
     if (currentPath.startsWith('/crm/tasks')) return 'tasks';
     if (currentPath.startsWith('/crm/messages')) return 'messages';
     if (currentPath.startsWith('/crm/calls')) return 'calls';
+    // The profile check must come first: '/crm/leads/<id>' also starts with
+    // '/crm/leads', and the list would otherwise swallow every detail URL.
+    if (leadProfileId) return 'lead-profile';
     if (currentPath.startsWith('/crm/leads')) return 'leads';
     if (currentPath.startsWith('/crm/staff')) return 'staff';
     if (currentPath.startsWith('/crm/reports')) return 'reports';
@@ -401,6 +409,12 @@ export default function CRMPortal() {
         return <SafeSuspense><CallsContent /></SafeSuspense>;
       case 'leads':
         return <SafeSuspense><LeadsContent /></SafeSuspense>;
+      case 'lead-profile':
+        return (
+          <SafeSuspense>
+            <LeadProfileContent leadId={leadProfileId as string} />
+          </SafeSuspense>
+        );
       case 'staff':
         return <SafeSuspense><StaffContent /></SafeSuspense>;
       case 'translation':

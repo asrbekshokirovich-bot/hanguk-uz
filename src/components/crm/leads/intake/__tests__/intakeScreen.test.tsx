@@ -50,6 +50,7 @@ const table = (props: Partial<React.ComponentProps<typeof LeadsTable>> = {}) => 
   <LeadsTable
     leads={[lead()]}
     onOpen={vi.fn()}
+    onOpenProfile={vi.fn()}
     onConvert={vi.fn()}
     onReject={vi.fn()}
     onRestore={vi.fn()}

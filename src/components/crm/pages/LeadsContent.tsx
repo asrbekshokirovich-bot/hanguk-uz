@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { BarChart3, Search, X } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -51,6 +52,7 @@ const TABS: LeadOutcome[] = ['active', 'converted', 'rejected'];
  */
 const LeadsContent = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { leads, loading, createLead, updateLead, convertToStudent, deleteLead, refetch } =
     useLeads();
   const { user } = useAuth();
@@ -321,6 +323,7 @@ const LeadsContent = () => {
           <LeadsTable
             leads={shown}
             onOpen={setEditing}
+            onOpenProfile={(lead) => navigate(`/crm/leads/${lead.id}`)}
             onConvert={(lead) => setPending({ mode: 'convert', lead })}
             onReject={(lead) => setPending({ mode: 'reject', lead })}
             onRestore={handleRestore}

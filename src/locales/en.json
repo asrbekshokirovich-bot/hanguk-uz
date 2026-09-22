@@ -866,6 +866,89 @@
         "title": "Delete this lead",
         "body": "{{name}} will be removed for good. This cannot be undone.",
         "confirm": "Yes, delete"
+      },
+      "openProfile": "Profile"
+    },
+    "profile": {
+      "back": "Back to list",
+      "notFound": "Lead not found",
+      "noName": "No name",
+      "call": "Call",
+      "channels": {
+        "phone": "Phone",
+        "telegram": "Telegram",
+        "instagram": "Instagram"
+      },
+      "interest": {
+        "high": "High",
+        "medium": "Medium",
+        "low": "Low"
+      },
+      "stats": {
+        "total": "Total contacts",
+        "since": "{{age}} since first contact",
+        "lastContact": "Last contact",
+        "never": "never contacted",
+        "channels": "Active channels",
+        "noChannel": "no conversation on any channel",
+        "replySpeed": "Our reply speed",
+        "replyNote": "median time we take to answer",
+        "underHour": "under an hour",
+        "hours": "{{hours}} h",
+        "days": "{{days}} d",
+        "stage": "Stage",
+        "stageSet": "Set",
+        "stageEmpty": "stage not recorded yet",
+        "interest": "Interest",
+        "interestEmpty": "no programme recorded"
+      },
+      "timeline": {
+        "title": "Conversation",
+        "count": "{{count}} entries",
+        "all": "All",
+        "client": "Client",
+        "us": "Us",
+        "loadMore": "Load {{count}} earlier entries",
+        "callLine": "Call · {{duration}} · {{status}}",
+        "noTranscript": "No transcript",
+        "noText": "Message without text",
+        "emptyTitle": "No conversation found",
+        "emptyBody": "No channel is linked to this lead yet."
+      },
+      "ai": {
+        "title": "AI reading",
+        "count": "{{count}} proposals",
+        "summary": "Summary",
+        "workTitle": "Outstanding work",
+        "factsTitle": "Card fields",
+        "accept": "Accept",
+        "edit": "Edit",
+        "reject": "Reject",
+        "save": "Save",
+        "cancel": "Cancel",
+        "saveToCard": "Save to card",
+        "acceptAll": "Accept all · {{count}}",
+        "acceptedAll": "{{count}} proposals accepted",
+        "acceptFailed": "Could not accept",
+        "rejectFailed": "Could not reject",
+        "analyzeFailed": "Analysis failed",
+        "analyzed": "Analysis updated",
+        "analyzing": "Analysing…",
+        "reanalyze": "Re-analyse",
+        "analyzeNow": "Analyse now",
+        "showInFeed": "show in feed",
+        "noEvidence": "No quoted evidence — this is a synthesis.",
+        "confidence": "confidence",
+        "confidenceTitle": "Confidence: {{percent}}%",
+        "emptyTitle": "Not analysed yet",
+        "emptyBody": "The analysis reads every channel together and proposes values for the card.",
+        "footnote": "The AI only proposes. Nothing reaches the card until you accept it.",
+        "status": {
+          "accepted": "Accepted",
+          "corrected": "Edited and accepted",
+          "rejected": "Rejected",
+          "pending": "Pending"
+        }
       }
     }
   },

@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Check, RotateCcw, X } from 'lucide-react';
+import { Check, RotateCcw, Sparkles, X } from 'lucide-react';
 import type { Lead } from '@/contexts/LeadsContext';
 import { cn } from '@/lib/utils';
 import { describeDate, initialsOf, isLeadComplete, splitName } from './intakeForm';
@@ -10,6 +10,8 @@ import { CALL_RESULTS } from './options';
 interface LeadsTableProps {
   leads: Lead[];
   onOpen: (lead: Lead) => void;
+  /** Open the full profile: every channel in one feed, plus the AI reading. */
+  onOpenProfile: (lead: Lead) => void;
   /** Turn the lead into a student. */
   onConvert: (lead: Lead) => void;
   /** Mark the lead as no longer worth working. */
@@ -51,6 +53,7 @@ const actionClass =
 export const LeadsTable = ({
   leads,
   onOpen,
+  onOpenProfile,
   onConvert,
   onReject,
   onRestore,
@@ -198,6 +201,16 @@ export const LeadsTable = ({
 
               {/* Above the row overlay, so the actions are clickable. */}
               <div className="relative z-10 flex flex-wrap items-center gap-2">
+                {/* The profile is a read, not an edit, so it sits apart from
+                    the convert/reject decisions and never blocks on `busy`. */}
+                <button
+                  type="button"
+                  onClick={() => onOpenProfile(lead)}
+                  className={cn(actionClass, 'border-border text-muted-foreground hover:bg-muted')}
+                >
+                  <Sparkles className="h-3.5 w-3.5" aria-hidden />
+                  {t('leads.intake.openProfile')}
+                </button>
                 {outcome === 'active' && (
                   <>
                     <button
