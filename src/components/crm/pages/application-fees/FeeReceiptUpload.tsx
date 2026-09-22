@@ -76,8 +76,12 @@ export function FeeReceiptUpload({ value, onChange, studentId, disabled }: FeeRe
   const isPdf = value?.fileName.toLowerCase().endsWith('.pdf') ?? false;
 
   if (value) {
+    // Fayl nomi ba'zan juda uzun bo'ladi (masalan telefon/screenshot avtomatik nomi) —
+    // uni ko'rsatmaymiz, faqat kichik ko'rinish (PDF uchun belgi, rasm uchun thumbnail)
+    // va qisqa, doim bir xil uzunlikdagi yorliq ko'rsatiladi, shu bilan blok hech qachon
+    // o'z chegarasidan tashqariga chiqmaydi.
     return (
-      <div className="flex items-center justify-between gap-2 rounded-lg border bg-muted/30 px-3 py-2">
+      <div className="flex min-w-0 items-center justify-between gap-2 rounded-lg border bg-muted/30 px-2 py-1.5">
         <a
           href={value.url}
           target="_blank"
@@ -85,11 +89,13 @@ export function FeeReceiptUpload({ value, onChange, studentId, disabled }: FeeRe
           className="flex min-w-0 items-center gap-2 text-sm text-primary hover:underline"
         >
           {isPdf ? (
-            <FileText className="h-4 w-4 shrink-0" aria-hidden="true" />
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-muted">
+              <FileText className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+            </span>
           ) : (
             <img src={value.url} alt="" className="h-8 w-8 shrink-0 rounded object-cover" />
           )}
-          <span className="truncate">{value.fileName}</span>
+          <span className="shrink-0">Chekni ko'rish</span>
         </a>
         {!disabled && (
           <Button
