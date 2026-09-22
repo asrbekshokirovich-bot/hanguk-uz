@@ -13,7 +13,7 @@
 //
 // deno-lint-ignore-file no-explicit-any
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { ensureIdentity, resolveIdentity } from "../_shared/identity.ts";
+import { ensureIdentity, extractPhoneFromText, resolveIdentity } from "../_shared/identity.ts";
 
 const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
@@ -258,6 +258,17 @@ async function handleMessage(m: any, account: any, ver: string): Promise<void> {
   // number, so ensureIdentity creates one on first contact (keyed on
   // source+source_id, so a second message reuses it) and records the mapping.
   //
+  // But check the phone FIRST: a large share of Instagram DMs open with a
+  // Meta lead-ad form reply ("Full name: ... / Phone number: ...") typed
+  // right into the message text, and that customer very often already has a
+  // lead from a call or the intake form. Without this, ensureIdentity had no
+  // phone to try and created a second, empty lead every time — the split
+  // this session spent 2026-09-22 cleaning up by hand for ~85 people. Passing
+  // the typed number in lets resolveIdentity (inside ensureIdentity) find
+  // that existing lead and reuse it; only a genuinely new phone, or no phone
+  // at all, still creates a fresh one.
+  const typedPhone = isEcho ? null : extractPhoneFromText(msg.text);
+
   // Echoes are OUR outgoing messages: they must resolve the person, never
   // invent one, or a staff reply to a thread nobody answered would create a
   // second lead for the same account.
@@ -265,6 +276,7 @@ async function handleMessage(m: any, account: any, ver: string): Promise<void> {
     ? await resolveIdentity(admin as any, "instagram", partnerId, {})
     : await ensureIdentity(admin as any, "instagram", partnerId, {
       displayName,
+      phone: typedPhone,
       identifierLabel: username ? `@${username}` : null,
       leadFields: { contact_channel: "instagram" },
     });

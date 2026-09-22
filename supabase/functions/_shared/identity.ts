@@ -37,6 +37,24 @@ export function normalizePhone(phone: string | null | undefined): string | null 
   return n;
 }
 
+/**
+ * Pull a phone number a customer typed into a free-text message, e.g. an
+ * Instagram DM. MUST stay in lock-step with the SQL extract_uz_phone()
+ * function (supabase/migrations/20260922120000_lead_profile.sql) — both
+ * exist so the same "did they type a number?" check can run in a webhook,
+ * at the moment a message arrives, and in a periodic SQL sweep over history.
+ * A false-positive extraction (a date, a price) is harmless here: it is
+ * only ever used to look an EXISTING lead up by exact phone, never to
+ * create or overwrite one, so a bogus digit string just fails to match.
+ */
+export function extractPhoneFromText(text: string | null | undefined): string | null {
+  if (!text) return null;
+  const digits = text.replace(/\D/g, "");
+  if (!digits) return null;
+  const m = digits.match(/(?:998)?((?:9[0-9]|88|77|33|20)\d{7})/);
+  return m ? m[1] : null;
+}
+
 const EMPTY: ResolvedIdentity = {
   studentId: null,
   leadId: null,
@@ -135,6 +153,39 @@ export async function resolveIdentity(
         studentId: (phoneRow as any).student_id,
         leadId: null,
         displayName: fullName,
+        confidence: "confirmed",
+      };
+    }
+
+    // Also check student_contacts (phone/whatsapp contacts added by staff).
+    const scVariants = Array.from(new Set([identifier, rawIdentifier.trim()])).filter(Boolean);
+    const scOrFilter = scVariants.map((v) => `value.eq.${v}`).join(",");
+    const { data: scRow } = await supabaseAdmin
+      .from("student_contacts")
+      .select("student_id, label, owner, profiles!inner(full_name)")
+      .in("type", ["phone", "whatsapp"])
+      .or(scOrFilter)
+      .maybeSingle();
+
+    if (scRow) {
+      const fullName = (scRow as any).profiles?.full_name ?? null;
+      const ownerLabel = (scRow as any).owner === "parent"
+        ? ((scRow as any).label || "Ota-ona")
+        : (scRow as any).label || null;
+      const display = ownerLabel ? `${ownerLabel} — ${fullName}` : fullName;
+      await upsertIdentity(supabaseAdmin, {
+        channel,
+        identifier,
+        identifier_label: ownerLabel,
+        student_id: (scRow as any).student_id,
+        display_name: opts.displayName ?? display,
+        confidence: "confirmed",
+        source: "staff",
+      });
+      return {
+        studentId: (scRow as any).student_id,
+        leadId: null,
+        displayName: display,
         confidence: "confirmed",
       };
     }
