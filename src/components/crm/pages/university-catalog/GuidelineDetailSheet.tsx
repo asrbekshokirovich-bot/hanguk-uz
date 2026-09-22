@@ -66,9 +66,10 @@ import {
   periodLabel,
 } from './format';
 
-const UPLOAD_BUTTONS: { daraja: UploadDaraja; label: string }[] = [
-  { daraja: 'bakalavr', label: 'Excel bakalavr' },
-  { daraja: 'magistratura', label: 'Excel magistr' },
+/** Bakalavr va magistr ma'lumoti butunlay boshqacha, shuning uchun panelda alohida ko'rinadi. */
+const DARAJA_TABS: { key: UploadDaraja; label: string }[] = [
+  { key: 'bakalavr', label: 'Bakalavr' },
+  { key: 'magistratura', label: 'Magistr' },
 ];
 
 interface Props {
@@ -629,21 +630,42 @@ export function GuidelineDetailSheet({
   onUpload,
   uploading,
 }: Props) {
+  const [darajaTab, setDarajaTab] = useState<UploadDaraja>('bakalavr');
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  // Universitet almashganda (yoki yangi Excel yuklanganda) eng yangi qabulga
-  // qaytamiz. Effekt bo'yalgandan keyin ishlagani uchun tanlovni shu yerda
-  // ham fallback bilan hisoblaymiz — aks holda panel bir kadr bo'sh turardi.
-  useEffect(() => {
-    setSelectedId(entry?.latest?.id ?? null);
-  }, [entry?.institution.id, entry?.latest?.id]);
+  const hasBakalavr = entry?.guidelines.some((g) => g.daraja === 'bakalavr') ?? false;
+  const hasMagistr = entry?.guidelines.some((g) => g.daraja === 'magistratura') ?? false;
 
-  const known = entry?.guidelines.some((g) => g.id === selectedId) ?? false;
-  const activeId = known ? selectedId : (entry?.latest?.id ?? null);
+  // Universitet almashganda (yoki shu darajaga birinchi marta ma'lumot
+  // kelganda) ma'lumot bor darajaga qaytamiz — bakalavr ustunlik qiladi,
+  // faqat magistr bo'lsa o'shanga o'tadi.
+  useEffect(() => {
+    setDarajaTab(hasBakalavr || !hasMagistr ? 'bakalavr' : 'magistratura');
+  }, [entry?.institution.id, hasBakalavr, hasMagistr]);
+
+  // Bakalavr va magistr guideline'lari butunlay boshqa ma'lumot — shu tabga
+  // tegishlilari bilangina ishlaymiz (bir nechta qabul bo'lsa ham shu ichida).
+  const currentList = useMemo(
+    () => entry?.guidelines.filter((g) => g.daraja === darajaTab) ?? [],
+    [entry?.guidelines, darajaTab],
+  );
+  const latestIdForTab = currentList[0]?.id ?? null;
+
+  // Universitet, tab yoki shu tabdagi eng yangi qabul o'zgarganda (masalan
+  // yangi Excel yuklangach) o'shanga qaytamiz. Effekt bo'yalgandan keyin
+  // ishlagani uchun tanlovni shu yerda ham fallback bilan hisoblaymiz —
+  // aks holda panel bir kadr bo'sh turardi.
+  useEffect(() => {
+    setSelectedId(latestIdForTab);
+  }, [entry?.institution.id, darajaTab, latestIdForTab]);
+
+  const known = currentList.some((g) => g.id === selectedId);
+  const activeId = known ? selectedId : latestIdForTab;
 
   const detail = useGuidelineDetail(open ? activeId : null);
   const name = entry ? displayName(entry) : null;
   const city = entry ? cityLabel(entry) : null;
+  const darajaLabel = (d: UploadDaraja) => DARAJA_TABS.find((t) => t.key === d)?.label ?? d;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -674,14 +696,36 @@ export function GuidelineDetailSheet({
           </SheetDescription>
         </SheetHeader>
 
-        <div className="mt-4 flex flex-wrap items-center gap-2">
-          {entry && entry.guidelines.length > 0 && (
+        {/* Bakalavr va magistr — ma'lumoti butunlay boshqa, shuning uchun alohida panel. */}
+        <div className="mt-4 flex gap-1.5">
+          {DARAJA_TABS.map((t) => {
+            const count = entry?.guidelines.filter((g) => g.daraja === t.key).length ?? 0;
+            return (
+              <Button
+                key={t.key}
+                variant={darajaTab === t.key ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setDarajaTab(t.key)}
+              >
+                {t.label}
+                {count > 0 && (
+                  <Badge variant={darajaTab === t.key ? 'neutral' : 'successSoft'} className="ml-2">
+                    {count}
+                  </Badge>
+                )}
+              </Button>
+            );
+          })}
+        </div>
+
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          {currentList.length > 1 && (
             <Select value={activeId ?? undefined} onValueChange={setSelectedId}>
               <SelectTrigger className="w-auto min-w-52">
                 <SelectValue placeholder="Qabulni tanlang" />
               </SelectTrigger>
               <SelectContent>
-                {entry.guidelines.map((g) => (
+                {currentList.map((g) => (
                   <SelectItem key={g.id} value={g.id}>
                     {admissionLabel(g) ?? g.guideline_id}
                   </SelectItem>
@@ -689,35 +733,37 @@ export function GuidelineDetailSheet({
               </SelectContent>
             </Select>
           )}
-          {canUpload &&
-            entry &&
-            UPLOAD_BUTTONS.map((b) => (
-              <Button
-                key={b.daraja}
-                variant="outline"
-                size="sm"
-                disabled={uploading}
-                onClick={() => onUpload(entry, b.daraja)}
-              >
-                {uploading ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <UploadCloud className="mr-2 h-4 w-4" />
-                )}
-                {b.label}
-              </Button>
-            ))}
+          {canUpload && entry && (
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={uploading}
+              onClick={() => onUpload(entry, darajaTab)}
+            >
+              {uploading ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <UploadCloud className="mr-2 h-4 w-4" />
+              )}
+              Excel {darajaLabel(darajaTab).toLowerCase()} yuklash
+            </Button>
+          )}
         </div>
 
         <div className="mt-4">
-          {!entry || entry.guidelines.length === 0 ? (
+          {currentList.length === 0 ? (
             <EmptyState
               icon={FileSpreadsheet}
-              title="Bu universitet uchun Excel yuklanmagan"
+              title={`Bu universitet uchun ${darajaLabel(darajaTab).toLowerCase()} excel yuklanmagan`}
               description={
                 canUpload
                   ? "Shablon bo'yicha to'ldirilgan .xlsx faylni yuklang — muddatlar, fakultetlar va hujjatlar shu yerda ko'rinadi."
                   : "Ma'lumot yuklangach shu yerda ko'rinadi."
+              }
+              action={
+                canUpload && entry
+                  ? { label: `Excel ${darajaLabel(darajaTab).toLowerCase()} yuklash`, onClick: () => onUpload(entry, darajaTab) }
+                  : undefined
               }
             />
           ) : detail.isLoading ? (
