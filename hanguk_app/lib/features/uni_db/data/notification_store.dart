@@ -132,6 +132,19 @@ class NotificationStore extends Notifier<List<NotificationItem>> {
     state = [for (final n in state) n.read ? n : n.copyWith(read: true)];
     await NotificationStorage.save(state);
   }
+
+  /// Marks the one notification the student opened. Items carry no id, so
+  /// they are matched on arrival time, which is unique in practice — the
+  /// alternative, marking everything read on a single tap, would clear the
+  /// unread dot on notifications the student has not looked at.
+  Future<void> markRead(NotificationItem item) async {
+    if (item.read) return;
+    state = [
+      for (final n in state)
+        n.receivedAt == item.receivedAt && !n.read ? n.copyWith(read: true) : n,
+    ];
+    await NotificationStorage.save(state);
+  }
 }
 
 final notificationStoreProvider =

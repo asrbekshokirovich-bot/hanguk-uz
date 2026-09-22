@@ -48,6 +48,34 @@ class NotificationsScreen extends ConsumerWidget {
     context.pop();
   }
 
+  /// Opens whatever a stored notification is about.
+  ///
+  /// Tapping the Android system notification has routed to the survey since
+  /// the notification service learned to read `survey_id`, but this list —
+  /// the one the bell opens — showed the same notifications as dead cards:
+  /// a student who cleared the shade, or who came here to find the survey
+  /// again, had no way through. The card carries the same `data` payload, so
+  /// it can answer the tap the same way.
+  void _openNotification(
+    BuildContext context,
+    WidgetRef ref,
+    NotificationItem item,
+  ) {
+    ref.read(notificationStoreProvider.notifier).markRead(item);
+
+    final surveyId = item.data['survey_id'];
+    if (item.data['type'] == 'survey' &&
+        surveyId is String &&
+        surveyId.isNotEmpty) {
+      context.push('/surveys/$surveyId');
+      return;
+    }
+
+    // Anything else has nowhere specific to go; closing the sheet at least
+    // leaves the student where they can act, instead of on a dead list.
+    context.pop();
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context)!;
@@ -113,7 +141,10 @@ class NotificationsScreen extends ConsumerWidget {
                           ),
                           const SizedBox(height: 10),
                           for (final n in pushNotifications) ...[
-                            _PushNotificationCard(item: n),
+                            _PushNotificationCard(
+                              item: n,
+                              onTap: () => _openNotification(context, ref, n),
+                            ),
                             const SizedBox(height: 10),
                           ],
                           const SizedBox(height: 10),
@@ -283,9 +314,10 @@ class _SectionLabel extends StatelessWidget {
 }
 
 class _PushNotificationCard extends StatelessWidget {
-  const _PushNotificationCard({required this.item});
+  const _PushNotificationCard({required this.item, this.onTap});
 
   final NotificationItem item;
+  final VoidCallback? onTap;
 
   String _timeAgo(DateTime dt) {
     final diff = DateTime.now().difference(dt);
@@ -298,9 +330,16 @@ class _PushNotificationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // A survey notification is the one that leads somewhere; showing the
+    // chevron only there keeps the card honest about what a tap will do.
+    final opensSurvey = item.data['type'] == 'survey' &&
+        item.data['survey_id'] is String &&
+        (item.data['survey_id'] as String).isNotEmpty;
+
     return GlassCard(
       blur: false,
       padding: const EdgeInsets.all(14),
+      onTap: onTap,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -362,6 +401,15 @@ class _PushNotificationCard extends StatelessWidget {
               decoration: const BoxDecoration(
                 shape: BoxShape.circle,
                 color: SeoulColors.lime,
+              ),
+            ),
+          if (opensSurvey)
+            Padding(
+              padding: const EdgeInsets.only(top: 2, left: 6),
+              child: Icon(
+                Icons.chevron_right_rounded,
+                size: 20,
+                color: SeoulColors.textFaint,
               ),
             ),
         ],
