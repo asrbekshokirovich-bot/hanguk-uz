@@ -89,7 +89,10 @@ const emptyNewInstitution = {
 
 export default function UniversityCatalogContent() {
   const { toast } = useToast();
-  const { isAdmin } = useUserRole();
+  // Excel yuklash, shablon va universitet qo'shish — hujjatchilar ham qila
+  // oladi (useUserRole'da isDocumentHandler admin'ni ham qamrab oladi).
+  // Bazada bu qoida can_edit_university_catalog() funksiyasida takrorlangan.
+  const { isDocumentHandler: canEdit } = useUserRole();
   const { entries, loading, error, refetch } = useUniversityCatalog();
   const importGuideline = useGuidelineImport();
   const addInstitution = useAddInstitution();
@@ -238,7 +241,7 @@ export default function UniversityCatalogContent() {
             />
           </div>
 
-          {isAdmin && (
+          {canEdit && (
             <div className="flex items-center gap-2">
               <Button variant="outline" size="sm" asChild>
                 <a href={TEMPLATE_URL} download>
@@ -314,7 +317,7 @@ export default function UniversityCatalogContent() {
         </>
       )}
 
-      {isAdmin && (
+      {canEdit && (
         <div className="border-t pt-4">
           <Button variant="outline" className="w-full" onClick={() => setAddOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />
@@ -327,7 +330,7 @@ export default function UniversityCatalogContent() {
         entry={selected}
         open={detailOpen}
         onOpenChange={setDetailOpen}
-        canUpload={isAdmin}
+        canUpload={canEdit}
         onUpload={(entry) => startUpload(entry.institution.id)}
         uploading={importGuideline.isPending}
       />

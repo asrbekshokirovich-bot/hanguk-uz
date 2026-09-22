@@ -97,11 +97,24 @@ Katalog kartasi uchun kerak bo'lgan `kontrakt_min`, `kontrakt_max`,
 yengil so'rov bilan ochiladi, fakultetlar faqat universitet ochilganda
 tortiladi.
 
-**Ruxsatlar (RLS):** investordan boshqa har qanday xodim o'qiy oladi; yozish
-faqat `owner` va `admin` uchun. Import `import_university_guideline(payload)`
-RPC'si orqali ketadi va rolni o'zi ham tekshiradi. Ikkala yangi funksiya
-`anon` rolidan yopilgan — tizimga kirmagan foydalanuvchi ularni chaqira
-olmaydi.
+**Ruxsatlar (RLS):**
+
+| Kim | Katalogni ko'radi | Excel yuklaydi |
+| --- | --- | --- |
+| `owner`, `admin` | ha | ha |
+| `document_handler` | ha | ha |
+| `call_operator`, `university_staff` | ha | yo'q |
+| `investor` | yo'q | yo'q |
+
+O'qish `is_non_investor_staff()`, yozish `can_edit_university_catalog()`
+funksiyasi orqali hal qilinadi — yozish qoidasi o'zgarsa, faqat o'sha
+funksiyani tahrirlash kifoya, 4 ta siyosat va RPC uni ishlatadi. Import
+`import_university_guideline(payload)` RPC'si orqali ketadi va rolni o'zi ham
+tekshiradi. Yangi funksiyalar `anon` rolidan yopilgan — tizimga kirmagan
+foydalanuvchi ularni chaqira olmaydi.
+
+Interfeysda ham shu qoida: yuklash, shablon va "Universitet qo'shish"
+tugmalari `useUserRole().isDocumentHandler` ostida (u admin'ni ham qamraydi).
 
 ## Kod
 
