@@ -15,29 +15,14 @@ bool _hasValue(dynamic answer) {
   return true;
 }
 
-/// Error message for a value that does not fit its field type, or null when
-/// it is acceptable. Blank is not an error here — required-ness is a
-/// separate check.
-String? validateSurveyAnswer(SurveyQuestion question, dynamic answer) {
-  if (answer is! String) return null;
-  final text = answer.trim();
-  if (text.isEmpty) return null;
-
-  switch (question.questionType) {
-    case 'email':
-      final ok = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(text);
-      return ok ? null : "${question.questionText}: email manzil noto'g'ri";
-    case 'phone':
-      final digits = text.replaceAll(RegExp(r'[^0-9]'), '');
-      final ok = digits.length >= 7 && digits.length <= 15;
-      return ok ? null : "${question.questionText}: telefon raqam noto'g'ri";
-    case 'number':
-      final ok = num.tryParse(text) != null;
-      return ok ? null : '${question.questionText}: faqat raqam kiriting';
-    default:
-      return null;
-  }
-}
+/* There is deliberately no format check here.
+ *
+ * A typed field exists to raise the right keyboard, not to police what the
+ * student writes. The first real survey asked "write 2 phone numbers" in one
+ * phone field; a one-number rule rejected the answer the question asked for
+ * and there was no way past it. Staff read these answers themselves, so a
+ * wrong-looking phone number costs a glance — a blocked submit costs the
+ * whole response. Required-ness is still enforced in _submit. */
 
 class SurveyDetailScreen extends ConsumerStatefulWidget {
   const SurveyDetailScreen({
@@ -78,14 +63,6 @@ class _SurveyDetailScreenState extends ConsumerState<SurveyDetailScreen> {
     if (questions.any((q) => q.isRequired && !_isAnswered(q))) {
       _warn('Barcha majburiy savollarga javob bering');
       return;
-    }
-
-    for (final q in questions) {
-      final error = validateSurveyAnswer(q, _answers[q.id]);
-      if (error != null) {
-        _warn(error);
-        return;
-      }
     }
 
     setState(() => _submitting = true);
