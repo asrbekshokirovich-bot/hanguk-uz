@@ -914,6 +914,7 @@
         "body": "{{name}} butunlay o‘chiriladi. Bu amalni qaytarib bo‘lmaydi.",
         "confirm": "Ha, o‘chirilsin"
       },
+      "editRow": "Tahrirlash",
       "openProfile": "Profil"
     },
     "profile": {

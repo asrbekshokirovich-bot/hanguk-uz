@@ -867,6 +867,7 @@
         "body": "{{name}} will be removed for good. This cannot be undone.",
         "confirm": "Yes, delete"
       },
+      "editRow": "Edit",
       "openProfile": "Profile"
     },
     "profile": {

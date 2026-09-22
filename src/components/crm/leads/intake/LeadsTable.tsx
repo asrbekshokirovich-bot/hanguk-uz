@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Check, RotateCcw, Sparkles, X } from 'lucide-react';
+import { Check, Pencil, RotateCcw, Sparkles, X } from 'lucide-react';
 import type { Lead } from '@/contexts/LeadsContext';
 import { cn } from '@/lib/utils';
 import { describeDate, initialsOf, isLeadComplete, splitName } from './intakeForm';
@@ -106,7 +106,7 @@ export const LeadsTable = ({
             >
               <button
                 type="button"
-                onClick={() => onOpen(lead)}
+                onClick={() => onOpenProfile(lead)}
                 aria-label={t('leads.intake.openRow', { name: lead.full_name || firstName })}
                 className="absolute inset-0 z-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
               />
@@ -131,6 +131,19 @@ export const LeadsTable = ({
                     </span>
                   )}
                 </span>
+                {/* The row now opens the profile, so editing needs a handle of
+                    its own — and it has to live in the first column, because the
+                    actions column is the twelfth and is off-screen on most
+                    monitors. */}
+                <button
+                  type="button"
+                  onClick={() => onOpen(lead)}
+                  aria-label={t('leads.intake.editRow')}
+                  title={t('leads.intake.editRow')}
+                  className="pointer-events-auto relative z-10 ml-auto grid h-8 w-8 flex-none place-items-center rounded-[8px] border border-border text-muted-foreground transition hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <Pencil className="h-3.5 w-3.5" aria-hidden />
+                </button>
               </div>
 
               <div className="pointer-events-none truncate tabular-nums text-foreground">
