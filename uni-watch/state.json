@@ -1,5 +1,5 @@
 {
- "last_run": "2026-09-22T04:59:05+00:00",
+ "last_run": "2026-09-22T10:01:29+00:00",
  "seen": {
   "http://enter.konkuk.ac.kr/submenu.do?menuurl=k8b%2fCUaWlntKYwhT%2fh%2bKUA%3d%3d&": [],
   "https://adm-u.postech.ac.kr/": [
@@ -105,6 +105,8 @@
   ],
   "https://admission.kangwon.ac.kr/admission/selectBbsNttList.do?bbsNo=373": [],
   "https://admission.kentech.ac.kr/ipsi": [
+   "e366ef7792a7e791",
+   "fde03b70c2020c4f",
    "9779ce288d91044e",
    "aea995ed999c7a1b",
    "59db7f92228ce672",
@@ -517,6 +519,13 @@
   "https://iphak.jangan.ac.kr/": [
    "23caaf59c9a2d6fb"
   ],
+  "https://iphak.jvision.ac.kr/main/": [
+   "aef0c97cd9551fb0",
+   "1a33e822337d845c",
+   "ae8c13111c54b0e1",
+   "07a9e8458ad9d32f",
+   "f8c6b39b9f5415fb"
+  ],
   "https://iphak.kumoh.ac.kr/": [
    "59cf82ceacdccd03",
    "502703ef08e41632",
@@ -708,6 +717,7 @@
   "https://ipsi.induk.ac.kr/": [],
   "https://ipsi.inhatc.ac.kr/": [],
   "https://ipsi.joongbu.ac.kr/ipsi/": [
+   "159985efc5c1bc62",
    "2fd03a4035ef08fd",
    "821eea9aa79f1c09",
    "0f13dc161be7a9d9",
@@ -1071,6 +1081,14 @@
    "5437e46f6cc5e8b0"
   ],
   "https://www.kg.ac.kr/": [],
+  "https://www.kmcu.ac.kr/admission/index.php?pCode=MN5000020": [
+   "3db16484f756eab6",
+   "3c283e450696d5be",
+   "13a3309973839a05",
+   "738fbd6cb7b6720d",
+   "20a5340cc4a61dbb",
+   "5c557c03b7d80f54"
+  ],
   "https://www.kmou.ac.kr/ipsi/": [
    "0b1c2bb9632b959d",
    "83c6aaa7cebf5d66",
@@ -1090,6 +1108,7 @@
    "3d347f8fb2dfcf67"
   ],
   "https://www.konyang.ac.kr/prog/info/ipsi/sub03_01/foreigner/list.do": [
+   "7516583c81ed983b",
    "ac374d2af234351d"
   ],
   "https://www.koreatech.ac.kr/ipsi/": [],
