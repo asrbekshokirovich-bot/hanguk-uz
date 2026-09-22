@@ -55,6 +55,18 @@ export function extractPhoneFromText(text: string | null | undefined): string | 
   return m ? m[1] : null;
 }
 
+/**
+ * Pull an @handle a customer typed into free text — e.g. "telegramim
+ * @asilbek123" inside an Instagram DM. Telegram usernames are 5–32 chars,
+ * start with a letter; this is deliberately strict (must start with @) so
+ * it does not snag an unrelated word. Returns the handle WITHOUT the @.
+ */
+export function extractHandleFromText(text: string | null | undefined): string | null {
+  if (!text) return null;
+  const m = text.match(/@([A-Za-z][A-Za-z0-9_]{3,31})\b/);
+  return m ? m[1] : null;
+}
+
 const EMPTY: ResolvedIdentity = {
   studentId: null,
   leadId: null,
@@ -274,6 +286,36 @@ export async function resolveIdentity(
 }
 
 /**
+ * Cross-channel link via a handle the customer volunteered for ANOTHER
+ * channel — e.g. "telegramim @asilbek123" typed into an Instagram DM.
+ * Symmetric with the phone-based cross-channel step above, but keyed on
+ * identifier_label instead of a phone: only ever attaches to a person we
+ * already have a real identity for (one created from an actual message on
+ * that other channel), never creates one. A handle that matches nothing
+ * yet — the customer hasn't written to that channel through us before —
+ * is not remembered anywhere; the link forms the day they do.
+ */
+export async function resolveByHandle(
+  supabaseAdmin: SupabaseAdmin,
+  otherChannel: Channel,
+  handle: string,
+): Promise<ResolvedIdentity> {
+  const { data } = await supabaseAdmin
+    .from("communication_identities")
+    .select("student_id, lead_id, display_name, confidence")
+    .eq("channel", otherChannel)
+    .ilike("identifier_label", `@${handle}`)
+    .maybeSingle();
+  if (!data) return EMPTY;
+  return {
+    studentId: (data as any).student_id ?? null,
+    leadId: (data as any).lead_id ?? null,
+    displayName: (data as any).display_name ?? null,
+    confidence: (data as any).confidence ?? null,
+  };
+}
+
+/**
  * Resolve, and when nobody is on the other end, create the lead ourselves.
  *
  * resolveIdentity() answers "who is this?" and returns nothing when the answer
@@ -300,6 +342,10 @@ export async function ensureIdentity(
     displayName?: string | null;
     phone?: string | null;
     identifierLabel?: string | null;
+    /** A handle the customer gave us for ANOTHER channel in this same
+     *  message, e.g. { channel: "telegram", handle: "asilbek123" }. Tried
+     *  after the phone, before giving up and creating a new lead. */
+    crossHandle?: { channel: Channel; handle: string } | null;
     /** Extra columns for the lead, e.g. { contact_channel: "instagram" }. */
     leadFields?: Record<string, unknown>;
   } = {},
@@ -315,6 +361,25 @@ export async function ensureIdentity(
 
   const displayName = opts.displayName?.trim() || opts.identifierLabel?.trim() ||
     `${channel} ${identifier.slice(-6)}`;
+
+  // A handle for another channel, typed right into this message, beats
+  // creating a brand-new lead exactly the way a typed phone does.
+  if (opts.crossHandle) {
+    const viaHandle = await resolveByHandle(supabaseAdmin, opts.crossHandle.channel, opts.crossHandle.handle);
+    if (viaHandle.studentId || viaHandle.leadId) {
+      await upsertIdentity(supabaseAdmin, {
+        channel,
+        identifier,
+        identifier_label: opts.identifierLabel ?? null,
+        student_id: viaHandle.studentId,
+        lead_id: viaHandle.leadId,
+        display_name: opts.displayName ?? viaHandle.displayName ?? null,
+        confidence: viaHandle.confidence ?? "inferred",
+        source: "auto",
+      });
+      return viaHandle;
+    }
+  }
 
   // Reuse a lead this account already created (the identity row may be missing
   // even when the lead is not — e.g. rows written before this function existed).

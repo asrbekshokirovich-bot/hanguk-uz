@@ -13,7 +13,7 @@
 //
 // deno-lint-ignore-file no-explicit-any
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { ensureIdentity, extractPhoneFromText, resolveIdentity } from "../_shared/identity.ts";
+import { ensureIdentity, extractHandleFromText, extractPhoneFromText, resolveIdentity } from "../_shared/identity.ts";
 
 const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
@@ -267,7 +267,15 @@ async function handleMessage(m: any, account: any, ver: string): Promise<void> {
   // the typed number in lets resolveIdentity (inside ensureIdentity) find
   // that existing lead and reuse it; only a genuinely new phone, or no phone
   // at all, still creates a fresh one.
+  //
+  // Same idea for a Telegram handle ("telegramim @asilbek123"): if we
+  // already have a real Telegram identity under that @handle — meaning they
+  // actually wrote to us there before — this is the same person, so reuse
+  // that lead/student instead of the phone-only check leaving it to create
+  // a new one. A handle nobody has written to us from yet matches nothing
+  // and is quietly skipped, same as a phone that matches no one.
   const typedPhone = isEcho ? null : extractPhoneFromText(msg.text);
+  const typedTgHandle = isEcho ? null : extractHandleFromText(msg.text);
 
   // Echoes are OUR outgoing messages: they must resolve the person, never
   // invent one, or a staff reply to a thread nobody answered would create a
@@ -277,6 +285,7 @@ async function handleMessage(m: any, account: any, ver: string): Promise<void> {
     : await ensureIdentity(admin as any, "instagram", partnerId, {
       displayName,
       phone: typedPhone,
+      crossHandle: typedTgHandle ? { channel: "telegram", handle: typedTgHandle } : null,
       identifierLabel: username ? `@${username}` : null,
       leadFields: { contact_channel: "instagram" },
     });
