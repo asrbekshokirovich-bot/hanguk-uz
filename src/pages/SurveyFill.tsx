@@ -23,33 +23,14 @@ interface Question {
 
 type Answer = string | string[] | number;
 
-/** Mirrors validateSurveyAnswer in the Flutter app so a student gets the
- *  same verdict whichever way they open the survey. Blank is not an error
- *  here — required-ness is checked separately. */
-function validateAnswer(q: Question, answer: Answer | undefined): string | null {
-  if (typeof answer !== 'string') return null;
-  const text = answer.trim();
-  if (!text) return null;
-
-  switch (q.question_type) {
-    case 'email':
-      return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(text)
-        ? null
-        : `${q.question_text}: email manzil noto'g'ri`;
-    case 'phone': {
-      const digits = text.replace(/[^0-9]/g, '');
-      return digits.length >= 7 && digits.length <= 15
-        ? null
-        : `${q.question_text}: telefon raqam noto'g'ri`;
-    }
-    case 'number':
-      return Number.isFinite(Number(text))
-        ? null
-        : `${q.question_text}: faqat raqam kiriting`;
-    default:
-      return null;
-  }
-}
+/* There is deliberately no format check here.
+ *
+ * A typed field exists to raise the right keyboard, not to police what the
+ * student writes. The first real survey asked "write 2 phone numbers" in one
+ * phone field; a one-number rule rejected the answer the question asked for
+ * and there was no way past it. Staff read these answers themselves, so a
+ * wrong-looking phone number costs a glance — a blocked submit costs the
+ * whole response. Required-ness is still enforced in handleSubmit. */
 
 function hasValue(answer: Answer | undefined): boolean {
   if (answer === undefined || answer === null) return false;
@@ -158,14 +139,6 @@ export default function SurveyFill() {
       toast.error(`Majburiy savol: ${missing.question_text}`);
       return;
     }
-    for (const q of questions) {
-      const err = validateAnswer(q, answers[q.id]);
-      if (err) {
-        toast.error(err);
-        return;
-      }
-    }
-
     setSubmitting(true);
     try {
       const rows = questions
