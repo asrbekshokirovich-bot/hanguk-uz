@@ -22,6 +22,8 @@ interface UntypedQuery extends PromiseLike<PostgrestLikeResult> {
   eq: (column: string, value: unknown) => UntypedQuery;
   order: (column: string, options?: { ascending?: boolean }) => UntypedQuery;
   insert: (values: unknown) => UntypedQuery;
+  update: (values: unknown) => UntypedQuery;
+  delete: () => UntypedQuery;
 }
 
 const rel = (name: string): UntypedQuery =>
@@ -196,6 +198,45 @@ export function useAddFeePayments() {
         receipt_file_name: e.receipt_file_name,
       }));
       const { error } = await rel('application_fee_payments').insert(rows);
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: (_data, { studentId }) => {
+      qc.invalidateQueries({ queryKey: [ROSTER_KEY] });
+      qc.invalidateQueries({ queryKey: [PAYMENTS_KEY, studentId] });
+    },
+  });
+}
+
+/** Mavjud to'lov yozuvini (universitet, summa, chek) tahrirlaydi. */
+export function useUpdateFeePayment() {
+  const qc = useQueryClient();
+
+  return useMutation<void, Error, { id: string; studentId: string; update: FeePaymentInput }>({
+    mutationFn: async ({ id, update }) => {
+      const { error } = await rel('application_fee_payments')
+        .update({
+          institution_id: update.institution_id,
+          amount_krw: update.amount_krw,
+          receipt_url: update.receipt_url,
+          receipt_file_name: update.receipt_file_name,
+        })
+        .eq('id', id);
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: (_data, { studentId }) => {
+      qc.invalidateQueries({ queryKey: [ROSTER_KEY] });
+      qc.invalidateQueries({ queryKey: [PAYMENTS_KEY, studentId] });
+    },
+  });
+}
+
+/** To'lov yozuvini butunlay o'chiradi. */
+export function useDeleteFeePayment() {
+  const qc = useQueryClient();
+
+  return useMutation<void, Error, { id: string; studentId: string }>({
+    mutationFn: async ({ id }) => {
+      const { error } = await rel('application_fee_payments').delete().eq('id', id);
       if (error) throw new Error(error.message);
     },
     onSuccess: (_data, { studentId }) => {
