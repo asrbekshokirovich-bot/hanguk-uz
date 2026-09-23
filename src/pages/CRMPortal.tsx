@@ -142,6 +142,7 @@ export default function CRMPortal() {
     if (currentPath.startsWith('/crm/tasks')) return 'tasks';
     if (currentPath.startsWith('/crm/messages')) return 'messages';
     if (currentPath.startsWith('/crm/calls')) return 'calls';
+    if (currentPath.startsWith('/crm/new-leads')) return 'new-leads';
     // The profile check must come first: '/crm/leads/<id>' also starts with
     // '/crm/leads', and the list would otherwise swallow every detail URL.
     if (leadProfileId) return 'lead-profile';
@@ -414,6 +415,8 @@ export default function CRMPortal() {
         return <SafeSuspense><CallsContent /></SafeSuspense>;
       case 'leads':
         return <SafeSuspense><LeadsContent /></SafeSuspense>;
+      case 'new-leads':
+        return <SafeSuspense><LeadsContent key="new-leads" view="new" /></SafeSuspense>;
       case 'lead-profile':
         return (
           <SafeSuspense>

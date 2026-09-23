@@ -45,6 +45,8 @@ export interface Lead {
   contract_date: string | null;
   payment_plan: string | null;
   call_result: string | null;
+  /** When an Instagram/Telegram lead's phone and name arrived — see the "Yangi lid" section. */
+  new_lead_at?: string | null;
   assignee?: {
     full_name: string | null;
   };

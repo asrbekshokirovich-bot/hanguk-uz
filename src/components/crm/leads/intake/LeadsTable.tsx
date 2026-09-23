@@ -6,7 +6,7 @@ import { describeDate, initialsOf, isLeadComplete, splitName } from './intakeFor
 import { canConvertLead, leadOutcome } from './outcome';
 import { useRelativeDate } from './useRelativeDate';
 import { CALL_RESULTS } from './options';
-import { formatCountdown, uncontactedCountdown } from './sla';
+import { formatCountdown, newLeadCountdown } from './sla';
 
 interface LeadsTableProps {
   leads: Lead[];
@@ -24,6 +24,8 @@ interface LeadsTableProps {
   /** A write is in flight; the actions are held so none of them fires twice. */
   busy: boolean;
   now: Date;
+  /** Show the "Yangi lid" 10-minute countdown on rows that carry one. */
+  showCountdown?: boolean;
 }
 
 /** Column widths, kept in one place so the header and the rows cannot drift. */
@@ -61,6 +63,7 @@ export const LeadsTable = ({
   onCallResult,
   busy,
   now,
+  showCountdown = false,
 }: LeadsTableProps) => {
   const { t } = useTranslation();
   const relative = useRelativeDate(now);
@@ -94,7 +97,7 @@ export const LeadsTable = ({
           const outcome = leadOutcome(lead);
           const convertible = canConvertLead(lead);
           const followUp = describeDate(lead.next_follow_up ?? '', now);
-          const countdown = outcome === 'active' ? uncontactedCountdown(lead, now) : null;
+          const countdown = showCountdown ? newLeadCountdown(lead, now) : null;
           const { firstName } = splitName(lead.full_name);
           return (
             <div

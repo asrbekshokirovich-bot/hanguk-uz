@@ -1,9 +1,11 @@
 // Watchdog for leads nobody has called yet.
 //
-// A lead cools fast. This asks Postgres which leads just crossed 10 minutes
-// uncontacted (see fn_lead_sla_scan) and sends one Telegram alert per lead to
-// the staff alert channel. fn_lead_sla_scan marks each one atomically as it
-// reads it, so a lead alerts exactly once, never on the next run too.
+// A lead cools fast. This asks Postgres which "Yangi lid" leads — Instagram/
+// Telegram leads timed from the moment their phone and name arrived
+// (leads.new_lead_at) — just crossed 10 minutes uncontacted (see
+// fn_lead_sla_scan) and sends one Telegram alert per lead to the staff alert
+// channel. fn_lead_sla_scan marks each one atomically as it reads it, so a
+// lead alerts exactly once, never on the next run too.
 //
 // Called every minute by pg_cron (lead-sla-check-1min). Pass ?dry=1 to see
 // what would fire without marking anything or sending — safe to call by hand.
@@ -36,7 +38,7 @@ interface OverdueLead {
   phone: string | null;
   how_heard: string | null;
   source: string | null;
-  created_at: string;
+  arrived_at: string;
   minutes_waiting: number;
 }
 
@@ -51,7 +53,7 @@ function composeAlert(l: OverdueLead): string {
     ``,
     name + phone + source,
     ``,
-    `CRM → Lidlar bo'limida ko'ring.`,
+    `CRM → Aloqa → Yangi lid bo'limida ko'ring.`,
   ].join("\n");
 }
 

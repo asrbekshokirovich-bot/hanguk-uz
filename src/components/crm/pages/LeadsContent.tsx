@@ -28,17 +28,10 @@ import {
   noteWithoutRejection,
 } from '@/components/crm/leads/intake/outcome';
 import { CALL_RESULTS } from '@/components/crm/leads/intake/options';
-import { isUncontacted } from '@/components/crm/leads/intake/sla';
+import { isNewLead } from '@/components/crm/leads/intake/sla';
 import type { Lead } from '@/contexts/LeadsContext';
 
-/**
- * `'new'` is a view, not a `LeadOutcome`: it is the subset of `active` that
- * nobody has called yet, shown as its own tab so it doesn't need to be found
- * inside "Ishlanmoqda". A lead never sits only here — it's still counted
- * under `active` too until it gets a call result.
- */
-type LeadsTab = 'new' | LeadOutcome;
-const TABS: LeadsTab[] = ['new', 'active', 'converted', 'rejected'];
+const TABS: LeadOutcome[] = ['active', 'converted', 'rejected'];
 
 /**
  * CRM → Leads: the intake list.
@@ -57,8 +50,12 @@ const TABS: LeadsTab[] = ['new', 'active', 'converted', 'rejected'];
  * `leads/intake/options`, what counts as converted or rejected in
  * `leads/intake/outcome`, and the writes go through the existing `useLeads`
  * context so intake scoping, toasts and refetching behave as everywhere else.
+ *
+ * `view="new"` is CRM → Aloqa → "Yangi lid": the same table, narrowed to
+ * Instagram/Telegram leads whose phone and name just arrived and that nobody
+ * has called yet (leads/intake/sla), each with its 10-minute countdown.
  */
-const LeadsContent = () => {
+const LeadsContent = ({ view = 'all' }: { view?: 'all' | 'new' }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { leads, loading, createLead, updateLead, convertToStudent, deleteLead, refetch } =
@@ -67,19 +64,19 @@ const LeadsContent = () => {
   const canSeeReport = user?.id === '0525a29d-32ce-4c3e-94b1-bddf42a776f9';
 
   // One clock for the render pass, so the table's "3 days ago", the form's
-  // "tomorrow" button and the semester list all agree with each other. It
-  // ticks every second so the "Yangi lid" countdown (leads/intake/sla) reads
-  // as a real running clock, not a number that jumps on the next unrelated
-  // re-render.
+  // "tomorrow" button and the semester list all agree with each other. In the
+  // "Yangi lid" view it ticks every second so the countdown reads as a real
+  // running clock.
   const [now, setNow] = useState(() => new Date());
   useEffect(() => {
+    if (view !== 'new') return;
     const id = setInterval(() => setNow(new Date()), 1_000);
     return () => clearInterval(id);
-  }, []);
+  }, [view]);
   // `null` = closed, `'new'` = a blank sheet, otherwise the lead being edited.
   const [editing, setEditing] = useState<Lead | 'new' | null>(null);
   const [busy, setBusy] = useState(false);
-  const [tab, setTab] = useState<LeadsTab>('active');
+  const [tab, setTab] = useState<LeadOutcome>('active');
   // The convert/reject confirmation, or `null` when nothing is pending.
   const [pending, setPending] = useState<{ mode: OutcomeMode; lead: Lead } | null>(null);
   const [query, setQuery] = useState('');
@@ -124,20 +121,21 @@ const LeadsContent = () => {
     return groups;
   }, [leads, query, now]);
 
-  // The "Yangi lid" tab: active leads nobody has called yet, oldest first —
-  // the one closest to the 10-minute line (leads/intake/sla) is the one most
-  // worth seeing first. A plain filter of `byOutcome.active` rather than its
-  // own bucket in the memo above, so it always agrees with what "Ishlanmoqda"
-  // already computed.
+  // "Yangi lid": oldest arrival first — the one closest to the 10-minute line
+  // is the one most worth seeing first.
   const newLeads = useMemo(
     () =>
-      byOutcome.active
-        .filter(isUncontacted)
-        .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()),
-    [byOutcome],
+      leads
+        .filter((lead) => isNewLead(lead) && matchesLeadQuery(lead, query))
+        .sort(
+          (a, b) =>
+            new Date(a.new_lead_at as string).getTime() -
+            new Date(b.new_lead_at as string).getTime(),
+        ),
+    [leads, query],
   );
 
-  const shown = tab === 'new' ? newLeads : byOutcome[tab];
+  const shown = view === 'new' ? newLeads : byOutcome[tab];
 
   const [statsOpen, setStatsOpen] = useState(false);
 
@@ -265,9 +263,16 @@ const LeadsContent = () => {
       <div className="mx-auto max-w-[1360px] px-1 pb-16 pt-1">
         <div className="mb-6 flex flex-wrap items-end justify-between gap-5">
           <div>
-            <h1 className="text-[28px] font-bold tracking-[-0.015em]">{t('navigation.leads')}</h1>
-            <p className="mt-1.5 text-sm text-muted-foreground">{t('leads.intake.subtitle')}</p>
+            <h1 className="text-[28px] font-bold tracking-[-0.015em]">
+              {view === 'new' ? t('navigation.newLeads') : t('navigation.leads')}
+            </h1>
+            <p className="mt-1.5 text-sm text-muted-foreground">
+              {view === 'new' ? t('leads.intake.newSectionSubtitle') : t('leads.intake.subtitle')}
+            </p>
           </div>
+          {/* A hand-entered lead never lands in "Yangi lid", so the create and
+              report actions stay on the main list. */}
+          {view === 'all' && (
           <div className="flex items-center gap-3">
             {canSeeReport && (
               <button
@@ -287,6 +292,7 @@ const LeadsContent = () => {
               {t('leads.intake.newLead')}
             </button>
           </div>
+          )}
         </div>
 
         {/* Toggle buttons rather than a tablist: there is one list below them
@@ -307,6 +313,7 @@ const LeadsContent = () => {
               className="h-10 w-full rounded-full border border-input bg-background pl-9 pr-3 text-[13px] outline-none transition focus:border-accent focus:ring-[3px] focus:ring-accent/35"
             />
           </div>
+          {view === 'all' && (
           <div
             role="group"
             aria-label={t('leads.intake.tabs.label')}
@@ -327,12 +334,11 @@ const LeadsContent = () => {
               )}
             >
               {t(`leads.intake.tabs.${key}`)}
-              <span className="ml-1.5 tabular-nums opacity-80">
-                {key === 'new' ? newLeads.length : byOutcome[key].length}
-              </span>
+              <span className="ml-1.5 tabular-nums opacity-80">{byOutcome[key].length}</span>
             </button>
           ))}
           </div>
+          )}
         </div>
 
         {loading ? (
@@ -346,7 +352,7 @@ const LeadsContent = () => {
             <p className="text-sm text-muted-foreground">
               {query.trim()
                 ? t('leads.intake.noMatches', { query: query.trim() })
-                : t(`leads.intake.emptyBy.${tab}`)}
+                : t(`leads.intake.emptyBy.${view === 'new' ? 'new' : tab}`)}
             </p>
           </div>
         ) : (
@@ -360,6 +366,7 @@ const LeadsContent = () => {
             onCallResult={handleCallResult}
             busy={busy}
             now={now}
+            showCountdown={view === 'new'}
           />
         )}
       </div>
