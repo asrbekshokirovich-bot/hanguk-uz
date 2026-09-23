@@ -330,7 +330,6 @@ export default function LearningCenterPortal() {
                       <p className="truncate font-medium">{s.full_name}</p>
                       <p className="truncate text-xs text-muted-foreground">
                         {s.phone}
-                        {s.city && ` · ${s.city}`}
                         {` · ${new Date(s.created_at).toLocaleDateString('uz-UZ')}`}
                       </p>
                     </div>
