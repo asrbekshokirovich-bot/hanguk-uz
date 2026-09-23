@@ -22,6 +22,7 @@ interface FeeBlock {
   key: string;
   institution: InstitutionOption | null;
   amount: string;
+  expense: string;
   receipt: FeeReceipt | null;
 }
 
@@ -29,8 +30,14 @@ const newBlock = (): FeeBlock => ({
   key: crypto.randomUUID(),
   institution: null,
   amount: '',
+  expense: '',
   receipt: null,
 });
+
+/** Bo'sh — hali kiritilmagan; aks holda faqat raqamlardan iborat qatordagi son. */
+function parseOptionalAmount(raw: string): number | null {
+  return raw.trim() === '' ? null : Number(raw);
+}
 
 function formatWon(n: number): string {
   return `₩${Math.round(n).toLocaleString('en-US')}`;
@@ -40,18 +47,22 @@ function formatWon(n: number): string {
 function FeeBlockFields({
   institution,
   amount,
+  expense,
   receipt,
   studentId,
   onPickInstitution,
   onAmountChange,
+  onExpenseChange,
   onReceiptChange,
 }: {
   institution: { name_en: string | null; name_ko: string } | null;
   amount: string;
+  expense: string;
   receipt: FeeReceipt | null;
   studentId: string;
   onPickInstitution: () => void;
   onAmountChange: (value: string) => void;
+  onExpenseChange: (value: string) => void;
   onReceiptChange: (receipt: FeeReceipt | null) => void;
 }) {
   return (
@@ -70,14 +81,25 @@ function FeeBlockFields({
           </span>
         </Button>
       </div>
-      <div className="min-w-0 space-y-1">
-        <p className="text-xs text-muted-foreground">Summa (₩)</p>
-        <Input
-          inputMode="numeric"
-          placeholder="Masalan: 100000"
-          value={amount}
-          onChange={(e) => onAmountChange(e.target.value.replace(/\D/g, ''))}
-        />
+      <div className="min-w-0 space-y-2">
+        <div className="space-y-1">
+          <p className="text-xs text-muted-foreground">Summa (₩)</p>
+          <Input
+            inputMode="numeric"
+            placeholder="Masalan: 100000"
+            value={amount}
+            onChange={(e) => onAmountChange(e.target.value.replace(/\D/g, ''))}
+          />
+        </div>
+        <div className="space-y-1">
+          <p className="text-xs text-muted-foreground">Chiqim (₩)</p>
+          <Input
+            inputMode="numeric"
+            placeholder="Universitetga jo'natilgan summa"
+            value={expense}
+            onChange={(e) => onExpenseChange(e.target.value.replace(/\D/g, ''))}
+          />
+        </div>
       </div>
       <div className="min-w-0 space-y-1">
         <p className="text-xs text-muted-foreground">Chek</p>
@@ -115,6 +137,7 @@ export function StudentFeeSheet({ studentId, studentName, open, onOpenChange }: 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editInstitution, setEditInstitution] = useState<InstitutionOption | null>(null);
   const [editAmount, setEditAmount] = useState('');
+  const [editExpense, setEditExpense] = useState('');
   const [editReceipt, setEditReceipt] = useState<FeeReceipt | null>(null);
 
   const startAdding = () => {
@@ -147,6 +170,7 @@ export function StudentFeeSheet({ studentId, studentName, open, onOpenChange }: 
       entries.push({
         institution_id: block.institution.id,
         amount_krw: amount,
+        expense_krw: parseOptionalAmount(block.expense),
         receipt_url: block.receipt?.url ?? null,
         receipt_file_name: block.receipt?.fileName ?? null,
       });
@@ -177,6 +201,7 @@ export function StudentFeeSheet({ studentId, studentName, open, onOpenChange }: 
         : null,
     );
     setEditAmount(String(p.amount_krw));
+    setEditExpense(p.expense_krw !== null ? String(p.expense_krw) : '');
     setEditReceipt(p.receipt_url ? { url: p.receipt_url, fileName: p.receipt_file_name ?? 'chek' } : null);
   };
 
@@ -195,6 +220,7 @@ export function StudentFeeSheet({ studentId, studentName, open, onOpenChange }: 
         update: {
           institution_id: editInstitution.id,
           amount_krw: amount,
+          expense_krw: parseOptionalAmount(editExpense),
           receipt_url: editReceipt?.url ?? null,
           receipt_file_name: editReceipt?.fileName ?? null,
         },
@@ -260,10 +286,12 @@ export function StudentFeeSheet({ studentId, studentName, open, onOpenChange }: 
                   <FeeBlockFields
                     institution={block.institution}
                     amount={block.amount}
+                    expense={block.expense}
                     receipt={block.receipt}
                     studentId={studentId ?? 'unknown'}
                     onPickInstitution={() => setPickerTarget({ type: 'block', key: block.key })}
                     onAmountChange={(amount) => updateBlock(block.key, { amount })}
+                    onExpenseChange={(expense) => updateBlock(block.key, { expense })}
                     onReceiptChange={(receipt) => updateBlock(block.key, { receipt })}
                   />
                   {blocks.length > 1 && (
@@ -314,10 +342,12 @@ export function StudentFeeSheet({ studentId, studentName, open, onOpenChange }: 
                         <FeeBlockFields
                           institution={editInstitution}
                           amount={editAmount}
+                          expense={editExpense}
                           receipt={editReceipt}
                           studentId={p.student_id}
                           onPickInstitution={() => setPickerTarget({ type: 'edit' })}
                           onAmountChange={setEditAmount}
+                          onExpenseChange={setEditExpense}
                           onReceiptChange={setEditReceipt}
                         />
                         <Button
@@ -365,6 +395,7 @@ export function StudentFeeSheet({ studentId, studentName, open, onOpenChange }: 
                         </p>
                         <p className="text-xs text-muted-foreground">
                           {new Date(p.created_at).toLocaleDateString('uz-UZ')}
+                          {p.expense_krw !== null && ` · Chiqim: ${formatWon(p.expense_krw)}`}
                           {p.receipt_url && (
                             <>
                               {' · '}
