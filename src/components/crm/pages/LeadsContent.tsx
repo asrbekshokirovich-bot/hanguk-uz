@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { BarChart3, Search, X } from 'lucide-react';
@@ -28,9 +28,17 @@ import {
   noteWithoutRejection,
 } from '@/components/crm/leads/intake/outcome';
 import { CALL_RESULTS } from '@/components/crm/leads/intake/options';
+import { isUncontacted } from '@/components/crm/leads/intake/sla';
 import type { Lead } from '@/contexts/LeadsContext';
 
-const TABS: LeadOutcome[] = ['active', 'converted', 'rejected'];
+/**
+ * `'new'` is a view, not a `LeadOutcome`: it is the subset of `active` that
+ * nobody has called yet, shown as its own tab so it doesn't need to be found
+ * inside "Ishlanmoqda". A lead never sits only here — it's still counted
+ * under `active` too until it gets a call result.
+ */
+type LeadsTab = 'new' | LeadOutcome;
+const TABS: LeadsTab[] = ['new', 'active', 'converted', 'rejected'];
 
 /**
  * CRM → Leads: the intake list.
@@ -59,12 +67,19 @@ const LeadsContent = () => {
   const canSeeReport = user?.id === '0525a29d-32ce-4c3e-94b1-bddf42a776f9';
 
   // One clock for the render pass, so the table's "3 days ago", the form's
-  // "tomorrow" button and the semester list all agree with each other.
-  const [now] = useState(() => new Date());
+  // "tomorrow" button and the semester list all agree with each other. It
+  // ticks every second so the "Yangi lid" countdown (leads/intake/sla) reads
+  // as a real running clock, not a number that jumps on the next unrelated
+  // re-render.
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 1_000);
+    return () => clearInterval(id);
+  }, []);
   // `null` = closed, `'new'` = a blank sheet, otherwise the lead being edited.
   const [editing, setEditing] = useState<Lead | 'new' | null>(null);
   const [busy, setBusy] = useState(false);
-  const [tab, setTab] = useState<LeadOutcome>('active');
+  const [tab, setTab] = useState<LeadsTab>('active');
   // The convert/reject confirmation, or `null` when nothing is pending.
   const [pending, setPending] = useState<{ mode: OutcomeMode; lead: Lead } | null>(null);
   const [query, setQuery] = useState('');
@@ -109,7 +124,20 @@ const LeadsContent = () => {
     return groups;
   }, [leads, query, now]);
 
-  const shown = byOutcome[tab];
+  // The "Yangi lid" tab: active leads nobody has called yet, oldest first —
+  // the one closest to the 10-minute line (leads/intake/sla) is the one most
+  // worth seeing first. A plain filter of `byOutcome.active` rather than its
+  // own bucket in the memo above, so it always agrees with what "Ishlanmoqda"
+  // already computed.
+  const newLeads = useMemo(
+    () =>
+      byOutcome.active
+        .filter(isUncontacted)
+        .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()),
+    [byOutcome],
+  );
+
+  const shown = tab === 'new' ? newLeads : byOutcome[tab];
 
   const [statsOpen, setStatsOpen] = useState(false);
 
@@ -299,7 +327,9 @@ const LeadsContent = () => {
               )}
             >
               {t(`leads.intake.tabs.${key}`)}
-              <span className="ml-1.5 tabular-nums opacity-80">{byOutcome[key].length}</span>
+              <span className="ml-1.5 tabular-nums opacity-80">
+                {key === 'new' ? newLeads.length : byOutcome[key].length}
+              </span>
             </button>
           ))}
           </div>

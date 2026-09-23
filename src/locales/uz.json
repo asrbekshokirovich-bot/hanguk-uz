@@ -773,6 +773,8 @@
       "save": "Saqlash",
       "saving": "Saqlanmoqda…",
       "followUpPrefix": "Qayta aloqa: {{when}}",
+      "countdownLeft": "Aloqa uchun: {{time}} qoldi",
+      "countdownOverdue": "{{time}} dan beri aloqa yo‘q!",
       "scheduled": "Rejalashtirilgan: {{when}}",
       "dayOfMonth": "{{day}}-{{month}}",
       "columns": {
@@ -882,11 +884,13 @@
       "working": "Bajarilmoqda…",
       "tabs": {
         "label": "Lead holati",
+        "new": "Yangi lid",
         "active": "Ishlanmoqda",
         "converted": "O‘quvchilar",
         "rejected": "Rad etilganlar"
       },
       "emptyBy": {
+        "new": "Hali aloqa qilinmagan yangi lid yo‘q.",
         "active": "Ishlanayotgan lead yo‘q. “+ Yangi lead” orqali qo‘shing.",
         "converted": "Hali birorta lead o‘quvchiga aylantirilmagan.",
         "rejected": "Rad etilgan lead yo‘q."

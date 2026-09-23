@@ -726,6 +726,8 @@
       "save": "Save",
       "saving": "Saving…",
       "followUpPrefix": "Follow up: {{when}}",
+      "countdownLeft": "{{time}} left to contact",
+      "countdownOverdue": "No contact for {{time}}!",
       "scheduled": "Scheduled: {{when}}",
       "dayOfMonth": "{{day}} {{month}}",
       "columns": {
@@ -835,11 +837,13 @@
       "working": "Working…",
       "tabs": {
         "label": "Lead state",
+        "new": "New lead",
         "active": "In progress",
         "converted": "Students",
         "rejected": "Rejected"
       },
       "emptyBy": {
+        "new": "No new leads waiting on contact.",
         "active": "No leads in progress. Add one with “+ New lead”.",
         "converted": "No lead has been turned into a student yet.",
         "rejected": "No rejected leads."

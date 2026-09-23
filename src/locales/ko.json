@@ -709,6 +709,8 @@
       "save": "저장",
       "saving": "저장 중…",
       "followUpPrefix": "재연락: {{when}}",
+      "countdownLeft": "연락까지 {{time}} 남음",
+      "countdownOverdue": "{{time}}째 연락 없음!",
       "scheduled": "예정: {{when}}",
       "dayOfMonth": "{{month}} {{day}}일",
       "columns": {
@@ -812,11 +814,13 @@
       "working": "처리 중…",
       "tabs": {
         "label": "리드 상태",
+        "new": "신규 리드",
         "active": "진행 중",
         "converted": "학생",
         "rejected": "거절됨"
       },
       "emptyBy": {
+        "new": "연락 대기 중인 신규 리드가 없습니다.",
         "active": "진행 중인 리드가 없습니다. “+ 새 리드”로 추가하세요.",
         "converted": "아직 학생으로 전환된 리드가 없습니다.",
         "rejected": "거절된 리드가 없습니다."
