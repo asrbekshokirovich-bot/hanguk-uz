@@ -280,7 +280,17 @@
     "paymentMode": "Payment Mode",
     "contracted": "Contracted",
     "noContract": "No Contract",
-    "newContracts": "New Contracts"
+    "newContracts": "New Contracts",
+    "conversations": {
+      "tab": "Conversations",
+      "title": "Telegram, Instagram and phone conversations",
+      "hint": "Everything said as a lead and after the contract, in one feed",
+      "attach": "Add conversations",
+      "attached": "Added: {{messages}} messages, {{calls}} calls",
+      "nothingNew": "No new conversations — everything is already on this card",
+      "conflicts": "{{count}} conversations belong to another student — left untouched",
+      "error": "Could not add"
+    }
   },
   "crm": {
     "title": "Management System",
@@ -976,7 +986,8 @@
         "copyText": "Message",
         "copyFailed": "Could not copy",
         "linkUnavailable": "Could not get the bot name — reopen later",
-        "inviteText": "Hello {{name}}! To continue on Telegram about your documents and questions, tap this link: {{link}}"
+        "inviteText": "Hello {{name}}! To continue on Telegram about your documents and questions, tap this link: {{link}}",
+        "notFound": "No chat found for this username. Enter the Telegram numeric ID — it links at once."
       }
     }
   },

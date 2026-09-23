@@ -81,6 +81,7 @@ import { useUniversities } from '@/hooks/useUniversities';
 import AITranslationPage from '@/components/crm/pages/AITranslationPage';
 import { ClickToCall } from '@/components/calls/ClickToCall';
 import { StudentContacts } from './StudentContacts';
+import { StudentConversations } from './StudentConversations';
 
 type StudentProfile = Tables<'profiles'> & {
   applications?: (Tables<'applications'> & {
@@ -1103,6 +1104,7 @@ export function StudentDetail({
               <TabsTrigger value="payments">{t('navigation.payments')}</TabsTrigger>
               <TabsTrigger value="notes">{t('common.notes')}</TabsTrigger>
               <TabsTrigger value="calls">{t('common.phone')}</TabsTrigger>
+              <TabsTrigger value="conversations">{t('student.conversations.tab')}</TabsTrigger>
               <TabsTrigger value="documents">{t('navigation.documents')}</TabsTrigger>
               <TabsTrigger value="translation" className="gap-1">
                 <Languages className="h-3 w-3" />
@@ -2055,6 +2057,10 @@ export function StudentDetail({
             </TabsContent>
 
             {/* Comments Tab */}
+            <TabsContent value="conversations" className="mt-6">
+              <StudentConversations studentId={student.user_id} />
+            </TabsContent>
+
             <TabsContent value="contacts" className="mt-6">
               <StudentContacts studentId={student.user_id} />
             </TabsContent>

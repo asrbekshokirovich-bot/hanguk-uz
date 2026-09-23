@@ -37,7 +37,8 @@ function displayHandle(value: string | null): string {
   return /^[0-9]+$/.test(value) ? value : `@${value}`;
 }
 
-function ChannelRow({
+/** One channel's input + state. Shared by the lead and the student card. */
+export function ChannelRow({
   channel,
   saved,
   messageCount,
@@ -68,6 +69,9 @@ function ChannelRow({
           break;
         case 'pending':
           toast.info(t('leads.profile.links.pending'));
+          break;
+        case 'not_found':
+          toast.info(t('leads.profile.links.notFound'));
           break;
         case 'cleared':
           toast.info(t('leads.profile.links.cleared'));

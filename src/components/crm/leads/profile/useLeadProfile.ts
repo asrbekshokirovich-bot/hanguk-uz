@@ -79,7 +79,7 @@ export interface LeadRecord {
 
 /** What link_lead_channel() answered. */
 export interface LinkResult {
-  status: 'linked' | 'pending' | 'conflict' | 'ambiguous' | 'cleared';
+  status: 'linked' | 'pending' | 'not_found' | 'conflict' | 'ambiguous' | 'cleared';
   linked?: number;
   messages?: number;
   conflicts?: { identifier: string; lead_id: string | null; name: string | null; is_student: boolean }[];

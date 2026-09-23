@@ -329,7 +329,17 @@
     "paymentMode": "To'lov turi",
     "contracted": "Shartnomali",
     "noContract": "Shartnoma yo'q",
-    "newContracts": "Yangi shartnomalar"
+    "newContracts": "Yangi shartnomalar",
+    "conversations": {
+      "tab": "Muloqot",
+      "title": "Telegram, Instagram va telefondagi suhbatlar",
+      "hint": "Lid bo'lgan paytdagi va shartnomadan keyingi barcha yozishma va qo'ng'iroqlar bitta lentada",
+      "attach": "Suhbatlarni qo'shish",
+      "attached": "Qo'shildi: {{messages}} ta xabar, {{calls}} ta qo'ng'iroq",
+      "nothingNew": "Yangi suhbat topilmadi — hammasi allaqachon shu kartada",
+      "conflicts": "{{count}} ta suhbat boshqa talabaga ulangan — ularga tegilmadi",
+      "error": "Qo'shib bo'lmadi"
+    }
   },
   "crm": {
     "title": "Boshqaruv tizimi",
@@ -1045,7 +1055,8 @@
         "copyText": "Xabar matni",
         "copyFailed": "Nusxalab bo'lmadi",
         "linkUnavailable": "Bot nomini olib bo'lmadi — keyinroq qayta oching",
-        "inviteText": "Assalomu alaykum, {{name}}! Hujjatlaringiz va savollaringiz bo'yicha Telegramda davom etish uchun shu havolani bosing: {{link}}"
+        "inviteText": "Assalomu alaykum, {{name}}! Hujjatlaringiz va savollaringiz bo'yicha Telegramda davom etish uchun shu havolani bosing: {{link}}",
+        "notFound": "Bu nik bilan yozishma topilmadi. Telegram ID raqamini kiriting — u darhol ulanadi."
       }
     }
   },
