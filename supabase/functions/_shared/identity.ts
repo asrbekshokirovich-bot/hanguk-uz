@@ -169,39 +169,6 @@ export async function resolveIdentity(
       };
     }
 
-    // Also check student_contacts (phone/whatsapp contacts added by staff).
-    const scVariants = Array.from(new Set([identifier, rawIdentifier.trim()])).filter(Boolean);
-    const scOrFilter = scVariants.map((v) => `value.eq.${v}`).join(",");
-    const { data: scRow } = await supabaseAdmin
-      .from("student_contacts")
-      .select("student_id, label, owner, profiles!inner(full_name)")
-      .in("type", ["phone", "whatsapp"])
-      .or(scOrFilter)
-      .maybeSingle();
-
-    if (scRow) {
-      const fullName = (scRow as any).profiles?.full_name ?? null;
-      const ownerLabel = (scRow as any).owner === "parent"
-        ? ((scRow as any).label || "Ota-ona")
-        : (scRow as any).label || null;
-      const display = ownerLabel ? `${ownerLabel} — ${fullName}` : fullName;
-      await upsertIdentity(supabaseAdmin, {
-        channel,
-        identifier,
-        identifier_label: ownerLabel,
-        student_id: (scRow as any).student_id,
-        display_name: opts.displayName ?? display,
-        confidence: "confirmed",
-        source: "staff",
-      });
-      return {
-        studentId: (scRow as any).student_id,
-        leadId: null,
-        displayName: display,
-        confidence: "confirmed",
-      };
-    }
-
     const { data: lead } = await supabaseAdmin
       .from("leads")
       .select("id, full_name")
