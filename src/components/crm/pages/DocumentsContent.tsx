@@ -376,15 +376,17 @@ export default function DocumentsContent({ students, loading, currentLang, onUpd
               <div className="mt-3 flex items-center justify-between gap-3 border-t border-border pt-3">
                 <p className="text-xs text-muted-foreground">
                   {selected.stage === 'advanced'
-                    ? 'Barcha hujjatlar tasdiqlangan — talaba keyingi bosqichda.'
-                    : selected.verifiedCount < selected.requiredTotal
-                      ? `Keyingi bosqichga o'tkazishdan oldin barcha hujjatlar tasdiqlanishi kerak. ${selected.requiredTotal - selected.verifiedCount} ta qoldi.`
-                      : 'Barcha hujjatlar tasdiqlangan — keyingi bosqichga o\'tkazish mumkin.'}
+                    ? 'Talaba keyingi bosqichda.'
+                    : !selected.applicationId
+                      ? "Keyingi bosqichga o'tkazishdan oldin talabaga universitet biriktirilishi kerak."
+                      : selected.verifiedCount === 0
+                        ? "Keyingi bosqichga o'tkazish uchun kamida bitta hujjat tasdiqlangan bo'lishi kerak."
+                        : `${selected.verifiedCount}/${selected.requiredTotal} hujjat tasdiqlangan — keyingi bosqichga o'tkazish mumkin.`}
                 </p>
                 <Button
                   variant="highlight"
                   className="shrink-0 gap-2"
-                  disabled={selected.verifiedCount < selected.requiredTotal || selected.stage === 'advanced' || advancing}
+                  disabled={selected.verifiedCount === 0 || !selected.applicationId || selected.stage === 'advanced' || advancing}
                   onClick={() => advanceToNextStage(selected.student.user_id, selected.applicationId)}
                 >
                   <ArrowRight className="h-4 w-4" />
