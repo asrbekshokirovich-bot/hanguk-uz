@@ -51,6 +51,7 @@ const SOURCE_LABELS: Record<string, string> = {
   telegram: 'Telegram',
   call: 'Phone call',
   manual: 'Entered by staff',
+  learning_center: 'Partner learning center',
 };
 
 function sourceLabel(source: string): string {

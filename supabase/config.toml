@@ -30,6 +30,11 @@ verify_jwt = false
 [functions.create-staff]
 verify_jwt = false
 
+# Owner/admin only: the CRM calls it with the operator's JWT and the function
+# checks the role itself. Pinned so the gateway refuses anonymous callers.
+[functions.create-learning-center]
+verify_jwt = true
+
 [functions.create-student]
 verify_jwt = false
 

@@ -25,6 +25,7 @@ import CRMEntry from "./pages/CRMEntry";
 import InterviewPractice from "./pages/InterviewPractice";
 import StudyPlanTrainer from "./pages/StudyPlanTrainer";
 import UniversityStaffPortal from "./pages/UniversityStaffPortal";
+import LearningCenterPortal from "./pages/LearningCenterPortal";
 import NotFound from "./pages/NotFound";
 import SystemMap from "./pages/SystemMap";
 
@@ -100,6 +101,8 @@ const App = () => (
                     <Route path="/interview-practice" element={<ProtectedRoute><InterviewPractice /></ProtectedRoute>} />
                     <Route path="/study-plan-trainer" element={<ProtectedRoute><StudyPlanTrainer /></ProtectedRoute>} />
                     <Route path="/university-portal" element={<ProtectedRoute><UniversityStaffPortal /></ProtectedRoute>} />
+                    {/* Partner learning centers: enter students, who become leads. */}
+                    <Route path="/center" element={<ProtectedRoute><LearningCenterPortal /></ProtectedRoute>} />
                     {/* CRMEntry decides between the staff CRM and the investor
                         portal before either mounts, and owns IntakeProvider for
                         the staff branch — an investor session cannot read

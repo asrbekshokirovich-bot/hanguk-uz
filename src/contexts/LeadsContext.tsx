@@ -10,7 +10,7 @@ export interface Lead {
   full_name: string;
   phone: string | null;
   email: string | null;
-  source: 'manual' | 'telegram' | 'instagram' | 'call' | 'ai_detected';
+  source: 'manual' | 'telegram' | 'instagram' | 'call' | 'ai_detected' | 'learning_center';
   source_id: string | null;
   status: 'new' | 'contacted' | 'qualified' | 'converted' | 'lost';
   interest_level: 'low' | 'medium' | 'high';

@@ -713,7 +713,8 @@
       "telegram": "Telegram",
       "instagram": "Instagram",
       "call": "Qo'ng'iroq",
-      "ai_detected": "AI aniqlagan"
+      "ai_detected": "AI aniqlagan",
+      "learning_center": "O'quv markaz"
     },
     "educationLevels": {
       "high_school": "O'rta maktab",

@@ -12,24 +12,36 @@ const INVESTOR_ROLE = 'investor';
 export function useUserRole() {
   const { user } = useAuth();
   const [roles, setRoles] = useState<AppRole[]>([]);
+  const [isLearningCenter, setIsLearningCenter] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchRoles = async () => {
       if (!user) {
         setRoles([]);
+        setIsLearningCenter(false);
         setLoading(false);
         return;
       }
 
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id);
+      // A learning center holds no app_role (see migration
+      // 20260923120000_learning_centers.sql): its learning_centers row is what
+      // makes it one. learning_centers is not in the generated types yet.
+      const [{ data, error }, { data: center }] = await Promise.all([
+        supabase.from('user_roles').select('role').eq('user_id', user.id),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (supabase as unknown as { from: (n: string) => any })
+          .from('learning_centers')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('is_active', true)
+          .maybeSingle() as Promise<{ data: { id: string } | null }>,
+      ]);
 
       if (!error && data) {
         setRoles(data.map((r) => r.role));
       }
+      setIsLearningCenter(Boolean(center));
       setLoading(false);
     };
 
@@ -67,5 +79,6 @@ export function useUserRole() {
     isCallOperator,
     isDocumentHandler,
     isUniversityStaff,
+    isLearningCenter,
   };
 }

@@ -662,7 +662,8 @@
       "telegram": "Telegram",
       "instagram": "Instagram",
       "call": "Звонок",
-      "ai_detected": "Обнаружен AI"
+      "ai_detected": "Обнаружен AI",
+      "learning_center": "Учебный центр"
     },
     "educationLevels": {
       "high_school": "Средняя школа",
