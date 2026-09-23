@@ -108,6 +108,7 @@ function buildGroups(
         { title: t('common.phone'), url: '/crm/calls', icon: Phone, visible: isAdmin },
         { title: t('navigation.liveCall'), url: '/crm/communication', icon: Radio, visible: false, highlight: true },
         { title: t('navigation.leads'), url: '/crm/leads', icon: UserPlus, visible: true, highlight: true },
+        { title: "O'quv markazlar", url: '/crm/learning-centers', icon: Building2, visible: isCallOperator },
       ],
     },
     {

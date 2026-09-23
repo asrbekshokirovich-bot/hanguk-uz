@@ -656,7 +656,8 @@
       "telegram": "Telegram",
       "instagram": "Instagram",
       "call": "Call",
-      "ai_detected": "AI Detected"
+      "ai_detected": "AI Detected",
+      "learning_center": "Learning center"
     },
     "educationLevels": {
       "high_school": "High School",

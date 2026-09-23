@@ -5,7 +5,7 @@ import type { Lead } from '@/contexts/LeadsContext';
 import type { SourceFilter } from './types';
 import type { WorklistStats } from './worklistLogic';
 
-const SOURCES: SourceFilter[] = ['all', 'manual', 'telegram', 'instagram', 'call', 'ai_detected'];
+const SOURCES: SourceFilter[] = ['all', 'manual', 'telegram', 'instagram', 'call', 'ai_detected', 'learning_center'];
 
 interface LeadsFilterStripProps {
   query: string;

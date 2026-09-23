@@ -51,7 +51,7 @@ export default function StudentPortal() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { user, signOut, loading: authLoading } = useAuth();
-  const { isStaff, isInvestor, loading: roleLoading } = useUserRole();
+  const { isStaff, isInvestor, isLearningCenter, loading: roleLoading } = useUserRole();
   const pendingSurveys = usePendingSurveys();
   const { applications, documents, universities, suggestions, loading, refetchDocuments, refetchSuggestions } = useStudentData();
   const { isVIP, planLabel, isPremium, isNoRisk, isStandart, isFree, loading: planLoading } = useStudentPlan();
@@ -85,8 +85,10 @@ export default function StudentPortal() {
   useEffect(() => {
     if (!authLoading && !roleLoading && user && (isStaff || isInvestor)) {
       navigate('/crm');
+    } else if (!authLoading && !roleLoading && user && isLearningCenter) {
+      navigate('/center');
     }
-  }, [user, isStaff, isInvestor, authLoading, roleLoading, navigate]);
+  }, [user, isStaff, isInvestor, isLearningCenter, authLoading, roleLoading, navigate]);
 
   // Redirect non-authenticated users (MUST be before conditional returns)
   useEffect(() => {
@@ -107,7 +109,7 @@ export default function StudentPortal() {
   }
 
   // Block staff access or unauthenticated users - handled by useEffect
-  if (!user || isStaff) {
+  if (!user || isStaff || isLearningCenter) {
     return (
       <div className="min-h-[100dvh] flex flex-col items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />

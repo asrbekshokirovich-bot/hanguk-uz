@@ -649,7 +649,8 @@
       "telegram": "텔레그램",
       "instagram": "인스타그램",
       "call": "전화",
-      "ai_detected": "AI 감지"
+      "ai_detected": "AI 감지",
+      "learning_center": "어학원"
     },
     "educationLevels": {
       "high_school": "고등학교",
