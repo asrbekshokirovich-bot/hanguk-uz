@@ -123,9 +123,19 @@ export function useApplicationFeeRoster() {
         countByStudent.set(p.student_id, (countByStudent.get(p.student_id) ?? 0) + 1);
       }
 
+      // profiles'ning haqiqiy ustuni user_id — FeeRosterEntry esa student_id
+      // deb ataydi (StudentFeeSheet/FeeStudentCard shu nomni ishlatadi).
+      // Bu yerda aniq ko'chirilmasa, entry.student_id undefined bo'lib qoladi
+      // va "Saqlash" hech qanday so'rov yubormay, jim to'xtab qoladi.
       return (profiles ?? [])
         .filter((p) => !staffIds.has(p.user_id))
-        .map((p) => ({ ...p, paidCount: countByStudent.get(p.user_id) ?? 0 }))
+        .map((p) => ({
+          student_id: p.user_id,
+          full_name: p.full_name,
+          avatar_url: p.avatar_url,
+          office_location: p.office_location,
+          paidCount: countByStudent.get(p.user_id) ?? 0,
+        }))
         .sort((a, b) => (a.full_name ?? '').localeCompare(b.full_name ?? ''));
     },
   });
