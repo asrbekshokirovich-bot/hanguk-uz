@@ -67,6 +67,17 @@ export interface InstitutionOption {
 const ROSTER_KEY = 'application-fee-roster';
 const PAYMENTS_KEY = 'application-fee-payments';
 const INSTITUTIONS_KEY = 'application-fee-institutions';
+const LEDGER_KEY = 'application-fee-ledger';
+
+export interface FeeLedgerEntry {
+  id: string;
+  student_id: string;
+  student_name: string | null;
+  institution_name: string | null;
+  amount_krw: number;
+  expense_krw: number | null;
+  created_at: string;
+}
 
 /** 400+ universitetning yengil ro'yxati — universitet tanlash dialogi uchun. */
 export function useInstitutionOptions() {
@@ -148,6 +159,64 @@ export function useApplicationFeeRoster() {
     loading: query.isLoading,
     error: query.error,
     refetch: query.refetch,
+  };
+}
+
+/**
+ * Joriy sezondagi barcha to'lovlar (talaba va universitet nomi bilan) — Finance
+ * > Tranzaksiyalar sahifasida kirim/chiqim sifatida ko'rsatish uchun.
+ */
+export function useAllFeePayments() {
+  const { activeIntakeId } = useActiveIntake();
+
+  const query = useQuery<FeeLedgerEntry[], Error>({
+    queryKey: [LEDGER_KEY, activeIntakeId],
+    enabled: !!activeIntakeId,
+    queryFn: async () => {
+      if (!activeIntakeId) return [];
+
+      const { data, error } = await rel('application_fee_payments')
+        .select(
+          'id, student_id, institution_id, amount_krw, expense_krw, created_at,' +
+            ' institution:institutions(name_ko, name_en)',
+        )
+        .eq('intake_id', activeIntakeId)
+        .order('created_at', { ascending: false });
+      if (error) throw new Error(error.message);
+
+      const rows = (data ?? []) as {
+        id: string;
+        student_id: string;
+        amount_krw: number;
+        expense_krw: number | null;
+        created_at: string;
+        institution: { name_ko: string; name_en: string | null } | null;
+      }[];
+      if (rows.length === 0) return [];
+
+      const studentIds = [...new Set(rows.map((r) => r.student_id))];
+      const { data: profiles, error: pErr } = await supabase
+        .from('profiles')
+        .select('user_id, full_name')
+        .in('user_id', studentIds);
+      if (pErr) throw new Error(pErr.message);
+      const nameById = new Map((profiles ?? []).map((p) => [p.user_id, p.full_name]));
+
+      return rows.map((r) => ({
+        id: r.id,
+        student_id: r.student_id,
+        student_name: nameById.get(r.student_id) ?? null,
+        institution_name: r.institution?.name_en || r.institution?.name_ko || null,
+        amount_krw: r.amount_krw,
+        expense_krw: r.expense_krw,
+        created_at: r.created_at,
+      }));
+    },
+  });
+
+  return {
+    entries: query.data ?? [],
+    loading: query.isLoading,
   };
 }
 

@@ -36,6 +36,7 @@ import { EditTransactionDialog } from './EditTransactionDialog';
 import { UpcomingTransactionsPanel } from './UpcomingTransactionsPanel';
 import { AddPlannedTransactionDialog } from './AddPlannedTransactionDialog';
 import { usePlannedTransactions } from '@/hooks/usePlannedTransactions';
+import { useAllFeePayments } from '@/hooks/useApplicationFeePayments';
 
 interface Expense {
   id: string;
@@ -59,6 +60,7 @@ interface TransactionListProps {
 interface TransactionItem {
   id: string;
   type: 'income' | 'expense';
+  source: 'payment' | 'expense' | 'application_fee';
   name: string;
   description: string;
   amount: number;
@@ -77,6 +79,7 @@ export function TransactionList({ payments, loading }: TransactionListProps) {
   const [editingTransaction, setEditingTransaction] = useState<TransactionItem | null>(null);
   const [expensesLoading, setExpensesLoading] = useState(false);
   const plannedData = usePlannedTransactions();
+  const { entries: feeEntries } = useAllFeePayments();
 
   // Fetch expenses
   const fetchExpenses = async () => {
@@ -106,8 +109,9 @@ export function TransactionList({ payments, loading }: TransactionListProps) {
         transactions.push({
           id: payment.id,
           type: 'income',
+          source: 'payment',
           name: payment.student?.full_name || 'Unknown',
-          description: payment.payment_type === 'initial_deposit' ? '1st Payment' : 
+          description: payment.payment_type === 'initial_deposit' ? '1st Payment' :
                        payment.payment_type === 'remaining_payment' ? '2nd Payment' : 'Other',
           amount: Number(payment.paid_amount),
           currency: payment.currency,
@@ -122,6 +126,7 @@ export function TransactionList({ payments, loading }: TransactionListProps) {
       transactions.push({
         id: expense.id,
         type: 'expense',
+        source: 'expense',
         name: expense.recipient || expense.category,
         description: expense.description,
         amount: Number(expense.amount),
@@ -132,11 +137,40 @@ export function TransactionList({ payments, loading }: TransactionListProps) {
       });
     });
 
+    // Application fee: talabadan yig'ilgan summa (kirim) va universitetga
+    // jo'natilgan chiqim — ikkalasi ham KRW, alohida qatorlar sifatida.
+    feeEntries.forEach(entry => {
+      transactions.push({
+        id: `${entry.id}-income`,
+        type: 'income',
+        source: 'application_fee',
+        name: entry.student_name || "Noma'lum",
+        description: entry.institution_name || '—',
+        amount: Number(entry.amount_krw),
+        currency: 'KRW',
+        category: 'application_fee',
+        date: entry.created_at,
+      });
+      if (entry.expense_krw !== null && Number(entry.expense_krw) > 0) {
+        transactions.push({
+          id: `${entry.id}-expense`,
+          type: 'expense',
+          source: 'application_fee',
+          name: entry.institution_name || '—',
+          description: entry.student_name || "Noma'lum",
+          amount: Number(entry.expense_krw),
+          currency: 'KRW',
+          category: 'application_fee_expense',
+          date: entry.created_at,
+        });
+      }
+    });
+
     // Sort by date descending
-    return transactions.sort((a, b) => 
+    return transactions.sort((a, b) =>
       new Date(b.date).getTime() - new Date(a.date).getTime()
     );
-  }, [payments, expenses]);
+  }, [payments, expenses, feeEntries]);
 
   const filteredTransactions = useMemo(() => {
     return allTransactions.filter(tx => {
@@ -192,8 +226,17 @@ export function TransactionList({ payments, loading }: TransactionListProps) {
     const expenseUSD = filteredTransactions
       .filter(tx => tx.type === 'expense' && tx.currency === 'USD')
       .reduce((sum, tx) => sum + tx.amount, 0);
-    
-    return { incomeUZS, expenseUZS, incomeUSD, expenseUSD, netUZS: incomeUZS - expenseUZS, netUSD: incomeUSD - expenseUSD };
+    const incomeKRW = filteredTransactions
+      .filter(tx => tx.type === 'income' && tx.currency === 'KRW')
+      .reduce((sum, tx) => sum + tx.amount, 0);
+    const expenseKRW = filteredTransactions
+      .filter(tx => tx.type === 'expense' && tx.currency === 'KRW')
+      .reduce((sum, tx) => sum + tx.amount, 0);
+
+    return {
+      incomeUZS, expenseUZS, incomeUSD, expenseUSD, incomeKRW, expenseKRW,
+      netUZS: incomeUZS - expenseUZS, netUSD: incomeUSD - expenseUSD, netKRW: incomeKRW - expenseKRW,
+    };
   }, [filteredTransactions]);
 
   const getTypeBadge = (tx: TransactionItem) => {
@@ -203,12 +246,17 @@ export function TransactionList({ payments, loading }: TransactionListProps) {
           return <Badge variant="default">1st Payment</Badge>;
         case 'remaining_payment':
           return <Badge variant="secondary">2nd Payment</Badge>;
+        case 'application_fee':
+          return <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">Application fee</Badge>;
         default:
           return <Badge variant="outline">Other</Badge>;
       }
     } else {
       if (tx.isGatewayFee) {
         return <Badge variant="outline" className="bg-warning/10 text-warning border-warning/20">Komissiya</Badge>;
+      }
+      if (tx.category === 'application_fee_expense') {
+        return <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">Application fee</Badge>;
       }
       return <Badge variant="destructive" className="capitalize">{tx.category}</Badge>;
     }
@@ -278,6 +326,47 @@ export function TransactionList({ payments, loading }: TransactionListProps) {
           </CardContent>
         </Card>
       </div>
+
+      {/* Application fee (KRW) summary — faqat shu sezonda KRW harakati bo'lsa ko'rinadi */}
+      {(totals.incomeKRW > 0 || totals.expenseKRW > 0) && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card>
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="p-2 bg-success/10 rounded-lg">
+                <ArrowUpRight className="h-5 w-5 text-success" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Application fee — Kirim (KRW)</p>
+                <p className="text-xl font-bold text-success">{formatAmount(totals.incomeKRW, 'KRW')}</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="p-2 bg-destructive/10 rounded-lg">
+                <ArrowDownRight className="h-5 w-5 text-destructive" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Application fee — Chiqim (KRW)</p>
+                <p className="text-xl font-bold text-destructive">{formatAmount(totals.expenseKRW, 'KRW')}</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <DollarSign className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Application fee — Sof (KRW)</p>
+                <p className={`text-xl font-bold ${totals.netKRW >= 0 ? 'text-success' : 'text-destructive'}`}>
+                  {formatAmount(totals.netKRW, 'KRW')}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Filters */}
       <Card>
@@ -369,7 +458,7 @@ export function TransactionList({ payments, loading }: TransactionListProps) {
                         </div>
                       </TableCell>
                       <TableCell>
-                        {tx.type === 'expense' && (
+                        {tx.source === 'expense' && (
                           <Button
                             variant="ghost"
                             size="icon"
