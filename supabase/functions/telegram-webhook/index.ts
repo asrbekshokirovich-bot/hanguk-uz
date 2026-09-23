@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
-import { resolveIdentity, normalizePhone } from "../_shared/identity.ts";
+import { ensureIdentity, extractPhoneFromText, resolveIdentity, normalizePhone } from "../_shared/identity.ts";
 
 // Telegram bot webhook: runs the student onboarding conversation AND captures
 // every message into the CRM, linked to a student/lead via the identity spine.
@@ -452,6 +452,21 @@ serve(async (req) => {
       let identity = await resolveIdentity(supabase, "telegram", chatId, { displayName: clientName });
       if (!identity.studentId && !identity.leadId) {
         identity = await resolveByUsername(supabase, chatId, clientUsername, clientName);
+      }
+      // A client writing to the company account whom we don't know yet is a
+      // lead, exactly as an Instagram DM is. A number typed into the message
+      // is tried first against existing students/leads; otherwise the lead is
+      // created — with that number, landing straight in CRM → Aloqa →
+      // "Yangi lid", or without one, hidden as unqualified until
+      // fn_capture_phone_from_message reads a number off a later message.
+      // Messages the owner sends from their phone never create anything.
+      if (!outgoing && !identity.studentId && !identity.leadId) {
+        identity = await ensureIdentity(supabase, "telegram", chatId, {
+          displayName: clientName,
+          phone: extractPhoneFromText(bm.text || bm.caption),
+          identifierLabel: clientUsername ? `@${clientUsername}` : null,
+          leadFields: { contact_channel: "Telegram" },
+        });
       }
       await bumpThread(supabase, chatId, clientName, outgoing ? "outgoing" : "incoming");
       if (identity.studentId) {
