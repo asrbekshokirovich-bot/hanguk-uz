@@ -1019,6 +1019,33 @@
           "rejected": "Rad etildi",
           "pending": "Kutilmoqda"
         }
+      },
+      "links": {
+        "title": "Kanallarni ulash",
+        "hint": "Nik yoki ID yozing — yozishma bo'lsa darhol, bo'lmasa mijoz yozganda ulanadi",
+        "placeholder": {
+          "telegram": "@username yoki ID raqam",
+          "instagram": "@username"
+        },
+        "save": "Ulash",
+        "stateLinked": "Ulangan · {{count}} xabar",
+        "stateWaiting": "Kutilmoqda — yozganda ulanadi",
+        "stateNone": "Ulanmagan",
+        "linked": "Ulandi: {{count}} ta xabar lid profiliga qo'shildi",
+        "pending": "Hali yozishma topilmadi. Mijoz shu akkauntdan yozishi bilan avtomatik ulanadi.",
+        "cleared": "Olib tashlandi",
+        "ambiguous": "Bu nik bir nechta suhbatga mos keldi — to'g'risini tanlang",
+        "pickOne": "Qaysi suhbat shu mijozniki?",
+        "messages": "{{count}} xabar",
+        "conflictLead": "Bu akkaunt boshqa lidga ulangan: {{name}}. Shu lidga ko'chiraymi?",
+        "conflictStudent": "Bu akkaunt talabaga ulangan: {{name}}. Shunga qaramay shu lidga ham ulaymi?",
+        "error": "Ulab bo'lmadi",
+        "personalLink": "Shaxsiy havola",
+        "copyLink": "Havola",
+        "copyText": "Xabar matni",
+        "copyFailed": "Nusxalab bo'lmadi",
+        "linkUnavailable": "Bot nomini olib bo'lmadi — keyinroq qayta oching",
+        "inviteText": "Assalomu alaykum, {{name}}! Hujjatlaringiz va savollaringiz bo'yicha Telegramda davom etish uchun shu havolani bosing: {{link}}"
       }
     }
   },

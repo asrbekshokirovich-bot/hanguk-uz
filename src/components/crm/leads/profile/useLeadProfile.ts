@@ -70,6 +70,20 @@ export interface LeadRecord {
   current_stage: string | null;
   preferred_program: string | null;
   created_at: string;
+  /** What the operator typed as the customer's Telegram / Instagram. */
+  telegram_handle: string | null;
+  instagram_handle: string | null;
+  /** Personal code for the t.me/<bot>?start=L_<code> link. */
+  link_code: string | null;
+}
+
+/** What link_lead_channel() answered. */
+export interface LinkResult {
+  status: 'linked' | 'pending' | 'conflict' | 'ambiguous' | 'cleared';
+  linked?: number;
+  messages?: number;
+  conflicts?: { identifier: string; lead_id: string | null; name: string | null; is_student: boolean }[];
+  candidates?: { identifier: string; name: string | null; messages: number }[];
 }
 
 /**
@@ -96,6 +110,7 @@ export interface LeadProfile {
   reject: (id: string) => Promise<void>;
   analyze: () => Promise<void>;
   analyzing: boolean;
+  linkChannel: (channel: 'telegram' | 'instagram', value: string, force?: boolean) => Promise<LinkResult>;
 }
 
 /**
@@ -147,7 +162,7 @@ export function useLeadProfile(leadId: string | null): LeadProfile {
         db
           .from('leads')
           .select(
-            'id, full_name, phone, city, status, interest_level, current_stage, preferred_program, created_at',
+            'id, full_name, phone, city, status, interest_level, current_stage, preferred_program, created_at, telegram_handle, instagram_handle, link_code',
           )
           .eq('id', leadId)
           .maybeSingle(),
@@ -221,6 +236,28 @@ export function useLeadProfile(leadId: string | null): LeadProfile {
     }
   }, [leadId, load]);
 
+  /**
+   * The operator types a username or ID; the database decides what it matches.
+   * Doing the matching server-side keeps the rules (never move a student's
+   * chat, never guess between two accounts) in one place instead of trusting
+   * whatever the browser sends.
+   */
+  const linkChannel = useCallback(
+    async (channel: 'telegram' | 'instagram', value: string, force = false) => {
+      if (!leadId) throw new Error('no lead');
+      const { data, error: rpcError } = await db.rpc('link_lead_channel', {
+        p_lead_id: leadId,
+        p_channel: channel,
+        p_value: value,
+        p_force: force,
+      });
+      if (rpcError) throw rpcError;
+      await load();
+      return data as LinkResult;
+    },
+    [leadId, load],
+  );
+
   const responseHours = useMemo(() => medianResponseHours(timeline), [timeline]);
 
   return {
@@ -236,5 +273,6 @@ export function useLeadProfile(leadId: string | null): LeadProfile {
     reject,
     analyze,
     analyzing,
+    linkChannel,
   };
 }

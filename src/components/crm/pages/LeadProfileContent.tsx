@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { LeadProfileStats } from '@/components/crm/leads/profile/LeadProfileStats';
 import { LeadTimeline } from '@/components/crm/leads/profile/LeadTimeline';
 import { LeadAiPanel } from '@/components/crm/leads/profile/LeadAiPanel';
+import { LeadChannelLinks } from '@/components/crm/leads/profile/LeadChannelLinks';
 import {
   useLeadProfile,
   type Suggestion,
@@ -79,6 +80,7 @@ export default function LeadProfileContent({ leadId }: LeadProfileContentProps) 
     reject,
     analyze,
     analyzing,
+    linkChannel,
   } = useLeadProfile(leadId);
 
   const showEvidence = useCallback(
@@ -164,6 +166,8 @@ export default function LeadProfileContent({ leadId }: LeadProfileContentProps) 
       </header>
 
       <LeadProfileStats lead={lead} overview={overview} responseHours={responseHours} />
+
+      <LeadChannelLinks lead={lead} overview={overview} onLink={linkChannel} />
 
       <LeadTimeline entries={timeline} highlightId={highlightId} />
 

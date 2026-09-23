@@ -47,6 +47,11 @@ async function tgSend(chatId: string, text: string, replyMarkup?: Any): Promise<
   }
 }
 
+/** Messages go out with parse_mode HTML; a name is user-controlled text. */
+function escapeHtml(s: string): string {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
 async function tgAnswerCallback(id: string): Promise<void> {
   if (!BOT_TOKEN) return;
   try {
@@ -326,6 +331,15 @@ serve(async (req) => {
             : null,
         });
       }
+      // The bot's @username, so the CRM can build t.me/<bot>?start=L_<code>
+      // links without hard-coding a name that changes if the bot is replaced.
+      // Public information — anyone can open the bot — so no staff check.
+      if (action === "botinfo") {
+        if (!BOT_TOKEN) return json({ error: "TELEGRAM_BOT_TOKEN is not configured" }, 500);
+        const res = await fetch(`${TG_API}/getMe`);
+        const me = await res.json().catch(() => ({}));
+        return json({ username: me?.result?.username ?? null });
+      }
       return json({ message: "Telegram webhook endpoint", configured: !!BOT_TOKEN });
     }
 
@@ -502,6 +516,47 @@ Iltimos, telefon raqamingizni ulashing — menejerimiz siz bilan tez orada bog'l
       || message.from?.username || message.chat?.title || "Telegram user";
     const username = message.from?.username ?? null;
     const tgUserId = String(message.from?.id ?? message.chat.id);
+
+    // --- /start L_<code>: the customer pressed their personal link --------
+    // The operator sent this link to one lead only, so pressing it is proof
+    // of who this Telegram account belongs to — no phone, no guessing. It
+    // must run before the plain /start below, which would otherwise create a
+    // fresh empty lead for the chat.
+    if (typeof message.text === "string") {
+      const deep = message.text.trim().match(/^\/start\s+L_([a-z0-9]{6,32})$/i);
+      if (deep) {
+        const { data: claim, error: claimErr } = await supabase.rpc("claim_lead_link", {
+          p_code: deep[1],
+          p_channel: "telegram",
+          p_identifier: chatId,
+          p_label: username ? `@${username}` : null,
+        });
+        if (claimErr) console.error("claim_lead_link failed:", claimErr.message);
+        if (claim?.ok) {
+          await bumpThread(supabase, chatId, fromName, "incoming");
+          await storeMessage(supabase, {
+            chatId, messageId: message.message_id, senderName: fromName,
+            content: "/start (shaxsiy havola)", direction: "incoming",
+            extraMeta: { telegram_user_id: tgUserId, username, lead_id: claim.lead_id },
+          });
+          const first = escapeHtml(String(claim.name ?? "").trim().split(/\s+/)[0] || fromName);
+          const sent = await tgSend(chatId,
+            `Assalomu alaykum, ${first}! ✅
+
+Siz Hanguk Consulting bilan Telegram orqali bog'landingiz. Savollaringizni shu yerga yozing — menejerimiz javob beradi.`,
+            { remove_keyboard: true });
+          if (sent) {
+            await bumpThread(supabase, chatId, fromName, "outgoing");
+            await storeMessage(supabase, {
+              chatId, messageId: sent.message_id, senderName: "Hanguk bot",
+              content: "Shaxsiy havola orqali ulandi.", direction: "outgoing",
+            });
+          }
+          return ok();
+        }
+        // Unknown or mistyped code: fall through to the ordinary welcome.
+      }
+    }
 
     // --- /start: greeting + degree buttons -------------------------------
     if (typeof message.text === "string" && message.text.trim().toLowerCase().startsWith("/start")) {

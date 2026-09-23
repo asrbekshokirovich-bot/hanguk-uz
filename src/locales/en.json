@@ -950,6 +950,33 @@
           "rejected": "Rejected",
           "pending": "Pending"
         }
+      },
+      "links": {
+        "title": "Link channels",
+        "hint": "Enter a username or ID — links now if we have the chat, otherwise when the customer writes",
+        "placeholder": {
+          "telegram": "@username or numeric ID",
+          "instagram": "@username"
+        },
+        "save": "Link",
+        "stateLinked": "Linked · {{count}} messages",
+        "stateWaiting": "Waiting — links on first message",
+        "stateNone": "Not linked",
+        "linked": "Linked: {{count}} messages added to the profile",
+        "pending": "No chat found yet. It will link automatically when the customer writes from that account.",
+        "cleared": "Removed",
+        "ambiguous": "This username matches several chats — pick the right one",
+        "pickOne": "Which chat is this customer's?",
+        "messages": "{{count}} messages",
+        "conflictLead": "This account is linked to another lead: {{name}}. Move it to this lead?",
+        "conflictStudent": "This account belongs to a student: {{name}}. Link it to this lead as well?",
+        "error": "Could not link",
+        "personalLink": "Personal link",
+        "copyLink": "Link",
+        "copyText": "Message",
+        "copyFailed": "Could not copy",
+        "linkUnavailable": "Could not get the bot name — reopen later",
+        "inviteText": "Hello {{name}}! To continue on Telegram about your documents and questions, tap this link: {{link}}"
       }
     }
   },
