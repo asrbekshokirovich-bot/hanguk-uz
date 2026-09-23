@@ -168,18 +168,20 @@ export default function DocumentsContent({ students, loading, currentLang, onUpd
     if (error) toast.error("Nimadir xato ketdi");
     else toast.success("Talaba qayta yuklashi so'raldi");
   };
-  // All required slots verified → push the student onto the next pipeline stage.
+  // At least one verified document → push the student onto the next pipeline
+  // stage. A university/application isn't required — many students collect
+  // documents before one is attached, so without an applicationId this only
+  // advances the local pack view (there's no application row to persist a
+  // status onto yet; it'll pick up the real status once one exists).
   const advanceToNextStage = async (userId: string, applicationId: string | null) => {
-    if (!applicationId || !onUpdateApplicationStatus) {
-      toast.error("Talabaning arizasi topilmadi — avval universitet biriktiring");
-      return;
-    }
-    setAdvancing(true);
-    const { error } = await onUpdateApplicationStatus(applicationId, NEXT_APPLICATION_STATUS);
-    setAdvancing(false);
-    if (error) {
-      toast.error("Nimadir xato ketdi");
-      return;
+    if (applicationId && onUpdateApplicationStatus) {
+      setAdvancing(true);
+      const { error } = await onUpdateApplicationStatus(applicationId, NEXT_APPLICATION_STATUS);
+      setAdvancing(false);
+      if (error) {
+        toast.error("Nimadir xato ketdi");
+        return;
+      }
     }
     setAdvancedIds((s) => new Set(s).add(userId));
     toast.success("Talaba keyingi bosqichga o'tkazildi");
@@ -377,16 +379,14 @@ export default function DocumentsContent({ students, loading, currentLang, onUpd
                 <p className="text-xs text-muted-foreground">
                   {selected.stage === 'advanced'
                     ? 'Talaba keyingi bosqichda.'
-                    : !selected.applicationId
-                      ? "Keyingi bosqichga o'tkazishdan oldin talabaga universitet biriktirilishi kerak."
-                      : selected.verifiedCount === 0
-                        ? "Keyingi bosqichga o'tkazish uchun kamida bitta hujjat tasdiqlangan bo'lishi kerak."
-                        : `${selected.verifiedCount}/${selected.requiredTotal} hujjat tasdiqlangan — keyingi bosqichga o'tkazish mumkin.`}
+                    : selected.verifiedCount === 0
+                      ? "Keyingi bosqichga o'tkazish uchun kamida bitta hujjat tasdiqlangan bo'lishi kerak."
+                      : `${selected.verifiedCount}/${selected.requiredTotal} hujjat tasdiqlangan — keyingi bosqichga o'tkazish mumkin.`}
                 </p>
                 <Button
                   variant="highlight"
                   className="shrink-0 gap-2"
-                  disabled={selected.verifiedCount === 0 || !selected.applicationId || selected.stage === 'advanced' || advancing}
+                  disabled={selected.verifiedCount === 0 || selected.stage === 'advanced' || advancing}
                   onClick={() => advanceToNextStage(selected.student.user_id, selected.applicationId)}
                 >
                   <ArrowRight className="h-4 w-4" />
