@@ -709,6 +709,8 @@
       "save": "저장",
       "saving": "저장 중…",
       "followUpPrefix": "재연락: {{when}}",
+      "slaWarn": "{{count}}분 남음 — 지금 연락하세요!",
+      "slaBreached": "{{count}}분째 연락 없음!",
       "scheduled": "예정: {{when}}",
       "dayOfMonth": "{{month}} {{day}}일",
       "columns": {

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { BarChart3, Search, X } from 'lucide-react';
@@ -28,6 +28,7 @@ import {
   noteWithoutRejection,
 } from '@/components/crm/leads/intake/outcome';
 import { CALL_RESULTS } from '@/components/crm/leads/intake/options';
+import { isUncontacted } from '@/components/crm/leads/intake/sla';
 import type { Lead } from '@/contexts/LeadsContext';
 
 const TABS: LeadOutcome[] = ['active', 'converted', 'rejected'];
@@ -38,10 +39,12 @@ const TABS: LeadOutcome[] = ['active', 'converted', 'rejected'];
  * The page answers one question — *whose record is still missing answers* — and
  * gives the operator the form to fix it, plus the two ways a record leaves the
  * list: converted into a student, or rejected as not worth working. The active
- * tab is ordered by next follow-up date — due today or later comes first,
- * earliest first, so the sequence of who to call next is always visible
- * without anything to toggle — with overdue rows grouped underneath instead
- * of leading the list, so they don't bury what's actually due right now.
+ * tab leads with brand-new, never-contacted leads (oldest first) — those are
+ * racing a 10-minute SLA (see `leads/intake/sla`) and burying one under a
+ * scheduled follow-up would defeat the point of flagging it at all. Below
+ * that it falls back to next follow-up date — due today or later comes
+ * first, earliest first — with overdue rows grouped underneath instead of
+ * leading the list, so they don't bury what's actually due right now.
  * Converted and rejected rows, which have no call left to make, fall back to
  * completeness before recency.
  *
@@ -59,8 +62,15 @@ const LeadsContent = () => {
   const canSeeReport = user?.id === '0525a29d-32ce-4c3e-94b1-bddf42a776f9';
 
   // One clock for the render pass, so the table's "3 days ago", the form's
-  // "tomorrow" button and the semester list all agree with each other.
-  const [now] = useState(() => new Date());
+  // "tomorrow" button and the semester list all agree with each other. It
+  // ticks on its own so a never-contacted lead's SLA badge (leads/intake/sla)
+  // turns from "kam qoldi" to overdue in front of the operator, not just on
+  // the next unrelated re-render.
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 20_000);
+    return () => clearInterval(id);
+  }, []);
   // `null` = closed, `'new'` = a blank sheet, otherwise the lead being edited.
   const [editing, setEditing] = useState<Lead | 'new' | null>(null);
   const [busy, setBusy] = useState(false);
@@ -103,7 +113,19 @@ const LeadsContent = () => {
       if (aOverdue !== bOverdue) return aOverdue ? 1 : -1;
       return aOffset - bOffset;
     };
-    groups.active.sort(byFollowUp);
+    // A brand-new lead has no follow-up date yet — it would otherwise sink to
+    // the very bottom by the rule above, right where the operator is least
+    // likely to look, while its 10-minute SLA is running out at the top of
+    // everyone's mind. So it jumps the queue instead, oldest first: the one
+    // closest to breaching is the one most worth seeing first.
+    const byWorkQueue = (a: Lead, b: Lead) => {
+      const aNew = isUncontacted(a);
+      const bNew = isUncontacted(b);
+      if (aNew !== bNew) return aNew ? -1 : 1;
+      if (aNew) return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      return byFollowUp(a, b);
+    };
+    groups.active.sort(byWorkQueue);
     groups.converted.sort(byCompleteness);
     groups.rejected.sort(byCompleteness);
     return groups;

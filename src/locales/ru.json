@@ -722,6 +722,8 @@
       "save": "Сохранить",
       "saving": "Сохранение…",
       "followUpPrefix": "Повторный контакт: {{when}}",
+      "slaWarn": "Осталось {{count}} мин — свяжитесь!",
+      "slaBreached": "Нет связи уже {{count}} мин!",
       "scheduled": "Запланировано: {{when}}",
       "dayOfMonth": "{{day}} {{month}}",
       "columns": {

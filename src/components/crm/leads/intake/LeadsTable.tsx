@@ -6,6 +6,7 @@ import { describeDate, initialsOf, isLeadComplete, splitName } from './intakeFor
 import { canConvertLead, leadOutcome } from './outcome';
 import { useRelativeDate } from './useRelativeDate';
 import { CALL_RESULTS } from './options';
+import { uncontactedSla } from './sla';
 
 interface LeadsTableProps {
   leads: Lead[];
@@ -93,6 +94,7 @@ export const LeadsTable = ({
           const outcome = leadOutcome(lead);
           const convertible = canConvertLead(lead);
           const followUp = describeDate(lead.next_follow_up ?? '', now);
+          const sla = outcome === 'active' ? uncontactedSla(lead, now) : null;
           const { firstName } = splitName(lead.full_name);
           return (
             <div
@@ -101,6 +103,7 @@ export const LeadsTable = ({
                 'relative grid w-full items-center gap-3.5 border-b border-border/60 px-5 py-3.5 text-left text-sm',
                 'transition-colors hover:bg-muted/50 focus-within:bg-muted/50',
                 outcome === 'rejected' && 'opacity-70',
+                sla && 'border-l-2 border-l-destructive bg-destructive/5',
                 GRID,
               )}
             >
@@ -128,6 +131,13 @@ export const LeadsTable = ({
                   {followUp && outcome === 'active' && (
                     <span className="mt-0.5 block text-xs font-semibold text-[hsl(var(--spring))]">
                       {t('leads.intake.followUpPrefix', { when: relative.label(followUp) })}
+                    </span>
+                  )}
+                  {sla && (
+                    <span className="mt-0.5 block text-xs font-semibold text-destructive">
+                      {sla.state === 'breached'
+                        ? t('leads.intake.slaBreached', { count: sla.minutesWaiting })
+                        : t('leads.intake.slaWarn', { count: sla.minutesLeft })}
                     </span>
                   )}
                 </span>
