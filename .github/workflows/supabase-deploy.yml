@@ -104,6 +104,8 @@ jobs:
           # Verified on 2026-09-23: `telegram-ingest` live version 23 was read
           # out of production and matches this repo's copy before the lead
           # creation added on top of it, so the repo copy is the newer code.
+          # Added on 2026-09-23: `telegram-poll` is new and deployed from here,
+          # so the repo copy is the current one.
           FUNCTIONS="
             instagram-webhook
             channel-health-check
@@ -120,6 +122,7 @@ jobs:
             create-learning-center
             lead-sla-check
             telegram-ingest
+            telegram-poll
           "
 
           for fn in $FUNCTIONS; do
