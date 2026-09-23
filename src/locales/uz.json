@@ -773,8 +773,6 @@
       "save": "Saqlash",
       "saving": "Saqlanmoqda…",
       "followUpPrefix": "Qayta aloqa: {{when}}",
-      "slaWarn": "{{count}} daqiqa qoldi — aloqa chiqaring!",
-      "slaBreached": "{{count}} daqiqadan beri aloqa yo'q!",
       "scheduled": "Rejalashtirilgan: {{when}}",
       "dayOfMonth": "{{day}}-{{month}}",
       "columns": {
