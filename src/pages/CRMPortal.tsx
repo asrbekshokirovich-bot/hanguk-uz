@@ -103,6 +103,7 @@ export default function CRMPortal() {
     updateApplicationStatus,
     createApplication,
     updateDocumentStatus,
+    setDocsReady,
     refetchStudents
   } = useCRMData();
 
@@ -327,6 +328,7 @@ export default function CRMPortal() {
                   onOpenStudent={setSelectedStudent}
                   onUpdateApplicationStatus={updateApplicationStatus}
                   onCreateApplication={createApplication}
+                  onSetDocsReady={setDocsReady}
                 />
               </SafeSuspense>
             </div>
@@ -342,6 +344,7 @@ export default function CRMPortal() {
               currentLang={currentLang}
               onUpdateDocumentStatus={updateDocumentStatus}
               onUpdateApplicationStatus={updateApplicationStatus}
+              onSetDocsReady={setDocsReady}
             />
           </SafeSuspense>
         );
