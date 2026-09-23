@@ -726,8 +726,6 @@
       "save": "Save",
       "saving": "Saving…",
       "followUpPrefix": "Follow up: {{when}}",
-      "slaWarn": "{{count}} min left — contact now!",
-      "slaBreached": "No contact for {{count}} min!",
       "scheduled": "Scheduled: {{when}}",
       "dayOfMonth": "{{day}} {{month}}",
       "columns": {
