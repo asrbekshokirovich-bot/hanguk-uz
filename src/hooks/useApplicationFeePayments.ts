@@ -41,6 +41,7 @@ export interface FeePayment {
   student_id: string;
   institution_id: string;
   amount_krw: number;
+  expense_krw: number | null;
   receipt_url: string | null;
   receipt_file_name: string | null;
   created_at: string;
@@ -158,7 +159,7 @@ export function useStudentFeePayments(studentId: string | null) {
     queryFn: async () => {
       const { data, error } = await rel('application_fee_payments')
         .select(
-          'id, student_id, institution_id, amount_krw, receipt_url, receipt_file_name, created_at,' +
+          'id, student_id, institution_id, amount_krw, expense_krw, receipt_url, receipt_file_name, created_at,' +
             ' institution:institutions(id, name_ko, name_en, city_ko)',
         )
         .eq('student_id', studentId)
@@ -178,6 +179,7 @@ export function useStudentFeePayments(studentId: string | null) {
 export interface FeePaymentInput {
   institution_id: string;
   amount_krw: number;
+  expense_krw: number | null;
   receipt_url: string | null;
   receipt_file_name: string | null;
 }
@@ -194,6 +196,7 @@ export function useAddFeePayments() {
         institution_id: e.institution_id,
         intake_id: activeIntakeId,
         amount_krw: e.amount_krw,
+        expense_krw: e.expense_krw,
         receipt_url: e.receipt_url,
         receipt_file_name: e.receipt_file_name,
       }));
@@ -217,6 +220,7 @@ export function useUpdateFeePayment() {
         .update({
           institution_id: update.institution_id,
           amount_krw: update.amount_krw,
+          expense_krw: update.expense_krw,
           receipt_url: update.receipt_url,
           receipt_file_name: update.receipt_file_name,
         })
