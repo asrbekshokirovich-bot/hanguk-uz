@@ -308,6 +308,9 @@ export function formatAmount(amount: number, currency: string) {
     }
     return `${amount.toLocaleString()} UZS`;
   }
+  if (currency === 'KRW') {
+    return `₩${amount.toLocaleString()}`;
+  }
   return `$${amount.toLocaleString()} USD`;
 }
 
