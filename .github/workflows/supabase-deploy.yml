@@ -99,11 +99,8 @@ jobs:
           # Added on 2026-09-23: `create-learning-center` is new — there is no
           # live version to be behind, so the repo copy is by definition the
           # current one.
-          # Verified on 2026-09-23: `telegram-ingest` live version 21 was read
-          # out of production and copied into this repo (the repo had been far
-          # behind — no group chats, no media handshake, no outbox reconcile);
-          # version 22, deployed from here, adds lead creation for new private
-          # chats on top. `lead-sla-check` is new and deployed from here.
+          # Added on 2026-09-23: `lead-sla-check` is new and deployed from here,
+          # so the repo copy is the current one.
           FUNCTIONS="
             instagram-webhook
             channel-health-check
@@ -118,7 +115,6 @@ jobs:
             validate-document
             send-push-notification
             create-learning-center
-            telegram-ingest
             lead-sla-check
           "
 

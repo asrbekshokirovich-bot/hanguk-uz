@@ -5,8 +5,6 @@
 // it runs off-platform and POSTs each mirrored message here. This function:
 //   * resolves who the chat belongs to (identity spine; auto-links by the
 //     student's known phone)
-//   * creates a lead for a new person writing to us in a private chat, the
-//     same way an Instagram DM does (see "A person writing to us" below)
 //   * upserts the thread (both directions, unread bookkeeping)
 //   * stores the message, de-duplicated by a composite external id
 //   * heals rows stored before media handling worked, by attaching the file
@@ -17,7 +15,7 @@
 //
 // deno-lint-ignore-file no-explicit-any
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { ensureIdentity, resolveIdentity } from "../_shared/identity.ts";
+import { resolveIdentity } from "../_shared/identity.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -108,9 +106,6 @@ const MEDIA_PLACEHOLDER: Record<string, string> = {
   location: "📍 Location",
   poll: "📊 Poll",
 };
-
-/** Older than this, a message is history being replayed, not someone writing now. */
-const LIVE_WINDOW_MS = 24 * 60 * 60 * 1000;
 
 const CHAT_MEDIA_BUCKET = "chat-media";
 const MAX_MEDIA_BYTES = 20 * 1024 * 1024; // 20MB hard cap
@@ -304,21 +299,21 @@ async function ingestOne(
   // Identity resolution keys off the AUTHOR — that's the human we might know.
   // Auto-linking a whole group to one student would be wrong, so groups only
   // resolve/remember the identity, they don't attach the thread to a student.
-  const identityOpts = {
+  const identity = await resolveIdentity(supabase, "telegram", authorId, {
     displayName: authorName,
     phone: author.phone ?? null,
     identifierLabel: authorUsername ? `@${authorUsername}` : author.phone ?? null,
-  };
-  let identity = await resolveIdentity(supabase, "telegram", authorId, identityOpts);
-  let linked = !!(identity.studentId || identity.leadId);
+  });
+  const linked = !!(identity.studentId || identity.leadId);
 
   // A group thread stays unlinked; staff attach it manually if it matters.
   const threadStudentId = isGroupLike ? null : identity.studentId;
 
   const direction = ev.message.out ? "outgoing" : "incoming";
   const externalId = `${identifier}:${ev.message.id}`;
-  const sentAt = ev.message.date ? new Date(ev.message.date * 1000) : new Date();
-  const createdAt = sentAt.toISOString();
+  const createdAt = ev.message.date
+    ? new Date(ev.message.date * 1000).toISOString()
+    : new Date().toISOString();
 
   // De-dupe: the userbot may re-send on reconnect / during backfill.
   const { data: existing } = await supabase
@@ -360,22 +355,6 @@ async function ingestOne(
       }
     }
     return { status: "duplicate", linked };
-  }
-
-  // A person writing to us in a private chat is a lead, exactly as an
-  // Instagram DM is. ensureIdentity creates it — hidden as unqualified until a
-  // phone number arrives, which fn_capture_phone_from_message then reads off
-  // this very message: the moment it lands in CRM → Aloqa → "Yangi lid".
-  // Only a live, new, incoming 1:1 message does this; staff writing first,
-  // groups, saved messages and history replayed by a backfill only look the
-  // person up, so old conversations never become new leads.
-  const isLive = Date.now() - sentAt.getTime() < LIVE_WINDOW_MS;
-  if (!linked && direction === "incoming" && chatType === "private" && isLive) {
-    identity = await ensureIdentity(supabase, "telegram", authorId, {
-      ...identityOpts,
-      leadFields: { contact_channel: "Telegram" },
-    });
-    linked = !!(identity.studentId || identity.leadId);
   }
 
   // Thread bookkeeping (atomic; preserves a manual student link).
