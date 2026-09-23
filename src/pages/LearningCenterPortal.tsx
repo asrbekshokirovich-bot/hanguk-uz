@@ -28,7 +28,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 const KOREAN_LEVELS = ['Boshlang‘ich', 'TOPIK 1', 'TOPIK 2', 'TOPIK 3', 'TOPIK 4', 'TOPIK 5', 'TOPIK 6'];
 
-const EMPTY_FORM = { full_name: '', phone: '', city: '', age: '', korean_level: '', notes: '' };
+const EMPTY_FORM = { full_name: '', phone: '', korean_level: '', notes: '' };
 
 function statusBadge(s: CenterStudent) {
   if (s.already_lead) {
@@ -101,8 +101,6 @@ export default function LearningCenterPortal() {
     const row: NewCenterStudent = {
       full_name: form.full_name,
       phone: form.phone,
-      city: form.city,
-      age: form.age ? Number(form.age) : null,
       korean_level: form.korean_level,
       notes: form.notes,
     };
@@ -232,31 +230,14 @@ export default function LearningCenterPortal() {
                       onChange={(e) => setForm({ ...form, phone: e.target.value })}
                     />
                   </div>
-                  <div className="space-y-1.5">
-                    <Label htmlFor="lc-city">Shahar / viloyat</Label>
-                    <Input id="lc-city" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1.5">
-                      <Label htmlFor="lc-age">Yoshi</Label>
-                      <Input
-                        id="lc-age"
-                        type="number"
-                        min={10}
-                        max={80}
-                        value={form.age}
-                        onChange={(e) => setForm({ ...form, age: e.target.value })}
-                      />
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label>Koreys tili</Label>
-                      <Select value={form.korean_level} onValueChange={(v) => setForm({ ...form, korean_level: v })}>
-                        <SelectTrigger><SelectValue placeholder="Darajasi" /></SelectTrigger>
-                        <SelectContent>
-                          {KOREAN_LEVELS.map((l) => <SelectItem key={l} value={l}>{l}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                    </div>
+                  <div className="space-y-1.5 sm:col-span-2">
+                    <Label>Koreys tili</Label>
+                    <Select value={form.korean_level} onValueChange={(v) => setForm({ ...form, korean_level: v })}>
+                      <SelectTrigger className="sm:w-1/2"><SelectValue placeholder="Darajasi" /></SelectTrigger>
+                      <SelectContent>
+                        {KOREAN_LEVELS.map((l) => <SelectItem key={l} value={l}>{l}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="space-y-1.5 sm:col-span-2">
                     <Label htmlFor="lc-notes">Izoh</Label>
