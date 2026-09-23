@@ -9,6 +9,16 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { EmptyState } from '@/components/ui/empty-state';
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
   Search,
   FolderOpen,
   MessageSquare,
@@ -103,6 +113,8 @@ export default function DocumentsContent({ students, loading, currentLang, onUpd
   // refetches the application row.
   const [advancedIds, setAdvancedIds] = useState<Set<string>>(new Set());
   const [advancing, setAdvancing] = useState(false);
+  // Staff must confirm before a student is pushed to the next stage.
+  const [confirmAdvanceOpen, setConfirmAdvanceOpen] = useState(false);
   const [busySlot, setBusySlot] = useState<string | null>(null);
 
   const packs = useMemo(() => {
@@ -407,12 +419,33 @@ export default function DocumentsContent({ students, loading, currentLang, onUpd
                   variant="highlight"
                   className="shrink-0 gap-2"
                   disabled={selected.verifiedCount === 0 || selected.stage === 'advanced' || advancing}
-                  onClick={() => advanceToNextStage(selected.student.user_id, selected.applicationId)}
+                  onClick={() => setConfirmAdvanceOpen(true)}
                 >
                   <ArrowRight className="h-4 w-4" />
                   {selected.stage === 'advanced' ? "O'tkazildi" : "Keyingi bosqichga o'tkazish"}
                 </Button>
               </div>
+
+              <AlertDialog open={confirmAdvanceOpen} onOpenChange={setConfirmAdvanceOpen}>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Keyingi bosqichga o'tkazilsinmi?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      <span className="font-semibold text-foreground">{selected.student.full_name || '—'}</span>{' '}
+                      keyingi bosqichga o'tkaziladi ({selected.verifiedCount}/{selected.requiredTotal} hujjat tasdiqlangan).
+                      Davom etishni tasdiqlaysizmi?
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Bekor qilish</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => advanceToNextStage(selected.student.user_id, selected.applicationId)}
+                    >
+                      Ha, o'tkazish
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </Card>
 
             <HandlingHistory docs={selected.student.documents ?? []} lang={currentLang} />
