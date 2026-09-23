@@ -180,3 +180,10 @@ verify_jwt = false
 # check cannot see it; the function checks the caller itself.
 [functions.suggest-lead-fields]
 verify_jwt = false
+
+# Uncontacted-lead watchdog → Telegram, called every 2 minutes by pg_cron with
+# a service-role JWT (same wiring as channel-health-check/infra-health-check).
+# verify_jwt is off so the cron caller isn't blocked at the gateway; the
+# function checks the caller itself.
+[functions.lead-sla-check]
+verify_jwt = false
