@@ -52,6 +52,8 @@ type StudentProfile = Tables<'profiles'> & {
   documents?: Tables<'documents'>[];
   paymentStatus?: string | null;
   initialPaymentOverdue?: boolean;
+  /** Set (via Hujjatlar) for a student with no application yet — see virtualApp() below. */
+  docsReady?: boolean;
 };
 
 type ApplicationRow = Tables<'applications'> & {
@@ -80,6 +82,12 @@ interface ApplicationsContentProps {
   onUpdateApplicationStatus: (id: string, status: string) => Promise<{ error: unknown }>;
   /** Attach a student to a university → creates their application row. */
   onCreateApplication: (studentId: string, institutionId: string, degreeLevel: string) => Promise<{ error: unknown }>;
+  /**
+   * Advances a student who has no application yet (no university attached,
+   * so no real row to move) from the "New" to the "Hujjatlar tayyor" virtual
+   * card — same flag Hujjatlar's own advance action sets.
+   */
+  onSetDocsReady: (studentId: string, ready: boolean) => Promise<{ error: unknown }>;
 }
 
 const STAGE_ORDER: Stage[] = ['new', 'docs', 'applied', 'sent', 'visa'];
@@ -185,6 +193,35 @@ function visaDocsReady(appId: string) {
   return hashInt(`${appId}v`) % 8; // 0..7 of 7
 }
 
+// Stand-in "application" for a student with no real application row yet
+// (applications.institution_id is NOT NULL, so nothing can exist until a
+// university is attached). Lets every card helper below (hashing, dates,
+// stage lookup via STATUS_TO_STAGE) work unchanged for these students too —
+// only setStage() needs to know it isn't real.
+const VIRTUAL_ID_PREFIX = 'virtual:';
+function isVirtualAppId(id: string) {
+  return id.startsWith(VIRTUAL_ID_PREFIX);
+}
+function virtualApp(student: StudentProfile): ApplicationRow {
+  const stamp = student.created_at ?? new Date().toISOString();
+  return {
+    id: `${VIRTUAL_ID_PREFIX}${student.user_id}`,
+    student_id: student.user_id,
+    institution_id: null,
+    intake_id: null,
+    status: student.docsReady ? 'documents_collection' : 'pending',
+    decision: null,
+    decision_at: null,
+    degree_level: null,
+    notes: null,
+    status_history: null,
+    submitted_at: null,
+    created_at: stamp,
+    updated_at: stamp,
+    university: null,
+  };
+}
+
 function daysInStage(app: ApplicationRow) {
   const base = app.updated_at || app.created_at;
   if (base) {
@@ -230,6 +267,7 @@ export default function ApplicationsContent({
   onOpenStudent,
   onUpdateApplicationStatus,
   onCreateApplication,
+  onSetDocsReady,
 }: ApplicationsContentProps) {
   const { t } = useTranslation();
 
@@ -271,14 +309,23 @@ export default function ApplicationsContent({
     return map;
   }, [students]);
 
-  // One enriched record per APPLICATION (= one student at one university).
+  // One enriched record per APPLICATION (= one student at one university),
+  // plus one virtual record for every student who has no application at all
+  // yet — so "New" (and, once their docs are ready, "Hujjatlar tayyor") shows
+  // every student in the season, not just those already attached to a uni.
   const rows = useMemo(() => {
-    return applications.map((app) => {
+    const studentsWithApp = new Set(applications.map((a) => a.student_id));
+    const virtualApps = students
+      .filter((s) => !studentsWithApp.has(s.user_id))
+      .map((s) => virtualApp(s));
+
+    return [...applications, ...virtualApps].map((app) => {
       const student = studentByUserId.get(app.student_id);
       const docs = student?.documents ?? [];
       const docsTotal = docs.length;
       const docsDone = docs.filter((d) => d.status === 'approved').length;
       const stage = overrides[app.id] ?? STATUS_TO_STAGE[app.status] ?? 'new';
+      const virtual = isVirtualAppId(app.id);
       return {
         app,
         student,
@@ -290,17 +337,18 @@ export default function ApplicationsContent({
         uni: uniName(app.university) || t('applications.undecided', { defaultValue: 'Undecided' }),
         program: programOf(app.id),
         consultant: consultantOf(app.student_id),
-        blocked: isBlocked(app.id),
+        blocked: virtual ? false : isBlocked(app.id),
         days: daysInStage(app),
         docsDone,
         docsTotal,
-        outcome: outcomeOf(app),
-        decisionSub: decisionSubOf(app),
-        visaSub: visaSubOf(app),
+        outcome: virtual ? null : outcomeOf(app),
+        decisionSub: virtual ? ('awaiting' as DecisionSub) : decisionSubOf(app),
+        visaSub: virtual ? ('not_applied' as VisaSub) : visaSubOf(app),
+        virtual,
       };
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [applications, studentByUserId, overrides, currentLang]);
+  }, [applications, students, studentByUserId, overrides, currentLang]);
 
   type Row = (typeof rows)[number];
 
@@ -363,7 +411,12 @@ export default function ApplicationsContent({
     if (row.stage === stage && !statusOverride) return;
     setOverrides((o) => ({ ...o, [row.app.id]: stage }));
     setMovingId(row.app.id);
-    const { error } = await onUpdateApplicationStatus(row.app.id, statusOverride ?? STAGE_STATUS[stage]);
+    // A virtual card has no application row (no university attached yet) —
+    // "advancing" it can only ever be new → docs, and only the docs_ready
+    // flag can express that.
+    const { error } = row.virtual
+      ? await onSetDocsReady(row.app.student_id, stage === 'docs')
+      : await onUpdateApplicationStatus(row.app.id, statusOverride ?? STAGE_STATUS[stage]);
     setMovingId(null);
     setOverrides((o) => {
       const next = { ...o };
@@ -529,7 +582,8 @@ export default function ApplicationsContent({
 
                   {stage === 'docs' && items.map((r) => (
                     <BaseCard key={r.app.id} r={r} onClick={() => openStudent(r)} t={t}
-                      moving={movingId === r.app.id} onAdvance={() => setPendingAdvance(r)}
+                      moving={movingId === r.app.id}
+                      onAdvance={r.virtual ? undefined : () => setPendingAdvance(r)}
                       footerRight={
                         <Badge variant={r.docsTotal && r.docsDone >= r.docsTotal ? 'successSoft' : 'info'} className="gap-1">
                           <FileCheck className="h-3 w-3" />

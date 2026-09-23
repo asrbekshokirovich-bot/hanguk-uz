@@ -23,6 +23,8 @@ import { buildApplicationPack, slotLabel } from '@/lib/studentDocSlots';
 type StudentProfile = Tables<'profiles'> & {
   applications?: (Tables<'applications'> & { university?: Tables<'institutions'> })[];
   documents?: Tables<'documents'>[];
+  /** Set for a student with no application yet — see onSetDocsReady below. */
+  docsReady?: boolean;
 };
 
 interface DocumentsContentProps {
@@ -32,14 +34,23 @@ interface DocumentsContentProps {
   onUpdateDocumentStatus: (documentId: string, newStatus: string, notes?: string) => Promise<{ error: unknown }>;
   /** Advances the student's application row when their pack is fully verified. */
   onUpdateApplicationStatus?: (applicationId: string, status: string) => Promise<{ error: unknown }>;
+  /**
+   * Persists "docs ready" on student_intakes for a student who has no
+   * application/university yet, so ApplicationsContent can still place them
+   * in its "Hujjatlar tayyor" column — an application row can't exist without
+   * a university (institution_id is NOT NULL), so there's nothing else to
+   * advance for them.
+   */
+  onSetDocsReady?: (studentId: string, ready: boolean) => Promise<{ error: unknown }>;
 }
 
 type PackFilter = 'all' | 'application' | 'visa';
 type Stage = 'new_intake' | 'collecting' | 'translation_apostille' | 'ready' | 'advanced';
 
 // The status written on the application row when a completed pack is pushed to
-// the next pipeline step. Matches ApplicationsContent's `docs` → `applied` move.
-const NEXT_APPLICATION_STATUS = 'application_submitted';
+// the next pipeline step. Matches ApplicationsContent's `docs` stage — one
+// step at a time, same as a manual "Move to next stage" there would do.
+const NEXT_APPLICATION_STATUS = 'documents_collection';
 const ADVANCED_STATUSES = new Set([
   'in_review',
   'university_response',
@@ -83,7 +94,7 @@ function fmtDate(iso: string | null | undefined, lang: string) {
 }
 
 // ===========================================================================
-export default function DocumentsContent({ students, loading, currentLang, onUpdateDocumentStatus, onUpdateApplicationStatus }: DocumentsContentProps) {
+export default function DocumentsContent({ students, loading, currentLang, onUpdateDocumentStatus, onUpdateApplicationStatus, onSetDocsReady }: DocumentsContentProps) {
   const [search, setSearch] = useState('');
   const [packFilter, setPackFilter] = useState<PackFilter>('all');
   const [stageFilter, setStageFilter] = useState<Stage | 'all'>('all');
@@ -104,7 +115,7 @@ export default function DocumentsContent({ students, loading, currentLang, onUpd
         app?.university?.name_en ||
         app?.university?.name_ko ||
         '—';
-      const advanced = advancedIds.has(s.user_id) || ADVANCED_STATUSES.has(app?.status ?? '');
+      const advanced = advancedIds.has(s.user_id) || ADVANCED_STATUSES.has(app?.status ?? '') || (!app && !!s.docsReady);
       let stage: Stage = 'new_intake';
       if (advanced) stage = 'advanced';
       else if (verifiedCount === requiredTotal) stage = 'ready';
@@ -170,13 +181,22 @@ export default function DocumentsContent({ students, loading, currentLang, onUpd
   };
   // At least one verified document → push the student onto the next pipeline
   // stage. A university/application isn't required — many students collect
-  // documents before one is attached, so without an applicationId this only
-  // advances the local pack view (there's no application row to persist a
-  // status onto yet; it'll pick up the real status once one exists).
+  // documents before one is attached, so without an applicationId this
+  // persists "docs ready" on student_intakes instead (see onSetDocsReady),
+  // which is what puts them in ApplicationsContent's "Hujjatlar tayyor"
+  // column until a real application exists.
   const advanceToNextStage = async (userId: string, applicationId: string | null) => {
     if (applicationId && onUpdateApplicationStatus) {
       setAdvancing(true);
       const { error } = await onUpdateApplicationStatus(applicationId, NEXT_APPLICATION_STATUS);
+      setAdvancing(false);
+      if (error) {
+        toast.error("Nimadir xato ketdi");
+        return;
+      }
+    } else if (onSetDocsReady) {
+      setAdvancing(true);
+      const { error } = await onSetDocsReady(userId, true);
       setAdvancing(false);
       if (error) {
         toast.error("Nimadir xato ketdi");

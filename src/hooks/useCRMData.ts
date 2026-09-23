@@ -21,6 +21,13 @@ type StudentProfile = Tables<'profiles'> & {
    * carried over after a visa refusal paid for the season they came from.
    */
   freeReapplication?: boolean;
+  /**
+   * Staff marked this student's document pack ready (Hujjatlar) for this
+   * season, even though no application/university is attached yet. Read off
+   * `student_intakes`, same place as `freeReapplication` — see that field's
+   * comment for why the season-scoped table, not the profile.
+   */
+  docsReady?: boolean;
 };
 
 type ApplicationWithUniversity = Tables<'applications'> & {
@@ -46,7 +53,7 @@ export function useCRMData() {
       // where a role that can't read `documents` (e.g. call_operator) saw fewer.
       const { data: memberships, error: membershipError } = await supabase
         .from('student_intakes')
-        .select('student_id, is_free_reapplication')
+        .select('student_id, is_free_reapplication, docs_ready')
         .eq('intake_id', activeIntakeId);
 
       if (membershipError) {
@@ -61,6 +68,9 @@ export function useCRMData() {
       // rather than on the profile.
       const freeReapplicationIds = new Set(
         (memberships ?? []).filter((m) => m.is_free_reapplication).map((m) => m.student_id),
+      );
+      const docsReadyIds = new Set(
+        (memberships ?? []).filter((m) => m.docs_ready).map((m) => m.student_id),
       );
 
       // Staff are never students.
@@ -199,6 +209,7 @@ export function useCRMData() {
         paymentStatus: paymentStatusByStudent.get(profile.user_id) || null,
         initialPaymentOverdue: initialOverdueByStudent.get(profile.user_id) || false,
         freeReapplication: freeReapplicationIds.has(profile.user_id),
+        docsReady: docsReadyIds.has(profile.user_id),
       }));
 
       setStudents(studentsWithData);
@@ -279,6 +290,22 @@ export function useCRMData() {
     return { error };
   };
 
+  // Marks (or clears) a student's document pack as "ready" for the active
+  // season when they have no application/university yet — student_intakes
+  // already has a row for every roster member (that's what membership means),
+  // so this is always an update, never an insert.
+  const setDocsReady = async (studentId: string, ready: boolean) => {
+    if (!activeIntakeId) return { error: new Error('No active intake') };
+    const { error } = await supabase
+      .from('student_intakes')
+      .update({ docs_ready: ready })
+      .eq('student_id', studentId)
+      .eq('intake_id', activeIntakeId);
+
+    if (!error) await fetchStudents();
+    return { error };
+  };
+
   const updateDocumentStatus = async (documentId: string, newStatus: string, notes?: string) => {
     if (newStatus === 'rejected') {
       // Fetch the file path first
@@ -352,5 +379,6 @@ export function useCRMData() {
     updateApplicationStatus,
     createApplication,
     updateDocumentStatus,
+    setDocsReady,
   };
 }

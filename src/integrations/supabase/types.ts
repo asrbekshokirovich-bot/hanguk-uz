@@ -5144,6 +5144,7 @@ export type Database = {
         Row: {
           created_at: string
           discount_percent: number
+          docs_ready: boolean
           id: string
           intake_id: string
           is_free_reapplication: boolean
@@ -5152,6 +5153,7 @@ export type Database = {
         Insert: {
           created_at?: string
           discount_percent?: number
+          docs_ready?: boolean
           id?: string
           intake_id: string
           is_free_reapplication?: boolean
@@ -5160,6 +5162,7 @@ export type Database = {
         Update: {
           created_at?: string
           discount_percent?: number
+          docs_ready?: boolean
           id?: string
           intake_id?: string
           is_free_reapplication?: boolean
