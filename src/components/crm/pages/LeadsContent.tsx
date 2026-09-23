@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { BarChart3, Search, X } from 'lucide-react';
@@ -28,6 +28,7 @@ import {
   noteWithoutRejection,
 } from '@/components/crm/leads/intake/outcome';
 import { CALL_RESULTS } from '@/components/crm/leads/intake/options';
+import { isNewLead } from '@/components/crm/leads/intake/sla';
 import type { Lead } from '@/contexts/LeadsContext';
 
 const TABS: LeadOutcome[] = ['active', 'converted', 'rejected'];
@@ -49,8 +50,12 @@ const TABS: LeadOutcome[] = ['active', 'converted', 'rejected'];
  * `leads/intake/options`, what counts as converted or rejected in
  * `leads/intake/outcome`, and the writes go through the existing `useLeads`
  * context so intake scoping, toasts and refetching behave as everywhere else.
+ *
+ * `view="new"` is CRM → Aloqa → "Yangi lid": the same table, narrowed to
+ * Instagram/Telegram leads whose phone and name just arrived and that nobody
+ * has called yet (leads/intake/sla), each with its 10-minute countdown.
  */
-const LeadsContent = () => {
+const LeadsContent = ({ view = 'all' }: { view?: 'all' | 'new' }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { leads, loading, createLead, updateLead, convertToStudent, deleteLead, refetch } =
@@ -59,8 +64,15 @@ const LeadsContent = () => {
   const canSeeReport = user?.id === '0525a29d-32ce-4c3e-94b1-bddf42a776f9';
 
   // One clock for the render pass, so the table's "3 days ago", the form's
-  // "tomorrow" button and the semester list all agree with each other.
-  const [now] = useState(() => new Date());
+  // "tomorrow" button and the semester list all agree with each other. In the
+  // "Yangi lid" view it ticks every second so the countdown reads as a real
+  // running clock.
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    if (view !== 'new') return;
+    const id = setInterval(() => setNow(new Date()), 1_000);
+    return () => clearInterval(id);
+  }, [view]);
   // `null` = closed, `'new'` = a blank sheet, otherwise the lead being edited.
   const [editing, setEditing] = useState<Lead | 'new' | null>(null);
   const [busy, setBusy] = useState(false);
@@ -109,7 +121,21 @@ const LeadsContent = () => {
     return groups;
   }, [leads, query, now]);
 
-  const shown = byOutcome[tab];
+  // "Yangi lid": oldest arrival first — the one closest to the 10-minute line
+  // is the one most worth seeing first.
+  const newLeads = useMemo(
+    () =>
+      leads
+        .filter((lead) => isNewLead(lead) && matchesLeadQuery(lead, query))
+        .sort(
+          (a, b) =>
+            new Date(a.new_lead_at as string).getTime() -
+            new Date(b.new_lead_at as string).getTime(),
+        ),
+    [leads, query],
+  );
+
+  const shown = view === 'new' ? newLeads : byOutcome[tab];
 
   const [statsOpen, setStatsOpen] = useState(false);
 
@@ -237,9 +263,16 @@ const LeadsContent = () => {
       <div className="mx-auto max-w-[1360px] px-1 pb-16 pt-1">
         <div className="mb-6 flex flex-wrap items-end justify-between gap-5">
           <div>
-            <h1 className="text-[28px] font-bold tracking-[-0.015em]">{t('navigation.leads')}</h1>
-            <p className="mt-1.5 text-sm text-muted-foreground">{t('leads.intake.subtitle')}</p>
+            <h1 className="text-[28px] font-bold tracking-[-0.015em]">
+              {view === 'new' ? t('navigation.newLeads') : t('navigation.leads')}
+            </h1>
+            <p className="mt-1.5 text-sm text-muted-foreground">
+              {view === 'new' ? t('leads.intake.newSectionSubtitle') : t('leads.intake.subtitle')}
+            </p>
           </div>
+          {/* A hand-entered lead never lands in "Yangi lid", so the create and
+              report actions stay on the main list. */}
+          {view === 'all' && (
           <div className="flex items-center gap-3">
             {canSeeReport && (
               <button
@@ -259,6 +292,7 @@ const LeadsContent = () => {
               {t('leads.intake.newLead')}
             </button>
           </div>
+          )}
         </div>
 
         {/* Toggle buttons rather than a tablist: there is one list below them
@@ -279,6 +313,7 @@ const LeadsContent = () => {
               className="h-10 w-full rounded-full border border-input bg-background pl-9 pr-3 text-[13px] outline-none transition focus:border-accent focus:ring-[3px] focus:ring-accent/35"
             />
           </div>
+          {view === 'all' && (
           <div
             role="group"
             aria-label={t('leads.intake.tabs.label')}
@@ -303,6 +338,7 @@ const LeadsContent = () => {
             </button>
           ))}
           </div>
+          )}
         </div>
 
         {loading ? (
@@ -316,7 +352,7 @@ const LeadsContent = () => {
             <p className="text-sm text-muted-foreground">
               {query.trim()
                 ? t('leads.intake.noMatches', { query: query.trim() })
-                : t(`leads.intake.emptyBy.${tab}`)}
+                : t(`leads.intake.emptyBy.${view === 'new' ? 'new' : tab}`)}
             </p>
           </div>
         ) : (
@@ -330,6 +366,7 @@ const LeadsContent = () => {
             onCallResult={handleCallResult}
             busy={busy}
             now={now}
+            showCountdown={view === 'new'}
           />
         )}
       </div>

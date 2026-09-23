@@ -268,6 +268,7 @@
     "finance": "Moliya",
     "admin": "Admin",
     "leads": "Lidlar",
+    "newLeads": "Yangi lid",
     "liveCall": "Jonli Qo'ng'iroq",
     "aiTranslation": "AI Tarjima",
     "kakaoMap": "Kakao Map",
@@ -763,6 +764,7 @@
     },
     "intake": {
       "subtitle": "Qatorga bosib o‘quvchi ma’lumotlarini to‘ldiring",
+      "newSectionSubtitle": "Instagram va Telegram’dan telefon raqami va ismi bilan kelgan lidlar. 10 daqiqa ichida aloqa chiqing — ALOQA ustunida natijani belgilasangiz, lid bu yerdan chiqadi.",
       "newLead": "+ Yangi lead",
       "newTitle": "Yangi lead",
       "empty": "Hozircha lead yo‘q. “+ Yangi lead” tugmasi orqali qo‘shing.",
@@ -773,6 +775,8 @@
       "save": "Saqlash",
       "saving": "Saqlanmoqda…",
       "followUpPrefix": "Qayta aloqa: {{when}}",
+      "countdownLeft": "Aloqa uchun: {{time}} qoldi",
+      "countdownOverdue": "{{time}} dan beri aloqa yo‘q!",
       "scheduled": "Rejalashtirilgan: {{when}}",
       "dayOfMonth": "{{day}}-{{month}}",
       "columns": {
@@ -887,6 +891,7 @@
         "rejected": "Rad etilganlar"
       },
       "emptyBy": {
+        "new": "Hozircha yangi lid yo‘q. Instagram yoki Telegram’da kimdir telefon raqamini qoldirsa, shu yerda paydo bo‘ladi.",
         "active": "Ishlanayotgan lead yo‘q. “+ Yangi lead” orqali qo‘shing.",
         "converted": "Hali birorta lead o‘quvchiga aylantirilmagan.",
         "rejected": "Rad etilgan lead yo‘q."

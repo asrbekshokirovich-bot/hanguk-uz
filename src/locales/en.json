@@ -219,6 +219,7 @@
     "finance": "Finance",
     "admin": "Admin",
     "leads": "Leads",
+    "newLeads": "New leads",
     "liveCall": "Live Call",
     "aiTranslation": "AI Translation",
     "kakaoMap": "Kakao Map",
@@ -716,6 +717,7 @@
     },
     "intake": {
       "subtitle": "Click a row to fill in the student's details",
+      "newSectionSubtitle": "Leads from Instagram and Telegram that arrived with a phone number and a name. Contact them within 10 minutes — once you set a result in the Contact column, the lead leaves this list.",
       "newLead": "+ New lead",
       "newTitle": "New lead",
       "empty": "No leads yet. Add one with “+ New lead”.",
@@ -726,6 +728,8 @@
       "save": "Save",
       "saving": "Saving…",
       "followUpPrefix": "Follow up: {{when}}",
+      "countdownLeft": "{{time}} left to contact",
+      "countdownOverdue": "No contact for {{time}}!",
       "scheduled": "Scheduled: {{when}}",
       "dayOfMonth": "{{day}} {{month}}",
       "columns": {
@@ -840,6 +844,7 @@
         "rejected": "Rejected"
       },
       "emptyBy": {
+        "new": "No new leads yet. When someone leaves a phone number on Instagram or Telegram, they appear here.",
         "active": "No leads in progress. Add one with “+ New lead”.",
         "converted": "No lead has been turned into a student yet.",
         "rejected": "No rejected leads."

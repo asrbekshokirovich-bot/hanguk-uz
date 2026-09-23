@@ -6,6 +6,7 @@ import { describeDate, initialsOf, isLeadComplete, splitName } from './intakeFor
 import { canConvertLead, leadOutcome } from './outcome';
 import { useRelativeDate } from './useRelativeDate';
 import { CALL_RESULTS } from './options';
+import { formatCountdown, newLeadCountdown } from './sla';
 
 interface LeadsTableProps {
   leads: Lead[];
@@ -23,6 +24,8 @@ interface LeadsTableProps {
   /** A write is in flight; the actions are held so none of them fires twice. */
   busy: boolean;
   now: Date;
+  /** Show the "Yangi lid" 10-minute countdown on rows that carry one. */
+  showCountdown?: boolean;
 }
 
 /** Column widths, kept in one place so the header and the rows cannot drift. */
@@ -60,6 +63,7 @@ export const LeadsTable = ({
   onCallResult,
   busy,
   now,
+  showCountdown = false,
 }: LeadsTableProps) => {
   const { t } = useTranslation();
   const relative = useRelativeDate(now);
@@ -93,6 +97,7 @@ export const LeadsTable = ({
           const outcome = leadOutcome(lead);
           const convertible = canConvertLead(lead);
           const followUp = describeDate(lead.next_follow_up ?? '', now);
+          const countdown = showCountdown ? newLeadCountdown(lead, now) : null;
           const { firstName } = splitName(lead.full_name);
           return (
             <div
@@ -101,6 +106,7 @@ export const LeadsTable = ({
                 'relative grid w-full items-center gap-3.5 border-b border-border/60 px-5 py-3.5 text-left text-sm',
                 'transition-colors hover:bg-muted/50 focus-within:bg-muted/50',
                 outcome === 'rejected' && 'opacity-70',
+                countdown?.urgent && 'border-l-2 border-l-destructive bg-destructive/5',
                 GRID,
               )}
             >
@@ -128,6 +134,18 @@ export const LeadsTable = ({
                   {followUp && outcome === 'active' && (
                     <span className="mt-0.5 block text-xs font-semibold text-[hsl(var(--spring))]">
                       {t('leads.intake.followUpPrefix', { when: relative.label(followUp) })}
+                    </span>
+                  )}
+                  {countdown && (
+                    <span
+                      className={cn(
+                        'mt-0.5 block text-xs font-semibold tabular-nums',
+                        countdown.urgent ? 'text-destructive' : 'text-muted-foreground',
+                      )}
+                    >
+                      {countdown.secondsLeft >= 0
+                        ? t('leads.intake.countdownLeft', { time: formatCountdown(countdown.secondsLeft) })
+                        : t('leads.intake.countdownOverdue', { time: formatCountdown(countdown.secondsLeft) })}
                     </span>
                   )}
                 </span>
