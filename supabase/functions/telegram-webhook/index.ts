@@ -460,7 +460,13 @@ serve(async (req) => {
       // "Yangi lid", or without one, hidden as unqualified until
       // fn_capture_phone_from_message reads a number off a later message.
       // Messages the owner sends from their phone never create anything.
-      if (!outgoing && !identity.studentId && !identity.leadId) {
+      // Someone who already has a conversation in the CRM is not new, however
+      // long they went unlinked — only their first message ever creates a lead.
+      const { data: earlier } = !outgoing && !identity.studentId && !identity.leadId
+        ? await supabase.from("messages").select("id")
+          .eq("source", "telegram").eq("sender_id", chatId).limit(1).maybeSingle()
+        : { data: null };
+      if (!outgoing && !identity.studentId && !identity.leadId && !earlier) {
         identity = await ensureIdentity(supabase, "telegram", chatId, {
           displayName: clientName,
           phone: extractPhoneFromText(bm.text || bm.caption),

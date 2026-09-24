@@ -369,13 +369,33 @@ async function ingestOne(
   // Only a live, new, incoming 1:1 message does this; staff writing first,
   // groups, saved messages and history replayed by a backfill only look the
   // person up, so old conversations never become new leads.
+  //
+  // Two rules the owner set on 2026-09-24, after three existing contacts
+  // turned up in "Yangi lid" the first morning this ran:
+  //   * the number on their Telegram PROFILE does not make a new lead — only a
+  //     number they type into a message does. So the lead is created without
+  //     it; the profile phone is still used above to recognise a known
+  //     student, and stays on the message metadata.
+  //   * someone who already has a conversation in the CRM is not new, however
+  //     long they went unlinked. Only the first message ever from this chat
+  //     creates a lead.
   const isLive = Date.now() - sentAt.getTime() < LIVE_WINDOW_MS;
   if (!linked && direction === "incoming" && chatType === "private" && isLive) {
-    identity = await ensureIdentity(supabase, "telegram", authorId, {
-      ...identityOpts,
-      leadFields: { contact_channel: "Telegram" },
-    });
-    linked = !!(identity.studentId || identity.leadId);
+    const { data: earlier } = await supabase
+      .from("messages")
+      .select("id")
+      .eq("source", "telegram")
+      .eq("sender_id", identifier)
+      .limit(1)
+      .maybeSingle();
+    if (!earlier) {
+      identity = await ensureIdentity(supabase, "telegram", authorId, {
+        ...identityOpts,
+        phone: null,
+        leadFields: { contact_channel: "Telegram" },
+      });
+      linked = !!(identity.studentId || identity.leadId);
+    }
   }
 
   // Thread bookkeeping (atomic; preserves a manual student link).
