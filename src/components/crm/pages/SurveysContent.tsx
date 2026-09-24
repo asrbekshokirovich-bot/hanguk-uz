@@ -31,6 +31,7 @@ import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus, Trash2, GripVertical, Eye, BarChart3, Link2, Bell, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import PushRecipientsDialog from '@/components/crm/surveys/PushRecipientsDialog';
 
 interface Survey {
   id: string;
@@ -121,6 +122,8 @@ export default function SurveysContent() {
   ]);
   const [saving, setSaving] = useState(false);
   const [sendingPush, setSendingPush] = useState<string | null>(null);
+  /** The survey whose notification is being addressed in the recipient picker. */
+  const [pushTarget, setPushTarget] = useState<{ surveyId: string; title: string } | null>(null);
   // Shown inside the dialog. A toast alone is not enough here: the dialog
   // sits at z-50 over a black overlay, so a validation toast can land behind
   // it and pressing Yaratish then looks like nothing happened at all.
@@ -249,7 +252,8 @@ export default function SurveysContent() {
 
       toast.success("So'rovnoma yaratildi");
 
-      await sendPush((survey as Record<string, unknown>).id as string, title.trim());
+      // Ask who to notify rather than notifying everyone with the app.
+      setPushTarget({ surveyId: (survey as Record<string, unknown>).id as string, title: title.trim() });
 
       setShowCreate(false);
       resetForm();
@@ -264,18 +268,28 @@ export default function SurveysContent() {
   };
 
   /**
-   * Notifies everyone who has a push token. Split out of the create flow so a
-   * survey that went out without a notification can still get one: the first
-   * real survey was created by a document_handler, the function answered 403,
-   * and there was no second way to send it — the notification is only ever
-   * offered at creation time. Reports what actually happened either way,
-   * because a silent failure here is indistinguishable from success.
+   * Notifies the students picked in PushRecipientsDialog. Split out of the
+   * create flow so a survey that went out without a notification can still get
+   * one: the first real survey was created by a document_handler, the function
+   * answered 403, and there was no second way to send it. Reports what actually
+   * happened either way, because a silent failure here is indistinguishable
+   * from success.
+   *
+   * It used to notify every device with a push token; the owner asked to choose
+   * the recipients (2026-09-24). send-push-notification treats a missing or
+   * empty user_ids as "everyone", so an empty pick is refused here rather than
+   * turning into a broadcast.
    */
-  const sendPush = async (surveyId: string, surveyTitle: string) => {
+  const sendPush = async (surveyId: string, surveyTitle: string, userIds: string[]) => {
+    if (userIds.length === 0) {
+      toast.error('Kamida bitta talabani belgilang');
+      return;
+    }
     setSendingPush(surveyId);
     try {
       const { data: pushResult, error: pushError } = await supabase.functions.invoke('send-push-notification', {
         body: {
+          user_ids: userIds,
           title: "Yangi so'rovnoma!",
           body: surveyTitle,
           data: { type: 'survey', survey_id: surveyId },
@@ -287,7 +301,8 @@ export default function SurveysContent() {
       }
       const sent = (pushResult as { sent?: number } | null)?.sent ?? 0;
       if (sent > 0) {
-        toast.success(`${sent} ta qurilmaga bildirishnoma yuborildi`);
+        toast.success(`${userIds.length} ta talabaning ${sent} ta qurilmasiga bildirishnoma yuborildi`);
+        setPushTarget(null);
       } else {
         // Every student without the app installed falls in here. Saying so
         // beats a success toast that reached nobody.
@@ -580,9 +595,9 @@ export default function SurveysContent() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        title="Bildirishnomani qayta yuborish"
+                        title="Bildirishnoma yuborish (kimga — tanlaysiz)"
                         disabled={sendingPush === survey.id}
-                        onClick={() => sendPush(survey.id, survey.title)}
+                        onClick={() => setPushTarget({ surveyId: survey.id, title: survey.title })}
                       >
                         {sendingPush === survey.id
                           ? <Loader2 className="h-4 w-4 animate-spin" />
@@ -618,6 +633,13 @@ export default function SurveysContent() {
           )}
         </CardContent>
       </Card>
+
+      <PushRecipientsDialog
+        target={pushTarget}
+        sending={!!pushTarget && sendingPush === pushTarget.surveyId}
+        onClose={() => setPushTarget(null)}
+        onSend={(userIds) => pushTarget && sendPush(pushTarget.surveyId, pushTarget.title, userIds)}
+      />
 
       {/* Create survey dialog */}
       <Dialog open={showCreate} onOpenChange={setShowCreate}>
