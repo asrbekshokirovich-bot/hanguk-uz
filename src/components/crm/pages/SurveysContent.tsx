@@ -29,7 +29,7 @@ import {
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Trash2, GripVertical, Eye, BarChart3, Link2, Bell, Loader2 } from 'lucide-react';
+import { Plus, Trash2, GripVertical, Eye, BarChart3, Link2, Bell, Loader2, Download } from 'lucide-react';
 import { toast } from 'sonner';
 import PushRecipientsDialog from '@/components/crm/surveys/PushRecipientsDialog';
 
@@ -93,6 +93,7 @@ interface ResponseSummary {
 interface RespondentRow {
   user_id: string;
   name: string;
+  phone: string | null;
   answers: Record<string, unknown>;
 }
 
@@ -114,6 +115,7 @@ export default function SurveysContent() {
   >([]);
   const [respondents, setRespondents] = useState<RespondentRow[]>([]);
   const [responsesLoading, setResponsesLoading] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -397,6 +399,7 @@ export default function SurveysContent() {
 
     const userIds = Object.keys(byUser);
     const nameMap: Record<string, string> = {};
+    const phoneMap: Record<string, string | null> = {};
     if (userIds.length > 0) {
       const { data: profiles } = await supabase
         .from('profiles')
@@ -406,6 +409,7 @@ export default function SurveysContent() {
         const row = p as Record<string, unknown>;
         nameMap[row.user_id as string] =
           (row.full_name as string) || (row.phone as string) || '';
+        phoneMap[row.user_id as string] = (row.phone as string) || null;
       }
     }
 
@@ -419,6 +423,7 @@ export default function SurveysContent() {
       userIds.map((uid) => ({
         user_id: uid,
         name: nameMap[uid] || 'Nomaʻlum',
+        phone: phoneMap[uid] ?? null,
         answers: byUser[uid],
       }))
     );
@@ -449,6 +454,41 @@ export default function SurveysContent() {
 
     setResponseSummary(summary);
     setResponsesLoading(false);
+  };
+
+  /**
+   * Download the per-student table as a real .xlsx: one row per respondent,
+   * one column per question, the same view as the "Jadval" tab. The library is
+   * loaded only when someone presses the button, so the page itself stays
+   * as light as before.
+   */
+  const exportExcel = async () => {
+    if (respondents.length === 0) return;
+    setExporting(true);
+    try {
+      const { default: writeXlsxFile } = await import('write-excel-file/browser');
+      const head = (value: string) => ({ value, fontWeight: 'bold' as const });
+      const data = [
+        [head('Talaba'), head('Telefon'), ...responseColumns.map((c) => head(c.text))],
+        ...respondents.map((r) => [
+          r.name,
+          r.phone ?? '',
+          ...responseColumns.map((c) => formatAnswer(r.answers[c.id])),
+        ]),
+      ];
+      const surveyTitle = surveys.find((s) => s.id === showResponses)?.title || "so'rovnoma";
+      const safeName = surveyTitle.replace(/[\\/:*?"<>|]+/g, ' ').trim().slice(0, 80) || "so'rovnoma";
+      await writeXlsxFile(data, {
+        sheet: 'Javoblar',
+        stickyRowsCount: 1,
+        columns: [{ width: 28 }, { width: 18 }, ...responseColumns.map(() => ({ width: 30 }))],
+      }).toFile(`${safeName}.xlsx`);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      toast.error(`Excel yuklab bo'lmadi: ${message}`);
+    } finally {
+      setExporting(false);
+    }
   };
 
   const resetForm = () => {
@@ -796,12 +836,25 @@ export default function SurveysContent() {
             </div>
           ) : (
           <Tabs defaultValue="table">
-            <TabsList>
-              <TabsTrigger value="table">
-                Jadval ({respondents.length})
-              </TabsTrigger>
-              <TabsTrigger value="summary">Umumiy</TabsTrigger>
-            </TabsList>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <TabsList>
+                <TabsTrigger value="table">
+                  Jadval ({respondents.length})
+                </TabsTrigger>
+                <TabsTrigger value="summary">Umumiy</TabsTrigger>
+              </TabsList>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={exportExcel}
+                disabled={exporting || respondents.length === 0}
+              >
+                {exporting
+                  ? <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  : <Download className="h-4 w-4 mr-2" />}
+                Excel yuklab olish
+              </Button>
+            </div>
 
             <TabsContent value="table">
               {respondents.length === 0 ? (
