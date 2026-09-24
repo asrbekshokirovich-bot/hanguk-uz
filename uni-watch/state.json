@@ -1,5 +1,5 @@
 {
- "last_run": "2026-09-23T23:45:36+00:00",
+ "last_run": "2026-09-24T04:54:23+00:00",
  "seen": {
   "http://enter.konkuk.ac.kr/submenu.do?menuurl=k8b%2fCUaWlntKYwhT%2fh%2bKUA%3d%3d&": [],
   "https://adm-u.postech.ac.kr/": [
@@ -526,6 +526,7 @@
    "07a9e8458ad9d32f",
    "f8c6b39b9f5415fb"
   ],
+  "https://iphak.kit.ac.kr/": [],
   "https://iphak.kumoh.ac.kr/": [
    "59cf82ceacdccd03",
    "502703ef08e41632",
@@ -934,6 +935,7 @@
   "https://sunykorea.ac.kr": [],
   "https://taejae.ac.kr": [],
   "https://tk.ac.kr": [
+   "521b072779a3ff55",
    "ffd73e8540f40dcf"
   ],
   "https://tsu.ac.kr": [],
