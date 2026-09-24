@@ -700,7 +700,7 @@
     },
     "intake": {
       "subtitle": "행을 눌러 학생 정보를 입력하세요",
-      "newSectionSubtitle": "Instagram과 Telegram에서 전화번호와 이름을 남긴 리드입니다. 10분 안에 연락하세요 — 연락 열에서 결과를 선택하면 이 목록에서 빠집니다.",
+      "newSectionSubtitle": "Instagram이나 Telegram에서 처음으로 연락한 새 채팅입니다. 10분 안에 연락하세요 — 채팅에 답장하거나 연락 열에서 결과를 선택하면 이 목록에서 빠집니다.",
       "newLead": "+ 신규 리드",
       "newTitle": "신규 리드",
       "empty": "아직 리드가 없습니다. “+ 신규 리드”로 추가하세요.",
@@ -821,7 +821,7 @@
         "rejected": "거절됨"
       },
       "emptyBy": {
-        "new": "아직 신규 리드가 없습니다. Instagram이나 Telegram에서 누군가 전화번호를 남기면 여기에 표시됩니다.",
+        "new": "아직 신규 리드가 없습니다. Instagram이나 Telegram에서 누군가 처음으로 메시지를 보내면 여기에 표시됩니다.",
         "active": "진행 중인 리드가 없습니다. “+ 새 리드”로 추가하세요.",
         "converted": "아직 학생으로 전환된 리드가 없습니다.",
         "rejected": "거절된 리드가 없습니다."

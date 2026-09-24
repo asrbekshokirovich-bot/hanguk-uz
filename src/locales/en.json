@@ -717,7 +717,7 @@
     },
     "intake": {
       "subtitle": "Click a row to fill in the student's details",
-      "newSectionSubtitle": "Leads from Instagram and Telegram that arrived with a phone number and a name. Contact them within 10 minutes — once you set a result in the Contact column, the lead leaves this list.",
+      "newSectionSubtitle": "New chats from people writing to us on Instagram or Telegram for the first time. Contact them within 10 minutes — once you reply in the chat or set a result in the Contact column, the lead leaves this list.",
       "newLead": "+ New lead",
       "newTitle": "New lead",
       "empty": "No leads yet. Add one with “+ New lead”.",
@@ -844,7 +844,7 @@
         "rejected": "Rejected"
       },
       "emptyBy": {
-        "new": "No new leads yet. When someone leaves a phone number on Instagram or Telegram, they appear here.",
+        "new": "No new leads yet. When someone writes to us on Instagram or Telegram for the first time, they appear here.",
         "active": "No leads in progress. Add one with “+ New lead”.",
         "converted": "No lead has been turned into a student yet.",
         "rejected": "No rejected leads."
