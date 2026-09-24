@@ -764,7 +764,7 @@
     },
     "intake": {
       "subtitle": "Qatorga bosib o‘quvchi ma’lumotlarini to‘ldiring",
-      "newSectionSubtitle": "Instagram va Telegram’dan telefon raqami va ismi bilan kelgan lidlar. 10 daqiqa ichida aloqa chiqing — ALOQA ustunida natijani belgilasangiz, lid bu yerdan chiqadi.",
+      "newSectionSubtitle": "Instagram va Telegram’da bizga birinchi marta yozgan yangi chatlar. 10 daqiqa ichida aloqa chiqing — chatga javob yozsangiz yoki ALOQA ustunida natijani belgilasangiz, lid bu yerdan chiqadi.",
       "newLead": "+ Yangi lead",
       "newTitle": "Yangi lead",
       "empty": "Hozircha lead yo‘q. “+ Yangi lead” tugmasi orqali qo‘shing.",
@@ -891,7 +891,7 @@
         "rejected": "Rad etilganlar"
       },
       "emptyBy": {
-        "new": "Hozircha yangi lid yo‘q. Instagram yoki Telegram’da kimdir telefon raqamini qoldirsa, shu yerda paydo bo‘ladi.",
+        "new": "Hozircha yangi lid yo‘q. Instagram yoki Telegram’da bizga birinchi marta kimdir yozsa, shu yerda paydo bo‘ladi.",
         "active": "Ishlanayotgan lead yo‘q. “+ Yangi lead” orqali qo‘shing.",
         "converted": "Hali birorta lead o‘quvchiga aylantirilmagan.",
         "rejected": "Rad etilgan lead yo‘q."
