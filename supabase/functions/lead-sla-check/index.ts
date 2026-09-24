@@ -1,11 +1,12 @@
 // Watchdog for leads nobody has called yet.
 //
 // A lead cools fast. This asks Postgres which "Yangi lid" leads — Instagram/
-// Telegram leads timed from the moment their phone and name arrived
-// (leads.new_lead_at) — just crossed 10 minutes uncontacted (see
-// fn_lead_sla_scan) and sends one Telegram alert per lead to the staff alert
-// channel. fn_lead_sla_scan marks each one atomically as it reads it, so a
-// lead alerts exactly once, never on the next run too.
+// Telegram leads timed from their first message (leads.new_lead_at) — are
+// past 10 minutes with nobody answering (see fn_lead_sla_scan) and sends one
+// Telegram alert per lead, from the bot, to the staff alert channel and to
+// every person in lead_alert_recipients. fn_lead_sla_scan stamps each lead as
+// it reads it, and hands it back again on the next minute's run for as long as
+// it stays unanswered — the alert repeats until somebody replies.
 //
 // Called every minute by pg_cron (lead-sla-check-1min). Pass ?dry=1 to see
 // what would fire without marking anything or sending — safe to call by hand.
@@ -57,26 +58,42 @@ function composeAlert(l: OverdueLead): string {
   ].join("\n");
 }
 
-async function sendTelegram(text: string): Promise<boolean> {
-  if (!TELEGRAM_BOT_TOKEN || !ALERT_CHAT_ID) {
-    console.warn(
-      "lead-sla-check: TELEGRAM_BOT_TOKEN / ALERT_TELEGRAM_CHAT_ID not set — alert not delivered:\n" + text,
-    );
+/** The staff channel plus everyone who asked for the alerts in their own
+ *  Telegram (lead_alert_recipients), each chat once. */
+async function recipients(supabase: ReturnType<typeof createClient>): Promise<string[]> {
+  const chats = new Set<string>();
+  if (ALERT_CHAT_ID) chats.add(ALERT_CHAT_ID.trim());
+  const { data, error } = await supabase
+    .from("lead_alert_recipients")
+    .select("chat_id")
+    .eq("enabled", true);
+  if (error) console.error("lead-sla-check: recipients:", error.message);
+  for (const r of (data ?? []) as { chat_id: string }[]) {
+    if (r.chat_id) chats.add(String(r.chat_id).trim());
+  }
+  return [...chats];
+}
+
+async function sendTelegram(chatId: string, text: string): Promise<boolean> {
+  if (!TELEGRAM_BOT_TOKEN) {
+    console.warn("lead-sla-check: TELEGRAM_BOT_TOKEN not set — alert not delivered:\n" + text);
     return false;
   }
   try {
     const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ chat_id: ALERT_CHAT_ID, text, disable_web_page_preview: true }),
+      body: JSON.stringify({ chat_id: chatId, text, disable_web_page_preview: true }),
     });
     if (!res.ok) {
-      console.error(`lead-sla-check: Telegram send failed ${res.status}: ${await res.text()}`);
+      // A person who never pressed Start on the bot (or blocked it) lands
+      // here with 403; the other recipients still get theirs.
+      console.error(`lead-sla-check: Telegram send to ${chatId} failed ${res.status}: ${await res.text()}`);
       return false;
     }
     return true;
   } catch (e) {
-    console.error("lead-sla-check: Telegram send error:", e);
+    console.error(`lead-sla-check: Telegram send to ${chatId} error:`, e);
     return false;
   }
 }
@@ -104,16 +121,26 @@ serve(async (req) => {
       return json({ ok: true, dry: true, overdue });
     }
 
+    const chats = overdue.length ? await recipients(supabase) : [];
+    if (overdue.length && !chats.length) {
+      console.warn("lead-sla-check: no alert recipients configured");
+    }
+
     const alerted: string[] = [];
     for (const lead of overdue) {
-      if (await sendTelegram(composeAlert(lead))) alerted.push(lead.id);
+      const text = composeAlert(lead);
+      let delivered = false;
+      for (const chat of chats) {
+        if (await sendTelegram(chat, text)) delivered = true;
+      }
+      if (delivered) alerted.push(lead.id);
     }
 
     if (overdue.length > 0) {
       console.log(`lead-sla-check: ${overdue.length} overdue, ${alerted.length} alert(s) sent`);
     }
 
-    return json({ ok: true, overdue: overdue.length, alerted: alerted.length });
+    return json({ ok: true, overdue: overdue.length, alerted: alerted.length, recipients: chats.length });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Unknown error";
     console.error("lead-sla-check failed:", e);
