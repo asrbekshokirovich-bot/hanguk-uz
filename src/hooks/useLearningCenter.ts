@@ -47,6 +47,7 @@ export interface CenterStudent {
   city: string | null;
   age: number | null;
   korean_level: string | null;
+  english_level: string | null;
   notes: string | null;
   already_lead: boolean;
   created_at: string;
@@ -125,6 +126,7 @@ export function useAddCenterStudents(centerId: string | null | undefined) {
           city: row.city?.trim() || null,
           age: row.age ?? null,
           korean_level: row.korean_level?.trim() || null,
+          english_level: row.english_level?.trim() || null,
           notes: row.notes?.trim() || null,
         });
         if (!error) result.added += 1;
