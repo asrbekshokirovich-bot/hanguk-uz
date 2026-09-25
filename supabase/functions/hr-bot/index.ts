@@ -32,6 +32,18 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const WEBHOOK_URL = `${SUPABASE_URL}/functions/v1/hr-bot`;
 
+/**
+ * What Telegram is actually given as secret_token: the SHA-256 hex of the
+ * stored secret. Telegram accepts only A-Z, a-z, 0-9, _ and -, and a value
+ * pasted into the dashboard with a stray space or quote made setWebhook fail
+ * with "secret token contains illegal characters". Hashing turns any stored
+ * value into a legal one.
+ */
+async function telegramSecret(): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(WEBHOOK_SECRET));
+  return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
 // deno-lint-ignore no-explicit-any
 type Any = any;
 
@@ -682,7 +694,7 @@ async function setup() {
   const hook = await callTelegram(BOT_TOKEN, "setWebhook", {
     url: WEBHOOK_URL,
     allowed_updates: ["message", "callback_query"],
-    secret_token: WEBHOOK_SECRET,
+    secret_token: await telegramSecret(),
   });
   const commands = await callTelegram(BOT_TOKEN, "setMyCommands", {
     commands: [{ command: "start", description: "Ishga ariza topshirish" }],
@@ -711,7 +723,7 @@ Deno.serve(async (req) => {
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
 
   // Only Telegram knows the secret; anything else posting here is rejected.
-  if (req.headers.get("x-telegram-bot-api-secret-token") !== WEBHOOK_SECRET) {
+  if (req.headers.get("x-telegram-bot-api-secret-token") !== await telegramSecret()) {
     console.error("hr-bot: rejected update with bad or missing secret token");
     return json({ error: "Forbidden" }, 403);
   }
