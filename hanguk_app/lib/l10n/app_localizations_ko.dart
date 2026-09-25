@@ -1571,4 +1571,230 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get aiReportFailed => '신고를 보내지 못했습니다. 다시 시도해 주세요.';
+
+  @override
+  String get catalogSearchHint => '대학 이름 검색';
+
+  @override
+  String get catalogListTitle => '대학교';
+
+  @override
+  String catalogCityUniversities(String city) {
+    return '$city 대학교';
+  }
+
+  @override
+  String get catalogEmptyTitle => '대학을 찾을 수 없습니다';
+
+  @override
+  String get catalogEmptyBody => '다른 도시나 필터를 선택해 보세요.';
+
+  @override
+  String get catalogTypeState => '국공립 대학';
+
+  @override
+  String get catalogTypePrivate => '사립 대학';
+
+  @override
+  String get catalogTypeSpecialized => '특수 대학';
+
+  @override
+  String get catalogTypeStateShort => '국공립';
+
+  @override
+  String get catalogTypePrivateShort => '사립';
+
+  @override
+  String get catalogTypeSpecializedShort => '특수';
+
+  @override
+  String get catalogFilterTitle => '필터';
+
+  @override
+  String get catalogFilterClear => '초기화';
+
+  @override
+  String get catalogFilterCity => '도시';
+
+  @override
+  String catalogFilterCityPicked(int count) {
+    return '$count개 선택';
+  }
+
+  @override
+  String get catalogFilterDegree => '과정';
+
+  @override
+  String get catalogDegreeBachelor => '학사';
+
+  @override
+  String get catalogDegreeMaster => '석사';
+
+  @override
+  String get catalogFilterEnglish => '영어 요건';
+
+  @override
+  String get catalogFilterEnglishHint => '내 IELTS 점수';
+
+  @override
+  String get catalogIeltsNone => '필요 없음';
+
+  @override
+  String get catalogIeltsNoteAll => '모든 과정 (한국어·영어)';
+
+  @override
+  String catalogIeltsNote(String score) {
+    return 'IELTS $score(으)로 지원 가능한 영어 과정만';
+  }
+
+  @override
+  String get catalogFilterPrice => '등록금';
+
+  @override
+  String get catalogPricePerSemester => '학기당';
+
+  @override
+  String get catalogPriceFrom => '최소';
+
+  @override
+  String get catalogPriceTo => '최대';
+
+  @override
+  String catalogPriceUpTo(String amount) {
+    return '$amount 이하';
+  }
+
+  @override
+  String catalogApply(int count) {
+    return '대학 $count곳 보기';
+  }
+
+  @override
+  String get catalogFaculties => '단과대학';
+
+  @override
+  String catalogFacultyCount(int count) {
+    return '단과대학 $count개';
+  }
+
+  @override
+  String catalogProgramCount(int count) {
+    return '전공 $count개';
+  }
+
+  @override
+  String catalogTuitionTitle(String name) {
+    return '등록금 · $name';
+  }
+
+  @override
+  String get catalogPerSemester => '/ 학기';
+
+  @override
+  String get catalogPerYear => '/ 년';
+
+  @override
+  String get catalogSemSuffix => '/학기';
+
+  @override
+  String get catalogYearSuffix => '/년';
+
+  @override
+  String get catalogYearlyTuition => '연간 등록금';
+
+  @override
+  String get catalogApplicationFee => '전형료';
+
+  @override
+  String get catalogEntranceFee => '입학금';
+
+  @override
+  String get catalogRequirements => '지원 자격';
+
+  @override
+  String get catalogReqKorean => '한국어';
+
+  @override
+  String get catalogReqEnglish => '영어 과정';
+
+  @override
+  String get catalogReqRecommendation => '추천서';
+
+  @override
+  String get catalogRecYes => '필수';
+
+  @override
+  String get catalogRecNo => '불필요';
+
+  @override
+  String get catalogRecOptional => '선택';
+
+  @override
+  String get catalogReqDocuments => '제출 서류';
+
+  @override
+  String catalogDocsRequired(int count) {
+    return '필수 $count개';
+  }
+
+  @override
+  String get catalogReqApostille => '아포스티유';
+
+  @override
+  String catalogApostilleDocs(int count) {
+    return '서류 $count개';
+  }
+
+  @override
+  String get catalogReqBank => '잔고 증명 (D-2)';
+
+  @override
+  String catalogTimeline(String season) {
+    return '일정 · $season';
+  }
+
+  @override
+  String get catalogRoundLater => '추후 공지';
+
+  @override
+  String get catalogRoundEstimated => '예정';
+
+  @override
+  String get catalogRoundRelative => '날짜 미정';
+
+  @override
+  String get catalogWindowLabel => '원서 접수 기간';
+
+  @override
+  String catalogDaysLeft(int days) {
+    return '$days일 남음';
+  }
+
+  @override
+  String catalogWindowOpens(String date) {
+    return '$date 접수 시작';
+  }
+
+  @override
+  String get catalogWindowClosed => '접수 마감';
+
+  @override
+  String get catalogContact => '문의하기';
+
+  @override
+  String get catalogSeasonSpring => '봄';
+
+  @override
+  String get catalogSeasonAutumn => '가을';
+
+  @override
+  String catalogSeasonLabel(String year, String term) {
+    return '$year $term';
+  }
+
+  @override
+  String get catalogFavorite => '비교에 추가';
+
+  @override
+  String get catalogNoDegreeData => '이 과정의 정보가 아직 없습니다';
 }

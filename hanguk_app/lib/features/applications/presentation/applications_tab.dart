@@ -4,8 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../design_system/seoul_night/seoul_night.dart';
 import '../../../../l10n/app_localizations.dart';
-import '../../map/domain/university.dart';
-import '../../uni_db/data/approved_universities_provider.dart';
+import '../../catalog/presentation/catalog_browser.dart';
 import '../../uni_db/presentation/widgets/home_recent_changes_banner.dart';
 import '../../uni_db/presentation/widgets/verified_deadlines_overlay.dart';
 import '../data/applications_repository.dart';
@@ -162,74 +161,37 @@ class ApplicationsTab extends ConsumerWidget {
     ];
   }
 
-  // ── Read-only university list, shown when the student has no applications ─
+  // ── Read-only university catalogue, shown when the student has no applications
   //
-  // Only the institutions the review queue has approved. This listed the whole
-  // catalogue — 204 institutions, most of them a name and a pin — so a student
-  // who had not applied anywhere opened Applications onto a wall of schools we
-  // hold nothing for. `approvedUniversitiesProvider` is the same list Explore
-  // shows, so the two can never disagree.
+  // The universities staff have loaded a guideline Excel for in the CRM
+  // ("Universitetlar → Ma'lumotli") — the same catalogue Guest Explore shows,
+  // in the "Universitetlar katalogi" design: search, filter, and a detail page
+  // with faculties, fees, requirements and deadlines. Browsing only: staff
+  // attach universities to a student from the CRM, so there is no apply or
+  // compare action here.
   Widget _buildBrowseUniversities(WidgetRef ref, AppLocalizations l) {
-    final unisAsync = ref.watch(approvedUniversitiesProvider);
-    return unisAsync.when(
-      data: (unis) {
-        if (unis.isEmpty) {
-          return SliverFillRemaining(
-            hasScrollBody: false,
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.all(SeoulSizes.screenPadding),
-                child: Text(
-                  l.appsEmptyTitle,
-                  textAlign: TextAlign.center,
-                  style: SeoulType.bodySecondary,
-                ),
-              ),
+    return SliverMainAxisGroup(
+      slivers: [
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(
+              SeoulSizes.screenPadding,
+              4,
+              SeoulSizes.screenPadding,
+              12,
             ),
-          );
-        }
-        return SliverMainAxisGroup(
-          slivers: [
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  SeoulSizes.screenPadding,
-                  4,
-                  SeoulSizes.screenPadding,
-                  12,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(l.appsEmptyTitle, style: SeoulType.title),
-                    const SizedBox(height: 4),
-                    Text(l.appsEmptyBody, style: SeoulType.bodySecondary),
-                  ],
-                ),
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(l.appsEmptyTitle, style: SeoulType.title),
+                const SizedBox(height: 4),
+                Text(l.appsEmptyBody, style: SeoulType.bodySecondary),
+              ],
             ),
-            SliverPadding(
-              padding: _gutter,
-              sliver: SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) => _UniversityTile(university: unis[index]),
-                  childCount: unis.length,
-                ),
-              ),
-            ),
-            const SliverToBoxAdapter(
-              child: SizedBox(height: SeoulSizes.orbClearance),
-            ),
-          ],
-        );
-      },
-      loading: () => const SliverFillRemaining(
-        child: Center(child: CircularProgressIndicator.adaptive()),
-      ),
-      error: (err, stack) => _buildErrorSliver(
-        l,
-        onRetry: () => ref.invalidate(approvedUniversitiesProvider),
-      ),
+          ),
+        ),
+        const CatalogBrowser(allowCompare: false),
+      ],
     );
   }
 
@@ -305,60 +267,6 @@ class _AccountButton extends StatelessWidget {
         ),
         tooltip: tooltip,
         onPressed: () => context.push('/account'),
-      ),
-    );
-  }
-}
-
-/// A single read-only university row: hangul glyph tile + name + city. No
-/// selection, no checkbox, no apply button — browsing only.
-class _UniversityTile extends StatelessWidget {
-  const _UniversityTile({required this.university});
-
-  final University university;
-
-  @override
-  Widget build(BuildContext context) {
-    final l = AppLocalizations.of(context)!;
-    final uni = university;
-
-    return GlassCard(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(15),
-      // One saved layer per row would be costly in a 38-row list.
-      blur: false,
-      radius: SeoulRadii.tile,
-      child: Row(
-        children: [
-          HangulGlyphTile(glyph: HangulGlyphTile.firstSyllable(uni.nameKo)),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  uni.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: SeoulType.subtitle,
-                ),
-                if (uni.location.isNotEmpty) ...[
-                  const SizedBox(height: 3),
-                  Text(
-                    uni.location,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: SeoulType.caption,
-                  ),
-                ],
-              ],
-            ),
-          ),
-          if (uni.isPartner) ...[
-            const SizedBox(width: 10),
-            StatusChip(label: l.filterPartner, dense: true),
-          ],
-        ],
       ),
     );
   }

@@ -5,6 +5,8 @@ import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../map/domain/university.dart';
 import '../../map/presentation/ieqas_label.dart';
+import '../../catalog/data/catalog_repository.dart';
+import '../../catalog/domain/catalog_models.dart';
 import '../../uni_db/data/approved_universities_provider.dart';
 import '../data/guest_compare_provider.dart';
 
@@ -44,22 +46,26 @@ class GuestCompareScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context)!;
     final ids = ref.watch(guestCompareProvider);
-    // The approved catalogue, not the map list: Compare is reached from
-    // Explore, which lists only approved institutions, and the detail rows
-    // below come from the same fetch.
+    // Explore lists the guideline catalogue (the CRM's "Ma'lumotli"
+    // universities), so an id in the tray comes from there. The approved
+    // review still carries fields the Excel does not — the application
+    // window, interview, document count — so both are read and merged.
     final catalogueAsync = ref.watch(approvedCatalogueProvider);
+    final guidelinesAsync = ref.watch(catalogProvider);
 
-    // Pair each id with its row so a slot always knows which id it came
-    // from. Dropping unresolvable ids and then indexing the survivors meant
-    // the ✕ removed the wrong university: with a tray of ['GHOST', 'a'] the
-    // single visible card's ✕ removed 'a', leaving 'GHOST' stranded, one
-    // slot permanently lost and no UI path to clear it.
-    final catalogue = catalogueAsync.value?.universities;
-    final details =
-        catalogueAsync.value?.details ?? const <String, ApprovedAdmission>{};
+    final merged = mergeCompareSources(
+      approved: catalogueAsync.value,
+      guidelines: guidelinesAsync.value,
+    );
+    // Both sources have answered (or failed) — only then can an id be known
+    // to be gone. Before that a guideline-only id would look stale for the
+    // moment the approved view happened to resolve first.
+    final settled = !catalogueAsync.isLoading && !guidelinesAsync.isLoading;
+    final catalogue = settled ? merged.universities : null;
+    final details = merged.details;
     final slots = <({String id, University? uni})>[
       for (final id in ids)
-        (id: id, uni: catalogue?.where((u) => u.id == id).firstOrNull),
+        (id: id, uni: merged.universities.where((u) => u.id == id).firstOrNull),
     ];
 
     // An id the catalogue no longer has — the row left `is_visible_on_map`,
@@ -142,6 +148,52 @@ class GuestCompareScreen extends ConsumerWidget {
       ],
     );
   }
+}
+
+/// The universities Compare can show and what is known about each: the
+/// approved review's institutions and details, plus every university in the
+/// guideline catalogue. Where both know a university, the Excel's fee, TOPIK
+/// floor and English track win — they are what Explore showed the student —
+/// and the review keeps the fields the Excel does not carry.
+@visibleForTesting
+({List<University> universities, Map<String, ApprovedAdmission> details}) mergeCompareSources({
+  required ApprovedCatalogue? approved,
+  required List<CatalogUniversity>? guidelines,
+}) {
+  final unis = <University>[...?approved?.universities];
+  final details = <String, ApprovedAdmission>{...?approved?.details};
+  final known = {for (final u in unis) u.id};
+  for (final c in guidelines ?? const <CatalogUniversity>[]) {
+    final g = c.primary;
+    if (!known.contains(c.institutionId)) {
+      unis.add(University(
+        id: c.institutionId,
+        name: c.displayName,
+        location: c.city ?? University.unknownCity,
+        nameKo: c.nameKo,
+        nameKoShort: c.nameKoShort,
+        nameEn: g.nameEn ?? g.univNameEn,
+        isVisibleOnMap: false,
+        hasIntakeData: true,
+      ));
+    }
+    final a = details[c.institutionId];
+    details[c.institutionId] = ApprovedAdmission(
+      intakeYear: g.intakeYear ?? a?.intakeYear ?? 0,
+      tuitionMinKrw: g.currency == 'KRW' ? g.tuitionMin?.toInt() ?? a?.tuitionMinKrw : a?.tuitionMinKrw,
+      tuitionMaxKrw: g.currency == 'KRW' ? g.tuitionMax?.toInt() ?? a?.tuitionMaxKrw : a?.tuitionMaxKrw,
+      tuitionAcademicYear: g.tuitionMin != null && g.currency == 'KRW' ? null : a?.tuitionAcademicYear,
+      applicationStart: a?.applicationStart,
+      applicationEnd: a?.applicationEnd,
+      documentDeadline: a?.documentDeadline,
+      topikMinLevel: g.topikMin?.toInt() ?? a?.topikMinLevel,
+      interviewRequired: a?.interviewRequired,
+      englishAccepted: g.englishTrack ?? a?.englishAccepted,
+      requiredDocumentCount: a?.requiredDocumentCount ?? 0,
+      apostilleRequired: a?.apostilleRequired,
+    );
+  }
+  return (universities: unis, details: details);
 }
 
 /// One comparable field: its labels, how to read it off a university, and

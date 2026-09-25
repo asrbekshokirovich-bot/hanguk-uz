@@ -1627,4 +1627,230 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aiReportFailed => 'Could not send the report. Please try again.';
+
+  @override
+  String get catalogSearchHint => 'Search university name';
+
+  @override
+  String get catalogListTitle => 'Universities';
+
+  @override
+  String catalogCityUniversities(String city) {
+    return '$city universities';
+  }
+
+  @override
+  String get catalogEmptyTitle => 'No universities found';
+
+  @override
+  String get catalogEmptyBody => 'Try another city or filter.';
+
+  @override
+  String get catalogTypeState => 'State university';
+
+  @override
+  String get catalogTypePrivate => 'Private university';
+
+  @override
+  String get catalogTypeSpecialized => 'Specialized institute';
+
+  @override
+  String get catalogTypeStateShort => 'State';
+
+  @override
+  String get catalogTypePrivateShort => 'Private';
+
+  @override
+  String get catalogTypeSpecializedShort => 'Specialized';
+
+  @override
+  String get catalogFilterTitle => 'Filter';
+
+  @override
+  String get catalogFilterClear => 'Clear';
+
+  @override
+  String get catalogFilterCity => 'City';
+
+  @override
+  String catalogFilterCityPicked(int count) {
+    return '$count selected';
+  }
+
+  @override
+  String get catalogFilterDegree => 'Degree';
+
+  @override
+  String get catalogDegreeBachelor => 'Bachelor';
+
+  @override
+  String get catalogDegreeMaster => 'Master';
+
+  @override
+  String get catalogFilterEnglish => 'English requirement';
+
+  @override
+  String get catalogFilterEnglishHint => 'your IELTS score';
+
+  @override
+  String get catalogIeltsNone => 'Not needed';
+
+  @override
+  String get catalogIeltsNoteAll => 'All programmes (Korean and English)';
+
+  @override
+  String catalogIeltsNote(String score) {
+    return 'Only English-taught programmes you can enter with IELTS $score';
+  }
+
+  @override
+  String get catalogFilterPrice => 'Tuition';
+
+  @override
+  String get catalogPricePerSemester => 'per semester';
+
+  @override
+  String get catalogPriceFrom => 'From';
+
+  @override
+  String get catalogPriceTo => 'To';
+
+  @override
+  String catalogPriceUpTo(String amount) {
+    return 'up to $amount';
+  }
+
+  @override
+  String catalogApply(int count) {
+    return 'Show $count universities';
+  }
+
+  @override
+  String get catalogFaculties => 'Faculties';
+
+  @override
+  String catalogFacultyCount(int count) {
+    return '$count faculties';
+  }
+
+  @override
+  String catalogProgramCount(int count) {
+    return '$count programmes';
+  }
+
+  @override
+  String catalogTuitionTitle(String name) {
+    return 'Tuition · $name';
+  }
+
+  @override
+  String get catalogPerSemester => '/ semester';
+
+  @override
+  String get catalogPerYear => '/ year';
+
+  @override
+  String get catalogSemSuffix => '/sem';
+
+  @override
+  String get catalogYearSuffix => '/yr';
+
+  @override
+  String get catalogYearlyTuition => 'Yearly tuition';
+
+  @override
+  String get catalogApplicationFee => 'Application fee';
+
+  @override
+  String get catalogEntranceFee => 'Entrance fee';
+
+  @override
+  String get catalogRequirements => 'Admission requirements';
+
+  @override
+  String get catalogReqKorean => 'Korean language';
+
+  @override
+  String get catalogReqEnglish => 'For English programmes';
+
+  @override
+  String get catalogReqRecommendation => 'Recommendation letter';
+
+  @override
+  String get catalogRecYes => 'Required';
+
+  @override
+  String get catalogRecNo => 'Not needed';
+
+  @override
+  String get catalogRecOptional => 'Optional';
+
+  @override
+  String get catalogReqDocuments => 'Documents';
+
+  @override
+  String catalogDocsRequired(int count) {
+    return '$count required';
+  }
+
+  @override
+  String get catalogReqApostille => 'Apostille';
+
+  @override
+  String catalogApostilleDocs(int count) {
+    return 'on $count documents';
+  }
+
+  @override
+  String get catalogReqBank => 'Bank balance (D-2)';
+
+  @override
+  String catalogTimeline(String season) {
+    return 'Deadlines · $season';
+  }
+
+  @override
+  String get catalogRoundLater => 'Announced later';
+
+  @override
+  String get catalogRoundEstimated => 'estimated';
+
+  @override
+  String get catalogRoundRelative => 'No fixed date';
+
+  @override
+  String get catalogWindowLabel => 'Document submission';
+
+  @override
+  String catalogDaysLeft(int days) {
+    return '$days days left';
+  }
+
+  @override
+  String catalogWindowOpens(String date) {
+    return 'Opens $date';
+  }
+
+  @override
+  String get catalogWindowClosed => 'Deadline passed';
+
+  @override
+  String get catalogContact => 'Contact us';
+
+  @override
+  String get catalogSeasonSpring => 'Spring';
+
+  @override
+  String get catalogSeasonAutumn => 'Autumn';
+
+  @override
+  String catalogSeasonLabel(String year, String term) {
+    return '$year $term';
+  }
+
+  @override
+  String get catalogFavorite => 'Add to compare';
+
+  @override
+  String get catalogNoDegreeData => 'No data for this degree yet';
 }
