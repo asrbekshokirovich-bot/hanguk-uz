@@ -533,6 +533,8 @@ function FakultetlarTab({
                         </div>
                       )}
                     </>
+                  ) : f.kontrakt_izoh ? (
+                    <div className="text-left text-xs text-muted-foreground">{f.kontrakt_izoh}</div>
                   ) : (
                     '—'
                   )}

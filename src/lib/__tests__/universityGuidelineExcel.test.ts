@@ -5,7 +5,11 @@ import { describe, expect, it } from 'vitest';
 import JSZip from 'jszip';
 
 import { columnIndex, readXlsx } from '../xlsxReader';
-import { parseGuidelineWorkbook, SUPPORTED_FORMAT_VERSION } from '../universityGuidelineExcel';
+import {
+  contractFromNote,
+  parseGuidelineWorkbook,
+  SUPPORTED_FORMAT_VERSION,
+} from '../universityGuidelineExcel';
 
 const fixtureDir = join(dirname(fileURLToPath(import.meta.url)), 'fixtures');
 
@@ -217,5 +221,25 @@ describe('parseGuidelineWorkbook — xatolar', () => {
     const result = await parseGuidelineWorkbook(buf, 'f.xlsx');
     expect(result.ok).toBe(false);
     expect(result.errors.join(' ')).toContain("universitet varag'i bo'sh");
+  });
+});
+
+describe('contractFromNote', () => {
+  it('izohdagi birinchi summani oladi (Ewha holati)', () => {
+    expect(
+      contractFromNote("1-kurs: taxminan 5,090,000–5,530,000 KRW, kirish to'lovi bilan; 2-kursdan: taxminan 4,640,000–5,560,000 KRW."),
+    ).toBe(5090000);
+    expect(contractFromNote('Klinik yo‘nalishlar — 5 789 000; fundamental — 5 363 000')).toBe(5789000);
+  });
+
+  it('stipendiya summasini kontrakt deb olmaydi', () => {
+    expect(
+      contractFromNote("Barcha xorijiy talabalar to'liq stipendiya oladi; yillik KAIST stipendiyasi taxminan 11,786,000 KRW."),
+    ).toBeNull();
+  });
+
+  it('summa bo‘lmasa yoki juda kichik bo‘lsa null', () => {
+    expect(contractFromNote("Guideline'da kontrakt summasi yo'q.")).toBeNull();
+    expect(contractFromNote('2026-yil narxi, + talaba to‘lovi 12,000')).toBeNull();
   });
 });

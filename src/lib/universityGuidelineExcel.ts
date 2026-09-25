@@ -347,6 +347,39 @@ function checkRounds(rounds: GuidelineRow[], warnings: string[]): void {
   }
 }
 
+// Summa katagi bo'sh qolib, narx faqat izohda yozilgan fayllar bor
+// ("1-kurs: taxminan 5,090,000–5,530,000 KRW ..."). Katalog narxni faqat
+// kontrakt_summa'dan oladi, shuning uchun bunday qatorlarda izohdagi birinchi
+// summani olamiz — boshqa universitetlarda ham 1-kurs, 1-semestr narxi yoziladi.
+const NOTE_AMOUNT_RE = /\d{1,3}(?:[,\s\u00a0]\d{3})+|\d{6,}/;
+// Stipendiya summasi kontrakt narxi emas (masalan, KAIST izohi).
+const NOT_TUITION_RE = /stipend|scholarship|장학/i;
+const MIN_TUITION = 100000;
+
+export function contractFromNote(note: string): number | null {
+  if (NOT_TUITION_RE.test(note)) return null;
+  const match = note.match(NOTE_AMOUNT_RE);
+  if (!match) return null;
+  const n = parseNumber(match[0]);
+  return n !== null && n >= MIN_TUITION ? n : null;
+}
+
+function fillContractFromNotes(fakultetlar: GuidelineRow[], warnings: string[]): void {
+  let filled = 0;
+  for (const row of fakultetlar) {
+    if (row.kontrakt_summa !== undefined || typeof row.kontrakt_izoh !== 'string') continue;
+    const n = contractFromNote(row.kontrakt_izoh);
+    if (n === null) continue;
+    row.kontrakt_summa = n;
+    filled += 1;
+  }
+  if (filled > 0) {
+    warnings.push(
+      `fakultetlar: ${filled} ta qatorda kontrakt_summa bo'sh edi — narx kontrakt_izoh'dagi birinchi summadan olindi`,
+    );
+  }
+}
+
 /**
  * Guideline Excel faylini o'qiydi va import uchun JSON tayyorlaydi.
  * Xato bo'lsa `ok: false` va `errors` to'ladi — payload yuborilmaydi.
@@ -418,6 +451,7 @@ export async function parseGuidelineWorkbook(
   }
 
   checkRounds(muddatlar, warnings);
+  fillContractFromNotes(fakultetlar, warnings);
 
   if (errors.length > 0 || !universitet) {
     return { ok: false, payload: null, errors, warnings };
