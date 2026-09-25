@@ -7,6 +7,7 @@ export interface NewCenterStudent {
   city?: string | null;
   age?: number | null;
   korean_level?: string | null;
+  english_level?: string | null;
   notes?: string | null;
 }
 

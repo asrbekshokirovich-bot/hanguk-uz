@@ -28,7 +28,13 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 const KOREAN_LEVELS = ['Boshlang‘ich', 'TOPIK 1', 'TOPIK 2', 'TOPIK 3', 'TOPIK 4', 'TOPIK 5', 'TOPIK 6'];
 
-const EMPTY_FORM = { full_name: '', phone: '', korean_level: '', notes: '' };
+/** Stored as the CRM lead card writes it by hand ("IELTS 6.5"), so both read alike. */
+const IELTS_LEVELS = [
+  'IELTS yo‘q',
+  ...['4.0', '4.5', '5.0', '5.5', '6.0', '6.5', '7.0', '7.5', '8.0', '8.5', '9.0'].map((b) => `IELTS ${b}`),
+];
+
+const EMPTY_FORM = { full_name: '', phone: '', korean_level: '', english_level: '', notes: '' };
 
 function statusBadge(s: CenterStudent) {
   if (s.already_lead) {
@@ -102,6 +108,7 @@ export default function LearningCenterPortal() {
       full_name: form.full_name,
       phone: form.phone,
       korean_level: form.korean_level,
+      english_level: form.english_level,
       notes: form.notes,
     };
     const result = await addStudents.mutateAsync([row]);
@@ -230,12 +237,21 @@ export default function LearningCenterPortal() {
                       onChange={(e) => setForm({ ...form, phone: e.target.value })}
                     />
                   </div>
-                  <div className="space-y-1.5 sm:col-span-2">
+                  <div className="space-y-1.5">
                     <Label>Koreys tili</Label>
                     <Select value={form.korean_level} onValueChange={(v) => setForm({ ...form, korean_level: v })}>
-                      <SelectTrigger className="sm:w-1/2"><SelectValue placeholder="Darajasi" /></SelectTrigger>
+                      <SelectTrigger><SelectValue placeholder="Darajasi" /></SelectTrigger>
                       <SelectContent>
                         {KOREAN_LEVELS.map((l) => <SelectItem key={l} value={l}>{l}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Ingliz tili</Label>
+                    <Select value={form.english_level} onValueChange={(v) => setForm({ ...form, english_level: v })}>
+                      <SelectTrigger><SelectValue placeholder="IELTS darajasi" /></SelectTrigger>
+                      <SelectContent>
+                        {IELTS_LEVELS.map((l) => <SelectItem key={l} value={l}>{l}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   </div>
