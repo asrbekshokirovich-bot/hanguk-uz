@@ -3013,6 +3013,402 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not send the report. Please try again.'**
   String get aiReportFailed;
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'Search university name'**
+  String get catalogSearchHint;
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'Universities'**
+  String get catalogListTitle;
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'{city} universities'**
+  String catalogCityUniversities(String city);
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'No universities found'**
+  String get catalogEmptyTitle;
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'Try another city or filter.'**
+  String get catalogEmptyBody;
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'State university'**
+  String get catalogTypeState;
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'Private university'**
+  String get catalogTypePrivate;
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'Specialized institute'**
+  String get catalogTypeSpecialized;
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'State'**
+  String get catalogTypeStateShort;
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'Private'**
+  String get catalogTypePrivateShort;
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'Specialized'**
+  String get catalogTypeSpecializedShort;
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'Filter'**
+  String get catalogFilterTitle;
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get catalogFilterClear;
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'City'**
+  String get catalogFilterCity;
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'{count} selected'**
+  String catalogFilterCityPicked(int count);
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'Degree'**
+  String get catalogFilterDegree;
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'Bachelor'**
+  String get catalogDegreeBachelor;
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'Master'**
+  String get catalogDegreeMaster;
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'English requirement'**
+  String get catalogFilterEnglish;
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'your IELTS score'**
+  String get catalogFilterEnglishHint;
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'Not needed'**
+  String get catalogIeltsNone;
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'All programmes (Korean and English)'**
+  String get catalogIeltsNoteAll;
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'Only English-taught programmes you can enter with IELTS {score}'**
+  String catalogIeltsNote(String score);
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'Tuition'**
+  String get catalogFilterPrice;
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'per semester'**
+  String get catalogPricePerSemester;
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'From'**
+  String get catalogPriceFrom;
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'To'**
+  String get catalogPriceTo;
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'up to {amount}'**
+  String catalogPriceUpTo(String amount);
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'Show {count} universities'**
+  String catalogApply(int count);
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'Faculties'**
+  String get catalogFaculties;
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'{count} faculties'**
+  String catalogFacultyCount(int count);
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'{count} programmes'**
+  String catalogProgramCount(int count);
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'Tuition · {name}'**
+  String catalogTuitionTitle(String name);
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'/ semester'**
+  String get catalogPerSemester;
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'/ year'**
+  String get catalogPerYear;
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'/sem'**
+  String get catalogSemSuffix;
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'/yr'**
+  String get catalogYearSuffix;
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'Yearly tuition'**
+  String get catalogYearlyTuition;
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'Application fee'**
+  String get catalogApplicationFee;
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'Entrance fee'**
+  String get catalogEntranceFee;
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'Admission requirements'**
+  String get catalogRequirements;
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'Korean language'**
+  String get catalogReqKorean;
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'For English programmes'**
+  String get catalogReqEnglish;
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'Recommendation letter'**
+  String get catalogReqRecommendation;
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'Required'**
+  String get catalogRecYes;
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'Not needed'**
+  String get catalogRecNo;
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'Optional'**
+  String get catalogRecOptional;
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'Documents'**
+  String get catalogReqDocuments;
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'{count} required'**
+  String catalogDocsRequired(int count);
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'Apostille'**
+  String get catalogReqApostille;
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'on {count} documents'**
+  String catalogApostilleDocs(int count);
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'Bank balance (D-2)'**
+  String get catalogReqBank;
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'Deadlines · {season}'**
+  String catalogTimeline(String season);
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'Announced later'**
+  String get catalogRoundLater;
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'estimated'**
+  String get catalogRoundEstimated;
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'No fixed date'**
+  String get catalogRoundRelative;
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'Document submission'**
+  String get catalogWindowLabel;
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days left'**
+  String catalogDaysLeft(int days);
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'Opens {date}'**
+  String catalogWindowOpens(String date);
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'Deadline passed'**
+  String get catalogWindowClosed;
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'Contact us'**
+  String get catalogContact;
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'Spring'**
+  String get catalogSeasonSpring;
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'Autumn'**
+  String get catalogSeasonAutumn;
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'{year} {term}'**
+  String catalogSeasonLabel(String year, String term);
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'Add to compare'**
+  String get catalogFavorite;
+
+  /// University catalogue (Explore / Applications browse).
+  ///
+  /// In en, this message translates to:
+  /// **'No data for this degree yet'**
+  String get catalogNoDegreeData;
 }
 
 class _AppLocalizationsDelegate

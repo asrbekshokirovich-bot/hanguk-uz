@@ -1990,5 +1990,342 @@
   "aiReportFailed": "Could not send the report. Please try again.",
   "@aiReportFailed": {
     "description": "Shown when storing an AI report failed."
+  },
+  "catalogSearchHint": "Search university name",
+  "@catalogSearchHint": {
+    "description": "University catalogue (Explore / Applications browse)."
+  },
+  "catalogListTitle": "Universities",
+  "@catalogListTitle": {
+    "description": "University catalogue (Explore / Applications browse)."
+  },
+  "catalogCityUniversities": "{city} universities",
+  "@catalogCityUniversities": {
+    "description": "University catalogue (Explore / Applications browse).",
+    "placeholders": {
+      "city": {
+        "type": "String"
+      }
+    }
+  },
+  "catalogEmptyTitle": "No universities found",
+  "@catalogEmptyTitle": {
+    "description": "University catalogue (Explore / Applications browse)."
+  },
+  "catalogEmptyBody": "Try another city or filter.",
+  "@catalogEmptyBody": {
+    "description": "University catalogue (Explore / Applications browse)."
+  },
+  "catalogTypeState": "State university",
+  "@catalogTypeState": {
+    "description": "University catalogue (Explore / Applications browse)."
+  },
+  "catalogTypePrivate": "Private university",
+  "@catalogTypePrivate": {
+    "description": "University catalogue (Explore / Applications browse)."
+  },
+  "catalogTypeSpecialized": "Specialized institute",
+  "@catalogTypeSpecialized": {
+    "description": "University catalogue (Explore / Applications browse)."
+  },
+  "catalogTypeStateShort": "State",
+  "@catalogTypeStateShort": {
+    "description": "University catalogue (Explore / Applications browse)."
+  },
+  "catalogTypePrivateShort": "Private",
+  "@catalogTypePrivateShort": {
+    "description": "University catalogue (Explore / Applications browse)."
+  },
+  "catalogTypeSpecializedShort": "Specialized",
+  "@catalogTypeSpecializedShort": {
+    "description": "University catalogue (Explore / Applications browse)."
+  },
+  "catalogFilterTitle": "Filter",
+  "@catalogFilterTitle": {
+    "description": "University catalogue (Explore / Applications browse)."
+  },
+  "catalogFilterClear": "Clear",
+  "@catalogFilterClear": {
+    "description": "University catalogue (Explore / Applications browse)."
+  },
+  "catalogFilterCity": "City",
+  "@catalogFilterCity": {
+    "description": "University catalogue (Explore / Applications browse)."
+  },
+  "catalogFilterCityPicked": "{count} selected",
+  "@catalogFilterCityPicked": {
+    "description": "University catalogue (Explore / Applications browse).",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "catalogFilterDegree": "Degree",
+  "@catalogFilterDegree": {
+    "description": "University catalogue (Explore / Applications browse)."
+  },
+  "catalogDegreeBachelor": "Bachelor",
+  "@catalogDegreeBachelor": {
+    "description": "University catalogue (Explore / Applications browse)."
+  },
+  "catalogDegreeMaster": "Master",
+  "@catalogDegreeMaster": {
+    "description": "University catalogue (Explore / Applications browse)."
+  },
+  "catalogFilterEnglish": "English requirement",
+  "@catalogFilterEnglish": {
+    "description": "University catalogue (Explore / Applications browse)."
+  },
+  "catalogFilterEnglishHint": "your IELTS score",
+  "@catalogFilterEnglishHint": {
+    "description": "University catalogue (Explore / Applications browse)."
+  },
+  "catalogIeltsNone": "Not needed",
+  "@catalogIeltsNone": {
+    "description": "University catalogue (Explore / Applications browse)."
+  },
+  "catalogIeltsNoteAll": "All programmes (Korean and English)",
+  "@catalogIeltsNoteAll": {
+    "description": "University catalogue (Explore / Applications browse)."
+  },
+  "catalogIeltsNote": "Only English-taught programmes you can enter with IELTS {score}",
+  "@catalogIeltsNote": {
+    "description": "University catalogue (Explore / Applications browse).",
+    "placeholders": {
+      "score": {
+        "type": "String"
+      }
+    }
+  },
+  "catalogFilterPrice": "Tuition",
+  "@catalogFilterPrice": {
+    "description": "University catalogue (Explore / Applications browse)."
+  },
+  "catalogPricePerSemester": "per semester",
+  "@catalogPricePerSemester": {
+    "description": "University catalogue (Explore / Applications browse)."
+  },
+  "catalogPriceFrom": "From",
+  "@catalogPriceFrom": {
+    "description": "University catalogue (Explore / Applications browse)."
+  },
+  "catalogPriceTo": "To",
+  "@catalogPriceTo": {
+    "description": "University catalogue (Explore / Applications browse)."
+  },
+  "catalogPriceUpTo": "up to {amount}",
+  "@catalogPriceUpTo": {
+    "description": "University catalogue (Explore / Applications browse).",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "catalogApply": "Show {count} universities",
+  "@catalogApply": {
+    "description": "University catalogue (Explore / Applications browse).",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "catalogFaculties": "Faculties",
+  "@catalogFaculties": {
+    "description": "University catalogue (Explore / Applications browse)."
+  },
+  "catalogFacultyCount": "{count} faculties",
+  "@catalogFacultyCount": {
+    "description": "University catalogue (Explore / Applications browse).",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "catalogProgramCount": "{count} programmes",
+  "@catalogProgramCount": {
+    "description": "University catalogue (Explore / Applications browse).",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "catalogTuitionTitle": "Tuition · {name}",
+  "@catalogTuitionTitle": {
+    "description": "University catalogue (Explore / Applications browse).",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "catalogPerSemester": "/ semester",
+  "@catalogPerSemester": {
+    "description": "University catalogue (Explore / Applications browse)."
+  },
+  "catalogPerYear": "/ year",
+  "@catalogPerYear": {
+    "description": "University catalogue (Explore / Applications browse)."
+  },
+  "catalogSemSuffix": "/sem",
+  "@catalogSemSuffix": {
+    "description": "University catalogue (Explore / Applications browse)."
+  },
+  "catalogYearSuffix": "/yr",
+  "@catalogYearSuffix": {
+    "description": "University catalogue (Explore / Applications browse)."
+  },
+  "catalogYearlyTuition": "Yearly tuition",
+  "@catalogYearlyTuition": {
+    "description": "University catalogue (Explore / Applications browse)."
+  },
+  "catalogApplicationFee": "Application fee",
+  "@catalogApplicationFee": {
+    "description": "University catalogue (Explore / Applications browse)."
+  },
+  "catalogEntranceFee": "Entrance fee",
+  "@catalogEntranceFee": {
+    "description": "University catalogue (Explore / Applications browse)."
+  },
+  "catalogRequirements": "Admission requirements",
+  "@catalogRequirements": {
+    "description": "University catalogue (Explore / Applications browse)."
+  },
+  "catalogReqKorean": "Korean language",
+  "@catalogReqKorean": {
+    "description": "University catalogue (Explore / Applications browse)."
+  },
+  "catalogReqEnglish": "For English programmes",
+  "@catalogReqEnglish": {
+    "description": "University catalogue (Explore / Applications browse)."
+  },
+  "catalogReqRecommendation": "Recommendation letter",
+  "@catalogReqRecommendation": {
+    "description": "University catalogue (Explore / Applications browse)."
+  },
+  "catalogRecYes": "Required",
+  "@catalogRecYes": {
+    "description": "University catalogue (Explore / Applications browse)."
+  },
+  "catalogRecNo": "Not needed",
+  "@catalogRecNo": {
+    "description": "University catalogue (Explore / Applications browse)."
+  },
+  "catalogRecOptional": "Optional",
+  "@catalogRecOptional": {
+    "description": "University catalogue (Explore / Applications browse)."
+  },
+  "catalogReqDocuments": "Documents",
+  "@catalogReqDocuments": {
+    "description": "University catalogue (Explore / Applications browse)."
+  },
+  "catalogDocsRequired": "{count} required",
+  "@catalogDocsRequired": {
+    "description": "University catalogue (Explore / Applications browse).",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "catalogReqApostille": "Apostille",
+  "@catalogReqApostille": {
+    "description": "University catalogue (Explore / Applications browse)."
+  },
+  "catalogApostilleDocs": "on {count} documents",
+  "@catalogApostilleDocs": {
+    "description": "University catalogue (Explore / Applications browse).",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "catalogReqBank": "Bank balance (D-2)",
+  "@catalogReqBank": {
+    "description": "University catalogue (Explore / Applications browse)."
+  },
+  "catalogTimeline": "Deadlines · {season}",
+  "@catalogTimeline": {
+    "description": "University catalogue (Explore / Applications browse).",
+    "placeholders": {
+      "season": {
+        "type": "String"
+      }
+    }
+  },
+  "catalogRoundLater": "Announced later",
+  "@catalogRoundLater": {
+    "description": "University catalogue (Explore / Applications browse)."
+  },
+  "catalogRoundEstimated": "estimated",
+  "@catalogRoundEstimated": {
+    "description": "University catalogue (Explore / Applications browse)."
+  },
+  "catalogRoundRelative": "No fixed date",
+  "@catalogRoundRelative": {
+    "description": "University catalogue (Explore / Applications browse)."
+  },
+  "catalogWindowLabel": "Document submission",
+  "@catalogWindowLabel": {
+    "description": "University catalogue (Explore / Applications browse)."
+  },
+  "catalogDaysLeft": "{days} days left",
+  "@catalogDaysLeft": {
+    "description": "University catalogue (Explore / Applications browse).",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "catalogWindowOpens": "Opens {date}",
+  "@catalogWindowOpens": {
+    "description": "University catalogue (Explore / Applications browse).",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "catalogWindowClosed": "Deadline passed",
+  "@catalogWindowClosed": {
+    "description": "University catalogue (Explore / Applications browse)."
+  },
+  "catalogContact": "Contact us",
+  "@catalogContact": {
+    "description": "University catalogue (Explore / Applications browse)."
+  },
+  "catalogSeasonSpring": "Spring",
+  "@catalogSeasonSpring": {
+    "description": "University catalogue (Explore / Applications browse)."
+  },
+  "catalogSeasonAutumn": "Autumn",
+  "@catalogSeasonAutumn": {
+    "description": "University catalogue (Explore / Applications browse)."
+  },
+  "catalogSeasonLabel": "{year} {term}",
+  "@catalogSeasonLabel": {
+    "description": "University catalogue (Explore / Applications browse).",
+    "placeholders": {
+      "year": {
+        "type": "String"
+      },
+      "term": {
+        "type": "String"
+      }
+    }
+  },
+  "catalogFavorite": "Add to compare",
+  "@catalogFavorite": {
+    "description": "University catalogue (Explore / Applications browse)."
+  },
+  "catalogNoDegreeData": "No data for this degree yet",
+  "@catalogNoDegreeData": {
+    "description": "University catalogue (Explore / Applications browse)."
   }
 }

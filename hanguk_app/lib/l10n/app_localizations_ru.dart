@@ -1626,4 +1626,230 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get aiReportFailed =>
       'Не удалось отправить жалобу. Попробуйте ещё раз.';
+
+  @override
+  String get catalogSearchHint => 'Поиск по названию университета';
+
+  @override
+  String get catalogListTitle => 'Университеты';
+
+  @override
+  String catalogCityUniversities(String city) {
+    return 'Университеты: $city';
+  }
+
+  @override
+  String get catalogEmptyTitle => 'Университеты не найдены';
+
+  @override
+  String get catalogEmptyBody => 'Попробуйте другой город или фильтр.';
+
+  @override
+  String get catalogTypeState => 'Государственный университет';
+
+  @override
+  String get catalogTypePrivate => 'Частный университет';
+
+  @override
+  String get catalogTypeSpecialized => 'Специализированный вуз';
+
+  @override
+  String get catalogTypeStateShort => 'Государственный';
+
+  @override
+  String get catalogTypePrivateShort => 'Частный';
+
+  @override
+  String get catalogTypeSpecializedShort => 'Специализированный';
+
+  @override
+  String get catalogFilterTitle => 'Фильтр';
+
+  @override
+  String get catalogFilterClear => 'Сбросить';
+
+  @override
+  String get catalogFilterCity => 'Город';
+
+  @override
+  String catalogFilterCityPicked(int count) {
+    return 'Выбрано: $count';
+  }
+
+  @override
+  String get catalogFilterDegree => 'Степень';
+
+  @override
+  String get catalogDegreeBachelor => 'Бакалавриат';
+
+  @override
+  String get catalogDegreeMaster => 'Магистратура';
+
+  @override
+  String get catalogFilterEnglish => 'Требование по английскому';
+
+  @override
+  String get catalogFilterEnglishHint => 'ваш балл IELTS';
+
+  @override
+  String get catalogIeltsNone => 'Не нужен';
+
+  @override
+  String get catalogIeltsNoteAll => 'Все программы (на корейском и английском)';
+
+  @override
+  String catalogIeltsNote(String score) {
+    return 'Только программы на английском, куда можно поступить с IELTS $score';
+  }
+
+  @override
+  String get catalogFilterPrice => 'Стоимость обучения';
+
+  @override
+  String get catalogPricePerSemester => 'за семестр';
+
+  @override
+  String get catalogPriceFrom => 'От';
+
+  @override
+  String get catalogPriceTo => 'До';
+
+  @override
+  String catalogPriceUpTo(String amount) {
+    return 'до $amount';
+  }
+
+  @override
+  String catalogApply(int count) {
+    return 'Показать университеты: $count';
+  }
+
+  @override
+  String get catalogFaculties => 'Факультеты';
+
+  @override
+  String catalogFacultyCount(int count) {
+    return 'Факультетов: $count';
+  }
+
+  @override
+  String catalogProgramCount(int count) {
+    return 'Направлений: $count';
+  }
+
+  @override
+  String catalogTuitionTitle(String name) {
+    return 'Стоимость · $name';
+  }
+
+  @override
+  String get catalogPerSemester => '/ семестр';
+
+  @override
+  String get catalogPerYear => '/ год';
+
+  @override
+  String get catalogSemSuffix => '/сем';
+
+  @override
+  String get catalogYearSuffix => '/год';
+
+  @override
+  String get catalogYearlyTuition => 'Стоимость за год';
+
+  @override
+  String get catalogApplicationFee => 'Сбор за заявку';
+
+  @override
+  String get catalogEntranceFee => 'Вступительный взнос';
+
+  @override
+  String get catalogRequirements => 'Требования к поступлению';
+
+  @override
+  String get catalogReqKorean => 'Корейский язык';
+
+  @override
+  String get catalogReqEnglish => 'Для программ на английском';
+
+  @override
+  String get catalogReqRecommendation => 'Рекомендательное письмо';
+
+  @override
+  String get catalogRecYes => 'Нужно';
+
+  @override
+  String get catalogRecNo => 'Не нужно';
+
+  @override
+  String get catalogRecOptional => 'По желанию';
+
+  @override
+  String get catalogReqDocuments => 'Документы';
+
+  @override
+  String catalogDocsRequired(int count) {
+    return 'Обязательных: $count';
+  }
+
+  @override
+  String get catalogReqApostille => 'Апостиль';
+
+  @override
+  String catalogApostilleDocs(int count) {
+    return 'на $count документах';
+  }
+
+  @override
+  String get catalogReqBank => 'Банковский баланс (D-2)';
+
+  @override
+  String catalogTimeline(String season) {
+    return 'Сроки · $season';
+  }
+
+  @override
+  String get catalogRoundLater => 'Объявят позже';
+
+  @override
+  String get catalogRoundEstimated => 'ориентировочно';
+
+  @override
+  String get catalogRoundRelative => 'Без точной даты';
+
+  @override
+  String get catalogWindowLabel => 'Подача документов';
+
+  @override
+  String catalogDaysLeft(int days) {
+    return 'Осталось дней: $days';
+  }
+
+  @override
+  String catalogWindowOpens(String date) {
+    return 'Откроется $date';
+  }
+
+  @override
+  String get catalogWindowClosed => 'Срок истёк';
+
+  @override
+  String get catalogContact => 'Связаться';
+
+  @override
+  String get catalogSeasonSpring => 'Весна';
+
+  @override
+  String get catalogSeasonAutumn => 'Осень';
+
+  @override
+  String catalogSeasonLabel(String year, String term) {
+    return '$term $year';
+  }
+
+  @override
+  String get catalogFavorite => 'Добавить к сравнению';
+
+  @override
+  String get catalogNoDegreeData => 'По этой степени данных пока нет';
 }

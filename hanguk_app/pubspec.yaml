@@ -146,6 +146,9 @@ flutter:
   assets:
     - assets/images/
     - assets/virtual_tour/
+    # Campus photos for the university catalogue, one per institution id.
+    # Sources and licences: docs/campus_photo_credits.md.
+    - assets/campus/
     # English wordlist for the drafting workspace's spell check (~370k words,
     # sorted, one per line, LF-terminated — LocalDictionary binary-searches
     # the raw bytes). Bundled because Android only spell checks through a

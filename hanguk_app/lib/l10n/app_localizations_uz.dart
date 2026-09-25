@@ -1634,4 +1634,231 @@ class AppLocalizationsUz extends AppLocalizations {
   @override
   String get aiReportFailed =>
       'Shikoyatni yuborib bo‘lmadi. Qaytadan urinib ko‘ring.';
+
+  @override
+  String get catalogSearchHint => 'Universitet nomini qidiring';
+
+  @override
+  String get catalogListTitle => 'Universitetlar';
+
+  @override
+  String catalogCityUniversities(String city) {
+    return '$city universitetlari';
+  }
+
+  @override
+  String get catalogEmptyTitle => 'Universitet topilmadi';
+
+  @override
+  String get catalogEmptyBody => 'Boshqa shahar yoki filtrni tanlab ko\'ring.';
+
+  @override
+  String get catalogTypeState => 'Davlat universiteti';
+
+  @override
+  String get catalogTypePrivate => 'Xususiy universitet';
+
+  @override
+  String get catalogTypeSpecialized => 'Ixtisoslashgan oliygoh';
+
+  @override
+  String get catalogTypeStateShort => 'Davlat';
+
+  @override
+  String get catalogTypePrivateShort => 'Xususiy';
+
+  @override
+  String get catalogTypeSpecializedShort => 'Ixtisoslashgan';
+
+  @override
+  String get catalogFilterTitle => 'Filtr';
+
+  @override
+  String get catalogFilterClear => 'Tozalash';
+
+  @override
+  String get catalogFilterCity => 'Shahar';
+
+  @override
+  String catalogFilterCityPicked(int count) {
+    return '$count ta tanlandi';
+  }
+
+  @override
+  String get catalogFilterDegree => 'Daraja';
+
+  @override
+  String get catalogDegreeBachelor => 'Bakalavr';
+
+  @override
+  String get catalogDegreeMaster => 'Magistr';
+
+  @override
+  String get catalogFilterEnglish => 'Ingliz tili talabi';
+
+  @override
+  String get catalogFilterEnglishHint => 'sizning IELTS balingiz';
+
+  @override
+  String get catalogIeltsNone => 'Shart emas';
+
+  @override
+  String get catalogIeltsNoteAll =>
+      'Barcha dasturlar (koreys va ingliz tilida)';
+
+  @override
+  String catalogIeltsNote(String score) {
+    return 'Faqat ingliz tilidagi dasturlar, IELTS $score bilan kirish mumkin bo\'lganlar';
+  }
+
+  @override
+  String get catalogFilterPrice => 'Kontrakt narxi';
+
+  @override
+  String get catalogPricePerSemester => 'semestr uchun';
+
+  @override
+  String get catalogPriceFrom => 'Dan';
+
+  @override
+  String get catalogPriceTo => 'Gacha';
+
+  @override
+  String catalogPriceUpTo(String amount) {
+    return '$amount gacha';
+  }
+
+  @override
+  String catalogApply(int count) {
+    return '$count ta universitetni ko\'rsatish';
+  }
+
+  @override
+  String get catalogFaculties => 'Fakultetlar';
+
+  @override
+  String catalogFacultyCount(int count) {
+    return '$count ta fakultet';
+  }
+
+  @override
+  String catalogProgramCount(int count) {
+    return '$count ta yo\'nalish';
+  }
+
+  @override
+  String catalogTuitionTitle(String name) {
+    return 'Kontrakt narxi · $name';
+  }
+
+  @override
+  String get catalogPerSemester => '/ semestr';
+
+  @override
+  String get catalogPerYear => '/ yil';
+
+  @override
+  String get catalogSemSuffix => '/sem';
+
+  @override
+  String get catalogYearSuffix => '/yil';
+
+  @override
+  String get catalogYearlyTuition => 'Yillik kontrakt';
+
+  @override
+  String get catalogApplicationFee => 'Ariza to\'lovi';
+
+  @override
+  String get catalogEntranceFee => 'Kirish to\'lovi';
+
+  @override
+  String get catalogRequirements => 'Kirish talablari';
+
+  @override
+  String get catalogReqKorean => 'Koreys tili';
+
+  @override
+  String get catalogReqEnglish => 'Ingliz dasturi uchun';
+
+  @override
+  String get catalogReqRecommendation => 'Tavsiyanoma';
+
+  @override
+  String get catalogRecYes => 'Kerak';
+
+  @override
+  String get catalogRecNo => 'Shart emas';
+
+  @override
+  String get catalogRecOptional => 'Ixtiyoriy';
+
+  @override
+  String get catalogReqDocuments => 'Hujjatlar';
+
+  @override
+  String catalogDocsRequired(int count) {
+    return '$count ta majburiy';
+  }
+
+  @override
+  String get catalogReqApostille => 'Apostil';
+
+  @override
+  String catalogApostilleDocs(int count) {
+    return '$count ta hujjatga';
+  }
+
+  @override
+  String get catalogReqBank => 'Bank hisobi (D-2)';
+
+  @override
+  String catalogTimeline(String season) {
+    return 'Muddatlar · $season';
+  }
+
+  @override
+  String get catalogRoundLater => 'Keyin e\'lon qilinadi';
+
+  @override
+  String get catalogRoundEstimated => 'taxminiy';
+
+  @override
+  String get catalogRoundRelative => 'Aniq sana yo\'q';
+
+  @override
+  String get catalogWindowLabel => 'Hujjat topshirish vaqti';
+
+  @override
+  String catalogDaysLeft(int days) {
+    return '$days kun qoldi';
+  }
+
+  @override
+  String catalogWindowOpens(String date) {
+    return '$date da ochiladi';
+  }
+
+  @override
+  String get catalogWindowClosed => 'Muddat tugagan';
+
+  @override
+  String get catalogContact => 'Bog\'lanish';
+
+  @override
+  String get catalogSeasonSpring => 'Bahor';
+
+  @override
+  String get catalogSeasonAutumn => 'Kuz';
+
+  @override
+  String catalogSeasonLabel(String year, String term) {
+    return '$year $term';
+  }
+
+  @override
+  String get catalogFavorite => 'Solishtirishga qo\'shish';
+
+  @override
+  String get catalogNoDegreeData => 'Bu daraja bo\'yicha ma\'lumot hali yo\'q';
 }

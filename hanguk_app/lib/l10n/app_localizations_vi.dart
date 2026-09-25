@@ -1623,4 +1623,231 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get aiReportFailed => 'Không gửi được báo cáo. Vui lòng thử lại.';
+
+  @override
+  String get catalogSearchHint => 'Tìm tên trường đại học';
+
+  @override
+  String get catalogListTitle => 'Các trường đại học';
+
+  @override
+  String catalogCityUniversities(String city) {
+    return 'Các trường tại $city';
+  }
+
+  @override
+  String get catalogEmptyTitle => 'Không tìm thấy trường';
+
+  @override
+  String get catalogEmptyBody => 'Hãy thử thành phố hoặc bộ lọc khác.';
+
+  @override
+  String get catalogTypeState => 'Trường công lập';
+
+  @override
+  String get catalogTypePrivate => 'Trường tư thục';
+
+  @override
+  String get catalogTypeSpecialized => 'Trường chuyên biệt';
+
+  @override
+  String get catalogTypeStateShort => 'Công lập';
+
+  @override
+  String get catalogTypePrivateShort => 'Tư thục';
+
+  @override
+  String get catalogTypeSpecializedShort => 'Chuyên biệt';
+
+  @override
+  String get catalogFilterTitle => 'Bộ lọc';
+
+  @override
+  String get catalogFilterClear => 'Xóa';
+
+  @override
+  String get catalogFilterCity => 'Thành phố';
+
+  @override
+  String catalogFilterCityPicked(int count) {
+    return 'Đã chọn $count';
+  }
+
+  @override
+  String get catalogFilterDegree => 'Bậc học';
+
+  @override
+  String get catalogDegreeBachelor => 'Cử nhân';
+
+  @override
+  String get catalogDegreeMaster => 'Thạc sĩ';
+
+  @override
+  String get catalogFilterEnglish => 'Yêu cầu tiếng Anh';
+
+  @override
+  String get catalogFilterEnglishHint => 'điểm IELTS của bạn';
+
+  @override
+  String get catalogIeltsNone => 'Không cần';
+
+  @override
+  String get catalogIeltsNoteAll =>
+      'Tất cả chương trình (tiếng Hàn và tiếng Anh)';
+
+  @override
+  String catalogIeltsNote(String score) {
+    return 'Chỉ các chương trình tiếng Anh có thể vào với IELTS $score';
+  }
+
+  @override
+  String get catalogFilterPrice => 'Học phí';
+
+  @override
+  String get catalogPricePerSemester => 'mỗi học kỳ';
+
+  @override
+  String get catalogPriceFrom => 'Từ';
+
+  @override
+  String get catalogPriceTo => 'Đến';
+
+  @override
+  String catalogPriceUpTo(String amount) {
+    return 'đến $amount';
+  }
+
+  @override
+  String catalogApply(int count) {
+    return 'Xem $count trường';
+  }
+
+  @override
+  String get catalogFaculties => 'Các khoa';
+
+  @override
+  String catalogFacultyCount(int count) {
+    return '$count khoa';
+  }
+
+  @override
+  String catalogProgramCount(int count) {
+    return '$count ngành';
+  }
+
+  @override
+  String catalogTuitionTitle(String name) {
+    return 'Học phí · $name';
+  }
+
+  @override
+  String get catalogPerSemester => '/ học kỳ';
+
+  @override
+  String get catalogPerYear => '/ năm';
+
+  @override
+  String get catalogSemSuffix => '/kỳ';
+
+  @override
+  String get catalogYearSuffix => '/năm';
+
+  @override
+  String get catalogYearlyTuition => 'Học phí một năm';
+
+  @override
+  String get catalogApplicationFee => 'Phí nộp hồ sơ';
+
+  @override
+  String get catalogEntranceFee => 'Phí nhập học';
+
+  @override
+  String get catalogRequirements => 'Yêu cầu tuyển sinh';
+
+  @override
+  String get catalogReqKorean => 'Tiếng Hàn';
+
+  @override
+  String get catalogReqEnglish => 'Cho chương trình tiếng Anh';
+
+  @override
+  String get catalogReqRecommendation => 'Thư giới thiệu';
+
+  @override
+  String get catalogRecYes => 'Bắt buộc';
+
+  @override
+  String get catalogRecNo => 'Không cần';
+
+  @override
+  String get catalogRecOptional => 'Tùy chọn';
+
+  @override
+  String get catalogReqDocuments => 'Hồ sơ';
+
+  @override
+  String catalogDocsRequired(int count) {
+    return '$count bắt buộc';
+  }
+
+  @override
+  String get catalogReqApostille => 'Apostille';
+
+  @override
+  String catalogApostilleDocs(int count) {
+    return 'cho $count hồ sơ';
+  }
+
+  @override
+  String get catalogReqBank => 'Số dư ngân hàng (D-2)';
+
+  @override
+  String catalogTimeline(String season) {
+    return 'Mốc thời gian · $season';
+  }
+
+  @override
+  String get catalogRoundLater => 'Thông báo sau';
+
+  @override
+  String get catalogRoundEstimated => 'dự kiến';
+
+  @override
+  String get catalogRoundRelative => 'Chưa có ngày cụ thể';
+
+  @override
+  String get catalogWindowLabel => 'Thời gian nộp hồ sơ';
+
+  @override
+  String catalogDaysLeft(int days) {
+    return 'Còn $days ngày';
+  }
+
+  @override
+  String catalogWindowOpens(String date) {
+    return 'Mở ngày $date';
+  }
+
+  @override
+  String get catalogWindowClosed => 'Đã hết hạn';
+
+  @override
+  String get catalogContact => 'Liên hệ';
+
+  @override
+  String get catalogSeasonSpring => 'Xuân';
+
+  @override
+  String get catalogSeasonAutumn => 'Thu';
+
+  @override
+  String catalogSeasonLabel(String year, String term) {
+    return '$term $year';
+  }
+
+  @override
+  String get catalogFavorite => 'Thêm để so sánh';
+
+  @override
+  String get catalogNoDegreeData => 'Chưa có dữ liệu cho bậc học này';
 }
