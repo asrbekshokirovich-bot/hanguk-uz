@@ -187,3 +187,8 @@ verify_jwt = false
 # function checks the caller itself.
 [functions.lead-sla-check]
 verify_jwt = false
+
+# Telegram delivers updates here without a JWT; the function checks
+# X-Telegram-Bot-Api-Secret-Token against HR_BOT_WEBHOOK_SECRET itself.
+[functions.hr-bot]
+verify_jwt = false

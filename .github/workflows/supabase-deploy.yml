@@ -106,6 +106,8 @@ jobs:
           # creation added on top of it, so the repo copy is the newer code.
           # Added on 2026-09-23: `telegram-poll` is new and deployed from here,
           # so the repo copy is the current one.
+          # Added on 2026-09-25: `hr-bot` is new and deployed from here, so the
+          # repo copy is the current one.
           FUNCTIONS="
             instagram-webhook
             channel-health-check
@@ -123,6 +125,7 @@ jobs:
             lead-sla-check
             telegram-ingest
             telegram-poll
+            hr-bot
           "
 
           for fn in $FUNCTIONS; do
