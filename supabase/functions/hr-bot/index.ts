@@ -16,7 +16,8 @@ import {
 // HR admins (registered by sending `/admin <HR_ADMIN_PASSWORD>`):
 //   every new application arrives as a card with buttons
 //     ⭐ Tanlash            -> shortlist (candidate is not told)
-//     📅 Suhbatga chaqirish -> bot asks for time + place, then sends the
+//     📅 Suhbatga chaqirish -> date and time from buttons, address as text
+//                              and/or a map pin, a preview, then the
 //                              invitation; the candidate answers
 //                              "Kelaman" or "Boshqa vaqt"
 //     ❌ Rad etish          -> after a confirm tap, a polite message goes out
@@ -60,14 +61,38 @@ interface Candidate {
   step: string;
   status: string;
   interview_info: string | null;
+  interview_at: string | null;
+  interview_location: { text: string | null; lat: number | null; lon: number | null } | null;
   submitted_at: string | null;
+}
+
+/** A place: typed text, a map pin, or both. */
+interface Place {
+  text: string | null;
+  lat: number | null;
+  lon: number | null;
+}
+
+/**
+ * The invitation an admin is putting together, one step at a time:
+ * date (buttons) -> time (buttons or typed) -> address (text and/or map pin)
+ * -> confirm. Stored in hr_admins.pending_action between messages.
+ */
+interface PendingInvite {
+  action: "invite";
+  candidate_id: string;
+  step?: "date" | "time" | "address" | "address_extra" | "confirm";
+  date?: string; // YYYY-MM-DD, Tashkent time
+  time?: string; // HH:MM
+  place?: Place;
 }
 
 interface Admin {
   telegram_user_id: string;
   chat_id: string;
   name: string | null;
-  pending_action: { action: string; candidate_id: string } | null;
+  pending_action: PendingInvite | null;
+  last_address: Place | null;
 }
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
@@ -122,6 +147,24 @@ const ADMIN_MENU = {
 };
 
 const LIST_LIMIT = 10;
+
+// Interview picker: how many days ahead are offered, and the time grid.
+const INVITE_DAYS = 10;
+const SLOT_FIRST = 9 * 60; // 09:00
+const SLOT_LAST = 19 * 60; // 19:00
+const SLOT_STEP = 30;
+
+const WEEKDAYS = ["Yakshanba", "Dushanba", "Seshanba", "Chorshanba", "Payshanba", "Juma", "Shanba"];
+const WEEKDAYS_SHORT = ["Yak", "Du", "Se", "Chor", "Pay", "Ju", "Sha"];
+const MONTHS = [
+  "yanvar", "fevral", "mart", "aprel", "may", "iyun",
+  "iyul", "avgust", "sentabr", "oktabr", "noyabr", "dekabr",
+];
+
+const BTN_SEND_MY_LOCATION = "📍 Hozirgi joylashuvimni yuborish";
+const BTN_LAST_ADDRESS = "♻️ Oldingi manzil";
+const BTN_SKIP = "⏭ O'tkazib yuborish";
+const BTN_CANCEL = "❌ Bekor qilish";
 
 // --- Small helpers -------------------------------------------------------------
 
@@ -557,36 +600,21 @@ async function handleAdminMessage(admin: Admin, message: Any) {
     return;
   }
 
-  // Waiting for the interview time + place for a candidate.
-  if (admin.pending_action?.action === "invite" && text && !text.startsWith("/") && !isMenuButton(text)) {
-    await setPending(admin.telegram_user_id, null);
-    const c = await getCandidate(admin.pending_action.candidate_id);
-    if (!c) {
-      await send(chatId, "Nomzod topilmadi.", ADMIN_MENU);
+  const pending = admin.pending_action;
+  if (pending?.action === "invite") {
+    if (text === BTN_CANCEL) {
+      await setPending(admin.telegram_user_id, null);
+      await send(chatId, "Suhbat taklifi bekor qilindi.", ADMIN_MENU);
       return;
     }
-    const sent = await send(
-      c.chat_id,
-      `Assalomu alaykum, ${esc(c.full_name)}! 🎉\n\nSiz <b>suhbatga taklif qilindingiz</b>.\n📅 ${esc(text)}\n\nIltimos, javob bering:`,
-      {
-        inline_keyboard: [[
-          { text: "✅ Kelaman", callback_data: `hr:yes:${c.id}` },
-          { text: "🔄 Boshqa vaqt kerak", callback_data: `hr:resched:${c.id}` },
-        ]],
-      },
-    );
-    if (!sent.ok) {
-      await send(
-        chatId,
-        `⚠️ Taklif yuborilmadi: nomzod botni bloklagan bo'lishi mumkin. Unga ${esc(c.phone)} raqami orqali qo'ng'iroq qiling.`,
-        ADMIN_MENU,
-      );
+    // A menu button or another command abandons the invitation, so nothing
+    // typed later is mistaken for part of it.
+    if (isMenuButton(text) || text.startsWith("/")) {
+      await setPending(admin.telegram_user_id, null);
+    } else {
+      await handleInviteInput(admin, message, pending);
       return;
     }
-    const updated = await updateCandidate(c.id, { status: "invited", interview_info: text, step: "done" });
-    await send(chatId, "✅ Taklif nomzodga yuborildi. Javobini shu chatda olasiz.", ADMIN_MENU);
-    if (updated) await sendCard(chatId, updated);
-    return;
   }
 
   switch (text) {
@@ -636,15 +664,18 @@ async function handleAdminCallback(admin: Admin, cq: Any) {
       return;
     }
     case "inv": {
-      await setPending(admin.telegram_user_id, { action: "invite", candidate_id: c.id });
       await answerCallbackQuery(BOT_TOKEN, cq.id);
-      await send(
-        chatId,
-        `📅 <b>${esc(c.full_name)}</b> uchun suhbat kuni, vaqti va manzilini bitta xabarda yozing:\n<i>Masalan: 27-sentabr, soat 15:00, Chilonzor, Bunyodkor ko'chasi 5</i>\n\nBekor qilish: /bekor`,
-        removeKeyboard(),
-      );
+      await startInvite(admin, chatId, c);
       return;
     }
+    case "ivd":
+    case "ivt":
+    case "ivb":
+    case "ivx":
+    case "ivs":
+    case "ivr":
+      await handleInviteCallback(admin, cq, c, action, String(cq.data).split(":")[3] ?? "");
+      return;
     case "rej": {
       await answerCallbackQuery(BOT_TOKEN, cq.id);
       if (cq.message) {
@@ -682,6 +713,392 @@ async function handleAdminCallback(admin: Admin, cq: Any) {
     }
     default:
       await answerCallbackQuery(BOT_TOKEN, cq.id);
+  }
+}
+
+// --- Interview invitation: date -> time -> address -> confirm -------------------------------
+
+/** "Now" shifted to Tashkent wall-clock time (UTC+5, no DST); read it with getUTC*. */
+function tashkentNow(): Date {
+  return new Date(Date.now() + 5 * 60 * 60 * 1000);
+}
+
+function ymd(d: Date): string {
+  return d.toISOString().slice(0, 10);
+}
+
+function ymdToDate(value: string): Date {
+  return new Date(`${value}T00:00:00Z`);
+}
+
+/** "27-sentabr, Shanba" */
+function dateLabel(value: string): string {
+  const d = ymdToDate(value);
+  return `${d.getUTCDate()}-${MONTHS[d.getUTCMonth()]}, ${WEEKDAYS[d.getUTCDay()]}`;
+}
+
+function minutesToHHMM(m: number): string {
+  return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
+}
+
+/** Accepts 15:00, 15.00, 1500, 9:30 and the like. */
+export function parseTime(raw: string): string | null {
+  const m = raw.trim().match(/^(\d{1,2})[:.\s-]?(\d{2})$/);
+  if (!m) return null;
+  const h = Number(m[1]);
+  const min = Number(m[2]);
+  if (h > 23 || min > 59) return null;
+  return minutesToHHMM(h * 60 + min);
+}
+
+/** Accepts 27.09, 27/09, 27.09.2026. Without a year, a date already past means next year. */
+export function parseDate(raw: string, today: Date = tashkentNow()): string | null {
+  const m = raw.trim().match(/^(\d{1,2})[./-](\d{1,2})(?:[./-](\d{2}|\d{4}))?$/);
+  if (!m) return null;
+  const day = Number(m[1]);
+  const month = Number(m[2]);
+  let year = m[3] ? Number(m[3].length === 2 ? `20${m[3]}` : m[3]) : today.getUTCFullYear();
+  const build = (y: number) => new Date(Date.UTC(y, month - 1, day));
+  let d = build(year);
+  if (d.getUTCMonth() !== month - 1 || d.getUTCDate() !== day) return null; // 31.02 etc.
+  if (!m[3] && ymd(d) < ymd(today)) d = build(++year);
+  if (ymd(d) < ymd(today)) return null;
+  return ymd(d);
+}
+
+/** The interview moment as an absolute timestamp, for sorting and reminders later. */
+function interviewAt(date: string, time: string): string {
+  return new Date(`${date}T${time}:00+05:00`).toISOString();
+}
+
+function dateKeyboard(candidateId: string) {
+  const today = tashkentNow();
+  const buttons = [];
+  for (let i = 0; i < INVITE_DAYS; i++) {
+    const d = new Date(today.getTime() + i * 86400000);
+    const dm = `${String(d.getUTCDate()).padStart(2, "0")}.${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
+    const prefix = i === 0 ? "Bugun, " : i === 1 ? "Ertaga, " : "";
+    buttons.push({
+      text: `${prefix}${dm} ${WEEKDAYS_SHORT[d.getUTCDay()]}`,
+      callback_data: `hr:ivd:${candidateId}:${ymd(d)}`,
+    });
+  }
+  const rows = [];
+  for (let i = 0; i < buttons.length; i += 2) rows.push(buttons.slice(i, i + 2));
+  rows.push([{ text: BTN_CANCEL, callback_data: `hr:ivx:${candidateId}` }]);
+  return { inline_keyboard: rows };
+}
+
+/** Half-hour slots; for today, only the ones still ahead. */
+function timeSlots(date: string): string[] {
+  const now = tashkentNow();
+  const isToday = date === ymd(now);
+  const nowMin = now.getUTCHours() * 60 + now.getUTCMinutes();
+  const slots: string[] = [];
+  for (let m = SLOT_FIRST; m <= SLOT_LAST; m += SLOT_STEP) {
+    if (!isToday || m > nowMin) slots.push(minutesToHHMM(m));
+  }
+  return slots;
+}
+
+function timeKeyboard(candidateId: string, date: string) {
+  const buttons = timeSlots(date).map((t) => ({
+    text: t,
+    callback_data: `hr:ivt:${candidateId}:${t.replace(":", "")}`,
+  }));
+  const rows = [];
+  for (let i = 0; i < buttons.length; i += 4) rows.push(buttons.slice(i, i + 4));
+  rows.push([
+    { text: "⬅️ Sanani o'zgartirish", callback_data: `hr:ivb:${candidateId}` },
+    { text: BTN_CANCEL, callback_data: `hr:ivx:${candidateId}` },
+  ]);
+  return { inline_keyboard: rows };
+}
+
+function datePrompt(c: Candidate): string {
+  return `📅 <b>${esc(c.full_name)}</b> uchun suhbat <b>kunini</b> tanlang:\n\n<i>Boshqa sana kerak bo'lsa, yozib yuboring: 03.10</i>`;
+}
+
+function timePrompt(c: Candidate, date: string): string {
+  const none = timeSlots(date).length === 0 ? "\n\nBugun uchun bo'sh vaqt qolmadi." : "";
+  return `📅 ${dateLabel(date)}\n\n<b>${esc(c.full_name)}</b> uchun suhbat <b>vaqtini</b> tanlang:${none}\n\n<i>Boshqa vaqt kerak bo'lsa, yozib yuboring: 15:45</i>`;
+}
+
+function addressKeyboard(admin: Admin) {
+  const rows: Record<string, unknown>[][] = [[{ text: BTN_SEND_MY_LOCATION, request_location: true }]];
+  if (admin.last_address) rows.push([{ text: BTN_LAST_ADDRESS }]);
+  rows.push([{ text: BTN_CANCEL }]);
+  return { keyboard: rows, resize_keyboard: true, one_time_keyboard: true };
+}
+
+/** Plain text, not HTML-escaped: stored in interview_info. */
+function placeText(p: Place | undefined | null): string {
+  if (!p) return "—";
+  if (p.text && p.lat != null) return `${p.text} (xaritada belgilangan)`;
+  if (p.text) return p.text;
+  if (p.lat != null) return "xaritada belgilangan joy";
+  return "—";
+}
+
+function placeLine(p: Place | undefined | null): string {
+  return esc(placeText(p));
+}
+
+function invitationText(c: Candidate, p: PendingInvite): string {
+  const mapNote = p.place?.lat != null ? "\n<i>Joylashuv xaritada, yuqorida yuborildi.</i>" : "";
+  return [
+    `Assalomu alaykum, ${esc(c.full_name)}! 🎉`,
+    "",
+    "Siz <b>suhbatga taklif qilindingiz</b>.",
+    "",
+    `📅 Sana: <b>${dateLabel(p.date!)}</b>`,
+    `🕒 Vaqt: <b>${p.time}</b>`,
+    `📍 Manzil: ${p.place?.text ? esc(p.place.text) : "xaritada ko'rsatilgan"}${mapNote}`,
+    "",
+    "Iltimos, javob bering:",
+  ].join("\n");
+}
+
+async function startInvite(admin: Admin, chatId: string, c: Candidate) {
+  const pending: PendingInvite = { action: "invite", candidate_id: c.id, step: "date" };
+  await setPending(admin.telegram_user_id, pending);
+  admin.pending_action = pending;
+  await send(chatId, datePrompt(c), dateKeyboard(c.id));
+}
+
+async function askTime(admin: Admin, chatId: string, c: Candidate, date: string) {
+  await setPending(admin.telegram_user_id, { action: "invite", candidate_id: c.id, step: "time", date });
+  await send(chatId, timePrompt(c, date), timeKeyboard(c.id, date));
+}
+
+async function askAddress(admin: Admin, chatId: string, p: PendingInvite) {
+  await setPending(admin.telegram_user_id, { ...p, step: "address" });
+  const last = admin.last_address ? `\n\n${BTN_LAST_ADDRESS}: ${placeLine(admin.last_address)}` : "";
+  await send(
+    chatId,
+    `📅 ${dateLabel(p.date!)}, 🕒 ${p.time}\n\n📍 Endi suhbat <b>manzilini</b> yuboring:\n• manzilni matn bilan yozing, yoki\n• 📎 → <b>Location</b> orqali xaritadan joy belgilang, yoki\n• pastdagi tugmani bosing${last}`,
+    addressKeyboard(admin),
+  );
+}
+
+async function askAddressExtra(admin: Admin, chatId: string, p: PendingInvite) {
+  await setPending(admin.telegram_user_id, { ...p, step: "address_extra" });
+  const hasPin = p.place?.lat != null;
+  const rows: Record<string, unknown>[][] = [];
+  if (!hasPin) rows.push([{ text: BTN_SEND_MY_LOCATION, request_location: true }]);
+  rows.push([{ text: BTN_SKIP }], [{ text: BTN_CANCEL }]);
+  const question = hasPin
+    ? "✅ Xaritadagi joy qabul qilindi.\n\nNomzodga tushunarli bo'lishi uchun <b>manzil matnini</b> ham yozing (ko'cha, mo'ljal, qavat) yoki o'tkazib yuboring:"
+    : "✅ Manzil qabul qilindi.\n\nNomzod oson topishi uchun <b>xaritadagi joylashuvni</b> ham yuborasizmi? 📎 → <b>Location</b> yoki o'tkazib yuboring:";
+  await send(chatId, question, { keyboard: rows, resize_keyboard: true, one_time_keyboard: true });
+}
+
+async function showConfirm(admin: Admin, chatId: string, c: Candidate, p: PendingInvite) {
+  await setPending(admin.telegram_user_id, { ...p, step: "confirm" });
+  // Brings the menu keyboard back; the preview below carries the inline buttons.
+  await send(chatId, "Taklif tayyor. Tekshirib chiqing 👇", ADMIN_MENU);
+  await send(
+    chatId,
+    `<b>Nomzodga shunday xabar boradi:</b>\n\n${invitationText(c, p)}${p.place?.lat != null ? "\n\n<i>(+ xaritadagi joylashuv)</i>" : ""}`,
+    {
+      inline_keyboard: [
+        [{ text: "✅ Yuborish", callback_data: `hr:ivs:${c.id}` }],
+        [
+          { text: "✏️ Qaytadan", callback_data: `hr:ivr:${c.id}` },
+          { text: BTN_CANCEL, callback_data: `hr:ivx:${c.id}` },
+        ],
+      ],
+    },
+  );
+}
+
+/** Location from a Telegram message: a shared pin or a venue picked on the map. */
+function placeFromMessage(message: Any): Place | null {
+  const loc = message.venue?.location ?? message.location;
+  if (!loc) return null;
+  const venueText = message.venue
+    ? [message.venue.title, message.venue.address].filter(Boolean).join(", ")
+    : "";
+  return { text: venueText || null, lat: loc.latitude, lon: loc.longitude };
+}
+
+async function handleInviteInput(admin: Admin, message: Any, p: PendingInvite) {
+  const chatId = String(message.chat.id);
+  const text: string = (message.text ?? "").trim();
+  const c = await getCandidate(p.candidate_id);
+  if (!c) {
+    await setPending(admin.telegram_user_id, null);
+    await send(chatId, "Nomzod topilmadi.", ADMIN_MENU);
+    return;
+  }
+
+  switch (p.step ?? "date") {
+    case "date": {
+      const date = parseDate(text);
+      if (!date) {
+        await send(chatId, "Sanani tugmadan tanlang yoki shunday yozing: <b>03.10</b>", dateKeyboard(c.id));
+        return;
+      }
+      return askTime(admin, chatId, c, date);
+    }
+
+    case "time": {
+      const time = parseTime(text);
+      if (!time) {
+        await send(chatId, "Vaqtni tugmadan tanlang yoki shunday yozing: <b>15:45</b>", timeKeyboard(c.id, p.date!));
+        return;
+      }
+      return askAddress(admin, chatId, { ...p, time });
+    }
+
+    case "address": {
+      const pin = placeFromMessage(message);
+      if (pin) {
+        const next = { ...p, place: pin };
+        return pin.text ? showConfirm(admin, chatId, c, next) : askAddressExtra(admin, chatId, next);
+      }
+      if (text === BTN_LAST_ADDRESS && admin.last_address) {
+        return showConfirm(admin, chatId, c, { ...p, place: admin.last_address });
+      }
+      if (text.length < 3 || text.length > 300) {
+        await send(chatId, "Manzilni matn bilan yozing yoki xaritadan joylashuv yuboring.", addressKeyboard(admin));
+        return;
+      }
+      return askAddressExtra(admin, chatId, { ...p, place: { text, lat: null, lon: null } });
+    }
+
+    case "address_extra": {
+      const place = p.place ?? { text: null, lat: null, lon: null };
+      if (text === BTN_SKIP) return showConfirm(admin, chatId, c, p);
+      const pin = placeFromMessage(message);
+      if (pin && place.lat == null) {
+        return showConfirm(admin, chatId, c, { ...p, place: { ...place, lat: pin.lat, lon: pin.lon } });
+      }
+      if (text && !place.text && text.length <= 300) {
+        return showConfirm(admin, chatId, c, { ...p, place: { ...place, text } });
+      }
+      await send(chatId, `Davom etish uchun "${BTN_SKIP}" tugmasini bosing.`);
+      return;
+    }
+
+    case "confirm":
+      await send(chatId, 'Taklifni yuborish uchun yuqoridagi "✅ Yuborish" tugmasini bosing yoki /bekor yozing.');
+      return;
+  }
+}
+
+async function sendInvitation(admin: Admin, chatId: string, c: Candidate, p: PendingInvite) {
+  await setPending(admin.telegram_user_id, null);
+  const place = p.place!;
+
+  // The map goes first so the answer buttons stay at the bottom of the chat.
+  if (place.lat != null && place.lon != null) {
+    if (place.text) {
+      await callTelegram(BOT_TOKEN, "sendVenue", {
+        chat_id: c.chat_id,
+        latitude: place.lat,
+        longitude: place.lon,
+        title: "Suhbat joyi",
+        address: place.text.slice(0, 250),
+      });
+    } else {
+      await callTelegram(BOT_TOKEN, "sendLocation", {
+        chat_id: c.chat_id,
+        latitude: place.lat,
+        longitude: place.lon,
+      });
+    }
+  }
+
+  const sent = await send(c.chat_id, invitationText(c, p), {
+    inline_keyboard: [[
+      { text: "✅ Kelaman", callback_data: `hr:yes:${c.id}` },
+      { text: "🔄 Boshqa vaqt kerak", callback_data: `hr:resched:${c.id}` },
+    ]],
+  });
+  if (!sent.ok) {
+    await send(
+      chatId,
+      `⚠️ Taklif yuborilmadi: nomzod botni bloklagan bo'lishi mumkin. Unga ${esc(c.phone)} raqami orqali qo'ng'iroq qiling.`,
+      ADMIN_MENU,
+    );
+    return;
+  }
+
+  const info = `${dateLabel(p.date!)}, ${p.time}, ${placeText(place)}`;
+  const updated = await updateCandidate(c.id, {
+    status: "invited",
+    interview_info: info,
+    interview_at: interviewAt(p.date!, p.time!),
+    interview_location: place,
+    step: "done",
+  });
+  await supabase.from("hr_admins").update({ last_address: place }).eq("telegram_user_id", admin.telegram_user_id);
+  await send(chatId, "✅ Taklif nomzodga yuborildi. Javobini shu chatda olasiz.", ADMIN_MENU);
+  if (updated) await sendCard(chatId, updated);
+}
+
+async function handleInviteCallback(admin: Admin, cq: Any, c: Candidate, action: string, arg: string) {
+  const chatId = String(cq.message?.chat?.id ?? admin.chat_id);
+  const p = admin.pending_action;
+
+  // Buttons from an older or finished invitation must not act on the current one.
+  if (!p || p.action !== "invite" || p.candidate_id !== c.id) {
+    await answerCallbackQuery(BOT_TOKEN, cq.id, "Bu tanlov eskirgan. Kartadagi \"📅 Suhbatga chaqirish\"ni qayta bosing.");
+    return;
+  }
+  await answerCallbackQuery(BOT_TOKEN, cq.id);
+
+  const editPicker = (text: string, markup: unknown) =>
+    cq.message
+      ? callTelegram(BOT_TOKEN, "editMessageText", {
+        chat_id: cq.message.chat.id,
+        message_id: cq.message.message_id,
+        text,
+        parse_mode: "HTML",
+        reply_markup: markup,
+      })
+      : send(chatId, text, markup);
+
+  switch (action) {
+    case "ivd": {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(arg) || arg < ymd(tashkentNow())) {
+        await editPicker(datePrompt(c), dateKeyboard(c.id));
+        return;
+      }
+      await setPending(admin.telegram_user_id, { action: "invite", candidate_id: c.id, step: "time", date: arg });
+      await editPicker(timePrompt(c, arg), timeKeyboard(c.id, arg));
+      return;
+    }
+    case "ivt": {
+      const time = parseTime(arg);
+      if (!time || !p.date) return;
+      await editPicker(`✅ ${dateLabel(p.date)}, ${time}`, { inline_keyboard: [] });
+      await askAddress(admin, chatId, { ...p, time });
+      return;
+    }
+    case "ivb": {
+      await setPending(admin.telegram_user_id, { action: "invite", candidate_id: c.id, step: "date" });
+      await editPicker(datePrompt(c), dateKeyboard(c.id));
+      return;
+    }
+    case "ivr": {
+      await editPicker("✏️ Qaytadan tuzamiz.", { inline_keyboard: [] });
+      await startInvite(admin, chatId, c);
+      return;
+    }
+    case "ivx": {
+      await setPending(admin.telegram_user_id, null);
+      await editPicker("Suhbat taklifi bekor qilindi.", { inline_keyboard: [] });
+      await send(chatId, "Menyudan tanlang 👇", ADMIN_MENU);
+      return;
+    }
+    case "ivs": {
+      if (p.step !== "confirm" || !p.date || !p.time || !p.place) return;
+      await editPicker("📤 Yuborilmoqda…", { inline_keyboard: [] });
+      await sendInvitation(admin, chatId, c, p);
+      return;
+    }
   }
 }
 

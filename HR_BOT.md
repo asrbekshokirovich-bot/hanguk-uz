@@ -27,8 +27,23 @@ Har bir yangi ariza admin chatiga karta ko'rinishida keladi. Kartadagi tugmalar:
 | Tugma | Nima qiladi |
 |---|---|
 | ⭐ Tanlash | Nomzodni "Tanlanganlar" ro'yxatiga qo'shadi. Nomzodga xabar yuborilmaydi |
-| 📅 Suhbatga chaqirish | Bot kun, vaqt va manzilni so'raydi. Admin bitta xabarda yozadi, bot taklifni nomzodga yuboradi |
+| 📅 Suhbatga chaqirish | Suhbat taklifi bosqichma-bosqich tuziladi (pastga qarang) va nomzodga yuboriladi |
 | ❌ Rad etish | Tasdiqlash so'raladi, keyin nomzodga muloyim rad javobi yuboriladi |
+
+### Suhbatga chaqirish qanday ishlaydi
+
+1. **Kun.** Keyingi 10 kun tugma ko'rinishida chiqadi (Bugun, Ertaga, ...). Boshqa sana kerak bo'lsa, `03.10` deb yoziladi.
+2. **Vaqt.** 09:00 dan 19:00 gacha har 30 daqiqalik tugmalar chiqadi. Bugungi kun tanlansa, o'tib ketgan vaqtlar ko'rsatilmaydi. Boshqa vaqt kerak bo'lsa, `15:45` deb yoziladi.
+3. **Manzil.** Uch xil usulda yuborish mumkin:
+   - manzilni matn bilan yozish;
+   - 📎 → **Location** orqali xaritadan joy belgilash;
+   - "📍 Hozirgi joylashuvimni yuborish" tugmasini bosish (admin ofisda turgan bo'lsa qulay).
+
+   Matn yuborilsa, bot xarita joylashuvini ham so'raydi. Xarita yuborilsa, manzil matnini ham so'raydi. Ikkalasini ham "⏭ O'tkazib yuborish" mumkin. Oldingi taklifdagi manzil "♻️ Oldingi manzil" tugmasi sifatida eslab qolinadi.
+4. **Tasdiqlash.** Bot nomzodga boradigan xabarni ko'rsatadi: "✅ Yuborish", "✏️ Qaytadan" yoki "❌ Bekor qilish".
+
+Nomzod xaritadagi joylashuvni (agar yuborilgan bo'lsa) va sana, vaqt, manzil yozilgan taklifni oladi.
+Jarayon davomida menyu tugmasi bosilsa yoki `/bekor` yozilsa, taklif bekor qilinadi.
 
 Taklif olgan nomzod **"✅ Kelaman"** yoki **"🔄 Boshqa vaqt kerak"** tugmasini bosadi.
 Ikkinchisini tanlasa, o'ziga qulay vaqtni yozadi. Nomzodning javobi adminlarga keladi.
