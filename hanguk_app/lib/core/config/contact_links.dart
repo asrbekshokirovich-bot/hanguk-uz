@@ -18,10 +18,10 @@ class ContactLinks {
       'https://www.instagram.com/hanguk_consulting';
 
   /// Phone number in E.164, used for the `tel:` link.
-  static const String phone = '+998505901530';
+  static const String phone = '+998958331530';
 
   /// Human-readable form of [phone], shown under the "Call" row.
-  static const String phoneDisplay = '+998 50 590 15 30';
+  static const String phoneDisplay = '+998 95 833 15 30';
 
   static Uri get telegramChannelUri => Uri.parse(telegramChannel);
   static Uri get telegramDirectUri => Uri.parse(telegramDirect);
