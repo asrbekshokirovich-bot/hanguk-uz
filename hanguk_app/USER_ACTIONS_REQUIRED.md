@@ -19,7 +19,7 @@ that file.
 - [ ] 🚨 Complete Apple App Store Connect **agreements, banking, tax** forms (required even for free apps).
 - [ ] 🚨 Complete Play Console **payments profile, tax, banking** (required even for free apps).
 - [ ] 🚨 Create app shells in both consoles with the bundle IDs from the repo:
-      iOS `com.hanguk.studentapp.hangukApp`, Android `com.hanguk.studentapp.hanguk_app`.
+      iOS `com.hanguk.app`, Android `com.hanguk.studentapp.hanguk_app`.
 
 ## Signing & secrets (half a day)
 

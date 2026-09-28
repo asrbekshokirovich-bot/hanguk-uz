@@ -37,7 +37,7 @@ name: iOS release to App Store Connect
 #                           base64-encoded.
 #   IOS_DIST_CERT_PASSWORD  The password set during that export.
 #   IOS_PROVISIONING_PROFILE  The App Store provisioning profile for
-#                           com.hanguk.studentapp.hangukApp
+#                           com.hanguk.app
 #                           (developer.apple.com -> Profiles), base64-encoded.
 #
 #   DEMO_MAGIC_CODE   The App Review demo code. A secret on purpose: it is a
@@ -77,7 +77,7 @@ permissions:
   contents: read
 
 env:
-  BUNDLE_ID: com.hanguk.studentapp.hangukApp
+  BUNDLE_ID: com.hanguk.app
 
 jobs:
   release:

@@ -41,7 +41,7 @@ expire when a password changes, and it never asks for a two-factor code.
 |---|---|
 | `IOS_DIST_CERT_P12` | an **Apple Distribution** certificate exported from Keychain Access as `.p12` *with its private key*, base64-encoded |
 | `IOS_DIST_CERT_PASSWORD` | the password typed during that export |
-| `IOS_PROVISIONING_PROFILE` | the **App Store** provisioning profile for `com.hanguk.studentapp.hangukApp` from developer.apple.com → Profiles, base64-encoded |
+| `IOS_PROVISIONING_PROFILE` | the **App Store** provisioning profile for `com.hanguk.app` from developer.apple.com → Profiles, base64-encoded |
 
 ```sh
 base64 -i Certificates.p12         | pbcopy

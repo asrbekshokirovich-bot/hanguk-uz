@@ -5,7 +5,7 @@ How to ship a new version of the student app to the App Store. Companion to
 `hanguk_app/ios/Runner.xcodeproj/project.pbxproj` and
 `hanguk_app/ios/Runner/Info.plist`.
 
-App: **Hanguk** · bundle ID `com.hanguk.studentapp.hangukApp`
+App: **Hanguk** · bundle ID `com.hanguk.app`
 
 Status: **not live yet.** The first release is in review rounds — rejected on
 2026-08-05 (device family, demo account) and again on 2026-08-07 (Support URL,
@@ -20,7 +20,7 @@ Unlike Play, there is no keystore to lose here — signing certificates and
 provisioning profiles live in your Apple Developer account and can be
 regenerated. Two things *are* fixed for the life of the listing:
 
-- **Bundle ID** `com.hanguk.studentapp.hangukApp`. It cannot be changed after
+- **Bundle ID** `com.hanguk.app`. It cannot be changed after
   the first release; a different one is a different app.
 - **The app record** in App Store Connect (name, SKU, primary language).
 

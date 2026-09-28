@@ -74,10 +74,10 @@ APP_ID="$(printf '%s' "$PLIST" | plutil -extract Entitlements.application-identi
 EXPIRY="$(printf '%s' "$PLIST" | plutil -extract ExpirationDate raw - 2>/dev/null || echo "?")"
 
 case "$APP_ID" in
-  *com.hanguk.studentapp.hangukApp)
+  *com.hanguk.app)
     ;;
   *)
-    die "This profile is for '$APP_ID', not com.hanguk.studentapp.hangukApp."
+    die "This profile is for '$APP_ID', not com.hanguk.app."
     ;;
 esac
 

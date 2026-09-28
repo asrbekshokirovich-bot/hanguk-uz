@@ -32,7 +32,7 @@
 
 default_platform(:ios)
 
-APP_ID       = "com.hanguk.studentapp.hangukApp"
+APP_ID       = "com.hanguk.app"
 IPA_PATH     = "../build/ios/ipa/hanguk_app.ipa"
 APP_PLIST    = "../build/ios/iphoneos/Runner.app/Info.plist"
 
