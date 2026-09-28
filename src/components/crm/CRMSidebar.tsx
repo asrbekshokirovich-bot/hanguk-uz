@@ -31,7 +31,6 @@ import {
   Languages,
   UserPlus,
   BellRing,
-  Radio,
   Wallet,
   MapPin,
   Gift,
@@ -46,7 +45,6 @@ import {
   Building2,
   LogOut,
 } from 'lucide-react';
-import { SidebarStaffPanel } from '@/components/intercom/SidebarStaffPanel';
 import { Logo } from '@/components/Logo';
 
 export interface SidebarGroup {
@@ -107,7 +105,6 @@ function buildGroups(
       items: [
         { title: t('navigation.messages'), url: '/crm/messages', icon: MessageSquare, visible: true },
         { title: t('common.phone'), url: '/crm/calls', icon: Phone, visible: isAdmin },
-        { title: t('navigation.liveCall'), url: '/crm/communication', icon: Radio, visible: false, highlight: true },
         { title: t('navigation.newLeads'), url: '/crm/new-leads', icon: BellRing, visible: true, highlight: true },
         { title: t('navigation.leads'), url: '/crm/leads', icon: UserPlus, visible: true, highlight: true },
         { title: "O'quv markazlar", url: '/crm/learning-centers', icon: Building2, visible: isCallOperator },
@@ -273,9 +270,6 @@ export function CRMSidebar({
             );
           })}
       </SidebarContent>
-
-      {/* Staff PTT panel (intercom) — sits above the account block */}
-      <SidebarStaffPanel />
 
       {/* Account block */}
       <SidebarFooter className="border-t border-sidebar-border p-2">

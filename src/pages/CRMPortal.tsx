@@ -20,8 +20,6 @@ import { IntakeBanner } from '@/components/crm/IntakeBanner';
 import { NotificationBell } from '@/components/crm/NotificationBell';
 import { HangukAIChat } from '@/components/ai/HangukAIChat';
 import { IntercomProvider } from '@/components/intercom/IntercomProvider';
-import { VoiceChannelProvider } from '@/components/intercom/VoiceChannelProvider';
-import { VoiceChannelHeader } from '@/components/intercom/VoiceChannelHeader';
 import { LeadsProvider } from '@/contexts/LeadsContext';
 import { CallsProvider } from '@/contexts/CallsContext';
 import { MessagesProvider } from '@/contexts/MessagesContext';
@@ -59,7 +57,6 @@ const DocumentsContent = lazy(() => import('@/components/crm/pages/DocumentsCont
 const AITranslationPage = lazy(() => import('@/components/crm/pages/AITranslationPage'));
 const LeadsContent = lazy(() => import('@/components/crm/pages/LeadsContent'));
 const LeadProfileContent = lazy(() => import('@/components/crm/pages/LeadProfileContent'));
-const CommunicationContent = lazy(() => import('@/components/crm/pages/CommunicationContent'));
 const CalendarContent = lazy(() => import('@/components/crm/pages/CalendarContent'));
 const SettingsContent = lazy(() => import('@/components/crm/pages/SettingsContent'));
 const KakaoMapContent = lazy(() => import('@/components/crm/pages/KakaoMapContent'));
@@ -153,7 +150,6 @@ export default function CRMPortal() {
     if (currentPath.startsWith('/crm/settings')) return 'settings';
     if (currentPath.startsWith('/crm/intakes')) return 'intakes';
     if (currentPath.startsWith('/crm/translation')) return 'translation';
-    if (currentPath.startsWith('/crm/communication')) return 'communication';
     if (currentPath.startsWith('/crm/kakao-map')) return 'kakao-map';
     if (currentPath.startsWith('/crm/admin/uni-db-review')) return 'uni-db-review';
     if (currentPath.startsWith('/crm/admin/institutions')) return 'institutions';
@@ -427,8 +423,6 @@ export default function CRMPortal() {
         return <SafeSuspense><StaffContent /></SafeSuspense>;
       case 'translation':
         return <SafeSuspense><AITranslationPage /></SafeSuspense>;
-      case 'communication':
-        return <SafeSuspense><CommunicationContent /></SafeSuspense>;
       case 'reports':
         return <SafeSuspense><ReportsContent /></SafeSuspense>;
       case 'calendar':
@@ -460,62 +454,59 @@ export default function CRMPortal() {
 
   return (
     <IntercomProvider>
-      <VoiceChannelProvider>
-        <SidebarProvider
-          defaultOpen={true}
-          style={{ '--sidebar-width': '248px', '--sidebar-width-icon': '72px' } as React.CSSProperties}
-        >
-          <div className="flex min-h-screen w-full">
-            <CRMSidebar
-              isOwner={isOwner}
-              isAdmin={isAdmin}
-              isCallOperator={isCallOperator}
-              isDocumentHandler={isDocumentHandler}
-              canReviewUniDb={canReviewUniDb}
-              user={user}
-              onSignOut={handleSignOut}
-            />
+      <SidebarProvider
+        defaultOpen={true}
+        style={{ '--sidebar-width': '248px', '--sidebar-width-icon': '72px' } as React.CSSProperties}
+      >
+        <div className="flex min-h-screen w-full">
+          <CRMSidebar
+            isOwner={isOwner}
+            isAdmin={isAdmin}
+            isCallOperator={isCallOperator}
+            isDocumentHandler={isDocumentHandler}
+            canReviewUniDb={canReviewUniDb}
+            user={user}
+            onSignOut={handleSignOut}
+          />
 
-            <div className="flex min-w-0 flex-1 flex-col">
-              {/* Header */}
-              <header className="sticky top-0 z-50 border-b border-border bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70 pt-[env(safe-area-inset-top)]">
-                <div className="flex h-16 items-center gap-3 px-4 sm:px-6">
-                  <SidebarTrigger className="h-9 w-9 text-muted-foreground" />
-                  <div className="flex min-w-0 flex-1 items-center gap-3">
-                    <h1 className="min-w-0 truncate text-[17px] font-bold tracking-tight text-foreground">
-                      {pageTitle}
-                    </h1>
-                    <SeasonSwitcher className="shrink-0" />
-                  </div>
-                  <div className="flex items-center gap-1.5 sm:gap-2">
-                    <CRMCommandMenu groups={sidebarGroups} />
-                    <VoiceChannelHeader />
-                    <LanguageSwitcher />
-                    <ThemeToggleButton />
-                    <NotificationBell />
-                  </div>
+          <div className="flex min-w-0 flex-1 flex-col">
+            {/* Header */}
+            <header className="sticky top-0 z-50 border-b border-border bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70 pt-[env(safe-area-inset-top)]">
+              <div className="flex h-16 items-center gap-3 px-4 sm:px-6">
+                <SidebarTrigger className="h-9 w-9 text-muted-foreground" />
+                <div className="flex min-w-0 flex-1 items-center gap-3">
+                  <h1 className="min-w-0 truncate text-[17px] font-bold tracking-tight text-foreground">
+                    {pageTitle}
+                  </h1>
+                  <SeasonSwitcher className="shrink-0" />
                 </div>
-              </header>
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <CRMCommandMenu groups={sidebarGroups} />
+                  <LanguageSwitcher />
+                  <ThemeToggleButton />
+                  <NotificationBell />
+                </div>
+              </div>
+            </header>
 
-              {/* Main Content */}
-              <LeadsProvider>
-                <CallsProvider>
-                  <MessagesProvider>
-                    <main className="flex-1 overflow-auto bg-background p-4 pb-safe sm:p-6">
-                      <div key={activeView} className="mx-auto max-w-[1240px] animate-fade-up space-y-6">
-                        {renderContent()}
-                      </div>
-                    </main>
-                  </MessagesProvider>
-                </CallsProvider>
-              </LeadsProvider>
-            </div>
-
-            {/* Hanguk AI Chat */}
-            <HangukAIChat userType="staff" language={currentLang} />
+            {/* Main Content */}
+            <LeadsProvider>
+              <CallsProvider>
+                <MessagesProvider>
+                  <main className="flex-1 overflow-auto bg-background p-4 pb-safe sm:p-6">
+                    <div key={activeView} className="mx-auto max-w-[1240px] animate-fade-up space-y-6">
+                      {renderContent()}
+                    </div>
+                  </main>
+                </MessagesProvider>
+              </CallsProvider>
+            </LeadsProvider>
           </div>
-        </SidebarProvider>
-      </VoiceChannelProvider>
+
+          {/* Hanguk AI Chat */}
+          <HangukAIChat userType="staff" language={currentLang} />
+        </div>
+      </SidebarProvider>
     </IntercomProvider>
   );
 }

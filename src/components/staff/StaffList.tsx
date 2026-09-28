@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import { StaffMember } from '@/hooks/useStaffManagement';
@@ -8,7 +8,6 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { useVoiceChannelContext } from '@/components/intercom/VoiceChannelProvider';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   Search,
@@ -19,8 +18,6 @@ import {
   FileCheck,
   GraduationCap,
   Crown,
-  Radio,
-  Mic,
 } from 'lucide-react';
 import { Database } from '@/integrations/supabase/types';
 import { cn } from '@/lib/utils';
@@ -44,15 +41,6 @@ const ROLE_CONFIG: Record<AppRole, { label: string; icon: React.ReactNode; color
 export function StaffList({ staff, selectedStaff, onSelectStaff }: StaffListProps) {
   const { t } = useTranslation();
   const { user } = useAuth();
-  const { 
-    participants, 
-    isSpeaking, 
-    isMuted, 
-    activeTargetUserId,
-    startSpeaking, 
-    stopSpeaking, 
-    ensureConnected 
-  } = useVoiceChannelContext();
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState<AppRole | 'all'>('all');
 
@@ -75,33 +63,6 @@ export function StaffList({ staff, selectedStaff, onSelectStaff }: StaffListProp
       .toUpperCase()
       .slice(0, 2);
   };
-
-  // Check if a staff member is online (in voice channel)
-  const isOnline = useCallback((userId: string) => {
-    return participants.some((p) => p.user_id === userId);
-  }, [participants]);
-
-  // Check if someone is speaking to us
-  const isSpeakingToMe = useCallback((userId: string) => {
-    return participants.find((p) => p.user_id === userId)?.isSpeaking || false;
-  }, [participants]);
-
-  const handlePressStart = useCallback(
-    async (userId: string) => {
-      await ensureConnected();
-      startSpeaking(userId);
-    },
-    [ensureConnected, startSpeaking]
-  );
-
-  const handlePressEnd = useCallback(() => {
-    stopSpeaking();
-  }, [stopSpeaking]);
-
-  // Prevent context menu on long press (mobile)
-  const handleContextMenu = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-  }, []);
 
   return (
     <div className="flex flex-col h-full">
@@ -148,36 +109,22 @@ export function StaffList({ staff, selectedStaff, onSelectStaff }: StaffListProp
           ) : (
             filteredStaff.map((member) => {
               const isCurrentUser = member.user_id === user?.id;
-              const memberIsOnline = isOnline(member.user_id);
-              const memberSpeakingToMe = isSpeakingToMe(member.user_id);
-              const isActiveSpeakingToThis = activeTargetUserId === member.user_id && isSpeaking;
 
               return (
                 <Card
                   key={member.id}
                   className={cn(
                     'cursor-pointer transition-all hover:bg-accent/50',
-                    selectedStaff?.id === member.id && 'border-primary bg-accent',
-                    isActiveSpeakingToThis && 'ring-2 ring-primary border-primary bg-primary/10',
-                    memberSpeakingToMe && 'ring-2 ring-success border-success bg-success/10 animate-pulse'
+                    selectedStaff?.id === member.id && 'border-primary bg-accent'
                   )}
                   onClick={() => onSelectStaff(member)}
                 >
                   <CardContent className="p-3">
                     <div className="flex items-start gap-3">
-                      <div className="relative">
-                        <Avatar>
-                          <AvatarImage src={member.avatar_url || undefined} />
-                          <AvatarFallback>{getInitials(member.full_name)}</AvatarFallback>
-                        </Avatar>
-                        {/* Online indicator */}
-                        <span
-                          className={cn(
-                            'absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-background',
-                            memberIsOnline ? 'bg-success' : 'bg-muted-foreground'
-                          )}
-                        />
-                      </div>
+                      <Avatar>
+                        <AvatarImage src={member.avatar_url || undefined} />
+                        <AvatarFallback>{getInitials(member.full_name)}</AvatarFallback>
+                      </Avatar>
                       <div className="flex-1 min-w-0">
                         <p className="font-medium truncate">
                           {member.full_name || 'Unnamed User'}
@@ -204,39 +151,6 @@ export function StaffList({ staff, selectedStaff, onSelectStaff }: StaffListProp
                           ))}
                         </div>
                       </div>
-                      {/* Push-to-Talk Button */}
-                      {!isCurrentUser && (
-                        <div 
-                          onClick={(e) => e.stopPropagation()}
-                          onContextMenu={handleContextMenu}
-                        >
-                          <Button
-                            variant={isActiveSpeakingToThis ? 'default' : memberSpeakingToMe ? 'secondary' : 'outline'}
-                            size="icon"
-                            className={cn(
-                              'h-10 w-10 transition-all select-none touch-none',
-                              isActiveSpeakingToThis && 'bg-primary text-primary-foreground scale-110',
-                              memberSpeakingToMe && 'bg-success text-white animate-pulse',
-                              !memberIsOnline && 'opacity-50'
-                            )}
-                            onMouseDown={() => memberIsOnline && !isMuted && handlePressStart(member.user_id)}
-                            onMouseUp={handlePressEnd}
-                            onMouseLeave={handlePressEnd}
-                            onTouchStart={() => memberIsOnline && !isMuted && handlePressStart(member.user_id)}
-                            onTouchEnd={handlePressEnd}
-                            disabled={!memberIsOnline || isMuted}
-                            title={memberIsOnline ? 'Bosib turing va gaplashing' : 'Offline'}
-                          >
-                            {isActiveSpeakingToThis ? (
-                              <Mic className="h-4 w-4 animate-pulse" />
-                            ) : memberSpeakingToMe ? (
-                              <Mic className="h-4 w-4" />
-                            ) : (
-                              <Radio className="h-4 w-4" />
-                            )}
-                          </Button>
-                        </div>
-                      )}
                     </div>
                     <p className="text-xs text-muted-foreground mt-2">
                       Joined {format(new Date(member.created_at), 'MMM d, yyyy')}
