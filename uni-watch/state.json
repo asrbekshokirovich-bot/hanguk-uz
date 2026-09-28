@@ -1,5 +1,5 @@
 {
- "last_run": "2026-09-28T00:51:07+00:00",
+ "last_run": "2026-09-28T06:58:05+00:00",
  "seen": {
   "http://enter.konkuk.ac.kr/submenu.do?menuurl=k8b%2fCUaWlntKYwhT%2fh%2bKUA%3d%3d&": [],
   "https://adm-u.postech.ac.kr/": [
@@ -152,6 +152,7 @@
   "https://admission.snue.ac.kr/": [],
   "https://admission.sookmyung.ac.kr/": [],
   "https://admission.ssu.ac.kr/": [
+   "715c9212b311c049",
    "e73d1af33a32fc2a",
    "02218ee40a06a1ff",
    "ecc922329be6841b",
@@ -440,6 +441,8 @@
    "c7fd4204e3f71611"
   ],
   "https://ibsi.hannam.ac.kr/adms4/main/index_main.asp": [
+   "9b318df99e1aab1d",
+   "f73e49b2f63aa653",
    "3e6d2a463d34a732",
    "0fb6768b7e84c7d2",
    "fad40341bd8a0709",
