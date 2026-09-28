@@ -269,7 +269,6 @@
     "admin": "Admin",
     "leads": "Lidlar",
     "newLeads": "Yangi lid",
-    "liveCall": "Jonli Qo'ng'iroq",
     "aiTranslation": "AI Tarjima",
     "kakaoMap": "Kakao Map",
     "overview": "Umumiy",
@@ -278,9 +277,7 @@
     "scheduled": "Rejali",
     "transactions": "Tranzaksiyalar",
     "distribution": "Taqsimlash",
-    "bonuses": "Bonuslar",
-    "voiceChat": "Ovozli aloqa",
-    "voiceChatDesc": "Tezkor radio aloqa"
+    "bonuses": "Bonuslar"
   },
   "student": {
     "portal": "Talaba portali",

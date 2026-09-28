@@ -219,7 +219,6 @@
     "admin": "관리자",
     "leads": "리드",
     "newLeads": "신규 리드",
-    "liveCall": "실시간 통화",
     "aiTranslation": "AI 번역",
     "kakaoMap": "카카오 맵",
     "overview": "개요",
@@ -228,9 +227,7 @@
     "scheduled": "예약됨",
     "transactions": "거래",
     "distribution": "분배",
-    "bonuses": "보너스",
-    "voiceChat": "음성 채팅",
-    "voiceChatDesc": "즉각적인 무전기 통신"
+    "bonuses": "보너스"
   },
   "student": {
     "portal": "학생 포털",

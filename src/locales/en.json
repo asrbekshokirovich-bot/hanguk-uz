@@ -220,7 +220,6 @@
     "admin": "Admin",
     "leads": "Leads",
     "newLeads": "New leads",
-    "liveCall": "Live Call",
     "aiTranslation": "AI Translation",
     "kakaoMap": "Kakao Map",
     "overview": "Overview",
@@ -229,9 +228,7 @@
     "scheduled": "Scheduled",
     "transactions": "Transactions",
     "distribution": "Distribution",
-    "bonuses": "Bonuses",
-    "voiceChat": "Voice Chat",
-    "voiceChatDesc": "Instant radio communication"
+    "bonuses": "Bonuses"
   },
   "student": {
     "portal": "Student Portal",
