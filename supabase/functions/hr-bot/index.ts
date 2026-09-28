@@ -85,6 +85,12 @@ interface PendingInvite {
   date?: string; // YYYY-MM-DD, Tashkent time
   time?: string; // HH:MM
   place?: Place;
+  card?: CardRef; // the list card the invitation was started from
+}
+
+interface CardRef {
+  chat_id: number | string;
+  message_id: number;
 }
 
 interface Admin {
@@ -669,6 +675,28 @@ async function editCard(cq: Any, c: Candidate) {
   });
 }
 
+function cardRef(cq: Any): CardRef | undefined {
+  return cq.message ? { chat_id: cq.message.chat.id, message_id: cq.message.message_id } : undefined;
+}
+
+/**
+ * Takes a card out of the chat once its candidate has left the list it was shown in.
+ * Telegram only lets a bot delete its messages for 48 hours; after that the card is
+ * updated instead, so it at least stops showing the old status and buttons.
+ */
+async function retireCard(card: CardRef | undefined, c: Candidate) {
+  if (!card) return;
+  const deleted = await callTelegram(BOT_TOKEN, "deleteMessage", { ...card });
+  if (deleted.ok) return;
+  await callTelegram(BOT_TOKEN, "editMessageText", {
+    ...card,
+    text: candidateCard(c),
+    parse_mode: "HTML",
+    disable_web_page_preview: true,
+    reply_markup: candidateButtons(c),
+  });
+}
+
 async function handleAdminCallback(admin: Admin, cq: Any) {
   const [, action, id] = String(cq.data).split(":");
 
@@ -705,7 +733,7 @@ async function handleAdminCallback(admin: Admin, cq: Any) {
     }
     case "inv": {
       await answerCallbackQuery(BOT_TOKEN, cq.id);
-      await startInvite(admin, chatId, c);
+      await startInvite(admin, chatId, c, cardRef(cq));
       return;
     }
     case "ivd":
@@ -743,7 +771,7 @@ async function handleAdminCallback(admin: Admin, cq: Any) {
         c.chat_id,
         `Assalomu alaykum, ${esc(c.full_name)}.\n\nArizangiz uchun rahmat. Afsuski, hozircha sizning nomzodingiz bo'yicha ijobiy qaror qabul qilinmadi. Sizga omad tilaymiz!`,
       );
-      if (updated) await editCard(cq, updated);
+      if (updated) await retireCard(cardRef(cq), updated);
       return;
     }
     case "card": {
@@ -899,15 +927,21 @@ function invitationText(c: Candidate, p: PendingInvite): string {
   ].join("\n");
 }
 
-async function startInvite(admin: Admin, chatId: string, c: Candidate) {
-  const pending: PendingInvite = { action: "invite", candidate_id: c.id, step: "date" };
+async function startInvite(admin: Admin, chatId: string, c: Candidate, card?: CardRef) {
+  const pending: PendingInvite = { action: "invite", candidate_id: c.id, step: "date", card };
   await setPending(admin.telegram_user_id, pending);
   admin.pending_action = pending;
   await send(chatId, datePrompt(c), dateKeyboard(c.id));
 }
 
 async function askTime(admin: Admin, chatId: string, c: Candidate, date: string) {
-  await setPending(admin.telegram_user_id, { action: "invite", candidate_id: c.id, step: "time", date });
+  await setPending(admin.telegram_user_id, {
+    action: "invite",
+    candidate_id: c.id,
+    step: "time",
+    date,
+    card: admin.pending_action?.card,
+  });
   await send(chatId, timePrompt(c, date), timeKeyboard(c.id, date));
 }
 
@@ -1075,7 +1109,10 @@ async function sendInvitation(admin: Admin, chatId: string, c: Candidate, p: Pen
   });
   await supabase.from("hr_admins").update({ last_address: place }).eq("telegram_user_id", admin.telegram_user_id);
   await send(chatId, "✅ Taklif nomzodga yuborildi. Javobini shu chatda olasiz.", ADMIN_MENU);
-  if (updated) await sendCard(chatId, updated);
+  if (updated) {
+    await retireCard(p.card, updated);
+    await sendCard(chatId, updated);
+  }
 }
 
 async function handleInviteCallback(admin: Admin, cq: Any, c: Candidate, action: string, arg: string) {
@@ -1106,7 +1143,13 @@ async function handleInviteCallback(admin: Admin, cq: Any, c: Candidate, action:
         await editPicker(datePrompt(c), dateKeyboard(c.id));
         return;
       }
-      await setPending(admin.telegram_user_id, { action: "invite", candidate_id: c.id, step: "time", date: arg });
+      await setPending(admin.telegram_user_id, {
+        action: "invite",
+        candidate_id: c.id,
+        step: "time",
+        date: arg,
+        card: p.card,
+      });
       await editPicker(timePrompt(c, arg), timeKeyboard(c.id, arg));
       return;
     }
@@ -1118,13 +1161,13 @@ async function handleInviteCallback(admin: Admin, cq: Any, c: Candidate, action:
       return;
     }
     case "ivb": {
-      await setPending(admin.telegram_user_id, { action: "invite", candidate_id: c.id, step: "date" });
+      await setPending(admin.telegram_user_id, { action: "invite", candidate_id: c.id, step: "date", card: p.card });
       await editPicker(datePrompt(c), dateKeyboard(c.id));
       return;
     }
     case "ivr": {
       await editPicker("✏️ Qaytadan tuzamiz.", { inline_keyboard: [] });
-      await startInvite(admin, chatId, c);
+      await startInvite(admin, chatId, c, p.card);
       return;
     }
     case "ivx": {
