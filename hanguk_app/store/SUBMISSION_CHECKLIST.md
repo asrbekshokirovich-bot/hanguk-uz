@@ -58,7 +58,7 @@ End-to-end: **5-10 calendar days** of focused founder time, plus
    - Platform: iOS
    - Name: **Hanguk**
    - Primary language: English (U.S.)
-   - Bundle ID: select `com.hanguk.studentapp.hangukApp` (must be registered as an App ID in Certificates, Identifiers & Profiles first; the bundle ID matches `ios/Runner/Info.plist`).
+   - Bundle ID: select `com.hanguk.app` (must be registered as an App ID in Certificates, Identifiers & Profiles first; the bundle ID matches `ios/Runner/Info.plist`).
    - SKU: any string, e.g. `hanguk-v1`.
    - User Access: Full Access.
 

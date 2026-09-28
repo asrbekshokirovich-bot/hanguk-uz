@@ -5,4 +5,4 @@
 # API key (see Fastfile), which needs no Apple ID, no password and no
 # two-factor prompt. That is what makes an unattended release possible.
 
-app_identifier("com.hanguk.studentapp.hangukApp")
+app_identifier("com.hanguk.app")

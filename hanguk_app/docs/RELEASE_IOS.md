@@ -19,7 +19,7 @@ The Play equivalent is `docs/RELEASE.md`.
 
 | | |
 | --- | --- |
-| Bundle ID | `com.hanguk.studentapp.hangukApp` |
+| Bundle ID | `com.hanguk.app` |
 | Current version | `1.0.27+2044` (`pubspec.yaml`) — marketing `1.0.27`, build `2044` |
 | Device family | iPhone only (`UIDeviceFamily = [1]`) |
 | Minimum iOS | 15.0 — Flutter 3.47 enforces this and rewrites the project if it disagrees |

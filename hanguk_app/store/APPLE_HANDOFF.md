@@ -6,7 +6,7 @@ once. After it, releases stop going through you: whoever maintains the app
 presses a button and the build appears in App Store Connect, correctly attached
 to the version, with the listing and screenshots already updated.
 
-The app is **Hanguk** — `com.hanguk.studentapp.hangukApp`.
+The app is **Hanguk** — `com.hanguk.app`.
 
 ---
 
@@ -40,7 +40,7 @@ The certificate that says a build came from your team.
    *(Exporting only the certificate produces a file that imports fine and then
    fails to sign — the script below checks for this.)*
 3. developer.apple.com → **Certificates, Identifiers & Profiles** → **Profiles**
-   → the **App Store** profile for `com.hanguk.studentapp.hangukApp` →
+   → the **App Store** profile for `com.hanguk.app` →
    Download.
 
 ### 3. The App Review demo code
