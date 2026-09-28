@@ -557,22 +557,44 @@ async function handleAdminCommand(message: Any): Promise<boolean> {
   return true;
 }
 
-async function sendList(chatId: string, statuses: string[], emptyText: string) {
+/** Menu lists, keyed so a "next page" button can name one in callback_data. */
+const LISTS: Record<string, { statuses: string[]; empty: string; title: string }> = {
+  new: { statuses: ["new"], empty: "Yangi arizalar yo'q.", title: "Yangi arizalar" },
+  sel: { statuses: ["selected"], empty: "Tanlangan nomzodlar yo'q.", title: "Tanlanganlar" },
+  inv: {
+    statuses: ["invited", "confirmed", "reschedule"],
+    empty: "Suhbatga chaqirilganlar yo'q.",
+    title: "Suhbatga chaqirilganlar",
+  },
+};
+
+/** One page of a list, newest first, with a button for the next page when there is one. */
+async function sendList(chatId: string, key: string, offset = 0) {
+  const list = LISTS[key];
+  if (!list) return;
   const { data, count } = await supabase
     .from("hr_candidates")
     .select("*", { count: "exact" })
     .eq("step", "done")
-    .in("status", statuses)
+    .in("status", list.statuses)
     .order("submitted_at", { ascending: false })
-    .limit(LIST_LIMIT);
+    .range(offset, offset + LIST_LIMIT - 1);
   const rows = (data ?? []) as Candidate[];
+  const total = count ?? rows.length;
   if (!rows.length) {
-    await send(chatId, emptyText, ADMIN_MENU);
+    await send(chatId, offset ? "Boshqa ariza qolmadi." : list.empty, ADMIN_MENU);
     return;
   }
   for (const c of rows) await sendCard(chatId, c);
-  if ((count ?? 0) > rows.length) {
-    await send(chatId, `Oxirgi ${rows.length} tasi ko'rsatildi, jami: ${count} ta.`);
+
+  const shown = offset + rows.length;
+  if (total > shown) {
+    const next = Math.min(LIST_LIMIT, total - shown);
+    await send(chatId, `${list.title}: ${offset + 1}–${shown} ko'rsatildi, jami <b>${total}</b> ta.`, {
+      inline_keyboard: [[{ text: `Keyingi ${next} ta ➡️`, callback_data: `hr:more:${key}:${shown}` }]],
+    });
+  } else if (offset > 0 || total > 1) {
+    await send(chatId, `${list.title}: hammasi ko'rsatildi, jami <b>${total}</b> ta.`, ADMIN_MENU);
   }
 }
 
@@ -619,11 +641,11 @@ async function handleAdminMessage(admin: Admin, message: Any) {
 
   switch (text) {
     case MENU_NEW:
-      return sendList(chatId, ["new"], "Yangi arizalar yo'q.");
+      return sendList(chatId, "new");
     case MENU_SELECTED:
-      return sendList(chatId, ["selected"], "Tanlangan nomzodlar yo'q.");
+      return sendList(chatId, "sel");
     case MENU_INVITED:
-      return sendList(chatId, ["invited", "confirmed", "reschedule"], "Suhbatga chaqirilganlar yo'q.");
+      return sendList(chatId, "inv");
     case MENU_STATS:
       return sendStats(chatId);
     default:
@@ -649,6 +671,24 @@ async function editCard(cq: Any, c: Candidate) {
 
 async function handleAdminCallback(admin: Admin, cq: Any) {
   const [, action, id] = String(cq.data).split(":");
+
+  // "Next page" of a menu list: hr:more:<list key>:<offset>. Not about one candidate.
+  if (action === "more") {
+    await answerCallbackQuery(BOT_TOKEN, cq.id);
+    const offset = Number(String(cq.data).split(":")[3]);
+    if (cq.message) {
+      await callTelegram(BOT_TOKEN, "editMessageReplyMarkup", {
+        chat_id: cq.message.chat.id,
+        message_id: cq.message.message_id,
+        reply_markup: { inline_keyboard: [] },
+      });
+    }
+    if (Number.isInteger(offset) && offset >= 0) {
+      await sendList(String(cq.message?.chat?.id ?? admin.chat_id), id, offset);
+    }
+    return;
+  }
+
   const c = await getCandidate(id);
   const chatId = String(cq.message?.chat?.id ?? admin.chat_id);
   if (!c) {
