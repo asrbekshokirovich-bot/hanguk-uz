@@ -303,8 +303,15 @@ function candidateButtons(c: Candidate) {
   };
 }
 
+/** Posts a card and records it in hr_card_messages so retireCards can find it later. */
 async function sendCard(chatId: string, c: Candidate, heading?: string) {
-  await send(chatId, candidateCard(c, heading), candidateButtons(c));
+  const sent = await send(chatId, candidateCard(c, heading), candidateButtons(c));
+  const messageId = (sent.result as { message_id?: number } | undefined)?.message_id;
+  if (!sent.ok || !messageId) return;
+  const { error } = await supabase
+    .from("hr_card_messages")
+    .insert({ candidate_id: c.id, chat_id: String(chatId), message_id: messageId });
+  if (error) console.error("hr_card_messages insert failed:", error.message);
 }
 
 async function notifyAdmins(c: Candidate, heading: string, extra?: string) {
@@ -680,21 +687,45 @@ function cardRef(cq: Any): CardRef | undefined {
 }
 
 /**
- * Takes a card out of the chat once its candidate has left the list it was shown in.
- * Telegram only lets a bot delete its messages for 48 hours; after that the card is
+ * Takes every card of a candidate out of the admin chats once they are invited or
+ * rejected. `clicked` covers a card posted before hr_card_messages existed.
+ * Telegram only lets a bot delete its messages for 48 hours; after that a card is
  * updated instead, so it at least stops showing the old status and buttons.
  */
-async function retireCard(card: CardRef | undefined, c: Candidate) {
-  if (!card) return;
-  const deleted = await callTelegram(BOT_TOKEN, "deleteMessage", { ...card });
-  if (deleted.ok) return;
-  await callTelegram(BOT_TOKEN, "editMessageText", {
-    ...card,
-    text: candidateCard(c),
-    parse_mode: "HTML",
-    disable_web_page_preview: true,
-    reply_markup: candidateButtons(c),
-  });
+async function retireCards(c: Candidate, clicked?: CardRef) {
+  const { data, error } = await supabase
+    .from("hr_card_messages")
+    .select("id, chat_id, message_id")
+    .eq("candidate_id", c.id);
+  if (error) console.error("hr_card_messages select failed:", error.message);
+  const cards: (CardRef & { id?: number })[] = (data ?? []).map((r) => ({
+    id: r.id,
+    chat_id: r.chat_id,
+    message_id: Number(r.message_id),
+  }));
+  if (clicked && !cards.some((k) => String(k.chat_id) === String(clicked.chat_id) && k.message_id === clicked.message_id)) {
+    cards.push(clicked);
+  }
+
+  const done: number[] = [];
+  for (const card of cards) {
+    const ref = { chat_id: card.chat_id, message_id: card.message_id };
+    const deleted = await callTelegram(BOT_TOKEN, "deleteMessage", ref);
+    if (deleted.ok) {
+      if (card.id) done.push(card.id);
+      continue;
+    }
+    const edited = await callTelegram(BOT_TOKEN, "editMessageText", {
+      ...ref,
+      text: candidateCard(c),
+      parse_mode: "HTML",
+      disable_web_page_preview: true,
+      reply_markup: candidateButtons(c),
+    });
+    // Already gone from the chat (an admin deleted it): nothing left to track.
+    if (!edited.ok && /not found/i.test(edited.description ?? "") && card.id) done.push(card.id);
+  }
+  if (done.length) await supabase.from("hr_card_messages").delete().in("id", done);
 }
 
 async function handleAdminCallback(admin: Admin, cq: Any) {
@@ -771,7 +802,7 @@ async function handleAdminCallback(admin: Admin, cq: Any) {
         c.chat_id,
         `Assalomu alaykum, ${esc(c.full_name)}.\n\nArizangiz uchun rahmat. Afsuski, hozircha sizning nomzodingiz bo'yicha ijobiy qaror qabul qilinmadi. Sizga omad tilaymiz!`,
       );
-      if (updated) await retireCard(cardRef(cq), updated);
+      if (updated) await retireCards(updated, cardRef(cq));
       return;
     }
     case "card": {
@@ -1110,7 +1141,7 @@ async function sendInvitation(admin: Admin, chatId: string, c: Candidate, p: Pen
   await supabase.from("hr_admins").update({ last_address: place }).eq("telegram_user_id", admin.telegram_user_id);
   await send(chatId, "✅ Taklif nomzodga yuborildi. Javobini shu chatda olasiz.", ADMIN_MENU);
   if (updated) {
-    await retireCard(p.card, updated);
+    await retireCards(updated, p.card);
     await sendCard(chatId, updated);
   }
 }
