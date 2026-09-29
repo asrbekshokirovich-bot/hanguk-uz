@@ -139,7 +139,7 @@ class _GuestShellState extends ConsumerState<GuestShell> {
                   style: SeoulType.hangulGlyph.copyWith(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
-                    color: SeoulColors.lime,
+                    color: Colors.white,
                   ),
                 ),
               ),
