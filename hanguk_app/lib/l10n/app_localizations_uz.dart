@@ -1870,4 +1870,63 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get catalogNoDegreeData => 'Bu daraja bo\'yicha ma\'lumot hali yo\'q';
+
+  @override
+  String get catalogCompareChip => 'Taqqoslash';
+
+  @override
+  String catalogCompareChipCount(int count) {
+    return 'Taqqoslash · $count/2';
+  }
+
+  @override
+  String get catalogComparePickTwo => '2 ta universitet tanlang';
+
+  @override
+  String get compareTraySlotEmpty => 'Tanlang';
+
+  @override
+  String get compareTrayCta => 'Taqqoslash';
+
+  @override
+  String get compareTitle => 'Taqqoslash';
+
+  @override
+  String get compareOnlyDiff => 'Faqat farqlar';
+
+  @override
+  String get compareAddSlot => 'Universitet tanlang';
+
+  @override
+  String get compareNeedTwo => 'Taqqoslash uchun 2 ta universitet tanlang.';
+
+  @override
+  String get compareMainInfo => 'Asosiy ma’lumotlar';
+
+  @override
+  String get compareDetails => 'Batafsil ma’lumotlar';
+
+  @override
+  String get compareRowTuition => 'Kontrakt (semestr)';
+
+  @override
+  String get compareRowTopik => 'TOPIK talabi';
+
+  @override
+  String get compareRowIelts => 'IELTS talabi';
+
+  @override
+  String get compareRowDeadline => 'Ariza muddati';
+
+  @override
+  String get compareRowCity => 'Shahar';
+
+  @override
+  String get compareRowRequirements => 'Qabul talablari';
+
+  @override
+  String get compareBestCheaper => 'Arzonroq';
+
+  @override
+  String get compareBestLower => 'Pastroq';
 }

@@ -1805,4 +1805,63 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get catalogNoDegreeData => '이 과정의 정보가 아직 없습니다';
+
+  @override
+  String get catalogCompareChip => '비교';
+
+  @override
+  String catalogCompareChipCount(int count) {
+    return '비교 · $count/2';
+  }
+
+  @override
+  String get catalogComparePickTwo => '대학 2곳을 선택하세요';
+
+  @override
+  String get compareTraySlotEmpty => '선택';
+
+  @override
+  String get compareTrayCta => '비교하기';
+
+  @override
+  String get compareTitle => '비교';
+
+  @override
+  String get compareOnlyDiff => '차이만 보기';
+
+  @override
+  String get compareAddSlot => '대학을 선택하세요';
+
+  @override
+  String get compareNeedTwo => '비교할 대학 2곳을 선택하세요.';
+
+  @override
+  String get compareMainInfo => '주요 정보';
+
+  @override
+  String get compareDetails => '상세 정보';
+
+  @override
+  String get compareRowTuition => '등록금 (학기)';
+
+  @override
+  String get compareRowTopik => 'TOPIK 요건';
+
+  @override
+  String get compareRowIelts => 'IELTS 요건';
+
+  @override
+  String get compareRowDeadline => '지원 마감';
+
+  @override
+  String get compareRowCity => '도시';
+
+  @override
+  String get compareRowRequirements => '지원 서류';
+
+  @override
+  String get compareBestCheaper => '더 저렴';
+
+  @override
+  String get compareBestLower => '더 낮음';
 }

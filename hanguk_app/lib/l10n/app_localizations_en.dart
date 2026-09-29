@@ -1861,4 +1861,63 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get catalogNoDegreeData => 'No data for this degree yet';
+
+  @override
+  String get catalogCompareChip => 'Compare';
+
+  @override
+  String catalogCompareChipCount(int count) {
+    return 'Compare · $count/2';
+  }
+
+  @override
+  String get catalogComparePickTwo => 'Choose 2 universities';
+
+  @override
+  String get compareTraySlotEmpty => 'Choose';
+
+  @override
+  String get compareTrayCta => 'Compare';
+
+  @override
+  String get compareTitle => 'Compare';
+
+  @override
+  String get compareOnlyDiff => 'Only differences';
+
+  @override
+  String get compareAddSlot => 'Choose a university';
+
+  @override
+  String get compareNeedTwo => 'Choose 2 universities to compare.';
+
+  @override
+  String get compareMainInfo => 'Key facts';
+
+  @override
+  String get compareDetails => 'Details';
+
+  @override
+  String get compareRowTuition => 'Tuition (semester)';
+
+  @override
+  String get compareRowTopik => 'TOPIK requirement';
+
+  @override
+  String get compareRowIelts => 'IELTS requirement';
+
+  @override
+  String get compareRowDeadline => 'Application deadline';
+
+  @override
+  String get compareRowCity => 'City';
+
+  @override
+  String get compareRowRequirements => 'Admission requirements';
+
+  @override
+  String get compareBestCheaper => 'Cheaper';
+
+  @override
+  String get compareBestLower => 'Lower';
 }

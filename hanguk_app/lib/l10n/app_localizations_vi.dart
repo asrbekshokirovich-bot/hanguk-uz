@@ -1858,4 +1858,63 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get catalogNoDegreeData => 'Chưa có dữ liệu cho bậc học này';
+
+  @override
+  String get catalogCompareChip => 'So sánh';
+
+  @override
+  String catalogCompareChipCount(int count) {
+    return 'So sánh · $count/2';
+  }
+
+  @override
+  String get catalogComparePickTwo => 'Chọn 2 trường';
+
+  @override
+  String get compareTraySlotEmpty => 'Chọn';
+
+  @override
+  String get compareTrayCta => 'So sánh';
+
+  @override
+  String get compareTitle => 'So sánh';
+
+  @override
+  String get compareOnlyDiff => 'Chỉ khác biệt';
+
+  @override
+  String get compareAddSlot => 'Chọn một trường';
+
+  @override
+  String get compareNeedTwo => 'Chọn 2 trường để so sánh.';
+
+  @override
+  String get compareMainInfo => 'Thông tin chính';
+
+  @override
+  String get compareDetails => 'Chi tiết';
+
+  @override
+  String get compareRowTuition => 'Học phí (học kỳ)';
+
+  @override
+  String get compareRowTopik => 'Yêu cầu TOPIK';
+
+  @override
+  String get compareRowIelts => 'Yêu cầu IELTS';
+
+  @override
+  String get compareRowDeadline => 'Hạn nộp hồ sơ';
+
+  @override
+  String get compareRowCity => 'Thành phố';
+
+  @override
+  String get compareRowRequirements => 'Yêu cầu nhập học';
+
+  @override
+  String get compareBestCheaper => 'Rẻ hơn';
+
+  @override
+  String get compareBestLower => 'Thấp hơn';
 }
