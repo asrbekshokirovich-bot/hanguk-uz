@@ -143,9 +143,11 @@ export const LeadsTable = ({
                         countdown.urgent ? 'text-destructive' : 'text-muted-foreground',
                       )}
                     >
-                      {countdown.secondsLeft >= 0
-                        ? t('leads.intake.countdownLeft', { time: formatCountdown(countdown.secondsLeft) })
-                        : t('leads.intake.countdownOverdue', { time: formatCountdown(countdown.secondsLeft) })}
+                      {countdown.waiting
+                        ? t('leads.intake.countdownWaiting')
+                        : countdown.secondsLeft >= 0
+                          ? t('leads.intake.countdownLeft', { time: formatCountdown(countdown.secondsLeft) })
+                          : t('leads.intake.countdownOverdue', { time: formatCountdown(countdown.secondsLeft) })}
                     </span>
                   )}
                 </span>

@@ -723,6 +723,7 @@
       "followUpPrefix": "Повторный контакт: {{when}}",
       "countdownLeft": "Осталось {{time}} на контакт",
       "countdownOverdue": "Нет связи уже {{time}}!",
+      "countdownWaiting": "Таймер начнётся в 10:00",
       "scheduled": "Запланировано: {{when}}",
       "dayOfMonth": "{{day}} {{month}}",
       "columns": {
