@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../auth/presentation/widgets/sign_in_chrome.dart' show cssBlur, cssLinearGradient;
+import '../../auth/presentation/widgets/sign_in_chrome.dart' show SignInLogoTile, cssBlur, cssLinearGradient;
 import '../../catalog/data/catalog_compare_provider.dart';
 import '../../catalog/presentation/catalog_compare_tray.dart';
 import '../../home/presentation/widgets/han_orb.dart';
@@ -125,23 +125,14 @@ class _GuestShellState extends ConsumerState<GuestShell> {
             label: MaterialLocalizations.of(context).backButtonTooltip,
             child: GestureDetector(
               onTap: _exit,
-              child: Container(
-                width: 38,
-                height: 38,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  color: const Color(0xFF1E4078),
-                  border: Border.all(color: const Color(0x59D4E94C)), // .35
-                ),
-                child: Text(
-                  '한',
-                  style: SeoulType.hangulGlyph.copyWith(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
-                ),
+              // The brand logo — the Welcome screen's tile at header size,
+              // without its halo.
+              child: const SignInLogoTile(
+                size: 38,
+                radius: 11,
+                haloBleed: 0,
+                shadowOffsetY: 6,
+                shadowBlur: 12,
               ),
             ),
           ),
