@@ -1,5 +1,5 @@
 {
- "last_run": "2026-09-29T02:01:02+00:00",
+ "last_run": "2026-09-29T08:33:52+00:00",
  "seen": {
   "http://enter.konkuk.ac.kr/submenu.do?menuurl=k8b%2fCUaWlntKYwhT%2fh%2bKUA%3d%3d&": [],
   "https://adm-u.postech.ac.kr/": [
@@ -328,6 +328,7 @@
    "6964ca0bb449d94a"
   ],
   "https://exam.ync.ac.kr/": [
+   "b92b591322c77d07",
    "bfcbaa31f4f9a30c",
    "9edd57837cda5354",
    "f51172b6b2059655",
@@ -852,6 +853,7 @@
    "5545e3eacca26f66"
   ],
   "https://ipsi.sch.ac.kr/main.do": [
+   "c35b7359c9db69e0",
    "0251a3107a0a26da",
    "e1ca70aa40bc30ee",
    "051d1fc135c18026",
@@ -1056,6 +1058,7 @@
   "https://www.dgist.ac.kr/gadm/": [],
   "https://www.dist.ac.kr/": [],
   "https://www.dit.ac.kr/ipsi/": [
+   "307ba6909e1718a2",
    "c6bcc74e9b93e162",
    "4320145a5ed496ef",
    "9ea461cf4802bb90"
