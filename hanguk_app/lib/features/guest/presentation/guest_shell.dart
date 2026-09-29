@@ -125,14 +125,14 @@ class _GuestShellState extends ConsumerState<GuestShell> {
             label: MaterialLocalizations.of(context).backButtonTooltip,
             child: GestureDetector(
               onTap: _exit,
-              // The brand logo — the Welcome screen's tile at header size,
-              // without its halo.
+              // The brand logo — the Welcome screen's tile, without its halo,
+              // as tall as the text beside it ("Mehmon rejimi" down to "탐색").
               child: const SignInLogoTile(
-                size: 38,
-                radius: 11,
+                size: 46,
+                radius: 13,
                 haloBleed: 0,
-                shadowOffsetY: 6,
-                shadowBlur: 12,
+                shadowOffsetY: 7,
+                shadowBlur: 14,
               ),
             ),
           ),
