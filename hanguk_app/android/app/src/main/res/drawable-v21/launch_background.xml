@@ -1,12 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Modify this file to customize your launch splash screen -->
+<!-- Launch screen before Flutter draws its first frame (Android 11 and older;
+     Android 12+ uses windowSplashScreen* in values-v31). Same pixels as the
+     Flutter splash (SplashContent), generated from it, so nothing moves at the
+     hand-over. -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:drawable="?android:colorBackground" />
-
-    <!-- You can insert your own image assets here -->
-    <!-- <item>
+    <item android:drawable="@color/launch_background" />
+    <item>
+        <bitmap
+            android:gravity="fill"
+            android:src="@drawable/launch_background_image" />
+    </item>
+    <item>
         <bitmap
             android:gravity="center"
-            android:src="@mipmap/launch_image" />
-    </item> -->
+            android:src="@drawable/launch_content" />
+    </item>
 </layer-list>

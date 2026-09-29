@@ -348,7 +348,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get loginAccessCodeHelp =>
-      'Enter the 8-character access code (letters and numbers) provided by your consultant or university representative.';
+      'Nhập mã 8 ký tự từ chuyên viên tư vấn hoặc đại diện trường của bạn.';
 
   @override
   String get loginAccessCodeButton => 'Login manually with Access Code';
@@ -1541,8 +1541,16 @@ class AppLocalizationsVi extends AppLocalizations {
   String get loginSubmitButton => 'Đăng nhập';
 
   @override
-  String get welcomeGuestCaption =>
-      'Không cần mã — tự do duyệt, lọc và so sánh.';
+  String get welcomeGuestCaption => 'Không cần mã để duyệt và so sánh.';
+
+  @override
+  String get welcomeClientsDivider => 'Khách hàng Hanguk';
+
+  @override
+  String get loginNoCodePrompt => 'Chưa có mã?';
+
+  @override
+  String get loginAskConsultant => 'Hỏi chuyên viên tư vấn';
 
   @override
   String get homeNotifications => 'Thông báo';

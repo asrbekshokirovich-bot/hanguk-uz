@@ -333,8 +333,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get loginStudentPortal => '학생 포털';
 
   @override
-  String get loginAccessCodeHelp =>
-      '컨설턴트 또는 대학 담당자가 제공한 8자리 액세스 코드(영문과 숫자)를 입력하세요.';
+  String get loginAccessCodeHelp => '컨설턴트 또는 대학 담당자에게 받은 8자리 코드를 입력하세요.';
 
   @override
   String get loginAccessCodeButton => '액세스 코드로 로그인';
@@ -1495,7 +1494,16 @@ class AppLocalizationsKo extends AppLocalizations {
   String get loginSubmitButton => '로그인';
 
   @override
-  String get welcomeGuestCaption => '코드 없이 자유롭게 둘러보고 비교하세요.';
+  String get welcomeGuestCaption => '둘러보고 비교하는 데 코드가 필요 없어요.';
+
+  @override
+  String get welcomeClientsDivider => 'Hanguk 고객';
+
+  @override
+  String get loginNoCodePrompt => '코드가 없나요?';
+
+  @override
+  String get loginAskConsultant => '컨설턴트에게 문의하세요';
 
   @override
   String get homeNotifications => '알림';

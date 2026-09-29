@@ -348,7 +348,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get loginAccessCodeHelp =>
-      'Enter the 8-character access code (letters and numbers) provided by your consultant or university representative.';
+      'Введите 8-значный код от вашего консультанта или представителя университета.';
 
   @override
   String get loginAccessCodeButton => 'Login manually with Access Code';
@@ -1547,7 +1547,16 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get welcomeGuestCaption =>
-      'Код не нужен — свободно просматривайте, фильтруйте и сравнивайте.';
+      'Чтобы смотреть и сравнивать, код не нужен.';
+
+  @override
+  String get welcomeClientsDivider => 'Клиенты Hanguk';
+
+  @override
+  String get loginNoCodePrompt => 'Нет кода?';
+
+  @override
+  String get loginAskConsultant => 'Спросите консультанта';
 
   @override
   String get homeNotifications => 'Уведомления';

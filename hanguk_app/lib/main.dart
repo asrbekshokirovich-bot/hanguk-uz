@@ -9,6 +9,7 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/router/app_router.dart';
 import 'design_system/theme/app_theme.dart';
+import 'features/auth/presentation/widgets/sign_in_chrome.dart';
 import 'features/map/data/map_repository.dart';
 import 'features/uni_db/data/fcm_token_source.dart';
 import 'features/uni_db/data/notification_service.dart';
@@ -96,28 +97,7 @@ class _SplashApp extends StatelessWidget {
       theme: AppTheme.materialTheme,
       home: const Scaffold(
         backgroundColor: Color(0xFF0A0A1A),
-        body: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.all(Radius.circular(20)),
-                // Splash logo is decorative; the loading indicator below
-                // is what conveys state to assistive tech.
-                child: Image(
-                  image: AssetImage('assets/images/app_icon.png'),
-                  width: 80,
-                  height: 80,
-                  fit: BoxFit.cover,
-                  excludeFromSemantics: true,
-                ),
-              ),
-              SizedBox(height: 24),
-              // Brand lime as the active/loading accent (was off-brand #6C63FF).
-              CircularProgressIndicator(color: Color(0xFFD4E94C)),
-            ],
-          ),
-        ),
+        body: SignInBackdrop(child: SplashContent()),
       ),
     );
   }
