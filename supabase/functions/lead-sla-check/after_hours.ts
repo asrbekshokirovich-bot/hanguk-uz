@@ -1,5 +1,5 @@
 // The automatic reply to a new chat that arrives outside working hours
-// (Mon–Sat 10:00–18:00 Tashkent) — see 20260929120000_lead_after_hours.sql.
+// (Mon–Sat 09:40–18:00 Tashkent) — see 20260929120000_lead_after_hours.sql.
 //
 // fn_after_hours_reply_claim hands out each such lead once, already stamped,
 // with the text to send. The reply goes out on the channel the person wrote
