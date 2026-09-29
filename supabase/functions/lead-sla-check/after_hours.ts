@@ -1,7 +1,9 @@
-// The automatic reply to a new chat that arrives outside working hours
-// (Mon–Sat 09:40–18:00 Tashkent) — see 20260929120000_lead_after_hours.sql.
+// The automatic reply to a chat that writes to us for the first time outside
+// working hours (Mon–Sat 09:40–18:00 Tashkent), new lead or not — see
+// 20260929120000_lead_after_hours.sql and
+// 20260929150000_after_hours_reply_every_new_chat.sql.
 //
-// fn_after_hours_reply_claim hands out each such lead once, already stamped,
+// fn_after_hours_reply_claim hands out each such chat once, already stamped,
 // with the text to send. The reply goes out on the channel the person wrote
 // on, the way the CRM inbox sends a staff reply (send-telegram /
 // send-instagram): an outgoing messages row first, so it shows in the chat,
@@ -13,7 +15,8 @@
 type Admin = any;
 
 interface Claimed {
-  id: string;
+  /** Always null: the reply is owed to a chat, not to a lead row. */
+  id: string | null;
   source: string;
   source_id: string;
   reply_text: string;
@@ -45,11 +48,11 @@ export async function sendAfterHoursReplies(
         : await sendTelegram(supabase, lead);
       if (ok) sent++;
     } catch (e) {
-      console.error(`lead-sla-check: after-hours reply to lead ${lead.id} failed:`, e);
+      console.error(`lead-sla-check: after-hours reply to ${lead.source} ${lead.source_id} failed:`, e);
     }
   }
   if (leads.length) {
-    console.log(`lead-sla-check: ${leads.length} after-hours lead(s), ${sent} reply(ies) sent`);
+    console.log(`lead-sla-check: ${leads.length} after-hours chat(s), ${sent} reply(ies) sent`);
   }
   return { claimed: leads.length, sent };
 }
@@ -73,7 +76,7 @@ async function insertRow(supabase: Admin, lead: Claimed): Promise<string | null>
     .select("id")
     .single();
   if (error || !data) {
-    console.error(`lead-sla-check: after-hours row for lead ${lead.id}:`, error?.message);
+    console.error(`lead-sla-check: after-hours row for ${lead.source} ${lead.source_id}:`, error?.message);
     return null;
   }
   return String((data as any).id);
