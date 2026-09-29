@@ -1,5 +1,5 @@
 {
- "last_run": "2026-09-29T08:33:52+00:00",
+ "last_run": "2026-09-29T15:55:38+00:00",
  "seen": {
   "http://enter.konkuk.ac.kr/submenu.do?menuurl=k8b%2fCUaWlntKYwhT%2fh%2bKUA%3d%3d&": [],
   "https://adm-u.postech.ac.kr/": [
@@ -35,6 +35,7 @@
    "629d5ee598ec3788"
   ],
   "https://admission.cdu.ac.kr/": [
+   "06ab1285c9034e81",
    "3e177c35e7ec91cd",
    "fe7a70d4e168c405",
    "046a0dcd9137fca0",
