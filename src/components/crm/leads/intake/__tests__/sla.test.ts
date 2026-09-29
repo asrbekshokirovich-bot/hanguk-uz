@@ -59,6 +59,18 @@ describe('newLeadCountdown', () => {
     expect(formatCountdown(late!.secondsLeft)).toBe('2:30');
   });
 
+  it('waits, not red, until an off-hours lead\'s countdown starts at 10:00', () => {
+    // The countdown start is set by the database; here it is 2 hours after arrival.
+    const offHours = lead({ sla_start_at: at(120).toISOString() });
+    expect(newLeadCountdown(offHours, at(90))).toEqual({ secondsLeft: 600, urgent: false, waiting: true });
+    expect(newLeadCountdown(offHours, at(121))).toEqual({ secondsLeft: 540, urgent: false, waiting: false });
+    expect(newLeadCountdown(offHours, at(125))?.urgent).toBe(true);
+  });
+
+  it('counts from the arrival when the lead has no countdown start', () => {
+    expect(newLeadCountdown(lead({ sla_start_at: null }), at(1))?.secondsLeft).toBe(540);
+  });
+
   it('shows nothing for a lead that is not a new lead', () => {
     expect(newLeadCountdown(lead({ new_lead_at: null }), at(1))).toBeNull();
   });

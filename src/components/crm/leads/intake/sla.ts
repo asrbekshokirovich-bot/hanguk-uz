@@ -31,14 +31,21 @@ export interface NewLeadCountdown {
   secondsLeft: number;
   /** True from 5 minutes remaining onward, including after the line is crossed. */
   urgent: boolean;
+  /** An off-hours chat whose countdown has not started yet (it starts at the
+   * next working 10:00 — `sla_start_at`). */
+  waiting: boolean;
 }
 
 /** The live countdown for a "Yangi lid", or `null` for any other lead. */
 export const newLeadCountdown = (lead: Lead, now: Date): NewLeadCountdown | null => {
   if (!isNewLead(lead)) return null;
-  const elapsedSeconds = (now.getTime() - new Date(lead.new_lead_at as string).getTime()) / 1000;
+  const start = new Date((lead.sla_start_at ?? lead.new_lead_at) as string).getTime();
+  if (now.getTime() < start) {
+    return { secondsLeft: UNCONTACTED_SLA_MINUTES * 60, urgent: false, waiting: true };
+  }
+  const elapsedSeconds = (now.getTime() - start) / 1000;
   const secondsLeft = Math.round(UNCONTACTED_SLA_MINUTES * 60 - elapsedSeconds);
-  return { secondsLeft, urgent: secondsLeft <= URGENT_AT_SECONDS_LEFT };
+  return { secondsLeft, urgent: secondsLeft <= URGENT_AT_SECONDS_LEFT, waiting: false };
 };
 
 /** "9:59" — minutes:seconds, always the magnitude (sign is conveyed by the caller's wording). */

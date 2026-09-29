@@ -727,6 +727,7 @@
       "followUpPrefix": "Follow up: {{when}}",
       "countdownLeft": "{{time}} left to contact",
       "countdownOverdue": "No contact for {{time}}!",
+      "countdownWaiting": "Timer starts at 10:00",
       "scheduled": "Scheduled: {{when}}",
       "dayOfMonth": "{{day}} {{month}}",
       "columns": {

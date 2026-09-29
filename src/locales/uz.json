@@ -774,6 +774,7 @@
       "followUpPrefix": "Qayta aloqa: {{when}}",
       "countdownLeft": "Aloqa uchun: {{time}} qoldi",
       "countdownOverdue": "{{time}} dan beri aloqa yo‘q!",
+      "countdownWaiting": "Taymer 10:00 da boshlanadi",
       "scheduled": "Rejalashtirilgan: {{when}}",
       "dayOfMonth": "{{day}}-{{month}}",
       "columns": {

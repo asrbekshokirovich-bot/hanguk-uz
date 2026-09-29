@@ -47,6 +47,9 @@ export interface Lead {
   call_result: string | null;
   /** When an Instagram/Telegram lead's phone and name arrived — see the "Yangi lid" section. */
   new_lead_at?: string | null;
+  /** When the 10-minute countdown starts: `new_lead_at` in working hours, the
+   * next working 10:00 (Tashkent) for a chat that arrived off hours. */
+  sla_start_at?: string | null;
   assignee?: {
     full_name: string | null;
   };

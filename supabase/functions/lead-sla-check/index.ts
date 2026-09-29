@@ -8,6 +8,10 @@
 // it reads it, and hands it back again on the next minute's run for as long as
 // it stays unanswered — the alert repeats until somebody replies.
 //
+// Each run first sends the automatic reply to new chats that arrived outside
+// working hours (after_hours.ts); their countdown, and so their alert, starts
+// at the next working 10:00 (fn_lead_sla_scan times from leads.sla_start_at).
+//
 // Called every minute by pg_cron (lead-sla-check-1min). Pass ?dry=1 to see
 // what would fire without marking anything or sending — safe to call by hand.
 //
@@ -16,6 +20,7 @@
 // `authorized()` instead.
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
+import { sendAfterHoursReplies } from "./after_hours.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -109,6 +114,8 @@ serve(async (req) => {
   const dry = new URL(req.url).searchParams.get("dry") === "1";
 
   try {
+    const afterHours = await sendAfterHoursReplies(supabase, dry);
+
     const { data, error } = await supabase.rpc("fn_lead_sla_scan", {
       p_minutes: SLA_MINUTES,
       p_dry: dry,
@@ -118,7 +125,7 @@ serve(async (req) => {
     const overdue = (data ?? []) as OverdueLead[];
 
     if (dry) {
-      return json({ ok: true, dry: true, overdue });
+      return json({ ok: true, dry: true, overdue, after_hours: afterHours.leads ?? [] });
     }
 
     const chats = overdue.length ? await recipients(supabase) : [];
@@ -140,7 +147,14 @@ serve(async (req) => {
       console.log(`lead-sla-check: ${overdue.length} overdue, ${alerted.length} alert(s) sent`);
     }
 
-    return json({ ok: true, overdue: overdue.length, alerted: alerted.length, recipients: chats.length });
+    return json({
+      ok: true,
+      overdue: overdue.length,
+      alerted: alerted.length,
+      recipients: chats.length,
+      after_hours_claimed: afterHours.claimed,
+      after_hours_sent: afterHours.sent,
+    });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Unknown error";
     console.error("lead-sla-check failed:", e);

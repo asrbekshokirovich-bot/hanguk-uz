@@ -710,6 +710,7 @@
       "followUpPrefix": "재연락: {{when}}",
       "countdownLeft": "연락까지 {{time}} 남음",
       "countdownOverdue": "{{time}}째 연락 없음!",
+      "countdownWaiting": "타이머는 10:00에 시작됩니다",
       "scheduled": "예정: {{when}}",
       "dayOfMonth": "{{month}} {{day}}일",
       "columns": {
