@@ -6,14 +6,15 @@ import 'package:go_router/go_router.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../l10n/app_localizations.dart';
 import '../data/auth_repository.dart';
+import 'widgets/sign_in_chrome.dart';
 
 // ─── Login Screen ──────────────────────────────────────────────────────────────
 
 /// Magic Code (DESIGN_SPEC §3.2).
 ///
-/// Key mark in a lime glass tile, the title with its 매직 코드 accent, the mono
-/// code field that lights lime once a full 8-character code is present, and the
-/// lime primary action.
+/// Sign-in 2a "Student Magic-Code": a back button, the key mark in a lime glass
+/// tile beside the title and its 매직 코드 accent, the mono code field with its
+/// XXXX-XXXX mask, the lime primary action, and a "no code" line under it.
 ///
 /// Presentation only — the auth calls, validation thresholds, error handling
 /// and providers below are unchanged.
@@ -133,7 +134,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
 
   Future<void> _handleStudentLogin() async {
     final l10n = AppLocalizations.of(context)!;
-    final code = _codeCtrl.text.trim().toUpperCase();
+    // The field shows the code as XXXX-XXXX; only the letters and digits are
+    // the code.
+    final code = _codeCtrl.text
+        .replaceAll(RegExp(r'[^A-Za-z0-9]'), '')
+        .toUpperCase();
 
     if (code.length < 6) {
       _setError(l10n.loginErrorInvalidAccessCode);
@@ -188,7 +193,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
       }
     }
   }
-
 
   // ─── Public Student Sign Up (Phone) ─────────────────────────────────────────
 
@@ -258,9 +262,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
   /// Purely presentational: the field lights lime once a full 8-character code
   /// is present (spec §3.2). Submission validation is untouched and still
   /// lives in [_handleStudentLogin], which is why the primary button stays
-  /// tappable at every length.
+  /// tappable at every length. The mask hyphen is not a character, so it is
+  /// stripped before counting.
   bool _isCodeReady(String text) =>
       text.replaceAll(RegExp(r'[^A-Za-z0-9]'), '').length >= 8;
+
+  /// Back to wherever the visitor came from — Welcome, in practice. A deep
+  /// link or a redirect can land here with nothing under it, so fall back to
+  /// Welcome instead of popping the app away.
+  void _handleBack() {
+    if (context.canPop()) {
+      context.pop();
+    } else {
+      context.go('/welcome');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -269,131 +285,258 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     // AutofillGroup lets iOS surface the OTP autofill chip and Android group
     // the credential for save-prompt purposes (audit P0 #3).
     //
-    // The action lives at the bottom (spec §3.2): the mark, title, field and
-    // any message scroll in the space above it, so the "Login to System"
-    // button sits under the thumb and rises above the keyboard when the field
-    // is focused.
-    return SeoulNightScaffold(
-      body: AutofillGroup(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(26, 24, 26, 8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const SizedBox(height: 24),
+    // One scrolling column (Sign-in 2a "Student Magic-Code"): back button,
+    // mark and title, help, any message, then the field, the action and the
+    // "no code" line directly under it. The backdrop sits outside the
+    // Scaffold so it does not squeeze when the keyboard resizes the body; the
+    // column scrolls instead, and the field's scroll padding keeps the button
+    // in view above the keyboard.
+    return SignInBackdrop(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        resizeToAvoidBottomInset: true,
+        body: SafeArea(
+          child: AutofillGroup(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // ── Back ─────────────────────────────────────────────────
+                  Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: _BackButton(onPressed: _handleBack),
+                  ),
+                  // 28 in the design, less the 4px of tap target the back
+                  // button carries below its 40px face.
+                  const SizedBox(height: 28 - _BackButton.tapSlack),
 
-                    // ── Mark ───────────────────────────────────────────────
-                    const Align(
-                      alignment: AlignmentDirectional.centerStart,
-                      child: _KeyTile(),
-                    ),
-                    const SizedBox(height: 18),
-
-                    // Title + decorative hangul accent (Korean in every
-                    // locale).
-                    HangulTag(
-                      en: l10n.magicCodeTitle,
-                      ko: '매직 코드',
-                      titleStyle: SeoulType.headline,
-                    ),
-                    const SizedBox(height: 10),
-
-                    Text(
-                      l10n.loginAccessCodeHelp,
-                      style: SeoulType.bodySecondary,
-                    ),
-                    const SizedBox(height: 28),
-
-                    // ── Messages ───────────────────────────────────────────
-                    if (_error != null) ...[
-                      _MessageCard(
-                        message: _error!,
-                        tint: SeoulColors.dangerText,
-                        fill: SeoulColors.dangerFill,
-                      ),
-                      const SizedBox(height: 16),
-                    ],
-                    // Sign-in is retrying underneath. Saying so is the whole
-                    // point: half a minute of a spinner reads as a hung app.
-                    if (_retryNotice != null) ...[
-                      _MessageCard(
-                        message: _retryNotice!,
-                        tint: SeoulColors.infoText,
-                        fill: SeoulColors.infoFill,
-                      ),
-                      const SizedBox(height: 16),
-                    ],
-                    // The way out when sign-in failed on infrastructure. On
-                    // 2026-09-01 the reviewer's three requests were answered
-                    // by the hosting gateway with HTTP 502 before they reached
-                    // our code, and the app was rejected under 2.1(a) because
-                    // the login screen was as far as anyone got. Guest mode
-                    // already shows the universities, the map and the
-                    // comparison — so a backend blip now costs a sign-in, not
-                    // the whole app.
-                    if (_offerGuest) ...[
-                      SizedBox(
-                        width: double.infinity,
-                        child: OutlinedButton(
-                          onPressed: () => context.go('/guest'),
-                          child: Text(l10n.welcomeExploreCta),
+                  // ── Mark + title ─────────────────────────────────────────
+                  Row(
+                    children: [
+                      const _KeyTile(),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(l10n.magicCodeTitle, style: _titleStyle),
+                            const SizedBox(height: 3),
+                            // Decorative hangul accent (Korean in every
+                            // locale).
+                            const Text('매직 코드', style: _hangulStyle),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 16),
                     ],
-                    if (_success != null) ...[
-                      _MessageCard(
-                        message: _success!,
-                        tint: SeoulColors.successText,
-                        fill: SeoulColors.successFill,
-                      ),
-                      const SizedBox(height: 16),
-                    ],
+                  ),
+                  const SizedBox(height: 18),
 
-                    // ── Field ──────────────────────────────────────────────
-                    // Repaints the border/glow as the code is typed — no
-                    // extra state, the controller stays the single source of
-                    // truth.
-                    ValueListenableBuilder<TextEditingValue>(
-                      valueListenable: _codeCtrl,
-                      builder: (context, value, _) => _MagicCodeField(
-                        controller: _codeCtrl,
-                        ready: _isCodeReady(value.text),
-                        onSubmitted: (_) => _handleStudentLogin(),
+                  Text(l10n.loginAccessCodeHelp, style: _helpStyle),
+                  const SizedBox(height: 28),
+
+                  // ── Messages ─────────────────────────────────────────────
+                  if (_error != null) ...[
+                    _MessageCard(
+                      message: _error!,
+                      tint: SeoulColors.dangerText,
+                      fill: SeoulColors.dangerFill,
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                  // Sign-in is retrying underneath. Saying so is the whole
+                  // point: half a minute of a spinner reads as a hung app.
+                  if (_retryNotice != null) ...[
+                    _MessageCard(
+                      message: _retryNotice!,
+                      tint: SeoulColors.infoText,
+                      fill: SeoulColors.infoFill,
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                  // The way out when sign-in failed on infrastructure. On
+                  // 2026-09-01 the reviewer's three requests were answered
+                  // by the hosting gateway with HTTP 502 before they reached
+                  // our code, and the app was rejected under 2.1(a) because
+                  // the login screen was as far as anyone got. Guest mode
+                  // already shows the universities, the map and the
+                  // comparison — so a backend blip now costs a sign-in, not
+                  // the whole app.
+                  if (_offerGuest) ...[
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton(
+                        onPressed: () => context.go('/guest'),
+                        child: Text(l10n.welcomeExploreCta),
                       ),
                     ),
+                    const SizedBox(height: 16),
                   ],
+                  if (_success != null) ...[
+                    _MessageCard(
+                      message: _success!,
+                      tint: SeoulColors.successText,
+                      fill: SeoulColors.successFill,
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+
+                  // ── Field ────────────────────────────────────────────────
+                  // Repaints the border/ring and the faint mask remainder as
+                  // the code is typed — no extra state, the controller stays
+                  // the single source of truth.
+                  ValueListenableBuilder<TextEditingValue>(
+                    valueListenable: _codeCtrl,
+                    builder: (context, value, _) => _MagicCodeField(
+                      controller: _codeCtrl,
+                      ready: _isCodeReady(value.text),
+                      onSubmitted: (_) => _handleStudentLogin(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // ── Action ───────────────────────────────────────────────
+                  _SubmitButton(
+                    label: l10n.loginSubmitButton,
+                    loading: _loading,
+                    onPressed: _handleStudentLogin,
+                  ),
+                  const SizedBox(height: 12 + 4),
+
+                  // Plain text: the design gives it no action.
+                  Text.rich(
+                    TextSpan(
+                      children: [
+                        TextSpan(text: '${l10n.loginNoCodePrompt} '),
+                        TextSpan(
+                          text: l10n.loginAskConsultant,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                    textAlign: TextAlign.center,
+                    style: _noCodeStyle,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Every line height is set: unset, it would inherit the theme's body
+  // height. Where the design leaves `line-height: normal`, the value is what
+  // the browser renders — Inter's own ascent + descent, 1.21.
+  static const double _normal = 1.21;
+
+  static const TextStyle _titleStyle = TextStyle(
+    fontFamily: SeoulType.inter,
+    fontFamilyFallback: SeoulType.fallback,
+    fontSize: 26,
+    height: _normal,
+    fontWeight: FontWeight.w800,
+    letterSpacing: -0.65, // -.025em
+    color: Colors.white,
+  );
+
+  static const TextStyle _hangulStyle = TextStyle(
+    fontFamily: SeoulType.korean,
+    fontFamilyFallback: <String>[SeoulType.inter],
+    fontSize: 13,
+    // Sized so title + gap + accent come to the 52px block the design
+    // renders.
+    height: 1.41,
+    fontWeight: FontWeight.w400,
+    color: Color.fromRGBO(255, 255, 255, .64),
+  );
+
+  static const TextStyle _helpStyle = TextStyle(
+    fontFamily: SeoulType.inter,
+    fontFamilyFallback: SeoulType.fallback,
+    fontSize: 15,
+    height: 1.55,
+    // CSS splits the extra line height evenly above and below the glyphs.
+    leadingDistribution: TextLeadingDistribution.even,
+    fontWeight: FontWeight.w400,
+    color: Color.fromRGBO(255, 255, 255, .72),
+  );
+
+  static const TextStyle _noCodeStyle = TextStyle(
+    fontFamily: SeoulType.inter,
+    fontFamilyFallback: SeoulType.fallback,
+    fontSize: 14,
+    height: _normal,
+    fontWeight: FontWeight.w400,
+    color: Color.fromRGBO(255, 255, 255, .72),
+  );
+}
+
+// ─── Reusable Widgets ─────────────────────────────────────────────────────────
+
+/// 40px glass square with a chevron. The tap target is [tapSlack] larger to
+/// the end and bottom, so it clears 44px without changing what is drawn or
+/// where.
+class _BackButton extends StatelessWidget {
+  const _BackButton({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  static const double _size = 40;
+  static const double _radius = 12;
+  static const double tapSlack = 4;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: MaterialLocalizations.of(context).backButtonTooltip,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onPressed,
+        child: SizedBox.square(
+          dimension: _size + tapSlack,
+          child: Align(
+            alignment: AlignmentDirectional.topStart,
+            child: Container(
+              width: _size,
+              height: _size,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: const Color.fromRGBO(255, 255, 255, .06),
+                borderRadius: BorderRadius.circular(_radius),
+                border: Border.all(
+                  color: const Color.fromRGBO(255, 255, 255, .12),
                 ),
               ),
-            ),
-
-            // ── Action ─────────────────────────────────────────────────────
-            Padding(
-              padding: const EdgeInsets.fromLTRB(26, 8, 26, 28),
-              child: LimeButton(
-                label: l10n.loginSubmitButton,
-                loading: _loading,
-                onPressed: _handleStudentLogin,
+              foregroundDecoration: const InsetEdgesDecoration(
+                radius: _radius,
+                top: Color.fromRGBO(255, 255, 255, .08),
+                inset: 1,
+              ),
+              child: const SignInIconView(
+                SignInIcon.chevronLeft,
+                size: 20,
+                color: Colors.white,
               ),
             ),
-          ],
+          ),
         ),
       ),
     );
   }
 }
 
-// ─── Reusable Widgets ─────────────────────────────────────────────────────────
-
-/// The Magic Code mark: a key in a lime glass tile (spec §3.2).
+/// The Magic Code mark: a key in a lime glass tile.
 class _KeyTile extends StatelessWidget {
   const _KeyTile();
 
-  static const double _size = 58;
+  static const double _size = 50;
+  static const double _radius = 15;
 
   @override
   Widget build(BuildContext context) {
@@ -402,22 +545,79 @@ class _KeyTile extends StatelessWidget {
       height: _size,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: SeoulColors.limeFill,
-        borderRadius: SeoulRadii.tileR,
-        border: Border.all(
-          color: SeoulColors.lime.withValues(alpha: 0.35),
-          width: 1,
+        gradient: cssLinearGradient(
+          160,
+          const Size.square(_size),
+          colors: const [
+            Color.fromRGBO(212, 233, 76, .22),
+            Color.fromRGBO(212, 233, 76, .06),
+          ],
         ),
-        boxShadow: SeoulShadows.limeGlowSmall,
+        borderRadius: BorderRadius.circular(_radius),
+        border: Border.all(color: const Color.fromRGBO(212, 233, 76, .32)),
       ),
-      child: const Icon(Icons.key, size: 24, color: SeoulColors.lime),
+      foregroundDecoration: const InsetEdgesDecoration(
+        radius: _radius,
+        top: Color.fromRGBO(255, 255, 255, .12),
+        inset: 1,
+      ),
+      child: const SignInIconView(
+        SignInIcon.key,
+        size: 22,
+        color: SeoulColors.lime,
+      ),
     );
   }
 }
 
-/// The access-code input: glass fill, JetBrains Mono at 0.3em tracking, and a
-/// lime border + glow the moment a full code is in (spec §3.2).
-class _MagicCodeField extends StatelessWidget {
+/// Keeps only letters and digits (typed, pasted or autofilled alike), caps
+/// them at [maxChars], and inserts the mask hyphen once a fifth character
+/// arrives — so the field reads `HK7M-XXXX` as it fills. The hyphen is
+/// decoration only; [_LoginScreenState._handleStudentLogin] strips it.
+class _MagicCodeFormatter extends TextInputFormatter {
+  const _MagicCodeFormatter({required this.maxChars});
+
+  final int maxChars;
+
+  static final RegExp _notCodeChar = RegExp(r'[^A-Za-z0-9]');
+
+  static String format(String raw) =>
+      raw.length > 4 ? '${raw.substring(0, 4)}-${raw.substring(4)}' : raw;
+
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    var raw = newValue.text.replaceAll(_notCodeChar, '');
+    if (raw.length > maxChars) raw = raw.substring(0, maxChars);
+    final text = format(raw);
+    // Already in shape: leave the value alone, selection and all.
+    if (text == newValue.text) return newValue;
+
+    // Keep the caret after the same number of code characters it followed.
+    final end = newValue.selection.isValid
+        ? newValue.selection.end.clamp(0, newValue.text.length)
+        : newValue.text.length;
+    var before = newValue.text
+        .substring(0, end)
+        .replaceAll(_notCodeChar, '')
+        .length;
+    if (before > raw.length) before = raw.length;
+    final offset = format(raw.substring(0, before)).length;
+
+    return TextEditingValue(
+      text: text,
+      selection: TextSelection.collapsed(offset: offset),
+    );
+  }
+}
+
+/// The access-code input: glass fill, JetBrains Mono at 0.3em tracking, the
+/// untyped rest of the `XXXX-XXXX` mask shown faint after what has been
+/// typed, and a lime border + ring while the code is being entered or once a
+/// full code is in (spec §3.2).
+class _MagicCodeField extends StatefulWidget {
   const _MagicCodeField({
     required this.controller,
     required this.ready,
@@ -426,55 +626,280 @@ class _MagicCodeField extends StatelessWidget {
 
   final TextEditingController controller;
 
-  /// 8 valid characters entered — border goes lime and the glow comes up.
+  /// 8 valid characters entered — border goes lime and the ring comes up.
   final bool ready;
 
   final ValueChanged<String> onSubmitted;
 
   @override
+  State<_MagicCodeField> createState() => _MagicCodeFieldState();
+}
+
+class _MagicCodeFieldState extends State<_MagicCodeField> {
+  // Mask: code shape is enforced by the formatter; not localized. The
+  // hyphen is decorative — matching the prototype's XXXX-XXXX shape.
+  static const String _mask = 'XXXX-XXXX';
+
+  static const double _height = 62;
+  static const double _radius = 16;
+  static const double _border = 1.5;
+
+  static const Color _lime = SeoulColors.lime;
+
+  final FocusNode _focus = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    _focus.addListener(_onFocusChange);
+  }
+
+  @override
+  void dispose() {
+    _focus.removeListener(_onFocusChange);
+    _focus.dispose();
+    super.dispose();
+  }
+
+  void _onFocusChange() => setState(() {});
+
+  @override
   Widget build(BuildContext context) {
+    final active = _focus.hasFocus || widget.ready;
+    final text = widget.controller.text;
+    final rest = text.length < _mask.length ? _mask.substring(text.length) : '';
+    const style = SeoulType.codeInput;
+
+    // The mask is centred as a whole, like the design; typed text starts at
+    // the mask's left edge so it never shifts while the code fills in.
+    final painter = TextPainter(
+      text: const TextSpan(text: _mask, style: style),
+      textDirection: TextDirection.ltr,
+      textScaler: MediaQuery.textScalerOf(context),
+    )..layout();
+    final maskWidth = painter.width;
+    painter.dispose();
+
     return AnimatedContainer(
       duration: SeoulMotion.base,
       curve: SeoulMotion.smooth,
+      // CSS `0 0 0 4px rgba(212,233,76,.10)`: a solid ring outside the
+      // field. Drawn as an outside border rather than a shadow, which would
+      // also tint the see-through fill.
       decoration: BoxDecoration(
-        color: SeoulColors.glass,
-        borderRadius: SeoulRadii.controlR,
+        borderRadius: BorderRadius.circular(_radius),
         border: Border.all(
-          color: ready ? SeoulColors.lime : SeoulColors.glassBorder,
-          width: 1,
+          color: active
+              ? const Color.fromRGBO(212, 233, 76, .10)
+              : const Color.fromRGBO(212, 233, 76, 0),
+          width: 4,
+          strokeAlign: BorderSide.strokeAlignOutside,
         ),
-        boxShadow: ready ? SeoulShadows.limeGlowSmall : null,
       ),
-      child: TextField(
-        controller: controller,
-        textCapitalization: TextCapitalization.characters,
-        // OTP autofill: surfaces SMS-code suggestions on iOS QuickType
-        // and triggers the Android one-time-code retriever.
-        autofillHints: const [AutofillHints.oneTimeCode],
-        keyboardType: TextInputType.visiblePassword,
-        textInputAction: TextInputAction.done,
-        onSubmitted: onSubmitted,
-        inputFormatters: [
-          FilteringTextInputFormatter.allow(RegExp(r'[A-Z0-9a-z]')),
-          LengthLimitingTextInputFormatter(10),
-        ],
-        style: SeoulType.codeInput,
-        cursorColor: SeoulColors.lime,
-        decoration: InputDecoration(
-          // Mask: code shape is enforced by the inputFormatters; not
-          // localized. The hyphen is decorative — matching the prototype's
-          // XXXX-XXXX shape — and is stripped from what's typed by the
-          // formatters above.
-          hintText: 'XXXX-XXXX',
-          hintStyle: SeoulType.codeInput.copyWith(color: SeoulColors.textFaint),
-          filled: false,
-          border: InputBorder.none,
-          enabledBorder: InputBorder.none,
-          focusedBorder: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 20,
-            vertical: 18,
+      child: AnimatedContainer(
+        duration: SeoulMotion.base,
+        curve: SeoulMotion.smooth,
+        height: _height,
+        decoration: BoxDecoration(
+          color: const Color.fromRGBO(255, 255, 255, .07),
+          borderRadius: BorderRadius.circular(_radius),
+          border: Border.all(
+            color: active ? _lime : const Color.fromRGBO(255, 255, 255, .12),
+            width: _border,
           ),
+        ),
+        foregroundDecoration: const InsetEdgesDecoration(
+          radius: _radius,
+          top: Color.fromRGBO(255, 255, 255, .08),
+          inset: _border,
+        ),
+        child: GestureDetector(
+          // The text line is shorter than the field; a tap anywhere on the
+          // field focuses it.
+          behavior: HitTestBehavior.opaque,
+          onTap: _focus.requestFocus,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              // Flutter puts half of the letter spacing before each glyph
+              // where CSS puts all of it after, so the run starts that much
+              // further left to land where the design has it.
+              final lead =
+                  ((constraints.maxWidth - maskWidth) / 2 -
+                          style.letterSpacing! / 2)
+                      .clamp(0.0, double.infinity);
+              return Stack(
+                alignment: AlignmentDirectional.centerStart,
+                children: [
+                  // What is still to type, laid out after an invisible copy
+                  // of what has been typed so it lines up with the field.
+                  ExcludeSemantics(
+                    child: IgnorePointer(
+                      child: Padding(
+                        padding: EdgeInsets.only(left: lead),
+                        child: Text.rich(
+                          TextSpan(
+                            children: [
+                              TextSpan(
+                                text: text,
+                                style: const TextStyle(
+                                  color: Color(0x00FFFFFF),
+                                ),
+                              ),
+                              TextSpan(
+                                text: rest,
+                                style: const TextStyle(
+                                  color: Color.fromRGBO(255, 255, 255, .3),
+                                ),
+                              ),
+                            ],
+                          ),
+                          style: style,
+                          maxLines: 1,
+                          softWrap: false,
+                          overflow: TextOverflow.clip,
+                        ),
+                      ),
+                    ),
+                  ),
+                  TextField(
+                    controller: widget.controller,
+                    focusNode: _focus,
+                    textCapitalization: TextCapitalization.characters,
+                    // OTP autofill: surfaces SMS-code suggestions on iOS
+                    // QuickType and triggers the Android one-time-code
+                    // retriever.
+                    autofillHints: const [AutofillHints.oneTimeCode],
+                    keyboardType: TextInputType.visiblePassword,
+                    textInputAction: TextInputAction.done,
+                    onSubmitted: widget.onSubmitted,
+                    inputFormatters: const [_MagicCodeFormatter(maxChars: 10)],
+                    style: style,
+                    cursorColor: _lime,
+                    // Room for the button and the line under it, so focusing
+                    // the field scrolls the action above the keyboard too.
+                    scrollPadding: const EdgeInsets.fromLTRB(20, 20, 20, 120),
+                    decoration: InputDecoration(
+                      isCollapsed: true,
+                      // Invisible: the painted mask above shows the shape;
+                      // this keeps it announced to screen readers.
+                      hintText: _mask,
+                      hintStyle: style.copyWith(color: const Color(0x00FFFFFF)),
+                      filled: false,
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      contentPadding: EdgeInsets.only(left: lead),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The primary action: lime gradient, ink label, a white top highlight and a
+/// soft lime drop shadow. Loading swaps the label for an ink spinner and
+/// blocks taps, like [LimeButton].
+class _SubmitButton extends StatefulWidget {
+  const _SubmitButton({
+    required this.label,
+    required this.loading,
+    required this.onPressed,
+  });
+
+  final String label;
+  final bool loading;
+  final VoidCallback onPressed;
+
+  @override
+  State<_SubmitButton> createState() => _SubmitButtonState();
+}
+
+class _SubmitButtonState extends State<_SubmitButton> {
+  static const double _height = 56;
+  static const double _radius = 16;
+
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final enabled = !widget.loading;
+
+    final content = widget.loading
+        ? const SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(
+              strokeWidth: 2.2,
+              valueColor: AlwaysStoppedAnimation<Color>(SeoulColors.ink),
+            ),
+          )
+        : Text(
+            widget.label,
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontFamily: SeoulType.inter,
+              fontFamilyFallback: SeoulType.fallback,
+              fontSize: 16,
+              height: 1.21, // `line-height: normal` for Inter
+              fontWeight: FontWeight.w700,
+              color: SeoulColors.ink,
+            ),
+          );
+
+    final button = AnimatedOpacity(
+      opacity: enabled ? 1.0 : 0.45,
+      duration: SeoulMotion.fast,
+      child: Container(
+        height: _height,
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFFDDF05E), Color(0xFFD4E94C)],
+          ),
+          borderRadius: BorderRadius.circular(_radius),
+          boxShadow: enabled
+              ? [
+                  BoxShadow(
+                    color: const Color.fromRGBO(168, 192, 20, .22),
+                    offset: const Offset(0, 10),
+                    blurRadius: cssBlur(24),
+                  ),
+                ]
+              : null,
+        ),
+        foregroundDecoration: const InsetEdgesDecoration(
+          radius: _radius,
+          top: Color.fromRGBO(255, 255, 255, .55),
+        ),
+        child: content,
+      ),
+    );
+
+    return Semantics(
+      button: true,
+      enabled: enabled,
+      label: widget.label,
+      child: GestureDetector(
+        onTap: enabled ? widget.onPressed : null,
+        onTapDown: enabled ? (_) => setState(() => _pressed = true) : null,
+        onTapUp: enabled ? (_) => setState(() => _pressed = false) : null,
+        onTapCancel: enabled ? () => setState(() => _pressed = false) : null,
+        child: AnimatedScale(
+          scale: _pressed ? SeoulMotion.pressScale : 1.0,
+          duration: SeoulMotion.fast,
+          curve: SeoulMotion.smooth,
+          child: button,
         ),
       ),
     );

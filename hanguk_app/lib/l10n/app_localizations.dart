@@ -731,7 +731,7 @@ abstract class AppLocalizations {
   /// Help text above the magic-code TextField on the LoginScreen. Explains where the code comes from.
   ///
   /// In en, this message translates to:
-  /// **'Enter the 8-character access code (letters and numbers) provided by your consultant or university representative.'**
+  /// **'Enter the 8-character code from your consultant or university representative.'**
   String get loginAccessCodeHelp;
 
   /// Label on the primary sign-in button in magic-code mode.
@@ -1829,7 +1829,7 @@ abstract class AppLocalizations {
   /// Headline on the Welcome screen, under the 한 tile (DESIGN_SPEC 3.1).
   ///
   /// In en, this message translates to:
-  /// **'Welcome to your journey'**
+  /// **'Welcome to\nyour journey'**
   String get welcomeHeadline;
 
   /// Supporting line under welcomeHeadline on the Welcome screen.
@@ -2861,8 +2861,26 @@ abstract class AppLocalizations {
   /// Caption under the Welcome screen's 'Explore Universities' guest button (DESIGN_SPEC §3.1).
   ///
   /// In en, this message translates to:
-  /// **'No code needed — browse, filter and compare freely.'**
+  /// **'No code needed to browse and compare.'**
   String get welcomeGuestCaption;
+
+  /// Label in the divider above the Welcome screen's 'I have a magic code' button. Shown in capitals.
+  ///
+  /// In en, this message translates to:
+  /// **'Hanguk clients'**
+  String get welcomeClientsDivider;
+
+  /// First half of the line under the Magic Code button: 'No code? Ask your consultant'.
+  ///
+  /// In en, this message translates to:
+  /// **'No code?'**
+  String get loginNoCodePrompt;
+
+  /// Second, emphasised half of the line under the Magic Code button.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask your consultant'**
+  String get loginAskConsultant;
 
   /// Accessibility label for the notification bell in the Home top bar (DESIGN_SPEC §3.3).
   ///

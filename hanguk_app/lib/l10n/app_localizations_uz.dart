@@ -350,7 +350,7 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get loginAccessCodeHelp =>
-      'Konsultantingiz yoki universitet vakili bergan 8 belgili kirish kodini (harflar va raqamlar) kiriting.';
+      'Konsultantingiz yoki universitet vakili bergan 8 belgili kodni kiriting.';
 
   @override
   String get loginAccessCodeButton => 'Kirish kodi orqali kirish';
@@ -1551,7 +1551,16 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get welcomeGuestCaption =>
-      'Kod shart emas — bemalol ko\'ring, filtrlang va solishtiring.';
+      'Ko\'rish va solishtirish uchun kod shart emas.';
+
+  @override
+  String get welcomeClientsDivider => 'Hanguk mijozlari';
+
+  @override
+  String get loginNoCodePrompt => 'Kod yo\'qmi?';
+
+  @override
+  String get loginAskConsultant => 'Konsultantingizdan so\'rang';
 
   @override
   String get homeNotifications => 'Bildirishnomalar';

@@ -260,7 +260,7 @@
   "@loginStudentPortal": {
     "description": "Subtitle under the 'Hanguk' wordmark on the LoginScreen card."
   },
-  "loginAccessCodeHelp": "Enter the 8-character access code (letters and numbers) provided by your consultant or university representative.",
+  "loginAccessCodeHelp": "Enter the 8-character code from your consultant or university representative.",
   "@loginAccessCodeHelp": {
     "description": "Help text above the magic-code TextField on the LoginScreen. Explains where the code comes from."
   },
@@ -1063,7 +1063,7 @@
   "@greetingEvening": {
     "description": "Time-of-day greeting on the Home header (18:00 onwards)."
   },
-  "welcomeHeadline": "Welcome to your journey",
+  "welcomeHeadline": "Welcome to\nyour journey",
   "@welcomeHeadline": {
     "description": "Headline on the Welcome screen, under the 한 tile (DESIGN_SPEC 3.1)."
   },
@@ -1887,9 +1887,21 @@
   "@loginSubmitButton": {
     "description": "Primary submit button on the Magic Code screen (DESIGN_SPEC §3.2). Distinct from welcomeMagicCodeCta, which is the Welcome-screen CTA that opens this screen."
   },
-  "welcomeGuestCaption": "No code needed — browse, filter and compare freely.",
+  "welcomeGuestCaption": "No code needed to browse and compare.",
   "@welcomeGuestCaption": {
     "description": "Caption under the Welcome screen's 'Explore Universities' guest button (DESIGN_SPEC §3.1)."
+  },
+  "welcomeClientsDivider": "Hanguk clients",
+  "@welcomeClientsDivider": {
+    "description": "Label in the divider above the Welcome screen's 'I have a magic code' button. Shown in capitals."
+  },
+  "loginNoCodePrompt": "No code?",
+  "@loginNoCodePrompt": {
+    "description": "First half of the line under the Magic Code button: 'No code? Ask your consultant'."
+  },
+  "loginAskConsultant": "Ask your consultant",
+  "@loginAskConsultant": {
+    "description": "Second, emphasised half of the line under the Magic Code button."
   },
   "homeNotifications": "Notifications",
   "@homeNotifications": {

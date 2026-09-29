@@ -348,7 +348,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get loginAccessCodeHelp =>
-      'Enter the 8-character access code (letters and numbers) provided by your consultant or university representative.';
+      'Enter the 8-character code from your consultant or university representative.';
 
   @override
   String get loginAccessCodeButton => 'Login manually with Access Code';
@@ -948,7 +948,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get greetingEvening => 'Good evening';
 
   @override
-  String get welcomeHeadline => 'Welcome to your journey';
+  String get welcomeHeadline => 'Welcome to\nyour journey';
 
   @override
   String get welcomeSubtitle =>
@@ -1545,8 +1545,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loginSubmitButton => 'Login to System';
 
   @override
-  String get welcomeGuestCaption =>
-      'No code needed — browse, filter and compare freely.';
+  String get welcomeGuestCaption => 'No code needed to browse and compare.';
+
+  @override
+  String get welcomeClientsDivider => 'Hanguk clients';
+
+  @override
+  String get loginNoCodePrompt => 'No code?';
+
+  @override
+  String get loginAskConsultant => 'Ask your consultant';
 
   @override
   String get homeNotifications => 'Notifications';
