@@ -6,7 +6,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../guest/data/guest_compare_provider.dart';
 import '../../guest/presentation/widgets/contact_sheet.dart';
 import '../data/catalog_filters.dart';
 import '../data/catalog_repository.dart';
@@ -22,20 +21,17 @@ class CatalogDetailScreen extends ConsumerStatefulWidget {
     super.key,
     required this.university,
     required this.initialDegree,
-    required this.allowCompare,
     required this.isGuest,
   });
 
   final CatalogUniversity university;
   final String initialDegree;
-  final bool allowCompare;
   final bool isGuest;
 
   static Future<void> open(
     BuildContext context, {
     required CatalogUniversity university,
     required String degree,
-    required bool allowCompare,
     required bool isGuest,
   }) {
     return Navigator.of(context).push(
@@ -43,7 +39,6 @@ class CatalogDetailScreen extends ConsumerStatefulWidget {
         builder: (_) => CatalogDetailScreen(
           university: university,
           initialDegree: degree,
-          allowCompare: allowCompare,
           isGuest: isGuest,
         ),
       ),
@@ -105,7 +100,6 @@ class _CatalogDetailScreenState extends ConsumerState<CatalogDetailScreen> {
     final detailAsync = ref.watch(catalogDetailProvider(g.id));
     final detail = detailAsync.value;
     final season = seasonLabel(l, g);
-    final compared = widget.allowCompare && ref.watch(guestCompareProvider).contains(u.institutionId);
 
     final groups = _groups(detail?.faculties ?? const []);
     final group = groups.isEmpty ? null : groups[_group.clamp(0, groups.length - 1)];
@@ -124,12 +118,7 @@ class _CatalogDetailScreenState extends ConsumerState<CatalogDetailScreen> {
                 university: u,
                 guideline: g,
                 season: season,
-                compared: compared,
                 onBack: () => Navigator.of(context).pop(),
-                onToggleCompare: widget.allowCompare
-                    ? () => ref.read(guestCompareProvider.notifier).toggle(u.institutionId)
-                    : null,
-                compareLabel: l.catalogFavorite,
               ),
               Transform.translate(
                 offset: const Offset(0, -40),
@@ -435,19 +424,13 @@ class _Header extends StatelessWidget {
     required this.university,
     required this.guideline,
     required this.season,
-    required this.compared,
     required this.onBack,
-    required this.onToggleCompare,
-    required this.compareLabel,
   });
 
   final CatalogUniversity university;
   final CatalogGuideline guideline;
   final String? season;
-  final bool compared;
   final VoidCallback onBack;
-  final VoidCallback? onToggleCompare;
-  final String compareLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -484,14 +467,8 @@ class _Header extends StatelessWidget {
                         onTap: onBack,
                       ),
                       const Spacer(),
-                      if (onToggleCompare != null)
-                        _CircleButton(
-                          icon: compared ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-                          color: compared ? SeoulColors.lime : Colors.white,
-                          label: compareLabel,
-                          selected: compared,
-                          onTap: onToggleCompare!,
-                        ),
+                      // Decorative only: the ♡ has no action of its own.
+                      const _CircleButton(icon: Icons.favorite_border_rounded),
                     ],
                   ),
                   const SizedBox(height: 22),
@@ -529,36 +506,31 @@ class _Header extends StatelessWidget {
 }
 
 class _CircleButton extends StatelessWidget {
-  const _CircleButton({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-    this.color = Colors.white,
-    this.selected = false,
-  });
+  const _CircleButton({required this.icon, this.label, this.onTap});
 
   final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-  final Color color;
-  final bool selected;
+
+  /// Both null: a decorative circle, left out of semantics.
+  final String? label;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
+    final circle = Container(
+      width: 44,
+      height: 44,
+      alignment: Alignment.center,
+      decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0x24FFFFFF)),
+      child: Icon(icon, size: 22, color: Colors.white),
+    );
+    if (onTap == null) return ExcludeSemantics(child: circle);
     return Semantics(
       button: true,
-      selected: selected,
       label: label,
       child: GestureDetector(
         onTap: onTap,
         behavior: HitTestBehavior.opaque,
-        child: Container(
-          width: 44,
-          height: 44,
-          alignment: Alignment.center,
-          decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0x24FFFFFF)),
-          child: Icon(icon, size: 22, color: color),
-        ),
+        child: circle,
       ),
     );
   }
