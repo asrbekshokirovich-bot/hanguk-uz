@@ -3427,6 +3427,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No data for this degree yet'**
   String get catalogNoDegreeData;
+
+  /// Chip next to the season chip that turns compare mode on.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare'**
+  String get catalogCompareChip;
+
+  /// The same chip while compare mode is on; tapping it leaves compare mode.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare · {count}/2'**
+  String catalogCompareChipCount(int count);
+
+  /// Right of the list title while compare mode is on.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose 2 universities'**
+  String get catalogComparePickTwo;
+
+  /// Empty slot in the compare tray at the bottom of the list.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose'**
+  String get compareTraySlotEmpty;
+
+  /// Button in the compare tray that opens the compare screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare'**
+  String get compareTrayCta;
+
+  /// Title of the compare screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare'**
+  String get compareTitle;
+
+  /// Toggle on the compare screen that hides rows where both universities are the same.
+  ///
+  /// In en, this message translates to:
+  /// **'Only differences'**
+  String get compareOnlyDiff;
+
+  /// Empty column on the compare screen after a university was removed.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a university'**
+  String get compareAddSlot;
+
+  /// Shown on the compare screen when fewer than two universities are chosen.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose 2 universities to compare.'**
+  String get compareNeedTwo;
+
+  /// Heading of the short facts section on the compare screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Key facts'**
+  String get compareMainInfo;
+
+  /// Heading of the long text section on the compare screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get compareDetails;
+
+  /// Compare row: tuition for one semester.
+  ///
+  /// In en, this message translates to:
+  /// **'Tuition (semester)'**
+  String get compareRowTuition;
+
+  /// Compare row: minimum TOPIK level.
+  ///
+  /// In en, this message translates to:
+  /// **'TOPIK requirement'**
+  String get compareRowTopik;
+
+  /// Compare row: minimum IELTS score.
+  ///
+  /// In en, this message translates to:
+  /// **'IELTS requirement'**
+  String get compareRowIelts;
+
+  /// Compare row: last day to apply.
+  ///
+  /// In en, this message translates to:
+  /// **'Application deadline'**
+  String get compareRowDeadline;
+
+  /// Compare row: city.
+  ///
+  /// In en, this message translates to:
+  /// **'City'**
+  String get compareRowCity;
+
+  /// Compare details row: the documents the university asks for.
+  ///
+  /// In en, this message translates to:
+  /// **'Admission requirements'**
+  String get compareRowRequirements;
+
+  /// Badge on the cheaper tuition.
+  ///
+  /// In en, this message translates to:
+  /// **'Cheaper'**
+  String get compareBestCheaper;
+
+  /// Badge on the lower TOPIK or IELTS requirement.
+  ///
+  /// In en, this message translates to:
+  /// **'Lower'**
+  String get compareBestLower;
 }
 
 class _AppLocalizationsDelegate

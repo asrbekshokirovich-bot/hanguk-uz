@@ -5,7 +5,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../design_system/seoul_night/seoul_night.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../applications/data/applications_repository.dart';
 import '../../applications/presentation/applications_tab.dart';
+import '../../catalog/data/catalog_compare_provider.dart';
+import '../../catalog/presentation/catalog_compare_tray.dart';
 import '../../map/presentation/map_tab.dart';
 import '../../documents/presentation/documents_tab.dart';
 import '../../chat/presentation/chat_tab.dart';
@@ -58,6 +61,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // Compare mode is shared with guest Explore. A visitor who signs in
+      // mid-compare must not land here with it still on: with applications
+      // there is no chip to turn it off, and the orb would stay hidden.
+      ref.read(catalogCompareProvider.notifier).exit();
       // First-run orientation (audit A9). The APK self-updater used to run
       // right after this; see _checkForUpdates' removal note below.
       await _maybeShowOnboarding();
@@ -308,6 +315,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     // gained a Home section.
     final current = ref.watch(homeTabProvider).clamp(0, SeoulSection.count - 1);
     final header = _sectionHeader(l, current);
+    // Compare mode in the Applications browse list hides the orb and the AI
+    // chat button; the compare tray takes their place. Other sections are
+    // untouched, even while compare mode stays on, and so is Applications
+    // once it lists applications instead of the catalogue.
+    final comparing =
+        current == SeoulSection.applications &&
+        ref.watch(catalogCompareProvider).active &&
+        (ref.watch(applicationsProvider).value?.isEmpty ?? false);
 
     // Deep links write the index straight into the provider, so first-visit
     // bookkeeping happens here rather than only in `_goToSection`. Mutating a
@@ -345,17 +360,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ],
         ),
 
-        Positioned(
-          left: SeoulSizes.screenPadding,
-          bottom: SeoulSizes.orbBottom,
-          child: _buildAiChatButton(context, l),
-        ),
+        if (!comparing)
+          Positioned(
+            left: SeoulSizes.screenPadding,
+            bottom: SeoulSizes.orbBottom,
+            child: _buildAiChatButton(context, l),
+          ),
 
-        HanOrb(
-          items: _dialItems(l, current),
-          tooltip: l.navMenu,
-          controller: _orb,
-        ),
+        if (comparing)
+          const CatalogCompareTray(isGuest: false)
+        else
+          HanOrb(
+            items: _dialItems(l, current),
+            tooltip: l.navMenu,
+            controller: _orb,
+          ),
       ],
     );
 

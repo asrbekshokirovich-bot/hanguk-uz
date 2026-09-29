@@ -2339,5 +2339,86 @@
   "catalogNoDegreeData": "No data for this degree yet",
   "@catalogNoDegreeData": {
     "description": "University catalogue (Explore / Applications browse)."
+  },
+  "catalogCompareChip": "Compare",
+  "@catalogCompareChip": {
+    "description": "Chip next to the season chip that turns compare mode on."
+  },
+  "catalogCompareChipCount": "Compare · {count}/2",
+  "@catalogCompareChipCount": {
+    "description": "The same chip while compare mode is on; tapping it leaves compare mode.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "catalogComparePickTwo": "Choose 2 universities",
+  "@catalogComparePickTwo": {
+    "description": "Right of the list title while compare mode is on."
+  },
+  "compareTraySlotEmpty": "Choose",
+  "@compareTraySlotEmpty": {
+    "description": "Empty slot in the compare tray at the bottom of the list."
+  },
+  "compareTrayCta": "Compare",
+  "@compareTrayCta": {
+    "description": "Button in the compare tray that opens the compare screen."
+  },
+  "compareTitle": "Compare",
+  "@compareTitle": {
+    "description": "Title of the compare screen."
+  },
+  "compareOnlyDiff": "Only differences",
+  "@compareOnlyDiff": {
+    "description": "Toggle on the compare screen that hides rows where both universities are the same."
+  },
+  "compareAddSlot": "Choose a university",
+  "@compareAddSlot": {
+    "description": "Empty column on the compare screen after a university was removed."
+  },
+  "compareNeedTwo": "Choose 2 universities to compare.",
+  "@compareNeedTwo": {
+    "description": "Shown on the compare screen when fewer than two universities are chosen."
+  },
+  "compareMainInfo": "Key facts",
+  "@compareMainInfo": {
+    "description": "Heading of the short facts section on the compare screen."
+  },
+  "compareDetails": "Details",
+  "@compareDetails": {
+    "description": "Heading of the long text section on the compare screen."
+  },
+  "compareRowTuition": "Tuition (semester)",
+  "@compareRowTuition": {
+    "description": "Compare row: tuition for one semester."
+  },
+  "compareRowTopik": "TOPIK requirement",
+  "@compareRowTopik": {
+    "description": "Compare row: minimum TOPIK level."
+  },
+  "compareRowIelts": "IELTS requirement",
+  "@compareRowIelts": {
+    "description": "Compare row: minimum IELTS score."
+  },
+  "compareRowDeadline": "Application deadline",
+  "@compareRowDeadline": {
+    "description": "Compare row: last day to apply."
+  },
+  "compareRowCity": "City",
+  "@compareRowCity": {
+    "description": "Compare row: city."
+  },
+  "compareRowRequirements": "Admission requirements",
+  "@compareRowRequirements": {
+    "description": "Compare details row: the documents the university asks for."
+  },
+  "compareBestCheaper": "Cheaper",
+  "@compareBestCheaper": {
+    "description": "Badge on the cheaper tuition."
+  },
+  "compareBestLower": "Lower",
+  "@compareBestLower": {
+    "description": "Badge on the lower TOPIK or IELTS requirement."
   }
 }

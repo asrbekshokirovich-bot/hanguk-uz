@@ -131,7 +131,7 @@ void main() {
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: const Scaffold(
-            body: CustomScrollView(slivers: [CatalogBrowser(allowCompare: false)]),
+            body: CustomScrollView(slivers: [CatalogBrowser()]),
           ),
         ),
       ),

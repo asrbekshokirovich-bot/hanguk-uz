@@ -9,19 +9,21 @@ import '../../catalog/presentation/catalog_browser.dart';
 /// university staff have loaded a guideline Excel for (`catalogProvider`), so
 /// an Excel uploaded in the CRM appears here without anyone editing the app.
 /// Layout, filter and detail screens follow the "Universitetlar katalogi"
-/// design; see `CatalogBrowser`.
-///
-/// The ♡ on a card adds it to Compare, as the "+" it replaced did.
+/// design; see `CatalogBrowser`, which also carries compare mode.
 class GuestExploreScreen extends StatelessWidget {
-  const GuestExploreScreen({super.key, required this.onOpenCompare});
+  const GuestExploreScreen({super.key, required this.header});
 
-  /// Kept for the shell's wiring; Compare is reached from the dial.
-  final VoidCallback onOpenCompare;
+  /// The guest shell's header. It scrolls away with the list, as in the
+  /// design.
+  final Widget header;
 
   @override
   Widget build(BuildContext context) {
-    return const CustomScrollView(
-      slivers: [CatalogBrowser(allowCompare: true, isGuest: true)],
+    return CustomScrollView(
+      slivers: [
+        SliverToBoxAdapter(child: header),
+        const CatalogBrowser(isGuest: true),
+      ],
     );
   }
 }

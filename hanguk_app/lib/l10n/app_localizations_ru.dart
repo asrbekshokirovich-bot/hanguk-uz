@@ -1861,4 +1861,63 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get catalogNoDegreeData => 'По этой степени данных пока нет';
+
+  @override
+  String get catalogCompareChip => 'Сравнить';
+
+  @override
+  String catalogCompareChipCount(int count) {
+    return 'Сравнение · $count/2';
+  }
+
+  @override
+  String get catalogComparePickTwo => 'Выберите 2 университета';
+
+  @override
+  String get compareTraySlotEmpty => 'Выбрать';
+
+  @override
+  String get compareTrayCta => 'Сравнить';
+
+  @override
+  String get compareTitle => 'Сравнение';
+
+  @override
+  String get compareOnlyDiff => 'Только различия';
+
+  @override
+  String get compareAddSlot => 'Выберите университет';
+
+  @override
+  String get compareNeedTwo => 'Выберите 2 университета для сравнения.';
+
+  @override
+  String get compareMainInfo => 'Основные сведения';
+
+  @override
+  String get compareDetails => 'Подробности';
+
+  @override
+  String get compareRowTuition => 'Оплата (семестр)';
+
+  @override
+  String get compareRowTopik => 'Требование TOPIK';
+
+  @override
+  String get compareRowIelts => 'Требование IELTS';
+
+  @override
+  String get compareRowDeadline => 'Срок подачи';
+
+  @override
+  String get compareRowCity => 'Город';
+
+  @override
+  String get compareRowRequirements => 'Требования к поступлению';
+
+  @override
+  String get compareBestCheaper => 'Дешевле';
+
+  @override
+  String get compareBestLower => 'Ниже';
 }

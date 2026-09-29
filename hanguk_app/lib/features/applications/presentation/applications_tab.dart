@@ -166,9 +166,9 @@ class ApplicationsTab extends ConsumerWidget {
   // The universities staff have loaded a guideline Excel for in the CRM
   // ("Universitetlar → Ma'lumotli") — the same catalogue Guest Explore shows,
   // in the "Universitetlar katalogi" design: search, filter, and a detail page
-  // with faculties, fees, requirements and deadlines. Browsing only: staff
-  // attach universities to a student from the CRM, so there is no apply or
-  // compare action here.
+  // with faculties, fees, requirements and deadlines, and compare mode.
+  // Browsing only: staff attach universities to a student from the CRM, so
+  // there is no apply action here.
   Widget _buildBrowseUniversities(WidgetRef ref, AppLocalizations l) {
     return SliverMainAxisGroup(
       slivers: [
@@ -190,7 +190,7 @@ class ApplicationsTab extends ConsumerWidget {
             ),
           ),
         ),
-        const CatalogBrowser(allowCompare: false),
+        const CatalogBrowser(),
       ],
     );
   }
