@@ -530,7 +530,7 @@ class _CatalogCardState extends State<CatalogCard> {
         : SeoulColors.infoText;
     final topik = guideline.topikMin;
     final meta = [
-      if (university.city != null) university.city!,
+      ?cityName(context, university),
       if (topik != null) 'TOPIK ${scoreText(topik)}+',
     ].join(' · ');
     const faint = Color(0x8CFFFFFF); // .55
@@ -666,7 +666,7 @@ class _CatalogCardState extends State<CatalogCard> {
                     ConstrainedBox(
                       constraints: const BoxConstraints(minHeight: 30),
                       child: Text(
-                        university.displayName,
+                        universityName(context, university),
                         maxLines: 3,
                         overflow: TextOverflow.ellipsis,
                         style: _inter(12.5, FontWeight.w700, Colors.white, height: 1.2),

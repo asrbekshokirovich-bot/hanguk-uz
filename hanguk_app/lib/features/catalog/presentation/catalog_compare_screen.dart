@@ -192,7 +192,7 @@ class _CatalogCompareScreenState extends ConsumerState<CatalogCompareScreen> {
                                 label: l.compareRowRequirements,
                                 items: [
                                   for (final p in picks)
-                                    (short: p.university.displayName, text: _requirements(p.detail)),
+                                    (short: universityName(context, p.university), text: _requirements(p.detail)),
                                 ],
                               ),
                             ],
@@ -244,7 +244,7 @@ class _CatalogCompareScreenState extends ConsumerState<CatalogCompareScreen> {
       _Row(l.compareRowTopik, [for (final v in topik) score(v)], best: _lowest(topik), bestLabel: l.compareBestLower),
       _Row(l.compareRowIelts, [for (final v in ielts) score(v)], best: _lowest(ielts), bestLabel: l.compareBestLower),
       _Row(l.compareRowDeadline, [for (final p in picks) _deadline(context, p.detail) ?? _dash]),
-      _Row(l.compareRowCity, [for (final p in picks) p.university.city ?? _dash]),
+      _Row(l.compareRowCity, [for (final p in picks) cityName(context, p.university) ?? _dash]),
     ];
   }
 
@@ -478,7 +478,7 @@ class _UniversityColumn extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.fromLTRB(3, 0, 3, 4),
               child: Text(
-                university.displayName,
+                universityName(context, university),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: _inter(12, FontWeight.w700, height: 1.2),
