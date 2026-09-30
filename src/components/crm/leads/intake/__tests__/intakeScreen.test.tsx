@@ -96,12 +96,24 @@ describe('LeadsTable', () => {
     expect(screen.getByText(/Qayta aloqa: 15-avgust · ertaga/)).toBeInTheDocument();
   });
 
-  it('opens the lead that was clicked', () => {
+  it('opens the profile of the lead that was clicked', () => {
     const onOpen = vi.fn();
+    const onOpenProfile = vi.fn();
     const target = lead();
-    renderWithI18n(table({ leads: [target], onOpen }));
+    renderWithI18n(table({ leads: [target], onOpen, onOpenProfile }));
     fireEvent.click(screen.getByRole('button', { name: /Muhammad Eshmurodov/ }));
+    expect(onOpenProfile).toHaveBeenCalledWith(target);
+    expect(onOpen).not.toHaveBeenCalled();
+  });
+
+  it('opens the edit sheet from the pencil button, not the profile', () => {
+    const onOpen = vi.fn();
+    const onOpenProfile = vi.fn();
+    const target = lead();
+    renderWithI18n(table({ leads: [target], onOpen, onOpenProfile }));
+    fireEvent.click(screen.getByRole('button', { name: 'Tahrirlash' }));
     expect(onOpen).toHaveBeenCalledWith(target);
+    expect(onOpenProfile).not.toHaveBeenCalled();
   });
 
   it('reads the created-at line as a relative age', () => {

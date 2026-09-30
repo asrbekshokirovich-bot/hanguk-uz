@@ -2,6 +2,7 @@ import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { I18nextProvider, initReactI18next } from 'react-i18next';
 import { createInstance } from 'i18next';
+import { MemoryRouter } from 'react-router-dom';
 import uz from '@/locales/uz.json';
 import type { Lead } from '@/contexts/LeadsContext';
 
@@ -21,6 +22,12 @@ const refetch = vi.fn().mockResolvedValue(undefined);
 const deleteLead = vi.fn().mockResolvedValue(undefined);
 
 let leads: Lead[] = [];
+
+// The page reads the signed-in user only to decide whether to show the report
+// link; importing the real context would build a Supabase client.
+vi.mock('@/contexts/AuthContext', () => ({
+  useAuth: () => ({ user: { id: 'staff-1' } }),
+}));
 
 vi.mock('@/hooks/useLeads', () => ({
   useLeads: () => ({
@@ -66,9 +73,11 @@ const renderPage = async (rows: Lead[]) => {
   leads = rows;
   const { default: LeadsContent } = await import('../LeadsContent');
   return render(
-    <I18nextProvider i18n={i18n}>
-      <LeadsContent />
-    </I18nextProvider>,
+    <MemoryRouter>
+      <I18nextProvider i18n={i18n}>
+        <LeadsContent />
+      </I18nextProvider>
+    </MemoryRouter>,
   );
 };
 
@@ -219,7 +228,8 @@ describe('LeadsContent delete', () => {
   it('is offered to an admin, behind a confirmation', async () => {
     const rows = [lead({ id: 'a', full_name: 'Aziz Karimov' })];
     await renderPage(rows);
-    fireEvent.click(screen.getByRole('button', { name: /Aziz Karimov/ }));
+    // The row itself opens the profile; the edit sheet has its own button.
+    fireEvent.click(screen.getByRole('button', { name: 'Tahrirlash' }));
 
     fireEvent.click(await screen.findByRole('button', { name: 'O‘chirish' }));
     // Nothing is destroyed on the first click.
@@ -235,7 +245,8 @@ describe('LeadsContent delete', () => {
     // role check here would hide a button the database would honour.
     const rows = [lead({ id: 'a', full_name: 'Aziz Karimov' })];
     await renderPage(rows);
-    fireEvent.click(screen.getByRole('button', { name: /Aziz Karimov/ }));
+    // The row itself opens the profile; the edit sheet has its own button.
+    fireEvent.click(screen.getByRole('button', { name: 'Tahrirlash' }));
     expect(await screen.findByRole('button', { name: 'O‘chirish' })).toBeInTheDocument();
   });
 
