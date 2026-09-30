@@ -220,6 +220,7 @@
     "admin": "Admin",
     "leads": "Leads",
     "newLeads": "New leads",
+    "todayLeads": "Today's leads",
     "aiTranslation": "AI Translation",
     "kakaoMap": "Kakao Map",
     "overview": "Overview",
@@ -715,6 +716,7 @@
     "intake": {
       "subtitle": "Click a row to fill in the student's details",
       "newSectionSubtitle": "New chats from people writing to us on Instagram or Telegram for the first time. Contact them within 10 minutes — once you reply in the chat or set a result in the Contact column, the lead leaves this list.",
+      "todaySectionSubtitle": "Leads that arrived today, once they leave “New leads”. At midnight (00:00) they move to “Leads”.",
       "newLead": "+ New lead",
       "newTitle": "New lead",
       "empty": "No leads yet. Add one with “+ New lead”.",
@@ -843,6 +845,7 @@
       },
       "emptyBy": {
         "new": "No new leads yet. When someone writes to us on Instagram or Telegram for the first time, they appear here.",
+        "today": "No leads yet today. Today's leads appear here once they leave “New leads”.",
         "active": "No leads in progress. Add one with “+ New lead”.",
         "converted": "No lead has been turned into a student yet.",
         "rejected": "No rejected leads."
