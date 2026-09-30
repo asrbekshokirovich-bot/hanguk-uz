@@ -1,12 +1,13 @@
-// translate-app-texts — fill in the English, Korean and Russian names of the
-// admission documents shown in the app's university catalogue.
+// translate-app-texts — fill in the English, Korean and Russian of the Uzbek
+// texts the app shows: admission document names in the university catalogue
+// and survey titles, descriptions, questions and options.
 //
-// The guideline Excel is filled in Uzbek, so `university_guideline_docs
-// .hujjat_nomi` is Uzbek. The app shows it in the language the student chose
-// (owner, 2026-09-30: everything but faculty names follows the app language),
-// reading the translation from `app_text_translations`
-// (20260930220000_app_text_translations.sql). Names already there were
-// translated by hand; this function translates any name added since, and runs
+// Both are written in Uzbek (the guideline Excel, the CRM survey editor). The
+// app shows them in the language the student chose (owner, 2026-09-30:
+// everything but faculty names follows the app language), reading the
+// translation from `app_text_translations`
+// (20260930220000_app_text_translations.sql). Texts already there were
+// translated by hand; this function translates any text added since, and runs
 // every 30 minutes from pg_cron (translate-app-texts-30min).
 //
 // Called with the project's secret key in `apikey`, or the service-role key as
@@ -43,12 +44,14 @@ function knownSecretKeys(): string[] {
 }
 
 const SYSTEM =
-  "You translate the names of admission documents for Korean universities from Uzbek " +
-  "into English, Korean and Russian, as a university admissions office would write them " +
-  "(e.g. 'Ariza formasi' → Application form / 입학원서 / Заявление-анкета; " +
-  "'Pasport nusxasi' → Passport copy / 여권 사본 / Копия паспорта). Keep abbreviations " +
-  "such as ARC, TOPIK, IELTS as they are. Reply with JSON only: an array with one object " +
-  '{"en": "...", "ko": "...", "ru": "..."} per input, in the same order.';
+  "You translate short Uzbek texts from an app that helps students apply to Korean " +
+  "universities into English, Korean and Russian: admission document names (translate " +
+  "them as a university admissions office would write them, e.g. 'Ariza formasi' → " +
+  "Application form / 입학원서 / Анкета-заявление; 'Pasport nusxasi' → Passport copy / " +
+  "여권 사본 / Копия паспорта) and survey titles, questions and answer options (natural, " +
+  "polite, concise). Keep abbreviations such as ARC, TOPIK, IELTS, and examples such as " +
+  "phone numbers, emails and addresses, as they are. Reply with JSON only: an array with " +
+  'one object {"en": "...", "ko": "...", "ru": "..."} per input, in the same order.';
 
 type Row = { en: string; ko: string; ru: string };
 

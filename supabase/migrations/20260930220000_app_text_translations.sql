@@ -12,6 +12,9 @@
 --     translate-app-texts edge function, which pg_cron runs every 30 minutes.
 --   * v_app_university_docs gains hujjat_nomi_en / _ko / _ru; the app picks
 --     the one for its language and falls back to the Uzbek name.
+--   * Surveys are written in Uzbek in the CRM too: their title, description,
+--     questions and options go through the same table, which the app reads
+--     directly (it holds nothing but translations of texts the app shows).
 
 create table if not exists public.app_text_translations (
   source        text primary key,
@@ -24,6 +27,12 @@ create table if not exists public.app_text_translations (
 
 alter table public.app_text_translations enable row level security;
 revoke all on table public.app_text_translations from anon, authenticated;
+grant select on table public.app_text_translations to anon, authenticated;
+
+drop policy if exists "app_text_translations_read" on public.app_text_translations;
+create policy "app_text_translations_read" on public.app_text_translations
+  for select to anon, authenticated
+  using (true);
 
 -- As in 20260925180000_app_university_catalog_views.sql, plus the translations.
 create or replace view public.v_app_university_docs as
@@ -43,7 +52,8 @@ left join public.app_text_translations t on t.source = d.hujjat_nomi;
 revoke all on public.v_app_university_docs from public, anon, authenticated;
 grant select on public.v_app_university_docs to anon, authenticated;
 
--- The document names nobody has translated yet, for translate-app-texts.
+-- The Uzbek texts the app shows that nobody has translated yet, for
+-- translate-app-texts: catalogue document names and survey texts.
 create or replace function public.fn_app_texts_untranslated(p_limit integer default 40)
 returns table(source text)
 language sql
@@ -51,10 +61,17 @@ stable
 security definer
 set search_path to 'pg_catalog', 'public'
 as $$
-  select distinct d.hujjat_nomi
-    from public.university_guideline_docs d
-    left join public.app_text_translations t on t.source = d.hujjat_nomi
-   where coalesce(trim(d.hujjat_nomi), '') <> ''
+  select x.src
+    from (
+      select d.hujjat_nomi as src from public.university_guideline_docs d
+      union select s.title from public.surveys s
+      union select s.description from public.surveys s
+      union select q.question_text from public.survey_questions q
+      union select jsonb_array_elements_text(q.options) from public.survey_questions q
+       where jsonb_typeof(q.options) = 'array'
+    ) x
+    left join public.app_text_translations t on t.source = x.src
+   where coalesce(trim(x.src), '') <> ''
      and t.source is null
    order by 1
    limit greatest(coalesce(p_limit, 40), 1)
@@ -399,4 +416,48 @@ insert into public.app_text_translations (source, en, ko, ru) values
   ('Yashash xarajatlari rejasi', 'Living expenses plan', '체재비 지급신청서', 'План расходов на проживание'),
   ('Yotoqxona arizasi', 'Dormitory application', '기숙사 입사 신청서', 'Заявление на общежитие'),
   ('Yutuqlarni tasdiqlovchi hujjatlar', 'Proof of achievements', '우수 실적 증빙서류', 'Документы, подтверждающие достижения')
+on conflict (source) do nothing;
+
+-- Survey texts (title, description, questions, options) on 2026-09-30,
+-- translated by hand. Matched on the text with its spacing tidied, and stored
+-- under the exact text the survey holds.
+insert into public.app_text_translations (source, en, ko, ru)
+select distinct s.src, v.en, v.ko, v.ru
+  from (values
+  ('UNIVERSITETGA ARIZA TOPSHIRISH UCHUN MAXSUS SO''ROVNOMA', 'SPECIAL SURVEY FOR THE UNIVERSITY APPLICATION', '대학 지원을 위한 특별 설문', 'СПЕЦИАЛЬНАЯ АНКЕТА ДЛЯ ПОДАЧИ ЗАЯВЛЕНИЯ В УНИВЕРСИТЕТ'),
+  ('Universtet tanlash uchun so''rovnoma', 'Survey for choosing a university', '대학 선택을 위한 설문', 'Анкета для выбора университета'),
+  ('Universitetga ariza topshirayotganda shaxsiy ma''lumotlaringiz kerak bo''ladi. Shu sababli shaxsiy ma''lumotlaringizni batafsil va to''g''ri kiritishingiz talab qilinadi.', 'Your personal details are needed for the university application, so please fill them in fully and accurately.', '대학 지원 시 개인정보가 필요합니다. 개인정보를 자세하고 정확하게 입력해 주세요.', 'Для подачи заявления в университет понадобятся ваши личные данные, поэтому заполните их подробно и точно.'),
+  ('ushbu so''rovnomani to''ldirganingizdan keyin siz uchun mos keladigan universtetlarni aniqlaymiz va siz bilan birga eng to''g''ri variantlarni tanlab olamiz !', 'Once you fill in this survey, we will find the universities that suit you and choose the best options together with you!', '설문을 작성해 주시면 잘 맞는 대학을 찾아 함께 가장 좋은 선택지를 고르겠습니다!', 'После заполнения анкеты мы подберём подходящие вам университеты и вместе выберем лучшие варианты!'),
+  ('2 ta telefon raqamingizni yozing. ( ex: 1. +998901234567 2. +998991234567 )', 'Enter two phone numbers. (e.g. 1. +998901234567 2. +998991234567)', '전화번호 2개를 입력하세요. (예: 1. +998901234567 2. +998991234567)', 'Укажите два номера телефона. (напр.: 1. +998901234567 2. +998991234567)'),
+  ('Email manzilingizni yozing. ( ex: hangukuz@gmail.com )', 'Enter your email address. (e.g. hangukuz@gmail.com)', '이메일 주소를 입력하세요. (예: hangukuz@gmail.com)', 'Укажите адрес электронной почты. (напр.: hangukuz@gmail.com)'),
+  ('Ingliz tilida uy manzilingizni to''liq yozing. Zip code ham yozilishi talab qilinadi. ( ex: 264-house, Milliy bog street, Barkamol MSG, Mirzo Ulugbek district, Tashkent city, 111221, Uzbekistan. )', 'Enter your full home address in English, including the zip code. (e.g. 264-house, Milliy bog street, Barkamol MSG, Mirzo Ulugbek district, Tashkent city, 111221, Uzbekistan.)', '집 주소를 영어로 우편번호까지 모두 입력하세요. (예: 264-house, Milliy bog street, Barkamol MSG, Mirzo Ulugbek district, Tashkent city, 111221, Uzbekistan.)', 'Укажите полный домашний адрес на английском, включая почтовый индекс. (напр.: 264-house, Milliy bog street, Barkamol MSG, Mirzo Ulugbek district, Tashkent city, 111221, Uzbekistan.)'),
+  ('Yotoqxona olasizmi?', 'Will you stay in the dormitory?', '기숙사에 입사하시겠어요?', 'Будете жить в общежитии?'),
+  ('Otangizning telefon raqamini yozing. ( ex: 1. +998901234567 )', 'Enter your father''s phone number. (e.g. 1. +998901234567)', '아버지의 전화번호를 입력하세요. (예: 1. +998901234567)', 'Укажите номер телефона отца. (напр.: 1. +998901234567)'),
+  ('Otangizning kasbini yozing. Ingliz yoki koreys tilida yozing.', 'Enter your father''s occupation, in English or Korean.', '아버지의 직업을 영어나 한국어로 입력하세요.', 'Укажите профессию отца на английском или корейском.'),
+  ('Onangizning telefon raqamini yozing. ( ex: 1. +998901234567 )', 'Enter your mother''s phone number. (e.g. 1. +998901234567)', '어머니의 전화번호를 입력하세요. (예: 1. +998901234567)', 'Укажите номер телефона матери. (напр.: 1. +998901234567)'),
+  ('Onangizning kasbini yozing. Ingliz yoki koreys tilida yozing.', 'Enter your mother''s occupation, in English or Korean.', '어머니의 직업을 영어나 한국어로 입력하세요.', 'Укажите профессию матери на английском или корейском.'),
+  ('Janubiy koreada asosiy maqsadingiz', 'Your main goal in South Korea', '한국에서의 주된 목표', 'Ваша главная цель в Южной Корее'),
+  ('koreada tanishingiz bormi?', 'Do you know anyone in Korea?', '한국에 아는 사람이 있나요?', 'Есть ли у вас знакомые в Корее?'),
+  ('o''zingiz tanlagan universtetingiz bormi? ( quyida barchasini yozib o''ting )', 'Do you have universities you have chosen yourself? (list them all below)', '직접 고른 대학이 있나요? (아래에 모두 적어 주세요)', 'Есть ли университеты, которые вы выбрали сами? (перечислите все ниже)'),
+  ('Janubiy koreaning aynan qaysidir shahrida o''qishni xoxlaysizmi? agar ha bo''lsa quyida shahar nomini yozib qo''ying !', 'Do you want to study in a particular city in South Korea? If so, write the city below!', '한국의 특정 도시에서 공부하고 싶으신가요? 그렇다면 아래에 도시 이름을 적어 주세요!', 'Хотите учиться в каком-то определённом городе Южной Кореи? Если да, напишите его ниже!'),
+  ('Ota onangiz rasmiy daromatga ekami? ( agar ha bo''lsa yiliga taxminan qancha )', 'Do your parents have an official income? (if so, roughly how much per year)', '부모님께서 공식 소득이 있으신가요? (있다면 연간 대략 얼마인지)', 'Есть ли у ваших родителей официальный доход? (если да, примерно сколько в год)'),
+  ('Ota onangiz nomida uy joy yoki avtomoshina bormi ?', 'Do your parents own a home or a car in their name?', '부모님 명의의 집이나 자동차가 있나요?', 'Есть ли у ваших родителей жильё или автомобиль в собственности?'),
+  ('Oldin Janubiy koreaga o''qishga topshirib ko''rganmisiz', 'Have you applied to study in South Korea before?', '이전에 한국 유학에 지원해 본 적이 있나요?', 'Подавали ли вы раньше документы на учёбу в Южную Корею?'),
+  ('Janubiy korea elchixonasiga xujjat topshirib rad javobi olganmisiz?', 'Have you ever been refused after applying at the South Korean embassy?', '한국 대사관에 서류를 제출했다가 거절된 적이 있나요?', 'Получали ли вы отказ после подачи документов в посольство Южной Кореи?'),
+  ('HA', 'YES', '예', 'ДА'),
+  ('ha', 'yes', '예', 'да'),
+  ('YO''Q', 'NO', '아니요', 'НЕТ'),
+  ('yo''q', 'no', '아니요', 'нет'),
+  ('Ishlash', 'Working', '일', 'Работа'),
+  ('O''qish', 'Studying', '공부', 'Учёба'),
+  ('ikkalasi ham lekin ishlash ustunroq', 'Both, but mainly working', '둘 다, 하지만 일이 우선', 'И то и другое, но в основном работа'),
+  ('ikkalasi ham lekin o''qish ustunroq', 'Both, but mainly studying', '둘 다, 하지만 공부가 우선', 'И то и другое, но в основном учёба')
+  ) as v(key, en, ko, ru)
+  join (
+    select title as src from public.surveys
+    union select description from public.surveys
+    union select question_text from public.survey_questions
+    union select jsonb_array_elements_text(options) from public.survey_questions
+     where jsonb_typeof(options) = 'array'
+  ) s on regexp_replace(btrim(s.src), '\s+', ' ', 'g') = v.key
 on conflict (source) do nothing;
