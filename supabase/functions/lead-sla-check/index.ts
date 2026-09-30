@@ -12,6 +12,9 @@
 // working hours (after_hours.ts); their countdown, and so their alert, starts
 // at the next working 10:00 (fn_lead_sla_scan times from leads.sla_start_at).
 //
+// It also runs the owner's watchdogs (watchdog.ts): a new lead closed within
+// 30 seconds, and the 09:30 daily count.
+//
 // Called every minute by pg_cron (lead-sla-check-1min). Pass ?dry=1 to see
 // what would fire without marking anything or sending — safe to call by hand.
 //
@@ -21,6 +24,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 import { sendAfterHoursReplies } from "./after_hours.ts";
+import { runWatchdogs } from "./watchdog.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -115,6 +119,7 @@ serve(async (req) => {
 
   try {
     const afterHours = await sendAfterHoursReplies(supabase, dry);
+    const watchdogs = await runWatchdogs(supabase, dry, sendTelegram);
 
     const { data, error } = await supabase.rpc("fn_lead_sla_scan", {
       p_minutes: SLA_MINUTES,
@@ -125,7 +130,7 @@ serve(async (req) => {
     const overdue = (data ?? []) as OverdueLead[];
 
     if (dry) {
-      return json({ ok: true, dry: true, overdue, after_hours: afterHours.leads ?? [] });
+      return json({ ok: true, dry: true, overdue, after_hours: afterHours.leads ?? [], watchdogs });
     }
 
     const chats = overdue.length ? await recipients(supabase) : [];
@@ -154,6 +159,8 @@ serve(async (req) => {
       recipients: chats.length,
       after_hours_claimed: afterHours.claimed,
       after_hours_sent: afterHours.sent,
+      quick_exits: watchdogs.quick_exits,
+      daily_report_sent: watchdogs.report_sent,
     });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Unknown error";
