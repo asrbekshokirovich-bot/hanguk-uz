@@ -1920,4 +1920,91 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get compareBestLower => 'Lower';
+
+  @override
+  String get entryRegisterTitle => 'Sign up';
+
+  @override
+  String get entryRegisterSubtitle =>
+      'Create an account with your phone number and a password.';
+
+  @override
+  String get entryPhoneLabel => 'Phone number';
+
+  @override
+  String get entryPasswordLabel => 'Password';
+
+  @override
+  String get entryPasswordConfirmLabel => 'Repeat password';
+
+  @override
+  String get entryPasswordHint => 'At least 6 characters';
+
+  @override
+  String get entryRegisterSubmit => 'Sign up';
+
+  @override
+  String get entryHaveAccount => 'Already have an account?';
+
+  @override
+  String get entrySignInLink => 'Sign in';
+
+  @override
+  String get entrySignInTitle => 'Sign in';
+
+  @override
+  String get entrySignInSubtitle =>
+      'Enter the phone number and password you signed up with.';
+
+  @override
+  String get entrySignInSubmit => 'Sign in';
+
+  @override
+  String get entryNoAccount => 'No account yet?';
+
+  @override
+  String get entryRegisterLink => 'Sign up';
+
+  @override
+  String get entryErrorPhone => 'Enter the full number: 9 digits after +998.';
+
+  @override
+  String get entryErrorPasswordShort =>
+      'The password must be at least 6 characters.';
+
+  @override
+  String get entryErrorPasswordMismatch => 'The passwords do not match.';
+
+  @override
+  String get entryErrorExists =>
+      'This number is already signed up. Sign in with your password.';
+
+  @override
+  String get entryStudentNotice =>
+      'You are a Hanguk student — sign in with the Magic Code your consultant gave you.';
+
+  @override
+  String get entryErrorNotFound => 'This number is not signed up yet.';
+
+  @override
+  String get entryErrorWrongPassword => 'Wrong password.';
+
+  @override
+  String get entryErrorLocked => 'Too many attempts. Try again in 15 minutes.';
+
+  @override
+  String get entryErrorNetwork =>
+      'Could not reach the server. Check your connection and try again.';
+
+  @override
+  String get entryShowPassword => 'Show password';
+
+  @override
+  String get entryHidePassword => 'Hide password';
+
+  @override
+  String get entryLanguageLabel => 'Language';
+
+  @override
+  String get entryLanguageSheetTitle => 'Choose a language';
 }

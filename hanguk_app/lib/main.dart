@@ -10,6 +10,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/router/app_router.dart';
 import 'design_system/theme/app_theme.dart';
 import 'features/auth/presentation/widgets/sign_in_chrome.dart';
+import 'features/entry/data/entry_store.dart';
 import 'features/map/data/map_repository.dart';
 import 'features/uni_db/data/fcm_token_source.dart';
 import 'features/uni_db/data/notification_service.dart';
@@ -56,6 +57,10 @@ Future<void> main() async {
   } catch (e) {
     debugPrint('Supabase init error (offline mode): $e');
   }
+
+  // The language picked on the first screen and whether this phone has signed
+  // up, known before the first frame (the router decides on both).
+  EntryStore.initial = await EntryStore.load();
 
   // Warm the Map tab's institutions query as soon as Supabase is ready,
   // instead of waiting for the user to open the tab. The Map screen also
@@ -109,6 +114,8 @@ class HangukApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final goRouter = ref.watch(appRouterProvider);
+    // The language chosen in the app; the phone's own until one is chosen.
+    final locale = ref.watch(entryProvider.select((s) => s.locale));
 
     // Wire FCM token source and start listening to auth-state changes.
     ref.read(pushTokenBootstrapProvider).setTokenSource(fcmTokenSource);
@@ -118,6 +125,7 @@ class HangukApp extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.materialTheme,
       routerConfig: goRouter,
+      locale: locale,
       builder: (context, child) {
         // Auto-update gate runs on launch + every foreground transition,
         // so updates aren't gated behind the login screen anymore.

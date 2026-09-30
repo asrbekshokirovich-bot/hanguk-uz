@@ -2420,5 +2420,113 @@
   "compareBestLower": "Lower",
   "@compareBestLower": {
     "description": "Badge on the lower TOPIK or IELTS requirement."
+  },
+  "entryRegisterTitle": "Sign up",
+  "@entryRegisterTitle": {
+    "description": "Title of the phone sign-up screen."
+  },
+  "entryRegisterSubtitle": "Create an account with your phone number and a password.",
+  "@entryRegisterSubtitle": {
+    "description": "Line under the sign-up title."
+  },
+  "entryPhoneLabel": "Phone number",
+  "@entryPhoneLabel": {
+    "description": "Label above the phone number field."
+  },
+  "entryPasswordLabel": "Password",
+  "@entryPasswordLabel": {
+    "description": "Label above the password field."
+  },
+  "entryPasswordConfirmLabel": "Repeat password",
+  "@entryPasswordConfirmLabel": {
+    "description": "Label above the repeat-password field on sign-up."
+  },
+  "entryPasswordHint": "At least 6 characters",
+  "@entryPasswordHint": {
+    "description": "Placeholder in the password field."
+  },
+  "entryRegisterSubmit": "Sign up",
+  "@entryRegisterSubmit": {
+    "description": "Primary button on the sign-up screen."
+  },
+  "entryHaveAccount": "Already have an account?",
+  "@entryHaveAccount": {
+    "description": "Text before the sign-in link on the sign-up screen."
+  },
+  "entrySignInLink": "Sign in",
+  "@entrySignInLink": {
+    "description": "Link from sign-up to sign-in."
+  },
+  "entrySignInTitle": "Sign in",
+  "@entrySignInTitle": {
+    "description": "Title of the phone sign-in screen."
+  },
+  "entrySignInSubtitle": "Enter the phone number and password you signed up with.",
+  "@entrySignInSubtitle": {
+    "description": "Line under the sign-in title."
+  },
+  "entrySignInSubmit": "Sign in",
+  "@entrySignInSubmit": {
+    "description": "Primary button on the sign-in screen."
+  },
+  "entryNoAccount": "No account yet?",
+  "@entryNoAccount": {
+    "description": "Text before the sign-up link on the sign-in screen."
+  },
+  "entryRegisterLink": "Sign up",
+  "@entryRegisterLink": {
+    "description": "Link from sign-in to sign-up."
+  },
+  "entryErrorPhone": "Enter the full number: 9 digits after +998.",
+  "@entryErrorPhone": {
+    "description": "The phone number is not 9 digits after +998."
+  },
+  "entryErrorPasswordShort": "The password must be at least 6 characters.",
+  "@entryErrorPasswordShort": {
+    "description": "The password is shorter than 6 characters."
+  },
+  "entryErrorPasswordMismatch": "The passwords do not match.",
+  "@entryErrorPasswordMismatch": {
+    "description": "The two passwords on sign-up differ."
+  },
+  "entryErrorExists": "This number is already signed up. Sign in with your password.",
+  "@entryErrorExists": {
+    "description": "Sign-up with a number that already has an account."
+  },
+  "entryStudentNotice": "You are a Hanguk student — sign in with the Magic Code your consultant gave you.",
+  "@entryStudentNotice": {
+    "description": "Shown on the Magic Code screen when the number belongs to a Hanguk student."
+  },
+  "entryErrorNotFound": "This number is not signed up yet.",
+  "@entryErrorNotFound": {
+    "description": "Sign-in with a number that has no account."
+  },
+  "entryErrorWrongPassword": "Wrong password.",
+  "@entryErrorWrongPassword": {
+    "description": "Sign-in with the wrong password."
+  },
+  "entryErrorLocked": "Too many attempts. Try again in 15 minutes.",
+  "@entryErrorLocked": {
+    "description": "Ten wrong passwords in a row."
+  },
+  "entryErrorNetwork": "Could not reach the server. Check your connection and try again.",
+  "@entryErrorNetwork": {
+    "description": "The server could not be reached."
+  },
+  "entryShowPassword": "Show password",
+  "@entryShowPassword": {
+    "description": "Screen-reader label of the eye button that shows the password."
+  },
+  "entryHidePassword": "Hide password",
+  "@entryHidePassword": {
+    "description": "Screen-reader label of the eye button that hides the password."
+  },
+  "entryLanguageLabel": "Language",
+  "@entryLanguageLabel": {
+    "description": "Label of the language setting."
+  },
+  "entryLanguageSheetTitle": "Choose a language",
+  "@entryLanguageSheetTitle": {
+    "description": "Title of the language picker sheet."
   }
 }

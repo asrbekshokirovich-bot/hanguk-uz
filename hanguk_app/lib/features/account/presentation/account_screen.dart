@@ -12,6 +12,8 @@ import '../../../core/config/app_config.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/data/auth_repository.dart';
+import '../../entry/data/entry_store.dart';
+import '../../entry/presentation/language_sheet.dart';
 
 /// Account management screen — sign out and (irreversibly) delete the
 /// account. The deletion flow is required by both Apple App Store
@@ -257,6 +259,23 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                     ? l10n.accountSigningOut
                     : l10n.accountSignOut,
                 onPressed: _signingOut ? null : _signOut,
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            // The language chosen on the app's first screen.
+            _AccountCard(
+              glyph: '언',
+              title: l10n.entryLanguageLabel,
+              ko: '언어',
+              child: SeoulOutlineButton(
+                icon: Icons.language_rounded,
+                label:
+                    kEntryLanguageNames[ref.watch(entryProvider).languageCode ??
+                        Localizations.localeOf(context).languageCode] ??
+                    l10n.entryLanguageLabel,
+                onPressed: () => showLanguageSheet(context, ref),
               ),
             ),
 

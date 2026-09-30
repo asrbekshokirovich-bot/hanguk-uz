@@ -1864,4 +1864,85 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get compareBestLower => '더 낮음';
+
+  @override
+  String get entryRegisterTitle => '회원가입';
+
+  @override
+  String get entryRegisterSubtitle => '전화번호와 비밀번호로 계정을 만드세요.';
+
+  @override
+  String get entryPhoneLabel => '전화번호';
+
+  @override
+  String get entryPasswordLabel => '비밀번호';
+
+  @override
+  String get entryPasswordConfirmLabel => '비밀번호 확인';
+
+  @override
+  String get entryPasswordHint => '6자 이상';
+
+  @override
+  String get entryRegisterSubmit => '가입하기';
+
+  @override
+  String get entryHaveAccount => '이미 계정이 있으신가요?';
+
+  @override
+  String get entrySignInLink => '로그인';
+
+  @override
+  String get entrySignInTitle => '로그인';
+
+  @override
+  String get entrySignInSubtitle => '가입한 전화번호와 비밀번호를 입력하세요.';
+
+  @override
+  String get entrySignInSubmit => '로그인';
+
+  @override
+  String get entryNoAccount => '계정이 없으신가요?';
+
+  @override
+  String get entryRegisterLink => '회원가입';
+
+  @override
+  String get entryErrorPhone => '+998 뒤에 9자리 번호를 모두 입력하세요.';
+
+  @override
+  String get entryErrorPasswordShort => '비밀번호는 6자 이상이어야 합니다.';
+
+  @override
+  String get entryErrorPasswordMismatch => '비밀번호가 일치하지 않습니다.';
+
+  @override
+  String get entryErrorExists => '이미 가입된 번호입니다. 비밀번호로 로그인하세요.';
+
+  @override
+  String get entryStudentNotice => 'Hanguk 학생이시네요 — 상담사가 드린 매직 코드로 로그인하세요.';
+
+  @override
+  String get entryErrorNotFound => '가입되지 않은 번호입니다.';
+
+  @override
+  String get entryErrorWrongPassword => '비밀번호가 올바르지 않습니다.';
+
+  @override
+  String get entryErrorLocked => '시도 횟수가 너무 많습니다. 15분 후에 다시 시도하세요.';
+
+  @override
+  String get entryErrorNetwork => '서버에 연결할 수 없습니다. 인터넷 연결을 확인하고 다시 시도하세요.';
+
+  @override
+  String get entryShowPassword => '비밀번호 보기';
+
+  @override
+  String get entryHidePassword => '비밀번호 숨기기';
+
+  @override
+  String get entryLanguageLabel => '언어';
+
+  @override
+  String get entryLanguageSheetTitle => '언어 선택';
 }

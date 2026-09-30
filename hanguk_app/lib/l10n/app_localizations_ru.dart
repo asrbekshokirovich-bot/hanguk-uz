@@ -1920,4 +1920,92 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get compareBestLower => 'Ниже';
+
+  @override
+  String get entryRegisterTitle => 'Регистрация';
+
+  @override
+  String get entryRegisterSubtitle =>
+      'Создайте аккаунт по номеру телефона и паролю.';
+
+  @override
+  String get entryPhoneLabel => 'Номер телефона';
+
+  @override
+  String get entryPasswordLabel => 'Пароль';
+
+  @override
+  String get entryPasswordConfirmLabel => 'Повторите пароль';
+
+  @override
+  String get entryPasswordHint => 'Не менее 6 символов';
+
+  @override
+  String get entryRegisterSubmit => 'Зарегистрироваться';
+
+  @override
+  String get entryHaveAccount => 'Уже есть аккаунт?';
+
+  @override
+  String get entrySignInLink => 'Войти';
+
+  @override
+  String get entrySignInTitle => 'Вход';
+
+  @override
+  String get entrySignInSubtitle =>
+      'Введите номер телефона и пароль, указанные при регистрации.';
+
+  @override
+  String get entrySignInSubmit => 'Войти';
+
+  @override
+  String get entryNoAccount => 'Нет аккаунта?';
+
+  @override
+  String get entryRegisterLink => 'Зарегистрироваться';
+
+  @override
+  String get entryErrorPhone => 'Введите номер полностью: 9 цифр после +998.';
+
+  @override
+  String get entryErrorPasswordShort =>
+      'Пароль должен быть не короче 6 символов.';
+
+  @override
+  String get entryErrorPasswordMismatch => 'Пароли не совпадают.';
+
+  @override
+  String get entryErrorExists =>
+      'Этот номер уже зарегистрирован. Войдите с паролем.';
+
+  @override
+  String get entryStudentNotice =>
+      'Вы студент Hanguk — войдите с помощью Magic Code, который дал ваш консультант.';
+
+  @override
+  String get entryErrorNotFound => 'Этот номер не зарегистрирован.';
+
+  @override
+  String get entryErrorWrongPassword => 'Неверный пароль.';
+
+  @override
+  String get entryErrorLocked =>
+      'Слишком много попыток. Попробуйте через 15 минут.';
+
+  @override
+  String get entryErrorNetwork =>
+      'Не удалось связаться с сервером. Проверьте интернет и попробуйте снова.';
+
+  @override
+  String get entryShowPassword => 'Показать пароль';
+
+  @override
+  String get entryHidePassword => 'Скрыть пароль';
+
+  @override
+  String get entryLanguageLabel => 'Язык';
+
+  @override
+  String get entryLanguageSheetTitle => 'Выберите язык';
 }

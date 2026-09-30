@@ -1929,4 +1929,93 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get compareBestLower => 'Pastroq';
+
+  @override
+  String get entryRegisterTitle => 'Ro‘yxatdan o‘tish';
+
+  @override
+  String get entryRegisterSubtitle =>
+      'Telefon raqamingiz va parol bilan hisob yarating.';
+
+  @override
+  String get entryPhoneLabel => 'Telefon raqami';
+
+  @override
+  String get entryPasswordLabel => 'Parol';
+
+  @override
+  String get entryPasswordConfirmLabel => 'Parolni takrorlang';
+
+  @override
+  String get entryPasswordHint => 'Kamida 6 ta belgi';
+
+  @override
+  String get entryRegisterSubmit => 'Ro‘yxatdan o‘tish';
+
+  @override
+  String get entryHaveAccount => 'Hisobingiz bormi?';
+
+  @override
+  String get entrySignInLink => 'Kirish';
+
+  @override
+  String get entrySignInTitle => 'Kirish';
+
+  @override
+  String get entrySignInSubtitle =>
+      'Ro‘yxatdan o‘tgan telefon raqamingiz va parolingizni kiriting.';
+
+  @override
+  String get entrySignInSubmit => 'Kirish';
+
+  @override
+  String get entryNoAccount => 'Hisobingiz yo‘qmi?';
+
+  @override
+  String get entryRegisterLink => 'Ro‘yxatdan o‘tish';
+
+  @override
+  String get entryErrorPhone =>
+      'Telefon raqamini to‘liq kiriting: +998 dan keyin 9 ta raqam.';
+
+  @override
+  String get entryErrorPasswordShort =>
+      'Parol kamida 6 ta belgidan iborat bo‘lsin.';
+
+  @override
+  String get entryErrorPasswordMismatch => 'Parollar bir xil emas.';
+
+  @override
+  String get entryErrorExists =>
+      'Bu raqam allaqachon ro‘yxatdan o‘tgan. Parolingiz bilan kiring.';
+
+  @override
+  String get entryStudentNotice =>
+      'Siz Hanguk talabasisiz — maslahatchingiz bergan Magic code bilan kiring.';
+
+  @override
+  String get entryErrorNotFound => 'Bu raqam ro‘yxatdan o‘tmagan.';
+
+  @override
+  String get entryErrorWrongPassword => 'Parol noto‘g‘ri.';
+
+  @override
+  String get entryErrorLocked =>
+      'Juda ko‘p urinish. 15 daqiqadan keyin qayta urinib ko‘ring.';
+
+  @override
+  String get entryErrorNetwork =>
+      'Serverga ulanib bo‘lmadi. Internetni tekshirib, qayta urinib ko‘ring.';
+
+  @override
+  String get entryShowPassword => 'Parolni ko‘rsatish';
+
+  @override
+  String get entryHidePassword => 'Parolni yashirish';
+
+  @override
+  String get entryLanguageLabel => 'Til';
+
+  @override
+  String get entryLanguageSheetTitle => 'Tilni tanlang';
 }

@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/presentation/widgets/sign_in_chrome.dart';
+import '../../entry/data/entry_store.dart';
+import '../../entry/presentation/language_sheet.dart';
 
 /// Guest Explorer (DESIGN_SPEC §3b) — the read-only catalog an external
 /// student browses without a Magic Code.
@@ -59,30 +61,48 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
       backgroundColor: Colors.transparent,
       body: SignInBackdrop(
         child: SafeArea(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              // Centred between the safe areas, but scrollable so a short
-              // screen or a large text scale never overflows.
-              return SingleChildScrollView(
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 0, 24, 40),
-                    child: Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          _hero(l10n),
-                          const SizedBox(height: 40),
-                          _actions(l10n),
-                        ],
+          child: Stack(
+            children: [
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  // Centred between the safe areas, but scrollable so a short
+                  // screen or a large text scale never overflows.
+                  return SingleChildScrollView(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: constraints.maxHeight,
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(24, 0, 24, 40),
+                        child: Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              _hero(l10n),
+                              const SizedBox(height: 40),
+                              _actions(l10n),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
-                  ),
+                  );
+                },
+              ),
+              // The language picked on the first screen, changeable here.
+              PositionedDirectional(
+                top: 8,
+                end: 16,
+                child: _LanguageButton(
+                  code:
+                      ref.watch(entryProvider).languageCode ??
+                      Localizations.localeOf(context).languageCode,
+                  label: l10n.entryLanguageLabel,
+                  onPressed: () => showLanguageSheet(context, ref),
                 ),
-              );
-            },
+              ),
+            ],
           ),
         ),
       ),
@@ -196,6 +216,60 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
           onPressed: () => context.push('/login', extra: {'magic_code': true}),
         ),
       ],
+    );
+  }
+}
+
+/// A small glass pill in the top corner: a globe and the language code.
+class _LanguageButton extends StatelessWidget {
+  const _LanguageButton({
+    required this.code,
+    required this.label,
+    required this.onPressed,
+  });
+
+  final String code;
+  final String label;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return _Pressable(
+      label: '$label: ${kEntryLanguageNames[code] ?? code}',
+      onPressed: onPressed,
+      child: Container(
+        height: 40,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          color: const Color.fromRGBO(255, 255, 255, .06),
+          border: Border.all(color: const Color.fromRGBO(255, 255, 255, .12)),
+        ),
+        foregroundDecoration: const InsetEdgesDecoration(
+          radius: 12,
+          top: Color.fromRGBO(255, 255, 255, .08),
+          inset: 1,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.language_rounded, size: 18, color: Colors.white),
+            const SizedBox(width: 6),
+            Text(
+              code.toUpperCase(),
+              style: const TextStyle(
+                fontFamily: SeoulType.inter,
+                fontFamilyFallback: SeoulType.fallback,
+                fontSize: 13,
+                height: 1.21,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.6,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
