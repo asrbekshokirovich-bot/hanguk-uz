@@ -732,5 +732,16 @@
   "entryShowPassword": "Show password",
   "entryHidePassword": "Hide password",
   "entryLanguageLabel": "Language",
-  "entryLanguageSheetTitle": "Choose a language"
+  "entryLanguageSheetTitle": "Choose a language",
+  "catalogStep1": "Online application",
+  "catalogStep2": "Application fee payment",
+  "catalogStep3": "Offline document submission",
+  "catalogStep4": "Bank statement (for the university)",
+  "catalogStep5": "Interview",
+  "catalogStep6": "Results announced",
+  "catalogStep7": "Tuition payment",
+  "catalogStep8": "Certificate of Admission issued",
+  "catalogStep9": "Bank statement for the visa",
+  "catalogStep10": "Translation and apostille for the visa",
+  "catalogStep11": "Visa application"
 }

@@ -373,7 +373,7 @@ class _CatalogDetailScreenState extends ConsumerState<CatalogDetailScreen> {
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: Text(rounds[i].name ?? '', style: SeoulType.bodySecondary.copyWith(fontSize: 13.5)),
+                child: Text(_stepName(l, rounds[i]), style: SeoulType.bodySecondary.copyWith(fontSize: 13.5)),
               ),
               const SizedBox(width: 8),
               Flexible(
@@ -388,6 +388,23 @@ class _CatalogDetailScreenState extends ConsumerState<CatalogDetailScreen> {
       ],
     );
   }
+
+  /// The step's name in the app's language. The Excel's 11 steps are a fixed
+  /// list numbered by `etap_raqam`; anything else shows as written.
+  static String _stepName(AppLocalizations l, CatalogRound r) => switch (r.step) {
+    1 => l.catalogStep1,
+    2 => l.catalogStep2,
+    3 => l.catalogStep3,
+    4 => l.catalogStep4,
+    5 => l.catalogStep5,
+    6 => l.catalogStep6,
+    7 => l.catalogStep7,
+    8 => l.catalogStep8,
+    9 => l.catalogStep9,
+    10 => l.catalogStep10,
+    11 => l.catalogStep11,
+    _ => r.name ?? '',
+  };
 
   static String _roundValue(BuildContext context, AppLocalizations l, CatalogRound r) {
     final s = r.startDate;

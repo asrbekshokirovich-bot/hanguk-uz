@@ -2528,5 +2528,49 @@
   "entryLanguageSheetTitle": "Choose a language",
   "@entryLanguageSheetTitle": {
     "description": "Title of the language picker sheet."
+  },
+  "catalogStep1": "Online application",
+  "@catalogStep1": {
+    "description": "Admission timeline step 1 of the guideline template (etap_raqam = 1)."
+  },
+  "catalogStep2": "Application fee payment",
+  "@catalogStep2": {
+    "description": "Admission timeline step 2 of the guideline template (etap_raqam = 2)."
+  },
+  "catalogStep3": "Offline document submission",
+  "@catalogStep3": {
+    "description": "Admission timeline step 3 of the guideline template (etap_raqam = 3)."
+  },
+  "catalogStep4": "Bank statement (for the university)",
+  "@catalogStep4": {
+    "description": "Admission timeline step 4 of the guideline template (etap_raqam = 4)."
+  },
+  "catalogStep5": "Interview",
+  "@catalogStep5": {
+    "description": "Admission timeline step 5 of the guideline template (etap_raqam = 5)."
+  },
+  "catalogStep6": "Results announced",
+  "@catalogStep6": {
+    "description": "Admission timeline step 6 of the guideline template (etap_raqam = 6)."
+  },
+  "catalogStep7": "Tuition payment",
+  "@catalogStep7": {
+    "description": "Admission timeline step 7 of the guideline template (etap_raqam = 7)."
+  },
+  "catalogStep8": "Certificate of Admission issued",
+  "@catalogStep8": {
+    "description": "Admission timeline step 8 of the guideline template (etap_raqam = 8)."
+  },
+  "catalogStep9": "Bank statement for the visa",
+  "@catalogStep9": {
+    "description": "Admission timeline step 9 of the guideline template (etap_raqam = 9)."
+  },
+  "catalogStep10": "Translation and apostille for the visa",
+  "@catalogStep10": {
+    "description": "Admission timeline step 10 of the guideline template (etap_raqam = 10)."
+  },
+  "catalogStep11": "Visa application",
+  "@catalogStep11": {
+    "description": "Admission timeline step 11 of the guideline template (etap_raqam = 11)."
   }
 }

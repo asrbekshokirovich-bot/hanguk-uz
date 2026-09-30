@@ -75,7 +75,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get micRequired => '면접을 위해 마이크 권한이 필요합니다.';
 
   @override
-  String get walkaroundLoadingTitle => '캠퍼스 워크어라운드 로딩 중';
+  String get walkaroundLoadingTitle => '캠퍼스 둘러보기 불러오는 중';
 
   @override
   String get walkaroundLoadingSubtitle => '캠퍼스 주변 거리뷰를 가져오는 중입니다.';
@@ -104,13 +104,13 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get walkaroundInitErrorSubtitle =>
-      '워크어라운드 시작 중 오류가 발생했습니다. 다시 시도해 주세요.';
+      '둘러보기를 시작하는 중 오류가 발생했습니다. 다시 시도해 주세요.';
 
   @override
   String get virtualTourTitle => '가상 투어';
 
   @override
-  String get virtualWalkaroundTitle => '가상 워크어라운드';
+  String get virtualWalkaroundTitle => '가상 캠퍼스 둘러보기';
 
   @override
   String get visitUniversityWebsite => '대학 웹사이트 방문';
@@ -1945,4 +1945,37 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get entryLanguageSheetTitle => '언어 선택';
+
+  @override
+  String get catalogStep1 => '온라인 원서 접수';
+
+  @override
+  String get catalogStep2 => '전형료 납부';
+
+  @override
+  String get catalogStep3 => '서류 제출(우편·방문)';
+
+  @override
+  String get catalogStep4 => '은행 잔고증명서 제출(대학)';
+
+  @override
+  String get catalogStep5 => '면접';
+
+  @override
+  String get catalogStep6 => '합격자 발표';
+
+  @override
+  String get catalogStep7 => '등록금 납부';
+
+  @override
+  String get catalogStep8 => '표준입학허가서 발급';
+
+  @override
+  String get catalogStep9 => '비자용 은행 잔고증명서';
+
+  @override
+  String get catalogStep10 => '비자용 번역 및 아포스티유';
+
+  @override
+  String get catalogStep11 => '비자 신청';
 }

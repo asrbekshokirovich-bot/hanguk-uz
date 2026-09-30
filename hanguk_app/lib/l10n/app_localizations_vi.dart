@@ -2004,4 +2004,37 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get entryLanguageSheetTitle => 'Choose a language';
+
+  @override
+  String get catalogStep1 => 'Online application';
+
+  @override
+  String get catalogStep2 => 'Application fee payment';
+
+  @override
+  String get catalogStep3 => 'Offline document submission';
+
+  @override
+  String get catalogStep4 => 'Bank statement (for the university)';
+
+  @override
+  String get catalogStep5 => 'Interview';
+
+  @override
+  String get catalogStep6 => 'Results announced';
+
+  @override
+  String get catalogStep7 => 'Tuition payment';
+
+  @override
+  String get catalogStep8 => 'Certificate of Admission issued';
+
+  @override
+  String get catalogStep9 => 'Bank statement for the visa';
+
+  @override
+  String get catalogStep10 => 'Translation and apostille for the visa';
+
+  @override
+  String get catalogStep11 => 'Visa application';
 }

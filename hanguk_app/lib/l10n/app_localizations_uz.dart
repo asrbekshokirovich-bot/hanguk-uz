@@ -80,44 +80,46 @@ class AppLocalizationsUz extends AppLocalizations {
   String get micRequired => 'Suhbat uchun mikrofon ruxsati kerak.';
 
   @override
-  String get walkaroundLoadingTitle => 'Loading campus walkaround';
+  String get walkaroundLoadingTitle => 'Kampus sayri yuklanmoqda';
 
   @override
-  String get walkaroundLoadingSubtitle => 'Fetching street view near campus.';
+  String get walkaroundLoadingSubtitle =>
+      'Kampus atrofidagi ko‘cha panoramasi yuklanmoqda.';
 
   @override
-  String get walkaroundNoPanoTitle => 'No street view here';
+  String get walkaroundNoPanoTitle => 'Bu yerda ko‘cha panoramasi yo‘q';
 
   @override
   String get walkaroundNoPanoSubtitle =>
-      'This campus doesn\'t have a walkable street view nearby.';
+      'Bu kampus yaqinida sayr qilsa bo‘ladigan ko‘cha panoramasi yo‘q.';
 
   @override
-  String get walkaroundBlockedTitle => 'Street view unavailable';
+  String get walkaroundBlockedTitle => 'Ko‘cha panoramasi mavjud emas';
 
   @override
   String get walkaroundBlockedSubtitle =>
-      'The map provider blocked this request. Try again on a different network.';
+      'Xarita provayderi bu so‘rovni blokladi. Boshqa tarmoq orqali qayta urinib ko‘ring.';
 
   @override
-  String get walkaroundNetworkTitle => 'Couldn\'t reach the map provider';
+  String get walkaroundNetworkTitle => 'Xarita xizmatiga ulanib bo‘lmadi';
 
   @override
   String get walkaroundNetworkSubtitle =>
-      'Check your connection and try again.';
+      'Internetni tekshirib, qayta urinib ko‘ring.';
 
   @override
-  String get walkaroundInitErrorTitle => 'Street view couldn\'t start';
+  String get walkaroundInitErrorTitle =>
+      'Ko‘cha panoramasini ishga tushirib bo‘lmadi';
 
   @override
   String get walkaroundInitErrorSubtitle =>
-      'Something went wrong starting the walkaround. Please try again.';
+      'Sayrni boshlashda xatolik yuz berdi. Iltimos, qayta urinib ko‘ring.';
 
   @override
-  String get virtualTourTitle => 'Virtual Tour';
+  String get virtualTourTitle => 'Virtual sayohat';
 
   @override
-  String get virtualWalkaroundTitle => 'Virtual Walkaround';
+  String get virtualWalkaroundTitle => 'Virtual sayr';
 
   @override
   String get visitUniversityWebsite => 'Universitet veb-saytiga o\'tish';
@@ -1613,7 +1615,7 @@ class AppLocalizationsUz extends AppLocalizations {
   String get guestContactCall => 'Qo\'ng\'iroq qilish';
 
   @override
-  String get guestContactJoinHint => 'Sizda maxfiy kod bormi?';
+  String get guestContactJoinHint => 'Sehrli kodingiz bormi?';
 
   @override
   String get guestContactLaunchFailed => 'Bu havolani ochib bo\'lmadi.';
@@ -1767,7 +1769,7 @@ class AppLocalizationsUz extends AppLocalizations {
   String get catalogPerYear => '/ yil';
 
   @override
-  String get catalogSemSuffix => '/sem';
+  String get catalogSemSuffix => '/semestr';
 
   @override
   String get catalogYearSuffix => '/yil';
@@ -2018,4 +2020,37 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get entryLanguageSheetTitle => 'Tilni tanlang';
+
+  @override
+  String get catalogStep1 => 'Online hujjat topshirish';
+
+  @override
+  String get catalogStep2 => 'Application fee to‘lash';
+
+  @override
+  String get catalogStep3 => 'Offline hujjat topshirish';
+
+  @override
+  String get catalogStep4 => 'Bank statement (universitet uchun)';
+
+  @override
+  String get catalogStep5 => 'Intervyu';
+
+  @override
+  String get catalogStep6 => 'Natija e’lon qilinishi';
+
+  @override
+  String get catalogStep7 => 'Kontrakt to‘lash';
+
+  @override
+  String get catalogStep8 => 'Certificate of Admission berilishi';
+
+  @override
+  String get catalogStep9 => 'Viza uchun bank statement';
+
+  @override
+  String get catalogStep10 => 'Viza uchun tarjima va apostil';
+
+  @override
+  String get catalogStep11 => 'Vizaga hujjat topshirish';
 }

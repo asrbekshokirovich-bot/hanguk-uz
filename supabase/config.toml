@@ -192,3 +192,9 @@ verify_jwt = false
 # X-Telegram-Bot-Api-Secret-Token against HR_BOT_WEBHOOK_SECRET itself.
 [functions.hr-bot]
 verify_jwt = false
+
+# Fills in the English/Korean/Russian names of catalogue documents; called by
+# pg_cron with the secret key in `apikey`. verify_jwt is off so the cron caller
+# isn't blocked at the gateway; the function checks the key itself.
+[functions.translate-app-texts]
+verify_jwt = false

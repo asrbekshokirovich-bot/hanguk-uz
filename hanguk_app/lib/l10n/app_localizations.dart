@@ -3703,6 +3703,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Choose a language'**
   String get entryLanguageSheetTitle;
+
+  /// Admission timeline step 1 of the guideline template (etap_raqam = 1).
+  ///
+  /// In en, this message translates to:
+  /// **'Online application'**
+  String get catalogStep1;
+
+  /// Admission timeline step 2 of the guideline template (etap_raqam = 2).
+  ///
+  /// In en, this message translates to:
+  /// **'Application fee payment'**
+  String get catalogStep2;
+
+  /// Admission timeline step 3 of the guideline template (etap_raqam = 3).
+  ///
+  /// In en, this message translates to:
+  /// **'Offline document submission'**
+  String get catalogStep3;
+
+  /// Admission timeline step 4 of the guideline template (etap_raqam = 4).
+  ///
+  /// In en, this message translates to:
+  /// **'Bank statement (for the university)'**
+  String get catalogStep4;
+
+  /// Admission timeline step 5 of the guideline template (etap_raqam = 5).
+  ///
+  /// In en, this message translates to:
+  /// **'Interview'**
+  String get catalogStep5;
+
+  /// Admission timeline step 6 of the guideline template (etap_raqam = 6).
+  ///
+  /// In en, this message translates to:
+  /// **'Results announced'**
+  String get catalogStep6;
+
+  /// Admission timeline step 7 of the guideline template (etap_raqam = 7).
+  ///
+  /// In en, this message translates to:
+  /// **'Tuition payment'**
+  String get catalogStep7;
+
+  /// Admission timeline step 8 of the guideline template (etap_raqam = 8).
+  ///
+  /// In en, this message translates to:
+  /// **'Certificate of Admission issued'**
+  String get catalogStep8;
+
+  /// Admission timeline step 9 of the guideline template (etap_raqam = 9).
+  ///
+  /// In en, this message translates to:
+  /// **'Bank statement for the visa'**
+  String get catalogStep9;
+
+  /// Admission timeline step 10 of the guideline template (etap_raqam = 10).
+  ///
+  /// In en, this message translates to:
+  /// **'Translation and apostille for the visa'**
+  String get catalogStep10;
+
+  /// Admission timeline step 11 of the guideline template (etap_raqam = 11).
+  ///
+  /// In en, this message translates to:
+  /// **'Visa application'**
+  String get catalogStep11;
 }
 
 class _AppLocalizationsDelegate
