@@ -13,6 +13,7 @@ export function useUserRole() {
   const { user } = useAuth();
   const [roles, setRoles] = useState<AppRole[]>([]);
   const [isLearningCenter, setIsLearningCenter] = useState(false);
+  const [hasFinanceAccess, setHasFinanceAccess] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -20,6 +21,7 @@ export function useUserRole() {
       if (!user) {
         setRoles([]);
         setIsLearningCenter(false);
+        setHasFinanceAccess(false);
         setLoading(false);
         return;
       }
@@ -27,7 +29,10 @@ export function useUserRole() {
       // A learning center holds no app_role (see migration
       // 20260923120000_learning_centers.sql): its learning_centers row is what
       // makes it one. learning_centers is not in the generated types yet.
-      const [{ data, error }, { data: center }] = await Promise.all([
+      // A finance_access row opens "Moliya" to someone who is not an owner
+      // (migration 20260930180000_finance_access.sql); it is not in the
+      // generated types yet either.
+      const [{ data, error }, { data: center }, { data: finance }] = await Promise.all([
         supabase.from('user_roles').select('role').eq('user_id', user.id),
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (supabase as unknown as { from: (n: string) => any })
@@ -36,12 +41,19 @@ export function useUserRole() {
           .eq('user_id', user.id)
           .eq('is_active', true)
           .maybeSingle() as Promise<{ data: { id: string } | null }>,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (supabase as unknown as { from: (n: string) => any })
+          .from('finance_access')
+          .select('user_id')
+          .eq('user_id', user.id)
+          .maybeSingle() as Promise<{ data: { user_id: string } | null }>,
       ]);
 
       if (!error && data) {
         setRoles(data.map((r) => r.role));
       }
       setIsLearningCenter(Boolean(center));
+      setHasFinanceAccess(Boolean(finance));
       setLoading(false);
     };
 
@@ -67,6 +79,8 @@ export function useUserRole() {
   const isCallOperator = hasRole('call_operator') || isAdmin;
   const isDocumentHandler = hasRole('document_handler') || isAdmin;
   const isUniversityStaff = hasRole('university_staff');
+  // The "Moliya" section: every owner, plus whoever finance_access names.
+  const canSeeFinance = isOwner || hasFinanceAccess;
 
   return {
     roles,
@@ -80,5 +94,6 @@ export function useUserRole() {
     isDocumentHandler,
     isUniversityStaff,
     isLearningCenter,
+    canSeeFinance,
   };
 }

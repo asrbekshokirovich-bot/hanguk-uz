@@ -64,6 +64,8 @@ export interface SidebarGroup {
 
 interface CRMSidebarProps {
   isOwner: boolean;
+  /** The "Moliya" group: owners, plus anyone given finance access. */
+  canSeeFinance: boolean;
   isAdmin: boolean;
   isCallOperator: boolean;
   isDocumentHandler: boolean;
@@ -73,7 +75,7 @@ interface CRMSidebarProps {
 }
 
 function buildGroups(
-  isOwner: boolean,
+  canSeeFinance: boolean,
   isAdmin: boolean,
   isCallOperator: boolean,
   isDocumentHandler: boolean,
@@ -128,17 +130,17 @@ function buildGroups(
       id: 'finance',
       title: t('navigation.finance'),
       icon: DollarSign,
-      visible: isOwner,
+      visible: canSeeFinance,
       items: [
-        { title: t('navigation.overview'), url: '/crm/finance', icon: Home, visible: isOwner },
-        { title: t('navigation.students'), url: '/crm/finance/students', icon: Users, visible: isOwner },
-        { title: t('navigation.budgets'), url: '/crm/finance/budgets', icon: Wallet, visible: isOwner },
-        { title: t('navigation.monthly'), url: '/crm/finance/monthly', icon: CalendarClock, visible: isOwner },
-        { title: t('navigation.scheduled'), url: '/crm/finance/scheduled', icon: Clock, visible: isOwner },
-        { title: t('navigation.transactions'), url: '/crm/finance/transactions', icon: Receipt, visible: isOwner },
-        { title: t('navigation.distribution'), url: '/crm/finance/distribution', icon: PieChart, visible: isOwner },
-        { title: t('navigation.bonuses'), url: '/crm/finance/bonuses', icon: Gift, visible: isOwner },
-        { title: t('navigation.reports'), url: '/crm/finance/reports', icon: FileText, visible: isOwner },
+        { title: t('navigation.overview'), url: '/crm/finance', icon: Home, visible: canSeeFinance },
+        { title: t('navigation.students'), url: '/crm/finance/students', icon: Users, visible: canSeeFinance },
+        { title: t('navigation.budgets'), url: '/crm/finance/budgets', icon: Wallet, visible: canSeeFinance },
+        { title: t('navigation.monthly'), url: '/crm/finance/monthly', icon: CalendarClock, visible: canSeeFinance },
+        { title: t('navigation.scheduled'), url: '/crm/finance/scheduled', icon: Clock, visible: canSeeFinance },
+        { title: t('navigation.transactions'), url: '/crm/finance/transactions', icon: Receipt, visible: canSeeFinance },
+        { title: t('navigation.distribution'), url: '/crm/finance/distribution', icon: PieChart, visible: canSeeFinance },
+        { title: t('navigation.bonuses'), url: '/crm/finance/bonuses', icon: Gift, visible: canSeeFinance },
+        { title: t('navigation.reports'), url: '/crm/finance/reports', icon: FileText, visible: canSeeFinance },
       ],
     },
     {
@@ -166,6 +168,7 @@ function buildGroups(
 
 export function CRMSidebar({
   isOwner,
+  canSeeFinance,
   isAdmin,
   isCallOperator,
   isDocumentHandler,
@@ -180,7 +183,7 @@ export function CRMSidebar({
   const location = useLocation();
   const navigate = useNavigate();
 
-  const groups = buildGroups(isOwner, isAdmin, isCallOperator, isDocumentHandler, canReviewUniDb, t, lang);
+  const groups = buildGroups(canSeeFinance, isAdmin, isCallOperator, isDocumentHandler, canReviewUniDb, t, lang);
 
   // Whether an item's URL matches the current route (most-specific match wins
   // via startsWith; '/crm' only matches exactly so it isn't always active).
@@ -306,7 +309,7 @@ export function CRMSidebar({
 
 // Export groups getter for use in the header command menu (⌘K).
 export function useSidebarGroups(
-  isOwner: boolean,
+  canSeeFinance: boolean,
   isAdmin: boolean,
   isCallOperator: boolean,
   isDocumentHandler: boolean,
@@ -314,5 +317,5 @@ export function useSidebarGroups(
   lang: string,
   canReviewUniDb = false,
 ): SidebarGroup[] {
-  return buildGroups(isOwner, isAdmin, isCallOperator, isDocumentHandler, canReviewUniDb, t, lang);
+  return buildGroups(canSeeFinance, isAdmin, isCallOperator, isDocumentHandler, canReviewUniDb, t, lang);
 }

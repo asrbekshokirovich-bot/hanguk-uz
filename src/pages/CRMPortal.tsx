@@ -90,7 +90,7 @@ export default function CRMPortal() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, signOut, loading: authLoading } = useAuth();
-  const { isStaff, isOwner, isAdmin, isCallOperator, isDocumentHandler, loading: roleLoading } = useUserRole();
+  const { isStaff, isOwner, isAdmin, isCallOperator, isDocumentHandler, canSeeFinance, loading: roleLoading } = useUserRole();
   const { canReview: canReviewUniDb } = useCanReviewUniDb();
   const {
     students,
@@ -110,7 +110,7 @@ export default function CRMPortal() {
   const [selectedStudent, setSelectedStudent] = useState<StudentProfile | null>(null);
 
   // Sidebar groups (role-filtered) power the ⌘K command menu in the header.
-  const sidebarGroups = useSidebarGroups(isOwner, isAdmin, isCallOperator, isDocumentHandler, t, currentLang, canReviewUniDb);
+  const sidebarGroups = useSidebarGroups(canSeeFinance, isAdmin, isCallOperator, isDocumentHandler, t, currentLang, canReviewUniDb);
 
   // Determine current view from URL
   const currentPath = location.pathname;
@@ -347,55 +347,55 @@ export default function CRMPortal() {
           </SafeSuspense>
         );
       case 'finance':
-        if (!isOwner) return <AccessDenied />;
+        if (!canSeeFinance) return <AccessDenied />;
         return (
           <SafeSuspense>
             <FinanceOverviewContent />
           </SafeSuspense>
         );
       case 'finance-students':
-        if (!isOwner) return <AccessDenied />;
+        if (!canSeeFinance) return <AccessDenied />;
         return <FinanceStudentsWrapper />;
       case 'finance-budgets':
-        if (!isOwner) return <AccessDenied />;
+        if (!canSeeFinance) return <AccessDenied />;
         return (
           <SafeSuspense>
             <BudgetsContent />
           </SafeSuspense>
         );
       case 'finance-monthly':
-        if (!isOwner) return <AccessDenied />;
+        if (!canSeeFinance) return <AccessDenied />;
         return (
           <SafeSuspense>
             <MonthlyContent />
           </SafeSuspense>
         );
       case 'finance-scheduled':
-        if (!isOwner) return <AccessDenied />;
+        if (!canSeeFinance) return <AccessDenied />;
         return (
           <SafeSuspense>
             <ScheduledPaymentsContent />
           </SafeSuspense>
         );
       case 'finance-transactions':
-        if (!isOwner) return <AccessDenied />;
+        if (!canSeeFinance) return <AccessDenied />;
         return <TransactionsWrapper />;
       case 'finance-distribution':
-        if (!isOwner) return <AccessDenied />;
+        if (!canSeeFinance) return <AccessDenied />;
         return (
           <SafeSuspense>
             <DistributionContent />
           </SafeSuspense>
         );
       case 'finance-bonuses':
-        if (!isOwner) return <AccessDenied />;
+        if (!canSeeFinance) return <AccessDenied />;
         return (
           <SafeSuspense>
             <BonusesContent />
           </SafeSuspense>
         );
       case 'finance-reports':
-        if (!isOwner) return <AccessDenied />;
+        if (!canSeeFinance) return <AccessDenied />;
         return <FinanceReportsWrapper />;
       case 'universities':
         return <SafeSuspense><UniversityCatalogContent /></SafeSuspense>;
@@ -464,6 +464,7 @@ export default function CRMPortal() {
         <div className="flex min-h-screen w-full">
           <CRMSidebar
             isOwner={isOwner}
+            canSeeFinance={canSeeFinance}
             isAdmin={isAdmin}
             isCallOperator={isCallOperator}
             isDocumentHandler={isDocumentHandler}
