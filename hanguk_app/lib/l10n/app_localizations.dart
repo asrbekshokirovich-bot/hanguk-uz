@@ -3541,6 +3541,168 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Lower'**
   String get compareBestLower;
+
+  /// Title of the phone sign-up screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign up'**
+  String get entryRegisterTitle;
+
+  /// Line under the sign-up title.
+  ///
+  /// In en, this message translates to:
+  /// **'Create an account with your phone number and a password.'**
+  String get entryRegisterSubtitle;
+
+  /// Label above the phone number field.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone number'**
+  String get entryPhoneLabel;
+
+  /// Label above the password field.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get entryPasswordLabel;
+
+  /// Label above the repeat-password field on sign-up.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat password'**
+  String get entryPasswordConfirmLabel;
+
+  /// Placeholder in the password field.
+  ///
+  /// In en, this message translates to:
+  /// **'At least 6 characters'**
+  String get entryPasswordHint;
+
+  /// Primary button on the sign-up screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign up'**
+  String get entryRegisterSubmit;
+
+  /// Text before the sign-in link on the sign-up screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Already have an account?'**
+  String get entryHaveAccount;
+
+  /// Link from sign-up to sign-in.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in'**
+  String get entrySignInLink;
+
+  /// Title of the phone sign-in screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in'**
+  String get entrySignInTitle;
+
+  /// Line under the sign-in title.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the phone number and password you signed up with.'**
+  String get entrySignInSubtitle;
+
+  /// Primary button on the sign-in screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in'**
+  String get entrySignInSubmit;
+
+  /// Text before the sign-up link on the sign-in screen.
+  ///
+  /// In en, this message translates to:
+  /// **'No account yet?'**
+  String get entryNoAccount;
+
+  /// Link from sign-in to sign-up.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign up'**
+  String get entryRegisterLink;
+
+  /// The phone number is not 9 digits after +998.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the full number: 9 digits after +998.'**
+  String get entryErrorPhone;
+
+  /// The password is shorter than 6 characters.
+  ///
+  /// In en, this message translates to:
+  /// **'The password must be at least 6 characters.'**
+  String get entryErrorPasswordShort;
+
+  /// The two passwords on sign-up differ.
+  ///
+  /// In en, this message translates to:
+  /// **'The passwords do not match.'**
+  String get entryErrorPasswordMismatch;
+
+  /// Sign-up with a number that already has an account.
+  ///
+  /// In en, this message translates to:
+  /// **'This number is already signed up. Sign in with your password.'**
+  String get entryErrorExists;
+
+  /// Shown on the Magic Code screen when the number belongs to a Hanguk student.
+  ///
+  /// In en, this message translates to:
+  /// **'You are a Hanguk student — sign in with the Magic Code your consultant gave you.'**
+  String get entryStudentNotice;
+
+  /// Sign-in with a number that has no account.
+  ///
+  /// In en, this message translates to:
+  /// **'This number is not signed up yet.'**
+  String get entryErrorNotFound;
+
+  /// Sign-in with the wrong password.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrong password.'**
+  String get entryErrorWrongPassword;
+
+  /// Ten wrong passwords in a row.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many attempts. Try again in 15 minutes.'**
+  String get entryErrorLocked;
+
+  /// The server could not be reached.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not reach the server. Check your connection and try again.'**
+  String get entryErrorNetwork;
+
+  /// Screen-reader label of the eye button that shows the password.
+  ///
+  /// In en, this message translates to:
+  /// **'Show password'**
+  String get entryShowPassword;
+
+  /// Screen-reader label of the eye button that hides the password.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide password'**
+  String get entryHidePassword;
+
+  /// Label of the language setting.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get entryLanguageLabel;
+
+  /// Title of the language picker sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a language'**
+  String get entryLanguageSheetTitle;
 }
 
 class _AppLocalizationsDelegate

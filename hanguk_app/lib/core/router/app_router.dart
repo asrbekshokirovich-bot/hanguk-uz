@@ -8,6 +8,9 @@ import '../../design_system/seoul_night/seoul_night_gallery.dart';
 import '../../features/account/presentation/account_screen.dart';
 import '../../features/auth/data/auth_repository.dart';
 import '../../features/auth/presentation/login_screen.dart';
+import '../../features/entry/data/entry_store.dart';
+import '../../features/entry/presentation/language_screen.dart';
+import '../../features/entry/presentation/phone_account_screens.dart';
 import '../../features/home/presentation/home_screen.dart';
 import '../../features/home/presentation/home_tab_provider.dart';
 import '../../features/home/presentation/notifications_screen.dart';
@@ -63,11 +66,25 @@ List<RouteBase> _guestRoutes() => [
   GoRoute(path: '/guest', builder: (context, state) => const GuestShell()),
 ];
 
-List<RouteBase> _surveyRoutes() => [
+/// The way in before Welcome: the language picker on first launch, then
+/// phone sign-up (or sign-in) — see the redirect below.
+List<RouteBase> _entryRoutes() => [
   GoRoute(
-    path: '/surveys',
-    builder: (context, state) => const SurveysScreen(),
+    path: '/language',
+    builder: (context, state) => const LanguageScreen(),
   ),
+  GoRoute(
+    path: '/register',
+    builder: (context, state) => const RegisterScreen(),
+  ),
+  GoRoute(
+    path: '/sign-in',
+    builder: (context, state) => const PhoneSignInScreen(),
+  ),
+];
+
+List<RouteBase> _surveyRoutes() => [
+  GoRoute(path: '/surveys', builder: (context, state) => const SurveysScreen()),
   GoRoute(
     path: '/surveys/:id',
     builder: (context, state) {
@@ -252,6 +269,10 @@ List<RouteBase> _uniDbRoutes() => [
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final authStateAsync = ref.watch(authStateProvider);
+  // Only the two gates rebuild the router; switching language later must
+  // not throw the visitor back to the first screen.
+  final hasLanguage = ref.watch(entryProvider.select((s) => s.hasLanguage));
+  final isRegistered = ref.watch(entryProvider.select((s) => s.isRegistered));
 
   return GoRouter(
     initialLocation: '/',
@@ -259,6 +280,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ...$appRoutes,
       ..._accountRoutes(),
       ..._guestRoutes(),
+      ..._entryRoutes(),
       ..._surveyRoutes(),
       ..._mapRoutes(),
       if (kUniDbEnabled) ..._uniDbRoutes(),
@@ -270,42 +292,74 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           builder: (context, state) => const SeoulNightGallery(),
         ),
     ],
-    redirect: (context, state) {
-      final isLoading = authStateAsync.isLoading;
-      final isAuthenticated = authStateAsync.value?.session != null;
-
-      final loc = state.uri.toString();
-      final isGoingToLogin = loc == '/login';
-      final isGoingToWelcome = loc == '/welcome';
-      // Guest Explorer is a public surface: it reads only the anon-readable
-      // catalogue view and holds no student data. `/walkaround` rides along
-      // because the guest map's detail sheet opens it — it is a Kakao
-      // panorama of a campus, catalogue content like any other, and it
-      // resolves through the same public view. Without this a guest tapping
-      // it would be bounced out to /welcome mid-browse.
-      final isGoingToGuest =
-          loc.startsWith('/guest') || loc.startsWith('/walkaround');
-
-      if (isLoading) return null;
-
-      if (!isAuthenticated &&
-          !isGoingToLogin &&
-          !isGoingToWelcome &&
-          !isGoingToGuest) {
-        return '/welcome';
-      }
-
-      // A signed-in student has the real thing; guest mode is a lesser view
-      // of it, so send them home rather than letting them land there.
-      if (isAuthenticated &&
-          (isGoingToLogin || isGoingToWelcome || loc.startsWith('/guest'))) {
-        return '/';
-      }
-
-      return null;
-    },
+    redirect: (context, state) => resolveAppRedirect(
+      loc: state.uri.toString(),
+      isLoading: authStateAsync.isLoading,
+      isAuthenticated: authStateAsync.value?.session != null,
+      hasLanguage: hasLanguage,
+      isRegistered: isRegistered,
+    ),
   );
 });
+
+/// Where [loc] should go instead, or null to stay. Pure, so the gates can be
+/// tested without a router or a session.
+@visibleForTesting
+String? resolveAppRedirect({
+  required String loc,
+  required bool isLoading,
+  required bool isAuthenticated,
+  required bool hasLanguage,
+  required bool isRegistered,
+}) {
+  final isGoingToLogin = loc == '/login';
+  final isGoingToWelcome = loc == '/welcome';
+  // Guest Explorer is a public surface: it reads only the anon-readable
+  // catalogue view and holds no student data. `/walkaround` rides along
+  // because the guest map's detail sheet opens it — it is a Kakao
+  // panorama of a campus, catalogue content like any other, and it
+  // resolves through the same public view. Without this a guest tapping
+  // it would be bounced out to /welcome mid-browse.
+  final isGoingToGuest =
+      loc.startsWith('/guest') || loc.startsWith('/walkaround');
+
+  final isGoingToLanguage = loc == '/language';
+  final isGoingToSignUp = loc == '/register' || loc == '/sign-in';
+
+  if (isLoading) return null;
+
+  // The way in, before Welcome (owner, 2026-09-30): the language on
+  // first launch, then sign-up with phone and password. Both are asked
+  // once. A Magic Code is still accepted at the sign-up step, and a
+  // signed-in student skips all of it.
+  if (!isAuthenticated) {
+    if (!hasLanguage) return isGoingToLanguage ? null : '/language';
+    if (!isRegistered) {
+      return (isGoingToSignUp || isGoingToLogin) ? null : '/register';
+    }
+    if (isGoingToLanguage || isGoingToSignUp) return '/welcome';
+  }
+
+  if (!isAuthenticated &&
+      !isGoingToLogin &&
+      !isGoingToWelcome &&
+      !isGoingToGuest) {
+    return '/welcome';
+  }
+
+  // A signed-in student has the real thing; guest mode is a lesser view
+  // of it, so send them home rather than letting them land there.
+  if (isAuthenticated &&
+      (isGoingToLogin ||
+          isGoingToWelcome ||
+          isGoingToLanguage ||
+          isGoingToSignUp ||
+          loc.startsWith('/guest'))) {
+    return '/';
+  }
+
+  return null;
+}
 
 @TypedGoRoute<HomeRoute>(path: '/')
 class HomeRoute extends GoRouteData with $HomeRoute {
@@ -332,6 +386,9 @@ class LoginRoute extends GoRouteData with $LoginRoute {
   Widget build(BuildContext context, GoRouterState state) {
     final extra = state.extra as Map<String, dynamic>?;
     final isMagicCode = extra?['magic_code'] as bool? ?? false;
-    return LoginScreen(initialMagicCodeMode: isMagicCode);
+    return LoginScreen(
+      initialMagicCodeMode: isMagicCode,
+      notice: extra?['notice'] as String?,
+    );
   }
 }

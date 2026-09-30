@@ -52,6 +52,7 @@ export const CHANNELS = [
   'WhatsApp',
   'Ofisga keldi',
   'Sayt formasi',
+  'Ilova',
 ] as const;
 
 /** How the lead found us. Stored in `how_heard`. */
