@@ -5,6 +5,49 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+/// Why a sign-in or sign-up failed. The screen turns it into words in the
+/// app language; the repository never hands English prose to the UI.
+enum AuthError {
+  /// The access code is missing or has the wrong length.
+  invalidAccessCode,
+
+  /// No student has this code.
+  codeNotFound,
+
+  /// The server could not be reached — not a verdict on the code.
+  serverUnreachable,
+
+  /// A staff account tried the student magic-code sign-in.
+  staffBlocked,
+
+  /// The server is still setting up the student's account.
+  accountSetupBusy,
+
+  /// The login server failed to open a session.
+  loginServerError,
+
+  /// Anything else the server or the SDK reported.
+  unexpected,
+
+  /// The phone belongs to an account a counsellor created.
+  crmAccount,
+
+  /// The phone is already registered.
+  alreadyRegistered,
+
+  /// Phone sign-up is switched off on the server.
+  signUpDisabled,
+
+  /// The phone number is not in international format.
+  invalidPhoneFormat,
+
+  /// Wrong phone number or password.
+  invalidCredentials,
+
+  /// The sign-up failed for another reason.
+  signUpFailed,
+}
+
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   return AuthRepository(Supabase.instance.client);
 });
@@ -169,7 +212,7 @@ class AuthRepository {
 
   // ─── Public Student Login (Phone + Password) ────────────────────────────────
 
-  Future<({String? error})> signInWithPhone(
+  Future<({AuthError? error})> signInWithPhone(
     String phone,
     String password,
   ) async {
@@ -179,14 +222,15 @@ class AuthRepository {
       await _auth.signInWithPassword(phone: formattedPhone, password: password);
       return (error: null);
     } on AuthException catch (e) {
-      String msg = e.message;
-      if (msg.toLowerCase().contains('phone') ||
-          msg.toLowerCase().contains('credentials')) {
-        msg = 'Invalid phone number or password.';
+      final msg = e.message.toLowerCase();
+      if (msg.contains('phone') || msg.contains('credentials')) {
+        return (error: AuthError.invalidCredentials);
       }
-      return (error: msg);
+      debugPrint('signInWithPhone failed: ${e.message}');
+      return (error: AuthError.unexpected);
     } catch (e) {
-      return (error: e.toString());
+      debugPrint('signInWithPhone failed: $e');
+      return (error: AuthError.unexpected);
     }
   }
 
@@ -197,7 +241,7 @@ class AuthRepository {
   /// avoids the fragile refresh-token-only path used previously).
   ///
   /// Maps typed server errors (CODE_NOT_FOUND, STAFF_BLOCKED, etc.) to
-  /// human-readable messages.
+  /// [AuthError] codes the screen puts into words.
   ///
   /// Retries the transient class — see [isTransientBackendFailure]. A database
   /// that is briefly unreachable is not an answer about the student's code, and
@@ -205,7 +249,7 @@ class AuthRepository {
   /// The `transient` flag is what lets the screen tell "your code is wrong"
   /// apart from "we could not reach the server" without matching on the
   /// message text — which is a bug waiting for the day somebody rewords it.
-  Future<({String? error, String? studentName, bool transient})>
+  Future<({AuthError? error, String? studentName, bool transient})>
   signInWithMagicCode(
     String magicCode, {
     /// Called before each retry with (attempt, totalAttempts) so the screen can
@@ -231,7 +275,7 @@ class AuthRepository {
           continue;
         }
         return (
-          error: _messageFor('SERVICE_UNAVAILABLE', e.detail),
+          error: _errorFor('SERVICE_UNAVAILABLE', e.detail),
           studentName: null,
           transient: true,
         );
@@ -243,7 +287,7 @@ class AuthRepository {
   ///
   /// Throws [_TransientBackendFailure] when the attempt died on infrastructure;
   /// every other outcome comes back as a value for the caller to show.
-  Future<({String? error, String? studentName, bool transient})>
+  Future<({AuthError? error, String? studentName, bool transient})>
   _magicCodeAttempt(
     String normalized,
   ) async {
@@ -255,7 +299,7 @@ class AuthRepository {
 
       if (response.data == null) {
         return (
-          error: _messageFor('INTERNAL_ERROR', null),
+          error: _errorFor('INTERNAL_ERROR', null),
           studentName: null,
           transient: false,
         );
@@ -268,7 +312,7 @@ class AuthRepository {
       if (errorCode != null) {
         final detail = data['detail']?.toString();
         return (
-          error: _messageFor(errorCode, detail),
+          error: _errorFor(errorCode, detail),
           studentName: null,
           transient: false,
         );
@@ -278,7 +322,7 @@ class AuthRepository {
       final user = data['user'] as Map<String, dynamic>?;
       if (session == null || user == null) {
         return (
-          error: _messageFor('INTERNAL_ERROR', 'session missing'),
+          error: _errorFor('INTERNAL_ERROR', 'session missing'),
           studentName: null,
           transient: false,
         );
@@ -318,20 +362,20 @@ class AuthRepository {
         final m = e.details as Map;
         if (m['error'] != null) {
           return (
-            error: _messageFor(m['error'].toString(), m['detail']?.toString()),
+            error: _errorFor(m['error'].toString(), m['detail']?.toString()),
             studentName: null,
             transient: false,
           );
         }
       }
       return (
-        error: _messageFor('INTERNAL_ERROR', e.details?.toString()),
+        error: _errorFor('INTERNAL_ERROR', e.details?.toString()),
         studentName: null,
         transient: false,
       );
     } on AuthException catch (e) {
       return (
-        error: _messageFor('AUTH_SIGNIN_FAILED', e.message),
+        error: _errorFor('AUTH_SIGNIN_FAILED', e.message),
         studentName: null,
         transient: false,
       );
@@ -343,45 +387,48 @@ class AuthRepository {
         throw _TransientBackendFailure(e.runtimeType.toString());
       }
       return (
-        error: _messageFor('INTERNAL_ERROR', e.toString()),
+        error: _errorFor('INTERNAL_ERROR', e.toString()),
         studentName: null,
         transient: false,
       );
     }
   }
 
-  /// Maps the v2 Edge Function's typed error codes to user-facing messages.
-  /// Unknown codes fall back to a generic message.
-  String _messageFor(String code, String? detail) {
+  /// Maps the v2 Edge Function's typed error codes to [AuthError].
+  /// Unknown codes fall back to [AuthError.unexpected].
+  AuthError _errorFor(String code, String? detail) {
+    if (detail != null) debugPrint('student-login-v2 $code: $detail');
     switch (code) {
       case 'BAD_INPUT':
       case 'CODE_REQUIRED':
-        return 'Please enter a valid 6–10 character access code.';
+        return AuthError.invalidAccessCode;
       case 'CODE_NOT_FOUND':
-        return "We don't recognise this code. Please double-check it with your counsellor.";
+        return AuthError.codeNotFound;
       case 'SERVICE_UNAVAILABLE':
       case 'CODE_LOOKUP_FAILED':
         // Not a verdict on the code — the server could not be reached. Saying
         // "contact your counsellor" here, as this used to, sends a student
         // (and an App Review reviewer) chasing a problem that clears itself.
-        return 'We could not reach the server. Please check your connection and tap sign in again.';
+        return AuthError.serverUnreachable;
       case 'STAFF_BLOCKED':
-        return 'Staff members must use username/password sign-in, not a magic code.';
+        return AuthError.staffBlocked;
       case 'AUTH_CREATE_FAILED':
-        return 'Server is busy setting up your account. Please try again in 30 seconds.';
+        return AuthError.accountSetupBusy;
       case 'AUTH_SIGNIN_FAILED':
-        return 'Login server error. Please try again, or ask your counsellor to reset your account.';
+        return AuthError.loginServerError;
       case 'INTERNAL_ERROR':
-        return 'Unexpected server error. Please try again, or contact your counsellor.';
+        return AuthError.unexpected;
       default:
-        // Some legacy responses returned plain strings — show them directly.
-        return code;
+        // Some legacy responses returned plain strings; they are English, so
+        // they are logged rather than shown.
+        debugPrint('student-login-v2 unmapped error: $code');
+        return AuthError.unexpected;
     }
   }
 
   // ─── Public Student Sign Up (Phone) ───────────────────────────────────────
 
-  Future<({String? error, bool isCrmAccount, bool alreadyRegistered})>
+  Future<({AuthError? error, bool isCrmAccount, bool alreadyRegistered})>
   signUpStudent(String phone, String password, String fullName) async {
     try {
       // 1. Guard check: Pre-verify if this phone already exists in the CRM
@@ -393,8 +440,7 @@ class AuthRepository {
 
         if (response.data != null && response.data['exists'] == true) {
           return (
-            error:
-                'This account was created by your counselor. Please use the Magic Access Code they provided.',
+            error: AuthError.crmAccount,
             isCrmAccount: true,
             alreadyRegistered: true,
           );
@@ -430,31 +476,34 @@ class AuthRepository {
 
       return (error: null, isCrmAccount: false, alreadyRegistered: false);
     } on AuthException catch (e) {
-      String msg = e.message;
+      final msg = e.message.toLowerCase();
       bool alreadyRegistered = false;
+      AuthError error;
 
-      if (msg.toLowerCase().contains('already registered') ||
-          msg.toLowerCase().contains('user already exists')) {
-        msg = 'This phone number is already registered. Please sign in.';
+      if (msg.contains('already registered') ||
+          msg.contains('user already exists')) {
+        error = AuthError.alreadyRegistered;
         alreadyRegistered = true;
-      } else if (msg.toLowerCase().contains('phone signups are disabled') ||
-          msg.toLowerCase().contains('provider')) {
-        msg =
-            'Registration is currently disabled on the server. Please contact an administrator.';
-      } else if (msg.toLowerCase().contains('phone')) {
-        msg =
-            'Invalid phone number format. Please ensure you included the country code.';
-      } else if (msg.toLowerCase().contains('credentials')) {
-        msg = 'Invalid credentials provided.';
+      } else if (msg.contains('phone signups are disabled') ||
+          msg.contains('provider')) {
+        error = AuthError.signUpDisabled;
+      } else if (msg.contains('phone')) {
+        error = AuthError.invalidPhoneFormat;
+      } else if (msg.contains('credentials')) {
+        error = AuthError.invalidCredentials;
+      } else {
+        debugPrint('signUpStudent failed: ${e.message}');
+        error = AuthError.signUpFailed;
       }
       return (
-        error: msg,
+        error: error,
         isCrmAccount: false,
         alreadyRegistered: alreadyRegistered,
       );
     } catch (e) {
+      debugPrint('signUpStudent failed: $e');
       return (
-        error: e.toString(),
+        error: AuthError.signUpFailed,
         isCrmAccount: false,
         alreadyRegistered: false,
       );

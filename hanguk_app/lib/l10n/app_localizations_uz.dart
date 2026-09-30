@@ -80,44 +80,46 @@ class AppLocalizationsUz extends AppLocalizations {
   String get micRequired => 'Suhbat uchun mikrofon ruxsati kerak.';
 
   @override
-  String get walkaroundLoadingTitle => 'Loading campus walkaround';
+  String get walkaroundLoadingTitle => 'Kampus sayri yuklanmoqda';
 
   @override
-  String get walkaroundLoadingSubtitle => 'Fetching street view near campus.';
+  String get walkaroundLoadingSubtitle =>
+      'Kampus atrofidagi ko‘cha panoramasi yuklanmoqda.';
 
   @override
-  String get walkaroundNoPanoTitle => 'No street view here';
+  String get walkaroundNoPanoTitle => 'Bu yerda ko‘cha panoramasi yo‘q';
 
   @override
   String get walkaroundNoPanoSubtitle =>
-      'This campus doesn\'t have a walkable street view nearby.';
+      'Bu kampus yaqinida sayr qilsa bo‘ladigan ko‘cha panoramasi yo‘q.';
 
   @override
-  String get walkaroundBlockedTitle => 'Street view unavailable';
+  String get walkaroundBlockedTitle => 'Ko‘cha panoramasi mavjud emas';
 
   @override
   String get walkaroundBlockedSubtitle =>
-      'The map provider blocked this request. Try again on a different network.';
+      'Xarita provayderi bu so‘rovni blokladi. Boshqa tarmoq orqali qayta urinib ko‘ring.';
 
   @override
-  String get walkaroundNetworkTitle => 'Couldn\'t reach the map provider';
+  String get walkaroundNetworkTitle => 'Xarita xizmatiga ulanib bo‘lmadi';
 
   @override
   String get walkaroundNetworkSubtitle =>
-      'Check your connection and try again.';
+      'Internetni tekshirib, qayta urinib ko‘ring.';
 
   @override
-  String get walkaroundInitErrorTitle => 'Street view couldn\'t start';
+  String get walkaroundInitErrorTitle =>
+      'Ko‘cha panoramasini ishga tushirib bo‘lmadi';
 
   @override
   String get walkaroundInitErrorSubtitle =>
-      'Something went wrong starting the walkaround. Please try again.';
+      'Sayrni boshlashda xatolik yuz berdi. Iltimos, qayta urinib ko‘ring.';
 
   @override
-  String get virtualTourTitle => 'Virtual Tour';
+  String get virtualTourTitle => 'Virtual sayohat';
 
   @override
-  String get virtualWalkaroundTitle => 'Virtual Walkaround';
+  String get virtualWalkaroundTitle => 'Virtual sayr';
 
   @override
   String get visitUniversityWebsite => 'Universitet veb-saytiga o\'tish';
@@ -1613,7 +1615,7 @@ class AppLocalizationsUz extends AppLocalizations {
   String get guestContactCall => 'Qo\'ng\'iroq qilish';
 
   @override
-  String get guestContactJoinHint => 'Sizda maxfiy kod bormi?';
+  String get guestContactJoinHint => 'Sehrli kodingiz bormi?';
 
   @override
   String get guestContactLaunchFailed => 'Bu havolani ochib bo\'lmadi.';
@@ -1767,7 +1769,7 @@ class AppLocalizationsUz extends AppLocalizations {
   String get catalogPerYear => '/ yil';
 
   @override
-  String get catalogSemSuffix => '/sem';
+  String get catalogSemSuffix => '/semestr';
 
   @override
   String get catalogYearSuffix => '/yil';
@@ -2018,4 +2020,721 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get entryLanguageSheetTitle => 'Tilni tanlang';
+
+  @override
+  String get catalogStep1 => 'Online hujjat topshirish';
+
+  @override
+  String get catalogStep2 => 'Application fee to‘lash';
+
+  @override
+  String get catalogStep3 => 'Offline hujjat topshirish';
+
+  @override
+  String get catalogStep4 => 'Bank statement (universitet uchun)';
+
+  @override
+  String get catalogStep5 => 'Intervyu';
+
+  @override
+  String get catalogStep6 => 'Natija e’lon qilinishi';
+
+  @override
+  String get catalogStep7 => 'Kontrakt to‘lash';
+
+  @override
+  String get catalogStep8 => 'Certificate of Admission berilishi';
+
+  @override
+  String get catalogStep9 => 'Viza uchun bank statement';
+
+  @override
+  String get catalogStep10 => 'Viza uchun tarjima va apostil';
+
+  @override
+  String get catalogStep11 => 'Vizaga hujjat topshirish';
+
+  @override
+  String get surveysTitle => 'So‘rovnomalar';
+
+  @override
+  String get surveysLoadError => 'So‘rovnomalarni yuklab bo‘lmadi';
+
+  @override
+  String get surveysEmptyTitle => 'Hozircha so‘rovnomalar yo‘q';
+
+  @override
+  String get surveysEmptyBody => 'Yangi so‘rovnomalar shu yerda paydo bo‘ladi';
+
+  @override
+  String get surveyCompletedChip => 'Bajarildi';
+
+  @override
+  String get surveyNewChip => 'Yangi';
+
+  @override
+  String surveyQuestionCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ta savol',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get surveyFillCta => 'To‘ldirish →';
+
+  @override
+  String surveyPendingCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ta so‘rovnoma',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get surveyPendingSubtitle => 'Javoblaringizni kutmoqda';
+
+  @override
+  String get surveyTitleFallback => 'So‘rovnoma';
+
+  @override
+  String get surveyAnswerAllRequired =>
+      'Barcha majburiy savollarga javob bering';
+
+  @override
+  String get surveySubmitError =>
+      'Javoblarni yuborib bo‘lmadi. Qayta urinib ko‘ring.';
+
+  @override
+  String get surveyThanksTitle => 'Rahmat!';
+
+  @override
+  String get surveyThanksBody => 'Javoblaringiz qabul qilindi';
+
+  @override
+  String get surveyQuestionsLoadError => 'Savollarni yuklab bo‘lmadi';
+
+  @override
+  String get surveyNoQuestions => 'Savollar topilmadi';
+
+  @override
+  String get surveyAlreadyCompleted =>
+      'Siz bu so‘rovnomani allaqachon to‘ldirgansiz';
+
+  @override
+  String get surveySubmit => 'Yuborish';
+
+  @override
+  String get surveyRequired => 'Majburiy';
+
+  @override
+  String get surveyEmailHint => 'misol@mail.com';
+
+  @override
+  String get surveyNumberHint => 'Raqam kiriting';
+
+  @override
+  String get surveyLongTextHint => 'Batafsil yozing...';
+
+  @override
+  String get surveyTextHint => 'Javobingizni yozing...';
+
+  @override
+  String get surveyPickDate => 'Sanani tanlang';
+
+  @override
+  String get docTypeIdCard => 'Topshiruvchining ID karta (pasport) nusxasi';
+
+  @override
+  String get docTypeForeignPassport =>
+      'Topshiruvchining zagran pasporti nusxasi';
+
+  @override
+  String get docTypePhoto => 'Rasm (3.5x4.5 sm)';
+
+  @override
+  String get docTypeDiploma => 'Diplom yoki attestat nusxasi';
+
+  @override
+  String get docTypeLanguageCertificate =>
+      'Til sertifikati nusxasi (kamida IELTS 5.5 yoki TOPIK 2)';
+
+  @override
+  String get docTypeOther => 'Hujjat';
+
+  @override
+  String get docStatusLocked => 'Yopiq';
+
+  @override
+  String get notifPushSection => 'So‘nggi bildirishnomalar';
+
+  @override
+  String get notifMarkAllRead => 'Hammasi o‘qildi';
+
+  @override
+  String get appPendingApprovalNote =>
+      'Maslahatchi tasdig‘i kutilmoqda.\nKo‘rib chiqilgach, sizga xabar beramiz.';
+
+  @override
+  String get appCountrySouthKorea => 'Janubiy Koreya';
+
+  @override
+  String get appRoomNotFound => 'Bu universitetda hali xona yo‘q.';
+
+  @override
+  String get appRoomDiscussionNotFound => 'Bu xonada hali muhokama yo‘q.';
+
+  @override
+  String get appRoomDiscussionConnectError => 'Muhokamaga ulanib bo‘lmadi.';
+
+  @override
+  String get appRoomSendError => 'Xabarni yuborib bo‘lmadi.';
+
+  @override
+  String get appRoomNotSignedIn => 'Iltimos, qaytadan kiring.';
+
+  @override
+  String get appRoomLoadError => 'Yuklab bo‘lmadi. Qaytadan urinib ko‘ring.';
+
+  @override
+  String get appRoomAnnouncementFallbackTitle => 'E’lon';
+
+  @override
+  String get appRoomEventFallbackTitle => 'Tadbir';
+
+  @override
+  String get statusPendingApproval => 'Tasdiq kutilmoqda';
+
+  @override
+  String get statusDocumentsCollection => 'Hujjatlar yig‘ildi';
+
+  @override
+  String get statusDocumentsTranslation => 'Hujjatlar tarjima qilindi';
+
+  @override
+  String get statusApostille => 'Apostil tayyor';
+
+  @override
+  String get statusApplicationSubmitted => 'Ariza topshirildi';
+
+  @override
+  String get statusUniversityResponse => 'Universitet javob berdi';
+
+  @override
+  String get statusVisaDocuments => 'Viza hujjatlari';
+
+  @override
+  String get statusCompleted => 'Yakunlandi';
+
+  @override
+  String get statusInProgress => 'Jarayonda';
+
+  @override
+  String get chatGreeting =>
+      'Salom! 👋 Men Hanguk AI yordamchisiman. Hujjatlar, universitetlar va ariza jarayoni haqidagi har qanday savolingizga javob beraman!';
+
+  @override
+  String get chatNoResponse => 'Kechirasiz, javob tayyorlay olmadim.';
+
+  @override
+  String get chatConnectError =>
+      'Hanguk AI bilan bog‘lanib bo‘lmadi. Internet aloqasini tekshiring.';
+
+  @override
+  String get chatCleared =>
+      'Suhbat tozalandi. Sizga qanday yordam bera olaman?';
+
+  @override
+  String get mapLoadFailed =>
+      'Xarita yuklanmadi. Internet aloqasini tekshiring.';
+
+  @override
+  String get mapTapForDetails => 'Batafsil ma’lumot uchun bosing';
+
+  @override
+  String get mapProviderUnavailable => 'Xarita xizmati hozircha ishlamayapti.';
+
+  @override
+  String get mapInitError => 'Xaritani ishga tushirib bo‘lmadi.';
+
+  @override
+  String get trainingGuideSpTitle => 'Study Plan yozish bo‘yicha qo‘llanma';
+
+  @override
+  String get trainingGuideSpIntro =>
+      'Study Plan — nega Janubiy Koreyada o‘qimoqchi ekaningiz, oldingizga qo‘ygan maqsadlaringiz va o‘qishni bitirgandan keyingi rejalaringiz haqida batafsil ma’lumot beruvchi muhim hujjat.';
+
+  @override
+  String get trainingGuideSp1Title => '1. Maqsad va motivatsiya';
+
+  @override
+  String get trainingGuideSp1Body =>
+      'Nega aynan shu mutaxassislikni tanladingiz? Nega Janubiy Koreya va siz tanlagan universitet bu maqsadingizga mos keladi?';
+
+  @override
+  String get trainingGuideSp2Title => '2. Ta’lim rejasi';
+
+  @override
+  String get trainingGuideSp2Body =>
+      'O‘qish davomida qaysi fanlar yoki yo‘nalishlarga ko‘proq e’tibor qaratmoqchisiz? Koreys tilini o‘rganish rejangiz qanday?';
+
+  @override
+  String get trainingGuideSp3Title => '3. Kelajakdagi rejalar';
+
+  @override
+  String get trainingGuideSp3Body =>
+      'O‘qishni tamomlagach, qanday ish bilan shug‘ullanmoqchisiz? Vataningizga qanday hissa qo‘shasiz?';
+
+  @override
+  String get trainingGuidePsTitle =>
+      'Personal Statement yozish bo‘yicha qo‘llanma';
+
+  @override
+  String get trainingGuidePsIntro =>
+      'Personal Statement — shaxsingiz, yutuqlaringiz, qiziqishlaringiz va nega aynan shu mutaxassislikka munosib ekaningizni ko‘rsatuvchi insho.';
+
+  @override
+  String get trainingGuidePs1Title => '1. O‘tmish va tajriba';
+
+  @override
+  String get trainingGuidePs1Body =>
+      'Maktab yoki litseydagi yutuqlaringiz, qatnashgan olimpiada va loyihalaringiz hamda qiziqishlaringiz haqida yozing.';
+
+  @override
+  String get trainingGuidePs2Title => '2. Shaxsiy fazilatlar';
+
+  @override
+  String get trainingGuidePs2Body =>
+      'Sizni boshqa abituriyentlardan nima ajratib turadi? Qiyinchiliklarni qanday yenggansiz?';
+
+  @override
+  String get trainingGuidePs3Title => '3. Nega aynan shu soha?';
+
+  @override
+  String get trainingGuidePs3Body =>
+      'Bu sohaga qiziqishingiz qachon va qanday paydo bo‘lgan?';
+
+  @override
+  String get trainingStatusInProgress => 'Jarayonda';
+
+  @override
+  String get trainingStatusCompleted => 'Yakunlangan';
+
+  @override
+  String get trainingStatusAbandoned => 'To‘xtatilgan';
+
+  @override
+  String get trainingErrorSessionsLoad =>
+      'Qoralamalaringizni yuklab bo‘lmadi. Qaytadan urinib ko‘ring.';
+
+  @override
+  String get trainingErrorCreateDraft =>
+      'Qoralamani yaratib bo‘lmadi. Qaytadan urinib ko‘ring.';
+
+  @override
+  String get trainingErrorLoadDraft =>
+      'Qoralamani ochib bo‘lmadi. Qaytadan urinib ko‘ring.';
+
+  @override
+  String get trainingErrorDraftConflict =>
+      'Boshqa qurilmada yangiroq qoralama saqlangan. Birlashtirish uchun sahifani yangilang.';
+
+  @override
+  String get trainingErrorTrackUpdate =>
+      'Yozish tilini o‘zgartirib bo‘lmadi. Qaytadan urinib ko‘ring.';
+
+  @override
+  String get trainingErrorGeneric =>
+      'Nimadir xato ketdi. Qaytadan urinib ko‘ring.';
+
+  @override
+  String get trainingInterviewAiError =>
+      'AI suhbatdoshda muammo yuz berdi. Qaytadan urinib ko‘ring.';
+
+  @override
+  String get trainingInterviewAnswerError =>
+      'Javobingizni qayta ishlab bo‘lmadi. Qaytadan urinib ko‘ring.';
+
+  @override
+  String get trainingInterviewVoiceError =>
+      'Suhbatdosh ovozini ijro etib bo‘lmadi.';
+
+  @override
+  String get trainingInterviewAudioLinkWarning =>
+      'Yozuv havolasini saqlab bo‘lmadi. Qayta tinglash imkoni bo‘lmasligi mumkin.';
+
+  @override
+  String get trainingInterviewFeedbackLoadError =>
+      'Fikr-mulohazani yuklab bo‘lmadi. Qaytadan urinib ko‘ring.';
+
+  @override
+  String get authErrorCodeNotFound =>
+      'Bu kod topilmadi. Iltimos, uni maslahatchingiz bilan tekshirib ko‘ring.';
+
+  @override
+  String get authErrorServerUnreachable =>
+      'Serverga ulanib bo‘lmadi. Internet aloqasini tekshirib, «Kirish»ni qayta bosing.';
+
+  @override
+  String get authErrorStaffBlocked =>
+      'Xodimlar magic code orqali emas, login va parol bilan kirishi kerak.';
+
+  @override
+  String get authErrorAccountSetupBusy =>
+      'Server hisobingizni sozlamoqda. 30 soniyadan so‘ng qaytadan urinib ko‘ring.';
+
+  @override
+  String get authErrorLoginServer =>
+      'Kirish serverida xatolik. Qaytadan urinib ko‘ring yoki maslahatchingizdan hisobingizni tiklashni so‘rang.';
+
+  @override
+  String get authErrorUnexpected =>
+      'Serverda kutilmagan xatolik. Qaytadan urinib ko‘ring yoki maslahatchingizga murojaat qiling.';
+
+  @override
+  String get authErrorCrmAccount =>
+      'Bu hisobni maslahatchingiz yaratgan. Iltimos, u bergan Magic Access Code orqali kiring.';
+
+  @override
+  String get authErrorAlreadyRegistered =>
+      'Bu telefon raqami allaqachon ro‘yxatdan o‘tgan. Iltimos, tizimga kiring.';
+
+  @override
+  String get authErrorSignUpDisabled =>
+      'Ro‘yxatdan o‘tish hozircha o‘chirilgan. Iltimos, administratorga murojaat qiling.';
+
+  @override
+  String get authErrorPhoneFormat =>
+      'Telefon raqami noto‘g‘ri formatda. Iltimos, mamlakat kodini ham kiriting.';
+
+  @override
+  String get authErrorSignUpFailed =>
+      'Hisob yaratib bo‘lmadi. Qaytadan urinib ko‘ring.';
+
+  @override
+  String get a11yMenu => 'Menyu';
+
+  @override
+  String get accountExportShareSubject => 'Hanguk — ma’lumotlaringiz nusxasi';
+
+  @override
+  String get accountExportShareText =>
+      'Hanguk’dagi ma’lumotlaringiz nusxasi (JSON).';
+
+  @override
+  String get accountExportError =>
+      'Ma’lumotlaringizni eksport qilib bo‘lmadi. Qaytadan urinib ko‘ring.';
+
+  @override
+  String get uniDbEventOther => 'Muhim sana';
+
+  @override
+  String get uniDbIeqasNone => 'IEQAS akkreditatsiyasi yo‘q';
+
+  @override
+  String get uniDbPdfLinkInvalid =>
+      'Havolani ochib bo‘lmadi. Qayta urinib ko‘ring.';
+
+  @override
+  String get uniDbFacultyMedicine => 'Tibbiyot';
+
+  @override
+  String get uniDbFacultyPharmacy => 'Farmatsiya';
+
+  @override
+  String get uniDbFacultyArtsPe => 'San’at va sport';
+
+  @override
+  String get uniDbFacultyTheology => 'Ilohiyot';
+
+  @override
+  String get uniDbFacultyInterdisciplinary => 'Fanlararo yo‘nalishlar';
+
+  @override
+  String get uniDbFacultyAll => 'Barcha fakultetlar';
+
+  @override
+  String get uniDbScholarshipScopeUniversity => 'Universitet';
+
+  @override
+  String get uniDbScholarshipScopeNational => 'Davlat';
+
+  @override
+  String get uniDbScholarshipScopeRegional => 'Hududiy';
+
+  @override
+  String get uniDbScholarshipScopeFoundation => 'Jamg‘arma';
+
+  @override
+  String get uniDbScholarshipScopeDepartment => 'Kafedra';
+
+  @override
+  String uniDbAwardTuitionPct(String pct) {
+    return 'Kontraktdan $pct% chegirma';
+  }
+
+  @override
+  String get uniDbAwardTuition => 'Kontrakt chegirmasi';
+
+  @override
+  String uniDbAwardTuitionKrw(String amount) {
+    return 'Kontraktdan $amount chegirma';
+  }
+
+  @override
+  String uniDbAwardStipendMonthly(String amount) {
+    return 'Oyiga $amount stipendiya';
+  }
+
+  @override
+  String get uniDbAwardStipend => 'Oylik stipendiya';
+
+  @override
+  String uniDbAwardAirfare(String amount) {
+    return '$amount gacha aviachipta';
+  }
+
+  @override
+  String get uniDbAwardAirfareCovered => 'Aviachipta qoplanadi';
+
+  @override
+  String get uniDbAwardOther => 'Boshqa imtiyoz';
+
+  @override
+  String uniDbTopikDeferred(String base) {
+    return '$base (keyinroq topshirish mumkin)';
+  }
+
+  @override
+  String get uniDbChangeAdmissionCycle => 'Qabul davri';
+
+  @override
+  String get uniDbChangeDates => 'Sanalar';
+
+  @override
+  String get uniDbChangeUpdated => 'Yangilandi';
+
+  @override
+  String get uniDbDocApostille => 'Apostil';
+
+  @override
+  String get uniDbDocConsent => 'Rozilik xati';
+
+  @override
+  String get uniDbDocPassport => 'Pasport';
+
+  @override
+  String get uniDbDocTopik => 'TOPIK sertifikati';
+
+  @override
+  String get uniDbDocLanguage => 'Til sertifikati';
+
+  @override
+  String get uniDbDocTranscript => 'Baholar ko‘chirmasi';
+
+  @override
+  String get uniDbDocDiploma => 'Diplom yoki attestat';
+
+  @override
+  String get uniDbDocEnrollment => 'O‘qish joyidan ma’lumotnoma';
+
+  @override
+  String get uniDbDocFamily => 'Oila tarkibi haqida ma’lumotnoma';
+
+  @override
+  String get uniDbDocPowerOfAttorney => 'Ishonchnoma';
+
+  @override
+  String get uniDbDocFinance => 'Moliyaviy imkoniyat hujjati';
+
+  @override
+  String get uniDbDocEntryExit => 'Chegaradan o‘tish ma’lumotnomasi';
+
+  @override
+  String get uniDbDocEmployment => 'Ish joyidan ma’lumotnoma';
+
+  @override
+  String get uniDbDocRecommendation => 'Tavsiyanoma';
+
+  @override
+  String get uniDbDocCitizenship => 'Fuqarolikni tasdiqlovchi hujjat';
+
+  @override
+  String get uniDbDocStatement => 'Motivatsion xat va o‘quv reja';
+
+  @override
+  String get uniDbDocAlienRegistration => 'Chet el fuqarosi ro‘yxat kartasi';
+
+  @override
+  String get uniDbDocIdCard => 'Shaxsiy guvohnoma nusxasi';
+
+  @override
+  String get uniDbDocPhoto => 'Fotosurat';
+
+  @override
+  String get uniDbDocPortfolio => 'Portfolio';
+
+  @override
+  String get uniDbDocHealth => 'Tibbiy ma’lumotnoma';
+
+  @override
+  String get uniDbDocCalendar => 'O‘quv taqvimi';
+
+  @override
+  String get uniDbDocTax => 'Soliq to‘lovi ma’lumotnomasi';
+
+  @override
+  String get uniDbDocBusinessRegistration =>
+      'Korxona ro‘yxatdan o‘tganlik guvohnomasi';
+
+  @override
+  String get uniDbDocAward => 'Mukofot guvohnomasi';
+
+  @override
+  String get uniDbDocApplicationForm => 'Ariza shakli';
+
+  @override
+  String get uniDbDocOther => 'Qo‘shimcha hujjat';
+
+  @override
+  String get adminReviewQueueTitle => 'Tekshiruv navbati';
+
+  @override
+  String get adminReviewTitle => 'Tekshiruv';
+
+  @override
+  String get adminRefresh => 'Yangilash';
+
+  @override
+  String get adminQueueEmpty =>
+      'Navbat bo‘sh. Hozircha kutilayotgan narsa yo‘q.';
+
+  @override
+  String get adminSelectItem => 'Chapdagi navbatdan elementni tanlang.';
+
+  @override
+  String get adminAccepted => 'Qabul qilindi';
+
+  @override
+  String get adminEditedAccepted => 'Tahrirlanib qabul qilindi';
+
+  @override
+  String get adminRejected => 'Rad etildi';
+
+  @override
+  String get adminBackToQueue => 'Navbatga qaytish';
+
+  @override
+  String adminConfidence(int pct) {
+    return 'Ishonchlilik $pct%';
+  }
+
+  @override
+  String get adminOverdue => 'Muddati o‘tgan';
+
+  @override
+  String get adminOpenSource => 'Manba sahifasini ochish (koreyscha)';
+
+  @override
+  String get adminExtractedPayload => 'Ajratib olingan ma’lumotlar:';
+
+  @override
+  String get adminReject => 'Rad etish';
+
+  @override
+  String get adminEditAccept => 'Tahrirlab qabul qilish';
+
+  @override
+  String get adminAccept => 'Qabul qilish';
+
+  @override
+  String get adminPayloadNotObject => 'Ma’lumotlar JSON obyekti bo‘lishi kerak';
+
+  @override
+  String adminInvalidJson(String error) {
+    return 'JSON noto‘g‘ri: $error';
+  }
+
+  @override
+  String get adminEditPayload => 'Ma’lumotlarni tahrirlash';
+
+  @override
+  String get adminSaveAccept => 'Saqlab qabul qilish';
+
+  @override
+  String get adminRejectReasonTitle => 'Rad etish sababi';
+
+  @override
+  String get adminDetailOptional => 'Tafsilotlar (ixtiyoriy)';
+
+  @override
+  String get adminStaffOnly =>
+      'Bu bo‘lim faqat Hanguk xodimlari uchun. Agar sizga ruxsat kerak bo‘lsa, administratordan xodim rolini qo‘shishni so‘rang.';
+
+  @override
+  String get adminPriorityP1 => 'P1 — tuzatish e’loni (4 soat)';
+
+  @override
+  String get adminPriorityP2 => 'P2 — ilova o‘zgarishi (12 soat)';
+
+  @override
+  String get adminPriorityP3 => 'P3 — o‘zgargan D3 maydoni (24 soat)';
+
+  @override
+  String get adminPriorityP4 => 'P4 — oddiy D2 (48 soat)';
+
+  @override
+  String get adminPriorityP5 => 'P5 — oddiy D1 (96 soat)';
+
+  @override
+  String get adminReasonLowConfidence => 'Past ishonchlilik';
+
+  @override
+  String get adminReasonHighDifficulty => 'Murakkab maydon';
+
+  @override
+  String get adminReasonAutoApproved => 'Avtomatik tasdiqlangan';
+
+  @override
+  String get adminReasonCorrectionNotice => 'Tuzatish e’loni';
+
+  @override
+  String get adminEntityExtraction => 'Ajratib olish';
+
+  @override
+  String get adminEntityGuideline => 'Qabul qo‘llanmasi';
+
+  @override
+  String get adminRejectWrongYear => 'Noto‘g‘ri yil';
+
+  @override
+  String get adminRejectWrongArchetype => 'Noto‘g‘ri hujjat turi';
+
+  @override
+  String get adminRejectHallucinated => 'To‘qib chiqarilgan maydon';
+
+  @override
+  String get adminRejectOcrGarbled => 'OCR matni buzilgan';
+
+  @override
+  String get adminRejectSource404 => 'Manba sahifasi topilmadi (404)';
+
+  @override
+  String get adminRejectOther => 'Boshqa';
+
+  @override
+  String get interviewErrorNoGreeting =>
+      'Suhbatdosh javob bermadi. Orqaga qaytib, qayta urinib ko‘ring.';
+
+  @override
+  String get interviewErrorEndedBeforeGreeting =>
+      'Suhbatdosh gapirishga ulgurmay qo‘ng‘iroq tugadi. Qayta urinib ko‘ring.';
+
+  @override
+  String get interviewErrorCallFailed =>
+      'Qo‘ng‘iroqqa ulanib bo‘lmadi. Internetni tekshirib, qayta urinib ko‘ring.';
 }

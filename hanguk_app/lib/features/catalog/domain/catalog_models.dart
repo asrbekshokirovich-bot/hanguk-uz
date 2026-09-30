@@ -258,9 +258,21 @@ class CatalogRound {
 /// One required document from the Excel.
 @immutable
 class CatalogDoc {
-  const CatalogDoc({this.name, this.required, this.apostille});
+  const CatalogDoc({this.name, this.required, this.apostille, this.translations = const {}});
 
+  /// As the Excel has it (Uzbek).
   final String? name;
+
+  /// The name in English, Korean and Russian, keyed by language code
+  /// (`app_text_translations`, 20260930220000_app_text_translations.sql).
+  final Map<String, String> translations;
+
+  /// [name] in [languageCode], or as the Excel has it when there is no
+  /// translation (yet).
+  String? nameIn(String languageCode) {
+    final t = translations[languageCode]?.trim();
+    return (t != null && t.isNotEmpty) ? t : name;
+  }
 
   /// 'ha' | 'yoq' | 'shartli' ...
   final String? required;
@@ -273,6 +285,10 @@ class CatalogDoc {
     name: r['hujjat_nomi'] as String?,
     required: r['majburiy'] as String?,
     apostille: r['apostil'] as String?,
+    translations: {
+      for (final lang in const ['en', 'ko', 'ru'])
+        if (r['hujjat_nomi_$lang'] is String) lang: r['hujjat_nomi_$lang'] as String,
+    },
   );
 }
 

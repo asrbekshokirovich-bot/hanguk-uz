@@ -7,6 +7,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/router/app_router.dart';
+import '../../entry/data/entry_store.dart';
 import 'notification_store.dart';
 
 const _bgChannelId = 'hanguk_default';
@@ -17,7 +18,24 @@ const _bgChannelId = 'hanguk_default';
 // HIGH, foreground heads-up notifications silently fall back to the shade.
 // A dedicated channel avoids that trap entirely.
 const _fgChannelId = 'hanguk_foreground';
-const _fgChannelName = 'Hanguk Foreground';
+
+/// The channel names the phone's notification settings list, in the language
+/// chosen in the app. They are set at start-up, before any localization
+/// context exists, so they come from [EntryStore.initial]; creating a channel
+/// again with the same id renames it, so a new language shows on the next
+/// launch.
+const Map<String, ({String alerts, String general})> _channelNames = {
+  'uz': (
+    alerts: 'Hanguk ogohlantirishlari',
+    general: 'Hanguk bildirishnomalari',
+  ),
+  'en': (alerts: 'Hanguk alerts', general: 'Hanguk notifications'),
+  'ko': (alerts: 'Hanguk 실시간 알림', general: 'Hanguk 알림'),
+  'ru': (alerts: 'Оповещения Hanguk', general: 'Уведомления Hanguk'),
+};
+
+({String alerts, String general}) get _channelNamesForApp =>
+    _channelNames[EntryStore.initial.languageCode] ?? _channelNames['en']!;
 
 final _localNotifications = FlutterLocalNotificationsPlugin();
 
@@ -49,17 +67,17 @@ Future<void> initNotificationService({ProviderContainer? container}) async {
           AndroidFlutterLocalNotificationsPlugin>();
 
   // Background channel (used by FCM system-tray notifications).
-  const bgChannel = AndroidNotificationChannel(
+  final bgChannel = AndroidNotificationChannel(
     _bgChannelId,
-    'Hanguk Notifications',
+    _channelNamesForApp.general,
     importance: Importance.high,
   );
   await androidPlugin?.createNotificationChannel(bgChannel);
 
   // Foreground channel — guaranteed max importance for heads-up display.
-  const fgChannel = AndroidNotificationChannel(
+  final fgChannel = AndroidNotificationChannel(
     _fgChannelId,
-    _fgChannelName,
+    _channelNamesForApp.alerts,
     importance: Importance.max,
     playSound: true,
     enableVibration: true,
@@ -97,10 +115,10 @@ void _handleForegroundMessage(RemoteMessage message) {
       DateTime.now().millisecondsSinceEpoch ~/ 1000,
       notification.title,
       notification.body,
-      const NotificationDetails(
+      NotificationDetails(
         android: AndroidNotificationDetails(
           _fgChannelId,
-          _fgChannelName,
+          _channelNamesForApp.alerts,
           importance: Importance.max,
           priority: Priority.max,
           playSound: true,

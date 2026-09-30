@@ -9,116 +9,118 @@ class AppLocalizationsRu extends AppLocalizations {
   AppLocalizationsRu([String locale = 'ru']) : super(locale);
 
   @override
-  String get trainingTabTitle => 'Training Center';
+  String get trainingTabTitle => 'Учебный центр';
 
   @override
   String get trainingTabSubtitle =>
-      'Prepare for your university applications with AI-guided training modules.';
+      'Готовьтесь к поступлению с учебными модулями на основе ИИ.';
 
   @override
-  String get studyPlanCardTitle => 'Study Plan Builder';
+  String get studyPlanCardTitle => 'Конструктор учебного плана';
 
   @override
   String get studyPlanCardDesc =>
-      'Craft a compelling roadmap for your academic journey.';
+      'Составьте убедительный план своего академического пути.';
 
   @override
-  String get personalStatementCardTitle => 'Personal Statement';
+  String get personalStatementCardTitle => 'Мотивационное письмо';
 
   @override
   String get personalStatementCardDesc =>
-      'Write effective and engaging personal essays.';
+      'Пишите сильные и увлекательные личные эссе.';
 
   @override
-  String get interviewCardTitle => 'Interview Preparation';
+  String get interviewCardTitle => 'Подготовка к собеседованию';
 
   @override
   String get interviewCardDesc =>
-      'Practice mock questions and improve your confidence.';
+      'Отвечайте на пробные вопросы и становитесь увереннее.';
 
   @override
-  String get applyCta => 'Apply to a university';
+  String get applyCta => 'Подать заявку в университет';
 
   @override
-  String get noApplicationsTitle => 'No applications yet';
+  String get noApplicationsTitle => 'Заявок пока нет';
 
   @override
   String get noApplicationsBody =>
-      'Add a target university first — drafting starts from a target school.';
+      'Сначала добавьте целевой университет — черновик создаётся для конкретного вуза.';
 
   @override
-  String get startInterview => 'Start Interview';
+  String get startInterview => 'Начать собеседование';
 
   @override
-  String get cancel => 'Cancel';
+  String get cancel => 'Отмена';
 
   @override
-  String get endInterview => 'End Interview';
+  String get endInterview => 'Завершить собеседование';
 
   @override
-  String get endSession => 'End Session';
+  String get endSession => 'Завершить сессию';
 
   @override
-  String get practiceAgain => 'Practice Again';
+  String get practiceAgain => 'Попробовать ещё раз';
 
   @override
-  String get connecting => 'Connecting...';
+  String get connecting => 'Подключение...';
 
   @override
   String get greetWait =>
-      'Connecting — your interviewer will greet you shortly...';
+      'Подключение — интервьюер скоро вас поприветствует...';
 
   @override
-  String get yourTurn => 'Your turn to speak';
+  String get yourTurn => 'Ваша очередь говорить';
 
   @override
-  String get aiSpeaking => 'Interviewer is speaking...';
+  String get aiSpeaking => 'Говорит интервьюер...';
 
   @override
-  String get wrappingUp => 'Wrapping up the interview...';
+  String get wrappingUp => 'Завершаем собеседование...';
 
   @override
-  String get micRequired => 'Microphone access is required for the interview.';
+  String get micRequired => 'Для собеседования нужен доступ к микрофону.';
 
   @override
-  String get walkaroundLoadingTitle => 'Loading campus walkaround';
+  String get walkaroundLoadingTitle => 'Загрузка прогулки по кампусу';
 
   @override
-  String get walkaroundLoadingSubtitle => 'Fetching street view near campus.';
+  String get walkaroundLoadingSubtitle =>
+      'Загружаем панорамы улиц рядом с кампусом.';
 
   @override
-  String get walkaroundNoPanoTitle => 'No street view here';
+  String get walkaroundNoPanoTitle => 'Здесь нет панорам улиц';
 
   @override
   String get walkaroundNoPanoSubtitle =>
-      'This campus doesn\'t have a walkable street view nearby.';
+      'Рядом с этим кампусом нет доступных панорам улиц.';
 
   @override
-  String get walkaroundBlockedTitle => 'Street view unavailable';
+  String get walkaroundBlockedTitle => 'Панорамы улиц недоступны';
 
   @override
   String get walkaroundBlockedSubtitle =>
-      'The map provider blocked this request. Try again on a different network.';
+      'Картографический сервис заблокировал запрос. Попробуйте другую сеть.';
 
   @override
-  String get walkaroundNetworkTitle => 'Couldn\'t reach the map provider';
+  String get walkaroundNetworkTitle =>
+      'Не удалось подключиться к картографическому сервису';
 
   @override
   String get walkaroundNetworkSubtitle =>
-      'Check your connection and try again.';
+      'Проверьте подключение и попробуйте снова.';
 
   @override
-  String get walkaroundInitErrorTitle => 'Street view couldn\'t start';
+  String get walkaroundInitErrorTitle => 'Не удалось запустить панорамы улиц';
 
   @override
   String get walkaroundInitErrorSubtitle =>
-      'Something went wrong starting the walkaround. Please try again.';
+      'Не удалось запустить прогулку. Попробуйте ещё раз.';
 
   @override
-  String get virtualTourTitle => 'Virtual Tour';
+  String get virtualTourTitle => 'Виртуальный тур';
 
   @override
-  String get virtualWalkaroundTitle => 'Virtual Walkaround';
+  String get virtualWalkaroundTitle => 'Виртуальная прогулка';
 
   @override
   String get visitUniversityWebsite => 'Перейти на сайт университета';
@@ -262,408 +264,411 @@ class AppLocalizationsRu extends AppLocalizations {
   String get accountTooltip => 'Аккаунт';
 
   @override
-  String get ok => 'OK';
+  String get ok => 'ОК';
 
   @override
-  String get loadingLabel => 'Loading...';
+  String get loadingLabel => 'Загрузка...';
 
   @override
-  String get accountBackTooltip => 'Back';
+  String get accountBackTooltip => 'Назад';
 
   @override
-  String get accountTitle => 'Account';
+  String get accountTitle => 'Аккаунт';
 
   @override
-  String get accountSignedInAs => 'Signed in as';
+  String get accountSignedInAs => 'Вы вошли как';
 
   @override
-  String get accountUnknownAccount => '(unknown account)';
+  String get accountUnknownAccount => '(неизвестный аккаунт)';
 
   @override
-  String get accountSessionLabel => 'Session';
+  String get accountSessionLabel => 'Сеанс';
 
   @override
-  String get accountSigningOut => 'Signing out…';
+  String get accountSigningOut => 'Выход…';
 
   @override
-  String get accountSignOut => 'Sign out';
+  String get accountSignOut => 'Выйти';
 
   @override
-  String get accountYourDataLabel => 'Your data';
+  String get accountYourDataLabel => 'Ваши данные';
 
   @override
   String get accountYourDataBody =>
-      'Download a JSON copy of everything Hanguk holds about your account — profile, applications, study plans, drafts, interview sessions and feedback.';
+      'Скачайте JSON-копию всех данных, которые Hanguk хранит о вашем аккаунте: профиль, заявки, учебные планы, черновики, сессии собеседований и отзывы.';
 
   @override
-  String get accountPreparingExport => 'Preparing export…';
+  String get accountPreparingExport => 'Подготовка экспорта…';
 
   @override
-  String get accountDownloadMyData => 'Download my data';
+  String get accountDownloadMyData => 'Скачать мои данные';
 
   @override
-  String get accountDangerZoneLabel => 'Danger zone';
+  String get accountDangerZoneLabel => 'Опасная зона';
 
   @override
   String get accountDangerZoneBody =>
-      'Deleting your account is permanent. We will erase your profile, applications, study plans, personal-statement drafts, interview sessions, and transcripts. Documents in storage are removed within 30 days; backups age out within 90 days.';
+      'Удаление аккаунта необратимо. Мы удалим ваш профиль, заявки, учебные планы, черновики мотивационных писем, сессии собеседований и расшифровки. Документы в хранилище удаляются в течение 30 дней, резервные копии — в течение 90 дней.';
 
   @override
-  String get accountDeleteAccount => 'Delete account';
+  String get accountDeleteAccount => 'Удалить аккаунт';
 
   @override
-  String get accountPrivacyPolicy => 'Privacy Policy';
+  String get accountPrivacyPolicy => 'Политика конфиденциальности';
 
   @override
-  String get accountTermsOfService => 'Terms of Service';
+  String get accountTermsOfService => 'Условия использования';
 
   @override
-  String get accountDeleteErrorTitle => 'Could not delete account';
+  String get accountDeleteErrorTitle => 'Не удалось удалить аккаунт';
 
   @override
   String accountDeleteErrorBody(Object error) {
-    return 'We hit an error while deleting your data:\n\n$error\n\nPlease email privacy@hanguk.uz so we can finish the deletion for you.';
+    return 'При удалении ваших данных произошла ошибка:\n\n$error\n\nНапишите на privacy@hanguk.uz, и мы завершим удаление за вас.';
   }
 
   @override
   String accountExportFailed(Object error) {
-    return 'Export failed: $error';
+    return 'Ошибка экспорта: $error';
   }
 
   @override
-  String get accountDeleteDialogTitle => 'Delete your account?';
+  String get accountDeleteDialogTitle => 'Удалить аккаунт?';
 
   @override
   String get accountDeleteDialogBody =>
-      'This will permanently delete your account, applications, study plans, personal-statement drafts, interview sessions, and transcripts.\n\nType DELETE to confirm.';
+      'Ваш аккаунт, заявки, учебные планы, черновики мотивационных писем, сессии собеседований и расшифровки будут удалены безвозвратно.\n\nВведите DELETE для подтверждения.';
 
   @override
-  String get accountDeleteDialogConfirm => 'Delete forever';
+  String get accountDeleteDialogConfirm => 'Удалить навсегда';
 
   @override
-  String get accountDeleteProgress => 'Deleting your account…';
+  String get accountDeleteProgress => 'Удаляем ваш аккаунт…';
 
   @override
-  String get loginStudentPortal => 'Student Portal';
+  String get loginStudentPortal => 'Портал студента';
 
   @override
   String get loginAccessCodeHelp =>
       'Введите 8-значный код от вашего консультанта или представителя университета.';
 
   @override
-  String get loginAccessCodeButton => 'Login manually with Access Code';
+  String get loginAccessCodeButton => 'Войти по коду доступа';
 
   @override
-  String get loginSwitchToPhone =>
-      '← I actually want to Log in via Phone Number';
+  String get loginSwitchToPhone => '← Я хочу войти по номеру телефона';
 
   @override
-  String get loginComingSoonTitle => 'Coming Soon';
+  String get loginComingSoonTitle => 'Скоро';
 
   @override
   String get loginComingSoonBody =>
-      'Public sign up and phone login are currently under maintenance as we upgrade our systems.\n\nStudents: Please use your Magic Access Code to log in for now.';
+      'Открытая регистрация и вход по телефону временно недоступны: мы обновляем системы.\n\nСтудентам: пока входите с помощью магического кода.';
 
   @override
-  String get loginSwitchToMagicCode => 'Switch to Magic Code Login';
+  String get loginSwitchToMagicCode => 'Войти по магическому коду';
 
   @override
   String get loginErrorInvalidPhone =>
-      'Please enter a valid phone number (e.g. +12345678).';
+      'Введите корректный номер телефона (например, +12345678).';
 
   @override
   String get loginErrorPasswordTooShort =>
-      'Password must be at least 6 characters.';
+      'Пароль должен содержать не менее 6 символов.';
 
   @override
   String get loginErrorInvalidCredentials =>
-      'Invalid phone number or password.';
+      'Неверный номер телефона или пароль.';
 
   @override
   String get loginErrorInvalidAccessCode =>
-      'Please enter a valid access code (min 6 characters).';
+      'Введите корректный код доступа (не менее 6 символов).';
 
   @override
-  String get signUpErrorNameRequired => 'Full Name is required.';
+  String get signUpErrorNameRequired => 'Укажите полное имя.';
 
   @override
   String get signUpErrorPhoneRequired =>
-      'A valid phone number is required (e.g. +12345678).';
+      'Укажите корректный номер телефона (например, +12345678).';
 
   @override
-  String get signUpErrorPasswordMismatch => 'Passwords do not match.';
+  String get signUpErrorPasswordMismatch => 'Пароли не совпадают.';
 
   @override
-  String get signUpSuccess => 'Account created successfully! Please log in.';
+  String get signUpSuccess => 'Аккаунт создан! Теперь войдите.';
 
   @override
-  String get notifSettingsTitle => 'Notification settings';
+  String get notifSettingsTitle => 'Настройки уведомлений';
 
   @override
-  String get notifSettingsEmptyTitle => 'No tracked universities yet';
+  String get notifSettingsEmptyTitle => 'Нет отслеживаемых университетов';
 
   @override
   String get notifSettingsEmptyBody =>
-      'Tap \"Track this institution\" on a university page to follow it. Notification preferences appear here once you have at least one tracked institution.';
+      'Нажмите «Отслеживать этот университет» на странице вуза, чтобы следить за ним. Настройки уведомлений появятся здесь, когда вы начнёте отслеживать хотя бы один университет.';
 
   @override
-  String get notifSettingsCalendar => 'Calendar changes';
+  String get notifSettingsCalendar => 'Изменения в календаре';
 
   @override
-  String get notifSettingsCalendarDesc => 'Deadline dates move';
+  String get notifSettingsCalendarDesc => 'Переносы дедлайнов';
 
   @override
-  String get notifSettingsCorrection => 'Correction notices';
+  String get notifSettingsCorrection => 'Уведомления об исправлениях';
 
   @override
-  String get notifSettingsCorrectionDesc => '정정공고 published — highest priority';
+  String get notifSettingsCorrectionDesc =>
+      'Опубликован 정정공고 — высший приоритет';
 
   @override
-  String get notifSettingsRequirement => 'Requirement changes';
+  String get notifSettingsRequirement => 'Изменения требований';
 
   @override
   String get notifSettingsRequirementDesc =>
-      'TOPIK / GPA / language test rules change';
+      'Изменения правил TOPIK / GPA / языковых тестов';
 
   @override
-  String get notifSettingsScholarship => 'Scholarship updates';
+  String get notifSettingsScholarship => 'Новости о стипендиях';
 
   @override
-  String get notifSettingsScholarshipDesc => 'Off by default — high volume';
+  String get notifSettingsScholarshipDesc =>
+      'По умолчанию выключено — много уведомлений';
 
   @override
   String notifSettingsLoadError(Object error) {
-    return 'Error: $error';
+    return 'Ошибка: $error';
   }
 
   @override
   String notifSettingsPushLanguage(String lang) {
-    return 'Push payload language: $lang';
+    return 'Язык push-уведомлений: $lang';
   }
 
   @override
   String notifSettingsUpdateError(Object error) {
-    return 'Could not update preference: $error';
+    return 'Не удалось обновить настройку: $error';
   }
 
   @override
-  String get interviewDialogStepUniversity => '1. Select Target University';
+  String get interviewDialogStepUniversity => '1. Выберите целевой университет';
 
   @override
-  String get interviewDialogStepTrack => '2. Select Interview Track';
+  String get interviewDialogStepTrack => '2. Выберите язык собеседования';
 
   @override
-  String get interviewDialogStepPersona => '3. Interviewer Persona';
+  String get interviewDialogStepPersona => '3. Тип интервьюера';
 
   @override
   String get interviewNoAppsBody =>
-      'Add a target university first — interview practice tailors questions to that school.';
+      'Сначала добавьте целевой университет — вопросы собеседования подбираются под этот вуз.';
 
   @override
-  String get trackKorean => 'Korean';
+  String get trackKorean => 'Корейский';
 
   @override
-  String get trackEnglish => 'English';
+  String get trackEnglish => 'Английский';
 
   @override
-  String get personaFriendly => 'Friendly admissions officer';
+  String get personaFriendly => 'Доброжелательный сотрудник приёмной комиссии';
 
   @override
-  String get personaStrict => 'Strict professor';
+  String get personaStrict => 'Строгий профессор';
 
   @override
-  String get personaImpatient => 'Impatient visa officer';
+  String get personaImpatient => 'Нетерпеливый визовый офицер';
 
   @override
-  String get personaFriendlyCaps => 'Friendly Admissions Officer';
+  String get personaFriendlyCaps =>
+      'Доброжелательный сотрудник приёмной комиссии';
 
   @override
-  String get personaStrictCaps => 'Strict Professor';
+  String get personaStrictCaps => 'Строгий профессор';
 
   @override
-  String get personaImpatientCaps => 'Impatient Visa Officer';
+  String get personaImpatientCaps => 'Нетерпеливый визовый офицер';
 
   @override
   String get micBlockedInSettings =>
-      'Microphone is blocked in system settings.';
+      'Микрофон заблокирован в настройках системы.';
 
   @override
-  String get openSettings => 'Open settings';
+  String get openSettings => 'Открыть настройки';
 
   @override
   String genericError(Object error) {
-    return 'Error: $error';
+    return 'Ошибка: $error';
   }
 
   @override
   String errorLoadingApplications(Object error) {
-    return 'Error loading applications: $error';
+    return 'Ошибка загрузки заявок: $error';
   }
 
   @override
   String get noAppsInlineHint =>
-      'No applications yet — go to the Applications tab to add one.';
+      'Заявок пока нет — добавьте её во вкладке «Заявки».';
 
   @override
-  String get aiStatusWaiting => 'Waiting for input...';
+  String get aiStatusWaiting => 'Ожидание ввода...';
 
   @override
-  String get aiStatusCoolingDown => 'AI cooling down…';
+  String get aiStatusCoolingDown => 'ИИ делает паузу…';
 
   @override
-  String get aiStatusAnalyzing => 'AI analyzing...';
+  String get aiStatusAnalyzing => 'ИИ анализирует...';
 
   @override
-  String get aiStatusReady => 'Ready';
+  String get aiStatusReady => 'Готово';
 
   @override
-  String get aiStatusPredicting => 'AI Predicting...';
+  String get aiStatusPredicting => 'ИИ предлагает текст...';
 
   @override
-  String get aiStatusSupervisionActive => 'AI Supervision Active';
+  String get aiStatusSupervisionActive => 'Проверка ИИ активна';
 
   @override
   String get aiStatusSpellCheckUnavailable => 'Словарь устройства недоступен';
 
   @override
-  String get workspaceTitle => 'Workspace';
+  String get workspaceTitle => 'Рабочая область';
 
   @override
-  String get workspaceAnalyzeButton => 'Analyze';
+  String get workspaceAnalyzeButton => 'Анализ';
 
   @override
-  String get aiSupervisionWarningsTitle => 'AI Supervision Warnings:';
+  String get aiSupervisionWarningsTitle => 'Замечания ИИ:';
 
   @override
   String grammarReplaceWith(String original, String suggestion) {
-    return 'Replace \"$original\" with \"$suggestion\"';
+    return 'Заменить «$original» на «$suggestion»';
   }
 
   @override
   String draftingHint(String documentTitle) {
-    return 'Type your $documentTitle here...';
+    return 'Напишите здесь: $documentTitle...';
   }
 
   @override
-  String get ghostSuggestionSemantics => 'AI suggestion — tap to insert';
+  String get ghostSuggestionSemantics =>
+      'Подсказка ИИ — нажмите, чтобы вставить';
 
   @override
-  String get ghostAccept => 'Accept';
+  String get ghostAccept => 'Принять';
 
   @override
-  String get ghostDismiss => 'Dismiss suggestion';
+  String get ghostDismiss => 'Скрыть подсказку';
 
   @override
-  String get pastDraftsTooltip => 'Past drafts';
+  String get pastDraftsTooltip => 'Прошлые черновики';
 
   @override
-  String get sessionSettingsTooltip => 'Session settings';
+  String get sessionSettingsTooltip => 'Настройки сессии';
 
   @override
-  String get switchTrackEnglish => 'Switch track → English';
+  String get switchTrackEnglish => 'Сменить язык → английский';
 
   @override
-  String get switchTrackKorean => 'Switch track → Korean';
+  String get switchTrackKorean => 'Сменить язык → корейский';
 
   @override
-  String get createNewSession => 'Create New Session';
+  String get createNewSession => 'Создать новую сессию';
 
   @override
-  String get yourSavedDrafts => 'Your Saved Drafts';
+  String get yourSavedDrafts => 'Сохранённые черновики';
 
   @override
-  String get noPreviousDrafts => 'No previous drafts found.';
+  String get noPreviousDrafts => 'Прошлых черновиков нет.';
 
   @override
-  String get generalDraftLabel => 'General';
+  String get generalDraftLabel => 'Общий';
 
   @override
-  String get studyPlanDocumentName => 'Study Plan';
+  String get studyPlanDocumentName => 'Учебный план';
 
   @override
-  String get personalStatementDocumentName => 'Personal Statement';
+  String get personalStatementDocumentName => 'Мотивационное письмо';
 
   @override
   String savedDraftItemTitle(String universityName, String documentName) {
-    return '$universityName $documentName';
+    return '$documentName — $universityName';
   }
 
   @override
   String sessionStatusLabel(String status) {
-    return 'Status: $status';
+    return 'Статус: $status';
   }
 
   @override
-  String get deleteSessionTitle => 'Delete Session';
+  String get deleteSessionTitle => 'Удалить сессию';
 
   @override
   String get deleteSessionBody =>
-      'Are you sure you want to delete this session? This action cannot be undone.';
+      'Вы уверены, что хотите удалить эту сессию? Это действие нельзя отменить.';
 
   @override
-  String get deleteLabel => 'Delete';
+  String get deleteLabel => 'Удалить';
 
   @override
-  String get stepperLabelGuide => 'Guide';
+  String get stepperLabelGuide => 'Руководство';
 
   @override
-  String get stepperLabelExample => 'Example';
+  String get stepperLabelExample => 'Пример';
 
   @override
-  String get stepperLabelDraft => 'Draft';
+  String get stepperLabelDraft => 'Черновик';
 
   @override
-  String get stepperLabelFeedback => 'Feedback';
+  String get stepperLabelFeedback => 'Отзыв';
 
   @override
-  String get readExamplesButton => 'Read Examples';
+  String get readExamplesButton => 'Смотреть примеры';
 
   @override
-  String get targetUniversityLabel => 'Target University';
+  String get targetUniversityLabel => 'Целевой университет';
 
   @override
-  String get startDraftingButton => 'Start Drafting';
+  String get startDraftingButton => 'Начать писать';
 
   @override
-  String get newStudyPlanDialogTitle => 'Start New Study Plan';
+  String get newStudyPlanDialogTitle => 'Новый учебный план';
 
   @override
-  String get newPersonalStatementDialogTitle => 'Start New Personal Statement';
+  String get newPersonalStatementDialogTitle => 'Новое мотивационное письмо';
 
   @override
-  String get selectTargetUniversityStep => '1. Select Target University';
+  String get selectTargetUniversityStep => '1. Выберите целевой университет';
 
   @override
-  String get selectLanguageTrackStep => '2. Select Language Track';
+  String get selectLanguageTrackStep => '2. Выберите язык';
 
   @override
-  String get createSession => 'Create Session';
+  String get createSession => 'Создать сессию';
 
   @override
-  String get aiExampleEmbassyTitle => 'Embassy Example';
+  String get aiExampleEmbassyTitle => 'Пример для посольства';
 
   @override
   String aiExampleUniversityTitle(String universityName) {
-    return 'Example for $universityName';
+    return 'Пример для $universityName';
   }
 
   @override
-  String get aiExampleEmbassyLabel => 'Embassy of the Republic of Korea (Visa)';
+  String get aiExampleEmbassyLabel => 'Посольство Республики Корея (виза)';
 
   @override
-  String get aiExampleWritingPlaceholder => 'AI is writing an example...';
+  String get aiExampleWritingPlaceholder => 'ИИ пишет пример...';
 
   @override
-  String get copyButton => 'Copy';
+  String get copyButton => 'Копировать';
 
   @override
-  String get copiedSnackbar => 'Text copied!';
+  String get copiedSnackbar => 'Текст скопирован!';
 
   @override
-  String get analysisFeedbackTitle => 'Analysis & Feedback';
+  String get analysisFeedbackTitle => 'Анализ и отзыв';
 
   @override
-  String get noAnalysisYet => 'No analysis generated yet.';
+  String get noAnalysisYet => 'Анализ ещё не готов.';
 
   @override
   String get analysisErrorPlanRequired =>
@@ -685,29 +690,29 @@ class AppLocalizationsRu extends AppLocalizations {
   String get analysisRetryButton => 'Повторить';
 
   @override
-  String get aiReviewedDraft => 'AI successfully reviewed your draft.';
+  String get aiReviewedDraft => 'ИИ проверил ваш черновик.';
 
   @override
-  String get returnToDrafting => 'Return to Drafting';
+  String get returnToDrafting => 'Вернуться к черновику';
 
   @override
-  String get studyPlanHistoryTitle => 'Study Plan history';
+  String get studyPlanHistoryTitle => 'История учебных планов';
 
   @override
-  String get personalStatementHistoryTitle => 'Personal Statement history';
+  String get personalStatementHistoryTitle => 'История мотивационных писем';
 
   @override
-  String get draftingHistoryTitle => 'Drafting history';
+  String get draftingHistoryTitle => 'История черновиков';
 
   @override
-  String get noPastDraftsYet => 'No past drafts yet';
+  String get noPastDraftsYet => 'Прошлых черновиков пока нет';
 
   @override
   String get noPastDraftsBody =>
-      'Start a new session and your drafts will appear here, ordered by most recently edited.';
+      'Начните новую сессию — ваши черновики появятся здесь, сначала последние изменённые.';
 
   @override
-  String get noTargetUniversity => 'No target university';
+  String get noTargetUniversity => 'Без целевого университета';
 
   @override
   String sessionStepLabel(int step) {
@@ -715,208 +720,209 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
-  String get metricWords => 'Words';
+  String get metricWords => 'Слова';
 
   @override
-  String get metricCharacters => 'Characters';
+  String get metricCharacters => 'Символы';
 
   @override
-  String get saveStatusUnsaved => 'Unsaved';
+  String get saveStatusUnsaved => 'Не сохранено';
 
   @override
-  String get saveStatusSaving => 'Saving...';
+  String get saveStatusSaving => 'Сохранение...';
 
   @override
-  String get saveStatusSaved => 'Saved';
+  String get saveStatusSaved => 'Сохранено';
 
   @override
-  String get saveStatusError => 'Save failed';
+  String get saveStatusError => 'Ошибка сохранения';
 
   @override
-  String get interviewPracticeTitle => 'Interview Practice';
+  String get interviewPracticeTitle => 'Тренировка собеседования';
 
   @override
-  String get interviewSettingUp => 'Setting up your interview...';
+  String get interviewSettingUp => 'Готовим ваше собеседование...';
 
   @override
-  String get interviewSetupTitle => 'AI Interview Setup';
+  String get interviewSetupTitle => 'Настройка ИИ-собеседования';
 
   @override
   String get interviewSetupSubtitle =>
-      'Configure your AI interviewer settings before starting.';
+      'Настройте ИИ-интервьюера перед началом.';
 
   @override
-  String get interviewTypeLabel => 'Interview Type';
+  String get interviewTypeLabel => 'Тип собеседования';
 
   @override
-  String get interviewTypeGeneral => 'General Introduction';
+  String get interviewTypeGeneral => 'Общее знакомство';
 
   @override
-  String get interviewTypeUniversitySpecific => 'University Specific';
+  String get interviewTypeUniversitySpecific => 'Для конкретного университета';
 
   @override
-  String get interviewTypeVisa => 'Visa / Embassy Check';
+  String get interviewTypeVisa => 'Виза / посольство';
 
   @override
-  String get targetUniversityFieldLabel => 'Target university';
+  String get targetUniversityFieldLabel => 'Целевой университет';
 
   @override
-  String get languageLabel => 'Language';
+  String get languageLabel => 'Язык';
 
   @override
-  String get interviewerPersonaLabel => 'Interviewer Persona';
+  String get interviewerPersonaLabel => 'Тип интервьюера';
 
   @override
-  String get focusTopicLabel => 'Focus Topic (Optional)';
+  String get focusTopicLabel => 'Тема (необязательно)';
 
   @override
-  String get focusTopicHint => 'e.g. Discussing my computer science major...';
+  String get focusTopicHint =>
+      'например, обсуждение моей специальности по информатике...';
 
   @override
-  String get timedModeTitle => 'Timed Mode';
+  String get timedModeTitle => 'Режим с таймером';
 
   @override
-  String get timedModeSubtitle => '5 minute strict limit';
+  String get timedModeSubtitle => 'Строгий лимит 5 минут';
 
   @override
-  String get startPracticeButton => 'Start Practice';
+  String get startPracticeButton => 'Начать тренировку';
 
   @override
   String get pickUniversityFirstHint =>
-      'Pick a target university above to enable.';
+      'Выберите целевой университет выше, чтобы продолжить.';
 
   @override
-  String get coachingFiller => 'Avoid using filler words!';
+  String get coachingFiller => 'Избегайте слов-паразитов!';
 
   @override
-  String get lifelineHintsTitle => '💡 Lifeline Hints:';
+  String get lifelineHintsTitle => '💡 Подсказки:';
 
   @override
-  String get speakerAi => 'AI';
+  String get speakerAi => 'ИИ';
 
   @override
-  String get speakerYou => 'You';
+  String get speakerYou => 'Вы';
 
   @override
   String connectionInterrupted(String detail) {
-    return 'Connection interrupted: $detail';
+    return 'Соединение прервано: $detail';
   }
 
   @override
-  String get interviewAnalyticsTitle => 'Interview Analytics';
+  String get interviewAnalyticsTitle => 'Аналитика собеседования';
 
   @override
-  String get analyzingTranscript => 'Analyzing transcript with AI...';
+  String get analyzingTranscript => 'ИИ анализирует расшифровку...';
 
   @override
-  String get noFeedbackAvailable => 'No feedback available.';
+  String get noFeedbackAvailable => 'Отзыв недоступен.';
 
   @override
-  String get overallScoreLabel => 'Overall Score';
+  String get overallScoreLabel => 'Общий балл';
 
   @override
-  String get metricCommunication => 'Communication';
+  String get metricCommunication => 'Коммуникация';
 
   @override
-  String get metricConfidence => 'Confidence';
+  String get metricConfidence => 'Уверенность';
 
   @override
-  String get metricContent => 'Content';
+  String get metricContent => 'Содержание';
 
   @override
-  String get metricLanguage => 'Language';
+  String get metricLanguage => 'Язык';
 
   @override
-  String get detailedFeedbackTitle => 'Detailed Feedback';
+  String get detailedFeedbackTitle => 'Подробный отзыв';
 
   @override
-  String get detailedFeedbackFallback => 'Great job.';
+  String get detailedFeedbackFallback => 'Отличная работа.';
 
   @override
-  String get strengthsLabel => 'Strengths';
+  String get strengthsLabel => 'Сильные стороны';
 
   @override
-  String get areasToImproveLabel => 'Areas to Improve';
+  String get areasToImproveLabel => 'Что улучшить';
 
   @override
-  String get startAnotherInterview => 'Start another interview';
+  String get startAnotherInterview => 'Начать новое собеседование';
 
   @override
-  String get sessionRecording => 'Session Recording';
+  String get sessionRecording => 'Запись сессии';
 
   @override
-  String get audioRecordingNotFound => 'Audio recording not found.';
+  String get audioRecordingNotFound => 'Аудиозапись не найдена.';
 
   @override
-  String get interviewHistoryTitle => 'Interview History';
+  String get interviewHistoryTitle => 'История собеседований';
 
   @override
-  String get noPastInterviews => 'No past interviews found.';
+  String get noPastInterviews => 'Прошлых собеседований нет.';
 
   @override
-  String get unknownTarget => 'Unknown Target';
+  String get unknownTarget => 'Неизвестная цель';
 
   @override
-  String get unknownUniversity => 'Unknown University';
+  String get unknownUniversity => 'Неизвестный университет';
 
   @override
   String get abandonedSessionNote =>
-      'This session ended without feedback — no replay available.';
+      'Эта сессия завершилась без отзыва — запись недоступна.';
 
   @override
   String get activeSessionNote =>
-      'This session is still active. Finish it to see feedback.';
+      'Эта сессия ещё активна. Завершите её, чтобы увидеть отзыв.';
 
   @override
-  String get deleteSessionTooltip => 'Delete session';
+  String get deleteSessionTooltip => 'Удалить сессию';
 
   @override
-  String get deleteInterviewDialogTitle => 'Delete this session?';
+  String get deleteInterviewDialogTitle => 'Удалить эту сессию?';
 
   @override
   String get deleteInterviewDialogBody =>
-      'The feedback and recording link will be permanently removed.';
+      'Отзыв и ссылка на запись будут удалены безвозвратно.';
 
   @override
   String deleteFailed(Object error) {
-    return 'Delete failed: $error';
+    return 'Не удалось удалить: $error';
   }
 
   @override
-  String get a11yTooltipAskAi => 'Ask Hanguk AI';
+  String get a11yTooltipAskAi => 'Спросить Hanguk AI';
 
   @override
-  String get a11yTooltipClearChat => 'Clear chat history';
+  String get a11yTooltipClearChat => 'Очистить историю чата';
 
   @override
-  String get a11yTooltipSendMessage => 'Send message';
+  String get a11yTooltipSendMessage => 'Отправить сообщение';
 
   @override
-  String get a11yTooltipClose => 'Close';
+  String get a11yTooltipClose => 'Закрыть';
 
   @override
-  String get a11yTooltipPreviewDocument => 'Preview document';
+  String get a11yTooltipPreviewDocument => 'Просмотреть документ';
 
   @override
-  String get a11yTooltipDeleteDocument => 'Delete document';
+  String get a11yTooltipDeleteDocument => 'Удалить документ';
 
   @override
-  String get a11yTooltipInterviewHistory => 'Interview history';
+  String get a11yTooltipInterviewHistory => 'История собеседований';
 
   @override
-  String get a11yTooltipCloseSession => 'Close session';
+  String get a11yTooltipCloseSession => 'Закрыть сессию';
 
   @override
-  String get a11yTooltipDeleteSession => 'Delete session';
+  String get a11yTooltipDeleteSession => 'Удалить сессию';
 
   @override
-  String get a11yTooltipBack => 'Back';
+  String get a11yTooltipBack => 'Назад';
 
   @override
-  String get a11yTooltipPlayRecording => 'Play recording';
+  String get a11yTooltipPlayRecording => 'Воспроизвести запись';
 
   @override
-  String get a11yTooltipPauseRecording => 'Pause recording';
+  String get a11yTooltipPauseRecording => 'Приостановить запись';
 
   @override
   String get trackMismatchWarning =>
@@ -1981,7 +1987,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get entryStudentNotice =>
-      'Вы студент Hanguk — войдите с помощью Magic Code, который дал ваш консультант.';
+      'Вы студент Hanguk — войдите с помощью магического кода, который дал ваш консультант.';
 
   @override
   String get entryErrorNotFound => 'Этот номер не зарегистрирован.';
@@ -2008,4 +2014,724 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get entryLanguageSheetTitle => 'Выберите язык';
+
+  @override
+  String get catalogStep1 => 'Онлайн-подача документов';
+
+  @override
+  String get catalogStep2 => 'Оплата регистрационного взноса';
+
+  @override
+  String get catalogStep3 => 'Подача документов в бумажном виде';
+
+  @override
+  String get catalogStep4 => 'Банковская выписка (для университета)';
+
+  @override
+  String get catalogStep5 => 'Собеседование';
+
+  @override
+  String get catalogStep6 => 'Объявление результатов';
+
+  @override
+  String get catalogStep7 => 'Оплата обучения';
+
+  @override
+  String get catalogStep8 => 'Выдача Certificate of Admission';
+
+  @override
+  String get catalogStep9 => 'Банковская выписка для визы';
+
+  @override
+  String get catalogStep10 => 'Перевод и апостиль для визы';
+
+  @override
+  String get catalogStep11 => 'Подача документов на визу';
+
+  @override
+  String get surveysTitle => 'Опросы';
+
+  @override
+  String get surveysLoadError => 'Не удалось загрузить опросы';
+
+  @override
+  String get surveysEmptyTitle => 'Опросов пока нет';
+
+  @override
+  String get surveysEmptyBody => 'Новые опросы появятся здесь';
+
+  @override
+  String get surveyCompletedChip => 'Пройден';
+
+  @override
+  String get surveyNewChip => 'Новый';
+
+  @override
+  String surveyQuestionCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count вопроса',
+      many: '$count вопросов',
+      few: '$count вопроса',
+      one: '$count вопрос',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get surveyFillCta => 'Пройти →';
+
+  @override
+  String surveyPendingCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count опроса',
+      many: '$count опросов',
+      few: '$count опроса',
+      one: '$count опрос',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get surveyPendingSubtitle => 'Ждут ваших ответов';
+
+  @override
+  String get surveyTitleFallback => 'Опрос';
+
+  @override
+  String get surveyAnswerAllRequired => 'Ответьте на все обязательные вопросы';
+
+  @override
+  String get surveySubmitError =>
+      'Не удалось отправить ответы. Попробуйте ещё раз.';
+
+  @override
+  String get surveyThanksTitle => 'Спасибо!';
+
+  @override
+  String get surveyThanksBody => 'Ваши ответы получены';
+
+  @override
+  String get surveyQuestionsLoadError => 'Не удалось загрузить вопросы';
+
+  @override
+  String get surveyNoQuestions => 'Вопросов нет';
+
+  @override
+  String get surveyAlreadyCompleted => 'Вы уже прошли этот опрос';
+
+  @override
+  String get surveySubmit => 'Отправить';
+
+  @override
+  String get surveyRequired => 'Обязательно';
+
+  @override
+  String get surveyEmailHint => 'primer@mail.com';
+
+  @override
+  String get surveyNumberHint => 'Введите число';
+
+  @override
+  String get surveyLongTextHint => 'Напишите подробно...';
+
+  @override
+  String get surveyTextHint => 'Напишите ваш ответ...';
+
+  @override
+  String get surveyPickDate => 'Выберите дату';
+
+  @override
+  String get docTypeIdCard => 'Копия ID-карты (паспорта) заявителя';
+
+  @override
+  String get docTypeForeignPassport => 'Копия загранпаспорта заявителя';
+
+  @override
+  String get docTypePhoto => 'Фото (3.5x4.5 см)';
+
+  @override
+  String get docTypeDiploma => 'Копия диплома или аттестата';
+
+  @override
+  String get docTypeLanguageCertificate =>
+      'Копия языкового сертификата (не ниже IELTS 5.5 или TOPIK 2)';
+
+  @override
+  String get docTypeOther => 'Документ';
+
+  @override
+  String get docStatusLocked => 'Недоступно';
+
+  @override
+  String get notifPushSection => 'Последние уведомления';
+
+  @override
+  String get notifMarkAllRead => 'Прочитать все';
+
+  @override
+  String get appPendingApprovalNote =>
+      'Ожидает одобрения консультанта.\nМы сообщим вам после рассмотрения.';
+
+  @override
+  String get appCountrySouthKorea => 'Южная Корея';
+
+  @override
+  String get appRoomNotFound => 'У этого университета пока нет комнаты.';
+
+  @override
+  String get appRoomDiscussionNotFound => 'В этой комнате пока нет обсуждения.';
+
+  @override
+  String get appRoomDiscussionConnectError =>
+      'Не удалось подключиться к обсуждению.';
+
+  @override
+  String get appRoomSendError => 'Не удалось отправить сообщение.';
+
+  @override
+  String get appRoomNotSignedIn => 'Пожалуйста, войдите снова.';
+
+  @override
+  String get appRoomLoadError => 'Не удалось загрузить. Попробуйте ещё раз.';
+
+  @override
+  String get appRoomAnnouncementFallbackTitle => 'Объявление';
+
+  @override
+  String get appRoomEventFallbackTitle => 'Событие';
+
+  @override
+  String get statusPendingApproval => 'Ожидает одобрения';
+
+  @override
+  String get statusDocumentsCollection => 'Документы собраны';
+
+  @override
+  String get statusDocumentsTranslation => 'Документы переведены';
+
+  @override
+  String get statusApostille => 'Апостиль готов';
+
+  @override
+  String get statusApplicationSubmitted => 'Заявка подана';
+
+  @override
+  String get statusUniversityResponse => 'Университет ответил';
+
+  @override
+  String get statusVisaDocuments => 'Визовые документы';
+
+  @override
+  String get statusCompleted => 'Завершено';
+
+  @override
+  String get statusInProgress => 'В процессе';
+
+  @override
+  String get chatGreeting =>
+      'Здравствуйте! 👋 Я помощник Hanguk AI. Задавайте любые вопросы о документах, университетах и процессе поступления!';
+
+  @override
+  String get chatNoResponse => 'Извините, не удалось подготовить ответ.';
+
+  @override
+  String get chatConnectError =>
+      'Не удалось связаться с Hanguk AI. Проверьте подключение к интернету.';
+
+  @override
+  String get chatCleared => 'Чат очищен. Чем могу помочь?';
+
+  @override
+  String get mapLoadFailed =>
+      'Карта не загрузилась. Проверьте подключение к интернету.';
+
+  @override
+  String get mapTapForDetails => 'Нажмите, чтобы узнать подробнее';
+
+  @override
+  String get mapProviderUnavailable =>
+      'Картографический сервис сейчас недоступен.';
+
+  @override
+  String get mapInitError => 'Не удалось запустить карту.';
+
+  @override
+  String get trainingGuideSpTitle => 'Как написать учебный план (Study Plan)';
+
+  @override
+  String get trainingGuideSpIntro =>
+      'Учебный план объясняет, почему вы хотите учиться в Южной Корее, какие цели перед собой ставите и чем планируете заниматься после выпуска.';
+
+  @override
+  String get trainingGuideSp1Title => '1. Цель и мотивация';
+
+  @override
+  String get trainingGuideSp1Body =>
+      'Почему вы выбрали эту специальность? Почему Южная Корея и выбранный вами университет подходят для этой цели?';
+
+  @override
+  String get trainingGuideSp2Title => '2. Учебные планы';
+
+  @override
+  String get trainingGuideSp2Body =>
+      'На каких предметах или направлениях исследований вы сосредоточитесь? Как вы планируете изучать корейский язык?';
+
+  @override
+  String get trainingGuideSp3Title => '3. Планы на будущее';
+
+  @override
+  String get trainingGuideSp3Body =>
+      'Чем вы собираетесь заниматься после выпуска? Какой вклад вы внесёте в развитие своей страны?';
+
+  @override
+  String get trainingGuidePsTitle =>
+      'Как написать мотивационное письмо (Personal Statement)';
+
+  @override
+  String get trainingGuidePsIntro =>
+      'Мотивационное письмо — это эссе о том, кто вы, чего достигли, что вас интересует и почему вы подходите для этой специальности.';
+
+  @override
+  String get trainingGuidePs1Title => '1. Опыт и достижения';
+
+  @override
+  String get trainingGuidePs1Body =>
+      'Расскажите о своих школьных достижениях, олимпиадах и проектах, в которых вы участвовали, и о своих увлечениях.';
+
+  @override
+  String get trainingGuidePs2Title => '2. Личные качества';
+
+  @override
+  String get trainingGuidePs2Body =>
+      'Чем вы выделяетесь среди других абитуриентов? Как вы справлялись с трудностями?';
+
+  @override
+  String get trainingGuidePs3Title => '3. Почему именно эта область?';
+
+  @override
+  String get trainingGuidePs3Body =>
+      'Когда и как у вас появился интерес к этой области?';
+
+  @override
+  String get trainingStatusInProgress => 'В процессе';
+
+  @override
+  String get trainingStatusCompleted => 'Завершено';
+
+  @override
+  String get trainingStatusAbandoned => 'Прервано';
+
+  @override
+  String get trainingErrorSessionsLoad =>
+      'Не удалось загрузить ваши черновики. Попробуйте ещё раз.';
+
+  @override
+  String get trainingErrorCreateDraft =>
+      'Не удалось создать черновик. Попробуйте ещё раз.';
+
+  @override
+  String get trainingErrorLoadDraft =>
+      'Не удалось открыть черновик. Попробуйте ещё раз.';
+
+  @override
+  String get trainingErrorDraftConflict =>
+      'На другом устройстве сохранён более новый черновик. Обновите страницу, чтобы объединить их.';
+
+  @override
+  String get trainingErrorTrackUpdate =>
+      'Не удалось изменить язык письма. Попробуйте ещё раз.';
+
+  @override
+  String get trainingErrorGeneric => 'Что-то пошло не так. Попробуйте ещё раз.';
+
+  @override
+  String get trainingInterviewAiError =>
+      'У ИИ-интервьюера возникла проблема. Попробуйте ещё раз.';
+
+  @override
+  String get trainingInterviewAnswerError =>
+      'Не удалось обработать ваш ответ. Попробуйте ещё раз.';
+
+  @override
+  String get trainingInterviewVoiceError =>
+      'Не удалось воспроизвести голос интервьюера.';
+
+  @override
+  String get trainingInterviewAudioLinkWarning =>
+      'Не удалось сохранить ссылку на запись. Прослушать её позже может быть невозможно.';
+
+  @override
+  String get trainingInterviewFeedbackLoadError =>
+      'Не удалось загрузить отзыв. Попробуйте ещё раз.';
+
+  @override
+  String get authErrorCodeNotFound =>
+      'Этот код не найден. Пожалуйста, уточните его у своего консультанта.';
+
+  @override
+  String get authErrorServerUnreachable =>
+      'Не удалось связаться с сервером. Проверьте подключение и нажмите «Войти» ещё раз.';
+
+  @override
+  String get authErrorStaffBlocked =>
+      'Сотрудникам нужно входить по логину и паролю, а не по magic-коду.';
+
+  @override
+  String get authErrorAccountSetupBusy =>
+      'Сервер настраивает ваш аккаунт. Попробуйте ещё раз через 30 секунд.';
+
+  @override
+  String get authErrorLoginServer =>
+      'Ошибка сервера входа. Попробуйте ещё раз или попросите консультанта сбросить ваш аккаунт.';
+
+  @override
+  String get authErrorUnexpected =>
+      'Непредвиденная ошибка сервера. Попробуйте ещё раз или обратитесь к консультанту.';
+
+  @override
+  String get authErrorCrmAccount =>
+      'Этот аккаунт создал ваш консультант. Пожалуйста, войдите с помощью Magic Access Code, который он вам дал.';
+
+  @override
+  String get authErrorAlreadyRegistered =>
+      'Этот номер телефона уже зарегистрирован. Пожалуйста, войдите.';
+
+  @override
+  String get authErrorSignUpDisabled =>
+      'Регистрация сейчас отключена. Пожалуйста, обратитесь к администратору.';
+
+  @override
+  String get authErrorPhoneFormat =>
+      'Неверный формат номера телефона. Укажите код страны.';
+
+  @override
+  String get authErrorSignUpFailed =>
+      'Не удалось создать аккаунт. Попробуйте ещё раз.';
+
+  @override
+  String get a11yMenu => 'Меню';
+
+  @override
+  String get accountExportShareSubject => 'Hanguk — выгрузка ваших данных';
+
+  @override
+  String get accountExportShareText =>
+      'Выгрузка ваших данных из Hanguk (JSON).';
+
+  @override
+  String get accountExportError =>
+      'Не удалось выгрузить ваши данные. Попробуйте ещё раз.';
+
+  @override
+  String get uniDbEventOther => 'Важная дата';
+
+  @override
+  String get uniDbIeqasNone => 'Без аккредитации IEQAS';
+
+  @override
+  String get uniDbPdfLinkInvalid =>
+      'Не удалось открыть ссылку. Попробуйте ещё раз.';
+
+  @override
+  String get uniDbFacultyMedicine => 'Медицина';
+
+  @override
+  String get uniDbFacultyPharmacy => 'Фармация';
+
+  @override
+  String get uniDbFacultyArtsPe => 'Искусство и спорт';
+
+  @override
+  String get uniDbFacultyTheology => 'Богословие';
+
+  @override
+  String get uniDbFacultyInterdisciplinary => 'Междисциплинарные направления';
+
+  @override
+  String get uniDbFacultyAll => 'Все факультеты';
+
+  @override
+  String get uniDbScholarshipScopeUniversity => 'Университетская';
+
+  @override
+  String get uniDbScholarshipScopeNational => 'Государственная';
+
+  @override
+  String get uniDbScholarshipScopeRegional => 'Региональная';
+
+  @override
+  String get uniDbScholarshipScopeFoundation => 'Фонд';
+
+  @override
+  String get uniDbScholarshipScopeDepartment => 'Кафедра';
+
+  @override
+  String uniDbAwardTuitionPct(String pct) {
+    return 'Скидка $pct% на обучение';
+  }
+
+  @override
+  String get uniDbAwardTuition => 'Скидка на обучение';
+
+  @override
+  String uniDbAwardTuitionKrw(String amount) {
+    return 'Скидка $amount на обучение';
+  }
+
+  @override
+  String uniDbAwardStipendMonthly(String amount) {
+    return 'Стипендия $amount в месяц';
+  }
+
+  @override
+  String get uniDbAwardStipend => 'Ежемесячная стипендия';
+
+  @override
+  String uniDbAwardAirfare(String amount) {
+    return 'Авиабилет до $amount';
+  }
+
+  @override
+  String get uniDbAwardAirfareCovered => 'Оплата авиабилета';
+
+  @override
+  String get uniDbAwardOther => 'Другая льгота';
+
+  @override
+  String uniDbTopikDeferred(String base) {
+    return '$base (можно предоставить позже)';
+  }
+
+  @override
+  String get uniDbChangeAdmissionCycle => 'Приёмная кампания';
+
+  @override
+  String get uniDbChangeDates => 'Даты';
+
+  @override
+  String get uniDbChangeUpdated => 'Обновлено';
+
+  @override
+  String get uniDbDocApostille => 'Апостиль';
+
+  @override
+  String get uniDbDocConsent => 'Согласие';
+
+  @override
+  String get uniDbDocPassport => 'Паспорт';
+
+  @override
+  String get uniDbDocTopik => 'Сертификат TOPIK';
+
+  @override
+  String get uniDbDocLanguage => 'Языковой сертификат';
+
+  @override
+  String get uniDbDocTranscript => 'Выписка оценок';
+
+  @override
+  String get uniDbDocDiploma => 'Диплом или аттестат';
+
+  @override
+  String get uniDbDocEnrollment => 'Справка с места учёбы';
+
+  @override
+  String get uniDbDocFamily => 'Документ о родстве';
+
+  @override
+  String get uniDbDocPowerOfAttorney => 'Доверенность';
+
+  @override
+  String get uniDbDocFinance => 'Подтверждение финансов';
+
+  @override
+  String get uniDbDocEntryExit => 'Справка о въезде и выезде';
+
+  @override
+  String get uniDbDocEmployment => 'Справка с места работы';
+
+  @override
+  String get uniDbDocRecommendation => 'Рекомендательное письмо';
+
+  @override
+  String get uniDbDocCitizenship => 'Подтверждение гражданства';
+
+  @override
+  String get uniDbDocStatement => 'Мотивационное письмо и учебный план';
+
+  @override
+  String get uniDbDocAlienRegistration => 'Карта регистрации иностранца';
+
+  @override
+  String get uniDbDocIdCard => 'Копия удостоверения личности';
+
+  @override
+  String get uniDbDocPhoto => 'Фотография';
+
+  @override
+  String get uniDbDocPortfolio => 'Портфолио';
+
+  @override
+  String get uniDbDocHealth => 'Медицинская справка';
+
+  @override
+  String get uniDbDocCalendar => 'Учебный календарь';
+
+  @override
+  String get uniDbDocTax => 'Справка об уплате налогов';
+
+  @override
+  String get uniDbDocBusinessRegistration =>
+      'Свидетельство о регистрации предприятия';
+
+  @override
+  String get uniDbDocAward => 'Грамоты и награды';
+
+  @override
+  String get uniDbDocApplicationForm => 'Анкета-заявление';
+
+  @override
+  String get uniDbDocOther => 'Дополнительный документ';
+
+  @override
+  String get adminReviewQueueTitle => 'Очередь проверки';
+
+  @override
+  String get adminReviewTitle => 'Проверка';
+
+  @override
+  String get adminRefresh => 'Обновить';
+
+  @override
+  String get adminQueueEmpty =>
+      'Очередь пуста. Сейчас ничего не ожидает проверки.';
+
+  @override
+  String get adminSelectItem => 'Выберите элемент очереди слева.';
+
+  @override
+  String get adminAccepted => 'Принято';
+
+  @override
+  String get adminEditedAccepted => 'Исправлено и принято';
+
+  @override
+  String get adminRejected => 'Отклонено';
+
+  @override
+  String get adminBackToQueue => 'Назад к очереди';
+
+  @override
+  String adminConfidence(int pct) {
+    return 'Уверенность $pct%';
+  }
+
+  @override
+  String get adminOverdue => 'Просрочено';
+
+  @override
+  String get adminOpenSource => 'Открыть источник (на корейском)';
+
+  @override
+  String get adminExtractedPayload => 'Извлечённые данные:';
+
+  @override
+  String get adminReject => 'Отклонить';
+
+  @override
+  String get adminEditAccept => 'Исправить и принять';
+
+  @override
+  String get adminAccept => 'Принять';
+
+  @override
+  String get adminPayloadNotObject => 'Данные должны быть JSON-объектом';
+
+  @override
+  String adminInvalidJson(String error) {
+    return 'Некорректный JSON: $error';
+  }
+
+  @override
+  String get adminEditPayload => 'Редактировать данные';
+
+  @override
+  String get adminSaveAccept => 'Сохранить и принять';
+
+  @override
+  String get adminRejectReasonTitle => 'Причина отклонения';
+
+  @override
+  String get adminDetailOptional => 'Подробности (необязательно)';
+
+  @override
+  String get adminStaffOnly =>
+      'Этот раздел только для сотрудников Hanguk. Если вам нужен доступ, попросите администратора добавить вам роль сотрудника.';
+
+  @override
+  String get adminPriorityP1 => 'P1 — уведомление об исправлении (4 ч)';
+
+  @override
+  String get adminPriorityP2 => 'P2 — изменение вложения (12 ч)';
+
+  @override
+  String get adminPriorityP3 => 'P3 — изменённое поле D3 (24 ч)';
+
+  @override
+  String get adminPriorityP4 => 'P4 — обычное D2 (48 ч)';
+
+  @override
+  String get adminPriorityP5 => 'P5 — простое D1 (96 ч)';
+
+  @override
+  String get adminReasonLowConfidence => 'Низкая уверенность';
+
+  @override
+  String get adminReasonHighDifficulty => 'Сложное поле';
+
+  @override
+  String get adminReasonAutoApproved => 'Одобрено автоматически';
+
+  @override
+  String get adminReasonCorrectionNotice => 'Уведомление об исправлении';
+
+  @override
+  String get adminEntityExtraction => 'Извлечение';
+
+  @override
+  String get adminEntityGuideline => 'Правила приёма';
+
+  @override
+  String get adminRejectWrongYear => 'Не тот год';
+
+  @override
+  String get adminRejectWrongArchetype => 'Неверный тип документа';
+
+  @override
+  String get adminRejectHallucinated => 'Выдуманное поле';
+
+  @override
+  String get adminRejectOcrGarbled => 'Искажённый текст OCR';
+
+  @override
+  String get adminRejectSource404 => 'Источник не найден (404)';
+
+  @override
+  String get adminRejectOther => 'Другое';
+
+  @override
+  String get interviewErrorNoGreeting =>
+      'Интервьюер не ответил. Вернитесь назад и попробуйте ещё раз.';
+
+  @override
+  String get interviewErrorEndedBeforeGreeting =>
+      'Звонок завершился до того, как интервьюер заговорил. Попробуйте ещё раз.';
+
+  @override
+  String get interviewErrorCallFailed =>
+      'Не удалось подключить звонок. Проверьте интернет и попробуйте ещё раз.';
 }

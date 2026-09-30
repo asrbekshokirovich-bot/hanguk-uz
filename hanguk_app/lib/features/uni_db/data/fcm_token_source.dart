@@ -1,12 +1,31 @@
 import 'dart:io' show Platform;
+import 'dart:ui' show PlatformDispatcher;
 
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:package_info_plus/package_info_plus.dart';
 
+import '../../entry/data/entry_store.dart';
 import 'push_token_bootstrap.dart';
 
-Future<PlatformTokenInfo?> fcmTokenSource() async {
+/// The language push notifications should be written in: the one chosen in
+/// the app ([languageCode], or the stored choice when none is passed), else
+/// the phone's own language when the app offers it, else Uzbek.
+Future<String> _pushLanguage(String? languageCode) async {
+  if (languageCode != null && kEntryLanguages.contains(languageCode)) {
+    return languageCode;
+  }
+  final stored = (await EntryStore.load()).languageCode;
+  if (stored != null) return stored;
+  final device = PlatformDispatcher.instance.locale.languageCode;
+  return kEntryLanguages.contains(device) ? device : 'uz';
+}
+
+/// Reads the device's FCM token for [PushTokenBootstrap].
+///
+/// [languageCode] is the language chosen in the app; `main.dart` passes it on
+/// every rebuild, so changing the language re-registers the token with it.
+Future<PlatformTokenInfo?> fcmTokenSource({String? languageCode}) async {
   final messaging = FirebaseMessaging.instance;
 
   final settings = await messaging.requestPermission(
@@ -41,6 +60,6 @@ Future<PlatformTokenInfo?> fcmTokenSource() async {
     token: token,
     platform: platform,
     appVersion: appVersion,
-    preferredLang: 'uz',
+    preferredLang: await _pushLanguage(languageCode),
   );
 }

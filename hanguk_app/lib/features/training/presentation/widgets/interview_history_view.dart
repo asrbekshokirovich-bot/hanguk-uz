@@ -6,6 +6,7 @@ import '../../../../design_system/seoul_night/seoul_night.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../data/interview_repository.dart';
 import 'interview_analytics_view.dart';
+import 'training_status_label.dart';
 
 class InterviewHistoryView extends ConsumerStatefulWidget {
   const InterviewHistoryView({super.key});
@@ -169,8 +170,11 @@ class _InterviewHistoryViewState extends ConsumerState<InterviewHistoryView> {
     final isCompleted = status == 'completed';
     final isAbandoned = status == 'abandoned';
 
-    // Korean status words (spec §1 Korean voice) stay Korean in every locale;
-    // the tint and the icon carry the same meaning for non-Korean readers.
+    // The status in the app language, with the Korean status word (spec §1
+    // Korean voice) as the accent beside it.
+    final StatusTone statusTone = isCompleted
+        ? StatusTone.lime
+        : (isAbandoned ? StatusTone.neutral : StatusTone.warning);
     final Color statusColor = isCompleted
         ? SeoulColors.lime
         : (isAbandoned ? SeoulColors.textFaint : SeoulColors.warningText);
@@ -241,11 +245,11 @@ class _InterviewHistoryViewState extends ConsumerState<InterviewHistoryView> {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    Text(
-                      statusKo,
-                      style: SeoulType.hangulStatus.copyWith(
-                        color: statusColor,
-                      ),
+                    StatusChip(
+                      label: trainingStatusLabel(l, status),
+                      tone: statusTone,
+                      ko: statusKo,
+                      dense: true,
                     ),
                   ],
                 ),

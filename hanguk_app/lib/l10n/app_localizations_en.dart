@@ -2007,4 +2007,717 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get entryLanguageSheetTitle => 'Choose a language';
+
+  @override
+  String get catalogStep1 => 'Online application';
+
+  @override
+  String get catalogStep2 => 'Application fee payment';
+
+  @override
+  String get catalogStep3 => 'Offline document submission';
+
+  @override
+  String get catalogStep4 => 'Bank statement (for the university)';
+
+  @override
+  String get catalogStep5 => 'Interview';
+
+  @override
+  String get catalogStep6 => 'Results announced';
+
+  @override
+  String get catalogStep7 => 'Tuition payment';
+
+  @override
+  String get catalogStep8 => 'Certificate of Admission issued';
+
+  @override
+  String get catalogStep9 => 'Bank statement for the visa';
+
+  @override
+  String get catalogStep10 => 'Translation and apostille for the visa';
+
+  @override
+  String get catalogStep11 => 'Visa application';
+
+  @override
+  String get surveysTitle => 'Surveys';
+
+  @override
+  String get surveysLoadError => 'Couldn\'t load surveys';
+
+  @override
+  String get surveysEmptyTitle => 'No surveys yet';
+
+  @override
+  String get surveysEmptyBody => 'New surveys will appear here';
+
+  @override
+  String get surveyCompletedChip => 'Completed';
+
+  @override
+  String get surveyNewChip => 'New';
+
+  @override
+  String surveyQuestionCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count questions',
+      one: '1 question',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get surveyFillCta => 'Fill in →';
+
+  @override
+  String surveyPendingCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count surveys',
+      one: '1 survey',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get surveyPendingSubtitle => 'Waiting for your answers';
+
+  @override
+  String get surveyTitleFallback => 'Survey';
+
+  @override
+  String get surveyAnswerAllRequired => 'Please answer all required questions';
+
+  @override
+  String get surveySubmitError =>
+      'Couldn\'t send your answers. Please try again.';
+
+  @override
+  String get surveyThanksTitle => 'Thank you!';
+
+  @override
+  String get surveyThanksBody => 'Your answers have been received';
+
+  @override
+  String get surveyQuestionsLoadError => 'Couldn\'t load the questions';
+
+  @override
+  String get surveyNoQuestions => 'No questions found';
+
+  @override
+  String get surveyAlreadyCompleted => 'You\'ve already completed this survey';
+
+  @override
+  String get surveySubmit => 'Submit';
+
+  @override
+  String get surveyRequired => 'Required';
+
+  @override
+  String get surveyEmailHint => 'example@mail.com';
+
+  @override
+  String get surveyNumberHint => 'Enter a number';
+
+  @override
+  String get surveyLongTextHint => 'Write in detail...';
+
+  @override
+  String get surveyTextHint => 'Write your answer...';
+
+  @override
+  String get surveyPickDate => 'Pick a date';
+
+  @override
+  String get docTypeIdCard => 'Applicant\'s ID card (passport) copy';
+
+  @override
+  String get docTypeForeignPassport => 'Applicant\'s foreign passport copy';
+
+  @override
+  String get docTypePhoto => 'Photo (3.5x4.5 cm)';
+
+  @override
+  String get docTypeDiploma => 'Diploma or school certificate copy';
+
+  @override
+  String get docTypeLanguageCertificate =>
+      'Language certificate copy (at least IELTS 5.5 or TOPIK 2)';
+
+  @override
+  String get docTypeOther => 'Document';
+
+  @override
+  String get docStatusLocked => 'Locked';
+
+  @override
+  String get notifPushSection => 'Recent notifications';
+
+  @override
+  String get notifMarkAllRead => 'Mark all read';
+
+  @override
+  String get appPendingApprovalNote =>
+      'Awaiting counselor approval.\nWe will notify you once it\'s reviewed.';
+
+  @override
+  String get appCountrySouthKorea => 'South Korea';
+
+  @override
+  String get appRoomNotFound => 'This university doesn\'t have a room yet.';
+
+  @override
+  String get appRoomDiscussionNotFound => 'This room has no discussion yet.';
+
+  @override
+  String get appRoomDiscussionConnectError =>
+      'Couldn\'t connect to the discussion.';
+
+  @override
+  String get appRoomSendError => 'Couldn\'t send the message.';
+
+  @override
+  String get appRoomNotSignedIn => 'Please sign in again.';
+
+  @override
+  String get appRoomLoadError => 'Couldn\'t load this. Please try again.';
+
+  @override
+  String get appRoomAnnouncementFallbackTitle => 'Announcement';
+
+  @override
+  String get appRoomEventFallbackTitle => 'Event';
+
+  @override
+  String get statusPendingApproval => 'Awaiting approval';
+
+  @override
+  String get statusDocumentsCollection => 'Documents collected';
+
+  @override
+  String get statusDocumentsTranslation => 'Documents translated';
+
+  @override
+  String get statusApostille => 'Apostille ready';
+
+  @override
+  String get statusApplicationSubmitted => 'Application submitted';
+
+  @override
+  String get statusUniversityResponse => 'University replied';
+
+  @override
+  String get statusVisaDocuments => 'Visa documents';
+
+  @override
+  String get statusCompleted => 'Completed';
+
+  @override
+  String get statusInProgress => 'In progress';
+
+  @override
+  String get chatGreeting =>
+      'Hi! 👋 I\'m the Hanguk AI assistant. Ask me anything about documents, universities or the application process!';
+
+  @override
+  String get chatNoResponse => 'Sorry, I couldn\'t generate a response.';
+
+  @override
+  String get chatConnectError =>
+      'Couldn\'t reach Hanguk AI. Check your connection.';
+
+  @override
+  String get chatCleared => 'Chat cleared. How can I help you?';
+
+  @override
+  String get mapLoadFailed =>
+      'The map didn\'t load. Check your internet connection.';
+
+  @override
+  String get mapTapForDetails => 'Tap for details';
+
+  @override
+  String get mapProviderUnavailable =>
+      'The map service is unavailable right now.';
+
+  @override
+  String get mapInitError => 'Couldn\'t start the map.';
+
+  @override
+  String get trainingGuideSpTitle => 'Study Plan writing guide';
+
+  @override
+  String get trainingGuideSpIntro =>
+      'A Study Plan explains why you want to study in South Korea, the goals you have set for yourself, and what you plan to do after graduation.';
+
+  @override
+  String get trainingGuideSp1Title => '1. Purpose & motivation';
+
+  @override
+  String get trainingGuideSp1Body =>
+      'Why did you choose this major? Why does South Korea — and the specific university you applied to — fit that goal?';
+
+  @override
+  String get trainingGuideSp2Title => '2. Academic plan';
+
+  @override
+  String get trainingGuideSp2Body =>
+      'Which courses or research areas will you focus on? What is your Korean-language learning plan?';
+
+  @override
+  String get trainingGuideSp3Title => '3. Future plans';
+
+  @override
+  String get trainingGuideSp3Body =>
+      'What do you intend to do after graduation? How will you contribute back home?';
+
+  @override
+  String get trainingGuidePsTitle => 'Personal Statement writing guide';
+
+  @override
+  String get trainingGuidePsIntro =>
+      'A Personal Statement is an essay that shows who you are, what you have achieved, what interests you, and why you fit this major.';
+
+  @override
+  String get trainingGuidePs1Title => '1. Past & experience';
+
+  @override
+  String get trainingGuidePs1Body =>
+      'Write about your school achievements, the olympiads or projects you joined, and the interests you developed.';
+
+  @override
+  String get trainingGuidePs2Title => '2. Personal strengths';
+
+  @override
+  String get trainingGuidePs2Body =>
+      'What sets you apart from other applicants? How did you handle setbacks?';
+
+  @override
+  String get trainingGuidePs3Title => '3. Why this field?';
+
+  @override
+  String get trainingGuidePs3Body =>
+      'When and how did your interest in this field start?';
+
+  @override
+  String get trainingStatusInProgress => 'In progress';
+
+  @override
+  String get trainingStatusCompleted => 'Completed';
+
+  @override
+  String get trainingStatusAbandoned => 'Stopped';
+
+  @override
+  String get trainingErrorSessionsLoad =>
+      'Couldn\'t load your drafts. Please try again.';
+
+  @override
+  String get trainingErrorCreateDraft =>
+      'Couldn\'t create the draft. Please try again.';
+
+  @override
+  String get trainingErrorLoadDraft =>
+      'Couldn\'t open the draft. Please try again.';
+
+  @override
+  String get trainingErrorDraftConflict =>
+      'Another device saved a newer draft. Please refresh to merge.';
+
+  @override
+  String get trainingErrorTrackUpdate =>
+      'Couldn\'t change the writing language. Please try again.';
+
+  @override
+  String get trainingErrorGeneric => 'Something went wrong. Please try again.';
+
+  @override
+  String get trainingInterviewAiError =>
+      'The AI interviewer ran into a problem. Please try again.';
+
+  @override
+  String get trainingInterviewAnswerError =>
+      'Couldn\'t process your answer. Please try again.';
+
+  @override
+  String get trainingInterviewVoiceError =>
+      'Couldn\'t play the interviewer\'s voice.';
+
+  @override
+  String get trainingInterviewAudioLinkWarning =>
+      'Couldn\'t save the recording link. Replay may be unavailable.';
+
+  @override
+  String get trainingInterviewFeedbackLoadError =>
+      'Couldn\'t load the feedback. Please try again.';
+
+  @override
+  String get authErrorCodeNotFound =>
+      'We don\'t recognise this code. Please double-check it with your counsellor.';
+
+  @override
+  String get authErrorServerUnreachable =>
+      'We could not reach the server. Please check your connection and tap sign in again.';
+
+  @override
+  String get authErrorStaffBlocked =>
+      'Staff members must use username/password sign-in, not a magic code.';
+
+  @override
+  String get authErrorAccountSetupBusy =>
+      'The server is busy setting up your account. Please try again in 30 seconds.';
+
+  @override
+  String get authErrorLoginServer =>
+      'Login server error. Please try again, or ask your counsellor to reset your account.';
+
+  @override
+  String get authErrorUnexpected =>
+      'Unexpected server error. Please try again, or contact your counsellor.';
+
+  @override
+  String get authErrorCrmAccount =>
+      'This account was created by your counsellor. Please use the Magic Access Code they gave you.';
+
+  @override
+  String get authErrorAlreadyRegistered =>
+      'This phone number is already registered. Please sign in.';
+
+  @override
+  String get authErrorSignUpDisabled =>
+      'Registration is currently disabled. Please contact an administrator.';
+
+  @override
+  String get authErrorPhoneFormat =>
+      'Invalid phone number format. Please include the country code.';
+
+  @override
+  String get authErrorSignUpFailed =>
+      'Couldn\'t create your account. Please try again.';
+
+  @override
+  String get a11yMenu => 'Menu';
+
+  @override
+  String get accountExportShareSubject => 'Hanguk — your data export';
+
+  @override
+  String get accountExportShareText => 'Your Hanguk data export (JSON).';
+
+  @override
+  String get accountExportError =>
+      'Couldn\'t export your data. Please try again.';
+
+  @override
+  String get uniDbEventOther => 'Key date';
+
+  @override
+  String get uniDbIeqasNone => 'No IEQAS accreditation';
+
+  @override
+  String get uniDbPdfLinkInvalid =>
+      'Couldn\'t open the link. Please try again.';
+
+  @override
+  String get uniDbFacultyMedicine => 'Medicine';
+
+  @override
+  String get uniDbFacultyPharmacy => 'Pharmacy';
+
+  @override
+  String get uniDbFacultyArtsPe => 'Arts & Sports';
+
+  @override
+  String get uniDbFacultyTheology => 'Theology';
+
+  @override
+  String get uniDbFacultyInterdisciplinary => 'Interdisciplinary';
+
+  @override
+  String get uniDbFacultyAll => 'All faculties';
+
+  @override
+  String get uniDbScholarshipScopeUniversity => 'University';
+
+  @override
+  String get uniDbScholarshipScopeNational => 'Government';
+
+  @override
+  String get uniDbScholarshipScopeRegional => 'Regional';
+
+  @override
+  String get uniDbScholarshipScopeFoundation => 'Foundation';
+
+  @override
+  String get uniDbScholarshipScopeDepartment => 'Department';
+
+  @override
+  String uniDbAwardTuitionPct(String pct) {
+    return '$pct% tuition waiver';
+  }
+
+  @override
+  String get uniDbAwardTuition => 'Tuition waiver';
+
+  @override
+  String uniDbAwardTuitionKrw(String amount) {
+    return '$amount off tuition';
+  }
+
+  @override
+  String uniDbAwardStipendMonthly(String amount) {
+    return '$amount monthly stipend';
+  }
+
+  @override
+  String get uniDbAwardStipend => 'Monthly stipend';
+
+  @override
+  String uniDbAwardAirfare(String amount) {
+    return 'Airfare up to $amount';
+  }
+
+  @override
+  String get uniDbAwardAirfareCovered => 'Airfare covered';
+
+  @override
+  String get uniDbAwardOther => 'Other benefit';
+
+  @override
+  String uniDbTopikDeferred(String base) {
+    return '$base (can be submitted later)';
+  }
+
+  @override
+  String get uniDbChangeAdmissionCycle => 'Admission cycle';
+
+  @override
+  String get uniDbChangeDates => 'Dates';
+
+  @override
+  String get uniDbChangeUpdated => 'Updated';
+
+  @override
+  String get uniDbDocApostille => 'Apostille';
+
+  @override
+  String get uniDbDocConsent => 'Consent form';
+
+  @override
+  String get uniDbDocPassport => 'Passport';
+
+  @override
+  String get uniDbDocTopik => 'TOPIK certificate';
+
+  @override
+  String get uniDbDocLanguage => 'Language certificate';
+
+  @override
+  String get uniDbDocTranscript => 'Transcript';
+
+  @override
+  String get uniDbDocDiploma => 'Diploma';
+
+  @override
+  String get uniDbDocEnrollment => 'Certificate of enrollment';
+
+  @override
+  String get uniDbDocFamily => 'Family relationship certificate';
+
+  @override
+  String get uniDbDocPowerOfAttorney => 'Power of attorney';
+
+  @override
+  String get uniDbDocFinance => 'Proof of funds';
+
+  @override
+  String get uniDbDocEntryExit => 'Entry and exit record';
+
+  @override
+  String get uniDbDocEmployment => 'Employment certificate';
+
+  @override
+  String get uniDbDocRecommendation => 'Recommendation letter';
+
+  @override
+  String get uniDbDocCitizenship => 'Proof of citizenship';
+
+  @override
+  String get uniDbDocStatement => 'Personal statement & study plan';
+
+  @override
+  String get uniDbDocAlienRegistration => 'Alien registration card';
+
+  @override
+  String get uniDbDocIdCard => 'ID card copy';
+
+  @override
+  String get uniDbDocPhoto => 'Photo';
+
+  @override
+  String get uniDbDocPortfolio => 'Portfolio';
+
+  @override
+  String get uniDbDocHealth => 'Medical certificate';
+
+  @override
+  String get uniDbDocCalendar => 'School calendar';
+
+  @override
+  String get uniDbDocTax => 'Tax payment certificate';
+
+  @override
+  String get uniDbDocBusinessRegistration =>
+      'Business registration certificate';
+
+  @override
+  String get uniDbDocAward => 'Award certificate';
+
+  @override
+  String get uniDbDocApplicationForm => 'Application form';
+
+  @override
+  String get uniDbDocOther => 'Additional document';
+
+  @override
+  String get adminReviewQueueTitle => 'Review queue';
+
+  @override
+  String get adminReviewTitle => 'Review';
+
+  @override
+  String get adminRefresh => 'Refresh';
+
+  @override
+  String get adminQueueEmpty => 'Queue is empty. Nothing pending right now.';
+
+  @override
+  String get adminSelectItem => 'Select a queue item on the left.';
+
+  @override
+  String get adminAccepted => 'Accepted';
+
+  @override
+  String get adminEditedAccepted => 'Edited and accepted';
+
+  @override
+  String get adminRejected => 'Rejected';
+
+  @override
+  String get adminBackToQueue => 'Back to queue';
+
+  @override
+  String adminConfidence(int pct) {
+    return 'Confidence $pct%';
+  }
+
+  @override
+  String get adminOverdue => 'Overdue';
+
+  @override
+  String get adminOpenSource => 'Open source page (Korean)';
+
+  @override
+  String get adminExtractedPayload => 'Extracted data:';
+
+  @override
+  String get adminReject => 'Reject';
+
+  @override
+  String get adminEditAccept => 'Edit & accept';
+
+  @override
+  String get adminAccept => 'Accept';
+
+  @override
+  String get adminPayloadNotObject => 'Data must be a JSON object';
+
+  @override
+  String adminInvalidJson(String error) {
+    return 'Invalid JSON: $error';
+  }
+
+  @override
+  String get adminEditPayload => 'Edit data';
+
+  @override
+  String get adminSaveAccept => 'Save & accept';
+
+  @override
+  String get adminRejectReasonTitle => 'Reject — reason';
+
+  @override
+  String get adminDetailOptional => 'Details (optional)';
+
+  @override
+  String get adminStaffOnly =>
+      'This area is for Hanguk staff only. If you should have access, ask an admin to add your staff role.';
+
+  @override
+  String get adminPriorityP1 => 'P1 — correction notice (4h)';
+
+  @override
+  String get adminPriorityP2 => 'P2 — attachment change (12h)';
+
+  @override
+  String get adminPriorityP3 => 'P3 — D3 field with diff (24h)';
+
+  @override
+  String get adminPriorityP4 => 'P4 — D2 routine (48h)';
+
+  @override
+  String get adminPriorityP5 => 'P5 — D1 trivial (96h)';
+
+  @override
+  String get adminReasonLowConfidence => 'Low confidence';
+
+  @override
+  String get adminReasonHighDifficulty => 'Hard field';
+
+  @override
+  String get adminReasonAutoApproved => 'Auto-approved';
+
+  @override
+  String get adminReasonCorrectionNotice => 'Correction notice';
+
+  @override
+  String get adminEntityExtraction => 'Extraction';
+
+  @override
+  String get adminEntityGuideline => 'Admission guide';
+
+  @override
+  String get adminRejectWrongYear => 'Wrong year';
+
+  @override
+  String get adminRejectWrongArchetype => 'Wrong document type';
+
+  @override
+  String get adminRejectHallucinated => 'Invented field';
+
+  @override
+  String get adminRejectOcrGarbled => 'Garbled OCR text';
+
+  @override
+  String get adminRejectSource404 => 'Source page not found (404)';
+
+  @override
+  String get adminRejectOther => 'Other';
+
+  @override
+  String get interviewErrorNoGreeting =>
+      'The interviewer did not respond. Please go back and try again.';
+
+  @override
+  String get interviewErrorEndedBeforeGreeting =>
+      'The call ended before the interviewer could speak. Please try again.';
+
+  @override
+  String get interviewErrorCallFailed =>
+      'The call could not be connected. Please check your internet and try again.';
 }

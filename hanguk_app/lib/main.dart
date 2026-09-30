@@ -45,6 +45,11 @@ Future<void> main() async {
     debugPrint('Firebase init error: $e');
   }
 
+  // The language picked on the first screen and whether this phone has signed
+  // up, known before the first frame (the splash tagline and the router both
+  // use it). Local secure storage only — no network.
+  EntryStore.initial = await EntryStore.load();
+
   // Show a splash while Supabase initializes — prevents ANR on slow emulators
   runApp(const _SplashApp());
 
@@ -57,10 +62,6 @@ Future<void> main() async {
   } catch (e) {
     debugPrint('Supabase init error (offline mode): $e');
   }
-
-  // The language picked on the first screen and whether this phone has signed
-  // up, known before the first frame (the router decides on both).
-  EntryStore.initial = await EntryStore.load();
 
   // Warm the Map tab's institutions query as soon as Supabase is ready,
   // instead of waiting for the user to open the tab. The Map screen also
@@ -118,7 +119,12 @@ class HangukApp extends ConsumerWidget {
     final locale = ref.watch(entryProvider.select((s) => s.locale));
 
     // Wire FCM token source and start listening to auth-state changes.
-    ref.read(pushTokenBootstrapProvider).setTokenSource(fcmTokenSource);
+    // The chosen language goes with the token, so pushes arrive in it.
+    ref
+        .read(pushTokenBootstrapProvider)
+        .setTokenSource(
+          () => fcmTokenSource(languageCode: locale?.languageCode),
+        );
 
     return MaterialApp.router(
       title: 'Hanguk Student App',

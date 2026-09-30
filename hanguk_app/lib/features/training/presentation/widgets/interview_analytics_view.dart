@@ -120,7 +120,7 @@ class _InterviewAnalyticsViewState
                   child: Padding(
                     padding: const EdgeInsets.all(SeoulSizes.screenPadding),
                     child: Text(
-                      state.error ?? l.noFeedbackAvailable,
+                      _interviewErrorMessage(l, state.error),
                       textAlign: TextAlign.center,
                       style: SeoulType.body.copyWith(
                         color: SeoulColors.dangerText,
@@ -815,5 +815,28 @@ class _InterviewReportAction extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+/// Words, in the app language, for the error code the interview notifier
+/// left on state (or the empty-feedback note when there is none).
+String _interviewErrorMessage(AppLocalizations l, String? code) {
+  switch (code) {
+    case null:
+    case interviewErrorFeedback:
+      return l.noFeedbackAvailable;
+    case interviewErrorStart:
+      return l.interviewStartError;
+    case interviewErrorAi:
+      return l.trainingInterviewAiError;
+    case interviewErrorAnswer:
+      return l.trainingInterviewAnswerError;
+    case interviewErrorVoice:
+      return l.trainingInterviewVoiceError;
+    case interviewErrorAudioLink:
+      return l.trainingInterviewAudioLinkWarning;
+    case interviewErrorFeedbackLoad:
+    default:
+      return l.trainingInterviewFeedbackLoadError;
   }
 }

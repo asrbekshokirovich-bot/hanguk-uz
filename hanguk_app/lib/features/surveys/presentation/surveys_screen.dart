@@ -3,13 +3,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../design_system/seoul_night/seoul_night.dart';
+import '../../../l10n/app_localizations.dart';
 import '../data/survey_repository.dart';
+import '../domain/survey_text.dart';
 
 class SurveysScreen extends ConsumerWidget {
   const SurveysScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context)!;
     final surveysAsync = ref.watch(activeSurveysProvider);
 
     return SeoulNightScaffold(
@@ -26,7 +29,7 @@ class SurveysScreen extends ConsumerWidget {
             }
           },
         ),
-        title: const HangulTag(en: 'Surveys', ko: '설문조사'),
+        title: HangulTag(en: l.surveysTitle, ko: '설문조사'),
       ),
       body: surveysAsync.when(
         loading: () => const Center(
@@ -39,13 +42,13 @@ class SurveysScreen extends ConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  "So'rovnomalarni yuklashda xatolik",
+                  l.surveysLoadError,
                   style: SeoulType.body,
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 16),
                 SeoulOutlineButton(
-                  label: 'Qayta urinish',
+                  label: l.commonRetry,
                   expand: false,
                   onPressed: () => ref.invalidate(activeSurveysProvider),
                 ),
@@ -64,13 +67,13 @@ class SurveysScreen extends ConsumerWidget {
                     const HangulGlyphTile(glyph: '설', size: 56),
                     const SizedBox(height: 18),
                     Text(
-                      "Hozircha so'rovnomalar yo'q",
+                      l.surveysEmptyTitle,
                       style: SeoulType.title,
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      "Yangi so'rovnomalar paydo bo'lganda bu yerda ko'rsatiladi",
+                      l.surveysEmptyBody,
                       style: SeoulType.bodySecondary,
                       textAlign: TextAlign.center,
                     ),
@@ -109,36 +112,42 @@ class _SurveyCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    final lang = Localizations.localeOf(context).languageCode;
     final isCompleted = survey.isCompleted;
+    final title = surveyText(survey.titleTranslations, survey.title, lang);
+    final description = survey.description == null
+        ? null
+        : surveyText(survey.descriptionTranslations, survey.description!, lang);
 
     return GlassCard(
       blur: false,
       borderColor: isCompleted ? SeoulColors.lime.withValues(alpha: 0.3) : null,
-      onTap: () => context.push('/surveys/${survey.id}', extra: survey.title),
+      onTap: () => context.push('/surveys/${survey.id}', extra: title),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
               Expanded(
-                child: Text(survey.title, style: SeoulType.subtitle),
+                child: Text(title, style: SeoulType.subtitle),
               ),
               const SizedBox(width: 8),
               if (isCompleted)
-                const StatusChip(label: 'Bajarildi', tone: StatusTone.success, ko: '완료')
+                StatusChip(label: l.surveyCompletedChip, tone: StatusTone.success, ko: '완료')
               else if (survey.answeredCount > 0)
                 StatusChip(
                   label: '${survey.answeredCount}/${survey.questionCount}',
                   tone: StatusTone.warning,
                 )
               else
-                const StatusChip(label: 'Yangi', tone: StatusTone.info, ko: '새'),
+                StatusChip(label: l.surveyNewChip, tone: StatusTone.info, ko: '새'),
             ],
           ),
-          if (survey.description != null && survey.description!.isNotEmpty) ...[
+          if (description != null && description.isNotEmpty) ...[
             const SizedBox(height: 8),
             Text(
-              survey.description!,
+              description,
               style: SeoulType.bodySecondary,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
@@ -151,14 +160,14 @@ class _SurveyCard extends StatelessWidget {
                 Icon(Icons.quiz_outlined, size: 14, color: SeoulColors.textFaint),
                 const SizedBox(width: 4),
                 Text(
-                  '${survey.questionCount} ta savol',
+                  l.surveyQuestionCount(survey.questionCount),
                   style: SeoulType.caption,
                 ),
               ],
               const Spacer(),
               if (!isCompleted)
                 Text(
-                  "To'ldirish →",
+                  l.surveyFillCta,
                   style: SeoulType.caption.copyWith(color: SeoulColors.lime),
                 )
               else

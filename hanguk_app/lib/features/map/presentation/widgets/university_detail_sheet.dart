@@ -381,7 +381,7 @@ class UniversityDetailSheet extends ConsumerWidget {
         StatusChip(
           label:
               '${l.universityNextEvent} · '
-              '${DateFormat.MMMd().format(nextEventAt)}',
+              '${DateFormat.MMMd(l.localeName).format(nextEventAt)}',
           tone: StatusTone.warning,
         ),
       );

@@ -166,9 +166,11 @@ class VerifiedDeadlineCard extends StatelessWidget {
       'additional_admit' => l10n.eventAdditionalAdmit,
       'registration_open' => l10n.eventRegistrationOpen,
       'registration_close' => l10n.eventRegistrationClose,
-      // An event type the DB writes that this app does not model yet — the
-      // raw value is the honest thing to show.
-      _ => raw,
+      'orientation' => l10n.eventOrientation,
+      'semester_start' => l10n.eventSemesterStart,
+      // An event type the DB writes that this app does not model yet — a
+      // generic label in the student's language, never the raw identifier.
+      _ => l10n.uniDbEventOther,
     };
   }
 

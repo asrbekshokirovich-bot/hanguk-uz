@@ -1,29 +1,61 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/foundation.dart';
 
+import 'room_load_error.dart';
+
 class UniversityEvent {
   final String id;
   final String roomId;
-  final String title;
-  final String? description;
+
+  /// Title / description per language code (`title_uz`, `title_en`, …), only
+  /// the non-empty ones. Pick with [titleFor] / [descriptionFor].
+  final Map<String, String> titles;
+  final Map<String, String> descriptions;
   final DateTime eventDate;
   final String eventType;
 
   UniversityEvent({
     required this.id,
     required this.roomId,
-    required this.title,
-    this.description,
+    this.titles = const {},
+    this.descriptions = const {},
     required this.eventDate,
     required this.eventType,
   });
+
+  static const List<String> _languages = ['uz', 'en', 'ko', 'ru'];
+
+  static Map<String, String> _perLanguage(
+    Map<String, dynamic> map,
+    String prefix,
+  ) {
+    final out = <String, String>{};
+    for (final lang in _languages) {
+      final value = (map['${prefix}_$lang'] as String?)?.trim();
+      if (value != null && value.isNotEmpty) out[lang] = value;
+    }
+    return out;
+  }
+
+  /// The version in [languageCode], else English, else any; null when the
+  /// row has none (the sheet then shows a localized fallback).
+  static String? _pick(Map<String, String> values, String languageCode) {
+    return values[languageCode] ??
+        values['en'] ??
+        (values.isEmpty ? null : values.values.first);
+  }
+
+  String? titleFor(String languageCode) => _pick(titles, languageCode);
+
+  String? descriptionFor(String languageCode) =>
+      _pick(descriptions, languageCode);
 
   factory UniversityEvent.fromMap(Map<String, dynamic> map) {
     return UniversityEvent(
       id: map['id'],
       roomId: map['room_id'],
-      title: map['title_en'] ?? map['title_uz'] ?? 'Event',
-      description: map['description_en'] ?? map['description_uz'],
+      titles: _perLanguage(map, 'title'),
+      descriptions: _perLanguage(map, 'description'),
       eventDate: DateTime.parse(map['event_date']),
       eventType: map['event_type'] ?? 'other',
     );
@@ -33,7 +65,7 @@ class UniversityEvent {
 class UniversityEventsState {
   final List<UniversityEvent> events;
   final bool isLoading;
-  final String? error;
+  final RoomLoadError? error;
 
   const UniversityEventsState({
     this.events = const [],
@@ -44,7 +76,7 @@ class UniversityEventsState {
   UniversityEventsState copyWith({
     List<UniversityEvent>? events,
     bool? isLoading,
-    String? error,
+    RoomLoadError? error,
   }) {
     return UniversityEventsState(
       events: events ?? this.events,
@@ -80,7 +112,9 @@ class UniversityEventsController extends ChangeNotifier {
           .maybeSingle();
 
       if (roomData == null) {
-        _setState(state.copyWith(error: 'Room not found.', isLoading: false));
+        _setState(
+          state.copyWith(error: RoomLoadError.roomNotFound, isLoading: false),
+        );
         return;
       }
       final roomId = roomData['id'];
@@ -99,7 +133,9 @@ class UniversityEventsController extends ChangeNotifier {
       _setState(state.copyWith(events: eventsList, isLoading: false));
     } catch (e, st) {
       debugPrint('[UniversityEventsNotifier] Error: $e\n$st');
-      _setState(state.copyWith(error: e.toString(), isLoading: false));
+      _setState(
+        state.copyWith(error: RoomLoadError.loadFailed, isLoading: false),
+      );
     }
   }
 }

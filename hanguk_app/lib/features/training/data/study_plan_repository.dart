@@ -4,6 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../entry/data/entry_store.dart';
+
 /// Sentinel written into `StudyPlanSessionState.error` when the analysis call
 /// fails, so the feedback step can explain *why* in the student's language.
 ///
@@ -14,6 +16,15 @@ const String analysisErrorPlanRequired = 'analysis_plan_required';
 const String analysisErrorRateLimited = 'analysis_rate_limited';
 const String analysisErrorServiceDown = 'analysis_service_down';
 const String analysisErrorFailed = 'analysis_failed';
+
+/// Codes for the other failures written into `StudyPlanSessionState.error`;
+/// the screens turn them into words in the app language.
+const String studyPlanErrorSessions = 'study_plan_sessions_failed';
+const String studyPlanErrorCreate = 'study_plan_create_failed';
+const String studyPlanErrorLoad = 'study_plan_load_failed';
+const String studyPlanErrorConflict = 'study_plan_conflict';
+const String studyPlanErrorSave = 'study_plan_save_failed';
+const String studyPlanErrorTrack = 'study_plan_track_failed';
 
 /// Every code [StudyPlanSessionNotifier.classifyAnalysisFailure] can produce.
 const Set<String> analysisErrorCodes = {
@@ -221,6 +232,9 @@ class StudyPlanSessionNotifier
     return const {};
   }
 
+  /// The app language; the trainer answers in it.
+  String get _language => ref.read(entryProvider).languageCode ?? 'en';
+
   StudyPlanSessionState _getState(String type) =>
       state[type] ?? const StudyPlanSessionState();
 
@@ -271,9 +285,12 @@ class StudyPlanSessionNotifier
         _getState(type).copyWith(isSessionsLoading: false, sessions: loaded),
       );
     } on Exception catch (e) {
+      debugPrint('fetchSessions failed: $e');
       _setState(
         type,
-        _getState(type).copyWith(isSessionsLoading: false, error: e.toString()),
+        _getState(
+          type,
+        ).copyWith(isSessionsLoading: false, error: studyPlanErrorSessions),
       );
     }
   }
@@ -329,11 +346,12 @@ class StudyPlanSessionNotifier
       );
       return sessionWithTrack;
     } on Exception catch (e) {
+      debugPrint('createSession failed: $e');
       _setState(
         type,
         _getState(
           type,
-        ).copyWith(isLoading: false, error: 'Failed to create session: $e'),
+        ).copyWith(isLoading: false, error: studyPlanErrorCreate),
       );
       return null;
     }
@@ -397,11 +415,10 @@ class StudyPlanSessionNotifier
         ),
       );
     } on Exception catch (e) {
+      debugPrint('loadSession failed: $e');
       _setState(
         type,
-        _getState(
-          type,
-        ).copyWith(isLoading: false, error: 'Failed to load session data: $e'),
+        _getState(type).copyWith(isLoading: false, error: studyPlanErrorLoad),
       );
     }
   }
@@ -481,10 +498,7 @@ class StudyPlanSessionNotifier
           if (remoteVersion > localMax) {
             _setState(
               type,
-              _getState(type).copyWith(
-                error:
-                    'Another device saved a newer draft. Please refresh to merge.',
-              ),
+              _getState(type).copyWith(error: studyPlanErrorConflict),
             );
             return false;
           }
@@ -528,10 +542,8 @@ class StudyPlanSessionNotifier
         _setState(type, stateNow.copyWith(drafts: [draft, ...stateNow.drafts]));
         return true;
       } on Exception catch (e) {
-        _setState(
-          type,
-          _getState(type).copyWith(error: 'Failed to save draft: $e'),
-        );
+        debugPrint('saveDraft failed: $e');
+        _setState(type, _getState(type).copyWith(error: studyPlanErrorSave));
         return false;
       }
     });
@@ -600,10 +612,8 @@ class StudyPlanSessionNotifier
       );
       return true;
     } on Exception catch (e) {
-      _setState(
-        type,
-        _getState(type).copyWith(error: 'Failed to update track: $e'),
-      );
+      debugPrint('updateSelectedTrack failed: $e');
+      _setState(type, _getState(type).copyWith(error: studyPlanErrorTrack));
       return false;
     }
   }
@@ -658,7 +668,7 @@ class StudyPlanSessionNotifier
           'content': draft.content,
           'targetUniversityId': currentState.currentSession!.targetUniversityId,
           'selectedTrack': currentState.currentSession!.selectedTrack,
-          'language': 'en',
+          'language': _language,
         },
       );
 
@@ -774,7 +784,7 @@ class StudyPlanSessionNotifier
           'content': content,
           'targetUniversityId': currentState.currentSession!.targetUniversityId,
           'selectedTrack': currentState.currentSession!.selectedTrack,
-          'language': 'en',
+          'language': _language,
         },
       );
 

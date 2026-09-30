@@ -192,7 +192,7 @@ class _CatalogCompareScreenState extends ConsumerState<CatalogCompareScreen> {
                                 label: l.compareRowRequirements,
                                 items: [
                                   for (final p in picks)
-                                    (short: p.university.displayName, text: _requirements(p.detail)),
+                                    (short: p.university.displayName, text: _requirements(p.detail, Localizations.localeOf(context).languageCode)),
                                 ],
                               ),
                             ],
@@ -227,7 +227,9 @@ class _CatalogCompareScreenState extends ConsumerState<CatalogCompareScreen> {
     final currencies = [for (final g in gs) (g?.currency ?? 'KRW').toUpperCase()];
     final tuition = [
       for (var i = 0; i < gs.length; i++)
-        prices[i] == null ? _dash : money(prices[i]!, gs[i]!.currency) + (yearly[i] ? periodSuffix(l, 'yil') : ''),
+        prices[i] == null
+            ? _dash
+            : money(prices[i]!, gs[i]!.currency, locale: l.localeName) + (yearly[i] ? periodSuffix(l, 'yil') : ''),
     ];
 
     final topik = [for (final g in gs) g?.topikMin];
@@ -277,10 +279,10 @@ class _CatalogCompareScreenState extends ConsumerState<CatalogCompareScreen> {
   }
 
   /// The guideline's required documents as one sentence.
-  static String _requirements(CatalogGuidelineDetail? detail) {
+  static String _requirements(CatalogGuidelineDetail? detail, String languageCode) {
     final names = [
       for (final d in detail?.docs ?? const <CatalogDoc>[])
-        if (d.isRequired && (d.name?.trim().isNotEmpty ?? false)) d.name!.trim(),
+        if (d.isRequired && (d.nameIn(languageCode)?.trim().isNotEmpty ?? false)) d.nameIn(languageCode)!.trim(),
     ];
     return names.isEmpty ? _dash : '${names.join(', ')}.';
   }

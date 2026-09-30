@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import '../../../../../design_system/seoul_night/seoul_night.dart';
+import '../../../../../l10n/app_localizations.dart';
 import '../../../domain/university.dart';
 import '../university_map_html.dart';
 
@@ -14,10 +15,12 @@ Widget buildMap({
   // student's language. Default to 'en' if the Localizations widget
   // is missing (e.g. test harness).
   final localeCode = Localizations.maybeLocaleOf(context)?.languageCode ?? 'en';
+  final l = AppLocalizations.of(context);
   return _MobileMapWidget(
     universities: universities,
     onMarkerClick: onMarkerClick,
     locale: localeCode,
+    strings: l == null ? const MapHtmlStrings() : MapHtmlStrings.of(l),
   );
 }
 
@@ -25,11 +28,13 @@ class _MobileMapWidget extends StatefulWidget {
   final List<University> universities;
   final void Function(University u) onMarkerClick;
   final String locale;
+  final MapHtmlStrings strings;
 
   const _MobileMapWidget({
     required this.universities,
     required this.onMarkerClick,
     required this.locale,
+    required this.strings,
   });
 
   @override
@@ -60,7 +65,11 @@ class _MobileMapWidgetState extends State<_MobileMapWidget> {
         },
       )
       ..loadHtmlString(
-        generateMapHtml(widget.universities, locale: widget.locale),
+        generateMapHtml(
+          widget.universities,
+          locale: widget.locale,
+          strings: widget.strings,
+        ),
         baseUrl: 'https://hanguk.uz',
       );
   }

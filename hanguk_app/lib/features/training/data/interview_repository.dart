@@ -8,6 +8,18 @@ import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import '../../../core/config/app_config.dart';
 
+/// Codes written into `InterviewSessionState.error`. The screens turn them
+/// into words in the app language; no English prose or exception text
+/// crosses into the UI.
+const String interviewErrorStart = 'start_failed';
+const String interviewErrorNoSession = 'no_active_session';
+const String interviewErrorAi = 'ai_failed';
+const String interviewErrorAnswer = 'answer_failed';
+const String interviewErrorFeedback = 'feedback_failed';
+const String interviewErrorFeedbackLoad = 'feedback_load_failed';
+const String interviewErrorVoice = 'voice_failed';
+const String interviewErrorAudioLink = 'audio_link_failed';
+
 // ---------------------------------------------------------------------------
 // Persona / Voice configuration — single source of truth for both Vapi and TTS
 // ---------------------------------------------------------------------------
@@ -252,10 +264,8 @@ class InterviewNotifier extends Notifier<InterviewSessionState> {
         // Calling sendMessage here caused a duplicate greeting race condition.
       );
     } on Exception catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: 'Failed to start interview: ${e.toString()}',
-      );
+      debugPrint('startSession failed: $e');
+      state = state.copyWith(isLoading: false, error: interviewErrorStart);
     } finally {
       state = state.copyWith(isLoading: false);
     }
@@ -306,11 +316,8 @@ class InterviewNotifier extends Notifier<InterviewSessionState> {
         }
       }
     }
-    state = state.copyWith(
-      error:
-          'Could not save audio link for this session ($lastError). '
-          'Replay may be unavailable.',
-    );
+    debugPrint('Giving up on vapi_call_id: $lastError');
+    state = state.copyWith(error: interviewErrorAudioLink);
   }
 
   // ── Text-only interview: full AI round-trip ──────────────────────────────
@@ -321,7 +328,7 @@ class InterviewNotifier extends Notifier<InterviewSessionState> {
   }) async {
     final sessionId = state.sessionId;
     if (sessionId == null) {
-      state = state.copyWith(error: 'No active session');
+      state = state.copyWith(error: interviewErrorNoSession);
       return null;
     }
 
@@ -381,15 +388,13 @@ class InterviewNotifier extends Notifier<InterviewSessionState> {
           ? (e.details as Map)['error']
           : e.details;
       _rollbackTempMessage(tempId);
-      state = state.copyWith(
-        error: 'AI Interview error: ${errDetail ?? e.toString()}',
-      );
+      debugPrint('AI Interview error: ${errDetail ?? e.toString()}');
+      state = state.copyWith(error: interviewErrorAi);
       return null;
     } on Exception catch (e) {
       _rollbackTempMessage(tempId);
-      state = state.copyWith(
-        error: 'Failed to process answer: ${e.toString()}',
-      );
+      debugPrint('Failed to process answer: $e');
+      state = state.copyWith(error: interviewErrorAnswer);
       return null;
     } finally {
       state = state.copyWith(isProcessing: false);
@@ -662,7 +667,7 @@ class InterviewNotifier extends Notifier<InterviewSessionState> {
       state = state.copyWith(
         status: 'idle',
         isVapiConnected: false,
-        error: 'feedback_failed',
+        error: interviewErrorFeedback,
       );
       unawaited(
         Supabase.instance.client
@@ -834,7 +839,8 @@ class InterviewNotifier extends Notifier<InterviewSessionState> {
       _ttsFilePaths.add(file.path);
       return file.path;
     } on Exception catch (e) {
-      state = state.copyWith(error: 'Voice playback error: ${e.toString()}');
+      debugPrint('Voice playback error: $e');
+      state = state.copyWith(error: interviewErrorVoice);
       return null;
     }
   }
@@ -893,11 +899,12 @@ class InterviewNotifier extends Notifier<InterviewSessionState> {
       if (data != null && data['feedback'] != null) {
         state = state.copyWith(feedback: data['feedback']);
       } else if (data != null && data['error'] != null) {
-        state = state.copyWith(error: data['error']);
+        debugPrint('Failed to load feedback: ${data['error']}');
+        state = state.copyWith(error: interviewErrorFeedbackLoad);
       }
     } catch (e) {
       debugPrint('Failed to load feedback: $e');
-      state = state.copyWith(error: 'Failed to load feedback: $e');
+      state = state.copyWith(error: interviewErrorFeedbackLoad);
     } finally {
       state = state.copyWith(isLoading: false);
     }

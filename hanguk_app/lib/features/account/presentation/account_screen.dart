@@ -59,26 +59,28 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
       await file.writeAsString(pretty);
 
       if (!mounted) return;
+      final l = AppLocalizations.of(context)!;
       await Share.shareXFiles(
         [XFile(file.path, mimeType: 'application/json')],
-        subject: 'Hanguk — your data export',
-        text: 'Your Hanguk data export (JSON).',
+        subject: l.accountExportShareSubject,
+        text: l.accountExportShareText,
       );
     } on FunctionException catch (e) {
+      // The details are server text, not words for the student.
+      debugPrint('export-my-data failed: ${e.details}');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              AppLocalizations.of(context)!.accountExportFailed(e.details),
-            ),
+            content: Text(AppLocalizations.of(context)!.accountExportError),
           ),
         );
       }
     } on Exception catch (e) {
+      debugPrint('export-my-data failed: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(AppLocalizations.of(context)!.accountExportFailed(e)),
+            content: Text(AppLocalizations.of(context)!.accountExportError),
           ),
         );
       }

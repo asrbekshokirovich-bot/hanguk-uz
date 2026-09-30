@@ -174,7 +174,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ),
       // Task flows — pushed, not stacked (see the class doc).
       HanOrbItem(
-        label: "So'rovnomalar",
+        label: l.surveysTitle,
         ko: '설문',
         glyph: '설',
         onTap: () => context.push('/surveys'),
