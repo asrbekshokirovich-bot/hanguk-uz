@@ -165,8 +165,12 @@ const Map<String, String> _cityKo = {
   'Yeosu': '여수', 'Naju': '나주', 'Gyeongsan': '경산', 'Gyeongju': '경주',
   'Andong': '안동', 'Pohang': '포항', 'Gumi': '구미', 'Gimcheon': '김천',
   'Sangju': '상주', 'Changwon': '창원', 'Jinju': '진주', 'Gimhae': '김해',
-  'Jeju': '제주',
+  'Jeju': '제주', 'Yeonggwang (Jeollanam-do)': '영광',
 };
+
+/// The Korean spelling of a city the Excel names in English, or null when the
+/// table does not know it.
+String? cityKoOf(String city) => _cityKo[city.trim()];
 
 /// The Filtr screen's city tiles: every city in the catalogue, most
 /// universities first. `ko` is the Korean spelling when the table knows it.

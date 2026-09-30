@@ -8,6 +8,7 @@ import '../../../l10n/app_localizations.dart';
 import '../data/catalog_compare_provider.dart';
 import '../data/catalog_repository.dart';
 import 'catalog_compare_screen.dart';
+import 'catalog_format.dart';
 
 /// The bar at the bottom of the catalogue while compare mode is on (design
 /// 3a): the two picked universities, or "Tanlang" for an empty slot, and the
@@ -31,7 +32,10 @@ class CatalogCompareTray extends ConsumerWidget {
     final all = ref.watch(catalogProvider).value ?? const [];
     final names = [
       for (final id in compare.ids)
-        all.where((u) => u.institutionId == id).firstOrNull?.displayName ?? '',
+        switch (all.where((u) => u.institutionId == id).firstOrNull) {
+          final u? => universityName(context, u),
+          null => '',
+        },
     ];
     final ready = compare.ids.length == CatalogCompareState.maxSlots;
 

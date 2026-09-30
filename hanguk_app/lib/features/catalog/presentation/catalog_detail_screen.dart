@@ -373,7 +373,7 @@ class _CatalogDetailScreenState extends ConsumerState<CatalogDetailScreen> {
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: Text(rounds[i].name ?? '', style: SeoulType.bodySecondary.copyWith(fontSize: 13.5)),
+                child: Text(roundName(context, rounds[i].name), style: SeoulType.bodySecondary.copyWith(fontSize: 13.5)),
               ),
               const SizedBox(width: 8),
               Flexible(
@@ -481,7 +481,7 @@ class _Header extends StatelessWidget {
                   ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 260),
                     child: Text(
-                      university.displayName,
+                      universityName(context, university),
                       style: SeoulType.headline.copyWith(fontSize: 22, height: 1.2, letterSpacing: -0.44),
                     ),
                   ),
@@ -490,7 +490,7 @@ class _Header extends StatelessWidget {
                     spacing: 8,
                     runSpacing: 8,
                     children: [
-                      if (university.city != null) _HeaderChip(label: university.city!),
+                      if (cityName(context, university) case final city?) _HeaderChip(label: city),
                       if (type != null) _HeaderChip(label: type),
                       if (season != null) _HeaderChip(label: season!, lime: true),
                     ],
