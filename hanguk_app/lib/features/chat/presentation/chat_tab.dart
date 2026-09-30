@@ -101,7 +101,9 @@ class _ChatTabState extends ConsumerState<ChatTab> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      chatState.error!,
+                      switch (chatState.error!) {
+                        ChatError.unreachable => l.chatConnectError,
+                      },
                       style: SeoulType.caption.copyWith(
                         fontSize: 13,
                         color: SeoulColors.dangerText,

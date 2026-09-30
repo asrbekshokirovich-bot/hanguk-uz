@@ -2682,5 +2682,748 @@
   "surveyPickDate": "Pick a date",
   "@surveyPickDate": {
     "description": "Placeholder in a date answer field before a date is picked"
+  },
+  "docTypeIdCard": "Applicant's ID card (passport) copy",
+  "@docTypeIdCard": {
+    "description": "Name of a required document on the Documents tab and in Notifications (DocumentType id applicant_id_card). In Uzbekistan the ID card replaced the internal passport."
+  },
+  "docTypeForeignPassport": "Applicant's foreign passport copy",
+  "@docTypeForeignPassport": {
+    "description": "Name of a required document (DocumentType id foreign_passport): the passport for travel abroad."
+  },
+  "docTypePhoto": "Photo (3.5x4.5 cm)",
+  "@docTypePhoto": {
+    "description": "Name of a required document (DocumentType id photo): a 3.5 x 4.5 cm photo."
+  },
+  "docTypeDiploma": "Diploma or school certificate copy",
+  "@docTypeDiploma": {
+    "description": "Name of a required document (DocumentType id diploma): a university diploma or school-leaving certificate."
+  },
+  "docTypeLanguageCertificate": "Language certificate copy (at least IELTS 5.5 or TOPIK 2)",
+  "@docTypeLanguageCertificate": {
+    "description": "Name of a required document (DocumentType id language_certificate), with the minimum score."
+  },
+  "docTypeOther": "Document",
+  "@docTypeOther": {
+    "description": "Fallback name for a document type the app has no name for."
+  },
+  "docStatusLocked": "Locked",
+  "@docStatusLocked": {
+    "description": "Status chip on a document row that cannot be uploaded yet (shown beside the Korean accent 잠김)."
+  },
+  "notifPushSection": "Recent notifications",
+  "@notifPushSection": {
+    "description": "Section heading above the received push notifications on the Notifications screen."
+  },
+  "notifMarkAllRead": "Mark all read",
+  "@notifMarkAllRead": {
+    "description": "Button in the Notifications screen header that marks every notification as read."
+  },
+  "appPendingApprovalNote": "Awaiting counselor approval.\nWe will notify you once it's reviewed.",
+  "@appPendingApprovalNote": {
+    "description": "Note in an expanded application card while a counselor has not approved the chosen university yet."
+  },
+  "appCountrySouthKorea": "South Korea",
+  "@appCountrySouthKorea": {
+    "description": "Shown in place of the city on an application card when the university has no city on record."
+  },
+  "appRoomNotFound": "This university doesn't have a room yet.",
+  "@appRoomNotFound": {
+    "description": "Error in a university room tab (Discussion / Calendar) when the university has no room."
+  },
+  "appRoomDiscussionNotFound": "This room has no discussion yet.",
+  "@appRoomDiscussionNotFound": {
+    "description": "Error in the university room's Discussion tab when the room has no discussion channel."
+  },
+  "appRoomDiscussionConnectError": "Couldn't connect to the discussion.",
+  "@appRoomDiscussionConnectError": {
+    "description": "Error in the university room's Discussion tab when loading or connecting failed. A Retry button follows."
+  },
+  "appRoomSendError": "Couldn't send the message.",
+  "@appRoomSendError": {
+    "description": "Error in the university room's Discussion tab when a message could not be sent."
+  },
+  "appRoomNotSignedIn": "Please sign in again.",
+  "@appRoomNotSignedIn": {
+    "description": "Error in the university room's Discussion tab when the session has expired."
+  },
+  "appRoomLoadError": "Couldn't load this. Please try again.",
+  "@appRoomLoadError": {
+    "description": "Generic error in the university room's News or Calendar tab when loading failed. A Retry button follows."
+  },
+  "appRoomAnnouncementFallbackTitle": "Announcement",
+  "@appRoomAnnouncementFallbackTitle": {
+    "description": "Title for an announcement in the university room's News tab that has no title of its own."
+  },
+  "appRoomEventFallbackTitle": "Event",
+  "@appRoomEventFallbackTitle": {
+    "description": "Title for an event in the university room's Calendar tab that has no title of its own."
+  },
+  "statusPendingApproval": "Awaiting approval",
+  "@statusPendingApproval": {
+    "description": "Application status chip/label: the student chose the university and a counselor has not approved it yet (applications.status pending / pending_approval)."
+  },
+  "statusDocumentsCollection": "Documents collected",
+  "@statusDocumentsCollection": {
+    "description": "Application status label (applications.status documents_collection): the documents have been collected."
+  },
+  "statusDocumentsTranslation": "Documents translated",
+  "@statusDocumentsTranslation": {
+    "description": "Application status label (applications.status documents_translation): the documents have been translated."
+  },
+  "statusApostille": "Apostille ready",
+  "@statusApostille": {
+    "description": "Application status label (applications.status apostille): the apostille is ready."
+  },
+  "statusApplicationSubmitted": "Application submitted",
+  "@statusApplicationSubmitted": {
+    "description": "Application status label (applications.status application_submitted): the application has been submitted to the university."
+  },
+  "statusUniversityResponse": "University replied",
+  "@statusUniversityResponse": {
+    "description": "Application status label (applications.status university_response): the university has replied (admission letter stage)."
+  },
+  "statusVisaDocuments": "Visa documents",
+  "@statusVisaDocuments": {
+    "description": "Application status label (applications.status visa_documents): the visa documents are being prepared / are ready."
+  },
+  "statusCompleted": "Completed",
+  "@statusCompleted": {
+    "description": "Application status label (applications.status completed): the whole process is finished."
+  },
+  "statusInProgress": "In progress",
+  "@statusInProgress": {
+    "description": "Fallback application status label for a status code the app does not know yet."
+  },
+  "chatGreeting": "Hi! 👋 I'm the Hanguk AI assistant. Ask me anything about documents, universities or the application process!",
+  "@chatGreeting": {
+    "description": "First assistant bubble in the Hanguk AI chat. 'Hanguk AI' is the product name."
+  },
+  "chatNoResponse": "Sorry, I couldn't generate a response.",
+  "@chatNoResponse": {
+    "description": "Assistant bubble when the AI returned an empty answer."
+  },
+  "chatConnectError": "Couldn't reach Hanguk AI. Check your connection.",
+  "@chatConnectError": {
+    "description": "Error banner in the AI chat when the request fails."
+  },
+  "chatCleared": "Chat cleared. How can I help you?",
+  "@chatCleared": {
+    "description": "Assistant bubble shown after the chat history is cleared."
+  },
+  "mapLoadFailed": "The map didn't load. Check your internet connection.",
+  "@mapLoadFailed": {
+    "description": "Message inside the map WebView when the map has not loaded after 8 seconds."
+  },
+  "mapTapForDetails": "Tap for details",
+  "@mapTapForDetails": {
+    "description": "Hint under a university name in the map marker preview bubble."
+  },
+  "mapProviderUnavailable": "The map service is unavailable right now.",
+  "@mapProviderUnavailable": {
+    "description": "Message inside the map WebView when no map provider could be loaded."
+  },
+  "mapInitError": "Couldn't start the map.",
+  "@mapInitError": {
+    "description": "Message inside the map WebView when the map failed to start."
+  },
+  "trainingGuideSpTitle": "Study Plan writing guide",
+  "@trainingGuideSpTitle": {
+    "description": "Study Plan trainer, step 1: guide title."
+  },
+  "trainingGuideSpIntro": "A Study Plan explains why you want to study in South Korea, the goals you have set for yourself, and what you plan to do after graduation.",
+  "@trainingGuideSpIntro": {
+    "description": "Study Plan trainer, step 1: guide introduction."
+  },
+  "trainingGuideSp1Title": "1. Purpose & motivation",
+  "@trainingGuideSp1Title": {
+    "description": "Study Plan guide, item 1 title."
+  },
+  "trainingGuideSp1Body": "Why did you choose this major? Why does South Korea — and the specific university you applied to — fit that goal?",
+  "@trainingGuideSp1Body": {
+    "description": "Study Plan guide, item 1 text."
+  },
+  "trainingGuideSp2Title": "2. Academic plan",
+  "@trainingGuideSp2Title": {
+    "description": "Study Plan guide, item 2 title."
+  },
+  "trainingGuideSp2Body": "Which courses or research areas will you focus on? What is your Korean-language learning plan?",
+  "@trainingGuideSp2Body": {
+    "description": "Study Plan guide, item 2 text."
+  },
+  "trainingGuideSp3Title": "3. Future plans",
+  "@trainingGuideSp3Title": {
+    "description": "Study Plan guide, item 3 title."
+  },
+  "trainingGuideSp3Body": "What do you intend to do after graduation? How will you contribute back home?",
+  "@trainingGuideSp3Body": {
+    "description": "Study Plan guide, item 3 text."
+  },
+  "trainingGuidePsTitle": "Personal Statement writing guide",
+  "@trainingGuidePsTitle": {
+    "description": "Personal Statement trainer, step 1: guide title."
+  },
+  "trainingGuidePsIntro": "A Personal Statement is an essay that shows who you are, what you have achieved, what interests you, and why you fit this major.",
+  "@trainingGuidePsIntro": {
+    "description": "Personal Statement trainer, step 1: guide introduction."
+  },
+  "trainingGuidePs1Title": "1. Past & experience",
+  "@trainingGuidePs1Title": {
+    "description": "Personal Statement guide, item 1 title."
+  },
+  "trainingGuidePs1Body": "Write about your school achievements, the olympiads or projects you joined, and the interests you developed.",
+  "@trainingGuidePs1Body": {
+    "description": "Personal Statement guide, item 1 text."
+  },
+  "trainingGuidePs2Title": "2. Personal strengths",
+  "@trainingGuidePs2Title": {
+    "description": "Personal Statement guide, item 2 title."
+  },
+  "trainingGuidePs2Body": "What sets you apart from other applicants? How did you handle setbacks?",
+  "@trainingGuidePs2Body": {
+    "description": "Personal Statement guide, item 2 text."
+  },
+  "trainingGuidePs3Title": "3. Why this field?",
+  "@trainingGuidePs3Title": {
+    "description": "Personal Statement guide, item 3 title."
+  },
+  "trainingGuidePs3Body": "When and how did your interest in this field start?",
+  "@trainingGuidePs3Body": {
+    "description": "Personal Statement guide, item 3 text."
+  },
+  "trainingStatusInProgress": "In progress",
+  "@trainingStatusInProgress": {
+    "description": "Status of a Study Plan / interview session that is not finished (DB codes 'in_progress', 'active'). Used inside sessionStatusLabel and on status chips."
+  },
+  "trainingStatusCompleted": "Completed",
+  "@trainingStatusCompleted": {
+    "description": "Status of a finished Study Plan / interview session (DB code 'completed')."
+  },
+  "trainingStatusAbandoned": "Stopped",
+  "@trainingStatusAbandoned": {
+    "description": "Status of an interview session that was stopped before the end (DB code 'abandoned')."
+  },
+  "trainingErrorSessionsLoad": "Couldn't load your drafts. Please try again.",
+  "@trainingErrorSessionsLoad": {
+    "description": "Study Plan trainer: the list of saved drafts could not be loaded."
+  },
+  "trainingErrorCreateDraft": "Couldn't create the draft. Please try again.",
+  "@trainingErrorCreateDraft": {
+    "description": "Study Plan trainer: creating a new draft session failed (shown in the start dialog)."
+  },
+  "trainingErrorLoadDraft": "Couldn't open the draft. Please try again.",
+  "@trainingErrorLoadDraft": {
+    "description": "Study Plan trainer: opening a saved draft failed."
+  },
+  "trainingErrorDraftConflict": "Another device saved a newer draft. Please refresh to merge.",
+  "@trainingErrorDraftConflict": {
+    "description": "Study Plan trainer: a newer draft was saved from another device."
+  },
+  "trainingErrorTrackUpdate": "Couldn't change the writing language. Please try again.",
+  "@trainingErrorTrackUpdate": {
+    "description": "Study Plan trainer: changing the writing language track (English / Korean) failed."
+  },
+  "trainingErrorGeneric": "Something went wrong. Please try again.",
+  "@trainingErrorGeneric": {
+    "description": "Study Plan trainer: fallback for an unexpected error."
+  },
+  "trainingInterviewAiError": "The AI interviewer ran into a problem. Please try again.",
+  "@trainingInterviewAiError": {
+    "description": "Mock interview: the AI interviewer failed to answer."
+  },
+  "trainingInterviewAnswerError": "Couldn't process your answer. Please try again.",
+  "@trainingInterviewAnswerError": {
+    "description": "Mock interview: the student's answer could not be processed."
+  },
+  "trainingInterviewVoiceError": "Couldn't play the interviewer's voice.",
+  "@trainingInterviewVoiceError": {
+    "description": "Mock interview: the interviewer's voice could not be played."
+  },
+  "trainingInterviewAudioLinkWarning": "Couldn't save the recording link. Replay may be unavailable.",
+  "@trainingInterviewAudioLinkWarning": {
+    "description": "Mock interview: the link to the call recording could not be saved."
+  },
+  "trainingInterviewFeedbackLoadError": "Couldn't load the feedback. Please try again.",
+  "@trainingInterviewFeedbackLoadError": {
+    "description": "Mock interview: the feedback for a session could not be loaded."
+  },
+  "authErrorCodeNotFound": "We don't recognise this code. Please double-check it with your counsellor.",
+  "@authErrorCodeNotFound": {
+    "description": "Magic-code sign-in: no student has this code."
+  },
+  "authErrorServerUnreachable": "We could not reach the server. Please check your connection and tap sign in again.",
+  "@authErrorServerUnreachable": {
+    "description": "Magic-code sign-in: the server could not be reached (not a problem with the code)."
+  },
+  "authErrorStaffBlocked": "Staff members must use username/password sign-in, not a magic code.",
+  "@authErrorStaffBlocked": {
+    "description": "Magic-code sign-in: a staff account tried to use a student code."
+  },
+  "authErrorAccountSetupBusy": "The server is busy setting up your account. Please try again in 30 seconds.",
+  "@authErrorAccountSetupBusy": {
+    "description": "Magic-code sign-in: the server is still creating the account."
+  },
+  "authErrorLoginServer": "Login server error. Please try again, or ask your counsellor to reset your account.",
+  "@authErrorLoginServer": {
+    "description": "Magic-code sign-in: the login server failed to open a session."
+  },
+  "authErrorUnexpected": "Unexpected server error. Please try again, or contact your counsellor.",
+  "@authErrorUnexpected": {
+    "description": "Sign-in: unexpected server error."
+  },
+  "authErrorCrmAccount": "This account was created by your counsellor. Please use the Magic Access Code they gave you.",
+  "@authErrorCrmAccount": {
+    "description": "Phone sign-up: the phone belongs to an account a counsellor created."
+  },
+  "authErrorAlreadyRegistered": "This phone number is already registered. Please sign in.",
+  "@authErrorAlreadyRegistered": {
+    "description": "Phone sign-up: the phone number is already registered."
+  },
+  "authErrorSignUpDisabled": "Registration is currently disabled. Please contact an administrator.",
+  "@authErrorSignUpDisabled": {
+    "description": "Phone sign-up: registration is switched off on the server."
+  },
+  "authErrorPhoneFormat": "Invalid phone number format. Please include the country code.",
+  "@authErrorPhoneFormat": {
+    "description": "Phone sign-up: the phone number is not in international format."
+  },
+  "authErrorSignUpFailed": "Couldn't create your account. Please try again.",
+  "@authErrorSignUpFailed": {
+    "description": "Phone sign-up: failed for another reason."
+  },
+  "a11yMenu": "Menu",
+  "@a11yMenu": {
+    "description": "Screen-reader label of the floating 한 orb (opens the main menu) when no tooltip is given."
+  },
+  "accountExportShareSubject": "Hanguk — your data export",
+  "@accountExportShareSubject": {
+    "description": "Share-sheet subject when the user exports their data. 'Hanguk' is the product name."
+  },
+  "accountExportShareText": "Your Hanguk data export (JSON).",
+  "@accountExportShareText": {
+    "description": "Share-sheet text accompanying the exported JSON file."
+  },
+  "accountExportError": "Couldn't export your data. Please try again.",
+  "@accountExportError": {
+    "description": "SnackBar when the data export fails (replaces showing the raw server error)."
+  },
+  "uniDbEventOther": "Key date",
+  "@uniDbEventOther": {
+    "description": "Deadline tile label for an admission event type the app does not model yet"
+  },
+  "uniDbIeqasNone": "No IEQAS accreditation",
+  "@uniDbIeqasNone": {
+    "description": "Institution chip when the university has no IEQAS accreditation"
+  },
+  "uniDbPdfLinkInvalid": "Couldn't open the link. Please try again.",
+  "@uniDbPdfLinkInvalid": {
+    "description": "Snackbar when the admission guide link cannot be opened because it is malformed"
+  },
+  "uniDbFacultyMedicine": "Medicine",
+  "@uniDbFacultyMedicine": {
+    "description": "Tuition faculty group: medicine"
+  },
+  "uniDbFacultyPharmacy": "Pharmacy",
+  "@uniDbFacultyPharmacy": {
+    "description": "Tuition faculty group: pharmacy"
+  },
+  "uniDbFacultyArtsPe": "Arts & Sports",
+  "@uniDbFacultyArtsPe": {
+    "description": "Tuition faculty group: arts and physical education"
+  },
+  "uniDbFacultyTheology": "Theology",
+  "@uniDbFacultyTheology": {
+    "description": "Tuition faculty group: theology"
+  },
+  "uniDbFacultyInterdisciplinary": "Interdisciplinary",
+  "@uniDbFacultyInterdisciplinary": {
+    "description": "Tuition faculty group: interdisciplinary / convergence programmes"
+  },
+  "uniDbFacultyAll": "All faculties",
+  "@uniDbFacultyAll": {
+    "description": "Tuition row that applies to every faculty"
+  },
+  "uniDbScholarshipScopeUniversity": "University",
+  "@uniDbScholarshipScopeUniversity": {
+    "description": "Scholarship scope chip: offered by the university itself"
+  },
+  "uniDbScholarshipScopeNational": "Government",
+  "@uniDbScholarshipScopeNational": {
+    "description": "Scholarship scope chip: government scholarship"
+  },
+  "uniDbScholarshipScopeRegional": "Regional",
+  "@uniDbScholarshipScopeRegional": {
+    "description": "Scholarship scope chip: regional government scholarship"
+  },
+  "uniDbScholarshipScopeFoundation": "Foundation",
+  "@uniDbScholarshipScopeFoundation": {
+    "description": "Scholarship scope chip: private foundation scholarship"
+  },
+  "uniDbScholarshipScopeDepartment": "Department",
+  "@uniDbScholarshipScopeDepartment": {
+    "description": "Scholarship scope chip: offered by one department"
+  },
+  "uniDbAwardTuitionPct": "{pct}% tuition waiver",
+  "@uniDbAwardTuitionPct": {
+    "description": "Scholarship award: percentage off tuition. {pct} is a number without the % sign",
+    "placeholders": {
+      "pct": {
+        "type": "String"
+      }
+    }
+  },
+  "uniDbAwardTuition": "Tuition waiver",
+  "@uniDbAwardTuition": {
+    "description": "Scholarship award: tuition waiver without an amount"
+  },
+  "uniDbAwardTuitionKrw": "{amount} off tuition",
+  "@uniDbAwardTuitionKrw": {
+    "description": "Scholarship award: fixed amount off tuition. {amount} is formatted, e.g. ₩1,000,000",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "uniDbAwardStipendMonthly": "{amount} monthly stipend",
+  "@uniDbAwardStipendMonthly": {
+    "description": "Scholarship award: monthly stipend. {amount} is formatted, e.g. ₩300,000",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "uniDbAwardStipend": "Monthly stipend",
+  "@uniDbAwardStipend": {
+    "description": "Scholarship award: monthly stipend without an amount"
+  },
+  "uniDbAwardAirfare": "Airfare up to {amount}",
+  "@uniDbAwardAirfare": {
+    "description": "Scholarship award: airfare up to an amount. {amount} is formatted, e.g. ₩800,000",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "uniDbAwardAirfareCovered": "Airfare covered",
+  "@uniDbAwardAirfareCovered": {
+    "description": "Scholarship award: airfare covered, no amount given"
+  },
+  "uniDbAwardOther": "Other benefit",
+  "@uniDbAwardOther": {
+    "description": "Scholarship award of a type the app does not model (details in the Korean description)"
+  },
+  "uniDbTopikDeferred": "{base} (can be submitted later)",
+  "@uniDbTopikDeferred": {
+    "description": "Requirement chip: TOPIK level that may be submitted after applying. {base} is e.g. 'TOPIK 4+'",
+    "placeholders": {
+      "base": {
+        "type": "String"
+      }
+    }
+  },
+  "uniDbChangeAdmissionCycle": "Admission cycle",
+  "@uniDbChangeAdmissionCycle": {
+    "description": "Recent-changes chip: the admission cycle was updated"
+  },
+  "uniDbChangeDates": "Dates",
+  "@uniDbChangeDates": {
+    "description": "Recent-changes chip: admission dates were updated"
+  },
+  "uniDbChangeUpdated": "Updated",
+  "@uniDbChangeUpdated": {
+    "description": "Recent-changes chip when the changed field is not recognised"
+  },
+  "uniDbDocApostille": "Apostille",
+  "@uniDbDocApostille": {
+    "description": "Document checklist item: apostille certificate"
+  },
+  "uniDbDocConsent": "Consent form",
+  "@uniDbDocConsent": {
+    "description": "Document checklist item: consent form (privacy / academic record verification)"
+  },
+  "uniDbDocPassport": "Passport",
+  "@uniDbDocPassport": {
+    "description": "Document checklist item: passport copy"
+  },
+  "uniDbDocTopik": "TOPIK certificate",
+  "@uniDbDocTopik": {
+    "description": "Document checklist item: TOPIK score certificate"
+  },
+  "uniDbDocLanguage": "Language certificate",
+  "@uniDbDocLanguage": {
+    "description": "Document checklist item: language test certificate (IELTS, TOEFL, Korean, …)"
+  },
+  "uniDbDocTranscript": "Transcript",
+  "@uniDbDocTranscript": {
+    "description": "Document checklist item: academic transcript / school record"
+  },
+  "uniDbDocDiploma": "Diploma",
+  "@uniDbDocDiploma": {
+    "description": "Document checklist item: diploma or graduation certificate"
+  },
+  "uniDbDocEnrollment": "Certificate of enrollment",
+  "@uniDbDocEnrollment": {
+    "description": "Document checklist item: certificate of current enrollment"
+  },
+  "uniDbDocFamily": "Family relationship certificate",
+  "@uniDbDocFamily": {
+    "description": "Document checklist item: family relationship certificate"
+  },
+  "uniDbDocPowerOfAttorney": "Power of attorney",
+  "@uniDbDocPowerOfAttorney": {
+    "description": "Document checklist item: power of attorney"
+  },
+  "uniDbDocFinance": "Proof of funds",
+  "@uniDbDocFinance": {
+    "description": "Document checklist item: proof of finances / bank balance certificate"
+  },
+  "uniDbDocEntryExit": "Entry and exit record",
+  "@uniDbDocEntryExit": {
+    "description": "Document checklist item: entry/exit (immigration) record"
+  },
+  "uniDbDocEmployment": "Employment certificate",
+  "@uniDbDocEmployment": {
+    "description": "Document checklist item: employment certificate"
+  },
+  "uniDbDocRecommendation": "Recommendation letter",
+  "@uniDbDocRecommendation": {
+    "description": "Document checklist item: recommendation letter"
+  },
+  "uniDbDocCitizenship": "Proof of citizenship",
+  "@uniDbDocCitizenship": {
+    "description": "Document checklist item: proof of citizenship / nationality"
+  },
+  "uniDbDocStatement": "Personal statement & study plan",
+  "@uniDbDocStatement": {
+    "description": "Document checklist item: personal statement and study plan"
+  },
+  "uniDbDocAlienRegistration": "Alien registration card",
+  "@uniDbDocAlienRegistration": {
+    "description": "Document checklist item: Korean alien registration card (ARC)"
+  },
+  "uniDbDocIdCard": "ID card copy",
+  "@uniDbDocIdCard": {
+    "description": "Document checklist item: ID card copy"
+  },
+  "uniDbDocPhoto": "Photo",
+  "@uniDbDocPhoto": {
+    "description": "Document checklist item: photo"
+  },
+  "uniDbDocPortfolio": "Portfolio",
+  "@uniDbDocPortfolio": {
+    "description": "Document checklist item: portfolio"
+  },
+  "uniDbDocHealth": "Medical certificate",
+  "@uniDbDocHealth": {
+    "description": "Document checklist item: medical check certificate"
+  },
+  "uniDbDocCalendar": "School calendar",
+  "@uniDbDocCalendar": {
+    "description": "Document checklist item: school academic calendar"
+  },
+  "uniDbDocTax": "Tax payment certificate",
+  "@uniDbDocTax": {
+    "description": "Document checklist item: tax payment certificate"
+  },
+  "uniDbDocBusinessRegistration": "Business registration certificate",
+  "@uniDbDocBusinessRegistration": {
+    "description": "Document checklist item: business registration certificate"
+  },
+  "uniDbDocAward": "Award certificate",
+  "@uniDbDocAward": {
+    "description": "Document checklist item: award certificate"
+  },
+  "uniDbDocApplicationForm": "Application form",
+  "@uniDbDocApplicationForm": {
+    "description": "Document checklist item: application form"
+  },
+  "uniDbDocOther": "Additional document",
+  "@uniDbDocOther": {
+    "description": "Document checklist item: a required document the app has no specific name for (details in the Korean note)"
+  },
+  "adminReviewQueueTitle": "Review queue",
+  "@adminReviewQueueTitle": {
+    "description": "Staff review screen title"
+  },
+  "adminReviewTitle": "Review",
+  "@adminReviewTitle": {
+    "description": "Staff review screen title when loading failed / access denied"
+  },
+  "adminRefresh": "Refresh",
+  "@adminRefresh": {
+    "description": "Tooltip: reload the review queue"
+  },
+  "adminQueueEmpty": "Queue is empty. Nothing pending right now.",
+  "@adminQueueEmpty": {
+    "description": "Staff review queue has no pending items"
+  },
+  "adminSelectItem": "Select a queue item on the left.",
+  "@adminSelectItem": {
+    "description": "Wide layout hint before a queue item is chosen"
+  },
+  "adminAccepted": "Accepted",
+  "@adminAccepted": {
+    "description": "Snackbar after accepting an extraction"
+  },
+  "adminEditedAccepted": "Edited and accepted",
+  "@adminEditedAccepted": {
+    "description": "Snackbar after editing and accepting an extraction"
+  },
+  "adminRejected": "Rejected",
+  "@adminRejected": {
+    "description": "Snackbar after rejecting an extraction"
+  },
+  "adminBackToQueue": "Back to queue",
+  "@adminBackToQueue": {
+    "description": "Tooltip: back from item detail to the queue (narrow layout)"
+  },
+  "adminConfidence": "Confidence {pct}%",
+  "@adminConfidence": {
+    "description": "Chip: the extractor's self-rated confidence",
+    "placeholders": {
+      "pct": {
+        "type": "int"
+      }
+    }
+  },
+  "adminOverdue": "Overdue",
+  "@adminOverdue": {
+    "description": "Chip: the item is past its review deadline"
+  },
+  "adminOpenSource": "Open source page (Korean)",
+  "@adminOpenSource": {
+    "description": "Button: open the Korean source page of the admission guide"
+  },
+  "adminExtractedPayload": "Extracted data:",
+  "@adminExtractedPayload": {
+    "description": "Label above the extracted JSON"
+  },
+  "adminReject": "Reject",
+  "@adminReject": {
+    "description": "Button: reject the extraction"
+  },
+  "adminEditAccept": "Edit & accept",
+  "@adminEditAccept": {
+    "description": "Button: edit the extraction, then accept it"
+  },
+  "adminAccept": "Accept",
+  "@adminAccept": {
+    "description": "Button: accept the extraction"
+  },
+  "adminPayloadNotObject": "Data must be a JSON object",
+  "@adminPayloadNotObject": {
+    "description": "Edit dialog error: the JSON is not an object"
+  },
+  "adminInvalidJson": "Invalid JSON: {error}",
+  "@adminInvalidJson": {
+    "description": "Edit dialog error: the JSON does not parse. {error} is the parser message",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "adminEditPayload": "Edit data",
+  "@adminEditPayload": {
+    "description": "Edit dialog title"
+  },
+  "adminSaveAccept": "Save & accept",
+  "@adminSaveAccept": {
+    "description": "Edit dialog button: save the edit and accept"
+  },
+  "adminRejectReasonTitle": "Reject — reason",
+  "@adminRejectReasonTitle": {
+    "description": "Reject dialog title"
+  },
+  "adminDetailOptional": "Details (optional)",
+  "@adminDetailOptional": {
+    "description": "Reject dialog: optional free-text detail"
+  },
+  "adminStaffOnly": "This area is for Hanguk staff only. If you should have access, ask an admin to add your staff role.",
+  "@adminStaffOnly": {
+    "description": "Shown to a signed-in user without the staff role"
+  },
+  "adminPriorityP1": "P1 — correction notice (4h)",
+  "@adminPriorityP1": {
+    "description": "Review priority 1 with its SLA"
+  },
+  "adminPriorityP2": "P2 — attachment change (12h)",
+  "@adminPriorityP2": {
+    "description": "Review priority 2 with its SLA"
+  },
+  "adminPriorityP3": "P3 — D3 field with diff (24h)",
+  "@adminPriorityP3": {
+    "description": "Review priority 3 with its SLA (D3 = difficulty tier 3)"
+  },
+  "adminPriorityP4": "P4 — D2 routine (48h)",
+  "@adminPriorityP4": {
+    "description": "Review priority 4 with its SLA (D2 = difficulty tier 2)"
+  },
+  "adminPriorityP5": "P5 — D1 trivial (96h)",
+  "@adminPriorityP5": {
+    "description": "Review priority 5 with its SLA (D1 = difficulty tier 1)"
+  },
+  "adminReasonLowConfidence": "Low confidence",
+  "@adminReasonLowConfidence": {
+    "description": "Why an item was queued: the extractor was unsure"
+  },
+  "adminReasonHighDifficulty": "Hard field",
+  "@adminReasonHighDifficulty": {
+    "description": "Why an item was queued: it contains a hard-to-extract field"
+  },
+  "adminReasonAutoApproved": "Auto-approved",
+  "@adminReasonAutoApproved": {
+    "description": "Why an item was queued: approved automatically, spot check"
+  },
+  "adminReasonCorrectionNotice": "Correction notice",
+  "@adminReasonCorrectionNotice": {
+    "description": "Why an item was queued: the university published a correction notice"
+  },
+  "adminEntityExtraction": "Extraction",
+  "@adminEntityExtraction": {
+    "description": "Queue item kind: an AI extraction job"
+  },
+  "adminEntityGuideline": "Admission guide",
+  "@adminEntityGuideline": {
+    "description": "Queue item kind: an admission guide document"
+  },
+  "adminRejectWrongYear": "Wrong year",
+  "@adminRejectWrongYear": {
+    "description": "Reject reason: extracted from the wrong year's guide"
+  },
+  "adminRejectWrongArchetype": "Wrong document type",
+  "@adminRejectWrongArchetype": {
+    "description": "Reject reason: the document was classified as the wrong type"
+  },
+  "adminRejectHallucinated": "Invented field",
+  "@adminRejectHallucinated": {
+    "description": "Reject reason: the AI invented a field not in the source"
+  },
+  "adminRejectOcrGarbled": "Garbled OCR text",
+  "@adminRejectOcrGarbled": {
+    "description": "Reject reason: the scanned text is unreadable"
+  },
+  "adminRejectSource404": "Source page not found (404)",
+  "@adminRejectSource404": {
+    "description": "Reject reason: the source page no longer exists"
+  },
+  "adminRejectOther": "Other",
+  "@adminRejectOther": {
+    "description": "Reject reason: other"
+  },
+  "interviewErrorNoGreeting": "The interviewer did not respond. Please go back and try again.",
+  "@interviewErrorNoGreeting": {
+    "description": "The AI interviewer never spoke after the call started."
+  },
+  "interviewErrorEndedBeforeGreeting": "The call ended before the interviewer could speak. Please try again.",
+  "@interviewErrorEndedBeforeGreeting": {
+    "description": "The interview call ended before the AI interviewer spoke."
+  },
+  "interviewErrorCallFailed": "The call could not be connected. Please check your internet and try again.",
+  "@interviewErrorCallFailed": {
+    "description": "The interview voice call failed for a technical reason."
   }
 }

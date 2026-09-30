@@ -3919,6 +3919,1068 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Pick a date'**
   String get surveyPickDate;
+
+  /// Name of a required document on the Documents tab and in Notifications (DocumentType id applicant_id_card). In Uzbekistan the ID card replaced the internal passport.
+  ///
+  /// In en, this message translates to:
+  /// **'Applicant\'s ID card (passport) copy'**
+  String get docTypeIdCard;
+
+  /// Name of a required document (DocumentType id foreign_passport): the passport for travel abroad.
+  ///
+  /// In en, this message translates to:
+  /// **'Applicant\'s foreign passport copy'**
+  String get docTypeForeignPassport;
+
+  /// Name of a required document (DocumentType id photo): a 3.5 x 4.5 cm photo.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo (3.5x4.5 cm)'**
+  String get docTypePhoto;
+
+  /// Name of a required document (DocumentType id diploma): a university diploma or school-leaving certificate.
+  ///
+  /// In en, this message translates to:
+  /// **'Diploma or school certificate copy'**
+  String get docTypeDiploma;
+
+  /// Name of a required document (DocumentType id language_certificate), with the minimum score.
+  ///
+  /// In en, this message translates to:
+  /// **'Language certificate copy (at least IELTS 5.5 or TOPIK 2)'**
+  String get docTypeLanguageCertificate;
+
+  /// Fallback name for a document type the app has no name for.
+  ///
+  /// In en, this message translates to:
+  /// **'Document'**
+  String get docTypeOther;
+
+  /// Status chip on a document row that cannot be uploaded yet (shown beside the Korean accent 잠김).
+  ///
+  /// In en, this message translates to:
+  /// **'Locked'**
+  String get docStatusLocked;
+
+  /// Section heading above the received push notifications on the Notifications screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent notifications'**
+  String get notifPushSection;
+
+  /// Button in the Notifications screen header that marks every notification as read.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark all read'**
+  String get notifMarkAllRead;
+
+  /// Note in an expanded application card while a counselor has not approved the chosen university yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Awaiting counselor approval.\nWe will notify you once it\'s reviewed.'**
+  String get appPendingApprovalNote;
+
+  /// Shown in place of the city on an application card when the university has no city on record.
+  ///
+  /// In en, this message translates to:
+  /// **'South Korea'**
+  String get appCountrySouthKorea;
+
+  /// Error in a university room tab (Discussion / Calendar) when the university has no room.
+  ///
+  /// In en, this message translates to:
+  /// **'This university doesn\'t have a room yet.'**
+  String get appRoomNotFound;
+
+  /// Error in the university room's Discussion tab when the room has no discussion channel.
+  ///
+  /// In en, this message translates to:
+  /// **'This room has no discussion yet.'**
+  String get appRoomDiscussionNotFound;
+
+  /// Error in the university room's Discussion tab when loading or connecting failed. A Retry button follows.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t connect to the discussion.'**
+  String get appRoomDiscussionConnectError;
+
+  /// Error in the university room's Discussion tab when a message could not be sent.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t send the message.'**
+  String get appRoomSendError;
+
+  /// Error in the university room's Discussion tab when the session has expired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please sign in again.'**
+  String get appRoomNotSignedIn;
+
+  /// Generic error in the university room's News or Calendar tab when loading failed. A Retry button follows.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load this. Please try again.'**
+  String get appRoomLoadError;
+
+  /// Title for an announcement in the university room's News tab that has no title of its own.
+  ///
+  /// In en, this message translates to:
+  /// **'Announcement'**
+  String get appRoomAnnouncementFallbackTitle;
+
+  /// Title for an event in the university room's Calendar tab that has no title of its own.
+  ///
+  /// In en, this message translates to:
+  /// **'Event'**
+  String get appRoomEventFallbackTitle;
+
+  /// Application status chip/label: the student chose the university and a counselor has not approved it yet (applications.status pending / pending_approval).
+  ///
+  /// In en, this message translates to:
+  /// **'Awaiting approval'**
+  String get statusPendingApproval;
+
+  /// Application status label (applications.status documents_collection): the documents have been collected.
+  ///
+  /// In en, this message translates to:
+  /// **'Documents collected'**
+  String get statusDocumentsCollection;
+
+  /// Application status label (applications.status documents_translation): the documents have been translated.
+  ///
+  /// In en, this message translates to:
+  /// **'Documents translated'**
+  String get statusDocumentsTranslation;
+
+  /// Application status label (applications.status apostille): the apostille is ready.
+  ///
+  /// In en, this message translates to:
+  /// **'Apostille ready'**
+  String get statusApostille;
+
+  /// Application status label (applications.status application_submitted): the application has been submitted to the university.
+  ///
+  /// In en, this message translates to:
+  /// **'Application submitted'**
+  String get statusApplicationSubmitted;
+
+  /// Application status label (applications.status university_response): the university has replied (admission letter stage).
+  ///
+  /// In en, this message translates to:
+  /// **'University replied'**
+  String get statusUniversityResponse;
+
+  /// Application status label (applications.status visa_documents): the visa documents are being prepared / are ready.
+  ///
+  /// In en, this message translates to:
+  /// **'Visa documents'**
+  String get statusVisaDocuments;
+
+  /// Application status label (applications.status completed): the whole process is finished.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get statusCompleted;
+
+  /// Fallback application status label for a status code the app does not know yet.
+  ///
+  /// In en, this message translates to:
+  /// **'In progress'**
+  String get statusInProgress;
+
+  /// First assistant bubble in the Hanguk AI chat. 'Hanguk AI' is the product name.
+  ///
+  /// In en, this message translates to:
+  /// **'Hi! 👋 I\'m the Hanguk AI assistant. Ask me anything about documents, universities or the application process!'**
+  String get chatGreeting;
+
+  /// Assistant bubble when the AI returned an empty answer.
+  ///
+  /// In en, this message translates to:
+  /// **'Sorry, I couldn\'t generate a response.'**
+  String get chatNoResponse;
+
+  /// Error banner in the AI chat when the request fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t reach Hanguk AI. Check your connection.'**
+  String get chatConnectError;
+
+  /// Assistant bubble shown after the chat history is cleared.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat cleared. How can I help you?'**
+  String get chatCleared;
+
+  /// Message inside the map WebView when the map has not loaded after 8 seconds.
+  ///
+  /// In en, this message translates to:
+  /// **'The map didn\'t load. Check your internet connection.'**
+  String get mapLoadFailed;
+
+  /// Hint under a university name in the map marker preview bubble.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap for details'**
+  String get mapTapForDetails;
+
+  /// Message inside the map WebView when no map provider could be loaded.
+  ///
+  /// In en, this message translates to:
+  /// **'The map service is unavailable right now.'**
+  String get mapProviderUnavailable;
+
+  /// Message inside the map WebView when the map failed to start.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t start the map.'**
+  String get mapInitError;
+
+  /// Study Plan trainer, step 1: guide title.
+  ///
+  /// In en, this message translates to:
+  /// **'Study Plan writing guide'**
+  String get trainingGuideSpTitle;
+
+  /// Study Plan trainer, step 1: guide introduction.
+  ///
+  /// In en, this message translates to:
+  /// **'A Study Plan explains why you want to study in South Korea, the goals you have set for yourself, and what you plan to do after graduation.'**
+  String get trainingGuideSpIntro;
+
+  /// Study Plan guide, item 1 title.
+  ///
+  /// In en, this message translates to:
+  /// **'1. Purpose & motivation'**
+  String get trainingGuideSp1Title;
+
+  /// Study Plan guide, item 1 text.
+  ///
+  /// In en, this message translates to:
+  /// **'Why did you choose this major? Why does South Korea — and the specific university you applied to — fit that goal?'**
+  String get trainingGuideSp1Body;
+
+  /// Study Plan guide, item 2 title.
+  ///
+  /// In en, this message translates to:
+  /// **'2. Academic plan'**
+  String get trainingGuideSp2Title;
+
+  /// Study Plan guide, item 2 text.
+  ///
+  /// In en, this message translates to:
+  /// **'Which courses or research areas will you focus on? What is your Korean-language learning plan?'**
+  String get trainingGuideSp2Body;
+
+  /// Study Plan guide, item 3 title.
+  ///
+  /// In en, this message translates to:
+  /// **'3. Future plans'**
+  String get trainingGuideSp3Title;
+
+  /// Study Plan guide, item 3 text.
+  ///
+  /// In en, this message translates to:
+  /// **'What do you intend to do after graduation? How will you contribute back home?'**
+  String get trainingGuideSp3Body;
+
+  /// Personal Statement trainer, step 1: guide title.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal Statement writing guide'**
+  String get trainingGuidePsTitle;
+
+  /// Personal Statement trainer, step 1: guide introduction.
+  ///
+  /// In en, this message translates to:
+  /// **'A Personal Statement is an essay that shows who you are, what you have achieved, what interests you, and why you fit this major.'**
+  String get trainingGuidePsIntro;
+
+  /// Personal Statement guide, item 1 title.
+  ///
+  /// In en, this message translates to:
+  /// **'1. Past & experience'**
+  String get trainingGuidePs1Title;
+
+  /// Personal Statement guide, item 1 text.
+  ///
+  /// In en, this message translates to:
+  /// **'Write about your school achievements, the olympiads or projects you joined, and the interests you developed.'**
+  String get trainingGuidePs1Body;
+
+  /// Personal Statement guide, item 2 title.
+  ///
+  /// In en, this message translates to:
+  /// **'2. Personal strengths'**
+  String get trainingGuidePs2Title;
+
+  /// Personal Statement guide, item 2 text.
+  ///
+  /// In en, this message translates to:
+  /// **'What sets you apart from other applicants? How did you handle setbacks?'**
+  String get trainingGuidePs2Body;
+
+  /// Personal Statement guide, item 3 title.
+  ///
+  /// In en, this message translates to:
+  /// **'3. Why this field?'**
+  String get trainingGuidePs3Title;
+
+  /// Personal Statement guide, item 3 text.
+  ///
+  /// In en, this message translates to:
+  /// **'When and how did your interest in this field start?'**
+  String get trainingGuidePs3Body;
+
+  /// Status of a Study Plan / interview session that is not finished (DB codes 'in_progress', 'active'). Used inside sessionStatusLabel and on status chips.
+  ///
+  /// In en, this message translates to:
+  /// **'In progress'**
+  String get trainingStatusInProgress;
+
+  /// Status of a finished Study Plan / interview session (DB code 'completed').
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get trainingStatusCompleted;
+
+  /// Status of an interview session that was stopped before the end (DB code 'abandoned').
+  ///
+  /// In en, this message translates to:
+  /// **'Stopped'**
+  String get trainingStatusAbandoned;
+
+  /// Study Plan trainer: the list of saved drafts could not be loaded.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load your drafts. Please try again.'**
+  String get trainingErrorSessionsLoad;
+
+  /// Study Plan trainer: creating a new draft session failed (shown in the start dialog).
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t create the draft. Please try again.'**
+  String get trainingErrorCreateDraft;
+
+  /// Study Plan trainer: opening a saved draft failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t open the draft. Please try again.'**
+  String get trainingErrorLoadDraft;
+
+  /// Study Plan trainer: a newer draft was saved from another device.
+  ///
+  /// In en, this message translates to:
+  /// **'Another device saved a newer draft. Please refresh to merge.'**
+  String get trainingErrorDraftConflict;
+
+  /// Study Plan trainer: changing the writing language track (English / Korean) failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t change the writing language. Please try again.'**
+  String get trainingErrorTrackUpdate;
+
+  /// Study Plan trainer: fallback for an unexpected error.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong. Please try again.'**
+  String get trainingErrorGeneric;
+
+  /// Mock interview: the AI interviewer failed to answer.
+  ///
+  /// In en, this message translates to:
+  /// **'The AI interviewer ran into a problem. Please try again.'**
+  String get trainingInterviewAiError;
+
+  /// Mock interview: the student's answer could not be processed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t process your answer. Please try again.'**
+  String get trainingInterviewAnswerError;
+
+  /// Mock interview: the interviewer's voice could not be played.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t play the interviewer\'s voice.'**
+  String get trainingInterviewVoiceError;
+
+  /// Mock interview: the link to the call recording could not be saved.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save the recording link. Replay may be unavailable.'**
+  String get trainingInterviewAudioLinkWarning;
+
+  /// Mock interview: the feedback for a session could not be loaded.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load the feedback. Please try again.'**
+  String get trainingInterviewFeedbackLoadError;
+
+  /// Magic-code sign-in: no student has this code.
+  ///
+  /// In en, this message translates to:
+  /// **'We don\'t recognise this code. Please double-check it with your counsellor.'**
+  String get authErrorCodeNotFound;
+
+  /// Magic-code sign-in: the server could not be reached (not a problem with the code).
+  ///
+  /// In en, this message translates to:
+  /// **'We could not reach the server. Please check your connection and tap sign in again.'**
+  String get authErrorServerUnreachable;
+
+  /// Magic-code sign-in: a staff account tried to use a student code.
+  ///
+  /// In en, this message translates to:
+  /// **'Staff members must use username/password sign-in, not a magic code.'**
+  String get authErrorStaffBlocked;
+
+  /// Magic-code sign-in: the server is still creating the account.
+  ///
+  /// In en, this message translates to:
+  /// **'The server is busy setting up your account. Please try again in 30 seconds.'**
+  String get authErrorAccountSetupBusy;
+
+  /// Magic-code sign-in: the login server failed to open a session.
+  ///
+  /// In en, this message translates to:
+  /// **'Login server error. Please try again, or ask your counsellor to reset your account.'**
+  String get authErrorLoginServer;
+
+  /// Sign-in: unexpected server error.
+  ///
+  /// In en, this message translates to:
+  /// **'Unexpected server error. Please try again, or contact your counsellor.'**
+  String get authErrorUnexpected;
+
+  /// Phone sign-up: the phone belongs to an account a counsellor created.
+  ///
+  /// In en, this message translates to:
+  /// **'This account was created by your counsellor. Please use the Magic Access Code they gave you.'**
+  String get authErrorCrmAccount;
+
+  /// Phone sign-up: the phone number is already registered.
+  ///
+  /// In en, this message translates to:
+  /// **'This phone number is already registered. Please sign in.'**
+  String get authErrorAlreadyRegistered;
+
+  /// Phone sign-up: registration is switched off on the server.
+  ///
+  /// In en, this message translates to:
+  /// **'Registration is currently disabled. Please contact an administrator.'**
+  String get authErrorSignUpDisabled;
+
+  /// Phone sign-up: the phone number is not in international format.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid phone number format. Please include the country code.'**
+  String get authErrorPhoneFormat;
+
+  /// Phone sign-up: failed for another reason.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t create your account. Please try again.'**
+  String get authErrorSignUpFailed;
+
+  /// Screen-reader label of the floating 한 orb (opens the main menu) when no tooltip is given.
+  ///
+  /// In en, this message translates to:
+  /// **'Menu'**
+  String get a11yMenu;
+
+  /// Share-sheet subject when the user exports their data. 'Hanguk' is the product name.
+  ///
+  /// In en, this message translates to:
+  /// **'Hanguk — your data export'**
+  String get accountExportShareSubject;
+
+  /// Share-sheet text accompanying the exported JSON file.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Hanguk data export (JSON).'**
+  String get accountExportShareText;
+
+  /// SnackBar when the data export fails (replaces showing the raw server error).
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t export your data. Please try again.'**
+  String get accountExportError;
+
+  /// Deadline tile label for an admission event type the app does not model yet
+  ///
+  /// In en, this message translates to:
+  /// **'Key date'**
+  String get uniDbEventOther;
+
+  /// Institution chip when the university has no IEQAS accreditation
+  ///
+  /// In en, this message translates to:
+  /// **'No IEQAS accreditation'**
+  String get uniDbIeqasNone;
+
+  /// Snackbar when the admission guide link cannot be opened because it is malformed
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t open the link. Please try again.'**
+  String get uniDbPdfLinkInvalid;
+
+  /// Tuition faculty group: medicine
+  ///
+  /// In en, this message translates to:
+  /// **'Medicine'**
+  String get uniDbFacultyMedicine;
+
+  /// Tuition faculty group: pharmacy
+  ///
+  /// In en, this message translates to:
+  /// **'Pharmacy'**
+  String get uniDbFacultyPharmacy;
+
+  /// Tuition faculty group: arts and physical education
+  ///
+  /// In en, this message translates to:
+  /// **'Arts & Sports'**
+  String get uniDbFacultyArtsPe;
+
+  /// Tuition faculty group: theology
+  ///
+  /// In en, this message translates to:
+  /// **'Theology'**
+  String get uniDbFacultyTheology;
+
+  /// Tuition faculty group: interdisciplinary / convergence programmes
+  ///
+  /// In en, this message translates to:
+  /// **'Interdisciplinary'**
+  String get uniDbFacultyInterdisciplinary;
+
+  /// Tuition row that applies to every faculty
+  ///
+  /// In en, this message translates to:
+  /// **'All faculties'**
+  String get uniDbFacultyAll;
+
+  /// Scholarship scope chip: offered by the university itself
+  ///
+  /// In en, this message translates to:
+  /// **'University'**
+  String get uniDbScholarshipScopeUniversity;
+
+  /// Scholarship scope chip: government scholarship
+  ///
+  /// In en, this message translates to:
+  /// **'Government'**
+  String get uniDbScholarshipScopeNational;
+
+  /// Scholarship scope chip: regional government scholarship
+  ///
+  /// In en, this message translates to:
+  /// **'Regional'**
+  String get uniDbScholarshipScopeRegional;
+
+  /// Scholarship scope chip: private foundation scholarship
+  ///
+  /// In en, this message translates to:
+  /// **'Foundation'**
+  String get uniDbScholarshipScopeFoundation;
+
+  /// Scholarship scope chip: offered by one department
+  ///
+  /// In en, this message translates to:
+  /// **'Department'**
+  String get uniDbScholarshipScopeDepartment;
+
+  /// Scholarship award: percentage off tuition. {pct} is a number without the % sign
+  ///
+  /// In en, this message translates to:
+  /// **'{pct}% tuition waiver'**
+  String uniDbAwardTuitionPct(String pct);
+
+  /// Scholarship award: tuition waiver without an amount
+  ///
+  /// In en, this message translates to:
+  /// **'Tuition waiver'**
+  String get uniDbAwardTuition;
+
+  /// Scholarship award: fixed amount off tuition. {amount} is formatted, e.g. ₩1,000,000
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} off tuition'**
+  String uniDbAwardTuitionKrw(String amount);
+
+  /// Scholarship award: monthly stipend. {amount} is formatted, e.g. ₩300,000
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} monthly stipend'**
+  String uniDbAwardStipendMonthly(String amount);
+
+  /// Scholarship award: monthly stipend without an amount
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly stipend'**
+  String get uniDbAwardStipend;
+
+  /// Scholarship award: airfare up to an amount. {amount} is formatted, e.g. ₩800,000
+  ///
+  /// In en, this message translates to:
+  /// **'Airfare up to {amount}'**
+  String uniDbAwardAirfare(String amount);
+
+  /// Scholarship award: airfare covered, no amount given
+  ///
+  /// In en, this message translates to:
+  /// **'Airfare covered'**
+  String get uniDbAwardAirfareCovered;
+
+  /// Scholarship award of a type the app does not model (details in the Korean description)
+  ///
+  /// In en, this message translates to:
+  /// **'Other benefit'**
+  String get uniDbAwardOther;
+
+  /// Requirement chip: TOPIK level that may be submitted after applying. {base} is e.g. 'TOPIK 4+'
+  ///
+  /// In en, this message translates to:
+  /// **'{base} (can be submitted later)'**
+  String uniDbTopikDeferred(String base);
+
+  /// Recent-changes chip: the admission cycle was updated
+  ///
+  /// In en, this message translates to:
+  /// **'Admission cycle'**
+  String get uniDbChangeAdmissionCycle;
+
+  /// Recent-changes chip: admission dates were updated
+  ///
+  /// In en, this message translates to:
+  /// **'Dates'**
+  String get uniDbChangeDates;
+
+  /// Recent-changes chip when the changed field is not recognised
+  ///
+  /// In en, this message translates to:
+  /// **'Updated'**
+  String get uniDbChangeUpdated;
+
+  /// Document checklist item: apostille certificate
+  ///
+  /// In en, this message translates to:
+  /// **'Apostille'**
+  String get uniDbDocApostille;
+
+  /// Document checklist item: consent form (privacy / academic record verification)
+  ///
+  /// In en, this message translates to:
+  /// **'Consent form'**
+  String get uniDbDocConsent;
+
+  /// Document checklist item: passport copy
+  ///
+  /// In en, this message translates to:
+  /// **'Passport'**
+  String get uniDbDocPassport;
+
+  /// Document checklist item: TOPIK score certificate
+  ///
+  /// In en, this message translates to:
+  /// **'TOPIK certificate'**
+  String get uniDbDocTopik;
+
+  /// Document checklist item: language test certificate (IELTS, TOEFL, Korean, …)
+  ///
+  /// In en, this message translates to:
+  /// **'Language certificate'**
+  String get uniDbDocLanguage;
+
+  /// Document checklist item: academic transcript / school record
+  ///
+  /// In en, this message translates to:
+  /// **'Transcript'**
+  String get uniDbDocTranscript;
+
+  /// Document checklist item: diploma or graduation certificate
+  ///
+  /// In en, this message translates to:
+  /// **'Diploma'**
+  String get uniDbDocDiploma;
+
+  /// Document checklist item: certificate of current enrollment
+  ///
+  /// In en, this message translates to:
+  /// **'Certificate of enrollment'**
+  String get uniDbDocEnrollment;
+
+  /// Document checklist item: family relationship certificate
+  ///
+  /// In en, this message translates to:
+  /// **'Family relationship certificate'**
+  String get uniDbDocFamily;
+
+  /// Document checklist item: power of attorney
+  ///
+  /// In en, this message translates to:
+  /// **'Power of attorney'**
+  String get uniDbDocPowerOfAttorney;
+
+  /// Document checklist item: proof of finances / bank balance certificate
+  ///
+  /// In en, this message translates to:
+  /// **'Proof of funds'**
+  String get uniDbDocFinance;
+
+  /// Document checklist item: entry/exit (immigration) record
+  ///
+  /// In en, this message translates to:
+  /// **'Entry and exit record'**
+  String get uniDbDocEntryExit;
+
+  /// Document checklist item: employment certificate
+  ///
+  /// In en, this message translates to:
+  /// **'Employment certificate'**
+  String get uniDbDocEmployment;
+
+  /// Document checklist item: recommendation letter
+  ///
+  /// In en, this message translates to:
+  /// **'Recommendation letter'**
+  String get uniDbDocRecommendation;
+
+  /// Document checklist item: proof of citizenship / nationality
+  ///
+  /// In en, this message translates to:
+  /// **'Proof of citizenship'**
+  String get uniDbDocCitizenship;
+
+  /// Document checklist item: personal statement and study plan
+  ///
+  /// In en, this message translates to:
+  /// **'Personal statement & study plan'**
+  String get uniDbDocStatement;
+
+  /// Document checklist item: Korean alien registration card (ARC)
+  ///
+  /// In en, this message translates to:
+  /// **'Alien registration card'**
+  String get uniDbDocAlienRegistration;
+
+  /// Document checklist item: ID card copy
+  ///
+  /// In en, this message translates to:
+  /// **'ID card copy'**
+  String get uniDbDocIdCard;
+
+  /// Document checklist item: photo
+  ///
+  /// In en, this message translates to:
+  /// **'Photo'**
+  String get uniDbDocPhoto;
+
+  /// Document checklist item: portfolio
+  ///
+  /// In en, this message translates to:
+  /// **'Portfolio'**
+  String get uniDbDocPortfolio;
+
+  /// Document checklist item: medical check certificate
+  ///
+  /// In en, this message translates to:
+  /// **'Medical certificate'**
+  String get uniDbDocHealth;
+
+  /// Document checklist item: school academic calendar
+  ///
+  /// In en, this message translates to:
+  /// **'School calendar'**
+  String get uniDbDocCalendar;
+
+  /// Document checklist item: tax payment certificate
+  ///
+  /// In en, this message translates to:
+  /// **'Tax payment certificate'**
+  String get uniDbDocTax;
+
+  /// Document checklist item: business registration certificate
+  ///
+  /// In en, this message translates to:
+  /// **'Business registration certificate'**
+  String get uniDbDocBusinessRegistration;
+
+  /// Document checklist item: award certificate
+  ///
+  /// In en, this message translates to:
+  /// **'Award certificate'**
+  String get uniDbDocAward;
+
+  /// Document checklist item: application form
+  ///
+  /// In en, this message translates to:
+  /// **'Application form'**
+  String get uniDbDocApplicationForm;
+
+  /// Document checklist item: a required document the app has no specific name for (details in the Korean note)
+  ///
+  /// In en, this message translates to:
+  /// **'Additional document'**
+  String get uniDbDocOther;
+
+  /// Staff review screen title
+  ///
+  /// In en, this message translates to:
+  /// **'Review queue'**
+  String get adminReviewQueueTitle;
+
+  /// Staff review screen title when loading failed / access denied
+  ///
+  /// In en, this message translates to:
+  /// **'Review'**
+  String get adminReviewTitle;
+
+  /// Tooltip: reload the review queue
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get adminRefresh;
+
+  /// Staff review queue has no pending items
+  ///
+  /// In en, this message translates to:
+  /// **'Queue is empty. Nothing pending right now.'**
+  String get adminQueueEmpty;
+
+  /// Wide layout hint before a queue item is chosen
+  ///
+  /// In en, this message translates to:
+  /// **'Select a queue item on the left.'**
+  String get adminSelectItem;
+
+  /// Snackbar after accepting an extraction
+  ///
+  /// In en, this message translates to:
+  /// **'Accepted'**
+  String get adminAccepted;
+
+  /// Snackbar after editing and accepting an extraction
+  ///
+  /// In en, this message translates to:
+  /// **'Edited and accepted'**
+  String get adminEditedAccepted;
+
+  /// Snackbar after rejecting an extraction
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected'**
+  String get adminRejected;
+
+  /// Tooltip: back from item detail to the queue (narrow layout)
+  ///
+  /// In en, this message translates to:
+  /// **'Back to queue'**
+  String get adminBackToQueue;
+
+  /// Chip: the extractor's self-rated confidence
+  ///
+  /// In en, this message translates to:
+  /// **'Confidence {pct}%'**
+  String adminConfidence(int pct);
+
+  /// Chip: the item is past its review deadline
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue'**
+  String get adminOverdue;
+
+  /// Button: open the Korean source page of the admission guide
+  ///
+  /// In en, this message translates to:
+  /// **'Open source page (Korean)'**
+  String get adminOpenSource;
+
+  /// Label above the extracted JSON
+  ///
+  /// In en, this message translates to:
+  /// **'Extracted data:'**
+  String get adminExtractedPayload;
+
+  /// Button: reject the extraction
+  ///
+  /// In en, this message translates to:
+  /// **'Reject'**
+  String get adminReject;
+
+  /// Button: edit the extraction, then accept it
+  ///
+  /// In en, this message translates to:
+  /// **'Edit & accept'**
+  String get adminEditAccept;
+
+  /// Button: accept the extraction
+  ///
+  /// In en, this message translates to:
+  /// **'Accept'**
+  String get adminAccept;
+
+  /// Edit dialog error: the JSON is not an object
+  ///
+  /// In en, this message translates to:
+  /// **'Data must be a JSON object'**
+  String get adminPayloadNotObject;
+
+  /// Edit dialog error: the JSON does not parse. {error} is the parser message
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid JSON: {error}'**
+  String adminInvalidJson(String error);
+
+  /// Edit dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'Edit data'**
+  String get adminEditPayload;
+
+  /// Edit dialog button: save the edit and accept
+  ///
+  /// In en, this message translates to:
+  /// **'Save & accept'**
+  String get adminSaveAccept;
+
+  /// Reject dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'Reject — reason'**
+  String get adminRejectReasonTitle;
+
+  /// Reject dialog: optional free-text detail
+  ///
+  /// In en, this message translates to:
+  /// **'Details (optional)'**
+  String get adminDetailOptional;
+
+  /// Shown to a signed-in user without the staff role
+  ///
+  /// In en, this message translates to:
+  /// **'This area is for Hanguk staff only. If you should have access, ask an admin to add your staff role.'**
+  String get adminStaffOnly;
+
+  /// Review priority 1 with its SLA
+  ///
+  /// In en, this message translates to:
+  /// **'P1 — correction notice (4h)'**
+  String get adminPriorityP1;
+
+  /// Review priority 2 with its SLA
+  ///
+  /// In en, this message translates to:
+  /// **'P2 — attachment change (12h)'**
+  String get adminPriorityP2;
+
+  /// Review priority 3 with its SLA (D3 = difficulty tier 3)
+  ///
+  /// In en, this message translates to:
+  /// **'P3 — D3 field with diff (24h)'**
+  String get adminPriorityP3;
+
+  /// Review priority 4 with its SLA (D2 = difficulty tier 2)
+  ///
+  /// In en, this message translates to:
+  /// **'P4 — D2 routine (48h)'**
+  String get adminPriorityP4;
+
+  /// Review priority 5 with its SLA (D1 = difficulty tier 1)
+  ///
+  /// In en, this message translates to:
+  /// **'P5 — D1 trivial (96h)'**
+  String get adminPriorityP5;
+
+  /// Why an item was queued: the extractor was unsure
+  ///
+  /// In en, this message translates to:
+  /// **'Low confidence'**
+  String get adminReasonLowConfidence;
+
+  /// Why an item was queued: it contains a hard-to-extract field
+  ///
+  /// In en, this message translates to:
+  /// **'Hard field'**
+  String get adminReasonHighDifficulty;
+
+  /// Why an item was queued: approved automatically, spot check
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-approved'**
+  String get adminReasonAutoApproved;
+
+  /// Why an item was queued: the university published a correction notice
+  ///
+  /// In en, this message translates to:
+  /// **'Correction notice'**
+  String get adminReasonCorrectionNotice;
+
+  /// Queue item kind: an AI extraction job
+  ///
+  /// In en, this message translates to:
+  /// **'Extraction'**
+  String get adminEntityExtraction;
+
+  /// Queue item kind: an admission guide document
+  ///
+  /// In en, this message translates to:
+  /// **'Admission guide'**
+  String get adminEntityGuideline;
+
+  /// Reject reason: extracted from the wrong year's guide
+  ///
+  /// In en, this message translates to:
+  /// **'Wrong year'**
+  String get adminRejectWrongYear;
+
+  /// Reject reason: the document was classified as the wrong type
+  ///
+  /// In en, this message translates to:
+  /// **'Wrong document type'**
+  String get adminRejectWrongArchetype;
+
+  /// Reject reason: the AI invented a field not in the source
+  ///
+  /// In en, this message translates to:
+  /// **'Invented field'**
+  String get adminRejectHallucinated;
+
+  /// Reject reason: the scanned text is unreadable
+  ///
+  /// In en, this message translates to:
+  /// **'Garbled OCR text'**
+  String get adminRejectOcrGarbled;
+
+  /// Reject reason: the source page no longer exists
+  ///
+  /// In en, this message translates to:
+  /// **'Source page not found (404)'**
+  String get adminRejectSource404;
+
+  /// Reject reason: other
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get adminRejectOther;
+
+  /// The AI interviewer never spoke after the call started.
+  ///
+  /// In en, this message translates to:
+  /// **'The interviewer did not respond. Please go back and try again.'**
+  String get interviewErrorNoGreeting;
+
+  /// The interview call ended before the AI interviewer spoke.
+  ///
+  /// In en, this message translates to:
+  /// **'The call ended before the interviewer could speak. Please try again.'**
+  String get interviewErrorEndedBeforeGreeting;
+
+  /// The interview voice call failed for a technical reason.
+  ///
+  /// In en, this message translates to:
+  /// **'The call could not be connected. Please check your internet and try again.'**
+  String get interviewErrorCallFailed;
 }
 
 class _AppLocalizationsDelegate

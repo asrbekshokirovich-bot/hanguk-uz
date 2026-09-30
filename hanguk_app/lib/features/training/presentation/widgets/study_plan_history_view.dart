@@ -6,6 +6,7 @@ import '../../../../design_system/seoul_night/seoul_night.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../data/study_plan_repository.dart';
 import '../study_plan_screen.dart';
+import 'training_status_label.dart';
 
 /// Past Study Plan / Personal Statement sessions, scoped to one
 /// document type. Mirrors `InterviewHistoryView` and ports the React
@@ -228,7 +229,7 @@ class _StudyPlanHistoryViewState extends ConsumerState<StudyPlanHistoryView> {
                     ),
                     const SizedBox(width: 8),
                     StatusChip(
-                      label: session.status,
+                      label: trainingStatusLabel(l, session.status),
                       tone: _statusTone(session.status),
                       ko: _statusKo(session.status),
                       dense: true,

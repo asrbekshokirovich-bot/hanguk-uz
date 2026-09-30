@@ -12,6 +12,7 @@ import '../domain/institution_summary.dart';
 import '../domain/requirements_row.dart';
 import '../domain/scholarship_row.dart';
 import '../domain/upcoming_deadline.dart';
+import 'uni_db_labels.dart';
 
 /// `/institutions/:id` — per-institution detail page.
 ///
@@ -189,7 +190,7 @@ class _HeaderHero extends StatelessWidget {
         ),
       if (summary.ieqasStatus != null)
         StatusChip(
-          label: 'IEQAS · ${summary.ieqasStatus}',
+          label: uniDbIeqasLabel(l, summary.ieqasStatus!),
           tone: StatusTone.info,
         ),
       if (summary.isPartner)
@@ -485,9 +486,9 @@ String _eventLabel(AppLocalizations l, String eventType) => switch (eventType) {
   'registration_close' => l.eventRegistrationClose,
   'orientation' => l.eventOrientation,
   'semester_start' => l.eventSemesterStart,
-  // An event type the DB writes that this app does not model yet — the raw
-  // value is the honest thing to show.
-  _ => eventType.replaceAll('_', ' '),
+  // An event type the DB writes that this app does not model yet — a
+  // generic label in the student's language, never the raw identifier.
+  _ => l.uniDbEventOther,
 };
 
 /// cycle_track / applicant_category → localized label, raw value as fallback.
@@ -555,7 +556,15 @@ class _OpenGuidelineButtonState extends ConsumerState<_OpenGuidelineButton> {
       final service = ref.read(pdfUrlServiceProvider);
       final signed = await service.getSignedUrl(documentId);
       final uri = Uri.tryParse(signed.signedUrl);
-      if (uri == null) throw StateError('Signed URL was not parseable');
+      if (uri == null) {
+        if (mounted) {
+          final l = AppLocalizations.of(context)!;
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(l.uniDbPdfLinkInvalid)));
+        }
+        return;
+      }
       final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
       if (!ok && mounted) {
         final l = AppLocalizations.of(context)!;
@@ -630,7 +639,7 @@ class _TuitionSection extends ConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              _facultyLabel(l, r.facultyGroup),
+                              uniDbFacultyLabel(l, r.facultyGroup),
                               style: SeoulType.subtitle,
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
@@ -651,14 +660,14 @@ class _TuitionSection extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Text(
-                            '₩${_thousands(r.amountKrw)}',
+                            uniDbKrw(l, r.amountKrw),
                             style: SeoulType.subtitle,
                           ),
                           if (r.admissionFeeKrw != null &&
                               r.admissionFeeKrw! > 0)
                             Text(
                               l.uniDbAdmissionFee(
-                                '₩${_thousands(r.admissionFeeKrw!)}',
+                                uniDbKrw(l, r.admissionFeeKrw!),
                               ),
                               style: SeoulType.caption,
                             ),
@@ -673,29 +682,6 @@ class _TuitionSection extends ConsumerWidget {
         );
       },
     );
-  }
-
-  String _facultyLabel(AppLocalizations l, String raw) {
-    return switch (raw) {
-      'humanities' => l.facultyHumanities,
-      'social_science' => l.facultySocialScience,
-      'natural_science' => l.facultyNaturalScience,
-      'engineering' => l.facultyEngineering,
-      'medical' => l.facultyMedical,
-      'arts' => l.facultyArts,
-      'pe' => l.facultyPhysicalEducation,
-      _ => raw,
-    };
-  }
-
-  static String _thousands(int n) {
-    final s = n.toString();
-    final buf = StringBuffer();
-    for (int i = 0; i < s.length; i++) {
-      if (i > 0 && (s.length - i) % 3 == 0) buf.write(',');
-      buf.write(s[i]);
-    }
-    return buf.toString();
   }
 }
 
@@ -729,6 +715,7 @@ class _RequirementsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
+    final topik = uniDbTopikLabel(l, r);
     return GlassCard(
       margin: const EdgeInsets.only(bottom: 10),
       blur: false,
@@ -744,8 +731,8 @@ class _RequirementsCard extends StatelessWidget {
             spacing: 8,
             runSpacing: 8,
             children: [
-              if (r.topikLabel != null)
-                StatusChip(label: r.topikLabel!, tone: StatusTone.info),
+              if (topik != null)
+                StatusChip(label: topik, tone: StatusTone.info),
               if (r.englishTestLabel != null)
                 StatusChip(label: r.englishTestLabel!, tone: StatusTone.info),
               if (r.gpaFloorPct != null)
@@ -837,11 +824,14 @@ class _ScholarshipCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 10),
-              StatusChip(label: s.scope, dense: true),
+              StatusChip(
+                label: uniDbScholarshipScopeLabel(l, s.scope),
+                dense: true,
+              ),
             ],
           ),
           const SizedBox(height: 8),
-          Text(s.awardLabel, style: SeoulType.bodySecondary),
+          Text(uniDbAwardLabel(l, s), style: SeoulType.bodySecondary),
           if (s.topikTierTable != null && s.topikTierTable!.isNotEmpty) ...[
             const SizedBox(height: 10),
             Text(l.uniDbTopikTierTable, style: SeoulType.eyebrow),
@@ -967,7 +957,10 @@ class _DocumentTile extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(d.documentType, style: SeoulType.body),
+                Text(
+                  uniDbDocumentTypeLabel(l, d.documentType),
+                  style: SeoulType.body,
+                ),
                 if (notes.isNotEmpty) ...[
                   const SizedBox(height: 2),
                   Text(notes, style: SeoulType.caption),

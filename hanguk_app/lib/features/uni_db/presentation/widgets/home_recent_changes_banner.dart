@@ -6,6 +6,7 @@ import '../../../../design_system/seoul_night/seoul_night.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../data/recent_changes_provider.dart';
 import '../../domain/recent_change.dart';
+import '../uni_db_labels.dart';
 
 /// Quick-win home banner from plan §N — shows the user's tracked
 /// universities' most-recent changes (correction notices first).
@@ -151,7 +152,7 @@ class _ChangeLine extends StatelessWidget {
               // term the student encounters on Korean university sites.
               label: correction
                   ? '정정공고'
-                  : _humanizeField(change.fieldName ?? change.entityType),
+                  : uniDbChangeLabel(l10n, change.fieldName, change.entityType),
               tone: correction ? StatusTone.warning : StatusTone.neutral,
               dense: true,
             ),
@@ -159,24 +160,6 @@ class _ChangeLine extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  /// Turn a database column name into something a person can read.
-  ///
-  /// These are raw identifiers from the change feed — `document_submission_
-  /// deadline`, `admission_cycle` — and the set is open-ended, so they cannot
-  /// all be given translation keys. Un-snaking them is presentation, not
-  /// invention: the student still sees exactly the field that changed, just
-  /// not in database casing.
-  static String _humanizeField(String raw) {
-    final words = raw
-        .split(RegExp(r'[_\s]+'))
-        .where((w) => w.isNotEmpty)
-        .toList(growable: false);
-    if (words.isEmpty) return raw;
-    return words
-        .map((w) => w[0].toUpperCase() + w.substring(1).toLowerCase())
-        .join(' ');
   }
 
   static String _relative(AppLocalizations l10n, DateTime when) {

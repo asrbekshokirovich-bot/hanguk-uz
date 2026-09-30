@@ -5,6 +5,7 @@ import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../l10n/app_localizations.dart';
 import '../data/uni_db_providers.dart';
 import '../domain/institution_summary.dart';
+import 'uni_db_labels.dart';
 
 /// `/institutions/compare?ids=a,b` — side-by-side institution comparison.
 ///
@@ -208,7 +209,7 @@ class _CompareColumn extends StatelessWidget {
             child: i.ieqasStatus == null
                 ? _text(null)
                 : StatusChip(
-                    label: i.ieqasStatus!,
+                    label: uniDbIeqasLabel(l, i.ieqasStatus!),
                     tone: StatusTone.info,
                     dense: true,
                   ),

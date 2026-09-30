@@ -8,6 +8,7 @@ import '../../auth/data/auth_repository.dart';
 import 'home_tab_provider.dart';
 import '../../applications/data/applications_repository.dart';
 import '../../applications/domain/application.dart';
+import '../../applications/presentation/widgets/process_tracker.dart';
 import '../../documents/data/documents_repository.dart';
 import '../../documents/domain/document.dart';
 import '../../documents/domain/document_type.dart';
@@ -20,42 +21,16 @@ import '../../uni_db/data/notification_store.dart';
 /// The pipeline itself is owned by
 /// `applications/presentation/widgets/process_tracker.dart`: it declares the
 /// nine ordered steps (Document preparation → Waiting for visa issue) and the
-/// status → step mapping. Home mirrors that mapping in [_journeyStep] so the
+/// status → step mapping. Home reuses that mapping in [_journeyStep] so the
 /// two screens can never disagree about where a student stands. If the tracker
 /// gains or reorders a step, change it there first and follow here.
 const int _kJourneySteps = 9;
 
 /// Number of pipeline steps a given application status has completed.
 ///
-/// Mirrors `ProcessTracker._currentStep` exactly (that getter is private to its
-/// library, so it cannot be reused directly).
-int _journeyStep(String status) {
-  switch (status) {
-    case 'rejected':
-    case 'visa_issue':
-      return 9;
-    case 'visa_documents':
-      return 8;
-    case 'university_response':
-      return 7;
-    case 'tuition_payment':
-      return 6;
-    case 'waiting_invoice':
-      return 5;
-    case 'interview':
-      return 4;
-    case 'offline_application':
-      return 3;
-    case 'online_application':
-      return 2;
-    case 'documents_collection':
-      return 1;
-    // 'pending' / 'pending_approval' and anything unrecognised: the process
-    // has not started.
-    default:
-      return 0;
-  }
-}
+/// Delegates to [ProcessTracker.stepFor] — the one mapping of every CRM
+/// status code — so Home and the Applications tab always agree.
+int _journeyStep(String status) => ProcessTracker.stepFor(status);
 
 /// The application the hero card reports on: the one that has travelled
 /// furthest down the pipeline.

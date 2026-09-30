@@ -6,15 +6,6 @@ import '../../domain/application.dart';
 import 'process_tracker.dart';
 import 'university_room_modal.dart';
 
-// ── Strings still missing an ARB key ────────────────────────────────────────
-// These are kept exactly as the screen showed them before the restyle; there
-// is no existing key that fits, and new keys can't be added without
-// regenerating the five locales. Listed in the PR description.
-const String _discussionLabel = 'Discussion';
-const String _calendarLabel = 'Calendar';
-const String _pendingApprovalNote =
-    'Awaiting Counselor Approval.\nWe will notify you once reviewed.';
-
 /// One application, as a Seoul Night glass card (DESIGN_SPEC §3.4):
 /// hangul glyph tile, university name, city, status chip and a glow progress
 /// bar. Tapping the header expands the journey bar plus the Discussion /
@@ -58,7 +49,20 @@ class _ApplicationCardState extends State<ApplicationCard> {
     final status = application.status;
     final step = ProcessTracker.stepFor(status);
     final chip = _statusChip(status, l);
-    final city = university?.location ?? '';
+    // City names stay as stored; an institution without one (the repository
+    // leaves the [University.unknownCity] placeholder) reads as the country,
+    // in the app language.
+    final String city;
+    if (university == null) {
+      city = '';
+    } else if (university.hasRealCity) {
+      city = university.location;
+    } else {
+      city = l.appCountrySouthKorea;
+    }
+    final universityName = (university?.name.isNotEmpty ?? false)
+        ? university!.name
+        : l.unknownUniversity;
 
     return GlassCard(
       margin: const EdgeInsets.only(bottom: 12),
@@ -90,7 +94,7 @@ class _ApplicationCardState extends State<ApplicationCard> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              university?.name ?? l.unknownUniversity,
+                              universityName,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: SeoulType.subtitle,
@@ -172,7 +176,7 @@ class _ApplicationCardState extends State<ApplicationCard> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: 16),
-                      if (status == 'pending_approval')
+                      if (ProcessTracker.isPending(status))
                         const _PendingApprovalNote()
                       else
                         ProcessTracker(status: status),
@@ -182,7 +186,7 @@ class _ApplicationCardState extends State<ApplicationCard> {
                         runSpacing: 10,
                         children: [
                           SeoulOutlineButton(
-                            label: _discussionLabel,
+                            label: l.roomTabDiscussion,
                             icon: Icons.forum_outlined,
                             expand: false,
                             height: SeoulSizes.minTapTarget,
@@ -190,7 +194,7 @@ class _ApplicationCardState extends State<ApplicationCard> {
                                 widget.onDiscussionTap ?? () => _openRoom(1),
                           ),
                           SeoulOutlineButton(
-                            label: _calendarLabel,
+                            label: l.roomTabCalendar,
                             icon: Icons.event_note_outlined,
                             expand: false,
                             height: SeoulSizes.minTapTarget,
@@ -209,58 +213,62 @@ class _ApplicationCardState extends State<ApplicationCard> {
 
   /// Status → chip tone, per DESIGN_SPEC §3.4: Submitted = lime,
   /// In Review = warning, Docs stage = info. A rejection gets the danger tone
-  /// (added to the palette for exactly this); everything else the CRM can
-  /// write that this app does not model falls back to neutral rather than
-  /// guessing at a meaning.
+  /// (added to the palette for exactly this); a status this app does not know
+  /// stays neutral rather than guessing at a meaning. The label always comes
+  /// from [ProcessTracker.statusLabel], so the chip and the journey bar name
+  /// the status the same way.
   StatusChip _statusChip(String status, AppLocalizations l) {
+    final label = ProcessTracker.statusLabel(status, l);
     switch (status) {
       case 'documents_collection':
+      case 'documents_translation':
+      case 'apostille':
+      case 'documents':
       case 'visa_documents':
-        return StatusChip(label: l.navDocs, tone: StatusTone.info);
+      case 'visa':
+        return StatusChip(label: label, tone: StatusTone.info);
 
+      case 'application_submitted':
+      case 'submitted':
+      case 'online_ariza':
       case 'online_application':
       case 'offline_application':
-        return StatusChip(label: _stageLabel(status, l), tone: StatusTone.lime);
+      case 'originals_sent':
+      case 'university_response':
+        return StatusChip(label: label, tone: StatusTone.lime);
 
+      case 'in_review':
+      case 'review':
       case 'interview':
       case 'tuition_payment':
-        return StatusChip(
-          label: _stageLabel(status, l),
-          tone: StatusTone.warning,
-        );
+        return StatusChip(label: label, tone: StatusTone.warning);
+
       case 'waiting_invoice':
-      case 'university_response':
       case 'visa_issue':
         return StatusChip(
-          label: _stageLabel(status, l),
+          label: label,
           tone: StatusTone.warning,
           ko: ProcessTracker.pendingKo,
         );
+
+      case 'completed':
+      case 'accepted':
+      case 'enrolled':
+        return StatusChip(label: label, tone: StatusTone.lime);
 
       case 'pending':
       case 'pending_approval':
-        return StatusChip(
-          label: l.appsPendingHeading,
-          ko: ProcessTracker.pendingKo,
-        );
+      case 'new':
+      case 'draft':
+        return StatusChip(label: label, ko: ProcessTracker.pendingKo);
 
-      // 'rejected' shares the last stage index with 'visa_issue', so it must
-      // never borrow that stage's label — a rejection reading "Visa issue"
-      // would tell the student the opposite of what happened.
       case 'rejected':
-        return StatusChip(
-          label: l.sessionStatusLabel(status),
-          tone: StatusTone.danger,
-        );
+        return StatusChip(label: label, tone: StatusTone.danger);
 
       default:
-        return StatusChip(label: l.sessionStatusLabel(status));
+        return StatusChip(label: label);
     }
   }
-
-  String _stageLabel(String status, AppLocalizations l) =>
-      ProcessTracker.currentStageLabel(status, l) ??
-      l.sessionStatusLabel(status);
 }
 
 /// Shown in place of the journey bar while a counselor has not approved the
@@ -270,22 +278,26 @@ class _PendingApprovalNote extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const GlassCard(
+    final l = AppLocalizations.of(context)!;
+    return GlassCard(
       blur: false,
       showShadow: false,
       radius: SeoulRadii.tile,
       fillColor: SeoulColors.limeFill,
-      padding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       child: Row(
         children: [
-          Icon(
+          const Icon(
             Icons.hourglass_empty_rounded,
             color: SeoulColors.lime,
             size: 20,
           ),
-          SizedBox(width: 12),
+          const SizedBox(width: 12),
           Expanded(
-            child: Text(_pendingApprovalNote, style: SeoulType.bodySecondary),
+            child: Text(
+              l.appPendingApprovalNote,
+              style: SeoulType.bodySecondary,
+            ),
           ),
         ],
       ),

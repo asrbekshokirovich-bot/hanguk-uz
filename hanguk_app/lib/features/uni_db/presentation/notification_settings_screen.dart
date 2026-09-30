@@ -6,6 +6,7 @@ import '../../../l10n/app_localizations.dart';
 import '../data/uni_db_providers.dart';
 import 'widgets/coming_soon_card.dart';
 import '../../map/data/map_repository.dart';
+import '../../entry/data/entry_store.dart';
 
 /// `/notifications/settings` — per-tracked-university notification prefs.
 ///
@@ -165,7 +166,9 @@ class _PrefsCardState extends ConsumerState<_PrefsCard> {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      l10n.notifSettingsPushLanguage(preferredLang),
+                      l10n.notifSettingsPushLanguage(
+                        kEntryLanguageNames[preferredLang] ?? preferredLang,
+                      ),
                       style: SeoulType.caption,
                     ),
                   ],

@@ -2143,4 +2143,595 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get surveyPickDate => 'Выберите дату';
+
+  @override
+  String get docTypeIdCard => 'Копия ID-карты (паспорта) заявителя';
+
+  @override
+  String get docTypeForeignPassport => 'Копия загранпаспорта заявителя';
+
+  @override
+  String get docTypePhoto => 'Фото (3.5x4.5 см)';
+
+  @override
+  String get docTypeDiploma => 'Копия диплома или аттестата';
+
+  @override
+  String get docTypeLanguageCertificate =>
+      'Копия языкового сертификата (не ниже IELTS 5.5 или TOPIK 2)';
+
+  @override
+  String get docTypeOther => 'Документ';
+
+  @override
+  String get docStatusLocked => 'Недоступно';
+
+  @override
+  String get notifPushSection => 'Последние уведомления';
+
+  @override
+  String get notifMarkAllRead => 'Прочитать все';
+
+  @override
+  String get appPendingApprovalNote =>
+      'Ожидает одобрения консультанта.\nМы сообщим вам после рассмотрения.';
+
+  @override
+  String get appCountrySouthKorea => 'Южная Корея';
+
+  @override
+  String get appRoomNotFound => 'У этого университета пока нет комнаты.';
+
+  @override
+  String get appRoomDiscussionNotFound => 'В этой комнате пока нет обсуждения.';
+
+  @override
+  String get appRoomDiscussionConnectError =>
+      'Не удалось подключиться к обсуждению.';
+
+  @override
+  String get appRoomSendError => 'Не удалось отправить сообщение.';
+
+  @override
+  String get appRoomNotSignedIn => 'Пожалуйста, войдите снова.';
+
+  @override
+  String get appRoomLoadError => 'Не удалось загрузить. Попробуйте ещё раз.';
+
+  @override
+  String get appRoomAnnouncementFallbackTitle => 'Объявление';
+
+  @override
+  String get appRoomEventFallbackTitle => 'Событие';
+
+  @override
+  String get statusPendingApproval => 'Ожидает одобрения';
+
+  @override
+  String get statusDocumentsCollection => 'Документы собраны';
+
+  @override
+  String get statusDocumentsTranslation => 'Документы переведены';
+
+  @override
+  String get statusApostille => 'Апостиль готов';
+
+  @override
+  String get statusApplicationSubmitted => 'Заявка подана';
+
+  @override
+  String get statusUniversityResponse => 'Университет ответил';
+
+  @override
+  String get statusVisaDocuments => 'Визовые документы';
+
+  @override
+  String get statusCompleted => 'Завершено';
+
+  @override
+  String get statusInProgress => 'В процессе';
+
+  @override
+  String get chatGreeting =>
+      'Здравствуйте! 👋 Я помощник Hanguk AI. Задавайте любые вопросы о документах, университетах и процессе поступления!';
+
+  @override
+  String get chatNoResponse => 'Извините, не удалось подготовить ответ.';
+
+  @override
+  String get chatConnectError =>
+      'Не удалось связаться с Hanguk AI. Проверьте подключение к интернету.';
+
+  @override
+  String get chatCleared => 'Чат очищен. Чем могу помочь?';
+
+  @override
+  String get mapLoadFailed =>
+      'Карта не загрузилась. Проверьте подключение к интернету.';
+
+  @override
+  String get mapTapForDetails => 'Нажмите, чтобы узнать подробнее';
+
+  @override
+  String get mapProviderUnavailable =>
+      'Картографический сервис сейчас недоступен.';
+
+  @override
+  String get mapInitError => 'Не удалось запустить карту.';
+
+  @override
+  String get trainingGuideSpTitle => 'Как написать учебный план (Study Plan)';
+
+  @override
+  String get trainingGuideSpIntro =>
+      'Учебный план объясняет, почему вы хотите учиться в Южной Корее, какие цели перед собой ставите и чем планируете заниматься после выпуска.';
+
+  @override
+  String get trainingGuideSp1Title => '1. Цель и мотивация';
+
+  @override
+  String get trainingGuideSp1Body =>
+      'Почему вы выбрали эту специальность? Почему Южная Корея и выбранный вами университет подходят для этой цели?';
+
+  @override
+  String get trainingGuideSp2Title => '2. Учебные планы';
+
+  @override
+  String get trainingGuideSp2Body =>
+      'На каких предметах или направлениях исследований вы сосредоточитесь? Как вы планируете изучать корейский язык?';
+
+  @override
+  String get trainingGuideSp3Title => '3. Планы на будущее';
+
+  @override
+  String get trainingGuideSp3Body =>
+      'Чем вы собираетесь заниматься после выпуска? Какой вклад вы внесёте в развитие своей страны?';
+
+  @override
+  String get trainingGuidePsTitle =>
+      'Как написать мотивационное письмо (Personal Statement)';
+
+  @override
+  String get trainingGuidePsIntro =>
+      'Мотивационное письмо — это эссе о том, кто вы, чего достигли, что вас интересует и почему вы подходите для этой специальности.';
+
+  @override
+  String get trainingGuidePs1Title => '1. Опыт и достижения';
+
+  @override
+  String get trainingGuidePs1Body =>
+      'Расскажите о своих школьных достижениях, олимпиадах и проектах, в которых вы участвовали, и о своих увлечениях.';
+
+  @override
+  String get trainingGuidePs2Title => '2. Личные качества';
+
+  @override
+  String get trainingGuidePs2Body =>
+      'Чем вы выделяетесь среди других абитуриентов? Как вы справлялись с трудностями?';
+
+  @override
+  String get trainingGuidePs3Title => '3. Почему именно эта область?';
+
+  @override
+  String get trainingGuidePs3Body =>
+      'Когда и как у вас появился интерес к этой области?';
+
+  @override
+  String get trainingStatusInProgress => 'В процессе';
+
+  @override
+  String get trainingStatusCompleted => 'Завершено';
+
+  @override
+  String get trainingStatusAbandoned => 'Прервано';
+
+  @override
+  String get trainingErrorSessionsLoad =>
+      'Не удалось загрузить ваши черновики. Попробуйте ещё раз.';
+
+  @override
+  String get trainingErrorCreateDraft =>
+      'Не удалось создать черновик. Попробуйте ещё раз.';
+
+  @override
+  String get trainingErrorLoadDraft =>
+      'Не удалось открыть черновик. Попробуйте ещё раз.';
+
+  @override
+  String get trainingErrorDraftConflict =>
+      'На другом устройстве сохранён более новый черновик. Обновите страницу, чтобы объединить их.';
+
+  @override
+  String get trainingErrorTrackUpdate =>
+      'Не удалось изменить язык письма. Попробуйте ещё раз.';
+
+  @override
+  String get trainingErrorGeneric => 'Что-то пошло не так. Попробуйте ещё раз.';
+
+  @override
+  String get trainingInterviewAiError =>
+      'У ИИ-интервьюера возникла проблема. Попробуйте ещё раз.';
+
+  @override
+  String get trainingInterviewAnswerError =>
+      'Не удалось обработать ваш ответ. Попробуйте ещё раз.';
+
+  @override
+  String get trainingInterviewVoiceError =>
+      'Не удалось воспроизвести голос интервьюера.';
+
+  @override
+  String get trainingInterviewAudioLinkWarning =>
+      'Не удалось сохранить ссылку на запись. Прослушать её позже может быть невозможно.';
+
+  @override
+  String get trainingInterviewFeedbackLoadError =>
+      'Не удалось загрузить отзыв. Попробуйте ещё раз.';
+
+  @override
+  String get authErrorCodeNotFound =>
+      'Этот код не найден. Пожалуйста, уточните его у своего консультанта.';
+
+  @override
+  String get authErrorServerUnreachable =>
+      'Не удалось связаться с сервером. Проверьте подключение и нажмите «Войти» ещё раз.';
+
+  @override
+  String get authErrorStaffBlocked =>
+      'Сотрудникам нужно входить по логину и паролю, а не по magic-коду.';
+
+  @override
+  String get authErrorAccountSetupBusy =>
+      'Сервер настраивает ваш аккаунт. Попробуйте ещё раз через 30 секунд.';
+
+  @override
+  String get authErrorLoginServer =>
+      'Ошибка сервера входа. Попробуйте ещё раз или попросите консультанта сбросить ваш аккаунт.';
+
+  @override
+  String get authErrorUnexpected =>
+      'Непредвиденная ошибка сервера. Попробуйте ещё раз или обратитесь к консультанту.';
+
+  @override
+  String get authErrorCrmAccount =>
+      'Этот аккаунт создал ваш консультант. Пожалуйста, войдите с помощью Magic Access Code, который он вам дал.';
+
+  @override
+  String get authErrorAlreadyRegistered =>
+      'Этот номер телефона уже зарегистрирован. Пожалуйста, войдите.';
+
+  @override
+  String get authErrorSignUpDisabled =>
+      'Регистрация сейчас отключена. Пожалуйста, обратитесь к администратору.';
+
+  @override
+  String get authErrorPhoneFormat =>
+      'Неверный формат номера телефона. Укажите код страны.';
+
+  @override
+  String get authErrorSignUpFailed =>
+      'Не удалось создать аккаунт. Попробуйте ещё раз.';
+
+  @override
+  String get a11yMenu => 'Меню';
+
+  @override
+  String get accountExportShareSubject => 'Hanguk — выгрузка ваших данных';
+
+  @override
+  String get accountExportShareText =>
+      'Выгрузка ваших данных из Hanguk (JSON).';
+
+  @override
+  String get accountExportError =>
+      'Не удалось выгрузить ваши данные. Попробуйте ещё раз.';
+
+  @override
+  String get uniDbEventOther => 'Важная дата';
+
+  @override
+  String get uniDbIeqasNone => 'Без аккредитации IEQAS';
+
+  @override
+  String get uniDbPdfLinkInvalid =>
+      'Не удалось открыть ссылку. Попробуйте ещё раз.';
+
+  @override
+  String get uniDbFacultyMedicine => 'Медицина';
+
+  @override
+  String get uniDbFacultyPharmacy => 'Фармация';
+
+  @override
+  String get uniDbFacultyArtsPe => 'Искусство и спорт';
+
+  @override
+  String get uniDbFacultyTheology => 'Богословие';
+
+  @override
+  String get uniDbFacultyInterdisciplinary => 'Междисциплинарные направления';
+
+  @override
+  String get uniDbFacultyAll => 'Все факультеты';
+
+  @override
+  String get uniDbScholarshipScopeUniversity => 'Университетская';
+
+  @override
+  String get uniDbScholarshipScopeNational => 'Государственная';
+
+  @override
+  String get uniDbScholarshipScopeRegional => 'Региональная';
+
+  @override
+  String get uniDbScholarshipScopeFoundation => 'Фонд';
+
+  @override
+  String get uniDbScholarshipScopeDepartment => 'Кафедра';
+
+  @override
+  String uniDbAwardTuitionPct(String pct) {
+    return 'Скидка $pct% на обучение';
+  }
+
+  @override
+  String get uniDbAwardTuition => 'Скидка на обучение';
+
+  @override
+  String uniDbAwardTuitionKrw(String amount) {
+    return 'Скидка $amount на обучение';
+  }
+
+  @override
+  String uniDbAwardStipendMonthly(String amount) {
+    return 'Стипендия $amount в месяц';
+  }
+
+  @override
+  String get uniDbAwardStipend => 'Ежемесячная стипендия';
+
+  @override
+  String uniDbAwardAirfare(String amount) {
+    return 'Авиабилет до $amount';
+  }
+
+  @override
+  String get uniDbAwardAirfareCovered => 'Оплата авиабилета';
+
+  @override
+  String get uniDbAwardOther => 'Другая льгота';
+
+  @override
+  String uniDbTopikDeferred(String base) {
+    return '$base (можно предоставить позже)';
+  }
+
+  @override
+  String get uniDbChangeAdmissionCycle => 'Приёмная кампания';
+
+  @override
+  String get uniDbChangeDates => 'Даты';
+
+  @override
+  String get uniDbChangeUpdated => 'Обновлено';
+
+  @override
+  String get uniDbDocApostille => 'Апостиль';
+
+  @override
+  String get uniDbDocConsent => 'Согласие';
+
+  @override
+  String get uniDbDocPassport => 'Паспорт';
+
+  @override
+  String get uniDbDocTopik => 'Сертификат TOPIK';
+
+  @override
+  String get uniDbDocLanguage => 'Языковой сертификат';
+
+  @override
+  String get uniDbDocTranscript => 'Выписка оценок';
+
+  @override
+  String get uniDbDocDiploma => 'Диплом или аттестат';
+
+  @override
+  String get uniDbDocEnrollment => 'Справка с места учёбы';
+
+  @override
+  String get uniDbDocFamily => 'Документ о родстве';
+
+  @override
+  String get uniDbDocPowerOfAttorney => 'Доверенность';
+
+  @override
+  String get uniDbDocFinance => 'Подтверждение финансов';
+
+  @override
+  String get uniDbDocEntryExit => 'Справка о въезде и выезде';
+
+  @override
+  String get uniDbDocEmployment => 'Справка с места работы';
+
+  @override
+  String get uniDbDocRecommendation => 'Рекомендательное письмо';
+
+  @override
+  String get uniDbDocCitizenship => 'Подтверждение гражданства';
+
+  @override
+  String get uniDbDocStatement => 'Мотивационное письмо и учебный план';
+
+  @override
+  String get uniDbDocAlienRegistration => 'Карта регистрации иностранца';
+
+  @override
+  String get uniDbDocIdCard => 'Копия удостоверения личности';
+
+  @override
+  String get uniDbDocPhoto => 'Фотография';
+
+  @override
+  String get uniDbDocPortfolio => 'Портфолио';
+
+  @override
+  String get uniDbDocHealth => 'Медицинская справка';
+
+  @override
+  String get uniDbDocCalendar => 'Учебный календарь';
+
+  @override
+  String get uniDbDocTax => 'Справка об уплате налогов';
+
+  @override
+  String get uniDbDocBusinessRegistration =>
+      'Свидетельство о регистрации предприятия';
+
+  @override
+  String get uniDbDocAward => 'Грамоты и награды';
+
+  @override
+  String get uniDbDocApplicationForm => 'Анкета-заявление';
+
+  @override
+  String get uniDbDocOther => 'Дополнительный документ';
+
+  @override
+  String get adminReviewQueueTitle => 'Очередь проверки';
+
+  @override
+  String get adminReviewTitle => 'Проверка';
+
+  @override
+  String get adminRefresh => 'Обновить';
+
+  @override
+  String get adminQueueEmpty =>
+      'Очередь пуста. Сейчас ничего не ожидает проверки.';
+
+  @override
+  String get adminSelectItem => 'Выберите элемент очереди слева.';
+
+  @override
+  String get adminAccepted => 'Принято';
+
+  @override
+  String get adminEditedAccepted => 'Исправлено и принято';
+
+  @override
+  String get adminRejected => 'Отклонено';
+
+  @override
+  String get adminBackToQueue => 'Назад к очереди';
+
+  @override
+  String adminConfidence(int pct) {
+    return 'Уверенность $pct%';
+  }
+
+  @override
+  String get adminOverdue => 'Просрочено';
+
+  @override
+  String get adminOpenSource => 'Открыть источник (на корейском)';
+
+  @override
+  String get adminExtractedPayload => 'Извлечённые данные:';
+
+  @override
+  String get adminReject => 'Отклонить';
+
+  @override
+  String get adminEditAccept => 'Исправить и принять';
+
+  @override
+  String get adminAccept => 'Принять';
+
+  @override
+  String get adminPayloadNotObject => 'Данные должны быть JSON-объектом';
+
+  @override
+  String adminInvalidJson(String error) {
+    return 'Некорректный JSON: $error';
+  }
+
+  @override
+  String get adminEditPayload => 'Редактировать данные';
+
+  @override
+  String get adminSaveAccept => 'Сохранить и принять';
+
+  @override
+  String get adminRejectReasonTitle => 'Причина отклонения';
+
+  @override
+  String get adminDetailOptional => 'Подробности (необязательно)';
+
+  @override
+  String get adminStaffOnly =>
+      'Этот раздел только для сотрудников Hanguk. Если вам нужен доступ, попросите администратора добавить вам роль сотрудника.';
+
+  @override
+  String get adminPriorityP1 => 'P1 — уведомление об исправлении (4 ч)';
+
+  @override
+  String get adminPriorityP2 => 'P2 — изменение вложения (12 ч)';
+
+  @override
+  String get adminPriorityP3 => 'P3 — изменённое поле D3 (24 ч)';
+
+  @override
+  String get adminPriorityP4 => 'P4 — обычное D2 (48 ч)';
+
+  @override
+  String get adminPriorityP5 => 'P5 — простое D1 (96 ч)';
+
+  @override
+  String get adminReasonLowConfidence => 'Низкая уверенность';
+
+  @override
+  String get adminReasonHighDifficulty => 'Сложное поле';
+
+  @override
+  String get adminReasonAutoApproved => 'Одобрено автоматически';
+
+  @override
+  String get adminReasonCorrectionNotice => 'Уведомление об исправлении';
+
+  @override
+  String get adminEntityExtraction => 'Извлечение';
+
+  @override
+  String get adminEntityGuideline => 'Правила приёма';
+
+  @override
+  String get adminRejectWrongYear => 'Не тот год';
+
+  @override
+  String get adminRejectWrongArchetype => 'Неверный тип документа';
+
+  @override
+  String get adminRejectHallucinated => 'Выдуманное поле';
+
+  @override
+  String get adminRejectOcrGarbled => 'Искажённый текст OCR';
+
+  @override
+  String get adminRejectSource404 => 'Источник не найден (404)';
+
+  @override
+  String get adminRejectOther => 'Другое';
+
+  @override
+  String get interviewErrorNoGreeting =>
+      'Интервьюер не ответил. Вернитесь назад и попробуйте ещё раз.';
+
+  @override
+  String get interviewErrorEndedBeforeGreeting =>
+      'Звонок завершился до того, как интервьюер заговорил. Попробуйте ещё раз.';
+
+  @override
+  String get interviewErrorCallFailed =>
+      'Не удалось подключить звонок. Проверьте интернет и попробуйте ещё раз.';
 }

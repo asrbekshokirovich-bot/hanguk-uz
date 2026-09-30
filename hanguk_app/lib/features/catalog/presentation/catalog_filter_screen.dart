@@ -182,12 +182,16 @@ class CatalogFilterScreen extends ConsumerWidget {
                     const SizedBox(height: 12),
                     Row(
                       children: [
-                        Expanded(child: _PriceBox(label: l.catalogPriceFrom, value: money(lo, 'KRW'))),
+                        Expanded(
+                          child: _PriceBox(label: l.catalogPriceFrom, value: money(lo, 'KRW', locale: l.localeName)),
+                        ),
                         const Padding(
                           padding: EdgeInsets.symmetric(horizontal: 8),
                           child: Text('–', style: TextStyle(color: SeoulColors.textFaint, fontWeight: FontWeight.w700)),
                         ),
-                        Expanded(child: _PriceBox(label: l.catalogPriceTo, value: money(hi, 'KRW'))),
+                        Expanded(
+                          child: _PriceBox(label: l.catalogPriceTo, value: money(hi, 'KRW', locale: l.localeName)),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 12),
@@ -292,9 +296,9 @@ class _Preset {
   final bool plus;
 
   String label(AppLocalizations l) {
-    if (upTo) return l.catalogPriceUpTo(money(hi, 'KRW'));
-    if (plus) return '${money(lo, 'KRW')}+';
-    return '${money(lo, 'KRW')}–${groupThousands(hi)}';
+    if (upTo) return l.catalogPriceUpTo(money(hi, 'KRW', locale: l.localeName));
+    if (plus) return '${money(lo, 'KRW', locale: l.localeName)}+';
+    return '${money(lo, 'KRW', locale: l.localeName)}–${groupThousands(hi, locale: l.localeName)}';
   }
 }
 

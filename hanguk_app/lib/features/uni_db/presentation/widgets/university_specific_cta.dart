@@ -6,6 +6,7 @@ import '../../../../design_system/seoul_night/seoul_night.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../data/uni_db_providers.dart';
 import '../../domain/recruitment_target.dart';
+import '../uni_db_labels.dart';
 
 /// Helper widget shown inside the Interview Setup view when the user
 /// picks `university_specific` (plan §H.4).
@@ -199,7 +200,7 @@ class _RecruitmentSummary extends StatelessWidget {
         target.departmentKo ??
         target.facultyKo ??
         l10n.uniSpecificRecruitmentUnitFallback;
-    return '$dept · ${target.intakeYear} ${target.intakeTerm} · '
-        '${target.cycleTrack}';
+    final intake = uniDbIntakeLabel(l10n, target.intakeYear, target.intakeTerm);
+    return '$dept · $intake · ${uniDbCycleLabel(l10n, target.cycleTrack)}';
   }
 }

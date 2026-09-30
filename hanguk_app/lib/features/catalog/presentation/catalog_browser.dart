@@ -231,7 +231,9 @@ class CatalogBrowser extends ConsumerWidget {
     if (f.degree == CatalogDegree.master) chips.add(l.catalogDegreeMaster);
     if (f.hasPrice) {
       final b = priceBounds(all);
-      chips.add('${money(f.minPrice ?? b.min, 'KRW')}–${money(f.maxPrice ?? b.max, 'KRW')}');
+      final lo = money(f.minPrice ?? b.min, 'KRW', locale: l.localeName);
+      final hi = money(f.maxPrice ?? b.max, 'KRW', locale: l.localeName);
+      chips.add('$lo–$hi');
     }
     if (f.ielts != null) chips.add('IELTS ${f.ielts!.toStringAsFixed(1)}');
     return chips;
@@ -602,7 +604,7 @@ class _CatalogCardState extends State<CatalogCard> {
                               border: Border.all(color: const Color(0x33FFFFFF)), // .2
                             ),
                             child: Text(
-                              money(price, guideline.currency),
+                              money(price, guideline.currency, locale: l.localeName),
                               style: _inter(10.5, FontWeight.w700, Colors.white),
                             ),
                           ),

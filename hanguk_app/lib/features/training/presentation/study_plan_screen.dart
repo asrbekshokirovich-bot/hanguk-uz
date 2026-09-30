@@ -13,6 +13,7 @@ import 'widgets/target_university_picker.dart';
 import 'widgets/study_plan_analysis_view.dart';
 import 'widgets/advanced_drafting_workspace.dart';
 import 'widgets/study_plan_history_view.dart';
+import 'widgets/training_status_label.dart';
 
 class StudyPlanScreen extends ConsumerStatefulWidget {
   final String documentType; // 'study_plan' or 'personal_statement'
@@ -283,7 +284,10 @@ class _StudyPlanScreenState extends ConsumerState<StudyPlanScreen> {
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 4),
-                Text(l.sessionStatusLabel(s.status), style: SeoulType.caption),
+                Text(
+                  l.sessionStatusLabel(trainingStatusLabel(l, s.status)),
+                  style: SeoulType.caption,
+                ),
               ],
             ),
           ),
@@ -512,15 +516,12 @@ class _StudyPlanScreenState extends ConsumerState<StudyPlanScreen> {
   }
 
   Widget _buildInstructionsStep(StudyPlanSessionState state) {
-    // Step 1 used to ship Uzbek-only prose. Until full intl wiring lands
-    // (audit L1 / L3), pick a localized variant based on the session's
-    // selectedTrack:
-    //   'korean'         → Korean
-    //   'english'        → English
-    //   anything else    → Uzbek (the original copy; safe default for
-    //                      our largest cohort)
-    final track = state.currentSession?.selectedTrack ?? 'uzbek';
-    final guide = _stepOneGuide(track, widget.documentType);
+    // The guide is advice to the student, so it follows the app language,
+    // not the draft's writing track.
+    final guide = _stepOneGuide(
+      AppLocalizations.of(context)!,
+      widget.documentType,
+    );
 
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(
@@ -590,171 +591,52 @@ class _StudyPlanScreenState extends ConsumerState<StudyPlanScreen> {
     );
   }
 
-  // ---------------------------------------------------------------------
-  // Step 1 guide content — localized per selectedTrack until intl lands.
-  // Audit F5: track values were unified to 'en' / 'ko' on 2026-05-10.
-  // Existing rows with the legacy 'english' / 'korean' strings are still
-  // accepted here so resuming an old session continues to render correctly.
-  // ---------------------------------------------------------------------
-  _StepOneGuide _stepOneGuide(String track, String documentType) {
-    final isStudyPlan = documentType == 'study_plan';
-    final normalized = switch (track) {
-      'ko' || 'korean' => 'korean',
-      'en' || 'english' => 'english',
-      _ => track,
-    };
-    if (normalized == 'korean') {
-      return isStudyPlan
-          ? const _StepOneGuide(
-              title: '학업 계획서(Study Plan) 작성 가이드',
-              intro:
-                  'Study Plan은 한국에서 공부하려는 이유, 학업 목표, 졸업 이후 계획을 자세히 보여주는 핵심 서류입니다.',
-              items: [
-                _GuideItemData(
-                  icon: Icons.flag,
-                  title: '1. 목적과 동기',
-                  description: '왜 이 전공을 선택했는가? 한국과 지원 대학교가 그 목표에 어떻게 부합하는가?',
-                ),
-                _GuideItemData(
-                  icon: Icons.menu_book,
-                  title: '2. 학업 계획',
-                  description: '재학 중 어떤 분야에 집중할 것인가? 한국어 학습 계획은 어떻게 되는가?',
-                ),
-                _GuideItemData(
-                  icon: Icons.rocket_launch,
-                  title: '3. 졸업 후 계획',
-                  description: '졸업 후 어떤 진로를 그리고 있는가? 모국에 어떻게 기여할 것인가?',
-                ),
-              ],
-            )
-          : const _StepOneGuide(
-              title: '자기소개서(Personal Statement) 작성 가이드',
-              intro:
-                  'Personal Statement는 본인의 배경, 성취, 관심사, 그리고 해당 전공에 적합한 이유를 보여주는 글입니다.',
-              items: [
-                _GuideItemData(
-                  icon: Icons.history_edu,
-                  title: '1. 과거 경험',
-                  description: '학교 시절 성취, 참가한 대회, 관심사를 구체적으로 적으세요.',
-                ),
-                _GuideItemData(
-                  icon: Icons.psychology,
-                  title: '2. 개인적 강점',
-                  description: '나를 다른 지원자와 구분 짓는 강점은 무엇인가? 어려움을 어떻게 극복했는가?',
-                ),
-                _GuideItemData(
-                  icon: Icons.stars,
-                  title: '3. 왜 이 전공인가',
-                  description: '이 전공에 대한 관심은 언제, 어떻게 시작되었는가?',
-                ),
-              ],
-            );
+  // Step 1 guide content, in the app language.
+  _StepOneGuide _stepOneGuide(AppLocalizations l, String documentType) {
+    if (documentType == 'study_plan') {
+      return _StepOneGuide(
+        title: l.trainingGuideSpTitle,
+        intro: l.trainingGuideSpIntro,
+        items: [
+          _GuideItemData(
+            icon: Icons.flag,
+            title: l.trainingGuideSp1Title,
+            description: l.trainingGuideSp1Body,
+          ),
+          _GuideItemData(
+            icon: Icons.menu_book,
+            title: l.trainingGuideSp2Title,
+            description: l.trainingGuideSp2Body,
+          ),
+          _GuideItemData(
+            icon: Icons.rocket_launch,
+            title: l.trainingGuideSp3Title,
+            description: l.trainingGuideSp3Body,
+          ),
+        ],
+      );
     }
-    if (track == 'english') {
-      return isStudyPlan
-          ? const _StepOneGuide(
-              title: 'Study Plan writing guide',
-              intro:
-                  'A Study Plan explains why you want to study in South Korea, the goals you have set for yourself, and what you plan to do after graduation.',
-              items: [
-                _GuideItemData(
-                  icon: Icons.flag,
-                  title: '1. Purpose & motivation',
-                  description:
-                      'Why did you choose this major? Why does South Korea — and the specific university you applied to — fit that goal?',
-                ),
-                _GuideItemData(
-                  icon: Icons.menu_book,
-                  title: '2. Academic plan',
-                  description:
-                      'Which courses or research areas will you focus on? What is your Korean-language learning plan?',
-                ),
-                _GuideItemData(
-                  icon: Icons.rocket_launch,
-                  title: '3. Future plans',
-                  description:
-                      'What do you intend to do after graduation? How will you contribute back home?',
-                ),
-              ],
-            )
-          : const _StepOneGuide(
-              title: 'Personal Statement writing guide',
-              intro:
-                  'A Personal Statement is an essay that shows who you are, what you have achieved, what interests you, and why you fit this major.',
-              items: [
-                _GuideItemData(
-                  icon: Icons.history_edu,
-                  title: '1. Past & experience',
-                  description:
-                      'Write about your school achievements, the olympiads or projects you joined, and the interests you developed.',
-                ),
-                _GuideItemData(
-                  icon: Icons.psychology,
-                  title: '2. Personal strengths',
-                  description:
-                      'What sets you apart from other applicants? How did you handle setbacks?',
-                ),
-                _GuideItemData(
-                  icon: Icons.stars,
-                  title: '3. Why this field?',
-                  description:
-                      'When and how did your interest in this field start?',
-                ),
-              ],
-            );
-    }
-    // Uzbek — original copy preserved as the default for the largest cohort.
-    return isStudyPlan
-        ? const _StepOneGuide(
-            title: 'Study Plan yozish bo\'yicha qo\'llanma',
-            intro:
-                'Study Plan — bu sizning nega Janubiy Koreyada o\'qimoqchi ekanligingiz, oldingizga qo\'ygan maqsadlaringiz va o\'qishni bitirgandan keyingi rejalaringiz haqida batafsil ma\'lumot beruvchi muhim hujjat hisoblanadi.',
-            items: [
-              _GuideItemData(
-                icon: Icons.flag,
-                title: '1. Maqsad va Motivatsiya',
-                description:
-                    'Nega aynan ushbu mutaxassislikni tanladingiz? Nega Janubiy Koreya va siz tanlagan universitet bu maqsadingizga mos keladi?',
-              ),
-              _GuideItemData(
-                icon: Icons.menu_book,
-                title: '2. Ta\'lim Rejasi',
-                description:
-                    'O\'qish davrida qaysi fanlarga ko\'proq e\'tibor qaratmoqchisiz? Til o\'rganish rejangiz qanday?',
-              ),
-              _GuideItemData(
-                icon: Icons.rocket_launch,
-                title: '3. Kelajakdagi Rejalar',
-                description:
-                    'O\'qishni tamomlagandan so\'ng qanday ish bilan shug\'ullanmoqchisiz? Vataningizga qaytib qanday hissa qo\'shasiz?',
-              ),
-            ],
-          )
-        : const _StepOneGuide(
-            title: 'Personal Statement yozish bo\'yicha qo\'llanma',
-            intro:
-                'Personal Statement — bu sizning shaxsingiz, o\'tmishdagi yutuqlaringiz, qiziqishlaringiz va nega aynan ushbu mutaxassislikka munosib ekanligingizni ko\'rsatuvchi insho hisoblanadi.',
-            items: [
-              _GuideItemData(
-                icon: Icons.history_edu,
-                title: '1. O\'tmish va Tajriba',
-                description:
-                    'Maktab/litsey davridagi yutuqlaringiz, qatnashgan olimpiadalaringiz va qiziqishlaringiz haqida yozing.',
-              ),
-              _GuideItemData(
-                icon: Icons.psychology,
-                title: '2. Shaxsiy Xislatlar',
-                description:
-                    'Sizni qanday xislatlar boshqalardan ajratib turadi? Qiyinchiliklarni qanday yenggansiz?',
-              ),
-              _GuideItemData(
-                icon: Icons.stars,
-                title: '3. Nega ushbu soha?',
-                description:
-                    'Ushbu mutaxassislikka bo\'lgan qiziqishingiz qachon va qanday paydo bo\'lgan?',
-              ),
-            ],
-          );
+    return _StepOneGuide(
+      title: l.trainingGuidePsTitle,
+      intro: l.trainingGuidePsIntro,
+      items: [
+        _GuideItemData(
+          icon: Icons.history_edu,
+          title: l.trainingGuidePs1Title,
+          description: l.trainingGuidePs1Body,
+        ),
+        _GuideItemData(
+          icon: Icons.psychology,
+          title: l.trainingGuidePs2Title,
+          description: l.trainingGuidePs2Body,
+        ),
+        _GuideItemData(
+          icon: Icons.stars,
+          title: l.trainingGuidePs3Title,
+          description: l.trainingGuidePs3Body,
+        ),
+      ],
+    );
   }
 
   Widget _buildExampleStep(StudyPlanSessionState state) {
@@ -965,7 +847,7 @@ class _StudyPlanScreenState extends ConsumerState<StudyPlanScreen> {
                       if (dialogState.error != null) ...[
                         const SizedBox(height: 16),
                         Text(
-                          dialogState.error!,
+                          studyPlanErrorMessage(l, dialogState.error!),
                           style: SeoulType.caption.copyWith(
                             color: SeoulColors.dangerText,
                           ),
@@ -1482,5 +1364,34 @@ class _SeoulDialog extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+/// Words, in the app language, for an error code the study-plan notifier
+/// wrote into `StudyPlanSessionState.error`.
+String studyPlanErrorMessage(AppLocalizations l, String code) {
+  switch (code) {
+    case studyPlanErrorSessions:
+      return l.trainingErrorSessionsLoad;
+    case studyPlanErrorCreate:
+      return l.trainingErrorCreateDraft;
+    case studyPlanErrorLoad:
+      return l.trainingErrorLoadDraft;
+    case studyPlanErrorConflict:
+      return l.trainingErrorDraftConflict;
+    case studyPlanErrorSave:
+      return l.saveStatusError;
+    case studyPlanErrorTrack:
+      return l.trainingErrorTrackUpdate;
+    case analysisErrorPlanRequired:
+      return l.analysisErrorPlanRequired;
+    case analysisErrorRateLimited:
+      return l.analysisErrorRateLimited;
+    case analysisErrorServiceDown:
+      return l.analysisErrorServiceDown;
+    case analysisErrorFailed:
+      return l.analysisErrorFailed;
+    default:
+      return l.trainingErrorGeneric;
   }
 }

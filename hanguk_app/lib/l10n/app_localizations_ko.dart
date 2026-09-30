@@ -2067,4 +2067,566 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get surveyPickDate => '날짜를 선택하세요';
+
+  @override
+  String get docTypeIdCard => '지원자 신분증(국내 여권) 사본';
+
+  @override
+  String get docTypeForeignPassport => '지원자 해외여행용 여권 사본';
+
+  @override
+  String get docTypePhoto => '사진 (3.5x4.5 cm)';
+
+  @override
+  String get docTypeDiploma => '졸업장 또는 졸업증명서 사본';
+
+  @override
+  String get docTypeLanguageCertificate =>
+      '어학 증명서 사본 (IELTS 5.5 또는 TOPIK 2급 이상)';
+
+  @override
+  String get docTypeOther => '서류';
+
+  @override
+  String get docStatusLocked => '잠김';
+
+  @override
+  String get notifPushSection => '최근 알림';
+
+  @override
+  String get notifMarkAllRead => '모두 읽음';
+
+  @override
+  String get appPendingApprovalNote => '상담사 승인을 기다리고 있습니다.\n검토가 끝나면 알려 드릴게요.';
+
+  @override
+  String get appCountrySouthKorea => '대한민국';
+
+  @override
+  String get appRoomNotFound => '이 대학에는 아직 대화방이 없습니다.';
+
+  @override
+  String get appRoomDiscussionNotFound => '이 대화방에는 아직 토론이 없습니다.';
+
+  @override
+  String get appRoomDiscussionConnectError => '토론에 연결하지 못했습니다.';
+
+  @override
+  String get appRoomSendError => '메시지를 보내지 못했습니다.';
+
+  @override
+  String get appRoomNotSignedIn => '다시 로그인해 주세요.';
+
+  @override
+  String get appRoomLoadError => '불러오지 못했습니다. 다시 시도해 주세요.';
+
+  @override
+  String get appRoomAnnouncementFallbackTitle => '공지';
+
+  @override
+  String get appRoomEventFallbackTitle => '일정';
+
+  @override
+  String get statusPendingApproval => '승인 대기';
+
+  @override
+  String get statusDocumentsCollection => '서류 수집 완료';
+
+  @override
+  String get statusDocumentsTranslation => '서류 번역 완료';
+
+  @override
+  String get statusApostille => '아포스티유 준비 완료';
+
+  @override
+  String get statusApplicationSubmitted => '지원서 제출 완료';
+
+  @override
+  String get statusUniversityResponse => '대학 회신 도착';
+
+  @override
+  String get statusVisaDocuments => '비자 서류';
+
+  @override
+  String get statusCompleted => '완료';
+
+  @override
+  String get statusInProgress => '진행 중';
+
+  @override
+  String get chatGreeting =>
+      '안녕하세요! 👋 Hanguk AI 도우미입니다. 서류, 대학, 지원 절차에 대해 무엇이든 물어보세요!';
+
+  @override
+  String get chatNoResponse => '죄송합니다. 답변을 생성하지 못했습니다.';
+
+  @override
+  String get chatConnectError => 'Hanguk AI에 연결할 수 없습니다. 인터넷 연결을 확인해 주세요.';
+
+  @override
+  String get chatCleared => '대화가 삭제되었습니다. 무엇을 도와드릴까요?';
+
+  @override
+  String get mapLoadFailed => '지도를 불러오지 못했습니다. 인터넷 연결을 확인해 주세요.';
+
+  @override
+  String get mapTapForDetails => '눌러서 자세히 보기';
+
+  @override
+  String get mapProviderUnavailable => '지금은 지도 서비스를 사용할 수 없습니다.';
+
+  @override
+  String get mapInitError => '지도를 시작하지 못했습니다.';
+
+  @override
+  String get trainingGuideSpTitle => '학업 계획서(Study Plan) 작성 가이드';
+
+  @override
+  String get trainingGuideSpIntro =>
+      'Study Plan은 한국에서 공부하려는 이유, 학업 목표, 졸업 이후 계획을 자세히 보여주는 핵심 서류입니다.';
+
+  @override
+  String get trainingGuideSp1Title => '1. 목적과 동기';
+
+  @override
+  String get trainingGuideSp1Body =>
+      '왜 이 전공을 선택했는가? 한국과 지원 대학교가 그 목표에 어떻게 부합하는가?';
+
+  @override
+  String get trainingGuideSp2Title => '2. 학업 계획';
+
+  @override
+  String get trainingGuideSp2Body => '재학 중 어떤 분야에 집중할 것인가? 한국어 학습 계획은 어떻게 되는가?';
+
+  @override
+  String get trainingGuideSp3Title => '3. 졸업 후 계획';
+
+  @override
+  String get trainingGuideSp3Body => '졸업 후 어떤 진로를 그리고 있는가? 모국에 어떻게 기여할 것인가?';
+
+  @override
+  String get trainingGuidePsTitle => '자기소개서(Personal Statement) 작성 가이드';
+
+  @override
+  String get trainingGuidePsIntro =>
+      'Personal Statement는 본인의 배경, 성취, 관심사, 그리고 해당 전공에 적합한 이유를 보여주는 글입니다.';
+
+  @override
+  String get trainingGuidePs1Title => '1. 과거 경험';
+
+  @override
+  String get trainingGuidePs1Body => '학교 시절 성취, 참가한 대회, 관심사를 구체적으로 적으세요.';
+
+  @override
+  String get trainingGuidePs2Title => '2. 개인적 강점';
+
+  @override
+  String get trainingGuidePs2Body =>
+      '나를 다른 지원자와 구분 짓는 강점은 무엇인가? 어려움을 어떻게 극복했는가?';
+
+  @override
+  String get trainingGuidePs3Title => '3. 왜 이 전공인가';
+
+  @override
+  String get trainingGuidePs3Body => '이 전공에 대한 관심은 언제, 어떻게 시작되었는가?';
+
+  @override
+  String get trainingStatusInProgress => '진행 중';
+
+  @override
+  String get trainingStatusCompleted => '완료';
+
+  @override
+  String get trainingStatusAbandoned => '중단됨';
+
+  @override
+  String get trainingErrorSessionsLoad => '초안 목록을 불러오지 못했습니다. 다시 시도해 주세요.';
+
+  @override
+  String get trainingErrorCreateDraft => '초안을 만들지 못했습니다. 다시 시도해 주세요.';
+
+  @override
+  String get trainingErrorLoadDraft => '초안을 열지 못했습니다. 다시 시도해 주세요.';
+
+  @override
+  String get trainingErrorDraftConflict =>
+      '다른 기기에서 더 최신 초안이 저장되었습니다. 새로고침하여 병합해 주세요.';
+
+  @override
+  String get trainingErrorTrackUpdate => '작성 언어를 변경하지 못했습니다. 다시 시도해 주세요.';
+
+  @override
+  String get trainingErrorGeneric => '문제가 발생했습니다. 다시 시도해 주세요.';
+
+  @override
+  String get trainingInterviewAiError => 'AI 면접관에 문제가 발생했습니다. 다시 시도해 주세요.';
+
+  @override
+  String get trainingInterviewAnswerError => '답변을 처리하지 못했습니다. 다시 시도해 주세요.';
+
+  @override
+  String get trainingInterviewVoiceError => '면접관 음성을 재생하지 못했습니다.';
+
+  @override
+  String get trainingInterviewAudioLinkWarning =>
+      '녹음 링크를 저장하지 못했습니다. 다시 듣기가 불가능할 수 있습니다.';
+
+  @override
+  String get trainingInterviewFeedbackLoadError =>
+      '피드백을 불러오지 못했습니다. 다시 시도해 주세요.';
+
+  @override
+  String get authErrorCodeNotFound => '확인되지 않는 코드입니다. 담당 상담사에게 코드를 다시 확인해 주세요.';
+
+  @override
+  String get authErrorServerUnreachable =>
+      '서버에 연결할 수 없습니다. 인터넷 연결을 확인한 후 다시 로그인해 주세요.';
+
+  @override
+  String get authErrorStaffBlocked => '직원은 매직 코드가 아닌 아이디/비밀번호로 로그인해야 합니다.';
+
+  @override
+  String get authErrorAccountSetupBusy =>
+      '서버에서 계정을 준비하고 있습니다. 30초 후에 다시 시도해 주세요.';
+
+  @override
+  String get authErrorLoginServer =>
+      '로그인 서버 오류입니다. 다시 시도하거나 담당 상담사에게 계정 초기화를 요청해 주세요.';
+
+  @override
+  String get authErrorUnexpected =>
+      '예기치 않은 서버 오류입니다. 다시 시도하거나 담당 상담사에게 문의해 주세요.';
+
+  @override
+  String get authErrorCrmAccount =>
+      '이 계정은 담당 상담사가 만들었습니다. 상담사가 알려준 매직 액세스 코드로 로그인해 주세요.';
+
+  @override
+  String get authErrorAlreadyRegistered => '이미 등록된 전화번호입니다. 로그인해 주세요.';
+
+  @override
+  String get authErrorSignUpDisabled => '현재 회원가입이 중단되었습니다. 관리자에게 문의해 주세요.';
+
+  @override
+  String get authErrorPhoneFormat => '전화번호 형식이 올바르지 않습니다. 국가 번호를 포함해 주세요.';
+
+  @override
+  String get authErrorSignUpFailed => '계정을 만들지 못했습니다. 다시 시도해 주세요.';
+
+  @override
+  String get a11yMenu => '메뉴';
+
+  @override
+  String get accountExportShareSubject => 'Hanguk — 내 데이터 내보내기';
+
+  @override
+  String get accountExportShareText => 'Hanguk 데이터 내보내기 파일(JSON)입니다.';
+
+  @override
+  String get accountExportError => '데이터를 내보내지 못했습니다. 다시 시도해 주세요.';
+
+  @override
+  String get uniDbEventOther => '주요 일정';
+
+  @override
+  String get uniDbIeqasNone => 'IEQAS 미인증';
+
+  @override
+  String get uniDbPdfLinkInvalid => '링크를 열 수 없습니다. 다시 시도해 주세요.';
+
+  @override
+  String get uniDbFacultyMedicine => '의학계열';
+
+  @override
+  String get uniDbFacultyPharmacy => '약학계열';
+
+  @override
+  String get uniDbFacultyArtsPe => '예체능계열';
+
+  @override
+  String get uniDbFacultyTheology => '신학계열';
+
+  @override
+  String get uniDbFacultyInterdisciplinary => '융합계열';
+
+  @override
+  String get uniDbFacultyAll => '전체 학과';
+
+  @override
+  String get uniDbScholarshipScopeUniversity => '교내';
+
+  @override
+  String get uniDbScholarshipScopeNational => '정부';
+
+  @override
+  String get uniDbScholarshipScopeRegional => '지자체';
+
+  @override
+  String get uniDbScholarshipScopeFoundation => '재단';
+
+  @override
+  String get uniDbScholarshipScopeDepartment => '학과';
+
+  @override
+  String uniDbAwardTuitionPct(String pct) {
+    return '등록금 $pct% 감면';
+  }
+
+  @override
+  String get uniDbAwardTuition => '등록금 감면';
+
+  @override
+  String uniDbAwardTuitionKrw(String amount) {
+    return '등록금 $amount 감면';
+  }
+
+  @override
+  String uniDbAwardStipendMonthly(String amount) {
+    return '월 $amount 생활비 지원';
+  }
+
+  @override
+  String get uniDbAwardStipend => '월 생활비 지원';
+
+  @override
+  String uniDbAwardAirfare(String amount) {
+    return '항공권 $amount 지원';
+  }
+
+  @override
+  String get uniDbAwardAirfareCovered => '항공권 지원';
+
+  @override
+  String get uniDbAwardOther => '기타 혜택';
+
+  @override
+  String uniDbTopikDeferred(String base) {
+    return '$base (추후 제출 가능)';
+  }
+
+  @override
+  String get uniDbChangeAdmissionCycle => '모집 전형';
+
+  @override
+  String get uniDbChangeDates => '일정';
+
+  @override
+  String get uniDbChangeUpdated => '업데이트';
+
+  @override
+  String get uniDbDocApostille => '아포스티유';
+
+  @override
+  String get uniDbDocConsent => '동의서';
+
+  @override
+  String get uniDbDocPassport => '여권';
+
+  @override
+  String get uniDbDocTopik => 'TOPIK 성적증명서';
+
+  @override
+  String get uniDbDocLanguage => '어학성적증명서';
+
+  @override
+  String get uniDbDocTranscript => '성적증명서';
+
+  @override
+  String get uniDbDocDiploma => '졸업증명서';
+
+  @override
+  String get uniDbDocEnrollment => '재학증명서';
+
+  @override
+  String get uniDbDocFamily => '가족관계증명서';
+
+  @override
+  String get uniDbDocPowerOfAttorney => '위임장';
+
+  @override
+  String get uniDbDocFinance => '재정 증빙서류';
+
+  @override
+  String get uniDbDocEntryExit => '출입국사실증명서';
+
+  @override
+  String get uniDbDocEmployment => '재직증명서';
+
+  @override
+  String get uniDbDocRecommendation => '추천서';
+
+  @override
+  String get uniDbDocCitizenship => '국적 증명서';
+
+  @override
+  String get uniDbDocStatement => '자기소개서 및 학업계획서';
+
+  @override
+  String get uniDbDocAlienRegistration => '외국인등록증';
+
+  @override
+  String get uniDbDocIdCard => '신분증 사본';
+
+  @override
+  String get uniDbDocPhoto => '사진';
+
+  @override
+  String get uniDbDocPortfolio => '포트폴리오';
+
+  @override
+  String get uniDbDocHealth => '건강진단서';
+
+  @override
+  String get uniDbDocCalendar => '학사일정';
+
+  @override
+  String get uniDbDocTax => '납세증명서';
+
+  @override
+  String get uniDbDocBusinessRegistration => '사업자등록증';
+
+  @override
+  String get uniDbDocAward => '수상 증명서';
+
+  @override
+  String get uniDbDocApplicationForm => '입학원서';
+
+  @override
+  String get uniDbDocOther => '기타 서류';
+
+  @override
+  String get adminReviewQueueTitle => '검토 대기열';
+
+  @override
+  String get adminReviewTitle => '검토';
+
+  @override
+  String get adminRefresh => '새로고침';
+
+  @override
+  String get adminQueueEmpty => '대기열이 비어 있습니다. 지금은 처리할 항목이 없습니다.';
+
+  @override
+  String get adminSelectItem => '왼쪽 대기열에서 항목을 선택하세요.';
+
+  @override
+  String get adminAccepted => '승인됨';
+
+  @override
+  String get adminEditedAccepted => '수정 후 승인됨';
+
+  @override
+  String get adminRejected => '반려됨';
+
+  @override
+  String get adminBackToQueue => '대기열로 돌아가기';
+
+  @override
+  String adminConfidence(int pct) {
+    return '신뢰도 $pct%';
+  }
+
+  @override
+  String get adminOverdue => '기한 초과';
+
+  @override
+  String get adminOpenSource => '원문 페이지 열기';
+
+  @override
+  String get adminExtractedPayload => '추출된 데이터:';
+
+  @override
+  String get adminReject => '반려';
+
+  @override
+  String get adminEditAccept => '수정 후 승인';
+
+  @override
+  String get adminAccept => '승인';
+
+  @override
+  String get adminPayloadNotObject => '데이터는 JSON 객체여야 합니다';
+
+  @override
+  String adminInvalidJson(String error) {
+    return '잘못된 JSON: $error';
+  }
+
+  @override
+  String get adminEditPayload => '데이터 수정';
+
+  @override
+  String get adminSaveAccept => '저장 후 승인';
+
+  @override
+  String get adminRejectReasonTitle => '반려 사유';
+
+  @override
+  String get adminDetailOptional => '상세 내용 (선택)';
+
+  @override
+  String get adminStaffOnly =>
+      '이 영역은 Hanguk 직원 전용입니다. 접근 권한이 필요하면 관리자에게 직원 역할 추가를 요청하세요.';
+
+  @override
+  String get adminPriorityP1 => 'P1 — 정정공고 (4시간)';
+
+  @override
+  String get adminPriorityP2 => 'P2 — 첨부파일 변경 (12시간)';
+
+  @override
+  String get adminPriorityP3 => 'P3 — 변경된 D3 필드 (24시간)';
+
+  @override
+  String get adminPriorityP4 => 'P4 — D2 일반 (48시간)';
+
+  @override
+  String get adminPriorityP5 => 'P5 — D1 단순 (96시간)';
+
+  @override
+  String get adminReasonLowConfidence => '낮은 신뢰도';
+
+  @override
+  String get adminReasonHighDifficulty => '고난도 필드';
+
+  @override
+  String get adminReasonAutoApproved => '자동 승인';
+
+  @override
+  String get adminReasonCorrectionNotice => '정정공고';
+
+  @override
+  String get adminEntityExtraction => '추출';
+
+  @override
+  String get adminEntityGuideline => '모집요강';
+
+  @override
+  String get adminRejectWrongYear => '잘못된 연도';
+
+  @override
+  String get adminRejectWrongArchetype => '잘못된 문서 유형';
+
+  @override
+  String get adminRejectHallucinated => '없는 필드 생성';
+
+  @override
+  String get adminRejectOcrGarbled => 'OCR 텍스트 깨짐';
+
+  @override
+  String get adminRejectSource404 => '원문 페이지 없음 (404)';
+
+  @override
+  String get adminRejectOther => '기타';
+
+  @override
+  String get interviewErrorNoGreeting => '면접관이 응답하지 않았습니다. 뒤로 돌아가 다시 시도해 주세요.';
+
+  @override
+  String get interviewErrorEndedBeforeGreeting =>
+      '면접관이 말하기 전에 통화가 종료되었습니다. 다시 시도해 주세요.';
+
+  @override
+  String get interviewErrorCallFailed =>
+      '통화에 연결할 수 없습니다. 인터넷 연결을 확인하고 다시 시도해 주세요.';
 }

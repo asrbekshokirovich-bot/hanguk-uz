@@ -1,5 +1,33 @@
 import '../../../../core/config/app_config.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../domain/university.dart';
+
+/// The words the map page shows itself (retry, failure notices, the marker
+/// preview hint). The page is plain HTML with no access to
+/// `AppLocalizations`, so the widget that builds it passes them in.
+class MapHtmlStrings {
+  const MapHtmlStrings({
+    this.retry = 'Retry',
+    this.loadFailed = "The map didn't load. Check your internet connection.",
+    this.tapForDetails = 'Tap for details',
+    this.providerUnavailable = 'Map provider unavailable.',
+    this.initError = "Couldn't start the map.",
+  });
+
+  factory MapHtmlStrings.of(AppLocalizations l) => MapHtmlStrings(
+    retry: l.commonRetry,
+    loadFailed: l.mapLoadFailed,
+    tapForDetails: l.mapTapForDetails,
+    providerUnavailable: l.mapProviderUnavailable,
+    initError: l.mapInitError,
+  );
+
+  final String retry;
+  final String loadFailed;
+  final String tapForDetails;
+  final String providerUnavailable;
+  final String initError;
+}
 
 /// Generates the map WebView HTML.
 ///
@@ -35,8 +63,17 @@ import '../../domain/university.dart';
 /// Kakao JS SDK has no map-style API). Pins are lime with a glow, and
 /// the last-tapped pin grows and brightens. Colours below are CSS, so
 /// they are literal hex — each carries the `Seoul*` token it mirrors.
-String generateMapHtml(List<University> universities, {String locale = 'en'}) {
+String generateMapHtml(
+  List<University> universities, {
+  String locale = 'en',
+  MapHtmlStrings strings = const MapHtmlStrings(),
+}) {
   final kakaoJsKey = AppConfig.kakaoJsKey;
+  final retryText = jsEscape(strings.retry);
+  final loadFailedText = jsEscape(strings.loadFailed);
+  final tapForDetailsText = jsEscape(strings.tapForDetails);
+  final providerUnavailableText = jsEscape(strings.providerUnavailable);
+  final initErrorText = jsEscape(strings.initError);
   final validUnis = universities.where(
     (u) => u.latitude != null && u.longitude != null,
   );
@@ -146,7 +183,7 @@ String generateMapHtml(List<University> universities, {String locale = 'en'}) {
 
         function mapMessage(text, showRetry) {
             var retryHtml = showRetry
-                ? "<br><span class='hg-map-retry' onclick='location.reload()'>Qayta urinish</span>"
+                ? "<br><span class='hg-map-retry' onclick='location.reload()'>" + '$retryText' + "</span>"
                 : "";
             document.getElementById('map').innerHTML =
                 "<div class='hg-map-message'>" + text + retryHtml + "</div>";
@@ -159,7 +196,7 @@ String generateMapHtml(List<University> universities, {String locale = 'en'}) {
         // an unexplained dark rectangle.
         setTimeout(function() {
             if (!mapInitialized) {
-                mapMessage("Xarita yuklanmadi. Internet aloqasini tekshiring.", true);
+                mapMessage('$loadFailedText', true);
             }
         }, 8000);
 
@@ -245,7 +282,7 @@ String generateMapHtml(List<University> universities, {String locale = 'en'}) {
 
                     var html =
                         "<div class='hg-infowindow'><b>" + title + "</b>" +
-                        "<span>Tap for details</span></div>";
+                        "<span>" + '$tapForDetailsText' + "</span></div>";
                     infoWindow.setContent(html);
                     infoWindow.open(map, marker);
                     triggerAppEvent(id);
@@ -296,14 +333,14 @@ String generateMapHtml(List<University> universities, {String locale = 'en'}) {
             leafletScript.crossOrigin = '';
             leafletScript.onload = initLeafletMap;
             leafletScript.onerror = function () {
-                mapMessage('Map provider unavailable.');
+                mapMessage('$providerUnavailableText');
             };
             document.head.appendChild(leafletScript);
         }
 
         function initLeafletMap() {
             if (!window.L) {
-                mapMessage('Error: Leaflet SDK could not be loaded.');
+                mapMessage('$providerUnavailableText');
                 return;
             }
             try {
@@ -350,7 +387,8 @@ String generateMapHtml(List<University> universities, {String locale = 'en'}) {
 
                 setTimeout(function() { map.invalidateSize(); }, 600);
             } catch (e) {
-                mapMessage('Error initializing map: ' + (e.message || ''));
+                if (window.console) console.error('Map init error', e);
+                mapMessage('$initErrorText');
             }
         }
 

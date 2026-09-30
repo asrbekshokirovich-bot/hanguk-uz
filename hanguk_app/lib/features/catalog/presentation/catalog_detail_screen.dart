@@ -201,7 +201,8 @@ class _CatalogDetailScreenState extends ConsumerState<CatalogDetailScreen> {
               programmes: l.catalogProgramCount(groups[i].programmes.length),
               price: groups[i].minFee == null
                   ? null
-                  : '${money(groups[i].minFee!, widget.university.forDegree(_degree)!.currency)}${periodSuffix(l, groups[i].period)}',
+                  : '${money(groups[i].minFee!, widget.university.forDegree(_degree)!.currency, locale: l.localeName)}'
+                        '${periodSuffix(l, groups[i].period)}',
               selected: i == _group,
               onTap: () => setState(() => _group = i),
             ),
@@ -217,13 +218,20 @@ class _CatalogDetailScreenState extends ConsumerState<CatalogDetailScreen> {
       if (a == null && b == null) return null;
       final x = a ?? b!;
       final y = b ?? a!;
-      return x == y ? money(x * k, g.currency) : '${money(x * k, g.currency)} – ${money(y * k, g.currency)}';
+      final loc = l.localeName;
+      return x == y
+          ? money(x * k, g.currency, locale: loc)
+          : '${money(x * k, g.currency, locale: loc)} – ${money(y * k, g.currency, locale: loc)}';
     }
 
     final cells = <(String, String)>[
       if (period == 'semestr' && range(lo, hi, 2) != null) (l.catalogYearlyTuition, range(lo, hi, 2)!),
-      if (g.applicationFee != null) (l.catalogApplicationFee, money(g.applicationFee!, g.applicationFeeCurrency ?? g.currency)),
-      if (g.entranceFee != null) (l.catalogEntranceFee, money(g.entranceFee!, g.currency)),
+      if (g.applicationFee != null)
+        (
+          l.catalogApplicationFee,
+          money(g.applicationFee!, g.applicationFeeCurrency ?? g.currency, locale: l.localeName),
+        ),
+      if (g.entranceFee != null) (l.catalogEntranceFee, money(g.entranceFee!, g.currency, locale: l.localeName)),
     ];
     final big = range(lo, hi);
 
@@ -306,7 +314,8 @@ class _CatalogDetailScreenState extends ConsumerState<CatalogDetailScreen> {
         ),
       if (requiredDocs > 0) (l.catalogReqDocuments, l.catalogDocsRequired(requiredDocs)),
       if (apostille > 0) (l.catalogReqApostille, l.catalogApostilleDocs(apostille)),
-      if (g.bankAmount != null) (l.catalogReqBank, money(g.bankAmount!, g.bankCurrency ?? g.currency)),
+      if (g.bankAmount != null)
+        (l.catalogReqBank, money(g.bankAmount!, g.bankCurrency ?? g.currency, locale: l.localeName)),
     ];
     if (rows.isEmpty) return const SizedBox.shrink();
 

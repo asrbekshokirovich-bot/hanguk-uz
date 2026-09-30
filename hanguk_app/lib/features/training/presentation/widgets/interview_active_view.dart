@@ -149,8 +149,7 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
       if (!mounted || _firstMessageReceived || _errorMessage != null) return;
       setState(() {
         _isCallActive = false;
-        _errorMessage =
-            'The interviewer did not respond. Please go back and try again.';
+        _errorMessage = AppLocalizations.of(context)!.interviewErrorNoGreeting;
       });
       // Kill whatever half-open call/mic is lingering.
       try {
@@ -372,9 +371,9 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
               ref.read(interviewProvider.notifier).setVapiConnected(false);
               setState(() {
                 _isCallActive = false;
-                _errorMessage =
-                    'The call ended before the interviewer could speak. '
-                    'Please try again.';
+                _errorMessage = AppLocalizations.of(
+                  context,
+                )!.interviewErrorEndedBeforeGreeting;
               });
             }
           } else {
@@ -415,10 +414,12 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
               setState(() {
                 _isCallActive = false;
                 _isAI_Speaking = false;
-                // Store raw detail; _buildStatusText wraps it with
-                // l.connectionInterrupted at render time so the wrapper
-                // follows the active locale.
-                _errorMessage = extractedDetail;
+                // The raw detail is technical English; it goes to the log,
+                // and the screen says it in the app's language.
+                debugPrint('[VAPI ERROR] $extractedDetail');
+                _errorMessage = AppLocalizations.of(
+                  context,
+                )!.interviewErrorCallFailed;
               });
             }
           }
@@ -513,11 +514,10 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
       if (mounted && _errorMessage == null) {
         setState(() {
           _isCallActive = false;
-          // Expose explicit native parsing errors and connection timeouts dynamically to the UI!
-          _errorMessage = e
-              .toString()
-              .replaceFirst('Exception: ', '')
-              .replaceAll('VapiStartCallException: ', 'Vapi Engine Error: ');
+          // The exception text is technical English: log it, and say it in
+          // the app's language on screen.
+          debugPrint('[VAPI START ERROR] $e');
+          _errorMessage = AppLocalizations.of(context)!.interviewErrorCallFailed;
         });
       }
     }

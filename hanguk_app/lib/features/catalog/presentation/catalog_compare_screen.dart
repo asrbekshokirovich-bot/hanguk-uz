@@ -227,7 +227,9 @@ class _CatalogCompareScreenState extends ConsumerState<CatalogCompareScreen> {
     final currencies = [for (final g in gs) (g?.currency ?? 'KRW').toUpperCase()];
     final tuition = [
       for (var i = 0; i < gs.length; i++)
-        prices[i] == null ? _dash : money(prices[i]!, gs[i]!.currency) + (yearly[i] ? periodSuffix(l, 'yil') : ''),
+        prices[i] == null
+            ? _dash
+            : money(prices[i]!, gs[i]!.currency, locale: l.localeName) + (yearly[i] ? periodSuffix(l, 'yil') : ''),
     ];
 
     final topik = [for (final g in gs) g?.topikMin];

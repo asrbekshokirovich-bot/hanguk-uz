@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../l10n/app_localizations.dart';
@@ -21,17 +22,6 @@ import 'home_tab_provider.dart';
 ///  * where each application stands in the pipeline.
 class NotificationsScreen extends ConsumerWidget {
   const NotificationsScreen({super.key});
-
-  String _docName(DocumentType t, String locale) {
-    switch (locale) {
-      case 'uz':
-        return t.nameUz;
-      case 'ru':
-        return t.nameRu;
-      default:
-        return t.nameEn;
-    }
-  }
 
   bool _isUploaded(DocumentType type, List<AppDocument> uploaded) {
     for (final doc in uploaded) {
@@ -79,7 +69,6 @@ class NotificationsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context)!;
-    final locale = Localizations.localeOf(context).languageCode;
 
     final docsAsync = ref.watch(documentsProvider);
     final appsAsync = ref.watch(applicationsProvider);
@@ -135,8 +124,8 @@ class NotificationsScreen extends ConsumerWidget {
                       children: [
                         // ── Push notifications ──
                         if (pushNotifications.isNotEmpty) ...[
-                          const _SectionLabel(
-                            en: 'Bildirishnomalar',
+                          _SectionLabel(
+                            en: l.notifPushSection,
                             ko: '푸시 알림',
                           ),
                           const SizedBox(height: 10),
@@ -161,7 +150,7 @@ class NotificationsScreen extends ConsumerWidget {
                               glyph: t.nameKo != null && t.nameKo!.isNotEmpty
                                   ? t.nameKo!.characters.first
                                   : '서',
-                              title: _docName(t, locale),
+                              title: t.localizedName(l),
                               chipLabel: l.notifToUpload,
                               chipTone: StatusTone.warning,
                               onTap: () => _openSection(
@@ -184,14 +173,13 @@ class NotificationsScreen extends ConsumerWidget {
                           for (final app in apps) ...[
                             _ReminderCard(
                               glyph: _glyphFor(app.university?.nameKo),
-                              title:
-                                  app.university?.name ?? l.unknownUniversity,
-                              subtitle:
-                                  ProcessTracker.currentStageLabel(
-                                    app.status,
-                                    l,
-                                  ) ??
-                                  l.sessionStatusLabel(app.status),
+                              title: (app.university?.name.isNotEmpty ?? false)
+                                  ? app.university!.name
+                                  : l.unknownUniversity,
+                              subtitle: ProcessTracker.statusLabel(
+                                app.status,
+                                l,
+                              ),
                               chipLabel: null,
                               onTap: () => _openSection(
                                 ref,
@@ -275,7 +263,7 @@ class _Header extends StatelessWidget {
                   border: Border.all(color: SeoulColors.glassBorder),
                 ),
                 child: Text(
-                  "O'qildi",
+                  AppLocalizations.of(context)!.notifMarkAllRead,
                   style: SeoulType.caption.copyWith(color: SeoulColors.lime),
                 ),
               ),
@@ -319,17 +307,22 @@ class _PushNotificationCard extends StatelessWidget {
   final NotificationItem item;
   final VoidCallback? onTap;
 
-  String _timeAgo(DateTime dt) {
+  /// Relative time in the app language; past a week, the date itself in the
+  /// active locale's short month-day form.
+  String _timeAgo(DateTime dt, AppLocalizations l, String localeTag) {
     final diff = DateTime.now().difference(dt);
-    if (diff.inMinutes < 1) return "hozirgina";
-    if (diff.inMinutes < 60) return "${diff.inMinutes} daqiqa oldin";
-    if (diff.inHours < 24) return "${diff.inHours} soat oldin";
-    if (diff.inDays < 7) return "${diff.inDays} kun oldin";
-    return "${dt.day}.${dt.month.toString().padLeft(2, '0')}";
+    if (diff.inMinutes < 1) return l.timeJustNow;
+    if (diff.inMinutes < 60) return l.timeMinutesAgo(diff.inMinutes);
+    if (diff.inHours < 24) return l.timeHoursAgo(diff.inHours);
+    if (diff.inDays < 7) return l.timeDaysAgo(diff.inDays);
+    return DateFormat.MMMd(localeTag).format(dt);
   }
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    final localeTag = Localizations.localeOf(context).toLanguageTag();
+
     // A survey notification is the one that leads somewhere; showing the
     // chevron only there keeps the card honest about what a tap will do.
     final opensSurvey = item.data['type'] == 'survey' &&
@@ -385,7 +378,7 @@ class _PushNotificationCard extends StatelessWidget {
                 ],
                 const SizedBox(height: 6),
                 Text(
-                  _timeAgo(item.receivedAt),
+                  _timeAgo(item.receivedAt, l, localeTag),
                   style: SeoulType.caption.copyWith(
                     color: SeoulColors.textFaint,
                   ),

@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 
 import '../../../../design_system/seoul_night/seoul_night.dart';
+import '../../../../l10n/app_localizations.dart';
 
 /// One entry in the 한 orb speed-dial.
 class HanOrbItem {
@@ -252,7 +253,7 @@ class _OrbButton extends StatelessWidget {
     return Semantics(
       button: true,
       expanded: open,
-      label: tooltip ?? 'Menu',
+      label: tooltip ?? AppLocalizations.of(context)?.a11yMenu ?? 'Menu',
       child: GestureDetector(
         onTap: onTap,
         child: SizedBox(

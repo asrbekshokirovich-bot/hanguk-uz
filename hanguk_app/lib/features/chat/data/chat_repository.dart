@@ -1,13 +1,20 @@
 import 'dart:convert';
+import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../l10n/app_localizations.dart';
+import '../../entry/data/entry_store.dart';
 import '../domain/chat_message.dart';
+
+/// Why the last request failed. The chat sheet turns it into words in the
+/// app language.
+enum ChatError { unreachable }
 
 class ChatState {
   final List<ChatMessage> messages;
   final bool isLoading;
-  final String? error;
+  final ChatError? error;
 
   const ChatState({
     this.messages = const [],
@@ -18,7 +25,7 @@ class ChatState {
   ChatState copyWith({
     List<ChatMessage>? messages,
     bool? isLoading,
-    String? error,
+    ChatError? error,
   }) {
     return ChatState(
       messages: messages ?? this.messages,
@@ -29,16 +36,18 @@ class ChatState {
 }
 
 class ChatNotifier extends Notifier<ChatState> {
+  /// The language chosen in the app. The assistant's own lines are written
+  /// in it and the backend is asked to answer in it.
+  String get _language => ref.read(entryProvider).languageCode ?? 'en';
+
+  AppLocalizations get _l => lookupAppLocalizations(Locale(_language));
+
   @override
   ChatState build() {
-    return const ChatState(
-      messages: [
-        ChatMessage(
-          role: 'assistant',
-          content:
-              "Salom! 👋 Men Hanguk AI yordamchisiman. Hujjatlar, universitetlar, ariza jarayoni haqida har qanday savolingizga javob beraman!",
-        ),
-      ],
+    // Rebuilt (and the greeting re-said) when the app language changes.
+    ref.watch(entryProvider.select((s) => s.languageCode));
+    return ChatState(
+      messages: [ChatMessage(role: 'assistant', content: _l.chatGreeting)],
     );
   }
 
@@ -61,8 +70,7 @@ class ChatNotifier extends Notifier<ChatState> {
           .toList();
 
       final user = client.auth.currentUser;
-      final language =
-          'en'; // By default, but the backend detects Uzbek automatically
+      final language = _language;
 
       final url = Uri.parse(
         'https://lysjdtyanhdfphqyijsr.supabase.co/functions/v1/hanguk-ai-chat',
@@ -142,24 +150,16 @@ class ChatNotifier extends Notifier<ChatState> {
 
       // If empty response (no streaming chunks)
       if (assistantSoFar.isEmpty) {
-        upsertAssistant('Sorry, I could not generate a response.');
+        upsertAssistant(_l.chatNoResponse);
       }
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: 'Could not reach Hanguk AI. Check your connection.',
-      );
+      state = state.copyWith(isLoading: false, error: ChatError.unreachable);
     }
   }
 
   void clearChat() {
-    state = const ChatState(
-      messages: [
-        ChatMessage(
-          role: 'assistant',
-          content: "Chat cleared. How can I help you?",
-        ),
-      ],
+    state = ChatState(
+      messages: [ChatMessage(role: 'assistant', content: _l.chatCleared)],
     );
   }
 }

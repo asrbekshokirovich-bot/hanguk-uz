@@ -10,6 +10,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../design_system/seoul_night/seoul_night.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../data/room_load_error.dart';
 import '../../data/university_announcements_repository.dart';
 import '../../data/university_chat_repository.dart';
 import '../../data/university_events_repository.dart';
@@ -18,6 +19,24 @@ import 'process_tracker.dart';
 
 /// Matches a string that opens with a hangul syllable (U+AC00–U+D7A3).
 final RegExp _hangulStart = RegExp(r'^[가-힣]');
+
+/// A room tab's failure, in the app language.
+String _roomErrorMessage(RoomLoadError error, AppLocalizations l) {
+  switch (error) {
+    case RoomLoadError.roomNotFound:
+      return l.appRoomNotFound;
+    case RoomLoadError.discussionNotFound:
+      return l.appRoomDiscussionNotFound;
+    case RoomLoadError.discussionConnectFailed:
+      return l.appRoomDiscussionConnectError;
+    case RoomLoadError.sendFailed:
+      return l.appRoomSendError;
+    case RoomLoadError.notSignedIn:
+      return l.appRoomNotSignedIn;
+    case RoomLoadError.loadFailed:
+      return l.appRoomLoadError;
+  }
+}
 
 /// The university room bottom sheet, restyled for Seoul Night.
 ///
@@ -341,7 +360,8 @@ class _UniversityRoomModalState extends State<UniversityRoomModal> {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
-    final uniName = widget.application.university?.name ?? l.unknownUniversity;
+    final name = widget.application.university?.name ?? '';
+    final uniName = name.isNotEmpty ? name : l.unknownUniversity;
     final chatState = _chatController.state;
     final eventsState = _eventsController.state;
     final announcementsState = _announcementsController.state;
@@ -470,7 +490,10 @@ class _UniversityRoomModalState extends State<UniversityRoomModal> {
                                 : chatState.error != null
                                 ? _StateMessage(
                                     icon: Icons.forum_outlined,
-                                    message: chatState.error!,
+                                    message: _roomErrorMessage(
+                                      chatState.error!,
+                                      l,
+                                    ),
                                     isError: true,
                                     retryLabel: l.commonRetry,
                                     onRetry: _retryChat,
@@ -505,7 +528,10 @@ class _UniversityRoomModalState extends State<UniversityRoomModal> {
                           : announcementsState.error != null
                           ? _StateMessage(
                               icon: Icons.campaign_outlined,
-                              message: announcementsState.error!,
+                              message: _roomErrorMessage(
+                                announcementsState.error!,
+                                l,
+                              ),
                               isError: true,
                               retryLabel: l.commonRetry,
                               onRetry: _retryAnnouncements,
@@ -539,6 +565,11 @@ class _UniversityRoomModalState extends State<UniversityRoomModal> {
                               horizontal: 16.0,
                             ),
                             child: TableCalendar<UniversityEvent>(
+                              // Month title and weekday names in the app
+                              // language, not the package's default English.
+                              locale: Localizations.localeOf(
+                                context,
+                              ).toLanguageTag(),
                               firstDay: DateTime.now().subtract(
                                 const Duration(days: 365),
                               ),
@@ -622,7 +653,10 @@ class _UniversityRoomModalState extends State<UniversityRoomModal> {
                                 : eventsState.error != null
                                 ? _StateMessage(
                                     icon: Icons.event_busy,
-                                    message: eventsState.error!,
+                                    message: _roomErrorMessage(
+                                      eventsState.error!,
+                                      l,
+                                    ),
                                     isError: true,
                                     retryLabel: l.commonRetry,
                                     onRetry: _retryEvents,
@@ -704,6 +738,8 @@ class _AnnouncementRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    final localeTag = Localizations.localeOf(context).toLanguageTag();
     return GlassCard(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
@@ -720,7 +756,7 @@ class _AnnouncementRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  announcement.title,
+                  announcement.title ?? l.appRoomAnnouncementFallbackTitle,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: SeoulType.subtitle,
@@ -728,8 +764,8 @@ class _AnnouncementRow extends StatelessWidget {
                 if (announcement.postedAt != null) ...[
                   const SizedBox(height: 6),
                   StatusChip(
-                    label: DateFormat(
-                      'yyyy-MM-dd',
+                    label: DateFormat.yMMMd(
+                      localeTag,
                     ).format(announcement.postedAt!),
                     dense: true,
                   ),
@@ -759,8 +795,11 @@ class _EventRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    final locale = Localizations.localeOf(context);
+    final localeTag = locale.toLanguageTag();
     final isDeadline = event.eventType == 'deadline';
-    final description = event.description;
+    final description = event.descriptionFor(locale.languageCode);
 
     return GlassCard(
       margin: const EdgeInsets.only(bottom: 12),
@@ -777,7 +816,8 @@ class _EventRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  event.title,
+                  event.titleFor(locale.languageCode) ??
+                      l.appRoomEventFallbackTitle,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: SeoulType.subtitle,
@@ -788,7 +828,7 @@ class _EventRow extends StatelessWidget {
                 ],
                 const SizedBox(height: 6),
                 StatusChip(
-                  label: DateFormat('hh:mm a').format(event.eventDate),
+                  label: DateFormat.jm(localeTag).format(event.eventDate),
                   tone: isDeadline ? StatusTone.warning : StatusTone.neutral,
                   dense: true,
                 ),

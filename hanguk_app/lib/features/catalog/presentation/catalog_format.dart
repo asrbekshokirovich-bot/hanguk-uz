@@ -4,9 +4,18 @@ import 'package:intl/intl.dart';
 import '../../../l10n/app_localizations.dart';
 import '../domain/catalog_models.dart';
 
-/// 4134000 → "4,134,000".
-String groupThousands(num value) {
-  final s = value.round().toString();
+/// 4134000 → "4,134,000", grouped the way [locale] groups digits
+/// ("4 134 000" in ru/uz). Without a locale, commas.
+String groupThousands(num value, {String? locale}) {
+  final n = value.round();
+  if (locale != null) {
+    try {
+      return NumberFormat.decimalPattern(locale).format(n);
+    } catch (_) {
+      // Unknown locale — fall through to plain comma grouping.
+    }
+  }
+  final s = n.toString();
   final b = StringBuffer();
   for (var i = 0; i < s.length; i++) {
     if (i > 0 && (s.length - i) % 3 == 0) b.write(',');
@@ -17,9 +26,9 @@ String groupThousands(num value) {
 
 /// An amount in the currency the guideline quotes it in — never converted.
 /// KRW is the only currency the catalogue uses today and reads "₩4,134,000";
-/// anything else keeps its ISO code.
-String money(num value, String? currency) {
-  final n = groupThousands(value);
+/// anything else keeps its ISO code. [locale] picks the digit grouping.
+String money(num value, String? currency, {String? locale}) {
+  final n = groupThousands(value, locale: locale);
   switch ((currency ?? 'KRW').toUpperCase()) {
     case 'KRW':
       return '₩$n';

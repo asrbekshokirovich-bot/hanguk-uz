@@ -9,11 +9,11 @@ import '../../../../l10n/app_localizations.dart';
 /// has already cleared is solid lime with a glow, the stage in progress is
 /// partially filled, and the stages ahead are empty track.
 ///
-/// This replaces the vertical timeline that used to live here. The
-/// status → stage mapping in [stepFor] is unchanged: those are the real
-/// `applications.status` values the CRM writes (the app has never modelled
-/// any others), so anything the mapping does not know about simply reads as
-/// "not started" exactly as before.
+/// This is also the one place that knows what an `applications.status` code
+/// means: [stepFor] places it on the journey and [statusLabel] names it in
+/// the app language, so no screen ever prints a raw code. The codes are the
+/// CRM's (`src/components/crm/StudentDetail.tsx` `allStatusSteps`, plus the
+/// older pipeline codes and aliases the CRM still accepts).
 class ProcessTracker extends StatelessWidget {
   const ProcessTracker({super.key, required this.status});
 
@@ -47,15 +47,24 @@ class ProcessTracker extends StatelessWidget {
   static const double _segmentHeight = 8;
   static const double _segmentGap = 5;
 
-  /// How many stages of the journey this status has reached (0 = not started,
-  /// [stepCount] = the last stage). Unchanged from the timeline this widget
-  /// replaced.
+  /// Which stage of the journey this status belongs to (0 = not started,
+  /// [stepCount] = the last stage).
+  ///
+  /// The CRM's own sequence is documents collected → translated → apostille
+  /// → application submitted → admission letter (university response) → visa
+  /// documents → completed (visa applied). Its three document steps are all
+  /// part of the first journey stage; the older codes keep the stage they
+  /// always had.
   static int stepFor(String status) {
     switch (status) {
+      case 'completed':
+      case 'accepted':
+      case 'enrolled':
       case 'rejected':
       case 'visa_issue':
         return 9;
       case 'visa_documents':
+      case 'visa':
         return 8;
       case 'university_response':
         return 7;
@@ -66,29 +75,102 @@ class ProcessTracker extends StatelessWidget {
       case 'interview':
         return 4;
       case 'offline_application':
+      case 'originals_sent':
         return 3;
+      case 'application_submitted':
+      case 'submitted':
+      case 'online_ariza':
+      case 'in_review':
+      case 'review':
       case 'online_application':
         return 2;
       case 'documents_collection':
+      case 'documents_translation':
+      case 'apostille':
+      case 'documents':
         return 1;
       case 'pending':
       case 'pending_approval':
+      case 'new':
+      case 'draft':
         return 0; // Not actively processing yet.
       default:
         return 0; // Unknown / not-yet-modelled status.
     }
   }
 
+  /// Whether the journey is over and succeeded — every segment full.
+  static bool isCompleted(String status) =>
+      status == 'completed' || status == 'accepted' || status == 'enrolled';
+
+  /// Whether the status is still waiting on a counselor's approval.
+  static bool isPending(String status) =>
+      status == 'pending' ||
+      status == 'pending_approval' ||
+      status == 'new' ||
+      status == 'draft';
+
   /// 0.0–1.0 progress along the journey, for a [GlowProgressBar].
   static double progressFor(String status) => stepFor(status) / stepCount;
 
-  /// Label of the stage currently in progress, or null before the journey
+  /// Label of the stage this status belongs to, or null before the journey
   /// starts.
   static String? currentStageLabel(String status, AppLocalizations l) {
     final index = stepFor(status) - 1;
     final labels = stepLabels(l);
     if (index < 0 || index >= labels.length) return null;
     return labels[index];
+  }
+
+  /// What the status means, in the app language — never the raw code.
+  static String statusLabel(String status, AppLocalizations l) {
+    switch (status) {
+      case 'pending':
+      case 'pending_approval':
+      case 'new':
+      case 'draft':
+        return l.statusPendingApproval;
+      case 'documents_collection':
+      case 'documents':
+        return l.statusDocumentsCollection;
+      case 'documents_translation':
+        return l.statusDocumentsTranslation;
+      case 'apostille':
+        return l.statusApostille;
+      case 'application_submitted':
+      case 'submitted':
+      case 'online_ariza':
+        return l.statusApplicationSubmitted;
+      case 'in_review':
+      case 'review':
+        return l.statusInReview;
+      case 'online_application':
+        return l.journeyStageOnlineApplication;
+      case 'offline_application':
+      case 'originals_sent':
+        return l.journeyStageOfflineApplication;
+      case 'interview':
+        return l.journeyStageInterview;
+      case 'waiting_invoice':
+        return l.journeyStageWaitingInvoice;
+      case 'tuition_payment':
+        return l.journeyStageTuitionPayment;
+      case 'university_response':
+        return l.statusUniversityResponse;
+      case 'visa_documents':
+      case 'visa':
+        return l.statusVisaDocuments;
+      case 'visa_issue':
+        return l.journeyStageWaitingVisa;
+      case 'completed':
+      case 'accepted':
+      case 'enrolled':
+        return l.statusCompleted;
+      case 'rejected':
+        return l.statusRejected;
+      default:
+        return l.statusInProgress;
+    }
   }
 
   /// Lime stage caption beside the step count.
@@ -98,8 +180,8 @@ class ProcessTracker extends StatelessWidget {
   );
 
   /// Done → full lime + glow, in progress → half filled, ahead → empty.
-  static double _segmentValue(int index, int currentIndex) {
-    if (index < currentIndex) return 1;
+  static double _segmentValue(int index, int currentIndex, bool completed) {
+    if (completed || index < currentIndex) return 1;
     if (index == currentIndex) return 0.5;
     return 0;
   }
@@ -109,7 +191,10 @@ class ProcessTracker extends StatelessWidget {
     final l = AppLocalizations.of(context)!;
     final step = stepFor(status);
     final currentIndex = step - 1;
-    final stage = currentStageLabel(status, l);
+    final completed = isCompleted(status);
+    // What the status means, not only which stage it sits in — "Documents
+    // translated" and "Apostille ready" share the first stage.
+    final stage = statusLabel(status, l);
 
     return GlassCard(
       padding: const EdgeInsets.all(18),
@@ -123,16 +208,15 @@ class ProcessTracker extends StatelessWidget {
               else
                 const Text(pendingKo, style: SeoulType.hangulLabel),
               const SizedBox(width: 12),
-              if (stage != null)
-                Expanded(
-                  child: Text(
-                    stage,
-                    textAlign: TextAlign.end,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: _stageStyle,
-                  ),
+              Expanded(
+                child: Text(
+                  stage,
+                  textAlign: TextAlign.end,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: _stageStyle,
                 ),
+              ),
             ],
           ),
           const SizedBox(height: 12),
@@ -142,7 +226,7 @@ class ProcessTracker extends StatelessWidget {
                 if (i > 0) const SizedBox(width: _segmentGap),
                 Expanded(
                   child: GlowProgressBar(
-                    value: _segmentValue(i, currentIndex),
+                    value: _segmentValue(i, currentIndex, completed),
                     height: _segmentHeight,
                   ),
                 ),

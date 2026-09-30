@@ -38,8 +38,9 @@ final suggestedUniversitiesProvider = FutureProvider<List<University>>((
         suggestions.add(
           University(
             id: u['id'] as String,
-            name:
-                u['name_en'] as String? ?? u['name_ko'] as String? ?? 'Unknown',
+            // Empty when the row has no name at all; the widgets show the
+            // localized "Unknown university" for that.
+            name: u['name_en'] as String? ?? u['name_ko'] as String? ?? '',
             location: u['city_ko'] as String? ?? '',
             isPartner: u['is_partner'] as bool? ?? false,
             latitude: u['latitude'] != null
@@ -91,8 +92,7 @@ final suggestedUniversitiesProvider = FutureProvider<List<University>>((
         .map<University>(
           (u) => University(
             id: u['id'] as String,
-            name:
-                u['name_en'] as String? ?? u['name_ko'] as String? ?? 'Unknown',
+            name: u['name_en'] as String? ?? u['name_ko'] as String? ?? '',
             location: u['city_ko'] as String? ?? '',
             isPartner: u['is_partner'] as bool? ?? false,
             latitude: u['latitude'] != null
@@ -182,8 +182,13 @@ final applicationsProvider = FutureProvider<List<StudentApplication>>((
       if (uniRow != null) {
         university = University(
           id: uniRow['id'] as String,
-          name: uniRow['name_en'] as String? ?? 'Unknown University',
-          location: uniRow['city_ko'] as String? ?? 'South Korea',
+          // Empty / placeholder values, not display text: the card shows the
+          // localized "Unknown university" and country name for them.
+          name:
+              uniRow['name_en'] as String? ??
+              uniRow['name_ko'] as String? ??
+              '',
+          location: uniRow['city_ko'] as String? ?? University.unknownCity,
           nameKo: uniRow['name_ko'] as String?,
           nameEn: uniRow['name_en'] as String?,
           isPartner: uniRow['is_partner'] as bool? ?? false,

@@ -1,6 +1,8 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/foundation.dart';
 
+import 'room_load_error.dart';
+
 /// A single university admission announcement (a crawled official notice).
 /// Sourced from the `v_institution_announcements` view, which exposes the
 /// public columns of the admin-only `announcements` table (see migration
@@ -8,13 +10,16 @@ import 'package:flutter/foundation.dart';
 /// the student is the official link.
 class UniversityAnnouncement {
   final String id;
-  final String title;
+
+  /// The notice's own (Korean) title; null when it has none, so the sheet can
+  /// show a fallback in the app language.
+  final String? title;
   final String? url;
   final DateTime? postedAt;
 
   UniversityAnnouncement({
     required this.id,
-    required this.title,
+    this.title,
     this.url,
     this.postedAt,
   });
@@ -24,7 +29,7 @@ class UniversityAnnouncement {
     final title = (map['title_ko'] as String?)?.trim();
     return UniversityAnnouncement(
       id: map['id'] as String,
-      title: (title != null && title.isNotEmpty) ? title : 'Announcement',
+      title: (title != null && title.isNotEmpty) ? title : null,
       url: map['url_ko'] as String?,
       postedAt: (rawDate != null && rawDate.isNotEmpty)
           ? DateTime.tryParse(rawDate)
@@ -36,7 +41,7 @@ class UniversityAnnouncement {
 class UniversityAnnouncementsState {
   final List<UniversityAnnouncement> announcements;
   final bool isLoading;
-  final String? error;
+  final RoomLoadError? error;
 
   const UniversityAnnouncementsState({
     this.announcements = const [],
@@ -47,7 +52,7 @@ class UniversityAnnouncementsState {
   UniversityAnnouncementsState copyWith({
     List<UniversityAnnouncement>? announcements,
     bool? isLoading,
-    String? error,
+    RoomLoadError? error,
   }) {
     return UniversityAnnouncementsState(
       announcements: announcements ?? this.announcements,
@@ -95,7 +100,9 @@ class UniversityAnnouncementsController extends ChangeNotifier {
       _setState(state.copyWith(announcements: list, isLoading: false));
     } catch (e, st) {
       debugPrint('[UniversityAnnouncementsController] Error: $e\n$st');
-      _setState(state.copyWith(error: e.toString(), isLoading: false));
+      _setState(
+        state.copyWith(error: RoomLoadError.loadFailed, isLoading: false),
+      );
     }
   }
 }

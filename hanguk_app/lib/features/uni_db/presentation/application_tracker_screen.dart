@@ -238,9 +238,9 @@ class _TrackedDeadlineCard extends StatelessWidget {
         'registration_close' => l.eventRegistrationClose,
         'orientation' => l.eventOrientation,
         'semester_start' => l.eventSemesterStart,
-        // An event type the DB writes that this app does not model yet — the
-        // raw value is the honest thing to show.
-        _ => eventType.replaceAll('_', ' '),
+        // An event type the DB writes that this app does not model yet — a
+        // generic label in the student's language, never the raw identifier.
+        _ => l.uniDbEventOther,
       };
 
   /// cycle_track → localized label, raw value as fallback. Same mapping as

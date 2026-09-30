@@ -2,6 +2,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../../entry/data/entry_store.dart';
+
 /// Shared pieces of the sign-in screens (Welcome, Magic Code, Splash) from the
 /// "Sign-in 2a Polished" design: the navy backdrop, the logo tile, and helpers
 /// that reproduce the design's CSS effects exactly.
@@ -422,10 +424,19 @@ Path parseSvgPath(String d) {
 /// indicator. Shown by the Flutter splash, and baked into the native launch
 /// screens so the hand-over to Flutter does not move anything.
 ///
-/// Not localized: it paints before localization is available, and the native
-/// launch screens carry the same pixels.
+/// It paints before localization is available, so the tagline comes from
+/// [_taglines] in the language chosen on an earlier launch
+/// ([EntryStore.initial]), English until one is chosen. The native launch
+/// screens carry the English pixels.
 class SplashContent extends StatelessWidget {
   const SplashContent({super.key});
+
+  static const Map<String, String> _taglines = {
+    'uz': 'Janubiy Koreyaga yo‘lingiz',
+    'en': 'Your Path to South Korea',
+    'ko': '한국으로 가는 길',
+    'ru': 'Ваш путь в Южную Корею',
+  };
 
   /// The design centres the content in the area between the status bar and
   /// the home indicator, 40px above its bottom edge — 18px above the centre of
@@ -435,21 +446,23 @@ class SplashContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
+    final tagline =
+        _taglines[EntryStore.initial.languageCode] ?? _taglines['en']!;
+    return Center(
       child: Padding(
-        padding: EdgeInsets.only(bottom: bottomOffset),
+        padding: const EdgeInsets.only(bottom: bottomOffset),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            SignInLogoTile(
+            const SignInLogoTile(
               size: 108,
               radius: 30,
               haloBleed: 60,
               shadowOffsetY: 16,
               shadowBlur: 32,
             ),
-            SizedBox(height: 30),
-            Text(
+            const SizedBox(height: 30),
+            const Text(
               'Hanguk',
               style: TextStyle(
                 fontFamily: 'Inter',
@@ -460,10 +473,10 @@ class SplashContent extends StatelessWidget {
                 color: Colors.white,
               ),
             ),
-            SizedBox(height: 6),
+            const SizedBox(height: 6),
             Text(
-              'Your Path to South Korea',
-              style: TextStyle(
+              tagline,
+              style: const TextStyle(
                 fontFamily: 'Inter',
                 fontSize: 13,
                 height: 1.21,
@@ -471,8 +484,8 @@ class SplashContent extends StatelessWidget {
                 color: Color(0xA3FFFFFF), // .64
               ),
             ),
-            SizedBox(height: 30),
-            _SplashDots(),
+            const SizedBox(height: 30),
+            const _SplashDots(),
           ],
         ),
       ),

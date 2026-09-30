@@ -1,6 +1,7 @@
 import 'dart:html' as html;
 import 'dart:ui_web' as ui_web;
 import 'package:flutter/material.dart';
+import '../../../../../l10n/app_localizations.dart';
 import '../../../domain/university.dart';
 import '../university_map_html.dart';
 
@@ -11,10 +12,12 @@ Widget buildMap({
 }) {
   // Audit M19 (2026-05-12): see map_mobile.dart for rationale.
   final localeCode = Localizations.maybeLocaleOf(context)?.languageCode ?? 'en';
+  final l = AppLocalizations.of(context);
   return _WebMapWidget(
     universities: universities,
     onMarkerClick: onMarkerClick,
     locale: localeCode,
+    strings: l == null ? const MapHtmlStrings() : MapHtmlStrings.of(l),
   );
 }
 
@@ -22,11 +25,13 @@ class _WebMapWidget extends StatefulWidget {
   final List<University> universities;
   final void Function(University u) onMarkerClick;
   final String locale;
+  final MapHtmlStrings strings;
 
   const _WebMapWidget({
     required this.universities,
     required this.onMarkerClick,
     required this.locale,
+    required this.strings,
   });
 
   @override
@@ -46,6 +51,7 @@ class _WebMapWidgetState extends State<_WebMapWidget> {
     final htmlTemplate = generateMapHtml(
       widget.universities,
       locale: widget.locale,
+      strings: widget.strings,
     );
 
     final iframe = html.IFrameElement()

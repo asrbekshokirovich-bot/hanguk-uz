@@ -1,6 +1,8 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/foundation.dart';
 
+import 'room_load_error.dart';
+
 class ChannelMessage {
   final String id;
   final String channelId;
@@ -38,7 +40,7 @@ class ChannelMessage {
 class UniversityChatState {
   final List<ChannelMessage> messages;
   final bool isLoading;
-  final String? error;
+  final RoomLoadError? error;
   final String? channelId; // Required to send messages
 
   const UniversityChatState({
@@ -51,7 +53,7 @@ class UniversityChatState {
   UniversityChatState copyWith({
     List<ChannelMessage>? messages,
     bool? isLoading,
-    String? error,
+    RoomLoadError? error,
     String? channelId,
   }) {
     return UniversityChatState(
@@ -97,7 +99,7 @@ class UniversityChatController extends ChangeNotifier {
 
       if (roomData == null) {
         _setState(
-          state.copyWith(error: 'University room not found.', isLoading: false),
+          state.copyWith(error: RoomLoadError.roomNotFound, isLoading: false),
         );
         return;
       }
@@ -115,7 +117,7 @@ class UniversityChatController extends ChangeNotifier {
       if (channelData == null) {
         _setState(
           state.copyWith(
-            error: 'Discussion channel not found for this room.',
+            error: RoomLoadError.discussionNotFound,
             isLoading: false,
           ),
         );
@@ -211,7 +213,7 @@ class UniversityChatController extends ChangeNotifier {
       debugPrint('[UniversityChatNotifier] Error: $e\n$st');
       _setState(
         state.copyWith(
-          error: 'Failed to connect to discussion: $e',
+          error: RoomLoadError.discussionConnectFailed,
           isLoading: false,
         ),
       );
@@ -224,7 +226,7 @@ class UniversityChatController extends ChangeNotifier {
     final client = Supabase.instance.client;
     final user = client.auth.currentUser;
     if (user == null) {
-      _setState(state.copyWith(error: 'Not authenticated.'));
+      _setState(state.copyWith(error: RoomLoadError.notSignedIn));
       return;
     }
 
@@ -238,7 +240,7 @@ class UniversityChatController extends ChangeNotifier {
       // the real-time subscription will dynamically push the message into our list
     } catch (e, st) {
       debugPrint('[UniversityChatNotifier] Failed to send message: $e\n$st');
-      _setState(state.copyWith(error: 'Failed to send message: $e'));
+      _setState(state.copyWith(error: RoomLoadError.sendFailed));
     }
   }
 }

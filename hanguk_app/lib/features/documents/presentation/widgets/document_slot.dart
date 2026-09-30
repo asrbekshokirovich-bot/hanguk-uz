@@ -74,23 +74,7 @@ class DocumentSlot extends StatelessWidget {
     return doc.status == 'approved' ? _SlotState.done : _SlotState.pending;
   }
 
-  /// The document's own name. These translations live on the domain object
-  /// rather than in the ARB files, so pick the one matching the active locale
-  /// and fall back to English (vi has no translation yet).
-  String _nameFor(String localeCode) {
-    switch (localeCode) {
-      case 'uz':
-        return type.nameUz;
-      case 'ru':
-        return type.nameRu;
-      case 'ko':
-        return (type.nameKo?.isNotEmpty ?? false) ? type.nameKo! : type.nameEn;
-      default:
-        return type.nameEn;
-    }
-  }
-
-  /// Status pill: Korean word beside the English label (spec §1 Korean voice).
+  /// Status pill: Korean word beside the localized label (spec §1 Korean voice).
   Widget _status(AppLocalizations l) {
     switch (_state) {
       case _SlotState.done:
@@ -106,9 +90,13 @@ class DocumentSlot extends StatelessWidget {
           tone: StatusTone.warning,
         );
       case _SlotState.locked:
-        // Korean only: there is no English string for "locked" anywhere in the
-        // app yet, and inventing one would bypass the ARB files.
-        return const StatusChip(label: '잠김', tone: StatusTone.neutral);
+        // The 잠김 accent beside the localized label — dropped in Korean,
+        // where the label already is that word.
+        return StatusChip(
+          label: l.docStatusLocked,
+          ko: l.localeName.startsWith('ko') ? null : '잠김',
+          tone: StatusTone.neutral,
+        );
       case _SlotState.missing:
         // Nothing has happened to this document — the upload button on the
         // right is the whole story, and a chip would only invent a status.
@@ -239,7 +227,7 @@ class DocumentSlot extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      _nameFor(locale),
+                      type.localizedName(l),
                       style: SeoulType.subtitle,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,

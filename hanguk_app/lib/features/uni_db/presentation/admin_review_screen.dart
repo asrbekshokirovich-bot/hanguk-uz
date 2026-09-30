@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../design_system/seoul_night/seoul_night.dart';
+import '../../../l10n/app_localizations.dart';
 import '../data/admin_review_providers.dart';
 import '../domain/review_queue_item.dart';
 
@@ -18,8 +19,8 @@ import '../domain/review_queue_item.dart';
 /// Three actions: Accept, Edit then Accept, Reject.
 ///
 /// Seoul Night pass — visuals only. This surface is staff-only (gated
-/// server-side by `fn_can_review_uni_db`), so its copy deliberately stays
-/// English and out of the ARB files; reviewers are Hanguk staff.
+/// server-side by `fn_can_review_uni_db`); its copy follows the app language
+/// like every other screen.
 class AdminReviewScreen extends ConsumerStatefulWidget {
   const AdminReviewScreen({super.key});
 
@@ -48,16 +49,17 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
   }
 
   Widget _buildContent(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final queueAsync = ref.watch(reviewQueueProvider);
     return SeoulNightScaffold(
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _Header(
-            title: 'Review queue',
+            title: l.adminReviewQueueTitle,
             trailing: _GlassCircleButton(
               icon: Icons.refresh_rounded,
-              tooltip: 'Refresh',
+              tooltip: l.adminRefresh,
               onTap: _busy ? null : () => ref.invalidate(reviewQueueProvider),
             ),
           ),
@@ -67,15 +69,15 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
                 child: CircularProgressIndicator(color: SeoulColors.lime),
               ),
               error: (e, _) => Center(
-                child: Text('Error: $e', style: SeoulType.bodySecondary),
+                child: Text(l.genericError(e), style: SeoulType.bodySecondary),
               ),
               data: (items) {
                 if (items.isEmpty) {
-                  return const Center(
+                  return Center(
                     child: Padding(
-                      padding: EdgeInsets.all(24),
+                      padding: const EdgeInsets.all(24),
                       child: Text(
-                        'Queue is empty. Nothing pending right now.',
+                        l.adminQueueEmpty,
                         textAlign: TextAlign.center,
                         style: SeoulType.bodySecondary,
                       ),
@@ -125,9 +127,9 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
                         ),
                         Expanded(
                           child: _selected == null
-                              ? const Center(
+                              ? Center(
                                   child: Text(
-                                    'Select a queue item on the left.',
+                                    l.adminSelectItem,
                                     style: SeoulType.bodySecondary,
                                   ),
                                 )
@@ -157,9 +159,10 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
       await body();
     } catch (err) {
       if (!mounted) return;
+      final l = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Error: $err')));
+      ).showSnackBar(SnackBar(content: Text(l.genericError(err))));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -170,9 +173,9 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
     await _withBusy(() async {
       await actions.accept(item.id);
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Accepted')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context)!.adminAccepted)),
+      );
       ref.invalidate(reviewQueueProvider);
       setState(() => _selected = null);
     });
@@ -186,9 +189,11 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
     await _withBusy(() async {
       await actions.editAccept(item.id, corrected);
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Edited and accepted')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.adminEditedAccepted),
+        ),
+      );
       ref.invalidate(reviewQueueProvider);
       setState(() => _selected = null);
     });
@@ -203,9 +208,9 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
     await _withBusy(() async {
       await actions.reject(item.id, reason: reason, reasonDetail: reasonDetail);
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Rejected')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context)!.adminRejected)),
+      );
       ref.invalidate(reviewQueueProvider);
       setState(() => _selected = null);
     });
@@ -232,7 +237,7 @@ class _Header extends StatelessWidget {
         children: [
           _GlassCircleButton(
             icon: Icons.arrow_back_rounded,
-            tooltip: 'Back',
+            tooltip: AppLocalizations.of(context)!.a11yTooltipBack,
             onTap: () => Navigator.of(context).maybePop(),
           ),
           const SizedBox(width: 14),
@@ -264,6 +269,7 @@ class _QueueList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     return ListView.separated(
       padding: const EdgeInsets.fromLTRB(SeoulSizes.screenPadding, 4, 12, 24),
       itemCount: items.length,
@@ -288,14 +294,15 @@ class _QueueList extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      item.institutionLabel,
+                      _institutionLabel(l, item),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: SeoulType.subtitle,
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      '${item.entityType} · ${item.reason}',
+                      '${_entityLabel(l, item.entityType)} · '
+                      '${_reasonLabel(l, item.reason)}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: SeoulType.caption,
@@ -373,6 +380,7 @@ class _DetailPane extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final formattedJson = const JsonEncoder.withIndent(
       '  ',
     ).convert(item.parsedOutput);
@@ -382,19 +390,19 @@ class _DetailPane extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           if (onBack == null)
-            Text(item.institutionLabel, style: SeoulType.title)
+            Text(_institutionLabel(l, item), style: SeoulType.title)
           else
             Row(
               children: [
                 _GlassCircleButton(
                   icon: Icons.arrow_back_rounded,
-                  tooltip: 'Back to queue',
+                  tooltip: l.adminBackToQueue,
                   onTap: onBack!,
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    item.institutionLabel,
+                    _institutionLabel(l, item),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: SeoulType.title,
@@ -407,15 +415,19 @@ class _DetailPane extends StatelessWidget {
             spacing: 8,
             runSpacing: 6,
             children: [
-              StatusChip(label: item.priorityLabel, tone: StatusTone.info),
-              StatusChip(label: item.reason),
+              StatusChip(
+                label: _priorityLabel(l, item.priority),
+                tone: StatusTone.info,
+              ),
+              StatusChip(label: _reasonLabel(l, item.reason)),
               if (item.accuracySelfScore != null)
                 StatusChip(
-                  label:
-                      'confidence ${(item.accuracySelfScore! * 100).round()}%',
+                  label: l.adminConfidence(
+                    (item.accuracySelfScore! * 100).round(),
+                  ),
                 ),
               if (item.isOverdue)
-                const StatusChip(label: 'OVERDUE', tone: StatusTone.danger),
+                StatusChip(label: l.adminOverdue, tone: StatusTone.danger),
             ],
           ),
           const SizedBox(height: 12),
@@ -424,14 +436,14 @@ class _DetailPane extends StatelessWidget {
               alignment: Alignment.centerLeft,
               child: SeoulOutlineButton(
                 icon: Icons.open_in_new,
-                label: 'Open source page (한국어)',
+                label: l.adminOpenSource,
                 expand: false,
                 height: SeoulSizes.minTapTarget,
                 onPressed: () => _launchPdf(context, item.sourceUrlKo!),
               ),
             ),
           const SizedBox(height: 12),
-          const Text('Extracted payload:', style: SeoulType.caption),
+          Text(l.adminExtractedPayload, style: SeoulType.caption),
           const SizedBox(height: 6),
           Expanded(
             child: Container(
@@ -455,19 +467,19 @@ class _DetailPane extends StatelessWidget {
             runSpacing: 8,
             children: [
               SeoulOutlineButton(
-                label: 'Reject',
+                label: l.adminReject,
                 expand: false,
                 height: SeoulSizes.minTapTarget,
                 onPressed: busy ? null : () => _confirmReject(context),
               ),
               SeoulOutlineButton(
-                label: 'Edit & accept',
+                label: l.adminEditAccept,
                 expand: false,
                 height: SeoulSizes.minTapTarget,
                 onPressed: busy ? null : () => _editAccept(context),
               ),
               LimeButton(
-                label: 'Accept',
+                label: l.adminAccept,
                 expand: false,
                 height: SeoulSizes.minTapTarget,
                 onPressed: busy ? null : () => onAccept(item),
@@ -506,22 +518,19 @@ class _DetailPane extends StatelessWidget {
     // viewer because the reviewer typically wants to scroll through
     // the entire admission guideline (50-100 pages) and a native
     // viewer offers better navigation than any in-app pdfx layer.
+    final l = AppLocalizations.of(context)!;
     final uri = Uri.tryParse(url);
     if (uri == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not parse signed URL.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l.uniDbPdfLinkInvalid)));
       return;
     }
     final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
     if (!ok && context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Could not open PDF — no app available to handle the URL.',
-          ),
-        ),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l.uniDbPdfNoApp)));
     }
   }
 }
@@ -619,12 +628,17 @@ class _EditPayloadDialogState extends State<_EditPayloadDialog> {
     try {
       final parsed = json.decode(_controller.text);
       if (parsed is! Map) {
-        setState(() => _error = 'Payload must be a JSON object');
+        setState(
+          () => _error = AppLocalizations.of(context)!.adminPayloadNotObject,
+        );
         return;
       }
       Navigator.of(context).pop(Map<String, dynamic>.from(parsed));
     } on FormatException catch (e) {
-      setState(() => _error = 'Invalid JSON: $e');
+      setState(
+        () =>
+            _error = AppLocalizations.of(context)!.adminInvalidJson(e.message),
+      );
     }
   }
 
@@ -636,6 +650,7 @@ class _EditPayloadDialogState extends State<_EditPayloadDialog> {
     // yield — the editor takes the room that is left rather than demanding
     // a fixed slab.
     final media = MediaQuery.of(context);
+    final l = AppLocalizations.of(context)!;
     return _SeoulDialog(
       child: ConstrainedBox(
         constraints: BoxConstraints(
@@ -646,7 +661,7 @@ class _EditPayloadDialogState extends State<_EditPayloadDialog> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text('Edit payload', style: SeoulType.title),
+            Text(l.adminEditPayload, style: SeoulType.title),
             const SizedBox(height: 14),
             Flexible(
               child: ConstrainedBox(
@@ -680,13 +695,13 @@ class _EditPayloadDialogState extends State<_EditPayloadDialog> {
               runSpacing: 8,
               children: [
                 SeoulOutlineButton(
-                  label: 'Cancel',
+                  label: l.cancel,
                   expand: false,
                   height: SeoulSizes.minTapTarget,
                   onPressed: () => Navigator.of(context).pop(),
                 ),
                 LimeButton(
-                  label: 'Save & accept',
+                  label: l.adminSaveAccept,
                   expand: false,
                   height: SeoulSizes.minTapTarget,
                   onPressed: _submit,
@@ -727,6 +742,7 @@ class _RejectReasonDialogState extends State<_RejectReasonDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     return _SeoulDialog(
       child: SizedBox(
         width: 420,
@@ -734,7 +750,7 @@ class _RejectReasonDialogState extends State<_RejectReasonDialog> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text('Reject — reason', style: SeoulType.title),
+            Text(l.adminRejectReasonTitle, style: SeoulType.title),
             const SizedBox(height: 14),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -752,7 +768,12 @@ class _RejectReasonDialogState extends State<_RejectReasonDialog> {
                 iconEnabledColor: SeoulColors.textSecondary,
                 style: SeoulType.body,
                 items: _reasons
-                    .map((r) => DropdownMenuItem(value: r, child: Text(r)))
+                    .map(
+                      (r) => DropdownMenuItem(
+                        value: r,
+                        child: Text(_rejectReasonLabel(l, r)),
+                      ),
+                    )
                     .toList(),
                 onChanged: (v) => setState(() => _reason = v ?? _reason),
               ),
@@ -762,7 +783,7 @@ class _RejectReasonDialogState extends State<_RejectReasonDialog> {
               controller: _detail,
               cursorColor: SeoulColors.lime,
               style: SeoulType.body,
-              decoration: _fieldDecoration(label: 'Detail (optional)'),
+              decoration: _fieldDecoration(label: l.adminDetailOptional),
               maxLines: 3,
             ),
             const SizedBox(height: 16),
@@ -770,14 +791,14 @@ class _RejectReasonDialogState extends State<_RejectReasonDialog> {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 SeoulOutlineButton(
-                  label: 'Cancel',
+                  label: l.cancel,
                   expand: false,
                   height: SeoulSizes.minTapTarget,
                   onPressed: () => Navigator.of(context).pop(),
                 ),
                 const SizedBox(width: 8),
                 _DangerButton(
-                  label: 'Reject',
+                  label: l.adminReject,
                   onPressed: () => Navigator.of(context).pop((
                     reason: _reason,
                     detail: _detail.text.trim().isEmpty
@@ -905,7 +926,7 @@ class _ErrorScaffold extends StatelessWidget {
     body: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const _Header(title: 'Review'),
+        _Header(title: AppLocalizations.of(context)!.adminReviewTitle),
         Expanded(
           child: Center(
             child: Padding(
@@ -926,19 +947,17 @@ class _ErrorScaffold extends StatelessWidget {
 class _ForbiddenScaffold extends StatelessWidget {
   const _ForbiddenScaffold();
   @override
-  Widget build(BuildContext context) => const SeoulNightScaffold(
+  Widget build(BuildContext context) => SeoulNightScaffold(
     body: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _Header(title: 'Review'),
+        _Header(title: AppLocalizations.of(context)!.adminReviewTitle),
         Expanded(
           child: Center(
             child: Padding(
-              padding: EdgeInsets.all(24),
+              padding: const EdgeInsets.all(24),
               child: Text(
-                'This area is for Hanguk staff only. '
-                'If you should have access, ask an admin to add your '
-                'staff role.',
+                AppLocalizations.of(context)!.adminStaffOnly,
                 textAlign: TextAlign.center,
                 style: SeoulType.bodySecondary,
               ),
@@ -949,3 +968,44 @@ class _ForbiddenScaffold extends StatelessWidget {
     ),
   );
 }
+
+/// Best label to show for the institution.
+String _institutionLabel(AppLocalizations l, ReviewQueueItem item) =>
+    item.nameKo ?? item.nameEn ?? l.unknownUniversity;
+
+/// Priority label per the ADR-005 SLA grid.
+String _priorityLabel(AppLocalizations l, int priority) => switch (priority) {
+  1 => l.adminPriorityP1,
+  2 => l.adminPriorityP2,
+  3 => l.adminPriorityP3,
+  4 => l.adminPriorityP4,
+  _ => l.adminPriorityP5,
+};
+
+/// review_queue.reason → label; an unmodelled reason keeps its code.
+String _reasonLabel(AppLocalizations l, String reason) => switch (reason) {
+  'low_confidence' => l.adminReasonLowConfidence,
+  'high_difficulty_field' => l.adminReasonHighDifficulty,
+  'auto_approved' => l.adminReasonAutoApproved,
+  'correction_notice' => l.adminReasonCorrectionNotice,
+  _ => reason,
+};
+
+/// review_queue.entity_type → label; an unmodelled table keeps its name.
+String _entityLabel(AppLocalizations l, String entityType) =>
+    switch (entityType) {
+      'extraction_jobs' => l.adminEntityExtraction,
+      'guideline_documents' => l.adminEntityGuideline,
+      _ => entityType,
+    };
+
+/// Reject-reason code (sent to the server as-is) → dropdown label.
+String _rejectReasonLabel(AppLocalizations l, String reason) =>
+    switch (reason) {
+      'wrong_year' => l.adminRejectWrongYear,
+      'wrong_archetype' => l.adminRejectWrongArchetype,
+      'hallucinated_field' => l.adminRejectHallucinated,
+      'ocr_garbled' => l.adminRejectOcrGarbled,
+      'source_404' => l.adminRejectSource404,
+      _ => l.adminRejectOther,
+    };
