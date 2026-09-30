@@ -29,6 +29,7 @@ import {
 } from '@/components/crm/leads/intake/outcome';
 import { CALL_RESULTS } from '@/components/crm/leads/intake/options';
 import { isNewLead } from '@/components/crm/leads/intake/sla';
+import { arrivedToday, isTodayLead } from '@/components/crm/leads/intake/today';
 import type { Lead } from '@/contexts/LeadsContext';
 
 const TABS: LeadOutcome[] = ['active', 'converted', 'rejected'];
@@ -54,8 +55,12 @@ const TABS: LeadOutcome[] = ['active', 'converted', 'rejected'];
  * `view="new"` is CRM → Aloqa → "Yangi lid": the same table, narrowed to
  * Instagram/Telegram leads whose phone and name just arrived and that nobody
  * has called yet (leads/intake/sla), each with its 10-minute countdown.
+ *
+ * `view="today"` is "Bugungi lidlar": today's leads once they have left
+ * "Yangi lid" (leads/intake/today). They show only there until 00:00, so
+ * "Lidlar" leaves out every lead that arrived today.
  */
-const LeadsContent = ({ view = 'all' }: { view?: 'all' | 'new' }) => {
+const LeadsContent = ({ view = 'all' }: { view?: 'all' | 'new' | 'today' }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { leads, loading, createLead, updateLead, convertToStudent, deleteLead, refetch } =
@@ -66,11 +71,11 @@ const LeadsContent = ({ view = 'all' }: { view?: 'all' | 'new' }) => {
   // One clock for the render pass, so the table's "3 days ago", the form's
   // "tomorrow" button and the semester list all agree with each other. In the
   // "Yangi lid" view it ticks every second so the countdown reads as a real
-  // running clock.
+  // running clock. Elsewhere it ticks every minute, so today's leads move from
+  // "Bugungi lidlar" to "Lidlar" at 00:00 without a reload.
   const [now, setNow] = useState(() => new Date());
   useEffect(() => {
-    if (view !== 'new') return;
-    const id = setInterval(() => setNow(new Date()), 1_000);
+    const id = setInterval(() => setNow(new Date()), view === 'new' ? 1_000 : 60_000);
     return () => clearInterval(id);
   }, [view]);
   // `null` = closed, `'new'` = a blank sheet, otherwise the lead being edited.
@@ -88,6 +93,7 @@ const LeadsContent = ({ view = 'all' }: { view?: 'all' | 'new' }) => {
   const byOutcome = useMemo(() => {
     const groups: Record<LeadOutcome, Lead[]> = { active: [], converted: [], rejected: [] };
     for (const lead of leads) {
+      if (view === 'today' ? !isTodayLead(lead, now) : arrivedToday(lead, now)) continue;
       if (!matchesLeadQuery(lead, query)) continue;
       groups[leadOutcome(lead)].push(lead);
     }
@@ -119,7 +125,7 @@ const LeadsContent = ({ view = 'all' }: { view?: 'all' | 'new' }) => {
     groups.converted.sort(byCompleteness);
     groups.rejected.sort(byCompleteness);
     return groups;
-  }, [leads, query, now]);
+  }, [leads, query, now, view]);
 
   // "Yangi lid": oldest arrival first — the one closest to the 10-minute line
   // is the one most worth seeing first.
@@ -264,10 +270,18 @@ const LeadsContent = ({ view = 'all' }: { view?: 'all' | 'new' }) => {
         <div className="mb-6 flex flex-wrap items-end justify-between gap-5">
           <div>
             <h1 className="text-[28px] font-bold tracking-[-0.015em]">
-              {view === 'new' ? t('navigation.newLeads') : t('navigation.leads')}
+              {view === 'new'
+                ? t('navigation.newLeads')
+                : view === 'today'
+                  ? t('navigation.todayLeads')
+                  : t('navigation.leads')}
             </h1>
             <p className="mt-1.5 text-sm text-muted-foreground">
-              {view === 'new' ? t('leads.intake.newSectionSubtitle') : t('leads.intake.subtitle')}
+              {view === 'new'
+                ? t('leads.intake.newSectionSubtitle')
+                : view === 'today'
+                  ? t('leads.intake.todaySectionSubtitle')
+                  : t('leads.intake.subtitle')}
             </p>
           </div>
           {/* A hand-entered lead never lands in "Yangi lid", so the create and
@@ -313,7 +327,7 @@ const LeadsContent = ({ view = 'all' }: { view?: 'all' | 'new' }) => {
               className="h-10 w-full rounded-full border border-input bg-background pl-9 pr-3 text-[13px] outline-none transition focus:border-accent focus:ring-[3px] focus:ring-accent/35"
             />
           </div>
-          {view === 'all' && (
+          {view !== 'new' && (
           <div
             role="group"
             aria-label={t('leads.intake.tabs.label')}
@@ -352,7 +366,11 @@ const LeadsContent = ({ view = 'all' }: { view?: 'all' | 'new' }) => {
             <p className="text-sm text-muted-foreground">
               {query.trim()
                 ? t('leads.intake.noMatches', { query: query.trim() })
-                : t(`leads.intake.emptyBy.${view === 'new' ? 'new' : tab}`)}
+                : t(
+                    `leads.intake.emptyBy.${
+                      view === 'new' ? 'new' : view === 'today' && tab === 'active' ? 'today' : tab
+                    }`,
+                  )}
             </p>
           </div>
         ) : (

@@ -269,6 +269,7 @@
     "admin": "Admin",
     "leads": "Lidlar",
     "newLeads": "Yangi lid",
+    "todayLeads": "Bugungi lidlar",
     "aiTranslation": "AI Tarjima",
     "kakaoMap": "Kakao Map",
     "overview": "Umumiy",
@@ -762,6 +763,7 @@
     "intake": {
       "subtitle": "Qatorga bosib o‘quvchi ma’lumotlarini to‘ldiring",
       "newSectionSubtitle": "Instagram va Telegram’da bizga birinchi marta yozgan yangi chatlar. 10 daqiqa ichida aloqa chiqing — chatga javob yozsangiz yoki ALOQA ustunida natijani belgilasangiz, lid bu yerdan chiqadi.",
+      "todaySectionSubtitle": "Bugun kelgan lidlar — “Yangi lid”dan chiqqanidan keyin shu yerda turadi. Tun yarmida (00:00) “Lidlar” bo‘limiga o‘tadi.",
       "newLead": "+ Yangi lead",
       "newTitle": "Yangi lead",
       "empty": "Hozircha lead yo‘q. “+ Yangi lead” tugmasi orqali qo‘shing.",
@@ -890,6 +892,7 @@
       },
       "emptyBy": {
         "new": "Hozircha yangi lid yo‘q. Instagram yoki Telegram’da bizga birinchi marta kimdir yozsa, shu yerda paydo bo‘ladi.",
+        "today": "Bugun hali lid yo‘q. “Yangi lid”dan chiqqan bugungi lidlar shu yerda paydo bo‘ladi.",
         "active": "Ishlanayotgan lead yo‘q. “+ Yangi lead” orqali qo‘shing.",
         "converted": "Hali birorta lead o‘quvchiga aylantirilmagan.",
         "rejected": "Rad etilgan lead yo‘q."
