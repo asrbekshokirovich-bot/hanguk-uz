@@ -1,5 +1,5 @@
 {
- "last_run": "2026-09-30T00:31:15+00:00",
+ "last_run": "2026-09-30T06:47:21+00:00",
  "seen": {
   "http://enter.konkuk.ac.kr/submenu.do?menuurl=k8b%2fCUaWlntKYwhT%2fh%2bKUA%3d%3d&": [],
   "https://adm-u.postech.ac.kr/": [
@@ -243,6 +243,10 @@
   "https://dst.ac.kr": [],
   "https://dsu.ac.kr": [],
   "https://ent.donga.ac.kr/": [
+   "e89a98a7f7d26d30",
+   "04bea0d150087ac9",
+   "2a9c68e08d6ebe29",
+   "a5f66595eb7ac34d",
    "e24c023fc290d021",
    "fe87a14f98f34ca5",
    "d0bc7ae8f323a683",
@@ -341,6 +345,8 @@
   "https://go.cufs.ac.kr/": [],
   "https://go.cuk.edu/index.do": [],
   "https://go.global.ac.kr/": [
+   "7d8779abbb2fb997",
+   "3c2d6f7a70e7b870",
    "f18f3969ffb9f161",
    "95610f1c6135f236",
    "eea9fc3b52ea17ef",
@@ -695,6 +701,12 @@
    "0ffc594d340a3375"
   ],
   "https://ipsi.dgau.ac.kr/": [
+   "54ac2d0665bfbdb8",
+   "886393c15a7cdb15",
+   "cf426ad1460ee477",
+   "4accc975b7b6c7be",
+   "149d2c59960b4f2a",
+   "f2e21b6592c28c29",
    "21ab3bf6e1a9e2e0",
    "01c9a00b2671e2b2",
    "5731a74be5ff420f",
@@ -749,6 +761,10 @@
   "https://ipsi.gw.ac.kr/": [],
   "https://ipsi.halla.ac.kr/": [],
   "https://ipsi.hknu.ac.kr/": [
+   "73fd3b38f76c4c2e",
+   "905f197f840ce892",
+   "04fdc1d95a3ba2ae",
+   "eea080404e6cf998",
    "0a616c8b4541a798",
    "3dd13957720751ff",
    "a7c8cc076e1b567f",
