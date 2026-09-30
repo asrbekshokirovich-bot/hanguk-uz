@@ -3769,6 +3769,156 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Visa application'**
   String get catalogStep11;
+
+  /// Title of the surveys list (HangulTag English line) and the Han orb menu item
+  ///
+  /// In en, this message translates to:
+  /// **'Surveys'**
+  String get surveysTitle;
+
+  /// Error state when the surveys list fails to load
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load surveys'**
+  String get surveysLoadError;
+
+  /// Empty state title on the surveys list
+  ///
+  /// In en, this message translates to:
+  /// **'No surveys yet'**
+  String get surveysEmptyTitle;
+
+  /// Empty state body on the surveys list
+  ///
+  /// In en, this message translates to:
+  /// **'New surveys will appear here'**
+  String get surveysEmptyBody;
+
+  /// Status chip on a survey the student has fully answered
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get surveyCompletedChip;
+
+  /// Status chip on a survey the student has not started
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get surveyNewChip;
+
+  /// Number of questions in a survey, shown on the survey card
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 question} other{{count} questions}}'**
+  String surveyQuestionCount(int count);
+
+  /// Call to action on an unfinished survey card
+  ///
+  /// In en, this message translates to:
+  /// **'Fill in →'**
+  String get surveyFillCta;
+
+  /// Home card title when several surveys wait to be filled in
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 survey} other{{count} surveys}}'**
+  String surveyPendingCount(int count);
+
+  /// Home card subtitle for surveys not filled in yet
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for your answers'**
+  String get surveyPendingSubtitle;
+
+  /// Survey screen title when the survey title is not known
+  ///
+  /// In en, this message translates to:
+  /// **'Survey'**
+  String get surveyTitleFallback;
+
+  /// Warning when required survey questions are unanswered
+  ///
+  /// In en, this message translates to:
+  /// **'Please answer all required questions'**
+  String get surveyAnswerAllRequired;
+
+  /// Error when survey answers fail to send
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t send your answers. Please try again.'**
+  String get surveySubmitError;
+
+  /// Title of the screen shown after a survey is submitted
+  ///
+  /// In en, this message translates to:
+  /// **'Thank you!'**
+  String get surveyThanksTitle;
+
+  /// Body of the screen shown after a survey is submitted
+  ///
+  /// In en, this message translates to:
+  /// **'Your answers have been received'**
+  String get surveyThanksBody;
+
+  /// Error state when survey questions fail to load
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load the questions'**
+  String get surveyQuestionsLoadError;
+
+  /// Empty state when a survey has no questions
+  ///
+  /// In en, this message translates to:
+  /// **'No questions found'**
+  String get surveyNoQuestions;
+
+  /// Notice under a survey the student already answered
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ve already completed this survey'**
+  String get surveyAlreadyCompleted;
+
+  /// Button that sends survey answers
+  ///
+  /// In en, this message translates to:
+  /// **'Submit'**
+  String get surveySubmit;
+
+  /// Marker under a required survey question
+  ///
+  /// In en, this message translates to:
+  /// **'Required'**
+  String get surveyRequired;
+
+  /// Hint in an email answer field
+  ///
+  /// In en, this message translates to:
+  /// **'example@mail.com'**
+  String get surveyEmailHint;
+
+  /// Hint in a number answer field
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a number'**
+  String get surveyNumberHint;
+
+  /// Hint in a long text answer field
+  ///
+  /// In en, this message translates to:
+  /// **'Write in detail...'**
+  String get surveyLongTextHint;
+
+  /// Hint in a short text answer field
+  ///
+  /// In en, this message translates to:
+  /// **'Write your answer...'**
+  String get surveyTextHint;
+
+  /// Placeholder in a date answer field before a date is picked
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a date'**
+  String get surveyPickDate;
 }
 
 class _AppLocalizationsDelegate

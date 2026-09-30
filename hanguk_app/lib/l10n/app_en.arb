@@ -2572,5 +2572,115 @@
   "catalogStep11": "Visa application",
   "@catalogStep11": {
     "description": "Admission timeline step 11 of the guideline template (etap_raqam = 11)."
+  },
+  "surveysTitle": "Surveys",
+  "@surveysTitle": {
+    "description": "Title of the surveys list (HangulTag English line) and the Han orb menu item"
+  },
+  "surveysLoadError": "Couldn't load surveys",
+  "@surveysLoadError": {
+    "description": "Error state when the surveys list fails to load"
+  },
+  "surveysEmptyTitle": "No surveys yet",
+  "@surveysEmptyTitle": {
+    "description": "Empty state title on the surveys list"
+  },
+  "surveysEmptyBody": "New surveys will appear here",
+  "@surveysEmptyBody": {
+    "description": "Empty state body on the surveys list"
+  },
+  "surveyCompletedChip": "Completed",
+  "@surveyCompletedChip": {
+    "description": "Status chip on a survey the student has fully answered"
+  },
+  "surveyNewChip": "New",
+  "@surveyNewChip": {
+    "description": "Status chip on a survey the student has not started"
+  },
+  "surveyQuestionCount": "{count, plural, =1{1 question} other{{count} questions}}",
+  "@surveyQuestionCount": {
+    "description": "Number of questions in a survey, shown on the survey card",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "surveyFillCta": "Fill in →",
+  "@surveyFillCta": {
+    "description": "Call to action on an unfinished survey card"
+  },
+  "surveyPendingCount": "{count, plural, =1{1 survey} other{{count} surveys}}",
+  "@surveyPendingCount": {
+    "description": "Home card title when several surveys wait to be filled in",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "surveyPendingSubtitle": "Waiting for your answers",
+  "@surveyPendingSubtitle": {
+    "description": "Home card subtitle for surveys not filled in yet"
+  },
+  "surveyTitleFallback": "Survey",
+  "@surveyTitleFallback": {
+    "description": "Survey screen title when the survey title is not known"
+  },
+  "surveyAnswerAllRequired": "Please answer all required questions",
+  "@surveyAnswerAllRequired": {
+    "description": "Warning when required survey questions are unanswered"
+  },
+  "surveySubmitError": "Couldn't send your answers. Please try again.",
+  "@surveySubmitError": {
+    "description": "Error when survey answers fail to send"
+  },
+  "surveyThanksTitle": "Thank you!",
+  "@surveyThanksTitle": {
+    "description": "Title of the screen shown after a survey is submitted"
+  },
+  "surveyThanksBody": "Your answers have been received",
+  "@surveyThanksBody": {
+    "description": "Body of the screen shown after a survey is submitted"
+  },
+  "surveyQuestionsLoadError": "Couldn't load the questions",
+  "@surveyQuestionsLoadError": {
+    "description": "Error state when survey questions fail to load"
+  },
+  "surveyNoQuestions": "No questions found",
+  "@surveyNoQuestions": {
+    "description": "Empty state when a survey has no questions"
+  },
+  "surveyAlreadyCompleted": "You've already completed this survey",
+  "@surveyAlreadyCompleted": {
+    "description": "Notice under a survey the student already answered"
+  },
+  "surveySubmit": "Submit",
+  "@surveySubmit": {
+    "description": "Button that sends survey answers"
+  },
+  "surveyRequired": "Required",
+  "@surveyRequired": {
+    "description": "Marker under a required survey question"
+  },
+  "surveyEmailHint": "example@mail.com",
+  "@surveyEmailHint": {
+    "description": "Hint in an email answer field"
+  },
+  "surveyNumberHint": "Enter a number",
+  "@surveyNumberHint": {
+    "description": "Hint in a number answer field"
+  },
+  "surveyLongTextHint": "Write in detail...",
+  "@surveyLongTextHint": {
+    "description": "Hint in a long text answer field"
+  },
+  "surveyTextHint": "Write your answer...",
+  "@surveyTextHint": {
+    "description": "Hint in a short text answer field"
+  },
+  "surveyPickDate": "Pick a date",
+  "@surveyPickDate": {
+    "description": "Placeholder in a date answer field before a date is picked"
   }
 }

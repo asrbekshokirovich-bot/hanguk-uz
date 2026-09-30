@@ -2040,4 +2040,96 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get catalogStep11 => 'Visa application';
+
+  @override
+  String get surveysTitle => 'Surveys';
+
+  @override
+  String get surveysLoadError => 'Couldn\'t load surveys';
+
+  @override
+  String get surveysEmptyTitle => 'No surveys yet';
+
+  @override
+  String get surveysEmptyBody => 'New surveys will appear here';
+
+  @override
+  String get surveyCompletedChip => 'Completed';
+
+  @override
+  String get surveyNewChip => 'New';
+
+  @override
+  String surveyQuestionCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count questions',
+      one: '1 question',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get surveyFillCta => 'Fill in →';
+
+  @override
+  String surveyPendingCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count surveys',
+      one: '1 survey',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get surveyPendingSubtitle => 'Waiting for your answers';
+
+  @override
+  String get surveyTitleFallback => 'Survey';
+
+  @override
+  String get surveyAnswerAllRequired => 'Please answer all required questions';
+
+  @override
+  String get surveySubmitError =>
+      'Couldn\'t send your answers. Please try again.';
+
+  @override
+  String get surveyThanksTitle => 'Thank you!';
+
+  @override
+  String get surveyThanksBody => 'Your answers have been received';
+
+  @override
+  String get surveyQuestionsLoadError => 'Couldn\'t load the questions';
+
+  @override
+  String get surveyNoQuestions => 'No questions found';
+
+  @override
+  String get surveyAlreadyCompleted => 'You\'ve already completed this survey';
+
+  @override
+  String get surveySubmit => 'Submit';
+
+  @override
+  String get surveyRequired => 'Required';
+
+  @override
+  String get surveyEmailHint => 'example@mail.com';
+
+  @override
+  String get surveyNumberHint => 'Enter a number';
+
+  @override
+  String get surveyLongTextHint => 'Write in detail...';
+
+  @override
+  String get surveyTextHint => 'Write your answer...';
+
+  @override
+  String get surveyPickDate => 'Pick a date';
 }

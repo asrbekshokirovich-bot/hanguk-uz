@@ -1978,4 +1978,93 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get catalogStep11 => '비자 신청';
+
+  @override
+  String get surveysTitle => '설문조사';
+
+  @override
+  String get surveysLoadError => '설문조사를 불러오지 못했습니다';
+
+  @override
+  String get surveysEmptyTitle => '아직 설문조사가 없습니다';
+
+  @override
+  String get surveysEmptyBody => '새 설문조사가 여기에 표시됩니다';
+
+  @override
+  String get surveyCompletedChip => '완료';
+
+  @override
+  String get surveyNewChip => '새 설문';
+
+  @override
+  String surveyQuestionCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '질문 $count개',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get surveyFillCta => '작성하기 →';
+
+  @override
+  String surveyPendingCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '설문조사 $count개',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get surveyPendingSubtitle => '답변을 기다리고 있어요';
+
+  @override
+  String get surveyTitleFallback => '설문조사';
+
+  @override
+  String get surveyAnswerAllRequired => '필수 질문에 모두 답해 주세요';
+
+  @override
+  String get surveySubmitError => '답변을 보내지 못했습니다. 다시 시도해 주세요.';
+
+  @override
+  String get surveyThanksTitle => '감사합니다!';
+
+  @override
+  String get surveyThanksBody => '답변이 접수되었습니다';
+
+  @override
+  String get surveyQuestionsLoadError => '질문을 불러오지 못했습니다';
+
+  @override
+  String get surveyNoQuestions => '질문이 없습니다';
+
+  @override
+  String get surveyAlreadyCompleted => '이미 이 설문조사를 완료했습니다';
+
+  @override
+  String get surveySubmit => '제출';
+
+  @override
+  String get surveyRequired => '필수';
+
+  @override
+  String get surveyEmailHint => 'example@mail.com';
+
+  @override
+  String get surveyNumberHint => '숫자를 입력하세요';
+
+  @override
+  String get surveyLongTextHint => '자세히 작성해 주세요...';
+
+  @override
+  String get surveyTextHint => '답변을 입력하세요...';
+
+  @override
+  String get surveyPickDate => '날짜를 선택하세요';
 }

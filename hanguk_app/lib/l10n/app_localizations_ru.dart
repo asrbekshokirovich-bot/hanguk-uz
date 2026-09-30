@@ -2047,4 +2047,100 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get catalogStep11 => 'Подача документов на визу';
+
+  @override
+  String get surveysTitle => 'Опросы';
+
+  @override
+  String get surveysLoadError => 'Не удалось загрузить опросы';
+
+  @override
+  String get surveysEmptyTitle => 'Опросов пока нет';
+
+  @override
+  String get surveysEmptyBody => 'Новые опросы появятся здесь';
+
+  @override
+  String get surveyCompletedChip => 'Пройден';
+
+  @override
+  String get surveyNewChip => 'Новый';
+
+  @override
+  String surveyQuestionCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count вопроса',
+      many: '$count вопросов',
+      few: '$count вопроса',
+      one: '$count вопрос',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get surveyFillCta => 'Пройти →';
+
+  @override
+  String surveyPendingCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count опроса',
+      many: '$count опросов',
+      few: '$count опроса',
+      one: '$count опрос',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get surveyPendingSubtitle => 'Ждут ваших ответов';
+
+  @override
+  String get surveyTitleFallback => 'Опрос';
+
+  @override
+  String get surveyAnswerAllRequired => 'Ответьте на все обязательные вопросы';
+
+  @override
+  String get surveySubmitError =>
+      'Не удалось отправить ответы. Попробуйте ещё раз.';
+
+  @override
+  String get surveyThanksTitle => 'Спасибо!';
+
+  @override
+  String get surveyThanksBody => 'Ваши ответы получены';
+
+  @override
+  String get surveyQuestionsLoadError => 'Не удалось загрузить вопросы';
+
+  @override
+  String get surveyNoQuestions => 'Вопросов нет';
+
+  @override
+  String get surveyAlreadyCompleted => 'Вы уже прошли этот опрос';
+
+  @override
+  String get surveySubmit => 'Отправить';
+
+  @override
+  String get surveyRequired => 'Обязательно';
+
+  @override
+  String get surveyEmailHint => 'primer@mail.com';
+
+  @override
+  String get surveyNumberHint => 'Введите число';
+
+  @override
+  String get surveyLongTextHint => 'Напишите подробно...';
+
+  @override
+  String get surveyTextHint => 'Напишите ваш ответ...';
+
+  @override
+  String get surveyPickDate => 'Выберите дату';
 }

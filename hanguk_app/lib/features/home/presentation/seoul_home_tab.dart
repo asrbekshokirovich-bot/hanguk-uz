@@ -12,6 +12,7 @@ import '../../documents/data/documents_repository.dart';
 import '../../documents/domain/document.dart';
 import '../../documents/domain/document_type.dart';
 import '../../surveys/data/survey_repository.dart';
+import '../../surveys/domain/survey_text.dart';
 import '../../uni_db/data/notification_store.dart';
 
 /// Length of the application pipeline.
@@ -802,6 +803,8 @@ class _SurveyBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    final lang = Localizations.localeOf(context).languageCode;
     return surveys.when(
       loading: () => const SizedBox.shrink(),
       error: (_, _) => const SizedBox.shrink(),
@@ -823,13 +826,13 @@ class _SurveyBanner extends StatelessWidget {
                     children: [
                       Text(
                         pending.length == 1
-                            ? pending.first.title
-                            : "${pending.length} ta so'rovnoma",
+                            ? surveyText(pending.first.titleTranslations, pending.first.title, lang)
+                            : l.surveyPendingCount(pending.length),
                         style: SeoulType.subtitle,
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        "To'ldirish kutilmoqda",
+                        l.surveyPendingSubtitle,
                         style: SeoulType.caption,
                       ),
                     ],

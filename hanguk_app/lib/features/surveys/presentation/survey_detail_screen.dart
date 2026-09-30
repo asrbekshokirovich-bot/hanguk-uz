@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../design_system/seoul_night/seoul_night.dart';
+import '../../../l10n/app_localizations.dart';
 import '../data/survey_repository.dart';
+import '../domain/survey_text.dart';
 
 /// True when an answer actually carries a value. A field the student typed
 /// into and then cleared leaves an empty string behind, which must not pass
@@ -61,7 +63,7 @@ class _SurveyDetailScreenState extends ConsumerState<SurveyDetailScreen> {
 
   Future<void> _submit(List<SurveyQuestion> questions) async {
     if (questions.any((q) => q.isRequired && !_isAnswered(q))) {
-      _warn('Barcha majburiy savollarga javob bering');
+      _warn(AppLocalizations.of(context)!.surveyAnswerAllRequired);
       return;
     }
 
@@ -86,13 +88,13 @@ class _SurveyDetailScreenState extends ConsumerState<SurveyDetailScreen> {
           _submitting = false;
         });
       }
-    } catch (e) {
+    } catch (_) {
       if (mounted) {
         setState(() => _submitting = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Xatolik yuz berdi: $e',
+              AppLocalizations.of(context)!.surveySubmitError,
               style: SeoulType.body.copyWith(color: SeoulColors.textPrimary),
             ),
             backgroundColor: SeoulColors.danger,
@@ -104,6 +106,7 @@ class _SurveyDetailScreenState extends ConsumerState<SurveyDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final questionsAsync =
         ref.watch(surveyQuestionsProvider(widget.surveyId));
 
@@ -122,16 +125,16 @@ class _SurveyDetailScreenState extends ConsumerState<SurveyDetailScreen> {
           },
         ),
         title: Text(
-          widget.surveyTitle ?? "So'rovnoma",
+          widget.surveyTitle ?? l.surveyTitleFallback,
           style: SeoulType.subtitle,
           overflow: TextOverflow.ellipsis,
         ),
       ),
-      body: _submitted ? _buildSuccess() : _buildQuestions(questionsAsync),
+      body: _submitted ? _buildSuccess(l) : _buildQuestions(l, questionsAsync),
     );
   }
 
-  Widget _buildSuccess() {
+  Widget _buildSuccess(AppLocalizations l) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(SeoulSizes.screenPadding),
@@ -140,16 +143,16 @@ class _SurveyDetailScreenState extends ConsumerState<SurveyDetailScreen> {
           children: [
             const HangulGlyphTile(glyph: '감', size: 56),
             const SizedBox(height: 18),
-            Text('Rahmat!', style: SeoulType.title),
+            Text(l.surveyThanksTitle, style: SeoulType.title),
             const SizedBox(height: 8),
             Text(
-              "Javoblaringiz qabul qilindi",
+              l.surveyThanksBody,
               style: SeoulType.bodySecondary,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
             SeoulOutlineButton(
-              label: 'Orqaga',
+              label: l.a11yTooltipBack,
               expand: false,
               onPressed: () {
                 if (Navigator.of(context).canPop()) {
@@ -165,7 +168,10 @@ class _SurveyDetailScreenState extends ConsumerState<SurveyDetailScreen> {
     );
   }
 
-  Widget _buildQuestions(AsyncValue<List<SurveyQuestion>> questionsAsync) {
+  Widget _buildQuestions(
+    AppLocalizations l,
+    AsyncValue<List<SurveyQuestion>> questionsAsync,
+  ) {
     return questionsAsync.when(
       loading: () => const Center(
         child: CircularProgressIndicator(color: SeoulColors.lime),
@@ -177,12 +183,12 @@ class _SurveyDetailScreenState extends ConsumerState<SurveyDetailScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'Savollarni yuklashda xatolik',
+                l.surveyQuestionsLoadError,
                 style: SeoulType.body,
               ),
               const SizedBox(height: 16),
               SeoulOutlineButton(
-                label: 'Qayta urinish',
+                label: l.commonRetry,
                 expand: false,
                 onPressed: () => ref.invalidate(
                   surveyQuestionsProvider(widget.surveyId),
@@ -195,7 +201,7 @@ class _SurveyDetailScreenState extends ConsumerState<SurveyDetailScreen> {
       data: (questions) {
         if (questions.isEmpty) {
           return Center(
-            child: Text('Savollar topilmadi', style: SeoulType.bodySecondary),
+            child: Text(l.surveyNoQuestions, style: SeoulType.bodySecondary),
           );
         }
 
@@ -219,14 +225,14 @@ class _SurveyDetailScreenState extends ConsumerState<SurveyDetailScreen> {
                   child: Center(
                     child: Column(
                       children: [
-                        const StatusChip(
-                          label: 'Bajarilgan',
+                        StatusChip(
+                          label: l.surveyCompletedChip,
                           tone: StatusTone.success,
                           ko: '완료',
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          "Siz bu so'rovnomani allaqachon to'ldirdingiz",
+                          l.surveyAlreadyCompleted,
                           style: SeoulType.bodySecondary,
                           textAlign: TextAlign.center,
                         ),
@@ -238,7 +244,7 @@ class _SurveyDetailScreenState extends ConsumerState<SurveyDetailScreen> {
               return Padding(
                 padding: const EdgeInsets.only(top: 24),
                 child: LimeButton(
-                  label: 'Yuborish',
+                  label: l.surveySubmit,
                   loading: _submitting,
                   onPressed:
                       allAnswered ? () => _submit(questions) : null,
@@ -280,6 +286,8 @@ class _QuestionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    final lang = Localizations.localeOf(context).languageCode;
     return GlassCard(
       blur: false,
       child: Column(
@@ -297,9 +305,16 @@ class _QuestionCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(question.questionText, style: SeoulType.subtitle),
+                    Text(
+                      surveyText(
+                        question.questionTextTranslations,
+                        question.questionText,
+                        lang,
+                      ),
+                      style: SeoulType.subtitle,
+                    ),
                     if (question.isRequired)
-                      Text('Majburiy', style: SeoulType.caption.copyWith(
+                      Text(l.surveyRequired, style: SeoulType.caption.copyWith(
                         color: SeoulColors.lime,
                       )),
                   ],
@@ -308,28 +323,33 @@ class _QuestionCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          _buildInput(),
+          _buildInput(l, lang),
         ],
       ),
     );
   }
 
-  Widget _buildInput() {
+  /// Label for an option; the Uzbek [option] itself stays the stored value.
+  String _optionLabel(String option, String lang) =>
+      surveyText(question.optionTranslations[option], option, lang);
+
+  Widget _buildInput(AppLocalizations l, String lang) {
     switch (question.questionType) {
       case 'single_choice':
-        return _buildSingleChoice();
+        return _buildSingleChoice(lang);
       case 'multiple_choice':
-        return _buildMultipleChoice();
+        return _buildMultipleChoice(lang);
       case 'rating':
         return _buildRating();
       case 'date':
         return _DateAnswerField(
           value: currentAnswer is String ? currentAnswer as String : null,
+          placeholder: l.surveyPickDate,
           onChanged: onChanged,
         );
       case 'email':
         return _buildTextInput(
-          hint: 'misol@mail.com',
+          hint: l.surveyEmailHint,
           keyboardType: TextInputType.emailAddress,
           maxLines: 1,
         );
@@ -341,19 +361,19 @@ class _QuestionCard extends StatelessWidget {
         );
       case 'number':
         return _buildTextInput(
-          hint: 'Raqam kiriting',
+          hint: l.surveyNumberHint,
           keyboardType: TextInputType.number,
           maxLines: 1,
         );
       case 'long_text':
-        return _buildTextInput(hint: 'Batafsil yozing...', maxLines: 6);
+        return _buildTextInput(hint: l.surveyLongTextHint, maxLines: 6);
       case 'text':
       default:
-        return _buildTextInput(hint: 'Javobingizni yozing...', maxLines: 3);
+        return _buildTextInput(hint: l.surveyTextHint, maxLines: 3);
     }
   }
 
-  Widget _buildSingleChoice() {
+  Widget _buildSingleChoice(String lang) {
     final options = question.options ?? [];
     final selected = currentAnswer is String ? currentAnswer as String : null;
 
@@ -381,7 +401,7 @@ class _QuestionCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 10),
                 Expanded(
-                  child: Text(option, style: SeoulType.body),
+                  child: Text(_optionLabel(option, lang), style: SeoulType.body),
                 ),
               ],
             ),
@@ -391,7 +411,7 @@ class _QuestionCard extends StatelessWidget {
     );
   }
 
-  Widget _buildMultipleChoice() {
+  Widget _buildMultipleChoice(String lang) {
     final options = question.options ?? [];
     List<String> selected = [];
     if (currentAnswer is List) {
@@ -430,7 +450,7 @@ class _QuestionCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 10),
                 Expanded(
-                  child: Text(option, style: SeoulType.body),
+                  child: Text(_optionLabel(option, lang), style: SeoulType.body),
                 ),
               ],
             ),
@@ -549,9 +569,14 @@ class _TextAnswerFieldState extends State<_TextAnswerField> {
 }
 
 class _DateAnswerField extends StatelessWidget {
-  const _DateAnswerField({required this.value, required this.onChanged});
+  const _DateAnswerField({
+    required this.value,
+    required this.placeholder,
+    required this.onChanged,
+  });
 
   final String? value;
+  final String placeholder;
   final ValueChanged<dynamic> onChanged;
 
   @override
@@ -588,7 +613,7 @@ class _DateAnswerField extends StatelessWidget {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              parsed != null ? value! : 'Sanani tanlang',
+              parsed != null ? value! : placeholder,
               style: parsed != null ? SeoulType.body : SeoulType.bodySecondary,
             ),
           ),

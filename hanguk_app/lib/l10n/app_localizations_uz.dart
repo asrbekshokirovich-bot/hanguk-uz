@@ -2053,4 +2053,96 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get catalogStep11 => 'Vizaga hujjat topshirish';
+
+  @override
+  String get surveysTitle => 'So‘rovnomalar';
+
+  @override
+  String get surveysLoadError => 'So‘rovnomalarni yuklab bo‘lmadi';
+
+  @override
+  String get surveysEmptyTitle => 'Hozircha so‘rovnomalar yo‘q';
+
+  @override
+  String get surveysEmptyBody => 'Yangi so‘rovnomalar shu yerda paydo bo‘ladi';
+
+  @override
+  String get surveyCompletedChip => 'Bajarildi';
+
+  @override
+  String get surveyNewChip => 'Yangi';
+
+  @override
+  String surveyQuestionCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ta savol',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get surveyFillCta => 'To‘ldirish →';
+
+  @override
+  String surveyPendingCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ta so‘rovnoma',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get surveyPendingSubtitle => 'Javoblaringizni kutmoqda';
+
+  @override
+  String get surveyTitleFallback => 'So‘rovnoma';
+
+  @override
+  String get surveyAnswerAllRequired =>
+      'Barcha majburiy savollarga javob bering';
+
+  @override
+  String get surveySubmitError =>
+      'Javoblarni yuborib bo‘lmadi. Qayta urinib ko‘ring.';
+
+  @override
+  String get surveyThanksTitle => 'Rahmat!';
+
+  @override
+  String get surveyThanksBody => 'Javoblaringiz qabul qilindi';
+
+  @override
+  String get surveyQuestionsLoadError => 'Savollarni yuklab bo‘lmadi';
+
+  @override
+  String get surveyNoQuestions => 'Savollar topilmadi';
+
+  @override
+  String get surveyAlreadyCompleted =>
+      'Siz bu so‘rovnomani allaqachon to‘ldirgansiz';
+
+  @override
+  String get surveySubmit => 'Yuborish';
+
+  @override
+  String get surveyRequired => 'Majburiy';
+
+  @override
+  String get surveyEmailHint => 'misol@mail.com';
+
+  @override
+  String get surveyNumberHint => 'Raqam kiriting';
+
+  @override
+  String get surveyLongTextHint => 'Batafsil yozing...';
+
+  @override
+  String get surveyTextHint => 'Javobingizni yozing...';
+
+  @override
+  String get surveyPickDate => 'Sanani tanlang';
 }
