@@ -9,7 +9,9 @@ import {
   institutionCode,
   languageBadges,
   matchesFilter,
+  matchesOperatorFilter,
   matchesSearch,
+  operatorCities,
 } from '../university-catalog/format';
 
 function guideline(over: Partial<GuidelineSummary> = {}): GuidelineSummary {
@@ -216,5 +218,42 @@ describe('matchesFilter', () => {
     hamkor.institution.is_partner = true;
     expect(matchesFilter(hamkor, 'hamkor')).toBe(true);
     expect(matchesFilter(withData, 'hamkor')).toBe(false);
+  });
+});
+
+describe('matchesOperatorFilter', () => {
+  const none = { topik: false, ielts: false, city: null };
+  const withData = entry();
+  const withoutData = entry({ guidelines: [], latest: null });
+
+  it('ma’lumotsiz universitet operatorga hech qachon chiqmaydi', () => {
+    expect(matchesOperatorFilter(withData, none)).toBe(true);
+    expect(matchesOperatorFilter(withoutData, none)).toBe(false);
+  });
+
+  it('TOPIK va IELTS birga yoqilsa ikkalasi ham bo‘lishi shart', () => {
+    const g = guideline({ english_track: false, ielts_min: null });
+    const faqatKorean = entry({ guidelines: [g], latest: g });
+    expect(matchesOperatorFilter(faqatKorean, { ...none, topik: true })).toBe(true);
+    expect(matchesOperatorFilter(faqatKorean, { ...none, ielts: true })).toBe(false);
+    expect(matchesOperatorFilter(faqatKorean, { ...none, topik: true, ielts: true })).toBe(false);
+  });
+
+  it('shahar asosiy shahar bo‘yicha solishtiriladi', () => {
+    expect(matchesOperatorFilter(withData, { ...none, city: 'Jeonju' })).toBe(true);
+    expect(matchesOperatorFilter(withData, { ...none, city: 'Seoul' })).toBe(false);
+  });
+});
+
+describe('operatorCities', () => {
+  it('faqat ma’lumotli universitetlarning shaharlari, takrorsiz va tartibda', () => {
+    const seoul = guideline({ id: 'g2', institution_id: 'i2', shahar: 'Seoul' });
+    const list = [
+      entry(),
+      entry({ guidelines: [seoul], latest: seoul }),
+      entry(),
+      entry({ guidelines: [], latest: null }),
+    ];
+    expect(operatorCities(list)).toEqual(['Jeonju', 'Seoul']);
   });
 });

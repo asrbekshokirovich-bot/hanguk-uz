@@ -147,3 +147,34 @@ export function matchesFilter(entry: CatalogEntry, filter: CatalogFilter): boole
       return true;
   }
 }
+
+/**
+ * Operator ko'rinishi (egasining qoidasi, 2026-10-01): operator faqat
+ * ma'lumotli universitetlarni ko'radi va ularni TOPIK, IELTS va shahar bo'yicha
+ * ajratadi. TOPIK va IELTS yoqilsa — ikkalasi ham bo'lishi shart; shahar —
+ * universitetning asosiy shahri (cityLabel).
+ */
+export interface OperatorFilter {
+  topik: boolean;
+  ielts: boolean;
+  city: string | null;
+}
+
+export function matchesOperatorFilter(entry: CatalogEntry, f: OperatorFilter): boolean {
+  if (entry.guidelines.length === 0) return false;
+  if (f.topik && !matchesFilter(entry, 'topik')) return false;
+  if (f.ielts && !matchesFilter(entry, 'ielts')) return false;
+  if (f.city && cityLabel(entry) !== f.city) return false;
+  return true;
+}
+
+/** Shahar ro'yxati: ma'lumotli universitetlarning asosiy shaharlari, alifbo tartibida. */
+export function operatorCities(entries: CatalogEntry[]): string[] {
+  const cities = new Set<string>();
+  for (const e of entries) {
+    if (e.guidelines.length === 0) continue;
+    const city = cityLabel(e);
+    if (city) cities.add(city);
+  }
+  return [...cities].sort((a, b) => a.localeCompare(b));
+}
