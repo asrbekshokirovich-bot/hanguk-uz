@@ -114,6 +114,8 @@ export function useUniversityCatalog() {
           'id, name_ko, name_en, name_ko_short, city_ko, region_code, primary_domain,' +
             ' institution_type, tier, is_partner, logo_url, primary_admissions_url_ko',
         )
+        // Yopilgan / qo'shilgan / xorijiy talaba qabul qilmaydiganlar katalogda ko'rinmaydi.
+        .eq('is_active', true)
         .order('name_ko', { ascending: true });
       if (error) throw new Error(error.message);
       return (data ?? []) as unknown as CatalogInstitution[];
