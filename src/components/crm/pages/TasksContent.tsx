@@ -45,6 +45,10 @@ function ProgressRing({ percent }: { percent: number }) {
   );
 }
 
+// Staff who keep their role but are not offered in "Kimga" (owner, 2026-10-01):
+// Mukhsin.
+const HIDDEN_FROM_ASSIGNEES = new Set(['86de4b1e-c111-4a04-b38c-e3167f0f3096']);
+
 export default function TasksContent() {
   const { t } = useTranslation();
   const { toast } = useToast();
@@ -90,7 +94,9 @@ export default function TasksContent() {
       const { data: roles } = await supabase.from('user_roles').select('user_id');
 
       if (roles) {
-        const userIds = [...new Set(roles.map((r) => r.user_id))];
+        const userIds = [...new Set(roles.map((r) => r.user_id))].filter(
+          (id) => !HIDDEN_FROM_ASSIGNEES.has(id),
+        );
         const profiles: (Tables<'profiles'> & { user_id: string })[] = [];
 
         for (const userId of userIds) {
