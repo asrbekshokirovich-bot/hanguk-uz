@@ -48,7 +48,13 @@ import {
 } from 'lucide-react';
 import { UniversityCard } from './university-catalog/UniversityCard';
 import { GuidelineDetailSheet } from './university-catalog/GuidelineDetailSheet';
-import { matchesFilter, matchesSearch, type CatalogFilter } from './university-catalog/format';
+import {
+  matchesFilter,
+  matchesOperatorFilter,
+  matchesSearch,
+  operatorCities,
+  type CatalogFilter,
+} from './university-catalog/format';
 
 const PAGE_SIZE = 48;
 
@@ -59,6 +65,9 @@ const FILTERS: { key: CatalogFilter; label: string }[] = [
   { key: 'ielts', label: 'IELTS' },
   { key: 'hamkor', label: 'Hamkor' },
 ];
+
+/** Shahar tanlanmagan holat (Radix Select bo'sh qiymatni qabul qilmaydi). */
+const ALL_CITIES = '__all__';
 
 const INSTITUTION_TYPES = [
   { value: 'private', label: 'Xususiy' },
@@ -100,13 +109,19 @@ export default function UniversityCatalogContent() {
   // Excel yuklash, shablon va universitet qo'shish — hujjatchilar ham qila
   // oladi (useUserRole'da isDocumentHandler admin'ni ham qamrab oladi).
   // Bazada bu qoida can_edit_university_catalog() funksiyasida takrorlangan.
-  const { isDocumentHandler: canEdit } = useUserRole();
+  const { isDocumentHandler: canEdit, isCallOperator } = useUserRole();
+  // Operator (admin ham, hujjatchi ham emas) faqat ma'lumotli universitetlarni
+  // ko'radi va TOPIK, IELTS, shahar bo'yicha ajratadi (egasi, 2026-10-01).
+  const operatorView = isCallOperator && !canEdit;
   const { entries, loading, error, refetch } = useUniversityCatalog();
   const importGuideline = useGuidelineImport();
   const addInstitution = useAddInstitution();
 
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<CatalogFilter>('hammasi');
+  const [opTopik, setOpTopik] = useState(false);
+  const [opIelts, setOpIelts] = useState(false);
+  const [opCity, setOpCity] = useState<string | null>(null);
   const [visible, setVisible] = useState(PAGE_SIZE);
   // Tanlangan universitet id bo'yicha saqlanadi: Excel yuklangandan keyin
   // ro'yxat yangilanadi va panel o'sha zahoti yangi ma'lumotni ko'rsatadi.
@@ -123,11 +138,18 @@ export default function UniversityCatalogContent() {
   const uploadTarget = useRef<{ institutionId: string | null; daraja: UploadDaraja } | null>(null);
 
   const filtered = useMemo(
-    () => entries.filter((e) => matchesFilter(e, filter) && matchesSearch(e, search)),
-    [entries, filter, search],
+    () =>
+      entries.filter(
+        (e) =>
+          (operatorView
+            ? matchesOperatorFilter(e, { topik: opTopik, ielts: opIelts, city: opCity })
+            : matchesFilter(e, filter)) && matchesSearch(e, search),
+      ),
+    [entries, filter, search, operatorView, opTopik, opIelts, opCity],
   );
 
   const withData = useMemo(() => entries.filter((e) => e.guidelines.length > 0).length, [entries]);
+  const cities = useMemo(() => operatorCities(entries), [entries]);
 
   const selected = useMemo(
     () => entries.find((e) => e.institution.id === selectedId) ?? null,
@@ -250,10 +272,14 @@ export default function UniversityCatalogContent() {
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <GraduationCap className="h-4 w-4" aria-hidden="true" />
-          <span>
-            {entries.length} universitet
-            {withData > 0 && ` · ${withData} tasida ma'lumot bor`}
-          </span>
+          {operatorView ? (
+            <span>{withData} universitet</span>
+          ) : (
+            <span>
+              {entries.length} universitet
+              {withData > 0 && ` · ${withData} tasida ma'lumot bor`}
+            </span>
+          )}
         </div>
 
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center lg:justify-end">
@@ -299,21 +325,72 @@ export default function UniversityCatalogContent() {
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-1.5">
-        {FILTERS.map((f) => (
+      {operatorView ? (
+        <div className="flex flex-wrap items-center gap-1.5">
           <Button
-            key={f.key}
-            variant={filter === f.key ? 'default' : 'outline'}
+            variant={opTopik ? 'default' : 'outline'}
             size="sm"
+            aria-pressed={opTopik}
             onClick={() => {
-              setFilter(f.key);
+              setOpTopik((v) => !v);
               resetPaging();
             }}
           >
-            {f.label}
+            TOPIK
           </Button>
-        ))}
-      </div>
+          <Button
+            variant={opIelts ? 'default' : 'outline'}
+            size="sm"
+            aria-pressed={opIelts}
+            onClick={() => {
+              setOpIelts((v) => !v);
+              resetPaging();
+            }}
+          >
+            IELTS
+          </Button>
+          <div className="flex items-center gap-2 sm:ml-2">
+            <Label htmlFor="catalog-city" className="text-sm font-normal text-muted-foreground">
+              Shahar:
+            </Label>
+            <Select
+              value={opCity ?? ALL_CITIES}
+              onValueChange={(v) => {
+                setOpCity(v === ALL_CITIES ? null : v);
+                resetPaging();
+              }}
+            >
+              <SelectTrigger id="catalog-city" className="h-9 w-44">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL_CITIES}>Hammasi</SelectItem>
+                {cities.map((c) => (
+                  <SelectItem key={c} value={c}>
+                    {c}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      ) : (
+        <div className="flex flex-wrap gap-1.5">
+          {FILTERS.map((f) => (
+            <Button
+              key={f.key}
+              variant={filter === f.key ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => {
+                setFilter(f.key);
+                resetPaging();
+              }}
+            >
+              {f.label}
+            </Button>
+          ))}
+        </div>
+      )}
 
       {loading ? (
         <div className="flex items-center justify-center py-16">
