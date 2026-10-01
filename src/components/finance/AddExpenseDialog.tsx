@@ -24,24 +24,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { formatAmount } from '@/hooks/useStudentPlan';
+import { EXPENSE_CATEGORIES } from './expenseCategories';
 
 interface AddExpenseDialogProps {
   onSuccess: () => void;
   trigger?: React.ReactNode;
 }
-
-const EXPENSE_CATEGORIES = [
-  { value: 'marketing', label: 'Marketing' },
-  { value: 'salary', label: 'Salary' },
-  { value: 'rent', label: 'Rent' },
-  { value: 'utilities', label: 'Utilities' },
-  { value: 'equipment', label: 'Equipment' },
-  { value: 'software', label: 'Software/Services' },
-  { value: 'travel', label: 'Travel' },
-  { value: 'office', label: 'Office Supplies' },
-  { value: 'other', label: 'Other' },
-  // Note: 'gateway_fee' is excluded as it's auto-generated when recording payments
-];
 
 const PAYMENT_METHODS = [
   { value: 'cash', label: 'Cash' },
@@ -59,8 +47,8 @@ export function AddExpenseDialog({ onSuccess, trigger }: AddExpenseDialogProps) 
   const [loading, setLoading] = useState(false);
 
   const [form, setForm] = useState({
-    category: 'other',
-    description: '',
+    // No category until one is chosen, so nothing lands in the wrong one.
+    category: '',
     amount: '',
     currency: 'UZS',
     payment_method: 'cash',
@@ -71,7 +59,7 @@ export function AddExpenseDialog({ onSuccess, trigger }: AddExpenseDialogProps) 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.amount || !form.description) return;
+    if (!form.amount || !form.category) return;
 
     setLoading(true);
 
@@ -83,7 +71,9 @@ export function AddExpenseDialog({ onSuccess, trigger }: AddExpenseDialogProps) 
         .from('expenses' as any)
         .insert({
           category: form.category,
-          description: form.description,
+          // The description field was removed (owner, 2026-10-01); the column
+          // is NOT NULL, so an empty text is stored.
+          description: '',
           amount,
           currency: form.currency,
           payment_method: form.payment_method,
@@ -99,8 +89,7 @@ export function AddExpenseDialog({ onSuccess, trigger }: AddExpenseDialogProps) 
 
       setOpen(false);
       setForm({
-        category: 'other',
-        description: '',
+        category: '',
         amount: '',
         currency: 'UZS',
         payment_method: 'cash',
@@ -143,7 +132,7 @@ export function AddExpenseDialog({ onSuccess, trigger }: AddExpenseDialogProps) 
               onValueChange={(v) => setForm({ ...form, category: v })}
             >
               <SelectTrigger>
-                <SelectValue />
+                <SelectValue placeholder="Kategoriyani tanlang" />
               </SelectTrigger>
               <SelectContent>
                 {EXPENSE_CATEGORIES.map((cat) => (
@@ -153,17 +142,6 @@ export function AddExpenseDialog({ onSuccess, trigger }: AddExpenseDialogProps) 
                 ))}
               </SelectContent>
             </Select>
-          </div>
-
-          {/* Description */}
-          <div className="space-y-2">
-            <Label>Tavsif</Label>
-            <Input
-              value={form.description}
-              onChange={(e) => setForm({ ...form, description: e.target.value })}
-              placeholder="Xarajat tavsifi..."
-              required
-            />
           </div>
 
           {/* Recipient */}
@@ -263,7 +241,7 @@ export function AddExpenseDialog({ onSuccess, trigger }: AddExpenseDialogProps) 
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               Bekor qilish
             </Button>
-            <Button type="submit" disabled={loading || !form.description || !form.amount}>
+            <Button type="submit" disabled={loading || !form.category || !form.amount}>
               {loading ? 'Saqlanmoqda...' : 'Saqlash'}
             </Button>
           </div>

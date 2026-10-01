@@ -21,6 +21,7 @@ import { Calendar, Pencil } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { formatAmount } from '@/hooks/useStudentPlan';
+import { EXPENSE_CATEGORIES, expenseCategoryLabel } from './expenseCategories';
 
 interface Transaction {
   id: string;
@@ -40,19 +41,6 @@ interface EditTransactionDialogProps {
   onSuccess: () => void;
 }
 
-const EXPENSE_CATEGORIES = [
-  { value: 'marketing', label: 'Marketing' },
-  { value: 'salary', label: 'Salary' },
-  { value: 'rent', label: 'Rent' },
-  { value: 'utilities', label: 'Utilities' },
-  { value: 'equipment', label: 'Equipment' },
-  { value: 'software', label: 'Software/Services' },
-  { value: 'travel', label: 'Travel' },
-  { value: 'office', label: 'Office Supplies' },
-  { value: 'gateway_fee', label: 'Gateway Fee' },
-  { value: 'other', label: 'Other' },
-];
-
 const PAYMENT_METHODS = [
   { value: 'cash', label: 'Cash' },
   { value: 'uzum', label: 'Uzum' },
@@ -70,7 +58,6 @@ export function EditTransactionDialog({
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
     category: transaction.category,
-    description: transaction.description,
     amount: String(transaction.amount),
     currency: transaction.currency,
     recipient: transaction.name,
@@ -80,7 +67,7 @@ export function EditTransactionDialog({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.amount || !form.description) return;
+    if (!form.amount) return;
 
     setLoading(true);
 
@@ -93,7 +80,6 @@ export function EditTransactionDialog({
           .from('expenses')
           .update({
             category: form.category,
-            description: form.description,
             amount,
             currency: form.currency,
             recipient: form.recipient || null,
@@ -119,6 +105,12 @@ export function EditTransactionDialog({
   };
 
   const isExpense = transaction.type === 'expense';
+  // An older expense keeps its own category (marketing, gateway_fee, …) in the
+  // list, so opening it does not show an empty select.
+  const categoryOptions =
+    !transaction.category || EXPENSE_CATEGORIES.some((c) => c.value === transaction.category)
+      ? EXPENSE_CATEGORIES
+      : [{ value: transaction.category, label: expenseCategoryLabel(transaction.category) }, ...EXPENSE_CATEGORIES];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -144,24 +136,13 @@ export function EditTransactionDialog({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {EXPENSE_CATEGORIES.map((cat) => (
+                    {categoryOptions.map((cat) => (
                       <SelectItem key={cat.value} value={cat.value}>
                         {cat.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
-
-              {/* Description */}
-              <div className="space-y-2">
-                <Label>Tavsif</Label>
-                <Input
-                  value={form.description}
-                  onChange={(e) => setForm({ ...form, description: e.target.value })}
-                  placeholder="Xarajat tavsifi..."
-                  required
-                />
               </div>
 
               {/* Recipient */}
@@ -239,7 +220,7 @@ export function EditTransactionDialog({
               Bekor qilish
             </Button>
             {isExpense && (
-              <Button type="submit" disabled={loading || !form.description || !form.amount}>
+              <Button type="submit" disabled={loading || !form.amount}>
                 {loading ? 'Saqlanmoqda...' : 'Saqlash'}
               </Button>
             )}
