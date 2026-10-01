@@ -49,6 +49,7 @@ const PAYMENT_METHODS = [
   { value: 'payme', label: 'Payme' },
   { value: 'click', label: 'Click' },
   { value: 'bank_transfer', label: 'Bank Transfer' },
+  { value: 'card', label: 'Card' },
 ];
 
 export function AddExpenseDialog({ onSuccess, trigger }: AddExpenseDialogProps) {
