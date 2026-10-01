@@ -1,5 +1,5 @@
 {
- "last_run": "2026-10-01T05:57:49+00:00",
+ "last_run": "2026-10-01T13:17:45+00:00",
  "seen": {
   "http://enter.konkuk.ac.kr/submenu.do?menuurl=k8b%2fCUaWlntKYwhT%2fh%2bKUA%3d%3d&": [],
   "https://adm-u.postech.ac.kr/": [
@@ -107,6 +107,7 @@
   ],
   "https://admission.kangwon.ac.kr/admission/selectBbsNttList.do?bbsNo=373": [],
   "https://admission.kentech.ac.kr/ipsi": [
+   "ca2893a8374e3941",
    "e366ef7792a7e791",
    "fde03b70c2020c4f",
    "9779ce288d91044e",
@@ -450,6 +451,8 @@
    "c7fd4204e3f71611"
   ],
   "https://ibsi.hannam.ac.kr/adms4/main/index_main.asp": [
+   "931d2f6218b292d5",
+   "a174247ea23dda8d",
    "9b318df99e1aab1d",
    "f73e49b2f63aa653",
    "3e6d2a463d34a732",
@@ -1062,6 +1065,7 @@
   ],
   "https://www.ctc.ac.kr/": [],
   "https://www.daelim.ac.kr/ent/index.do": [
+   "79c2d3312c643f97",
    "5e87b7bda0f795e0",
    "21bc1488cb06c0fe",
    "7c8073451a0ff839",
@@ -1071,6 +1075,8 @@
    "b6928cb84b4ddec9"
   ],
   "https://www.dankook.ac.kr/web/kor/-329": [
+   "8afcbe7ceae159ce",
+   "3b96aa3220975f4f",
    "5b6bf9ace4be5076"
   ],
   "https://www.dgist.ac.kr/gadm/": [],
