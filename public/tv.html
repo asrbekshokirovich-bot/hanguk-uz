@@ -1,0 +1,375 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Vazifalar ekrani</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0f1c; --bg2:#0f1729; --card:#17223b; --line:#23314f;
+  --text:#eef2fb; --soft:#c3cce0; --muted:#7f8cab;
+  --red:#ff5a5f; --red-bg:rgba(255,90,95,.14);
+  --amber:#ffb648; --amber-bg:rgba(255,182,72,.14);
+  --blue:#5ab0ff; --blue-bg:rgba(90,176,255,.14);
+  --green:#3ddc97; --green-bg:rgba(61,220,151,.14);
+}
+/* 1rem = 20px on a 1920x1080 screen, 10px on a 960x540 TV viewport */
+html{font-size:1.04vw;font-size:min(1.04vw,1.85vh)}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--text);overflow:hidden}
+body{font-family:Inter,Roboto,"Segoe UI",Arial,sans-serif;-webkit-font-smoothing:antialiased;cursor:none}
+#app{height:100%;display:flex;flex-direction:column;padding:1.5rem 1.6rem 1rem;
+  background:radial-gradient(ellipse at 10% -10%,rgba(90,176,255,.10),transparent 55%),
+             radial-gradient(ellipse at 95% 110%,rgba(205,46,58,.08),transparent 50%),var(--bg);
+  transition:transform 2s ease}
+
+/* header */
+header{display:flex;align-items:center;justify-content:space-between;padding-bottom:1.1rem;border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;min-width:0}
+.mark{width:2.6rem;height:2.6rem;border-radius:50%;flex:none;margin-right:1rem;
+  background:linear-gradient(180deg,#cd2e3a 50%,#2a6fd6 50%);box-shadow:0 0 0 .25rem rgba(255,255,255,.06)}
+.logo{font-weight:800;font-size:2.5rem;letter-spacing:.08em;line-height:1}
+.sub{font-size:1.5rem;color:var(--muted);font-weight:600;margin-left:1rem;line-height:1}
+.stats{display:flex;align-items:center}
+.st{display:flex;align-items:baseline;background:var(--bg2);border:1px solid var(--line);border-radius:.9rem;padding:.5rem 1rem;margin-left:.8rem}
+.st:first-child{margin-left:0}
+.st b{font-size:2rem;font-weight:800;font-variant-numeric:tabular-nums;margin-right:.55rem;line-height:1}
+.st span{font-size:1.05rem;color:var(--muted);font-weight:600}
+.st.red b{color:var(--red)} .st.amber b{color:var(--amber)} .st.green b{color:var(--green)}
+.when{text-align:right;flex:none}
+.clock{font-size:3.3rem;font-weight:700;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:.02em}
+.date{font-size:1.15rem;color:var(--muted);margin-top:.35rem;font-weight:600}
+
+/* columns */
+main{flex:1;display:flex;padding-top:1.2rem;min-height:0}
+.col{flex:1 1 0;min-width:0;display:flex;flex-direction:column;background:var(--bg2);border:1px solid var(--line);border-radius:1.1rem;overflow:hidden;margin-left:.8rem}
+.col:first-child{margin-left:0}
+.col.idle{flex-grow:.75}
+.bar{height:.3rem;flex:none}
+.col-h{display:flex;align-items:center;padding:.75rem .9rem .8rem;border-bottom:1px solid var(--line)}
+.nm{flex:1;min-width:0;font-size:1.55rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ct{flex:none;font-size:1.25rem;font-weight:800;color:var(--soft);background:var(--card);border-radius:2rem;padding:.15rem .75rem;font-variant-numeric:tabular-nums;margin-left:.5rem}
+.ct.red{color:#fff;background:var(--red)}
+.col-b{flex:1;min-height:0;overflow:hidden;padding:.7rem .6rem}
+.col-b.more{-webkit-mask-image:linear-gradient(to bottom,#000 86%,transparent);mask-image:linear-gradient(to bottom,#000 86%,transparent)}
+.in{transition:opacity .35s ease}
+.in.fade{opacity:0}
+
+.card{background:var(--card);border-radius:.8rem;padding:.7rem .75rem .65rem;margin-bottom:.65rem;border-left:.3rem solid #33456b}
+.card .t{font-size:1.25rem;line-height:1.26;font-weight:600;overflow:hidden;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;word-wrap:break-word;overflow-wrap:break-word}
+.card .m{margin-top:.5rem;line-height:1}
+.tag{display:inline-block;font-size:1rem;font-weight:700;padding:.3rem .55rem;border-radius:.45rem;background:rgba(255,255,255,.07);color:var(--soft);margin:0 .35rem .25rem 0;line-height:1}
+.tag.wip{color:var(--blue);background:var(--blue-bg)}
+.tag.hi{color:#ffd0d2;background:rgba(255,90,95,.24)}
+.card.wp{border-left-color:var(--blue)}
+.card.td{border-left-color:var(--amber)}
+.card.td .due{color:var(--amber);background:var(--amber-bg)}
+.card.od{border-left-color:var(--red);background:linear-gradient(90deg,var(--red-bg),rgba(255,90,95,0) 75%),var(--card)}
+.card.od .due{color:var(--red);background:var(--red-bg)}
+
+.empty{color:var(--muted);font-size:1.2rem;font-weight:600;text-align:center;padding:2.2rem .5rem 1.6rem}
+.empty b{display:block;font-size:2.4rem;color:var(--green);margin-bottom:.35rem;line-height:1}
+.done-h{font-size:1.05rem;color:var(--green);font-weight:700;margin:1rem .15rem .55rem}
+.card.dn{background:transparent;border:1px dashed var(--line);border-left:.3rem solid var(--green);opacity:.85}
+.card.dn .t{font-size:1.12rem;color:var(--soft);-webkit-line-clamp:2;text-decoration:line-through;text-decoration-color:rgba(61,220,151,.7)}
+.none{flex:1;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:1.6rem}
+
+/* footer */
+footer{display:flex;align-items:center;justify-content:space-between;padding-top:.85rem;font-size:1.02rem;color:var(--muted);font-weight:600}
+.lg{display:inline-block;margin-right:1.4rem}
+.sw{display:inline-block;width:.85rem;height:.85rem;border-radius:.22rem;margin-right:.45rem;vertical-align:-.05rem}
+.ok{color:var(--green);margin-right:.35rem}
+#pager i{display:inline-block;width:.6rem;height:.6rem;border-radius:50%;background:var(--line);margin:0 .25rem}
+#pager i.on{background:var(--soft)}
+.status .dot{display:inline-block;width:.7rem;height:.7rem;border-radius:50%;background:var(--green);margin-right:.5rem;vertical-align:.02rem}
+.status.bad{color:var(--red)}
+.status.bad .dot{background:var(--red)}
+
+#msg{position:fixed;top:0;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;text-align:center;background:var(--bg);padding:4rem;z-index:5}
+#msg h1{font-size:2.6rem;margin-bottom:1rem}
+#msg p{font-size:1.4rem;color:var(--soft);line-height:1.5}
+#msg code{font-family:inherit;color:var(--amber)}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="brand"><span class="mark"></span><span class="logo" id="logo">HANGUK</span><span class="sub">Vazifalar</span></div>
+    <div class="stats" id="stats"></div>
+    <div class="when"><div class="clock" id="clock">--:--</div><div class="date" id="date"></div></div>
+  </header>
+  <main id="cols"></main>
+  <footer>
+    <div>
+      <span class="lg"><i class="sw" style="background:var(--red)"></i>Kechikkan</span>
+      <span class="lg"><i class="sw" style="background:var(--amber)"></i>Muddati bugun</span>
+      <span class="lg"><i class="sw" style="background:var(--blue)"></i>Jarayonda</span>
+      <span class="lg"><b class="ok">&#10003;</b>Bugun bajarildi</span>
+    </div>
+    <div id="pager"></div>
+    <div id="status" class="status"><i class="dot"></i>Ulanmoqda&hellip;</div>
+  </footer>
+</div>
+<div id="msg" class="hidden"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  var API = 'https://zqpglkxbtpkvyraxquao.supabase.co/functions/v1/tv-board';
+  var REFRESH_MS = 30000;          // normal poll
+  var RETRY_MS = 10000;            // after a failed poll
+  var STALE_MS = 120000;           // show "no connection" after this
+  var RELOAD_MS = 6 * 3600 * 1000; // full page reload (picks up new versions)
+  var PAGE_MS = 20000;             // column page rotation when staff > MAX_COLS
+  var MAX_COLS = 7;
+  var TZ_MS = 5 * 3600 * 1000;     // Asia/Tashkent, independent of the TV's own timezone
+
+  var DAYS = ['Yakshanba', 'Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba'];
+  var MONTHS = ['yanvar', 'fevral', 'mart', 'aprel', 'may', 'iyun', 'iyul', 'avgust', 'sentabr', 'oktabr', 'noyabr', 'dekabr'];
+  var COLORS = ['#5ab0ff', '#ffb648', '#3ddc97', '#c792ff', '#ff7eb6', '#4fd8e0', '#f7d154', '#ff8a5c'];
+
+  var KEY = readKey();
+  var skew = 0, lastOk = 0, lastSig = '', data = null, page = 0, timer = null;
+  var startedAt = Date.now();
+
+  function $(id) { return document.getElementById(id); }
+
+  function readKey() {
+    var m = /[#&?]k=([A-Za-z0-9_-]+)/.exec(location.hash + '&' + location.search);
+    var k = m ? m[1] : null;
+    try {
+      if (k) localStorage.setItem('tv_key', k);
+      else k = localStorage.getItem('tv_key');
+    } catch (e) { /* storage may be disabled; the hash still works */ }
+    return k;
+  }
+
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function tk(ms) { return new Date(ms + TZ_MS); }   // read with getUTC*
+  function srvNow() { return Date.now() + skew; }
+  function hm(ms) { var d = tk(ms); return pad(d.getUTCHours()) + ':' + pad(d.getUTCMinutes()); }
+
+  // -- clock & status -------------------------------------------------
+  function tick() {
+    var d = tk(srvNow());
+    $('clock').textContent = pad(d.getUTCHours()) + ':' + pad(d.getUTCMinutes());
+    $('date').textContent = DAYS[d.getUTCDay()] + ', ' + d.getUTCDate() + '-' + MONTHS[d.getUTCMonth()];
+    status();
+  }
+
+  function status() {
+    var el = $('status');
+    if (!lastOk) { el.className = 'status'; el.innerHTML = '<i class="dot"></i>Ulanmoqda&hellip;'; return; }
+    if (Date.now() - lastOk > STALE_MS) {
+      el.className = 'status bad';
+      el.innerHTML = '<i class="dot"></i>Aloqa yo\u02bbq \u00b7 oxirgi ma\u02bclumot ' + hm(lastOk + skew);
+    } else {
+      el.className = 'status';
+      el.innerHTML = '<i class="dot"></i>Yangilandi ' + hm(lastOk + skew);
+    }
+  }
+
+  // -- data ---------------------------------------------------------
+  function schedule(ms) { clearTimeout(timer); timer = setTimeout(load, ms); }
+
+  function load() {
+    if (!KEY) { showMsg(keyMsg(false)); return; }
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', API + '?k=' + encodeURIComponent(KEY) + '&t=' + Date.now(), true);
+    xhr.timeout = 20000;
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState !== 4) return;
+      if (xhr.status === 401) { showMsg(keyMsg(true)); schedule(60000); return; }
+      if (xhr.status === 200) {
+        var d = null;
+        try { d = JSON.parse(xhr.responseText); } catch (e) { d = null; }
+        if (d && d.ok) { onData(d); schedule(REFRESH_MS); return; }
+      }
+      status();
+      schedule(RETRY_MS);
+    };
+    xhr.send();
+  }
+
+  function onData(d) {
+    var t = Date.parse(d.now);
+    if (!isNaN(t)) skew = t - Date.now();
+    lastOk = Date.now();
+    hideMsg();
+    data = d;
+    var sig = JSON.stringify([d.people, d.counts, d.title]);
+    if (sig !== lastSig) { lastSig = sig; render(); } else syncScroll(false);
+    tick();
+    if (Date.now() - startedAt > RELOAD_MS) location.reload();
+  }
+
+  // -- rendering ----------------------------------------------------
+  function dueLabel(t) {
+    if (typeof t.days !== 'number' || !t.due) return null;
+    if (t.days < 0) return { cls: 'od', text: (-t.days) + ' kun kechikdi' };
+    if (t.days === 0) return { cls: 'td', text: 'Bugun' };
+    if (t.days === 1) return { cls: '', text: 'Ertaga' };
+    var p = t.due.split('-');
+    var dt = new Date(Date.UTC(+p[0], +p[1] - 1, +p[2]));
+    if (t.days < 7) return { cls: '', text: DAYS[dt.getUTCDay()] };
+    return { cls: '', text: dt.getUTCDate() + '-' + MONTHS[dt.getUTCMonth()] };
+  }
+
+  function card(t) {
+    var d = dueLabel(t);
+    var cls = 'card' + (t.wip ? ' wp' : '') + (d && d.cls ? ' ' + d.cls : '');
+    var meta = '';
+    if (d) meta += '<span class="tag due">' + esc(d.text) + '</span>';
+    if (t.wip) meta += '<span class="tag wip">Jarayonda</span>';
+    if (t.hi) meta += '<span class="tag hi">Muhim</span>';
+    return '<div class="' + cls + '"><div class="t">' + esc(t.title) + '</div>' +
+      (meta ? '<div class="m">' + meta + '</div>' : '') + '</div>';
+  }
+
+  function column(p, i) {
+    var tasks = p.tasks || [], done = p.done || [], late = 0, j;
+    for (j = 0; j < tasks.length; j++) if (tasks[j].days < 0) late++;
+    var name = String(p.name || '');
+    var h = '<section class="col' + (tasks.length ? '' : ' idle') + '">' +
+      '<div class="bar" style="background:' + COLORS[i % COLORS.length] + '"></div><div class="col-h">' +
+      '<span class="nm">' + esc(name) + '</span>' +
+      '<span class="ct' + (late ? ' red' : '') + '">' + tasks.length + '</span></div>' +
+      '<div class="col-b"><div class="in">';
+    if (!tasks.length) h += '<div class="empty"><b>&#10003;</b>Ochiq vazifa yo\u02bbq</div>';
+    for (j = 0; j < tasks.length; j++) h += card(tasks[j]);
+    if (done.length) {
+      h += '<div class="done-h">&#10003; Bugun bajarildi \u00b7 ' + done.length + '</div>';
+      for (j = 0; j < done.length; j++) h += '<div class="card dn"><div class="t">' + esc(done[j].title) + '</div></div>';
+    }
+    return h + '</div></div></section>';
+  }
+
+  function stat(n, label, color) {
+    n = n || 0;
+    return '<div class="st' + (n && color ? ' ' + color : '') + '"><b>' + n + '</b><span>' + label + '</span></div>';
+  }
+
+  function pages(list) {
+    if (list.length <= MAX_COLS) return [list];
+    var n = Math.ceil(list.length / MAX_COLS), per = Math.ceil(list.length / n), out = [];
+    for (var i = 0; i < list.length; i += per) out.push(list.slice(i, i + per));
+    return out;
+  }
+
+  function render() {
+    if (!data) return;
+    var people = data.people || [];
+    var pg = pages(people);
+    if (page >= pg.length) page = 0;
+    var cur = pg[page] || [], html = '', i;
+    var offset = 0;
+    for (i = 0; i < page; i++) offset += pg[i].length;
+    for (i = 0; i < cur.length; i++) html += column(cur[i], offset + i);
+    $('cols').innerHTML = people.length ? html : '<div class="none">Xodimlar topilmadi</div>';
+
+    var c = data.counts || {};
+    $('stats').innerHTML =
+      stat(c.open, 'ochiq', '') +
+      stat(c.overdue, 'kechikkan', 'red') +
+      stat(c.today, 'muddati bugun', 'amber') +
+      stat(c.done, 'bugun bajarildi', 'green');
+
+    var dots = '';
+    if (pg.length > 1) for (i = 0; i < pg.length; i++) dots += '<i' + (i === page ? ' class="on"' : '') + '></i>';
+    $('pager').innerHTML = dots;
+    if (data.title) $('logo').textContent = data.title;
+    syncScroll(true);
+  }
+
+  // -- slow auto-scroll for columns that overflow ---------------------
+  // reset=true after a re-render; reset=false just re-checks which columns
+  // overflow (fonts finished loading, window resized) without restarting.
+  var scrollers = [];
+  function syncScroll(reset) {
+    var bodies = document.querySelectorAll('.col-b'), next = [];
+    for (var i = 0; i < bodies.length; i++) {
+      var b = bodies[i], s = null, j;
+      var over = b.scrollHeight - b.clientHeight > 4;
+      b.className = over ? 'col-b more' : 'col-b';
+      if (!over) { b.scrollTop = 0; continue; }
+      if (!reset) for (j = 0; j < scrollers.length; j++) if (scrollers[j].el === b) s = scrollers[j];
+      if (!s) { b.scrollTop = 0; s = { el: b, inner: b.firstChild, pos: 0, phase: 'hold', until: Date.now() + 6000 }; }
+      next.push(s);
+    }
+    scrollers = next;
+  }
+  setInterval(function () {
+    if (!scrollers.length) return;
+    var now = Date.now();
+    var step = parseFloat(getComputedStyle(document.documentElement).fontSize) * 0.05; // ~1.25rem per second
+    for (var i = 0; i < scrollers.length; i++) {
+      var s = scrollers[i], max = s.el.scrollHeight - s.el.clientHeight;
+      if (s.phase === 'hold') {
+        if (now >= s.until) s.phase = s.pos >= max ? 'back' : 'down';
+      } else if (s.phase === 'down') {
+        s.pos = Math.min(max, s.pos + step);
+        s.el.scrollTop = Math.round(s.pos);
+        if (s.pos >= max) { s.phase = 'hold'; s.until = now + 5000; }
+      } else if (s.phase === 'back') {
+        s.phase = 'wait';
+        (function (s) {
+          s.inner.className = 'in fade';
+          setTimeout(function () {
+            s.pos = 0; s.el.scrollTop = 0; s.inner.className = 'in';
+            s.phase = 'hold'; s.until = Date.now() + 6000;
+          }, 400);
+        })(s);
+      }
+    }
+  }, 40);
+
+  // -- messages -----------------------------------------------------
+  function keyMsg(bad) {
+    return '<div><h1>' + (bad ? 'Ekran kaliti noto\u02bbg\u02bbri' : 'Ekran kaliti topilmadi') + '</h1>' +
+      '<p>Sahifani to\u02bbliq link bilan oching:<br><code>' + esc(location.origin + location.pathname) + '#k=&hellip;</code></p></div>';
+  }
+  function showMsg(html) { var m = $('msg'); m.innerHTML = html; m.className = ''; }
+  function hideMsg() { $('msg').className = 'hidden'; }
+
+  // -- keep the screen awake, page rotation, burn-in shift ------------
+  function wake() {
+    try { if (navigator.wakeLock && navigator.wakeLock.request) navigator.wakeLock.request('screen')['catch'](function () {}); } catch (e) {}
+  }
+  document.addEventListener('visibilitychange', function () {
+    if (!document.hidden) { wake(); load(); }
+  });
+  window.addEventListener('resize', function () { syncScroll(false); });
+  try { if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { syncScroll(false); }); } catch (e) {}
+
+  setInterval(function () {
+    if (!data) return;
+    var n = pages(data.people || []).length;
+    if (n > 1) { page = (page + 1) % n; render(); }
+  }, PAGE_MS);
+
+  var shifts = [[0, 0], [2, 1], [-1, 2], [-2, -1], [1, -2]], si = 0;
+  setInterval(function () {
+    si = (si + 1) % shifts.length;
+    $('app').style.transform = 'translate(' + shifts[si][0] + 'px,' + shifts[si][1] + 'px)';
+  }, 600000);
+
+  tick();
+  setInterval(tick, 1000);
+  wake();
+  load();
+})();
+</script>
+</body>
+</html>
