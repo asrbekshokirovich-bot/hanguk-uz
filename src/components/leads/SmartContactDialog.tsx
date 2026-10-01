@@ -62,11 +62,10 @@ const PAYMENT_PLANS = [
   { value: 'tekin', label: 'Tekin tarif', price: 'Bepul' },
   { value: 'tekin_natija', label: 'Tekin tarif (natija to\'lov)', price: 'Natijaga qarab' },
   { value: 'standart', label: 'STANDART', price: '5 000 000 UZS' },
-  { value: 'standart_2', label: 'STANDART 2', price: '4 mln + 2 mln UZS' },
+  { value: 'standart_2', label: 'STANDART 2', price: '2 mln + 5 mln UZS' },
   { value: 'premium', label: 'PREMIUM', price: '10 000 000 UZS' },
-  { value: 'premium_2', label: 'PREMIUM 2', price: '7 mln + 6 mln UZS' },
+  { value: 'premium_2', label: 'PREMIUM 2', price: '3 mln + 10 mln UZS' },
   { value: 'no_risk', label: 'NO RISK', price: '$5 000' },
-  { value: 'no_risk_2', label: 'NO RISK 2', price: '$3 000 + $2 500' },
 ];
 
 interface SmartContactDialogProps {

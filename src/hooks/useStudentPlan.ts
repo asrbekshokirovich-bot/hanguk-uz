@@ -123,8 +123,9 @@ export function useStudentPlan() {
   return { ...planInfo, loading };
 }
 
-// Payment plan definitions with correct split amounts
-// Split payments: 1st payment after contract, 2nd payment after university admission
+// Payment plan definitions with correct split amounts (tariffs of 2026-10-01).
+// Split payments: 1st payment after contract, 2nd payment after the visa is issued.
+// NO RISK is one-time only (allowInstallment: false).
 export const PAYMENT_PLANS = [
   { 
     value: 'free', 
@@ -143,10 +144,10 @@ export const PAYMENT_PLANS = [
     currency: 'UZS', 
     // One-time: 5M UZS
     priceOneTime: 5000000, 
-    // Split: 4M + 2M = 6M UZS
-    priceInstallment: 6000000,
-    firstPayment: 4000000,
-    secondPayment: 2000000,
+    // Split: 2M + 5M = 7M UZS
+    priceInstallment: 7000000,
+    firstPayment: 2000000,
+    secondPayment: 5000000,
     isVIP: false,
   },
   { 
@@ -155,10 +156,10 @@ export const PAYMENT_PLANS = [
     currency: 'UZS', 
     // One-time: 10M UZS
     priceOneTime: 10000000, 
-    // Split: 7M + 6M = 13M UZS
+    // Split: 3M + 10M = 13M UZS
     priceInstallment: 13000000,
-    firstPayment: 7000000,
-    secondPayment: 6000000,
+    firstPayment: 3000000,
+    secondPayment: 10000000,
     isVIP: true,
   },
   { 
@@ -167,13 +168,56 @@ export const PAYMENT_PLANS = [
     currency: 'USD', 
     // One-time: $5,000 USD
     priceOneTime: 5000, 
-    // Split: $3,000 + $2,500 = $5,500 USD
-    priceInstallment: 5500,
-    firstPayment: 3000,
-    secondPayment: 2500,
+    // No split payment: the whole $5,000 in one go
+    priceInstallment: 5000,
+    firstPayment: 5000,
+    secondPayment: 0,
     isVIP: true,
+    allowInstallment: false,
   },
 ];
+
+/**
+ * What the firm does for each tariff, word for word from the tariff cards
+ * (2026-10-01). Shown on the plan cards in the CRM student dialogs.
+ * FREE has no card, so it keeps its feature list.
+ */
+export const PLAN_SERVICES: Record<string, string[]> = {
+  standart: [
+    "3tagacha universitetga topshirib berish",
+    "Suhbatga tayyorlash (tushishi mumkin bo'lgan savollar beriladi)",
+    "Hujjatlarni tayyorlash (tarjima, apostil)",
+    "Pochta",
+    "Sim karta va bank karta",
+  ],
+  premium: [
+    "3tagacha universitetga topshirib berish",
+    "Suhbatga tayyorlash (ai bilan tayyorgarlik)",
+    "Hujjatlarni tayyorlash (tarjima, apostil)",
+    "Pochta",
+    "Bank shot (1 kunlik oddiy)",
+    "Sim karta va bank karta",
+    "Elchixonaga hujjat tayyorlash (tarjima, apostil)",
+    "Studyplan yozishga yordam (ai yordamida tayyorgarlik)",
+    "Koreada kutib olish xizmati",
+  ],
+  no_risk: [
+    "3tagacha universitetga topshirib berish",
+    "Suhbatga tayyorlash (ai bilan tayyorgarlik)",
+    "Hujjatlarni tayyorlash (tarjima, apostil)",
+    "Pochta",
+    "Bank shot (1 kunlik oddiy)",
+    "Bank shot (1 oylik)",
+    "Sim karta va bank karta",
+    "Elchixonaga hujjat tayyorlash (tarjima, apostil)",
+    "Studyplan yozishga yordam (ai yordamida tayyorgarlik)",
+    "Koreada kutib olish xizmati",
+    "Kontrakt to'lovi firma tomonidan",
+    "Samalyot bileti olib beriladi",
+    "Kvartira topib 1 oylik puli to'lab beriladi",
+    "Ariza to'lovi (Application fee)",
+  ],
+};
 
 export const PAYMENT_MODES = [
   { value: 'one_time', label: 'One-time Payment' },
@@ -183,6 +227,12 @@ export const PAYMENT_MODES = [
 export function getPlanByValue(value: string) {
   const normalized = normalizePlanName(value);
   return PAYMENT_PLANS.find(p => p.value === normalized);
+}
+
+/** Whether the plan can be paid in 2 payments (NO RISK cannot). */
+export function planAllowsInstallment(value: string | null | undefined): boolean {
+  if (!value) return true;
+  return getPlanByValue(value)?.allowInstallment !== false;
 }
 
 export function getPlanPrice(planValue: string, mode: string = 'one_time') {
@@ -254,13 +304,13 @@ export function calculateFirstPaymentDueDate(contractDate: string | null): strin
 }
 
 /**
- * Calculate due date for second payment (7 working days after admission confirmation)
- * @param admissionDate - The date of university admission confirmation
+ * Calculate due date for second payment (7 working days after the visa is issued)
+ * @param admissionDate - The date the visa was issued
  * @returns The due date as ISO string (YYYY-MM-DD)
  */
 export function calculateSecondPaymentDueDate(admissionDate: string | null): string {
   if (!admissionDate) {
-    // Return empty if no admission date yet
+    // Return empty if the visa has not been issued yet
     return '';
   }
   
@@ -281,7 +331,7 @@ export function calculateDueDate(
     return calculateFirstPaymentDueDate(contractDate);
   }
   
-  // For second payment, we can't calculate until admission is confirmed
+  // For second payment, we can't calculate until the visa is issued
   // Return a placeholder date (30 working days from contract as estimate)
   if (contractDate) {
     const contract = new Date(contractDate);
@@ -349,9 +399,9 @@ export function getPaymentSchedule(planValue: string, mode: string = 'one_time',
         type: 'second_payment',
         label: '2nd Payment',
         amount: plan.secondPayment,
-        dueDate: null, // Will be set when admission is confirmed
+        dueDate: null, // Will be set when the visa is issued
         triggerType: 'admission_trigger',
-        triggerDescription: 'Due 7 working days after university admission',
+        triggerDescription: 'Due 7 working days after the visa is issued',
       },
     ],
   };

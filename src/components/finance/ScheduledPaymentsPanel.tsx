@@ -124,9 +124,9 @@ export function ScheduledPaymentsPanel({ initialStatusFilter = 'all' }: Schedule
       return <Badge variant="default" className="bg-info">Partial</Badge>;
     }
 
-    // Waiting for admission (second payment without due date)
+    // Waiting for the visa (second payment without due date)
     if (ep.payment_type === 'second_payment' && !ep.due_date) {
-      return <Badge variant="outline" className="border-primary text-primary">Awaiting Admission</Badge>;
+      return <Badge variant="outline" className="border-primary text-primary">Awaiting Visa</Badge>;
     }
 
     return <Badge variant="outline">Scheduled</Badge>;
@@ -346,7 +346,7 @@ export function ScheduledPaymentsPanel({ initialStatusFilter = 'all' }: Schedule
                             </div>
                           ) : (
                             <span className="text-sm text-muted-foreground italic">
-                              {ep.payment_type === 'second_payment' ? 'Pending admission' : 'Not set'}
+                              {ep.payment_type === 'second_payment' ? 'Pending visa' : 'Not set'}
                             </span>
                           )}
                         </TableCell>
@@ -374,7 +374,7 @@ export function ScheduledPaymentsPanel({ initialStatusFilter = 'all' }: Schedule
         <CardContent>
           <p className="text-sm text-muted-foreground">
             This panel shows all expected payments based on each student's plan. 
-            For split-payment students, the 2nd payment due date is set after university admission. 
+            For split-payment students, the 2nd payment is due 7 working days after the visa is issued. 
             Partial payments show how much has been paid and what remains.
           </p>
         </CardContent>

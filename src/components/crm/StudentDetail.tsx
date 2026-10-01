@@ -82,6 +82,7 @@ import AITranslationPage from '@/components/crm/pages/AITranslationPage';
 import { ClickToCall } from '@/components/calls/ClickToCall';
 import { StudentContacts } from './StudentContacts';
 import { StudentConversations } from './StudentConversations';
+import { planAllowsInstallment } from '@/hooks/useStudentPlan';
 
 type StudentProfile = Tables<'profiles'> & {
   applications?: (Tables<'applications'> & {
@@ -138,9 +139,9 @@ const allStatusSteps = [
 
 const paymentPlans = [
   { value: 'free', label: 'FREE', priceOneTime: '0 UZS', priceInstallment: '0 UZS', currency: 'UZS', isVIP: false },
-  { value: 'standart', label: 'STANDART', priceOneTime: '5,000,000 UZS', priceInstallment: '6,000,000 UZS', currency: 'UZS', isVIP: false },
+  { value: 'standart', label: 'STANDART', priceOneTime: '5,000,000 UZS', priceInstallment: '7,000,000 UZS', currency: 'UZS', isVIP: false },
   { value: 'premium', label: 'PREMIUM', priceOneTime: '10,000,000 UZS', priceInstallment: '13,000,000 UZS', currency: 'UZS', isVIP: true, extra: 'VIP Access' },
-  { value: 'no_risk', label: 'NO RISK', priceOneTime: '$5,000 USD', priceInstallment: '$5,500 USD', currency: 'USD', isVIP: true, extra: 'VIP Access + Flight & Apartment' },
+  { value: 'no_risk', label: 'NO RISK', priceOneTime: '$5,000 USD', priceInstallment: '$5,000 USD', currency: 'USD', isVIP: true, extra: 'VIP Access + Flight & Apartment' },
 ];
 
 interface StudentNote {
@@ -248,9 +249,10 @@ export function StudentDetail({
     if (savingPaymentPlan) return;
     setSavingPaymentPlan(true);
     try {
+      // NO RISK is paid in one go only: switching to it ends a 2-payment mode.
       const { error } = await supabase
         .from('profiles')
-        .update({ payment_plan: value })
+        .update(planAllowsInstallment(value) ? { payment_plan: value } : { payment_plan: value, payment_mode: 'one_time' })
         .eq('id', student.id);
 
       if (error) throw error;
@@ -1257,7 +1259,9 @@ export function StudentDetail({
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="one_time">One-time Payment</SelectItem>
-                        <SelectItem value="installment">2 Installments</SelectItem>
+                        <SelectItem value="installment" disabled={!planAllowsInstallment(currentPaymentPlan)}>
+                          2 Installments
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                     {savingPaymentMode && (
