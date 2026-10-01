@@ -33,6 +33,7 @@ import { formatAmount } from '@/hooks/useStudentPlan';
 import { supabase } from '@/integrations/supabase/client';
 import { AddExpenseDialog } from './AddExpenseDialog';
 import { EditTransactionDialog } from './EditTransactionDialog';
+import { expenseCategoryLabel } from './expenseCategories';
 import { UpcomingTransactionsPanel } from './UpcomingTransactionsPanel';
 import { AddPlannedTransactionDialog } from './AddPlannedTransactionDialog';
 import { usePlannedTransactions } from '@/hooks/usePlannedTransactions';
@@ -258,7 +259,7 @@ export function TransactionList({ payments, loading }: TransactionListProps) {
       if (tx.category === 'application_fee_expense') {
         return <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">Application fee</Badge>;
       }
-      return <Badge variant="destructive" className="capitalize">{tx.category}</Badge>;
+      return <Badge variant="destructive" className="capitalize">{expenseCategoryLabel(tx.category)}</Badge>;
     }
   };
 
