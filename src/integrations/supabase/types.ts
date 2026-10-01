@@ -2602,8 +2602,10 @@ export type Database = {
           created_at: string
           display_names: Json
           id: string
+          inactive_reason: string | null
           ieqas_status: string | null
           institution_type: string
+          is_active: boolean
           is_partner: boolean
           is_visible_on_map: boolean
           is_women_only: boolean
@@ -2631,8 +2633,10 @@ export type Database = {
           created_at?: string
           display_names?: Json
           id?: string
+          inactive_reason?: string | null
           ieqas_status?: string | null
           institution_type: string
+          is_active?: boolean
           is_partner?: boolean
           is_visible_on_map?: boolean
           is_women_only?: boolean
@@ -2660,8 +2664,10 @@ export type Database = {
           created_at?: string
           display_names?: Json
           id?: string
+          inactive_reason?: string | null
           ieqas_status?: string | null
           institution_type?: string
+          is_active?: boolean
           is_partner?: boolean
           is_visible_on_map?: boolean
           is_women_only?: boolean
