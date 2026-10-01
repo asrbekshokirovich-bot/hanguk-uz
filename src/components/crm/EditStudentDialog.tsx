@@ -27,7 +27,7 @@ import { DateField } from '@/components/ui/date-field';
 import { cn } from '@/lib/utils';
 import { useActiveIntake } from '@/contexts/IntakeContext';
 import { ContractUpload } from './ContractUpload';
-import { getPlanByValue, calculateFirstPaymentDueDate } from '@/hooks/useStudentPlan';
+import { getPlanByValue, calculateFirstPaymentDueDate, PLAN_SERVICES, planAllowsInstallment } from '@/hooks/useStudentPlan';
 
 type StudentProfile = Tables<'profiles'>;
 
@@ -62,7 +62,7 @@ const PAYMENT_PLANS = [
     price: '5,000,000 UZS',
     currency: 'UZS',
     priceOneTime: 5000000,
-    priceInstallment: 6000000,
+    priceInstallment: 7000000,
     isVIP: false,
     features: ['applications', 'map', 'documents', 'aiChat']
   },
@@ -82,7 +82,7 @@ const PAYMENT_PLANS = [
     price: '$5,000 USD',
     currency: 'USD',
     priceOneTime: 5000,
-    priceInstallment: 5500,
+    priceInstallment: 5000,
     isVIP: true,
     features: ['applications', 'map', 'documents', 'aiChat', 'interview', 'studyPlan', 'embassy', 'flightApartment']
   },
@@ -608,7 +608,14 @@ export function EditStudentDialog({ open, onOpenChange, student, onSuccess }: Ed
                         ? "border-primary bg-primary/5 ring-2 ring-primary"
                         : "border-border hover:border-primary/50 hover:bg-muted/30"
                     )}
-                    onClick={() => setFormData({ ...formData, paymentPlan: plan.value })}
+                    onClick={() =>
+                      setFormData({
+                        ...formData,
+                        paymentPlan: plan.value,
+                        // NO RISK is paid in one go only.
+                        paymentMode: planAllowsInstallment(plan.value) ? formData.paymentMode : 'one_time',
+                      })
+                    }
                   >
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
@@ -618,10 +625,10 @@ export function EditStudentDialog({ open, onOpenChange, student, onSuccess }: Ed
                       <span className="text-sm text-muted-foreground">{plan.price}</span>
                     </div>
                     <div className="grid grid-cols-2 gap-1 mt-3">
-                      {plan.features.map(feature => (
-                        <div key={feature} className="text-xs flex items-center gap-1 text-muted-foreground">
+                      {(PLAN_SERVICES[plan.value] ?? plan.features.map(feature => FEATURE_LABELS[feature])).map(label => (
+                        <div key={label} className="text-xs flex items-center gap-1 text-muted-foreground">
                           <CheckCircle className="h-3 w-3 text-success flex-shrink-0" />
-                          <span>{FEATURE_LABELS[feature]}</span>
+                          <span>{label}</span>
                         </div>
                       ))}
                     </div>
@@ -642,7 +649,11 @@ export function EditStudentDialog({ open, onOpenChange, student, onSuccess }: Ed
                   </SelectTrigger>
                   <SelectContent>
                     {PAYMENT_MODES.map((mode) => (
-                      <SelectItem key={mode.value} value={mode.value}>
+                      <SelectItem
+                        key={mode.value}
+                        value={mode.value}
+                        disabled={mode.value === 'installment' && !planAllowsInstallment(formData.paymentPlan)}
+                      >
                         {mode.label}
                       </SelectItem>
                     ))}

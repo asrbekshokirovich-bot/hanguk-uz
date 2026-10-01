@@ -138,7 +138,7 @@ export function StudentFinanceCard({
       case 'overdue':
         return <Badge variant="destructive">Overdue</Badge>;
       case 'waiting':
-        return <Badge variant="outline" className="border-info text-info">Waiting Admission</Badge>;
+        return <Badge variant="outline" className="border-info text-info">Waiting Visa</Badge>;
       default:
         return <Badge variant="outline">Pending</Badge>;
     }
@@ -242,8 +242,8 @@ export function StudentFinanceCard({
             <div className="flex items-center gap-2">
               <GraduationCap className="h-4 w-4" />
               {financeData.hasAdmission 
-                ? 'Student admitted - 2nd payment activated'
-                : 'Waiting for university admission'
+                ? 'Student admitted - 2nd payment due 7 working days after the visa is issued'
+                : 'Waiting for the visa - 2nd payment due 7 working days after it is issued'
               }
             </div>
           </div>

@@ -38,7 +38,7 @@ interface ManualTransactionDialogProps {
 
 const PAYMENT_TYPES = [
   { value: 'initial_deposit', label: '1st Payment (Initial Deposit)' },
-  { value: 'remaining_payment', label: '2nd Payment (After Admission)' },
+  { value: 'remaining_payment', label: '2nd Payment (After Visa)' },
   { value: 'other', label: 'Other' },
 ];
 
