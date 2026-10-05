@@ -43,8 +43,6 @@ enum FactorKind {
   koreanCourseMissing,
   incomeYes,
   incomeNo,
-  bankYes,
-  bankNo,
   gradRecent,
   gradGapLong,
   ageHigh,
@@ -60,7 +58,7 @@ class EligibilityFactor {
 }
 
 /// One of the three "Keyingi 3 qadam".
-enum NextStep { topikPrep, bankStatement, schoolDocs, diplomaDocs, applyOnTime }
+enum NextStep { topikPrep, schoolDocs, diplomaDocs, applyOnTime }
 
 /// The "Sizga mos yo'llar" shown instead of universities for a low band.
 enum AlternativePath { languageCourse, college, nextSeason }
@@ -142,7 +140,6 @@ class EligibilityRules {
     this.courseCertBonus = 1,
     this.financeBothOkBonus = 2,
     this.financeNoIncomeCap = EligibilityBand.mid,
-    this.financeNoneCap = EligibilityBand.low,
     this.courseGapYearsMax = 3,
     this.courseAgeSoftMax = 30,
     this.bachelorAgeSoftMax = 30,
@@ -169,7 +166,6 @@ class EligibilityRules {
   final num courseCertBonus;
   final num financeBothOkBonus;
   final EligibilityBand financeNoIncomeCap;
-  final EligibilityBand financeNoneCap;
   final int courseGapYearsMax;
   final int courseAgeSoftMax;
   final int bachelorAgeSoftMax;
@@ -217,7 +213,6 @@ class EligibilityRules {
       courseCertBonus: n('d4_cert_bonus', d.courseCertBonus),
       financeBothOkBonus: n('fin_both_ok_bonus', d.financeBothOkBonus),
       financeNoIncomeCap: band('fin_no_income_cap', d.financeNoIncomeCap),
-      financeNoneCap: band('fin_none_cap', d.financeNoneCap),
       courseGapYearsMax: n('d4_gap_years_max', d.courseGapYearsMax).toInt(),
       courseAgeSoftMax: n('d4_age_soft_max', d.courseAgeSoftMax).toInt(),
       bachelorAgeSoftMax: n('d2_bachelor_age_soft_max', d.bachelorAgeSoftMax).toInt(),
@@ -304,25 +299,14 @@ EligibilityResult evaluateEligibility(
     }
   }
 
-  // Money.
+  // Money: the parents' formal income (the bank statement is no longer asked).
   final income = a.formalIncome;
-  final bank = a.bankStatement;
-  if (income == true && bank == true) {
+  if (income == true) {
     score += rules.financeBothOkBonus;
     plus(FactorKind.incomeYes);
-    plus(FactorKind.bankYes);
-  } else if (income == false && bank == true) {
+  } else if (income == false) {
     capAt(rules.financeNoIncomeCap);
     minus(FactorKind.incomeNo);
-    plus(FactorKind.bankYes);
-  } else if (income == false && bank == false) {
-    final pilot = route == StudyRoute.college && korean.topik >= 3;
-    capAt(pilot ? EligibilityBand.mid : rules.financeNoneCap);
-    minus(FactorKind.incomeNo);
-    minus(FactorKind.bankNo);
-  } else if (income == true && bank == false) {
-    plus(FactorKind.incomeYes);
-    minus(FactorKind.bankNo);
   }
 
   // Age and the gap since school.
@@ -412,13 +396,12 @@ EligibilityResult evaluateEligibility(
     if ((route.isDegree && korean.topik < 3 && !englishOk) ||
         (route == StudyRoute.college && korean.topik < 2))
       NextStep.topikPrep,
-    if (bank != true) NextStep.bankStatement,
     route == StudyRoute.master ? NextStep.diplomaDocs : NextStep.schoolDocs,
     NextStep.applyOnTime,
   ].take(3).toList();
 
   // Tariff.
-  final financeWeak = income == false || bank == false;
+  final financeWeak = income == false;
   final budgetMin = a.budget?.minUsd ?? 0;
   final Tariff tariff;
   if (band == EligibilityBand.low && korean.topik <= 1 && !englishOk) {
@@ -435,7 +418,6 @@ EligibilityResult evaluateEligibility(
 
   if (a.korean == null) unknowns++;
   if (a.formalIncome == null) unknowns++;
-  if (a.bankStatement == null) unknowns++;
 
   return EligibilityResult(
     band: band,

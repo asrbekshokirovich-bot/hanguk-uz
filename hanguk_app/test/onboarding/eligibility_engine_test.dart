@@ -46,7 +46,7 @@ void main() {
     uni('M', degree: 'magistratura', topik: 3, tuitionKrw: 4200000),
   ];
 
-  test('TOPIK 2 bachelor with income and bank statement is mid (design S03)', () {
+  test('TOPIK 2 bachelor with formal income is mid (design S03)', () {
     final r = evaluateEligibility(
       const QuizAnswers(
         route: StudyRoute.bachelor,
@@ -56,7 +56,6 @@ void main() {
         budget: Budget.from6to10k,
         payer: Payer.parents,
         formalIncome: true,
-        bankStatement: true,
         region: "Farg'ona",
         intake: Intake.spring2027,
       ),
@@ -85,7 +84,6 @@ void main() {
         budget: Budget.over10k,
         payer: Payer.parents,
         formalIncome: true,
-        bankStatement: true,
         region: 'Toshkent',
         intake: Intake.fall2027,
       ),
@@ -107,7 +105,6 @@ void main() {
         budget: Budget.under3k,
         payer: Payer.self,
         formalIncome: false,
-        bankStatement: false,
         region: 'Samarqand',
         intake: Intake.spring2027,
       ),
@@ -130,7 +127,6 @@ void main() {
         budget: Budget.from3to6k,
         payer: Payer.parents,
         formalIncome: false,
-        bankStatement: false,
         region: 'Andijon',
         intake: Intake.later,
       ),
@@ -174,7 +170,6 @@ void main() {
       budget: Budget.over10k,
       payer: Payer.parents,
       formalIncome: true,
-      bankStatement: true,
       region: 'Toshkent',
       intake: Intake.fall2027,
     );
@@ -202,6 +197,29 @@ void main() {
     expect(bachelor.band, EligibilityBand.low);
   });
 
+  test('without formal income the result stops at mid, never lower for money alone', () {
+    QuizAnswers bachelor({required bool income}) => QuizAnswers(
+      route: StudyRoute.bachelor,
+      age: 19,
+      gradYear: 2026,
+      korean: KoreanLevel.topik3plus,
+      english: EnglishLevel.none,
+      budget: Budget.from6to10k,
+      payer: Payer.parents,
+      formalIncome: income,
+      region: 'Toshkent',
+      intake: Intake.spring2027,
+    );
+    final yes = evaluateEligibility(bachelor(income: true), catalog: catalog, now: now);
+    expect(yes.band, EligibilityBand.high);
+    expect(yes.factors.map((f) => f.kind), contains(FactorKind.incomeYes));
+
+    final no = evaluateEligibility(bachelor(income: false), catalog: catalog, now: now);
+    expect(no.band, EligibilityBand.mid);
+    expect(no.factors.where((f) => !f.positive).map((f) => f.kind), contains(FactorKind.incomeNo));
+    expect(no.tariff, Tariff.noRisk);
+  });
+
   test('rules come from eligibility_rules rows, defaults otherwise', () {
     final rules = EligibilityRules.fromRows([
       {'key': 'krw_per_usd', 'value': 1300},
@@ -227,7 +245,6 @@ void main() {
       budget: Budget.from3to6k,
       payer: Payer.sponsor,
       formalIncome: true,
-      bankStatement: false,
       region: 'Nukus',
       intake: Intake.later,
     );
@@ -241,7 +258,6 @@ void main() {
       'budget': '3to6',
       'payer': 'sponsor',
       'formal_income': 'yes',
-      'bank_statement': 'no',
       'region': 'Nukus',
       'intake': 'later',
     });

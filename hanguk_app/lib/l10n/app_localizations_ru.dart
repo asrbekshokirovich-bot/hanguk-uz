@@ -2813,12 +2813,6 @@ class AppLocalizationsRu extends AppLocalizations {
   String get onbResultFactorIncomeNo => 'У родителей нет официального дохода';
 
   @override
-  String get onbResultFactorBankYes => 'Банковская справка готова';
-
-  @override
-  String get onbResultFactorBankNo => 'Нет банковской справки';
-
-  @override
   String get onbResultFactorGradRecent =>
       'Выпуск недавно — перерыва в учёбе нет';
 
@@ -2858,9 +2852,6 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get onbResultStepTopikPrep =>
       'Подготовка к TOPIK 3 или поступление через языковые курсы';
-
-  @override
-  String get onbResultStepBankStatement => 'Заранее открыть банковскую справку';
 
   @override
   String get onbResultStepSchoolDocs =>
@@ -3272,12 +3263,6 @@ class AppLocalizationsRu extends AppLocalizations {
   String get onbQuizIncomeNo => 'Нет';
 
   @override
-  String get onbQuizBankYes => 'Банковская справка есть';
-
-  @override
-  String get onbQuizBankNo => 'Банковской справки нет';
-
-  @override
   String get onbQuizIntakeSpring2027 => 'Весна 2027';
 
   @override
@@ -3378,9 +3363,6 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get onbQuizPayerSponsorOption => 'Спонсор';
-
-  @override
-  String get onbQuizBankQ => 'Есть ли средства для банковской справки?';
 
   @override
   String get onbQuizRegionQ => 'Из какого вы региона?';

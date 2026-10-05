@@ -256,19 +256,6 @@ class QuizScreen extends ConsumerWidget {
           ),
         ]);
       case 9:
-        return _Question(l.onbQuizBankQ, [
-          option(
-            l.onbQuizBankYes,
-            a.bankStatement == true,
-            (x) => x.copyWith(bankStatement: true),
-          ),
-          option(
-            l.onbQuizBankNo,
-            a.bankStatement == false,
-            (x) => x.copyWith(bankStatement: false),
-          ),
-        ]);
-      case 10:
         return _Question(l.onbQuizRegionQ, [
           for (final r in kQuizRegions)
             option(r, a.region == r, (x) => x.copyWith(region: r)),

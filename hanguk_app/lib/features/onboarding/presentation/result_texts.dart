@@ -48,8 +48,6 @@ String factorLabel(AppLocalizations l, FactorKind k) => switch (k) {
   FactorKind.koreanCourseMissing => l.onbResultFactorKoreanCourseMissing,
   FactorKind.incomeYes => l.onbResultFactorIncomeYes,
   FactorKind.incomeNo => l.onbResultFactorIncomeNo,
-  FactorKind.bankYes => l.onbResultFactorBankYes,
-  FactorKind.bankNo => l.onbResultFactorBankNo,
   FactorKind.gradRecent => l.onbResultFactorGradRecent,
   FactorKind.gradGapLong => l.onbResultFactorGradGapLong,
   FactorKind.ageHigh => l.onbResultFactorAgeHigh,
@@ -58,7 +56,6 @@ String factorLabel(AppLocalizations l, FactorKind k) => switch (k) {
 
 String stepLabel(AppLocalizations l, NextStep s) => switch (s) {
   NextStep.topikPrep => l.onbResultStepTopikPrep,
-  NextStep.bankStatement => l.onbResultStepBankStatement,
   NextStep.schoolDocs => l.onbResultStepSchoolDocs,
   NextStep.diplomaDocs => l.onbResultStepDiplomaDocs,
   NextStep.applyOnTime => l.onbResultStepApplyOnTime,

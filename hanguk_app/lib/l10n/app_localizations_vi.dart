@@ -2796,12 +2796,6 @@ class AppLocalizationsVi extends AppLocalizations {
   String get onbResultFactorIncomeNo => 'Parents have no official income';
 
   @override
-  String get onbResultFactorBankYes => 'Bank statement ready';
-
-  @override
-  String get onbResultFactorBankNo => 'No bank statement';
-
-  @override
   String get onbResultFactorGradRecent =>
       'Graduated recently — no gap in studies';
 
@@ -2841,9 +2835,6 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get onbResultStepTopikPrep =>
       'Prepare for TOPIK 3 or enter through a language course';
-
-  @override
-  String get onbResultStepBankStatement => 'Open the bank statement in advance';
 
   @override
   String get onbResultStepSchoolDocs =>
@@ -3256,12 +3247,6 @@ class AppLocalizationsVi extends AppLocalizations {
   String get onbQuizIncomeNo => 'No';
 
   @override
-  String get onbQuizBankYes => 'Bank statement available';
-
-  @override
-  String get onbQuizBankNo => 'No bank statement';
-
-  @override
   String get onbQuizIntakeSpring2027 => 'Spring 2027';
 
   @override
@@ -3362,9 +3347,6 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get onbQuizPayerSponsorOption => 'A sponsor';
-
-  @override
-  String get onbQuizBankQ => 'Is there money for a bank statement?';
 
   @override
   String get onbQuizRegionQ => 'Which region are you from?';
