@@ -30,6 +30,7 @@ Map<String, dynamic> resultPayload(
           'topik_min': m.topikMin,
           'bank_usd': m.bankStatementUsd,
           'accredited': m.accredited,
+          'partner': m.partner,
         },
     ],
     if (r.yearlyCostUsd != null) 'yearly_cost_usd': [r.yearlyCostUsd!.$1, r.yearlyCostUsd!.$2],

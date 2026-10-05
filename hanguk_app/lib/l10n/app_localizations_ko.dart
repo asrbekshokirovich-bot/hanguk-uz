@@ -2775,7 +2775,7 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get onbResultCtaOperator => '상담원이 10분 안에 확인해 드려요';
+  String get onbResultCtaOperator => '무료 상담';
 
   @override
   String get onbResultCtaTelegram => '텔레그램에서 계속하기';
@@ -3224,4 +3224,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get onbResultFactorEnglishStrong => 'IELTS 5.5 이상';
+
+  @override
+  String get onbResultPartner => '공식 파트너';
 }

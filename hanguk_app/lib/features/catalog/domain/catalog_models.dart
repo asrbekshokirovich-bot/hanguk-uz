@@ -41,6 +41,7 @@ class CatalogGuideline {
     this.recommendation,
     this.ieqasStatus,
     this.isActive,
+    this.isPartner,
   });
 
   final String id;
@@ -91,6 +92,9 @@ class CatalogGuideline {
   final String? ieqasStatus;
   final bool? isActive;
 
+  /// An official HANGUK partner (`institutions.is_partner`).
+  final bool? isPartner;
+
   static num? _num(Object? v) =>
       v == null ? null : (v is num ? v : num.tryParse(v.toString()));
 
@@ -128,6 +132,7 @@ class CatalogGuideline {
       recommendation: r['tavsiyanoma'] as String?,
       ieqasStatus: r['ieqas_status'] as String?,
       isActive: r['is_active'] as bool?,
+      isPartner: r['is_partner'] as bool?,
     );
   }
 }
@@ -156,6 +161,9 @@ class CatalogUniversity {
   }
 
   bool hasDegree(String degree) => guidelines.any((g) => g.degree == degree);
+
+  /// An official HANGUK partner.
+  bool get isPartner => guidelines.any((g) => g.isPartner == true);
 
   /// English name as staff wrote it in the Excel, then the catalogue's.
   String get displayName =>

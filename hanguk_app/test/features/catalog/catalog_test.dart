@@ -29,7 +29,9 @@ Map<String, dynamic> _row(
   num? ielts,
   bool? english,
   String type = 'private',
+  bool partner = false,
 }) => {
+  'is_partner': partner,
   'guideline_id': guideline,
   'institution_id': institution,
   'name_ko': nameKo,
@@ -67,6 +69,18 @@ void main() {
       // "all" shows the bachelor's guideline.
       expect(alpha.forDegree(null)!.id, 'g1');
     });
+  });
+
+  test('official partners come first, in the list and after filtering', () {
+    final all = groupCatalogRows([
+      _row('g1', 'u1', name: 'Alpha University', fee: 1000000),
+      _row('g2', 'u2', name: 'Zeta University', partner: true),
+      _row('g3', 'u3', name: 'Beta University', fee: 2000000),
+    ]);
+    expect(all.map((u) => u.institutionId), ['u2', 'u1', 'u3']);
+    expect(all.first.isPartner, isTrue);
+    // Cheapest first otherwise, and a partner without a fee still leads.
+    expect(applyCatalogFilter(all, const CatalogFilter()).map((u) => u.institutionId), ['u2', 'u1', 'u3']);
   });
 
   group('applyCatalogFilter', () {

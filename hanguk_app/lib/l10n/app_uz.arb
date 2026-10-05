@@ -992,7 +992,7 @@
   "onbResultPathNextSeason": "Keyingi mavsumga tayyorgarlik",
   "onbResultPathNextSeasonNote": "TOPIK 3 va bank spravkasi bilan 2027 kuz.",
   "onbResultTariffWhy": "{tariff} — nega? →",
-  "onbResultCtaOperator": "Operator 10 daqiqada tasdiqlasin",
+  "onbResultCtaOperator": "Bepul konsultatsiya",
   "onbResultCtaTelegram": "Telegram'da davom etish",
   "onbResultDisclaimer": "Bu dastlabki baho. Viza qarorini elchixona beradi.",
   "onbResultPlanTariff": "Tavsiya etilgan tarif: {tariff}",
@@ -1134,5 +1134,6 @@
   "onbQuizPayerSponsorOption": "Homiy",
   "onbQuizRegionQ": "Qaysi viloyatdansiz?",
   "onbQuizIntakeQ": "Qachon ketmoqchisiz?",
-  "onbResultFactorEnglishStrong": "IELTS 5.5 va yuqori"
+  "onbResultFactorEnglishStrong": "IELTS 5.5 va yuqori",
+  "onbResultPartner": "Rasmiy hamkor"
 }

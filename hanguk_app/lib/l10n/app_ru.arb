@@ -992,7 +992,7 @@
   "onbResultPathNextSeason": "Подготовка к следующему сезону",
   "onbResultPathNextSeasonNote": "Осень 2027 с TOPIK 3 и банковской справкой.",
   "onbResultTariffWhy": "{tariff} — почему? →",
-  "onbResultCtaOperator": "Оператор подтвердит за 10 минут",
+  "onbResultCtaOperator": "Бесплатная консультация",
   "onbResultCtaTelegram": "Продолжить в Telegram",
   "onbResultDisclaimer": "Это предварительная оценка. Решение по визе принимает посольство.",
   "onbResultPlanTariff": "Рекомендуемый тариф: {tariff}",
@@ -1134,5 +1134,6 @@
   "onbQuizPayerSponsorOption": "Спонсор",
   "onbQuizRegionQ": "Из какого вы региона?",
   "onbQuizIntakeQ": "Когда планируете поехать?",
-  "onbResultFactorEnglishStrong": "IELTS 5.5 и выше"
+  "onbResultFactorEnglishStrong": "IELTS 5.5 и выше",
+  "onbResultPartner": "Официальный партнёр"
 }

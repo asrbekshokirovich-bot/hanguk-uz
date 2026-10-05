@@ -2877,7 +2877,7 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
-  String get onbResultCtaOperator => 'Have an operator confirm in 10 minutes';
+  String get onbResultCtaOperator => 'Free consultation';
 
   @override
   String get onbResultCtaTelegram => 'Continue in Telegram';
@@ -3356,4 +3356,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get onbResultFactorEnglishStrong => 'IELTS 5.5 or higher';
+
+  @override
+  String get onbResultPartner => 'Official partner';
 }

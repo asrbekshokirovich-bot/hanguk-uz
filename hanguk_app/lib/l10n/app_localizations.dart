@@ -5258,10 +5258,10 @@ abstract class AppLocalizations {
   /// **'{tariff} — why? →'**
   String onbResultTariffWhy(String tariff);
 
-  /// S03 main button
+  /// S03 main button: opens the name and phone sheet (S04).
   ///
   /// In en, this message translates to:
-  /// **'Have an operator confirm in 10 minutes'**
+  /// **'Free consultation'**
   String get onbResultCtaOperator;
 
   /// S03 second button
@@ -6115,6 +6115,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'IELTS 5.5 or higher'**
   String get onbResultFactorEnglishStrong;
+
+  /// S03 university card badge: an official HANGUK partner university.
+  ///
+  /// In en, this message translates to:
+  /// **'Official partner'**
+  String get onbResultPartner;
 }
 
 class _AppLocalizationsDelegate

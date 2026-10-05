@@ -2893,7 +2893,7 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
-  String get onbResultCtaOperator => 'Оператор подтвердит за 10 минут';
+  String get onbResultCtaOperator => 'Бесплатная консультация';
 
   @override
   String get onbResultCtaTelegram => 'Продолжить в Telegram';
@@ -3372,4 +3372,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get onbResultFactorEnglishStrong => 'IELTS 5.5 и выше';
+
+  @override
+  String get onbResultPartner => 'Официальный партнёр';
 }

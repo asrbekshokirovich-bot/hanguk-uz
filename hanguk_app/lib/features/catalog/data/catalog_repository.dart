@@ -22,7 +22,8 @@ final catalogProvider = FutureProvider<List<CatalogUniversity>>((ref) async {
   }
 });
 
-/// Rows (one per guideline) → one entry per university, sorted by name.
+/// Rows (one per guideline) → one entry per university: official partners
+/// first, then by name.
 @visibleForTesting
 List<CatalogUniversity> groupCatalogRows(List<dynamic> rows) {
   final byInstitution = <String, List<CatalogGuideline>>{};
@@ -33,7 +34,10 @@ List<CatalogUniversity> groupCatalogRows(List<dynamic> rows) {
   final out = [
     for (final e in byInstitution.entries)
       CatalogUniversity(institutionId: e.key, guidelines: e.value),
-  ]..sort((a, b) => a.displayName.toLowerCase().compareTo(b.displayName.toLowerCase()));
+  ]..sort((a, b) {
+      if (a.isPartner != b.isPartner) return a.isPartner ? -1 : 1;
+      return a.displayName.toLowerCase().compareTo(b.displayName.toLowerCase());
+    });
   return out;
 }
 

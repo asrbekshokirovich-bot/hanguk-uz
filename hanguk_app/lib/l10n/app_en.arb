@@ -3615,9 +3615,9 @@
       }
     }
   },
-  "onbResultCtaOperator": "Have an operator confirm in 10 minutes",
+  "onbResultCtaOperator": "Free consultation",
   "@onbResultCtaOperator": {
-    "description": "S03 main button"
+    "description": "S03 main button: opens the name and phone sheet (S04)."
   },
   "onbResultCtaTelegram": "Continue in Telegram",
   "@onbResultCtaTelegram": {
@@ -4231,5 +4231,9 @@
   "onbResultFactorEnglishStrong": "IELTS 5.5 or higher",
   "@onbResultFactorEnglishStrong": {
     "description": "S03 factor: a master's applicant with IELTS 5.5 or higher."
+  },
+  "onbResultPartner": "Official partner",
+  "@onbResultPartner": {
+    "description": "S03 university card badge: an official HANGUK partner university."
   }
 }

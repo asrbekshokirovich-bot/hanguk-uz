@@ -220,6 +220,64 @@ void main() {
     expect(no.tariff, Tariff.noRisk);
   });
 
+  test('a bachelor with IELTS sees the English-taught partner first, even in a low band', () {
+    final partner = CatalogUniversity(
+      institutionId: 'H',
+      guidelines: [
+        CatalogGuideline(
+          id: 'g-H',
+          institutionId: 'H',
+          univNameEn: 'Haany University',
+          city: 'Gyeongsan',
+          degree: 'bakalavr',
+          koreanTrack: false,
+          englishTrack: true,
+          ieltsMin: 5.5,
+          currency: 'KRW',
+          ieqasStatus: 'accredited',
+          isActive: true,
+          isPartner: true,
+        ),
+      ],
+    );
+    final withPartner = [...catalog, partner];
+    QuizAnswers bachelor(KoreanLevel k, EnglishLevel e) => QuizAnswers(
+      route: StudyRoute.bachelor,
+      age: 19,
+      gradYear: 2026,
+      korean: k,
+      english: e,
+      budget: Budget.from6to10k,
+      payer: Payer.parents,
+      formalIncome: true,
+      region: 'Toshkent',
+      intake: Intake.spring2027,
+    );
+
+    // No Korean, IELTS 6.0: still a low band, but the partner is offered.
+    final low = evaluateEligibility(bachelor(KoreanLevel.none, EnglishLevel.ielts60), catalog: withPartner, now: now);
+    expect(low.band, EligibilityBand.low);
+    expect(low.universities.map((m) => m.university.institutionId), ['H']);
+    expect(low.universities.single.partner, isTrue);
+    expect(low.paths, hasLength(3));
+
+    // TOPIK 2 and IELTS: the partner leads the Korean-track ones.
+    final mid = evaluateEligibility(bachelor(KoreanLevel.topik2, EnglishLevel.ielts55), catalog: withPartner, now: now);
+    expect(mid.universities.map((m) => m.university.institutionId), ['H', 'B', 'C']);
+
+    // Without IELTS the English-only partner is not offered.
+    final noIelts = evaluateEligibility(bachelor(KoreanLevel.topik2, EnglishLevel.none), catalog: withPartner, now: now);
+    expect(noIelts.universities.map((m) => m.university.institutionId), isNot(contains('H')));
+
+    // It has no master's programme, so a master never sees it.
+    final master = evaluateEligibility(
+      bachelor(KoreanLevel.topik3plus, EnglishLevel.ielts65plus).copyWith(route: StudyRoute.master),
+      catalog: withPartner,
+      now: now,
+    );
+    expect(master.universities.map((m) => m.university.institutionId), isNot(contains('H')));
+  });
+
   test('rules come from eligibility_rules rows, defaults otherwise', () {
     final rules = EligibilityRules.fromRows([
       {'key': 'krw_per_usd', 'value': 1300},
