@@ -161,5 +161,9 @@ create or replace function public.fn_queue_after_hours_reply() returns trigger l
 $$ begin return new; end $$;
 create trigger trg_queue_after_hours_reply after insert on public.messages
   for each row execute function public.fn_queue_after_hours_reply();
+create or replace function public.fn_mark_lead_contacted_on_reply() returns trigger language plpgsql as
+$$ begin return new; end $$;
 create trigger trg_mark_lead_contacted_on_reply after insert on public.messages
-  for each row execute function public.fn_queue_after_hours_reply();
+  for each row execute function public.fn_mark_lead_contacted_on_reply();
+create or replace function public.fn_lead_alerts_open(p_now timestamptz, p_start timestamptz) returns boolean language sql stable as
+$$ select true $$;
