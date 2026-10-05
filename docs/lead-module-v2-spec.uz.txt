@@ -1,0 +1,831 @@
+﻿
+HANGUK Lid bo'limi TT
+
+MaqsadQarorlarPanellar10 daqiqaManbalarLid kartasiQo'ng'iroq natijasiBosqichlarZinapoyaChatTakliflarUstuvorlikRollarHisobotMa'lumotlarMigratsiyaFazalarSavollar
+
+HANGUK CRM · Lid bo'limi — texnik topshiriq (v1)
+
+05.10.2026Rahbar bilan 9 raund / 36 ta qaror asosidaDasturchilar jamoasi uchunSanalar yo'q — fazalar bo'yicha
+
+Lid bo'limi noldan qayta quriladi. Uchta tamoyil: har bir suhbat — lid (chat, qo'ng'iroq, forma, izoh — kanali farqsiz); 10 daqiqa qoidasi hamma joyda ishlaydi (yangi lidga ham, zinapoyadagi qayta qo'ng'iroqqa ham); asosiy ko'rsatkich — sotuv, qo'ng'iroq soni emas. Bu hujjat panellarni, qoidalarni, maydonlarni, ma'lumotlar modelini, fon jarayonlarini, migratsiyani va qurish fazalarini belgilaydi.
+
+1. Maqsad va nima o'zgaradi
+
+Hozirgi holat (eski bo'lim)
+
+«Yangi lid» faqat telefoni kelgan Instagram/Telegram lidlarini ko'radi; telefonsiz chatlar «Lidlar»da ko'rinmaydi.
+
+ Meta formalari DM sifatida kelib, telefonsiz karta bo'lib qolgan — ~110 lid ko'rinmay yotgan, 73 tasi CRMga umuman tushmagan.
+
+ Qo'ng'iroq natijasi qo'lda belgilanadi va ko'pincha belgilanmaydi; «Qayta aloqa» sanasi avtomatik qo'yilmaydi.
+
+ Uch alohida panel (Yangi lid / Bugungi lidlar / Lidlar), operator ular orasida yuradi.
+
+ Mavsum filtri (intake) kartalarni yashirgan.
+
+Yangi bo'lim
+
+Bitta Ish stoli: HOZIR (10 daqiqa) · BUGUN · KEYIN. Operator shu ekrandan chiqmaydi.
+
+ Har bir kiruvchi suhbat (DM, story javobi, izoh, forma, Messenger, Telegram, qo'ng'iroq, ilova, sayt) — lid, taymer bilan.
+
+ Umumiy hovuz: birinchi harakat qilgan operator lidning egasi bo'ladi.
+
+ Ko'tarmasa — 5 bosqichli avtomatik zinapoya; har bosqich HOZIR'da o'z taymeri bilan.
+
+ 7 bosqichli voronka + Kutish; yo'qotish sabablari ro'yxat bilan; qayta faollashtirish navbatlari avtomatik.
+
+ Karta: AI qisqacha, 5 majburiy maydon, ota-ona bloki, e'tiroz/raqobatchi, ruxsat etilgan taklif, va'dalar nazorati.
+
+ Eski CRM lidlari «Baza»ga o'tadi va crm_generation='old' belgisi bilan ajratiladi — yangi tizim samarasini solishtirish uchun.
+
+2. Qarorlar jadvali (rahbar, 05.10.2026)
+
+Raqam = raund.savol. Hammasi tasdiqlangan; «izoh» ustunida rahbarning qo'shimcha so'zi.
+
+# | Mavzu | Qaror | Izoh | 
+
+1.1 | Egalik | Umumiy hovuz; birinchi javob bergan/qo'ng'iroq qilgan operator egasi | | 
+
+1.2 | Lid ta'rifi | Har bir suhbat — lid, kanali farqsiz (chat, qo'ng'iroq, boshqa) | «lead ham, new lead ham — hammasi» | 
+
+1.3 | Taymer vaqti | Har kuni 09:00–22:00, yakshanba ham; 18–22 rahbar o'zi | Tashqarida: avtojavob + 09:00 navbatning boshi | 
+
+1.4 | «Javob berildi» | Tugallangan qo'ng'iroq, YOKI ko'tarmagan bo'lsa qo'ng'iroq urinishi + chatga yozilgan xabar | Tartib: avval qo'ng'iroq, keyin chat | 
+
+2.1 | Asosiy ekran | Bitta Ish stoli: HOZIR / BUGUN / KEYIN | | 
+
+2.2 | Bugungi lidlar | Alohida panel yo'q — Ish stoliga qo'shiladi | | 
+
+2.3 | Boshqa panellar | Barcha lidlar · Yo'qotilgan+qayta faollashtirish · Hisobot · Baza · Sozlamalar — hammasi | Vizual ustuvorlik — aniq; UI oddiy, lekin zich | 
+
+2.4 | Ko'rinish | Operator hovuz + o'z lidlarini ko'radi; senior/rahbar — hammasini | | 
+
+3.1 | Meta manbalar | IG DM + story javoblari, Meta lead formalar (to'g'ridan-to'g'ri sinxron), izohlar, FB Messenger — hammasi, 10 daqiqa hammasiga | Izohlar — alohida kichik sub-panel; rahbar ham shu yerdan darhol javob beradi | 
+
+3.2 | Boshqa manbalar | Telegram akkaunt (@hangukuz_consulting), telefon (kiruvchi/o'tkazib yuborilgan), Telegram bot (mavjud); WhatsApp — yo'q | | 
+
+3.3 | Telefoniya | 1-faza qo'lda (bir tugma + natija oynasi); 2-faza GoIP+FreePBX | | 
+
+3.4 | Bir odam — bir karta | Telefon/username bo'yicha avtomatik birlashtirish; shubhali — taklif | | 
+
+4.1 | Bosqichlar | 7 bosqich + Kutish | | 
+
+4.2 | Ko'tarmadi | Avtomatik 5 urinish: +15 daq → +2 soat → ertasi 10:00 → +2 kun; 2-urinishdan keyin DM/SMS; 7 kunda 5 ta → «aloqa yo'q» | +15 daq / +2 soat — qat'iy ustuvorlik, HOZIR'da taymer bilan | 
+
+4.3 | Kutish | Majburiy sana + sabab; sanada BUGUN'ga qaytadi; 7 kun oldin eslatma xabar qoralamasi | | 
+
+4.4 | Yo'qotish | Qat'iy sabablar + avtomatik qayta faollashtirish navbatlari | | 
+
+5.1 | Majburiy maydonlar | «Gaplashildi» saqlanishi uchun 5 ta: maqsad, sertifikat/daraja, yosh/sinf, viloyat, kim qaror qiladi/to'laydi | | 
+
+5.2 | E'tirozlar | Har natijada 2 tez maydon: «Nima to'xtatyapti?», «Boshqa markaz?» | | 
+
+5.3 | Ota-ona | Talaba + ota-ona bloki, «kim qaror qiladi» belgisi | | 
+
+5.4 | Avto-maydonlar | Reklama/kampaniya/forma; til (uz/ru) + qulay kanal/vaqt; mos mahsulot (qoida bilan); tavsiya manbai | Tavsiya manbai — birinchi ustuvorlik | 
+
+6.1 | Birinchi javob | Avval savolga javob, keyin telefon; bot «raqam yozing» bilan boshlamaydi | | 
+
+6.2 | Kuzatuv ketma-ketligi | 1/3/7-kun qoralamalari; operator bir bosishda tasdiqlaydi | | 
+
+6.3 + 9.1 | Eskalatsiya | 10 daqiqada — hammaga: barcha operatorlar, senior va rahbar (Telegram), har 10 daqiqada takror | 9-raundda aniqlashtirildi | 
+
+6.4 | Va'dalar | Ruxsat etilgan taklif kartasi; chegirma/maxsus shart — rahbar tasdig'iga | | 
+
+7.1 | AI qisqacha | Avtomatik, har yangi xabarda yangilanadi | | 
+
+7.2 | AI javob | Qoralama; operator tahrirlab yuboradi | | 
+
+7.3 | Ustuvorlik | Avtomatik ball; operator o'zgartira olmaydi, senior «pin» qiladi | | 
+
+7.4 | Yozuvlar | Qo'ng'iroq yozuvi/transkript — bu rejadan tashqarida | | 
+
+8.1 | KPI | Faqat natija: shartnomalar, manba/reklama bo'yicha konversiya, yo'qotish sabablari | «Sotuv — ustuvorlik; qo'ng'iroq soni uchun to'lamaymiz» | 
+
+8.2 | Hisobot yetkazish | Jonli KPI paneli + 09:30 kunlik Telegram + dushanba haftalik | | 
+
+8.3 | Ofis TV | Vazifalar ekrani qoladi; javobsiz yangi lid bo'lsa — username bilan ogohlantirish oynasi | | 
+
+8.4 | Rahbarga darhol | Chegirma/maxsus shart; qaytarish/shikoyat/«direktor» so'zlari; har shartnoma/to'lov; 10 daqiqa buzilishi (6.3) | | 
+
+9.2 | Eski lidlar | «Baza»ga, tahlillari bilan; crm_generation='old' belgisi — eski CRMda bo'lgani uchun | Yangi tizim samarasini tahlil qilish uchun | 
+
+9.3 | Mobil | Faqat desktop | | 
+
+9.4 | Yetkazish | Shu TT; fazalar bo'yicha quriladi; sanalarsiz | | 
+
+3. Panellar va vizual ustuvorlik
+
+Yon menyuda «Lidlar» guruhi beshta banddan iborat. Ish stoli — asosiy va kirishda ochiladigan sahifa; qolganlari ikkinchi darajali. Izohlar Ish stolining ichida kichik sub-panel. Eski «Yangi lid», «Bugungi lidlar», «Lidlar» bandlari olib tashlanadi.
+
+Yon menyu — «Lidlar» guruhi
+
+LIDLAR
+
+ Ish stoli ● 3 — HOZIR soni, qizil
+
+ Barcha lidlar
+
+ Yo'qotilgan · qayta faollashtirish
+
+ Hisobot (senior, rahbar)
+
+ Baza (eski CRM)
+
+ Sozlamalar (admin)
+
+Ustuvorlik qoidalari
+
+ 1. Ish stoli — guruhning birinchi bandi, qalin, HOZIR soni qizil nishonda; 10 daqiqa buzilgan lid bo'lsa nishon miltillaydi.
+
+ 2. Operator uchun boshqa bandlar oddiy; Hisobot faqat senior/rahbarga, Sozlamalar faqat adminga ko'rinadi.
+
+ 3. Har bandda son: Barcha (faol lidlar), Yo'qotilgan (navbatdagi qayta faollashtirishlar), Baza (eski lidlar).
+
+ 4. Izohlar — Ish stolining yuqori chizig'ida «Izohlar · 2» nishoni; bosilganda o'ng tomonda sub-panel ochiladi, hamma (rahbar ham) shu yerdan javob yozadi.
+
+3.1 Ish stoli
+
+Uch blok tepadan pastga. HOZIR hech qachon yashirilmaydi; bo'sh bo'lsa «Hozir navbat yo'q» deb yashil chiziq. Qator bosilganda o'ngda lid kartasi ochiladi (sahifadan chiqmasdan). Har qatorda: ism, kanal belgisi, manba (reklama nomi), taymer, keyingi harakat, egasi.
+
+Ish stoli — kompozitsiya (desktop 1360px)
+
+Ish stoli Hozir 3 Bugun 14 Keyin 41 Izohlar 2 Qidiruv ▭ + Lid
+
+ HOZIR — 10 daqiqa
+
+04:12 · Dilnoza · IG forma «Hanbox 10-sent» · telefon bor · Qo'ng'iroq Chat
+
+ −02:40 KECHIKDI · @sardor_k · Telegram, birinchi xabar: «Narxi qancha?» · telefon yo'q · Chat
+
+ 00:58 · Aziz (2-urinish, +15 daq) · «Ko'tarmadi» 14:02 · Qo'ng'iroq
+
+BUGUN — qayta aloqa va javob kutayotgan chatlar
+
+10:00 · Malika · Kutish tugadi: TOPIK natijasi · Standart taklif · Qo'ng'iroq
+
+ Mijoz yozdi 09:41 · Jasur · «Shartnomani qachon yuborasiz?» · Shartnoma · Javob
+
+ Qoralama · Nilufar · 3-kun: natija xati · Yuborish Tahrir
+
+KEYIN
+07.10 10:00 · Bekzod · zinapoya 4/5
+12.10 · Kamola · Kutish: oila qarori
+
+Lid kartasi (o'ng panel)
+
+ Qator bosilganda ochiladi; 6-bo'limga qarang
+
+ AI qisqacha · 4–6 qator
+
+ Aloqa: talaba + ota-ona
+
+ 5 majburiy maydon
+
+ Ruxsat etilgan taklif
+
+ Vaqt chizig'i (barcha kanallar) + yozish oynasi
+
+HOZIR blokiga nima tushadi
+
+Yangi lid (har qanday manba) — javobgacha; taymer 10:00 dan sanaydi.
+
+ Zinapoyaning har bir qayta qo'ng'iroq bosqichi — belgilangan vaqtdan 10 daqiqa oldin paydo bo'ladi va o'z taymerini ko'rsatadi (4.2 qaror: +15 daq / +2 soat qat'iy ustuvorlik).
+
+ Mijoz javob kutayotgan chat, agar oxirgi xabar mijozniki bo'lib 10 daqiqadan oshsa (BUGUN'dan HOZIR'ga ko'tariladi).
+
+ O'tkazib yuborilgan qo'ng'iroq (2-fazada telefoniya orqali).
+
+BUGUN blokiga nima tushadi
+
+Bugungi sanali qayta aloqalar (Kutish tugagan, operator qo'ygan sana).
+
+ Mijoz oxirgi yozgan chatlar (10 daqiqagacha).
+
+ Kuzatuv ketma-ketligi qoralamalari (1/3/7-kun) — «Yuborish / Tahrir / O'tkazib yuborish».
+
+ Tasdiqlanishi kerak bo'lgan narsalar operator uchun: to'ldirilmagan majburiy maydonlar (qizil nuqta).
+
+Tartib: HOZIR — muddatga qarab (eng kam vaqt qolgani tepada; kechikkanlar eng tepada, qizil). BUGUN — vaqt bo'yicha, keyin ustuvorlik bali (12-bo'lim). KEYIN — sana bo'yicha.
+
+3.2 Izohlar sub-paneli
+
+Izohlar — Ish stolidan ochiladigan o'ng panel
+
+Izohlar Javobsiz 2 Hammasi
+
+06:30 · @malika.r · reel «TOPIK 2 bilan kollej» · «Narxi qancha?» · Javob DM'ga o'tkazish
+
+ javob berildi · @bek_uz · post 03.10 · «Farg'onada ofis bormi?» · Omina, 11:04
+
+Javob oynasi: izohga ochiq javob (qisqa) + «DM'da davom etish» tugmasi → shu odamga DM ochiladi va lid yaratiladi/bog'lanadi.
+
+Izoh keldi → lid yaratiladi (kanal = izoh), taymer 10 daqiqa; javob berilganda taymer to'xtaydi.
+
+ Ochiq javob narx aytmaydi; narx va shartlar DM'da (qoidani Sozlamalarda shablon sifatida saqlang).
+
+ Izoh mualliflari keyin DM yozsa — bitta kartaga birlashadi (username bo'yicha).
+
+ Ruxsat: barcha rollar, rahbar ham, shu paneldan yozadi.
+
+3.3 Barcha lidlar
+
+Barcha lidlar — jadval
+
+Qidiruv (ism, telefon, username) Bosqich ▾ Manba ▾ Egasi ▾ Viloyat ▾ Sertifikat ▾ Sana ▾ Eksport
+
+Ism · kanallar · bosqich · egasi · sertifikat · maqsad · viloyat · oxirgi harakat · keyingi harakat · ball
+
+ Dilnoza A. · IG+TG · Qiziqdi · Omina · TOPIK 3 · Bakalavr · Farg'ona · 05.10 14:12 qo'ng'iroq · 07.10 10:00 · 82
+
+Faqat faol lidlar (Talaba va Yo'qotilgan — alohida). Operator o'z lidlari + hovuzni (egasiz) ko'radi; senior/rahbar — hammasini, «egasini o'zgartirish» bilan. Qator bosilsa — o'sha lid kartasi.
+
+3.4 Yo'qotilgan va qayta faollashtirish
+
+Yo'qotilgan — ikki tab
+
+Tab 1: Yo'qotilganlar
+Sabab bo'yicha guruhlangan jadval; har qatorda sabab, raqobatchi, sana, kim yopgan, «Qayta ochish».
+
+Tab 2: Navbatlar
+
+Sertifikat yo'q → Hanbox · 37 ta · Navbatni boshlash
+
+ Hujjat/moliya → NO RISK · 12 ta
+
+ Keyingi yil → yanvar · 29 ta
+
+ Boshqa markaz → 30 kundan keyin · 8 ta
+
+ Aloqa yo'q → 14 kundan keyin DM · 44 ta
+
+Navbat boshlanganda lidlar BUGUN'ga kuniga N tadan (Sozlamalarda, standart 15) tushadi — har biri «qayta faollashtirish» belgisi va ruxsat etilgan taklif bilan.
+
+3.5 Hisobot · 3.6 Baza · 3.7 Sozlamalar
+
+Hisobot
+14-bo'lim. Faqat natija ko'rsatkichlari; davr va operator/manba filtri; 09:30 va dushanba hisobotlari shu yerdagi raqamlardan.
+
+Baza
+16-bo'lim. Eski CRM lidlari (crm_generation='old'), 05.10 tahlillari bilan; qidiruv va filtr; Ish stoliga tushmaydi; qayta faollashtirish navbatlari shu yerdan ham ishlaydi.
+
+Sozlamalar (admin)
+Ish vaqti (09–22), eskalatsiya ro'yxati, zinapoya vaqtlari, shablonlar (uz/ru), taqiqlangan so'zlar, ruxsat etilgan takliflar matni, yo'qotish sabablari, navbat kunlik limiti, avtojavob matni, TV ogohlantirish.
+
+4. 10 daqiqa qoidasi
+
+Taymer qachon boshlanadi
+
+Yangi suhbat — birinchi kiruvchi xabar/forma/izoh/qo'ng'iroq vaqtida (first_contact_at).
+
+ Mijoz yana yozdi — oxirgi xabar mijozniki bo'lsa, o'sha xabar vaqtidan (javob kutish taymeri).
+
+ Zinapoya bosqichi — belgilangan vaqtda (next_attempt_at); 10 daqiqa oldin HOZIR'da ko'rinadi.
+
+ Ish vaqtidan tashqarida kelgan — due_at = keyingi kun 09:10; 09:00 da navbatning boshida.
+
+Taymer qachon to'xtaydi (javob berildi)
+
+Qo'ng'iroq natijasi «Gaplashildi» saqlandi (tugallangan qo'ng'iroq), YOKI
+
+ Natija «Ko'tarmadi/Band» saqlandi va shu kartadan mijozga xabar yuborildi (chat).
+
+ Telefoni yo'q lidda: chatga odam yozgan xabar (bot/avtojavob hisoblanmaydi).
+
+ Izohda: ochiq javob yozildi.
+
+Texnik: answered_at, answered_by, answer_kind (call | call_attempt+chat | chat | comment) yoziladi; 1-fazada «qo'ng'iroq tugadi» = natija oynasi saqlangan vaqt, 2-fazada PBX hodisasi.
+
+Eskalatsiya
+
+Vaqt | Nima bo'ladi | Kimga | 
+
+0:00 | Lid HOZIR'da; taymer; brauzer bildirishnomasi + ovoz (operator yoqib qo'ygan bo'lsa) | Barcha operatorlar (hovuz) | 
+
+5:00 | Qator sariq; taymer qizarib boradi | — | 
+
+10:00 | Buzilish. Telegram xabar: ism/username, manba, kanal, «Olish» havolasi. Ofis TV: ogohlantirish oynasi username bilan. Qator qizil, eng tepada | Barcha operatorlar + senior + rahbar (9.1 qaror) | 
+
+har 10 daq | Takror xabar, javob berilgunicha; 18:00–22:00 — rahbar o'zi operator, xabar unga ham keladi | Shu ro'yxat | 
+
+«Olish» havolasi lidni bosgan odamga biriktiradi (egasi) va kartani ochadi. Hovuzdan olingan lidni boshqa operator ko'rmaydi (2.4 qaror), lekin HOZIR'dagi buzilgan lid egasi bo'lsa ham hammaga ko'rinadi — javob berilgunicha.
+
+Ish vaqtidan tashqari (22:00–09:00)
+
+Avtojavob (Sozlamalarda matn, uz/ru): «Assalomu alaykum! Xabaringizni oldik. Ertaga 09:00–09:30 oralig'ida qo'ng'iroq qilamiz. Qulay vaqtni yozib qo'ysangiz, shu vaqtda bog'lanamiz.» — faqat bir marta, bir suhbatga.
+
+ 09:00 da bu lidlar HOZIR'ning tepasida, taymer 09:00 dan sanaydi (due_at 09:10).
+
+ Avtojavob «javob berildi» hisoblanmaydi.
+
+5. Manbalar va bir odam — bir karta
+
+Manba | Hodisa → lid | Kartaga tushadigan ma'lumot | Javob kanali | Faza | 
+
+Instagram DM, story javobi | Birinchi kiruvchi xabar (webhook, mavjud) | username, ism, til, reklama/post (agar story/reel havolasi bo'lsa) | IG DM (CRMdan) | F1 | 
+
+Meta lead forma (IG/FB) | Forma yuborildi → Meta leadgen webhook → Graph API orqali javoblar | ism, telefon, forma savollari (TOPIK/IELTS, yosh, viloyat…), kampaniya/ad set/forma nomi | Qo'ng'iroq; IG DM bo'lsa — DM | F1 | 
+
+Izoh (post/reel) | Yangi izoh (comments webhook) | username, post, izoh matni | Ochiq javob + DM'ga o'tkazish | F2 | 
+
+Facebook Messenger | Birinchi xabar (Messenger webhook) | ism, til | Messenger | F2 | 
+
+Telegram akkaunt | Birinchi shaxsiy xabar (telegram-poll, tuzatish patchi tayyor) | username, ism, telefon (agar profilda ochiq), til | Telegram (CRMdan, outbox) | F1 | 
+
+Telegram bot | Anketa yakunlandi (telegram-webhook, mavjud) | ism, telefon, yo'nalish | Qo'ng'iroq; bot chati | F1 | 
+
+Telefon (kiruvchi/o'tkazib yuborilgan) | 1-faza: operator «Qo'ng'iroq keldi» tugmasi bilan qo'lda; 2-faza: PBX hodisasi | raqam, vaqt | Qo'ng'iroq | F1/F3 | 
+
+Ilova (ro'yxat/so'rovnoma) | app_register/app_quiz_submit (mavjud) | telefon, so'rovnoma javoblari, UTM | Qo'ng'iroq | F1 | 
+
+Sayt formasi | «Public Registration» (mavjud) | ism, telefon/email, UTM | Qo'ng'iroq/email | F1 | 
+
+Qo'lda (ofis, tavsiya) | «+ Lid» tugmasi | ism, telefon, manba «Ofis» yoki «Tavsiya» + kim tavsiya qilgan | Qo'ng'iroq | F1 | 
+
+Bir odam — bir karta (birlashtirish)
+
+Kalitlar: telefonning oxirgi 9 raqami; IG username; Telegram user id/username; ilova account id.
+
+ Aniq mos kelsa (telefon yoki username bir xil) — avtomatik birlashadi: bitta karta, kanallar ro'yxati, bitta vaqt chizig'i; eski kartaning ma'lumotlari saqlanadi (bo'sh maydonlar to'ldiriladi, to'liq maydonlar ustidan yozilmaydi).
+
+ Shubhali (faqat ism yoki o'xshash username) — kartada «Bu odam bo'lishi mumkin: …» taklifi; operator bir bosishda birlashtiradi yoki rad etadi.
+
+ Talaba bilan mos kelsa (student_phones) — karta «Talaba» belgisi oladi, sotuv navbatiga tushmaydi, menejerga bildiriladi.
+
+ Birlashganda taymer eng erta due_at bo'yicha qoladi.
+
+6. Lid kartasi
+
+Karta o'ng panelda ochiladi (Ish stoli, Barcha lidlar, Baza — hammasida bir xil). Tepadan pastga: sarlavha va harakatlar → AI qisqacha → aloqa (talaba + ota-ona) → 5 majburiy maydon → malaka va taklif → vaqt chizig'i va yozish oynasi. Hech narsa «tab» ortida yashirilmaydi; uzun bloklar yig'iladi.
+
+Lid kartasi — blok tartibi
+
+Dilnoza Abdullayeva Qiziqdi IGTGforma HOZIR 04:12 Egasi: Omina Qo'ng'iroq Yozish Kutish Yo'qotildi Talaba
+
+ AI qisqacha (avtomatik, oxirgi xabarda yangilangan 14:12)
+Kim: talaba, 19, Farg'ona · Istagi: bakalavr, Bahorgi 2027 · Sertifikat: TOPIK 3 (2026 apr) · Qilingan: forma 03.10, DMda narx so'ragan, javob yo'q · E'tiroz: «ota-onam bilan maslahatlashaman» · Mos: Standart/Premium · Keyingi qadam: ota-onasi bilan birga qo'ng'iroq, sertifikat nusxasi
+
+Talaba+998 ·· ··· ·· ·· Nusxa · @dilnoza_a · til: uz · qulay vaqt: 18:00 dan keyin
+
+ Ota-ona / to'lovchiOna · +998 ·· ··· ·· ·· · qaror qiladi · Qo'ng'iroq
+
+5 majburiy maydon («Gaplashildi» saqlanishi uchun)
+Maqsad: Bakalavr · Sertifikat: TOPIK 3 · Yosh/sinf: 19, 1-kurs · Viloyat: Farg'ona · Kim qaror qiladi/to'laydi: ota-ona to'liq
+
+MalakaImtihon sanasi: — · Qabul: Bahorgi 2027 · Byudjet/moliyalash: — · Raqobatchi: Bright Future (so'ragan) · E'tiroz: ota-ona
+
+ Ruxsat etilgan taklifStandart 2 mln + 5 mln vizadan keyin Premium 3 mln + 10 mln
+NO RISK — faqat rahbar tasdig'i bilan. Taqiq: «kafolat», «100%», «bepul noutbuk», «bitta narx», «sertifikatsiz Koreya».
+Chegirma/maxsus shart so'rash →
+
+Manba Meta forma «Hanbox 10-sent» · ad set «Toshkent 18–24» · 03.10 20:14 · Tavsiya: — · Harakatlar 05.10 14:12 qo'ng'iroq (Omina) · 04.10 DM javob
+
+ Vaqt chizig'iBarcha kanallar bitta oqimda: IG DM, Telegram, izoh, forma, qo'ng'iroq natijalari, izohlar (ichki). Filtr: kanal bo'yicha.
+ IG DMTelegramkanal tanlanadi · AI qoralama Shablon ▾ Yuborish
+
+ Yozish oynasi taqiqlangan so'zni qizil chizadi va yuborishni to'xtatadi.
+
+Maydonlar ro'yxati (kartada ko'rinadigan)
+
+Blok | Maydon | Qiymatlar | Kim to'ldiradi | 
+
+Majburiy (5) | Maqsad | Bakalavr · Magistr · Kasbiy ta'lim · Til kursi · HanBox · GKS | Operator; forma/so'rovnomadan avto | 
+
+Sertifikat / daraja | Yo'q · TOPIK 1–6 · IELTS 5.5/6.0/6.5/7.0+ · TOEFL · «olmoqchi» + imtihon sanasi | Operator; forma | 
+
+Yosh / sinf | yosh (15–45) + maktab/kollej/universitet kursi | Operator | 
+
+Viloyat | ro'yxat (Toshkent … Guliston) + «chet el» | Operator; forma | 
+
+Kim qaror qiladi / to'laydi | o'zi · ota-ona · boshqa qarindosh | Operator | 
+
+E'tiroz (2) | Nima to'xtatyapti? | narx · hujjat/moliya · sertifikat · ota-ona · ishonch · vaqt · hech narsa | Har natijada, bir bosish | 
+
+Boshqa markaz? | yo'q · ha + nomi (ro'yxat + matn: Bright Future, ON201, Global Consult, Forward, boshqa) | Har natijada | 
+
+Ota-ona | ism, telefon, qarindoshlik, qulay vaqt, «qaror qiladi» belgisi | — | Operator | 
+
+Avto | Reklama | kampaniya · ad set · reklama · forma · UTM | Meta/ilova/sayt | 
+
+Til, qulay kanal/vaqt | uz/ru (chat matnidan); kanal: IG/TG/telefon; vaqt matni | Avto, tahrirlanadi | 
+
+Mos mahsulot | Standart/Premium · NO RISK (rahbar) · Hanbox · GKS — 11-bo'lim qoidasi | Qoida | 
+
+Tavsiya manbai | Tavsiya: talaba/bitiruvchi/ota-ona/hamkor + ism; birinchi ustuvorlik — qo'ng'iroq natijasi oynasida ham so'raladi («Bizni kimdan eshitdingiz?») | Operator; ilova referral kodi | 
+
+7. Qo'ng'iroq tugmasi va natija oynasi
+
+1-faza: «Qo'ng'iroq» tugmasi raqamni ko'rsatadi/nusxalaydi (telefon ilovasiga tel: havola ham beriladi) va natija oynasini ochadi; u yopilmaguncha boshqa ish qilib bo'lmaydi. 2-faza: tugma PBX orqali qo'ng'iroq qiladi, oyna qo'ng'iroq tugaganda o'zi ochiladi.
+
+Natija oynasi — 4 tugma, keyin qisqa forma
+
+GaplashildiKo'tarmadiBand / keyin qo'ng'iroqNomer xato
+
+Gaplashildi →5 majburiy maydon (to'ldirilmaganlari) · e'tiroz (1 bosish) · boshqa markaz (1 bosish) · «Bizni kimdan eshitdingiz?» · bosqich tanlash (Aloqada / Qiziqdi / Taklif / Shartnoma / Kutish / Yo'qotildi) · keyingi harakat: sana+vaqt yoki «zinapoya» · qisqa izoh
+
+ Ko'tarmadi →Avtomatik: zinapoyaning keyingi bosqichi (9-bo'lim) · «Chatga yozish» tugmasi shablon bilan (taymer shu xabardan keyin to'xtaydi) · ota-ona raqami bo'lsa: «Ota-onaga qo'ng'iroq?»
+
+ Band / keyin →Mijoz aytgan vaqt (tez tanlash: +1 soat, bugun 18:00, ertaga 10:00) → KEYIN/BUGUN · taymer to'xtaydi
+
+ Nomer xato →Chatga «raqamingizni tasdiqlang» shabloni (kanal bo'lsa); telefon bo'sh qilinadi, karta telefonsiz lid sifatida qoladi; chat yo'q bo'lsa → Yo'qotildi «aloqa yo'q»
+
+Saqlanmasdan yopib bo'lmaydi; «Gaplashildi» 5 maydonsiz saqlanmaydi (qizil ko'rsatkich).
+
+Texnik: har natija call_attempts jadvaliga yoziladi (lead_id, operator, vaqt, natija, davomiylik 2-fazada, izoh); leads.last_contacted_at, answered_at yangilanadi; «Gaplashildi» bosqichni kamida «Aloqada»ga ko'taradi.
+
+8. Bosqichlar, Kutish, Yo'qotish
+
+stateDiagram-v2
+ direction LR
+ [*] --> Yangi
+ Yangi --> Aloqada: javob berildi
+ Aloqada --> Qiziqdi: 5 maydon to'liq, ehtiyoj aniq
+ Qiziqdi --> Taklif: tarif yuborildi
+ Taklif --> Shartnoma: shartnoma yuborildi / to'lov kutilmoqda
+ Shartnoma --> Talaba: to'lov / shartnoma imzolandi
+ Aloqada --> Kutish: sana + sabab
+ Qiziqdi --> Kutish
+ Taklif --> Kutish
+ Kutish --> Aloqada: sana keldi (BUGUN)
+ Yangi --> Yoqotildi: sabab
+ Aloqada --> Yoqotildi: sabab
+ Qiziqdi --> Yoqotildi: sabab
+ Taklif --> Yoqotildi: sabab
+ Shartnoma --> Yoqotildi: sabab
+ Yoqotildi --> Aloqada: qayta faollashtirish
+ Talaba --> [*]
+
+Bosqich | Ma'nosi | Kirish sharti | Ish stolida | 
+
+Yangi | Javob berilmagan suhbat | Lid yaratildi | HOZIR | 
+
+Aloqada | Javob berilgan, ehtiyoj aniqlanmoqda | answered_at bor | BUGUN/KEYIN (keyingi harakat bo'yicha) | 
+
+Qiziqdi | Ehtiyoj va sertifikat ma'lum, davom etmoqchi | 5 maydon to'liq | BUGUN/KEYIN | 
+
+Taklif yuborildi | Tarif/narx yuborilgan | Taklif turi tanlangan (Standart/Premium/NO RISK/Hanbox/GKS) | BUGUN/KEYIN; 3 kun javobsiz → BUGUN'ga qaytadi | 
+
+Shartnoma | Shartnoma yuborilgan, to'lov kutilmoqda | Shartnoma sanasi | BUGUN har kuni, to'lovgacha | 
+
+Talaba | Shartnoma/to'lov bo'ldi | Mavjud «convert» oqimi (talaba profili) | Chiqadi; rahbarga Telegram | 
+
+Kutish | Mijoz sanali sabab aytdi | Majburiy sana + sabab (imtihon natijasi / oila qarori / pul / keyingi qabul) | KEYIN; sanada BUGUN; 7 kun oldin eslatma qoralamasi | 
+
+Yo'qotildi | Hozircha ishlamaydi | Sabab (ro'yxat) + raqobatchi + izoh | Yo'qotilgan paneli; navbat bo'yicha qaytadi | 
+
+Yo'qotish sabablari → qayta faollashtirish navbatlari
+
+Sabab | Navbat | Qachon | Taklif matni (asos) | 
+
+Sertifikat yo'q | Hanbox | Keyingi guruh e'lon qilinganda (Sozlamalar sanasi) va har 45 kunda | Hanbox: 1 yil onlayn, maqsad TOPIK 2; $2 000 yoki $400 + 10×$200; birinchi dars bepul | 
+
+Hujjat / moliya | NO RISK | NO RISK sharti kartada e'lon qilingach; har 60 kun | Rahbar tasdig'i bilan | 
+
+Keyingi yil / qabul | Yanvar / avgust to'lqini | 10 yanvar, 1 avgust | Yangi qabul muddatlari | 
+
+Boshqa markaz | 30 kun tekshiruv | +30 kun | «Qanday ketyapti?» — savol, taklif emas | 
+
+Aloqa yo'q (5 urinish) | DM 14 kun | +14 kun DM, +45 kun qo'ng'iroq | Qisqa savol | 
+
+Narx | Muddat/aksiya | Real universitet muddati e'lon qilinganda | Chegirmasiz, muddat bilan | 
+
+Ota-ona qarshi | Ota-ona kechasi / natija xatlari | Tadbir sanasida | Ota-onaga alohida | 
+
+Mos emas (yosh/ta'lim), spam/dublikat | — | Qaytmaydi | — | 
+
+9. «Ko'tarmadi» zinapoyasi
+
+Urinish | Qachon | HOZIR'da ko'rinishi | Qo'shimcha harakat | 
+
+1 | Yangi lid, 10 daqiqa ichida | Taymer 10:00 | Ko'tarmasa → chatga yozish (bo'lsa) | 
+
+2 | +15 daqiqa | Belgilangan vaqtdan 10 daqiqa oldin paydo bo'ladi, taymer; o'tib ketsa — qizil, eskalatsiya (10 daqiqa qoidasi) | Ko'tarmasa → avtomatik DM/SMS qoralamasi: «Qo'ng'iroq qildik, qachon qulay?» (operator bir bosishda yuboradi) | 
+
+3 | +2 soat | Xuddi shunday | Ota-ona raqami bo'lsa — ota-onaga urinish taklifi | 
+
+4 | Ertasi kuni 10:00 | Xuddi shunday | Boshqa kanalga yozish (TG bo'lsa TG) | 
+
+5 | +2 kun, 10:00 | Xuddi shunday | Oxirgi | 
+
+— | 7 kun ichida 5 urinish, javob yo'q | — | Avtomatik Yo'qotildi: «aloqa yo'q» → navbat (+14 kun DM, +45 kun qo'ng'iroq) | 
+
+Vaqt ish soatlariga suriladi: 21:50 dagi «+15 daq» → 22:05 emas, ertaga 09:00.
+
+ Mijoz orada yozsa yoki qo'ng'iroq qilsa — zinapoya to'xtaydi, lid HOZIR'ga «mijoz yozdi» bilan qaytadi.
+
+ Har urinish call_attemptsda; bosqich raqami kartada: «zinapoya 3/5».
+
+ Operator zinapoya vaqtini qo'lda o'zgartira olmaydi (faqat «Band/keyin» orqali mijoz aytgan vaqtga).
+
+10. Chat qoidalari, shablonlar, AI, kuzatuv
+
+Birinchi javob
+
+Bot/avtojavob hech qachon «raqamingizni yozing» bilan boshlamaydi.
+
+ Mijoz savol bergan bo'lsa — avval javob (shablon yoki AI qoralama, real narx va shartlar), keyin: «Qulay bo'lsa, raqamingizni qoldiring — 10 daqiqada qo'ng'iroq qilamiz».
+
+ Savolsiz «salom» — qisqa salom + bitta savol: «Koreyada qaysi yo'nalish qiziqtiradi — bakalavr, magistr, til yoki Hanbox?»
+
+ «Siz Yuhak Way'misiz?» → qat'iy javob: «Men hozir HANGUK Consulting'da ishlayapman — hujjatlaringiz bo'yicha shu yerdan yordam beraman.»
+
+Shablonlar (Sozlamalar)
+
+uz va ru variantlari; o'zgaruvchilar: {ism}, {tarif}, {narx}, {sana}, {operator}.
+
+ Guruhlar: salom, narx/tariflar, hujjatlar, Hanbox, NO RISK (rahbar tasdig'i belgisi bilan), «qo'ng'iroq qildik», «raqamni tasdiqlang», Kutish eslatmasi, izohga ochiq javob.
+
+ Taqiqlangan so'zlar ro'yxati: yozish oynasi yuborishni to'xtatadi.
+
+AI
+
+Qisqacha: karta ochilganda va har yangi xabarda (debounce 2 daq) barcha kanallar + qo'ng'iroq izohlaridan 4–6 qator; mavjud suggest-lead-profile funksiyasi kengaytiriladi; til uz.
+
+ Javob qoralamasi: mijoz tilida, ruxsat etilgan taklif kartasidan narxlar; hech qachon avtomatik yuborilmaydi; qaysi majburiy maydon noma'lumligini eslatadi.
+
+ Maydon takliflari: chatdan yosh/viloyat/sertifikat topilsa — «qabul qilish» bilan (mavjud suggestions mexanizmi).
+
+Kuzatuv ketma-ketligi (jim qolgan lidlar)
+
+Boshlanish: Aloqada/Qiziqdi/Taklif bosqichida mijoz 24 soat javob bermasa.
+
+ 1-kun: savolga to'liq javob + foyda; 3-kun: dalil (natija xati, talaba hikoyasi); 7-kun: real universitet muddati; keyin to'xtaydi.
+
+ Har xabar BUGUN'da qoralama: «Yuborish / Tahrir / O'tkazib yuborish». Hech narsa odamsiz ketmaydi.
+
+ Mijoz javob bersa — ketma-ketlik to'xtaydi; lid HOZIR'ga.
+
+11. Ruxsat etilgan takliflar va va'dalar nazorati
+
+Mijoz holati | Kartada ko'rsatiladigan taklif | Izoh | 
+
+TOPIK 3+ yoki IELTS 5.5+ | Standart (2 mln + 5 mln vizadan keyin) · Premium (3 mln + 10 mln vizadan keyin) | Ikkalasi ham; farqi xizmatlar ro'yxatida | 
+
+Viza xavotiri / hujjat-moliya e'tirozi | NO RISK ($5 000; viza rad etilsa to'liq qaytariladi, o'zi voz kechmasa) | «Rahbar tasdig'i bilan» belgisi — karta shartlari e'lon qilingach belgi olib tashlanadi | 
+
+Sertifikat yo'q / maktab o'quvchisi | Hanbox: $2 000 yoki $400 + 10×$200 ($2 400) yoki nasiya; birinchi dars bepul; kontrakt, bank ko'chirmasi, viza, aviabilet, yashash alohida | Guruh boshlanishi: 26.10 (Sozlamalarda) | 
+
+TOPIK 2–3 | Kasbiy ta'lim yo'li | Narx — rahbardan (ochiq savol) | 
+
+GKS so'ragan | GKS shartlari (TOPIK 3 / IELTS 5.5) + Standart/Premium | GKS xizmat narxi — rahbardan | 
+
+Va'dalar (chegirma, maxsus shart)
+
+Operator kartada «Chegirma/maxsus shart so'rash» tugmasini bosadi: tur (chegirma % / bo'lib to'lash / boshqa), matn, sabab.
+
+ Yozuv lead_promisesga status='pending' bilan tushadi; rahbarga Telegram xabar (lid, operator, so'rov, «Tasdiqlash / Rad etish» havolalari).
+
+ Tasdiqlangunicha operator mijozga bu shartni yozolmaydi (yozish oynasi «% chegirma» kabi iboralarni to'xtatib, tasdiq so'raydi).
+
+ Tasdiqlangach shart kartada ko'rinadi va shablon ochiladi; rad etilsa — operatorga bildirishnoma.
+
+12. Ustuvorlik bali
+
+Ball faqat BUGUN va KEYIN tartibini belgilaydi; HOZIR har doim muddat bo'yicha. Operator ballni o'zgartira olmaydi; senior «pin» qila oladi (tepaga).
+
+Omil | Ball | 
+
+Tavsiya bilan kelgan | +30 | 
+
+Sertifikat: TOPIK 3+ / IELTS 5.5+ (+10 olmoqchi, sana bor) | +25 / +10 | 
+
+Niyat: narx/tarif/shartnoma so'ragan | +20 | 
+
+Ota-ona ishtirok etgan | +15 | 
+
+Bosqich: Taklif +15, Shartnoma +25 | +15 / +25 | 
+
+Yaqinlik: oxirgi mijoz xabari ≤ 3 kun +10; ≤ 7 kun +5 | +10 / +5 | 
+
+Manba: Telegram +5 (shartnomalar shu yerda), ilova +5 | +5 | 
+
+Yo'qotish xavfi: raqobatchi nomi aytilgan | +10 | 
+
+Majburiy maydonlar to'liq emas | −5 | 
+
+Ball har harakatda qayta hisoblanadi (DB funksiyasi); 0–100 oralig'ida kartada ko'rinadi.
+
+13. Rollar va ko'rinish
+
+Rol | Ko'radi | Qila oladi | Ko'rmaydi | 
+
+Operator (call_operator) | Ish stoli: hovuz (egasiz lidlar) + o'z lidlari; Barcha lidlar (shu doirada); Baza (hammasi, o'qish); Izohlar | Olish, javob, natija, bosqich, Kutish, Yo'qotish, va'da so'rash | Boshqa operatorning lidlari; Hisobot; Sozlamalar | 
+
+Senior operator (yangi rol lead_senior) | Hammasi | + egasini o'zgartirish, pin, navbatni boshlash, Hisobot | Sozlamalar (faqat shablonlar) | 
+
+Rahbar / admin (owner, admin) | Hammasi | + va'dalarni tasdiqlash, Sozlamalar, eksport | — | 
+
+Hujjatchi (document_handler) | Talaba bo'lgan lidlar (o'qish) | — | Ish stoli | 
+
+Har operatorga alohida login kerak — hozir faqat bitta call_operator akkaunti bor. Egalik va hisobot login bo'yicha ishlaydi.
+
+14. Hisobot, Telegram hisobotlari, TV, rahbar xabarlari
+
+KPI paneli (natija)
+
+Shartnomalar: operator · manba · reklama (kampaniya/forma) · mahsulot bo'yicha; davr filtri.
+
+ Konversiya voronkasi manba bo'yicha: lid → javob → gaplashildi → taklif → shartnoma (soni va %).
+
+ Yo'qotish sabablari: ulush, dinamika, operator bo'yicha.
+
+ Reklama samarasi: har reklama/forma uchun lid → shartnoma, shartnoma narxi (sarf Meta'dan qo'lda yoki keyinroq API).
+
+ Eski vs yangi: crm_generation bo'yicha o'sha ko'rsatkichlar yonma-yon (16-bo'lim).
+
+Rahbar paneliga qo'shimcha, KPI emas, nazorat chizig'i: «10 daqiqa ichida javob %» — faqat rahbar/senior ko'radi. Kerak bo'lmasa olib tashlang.
+
+Telegram hisobotlari
+
+09:30 kunlik (mavjud fn_lead_daily_report_claim kengaytiriladi): kecha kelgan lidlar (manba bo'yicha), javob berilgan/berilmagan, shartnomalar, yo'qotishlar sabab bilan, bugungi BUGUN hajmi.
+
+ Dushanba 09:30 haftalik: shartnomalar operator/manba bo'yicha, voronka, yo'qotish sabablari, eng yaxshi reklama.
+
+Ofis TV
+
+Vazifalar ekrani qoladi. Yangi lid 10 daqiqada javobsiz qolsa — ekran ustida ogohlantirish oynasi: username/ism, manba, necha daqiqa; javob berilgach yo'qoladi; bir nechta bo'lsa ro'yxat. Mavjud TV sahifasi (vazifalar ekrani) Realtime orqali leadsni kuzatadi.
+
+Rahbarga darhol (Telegram)
+
+10 daqiqa buzilishi (hamma qatori, 4-bo'lim).
+
+ Chegirma/maxsus shart so'rovi (11-bo'lim).
+
+ Chatda «qaytar», «pul», «sud», «shikoyat», «direktor», «rahbar» so'zlari (ro'yxat Sozlamalarda) — lid havolasi bilan.
+
+ Har shartnoma / to'lov (Talaba bosqichiga o'tish).
+
+15. Ma'lumotlar modeli va fon jarayonlari
+
+Mavjud leads jadvali saqlanadi (talaba profili, hujjatlar, moliya shu jadvalga bog'langan). Yangi ustunlar qo'shiladi, eski ustunlar (new_lead_at, sla_start_at, call_result, qualified, intake_id) o'qiladi, lekin yangi mantiq ularga tayanmaydi.
+
+Jadval | Ustunlar (yangi) | Izoh | 
+
+leads | stage (enum: new, contacted, interested, offer, contract, student, waiting, lost) · owner_id · first_contact_at · due_at · answered_at · answered_by · answer_kind · attempt_no · next_attempt_at · ladder_state · wait_until · wait_reason · lost_reason · lost_competitor · objection · competitor · decider (self/parent/relative) · language · preferred_channel · preferred_time_text · campaign_name · adset_name · ad_name · form_name · utm (jsonb) · referral_type · referral_name · referred_by_student_id (bor) · product_fit · priority_score (bor) · crm_generation ('old'/'new') · merged_into_id | «qualified» o'rniga stage; «intake_id» filtr sifatida olib tashlanadi (target_intake maydoni qoladi) | 
+
+lead_contacts | id · lead_id · role (student/parent/relative) · name · phone · relation · preferred_time · is_decider | Ota-ona bloki | 
+
+lead_identities | lead_id · channel (instagram/telegram/facebook/app/phone) · identifier · username · confidence · source | Mavjud communication_identities kengaytiriladi; birlashtirish kalitlari | 
+
+lead_events | lead_id · at · actor_id · kind (created, answered, call, message_in, message_out, stage, wait, lost, merge, promise, escalation, draft) · payload jsonb | Vaqt chizig'i va hisobot manbai | 
+
+call_attempts | lead_id · operator_id · started_at · ended_at · result (talked/no_answer/busy/wrong_number) · attempt_no · note · pbx_call_id (F3) | Mavjud calls jadvali bilan bog'lanadi | 
+
+lead_promises | lead_id · operator_id · kind · text · reason · status (pending/approved/rejected) · decided_by · decided_at | Rahbar tasdig'i | 
+
+lead_drafts | lead_id · kind (followup_d1/d3/d7, ladder_dm, wait_reminder, ai_reply) · channel · text · due_at · status (pending/sent/skipped) | Qoralamalar BUGUN'da | 
+
+social_comments | platform · post_id · comment_id · author_username · text · created_at · lead_id · replied_at · replied_by · reply_text | Izohlar sub-paneli | 
+
+reactivation_queues | reason · lead_id · due_at · status · offer_key | Navbatlar | 
+
+lead_settings | key · value jsonb | Ish vaqti, zinapoya, eskalatsiya ro'yxati, shablonlar, taqiqlangan so'zlar, navbat limiti, avtojavob | 
+
+Fon jarayonlari (Supabase cron / edge)
+
+Jarayon | Chastota | Nima qiladi | 
+
+lead-timer-scan | har 30 s | due_at o'tgan va answered_at bo'sh lidlar → eskalatsiya xabari (Telegram, hammaga), takror har 10 daqiqa; TV ogohlantirish uchun escalation hodisasi | 
+
+lead-ladder | har 1 daq | «Ko'tarmadi» natijasidan keyin next_attempt_at ni hisoblaydi (ish vaqtiga suradi); 10 daqiqa oldin due_at qo'yadi; 2-urinishdan keyin DM qoralamasi; 5-dan keyin Yo'qotildi «aloqa yo'q» | 
+
+lead-waiting | kuniga 1 (09:00) | Kutish sanasi kelganlarni BUGUN'ga; 7 kun oldin eslatma qoralamasi | 
+
+lead-followup-drafts | har 1 soat | 24 soat jim qolganlar uchun 1/3/7-kun qoralamalari | 
+
+lead-brief (AI) | hodisa bilan, debounce 2 daq | AI qisqacha; maydon takliflari | 
+
+lead-merge | hodisa bilan | Telefon/username bo'yicha birlashtirish; shubhalilarga taklif | 
+
+lead-reactivation | kuniga 1 | Navbatdagi lidlarni kunlik limit bilan BUGUN'ga | 
+
+lead-priority | hodisa bilan | Ballni qayta hisoblaydi | 
+
+meta-leadgen-webhook | webhook | Meta forma → lid (telefon, javoblar, kampaniya); Graph API bilan to'liq ma'lumot | 
+
+meta-comments-webhook | webhook (F2) | Izoh → social_comments + lid; javob yuborish | 
+
+telegram-poll (tuzatilgan) | har 1 daq | Telegram akkaunt xabarlari; pozitsiya media'dan oldin saqlanadi (patch tayyor) | 
+
+lead-reports | 09:30 har kuni; dushanba | Kunlik va haftalik Telegram hisobotlari | 
+
+Mavjud fn_leads_mark_new_lead va fn_lead_sla_scan yangi due_at/answered_at mantiqi bilan almashtiriladi; eski alert mexanizmi o'chiriladi, aks holda ikki marta xabar ketadi.
+
+Integratsiya talablari
+
+Meta: leadgen webhook (Page obunasi) + leads_retrieval ruxsati; izohlar uchun instagram_manage_comments va pages_manage_engagement — App Review talab qiladi.
+
+ Instagram DM — mavjud webhook; FB Messenger — messages obunasi.
+
+ Telegram — mavjud akkaunt polleri (sessiya bor) + bot webhook.
+
+ SMS (zinapoya 2-urinishdan keyin) — provayder kerak (Eskiz/Playmobile); bo'lmasa faqat DM.
+
+ PBX (F3) — GoIP-1 + FreePBX → voip-webhook kengaytmasi: qo'ng'iroq boshlandi/tugadi, davomiylik, o'tkazib yuborilgan.
+
+16. Migratsiya (eski CRM lidlari)
+
+Barcha mavjud lidlar crm_generation='old' oladi; yangi bo'lim ishga tushgan paytdan yaratilganlar — 'new'.
+
+ Eski faol lidlar (554) Bazaga: 05.10 tahlili (ai_summary), izohlar, bosqich (status dan: new/contacted → «Aloqada», converted → «Talaba», lost → «Yo'qotildi») saqlanadi; Ish stoliga tushmaydi; due_at bo'sh.
+
+ Eski yo'qotilganlar (379 + 84): «Rad etildi:» qatoridan sabab olinadi va yangi ro'yxatga moslanadi (Qiziqmaydi → «qiziqmaydi», Byudjeti yetmaydi → «narx», Hujjatlari mos emas → «sertifikat yo'q» yoki «mos emas», Boshqa markazni tanladi → «boshqa markaz», Bog'lanib bo'lmadi → «aloqa yo'q», Dublikat → «spam/dublikat»); navbatlar shu asosda to'ldiriladi.
+
+ Eski lid yana yozsa yoki qo'ng'iroq qilsa — o'sha karta HOZIR'ga tushadi va crm_generation «old» bo'lib qoladi (yangi tizim eski bazani qanday qayta ishlaganini ko'rsatadi).
+
+ Mavsum filtri (intake) lidlardan olib tashlanadi; target_intake maydon sifatida qoladi.
+
+ Hisobotda «eski vs yangi» ustunlari: lid soni, javob %, shartnoma, konversiya — ikki avlod yonma-yon.
+
+17. Qurish fazalari va qabul mezonlari
+
+F1 Asos
+
+Ish stoli (HOZIR/BUGUN/KEYIN) + lid kartasi (o'ng panel)
+
+ 10 daqiqa taymeri, eskalatsiya (hammaga, takror), avtojavob, ish vaqti
+
+ Qo'ng'iroq tugmasi + natija oynasi + 5 majburiy maydon + 2 e'tiroz + tavsiya savoli
+
+ Zinapoya (5 urinish) + DM qoralamasi
+
+ Bosqichlar, Kutish, Yo'qotish sabablari
+
+ Manbalar: IG DM, Meta forma (webhook), Telegram akkaunt (patch), bot, ilova, sayt, qo'lda
+
+ Bir odam — bir karta (avto-birlashtirish)
+
+ Rollar (senior roli), Barcha lidlar, Baza, migratsiya
+
+ Ruxsat etilgan taklif kartasi + taqiqlangan so'zlar
+
+F2 Kuchaytirish
+
+Izohlar sub-paneli + FB Messenger
+
+ AI qisqacha, AI javob qoralamasi, maydon takliflari
+
+ Kuzatuv ketma-ketligi (1/3/7) va Kutish eslatmalari
+
+ Yo'qotilgan paneli + qayta faollashtirish navbatlari
+
+ Va'dalar tasdig'i, rahbar xabarlari (so'zlar, shartnoma)
+
+ Hisobot paneli, 09:30 va dushanba hisobotlari, TV ogohlantirish
+
+ Ustuvorlik bali, Sozlamalar sahifasi, SMS
+
+F3 Telefoniya
+
+GoIP-1 + FreePBX; CRMdan qo'ng'iroq
+
+ Qo'ng'iroq avtomatik yoziladi (boshlandi/tugadi/davomiylik)
+
+ Kiruvchi va o'tkazib yuborilgan qo'ng'iroqlar → lid, HOZIR
+
+ Natija oynasi qo'ng'iroq tugaganda o'zi ochiladi
+
+ Yozuvlar/transkript — alohida reja (bu TT'dan tashqarida)
+
+Qabul mezonlari (F1)
+
+Instagram'ga test xabar → 5 soniya ichida HOZIR'da taymer bilan; 10 daqiqada javob bo'lmasa Telegram'ga hamma ro'yxatiga xabar keladi va har 10 daqiqada takrorlanadi; javob berilgach to'xtaydi.
+
+ Meta test formasi → lid telefon va kampaniya nomi bilan; DM orqali emas.
+
+ «Ko'tarmadi» → 15 daqiqadan keyin lid HOZIR'da qayta ko'rinadi; 21:50 da bosilsa — ertaga 09:00.
+
+ «Gaplashildi» 5 maydonsiz saqlanmaydi; saqlangach bosqich «Aloqada» yoki yuqori.
+
+ Bir xil telefon bilan IG + Telegram → bitta karta, ikkala kanal vaqt chizig'ida.
+
+ Operator A olgan lid operator B ro'yxatida ko'rinmaydi; senior ikkalasini ko'radi.
+
+ Eski 554 lid Bazada, Ish stoli bo'sh; crm_generation to'g'ri.
+
+ Avtojavob bir suhbatga bir marta; «javob berildi» hisoblanmaydi.
+
+18. Rahbar uchun ochiq savollar
+
+Senior operator kim? (rol va eskalatsiya ro'yxati uchun)
+
+ Ish vaqtidan tashqari avtojavob matni — yuqoridagi variant ma'qulmi? Yakshanba 09:00–22:00 kim javob beradi (operator navbati yoki rahbar)?
+
+ SMS provayderi (Eskiz/Playmobile) ulansinmi, yoki zinapoyada faqat DM?
+
+ Telegram bot manba sifatida qolsinmi (sentabrda lidlar kelgan)?
+
+ Izohlar uchun Meta App Review (instagram_manage_comments) — kim topshiradi?
+
+ Rahbar paneliga «10 daqiqa ichida javob %» nazorat chizig'i qo'yilsinmi (KPI emas)?
+
+ Kasbiy ta'lim va GKS xizmat narxlari (ruxsat etilgan taklif kartasi uchun).
+
+ Qayta faollashtirish navbatining kunlik limiti (standart 15)?
+
+ Hozirgi 38 ta eski operator sanasi (06.10–10.11) Bazaga o'tganda BUGUN'ga chiqsinmi yoki o'chirilsinmi?
+
+Hujjat manbasi: «CRM lead tartib» chati, 05.10.2026. Saqlangan: claude/overall-crm-lead-module-spec-2026-10-05.md (loyiha hujjati).
+
+

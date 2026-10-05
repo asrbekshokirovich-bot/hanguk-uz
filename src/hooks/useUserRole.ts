@@ -8,6 +8,9 @@ type AppRole = Database['public']['Enums']['app_role'];
 // 'investor' was added to public.app_role by migration 20260729_0001 and is not
 // in the generated Database type yet, so it is matched as a plain string.
 const INVESTOR_ROLE = 'investor';
+// 'lead_senior' (lead module v2, migration 20261005160000) is not in the
+// generated Database type either.
+const LEAD_SENIOR_ROLE = 'lead_senior';
 
 export function useUserRole() {
   const { user } = useAuth();
@@ -79,6 +82,11 @@ export function useUserRole() {
   const isCallOperator = hasRole('call_operator') || isAdmin;
   const isDocumentHandler = hasRole('document_handler') || isAdmin;
   const isUniversityStaff = hasRole('university_staff');
+  // Lead module v2: the senior operator (and, above them, the boss) sees every
+  // lead, pins, reassigns, starts reactivation queues and reads the report.
+  const isLeadSenior = (roles as string[]).includes(LEAD_SENIOR_ROLE) || isAdmin;
+  // Anybody who works leads on the desk: operators, seniors, admins, owners.
+  const canWorkLeads = isCallOperator || isLeadSenior;
   // The "Moliya" section: every owner, plus whoever finance_access names.
   const canSeeFinance = isOwner || hasFinanceAccess;
 
@@ -93,6 +101,8 @@ export function useUserRole() {
     isCallOperator,
     isDocumentHandler,
     isUniversityStaff,
+    isLeadSenior,
+    canWorkLeads,
     isLearningCenter,
     canSeeFinance,
   };
