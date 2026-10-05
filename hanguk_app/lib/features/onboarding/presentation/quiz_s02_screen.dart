@@ -4,8 +4,11 @@ import 'package:go_router/go_router.dart';
 
 import '../../../l10n/app_localizations.dart';
 import '../data/quiz_controller.dart';
+import '../data/quiz_repository.dart';
+import '../domain/eligibility_engine.dart';
 import '../domain/quiz_answers.dart';
 import '../onboarding_routes.dart';
+import 'result_texts.dart';
 import 's01_s04_ui.dart';
 
 /// S02 — "Viza imkoniyatim": one question per screen ([kQuizSteps]).
@@ -204,7 +207,8 @@ class QuizScreen extends ConsumerWidget {
               (KoreanLevel.learning, l.onbQuizKoreanLearning),
               (KoreanLevel.topik1, l.onbQuizKoreanTopik1),
               (KoreanLevel.topik2, l.onbQuizKoreanTopik2),
-              (KoreanLevel.topik3plus, l.onbQuizKoreanTopik3),
+              (KoreanLevel.topik3, l.onbQuizKoreanTopik3),
+              (KoreanLevel.topik4plus, l.onbQuizKoreanTopik4),
               (KoreanLevel.unknown, l.onbQuizKoreanUnknown),
             ])
               option(label, a.korean == k, (x) => x.copyWith(korean: k)),
@@ -256,6 +260,27 @@ class QuizScreen extends ConsumerWidget {
           ),
         ]);
       case 9:
+        final rules = ref.watch(eligibilityRulesProvider).value ?? const EligibilityRules();
+        final route = a.route ?? StudyRoute.bachelor;
+        final deposit = rules.kdbUsd(route);
+        return _Question(
+          l.onbQuizKdbQ,
+          [
+            for (final (k, label) in [
+              (KdbDeposit.ready, l.onbQuizKdbReady),
+              (KdbDeposit.byIntake, l.onbQuizKdbByIntake),
+              (KdbDeposit.no, l.onbQuizKdbNo),
+              (KdbDeposit.unknown, l.onbQuizKdbUnknown),
+            ])
+              option(label, a.kdb == k, (x) => x.copyWith(kdb: k)),
+          ],
+          hint: l.onbQuizKdbHint(
+            usd(deposit.$1, space: '\u00A0'),
+            usd(deposit.$2, space: '\u00A0'),
+            '${rules.kdbHoldMonths(route)}',
+          ),
+        );
+      case 10:
         return _Question(l.onbQuizRegionQ, [
           for (final r in kQuizRegions)
             option(r, a.region == r, (x) => x.copyWith(region: r)),

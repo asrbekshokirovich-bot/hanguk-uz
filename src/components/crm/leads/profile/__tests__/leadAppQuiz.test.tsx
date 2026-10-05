@@ -83,6 +83,17 @@ describe('LeadAppQuiz', () => {
     expect(screen.getByText(/operator aniqlashtirsin/)).toBeInTheDocument();
   });
 
+  it('shows the KDB deposit and the TOPIK 4+ answer', () => {
+    show(
+      lead({
+        quiz_submitted_at: new Date(2026, 9, 5, 10, 0).toISOString(),
+        quiz_answers: { route: 'master', korean: 'topik4plus', formal_income: 'yes', kdb: 'by_intake' },
+      }),
+    );
+    expect(screen.getByText('TOPIK 4 va yuqori')).toBeInTheDocument();
+    expect(screen.getByText("Rasmiy daromad: bor · KDB depozit: qabulgacha qo'yadi")).toBeInTheDocument();
+  });
+
   it('shows a code it has no label for as it is', () => {
     show(lead({ quiz_submitted_at: new Date().toISOString(), quiz_answers: { route: 'newroute' } }));
     expect(screen.getByText('newroute')).toBeInTheDocument();

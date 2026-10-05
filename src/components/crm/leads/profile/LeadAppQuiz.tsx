@@ -53,6 +53,7 @@ export function LeadAppQuiz({ lead }: LeadAppQuizProps) {
       value: [
         str(a.formal_income) ? `${t('leads.profile.app.income')}: ${label('yesNo', a.formal_income)}` : null,
         str(a.bank_statement) ? `${t('leads.profile.app.bank')}: ${label('yesNo', a.bank_statement)}` : null,
+        str(a.kdb) ? `${t('leads.profile.app.kdb')}: ${label('kdbStatus', a.kdb)}` : null,
       ],
     },
     { key: 'whereWhen', value: [str(a.region), label('intake', a.intake)] },

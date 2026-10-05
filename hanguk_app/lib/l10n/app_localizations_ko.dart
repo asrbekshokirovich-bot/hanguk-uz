@@ -2673,29 +2673,28 @@ class AppLocalizationsKo extends AppLocalizations {
   String get onbResultFactorsTitle => '결과에 영향을 준 요인';
 
   @override
-  String get onbResultFactorKoreanStrong => 'TOPIK 3급 이상';
+  String get onbResultFactorKoreanStrong => 'TOPIK 3급 이상 — 학사 기준 충족';
 
   @override
   String get onbResultFactorKoreanTopik2Degree =>
-      'TOPIK 2급, 많은 대학이 TOPIK 3급을 요구합니다';
+      'TOPIK 2급 — 학사는 대사관 기준 3급, 전문대는 가능';
 
   @override
-  String get onbResultFactorKoreanMissingDegree =>
-      'TOPIK 2급 미만, 많은 대학이 TOPIK 3급을 요구합니다';
+  String get onbResultFactorKoreanMissingDegree => '학사는 대사관 기준 TOPIK 3급 필요';
 
   @override
   String get onbResultFactorKoreanCollegeStrong => 'TOPIK 3급 이상';
 
   @override
-  String get onbResultFactorKoreanCollegeTopik2 =>
-      'TOPIK 2급 — 전문대학은 TOPIK 2급을 받습니다';
+  String get onbResultFactorKoreanCollegeTopik2 => 'TOPIK 2급 — 전문대 기준 충족';
 
   @override
   String get onbResultFactorKoreanCourseCertificate =>
       '세종 1A / TOPIK 1급 자격증 있음';
 
   @override
-  String get onbResultFactorKoreanCourseMissing => '한국어 자격증 없음';
+  String get onbResultFactorKoreanCourseMissing =>
+      '어학연수 비자는 TOPIK 1급 또는 세종학당 수료증 필요';
 
   @override
   String get onbResultFactorIncomeYes => '부모님의 공식 소득';
@@ -3090,7 +3089,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get onbQuizKoreanTopik2 => 'TOPIK 2';
 
   @override
-  String get onbQuizKoreanTopik3 => 'TOPIK 3 이상';
+  String get onbQuizKoreanTopik3 => 'TOPIK 3급';
 
   @override
   String get onbQuizKoreanUnknown => '아직 모르겠어요';
@@ -3220,11 +3219,66 @@ class AppLocalizationsKo extends AppLocalizations {
   String get onbQuizIntakeQ => '언제 가고 싶으세요?';
 
   @override
-  String get onbResultFactorEnglishStrong => 'IELTS 5.5 이상';
+  String get onbResultFactorEnglishStrong => 'IELTS 5.5 이상 — 영어 트랙 지원 가능';
 
   @override
   String get onbResultPartner => '공식 파트너';
 
   @override
   String get onbResultLanguageLabel => '어학 요건';
+
+  @override
+  String get onbQuizKoreanTopik4 => 'TOPIK 4급 이상';
+
+  @override
+  String get onbQuizKdbQ => '학생 명의로 KDB 예금을 준비할 수 있나요?';
+
+  @override
+  String onbQuizKdbHint(String low, String high, String months) {
+    return '대사관 기준: $low(기타 지역) 또는 $high(서울·경기·인천), 최소 $months개월 예치.';
+  }
+
+  @override
+  String get onbQuizKdbReady => '네, 지금 있어요';
+
+  @override
+  String get onbQuizKdbByIntake => '네, 입학 전까지 준비해요';
+
+  @override
+  String get onbQuizKdbNo => '아니요';
+
+  @override
+  String get onbQuizKdbUnknown => '아직 모르겠어요';
+
+  @override
+  String get onbResultFactorKoreanMasterStrong => 'TOPIK 4급 이상 — 석사 기준 충족';
+
+  @override
+  String get onbResultFactorKoreanTopik3Master => 'TOPIK 3급 — 석사는 대사관 기준 4급 필요';
+
+  @override
+  String get onbResultFactorKoreanMissingMaster => '석사는 대사관 기준 TOPIK 4급 필요';
+
+  @override
+  String get onbResultFactorKoreanCollegeMissing => '전문대는 대사관 기준 TOPIK 2급 필요';
+
+  @override
+  String get onbResultFactorKdbReady => '학생 명의 KDB 예금 준비됨';
+
+  @override
+  String get onbResultFactorKdbByIntake => 'KDB 예금 미준비 — 신청 전 필요';
+
+  @override
+  String get onbResultFactorKdbNo => 'KDB 예금 없음 — 대사관 필수 요건';
+
+  @override
+  String get onbResultFactorBudgetBelowDeposit => '예산이 KDB 예치 금액보다 적음';
+
+  @override
+  String get onbResultBandLowNoteLanguage =>
+      '어학 성적이 대사관 기준보다 낮습니다 — 성적 없이 신청하면 면접 없이 불허됩니다.';
+
+  @override
+  String get onbResultBandLowNoteMoney =>
+      '재정 요건(학생 명의 KDB 예금과 부모 서류)이 아직 부족합니다.';
 }

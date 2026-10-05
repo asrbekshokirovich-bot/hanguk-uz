@@ -3482,33 +3482,33 @@
   "@onbResultFactorsTitle": {
     "description": "S03 factors card title"
   },
-  "onbResultFactorKoreanStrong": "TOPIK 3 or higher",
+  "onbResultFactorKoreanStrong": "TOPIK 3 or higher — the bachelor's requirement is met",
   "@onbResultFactorKoreanStrong": {
-    "description": "S03 factor (+): degree route, TOPIK 3+"
+    "description": "Result factor"
   },
-  "onbResultFactorKoreanTopik2Degree": "TOPIK 2, many universities ask for TOPIK 3",
+  "onbResultFactorKoreanTopik2Degree": "TOPIK 2 — the embassy asks for TOPIK 3 for a bachelor's; enough for a college",
   "@onbResultFactorKoreanTopik2Degree": {
-    "description": "S03 factor (−): degree route, TOPIK 2"
+    "description": "Result factor"
   },
-  "onbResultFactorKoreanMissingDegree": "Below TOPIK 2, many universities ask for TOPIK 3",
+  "onbResultFactorKoreanMissingDegree": "The embassy asks for TOPIK 3 for a bachelor's",
   "@onbResultFactorKoreanMissingDegree": {
-    "description": "S03 factor (−): degree route, no certificate / TOPIK 1"
+    "description": "Result factor"
   },
   "onbResultFactorKoreanCollegeStrong": "TOPIK 3 or higher",
   "@onbResultFactorKoreanCollegeStrong": {
     "description": "S03 factor (+): vocational college, TOPIK 3+"
   },
-  "onbResultFactorKoreanCollegeTopik2": "TOPIK 2 — vocational colleges accept TOPIK 2",
+  "onbResultFactorKoreanCollegeTopik2": "TOPIK 2 — the college requirement is met",
   "@onbResultFactorKoreanCollegeTopik2": {
-    "description": "S03 factor (+): vocational college, TOPIK 2"
+    "description": "Result factor"
   },
   "onbResultFactorKoreanCourseCertificate": "Sejong 1A / TOPIK 1 certificate",
   "@onbResultFactorKoreanCourseCertificate": {
     "description": "S03 factor (+): language course, Sejong 1A / TOPIK 1+"
   },
-  "onbResultFactorKoreanCourseMissing": "No Korean language certificate",
+  "onbResultFactorKoreanCourseMissing": "A language-course visa needs TOPIK 1 or a Sejong certificate",
   "@onbResultFactorKoreanCourseMissing": {
-    "description": "S03 factor (−): no Korean certificate"
+    "description": "Result factor"
   },
   "onbResultFactorIncomeYes": "Parents' official income",
   "@onbResultFactorIncomeYes": {
@@ -4051,9 +4051,9 @@
   "@onbQuizKoreanTopik2": {
     "description": "S02 Q3 option: TOPIK 2."
   },
-  "onbQuizKoreanTopik3": "TOPIK 3 or higher",
+  "onbQuizKoreanTopik3": "TOPIK 3",
   "@onbQuizKoreanTopik3": {
-    "description": "S02 Q3 option: TOPIK 3 or higher."
+    "description": "Quiz Korean option"
   },
   "onbQuizKoreanUnknown": "Not sure yet",
   "@onbQuizKoreanUnknown": {
@@ -4224,9 +4224,9 @@
   "@onbQuizIntakeQ": {
     "description": "S02 question 11: when to go."
   },
-  "onbResultFactorEnglishStrong": "IELTS 5.5 or higher",
+  "onbResultFactorEnglishStrong": "IELTS 5.5 or higher — for English-taught programmes",
   "@onbResultFactorEnglishStrong": {
-    "description": "S03 factor: a master's applicant with IELTS 5.5 or higher."
+    "description": "Result factor"
   },
   "onbResultPartner": "Official partner",
   "@onbResultPartner": {
@@ -4235,5 +4235,84 @@
   "onbResultLanguageLabel": "Language",
   "@onbResultLanguageLabel": {
     "description": "S03 university card: the language requirement cell (TOPIK and/or IELTS)."
+  },
+  "onbQuizKoreanTopik4": "TOPIK 4 or higher",
+  "@onbQuizKoreanTopik4": {
+    "description": "Quiz Korean option"
+  },
+  "onbQuizKdbQ": "Can you open the KDB deposit in the student's name?",
+  "@onbQuizKdbQ": {
+    "description": "Quiz question: the KDB deposit"
+  },
+  "onbQuizKdbHint": "The embassy asks for {low} (other cities) or {high} (Seoul, Gyeonggi, Incheon), held for at least {months} month(s).",
+  "@onbQuizKdbHint": {
+    "description": "Hint under the KDB question",
+    "placeholders": {
+      "low": {
+        "type": "String"
+      },
+      "high": {
+        "type": "String"
+      },
+      "months": {
+        "type": "String"
+      }
+    }
+  },
+  "onbQuizKdbReady": "Yes, it is there now",
+  "@onbQuizKdbReady": {
+    "description": "KDB option"
+  },
+  "onbQuizKdbByIntake": "Yes, before the intake",
+  "@onbQuizKdbByIntake": {
+    "description": "KDB option"
+  },
+  "onbQuizKdbNo": "No",
+  "@onbQuizKdbNo": {
+    "description": "KDB option"
+  },
+  "onbQuizKdbUnknown": "Not sure yet",
+  "@onbQuizKdbUnknown": {
+    "description": "KDB option"
+  },
+  "onbResultFactorKoreanMasterStrong": "TOPIK 4 or higher — the master's requirement is met",
+  "@onbResultFactorKoreanMasterStrong": {
+    "description": "Result factor"
+  },
+  "onbResultFactorKoreanTopik3Master": "TOPIK 3 — the embassy asks for TOPIK 4 for a master's",
+  "@onbResultFactorKoreanTopik3Master": {
+    "description": "Result factor"
+  },
+  "onbResultFactorKoreanMissingMaster": "The embassy asks for TOPIK 4 for a master's",
+  "@onbResultFactorKoreanMissingMaster": {
+    "description": "Result factor"
+  },
+  "onbResultFactorKoreanCollegeMissing": "The embassy asks for TOPIK 2 for a college",
+  "@onbResultFactorKoreanCollegeMissing": {
+    "description": "Result factor"
+  },
+  "onbResultFactorKdbReady": "The KDB deposit is ready in the student's name",
+  "@onbResultFactorKdbReady": {
+    "description": "Result factor"
+  },
+  "onbResultFactorKdbByIntake": "The KDB deposit is not there yet — needed before applying",
+  "@onbResultFactorKdbByIntake": {
+    "description": "Result factor"
+  },
+  "onbResultFactorKdbNo": "No KDB deposit — the embassy requires it",
+  "@onbResultFactorKdbNo": {
+    "description": "Result factor"
+  },
+  "onbResultFactorBudgetBelowDeposit": "The budget is below the KDB deposit",
+  "@onbResultFactorBudgetBelowDeposit": {
+    "description": "Result factor"
+  },
+  "onbResultBandLowNoteLanguage": "The language certificate is below the embassy's requirement — without it the application is refused without an interview.",
+  "@onbResultBandLowNoteLanguage": {
+    "description": "Low band note: language"
+  },
+  "onbResultBandLowNoteMoney": "The financial requirement (a KDB deposit in the student's name and the parents' papers) is not met yet.",
+  "@onbResultBandLowNoteMoney": {
+    "description": "Low band note: money"
   }
 }
