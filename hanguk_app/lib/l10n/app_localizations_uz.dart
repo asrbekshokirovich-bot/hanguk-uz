@@ -2841,9 +2841,6 @@ class AppLocalizationsUz extends AppLocalizations {
   String get onbResultTuitionLabel => 'Kontrakt/semestr';
 
   @override
-  String get onbResultTopikLabel => 'TOPIK talabi';
-
-  @override
   String get onbResultBankLabel => 'Bank spravkasi';
 
   @override
@@ -3370,4 +3367,7 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get onbResultPartner => 'Rasmiy hamkor';
+
+  @override
+  String get onbResultLanguageLabel => 'Til talabi';
 }

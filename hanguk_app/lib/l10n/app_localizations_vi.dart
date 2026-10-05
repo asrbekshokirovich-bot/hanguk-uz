@@ -2821,9 +2821,6 @@ class AppLocalizationsVi extends AppLocalizations {
   String get onbResultTuitionLabel => 'Tuition/semester';
 
   @override
-  String get onbResultTopikLabel => 'TOPIK required';
-
-  @override
   String get onbResultBankLabel => 'Bank statement';
 
   @override
@@ -3359,4 +3356,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get onbResultPartner => 'Official partner';
+
+  @override
+  String get onbResultLanguageLabel => 'Language';
 }

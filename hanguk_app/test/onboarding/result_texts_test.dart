@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hanguk_app/features/catalog/domain/catalog_models.dart';
 import 'package:hanguk_app/features/onboarding/domain/eligibility_engine.dart';
 import 'package:hanguk_app/features/onboarding/domain/quiz_answers.dart';
 import 'package:hanguk_app/features/onboarding/presentation/result_texts.dart';
@@ -11,8 +12,30 @@ void main() {
     expect(usd(12500, space: ' '), r'$12 500');
     expect(usd(70, space: ' '), r'$70');
     expect(usdRange((6800, 9400), space: ' '), r'$6 800–9 400');
-    expect(topikValue(3), '3+');
-    expect(topikValue(null), '—');
+  });
+
+  test('the language cell shows TOPIK, IELTS or both, whichever the programme asks', () {
+    MatchedUniversity m({int? topik, double? ielts, bool english = true}) {
+      final g = CatalogGuideline(
+        id: 'g',
+        institutionId: 'u',
+        degree: 'bakalavr',
+        englishTrack: english,
+        ieltsMin: ielts,
+      );
+      return MatchedUniversity(
+        university: CatalogUniversity(institutionId: 'u', guidelines: [g]),
+        guideline: g,
+        accredited: true,
+        topikMin: topik,
+      );
+    }
+
+    expect(languageRequirements(m(topik: 3)), ['TOPIK 3+']);
+    expect(languageRequirements(m(ielts: 5.5)), ['IELTS 5.5']);
+    expect(languageRequirements(m(topik: 2, ielts: 6)), ['TOPIK 2+', 'IELTS 6.0']);
+    expect(languageRequirements(m(ielts: 5.5, english: false)), isEmpty);
+    expect(languageRequirements(m()), isEmpty);
   });
 
   const answers = QuizAnswers(

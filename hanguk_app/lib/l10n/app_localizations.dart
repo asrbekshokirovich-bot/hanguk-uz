@@ -5162,12 +5162,6 @@ abstract class AppLocalizations {
   /// **'Tuition/semester'**
   String get onbResultTuitionLabel;
 
-  /// S03 university card: TOPIK requirement
-  ///
-  /// In en, this message translates to:
-  /// **'TOPIK required'**
-  String get onbResultTopikLabel;
-
   /// S03 university card and cost card: bank statement amount
   ///
   /// In en, this message translates to:
@@ -6121,6 +6115,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Official partner'**
   String get onbResultPartner;
+
+  /// S03 university card: the language requirement cell (TOPIK and/or IELTS).
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get onbResultLanguageLabel;
 }
 
 class _AppLocalizationsDelegate

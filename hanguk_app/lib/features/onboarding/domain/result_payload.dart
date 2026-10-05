@@ -28,6 +28,7 @@ Map<String, dynamic> resultPayload(
           'city': m.university.city,
           'tuition_semester_usd': m.tuitionPerSemesterUsd,
           'topik_min': m.topikMin,
+          'ielts_min': m.guideline.englishTrack == true ? m.guideline.ieltsMin : null,
           'bank_usd': m.bankStatementUsd,
           'accredited': m.accredited,
           'partner': m.partner,

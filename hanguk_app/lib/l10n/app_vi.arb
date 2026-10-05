@@ -976,7 +976,6 @@
   "onbResultUnisTitle": "Universities that fit you",
   "onbResultAccredited": "Accredited",
   "onbResultTuitionLabel": "Tuition/semester",
-  "onbResultTopikLabel": "TOPIK required",
   "onbResultBankLabel": "Bank statement",
   "onbResultYearlyCost": "Estimated yearly cost",
   "onbResultStepsTitle": "Next 3 steps",
@@ -1135,5 +1134,6 @@
   "onbQuizRegionQ": "Which region are you from?",
   "onbQuizIntakeQ": "When do you want to go?",
   "onbResultFactorEnglishStrong": "IELTS 5.5 or higher",
-  "onbResultPartner": "Official partner"
+  "onbResultPartner": "Official partner",
+  "onbResultLanguageLabel": "Language"
 }

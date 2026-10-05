@@ -2725,9 +2725,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String get onbResultTuitionLabel => '등록금/학기';
 
   @override
-  String get onbResultTopikLabel => 'TOPIK 요건';
-
-  @override
   String get onbResultBankLabel => '은행 잔고증명';
 
   @override
@@ -3227,4 +3224,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get onbResultPartner => '공식 파트너';
+
+  @override
+  String get onbResultLanguageLabel => '어학 요건';
 }

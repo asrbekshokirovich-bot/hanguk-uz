@@ -2838,9 +2838,6 @@ class AppLocalizationsRu extends AppLocalizations {
   String get onbResultTuitionLabel => 'Контракт/сем.';
 
   @override
-  String get onbResultTopikLabel => 'Нужен TOPIK';
-
-  @override
   String get onbResultBankLabel => 'Банковская справка';
 
   @override
@@ -3375,4 +3372,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get onbResultPartner => 'Официальный партнёр';
+
+  @override
+  String get onbResultLanguageLabel => 'Язык';
 }

@@ -3546,10 +3546,6 @@
   "@onbResultTuitionLabel": {
     "description": "S03 university card: tuition per semester"
   },
-  "onbResultTopikLabel": "TOPIK required",
-  "@onbResultTopikLabel": {
-    "description": "S03 university card: TOPIK requirement"
-  },
   "onbResultBankLabel": "Bank statement",
   "@onbResultBankLabel": {
     "description": "S03 university card and cost card: bank statement amount"
@@ -4235,5 +4231,9 @@
   "onbResultPartner": "Official partner",
   "@onbResultPartner": {
     "description": "S03 university card badge: an official HANGUK partner university."
+  },
+  "onbResultLanguageLabel": "Language",
+  "@onbResultLanguageLabel": {
+    "description": "S03 university card: the language requirement cell (TOPIK and/or IELTS)."
   }
 }
