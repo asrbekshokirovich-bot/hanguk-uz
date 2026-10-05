@@ -145,6 +145,8 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/images/
+    # S01 photo slideshow (welcome_s01_screen.dart, kWelcomePhotoAssets).
+    - assets/images/landing/
     - assets/virtual_tour/
     # Campus photos for the university catalogue, one per institution id.
     # Sources and licences: docs/campus_photo_credits.md.

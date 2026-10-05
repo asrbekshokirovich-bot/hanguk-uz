@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -9,10 +11,39 @@ import '../data/quiz_controller.dart';
 import '../onboarding_routes.dart';
 import 's01_s04_ui.dart';
 
-/// The S01 photo ("talaba Koreya kampusida"). Null until the owner sends the
-/// real photo: the frame is then drawn empty, exactly sized. To ship the
-/// photo, add the file under `assets/images/` and set this to its path.
-const String? kWelcomePhotoAsset = null;
+/// The S01 photos, shown one after another in the photo frame — the owner's
+/// "Ilova landing rasmlari" (01–15 and the reserve Z01–Z10), each once, in
+/// the list's order. Empty, the frame is drawn empty, exactly sized.
+const List<String> kWelcomePhotoAssets = [
+  'assets/images/landing/01_hero_daegu-haany_2025-09-14.jpg',
+  'assets/images/landing/02_hero-mobil_zal_2025-09-14.jpg',
+  'assets/images/landing/03_guruh_daegu-haany_2025-09-13.jpg',
+  'assets/images/landing/04_imzolash_kwangju_2025-10-15.jpg',
+  'assets/images/landing/05_uchrashuv_seoyeong_2025-10-20.jpg',
+  'assets/images/landing/06_sahna_daegu-haany_2025-09-13.jpg',
+  'assets/images/landing/07_katta-zal_2025-01-17.jpg',
+  'assets/images/landing/08_koreys-mehmonlar_2024-10-20.jpg',
+  'assets/images/landing/09_guruh_kwangju_2025-10-15.jpg',
+  'assets/images/landing/10_guruh_seoyeong_2025-10-20.jpg',
+  'assets/images/landing/11_tinglovchilar_2025-09-13.jpg',
+  'assets/images/landing/12_taqdimot_2025-09-14.jpg',
+  'assets/images/landing/13_sovrin_2025-09-14.jpg',
+  'assets/images/landing/14_sovga_daegu-haany_2025-09-13.jpg',
+  'assets/images/landing/15_guruh_2025-01-16.jpg',
+  'assets/images/landing/Z01_zaxira_daegu-haany-vakili_2025-09-13.jpg',
+  'assets/images/landing/Z02_zaxira_guruh-tinch_2025-09-13.jpg',
+  'assets/images/landing/Z03_zaxira_guruh-kwangju_2025-10-15.jpg',
+  'assets/images/landing/Z04_zaxira_qol-berish_kwangju_2025-10-15.jpg',
+  'assets/images/landing/Z05_zaxira_suhbat_2025-09-13.jpg',
+  'assets/images/landing/Z06_zaxira_sovrin_2025-09-14.jpg',
+  'assets/images/landing/Z07_zaxira_kichik-guruh_2025-09-14.jpg',
+  'assets/images/landing/Z08_zaxira_katta-zal-tik_2025-01-17.jpg',
+  'assets/images/landing/Z09_zaxira_koreys-mehmonlar_2025-01-16.jpg',
+  'assets/images/landing/Z10_zaxira_guruh_2024-09-29.jpg',
+];
+
+/// How long each S01 photo stays before the next one.
+const Duration kWelcomePhotoInterval = Duration(seconds: 4);
 
 /// The languages offered on S01, in the design's order.
 const List<String> _kWelcomeLanguages = ['uz', 'ru', 'en'];
@@ -225,13 +256,51 @@ class _LanguageSwitch extends StatelessWidget {
 }
 
 /// 220px, radius 22, 1px rgba(255,255,255,.16), clipped. Empty, it keeps the
-/// design's empty-frame fill and nothing else.
-class _Photo extends StatelessWidget {
+/// design's empty-frame fill and nothing else; otherwise it shows
+/// [kWelcomePhotoAssets] in turn, cross-fading every [kWelcomePhotoInterval].
+class _Photo extends StatefulWidget {
   const _Photo();
 
   @override
+  State<_Photo> createState() => _PhotoState();
+}
+
+class _PhotoState extends State<_Photo> {
+  int _index = 0;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    if (kWelcomePhotoAssets.length > 1) {
+      _timer = Timer.periodic(kWelcomePhotoInterval, (_) {
+        setState(() => _index = (_index + 1) % kWelcomePhotoAssets.length);
+        _precacheNext();
+      });
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _precacheNext();
+  }
+
+  /// Decodes the next photo ahead of time, so the fade never shows a gap.
+  void _precacheNext() {
+    if (kWelcomePhotoAssets.length < 2) return;
+    final next = kWelcomePhotoAssets[(_index + 1) % kWelcomePhotoAssets.length];
+    precacheImage(AssetImage(next), context);
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    const asset = kWelcomePhotoAsset;
     return Container(
       height: 220,
       foregroundDecoration: BoxDecoration(
@@ -240,9 +309,25 @@ class _Photo extends StatelessWidget {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(22),
-        child: asset == null
+        child: kWelcomePhotoAssets.isEmpty
             ? const ColoredBox(color: Color.fromRGBO(127, 127, 127, .08))
-            : Image.asset(asset, fit: BoxFit.cover, width: double.infinity),
+            : AnimatedSwitcher(
+                duration: const Duration(milliseconds: 600),
+                layoutBuilder: (current, previous) => Stack(
+                  fit: StackFit.expand,
+                  children: [...previous, ?current],
+                ),
+                child: Image.asset(
+                  kWelcomePhotoAssets[_index],
+                  key: ValueKey(_index),
+                  fit: BoxFit.cover,
+                  // Most photos are portrait: keep the faces, crop the floor.
+                  alignment: const Alignment(0, -.4),
+                  width: double.infinity,
+                  height: 220,
+                  gaplessPlayback: true,
+                ),
+              ),
       ),
     );
   }

@@ -9,6 +9,7 @@ import 'package:hanguk_app/features/onboarding/domain/eligibility_engine.dart';
 import 'package:hanguk_app/features/onboarding/domain/quiz_answers.dart';
 import 'package:hanguk_app/features/onboarding/presentation/contact_sheet_s04.dart';
 import 'package:hanguk_app/features/onboarding/presentation/quiz_s02_screen.dart';
+import 'package:hanguk_app/features/onboarding/presentation/welcome_s01_screen.dart';
 import 'package:hanguk_app/l10n/app_localizations.dart';
 
 class _Quiz extends QuizNotifier {
@@ -139,6 +140,36 @@ void main() {
       expect(tashkentNextCallDay(tashkent(11, 8, 0)), NextCallDay.monday);
       expect(tashkentNextCallDay(tashkent(11, 23, 0)), NextCallDay.monday);
     });
+  });
+
+  test('S01 photos: each photo once', () {
+    expect(kWelcomePhotoAssets, hasLength(25));
+    expect(kWelcomePhotoAssets.toSet(), hasLength(kWelcomePhotoAssets.length));
+  });
+
+  testWidgets('S01: the photo changes every 4 seconds, then starts over', (t) async {
+    await t.pumpWidget(
+      ProviderScope(
+        overrides: [entryProvider.overrideWith(_Entry.new)],
+        child: MaterialApp(
+          locale: const Locale('uz'),
+          supportedLocales: AppLocalizations.supportedLocales,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          home: const OnboardingWelcomeScreen(),
+        ),
+      ),
+    );
+    String shown() => ((t.widgetList<Image>(find.byType(Image)).last.image) as AssetImage).assetName;
+
+    expect(shown(), kWelcomePhotoAssets[0]);
+    await t.pump(kWelcomePhotoInterval);
+    await t.pump(const Duration(seconds: 1));
+    expect(shown(), kWelcomePhotoAssets[1]);
+    for (var i = 1; i < kWelcomePhotoAssets.length; i++) {
+      await t.pump(kWelcomePhotoInterval);
+    }
+    await t.pump(const Duration(seconds: 1));
+    expect(shown(), kWelcomePhotoAssets[0]);
   });
 
   testWidgets('S02: Davom etish waits for an answer, then moves on', (t) async {
