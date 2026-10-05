@@ -976,7 +976,6 @@
   "onbResultUnisTitle": "Подходящие вам университеты",
   "onbResultAccredited": "Аккредитован",
   "onbResultTuitionLabel": "Контракт/сем.",
-  "onbResultTopikLabel": "Нужен TOPIK",
   "onbResultBankLabel": "Банковская справка",
   "onbResultYearlyCost": "Примерные расходы в год",
   "onbResultStepsTitle": "Следующие 3 шага",
@@ -1135,5 +1134,6 @@
   "onbQuizRegionQ": "Из какого вы региона?",
   "onbQuizIntakeQ": "Когда планируете поехать?",
   "onbResultFactorEnglishStrong": "IELTS 5.5 и выше",
-  "onbResultPartner": "Официальный партнёр"
+  "onbResultPartner": "Официальный партнёр",
+  "onbResultLanguageLabel": "Язык"
 }

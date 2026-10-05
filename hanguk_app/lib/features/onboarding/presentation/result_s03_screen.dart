@@ -325,7 +325,11 @@ class _UniversityCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 6),
                 Expanded(
-                  child: _Cell(label: l.onbResultTopikLabel, value: topikValue(m.topikMin)),
+                  child: _Cell(
+                    label: l.onbResultLanguageLabel,
+                    value: languageRequirements(m).isEmpty ? '—' : languageRequirements(m).join('\n'),
+                    maxLines: 2,
+                  ),
                 ),
                 const SizedBox(width: 6),
                 Expanded(
@@ -344,10 +348,11 @@ class _UniversityCard extends StatelessWidget {
 }
 
 class _Cell extends StatelessWidget {
-  const _Cell({required this.label, required this.value});
+  const _Cell({required this.label, required this.value, this.maxLines = 1});
 
   final String label;
   final String value;
+  final int maxLines;
 
   @override
   Widget build(BuildContext context) {
@@ -359,7 +364,7 @@ class _Cell extends StatelessWidget {
         children: [
           Text(label, style: onbText(10, FontWeight.w400, color: OnbColors.white64)),
           const SizedBox(height: 2),
-          Text(value, maxLines: 1, overflow: TextOverflow.ellipsis, style: onbText(13, FontWeight.w700)),
+          Text(value, maxLines: maxLines, overflow: TextOverflow.ellipsis, style: onbText(13, FontWeight.w700)),
         ],
       ),
     );

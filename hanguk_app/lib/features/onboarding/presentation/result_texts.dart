@@ -99,7 +99,13 @@ String _group(int v, String space) {
 }
 
 /// The "TOPIK talabi" cell: "3+", or a dash when the guideline has none.
-String topikValue(int? min) => min == null ? '—' : '$min+';
+/// What a programme asks for: "TOPIK 3+", "IELTS 5.5", both, or nothing —
+/// some ask for TOPIK, some for IELTS, some for either.
+List<String> languageRequirements(MatchedUniversity m) => [
+  if (m.topikMin != null) 'TOPIK ${m.topikMin}+',
+  if (m.guideline.englishTrack == true && m.guideline.ieltsMin != null)
+    'IELTS ${m.guideline.ieltsMin!.toStringAsFixed(1)}',
+];
 
 const int _kPlanMaxChars = 3500;
 
@@ -134,7 +140,7 @@ String planText(AppLocalizations l, QuizAnswers a, EligibilityResult r) {
             if (m.accredited) ' — ${l.onbResultAccredited}',
           ].join(),
           '  ${l.onbResultTuitionLabel}: ${m.tuitionPerSemesterUsd == null ? '—' : usd(m.tuitionPerSemesterUsd!, space: sp)}'
-              ' · ${l.onbResultTopikLabel}: ${topikValue(m.topikMin)}'
+              ' · ${l.onbResultLanguageLabel}: ${languageRequirements(m).isEmpty ? '—' : languageRequirements(m).join(' · ')}'
               ' · ${l.onbResultBankLabel}: ${m.bankStatementUsd == null ? '—' : usd(m.bankStatementUsd!, space: sp)}',
         ],
       ].join('\n'),

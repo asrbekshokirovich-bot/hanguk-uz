@@ -976,7 +976,6 @@
   "onbResultUnisTitle": "Sizga mos universitetlar",
   "onbResultAccredited": "Akkreditatsiyalangan",
   "onbResultTuitionLabel": "Kontrakt/semestr",
-  "onbResultTopikLabel": "TOPIK talabi",
   "onbResultBankLabel": "Bank spravkasi",
   "onbResultYearlyCost": "Yillik taxminiy xarajat",
   "onbResultStepsTitle": "Keyingi 3 qadam",
@@ -1135,5 +1134,6 @@
   "onbQuizRegionQ": "Qaysi viloyatdansiz?",
   "onbQuizIntakeQ": "Qachon ketmoqchisiz?",
   "onbResultFactorEnglishStrong": "IELTS 5.5 va yuqori",
-  "onbResultPartner": "Rasmiy hamkor"
+  "onbResultPartner": "Rasmiy hamkor",
+  "onbResultLanguageLabel": "Til talabi"
 }

@@ -976,7 +976,6 @@
   "onbResultUnisTitle": "나에게 맞는 대학",
   "onbResultAccredited": "인증 대학",
   "onbResultTuitionLabel": "등록금/학기",
-  "onbResultTopikLabel": "TOPIK 요건",
   "onbResultBankLabel": "은행 잔고증명",
   "onbResultYearlyCost": "연간 예상 비용",
   "onbResultStepsTitle": "다음 3단계",
@@ -1135,5 +1134,6 @@
   "onbQuizRegionQ": "어느 지역에 사세요?",
   "onbQuizIntakeQ": "언제 가고 싶으세요?",
   "onbResultFactorEnglishStrong": "IELTS 5.5 이상",
-  "onbResultPartner": "공식 파트너"
+  "onbResultPartner": "공식 파트너",
+  "onbResultLanguageLabel": "어학 요건"
 }
