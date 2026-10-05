@@ -228,3 +228,64 @@ describe('GuidelineDetailSheet — yorliqlar', () => {
     expect(screen.getByRole('tab', { name: /Umumiy/ })).toHaveAttribute('data-state', 'active');
   });
 });
+
+describe('GuidelineDetailSheet — darajalar', () => {
+  const kollej: CatalogEntry = {
+    ...entry,
+    institution: {
+      ...entry.institution,
+      id: 'i2',
+      name_ko: '대구보건대학교',
+      name_en: 'Daegu Health College',
+      primary_domain: 'dhc.ac.kr',
+      institution_type: 'junior_college',
+    },
+    guidelines: [],
+    latest: null,
+  };
+
+  it('kollejda faqat "Kasbiy ta‘lim" yorlig‘i va o‘sha darajaning yuklash tugmasi', () => {
+    const onUpload = vi.fn();
+    render(
+      <GuidelineDetailSheet
+        entry={kollej}
+        open
+        onOpenChange={() => {}}
+        canUpload
+        onUpload={onUpload}
+        uploading={false}
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: "Kasbiy ta'lim" })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.queryByRole('button', { name: /^Bakalavr/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^Magistr/ })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getAllByRole('button', { name: "Excel kasbiy ta'lim yuklash" })[0]);
+    expect(onUpload).toHaveBeenCalledWith(kollej, 'kasbiy');
+  });
+
+  it('katalogda tanlangan daraja yorlig‘ida ochiladi', () => {
+    render(
+      <GuidelineDetailSheet
+        entry={entry}
+        open
+        onOpenChange={() => {}}
+        canUpload
+        onUpload={() => {}}
+        uploading={false}
+        initialLevel="magistratura"
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: 'Magistr' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByText('Bu universitet uchun magistr excel yuklanmagan')).toBeInTheDocument();
+  });
+
+  it('daraja tanlanmagan bo‘lsa — ma‘lumoti bor darajada', () => {
+    open();
+    expect(screen.getByRole('button', { name: /^Bakalavr/ })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: 'Magistr' })).toHaveAttribute('aria-pressed', 'false');
+    expect(screen.queryByRole('button', { name: /Kasbiy/ })).not.toBeInTheDocument();
+  });
+});

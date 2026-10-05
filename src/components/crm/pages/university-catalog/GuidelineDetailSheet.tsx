@@ -56,29 +56,30 @@ import {
   type GuidelineFull,
   type GuidelineRound,
 } from '@/hooks/useUniversityCatalog';
-import type { UploadDaraja } from '../UniversityCatalogContent';
 import {
   admissionLabel,
   cityLabel,
   contractRange,
+  DEGREE_LEVELS,
   displayName,
   formatMoney,
+  guidelinesForLevel,
+  levelLabel,
+  offeredLevels,
   periodLabel,
+  type DegreeLevel,
+  type LevelFilter,
 } from './format';
-
-/** Bakalavr va magistr ma'lumoti butunlay boshqacha, shuning uchun panelda alohida ko'rinadi. */
-const DARAJA_TABS: { key: UploadDaraja; label: string }[] = [
-  { key: 'bakalavr', label: 'Bakalavr' },
-  { key: 'magistratura', label: 'Magistr' },
-];
 
 interface Props {
   entry: CatalogEntry | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   canUpload: boolean;
-  onUpload: (entry: CatalogEntry, daraja: UploadDaraja) => void;
+  onUpload: (entry: CatalogEntry, daraja: DegreeLevel) => void;
   uploading: boolean;
+  /** Katalogda tanlangan daraja — panel shu darajada ochiladi. */
+  initialLevel?: LevelFilter;
 }
 
 // ---------------------------------------------------------------------------
@@ -631,25 +632,49 @@ export function GuidelineDetailSheet({
   canUpload,
   onUpload,
   uploading,
+  initialLevel = 'hammasi',
 }: Props) {
-  const [darajaTab, setDarajaTab] = useState<UploadDaraja>('bakalavr');
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const hasBakalavr = entry?.guidelines.some((g) => g.daraja === 'bakalavr') ?? false;
-  const hasMagistr = entry?.guidelines.some((g) => g.daraja === 'magistratura') ?? false;
+  // Faqat universitetda bor darajalar: kollejda — kasbiy ta'lim, 대학원대학교da — magistr.
+  const tabs = useMemo(() => {
+    const levels = entry ? offeredLevels(entry) : [];
+    return DEGREE_LEVELS.filter((l) => levels.includes(l.key));
+  }, [entry]);
 
-  // Universitet almashganda (yoki shu darajaga birinchi marta ma'lumot
-  // kelganda) ma'lumot bor darajaga qaytamiz — bakalavr ustunlik qiladi,
-  // faqat magistr bo'lsa o'shanga o'tadi.
-  useEffect(() => {
-    setDarajaTab(hasBakalavr || !hasMagistr ? 'bakalavr' : 'magistratura');
-  }, [entry?.institution.id, hasBakalavr, hasMagistr]);
+  // Odatiy yorliq: katalogda tanlangan daraja; u bo'lmasa — ma'lumoti bor
+  // birinchi daraja (bakalavr ustun); hech qayerda ma'lumot bo'lmasa — birinchi
+  // yorliq. Shu darajaga birinchi marta Excel yuklansa, panel o'shanga o'tadi.
+  const defaultTab = useMemo<DegreeLevel>(() => {
+    if (initialLevel !== 'hammasi' && tabs.some((t) => t.key === initialLevel)) return initialLevel;
+    const withData = entry ? tabs.find((t) => guidelinesForLevel(entry, t.key).length > 0) : undefined;
+    return withData?.key ?? tabs[0]?.key ?? 'bakalavr';
+  }, [entry, tabs, initialLevel]);
 
-  // Bakalavr va magistr guideline'lari butunlay boshqa ma'lumot — shu tabga
+  // Xodim o'zi bosgan yorliq — qaysi universitetda bosilgani bilan: boshqa
+  // universitet ochilsa o'z-o'zidan eskiradi, panel qayta ochilganda esa
+  // tashlanadi (render paytida, shunda eski yorliq bir kadr ham ko'rinmaydi).
+  const [picked, setPicked] = useState<{ institutionId: string; level: DegreeLevel } | null>(null);
+  const [wasOpen, setWasOpen] = useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
+    if (open) setPicked(null);
+  }
+  const darajaTab: DegreeLevel =
+    picked &&
+    picked.institutionId === entry?.institution.id &&
+    tabs.some((t) => t.key === picked.level)
+      ? picked.level
+      : defaultTab;
+  const pickTab = (level: DegreeLevel) => {
+    if (entry) setPicked({ institutionId: entry.institution.id, level });
+  };
+
+  // Har bir daraja guideline'i butunlay boshqa ma'lumot — shu tabga
   // tegishlilari bilangina ishlaymiz (bir nechta qabul bo'lsa ham shu ichida).
   const currentList = useMemo(
-    () => entry?.guidelines.filter((g) => g.daraja === darajaTab) ?? [],
-    [entry?.guidelines, darajaTab],
+    () => (entry ? guidelinesForLevel(entry, darajaTab) : []),
+    [entry, darajaTab],
   );
   const latestIdForTab = currentList[0]?.id ?? null;
 
@@ -667,7 +692,6 @@ export function GuidelineDetailSheet({
   const detail = useGuidelineDetail(open ? activeId : null);
   const name = entry ? displayName(entry) : null;
   const city = entry ? cityLabel(entry) : null;
-  const darajaLabel = (d: UploadDaraja) => DARAJA_TABS.find((t) => t.key === d)?.label ?? d;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -698,16 +722,17 @@ export function GuidelineDetailSheet({
           </SheetDescription>
         </SheetHeader>
 
-        {/* Bakalavr va magistr — ma'lumoti butunlay boshqa, shuning uchun alohida panel. */}
-        <div className="mt-4 flex gap-1.5">
-          {DARAJA_TABS.map((t) => {
-            const count = entry?.guidelines.filter((g) => g.daraja === t.key).length ?? 0;
+        {/* Bakalavr, magistr va kasbiy ta'lim — ma'lumoti butunlay boshqa, shuning uchun alohida panel. */}
+        <div className="mt-4 flex flex-wrap gap-1.5">
+          {tabs.map((t) => {
+            const count = entry ? guidelinesForLevel(entry, t.key).length : 0;
             return (
               <Button
                 key={t.key}
                 variant={darajaTab === t.key ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => setDarajaTab(t.key)}
+                aria-pressed={darajaTab === t.key}
+                onClick={() => pickTab(t.key)}
               >
                 {t.label}
                 {count > 0 && (
@@ -747,7 +772,7 @@ export function GuidelineDetailSheet({
               ) : (
                 <UploadCloud className="mr-2 h-4 w-4" />
               )}
-              Excel {darajaLabel(darajaTab).toLowerCase()} yuklash
+              Excel {levelLabel(darajaTab).toLowerCase()} yuklash
             </Button>
           )}
         </div>
@@ -756,7 +781,7 @@ export function GuidelineDetailSheet({
           {currentList.length === 0 ? (
             <EmptyState
               icon={FileSpreadsheet}
-              title={`Bu universitet uchun ${darajaLabel(darajaTab).toLowerCase()} excel yuklanmagan`}
+              title={`Bu universitet uchun ${levelLabel(darajaTab).toLowerCase()} excel yuklanmagan`}
               description={
                 canUpload
                   ? "Shablon bo'yicha to'ldirilgan .xlsx faylni yuklang — muddatlar, fakultetlar va hujjatlar shu yerda ko'rinadi."
@@ -764,7 +789,7 @@ export function GuidelineDetailSheet({
               }
               action={
                 canUpload && entry
-                  ? { label: `Excel ${darajaLabel(darajaTab).toLowerCase()} yuklash`, onClick: () => onUpload(entry, darajaTab) }
+                  ? { label: `Excel ${levelLabel(darajaTab).toLowerCase()} yuklash`, onClick: () => onUpload(entry, darajaTab) }
                   : undefined
               }
             />

@@ -131,16 +131,91 @@ export function matchesSearch(entry: CatalogEntry, rawQuery: string): boolean {
   return haystack.some((value) => value?.toLowerCase().includes(query));
 }
 
+// ---------------------------------------------------------------------------
+// O'qish darajalari: bakalavr, magistr, kasbiy ta'lim
+// ---------------------------------------------------------------------------
+
+/** Excel alohida yuklanadigan va katalogda alohida filtrlanadigan darajalar. */
+export type DegreeLevel = 'bakalavr' | 'magistratura' | 'kasbiy';
+
+/** Filtr, karta va panel darajalarni shu tartibda ko'rsatadi. */
+export const DEGREE_LEVELS: readonly { key: DegreeLevel; label: string }[] = [
+  { key: 'bakalavr', label: 'Bakalavr' },
+  { key: 'magistratura', label: 'Magistr' },
+  { key: 'kasbiy', label: "Kasbiy ta'lim" },
+];
+
+/** "hammasi" — daraja bo'yicha ajratilmagan. */
+export type LevelFilter = DegreeLevel | 'hammasi';
+
+export function levelLabel(level: DegreeLevel): string {
+  return DEGREE_LEVELS.find((l) => l.key === level)?.label ?? level;
+}
+
+/** Shu darajadagi guideline'lar, eng yangisi birinchi (entry.guidelines tartibi). */
+export function guidelinesForLevel(entry: CatalogEntry, level: LevelFilter): GuidelineSummary[] {
+  if (level === 'hammasi') return entry.guidelines;
+  return entry.guidelines.filter((g) => g.daraja === level);
+}
+
+/** Kartada ko'rinadigan guideline: tanlangan darajaning eng yangisi, aks holda umumiy eng yangisi. */
+export function focusGuideline(entry: CatalogEntry, level: LevelFilter): GuidelineSummary | null {
+  if (level === 'hammasi') return entry.latest;
+  return guidelinesForLevel(entry, level)[0] ?? null;
+}
+
+/** 대학원대학교, "KDI School"ning 국제정책대학원 kabi faqat magistratura o'qitadigan oliygohlar. */
+function isGraduateOnly(entry: CatalogEntry): boolean {
+  const ko = entry.institution.name_ko ?? '';
+  const en = entry.institution.name_en ?? '';
+  return ko.includes('대학원') || /graduate (school|university)/i.test(en);
+}
+
+/**
+ * Universitet qaysi darajalarda o'qitadi. Excel yuklangan daraja — aniq bor.
+ * Qolgani oliygoh turidan: kollej (전문대학) — kasbiy ta'lim, nomida 대학원
+ * bo'lgan oliygoh — faqat magistratura, qolgan 4 yillik universitetlarda ham
+ * bakalavr, ham magistratura (대학원) bor.
+ */
+export function offeredLevels(entry: CatalogEntry): DegreeLevel[] {
+  const levels = new Set<DegreeLevel>();
+  if (entry.institution.institution_type === 'junior_college') {
+    levels.add('kasbiy');
+  } else if (isGraduateOnly(entry)) {
+    levels.add('magistratura');
+  } else {
+    levels.add('bakalavr');
+    levels.add('magistratura');
+  }
+  for (const g of entry.guidelines) {
+    if (DEGREE_LEVELS.some((l) => l.key === g.daraja)) levels.add(g.daraja as DegreeLevel);
+  }
+  return DEGREE_LEVELS.map((l) => l.key).filter((key) => levels.has(key));
+}
+
+export function matchesLevel(entry: CatalogEntry, level: LevelFilter): boolean {
+  return level === 'hammasi' || offeredLevels(entry).includes(level);
+}
+
 export type CatalogFilter = 'hammasi' | 'malumotli' | 'topik' | 'ielts' | 'hamkor';
 
-export function matchesFilter(entry: CatalogEntry, filter: CatalogFilter): boolean {
+/**
+ * Daraja tanlangan bo'lsa, ma'lumotga bog'liq filtrlar faqat o'sha darajaning
+ * Excel'iga qaraydi: "Magistr" + "Ma'lumotli" — magistratura Excel'i yuklanganlar.
+ */
+export function matchesFilter(
+  entry: CatalogEntry,
+  filter: CatalogFilter,
+  level: LevelFilter = 'hammasi',
+): boolean {
+  const guidelines = guidelinesForLevel(entry, level);
   switch (filter) {
     case 'malumotli':
-      return entry.guidelines.length > 0;
+      return guidelines.length > 0;
     case 'topik':
-      return entry.guidelines.some((g) => g.korean_track === true || g.topik_min !== null);
+      return guidelines.some((g) => g.korean_track === true || g.topik_min !== null);
     case 'ielts':
-      return entry.guidelines.some((g) => g.english_track === true || g.ielts_min !== null);
+      return guidelines.some((g) => g.english_track === true || g.ielts_min !== null);
     case 'hamkor':
       return entry.institution.is_partner;
     default:
@@ -152,7 +227,8 @@ export function matchesFilter(entry: CatalogEntry, filter: CatalogFilter): boole
  * Operator ko'rinishi (egasining qoidasi, 2026-10-01): operator faqat
  * ma'lumotli universitetlarni ko'radi va ularni TOPIK, IELTS va shahar bo'yicha
  * ajratadi. TOPIK va IELTS yoqilsa — ikkalasi ham bo'lishi shart; shahar —
- * universitetning asosiy shahri (cityLabel).
+ * universitetning asosiy shahri (cityLabel). Daraja tanlansa — faqat shu
+ * darajaning Excel'i yuklanganlar.
  */
 export interface OperatorFilter {
   topik: boolean;
@@ -160,12 +236,54 @@ export interface OperatorFilter {
   city: string | null;
 }
 
-export function matchesOperatorFilter(entry: CatalogEntry, f: OperatorFilter): boolean {
-  if (entry.guidelines.length === 0) return false;
-  if (f.topik && !matchesFilter(entry, 'topik')) return false;
-  if (f.ielts && !matchesFilter(entry, 'ielts')) return false;
+export function matchesOperatorFilter(
+  entry: CatalogEntry,
+  f: OperatorFilter,
+  level: LevelFilter = 'hammasi',
+): boolean {
+  if (guidelinesForLevel(entry, level).length === 0) return false;
+  if (f.topik && !matchesFilter(entry, 'topik', level)) return false;
+  if (f.ielts && !matchesFilter(entry, 'ielts', level)) return false;
   if (f.city && cityLabel(entry) !== f.city) return false;
   return true;
+}
+
+/** Topilsa — institutionId; topilmasa yoki aniq bo'lmasa — xodimga ko'rsatiladigan error. */
+export interface UploadInstitution {
+  institutionId: string | null;
+  error: string | null;
+}
+
+/**
+ * Yuqoridagi umumiy "Excel ..." tugmasidan yuklangan fayl qaysi universitetga
+ * tegishli. Import RPC'si ham univ_kod (domen prefiksi) bo'yicha qidiradi,
+ * lekin katalogdan yashirilganlarni ham ko'radi va bir nechta mos kelsa
+ * jimgina birinchisini oladi — kollejlarda bunday prefikslar bor ("dhc":
+ * 대구보건대 va 동아보건대). Shuning uchun universitet shu yerda, faqat
+ * katalogdagilar orasidan tanlanadi. Avval yuklangan guideline qayta
+ * yuklansa — o'sha universitetida qoladi.
+ */
+export function resolveUploadInstitution(
+  entries: CatalogEntry[],
+  file: { guideline_id: string; univ_kod: string },
+): UploadInstitution {
+  const existing = entries.find((e) => e.guidelines.some((g) => g.guideline_id === file.guideline_id));
+  if (existing) return { institutionId: existing.institution.id, error: null };
+
+  const code = file.univ_kod.trim().toLowerCase();
+  const matches = entries.filter((e) => institutionCode(e.institution.primary_domain) === code);
+  if (matches.length === 1) return { institutionId: matches[0].institution.id, error: null };
+  if (matches.length === 0) {
+    return {
+      institutionId: null,
+      error: `univ_kod "${code}" bo'yicha katalogda universitet topilmadi. univ_kod universitet domenining birinchi qismi bo'lishi kerak (jbnu.ac.kr → jbnu).`,
+    };
+  }
+  const names = matches.map((e) => e.institution.name_ko).join(', ');
+  return {
+    institutionId: null,
+    error: `univ_kod "${code}" bir nechta universitetga mos keladi: ${names}. Kerakli universitet kartasini oching va Excel'ni o'sha yerdagi tugma orqali yuklang.`,
+  };
 }
 
 /** Shahar ro'yxati: ma'lumotli universitetlarning asosiy shaharlari, alifbo tartibida. */
