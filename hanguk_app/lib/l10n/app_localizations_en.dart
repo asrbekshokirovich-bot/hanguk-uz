@@ -3117,17 +3117,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'After the course — Standart consulting free (TOPIK 2, 80% attendance, full payment)';
 
   @override
-  String get onbTariffRefundTitle => 'Refund';
-
-  @override
-  String get onbTariffRefundNoRisk =>
-      'If the visa is not issued — the \$5 000 is refunded in full. One condition: you do not withdraw yourself.';
-
-  @override
-  String get onbTariffRefundHanbox =>
-      'No refunds: if you drop the course, the payment is not returned.';
-
-  @override
   String get onbTariffFaqTitle => 'Questions and answers';
 
   @override

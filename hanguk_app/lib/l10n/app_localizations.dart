@@ -5678,24 +5678,6 @@ abstract class AppLocalizations {
   /// **'After the course — Standart consulting free (TOPIK 2, 80% attendance, full payment)'**
   String get onbTariffIncHanboxStandart;
 
-  /// S06 refund card title
-  ///
-  /// In en, this message translates to:
-  /// **'Refund'**
-  String get onbTariffRefundTitle;
-
-  /// S06 NO RISK refund text
-  ///
-  /// In en, this message translates to:
-  /// **'If the visa is not issued — the \$5 000 is refunded in full. One condition: you do not withdraw yourself.'**
-  String get onbTariffRefundNoRisk;
-
-  /// S06 Hanbox refund text
-  ///
-  /// In en, this message translates to:
-  /// **'No refunds: if you drop the course, the payment is not returned.'**
-  String get onbTariffRefundHanbox;
-
   /// S06 FAQ title
   ///
   /// In en, this message translates to:

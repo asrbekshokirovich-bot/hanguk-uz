@@ -2993,16 +2993,6 @@ class AppLocalizationsKo extends AppLocalizations {
       '수료 후 — Standart 컨설팅 무료 (TOPIK 2급, 출석률 80%, 전액 납부)';
 
   @override
-  String get onbTariffRefundTitle => '환불';
-
-  @override
-  String get onbTariffRefundNoRisk =>
-      '비자가 나오지 않으면 — \$5 000 전액 환불됩니다. 단, 본인이 포기하지 않은 경우에 한합니다.';
-
-  @override
-  String get onbTariffRefundHanbox => '환불 불가: 과정을 중단하면 결제 금액은 반환되지 않습니다.';
-
-  @override
   String get onbTariffFaqTitle => '자주 묻는 질문';
 
   @override

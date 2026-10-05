@@ -3910,18 +3910,6 @@
   "@onbTariffIncHanboxStandart": {
     "description": "Included (Hanbox)"
   },
-  "onbTariffRefundTitle": "Refund",
-  "@onbTariffRefundTitle": {
-    "description": "S06 refund card title"
-  },
-  "onbTariffRefundNoRisk": "If the visa is not issued — the $5 000 is refunded in full. One condition: you do not withdraw yourself.",
-  "@onbTariffRefundNoRisk": {
-    "description": "S06 NO RISK refund text"
-  },
-  "onbTariffRefundHanbox": "No refunds: if you drop the course, the payment is not returned.",
-  "@onbTariffRefundHanbox": {
-    "description": "S06 Hanbox refund text"
-  },
   "onbTariffFaqTitle": "Questions and answers",
   "@onbTariffFaqTitle": {
     "description": "S06 FAQ title"

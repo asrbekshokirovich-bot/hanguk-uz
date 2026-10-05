@@ -3130,17 +3130,6 @@ class AppLocalizationsRu extends AppLocalizations {
       'После курса — консалтинг Standart бесплатно (TOPIK 2, посещаемость 80%, полная оплата)';
 
   @override
-  String get onbTariffRefundTitle => 'Возврат';
-
-  @override
-  String get onbTariffRefundNoRisk =>
-      'Если виза не выйдет — \$5 000 вернут полностью. Одно условие: вы сами не откажетесь.';
-
-  @override
-  String get onbTariffRefundHanbox =>
-      'Возврата нет: если бросите курс, оплата не возвращается.';
-
-  @override
   String get onbTariffFaqTitle => 'Вопросы и ответы';
 
   @override
