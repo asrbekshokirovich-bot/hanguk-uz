@@ -4981,6 +4981,1146 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The call could not be connected. Please check your internet and try again.'**
   String get interviewErrorCallFailed;
+
+  /// S03 context line: study route
+  ///
+  /// In en, this message translates to:
+  /// **'Language course'**
+  String get onbResultRouteLanguageCourse;
+
+  /// S03 context line: study route
+  ///
+  /// In en, this message translates to:
+  /// **'Bachelor\'s'**
+  String get onbResultRouteBachelor;
+
+  /// S03 context line: study route
+  ///
+  /// In en, this message translates to:
+  /// **'Master\'s'**
+  String get onbResultRouteMaster;
+
+  /// S03 context line: study route
+  ///
+  /// In en, this message translates to:
+  /// **'Vocational college'**
+  String get onbResultRouteCollege;
+
+  /// S03 context line: intake
+  ///
+  /// In en, this message translates to:
+  /// **'Spring 2027'**
+  String get onbResultIntakeSpring2027;
+
+  /// S03 context line: intake
+  ///
+  /// In en, this message translates to:
+  /// **'Fall 2027'**
+  String get onbResultIntakeFall2027;
+
+  /// S03 context line: intake
+  ///
+  /// In en, this message translates to:
+  /// **'Later'**
+  String get onbResultIntakeLater;
+
+  /// S03 band title
+  ///
+  /// In en, this message translates to:
+  /// **'High chance'**
+  String get onbResultBandHigh;
+
+  /// S03 band one-line explanation
+  ///
+  /// In en, this message translates to:
+  /// **'The main requirements are met — you can start on the documents.'**
+  String get onbResultBandHighNote;
+
+  /// S03 band title
+  ///
+  /// In en, this message translates to:
+  /// **'Medium chance'**
+  String get onbResultBandMid;
+
+  /// S03 band one-line explanation
+  ///
+  /// In en, this message translates to:
+  /// **'The way is open, but 1–2 points need strengthening.'**
+  String get onbResultBandMidNote;
+
+  /// S03 band title (low band)
+  ///
+  /// In en, this message translates to:
+  /// **'High risk for now — but there is a way'**
+  String get onbResultBandLow;
+
+  /// S03 band one-line explanation (low band)
+  ///
+  /// In en, this message translates to:
+  /// **'Language and financial documents are not enough yet.'**
+  String get onbResultBandLowNote;
+
+  /// S03 factors card title
+  ///
+  /// In en, this message translates to:
+  /// **'What affected it'**
+  String get onbResultFactorsTitle;
+
+  /// S03 factor (+): degree route, TOPIK 3+
+  ///
+  /// In en, this message translates to:
+  /// **'TOPIK 3 or higher'**
+  String get onbResultFactorKoreanStrong;
+
+  /// S03 factor (−): degree route, TOPIK 2
+  ///
+  /// In en, this message translates to:
+  /// **'TOPIK 2, many universities ask for TOPIK 3'**
+  String get onbResultFactorKoreanTopik2Degree;
+
+  /// S03 factor (−): degree route, no certificate / TOPIK 1
+  ///
+  /// In en, this message translates to:
+  /// **'Below TOPIK 2, many universities ask for TOPIK 3'**
+  String get onbResultFactorKoreanMissingDegree;
+
+  /// S03 factor (+): vocational college, TOPIK 3+
+  ///
+  /// In en, this message translates to:
+  /// **'TOPIK 3 or higher'**
+  String get onbResultFactorKoreanCollegeStrong;
+
+  /// S03 factor (+): vocational college, TOPIK 2
+  ///
+  /// In en, this message translates to:
+  /// **'TOPIK 2 — vocational colleges accept TOPIK 2'**
+  String get onbResultFactorKoreanCollegeTopik2;
+
+  /// S03 factor (+): language course, Sejong 1A / TOPIK 1+
+  ///
+  /// In en, this message translates to:
+  /// **'Sejong 1A / TOPIK 1 certificate'**
+  String get onbResultFactorKoreanCourseCertificate;
+
+  /// S03 factor (−): no Korean certificate
+  ///
+  /// In en, this message translates to:
+  /// **'No Korean language certificate'**
+  String get onbResultFactorKoreanCourseMissing;
+
+  /// S03 factor (+): parents' official income
+  ///
+  /// In en, this message translates to:
+  /// **'Parents\' official income'**
+  String get onbResultFactorIncomeYes;
+
+  /// S03 factor (−): no official income
+  ///
+  /// In en, this message translates to:
+  /// **'Parents have no official income'**
+  String get onbResultFactorIncomeNo;
+
+  /// S03 factor (+): bank statement
+  ///
+  /// In en, this message translates to:
+  /// **'Bank statement ready'**
+  String get onbResultFactorBankYes;
+
+  /// S03 factor (−): no bank statement
+  ///
+  /// In en, this message translates to:
+  /// **'No bank statement'**
+  String get onbResultFactorBankNo;
+
+  /// S03 factor (+): graduated recently
+  ///
+  /// In en, this message translates to:
+  /// **'Graduated recently — no gap in studies'**
+  String get onbResultFactorGradRecent;
+
+  /// S03 factor (−): long gap since graduation
+  ///
+  /// In en, this message translates to:
+  /// **'A long time since graduation — the study intent must be explained'**
+  String get onbResultFactorGradGapLong;
+
+  /// S03 factor (−): age above the soft limit
+  ///
+  /// In en, this message translates to:
+  /// **'Because of age, the study intent must be explained'**
+  String get onbResultFactorAgeHigh;
+
+  /// S03 factor (−): budget below the yearly cost
+  ///
+  /// In en, this message translates to:
+  /// **'Budget is below the estimated yearly cost'**
+  String get onbResultFactorBudgetLow;
+
+  /// S03 section title
+  ///
+  /// In en, this message translates to:
+  /// **'Universities that fit you'**
+  String get onbResultUnisTitle;
+
+  /// S03 university card badge
+  ///
+  /// In en, this message translates to:
+  /// **'Accredited'**
+  String get onbResultAccredited;
+
+  /// S03 university card: tuition per semester
+  ///
+  /// In en, this message translates to:
+  /// **'Tuition/semester'**
+  String get onbResultTuitionLabel;
+
+  /// S03 university card: TOPIK requirement
+  ///
+  /// In en, this message translates to:
+  /// **'TOPIK required'**
+  String get onbResultTopikLabel;
+
+  /// S03 university card and cost card: bank statement amount
+  ///
+  /// In en, this message translates to:
+  /// **'Bank statement'**
+  String get onbResultBankLabel;
+
+  /// S03 cost card title
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated yearly cost'**
+  String get onbResultYearlyCost;
+
+  /// S03 next steps card title
+  ///
+  /// In en, this message translates to:
+  /// **'Next 3 steps'**
+  String get onbResultStepsTitle;
+
+  /// S03 next step
+  ///
+  /// In en, this message translates to:
+  /// **'Prepare for TOPIK 3 or enter through a language course'**
+  String get onbResultStepTopikPrep;
+
+  /// S03 next step (design: 'Bank spravkasini {N} oy oldin ochish'; the number of months is not set yet)
+  ///
+  /// In en, this message translates to:
+  /// **'Open the bank statement in advance'**
+  String get onbResultStepBankStatement;
+
+  /// S03 next step
+  ///
+  /// In en, this message translates to:
+  /// **'Translate and apostille the school certificate and passport'**
+  String get onbResultStepSchoolDocs;
+
+  /// S03 next step (master's route)
+  ///
+  /// In en, this message translates to:
+  /// **'Translate and apostille the diploma and passport'**
+  String get onbResultStepDiplomaDocs;
+
+  /// S03 next step
+  ///
+  /// In en, this message translates to:
+  /// **'Submit the documents before the university deadline'**
+  String get onbResultStepApplyOnTime;
+
+  /// S03 low band: section title instead of universities
+  ///
+  /// In en, this message translates to:
+  /// **'Paths that fit you'**
+  String get onbResultPathsTitle;
+
+  /// S03 low band path title
+  ///
+  /// In en, this message translates to:
+  /// **'Through a language course (D-4)'**
+  String get onbResultPathLanguageCourse;
+
+  /// S03 low band path note (design: '{N} semestr til kursi, …'; the number of semesters is not set yet)
+  ///
+  /// In en, this message translates to:
+  /// **'A language course, then moving on to a bachelor\'s.'**
+  String get onbResultPathLanguageCourseNote;
+
+  /// S03 low band path title
+  ///
+  /// In en, this message translates to:
+  /// **'Vocational college'**
+  String get onbResultPathCollege;
+
+  /// S03 low band path note
+  ///
+  /// In en, this message translates to:
+  /// **'Softer requirements, lower tuition.'**
+  String get onbResultPathCollegeNote;
+
+  /// S03 low band path title
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing for the next season'**
+  String get onbResultPathNextSeason;
+
+  /// S03 low band path note
+  ///
+  /// In en, this message translates to:
+  /// **'Fall 2027 with TOPIK 3 and a bank statement.'**
+  String get onbResultPathNextSeasonNote;
+
+  /// S03 link to the recommended tariff's detail
+  ///
+  /// In en, this message translates to:
+  /// **'{tariff} — why? →'**
+  String onbResultTariffWhy(String tariff);
+
+  /// S03 main button
+  ///
+  /// In en, this message translates to:
+  /// **'Have an operator confirm in 10 minutes'**
+  String get onbResultCtaOperator;
+
+  /// S03 second button
+  ///
+  /// In en, this message translates to:
+  /// **'Continue in Telegram'**
+  String get onbResultCtaTelegram;
+
+  /// S03 footer line
+  ///
+  /// In en, this message translates to:
+  /// **'This is a preliminary assessment. The visa decision is made by the embassy.'**
+  String get onbResultDisclaimer;
+
+  /// Telegram plan text: the recommended tariff line
+  ///
+  /// In en, this message translates to:
+  /// **'Recommended tariff: {tariff}'**
+  String onbResultPlanTariff(String tariff);
+
+  /// Tariff name (brand)
+  ///
+  /// In en, this message translates to:
+  /// **'Standart'**
+  String get onbTariffNameStandart;
+
+  /// Tariff name (brand)
+  ///
+  /// In en, this message translates to:
+  /// **'Premium'**
+  String get onbTariffNamePremium;
+
+  /// Tariff name (brand)
+  ///
+  /// In en, this message translates to:
+  /// **'NO RISK'**
+  String get onbTariffNameNoRisk;
+
+  /// Tariff name (brand)
+  ///
+  /// In en, this message translates to:
+  /// **'Hanbox'**
+  String get onbTariffNameHanbox;
+
+  /// S05 title
+  ///
+  /// In en, this message translates to:
+  /// **'Prices and terms'**
+  String get onbTariffsTitle;
+
+  /// S05 subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Most of it is paid after the visa is issued.'**
+  String get onbTariffsSubtitle;
+
+  /// S05/S06 number of services in a tariff
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 service} other{{count} services}}'**
+  String onbTariffServices(int count);
+
+  /// S05 Standart card price
+  ///
+  /// In en, this message translates to:
+  /// **'2 mln so\'m now + 5 mln after the visa, or 5 mln in one go'**
+  String get onbTariffPriceStandart;
+
+  /// S05 Premium card price
+  ///
+  /// In en, this message translates to:
+  /// **'3 mln now + 10 mln after the visa, or 10 mln'**
+  String get onbTariffPricePremium;
+
+  /// S05 NO RISK card price
+  ///
+  /// In en, this message translates to:
+  /// **'\$5 000 in one go'**
+  String get onbTariffPriceNoRisk;
+
+  /// S05 Hanbox card price
+  ///
+  /// In en, this message translates to:
+  /// **'\$2 000 or \$400 + \$200 a month'**
+  String get onbTariffPriceHanbox;
+
+  /// S05 card link to S06
+  ///
+  /// In en, this message translates to:
+  /// **'Details →'**
+  String get onbTariffMore;
+
+  /// S05 button
+  ///
+  /// In en, this message translates to:
+  /// **'Compare tariffs'**
+  String get onbTariffsCompare;
+
+  /// S05/S06 card title
+  ///
+  /// In en, this message translates to:
+  /// **'Not included'**
+  String get onbTariffExcludedTitle;
+
+  /// Not included item
+  ///
+  /// In en, this message translates to:
+  /// **'Tuition'**
+  String get onbTariffExContract;
+
+  /// Not included item
+  ///
+  /// In en, this message translates to:
+  /// **'Application fee'**
+  String get onbTariffExApplicationFee;
+
+  /// Not included item
+  ///
+  /// In en, this message translates to:
+  /// **'Bank statement'**
+  String get onbTariffExBankStatement;
+
+  /// Not included item
+  ///
+  /// In en, this message translates to:
+  /// **'Flight'**
+  String get onbTariffExFlight;
+
+  /// Not included item
+  ///
+  /// In en, this message translates to:
+  /// **'Visa fee'**
+  String get onbTariffExVisaFee;
+
+  /// Not included item
+  ///
+  /// In en, this message translates to:
+  /// **'Living costs'**
+  String get onbTariffExLiving;
+
+  /// Not included item (Hanbox)
+  ///
+  /// In en, this message translates to:
+  /// **'Visa'**
+  String get onbTariffExVisa;
+
+  /// S06 small line above the tariff name
+  ///
+  /// In en, this message translates to:
+  /// **'Tariff details'**
+  String get onbTariffDetailEyebrow;
+
+  /// S06 payment timeline card title
+  ///
+  /// In en, this message translates to:
+  /// **'When you pay'**
+  String get onbTariffPayTitle;
+
+  /// S06 timeline row
+  ///
+  /// In en, this message translates to:
+  /// **'Contract'**
+  String get onbTariffPayContract;
+
+  /// S06 timeline row note
+  ///
+  /// In en, this message translates to:
+  /// **'When the work starts'**
+  String get onbTariffPayContractWhen;
+
+  /// S06 timeline row
+  ///
+  /// In en, this message translates to:
+  /// **'Visa issued'**
+  String get onbTariffPayVisa;
+
+  /// S06 timeline row note
+  ///
+  /// In en, this message translates to:
+  /// **'When the visa is in your hands'**
+  String get onbTariffPayVisaWhen;
+
+  /// S06 timeline row second note
+  ///
+  /// In en, this message translates to:
+  /// **'Within 7 working days after the visa is issued'**
+  String get onbTariffPayVisaDays;
+
+  /// S06 Hanbox timeline row
+  ///
+  /// In en, this message translates to:
+  /// **'At the start'**
+  String get onbTariffPayStart;
+
+  /// S06 Hanbox timeline row
+  ///
+  /// In en, this message translates to:
+  /// **'Every month'**
+  String get onbTariffPayMonthly;
+
+  /// S06 amount in millions of so'm (short)
+  ///
+  /// In en, this message translates to:
+  /// **'{n} mln'**
+  String onbTariffMln(int n);
+
+  /// S06 Standart timeline footer
+  ///
+  /// In en, this message translates to:
+  /// **'Or 5 mln so\'m in one go.'**
+  String get onbTariffOrOnceStandart;
+
+  /// S06 Premium timeline footer
+  ///
+  /// In en, this message translates to:
+  /// **'Or 10 mln so\'m in one go.'**
+  String get onbTariffOrOncePremium;
+
+  /// S06 Hanbox timeline footer
+  ///
+  /// In en, this message translates to:
+  /// **'Or \$2 000 in one go, or in instalments.'**
+  String get onbTariffOrOnceHanbox;
+
+  /// S06 card title
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s included'**
+  String get onbTariffIncludedTitle;
+
+  /// Included (Premium)
+  ///
+  /// In en, this message translates to:
+  /// **'Choosing a university'**
+  String get onbTariffIncUniChoice;
+
+  /// Included (Premium)
+  ///
+  /// In en, this message translates to:
+  /// **'Document list and check'**
+  String get onbTariffIncDocsList;
+
+  /// Included (Premium)
+  ///
+  /// In en, this message translates to:
+  /// **'Help with translation and apostille'**
+  String get onbTariffIncTranslation;
+
+  /// Included (Premium)
+  ///
+  /// In en, this message translates to:
+  /// **'Study plan and motivation letter'**
+  String get onbTariffIncStudyPlan;
+
+  /// Included (Premium)
+  ///
+  /// In en, this message translates to:
+  /// **'Submitting the application'**
+  String get onbTariffIncApply;
+
+  /// Included (Premium)
+  ///
+  /// In en, this message translates to:
+  /// **'Interview preparation'**
+  String get onbTariffIncInterview;
+
+  /// Included (Premium)
+  ///
+  /// In en, this message translates to:
+  /// **'Visa documents'**
+  String get onbTariffIncVisaDocs;
+
+  /// Included (Premium)
+  ///
+  /// In en, this message translates to:
+  /// **'Dormitory placement'**
+  String get onbTariffIncDorm;
+
+  /// Included (Premium)
+  ///
+  /// In en, this message translates to:
+  /// **'Help in the first week in Korea'**
+  String get onbTariffIncFirstWeek;
+
+  /// Included (Standart, NO RISK)
+  ///
+  /// In en, this message translates to:
+  /// **'Applying to up to 3 universities for you'**
+  String get onbTariffIncApplyUpTo3;
+
+  /// Included (Standart)
+  ///
+  /// In en, this message translates to:
+  /// **'Interview preparation (you get the questions that may come up)'**
+  String get onbTariffIncInterviewQuestions;
+
+  /// Included (Standart, NO RISK)
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing documents (translation, apostille)'**
+  String get onbTariffIncDocsPrep;
+
+  /// Included (Standart, NO RISK)
+  ///
+  /// In en, this message translates to:
+  /// **'Postage'**
+  String get onbTariffIncPost;
+
+  /// Included (Standart, NO RISK)
+  ///
+  /// In en, this message translates to:
+  /// **'SIM card and bank card'**
+  String get onbTariffIncSimBank;
+
+  /// Included (NO RISK)
+  ///
+  /// In en, this message translates to:
+  /// **'Interview preparation (practice with AI)'**
+  String get onbTariffIncInterviewAi;
+
+  /// Included (NO RISK)
+  ///
+  /// In en, this message translates to:
+  /// **'Bank account (simple, 1 day)'**
+  String get onbTariffIncBankShot1Day;
+
+  /// Included (NO RISK)
+  ///
+  /// In en, this message translates to:
+  /// **'Bank account (1 month)'**
+  String get onbTariffIncBankShot1Month;
+
+  /// Included (NO RISK)
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing embassy documents (translation, apostille)'**
+  String get onbTariffIncEmbassyDocs;
+
+  /// Included (NO RISK)
+  ///
+  /// In en, this message translates to:
+  /// **'Help writing the study plan (prepared with AI)'**
+  String get onbTariffIncStudyPlanAi;
+
+  /// Included (NO RISK)
+  ///
+  /// In en, this message translates to:
+  /// **'Meeting you in Korea'**
+  String get onbTariffIncPickup;
+
+  /// Included (NO RISK)
+  ///
+  /// In en, this message translates to:
+  /// **'Tuition paid by the company'**
+  String get onbTariffIncContractPaid;
+
+  /// Included (NO RISK)
+  ///
+  /// In en, this message translates to:
+  /// **'Plane ticket bought for you'**
+  String get onbTariffIncFlightTicket;
+
+  /// Included (NO RISK)
+  ///
+  /// In en, this message translates to:
+  /// **'A flat found and its first month paid'**
+  String get onbTariffIncFlatMonth;
+
+  /// Included (NO RISK)
+  ///
+  /// In en, this message translates to:
+  /// **'Application fee'**
+  String get onbTariffIncAppFee;
+
+  /// Included (Hanbox)
+  ///
+  /// In en, this message translates to:
+  /// **'1 year of live online lessons (in the Hanguk Academy app), groups of 11–15, goal — TOPIK 2'**
+  String get onbTariffIncHanboxLessons;
+
+  /// Included (Hanbox)
+  ///
+  /// In en, this message translates to:
+  /// **'A laptop and textbooks are included in the price'**
+  String get onbTariffIncHanboxLaptop;
+
+  /// Included (Hanbox)
+  ///
+  /// In en, this message translates to:
+  /// **'The first lesson is free'**
+  String get onbTariffIncHanboxFirstLesson;
+
+  /// Included (Hanbox)
+  ///
+  /// In en, this message translates to:
+  /// **'After the course — Standart consulting free (TOPIK 2, 80% attendance, full payment)'**
+  String get onbTariffIncHanboxStandart;
+
+  /// S06 refund card title
+  ///
+  /// In en, this message translates to:
+  /// **'Refund'**
+  String get onbTariffRefundTitle;
+
+  /// S06 NO RISK refund text
+  ///
+  /// In en, this message translates to:
+  /// **'If the visa is not issued — the \$5 000 is refunded in full. One condition: you do not withdraw yourself.'**
+  String get onbTariffRefundNoRisk;
+
+  /// S06 Hanbox refund text
+  ///
+  /// In en, this message translates to:
+  /// **'No refunds: if you drop the course, the payment is not returned.'**
+  String get onbTariffRefundHanbox;
+
+  /// S06 FAQ title
+  ///
+  /// In en, this message translates to:
+  /// **'Questions and answers'**
+  String get onbTariffFaqTitle;
+
+  /// Amount in millions of so'm, inside a sentence
+  ///
+  /// In en, this message translates to:
+  /// **'{n} mln so\'m'**
+  String onbTariffMlnSom(int n);
+
+  /// S06 FAQ question (Standart, Premium)
+  ///
+  /// In en, this message translates to:
+  /// **'If the visa is not issued, do I pay {amount}?'**
+  String onbTariffFaqNoVisaQ(String amount);
+
+  /// S06 FAQ answer (draft, owner to approve)
+  ///
+  /// In en, this message translates to:
+  /// **'No. With the two-step payment, {amount} is paid only after the visa is issued.'**
+  String onbTariffFaqNoVisaA(String amount);
+
+  /// S06 FAQ question (Standart, Premium)
+  ///
+  /// In en, this message translates to:
+  /// **'When do I make the payment after the visa?'**
+  String get onbTariffFaqWhenQ;
+
+  /// S06 FAQ answer (draft, owner to approve)
+  ///
+  /// In en, this message translates to:
+  /// **'Within 7 working days after the visa is issued.'**
+  String get onbTariffFaqWhenA;
+
+  /// S06 FAQ question
+  ///
+  /// In en, this message translates to:
+  /// **'Who pays the tuition?'**
+  String get onbTariffFaqContractQ;
+
+  /// S06 FAQ answer (Standart, Premium, Hanbox; draft)
+  ///
+  /// In en, this message translates to:
+  /// **'You pay the university tuition yourself — it is not included in the tariff price.'**
+  String get onbTariffFaqContractA;
+
+  /// S06 FAQ answer (NO RISK; draft)
+  ///
+  /// In en, this message translates to:
+  /// **'The company pays the tuition — it is included in the NO RISK price.'**
+  String get onbTariffFaqContractANoRisk;
+
+  /// S06 bottom button
+  ///
+  /// In en, this message translates to:
+  /// **'Get advice on this tariff'**
+  String get onbTariffCta;
+
+  /// S06 link to the contract sample (hidden until a PDF exists)
+  ///
+  /// In en, this message translates to:
+  /// **'Sample contract (PDF)'**
+  String get onbTariffContractPdf;
+
+  /// S01 Welcome: headline.
+  ///
+  /// In en, this message translates to:
+  /// **'Study in Korea — find out your chances in 2 minutes'**
+  String get onbWelcomeTitle;
+
+  /// S01 Welcome: one line under the headline.
+  ///
+  /// In en, this message translates to:
+  /// **'An honest assessment: no percentages, no guarantees — just the rules and your answers.'**
+  String get onbWelcomeBody;
+
+  /// S01 Welcome: main button, starts the 6-question check (S02).
+  ///
+  /// In en, this message translates to:
+  /// **'Check my chances'**
+  String get onbWelcomeCta;
+
+  /// S01 Welcome: secondary button, opens the university catalogue.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse universities'**
+  String get onbWelcomeCatalog;
+
+  /// S01 Welcome: trust row label (operator reply time). Shown only with real data.
+  ///
+  /// In en, this message translates to:
+  /// **'Operator reply'**
+  String get onbWelcomeTrustReply;
+
+  /// S01 Welcome: trust row value, operator reply time in minutes.
+  ///
+  /// In en, this message translates to:
+  /// **'≤{minutes} min'**
+  String onbWelcomeTrustReplyValue(String minutes);
+
+  /// S01 Welcome: small link for existing clients, opens sign-in with the client code.
+  ///
+  /// In en, this message translates to:
+  /// **'I have a client code'**
+  String get onbWelcomeClientCode;
+
+  /// S02 quiz: button to the next question.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get onbQuizContinue;
+
+  /// S02 quiz: screen-reader label of the back arrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get onbQuizBack;
+
+  /// S02 question 1: study route.
+  ///
+  /// In en, this message translates to:
+  /// **'What would you like to study?'**
+  String get onbQuizQ1;
+
+  /// S02 Q1 option: Korean language course (D-4).
+  ///
+  /// In en, this message translates to:
+  /// **'Language course'**
+  String get onbQuizRouteCourse;
+
+  /// S02 Q1 option: bachelor's degree.
+  ///
+  /// In en, this message translates to:
+  /// **'Bachelor\'s'**
+  String get onbQuizRouteBachelor;
+
+  /// S02 Q1 option: master's degree.
+  ///
+  /// In en, this message translates to:
+  /// **'Master\'s'**
+  String get onbQuizRouteMaster;
+
+  /// S02 Q1 option: vocational college.
+  ///
+  /// In en, this message translates to:
+  /// **'Vocational college'**
+  String get onbQuizRouteCollege;
+
+  /// S02 question 2: age and graduation year.
+  ///
+  /// In en, this message translates to:
+  /// **'Your age and graduation year?'**
+  String get onbQuizQ2;
+
+  /// S02 Q2: label before the age input (keep the colon).
+  ///
+  /// In en, this message translates to:
+  /// **'Age:'**
+  String get onbQuizAge;
+
+  /// S02 Q2: label before the chosen graduation year (keep the colon).
+  ///
+  /// In en, this message translates to:
+  /// **'Graduation year:'**
+  String get onbQuizGradYear;
+
+  /// S02 Q2 graduation-year picker: the last option, this year or any year before it.
+  ///
+  /// In en, this message translates to:
+  /// **'{year} or earlier'**
+  String onbQuizGradYearOrEarlier(String year);
+
+  /// S02 Q2 option: still at school or university.
+  ///
+  /// In en, this message translates to:
+  /// **'Still studying'**
+  String get onbQuizStillStudying;
+
+  /// S02 question 3: Korean level.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Korean level?'**
+  String get onbQuizQ3;
+
+  /// S02 question 3: one line under the question.
+  ///
+  /// In en, this message translates to:
+  /// **'Answer even without a certificate — it decides the route.'**
+  String get onbQuizQ3Hint;
+
+  /// S02 Q3 option: no Korean.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get onbQuizKoreanNone;
+
+  /// S02 Q3 option: learning, no certificate.
+  ///
+  /// In en, this message translates to:
+  /// **'Learning, no certificate'**
+  String get onbQuizKoreanLearning;
+
+  /// S02 Q3 option: Sejong 1A / TOPIK 1.
+  ///
+  /// In en, this message translates to:
+  /// **'Sejong 1A / TOPIK 1'**
+  String get onbQuizKoreanTopik1;
+
+  /// S02 Q3 option: TOPIK 2.
+  ///
+  /// In en, this message translates to:
+  /// **'TOPIK 2'**
+  String get onbQuizKoreanTopik2;
+
+  /// S02 Q3 option: TOPIK 3 or higher.
+  ///
+  /// In en, this message translates to:
+  /// **'TOPIK 3 or higher'**
+  String get onbQuizKoreanTopik3;
+
+  /// S02 Q3 option: don't know yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not sure yet'**
+  String get onbQuizKoreanUnknown;
+
+  /// S02 question 4: yearly budget and who pays.
+  ///
+  /// In en, this message translates to:
+  /// **'Yearly budget, and who pays?'**
+  String get onbQuizQ4;
+
+  /// S02 Q4 option: up to $3,000 a year.
+  ///
+  /// In en, this message translates to:
+  /// **'Up to \$3,000'**
+  String get onbQuizBudgetUnder3;
+
+  /// S02 Q4 option: $3,000–6,000 a year.
+  ///
+  /// In en, this message translates to:
+  /// **'\$3–6k'**
+  String get onbQuizBudget3to6;
+
+  /// S02 Q4 option: $6,000–10,000 a year.
+  ///
+  /// In en, this message translates to:
+  /// **'\$6–10k'**
+  String get onbQuizBudget6to10;
+
+  /// S02 Q4 option: over $10,000 a year.
+  ///
+  /// In en, this message translates to:
+  /// **'\$10,000+'**
+  String get onbQuizBudgetOver10;
+
+  /// S02 Q4: label before the payer choice (keep the colon).
+  ///
+  /// In en, this message translates to:
+  /// **'Payer:'**
+  String get onbQuizPayer;
+
+  /// S02 Q4 payer: parents (lowercase, sits after the label).
+  ///
+  /// In en, this message translates to:
+  /// **'parents'**
+  String get onbQuizPayerParents;
+
+  /// S02 Q4 payer: myself.
+  ///
+  /// In en, this message translates to:
+  /// **'myself'**
+  String get onbQuizPayerSelf;
+
+  /// S02 Q4 payer: a sponsor.
+  ///
+  /// In en, this message translates to:
+  /// **'sponsor'**
+  String get onbQuizPayerSponsor;
+
+  /// S02 question 5: parents' official income (and bank statement).
+  ///
+  /// In en, this message translates to:
+  /// **'Do your parents have an official income?'**
+  String get onbQuizQ5;
+
+  /// S02 Q5 option: yes, official income.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes, official income'**
+  String get onbQuizIncomeYes;
+
+  /// S02 Q5 option: no official income.
+  ///
+  /// In en, this message translates to:
+  /// **'No'**
+  String get onbQuizIncomeNo;
+
+  /// S02 Q5 option: a bank statement can be provided.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank statement available'**
+  String get onbQuizBankYes;
+
+  /// S02 Q5 option: no bank statement.
+  ///
+  /// In en, this message translates to:
+  /// **'No bank statement'**
+  String get onbQuizBankNo;
+
+  /// S02 question 6: region and intake.
+  ///
+  /// In en, this message translates to:
+  /// **'Your region, and when do you want to go?'**
+  String get onbQuizQ6;
+
+  /// S02 Q6: label before the chosen region (keep the colon).
+  ///
+  /// In en, this message translates to:
+  /// **'Region:'**
+  String get onbQuizRegion;
+
+  /// S02 Q6: shown after the region label until a region is picked.
+  ///
+  /// In en, this message translates to:
+  /// **'choose'**
+  String get onbQuizRegionChoose;
+
+  /// S02 Q6 option: spring 2027 intake.
+  ///
+  /// In en, this message translates to:
+  /// **'Spring 2027'**
+  String get onbQuizIntakeSpring2027;
+
+  /// S02 Q6 option: fall 2027 intake.
+  ///
+  /// In en, this message translates to:
+  /// **'Fall 2027'**
+  String get onbQuizIntakeFall2027;
+
+  /// S02 Q6 option: later.
+  ///
+  /// In en, this message translates to:
+  /// **'Later'**
+  String get onbQuizIntakeLater;
+
+  /// S04 contact sheet: title.
+  ///
+  /// In en, this message translates to:
+  /// **'Detailed plan and list of universities'**
+  String get onbContactTitle;
+
+  /// S04 contact sheet: line under the title.
+  ///
+  /// In en, this message translates to:
+  /// **'An operator will review your answers and call you within 10 minutes.'**
+  String get onbContactSubtitle;
+
+  /// S04 contact sheet: banner shown outside working hours.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'re outside working hours now. We\'ll call you tomorrow at 10:00.'**
+  String get onbContactAfterHours;
+
+  /// S04 contact sheet: name field label and placeholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Your name'**
+  String get onbContactName;
+
+  /// S04 contact sheet: phone field label.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get onbContactPhone;
+
+  /// S04 contact sheet: the phone number is not a valid Uzbek number.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the number'**
+  String get onbContactPhoneError;
+
+  /// S04 contact sheet: the name is missing or not accepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your name'**
+  String get onbContactNameError;
+
+  /// S04 contact sheet: sending failed (no internet or server error).
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t send. Check your connection and try again.'**
+  String get onbContactNetworkError;
+
+  /// S04 contact sheet: toggle, also send the plan to the visitor's Telegram.
+  ///
+  /// In en, this message translates to:
+  /// **'Also send the plan to my Telegram'**
+  String get onbContactTelegram;
+
+  /// S04 contact sheet: submit button.
+  ///
+  /// In en, this message translates to:
+  /// **'Have an operator call me'**
+  String get onbContactCta;
+
+  /// S04 contact sheet: working-hours note under the button.
+  ///
+  /// In en, this message translates to:
+  /// **'Working hours Mon–Sat 09:40–18:00. At other times we\'ll call the next day at 10:00.'**
+  String get onbContactHours;
+
+  /// S04 contact sheet: success message with the visitor's name.
+  ///
+  /// In en, this message translates to:
+  /// **'Thank you, {name}! An operator will call you within 10 minutes.'**
+  String onbContactSuccess(String name);
+
+  /// S04 contact sheet success: closes the sheet, back to the result.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to the result'**
+  String get onbContactBackToResult;
 }
 
 class _AppLocalizationsDelegate

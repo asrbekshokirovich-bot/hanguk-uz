@@ -2629,4 +2629,602 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get interviewErrorCallFailed =>
       '통화에 연결할 수 없습니다. 인터넷 연결을 확인하고 다시 시도해 주세요.';
+
+  @override
+  String get onbResultRouteLanguageCourse => '어학연수';
+
+  @override
+  String get onbResultRouteBachelor => '학사';
+
+  @override
+  String get onbResultRouteMaster => '석사';
+
+  @override
+  String get onbResultRouteCollege => '전문대학';
+
+  @override
+  String get onbResultIntakeSpring2027 => '2027년 봄';
+
+  @override
+  String get onbResultIntakeFall2027 => '2027년 가을';
+
+  @override
+  String get onbResultIntakeLater => '나중에';
+
+  @override
+  String get onbResultBandHigh => '가능성 높음';
+
+  @override
+  String get onbResultBandHighNote => '주요 요건을 충족했습니다 — 서류 준비를 시작할 수 있습니다.';
+
+  @override
+  String get onbResultBandMid => '가능성 보통';
+
+  @override
+  String get onbResultBandMidNote => '길은 열려 있지만 1–2가지를 보완해야 합니다.';
+
+  @override
+  String get onbResultBandLow => '아직은 위험이 높지만 — 길은 있습니다';
+
+  @override
+  String get onbResultBandLowNote => '어학 및 재정 서류가 아직 부족합니다.';
+
+  @override
+  String get onbResultFactorsTitle => '결과에 영향을 준 요인';
+
+  @override
+  String get onbResultFactorKoreanStrong => 'TOPIK 3급 이상';
+
+  @override
+  String get onbResultFactorKoreanTopik2Degree =>
+      'TOPIK 2급, 많은 대학이 TOPIK 3급을 요구합니다';
+
+  @override
+  String get onbResultFactorKoreanMissingDegree =>
+      'TOPIK 2급 미만, 많은 대학이 TOPIK 3급을 요구합니다';
+
+  @override
+  String get onbResultFactorKoreanCollegeStrong => 'TOPIK 3급 이상';
+
+  @override
+  String get onbResultFactorKoreanCollegeTopik2 =>
+      'TOPIK 2급 — 전문대학은 TOPIK 2급을 받습니다';
+
+  @override
+  String get onbResultFactorKoreanCourseCertificate =>
+      '세종 1A / TOPIK 1급 자격증 있음';
+
+  @override
+  String get onbResultFactorKoreanCourseMissing => '한국어 자격증 없음';
+
+  @override
+  String get onbResultFactorIncomeYes => '부모님의 공식 소득';
+
+  @override
+  String get onbResultFactorIncomeNo => '부모님의 공식 소득 없음';
+
+  @override
+  String get onbResultFactorBankYes => '은행 잔고증명 준비됨';
+
+  @override
+  String get onbResultFactorBankNo => '은행 잔고증명 없음';
+
+  @override
+  String get onbResultFactorGradRecent => '최근 졸업 — 학업 공백 없음';
+
+  @override
+  String get onbResultFactorGradGapLong => '졸업 후 오랜 시간 경과 — 학업 목적을 설명해야 합니다';
+
+  @override
+  String get onbResultFactorAgeHigh => '나이로 인해 학업 목적을 설명해야 합니다';
+
+  @override
+  String get onbResultFactorBudgetLow => '예산이 연간 예상 비용보다 적습니다';
+
+  @override
+  String get onbResultUnisTitle => '나에게 맞는 대학';
+
+  @override
+  String get onbResultAccredited => '인증 대학';
+
+  @override
+  String get onbResultTuitionLabel => '등록금/학기';
+
+  @override
+  String get onbResultTopikLabel => 'TOPIK 요건';
+
+  @override
+  String get onbResultBankLabel => '은행 잔고증명';
+
+  @override
+  String get onbResultYearlyCost => '연간 예상 비용';
+
+  @override
+  String get onbResultStepsTitle => '다음 3단계';
+
+  @override
+  String get onbResultStepTopikPrep => 'TOPIK 3급 준비 또는 어학연수를 통한 입학';
+
+  @override
+  String get onbResultStepBankStatement => '은행 잔고증명을 미리 준비하기';
+
+  @override
+  String get onbResultStepSchoolDocs => '고등학교 졸업장과 여권 번역 및 아포스티유';
+
+  @override
+  String get onbResultStepDiplomaDocs => '학위증과 여권 번역 및 아포스티유';
+
+  @override
+  String get onbResultStepApplyOnTime => '대학 마감일 전에 서류 제출';
+
+  @override
+  String get onbResultPathsTitle => '나에게 맞는 길';
+
+  @override
+  String get onbResultPathLanguageCourse => '어학연수를 통해 (D-4)';
+
+  @override
+  String get onbResultPathLanguageCourseNote => '어학연수 후 학사 과정으로 진학.';
+
+  @override
+  String get onbResultPathCollege => '전문대학';
+
+  @override
+  String get onbResultPathCollegeNote => '요건이 완화되고 등록금이 낮습니다.';
+
+  @override
+  String get onbResultPathNextSeason => '다음 학기 준비';
+
+  @override
+  String get onbResultPathNextSeasonNote => 'TOPIK 3급과 은행 잔고증명으로 2027년 가을.';
+
+  @override
+  String onbResultTariffWhy(String tariff) {
+    return '$tariff — 왜? →';
+  }
+
+  @override
+  String get onbResultCtaOperator => '상담원이 10분 안에 확인해 드려요';
+
+  @override
+  String get onbResultCtaTelegram => '텔레그램에서 계속하기';
+
+  @override
+  String get onbResultDisclaimer => '이것은 예비 평가입니다. 비자 결정은 대사관이 내립니다.';
+
+  @override
+  String onbResultPlanTariff(String tariff) {
+    return '추천 요금제: $tariff';
+  }
+
+  @override
+  String get onbTariffNameStandart => 'Standart';
+
+  @override
+  String get onbTariffNamePremium => 'Premium';
+
+  @override
+  String get onbTariffNameNoRisk => 'NO RISK';
+
+  @override
+  String get onbTariffNameHanbox => 'Hanbox';
+
+  @override
+  String get onbTariffsTitle => '가격 및 조건';
+
+  @override
+  String get onbTariffsSubtitle => '대부분은 비자 발급 후에 지불합니다.';
+
+  @override
+  String onbTariffServices(int count) {
+    return '서비스 $count개';
+  }
+
+  @override
+  String get onbTariffPriceStandart => '지금 200만 숨 + 비자 후 500만, 또는 500만 일시불';
+
+  @override
+  String get onbTariffPricePremium => '지금 300만 + 비자 후 1,000만, 또는 1,000만';
+
+  @override
+  String get onbTariffPriceNoRisk => '\$5 000 일시불';
+
+  @override
+  String get onbTariffPriceHanbox => '\$2 000 또는 \$400 + 월 \$200';
+
+  @override
+  String get onbTariffMore => '자세히 →';
+
+  @override
+  String get onbTariffsCompare => '요금제 비교';
+
+  @override
+  String get onbTariffExcludedTitle => '포함되지 않는 것';
+
+  @override
+  String get onbTariffExContract => '등록금';
+
+  @override
+  String get onbTariffExApplicationFee => '지원비';
+
+  @override
+  String get onbTariffExBankStatement => '은행 잔고증명';
+
+  @override
+  String get onbTariffExFlight => '항공편';
+
+  @override
+  String get onbTariffExVisaFee => '비자 수수료';
+
+  @override
+  String get onbTariffExLiving => '생활비';
+
+  @override
+  String get onbTariffExVisa => '비자';
+
+  @override
+  String get onbTariffDetailEyebrow => '요금제 상세';
+
+  @override
+  String get onbTariffPayTitle => '결제 시점';
+
+  @override
+  String get onbTariffPayContract => '계약';
+
+  @override
+  String get onbTariffPayContractWhen => '업무 시작 시';
+
+  @override
+  String get onbTariffPayVisa => '비자 발급';
+
+  @override
+  String get onbTariffPayVisaWhen => '비자를 받았을 때';
+
+  @override
+  String get onbTariffPayVisaDays => '비자 발급 후 7영업일 이내';
+
+  @override
+  String get onbTariffPayStart => '시작 시';
+
+  @override
+  String get onbTariffPayMonthly => '매월';
+
+  @override
+  String onbTariffMln(int n) {
+    return '${n}00만';
+  }
+
+  @override
+  String get onbTariffOrOnceStandart => '또는 500만 숨 일시불.';
+
+  @override
+  String get onbTariffOrOncePremium => '또는 1,000만 숨 일시불.';
+
+  @override
+  String get onbTariffOrOnceHanbox => '또는 \$2 000 일시불, 또는 할부.';
+
+  @override
+  String get onbTariffIncludedTitle => '포함 사항';
+
+  @override
+  String get onbTariffIncUniChoice => '대학 선택';
+
+  @override
+  String get onbTariffIncDocsList => '서류 목록 및 검토';
+
+  @override
+  String get onbTariffIncTranslation => '번역 및 아포스티유 지원';
+
+  @override
+  String get onbTariffIncStudyPlan => '학업계획서 및 자기소개서';
+
+  @override
+  String get onbTariffIncApply => '지원서 제출';
+
+  @override
+  String get onbTariffIncInterview => '면접 준비';
+
+  @override
+  String get onbTariffIncVisaDocs => '비자 서류';
+
+  @override
+  String get onbTariffIncDorm => '기숙사 배정';
+
+  @override
+  String get onbTariffIncFirstWeek => '한국 도착 첫 주 지원';
+
+  @override
+  String get onbTariffIncApplyUpTo3 => '최대 3개 대학 지원 대행';
+
+  @override
+  String get onbTariffIncInterviewQuestions => '면접 준비 (예상 질문 제공)';
+
+  @override
+  String get onbTariffIncDocsPrep => '서류 준비 (번역, 아포스티유)';
+
+  @override
+  String get onbTariffIncPost => '우편 발송';
+
+  @override
+  String get onbTariffIncSimBank => '유심 및 은행 카드';
+
+  @override
+  String get onbTariffIncInterviewAi => '면접 준비 (AI와 함께 연습)';
+
+  @override
+  String get onbTariffIncBankShot1Day => '은행 계좌 (일반, 1일)';
+
+  @override
+  String get onbTariffIncBankShot1Month => '은행 계좌 (1개월)';
+
+  @override
+  String get onbTariffIncEmbassyDocs => '대사관 서류 준비 (번역, 아포스티유)';
+
+  @override
+  String get onbTariffIncStudyPlanAi => '학업계획서 작성 지원 (AI 활용)';
+
+  @override
+  String get onbTariffIncPickup => '한국 공항 픽업';
+
+  @override
+  String get onbTariffIncContractPaid => '등록금 회사 부담';
+
+  @override
+  String get onbTariffIncFlightTicket => '항공권 구매 대행';
+
+  @override
+  String get onbTariffIncFlatMonth => '숙소를 찾아 1개월 월세 지원';
+
+  @override
+  String get onbTariffIncAppFee => '지원비 (Application fee)';
+
+  @override
+  String get onbTariffIncHanboxLessons =>
+      '1년 실시간 온라인 수업 (Hanguk Academy 앱), 11–15명 그룹, 목표 — TOPIK 2급';
+
+  @override
+  String get onbTariffIncHanboxLaptop => '노트북과 교재가 가격에 포함됩니다';
+
+  @override
+  String get onbTariffIncHanboxFirstLesson => '첫 수업 무료';
+
+  @override
+  String get onbTariffIncHanboxStandart =>
+      '수료 후 — Standart 컨설팅 무료 (TOPIK 2급, 출석률 80%, 전액 납부)';
+
+  @override
+  String get onbTariffRefundTitle => '환불';
+
+  @override
+  String get onbTariffRefundNoRisk =>
+      '비자가 나오지 않으면 — \$5 000 전액 환불됩니다. 단, 본인이 포기하지 않은 경우에 한합니다.';
+
+  @override
+  String get onbTariffRefundHanbox => '환불 불가: 과정을 중단하면 결제 금액은 반환되지 않습니다.';
+
+  @override
+  String get onbTariffFaqTitle => '자주 묻는 질문';
+
+  @override
+  String onbTariffMlnSom(int n) {
+    return '${n}00만 숨';
+  }
+
+  @override
+  String onbTariffFaqNoVisaQ(String amount) {
+    return '비자가 나오지 않아도 $amount을 내나요?';
+  }
+
+  @override
+  String onbTariffFaqNoVisaA(String amount) {
+    return '아니요. 2단계 결제에서는 $amount을 비자 발급 후에만 지불합니다.';
+  }
+
+  @override
+  String get onbTariffFaqWhenQ => '비자 후 결제는 언제 하나요?';
+
+  @override
+  String get onbTariffFaqWhenA => '비자 발급 후 7영업일 이내입니다.';
+
+  @override
+  String get onbTariffFaqContractQ => '등록금은 누가 내나요?';
+
+  @override
+  String get onbTariffFaqContractA => '대학 등록금은 본인이 직접 냅니다 — 요금제 가격에 포함되지 않습니다.';
+
+  @override
+  String get onbTariffFaqContractANoRisk => '등록금은 회사가 냅니다 — NO RISK 가격에 포함됩니다.';
+
+  @override
+  String get onbTariffCta => '이 요금제 상담받기';
+
+  @override
+  String get onbTariffContractPdf => '계약서 샘플 (PDF)';
+
+  @override
+  String get onbWelcomeTitle => '한국 유학 — 2분 만에 내 가능성을 확인하세요';
+
+  @override
+  String get onbWelcomeBody => '정직한 평가: 퍼센트도, 보장도 없이 — 규정과 당신의 답변만으로.';
+
+  @override
+  String get onbWelcomeCta => '내 가능성 확인하기';
+
+  @override
+  String get onbWelcomeCatalog => '대학교 둘러보기';
+
+  @override
+  String get onbWelcomeTrustReply => '상담원 응답';
+
+  @override
+  String onbWelcomeTrustReplyValue(String minutes) {
+    return '≤$minutes분';
+  }
+
+  @override
+  String get onbWelcomeClientCode => '고객 코드가 있어요';
+
+  @override
+  String get onbQuizContinue => '계속';
+
+  @override
+  String get onbQuizBack => '뒤로';
+
+  @override
+  String get onbQuizQ1 => '어떤 과정으로 공부하고 싶으세요?';
+
+  @override
+  String get onbQuizRouteCourse => '어학연수';
+
+  @override
+  String get onbQuizRouteBachelor => '학사';
+
+  @override
+  String get onbQuizRouteMaster => '석사';
+
+  @override
+  String get onbQuizRouteCollege => '전문대학';
+
+  @override
+  String get onbQuizQ2 => '나이와 졸업 연도는?';
+
+  @override
+  String get onbQuizAge => '나이:';
+
+  @override
+  String get onbQuizGradYear => '졸업 연도:';
+
+  @override
+  String onbQuizGradYearOrEarlier(String year) {
+    return '$year년 또는 그 이전';
+  }
+
+  @override
+  String get onbQuizStillStudying => '아직 재학 중';
+
+  @override
+  String get onbQuizQ3 => '한국어 수준은?';
+
+  @override
+  String get onbQuizQ3Hint => '자격증이 없어도 답해 주세요 — 진로가 정해집니다.';
+
+  @override
+  String get onbQuizKoreanNone => '없음';
+
+  @override
+  String get onbQuizKoreanLearning => '공부 중, 자격증 없음';
+
+  @override
+  String get onbQuizKoreanTopik1 => '세종 1A / TOPIK 1';
+
+  @override
+  String get onbQuizKoreanTopik2 => 'TOPIK 2';
+
+  @override
+  String get onbQuizKoreanTopik3 => 'TOPIK 3 이상';
+
+  @override
+  String get onbQuizKoreanUnknown => '아직 모르겠어요';
+
+  @override
+  String get onbQuizQ4 => '연간 예산과 비용 부담자는?';
+
+  @override
+  String get onbQuizBudgetUnder3 => '\$3,000 이하';
+
+  @override
+  String get onbQuizBudget3to6 => '\$3,000–6,000';
+
+  @override
+  String get onbQuizBudget6to10 => '\$6,000–10,000';
+
+  @override
+  String get onbQuizBudgetOver10 => '\$10,000 이상';
+
+  @override
+  String get onbQuizPayer => '부담자:';
+
+  @override
+  String get onbQuizPayerParents => '부모님';
+
+  @override
+  String get onbQuizPayerSelf => '본인';
+
+  @override
+  String get onbQuizPayerSponsor => '후원자';
+
+  @override
+  String get onbQuizQ5 => '부모님께 공식 소득이 있나요?';
+
+  @override
+  String get onbQuizIncomeYes => '네, 공식 소득이 있어요';
+
+  @override
+  String get onbQuizIncomeNo => '아니요';
+
+  @override
+  String get onbQuizBankYes => '잔고증명 가능';
+
+  @override
+  String get onbQuizBankNo => '잔고증명 없음';
+
+  @override
+  String get onbQuizQ6 => '거주 지역과 출국 희망 시기는?';
+
+  @override
+  String get onbQuizRegion => '지역:';
+
+  @override
+  String get onbQuizRegionChoose => '선택';
+
+  @override
+  String get onbQuizIntakeSpring2027 => '2027년 봄';
+
+  @override
+  String get onbQuizIntakeFall2027 => '2027년 가을';
+
+  @override
+  String get onbQuizIntakeLater => '나중에';
+
+  @override
+  String get onbContactTitle => '상세 계획과 대학교 목록';
+
+  @override
+  String get onbContactSubtitle => '상담원이 답변을 확인하고 10분 안에 전화드립니다.';
+
+  @override
+  String get onbContactAfterHours => '지금은 업무 시간이 아닙니다. 내일 10:00에 전화드릴게요.';
+
+  @override
+  String get onbContactName => '이름';
+
+  @override
+  String get onbContactPhone => '전화번호';
+
+  @override
+  String get onbContactPhoneError => '번호를 확인해 주세요';
+
+  @override
+  String get onbContactNameError => '이름을 입력해 주세요';
+
+  @override
+  String get onbContactNetworkError => '전송하지 못했습니다. 인터넷 연결을 확인하고 다시 시도해 주세요.';
+
+  @override
+  String get onbContactTelegram => '계획을 텔레그램으로도 보내 주세요';
+
+  @override
+  String get onbContactCta => '상담원 전화 요청';
+
+  @override
+  String get onbContactHours =>
+      '업무 시간 월–토 09:40–18:00. 그 외 시간에는 다음 날 10:00에 전화드립니다.';
+
+  @override
+  String onbContactSuccess(String name) {
+    return '감사합니다, $name님! 상담원이 10분 안에 전화드립니다.';
+  }
+
+  @override
+  String get onbContactBackToResult => '결과로 돌아가기';
 }

@@ -2737,4 +2737,636 @@ class AppLocalizationsUz extends AppLocalizations {
   @override
   String get interviewErrorCallFailed =>
       'Qo‘ng‘iroqqa ulanib bo‘lmadi. Internetni tekshirib, qayta urinib ko‘ring.';
+
+  @override
+  String get onbResultRouteLanguageCourse => 'Til kursi';
+
+  @override
+  String get onbResultRouteBachelor => 'Bakalavr';
+
+  @override
+  String get onbResultRouteMaster => 'Magistratura';
+
+  @override
+  String get onbResultRouteCollege => 'Kasbiy kollej';
+
+  @override
+  String get onbResultIntakeSpring2027 => '2027 bahor';
+
+  @override
+  String get onbResultIntakeFall2027 => '2027 kuz';
+
+  @override
+  String get onbResultIntakeLater => 'Keyinroq';
+
+  @override
+  String get onbResultBandHigh => 'Yuqori imkoniyat';
+
+  @override
+  String get onbResultBandHighNote =>
+      'Asosiy talablar bajarilgan — hujjatlarni boshlash mumkin.';
+
+  @override
+  String get onbResultBandMid => 'O\'rta imkoniyat';
+
+  @override
+  String get onbResultBandMidNote =>
+      'Yo\'l ochiq, lekin 1–2 nuqta kuchaytirilishi kerak.';
+
+  @override
+  String get onbResultBandLow => 'Hozircha xavf yuqori — lekin yo\'l bor';
+
+  @override
+  String get onbResultBandLowNote =>
+      'Til va moliyaviy hujjatlar hali yetarli emas.';
+
+  @override
+  String get onbResultFactorsTitle => 'Nimaga ta\'sir qildi';
+
+  @override
+  String get onbResultFactorKoreanStrong => 'TOPIK 3 va yuqori';
+
+  @override
+  String get onbResultFactorKoreanTopik2Degree =>
+      'TOPIK 2, ko\'p OTM TOPIK 3 so\'raydi';
+
+  @override
+  String get onbResultFactorKoreanMissingDegree =>
+      'TOPIK 2 dan past, ko\'p OTM TOPIK 3 so\'raydi';
+
+  @override
+  String get onbResultFactorKoreanCollegeStrong => 'TOPIK 3 va yuqori';
+
+  @override
+  String get onbResultFactorKoreanCollegeTopik2 =>
+      'TOPIK 2 — kasbiy kollej TOPIK 2 qabul qiladi';
+
+  @override
+  String get onbResultFactorKoreanCourseCertificate =>
+      'Sejong 1A / TOPIK 1 sertifikati bor';
+
+  @override
+  String get onbResultFactorKoreanCourseMissing =>
+      'Koreys tili sertifikati yo\'q';
+
+  @override
+  String get onbResultFactorIncomeYes => 'Ota-ona rasmiy daromadi';
+
+  @override
+  String get onbResultFactorIncomeNo => 'Ota-onada rasmiy daromad yo\'q';
+
+  @override
+  String get onbResultFactorBankYes => 'Bank spravkasi tayyor';
+
+  @override
+  String get onbResultFactorBankNo => 'Bank spravkasi yo\'q';
+
+  @override
+  String get onbResultFactorGradRecent =>
+      'Bitiruv yili yaqin — o\'qishda tanaffus yo\'q';
+
+  @override
+  String get onbResultFactorGradGapLong =>
+      'Bitiruvdan ko\'p vaqt o\'tgan — ta\'lim niyati tushuntirilishi kerak';
+
+  @override
+  String get onbResultFactorAgeHigh =>
+      'Yoshga ko\'ra ta\'lim niyati tushuntirilishi kerak';
+
+  @override
+  String get onbResultFactorBudgetLow =>
+      'Byudjet yillik taxminiy xarajatdan kam';
+
+  @override
+  String get onbResultUnisTitle => 'Sizga mos universitetlar';
+
+  @override
+  String get onbResultAccredited => 'Akkreditatsiyalangan';
+
+  @override
+  String get onbResultTuitionLabel => 'Kontrakt/semestr';
+
+  @override
+  String get onbResultTopikLabel => 'TOPIK talabi';
+
+  @override
+  String get onbResultBankLabel => 'Bank spravkasi';
+
+  @override
+  String get onbResultYearlyCost => 'Yillik taxminiy xarajat';
+
+  @override
+  String get onbResultStepsTitle => 'Keyingi 3 qadam';
+
+  @override
+  String get onbResultStepTopikPrep =>
+      'TOPIK 3 ga tayyorgarlik yoki til kursi orqali kirish';
+
+  @override
+  String get onbResultStepBankStatement => 'Bank spravkasini oldindan ochish';
+
+  @override
+  String get onbResultStepSchoolDocs =>
+      'Attestat va pasportni tarjima va apostil qilish';
+
+  @override
+  String get onbResultStepDiplomaDocs =>
+      'Diplom va pasportni tarjima va apostil qilish';
+
+  @override
+  String get onbResultStepApplyOnTime => 'OTM muddatigacha hujjat topshirish';
+
+  @override
+  String get onbResultPathsTitle => 'Sizga mos yo\'llar';
+
+  @override
+  String get onbResultPathLanguageCourse => 'Til kursi orqali (D-4)';
+
+  @override
+  String get onbResultPathLanguageCourseNote =>
+      'Til kursi, keyin bakalavrga o\'tish.';
+
+  @override
+  String get onbResultPathCollege => 'Kasbiy kollej';
+
+  @override
+  String get onbResultPathCollegeNote =>
+      'Talablar yumshoqroq, kontrakt pastroq.';
+
+  @override
+  String get onbResultPathNextSeason => 'Keyingi mavsumga tayyorgarlik';
+
+  @override
+  String get onbResultPathNextSeasonNote =>
+      'TOPIK 3 va bank spravkasi bilan 2027 kuz.';
+
+  @override
+  String onbResultTariffWhy(String tariff) {
+    return '$tariff — nega? →';
+  }
+
+  @override
+  String get onbResultCtaOperator => 'Operator 10 daqiqada tasdiqlasin';
+
+  @override
+  String get onbResultCtaTelegram => 'Telegram\'da davom etish';
+
+  @override
+  String get onbResultDisclaimer =>
+      'Bu dastlabki baho. Viza qarorini elchixona beradi.';
+
+  @override
+  String onbResultPlanTariff(String tariff) {
+    return 'Tavsiya etilgan tarif: $tariff';
+  }
+
+  @override
+  String get onbTariffNameStandart => 'Standart';
+
+  @override
+  String get onbTariffNamePremium => 'Premium';
+
+  @override
+  String get onbTariffNameNoRisk => 'NO RISK';
+
+  @override
+  String get onbTariffNameHanbox => 'Hanbox';
+
+  @override
+  String get onbTariffsTitle => 'Narxlar va shartlar';
+
+  @override
+  String get onbTariffsSubtitle =>
+      'Asosiy qismi viza chiqqandan keyin to\'lanadi.';
+
+  @override
+  String onbTariffServices(int count) {
+    return '$count xizmat';
+  }
+
+  @override
+  String get onbTariffPriceStandart =>
+      '2 mln so\'m hozir + 5 mln vizadan keyin, yoki 5 mln bir yo\'la';
+
+  @override
+  String get onbTariffPricePremium =>
+      '3 mln hozir + 10 mln vizadan keyin, yoki 10 mln';
+
+  @override
+  String get onbTariffPriceNoRisk => '\$5 000 bir yo\'la';
+
+  @override
+  String get onbTariffPriceHanbox => '\$2 000 yoki \$400 + oyiga \$200';
+
+  @override
+  String get onbTariffMore => 'Batafsil →';
+
+  @override
+  String get onbTariffsCompare => 'Tariflarni solishtirish';
+
+  @override
+  String get onbTariffExcludedTitle => 'Nima kirmaydi';
+
+  @override
+  String get onbTariffExContract => 'Kontrakt';
+
+  @override
+  String get onbTariffExApplicationFee => 'Ariza to\'lovi';
+
+  @override
+  String get onbTariffExBankStatement => 'Bank spravkasi';
+
+  @override
+  String get onbTariffExFlight => 'Parvoz';
+
+  @override
+  String get onbTariffExVisaFee => 'Viza to\'lovi';
+
+  @override
+  String get onbTariffExLiving => 'Yashash';
+
+  @override
+  String get onbTariffExVisa => 'Viza';
+
+  @override
+  String get onbTariffDetailEyebrow => 'Tarif tafsiloti';
+
+  @override
+  String get onbTariffPayTitle => 'To\'lov vaqti';
+
+  @override
+  String get onbTariffPayContract => 'Shartnoma';
+
+  @override
+  String get onbTariffPayContractWhen => 'Ish boshlanishida';
+
+  @override
+  String get onbTariffPayVisa => 'Viza chiqdi';
+
+  @override
+  String get onbTariffPayVisaWhen => 'Viza qo\'lingizda bo\'lganda';
+
+  @override
+  String get onbTariffPayVisaDays => 'Viza chiqqanidan keyin 7 ish kuni ichida';
+
+  @override
+  String get onbTariffPayStart => 'Boshlanishda';
+
+  @override
+  String get onbTariffPayMonthly => 'Har oy';
+
+  @override
+  String onbTariffMln(int n) {
+    return '$n mln';
+  }
+
+  @override
+  String get onbTariffOrOnceStandart => 'Yoki 5 mln so\'m bir yo\'la.';
+
+  @override
+  String get onbTariffOrOncePremium => 'Yoki 10 mln so\'m bir yo\'la.';
+
+  @override
+  String get onbTariffOrOnceHanbox => 'Yoki \$2 000 bir yo\'la, yoki nasiya.';
+
+  @override
+  String get onbTariffIncludedTitle => 'Nima kiradi';
+
+  @override
+  String get onbTariffIncUniChoice => 'Universitet tanlash';
+
+  @override
+  String get onbTariffIncDocsList => 'Hujjatlar ro\'yxati va tekshiruv';
+
+  @override
+  String get onbTariffIncTranslation => 'Tarjima va apostil yordami';
+
+  @override
+  String get onbTariffIncStudyPlan => 'Study Plan va motivatsion xat';
+
+  @override
+  String get onbTariffIncApply => 'Ariza topshirish';
+
+  @override
+  String get onbTariffIncInterview => 'Intervyuga tayyorlash';
+
+  @override
+  String get onbTariffIncVisaDocs => 'Viza hujjatlari';
+
+  @override
+  String get onbTariffIncDorm => 'Yotoqxona joylashuvi';
+
+  @override
+  String get onbTariffIncFirstWeek => 'Koreyada birinchi hafta yordami';
+
+  @override
+  String get onbTariffIncApplyUpTo3 =>
+      '3tagacha universitetga topshirib berish';
+
+  @override
+  String get onbTariffIncInterviewQuestions =>
+      'Suhbatga tayyorlash (tushishi mumkin bo\'lgan savollar beriladi)';
+
+  @override
+  String get onbTariffIncDocsPrep =>
+      'Hujjatlarni tayyorlash (tarjima, apostil)';
+
+  @override
+  String get onbTariffIncPost => 'Pochta';
+
+  @override
+  String get onbTariffIncSimBank => 'Sim karta va bank karta';
+
+  @override
+  String get onbTariffIncInterviewAi =>
+      'Suhbatga tayyorlash (ai bilan tayyorgarlik)';
+
+  @override
+  String get onbTariffIncBankShot1Day => 'Bank shot (1 kunlik oddiy)';
+
+  @override
+  String get onbTariffIncBankShot1Month => 'Bank shot (1 oylik)';
+
+  @override
+  String get onbTariffIncEmbassyDocs =>
+      'Elchixonaga hujjat tayyorlash (tarjima, apostil)';
+
+  @override
+  String get onbTariffIncStudyPlanAi =>
+      'Studyplan yozishga yordam (ai yordamida tayyorgarlik)';
+
+  @override
+  String get onbTariffIncPickup => 'Koreada kutib olish xizmati';
+
+  @override
+  String get onbTariffIncContractPaid => 'Kontrakt to\'lovi firma tomonidan';
+
+  @override
+  String get onbTariffIncFlightTicket => 'Samalyot bileti olib beriladi';
+
+  @override
+  String get onbTariffIncFlatMonth =>
+      'Kvartira topib 1 oylik puli to\'lab beriladi';
+
+  @override
+  String get onbTariffIncAppFee => 'Ariza to\'lovi (Application fee)';
+
+  @override
+  String get onbTariffIncHanboxLessons =>
+      '1 yil onlayn jonli darslar (Hanguk Academy ilovasida), 11–15 kishilik guruh, maqsad — TOPIK 2';
+
+  @override
+  String get onbTariffIncHanboxLaptop => 'Noutbuk va darsliklar narxga kiradi';
+
+  @override
+  String get onbTariffIncHanboxFirstLesson => 'Birinchi dars bepul';
+
+  @override
+  String get onbTariffIncHanboxStandart =>
+      'Kursdan keyin — Standart konsalting bepul (TOPIK 2, 80% davomat, to\'liq to\'lov)';
+
+  @override
+  String get onbTariffRefundTitle => 'Qaytarish';
+
+  @override
+  String get onbTariffRefundNoRisk =>
+      'Viza chiqmasa — \$5 000 to\'liq qaytariladi. Bir shart: o\'zingiz voz kechmasangiz.';
+
+  @override
+  String get onbTariffRefundHanbox =>
+      'Qaytarish yo\'q, kursni tashlasangiz to\'lov qaytmaydi.';
+
+  @override
+  String get onbTariffFaqTitle => 'Savol-javob';
+
+  @override
+  String onbTariffMlnSom(int n) {
+    return '$n mln so\'m';
+  }
+
+  @override
+  String onbTariffFaqNoVisaQ(String amount) {
+    return 'Viza chiqmasa $amount to\'laymanmi?';
+  }
+
+  @override
+  String onbTariffFaqNoVisaA(String amount) {
+    return 'Yo\'q. Ikki bosqichli to\'lovda $amount faqat viza chiqqanidan keyin to\'lanadi.';
+  }
+
+  @override
+  String get onbTariffFaqWhenQ => 'Vizadan keyingi to\'lovni qachon qilaman?';
+
+  @override
+  String get onbTariffFaqWhenA => 'Viza chiqqanidan keyin 7 ish kuni ichida.';
+
+  @override
+  String get onbTariffFaqContractQ => 'Kontraktni kim to\'laydi?';
+
+  @override
+  String get onbTariffFaqContractA =>
+      'Universitet kontraktini o\'zingiz to\'laysiz — u tarif narxiga kirmaydi.';
+
+  @override
+  String get onbTariffFaqContractANoRisk =>
+      'Kontrakt to\'lovini firma qiladi — u NO RISK narxiga kiradi.';
+
+  @override
+  String get onbTariffCta => 'Shu tarif bo\'yicha maslahat';
+
+  @override
+  String get onbTariffContractPdf => 'Shartnoma namunasi (PDF)';
+
+  @override
+  String get onbWelcomeTitle =>
+      'Koreyada o\'qish — imkoniyatingizni 2 daqiqada bilib oling';
+
+  @override
+  String get onbWelcomeBody =>
+      'Halol baho: foiz yo\'q, kafolat yo\'q — qoidalar va sizning javoblaringiz.';
+
+  @override
+  String get onbWelcomeCta => 'Imkoniyatimni bilish';
+
+  @override
+  String get onbWelcomeCatalog => 'Universitetlarni ko\'rish';
+
+  @override
+  String get onbWelcomeTrustReply => 'Operator javobi';
+
+  @override
+  String onbWelcomeTrustReplyValue(String minutes) {
+    return '≤$minutes daqiqa';
+  }
+
+  @override
+  String get onbWelcomeClientCode => 'Mijoz kodim bor';
+
+  @override
+  String get onbQuizContinue => 'Davom etish';
+
+  @override
+  String get onbQuizBack => 'Orqaga';
+
+  @override
+  String get onbQuizQ1 => 'Qaysi yo\'nalishda o\'qimoqchisiz?';
+
+  @override
+  String get onbQuizRouteCourse => 'Til kursi';
+
+  @override
+  String get onbQuizRouteBachelor => 'Bakalavr';
+
+  @override
+  String get onbQuizRouteMaster => 'Magistratura';
+
+  @override
+  String get onbQuizRouteCollege => 'Kasbiy kollej';
+
+  @override
+  String get onbQuizQ2 => 'Yoshingiz va bitiruv yilingiz?';
+
+  @override
+  String get onbQuizAge => 'Yosh:';
+
+  @override
+  String get onbQuizGradYear => 'Bitiruv yili:';
+
+  @override
+  String onbQuizGradYearOrEarlier(String year) {
+    return '$year yoki oldin';
+  }
+
+  @override
+  String get onbQuizStillStudying => 'Hali o‘qiyapman';
+
+  @override
+  String get onbQuizQ3 => 'Koreys tili darajangiz?';
+
+  @override
+  String get onbQuizQ3Hint =>
+      'Sertifikat bo\'lmasa ham javob bering — bu yo\'lni belgilaydi.';
+
+  @override
+  String get onbQuizKoreanNone => 'Yo\'q';
+
+  @override
+  String get onbQuizKoreanLearning => 'O\'rganyapman, sertifikatsiz';
+
+  @override
+  String get onbQuizKoreanTopik1 => 'Sejong 1A / TOPIK 1';
+
+  @override
+  String get onbQuizKoreanTopik2 => 'TOPIK 2';
+
+  @override
+  String get onbQuizKoreanTopik3 => 'TOPIK 3 va yuqori';
+
+  @override
+  String get onbQuizKoreanUnknown => 'Hali bilmayman';
+
+  @override
+  String get onbQuizQ4 => 'Yillik byudjet va kim to‘laydi?';
+
+  @override
+  String get onbQuizBudgetUnder3 => '\$3 000 gacha';
+
+  @override
+  String get onbQuizBudget3to6 => '\$3–6 ming';
+
+  @override
+  String get onbQuizBudget6to10 => '\$6–10 ming';
+
+  @override
+  String get onbQuizBudgetOver10 => '\$10 000+';
+
+  @override
+  String get onbQuizPayer => 'To‘lovchi:';
+
+  @override
+  String get onbQuizPayerParents => 'ota-ona';
+
+  @override
+  String get onbQuizPayerSelf => 'o‘zim';
+
+  @override
+  String get onbQuizPayerSponsor => 'homiy';
+
+  @override
+  String get onbQuizQ5 => 'Ota-onada rasmiy daromad bormi?';
+
+  @override
+  String get onbQuizIncomeYes => 'Ha, rasmiy daromad bor';
+
+  @override
+  String get onbQuizIncomeNo => 'Yo‘q';
+
+  @override
+  String get onbQuizBankYes => 'Bank spravkasi bor';
+
+  @override
+  String get onbQuizBankNo => 'Bank spravkasi yo‘q';
+
+  @override
+  String get onbQuizQ6 => 'Viloyatingiz va qachon ketmoqchisiz?';
+
+  @override
+  String get onbQuizRegion => 'Viloyat:';
+
+  @override
+  String get onbQuizRegionChoose => 'tanlang';
+
+  @override
+  String get onbQuizIntakeSpring2027 => '2027 bahor';
+
+  @override
+  String get onbQuizIntakeFall2027 => '2027 kuz';
+
+  @override
+  String get onbQuizIntakeLater => 'Keyinroq';
+
+  @override
+  String get onbContactTitle => 'Batafsil reja va universitetlar ro\'yxati';
+
+  @override
+  String get onbContactSubtitle =>
+      'Operator javoblaringizni ko\'rib, 10 daqiqada qo\'ng\'iroq qiladi.';
+
+  @override
+  String get onbContactAfterHours =>
+      'Hozir ish vaqtidan tashqari. Ertaga 10:00 da qo\'ng\'iroq qilamiz.';
+
+  @override
+  String get onbContactName => 'Ismingiz';
+
+  @override
+  String get onbContactPhone => 'Telefon';
+
+  @override
+  String get onbContactPhoneError => 'Raqamni tekshiring';
+
+  @override
+  String get onbContactNameError => 'Ismingizni kiriting';
+
+  @override
+  String get onbContactNetworkError =>
+      'Yuborilmadi. Internetni tekshirib, qayta urinib ko\'ring.';
+
+  @override
+  String get onbContactTelegram => 'Rejani Telegram\'imga ham yuboring';
+
+  @override
+  String get onbContactCta => 'Operator qo\'ng\'iroq qilsin';
+
+  @override
+  String get onbContactHours =>
+      'Ish vaqti Du–Sh 09:40–18:00. Boshqa vaqtda — ertasi 10:00 da qo\'ng\'iroq qilamiz.';
+
+  @override
+  String onbContactSuccess(String name) {
+    return 'Rahmat, $name! Operator 10 daqiqada qo\'ng\'iroq qiladi.';
+  }
+
+  @override
+  String get onbContactBackToResult => 'Natijaga qaytish';
 }

@@ -2717,4 +2717,645 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get interviewErrorCallFailed =>
       'The call could not be connected. Please check your internet and try again.';
+
+  @override
+  String get onbResultRouteLanguageCourse => 'Language course';
+
+  @override
+  String get onbResultRouteBachelor => 'Bachelor\'s';
+
+  @override
+  String get onbResultRouteMaster => 'Master\'s';
+
+  @override
+  String get onbResultRouteCollege => 'Vocational college';
+
+  @override
+  String get onbResultIntakeSpring2027 => 'Spring 2027';
+
+  @override
+  String get onbResultIntakeFall2027 => 'Fall 2027';
+
+  @override
+  String get onbResultIntakeLater => 'Later';
+
+  @override
+  String get onbResultBandHigh => 'High chance';
+
+  @override
+  String get onbResultBandHighNote =>
+      'The main requirements are met — you can start on the documents.';
+
+  @override
+  String get onbResultBandMid => 'Medium chance';
+
+  @override
+  String get onbResultBandMidNote =>
+      'The way is open, but 1–2 points need strengthening.';
+
+  @override
+  String get onbResultBandLow => 'High risk for now — but there is a way';
+
+  @override
+  String get onbResultBandLowNote =>
+      'Language and financial documents are not enough yet.';
+
+  @override
+  String get onbResultFactorsTitle => 'What affected it';
+
+  @override
+  String get onbResultFactorKoreanStrong => 'TOPIK 3 or higher';
+
+  @override
+  String get onbResultFactorKoreanTopik2Degree =>
+      'TOPIK 2, many universities ask for TOPIK 3';
+
+  @override
+  String get onbResultFactorKoreanMissingDegree =>
+      'Below TOPIK 2, many universities ask for TOPIK 3';
+
+  @override
+  String get onbResultFactorKoreanCollegeStrong => 'TOPIK 3 or higher';
+
+  @override
+  String get onbResultFactorKoreanCollegeTopik2 =>
+      'TOPIK 2 — vocational colleges accept TOPIK 2';
+
+  @override
+  String get onbResultFactorKoreanCourseCertificate =>
+      'Sejong 1A / TOPIK 1 certificate';
+
+  @override
+  String get onbResultFactorKoreanCourseMissing =>
+      'No Korean language certificate';
+
+  @override
+  String get onbResultFactorIncomeYes => 'Parents\' official income';
+
+  @override
+  String get onbResultFactorIncomeNo => 'Parents have no official income';
+
+  @override
+  String get onbResultFactorBankYes => 'Bank statement ready';
+
+  @override
+  String get onbResultFactorBankNo => 'No bank statement';
+
+  @override
+  String get onbResultFactorGradRecent =>
+      'Graduated recently — no gap in studies';
+
+  @override
+  String get onbResultFactorGradGapLong =>
+      'A long time since graduation — the study intent must be explained';
+
+  @override
+  String get onbResultFactorAgeHigh =>
+      'Because of age, the study intent must be explained';
+
+  @override
+  String get onbResultFactorBudgetLow =>
+      'Budget is below the estimated yearly cost';
+
+  @override
+  String get onbResultUnisTitle => 'Universities that fit you';
+
+  @override
+  String get onbResultAccredited => 'Accredited';
+
+  @override
+  String get onbResultTuitionLabel => 'Tuition/semester';
+
+  @override
+  String get onbResultTopikLabel => 'TOPIK required';
+
+  @override
+  String get onbResultBankLabel => 'Bank statement';
+
+  @override
+  String get onbResultYearlyCost => 'Estimated yearly cost';
+
+  @override
+  String get onbResultStepsTitle => 'Next 3 steps';
+
+  @override
+  String get onbResultStepTopikPrep =>
+      'Prepare for TOPIK 3 or enter through a language course';
+
+  @override
+  String get onbResultStepBankStatement => 'Open the bank statement in advance';
+
+  @override
+  String get onbResultStepSchoolDocs =>
+      'Translate and apostille the school certificate and passport';
+
+  @override
+  String get onbResultStepDiplomaDocs =>
+      'Translate and apostille the diploma and passport';
+
+  @override
+  String get onbResultStepApplyOnTime =>
+      'Submit the documents before the university deadline';
+
+  @override
+  String get onbResultPathsTitle => 'Paths that fit you';
+
+  @override
+  String get onbResultPathLanguageCourse => 'Through a language course (D-4)';
+
+  @override
+  String get onbResultPathLanguageCourseNote =>
+      'A language course, then moving on to a bachelor\'s.';
+
+  @override
+  String get onbResultPathCollege => 'Vocational college';
+
+  @override
+  String get onbResultPathCollegeNote => 'Softer requirements, lower tuition.';
+
+  @override
+  String get onbResultPathNextSeason => 'Preparing for the next season';
+
+  @override
+  String get onbResultPathNextSeasonNote =>
+      'Fall 2027 with TOPIK 3 and a bank statement.';
+
+  @override
+  String onbResultTariffWhy(String tariff) {
+    return '$tariff — why? →';
+  }
+
+  @override
+  String get onbResultCtaOperator => 'Have an operator confirm in 10 minutes';
+
+  @override
+  String get onbResultCtaTelegram => 'Continue in Telegram';
+
+  @override
+  String get onbResultDisclaimer =>
+      'This is a preliminary assessment. The visa decision is made by the embassy.';
+
+  @override
+  String onbResultPlanTariff(String tariff) {
+    return 'Recommended tariff: $tariff';
+  }
+
+  @override
+  String get onbTariffNameStandart => 'Standart';
+
+  @override
+  String get onbTariffNamePremium => 'Premium';
+
+  @override
+  String get onbTariffNameNoRisk => 'NO RISK';
+
+  @override
+  String get onbTariffNameHanbox => 'Hanbox';
+
+  @override
+  String get onbTariffsTitle => 'Prices and terms';
+
+  @override
+  String get onbTariffsSubtitle =>
+      'Most of it is paid after the visa is issued.';
+
+  @override
+  String onbTariffServices(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count services',
+      one: '1 service',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get onbTariffPriceStandart =>
+      '2 mln so\'m now + 5 mln after the visa, or 5 mln in one go';
+
+  @override
+  String get onbTariffPricePremium =>
+      '3 mln now + 10 mln after the visa, or 10 mln';
+
+  @override
+  String get onbTariffPriceNoRisk => '\$5 000 in one go';
+
+  @override
+  String get onbTariffPriceHanbox => '\$2 000 or \$400 + \$200 a month';
+
+  @override
+  String get onbTariffMore => 'Details →';
+
+  @override
+  String get onbTariffsCompare => 'Compare tariffs';
+
+  @override
+  String get onbTariffExcludedTitle => 'Not included';
+
+  @override
+  String get onbTariffExContract => 'Tuition';
+
+  @override
+  String get onbTariffExApplicationFee => 'Application fee';
+
+  @override
+  String get onbTariffExBankStatement => 'Bank statement';
+
+  @override
+  String get onbTariffExFlight => 'Flight';
+
+  @override
+  String get onbTariffExVisaFee => 'Visa fee';
+
+  @override
+  String get onbTariffExLiving => 'Living costs';
+
+  @override
+  String get onbTariffExVisa => 'Visa';
+
+  @override
+  String get onbTariffDetailEyebrow => 'Tariff details';
+
+  @override
+  String get onbTariffPayTitle => 'When you pay';
+
+  @override
+  String get onbTariffPayContract => 'Contract';
+
+  @override
+  String get onbTariffPayContractWhen => 'When the work starts';
+
+  @override
+  String get onbTariffPayVisa => 'Visa issued';
+
+  @override
+  String get onbTariffPayVisaWhen => 'When the visa is in your hands';
+
+  @override
+  String get onbTariffPayVisaDays =>
+      'Within 7 working days after the visa is issued';
+
+  @override
+  String get onbTariffPayStart => 'At the start';
+
+  @override
+  String get onbTariffPayMonthly => 'Every month';
+
+  @override
+  String onbTariffMln(int n) {
+    return '$n mln';
+  }
+
+  @override
+  String get onbTariffOrOnceStandart => 'Or 5 mln so\'m in one go.';
+
+  @override
+  String get onbTariffOrOncePremium => 'Or 10 mln so\'m in one go.';
+
+  @override
+  String get onbTariffOrOnceHanbox =>
+      'Or \$2 000 in one go, or in instalments.';
+
+  @override
+  String get onbTariffIncludedTitle => 'What\'s included';
+
+  @override
+  String get onbTariffIncUniChoice => 'Choosing a university';
+
+  @override
+  String get onbTariffIncDocsList => 'Document list and check';
+
+  @override
+  String get onbTariffIncTranslation => 'Help with translation and apostille';
+
+  @override
+  String get onbTariffIncStudyPlan => 'Study plan and motivation letter';
+
+  @override
+  String get onbTariffIncApply => 'Submitting the application';
+
+  @override
+  String get onbTariffIncInterview => 'Interview preparation';
+
+  @override
+  String get onbTariffIncVisaDocs => 'Visa documents';
+
+  @override
+  String get onbTariffIncDorm => 'Dormitory placement';
+
+  @override
+  String get onbTariffIncFirstWeek => 'Help in the first week in Korea';
+
+  @override
+  String get onbTariffIncApplyUpTo3 =>
+      'Applying to up to 3 universities for you';
+
+  @override
+  String get onbTariffIncInterviewQuestions =>
+      'Interview preparation (you get the questions that may come up)';
+
+  @override
+  String get onbTariffIncDocsPrep =>
+      'Preparing documents (translation, apostille)';
+
+  @override
+  String get onbTariffIncPost => 'Postage';
+
+  @override
+  String get onbTariffIncSimBank => 'SIM card and bank card';
+
+  @override
+  String get onbTariffIncInterviewAi =>
+      'Interview preparation (practice with AI)';
+
+  @override
+  String get onbTariffIncBankShot1Day => 'Bank account (simple, 1 day)';
+
+  @override
+  String get onbTariffIncBankShot1Month => 'Bank account (1 month)';
+
+  @override
+  String get onbTariffIncEmbassyDocs =>
+      'Preparing embassy documents (translation, apostille)';
+
+  @override
+  String get onbTariffIncStudyPlanAi =>
+      'Help writing the study plan (prepared with AI)';
+
+  @override
+  String get onbTariffIncPickup => 'Meeting you in Korea';
+
+  @override
+  String get onbTariffIncContractPaid => 'Tuition paid by the company';
+
+  @override
+  String get onbTariffIncFlightTicket => 'Plane ticket bought for you';
+
+  @override
+  String get onbTariffIncFlatMonth => 'A flat found and its first month paid';
+
+  @override
+  String get onbTariffIncAppFee => 'Application fee';
+
+  @override
+  String get onbTariffIncHanboxLessons =>
+      '1 year of live online lessons (in the Hanguk Academy app), groups of 11–15, goal — TOPIK 2';
+
+  @override
+  String get onbTariffIncHanboxLaptop =>
+      'A laptop and textbooks are included in the price';
+
+  @override
+  String get onbTariffIncHanboxFirstLesson => 'The first lesson is free';
+
+  @override
+  String get onbTariffIncHanboxStandart =>
+      'After the course — Standart consulting free (TOPIK 2, 80% attendance, full payment)';
+
+  @override
+  String get onbTariffRefundTitle => 'Refund';
+
+  @override
+  String get onbTariffRefundNoRisk =>
+      'If the visa is not issued — the \$5 000 is refunded in full. One condition: you do not withdraw yourself.';
+
+  @override
+  String get onbTariffRefundHanbox =>
+      'No refunds: if you drop the course, the payment is not returned.';
+
+  @override
+  String get onbTariffFaqTitle => 'Questions and answers';
+
+  @override
+  String onbTariffMlnSom(int n) {
+    return '$n mln so\'m';
+  }
+
+  @override
+  String onbTariffFaqNoVisaQ(String amount) {
+    return 'If the visa is not issued, do I pay $amount?';
+  }
+
+  @override
+  String onbTariffFaqNoVisaA(String amount) {
+    return 'No. With the two-step payment, $amount is paid only after the visa is issued.';
+  }
+
+  @override
+  String get onbTariffFaqWhenQ => 'When do I make the payment after the visa?';
+
+  @override
+  String get onbTariffFaqWhenA =>
+      'Within 7 working days after the visa is issued.';
+
+  @override
+  String get onbTariffFaqContractQ => 'Who pays the tuition?';
+
+  @override
+  String get onbTariffFaqContractA =>
+      'You pay the university tuition yourself — it is not included in the tariff price.';
+
+  @override
+  String get onbTariffFaqContractANoRisk =>
+      'The company pays the tuition — it is included in the NO RISK price.';
+
+  @override
+  String get onbTariffCta => 'Get advice on this tariff';
+
+  @override
+  String get onbTariffContractPdf => 'Sample contract (PDF)';
+
+  @override
+  String get onbWelcomeTitle =>
+      'Study in Korea — find out your chances in 2 minutes';
+
+  @override
+  String get onbWelcomeBody =>
+      'An honest assessment: no percentages, no guarantees — just the rules and your answers.';
+
+  @override
+  String get onbWelcomeCta => 'Check my chances';
+
+  @override
+  String get onbWelcomeCatalog => 'Browse universities';
+
+  @override
+  String get onbWelcomeTrustReply => 'Operator reply';
+
+  @override
+  String onbWelcomeTrustReplyValue(String minutes) {
+    return '≤$minutes min';
+  }
+
+  @override
+  String get onbWelcomeClientCode => 'I have a client code';
+
+  @override
+  String get onbQuizContinue => 'Continue';
+
+  @override
+  String get onbQuizBack => 'Back';
+
+  @override
+  String get onbQuizQ1 => 'What would you like to study?';
+
+  @override
+  String get onbQuizRouteCourse => 'Language course';
+
+  @override
+  String get onbQuizRouteBachelor => 'Bachelor\'s';
+
+  @override
+  String get onbQuizRouteMaster => 'Master\'s';
+
+  @override
+  String get onbQuizRouteCollege => 'Vocational college';
+
+  @override
+  String get onbQuizQ2 => 'Your age and graduation year?';
+
+  @override
+  String get onbQuizAge => 'Age:';
+
+  @override
+  String get onbQuizGradYear => 'Graduation year:';
+
+  @override
+  String onbQuizGradYearOrEarlier(String year) {
+    return '$year or earlier';
+  }
+
+  @override
+  String get onbQuizStillStudying => 'Still studying';
+
+  @override
+  String get onbQuizQ3 => 'Your Korean level?';
+
+  @override
+  String get onbQuizQ3Hint =>
+      'Answer even without a certificate — it decides the route.';
+
+  @override
+  String get onbQuizKoreanNone => 'None';
+
+  @override
+  String get onbQuizKoreanLearning => 'Learning, no certificate';
+
+  @override
+  String get onbQuizKoreanTopik1 => 'Sejong 1A / TOPIK 1';
+
+  @override
+  String get onbQuizKoreanTopik2 => 'TOPIK 2';
+
+  @override
+  String get onbQuizKoreanTopik3 => 'TOPIK 3 or higher';
+
+  @override
+  String get onbQuizKoreanUnknown => 'Not sure yet';
+
+  @override
+  String get onbQuizQ4 => 'Yearly budget, and who pays?';
+
+  @override
+  String get onbQuizBudgetUnder3 => 'Up to \$3,000';
+
+  @override
+  String get onbQuizBudget3to6 => '\$3–6k';
+
+  @override
+  String get onbQuizBudget6to10 => '\$6–10k';
+
+  @override
+  String get onbQuizBudgetOver10 => '\$10,000+';
+
+  @override
+  String get onbQuizPayer => 'Payer:';
+
+  @override
+  String get onbQuizPayerParents => 'parents';
+
+  @override
+  String get onbQuizPayerSelf => 'myself';
+
+  @override
+  String get onbQuizPayerSponsor => 'sponsor';
+
+  @override
+  String get onbQuizQ5 => 'Do your parents have an official income?';
+
+  @override
+  String get onbQuizIncomeYes => 'Yes, official income';
+
+  @override
+  String get onbQuizIncomeNo => 'No';
+
+  @override
+  String get onbQuizBankYes => 'Bank statement available';
+
+  @override
+  String get onbQuizBankNo => 'No bank statement';
+
+  @override
+  String get onbQuizQ6 => 'Your region, and when do you want to go?';
+
+  @override
+  String get onbQuizRegion => 'Region:';
+
+  @override
+  String get onbQuizRegionChoose => 'choose';
+
+  @override
+  String get onbQuizIntakeSpring2027 => 'Spring 2027';
+
+  @override
+  String get onbQuizIntakeFall2027 => 'Fall 2027';
+
+  @override
+  String get onbQuizIntakeLater => 'Later';
+
+  @override
+  String get onbContactTitle => 'Detailed plan and list of universities';
+
+  @override
+  String get onbContactSubtitle =>
+      'An operator will review your answers and call you within 10 minutes.';
+
+  @override
+  String get onbContactAfterHours =>
+      'We\'re outside working hours now. We\'ll call you tomorrow at 10:00.';
+
+  @override
+  String get onbContactName => 'Your name';
+
+  @override
+  String get onbContactPhone => 'Phone';
+
+  @override
+  String get onbContactPhoneError => 'Check the number';
+
+  @override
+  String get onbContactNameError => 'Enter your name';
+
+  @override
+  String get onbContactNetworkError =>
+      'Couldn\'t send. Check your connection and try again.';
+
+  @override
+  String get onbContactTelegram => 'Also send the plan to my Telegram';
+
+  @override
+  String get onbContactCta => 'Have an operator call me';
+
+  @override
+  String get onbContactHours =>
+      'Working hours Mon–Sat 09:40–18:00. At other times we\'ll call the next day at 10:00.';
+
+  @override
+  String onbContactSuccess(String name) {
+    return 'Thank you, $name! An operator will call you within 10 minutes.';
+  }
+
+  @override
+  String get onbContactBackToResult => 'Back to the result';
 }
