@@ -1009,6 +1009,7 @@
           "route": "Programme",
           "ageGrad": "Age and graduation",
           "korean": "Korean",
+          "english": "English",
           "money": "Budget and payer",
           "documents": "Income and statement",
           "whereWhen": "Region and when"
@@ -1031,6 +1032,13 @@
           "topik1": "Sejong 1A / TOPIK 1",
           "topik2": "TOPIK 2",
           "topik3plus": "TOPIK 3 or higher",
+          "unknown": "Don't know"
+        },
+        "english": {
+          "none": "None",
+          "ielts55": "IELTS 5.5",
+          "ielts60": "IELTS 6.0",
+          "ielts65plus": "IELTS 6.5 or higher",
           "unknown": "Don't know"
         },
         "budget": {

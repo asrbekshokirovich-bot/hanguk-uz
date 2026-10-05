@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
-/// The six questions of "Viza imkoniyatim" (S02) and the answers to them.
+/// The questions of "Viza imkoniyatim" (S02), one per screen, and the
+/// answers to them.
 ///
 /// Every answer has a stable code: it is what is stored on the lead
 /// (`leads.quiz_answers`) and what `app_quiz_submit` maps onto the CRM's own
@@ -28,7 +29,7 @@ enum StudyRoute {
   bool get isDegree => this == StudyRoute.bachelor || this == StudyRoute.master;
 }
 
-/// 3 — Korean level.
+/// 4 — Korean level.
 enum KoreanLevel {
   none('none', 0),
   learning('learning', 0),
@@ -44,7 +45,22 @@ enum KoreanLevel {
   final int topik;
 }
 
-/// 4 — Yearly budget, in US dollars.
+/// 5 — English: the IELTS score.
+enum EnglishLevel {
+  none('none', 0),
+  ielts55('ielts55', 5.5),
+  ielts60('ielts60', 6.0),
+  ielts65plus('ielts65plus', 6.5),
+  unknown('unknown', 0);
+
+  const EnglishLevel(this.code, this.ielts);
+  final String code;
+
+  /// The IELTS score this answer stands for (0 = none).
+  final double ielts;
+}
+
+/// 6 — Yearly budget, in US dollars.
 enum Budget {
   under3k('lt3', 0, 3000, "\$3 000 gacha"),
   from3to6k('3to6', 3000, 6000, "\$3–6 ming"),
@@ -62,7 +78,7 @@ enum Budget {
   final String crmLabel;
 }
 
-/// 4 — Who pays.
+/// 7 — Who pays.
 enum Payer {
   parents('parents'),
   self('self'),
@@ -72,7 +88,7 @@ enum Payer {
   final String code;
 }
 
-/// 6 — When.
+/// 11 — When.
 enum Intake {
   spring2027('2027_spring'),
   fall2027('2027_fall'),
@@ -82,7 +98,7 @@ enum Intake {
   final String code;
 }
 
-/// Regions offered in question 6. Stored values, kept as the CRM's intake form
+/// Regions offered in question 10. Stored values, kept as the CRM's intake form
 /// lists them (`src/components/crm/leads/intake/options.ts`, CITIES).
 const List<String> kQuizRegions = [
   'Toshkent',
@@ -100,8 +116,11 @@ const List<String> kQuizRegions = [
   'Guliston',
 ];
 
+/// Ages offered in question 2; the last one stands for "31+".
+const List<int> kQuizAges = [16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31];
+
 /// Number of questions in S02.
-const int kQuizSteps = 6;
+const int kQuizSteps = 11;
 
 @immutable
 class QuizAnswers {
@@ -111,6 +130,7 @@ class QuizAnswers {
     this.gradYear,
     this.stillStudying = false,
     this.korean,
+    this.english,
     this.budget,
     this.payer,
     this.formalIncome,
@@ -128,6 +148,7 @@ class QuizAnswers {
   /// "Hali o'qiyapman" — still at school or university.
   final bool stillStudying;
   final KoreanLevel? korean;
+  final EnglishLevel? english;
   final Budget? budget;
   final Payer? payer;
 
@@ -139,14 +160,19 @@ class QuizAnswers {
   final String? region;
   final Intake? intake;
 
-  /// Whether question [step] (1–6) has every answer it needs.
+  /// Whether question [step] (1–[kQuizSteps]) is answered.
   bool isComplete(int step) => switch (step) {
     1 => route != null,
-    2 => age != null && (gradYear != null || stillStudying),
-    3 => korean != null,
-    4 => budget != null && payer != null,
-    5 => formalIncome != null && bankStatement != null,
-    6 => region != null && intake != null,
+    2 => age != null,
+    3 => gradYear != null || stillStudying,
+    4 => korean != null,
+    5 => english != null,
+    6 => budget != null,
+    7 => payer != null,
+    8 => formalIncome != null,
+    9 => bankStatement != null,
+    10 => region != null,
+    11 => intake != null,
     _ => false,
   };
 
@@ -158,6 +184,7 @@ class QuizAnswers {
     int? gradYear,
     bool? stillStudying,
     KoreanLevel? korean,
+    EnglishLevel? english,
     Budget? budget,
     Payer? payer,
     bool? formalIncome,
@@ -172,6 +199,7 @@ class QuizAnswers {
       gradYear: clearGradYear ? null : (gradYear ?? this.gradYear),
       stillStudying: stillStudying ?? this.stillStudying,
       korean: korean ?? this.korean,
+      english: english ?? this.english,
       budget: budget ?? this.budget,
       payer: payer ?? this.payer,
       formalIncome: formalIncome ?? this.formalIncome,
@@ -188,6 +216,7 @@ class QuizAnswers {
     if (gradYear != null) 'grad_year': '$gradYear',
     if (stillStudying) 'grad_year': 'studying',
     if (korean != null) 'korean': korean!.code,
+    if (english != null) 'english': english!.code,
     if (budget != null) 'budget': budget!.code,
     if (payer != null) 'payer': payer!.code,
     if (formalIncome != null) 'formal_income': formalIncome! ? 'yes' : 'no',

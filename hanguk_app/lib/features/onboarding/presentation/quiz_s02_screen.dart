@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -9,7 +8,7 @@ import '../domain/quiz_answers.dart';
 import '../onboarding_routes.dart';
 import 's01_s04_ui.dart';
 
-/// S02 — "Viza imkoniyatim", 6 savol: one question per screen.
+/// S02 — "Viza imkoniyatim": one question per screen ([kQuizSteps]).
 class QuizScreen extends ConsumerWidget {
   const QuizScreen({super.key});
 
@@ -173,42 +172,30 @@ class QuizScreen extends ConsumerWidget {
             option(label, a.route == r, (x) => x.copyWith(route: r)),
         ]);
       case 2:
+        return _Question(l.onbQuizAgeQ, [
+          _AgeGrid(
+            selected: a.age,
+            lastLabel: '${kQuizAges.last}+',
+            onSelect: (age) => set((x) => x.copyWith(age: age)),
+          ),
+        ]);
+      case 3:
         final thisYear = DateTime.now().year;
-        return _Question(l.onbQuizQ2, [
-          _AgeRow(
-            label: l.onbQuizAge,
-            age: a.age,
-            onChanged: (age) => set((x) => _withAge(x, age)),
-          ),
-          _Option(
-            label: l.onbQuizGradYear,
-            value: a.gradYear == null
-                ? null
-                : (a.gradYear! <= thisYear - 4
-                      ? l.onbQuizGradYearOrEarlier('${a.gradYear}')
-                      : '${a.gradYear}'),
-            selected: a.gradYear != null,
-            onTap: () async {
-              final years = [for (var y = thisYear; y > thisYear - 5; y--) y];
-              final picked = await _pick<int>(context, [
-                for (final y in years)
-                  (
-                    y,
-                    y == years.last ? l.onbQuizGradYearOrEarlier('$y') : '$y',
-                  ),
-              ], a.gradYear);
-              if (picked != null) {
-                set((x) => x.copyWith(gradYear: picked, stillStudying: false));
-              }
-            },
-          ),
+        final years = [for (var y = thisYear; y > thisYear - 5; y--) y];
+        return _Question(l.onbQuizGradQ, [
+          for (final y in years)
+            option(
+              y == years.last ? l.onbQuizGradYearOrEarlier('$y') : '$y',
+              !a.stillStudying && a.gradYear == y,
+              (x) => x.copyWith(gradYear: y, stillStudying: false),
+            ),
           option(
             l.onbQuizStillStudying,
             a.stillStudying,
             (x) => x.copyWith(stillStudying: true, clearGradYear: true),
           ),
         ]);
-      case 3:
+      case 4:
         return _Question(
           l.onbQuizQ3,
           [
@@ -225,8 +212,19 @@ class QuizScreen extends ConsumerWidget {
           hangul: '한국어',
           hint: l.onbQuizQ3Hint,
         );
-      case 4:
-        return _Question(l.onbQuizQ4, [
+      case 5:
+        return _Question(l.onbQuizIeltsQ, [
+          for (final (e, label) in [
+            (EnglishLevel.none, l.onbQuizIeltsNone),
+            (EnglishLevel.ielts55, l.onbQuizIelts55),
+            (EnglishLevel.ielts60, l.onbQuizIelts60),
+            (EnglishLevel.ielts65plus, l.onbQuizIelts65),
+            (EnglishLevel.unknown, l.onbQuizIeltsUnknown),
+          ])
+            option(label, a.english == e, (x) => x.copyWith(english: e)),
+        ]);
+      case 6:
+        return _Question(l.onbQuizBudgetQ, [
           for (final (b, label) in [
             (Budget.under3k, l.onbQuizBudgetUnder3),
             (Budget.from3to6k, l.onbQuizBudget3to6),
@@ -234,18 +232,17 @@ class QuizScreen extends ConsumerWidget {
             (Budget.over10k, l.onbQuizBudgetOver10),
           ])
             option(label, a.budget == b, (x) => x.copyWith(budget: b)),
-          _PayerRow(
-            label: l.onbQuizPayer,
-            choices: [
-              (Payer.parents, l.onbQuizPayerParents),
-              (Payer.self, l.onbQuizPayerSelf),
-              (Payer.sponsor, l.onbQuizPayerSponsor),
-            ],
-            selected: a.payer,
-            onSelect: (p) => set((x) => x.copyWith(payer: p)),
-          ),
         ]);
-      case 5:
+      case 7:
+        return _Question(l.onbQuizPayerQ, [
+          for (final (p, label) in [
+            (Payer.parents, l.onbQuizPayerParentsOption),
+            (Payer.self, l.onbQuizPayerSelfOption),
+            (Payer.sponsor, l.onbQuizPayerSponsorOption),
+          ])
+            option(label, a.payer == p, (x) => x.copyWith(payer: p)),
+        ]);
+      case 8:
         return _Question(l.onbQuizQ5, [
           option(
             l.onbQuizIncomeYes,
@@ -257,6 +254,9 @@ class QuizScreen extends ConsumerWidget {
             a.formalIncome == false,
             (x) => x.copyWith(formalIncome: false),
           ),
+        ]);
+      case 9:
+        return _Question(l.onbQuizBankQ, [
           option(
             l.onbQuizBankYes,
             a.bankStatement == true,
@@ -268,20 +268,13 @@ class QuizScreen extends ConsumerWidget {
             (x) => x.copyWith(bankStatement: false),
           ),
         ]);
+      case 10:
+        return _Question(l.onbQuizRegionQ, [
+          for (final r in kQuizRegions)
+            option(r, a.region == r, (x) => x.copyWith(region: r)),
+        ]);
       default:
-        return _Question(l.onbQuizQ6, [
-          _Option(
-            label: l.onbQuizRegion,
-            value: a.region ?? l.onbQuizRegionChoose,
-            dropdown: true,
-            selected: a.region != null,
-            onTap: () async {
-              final picked = await _pick<String>(context, [
-                for (final r in kQuizRegions) (r, r),
-              ], a.region);
-              if (picked != null) set((x) => x.copyWith(region: picked));
-            },
-          ),
+        return _Question(l.onbQuizIntakeQ, [
           for (final (i, label) in [
             (Intake.spring2027, l.onbQuizIntakeSpring2027),
             (Intake.fall2027, l.onbQuizIntakeFall2027),
@@ -291,46 +284,6 @@ class QuizScreen extends ConsumerWidget {
         ]);
     }
   }
-}
-
-/// [a] with [age] set or cleared (`copyWith` cannot clear a field).
-QuizAnswers _withAge(QuizAnswers a, int? age) => QuizAnswers(
-  route: a.route,
-  age: age,
-  gradYear: a.gradYear,
-  stillStudying: a.stillStudying,
-  korean: a.korean,
-  budget: a.budget,
-  payer: a.payer,
-  formalIncome: a.formalIncome,
-  bankStatement: a.bankStatement,
-  region: a.region,
-  intake: a.intake,
-);
-
-/// A list of choices in the question's own option style, in the S04 sheet.
-Future<T?> _pick<T>(
-  BuildContext context,
-  List<(T, String)> choices,
-  T? current,
-) {
-  return showOnbSheet<T>(
-    context,
-    builder: (sheetContext) => Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        for (var i = 0; i < choices.length; i++) ...[
-          if (i > 0) const SizedBox(height: 10),
-          _Option(
-            label: choices[i].$2,
-            selected: choices[i].$1 == current,
-            onTap: () => Navigator.of(sheetContext).pop(choices[i].$1),
-          ),
-        ],
-      ],
-    ),
-  );
 }
 
 class _Question {
@@ -446,190 +399,115 @@ class _Option extends StatelessWidget {
     required this.label,
     required this.selected,
     required this.onTap,
-    this.value,
-    this.dropdown = false,
   });
 
   final String label;
-
-  /// Shown after [label] ("Viloyat: Toshkent").
-  final String? value;
-
-  /// A trailing ▾ after [value].
-  final bool dropdown;
   final bool selected;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final text = value == null ? label : '$label $value';
     return OnbTap(
-      label: text,
+      label: label,
       selected: selected,
       onTap: onTap,
       child: _OptionFrame(
         selected: selected,
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Text.rich(
-            TextSpan(
-              text: text,
-              children: [
-                if (dropdown)
-                  const WidgetSpan(
-                    alignment: PlaceholderAlignment.middle,
-                    child: Padding(
-                      padding: EdgeInsets.only(left: 4),
-                      child: _DownTriangle(),
-                    ),
-                  ),
-              ],
-            ),
-            style: _optionStyle,
-          ),
+          child: Text(label, style: _optionStyle),
         ),
       ),
     );
   }
 }
 
-/// ▾ — the bundled Inter subset has no U+25BE, so it is drawn.
-class _DownTriangle extends StatelessWidget {
-  const _DownTriangle();
+/// Question 2: the ages as tiles, four to a row, in the option style (min
+/// 56px, radius 16, lime when chosen). One tap answers; no keyboard.
+class _AgeGrid extends StatelessWidget {
+  const _AgeGrid({
+    required this.selected,
+    required this.lastLabel,
+    required this.onSelect,
+  });
+
+  final int? selected;
+
+  /// The label of the last tile ("31+").
+  final String lastLabel;
+  final ValueChanged<int> onSelect;
 
   @override
   Widget build(BuildContext context) {
-    return CustomPaint(size: const Size(9, 9), painter: _TrianglePainter());
+    const columns = 4;
+    const gap = 10.0;
+    final rows = <List<int>>[
+      for (var i = 0; i < kQuizAges.length; i += columns)
+        kQuizAges.sublist(i, (i + columns).clamp(0, kQuizAges.length)),
+    ];
+    return Column(
+      children: [
+        for (var r = 0; r < rows.length; r++) ...[
+          if (r > 0) const SizedBox(height: gap),
+          Row(
+            children: [
+              for (var c = 0; c < columns; c++) ...[
+                if (c > 0) const SizedBox(width: gap),
+                Expanded(
+                  child: c < rows[r].length
+                      ? _AgeTile(
+                          label: rows[r][c] == kQuizAges.last ? lastLabel : '${rows[r][c]}',
+                          selected: selected == rows[r][c],
+                          onTap: () => onSelect(rows[r][c]),
+                        )
+                      : const SizedBox.shrink(),
+                ),
+              ],
+            ],
+          ),
+        ],
+      ],
+    );
   }
 }
 
-class _TrianglePainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final w = size.width;
-    final path = Path()
-      ..moveTo(w * .1, size.height * .3)
-      ..lineTo(w * .9, size.height * .3)
-      ..lineTo(w * .5, size.height * .8)
-      ..close();
-    canvas.drawPath(path, Paint()..color = Colors.white);
-  }
-
-  @override
-  bool shouldRepaint(_TrianglePainter oldDelegate) => false;
-}
-
-/// "Yosh: N" — the age, typed (the only question with a keyboard).
-class _AgeRow extends StatefulWidget {
-  const _AgeRow({
+class _AgeTile extends StatelessWidget {
+  const _AgeTile({
     required this.label,
-    required this.age,
-    required this.onChanged,
+    required this.selected,
+    required this.onTap,
   });
 
   final String label;
-  final int? age;
-  final ValueChanged<int?> onChanged;
-
-  @override
-  State<_AgeRow> createState() => _AgeRowState();
-}
-
-class _AgeRowState extends State<_AgeRow> {
-  late final TextEditingController _c = TextEditingController(
-    text: widget.age?.toString() ?? '',
-  );
-  final FocusNode _focus = FocusNode();
-
-  @override
-  void dispose() {
-    _c.dispose();
-    _focus.dispose();
-    super.dispose();
-  }
+  final bool selected;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     return OnbTap(
-      label: widget.label,
-      selected: widget.age != null,
-      onTap: _focus.requestFocus,
-      child: _OptionFrame(
-        selected: widget.age != null,
-        child: Row(
-          children: [
-            Text(widget.label, style: _optionStyle),
-            const SizedBox(width: 4),
-            Expanded(
-              child: TextField(
-                controller: _c,
-                focusNode: _focus,
-                keyboardType: TextInputType.number,
-                textInputAction: TextInputAction.done,
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                  LengthLimitingTextInputFormatter(2),
-                ],
-                style: _optionStyle,
-                cursorColor: OnbColors.lime,
-                decoration: const InputDecoration.collapsed(hintText: null),
-                onChanged: (v) {
-                  final n = int.tryParse(v);
-                  widget.onChanged(n != null && n >= 10 ? n : null);
-                },
-              ),
-            ),
-          ],
+      label: label,
+      selected: selected,
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOut,
+        height: 56,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: selected
+              ? const Color.fromRGBO(212, 233, 76, .12)
+              : OnbColors.glass,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: selected ? OnbColors.lime : OnbColors.line),
         ),
-      ),
-    );
-  }
-}
-
-/// "To‘lovchi: ota-ona / o‘zim / homiy" — one row, each payer tappable; the
-/// chosen one turns lime.
-class _PayerRow extends StatelessWidget {
-  const _PayerRow({
-    required this.label,
-    required this.choices,
-    required this.selected,
-    required this.onSelect,
-  });
-
-  final String label;
-  final List<(Payer, String)> choices;
-  final Payer? selected;
-  final ValueChanged<Payer> onSelect;
-
-  @override
-  Widget build(BuildContext context) {
-    return _OptionFrame(
-      selected: selected != null,
-      child: Wrap(
-        crossAxisAlignment: WrapCrossAlignment.center,
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 18),
-            child: Text('$label ', style: _optionStyle),
+        child: Text(
+          label,
+          style: onbText(
+            17,
+            FontWeight.w700,
+            color: selected ? OnbColors.lime : Colors.white,
           ),
-          for (var i = 0; i < choices.length; i++) ...[
-            if (i > 0) Text(' / ', style: _optionStyle),
-            OnbTap(
-              label: choices[i].$2,
-              selected: choices[i].$1 == selected,
-              onTap: () => onSelect(choices[i].$1),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 18),
-                child: Text(
-                  choices[i].$2,
-                  style: _optionStyle.copyWith(
-                    color: choices[i].$1 == selected ? OnbColors.lime : null,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ],
+        ),
       ),
     );
   }

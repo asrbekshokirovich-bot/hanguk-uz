@@ -3218,15 +3218,6 @@ class AppLocalizationsRu extends AppLocalizations {
   String get onbQuizRouteCollege => 'Профессиональный колледж';
 
   @override
-  String get onbQuizQ2 => 'Ваш возраст и год выпуска?';
-
-  @override
-  String get onbQuizAge => 'Возраст:';
-
-  @override
-  String get onbQuizGradYear => 'Год выпуска:';
-
-  @override
   String onbQuizGradYearOrEarlier(String year) {
     return '$year или раньше';
   }
@@ -3260,9 +3251,6 @@ class AppLocalizationsRu extends AppLocalizations {
   String get onbQuizKoreanUnknown => 'Пока не знаю';
 
   @override
-  String get onbQuizQ4 => 'Годовой бюджет и кто платит?';
-
-  @override
   String get onbQuizBudgetUnder3 => 'До \$3 000';
 
   @override
@@ -3273,18 +3261,6 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get onbQuizBudgetOver10 => '\$10 000+';
-
-  @override
-  String get onbQuizPayer => 'Платит:';
-
-  @override
-  String get onbQuizPayerParents => 'родители';
-
-  @override
-  String get onbQuizPayerSelf => 'сам(а)';
-
-  @override
-  String get onbQuizPayerSponsor => 'спонсор';
 
   @override
   String get onbQuizQ5 => 'Есть ли у родителей официальный доход?';
@@ -3300,15 +3276,6 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get onbQuizBankNo => 'Банковской справки нет';
-
-  @override
-  String get onbQuizQ6 => 'Ваш регион и когда планируете поехать?';
-
-  @override
-  String get onbQuizRegion => 'Регион:';
-
-  @override
-  String get onbQuizRegionChoose => 'выберите';
 
   @override
   String get onbQuizIntakeSpring2027 => 'Весна 2027';
@@ -3371,4 +3338,56 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get onbContactAfterHoursMonday =>
       'Сейчас нерабочее время. Мы позвоним в понедельник в 10:00.';
+
+  @override
+  String get onbQuizAgeQ => 'Сколько вам лет?';
+
+  @override
+  String get onbQuizGradQ => 'Когда вы окончили последнее место учёбы?';
+
+  @override
+  String get onbQuizIeltsQ => 'Ваш балл IELTS?';
+
+  @override
+  String get onbQuizIeltsNone => 'Нет';
+
+  @override
+  String get onbQuizIelts55 => 'IELTS 5.5';
+
+  @override
+  String get onbQuizIelts60 => 'IELTS 6.0';
+
+  @override
+  String get onbQuizIelts65 => 'IELTS 6.5 и выше';
+
+  @override
+  String get onbQuizIeltsUnknown => 'Пока не знаю';
+
+  @override
+  String get onbQuizBudgetQ =>
+      'Сколько вы можете тратить в год на учёбу и жизнь?';
+
+  @override
+  String get onbQuizPayerQ => 'Кто оплачивает?';
+
+  @override
+  String get onbQuizPayerParentsOption => 'Родители';
+
+  @override
+  String get onbQuizPayerSelfOption => 'Я сам(а)';
+
+  @override
+  String get onbQuizPayerSponsorOption => 'Спонсор';
+
+  @override
+  String get onbQuizBankQ => 'Есть ли средства для банковской справки?';
+
+  @override
+  String get onbQuizRegionQ => 'Из какого вы региона?';
+
+  @override
+  String get onbQuizIntakeQ => 'Когда планируете поехать?';
+
+  @override
+  String get onbResultFactorEnglishStrong => 'IELTS 5.5 и выше';
 }

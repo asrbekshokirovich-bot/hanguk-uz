@@ -61,6 +61,7 @@ describe('LeadAppQuiz', () => {
           age: '19',
           grad_year: '2026',
           korean: 'topik2',
+          english: 'ielts60',
           budget: '6to10',
           payer: 'parents',
           formal_income: 'yes',
@@ -73,6 +74,8 @@ describe('LeadAppQuiz', () => {
     expect(screen.getByText("O'rta imkoniyat")).toBeInTheDocument();
     expect(screen.getByText('Tavsiya: Premium')).toBeInTheDocument();
     expect(screen.getByText('Bakalavr')).toBeInTheDocument();
+    expect(screen.getByText('Ingliz tili')).toBeInTheDocument();
+    expect(screen.getByText('IELTS 6.0')).toBeInTheDocument();
     expect(screen.getByText('19 yosh · 2026')).toBeInTheDocument();
     expect(screen.getByText('$6–10 ming · Ota-onasi')).toBeInTheDocument();
     expect(screen.getByText("Rasmiy daromad: bor · Bank spravkasi: yo'q")).toBeInTheDocument();

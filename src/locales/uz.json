@@ -1078,6 +1078,7 @@
           "route": "Yo'nalish",
           "ageGrad": "Yosh va bitiruv",
           "korean": "Koreys tili",
+          "english": "Ingliz tili",
           "money": "Byudjet va kim to'laydi",
           "documents": "Daromad va spravka",
           "whereWhen": "Viloyat va qachon"
@@ -1100,6 +1101,13 @@
           "topik1": "Sejong 1A / TOPIK 1",
           "topik2": "TOPIK 2",
           "topik3plus": "TOPIK 3 va yuqori",
+          "unknown": "Bilmayman"
+        },
+        "english": {
+          "none": "Yo'q",
+          "ielts55": "IELTS 5.5",
+          "ielts60": "IELTS 6.0",
+          "ielts65plus": "IELTS 6.5 va yuqori",
           "unknown": "Bilmayman"
         },
         "budget": {

@@ -34,6 +34,7 @@ enum EligibilityBand {
 /// text in the app language.
 enum FactorKind {
   koreanStrong,
+  englishStrong,
   koreanTopik2Degree,
   koreanMissingDegree,
   koreanCollegeStrong,
@@ -133,6 +134,7 @@ class EligibilityRules {
     this.bandHighMin = 4,
     this.bandMidMin = 2,
     this.degreeTopikOkBonus = 2,
+    this.masterIeltsMin = 5.5,
     this.degreeTopik2Cap = EligibilityBand.mid,
     this.degreeNoCertCap = EligibilityBand.low,
     this.collegeTopik3Bonus = 2,
@@ -156,6 +158,10 @@ class EligibilityRules {
   final num bandHighMin;
   final num bandMidMin;
   final num degreeTopikOkBonus;
+
+  /// Master's: this IELTS counts as the Korean requirement met (TOPIK 3+),
+  /// and English-taught programmes asking no more than the score are offered.
+  final num masterIeltsMin;
   final EligibilityBand degreeTopik2Cap;
   final EligibilityBand degreeNoCertCap;
   final num collegeTopik3Bonus;
@@ -203,6 +209,7 @@ class EligibilityRules {
       bandHighMin: n('band_high_min', d.bandHighMin),
       bandMidMin: n('band_mid_min', d.bandMidMin),
       degreeTopikOkBonus: n('d2_topik_ok_bonus', d.degreeTopikOkBonus),
+      masterIeltsMin: n('d2_master_ielts_min', d.masterIeltsMin),
       degreeTopik2Cap: band('d2_topik2_cap', d.degreeTopik2Cap),
       degreeNoCertCap: band('d2_no_cert_cap', d.degreeNoCertCap),
       collegeTopik3Bonus: n('voc_topik3_bonus', d.collegeTopik3Bonus),
@@ -255,8 +262,16 @@ EligibilityResult evaluateEligibility(
   void minus(FactorKind k) => factors.add(EligibilityFactor(k, positive: false));
   void capAt(EligibilityBand b) => cap = cap.atMost(b);
 
+  // English: a master's applicant with IELTS meets the language requirement.
+  final ielts = (a.english ?? EnglishLevel.none).ielts;
+  final englishOk = route == StudyRoute.master && ielts >= rules.masterIeltsMin;
+
   // Korean.
-  if (korean == KoreanLevel.unknown) {
+  if (englishOk && korean.topik < 3) {
+    if (korean == KoreanLevel.unknown) unknowns++;
+    score += rules.degreeTopikOkBonus;
+    plus(FactorKind.englishStrong);
+  } else if (korean == KoreanLevel.unknown) {
     unknowns++;
   } else if (route.isDegree) {
     if (korean.topik >= 3) {
@@ -341,8 +356,11 @@ EligibilityResult evaluateEligibility(
       final g = u.forDegree(degree);
       if (g == null || g.isActive == false) continue;
       final need = g.topikMin?.toInt();
-      if (need != null && need > userTopik) continue;
-      if (g.koreanTrack == false && g.englishTrack == true) continue;
+      final viaKorean = g.koreanTrack != false && (need == null || need <= userTopik);
+      final viaEnglish = englishOk &&
+          g.englishTrack == true &&
+          (g.ieltsMin == null || g.ieltsMin! <= ielts);
+      if (!viaKorean && !viaEnglish) continue;
       final perSemester = rules.toUsd(g.tuitionMin, g.currency);
       matches.add(
         MatchedUniversity(
@@ -352,7 +370,7 @@ EligibilityResult evaluateEligibility(
           tuitionPerSemesterUsd: perSemester == null
               ? null
               : (g.tuitionPeriod == 'yil' ? (perSemester / 2).round() : perSemester),
-          topikMin: need,
+          topikMin: viaKorean ? need : null,
           bankStatementUsd: rules.toUsd(g.bankAmount, g.bankCurrency),
         ),
       );
@@ -391,7 +409,8 @@ EligibilityResult evaluateEligibility(
 
   // Next three steps.
   final steps = <NextStep>[
-    if ((route.isDegree && korean.topik < 3) || (route == StudyRoute.college && korean.topik < 2))
+    if ((route.isDegree && korean.topik < 3 && !englishOk) ||
+        (route == StudyRoute.college && korean.topik < 2))
       NextStep.topikPrep,
     if (bank != true) NextStep.bankStatement,
     route == StudyRoute.master ? NextStep.diplomaDocs : NextStep.schoolDocs,
@@ -402,11 +421,11 @@ EligibilityResult evaluateEligibility(
   final financeWeak = income == false || bank == false;
   final budgetMin = a.budget?.minUsd ?? 0;
   final Tariff tariff;
-  if (band == EligibilityBand.low && korean.topik <= 1) {
+  if (band == EligibilityBand.low && korean.topik <= 1 && !englishOk) {
     tariff = Tariff.hanbox;
   } else if (financeWeak && budgetMin >= 6000) {
     tariff = Tariff.noRisk;
-  } else if (route.isDegree && korean.topik >= 2 && !financeWeak) {
+  } else if (route.isDegree && (korean.topik >= 2 || englishOk) && !financeWeak) {
     tariff = Tariff.premium;
   } else if (a.budget == Budget.under3k) {
     tariff = Tariff.standart;

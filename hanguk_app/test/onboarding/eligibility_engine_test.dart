@@ -140,14 +140,78 @@ void main() {
     expect(r.band, EligibilityBand.mid);
   });
 
+  test('a master with IELTS 5.5+ meets the language rule and sees English tracks', () {
+    final withEnglish = [
+      ...catalog,
+      CatalogUniversity(
+        institutionId: 'E',
+        guidelines: [
+          CatalogGuideline(
+            id: 'g-E',
+            institutionId: 'E',
+            univNameEn: 'E University',
+            city: 'Seoul',
+            degree: 'magistratura',
+            koreanTrack: false,
+            englishTrack: true,
+            ieltsMin: 6.0,
+            currency: 'KRW',
+            tuitionMin: 5600000,
+            tuitionMax: 5600000,
+            tuitionPeriod: 'semestr',
+            ieqasStatus: 'accredited',
+            isActive: true,
+          ),
+        ],
+      ),
+    ];
+    QuizAnswers master(EnglishLevel e) => QuizAnswers(
+      route: StudyRoute.master,
+      age: 24,
+      gradYear: 2025,
+      korean: KoreanLevel.none,
+      english: e,
+      budget: Budget.over10k,
+      payer: Payer.parents,
+      formalIncome: true,
+      bankStatement: true,
+      region: 'Toshkent',
+      intake: Intake.fall2027,
+    );
+
+    final none = evaluateEligibility(master(EnglishLevel.none), catalog: withEnglish, now: now);
+    expect(none.band, EligibilityBand.low);
+
+    final ielts6 = evaluateEligibility(master(EnglishLevel.ielts60), catalog: withEnglish, now: now);
+    expect(ielts6.band, EligibilityBand.high);
+    expect(ielts6.factors.map((f) => f.kind), contains(FactorKind.englishStrong));
+    expect(ielts6.universities.map((m) => m.university.institutionId), ['E']);
+    expect(ielts6.steps, isNot(contains(NextStep.topikPrep)));
+
+    // 5.5 meets the rule but not this programme's 6.0.
+    final ielts55 = evaluateEligibility(master(EnglishLevel.ielts55), catalog: withEnglish, now: now);
+    expect(ielts55.band, EligibilityBand.high);
+    expect(ielts55.universities, isEmpty);
+
+    // IELTS does not change a bachelor's result.
+    final bachelor = evaluateEligibility(
+      master(EnglishLevel.ielts65plus).copyWith(route: StudyRoute.bachelor),
+      catalog: withEnglish,
+      now: now,
+    );
+    expect(bachelor.band, EligibilityBand.low);
+  });
+
   test('rules come from eligibility_rules rows, defaults otherwise', () {
     final rules = EligibilityRules.fromRows([
       {'key': 'krw_per_usd', 'value': 1300},
+      {'key': 'd2_master_ielts_min', 'value': 6},
       {'key': 'd2_topik2_cap', 'value': 'low'},
       {'key': 'living_seoul_month_usd', 'value': [1000, 1200]},
       {'key': 'broken', 'value': 'x'},
     ]);
     expect(rules.krwPerUsd, 1300);
+    expect(rules.masterIeltsMin, 6);
     expect(rules.degreeTopik2Cap, EligibilityBand.low);
     expect(rules.livingSeoulMonthUsd, (1000, 1200));
     expect(rules.baseScore, 2);
@@ -159,6 +223,7 @@ void main() {
       age: 22,
       stillStudying: true,
       korean: KoreanLevel.topik1,
+      english: EnglishLevel.ielts60,
       budget: Budget.from3to6k,
       payer: Payer.sponsor,
       formalIncome: true,
@@ -172,6 +237,7 @@ void main() {
       'age': '22',
       'grad_year': 'studying',
       'korean': 'topik1',
+      'english': 'ielts60',
       'budget': '3to6',
       'payer': 'sponsor',
       'formal_income': 'yes',

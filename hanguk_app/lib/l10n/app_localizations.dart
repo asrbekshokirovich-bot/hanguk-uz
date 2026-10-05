@@ -5828,24 +5828,6 @@ abstract class AppLocalizations {
   /// **'Vocational college'**
   String get onbQuizRouteCollege;
 
-  /// S02 question 2: age and graduation year.
-  ///
-  /// In en, this message translates to:
-  /// **'Your age and graduation year?'**
-  String get onbQuizQ2;
-
-  /// S02 Q2: label before the age input (keep the colon).
-  ///
-  /// In en, this message translates to:
-  /// **'Age:'**
-  String get onbQuizAge;
-
-  /// S02 Q2: label before the chosen graduation year (keep the colon).
-  ///
-  /// In en, this message translates to:
-  /// **'Graduation year:'**
-  String get onbQuizGradYear;
-
   /// S02 Q2 graduation-year picker: the last option, this year or any year before it.
   ///
   /// In en, this message translates to:
@@ -5906,12 +5888,6 @@ abstract class AppLocalizations {
   /// **'Not sure yet'**
   String get onbQuizKoreanUnknown;
 
-  /// S02 question 4: yearly budget and who pays.
-  ///
-  /// In en, this message translates to:
-  /// **'Yearly budget, and who pays?'**
-  String get onbQuizQ4;
-
   /// S02 Q4 option: up to $3,000 a year.
   ///
   /// In en, this message translates to:
@@ -5935,30 +5911,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'\$10,000+'**
   String get onbQuizBudgetOver10;
-
-  /// S02 Q4: label before the payer choice (keep the colon).
-  ///
-  /// In en, this message translates to:
-  /// **'Payer:'**
-  String get onbQuizPayer;
-
-  /// S02 Q4 payer: parents (lowercase, sits after the label).
-  ///
-  /// In en, this message translates to:
-  /// **'parents'**
-  String get onbQuizPayerParents;
-
-  /// S02 Q4 payer: myself.
-  ///
-  /// In en, this message translates to:
-  /// **'myself'**
-  String get onbQuizPayerSelf;
-
-  /// S02 Q4 payer: a sponsor.
-  ///
-  /// In en, this message translates to:
-  /// **'sponsor'**
-  String get onbQuizPayerSponsor;
 
   /// S02 question 5: parents' official income (and bank statement).
   ///
@@ -5989,24 +5941,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No bank statement'**
   String get onbQuizBankNo;
-
-  /// S02 question 6: region and intake.
-  ///
-  /// In en, this message translates to:
-  /// **'Your region, and when do you want to go?'**
-  String get onbQuizQ6;
-
-  /// S02 Q6: label before the chosen region (keep the colon).
-  ///
-  /// In en, this message translates to:
-  /// **'Region:'**
-  String get onbQuizRegion;
-
-  /// S02 Q6: shown after the region label until a region is picked.
-  ///
-  /// In en, this message translates to:
-  /// **'choose'**
-  String get onbQuizRegionChoose;
 
   /// S02 Q6 option: spring 2027 intake.
   ///
@@ -6115,6 +6049,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'We\'re outside working hours now. We\'ll call you on Monday at 10:00.'**
   String get onbContactAfterHoursMonday;
+
+  /// S02 question 2: age.
+  ///
+  /// In en, this message translates to:
+  /// **'How old are you?'**
+  String get onbQuizAgeQ;
+
+  /// S02 question 3: the year of the last graduation.
+  ///
+  /// In en, this message translates to:
+  /// **'When did you finish your last school?'**
+  String get onbQuizGradQ;
+
+  /// S02 question 5: IELTS score.
+  ///
+  /// In en, this message translates to:
+  /// **'Your IELTS score?'**
+  String get onbQuizIeltsQ;
+
+  /// S02 IELTS option: none.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get onbQuizIeltsNone;
+
+  /// S02 IELTS option.
+  ///
+  /// In en, this message translates to:
+  /// **'IELTS 5.5'**
+  String get onbQuizIelts55;
+
+  /// S02 IELTS option.
+  ///
+  /// In en, this message translates to:
+  /// **'IELTS 6.0'**
+  String get onbQuizIelts60;
+
+  /// S02 IELTS option: 6.5 or higher.
+  ///
+  /// In en, this message translates to:
+  /// **'IELTS 6.5 or higher'**
+  String get onbQuizIelts65;
+
+  /// S02 IELTS option: don't know yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not sure yet'**
+  String get onbQuizIeltsUnknown;
+
+  /// S02 question 6: yearly budget.
+  ///
+  /// In en, this message translates to:
+  /// **'How much can you spend a year on study and living?'**
+  String get onbQuizBudgetQ;
+
+  /// S02 question 7: who pays.
+  ///
+  /// In en, this message translates to:
+  /// **'Who pays?'**
+  String get onbQuizPayerQ;
+
+  /// S02 payer option.
+  ///
+  /// In en, this message translates to:
+  /// **'My parents'**
+  String get onbQuizPayerParentsOption;
+
+  /// S02 payer option.
+  ///
+  /// In en, this message translates to:
+  /// **'Myself'**
+  String get onbQuizPayerSelfOption;
+
+  /// S02 payer option.
+  ///
+  /// In en, this message translates to:
+  /// **'A sponsor'**
+  String get onbQuizPayerSponsorOption;
+
+  /// S02 question 9: money for the bank statement.
+  ///
+  /// In en, this message translates to:
+  /// **'Is there money for a bank statement?'**
+  String get onbQuizBankQ;
+
+  /// S02 question 10: region.
+  ///
+  /// In en, this message translates to:
+  /// **'Which region are you from?'**
+  String get onbQuizRegionQ;
+
+  /// S02 question 11: when to go.
+  ///
+  /// In en, this message translates to:
+  /// **'When do you want to go?'**
+  String get onbQuizIntakeQ;
+
+  /// S03 factor: a master's applicant with IELTS 5.5 or higher.
+  ///
+  /// In en, this message translates to:
+  /// **'IELTS 5.5 or higher'**
+  String get onbResultFactorEnglishStrong;
 }
 
 class _AppLocalizationsDelegate

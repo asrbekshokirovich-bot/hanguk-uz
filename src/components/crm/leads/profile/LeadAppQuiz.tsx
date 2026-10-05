@@ -46,6 +46,7 @@ export function LeadAppQuiz({ lead }: LeadAppQuizProps) {
     { key: 'route', value: [label('routes', a.route)] },
     { key: 'ageGrad', value: ageGrad },
     { key: 'korean', value: [label('korean', a.korean)] },
+    { key: 'english', value: [label('english', a.english)] },
     { key: 'money', value: [label('budget', a.budget), label('payer', a.payer)] },
     {
       key: 'documents',
