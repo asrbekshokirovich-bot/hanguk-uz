@@ -6115,6 +6115,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'IELTS 5.5 or higher'**
   String get onbResultFactorEnglishStrong;
+
+  /// S03 university card badge: an official HANGUK partner university.
+  ///
+  /// In en, this message translates to:
+  /// **'Official partner'**
+  String get onbResultPartner;
 }
 
 class _AppLocalizationsDelegate

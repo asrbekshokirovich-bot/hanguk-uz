@@ -3372,4 +3372,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get onbResultFactorEnglishStrong => 'IELTS 5.5 и выше';
+
+  @override
+  String get onbResultPartner => 'Официальный партнёр';
 }

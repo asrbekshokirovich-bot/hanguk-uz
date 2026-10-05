@@ -1134,5 +1134,6 @@
   "onbQuizPayerSponsorOption": "A sponsor",
   "onbQuizRegionQ": "Which region are you from?",
   "onbQuizIntakeQ": "When do you want to go?",
-  "onbResultFactorEnglishStrong": "IELTS 5.5 or higher"
+  "onbResultFactorEnglishStrong": "IELTS 5.5 or higher",
+  "onbResultPartner": "Official partner"
 }

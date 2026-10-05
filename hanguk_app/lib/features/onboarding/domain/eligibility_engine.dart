@@ -80,6 +80,8 @@ class MatchedUniversity {
     required this.university,
     required this.guideline,
     required this.accredited,
+    this.partner = false,
+    this.viaEnglish = false,
     this.tuitionPerSemesterUsd,
     this.topikMin,
     this.bankStatementUsd,
@@ -88,6 +90,12 @@ class MatchedUniversity {
   final CatalogUniversity university;
   final CatalogGuideline guideline;
   final bool accredited;
+
+  /// An official HANGUK partner: listed first, with a "Rasmiy hamkor" badge.
+  final bool partner;
+
+  /// Offered on the IELTS score (an English-taught programme), not on Korean.
+  final bool viaEnglish;
   final int? tuitionPerSemesterUsd;
   final int? topikMin;
   final int? bankStatementUsd;
@@ -341,9 +349,16 @@ EligibilityResult evaluateEligibility(
       if (g == null || g.isActive == false) continue;
       final need = g.topikMin?.toInt();
       final viaKorean = g.koreanTrack != false && (need == null || need <= userTopik);
-      final viaEnglish = englishOk &&
-          g.englishTrack == true &&
-          (g.ieltsMin == null || g.ieltsMin! <= ielts);
+      // English-taught programmes: a master's applicant who meets the IELTS
+      // rule, or a bachelor's applicant whose IELTS meets the programme's own
+      // requirement (the bachelor's band does not change with IELTS).
+      final viaEnglish = g.englishTrack == true &&
+          ielts > 0 &&
+          switch (route) {
+            StudyRoute.master => englishOk && (g.ieltsMin == null || g.ieltsMin! <= ielts),
+            StudyRoute.bachelor => ielts >= (g.ieltsMin ?? rules.masterIeltsMin),
+            _ => false,
+          };
       if (!viaKorean && !viaEnglish) continue;
       final perSemester = rules.toUsd(g.tuitionMin, g.currency);
       matches.add(
@@ -351,6 +366,8 @@ EligibilityResult evaluateEligibility(
           university: u,
           guideline: g,
           accredited: g.ieqasStatus == 'accredited' || g.ieqasStatus == 'outstanding',
+          partner: g.isPartner == true,
+          viaEnglish: viaEnglish && !viaKorean,
           tuitionPerSemesterUsd: perSemester == null
               ? null
               : (g.tuitionPeriod == 'yil' ? (perSemester / 2).round() : perSemester),
@@ -360,6 +377,7 @@ EligibilityResult evaluateEligibility(
       );
     }
     matches.sort((x, y) {
+      if (x.partner != y.partner) return x.partner ? -1 : 1;
       if (x.accredited != y.accredited) return x.accredited ? -1 : 1;
       final cx = x.tuitionPerSemesterUsd ?? 1 << 30;
       final cy = y.tuitionPerSemesterUsd ?? 1 << 30;
@@ -423,7 +441,11 @@ EligibilityResult evaluateEligibility(
     band: band,
     score: score,
     factors: factors,
-    universities: band == EligibilityBand.low ? const [] : shown,
+    // A low band shows the ways forward instead of universities, except the
+    // English-taught programmes the applicant's IELTS already meets.
+    universities: band == EligibilityBand.low
+        ? matches.where((m) => m.viaEnglish).take(rules.maxUniversities).toList()
+        : shown,
     yearlyCostUsd: band == EligibilityBand.low ? null : yearly,
     bankStatementUsd: band == EligibilityBand.low ? null : bankUsd,
     steps: steps,

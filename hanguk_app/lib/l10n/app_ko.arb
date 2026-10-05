@@ -1134,5 +1134,6 @@
   "onbQuizPayerSponsorOption": "후원자",
   "onbQuizRegionQ": "어느 지역에 사세요?",
   "onbQuizIntakeQ": "언제 가고 싶으세요?",
-  "onbResultFactorEnglishStrong": "IELTS 5.5 이상"
+  "onbResultFactorEnglishStrong": "IELTS 5.5 이상",
+  "onbResultPartner": "공식 파트너"
 }

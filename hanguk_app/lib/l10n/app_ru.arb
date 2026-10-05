@@ -1134,5 +1134,6 @@
   "onbQuizPayerSponsorOption": "Спонсор",
   "onbQuizRegionQ": "Из какого вы региона?",
   "onbQuizIntakeQ": "Когда планируете поехать?",
-  "onbResultFactorEnglishStrong": "IELTS 5.5 и выше"
+  "onbResultFactorEnglishStrong": "IELTS 5.5 и выше",
+  "onbResultPartner": "Официальный партнёр"
 }

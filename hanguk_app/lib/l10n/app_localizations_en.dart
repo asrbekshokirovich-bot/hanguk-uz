@@ -3359,4 +3359,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onbResultFactorEnglishStrong => 'IELTS 5.5 or higher';
+
+  @override
+  String get onbResultPartner => 'Official partner';
 }

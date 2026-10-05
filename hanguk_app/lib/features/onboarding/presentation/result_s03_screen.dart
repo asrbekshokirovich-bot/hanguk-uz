@@ -93,12 +93,14 @@ class _ResultBody extends ConsumerWidget {
       // 3 — what affected it.
       if (r.factors.isNotEmpty) _FactorsCard(factors: r.factors),
       // 4 — universities, or paths for a low band.
+      // A low band lists only the English-taught programmes its IELTS meets.
+      if (r.universities.isNotEmpty) ...[
+        _SectionTitle(l.onbResultUnisTitle, accent: '대학'),
+        for (final m in r.universities) _UniversityCard(match: m),
+      ],
       if (low && r.paths.isNotEmpty) ...[
         _SectionTitle(l.onbResultPathsTitle),
         for (final p in r.paths) _PathCard(path: p),
-      ] else if (!low && r.universities.isNotEmpty) ...[
-        _SectionTitle(l.onbResultUnisTitle, accent: '대학'),
-        for (final m in r.universities) _UniversityCard(match: m),
       ],
       // 5 — yearly cost and the bank statement.
       if (r.yearlyCostUsd != null) _CostCard(yearly: r.yearlyCostUsd!, bank: r.bankStatementUsd),
@@ -295,21 +297,17 @@ class _UniversityCard extends StatelessWidget {
                   ],
                 ),
               ),
-              if (m.accredited) ...[
+              if (m.partner || m.accredited) ...[
                 const SizedBox(width: 10),
-                Container(
-                  height: 24,
-                  padding: const EdgeInsets.symmetric(horizontal: 9),
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(999),
-                    color: OnbColors.green.withValues(alpha: 0.14),
-                    border: Border.all(color: OnbColors.green.withValues(alpha: 0.4)),
-                  ),
-                  child: Text(
-                    l.onbResultAccredited,
-                    style: onbText(10.5, FontWeight.w700, color: OnbColors.green),
-                  ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    if (m.partner)
+                      _Badge(label: l.onbResultPartner, color: OnbColors.lime),
+                    if (m.partner && m.accredited) const SizedBox(height: 6),
+                    if (m.accredited)
+                      _Badge(label: l.onbResultAccredited, color: OnbColors.green),
+                  ],
                 ),
               ],
             ],
@@ -465,6 +463,29 @@ class _StepsCard extends StatelessWidget {
             ),
         ], 12),
       ),
+    );
+  }
+}
+
+/// The pill in a university card's corner: 24px, 10.5/700, tinted [color].
+class _Badge extends StatelessWidget {
+  const _Badge({required this.label, required this.color});
+
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 24,
+      padding: const EdgeInsets.symmetric(horizontal: 9),
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(999),
+        color: color.withValues(alpha: 0.14),
+        border: Border.all(color: color.withValues(alpha: 0.4)),
+      ),
+      child: Text(label, style: onbText(10.5, FontWeight.w700, color: color)),
     );
   }
 }

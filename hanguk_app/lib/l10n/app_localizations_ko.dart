@@ -3224,4 +3224,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get onbResultFactorEnglishStrong => 'IELTS 5.5 이상';
+
+  @override
+  String get onbResultPartner => '공식 파트너';
 }

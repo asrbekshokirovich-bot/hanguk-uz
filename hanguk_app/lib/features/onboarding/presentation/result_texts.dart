@@ -122,16 +122,7 @@ String planText(AppLocalizations l, QuizAnswers a, EligibilityResult r) {
     );
   }
 
-  if (r.band == EligibilityBand.low) {
-    if (r.paths.isNotEmpty) {
-      out.add(
-        [
-          l.onbResultPathsTitle,
-          for (final p in r.paths) '• ${pathTitle(l, p)} — ${pathNote(l, p)}',
-        ].join('\n'),
-      );
-    }
-  } else if (r.universities.isNotEmpty) {
+  if (r.universities.isNotEmpty) {
     out.add(
       [
         l.onbResultUnisTitle,
@@ -139,12 +130,22 @@ String planText(AppLocalizations l, QuizAnswers a, EligibilityResult r) {
           [
             '• ${m.university.displayName}',
             if ((m.university.city ?? '').isNotEmpty) ' (${m.university.city})',
+            if (m.partner) ' — ${l.onbResultPartner}',
             if (m.accredited) ' — ${l.onbResultAccredited}',
           ].join(),
           '  ${l.onbResultTuitionLabel}: ${m.tuitionPerSemesterUsd == null ? '—' : usd(m.tuitionPerSemesterUsd!, space: sp)}'
               ' · ${l.onbResultTopikLabel}: ${topikValue(m.topikMin)}'
               ' · ${l.onbResultBankLabel}: ${m.bankStatementUsd == null ? '—' : usd(m.bankStatementUsd!, space: sp)}',
         ],
+      ].join('\n'),
+    );
+  }
+
+  if (r.band == EligibilityBand.low && r.paths.isNotEmpty) {
+    out.add(
+      [
+        l.onbResultPathsTitle,
+        for (final p in r.paths) '• ${pathTitle(l, p)} — ${pathNote(l, p)}',
       ].join('\n'),
     );
   }

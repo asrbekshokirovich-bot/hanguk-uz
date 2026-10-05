@@ -120,7 +120,9 @@ List<CatalogUniversity> applyCatalogFilter(List<CatalogUniversity> all, CatalogF
     }
     return true;
   }).toList();
+  // Official partners first, then cheapest first, no fee last.
   out.sort((a, b) {
+    if (a.isPartner != b.isPartner) return a.isPartner ? -1 : 1;
     final pa = priceOf(guidelineFor(a, f)!);
     final pb = priceOf(guidelineFor(b, f)!);
     if (pa == null && pb == null) return a.displayName.compareTo(b.displayName);

@@ -3367,4 +3367,7 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get onbResultFactorEnglishStrong => 'IELTS 5.5 va yuqori';
+
+  @override
+  String get onbResultPartner => 'Rasmiy hamkor';
 }

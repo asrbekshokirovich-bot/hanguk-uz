@@ -4231,5 +4231,9 @@
   "onbResultFactorEnglishStrong": "IELTS 5.5 or higher",
   "@onbResultFactorEnglishStrong": {
     "description": "S03 factor: a master's applicant with IELTS 5.5 or higher."
+  },
+  "onbResultPartner": "Official partner",
+  "@onbResultPartner": {
+    "description": "S03 university card badge: an official HANGUK partner university."
   }
 }
