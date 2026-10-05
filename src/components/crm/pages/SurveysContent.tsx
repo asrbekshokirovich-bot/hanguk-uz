@@ -32,6 +32,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus, Trash2, GripVertical, Eye, BarChart3, Link2, Bell, Loader2, Download } from 'lucide-react';
 import { toast } from 'sonner';
 import PushRecipientsDialog from '@/components/crm/surveys/PushRecipientsDialog';
+import { useUserRole } from '@/hooks/useUserRole';
 
 interface Survey {
   id: string;
@@ -105,6 +106,9 @@ function formatAnswer(value: unknown): string {
 }
 
 export default function SurveysContent() {
+  // Call operators only read surveys and results; the database refuses them
+  // every write, so the write buttons are not shown to them.
+  const { isDocumentHandler: canManage } = useUserRole();
   const [surveys, setSurveys] = useState<Survey[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
@@ -564,10 +568,12 @@ export default function SurveysContent() {
             So'rovnomalarni yarating va natijalarni ko'ring
           </p>
         </div>
-        <Button onClick={() => setShowCreate(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Yangi so'rovnoma
-        </Button>
+        {canManage && (
+          <Button onClick={() => setShowCreate(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Yangi so'rovnoma
+          </Button>
+        )}
       </div>
 
       <Card>
@@ -632,17 +638,19 @@ export default function SurveysContent() {
                       >
                         <Link2 className="h-4 w-4" />
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        title="Bildirishnoma yuborish (kimga — tanlaysiz)"
-                        disabled={sendingPush === survey.id}
-                        onClick={() => setPushTarget({ surveyId: survey.id, title: survey.title })}
-                      >
-                        {sendingPush === survey.id
-                          ? <Loader2 className="h-4 w-4 animate-spin" />
-                          : <Bell className="h-4 w-4" />}
-                      </Button>
+                      {canManage && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          title="Bildirishnoma yuborish (kimga — tanlaysiz)"
+                          disabled={sendingPush === survey.id}
+                          onClick={() => setPushTarget({ surveyId: survey.id, title: survey.title })}
+                        >
+                          {sendingPush === survey.id
+                            ? <Loader2 className="h-4 w-4 animate-spin" />
+                            : <Bell className="h-4 w-4" />}
+                        </Button>
+                      )}
                       <Button
                         variant="ghost"
                         size="sm"
@@ -650,21 +658,25 @@ export default function SurveysContent() {
                       >
                         <BarChart3 className="h-4 w-4" />
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => toggleActive(survey.id, survey.is_active)}
-                      >
-                        {survey.is_active ? 'O\'chirish' : 'Yoqish'}
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => deleteSurvey(survey.id)}
-                        className="text-destructive"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      {canManage && (
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => toggleActive(survey.id, survey.is_active)}
+                          >
+                            {survey.is_active ? 'O\'chirish' : 'Yoqish'}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => deleteSurvey(survey.id)}
+                            className="text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}
