@@ -57,17 +57,17 @@ void main() {
 
   testWidgets('S02: Davom etish waits for an answer, then moves on', (t) async {
     await t.pumpWidget(_app(const QuizScreen()));
-    expect(find.text('1 / 6'), findsOneWidget);
+    expect(find.text('1 / 11'), findsOneWidget);
 
     await t.tap(find.text('Davom etish'));
     await t.pump();
-    expect(find.text('1 / 6'), findsOneWidget);
+    expect(find.text('1 / 11'), findsOneWidget);
 
     await t.tap(find.text('Bakalavr'));
     await t.pump();
     await t.tap(find.text('Davom etish'));
     await t.pump();
-    expect(find.text('2 / 6'), findsOneWidget);
+    expect(find.text('2 / 11'), findsOneWidget);
   });
 
   testWidgets('S04 opens on the success state once submitted', (t) async {

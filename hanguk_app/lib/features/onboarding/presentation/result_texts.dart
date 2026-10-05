@@ -39,6 +39,7 @@ String bandNote(AppLocalizations l, EligibilityBand b) => switch (b) {
 
 String factorLabel(AppLocalizations l, FactorKind k) => switch (k) {
   FactorKind.koreanStrong => l.onbResultFactorKoreanStrong,
+  FactorKind.englishStrong => l.onbResultFactorEnglishStrong,
   FactorKind.koreanTopik2Degree => l.onbResultFactorKoreanTopik2Degree,
   FactorKind.koreanMissingDegree => l.onbResultFactorKoreanMissingDegree,
   FactorKind.koreanCollegeStrong => l.onbResultFactorKoreanCollegeStrong,

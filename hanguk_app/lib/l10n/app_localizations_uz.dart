@@ -3213,15 +3213,6 @@ class AppLocalizationsUz extends AppLocalizations {
   String get onbQuizRouteCollege => 'Kasbiy kollej';
 
   @override
-  String get onbQuizQ2 => 'Yoshingiz va bitiruv yilingiz?';
-
-  @override
-  String get onbQuizAge => 'Yosh:';
-
-  @override
-  String get onbQuizGradYear => 'Bitiruv yili:';
-
-  @override
   String onbQuizGradYearOrEarlier(String year) {
     return '$year yoki oldin';
   }
@@ -3255,9 +3246,6 @@ class AppLocalizationsUz extends AppLocalizations {
   String get onbQuizKoreanUnknown => 'Hali bilmayman';
 
   @override
-  String get onbQuizQ4 => 'Yillik byudjet va kim to‘laydi?';
-
-  @override
   String get onbQuizBudgetUnder3 => '\$3 000 gacha';
 
   @override
@@ -3268,18 +3256,6 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get onbQuizBudgetOver10 => '\$10 000+';
-
-  @override
-  String get onbQuizPayer => 'To‘lovchi:';
-
-  @override
-  String get onbQuizPayerParents => 'ota-ona';
-
-  @override
-  String get onbQuizPayerSelf => 'o‘zim';
-
-  @override
-  String get onbQuizPayerSponsor => 'homiy';
 
   @override
   String get onbQuizQ5 => 'Ota-onada rasmiy daromad bormi?';
@@ -3295,15 +3271,6 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get onbQuizBankNo => 'Bank spravkasi yo‘q';
-
-  @override
-  String get onbQuizQ6 => 'Viloyatingiz va qachon ketmoqchisiz?';
-
-  @override
-  String get onbQuizRegion => 'Viloyat:';
-
-  @override
-  String get onbQuizRegionChoose => 'tanlang';
 
   @override
   String get onbQuizIntakeSpring2027 => '2027 bahor';
@@ -3366,4 +3333,56 @@ class AppLocalizationsUz extends AppLocalizations {
   @override
   String get onbContactAfterHoursMonday =>
       'Hozir ish vaqtidan tashqari. Dushanba kuni 10:00 da qo\'ng\'iroq qilamiz.';
+
+  @override
+  String get onbQuizAgeQ => 'Yoshingiz nechada?';
+
+  @override
+  String get onbQuizGradQ => 'Oxirgi o\'qishni qachon tugatgansiz?';
+
+  @override
+  String get onbQuizIeltsQ => 'IELTS darajangiz?';
+
+  @override
+  String get onbQuizIeltsNone => 'Yo\'q';
+
+  @override
+  String get onbQuizIelts55 => 'IELTS 5.5';
+
+  @override
+  String get onbQuizIelts60 => 'IELTS 6.0';
+
+  @override
+  String get onbQuizIelts65 => 'IELTS 6.5 va yuqori';
+
+  @override
+  String get onbQuizIeltsUnknown => 'Hali bilmayman';
+
+  @override
+  String get onbQuizBudgetQ =>
+      'Yiliga o\'qish va yashashga qancha ajrata olasiz?';
+
+  @override
+  String get onbQuizPayerQ => 'Kim to\'laydi?';
+
+  @override
+  String get onbQuizPayerParentsOption => 'Ota-onam';
+
+  @override
+  String get onbQuizPayerSelfOption => 'O\'zim';
+
+  @override
+  String get onbQuizPayerSponsorOption => 'Homiy';
+
+  @override
+  String get onbQuizBankQ => 'Bank spravkasi uchun mablag\' bormi?';
+
+  @override
+  String get onbQuizRegionQ => 'Qaysi viloyatdansiz?';
+
+  @override
+  String get onbQuizIntakeQ => 'Qachon ketmoqchisiz?';
+
+  @override
+  String get onbResultFactorEnglishStrong => 'IELTS 5.5 va yuqori';
 }

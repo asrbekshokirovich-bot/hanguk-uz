@@ -3076,15 +3076,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String get onbQuizRouteCollege => '전문대학';
 
   @override
-  String get onbQuizQ2 => '나이와 졸업 연도는?';
-
-  @override
-  String get onbQuizAge => '나이:';
-
-  @override
-  String get onbQuizGradYear => '졸업 연도:';
-
-  @override
   String onbQuizGradYearOrEarlier(String year) {
     return '$year년 또는 그 이전';
   }
@@ -3117,9 +3108,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String get onbQuizKoreanUnknown => '아직 모르겠어요';
 
   @override
-  String get onbQuizQ4 => '연간 예산과 비용 부담자는?';
-
-  @override
   String get onbQuizBudgetUnder3 => '\$3,000 이하';
 
   @override
@@ -3130,18 +3118,6 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get onbQuizBudgetOver10 => '\$10,000 이상';
-
-  @override
-  String get onbQuizPayer => '부담자:';
-
-  @override
-  String get onbQuizPayerParents => '부모님';
-
-  @override
-  String get onbQuizPayerSelf => '본인';
-
-  @override
-  String get onbQuizPayerSponsor => '후원자';
 
   @override
   String get onbQuizQ5 => '부모님께 공식 소득이 있나요?';
@@ -3157,15 +3133,6 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get onbQuizBankNo => '잔고증명 없음';
-
-  @override
-  String get onbQuizQ6 => '거주 지역과 출국 희망 시기는?';
-
-  @override
-  String get onbQuizRegion => '지역:';
-
-  @override
-  String get onbQuizRegionChoose => '선택';
 
   @override
   String get onbQuizIntakeSpring2027 => '2027년 봄';
@@ -3224,4 +3191,55 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get onbContactAfterHoursMonday =>
       '지금은 업무 시간이 아닙니다. 월요일 10:00에 전화드릴게요.';
+
+  @override
+  String get onbQuizAgeQ => '나이가 어떻게 되세요?';
+
+  @override
+  String get onbQuizGradQ => '마지막 학교를 언제 졸업하셨나요?';
+
+  @override
+  String get onbQuizIeltsQ => 'IELTS 점수는 어떻게 되세요?';
+
+  @override
+  String get onbQuizIeltsNone => '없음';
+
+  @override
+  String get onbQuizIelts55 => 'IELTS 5.5';
+
+  @override
+  String get onbQuizIelts60 => 'IELTS 6.0';
+
+  @override
+  String get onbQuizIelts65 => 'IELTS 6.5 이상';
+
+  @override
+  String get onbQuizIeltsUnknown => '아직 모르겠어요';
+
+  @override
+  String get onbQuizBudgetQ => '1년에 학비와 생활비로 얼마를 쓸 수 있나요?';
+
+  @override
+  String get onbQuizPayerQ => '누가 비용을 내나요?';
+
+  @override
+  String get onbQuizPayerParentsOption => '부모님';
+
+  @override
+  String get onbQuizPayerSelfOption => '본인';
+
+  @override
+  String get onbQuizPayerSponsorOption => '후원자';
+
+  @override
+  String get onbQuizBankQ => '잔고 증명용 자금이 있나요?';
+
+  @override
+  String get onbQuizRegionQ => '어느 지역에 사세요?';
+
+  @override
+  String get onbQuizIntakeQ => '언제 가고 싶으세요?';
+
+  @override
+  String get onbResultFactorEnglishStrong => 'IELTS 5.5 이상';
 }
