@@ -39,6 +39,8 @@ class CatalogGuideline {
     this.bankAmount,
     this.bankCurrency,
     this.recommendation,
+    this.ieqasStatus,
+    this.isActive,
   });
 
   final String id;
@@ -84,6 +86,11 @@ class CatalogGuideline {
   /// 'ha' | 'yoq' | 'ixtiyoriy'.
   final String? recommendation;
 
+  // From `institutions`: 'accredited' | 'outstanding' | 'none' | null, and
+  // false for a university that must not be suggested.
+  final String? ieqasStatus;
+  final bool? isActive;
+
   static num? _num(Object? v) =>
       v == null ? null : (v is num ? v : num.tryParse(v.toString()));
 
@@ -119,6 +126,8 @@ class CatalogGuideline {
       bankAmount: _num(r['bank_summa']),
       bankCurrency: r['bank_valyuta'] as String?,
       recommendation: r['tavsiyanoma'] as String?,
+      ieqasStatus: r['ieqas_status'] as String?,
+      isActive: r['is_active'] as bool?,
     );
   }
 }

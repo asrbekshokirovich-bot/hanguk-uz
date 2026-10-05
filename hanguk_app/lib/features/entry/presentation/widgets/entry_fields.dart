@@ -3,7 +3,12 @@ import 'package:flutter/services.dart';
 
 import '../../../../design_system/seoul_night/seoul_night.dart';
 import '../../../auth/presentation/widgets/sign_in_chrome.dart';
-import '../../data/app_account_repository.dart';
+
+/// Uzbek mobile numbers only: nine digits after the fixed +998.
+const int kUzNationalDigits = 9;
+
+/// `901234567` → `+998901234567`.
+String uzE164(String national) => '+998$national';
 
 /// Keeps the nine digits after +998 and spaces them as they are read aloud:
 /// `90 123 45 67`. Pasting a full `+998 90 123 45 67` keeps the last nine.

@@ -10,13 +10,17 @@ import '../../features/auth/data/auth_repository.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/entry/data/entry_store.dart';
 import '../../features/entry/presentation/language_screen.dart';
-import '../../features/entry/presentation/phone_account_screens.dart';
 import '../../features/home/presentation/home_screen.dart';
 import '../../features/home/presentation/home_tab_provider.dart';
 import '../../features/home/presentation/notifications_screen.dart';
 import '../../features/guest/presentation/guest_shell.dart';
-import '../../features/home/presentation/welcome_screen.dart';
 import '../../features/map/data/map_repository.dart';
+import '../../features/onboarding/onboarding_routes.dart';
+import '../../features/onboarding/presentation/quiz_s02_screen.dart';
+import '../../features/onboarding/presentation/result_s03_screen.dart';
+import '../../features/onboarding/presentation/tariff_detail_s06_screen.dart';
+import '../../features/onboarding/presentation/tariffs_s05_screen.dart';
+import '../../features/onboarding/presentation/welcome_s01_screen.dart';
 import '../../features/map/domain/university.dart';
 import '../../features/map/presentation/map_deeplink_provider.dart';
 import '../../features/map/presentation/widgets/university_roadview_screen.dart';
@@ -66,20 +70,31 @@ List<RouteBase> _guestRoutes() => [
   GoRoute(path: '/guest', builder: (context, state) => const GuestShell()),
 ];
 
-/// The way in before Welcome: the language picker on first launch, then
-/// phone sign-up (or sign-in) — see the redirect below.
+/// The way in before Welcome: the language picker on first launch — see the
+/// redirect below.
 List<RouteBase> _entryRoutes() => [
   GoRoute(
     path: '/language',
     builder: (context, state) => const LanguageScreen(),
   ),
+];
+
+/// "Viza imkoniyatim" (S02–S06; S01 is `/welcome`). Public, like `/guest`:
+/// a visitor answers six questions and sees the result before giving a phone.
+List<RouteBase> _onboardingRoutes() => [
+  GoRoute(path: kQuizPath, builder: (context, state) => const QuizScreen()),
   GoRoute(
-    path: '/register',
-    builder: (context, state) => const RegisterScreen(),
+    path: kQuizResultPath,
+    builder: (context, state) => const QuizResultScreen(),
   ),
   GoRoute(
-    path: '/sign-in',
-    builder: (context, state) => const PhoneSignInScreen(),
+    path: kTariffsPath,
+    builder: (context, state) => const TariffsScreen(),
+  ),
+  GoRoute(
+    path: '$kTariffsPath/:code',
+    builder: (context, state) =>
+        TariffDetailScreen(code: state.pathParameters['code'] ?? 'premium'),
   ),
 ];
 
@@ -269,10 +284,9 @@ List<RouteBase> _uniDbRoutes() => [
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final authStateAsync = ref.watch(authStateProvider);
-  // Only the two gates rebuild the router; switching language later must
-  // not throw the visitor back to the first screen.
+  // Only the language gate rebuilds the router; switching language later
+  // must not throw the visitor back to the first screen.
   final hasLanguage = ref.watch(entryProvider.select((s) => s.hasLanguage));
-  final isRegistered = ref.watch(entryProvider.select((s) => s.isRegistered));
 
   return GoRouter(
     initialLocation: '/',
@@ -281,6 +295,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ..._accountRoutes(),
       ..._guestRoutes(),
       ..._entryRoutes(),
+      ..._onboardingRoutes(),
       ..._surveyRoutes(),
       ..._mapRoutes(),
       if (kUniDbEnabled) ..._uniDbRoutes(),
@@ -297,7 +312,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       isLoading: authStateAsync.isLoading,
       isAuthenticated: authStateAsync.value?.session != null,
       hasLanguage: hasLanguage,
-      isRegistered: isRegistered,
     ),
   );
 });
@@ -310,7 +324,6 @@ String? resolveAppRedirect({
   required bool isLoading,
   required bool isAuthenticated,
   required bool hasLanguage,
-  required bool isRegistered,
 }) {
   final isGoingToLogin = loc == '/login';
   final isGoingToWelcome = loc == '/welcome';
@@ -324,26 +337,25 @@ String? resolveAppRedirect({
       loc.startsWith('/guest') || loc.startsWith('/walkaround');
 
   final isGoingToLanguage = loc == '/language';
-  final isGoingToSignUp = loc == '/register' || loc == '/sign-in';
+  // "Viza imkoniyatim" (S02–S06) is public too: the quiz, the result and the
+  // tariffs are seen before any phone is given (owner, 2026-10-05).
+  final isGoingToOnboarding = isOnboardingPath(Uri.parse(loc).path);
 
   if (isLoading) return null;
 
-  // The way in, before Welcome (owner, 2026-09-30): the language on
-  // first launch, then sign-up with phone and password. Both are asked
-  // once. A Magic Code is still accepted at the sign-up step, and a
-  // signed-in student skips all of it.
+  // The way in: the language on first launch, then Welcome (S01). There is
+  // no sign-up any more (owner, 2026-10-05): the phone is asked in S04 only.
+  // A signed-in student skips all of it.
   if (!isAuthenticated) {
     if (!hasLanguage) return isGoingToLanguage ? null : '/language';
-    if (!isRegistered) {
-      return (isGoingToSignUp || isGoingToLogin) ? null : '/register';
-    }
-    if (isGoingToLanguage || isGoingToSignUp) return '/welcome';
+    if (isGoingToLanguage) return '/welcome';
   }
 
   if (!isAuthenticated &&
       !isGoingToLogin &&
       !isGoingToWelcome &&
-      !isGoingToGuest) {
+      !isGoingToGuest &&
+      !isGoingToOnboarding) {
     return '/welcome';
   }
 
@@ -353,7 +365,7 @@ String? resolveAppRedirect({
       (isGoingToLogin ||
           isGoingToWelcome ||
           isGoingToLanguage ||
-          isGoingToSignUp ||
+          isGoingToOnboarding ||
           loc.startsWith('/guest'))) {
     return '/';
   }
@@ -375,7 +387,7 @@ class WelcomeRoute extends GoRouteData with $WelcomeRoute {
 
   @override
   Widget build(BuildContext context, GoRouterState state) =>
-      const WelcomeScreen();
+      const OnboardingWelcomeScreen();
 }
 
 @TypedGoRoute<LoginRoute>(path: '/login')

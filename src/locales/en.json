@@ -995,6 +995,73 @@
         "linkUnavailable": "Could not get the bot name — reopen later",
         "inviteText": "Hello {{name}}! To continue on Telegram about your documents and questions, tap this link: {{link}}",
         "notFound": "No chat found for this username. Enter the Telegram numeric ID — it links at once."
+      },
+      "app": {
+        "title": "App: eligibility check",
+        "sent": "Sent: {{date}}",
+        "age": "{{age}} y.o.",
+        "studying": "Still studying",
+        "income": "Formal income",
+        "bank": "Bank statement",
+        "needsOperator": "Many \"don't know\" answers — operator should clarify",
+        "tariff": "Suggested: {{tariff}}",
+        "rows": {
+          "route": "Programme",
+          "ageGrad": "Age and graduation",
+          "korean": "Korean",
+          "money": "Budget and payer",
+          "documents": "Income and statement",
+          "whereWhen": "Region and when"
+        },
+        "band": {
+          "high": "High chance",
+          "mid": "Medium chance",
+          "low": "High risk"
+        },
+        "routes": {
+          "d4": "Language course (D-4)",
+          "bachelor": "Bachelor",
+          "master": "Master",
+          "college": "Vocational college",
+          "unknown": "Don't know"
+        },
+        "korean": {
+          "none": "None",
+          "learning": "Learning, no certificate",
+          "topik1": "Sejong 1A / TOPIK 1",
+          "topik2": "TOPIK 2",
+          "topik3plus": "TOPIK 3 or higher",
+          "unknown": "Don't know"
+        },
+        "budget": {
+          "lt3": "Up to $3,000",
+          "3to6": "$3–6k",
+          "6to10": "$6–10k",
+          "gt10": "$10,000+",
+          "unknown": "Don't know"
+        },
+        "payer": {
+          "parents": "Parents",
+          "self": "Self",
+          "sponsor": "Sponsor / relative",
+          "unknown": "Don't know"
+        },
+        "yesNo": {
+          "yes": "yes",
+          "no": "no",
+          "unknown": "doesn't know"
+        },
+        "intake": {
+          "2027_spring": "Spring 2027",
+          "2027_fall": "Fall 2027",
+          "later": "Later"
+        },
+        "tariffs": {
+          "standart": "Standart",
+          "premium": "Premium",
+          "no_risk": "NO RISK",
+          "hanbox": "Hanbox"
+        }
       }
     }
   },

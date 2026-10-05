@@ -1064,6 +1064,73 @@
         "linkUnavailable": "Bot nomini olib bo'lmadi — keyinroq qayta oching",
         "inviteText": "Assalomu alaykum, {{name}}! Hujjatlaringiz va savollaringiz bo'yicha Telegramda davom etish uchun shu havolani bosing: {{link}}",
         "notFound": "Bu nik bilan yozishma topilmadi. Telegram ID raqamini kiriting — u darhol ulanadi."
+      },
+      "app": {
+        "title": "Ilova: imkoniyat testi",
+        "sent": "Yuborilgan: {{date}}",
+        "age": "{{age}} yosh",
+        "studying": "O'qiyapti",
+        "income": "Rasmiy daromad",
+        "bank": "Bank spravkasi",
+        "needsOperator": "Ko'p javob \"bilmayman\" — operator aniqlashtirsin",
+        "tariff": "Tavsiya: {{tariff}}",
+        "rows": {
+          "route": "Yo'nalish",
+          "ageGrad": "Yosh va bitiruv",
+          "korean": "Koreys tili",
+          "money": "Byudjet va kim to'laydi",
+          "documents": "Daromad va spravka",
+          "whereWhen": "Viloyat va qachon"
+        },
+        "band": {
+          "high": "Yuqori imkoniyat",
+          "mid": "O'rta imkoniyat",
+          "low": "Xavf yuqori"
+        },
+        "routes": {
+          "d4": "Til kursi (D-4)",
+          "bachelor": "Bakalavr",
+          "master": "Magistratura",
+          "college": "Kasbiy kollej",
+          "unknown": "Bilmayman"
+        },
+        "korean": {
+          "none": "Yo'q",
+          "learning": "O'rganyapti, sertifikatsiz",
+          "topik1": "Sejong 1A / TOPIK 1",
+          "topik2": "TOPIK 2",
+          "topik3plus": "TOPIK 3 va yuqori",
+          "unknown": "Bilmayman"
+        },
+        "budget": {
+          "lt3": "$3 000 gacha",
+          "3to6": "$3–6 ming",
+          "6to10": "$6–10 ming",
+          "gt10": "$10 000+",
+          "unknown": "Bilmayman"
+        },
+        "payer": {
+          "parents": "Ota-onasi",
+          "self": "O'zi",
+          "sponsor": "Homiy / qarindosh",
+          "unknown": "Bilmayman"
+        },
+        "yesNo": {
+          "yes": "bor",
+          "no": "yo'q",
+          "unknown": "bilmaydi"
+        },
+        "intake": {
+          "2027_spring": "2027 bahor",
+          "2027_fall": "2027 kuz",
+          "later": "Keyinroq"
+        },
+        "tariffs": {
+          "standart": "Standart",
+          "premium": "Premium",
+          "no_risk": "NO RISK",
+          "hanbox": "Hanbox"
+        }
       }
     }
   },
