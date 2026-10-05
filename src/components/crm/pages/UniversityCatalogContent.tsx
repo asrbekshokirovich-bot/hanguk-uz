@@ -229,9 +229,12 @@ export default function UniversityCatalogContent() {
     // Umumiy tugmadan yuklanganda universitet shu yerda tanlanadi (format.ts'dagi izohga qarang).
     let institutionId = target.institutionId;
     if (!institutionId) {
+      const u = parsed.payload.universitet;
       const resolved = resolveUploadInstitution(entries, {
-        guideline_id: String(parsed.payload.universitet.guideline_id),
-        univ_kod: String(parsed.payload.universitet.univ_kod),
+        guideline_id: String(u.guideline_id),
+        univ_kod: String(u.univ_kod),
+        univ_nomi_kr: typeof u.univ_nomi_kr === 'string' ? u.univ_nomi_kr : null,
+        univ_nomi_en: typeof u.univ_nomi_en === 'string' ? u.univ_nomi_en : null,
       });
       if (resolved.error || !resolved.institutionId) {
         setReport({

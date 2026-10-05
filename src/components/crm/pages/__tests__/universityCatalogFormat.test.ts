@@ -20,6 +20,7 @@ import {
   offeredLevels,
   operatorCities,
   resolveUploadInstitution,
+  romanKey,
 } from '../university-catalog/format';
 
 function guideline(over: Partial<GuidelineSummary> = {}): GuidelineSummary {
@@ -200,6 +201,76 @@ describe('matchesSearch', () => {
   });
 });
 
+describe('romanKey — koreyscha nomlarning turlicha lotincha yozilishi', () => {
+  it('bir xil o‘qiladigan yozuvlar bir xil kalitga tushadi', () => {
+    expect(romanKey('Kimpo')).toBe(romanKey('Gimpo'));
+    expect(romanKey('kimbo')).toBe(romanKey('Gimpo'));
+    expect(romanKey('Кимпо')).toBe(romanKey('Gimpo'));
+    expect(romanKey('Daekyung')).toBe(romanKey('Daekyeung'));
+    expect(romanKey('Pusan')).toBe(romanKey('Busan'));
+    expect(romanKey('Kyungpook')).toBe(romanKey('Gyeongbuk'));
+    expect(romanKey('Seul')).toBe(romanKey('Seoul'));
+    expect(romanKey('Keimyung')).toBe(romanKey('Gyemyeong'));
+    expect(romanKey('Chung-Ang')).toBe(romanKey('Jungang'));
+    expect(romanKey('Xanyang')).toBe(romanKey('Hanyang'));
+    expect(romanKey('Katolik')).toBe(romanKey('Catholic'));
+    expect(romanKey('Kyung Hee')).toBe(romanKey('Kyunghee'));
+  });
+
+  it('boshqacha nomlarni bir-biriga aralashtirmaydi', () => {
+    expect(romanKey('Kimpo')).not.toBe(romanKey('Kimhae'));
+    expect(romanKey('Daegu')).not.toBe(romanKey('Daejeon'));
+    expect(romanKey('Seoul')).not.toBe(romanKey('Suwon'));
+  });
+});
+
+describe('matchesSearch — lotincha yozuvdagi farq xalaqit bermaydi', () => {
+  const kimpo = uni({
+    name_ko: '김포대학교',
+    name_en: 'Gimpo University',
+    name_ko_short: null,
+    city_ko: '김포',
+    region_code: null,
+    primary_domain: 'gimpo.ac.kr',
+    institution_type: 'junior_college',
+  });
+  const daekyeung = uni({
+    name_ko: '대경대학교',
+    name_en: 'Daekyeung University',
+    name_ko_short: null,
+    city_ko: '경산',
+    region_code: null,
+    primary_domain: 'tk.ac.kr',
+    institution_type: 'junior_college',
+  });
+  const pusan = uni({
+    name_ko: '부산대학교',
+    name_en: 'Pusan National University',
+    name_ko_short: null,
+    city_ko: '부산',
+    region_code: null,
+    primary_domain: 'pusan.ac.kr',
+  });
+
+  it('"kimpo", "kimbo" va "Кимпо" Gimpo University‘ni topadi', () => {
+    expect(matchesSearch(kimpo, 'kimpo')).toBe(true);
+    expect(matchesSearch(kimpo, 'kimbo')).toBe(true);
+    expect(matchesSearch(kimpo, 'Кимпо')).toBe(true);
+    expect(matchesSearch(kimpo, 'Kimpo University')).toBe(true);
+  });
+
+  it('"daekyung" Daekyeung University‘ni, "busan" Pusan National University‘ni topadi', () => {
+    expect(matchesSearch(daekyeung, 'daekyung')).toBe(true);
+    expect(matchesSearch(pusan, 'busan')).toBe(true);
+  });
+
+  it('boshqa universitetni topib yubormaydi', () => {
+    expect(matchesSearch(kimpo, 'daekyung')).toBe(false);
+    expect(matchesSearch(daekyeung, 'kimpo')).toBe(false);
+    expect(matchesSearch(pusan, 'seoul')).toBe(false);
+  });
+});
+
 describe('matchesFilter', () => {
   const withData = entry();
   const withoutData = entry({ guidelines: [], latest: null });
@@ -366,7 +437,10 @@ describe('daraja tanlanganda ma‘lumot filtrlari', () => {
 
 describe('resolveUploadInstitution', () => {
   function college(id: string, name_ko: string, guidelines: GuidelineSummary[] = []): CatalogEntry {
-    const e = uni({ name_ko, primary_domain: 'dhc.ac.kr', institution_type: 'junior_college' }, guidelines);
+    const e = uni(
+      { name_ko, name_en: `${name_ko} College`, primary_domain: 'dhc.ac.kr', institution_type: 'junior_college' },
+      guidelines,
+    );
     e.institution.id = id;
     return e;
   }
@@ -395,6 +469,75 @@ describe('resolveUploadInstitution', () => {
     const withLoaded = [college('a', '대구보건대학교'), college('b', '동아보건대학교', [loaded])];
     expect(
       resolveUploadInstitution(withLoaded, { guideline_id: 'dhc_2027_bahor_kasbiy', univ_kod: 'dhc' }),
+    ).toEqual({ institutionId: 'b', error: null });
+  });
+
+  it('univ_kod domenga mos kelmasa — fayldagi koreyscha nom bo‘yicha topadi', () => {
+    const kimpo = uni({ name_ko: '김포대학교', name_en: 'Gimpo University', primary_domain: 'gimpo.ac.kr' });
+    kimpo.institution.id = 'kimpo';
+    expect(
+      resolveUploadInstitution([...list, kimpo], {
+        guideline_id: 'kimpo_2027_bahor_kasbiy',
+        univ_kod: 'kimpo',
+        univ_nomi_kr: '김포대학교',
+      }),
+    ).toEqual({ institutionId: 'kimpo', error: null });
+  });
+
+  it('koreyscha nom yo‘q bo‘lsa — inglizcha nom bo‘yicha, yozuv farqi bilan ham', () => {
+    const kimpo = uni({ name_ko: '김포대학교', name_en: 'Gimpo University', primary_domain: 'gimpo.ac.kr' });
+    kimpo.institution.id = 'kimpo';
+    expect(
+      resolveUploadInstitution([...list, kimpo], {
+        guideline_id: 'kimpo_2027_bahor_kasbiy',
+        univ_kod: 'kimpo',
+        univ_nomi_en: 'Kimpo University',
+      }),
+    ).toEqual({ institutionId: 'kimpo', error: null });
+  });
+
+  it('fayldagi nomga qo‘shilgan "대학원", "국립" va " — Graduate School" xalaqit bermaydi', () => {
+    expect(
+      resolveUploadInstitution(list, {
+        guideline_id: 'jbnu_grad_2027_bahor_magistratura',
+        univ_kod: 'jbnu_grad',
+        univ_nomi_kr: '국립전북대학교 대학원',
+      }),
+    ).toEqual({ institutionId: 'i1', error: null });
+    expect(
+      resolveUploadInstitution(list, {
+        guideline_id: 'jbnu_grad_2027_kuz_magistratura',
+        univ_kod: 'jbnu_grad',
+        univ_nomi_en: 'Jeonbuk National University — Graduate School',
+      }),
+    ).toEqual({ institutionId: 'i1', error: null });
+  });
+
+  it('univ_kod boshqa universitet domeniga to‘g‘ri kelsa ham fayldagi nom ustun turadi', () => {
+    const kwangwoon = uni({ name_ko: '광운대학교', name_en: 'Kwangwoon University', primary_domain: 'kw.ac.kr' });
+    kwangwoon.institution.id = 'kw';
+    const kwangjuWomen = uni({
+      name_ko: '광주여자대학교',
+      name_en: "Kwangju Women's University",
+      primary_domain: 'kwu.ac.kr',
+    });
+    kwangjuWomen.institution.id = 'kwu';
+    expect(
+      resolveUploadInstitution([kwangwoon, kwangjuWomen], {
+        guideline_id: 'kwu_2027_kuz_bakalavr',
+        univ_kod: 'kwu',
+        univ_nomi_kr: '광운대학교',
+      }),
+    ).toEqual({ institutionId: 'kw', error: null });
+  });
+
+  it('bir xil univ_kod‘li kollejlarni fayldagi koreyscha nom ajratadi', () => {
+    expect(
+      resolveUploadInstitution(list, {
+        guideline_id: 'dhc_2027_bahor_kasbiy',
+        univ_kod: 'dhc',
+        univ_nomi_kr: '동아보건대학교',
+      }),
     ).toEqual({ institutionId: 'b', error: null });
   });
 
