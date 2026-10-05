@@ -1,17 +1,25 @@
 import { describe, expect, it } from 'vitest';
-import type { CatalogEntry, GuidelineSummary } from '@/hooks/useUniversityCatalog';
+import type {
+  CatalogEntry,
+  CatalogInstitution,
+  GuidelineSummary,
+} from '@/hooks/useUniversityCatalog';
 import {
   admissionLabel,
   cityLabel,
   contractRange,
   displayName,
+  focusGuideline,
   formatMoney,
   institutionCode,
   languageBadges,
   matchesFilter,
+  matchesLevel,
   matchesOperatorFilter,
   matchesSearch,
+  offeredLevels,
   operatorCities,
+  resolveUploadInstitution,
 } from '../university-catalog/format';
 
 function guideline(over: Partial<GuidelineSummary> = {}): GuidelineSummary {
@@ -255,5 +263,144 @@ describe('operatorCities', () => {
       entry({ guidelines: [], latest: null }),
     ];
     expect(operatorCities(list)).toEqual(['Jeonju', 'Seoul']);
+  });
+});
+
+/** Boshqa universitet: entry() ustiga institutions maydonlarini almashtiradi. */
+function uni(institution: Partial<CatalogInstitution>, guidelines: GuidelineSummary[] = []): CatalogEntry {
+  const e = entry({ guidelines, latest: guidelines[0] ?? null });
+  Object.assign(e.institution, institution);
+  return e;
+}
+
+describe('offeredLevels va matchesLevel', () => {
+  it('4 yillik universitetda bakalavr ham, magistr ham bor', () => {
+    expect(offeredLevels(uni({ institution_type: 'private' }))).toEqual(['bakalavr', 'magistratura']);
+    expect(offeredLevels(uni({ institution_type: 'national' }))).toEqual(['bakalavr', 'magistratura']);
+  });
+
+  it('kollej (전문대학) — faqat kasbiy ta‘lim', () => {
+    const kollej = uni({ institution_type: 'junior_college', name_ko: '대구보건대학교' });
+    expect(offeredLevels(kollej)).toEqual(['kasbiy']);
+  });
+
+  it('대학원대학교 va boshqa faqat magistratura oliygohlari — faqat magistr', () => {
+    const counseling = uni({
+      institution_type: 'specialized',
+      name_ko: '한국상담대학원대학교',
+      name_en: 'Korea Counseling Graduate University',
+    });
+    const aks = uni({
+      institution_type: 'national_special',
+      name_ko: '한국학중앙연구원',
+      name_en: 'Graduate School of Korean Studies (Academy of Korean Studies)',
+    });
+    expect(offeredLevels(counseling)).toEqual(['magistratura']);
+    expect(offeredLevels(aks)).toEqual(['magistratura']);
+  });
+
+  it('Excel yuklangan daraja oliygoh turidan qat‘i nazar qo‘shiladi', () => {
+    const kasbiy = guideline({ id: 'g9', daraja: 'kasbiy' });
+    expect(offeredLevels(uni({ institution_type: 'private' }, [kasbiy]))).toEqual([
+      'bakalavr',
+      'magistratura',
+      'kasbiy',
+    ]);
+  });
+
+  it('"hammasi" hammani o‘tkazadi, aks holda daraja bo‘lishi shart', () => {
+    const kollej = uni({ institution_type: 'junior_college' });
+    expect(matchesLevel(kollej, 'hammasi')).toBe(true);
+    expect(matchesLevel(kollej, 'kasbiy')).toBe(true);
+    expect(matchesLevel(kollej, 'magistratura')).toBe(false);
+    expect(matchesLevel(uni({ institution_type: 'private' }), 'kasbiy')).toBe(false);
+  });
+});
+
+describe('daraja tanlanganda ma‘lumot filtrlari', () => {
+  const bak = guideline({
+    id: 'b',
+    daraja: 'bakalavr',
+    english_track: true,
+    ielts_min: 5.5,
+    korean_track: false,
+    topik_min: null,
+  });
+  const mag = guideline({
+    id: 'm',
+    daraja: 'magistratura',
+    english_track: false,
+    ielts_min: null,
+    korean_track: true,
+    topik_min: 4,
+  });
+  const ikkalasi = entry({ guidelines: [bak, mag] });
+  const faqatBakalavr = entry({ guidelines: [bak] });
+
+  it('"Ma‘lumotli" faqat tanlangan darajaning Excel‘iga qaraydi', () => {
+    expect(matchesFilter(faqatBakalavr, 'malumotli', 'bakalavr')).toBe(true);
+    expect(matchesFilter(faqatBakalavr, 'malumotli', 'magistratura')).toBe(false);
+    expect(matchesFilter(faqatBakalavr, 'malumotli')).toBe(true);
+  });
+
+  it('TOPIK va IELTS shu darajaning guideline‘ida tekshiriladi', () => {
+    expect(matchesFilter(ikkalasi, 'ielts', 'bakalavr')).toBe(true);
+    expect(matchesFilter(ikkalasi, 'ielts', 'magistratura')).toBe(false);
+    expect(matchesFilter(ikkalasi, 'topik', 'magistratura')).toBe(true);
+    expect(matchesFilter(ikkalasi, 'topik', 'bakalavr')).toBe(false);
+  });
+
+  it('operatorga faqat shu darajaning Excel‘i yuklanganlar chiqadi', () => {
+    const none = { topik: false, ielts: false, city: null };
+    expect(matchesOperatorFilter(faqatBakalavr, none, 'bakalavr')).toBe(true);
+    expect(matchesOperatorFilter(faqatBakalavr, none, 'magistratura')).toBe(false);
+    expect(matchesOperatorFilter(ikkalasi, { ...none, ielts: true }, 'magistratura')).toBe(false);
+  });
+
+  it('karta tanlangan darajaning eng yangi guideline‘ini ko‘rsatadi', () => {
+    expect(focusGuideline(ikkalasi, 'magistratura')?.id).toBe('m');
+    expect(focusGuideline(ikkalasi, 'hammasi')?.id).toBe('b');
+    expect(focusGuideline(faqatBakalavr, 'kasbiy')).toBeNull();
+  });
+});
+
+describe('resolveUploadInstitution', () => {
+  function college(id: string, name_ko: string, guidelines: GuidelineSummary[] = []): CatalogEntry {
+    const e = uni({ name_ko, primary_domain: 'dhc.ac.kr', institution_type: 'junior_college' }, guidelines);
+    e.institution.id = id;
+    return e;
+  }
+
+  const jbnu = entry();
+  const list = [college('a', '대구보건대학교'), college('b', '동아보건대학교'), jbnu];
+
+  it('univ_kod bitta universitetga mos kelsa — o‘sha (katta-kichik harf farqsiz)', () => {
+    expect(
+      resolveUploadInstitution(list, { guideline_id: 'jbnu_2027_kuz_bakalavr', univ_kod: 'JBNU' }),
+    ).toEqual({ institutionId: 'i1', error: null });
+  });
+
+  it('bir nechta universitetga mos kelsa — nomlari bilan xato, jimgina tanlamaydi', () => {
+    const result = resolveUploadInstitution(list, {
+      guideline_id: 'dhc_2027_bahor_kasbiy',
+      univ_kod: 'dhc',
+    });
+    expect(result.institutionId).toBeNull();
+    expect(result.error).toContain('대구보건대학교, 동아보건대학교');
+    expect(result.error).toContain('kartasini oching');
+  });
+
+  it('avval yuklangan guideline qayta yuklansa — o‘z universitetida qoladi', () => {
+    const loaded = guideline({ id: 'k1', guideline_id: 'dhc_2027_bahor_kasbiy', daraja: 'kasbiy' });
+    const withLoaded = [college('a', '대구보건대학교'), college('b', '동아보건대학교', [loaded])];
+    expect(
+      resolveUploadInstitution(withLoaded, { guideline_id: 'dhc_2027_bahor_kasbiy', univ_kod: 'dhc' }),
+    ).toEqual({ institutionId: 'b', error: null });
+  });
+
+  it('katalogda bo‘lmasa (masalan, yashirilgan bo‘lsa) — xato', () => {
+    const result = resolveUploadInstitution(list, { guideline_id: 'gtc_2027', univ_kod: 'gtc' });
+    expect(result.institutionId).toBeNull();
+    expect(result.error).toContain('topilmadi');
   });
 });

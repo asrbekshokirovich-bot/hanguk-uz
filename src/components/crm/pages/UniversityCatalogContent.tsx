@@ -8,7 +8,8 @@
  * fakultetlar (EN + 한국어) va hujjatlar ochiladi.
  */
 
-import { useMemo, useRef, useState, type ChangeEvent } from 'react';
+import { useCallback, useMemo, useRef, useState, type ChangeEvent } from 'react';
+import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -35,6 +36,7 @@ import {
   useAddInstitution,
   useGuidelineImport,
   useUniversityCatalog,
+  type CatalogEntry,
 } from '@/hooks/useUniversityCatalog';
 import { parseGuidelineWorkbook } from '@/lib/universityGuidelineExcel';
 import {
@@ -49,11 +51,16 @@ import {
 import { UniversityCard } from './university-catalog/UniversityCard';
 import { GuidelineDetailSheet } from './university-catalog/GuidelineDetailSheet';
 import {
+  DEGREE_LEVELS,
   matchesFilter,
+  matchesLevel,
   matchesOperatorFilter,
   matchesSearch,
   operatorCities,
+  resolveUploadInstitution,
   type CatalogFilter,
+  type DegreeLevel,
+  type LevelFilter,
 } from './university-catalog/format';
 
 const PAGE_SIZE = 48;
@@ -81,12 +88,17 @@ const INSTITUTION_TYPES = [
 
 const TEMPLATE_URL = '/templates/universitet-guideline-shablon.xlsx';
 
-/** Excel yuklash tugmalari faqat shu ikki daraja uchun — qolgani ("transfer" va h.k.) hozircha alohida tugma olmaydi. */
-export type UploadDaraja = 'bakalavr' | 'magistratura';
-
-const UPLOAD_BUTTONS: { daraja: UploadDaraja; label: string }[] = [
+/** Excel yuklash tugmalari faqat shu uch daraja uchun — qolgani ("transfer" va h.k.) hozircha alohida tugma olmaydi. */
+const UPLOAD_BUTTONS: { daraja: DegreeLevel; label: string }[] = [
   { daraja: 'bakalavr', label: 'Excel bakalavr' },
   { daraja: 'magistratura', label: 'Excel magistr' },
+  { daraja: 'kasbiy', label: 'Excel kasbiy' },
+];
+
+/** Daraja filtri: barcha darajalar + har bir daraja alohida. */
+const LEVEL_OPTIONS: { key: LevelFilter; label: string }[] = [
+  { key: 'hammasi', label: 'Barcha darajalar' },
+  ...DEGREE_LEVELS,
 ];
 
 interface UploadReport {
@@ -118,6 +130,7 @@ export default function UniversityCatalogContent() {
   const addInstitution = useAddInstitution();
 
   const [search, setSearch] = useState('');
+  const [level, setLevel] = useState<LevelFilter>('hammasi');
   const [filter, setFilter] = useState<CatalogFilter>('hammasi');
   const [opTopik, setOpTopik] = useState(false);
   const [opIelts, setOpIelts] = useState(false);
@@ -132,21 +145,35 @@ export default function UniversityCatalogContent() {
   const [newFields, setNewFields] = useState(emptyNewInstitution);
 
   // Yuklash bitta universitet kartasidan ham, yuqoridagi umumiy tugmadan ham
-  // boshlanishi mumkin — maqsad shu ref'da turadi. Tugma "bakalavr" yoki
-  // "magistr" ekani ham shu yerda saqlanadi, faylni tekshirishda solishtirish uchun.
+  // boshlanishi mumkin — maqsad shu ref'da turadi. Tugma qaysi daraja uchun
+  // ekani ham shu yerda saqlanadi, faylni tekshirishda solishtirish uchun.
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const uploadTarget = useRef<{ institutionId: string | null; daraja: UploadDaraja } | null>(null);
+  const uploadTarget = useRef<{ institutionId: string | null; daraja: DegreeLevel } | null>(null);
+
+  // Daraja va qolgan filtrlar birga. Daraja tugmalari yonidagi sonlar ham shu
+  // bilan hisoblanadi — son o'sha tugma bosilgandagi natijaga teng bo'ladi.
+  const passesFilters = useCallback(
+    (e: CatalogEntry, lvl: LevelFilter) =>
+      matchesLevel(e, lvl) &&
+      (operatorView
+        ? matchesOperatorFilter(e, { topik: opTopik, ielts: opIelts, city: opCity }, lvl)
+        : matchesFilter(e, filter, lvl)) &&
+      matchesSearch(e, search),
+    [filter, search, operatorView, opTopik, opIelts, opCity],
+  );
 
   const filtered = useMemo(
-    () =>
-      entries.filter(
-        (e) =>
-          (operatorView
-            ? matchesOperatorFilter(e, { topik: opTopik, ielts: opIelts, city: opCity })
-            : matchesFilter(e, filter)) && matchesSearch(e, search),
-      ),
-    [entries, filter, search, operatorView, opTopik, opIelts, opCity],
+    () => entries.filter((e) => passesFilters(e, level)),
+    [entries, level, passesFilters],
   );
+
+  const levelCounts = useMemo(() => {
+    const counts = {} as Record<LevelFilter, number>;
+    for (const o of LEVEL_OPTIONS) {
+      counts[o.key] = entries.filter((e) => passesFilters(e, o.key)).length;
+    }
+    return counts;
+  }, [entries, passesFilters]);
 
   const withData = useMemo(() => entries.filter((e) => e.guidelines.length > 0).length, [entries]);
   const cities = useMemo(() => operatorCities(entries), [entries]);
@@ -158,7 +185,7 @@ export default function UniversityCatalogContent() {
 
   const resetPaging = () => setVisible(PAGE_SIZE);
 
-  const startUpload = (institutionId: string | null, daraja: UploadDaraja) => {
+  const startUpload = (institutionId: string | null, daraja: DegreeLevel) => {
     uploadTarget.current = { institutionId, daraja };
     fileInputRef.current?.click();
   };
@@ -199,10 +226,29 @@ export default function UniversityCatalogContent() {
       return;
     }
 
+    // Umumiy tugmadan yuklanganda universitet shu yerda tanlanadi (format.ts'dagi izohga qarang).
+    let institutionId = target.institutionId;
+    if (!institutionId) {
+      const resolved = resolveUploadInstitution(entries, {
+        guideline_id: String(parsed.payload.universitet.guideline_id),
+        univ_kod: String(parsed.payload.universitet.univ_kod),
+      });
+      if (resolved.error || !resolved.institutionId) {
+        setReport({
+          fileName: file.name,
+          errors: [resolved.error ?? 'Universitet topilmadi'],
+          warnings: parsed.warnings,
+          imported: null,
+        });
+        return;
+      }
+      institutionId = resolved.institutionId;
+    }
+
     try {
       const outcome = await importGuideline.mutateAsync({
         payload: parsed.payload,
-        institutionId: target.institutionId,
+        institutionId,
       });
       setReport({
         fileName: file.name,
@@ -298,7 +344,7 @@ export default function UniversityCatalogContent() {
           </div>
 
           {canEdit && (
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Button variant="outline" size="sm" asChild>
                 <a href={TEMPLATE_URL} download>
                   <Download className="mr-2 h-4 w-4" />
@@ -310,7 +356,7 @@ export default function UniversityCatalogContent() {
                   key={b.daraja}
                   size="sm"
                   onClick={() => startUpload(null, b.daraja)}
-                  disabled={importGuideline.isPending}
+                  disabled={importGuideline.isPending || loading}
                 >
                   {importGuideline.isPending ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -323,6 +369,42 @@ export default function UniversityCatalogContent() {
             </div>
           )}
         </div>
+      </div>
+
+      {/* Daraja: bakalavr, magistr yoki kasbiy ta'lim o'qitadigan universitetlar. Sonlar — boshqa filtrlar bilan birga. */}
+      <div
+        role="group"
+        aria-label="Daraja"
+        className="grid grid-cols-2 gap-0.5 rounded-md bg-muted p-[3px] sm:flex sm:w-fit"
+      >
+        {LEVEL_OPTIONS.map((o) => {
+          const active = level === o.key;
+          return (
+            <button
+              key={o.key}
+              type="button"
+              aria-pressed={active}
+              onClick={() => {
+                setLevel(o.key);
+                resetPaging();
+              }}
+              className={cn(
+                'flex h-8 items-center justify-center gap-1.5 rounded-sm px-3 text-sm transition-colors',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-card',
+                active
+                  ? 'bg-card font-semibold text-foreground shadow-card'
+                  : 'font-medium text-muted-foreground hover:text-foreground/80',
+              )}
+            >
+              <span className="truncate">{o.label}</span>
+              {!loading && (
+                <span className={cn('text-xs tabular-nums', active ? 'text-primary' : 'text-muted-foreground')}>
+                  {levelCounts[o.key]}
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
 
       {operatorView ? (
@@ -409,6 +491,7 @@ export default function UniversityCatalogContent() {
               <UniversityCard
                 key={entry.institution.id}
                 entry={entry}
+                level={level}
                 onOpen={(e) => {
                   setSelectedId(e.institution.id);
                   setDetailOpen(true);
@@ -443,6 +526,7 @@ export default function UniversityCatalogContent() {
         canUpload={canEdit}
         onUpload={(entry, daraja) => startUpload(entry.institution.id, daraja)}
         uploading={importGuideline.isPending}
+        initialLevel={level}
       />
 
       {/* Yuklash natijasi: xatolar bo'lsa qaysi qatorda ekani ko'rinadi */}

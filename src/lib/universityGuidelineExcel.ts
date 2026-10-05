@@ -36,7 +36,8 @@ const c = (name: string, type: ColType = 'matn', extra: Omit<ColSpec, 'name' | '
   ({ name, type, ...extra });
 
 const SEMESTRLAR = ['bahor', 'kuz'] as const;
-const DARAJALAR = ['bakalavr', 'transfer', 'magistratura', 'doktorantura', 'til_kursi'] as const;
+// kasbiy — kasbiy ta'lim (전문대학, 전문학사).
+export const DARAJALAR = ['bakalavr', 'transfer', 'magistratura', 'doktorantura', 'til_kursi', 'kasbiy'] as const;
 const VALYUTALAR = ['KRW', 'USD'] as const;
 const TRACKLAR = ['english', 'korean'] as const;
 const HOLATLAR = ['tasdiqlangan', 'taxminiy', 'nisbiy', 'keyin_elon', 'etap_yoq'] as const;

@@ -7,6 +7,7 @@ import JSZip from 'jszip';
 import { columnIndex, readXlsx } from '../xlsxReader';
 import {
   contractFromNote,
+  DARAJALAR,
   parseGuidelineWorkbook,
   SUPPORTED_FORMAT_VERSION,
 } from '../universityGuidelineExcel';
@@ -157,6 +158,29 @@ describe('parseGuidelineWorkbook — haqiqiy fayl', () => {
   it('to‘g‘ri faylda ogohlantirish chiqarmaydi', async () => {
     const { warnings } = await parseGuidelineWorkbook(jbnuWorkbook(), 'f.xlsx');
     expect(warnings).toEqual([]);
+  });
+});
+
+describe("parseGuidelineWorkbook — kasbiy ta'lim", () => {
+  it('daraja = kasbiy bo‘lgan faylni qabul qiladi', async () => {
+    const buf = await patchedWorkbook((xml, path) =>
+      path === 'xl/worksheets/sheet1.xml' ? xml.replace('<t>bakalavr</t>', '<t>kasbiy</t>') : xml,
+    );
+
+    const result = await parseGuidelineWorkbook(buf, 'f.xlsx');
+    expect(result.errors).toEqual([]);
+    expect(result.ok).toBe(true);
+    expect(result.payload!.universitet.daraja).toBe('kasbiy');
+  });
+
+  it('shablondagi daraja ro‘yxati sayt qabul qiladigan qiymatlar bilan bir xil', async () => {
+    const buf = readFileSync(join(fixtureDir, '../../../../public/templates/universitet-guideline-shablon.xlsx'));
+    const bytes = new ArrayBuffer(buf.byteLength);
+    new Uint8Array(bytes).set(buf);
+    const zip = await JSZip.loadAsync(bytes);
+    const sheet = await zip.file('xl/worksheets/sheet1.xml')!.async('string');
+    const list = sheet.match(/<dataValidation sqref="I2"[^>]*><formula1>"([^"]*)"<\/formula1>/)?.[1];
+    expect(list?.split(',')).toEqual([...DARAJALAR]);
   });
 });
 

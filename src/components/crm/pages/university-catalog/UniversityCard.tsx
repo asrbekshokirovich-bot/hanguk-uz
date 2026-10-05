@@ -7,12 +7,19 @@ import {
   cityLabel,
   contractRange,
   displayName,
+  focusGuideline,
+  guidelinesForLevel,
   languageBadges,
+  levelLabel,
+  offeredLevels,
   periodLabel,
+  type LevelFilter,
 } from './format';
 
 interface Props {
   entry: CatalogEntry;
+  /** Katalogda tanlangan daraja — karta o'sha darajaning ma'lumotini ko'rsatadi. */
+  level?: LevelFilter;
   onOpen: (entry: CatalogEntry) => void;
 }
 
@@ -20,16 +27,19 @@ interface Props {
  * Katalogdagi bitta universitet. Xodim bir qarashda ko'rishi kerak bo'lgani:
  * nomi (ingliz + koreys), shahri, kontrakt narxi va TOPIK/IELTS talabi.
  */
-export function UniversityCard({ entry, onOpen }: Props) {
+export function UniversityCard({ entry, level = 'hammasi', onOpen }: Props) {
   const { primary, secondary } = displayName(entry);
   const city = cityLabel(entry);
-  const latest = entry.latest;
+  const latest = focusGuideline(entry, level);
   const contract = contractRange(latest);
   const badges = languageBadges(latest);
   const admission = admissionLabel(latest);
   const period = periodLabel(latest?.kontrakt_davri);
-  const hasBakalavr = entry.guidelines.some((g) => g.daraja === 'bakalavr');
-  const hasMagistr = entry.guidelines.some((g) => g.daraja === 'magistratura');
+  const levels = offeredLevels(entry);
+  const missingLabel =
+    level === 'hammasi' || entry.guidelines.length === 0
+      ? 'Excel yuklanmagan'
+      : `${levelLabel(level)} Excel'i yuklanmagan`;
 
   return (
     <Card
@@ -111,18 +121,20 @@ export function UniversityCard({ entry, onOpen }: Props) {
         ) : (
           <div className="flex items-center gap-2 pt-1 text-xs text-muted-foreground">
             <Building2 className="h-3.5 w-3.5" aria-hidden="true" />
-            Excel yuklanmagan
+            {missingLabel}
           </div>
         )}
 
-        {/* Bakalavr va magistr fayllari alohida yuklanadi — ikkalasi ham bormi shu yerdan ko'rinadi. */}
+        {/* Har bir daraja fayli alohida yuklanadi — universitetda bor darajalardan qaysi biri yuklangani shu yerdan ko'rinadi. */}
         <div className="flex flex-wrap gap-1.5">
-          <Badge variant={hasBakalavr ? 'successSoft' : 'neutral'} className="text-[11px]">
-            Bakalavr {hasBakalavr ? '✓' : '—'}
-          </Badge>
-          <Badge variant={hasMagistr ? 'successSoft' : 'neutral'} className="text-[11px]">
-            Magistr {hasMagistr ? '✓' : '—'}
-          </Badge>
+          {levels.map((l) => {
+            const loaded = guidelinesForLevel(entry, l).length > 0;
+            return (
+              <Badge key={l} variant={loaded ? 'successSoft' : 'neutral'} className="text-[11px]">
+                {levelLabel(l)} {loaded ? '✓' : '—'}
+              </Badge>
+            );
+          })}
         </div>
       </CardContent>
     </Card>
