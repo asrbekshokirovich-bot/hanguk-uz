@@ -58,6 +58,11 @@ Future<void> showContactSheet(
     context,
     builder: (_) => _ContactSheet(openTelegramAfter: openTelegramAfter),
   );
+  if (outcome == _Outcome.universities && context.mounted) {
+    // Sent: on to the universities, the guest catalogue S01 also opens.
+    context.go('/guest');
+    return;
+  }
   if (outcome == _Outcome.student && context.mounted) {
     // Already a client: the client-code sign-in, with the notice the old
     // sign-up step showed.
@@ -71,7 +76,10 @@ Future<void> showContactSheet(
   }
 }
 
-enum _Outcome { student }
+enum _Outcome { student, universities }
+
+/// How long the thank-you stays before the sheet moves on to the universities.
+const Duration kContactSuccessLeaveAfter = Duration(seconds: 3);
 
 enum _Error { name, phone, network }
 
@@ -88,6 +96,9 @@ class _ContactSheetState extends ConsumerState<_ContactSheet> {
   final TextEditingController _name = TextEditingController();
   final TextEditingController _phone = TextEditingController();
   late bool _telegram = widget.openTelegramAfter;
+
+  /// The answers were sent from this sheet just now (not an earlier visit).
+  bool _justSent = false;
   bool _sending = false;
   _Error? _error;
 
@@ -144,6 +155,7 @@ class _ContactSheetState extends ConsumerState<_ContactSheet> {
         ref
             .read(quizProvider.notifier)
             .markSubmitted(phone: phone, name: name, linkCode: res.linkCode);
+        setState(() => _justSent = true);
         // The success state has no Telegram button, so the plan's chat opens
         // straight away when the toggle asked for it.
         if (_telegram && res.linkCode != null) {
@@ -180,6 +192,7 @@ class _ContactSheetState extends ConsumerState<_ContactSheet> {
       return _Success(
         name: quiz.submittedName ?? '',
         phone: quiz.submittedPhone!,
+        leaveToUniversities: _justSent,
       );
     }
     final l = AppLocalizations.of(context)!;
@@ -462,18 +475,50 @@ class _TelegramToggle extends StatelessWidget {
 }
 
 /// "S04 · muvaffaqiyat".
-class _Success extends StatelessWidget {
-  const _Success({required this.name, required this.phone});
+class _Success extends StatefulWidget {
+  const _Success({
+    required this.name,
+    required this.phone,
+    this.leaveToUniversities = false,
+  });
 
   final String name;
 
   /// `+998XXXXXXXXX`.
   final String phone;
 
+  /// Right after sending: after [kContactSuccessLeaveAfter] the sheet closes
+  /// and the universities open, unless "Natijaga qaytish" was tapped first.
+  /// Off when the sheet is opened again on an already sent result.
+  final bool leaveToUniversities;
+
+  @override
+  State<_Success> createState() => _SuccessState();
+}
+
+class _SuccessState extends State<_Success> {
+  Timer? _leave;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.leaveToUniversities) {
+      _leave = Timer(kContactSuccessLeaveAfter, () {
+        if (mounted) Navigator.of(context).pop(_Outcome.universities);
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _leave?.cancel();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
-    final national = UzPhoneFormatter.format(UzPhoneFormatter.digitsOf(phone));
+    final national = UzPhoneFormatter.format(UzPhoneFormatter.digitsOf(widget.phone));
     return Padding(
       padding: const EdgeInsets.fromLTRB(8, 20, 8, 8),
       child: Column(
@@ -500,7 +545,7 @@ class _Success extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            l.onbContactSuccess(name),
+            l.onbContactSuccess(widget.name),
             textAlign: TextAlign.center,
             style: onbText(
               21,
@@ -520,7 +565,10 @@ class _Success extends StatelessWidget {
             width: double.infinity,
             child: OnbOutlineButton(
               label: l.onbContactBackToResult,
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () {
+                _leave?.cancel();
+                Navigator.of(context).pop();
+              },
             ),
           ),
         ],
