@@ -23,8 +23,8 @@ int? tariffServiceCount(Tariff t) => switch (t) {
 };
 
 /// S06 — Tarif tafsiloti for [code] ('standart', 'premium', 'no_risk',
-/// 'hanbox'): when you pay, what is and is not included, the refund terms,
-/// questions and answers, and the call to action.
+/// 'hanbox'): when you pay, what is and is not included, questions and
+/// answers, and the call to action.
 class TariffDetailScreen extends ConsumerStatefulWidget {
   const TariffDetailScreen({super.key, required this.code});
 
@@ -33,8 +33,6 @@ class TariffDetailScreen extends ConsumerStatefulWidget {
   @override
   ConsumerState<TariffDetailScreen> createState() => _TariffDetailScreenState();
 }
-
-enum _Refund { none, noRisk, hanbox }
 
 class _PayRow {
   const _PayRow(this.title, this.amount, {this.notes = const []});
@@ -57,7 +55,6 @@ class _Detail {
     required this.footer,
     required this.included,
     required this.excluded,
-    required this.refund,
     required this.faq,
   });
 
@@ -65,7 +62,6 @@ class _Detail {
   final String? footer;
   final List<String> included;
   final List<String> excluded;
-  final _Refund refund;
   final List<_Faq> faq;
 }
 
@@ -106,7 +102,6 @@ _Detail _detailFor(AppLocalizations l, Tariff t) {
         l.onbTariffIncSimBank,
       ],
       excluded: excludedAll,
-      refund: _Refund.none,
       faq: twoStepFaq(5),
     ),
     Tariff.premium => _Detail(
@@ -127,7 +122,6 @@ _Detail _detailFor(AppLocalizations l, Tariff t) {
         l.onbTariffIncFirstWeek,
       ],
       excluded: excludedAll,
-      refund: _Refund.none,
       faq: twoStepFaq(10),
     ),
     Tariff.noRisk => _Detail(
@@ -152,7 +146,6 @@ _Detail _detailFor(AppLocalizations l, Tariff t) {
         l.onbTariffIncAppFee,
       ],
       excluded: [l.onbTariffExVisaFee],
-      refund: _Refund.noRisk,
       faq: [_Faq(l.onbTariffFaqContractQ, l.onbTariffFaqContractANoRisk)],
     ),
     Tariff.hanbox => _Detail(
@@ -171,7 +164,6 @@ _Detail _detailFor(AppLocalizations l, Tariff t) {
         l.onbTariffExVisa,
         l.onbTariffExLiving,
       ],
-      refund: _Refund.hanbox,
       faq: [_Faq(l.onbTariffFaqContractQ, l.onbTariffFaqContractA)],
     ),
   };
@@ -241,7 +233,6 @@ class _TariffDetailScreenState extends ConsumerState<TariffDetailScreen> {
           ], 10),
         ),
       ),
-      if (d.refund != _Refund.none) _RefundCard(refund: d.refund),
       if (d.faq.isNotEmpty)
         Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -450,44 +441,6 @@ class _CheckPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-class _RefundCard extends StatelessWidget {
-  const _RefundCard({required this.refund});
-
-  final _Refund refund;
-
-  @override
-  Widget build(BuildContext context) {
-    final l = AppLocalizations.of(context)!;
-    final green = refund == _Refund.noRisk;
-    return ConstrainedBox(
-      constraints: const BoxConstraints(minHeight: 120),
-      child: OnbCard(
-        fillColor: green ? OnbColors.green.withValues(alpha: 0.1) : OnbColors.fill,
-        borderColor: green ? OnbColors.green.withValues(alpha: 0.45) : OnbColors.border,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              l.onbTariffRefundTitle,
-              style: onbText(15, FontWeight.w700, color: green ? OnbColors.green : Colors.white),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              green ? l.onbTariffRefundNoRisk : l.onbTariffRefundHanbox,
-              style: onbText(
-                13,
-                FontWeight.w400,
-                color: green ? OnbColors.white85 : OnbColors.white64,
-                height: 1.45,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
 
 class _FaqItem extends StatelessWidget {

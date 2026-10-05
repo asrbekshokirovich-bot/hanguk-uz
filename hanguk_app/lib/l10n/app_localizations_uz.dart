@@ -3126,17 +3126,6 @@ class AppLocalizationsUz extends AppLocalizations {
       'Kursdan keyin — Standart konsalting bepul (TOPIK 2, 80% davomat, to\'liq to\'lov)';
 
   @override
-  String get onbTariffRefundTitle => 'Qaytarish';
-
-  @override
-  String get onbTariffRefundNoRisk =>
-      'Viza chiqmasa — \$5 000 to\'liq qaytariladi. Bir shart: o\'zingiz voz kechmasangiz.';
-
-  @override
-  String get onbTariffRefundHanbox =>
-      'Qaytarish yo\'q, kursni tashlasangiz to\'lov qaytmaydi.';
-
-  @override
   String get onbTariffFaqTitle => 'Savol-javob';
 
   @override
