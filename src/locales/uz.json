@@ -1080,7 +1080,7 @@
           "korean": "Koreys tili",
           "english": "Ingliz tili",
           "money": "Byudjet va kim to'laydi",
-          "documents": "Daromad va spravka",
+          "documents": "Daromad va depozit",
           "whereWhen": "Viloyat va qachon"
         },
         "band": {
@@ -1101,7 +1101,9 @@
           "topik1": "Sejong 1A / TOPIK 1",
           "topik2": "TOPIK 2",
           "topik3plus": "TOPIK 3 va yuqori",
-          "unknown": "Bilmayman"
+          "unknown": "Bilmayman",
+          "topik3": "TOPIK 3",
+          "topik4plus": "TOPIK 4 va yuqori"
         },
         "english": {
           "none": "Yo'q",
@@ -1138,6 +1140,13 @@
           "premium": "Premium",
           "no_risk": "NO RISK",
           "hanbox": "Hanbox"
+        },
+        "kdb": "KDB depozit",
+        "kdbStatus": {
+          "ready": "tayyor",
+          "by_intake": "qabulgacha qo'yadi",
+          "no": "yo'q",
+          "unknown": "bilmaydi"
         }
       }
     }

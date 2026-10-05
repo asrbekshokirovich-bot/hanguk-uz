@@ -2784,22 +2784,23 @@ class AppLocalizationsUz extends AppLocalizations {
   String get onbResultFactorsTitle => 'Nimaga ta\'sir qildi';
 
   @override
-  String get onbResultFactorKoreanStrong => 'TOPIK 3 va yuqori';
+  String get onbResultFactorKoreanStrong =>
+      'TOPIK 3 va yuqori — bakalavr talabi bajarilgan';
 
   @override
   String get onbResultFactorKoreanTopik2Degree =>
-      'TOPIK 2, ko\'p OTM TOPIK 3 so\'raydi';
+      'TOPIK 2 — bakalavrga elchixona TOPIK 3 talab qiladi, kasbiy kollejga yetadi';
 
   @override
   String get onbResultFactorKoreanMissingDegree =>
-      'TOPIK 2 dan past, ko\'p OTM TOPIK 3 so\'raydi';
+      'Bakalavr uchun elchixona TOPIK 3 talab qiladi';
 
   @override
   String get onbResultFactorKoreanCollegeStrong => 'TOPIK 3 va yuqori';
 
   @override
   String get onbResultFactorKoreanCollegeTopik2 =>
-      'TOPIK 2 — kasbiy kollej TOPIK 2 qabul qiladi';
+      'TOPIK 2 — kasbiy kollej talabi bajarilgan';
 
   @override
   String get onbResultFactorKoreanCourseCertificate =>
@@ -2807,7 +2808,7 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get onbResultFactorKoreanCourseMissing =>
-      'Koreys tili sertifikati yo\'q';
+      'Til kursi vizasi uchun TOPIK 1 yoki Sejong sertifikati shart';
 
   @override
   String get onbResultFactorIncomeYes => 'Ota-ona rasmiy daromadi';
@@ -3228,7 +3229,7 @@ class AppLocalizationsUz extends AppLocalizations {
   String get onbQuizKoreanTopik2 => 'TOPIK 2';
 
   @override
-  String get onbQuizKoreanTopik3 => 'TOPIK 3 va yuqori';
+  String get onbQuizKoreanTopik3 => 'TOPIK 3';
 
   @override
   String get onbQuizKoreanUnknown => 'Hali bilmayman';
@@ -3363,11 +3364,75 @@ class AppLocalizationsUz extends AppLocalizations {
   String get onbQuizIntakeQ => 'Qachon ketmoqchisiz?';
 
   @override
-  String get onbResultFactorEnglishStrong => 'IELTS 5.5 va yuqori';
+  String get onbResultFactorEnglishStrong =>
+      'IELTS 5.5 va yuqori — ingliz tilidagi dasturlar uchun';
 
   @override
   String get onbResultPartner => 'Rasmiy hamkor';
 
   @override
   String get onbResultLanguageLabel => 'Til talabi';
+
+  @override
+  String get onbQuizKoreanTopik4 => 'TOPIK 4 va yuqori';
+
+  @override
+  String get onbQuizKdbQ =>
+      'Talaba nomiga KDB bankida depozit qo\'ya olasizmi?';
+
+  @override
+  String onbQuizKdbHint(String low, String high, String months) {
+    return 'Elchixona talabi: $low (boshqa shaharlar) yoki $high (Seul, Gyeonggi, Incheon), kamida $months oy turishi kerak.';
+  }
+
+  @override
+  String get onbQuizKdbReady => 'Ha, hozir bor';
+
+  @override
+  String get onbQuizKdbByIntake => 'Ha, qabulgacha qo\'yamiz';
+
+  @override
+  String get onbQuizKdbNo => 'Yo\'q';
+
+  @override
+  String get onbQuizKdbUnknown => 'Hali bilmayman';
+
+  @override
+  String get onbResultFactorKoreanMasterStrong =>
+      'TOPIK 4 va yuqori — magistratura talabi bajarilgan';
+
+  @override
+  String get onbResultFactorKoreanTopik3Master =>
+      'TOPIK 3 — magistraturaga elchixona TOPIK 4 talab qiladi';
+
+  @override
+  String get onbResultFactorKoreanMissingMaster =>
+      'Magistratura uchun elchixona TOPIK 4 talab qiladi';
+
+  @override
+  String get onbResultFactorKoreanCollegeMissing =>
+      'Kasbiy kollej uchun elchixona TOPIK 2 talab qiladi';
+
+  @override
+  String get onbResultFactorKdbReady => 'KDB depozit talaba nomida tayyor';
+
+  @override
+  String get onbResultFactorKdbByIntake =>
+      'KDB depozit hali qo\'yilmagan — arizadan oldin kerak';
+
+  @override
+  String get onbResultFactorKdbNo =>
+      'KDB depozit yo\'q — elchixona uni majburiy talab qiladi';
+
+  @override
+  String get onbResultFactorBudgetBelowDeposit =>
+      'Byudjet KDB depozit summasidan kam';
+
+  @override
+  String get onbResultBandLowNoteLanguage =>
+      'Til sertifikati elchixona talabidan past — sertifikatsiz ariza suhbatsiz rad etiladi.';
+
+  @override
+  String get onbResultBandLowNoteMoney =>
+      'Moliyaviy talab (talaba nomida KDB depozit va ota-ona hujjatlari) hali yetarli emas.';
 }

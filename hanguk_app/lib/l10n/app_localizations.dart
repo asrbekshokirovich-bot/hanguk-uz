@@ -5066,22 +5066,22 @@ abstract class AppLocalizations {
   /// **'What affected it'**
   String get onbResultFactorsTitle;
 
-  /// S03 factor (+): degree route, TOPIK 3+
+  /// Result factor
   ///
   /// In en, this message translates to:
-  /// **'TOPIK 3 or higher'**
+  /// **'TOPIK 3 or higher — the bachelor\'s requirement is met'**
   String get onbResultFactorKoreanStrong;
 
-  /// S03 factor (−): degree route, TOPIK 2
+  /// Result factor
   ///
   /// In en, this message translates to:
-  /// **'TOPIK 2, many universities ask for TOPIK 3'**
+  /// **'TOPIK 2 — the embassy asks for TOPIK 3 for a bachelor\'s; enough for a college'**
   String get onbResultFactorKoreanTopik2Degree;
 
-  /// S03 factor (−): degree route, no certificate / TOPIK 1
+  /// Result factor
   ///
   /// In en, this message translates to:
-  /// **'Below TOPIK 2, many universities ask for TOPIK 3'**
+  /// **'The embassy asks for TOPIK 3 for a bachelor\'s'**
   String get onbResultFactorKoreanMissingDegree;
 
   /// S03 factor (+): vocational college, TOPIK 3+
@@ -5090,10 +5090,10 @@ abstract class AppLocalizations {
   /// **'TOPIK 3 or higher'**
   String get onbResultFactorKoreanCollegeStrong;
 
-  /// S03 factor (+): vocational college, TOPIK 2
+  /// Result factor
   ///
   /// In en, this message translates to:
-  /// **'TOPIK 2 — vocational colleges accept TOPIK 2'**
+  /// **'TOPIK 2 — the college requirement is met'**
   String get onbResultFactorKoreanCollegeTopik2;
 
   /// S03 factor (+): language course, Sejong 1A / TOPIK 1+
@@ -5102,10 +5102,10 @@ abstract class AppLocalizations {
   /// **'Sejong 1A / TOPIK 1 certificate'**
   String get onbResultFactorKoreanCourseCertificate;
 
-  /// S03 factor (−): no Korean certificate
+  /// Result factor
   ///
   /// In en, this message translates to:
-  /// **'No Korean language certificate'**
+  /// **'A language-course visa needs TOPIK 1 or a Sejong certificate'**
   String get onbResultFactorKoreanCourseMissing;
 
   /// S03 factor (+): parents' official income
@@ -5852,10 +5852,10 @@ abstract class AppLocalizations {
   /// **'TOPIK 2'**
   String get onbQuizKoreanTopik2;
 
-  /// S02 Q3 option: TOPIK 3 or higher.
+  /// Quiz Korean option
   ///
   /// In en, this message translates to:
-  /// **'TOPIK 3 or higher'**
+  /// **'TOPIK 3'**
   String get onbQuizKoreanTopik3;
 
   /// S02 Q3 option: don't know yet.
@@ -6104,10 +6104,10 @@ abstract class AppLocalizations {
   /// **'When do you want to go?'**
   String get onbQuizIntakeQ;
 
-  /// S03 factor: a master's applicant with IELTS 5.5 or higher.
+  /// Result factor
   ///
   /// In en, this message translates to:
-  /// **'IELTS 5.5 or higher'**
+  /// **'IELTS 5.5 or higher — for English-taught programmes'**
   String get onbResultFactorEnglishStrong;
 
   /// S03 university card badge: an official HANGUK partner university.
@@ -6121,6 +6121,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Language'**
   String get onbResultLanguageLabel;
+
+  /// Quiz Korean option
+  ///
+  /// In en, this message translates to:
+  /// **'TOPIK 4 or higher'**
+  String get onbQuizKoreanTopik4;
+
+  /// Quiz question: the KDB deposit
+  ///
+  /// In en, this message translates to:
+  /// **'Can you open the KDB deposit in the student\'s name?'**
+  String get onbQuizKdbQ;
+
+  /// Hint under the KDB question
+  ///
+  /// In en, this message translates to:
+  /// **'The embassy asks for {low} (other cities) or {high} (Seoul, Gyeonggi, Incheon), held for at least {months} month(s).'**
+  String onbQuizKdbHint(String low, String high, String months);
+
+  /// KDB option
+  ///
+  /// In en, this message translates to:
+  /// **'Yes, it is there now'**
+  String get onbQuizKdbReady;
+
+  /// KDB option
+  ///
+  /// In en, this message translates to:
+  /// **'Yes, before the intake'**
+  String get onbQuizKdbByIntake;
+
+  /// KDB option
+  ///
+  /// In en, this message translates to:
+  /// **'No'**
+  String get onbQuizKdbNo;
+
+  /// KDB option
+  ///
+  /// In en, this message translates to:
+  /// **'Not sure yet'**
+  String get onbQuizKdbUnknown;
+
+  /// Result factor
+  ///
+  /// In en, this message translates to:
+  /// **'TOPIK 4 or higher — the master\'s requirement is met'**
+  String get onbResultFactorKoreanMasterStrong;
+
+  /// Result factor
+  ///
+  /// In en, this message translates to:
+  /// **'TOPIK 3 — the embassy asks for TOPIK 4 for a master\'s'**
+  String get onbResultFactorKoreanTopik3Master;
+
+  /// Result factor
+  ///
+  /// In en, this message translates to:
+  /// **'The embassy asks for TOPIK 4 for a master\'s'**
+  String get onbResultFactorKoreanMissingMaster;
+
+  /// Result factor
+  ///
+  /// In en, this message translates to:
+  /// **'The embassy asks for TOPIK 2 for a college'**
+  String get onbResultFactorKoreanCollegeMissing;
+
+  /// Result factor
+  ///
+  /// In en, this message translates to:
+  /// **'The KDB deposit is ready in the student\'s name'**
+  String get onbResultFactorKdbReady;
+
+  /// Result factor
+  ///
+  /// In en, this message translates to:
+  /// **'The KDB deposit is not there yet — needed before applying'**
+  String get onbResultFactorKdbByIntake;
+
+  /// Result factor
+  ///
+  /// In en, this message translates to:
+  /// **'No KDB deposit — the embassy requires it'**
+  String get onbResultFactorKdbNo;
+
+  /// Result factor
+  ///
+  /// In en, this message translates to:
+  /// **'The budget is below the KDB deposit'**
+  String get onbResultFactorBudgetBelowDeposit;
+
+  /// Low band note: language
+  ///
+  /// In en, this message translates to:
+  /// **'The language certificate is below the embassy\'s requirement — without it the application is refused without an interview.'**
+  String get onbResultBandLowNoteLanguage;
+
+  /// Low band note: money
+  ///
+  /// In en, this message translates to:
+  /// **'The financial requirement (a KDB deposit in the student\'s name and the parents\' papers) is not met yet.'**
+  String get onbResultBandLowNoteMoney;
 }
 
 class _AppLocalizationsDelegate

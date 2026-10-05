@@ -2764,22 +2764,23 @@ class AppLocalizationsVi extends AppLocalizations {
   String get onbResultFactorsTitle => 'What affected it';
 
   @override
-  String get onbResultFactorKoreanStrong => 'TOPIK 3 or higher';
+  String get onbResultFactorKoreanStrong =>
+      'TOPIK 3 or higher — the bachelor\'s requirement is met';
 
   @override
   String get onbResultFactorKoreanTopik2Degree =>
-      'TOPIK 2, many universities ask for TOPIK 3';
+      'TOPIK 2 — the embassy asks for TOPIK 3 for a bachelor\'s; enough for a college';
 
   @override
   String get onbResultFactorKoreanMissingDegree =>
-      'Below TOPIK 2, many universities ask for TOPIK 3';
+      'The embassy asks for TOPIK 3 for a bachelor\'s';
 
   @override
   String get onbResultFactorKoreanCollegeStrong => 'TOPIK 3 or higher';
 
   @override
   String get onbResultFactorKoreanCollegeTopik2 =>
-      'TOPIK 2 — vocational colleges accept TOPIK 2';
+      'TOPIK 2 — the college requirement is met';
 
   @override
   String get onbResultFactorKoreanCourseCertificate =>
@@ -2787,7 +2788,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get onbResultFactorKoreanCourseMissing =>
-      'No Korean language certificate';
+      'A language-course visa needs TOPIK 1 or a Sejong certificate';
 
   @override
   String get onbResultFactorIncomeYes => 'Parents\' official income';
@@ -3217,7 +3218,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get onbQuizKoreanTopik2 => 'TOPIK 2';
 
   @override
-  String get onbQuizKoreanTopik3 => 'TOPIK 3 or higher';
+  String get onbQuizKoreanTopik3 => 'TOPIK 3';
 
   @override
   String get onbQuizKoreanUnknown => 'Not sure yet';
@@ -3352,11 +3353,75 @@ class AppLocalizationsVi extends AppLocalizations {
   String get onbQuizIntakeQ => 'When do you want to go?';
 
   @override
-  String get onbResultFactorEnglishStrong => 'IELTS 5.5 or higher';
+  String get onbResultFactorEnglishStrong =>
+      'IELTS 5.5 or higher — for English-taught programmes';
 
   @override
   String get onbResultPartner => 'Official partner';
 
   @override
   String get onbResultLanguageLabel => 'Language';
+
+  @override
+  String get onbQuizKoreanTopik4 => 'TOPIK 4 or higher';
+
+  @override
+  String get onbQuizKdbQ =>
+      'Can you open the KDB deposit in the student\'s name?';
+
+  @override
+  String onbQuizKdbHint(String low, String high, String months) {
+    return 'The embassy asks for $low (other cities) or $high (Seoul, Gyeonggi, Incheon), held for at least $months month(s).';
+  }
+
+  @override
+  String get onbQuizKdbReady => 'Yes, it is there now';
+
+  @override
+  String get onbQuizKdbByIntake => 'Yes, before the intake';
+
+  @override
+  String get onbQuizKdbNo => 'No';
+
+  @override
+  String get onbQuizKdbUnknown => 'Not sure yet';
+
+  @override
+  String get onbResultFactorKoreanMasterStrong =>
+      'TOPIK 4 or higher — the master\'s requirement is met';
+
+  @override
+  String get onbResultFactorKoreanTopik3Master =>
+      'TOPIK 3 — the embassy asks for TOPIK 4 for a master\'s';
+
+  @override
+  String get onbResultFactorKoreanMissingMaster =>
+      'The embassy asks for TOPIK 4 for a master\'s';
+
+  @override
+  String get onbResultFactorKoreanCollegeMissing =>
+      'The embassy asks for TOPIK 2 for a college';
+
+  @override
+  String get onbResultFactorKdbReady =>
+      'The KDB deposit is ready in the student\'s name';
+
+  @override
+  String get onbResultFactorKdbByIntake =>
+      'The KDB deposit is not there yet — needed before applying';
+
+  @override
+  String get onbResultFactorKdbNo => 'No KDB deposit — the embassy requires it';
+
+  @override
+  String get onbResultFactorBudgetBelowDeposit =>
+      'The budget is below the KDB deposit';
+
+  @override
+  String get onbResultBandLowNoteLanguage =>
+      'The language certificate is below the embassy\'s requirement — without it the application is refused without an interview.';
+
+  @override
+  String get onbResultBandLowNoteMoney =>
+      'The financial requirement (a KDB deposit in the student\'s name and the parents\' papers) is not met yet.';
 }

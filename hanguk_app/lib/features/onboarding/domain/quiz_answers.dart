@@ -35,7 +35,8 @@ enum KoreanLevel {
   learning('learning', 0),
   topik1('topik1', 1),
   topik2('topik2', 2),
-  topik3plus('topik3plus', 3),
+  topik3('topik3', 3),
+  topik4plus('topik4plus', 4),
   unknown('unknown', 0);
 
   const KoreanLevel(this.code, this.topik);
@@ -88,7 +89,19 @@ enum Payer {
   final String code;
 }
 
-/// 10 — When.
+/// 9 — The deposit the embassy asks for: a KDB Bank Uzbekistan account in the
+/// student's name, held for a set time before applying.
+enum KdbDeposit {
+  ready('ready'),
+  byIntake('by_intake'),
+  no('no'),
+  unknown('unknown');
+
+  const KdbDeposit(this.code);
+  final String code;
+}
+
+/// 11 — When.
 enum Intake {
   spring2027('2027_spring'),
   fall2027('2027_fall'),
@@ -98,7 +111,7 @@ enum Intake {
   final String code;
 }
 
-/// Regions offered in question 9. Stored values, kept as the CRM's intake form
+/// Regions offered in question 10. Stored values, kept as the CRM's intake form
 /// lists them (`src/components/crm/leads/intake/options.ts`, CITIES).
 const List<String> kQuizRegions = [
   'Toshkent',
@@ -120,7 +133,7 @@ const List<String> kQuizRegions = [
 const List<int> kQuizAges = [16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31];
 
 /// Number of questions in S02.
-const int kQuizSteps = 10;
+const int kQuizSteps = 11;
 
 @immutable
 class QuizAnswers {
@@ -134,6 +147,7 @@ class QuizAnswers {
     this.budget,
     this.payer,
     this.formalIncome,
+    this.kdb,
     this.region,
     this.intake,
   });
@@ -153,6 +167,7 @@ class QuizAnswers {
 
   /// Parents have an official income.
   final bool? formalIncome;
+  final KdbDeposit? kdb;
   final String? region;
   final Intake? intake;
 
@@ -166,8 +181,9 @@ class QuizAnswers {
     6 => budget != null,
     7 => payer != null,
     8 => formalIncome != null,
-    9 => region != null,
-    10 => intake != null,
+    9 => kdb != null,
+    10 => region != null,
+    11 => intake != null,
     _ => false,
   };
 
@@ -183,6 +199,7 @@ class QuizAnswers {
     Budget? budget,
     Payer? payer,
     bool? formalIncome,
+    KdbDeposit? kdb,
     String? region,
     Intake? intake,
     bool clearGradYear = false,
@@ -197,6 +214,7 @@ class QuizAnswers {
       budget: budget ?? this.budget,
       payer: payer ?? this.payer,
       formalIncome: formalIncome ?? this.formalIncome,
+      kdb: kdb ?? this.kdb,
       region: region ?? this.region,
       intake: intake ?? this.intake,
     );
@@ -213,6 +231,7 @@ class QuizAnswers {
     if (budget != null) 'budget': budget!.code,
     if (payer != null) 'payer': payer!.code,
     if (formalIncome != null) 'formal_income': formalIncome! ? 'yes' : 'no',
+    if (kdb != null) 'kdb': kdb!.code,
     if (region != null) 'region': region,
     if (intake != null) 'intake': intake!.code,
   };

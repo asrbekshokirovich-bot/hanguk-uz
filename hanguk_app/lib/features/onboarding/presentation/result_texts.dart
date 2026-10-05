@@ -31,23 +31,36 @@ String bandTitle(AppLocalizations l, EligibilityBand b) => switch (b) {
   EligibilityBand.low => l.onbResultBandLow,
 };
 
-String bandNote(AppLocalizations l, EligibilityBand b) => switch (b) {
+/// The note under the band; a low band names its reason.
+String bandNote(AppLocalizations l, EligibilityBand b, [LowReason? reason]) => switch (b) {
   EligibilityBand.high => l.onbResultBandHighNote,
   EligibilityBand.mid => l.onbResultBandMidNote,
-  EligibilityBand.low => l.onbResultBandLowNote,
+  EligibilityBand.low => switch (reason) {
+    LowReason.language => l.onbResultBandLowNoteLanguage,
+    LowReason.money => l.onbResultBandLowNoteMoney,
+    LowReason.both || null => l.onbResultBandLowNote,
+  },
 };
 
 String factorLabel(AppLocalizations l, FactorKind k) => switch (k) {
   FactorKind.koreanStrong => l.onbResultFactorKoreanStrong,
+  FactorKind.koreanMasterStrong => l.onbResultFactorKoreanMasterStrong,
   FactorKind.englishStrong => l.onbResultFactorEnglishStrong,
   FactorKind.koreanTopik2Degree => l.onbResultFactorKoreanTopik2Degree,
   FactorKind.koreanMissingDegree => l.onbResultFactorKoreanMissingDegree,
+  FactorKind.koreanTopik3Master => l.onbResultFactorKoreanTopik3Master,
+  FactorKind.koreanMissingMaster => l.onbResultFactorKoreanMissingMaster,
   FactorKind.koreanCollegeStrong => l.onbResultFactorKoreanCollegeStrong,
   FactorKind.koreanCollegeTopik2 => l.onbResultFactorKoreanCollegeTopik2,
+  FactorKind.koreanCollegeMissing => l.onbResultFactorKoreanCollegeMissing,
   FactorKind.koreanCourseCertificate => l.onbResultFactorKoreanCourseCertificate,
   FactorKind.koreanCourseMissing => l.onbResultFactorKoreanCourseMissing,
   FactorKind.incomeYes => l.onbResultFactorIncomeYes,
   FactorKind.incomeNo => l.onbResultFactorIncomeNo,
+  FactorKind.kdbReady => l.onbResultFactorKdbReady,
+  FactorKind.kdbByIntake => l.onbResultFactorKdbByIntake,
+  FactorKind.kdbNo => l.onbResultFactorKdbNo,
+  FactorKind.budgetBelowDeposit => l.onbResultFactorBudgetBelowDeposit,
   FactorKind.gradRecent => l.onbResultFactorGradRecent,
   FactorKind.gradGapLong => l.onbResultFactorGradGapLong,
   FactorKind.ageHigh => l.onbResultFactorAgeHigh,
@@ -117,7 +130,7 @@ String planText(AppLocalizations l, QuizAnswers a, EligibilityResult r) {
   final ctx = contextLine(l, a);
   if (ctx.isNotEmpty) out.add(ctx);
 
-  out.add('${bandTitle(l, r.band)}\n${bandNote(l, r.band)}');
+  out.add('${bandTitle(l, r.band)}\n${bandNote(l, r.band, r.lowReason)}');
 
   if (r.factors.isNotEmpty) {
     out.add(

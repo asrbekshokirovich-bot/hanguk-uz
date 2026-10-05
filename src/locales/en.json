@@ -1011,7 +1011,7 @@
           "korean": "Korean",
           "english": "English",
           "money": "Budget and payer",
-          "documents": "Income and statement",
+          "documents": "Income and deposit",
           "whereWhen": "Region and when"
         },
         "band": {
@@ -1032,7 +1032,9 @@
           "topik1": "Sejong 1A / TOPIK 1",
           "topik2": "TOPIK 2",
           "topik3plus": "TOPIK 3 or higher",
-          "unknown": "Don't know"
+          "unknown": "Don't know",
+          "topik3": "TOPIK 3",
+          "topik4plus": "TOPIK 4 or higher"
         },
         "english": {
           "none": "None",
@@ -1069,6 +1071,13 @@
           "premium": "Premium",
           "no_risk": "NO RISK",
           "hanbox": "Hanbox"
+        },
+        "kdb": "KDB deposit",
+        "kdbStatus": {
+          "ready": "ready",
+          "by_intake": "by the intake",
+          "no": "no",
+          "unknown": "not sure"
         }
       }
     }

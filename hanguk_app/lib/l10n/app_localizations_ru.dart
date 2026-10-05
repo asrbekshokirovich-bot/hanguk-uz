@@ -2781,22 +2781,23 @@ class AppLocalizationsRu extends AppLocalizations {
   String get onbResultFactorsTitle => 'Что повлияло';
 
   @override
-  String get onbResultFactorKoreanStrong => 'TOPIK 3 и выше';
+  String get onbResultFactorKoreanStrong =>
+      'TOPIK 3 и выше — требование для бакалавриата выполнено';
 
   @override
   String get onbResultFactorKoreanTopik2Degree =>
-      'TOPIK 2, многие вузы требуют TOPIK 3';
+      'TOPIK 2 — для бакалавриата посольство требует TOPIK 3, для колледжа достаточно';
 
   @override
   String get onbResultFactorKoreanMissingDegree =>
-      'Ниже TOPIK 2, многие вузы требуют TOPIK 3';
+      'Для бакалавриата посольство требует TOPIK 3';
 
   @override
   String get onbResultFactorKoreanCollegeStrong => 'TOPIK 3 и выше';
 
   @override
   String get onbResultFactorKoreanCollegeTopik2 =>
-      'TOPIK 2 — профессиональный колледж принимает TOPIK 2';
+      'TOPIK 2 — требование для колледжа выполнено';
 
   @override
   String get onbResultFactorKoreanCourseCertificate =>
@@ -2804,7 +2805,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get onbResultFactorKoreanCourseMissing =>
-      'Нет сертификата по корейскому языку';
+      'Для визы на языковые курсы нужен TOPIK 1 или сертификат Sejong';
 
   @override
   String get onbResultFactorIncomeYes => 'Официальный доход родителей';
@@ -3233,7 +3234,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get onbQuizKoreanTopik2 => 'TOPIK 2';
 
   @override
-  String get onbQuizKoreanTopik3 => 'TOPIK 3 и выше';
+  String get onbQuizKoreanTopik3 => 'TOPIK 3';
 
   @override
   String get onbQuizKoreanUnknown => 'Пока не знаю';
@@ -3368,11 +3369,74 @@ class AppLocalizationsRu extends AppLocalizations {
   String get onbQuizIntakeQ => 'Когда планируете поехать?';
 
   @override
-  String get onbResultFactorEnglishStrong => 'IELTS 5.5 и выше';
+  String get onbResultFactorEnglishStrong =>
+      'IELTS 5.5 и выше — для программ на английском';
 
   @override
   String get onbResultPartner => 'Официальный партнёр';
 
   @override
   String get onbResultLanguageLabel => 'Язык';
+
+  @override
+  String get onbQuizKoreanTopik4 => 'TOPIK 4 и выше';
+
+  @override
+  String get onbQuizKdbQ => 'Сможете открыть депозит в KDB на имя студента?';
+
+  @override
+  String onbQuizKdbHint(String low, String high, String months) {
+    return 'Требование посольства: $low (другие города) или $high (Сеул, Кёнгидо, Инчхон), не менее $months мес. на счёте.';
+  }
+
+  @override
+  String get onbQuizKdbReady => 'Да, уже есть';
+
+  @override
+  String get onbQuizKdbByIntake => 'Да, положим до набора';
+
+  @override
+  String get onbQuizKdbNo => 'Нет';
+
+  @override
+  String get onbQuizKdbUnknown => 'Пока не знаю';
+
+  @override
+  String get onbResultFactorKoreanMasterStrong =>
+      'TOPIK 4 и выше — требование для магистратуры выполнено';
+
+  @override
+  String get onbResultFactorKoreanTopik3Master =>
+      'TOPIK 3 — для магистратуры посольство требует TOPIK 4';
+
+  @override
+  String get onbResultFactorKoreanMissingMaster =>
+      'Для магистратуры посольство требует TOPIK 4';
+
+  @override
+  String get onbResultFactorKoreanCollegeMissing =>
+      'Для колледжа посольство требует TOPIK 2';
+
+  @override
+  String get onbResultFactorKdbReady => 'Депозит KDB на имя студента готов';
+
+  @override
+  String get onbResultFactorKdbByIntake =>
+      'Депозита KDB пока нет — он нужен до подачи';
+
+  @override
+  String get onbResultFactorKdbNo =>
+      'Нет депозита KDB — посольство требует его обязательно';
+
+  @override
+  String get onbResultFactorBudgetBelowDeposit =>
+      'Бюджет меньше суммы депозита KDB';
+
+  @override
+  String get onbResultBandLowNoteLanguage =>
+      'Языковой сертификат ниже требования посольства — без него заявление отклоняют без собеседования.';
+
+  @override
+  String get onbResultBandLowNoteMoney =>
+      'Финансовое требование (депозит KDB на имя студента и документы родителей) пока не выполнено.';
 }

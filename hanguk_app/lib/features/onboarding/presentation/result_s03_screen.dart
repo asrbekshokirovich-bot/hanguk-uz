@@ -89,7 +89,7 @@ class _ResultBody extends ConsumerWidget {
         ],
       ),
       // 2 — band.
-      _BandCard(band: r.band),
+      _BandCard(band: r.band, lowReason: r.lowReason),
       // 3 — what affected it.
       if (r.factors.isNotEmpty) _FactorsCard(factors: r.factors),
       // 4 — universities, or paths for a low band.
@@ -151,9 +151,10 @@ class _ResultBody extends ConsumerWidget {
 }
 
 class _BandCard extends StatelessWidget {
-  const _BandCard({required this.band});
+  const _BandCard({required this.band, this.lowReason});
 
   final EligibilityBand band;
+  final LowReason? lowReason;
 
   @override
   Widget build(BuildContext context) {
@@ -204,7 +205,7 @@ class _BandCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            bandNote(l, band),
+            bandNote(l, band, lowReason),
             style: onbText(14, FontWeight.w400, color: OnbColors.white85, height: 1.45),
           ),
         ],

@@ -9,6 +9,7 @@ import 'package:hanguk_app/features/onboarding/domain/eligibility_engine.dart';
 import 'package:hanguk_app/features/onboarding/domain/quiz_answers.dart';
 import 'package:hanguk_app/features/onboarding/presentation/contact_sheet_s04.dart';
 import 'package:hanguk_app/features/onboarding/presentation/quiz_s02_screen.dart';
+import 'package:hanguk_app/features/onboarding/presentation/welcome_s01_screen.dart';
 import 'package:hanguk_app/l10n/app_localizations.dart';
 
 class _Quiz extends QuizNotifier {
@@ -141,19 +142,79 @@ void main() {
     });
   });
 
+  test('S01 photos: each photo once', () {
+    expect(kWelcomePhotoAssets, hasLength(25));
+    expect(kWelcomePhotoAssets.toSet(), hasLength(kWelcomePhotoAssets.length));
+  });
+
+  testWidgets('S01: the photo changes every 4 seconds, then starts over', (t) async {
+    await t.pumpWidget(
+      ProviderScope(
+        overrides: [entryProvider.overrideWith(_Entry.new)],
+        child: MaterialApp(
+          locale: const Locale('uz'),
+          supportedLocales: AppLocalizations.supportedLocales,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          home: const OnboardingWelcomeScreen(),
+        ),
+      ),
+    );
+    String shown() => ((t.widgetList<Image>(find.byType(Image)).last.image) as AssetImage).assetName;
+
+    expect(shown(), kWelcomePhotoAssets[0]);
+    await t.pump(kWelcomePhotoInterval);
+    await t.pump(const Duration(seconds: 1));
+    expect(shown(), kWelcomePhotoAssets[1]);
+    for (var i = 1; i < kWelcomePhotoAssets.length; i++) {
+      await t.pump(kWelcomePhotoInterval);
+    }
+    await t.pump(const Duration(seconds: 1));
+    expect(shown(), kWelcomePhotoAssets[0]);
+  });
+
   testWidgets('S02: Davom etish waits for an answer, then moves on', (t) async {
     await t.pumpWidget(_app(const QuizScreen()));
-    expect(find.text('1 / 10'), findsOneWidget);
+    expect(find.text('1 / 11'), findsOneWidget);
 
     await t.tap(find.text('Davom etish'));
     await t.pump();
-    expect(find.text('1 / 10'), findsOneWidget);
+    expect(find.text('1 / 11'), findsOneWidget);
 
     await t.tap(find.text('Bakalavr'));
     await t.pump();
     await t.tap(find.text('Davom etish'));
     await t.pump();
-    expect(find.text('2 / 10'), findsOneWidget);
+    expect(find.text('2 / 11'), findsOneWidget);
+  });
+
+  testWidgets('S02 question 9 asks for the KDB deposit, with the amounts for the route', (t) async {
+    Future<void> show(StudyRoute route) => t.pumpWidget(
+      ProviderScope(
+        key: ValueKey(route),
+        overrides: [
+          quizProvider.overrideWith(() => _Quiz(QuizState(answers: QuizAnswers(route: route), step: 9))),
+          eligibilityRulesProvider.overrideWith((_) async => const EligibilityRules()),
+        ],
+        child: MaterialApp(
+          locale: const Locale('uz'),
+          supportedLocales: AppLocalizations.supportedLocales,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          home: const QuizScreen(),
+        ),
+      ),
+    );
+
+    await show(StudyRoute.bachelor);
+    await t.pump();
+    expect(find.text('9 / 11'), findsOneWidget);
+    expect(find.text("Talaba nomiga KDB bankida depozit qo'ya olasizmi?"), findsOneWidget);
+    expect(find.textContaining('\$12\u00A0500'), findsOneWidget);
+    expect(find.textContaining('kamida 1 oy'), findsOneWidget);
+
+    await show(StudyRoute.languageCourse);
+    await t.pump();
+    expect(find.textContaining('\$6\u00A0300'), findsOneWidget);
+    expect(find.textContaining('kamida 3 oy'), findsOneWidget);
   });
 
   testWidgets('S04 opens on the success state once submitted', (t) async {
