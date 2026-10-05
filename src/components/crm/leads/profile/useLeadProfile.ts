@@ -75,6 +75,13 @@ export interface LeadRecord {
   instagram_handle: string | null;
   /** Personal code for the t.me/<bot>?start=L_<code> link. */
   link_code: string | null;
+  /** The app's eligibility quiz (S02 answers, S03 result), when sent from the app. */
+  quiz_answers: Record<string, unknown> | null;
+  eligibility_result: Record<string, unknown> | null;
+  eligibility_band: 'high' | 'mid' | 'low' | null;
+  tariff_interest: string | null;
+  needs_operator: boolean | null;
+  quiz_submitted_at: string | null;
 }
 
 /** What link_lead_channel() answered. */
@@ -162,7 +169,7 @@ export function useLeadProfile(leadId: string | null): LeadProfile {
         db
           .from('leads')
           .select(
-            'id, full_name, phone, city, status, interest_level, current_stage, preferred_program, created_at, telegram_handle, instagram_handle, link_code',
+            'id, full_name, phone, city, status, interest_level, current_stage, preferred_program, created_at, telegram_handle, instagram_handle, link_code, quiz_answers, eligibility_result, eligibility_band, tariff_interest, needs_operator, quiz_submitted_at',
           )
           .eq('id', leadId)
           .maybeSingle(),

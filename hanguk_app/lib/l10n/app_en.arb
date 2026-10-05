@@ -3425,5 +3425,823 @@
   "interviewErrorCallFailed": "The call could not be connected. Please check your internet and try again.",
   "@interviewErrorCallFailed": {
     "description": "The interview voice call failed for a technical reason."
+  },
+  "onbResultRouteLanguageCourse": "Language course",
+  "@onbResultRouteLanguageCourse": {
+    "description": "S03 context line: study route"
+  },
+  "onbResultRouteBachelor": "Bachelor's",
+  "@onbResultRouteBachelor": {
+    "description": "S03 context line: study route"
+  },
+  "onbResultRouteMaster": "Master's",
+  "@onbResultRouteMaster": {
+    "description": "S03 context line: study route"
+  },
+  "onbResultRouteCollege": "Vocational college",
+  "@onbResultRouteCollege": {
+    "description": "S03 context line: study route"
+  },
+  "onbResultIntakeSpring2027": "Spring 2027",
+  "@onbResultIntakeSpring2027": {
+    "description": "S03 context line: intake"
+  },
+  "onbResultIntakeFall2027": "Fall 2027",
+  "@onbResultIntakeFall2027": {
+    "description": "S03 context line: intake"
+  },
+  "onbResultIntakeLater": "Later",
+  "@onbResultIntakeLater": {
+    "description": "S03 context line: intake"
+  },
+  "onbResultBandHigh": "High chance",
+  "@onbResultBandHigh": {
+    "description": "S03 band title"
+  },
+  "onbResultBandHighNote": "The main requirements are met — you can start on the documents.",
+  "@onbResultBandHighNote": {
+    "description": "S03 band one-line explanation"
+  },
+  "onbResultBandMid": "Medium chance",
+  "@onbResultBandMid": {
+    "description": "S03 band title"
+  },
+  "onbResultBandMidNote": "The way is open, but 1–2 points need strengthening.",
+  "@onbResultBandMidNote": {
+    "description": "S03 band one-line explanation"
+  },
+  "onbResultBandLow": "High risk for now — but there is a way",
+  "@onbResultBandLow": {
+    "description": "S03 band title (low band)"
+  },
+  "onbResultBandLowNote": "Language and financial documents are not enough yet.",
+  "@onbResultBandLowNote": {
+    "description": "S03 band one-line explanation (low band)"
+  },
+  "onbResultFactorsTitle": "What affected it",
+  "@onbResultFactorsTitle": {
+    "description": "S03 factors card title"
+  },
+  "onbResultFactorKoreanStrong": "TOPIK 3 or higher",
+  "@onbResultFactorKoreanStrong": {
+    "description": "S03 factor (+): degree route, TOPIK 3+"
+  },
+  "onbResultFactorKoreanTopik2Degree": "TOPIK 2, many universities ask for TOPIK 3",
+  "@onbResultFactorKoreanTopik2Degree": {
+    "description": "S03 factor (−): degree route, TOPIK 2"
+  },
+  "onbResultFactorKoreanMissingDegree": "Below TOPIK 2, many universities ask for TOPIK 3",
+  "@onbResultFactorKoreanMissingDegree": {
+    "description": "S03 factor (−): degree route, no certificate / TOPIK 1"
+  },
+  "onbResultFactorKoreanCollegeStrong": "TOPIK 3 or higher",
+  "@onbResultFactorKoreanCollegeStrong": {
+    "description": "S03 factor (+): vocational college, TOPIK 3+"
+  },
+  "onbResultFactorKoreanCollegeTopik2": "TOPIK 2 — vocational colleges accept TOPIK 2",
+  "@onbResultFactorKoreanCollegeTopik2": {
+    "description": "S03 factor (+): vocational college, TOPIK 2"
+  },
+  "onbResultFactorKoreanCourseCertificate": "Sejong 1A / TOPIK 1 certificate",
+  "@onbResultFactorKoreanCourseCertificate": {
+    "description": "S03 factor (+): language course, Sejong 1A / TOPIK 1+"
+  },
+  "onbResultFactorKoreanCourseMissing": "No Korean language certificate",
+  "@onbResultFactorKoreanCourseMissing": {
+    "description": "S03 factor (−): no Korean certificate"
+  },
+  "onbResultFactorIncomeYes": "Parents' official income",
+  "@onbResultFactorIncomeYes": {
+    "description": "S03 factor (+): parents' official income"
+  },
+  "onbResultFactorIncomeNo": "Parents have no official income",
+  "@onbResultFactorIncomeNo": {
+    "description": "S03 factor (−): no official income"
+  },
+  "onbResultFactorBankYes": "Bank statement ready",
+  "@onbResultFactorBankYes": {
+    "description": "S03 factor (+): bank statement"
+  },
+  "onbResultFactorBankNo": "No bank statement",
+  "@onbResultFactorBankNo": {
+    "description": "S03 factor (−): no bank statement"
+  },
+  "onbResultFactorGradRecent": "Graduated recently — no gap in studies",
+  "@onbResultFactorGradRecent": {
+    "description": "S03 factor (+): graduated recently"
+  },
+  "onbResultFactorGradGapLong": "A long time since graduation — the study intent must be explained",
+  "@onbResultFactorGradGapLong": {
+    "description": "S03 factor (−): long gap since graduation"
+  },
+  "onbResultFactorAgeHigh": "Because of age, the study intent must be explained",
+  "@onbResultFactorAgeHigh": {
+    "description": "S03 factor (−): age above the soft limit"
+  },
+  "onbResultFactorBudgetLow": "Budget is below the estimated yearly cost",
+  "@onbResultFactorBudgetLow": {
+    "description": "S03 factor (−): budget below the yearly cost"
+  },
+  "onbResultUnisTitle": "Universities that fit you",
+  "@onbResultUnisTitle": {
+    "description": "S03 section title"
+  },
+  "onbResultAccredited": "Accredited",
+  "@onbResultAccredited": {
+    "description": "S03 university card badge"
+  },
+  "onbResultTuitionLabel": "Tuition/semester",
+  "@onbResultTuitionLabel": {
+    "description": "S03 university card: tuition per semester"
+  },
+  "onbResultTopikLabel": "TOPIK required",
+  "@onbResultTopikLabel": {
+    "description": "S03 university card: TOPIK requirement"
+  },
+  "onbResultBankLabel": "Bank statement",
+  "@onbResultBankLabel": {
+    "description": "S03 university card and cost card: bank statement amount"
+  },
+  "onbResultYearlyCost": "Estimated yearly cost",
+  "@onbResultYearlyCost": {
+    "description": "S03 cost card title"
+  },
+  "onbResultStepsTitle": "Next 3 steps",
+  "@onbResultStepsTitle": {
+    "description": "S03 next steps card title"
+  },
+  "onbResultStepTopikPrep": "Prepare for TOPIK 3 or enter through a language course",
+  "@onbResultStepTopikPrep": {
+    "description": "S03 next step"
+  },
+  "onbResultStepBankStatement": "Open the bank statement in advance",
+  "@onbResultStepBankStatement": {
+    "description": "S03 next step (design: 'Bank spravkasini {N} oy oldin ochish'; the number of months is not set yet)"
+  },
+  "onbResultStepSchoolDocs": "Translate and apostille the school certificate and passport",
+  "@onbResultStepSchoolDocs": {
+    "description": "S03 next step"
+  },
+  "onbResultStepDiplomaDocs": "Translate and apostille the diploma and passport",
+  "@onbResultStepDiplomaDocs": {
+    "description": "S03 next step (master's route)"
+  },
+  "onbResultStepApplyOnTime": "Submit the documents before the university deadline",
+  "@onbResultStepApplyOnTime": {
+    "description": "S03 next step"
+  },
+  "onbResultPathsTitle": "Paths that fit you",
+  "@onbResultPathsTitle": {
+    "description": "S03 low band: section title instead of universities"
+  },
+  "onbResultPathLanguageCourse": "Through a language course (D-4)",
+  "@onbResultPathLanguageCourse": {
+    "description": "S03 low band path title"
+  },
+  "onbResultPathLanguageCourseNote": "A language course, then moving on to a bachelor's.",
+  "@onbResultPathLanguageCourseNote": {
+    "description": "S03 low band path note (design: '{N} semestr til kursi, …'; the number of semesters is not set yet)"
+  },
+  "onbResultPathCollege": "Vocational college",
+  "@onbResultPathCollege": {
+    "description": "S03 low band path title"
+  },
+  "onbResultPathCollegeNote": "Softer requirements, lower tuition.",
+  "@onbResultPathCollegeNote": {
+    "description": "S03 low band path note"
+  },
+  "onbResultPathNextSeason": "Preparing for the next season",
+  "@onbResultPathNextSeason": {
+    "description": "S03 low band path title"
+  },
+  "onbResultPathNextSeasonNote": "Fall 2027 with TOPIK 3 and a bank statement.",
+  "@onbResultPathNextSeasonNote": {
+    "description": "S03 low band path note"
+  },
+  "onbResultTariffWhy": "{tariff} — why? →",
+  "@onbResultTariffWhy": {
+    "description": "S03 link to the recommended tariff's detail",
+    "placeholders": {
+      "tariff": {
+        "type": "String"
+      }
+    }
+  },
+  "onbResultCtaOperator": "Have an operator confirm in 10 minutes",
+  "@onbResultCtaOperator": {
+    "description": "S03 main button"
+  },
+  "onbResultCtaTelegram": "Continue in Telegram",
+  "@onbResultCtaTelegram": {
+    "description": "S03 second button"
+  },
+  "onbResultDisclaimer": "This is a preliminary assessment. The visa decision is made by the embassy.",
+  "@onbResultDisclaimer": {
+    "description": "S03 footer line"
+  },
+  "onbResultPlanTariff": "Recommended tariff: {tariff}",
+  "@onbResultPlanTariff": {
+    "description": "Telegram plan text: the recommended tariff line",
+    "placeholders": {
+      "tariff": {
+        "type": "String"
+      }
+    }
+  },
+  "onbTariffNameStandart": "Standart",
+  "@onbTariffNameStandart": {
+    "description": "Tariff name (brand)"
+  },
+  "onbTariffNamePremium": "Premium",
+  "@onbTariffNamePremium": {
+    "description": "Tariff name (brand)"
+  },
+  "onbTariffNameNoRisk": "NO RISK",
+  "@onbTariffNameNoRisk": {
+    "description": "Tariff name (brand)"
+  },
+  "onbTariffNameHanbox": "Hanbox",
+  "@onbTariffNameHanbox": {
+    "description": "Tariff name (brand)"
+  },
+  "onbTariffsTitle": "Prices and terms",
+  "@onbTariffsTitle": {
+    "description": "S05 title"
+  },
+  "onbTariffsSubtitle": "Most of it is paid after the visa is issued.",
+  "@onbTariffsSubtitle": {
+    "description": "S05 subtitle"
+  },
+  "onbTariffServices": "{count, plural, =1{1 service} other{{count} services}}",
+  "@onbTariffServices": {
+    "description": "S05/S06 number of services in a tariff",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "onbTariffPriceStandart": "2 mln so'm now + 5 mln after the visa, or 5 mln in one go",
+  "@onbTariffPriceStandart": {
+    "description": "S05 Standart card price"
+  },
+  "onbTariffPricePremium": "3 mln now + 10 mln after the visa, or 10 mln",
+  "@onbTariffPricePremium": {
+    "description": "S05 Premium card price"
+  },
+  "onbTariffPriceNoRisk": "$5 000 in one go",
+  "@onbTariffPriceNoRisk": {
+    "description": "S05 NO RISK card price"
+  },
+  "onbTariffPriceHanbox": "$2 000 or $400 + $200 a month",
+  "@onbTariffPriceHanbox": {
+    "description": "S05 Hanbox card price"
+  },
+  "onbTariffMore": "Details →",
+  "@onbTariffMore": {
+    "description": "S05 card link to S06"
+  },
+  "onbTariffsCompare": "Compare tariffs",
+  "@onbTariffsCompare": {
+    "description": "S05 button"
+  },
+  "onbTariffExcludedTitle": "Not included",
+  "@onbTariffExcludedTitle": {
+    "description": "S05/S06 card title"
+  },
+  "onbTariffExContract": "Tuition",
+  "@onbTariffExContract": {
+    "description": "Not included item"
+  },
+  "onbTariffExApplicationFee": "Application fee",
+  "@onbTariffExApplicationFee": {
+    "description": "Not included item"
+  },
+  "onbTariffExBankStatement": "Bank statement",
+  "@onbTariffExBankStatement": {
+    "description": "Not included item"
+  },
+  "onbTariffExFlight": "Flight",
+  "@onbTariffExFlight": {
+    "description": "Not included item"
+  },
+  "onbTariffExVisaFee": "Visa fee",
+  "@onbTariffExVisaFee": {
+    "description": "Not included item"
+  },
+  "onbTariffExLiving": "Living costs",
+  "@onbTariffExLiving": {
+    "description": "Not included item"
+  },
+  "onbTariffExVisa": "Visa",
+  "@onbTariffExVisa": {
+    "description": "Not included item (Hanbox)"
+  },
+  "onbTariffDetailEyebrow": "Tariff details",
+  "@onbTariffDetailEyebrow": {
+    "description": "S06 small line above the tariff name"
+  },
+  "onbTariffPayTitle": "When you pay",
+  "@onbTariffPayTitle": {
+    "description": "S06 payment timeline card title"
+  },
+  "onbTariffPayContract": "Contract",
+  "@onbTariffPayContract": {
+    "description": "S06 timeline row"
+  },
+  "onbTariffPayContractWhen": "When the work starts",
+  "@onbTariffPayContractWhen": {
+    "description": "S06 timeline row note"
+  },
+  "onbTariffPayVisa": "Visa issued",
+  "@onbTariffPayVisa": {
+    "description": "S06 timeline row"
+  },
+  "onbTariffPayVisaWhen": "When the visa is in your hands",
+  "@onbTariffPayVisaWhen": {
+    "description": "S06 timeline row note"
+  },
+  "onbTariffPayVisaDays": "Within 7 working days after the visa is issued",
+  "@onbTariffPayVisaDays": {
+    "description": "S06 timeline row second note"
+  },
+  "onbTariffPayStart": "At the start",
+  "@onbTariffPayStart": {
+    "description": "S06 Hanbox timeline row"
+  },
+  "onbTariffPayMonthly": "Every month",
+  "@onbTariffPayMonthly": {
+    "description": "S06 Hanbox timeline row"
+  },
+  "onbTariffMln": "{n} mln",
+  "@onbTariffMln": {
+    "description": "S06 amount in millions of so'm (short)",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "onbTariffOrOnceStandart": "Or 5 mln so'm in one go.",
+  "@onbTariffOrOnceStandart": {
+    "description": "S06 Standart timeline footer"
+  },
+  "onbTariffOrOncePremium": "Or 10 mln so'm in one go.",
+  "@onbTariffOrOncePremium": {
+    "description": "S06 Premium timeline footer"
+  },
+  "onbTariffOrOnceHanbox": "Or $2 000 in one go, or in instalments.",
+  "@onbTariffOrOnceHanbox": {
+    "description": "S06 Hanbox timeline footer"
+  },
+  "onbTariffIncludedTitle": "What's included",
+  "@onbTariffIncludedTitle": {
+    "description": "S06 card title"
+  },
+  "onbTariffIncUniChoice": "Choosing a university",
+  "@onbTariffIncUniChoice": {
+    "description": "Included (Premium)"
+  },
+  "onbTariffIncDocsList": "Document list and check",
+  "@onbTariffIncDocsList": {
+    "description": "Included (Premium)"
+  },
+  "onbTariffIncTranslation": "Help with translation and apostille",
+  "@onbTariffIncTranslation": {
+    "description": "Included (Premium)"
+  },
+  "onbTariffIncStudyPlan": "Study plan and motivation letter",
+  "@onbTariffIncStudyPlan": {
+    "description": "Included (Premium)"
+  },
+  "onbTariffIncApply": "Submitting the application",
+  "@onbTariffIncApply": {
+    "description": "Included (Premium)"
+  },
+  "onbTariffIncInterview": "Interview preparation",
+  "@onbTariffIncInterview": {
+    "description": "Included (Premium)"
+  },
+  "onbTariffIncVisaDocs": "Visa documents",
+  "@onbTariffIncVisaDocs": {
+    "description": "Included (Premium)"
+  },
+  "onbTariffIncDorm": "Dormitory placement",
+  "@onbTariffIncDorm": {
+    "description": "Included (Premium)"
+  },
+  "onbTariffIncFirstWeek": "Help in the first week in Korea",
+  "@onbTariffIncFirstWeek": {
+    "description": "Included (Premium)"
+  },
+  "onbTariffIncApplyUpTo3": "Applying to up to 3 universities for you",
+  "@onbTariffIncApplyUpTo3": {
+    "description": "Included (Standart, NO RISK)"
+  },
+  "onbTariffIncInterviewQuestions": "Interview preparation (you get the questions that may come up)",
+  "@onbTariffIncInterviewQuestions": {
+    "description": "Included (Standart)"
+  },
+  "onbTariffIncDocsPrep": "Preparing documents (translation, apostille)",
+  "@onbTariffIncDocsPrep": {
+    "description": "Included (Standart, NO RISK)"
+  },
+  "onbTariffIncPost": "Postage",
+  "@onbTariffIncPost": {
+    "description": "Included (Standart, NO RISK)"
+  },
+  "onbTariffIncSimBank": "SIM card and bank card",
+  "@onbTariffIncSimBank": {
+    "description": "Included (Standart, NO RISK)"
+  },
+  "onbTariffIncInterviewAi": "Interview preparation (practice with AI)",
+  "@onbTariffIncInterviewAi": {
+    "description": "Included (NO RISK)"
+  },
+  "onbTariffIncBankShot1Day": "Bank account (simple, 1 day)",
+  "@onbTariffIncBankShot1Day": {
+    "description": "Included (NO RISK)"
+  },
+  "onbTariffIncBankShot1Month": "Bank account (1 month)",
+  "@onbTariffIncBankShot1Month": {
+    "description": "Included (NO RISK)"
+  },
+  "onbTariffIncEmbassyDocs": "Preparing embassy documents (translation, apostille)",
+  "@onbTariffIncEmbassyDocs": {
+    "description": "Included (NO RISK)"
+  },
+  "onbTariffIncStudyPlanAi": "Help writing the study plan (prepared with AI)",
+  "@onbTariffIncStudyPlanAi": {
+    "description": "Included (NO RISK)"
+  },
+  "onbTariffIncPickup": "Meeting you in Korea",
+  "@onbTariffIncPickup": {
+    "description": "Included (NO RISK)"
+  },
+  "onbTariffIncContractPaid": "Tuition paid by the company",
+  "@onbTariffIncContractPaid": {
+    "description": "Included (NO RISK)"
+  },
+  "onbTariffIncFlightTicket": "Plane ticket bought for you",
+  "@onbTariffIncFlightTicket": {
+    "description": "Included (NO RISK)"
+  },
+  "onbTariffIncFlatMonth": "A flat found and its first month paid",
+  "@onbTariffIncFlatMonth": {
+    "description": "Included (NO RISK)"
+  },
+  "onbTariffIncAppFee": "Application fee",
+  "@onbTariffIncAppFee": {
+    "description": "Included (NO RISK)"
+  },
+  "onbTariffIncHanboxLessons": "1 year of live online lessons (in the Hanguk Academy app), groups of 11–15, goal — TOPIK 2",
+  "@onbTariffIncHanboxLessons": {
+    "description": "Included (Hanbox)"
+  },
+  "onbTariffIncHanboxLaptop": "A laptop and textbooks are included in the price",
+  "@onbTariffIncHanboxLaptop": {
+    "description": "Included (Hanbox)"
+  },
+  "onbTariffIncHanboxFirstLesson": "The first lesson is free",
+  "@onbTariffIncHanboxFirstLesson": {
+    "description": "Included (Hanbox)"
+  },
+  "onbTariffIncHanboxStandart": "After the course — Standart consulting free (TOPIK 2, 80% attendance, full payment)",
+  "@onbTariffIncHanboxStandart": {
+    "description": "Included (Hanbox)"
+  },
+  "onbTariffRefundTitle": "Refund",
+  "@onbTariffRefundTitle": {
+    "description": "S06 refund card title"
+  },
+  "onbTariffRefundNoRisk": "If the visa is not issued — the $5 000 is refunded in full. One condition: you do not withdraw yourself.",
+  "@onbTariffRefundNoRisk": {
+    "description": "S06 NO RISK refund text"
+  },
+  "onbTariffRefundHanbox": "No refunds: if you drop the course, the payment is not returned.",
+  "@onbTariffRefundHanbox": {
+    "description": "S06 Hanbox refund text"
+  },
+  "onbTariffFaqTitle": "Questions and answers",
+  "@onbTariffFaqTitle": {
+    "description": "S06 FAQ title"
+  },
+  "onbTariffMlnSom": "{n} mln so'm",
+  "@onbTariffMlnSom": {
+    "description": "Amount in millions of so'm, inside a sentence",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "onbTariffFaqNoVisaQ": "If the visa is not issued, do I pay {amount}?",
+  "@onbTariffFaqNoVisaQ": {
+    "description": "S06 FAQ question (Standart, Premium)",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "onbTariffFaqNoVisaA": "No. With the two-step payment, {amount} is paid only after the visa is issued.",
+  "@onbTariffFaqNoVisaA": {
+    "description": "S06 FAQ answer (draft, owner to approve)",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "onbTariffFaqWhenQ": "When do I make the payment after the visa?",
+  "@onbTariffFaqWhenQ": {
+    "description": "S06 FAQ question (Standart, Premium)"
+  },
+  "onbTariffFaqWhenA": "Within 7 working days after the visa is issued.",
+  "@onbTariffFaqWhenA": {
+    "description": "S06 FAQ answer (draft, owner to approve)"
+  },
+  "onbTariffFaqContractQ": "Who pays the tuition?",
+  "@onbTariffFaqContractQ": {
+    "description": "S06 FAQ question"
+  },
+  "onbTariffFaqContractA": "You pay the university tuition yourself — it is not included in the tariff price.",
+  "@onbTariffFaqContractA": {
+    "description": "S06 FAQ answer (Standart, Premium, Hanbox; draft)"
+  },
+  "onbTariffFaqContractANoRisk": "The company pays the tuition — it is included in the NO RISK price.",
+  "@onbTariffFaqContractANoRisk": {
+    "description": "S06 FAQ answer (NO RISK; draft)"
+  },
+  "onbTariffCta": "Get advice on this tariff",
+  "@onbTariffCta": {
+    "description": "S06 bottom button"
+  },
+  "onbTariffContractPdf": "Sample contract (PDF)",
+  "@onbTariffContractPdf": {
+    "description": "S06 link to the contract sample (hidden until a PDF exists)"
+  },
+  "onbWelcomeTitle": "Study in Korea — find out your chances in 2 minutes",
+  "@onbWelcomeTitle": {
+    "description": "S01 Welcome: headline."
+  },
+  "onbWelcomeBody": "An honest assessment: no percentages, no guarantees — just the rules and your answers.",
+  "@onbWelcomeBody": {
+    "description": "S01 Welcome: one line under the headline."
+  },
+  "onbWelcomeCta": "Check my chances",
+  "@onbWelcomeCta": {
+    "description": "S01 Welcome: main button, starts the 6-question check (S02)."
+  },
+  "onbWelcomeCatalog": "Browse universities",
+  "@onbWelcomeCatalog": {
+    "description": "S01 Welcome: secondary button, opens the university catalogue."
+  },
+  "onbWelcomeTrustReply": "Operator reply",
+  "@onbWelcomeTrustReply": {
+    "description": "S01 Welcome: trust row label (operator reply time). Shown only with real data."
+  },
+  "onbWelcomeTrustReplyValue": "≤{minutes} min",
+  "@onbWelcomeTrustReplyValue": {
+    "description": "S01 Welcome: trust row value, operator reply time in minutes.",
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "onbWelcomeClientCode": "I have a client code",
+  "@onbWelcomeClientCode": {
+    "description": "S01 Welcome: small link for existing clients, opens sign-in with the client code."
+  },
+  "onbQuizContinue": "Continue",
+  "@onbQuizContinue": {
+    "description": "S02 quiz: button to the next question."
+  },
+  "onbQuizBack": "Back",
+  "@onbQuizBack": {
+    "description": "S02 quiz: screen-reader label of the back arrow."
+  },
+  "onbQuizQ1": "What would you like to study?",
+  "@onbQuizQ1": {
+    "description": "S02 question 1: study route."
+  },
+  "onbQuizRouteCourse": "Language course",
+  "@onbQuizRouteCourse": {
+    "description": "S02 Q1 option: Korean language course (D-4)."
+  },
+  "onbQuizRouteBachelor": "Bachelor's",
+  "@onbQuizRouteBachelor": {
+    "description": "S02 Q1 option: bachelor's degree."
+  },
+  "onbQuizRouteMaster": "Master's",
+  "@onbQuizRouteMaster": {
+    "description": "S02 Q1 option: master's degree."
+  },
+  "onbQuizRouteCollege": "Vocational college",
+  "@onbQuizRouteCollege": {
+    "description": "S02 Q1 option: vocational college."
+  },
+  "onbQuizQ2": "Your age and graduation year?",
+  "@onbQuizQ2": {
+    "description": "S02 question 2: age and graduation year."
+  },
+  "onbQuizAge": "Age:",
+  "@onbQuizAge": {
+    "description": "S02 Q2: label before the age input (keep the colon)."
+  },
+  "onbQuizGradYear": "Graduation year:",
+  "@onbQuizGradYear": {
+    "description": "S02 Q2: label before the chosen graduation year (keep the colon)."
+  },
+  "onbQuizGradYearOrEarlier": "{year} or earlier",
+  "@onbQuizGradYearOrEarlier": {
+    "description": "S02 Q2 graduation-year picker: the last option, this year or any year before it.",
+    "placeholders": {
+      "year": {
+        "type": "String"
+      }
+    }
+  },
+  "onbQuizStillStudying": "Still studying",
+  "@onbQuizStillStudying": {
+    "description": "S02 Q2 option: still at school or university."
+  },
+  "onbQuizQ3": "Your Korean level?",
+  "@onbQuizQ3": {
+    "description": "S02 question 3: Korean level."
+  },
+  "onbQuizQ3Hint": "Answer even without a certificate — it decides the route.",
+  "@onbQuizQ3Hint": {
+    "description": "S02 question 3: one line under the question."
+  },
+  "onbQuizKoreanNone": "None",
+  "@onbQuizKoreanNone": {
+    "description": "S02 Q3 option: no Korean."
+  },
+  "onbQuizKoreanLearning": "Learning, no certificate",
+  "@onbQuizKoreanLearning": {
+    "description": "S02 Q3 option: learning, no certificate."
+  },
+  "onbQuizKoreanTopik1": "Sejong 1A / TOPIK 1",
+  "@onbQuizKoreanTopik1": {
+    "description": "S02 Q3 option: Sejong 1A / TOPIK 1."
+  },
+  "onbQuizKoreanTopik2": "TOPIK 2",
+  "@onbQuizKoreanTopik2": {
+    "description": "S02 Q3 option: TOPIK 2."
+  },
+  "onbQuizKoreanTopik3": "TOPIK 3 or higher",
+  "@onbQuizKoreanTopik3": {
+    "description": "S02 Q3 option: TOPIK 3 or higher."
+  },
+  "onbQuizKoreanUnknown": "Not sure yet",
+  "@onbQuizKoreanUnknown": {
+    "description": "S02 Q3 option: don't know yet."
+  },
+  "onbQuizQ4": "Yearly budget, and who pays?",
+  "@onbQuizQ4": {
+    "description": "S02 question 4: yearly budget and who pays."
+  },
+  "onbQuizBudgetUnder3": "Up to $3,000",
+  "@onbQuizBudgetUnder3": {
+    "description": "S02 Q4 option: up to $3,000 a year."
+  },
+  "onbQuizBudget3to6": "$3–6k",
+  "@onbQuizBudget3to6": {
+    "description": "S02 Q4 option: $3,000–6,000 a year."
+  },
+  "onbQuizBudget6to10": "$6–10k",
+  "@onbQuizBudget6to10": {
+    "description": "S02 Q4 option: $6,000–10,000 a year."
+  },
+  "onbQuizBudgetOver10": "$10,000+",
+  "@onbQuizBudgetOver10": {
+    "description": "S02 Q4 option: over $10,000 a year."
+  },
+  "onbQuizPayer": "Payer:",
+  "@onbQuizPayer": {
+    "description": "S02 Q4: label before the payer choice (keep the colon)."
+  },
+  "onbQuizPayerParents": "parents",
+  "@onbQuizPayerParents": {
+    "description": "S02 Q4 payer: parents (lowercase, sits after the label)."
+  },
+  "onbQuizPayerSelf": "myself",
+  "@onbQuizPayerSelf": {
+    "description": "S02 Q4 payer: myself."
+  },
+  "onbQuizPayerSponsor": "sponsor",
+  "@onbQuizPayerSponsor": {
+    "description": "S02 Q4 payer: a sponsor."
+  },
+  "onbQuizQ5": "Do your parents have an official income?",
+  "@onbQuizQ5": {
+    "description": "S02 question 5: parents' official income (and bank statement)."
+  },
+  "onbQuizIncomeYes": "Yes, official income",
+  "@onbQuizIncomeYes": {
+    "description": "S02 Q5 option: yes, official income."
+  },
+  "onbQuizIncomeNo": "No",
+  "@onbQuizIncomeNo": {
+    "description": "S02 Q5 option: no official income."
+  },
+  "onbQuizBankYes": "Bank statement available",
+  "@onbQuizBankYes": {
+    "description": "S02 Q5 option: a bank statement can be provided."
+  },
+  "onbQuizBankNo": "No bank statement",
+  "@onbQuizBankNo": {
+    "description": "S02 Q5 option: no bank statement."
+  },
+  "onbQuizQ6": "Your region, and when do you want to go?",
+  "@onbQuizQ6": {
+    "description": "S02 question 6: region and intake."
+  },
+  "onbQuizRegion": "Region:",
+  "@onbQuizRegion": {
+    "description": "S02 Q6: label before the chosen region (keep the colon)."
+  },
+  "onbQuizRegionChoose": "choose",
+  "@onbQuizRegionChoose": {
+    "description": "S02 Q6: shown after the region label until a region is picked."
+  },
+  "onbQuizIntakeSpring2027": "Spring 2027",
+  "@onbQuizIntakeSpring2027": {
+    "description": "S02 Q6 option: spring 2027 intake."
+  },
+  "onbQuizIntakeFall2027": "Fall 2027",
+  "@onbQuizIntakeFall2027": {
+    "description": "S02 Q6 option: fall 2027 intake."
+  },
+  "onbQuizIntakeLater": "Later",
+  "@onbQuizIntakeLater": {
+    "description": "S02 Q6 option: later."
+  },
+  "onbContactTitle": "Detailed plan and list of universities",
+  "@onbContactTitle": {
+    "description": "S04 contact sheet: title."
+  },
+  "onbContactSubtitle": "An operator will review your answers and call you within 10 minutes.",
+  "@onbContactSubtitle": {
+    "description": "S04 contact sheet: line under the title."
+  },
+  "onbContactAfterHours": "We're outside working hours now. We'll call you tomorrow at 10:00.",
+  "@onbContactAfterHours": {
+    "description": "S04 contact sheet: banner shown outside working hours."
+  },
+  "onbContactName": "Your name",
+  "@onbContactName": {
+    "description": "S04 contact sheet: name field label and placeholder."
+  },
+  "onbContactPhone": "Phone",
+  "@onbContactPhone": {
+    "description": "S04 contact sheet: phone field label."
+  },
+  "onbContactPhoneError": "Check the number",
+  "@onbContactPhoneError": {
+    "description": "S04 contact sheet: the phone number is not a valid Uzbek number."
+  },
+  "onbContactNameError": "Enter your name",
+  "@onbContactNameError": {
+    "description": "S04 contact sheet: the name is missing or not accepted."
+  },
+  "onbContactNetworkError": "Couldn't send. Check your connection and try again.",
+  "@onbContactNetworkError": {
+    "description": "S04 contact sheet: sending failed (no internet or server error)."
+  },
+  "onbContactTelegram": "Also send the plan to my Telegram",
+  "@onbContactTelegram": {
+    "description": "S04 contact sheet: toggle, also send the plan to the visitor's Telegram."
+  },
+  "onbContactCta": "Have an operator call me",
+  "@onbContactCta": {
+    "description": "S04 contact sheet: submit button."
+  },
+  "onbContactHours": "Working hours Mon–Sat 09:40–18:00. At other times we'll call the next day at 10:00.",
+  "@onbContactHours": {
+    "description": "S04 contact sheet: working-hours note under the button."
+  },
+  "onbContactSuccess": "Thank you, {name}! An operator will call you within 10 minutes.",
+  "@onbContactSuccess": {
+    "description": "S04 contact sheet: success message with the visitor's name.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "onbContactBackToResult": "Back to the result",
+  "@onbContactBackToResult": {
+    "description": "S04 contact sheet success: closes the sheet, back to the result."
+  },
+  "onbContactAfterHoursToday": "We're outside working hours now. We'll call you today at 10:00.",
+  "@onbContactAfterHoursToday": {
+    "description": "S04 banner before 09:40 on a working day: the call comes the same day."
+  },
+  "onbContactAfterHoursMonday": "We're outside working hours now. We'll call you on Monday at 10:00.",
+  "@onbContactAfterHoursMonday": {
+    "description": "S04 banner from Saturday 18:00 and all Sunday: the call comes on Monday."
   }
 }

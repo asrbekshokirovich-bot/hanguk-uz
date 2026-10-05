@@ -16,15 +16,15 @@ const Map<String, String> kEntryLanguageNames = {
 };
 
 /// What the app remembers before anyone signs in: the language chosen on the
-/// first screen, and the phone number of the app account made on the sign-up
-/// screen (see `supabase/migrations/20260930200000_app_accounts.sql`).
+/// first screen, and the phone number given in S04 ("Viza imkoniyatim"), so
+/// the form is filled in next time.
 @immutable
 class EntryState {
   const EntryState({this.languageCode, this.phone});
 
   final String? languageCode;
 
-  /// `+998XXXXXXXXX` once signed up or signed in with phone and password.
+  /// `+998XXXXXXXXX` once given in S04.
   final String? phone;
 
   bool get hasLanguage => languageCode != null;

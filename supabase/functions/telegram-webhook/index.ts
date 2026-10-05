@@ -573,6 +573,18 @@ Siz Hanguk Consulting bilan Telegram orqali bog'landingiz. Savollaringizni shu y
               content: "Shaxsiy havola orqali ulandi.", direction: "outgoing",
             });
           }
+          // Came from the app's result screen: send the plan it showed.
+          const plan = typeof claim.plan_text === "string" ? claim.plan_text.trim() : "";
+          if (plan) {
+            const planSent = await tgSend(chatId, escapeHtml(plan.slice(0, 3500)));
+            if (planSent) {
+              await bumpThread(supabase, chatId, fromName, "outgoing");
+              await storeMessage(supabase, {
+                chatId, messageId: planSent.message_id, senderName: "Hanguk bot",
+                content: plan.slice(0, 3500), direction: "outgoing",
+              });
+            }
+          }
           return ok();
         }
         // Unknown or mistyped code: fall through to the ordinary welcome.
