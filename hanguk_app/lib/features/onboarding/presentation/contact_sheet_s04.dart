@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -119,7 +121,9 @@ class _ContactSheetState extends ConsumerState<_ContactSheet> {
     switch (res.status) {
       case QuizSubmitStatus.ok:
         final phone = res.phone ?? uzE164(digits);
-        await ref.read(entryProvider.notifier).setRegistered(phone);
+        // The state changes at once; the secure-storage write is not waited
+        // for, so a slow keychain never holds back the success state.
+        unawaited(ref.read(entryProvider.notifier).setRegistered(phone));
         ref
             .read(quizProvider.notifier)
             .markSubmitted(phone: phone, name: name, linkCode: res.linkCode);
