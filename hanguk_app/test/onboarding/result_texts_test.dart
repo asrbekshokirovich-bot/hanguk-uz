@@ -23,7 +23,6 @@ void main() {
     budget: Budget.from3to6k,
     payer: Payer.parents,
     formalIncome: false,
-    bankStatement: false,
     region: 'Samarqand',
     intake: Intake.spring2027,
   );
@@ -35,7 +34,7 @@ void main() {
       EligibilityFactor(FactorKind.incomeNo, positive: false),
     ],
     universities: [],
-    steps: [NextStep.topikPrep, NextStep.bankStatement, NextStep.schoolDocs],
+    steps: [NextStep.topikPrep, NextStep.schoolDocs, NextStep.applyOnTime],
     paths: [AlternativePath.languageCourse, AlternativePath.college, AlternativePath.nextSeason],
     tariff: Tariff.hanbox,
     needsOperator: false,

@@ -2816,12 +2816,6 @@ class AppLocalizationsUz extends AppLocalizations {
   String get onbResultFactorIncomeNo => 'Ota-onada rasmiy daromad yo\'q';
 
   @override
-  String get onbResultFactorBankYes => 'Bank spravkasi tayyor';
-
-  @override
-  String get onbResultFactorBankNo => 'Bank spravkasi yo\'q';
-
-  @override
   String get onbResultFactorGradRecent =>
       'Bitiruv yili yaqin — o\'qishda tanaffus yo\'q';
 
@@ -2861,9 +2855,6 @@ class AppLocalizationsUz extends AppLocalizations {
   @override
   String get onbResultStepTopikPrep =>
       'TOPIK 3 ga tayyorgarlik yoki til kursi orqali kirish';
-
-  @override
-  String get onbResultStepBankStatement => 'Bank spravkasini oldindan ochish';
 
   @override
   String get onbResultStepSchoolDocs =>
@@ -3267,12 +3258,6 @@ class AppLocalizationsUz extends AppLocalizations {
   String get onbQuizIncomeNo => 'Yo‘q';
 
   @override
-  String get onbQuizBankYes => 'Bank spravkasi bor';
-
-  @override
-  String get onbQuizBankNo => 'Bank spravkasi yo‘q';
-
-  @override
   String get onbQuizIntakeSpring2027 => '2027 bahor';
 
   @override
@@ -3373,9 +3358,6 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get onbQuizPayerSponsorOption => 'Homiy';
-
-  @override
-  String get onbQuizBankQ => 'Bank spravkasi uchun mablag\' bormi?';
 
   @override
   String get onbQuizRegionQ => 'Qaysi viloyatdansiz?';

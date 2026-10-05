@@ -5120,18 +5120,6 @@ abstract class AppLocalizations {
   /// **'Parents have no official income'**
   String get onbResultFactorIncomeNo;
 
-  /// S03 factor (+): bank statement
-  ///
-  /// In en, this message translates to:
-  /// **'Bank statement ready'**
-  String get onbResultFactorBankYes;
-
-  /// S03 factor (−): no bank statement
-  ///
-  /// In en, this message translates to:
-  /// **'No bank statement'**
-  String get onbResultFactorBankNo;
-
   /// S03 factor (+): graduated recently
   ///
   /// In en, this message translates to:
@@ -5203,12 +5191,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Prepare for TOPIK 3 or enter through a language course'**
   String get onbResultStepTopikPrep;
-
-  /// S03 next step (design: 'Bank spravkasini {N} oy oldin ochish'; the number of months is not set yet)
-  ///
-  /// In en, this message translates to:
-  /// **'Open the bank statement in advance'**
-  String get onbResultStepBankStatement;
 
   /// S03 next step
   ///
@@ -5930,18 +5912,6 @@ abstract class AppLocalizations {
   /// **'No'**
   String get onbQuizIncomeNo;
 
-  /// S02 Q5 option: a bank statement can be provided.
-  ///
-  /// In en, this message translates to:
-  /// **'Bank statement available'**
-  String get onbQuizBankYes;
-
-  /// S02 Q5 option: no bank statement.
-  ///
-  /// In en, this message translates to:
-  /// **'No bank statement'**
-  String get onbQuizBankNo;
-
   /// S02 Q6 option: spring 2027 intake.
   ///
   /// In en, this message translates to:
@@ -6127,12 +6097,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'A sponsor'**
   String get onbQuizPayerSponsorOption;
-
-  /// S02 question 9: money for the bank statement.
-  ///
-  /// In en, this message translates to:
-  /// **'Is there money for a bank statement?'**
-  String get onbQuizBankQ;
 
   /// S02 question 10: region.
   ///

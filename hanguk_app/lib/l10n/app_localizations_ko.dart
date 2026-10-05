@@ -2704,12 +2704,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String get onbResultFactorIncomeNo => '부모님의 공식 소득 없음';
 
   @override
-  String get onbResultFactorBankYes => '은행 잔고증명 준비됨';
-
-  @override
-  String get onbResultFactorBankNo => '은행 잔고증명 없음';
-
-  @override
   String get onbResultFactorGradRecent => '최근 졸업 — 학업 공백 없음';
 
   @override
@@ -2744,9 +2738,6 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get onbResultStepTopikPrep => 'TOPIK 3급 준비 또는 어학연수를 통한 입학';
-
-  @override
-  String get onbResultStepBankStatement => '은행 잔고증명을 미리 준비하기';
 
   @override
   String get onbResultStepSchoolDocs => '고등학교 졸업장과 여권 번역 및 아포스티유';
@@ -3129,12 +3120,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String get onbQuizIncomeNo => '아니요';
 
   @override
-  String get onbQuizBankYes => '잔고증명 가능';
-
-  @override
-  String get onbQuizBankNo => '잔고증명 없음';
-
-  @override
   String get onbQuizIntakeSpring2027 => '2027년 봄';
 
   @override
@@ -3230,9 +3215,6 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get onbQuizPayerSponsorOption => '후원자';
-
-  @override
-  String get onbQuizBankQ => '잔고 증명용 자금이 있나요?';
 
   @override
   String get onbQuizRegionQ => '어느 지역에 사세요?';

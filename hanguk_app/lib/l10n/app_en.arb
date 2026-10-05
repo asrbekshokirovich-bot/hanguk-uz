@@ -3518,14 +3518,6 @@
   "@onbResultFactorIncomeNo": {
     "description": "S03 factor (−): no official income"
   },
-  "onbResultFactorBankYes": "Bank statement ready",
-  "@onbResultFactorBankYes": {
-    "description": "S03 factor (+): bank statement"
-  },
-  "onbResultFactorBankNo": "No bank statement",
-  "@onbResultFactorBankNo": {
-    "description": "S03 factor (−): no bank statement"
-  },
   "onbResultFactorGradRecent": "Graduated recently — no gap in studies",
   "@onbResultFactorGradRecent": {
     "description": "S03 factor (+): graduated recently"
@@ -3573,10 +3565,6 @@
   "onbResultStepTopikPrep": "Prepare for TOPIK 3 or enter through a language course",
   "@onbResultStepTopikPrep": {
     "description": "S03 next step"
-  },
-  "onbResultStepBankStatement": "Open the bank statement in advance",
-  "@onbResultStepBankStatement": {
-    "description": "S03 next step (design: 'Bank spravkasini {N} oy oldin ochish'; the number of months is not set yet)"
   },
   "onbResultStepSchoolDocs": "Translate and apostille the school certificate and passport",
   "@onbResultStepSchoolDocs": {
@@ -4103,14 +4091,6 @@
   "@onbQuizIncomeNo": {
     "description": "S02 Q5 option: no official income."
   },
-  "onbQuizBankYes": "Bank statement available",
-  "@onbQuizBankYes": {
-    "description": "S02 Q5 option: a bank statement can be provided."
-  },
-  "onbQuizBankNo": "No bank statement",
-  "@onbQuizBankNo": {
-    "description": "S02 Q5 option: no bank statement."
-  },
   "onbQuizIntakeSpring2027": "Spring 2027",
   "@onbQuizIntakeSpring2027": {
     "description": "S02 Q6 option: spring 2027 intake."
@@ -4239,10 +4219,6 @@
   "onbQuizPayerSponsorOption": "A sponsor",
   "@onbQuizPayerSponsorOption": {
     "description": "S02 payer option."
-  },
-  "onbQuizBankQ": "Is there money for a bank statement?",
-  "@onbQuizBankQ": {
-    "description": "S02 question 9: money for the bank statement."
   },
   "onbQuizRegionQ": "Which region are you from?",
   "@onbQuizRegionQ": {
