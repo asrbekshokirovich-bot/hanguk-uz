@@ -102,7 +102,12 @@ class QuizScreen extends ConsumerWidget {
                           ),
                           if (q.hangul != null) ...[
                             const SizedBox(width: 10),
-                            Text(q.hangul!, style: onbHangul()),
+                            Text(
+                              q.hangul!,
+                              style: onbHangul().copyWith(
+                                height: cssNormalLineHeight(12),
+                              ),
+                            ),
                           ],
                         ],
                       ),

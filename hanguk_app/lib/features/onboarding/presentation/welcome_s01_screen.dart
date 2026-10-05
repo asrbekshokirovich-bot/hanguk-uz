@@ -276,7 +276,7 @@ class _TrustRow extends StatelessWidget {
             strutStyle: const StrutStyle(
               fontFamily: SeoulType.inter,
               fontSize: 16,
-              height: kCssNormalLineHeight,
+              height: 20 / 16,
               leadingDistribution: TextLeadingDistribution.even,
               forceStrutHeight: true,
             ),

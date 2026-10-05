@@ -117,6 +117,13 @@ class OnbBackground extends StatelessWidget {
 /// platform-dependent (some backends take the taller usWin metrics, 1.43).
 const double kCssNormalLineHeight = 2478 / 2048;
 
+/// [kCssNormalLineHeight] as the browser lays it out at [size]: ascent and
+/// descent are each rounded to whole pixels.
+double cssNormalLineHeight(double size) =>
+    ((1984 / 2048 * size).roundToDouble() +
+        (494 / 2048 * size).roundToDouble()) /
+    size;
+
 /// Inter at the design's size/weight. [height] is the CSS line-height
 /// (null = `normal`); half-leading is split evenly, as CSS does.
 TextStyle onbText(
@@ -132,7 +139,7 @@ TextStyle onbText(
     fontSize: size,
     fontWeight: weight,
     color: color,
-    height: height ?? kCssNormalLineHeight,
+    height: height ?? cssNormalLineHeight(size),
     // Explicit 0, never inherited: Material's body styles carry tracking.
     letterSpacing: (letterSpacingEm ?? 0) * size,
     wordSpacing: 0,
