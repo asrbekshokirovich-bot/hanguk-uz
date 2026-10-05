@@ -19,11 +19,10 @@ const List<String> _kWelcomeLanguages = ['uz', 'ru', 'en'];
 
 /// S01 — Kirish ekrani.
 class OnboardingWelcomeScreen extends ConsumerWidget {
-  const OnboardingWelcomeScreen({super.key, this.operatorReplyMinutes});
+  const OnboardingWelcomeScreen({super.key, this.operatorReplyMinutes = 10});
 
-  /// The trust row ("Operator javobi ≤N daqiqa"). The spec allows only a
-  /// real figure here (last week's SLA median, when ≤10) and there is no
-  /// source for it yet, so the row stays hidden while this is null.
+  /// The trust row ("Operator javobi ≤N daqiqa"): the same 10-minute promise
+  /// the result and the contact sheet make. Hidden when null.
   final int? operatorReplyMinutes;
 
   void _startQuiz(BuildContext context, WidgetRef ref) {
