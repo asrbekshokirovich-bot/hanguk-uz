@@ -59,3 +59,30 @@ describe('isTodayLead', () => {
     expect(isTodayLead(yesterday, new Date('2026-09-29T19:00:00Z'))).toBe(false);
   });
 });
+
+describe('countdown started today', () => {
+  // Monday 2026-10-05 12:00 in Tashkent.
+  const monday = new Date('2026-10-05T07:00:00Z');
+  // Arrived on Sunday 18:40; the countdown started Monday 10:00.
+  const weekend = lead({
+    created_at: '2026-10-04T13:40:00Z',
+    new_lead_at: '2026-10-04T13:40:00Z',
+    sla_start_at: '2026-10-05T05:00:00Z',
+    call_result: 'Gaplashildi',
+  });
+
+  it('a weekend lead answered on Monday is in Monday\'s list', () => {
+    expect(arrivedToday(weekend, monday)).toBe(true);
+    expect(isTodayLead(weekend, monday)).toBe(true);
+  });
+
+  it('it moves to Lidlar on Tuesday', () => {
+    expect(isTodayLead(weekend, new Date('2026-10-06T07:00:00Z'))).toBe(false);
+  });
+
+  it('a lead whose countdown started on its own day is unchanged', () => {
+    const sameDay = lead({ sla_start_at: '2026-09-30T09:00:00Z' });
+    expect(isTodayLead(sameDay, now)).toBe(true);
+    expect(isTodayLead(sameDay, new Date('2026-10-01T10:00:00Z'))).toBe(false);
+  });
+});

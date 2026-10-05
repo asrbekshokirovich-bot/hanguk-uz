@@ -9,6 +9,11 @@ import { isNewLead } from './sla';
  * A lead arrives when it becomes a lead: for an Instagram/Telegram chat that is
  * the moment its phone number came (`new_lead_at`), for any other lead the
  * moment it was created.
+ *
+ * A lead that arrives on a day off or after working hours has its 10-minute
+ * countdown start on the next working day at 10:00 (`sla_start_at`). It also
+ * counts as that day's lead (owner, 2026-10-05), so a Saturday or Sunday lead
+ * answered on Monday shows in Monday's "Bugungi lidlar".
  */
 const TASHKENT_DAY = new Intl.DateTimeFormat('en-CA', {
   timeZone: 'Asia/Tashkent',
@@ -20,9 +25,15 @@ const TASHKENT_DAY = new Intl.DateTimeFormat('en-CA', {
 /** "2026-09-30" — the calendar day in Tashkent. */
 export const tashkentDay = (date: Date): string => TASHKENT_DAY.format(date);
 
-/** True for a lead that arrived today, whether or not it is still in "Yangi lid". */
-export const arrivedToday = (lead: Lead, now: Date): boolean =>
-  tashkentDay(new Date(lead.new_lead_at ?? lead.created_at)) === tashkentDay(now);
+/**
+ * True for a lead that arrived today, or whose countdown started today, whether
+ * or not it is still in "Yangi lid".
+ */
+export const arrivedToday = (lead: Lead, now: Date): boolean => {
+  const today = tashkentDay(now);
+  if (tashkentDay(new Date(lead.new_lead_at ?? lead.created_at)) === today) return true;
+  return !!lead.sla_start_at && tashkentDay(new Date(lead.sla_start_at)) === today;
+};
 
 /** A lead of "Bugungi lidlar": arrived today and no longer in "Yangi lid". */
 export const isTodayLead = (lead: Lead, now: Date): boolean =>
