@@ -2897,7 +2897,7 @@ class AppLocalizationsUz extends AppLocalizations {
   }
 
   @override
-  String get onbResultCtaOperator => 'Operator 10 daqiqada tasdiqlasin';
+  String get onbResultCtaOperator => 'Bepul konsultatsiya';
 
   @override
   String get onbResultCtaTelegram => 'Telegram\'da davom etish';

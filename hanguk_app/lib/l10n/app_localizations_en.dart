@@ -2880,7 +2880,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get onbResultCtaOperator => 'Have an operator confirm in 10 minutes';
+  String get onbResultCtaOperator => 'Free consultation';
 
   @override
   String get onbResultCtaTelegram => 'Continue in Telegram';

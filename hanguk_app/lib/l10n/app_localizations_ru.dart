@@ -2893,7 +2893,7 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
-  String get onbResultCtaOperator => 'Оператор подтвердит за 10 минут';
+  String get onbResultCtaOperator => 'Бесплатная консультация';
 
   @override
   String get onbResultCtaTelegram => 'Продолжить в Telegram';
