@@ -6121,6 +6121,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Back to the result'**
   String get onbContactBackToResult;
+
+  /// S04 banner before 09:40 on a working day: the call comes the same day.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'re outside working hours now. We\'ll call you today at 10:00.'**
+  String get onbContactAfterHoursToday;
+
+  /// S04 banner from Saturday 18:00 and all Sunday: the call comes on Monday.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'re outside working hours now. We\'ll call you on Monday at 10:00.'**
+  String get onbContactAfterHoursMonday;
 }
 
 class _AppLocalizationsDelegate

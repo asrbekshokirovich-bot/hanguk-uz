@@ -28,6 +28,23 @@ bool isTashkentWorkingHours(DateTime now) {
   return m >= 9 * 60 + 40 && m < 18 * 60;
 }
 
+/// When an operator calls back a lead sent at [now] outside working hours,
+/// as the CRM's automatic reply says it: the same day before 09:40, Monday
+/// from Saturday 18:00 and all Sunday, the next day otherwise.
+enum NextCallDay { today, tomorrow, monday }
+
+/// Null inside working hours.
+NextCallDay? tashkentNextCallDay(DateTime now) {
+  if (isTashkentWorkingHours(now)) return null;
+  final t = now.toUtc().add(const Duration(hours: 5));
+  final m = t.hour * 60 + t.minute;
+  if (t.weekday == DateTime.sunday ||
+      (t.weekday == DateTime.saturday && m >= 18 * 60)) {
+    return NextCallDay.monday;
+  }
+  return m < 9 * 60 + 40 ? NextCallDay.today : NextCallDay.tomorrow;
+}
+
 /// S04 — Ism va telefon (pastki oyna), opened over S03.
 ///
 /// [openTelegramAfter] starts with the "Rejani Telegram'imga ham yuboring"
@@ -166,7 +183,7 @@ class _ContactSheetState extends ConsumerState<_ContactSheet> {
       );
     }
     final l = AppLocalizations.of(context)!;
-    final afterHours = !isTashkentWorkingHours(
+    final nextCall = tashkentNextCallDay(
       ref.watch(contactSheetClockProvider)(),
     );
 
@@ -195,7 +212,14 @@ class _ContactSheetState extends ConsumerState<_ContactSheet> {
           ),
         ],
       ),
-      if (afterHours) _AfterHours(text: l.onbContactAfterHours),
+      if (nextCall != null)
+        _AfterHours(
+          text: switch (nextCall) {
+            NextCallDay.today => l.onbContactAfterHoursToday,
+            NextCallDay.tomorrow => l.onbContactAfterHours,
+            NextCallDay.monday => l.onbContactAfterHoursMonday,
+          },
+        ),
       _Field(
         label: l.onbContactName,
         error: _error == _Error.name ? l.onbContactNameError : null,

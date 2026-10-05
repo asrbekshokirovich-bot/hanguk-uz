@@ -1135,5 +1135,7 @@
   "onbContactCta": "Пусть оператор позвонит",
   "onbContactHours": "Рабочее время Пн–Сб 09:40–18:00. В другое время позвоним на следующий день в 10:00.",
   "onbContactSuccess": "Спасибо, {name}! Оператор позвонит в течение 10 минут.",
-  "onbContactBackToResult": "Вернуться к результату"
+  "onbContactBackToResult": "Вернуться к результату",
+  "onbContactAfterHoursToday": "Сейчас нерабочее время. Мы позвоним сегодня в 10:00.",
+  "onbContactAfterHoursMonday": "Сейчас нерабочее время. Мы позвоним в понедельник в 10:00."
 }

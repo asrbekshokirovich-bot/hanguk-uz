@@ -1135,5 +1135,7 @@
   "onbContactCta": "Operator qo'ng'iroq qilsin",
   "onbContactHours": "Ish vaqti Du–Sh 09:40–18:00. Boshqa vaqtda — ertasi 10:00 da qo'ng'iroq qilamiz.",
   "onbContactSuccess": "Rahmat, {name}! Operator 10 daqiqada qo'ng'iroq qiladi.",
-  "onbContactBackToResult": "Natijaga qaytish"
+  "onbContactBackToResult": "Natijaga qaytish",
+  "onbContactAfterHoursToday": "Hozir ish vaqtidan tashqari. Bugun 10:00 da qo'ng'iroq qilamiz.",
+  "onbContactAfterHoursMonday": "Hozir ish vaqtidan tashqari. Dushanba kuni 10:00 da qo'ng'iroq qilamiz."
 }

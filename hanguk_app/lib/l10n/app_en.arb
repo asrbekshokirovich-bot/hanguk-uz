@@ -4235,5 +4235,13 @@
   "onbContactBackToResult": "Back to the result",
   "@onbContactBackToResult": {
     "description": "S04 contact sheet success: closes the sheet, back to the result."
+  },
+  "onbContactAfterHoursToday": "We're outside working hours now. We'll call you today at 10:00.",
+  "@onbContactAfterHoursToday": {
+    "description": "S04 banner before 09:40 on a working day: the call comes the same day."
+  },
+  "onbContactAfterHoursMonday": "We're outside working hours now. We'll call you on Monday at 10:00.",
+  "@onbContactAfterHoursMonday": {
+    "description": "S04 banner from Saturday 18:00 and all Sunday: the call comes on Monday."
   }
 }

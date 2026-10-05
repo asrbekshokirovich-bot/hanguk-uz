@@ -3358,4 +3358,12 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get onbContactBackToResult => 'Back to the result';
+
+  @override
+  String get onbContactAfterHoursToday =>
+      'We\'re outside working hours now. We\'ll call you today at 10:00.';
+
+  @override
+  String get onbContactAfterHoursMonday =>
+      'We\'re outside working hours now. We\'ll call you on Monday at 10:00.';
 }

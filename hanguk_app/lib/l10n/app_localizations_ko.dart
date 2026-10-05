@@ -3227,4 +3227,11 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get onbContactBackToResult => '결과로 돌아가기';
+
+  @override
+  String get onbContactAfterHoursToday => '지금은 업무 시간이 아닙니다. 오늘 10:00에 전화드릴게요.';
+
+  @override
+  String get onbContactAfterHoursMonday =>
+      '지금은 업무 시간이 아닙니다. 월요일 10:00에 전화드릴게요.';
 }

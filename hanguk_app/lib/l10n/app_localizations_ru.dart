@@ -3374,4 +3374,12 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get onbContactBackToResult => 'Вернуться к результату';
+
+  @override
+  String get onbContactAfterHoursToday =>
+      'Сейчас нерабочее время. Мы позвоним сегодня в 10:00.';
+
+  @override
+  String get onbContactAfterHoursMonday =>
+      'Сейчас нерабочее время. Мы позвоним в понедельник в 10:00.';
 }

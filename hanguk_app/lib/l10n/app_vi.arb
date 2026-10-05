@@ -1135,5 +1135,7 @@
   "onbContactCta": "Have an operator call me",
   "onbContactHours": "Working hours Mon–Sat 09:40–18:00. At other times we'll call the next day at 10:00.",
   "onbContactSuccess": "Thank you, {name}! An operator will call you within 10 minutes.",
-  "onbContactBackToResult": "Back to the result"
+  "onbContactBackToResult": "Back to the result",
+  "onbContactAfterHoursToday": "We're outside working hours now. We'll call you today at 10:00.",
+  "onbContactAfterHoursMonday": "We're outside working hours now. We'll call you on Monday at 10:00."
 }

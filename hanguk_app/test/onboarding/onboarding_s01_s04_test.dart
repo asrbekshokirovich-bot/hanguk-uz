@@ -41,6 +41,18 @@ void main() {
       expect(isTashkentWorkingHours(tashkent(10, 12, 0)), isTrue);
       expect(isTashkentWorkingHours(tashkent(11, 12, 0)), isFalse);
     });
+
+    test('the after-hours banner names the day of the call', () {
+      expect(tashkentNextCallDay(tashkent(6, 12, 0)), isNull);
+      expect(tashkentNextCallDay(tashkent(6, 8, 0)), NextCallDay.today);
+      expect(tashkentNextCallDay(tashkent(6, 19, 0)), NextCallDay.tomorrow);
+      // Friday evening → Saturday is a working day.
+      expect(tashkentNextCallDay(tashkent(9, 19, 0)), NextCallDay.tomorrow);
+      expect(tashkentNextCallDay(tashkent(10, 8, 0)), NextCallDay.today);
+      expect(tashkentNextCallDay(tashkent(10, 18, 0)), NextCallDay.monday);
+      expect(tashkentNextCallDay(tashkent(11, 8, 0)), NextCallDay.monday);
+      expect(tashkentNextCallDay(tashkent(11, 23, 0)), NextCallDay.monday);
+    });
   });
 
   testWidgets('S02: Davom etish waits for an answer, then moves on', (t) async {

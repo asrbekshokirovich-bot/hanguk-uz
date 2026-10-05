@@ -3369,4 +3369,12 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get onbContactBackToResult => 'Natijaga qaytish';
+
+  @override
+  String get onbContactAfterHoursToday =>
+      'Hozir ish vaqtidan tashqari. Bugun 10:00 da qo\'ng\'iroq qilamiz.';
+
+  @override
+  String get onbContactAfterHoursMonday =>
+      'Hozir ish vaqtidan tashqari. Dushanba kuni 10:00 da qo\'ng\'iroq qilamiz.';
 }
