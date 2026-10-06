@@ -2826,10 +2826,6 @@ class AppLocalizationsRu extends AppLocalizations {
       'Из-за возраста нужно объяснить цель учёбы';
 
   @override
-  String get onbResultFactorBudgetLow =>
-      'Бюджет ниже примерных годовых расходов';
-
-  @override
   String get onbResultUnisTitle => 'Подходящие вам университеты';
 
   @override
@@ -3241,18 +3237,6 @@ class AppLocalizationsRu extends AppLocalizations {
   String get onbQuizKoreanUnknown => 'Точно не знаю';
 
   @override
-  String get onbQuizBudgetUnder3 => 'До \$3 000';
-
-  @override
-  String get onbQuizBudget3to6 => '\$3 000 – 6 000';
-
-  @override
-  String get onbQuizBudget6to10 => '\$6 000 – 10 000';
-
-  @override
-  String get onbQuizBudgetOver10 => 'Больше \$10 000';
-
-  @override
   String get onbQuizQ5 => 'Есть ли у ваших родителей официальный доход?';
 
   @override
@@ -3348,10 +3332,6 @@ class AppLocalizationsRu extends AppLocalizations {
   String get onbQuizIeltsUnknown => 'Точно не знаю';
 
   @override
-  String get onbQuizBudgetQ =>
-      'Сколько вы можете тратить в год на учёбу и жизнь?';
-
-  @override
   String get onbQuizPayerQ => 'Кто оплачивает учёбу?';
 
   @override
@@ -3430,10 +3410,6 @@ class AppLocalizationsRu extends AppLocalizations {
       'Нет депозита KDB — посольство требует его обязательно';
 
   @override
-  String get onbResultFactorBudgetBelowDeposit =>
-      'Бюджет меньше суммы депозита KDB';
-
-  @override
   String get onbResultBandLowNoteLanguage =>
       'Языковой сертификат ниже требования посольства — без него заявление отклоняют без собеседования.';
 
@@ -3455,10 +3431,6 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get onbQuizIeltsHint =>
       'Нужен для программ на английском. Только обычный IELTS (не Online), сданный за последние 2 года.';
-
-  @override
-  String get onbQuizBudgetHint =>
-      'Контракт, общежитие и еда. Достаточно примерной суммы.';
 
   @override
   String get onbQuizIncomeHint =>

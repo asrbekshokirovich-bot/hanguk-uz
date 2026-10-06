@@ -243,20 +243,6 @@ class QuizScreen extends ConsumerWidget {
           hint: l.onbQuizIeltsHint,
         );
       case 6:
-        return _Question(
-          l.onbQuizBudgetQ,
-          [
-            for (final (b, label) in [
-              (Budget.under3k, l.onbQuizBudgetUnder3),
-              (Budget.from3to6k, l.onbQuizBudget3to6),
-              (Budget.from6to10k, l.onbQuizBudget6to10),
-              (Budget.over10k, l.onbQuizBudgetOver10),
-            ])
-              option(label, a.budget == b, (x) => x.copyWith(budget: b)),
-          ],
-          hint: l.onbQuizBudgetHint,
-        );
-      case 7:
         return _Question(l.onbQuizPayerQ, [
           for (final (p, label) in [
             (Payer.parents, l.onbQuizPayerParentsOption),
@@ -265,7 +251,7 @@ class QuizScreen extends ConsumerWidget {
           ])
             option(label, a.payer == p, (x) => x.copyWith(payer: p)),
         ]);
-      case 8:
+      case 7:
         return _Question(
           l.onbQuizQ5,
           [
@@ -282,7 +268,7 @@ class QuizScreen extends ConsumerWidget {
           ],
           hint: l.onbQuizIncomeHint,
         );
-      case 9:
+      case 8:
         final rules = ref.watch(eligibilityRulesProvider).value ?? const EligibilityRules();
         final route = a.route ?? StudyRoute.bachelor;
         final deposit = rules.kdbUsd(route);
@@ -303,7 +289,7 @@ class QuizScreen extends ConsumerWidget {
             '${rules.kdbHoldMonths(route)}',
           ),
         );
-      case 10:
+      case 9:
         return _Question(l.onbQuizRegionQ, [
           for (final r in kQuizRegions)
             option(r, a.region == r, (x) => x.copyWith(region: r)),

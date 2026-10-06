@@ -2712,9 +2712,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String get onbResultFactorAgeHigh => '나이로 인해 학업 목적을 설명해야 합니다';
 
   @override
-  String get onbResultFactorBudgetLow => '예산이 연간 예상 비용보다 적습니다';
-
-  @override
   String get onbResultUnisTitle => '나에게 맞는 대학';
 
   @override
@@ -3095,18 +3092,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String get onbQuizKoreanUnknown => '잘 모르겠어요';
 
   @override
-  String get onbQuizBudgetUnder3 => '\$3,000 이하';
-
-  @override
-  String get onbQuizBudget3to6 => '\$3,000 – 6,000';
-
-  @override
-  String get onbQuizBudget6to10 => '\$6,000 – 10,000';
-
-  @override
-  String get onbQuizBudgetOver10 => '\$10,000 초과';
-
-  @override
   String get onbQuizQ5 => '부모님께 공식 소득이 있나요?';
 
   @override
@@ -3198,9 +3183,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String get onbQuizIeltsUnknown => '잘 모르겠어요';
 
   @override
-  String get onbQuizBudgetQ => '1년 학비와 생활비로 얼마를 쓸 수 있나요?';
-
-  @override
   String get onbQuizPayerQ => '학비는 누가 부담하나요?';
 
   @override
@@ -3272,9 +3254,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String get onbResultFactorKdbNo => 'KDB 예금 없음 — 대사관 필수 요건';
 
   @override
-  String get onbResultFactorBudgetBelowDeposit => '예산이 KDB 예치 금액보다 적음';
-
-  @override
   String get onbResultBandLowNoteLanguage =>
       '어학 성적이 대사관 기준보다 낮습니다 — 성적 없이 신청하면 면접 없이 불허됩니다.';
 
@@ -3294,9 +3273,6 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get onbQuizIeltsHint =>
       '영어 트랙에 필요합니다. 최근 2년 내 일반 IELTS만 인정(Online 불가).';
-
-  @override
-  String get onbQuizBudgetHint => '등록금·기숙사·식비. 대략적인 금액이면 됩니다.';
 
   @override
   String get onbQuizIncomeHint =>

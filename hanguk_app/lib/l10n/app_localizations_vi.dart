@@ -2809,10 +2809,6 @@ class AppLocalizationsVi extends AppLocalizations {
       'Because of age, the study intent must be explained';
 
   @override
-  String get onbResultFactorBudgetLow =>
-      'Budget is below the estimated yearly cost';
-
-  @override
   String get onbResultUnisTitle => 'Universities that fit you';
 
   @override
@@ -3224,18 +3220,6 @@ class AppLocalizationsVi extends AppLocalizations {
   String get onbQuizKoreanUnknown => 'Not sure';
 
   @override
-  String get onbQuizBudgetUnder3 => 'Up to \$3,000';
-
-  @override
-  String get onbQuizBudget3to6 => '\$3,000 – 6,000';
-
-  @override
-  String get onbQuizBudget6to10 => '\$6,000 – 10,000';
-
-  @override
-  String get onbQuizBudgetOver10 => 'Over \$10,000';
-
-  @override
   String get onbQuizQ5 => 'Do your parents have an official income?';
 
   @override
@@ -3331,10 +3315,6 @@ class AppLocalizationsVi extends AppLocalizations {
   String get onbQuizIeltsUnknown => 'Not sure';
 
   @override
-  String get onbQuizBudgetQ =>
-      'How much can you spend a year on study and living?';
-
-  @override
   String get onbQuizPayerQ => 'Who pays for the studies?';
 
   @override
@@ -3413,10 +3393,6 @@ class AppLocalizationsVi extends AppLocalizations {
   String get onbResultFactorKdbNo => 'No KDB deposit — the embassy requires it';
 
   @override
-  String get onbResultFactorBudgetBelowDeposit =>
-      'The budget is below the KDB deposit';
-
-  @override
   String get onbResultBandLowNoteLanguage =>
       'The language certificate is below the embassy\'s requirement — without it the application is refused without an interview.';
 
@@ -3438,10 +3414,6 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get onbQuizIeltsHint =>
       'Needed for English-taught programmes. Only the regular IELTS (not Online), taken in the last 2 years.';
-
-  @override
-  String get onbQuizBudgetHint =>
-      'Tuition, dormitory and food. A rough figure is enough.';
 
   @override
   String get onbQuizIncomeHint =>

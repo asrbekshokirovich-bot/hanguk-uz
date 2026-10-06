@@ -2829,10 +2829,6 @@ class AppLocalizationsUz extends AppLocalizations {
       'Yoshga ko\'ra ta\'lim niyati tushuntirilishi kerak';
 
   @override
-  String get onbResultFactorBudgetLow =>
-      'Byudjet yillik taxminiy xarajatdan kam';
-
-  @override
   String get onbResultUnisTitle => 'Sizga mos universitetlar';
 
   @override
@@ -3235,18 +3231,6 @@ class AppLocalizationsUz extends AppLocalizations {
   String get onbQuizKoreanUnknown => 'Aniq bilmayman';
 
   @override
-  String get onbQuizBudgetUnder3 => '\$3 000 gacha';
-
-  @override
-  String get onbQuizBudget3to6 => '\$3 000 – 6 000';
-
-  @override
-  String get onbQuizBudget6to10 => '\$6 000 – 10 000';
-
-  @override
-  String get onbQuizBudgetOver10 => '\$10 000 dan ko\'p';
-
-  @override
   String get onbQuizQ5 => 'Ota-onangizning rasmiy daromadi bormi?';
 
   @override
@@ -3342,10 +3326,6 @@ class AppLocalizationsUz extends AppLocalizations {
   String get onbQuizIeltsUnknown => 'Aniq bilmayman';
 
   @override
-  String get onbQuizBudgetQ =>
-      'Bir yilda o\'qish va yashash uchun qancha ajrata olasiz?';
-
-  @override
   String get onbQuizPayerQ => 'O\'qish xarajatlarini kim to\'laydi?';
 
   @override
@@ -3424,10 +3404,6 @@ class AppLocalizationsUz extends AppLocalizations {
       'KDB depozit yo\'q — elchixona uni majburiy talab qiladi';
 
   @override
-  String get onbResultFactorBudgetBelowDeposit =>
-      'Byudjet KDB depozit summasidan kam';
-
-  @override
   String get onbResultBandLowNoteLanguage =>
       'Til sertifikati elchixona talabidan past — sertifikatsiz ariza suhbatsiz rad etiladi.';
 
@@ -3449,10 +3425,6 @@ class AppLocalizationsUz extends AppLocalizations {
   @override
   String get onbQuizIeltsHint =>
       'Ingliz tilidagi dasturlar uchun kerak. Faqat oddiy IELTS (Online emas), oxirgi 2 yilda olingan.';
-
-  @override
-  String get onbQuizBudgetHint =>
-      'Kontrakt, yotoqxona va ovqat. Taxminiy summa yetarli.';
 
   @override
   String get onbQuizIncomeHint =>

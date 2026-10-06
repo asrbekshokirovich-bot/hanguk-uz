@@ -5138,12 +5138,6 @@ abstract class AppLocalizations {
   /// **'Because of age, the study intent must be explained'**
   String get onbResultFactorAgeHigh;
 
-  /// S03 factor (−): budget below the yearly cost
-  ///
-  /// In en, this message translates to:
-  /// **'Budget is below the estimated yearly cost'**
-  String get onbResultFactorBudgetLow;
-
   /// S03 section title
   ///
   /// In en, this message translates to:
@@ -5864,30 +5858,6 @@ abstract class AppLocalizations {
   /// **'Not sure'**
   String get onbQuizKoreanUnknown;
 
-  /// S02 Q4 option: up to $3,000 a year.
-  ///
-  /// In en, this message translates to:
-  /// **'Up to \$3,000'**
-  String get onbQuizBudgetUnder3;
-
-  /// S02 Q4 option: $3,000–6,000 a year.
-  ///
-  /// In en, this message translates to:
-  /// **'\$3,000 – 6,000'**
-  String get onbQuizBudget3to6;
-
-  /// S02 Q4 option: $6,000–10,000 a year.
-  ///
-  /// In en, this message translates to:
-  /// **'\$6,000 – 10,000'**
-  String get onbQuizBudget6to10;
-
-  /// S02 Q4 option: over $10,000 a year.
-  ///
-  /// In en, this message translates to:
-  /// **'Over \$10,000'**
-  String get onbQuizBudgetOver10;
-
   /// S02 question 5: parents' official income (and bank statement).
   ///
   /// In en, this message translates to:
@@ -6062,12 +6032,6 @@ abstract class AppLocalizations {
   /// **'Not sure'**
   String get onbQuizIeltsUnknown;
 
-  /// S02 question 6: yearly budget.
-  ///
-  /// In en, this message translates to:
-  /// **'How much can you spend a year on study and living?'**
-  String get onbQuizBudgetQ;
-
   /// S02 question 7: who pays.
   ///
   /// In en, this message translates to:
@@ -6206,12 +6170,6 @@ abstract class AppLocalizations {
   /// **'No KDB deposit — the embassy requires it'**
   String get onbResultFactorKdbNo;
 
-  /// Result factor
-  ///
-  /// In en, this message translates to:
-  /// **'The budget is below the KDB deposit'**
-  String get onbResultFactorBudgetBelowDeposit;
-
   /// Low band note: language
   ///
   /// In en, this message translates to:
@@ -6247,12 +6205,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Needed for English-taught programmes. Only the regular IELTS (not Online), taken in the last 2 years.'**
   String get onbQuizIeltsHint;
-
-  /// Quiz budget hint
-  ///
-  /// In en, this message translates to:
-  /// **'Tuition, dormitory and food. A rough figure is enough.'**
-  String get onbQuizBudgetHint;
 
   /// Quiz income hint
   ///

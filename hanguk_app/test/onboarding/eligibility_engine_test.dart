@@ -74,13 +74,12 @@ void main() {
         ],
       );
 
-  // Everything in order: the language, the deposit, the income, the budget.
+  // Everything in order: the language, the deposit, the income.
   QuizAnswers answers({
     StudyRoute route = StudyRoute.bachelor,
     int age = 19,
     KoreanLevel korean = KoreanLevel.topik3,
     EnglishLevel englishLevel = EnglishLevel.none,
-    Budget budget = Budget.over10k,
     bool income = true,
     KdbDeposit kdb = KdbDeposit.ready,
   }) => QuizAnswers(
@@ -89,7 +88,6 @@ void main() {
     gradYear: 2026,
     korean: korean,
     english: englishLevel,
-    budget: budget,
     payer: Payer.parents,
     formalIncome: income,
     kdb: kdb,
@@ -144,7 +142,7 @@ void main() {
       expect(r.band, EligibilityBand.low);
       expect(minuses(r), contains(FactorKind.koreanCourseMissing));
 
-      final ok = run(answers(route: StudyRoute.languageCourse, korean: KoreanLevel.topik1, budget: Budget.from6to10k));
+      final ok = run(answers(route: StudyRoute.languageCourse, korean: KoreanLevel.topik1));
       expect(ok.band, EligibilityBand.high);
     });
 
@@ -222,18 +220,15 @@ void main() {
       expect(r.tariff, Tariff.noRisk);
     });
 
-    test('a budget under the deposit is mid, far under it is low', () {
-      final under = run(answers(budget: Budget.from6to10k));
-      expect(under.band, EligibilityBand.mid);
-      expect(minuses(under), contains(FactorKind.budgetBelowDeposit));
-
-      final far = run(answers(budget: Budget.from3to6k));
-      expect(far.band, EligibilityBand.low);
-      expect(far.lowReason, LowReason.money);
-
-      // The language course deposit is smaller.
-      final course = run(answers(route: StudyRoute.languageCourse, korean: KoreanLevel.topik1, budget: Budget.from3to6k));
-      expect(course.band, EligibilityBand.mid);
+    test('the tariff follows the deposit answer', () {
+      // The money is there but no income papers: NO RISK.
+      expect(run(answers(income: false, kdb: KdbDeposit.byIntake)).tariff, Tariff.noRisk);
+      // No deposit, Korean enough for a college but no income: Standart.
+      expect(
+        run(answers(route: StudyRoute.college, korean: KoreanLevel.topik2, income: false, kdb: KdbDeposit.no)).tariff,
+        Tariff.standart,
+      );
+      expect(run(answers()).tariff, Tariff.premium);
     });
 
     test('"Hali bilmayman" for the deposit is mid', () {
@@ -242,7 +237,7 @@ void main() {
     });
 
     test('no certificate and no money: both reasons, paths, Hanbox', () {
-      final r = run(answers(korean: KoreanLevel.none, budget: Budget.under3k, income: false, kdb: KdbDeposit.no));
+      final r = run(answers(korean: KoreanLevel.none, income: false, kdb: KdbDeposit.no));
       expect(r.band, EligibilityBand.low);
       expect(r.lowReason, LowReason.both);
       expect(r.universities, isEmpty);
@@ -310,7 +305,6 @@ void main() {
       stillStudying: true,
       korean: KoreanLevel.topik4plus,
       english: EnglishLevel.ielts60,
-      budget: Budget.from3to6k,
       payer: Payer.sponsor,
       formalIncome: true,
       kdb: KdbDeposit.byIntake,
@@ -324,7 +318,6 @@ void main() {
       'grad_year': 'studying',
       'korean': 'topik4plus',
       'english': 'ielts60',
-      'budget': '3to6',
       'payer': 'sponsor',
       'formal_income': 'yes',
       'kdb': 'by_intake',

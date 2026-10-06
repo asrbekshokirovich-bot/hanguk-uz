@@ -21,8 +21,14 @@ Widget _quiz(Locale locale, {required Size size, double textScale = 1}) {
     initialLocation: kQuizPath,
     routes: [
       GoRoute(path: kQuizPath, builder: (_, _) => const QuizScreen()),
-      GoRoute(path: kQuizResultPath, builder: (_, _) => const Scaffold(body: Text('RESULT'))),
-      GoRoute(path: '/welcome', builder: (_, _) => const Scaffold(body: Text('WELCOME'))),
+      GoRoute(
+        path: kQuizResultPath,
+        builder: (_, _) => const Scaffold(body: Text('RESULT')),
+      ),
+      GoRoute(
+        path: '/welcome',
+        builder: (_, _) => const Scaffold(body: Text('WELCOME')),
+      ),
     ],
   );
   return ProviderScope(
@@ -49,69 +55,79 @@ void main() {
 
   for (final locale in locales) {
     for (final routeIndex in [0, 1, 2, 3]) {
-      testWidgets('${locale.languageCode}, route option ${routeIndex + 1}: all 11 questions, '
-          'small phone, large font', (t) async {
-        t.view.physicalSize = const Size(320 * 2, 568 * 2);
-        t.view.devicePixelRatio = 2;
-        addTearDown(t.view.reset);
-        await t.pumpWidget(_quiz(locale, size: const Size(320, 568), textScale: 1.3));
-        await t.pumpAndSettle();
-        final l = await AppLocalizations.delegate.load(locale);
-        final container = ProviderScope.containerOf(t.element(find.byType(QuizScreen)));
+      testWidgets(
+        '${locale.languageCode}, route option ${routeIndex + 1}: all $kQuizSteps questions, '
+        'small phone, large font',
+        (t) async {
+          t.view.physicalSize = const Size(320 * 2, 568 * 2);
+          t.view.devicePixelRatio = 2;
+          addTearDown(t.view.reset);
+          await t.pumpWidget(_quiz(locale, size: const Size(320, 568), textScale: 1.3));
+          await t.pumpAndSettle();
+          final l = await AppLocalizations.delegate.load(locale);
+          final container = ProviderScope.containerOf(t.element(find.byType(QuizScreen)));
 
-        final titles = <String>{};
-        for (var step = 1; step <= kQuizSteps; step++) {
-          expect(find.text('$step / $kQuizSteps'), findsOneWidget, reason: 'step $step');
-          expect(t.takeException(), isNull, reason: 'step $step overflows');
+          final titles = <String>{};
+          for (var step = 1; step <= kQuizSteps; step++) {
+            expect(find.text('$step / $kQuizSteps'), findsOneWidget, reason: 'step $step');
+            expect(t.takeException(), isNull, reason: 'step $step overflows');
 
-          // Nothing chosen yet: "Davom etish" does nothing.
-          if (!container.read(quizProvider).answers.isComplete(step)) {
+            // Nothing chosen yet: "Davom etish" does nothing.
+            if (!container.read(quizProvider).answers.isComplete(step)) {
+              await t.ensureVisible(find.text(l.onbQuizContinue));
+              await t.tap(find.text(l.onbQuizContinue));
+              await t.pump();
+              expect(
+                find.text('$step / $kQuizSteps'),
+                findsOneWidget,
+                reason: 'step $step moved on unanswered',
+              );
+            }
+
+            // Every question has its own title.
+            final title = switch (step) {
+              1 => l.onbQuizQ1,
+              2 => l.onbQuizAgeQ,
+              3 => routeIndex == 2 ? l.onbQuizGradQMaster : l.onbQuizGradQ,
+              4 => l.onbQuizQ3,
+              5 => l.onbQuizIeltsQ,
+              6 => l.onbQuizPayerQ,
+              7 => l.onbQuizQ5,
+              8 => l.onbQuizKdbQ,
+              9 => l.onbQuizRegionQ,
+              _ => l.onbQuizIntakeQ,
+            };
+            expect(find.text(title), findsOneWidget, reason: 'step $step title');
+            expect(titles.add(title), isTrue, reason: 'step $step repeats a title');
+
+            // Pick an answer (the route under test on the first question).
+            final opts = _options();
+            if (step == 2) {
+              await t.tap(find.text('19'));
+            } else {
+              final count = t.widgetList(opts).length;
+              expect(count, greaterThan(1), reason: 'step $step has options');
+              final i = step == 1 ? routeIndex : count - 1;
+              await t.ensureVisible(opts.at(i));
+              await t.tap(opts.at(i));
+            }
+            await t.pump();
+            expect(
+              container.read(quizProvider).answers.isComplete(step),
+              isTrue,
+              reason: 'step $step answer',
+            );
+
             await t.ensureVisible(find.text(l.onbQuizContinue));
             await t.tap(find.text(l.onbQuizContinue));
-            await t.pump();
-            expect(find.text('$step / $kQuizSteps'), findsOneWidget, reason: 'step $step moved on unanswered');
+            await t.pumpAndSettle();
           }
-
-          // Every question has its own title.
-          final title = switch (step) {
-            1 => l.onbQuizQ1,
-            2 => l.onbQuizAgeQ,
-            3 => routeIndex == 2 ? l.onbQuizGradQMaster : l.onbQuizGradQ,
-            4 => l.onbQuizQ3,
-            5 => l.onbQuizIeltsQ,
-            6 => l.onbQuizBudgetQ,
-            7 => l.onbQuizPayerQ,
-            8 => l.onbQuizQ5,
-            9 => l.onbQuizKdbQ,
-            10 => l.onbQuizRegionQ,
-            _ => l.onbQuizIntakeQ,
-          };
-          expect(find.text(title), findsOneWidget, reason: 'step $step title');
-          expect(titles.add(title), isTrue, reason: 'step $step repeats a title');
-
-          // Pick an answer (the route under test on the first question).
-          final opts = _options();
-          if (step == 2) {
-            await t.tap(find.text('19'));
-          } else {
-            final count = t.widgetList(opts).length;
-            expect(count, greaterThan(1), reason: 'step $step has options');
-            final i = step == 1 ? routeIndex : count - 1;
-            await t.ensureVisible(opts.at(i));
-            await t.tap(opts.at(i));
-          }
-          await t.pump();
-          expect(container.read(quizProvider).answers.isComplete(step), isTrue, reason: 'step $step answer');
-
-          await t.ensureVisible(find.text(l.onbQuizContinue));
-          await t.tap(find.text(l.onbQuizContinue));
-          await t.pumpAndSettle();
-        }
-        expect(find.text('RESULT'), findsOneWidget);
-        final a = container.read(quizProvider).answers;
-        expect(a.isAllComplete, isTrue);
-        expect(a.route, StudyRoute.values[[0, 1, 2, 3][routeIndex]]);
-      });
+          expect(find.text('RESULT'), findsOneWidget);
+          final a = container.read(quizProvider).answers;
+          expect(a.isAllComplete, isTrue);
+          expect(a.route, StudyRoute.values[[0, 1, 2, 3][routeIndex]]);
+        },
+      );
     }
   }
 
@@ -134,7 +150,9 @@ void main() {
     expect(find.text('WELCOME'), findsOneWidget);
   });
 
-  testWidgets('a master is asked about the bachelor\'s; the deposit hint follows the route', (t) async {
+  testWidgets('a master is asked about the bachelor\'s; the deposit hint follows the route', (
+    t,
+  ) async {
     await t.pumpWidget(_quiz(const Locale('uz'), size: const Size(390, 844)));
     await t.pumpAndSettle();
     final l = await AppLocalizations.delegate.load(const Locale('uz'));
@@ -152,11 +170,11 @@ void main() {
     quiz.back();
     quiz.back();
     quiz.update((x) => x.copyWith(route: StudyRoute.languageCourse));
-    for (var i = 0; i < 8; i++) {
+    for (var i = 0; i < 7; i++) {
       quiz.next();
     }
     await t.pumpAndSettle();
-    expect(find.text('9 / $kQuizSteps'), findsOneWidget);
+    expect(find.text('8 / $kQuizSteps'), findsOneWidget);
     expect(find.textContaining('\$6 300'), findsOneWidget);
     expect(find.textContaining('3 oy'), findsOneWidget);
   });
@@ -195,19 +213,24 @@ void main() {
           ),
     ];
 
-    test('the result keeps its rules for all of them, and its text builds in every language', () async {
-      final ls = [for (final c in locales) await AppLocalizations.delegate.load(c)];
-      final rules = const EligibilityRules();
-      var n = 0;
-      final bands = <EligibilityBand, int>{};
-      for (final route in StudyRoute.values) {
-        for (final korean in KoreanLevel.values) {
-          for (final english in EnglishLevel.values) {
-            for (final budget in Budget.values) {
+    test(
+      'the result keeps its rules for all of them, and its text builds in every language',
+      () async {
+        final ls = [for (final c in locales) await AppLocalizations.delegate.load(c)];
+        final rules = const EligibilityRules();
+        var n = 0;
+        final bands = <EligibilityBand, int>{};
+        for (final route in StudyRoute.values) {
+          for (final korean in KoreanLevel.values) {
+            for (final english in EnglishLevel.values) {
               for (final payer in Payer.values) {
                 for (final income in [true, false]) {
                   for (final kdb in KdbDeposit.values) {
-                    for (final (age, grad, studying) in [(19, 2026, false), (31, 2020, false), (17, null, true)]) {
+                    for (final (age, grad, studying) in [
+                      (19, 2026, false),
+                      (31, 2020, false),
+                      (17, null, true),
+                    ]) {
                       final a = QuizAnswers(
                         route: route,
                         age: age,
@@ -215,7 +238,6 @@ void main() {
                         stillStudying: studying,
                         korean: korean,
                         english: english,
-                        budget: budget,
                         payer: payer,
                         formalIncome: income,
                         kdb: kdb,
@@ -223,10 +245,14 @@ void main() {
                         intake: Intake.fall2027,
                       );
                       expect(a.isAllComplete, isTrue);
-                      final r = evaluateEligibility(a, catalog: catalog, now: DateTime(2026, 10, 6));
+                      final r = evaluateEligibility(
+                        a,
+                        catalog: catalog,
+                        now: DateTime(2026, 10, 6),
+                      );
                       n++;
                       bands[r.band] = (bands[r.band] ?? 0) + 1;
-                      final why = '$route $korean $english $budget $income $kdb age $age';
+                      final why = '$route $korean $english $income $kdb age $age';
                       final minus = r.factors.where((f) => !f.positive).map((f) => f.kind).toSet();
 
                       // A low result always says why; others never do.
@@ -235,8 +261,11 @@ void main() {
                       expect(r.paths.isNotEmpty, r.band == EligibilityBand.low, reason: why);
 
                       // The language the embassy asks for.
-                      final topikOk = korean != KoreanLevel.unknown && korean.topik >= rules.topikMin(route);
-                      if (!topikOk && korean != KoreanLevel.unknown && !(route.isDegree && english.ielts >= 5.5)) {
+                      final topikOk =
+                          korean != KoreanLevel.unknown && korean.topik >= rules.topikMin(route);
+                      if (!topikOk &&
+                          korean != KoreanLevel.unknown &&
+                          !(route.isDegree && english.ielts >= 5.5)) {
                         expect(r.band, EligibilityBand.low, reason: 'no certificate: $why');
                       }
                       // No deposit: never better than low.
@@ -250,7 +279,8 @@ void main() {
                       // A "not sure" deposit is never high; nor is a "not sure"
                       // Korean level, unless IELTS already meets the language rule.
                       final englishMet = r.factors.any((f) => f.kind == FactorKind.englishStrong);
-                      if (kdb == KdbDeposit.unknown || (korean == KoreanLevel.unknown && !englishMet)) {
+                      if (kdb == KdbDeposit.unknown ||
+                          (korean == KoreanLevel.unknown && !englishMet)) {
                         expect(r.band, isNot(EligibilityBand.high), reason: why);
                       }
                       // Two "not sure" answers ask the operator.
@@ -262,15 +292,26 @@ void main() {
                       // A university is offered only on what the applicant has.
                       for (final m in r.universities) {
                         final g = m.guideline;
-                        final viaKorean = g.koreanTrack == true && (korean == KoreanLevel.unknown || (g.topikMin ?? 0) <= korean.topik);
-                        final viaEnglish = g.englishTrack == true && english.ielts >= (g.ieltsMin ?? 5.5);
+                        final viaKorean =
+                            g.koreanTrack == true &&
+                            (korean == KoreanLevel.unknown || (g.topikMin ?? 0) <= korean.topik);
+                        final viaEnglish =
+                            g.englishTrack == true && english.ielts >= (g.ieltsMin ?? 5.5);
                         expect(viaKorean || viaEnglish, isTrue, reason: '${g.institutionId}: $why');
-                        expect(m.bankStatementUsd, greaterThanOrEqualTo(g.inCapitalArea ? 15500 : 12500), reason: why);
+                        expect(
+                          m.bankStatementUsd,
+                          greaterThanOrEqualTo(g.inCapitalArea ? 15500 : 12500),
+                          reason: why,
+                        );
                       }
                       expect(r.universities.length, lessThanOrEqualTo(rules.maxUniversities));
                       expect(r.steps.length, inInclusiveRange(2, 3), reason: why);
                       if (r.yearlyCostUsd != null) {
-                        expect(r.yearlyCostUsd!.$1, lessThanOrEqualTo(r.yearlyCostUsd!.$2), reason: why);
+                        expect(
+                          r.yearlyCostUsd!.$1,
+                          lessThanOrEqualTo(r.yearlyCostUsd!.$2),
+                          reason: why,
+                        );
                       }
 
                       // Every word of it exists in every language.
@@ -291,10 +332,10 @@ void main() {
             }
           }
         }
-      }
-      expect(n, 4 * 7 * 5 * 4 * 3 * 2 * 4 * 3);
-      // All three bands occur.
-      expect(bands.keys.toSet(), EligibilityBand.values.toSet());
-    });
+        expect(n, 4 * 7 * 5 * 3 * 2 * 4 * 3);
+        // All three bands occur.
+        expect(bands.keys.toSet(), EligibilityBand.values.toSet());
+      },
+    );
   });
 }

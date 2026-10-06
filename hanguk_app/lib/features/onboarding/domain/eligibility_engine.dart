@@ -14,9 +14,8 @@ import 'quiz_answers.dart';
 ///     IELTS for an English-taught programme). Without it the application is
 ///     refused without an interview, so the band is low;
 ///   * money — the KDB deposit in the student's name and the parents' income
-///     papers, both required; the budget against the deposit;
-///   * soft points — age, the gap since school, a budget under the yearly
-///     cost — each one a point down.
+///     papers, both required (the embassy asks for these, not for a budget);
+///   * soft points — age and the gap since school — each one a point down.
 /// High needs the first two met and no soft point.
 ///
 /// A starting heuristic, not an embassy decision — the result screen says so.
@@ -62,11 +61,9 @@ enum FactorKind {
   kdbReady,
   kdbByIntake,
   kdbNo,
-  budgetBelowDeposit,
   gradRecent,
   gradGapLong,
   ageHigh,
-  budgetLow,
 }
 
 @immutable
@@ -185,12 +182,10 @@ class EligibilityRules {
     this.degreeKdbUsd = (12500, 15500),
     this.courseKdbHoldMonths = 3,
     this.degreeKdbHoldMonths = 1,
-    this.budgetDepositMissingShare = 0.5,
     this.courseGapYearsMax = 3,
     this.courseAgeSoftMax = 30,
     this.bachelorAgeSoftMax = 30,
     this.softPenalty = 1,
-    this.budgetPenalty = 1,
     this.krwPerUsd = 1400,
     this.livingSeoulMonthUsd = (900, 1100),
     this.livingRegionMonthUsd = (450, 750),
@@ -232,15 +227,12 @@ class EligibilityRules {
   final int courseKdbHoldMonths;
   final int degreeKdbHoldMonths;
 
-  /// A top budget under this share of the deposit: the money check fails.
-  final num budgetDepositMissingShare;
   final int courseGapYearsMax;
   final int courseAgeSoftMax;
   final int bachelorAgeSoftMax;
 
   /// Points down for each soft point (age, gap).
   final num softPenalty;
-  final num budgetPenalty;
   final num krwPerUsd;
   final (int, int) livingSeoulMonthUsd;
   final (int, int) livingRegionMonthUsd;
@@ -308,12 +300,10 @@ class EligibilityRules {
       degreeKdbUsd: range('d2_kdb_usd', d.degreeKdbUsd),
       courseKdbHoldMonths: i('d4_kdb_hold_months', d.courseKdbHoldMonths),
       degreeKdbHoldMonths: i('d2_kdb_hold_months', d.degreeKdbHoldMonths),
-      budgetDepositMissingShare: n('budget_kdb_missing_share', d.budgetDepositMissingShare),
       courseGapYearsMax: i('d4_gap_years_max', d.courseGapYearsMax),
       courseAgeSoftMax: i('d4_age_soft_max', d.courseAgeSoftMax),
       bachelorAgeSoftMax: i('d2_bachelor_age_soft_max', d.bachelorAgeSoftMax),
       softPenalty: n('soft_penalty', d.softPenalty),
-      budgetPenalty: n('budget_penalty', d.budgetPenalty),
       krwPerUsd: n('krw_per_usd', d.krwPerUsd),
       livingSeoulMonthUsd: range('living_seoul_month_usd', d.livingSeoulMonthUsd),
       livingRegionMonthUsd: range('living_region_month_usd', d.livingRegionMonthUsd),
@@ -457,8 +447,8 @@ EligibilityResult evaluateEligibility(
       capAt(rules.languageMissingCap);
   }
 
-  // 2. Money: the KDB deposit and the parents' formal income, both required;
-  // a budget well under the deposit fails the check.
+  // 2. Money: the KDB deposit and the parents' formal income, both required.
+  // The embassy asks for these, not for a budget.
   final income = a.formalIncome;
   final deposit = a.kdb ?? KdbDeposit.unknown;
   if (income == true) {
@@ -476,21 +466,12 @@ EligibilityResult evaluateEligibility(
     case KdbDeposit.unknown:
       unknowns++;
   }
-  var money = switch (deposit) {
+  final money = switch (deposit) {
     KdbDeposit.no => _Check.missing,
     KdbDeposit.byIntake => _Check.partial,
     KdbDeposit.ready => income == false ? _Check.partial : _Check.met,
     KdbDeposit.unknown => income == false ? _Check.partial : _Check.unknown,
   };
-  final budgetTop = a.budget?.maxUsd;
-  if (budgetTop != null && budgetTop < kdb.$1) {
-    minus(FactorKind.budgetBelowDeposit);
-    if (budgetTop < kdb.$1 * rules.budgetDepositMissingShare) {
-      money = _Check.missing;
-    } else if (money == _Check.met || money == _Check.unknown) {
-      money = _Check.partial;
-    }
-  }
   switch (money) {
     case _Check.met:
       score += rules.moneyOkBonus;
@@ -548,11 +529,6 @@ EligibilityResult evaluateEligibility(
     final lo = priced.map((m) => cost(m, false)).reduce((p, q) => p < q ? p : q);
     final hi = priced.map((m) => cost(m, true)).reduce((p, q) => p > q ? p : q);
     yearly = (_round100(lo), _round100(hi));
-
-    if (budgetTop != null && budgetTop < yearly.$1) {
-      score -= rules.budgetPenalty;
-      minus(FactorKind.budgetLow);
-    }
   }
   final banks = shown.map((m) => m.bankStatementUsd).whereType<int>().toList();
   final bankUsd = banks.isEmpty ? null : banks.reduce((p, q) => p > q ? p : q);
@@ -575,17 +551,18 @@ EligibilityResult evaluateEligibility(
     NextStep.applyOnTime,
   ].take(3).toList();
 
-  // Tariff.
+  // Tariff. The deposit answer stands for what the family can put in: the
+  // money there but no income papers → NO RISK; no deposit → Standart.
   final financeWeak = income == false;
-  final budgetMin = a.budget?.minUsd ?? 0;
+  final hasMoney = deposit == KdbDeposit.ready || deposit == KdbDeposit.byIntake;
   final Tariff tariff;
   if (band == EligibilityBand.low && korean.topik <= 1 && !englishOk) {
     tariff = Tariff.hanbox;
-  } else if (financeWeak && budgetMin >= 6000) {
+  } else if (financeWeak && hasMoney) {
     tariff = Tariff.noRisk;
   } else if (route.isDegree && (korean.topik >= 2 || englishOk) && !financeWeak) {
     tariff = Tariff.premium;
-  } else if (a.budget == Budget.under3k) {
+  } else if (deposit == KdbDeposit.no) {
     tariff = Tariff.standart;
   } else {
     tariff = Tariff.premium;

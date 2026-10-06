@@ -3530,10 +3530,6 @@
   "@onbResultFactorAgeHigh": {
     "description": "S03 factor (−): age above the soft limit"
   },
-  "onbResultFactorBudgetLow": "Budget is below the estimated yearly cost",
-  "@onbResultFactorBudgetLow": {
-    "description": "S03 factor (−): budget below the yearly cost"
-  },
   "onbResultUnisTitle": "Universities that fit you",
   "@onbResultUnisTitle": {
     "description": "S03 section title"
@@ -4059,22 +4055,6 @@
   "@onbQuizKoreanUnknown": {
     "description": "S02 Q3 option: don't know yet."
   },
-  "onbQuizBudgetUnder3": "Up to $3,000",
-  "@onbQuizBudgetUnder3": {
-    "description": "S02 Q4 option: up to $3,000 a year."
-  },
-  "onbQuizBudget3to6": "$3,000 – 6,000",
-  "@onbQuizBudget3to6": {
-    "description": "S02 Q4 option: $3,000–6,000 a year."
-  },
-  "onbQuizBudget6to10": "$6,000 – 10,000",
-  "@onbQuizBudget6to10": {
-    "description": "S02 Q4 option: $6,000–10,000 a year."
-  },
-  "onbQuizBudgetOver10": "Over $10,000",
-  "@onbQuizBudgetOver10": {
-    "description": "S02 Q4 option: over $10,000 a year."
-  },
   "onbQuizQ5": "Do your parents have an official income?",
   "@onbQuizQ5": {
     "description": "S02 question 5: parents' official income (and bank statement)."
@@ -4196,10 +4176,6 @@
   "@onbQuizIeltsUnknown": {
     "description": "S02 IELTS option: don't know yet."
   },
-  "onbQuizBudgetQ": "How much can you spend a year on study and living?",
-  "@onbQuizBudgetQ": {
-    "description": "S02 question 6: yearly budget."
-  },
   "onbQuizPayerQ": "Who pays for the studies?",
   "@onbQuizPayerQ": {
     "description": "S02 question 7: who pays."
@@ -4303,10 +4279,6 @@
   "@onbResultFactorKdbNo": {
     "description": "Result factor"
   },
-  "onbResultFactorBudgetBelowDeposit": "The budget is below the KDB deposit",
-  "@onbResultFactorBudgetBelowDeposit": {
-    "description": "Result factor"
-  },
   "onbResultBandLowNoteLanguage": "The language certificate is below the embassy's requirement — without it the application is refused without an interview.",
   "@onbResultBandLowNoteLanguage": {
     "description": "Low band note: language"
@@ -4330,10 +4302,6 @@
   "onbQuizIeltsHint": "Needed for English-taught programmes. Only the regular IELTS (not Online), taken in the last 2 years.",
   "@onbQuizIeltsHint": {
     "description": "Quiz IELTS hint"
-  },
-  "onbQuizBudgetHint": "Tuition, dormitory and food. A rough figure is enough.",
-  "@onbQuizBudgetHint": {
-    "description": "Quiz budget hint"
   },
   "onbQuizIncomeHint": "For example a salary certificate from work (my.gov.uz) or business and tax papers. The embassy asks for the parents' papers.",
   "@onbQuizIncomeHint": {

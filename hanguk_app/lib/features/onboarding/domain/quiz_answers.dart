@@ -61,25 +61,7 @@ enum EnglishLevel {
   final double ielts;
 }
 
-/// 6 — Yearly budget, in US dollars.
-enum Budget {
-  under3k('lt3', 0, 3000, "\$3 000 gacha"),
-  from3to6k('3to6', 3000, 6000, "\$3–6 ming"),
-  from6to10k('6to10', 6000, 10000, "\$6–10 ming"),
-  over10k('gt10', 10000, null, "\$10 000+");
-
-  const Budget(this.code, this.minUsd, this.maxUsd, this.crmLabel);
-  final String code;
-  final int minUsd;
-
-  /// Null for the open-ended top bracket.
-  final int? maxUsd;
-
-  /// What the CRM stores in `leads.budget_range` (stored values stay Uzbek).
-  final String crmLabel;
-}
-
-/// 7 — Who pays.
+/// 6 — Who pays.
 enum Payer {
   parents('parents'),
   self('self'),
@@ -89,7 +71,7 @@ enum Payer {
   final String code;
 }
 
-/// 9 — The deposit the embassy asks for: a KDB Bank Uzbekistan account in the
+/// 8 — The deposit the embassy asks for: a KDB Bank Uzbekistan account in the
 /// student's name, held for a set time before applying.
 enum KdbDeposit {
   ready('ready'),
@@ -101,7 +83,7 @@ enum KdbDeposit {
   final String code;
 }
 
-/// 11 — When.
+/// 10 — When.
 enum Intake {
   spring2027('2027_spring'),
   fall2027('2027_fall'),
@@ -111,7 +93,7 @@ enum Intake {
   final String code;
 }
 
-/// Regions offered in question 10. Stored values, kept as the CRM's intake form
+/// Regions offered in question 9. Stored values, kept as the CRM's intake form
 /// lists them (`src/components/crm/leads/intake/options.ts`, CITIES).
 const List<String> kQuizRegions = [
   'Toshkent',
@@ -133,7 +115,7 @@ const List<String> kQuizRegions = [
 const List<int> kQuizAges = [16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31];
 
 /// Number of questions in S02.
-const int kQuizSteps = 11;
+const int kQuizSteps = 10;
 
 @immutable
 class QuizAnswers {
@@ -144,7 +126,6 @@ class QuizAnswers {
     this.stillStudying = false,
     this.korean,
     this.english,
-    this.budget,
     this.payer,
     this.formalIncome,
     this.kdb,
@@ -162,7 +143,6 @@ class QuizAnswers {
   final bool stillStudying;
   final KoreanLevel? korean;
   final EnglishLevel? english;
-  final Budget? budget;
   final Payer? payer;
 
   /// Parents have an official income.
@@ -178,12 +158,11 @@ class QuizAnswers {
     3 => gradYear != null || stillStudying,
     4 => korean != null,
     5 => english != null,
-    6 => budget != null,
-    7 => payer != null,
-    8 => formalIncome != null,
-    9 => kdb != null,
-    10 => region != null,
-    11 => intake != null,
+    6 => payer != null,
+    7 => formalIncome != null,
+    8 => kdb != null,
+    9 => region != null,
+    10 => intake != null,
     _ => false,
   };
 
@@ -196,7 +175,6 @@ class QuizAnswers {
     bool? stillStudying,
     KoreanLevel? korean,
     EnglishLevel? english,
-    Budget? budget,
     Payer? payer,
     bool? formalIncome,
     KdbDeposit? kdb,
@@ -211,7 +189,6 @@ class QuizAnswers {
       stillStudying: stillStudying ?? this.stillStudying,
       korean: korean ?? this.korean,
       english: english ?? this.english,
-      budget: budget ?? this.budget,
       payer: payer ?? this.payer,
       formalIncome: formalIncome ?? this.formalIncome,
       kdb: kdb ?? this.kdb,
@@ -228,7 +205,6 @@ class QuizAnswers {
     if (stillStudying) 'grad_year': 'studying',
     if (korean != null) 'korean': korean!.code,
     if (english != null) 'english': english!.code,
-    if (budget != null) 'budget': budget!.code,
     if (payer != null) 'payer': payer!.code,
     if (formalIncome != null) 'formal_income': formalIncome! ? 'yes' : 'no',
     if (kdb != null) 'kdb': kdb!.code,
