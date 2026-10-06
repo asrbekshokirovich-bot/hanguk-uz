@@ -2835,17 +2835,13 @@ class AppLocalizationsRu extends AppLocalizations {
   String get onbResultTuitionLabel => 'Контракт/сем.';
 
   @override
-  String get onbResultBankLabel => 'Банковская справка';
+  String get onbResultBankLabel => 'Депозит KDB';
 
   @override
   String get onbResultYearlyCost => 'Примерные расходы в год';
 
   @override
   String get onbResultStepsTitle => 'Следующие 3 шага';
-
-  @override
-  String get onbResultStepTopikPrep =>
-      'Подготовка к TOPIK 3 или поступление через языковые курсы';
 
   @override
   String get onbResultStepSchoolDocs =>
@@ -2862,24 +2858,26 @@ class AppLocalizationsRu extends AppLocalizations {
   String get onbResultPathsTitle => 'Подходящие вам пути';
 
   @override
-  String get onbResultPathLanguageCourse => 'Через языковые курсы (D-4)';
+  String get onbResultPathLanguageCourse => 'Сначала языковые курсы (D-4)';
 
   @override
   String get onbResultPathLanguageCourseNote =>
-      'Языковые курсы, затем переход в бакалавриат.';
+      'Изучать язык в Корее и после TOPIK перейти на основную учёбу. Для визы на языковые курсы тоже нужен TOPIK 1 или сертификат Sejong.';
 
   @override
   String get onbResultPathCollege => 'Профессиональный колледж';
 
   @override
-  String get onbResultPathCollegeNote => 'Требования мягче, контракт ниже.';
+  String get onbResultPathCollegeNote =>
+      'Вашего TOPIK 2 достаточно для профессионального колледжа.';
 
   @override
-  String get onbResultPathNextSeason => 'Подготовка к следующему сезону';
+  String get onbResultPathNextSeason => 'Подготовка к следующему набору';
 
   @override
-  String get onbResultPathNextSeasonNote =>
-      'Осень 2027 с TOPIK 3 и банковской справкой.';
+  String onbResultPathNextSeasonNote(String level) {
+    return 'Получить сертификат TOPIK $level и подать документы на следующий набор.';
+  }
 
   @override
   String onbResultTariffWhy(String tariff) {
@@ -3431,4 +3429,45 @@ class AppLocalizationsRu extends AppLocalizations {
   String onbWelcomeCallTimer(String minutes) {
     return 'Оператор свяжется с вами за $minutes минут';
   }
+
+  @override
+  String onbResultStepLanguagePrep(String level) {
+    return 'Подготовка к сертификату TOPIK $level';
+  }
+
+  @override
+  String onbResultStepLanguagePrepEnglish(String level) {
+    return 'Подготовка к TOPIK $level или IELTS 5.5';
+  }
+
+  @override
+  String onbResultStepDeposit(String low, String high, String months) {
+    return 'Открыть депозит KDB на имя студента: $low–$high, не менее $months мес.';
+  }
+
+  @override
+  String get onbResultStepParentsDocs =>
+      'Подготовить документы родителей о доходе или имуществе (my.gov.uz)';
+
+  @override
+  String get onbResultPathEnglishTrack => 'Программа на английском';
+
+  @override
+  String get onbResultPathEnglishTrackNote =>
+      'С IELTS 5.5 подать документы на программу, где корейский не требуется.';
+
+  @override
+  String get onbResultPathDeposit => 'Подготовить депозит KDB';
+
+  @override
+  String onbResultPathDepositNote(String low, String high, String months) {
+    return '$low–$high на имя студента, не менее $months мес. — обязательно для визы.';
+  }
+
+  @override
+  String get onbResultPathParentsDocs => 'Документы родителей';
+
+  @override
+  String get onbResultPathParentsDocsNote =>
+      'Документы об официальной работе, бизнесе или имуществе — посольство запрашивает их.';
 }

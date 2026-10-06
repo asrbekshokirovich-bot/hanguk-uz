@@ -74,11 +74,19 @@ class EligibilityFactor {
   final bool positive;
 }
 
-/// One of the three "Keyingi 3 qadam".
-enum NextStep { topikPrep, schoolDocs, diplomaDocs, applyOnTime }
+/// One of the three "Keyingi 3 qadam", in priority order: the certificate the
+/// route needs, the deposit, the parents' papers, then the documents and the
+/// deadline.
+enum NextStep { languagePrep, deposit, parentsDocs, schoolDocs, diplomaDocs, applyOnTime }
 
-/// The "Sizga mos yo'llar" shown instead of universities for a low band.
-enum AlternativePath { languageCourse, college, nextSeason }
+/// The "Sizga mos yo'llar" shown instead of universities for a low band —
+/// only the ways that fit the route and the reason:
+///   * [languageCourse] — not to someone already applying for it;
+///   * [college] — to a bachelor's applicant whose TOPIK meets the college's;
+///   * [englishTrack] — to a degree applicant without IELTS 5.5;
+///   * [nextSeason] — with the TOPIK level the route needs;
+///   * [deposit] / [parentsDocs] — when the money is what is missing.
+enum AlternativePath { languageCourse, college, englishTrack, nextSeason, deposit, parentsDocs }
 
 /// Why a band is low: the note under the band names it.
 enum LowReason { language, money, both }
@@ -138,6 +146,9 @@ class EligibilityResult {
     this.lowReason,
     this.yearlyCostUsd,
     this.bankStatementUsd,
+    this.topikNeed = 3,
+    this.depositUsd = (12500, 15500),
+    this.depositHoldMonths = 1,
   });
 
   final EligibilityBand band;
@@ -157,6 +168,14 @@ class EligibilityResult {
 
   /// Two or more "Hali bilmayman" answers: the operator has to clarify.
   final bool needsOperator;
+
+  /// The TOPIK level the route needs, for the steps and the paths.
+  final int topikNeed;
+
+  /// The KDB deposit for the route (other areas, Seoul area) and how many
+  /// months it has to be held.
+  final (int, int) depositUsd;
+  final int depositHoldMonths;
 }
 
 /// The numbers behind the result. See `eligibility_rules`.
@@ -534,8 +553,10 @@ EligibilityResult evaluateEligibility(
   final bankUsd = banks.isEmpty ? null : banks.reduce((p, q) => p > q ? p : q);
 
   final band = EligibilityBand.fromScore(score, rules).atMost(cap);
-  final languageLow = language == _Check.missing;
-  final moneyLow = money == _Check.missing || money == _Check.partial;
+  // What still stands in the way: a check not met, or not known yet (a low
+  // band with "Hali bilmayman" answers still needs that one settled).
+  final languageLow = language == _Check.missing || language == _Check.unknown;
+  final moneyLow = money != _Check.met;
   final lowReason = band != EligibilityBand.low
       ? null
       : languageLow && moneyLow
@@ -546,10 +567,27 @@ EligibilityResult evaluateEligibility(
 
   // Next three steps.
   final steps = <NextStep>[
-    if (language == _Check.missing) NextStep.topikPrep,
+    if (language == _Check.missing || language == _Check.unknown) NextStep.languagePrep,
+    if (deposit != KdbDeposit.ready) NextStep.deposit,
+    if (income == false) NextStep.parentsDocs,
     route == StudyRoute.master ? NextStep.diplomaDocs : NextStep.schoolDocs,
     NextStep.applyOnTime,
   ].take(3).toList();
+
+  // The ways forward for a low band: what fits the route and the reason.
+  final paths = <AlternativePath>[
+    if (languageLow) ...[
+      if (route != StudyRoute.languageCourse) AlternativePath.languageCourse,
+      if (route == StudyRoute.bachelor && korean.topik >= rules.collegeTopikMin)
+        AlternativePath.college,
+      if (route.isDegree && ielts < rules.englishIeltsMin) AlternativePath.englishTrack,
+      AlternativePath.nextSeason,
+    ],
+    if (moneyLow) ...[
+      if (deposit != KdbDeposit.ready) AlternativePath.deposit,
+      if (income == false) AlternativePath.parentsDocs,
+    ],
+  ];
 
   // Tariff. The deposit answer stands for what the family can put in: the
   // money there but no income papers → NO RISK; no deposit → Standart.
@@ -584,15 +622,12 @@ EligibilityResult evaluateEligibility(
     yearlyCostUsd: band == EligibilityBand.low ? null : yearly,
     bankStatementUsd: band == EligibilityBand.low ? null : bankUsd,
     steps: steps,
-    paths: band == EligibilityBand.low
-        ? const [
-            AlternativePath.languageCourse,
-            AlternativePath.college,
-            AlternativePath.nextSeason,
-          ]
-        : const [],
+    paths: band == EligibilityBand.low ? paths : const [],
     tariff: tariff,
     needsOperator: unknowns >= 2,
+    topikNeed: topikNeed,
+    depositUsd: kdb,
+    depositHoldMonths: rules.kdbHoldMonths(route),
   );
 }
 

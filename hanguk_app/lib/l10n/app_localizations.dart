@@ -5156,10 +5156,10 @@ abstract class AppLocalizations {
   /// **'Tuition/semester'**
   String get onbResultTuitionLabel;
 
-  /// S03 university card and cost card: bank statement amount
+  /// The KDB deposit amount label on the result
   ///
   /// In en, this message translates to:
-  /// **'Bank statement'**
+  /// **'KDB deposit'**
   String get onbResultBankLabel;
 
   /// S03 cost card title
@@ -5173,12 +5173,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Next 3 steps'**
   String get onbResultStepsTitle;
-
-  /// S03 next step
-  ///
-  /// In en, this message translates to:
-  /// **'Prepare for TOPIK 3 or enter through a language course'**
-  String get onbResultStepTopikPrep;
 
   /// S03 next step
   ///
@@ -5204,41 +5198,41 @@ abstract class AppLocalizations {
   /// **'Paths that fit you'**
   String get onbResultPathsTitle;
 
-  /// S03 low band path title
+  /// Path title
   ///
   /// In en, this message translates to:
-  /// **'Through a language course (D-4)'**
+  /// **'A language course first (D-4)'**
   String get onbResultPathLanguageCourse;
 
-  /// S03 low band path note (design: '{N} semestr til kursi, …'; the number of semesters is not set yet)
+  /// Path note
   ///
   /// In en, this message translates to:
-  /// **'A language course, then moving on to a bachelor\'s.'**
+  /// **'Learn Korean in Korea, then move on once you have TOPIK. The language-course visa also needs TOPIK 1 or a Sejong certificate.'**
   String get onbResultPathLanguageCourseNote;
 
-  /// S03 low band path title
+  /// Path title
   ///
   /// In en, this message translates to:
   /// **'Vocational college'**
   String get onbResultPathCollege;
 
-  /// S03 low band path note
+  /// Path note
   ///
   /// In en, this message translates to:
-  /// **'Softer requirements, lower tuition.'**
+  /// **'Your TOPIK 2 is enough for a vocational college.'**
   String get onbResultPathCollegeNote;
 
-  /// S03 low band path title
+  /// Path title
   ///
   /// In en, this message translates to:
-  /// **'Preparing for the next season'**
+  /// **'Get ready for the next intake'**
   String get onbResultPathNextSeason;
 
-  /// S03 low band path note
+  /// Path note
   ///
   /// In en, this message translates to:
-  /// **'Fall 2027 with TOPIK 3 and a bank statement.'**
-  String get onbResultPathNextSeasonNote;
+  /// **'Get the TOPIK {level} certificate and apply for the next intake.'**
+  String onbResultPathNextSeasonNote(String level);
 
   /// S03 link to the recommended tariff's detail
   ///
@@ -6205,6 +6199,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Our operator will contact you within {minutes} minutes'**
   String onbWelcomeCallTimer(String minutes);
+
+  /// Next step: the certificate the route needs
+  ///
+  /// In en, this message translates to:
+  /// **'Prepare for the TOPIK {level} certificate'**
+  String onbResultStepLanguagePrep(String level);
+
+  /// Next step for a degree route: TOPIK or IELTS
+  ///
+  /// In en, this message translates to:
+  /// **'Prepare for TOPIK {level} or IELTS 5.5'**
+  String onbResultStepLanguagePrepEnglish(String level);
+
+  /// Next step: the KDB deposit
+  ///
+  /// In en, this message translates to:
+  /// **'Open the KDB deposit in the student\'s name: {low}–{high}, for at least {months} month(s)'**
+  String onbResultStepDeposit(String low, String high, String months);
+
+  /// Next step: the parents' papers
+  ///
+  /// In en, this message translates to:
+  /// **'Prepare the parents\' income or property papers (my.gov.uz)'**
+  String get onbResultStepParentsDocs;
+
+  /// Path title
+  ///
+  /// In en, this message translates to:
+  /// **'An English-taught programme'**
+  String get onbResultPathEnglishTrack;
+
+  /// Path note
+  ///
+  /// In en, this message translates to:
+  /// **'With IELTS 5.5, apply to a programme that does not ask for Korean.'**
+  String get onbResultPathEnglishTrackNote;
+
+  /// Path title
+  ///
+  /// In en, this message translates to:
+  /// **'Prepare the KDB deposit'**
+  String get onbResultPathDeposit;
+
+  /// Path note
+  ///
+  /// In en, this message translates to:
+  /// **'{low}–{high} in the student\'s name for at least {months} month(s) — required for the visa.'**
+  String onbResultPathDepositNote(String low, String high, String months);
+
+  /// Path title
+  ///
+  /// In en, this message translates to:
+  /// **'The parents\' papers'**
+  String get onbResultPathParentsDocs;
+
+  /// Path note
+  ///
+  /// In en, this message translates to:
+  /// **'Official work, business or property papers — the embassy asks for these.'**
+  String get onbResultPathParentsDocsNote;
 }
 
 class _AppLocalizationsDelegate

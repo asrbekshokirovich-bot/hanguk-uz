@@ -65,8 +65,12 @@ String factorLabel(AppLocalizations l, FactorKind k) => switch (k) {
   FactorKind.ageHigh => l.onbResultFactorAgeHigh,
 };
 
-String stepLabel(AppLocalizations l, NextStep s) => switch (s) {
-  NextStep.topikPrep => l.onbResultStepTopikPrep,
+String stepLabel(AppLocalizations l, NextStep s, EligibilityResult r, StudyRoute route) => switch (s) {
+  NextStep.languagePrep => route.isDegree
+      ? l.onbResultStepLanguagePrepEnglish('${r.topikNeed}')
+      : l.onbResultStepLanguagePrep('${r.topikNeed}'),
+  NextStep.deposit => l.onbResultStepDeposit(_usd(r.depositUsd.$1), _usd(r.depositUsd.$2), '${r.depositHoldMonths}'),
+  NextStep.parentsDocs => l.onbResultStepParentsDocs,
   NextStep.schoolDocs => l.onbResultStepSchoolDocs,
   NextStep.diplomaDocs => l.onbResultStepDiplomaDocs,
   NextStep.applyOnTime => l.onbResultStepApplyOnTime,
@@ -75,14 +79,23 @@ String stepLabel(AppLocalizations l, NextStep s) => switch (s) {
 String pathTitle(AppLocalizations l, AlternativePath p) => switch (p) {
   AlternativePath.languageCourse => l.onbResultPathLanguageCourse,
   AlternativePath.college => l.onbResultPathCollege,
+  AlternativePath.englishTrack => l.onbResultPathEnglishTrack,
   AlternativePath.nextSeason => l.onbResultPathNextSeason,
+  AlternativePath.deposit => l.onbResultPathDeposit,
+  AlternativePath.parentsDocs => l.onbResultPathParentsDocs,
 };
 
-String pathNote(AppLocalizations l, AlternativePath p) => switch (p) {
+String pathNote(AppLocalizations l, AlternativePath p, EligibilityResult r) => switch (p) {
   AlternativePath.languageCourse => l.onbResultPathLanguageCourseNote,
   AlternativePath.college => l.onbResultPathCollegeNote,
-  AlternativePath.nextSeason => l.onbResultPathNextSeasonNote,
+  AlternativePath.englishTrack => l.onbResultPathEnglishTrackNote,
+  AlternativePath.nextSeason => l.onbResultPathNextSeasonNote('${r.topikNeed}'),
+  AlternativePath.deposit => l.onbResultPathDepositNote(_usd(r.depositUsd.$1), _usd(r.depositUsd.$2), '${r.depositHoldMonths}'),
+  AlternativePath.parentsDocs => l.onbResultPathParentsDocsNote,
 };
+
+/// A deposit amount that never wraps.
+String _usd(int v) => usd(v, space: '\u00A0');
 
 String tariffName(AppLocalizations l, Tariff t) => switch (t) {
   Tariff.standart => l.onbTariffNameStandart,
@@ -162,7 +175,7 @@ String planText(AppLocalizations l, QuizAnswers a, EligibilityResult r) {
     out.add(
       [
         l.onbResultPathsTitle,
-        for (final p in r.paths) '• ${pathTitle(l, p)} — ${pathNote(l, p)}',
+        for (final p in r.paths) '• ${pathTitle(l, p)} — ${pathNote(l, p, r)}',
       ].join('\n'),
     );
   }
@@ -177,7 +190,7 @@ String planText(AppLocalizations l, QuizAnswers a, EligibilityResult r) {
     out.add(
       [
         l.onbResultStepsTitle,
-        for (var i = 0; i < r.steps.length && i < 3; i++) '${i + 1}. ${stepLabel(l, r.steps[i])}',
+        for (var i = 0; i < r.steps.length && i < 3; i++) '${i + 1}. ${stepLabel(l, r.steps[i], r, a.route ?? StudyRoute.bachelor)}',
       ].join('\n'),
     );
   }

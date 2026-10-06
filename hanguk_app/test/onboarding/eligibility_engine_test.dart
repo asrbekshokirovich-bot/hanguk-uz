@@ -110,7 +110,7 @@ void main() {
       // Inactive one never suggested, accredited first, cheapest first.
       expect(r.universities.map((m) => m.university.institutionId), ['B', 'A', 'C']);
       expect(r.universities.first.tuitionPerSemesterUsd, 1700);
-      expect(r.steps, isNot(contains(NextStep.topikPrep)));
+      expect(r.steps, isNot(contains(NextStep.languagePrep)));
       expect(r.paths, isEmpty);
     });
 
@@ -120,8 +120,13 @@ void main() {
       expect(r.lowReason, LowReason.language);
       expect(minuses(r), contains(FactorKind.koreanTopik2Degree));
       expect(r.universities, isEmpty);
-      expect(r.paths, hasLength(3));
-      expect(r.steps.first, NextStep.topikPrep);
+      expect(r.paths, [
+        AlternativePath.languageCourse,
+        AlternativePath.college,
+        AlternativePath.englishTrack,
+        AlternativePath.nextSeason,
+      ]);
+      expect(r.steps.first, NextStep.languagePrep);
     });
 
     test('a master needs TOPIK 4: TOPIK 3 is low, TOPIK 4+ is high', () {
@@ -168,7 +173,7 @@ void main() {
       // Only the English-taught one: the Korean-taught ones need TOPIK 3.
       expect(r.universities.map((m) => m.university.institutionId), ['H']);
       expect(r.universities.single.partner, isTrue);
-      expect(r.steps, isNot(contains(NextStep.topikPrep)));
+      expect(r.steps, isNot(contains(NextStep.languagePrep)));
     });
 
     test('a bachelor with IELTS but no programme that accepts it stays low', () {
@@ -241,8 +246,64 @@ void main() {
       expect(r.band, EligibilityBand.low);
       expect(r.lowReason, LowReason.both);
       expect(r.universities, isEmpty);
-      expect(r.paths, hasLength(3));
+      expect(r.paths, [
+        AlternativePath.languageCourse,
+        AlternativePath.englishTrack,
+        AlternativePath.nextSeason,
+        AlternativePath.deposit,
+        AlternativePath.parentsDocs,
+      ]);
       expect(r.tariff, Tariff.hanbox);
+    });
+  });
+
+  group('the steps and the ways forward follow the route and the reason', () {
+    test('a language course without a certificate: TOPIK 1, never "a language course first"', () {
+      final r = run(answers(route: StudyRoute.languageCourse, korean: KoreanLevel.none, kdb: KdbDeposit.no));
+      expect(r.band, EligibilityBand.low);
+      expect(r.topikNeed, 1);
+      expect(r.paths, [AlternativePath.nextSeason, AlternativePath.deposit]);
+      expect(r.steps, [NextStep.languagePrep, NextStep.deposit, NextStep.schoolDocs]);
+      expect(r.depositUsd, (6300, 7800));
+      expect(r.depositHoldMonths, 3);
+    });
+
+    test('a college without TOPIK 2: no "college" path, TOPIK 2 to aim for', () {
+      final r = run(answers(route: StudyRoute.college, korean: KoreanLevel.topik1));
+      expect(r.topikNeed, 2);
+      expect(r.paths, [AlternativePath.languageCourse, AlternativePath.nextSeason]);
+    });
+
+    test('a bachelor with TOPIK 2: the college is offered, and the English-taught way', () {
+      final r = run(answers(korean: KoreanLevel.topik2));
+      expect(r.paths, [
+        AlternativePath.languageCourse,
+        AlternativePath.college,
+        AlternativePath.englishTrack,
+        AlternativePath.nextSeason,
+      ]);
+      // Without TOPIK 2, no college.
+      expect(run(answers(korean: KoreanLevel.none)).paths, isNot(contains(AlternativePath.college)));
+    });
+
+    test('a master with TOPIK 3: TOPIK 4 to aim for', () {
+      final r = run(answers(route: StudyRoute.master, age: 24, korean: KoreanLevel.topik3));
+      expect(r.topikNeed, 4);
+      expect(r.paths, contains(AlternativePath.nextSeason));
+      expect(r.paths, isNot(contains(AlternativePath.college)));
+    });
+
+    test('low for money only: the deposit and the parents\' papers, no language paths', () {
+      final r = run(answers(kdb: KdbDeposit.no, income: false));
+      expect(r.lowReason, LowReason.money);
+      expect(r.paths, [AlternativePath.deposit, AlternativePath.parentsDocs]);
+      expect(r.steps, [NextStep.deposit, NextStep.parentsDocs, NextStep.schoolDocs]);
+    });
+
+    test('everything in order: documents and the deadline only', () {
+      final r = run(answers());
+      expect(r.steps, [NextStep.schoolDocs, NextStep.applyOnTime]);
+      expect(r.paths, isEmpty);
     });
   });
 

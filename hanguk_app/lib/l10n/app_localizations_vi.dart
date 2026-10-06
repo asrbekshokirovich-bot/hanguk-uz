@@ -2818,17 +2818,13 @@ class AppLocalizationsVi extends AppLocalizations {
   String get onbResultTuitionLabel => 'Tuition/semester';
 
   @override
-  String get onbResultBankLabel => 'Bank statement';
+  String get onbResultBankLabel => 'KDB deposit';
 
   @override
   String get onbResultYearlyCost => 'Estimated yearly cost';
 
   @override
   String get onbResultStepsTitle => 'Next 3 steps';
-
-  @override
-  String get onbResultStepTopikPrep =>
-      'Prepare for TOPIK 3 or enter through a language course';
 
   @override
   String get onbResultStepSchoolDocs =>
@@ -2846,24 +2842,26 @@ class AppLocalizationsVi extends AppLocalizations {
   String get onbResultPathsTitle => 'Paths that fit you';
 
   @override
-  String get onbResultPathLanguageCourse => 'Through a language course (D-4)';
+  String get onbResultPathLanguageCourse => 'A language course first (D-4)';
 
   @override
   String get onbResultPathLanguageCourseNote =>
-      'A language course, then moving on to a bachelor\'s.';
+      'Learn Korean in Korea, then move on once you have TOPIK. The language-course visa also needs TOPIK 1 or a Sejong certificate.';
 
   @override
   String get onbResultPathCollege => 'Vocational college';
 
   @override
-  String get onbResultPathCollegeNote => 'Softer requirements, lower tuition.';
+  String get onbResultPathCollegeNote =>
+      'Your TOPIK 2 is enough for a vocational college.';
 
   @override
-  String get onbResultPathNextSeason => 'Preparing for the next season';
+  String get onbResultPathNextSeason => 'Get ready for the next intake';
 
   @override
-  String get onbResultPathNextSeasonNote =>
-      'Fall 2027 with TOPIK 3 and a bank statement.';
+  String onbResultPathNextSeasonNote(String level) {
+    return 'Get the TOPIK $level certificate and apply for the next intake.';
+  }
 
   @override
   String onbResultTariffWhy(String tariff) {
@@ -3414,4 +3412,45 @@ class AppLocalizationsVi extends AppLocalizations {
   String onbWelcomeCallTimer(String minutes) {
     return 'Our operator will contact you within $minutes minutes';
   }
+
+  @override
+  String onbResultStepLanguagePrep(String level) {
+    return 'Prepare for the TOPIK $level certificate';
+  }
+
+  @override
+  String onbResultStepLanguagePrepEnglish(String level) {
+    return 'Prepare for TOPIK $level or IELTS 5.5';
+  }
+
+  @override
+  String onbResultStepDeposit(String low, String high, String months) {
+    return 'Open the KDB deposit in the student\'s name: $low–$high, for at least $months month(s)';
+  }
+
+  @override
+  String get onbResultStepParentsDocs =>
+      'Prepare the parents\' income or property papers (my.gov.uz)';
+
+  @override
+  String get onbResultPathEnglishTrack => 'An English-taught programme';
+
+  @override
+  String get onbResultPathEnglishTrackNote =>
+      'With IELTS 5.5, apply to a programme that does not ask for Korean.';
+
+  @override
+  String get onbResultPathDeposit => 'Prepare the KDB deposit';
+
+  @override
+  String onbResultPathDepositNote(String low, String high, String months) {
+    return '$low–$high in the student\'s name for at least $months month(s) — required for the visa.';
+  }
+
+  @override
+  String get onbResultPathParentsDocs => 'The parents\' papers';
+
+  @override
+  String get onbResultPathParentsDocsNote =>
+      'Official work, business or property papers — the embassy asks for these.';
 }

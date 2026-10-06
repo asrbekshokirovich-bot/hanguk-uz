@@ -100,12 +100,12 @@ class _ResultBody extends ConsumerWidget {
       ],
       if (low && r.paths.isNotEmpty) ...[
         _SectionTitle(l.onbResultPathsTitle),
-        for (final p in r.paths) _PathCard(path: p),
+        for (final p in r.paths) _PathCard(path: p, result: r),
       ],
-      // 5 — yearly cost and the bank statement.
+      // 5 — yearly cost and the KDB deposit.
       if (r.yearlyCostUsd != null) _CostCard(yearly: r.yearlyCostUsd!, bank: r.bankStatementUsd),
       // 6 — next three steps.
-      if (r.steps.isNotEmpty) _StepsCard(steps: r.steps),
+      if (r.steps.isNotEmpty) _StepsCard(result: r, route: answers.route ?? StudyRoute.bachelor),
       // 7 — the recommended tariff.
       Align(
         alignment: Alignment.centerLeft,
@@ -373,9 +373,10 @@ class _Cell extends StatelessWidget {
 }
 
 class _PathCard extends StatelessWidget {
-  const _PathCard({required this.path});
+  const _PathCard({required this.path, required this.result});
 
   final AlternativePath path;
+  final EligibilityResult result;
 
   @override
   Widget build(BuildContext context) {
@@ -387,7 +388,7 @@ class _PathCard extends StatelessWidget {
           Text(pathTitle(l, path), style: onbText(15, FontWeight.w700, height: 1.25)),
           const SizedBox(height: 3),
           Text(
-            pathNote(l, path),
+            pathNote(l, path, result),
             style: onbText(12.5, FontWeight.w400, color: OnbColors.white64, height: 1.4),
           ),
         ],
@@ -432,9 +433,12 @@ class _CostCard extends StatelessWidget {
 }
 
 class _StepsCard extends StatelessWidget {
-  const _StepsCard({required this.steps});
+  const _StepsCard({required this.result, required this.route});
 
-  final List<NextStep> steps;
+  final EligibilityResult result;
+  final StudyRoute route;
+
+  List<NextStep> get steps => result.steps;
 
   @override
   Widget build(BuildContext context) {
@@ -462,7 +466,7 @@ class _StepsCard extends StatelessWidget {
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.only(top: 3),
-                    child: Text(stepLabel(l, steps[i]), style: onbText(14, FontWeight.w400, height: 1.45)),
+                    child: Text(stepLabel(l, steps[i], result, route), style: onbText(14, FontWeight.w400, height: 1.45)),
                   ),
                 ),
               ],
