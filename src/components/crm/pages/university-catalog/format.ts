@@ -107,9 +107,70 @@ export function admissionLabel(g: GuidelineSummary | null): string | null {
   return parts.length > 0 ? parts.join(' · ') : null;
 }
 
+const CYRILLIC_TO_LATIN: Record<string, string> = {
+  а: 'a', б: 'b', в: 'v', г: 'g', д: 'd', е: 'e', ё: 'yo', ж: 'j', з: 'z', и: 'i',
+  й: 'y', к: 'k', л: 'l', м: 'm', н: 'n', о: 'o', п: 'p', р: 'r', с: 's', т: 't',
+  у: 'u', ф: 'f', х: 'h', ц: 'ts', ч: 'ch', ш: 'sh', щ: 'sh', ъ: '', ы: 'i', ь: '',
+  э: 'e', ю: 'yu', я: 'ya', ў: 'o', қ: 'q', ғ: 'g', ҳ: 'h',
+};
+
+/** Koreyscha bitta unli turlicha yoziladi: 경 = gyeong / kyung / kyong, 대 = dae / tae. */
+const VOWEL_RUNS: Record<string, string> = {
+  ae: 'e', ai: 'e', ei: 'e', oe: 'e',
+  eo: 'o', eu: 'o', oo: 'o', ou: 'o', eou: 'o', u: 'o',
+  ee: 'i', ui: 'i', eui: 'i',
+};
+
+/** Bitta so'zning kaliti — unli birikmalari so'z chegarasidan o'tib ketmasin ("Kyung Hee" = "Kyunghee"). */
+function wordKey(word: string): string {
+  return word
+    .replace(/sh/g, 's')
+    .replace(/ch/g, 'j')
+    .replace(/kh/g, 'h')
+    .replace(/th/g, 't')
+    .replace(/ph/g, 'p')
+    .replace(/[gqc]/g, 'k')
+    .replace(/d/g, 't')
+    .replace(/[bf]/g, 'p')
+    .replace(/v/g, 'w')
+    .replace(/x/g, 'h')
+    .replace(/[aeiou]+/g, (run) => VOWEL_RUNS[run] ?? run.replace(/u/g, 'o'))
+    .replace(/ye/g, 'e');
+}
+
+/**
+ * Lotincha (yoki kirillcha) nomning "tovush kaliti": bir xil o'qiladigan
+ * yozuvlar bir xil kalitga tushadi. Kimpo, Gimpo, Kimbo, Кимпо → "kimpo";
+ * Daekyung, Daekyeung → "tekyonk"; Busan, Pusan → "posan". Koreyscha
+ * harflar tushib qoladi — ular oddiy qidiruvda solishtiriladi.
+ */
+export function romanKey(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[а-яёўқғҳ]/g, (ch) => CYRILLIC_TO_LATIN[ch] ?? '')
+    .split(/[^a-z]+/)
+    .map(wordKey)
+    .join('')
+    .replace(/(.)\1+/g, '$1');
+}
+
+// Katalogdagi nomlar o'zgarmaydi, qidiruv esa har harfda ~1500 ta nomni
+// solishtiradi (darajalar yonidagi sonlar bilan) — kalitlar bir marta hisoblanadi.
+const romanKeyCache = new Map<string, string>();
+
+function cachedRomanKey(value: string): string {
+  let key = romanKeyCache.get(value);
+  if (key === undefined) {
+    key = romanKey(value);
+    romanKeyCache.set(value, key);
+  }
+  return key;
+}
+
 /**
  * Qidiruv: inglizcha va koreyscha nom, shahar, domen va univ_kod bo'yicha.
- * Bo'sh so'rov hammasini o'tkazadi.
+ * Lotincha yozuvdagi farq xalaqit bermaydi ("kimpo" ham "Gimpo University"ni
+ * topadi). Bo'sh so'rov hammasini o'tkazadi.
  */
 export function matchesSearch(entry: CatalogEntry, rawQuery: string): boolean {
   const query = rawQuery.trim().toLowerCase();
@@ -128,7 +189,10 @@ export function matchesSearch(entry: CatalogEntry, rawQuery: string): boolean {
     haystack.push(g.univ_nomi_en, g.univ_nomi_kr, g.shahar, g.kampus, g.univ_kod, g.guideline_id);
   }
 
-  return haystack.some((value) => value?.toLowerCase().includes(query));
+  if (haystack.some((value) => value?.toLowerCase().includes(query))) return true;
+
+  const key = romanKey(query);
+  return key.length >= 2 && haystack.some((value) => !!value && cachedRomanKey(value).includes(key));
 }
 
 // ---------------------------------------------------------------------------
@@ -254,35 +318,84 @@ export interface UploadInstitution {
   error: string | null;
 }
 
+/** Excel faylidan universitetni topish uchun kerak bo'lgan maydonlar. */
+export interface UploadFile {
+  guideline_id: string;
+  univ_kod: string;
+  univ_nomi_kr?: string | null;
+  univ_nomi_en?: string | null;
+}
+
+/** Koreyscha nomni solishtirish uchun: bo'shliqsiz va "국립"siz (국립창원대학교 = 창원대학교). */
+function koKey(name: string): string {
+  return name.replace(/\s+/g, '').replace(/국립/g, '');
+}
+
+/** Inglizcha nomning asosiy qismi: "Yonsei University — Graduate School" → "Yonsei University". */
+function enKey(name: string): string {
+  return romanKey(name.split(/\s[—–-]\s|\s\(/)[0]);
+}
+
+/**
+ * Fayldagi nom bo'yicha: avval koreyscha nom (to'liq, so'ng birinchi so'zi —
+ * "전북대학교 대학원" → 전북대학교), bo'lmasa inglizcha nomning tovush kaliti.
+ */
+function matchByName(pool: CatalogEntry[], file: UploadFile): CatalogEntry[] {
+  const ko = (file.univ_nomi_kr ?? '').trim();
+  if (ko) {
+    for (const candidate of [ko, ko.split(/\s+/)[0]]) {
+      const key = koKey(candidate);
+      const found = pool.filter((e) => koKey(e.institution.name_ko ?? '') === key);
+      if (found.length > 0) return found;
+    }
+  }
+  const en = enKey(file.univ_nomi_en ?? '');
+  if (en.length >= 4) {
+    return pool.filter((e) => enKey(e.institution.name_en ?? '') === en);
+  }
+  return [];
+}
+
 /**
  * Yuqoridagi umumiy "Excel ..." tugmasidan yuklangan fayl qaysi universitetga
- * tegishli. Import RPC'si ham univ_kod (domen prefiksi) bo'yicha qidiradi,
- * lekin katalogdan yashirilganlarni ham ko'radi va bir nechta mos kelsa
- * jimgina birinchisini oladi — kollejlarda bunday prefikslar bor ("dhc":
- * 대구보건대 va 동아보건대). Shuning uchun universitet shu yerda, faqat
- * katalogdagilar orasidan tanlanadi. Avval yuklangan guideline qayta
- * yuklansa — o'sha universitetida qoladi.
+ * tegishli. Import RPC'si univ_kod'ni domen prefiksi bilan solishtiradi,
+ * katalogdan yashirilganlarni ham ko'radi va bir nechta mos kelsa jimgina
+ * birinchisini oladi. Xodimlar esa univ_kod'ni o'zlari tuzadi ("kwu" —
+ * 광운대 fayli, kwu.ac.kr esa 광주여자대), kollejlarda esa bir xil
+ * prefikslar bor ("dhc": 대구보건대 va 동아보건대). Shuning uchun universitet
+ * shu yerda, faqat katalogdagilar orasidan tanlanadi:
+ *   1. avval yuklangan guideline qayta yuklansa — o'sha universitet;
+ *   2. fayldagi universitet nomi (koreyscha, so'ng inglizcha) yagona mos kelsa — o'sha;
+ *   3. univ_kod domen prefiksiga yagona mos kelsa — o'sha;
+ *   4. aks holda — xato, jimgina tanlanmaydi.
  */
-export function resolveUploadInstitution(
-  entries: CatalogEntry[],
-  file: { guideline_id: string; univ_kod: string },
-): UploadInstitution {
+export function resolveUploadInstitution(entries: CatalogEntry[], file: UploadFile): UploadInstitution {
+  const found = (e: CatalogEntry): UploadInstitution => ({ institutionId: e.institution.id, error: null });
+
   const existing = entries.find((e) => e.guidelines.some((g) => g.guideline_id === file.guideline_id));
-  if (existing) return { institutionId: existing.institution.id, error: null };
+  if (existing) return found(existing);
 
   const code = file.univ_kod.trim().toLowerCase();
-  const matches = entries.filter((e) => institutionCode(e.institution.primary_domain) === code);
-  if (matches.length === 1) return { institutionId: matches[0].institution.id, error: null };
-  if (matches.length === 0) {
+  const byCode = entries.filter((e) => institutionCode(e.institution.primary_domain) === code);
+  const byName = matchByName(entries, file);
+
+  if (byName.length === 1) return found(byName[0]);
+  // Nom bir nechtasiga mos kelsa — univ_kod ajratib bersin.
+  const narrowed = byName.length > 1 ? byName.filter((e) => byCode.includes(e)) : byCode;
+  if (narrowed.length === 1) return found(narrowed[0]);
+
+  const openCard = "Kerakli universitet kartasini oching va Excel'ni o'sha yerdagi tugma orqali yuklang.";
+  const candidates = byName.length > 1 ? byName : byCode;
+  if (candidates.length > 1) {
+    const names = candidates.map((e) => e.institution.name_ko).join(', ');
     return {
       institutionId: null,
-      error: `univ_kod "${code}" bo'yicha katalogda universitet topilmadi. univ_kod universitet domenining birinchi qismi bo'lishi kerak (jbnu.ac.kr → jbnu).`,
+      error: `Fayl bir nechta universitetga mos keladi: ${names}. ${openCard}`,
     };
   }
-  const names = matches.map((e) => e.institution.name_ko).join(', ');
   return {
     institutionId: null,
-    error: `univ_kod "${code}" bir nechta universitetga mos keladi: ${names}. Kerakli universitet kartasini oching va Excel'ni o'sha yerdagi tugma orqali yuklang.`,
+    error: `univ_kod "${code}" va fayldagi universitet nomi bo'yicha katalogda universitet topilmadi. ${openCard}`,
   };
 }
 
