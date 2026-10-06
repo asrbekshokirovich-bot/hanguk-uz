@@ -173,6 +173,17 @@ describe("parseGuidelineWorkbook — kasbiy ta'lim", () => {
     expect(result.payload!.universitet.daraja).toBe('kasbiy');
   });
 
+  it('daraja "kollej" deb yozilgan faylni ham kasbiy deb o‘qiydi', async () => {
+    for (const written of ['kollej', 'Kollej', "kasbiy ta'lim", '전문대학']) {
+      const buf = await patchedWorkbook((xml, path) =>
+        path === 'xl/worksheets/sheet1.xml' ? xml.replace('<t>bakalavr</t>', `<t>${written}</t>`) : xml,
+      );
+      const result = await parseGuidelineWorkbook(buf, 'f.xlsx');
+      expect(result.errors).toEqual([]);
+      expect(result.payload!.universitet.daraja).toBe('kasbiy');
+    }
+  });
+
   it('shablondagi daraja ro‘yxati sayt qabul qiladigan qiymatlar bilan bir xil', async () => {
     const buf = readFileSync(join(fixtureDir, '../../../../public/templates/universitet-guideline-shablon.xlsx'));
     const bytes = new ArrayBuffer(buf.byteLength);
