@@ -115,6 +115,7 @@ message (`missing_fields:goal,decider`, `next_action_required`, `not_allowed`, �
 | `lead_merge_confirm / lead_merge_dismiss(suggestion)` | staff | |
 | `lead_create_manual(name, phone, origin, ref_type, ref_name, fields)` | staff | "+ Lid" |
 | `lead_comment_answer(comment, reply)` | staff | records a public reply, stops the timer |
+| `lead_apply_suggestion(id, value?)` / `lead_reject_suggestion(id)` | staff | AI field suggestions (`lead_field_suggestions`) applied through the v2 field list — use these, not the old `accept_lead_suggestion` |
 | `lead_report(from, to)` | senior+ | results only (§14) |
 | `lead_reengage(lead, at)` | service role | for webhooks |
 
@@ -171,8 +172,10 @@ Copy is Uzbek-only on purpose (desktop-only module, Uzbek spec); the i18n bundle
 ## 8. Not built (needs something outside the code)
 - **F3 telephony** (GoIP + FreePBX, click-to-call, auto call log): needs the PBX. `call_attempts.pbx_call_id/duration_seconds` are ready.
 - **SMS** (Q61): needs a provider and credentials.
-- **Meta comments / Messenger permissions** (Q63): `instagram_manage_comments` and `pages_manage_engagement` need Meta App Review;
+- **Meta comments permissions** (Q63): `instagram_manage_comments` and `pages_manage_engagement` need Meta App Review;
   the code for them is in, it does nothing until Meta approves.
+- **Facebook Messenger** (§3.1): not built. It needs a `page` branch in the Meta webhook, `messages.source` to accept `facebook`
+  (it has a CHECK), a send path, and App Review. The lead engine already accepts `facebook` as a source.
 - **Meta leadgen**: needs the Page subscription, `leads_retrieval`, and `META_PAGE_ACCESS_TOKEN` / `META_APP_SECRET` / `META_VERIFY_TOKEN`.
 - **Individual operator logins** (§13): create the accounts and give them `call_operator` / `lead_senior`.
 - **Telegram recipients**: each person presses Start on the bot, then an admin adds their chat id in Sozlamalar.
