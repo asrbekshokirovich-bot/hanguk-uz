@@ -24,6 +24,9 @@ copyright; permission should be obtained before public release.
 | 광주여자대학교 | `68db737c-c605-44c9-adf2-881949f07b15.jpg` | Wikimedia Commons | KBC | CC BY 3.0 | https://commons.wikimedia.org/wiki/File:Gwangju_Women%27s_University.jpg |
 | 국립한밭대학교 | `09c12c71-e79c-4e3a-969d-698a5ac701b9.jpg` | Wikimedia Commons | 대외협력홍보팀 | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:%ED%95%9C%EB%B0%AD%EB%8C%80%ED%95%99%EA%B5%90_%EC%9C%A0%EC%84%B1%EC%BA%A0%ED%8D%BC%EC%8A%A4.jpg |
 | 국민대학교 | `0ab07c8e-6d25-43f1-a7c2-a3fb452f10e4.jpg` | Wikimedia Commons | hyolee2 | CC BY-SA 3.0 / GFDL | https://commons.wikimedia.org/wiki/File:Kookmin_Univ_10.JPG |
+| 극동대학교 | `eb282f15-90b5-472b-b0bf-4011d3d2c718.jpg` | Official website |  | © university (official website) | https://www.kdu.ac.kr/home/sub.do?mncd=921&mode=view&no=524633441 |
+| 금강대학교 | `45f4ee56-46e0-42c0-a395-35be701f1631.jpg` | Official website |  | © university (official website) | https://www.ggu.ac.kr/main |
+| 남부대학교 | `6e933d72-a597-4c18-bb44-6da3febf7657.jpg` | Official website |  | © university (official website) | https://www.nambu.ac.kr/nambukr/index.do |
 | 단국대학교 | `7e7e0fc3-e0d7-4a74-9a72-0a9dbf85873b.jpg` | Official website |  | © university (official website) | https://www.dankook.ac.kr/web/kor/-565 |
 | 대구경북과학기술원 | `43737f59-c9c2-491b-ab12-39b14166d62e.jpg` | Wikimedia Commons | DGIST | CC BY-SA 3.0 | https://commons.wikimedia.org/wiki/File:View_of_DGIST.JPG |
 | 대구대학교 | `8c55cdcc-e4fc-46c9-8e69-697cc11dfad2.jpg` | Wikimedia Commons | Choi2451 | CC BY-SA 3.0 | https://commons.wikimedia.org/wiki/File:Prunus_donarium_flowers_in_Daegu_University.jpg |
