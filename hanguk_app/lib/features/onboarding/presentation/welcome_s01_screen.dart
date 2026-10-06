@@ -17,12 +17,10 @@ import 's01_s04_ui.dart';
 const List<String> kWelcomePhotoAssets = [
   'assets/images/landing/01_hero_daegu-haany_2025-09-14.jpg',
   'assets/images/landing/02_hero-mobil_zal_2025-09-14.jpg',
-  'assets/images/landing/03_guruh_daegu-haany_2025-09-13.jpg',
   'assets/images/landing/07_katta-zal_2025-01-17.jpg',
   'assets/images/landing/08_koreys-mehmonlar_2024-10-20.jpg',
   'assets/images/landing/10_guruh_seoyeong_2025-10-20.jpg',
   'assets/images/landing/11_tinglovchilar_2025-09-13.jpg',
-  'assets/images/landing/15_guruh_2025-01-16.jpg',
   'assets/images/landing/Z02_zaxira_guruh-tinch_2025-09-13.jpg',
   'assets/images/landing/Z07_zaxira_kichik-guruh_2025-09-14.jpg',
   'assets/images/landing/Z08_zaxira_katta-zal-tik_2025-01-17.jpg',
