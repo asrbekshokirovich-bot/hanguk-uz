@@ -737,6 +737,12 @@ begin
 
   if new.crm_generation = 'new' then
     new.first_contact_at := coalesce(new.first_contact_at, now());
+    -- A lead born from a chat exists because the client wrote: that first
+    -- message may be stored before the lead is (telegram-webhook does), so the
+    -- message trigger would never see it.
+    if new.source in ('instagram', 'telegram') and new.last_client_msg_at is null then
+      new.last_client_msg_at := new.first_contact_at;
+    end if;
     if new.source = 'manual' and new.owner_id is null and new.created_by is not null then
       new.owner_id := new.created_by;
     end if;
@@ -1011,6 +1017,8 @@ $$;
 
 -- Same body as 20260930120000_ignore_instagram_template_echo.sql; STABLE now,
 -- because fn_after_hours_reply_texts() reads lead_settings.
+-- Plus: a message written by the Telegram bot (telegram-webhook stamps
+-- metadata.bot = true) is not a person answering either.
 create or replace function public.fn_is_automatic_outgoing(p_content text, p_metadata jsonb)
 returns boolean
 language sql
@@ -1019,6 +1027,7 @@ set search_path to 'public', 'pg_catalog'
 as $$
   select trim(coalesce(p_content, '')) like '[template]%'
       or coalesce(p_metadata->'attachments'->0->>'type', '') = 'template'
+      or coalesce(p_metadata->>'bot', '') in ('true', 't', '1')
       or trim(coalesce(p_content, '')) = any (public.fn_after_hours_reply_texts())
 $$;
 
@@ -1807,6 +1816,86 @@ begin
 end;
 $$;
 
+-- AI field suggestions (spec §10 "Maydon takliflari"). The existing
+-- accept_lead_suggestion (20260922120000) only knows the old field list and
+-- silently ignores cert_level / decider / study_year ... — these two do the
+-- same job through the v2 field whitelist, check the role and the lead's
+-- visibility, and also work for lead_senior.
+create or replace function public.lead_apply_suggestion(p_suggestion_id uuid, p_value text default null)
+returns public.lead_field_suggestions
+language plpgsql
+security definer
+set search_path = public, pg_catalog
+as $$
+declare
+  s public.lead_field_suggestions;
+  l public.leads;
+  v_value text;
+  v_edited boolean;
+begin
+  select * into s from public.lead_field_suggestions where id = p_suggestion_id for update;
+  if s.id is null then
+    raise exception 'suggestion_not_found' using errcode = 'P0002';
+  end if;
+  l := public.fn_lead_guard(s.lead_id);
+
+  v_value := coalesce(nullif(btrim(p_value), ''), s.suggested_value);
+  v_edited := v_value is distinct from s.suggested_value;
+
+  if s.field = 'summary' then
+    update public.leads set ai_summary = v_value where id = s.lead_id;
+  elsif s.field = 'age' and v_value !~ '^[0-9]{1,3}$' then
+    null; -- not a number: nothing to apply
+  elsif s.field in ('full_name', 'email', 'birth_date', 'education_level', 'cert_level', 'age', 'study_year', 'city',
+                    'decider', 'language', 'preferred_channel', 'preferred_time_text', 'exam_date', 'exam_type',
+                    'budget_range', 'target_intake', 'referral_type', 'referral_name', 'objection', 'competitor',
+                    'product_fit', 'how_heard', 'source_note') then
+    perform public.fn_lead_apply_fields(s.lead_id, jsonb_build_object(s.field, v_value));
+  end if;
+
+  update public.lead_field_suggestions
+     set status = case when v_edited then 'corrected' else 'accepted' end,
+         corrected_value = case when v_edited then v_value else null end,
+         decided_by = auth.uid(), decided_at = now(), updated_at = now()
+   where id = p_suggestion_id
+  returning * into s;
+  return s;
+end;
+$$;
+
+create or replace function public.lead_reject_suggestion(p_suggestion_id uuid)
+returns public.lead_field_suggestions
+language plpgsql
+security definer
+set search_path = public, pg_catalog
+as $$
+declare
+  s public.lead_field_suggestions;
+  l public.leads;
+begin
+  select * into s from public.lead_field_suggestions where id = p_suggestion_id for update;
+  if s.id is null then
+    raise exception 'suggestion_not_found' using errcode = 'P0002';
+  end if;
+  l := public.fn_lead_guard(s.lead_id);
+  update public.lead_field_suggestions
+     set status = 'rejected', decided_by = auth.uid(), decided_at = now(), updated_at = now()
+   where id = p_suggestion_id
+  returning * into s;
+  return s;
+end;
+$$;
+
+-- lead_senior reads (and decides on) the AI suggestions like the other staff.
+do $$
+begin
+  if to_regclass('public.lead_field_suggestions') is not null then
+    drop policy if exists lfs_senior_read on public.lead_field_suggestions;
+    create policy lfs_senior_read on public.lead_field_suggestions for select to authenticated
+      using (public.fn_lead_has_any_role(array['lead_senior']));
+  end if;
+end $$;
+
 -- Service-role entry for webhooks: this person wrote / filled a form again.
 create or replace function public.lead_reengage(p_lead_id uuid, p_at timestamptz default now())
 returns void
@@ -2106,6 +2195,8 @@ begin
     'lead_merge_dismiss(uuid)',
     'lead_create_manual(text,text,text,text,text,jsonb)',
     'lead_comment_answer(uuid,text)',
+    'lead_apply_suggestion(uuid,text)',
+    'lead_reject_suggestion(uuid)',
     'lead_desk()',
     'lead_desk_counts()',
     'lead_timeline_v2(uuid,integer)',

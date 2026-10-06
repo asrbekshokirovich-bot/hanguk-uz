@@ -700,8 +700,14 @@ describe('silence sequence (spec §10)', () => {
   it('prepares a day-1, day-3 and day-7 draft, one each, never sent by itself', async () => {
     const l = await addLead(h, { source: 'instagram', source_id: 'ig-f1', full_name: 'Sardor Aliyev', phone: null });
     await addMessage(h, { sender: 'ig-f1', direction: 'outgoing', by: op });
+    // our last message was `days` ago and the client has been quiet since (their
+    // first message came an hour before ours)
     const at = async (days: number) =>
-      h.q(`update leads set last_operator_msg_at = now() - make_interval(days => $2) where id = $1`, [l.id, days]);
+      h.q(
+        `update leads set last_operator_msg_at = now() - make_interval(days => $2),
+                          last_client_msg_at = now() - make_interval(days => $2) - interval '1 hour' where id = $1`,
+        [l.id, days],
+      );
 
     await at(0);
     await h.q(`select fn_lead_followup_drafts_run()`);
@@ -756,7 +762,7 @@ describe('priority score (spec §12)', () => {
     const a = await getLead(h, hot.id);
     const b = await getLead(h, cold.id);
     expect(a.priority_score).toBe(30 + 25 + 20 + 10 + 5); // referral + cert + asked price + recent + telegram
-    expect(b.priority_score).toBe(0); // missing fields: -5, clamped at 0
+    expect(b.priority_score).toBe(5); // wrote just now (+10), card incomplete (-5)
   });
 });
 

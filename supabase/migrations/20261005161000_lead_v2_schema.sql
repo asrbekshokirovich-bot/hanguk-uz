@@ -240,7 +240,9 @@ create table if not exists public.lead_drafts (
   handled_at timestamptz,
   created_at timestamptz not null default now()
 );
-create unique index if not exists uq_lead_drafts_dedupe on public.lead_drafts (dedupe_key) where dedupe_key is not null;
+-- Not partial: NULLs are distinct in a unique index anyway, and a partial one
+-- cannot be the target of ON CONFLICT (which PostgREST upserts need).
+create unique index if not exists uq_lead_drafts_dedupe on public.lead_drafts (dedupe_key);
 create index if not exists idx_lead_drafts_lead on public.lead_drafts (lead_id) where status = 'pending';
 create index if not exists idx_lead_drafts_due on public.lead_drafts (due_at) where status = 'pending';
 
@@ -259,7 +261,7 @@ create table if not exists public.social_comments (
   replied_by uuid,
   reply_text text
 );
-create unique index if not exists uq_social_comments_comment on public.social_comments (platform, comment_id) where comment_id is not null;
+create unique index if not exists uq_social_comments_comment on public.social_comments (platform, comment_id);
 create index if not exists idx_social_comments_open on public.social_comments (created_at desc) where replied_at is null;
 
 create table if not exists public.reactivation_queues (

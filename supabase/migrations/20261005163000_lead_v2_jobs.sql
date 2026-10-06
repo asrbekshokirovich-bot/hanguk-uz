@@ -1,6 +1,6 @@
--- Lead module v2 (spec "HANGUK Lid bo'limi TT", 2026-10-05) вЂ” part 4 of 5: jobs.
+-- Lead module v2 (spec "HANGUK Lid bo'limi TT", 2026-10-05) — part 4 of 5: jobs.
 --
--- Background work (spec В§15). Everything that can be SQL is SQL, scheduled
+-- Background work (spec §15). Everything that can be SQL is SQL, scheduled
 -- with pg_cron and no HTTP in the middle:
 --
 --   lead-timer-scan          every 30 s   escalation -> lead_alert_outbox
@@ -70,7 +70,7 @@ begin
 end;
 $$;
 
--- Silent leads (spec В§10): 1 / 3 / 7 days after OUR last message with no
+-- Silent leads (spec §10): 1 / 3 / 7 days after OUR last message with no
 -- answer, a draft lands in BUGUN. Nothing is ever sent without a person.
 create or replace function public.fn_lead_followup_drafts_run()
 returns integer
@@ -119,7 +119,7 @@ begin
 end;
 $$;
 
--- Reactivation queues (spec В§8): up to `queue_daily_limit` lost leads a day go
+-- Reactivation queues (spec §8): up to `queue_daily_limit` lost leads a day go
 -- back to BUGUN, each marked with its queue (and, for the DM queue, a draft).
 create or replace function public.fn_lead_reactivation_run()
 returns integer
@@ -276,7 +276,7 @@ begin
 end;
 $$;
 
--- What the office TV shows (spec В§14): new leads nobody answered for 10 minutes.
+-- What the office TV shows (spec §14): new leads nobody answered for 10 minutes.
 create or replace function public.fn_lead_tv_warnings()
 returns table (lead_id uuid, label text, source text, minutes_late integer, timer_kind text)
 language sql

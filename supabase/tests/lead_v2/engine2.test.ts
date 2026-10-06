@@ -155,6 +155,80 @@ describe('desk bookkeeping', () => {
   });
 });
 
+describe('gaps found in review', () => {
+  it("does not count the Telegram bot's own greeting as an answer", async () => {
+    const l = await addLead(h, { source: 'telegram', source_id: 'tg-bot1', phone: null });
+    await addMessage(h, { source: 'telegram', sender: 'tg-bot1', direction: 'outgoing', content: "Assalomu alaykum! Qaysi yo'nalish?", by: null, meta: { bot: true } });
+    expect((await getLead(h, l.id)).answered_at).toBeNull();
+    expect((await getLead(h, l.id)).due_at).not.toBeNull();
+    await addMessage(h, { source: 'telegram', sender: 'tg-bot1', direction: 'outgoing', content: 'Salom, men operatorman', by: op });
+    expect((await getLead(h, l.id)).answer_kind).toBe('chat');
+  });
+
+  it("remembers the client's first message even when it was stored before the lead", async () => {
+    await addMessage(h, { source: 'telegram', sender: 'tg-first1', direction: 'incoming', content: 'Direktor bilan gaplashmoqchiman' });
+    const l = await addLead(h, { source: 'telegram', source_id: 'tg-first1', phone: null });
+    expect(l.last_client_msg_at).not.toBeNull();
+    expect(l.language).toBeNull();
+  });
+
+  it('applies an AI field suggestion through the v2 field list, editable, for operators and seniors', async () => {
+    const l = await addLead(h, { source: 'manual', phone: '+998909000040' });
+    const ins = async (field: string, value: string) =>
+      (await h.q<any>(
+        `insert into lead_field_suggestions (lead_id, field, suggested_value) values ($1, $2, $3) returning id`,
+        [l.id, field, value],
+      ))[0].id;
+
+    const cert = await ins('cert_level', 'TOPIK 3');
+    const decider = await ins('decider', 'parent');
+    const age = await ins('age', 'taxminan 20');
+    const city = await ins('city', 'Samarqand');
+
+    const r = await h.as<any>(op, `select * from lead_apply_suggestion($1)`, [cert]);
+    expect(r[0].status).toBe('accepted');
+    await h.as(senior, `select lead_apply_suggestion($1)`, [decider]);
+    await h.as(op, `select lead_apply_suggestion($1)`, [age]); // not a number: marked, not applied
+    const edited = await h.as<any>(op, `select * from lead_apply_suggestion($1, $2)`, [city, "Farg'ona"]);
+    expect(edited[0].status).toBe('corrected');
+    expect(edited[0].corrected_value).toBe("Farg'ona");
+
+    const a = await getLead(h, l.id);
+    expect(a.cert_level).toBe('TOPIK 3');
+    expect(a.decider).toBe('parent');
+    expect(a.age).toBeNull();
+    expect(a.city).toBe("Farg'ona");
+  });
+
+  it('rejects a suggestion, refuses a stranger, and keeps another operator out', async () => {
+    const l = await addLead(h, { source: 'manual', phone: '+998909000041' });
+    await h.q(`select fn_lead_clear_timer($1)`, [l.id]);
+    await h.q(`update leads set owner_id = $2 where id = $1`, [l.id, op]);
+    const [{ id }] = await h.q<any>(`insert into lead_field_suggestions (lead_id, field, suggested_value) values ($1, 'city', 'Buxoro') returning id`, [l.id]);
+    await expect(h.as(op2, `select lead_apply_suggestion($1)`, [id])).rejects.toThrow(/not_allowed/);
+    await expect(h.as(op2, `select lead_reject_suggestion($1)`, [id])).rejects.toThrow(/not_allowed/);
+    const r = await h.as<any>(op, `select * from lead_reject_suggestion($1)`, [id]);
+    expect(r[0].status).toBe('rejected');
+    expect((await getLead(h, l.id)).city).toBeNull();
+    // a senior can read suggestions too
+    expect(await h.as(senior, `select 1 from lead_field_suggestions where id = $1`, [id])).toHaveLength(1);
+  });
+
+  it('can be upserted by key from PostgREST (drafts and comments)', async () => {
+    const l = await addLead(h, { source: 'instagram', source_id: 'ig-up1', phone: null });
+    const ins = () => h.q(
+      `insert into lead_drafts (lead_id, kind, text, dedupe_key) values ($1, 'ai_reply', 'x', 'k1') on conflict (dedupe_key) do nothing`,
+      [l.id],
+    );
+    await ins();
+    await ins();
+    expect(await h.q(`select 1 from lead_drafts where dedupe_key = 'k1'`)).toHaveLength(1);
+    await h.q(`insert into social_comments (platform, comment_id, text) values ('instagram', 'c-up', 'a') on conflict (platform, comment_id) do nothing`);
+    await h.q(`insert into social_comments (platform, comment_id, text) values ('instagram', 'c-up', 'b') on conflict (platform, comment_id) do nothing`);
+    expect(await h.q(`select 1 from social_comments where comment_id = 'c-up'`)).toHaveLength(1);
+  });
+});
+
 describe('alert outbox', () => {
   it('expires an escalation that was answered while queued and retries a failed send', async () => {
     const l = await addLead(h, { source: 'instagram', source_id: 'ig-ob1', first_contact_at: '2026-10-06T10:00:00Z' });

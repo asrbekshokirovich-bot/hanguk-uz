@@ -127,6 +127,25 @@ create table public.communication_identities (
   unique (channel, identifier)
 );
 
+create table public.lead_field_suggestions (
+  id uuid primary key default gen_random_uuid(),
+  lead_id uuid not null references public.leads (id) on delete cascade,
+  field text not null,
+  suggested_value text,
+  confidence numeric,
+  evidence text,
+  evidence_channel text,
+  sources jsonb not null default '{}'::jsonb,
+  status text not null default 'pending' check (status in ('pending', 'accepted', 'rejected', 'corrected')),
+  corrected_value text,
+  decided_by uuid,
+  decided_at timestamptz,
+  model text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (lead_id, field)
+);
+alter table public.lead_field_suggestions enable row level security;
 create table public.calls (id uuid primary key default gen_random_uuid(), lead_id uuid references public.leads (id) on delete set null);
 create table public.lead_notes (id uuid primary key default gen_random_uuid(), lead_id uuid not null references public.leads (id) on delete cascade, content text);
 create table public.instagram_comments (id uuid primary key default gen_random_uuid(), lead_id uuid references public.leads (id) on delete set null);
