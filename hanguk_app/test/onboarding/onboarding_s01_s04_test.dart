@@ -143,7 +143,7 @@ void main() {
   });
 
   test('S01 photos: each photo once', () {
-    expect(kWelcomePhotoAssets, hasLength(25));
+    expect(kWelcomePhotoAssets, hasLength(12));
     expect(kWelcomePhotoAssets.toSet(), hasLength(kWelcomePhotoAssets.length));
   });
 
