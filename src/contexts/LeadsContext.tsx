@@ -307,7 +307,14 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
     // after marking it would leave the id in the set for the rest of the
     // session, and every later attempt on that lead would be refused as
     // "already in progress".
-    const lead = leads.find(l => l.id === leadId);
+    let lead = leads.find(l => l.id === leadId);
+    if (!lead) {
+      // The list above is scoped to the active season and to leads with a phone.
+      // The lead desk (lead module v2) converts any lead it can open, so fall
+      // back to reading the lead itself; row level security still decides.
+      const { data: found } = await supabase.from('leads').select('*').eq('id', leadId).maybeSingle();
+      lead = (found as unknown as Lead | null) ?? undefined;
+    }
     if (!lead) {
       toast.error('Lead not found');
       return { success: false };

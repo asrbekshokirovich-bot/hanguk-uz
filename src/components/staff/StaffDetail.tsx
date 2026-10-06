@@ -36,17 +36,22 @@ import {
   Save,
   Edit,
   Trash2,
+  UserCog,
 } from 'lucide-react';
 import { Database } from '@/integrations/supabase/types';
 import { IntercomButton } from '@/components/intercom/IntercomButton';
 import { useIntercom } from '@/components/intercom/IntercomProvider';
 
-type AppRole = Database['public']['Enums']['app_role'];
+type DbRole = Database['public']['Enums']['app_role'];
+// 'lead_senior' (lead module v2, migration 20261005160000) is not in the
+// generated enum yet, so it is added here rather than editing the generated file.
+type AppRole = DbRole | 'lead_senior';
 
 interface StaffDetailProps {
   staff: StaffMember;
-  onAddRole: (userId: string, role: AppRole) => Promise<boolean>;
-  onRemoveRole: (userId: string, role: AppRole) => Promise<boolean>;
+  // The hook is typed with the generated enum; 'lead_senior' is a valid value in the table.
+  onAddRole: (userId: string, role: DbRole) => Promise<boolean>;
+  onRemoveRole: (userId: string, role: DbRole) => Promise<boolean>;
   onUpdateProfile: (userId: string, updates: { full_name?: string; phone?: string }) => Promise<boolean>;
   onDeleteAccount: (userId: string) => Promise<boolean>;
   isOwner: boolean;
@@ -78,6 +83,12 @@ const ROLE_CONFIG: Record<AppRole, { label: string; icon: React.ReactNode; color
     color: 'bg-success',
     description: 'Review and manage student documents and applications',
   },
+  lead_senior: {
+    label: 'Senior operator',
+    icon: <UserCog className="h-4 w-4" />,
+    color: 'bg-primary/80',
+    description: 'Sees every lead, pins and reassigns them, starts re-activation queues and reads the lead report',
+  },
   university_staff: {
     label: 'University Staff',
     icon: <GraduationCap className="h-4 w-4" />,
@@ -86,7 +97,7 @@ const ROLE_CONFIG: Record<AppRole, { label: string; icon: React.ReactNode; color
   },
 };
 
-const ALL_ROLES: AppRole[] = ['owner', 'admin', 'call_operator', 'document_handler', 'university_staff'];
+const ALL_ROLES: AppRole[] = ['owner', 'admin', 'call_operator', 'lead_senior', 'document_handler', 'university_staff'];
 
 export function StaffDetail({
   staff,
@@ -170,11 +181,11 @@ export function StaffDetail({
   };
 
   const handleAddRole = async (role: AppRole) => {
-    await onAddRole(staff.user_id, role);
+    await onAddRole(staff.user_id, role as DbRole);
   };
 
   const handleRemoveRole = async (role: AppRole) => {
-    await onRemoveRole(staff.user_id, role);
+    await onRemoveRole(staff.user_id, role as DbRole);
   };
 
   const handleDeleteAccount = async () => {
@@ -186,7 +197,7 @@ export function StaffDetail({
     }
   };
 
-  const availableRoles = ALL_ROLES.filter((role) => !staff.roles.includes(role));
+  const availableRoles = ALL_ROLES.filter((role) => !(staff.roles as AppRole[]).includes(role));
   const isStaffOwner = staff.roles.includes('owner');
 
   return (

@@ -30,8 +30,6 @@ import {
   Bot,
   Languages,
   UserPlus,
-  BellRing,
-  CalendarCheck,
   Wallet,
   MapPin,
   Gift,
@@ -45,21 +43,54 @@ import {
   ClipboardCheck,
   Building2,
   LogOut,
+  Zap,
+  UserX,
+  BarChart3,
+  Archive,
+  Settings2,
 } from 'lucide-react';
 import { Logo } from '@/components/Logo';
+import { isNavItemActive } from '@/components/crm/navActive';
+import { useDeskCounts } from '@/components/crm/lead-desk/hooks/useDeskCounts';
+import type { DeskCounts } from '@/components/crm/lead-desk/types';
+
+/** A small count pill on the right of a menu item (the lead module's counters). */
+export interface SidebarBadge {
+  count: number;
+  tone: 'red' | 'muted';
+  /** blink: something is overdue */
+  pulse?: boolean;
+  /** show it even at 0 (Ish stoli always shows its HOZIR count) */
+  keepZero?: boolean;
+}
+
+export interface SidebarItem {
+  title: string;
+  url: string;
+  icon: React.ComponentType<{ className?: string }>;
+  visible: boolean;
+  highlight?: boolean;
+  /** rendered bold, as the lead of its group */
+  primary?: boolean;
+  badge?: SidebarBadge;
+}
 
 export interface SidebarGroup {
   id: string;
   title: string;
   icon: React.ComponentType<{ className?: string }>;
   visible: boolean;
-  items: {
-    title: string;
-    url: string;
-    icon: React.ComponentType<{ className?: string }>;
-    visible: boolean;
-    highlight?: boolean;
-  }[];
+  items: SidebarItem[];
+}
+
+/** What the sidebar needs to know about the lead module (spec §3). */
+export interface LeadNav {
+  /** operators, seniors, admins: the "Lidlar" group is theirs */
+  canWorkLeads: boolean;
+  /** seniors and admins: "Hisobot" */
+  isLeadSenior: boolean;
+  /** `lead_desk_counts()`; absent until it loads (the badges then read 0) */
+  counts?: DeskCounts;
 }
 
 interface CRMSidebarProps {
@@ -70,6 +101,10 @@ interface CRMSidebarProps {
   isCallOperator: boolean;
   isDocumentHandler: boolean;
   canReviewUniDb?: boolean;
+  /** Lead module v2: operators, seniors and admins get the "Lidlar" group. */
+  canWorkLeads?: boolean;
+  /** Lead module v2: seniors and admins also see "Hisobot". */
+  isLeadSenior?: boolean;
   user: User | null;
   onSignOut: () => void;
 }
@@ -82,7 +117,9 @@ function buildGroups(
   canReviewUniDb: boolean,
   t: (key: string) => string,
   lang: string,
+  leads: LeadNav = { canWorkLeads: false, isLeadSenior: false },
 ): SidebarGroup[] {
+  const { canWorkLeads, isLeadSenior, counts } = leads;
   return [
     {
       id: 'home',
@@ -100,6 +137,53 @@ function buildGroups(
         { title: "So'rovnomalar", url: '/crm/surveys', icon: ClipboardCheck, visible: isCallOperator || isDocumentHandler },
       ],
     },
+    // Lead module v2 (spec §3): the desk first and bold, the rest ordinary.
+    // The old "Yangi lid" / "Bugungi lidlar" / "Lidlar" items are gone; their
+    // routes redirect to the desk.
+    {
+      id: 'leads',
+      title: 'Lidlar',
+      icon: UserPlus,
+      visible: canWorkLeads,
+      items: [
+        {
+          title: 'Ish stoli',
+          url: '/crm/desk',
+          icon: Zap,
+          visible: canWorkLeads,
+          primary: true,
+          badge: {
+            count: counts?.hozir ?? 0,
+            tone: (counts?.hozir ?? 0) > 0 ? 'red' : 'muted',
+            pulse: (counts?.breached ?? 0) > 0,
+            keepZero: true,
+          },
+        },
+        {
+          title: 'Barcha lidlar',
+          url: '/crm/leads',
+          icon: UserPlus,
+          visible: canWorkLeads,
+          badge: { count: counts?.barcha ?? 0, tone: 'muted' },
+        },
+        {
+          title: "Yo'qotilgan",
+          url: '/crm/leads/lost',
+          icon: UserX,
+          visible: canWorkLeads,
+          badge: { count: counts?.yoqotilgan ?? 0, tone: 'muted' },
+        },
+        { title: 'Hisobot', url: '/crm/leads/report', icon: BarChart3, visible: isLeadSenior },
+        {
+          title: 'Baza',
+          url: '/crm/leads/baza',
+          icon: Archive,
+          visible: canWorkLeads,
+          badge: { count: counts?.baza ?? 0, tone: 'muted' },
+        },
+        { title: 'Sozlamalar', url: '/crm/leads/settings', icon: Settings2, visible: isAdmin },
+      ],
+    },
     {
       id: 'communication',
       title: t('navigation.communication'),
@@ -108,9 +192,6 @@ function buildGroups(
       items: [
         { title: t('navigation.messages'), url: '/crm/messages', icon: MessageSquare, visible: true },
         { title: t('common.phone'), url: '/crm/calls', icon: Phone, visible: isAdmin },
-        { title: t('navigation.newLeads'), url: '/crm/new-leads', icon: BellRing, visible: true, highlight: true },
-        { title: t('navigation.todayLeads'), url: '/crm/today-leads', icon: CalendarCheck, visible: true, highlight: true },
-        { title: t('navigation.leads'), url: '/crm/leads', icon: UserPlus, visible: true, highlight: true },
         { title: "O'quv markazlar", url: '/crm/learning-centers', icon: Building2, visible: isCallOperator },
       ],
     },
@@ -173,6 +254,8 @@ export function CRMSidebar({
   isCallOperator,
   isDocumentHandler,
   canReviewUniDb = false,
+  canWorkLeads = false,
+  isLeadSenior = false,
   user,
   onSignOut,
 }: CRMSidebarProps) {
@@ -183,12 +266,17 @@ export function CRMSidebar({
   const location = useLocation();
   const navigate = useNavigate();
 
-  const groups = buildGroups(canSeeFinance, isAdmin, isCallOperator, isDocumentHandler, canReviewUniDb, t, lang);
+  // The lead counters (HOZIR on Ish stoli, Barcha, Yo'qotilgan, Baza). Realtime +
+  // a 30-second poll; not even requested for roles that have no "Lidlar" group.
+  const { counts } = useDeskCounts({ enabled: canWorkLeads });
 
-  // Whether an item's URL matches the current route (most-specific match wins
-  // via startsWith; '/crm' only matches exactly so it isn't always active).
-  const isItemActive = (url: string) =>
-    location.pathname === url || (url !== '/crm' && location.pathname.startsWith(url));
+  const groups = buildGroups(canSeeFinance, isAdmin, isCallOperator, isDocumentHandler, canReviewUniDb, t, lang, {
+    canWorkLeads,
+    isLeadSenior,
+    counts,
+  });
+
+  const isItemActive = (url: string) => isNavItemActive(location.pathname, url);
 
   const displayName =
     (user?.user_metadata?.full_name as string | undefined) ||
@@ -205,11 +293,13 @@ export function CRMSidebar({
     ? t('roles.owner', { defaultValue: 'Owner' })
     : isAdmin
       ? t('roles.admin', { defaultValue: 'Admin' })
-      : isCallOperator
-        ? t('roles.callOperator', { defaultValue: 'Call operator' })
-        : isDocumentHandler
-          ? t('roles.documentHandler', { defaultValue: 'Document handler' })
-          : t('roles.staff', { defaultValue: 'Staff' });
+      : isLeadSenior
+        ? t('roles.leadSenior', { defaultValue: 'Senior operator' })
+        : isCallOperator
+          ? t('roles.callOperator', { defaultValue: 'Call operator' })
+          : isDocumentHandler
+            ? t('roles.documentHandler', { defaultValue: 'Document handler' })
+            : t('roles.staff', { defaultValue: 'Staff' });
 
   return (
     <Sidebar collapsible="icon" className="border-sidebar-border">
@@ -253,7 +343,9 @@ export function CRMSidebar({
                           tooltip={item.title}
                           className={cn(
                             'gap-3 text-[14px] font-medium text-sidebar-foreground/70 hover:bg-white/5 hover:text-white',
+                            item.primary && 'font-bold text-sidebar-foreground',
                             active && 'bg-white/10 font-semibold text-white hover:bg-white/10',
+                            item.primary && active && 'font-bold',
                           )}
                         >
                           <item.icon className={cn('shrink-0', active && 'text-sidebar-primary')} />
@@ -266,7 +358,17 @@ export function CRMSidebar({
                           {!isAI && item.highlight && !collapsed && (
                             <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-sidebar-primary" />
                           )}
+                          {!collapsed && item.badge && <NavBadge badge={item.badge} />}
                         </SidebarMenuButton>
+                        {/* Collapsed: the count has no room, so urgent items get a dot. */}
+                        {collapsed && item.badge?.tone === 'red' && item.badge.count > 0 && (
+                          <span
+                            className={cn(
+                              'pointer-events-none absolute right-1.5 top-1.5 z-10 h-2 w-2 rounded-full bg-destructive ring-2 ring-sidebar',
+                              item.badge.pulse && 'animate-pulse',
+                            )}
+                          />
+                        )}
                       </SidebarMenuItem>
                     );
                   })}
@@ -307,6 +409,25 @@ export function CRMSidebar({
   );
 }
 
+/**
+ * The count pill on the right of a menu item. Hidden at 0 unless the item asks
+ * to keep it (Ish stoli); red pills are loud, and blink while something is overdue.
+ */
+function NavBadge({ badge }: { badge: SidebarBadge }) {
+  if (badge.count <= 0 && !badge.keepZero) return null;
+  return (
+    <span
+      className={cn(
+        'ml-auto min-w-[1.25rem] shrink-0 rounded-full px-1.5 py-0.5 text-center text-[10px] font-bold leading-none tabular-nums',
+        badge.tone === 'red' ? 'bg-destructive text-white' : 'bg-white/10 text-sidebar-foreground/70',
+        badge.pulse && 'animate-pulse',
+      )}
+    >
+      {badge.count}
+    </span>
+  );
+}
+
 // Export groups getter for use in the header command menu (⌘K).
 export function useSidebarGroups(
   canSeeFinance: boolean,
@@ -316,6 +437,7 @@ export function useSidebarGroups(
   t: (key: string) => string,
   lang: string,
   canReviewUniDb = false,
+  leads: LeadNav = { canWorkLeads: false, isLeadSenior: false },
 ): SidebarGroup[] {
-  return buildGroups(canSeeFinance, isAdmin, isCallOperator, isDocumentHandler, canReviewUniDb, t, lang);
+  return buildGroups(canSeeFinance, isAdmin, isCallOperator, isDocumentHandler, canReviewUniDb, t, lang, leads);
 }
