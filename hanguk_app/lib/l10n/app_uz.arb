@@ -1068,12 +1068,10 @@
   "onbTariffFaqContractANoRisk": "Kontrakt to'lovini firma qiladi — u NO RISK narxiga kiradi.",
   "onbTariffCta": "Shu tarif bo'yicha maslahat",
   "onbTariffContractPdf": "Shartnoma namunasi (PDF)",
-  "onbWelcomeTitle": "Koreyada o'qish — imkoniyatingizni 2 daqiqada bilib oling",
-  "onbWelcomeBody": "Halol baho: foiz yo'q, kafolat yo'q — qoidalar va sizning javoblaringiz.",
+  "onbWelcomeTitle": "Visangiz chiqish ehtimolini [2 daqiqada] bilib oling",
+  "onbWelcomeBody": "Vaqtingizni tejang, holis bahoni qisqa savollarga javob berib bilib oling",
   "onbWelcomeCta": "Imkoniyatimni bilish",
   "onbWelcomeCatalog": "Universitetlarni ko'rish",
-  "onbWelcomeTrustReply": "Operator javobi",
-  "onbWelcomeTrustReplyValue": "≤{minutes} daqiqa",
   "onbWelcomeClientCode": "Mijoz kodim bor",
   "onbQuizContinue": "Davom etish",
   "onbQuizBack": "Orqaga",
@@ -1150,5 +1148,6 @@
   "onbQuizGradHint": "Maktab, litsey, kollej yoki universitet — qaysi biri oxirgi bo'lsa.",
   "onbQuizGradQMaster": "Bakalavrni qachon tugatgansiz?",
   "onbQuizIeltsHint": "Ingliz tilidagi dasturlar uchun kerak. Faqat oddiy IELTS (Online emas), oxirgi 2 yilda olingan.",
-  "onbQuizIncomeHint": "Masalan: ish joyidan maosh ma'lumotnomasi (my.gov.uz) yoki tadbirkorlik va soliq hujjatlari. Elchixona ota-ona hujjatlarini so'raydi."
+  "onbQuizIncomeHint": "Masalan: ish joyidan maosh ma'lumotnomasi (my.gov.uz) yoki tadbirkorlik va soliq hujjatlari. Elchixona ota-ona hujjatlarini so'raydi.",
+  "onbWelcomeCallTimer": "{minutes} daqiqada operatorimiz bog'lanadi"
 }

@@ -85,9 +85,19 @@ LinearGradient cssLinearGradient(
 /// The screens' background:
 /// `linear-gradient(150deg,#1A3A6C 0%,#132A4D 35%,#0F213D 65%,#0A0A1A 100%)`.
 class OnbBackground extends StatelessWidget {
-  const OnbBackground({super.key, required this.child});
+  const OnbBackground({
+    super.key,
+    required this.child,
+    this.angleDeg = 150,
+    this.stops = const [0, .35, .65, 1],
+  });
 
   final Widget child;
+
+  /// CSS `linear-gradient` angle and colour stops; S01's design uses 160°
+  /// and 0 / 40 / 70 / 100 %.
+  final double angleDeg;
+  final List<double> stops;
 
   @override
   Widget build(BuildContext context) {
@@ -95,7 +105,7 @@ class OnbBackground extends StatelessWidget {
       builder: (context, c) => DecoratedBox(
         decoration: BoxDecoration(
           gradient: cssLinearGradient(
-            150,
+            angleDeg,
             c.biggest,
             colors: const [
               Color(0xFF1A3A6C),
@@ -103,7 +113,7 @@ class OnbBackground extends StatelessWidget {
               Color(0xFF0F213D),
               Color(0xFF0A0A1A),
             ],
-            stops: const [0, .35, .65, 1],
+            stops: stops,
           ),
         ),
         child: child,

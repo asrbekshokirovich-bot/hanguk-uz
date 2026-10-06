@@ -5714,16 +5714,16 @@ abstract class AppLocalizations {
   /// **'Sample contract (PDF)'**
   String get onbTariffContractPdf;
 
-  /// S01 Welcome: headline.
+  /// S01 title; the part in [square brackets] is shown in lime
   ///
   /// In en, this message translates to:
-  /// **'Study in Korea — find out your chances in 2 minutes'**
+  /// **'Find out your visa chances [in 2 minutes]'**
   String get onbWelcomeTitle;
 
-  /// S01 Welcome: one line under the headline.
+  /// S01 subtitle
   ///
   /// In en, this message translates to:
-  /// **'An honest assessment: no percentages, no guarantees — just the rules and your answers.'**
+  /// **'Save time: answer a few short questions and get an honest assessment'**
   String get onbWelcomeBody;
 
   /// S01 Welcome: main button, starts the 6-question check (S02).
@@ -5737,18 +5737,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Browse universities'**
   String get onbWelcomeCatalog;
-
-  /// S01 Welcome: trust row label (operator reply time). Shown only with real data.
-  ///
-  /// In en, this message translates to:
-  /// **'Operator reply'**
-  String get onbWelcomeTrustReply;
-
-  /// S01 Welcome: trust row value, operator reply time in minutes.
-  ///
-  /// In en, this message translates to:
-  /// **'≤{minutes} min'**
-  String onbWelcomeTrustReplyValue(String minutes);
 
   /// S01 Welcome: small link for existing clients, opens sign-in with the client code.
   ///
@@ -6211,6 +6199,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'For example a salary certificate from work (my.gov.uz) or business and tax papers. The embassy asks for the parents\' papers.'**
   String get onbQuizIncomeHint;
+
+  /// S01, over the main button during working hours, next to a countdown
+  ///
+  /// In en, this message translates to:
+  /// **'Our operator will contact you within {minutes} minutes'**
+  String onbWelcomeCallTimer(String minutes);
 }
 
 class _AppLocalizationsDelegate

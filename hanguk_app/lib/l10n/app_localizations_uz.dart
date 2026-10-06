@@ -3153,25 +3153,17 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get onbWelcomeTitle =>
-      'Koreyada o\'qish — imkoniyatingizni 2 daqiqada bilib oling';
+      'Visangiz chiqish ehtimolini [2 daqiqada] bilib oling';
 
   @override
   String get onbWelcomeBody =>
-      'Halol baho: foiz yo\'q, kafolat yo\'q — qoidalar va sizning javoblaringiz.';
+      'Vaqtingizni tejang, holis bahoni qisqa savollarga javob berib bilib oling';
 
   @override
   String get onbWelcomeCta => 'Imkoniyatimni bilish';
 
   @override
   String get onbWelcomeCatalog => 'Universitetlarni ko\'rish';
-
-  @override
-  String get onbWelcomeTrustReply => 'Operator javobi';
-
-  @override
-  String onbWelcomeTrustReplyValue(String minutes) {
-    return '≤$minutes daqiqa';
-  }
 
   @override
   String get onbWelcomeClientCode => 'Mijoz kodim bor';
@@ -3429,4 +3421,9 @@ class AppLocalizationsUz extends AppLocalizations {
   @override
   String get onbQuizIncomeHint =>
       'Masalan: ish joyidan maosh ma\'lumotnomasi (my.gov.uz) yoki tadbirkorlik va soliq hujjatlari. Elchixona ota-ona hujjatlarini so\'raydi.';
+
+  @override
+  String onbWelcomeCallTimer(String minutes) {
+    return '$minutes daqiqada operatorimiz bog\'lanadi';
+  }
 }

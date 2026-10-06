@@ -9,6 +9,7 @@ import 'package:hanguk_app/features/onboarding/domain/eligibility_engine.dart';
 import 'package:hanguk_app/features/onboarding/domain/quiz_answers.dart';
 import 'package:hanguk_app/features/onboarding/presentation/contact_sheet_s04.dart';
 import 'package:hanguk_app/features/onboarding/presentation/quiz_s02_screen.dart';
+import 'package:hanguk_app/features/onboarding/presentation/s01_s04_ui.dart';
 import 'package:hanguk_app/features/onboarding/presentation/welcome_s01_screen.dart';
 import 'package:hanguk_app/l10n/app_localizations.dart';
 
@@ -147,29 +148,76 @@ void main() {
     expect(kWelcomePhotoAssets.toSet(), hasLength(kWelcomePhotoAssets.length));
   });
 
-  testWidgets('S01: the photo changes every 4 seconds, then starts over', (t) async {
-    await t.pumpWidget(
-      ProviderScope(
-        overrides: [entryProvider.overrideWith(_Entry.new)],
-        child: MaterialApp(
-          locale: const Locale('uz'),
-          supportedLocales: AppLocalizations.supportedLocales,
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          home: const OnboardingWelcomeScreen(),
-        ),
-      ),
-    );
-    String shown() => ((t.widgetList<Image>(find.byType(Image)).last.image) as AssetImage).assetName;
+  Widget welcome(DateTime now) => ProviderScope(
+    overrides: [
+      entryProvider.overrideWith(_Entry.new),
+      contactSheetClockProvider.overrideWithValue(() => now),
+    ],
+    child: MaterialApp(
+      locale: const Locale('uz'),
+      supportedLocales: AppLocalizations.supportedLocales,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      home: const OnboardingWelcomeScreen(),
+    ),
+  );
 
-    expect(shown(), kWelcomePhotoAssets[0]);
+  // A Tuesday, 12:00 and 20:00 Tashkent.
+  final noon = DateTime.utc(2026, 10, 6, 7);
+  final evening = DateTime.utc(2026, 10, 6, 15);
+
+  /// The photo on the top card of the deck (tilted -3°).
+  String front(WidgetTester t) {
+    final top = find.byWidgetPredicate(
+      (w) => w is AnimatedRotation && (w.turns - (-3 / 360)).abs() < 1e-9,
+    );
+    expect(top, findsOneWidget);
+    final img = t.widget<Image>(find.descendant(of: top, matching: find.byType(Image)));
+    return (img.image as AssetImage).assetName;
+  }
+
+  testWidgets('S01: the top card flies off every 4.5 seconds, a tap moves it on, then it starts over', (t) async {
+    await t.pumpWidget(welcome(noon));
+    expect(front(t), kWelcomePhotoAssets[0]);
+
     await t.pump(kWelcomePhotoInterval);
     await t.pump(const Duration(seconds: 1));
-    expect(shown(), kWelcomePhotoAssets[1]);
-    for (var i = 1; i < kWelcomePhotoAssets.length; i++) {
+    expect(front(t), kWelcomePhotoAssets[1]);
+
+    await t.tap(find.byType(Image).hitTestable().first, warnIfMissed: false);
+    await t.pump(const Duration(seconds: 1));
+    expect(front(t), kWelcomePhotoAssets[2]);
+
+    for (var i = 2; i < kWelcomePhotoAssets.length; i++) {
       await t.pump(kWelcomePhotoInterval);
     }
     await t.pump(const Duration(seconds: 1));
-    expect(shown(), kWelcomePhotoAssets[0]);
+    expect(front(t), kWelcomePhotoAssets[0]);
+  });
+
+  testWidgets('S01: the call-back countdown runs from 10:00 in working hours only', (t) async {
+    await t.pumpWidget(welcome(noon));
+    expect(find.text("10 daqiqada operatorimiz bog'lanadi"), findsOneWidget);
+    expect(find.text('10:00'), findsOneWidget);
+    await t.pump(const Duration(seconds: 1));
+    expect(find.text('09:59'), findsOneWidget);
+    await t.pump(const Duration(seconds: 599));
+    expect(find.text('10:00'), findsOneWidget);
+    expect(find.text('Imkoniyatimni bilish'), findsOneWidget);
+
+    await t.pumpWidget(welcome(evening));
+    await t.pump();
+    expect(find.text("10 daqiqada operatorimiz bog'lanadi"), findsNothing);
+    expect(find.text('Imkoniyatimni bilish'), findsOneWidget);
+  });
+
+  testWidgets('S01: the title shows "2 daqiqada" in lime', (t) async {
+    await t.pumpWidget(welcome(noon));
+    final rich = t.widgetList<RichText>(find.byType(RichText)).firstWhere(
+      (r) => r.text.toPlainText() == 'Visangiz chiqish ehtimolini 2 daqiqada bilib oling',
+    );
+    final spans = (rich.text as TextSpan).children!.first as TextSpan;
+    final lime = spans.children!.whereType<TextSpan>().firstWhere((s) => s.text == '2 daqiqada');
+    expect(lime.style?.color, OnbColors.lime);
   });
 
   testWidgets('S02: Davom etish waits for an answer, then moves on', (t) async {

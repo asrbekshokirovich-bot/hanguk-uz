@@ -1068,12 +1068,10 @@
   "onbTariffFaqContractANoRisk": "The company pays the tuition — it is included in the NO RISK price.",
   "onbTariffCta": "Get advice on this tariff",
   "onbTariffContractPdf": "Sample contract (PDF)",
-  "onbWelcomeTitle": "Study in Korea — find out your chances in 2 minutes",
-  "onbWelcomeBody": "An honest assessment: no percentages, no guarantees — just the rules and your answers.",
+  "onbWelcomeTitle": "Find out your visa chances [in 2 minutes]",
+  "onbWelcomeBody": "Save time: answer a few short questions and get an honest assessment",
   "onbWelcomeCta": "Check my chances",
   "onbWelcomeCatalog": "Browse universities",
-  "onbWelcomeTrustReply": "Operator reply",
-  "onbWelcomeTrustReplyValue": "≤{minutes} min",
   "onbWelcomeClientCode": "I have a client code",
   "onbQuizContinue": "Continue",
   "onbQuizBack": "Back",
@@ -1150,5 +1148,6 @@
   "onbQuizGradHint": "School, lyceum, college or university — whichever was last.",
   "onbQuizGradQMaster": "When did you finish your bachelor's?",
   "onbQuizIeltsHint": "Needed for English-taught programmes. Only the regular IELTS (not Online), taken in the last 2 years.",
-  "onbQuizIncomeHint": "For example a salary certificate from work (my.gov.uz) or business and tax papers. The embassy asks for the parents' papers."
+  "onbQuizIncomeHint": "For example a salary certificate from work (my.gov.uz) or business and tax papers. The embassy asks for the parents' papers.",
+  "onbWelcomeCallTimer": "Our operator will contact you within {minutes} minutes"
 }

@@ -3144,26 +3144,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get onbTariffContractPdf => 'Sample contract (PDF)';
 
   @override
-  String get onbWelcomeTitle =>
-      'Study in Korea — find out your chances in 2 minutes';
+  String get onbWelcomeTitle => 'Find out your visa chances [in 2 minutes]';
 
   @override
   String get onbWelcomeBody =>
-      'An honest assessment: no percentages, no guarantees — just the rules and your answers.';
+      'Save time: answer a few short questions and get an honest assessment';
 
   @override
   String get onbWelcomeCta => 'Check my chances';
 
   @override
   String get onbWelcomeCatalog => 'Browse universities';
-
-  @override
-  String get onbWelcomeTrustReply => 'Operator reply';
-
-  @override
-  String onbWelcomeTrustReplyValue(String minutes) {
-    return '≤$minutes min';
-  }
 
   @override
   String get onbWelcomeClientCode => 'I have a client code';
@@ -3421,4 +3412,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get onbQuizIncomeHint =>
       'For example a salary certificate from work (my.gov.uz) or business and tax papers. The embassy asks for the parents\' papers.';
+
+  @override
+  String onbWelcomeCallTimer(String minutes) {
+    return 'Our operator will contact you within $minutes minutes';
+  }
 }
