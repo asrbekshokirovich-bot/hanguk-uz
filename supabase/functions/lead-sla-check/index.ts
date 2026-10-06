@@ -1,22 +1,21 @@
-// Watchdog for leads nobody has called yet.
+// The automatic reply to new chats that arrive outside working hours — and
+// nothing else.
 //
-// A lead cools fast. This asks Postgres which "Yangi lid" leads — Instagram/
-// Telegram leads timed from their first message (leads.new_lead_at) — are
-// past 10 minutes with nobody answering (see fn_lead_sla_scan) and sends one
-// Telegram alert per lead, from the bot, to the staff alert channel and to
-// every person in lead_alert_recipients. fn_lead_sla_scan stamps each lead as
-// it reads it, and hands it back again on the next minute's run for as long as
-// it stays unanswered — the alert repeats until somebody replies.
+// Until lead module v2 (2026-10-05) this was also the "Yangi lid" watchdog: it
+// asked Postgres which leads were past 10 minutes (fn_lead_sla_scan) and sent
+// one Telegram alert per lead, and it ran the owner's watchdogs (watchdog.ts):
+// a lead closed within 30 seconds, and the 09:30 daily count. All of that moved:
+// the 10-minute rule is leads.due_at + fn_lead_timer_scan, delivered by
+// lead-alert-dispatch, and the daily report is lead-reports. fn_lead_sla_scan is
+// now a no-op in the database. It is NOT called from here any more, and neither
+// is runWatchdogs — either one would alert twice. (watchdog.ts is left in this
+// folder, unused.)
 //
-// Each run first sends the automatic reply to new chats that arrived outside
-// working hours (after_hours.ts); their countdown, and so their alert, starts
-// at the next working 10:00 (fn_lead_sla_scan times from leads.sla_start_at).
-//
-// It also runs the owner's watchdogs (watchdog.ts): a new lead closed within
-// 30 seconds, and the 09:30 daily count.
+// Each run sends the automatic reply to new chats that arrived outside working
+// hours (after_hours.ts).
 //
 // Called every minute by pg_cron (lead-sla-check-1min). Pass ?dry=1 to see
-// what would fire without marking anything or sending — safe to call by hand.
+// what would be sent without marking anything or sending — safe to call by hand.
 //
 // AUTH: verify_jwt is off at the gateway (same reason as channel-health-check
 // — the new sb_secret_ API keys are not JWTs). The caller is checked in
@@ -24,7 +23,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 import { sendAfterHoursReplies } from "./after_hours.ts";
-import { runWatchdogs } from "./watchdog.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -33,79 +31,6 @@ const corsHeaders = {
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const TELEGRAM_BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN");
-/** Chat that receives the alerts — same staff channel as channel-health-check. */
-const ALERT_CHAT_ID = Deno.env.get("ALERT_TELEGRAM_CHAT_ID");
-
-/** How long a lead may sit uncontacted before this fires. Kept in step with
- * the default in `fn_lead_sla_scan` and with `UNCONTACTED_SLA_MINUTES` in
- * `src/components/crm/leads/intake/sla.ts`, which draws the same line red. */
-const SLA_MINUTES = 10;
-
-interface OverdueLead {
-  id: string;
-  full_name: string | null;
-  phone: string | null;
-  how_heard: string | null;
-  source: string | null;
-  arrived_at: string;
-  minutes_waiting: number;
-}
-
-/** Written for whoever is holding a phone: who, how to reach them, how late. */
-function composeAlert(l: OverdueLead): string {
-  const name = l.full_name || "(ismsiz lid)";
-  const phone = l.phone ? `\nTelefon: ${l.phone}` : "";
-  const via = l.how_heard || l.source;
-  const source = via ? `\nManba: ${via}` : "";
-  return [
-    `🔴 Yangi lidga ${l.minutes_waiting} daqiqadan beri aloqa chiqarilmagan!`,
-    ``,
-    name + phone + source,
-    ``,
-    `CRM → Aloqa → Yangi lid bo'limida ko'ring.`,
-  ].join("\n");
-}
-
-/** The staff channel plus everyone who asked for the alerts in their own
- *  Telegram (lead_alert_recipients), each chat once. */
-async function recipients(supabase: ReturnType<typeof createClient>): Promise<string[]> {
-  const chats = new Set<string>();
-  if (ALERT_CHAT_ID) chats.add(ALERT_CHAT_ID.trim());
-  const { data, error } = await supabase
-    .from("lead_alert_recipients")
-    .select("chat_id")
-    .eq("enabled", true);
-  if (error) console.error("lead-sla-check: recipients:", error.message);
-  for (const r of (data ?? []) as { chat_id: string }[]) {
-    if (r.chat_id) chats.add(String(r.chat_id).trim());
-  }
-  return [...chats];
-}
-
-async function sendTelegram(chatId: string, text: string): Promise<boolean> {
-  if (!TELEGRAM_BOT_TOKEN) {
-    console.warn("lead-sla-check: TELEGRAM_BOT_TOKEN not set — alert not delivered:\n" + text);
-    return false;
-  }
-  try {
-    const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ chat_id: chatId, text, disable_web_page_preview: true }),
-    });
-    if (!res.ok) {
-      // A person who never pressed Start on the bot (or blocked it) lands
-      // here with 403; the other recipients still get theirs.
-      console.error(`lead-sla-check: Telegram send to ${chatId} failed ${res.status}: ${await res.text()}`);
-      return false;
-    }
-    return true;
-  } catch (e) {
-    console.error(`lead-sla-check: Telegram send to ${chatId} error:`, e);
-    return false;
-  }
-}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -119,48 +44,15 @@ serve(async (req) => {
 
   try {
     const afterHours = await sendAfterHoursReplies(supabase, dry);
-    const watchdogs = await runWatchdogs(supabase, dry, sendTelegram);
-
-    const { data, error } = await supabase.rpc("fn_lead_sla_scan", {
-      p_minutes: SLA_MINUTES,
-      p_dry: dry,
-    });
-    if (error) throw error;
-
-    const overdue = (data ?? []) as OverdueLead[];
 
     if (dry) {
-      return json({ ok: true, dry: true, overdue, after_hours: afterHours.leads ?? [], watchdogs });
-    }
-
-    const chats = overdue.length ? await recipients(supabase) : [];
-    if (overdue.length && !chats.length) {
-      console.warn("lead-sla-check: no alert recipients configured");
-    }
-
-    const alerted: string[] = [];
-    for (const lead of overdue) {
-      const text = composeAlert(lead);
-      let delivered = false;
-      for (const chat of chats) {
-        if (await sendTelegram(chat, text)) delivered = true;
-      }
-      if (delivered) alerted.push(lead.id);
-    }
-
-    if (overdue.length > 0) {
-      console.log(`lead-sla-check: ${overdue.length} overdue, ${alerted.length} alert(s) sent`);
+      return json({ ok: true, dry: true, after_hours: afterHours.leads ?? [] });
     }
 
     return json({
       ok: true,
-      overdue: overdue.length,
-      alerted: alerted.length,
-      recipients: chats.length,
       after_hours_claimed: afterHours.claimed,
       after_hours_sent: afterHours.sent,
-      quick_exits: watchdogs.quick_exits,
-      daily_report_sent: watchdogs.report_sent,
     });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Unknown error";

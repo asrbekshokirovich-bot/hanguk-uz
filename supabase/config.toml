@@ -198,3 +198,41 @@ verify_jwt = false
 # isn't blocked at the gateway; the function checks the key itself.
 [functions.translate-app-texts]
 verify_jwt = false
+
+# --- Lead module v2 (2026-10-05) ----------------------------------------------
+
+# Delivers lead_alert_outbox to Telegram; pg_cron calls it every 30 s with the
+# service-role bearer. verify_jwt is off so the cron caller isn't blocked at the
+# gateway; the function checks the caller itself (_shared/service-auth.ts).
+[functions.lead-alert-dispatch]
+verify_jwt = false
+
+# 09:30 daily / Monday weekly Telegram reports; pg_cron with the service-role
+# bearer, checked inside the function (_shared/service-auth.ts).
+[functions.lead-reports]
+verify_jwt = false
+
+# AI brief + reply draft for leads with a new client message; pg_cron every
+# 2 minutes with the service-role bearer, checked inside the function.
+[functions.lead-brief]
+verify_jwt = false
+
+# Meta lead-form webhook. Meta cannot send a JWT: the GET handshake is checked
+# against META_VERIFY_TOKEN and every POST against its X-Hub-Signature-256 HMAC
+# (META_APP_SECRET), both inside the function; no secret set = 503.
+[functions.meta-leadgen-webhook]
+verify_jwt = false
+
+# Feed of the office TV's red warning. A TV cannot carry a JWT: the ?k= key is
+# compared, in constant time, with TV_LEAD_KEY inside the function.
+[functions.tv-lead-alerts]
+verify_jwt = false
+
+# Work queue of the personal-account Telegram sender. telegram-poll calls it
+# with the shared secret in `x-ingest-secret` and NO Authorization header (same
+# as telegram-ingest above), so the gateway's JWT check would answer 401 and the
+# CRM's replies would stop going out; the function checks the secret itself.
+# (telegram-poll needs no entry: its caller, pg_cron, sends a real service-role
+# JWT, and its own check trusts the claims of a JWT the gateway has verified.)
+[functions.telegram-outbox]
+verify_jwt = false

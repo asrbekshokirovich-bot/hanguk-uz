@@ -110,6 +110,13 @@ jobs:
           # repo copy is the current one.
           # Added on 2026-09-30: `translate-app-texts` is new and deployed from
           # here, so the repo copy is the current one.
+          # Added on 2026-10-05 (lead module v2): `lead-alert-dispatch`,
+          # `lead-reports`, `lead-brief`, `meta-leadgen-webhook` and
+          # `tv-lead-alerts` are new and deployed from here, so the repo copy is
+          # the current one. The changed ones (`lead-sla-check`, `telegram-poll`,
+          # `telegram-webhook`, `instagram-webhook` and the role lists in
+          # `send-telegram`, `send-instagram`, `instagram-send`, `translate-message`)
+          # are already on the list: diff each against the live source before merging.
           FUNCTIONS="
             instagram-webhook
             channel-health-check
@@ -129,6 +136,11 @@ jobs:
             telegram-poll
             hr-bot
             translate-app-texts
+            lead-alert-dispatch
+            lead-reports
+            lead-brief
+            meta-leadgen-webhook
+            tv-lead-alerts
           "
 
           for fn in $FUNCTIONS; do

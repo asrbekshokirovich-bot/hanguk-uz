@@ -7,7 +7,7 @@ const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
-const STAFF_ROLES = ["owner", "admin", "call_operator", "document_handler"];
+const STAFF_ROLES = ["owner", "admin", "call_operator", "lead_senior", "document_handler"];
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });

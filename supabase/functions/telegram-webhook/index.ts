@@ -103,7 +103,9 @@ async function storeMessage(supabase: Any, m: {
     direction: m.direction,
     status: m.direction === "incoming" ? "unread" : "read",
     student_id: m.studentId ?? null, // BEFORE INSERT trigger fills this if null
-    metadata: { telegram_chat_id: m.chatId, ...(m.extraMeta ?? {}) },
+    // `bot: true` marks what the bot said by itself, so the lead engine can tell
+    // it from a person answering (a bot message must not stop the 10-minute timer).
+    metadata: { telegram_chat_id: m.chatId, ...(m.direction === "outgoing" && m.senderName === "Hanguk bot" ? { bot: true } : {}), ...(m.extraMeta ?? {}) },
   });
   if (error) {
     // Duplicate key means Telegram re-delivered an update we already stored —
@@ -260,7 +262,7 @@ async function upsertLead(supabase: Any, chatId: string, fields: Record<string, 
  */
 const WEBHOOK_SECRET = Deno.env.get("TELEGRAM_WEBHOOK_SECRET");
 
-const STAFF_ROLES = ["owner", "admin", "call_operator"];
+const STAFF_ROLES = ["owner", "admin", "call_operator", "lead_senior"];
 
 /** The URL Telegram must be told to deliver updates to — this function's own. */
 const WEBHOOK_URL = `${SUPABASE_URL}/functions/v1/telegram-webhook`;
@@ -680,21 +682,34 @@ Savolingiz bo'lsa, shu yerda — Telegram orqali — bemalol yozing. 💬 Xodiml
       },
     });
 
-    // Auto-request phone sharing for unidentified first-time chats.
-    // Only ask once: if a lead already exists for this chatId, the person
-    // was seen before (via /start or a previous request) — don't re-ask.
+    // First plain message from an unidentified chat. Only once: if a lead
+    // already exists for this chatId, the person was seen before (via /start or
+    // an earlier message) — don't greet again.
+    //
+    // Spec §6.1/§10: the bot never opens with "send your number". It greets and
+    // asks ONE question (the degree buttons answer it and lead into the
+    // existing onboarding), and only then, as a second, secondary message,
+    // offers the contact button.
     if (!identity.studentId && !identity.leadId) {
       const { data: existingLead } = await supabase.from("leads")
         .select("id").eq("source", "telegram").eq("source_id", chatId).maybeSingle();
       if (!existingLead) {
         await upsertLead(supabase, chatId, { full_name: fromName });
         const sent = await tgSend(chatId,
-          `Assalomu alaykum! 👋\n\nSizni aniqlab olishimiz uchun telefon raqamingizni ulashing — shunda xabarlaringiz profilingizga bog'lanadi va menejerimiz tezroq javob beradi.`,
-          { keyboard: [[{ text: "📱 Telefon raqamni ulashish", request_contact: true }]], resize_keyboard: true, one_time_keyboard: true });
+          `Assalomu alaykum! 👋 Hanguk Consulting.\n\nKoreyada qaysi yo'nalish qiziqtiradi — bakalavr, magistr, til yoki Hanbox?`,
+          { inline_keyboard: [...DEGREES, ["📦 HanBox", "deg:HanBox"]].map(([label, d]) => [{ text: label, callback_data: d }]) });
         if (sent) {
           await bumpThread(supabase, chatId, fromName, "outgoing");
           await storeMessage(supabase, { chatId, messageId: sent.message_id, senderName: "Hanguk bot",
-            content: "Telefon raqam so'raldi (avtomatik identifikatsiya).", direction: "outgoing" });
+            content: "Salom + yo'nalish savoli (avtomatik).", direction: "outgoing" });
+        }
+        const ask = await tgSend(chatId,
+          `Qulay bo'lsa, raqamingizni qoldiring — 10 daqiqada qo'ng'iroq qilamiz.`,
+          { keyboard: [[{ text: "📱 Telefon raqamni ulashish", request_contact: true }]], resize_keyboard: true, one_time_keyboard: true });
+        if (ask) {
+          await bumpThread(supabase, chatId, fromName, "outgoing");
+          await storeMessage(supabase, { chatId, messageId: ask.message_id, senderName: "Hanguk bot",
+            content: "Telefon raqam so'raldi (avtomatik, savoldan keyin).", direction: "outgoing" });
         }
       }
     }

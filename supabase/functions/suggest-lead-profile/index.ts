@@ -316,7 +316,7 @@ Deno.serve(async (req) => {
  * analysis of any lead — the function reads with the service key, so it would
  * happily assemble someone else's private conversation.
  */
-const STAFF_ROLES = ["owner", "admin", "call_operator"];
+const STAFF_ROLES = ["owner", "admin", "call_operator", "lead_senior"];
 
 async function authorized(
   req: Request,

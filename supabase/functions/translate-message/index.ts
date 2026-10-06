@@ -22,7 +22,7 @@ const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
 
 const MODELS = ["claude-opus-4-7", "claude-sonnet-4-6"];
-const STAFF_ROLES = ["owner", "admin", "call_operator"];
+const STAFF_ROLES = ["owner", "admin", "call_operator", "lead_senior"];
 const MAX_TEXTS = 50;
 const MAX_CHARS = 4000;
 
