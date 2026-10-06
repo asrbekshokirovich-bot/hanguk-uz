@@ -3949,13 +3949,13 @@
   "@onbTariffContractPdf": {
     "description": "S06 link to the contract sample (hidden until a PDF exists)"
   },
-  "onbWelcomeTitle": "Study in Korea — find out your chances in 2 minutes",
+  "onbWelcomeTitle": "Find out your visa chances [in 2 minutes]",
   "@onbWelcomeTitle": {
-    "description": "S01 Welcome: headline."
+    "description": "S01 title; the part in [square brackets] is shown in lime"
   },
-  "onbWelcomeBody": "An honest assessment: no percentages, no guarantees — just the rules and your answers.",
+  "onbWelcomeBody": "Save time: answer a few short questions and get an honest assessment",
   "@onbWelcomeBody": {
-    "description": "S01 Welcome: one line under the headline."
+    "description": "S01 subtitle"
   },
   "onbWelcomeCta": "Check my chances",
   "@onbWelcomeCta": {
@@ -3964,19 +3964,6 @@
   "onbWelcomeCatalog": "Browse universities",
   "@onbWelcomeCatalog": {
     "description": "S01 Welcome: secondary button, opens the university catalogue."
-  },
-  "onbWelcomeTrustReply": "Operator reply",
-  "@onbWelcomeTrustReply": {
-    "description": "S01 Welcome: trust row label (operator reply time). Shown only with real data."
-  },
-  "onbWelcomeTrustReplyValue": "≤{minutes} min",
-  "@onbWelcomeTrustReplyValue": {
-    "description": "S01 Welcome: trust row value, operator reply time in minutes.",
-    "placeholders": {
-      "minutes": {
-        "type": "String"
-      }
-    }
   },
   "onbWelcomeClientCode": "I have a client code",
   "@onbWelcomeClientCode": {
@@ -4306,5 +4293,14 @@
   "onbQuizIncomeHint": "For example a salary certificate from work (my.gov.uz) or business and tax papers. The embassy asks for the parents' papers.",
   "@onbQuizIncomeHint": {
     "description": "Quiz income hint"
+  },
+  "onbWelcomeCallTimer": "Our operator will contact you within {minutes} minutes",
+  "@onbWelcomeCallTimer": {
+    "description": "S01, over the main button during working hours, next to a countdown",
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
   }
 }

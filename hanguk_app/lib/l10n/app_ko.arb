@@ -1068,12 +1068,10 @@
   "onbTariffFaqContractANoRisk": "등록금은 회사가 냅니다 — NO RISK 가격에 포함됩니다.",
   "onbTariffCta": "이 요금제 상담받기",
   "onbTariffContractPdf": "계약서 샘플 (PDF)",
-  "onbWelcomeTitle": "한국 유학 — 2분 만에 내 가능성을 확인하세요",
-  "onbWelcomeBody": "정직한 평가: 퍼센트도, 보장도 없이 — 규정과 당신의 답변만으로.",
+  "onbWelcomeTitle": "비자 발급 가능성을 [2분 만에] 확인하세요",
+  "onbWelcomeBody": "시간을 아끼세요. 짧은 질문에 답하고 객관적인 평가를 받아보세요",
   "onbWelcomeCta": "내 가능성 확인하기",
   "onbWelcomeCatalog": "대학교 둘러보기",
-  "onbWelcomeTrustReply": "상담원 응답",
-  "onbWelcomeTrustReplyValue": "≤{minutes}분",
   "onbWelcomeClientCode": "고객 코드가 있어요",
   "onbQuizContinue": "계속",
   "onbQuizBack": "뒤로",
@@ -1150,5 +1148,6 @@
   "onbQuizGradHint": "고등학교·리세이·전문대·대학교 중 마지막 학교.",
   "onbQuizGradQMaster": "학사를 언제 졸업했나요?",
   "onbQuizIeltsHint": "영어 트랙에 필요합니다. 최근 2년 내 일반 IELTS만 인정(Online 불가).",
-  "onbQuizIncomeHint": "예: 직장 급여 증명(my.gov.uz) 또는 사업·세금 서류. 대사관은 부모 서류를 요구합니다."
+  "onbQuizIncomeHint": "예: 직장 급여 증명(my.gov.uz) 또는 사업·세금 서류. 대사관은 부모 서류를 요구합니다.",
+  "onbWelcomeCallTimer": "{minutes}분 안에 상담원이 연락드립니다"
 }

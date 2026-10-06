@@ -3157,26 +3157,17 @@ class AppLocalizationsRu extends AppLocalizations {
   String get onbTariffContractPdf => 'Образец договора (PDF)';
 
   @override
-  String get onbWelcomeTitle =>
-      'Учёба в Корее — узнайте свои шансы за 2 минуты';
+  String get onbWelcomeTitle => 'Узнайте шансы на визу [за 2 минуты]';
 
   @override
   String get onbWelcomeBody =>
-      'Честная оценка: без процентов и гарантий — только правила и ваши ответы.';
+      'Сэкономьте время: ответьте на короткие вопросы и получите честную оценку';
 
   @override
   String get onbWelcomeCta => 'Узнать мои шансы';
 
   @override
   String get onbWelcomeCatalog => 'Смотреть университеты';
-
-  @override
-  String get onbWelcomeTrustReply => 'Ответ оператора';
-
-  @override
-  String onbWelcomeTrustReplyValue(String minutes) {
-    return '≤$minutes мин';
-  }
 
   @override
   String get onbWelcomeClientCode => 'У меня есть код клиента';
@@ -3435,4 +3426,9 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get onbQuizIncomeHint =>
       'Например, справка о зарплате с работы (my.gov.uz) или документы о бизнесе и налогах. Посольство запрашивает документы родителей.';
+
+  @override
+  String onbWelcomeCallTimer(String minutes) {
+    return 'Оператор свяжется с вами за $minutes минут';
+  }
 }

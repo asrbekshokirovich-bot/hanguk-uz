@@ -3016,24 +3016,16 @@ class AppLocalizationsKo extends AppLocalizations {
   String get onbTariffContractPdf => '계약서 샘플 (PDF)';
 
   @override
-  String get onbWelcomeTitle => '한국 유학 — 2분 만에 내 가능성을 확인하세요';
+  String get onbWelcomeTitle => '비자 발급 가능성을 [2분 만에] 확인하세요';
 
   @override
-  String get onbWelcomeBody => '정직한 평가: 퍼센트도, 보장도 없이 — 규정과 당신의 답변만으로.';
+  String get onbWelcomeBody => '시간을 아끼세요. 짧은 질문에 답하고 객관적인 평가를 받아보세요';
 
   @override
   String get onbWelcomeCta => '내 가능성 확인하기';
 
   @override
   String get onbWelcomeCatalog => '대학교 둘러보기';
-
-  @override
-  String get onbWelcomeTrustReply => '상담원 응답';
-
-  @override
-  String onbWelcomeTrustReplyValue(String minutes) {
-    return '≤$minutes분';
-  }
 
   @override
   String get onbWelcomeClientCode => '고객 코드가 있어요';
@@ -3277,4 +3269,9 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get onbQuizIncomeHint =>
       '예: 직장 급여 증명(my.gov.uz) 또는 사업·세금 서류. 대사관은 부모 서류를 요구합니다.';
+
+  @override
+  String onbWelcomeCallTimer(String minutes) {
+    return '$minutes분 안에 상담원이 연락드립니다';
+  }
 }
