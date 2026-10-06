@@ -3542,9 +3542,9 @@
   "@onbResultTuitionLabel": {
     "description": "S03 university card: tuition per semester"
   },
-  "onbResultBankLabel": "Bank statement",
+  "onbResultBankLabel": "KDB deposit",
   "@onbResultBankLabel": {
-    "description": "S03 university card and cost card: bank statement amount"
+    "description": "The KDB deposit amount label on the result"
   },
   "onbResultYearlyCost": "Estimated yearly cost",
   "@onbResultYearlyCost": {
@@ -3553,10 +3553,6 @@
   "onbResultStepsTitle": "Next 3 steps",
   "@onbResultStepsTitle": {
     "description": "S03 next steps card title"
-  },
-  "onbResultStepTopikPrep": "Prepare for TOPIK 3 or enter through a language course",
-  "@onbResultStepTopikPrep": {
-    "description": "S03 next step"
   },
   "onbResultStepSchoolDocs": "Translate and apostille the school certificate and passport",
   "@onbResultStepSchoolDocs": {
@@ -3574,29 +3570,34 @@
   "@onbResultPathsTitle": {
     "description": "S03 low band: section title instead of universities"
   },
-  "onbResultPathLanguageCourse": "Through a language course (D-4)",
+  "onbResultPathLanguageCourse": "A language course first (D-4)",
   "@onbResultPathLanguageCourse": {
-    "description": "S03 low band path title"
+    "description": "Path title"
   },
-  "onbResultPathLanguageCourseNote": "A language course, then moving on to a bachelor's.",
+  "onbResultPathLanguageCourseNote": "Learn Korean in Korea, then move on once you have TOPIK. The language-course visa also needs TOPIK 1 or a Sejong certificate.",
   "@onbResultPathLanguageCourseNote": {
-    "description": "S03 low band path note (design: '{N} semestr til kursi, …'; the number of semesters is not set yet)"
+    "description": "Path note"
   },
   "onbResultPathCollege": "Vocational college",
   "@onbResultPathCollege": {
-    "description": "S03 low band path title"
+    "description": "Path title"
   },
-  "onbResultPathCollegeNote": "Softer requirements, lower tuition.",
+  "onbResultPathCollegeNote": "Your TOPIK 2 is enough for a vocational college.",
   "@onbResultPathCollegeNote": {
-    "description": "S03 low band path note"
+    "description": "Path note"
   },
-  "onbResultPathNextSeason": "Preparing for the next season",
+  "onbResultPathNextSeason": "Get ready for the next intake",
   "@onbResultPathNextSeason": {
-    "description": "S03 low band path title"
+    "description": "Path title"
   },
-  "onbResultPathNextSeasonNote": "Fall 2027 with TOPIK 3 and a bank statement.",
+  "onbResultPathNextSeasonNote": "Get the TOPIK {level} certificate and apply for the next intake.",
   "@onbResultPathNextSeasonNote": {
-    "description": "S03 low band path note"
+    "description": "Path note",
+    "placeholders": {
+      "level": {
+        "type": "String"
+      }
+    }
   },
   "onbResultTariffWhy": "{tariff} — why? →",
   "@onbResultTariffWhy": {
@@ -4302,5 +4303,77 @@
         "type": "String"
       }
     }
+  },
+  "onbResultStepLanguagePrep": "Prepare for the TOPIK {level} certificate",
+  "@onbResultStepLanguagePrep": {
+    "description": "Next step: the certificate the route needs",
+    "placeholders": {
+      "level": {
+        "type": "String"
+      }
+    }
+  },
+  "onbResultStepLanguagePrepEnglish": "Prepare for TOPIK {level} or IELTS 5.5",
+  "@onbResultStepLanguagePrepEnglish": {
+    "description": "Next step for a degree route: TOPIK or IELTS",
+    "placeholders": {
+      "level": {
+        "type": "String"
+      }
+    }
+  },
+  "onbResultStepDeposit": "Open the KDB deposit in the student's name: {low}–{high}, for at least {months} month(s)",
+  "@onbResultStepDeposit": {
+    "description": "Next step: the KDB deposit",
+    "placeholders": {
+      "low": {
+        "type": "String"
+      },
+      "high": {
+        "type": "String"
+      },
+      "months": {
+        "type": "String"
+      }
+    }
+  },
+  "onbResultStepParentsDocs": "Prepare the parents' income or property papers (my.gov.uz)",
+  "@onbResultStepParentsDocs": {
+    "description": "Next step: the parents' papers"
+  },
+  "onbResultPathEnglishTrack": "An English-taught programme",
+  "@onbResultPathEnglishTrack": {
+    "description": "Path title"
+  },
+  "onbResultPathEnglishTrackNote": "With IELTS 5.5, apply to a programme that does not ask for Korean.",
+  "@onbResultPathEnglishTrackNote": {
+    "description": "Path note"
+  },
+  "onbResultPathDeposit": "Prepare the KDB deposit",
+  "@onbResultPathDeposit": {
+    "description": "Path title"
+  },
+  "onbResultPathDepositNote": "{low}–{high} in the student's name for at least {months} month(s) — required for the visa.",
+  "@onbResultPathDepositNote": {
+    "description": "Path note",
+    "placeholders": {
+      "low": {
+        "type": "String"
+      },
+      "high": {
+        "type": "String"
+      },
+      "months": {
+        "type": "String"
+      }
+    }
+  },
+  "onbResultPathParentsDocs": "The parents' papers",
+  "@onbResultPathParentsDocs": {
+    "description": "Path title"
+  },
+  "onbResultPathParentsDocsNote": "Official work, business or property papers — the embassy asks for these.",
+  "@onbResultPathParentsDocsNote": {
+    "description": "Path note"
   }
 }

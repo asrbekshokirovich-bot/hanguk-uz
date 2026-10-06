@@ -2838,17 +2838,13 @@ class AppLocalizationsUz extends AppLocalizations {
   String get onbResultTuitionLabel => 'Kontrakt/semestr';
 
   @override
-  String get onbResultBankLabel => 'Bank spravkasi';
+  String get onbResultBankLabel => 'KDB depozit';
 
   @override
   String get onbResultYearlyCost => 'Yillik taxminiy xarajat';
 
   @override
   String get onbResultStepsTitle => 'Keyingi 3 qadam';
-
-  @override
-  String get onbResultStepTopikPrep =>
-      'TOPIK 3 ga tayyorgarlik yoki til kursi orqali kirish';
 
   @override
   String get onbResultStepSchoolDocs =>
@@ -2865,25 +2861,26 @@ class AppLocalizationsUz extends AppLocalizations {
   String get onbResultPathsTitle => 'Sizga mos yo\'llar';
 
   @override
-  String get onbResultPathLanguageCourse => 'Til kursi orqali (D-4)';
+  String get onbResultPathLanguageCourse => 'Avval til kursi (D-4)';
 
   @override
   String get onbResultPathLanguageCourseNote =>
-      'Til kursi, keyin bakalavrga o\'tish.';
+      'Koreyada til o\'rganib, TOPIK olgach asosiy o\'qishga o\'tish. Til kursi vizasi uchun ham TOPIK 1 yoki Sejong sertifikati kerak.';
 
   @override
   String get onbResultPathCollege => 'Kasbiy kollej';
 
   @override
   String get onbResultPathCollegeNote =>
-      'Talablar yumshoqroq, kontrakt pastroq.';
+      'Sizdagi TOPIK 2 kasbiy kollejga yetadi.';
 
   @override
-  String get onbResultPathNextSeason => 'Keyingi mavsumga tayyorgarlik';
+  String get onbResultPathNextSeason => 'Keyingi qabulga tayyorgarlik';
 
   @override
-  String get onbResultPathNextSeasonNote =>
-      'TOPIK 3 va bank spravkasi bilan 2027 kuz.';
+  String onbResultPathNextSeasonNote(String level) {
+    return 'TOPIK $level sertifikatini olib, keyingi qabulga hujjat topshirish.';
+  }
 
   @override
   String onbResultTariffWhy(String tariff) {
@@ -3426,4 +3423,45 @@ class AppLocalizationsUz extends AppLocalizations {
   String onbWelcomeCallTimer(String minutes) {
     return '$minutes daqiqada operatorimiz bog\'lanadi';
   }
+
+  @override
+  String onbResultStepLanguagePrep(String level) {
+    return 'TOPIK $level sertifikatiga tayyorgarlik';
+  }
+
+  @override
+  String onbResultStepLanguagePrepEnglish(String level) {
+    return 'TOPIK $level yoki IELTS 5.5 sertifikatiga tayyorgarlik';
+  }
+
+  @override
+  String onbResultStepDeposit(String low, String high, String months) {
+    return 'Talaba nomiga KDB depozit ochish: $low–$high, kamida $months oy';
+  }
+
+  @override
+  String get onbResultStepParentsDocs =>
+      'Ota-onaning daromad yoki mulk hujjatlarini tayyorlash (my.gov.uz)';
+
+  @override
+  String get onbResultPathEnglishTrack => 'Ingliz tilidagi dastur';
+
+  @override
+  String get onbResultPathEnglishTrackNote =>
+      'IELTS 5.5 bilan koreys tili talab qilinmaydigan dasturga hujjat topshirish.';
+
+  @override
+  String get onbResultPathDeposit => 'KDB depozitni tayyorlash';
+
+  @override
+  String onbResultPathDepositNote(String low, String high, String months) {
+    return 'Talaba nomiga $low–$high, kamida $months oy — viza uchun majburiy.';
+  }
+
+  @override
+  String get onbResultPathParentsDocs => 'Ota-ona hujjatlari';
+
+  @override
+  String get onbResultPathParentsDocsNote =>
+      'Rasmiy ish, biznes yoki mulk hujjati — elchixona shularni so\'raydi.';
 }

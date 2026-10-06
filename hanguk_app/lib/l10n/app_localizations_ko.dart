@@ -2721,16 +2721,13 @@ class AppLocalizationsKo extends AppLocalizations {
   String get onbResultTuitionLabel => '등록금/학기';
 
   @override
-  String get onbResultBankLabel => '은행 잔고증명';
+  String get onbResultBankLabel => 'KDB 예금';
 
   @override
   String get onbResultYearlyCost => '연간 예상 비용';
 
   @override
   String get onbResultStepsTitle => '다음 3단계';
-
-  @override
-  String get onbResultStepTopikPrep => 'TOPIK 3급 준비 또는 어학연수를 통한 입학';
 
   @override
   String get onbResultStepSchoolDocs => '고등학교 졸업장과 여권 번역 및 아포스티유';
@@ -2745,22 +2742,25 @@ class AppLocalizationsKo extends AppLocalizations {
   String get onbResultPathsTitle => '나에게 맞는 길';
 
   @override
-  String get onbResultPathLanguageCourse => '어학연수를 통해 (D-4)';
+  String get onbResultPathLanguageCourse => '먼저 어학연수 (D-4)';
 
   @override
-  String get onbResultPathLanguageCourseNote => '어학연수 후 학사 과정으로 진학.';
+  String get onbResultPathLanguageCourseNote =>
+      '한국에서 한국어를 배우고 TOPIK 취득 후 본과정으로 진학. 어학연수 비자도 TOPIK 1급 또는 세종학당 수료증이 필요합니다.';
 
   @override
   String get onbResultPathCollege => '전문대학';
 
   @override
-  String get onbResultPathCollegeNote => '요건이 완화되고 등록금이 낮습니다.';
+  String get onbResultPathCollegeNote => '보유하신 TOPIK 2급으로 전문대 지원이 가능합니다.';
 
   @override
   String get onbResultPathNextSeason => '다음 학기 준비';
 
   @override
-  String get onbResultPathNextSeasonNote => 'TOPIK 3급과 은행 잔고증명으로 2027년 가을.';
+  String onbResultPathNextSeasonNote(String level) {
+    return 'TOPIK $level급을 취득하고 다음 학기에 지원.';
+  }
 
   @override
   String onbResultTariffWhy(String tariff) {
@@ -3274,4 +3274,43 @@ class AppLocalizationsKo extends AppLocalizations {
   String onbWelcomeCallTimer(String minutes) {
     return '$minutes분 안에 상담원이 연락드립니다';
   }
+
+  @override
+  String onbResultStepLanguagePrep(String level) {
+    return 'TOPIK $level급 준비';
+  }
+
+  @override
+  String onbResultStepLanguagePrepEnglish(String level) {
+    return 'TOPIK $level급 또는 IELTS 5.5 준비';
+  }
+
+  @override
+  String onbResultStepDeposit(String low, String high, String months) {
+    return '학생 명의 KDB 예금 개설: $low–$high, 최소 $months개월';
+  }
+
+  @override
+  String get onbResultStepParentsDocs => '부모 소득 또는 재산 서류 준비 (my.gov.uz)';
+
+  @override
+  String get onbResultPathEnglishTrack => '영어 트랙';
+
+  @override
+  String get onbResultPathEnglishTrackNote =>
+      'IELTS 5.5로 한국어 성적이 필요 없는 과정에 지원.';
+
+  @override
+  String get onbResultPathDeposit => 'KDB 예금 준비';
+
+  @override
+  String onbResultPathDepositNote(String low, String high, String months) {
+    return '학생 명의 $low–$high, 최소 $months개월 — 비자 필수 요건.';
+  }
+
+  @override
+  String get onbResultPathParentsDocs => '부모 서류';
+
+  @override
+  String get onbResultPathParentsDocsNote => '재직·사업·재산 서류 — 대사관이 요구합니다.';
 }
