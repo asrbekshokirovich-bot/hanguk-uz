@@ -66,7 +66,14 @@ export function useLeadSettings() {
     queryFn: async (): Promise<LeadSettings> => ({ ...DEFAULT_SETTINGS, ...(await fetchSettings()) }),
     staleTime: 5 * 60_000,
   });
-  return { settings: query.data ?? DEFAULT_SETTINGS, loading: query.isLoading, refetch: query.refetch };
+  // `error` matters to anything that EDITS settings: on a failed read `settings`
+  // is the defaults, and saving "defaults + my change" would overwrite real ones.
+  return {
+    settings: query.data ?? DEFAULT_SETTINGS,
+    loading: query.isLoading,
+    error: query.error as Error | null,
+    refetch: query.refetch,
+  };
 }
 
 export function useInvalidateLeadSettings() {

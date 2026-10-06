@@ -90,6 +90,8 @@ export interface LeadV2 {
   last_client_msg_at: string | null;
   last_operator_msg_at: string | null;
   last_contacted_at: string | null;
+  /** when the last call attempt was recorded (call_attempts); null = never called */
+  last_attempt_at: string | null;
   /** the old CRM's call result (kept for old leads) */
   call_result: string | null;
   answered_at: string | null;
@@ -106,6 +108,8 @@ export interface LeadV2 {
   lost_reason: string | null;
   lost_competitor: string | null;
   lost_at: string | null;
+  /** who closed it (null: the system, e.g. the ladder's "aloqa yo'q", or an old-CRM card) */
+  lost_by?: string | null;
   // the card
   education_level: string | null; // "Maqsad"
   cert_level: string | null;

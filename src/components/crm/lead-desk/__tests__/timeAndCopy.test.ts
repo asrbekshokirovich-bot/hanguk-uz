@@ -69,6 +69,9 @@ describe('error text', () => {
     expect(explainError('new row violates row-level security policy')).toMatch(/ruxsat yo'q/);
     expect(explainError('owned_by_other')).toMatch(/boshqa operatorda/);
     expect(explainError(undefined)).toBe("Noma'lum xatolik");
+    expect(explainError('new row for relation "leads" violates check constraint "leads_age_range"')).toMatch(/Yosh 15–45/);
+    // a message that merely contains "age" is not an age error
+    expect(explainError('message could not be sent: language unsupported')).toBe('message could not be sent: language unsupported');
   });
 });
 

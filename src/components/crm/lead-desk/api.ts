@@ -171,6 +171,31 @@ export const fetchLeadBrief = (ids: string[]) =>
       )
     : Promise.resolve([]);
 
+// ---- AI field suggestions (spec §10 "Maydon takliflari") -----------------------------
+
+export interface FieldSuggestion {
+  id: string;
+  lead_id: string;
+  field: string;
+  suggested_value: string | null;
+  confidence: number | null;
+  evidence: string | null;
+  evidence_channel: string | null;
+  status: 'pending' | 'accepted' | 'rejected' | 'corrected';
+}
+
+export const fetchSuggestions = (leadId: string) =>
+  rows<FieldSuggestion>(
+    db.from('lead_field_suggestions').select('*').eq('lead_id', leadId).eq('status', 'pending').order('created_at'),
+  );
+
+/** Accept a suggestion, optionally with the operator's corrected value (applied through the v2 field list). */
+export const applySuggestion = (suggestionId: string, value?: string | null) =>
+  rpc<FieldSuggestion>('lead_apply_suggestion', { p_suggestion_id: suggestionId, p_value: value ?? null });
+
+export const rejectSuggestion = (suggestionId: string) =>
+  rpc<FieldSuggestion>('lead_reject_suggestion', { p_suggestion_id: suggestionId });
+
 // ---- comments (Izohlar) -------------------------------------------------------
 
 export const fetchComments = (opts: { onlyOpen?: boolean; limit?: number } = {}) => {
@@ -204,6 +229,7 @@ export type LeadListRow = Pick<
   | 'lost_reason'
   | 'lost_competitor'
   | 'lost_at'
+  | 'lost_by'
   | 'created_at'
   | 'updated_at'
   | 'instagram_handle'
@@ -218,7 +244,7 @@ export type LeadListRow = Pick<
 const LIST_COLUMNS =
   'id, full_name, phone, source, contact_channel, stage, crm_generation, owner_id, cert_level, education_level, city, ' +
   'priority_score, last_operator_msg_at, last_contacted_at, next_action_at, next_action_kind, ai_summary, lost_reason, ' +
-  'lost_competitor, lost_at, created_at, updated_at, instagram_handle, telegram_handle, campaign_name, form_name, ' +
+  'lost_competitor, lost_at, lost_by, created_at, updated_at, instagram_handle, telegram_handle, campaign_name, form_name, ' +
   'pinned_at, reactivation_queue, call_result';
 
 export interface LeadListFilter {
@@ -235,6 +261,7 @@ export interface LeadListFilter {
   offset?: number;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function applyListFilter(q: any, f: LeadListFilter) {
   if (f.q?.trim()) {
     const s = f.q.trim().replace(/[%,()]/g, ' ');
@@ -284,7 +311,10 @@ export const fetchBazaLeads = (f: LeadListFilter = {}) => {
   return listWithCount<LeadListRow>(q);
 };
 
-async function listWithCount<T>(q: PromiseLike<{ data: any; error: { message: string; code?: string } | null; count: number | null }>) {
+async function listWithCount<T>(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  q: PromiseLike<{ data: any; error: { message: string; code?: string } | null; count: number | null }>,
+) {
   const { data, error, count } = await q;
   if (error) throw new LeadApiError(error.message, error.code);
   return { rows: (data ?? []) as T[], total: count ?? 0 };

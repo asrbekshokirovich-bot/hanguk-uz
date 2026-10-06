@@ -184,12 +184,13 @@ export function explainError(message: string | null | undefined): string {
     [/not_allowed|42501|permission denied|row-level security/i, "Bu amalga ruxsat yo'q"],
     [/lead_not_found/, "Lid topilmadi"],
     [/phone_required/, "Telefon raqamini kiriting"],
+    [/phone_invalid/, "Telefon raqami noto'g'ri (kamida 9 raqam)"],
     [/name_required/, "Ismni kiriting"],
     [/referral_required/, "Tavsiya qilgan odamni kiriting"],
     [/text_required/, "Matnni kiriting"],
     [/promise_not_pending/, "Bu so'rov allaqachon ko'rib chiqilgan"],
     [/queue_not_announced/, "Bu navbat hali e'lon qilinmagan (Sozlamalar)"],
-    [/leads_age_range|age/i, `Yosh ${MIN_AGE}–${MAX_AGE} oralig'ida bo'lishi kerak`],
+    [/leads_age_range|leads_age_check/i, `Yosh ${MIN_AGE}–${MAX_AGE} oralig'ida bo'lishi kerak`],
   ];
   for (const [re, text] of table) if (re.test(m)) return text;
   return m || "Noma'lum xatolik";
