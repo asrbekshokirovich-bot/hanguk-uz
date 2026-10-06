@@ -43,7 +43,6 @@ void main() {
     age: 18,
     gradYear: 2026,
     korean: KoreanLevel.none,
-    budget: Budget.from3to6k,
     payer: Payer.parents,
     formalIncome: false,
     region: 'Samarqand',

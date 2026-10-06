@@ -2829,10 +2829,6 @@ class AppLocalizationsUz extends AppLocalizations {
       'Yoshga ko\'ra ta\'lim niyati tushuntirilishi kerak';
 
   @override
-  String get onbResultFactorBudgetLow =>
-      'Byudjet yillik taxminiy xarajatdan kam';
-
-  @override
   String get onbResultUnisTitle => 'Sizga mos universitetlar';
 
   @override
@@ -3187,43 +3183,43 @@ class AppLocalizationsUz extends AppLocalizations {
   String get onbQuizBack => 'Orqaga';
 
   @override
-  String get onbQuizQ1 => 'Qaysi yo\'nalishda o\'qimoqchisiz?';
+  String get onbQuizQ1 => 'Koreyada nima o\'qimoqchisiz?';
 
   @override
-  String get onbQuizRouteCourse => 'Til kursi';
+  String get onbQuizRouteCourse => 'Til kursi — koreys tilini o\'rganish';
 
   @override
-  String get onbQuizRouteBachelor => 'Bakalavr';
+  String get onbQuizRouteBachelor => 'Bakalavr — universitet, 4 yil';
 
   @override
-  String get onbQuizRouteMaster => 'Magistratura';
+  String get onbQuizRouteMaster => 'Magistratura — bakalavrdan keyin';
 
   @override
-  String get onbQuizRouteCollege => 'Kasbiy kollej';
+  String get onbQuizRouteCollege => 'Kasbiy kollej — 2–3 yillik kasb';
 
   @override
   String onbQuizGradYearOrEarlier(String year) {
-    return '$year yoki oldin';
+    return '$year yoki undan oldin';
   }
 
   @override
-  String get onbQuizStillStudying => 'Hali o‘qiyapman';
+  String get onbQuizStillStudying => 'Hali o\'qiyapman';
 
   @override
-  String get onbQuizQ3 => 'Koreys tili darajangiz?';
+  String get onbQuizQ3 => 'Koreys tili darajangiz qanday?';
 
   @override
   String get onbQuizQ3Hint =>
-      'Sertifikat bo\'lmasa ham javob bering — bu yo\'lni belgilaydi.';
+      'Rasmiy sertifikatingiz bo\'yicha tanlang. Elchixona sertifikatsiz arizani qabul qilmaydi.';
 
   @override
-  String get onbQuizKoreanNone => 'Yo\'q';
+  String get onbQuizKoreanNone => 'Koreys tilini bilmayman';
 
   @override
-  String get onbQuizKoreanLearning => 'O\'rganyapman, sertifikatsiz';
+  String get onbQuizKoreanLearning => 'O\'rganyapman, sertifikat yo\'q';
 
   @override
-  String get onbQuizKoreanTopik1 => 'Sejong 1A / TOPIK 1';
+  String get onbQuizKoreanTopik1 => 'TOPIK 1 yoki Sejong hakdang sertifikati';
 
   @override
   String get onbQuizKoreanTopik2 => 'TOPIK 2';
@@ -3232,34 +3228,22 @@ class AppLocalizationsUz extends AppLocalizations {
   String get onbQuizKoreanTopik3 => 'TOPIK 3';
 
   @override
-  String get onbQuizKoreanUnknown => 'Hali bilmayman';
+  String get onbQuizKoreanUnknown => 'Aniq bilmayman';
 
   @override
-  String get onbQuizBudgetUnder3 => '\$3 000 gacha';
+  String get onbQuizQ5 => 'Ota-onangizning rasmiy daromadi bormi?';
 
   @override
-  String get onbQuizBudget3to6 => '\$3–6 ming';
+  String get onbQuizIncomeYes => 'Ha, bor';
 
   @override
-  String get onbQuizBudget6to10 => '\$6–10 ming';
+  String get onbQuizIncomeNo => 'Yo\'q';
 
   @override
-  String get onbQuizBudgetOver10 => '\$10 000+';
+  String get onbQuizIntakeSpring2027 => '2027-yil bahor (mart)';
 
   @override
-  String get onbQuizQ5 => 'Ota-onada rasmiy daromad bormi?';
-
-  @override
-  String get onbQuizIncomeYes => 'Ha, rasmiy daromad bor';
-
-  @override
-  String get onbQuizIncomeNo => 'Yo‘q';
-
-  @override
-  String get onbQuizIntakeSpring2027 => '2027 bahor';
-
-  @override
-  String get onbQuizIntakeFall2027 => '2027 kuz';
+  String get onbQuizIntakeFall2027 => '2027-yil kuz (sentabr)';
 
   @override
   String get onbQuizIntakeLater => 'Keyinroq';
@@ -3321,13 +3305,13 @@ class AppLocalizationsUz extends AppLocalizations {
   String get onbQuizAgeQ => 'Yoshingiz nechada?';
 
   @override
-  String get onbQuizGradQ => 'Oxirgi o\'qishni qachon tugatgansiz?';
+  String get onbQuizGradQ => 'Oxirgi o\'qishingizni qachon tugatgansiz?';
 
   @override
-  String get onbQuizIeltsQ => 'IELTS darajangiz?';
+  String get onbQuizIeltsQ => 'IELTS natijangiz bormi?';
 
   @override
-  String get onbQuizIeltsNone => 'Yo\'q';
+  String get onbQuizIeltsNone => 'Yo\'q yoki 5.5 dan past';
 
   @override
   String get onbQuizIelts55 => 'IELTS 5.5';
@@ -3336,17 +3320,13 @@ class AppLocalizationsUz extends AppLocalizations {
   String get onbQuizIelts60 => 'IELTS 6.0';
 
   @override
-  String get onbQuizIelts65 => 'IELTS 6.5 va yuqori';
+  String get onbQuizIelts65 => 'IELTS 6.5 va undan yuqori';
 
   @override
-  String get onbQuizIeltsUnknown => 'Hali bilmayman';
+  String get onbQuizIeltsUnknown => 'Aniq bilmayman';
 
   @override
-  String get onbQuizBudgetQ =>
-      'Yiliga o\'qish va yashashga qancha ajrata olasiz?';
-
-  @override
-  String get onbQuizPayerQ => 'Kim to\'laydi?';
+  String get onbQuizPayerQ => 'O\'qish xarajatlarini kim to\'laydi?';
 
   @override
   String get onbQuizPayerParentsOption => 'Ota-onam';
@@ -3355,13 +3335,13 @@ class AppLocalizationsUz extends AppLocalizations {
   String get onbQuizPayerSelfOption => 'O\'zim';
 
   @override
-  String get onbQuizPayerSponsorOption => 'Homiy';
+  String get onbQuizPayerSponsorOption => 'Homiy yoki qarindosh';
 
   @override
-  String get onbQuizRegionQ => 'Qaysi viloyatdansiz?';
+  String get onbQuizRegionQ => 'Qaysi viloyatda yashaysiz?';
 
   @override
-  String get onbQuizIntakeQ => 'Qachon ketmoqchisiz?';
+  String get onbQuizIntakeQ => 'Qachondan o\'qishni boshlamoqchisiz?';
 
   @override
   String get onbResultFactorEnglishStrong =>
@@ -3374,28 +3354,27 @@ class AppLocalizationsUz extends AppLocalizations {
   String get onbResultLanguageLabel => 'Til talabi';
 
   @override
-  String get onbQuizKoreanTopik4 => 'TOPIK 4 va yuqori';
+  String get onbQuizKoreanTopik4 => 'TOPIK 4 va undan yuqori';
 
   @override
-  String get onbQuizKdbQ =>
-      'Talaba nomiga KDB bankida depozit qo\'ya olasizmi?';
+  String get onbQuizKdbQ => 'Talaba nomiga bankda depozit qo\'ya olasizmi?';
 
   @override
   String onbQuizKdbHint(String low, String high, String months) {
-    return 'Elchixona talabi: $low (boshqa shaharlar) yoki $high (Seul, Gyeonggi, Incheon), kamida $months oy turishi kerak.';
+    return 'Viza uchun majburiy: KDB Bank O\'zbekistonda talaba nomidagi hisobda $low (boshqa shaharlar) yoki $high (Seul, Gyeonggi, Incheon) kamida $months oy turishi kerak. Bu to\'lov emas — pul talaba hisobida qoladi.';
   }
 
   @override
-  String get onbQuizKdbReady => 'Ha, hozir bor';
+  String get onbQuizKdbReady => 'Ha, pul hozir tayyor';
 
   @override
-  String get onbQuizKdbByIntake => 'Ha, qabulgacha qo\'yamiz';
+  String get onbQuizKdbByIntake => 'Qabulgacha yig\'ib qo\'yamiz';
 
   @override
-  String get onbQuizKdbNo => 'Yo\'q';
+  String get onbQuizKdbNo => 'Yo\'q, qo\'ya olmaymiz';
 
   @override
-  String get onbQuizKdbUnknown => 'Hali bilmayman';
+  String get onbQuizKdbUnknown => 'Aniq bilmayman';
 
   @override
   String get onbResultFactorKoreanMasterStrong =>
@@ -3425,14 +3404,29 @@ class AppLocalizationsUz extends AppLocalizations {
       'KDB depozit yo\'q — elchixona uni majburiy talab qiladi';
 
   @override
-  String get onbResultFactorBudgetBelowDeposit =>
-      'Byudjet KDB depozit summasidan kam';
-
-  @override
   String get onbResultBandLowNoteLanguage =>
       'Til sertifikati elchixona talabidan past — sertifikatsiz ariza suhbatsiz rad etiladi.';
 
   @override
   String get onbResultBandLowNoteMoney =>
       'Moliyaviy talab (talaba nomida KDB depozit va ota-ona hujjatlari) hali yetarli emas.';
+
+  @override
+  String get onbQuizQ1Hint =>
+      'Natija shu yo\'nalishning viza talablari bo\'yicha hisoblanadi.';
+
+  @override
+  String get onbQuizGradHint =>
+      'Maktab, litsey, kollej yoki universitet — qaysi biri oxirgi bo\'lsa.';
+
+  @override
+  String get onbQuizGradQMaster => 'Bakalavrni qachon tugatgansiz?';
+
+  @override
+  String get onbQuizIeltsHint =>
+      'Ingliz tilidagi dasturlar uchun kerak. Faqat oddiy IELTS (Online emas), oxirgi 2 yilda olingan.';
+
+  @override
+  String get onbQuizIncomeHint =>
+      'Masalan: ish joyidan maosh ma\'lumotnomasi (my.gov.uz) yoki tadbirkorlik va soliq hujjatlari. Elchixona ota-ona hujjatlarini so\'raydi.';
 }

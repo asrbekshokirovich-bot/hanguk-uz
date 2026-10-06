@@ -3530,10 +3530,6 @@
   "@onbResultFactorAgeHigh": {
     "description": "S03 factor (−): age above the soft limit"
   },
-  "onbResultFactorBudgetLow": "Budget is below the estimated yearly cost",
-  "@onbResultFactorBudgetLow": {
-    "description": "S03 factor (−): budget below the yearly cost"
-  },
   "onbResultUnisTitle": "Universities that fit you",
   "@onbResultUnisTitle": {
     "description": "S03 section title"
@@ -3994,23 +3990,23 @@
   "@onbQuizBack": {
     "description": "S02 quiz: screen-reader label of the back arrow."
   },
-  "onbQuizQ1": "What would you like to study?",
+  "onbQuizQ1": "What do you want to study in Korea?",
   "@onbQuizQ1": {
     "description": "S02 question 1: study route."
   },
-  "onbQuizRouteCourse": "Language course",
+  "onbQuizRouteCourse": "Language course — learn Korean",
   "@onbQuizRouteCourse": {
     "description": "S02 Q1 option: Korean language course (D-4)."
   },
-  "onbQuizRouteBachelor": "Bachelor's",
+  "onbQuizRouteBachelor": "Bachelor's — university, 4 years",
   "@onbQuizRouteBachelor": {
     "description": "S02 Q1 option: bachelor's degree."
   },
-  "onbQuizRouteMaster": "Master's",
+  "onbQuizRouteMaster": "Master's — after a bachelor's",
   "@onbQuizRouteMaster": {
     "description": "S02 Q1 option: master's degree."
   },
-  "onbQuizRouteCollege": "Vocational college",
+  "onbQuizRouteCollege": "Vocational college — a 2–3 year trade",
   "@onbQuizRouteCollege": {
     "description": "S02 Q1 option: vocational college."
   },
@@ -4027,15 +4023,15 @@
   "@onbQuizStillStudying": {
     "description": "S02 Q2 option: still at school or university."
   },
-  "onbQuizQ3": "Your Korean level?",
+  "onbQuizQ3": "What is your Korean level?",
   "@onbQuizQ3": {
     "description": "S02 question 3: Korean level."
   },
-  "onbQuizQ3Hint": "Answer even without a certificate — it decides the route.",
+  "onbQuizQ3Hint": "Pick by your official certificate. The embassy does not accept an application without one.",
   "@onbQuizQ3Hint": {
     "description": "S02 question 3: one line under the question."
   },
-  "onbQuizKoreanNone": "None",
+  "onbQuizKoreanNone": "I don't speak Korean",
   "@onbQuizKoreanNone": {
     "description": "S02 Q3 option: no Korean."
   },
@@ -4043,7 +4039,7 @@
   "@onbQuizKoreanLearning": {
     "description": "S02 Q3 option: learning, no certificate."
   },
-  "onbQuizKoreanTopik1": "Sejong 1A / TOPIK 1",
+  "onbQuizKoreanTopik1": "TOPIK 1 or a Sejong Hakdang certificate",
   "@onbQuizKoreanTopik1": {
     "description": "S02 Q3 option: Sejong 1A / TOPIK 1."
   },
@@ -4055,31 +4051,15 @@
   "@onbQuizKoreanTopik3": {
     "description": "Quiz Korean option"
   },
-  "onbQuizKoreanUnknown": "Not sure yet",
+  "onbQuizKoreanUnknown": "Not sure",
   "@onbQuizKoreanUnknown": {
     "description": "S02 Q3 option: don't know yet."
-  },
-  "onbQuizBudgetUnder3": "Up to $3,000",
-  "@onbQuizBudgetUnder3": {
-    "description": "S02 Q4 option: up to $3,000 a year."
-  },
-  "onbQuizBudget3to6": "$3–6k",
-  "@onbQuizBudget3to6": {
-    "description": "S02 Q4 option: $3,000–6,000 a year."
-  },
-  "onbQuizBudget6to10": "$6–10k",
-  "@onbQuizBudget6to10": {
-    "description": "S02 Q4 option: $6,000–10,000 a year."
-  },
-  "onbQuizBudgetOver10": "$10,000+",
-  "@onbQuizBudgetOver10": {
-    "description": "S02 Q4 option: over $10,000 a year."
   },
   "onbQuizQ5": "Do your parents have an official income?",
   "@onbQuizQ5": {
     "description": "S02 question 5: parents' official income (and bank statement)."
   },
-  "onbQuizIncomeYes": "Yes, official income",
+  "onbQuizIncomeYes": "Yes",
   "@onbQuizIncomeYes": {
     "description": "S02 Q5 option: yes, official income."
   },
@@ -4087,11 +4067,11 @@
   "@onbQuizIncomeNo": {
     "description": "S02 Q5 option: no official income."
   },
-  "onbQuizIntakeSpring2027": "Spring 2027",
+  "onbQuizIntakeSpring2027": "Spring 2027 (March)",
   "@onbQuizIntakeSpring2027": {
     "description": "S02 Q6 option: spring 2027 intake."
   },
-  "onbQuizIntakeFall2027": "Fall 2027",
+  "onbQuizIntakeFall2027": "Fall 2027 (September)",
   "@onbQuizIntakeFall2027": {
     "description": "S02 Q6 option: fall 2027 intake."
   },
@@ -4172,11 +4152,11 @@
   "@onbQuizGradQ": {
     "description": "S02 question 3: the year of the last graduation."
   },
-  "onbQuizIeltsQ": "Your IELTS score?",
+  "onbQuizIeltsQ": "Do you have an IELTS score?",
   "@onbQuizIeltsQ": {
     "description": "S02 question 5: IELTS score."
   },
-  "onbQuizIeltsNone": "None",
+  "onbQuizIeltsNone": "None, or below 5.5",
   "@onbQuizIeltsNone": {
     "description": "S02 IELTS option: none."
   },
@@ -4192,15 +4172,11 @@
   "@onbQuizIelts65": {
     "description": "S02 IELTS option: 6.5 or higher."
   },
-  "onbQuizIeltsUnknown": "Not sure yet",
+  "onbQuizIeltsUnknown": "Not sure",
   "@onbQuizIeltsUnknown": {
     "description": "S02 IELTS option: don't know yet."
   },
-  "onbQuizBudgetQ": "How much can you spend a year on study and living?",
-  "@onbQuizBudgetQ": {
-    "description": "S02 question 6: yearly budget."
-  },
-  "onbQuizPayerQ": "Who pays?",
+  "onbQuizPayerQ": "Who pays for the studies?",
   "@onbQuizPayerQ": {
     "description": "S02 question 7: who pays."
   },
@@ -4212,15 +4188,15 @@
   "@onbQuizPayerSelfOption": {
     "description": "S02 payer option."
   },
-  "onbQuizPayerSponsorOption": "A sponsor",
+  "onbQuizPayerSponsorOption": "A sponsor or relative",
   "@onbQuizPayerSponsorOption": {
     "description": "S02 payer option."
   },
-  "onbQuizRegionQ": "Which region are you from?",
+  "onbQuizRegionQ": "Which region do you live in?",
   "@onbQuizRegionQ": {
     "description": "S02 question 10: region."
   },
-  "onbQuizIntakeQ": "When do you want to go?",
+  "onbQuizIntakeQ": "When do you want to start?",
   "@onbQuizIntakeQ": {
     "description": "S02 question 11: when to go."
   },
@@ -4240,11 +4216,11 @@
   "@onbQuizKoreanTopik4": {
     "description": "Quiz Korean option"
   },
-  "onbQuizKdbQ": "Can you open the KDB deposit in the student's name?",
+  "onbQuizKdbQ": "Can you put a deposit in the student's name?",
   "@onbQuizKdbQ": {
     "description": "Quiz question: the KDB deposit"
   },
-  "onbQuizKdbHint": "The embassy asks for {low} (other cities) or {high} (Seoul, Gyeonggi, Incheon), held for at least {months} month(s).",
+  "onbQuizKdbHint": "Required for the visa: {low} (other cities) or {high} (Seoul, Gyeonggi, Incheon) in a KDB Bank Uzbekistan account in the student's name, for at least {months} month(s). It is not a payment — the money stays in the student's account.",
   "@onbQuizKdbHint": {
     "description": "Hint under the KDB question",
     "placeholders": {
@@ -4259,19 +4235,19 @@
       }
     }
   },
-  "onbQuizKdbReady": "Yes, it is there now",
+  "onbQuizKdbReady": "Yes, the money is ready now",
   "@onbQuizKdbReady": {
     "description": "KDB option"
   },
-  "onbQuizKdbByIntake": "Yes, before the intake",
+  "onbQuizKdbByIntake": "We will have it before the intake",
   "@onbQuizKdbByIntake": {
     "description": "KDB option"
   },
-  "onbQuizKdbNo": "No",
+  "onbQuizKdbNo": "No, we can't",
   "@onbQuizKdbNo": {
     "description": "KDB option"
   },
-  "onbQuizKdbUnknown": "Not sure yet",
+  "onbQuizKdbUnknown": "Not sure",
   "@onbQuizKdbUnknown": {
     "description": "KDB option"
   },
@@ -4303,10 +4279,6 @@
   "@onbResultFactorKdbNo": {
     "description": "Result factor"
   },
-  "onbResultFactorBudgetBelowDeposit": "The budget is below the KDB deposit",
-  "@onbResultFactorBudgetBelowDeposit": {
-    "description": "Result factor"
-  },
   "onbResultBandLowNoteLanguage": "The language certificate is below the embassy's requirement — without it the application is refused without an interview.",
   "@onbResultBandLowNoteLanguage": {
     "description": "Low band note: language"
@@ -4314,5 +4286,25 @@
   "onbResultBandLowNoteMoney": "The financial requirement (a KDB deposit in the student's name and the parents' papers) is not met yet.",
   "@onbResultBandLowNoteMoney": {
     "description": "Low band note: money"
+  },
+  "onbQuizQ1Hint": "The result follows the visa rules for this route.",
+  "@onbQuizQ1Hint": {
+    "description": "Quiz Q1 hint"
+  },
+  "onbQuizGradHint": "School, lyceum, college or university — whichever was last.",
+  "@onbQuizGradHint": {
+    "description": "Quiz graduation hint"
+  },
+  "onbQuizGradQMaster": "When did you finish your bachelor's?",
+  "@onbQuizGradQMaster": {
+    "description": "Quiz graduation, master's"
+  },
+  "onbQuizIeltsHint": "Needed for English-taught programmes. Only the regular IELTS (not Online), taken in the last 2 years.",
+  "@onbQuizIeltsHint": {
+    "description": "Quiz IELTS hint"
+  },
+  "onbQuizIncomeHint": "For example a salary certificate from work (my.gov.uz) or business and tax papers. The embassy asks for the parents' papers.",
+  "@onbQuizIncomeHint": {
+    "description": "Quiz income hint"
   }
 }

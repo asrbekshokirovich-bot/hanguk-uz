@@ -2712,9 +2712,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String get onbResultFactorAgeHigh => '나이로 인해 학업 목적을 설명해야 합니다';
 
   @override
-  String get onbResultFactorBudgetLow => '예산이 연간 예상 비용보다 적습니다';
-
-  @override
   String get onbResultUnisTitle => '나에게 맞는 대학';
 
   @override
@@ -3048,19 +3045,19 @@ class AppLocalizationsKo extends AppLocalizations {
   String get onbQuizBack => '뒤로';
 
   @override
-  String get onbQuizQ1 => '어떤 과정으로 공부하고 싶으세요?';
+  String get onbQuizQ1 => '한국에서 무엇을 공부하고 싶나요?';
 
   @override
-  String get onbQuizRouteCourse => '어학연수';
+  String get onbQuizRouteCourse => '어학연수 — 한국어 배우기';
 
   @override
-  String get onbQuizRouteBachelor => '학사';
+  String get onbQuizRouteBachelor => '학사 — 대학교 4년';
 
   @override
-  String get onbQuizRouteMaster => '석사';
+  String get onbQuizRouteMaster => '석사 — 학사 졸업 후';
 
   @override
-  String get onbQuizRouteCollege => '전문대학';
+  String get onbQuizRouteCollege => '전문대 — 2~3년 직업 과정';
 
   @override
   String onbQuizGradYearOrEarlier(String year) {
@@ -3071,55 +3068,43 @@ class AppLocalizationsKo extends AppLocalizations {
   String get onbQuizStillStudying => '아직 재학 중';
 
   @override
-  String get onbQuizQ3 => '한국어 수준은?';
+  String get onbQuizQ3 => '한국어 수준이 어떻게 되나요?';
 
   @override
-  String get onbQuizQ3Hint => '자격증이 없어도 답해 주세요 — 진로가 정해집니다.';
+  String get onbQuizQ3Hint => '공식 성적표 기준으로 선택하세요. 대사관은 성적 없이 신청을 받지 않습니다.';
 
   @override
-  String get onbQuizKoreanNone => '없음';
+  String get onbQuizKoreanNone => '한국어를 못해요';
 
   @override
-  String get onbQuizKoreanLearning => '공부 중, 자격증 없음';
+  String get onbQuizKoreanLearning => '배우는 중, 성적 없음';
 
   @override
-  String get onbQuizKoreanTopik1 => '세종 1A / TOPIK 1';
+  String get onbQuizKoreanTopik1 => 'TOPIK 1급 또는 세종학당 수료증';
 
   @override
-  String get onbQuizKoreanTopik2 => 'TOPIK 2';
+  String get onbQuizKoreanTopik2 => 'TOPIK 2급';
 
   @override
   String get onbQuizKoreanTopik3 => 'TOPIK 3급';
 
   @override
-  String get onbQuizKoreanUnknown => '아직 모르겠어요';
-
-  @override
-  String get onbQuizBudgetUnder3 => '\$3,000 이하';
-
-  @override
-  String get onbQuizBudget3to6 => '\$3,000–6,000';
-
-  @override
-  String get onbQuizBudget6to10 => '\$6,000–10,000';
-
-  @override
-  String get onbQuizBudgetOver10 => '\$10,000 이상';
+  String get onbQuizKoreanUnknown => '잘 모르겠어요';
 
   @override
   String get onbQuizQ5 => '부모님께 공식 소득이 있나요?';
 
   @override
-  String get onbQuizIncomeYes => '네, 공식 소득이 있어요';
+  String get onbQuizIncomeYes => '네, 있어요';
 
   @override
   String get onbQuizIncomeNo => '아니요';
 
   @override
-  String get onbQuizIntakeSpring2027 => '2027년 봄';
+  String get onbQuizIntakeSpring2027 => '2027년 봄 (3월)';
 
   @override
-  String get onbQuizIntakeFall2027 => '2027년 가을';
+  String get onbQuizIntakeFall2027 => '2027년 가을 (9월)';
 
   @override
   String get onbQuizIntakeLater => '나중에';
@@ -3174,16 +3159,16 @@ class AppLocalizationsKo extends AppLocalizations {
       '지금은 업무 시간이 아닙니다. 월요일 10:00에 전화드릴게요.';
 
   @override
-  String get onbQuizAgeQ => '나이가 어떻게 되세요?';
+  String get onbQuizAgeQ => '나이가 어떻게 되나요?';
 
   @override
-  String get onbQuizGradQ => '마지막 학교를 언제 졸업하셨나요?';
+  String get onbQuizGradQ => '마지막 학교를 언제 졸업했나요?';
 
   @override
-  String get onbQuizIeltsQ => 'IELTS 점수는 어떻게 되세요?';
+  String get onbQuizIeltsQ => 'IELTS 점수가 있나요?';
 
   @override
-  String get onbQuizIeltsNone => '없음';
+  String get onbQuizIeltsNone => '없음 또는 5.5 미만';
 
   @override
   String get onbQuizIelts55 => 'IELTS 5.5';
@@ -3195,13 +3180,10 @@ class AppLocalizationsKo extends AppLocalizations {
   String get onbQuizIelts65 => 'IELTS 6.5 이상';
 
   @override
-  String get onbQuizIeltsUnknown => '아직 모르겠어요';
+  String get onbQuizIeltsUnknown => '잘 모르겠어요';
 
   @override
-  String get onbQuizBudgetQ => '1년에 학비와 생활비로 얼마를 쓸 수 있나요?';
-
-  @override
-  String get onbQuizPayerQ => '누가 비용을 내나요?';
+  String get onbQuizPayerQ => '학비는 누가 부담하나요?';
 
   @override
   String get onbQuizPayerParentsOption => '부모님';
@@ -3210,13 +3192,13 @@ class AppLocalizationsKo extends AppLocalizations {
   String get onbQuizPayerSelfOption => '본인';
 
   @override
-  String get onbQuizPayerSponsorOption => '후원자';
+  String get onbQuizPayerSponsorOption => '후원자 또는 친척';
 
   @override
-  String get onbQuizRegionQ => '어느 지역에 사세요?';
+  String get onbQuizRegionQ => '어느 지역에 살고 있나요?';
 
   @override
-  String get onbQuizIntakeQ => '언제 가고 싶으세요?';
+  String get onbQuizIntakeQ => '언제 입학하고 싶나요?';
 
   @override
   String get onbResultFactorEnglishStrong => 'IELTS 5.5 이상 — 영어 트랙 지원 가능';
@@ -3231,24 +3213,24 @@ class AppLocalizationsKo extends AppLocalizations {
   String get onbQuizKoreanTopik4 => 'TOPIK 4급 이상';
 
   @override
-  String get onbQuizKdbQ => '학생 명의로 KDB 예금을 준비할 수 있나요?';
+  String get onbQuizKdbQ => '학생 명의로 예금을 넣을 수 있나요?';
 
   @override
   String onbQuizKdbHint(String low, String high, String months) {
-    return '대사관 기준: $low(기타 지역) 또는 $high(서울·경기·인천), 최소 $months개월 예치.';
+    return '비자 필수: 학생 명의 KDB Bank Uzbekistan 계좌에 $low(기타 지역) 또는 $high(서울·경기·인천), 최소 $months개월 예치. 납부가 아니라 학생 계좌에 남는 돈입니다.';
   }
 
   @override
-  String get onbQuizKdbReady => '네, 지금 있어요';
+  String get onbQuizKdbReady => '네, 지금 준비돼 있어요';
 
   @override
-  String get onbQuizKdbByIntake => '네, 입학 전까지 준비해요';
+  String get onbQuizKdbByIntake => '입학 전까지 준비할게요';
 
   @override
-  String get onbQuizKdbNo => '아니요';
+  String get onbQuizKdbNo => '아니요, 어려워요';
 
   @override
-  String get onbQuizKdbUnknown => '아직 모르겠어요';
+  String get onbQuizKdbUnknown => '잘 모르겠어요';
 
   @override
   String get onbResultFactorKoreanMasterStrong => 'TOPIK 4급 이상 — 석사 기준 충족';
@@ -3272,13 +3254,27 @@ class AppLocalizationsKo extends AppLocalizations {
   String get onbResultFactorKdbNo => 'KDB 예금 없음 — 대사관 필수 요건';
 
   @override
-  String get onbResultFactorBudgetBelowDeposit => '예산이 KDB 예치 금액보다 적음';
-
-  @override
   String get onbResultBandLowNoteLanguage =>
       '어학 성적이 대사관 기준보다 낮습니다 — 성적 없이 신청하면 면접 없이 불허됩니다.';
 
   @override
   String get onbResultBandLowNoteMoney =>
       '재정 요건(학생 명의 KDB 예금과 부모 서류)이 아직 부족합니다.';
+
+  @override
+  String get onbQuizQ1Hint => '결과는 이 과정의 비자 기준으로 계산됩니다.';
+
+  @override
+  String get onbQuizGradHint => '고등학교·리세이·전문대·대학교 중 마지막 학교.';
+
+  @override
+  String get onbQuizGradQMaster => '학사를 언제 졸업했나요?';
+
+  @override
+  String get onbQuizIeltsHint =>
+      '영어 트랙에 필요합니다. 최근 2년 내 일반 IELTS만 인정(Online 불가).';
+
+  @override
+  String get onbQuizIncomeHint =>
+      '예: 직장 급여 증명(my.gov.uz) 또는 사업·세금 서류. 대사관은 부모 서류를 요구합니다.';
 }

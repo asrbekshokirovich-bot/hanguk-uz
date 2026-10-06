@@ -60,11 +60,9 @@ String factorLabel(AppLocalizations l, FactorKind k) => switch (k) {
   FactorKind.kdbReady => l.onbResultFactorKdbReady,
   FactorKind.kdbByIntake => l.onbResultFactorKdbByIntake,
   FactorKind.kdbNo => l.onbResultFactorKdbNo,
-  FactorKind.budgetBelowDeposit => l.onbResultFactorBudgetBelowDeposit,
   FactorKind.gradRecent => l.onbResultFactorGradRecent,
   FactorKind.gradGapLong => l.onbResultFactorGradGapLong,
   FactorKind.ageHigh => l.onbResultFactorAgeHigh,
-  FactorKind.budgetLow => l.onbResultFactorBudgetLow,
 };
 
 String stepLabel(AppLocalizations l, NextStep s) => switch (s) {
