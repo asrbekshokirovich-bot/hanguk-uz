@@ -23,7 +23,7 @@ copyright; permission should be obtained before public release.
 | 광주과학기술원 | `cc700f75-c562-4b4e-a44f-c0627c75507e.jpg` | Wikimedia Commons | Choyw05090 | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Gist_view.jpg |
 | 광주여자대학교 | `68db737c-c605-44c9-adf2-881949f07b15.jpg` | Wikimedia Commons | KBC | CC BY 3.0 | https://commons.wikimedia.org/wiki/File:Gwangju_Women%27s_University.jpg |
 | 국립한밭대학교 | `09c12c71-e79c-4e3a-969d-698a5ac701b9.jpg` | Wikimedia Commons | 대외협력홍보팀 | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:%ED%95%9C%EB%B0%AD%EB%8C%80%ED%95%99%EA%B5%90_%EC%9C%A0%EC%84%B1%EC%BA%A0%ED%8D%BC%EC%8A%A4.jpg |
-| 국민대학교 | `0ab07c8e-6d25-43f1-a7c2-a3fb452f10e4.jpg` | Wikimedia Commons | hyolee2 | CC BY-SA 3.0 / GFDL | https://commons.wikimedia.org/wiki/File:Kookmin_Univ_10.JPG |
+| 국민대학교 | `0ab07c8e-6d25-43f1-a7c2-a3fb452f10e4.jpg` | Official website |  | © university (official website) | https://english.kookmin.ac.kr/ |
 | 극동대학교 | `eb282f15-90b5-472b-b0bf-4011d3d2c718.jpg` | Official website |  | © university (official website) | https://www.kdu.ac.kr/home/sub.do?mncd=921&mode=view&no=524633441 |
 | 금강대학교 | `45f4ee56-46e0-42c0-a395-35be701f1631.jpg` | Official website |  | © university (official website) | https://www.ggu.ac.kr/main |
 | 남부대학교 | `6e933d72-a597-4c18-bb44-6da3febf7657.jpg` | Official website |  | © university (official website) | https://www.nambu.ac.kr/nambukr/index.do |
@@ -42,7 +42,7 @@ copyright; permission should be obtained before public release.
 | 서울과학기술대학교 | `16038490-c33c-4177-9d82-e29edfeffb01.jpg` | Official website |  | © university (official website) | https://www.seoultech.ac.kr/ |
 | 서울대학교 | `11111111-1111-1111-1111-111111111111.jpg` | Wikimedia Commons | Ismoon (talk) 22:20, 5 June 2020 (UTC) | GFDL | https://commons.wikimedia.org/wiki/File:Seoul_National_University_Museum._Main_entrance.jpg |
 | 서울시립대학교 | `cdae34f5-3648-4b24-b9a4-2103dfc0e0ad.jpg` | Wikimedia Commons | 대외협력과 | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:100%EC%A3%BC%EB%85%84%EA%B8%B0%EB%85%90%EA%B4%80.jpg |
-| 선문대학교 | `61872289-d88d-49c4-beb1-b320b2a26761.jpg` | Wikimedia Commons | Pilot10 | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Sun_Moon_University.jpg |
+| 선문대학교 | `61872289-d88d-49c4-beb1-b320b2a26761.jpg` | Official website |  | © university (official website) | https://lily.sunmoon.ac.kr/ |
 | 성균관대학교 | `77777777-7777-7777-7777-777777777777.jpg` | Wikimedia Commons | Christian140 | CC BY-SA 3.0 | https://commons.wikimedia.org/wiki/File:600_Anniversary_Hall.jpg |
 | 성신여자대학교 | `6cf8889a-91ee-4385-a5cd-be761792ad08.jpg` | Wikimedia Commons | Soymilkk | CC BY-SA 3.0 | https://commons.wikimedia.org/wiki/File:Sungshin1.jpg |
 | 숙명여자대학교 | `c5ca77ce-7f06-4e2a-8057-96bf441582c0.jpg` | Official website |  | © university (official website) | https://www.sookmyung.ac.kr/ |
