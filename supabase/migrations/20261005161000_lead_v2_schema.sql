@@ -751,6 +751,33 @@ drop policy if exists "alert recipients boss" on public.lead_alert_recipients;
 create policy "alert recipients boss" on public.lead_alert_recipients for all to authenticated
   using (public.fn_lead_is_boss()) with check (public.fn_lead_is_boss());
 
+-- The senior operator works the whole inbox too: the card's timeline reads, and
+-- its composer writes, the same message tables the operators use. The old
+-- policies on these tables name owner / admin / call_operator only (and
+-- document_handler for reads); these ones are added next to them (policies OR).
+do $$
+declare
+  t text;
+begin
+  foreach t in array array['messages', 'message_threads', 'communication_identities'] loop
+    if to_regclass('public.' || t) is not null then
+      execute format('drop policy if exists "lead senior all" on public.%I', t);
+      execute format(
+        'create policy "lead senior all" on public.%I for all to authenticated '
+        || 'using (public.fn_lead_has_any_role(array[''lead_senior''])) '
+        || 'with check (public.fn_lead_has_any_role(array[''lead_senior'']))', t);
+    end if;
+  end loop;
+  foreach t in array array['calls', 'call_transcripts', 'call_analyses', 'instagram_comments', 'lead_notes', 'student_phones'] loop
+    if to_regclass('public.' || t) is not null then
+      execute format('drop policy if exists "lead senior read" on public.%I', t);
+      execute format(
+        'create policy "lead senior read" on public.%I for select to authenticated '
+        || 'using (public.fn_lead_has_any_role(array[''lead_senior'']))', t);
+    end if;
+  end loop;
+end $$;
+
 grant select on public.lead_identities to authenticated;
 grant select, insert, update, delete on public.lead_settings to authenticated;
 grant select, insert, update, delete on public.lead_contacts to authenticated;

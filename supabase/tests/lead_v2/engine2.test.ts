@@ -64,17 +64,57 @@ describe('card fields (spec §5)', () => {
     const l = await addLead(h, { source: 'manual', phone: '+998909000010', city: 'Samarqand' });
     await h.as(op, `select lead_save_fields($1, $2::jsonb)`, [
       l.id,
-      JSON.stringify({ age: 21, decider: 'parent', phone: '+998000000000', status: 'lost', owner_id: op2, stage: 'student' }),
+      JSON.stringify({ age: 21, decider: 'parent', status: 'lost', owner_id: op2, stage: 'student', converted_to_student_id: op2 }),
     ]);
     const a = await getLead(h, l.id);
     expect(a.age).toBe(21);
     expect(a.decider).toBe('parent');
-    expect(a.phone).toBe('+998909000010'); // not whitelisted
+    expect(a.status).toBe('new'); // not whitelisted
     expect(a.stage).toBe('new');
     expect(a.owner_id).toBeNull();
     expect(a.city).toBe('Samarqand'); // not mentioned: untouched
     await expect(h.as(op, `select lead_save_fields($1, '{"age": 5}'::jsonb)`, [l.id])).rejects.toThrow(/age/i);
     await expect(h.as(op, `select lead_save_fields($1, '{"decider": "cousin"}'::jsonb)`, [l.id])).rejects.toThrow(/decider/i);
+  });
+});
+
+describe('phone and handles are editable on the card', () => {
+  it('normalises the handles, validates the phone, and a new phone can merge or match', async () => {
+    const l = await addLead(h, { source: 'manual', phone: '+998909000050' });
+    await h.as(op, `select lead_save_fields($1, $2::jsonb)`, [l.id, JSON.stringify({ instagram_handle: '@Edit_Ig_1', telegram_handle: ' @Edit_Tg_1 ' })]);
+    let a = await getLead(h, l.id);
+    expect(a.instagram_handle).toBe('edit_ig_1');
+    expect(a.telegram_handle).toBe('edit_tg_1');
+
+    await expect(h.as(op, `select lead_save_fields($1, '{"phone":"12345"}'::jsonb)`, [l.id])).rejects.toThrow(/phone_invalid/);
+    await h.as(op, `select lead_save_fields($1, '{"phone":"+998 90 900 00 51"}'::jsonb)`, [l.id]);
+    expect((await getLead(h, l.id)).phone).toBe('+998 90 900 00 51');
+
+    // a phone that already belongs to an older card merges the two
+    const older = await addLead(h, { source: 'manual', phone: '+998909000052', full_name: 'Older card' });
+    await new Promise((r) => setTimeout(r, 15));
+    const dup = await addLead(h, { source: 'manual', phone: '+998909000053', full_name: 'Newer card' });
+    await h.as(op, `select lead_save_fields($1, '{"phone":"+998909000052"}'::jsonb)`, [dup.id]);
+    expect((await getLead(h, dup.id)).merged_into_id).toBe(older.id);
+
+    // clearing the phone is allowed
+    await h.as(op, `select lead_save_fields($1, '{"phone":""}'::jsonb)`, [l.id]);
+    a = await getLead(h, l.id);
+    expect(a.phone).toBeNull();
+  });
+});
+
+describe('the senior operator works the whole inbox', () => {
+  it('reads and writes the message tables like the operators do', async () => {
+    await h.q(`alter table messages enable row level security`);
+    await h.q(`alter table communication_identities enable row level security`);
+    await h.q(`insert into messages (source, sender_id, direction, content) values ('telegram', 'tg-sen1', 'incoming', 'Salom')`);
+    expect(await h.as(senior, `select 1 from messages where sender_id = 'tg-sen1'`)).toHaveLength(1);
+    expect(await h.as(op, `select 1 from messages where sender_id = 'tg-sen1'`)).toHaveLength(0); // no operator policy in the stand-in
+    await h.as(senior, `insert into messages (source, sender_id, direction, content) values ('telegram', 'tg-sen1', 'outgoing', 'Javob')`);
+    expect(await h.q(`select 1 from messages where sender_id = 'tg-sen1'`)).toHaveLength(2);
+    await h.q(`alter table messages disable row level security`);
+    await h.q(`alter table communication_identities disable row level security`);
   });
 });
 

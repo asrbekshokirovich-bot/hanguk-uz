@@ -1197,7 +1197,19 @@ security definer
 set search_path = public, pg_catalog
 as $$
 begin
+  -- A phone, when given, has to be a real one (the merge and the student match
+  -- run on it); clearing it is allowed.
+  if p_f ? 'phone' and nullif(trim(coalesce(p_f->>'phone', '')), '') is not null
+     and public.fn_lead_phone_key(p_f->>'phone') is null then
+    raise exception 'phone_invalid' using errcode = '22023';
+  end if;
+
   update public.leads set
+    phone = case when p_f ? 'phone' then nullif(trim(p_f->>'phone'), '') else phone end,
+    instagram_handle = case when p_f ? 'instagram_handle'
+      then nullif(lower(regexp_replace(trim(p_f->>'instagram_handle'), '^@', '')), '') else instagram_handle end,
+    telegram_handle = case when p_f ? 'telegram_handle'
+      then nullif(lower(regexp_replace(trim(p_f->>'telegram_handle'), '^@', '')), '') else telegram_handle end,
     full_name = case when p_f ? 'full_name' and nullif(trim(p_f->>'full_name'), '') is not null then trim(p_f->>'full_name') else full_name end,
     email = case when p_f ? 'email' then nullif(trim(p_f->>'email'), '') else email end,
     birth_date = case when p_f ? 'birth_date' then nullif(p_f->>'birth_date', '')::date else birth_date end,
