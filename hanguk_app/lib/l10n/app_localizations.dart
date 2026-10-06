@@ -5777,31 +5777,31 @@ abstract class AppLocalizations {
   /// S02 question 1: study route.
   ///
   /// In en, this message translates to:
-  /// **'What would you like to study?'**
+  /// **'What do you want to study in Korea?'**
   String get onbQuizQ1;
 
   /// S02 Q1 option: Korean language course (D-4).
   ///
   /// In en, this message translates to:
-  /// **'Language course'**
+  /// **'Language course — learn Korean'**
   String get onbQuizRouteCourse;
 
   /// S02 Q1 option: bachelor's degree.
   ///
   /// In en, this message translates to:
-  /// **'Bachelor\'s'**
+  /// **'Bachelor\'s — university, 4 years'**
   String get onbQuizRouteBachelor;
 
   /// S02 Q1 option: master's degree.
   ///
   /// In en, this message translates to:
-  /// **'Master\'s'**
+  /// **'Master\'s — after a bachelor\'s'**
   String get onbQuizRouteMaster;
 
   /// S02 Q1 option: vocational college.
   ///
   /// In en, this message translates to:
-  /// **'Vocational college'**
+  /// **'Vocational college — a 2–3 year trade'**
   String get onbQuizRouteCollege;
 
   /// S02 Q2 graduation-year picker: the last option, this year or any year before it.
@@ -5819,19 +5819,19 @@ abstract class AppLocalizations {
   /// S02 question 3: Korean level.
   ///
   /// In en, this message translates to:
-  /// **'Your Korean level?'**
+  /// **'What is your Korean level?'**
   String get onbQuizQ3;
 
   /// S02 question 3: one line under the question.
   ///
   /// In en, this message translates to:
-  /// **'Answer even without a certificate — it decides the route.'**
+  /// **'Pick by your official certificate. The embassy does not accept an application without one.'**
   String get onbQuizQ3Hint;
 
   /// S02 Q3 option: no Korean.
   ///
   /// In en, this message translates to:
-  /// **'None'**
+  /// **'I don\'t speak Korean'**
   String get onbQuizKoreanNone;
 
   /// S02 Q3 option: learning, no certificate.
@@ -5843,7 +5843,7 @@ abstract class AppLocalizations {
   /// S02 Q3 option: Sejong 1A / TOPIK 1.
   ///
   /// In en, this message translates to:
-  /// **'Sejong 1A / TOPIK 1'**
+  /// **'TOPIK 1 or a Sejong Hakdang certificate'**
   String get onbQuizKoreanTopik1;
 
   /// S02 Q3 option: TOPIK 2.
@@ -5861,7 +5861,7 @@ abstract class AppLocalizations {
   /// S02 Q3 option: don't know yet.
   ///
   /// In en, this message translates to:
-  /// **'Not sure yet'**
+  /// **'Not sure'**
   String get onbQuizKoreanUnknown;
 
   /// S02 Q4 option: up to $3,000 a year.
@@ -5873,19 +5873,19 @@ abstract class AppLocalizations {
   /// S02 Q4 option: $3,000–6,000 a year.
   ///
   /// In en, this message translates to:
-  /// **'\$3–6k'**
+  /// **'\$3,000 – 6,000'**
   String get onbQuizBudget3to6;
 
   /// S02 Q4 option: $6,000–10,000 a year.
   ///
   /// In en, this message translates to:
-  /// **'\$6–10k'**
+  /// **'\$6,000 – 10,000'**
   String get onbQuizBudget6to10;
 
   /// S02 Q4 option: over $10,000 a year.
   ///
   /// In en, this message translates to:
-  /// **'\$10,000+'**
+  /// **'Over \$10,000'**
   String get onbQuizBudgetOver10;
 
   /// S02 question 5: parents' official income (and bank statement).
@@ -5897,7 +5897,7 @@ abstract class AppLocalizations {
   /// S02 Q5 option: yes, official income.
   ///
   /// In en, this message translates to:
-  /// **'Yes, official income'**
+  /// **'Yes'**
   String get onbQuizIncomeYes;
 
   /// S02 Q5 option: no official income.
@@ -5909,13 +5909,13 @@ abstract class AppLocalizations {
   /// S02 Q6 option: spring 2027 intake.
   ///
   /// In en, this message translates to:
-  /// **'Spring 2027'**
+  /// **'Spring 2027 (March)'**
   String get onbQuizIntakeSpring2027;
 
   /// S02 Q6 option: fall 2027 intake.
   ///
   /// In en, this message translates to:
-  /// **'Fall 2027'**
+  /// **'Fall 2027 (September)'**
   String get onbQuizIntakeFall2027;
 
   /// S02 Q6 option: later.
@@ -6029,13 +6029,13 @@ abstract class AppLocalizations {
   /// S02 question 5: IELTS score.
   ///
   /// In en, this message translates to:
-  /// **'Your IELTS score?'**
+  /// **'Do you have an IELTS score?'**
   String get onbQuizIeltsQ;
 
   /// S02 IELTS option: none.
   ///
   /// In en, this message translates to:
-  /// **'None'**
+  /// **'None, or below 5.5'**
   String get onbQuizIeltsNone;
 
   /// S02 IELTS option.
@@ -6059,7 +6059,7 @@ abstract class AppLocalizations {
   /// S02 IELTS option: don't know yet.
   ///
   /// In en, this message translates to:
-  /// **'Not sure yet'**
+  /// **'Not sure'**
   String get onbQuizIeltsUnknown;
 
   /// S02 question 6: yearly budget.
@@ -6071,7 +6071,7 @@ abstract class AppLocalizations {
   /// S02 question 7: who pays.
   ///
   /// In en, this message translates to:
-  /// **'Who pays?'**
+  /// **'Who pays for the studies?'**
   String get onbQuizPayerQ;
 
   /// S02 payer option.
@@ -6089,19 +6089,19 @@ abstract class AppLocalizations {
   /// S02 payer option.
   ///
   /// In en, this message translates to:
-  /// **'A sponsor'**
+  /// **'A sponsor or relative'**
   String get onbQuizPayerSponsorOption;
 
   /// S02 question 10: region.
   ///
   /// In en, this message translates to:
-  /// **'Which region are you from?'**
+  /// **'Which region do you live in?'**
   String get onbQuizRegionQ;
 
   /// S02 question 11: when to go.
   ///
   /// In en, this message translates to:
-  /// **'When do you want to go?'**
+  /// **'When do you want to start?'**
   String get onbQuizIntakeQ;
 
   /// Result factor
@@ -6131,37 +6131,37 @@ abstract class AppLocalizations {
   /// Quiz question: the KDB deposit
   ///
   /// In en, this message translates to:
-  /// **'Can you open the KDB deposit in the student\'s name?'**
+  /// **'Can you put a deposit in the student\'s name?'**
   String get onbQuizKdbQ;
 
   /// Hint under the KDB question
   ///
   /// In en, this message translates to:
-  /// **'The embassy asks for {low} (other cities) or {high} (Seoul, Gyeonggi, Incheon), held for at least {months} month(s).'**
+  /// **'Required for the visa: {low} (other cities) or {high} (Seoul, Gyeonggi, Incheon) in a KDB Bank Uzbekistan account in the student\'s name, for at least {months} month(s). It is not a payment — the money stays in the student\'s account.'**
   String onbQuizKdbHint(String low, String high, String months);
 
   /// KDB option
   ///
   /// In en, this message translates to:
-  /// **'Yes, it is there now'**
+  /// **'Yes, the money is ready now'**
   String get onbQuizKdbReady;
 
   /// KDB option
   ///
   /// In en, this message translates to:
-  /// **'Yes, before the intake'**
+  /// **'We will have it before the intake'**
   String get onbQuizKdbByIntake;
 
   /// KDB option
   ///
   /// In en, this message translates to:
-  /// **'No'**
+  /// **'No, we can\'t'**
   String get onbQuizKdbNo;
 
   /// KDB option
   ///
   /// In en, this message translates to:
-  /// **'Not sure yet'**
+  /// **'Not sure'**
   String get onbQuizKdbUnknown;
 
   /// Result factor
@@ -6223,6 +6223,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The financial requirement (a KDB deposit in the student\'s name and the parents\' papers) is not met yet.'**
   String get onbResultBandLowNoteMoney;
+
+  /// Quiz Q1 hint
+  ///
+  /// In en, this message translates to:
+  /// **'The result follows the visa rules for this route.'**
+  String get onbQuizQ1Hint;
+
+  /// Quiz graduation hint
+  ///
+  /// In en, this message translates to:
+  /// **'School, lyceum, college or university — whichever was last.'**
+  String get onbQuizGradHint;
+
+  /// Quiz graduation, master's
+  ///
+  /// In en, this message translates to:
+  /// **'When did you finish your bachelor\'s?'**
+  String get onbQuizGradQMaster;
+
+  /// Quiz IELTS hint
+  ///
+  /// In en, this message translates to:
+  /// **'Needed for English-taught programmes. Only the regular IELTS (not Online), taken in the last 2 years.'**
+  String get onbQuizIeltsHint;
+
+  /// Quiz budget hint
+  ///
+  /// In en, this message translates to:
+  /// **'Tuition, dormitory and food. A rough figure is enough.'**
+  String get onbQuizBudgetHint;
+
+  /// Quiz income hint
+  ///
+  /// In en, this message translates to:
+  /// **'For example a salary certificate from work (my.gov.uz) or business and tax papers. The embassy asks for the parents\' papers.'**
+  String get onbQuizIncomeHint;
 }
 
 class _AppLocalizationsDelegate

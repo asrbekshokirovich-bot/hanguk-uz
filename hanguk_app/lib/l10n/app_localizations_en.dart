@@ -3179,19 +3179,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get onbQuizBack => 'Back';
 
   @override
-  String get onbQuizQ1 => 'What would you like to study?';
+  String get onbQuizQ1 => 'What do you want to study in Korea?';
 
   @override
-  String get onbQuizRouteCourse => 'Language course';
+  String get onbQuizRouteCourse => 'Language course — learn Korean';
 
   @override
-  String get onbQuizRouteBachelor => 'Bachelor\'s';
+  String get onbQuizRouteBachelor => 'Bachelor\'s — university, 4 years';
 
   @override
-  String get onbQuizRouteMaster => 'Master\'s';
+  String get onbQuizRouteMaster => 'Master\'s — after a bachelor\'s';
 
   @override
-  String get onbQuizRouteCollege => 'Vocational college';
+  String get onbQuizRouteCollege => 'Vocational college — a 2–3 year trade';
 
   @override
   String onbQuizGradYearOrEarlier(String year) {
@@ -3202,20 +3202,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get onbQuizStillStudying => 'Still studying';
 
   @override
-  String get onbQuizQ3 => 'Your Korean level?';
+  String get onbQuizQ3 => 'What is your Korean level?';
 
   @override
   String get onbQuizQ3Hint =>
-      'Answer even without a certificate — it decides the route.';
+      'Pick by your official certificate. The embassy does not accept an application without one.';
 
   @override
-  String get onbQuizKoreanNone => 'None';
+  String get onbQuizKoreanNone => 'I don\'t speak Korean';
 
   @override
   String get onbQuizKoreanLearning => 'Learning, no certificate';
 
   @override
-  String get onbQuizKoreanTopik1 => 'Sejong 1A / TOPIK 1';
+  String get onbQuizKoreanTopik1 => 'TOPIK 1 or a Sejong Hakdang certificate';
 
   @override
   String get onbQuizKoreanTopik2 => 'TOPIK 2';
@@ -3224,34 +3224,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get onbQuizKoreanTopik3 => 'TOPIK 3';
 
   @override
-  String get onbQuizKoreanUnknown => 'Not sure yet';
+  String get onbQuizKoreanUnknown => 'Not sure';
 
   @override
   String get onbQuizBudgetUnder3 => 'Up to \$3,000';
 
   @override
-  String get onbQuizBudget3to6 => '\$3–6k';
+  String get onbQuizBudget3to6 => '\$3,000 – 6,000';
 
   @override
-  String get onbQuizBudget6to10 => '\$6–10k';
+  String get onbQuizBudget6to10 => '\$6,000 – 10,000';
 
   @override
-  String get onbQuizBudgetOver10 => '\$10,000+';
+  String get onbQuizBudgetOver10 => 'Over \$10,000';
 
   @override
   String get onbQuizQ5 => 'Do your parents have an official income?';
 
   @override
-  String get onbQuizIncomeYes => 'Yes, official income';
+  String get onbQuizIncomeYes => 'Yes';
 
   @override
   String get onbQuizIncomeNo => 'No';
 
   @override
-  String get onbQuizIntakeSpring2027 => 'Spring 2027';
+  String get onbQuizIntakeSpring2027 => 'Spring 2027 (March)';
 
   @override
-  String get onbQuizIntakeFall2027 => 'Fall 2027';
+  String get onbQuizIntakeFall2027 => 'Fall 2027 (September)';
 
   @override
   String get onbQuizIntakeLater => 'Later';
@@ -3316,10 +3316,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get onbQuizGradQ => 'When did you finish your last school?';
 
   @override
-  String get onbQuizIeltsQ => 'Your IELTS score?';
+  String get onbQuizIeltsQ => 'Do you have an IELTS score?';
 
   @override
-  String get onbQuizIeltsNone => 'None';
+  String get onbQuizIeltsNone => 'None, or below 5.5';
 
   @override
   String get onbQuizIelts55 => 'IELTS 5.5';
@@ -3331,14 +3331,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get onbQuizIelts65 => 'IELTS 6.5 or higher';
 
   @override
-  String get onbQuizIeltsUnknown => 'Not sure yet';
+  String get onbQuizIeltsUnknown => 'Not sure';
 
   @override
   String get onbQuizBudgetQ =>
       'How much can you spend a year on study and living?';
 
   @override
-  String get onbQuizPayerQ => 'Who pays?';
+  String get onbQuizPayerQ => 'Who pays for the studies?';
 
   @override
   String get onbQuizPayerParentsOption => 'My parents';
@@ -3347,13 +3347,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get onbQuizPayerSelfOption => 'Myself';
 
   @override
-  String get onbQuizPayerSponsorOption => 'A sponsor';
+  String get onbQuizPayerSponsorOption => 'A sponsor or relative';
 
   @override
-  String get onbQuizRegionQ => 'Which region are you from?';
+  String get onbQuizRegionQ => 'Which region do you live in?';
 
   @override
-  String get onbQuizIntakeQ => 'When do you want to go?';
+  String get onbQuizIntakeQ => 'When do you want to start?';
 
   @override
   String get onbResultFactorEnglishStrong =>
@@ -3369,25 +3369,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get onbQuizKoreanTopik4 => 'TOPIK 4 or higher';
 
   @override
-  String get onbQuizKdbQ =>
-      'Can you open the KDB deposit in the student\'s name?';
+  String get onbQuizKdbQ => 'Can you put a deposit in the student\'s name?';
 
   @override
   String onbQuizKdbHint(String low, String high, String months) {
-    return 'The embassy asks for $low (other cities) or $high (Seoul, Gyeonggi, Incheon), held for at least $months month(s).';
+    return 'Required for the visa: $low (other cities) or $high (Seoul, Gyeonggi, Incheon) in a KDB Bank Uzbekistan account in the student\'s name, for at least $months month(s). It is not a payment — the money stays in the student\'s account.';
   }
 
   @override
-  String get onbQuizKdbReady => 'Yes, it is there now';
+  String get onbQuizKdbReady => 'Yes, the money is ready now';
 
   @override
-  String get onbQuizKdbByIntake => 'Yes, before the intake';
+  String get onbQuizKdbByIntake => 'We will have it before the intake';
 
   @override
-  String get onbQuizKdbNo => 'No';
+  String get onbQuizKdbNo => 'No, we can\'t';
 
   @override
-  String get onbQuizKdbUnknown => 'Not sure yet';
+  String get onbQuizKdbUnknown => 'Not sure';
 
   @override
   String get onbResultFactorKoreanMasterStrong =>
@@ -3427,4 +3426,27 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get onbResultBandLowNoteMoney =>
       'The financial requirement (a KDB deposit in the student\'s name and the parents\' papers) is not met yet.';
+
+  @override
+  String get onbQuizQ1Hint =>
+      'The result follows the visa rules for this route.';
+
+  @override
+  String get onbQuizGradHint =>
+      'School, lyceum, college or university — whichever was last.';
+
+  @override
+  String get onbQuizGradQMaster => 'When did you finish your bachelor\'s?';
+
+  @override
+  String get onbQuizIeltsHint =>
+      'Needed for English-taught programmes. Only the regular IELTS (not Online), taken in the last 2 years.';
+
+  @override
+  String get onbQuizBudgetHint =>
+      'Tuition, dormitory and food. A rough figure is enough.';
+
+  @override
+  String get onbQuizIncomeHint =>
+      'For example a salary certificate from work (my.gov.uz) or business and tax papers. The embassy asks for the parents\' papers.';
 }

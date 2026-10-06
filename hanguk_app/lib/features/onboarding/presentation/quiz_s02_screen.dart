@@ -165,15 +165,19 @@ class QuizScreen extends ConsumerWidget {
 
     switch (step) {
       case 1:
-        return _Question(l.onbQuizQ1, [
-          for (final (r, label) in [
-            (StudyRoute.languageCourse, l.onbQuizRouteCourse),
-            (StudyRoute.bachelor, l.onbQuizRouteBachelor),
-            (StudyRoute.master, l.onbQuizRouteMaster),
-            (StudyRoute.college, l.onbQuizRouteCollege),
-          ])
-            option(label, a.route == r, (x) => x.copyWith(route: r)),
-        ]);
+        return _Question(
+          l.onbQuizQ1,
+          [
+            for (final (r, label) in [
+              (StudyRoute.languageCourse, l.onbQuizRouteCourse),
+              (StudyRoute.bachelor, l.onbQuizRouteBachelor),
+              (StudyRoute.master, l.onbQuizRouteMaster),
+              (StudyRoute.college, l.onbQuizRouteCollege),
+            ])
+              option(label, a.route == r, (x) => x.copyWith(route: r)),
+          ],
+          hint: l.onbQuizQ1Hint,
+        );
       case 2:
         return _Question(l.onbQuizAgeQ, [
           _AgeGrid(
@@ -185,19 +189,26 @@ class QuizScreen extends ConsumerWidget {
       case 3:
         final thisYear = DateTime.now().year;
         final years = [for (var y = thisYear; y > thisYear - 5; y--) y];
-        return _Question(l.onbQuizGradQ, [
-          for (final y in years)
+        // A master's applicant is asked about the bachelor's; everyone else
+        // about the last school, whichever it was.
+        final master = a.route == StudyRoute.master;
+        return _Question(
+          master ? l.onbQuizGradQMaster : l.onbQuizGradQ,
+          [
+            for (final y in years)
+              option(
+                y == years.last ? l.onbQuizGradYearOrEarlier('$y') : '$y',
+                !a.stillStudying && a.gradYear == y,
+                (x) => x.copyWith(gradYear: y, stillStudying: false),
+              ),
             option(
-              y == years.last ? l.onbQuizGradYearOrEarlier('$y') : '$y',
-              !a.stillStudying && a.gradYear == y,
-              (x) => x.copyWith(gradYear: y, stillStudying: false),
+              l.onbQuizStillStudying,
+              a.stillStudying,
+              (x) => x.copyWith(stillStudying: true, clearGradYear: true),
             ),
-          option(
-            l.onbQuizStillStudying,
-            a.stillStudying,
-            (x) => x.copyWith(stillStudying: true, clearGradYear: true),
-          ),
-        ]);
+          ],
+          hint: master ? null : l.onbQuizGradHint,
+        );
       case 4:
         return _Question(
           l.onbQuizQ3,
@@ -217,26 +228,34 @@ class QuizScreen extends ConsumerWidget {
           hint: l.onbQuizQ3Hint,
         );
       case 5:
-        return _Question(l.onbQuizIeltsQ, [
-          for (final (e, label) in [
-            (EnglishLevel.none, l.onbQuizIeltsNone),
-            (EnglishLevel.ielts55, l.onbQuizIelts55),
-            (EnglishLevel.ielts60, l.onbQuizIelts60),
-            (EnglishLevel.ielts65plus, l.onbQuizIelts65),
-            (EnglishLevel.unknown, l.onbQuizIeltsUnknown),
-          ])
-            option(label, a.english == e, (x) => x.copyWith(english: e)),
-        ]);
+        return _Question(
+          l.onbQuizIeltsQ,
+          [
+            for (final (e, label) in [
+              (EnglishLevel.none, l.onbQuizIeltsNone),
+              (EnglishLevel.ielts55, l.onbQuizIelts55),
+              (EnglishLevel.ielts60, l.onbQuizIelts60),
+              (EnglishLevel.ielts65plus, l.onbQuizIelts65),
+              (EnglishLevel.unknown, l.onbQuizIeltsUnknown),
+            ])
+              option(label, a.english == e, (x) => x.copyWith(english: e)),
+          ],
+          hint: l.onbQuizIeltsHint,
+        );
       case 6:
-        return _Question(l.onbQuizBudgetQ, [
-          for (final (b, label) in [
-            (Budget.under3k, l.onbQuizBudgetUnder3),
-            (Budget.from3to6k, l.onbQuizBudget3to6),
-            (Budget.from6to10k, l.onbQuizBudget6to10),
-            (Budget.over10k, l.onbQuizBudgetOver10),
-          ])
-            option(label, a.budget == b, (x) => x.copyWith(budget: b)),
-        ]);
+        return _Question(
+          l.onbQuizBudgetQ,
+          [
+            for (final (b, label) in [
+              (Budget.under3k, l.onbQuizBudgetUnder3),
+              (Budget.from3to6k, l.onbQuizBudget3to6),
+              (Budget.from6to10k, l.onbQuizBudget6to10),
+              (Budget.over10k, l.onbQuizBudgetOver10),
+            ])
+              option(label, a.budget == b, (x) => x.copyWith(budget: b)),
+          ],
+          hint: l.onbQuizBudgetHint,
+        );
       case 7:
         return _Question(l.onbQuizPayerQ, [
           for (final (p, label) in [
@@ -247,18 +266,22 @@ class QuizScreen extends ConsumerWidget {
             option(label, a.payer == p, (x) => x.copyWith(payer: p)),
         ]);
       case 8:
-        return _Question(l.onbQuizQ5, [
-          option(
-            l.onbQuizIncomeYes,
-            a.formalIncome == true,
-            (x) => x.copyWith(formalIncome: true),
-          ),
-          option(
-            l.onbQuizIncomeNo,
-            a.formalIncome == false,
-            (x) => x.copyWith(formalIncome: false),
-          ),
-        ]);
+        return _Question(
+          l.onbQuizQ5,
+          [
+            option(
+              l.onbQuizIncomeYes,
+              a.formalIncome == true,
+              (x) => x.copyWith(formalIncome: true),
+            ),
+            option(
+              l.onbQuizIncomeNo,
+              a.formalIncome == false,
+              (x) => x.copyWith(formalIncome: false),
+            ),
+          ],
+          hint: l.onbQuizIncomeHint,
+        );
       case 9:
         final rules = ref.watch(eligibilityRulesProvider).value ?? const EligibilityRules();
         final route = a.route ?? StudyRoute.bachelor;

@@ -180,7 +180,7 @@ void main() {
     await t.pump();
     expect(find.text('1 / 11'), findsOneWidget);
 
-    await t.tap(find.text('Bakalavr'));
+    await t.tap(find.text('Bakalavr — universitet, 4 yil'));
     await t.pump();
     await t.tap(find.text('Davom etish'));
     await t.pump();
@@ -207,7 +207,7 @@ void main() {
     await show(StudyRoute.bachelor);
     await t.pump();
     expect(find.text('9 / 11'), findsOneWidget);
-    expect(find.text("Talaba nomiga KDB bankida depozit qo'ya olasizmi?"), findsOneWidget);
+    expect(find.text("Talaba nomiga bankda depozit qo'ya olasizmi?"), findsOneWidget);
     expect(find.textContaining('\$12\u00A0500'), findsOneWidget);
     expect(find.textContaining('kamida 1 oy'), findsOneWidget);
 

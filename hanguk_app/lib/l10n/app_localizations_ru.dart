@@ -3192,19 +3192,20 @@ class AppLocalizationsRu extends AppLocalizations {
   String get onbQuizBack => 'Назад';
 
   @override
-  String get onbQuizQ1 => 'По какому направлению хотите учиться?';
+  String get onbQuizQ1 => 'Что вы хотите изучать в Корее?';
 
   @override
-  String get onbQuizRouteCourse => 'Языковые курсы';
+  String get onbQuizRouteCourse => 'Языковые курсы — изучать корейский';
 
   @override
-  String get onbQuizRouteBachelor => 'Бакалавриат';
+  String get onbQuizRouteBachelor => 'Бакалавриат — университет, 4 года';
 
   @override
-  String get onbQuizRouteMaster => 'Магистратура';
+  String get onbQuizRouteMaster => 'Магистратура — после бакалавриата';
 
   @override
-  String get onbQuizRouteCollege => 'Профессиональный колледж';
+  String get onbQuizRouteCollege =>
+      'Профессиональный колледж — профессия за 2–3 года';
 
   @override
   String onbQuizGradYearOrEarlier(String year) {
@@ -3215,20 +3216,20 @@ class AppLocalizationsRu extends AppLocalizations {
   String get onbQuizStillStudying => 'Ещё учусь';
 
   @override
-  String get onbQuizQ3 => 'Ваш уровень корейского?';
+  String get onbQuizQ3 => 'Какой у вас уровень корейского?';
 
   @override
   String get onbQuizQ3Hint =>
-      'Ответьте, даже если нет сертификата, — от этого зависит путь.';
+      'Выберите по официальному сертификату. Без сертификата посольство заявление не принимает.';
 
   @override
-  String get onbQuizKoreanNone => 'Нет';
+  String get onbQuizKoreanNone => 'Не знаю корейский';
 
   @override
-  String get onbQuizKoreanLearning => 'Учу, без сертификата';
+  String get onbQuizKoreanLearning => 'Учу, сертификата нет';
 
   @override
-  String get onbQuizKoreanTopik1 => 'Sejong 1A / TOPIK 1';
+  String get onbQuizKoreanTopik1 => 'TOPIK 1 или сертификат Sejong Hakdang';
 
   @override
   String get onbQuizKoreanTopik2 => 'TOPIK 2';
@@ -3237,34 +3238,34 @@ class AppLocalizationsRu extends AppLocalizations {
   String get onbQuizKoreanTopik3 => 'TOPIK 3';
 
   @override
-  String get onbQuizKoreanUnknown => 'Пока не знаю';
+  String get onbQuizKoreanUnknown => 'Точно не знаю';
 
   @override
   String get onbQuizBudgetUnder3 => 'До \$3 000';
 
   @override
-  String get onbQuizBudget3to6 => '\$3–6 тыс.';
+  String get onbQuizBudget3to6 => '\$3 000 – 6 000';
 
   @override
-  String get onbQuizBudget6to10 => '\$6–10 тыс.';
+  String get onbQuizBudget6to10 => '\$6 000 – 10 000';
 
   @override
-  String get onbQuizBudgetOver10 => '\$10 000+';
+  String get onbQuizBudgetOver10 => 'Больше \$10 000';
 
   @override
-  String get onbQuizQ5 => 'Есть ли у родителей официальный доход?';
+  String get onbQuizQ5 => 'Есть ли у ваших родителей официальный доход?';
 
   @override
-  String get onbQuizIncomeYes => 'Да, есть официальный доход';
+  String get onbQuizIncomeYes => 'Да, есть';
 
   @override
   String get onbQuizIncomeNo => 'Нет';
 
   @override
-  String get onbQuizIntakeSpring2027 => 'Весна 2027';
+  String get onbQuizIntakeSpring2027 => 'Весна 2027 (март)';
 
   @override
-  String get onbQuizIntakeFall2027 => 'Осень 2027';
+  String get onbQuizIntakeFall2027 => 'Осень 2027 (сентябрь)';
 
   @override
   String get onbQuizIntakeLater => 'Позже';
@@ -3329,10 +3330,10 @@ class AppLocalizationsRu extends AppLocalizations {
   String get onbQuizGradQ => 'Когда вы окончили последнее место учёбы?';
 
   @override
-  String get onbQuizIeltsQ => 'Ваш балл IELTS?';
+  String get onbQuizIeltsQ => 'Есть ли у вас результат IELTS?';
 
   @override
-  String get onbQuizIeltsNone => 'Нет';
+  String get onbQuizIeltsNone => 'Нет или ниже 5.5';
 
   @override
   String get onbQuizIelts55 => 'IELTS 5.5';
@@ -3344,14 +3345,14 @@ class AppLocalizationsRu extends AppLocalizations {
   String get onbQuizIelts65 => 'IELTS 6.5 и выше';
 
   @override
-  String get onbQuizIeltsUnknown => 'Пока не знаю';
+  String get onbQuizIeltsUnknown => 'Точно не знаю';
 
   @override
   String get onbQuizBudgetQ =>
       'Сколько вы можете тратить в год на учёбу и жизнь?';
 
   @override
-  String get onbQuizPayerQ => 'Кто оплачивает?';
+  String get onbQuizPayerQ => 'Кто оплачивает учёбу?';
 
   @override
   String get onbQuizPayerParentsOption => 'Родители';
@@ -3360,13 +3361,13 @@ class AppLocalizationsRu extends AppLocalizations {
   String get onbQuizPayerSelfOption => 'Я сам(а)';
 
   @override
-  String get onbQuizPayerSponsorOption => 'Спонсор';
+  String get onbQuizPayerSponsorOption => 'Спонсор или родственник';
 
   @override
-  String get onbQuizRegionQ => 'Из какого вы региона?';
+  String get onbQuizRegionQ => 'В каком регионе вы живёте?';
 
   @override
-  String get onbQuizIntakeQ => 'Когда планируете поехать?';
+  String get onbQuizIntakeQ => 'Когда хотите начать учёбу?';
 
   @override
   String get onbResultFactorEnglishStrong =>
@@ -3382,24 +3383,24 @@ class AppLocalizationsRu extends AppLocalizations {
   String get onbQuizKoreanTopik4 => 'TOPIK 4 и выше';
 
   @override
-  String get onbQuizKdbQ => 'Сможете открыть депозит в KDB на имя студента?';
+  String get onbQuizKdbQ => 'Сможете положить депозит на имя студента?';
 
   @override
   String onbQuizKdbHint(String low, String high, String months) {
-    return 'Требование посольства: $low (другие города) или $high (Сеул, Кёнгидо, Инчхон), не менее $months мес. на счёте.';
+    return 'Обязательно для визы: на счёте студента в KDB Bank Uzbekistan $low (другие города) или $high (Сеул, Кёнгидо, Инчхон), не менее $months мес. Это не оплата — деньги остаются на счёте студента.';
   }
 
   @override
-  String get onbQuizKdbReady => 'Да, уже есть';
+  String get onbQuizKdbReady => 'Да, деньги уже есть';
 
   @override
-  String get onbQuizKdbByIntake => 'Да, положим до набора';
+  String get onbQuizKdbByIntake => 'Соберём до набора';
 
   @override
-  String get onbQuizKdbNo => 'Нет';
+  String get onbQuizKdbNo => 'Нет, не сможем';
 
   @override
-  String get onbQuizKdbUnknown => 'Пока не знаю';
+  String get onbQuizKdbUnknown => 'Точно не знаю';
 
   @override
   String get onbResultFactorKoreanMasterStrong =>
@@ -3439,4 +3440,27 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get onbResultBandLowNoteMoney =>
       'Финансовое требование (депозит KDB на имя студента и документы родителей) пока не выполнено.';
+
+  @override
+  String get onbQuizQ1Hint =>
+      'Результат считается по визовым требованиям этого направления.';
+
+  @override
+  String get onbQuizGradHint =>
+      'Школа, лицей, колледж или университет — что было последним.';
+
+  @override
+  String get onbQuizGradQMaster => 'Когда вы окончили бакалавриат?';
+
+  @override
+  String get onbQuizIeltsHint =>
+      'Нужен для программ на английском. Только обычный IELTS (не Online), сданный за последние 2 года.';
+
+  @override
+  String get onbQuizBudgetHint =>
+      'Контракт, общежитие и еда. Достаточно примерной суммы.';
+
+  @override
+  String get onbQuizIncomeHint =>
+      'Например, справка о зарплате с работы (my.gov.uz) или документы о бизнесе и налогах. Посольство запрашивает документы родителей.';
 }
