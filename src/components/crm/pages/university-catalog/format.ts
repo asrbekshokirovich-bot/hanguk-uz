@@ -239,7 +239,8 @@ function isGraduateOnly(entry: CatalogEntry): boolean {
  * Universitet qaysi darajalarda o'qitadi. Excel yuklangan daraja — aniq bor.
  * Qolgani oliygoh turidan: kollej (전문대학) — kasbiy ta'lim, nomida 대학원
  * bo'lgan oliygoh — faqat magistratura, qolgan 4 yillik universitetlarda ham
- * bakalavr, ham magistratura (대학원) bor.
+ * bakalavr, ham magistratura (대학원) bor. institutions.hidden_levels'dagi
+ * darajalar olib tashlanadi.
  */
 export function offeredLevels(entry: CatalogEntry): DegreeLevel[] {
   const levels = new Set<DegreeLevel>();
@@ -254,6 +255,8 @@ export function offeredLevels(entry: CatalogEntry): DegreeLevel[] {
   for (const g of entry.guidelines) {
     if (DEGREE_LEVELS.some((l) => l.key === g.daraja)) levels.add(g.daraja as DegreeLevel);
   }
+  // Xodim yashirgan daraja (chet ellik qabuli yo'q, faqat diniy) — Excel bo'lsa ham ko'rinmaydi.
+  for (const hidden of entry.institution.hidden_levels ?? []) levels.delete(hidden as DegreeLevel);
   return DEGREE_LEVELS.map((l) => l.key).filter((key) => levels.has(key));
 }
 
