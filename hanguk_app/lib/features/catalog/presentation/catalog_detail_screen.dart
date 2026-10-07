@@ -244,9 +244,8 @@ class _CatalogDetailScreenState extends ConsumerState<CatalogDetailScreen> {
         ),
       if (g.entranceFee != null) (l.catalogEntranceFee, money(g.entranceFee!, g.currency, locale: l.localeName)),
     ];
+    // No fee in the guideline: the card stays, with a dash for the amount.
     final big = range(lo, hi);
-
-    if (big == null && cells.isEmpty) return const SizedBox.shrink();
 
     return _Card(
       gap: 14,
@@ -256,32 +255,31 @@ class _CatalogDetailScreenState extends ConsumerState<CatalogDetailScreen> {
           trailing: g.currency,
           trailingSmall: true,
         ),
-        if (big != null)
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Flexible(
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    big,
-                    style: SeoulType.display.copyWith(fontSize: 32, fontWeight: FontWeight.w900, height: 1, color: SeoulColors.infoText),
-                  ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Flexible(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  big ?? '—',
+                  style: SeoulType.display.copyWith(fontSize: 32, fontWeight: FontWeight.w900, height: 1, color: SeoulColors.infoText),
                 ),
               ),
-              if (period != null) ...[
-                const SizedBox(width: 6),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 3),
-                  child: Text(
-                    period == 'yil' ? l.catalogPerYear : l.catalogPerSemester,
-                    style: SeoulType.caption.copyWith(fontSize: 13),
-                  ),
+            ),
+            if (big != null && period != null) ...[
+              const SizedBox(width: 6),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 3),
+                child: Text(
+                  period == 'yil' ? l.catalogPerYear : l.catalogPerSemester,
+                  style: SeoulType.caption.copyWith(fontSize: 13),
                 ),
-              ],
+              ),
             ],
-          ),
+          ],
+        ),
         if (cells.isNotEmpty)
           _TwoColumn(
             children: [

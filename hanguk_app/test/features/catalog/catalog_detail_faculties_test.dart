@@ -2,7 +2,8 @@
 //
 // Pinned here: faculties are grouped under their college as before, except
 // Daegu Haany, whose two programmes sit under one "Adventure College" — there
-// each faculty gets its own row.
+// each faculty gets its own row. With no contract fee in the guideline the
+// fee card still shows, with a dash for the amount.
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -69,5 +70,13 @@ void main() {
     await _pump(tester, 'another-guideline');
     expect(find.text('Adventure College'), findsWidgets);
     expect(find.text('IT (English)'), findsNothing);
+  });
+
+  testWidgets('no contract fee: the fee card shows a dash', (tester) async {
+    await _pump(tester, _haany);
+    final l = AppLocalizations.of(tester.element(find.byType(CatalogDetailScreen)))!;
+    expect(find.text(l.catalogTuitionTitle('Business Administration (English)')), findsOneWidget);
+    expect(find.text('—'), findsOneWidget);
+    expect(find.text(l.catalogPerSemester), findsNothing);
   });
 }
