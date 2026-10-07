@@ -62,10 +62,21 @@ class _FacultyGroup {
   String? get period => programmes.map((p) => p.tuitionPeriod).whereType<String>().firstOrNull;
 }
 
-List<_FacultyGroup> _groups(List<CatalogFaculty> faculties) {
+/// Guidelines whose faculties are listed one by one instead of under their
+/// college: Daegu Haany puts both of its programmes under one "Adventure
+/// College", which alone says nothing about what can be studied there.
+const Set<String> kListFacultiesByName = {
+  '71e70627-7f40-4829-a121-f02bf90918de', // 대구한의대학교
+};
+
+List<_FacultyGroup> _groups(List<CatalogFaculty> faculties, {bool byFaculty = false}) {
   final byName = <String, _FacultyGroup>{};
   for (final f in faculties) {
-    final name = [f.collegeEn, f.collegeKr, f.facultyEn, f.facultyKr].whereType<String>().where((s) => s.trim().isNotEmpty).firstOrNull;
+    final name = [
+      if (!byFaculty) ...[f.collegeEn, f.collegeKr],
+      f.facultyEn,
+      f.facultyKr,
+    ].whereType<String>().where((s) => s.trim().isNotEmpty).firstOrNull;
     if (name == null) continue;
     byName.putIfAbsent(name.trim(), () => _FacultyGroup(name.trim())).programmes.add(f);
   }
@@ -101,7 +112,7 @@ class _CatalogDetailScreenState extends ConsumerState<CatalogDetailScreen> {
     final detail = detailAsync.value;
     final season = seasonLabel(l, g);
 
-    final groups = _groups(detail?.faculties ?? const []);
+    final groups = _groups(detail?.faculties ?? const [], byFaculty: kListFacultiesByName.contains(g.id));
     final group = groups.isEmpty ? null : groups[_group.clamp(0, groups.length - 1)];
 
     final rounds = _firstStage(detail?.rounds ?? const []);
