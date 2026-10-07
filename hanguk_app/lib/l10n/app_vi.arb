@@ -1158,5 +1158,8 @@
   "onbResultPathDeposit": "Prepare the KDB deposit",
   "onbResultPathDepositNote": "{low}–{high} in the student's name for at least {months} month(s) — required for the visa.",
   "onbResultPathParentsDocs": "The parents' papers",
-  "onbResultPathParentsDocsNote": "Official work, business or property papers — the embassy asks for these."
+  "onbResultPathParentsDocsNote": "Official work, business or property papers — the embassy asks for these.",
+  "catalogGuestUniTitle": "Guest University",
+  "catalogGuestUniWhere": "In Uzbekistan now",
+  "catalogGuestUniBadge": "Delegation visiting Samarkand"
 }

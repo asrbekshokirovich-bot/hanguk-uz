@@ -1158,5 +1158,8 @@
   "onbResultPathDeposit": "KDB depozitni tayyorlash",
   "onbResultPathDepositNote": "Talaba nomiga {low}–{high}, kamida {months} oy — viza uchun majburiy.",
   "onbResultPathParentsDocs": "Ota-ona hujjatlari",
-  "onbResultPathParentsDocsNote": "Rasmiy ish, biznes yoki mulk hujjati — elchixona shularni so'raydi."
+  "onbResultPathParentsDocsNote": "Rasmiy ish, biznes yoki mulk hujjati — elchixona shularni so'raydi.",
+  "catalogGuestUniTitle": "Mehmon universitet",
+  "catalogGuestUniWhere": "Hozir O'zbekistonda",
+  "catalogGuestUniBadge": "Delegatsiya Samarqandda"
 }

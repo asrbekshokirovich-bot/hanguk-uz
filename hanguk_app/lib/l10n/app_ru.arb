@@ -1158,5 +1158,8 @@
   "onbResultPathDeposit": "Подготовить депозит KDB",
   "onbResultPathDepositNote": "{low}–{high} на имя студента, не менее {months} мес. — обязательно для визы.",
   "onbResultPathParentsDocs": "Документы родителей",
-  "onbResultPathParentsDocsNote": "Документы об официальной работе, бизнесе или имуществе — посольство запрашивает их."
+  "onbResultPathParentsDocsNote": "Документы об официальной работе, бизнесе или имуществе — посольство запрашивает их.",
+  "catalogGuestUniTitle": "Университет в гостях",
+  "catalogGuestUniWhere": "Сейчас в Узбекистане",
+  "catalogGuestUniBadge": "Делегация в Самарканде"
 }
