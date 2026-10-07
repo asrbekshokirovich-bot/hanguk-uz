@@ -1158,5 +1158,8 @@
   "onbResultPathDeposit": "KDB 예금 준비",
   "onbResultPathDepositNote": "학생 명의 {low}–{high}, 최소 {months}개월 — 비자 필수 요건.",
   "onbResultPathParentsDocs": "부모 서류",
-  "onbResultPathParentsDocsNote": "재직·사업·재산 서류 — 대사관이 요구합니다."
+  "onbResultPathParentsDocsNote": "재직·사업·재산 서류 — 대사관이 요구합니다.",
+  "catalogGuestUniTitle": "방문 대학",
+  "catalogGuestUniWhere": "현재 우즈베키스탄 방문",
+  "catalogGuestUniBadge": "사마르칸트 방문 대표단"
 }

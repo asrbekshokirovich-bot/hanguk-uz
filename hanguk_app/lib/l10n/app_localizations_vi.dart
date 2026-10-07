@@ -3453,4 +3453,13 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get onbResultPathParentsDocsNote =>
       'Official work, business or property papers — the embassy asks for these.';
+
+  @override
+  String get catalogGuestUniTitle => 'Guest University';
+
+  @override
+  String get catalogGuestUniWhere => 'In Uzbekistan now';
+
+  @override
+  String get catalogGuestUniBadge => 'Delegation visiting Samarkand';
 }

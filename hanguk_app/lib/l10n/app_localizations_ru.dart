@@ -3470,4 +3470,13 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get onbResultPathParentsDocsNote =>
       'Документы об официальной работе, бизнесе или имуществе — посольство запрашивает их.';
+
+  @override
+  String get catalogGuestUniTitle => 'Университет в гостях';
+
+  @override
+  String get catalogGuestUniWhere => 'Сейчас в Узбекистане';
+
+  @override
+  String get catalogGuestUniBadge => 'Делегация в Самарканде';
 }

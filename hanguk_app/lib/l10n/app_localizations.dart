@@ -6259,6 +6259,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Official work, business or property papers — the embassy asks for these.'**
   String get onbResultPathParentsDocsNote;
+
+  /// Eyebrow over the visiting-university card at the top of the catalogue; the app adds ' · 방문 중' after it.
+  ///
+  /// In en, this message translates to:
+  /// **'Guest University'**
+  String get catalogGuestUniTitle;
+
+  /// Right side of the visiting-university eyebrow: where the delegation is now.
+  ///
+  /// In en, this message translates to:
+  /// **'In Uzbekistan now'**
+  String get catalogGuestUniWhere;
+
+  /// Lime badge on the visiting university's photo.
+  ///
+  /// In en, this message translates to:
+  /// **'Delegation visiting Samarkand'**
+  String get catalogGuestUniBadge;
 }
 
 class _AppLocalizationsDelegate

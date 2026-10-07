@@ -15,6 +15,10 @@ import 'catalog_detail_screen.dart';
 import 'catalog_filter_screen.dart';
 import 'catalog_format.dart';
 
+/// The visiting delegation's university (Daegu Haany, 대구한의대학교), shown
+/// above the grid to everyone. Remove when the owner says the visit is over.
+const String kGuestUniversityId = '8f7d4351-c37d-4d26-b982-bfc76885225e';
+
 /// Design screen 01 — "Bosh sahifa: qidiruv va universitetlar": the search
 /// row with its filter button, the chips, and the two-column grid of
 /// university cards. Returned as slivers so both hosts can place it under
@@ -65,6 +69,8 @@ class CatalogBrowser extends ConsumerWidget {
       ),
       data: (all) {
         final list = applyCatalogFilter(all, filter);
+        // From the whole catalogue: the filters never hide the guest.
+        final guest = all.where((u) => u.institutionId == kGuestUniversityId).firstOrNull;
         final compare = ref.watch(catalogCompareProvider);
         final compareNotifier = ref.read(catalogCompareProvider.notifier);
         final title = filter.cities.length == 1
@@ -126,6 +132,19 @@ class CatalogBrowser extends ConsumerWidget {
                 ],
               ),
             ),
+            if (guest != null)
+              SliverToBoxAdapter(
+                child: _GuestUniversityBlock(
+                  university: guest,
+                  guideline: guidelineFor(guest, filter) ?? guest.primary,
+                  onTap: () => CatalogDetailScreen.open(
+                    context,
+                    university: guest,
+                    degree: filter.degree,
+                    isGuest: isGuest,
+                  ),
+                ),
+              ),
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(17, 16, 17, 12),
@@ -466,6 +485,219 @@ class _CompareChip extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// How far the guest card's photo is zoomed past its width: the design crops
+/// the campus out of the grid photo (960×540, cover-fitted there).
+const double _guestPhotoZoom = 1.17;
+
+/// "Mehmon universitet · 방문 중": the pulsing lime dot and "Hozir
+/// O'zbekistonda" over one wide card — the campus photo with the
+/// "Delegatsiya Samarqandda" badge, the type, the name and the city. A tap
+/// opens the detail page, compare mode or not.
+class _GuestUniversityBlock extends StatelessWidget {
+  const _GuestUniversityBlock({required this.university, required this.guideline, required this.onTap});
+
+  final CatalogUniversity university;
+  final CatalogGuideline guideline;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    final photo = campusPhotoAsset(university.institutionId);
+    final type = typeLabel(l, guideline.institutionType);
+    final city = university.city;
+
+    return Padding(
+      // The design's 6 px before the list.
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Flexible(
+                child: Row(
+                  children: [
+                    const _PulseDot(),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        '${l.catalogGuestUniTitle} · 방문 중',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: _inter(13, FontWeight.w700, SeoulColors.lime),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                l.catalogGuestUniWhere,
+                maxLines: 1,
+                style: _inter(13, FontWeight.w500, const Color(0x80FFFFFF)), // .5
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Semantics(
+            button: true,
+            child: GestureDetector(
+              key: const Key('catalog-guest-university'),
+              onTap: onTap,
+              behavior: HitTestBehavior.opaque,
+              child: Container(
+                padding: const EdgeInsets.all(7),
+                decoration: BoxDecoration(
+                  color: const Color(0x0FFFFFFF), // .06
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: const Color(0x8CD4E94C), width: 1.5), // lime .55
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    SizedBox(
+                      height: 150,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(14),
+                        child: Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            if (photo != null)
+                              ColoredBox(
+                                color: const Color(0xFF1C3764),
+                                // The design's framing: the grid photo zoomed
+                                // in on the campus, sky and hills cut off.
+                                child: LayoutBuilder(
+                                  builder: (context, box) => OverflowBox(
+                                    maxWidth: box.maxWidth * _guestPhotoZoom,
+                                    maxHeight: double.infinity,
+                                    alignment: Alignment.bottomCenter,
+                                    child: Image.asset(
+                                      photo,
+                                      width: box.maxWidth * _guestPhotoZoom,
+                                      fit: BoxFit.fitWidth,
+                                      cacheWidth: 960,
+                                    ),
+                                  ),
+                                ),
+                              )
+                            else
+                              _NameCover(name: university.nameKoShort ?? university.displayName, index: 0),
+                            Positioned(
+                              left: 10,
+                              bottom: 10,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                decoration: BoxDecoration(
+                                  color: SeoulColors.lime,
+                                  borderRadius: BorderRadius.circular(SeoulRadii.pill),
+                                ),
+                                child: Text(
+                                  l.catalogGuestUniBadge,
+                                  style: _inter(11, FontWeight.w700, const Color(0xFF0A1A34)),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(5, 0, 5, 6),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (type != null) ...[
+                            Text(type, style: _inter(12, FontWeight.w600, const Color(0xFF9DB8E8))),
+                            const SizedBox(height: 3),
+                          ],
+                          Text(
+                            university.displayName,
+                            style: _inter(17, FontWeight.w700, Colors.white, height: 1.2),
+                          ),
+                          if (city != null) ...[
+                            const SizedBox(height: 3),
+                            Text(city, style: _inter(12, FontWeight.w500, const Color(0x8CFFFFFF))), // .55
+                          ],
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The 8 px lime dot of the guest eyebrow. Its ring (hgPulse) grows to 9 px
+/// and fades every 1.6 s; still while the system turns motion off.
+class _PulseDot extends StatefulWidget {
+  const _PulseDot();
+
+  @override
+  State<_PulseDot> createState() => _PulseDotState();
+}
+
+class _PulseDotState extends State<_PulseDot> with SingleTickerProviderStateMixin {
+  late final AnimationController _pulse = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1600),
+  );
+
+  bool _still = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _still = MediaQuery.disableAnimationsOf(context);
+    if (_still) {
+      _pulse.stop();
+    } else if (!_pulse.isAnimating) {
+      _pulse.repeat();
+    }
+  }
+
+  @override
+  void dispose() {
+    _pulse.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _pulse,
+      builder: (context, _) {
+        final t = Curves.easeOut.transform(_pulse.value);
+        return Container(
+          width: 8,
+          height: 8,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: SeoulColors.lime,
+            boxShadow: _still
+                ? null
+                : [
+                    // box-shadow: 0 0 0 9px rgba(212,233,76,0) at 100%.
+                    BoxShadow(
+                      color: SeoulColors.lime.withValues(alpha: 0.7 * (1 - t)),
+                      spreadRadius: 9 * t,
+                    ),
+                  ],
+          ),
+        );
+      },
     );
   }
 }

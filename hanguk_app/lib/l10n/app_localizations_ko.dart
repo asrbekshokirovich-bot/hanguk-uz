@@ -3313,4 +3313,13 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get onbResultPathParentsDocsNote => '재직·사업·재산 서류 — 대사관이 요구합니다.';
+
+  @override
+  String get catalogGuestUniTitle => '방문 대학';
+
+  @override
+  String get catalogGuestUniWhere => '현재 우즈베키스탄 방문';
+
+  @override
+  String get catalogGuestUniBadge => '사마르칸트 방문 대표단';
 }

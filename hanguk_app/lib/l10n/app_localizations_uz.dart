@@ -3464,4 +3464,13 @@ class AppLocalizationsUz extends AppLocalizations {
   @override
   String get onbResultPathParentsDocsNote =>
       'Rasmiy ish, biznes yoki mulk hujjati — elchixona shularni so\'raydi.';
+
+  @override
+  String get catalogGuestUniTitle => 'Mehmon universitet';
+
+  @override
+  String get catalogGuestUniWhere => 'Hozir O\'zbekistonda';
+
+  @override
+  String get catalogGuestUniBadge => 'Delegatsiya Samarqandda';
 }
