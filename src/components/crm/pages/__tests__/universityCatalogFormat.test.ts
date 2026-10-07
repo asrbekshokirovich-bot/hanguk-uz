@@ -379,6 +379,12 @@ describe('offeredLevels va matchesLevel', () => {
     ]);
   });
 
+  it('hidden_levels‘dagi daraja ko‘rinmaydi (교육대학교da bakalavr yo‘q)', () => {
+    const kyodae = uni({ institution_type: 'education_university', hidden_levels: ['bakalavr'] });
+    expect(offeredLevels(kyodae)).toEqual(['magistratura']);
+    expect(matchesLevel(kyodae, 'bakalavr')).toBe(false);
+  });
+
   it('"hammasi" hammani o‘tkazadi, aks holda daraja bo‘lishi shart', () => {
     const kollej = uni({ institution_type: 'junior_college' });
     expect(matchesLevel(kollej, 'hammasi')).toBe(true);
