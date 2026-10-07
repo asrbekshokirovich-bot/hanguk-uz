@@ -489,6 +489,10 @@ class _CompareChip extends StatelessWidget {
   }
 }
 
+/// How far the guest card's photo is zoomed past its width: the design crops
+/// the campus out of the grid photo (960×540, cover-fitted there).
+const double _guestPhotoZoom = 1.17;
+
 /// "Mehmon universitet · 방문 중": the pulsing lime dot and "Hozir
 /// O'zbekistonda" over one wide card — the campus photo with the
 /// "Delegatsiya Samarqandda" badge, the type, the name and the city. A tap
@@ -567,7 +571,21 @@ class _GuestUniversityBlock extends StatelessWidget {
                             if (photo != null)
                               ColoredBox(
                                 color: const Color(0xFF1C3764),
-                                child: Image.asset(photo, fit: BoxFit.cover, cacheWidth: 800),
+                                // The design's framing: the grid photo zoomed
+                                // in on the campus, sky and hills cut off.
+                                child: LayoutBuilder(
+                                  builder: (context, box) => OverflowBox(
+                                    maxWidth: box.maxWidth * _guestPhotoZoom,
+                                    maxHeight: double.infinity,
+                                    alignment: Alignment.bottomCenter,
+                                    child: Image.asset(
+                                      photo,
+                                      width: box.maxWidth * _guestPhotoZoom,
+                                      fit: BoxFit.fitWidth,
+                                      cacheWidth: 960,
+                                    ),
+                                  ),
+                                ),
                               )
                             else
                               _NameCover(name: university.nameKoShort ?? university.displayName, index: 0),
