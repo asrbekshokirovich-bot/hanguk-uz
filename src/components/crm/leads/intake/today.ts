@@ -7,8 +7,8 @@ import { isNewLead } from './sla';
  * sits here for the rest of its day, and moves to "Lidlar" at 00:00.
  *
  * A lead arrives when it becomes a lead: for an Instagram/Telegram chat that is
- * the moment its phone number came (`new_lead_at`), for any other lead the
- * moment it was created.
+ * its first message (`new_lead_at`), for any other lead the moment it was
+ * created.
  *
  * A lead that arrives on a day off or after working hours has its 10-minute
  * countdown start on the next working day at 10:00 (`sla_start_at`). It also
