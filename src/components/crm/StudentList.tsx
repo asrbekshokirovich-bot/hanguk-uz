@@ -189,8 +189,10 @@ export function StudentList({
 
   const getUniversityName = (university?: Tables<'universities'>) => {
     if (!university) return '';
-    const nameKey = `name_${currentLang}` as keyof Tables<'universities'>;
-    return (university[nameKey] as string) || university.name_uz || '';
+    // The rows come from `institutions`, which only has name_en and name_ko,
+    // so fall back to those when the interface language has no column.
+    const names = university as unknown as Record<string, string | null | undefined>;
+    return names[`name_${currentLang}`] || names.name_uz || names.name_en || names.name_ko || '';
   };
 
   // Every number a student has. Newer records keep the second one in
