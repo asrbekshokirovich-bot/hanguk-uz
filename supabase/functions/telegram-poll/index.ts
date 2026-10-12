@@ -215,11 +215,18 @@ async function pullDifference(
     }
 
     await rememberPeers(supabase, diff.users ?? []);
-    await ingestMessages(client, selfId, diff.newMessages ?? [], diff.users ?? []);
+    const withMedia = await ingestMessages(selfId, diff.newMessages ?? [], diff.users ?? []);
 
+    // Saved as soon as the text is stored, before any attachment is fetched.
+    // Downloads are the expensive part of a run: when one ran the function
+    // out of CPU time the position was never saved, and from 2026-09-30 every
+    // run replayed the same slice and died on the same files, so nothing
+    // after it reached the CRM.
     const next = diff.className === "updates.DifferenceSlice" ? diff.intermediateState : diff.state;
     state = { pts: next.pts, qts: next.qts, date: next.date, seq: next.seq };
     await save(supabase, state);
+
+    await mirrorMedia(client, withMedia);
     if (diff.className === "updates.Difference") return state;
   }
   return state;
@@ -240,16 +247,21 @@ async function save(supabase: Supabase, s: PollState): Promise<void> {
 }
 
 /**
- * Store the 1:1 messages in a batch, then fetch their attachments.
+ * Store the 1:1 messages in a batch and return the ones whose attachments
+ * still have to be fetched (mirrorMedia).
  *
  * Text first, files second, on purpose. A download that fails, or that runs
  * this function out of time, must not take the message down with it — and it
- * must not come back every minute either, which is what would happen if the
- * position were only saved after the files. telegram-ingest attaches a file to
- * a message it already has when the same message is delivered again with the
- * bytes, so the second pass is a plain re-delivery.
+ * must not come back every minute either, which is why the caller saves the
+ * position between the two. telegram-ingest attaches a file to a message it
+ * already has when the same message is delivered again with the bytes, so the
+ * second pass is a plain re-delivery.
  */
-async function ingestMessages(client: TelegramClient, selfId: string, messages: any[], users: any[]) {
+async function ingestMessages(
+  selfId: string,
+  messages: any[],
+  users: any[],
+): Promise<{ message: any; event: any }[]> {
   const byId = new Map<string, any>(users.map((u: any) => [String(u.id), u]));
   const kept: { message: any; event: any }[] = [];
 
@@ -263,12 +275,14 @@ async function ingestMessages(client: TelegramClient, selfId: string, messages: 
     if (!m.message && !mediaType(m)) continue;
     kept.push({ message: m, event: toEvent(peer, m) });
   }
-  if (!kept.length) return;
+  if (!kept.length) return [];
 
   await postEvents(kept.map((k) => k.event));
+  return kept.filter((k) => k.event.message.media_type);
+}
 
+async function mirrorMedia(client: TelegramClient, kept: { message: any; event: any }[]) {
   for (const k of kept) {
-    if (!k.event.message.media_type) continue;
     const withMedia = await attachMedia(client, k.message, k.event);
     if (withMedia) await postEvents([withMedia]).catch((e) => console.error("media post:", errText(e)));
   }
