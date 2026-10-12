@@ -19,7 +19,6 @@ import {
   matchesSearch,
   offeredLevels,
   operatorCities,
-  resolveUploadInstitution,
   romanKey,
 } from '../university-catalog/format';
 
@@ -438,118 +437,5 @@ describe('daraja tanlanganda ma‘lumot filtrlari', () => {
     expect(focusGuideline(ikkalasi, 'magistratura')?.id).toBe('m');
     expect(focusGuideline(ikkalasi, 'hammasi')?.id).toBe('b');
     expect(focusGuideline(faqatBakalavr, 'kasbiy')).toBeNull();
-  });
-});
-
-describe('resolveUploadInstitution', () => {
-  function college(id: string, name_ko: string, guidelines: GuidelineSummary[] = []): CatalogEntry {
-    const e = uni(
-      { name_ko, name_en: `${name_ko} College`, primary_domain: 'dhc.ac.kr', institution_type: 'junior_college' },
-      guidelines,
-    );
-    e.institution.id = id;
-    return e;
-  }
-
-  const jbnu = entry();
-  const list = [college('a', '대구보건대학교'), college('b', '동아보건대학교'), jbnu];
-
-  it('univ_kod bitta universitetga mos kelsa — o‘sha (katta-kichik harf farqsiz)', () => {
-    expect(
-      resolveUploadInstitution(list, { guideline_id: 'jbnu_2027_kuz_bakalavr', univ_kod: 'JBNU' }),
-    ).toEqual({ institutionId: 'i1', error: null });
-  });
-
-  it('bir nechta universitetga mos kelsa — nomlari bilan xato, jimgina tanlamaydi', () => {
-    const result = resolveUploadInstitution(list, {
-      guideline_id: 'dhc_2027_bahor_kasbiy',
-      univ_kod: 'dhc',
-    });
-    expect(result.institutionId).toBeNull();
-    expect(result.error).toContain('대구보건대학교, 동아보건대학교');
-    expect(result.error).toContain('kartasini oching');
-  });
-
-  it('avval yuklangan guideline qayta yuklansa — o‘z universitetida qoladi', () => {
-    const loaded = guideline({ id: 'k1', guideline_id: 'dhc_2027_bahor_kasbiy', daraja: 'kasbiy' });
-    const withLoaded = [college('a', '대구보건대학교'), college('b', '동아보건대학교', [loaded])];
-    expect(
-      resolveUploadInstitution(withLoaded, { guideline_id: 'dhc_2027_bahor_kasbiy', univ_kod: 'dhc' }),
-    ).toEqual({ institutionId: 'b', error: null });
-  });
-
-  it('univ_kod domenga mos kelmasa — fayldagi koreyscha nom bo‘yicha topadi', () => {
-    const kimpo = uni({ name_ko: '김포대학교', name_en: 'Gimpo University', primary_domain: 'gimpo.ac.kr' });
-    kimpo.institution.id = 'kimpo';
-    expect(
-      resolveUploadInstitution([...list, kimpo], {
-        guideline_id: 'kimpo_2027_bahor_kasbiy',
-        univ_kod: 'kimpo',
-        univ_nomi_kr: '김포대학교',
-      }),
-    ).toEqual({ institutionId: 'kimpo', error: null });
-  });
-
-  it('koreyscha nom yo‘q bo‘lsa — inglizcha nom bo‘yicha, yozuv farqi bilan ham', () => {
-    const kimpo = uni({ name_ko: '김포대학교', name_en: 'Gimpo University', primary_domain: 'gimpo.ac.kr' });
-    kimpo.institution.id = 'kimpo';
-    expect(
-      resolveUploadInstitution([...list, kimpo], {
-        guideline_id: 'kimpo_2027_bahor_kasbiy',
-        univ_kod: 'kimpo',
-        univ_nomi_en: 'Kimpo University',
-      }),
-    ).toEqual({ institutionId: 'kimpo', error: null });
-  });
-
-  it('fayldagi nomga qo‘shilgan "대학원", "국립" va " — Graduate School" xalaqit bermaydi', () => {
-    expect(
-      resolveUploadInstitution(list, {
-        guideline_id: 'jbnu_grad_2027_bahor_magistratura',
-        univ_kod: 'jbnu_grad',
-        univ_nomi_kr: '국립전북대학교 대학원',
-      }),
-    ).toEqual({ institutionId: 'i1', error: null });
-    expect(
-      resolveUploadInstitution(list, {
-        guideline_id: 'jbnu_grad_2027_kuz_magistratura',
-        univ_kod: 'jbnu_grad',
-        univ_nomi_en: 'Jeonbuk National University — Graduate School',
-      }),
-    ).toEqual({ institutionId: 'i1', error: null });
-  });
-
-  it('univ_kod boshqa universitet domeniga to‘g‘ri kelsa ham fayldagi nom ustun turadi', () => {
-    const kwangwoon = uni({ name_ko: '광운대학교', name_en: 'Kwangwoon University', primary_domain: 'kw.ac.kr' });
-    kwangwoon.institution.id = 'kw';
-    const kwangjuWomen = uni({
-      name_ko: '광주여자대학교',
-      name_en: "Kwangju Women's University",
-      primary_domain: 'kwu.ac.kr',
-    });
-    kwangjuWomen.institution.id = 'kwu';
-    expect(
-      resolveUploadInstitution([kwangwoon, kwangjuWomen], {
-        guideline_id: 'kwu_2027_kuz_bakalavr',
-        univ_kod: 'kwu',
-        univ_nomi_kr: '광운대학교',
-      }),
-    ).toEqual({ institutionId: 'kw', error: null });
-  });
-
-  it('bir xil univ_kod‘li kollejlarni fayldagi koreyscha nom ajratadi', () => {
-    expect(
-      resolveUploadInstitution(list, {
-        guideline_id: 'dhc_2027_bahor_kasbiy',
-        univ_kod: 'dhc',
-        univ_nomi_kr: '동아보건대학교',
-      }),
-    ).toEqual({ institutionId: 'b', error: null });
-  });
-
-  it('katalogda bo‘lmasa (masalan, yashirilgan bo‘lsa) — xato', () => {
-    const result = resolveUploadInstitution(list, { guideline_id: 'gtc_2027', univ_kod: 'gtc' });
-    expect(result.institutionId).toBeNull();
-    expect(result.error).toContain('topilmadi');
   });
 });

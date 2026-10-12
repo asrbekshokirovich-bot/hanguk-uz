@@ -41,23 +41,21 @@ import {
 import { parseGuidelineWorkbook } from '@/lib/universityGuidelineExcel';
 import {
   AlertTriangle,
-  Download,
   GraduationCap,
   Loader2,
   Plus,
   Search,
-  UploadCloud,
 } from 'lucide-react';
 import { UniversityCard } from './university-catalog/UniversityCard';
 import { GuidelineDetailSheet } from './university-catalog/GuidelineDetailSheet';
 import {
   DEGREE_LEVELS,
+  levelLabel,
   matchesFilter,
   matchesLevel,
   matchesOperatorFilter,
   matchesSearch,
   operatorCities,
-  resolveUploadInstitution,
   type CatalogFilter,
   type DegreeLevel,
   type LevelFilter,
@@ -84,15 +82,6 @@ const INSTITUTION_TYPES = [
   { value: 'specialized', label: 'Ixtisoslashgan' },
   { value: 'cyber', label: 'Onlayn (cyber)' },
   { value: 'education_university', label: 'Pedagogika' },
-];
-
-const TEMPLATE_URL = '/templates/universitet-guideline-shablon.xlsx';
-
-/** Excel yuklash tugmalari faqat shu uch daraja uchun — qolgani ("transfer" va h.k.) hozircha alohida tugma olmaydi. */
-const UPLOAD_BUTTONS: { daraja: DegreeLevel; label: string }[] = [
-  { daraja: 'bakalavr', label: 'Excel bakalavr' },
-  { daraja: 'magistratura', label: 'Excel magistr' },
-  { daraja: 'kasbiy', label: 'Excel kasbiy' },
 ];
 
 /** Daraja filtri: barcha darajalar + har bir daraja alohida. */
@@ -144,11 +133,11 @@ export default function UniversityCatalogContent() {
   const [addOpen, setAddOpen] = useState(false);
   const [newFields, setNewFields] = useState(emptyNewInstitution);
 
-  // Yuklash bitta universitet kartasidan ham, yuqoridagi umumiy tugmadan ham
-  // boshlanishi mumkin — maqsad shu ref'da turadi. Tugma qaysi daraja uchun
-  // ekani ham shu yerda saqlanadi, faylni tekshirishda solishtirish uchun.
+  // Excel universitet panelidagi tugmadan yuklanadi — qaysi universitet va
+  // qaysi daraja uchun ekani shu ref'da turadi, faylni tekshirishda
+  // solishtirish uchun.
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const uploadTarget = useRef<{ institutionId: string | null; daraja: DegreeLevel } | null>(null);
+  const uploadTarget = useRef<{ institutionId: string; daraja: DegreeLevel } | null>(null);
 
   // Daraja va qolgan filtrlar birga. Daraja tugmalari yonidagi sonlar ham shu
   // bilan hisoblanadi — son o'sha tugma bosilgandagi natijaga teng bo'ladi.
@@ -185,7 +174,7 @@ export default function UniversityCatalogContent() {
 
   const resetPaging = () => setVisible(PAGE_SIZE);
 
-  const startUpload = (institutionId: string | null, daraja: DegreeLevel) => {
+  const startUpload = (institutionId: string, daraja: DegreeLevel) => {
     uploadTarget.current = { institutionId, daraja };
     fileInputRef.current?.click();
   };
@@ -208,11 +197,11 @@ export default function UniversityCatalogContent() {
       return;
     }
 
-    // Xodim "Excel bakalavr" tugmasidan magistratura faylini yuklab qo'ymasin —
-    // fayldagi daraja bosilgan tugmaga mos kelishi shart.
+    // Xodim "Excel bakalavr yuklash" tugmasidan magistratura faylini yuklab
+    // qo'ymasin — fayldagi daraja bosilgan tugmaga mos kelishi shart.
     const fileDaraja = parsed.payload.universitet.daraja;
     if (fileDaraja !== target.daraja) {
-      const expectedLabel = UPLOAD_BUTTONS.find((b) => b.daraja === target.daraja)?.label ?? target.daraja;
+      const expectedLabel = `Excel ${levelLabel(target.daraja).toLowerCase()} yuklash`;
       setReport({
         fileName: file.name,
         errors: [
@@ -226,32 +215,10 @@ export default function UniversityCatalogContent() {
       return;
     }
 
-    // Umumiy tugmadan yuklanganda universitet shu yerda tanlanadi (format.ts'dagi izohga qarang).
-    let institutionId = target.institutionId;
-    if (!institutionId) {
-      const u = parsed.payload.universitet;
-      const resolved = resolveUploadInstitution(entries, {
-        guideline_id: String(u.guideline_id),
-        univ_kod: String(u.univ_kod),
-        univ_nomi_kr: typeof u.univ_nomi_kr === 'string' ? u.univ_nomi_kr : null,
-        univ_nomi_en: typeof u.univ_nomi_en === 'string' ? u.univ_nomi_en : null,
-      });
-      if (resolved.error || !resolved.institutionId) {
-        setReport({
-          fileName: file.name,
-          errors: [resolved.error ?? 'Universitet topilmadi'],
-          warnings: parsed.warnings,
-          imported: null,
-        });
-        return;
-      }
-      institutionId = resolved.institutionId;
-    }
-
     try {
       const outcome = await importGuideline.mutateAsync({
         payload: parsed.payload,
-        institutionId,
+        institutionId: target.institutionId,
       });
       setReport({
         fileName: file.name,
@@ -317,7 +284,7 @@ export default function UniversityCatalogContent() {
         onChange={onFileChosen}
       />
 
-      {/* Sarlavha qatori: chapda hisob, o'ngda qidiruv va yuklash */}
+      {/* Sarlavha qatori: chapda hisob, o'ngda qidiruv. Excel universitet panelidan yuklanadi. */}
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <GraduationCap className="h-4 w-4" aria-hidden="true" />
@@ -345,32 +312,6 @@ export default function UniversityCatalogContent() {
               aria-label="Universitet qidirish"
             />
           </div>
-
-          {canEdit && (
-            <div className="flex flex-wrap items-center gap-2">
-              <Button variant="outline" size="sm" asChild>
-                <a href={TEMPLATE_URL} download>
-                  <Download className="mr-2 h-4 w-4" />
-                  Shablon
-                </a>
-              </Button>
-              {UPLOAD_BUTTONS.map((b) => (
-                <Button
-                  key={b.daraja}
-                  size="sm"
-                  onClick={() => startUpload(null, b.daraja)}
-                  disabled={importGuideline.isPending || loading}
-                >
-                  {importGuideline.isPending ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    <UploadCloud className="mr-2 h-4 w-4" />
-                  )}
-                  {b.label}
-                </Button>
-              ))}
-            </div>
-          )}
         </div>
       </div>
 
