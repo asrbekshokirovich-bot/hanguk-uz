@@ -973,7 +973,7 @@ export function StudentDetail({
   return (
     <>
       <Sheet open={true} onOpenChange={() => onBack()}>
-        <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
+        <SheetContent className="w-full sm:max-w-full overflow-y-auto">
           <SheetHeader className="space-y-0 pb-4">
             <div className="rounded-lg border border-border bg-card p-5 shadow-card">
               {/* Hero */}
