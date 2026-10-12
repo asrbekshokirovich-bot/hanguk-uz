@@ -363,9 +363,9 @@ async function ingestOne(
   }
 
   // A person writing to us in a private chat is a lead, exactly as an
-  // Instagram DM is. ensureIdentity creates it — hidden as unqualified until a
-  // phone number arrives, which fn_capture_phone_from_message then reads off
-  // this very message: the moment it lands in CRM → Aloqa → "Yangi lid".
+  // Instagram DM is. ensureIdentity creates it, and it lands in CRM → Aloqa →
+  // "Yangi lid" at once, phone or not (owner, 2026-10-12); a number typed into
+  // the chat is added later by fn_capture_phone_from_message.
   // Only a live, new, incoming 1:1 message does this; staff writing first,
   // groups, saved messages and history replayed by a backfill only look the
   // person up, so old conversations never become new leads.
