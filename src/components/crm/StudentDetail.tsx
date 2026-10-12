@@ -44,7 +44,8 @@ import {
   RefreshCw,
   Lightbulb,
   Search,
-  GraduationCap
+  GraduationCap,
+  Wallet
 } from 'lucide-react';
 import {
   Dialog,
@@ -1129,178 +1130,189 @@ export function StudentDetail({
             </div>
 
             {/* Profile Tab */}
-            <TabsContent value="profile" className="space-y-6 mt-6">
-              {/* Personal Information */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold">{t('crm.personalInfo')}</h3>
+            <TabsContent value="profile" className="mt-6">
+              <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-2">
+                {/* Personal Information */}
+                <section className="space-y-4 rounded-lg border border-border bg-card p-5 shadow-card">
+                  <div className="flex items-center gap-2.5">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                      <User className="h-4 w-4" />
+                    </span>
+                    <h3 className="text-base font-semibold">{t('crm.personalInfo')}</h3>
+                  </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-muted-foreground">{t('auth.fullName')}</Label>
-                    <div className="flex items-center gap-2 bg-muted/50 rounded-lg p-3">
-                      <span className="text-foreground">{student.full_name || '-'}</span>
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div className="space-y-1.5 md:col-span-2">
+                      <Label className="text-xs font-medium text-muted-foreground">{t('auth.fullName')}</Label>
+                      <div className="flex min-h-11 items-center gap-2 rounded-lg bg-muted/50 px-3">
+                        <User className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm text-foreground">{student.full_name || '-'}</span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-medium text-muted-foreground">{t('common.phone')}</Label>
+                      <div className="flex min-h-11 items-center gap-2 rounded-lg bg-muted/50 px-3">
+                        {student.phone ? (
+                          <ClickToCall phoneNumber={student.phone} studentId={student.user_id} />
+                        ) : (
+                          <>
+                            <Phone className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-sm text-foreground">-</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-medium text-muted-foreground">{t('crm.birthDate')}</Label>
+                      <div className="flex min-h-11 items-center gap-2 rounded-lg bg-muted/50 px-3">
+                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm text-foreground">
+                          {student.birth_date ? format(new Date(student.birth_date), 'yyyy-MM-dd') : '-'}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5 md:col-span-2">
+                      <Label className="text-xs font-medium text-muted-foreground">{t('crm.officeLocation')}</Label>
+                      <div className="flex min-h-11 items-center gap-2 rounded-lg bg-muted/50 px-3">
+                        <MapPin className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm text-foreground">{student.office_location || '-'}</span>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label className="text-muted-foreground">{t('common.phone')}</Label>
-                    <div className="flex items-center gap-2 bg-muted/50 rounded-lg p-3">
-                      {student.phone ? (
-                        <ClickToCall phoneNumber={student.phone} studentId={student.user_id} />
-                      ) : (
-                        <>
-                          <Phone className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-foreground">-</span>
-                        </>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-medium text-muted-foreground">{t('applications.selectDegree', { defaultValue: 'Daraja' })}</Label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {[
+                        { value: 'bachelor', label: t('applications.degreeBachelor', { defaultValue: 'Bakalavr' }) },
+                        { value: 'master', label: t('applications.degreeMaster', { defaultValue: 'Magistratura' }) },
+                        { value: 'vocational', label: t('applications.degreeVocational', { defaultValue: "Kasbiy ta'lim" }) },
+                      ].map((opt) => (
+                        <Button
+                          key={opt.value}
+                          type="button"
+                          variant={currentDegree === opt.value ? 'default' : 'outline'}
+                          disabled={degreeSaving !== null}
+                          onClick={() => handleSetDegree(opt.value)}
+                        >
+                          {opt.label}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Magic Code / Access Code */}
+                  {(student as any).magic_code && (
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-medium text-muted-foreground">{t('auth.accessCode')}</Label>
+                      <div className="flex items-center justify-between rounded-lg border border-primary/20 bg-primary/5 px-3 py-2.5">
+                        <div className="flex items-center gap-2">
+                          <KeyRound className="h-4 w-4 text-primary" />
+                          <span className="font-mono font-bold tracking-widest text-primary">
+                            {(student as any).magic_code}
+                          </span>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={async () => {
+                            await navigator.clipboard.writeText((student as any).magic_code);
+                            toast({ title: 'Code copied!' });
+                          }}
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </section>
+
+                {/* Payment Plan & Contract */}
+                <section className="space-y-4 rounded-lg border border-border bg-card p-5 shadow-card">
+                  <div className="flex items-center gap-2.5">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                      <Wallet className="h-4 w-4" />
+                    </span>
+                    <h3 className="text-base font-semibold">{t('crm.paymentContract')}</h3>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-medium text-muted-foreground">{t('crm.selectPlan')}</Label>
+                      <Select value={currentPaymentPlan} onValueChange={handlePaymentPlanChange}>
+                        <SelectTrigger className="bg-muted/50">
+                          <span className="flex items-center gap-2">
+                            <CreditCard className="h-4 w-4 text-muted-foreground" />
+                            <SelectValue placeholder={t('crm.selectPlan')} />
+                          </span>
+                        </SelectTrigger>
+                        <SelectContent>
+                          {paymentPlans.map((plan) => (
+                            <SelectItem key={plan.value} value={plan.value}>
+                              {plan.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {savingPaymentPlan && (
+                        <p className="text-xs text-muted-foreground">Saving…</p>
+                      )}
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-medium text-muted-foreground">{t('student.paymentMode') || 'Payment Mode'}</Label>
+                      <Select value={currentPaymentMode} onValueChange={handlePaymentModeChange}>
+                        <SelectTrigger className="bg-muted/50">
+                          <SelectValue placeholder="Select payment mode" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="one_time">One-time Payment</SelectItem>
+                          <SelectItem value="installment" disabled={!planAllowsInstallment(currentPaymentPlan)}>
+                            2 Installments
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {savingPaymentMode && (
+                        <p className="text-xs text-muted-foreground">Saving…</p>
                       )}
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label className="text-muted-foreground">{t('crm.birthDate')}</Label>
-                    <div className="flex items-center gap-2 bg-muted/50 rounded-lg p-3">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-foreground">
-                        {student.birth_date ? format(new Date(student.birth_date), 'yyyy-MM-dd') : '-'}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-muted-foreground">{t('crm.officeLocation')}</Label>
-                  <div className="flex items-center gap-2 bg-muted/50 rounded-lg p-3">
-                    <MapPin className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-foreground">{student.office_location || '-'}</span>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-muted-foreground">{t('applications.selectDegree', { defaultValue: 'Daraja' })}</Label>
-                  <div className="grid grid-cols-3 gap-2">
-                    {[
-                      { value: 'bachelor', label: t('applications.degreeBachelor', { defaultValue: 'Bakalavr' }) },
-                      { value: 'master', label: t('applications.degreeMaster', { defaultValue: 'Magistratura' }) },
-                      { value: 'vocational', label: t('applications.degreeVocational', { defaultValue: "Kasbiy ta'lim" }) },
-                    ].map((opt) => (
-                      <Button
-                        key={opt.value}
-                        type="button"
-                        variant={currentDegree === opt.value ? 'default' : 'outline'}
-                        disabled={degreeSaving !== null}
-                        onClick={() => handleSetDegree(opt.value)}
-                      >
-                        {opt.label}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Magic Code / Access Code */}
-                {(student as any).magic_code && (
-                  <div className="space-y-2">
-                    <Label className="text-muted-foreground">{t('auth.accessCode')}</Label>
-                    <div className="flex items-center justify-between bg-primary/5 border border-primary/20 rounded-lg p-3">
-                      <div className="flex items-center gap-2">
-                        <KeyRound className="h-4 w-4 text-primary" />
-                        <span className="font-mono font-bold tracking-widest text-primary">
-                          {(student as any).magic_code}
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-medium text-muted-foreground">{t('crm.contractDate')}</Label>
+                      <div className="flex min-h-11 items-center gap-2 rounded-lg bg-muted/50 px-3">
+                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm text-foreground">
+                          {student.contract_date ? format(new Date(student.contract_date), 'MMMM do, yyyy') : '-'}
                         </span>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={async () => {
-                          await navigator.clipboard.writeText((student as any).magic_code);
-                          toast({ title: 'Code copied!' });
-                        }}
-                      >
-                        <Copy className="h-4 w-4" />
-                      </Button>
                     </div>
-                  </div>
-                )}
-              </div>
-
-              <Separator />
-
-              {/* Payment Plan & Contract */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold">{t('crm.paymentContract')}</h3>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-muted-foreground">{t('crm.selectPlan')}</Label>
-                    <Select value={currentPaymentPlan} onValueChange={handlePaymentPlanChange}>
-                      <SelectTrigger className="bg-muted/50">
-                        <span className="flex items-center gap-2">
-                          <CreditCard className="h-4 w-4 text-muted-foreground" />
-                          <SelectValue placeholder={t('crm.selectPlan')} />
-                        </span>
-                      </SelectTrigger>
-                      <SelectContent>
-                        {paymentPlans.map((plan) => (
-                          <SelectItem key={plan.value} value={plan.value}>
-                            {plan.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {savingPaymentPlan && (
-                      <p className="text-xs text-muted-foreground">Saving…</p>
-                    )}
+                    <ContractUpload
+                      value={(student as any).contract_url || ''}
+                      onChange={async (url) => {
+                        await supabase
+                          .from('profiles')
+                          .update({ contract_url: url })
+                          .eq('user_id', student.user_id);
+                        onRefresh();
+                      }}
+                      studentId={student.user_id}
+                    />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label className="text-muted-foreground">{t('student.paymentMode') || 'Payment Mode'}</Label>
-                    <Select value={currentPaymentMode} onValueChange={handlePaymentModeChange}>
-                      <SelectTrigger className="bg-muted/50">
-                        <SelectValue placeholder="Select payment mode" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="one_time">One-time Payment</SelectItem>
-                        <SelectItem value="installment" disabled={!planAllowsInstallment(currentPaymentPlan)}>
-                          2 Installments
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                    {savingPaymentMode && (
-                      <p className="text-xs text-muted-foreground">Saving…</p>
-                    )}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-muted-foreground">{t('crm.contractDate')}</Label>
-                    <div className="flex items-center gap-2 bg-muted/50 rounded-lg p-3">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-foreground">
-                        {student.contract_date ? format(new Date(student.contract_date), 'MMMM do, yyyy') : '-'}
+                  {student.payment_plan && (
+                    <div className="flex items-start gap-2 rounded-lg bg-primary/10 p-3">
+                      <StickyNote className="mt-0.5 h-4 w-4 text-primary" />
+                      <span className="text-sm text-foreground">
+                        {getPaymentPlanDescription(student.payment_plan)}
                       </span>
                     </div>
-                  </div>
-                  <ContractUpload
-                    value={(student as any).contract_url || ''}
-                    onChange={async (url) => {
-                      await supabase
-                        .from('profiles')
-                        .update({ contract_url: url })
-                        .eq('user_id', student.user_id);
-                      onRefresh();
-                    }}
-                    studentId={student.user_id}
-                  />
-                </div>
-
-                {student.payment_plan && (
-                  <div className="bg-primary/10 rounded-lg p-3 flex items-start gap-2">
-                    <StickyNote className="h-4 w-4 text-primary mt-0.5" />
-                    <span className="text-sm text-foreground">
-                      {getPaymentPlanDescription(student.payment_plan)}
-                    </span>
-                  </div>
-                )}
+                  )}
+                </section>
               </div>
             </TabsContent>
 
