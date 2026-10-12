@@ -45,7 +45,6 @@ function uni(
   institution_type: string,
   guidelines: GuidelineSummary[] = [],
   name_ko = `${name_en} 대학교`,
-  primary_domain = `${id}.ac.kr`,
 ): CatalogEntry {
   return {
     institution: {
@@ -55,7 +54,7 @@ function uni(
       name_ko_short: null,
       city_ko: null,
       region_code: null,
-      primary_domain,
+      primary_domain: `${id}.ac.kr`,
       institution_type,
       tier: null,
       is_partner: false,
@@ -168,17 +167,18 @@ describe('Universitetlar — daraja filtri', () => {
     expect(shownUniversities()).toEqual(['Daegu Health College', 'Yeungjin University']);
   });
 
-  it('kasbiy ta‘lim Excel‘i uchun alohida yuklash tugmasi bor', () => {
+  it('sarlavhada Shablon va umumiy Excel tugmalari yo‘q — Excel universitet panelidan yuklanadi', () => {
     render(<UniversityCatalogContent />);
-    expect(screen.getByRole('button', { name: 'Excel bakalavr' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Excel magistr' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Excel kasbiy' })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /Shablon/ })).not.toBeInTheDocument();
+    for (const name of ['Excel bakalavr', 'Excel magistr', 'Excel kasbiy']) {
+      expect(screen.queryByRole('button', { name })).not.toBeInTheDocument();
+    }
   });
 });
 
-describe('Universitetlar — umumiy tugmadan Excel yuklash', () => {
-  /** Faylni "Excel kasbiy" tugmasi orqali tanlagandek qiladi. */
-  async function uploadVia(button: string, payload: { guideline_id: string; univ_kod: string; daraja: string }) {
+describe('Universitetlar — universitet panelidan Excel yuklash', () => {
+  /** Universitet kartasini ochib, panelda "Excel kasbiy ta'lim yuklash" orqali fayl tanlaydi. */
+  async function uploadFromPanel(university: string, payload: { guideline_id: string; univ_kod: string; daraja: string }) {
     mocks.parsed = {
       ok: true,
       payload: { fayl_nomi: 'f.xlsx', universitet: payload, muddatlar: [], fakultetlar: [], hujjatlar: [] },
@@ -186,7 +186,8 @@ describe('Universitetlar — umumiy tugmadan Excel yuklash', () => {
       warnings: [],
     };
     const { container } = render(<UniversityCatalogContent />);
-    fireEvent.click(screen.getByRole('button', { name: button }));
+    fireEvent.click(screen.getByText(university));
+    fireEvent.click(screen.getAllByRole('button', { name: "Excel kasbiy ta'lim yuklash" })[0]);
     const input = container.querySelector('input[type="file"]') as HTMLInputElement;
     const file = new File(['x'], 'f.xlsx');
     Object.defineProperty(file, 'arrayBuffer', { value: async () => new ArrayBuffer(1) });
@@ -195,28 +196,25 @@ describe('Universitetlar — umumiy tugmadan Excel yuklash', () => {
     });
   }
 
-  it('univ_kod ikki kollejga mos kelsa — yuklamaydi, kartadan yuklashni so‘raydi', async () => {
-    mocks.entries = [
-      ...entries,
-      uni('dhc2', 'Donga College of Health', 'junior_college', [], '동아보건대학교', 'dhc.ac.kr'),
-    ];
-    await uploadVia('Excel kasbiy', { guideline_id: 'dhc_2027_bahor_kasbiy_v2', univ_kod: 'dhc', daraja: 'kasbiy' });
-
-    expect(await screen.findByText(/bir nechta universitetga mos keladi/)).toBeInTheDocument();
-    expect(mocks.mutateAsync).not.toHaveBeenCalled();
-  });
-
-  it('univ_kod bitta kollejga mos kelsa — o‘sha kollejga yuklaydi', async () => {
+  it('kasbiy ta‘lim fayli ochilgan kollejga yuklanadi', async () => {
     mocks.mutateAsync.mockResolvedValue({ muddatlar: 1, fakultetlar: 2, hujjatlar: 3 });
-    await uploadVia('Excel kasbiy', { guideline_id: 'yjc_2027_bahor_kasbiy', univ_kod: 'yjc', daraja: 'kasbiy' });
+    await uploadFromPanel('Yeungjin University', {
+      guideline_id: 'yjc_2027_bahor_kasbiy',
+      univ_kod: 'yjc',
+      daraja: 'kasbiy',
+    });
 
     expect(mocks.mutateAsync).toHaveBeenCalledWith(expect.objectContaining({ institutionId: 'yjc' }));
   });
 
-  it('"Excel kasbiy" tugmasidan bakalavr fayli yuklanmaydi', async () => {
-    await uploadVia('Excel kasbiy', { guideline_id: 'yjc_2027_bahor_bakalavr', univ_kod: 'yjc', daraja: 'bakalavr' });
+  it('kasbiy ta‘lim yorlig‘idan bakalavr fayli yuklanmaydi', async () => {
+    await uploadFromPanel('Yeungjin University', {
+      guideline_id: 'yjc_2027_bahor_bakalavr',
+      univ_kod: 'yjc',
+      daraja: 'bakalavr',
+    });
 
-    expect(await screen.findByText(/"Excel kasbiy" tugmasi bosildi/)).toBeInTheDocument();
+    expect(await screen.findByText(/"Excel kasbiy ta'lim yuklash" tugmasi bosildi/)).toBeInTheDocument();
     expect(mocks.mutateAsync).not.toHaveBeenCalled();
   });
 });
