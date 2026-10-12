@@ -341,6 +341,13 @@
     }
   },
   "crm": {
+    "filterLabels": {
+      "university": "Universitet",
+      "status": "Holat",
+      "documents": "Hujjatlar",
+      "gks": "GKS",
+      "payments": "To'lov"
+    },
     "title": "Boshqaruv tizimi",
     "studentManagement": "Talabalarni boshqarish",
     "addStudent": "Talaba qo'shish",

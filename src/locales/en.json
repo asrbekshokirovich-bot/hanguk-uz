@@ -292,6 +292,13 @@
     }
   },
   "crm": {
+    "filterLabels": {
+      "university": "University",
+      "status": "Status",
+      "documents": "Documents",
+      "gks": "GKS",
+      "payments": "Payment"
+    },
     "title": "Management System",
     "studentManagement": "Student Management",
     "addStudent": "Add Student",

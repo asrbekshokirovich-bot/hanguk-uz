@@ -567,8 +567,11 @@ export function StudentList({
         {/* Desktop filter row */}
         <div className="hidden flex-wrap items-center gap-2 sm:flex">
           <Select value={universityFilter} onValueChange={setUniversityFilter}>
-            <SelectTrigger className="w-[160px]">
-              <SelectValue placeholder="All Universities" />
+            <SelectTrigger className="w-auto min-w-[150px] max-w-[260px] gap-2">
+              <span className="flex-1 text-left">
+                <span className="text-muted-foreground">{t('crm.filterLabels.university')}: </span>
+                <SelectValue>{universityFilter === 'all' ? t('common.all') : undefined}</SelectValue>
+              </span>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{t('common.all')} Universities</SelectItem>
@@ -580,8 +583,11 @@ export function StudentList({
             </SelectContent>
           </Select>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[160px]">
-              <SelectValue placeholder="All Status" />
+            <SelectTrigger className="w-auto min-w-[150px] max-w-[260px] gap-2">
+              <span className="flex-1 text-left">
+                <span className="text-muted-foreground">{t('crm.filterLabels.status')}: </span>
+                <SelectValue>{statusFilter === 'all' ? t('common.all') : undefined}</SelectValue>
+              </span>
             </SelectTrigger>
             <SelectContent>
               {statusOptions.map((option) => (
@@ -592,8 +598,11 @@ export function StudentList({
             </SelectContent>
           </Select>
           <Select value={documentsFilter} onValueChange={setDocumentsFilter}>
-            <SelectTrigger className="w-[160px]">
-              <SelectValue placeholder="All Documents" />
+            <SelectTrigger className="w-auto min-w-[150px] max-w-[260px] gap-2">
+              <span className="flex-1 text-left">
+                <span className="text-muted-foreground">{t('crm.filterLabels.documents')}: </span>
+                <SelectValue>{documentsFilter === 'all' ? t('common.all') : undefined}</SelectValue>
+              </span>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{t('common.all')} Documents</SelectItem>
@@ -602,9 +611,12 @@ export function StudentList({
             </SelectContent>
           </Select>
           <Select value={gksFilter} onValueChange={setGksFilter}>
-            <SelectTrigger className="w-[160px]">
-              <GraduationCap className="mr-2 h-4 w-4" />
-              <SelectValue placeholder="All GKS" />
+            <SelectTrigger className="w-auto min-w-[150px] max-w-[260px] gap-2">
+              <GraduationCap className="h-4 w-4 shrink-0" />
+              <span className="flex-1 text-left">
+                <span className="text-muted-foreground">{t('crm.filterLabels.gks')}: </span>
+                <SelectValue>{gksFilter === 'all' ? t('common.all') : undefined}</SelectValue>
+              </span>
             </SelectTrigger>
             <SelectContent className="z-[100] bg-background">
               <SelectItem value="all">{t('common.all')} Students</SelectItem>
@@ -613,8 +625,11 @@ export function StudentList({
             </SelectContent>
           </Select>
           <Select value={paymentsFilter} onValueChange={setPaymentsFilter}>
-            <SelectTrigger className="w-[160px]">
-              <SelectValue placeholder="All Payments" />
+            <SelectTrigger className="w-auto min-w-[150px] max-w-[260px] gap-2">
+              <span className="flex-1 text-left">
+                <span className="text-muted-foreground">{t('crm.filterLabels.payments')}: </span>
+                <SelectValue>{paymentsFilter === 'all' ? t('common.all') : undefined}</SelectValue>
+              </span>
             </SelectTrigger>
             <SelectContent className="z-[100] bg-background">
               <SelectItem value="all">{t('common.all')} Payments</SelectItem>
