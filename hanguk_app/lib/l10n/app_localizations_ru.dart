@@ -1643,7 +1643,7 @@ class AppLocalizationsRu extends AppLocalizations {
       'Не удалось отправить жалобу. Попробуйте ещё раз.';
 
   @override
-  String get catalogSearchHint => 'Поиск по названию университета';
+  String get catalogSearchHint => 'Название, город или направление';
 
   @override
   String get catalogListTitle => 'Университеты';
@@ -3479,4 +3479,15 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get catalogGuestUniBadge => 'Делегация в Самарканде';
+
+  @override
+  String get catalogAiResultsTitle => 'Результаты';
+
+  @override
+  String get catalogAiSearching => 'ИИ ищет…';
+
+  @override
+  String catalogAiFields(String fields) {
+    return 'Направления: $fields';
+  }
 }

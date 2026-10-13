@@ -2003,7 +2003,7 @@
   "@aiReportFailed": {
     "description": "Shown when storing an AI report failed."
   },
-  "catalogSearchHint": "Search university name",
+  "catalogSearchHint": "Type a name, city or field",
   "@catalogSearchHint": {
     "description": "University catalogue (Explore / Applications browse)."
   },
@@ -4387,5 +4387,22 @@
   "catalogGuestUniBadge": "Delegation visiting Samarkand",
   "@catalogGuestUniBadge": {
     "description": "Lime badge on the visiting university's photo."
+  },
+  "catalogAiResultsTitle": "Results",
+  "@catalogAiResultsTitle": {
+    "description": "AI search: the results heading while a search is typed."
+  },
+  "catalogAiSearching": "AI is searching…",
+  "@catalogAiSearching": {
+    "description": "AI search: shown while the model reads the typed text."
+  },
+  "catalogAiFields": "Programs: {fields}",
+  "@catalogAiFields": {
+    "description": "AI search reason line: the faculties that match the field of study typed.",
+    "placeholders": {
+      "fields": {
+        "type": "String"
+      }
+    }
   }
 }

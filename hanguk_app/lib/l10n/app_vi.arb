@@ -621,7 +621,7 @@
   "@aiReportFailed": {
     "description": "Shown when storing an AI report failed."
   },
-  "catalogSearchHint": "Tìm tên trường đại học",
+  "catalogSearchHint": "Nhập tên, thành phố hoặc ngành",
   "catalogListTitle": "Các trường đại học",
   "catalogCityUniversities": "Các trường tại {city}",
   "catalogEmptyTitle": "Không tìm thấy trường",
@@ -1161,5 +1161,8 @@
   "onbResultPathParentsDocsNote": "Official work, business or property papers — the embassy asks for these.",
   "catalogGuestUniTitle": "Guest University",
   "catalogGuestUniWhere": "In Uzbekistan now",
-  "catalogGuestUniBadge": "Delegation visiting Samarkand"
+  "catalogGuestUniBadge": "Delegation visiting Samarkand",
+  "catalogAiResultsTitle": "Kết quả",
+  "catalogAiSearching": "AI đang tìm…",
+  "catalogAiFields": "Ngành: {fields}"
 }

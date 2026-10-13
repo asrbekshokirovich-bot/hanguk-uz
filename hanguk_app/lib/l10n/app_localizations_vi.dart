@@ -1633,7 +1633,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get aiReportFailed => 'Không gửi được báo cáo. Vui lòng thử lại.';
 
   @override
-  String get catalogSearchHint => 'Tìm tên trường đại học';
+  String get catalogSearchHint => 'Nhập tên, thành phố hoặc ngành';
 
   @override
   String get catalogListTitle => 'Các trường đại học';
@@ -3462,4 +3462,15 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get catalogGuestUniBadge => 'Delegation visiting Samarkand';
+
+  @override
+  String get catalogAiResultsTitle => 'Kết quả';
+
+  @override
+  String get catalogAiSearching => 'AI đang tìm…';
+
+  @override
+  String catalogAiFields(String fields) {
+    return 'Ngành: $fields';
+  }
 }

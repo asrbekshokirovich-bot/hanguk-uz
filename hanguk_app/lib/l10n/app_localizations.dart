@@ -3035,7 +3035,7 @@ abstract class AppLocalizations {
   /// University catalogue (Explore / Applications browse).
   ///
   /// In en, this message translates to:
-  /// **'Search university name'**
+  /// **'Type a name, city or field'**
   String get catalogSearchHint;
 
   /// University catalogue (Explore / Applications browse).
@@ -6277,6 +6277,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delegation visiting Samarkand'**
   String get catalogGuestUniBadge;
+
+  /// AI search: the results heading while a search is typed.
+  ///
+  /// In en, this message translates to:
+  /// **'Results'**
+  String get catalogAiResultsTitle;
+
+  /// AI search: shown while the model reads the typed text.
+  ///
+  /// In en, this message translates to:
+  /// **'AI is searching…'**
+  String get catalogAiSearching;
+
+  /// AI search reason line: the faculties that match the field of study typed.
+  ///
+  /// In en, this message translates to:
+  /// **'Programs: {fields}'**
+  String catalogAiFields(String fields);
 }
 
 class _AppLocalizationsDelegate

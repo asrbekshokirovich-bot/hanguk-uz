@@ -6,6 +6,7 @@ import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../design_system/seoul_night/widgets/svg_path_icon.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/presentation/widgets/sign_in_chrome.dart' show cssLinearGradient;
+import '../data/ai_search.dart';
 import '../data/campus_photos.dart';
 import '../data/catalog_compare_provider.dart';
 import '../data/catalog_filters.dart';
@@ -41,6 +42,7 @@ class CatalogBrowser extends ConsumerWidget {
     final l = AppLocalizations.of(context)!;
     final async = ref.watch(catalogProvider);
     final filter = ref.watch(catalogFilterProvider);
+    final ai = ref.watch(aiSearchProvider);
 
     return async.when(
       loading: () => const SliverFillRemaining(
@@ -68,7 +70,11 @@ class CatalogBrowser extends ConsumerWidget {
         ),
       ),
       data: (all) {
-        final list = applyCatalogFilter(all, filter);
+        // Typing in the box turns the grid into the search results (design
+        // screen 04), read by the model.
+        final searching = filter.query.trim().length >= kAiSearchMinLength;
+        final rows = searching ? catalogSearchRows(all, filter, ai) : const <CatalogSearchRow>[];
+        final list = searching ? [for (final r in rows) r.university] : applyCatalogFilter(all, filter);
         // From the whole catalogue: the filters never hide the guest.
         final guest = all.where((u) => u.institutionId == kGuestUniversityId).firstOrNull;
         final compare = ref.watch(catalogCompareProvider);
@@ -145,30 +151,38 @@ class CatalogBrowser extends ConsumerWidget {
                   ),
                 ),
               ),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(17, 16, 17, 12),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.alphabetic,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: _inter(15, FontWeight.w700, Colors.white, height: 19 / 15),
+            if (searching)
+              SliverToBoxAdapter(
+                child: _SearchHeader(count: rows.length, loading: ai.loading, compareActive: compare.active),
+              )
+            else
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(17, 16, 17, 12),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: _inter(15, FontWeight.w700, Colors.white, height: 19 / 15),
+                        ),
                       ),
-                    ),
-                    Text(
-                      compare.active ? l.catalogComparePickTwo : l.guestUniversitiesCount(list.length),
-                      style: _inter(11, FontWeight.w400, const Color(0x8CFFFFFF)),
-                    ),
-                  ],
+                      Text(
+                        compare.active ? l.catalogComparePickTwo : l.guestUniversitiesCount(list.length),
+                        style: _inter(11, FontWeight.w400, const Color(0x8CFFFFFF)),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            if (list.isEmpty)
+            // Nothing by name yet, but the model is still reading the text.
+            if (list.isEmpty && searching && ai.loading)
+              const SliverToBoxAdapter(child: SizedBox(height: 120))
+            else if (list.isEmpty)
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 60, horizontal: 20),
@@ -179,6 +193,33 @@ class CatalogBrowser extends ConsumerWidget {
                       Text(l.catalogEmptyBody, textAlign: TextAlign.center, style: SeoulType.bodySecondary.copyWith(fontSize: 13)),
                     ],
                   ),
+                ),
+              )
+            else if (searching)
+              SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, i) {
+                    final row = rows[i];
+                    final id = row.university.institutionId;
+                    return _SearchResultRow(
+                      row: row,
+                      reason: catalogSearchReason(l, row),
+                      coverIndex: i,
+                      compareMode: compare.active,
+                      selected: compare.active && compare.contains(id),
+                      compareFull: compare.full,
+                      onTap: compare.active
+                          ? () => compareNotifier.toggle(id)
+                          : () => CatalogDetailScreen.open(
+                              context,
+                              university: row.university,
+                              degree: filter.degree,
+                              isGuest: isGuest,
+                            ),
+                      onLongPress: () => compareNotifier.startWith(id),
+                    );
+                  },
+                  childCount: rows.length,
                 ),
               )
             else
@@ -972,6 +1013,240 @@ class _NameCover extends StatelessWidget {
               fontWeight: FontWeight.w800,
               color: blue ? Colors.white : const Color(0xFFCFE24E),
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// One row of the search results: the university, the guideline it is shown
+/// with, and — when the field search found it — its programmes of the field.
+@visibleForTesting
+typedef CatalogSearchRow = ({CatalogUniversity university, CatalogGuideline guideline, AiSearchHit? hit});
+
+/// The search results for the box's text. When the text names a field of
+/// study: every university with a programme of it, in the server's order,
+/// kept to what the Filtr screen allows. Otherwise — a name, a city, or no
+/// answer yet — the plain name filter.
+@visibleForTesting
+List<CatalogSearchRow> catalogSearchRows(List<CatalogUniversity> all, CatalogFilter f, AiSearchState ai) {
+  final result = ai.result;
+  if (result == null || !result.byField) {
+    return [
+      for (final u in applyCatalogFilter(all, f)) (university: u, guideline: guidelineFor(u, f)!, hit: null),
+    ];
+  }
+  final allowed = {for (final u in applyCatalogFilter(all, f.copyWith(query: ''))) u.institutionId: u};
+  final out = <CatalogSearchRow>[];
+  final seen = <String>{};
+  for (final h in result.hits) {
+    final u = allowed[h.institutionId];
+    if (u == null || seen.contains(u.institutionId)) continue;
+    final g = u.guidelines.where((g) => g.id == h.guidelineId).firstOrNull;
+    if (g == null) continue;
+    // The degree the Filtr screen asks for; with "all", the first guideline
+    // of the field (the server lists the bachelor's first).
+    if (f.degree != CatalogDegree.all && g.degree != f.degree) continue;
+    seen.add(u.institutionId);
+    out.add((university: u, guideline: g, hit: h));
+  }
+  return out;
+}
+
+/// The line under a field result: its programmes of the field — two names
+/// and the count of the rest, so the count survives the two-line clamp. The
+/// whole list is one tap away, on the university's page.
+@visibleForTesting
+String? catalogSearchReason(AppLocalizations l, CatalogSearchRow row) {
+  final hit = row.hit;
+  if (hit == null || hit.matched.isEmpty) return null;
+  final shown = hit.matched.take(2).toList();
+  final more = hit.matchCount - shown.length;
+  return l.catalogAiFields([shown.join(', '), if (more > 0) '+$more'].join(' '));
+}
+
+/// The heading over the results (design screen 04, "Natijalar · 3 ta"), with
+/// the spinner while the model reads the text.
+class _SearchHeader extends StatelessWidget {
+  const _SearchHeader({required this.count, required this.loading, required this.compareActive});
+
+  final int count;
+  final bool loading;
+  final bool compareActive;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(17, 16, 17, 12),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              l.catalogAiResultsTitle,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: _inter(15, FontWeight.w700, Colors.white, height: 19 / 15),
+            ),
+          ),
+          if (loading) ...[
+            const SizedBox.square(
+              dimension: 11,
+              child: CircularProgressIndicator(strokeWidth: 1.6, color: SeoulColors.lime),
+            ),
+            const SizedBox(width: 6),
+            Text(l.catalogAiSearching, style: _inter(11, FontWeight.w500, SeoulColors.lime)),
+          ] else
+            Text(
+              compareActive ? l.catalogComparePickTwo : l.guestUniversitiesCount(count),
+              style: _inter(11, FontWeight.w400, const Color(0x8CFFFFFF)),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+const _chevronPath = 'M9 6l6 6-6 6';
+
+/// One result row (design screen 04): the campus photo, the name, "city ·
+/// fee · TOPIK n+", the reason line, and the chevron — or, in compare mode,
+/// the pick circle.
+class _SearchResultRow extends StatelessWidget {
+  const _SearchResultRow({
+    required this.row,
+    required this.reason,
+    required this.coverIndex,
+    required this.onTap,
+    required this.onLongPress,
+    this.compareMode = false,
+    this.selected = false,
+    this.compareFull = false,
+  });
+
+  final CatalogSearchRow row;
+  final String? reason;
+  final int coverIndex;
+  final VoidCallback onTap;
+  final VoidCallback onLongPress;
+  final bool compareMode;
+  final bool selected;
+  final bool compareFull;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    final u = row.university;
+    final g = row.guideline;
+    final photo = campusPhotoAsset(u.institutionId);
+    final price = priceOf(g);
+    final topik = g.topikMin;
+    const faint = Color(0x8CFFFFFF); // .55
+    final metaStyle = _inter(12, FontWeight.w400, faint, height: 1.35);
+    final meta = <InlineSpan>[
+      if (u.city != null) TextSpan(text: u.city),
+      if (price != null)
+        TextSpan(
+          text: money(price, g.currency, locale: l.localeName),
+          style: _inter(12, FontWeight.w700, Colors.white, height: 1.35),
+        ),
+      if (topik != null) TextSpan(text: 'TOPIK ${scoreText(topik)}+'),
+    ];
+
+    return Semantics(
+      button: true,
+      selected: compareMode ? selected : null,
+      child: GestureDetector(
+        onTap: onTap,
+        onLongPress: onLongPress,
+        behavior: HitTestBehavior.opaque,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 17, vertical: 12),
+          decoration: BoxDecoration(
+            color: selected ? const Color(0x14D4E94C) : null,
+            border: const Border(bottom: BorderSide(color: Color(0x1FFFFFFF))),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 70,
+                height: 47,
+                clipBehavior: Clip.antiAlias,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: selected ? SeoulColors.lime : const Color(0x33FFFFFF), width: 1.5),
+                ),
+                child: photo != null
+                    ? ColoredBox(
+                        color: const Color(0xFF1C3764),
+                        child: Image.asset(photo, fit: BoxFit.cover, cacheWidth: 240),
+                      )
+                    : _NameCover(name: u.nameKoShort ?? u.displayName, index: coverIndex),
+              ),
+              const SizedBox(width: 13),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      u.displayName,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: _inter(15, FontWeight.w700, Colors.white, height: 1.2),
+                    ),
+                    if (meta.isNotEmpty) ...[
+                      const SizedBox(height: 3),
+                      Text.rich(
+                        TextSpan(
+                          style: metaStyle,
+                          children: [
+                            for (var i = 0; i < meta.length; i++) ...[
+                              if (i > 0) const TextSpan(text: ' · '),
+                              meta[i],
+                            ],
+                          ],
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                    if (reason != null) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        reason!,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: _inter(11.5, FontWeight.w600, SeoulColors.lime, height: 1.3),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              if (!compareMode)
+                const SvgPathIcon(paths: [_chevronPath], size: 16, strokeWidth: 2.2, color: faint)
+              else if (selected)
+                Container(
+                  width: 26,
+                  height: 26,
+                  alignment: Alignment.center,
+                  decoration: const BoxDecoration(shape: BoxShape.circle, color: SeoulColors.lime),
+                  child: const SvgPathIcon(paths: [_checkPath], size: 14, strokeWidth: 3.2, color: SeoulColors.ink),
+                )
+              else
+                Opacity(
+                  opacity: compareFull ? 0.35 : 1,
+                  child: Container(
+                    width: 26,
+                    height: 26,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 2),
+                    ),
+                  ),
+                ),
+            ],
           ),
         ),
       ),

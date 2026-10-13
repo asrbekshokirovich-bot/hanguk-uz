@@ -198,3 +198,9 @@ verify_jwt = false
 # isn't blocked at the gateway; the function checks the key itself.
 [functions.translate-app-texts]
 verify_jwt = false
+
+# The app's university search, read by a language model. Guests use it too, and
+# their key is not a user JWT, so verify_jwt is off; the function rations model
+# calls itself (ai_search_take) and only reads the public catalogue.
+[functions.ai-university-search]
+verify_jwt = false

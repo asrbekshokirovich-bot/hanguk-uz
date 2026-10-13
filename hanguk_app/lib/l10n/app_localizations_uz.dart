@@ -1647,7 +1647,7 @@ class AppLocalizationsUz extends AppLocalizations {
       'Shikoyatni yuborib bo‘lmadi. Qaytadan urinib ko‘ring.';
 
   @override
-  String get catalogSearchHint => 'Universitet nomini qidiring';
+  String get catalogSearchHint => 'Nom, shahar yoki yo\'nalish yozing';
 
   @override
   String get catalogListTitle => 'Universitetlar';
@@ -3473,4 +3473,15 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get catalogGuestUniBadge => 'Delegatsiya Samarqandda';
+
+  @override
+  String get catalogAiResultsTitle => 'Natijalar';
+
+  @override
+  String get catalogAiSearching => 'Sun\'iy intellekt qidirmoqda…';
+
+  @override
+  String catalogAiFields(String fields) {
+    return 'Yo\'nalishlar: $fields';
+  }
 }

@@ -621,7 +621,7 @@
   "@aiReportFailed": {
     "description": "Shown when storing an AI report failed."
   },
-  "catalogSearchHint": "Universitet nomini qidiring",
+  "catalogSearchHint": "Nom, shahar yoki yo'nalish yozing",
   "catalogListTitle": "Universitetlar",
   "catalogCityUniversities": "{city} universitetlari",
   "catalogEmptyTitle": "Universitet topilmadi",
@@ -1161,5 +1161,8 @@
   "onbResultPathParentsDocsNote": "Rasmiy ish, biznes yoki mulk hujjati — elchixona shularni so'raydi.",
   "catalogGuestUniTitle": "Mehmon universitet",
   "catalogGuestUniWhere": "Hozir O'zbekistonda",
-  "catalogGuestUniBadge": "Delegatsiya Samarqandda"
+  "catalogGuestUniBadge": "Delegatsiya Samarqandda",
+  "catalogAiResultsTitle": "Natijalar",
+  "catalogAiSearching": "Sun'iy intellekt qidirmoqda…",
+  "catalogAiFields": "Yo'nalishlar: {fields}"
 }

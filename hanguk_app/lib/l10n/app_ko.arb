@@ -621,7 +621,7 @@
   "@aiReportFailed": {
     "description": "Shown when storing an AI report failed."
   },
-  "catalogSearchHint": "대학 이름 검색",
+  "catalogSearchHint": "이름, 도시 또는 전공 입력",
   "catalogListTitle": "대학교",
   "catalogCityUniversities": "{city} 대학교",
   "catalogEmptyTitle": "대학을 찾을 수 없습니다",
@@ -1161,5 +1161,8 @@
   "onbResultPathParentsDocsNote": "재직·사업·재산 서류 — 대사관이 요구합니다.",
   "catalogGuestUniTitle": "방문 대학",
   "catalogGuestUniWhere": "현재 우즈베키스탄 방문",
-  "catalogGuestUniBadge": "사마르칸트 방문 대표단"
+  "catalogGuestUniBadge": "사마르칸트 방문 대표단",
+  "catalogAiResultsTitle": "검색 결과",
+  "catalogAiSearching": "AI가 찾는 중…",
+  "catalogAiFields": "전공: {fields}"
 }

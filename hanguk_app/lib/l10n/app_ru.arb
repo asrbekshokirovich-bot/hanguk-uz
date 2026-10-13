@@ -621,7 +621,7 @@
   "@aiReportFailed": {
     "description": "Shown when storing an AI report failed."
   },
-  "catalogSearchHint": "Поиск по названию университета",
+  "catalogSearchHint": "Название, город или направление",
   "catalogListTitle": "Университеты",
   "catalogCityUniversities": "Университеты: {city}",
   "catalogEmptyTitle": "Университеты не найдены",
@@ -1161,5 +1161,8 @@
   "onbResultPathParentsDocsNote": "Документы об официальной работе, бизнесе или имуществе — посольство запрашивает их.",
   "catalogGuestUniTitle": "Университет в гостях",
   "catalogGuestUniWhere": "Сейчас в Узбекистане",
-  "catalogGuestUniBadge": "Делегация в Самарканде"
+  "catalogGuestUniBadge": "Делегация в Самарканде",
+  "catalogAiResultsTitle": "Результаты",
+  "catalogAiSearching": "ИИ ищет…",
+  "catalogAiFields": "Направления: {fields}"
 }
