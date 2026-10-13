@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:hanguk_app/features/catalog/data/ai_search.dart';
 import 'package:hanguk_app/features/catalog/data/catalog_filters.dart';
 import 'package:hanguk_app/features/catalog/data/catalog_repository.dart';
 import 'package:hanguk_app/features/catalog/domain/catalog_models.dart';
@@ -66,6 +67,8 @@ Future<void> _pump(WidgetTester tester, List<CatalogUniversity> all) async {
     ProviderScope(
       overrides: [
         catalogProvider.overrideWith((ref) async => all),
+        // No model in a test: the search falls back to the name filter.
+        aiSearchCallProvider.overrideWithValue((_) async => null),
         catalogDetailProvider.overrideWith(
           (ref, id) async => const CatalogGuidelineDetail(faculties: [], rounds: [], docs: []),
         ),

@@ -110,6 +110,8 @@ jobs:
           # repo copy is the current one.
           # Added on 2026-09-30: `translate-app-texts` is new and deployed from
           # here, so the repo copy is the current one.
+          # Added on 2026-10-13: `ai-university-search` is new and deployed
+          # from here, so the repo copy is the current one.
           FUNCTIONS="
             instagram-webhook
             channel-health-check
@@ -129,6 +131,7 @@ jobs:
             telegram-poll
             hr-bot
             translate-app-texts
+            ai-university-search
           "
 
           for fn in $FUNCTIONS; do

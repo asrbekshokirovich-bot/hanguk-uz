@@ -1637,7 +1637,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get aiReportFailed => 'Could not send the report. Please try again.';
 
   @override
-  String get catalogSearchHint => 'Search university name';
+  String get catalogSearchHint => 'Type a name, city or field';
 
   @override
   String get catalogListTitle => 'Universities';
@@ -3465,4 +3465,38 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get catalogGuestUniBadge => 'Delegation visiting Samarkand';
+
+  @override
+  String get catalogAiResultsTitle => 'Results';
+
+  @override
+  String get catalogAiSearching => 'AI is searching…';
+
+  @override
+  String get catalogAiUnderstood => 'AI understood:';
+
+  @override
+  String catalogAiFields(String fields) {
+    return 'Programs: $fields';
+  }
+
+  @override
+  String get catalogAiFeeAbove => 'Above your budget';
+
+  @override
+  String catalogAiTopikNeeded(String level) {
+    return 'Needs TOPIK $level';
+  }
+
+  @override
+  String get catalogAiNotEnglish => 'No English-taught track';
+
+  @override
+  String get catalogAiRelaxed => 'No exact match, the closest ones';
+
+  @override
+  String get catalogAiNoTopik => 'No TOPIK needed';
+
+  @override
+  String get catalogAiEnglish => 'In English';
 }

@@ -1647,7 +1647,7 @@ class AppLocalizationsUz extends AppLocalizations {
       'Shikoyatni yuborib bo‘lmadi. Qaytadan urinib ko‘ring.';
 
   @override
-  String get catalogSearchHint => 'Universitet nomini qidiring';
+  String get catalogSearchHint => 'Nom, shahar yoki yo\'nalish yozing';
 
   @override
   String get catalogListTitle => 'Universitetlar';
@@ -3473,4 +3473,38 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get catalogGuestUniBadge => 'Delegatsiya Samarqandda';
+
+  @override
+  String get catalogAiResultsTitle => 'Natijalar';
+
+  @override
+  String get catalogAiSearching => 'Sun\'iy intellekt qidirmoqda…';
+
+  @override
+  String get catalogAiUnderstood => 'AI tushundi:';
+
+  @override
+  String catalogAiFields(String fields) {
+    return 'Yo\'nalishlar: $fields';
+  }
+
+  @override
+  String get catalogAiFeeAbove => 'Narxi so\'ralgandan yuqori';
+
+  @override
+  String catalogAiTopikNeeded(String level) {
+    return 'TOPIK $level kerak';
+  }
+
+  @override
+  String get catalogAiNotEnglish => 'Ingliz tilida o\'qish yo\'q';
+
+  @override
+  String get catalogAiRelaxed => 'Aniq mosi topilmadi, eng yaqinlari';
+
+  @override
+  String get catalogAiNoTopik => 'TOPIK shart emas';
+
+  @override
+  String get catalogAiEnglish => 'Ingliz tilida';
 }

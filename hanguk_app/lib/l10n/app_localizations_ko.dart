@@ -1581,7 +1581,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get aiReportFailed => '신고를 보내지 못했습니다. 다시 시도해 주세요.';
 
   @override
-  String get catalogSearchHint => '대학 이름 검색';
+  String get catalogSearchHint => '이름, 도시 또는 전공 입력';
 
   @override
   String get catalogListTitle => '대학교';
@@ -3322,4 +3322,38 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get catalogGuestUniBadge => '사마르칸트 방문 대표단';
+
+  @override
+  String get catalogAiResultsTitle => '검색 결과';
+
+  @override
+  String get catalogAiSearching => 'AI가 찾는 중…';
+
+  @override
+  String get catalogAiUnderstood => 'AI 해석:';
+
+  @override
+  String catalogAiFields(String fields) {
+    return '전공: $fields';
+  }
+
+  @override
+  String get catalogAiFeeAbove => '예산 초과';
+
+  @override
+  String catalogAiTopikNeeded(String level) {
+    return 'TOPIK $level 필요';
+  }
+
+  @override
+  String get catalogAiNotEnglish => '영어 트랙 없음';
+
+  @override
+  String get catalogAiRelaxed => '정확히 맞는 곳이 없어 가장 가까운 곳';
+
+  @override
+  String get catalogAiNoTopik => 'TOPIK 불필요';
+
+  @override
+  String get catalogAiEnglish => '영어 수업';
 }

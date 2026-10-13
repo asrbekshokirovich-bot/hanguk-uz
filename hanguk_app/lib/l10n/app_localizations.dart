@@ -3035,7 +3035,7 @@ abstract class AppLocalizations {
   /// University catalogue (Explore / Applications browse).
   ///
   /// In en, this message translates to:
-  /// **'Search university name'**
+  /// **'Type a name, city or field'**
   String get catalogSearchHint;
 
   /// University catalogue (Explore / Applications browse).
@@ -6277,6 +6277,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delegation visiting Samarkand'**
   String get catalogGuestUniBadge;
+
+  /// AI search: the results heading while a search is typed.
+  ///
+  /// In en, this message translates to:
+  /// **'Results'**
+  String get catalogAiResultsTitle;
+
+  /// AI search: shown while the model reads the typed text.
+  ///
+  /// In en, this message translates to:
+  /// **'AI is searching…'**
+  String get catalogAiSearching;
+
+  /// AI search: label before the chips of what the model read from the text.
+  ///
+  /// In en, this message translates to:
+  /// **'AI understood:'**
+  String get catalogAiUnderstood;
+
+  /// AI search reason line: the faculties that match the field of study typed.
+  ///
+  /// In en, this message translates to:
+  /// **'Programs: {fields}'**
+  String catalogAiFields(String fields);
+
+  /// AI search reason line: the fee is above the budget typed (shown only when nothing fit it).
+  ///
+  /// In en, this message translates to:
+  /// **'Above your budget'**
+  String get catalogAiFeeAbove;
+
+  /// AI search reason line: the TOPIK level this university asks for, above the student's.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs TOPIK {level}'**
+  String catalogAiTopikNeeded(String level);
+
+  /// AI search reason line: no English-taught track although the student asked for one.
+  ///
+  /// In en, this message translates to:
+  /// **'No English-taught track'**
+  String get catalogAiNotEnglish;
+
+  /// AI search: nothing fit every condition, so the closest universities are shown.
+  ///
+  /// In en, this message translates to:
+  /// **'No exact match, the closest ones'**
+  String get catalogAiRelaxed;
+
+  /// AI search chip: the student has no TOPIK.
+  ///
+  /// In en, this message translates to:
+  /// **'No TOPIK needed'**
+  String get catalogAiNoTopik;
+
+  /// AI search chip: the student wants to study in English.
+  ///
+  /// In en, this message translates to:
+  /// **'In English'**
+  String get catalogAiEnglish;
 }
 
 class _AppLocalizationsDelegate
