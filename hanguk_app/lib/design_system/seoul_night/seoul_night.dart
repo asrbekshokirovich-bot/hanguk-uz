@@ -12,6 +12,7 @@ library;
 export 'seoul_night_tokens.dart';
 export 'seoul_night_typography.dart';
 export 'widgets/glass_card.dart';
+export 'widgets/hard_shadow.dart';
 export 'widgets/hero_card.dart';
 export 'widgets/seoul_buttons.dart';
 export 'widgets/seoul_chips.dart';

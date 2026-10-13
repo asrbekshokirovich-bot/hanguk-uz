@@ -2,10 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../design_system/seoul_night/seoul_night.dart';
-import '../../auth/presentation/widgets/auth_controls.dart';
 import '../../auth/presentation/widgets/sign_in_chrome.dart';
 import '../data/entry_store.dart';
-import 'widgets/language_options.dart';
+import 'widgets/language_cards.dart';
 
 /// The app's first screen: pick Uzbek, English, Korean or Russian. Shown once;
 /// the choice is remembered ([EntryStore]) and can be changed later from the
@@ -52,19 +51,19 @@ class _LanguageScreenState extends ConsumerState<LanguageScreen> {
   static const TextStyle _titleStyle = TextStyle(
     fontFamily: SeoulType.inter,
     fontFamilyFallback: SeoulType.fallback,
-    fontSize: 28,
-    height: 1.12,
+    fontSize: 34,
+    height: 1.1,
     leadingDistribution: TextLeadingDistribution.even,
     fontWeight: FontWeight.w800,
-    letterSpacing: -0.7,
+    letterSpacing: -1,
     color: Colors.white,
   );
 
   static const TextStyle _subtitleStyle = TextStyle(
     fontFamily: SeoulType.inter,
     fontFamilyFallback: [SeoulType.korean, ...SeoulType.fallback],
-    fontSize: 14,
-    height: 1.5,
+    fontSize: 15,
+    height: 1.45,
     leadingDistribution: TextLeadingDistribution.even,
     color: Color(0xB8FFFFFF),
   );
@@ -81,70 +80,109 @@ class _LanguageScreenState extends ConsumerState<LanguageScreen> {
             builder: (context, constraints) => SingleChildScrollView(
               child: ConstrainedBox(
                 constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
-                  child: Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        const Center(
-                          child: SignInLogoTile(
-                            size: 72,
-                            radius: 21,
-                            haloBleed: 34,
-                            shadowOffsetY: 12,
-                            shadowBlur: 24,
-                          ),
-                        ),
-                        const SizedBox(height: 22),
-                        const Text(
-                          'HANGUK CONSULTING',
-                          semanticsLabel: 'Hanguk Consulting',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontFamily: SeoulType.inter,
-                            fontFamilyFallback: SeoulType.fallback,
-                            fontSize: 11,
-                            height: 14 / 11,
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: 1.98,
-                            color: SeoulColors.lime,
-                          ),
-                        ),
-                        const SizedBox(height: 14),
-                        const Text(
-                          'Tilni tanlang',
-                          textAlign: TextAlign.center,
-                          style: _titleStyle,
-                        ),
-                        const SizedBox(height: 8),
-                        const Text(
-                          'Choose a language · 언어 선택\nВыберите язык',
-                          textAlign: TextAlign.center,
-                          style: _subtitleStyle,
-                        ),
-                        const SizedBox(height: 28),
-                        LanguageOptions(
-                          selected: _selected,
-                          onSelected: (code) =>
-                              setState(() => _selected = code),
-                        ),
-                        const SizedBox(height: 24),
-                        IgnorePointer(
-                          ignoring: !ready,
-                          child: AnimatedOpacity(
-                            opacity: ready ? 1 : 0.45,
-                            duration: SeoulMotion.fast,
-                            child: AuthSubmitButton(
-                              label: _continue[_selected ?? 'uz']!,
-                              loading: _saving,
-                              onPressed: _confirm,
+                child: IntrinsicHeight(
+                  child: Stack(
+                    children: [
+                      // The big ghost word behind the title ("language").
+                      const Positioned(
+                        top: 6,
+                        right: -22,
+                        child: ExcludeSemantics(
+                          child: Text(
+                            '언어',
+                            style: TextStyle(
+                              fontFamily: SeoulType.korean,
+                              fontFamilyFallback: SeoulType.fallback,
+                              fontSize: 124,
+                              height: 1,
+                              fontWeight: FontWeight.w900,
+                              color: Color(0x0FFFFFFF),
                             ),
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(24, 20, 24, 28),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Row(
+                              children: [
+                                const SignInLogoTile(
+                                  size: 36,
+                                  radius: 11,
+                                  haloBleed: 0,
+                                  shadowOffsetY: 3,
+                                  shadowBlur: 8,
+                                ),
+                                const SizedBox(width: 12),
+                                Semantics(
+                                  label: 'Hanguk Consulting',
+                                  excludeSemantics: true,
+                                  child: const Text(
+                                    'Hanguk',
+                                    style: TextStyle(
+                                      fontFamily: SeoulType.inter,
+                                      fontFamilyFallback: SeoulType.fallback,
+                                      fontSize: 19,
+                                      height: 1.2,
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: -0.4,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 56),
+                            Text.rich(
+                              const TextSpan(
+                                children: [
+                                  TextSpan(text: 'Tilni '),
+                                  // The design marks the key word in lime.
+                                  TextSpan(
+                                    text: 'tanlang',
+                                    style: TextStyle(color: SeoulColors.lime),
+                                  ),
+                                ],
+                              ),
+                              style: _titleStyle,
+                            ),
+                            const SizedBox(height: 10),
+                            const Text(
+                              "Keyin sozlamalardan o'zgartirish mumkin",
+                              style: _subtitleStyle,
+                            ),
+                            const SizedBox(height: 28),
+                            LanguageCards(
+                              selected: _selected,
+                              onSelected: (code) =>
+                                  setState(() => _selected = code),
+                            ),
+                            const SizedBox(height: 28),
+                            // The design pins the action to the bottom edge.
+                            const Spacer(),
+                            IgnorePointer(
+                              ignoring: !ready,
+                              child: AnimatedOpacity(
+                                opacity: ready ? 1 : 0.45,
+                                duration: SeoulMotion.fast,
+                                child: HardButton(
+                                  label: _continue[_selected ?? 'uz']!,
+                                  loading: _saving,
+                                  onPressed: _confirm,
+                                  trailing: const Icon(
+                                    Icons.arrow_forward_rounded,
+                                    size: 20,
+                                    color: SeoulColors.ink,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
