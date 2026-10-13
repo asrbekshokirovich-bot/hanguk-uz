@@ -7,11 +7,10 @@ import '../../l10n/app_localizations.dart';
 import '../../design_system/seoul_night/seoul_night_gallery.dart';
 import '../../features/account/presentation/account_screen.dart';
 import '../../features/auth/data/auth_repository.dart';
-import '../../features/auth/presentation/login_screen.dart';
+import '../../features/auth/presentation/client_code_screen.dart';
 import '../../features/entry/data/entry_store.dart';
 import '../../features/entry/presentation/language_screen.dart';
-import '../../features/home/presentation/home_screen.dart';
-import '../../features/home/presentation/home_tab_provider.dart';
+import '../../features/client/presentation/client_shell.dart';
 import '../../features/home/presentation/notifications_screen.dart';
 import '../../features/assessment/presentation/assessment_screen.dart';
 import '../../features/assessment/presentation/report_screen.dart';
@@ -203,8 +202,8 @@ class _WalkaroundRouteEntry extends ConsumerWidget {
 }
 
 /// Entry-point widget for `/map/:institutionId`. Writes the id into
-/// `pendingMapDetailProvider` and renders the home screen; MapTab
-/// picks the id up on its next build and raises the detail sheet.
+/// `pendingMapDetailProvider` and shows the map tab; the map picks the id up
+/// and selects that university's pin.
 class _MapDeepLinkEntry extends ConsumerWidget {
   const _MapDeepLinkEntry({required this.institutionId});
 
@@ -215,12 +214,9 @@ class _MapDeepLinkEntry extends ConsumerWidget {
     // Schedule the writes for after first build to avoid mutating
     // providers during the build phase.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Named, not a literal: the Seoul Night shell added a Home section, so
-      // the old hardcoded `1` now points at Applications.
-      ref.read(homeTabProvider.notifier).setTab(SeoulSection.map);
       ref.read(pendingMapDetailProvider.notifier).set(institutionId);
     });
-    return const HomeScreen();
+    return const ClientShell(tab: ClientShell.tabMap);
   }
 }
 
@@ -401,13 +397,14 @@ String? resolveAppRedirect({
   }
 
   // A signed-in student has the real thing; the guest home is a lesser view
-  // of it, so send them home rather than letting them land there.
+  // of it, so send them home rather than letting them land there. The pages
+  // pushed from it (search, filter, results, saved…) are the same for both.
   if (isAuthenticated &&
       (isGoingToLogin ||
           isGoingToWelcome ||
           isGoingToLanguage ||
           isGoingToOnboarding ||
-          path.startsWith('/guest'))) {
+          path == kDiscoverPath)) {
     return '/';
   }
 
@@ -419,7 +416,9 @@ class HomeRoute extends GoRouteData with $HomeRoute {
   const HomeRoute();
 
   @override
-  Widget build(BuildContext context, GoRouterState state) => const HomeScreen();
+  Widget build(BuildContext context, GoRouterState state) => ClientShell(
+    tab: int.tryParse(state.uri.queryParameters['tab'] ?? '') ?? ClientShell.tabApplication,
+  );
 }
 
 @TypedGoRoute<WelcomeRoute>(path: '/welcome')
@@ -438,10 +437,6 @@ class LoginRoute extends GoRouteData with $LoginRoute {
   @override
   Widget build(BuildContext context, GoRouterState state) {
     final extra = state.extra as Map<String, dynamic>?;
-    final isMagicCode = extra?['magic_code'] as bool? ?? false;
-    return LoginScreen(
-      initialMagicCodeMode: isMagicCode,
-      notice: extra?['notice'] as String?,
-    );
+    return ClientCodeScreen(notice: extra?['notice'] as String?);
   }
 }

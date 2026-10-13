@@ -75,11 +75,15 @@ void main() {
     });
 
     test('a signed-in student skips the way in', () {
-      for (final loc in ['/language', '/welcome', '/quiz', '/tariffs/premium', '/guest', '/guest/search']) {
+      for (final loc in ['/language', '/welcome', '/quiz', '/tariffs/premium', '/guest', '/guest?tab=2']) {
         expect(go(loc, auth: true, language: false), '/');
       }
       expect(go('/', auth: true, language: false), isNull);
-      expect(go('/university/abc', auth: true), isNull);
+      expect(go('/?tab=2', auth: true), isNull);
+      // The pages pushed from the home are the same for a signed-in student.
+      for (final loc in ['/guest/search', '/guest/filter', '/guest/saved', '/university/abc', '/assess']) {
+        expect(go(loc, auth: true), isNull, reason: loc);
+      }
     });
 
     test('nothing moves while the session is loading', () {

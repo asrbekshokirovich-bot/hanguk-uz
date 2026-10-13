@@ -3,13 +3,13 @@ import 'package:flutter/material.dart';
 import '../../../design_system/seoul_night/widgets/lucide.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
-import '../../guest/presentation/guest_map_screen.dart';
 import 'discover_screen.dart';
+import 'map_screen.dart';
 import 'prepare_screen.dart';
 import 'widgets/fd_bottom_nav.dart';
 
 /// The guest's app in the full design: Universitetlar (screen 03), 360°
-/// xarita and Tayyorgarlik (screen 18) under the design's bottom nav, on the
+/// xarita (17) and Tayyorgarlik (screen 18) under the design's bottom nav, on the
 /// design's light page. A section is built the first time it is opened.
 class DiscoverShell extends StatefulWidget {
   const DiscoverShell({super.key, this.tab = 0});
@@ -45,10 +45,7 @@ class _DiscoverShellState extends State<DiscoverShell> {
           index: _tab,
           children: [
             const DiscoverScreen(),
-            if (_built.contains(1))
-              const SafeArea(bottom: false, child: Padding(padding: EdgeInsets.only(top: 12), child: GuestMapScreen()))
-            else
-              const SizedBox.shrink(),
+            if (_built.contains(1)) const KoreaMapScreen() else const SizedBox.shrink(),
             if (_built.contains(2)) const PrepareScreen() else const SizedBox.shrink(),
           ],
         ),

@@ -4011,4 +4011,138 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get fdPerYearShort => '/ yil';
+
+  @override
+  String get fdCodeTitleLead => 'Mijoz';
+
+  @override
+  String get fdCodeTitleMark => 'kodingiz';
+
+  @override
+  String get fdCodeBody =>
+      'Konsultantingiz bergan 8 belgili kodni kiriting — arizangiz holati ochiladi.';
+
+  @override
+  String get fdCodeSubmit => 'Kirish';
+
+  @override
+  String get fdCodeNoCode => 'Kod yo\'qmi? Bepul konsultatsiya:';
+
+  @override
+  String fdCodeCell(int n) {
+    return 'Kodning $n-belgisi';
+  }
+
+  @override
+  String fdMapKicker(int count) {
+    return 'Koreya bo\'ylab · $count universitet';
+  }
+
+  @override
+  String get fdMapTitleMark => 'xarita';
+
+  @override
+  String get fdMapLabel => 'KOREYA · 대한민국';
+
+  @override
+  String fdMapPin(String city, int count) {
+    return '$city: $count ta universitet';
+  }
+
+  @override
+  String get fdMapZoomIn => 'Kattalashtirish';
+
+  @override
+  String get fdMapZoomOut => 'Kichiklashtirish';
+
+  @override
+  String get fdMapOpen360 => '360° ko\'rinish';
+
+  @override
+  String get fdMapEmpty => 'Bu filtr bo\'yicha universitet topilmadi.';
+
+  @override
+  String fdMapCardOf(int n, int total) {
+    return '$n / $total';
+  }
+
+  @override
+  String get fdNavApplication => 'Ariza';
+
+  @override
+  String get fdNavDocuments => 'Hujjatlar';
+
+  @override
+  String get fdJourneyTitle => 'Ariza jarayoni';
+
+  @override
+  String get fdJourneyCurrent => 'Hozirgi bosqich';
+
+  @override
+  String fdJourneyNext(String stage) {
+    return 'Keyingi bosqich: $stage';
+  }
+
+  @override
+  String get fdJourneyDone => 'Barcha bosqichlar tugadi';
+
+  @override
+  String get fdJourneyWaiting =>
+      'Konsultant arizangizni tasdiqlashi kutilmoqda';
+
+  @override
+  String get fdJourneyEmpty => 'Hali ariza yo\'q';
+
+  @override
+  String get fdJourneyEmptyBody =>
+      'Konsultant universitetni arizangizga biriktirgach, jarayon shu yerda ko\'rinadi.';
+
+  @override
+  String get fdJourneyBrowse => 'Universitetlarni ko\'rish';
+
+  @override
+  String get fdJourneyRoom => 'Universitet xonasi';
+
+  @override
+  String get fdConsultantRole => 'Konsultant · savollaringizga javob beradi';
+
+  @override
+  String get fdDocsTitle => 'Hujjatlarim';
+
+  @override
+  String get fdDocsAccepted => 'Qabul qilingan hujjatlar';
+
+  @override
+  String fdDocsNeedMore(int n) {
+    return 'Yana $n ta kerak';
+  }
+
+  @override
+  String fdDocsUnderReview(int n) {
+    return '$n tasi tekshirilmoqda';
+  }
+
+  @override
+  String get fdDocsAllAccepted => 'Hammasi qabul qilindi';
+
+  @override
+  String get fdDocAccepted => 'Qabul qilindi';
+
+  @override
+  String get fdDocNeeded => 'Kerak';
+
+  @override
+  String get fdDocReview => 'Tekshirilmoqda';
+
+  @override
+  String get fdDocUpload => 'Yuklash';
+
+  @override
+  String get fdDocView => 'Ko\'rish';
+
+  @override
+  String get fdDocRemove => 'O\'chirish';
+
+  @override
+  String get accountMoreLabel => 'Boshqa bo\'limlar';
 }

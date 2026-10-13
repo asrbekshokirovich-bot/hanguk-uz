@@ -4003,4 +4003,138 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get fdPerYearShort => '/ year';
+
+  @override
+  String get fdCodeTitleLead => 'Your client';
+
+  @override
+  String get fdCodeTitleMark => 'code';
+
+  @override
+  String get fdCodeBody =>
+      'Enter the 8-character code your consultant gave you — your application status opens.';
+
+  @override
+  String get fdCodeSubmit => 'Sign in';
+
+  @override
+  String get fdCodeNoCode => 'No code? Free consultation:';
+
+  @override
+  String fdCodeCell(int n) {
+    return 'Code character $n';
+  }
+
+  @override
+  String fdMapKicker(int count) {
+    return 'Across Korea · $count universities';
+  }
+
+  @override
+  String get fdMapTitleMark => 'map';
+
+  @override
+  String get fdMapLabel => 'KOREA · 대한민국';
+
+  @override
+  String fdMapPin(String city, int count) {
+    return '$city: $count universities';
+  }
+
+  @override
+  String get fdMapZoomIn => 'Zoom in';
+
+  @override
+  String get fdMapZoomOut => 'Zoom out';
+
+  @override
+  String get fdMapOpen360 => 'Open the 360° view';
+
+  @override
+  String get fdMapEmpty => 'No university matches this filter.';
+
+  @override
+  String fdMapCardOf(int n, int total) {
+    return '$n / $total';
+  }
+
+  @override
+  String get fdNavApplication => 'Application';
+
+  @override
+  String get fdNavDocuments => 'Documents';
+
+  @override
+  String get fdJourneyTitle => 'Application progress';
+
+  @override
+  String get fdJourneyCurrent => 'Current stage';
+
+  @override
+  String fdJourneyNext(String stage) {
+    return 'Next stage: $stage';
+  }
+
+  @override
+  String get fdJourneyDone => 'Every stage is done';
+
+  @override
+  String get fdJourneyWaiting =>
+      'Waiting for the consultant to confirm your application';
+
+  @override
+  String get fdJourneyEmpty => 'No application yet';
+
+  @override
+  String get fdJourneyEmptyBody =>
+      'Once your consultant attaches a university, its progress shows here.';
+
+  @override
+  String get fdJourneyBrowse => 'Browse universities';
+
+  @override
+  String get fdJourneyRoom => 'University room';
+
+  @override
+  String get fdConsultantRole => 'Consultant · answers your questions';
+
+  @override
+  String get fdDocsTitle => 'My documents';
+
+  @override
+  String get fdDocsAccepted => 'Accepted documents';
+
+  @override
+  String fdDocsNeedMore(int n) {
+    return '$n more needed';
+  }
+
+  @override
+  String fdDocsUnderReview(int n) {
+    return '$n under review';
+  }
+
+  @override
+  String get fdDocsAllAccepted => 'Everything is accepted';
+
+  @override
+  String get fdDocAccepted => 'Accepted';
+
+  @override
+  String get fdDocNeeded => 'Needed';
+
+  @override
+  String get fdDocReview => 'Under review';
+
+  @override
+  String get fdDocUpload => 'Upload';
+
+  @override
+  String get fdDocView => 'View';
+
+  @override
+  String get fdDocRemove => 'Remove';
+
+  @override
+  String get accountMoreLabel => 'More';
 }

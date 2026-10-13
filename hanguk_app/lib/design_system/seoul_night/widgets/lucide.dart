@@ -271,4 +271,20 @@ abstract final class LucideIcons {
   static const arrowDown = LucideGlyph(
     paths: ['M12 5v14', 'm19 12-7 7-7-7'],
   );
+
+  /// lucide `rotate-3d`
+  static const rotate3d = LucideGlyph(
+    paths: ['M16.466 7.5C15.643 4.237 13.952 2 12 2 9.239 2 7 6.477 7 12s2.239 10 5 10c.342 0 .677-.069 1-.2', 'm15.194 13.707 3.814 1.86-1.86 3.814', 'M19 15.57c-1.804.885-4.274 1.43-7 1.43-5.523 0-10-2.239-10-5s4.477-5 10-5c4.838 0 8.873 1.718 9.8 4'],
+  );
+
+  /// lucide `user-round`
+  static const userRound = LucideGlyph(
+    paths: ['M20 21a8 8 0 0 0-16 0'],
+    circles: [(12, 8, 5)],
+  );
+
+  /// lucide `upload`
+  static const upload = LucideGlyph(
+    paths: ['M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4', 'M17 8L12 3L7 8', 'M12 3L12 15'],
+  );
 }

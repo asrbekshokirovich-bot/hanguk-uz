@@ -3851,4 +3851,135 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get fdPerYearShort => '/ 년';
+
+  @override
+  String get fdCodeTitleLead => '고객';
+
+  @override
+  String get fdCodeTitleMark => '코드';
+
+  @override
+  String get fdCodeBody => '상담사가 알려준 8자리 코드를 입력하세요 — 신청 현황이 열립니다.';
+
+  @override
+  String get fdCodeSubmit => '입장';
+
+  @override
+  String get fdCodeNoCode => '코드가 없나요? 무료 상담:';
+
+  @override
+  String fdCodeCell(int n) {
+    return '코드 $n번째 글자';
+  }
+
+  @override
+  String fdMapKicker(int count) {
+    return '한국 전역 · 대학 $count곳';
+  }
+
+  @override
+  String get fdMapTitleMark => '지도';
+
+  @override
+  String get fdMapLabel => '한국 · 대한민국';
+
+  @override
+  String fdMapPin(String city, int count) {
+    return '$city: 대학 $count곳';
+  }
+
+  @override
+  String get fdMapZoomIn => '확대';
+
+  @override
+  String get fdMapZoomOut => '축소';
+
+  @override
+  String get fdMapOpen360 => '360° 보기';
+
+  @override
+  String get fdMapEmpty => '이 필터에 맞는 대학이 없어요.';
+
+  @override
+  String fdMapCardOf(int n, int total) {
+    return '$n / $total';
+  }
+
+  @override
+  String get fdNavApplication => '지원';
+
+  @override
+  String get fdNavDocuments => '서류';
+
+  @override
+  String get fdJourneyTitle => '지원 진행 상황';
+
+  @override
+  String get fdJourneyCurrent => '현재 단계';
+
+  @override
+  String fdJourneyNext(String stage) {
+    return '다음 단계: $stage';
+  }
+
+  @override
+  String get fdJourneyDone => '모든 단계가 끝났어요';
+
+  @override
+  String get fdJourneyWaiting => '상담사의 신청 확인을 기다리는 중';
+
+  @override
+  String get fdJourneyEmpty => '아직 신청이 없어요';
+
+  @override
+  String get fdJourneyEmptyBody => '상담사가 대학을 연결하면 진행 상황이 여기에 표시됩니다.';
+
+  @override
+  String get fdJourneyBrowse => '대학 둘러보기';
+
+  @override
+  String get fdJourneyRoom => '대학 룸';
+
+  @override
+  String get fdConsultantRole => '상담사 · 질문에 답해 드려요';
+
+  @override
+  String get fdDocsTitle => '내 서류';
+
+  @override
+  String get fdDocsAccepted => '승인된 서류';
+
+  @override
+  String fdDocsNeedMore(int n) {
+    return '$n개 더 필요해요';
+  }
+
+  @override
+  String fdDocsUnderReview(int n) {
+    return '$n개 검토 중';
+  }
+
+  @override
+  String get fdDocsAllAccepted => '모두 승인되었어요';
+
+  @override
+  String get fdDocAccepted => '승인됨';
+
+  @override
+  String get fdDocNeeded => '필요';
+
+  @override
+  String get fdDocReview => '검토 중';
+
+  @override
+  String get fdDocUpload => '올리기';
+
+  @override
+  String get fdDocView => '보기';
+
+  @override
+  String get fdDocRemove => '삭제';
+
+  @override
+  String get accountMoreLabel => '더 보기';
 }

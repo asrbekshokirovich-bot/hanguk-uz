@@ -3998,4 +3998,137 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get fdPerYearShort => '/ năm';
+
+  @override
+  String get fdCodeTitleLead => 'Mã';
+
+  @override
+  String get fdCodeTitleMark => 'khách hàng';
+
+  @override
+  String get fdCodeBody =>
+      'Nhập mã 8 ký tự do tư vấn viên gửi — trạng thái hồ sơ của bạn sẽ mở ra.';
+
+  @override
+  String get fdCodeSubmit => 'Vào';
+
+  @override
+  String get fdCodeNoCode => 'Chưa có mã? Tư vấn miễn phí:';
+
+  @override
+  String fdCodeCell(int n) {
+    return 'Ký tự mã thứ $n';
+  }
+
+  @override
+  String fdMapKicker(int count) {
+    return 'Khắp Hàn Quốc · $count trường';
+  }
+
+  @override
+  String get fdMapTitleMark => 'bản đồ';
+
+  @override
+  String get fdMapLabel => 'HÀN QUỐC · 대한민국';
+
+  @override
+  String fdMapPin(String city, int count) {
+    return '$city: $count trường';
+  }
+
+  @override
+  String get fdMapZoomIn => 'Phóng to';
+
+  @override
+  String get fdMapZoomOut => 'Thu nhỏ';
+
+  @override
+  String get fdMapOpen360 => 'Mở chế độ 360°';
+
+  @override
+  String get fdMapEmpty => 'Không có trường nào khớp bộ lọc này.';
+
+  @override
+  String fdMapCardOf(int n, int total) {
+    return '$n / $total';
+  }
+
+  @override
+  String get fdNavApplication => 'Hồ sơ';
+
+  @override
+  String get fdNavDocuments => 'Giấy tờ';
+
+  @override
+  String get fdJourneyTitle => 'Tiến trình hồ sơ';
+
+  @override
+  String get fdJourneyCurrent => 'Giai đoạn hiện tại';
+
+  @override
+  String fdJourneyNext(String stage) {
+    return 'Giai đoạn tiếp theo: $stage';
+  }
+
+  @override
+  String get fdJourneyDone => 'Đã hoàn thành mọi giai đoạn';
+
+  @override
+  String get fdJourneyWaiting => 'Đang chờ tư vấn viên xác nhận hồ sơ';
+
+  @override
+  String get fdJourneyEmpty => 'Chưa có hồ sơ';
+
+  @override
+  String get fdJourneyEmptyBody =>
+      'Khi tư vấn viên gắn trường vào hồ sơ, tiến trình sẽ hiện ở đây.';
+
+  @override
+  String get fdJourneyBrowse => 'Xem các trường';
+
+  @override
+  String get fdJourneyRoom => 'Phòng trường';
+
+  @override
+  String get fdConsultantRole => 'Tư vấn viên · giải đáp thắc mắc';
+
+  @override
+  String get fdDocsTitle => 'Giấy tờ của tôi';
+
+  @override
+  String get fdDocsAccepted => 'Giấy tờ đã được nhận';
+
+  @override
+  String fdDocsNeedMore(int n) {
+    return 'Cần thêm $n';
+  }
+
+  @override
+  String fdDocsUnderReview(int n) {
+    return '$n đang được xem xét';
+  }
+
+  @override
+  String get fdDocsAllAccepted => 'Tất cả đã được nhận';
+
+  @override
+  String get fdDocAccepted => 'Đã nhận';
+
+  @override
+  String get fdDocNeeded => 'Cần có';
+
+  @override
+  String get fdDocReview => 'Đang xem xét';
+
+  @override
+  String get fdDocUpload => 'Tải lên';
+
+  @override
+  String get fdDocView => 'Xem';
+
+  @override
+  String get fdDocRemove => 'Xóa';
+
+  @override
+  String get accountMoreLabel => 'Thêm';
 }

@@ -308,3 +308,34 @@ class FdPrimaryButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) => HardButton(label: label, onPressed: onPressed, loading: loading);
 }
+
+/// A 1.5px dashed pill outline (`border: 1.5px dashed`).
+class DashedPillPainter extends CustomPainter {
+  const DashedPillPainter({required this.color, this.radius});
+
+  final Color color;
+
+  /// Null for a full pill.
+  final double? radius;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final r = radius ?? size.height / 2;
+    final rect = RRect.fromRectAndRadius(Offset.zero & size, Radius.circular(r)).deflate(0.75);
+    final path = Path()..addRRect(rect);
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5;
+    for (final metric in path.computeMetrics()) {
+      var d = 0.0;
+      while (d < metric.length) {
+        canvas.drawPath(metric.extractPath(d, d + 4), paint);
+        d += 7;
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(DashedPillPainter old) => old.color != color || old.radius != radius;
+}

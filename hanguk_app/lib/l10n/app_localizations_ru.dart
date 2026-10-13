@@ -4017,4 +4017,137 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get fdPerYearShort => '/ год';
+
+  @override
+  String get fdCodeTitleLead => 'Ваш клиентский';
+
+  @override
+  String get fdCodeTitleMark => 'код';
+
+  @override
+  String get fdCodeBody =>
+      'Введите 8-значный код от консультанта — откроется статус вашей заявки.';
+
+  @override
+  String get fdCodeSubmit => 'Войти';
+
+  @override
+  String get fdCodeNoCode => 'Нет кода? Бесплатная консультация:';
+
+  @override
+  String fdCodeCell(int n) {
+    return 'Символ кода $n';
+  }
+
+  @override
+  String fdMapKicker(int count) {
+    return 'По Корее · университетов: $count';
+  }
+
+  @override
+  String get fdMapTitleMark => 'карта';
+
+  @override
+  String get fdMapLabel => 'КОРЕЯ · 대한민국';
+
+  @override
+  String fdMapPin(String city, int count) {
+    return '$city: университетов $count';
+  }
+
+  @override
+  String get fdMapZoomIn => 'Приблизить';
+
+  @override
+  String get fdMapZoomOut => 'Отдалить';
+
+  @override
+  String get fdMapOpen360 => 'Открыть обзор 360°';
+
+  @override
+  String get fdMapEmpty => 'По этому фильтру университетов нет.';
+
+  @override
+  String fdMapCardOf(int n, int total) {
+    return '$n / $total';
+  }
+
+  @override
+  String get fdNavApplication => 'Заявка';
+
+  @override
+  String get fdNavDocuments => 'Документы';
+
+  @override
+  String get fdJourneyTitle => 'Ход заявки';
+
+  @override
+  String get fdJourneyCurrent => 'Текущий этап';
+
+  @override
+  String fdJourneyNext(String stage) {
+    return 'Следующий этап: $stage';
+  }
+
+  @override
+  String get fdJourneyDone => 'Все этапы пройдены';
+
+  @override
+  String get fdJourneyWaiting => 'Ожидается подтверждение заявки консультантом';
+
+  @override
+  String get fdJourneyEmpty => 'Заявок пока нет';
+
+  @override
+  String get fdJourneyEmptyBody =>
+      'Когда консультант прикрепит университет, ход заявки появится здесь.';
+
+  @override
+  String get fdJourneyBrowse => 'Смотреть университеты';
+
+  @override
+  String get fdJourneyRoom => 'Комната университета';
+
+  @override
+  String get fdConsultantRole => 'Консультант · ответит на вопросы';
+
+  @override
+  String get fdDocsTitle => 'Мои документы';
+
+  @override
+  String get fdDocsAccepted => 'Принятые документы';
+
+  @override
+  String fdDocsNeedMore(int n) {
+    return 'Нужно ещё: $n';
+  }
+
+  @override
+  String fdDocsUnderReview(int n) {
+    return 'На проверке: $n';
+  }
+
+  @override
+  String get fdDocsAllAccepted => 'Всё принято';
+
+  @override
+  String get fdDocAccepted => 'Принято';
+
+  @override
+  String get fdDocNeeded => 'Нужно';
+
+  @override
+  String get fdDocReview => 'На проверке';
+
+  @override
+  String get fdDocUpload => 'Загрузить';
+
+  @override
+  String get fdDocView => 'Открыть';
+
+  @override
+  String get fdDocRemove => 'Удалить';
+
+  @override
+  String get accountMoreLabel => 'Ещё';
 }

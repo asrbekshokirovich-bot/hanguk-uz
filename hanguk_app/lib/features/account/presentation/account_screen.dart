@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -14,6 +15,8 @@ import '../../../l10n/app_localizations.dart';
 import '../../auth/data/auth_repository.dart';
 import '../../entry/data/entry_store.dart';
 import '../../entry/presentation/language_sheet.dart';
+import '../../training/presentation/study_plan_screen.dart';
+import '../../uni_db/data/admin_review_providers.dart';
 
 /// Account management screen — sign out and (irreversibly) delete the
 /// account. The deletion flow is required by both Apple App Store
@@ -261,6 +264,52 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                     ? l10n.accountSigningOut
                     : l10n.accountSignOut,
                 onPressed: _signingOut ? null : _signOut,
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            // What is not among the bottom tabs: the surveys, the reminders
+            // and the personal statement, and the staff review queue.
+            _AccountCard(
+              glyph: '더',
+              title: l10n.accountMoreLabel,
+              ko: '더 보기',
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  SeoulOutlineButton(
+                    icon: Icons.poll_outlined,
+                    label: l10n.surveysTitle,
+                    onPressed: () => context.push('/surveys'),
+                  ),
+                  const SizedBox(height: 10),
+                  SeoulOutlineButton(
+                    icon: Icons.notifications_none_rounded,
+                    label: l10n.homeNotifications,
+                    onPressed: () => context.push('/notifications'),
+                  ),
+                  const SizedBox(height: 10),
+                  SeoulOutlineButton(
+                    icon: Icons.edit_note_rounded,
+                    label: l10n.personalStatementCardTitle,
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const StudyPlanScreen(documentType: 'personal_statement'),
+                      ),
+                    ),
+                  ),
+                  if (ref.watch(canReviewUniDbProvider).value ?? false) ...[
+                    const SizedBox(height: 10),
+                    SeoulOutlineButton(
+                      icon: Icons.fact_check_outlined,
+                      label: (ref.watch(reviewQueueCountProvider).value ?? 0) > 0
+                          ? 'Review (${ref.watch(reviewQueueCountProvider).value})'
+                          : 'Review',
+                      onPressed: () => context.push('/admin/review'),
+                    ),
+                  ],
+                ],
               ),
             ),
 

@@ -184,7 +184,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
 
     if (result.error case final error?) {
       // The repository reports a code; the words are in the app language.
-      _setError(_authErrorMessage(l10n, error));
+      _setError(authErrorMessage(l10n, error));
       // A sign-in that failed on infrastructure must not leave the app with
       // nothing to look at. Six App Review rejections, and on 2026-09-01 the
       // reviewer's three requests were answered by the hosting gateway with
@@ -233,7 +233,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     _setLoading(false);
 
     if (result.error case final error?) {
-      _setError(_authErrorMessage(l10n, error));
+      _setError(authErrorMessage(l10n, error));
       if (result.isCrmAccount) {
         // Automatically switch to Magic Code Mode
         Future.delayed(const Duration(milliseconds: 1500), () {
@@ -762,7 +762,8 @@ class _MagicCodeFieldState extends State<_MagicCodeField> {
 
 /// Words, in the app language, for a sign-in or sign-up failure the
 /// repository reported.
-String _authErrorMessage(AppLocalizations l, AuthError error) =>
+/// The words for an [AuthError], in the app language.
+String authErrorMessage(AppLocalizations l, AuthError error) =>
     switch (error) {
       AuthError.invalidAccessCode => l.loginErrorInvalidAccessCode,
       AuthError.codeNotFound => l.authErrorCodeNotFound,

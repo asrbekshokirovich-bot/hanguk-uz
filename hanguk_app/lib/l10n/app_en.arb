@@ -5181,5 +5181,202 @@
   "fdPerYearShort": "/ year",
   "@fdPerYearShort": {
     "description": "After the fee on the home card: per year."
+  },
+  "fdCodeTitleLead": "Your client",
+  "@fdCodeTitleLead": {
+    "description": "Client code screen (design 14) title, first part; the second part is marked."
+  },
+  "fdCodeTitleMark": "code",
+  "@fdCodeTitleMark": {
+    "description": "Client code title, marked part."
+  },
+  "fdCodeBody": "Enter the 8-character code your consultant gave you — your application status opens.",
+  "@fdCodeBody": {
+    "description": "Client code screen body."
+  },
+  "fdCodeSubmit": "Sign in",
+  "@fdCodeSubmit": {
+    "description": "Client code screen button."
+  },
+  "fdCodeNoCode": "No code? Free consultation:",
+  "@fdCodeNoCode": {
+    "description": "Under the client code form, followed by the phone number."
+  },
+  "fdCodeCell": "Code character {n}",
+  "@fdCodeCell": {
+    "description": "Screen-reader label for the code field.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "fdMapKicker": "Across Korea · {count} universities",
+  "@fdMapKicker": {
+    "description": "Map (design 17) line above the title.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fdMapTitleMark": "map",
+  "@fdMapTitleMark": {
+    "description": "Map title, marked part, after '360° '."
+  },
+  "fdMapLabel": "KOREA · 대한민국",
+  "@fdMapLabel": {
+    "description": "Faint label in the map's corner."
+  },
+  "fdMapPin": "{city}: {count} universities",
+  "@fdMapPin": {
+    "description": "Screen-reader label of a map pin.",
+    "placeholders": {
+      "city": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fdMapZoomIn": "Zoom in",
+  "@fdMapZoomIn": {
+    "description": "Map zoom button."
+  },
+  "fdMapZoomOut": "Zoom out",
+  "@fdMapZoomOut": {
+    "description": "Map zoom button."
+  },
+  "fdMapOpen360": "Open the 360° view",
+  "@fdMapOpen360": {
+    "description": "Screen-reader label of the 360° button on the map card."
+  },
+  "fdMapEmpty": "No university matches this filter.",
+  "@fdMapEmpty": {
+    "description": "Map with no pins."
+  },
+  "fdMapCardOf": "{n} / {total}",
+  "@fdMapCardOf": {
+    "description": "Which university of a pin's list the card shows.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "fdNavApplication": "Application",
+  "@fdNavApplication": {
+    "description": "Client bottom nav tab (design 15)."
+  },
+  "fdNavDocuments": "Documents",
+  "@fdNavDocuments": {
+    "description": "Client bottom nav tab (design 15b)."
+  },
+  "fdJourneyTitle": "Application progress",
+  "@fdJourneyTitle": {
+    "description": "Application (design 15) title."
+  },
+  "fdJourneyCurrent": "Current stage",
+  "@fdJourneyCurrent": {
+    "description": "Application summary card label."
+  },
+  "fdJourneyNext": "Next stage: {stage}",
+  "@fdJourneyNext": {
+    "description": "Application summary card note.",
+    "placeholders": {
+      "stage": {
+        "type": "String"
+      }
+    }
+  },
+  "fdJourneyDone": "Every stage is done",
+  "@fdJourneyDone": {
+    "description": "Application summary card note when the journey is over."
+  },
+  "fdJourneyWaiting": "Waiting for the consultant to confirm your application",
+  "@fdJourneyWaiting": {
+    "description": "Application summary card note while the application is pending approval."
+  },
+  "fdJourneyEmpty": "No application yet",
+  "@fdJourneyEmpty": {
+    "description": "Application screen with no application."
+  },
+  "fdJourneyEmptyBody": "Once your consultant attaches a university, its progress shows here.",
+  "@fdJourneyEmptyBody": {
+    "description": "Application screen with no application."
+  },
+  "fdJourneyBrowse": "Browse universities",
+  "@fdJourneyBrowse": {
+    "description": "Button on the empty application screen."
+  },
+  "fdJourneyRoom": "University room",
+  "@fdJourneyRoom": {
+    "description": "Opens a university's room (discussion, announcements) from an application."
+  },
+  "fdConsultantRole": "Consultant · answers your questions",
+  "@fdConsultantRole": {
+    "description": "Under the agency name on the consultant card."
+  },
+  "fdDocsTitle": "My documents",
+  "@fdDocsTitle": {
+    "description": "Documents (design 15b) title."
+  },
+  "fdDocsAccepted": "Accepted documents",
+  "@fdDocsAccepted": {
+    "description": "Documents summary card label."
+  },
+  "fdDocsNeedMore": "{n} more needed",
+  "@fdDocsNeedMore": {
+    "description": "Documents summary card headline.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "fdDocsUnderReview": "{n} under review",
+  "@fdDocsUnderReview": {
+    "description": "Documents summary card headline when all are uploaded.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "fdDocsAllAccepted": "Everything is accepted",
+  "@fdDocsAllAccepted": {
+    "description": "Documents summary card headline when all are accepted."
+  },
+  "fdDocAccepted": "Accepted",
+  "@fdDocAccepted": {
+    "description": "Document row status."
+  },
+  "fdDocNeeded": "Needed",
+  "@fdDocNeeded": {
+    "description": "Document row status."
+  },
+  "fdDocReview": "Under review",
+  "@fdDocReview": {
+    "description": "Document row status."
+  },
+  "fdDocUpload": "Upload",
+  "@fdDocUpload": {
+    "description": "Document row button."
+  },
+  "fdDocView": "View",
+  "@fdDocView": {
+    "description": "Document actions."
+  },
+  "fdDocRemove": "Remove",
+  "@fdDocRemove": {
+    "description": "Document actions."
+  },
+  "accountMoreLabel": "More",
+  "@accountMoreLabel": {
+    "description": "Account screen card with the sections that are not in the bottom tabs."
   }
 }

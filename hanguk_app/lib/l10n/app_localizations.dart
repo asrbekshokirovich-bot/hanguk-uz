@@ -7219,6 +7219,240 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'/ year'**
   String get fdPerYearShort;
+
+  /// Client code screen (design 14) title, first part; the second part is marked.
+  ///
+  /// In en, this message translates to:
+  /// **'Your client'**
+  String get fdCodeTitleLead;
+
+  /// Client code title, marked part.
+  ///
+  /// In en, this message translates to:
+  /// **'code'**
+  String get fdCodeTitleMark;
+
+  /// Client code screen body.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the 8-character code your consultant gave you — your application status opens.'**
+  String get fdCodeBody;
+
+  /// Client code screen button.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in'**
+  String get fdCodeSubmit;
+
+  /// Under the client code form, followed by the phone number.
+  ///
+  /// In en, this message translates to:
+  /// **'No code? Free consultation:'**
+  String get fdCodeNoCode;
+
+  /// Screen-reader label for the code field.
+  ///
+  /// In en, this message translates to:
+  /// **'Code character {n}'**
+  String fdCodeCell(int n);
+
+  /// Map (design 17) line above the title.
+  ///
+  /// In en, this message translates to:
+  /// **'Across Korea · {count} universities'**
+  String fdMapKicker(int count);
+
+  /// Map title, marked part, after '360° '.
+  ///
+  /// In en, this message translates to:
+  /// **'map'**
+  String get fdMapTitleMark;
+
+  /// Faint label in the map's corner.
+  ///
+  /// In en, this message translates to:
+  /// **'KOREA · 대한민국'**
+  String get fdMapLabel;
+
+  /// Screen-reader label of a map pin.
+  ///
+  /// In en, this message translates to:
+  /// **'{city}: {count} universities'**
+  String fdMapPin(String city, int count);
+
+  /// Map zoom button.
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom in'**
+  String get fdMapZoomIn;
+
+  /// Map zoom button.
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom out'**
+  String get fdMapZoomOut;
+
+  /// Screen-reader label of the 360° button on the map card.
+  ///
+  /// In en, this message translates to:
+  /// **'Open the 360° view'**
+  String get fdMapOpen360;
+
+  /// Map with no pins.
+  ///
+  /// In en, this message translates to:
+  /// **'No university matches this filter.'**
+  String get fdMapEmpty;
+
+  /// Which university of a pin's list the card shows.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} / {total}'**
+  String fdMapCardOf(int n, int total);
+
+  /// Client bottom nav tab (design 15).
+  ///
+  /// In en, this message translates to:
+  /// **'Application'**
+  String get fdNavApplication;
+
+  /// Client bottom nav tab (design 15b).
+  ///
+  /// In en, this message translates to:
+  /// **'Documents'**
+  String get fdNavDocuments;
+
+  /// Application (design 15) title.
+  ///
+  /// In en, this message translates to:
+  /// **'Application progress'**
+  String get fdJourneyTitle;
+
+  /// Application summary card label.
+  ///
+  /// In en, this message translates to:
+  /// **'Current stage'**
+  String get fdJourneyCurrent;
+
+  /// Application summary card note.
+  ///
+  /// In en, this message translates to:
+  /// **'Next stage: {stage}'**
+  String fdJourneyNext(String stage);
+
+  /// Application summary card note when the journey is over.
+  ///
+  /// In en, this message translates to:
+  /// **'Every stage is done'**
+  String get fdJourneyDone;
+
+  /// Application summary card note while the application is pending approval.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for the consultant to confirm your application'**
+  String get fdJourneyWaiting;
+
+  /// Application screen with no application.
+  ///
+  /// In en, this message translates to:
+  /// **'No application yet'**
+  String get fdJourneyEmpty;
+
+  /// Application screen with no application.
+  ///
+  /// In en, this message translates to:
+  /// **'Once your consultant attaches a university, its progress shows here.'**
+  String get fdJourneyEmptyBody;
+
+  /// Button on the empty application screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse universities'**
+  String get fdJourneyBrowse;
+
+  /// Opens a university's room (discussion, announcements) from an application.
+  ///
+  /// In en, this message translates to:
+  /// **'University room'**
+  String get fdJourneyRoom;
+
+  /// Under the agency name on the consultant card.
+  ///
+  /// In en, this message translates to:
+  /// **'Consultant · answers your questions'**
+  String get fdConsultantRole;
+
+  /// Documents (design 15b) title.
+  ///
+  /// In en, this message translates to:
+  /// **'My documents'**
+  String get fdDocsTitle;
+
+  /// Documents summary card label.
+  ///
+  /// In en, this message translates to:
+  /// **'Accepted documents'**
+  String get fdDocsAccepted;
+
+  /// Documents summary card headline.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} more needed'**
+  String fdDocsNeedMore(int n);
+
+  /// Documents summary card headline when all are uploaded.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} under review'**
+  String fdDocsUnderReview(int n);
+
+  /// Documents summary card headline when all are accepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything is accepted'**
+  String get fdDocsAllAccepted;
+
+  /// Document row status.
+  ///
+  /// In en, this message translates to:
+  /// **'Accepted'**
+  String get fdDocAccepted;
+
+  /// Document row status.
+  ///
+  /// In en, this message translates to:
+  /// **'Needed'**
+  String get fdDocNeeded;
+
+  /// Document row status.
+  ///
+  /// In en, this message translates to:
+  /// **'Under review'**
+  String get fdDocReview;
+
+  /// Document row button.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload'**
+  String get fdDocUpload;
+
+  /// Document actions.
+  ///
+  /// In en, this message translates to:
+  /// **'View'**
+  String get fdDocView;
+
+  /// Document actions.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get fdDocRemove;
+
+  /// Account screen card with the sections that are not in the bottom tabs.
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get accountMoreLabel;
 }
 
 class _AppLocalizationsDelegate
