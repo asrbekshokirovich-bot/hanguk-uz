@@ -1,5 +1,5 @@
 {
- "last_run": "2026-10-13T03:38:00+00:00",
+ "last_run": "2026-10-13T11:50:59+00:00",
  "seen": {
   "http://enter.konkuk.ac.kr/submenu.do?menuurl=k8b%2fCUaWlntKYwhT%2fh%2bKUA%3d%3d&": [],
   "https://adm-u.postech.ac.kr/": [
@@ -511,6 +511,10 @@
    "22bd4475f35f2867"
   ],
   "https://igse.ac.kr": [
+   "9448d20ba2cc14db",
+   "adfc084f3b9d3ae5",
+   "f9407e3b6ed201c7",
+   "1cfc9b04a4fa348c",
    "009eb125e750ff69",
    "b2aa08ab8a9456d0",
    "f816ace8755efd9e"
