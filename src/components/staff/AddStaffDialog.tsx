@@ -130,7 +130,7 @@ export function AddStaffDialog({ open, onOpenChange, onSuccess }: AddStaffDialog
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] max-h-[90dvh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add Staff Member</DialogTitle>
           <DialogDescription>
