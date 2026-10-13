@@ -23,3 +23,19 @@ const String kAssessmentSentPath = '/assess/sent';
 
 /// Screen 10, a university's page.
 String universityPath(String institutionId) => '/university/$institutionId';
+
+/// Screen 07, "Bu yoki bu?": the duel that fills the empty slots.
+const String kDiscoverDuelPath = '/guest/duel';
+
+/// Screen 08, "Ajoyib tanlov": the slotted universities and the big question.
+const String kDiscoverChosenPath = '/guest/chosen';
+
+/// Screen 09, side by side. `extra` is the list of institution ids.
+const String kDiscoverComparePath = '/guest/compare';
+
+/// Screen 16, the saved universities.
+const String kDiscoverSavedPath = '/guest/saved';
+
+/// The home with one of its tabs open (0 Universitetlar, 1 xarita,
+/// 2 Tayyorgarlik), for the bottom nav of a screen pushed over it.
+String discoverTabPath(int tab) => tab == 0 ? kDiscoverPath : '$kDiscoverPath?tab=$tab';

@@ -3865,4 +3865,129 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get fdUniCta => 'Koreaga keta olamanmi o\'zi?';
+
+  @override
+  String fdResultsMatching(int count) {
+    return '$count ta mos universitet';
+  }
+
+  @override
+  String get fdResultsBestFirst => 'eng mosi tepada';
+
+  @override
+  String get fdSlotDropHere => 'Shu yerga';
+
+  @override
+  String fdSlotNumber(int n) {
+    return '$n-slot';
+  }
+
+  @override
+  String get fdSlotEmpty => 'bo\'sh';
+
+  @override
+  String get fdAddToSlot => 'Slotga qo\'shish';
+
+  @override
+  String get fdRemoveFromSlot => 'Slotdan olish';
+
+  @override
+  String fdInSlot(int n) {
+    return '✓ $n-slotda';
+  }
+
+  @override
+  String get fdSlotsFull => 'Uchala slot band. Avval bittasini bo\'shating.';
+
+  @override
+  String get fdBestThreeTitle => 'Eng yaxshi 3 tasini tanlang';
+
+  @override
+  String fdBestThreeBody(int count) {
+    return '$count tadan — ikkitadan solishtirib';
+  }
+
+  @override
+  String get fdDuelTitleLead => 'Eng yaxshi';
+
+  @override
+  String get fdDuelTitleMark => '3 tasi';
+
+  @override
+  String fdDuelCompared(int count) {
+    return '$count ta solishtirildi';
+  }
+
+  @override
+  String get fdOr => 'YOKI';
+
+  @override
+  String get fdDuelLegend => '= chempion, slotga tushadi';
+
+  @override
+  String get fdDuelPick => 'Shuni tanlash';
+
+  @override
+  String get fdChosenTitleMark => 'Ajoyib';
+
+  @override
+  String get fdChosenTitleTail => 'tanlov!';
+
+  @override
+  String get fdChosenBodyThree =>
+      'Uchta universitetingiz tayyor. Qaysi biri sizga ochiq — hozir bilib olamiz.';
+
+  @override
+  String fdChosenBody(int count) {
+    return '$count ta universitetingiz tayyor. Qaysi biri sizga ochiq — hozir bilib olamiz.';
+  }
+
+  @override
+  String get fdChosenNext => 'Endi eng muhim savol';
+
+  @override
+  String get fdChosenAdmission => 'Shu univerlarga kira olamanmi o\'zi?';
+
+  @override
+  String get fdChosenVisa => 'Vizam chiqadimi o\'zi?';
+
+  @override
+  String get fdChosenEmpty =>
+      'Slotlar hali bo\'sh. Natijalardan universitet qo\'shing.';
+
+  @override
+  String get fdCompareTitle => 'Taqqoslash';
+
+  @override
+  String fdCompareCount(int count) {
+    return '$count ta universitet';
+  }
+
+  @override
+  String get fdCompareCity => 'Shahar';
+
+  @override
+  String get fdCompareType => 'Turi';
+
+  @override
+  String get fdCompareAdmission => 'Qabul';
+
+  @override
+  String get fdSavedTitle => 'Saqlanganlar';
+
+  @override
+  String get fdSavedCompareThree => 'Uchalasini taqqoslash';
+
+  @override
+  String get fdSavedCompareTwo => 'Ikkalasini taqqoslash';
+
+  @override
+  String get fdSavedCompareBody => 'Narx, til talabi, muddat yonma-yon';
+
+  @override
+  String get fdSavedEmpty =>
+      'Hali hech narsa saqlanmagan. Bosh oynada kartani o\'ngga suring yoki ♡ ni bosing.';
+
+  @override
+  String get fdUnsave => 'Saqlanganlardan olib tashlash';
 }

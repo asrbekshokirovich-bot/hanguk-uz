@@ -3853,4 +3853,128 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get fdUniCta => 'Liệu tôi có thể sang Hàn Quốc?';
+
+  @override
+  String fdResultsMatching(int count) {
+    return '$count trường phù hợp';
+  }
+
+  @override
+  String get fdResultsBestFirst => 'phù hợp nhất ở trên';
+
+  @override
+  String get fdSlotDropHere => 'Thả vào đây';
+
+  @override
+  String fdSlotNumber(int n) {
+    return 'Ô $n';
+  }
+
+  @override
+  String get fdSlotEmpty => 'trống';
+
+  @override
+  String get fdAddToSlot => 'Thêm vào ô';
+
+  @override
+  String get fdRemoveFromSlot => 'Bỏ khỏi ô';
+
+  @override
+  String fdInSlot(int n) {
+    return '✓ Ở ô $n';
+  }
+
+  @override
+  String get fdSlotsFull => 'Cả ba ô đã đầy. Hãy bỏ bớt một ô trước.';
+
+  @override
+  String get fdBestThreeTitle => 'Chọn 3 trường tốt nhất';
+
+  @override
+  String fdBestThreeBody(int count) {
+    return 'từ $count — so sánh từng cặp';
+  }
+
+  @override
+  String get fdDuelTitleLead => 'Tốt nhất';
+
+  @override
+  String get fdDuelTitleMark => '3 trường';
+
+  @override
+  String fdDuelCompared(int count) {
+    return 'đã so $count';
+  }
+
+  @override
+  String get fdOr => 'HAY';
+
+  @override
+  String get fdDuelLegend => '= vô địch, vào ô';
+
+  @override
+  String get fdDuelPick => 'Chọn trường này';
+
+  @override
+  String get fdChosenTitleMark => 'Lựa chọn';
+
+  @override
+  String get fdChosenTitleTail => 'tuyệt vời!';
+
+  @override
+  String get fdChosenBodyThree =>
+      'Ba trường của bạn đã sẵn sàng. Cùng xem trường nào mở với bạn.';
+
+  @override
+  String fdChosenBody(int count) {
+    return '$count trường của bạn đã sẵn sàng. Cùng xem trường nào mở với bạn.';
+  }
+
+  @override
+  String get fdChosenNext => 'Giờ là câu hỏi quan trọng nhất';
+
+  @override
+  String get fdChosenAdmission => 'Liệu tôi có vào được các trường này?';
+
+  @override
+  String get fdChosenVisa => 'Liệu tôi có được visa?';
+
+  @override
+  String get fdChosenEmpty => 'Các ô còn trống. Hãy thêm trường từ kết quả.';
+
+  @override
+  String get fdCompareTitle => 'So sánh';
+
+  @override
+  String fdCompareCount(int count) {
+    return '$count trường';
+  }
+
+  @override
+  String get fdCompareCity => 'Thành phố';
+
+  @override
+  String get fdCompareType => 'Loại';
+
+  @override
+  String get fdCompareAdmission => 'Nhập học';
+
+  @override
+  String get fdSavedTitle => 'Đã lưu';
+
+  @override
+  String get fdSavedCompareThree => 'So sánh cả ba';
+
+  @override
+  String get fdSavedCompareTwo => 'So sánh cả hai';
+
+  @override
+  String get fdSavedCompareBody => 'Học phí, ngôn ngữ, hạn nộp cạnh nhau';
+
+  @override
+  String get fdSavedEmpty =>
+      'Chưa lưu trường nào. Ở màn hình chính, vuốt thẻ sang phải hoặc nhấn ♡.';
+
+  @override
+  String get fdUnsave => 'Bỏ lưu';
 }

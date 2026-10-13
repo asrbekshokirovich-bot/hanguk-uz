@@ -3871,4 +3871,129 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get fdUniCta => 'Смогу ли я уехать в Корею?';
+
+  @override
+  String fdResultsMatching(int count) {
+    return '$count подходящих университетов';
+  }
+
+  @override
+  String get fdResultsBestFirst => 'сначала самые подходящие';
+
+  @override
+  String get fdSlotDropHere => 'Сюда';
+
+  @override
+  String fdSlotNumber(int n) {
+    return 'Слот $n';
+  }
+
+  @override
+  String get fdSlotEmpty => 'пусто';
+
+  @override
+  String get fdAddToSlot => 'Добавить в слот';
+
+  @override
+  String get fdRemoveFromSlot => 'Убрать из слота';
+
+  @override
+  String fdInSlot(int n) {
+    return '✓ В слоте $n';
+  }
+
+  @override
+  String get fdSlotsFull => 'Все три слота заняты. Сначала освободите один.';
+
+  @override
+  String get fdBestThreeTitle => 'Выберите лучшие 3';
+
+  @override
+  String fdBestThreeBody(int count) {
+    return 'из $count — сравнивая по два';
+  }
+
+  @override
+  String get fdDuelTitleLead => 'Лучшие';
+
+  @override
+  String get fdDuelTitleMark => '3';
+
+  @override
+  String fdDuelCompared(int count) {
+    return 'сравнено: $count';
+  }
+
+  @override
+  String get fdOr => 'ИЛИ';
+
+  @override
+  String get fdDuelLegend => '= чемпион, попадает в слот';
+
+  @override
+  String get fdDuelPick => 'Выбрать этот';
+
+  @override
+  String get fdChosenTitleMark => 'Отличный';
+
+  @override
+  String get fdChosenTitleTail => 'выбор!';
+
+  @override
+  String get fdChosenBodyThree =>
+      'Три ваших университета готовы. Сейчас узнаем, какие вам открыты.';
+
+  @override
+  String fdChosenBody(int count) {
+    return 'Ваши университеты ($count) готовы. Сейчас узнаем, какие вам открыты.';
+  }
+
+  @override
+  String get fdChosenNext => 'Теперь главный вопрос';
+
+  @override
+  String get fdChosenAdmission => 'Смогу ли я поступить сюда?';
+
+  @override
+  String get fdChosenVisa => 'Дадут ли мне визу?';
+
+  @override
+  String get fdChosenEmpty =>
+      'Слоты пока пусты. Добавьте университеты из результатов.';
+
+  @override
+  String get fdCompareTitle => 'Сравнение';
+
+  @override
+  String fdCompareCount(int count) {
+    return 'университетов: $count';
+  }
+
+  @override
+  String get fdCompareCity => 'Город';
+
+  @override
+  String get fdCompareType => 'Тип';
+
+  @override
+  String get fdCompareAdmission => 'Поступление';
+
+  @override
+  String get fdSavedTitle => 'Сохранённые';
+
+  @override
+  String get fdSavedCompareThree => 'Сравнить все три';
+
+  @override
+  String get fdSavedCompareTwo => 'Сравнить оба';
+
+  @override
+  String get fdSavedCompareBody => 'Цена, язык и сроки рядом';
+
+  @override
+  String get fdSavedEmpty =>
+      'Пока ничего не сохранено. На главном экране смахните карточку вправо или нажмите ♡.';
+
+  @override
+  String get fdUnsave => 'Убрать из сохранённых';
 }

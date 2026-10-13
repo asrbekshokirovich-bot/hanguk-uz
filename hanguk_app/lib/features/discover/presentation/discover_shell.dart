@@ -10,17 +10,30 @@ import 'widgets/fd_bottom_nav.dart';
 
 /// The guest's app in the full design: Universitetlar (screen 03), 360°
 /// xarita and Tayyorgarlik (screen 18) under the design's bottom nav, on the
-/// navy backdrop. A section is built the first time it is opened.
+/// design's light page. A section is built the first time it is opened.
 class DiscoverShell extends StatefulWidget {
-  const DiscoverShell({super.key});
+  const DiscoverShell({super.key, this.tab = 0});
+
+  /// The tab to show (0 Universitetlar, 1 xarita, 2 Tayyorgarlik), from
+  /// `/guest?tab=` when a pushed screen's bottom nav sends the student here.
+  final int tab;
 
   @override
   State<DiscoverShell> createState() => _DiscoverShellState();
 }
 
 class _DiscoverShellState extends State<DiscoverShell> {
-  int _tab = 0;
-  final Set<int> _built = {0};
+  late int _tab = widget.tab.clamp(0, 2);
+  late final Set<int> _built = {0, _tab};
+
+  @override
+  void didUpdateWidget(DiscoverShell old) {
+    super.didUpdateWidget(old);
+    if (old.tab != widget.tab) {
+      _tab = widget.tab.clamp(0, 2);
+      _built.add(_tab);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

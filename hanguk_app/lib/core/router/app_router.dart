@@ -17,9 +17,13 @@ import '../../features/assessment/presentation/assessment_screen.dart';
 import '../../features/assessment/presentation/report_screen.dart';
 import '../../features/assessment/presentation/sent_screen.dart';
 import '../../features/discover/presentation/discover_routes.dart';
+import '../../features/discover/presentation/chosen_screen.dart';
+import '../../features/discover/presentation/compare_screen.dart';
 import '../../features/discover/presentation/discover_shell.dart';
+import '../../features/discover/presentation/duel_screen.dart';
 import '../../features/discover/presentation/filter_board_screen.dart';
 import '../../features/discover/presentation/results_screen.dart';
+import '../../features/discover/presentation/saved_screen.dart';
 import '../../features/discover/presentation/search_screen.dart';
 import '../../features/discover/presentation/university_screen.dart';
 import '../../features/map/data/map_repository.dart';
@@ -72,14 +76,26 @@ List<RouteBase> _accountRoutes() => [
 ];
 
 /// The full design's guest flow: the home (03) with its search (04), filter
-/// board (05) and results, a university's page (10), and "Koreaga keta
-/// olamanmi o'zi?" (11–13). Plain GoRoutes so the catalogue can be reached
+/// board (05), results and slots (06), the duel (07), the chosen three (08),
+/// the comparison (09) and the saved list (16), a university's page (10),
+/// and "Koreaga keta olamanmi o'zi?" (11–13). Plain GoRoutes so the catalogue can be reached
 /// without a session — see the redirect below.
 List<RouteBase> _guestRoutes() => [
-  GoRoute(path: kDiscoverPath, builder: (context, state) => const DiscoverShell()),
+  GoRoute(
+    path: kDiscoverPath,
+    builder: (context, state) => DiscoverShell(tab: int.tryParse(state.uri.queryParameters['tab'] ?? '') ?? 0),
+  ),
   GoRoute(path: kDiscoverSearchPath, builder: (context, state) => const SearchScreen()),
   GoRoute(path: kDiscoverFilterPath, builder: (context, state) => const FilterBoardScreen()),
   GoRoute(path: kDiscoverResultsPath, builder: (context, state) => const ResultsScreen()),
+  GoRoute(path: kDiscoverDuelPath, builder: (context, state) => const DuelScreen()),
+  GoRoute(path: kDiscoverChosenPath, builder: (context, state) => const ChosenScreen()),
+  GoRoute(
+    path: kDiscoverComparePath,
+    builder: (context, state) =>
+        CompareScreen(institutionIds: state.extra is List ? (state.extra as List).whereType<String>().toList() : const []),
+  ),
+  GoRoute(path: kDiscoverSavedPath, builder: (context, state) => const SavedScreen()),
   GoRoute(
     path: '/university/:id',
     builder: (context, state) => UniversityScreen(institutionId: state.pathParameters['id'] ?? ''),
