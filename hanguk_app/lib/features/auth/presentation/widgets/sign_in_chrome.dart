@@ -420,77 +420,125 @@ Path parseSvgPath(String d) {
   return path;
 }
 
-/// Splash content: logo tile, the Hanguk wordmark and tagline, and the dot
-/// indicator. Shown by the Flutter splash, and baked into the native launch
-/// screens so the hand-over to Flutter does not move anything.
+/// Splash content (design screen 01): the lime corner, the logo tile, the
+/// "Hanguk / CONSULTING" wordmark, and the tagline with the dot indicator at
+/// the bottom. Shown by the Flutter splash while Supabase starts.
 ///
 /// It paints before localization is available, so the tagline comes from
 /// [_taglines] in the language chosen on an earlier launch
-/// ([EntryStore.initial]), English until one is chosen. The native launch
-/// screens carry the English pixels.
+/// ([EntryStore.initial]), English until one is chosen.
 class SplashContent extends StatelessWidget {
   const SplashContent({super.key});
 
   static const Map<String, String> _taglines = {
-    'uz': 'Janubiy Koreyaga yo‘lingiz',
-    'en': 'Your Path to South Korea',
-    'ko': '한국으로 가는 길',
-    'ru': 'Ваш путь в Южную Корею',
+    'uz': 'Janubiy Koreya universitetlariga yo‘l',
+    'en': 'Your path to South Korean universities',
+    'ko': '한국 대학으로 가는 길',
+    'ru': 'Путь в университеты Южной Кореи',
   };
-
-  /// The design centres the content in the area between the status bar and
-  /// the home indicator, 40px above its bottom edge — 18px above the centre of
-  /// the whole screen. Centring on the full screen with this offset keeps it
-  /// in the same place on every device, native launch screen included.
-  static const double bottomOffset = 18;
 
   @override
   Widget build(BuildContext context) {
     final tagline =
         _taglines[EntryStore.initial.languageCode] ?? _taglines['en']!;
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.only(bottom: bottomOffset),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SignInLogoTile(
-              size: 108,
-              radius: 30,
-              haloBleed: 60,
-              shadowOffsetY: 16,
-              shadowBlur: 32,
-            ),
-            const SizedBox(height: 30),
-            const Text(
-              'Hanguk',
-              style: TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 24,
-                height: 1.21, // CSS line-height: normal for Inter
-                fontWeight: FontWeight.w800,
-                letterSpacing: -0.48,
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              tagline,
-              style: const TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 13,
-                height: 1.21,
-                fontWeight: FontWeight.w400,
-                color: Color(0xA3FFFFFF), // .64
-              ),
-            ),
-            const SizedBox(height: 30),
-            const _SplashDots(),
-          ],
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        // `border-left: 280px transparent; border-bottom: 230px lime`, set
+        // 80px past the right edge and 40px below the bottom.
+        const Positioned(
+          right: -80,
+          bottom: -40,
+          width: 280,
+          height: 230,
+          child: CustomPaint(painter: _SplashCorner()),
         ),
-      ),
+        SafeArea(
+          child: Column(
+            children: [
+              const Expanded(
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SignInLogoTile(
+                        size: 108,
+                        radius: 30,
+                        haloBleed: 60,
+                        shadowOffsetY: 16,
+                        shadowBlur: 32,
+                      ),
+                      SizedBox(height: 20),
+                      Text(
+                        'Hanguk',
+                        style: TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 38,
+                          height: 1,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -1.14, // -.03em
+                          color: Colors.white,
+                        ),
+                      ),
+                      SizedBox(height: 6),
+                      Text(
+                        'CONSULTING',
+                        style: TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 12,
+                          height: 1.21,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 2.88, // .24em
+                          color: Color(0xFFD4E94C),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 0, 24, 30),
+                child: Column(
+                  children: [
+                    Text(
+                      tagline,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 14,
+                        height: 1.21,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFFC9D4E6),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const _SplashDots(),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
+}
+
+class _SplashCorner extends CustomPainter {
+  const _SplashCorner();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final path = Path()
+      ..moveTo(0, size.height)
+      ..lineTo(size.width, 0)
+      ..lineTo(size.width, size.height)
+      ..close();
+    canvas.drawPath(path, Paint()..color = const Color(0xFFD4E94C));
+  }
+
+  @override
+  bool shouldRepaint(_SplashCorner old) => false;
 }
 
 class _SplashDots extends StatelessWidget {
@@ -498,22 +546,19 @@ class _SplashDots extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget dot(double width, Color color) => Container(
-      width: width,
-      height: 6,
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: const BorderRadius.all(Radius.circular(3)),
-      ),
+    Widget dot(Color color) => Container(
+      width: 8,
+      height: 8,
+      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
     );
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        dot(18, const Color(0xFFD4E94C)),
+        dot(const Color(0xFFD4E94C)),
         const SizedBox(width: 6),
-        dot(6, const Color(0x4DFFFFFF)), // .3
+        dot(const Color(0x59FFFFFF)), // .35
         const SizedBox(width: 6),
-        dot(6, const Color(0x4DFFFFFF)),
+        dot(const Color(0x59FFFFFF)),
       ],
     );
   }

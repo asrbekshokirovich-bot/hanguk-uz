@@ -6295,6 +6295,672 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Programs: {fields}'**
   String catalogAiFields(String fields);
+
+  /// Home (design 03) header: the intake season.
+  ///
+  /// In en, this message translates to:
+  /// **'{season} intake'**
+  String fdIntakeLabel(String season);
+
+  /// Home (design 03) search field placeholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Search universities'**
+  String get fdSearchHint;
+
+  /// Card stack cell label: language requirement.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get fdCellLanguage;
+
+  /// Card stack cell label: application deadline.
+  ///
+  /// In en, this message translates to:
+  /// **'Deadline'**
+  String get fdCellDeadline;
+
+  /// Card stack pill: admission chance not yet assessed; opens the assessment.
+  ///
+  /// In en, this message translates to:
+  /// **'Admission ?%'**
+  String get fdAdmissionUnknown;
+
+  /// Card stack position.
+  ///
+  /// In en, this message translates to:
+  /// **'{current} / {total}'**
+  String fdCounter(int current, int total);
+
+  /// Home banner: after the count.
+  ///
+  /// In en, this message translates to:
+  /// **'universities'**
+  String get fdBannerUniversities;
+
+  /// Home banner subtitle; opens the filter board.
+  ///
+  /// In en, this message translates to:
+  /// **'By field · city · TOPIK'**
+  String get fdBannerSubtitle;
+
+  /// Card stack ✕ button.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get fdSkip;
+
+  /// Card stack ♡ button.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get fdSave;
+
+  /// Card stack left chevron.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous'**
+  String get fdPrevious;
+
+  /// Card stack right chevron.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get fdNext;
+
+  /// Bottom nav tab.
+  ///
+  /// In en, this message translates to:
+  /// **'Universities'**
+  String get fdNavUniversities;
+
+  /// Bottom nav tab.
+  ///
+  /// In en, this message translates to:
+  /// **'360° map'**
+  String get fdNavMap;
+
+  /// Bottom nav tab.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparation'**
+  String get fdNavPrepare;
+
+  /// Preparation (design 18) small line above the title.
+  ///
+  /// In en, this message translates to:
+  /// **'Getting ready for'**
+  String get fdPrepareEyebrow;
+
+  /// Preparation (design 18) title, marked in lime.
+  ///
+  /// In en, this message translates to:
+  /// **'university'**
+  String get fdPrepareTitle;
+
+  /// Study Plan card progress tag.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} / {total} steps'**
+  String fdPrepareStudyPlanSteps(int done, int total);
+
+  /// Preparation card title.
+  ///
+  /// In en, this message translates to:
+  /// **'Write your Study Plan'**
+  String get fdPrepareStudyPlanTitle;
+
+  /// Preparation card body.
+  ///
+  /// In en, this message translates to:
+  /// **'Write your study plan in 4 steps; Hanguk AI gives feedback.'**
+  String get fdPrepareStudyPlanBody;
+
+  /// Preparation interview card tag.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get fdPrepareNew;
+
+  /// Preparation card title.
+  ///
+  /// In en, this message translates to:
+  /// **'Interview practice'**
+  String get fdPrepareInterviewTitle;
+
+  /// Preparation card body.
+  ///
+  /// In en, this message translates to:
+  /// **'Practise 8 questions out loud with the Hanguk AI interviewer.'**
+  String get fdPrepareInterviewBody;
+
+  /// Preparation row title.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask Hanguk AI'**
+  String get fdPrepareAskTitle;
+
+  /// Preparation row subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'About documents, visas, dormitories'**
+  String get fdPrepareAskBody;
+
+  /// Search (design 04) section label.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent searches'**
+  String get fdRecentSearches;
+
+  /// A bare count after a heading (Natijalar · 3 ta).
+  ///
+  /// In en, this message translates to:
+  /// **'{count}'**
+  String fdCountTa(int count);
+
+  /// Search (design 04) section label.
+  ///
+  /// In en, this message translates to:
+  /// **'Popular cities'**
+  String get fdPopularCities;
+
+  /// Filter board field tile.
+  ///
+  /// In en, this message translates to:
+  /// **'IT'**
+  String get fdFieldIt;
+
+  /// Filter board field tile.
+  ///
+  /// In en, this message translates to:
+  /// **'Business'**
+  String get fdFieldBusiness;
+
+  /// Filter board field tile.
+  ///
+  /// In en, this message translates to:
+  /// **'Engineering'**
+  String get fdFieldEngineering;
+
+  /// Filter board field tile.
+  ///
+  /// In en, this message translates to:
+  /// **'Medicine'**
+  String get fdFieldMedicine;
+
+  /// Filter board field tile.
+  ///
+  /// In en, this message translates to:
+  /// **'Design'**
+  String get fdFieldDesign;
+
+  /// Filter board field tile.
+  ///
+  /// In en, this message translates to:
+  /// **'Tourism'**
+  String get fdFieldTourism;
+
+  /// Filter board field tile.
+  ///
+  /// In en, this message translates to:
+  /// **'Education'**
+  String get fdFieldEducation;
+
+  /// Filter board city chip.
+  ///
+  /// In en, this message translates to:
+  /// **'Seoul'**
+  String get fdRegionSeoul;
+
+  /// Filter board: the 'other' tile / chip.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get fdOther;
+
+  /// Filter board title, first part.
+  ///
+  /// In en, this message translates to:
+  /// **'What university'**
+  String get fdFilterTitleLead;
+
+  /// Filter board title, the marked part.
+  ///
+  /// In en, this message translates to:
+  /// **'do you need?'**
+  String get fdFilterTitleMark;
+
+  /// Filter board section.
+  ///
+  /// In en, this message translates to:
+  /// **'Field'**
+  String get fdSectionField;
+
+  /// Filter board section.
+  ///
+  /// In en, this message translates to:
+  /// **'City'**
+  String get fdSectionCity;
+
+  /// Filter board / assessment section.
+  ///
+  /// In en, this message translates to:
+  /// **'Degree'**
+  String get fdSectionDegree;
+
+  /// Filter board section.
+  ///
+  /// In en, this message translates to:
+  /// **'TOPIK required for admission'**
+  String get fdSectionTopik;
+
+  /// Filter board: no preference.
+  ///
+  /// In en, this message translates to:
+  /// **'Any'**
+  String get fdAny;
+
+  /// Filter board: TOPIK not required.
+  ///
+  /// In en, this message translates to:
+  /// **'Not required'**
+  String get fdTopikNone;
+
+  /// Filter board section.
+  ///
+  /// In en, this message translates to:
+  /// **'Tuition / semester'**
+  String get fdSectionFee;
+
+  /// Filter board fee ceiling tag.
+  ///
+  /// In en, this message translates to:
+  /// **'Up to {amount}'**
+  String fdFeeUpTo(String amount);
+
+  /// Filter board section.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get fdSectionType;
+
+  /// Filter board main button.
+  ///
+  /// In en, this message translates to:
+  /// **'Show {count} universities →'**
+  String fdShowUniversities(int count);
+
+  /// Filter board count card, after the number.
+  ///
+  /// In en, this message translates to:
+  /// **'matching universities'**
+  String get fdMatchingUniversities;
+
+  /// Filter board count card: out of the whole catalogue.
+  ///
+  /// In en, this message translates to:
+  /// **'of {total}'**
+  String fdOfTotal(int total);
+
+  /// Chance meter word (design 11/12), below 25%.
+  ///
+  /// In en, this message translates to:
+  /// **'Low'**
+  String get fdSegLow;
+
+  /// Chance meter word, 25–44%.
+  ///
+  /// In en, this message translates to:
+  /// **'Fair'**
+  String get fdSegMid;
+
+  /// Chance meter word, 45–64%.
+  ///
+  /// In en, this message translates to:
+  /// **'Good'**
+  String get fdSegGood;
+
+  /// Chance meter word, 65–81%.
+  ///
+  /// In en, this message translates to:
+  /// **'High'**
+  String get fdSegHigh;
+
+  /// Chance meter word, 82% and up.
+  ///
+  /// In en, this message translates to:
+  /// **'Very high'**
+  String get fdSegVeryHigh;
+
+  /// Assessment (design 11) title, first part; the second part is marked.
+  ///
+  /// In en, this message translates to:
+  /// **'Can I really go'**
+  String get fdAssessTitleLead;
+
+  /// Assessment title, marked part.
+  ///
+  /// In en, this message translates to:
+  /// **'to Korea?'**
+  String get fdAssessTitleMark;
+
+  /// Assessment row label.
+  ///
+  /// In en, this message translates to:
+  /// **'My Korean (TOPIK)'**
+  String get fdAssessTopik;
+
+  /// Assessment row label.
+  ///
+  /// In en, this message translates to:
+  /// **'School certificate average'**
+  String get fdAssessGpa;
+
+  /// Assessment row label.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank balance (D-2)'**
+  String get fdAssessBank;
+
+  /// Marker under the bank slider: the amount the visa needs.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} required'**
+  String fdAssessBankNeed(String amount);
+
+  /// An amount in millions of won.
+  ///
+  /// In en, this message translates to:
+  /// **'₩{n}M'**
+  String fdMln(int n);
+
+  /// Degree choice on the assessment.
+  ///
+  /// In en, this message translates to:
+  /// **'Language course'**
+  String get fdLanguageCourse;
+
+  /// Assessment row label.
+  ///
+  /// In en, this message translates to:
+  /// **'Has a visa been refused before?'**
+  String get fdAssessRefused;
+
+  /// No.
+  ///
+  /// In en, this message translates to:
+  /// **'No'**
+  String get fdNo;
+
+  /// Yes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes'**
+  String get fdYes;
+
+  /// Assessment bottom button.
+  ///
+  /// In en, this message translates to:
+  /// **'See the report →'**
+  String get fdAssessSeeReport;
+
+  /// Assessment meters card heading.
+  ///
+  /// In en, this message translates to:
+  /// **'Admission · {n} universities'**
+  String fdAssessAdmissionCount(int n);
+
+  /// The visa row on the assessment meters card.
+  ///
+  /// In en, this message translates to:
+  /// **'Visa'**
+  String get fdVisa;
+
+  /// Hint under the meters: what one more TOPIK level would do.
+  ///
+  /// In en, this message translates to:
+  /// **'TOPIK {level} → {uni} admission becomes «{word}»'**
+  String fdAssessTopikHint(int level, String uni, String word);
+
+  /// Report lead form error.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your name'**
+  String get fdReportNameError;
+
+  /// Report lead form error.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the full phone number'**
+  String get fdReportPhoneError;
+
+  /// Report lead form error.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t send. Check the connection and try again.'**
+  String get fdReportNetworkError;
+
+  /// Share button label.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get fdShare;
+
+  /// Report verdict, high band.
+  ///
+  /// In en, this message translates to:
+  /// **'YES'**
+  String get fdVerdictYes;
+
+  /// Report verdict, mid band.
+  ///
+  /// In en, this message translates to:
+  /// **'MAYBE'**
+  String get fdVerdictMaybe;
+
+  /// Report verdict, low band.
+  ///
+  /// In en, this message translates to:
+  /// **'NOT YET'**
+  String get fdVerdictNotYet;
+
+  /// Note under the HA verdict.
+  ///
+  /// In en, this message translates to:
+  /// **'Your figures are enough — you can start the documents.'**
+  String get fdVerdictYesNote;
+
+  /// Note under the BALKI verdict (design 12).
+  ///
+  /// In en, this message translates to:
+  /// **'Raise one or two figures and the answer becomes «YES».'**
+  String get fdVerdictMaybeNote;
+
+  /// Note under the HOZIRCHA YO'Q verdict.
+  ///
+  /// In en, this message translates to:
+  /// **'The figures aren\'t there yet — start with the steps below.'**
+  String get fdVerdictNotYetNote;
+
+  /// Report section title.
+  ///
+  /// In en, this message translates to:
+  /// **'What to do'**
+  String get fdReportFixesTitle;
+
+  /// Report check row.
+  ///
+  /// In en, this message translates to:
+  /// **'University admission'**
+  String get fdReportAdmission;
+
+  /// How many of the universities are a chance worth applying with.
+  ///
+  /// In en, this message translates to:
+  /// **'{open} of {total} open'**
+  String fdReportOpenOf(int total, int open);
+
+  /// Report check row.
+  ///
+  /// In en, this message translates to:
+  /// **'D-2 visa'**
+  String get fdReportVisa;
+
+  /// Report check row.
+  ///
+  /// In en, this message translates to:
+  /// **'Studying in Korea'**
+  String get fdReportStudy;
+
+  /// Report fix row.
+  ///
+  /// In en, this message translates to:
+  /// **'Bring the bank balance to {amount}'**
+  String fdFixBank(String amount);
+
+  /// Report fix row.
+  ///
+  /// In en, this message translates to:
+  /// **'Reach TOPIK {level}'**
+  String fdFixTopik(int level);
+
+  /// What a fix adds to the visa chance.
+  ///
+  /// In en, this message translates to:
+  /// **'visa +{n}%'**
+  String fdGainVisa(int n);
+
+  /// What a fix adds to the admission chance.
+  ///
+  /// In en, this message translates to:
+  /// **'admission +{n}%'**
+  String fdGainAdmission(int n);
+
+  /// Lead form title, first part.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'ll send the report'**
+  String get fdReportFormLead;
+
+  /// Lead form title, marked part.
+  ///
+  /// In en, this message translates to:
+  /// **'free'**
+  String get fdReportFormFree;
+
+  /// Lead form title, last part (may be empty).
+  ///
+  /// In en, this message translates to:
+  /// **''**
+  String get fdReportFormTail;
+
+  /// Lead form field.
+  ///
+  /// In en, this message translates to:
+  /// **'First and last name'**
+  String get fdReportName;
+
+  /// Lead form button.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get fdReportSend;
+
+  /// Sent screen (design 13) title before the name.
+  ///
+  /// In en, this message translates to:
+  /// **'Thank you'**
+  String get fdSentThanks;
+
+  /// Sent screen body.
+  ///
+  /// In en, this message translates to:
+  /// **'The report was sent to {phone}. Your consultant will call within 24 hours.'**
+  String fdSentBody(String phone);
+
+  /// Sent screen section label.
+  ///
+  /// In en, this message translates to:
+  /// **'Meanwhile'**
+  String get fdSentMeanwhile;
+
+  /// Sent screen row.
+  ///
+  /// In en, this message translates to:
+  /// **'Document list'**
+  String get fdSentDocsTitle;
+
+  /// Sent screen row subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} documents for {uni}'**
+  String fdSentDocsBody(String uni, int count);
+
+  /// Sent screen row.
+  ///
+  /// In en, this message translates to:
+  /// **'Prepare for TOPIK {level}'**
+  String fdSentTopikTitle(int level);
+
+  /// Sent screen button.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to universities'**
+  String get fdSentBack;
+
+  /// Sent screen agency card subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your consultant'**
+  String get fdSentConsultant;
+
+  /// Sent screen call button.
+  ///
+  /// In en, this message translates to:
+  /// **'Call'**
+  String get fdSentCall;
+
+  /// University page (design 10) stat cell.
+  ///
+  /// In en, this message translates to:
+  /// **'Tuition / sem'**
+  String get fdUniTuitionSem;
+
+  /// University page stat cell when the fee is yearly.
+  ///
+  /// In en, this message translates to:
+  /// **'Tuition / year'**
+  String get fdUniTuitionYear;
+
+  /// University page stat cell.
+  ///
+  /// In en, this message translates to:
+  /// **'Document deadline'**
+  String get fdUniDeadline;
+
+  /// University page faculties heading, right side.
+  ///
+  /// In en, this message translates to:
+  /// **'{faculties} faculties · {majors} programmes'**
+  String fdUniFacultiesSummary(int faculties, int majors);
+
+  /// Shows the rest of a faculty's programmes.
+  ///
+  /// In en, this message translates to:
+  /// **'All {count} programmes →'**
+  String fdUniAllMajors(int count);
+
+  /// Saved state of the save button.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved'**
+  String get fdSaved;
+
+  /// University page main button: opens the assessment.
+  ///
+  /// In en, this message translates to:
+  /// **'Can I really go to Korea?'**
+  String get fdUniCta;
 }
 
 class _AppLocalizationsDelegate

@@ -3333,4 +3333,379 @@ class AppLocalizationsKo extends AppLocalizations {
   String catalogAiFields(String fields) {
     return '전공: $fields';
   }
+
+  @override
+  String fdIntakeLabel(String season) {
+    return '$season 모집';
+  }
+
+  @override
+  String get fdSearchHint => '대학 검색';
+
+  @override
+  String get fdCellLanguage => '언어 요건';
+
+  @override
+  String get fdCellDeadline => '마감';
+
+  @override
+  String get fdAdmissionUnknown => '합격 ?%';
+
+  @override
+  String fdCounter(int current, int total) {
+    return '$current / $total';
+  }
+
+  @override
+  String get fdBannerUniversities => '개 대학';
+
+  @override
+  String get fdBannerSubtitle => '전공 · 도시 · TOPIK별';
+
+  @override
+  String get fdSkip => '건너뛰기';
+
+  @override
+  String get fdSave => '저장';
+
+  @override
+  String get fdPrevious => '이전';
+
+  @override
+  String get fdNext => '다음';
+
+  @override
+  String get fdNavUniversities => '대학';
+
+  @override
+  String get fdNavMap => '360° 지도';
+
+  @override
+  String get fdNavPrepare => '준비';
+
+  @override
+  String get fdPrepareEyebrow => '대학 입학';
+
+  @override
+  String get fdPrepareTitle => '준비';
+
+  @override
+  String fdPrepareStudyPlanSteps(int done, int total) {
+    return '$done / $total 단계';
+  }
+
+  @override
+  String get fdPrepareStudyPlanTitle => '학업계획서 작성';
+
+  @override
+  String get fdPrepareStudyPlanBody => '4단계로 학업계획서를 작성하면 Hanguk AI가 피드백을 줍니다.';
+
+  @override
+  String get fdPrepareNew => '신규';
+
+  @override
+  String get fdPrepareInterviewTitle => '면접 준비';
+
+  @override
+  String get fdPrepareInterviewBody => 'Hanguk AI 면접관과 8개 질문을 음성으로 연습하세요.';
+
+  @override
+  String get fdPrepareAskTitle => 'Hanguk AI에게 질문하기';
+
+  @override
+  String get fdPrepareAskBody => '서류, 비자, 기숙사에 대해';
+
+  @override
+  String get fdRecentSearches => '최근 검색';
+
+  @override
+  String fdCountTa(int count) {
+    return '$count개';
+  }
+
+  @override
+  String get fdPopularCities => '인기 도시';
+
+  @override
+  String get fdFieldIt => 'IT';
+
+  @override
+  String get fdFieldBusiness => '경영';
+
+  @override
+  String get fdFieldEngineering => '공학';
+
+  @override
+  String get fdFieldMedicine => '의학';
+
+  @override
+  String get fdFieldDesign => '디자인';
+
+  @override
+  String get fdFieldTourism => '관광';
+
+  @override
+  String get fdFieldEducation => '교육';
+
+  @override
+  String get fdRegionSeoul => '서울';
+
+  @override
+  String get fdOther => '기타';
+
+  @override
+  String get fdFilterTitleLead => '어떤 대학이';
+
+  @override
+  String get fdFilterTitleMark => '필요한가요?';
+
+  @override
+  String get fdSectionField => '전공';
+
+  @override
+  String get fdSectionCity => '도시';
+
+  @override
+  String get fdSectionDegree => '과정';
+
+  @override
+  String get fdSectionTopik => '입학 TOPIK 요건';
+
+  @override
+  String get fdAny => '상관없음';
+
+  @override
+  String get fdTopikNone => '요건 없음';
+
+  @override
+  String get fdSectionFee => '등록금 / 학기';
+
+  @override
+  String fdFeeUpTo(String amount) {
+    return '$amount 이하';
+  }
+
+  @override
+  String get fdSectionType => '유형';
+
+  @override
+  String fdShowUniversities(int count) {
+    return '대학 $count곳 보기 →';
+  }
+
+  @override
+  String get fdMatchingUniversities => '개 대학 해당';
+
+  @override
+  String fdOfTotal(int total) {
+    return '$total곳 중';
+  }
+
+  @override
+  String get fdSegLow => '낮음';
+
+  @override
+  String get fdSegMid => '보통';
+
+  @override
+  String get fdSegGood => '좋음';
+
+  @override
+  String get fdSegHigh => '높음';
+
+  @override
+  String get fdSegVeryHigh => '매우 높음';
+
+  @override
+  String get fdAssessTitleLead => '나는 정말 한국에';
+
+  @override
+  String get fdAssessTitleMark => '갈 수 있을까?';
+
+  @override
+  String get fdAssessTopik => '나의 한국어 (TOPIK)';
+
+  @override
+  String get fdAssessGpa => '내신 평점';
+
+  @override
+  String get fdAssessBank => '은행 잔고 (D-2)';
+
+  @override
+  String fdAssessBankNeed(String amount) {
+    return '$amount 필요';
+  }
+
+  @override
+  String fdMln(int n) {
+    return '₩$n백만';
+  }
+
+  @override
+  String get fdLanguageCourse => '어학연수';
+
+  @override
+  String get fdAssessRefused => '이전에 비자가 거절된 적이 있나요?';
+
+  @override
+  String get fdNo => '아니요';
+
+  @override
+  String get fdYes => '예';
+
+  @override
+  String get fdAssessSeeReport => '결과 보기 →';
+
+  @override
+  String fdAssessAdmissionCount(int n) {
+    return '입학 · 대학 $n곳';
+  }
+
+  @override
+  String get fdVisa => '비자';
+
+  @override
+  String fdAssessTopikHint(int level, String uni, String word) {
+    return 'TOPIK $level → $uni 입학 «$word»';
+  }
+
+  @override
+  String get fdReportNameError => '이름을 입력하세요';
+
+  @override
+  String get fdReportPhoneError => '전화번호를 모두 입력하세요';
+
+  @override
+  String get fdReportNetworkError => '보내지 못했습니다. 인터넷을 확인하고 다시 시도하세요.';
+
+  @override
+  String get fdShare => '공유';
+
+  @override
+  String get fdVerdictYes => '예';
+
+  @override
+  String get fdVerdictMaybe => '아마도';
+
+  @override
+  String get fdVerdictNotYet => '아직은 아니요';
+
+  @override
+  String get fdVerdictYesNote => '조건이 충분합니다 — 서류 준비를 시작할 수 있어요.';
+
+  @override
+  String get fdVerdictMaybeNote => '한두 가지만 올리면 답은 «예»가 됩니다.';
+
+  @override
+  String get fdVerdictNotYetNote => '아직 조건이 부족합니다 — 아래부터 시작하세요.';
+
+  @override
+  String get fdReportFixesTitle => '해야 할 일';
+
+  @override
+  String get fdReportAdmission => '대학 입학';
+
+  @override
+  String fdReportOpenOf(int total, int open) {
+    return '$total곳 중 $open곳 가능';
+  }
+
+  @override
+  String get fdReportVisa => 'D-2 비자';
+
+  @override
+  String get fdReportStudy => '한국 유학';
+
+  @override
+  String fdFixBank(String amount) {
+    return '은행 잔고를 $amount로';
+  }
+
+  @override
+  String fdFixTopik(int level) {
+    return 'TOPIK $level급 취득';
+  }
+
+  @override
+  String fdGainVisa(int n) {
+    return '비자 +$n%';
+  }
+
+  @override
+  String fdGainAdmission(int n) {
+    return '입학 +$n%';
+  }
+
+  @override
+  String get fdReportFormLead => '결과를';
+
+  @override
+  String get fdReportFormFree => '무료로';
+
+  @override
+  String get fdReportFormTail => '보내드려요';
+
+  @override
+  String get fdReportName => '이름';
+
+  @override
+  String get fdReportSend => '보내기';
+
+  @override
+  String get fdSentThanks => '감사합니다';
+
+  @override
+  String fdSentBody(String phone) {
+    return '결과가 $phone(으)로 전송되었습니다. 상담사가 24시간 안에 전화드립니다.';
+  }
+
+  @override
+  String get fdSentMeanwhile => '그동안';
+
+  @override
+  String get fdSentDocsTitle => '서류 목록';
+
+  @override
+  String fdSentDocsBody(String uni, int count) {
+    return '$uni 서류 $count개';
+  }
+
+  @override
+  String fdSentTopikTitle(int level) {
+    return 'TOPIK $level급 준비';
+  }
+
+  @override
+  String get fdSentBack => '대학 목록으로';
+
+  @override
+  String get fdSentConsultant => '담당 상담사';
+
+  @override
+  String get fdSentCall => '전화';
+
+  @override
+  String get fdUniTuitionSem => '등록금 / 학기';
+
+  @override
+  String get fdUniTuitionYear => '등록금 / 년';
+
+  @override
+  String get fdUniDeadline => '서류 마감';
+
+  @override
+  String fdUniFacultiesSummary(int faculties, int majors) {
+    return '학부 $faculties개 · 전공 $majors개';
+  }
+
+  @override
+  String fdUniAllMajors(int count) {
+    return '전공 $count개 모두 →';
+  }
+
+  @override
+  String get fdSaved => '저장됨';
+
+  @override
+  String get fdUniCta => '나는 정말 한국에 갈 수 있을까?';
 }

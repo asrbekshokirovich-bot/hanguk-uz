@@ -24,6 +24,10 @@ class CatalogFilter {
     this.ielts,
     this.minPrice,
     this.maxPrice,
+    this.field,
+    this.regions = const {},
+    this.topik,
+    this.type,
   });
 
   final String query;
@@ -37,6 +41,20 @@ class CatalogFilter {
   final int? minPrice;
   final int? maxPrice;
 
+  /// The full design's filter board (screen 05): a field of study, read by
+  /// the field search (`ai-university-search`) — an [AiSearchField] key.
+  final String? field;
+
+  /// City groups ([CatalogRegion]): Seul, Gyeonggi, Busan …, Boshqa.
+  final Set<String> regions;
+
+  /// "Qabul uchun TOPIK talabi": null for "Farqi yo'q", [CatalogTopik.none]
+  /// for "Talab yo'q", or "2" / "3" / "4" for "≤ n".
+  final String? topik;
+
+  /// `state` or `private`; null for "Farqi yo'q".
+  final String? type;
+
   bool get hasPrice => minPrice != null || maxPrice != null;
 
   /// The number on the filter button's badge: cities + degree + price + IELTS.
@@ -44,7 +62,11 @@ class CatalogFilter {
       cities.length +
       (degree != CatalogDegree.all ? 1 : 0) +
       (hasPrice ? 1 : 0) +
-      (ielts != null ? 1 : 0);
+      (ielts != null ? 1 : 0) +
+      (field != null ? 1 : 0) +
+      regions.length +
+      (topik != null ? 1 : 0) +
+      (type != null ? 1 : 0);
 
   CatalogFilter copyWith({
     String? query,
@@ -53,6 +75,10 @@ class CatalogFilter {
     double? Function()? ielts,
     int? Function()? minPrice,
     int? Function()? maxPrice,
+    String? Function()? field,
+    Set<String>? regions,
+    String? Function()? topik,
+    String? Function()? type,
   }) {
     return CatalogFilter(
       query: query ?? this.query,
@@ -61,6 +87,10 @@ class CatalogFilter {
       ielts: ielts != null ? ielts() : this.ielts,
       minPrice: minPrice != null ? minPrice() : this.minPrice,
       maxPrice: maxPrice != null ? maxPrice() : this.maxPrice,
+      field: field != null ? field() : this.field,
+      regions: regions ?? this.regions,
+      topik: topik != null ? topik() : this.topik,
+      type: type != null ? type() : this.type,
     );
   }
 
@@ -92,12 +122,38 @@ CatalogGuideline? guidelineFor(CatalogUniversity u, CatalogFilter f) =>
 num? priceOf(CatalogGuideline g) => g.tuitionMin ?? g.tuitionMax;
 
 /// Apply [f] to [all]. Cheapest first; a university with no fee sorts last.
-List<CatalogUniversity> applyCatalogFilter(List<CatalogUniversity> all, CatalogFilter f) {
+/// [fieldMatches] is the field search's answer for [CatalogFilter.field]:
+/// the universities with a programme of that field (null while it loads, or
+/// with no field chosen — then the field does not filter).
+List<CatalogUniversity> applyCatalogFilter(
+  List<CatalogUniversity> all,
+  CatalogFilter f, {
+  Set<String>? fieldMatches,
+}) {
   final q = f.query.trim().toLowerCase();
   final out = all.where((u) {
     final g = guidelineFor(u, f);
     if (g == null) return false;
     if (f.cities.isNotEmpty && !f.cities.contains(u.city)) return false;
+    if (f.field != null && fieldMatches != null && !fieldMatches.contains(u.institutionId)) return false;
+    if (f.regions.isNotEmpty && !f.regions.contains(catalogRegionOf(g.city ?? u.city))) return false;
+    if (f.topik != null) {
+      final need = g.topikMin;
+      if (f.topik == CatalogTopik.none) {
+        if (need != null && need > 0) return false;
+      } else {
+        final max = int.tryParse(f.topik!) ?? 6;
+        if (need != null && need > max) return false;
+      }
+    }
+    if (f.type != null) {
+      final t = switch (g.institutionType) {
+        'national' || 'public' || 'national_special' => 'state',
+        'private' => 'private',
+        _ => null,
+      };
+      if (t != f.type) return false;
+    }
     if (q.isNotEmpty) {
       final hay = [
         u.displayName,
@@ -188,4 +244,50 @@ List<({String name, String? ko, int count})> catalogCities(List<CatalogUniversit
       return byCount != 0 ? byCount : a.compareTo(b);
     });
   return [for (final n in names) (name: n, ko: ko[n], count: counts[n]!)];
+}
+
+/// "Talab yo'q" on the filter board's TOPIK row.
+class CatalogTopik {
+  const CatalogTopik._();
+
+  static const String none = 'none';
+}
+
+/// The filter board's city groups (design screen 05), keyed by the label the
+/// design gives them.
+class CatalogRegion {
+  const CatalogRegion._();
+
+  static const String seoul = 'Seul';
+  static const String gyeonggi = 'Gyeonggi';
+  static const String busan = 'Busan';
+  static const String daejeon = 'Daejeon';
+  static const String daegu = 'Daegu';
+  static const String gwangju = 'Gwangju';
+  static const String jeju = 'Jeju';
+  static const String other = 'Boshqa';
+
+  static const List<String> all = [seoul, gyeonggi, busan, daejeon, daegu, gwangju, jeju, other];
+}
+
+/// Gyeonggi's cities as the Excel writes them without the province.
+const Set<String> _gyeonggiCities = {
+  'ansan', 'anseong', 'anyang', 'bucheon', 'gimpo', 'goyang', 'hanam', 'hwaseong', 'namyangju', 'osan',
+  'paju', 'pyeongtaek', 'seongnam', 'siheung', 'suwon', 'uijeongbu', 'yangju', 'yangpyeong', 'yongin',
+};
+
+/// The group a guideline's city (`shahar`, "Suwon (Gyeonggi-do)") falls in.
+/// Read from the city the student studies in, not the institution's seat.
+String catalogRegionOf(String? city) {
+  final c = (city ?? '').toLowerCase().trim();
+  if (c.isEmpty) return CatalogRegion.other;
+  if (c.startsWith('seoul')) return CatalogRegion.seoul;
+  final head = c.split(RegExp(r'[\s(/,]')).first;
+  if (c.contains('gyeonggi') || _gyeonggiCities.contains(head)) return CatalogRegion.gyeonggi;
+  if (head == 'busan') return CatalogRegion.busan;
+  if (head == 'daejeon') return CatalogRegion.daejeon;
+  if (head == 'daegu') return CatalogRegion.daegu;
+  if (head == 'gwangju') return CatalogRegion.gwangju;
+  if (head == 'jeju') return CatalogRegion.jeju;
+  return CatalogRegion.other;
 }

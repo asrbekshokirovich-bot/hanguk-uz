@@ -1022,14 +1022,12 @@ class _NameCover extends StatelessWidget {
 
 /// One row of the search results: the university, the guideline it is shown
 /// with, and — when the field search found it — its programmes of the field.
-@visibleForTesting
 typedef CatalogSearchRow = ({CatalogUniversity university, CatalogGuideline guideline, AiSearchHit? hit});
 
 /// The search results for the box's text. When the text names a field of
 /// study: every university with a programme of it, in the server's order,
 /// kept to what the Filtr screen allows. Otherwise — a name, a city, or no
 /// answer yet — the plain name filter.
-@visibleForTesting
 List<CatalogSearchRow> catalogSearchRows(List<CatalogUniversity> all, CatalogFilter f, AiSearchState ai) {
   final result = ai.result;
   if (result == null || !result.byField) {
@@ -1057,7 +1055,6 @@ List<CatalogSearchRow> catalogSearchRows(List<CatalogUniversity> all, CatalogFil
 /// The line under a field result: its programmes of the field — two names
 /// and the count of the rest, so the count survives the two-line clamp. The
 /// whole list is one tap away, on the university's page.
-@visibleForTesting
 String? catalogSearchReason(AppLocalizations l, CatalogSearchRow row) {
   final hit = row.hit;
   if (hit == null || hit.matched.isEmpty) return null;

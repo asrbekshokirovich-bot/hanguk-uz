@@ -3484,4 +3484,385 @@ class AppLocalizationsUz extends AppLocalizations {
   String catalogAiFields(String fields) {
     return 'Yo\'nalishlar: $fields';
   }
+
+  @override
+  String fdIntakeLabel(String season) {
+    return '$season qabuli';
+  }
+
+  @override
+  String get fdSearchHint => 'Universitet qidiring';
+
+  @override
+  String get fdCellLanguage => 'Til talabi';
+
+  @override
+  String get fdCellDeadline => 'Muddat';
+
+  @override
+  String get fdAdmissionUnknown => 'Qabul ?%';
+
+  @override
+  String fdCounter(int current, int total) {
+    return '$current / $total';
+  }
+
+  @override
+  String get fdBannerUniversities => 'universitet';
+
+  @override
+  String get fdBannerSubtitle => 'Yo\'nalish · shahar · TOPIK bo\'yicha';
+
+  @override
+  String get fdSkip => 'O\'tkazib yuborish';
+
+  @override
+  String get fdSave => 'Saqlash';
+
+  @override
+  String get fdPrevious => 'Oldingi';
+
+  @override
+  String get fdNext => 'Keyingi';
+
+  @override
+  String get fdNavUniversities => 'Universitetlar';
+
+  @override
+  String get fdNavMap => '360° xarita';
+
+  @override
+  String get fdNavPrepare => 'Tayyorgarlik';
+
+  @override
+  String get fdPrepareEyebrow => 'Universitetga';
+
+  @override
+  String get fdPrepareTitle => 'tayyorgarlik';
+
+  @override
+  String fdPrepareStudyPlanSteps(int done, int total) {
+    return '$done / $total bosqich';
+  }
+
+  @override
+  String get fdPrepareStudyPlanTitle => 'Study Plan tayyorlash';
+
+  @override
+  String get fdPrepareStudyPlanBody =>
+      'O\'quv rejangizni 4 bosqichda yozing, Hanguk AI fikr-mulohaza beradi.';
+
+  @override
+  String get fdPrepareNew => 'Yangi';
+
+  @override
+  String get fdPrepareInterviewTitle => 'Suhbatga tayyorgarlik';
+
+  @override
+  String get fdPrepareInterviewBody =>
+      'Hanguk AI intervyuer bilan 8 ta savolni ovozli mashq qiling.';
+
+  @override
+  String get fdPrepareAskTitle => 'Hanguk AI ga savol bering';
+
+  @override
+  String get fdPrepareAskBody => 'Hujjatlar, viza, yotoqxona haqida';
+
+  @override
+  String get fdRecentSearches => 'So\'nggi qidiruvlar';
+
+  @override
+  String fdCountTa(int count) {
+    return '$count ta';
+  }
+
+  @override
+  String get fdPopularCities => 'Mashhur shaharlar';
+
+  @override
+  String get fdFieldIt => 'IT';
+
+  @override
+  String get fdFieldBusiness => 'Biznes';
+
+  @override
+  String get fdFieldEngineering => 'Muhandislik';
+
+  @override
+  String get fdFieldMedicine => 'Tibbiyot';
+
+  @override
+  String get fdFieldDesign => 'Dizayn';
+
+  @override
+  String get fdFieldTourism => 'Turizm';
+
+  @override
+  String get fdFieldEducation => 'Pedagogika';
+
+  @override
+  String get fdRegionSeoul => 'Seul';
+
+  @override
+  String get fdOther => 'Boshqa';
+
+  @override
+  String get fdFilterTitleLead => 'Qanday universitet';
+
+  @override
+  String get fdFilterTitleMark => 'kerak?';
+
+  @override
+  String get fdSectionField => 'Yo\'nalish';
+
+  @override
+  String get fdSectionCity => 'Shahar';
+
+  @override
+  String get fdSectionDegree => 'Daraja';
+
+  @override
+  String get fdSectionTopik => 'Qabul uchun TOPIK talabi';
+
+  @override
+  String get fdAny => 'Farqi yo\'q';
+
+  @override
+  String get fdTopikNone => 'Talab yo\'q';
+
+  @override
+  String get fdSectionFee => 'Kontrakt / semestr';
+
+  @override
+  String fdFeeUpTo(String amount) {
+    return '$amount gacha';
+  }
+
+  @override
+  String get fdSectionType => 'Turi';
+
+  @override
+  String fdShowUniversities(int count) {
+    return '$count ta universitetni ko\'rish →';
+  }
+
+  @override
+  String get fdMatchingUniversities => 'ta mos universitet';
+
+  @override
+  String fdOfTotal(int total) {
+    return '$total tadan';
+  }
+
+  @override
+  String get fdSegLow => 'Past';
+
+  @override
+  String get fdSegMid => 'O\'rta';
+
+  @override
+  String get fdSegGood => 'Yaxshi';
+
+  @override
+  String get fdSegHigh => 'Yuqori';
+
+  @override
+  String get fdSegVeryHigh => 'Juda yuqori';
+
+  @override
+  String get fdAssessTitleLead => 'Koreaga keta olamanmi';
+
+  @override
+  String get fdAssessTitleMark => 'o\'zi?';
+
+  @override
+  String get fdAssessTopik => 'Koreys tilim (TOPIK)';
+
+  @override
+  String get fdAssessGpa => 'Attestat bahosi';
+
+  @override
+  String get fdAssessBank => 'Bank hisobi (D-2)';
+
+  @override
+  String fdAssessBankNeed(String amount) {
+    return '$amount talab';
+  }
+
+  @override
+  String fdMln(int n) {
+    return '₩$n mln';
+  }
+
+  @override
+  String get fdLanguageCourse => 'Til kursi';
+
+  @override
+  String get fdAssessRefused => 'Avval viza rad etilganmi?';
+
+  @override
+  String get fdNo => 'Yo\'q';
+
+  @override
+  String get fdYes => 'Ha';
+
+  @override
+  String get fdAssessSeeReport => 'Hisobotni ko\'rish →';
+
+  @override
+  String fdAssessAdmissionCount(int n) {
+    return 'Qabul · $n ta universitet';
+  }
+
+  @override
+  String get fdVisa => 'Viza';
+
+  @override
+  String fdAssessTopikHint(int level, String uni, String word) {
+    return 'TOPIK $level → $uni qabuli «$word» bo\'ladi';
+  }
+
+  @override
+  String get fdReportNameError => 'Ismingizni yozing';
+
+  @override
+  String get fdReportPhoneError => 'Telefon raqamini to\'liq yozing';
+
+  @override
+  String get fdReportNetworkError =>
+      'Yuborib bo\'lmadi. Internetni tekshirib, qayta urinib ko\'ring.';
+
+  @override
+  String get fdShare => 'Ulashish';
+
+  @override
+  String get fdVerdictYes => 'HA';
+
+  @override
+  String get fdVerdictMaybe => 'BALKI';
+
+  @override
+  String get fdVerdictNotYet => 'HOZIRCHA YO\'Q';
+
+  @override
+  String get fdVerdictYesNote =>
+      'Ko\'rsatkichlaringiz yetarli — hujjatlarni boshlash mumkin.';
+
+  @override
+  String get fdVerdictMaybeNote =>
+      'Bir-ikki ko\'rsatkichni ko\'tarsangiz, javob «HA» bo\'ladi.';
+
+  @override
+  String get fdVerdictNotYetNote =>
+      'Hozircha ko\'rsatkichlar yetmaydi — quyidagilardan boshlang.';
+
+  @override
+  String get fdReportFixesTitle => 'Nima qilish kerak';
+
+  @override
+  String get fdReportAdmission => 'Universitet qabul';
+
+  @override
+  String fdReportOpenOf(int total, int open) {
+    return '$total tadan $open tasi ochiq';
+  }
+
+  @override
+  String get fdReportVisa => 'D-2 viza';
+
+  @override
+  String get fdReportStudy => 'Koreada o\'qish';
+
+  @override
+  String fdFixBank(String amount) {
+    return 'Bank hisobini $amount qilish';
+  }
+
+  @override
+  String fdFixTopik(int level) {
+    return 'TOPIK $level darajaga chiqish';
+  }
+
+  @override
+  String fdGainVisa(int n) {
+    return 'viza +$n%';
+  }
+
+  @override
+  String fdGainAdmission(int n) {
+    return 'qabul +$n%';
+  }
+
+  @override
+  String get fdReportFormLead => 'Hisobotni';
+
+  @override
+  String get fdReportFormFree => 'bepul';
+
+  @override
+  String get fdReportFormTail => 'yuboramiz';
+
+  @override
+  String get fdReportName => 'Ism va familiya';
+
+  @override
+  String get fdReportSend => 'Yuborish';
+
+  @override
+  String get fdSentThanks => 'Rahmat';
+
+  @override
+  String fdSentBody(String phone) {
+    return 'Hisobot $phone raqamiga yuborildi. Konsultantingiz 24 soat ichida qo\'ng\'iroq qiladi.';
+  }
+
+  @override
+  String get fdSentMeanwhile => 'Shu orada';
+
+  @override
+  String get fdSentDocsTitle => 'Hujjatlar ro\'yxati';
+
+  @override
+  String fdSentDocsBody(String uni, int count) {
+    return '$uni uchun $count ta hujjat';
+  }
+
+  @override
+  String fdSentTopikTitle(int level) {
+    return 'TOPIK $level ga tayyorlanish';
+  }
+
+  @override
+  String get fdSentBack => 'Universitetlarga qaytish';
+
+  @override
+  String get fdSentConsultant => 'Sizning konsultantingiz';
+
+  @override
+  String get fdSentCall => 'Qo\'ng\'iroq';
+
+  @override
+  String get fdUniTuitionSem => 'Kontrakt / sem';
+
+  @override
+  String get fdUniTuitionYear => 'Kontrakt / yil';
+
+  @override
+  String get fdUniDeadline => 'Hujjat muddati';
+
+  @override
+  String fdUniFacultiesSummary(int faculties, int majors) {
+    return '$faculties ta fakultet · $majors yo\'nalish';
+  }
+
+  @override
+  String fdUniAllMajors(int count) {
+    return 'Barcha $count ta yo\'nalish →';
+  }
+
+  @override
+  String get fdSaved => 'Saqlangan';
+
+  @override
+  String get fdUniCta => 'Koreaga keta olamanmi o\'zi?';
 }

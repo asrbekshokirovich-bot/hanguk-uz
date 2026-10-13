@@ -1088,7 +1088,9 @@
           "english": "Ingliz tili",
           "money": "Byudjet va kim to'laydi",
           "documents": "Daromad va depozit",
-          "whereWhen": "Viloyat va qachon"
+          "whereWhen": "Viloyat va qachon",
+          "assessment": "Baholash doskasi",
+          "universities": "Universitetlar"
         },
         "band": {
           "high": "Yuqori imkoniyat",
@@ -1149,6 +1151,11 @@
           "hanbox": "Hanbox"
         },
         "kdb": "KDB depozit",
+        "gpa": "Attestat: {{gpa}}",
+        "bankKrw": "Bank: ₩{{amount}}",
+        "visaRefused": "Avval viza rad etilgan",
+        "visaNotRefused": "Viza rad etilmagan",
+        "visaPct": "Viza: {{pct}}%",
         "kdbStatus": {
           "ready": "tayyor",
           "by_intake": "qabulgacha qo'yadi",
