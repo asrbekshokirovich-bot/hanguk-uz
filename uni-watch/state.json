@@ -1,5 +1,5 @@
 {
- "last_run": "2026-10-13T19:20:18+00:00",
+ "last_run": "2026-10-13T23:22:08+00:00",
  "seen": {
   "http://enter.konkuk.ac.kr/submenu.do?menuurl=k8b%2fCUaWlntKYwhT%2fh%2bKUA%3d%3d&": [],
   "https://adm-u.postech.ac.kr/": [
@@ -786,6 +786,7 @@
   "https://ipsi.gw.ac.kr/": [],
   "https://ipsi.halla.ac.kr/": [],
   "https://ipsi.hknu.ac.kr/": [
+   "b73856be1af11053",
    "73fd3b38f76c4c2e",
    "905f197f840ce892",
    "04fdc1d95a3ba2ae",
@@ -1046,6 +1047,17 @@
   ],
   "https://wgst.ac.kr": [],
   "https://www.acts.ac.kr/admission/design/index.asp": [
+   "afbffe069d4511ee",
+   "4b3e87866f81e801",
+   "dbc6c491b84ecc51",
+   "f4483a59dfa6d2ad",
+   "7dd9a0ece227b93e",
+   "5a4bc850abd92b56",
+   "6c1d3adb53739983",
+   "493c5f47e85798dc",
+   "0af214fd5717f78e",
+   "e41a83886a586c2e",
+   "1a7f91aedb4820a0",
    "a92859ca4b07c225",
    "f1b5b96fc23faba3",
    "4a9998503d306293",
