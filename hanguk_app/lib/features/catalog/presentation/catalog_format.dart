@@ -105,3 +105,13 @@ String formatDateRange(BuildContext context, String from, String to) {
 
 /// "TOPIK 3+" / "IELTS 5.5+" — whole numbers without the ".0".
 String scoreText(num v) => v == v.roundToDouble() ? v.toInt().toString() : v.toString();
+
+/// "Gangneung" and "Gangwon" from the Excel's "Gangneung (Gangwon-do)": the
+/// city, and the province when the Excel names one (without its "-do").
+({String city, String? province}) splitCity(String city) {
+  final m = RegExp(r'^(.*?)\s*\((.+?)\)\s*$').firstMatch(city.trim());
+  if (m == null) return (city: city.trim(), province: null);
+  var province = m.group(2)!.trim();
+  if (province.toLowerCase().endsWith('-do')) province = province.substring(0, province.length - 3);
+  return (city: m.group(1)!.trim(), province: province.isEmpty ? null : province);
+}

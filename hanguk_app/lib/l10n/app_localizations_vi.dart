@@ -3977,4 +3977,25 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get fdUnsave => 'Bỏ lưu';
+
+  @override
+  String get fdOddsLead => 'Cơ hội nhập học của tôi';
+
+  @override
+  String get fdStampSave => 'LƯU';
+
+  @override
+  String get fdStampSkip => 'BỎ QUA';
+
+  @override
+  String get fdSwipeHint => 'Hãy thử vuốt';
+
+  @override
+  String get fdQsRanking => 'xếp hạng thế giới';
+
+  @override
+  String get fdPerSemShort => '/ kỳ';
+
+  @override
+  String get fdPerYearShort => '/ năm';
 }

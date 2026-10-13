@@ -3996,4 +3996,25 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get fdUnsave => 'Убрать из сохранённых';
+
+  @override
+  String get fdOddsLead => 'Мой шанс поступления';
+
+  @override
+  String get fdStampSave => 'СОХРАНИТЬ';
+
+  @override
+  String get fdStampSkip => 'ПРОПУСТИТЬ';
+
+  @override
+  String get fdSwipeHint => 'Смахните карточку';
+
+  @override
+  String get fdQsRanking => 'мировой рейтинг';
+
+  @override
+  String get fdPerSemShort => '/ сем';
+
+  @override
+  String get fdPerYearShort => '/ год';
 }

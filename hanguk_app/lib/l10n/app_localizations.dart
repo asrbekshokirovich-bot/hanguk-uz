@@ -7177,6 +7177,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Remove from saved'**
   String get fdUnsave;
+
+  /// Card pill (design 03): followed by the percentage or ?% and an arrow.
+  ///
+  /// In en, this message translates to:
+  /// **'My admission chance'**
+  String get fdOddsLead;
+
+  /// Stamp on the card while it is dragged to the right.
+  ///
+  /// In en, this message translates to:
+  /// **'SAVE'**
+  String get fdStampSave;
+
+  /// Stamp on the card while it is dragged to the left.
+  ///
+  /// In en, this message translates to:
+  /// **'SKIP'**
+  String get fdStampSkip;
+
+  /// Hint over the first card, shown until the first swipe.
+  ///
+  /// In en, this message translates to:
+  /// **'Try swiping'**
+  String get fdSwipeHint;
+
+  /// Under the QS number on the card.
+  ///
+  /// In en, this message translates to:
+  /// **'world ranking'**
+  String get fdQsRanking;
+
+  /// After the fee on the home card: per semester.
+  ///
+  /// In en, this message translates to:
+  /// **'/ sem'**
+  String get fdPerSemShort;
+
+  /// After the fee on the home card: per year.
+  ///
+  /// In en, this message translates to:
+  /// **'/ year'**
+  String get fdPerYearShort;
 }
 
 class _AppLocalizationsDelegate

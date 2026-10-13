@@ -5153,5 +5153,33 @@
   "fdUnsave": "Remove from saved",
   "@fdUnsave": {
     "description": "Screen-reader label of the heart on a saved row."
+  },
+  "fdOddsLead": "My admission chance",
+  "@fdOddsLead": {
+    "description": "Card pill (design 03): followed by the percentage or ?% and an arrow."
+  },
+  "fdStampSave": "SAVE",
+  "@fdStampSave": {
+    "description": "Stamp on the card while it is dragged to the right."
+  },
+  "fdStampSkip": "SKIP",
+  "@fdStampSkip": {
+    "description": "Stamp on the card while it is dragged to the left."
+  },
+  "fdSwipeHint": "Try swiping",
+  "@fdSwipeHint": {
+    "description": "Hint over the first card, shown until the first swipe."
+  },
+  "fdQsRanking": "world ranking",
+  "@fdQsRanking": {
+    "description": "Under the QS number on the card."
+  },
+  "fdPerSemShort": "/ sem",
+  "@fdPerSemShort": {
+    "description": "After the fee on the home card: per semester."
+  },
+  "fdPerYearShort": "/ year",
+  "@fdPerYearShort": {
+    "description": "After the fee on the home card: per year."
   }
 }

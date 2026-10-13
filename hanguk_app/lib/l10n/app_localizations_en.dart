@@ -3982,4 +3982,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get fdUnsave => 'Remove from saved';
+
+  @override
+  String get fdOddsLead => 'My admission chance';
+
+  @override
+  String get fdStampSave => 'SAVE';
+
+  @override
+  String get fdStampSkip => 'SKIP';
+
+  @override
+  String get fdSwipeHint => 'Try swiping';
+
+  @override
+  String get fdQsRanking => 'world ranking';
+
+  @override
+  String get fdPerSemShort => '/ sem';
+
+  @override
+  String get fdPerYearShort => '/ year';
 }

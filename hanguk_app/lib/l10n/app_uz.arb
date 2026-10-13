@@ -1311,5 +1311,12 @@
   "fdSavedCompareTwo": "Ikkalasini taqqoslash",
   "fdSavedCompareBody": "Narx, til talabi, muddat yonma-yon",
   "fdSavedEmpty": "Hali hech narsa saqlanmagan. Bosh oynada kartani o'ngga suring yoki ♡ ni bosing.",
-  "fdUnsave": "Saqlanganlardan olib tashlash"
+  "fdUnsave": "Saqlanganlardan olib tashlash",
+  "fdOddsLead": "Qabul ehtimolim",
+  "fdStampSave": "SAQLASH",
+  "fdStampSkip": "O'TKAZISH",
+  "fdSwipeHint": "Surib ko'ring",
+  "fdQsRanking": "jahon reytingi",
+  "fdPerSemShort": "/ sem",
+  "fdPerYearShort": "/ yil"
 }

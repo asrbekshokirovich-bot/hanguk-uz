@@ -1311,5 +1311,12 @@
   "fdSavedCompareTwo": "두 곳 비교",
   "fdSavedCompareBody": "등록금, 어학 조건, 마감 나란히",
   "fdSavedEmpty": "아직 저장한 대학이 없어요. 홈에서 카드를 오른쪽으로 넘기거나 ♡를 누르세요.",
-  "fdUnsave": "저장 취소"
+  "fdUnsave": "저장 취소",
+  "fdOddsLead": "나의 합격 가능성",
+  "fdStampSave": "저장",
+  "fdStampSkip": "건너뛰기",
+  "fdSwipeHint": "밀어 보세요",
+  "fdQsRanking": "세계 순위",
+  "fdPerSemShort": "/ 학기",
+  "fdPerYearShort": "/ 년"
 }

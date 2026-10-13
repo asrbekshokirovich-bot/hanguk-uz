@@ -1311,5 +1311,12 @@
   "fdSavedCompareTwo": "So sánh cả hai",
   "fdSavedCompareBody": "Học phí, ngôn ngữ, hạn nộp cạnh nhau",
   "fdSavedEmpty": "Chưa lưu trường nào. Ở màn hình chính, vuốt thẻ sang phải hoặc nhấn ♡.",
-  "fdUnsave": "Bỏ lưu"
+  "fdUnsave": "Bỏ lưu",
+  "fdOddsLead": "Cơ hội nhập học của tôi",
+  "fdStampSave": "LƯU",
+  "fdStampSkip": "BỎ QUA",
+  "fdSwipeHint": "Hãy thử vuốt",
+  "fdQsRanking": "xếp hạng thế giới",
+  "fdPerSemShort": "/ kỳ",
+  "fdPerYearShort": "/ năm"
 }

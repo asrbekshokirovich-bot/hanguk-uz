@@ -3990,4 +3990,25 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get fdUnsave => 'Saqlanganlardan olib tashlash';
+
+  @override
+  String get fdOddsLead => 'Qabul ehtimolim';
+
+  @override
+  String get fdStampSave => 'SAQLASH';
+
+  @override
+  String get fdStampSkip => 'O\'TKAZISH';
+
+  @override
+  String get fdSwipeHint => 'Surib ko\'ring';
+
+  @override
+  String get fdQsRanking => 'jahon reytingi';
+
+  @override
+  String get fdPerSemShort => '/ sem';
+
+  @override
+  String get fdPerYearShort => '/ yil';
 }

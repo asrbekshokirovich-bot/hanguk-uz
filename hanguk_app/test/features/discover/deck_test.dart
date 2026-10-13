@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hanguk_app/features/catalog/data/catalog_repository.dart';
 import 'package:hanguk_app/features/catalog/domain/catalog_models.dart';
 import 'package:hanguk_app/features/discover/data/application_windows.dart';
+import 'package:hanguk_app/features/discover/data/deck_hint.dart';
 import 'package:hanguk_app/features/discover/data/saved_universities.dart';
 import 'package:hanguk_app/features/discover/presentation/discover_screen.dart';
 import 'package:hanguk_app/l10n/app_localizations.dart';
@@ -24,6 +25,18 @@ CatalogUniversity uni(String id) => CatalogUniversity(
   ],
 );
 
+/// A visitor who has never swiped.
+class _Fresh extends DeckHintNotifier {
+  @override
+  bool? build() => false;
+}
+
+/// Someone who already swiped.
+class _Seen extends DeckHintNotifier {
+  @override
+  bool? build() => true;
+}
+
 void main() {
   setUpAll(() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
@@ -32,7 +45,7 @@ void main() {
     );
   });
 
-  Future<ProviderContainer> pump(WidgetTester t) async {
+  Future<ProviderContainer> pump(WidgetTester t, {bool fresh = false}) async {
     t.view.physicalSize = const Size(390 * 3, 844 * 3);
     t.view.devicePixelRatio = 3;
     addTearDown(t.view.reset);
@@ -40,6 +53,7 @@ void main() {
       overrides: [
         catalogProvider.overrideWith((ref) async => [uni('Alpha'), uni('Beta'), uni('Gamma')]),
         applicationWindowsProvider.overrideWith((ref) async => const {}),
+        deckHintProvider.overrideWith(fresh ? _Fresh.new : _Seen.new),
       ],
     );
     addTearDown(c.dispose);
@@ -97,5 +111,24 @@ void main() {
     await t.pumpAndSettle();
     expect(find.text('1 / 3'), findsOneWidget);
     expect(c.read(savedUniversitiesProvider), isEmpty);
+  });
+
+  testWidgets('a first-time visitor is shown that the stack swipes', (t) async {
+    final c = await pump(t, fresh: true);
+    expect(find.text("Surib ko'ring"), findsOneWidget);
+    // The card nudges to a side on its own.
+    final start = t.getTopLeft(find.text('Alpha University').first).dx;
+    await t.pump(const Duration(milliseconds: 1200));
+    expect(t.getTopLeft(find.text('Alpha University').first).dx, isNot(closeTo(start, 1)));
+    // The first swipe ends the hint for good.
+    await t.drag(find.text('Alpha University').first, const Offset(40, 0));
+    await t.pumpAndSettle();
+    expect(c.read(deckHintProvider), isTrue);
+    expect(find.text("Surib ko'ring"), findsNothing);
+  });
+
+  testWidgets('no hint for someone who already swiped', (t) async {
+    await pump(t);
+    expect(find.text("Surib ko'ring"), findsNothing);
   });
 }

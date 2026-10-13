@@ -1311,5 +1311,12 @@
   "fdSavedCompareTwo": "Сравнить оба",
   "fdSavedCompareBody": "Цена, язык и сроки рядом",
   "fdSavedEmpty": "Пока ничего не сохранено. На главном экране смахните карточку вправо или нажмите ♡.",
-  "fdUnsave": "Убрать из сохранённых"
+  "fdUnsave": "Убрать из сохранённых",
+  "fdOddsLead": "Мой шанс поступления",
+  "fdStampSave": "СОХРАНИТЬ",
+  "fdStampSkip": "ПРОПУСТИТЬ",
+  "fdSwipeHint": "Смахните карточку",
+  "fdQsRanking": "мировой рейтинг",
+  "fdPerSemShort": "/ сем",
+  "fdPerYearShort": "/ год"
 }

@@ -3830,4 +3830,25 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get fdUnsave => '저장 취소';
+
+  @override
+  String get fdOddsLead => '나의 합격 가능성';
+
+  @override
+  String get fdStampSave => '저장';
+
+  @override
+  String get fdStampSkip => '건너뛰기';
+
+  @override
+  String get fdSwipeHint => '밀어 보세요';
+
+  @override
+  String get fdQsRanking => '세계 순위';
+
+  @override
+  String get fdPerSemShort => '/ 학기';
+
+  @override
+  String get fdPerYearShort => '/ 년';
 }
