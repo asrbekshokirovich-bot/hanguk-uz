@@ -4145,4 +4145,127 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get accountMoreLabel => 'Boshqa bo\'limlar';
+
+  @override
+  String get fdPlanTitle => 'Study Plan';
+
+  @override
+  String get fdPlanStepGoal => 'Maqsad';
+
+  @override
+  String get fdPlanStepKorea => 'Nega Koreya';
+
+  @override
+  String get fdPlanStepUni => 'Nega bu universitet';
+
+  @override
+  String get fdPlanStepFuture => 'Kelajak rejasi';
+
+  @override
+  String fdPlanStepOf(int n, int total) {
+    return '$n-bosqich · $total tadan';
+  }
+
+  @override
+  String get fdPlanQ1Head => 'Sizning';
+
+  @override
+  String get fdPlanQ1Mark => 'maqsadingiz?';
+
+  @override
+  String get fdPlanQ1Hint =>
+      '3–5 jumla. Nimani o\'rganmoqchisiz va bu sizga nima uchun kerak? Aniq yozing.';
+
+  @override
+  String get fdPlanQ2Head => 'Nega aynan';
+
+  @override
+  String get fdPlanQ2Mark => 'Koreya?';
+
+  @override
+  String get fdPlanQ2Hint =>
+      '3–5 jumla. Shaxsiy sabab yozing: oila, kasb, til, tajriba. Umumiy gaplardan qoching.';
+
+  @override
+  String get fdPlanQ3Head => 'Nega aynan bu';
+
+  @override
+  String get fdPlanQ3Mark => 'universitet?';
+
+  @override
+  String get fdPlanQ3Hint =>
+      '3–5 jumla. Universitetning dasturi, laboratoriyasi yoki yo\'nalishi sizga nega mos? Aniq misol keltiring.';
+
+  @override
+  String get fdPlanQ4Head => 'O\'qishdan keyingi';
+
+  @override
+  String get fdPlanQ4Mark => 'reja?';
+
+  @override
+  String get fdPlanQ4Hint =>
+      '3–5 jumla. O\'qishdan keyin nima qilasiz: ish, magistratura yoki uyga qaytish? Aniq bosqichlar yozing.';
+
+  @override
+  String get fdPlanHintField => 'Shu yerga yozing…';
+
+  @override
+  String get fdPlanWarnTitle => 'Muhim: AI yozgan matnni topshirmang';
+
+  @override
+  String get fdPlanWarnBody =>
+      'Universitetlar AI matnini aniqlaydi. Bu yerda yozganingiz — faqat sizniki. Hanguk AI faqat fikr-mulohaza beradi.';
+
+  @override
+  String get fdPlanFeedback => 'Fikr-mulohaza olish';
+
+  @override
+  String get fdPlanFeedbackBusy => 'Tahlil qilinmoqda…';
+
+  @override
+  String get fdPlanWriteFirst => 'Avval shu bosqichni yozing.';
+
+  @override
+  String get fdPlanSheetTitle => 'Hanguk AI fikri';
+
+  @override
+  String get fdPlanStrengths => 'Yaxshi tomonlari';
+
+  @override
+  String get fdPlanImprove => 'Yaxshilash uchun';
+
+  @override
+  String get fdPlanNext => 'Keyingi bosqich';
+
+  @override
+  String get fdPlanClose => 'Yopish';
+
+  @override
+  String get fdPlanLoadFailed =>
+      'Study Plan ochilmadi. Internetni tekshirib, qayta urinib ko\'ring.';
+
+  @override
+  String get fdInterviewTitle => 'Suhbat mashqi';
+
+  @override
+  String get fdInterviewAi => 'Hanguk AI · intervyuer';
+
+  @override
+  String fdInterviewStyle(String university) {
+    return '$university qabul komissiyasi uslubida';
+  }
+
+  @override
+  String get fdInterviewTip =>
+      'Aniq va o\'rtacha tezlikda gapiring · 60–90 soniya';
+
+  @override
+  String get fdInterviewMute => 'Mikrofonni o\'chirish';
+
+  @override
+  String get fdInterviewUnmute => 'Mikrofonni yoqish';
+
+  @override
+  String get fdInterviewMuted =>
+      'Mikrofon o\'chirilgan — intervyuer sizni eshitmaydi';
 }

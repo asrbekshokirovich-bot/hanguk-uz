@@ -5378,5 +5378,166 @@
   "accountMoreLabel": "More",
   "@accountMoreLabel": {
     "description": "Account screen card with the sections that are not in the bottom tabs."
+  },
+  "fdPlanTitle": "Study Plan",
+  "@fdPlanTitle": {
+    "description": "Study Plan builder header."
+  },
+  "fdPlanStepGoal": "Goal",
+  "@fdPlanStepGoal": {
+    "description": "Study Plan step chip 1."
+  },
+  "fdPlanStepKorea": "Why Korea",
+  "@fdPlanStepKorea": {
+    "description": "Study Plan step chip 2."
+  },
+  "fdPlanStepUni": "Why this university",
+  "@fdPlanStepUni": {
+    "description": "Study Plan step chip 3."
+  },
+  "fdPlanStepFuture": "Future plan",
+  "@fdPlanStepFuture": {
+    "description": "Study Plan step chip 4."
+  },
+  "fdPlanStepOf": "Step {n} · of {total}",
+  "@fdPlanStepOf": {
+    "description": "Card kicker of the Study Plan builder.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "fdPlanQ1Head": "Your",
+  "@fdPlanQ1Head": {
+    "description": "Step 1 title, before the highlighted word."
+  },
+  "fdPlanQ1Mark": "goal?",
+  "@fdPlanQ1Mark": {
+    "description": "Step 1 title, highlighted word."
+  },
+  "fdPlanQ1Hint": "3–5 sentences. What do you want to study and why do you need it? Be specific.",
+  "@fdPlanQ1Hint": {
+    "description": "Step 1 hint."
+  },
+  "fdPlanQ2Head": "Why",
+  "@fdPlanQ2Head": {
+    "description": "Step 2 title, before the highlighted word."
+  },
+  "fdPlanQ2Mark": "Korea?",
+  "@fdPlanQ2Mark": {
+    "description": "Step 2 title, highlighted word."
+  },
+  "fdPlanQ2Hint": "3–5 sentences. Write a personal reason: family, career, language, experience. Avoid generalities.",
+  "@fdPlanQ2Hint": {
+    "description": "Step 2 hint."
+  },
+  "fdPlanQ3Head": "Why this",
+  "@fdPlanQ3Head": {
+    "description": "Step 3 title, before the highlighted word."
+  },
+  "fdPlanQ3Mark": "university?",
+  "@fdPlanQ3Mark": {
+    "description": "Step 3 title, highlighted word."
+  },
+  "fdPlanQ3Hint": "3–5 sentences. Why do this university's programme, lab or major suit you? Give a concrete example.",
+  "@fdPlanQ3Hint": {
+    "description": "Step 3 hint."
+  },
+  "fdPlanQ4Head": "Your plan after",
+  "@fdPlanQ4Head": {
+    "description": "Step 4 title, before the highlighted word."
+  },
+  "fdPlanQ4Mark": "graduation?",
+  "@fdPlanQ4Mark": {
+    "description": "Step 4 title, highlighted word."
+  },
+  "fdPlanQ4Hint": "3–5 sentences. What will you do after your studies: work, a master's or going home? Write concrete steps.",
+  "@fdPlanQ4Hint": {
+    "description": "Step 4 hint."
+  },
+  "fdPlanHintField": "Write here…",
+  "@fdPlanHintField": {
+    "description": "Study Plan builder text field placeholder."
+  },
+  "fdPlanWarnTitle": "Important: do not submit AI-written text",
+  "@fdPlanWarnTitle": {
+    "description": "Warning card title."
+  },
+  "fdPlanWarnBody": "Universities detect AI text. What you write here is yours alone. Hanguk AI only gives feedback.",
+  "@fdPlanWarnBody": {
+    "description": "Warning card body."
+  },
+  "fdPlanFeedback": "Get feedback",
+  "@fdPlanFeedback": {
+    "description": "Study Plan builder main button."
+  },
+  "fdPlanFeedbackBusy": "Analysing…",
+  "@fdPlanFeedbackBusy": {
+    "description": "Main button while the analysis runs."
+  },
+  "fdPlanWriteFirst": "Write this step first.",
+  "@fdPlanWriteFirst": {
+    "description": "Shown when feedback is asked on an empty step."
+  },
+  "fdPlanSheetTitle": "Hanguk AI feedback",
+  "@fdPlanSheetTitle": {
+    "description": "Feedback sheet title."
+  },
+  "fdPlanStrengths": "Strengths",
+  "@fdPlanStrengths": {
+    "description": "Feedback sheet section."
+  },
+  "fdPlanImprove": "To improve",
+  "@fdPlanImprove": {
+    "description": "Feedback sheet section."
+  },
+  "fdPlanNext": "Next step",
+  "@fdPlanNext": {
+    "description": "Feedback sheet button."
+  },
+  "fdPlanClose": "Close",
+  "@fdPlanClose": {
+    "description": "Feedback sheet button on the last step."
+  },
+  "fdPlanLoadFailed": "Study Plan did not open. Check your connection and try again.",
+  "@fdPlanLoadFailed": {
+    "description": "Study Plan builder when the session could not be created or loaded."
+  },
+  "fdInterviewTitle": "Interview practice",
+  "@fdInterviewTitle": {
+    "description": "Live interview screen header."
+  },
+  "fdInterviewAi": "Hanguk AI · interviewer",
+  "@fdInterviewAi": {
+    "description": "Name under the interviewer avatar."
+  },
+  "fdInterviewStyle": "In the style of {university}'s admissions panel",
+  "@fdInterviewStyle": {
+    "description": "Line under the interviewer's name.",
+    "placeholders": {
+      "university": {
+        "type": "String"
+      }
+    }
+  },
+  "fdInterviewTip": "Speak clearly at a moderate pace · 60–90 seconds",
+  "@fdInterviewTip": {
+    "description": "Tip under the microphone button."
+  },
+  "fdInterviewMute": "Mute microphone",
+  "@fdInterviewMute": {
+    "description": "Microphone button label while it is on."
+  },
+  "fdInterviewUnmute": "Unmute microphone",
+  "@fdInterviewUnmute": {
+    "description": "Microphone button label while it is muted."
+  },
+  "fdInterviewMuted": "Microphone off — the interviewer cannot hear you",
+  "@fdInterviewMuted": {
+    "description": "Status while the microphone is muted."
   }
 }

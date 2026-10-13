@@ -7,7 +7,7 @@ import '../../../design_system/seoul_night/widgets/lucide.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../chat/presentation/chat_tab.dart';
 import '../../training/presentation/interview_screen.dart';
-import '../../training/presentation/study_plan_screen.dart';
+import '../../training/presentation/study_plan_builder_screen.dart';
 
 /// Design screen 18, "Tayyorgarlik": Study Plan, the interview practice and
 /// "Hanguk AI ga savol bering". All three are a student's tools: for a guest
@@ -79,7 +79,7 @@ class PrepareScreen extends StatelessWidget {
                 title: l.fdPrepareStudyPlanTitle,
                 body: l.fdPrepareStudyPlanBody,
                 progress: 0,
-                onTap: () => signedIn ? _push(context, const StudyPlanScreen(documentType: 'study_plan')) : _signIn(context),
+                onTap: () => signedIn ? _push(context, const StudyPlanBuilderScreen()) : _signIn(context),
               ),
               const SizedBox(height: 14),
               _ToolCard(

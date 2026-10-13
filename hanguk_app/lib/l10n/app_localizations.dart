@@ -7453,6 +7453,228 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'More'**
   String get accountMoreLabel;
+
+  /// Study Plan builder header.
+  ///
+  /// In en, this message translates to:
+  /// **'Study Plan'**
+  String get fdPlanTitle;
+
+  /// Study Plan step chip 1.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal'**
+  String get fdPlanStepGoal;
+
+  /// Study Plan step chip 2.
+  ///
+  /// In en, this message translates to:
+  /// **'Why Korea'**
+  String get fdPlanStepKorea;
+
+  /// Study Plan step chip 3.
+  ///
+  /// In en, this message translates to:
+  /// **'Why this university'**
+  String get fdPlanStepUni;
+
+  /// Study Plan step chip 4.
+  ///
+  /// In en, this message translates to:
+  /// **'Future plan'**
+  String get fdPlanStepFuture;
+
+  /// Card kicker of the Study Plan builder.
+  ///
+  /// In en, this message translates to:
+  /// **'Step {n} · of {total}'**
+  String fdPlanStepOf(int n, int total);
+
+  /// Step 1 title, before the highlighted word.
+  ///
+  /// In en, this message translates to:
+  /// **'Your'**
+  String get fdPlanQ1Head;
+
+  /// Step 1 title, highlighted word.
+  ///
+  /// In en, this message translates to:
+  /// **'goal?'**
+  String get fdPlanQ1Mark;
+
+  /// Step 1 hint.
+  ///
+  /// In en, this message translates to:
+  /// **'3–5 sentences. What do you want to study and why do you need it? Be specific.'**
+  String get fdPlanQ1Hint;
+
+  /// Step 2 title, before the highlighted word.
+  ///
+  /// In en, this message translates to:
+  /// **'Why'**
+  String get fdPlanQ2Head;
+
+  /// Step 2 title, highlighted word.
+  ///
+  /// In en, this message translates to:
+  /// **'Korea?'**
+  String get fdPlanQ2Mark;
+
+  /// Step 2 hint.
+  ///
+  /// In en, this message translates to:
+  /// **'3–5 sentences. Write a personal reason: family, career, language, experience. Avoid generalities.'**
+  String get fdPlanQ2Hint;
+
+  /// Step 3 title, before the highlighted word.
+  ///
+  /// In en, this message translates to:
+  /// **'Why this'**
+  String get fdPlanQ3Head;
+
+  /// Step 3 title, highlighted word.
+  ///
+  /// In en, this message translates to:
+  /// **'university?'**
+  String get fdPlanQ3Mark;
+
+  /// Step 3 hint.
+  ///
+  /// In en, this message translates to:
+  /// **'3–5 sentences. Why do this university\'s programme, lab or major suit you? Give a concrete example.'**
+  String get fdPlanQ3Hint;
+
+  /// Step 4 title, before the highlighted word.
+  ///
+  /// In en, this message translates to:
+  /// **'Your plan after'**
+  String get fdPlanQ4Head;
+
+  /// Step 4 title, highlighted word.
+  ///
+  /// In en, this message translates to:
+  /// **'graduation?'**
+  String get fdPlanQ4Mark;
+
+  /// Step 4 hint.
+  ///
+  /// In en, this message translates to:
+  /// **'3–5 sentences. What will you do after your studies: work, a master\'s or going home? Write concrete steps.'**
+  String get fdPlanQ4Hint;
+
+  /// Study Plan builder text field placeholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Write here…'**
+  String get fdPlanHintField;
+
+  /// Warning card title.
+  ///
+  /// In en, this message translates to:
+  /// **'Important: do not submit AI-written text'**
+  String get fdPlanWarnTitle;
+
+  /// Warning card body.
+  ///
+  /// In en, this message translates to:
+  /// **'Universities detect AI text. What you write here is yours alone. Hanguk AI only gives feedback.'**
+  String get fdPlanWarnBody;
+
+  /// Study Plan builder main button.
+  ///
+  /// In en, this message translates to:
+  /// **'Get feedback'**
+  String get fdPlanFeedback;
+
+  /// Main button while the analysis runs.
+  ///
+  /// In en, this message translates to:
+  /// **'Analysing…'**
+  String get fdPlanFeedbackBusy;
+
+  /// Shown when feedback is asked on an empty step.
+  ///
+  /// In en, this message translates to:
+  /// **'Write this step first.'**
+  String get fdPlanWriteFirst;
+
+  /// Feedback sheet title.
+  ///
+  /// In en, this message translates to:
+  /// **'Hanguk AI feedback'**
+  String get fdPlanSheetTitle;
+
+  /// Feedback sheet section.
+  ///
+  /// In en, this message translates to:
+  /// **'Strengths'**
+  String get fdPlanStrengths;
+
+  /// Feedback sheet section.
+  ///
+  /// In en, this message translates to:
+  /// **'To improve'**
+  String get fdPlanImprove;
+
+  /// Feedback sheet button.
+  ///
+  /// In en, this message translates to:
+  /// **'Next step'**
+  String get fdPlanNext;
+
+  /// Feedback sheet button on the last step.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get fdPlanClose;
+
+  /// Study Plan builder when the session could not be created or loaded.
+  ///
+  /// In en, this message translates to:
+  /// **'Study Plan did not open. Check your connection and try again.'**
+  String get fdPlanLoadFailed;
+
+  /// Live interview screen header.
+  ///
+  /// In en, this message translates to:
+  /// **'Interview practice'**
+  String get fdInterviewTitle;
+
+  /// Name under the interviewer avatar.
+  ///
+  /// In en, this message translates to:
+  /// **'Hanguk AI · interviewer'**
+  String get fdInterviewAi;
+
+  /// Line under the interviewer's name.
+  ///
+  /// In en, this message translates to:
+  /// **'In the style of {university}\'s admissions panel'**
+  String fdInterviewStyle(String university);
+
+  /// Tip under the microphone button.
+  ///
+  /// In en, this message translates to:
+  /// **'Speak clearly at a moderate pace · 60–90 seconds'**
+  String get fdInterviewTip;
+
+  /// Microphone button label while it is on.
+  ///
+  /// In en, this message translates to:
+  /// **'Mute microphone'**
+  String get fdInterviewMute;
+
+  /// Microphone button label while it is muted.
+  ///
+  /// In en, this message translates to:
+  /// **'Unmute microphone'**
+  String get fdInterviewUnmute;
+
+  /// Status while the microphone is muted.
+  ///
+  /// In en, this message translates to:
+  /// **'Microphone off — the interviewer cannot hear you'**
+  String get fdInterviewMuted;
 }
 
 class _AppLocalizationsDelegate

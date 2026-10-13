@@ -3982,4 +3982,121 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get accountMoreLabel => '더 보기';
+
+  @override
+  String get fdPlanTitle => '학업계획서';
+
+  @override
+  String get fdPlanStepGoal => '목표';
+
+  @override
+  String get fdPlanStepKorea => '왜 한국';
+
+  @override
+  String get fdPlanStepUni => '왜 이 대학';
+
+  @override
+  String get fdPlanStepFuture => '미래 계획';
+
+  @override
+  String fdPlanStepOf(int n, int total) {
+    return '$n단계 · 총 $total단계';
+  }
+
+  @override
+  String get fdPlanQ1Head => '당신의';
+
+  @override
+  String get fdPlanQ1Mark => '목표는?';
+
+  @override
+  String get fdPlanQ1Hint => '3~5문장. 무엇을 공부하고 싶고 왜 필요한지 구체적으로 쓰세요.';
+
+  @override
+  String get fdPlanQ2Head => '왜 하필';
+
+  @override
+  String get fdPlanQ2Mark => '한국?';
+
+  @override
+  String get fdPlanQ2Hint =>
+      '3~5문장. 가족, 직업, 언어, 경험 등 개인적인 이유를 쓰세요. 뻔한 말은 피하세요.';
+
+  @override
+  String get fdPlanQ3Head => '왜 이';
+
+  @override
+  String get fdPlanQ3Mark => '대학?';
+
+  @override
+  String get fdPlanQ3Hint => '3~5문장. 이 대학의 프로그램, 연구실, 전공이 왜 맞는지 구체적인 예를 드세요.';
+
+  @override
+  String get fdPlanQ4Head => '졸업 후';
+
+  @override
+  String get fdPlanQ4Mark => '계획?';
+
+  @override
+  String get fdPlanQ4Hint => '3~5문장. 졸업 후 취업, 대학원, 귀국 중 무엇을 할지 구체적인 단계로 쓰세요.';
+
+  @override
+  String get fdPlanHintField => '여기에 쓰세요…';
+
+  @override
+  String get fdPlanWarnTitle => '중요: AI가 쓴 글은 제출하지 마세요';
+
+  @override
+  String get fdPlanWarnBody =>
+      '대학은 AI 작성 글을 가려냅니다. 여기서 쓰는 글은 오직 본인의 것입니다. Hanguk AI는 피드백만 드립니다.';
+
+  @override
+  String get fdPlanFeedback => '피드백 받기';
+
+  @override
+  String get fdPlanFeedbackBusy => '분석 중…';
+
+  @override
+  String get fdPlanWriteFirst => '먼저 이 단계를 작성하세요.';
+
+  @override
+  String get fdPlanSheetTitle => 'Hanguk AI 피드백';
+
+  @override
+  String get fdPlanStrengths => '잘한 점';
+
+  @override
+  String get fdPlanImprove => '개선할 점';
+
+  @override
+  String get fdPlanNext => '다음 단계';
+
+  @override
+  String get fdPlanClose => '닫기';
+
+  @override
+  String get fdPlanLoadFailed => '학업계획서를 열 수 없습니다. 연결을 확인하고 다시 시도하세요.';
+
+  @override
+  String get fdInterviewTitle => '면접 연습';
+
+  @override
+  String get fdInterviewAi => 'Hanguk AI · 면접관';
+
+  @override
+  String fdInterviewStyle(String university) {
+    return '$university 입학 면접 방식';
+  }
+
+  @override
+  String get fdInterviewTip => '또렷하게, 적당한 속도로 말하세요 · 60~90초';
+
+  @override
+  String get fdInterviewMute => '마이크 끄기';
+
+  @override
+  String get fdInterviewUnmute => '마이크 켜기';
+
+  @override
+  String get fdInterviewMuted => '마이크 꺼짐 — 면접관이 듣지 못합니다';
 }

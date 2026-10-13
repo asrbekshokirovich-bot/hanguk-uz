@@ -4150,4 +4150,126 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get accountMoreLabel => 'Ещё';
+
+  @override
+  String get fdPlanTitle => 'Study Plan';
+
+  @override
+  String get fdPlanStepGoal => 'Цель';
+
+  @override
+  String get fdPlanStepKorea => 'Почему Корея';
+
+  @override
+  String get fdPlanStepUni => 'Почему этот вуз';
+
+  @override
+  String get fdPlanStepFuture => 'План на будущее';
+
+  @override
+  String fdPlanStepOf(int n, int total) {
+    return 'Шаг $n · из $total';
+  }
+
+  @override
+  String get fdPlanQ1Head => 'Ваша';
+
+  @override
+  String get fdPlanQ1Mark => 'цель?';
+
+  @override
+  String get fdPlanQ1Hint =>
+      '3–5 предложений. Что вы хотите изучать и зачем это вам нужно? Пишите конкретно.';
+
+  @override
+  String get fdPlanQ2Head => 'Почему именно';
+
+  @override
+  String get fdPlanQ2Mark => 'Корея?';
+
+  @override
+  String get fdPlanQ2Hint =>
+      '3–5 предложений. Напишите личную причину: семья, профессия, язык, опыт. Избегайте общих фраз.';
+
+  @override
+  String get fdPlanQ3Head => 'Почему именно этот';
+
+  @override
+  String get fdPlanQ3Mark => 'вуз?';
+
+  @override
+  String get fdPlanQ3Hint =>
+      '3–5 предложений. Чем вам подходит программа, лаборатория или направление этого вуза? Приведите конкретный пример.';
+
+  @override
+  String get fdPlanQ4Head => 'План после';
+
+  @override
+  String get fdPlanQ4Mark => 'учёбы?';
+
+  @override
+  String get fdPlanQ4Hint =>
+      '3–5 предложений. Что вы будете делать после учёбы: работа, магистратура или возвращение домой? Напишите конкретные шаги.';
+
+  @override
+  String get fdPlanHintField => 'Пишите здесь…';
+
+  @override
+  String get fdPlanWarnTitle => 'Важно: не подавайте текст, написанный ИИ';
+
+  @override
+  String get fdPlanWarnBody =>
+      'Университеты распознают текст ИИ. То, что вы пишете здесь, — только ваше. Hanguk AI лишь даёт обратную связь.';
+
+  @override
+  String get fdPlanFeedback => 'Получить отзыв';
+
+  @override
+  String get fdPlanFeedbackBusy => 'Анализируем…';
+
+  @override
+  String get fdPlanWriteFirst => 'Сначала напишите этот шаг.';
+
+  @override
+  String get fdPlanSheetTitle => 'Отзыв Hanguk AI';
+
+  @override
+  String get fdPlanStrengths => 'Сильные стороны';
+
+  @override
+  String get fdPlanImprove => 'Что улучшить';
+
+  @override
+  String get fdPlanNext => 'Следующий шаг';
+
+  @override
+  String get fdPlanClose => 'Закрыть';
+
+  @override
+  String get fdPlanLoadFailed =>
+      'Study Plan не открылся. Проверьте соединение и попробуйте снова.';
+
+  @override
+  String get fdInterviewTitle => 'Практика интервью';
+
+  @override
+  String get fdInterviewAi => 'Hanguk AI · интервьюер';
+
+  @override
+  String fdInterviewStyle(String university) {
+    return 'В стиле приёмной комиссии $university';
+  }
+
+  @override
+  String get fdInterviewTip =>
+      'Говорите чётко и в умеренном темпе · 60–90 секунд';
+
+  @override
+  String get fdInterviewMute => 'Выключить микрофон';
+
+  @override
+  String get fdInterviewUnmute => 'Включить микрофон';
+
+  @override
+  String get fdInterviewMuted => 'Микрофон выключен — интервьюер вас не слышит';
 }

@@ -4131,4 +4131,126 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get accountMoreLabel => 'Thêm';
+
+  @override
+  String get fdPlanTitle => 'Study Plan';
+
+  @override
+  String get fdPlanStepGoal => 'Mục tiêu';
+
+  @override
+  String get fdPlanStepKorea => 'Vì sao Hàn Quốc';
+
+  @override
+  String get fdPlanStepUni => 'Vì sao trường này';
+
+  @override
+  String get fdPlanStepFuture => 'Kế hoạch tương lai';
+
+  @override
+  String fdPlanStepOf(int n, int total) {
+    return 'Bước $n · trên $total';
+  }
+
+  @override
+  String get fdPlanQ1Head => '';
+
+  @override
+  String get fdPlanQ1Mark => 'Mục tiêu của bạn là gì?';
+
+  @override
+  String get fdPlanQ1Hint =>
+      '3–5 câu. Bạn muốn học gì và vì sao cần điều đó? Hãy viết cụ thể.';
+
+  @override
+  String get fdPlanQ2Head => 'Vì sao lại là';
+
+  @override
+  String get fdPlanQ2Mark => 'Hàn Quốc?';
+
+  @override
+  String get fdPlanQ2Hint =>
+      '3–5 câu. Viết lý do cá nhân: gia đình, nghề nghiệp, ngôn ngữ, kinh nghiệm. Tránh nói chung chung.';
+
+  @override
+  String get fdPlanQ3Head => 'Vì sao lại là';
+
+  @override
+  String get fdPlanQ3Mark => 'trường này?';
+
+  @override
+  String get fdPlanQ3Hint =>
+      '3–5 câu. Chương trình, phòng thí nghiệm hay ngành của trường này phù hợp với bạn ở điểm nào? Nêu ví dụ cụ thể.';
+
+  @override
+  String get fdPlanQ4Head => 'Kế hoạch sau';
+
+  @override
+  String get fdPlanQ4Mark => 'khi tốt nghiệp?';
+
+  @override
+  String get fdPlanQ4Hint =>
+      '3–5 câu. Sau khi học bạn sẽ làm gì: đi làm, học thạc sĩ hay về nước? Viết các bước cụ thể.';
+
+  @override
+  String get fdPlanHintField => 'Viết ở đây…';
+
+  @override
+  String get fdPlanWarnTitle => 'Quan trọng: đừng nộp văn bản do AI viết';
+
+  @override
+  String get fdPlanWarnBody =>
+      'Các trường phát hiện được văn bản do AI viết. Những gì bạn viết ở đây chỉ là của bạn. Hanguk AI chỉ đưa ra nhận xét.';
+
+  @override
+  String get fdPlanFeedback => 'Nhận nhận xét';
+
+  @override
+  String get fdPlanFeedbackBusy => 'Đang phân tích…';
+
+  @override
+  String get fdPlanWriteFirst => 'Hãy viết bước này trước.';
+
+  @override
+  String get fdPlanSheetTitle => 'Nhận xét của Hanguk AI';
+
+  @override
+  String get fdPlanStrengths => 'Điểm mạnh';
+
+  @override
+  String get fdPlanImprove => 'Cần cải thiện';
+
+  @override
+  String get fdPlanNext => 'Bước tiếp theo';
+
+  @override
+  String get fdPlanClose => 'Đóng';
+
+  @override
+  String get fdPlanLoadFailed =>
+      'Không mở được Study Plan. Hãy kiểm tra kết nối và thử lại.';
+
+  @override
+  String get fdInterviewTitle => 'Luyện phỏng vấn';
+
+  @override
+  String get fdInterviewAi => 'Hanguk AI · người phỏng vấn';
+
+  @override
+  String fdInterviewStyle(String university) {
+    return 'Theo phong cách hội đồng tuyển sinh $university';
+  }
+
+  @override
+  String get fdInterviewTip => 'Nói rõ ràng, tốc độ vừa phải · 60–90 giây';
+
+  @override
+  String get fdInterviewMute => 'Tắt micrô';
+
+  @override
+  String get fdInterviewUnmute => 'Bật micrô';
+
+  @override
+  String get fdInterviewMuted =>
+      'Micrô đang tắt — người phỏng vấn không nghe thấy bạn';
 }

@@ -4137,4 +4137,127 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get accountMoreLabel => 'More';
+
+  @override
+  String get fdPlanTitle => 'Study Plan';
+
+  @override
+  String get fdPlanStepGoal => 'Goal';
+
+  @override
+  String get fdPlanStepKorea => 'Why Korea';
+
+  @override
+  String get fdPlanStepUni => 'Why this university';
+
+  @override
+  String get fdPlanStepFuture => 'Future plan';
+
+  @override
+  String fdPlanStepOf(int n, int total) {
+    return 'Step $n · of $total';
+  }
+
+  @override
+  String get fdPlanQ1Head => 'Your';
+
+  @override
+  String get fdPlanQ1Mark => 'goal?';
+
+  @override
+  String get fdPlanQ1Hint =>
+      '3–5 sentences. What do you want to study and why do you need it? Be specific.';
+
+  @override
+  String get fdPlanQ2Head => 'Why';
+
+  @override
+  String get fdPlanQ2Mark => 'Korea?';
+
+  @override
+  String get fdPlanQ2Hint =>
+      '3–5 sentences. Write a personal reason: family, career, language, experience. Avoid generalities.';
+
+  @override
+  String get fdPlanQ3Head => 'Why this';
+
+  @override
+  String get fdPlanQ3Mark => 'university?';
+
+  @override
+  String get fdPlanQ3Hint =>
+      '3–5 sentences. Why do this university\'s programme, lab or major suit you? Give a concrete example.';
+
+  @override
+  String get fdPlanQ4Head => 'Your plan after';
+
+  @override
+  String get fdPlanQ4Mark => 'graduation?';
+
+  @override
+  String get fdPlanQ4Hint =>
+      '3–5 sentences. What will you do after your studies: work, a master\'s or going home? Write concrete steps.';
+
+  @override
+  String get fdPlanHintField => 'Write here…';
+
+  @override
+  String get fdPlanWarnTitle => 'Important: do not submit AI-written text';
+
+  @override
+  String get fdPlanWarnBody =>
+      'Universities detect AI text. What you write here is yours alone. Hanguk AI only gives feedback.';
+
+  @override
+  String get fdPlanFeedback => 'Get feedback';
+
+  @override
+  String get fdPlanFeedbackBusy => 'Analysing…';
+
+  @override
+  String get fdPlanWriteFirst => 'Write this step first.';
+
+  @override
+  String get fdPlanSheetTitle => 'Hanguk AI feedback';
+
+  @override
+  String get fdPlanStrengths => 'Strengths';
+
+  @override
+  String get fdPlanImprove => 'To improve';
+
+  @override
+  String get fdPlanNext => 'Next step';
+
+  @override
+  String get fdPlanClose => 'Close';
+
+  @override
+  String get fdPlanLoadFailed =>
+      'Study Plan did not open. Check your connection and try again.';
+
+  @override
+  String get fdInterviewTitle => 'Interview practice';
+
+  @override
+  String get fdInterviewAi => 'Hanguk AI · interviewer';
+
+  @override
+  String fdInterviewStyle(String university) {
+    return 'In the style of $university\'s admissions panel';
+  }
+
+  @override
+  String get fdInterviewTip =>
+      'Speak clearly at a moderate pace · 60–90 seconds';
+
+  @override
+  String get fdInterviewMute => 'Mute microphone';
+
+  @override
+  String get fdInterviewUnmute => 'Unmute microphone';
+
+  @override
+  String get fdInterviewMuted =>
+      'Microphone off — the interviewer cannot hear you';
 }
