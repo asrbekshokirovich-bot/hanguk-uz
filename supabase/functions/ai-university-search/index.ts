@@ -4,7 +4,7 @@
 // universitetlar chiqsin").
 //
 // The student types a field in any language ("IT", "stomatologiya",
-// "hamshiralik", "компьютер") and the app calls this while they type. Claude
+// "hamshiralik", "компьютер") and the app calls this while they type. Gemini
 // turns it into search terms for programme names, and `ai_search_by_field`
 // (20261013110000_ai_search_in_database.sql) finds, in one query, every
 // university in the app's catalogue with a programme of that field. The model
@@ -13,7 +13,9 @@
 // those.
 //
 // What the model read for a text is kept in `ai_search_terms`, so the same
-// text — from anyone — reaches the model once. A new call is rationed by a
+// text — from anyone — reaches the model once; the common fields are written
+// there beforehand and never reach it (owner, 2026-10-13: save the Gemini
+// free quota). A new call is rationed by a
 // daily allowance per signed-in student, per IP for guests, and for the whole
 // app (`ai_search_take`, 20261013090000_ai_search_usage.sql).
 //
@@ -33,10 +35,13 @@ import { parseTermsReply, queryKey } from "./search.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
+const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
 
-/** Fast models first; the next one answers if a model is unavailable. */
-const MODELS = ["claude-haiku-5-5", "claude-haiku-4-5"];
+/**
+ * Flash-Lite first: the cheapest, and its free quota is the largest. Quotas
+ * are per model, so when it is spent (429) Flash answers instead.
+ */
+const MODELS = ["gemini-2.5-flash-lite", "gemini-2.5-flash"];
 const MODEL_TIMEOUT_MS = 8_000;
 
 /** Daily allowances (Tashkent day) for calls that reach the model. */
@@ -77,44 +82,58 @@ const SYSTEM = [
   '  "cybersecur", "정보통신", "정보보호", "데이터사이언스").',
   "- Ignore everything that is not a field: cities, fees, TOPIK, degree, university names.",
   '- No field in the text (only a university name, a city, a fee...) -> {"terms": []}.',
+  "- A term that would also find programmes of another field can be balanced with an exclusion: the",
+  '  same kind of term with a leading minus ("-veterinar", "-수의") keeps those programmes out.',
   "",
   "Examples:",
   "IT / АйТи / dasturlash -> comput, software, information technolog, information secur, information and",
   "  communication, information system, informatics, cybersecur, cyber secur, artificial intelligence,",
   "  data scien, ai, it, ict, 컴퓨터, 소프트웨어, 정보통신, 정보보호, 정보보안, 인공지능, 데이터사이언스",
   "stomatologiya / стоматология / dentist -> dent, 치의, 치위생, 치기공, 치과",
+  "tibbiyot / медицина / doctor -> medicine, pre med, 의예, 의학과, -veterinar, -plant, -sport, -수의, -식물, -치의",
   "hamshiralik / медсестра / nursing -> nurs, 간호",
   "biznes / менеджмент -> business, 경영",
   "Woosong / Seul / arzon / TOPIK 3 -> (no field) []",
 ].join("\n");
 
+const TERMS_SCHEMA = {
+  type: "OBJECT",
+  properties: { terms: { type: "ARRAY", items: { type: "STRING" } } },
+  required: ["terms"],
+};
+
 /** The terms for [query]; null when no model could answer. */
 async function readTerms(query: string): Promise<string[] | null> {
-  if (!ANTHROPIC_API_KEY) return null;
+  if (!GEMINI_API_KEY) return null;
   for (const model of MODELS) {
     try {
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-          "x-api-key": ANTHROPIC_API_KEY,
-          "anthropic-version": "2023-06-01",
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          signal: AbortSignal.timeout(MODEL_TIMEOUT_MS),
+          body: JSON.stringify({
+            systemInstruction: { parts: [{ text: SYSTEM }] },
+            contents: [{ role: "user", parts: [{ text: query }] }],
+            generationConfig: {
+              temperature: 0,
+              maxOutputTokens: 400,
+              responseMimeType: "application/json",
+              responseSchema: TERMS_SCHEMA,
+              // A lookup, not a puzzle: thinking would only add latency.
+              thinkingConfig: { thinkingBudget: 0 },
+            },
+          }),
         },
-        signal: AbortSignal.timeout(MODEL_TIMEOUT_MS),
-        body: JSON.stringify({
-          model,
-          max_tokens: 400,
-          temperature: 0,
-          system: SYSTEM,
-          messages: [{ role: "user", content: query }],
-        }),
-      });
+      );
       if (!res.ok) {
         console.error(`readTerms ${model}: ${res.status} ${(await res.text()).slice(0, 200)}`);
         continue;
       }
       const data = await res.json();
-      const text: string = (data?.content ?? []).map((c: { text?: string }) => c.text ?? "").join("");
+      const text: string = data?.candidates?.[0]?.content?.parts?.map((p: { text?: string }) => p.text ?? "")
+        .join("") ?? "";
       const terms = parseTermsReply(text);
       if (terms) return terms;
       console.error(`readTerms ${model}: reply was not {"terms": [...]}`);

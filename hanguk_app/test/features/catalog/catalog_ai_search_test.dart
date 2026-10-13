@@ -150,6 +150,7 @@ void main() {
     final pending = <String, Completer<AiSearchResult?>>{};
     final container = ProviderContainer(
       overrides: [
+        catalogProvider.overrideWith((ref) async => _catalogue()),
         aiSearchCallProvider.overrideWithValue((q) {
           calls.add(q);
           return (pending[q] = Completer<AiSearchResult?>()).future;
@@ -189,6 +190,22 @@ void main() {
     // Clearing the box clears the search.
     filter.setQuery('');
     expect(container.read(aiSearchProvider).result, isNull);
+
+    // A university's name is left to the name filter: the model is not asked.
+    await container.read(catalogProvider.future);
+    filter.setQuery('gamma');
+    await tester.pump(AiSearchNotifier.debounce * 2);
+    expect(calls, ['it', 'it security']);
+    expect(container.read(aiSearchProvider).loading, isFalse);
+  });
+
+  test('a university name is the start of a name, three characters at least', () {
+    final all = _catalogue();
+    expect(startsUniversityName(all, 'Gam'), isTrue);
+    expect(startsUniversityName(all, 'beta univ'), isTrue);
+    expect(startsUniversityName(all, 'ga'), isFalse); // too short
+    expect(startsUniversityName(all, 'University'), isFalse); // not the start
+    expect(startsUniversityName(all, 'IT'), isFalse);
   });
 
   testWidgets('typing a field shows its universities as rows with their programmes', (tester) async {

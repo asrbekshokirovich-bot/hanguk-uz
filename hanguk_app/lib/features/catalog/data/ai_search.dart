@@ -4,7 +4,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../domain/catalog_models.dart';
 import 'catalog_filters.dart';
+import 'catalog_repository.dart';
 
 /// The search box, read by a language model, by field of study (owner,
 /// 2026-10-13: "IT deb yozsam IT ga aloqador barcha universitetlar,
@@ -93,14 +95,34 @@ final aiSearchCallProvider = Provider<AiSearchCall>((ref) {
   };
 });
 
-/// Shortest text worth sending; the server refuses less.
+/// Shortest text worth sending; the server refuses less. Two, for "IT".
 const int kAiSearchMinLength = 2;
+
+/// Whether [query] is the start of a university's name ("woo" for Woosong
+/// University, "서울" for 서울대학교): then the student is looking for that
+/// university, the name filter finds it, and the model is not asked — every
+/// call it is spared saves the free quota (owner, 2026-10-13). Three
+/// characters at least, so "IT" is never mistaken for one.
+@visibleForTesting
+bool startsUniversityName(List<CatalogUniversity> all, String query) {
+  final q = query.trim().toLowerCase();
+  if (q.length < 3) return false;
+  for (final u in all) {
+    for (final n in [u.displayName, u.nameKo, u.nameKoShort]) {
+      if (n != null && n.toLowerCase().startsWith(q)) return true;
+    }
+  }
+  return false;
+}
 
 /// Follows the search box ([catalogFilterProvider]'s query): waits for a
 /// pause in typing, asks the server, and keeps only the answer to the newest
-/// text, so a slow early reply cannot overwrite a later one.
+/// text, so a slow early reply cannot overwrite a later one. A university's
+/// name is left to the name filter ([startsUniversityName]).
 class AiSearchNotifier extends Notifier<AiSearchState> {
-  static const debounce = Duration(milliseconds: 450);
+  /// Long enough that a word typed at a normal pace is sent once, not once
+  /// per letter: each call spends the free model quota.
+  static const debounce = Duration(milliseconds: 800);
 
   Timer? _timer;
   int _ticket = 0;
@@ -120,7 +142,7 @@ class AiSearchNotifier extends Notifier<AiSearchState> {
   void _schedule(String q) {
     _timer?.cancel();
     final ticket = ++_ticket;
-    if (q.length < kAiSearchMinLength) {
+    if (q.length < kAiSearchMinLength || startsUniversityName(ref.read(catalogProvider).value ?? const [], q)) {
       state = const AiSearchState();
       return;
     }

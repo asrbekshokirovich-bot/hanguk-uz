@@ -19,6 +19,8 @@ Deno.test("terms keep only what the database matches", () => {
     "information secur",
   ]);
   assertEquals(cleanTerms(Array.from({ length: 30 }, (_, i) => `term${i}`)).length, 24);
+  // An exclusion keeps its minus; a bare minus is nothing.
+  assertEquals(cleanTerms(["medicine", "-Veterinar", " -수의", "-", "-x"]), ["medicine", "-veterinar", "-수의"]);
 });
 
 Deno.test("the reply's terms are read, wrapped or not", () => {
