@@ -4,16 +4,18 @@
 // universitetlar chiqsin").
 //
 // The student types a field in any language ("IT", "stomatologiya",
-// "hamshiralik", "компьютер") and the app calls this while they type. Gemini
-// turns it into search terms for programme names; search.ts finds every
-// university in the app's catalogue (`v_app_university_catalog`) with a
-// programme of that field. The model never sees or returns a university of its
-// own, so it cannot invent one. Fee, TOPIK, city and degree are not read here:
-// the app's Filtr screen does those.
+// "hamshiralik", "компьютер") and the app calls this while they type. Claude
+// turns it into search terms for programme names, and `ai_search_by_field`
+// (20261013110000_ai_search_in_database.sql) finds, in one query, every
+// university in the app's catalogue with a programme of that field. The model
+// never sees or returns a university of its own, so it cannot invent one.
+// Fee, TOPIK, city and degree are not read here: the app's Filtr screen does
+// those.
 //
-// Open to guests and students alike, with a daily allowance per signed-in
-// student, per IP for guests, and for the whole app (`ai_search_take`,
-// 20261013090000_ai_search_usage.sql).
+// What the model read for a text is kept in `ai_search_terms`, so the same
+// text — from anyone — reaches the model once. A new call is rationed by a
+// daily allowance per signed-in student, per IP for guests, and for the whole
+// app (`ai_search_take`, 20261013090000_ai_search_usage.sql).
 //
 // POST { query: string (2–200 chars) }
 // →    { results: [{ institution_id, guideline_id, matched, match_count }],
@@ -27,16 +29,17 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 
 import { corsHeaders } from "../_shared/cors.ts";
-import { type CatalogRow, type FacultyRow, sanitizeTerms, searchByField } from "./search.ts";
+import { parseTermsReply, queryKey } from "./search.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
 
-const MODEL = "gemini-2.5-flash";
+/** Fast models first; the next one answers if a model is unavailable. */
+const MODELS = ["claude-haiku-5-5", "claude-haiku-4-5"];
 const MODEL_TIMEOUT_MS = 8_000;
 
-/** Daily allowances (Tashkent day). A typed query costs a few calls. */
+/** Daily allowances (Tashkent day) for calls that reach the model. */
 const LIMIT_USER = 500;
 const LIMIT_GUEST_IP = 300;
 const LIMIT_GLOBAL = 20_000;
@@ -51,73 +54,14 @@ const json = (body: unknown, status = 200) =>
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 
-// ---------------------------------------------------------------- catalogue
-
-interface Catalog {
-  rows: CatalogRow[];
-  faculties: FacultyRow[];
-  loadedAt: number;
-}
-
-const CATALOG_TTL_MS = 10 * 60_000;
-let catalog: Catalog | null = null;
-let loading: Promise<Catalog> | null = null;
-
-function loadCatalog(): Promise<Catalog> {
-  if (catalog && Date.now() - catalog.loadedAt < CATALOG_TTL_MS) return Promise.resolve(catalog);
-  if (loading) return loading;
-  loading = (async () => {
-    // The order the app reads it in (the newest intake first).
-    const { data: rows, error } = await admin
-      .from("v_app_university_catalog")
-      .select(
-        "guideline_id, institution_id, daraja, narx_valyuta, kontrakt_min, kontrakt_max, kontrakt_davri, " +
-          "is_partner, is_active",
-      )
-      .order("qabul_yili", { ascending: false });
-    if (error) throw new Error(`catalogue: ${error.message}`);
-
-    // Thousands of faculty rows: read past the API's 1000-row page.
-    const faculties: FacultyRow[] = [];
-    const PAGE = 1000;
-    for (let from = 0;; from += PAGE) {
-      const { data, error: e } = await admin
-        .from("v_app_university_faculties")
-        .select("guideline_id, fakultet_en, fakultet_kr")
-        .order("guideline_id")
-        .order("tartib")
-        .range(from, from + PAGE - 1);
-      if (e) throw new Error(`faculties: ${e.message}`);
-      faculties.push(...((data ?? []) as FacultyRow[]));
-      if (!data || data.length < PAGE) break;
-    }
-
-    const fresh: Catalog = {
-      rows: (rows ?? []) as unknown as CatalogRow[],
-      faculties,
-      loadedAt: Date.now(),
-    };
-    catalog = fresh;
-    return fresh;
-  })().finally(() => {
-    loading = null;
-  });
-  return loading;
-}
-
 // ------------------------------------------------------------------ the model
-
-const TERMS_SCHEMA = {
-  type: "OBJECT",
-  properties: { terms: { type: "ARRAY", items: { type: "STRING" } } },
-  required: ["terms"],
-};
 
 const SYSTEM = [
   "A student types into the university search of an app for studying in South Korea. Find the FIELD",
   "OF STUDY in the text and return search terms that find the Korean universities' programmes of",
-  'that field by name, as JSON {"terms": [...]}. The text may be Uzbek (Latin or Cyrillic), Russian,',
-  "English or Korean, with typos and slang, and may be unfinished because the student is still typing.",
+  'that field by name. Reply with JSON only: {"terms": [...]}. The text may be Uzbek (Latin or',
+  "Cyrillic), Russian, English or Korean, with typos and slang, and may be unfinished because the",
+  "student is still typing.",
   "",
   'Programme names are in English and/or Korean, e.g. "Computer Science and Engineering",',
   '"Dept. of Information Security", "치위생학과 (Dental Hygiene)", "컴퓨터공학과". A term matches',
@@ -144,51 +88,56 @@ const SYSTEM = [
   "Woosong / Seul / arzon / TOPIK 3 -> (no field) []",
 ].join("\n");
 
+/** The terms for [query]; null when no model could answer. */
 async function readTerms(query: string): Promise<string[] | null> {
-  if (!GEMINI_API_KEY) return null;
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${GEMINI_API_KEY}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      signal: AbortSignal.timeout(MODEL_TIMEOUT_MS),
-      body: JSON.stringify({
-        systemInstruction: { parts: [{ text: SYSTEM }] },
-        contents: [{ role: "user", parts: [{ text: query }] }],
-        generationConfig: {
-          temperature: 0,
-          maxOutputTokens: 400,
-          responseMimeType: "application/json",
-          responseSchema: TERMS_SCHEMA,
-          // A lookup, not a puzzle: thinking would only add latency.
-          thinkingConfig: { thinkingBudget: 0 },
+  if (!ANTHROPIC_API_KEY) return null;
+  for (const model of MODELS) {
+    try {
+      const res = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-api-key": ANTHROPIC_API_KEY,
+          "anthropic-version": "2023-06-01",
         },
-      }),
-    },
-  );
-  if (!res.ok) throw new Error(`gemini ${res.status} ${(await res.text()).slice(0, 200)}`);
-  const body = await res.json();
-  const text: string = body?.candidates?.[0]?.content?.parts?.map((p: { text?: string }) => p.text ?? "").join("") ??
-    "";
-  if (!text) return null;
-  return sanitizeTerms(JSON.parse(text));
+        signal: AbortSignal.timeout(MODEL_TIMEOUT_MS),
+        body: JSON.stringify({
+          model,
+          max_tokens: 400,
+          temperature: 0,
+          system: SYSTEM,
+          messages: [{ role: "user", content: query }],
+        }),
+      });
+      if (!res.ok) {
+        console.error(`readTerms ${model}: ${res.status} ${(await res.text()).slice(0, 200)}`);
+        continue;
+      }
+      const data = await res.json();
+      const text: string = (data?.content ?? []).map((c: { text?: string }) => c.text ?? "").join("");
+      const terms = parseTermsReply(text);
+      if (terms) return terms;
+      console.error(`readTerms ${model}: reply was not {"terms": [...]}`);
+    } catch (e) {
+      console.error(`readTerms ${model}:`, e instanceof Error ? e.message : e);
+    }
+  }
+  return null;
 }
 
-/** The same text typed again (or by someone else) needs no second call. */
-const TERMS_CACHE_MAX = 500;
-const termsCache = new Map<string, string[]>();
+/** What the model read for this text before, from `ai_search_terms`. */
+async function storedTerms(key: string): Promise<string[] | null> {
+  const { data, error } = await admin.from("ai_search_terms").select("terms").eq("query_key", key).maybeSingle();
+  if (error) console.error("ai_search_terms read:", error.message);
+  return (data?.terms as string[] | undefined) ?? null;
+}
 
-function cacheTerms(key: string, terms: string[]) {
-  if (termsCache.size >= TERMS_CACHE_MAX) {
-    termsCache.delete(termsCache.keys().next().value!);
-  }
-  termsCache.set(key, terms);
+async function storeTerms(key: string, terms: string[]) {
+  const { error } = await admin.from("ai_search_terms").upsert({ query_key: key, terms });
+  if (error) console.error("ai_search_terms write:", error.message);
 }
 
 // --------------------------------------------------------------- allowance
-
-/** Verified student ids by token, so typing does not verify on every key. */
-const userByToken = new Map<string, { id: string | null; until: number }>();
 
 async function signedInUser(req: Request): Promise<string | null> {
   const token = (req.headers.get("authorization") ?? "").replace(/^Bearer\s+/i, "").trim();
@@ -201,13 +150,8 @@ async function signedInUser(req: Request): Promise<string | null> {
   } catch (_e) {
     return null;
   }
-  const hit = userByToken.get(token);
-  if (hit && hit.until > Date.now()) return hit.id;
   const { data } = await admin.auth.getUser(token);
-  const id = data?.user?.id ?? null;
-  if (userByToken.size > 2000) userByToken.clear();
-  userByToken.set(token, { id, until: Date.now() + 5 * 60_000 });
-  return id;
+  return data?.user?.id ?? null;
 }
 
 function clientIp(req: Request): string {
@@ -238,8 +182,6 @@ async function takeAllowance(req: Request): Promise<boolean> {
 
 // ------------------------------------------------------------------ handler
 
-const normalizeQuery = (q: string) => q.toLowerCase().replace(/\s+/g, " ").trim();
-
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "POST only" }, 405);
@@ -253,37 +195,21 @@ Deno.serve(async (req) => {
   }
   if (query.length < 2 || query.length > 200) return json({ error: "query must be 2–200 characters" }, 400);
 
-  let c: Catalog;
-  try {
-    c = await loadCatalog();
-  } catch (e) {
-    console.error(e);
-    return json({ error: "catalogue unavailable" }, 503);
-  }
-
-  const key = normalizeQuery(query);
-  let terms = termsCache.get(key) ?? null;
+  const key = queryKey(query);
+  let terms = await storedTerms(key);
   if (!terms && (await takeAllowance(req))) {
-    try {
-      terms = await readTerms(query);
-      if (terms) cacheTerms(key, terms);
-    } catch (e) {
-      console.error("readTerms:", e instanceof Error ? e.message : e);
-    }
+    terms = await readTerms(query);
+    // A text with no field is kept too: "Woosong" needs no second call either.
+    if (terms) await storeTerms(key, terms);
   }
   if (!terms) return json({ results: [], terms: [], mode: "text" });
   if (terms.length === 0) return json({ results: [], terms, mode: "none" });
 
   // Every university of the field, not a top few.
-  const hits = searchByField(c.rows, c.faculties, terms);
-  return json({
-    results: hits.map((h) => ({
-      institution_id: h.institution_id,
-      guideline_id: h.guideline_id,
-      matched: h.matched,
-      match_count: h.matchCount,
-    })),
-    terms,
-    mode: "field",
-  });
+  const { data, error } = await admin.rpc("ai_search_by_field", { p_terms: terms });
+  if (error) {
+    console.error("ai_search_by_field:", error.message);
+    return json({ results: [], terms, mode: "text" });
+  }
+  return json({ results: data ?? [], terms, mode: "field" });
 });
