@@ -1,5 +1,5 @@
 {
- "last_run": "2026-10-12T23:02:55+00:00",
+ "last_run": "2026-10-13T03:38:00+00:00",
  "seen": {
   "http://enter.konkuk.ac.kr/submenu.do?menuurl=k8b%2fCUaWlntKYwhT%2fh%2bKUA%3d%3d&": [],
   "https://adm-u.postech.ac.kr/": [
@@ -914,6 +914,7 @@
    "e41b6cbc8c7626bb"
   ],
   "https://ipsi.shinsung.ac.kr/main.do": [
+   "5a8a8941751cdf05",
    "3414689f3996c9d6"
   ],
   "https://ipsi.silla.ac.kr/": [],
@@ -1207,6 +1208,7 @@
    "a06dbff89fb3c1b9"
   ],
   "https://www.knsu.ac.kr/ipsi/rolling/application.do": [
+   "b77ff206a923c35e",
    "aaad4da6aee39f59",
    "87055cd38f29407f",
    "a31b4e0f0eab1a43",
