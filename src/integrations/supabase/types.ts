@@ -8103,6 +8103,7 @@ export type Database = {
         | "call_operator"
         | "document_handler"
         | "university_staff"
+        | "investor"
       notification_event:
         | "recruitment_changed"
         | "correction_notice"
@@ -8261,6 +8262,7 @@ export const Constants = {
         "call_operator",
         "document_handler",
         "university_staff",
+        "investor",
       ],
       notification_event: [
         "recruitment_changed",

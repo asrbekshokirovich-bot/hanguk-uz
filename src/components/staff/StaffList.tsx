@@ -13,6 +13,7 @@ import {
   Search,
   User,
   ShieldCheck,
+  TrendingUp,
   Phone as PhoneIcon,
   Headphones,
   FileCheck,
@@ -36,7 +37,12 @@ const ROLE_CONFIG: Record<AppRole, { label: string; icon: React.ReactNode; color
   call_operator: { label: 'Call Operator', icon: <Headphones className="h-3 w-3" />, color: 'bg-info' },
   document_handler: { label: 'Doc Handler', icon: <FileCheck className="h-3 w-3" />, color: 'bg-success' },
   university_staff: { label: 'Uni Staff', icon: <GraduationCap className="h-3 w-3" />, color: 'bg-info' },
+  investor: { label: 'Investor', icon: <TrendingUp className="h-3 w-3" />, color: 'bg-secondary' },
 };
+
+// The DB enum can gain values before this map does; never crash the page on one.
+const getRoleConfig = (role: string) =>
+  ROLE_CONFIG[role as AppRole] ?? { label: role, icon: <ShieldCheck className="h-3 w-3" />, color: 'bg-muted-foreground' };
 
 export function StaffList({ staff, selectedStaff, onSelectStaff }: StaffListProps) {
   const { t } = useTranslation();
@@ -92,8 +98,8 @@ export function StaffList({ staff, selectedStaff, onSelectStaff }: StaffListProp
               onClick={() => setRoleFilter(role)}
               className="gap-1"
             >
-              {ROLE_CONFIG[role].icon}
-              {ROLE_CONFIG[role].label}
+              {getRoleConfig(role).icon}
+              {getRoleConfig(role).label}
             </Button>
           ))}
         </div>
@@ -143,10 +149,10 @@ export function StaffList({ staff, selectedStaff, onSelectStaff }: StaffListProp
                             <Badge
                               key={role}
                               variant="secondary"
-                              className={`text-xs text-white ${ROLE_CONFIG[role].color}`}
+                              className={`text-xs text-white ${getRoleConfig(role).color}`}
                             >
-                              {ROLE_CONFIG[role].icon}
-                              <span className="ml-1">{ROLE_CONFIG[role].label}</span>
+                              {getRoleConfig(role).icon}
+                              <span className="ml-1">{getRoleConfig(role).label}</span>
                             </Badge>
                           ))}
                         </div>

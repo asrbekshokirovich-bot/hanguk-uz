@@ -27,6 +27,7 @@ import {
   Calendar,
   Shield,
   ShieldCheck,
+  TrendingUp,
   Headphones,
   FileCheck,
   GraduationCap,
@@ -84,7 +85,22 @@ const ROLE_CONFIG: Record<AppRole, { label: string; icon: React.ReactNode; color
     color: 'bg-info',
     description: 'University representative with access to their university portal',
   },
+  investor: {
+    label: 'Investor',
+    icon: <TrendingUp className="h-4 w-4" />,
+    color: 'bg-secondary',
+    description: 'Read-only access to the investor dashboard',
+  },
 };
+
+// The DB enum can gain values before this map does; never crash the page on one.
+const getRoleConfig = (role: string) =>
+  ROLE_CONFIG[role as AppRole] ?? {
+    label: role,
+    icon: <ShieldCheck className="h-4 w-4" />,
+    color: 'bg-muted-foreground',
+    description: '',
+  };
 
 const ALL_ROLES: AppRole[] = ['owner', 'admin', 'call_operator', 'document_handler', 'university_staff'];
 
@@ -311,13 +327,13 @@ export function StaffDetail({
                   className="flex items-center justify-between p-3 rounded-lg bg-muted/50"
                 >
                   <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-lg ${ROLE_CONFIG[role].color} text-white`}>
-                      {ROLE_CONFIG[role].icon}
+                    <div className={`p-2 rounded-lg ${getRoleConfig(role).color} text-white`}>
+                      {getRoleConfig(role).icon}
                     </div>
                     <div>
-                      <p className="font-medium">{ROLE_CONFIG[role].label}</p>
+                      <p className="font-medium">{getRoleConfig(role).label}</p>
                       <p className="text-xs text-muted-foreground">
-                        {ROLE_CONFIG[role].description}
+                        {getRoleConfig(role).description}
                       </p>
                     </div>
                   </div>
@@ -332,7 +348,7 @@ export function StaffDetail({
                         <AlertDialogHeader>
                           <AlertDialogTitle>Remove Role</AlertDialogTitle>
                           <AlertDialogDescription>
-                            Are you sure you want to remove the {ROLE_CONFIG[role].label} role from
+                            Are you sure you want to remove the {getRoleConfig(role).label} role from
                             this user? They will lose access to associated features.
                           </AlertDialogDescription>
                         </AlertDialogHeader>
@@ -369,13 +385,13 @@ export function StaffDetail({
                   onClick={() => handleAddRole(role)}
                   disabled={role === 'owner' && isStaffOwner}
                 >
-                  <div className={`p-1.5 rounded ${ROLE_CONFIG[role].color} text-white`}>
-                    {ROLE_CONFIG[role].icon}
+                  <div className={`p-1.5 rounded ${getRoleConfig(role).color} text-white`}>
+                    {getRoleConfig(role).icon}
                   </div>
                   <div className="text-left">
-                    <p className="font-medium">{ROLE_CONFIG[role].label}</p>
+                    <p className="font-medium">{getRoleConfig(role).label}</p>
                     <p className="text-xs text-muted-foreground">
-                      {ROLE_CONFIG[role].description}
+                      {getRoleConfig(role).description}
                     </p>
                   </div>
                 </Button>
