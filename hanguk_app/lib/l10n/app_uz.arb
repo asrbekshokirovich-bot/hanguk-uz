@@ -1164,12 +1164,5 @@
   "catalogGuestUniBadge": "Delegatsiya Samarqandda",
   "catalogAiResultsTitle": "Natijalar",
   "catalogAiSearching": "Sun'iy intellekt qidirmoqda…",
-  "catalogAiUnderstood": "AI tushundi:",
-  "catalogAiFields": "Yo'nalishlar: {fields}",
-  "catalogAiFeeAbove": "Narxi so'ralgandan yuqori",
-  "catalogAiTopikNeeded": "TOPIK {level} kerak",
-  "catalogAiNotEnglish": "Ingliz tilida o'qish yo'q",
-  "catalogAiRelaxed": "Aniq mosi topilmadi, eng yaqinlari",
-  "catalogAiNoTopik": "TOPIK shart emas",
-  "catalogAiEnglish": "Ingliz tilida"
+  "catalogAiFields": "Yo'nalishlar: {fields}"
 }

@@ -4396,10 +4396,6 @@
   "@catalogAiSearching": {
     "description": "AI search: shown while the model reads the typed text."
   },
-  "catalogAiUnderstood": "AI understood:",
-  "@catalogAiUnderstood": {
-    "description": "AI search: label before the chips of what the model read from the text."
-  },
   "catalogAiFields": "Programs: {fields}",
   "@catalogAiFields": {
     "description": "AI search reason line: the faculties that match the field of study typed.",
@@ -4408,34 +4404,5 @@
         "type": "String"
       }
     }
-  },
-  "catalogAiFeeAbove": "Above your budget",
-  "@catalogAiFeeAbove": {
-    "description": "AI search reason line: the fee is above the budget typed (shown only when nothing fit it)."
-  },
-  "catalogAiTopikNeeded": "Needs TOPIK {level}",
-  "@catalogAiTopikNeeded": {
-    "description": "AI search reason line: the TOPIK level this university asks for, above the student's.",
-    "placeholders": {
-      "level": {
-        "type": "String"
-      }
-    }
-  },
-  "catalogAiNotEnglish": "No English-taught track",
-  "@catalogAiNotEnglish": {
-    "description": "AI search reason line: no English-taught track although the student asked for one."
-  },
-  "catalogAiRelaxed": "No exact match, the closest ones",
-  "@catalogAiRelaxed": {
-    "description": "AI search: nothing fit every condition, so the closest universities are shown."
-  },
-  "catalogAiNoTopik": "No TOPIK needed",
-  "@catalogAiNoTopik": {
-    "description": "AI search chip: the student has no TOPIK."
-  },
-  "catalogAiEnglish": "In English",
-  "@catalogAiEnglish": {
-    "description": "AI search chip: the student wants to study in English."
   }
 }

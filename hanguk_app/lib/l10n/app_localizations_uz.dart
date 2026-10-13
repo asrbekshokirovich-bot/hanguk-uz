@@ -3481,30 +3481,7 @@ class AppLocalizationsUz extends AppLocalizations {
   String get catalogAiSearching => 'Sun\'iy intellekt qidirmoqda…';
 
   @override
-  String get catalogAiUnderstood => 'AI tushundi:';
-
-  @override
   String catalogAiFields(String fields) {
     return 'Yo\'nalishlar: $fields';
   }
-
-  @override
-  String get catalogAiFeeAbove => 'Narxi so\'ralgandan yuqori';
-
-  @override
-  String catalogAiTopikNeeded(String level) {
-    return 'TOPIK $level kerak';
-  }
-
-  @override
-  String get catalogAiNotEnglish => 'Ingliz tilida o\'qish yo\'q';
-
-  @override
-  String get catalogAiRelaxed => 'Aniq mosi topilmadi, eng yaqinlari';
-
-  @override
-  String get catalogAiNoTopik => 'TOPIK shart emas';
-
-  @override
-  String get catalogAiEnglish => 'Ingliz tilida';
 }

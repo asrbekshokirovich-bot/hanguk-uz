@@ -3470,30 +3470,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get catalogAiSearching => 'AI đang tìm…';
 
   @override
-  String get catalogAiUnderstood => 'AI hiểu:';
-
-  @override
   String catalogAiFields(String fields) {
     return 'Ngành: $fields';
   }
-
-  @override
-  String get catalogAiFeeAbove => 'Vượt ngân sách';
-
-  @override
-  String catalogAiTopikNeeded(String level) {
-    return 'Cần TOPIK $level';
-  }
-
-  @override
-  String get catalogAiNotEnglish => 'Không có chương trình tiếng Anh';
-
-  @override
-  String get catalogAiRelaxed => 'Không có kết quả khớp, gần nhất';
-
-  @override
-  String get catalogAiNoTopik => 'Không cần TOPIK';
-
-  @override
-  String get catalogAiEnglish => 'Bằng tiếng Anh';
 }

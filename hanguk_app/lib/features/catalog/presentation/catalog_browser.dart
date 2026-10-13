@@ -153,7 +153,7 @@ class CatalogBrowser extends ConsumerWidget {
               ),
             if (searching)
               SliverToBoxAdapter(
-                child: _SearchHeader(count: rows.length, ai: ai, compareActive: compare.active),
+                child: _SearchHeader(count: rows.length, loading: ai.loading, compareActive: compare.active),
               )
             else
               SliverToBoxAdapter(
@@ -203,7 +203,7 @@ class CatalogBrowser extends ConsumerWidget {
                     final id = row.university.institutionId;
                     return _SearchResultRow(
                       row: row,
-                      reason: ai.result == null ? null : catalogSearchReason(l, row, ai.result!),
+                      reason: catalogSearchReason(l, row),
                       coverIndex: i,
                       compareMode: compare.active,
                       selected: compare.active && compare.contains(id),
@@ -1021,154 +1021,87 @@ class _NameCover extends StatelessWidget {
 }
 
 /// One row of the search results: the university, the guideline it is shown
-/// with, and — when the model found it — why.
+/// with, and — when the field search found it — its programmes of the field.
 @visibleForTesting
 typedef CatalogSearchRow = ({CatalogUniversity university, CatalogGuideline guideline, AiSearchHit? hit});
 
-/// The search results for the box's text. The model's answer when there is
-/// one, in its order, kept to what the Filtr screen allows; the plain name
-/// filter until it arrives, and whenever the server could only do a name
-/// search itself.
+/// The search results for the box's text. When the text names a field of
+/// study: every university with a programme of it, in the server's order,
+/// kept to what the Filtr screen allows. Otherwise — a name, a city, or no
+/// answer yet — the plain name filter.
 @visibleForTesting
 List<CatalogSearchRow> catalogSearchRows(List<CatalogUniversity> all, CatalogFilter f, AiSearchState ai) {
   final result = ai.result;
-  if (result == null || !result.byModel) {
+  if (result == null || !result.byField) {
     return [
       for (final u in applyCatalogFilter(all, f)) (university: u, guideline: guidelineFor(u, f)!, hit: null),
     ];
   }
   final allowed = {for (final u in applyCatalogFilter(all, f.copyWith(query: ''))) u.institutionId: u};
+  final out = <CatalogSearchRow>[];
   final seen = <String>{};
-  return [
-    for (final h in result.hits)
-      if (allowed[h.institutionId] case final u? when seen.add(u.institutionId))
-        (
-          university: u,
-          // The guideline the model matched, unless the Filtr screen asks
-          // for a degree.
-          guideline: f.degree == CatalogDegree.all
-              ? u.guidelines.where((g) => g.id == h.guidelineId).firstOrNull ?? guidelineFor(u, f)!
-              : guidelineFor(u, f)!,
-          hit: h,
-        ),
-  ];
+  for (final h in result.hits) {
+    final u = allowed[h.institutionId];
+    if (u == null || seen.contains(u.institutionId)) continue;
+    final g = u.guidelines.where((g) => g.id == h.guidelineId).firstOrNull;
+    if (g == null) continue;
+    // The degree the Filtr screen asks for; with "all", the first guideline
+    // of the field (the server lists the bachelor's first).
+    if (f.degree != CatalogDegree.all && g.degree != f.degree) continue;
+    seen.add(u.institutionId);
+    out.add((university: u, guideline: g, hit: h));
+  }
+  return out;
 }
 
-/// The fee per semester in KRW, to compare with the budget the model read
-/// (the server's rule: USD at 1400, a yearly fee halved).
-num? _semesterFeeKrw(CatalogGuideline g) {
-  final p = priceOf(g);
-  if (p == null) return null;
-  final krw = (g.currency ?? 'KRW').toUpperCase() == 'USD' ? p * 1400 : p;
-  return g.tuitionPeriod == 'yil' ? krw / 2 : krw;
-}
-
-/// The reason line under a result: the matching faculties, and where the
-/// university misses a condition the server had to drop to find anything.
+/// The line under a field result: its programmes of the field — two names
+/// and the count of the rest, so the count survives the two-line clamp. The
+/// whole list is one tap away, on the university's page.
 @visibleForTesting
-String? catalogSearchReason(AppLocalizations l, CatalogSearchRow row, AiSearchResult result) {
+String? catalogSearchReason(AppLocalizations l, CatalogSearchRow row) {
   final hit = row.hit;
-  if (hit == null) return null;
-  final g = row.guideline;
-  final intent = result.intent;
-  final parts = <String>[];
-  if (hit.matched.isNotEmpty) {
-    // Two names and the count of the rest, so the count survives the
-    // two-line clamp.
-    final shown = hit.matched.take(2).toList();
-    final more = hit.matchCount - shown.length;
-    parts.add(l.catalogAiFields([shown.join(', '), if (more > 0) '+$more'].join(' ')));
-  }
-  final fee = _semesterFeeKrw(g);
-  final budget = intent.maxTuitionKrw;
-  if (result.relaxed.contains('tuition') && fee != null && budget != null && fee > budget) {
-    parts.add(l.catalogAiFeeAbove);
-  }
-  final topik = g.topikMin;
-  final have = intent.topikMax;
-  if (result.relaxed.contains('topik') && topik != null && have != null && topik > have) {
-    parts.add(l.catalogAiTopikNeeded(scoreText(topik)));
-  }
-  if (result.relaxed.contains('english') && g.englishTrack != true) parts.add(l.catalogAiNotEnglish);
-  return parts.isEmpty ? null : parts.join(' · ');
+  if (hit == null || hit.matched.isEmpty) return null;
+  final shown = hit.matched.take(2).toList();
+  final more = hit.matchCount - shown.length;
+  return l.catalogAiFields([shown.join(', '), if (more > 0) '+$more'].join(' '));
 }
 
-/// "AI tushundi:" and a chip for each condition the model read — never the
-/// field-of-study stems, which are for the search, not for reading.
-List<String> _intentChips(AppLocalizations l, AiSearchIntent i) => [
-  ...i.cities,
-  if (i.degree == CatalogDegree.bachelor) l.catalogDegreeBachelor,
-  if (i.degree == CatalogDegree.master) l.catalogDegreeMaster,
-  if (i.maxTuitionKrw != null) '≤ ${money(i.maxTuitionKrw!, 'KRW', locale: l.localeName)}',
-  if (i.topikMax != null) i.topikMax == 0 ? l.catalogAiNoTopik : 'TOPIK ≤ ${scoreText(i.topikMax!)}',
-  if (i.type == 'national') l.catalogTypeStateShort,
-  if (i.type == 'private') l.catalogTypePrivateShort,
-  if (i.englishOnly) l.catalogAiEnglish,
-  if (i.partnerOnly) l.filterPartner,
-];
-
-/// The heading over the results (design screen 04, "Natijalar · 3 ta"), the
-/// spinner while the model reads, what it understood, and the note when
-/// nothing fit every condition.
+/// The heading over the results (design screen 04, "Natijalar · 3 ta"), with
+/// the spinner while the model reads the text.
 class _SearchHeader extends StatelessWidget {
-  const _SearchHeader({required this.count, required this.ai, required this.compareActive});
+  const _SearchHeader({required this.count, required this.loading, required this.compareActive});
 
   final int count;
-  final AiSearchState ai;
+  final bool loading;
   final bool compareActive;
 
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
-    final result = ai.result;
-    final chips = result != null && result.byModel ? _intentChips(l, result.intent) : const <String>[];
-    const faint = Color(0x8CFFFFFF); // .55
     return Padding(
       padding: const EdgeInsets.fromLTRB(17, 16, 17, 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+      child: Row(
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  l.catalogAiResultsTitle,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: _inter(15, FontWeight.w700, Colors.white, height: 19 / 15),
-                ),
-              ),
-              if (ai.loading) ...[
-                const SizedBox.square(
-                  dimension: 11,
-                  child: CircularProgressIndicator(strokeWidth: 1.6, color: SeoulColors.lime),
-                ),
-                const SizedBox(width: 6),
-                Text(l.catalogAiSearching, style: _inter(11, FontWeight.w500, SeoulColors.lime)),
-              ] else
-                Text(
-                  compareActive ? l.catalogComparePickTwo : l.guestUniversitiesCount(count),
-                  style: _inter(11, FontWeight.w400, faint),
-                ),
-            ],
-          ),
-          if (chips.isNotEmpty) ...[
-            const SizedBox(height: 10),
-            Wrap(
-              spacing: 6,
-              runSpacing: 6,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                Text(l.catalogAiUnderstood, style: _inter(11, FontWeight.w500, faint)),
-                // The chip centres its label, so it would fill the run.
-                for (final c in chips) IntrinsicWidth(child: _ActiveChip(label: c)),
-              ],
+          Expanded(
+            child: Text(
+              l.catalogAiResultsTitle,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: _inter(15, FontWeight.w700, Colors.white, height: 19 / 15),
             ),
-          ],
-          if (result != null && result.byModel && result.relaxed.isNotEmpty && count > 0) ...[
-            const SizedBox(height: 8),
-            Text(l.catalogAiRelaxed, style: _inter(11.5, FontWeight.w500, const Color(0xFFB8CCEB))),
-          ],
+          ),
+          if (loading) ...[
+            const SizedBox.square(
+              dimension: 11,
+              child: CircularProgressIndicator(strokeWidth: 1.6, color: SeoulColors.lime),
+            ),
+            const SizedBox(width: 6),
+            Text(l.catalogAiSearching, style: _inter(11, FontWeight.w500, SeoulColors.lime)),
+          ] else
+            Text(
+              compareActive ? l.catalogComparePickTwo : l.guestUniversitiesCount(count),
+              style: _inter(11, FontWeight.w400, const Color(0x8CFFFFFF)),
+            ),
         ],
       ),
     );

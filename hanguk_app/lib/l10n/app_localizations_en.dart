@@ -3473,30 +3473,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get catalogAiSearching => 'AI is searching…';
 
   @override
-  String get catalogAiUnderstood => 'AI understood:';
-
-  @override
   String catalogAiFields(String fields) {
     return 'Programs: $fields';
   }
-
-  @override
-  String get catalogAiFeeAbove => 'Above your budget';
-
-  @override
-  String catalogAiTopikNeeded(String level) {
-    return 'Needs TOPIK $level';
-  }
-
-  @override
-  String get catalogAiNotEnglish => 'No English-taught track';
-
-  @override
-  String get catalogAiRelaxed => 'No exact match, the closest ones';
-
-  @override
-  String get catalogAiNoTopik => 'No TOPIK needed';
-
-  @override
-  String get catalogAiEnglish => 'In English';
 }

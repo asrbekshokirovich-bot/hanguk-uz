@@ -1164,12 +1164,5 @@
   "catalogGuestUniBadge": "Делегация в Самарканде",
   "catalogAiResultsTitle": "Результаты",
   "catalogAiSearching": "ИИ ищет…",
-  "catalogAiUnderstood": "ИИ понял:",
-  "catalogAiFields": "Направления: {fields}",
-  "catalogAiFeeAbove": "Дороже бюджета",
-  "catalogAiTopikNeeded": "Нужен TOPIK {level}",
-  "catalogAiNotEnglish": "Нет обучения на английском",
-  "catalogAiRelaxed": "Точных совпадений нет, ближайшие",
-  "catalogAiNoTopik": "Без TOPIK",
-  "catalogAiEnglish": "На английском"
+  "catalogAiFields": "Направления: {fields}"
 }

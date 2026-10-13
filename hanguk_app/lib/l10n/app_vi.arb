@@ -1164,12 +1164,5 @@
   "catalogGuestUniBadge": "Delegation visiting Samarkand",
   "catalogAiResultsTitle": "Kết quả",
   "catalogAiSearching": "AI đang tìm…",
-  "catalogAiUnderstood": "AI hiểu:",
-  "catalogAiFields": "Ngành: {fields}",
-  "catalogAiFeeAbove": "Vượt ngân sách",
-  "catalogAiTopikNeeded": "Cần TOPIK {level}",
-  "catalogAiNotEnglish": "Không có chương trình tiếng Anh",
-  "catalogAiRelaxed": "Không có kết quả khớp, gần nhất",
-  "catalogAiNoTopik": "Không cần TOPIK",
-  "catalogAiEnglish": "Bằng tiếng Anh"
+  "catalogAiFields": "Ngành: {fields}"
 }

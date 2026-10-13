@@ -1164,12 +1164,5 @@
   "catalogGuestUniBadge": "사마르칸트 방문 대표단",
   "catalogAiResultsTitle": "검색 결과",
   "catalogAiSearching": "AI가 찾는 중…",
-  "catalogAiUnderstood": "AI 해석:",
-  "catalogAiFields": "전공: {fields}",
-  "catalogAiFeeAbove": "예산 초과",
-  "catalogAiTopikNeeded": "TOPIK {level} 필요",
-  "catalogAiNotEnglish": "영어 트랙 없음",
-  "catalogAiRelaxed": "정확히 맞는 곳이 없어 가장 가까운 곳",
-  "catalogAiNoTopik": "TOPIK 불필요",
-  "catalogAiEnglish": "영어 수업"
+  "catalogAiFields": "전공: {fields}"
 }

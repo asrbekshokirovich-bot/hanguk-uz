@@ -3487,30 +3487,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get catalogAiSearching => 'ИИ ищет…';
 
   @override
-  String get catalogAiUnderstood => 'ИИ понял:';
-
-  @override
   String catalogAiFields(String fields) {
     return 'Направления: $fields';
   }
-
-  @override
-  String get catalogAiFeeAbove => 'Дороже бюджета';
-
-  @override
-  String catalogAiTopikNeeded(String level) {
-    return 'Нужен TOPIK $level';
-  }
-
-  @override
-  String get catalogAiNotEnglish => 'Нет обучения на английском';
-
-  @override
-  String get catalogAiRelaxed => 'Точных совпадений нет, ближайшие';
-
-  @override
-  String get catalogAiNoTopik => 'Без TOPIK';
-
-  @override
-  String get catalogAiEnglish => 'На английском';
 }

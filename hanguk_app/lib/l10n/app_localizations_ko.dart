@@ -3330,30 +3330,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get catalogAiSearching => 'AI가 찾는 중…';
 
   @override
-  String get catalogAiUnderstood => 'AI 해석:';
-
-  @override
   String catalogAiFields(String fields) {
     return '전공: $fields';
   }
-
-  @override
-  String get catalogAiFeeAbove => '예산 초과';
-
-  @override
-  String catalogAiTopikNeeded(String level) {
-    return 'TOPIK $level 필요';
-  }
-
-  @override
-  String get catalogAiNotEnglish => '영어 트랙 없음';
-
-  @override
-  String get catalogAiRelaxed => '정확히 맞는 곳이 없어 가장 가까운 곳';
-
-  @override
-  String get catalogAiNoTopik => 'TOPIK 불필요';
-
-  @override
-  String get catalogAiEnglish => '영어 수업';
 }

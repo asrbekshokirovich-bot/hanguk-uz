@@ -1,37 +1,33 @@
-// ai-university-search — the app's university search, read by a language
-// model (owner, 2026-10-13: "qidiruvda yozganda sun'iy intellekt topsin").
+// ai-university-search — the app's university search by field of study, read
+// by a language model (owner, 2026-10-13: "IT deb yozsam IT ga aloqador barcha
+// universitetlar, stomatologiya deb yozsa faqat stomatologiya yo'nalishi bor
+// universitetlar chiqsin").
 //
-// The student types anything ("Seulda arzon IT", "TOPIKsiz Daejeon",
-// "Woosong") and the app calls this while they type. Gemini turns the text
-// into a small structured intent; search.ts then finds and ranks the matching
-// universities among the ones the app's catalogue shows
-// (`v_app_university_catalog`, the CRM's "Ma'lumotli" universities). The model
-// never sees or returns a university of its own, so it cannot invent one.
+// The student types a field in any language ("IT", "stomatologiya",
+// "hamshiralik", "компьютер") and the app calls this while they type. Gemini
+// turns it into search terms for programme names; search.ts finds every
+// university in the app's catalogue (`v_app_university_catalog`) with a
+// programme of that field. The model never sees or returns a university of its
+// own, so it cannot invent one. Fee, TOPIK, city and degree are not read here:
+// the app's Filtr screen does those.
 //
 // Open to guests and students alike, with a daily allowance per signed-in
 // student, per IP for guests, and for the whole app (`ai_search_take`,
-// 20261013090000_ai_search_usage.sql). Over the allowance, or when the model
-// fails, the answer is a plain name search (`mode: "text"`) instead of an
-// error, so the search box never stops working.
+// 20261013090000_ai_search_usage.sql).
 //
 // POST { query: string (2–200 chars) }
 // →    { results: [{ institution_id, guideline_id, matched, match_count }],
-//        interpreted: { cities, keywords, name, degree, max_tuition_krw,
-//                       topik_max, type, english_only, partner_only },
-//        relaxed: string[], mode: "ai" | "text" }
+//        terms: string[],
+//        mode: "field"  — the text names a field; `results` are its universities
+//            | "none"   — no field in the text (a name, a city): the app's own
+//                         name search answers instead
+//            | "text"   — the model was unavailable or the allowance is spent:
+//                         the same, so the box never stops working }
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 
 import { corsHeaders } from "../_shared/cors.ts";
-import {
-  type CatalogRow,
-  EMPTY_INTENT,
-  type FacultyRow,
-  fallbackIntent,
-  type Intent,
-  sanitizeIntent,
-  searchCatalog,
-} from "./search.ts";
+import { type CatalogRow, type FacultyRow, sanitizeTerms, searchByField } from "./search.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -60,8 +56,6 @@ const json = (body: unknown, status = 200) =>
 interface Catalog {
   rows: CatalogRow[];
   faculties: FacultyRow[];
-  cities: string[];
-  names: string[];
   loadedAt: number;
 }
 
@@ -73,14 +67,12 @@ function loadCatalog(): Promise<Catalog> {
   if (catalog && Date.now() - catalog.loadedAt < CATALOG_TTL_MS) return Promise.resolve(catalog);
   if (loading) return loading;
   loading = (async () => {
-    // The order the app reads it in, so "the guideline for a degree" is the
-    // same one its card shows (the newest intake first).
+    // The order the app reads it in (the newest intake first).
     const { data: rows, error } = await admin
       .from("v_app_university_catalog")
       .select(
-        "guideline_id, institution_id, name_ko, name_ko_short, name_en, city_ko, institution_type, " +
-          "univ_nomi_en, univ_nomi_kr, shahar, daraja, english_track, topik_min, narx_valyuta, " +
-          "kontrakt_min, kontrakt_max, kontrakt_davri, is_partner, is_active",
+        "guideline_id, institution_id, daraja, narx_valyuta, kontrakt_min, kontrakt_max, kontrakt_davri, " +
+          "is_partner, is_active",
       )
       .order("qabul_yili", { ascending: false });
     if (error) throw new Error(`catalogue: ${error.message}`);
@@ -91,7 +83,7 @@ function loadCatalog(): Promise<Catalog> {
     for (let from = 0;; from += PAGE) {
       const { data, error: e } = await admin
         .from("v_app_university_faculties")
-        .select("guideline_id, kollej_en, fakultet_en, kollej_kr, fakultet_kr")
+        .select("guideline_id, fakultet_en, fakultet_kr")
         .order("guideline_id")
         .order("tartib")
         .range(from, from + PAGE - 1);
@@ -100,13 +92,9 @@ function loadCatalog(): Promise<Catalog> {
       if (!data || data.length < PAGE) break;
     }
 
-    const list = (rows ?? []) as unknown as CatalogRow[];
-    const active = list.filter((r) => r.is_active !== false);
     const fresh: Catalog = {
-      rows: list,
+      rows: (rows ?? []) as unknown as CatalogRow[],
       faculties,
-      cities: [...new Set(active.map((r) => (r.shahar ?? "").trim()).filter(Boolean))].sort(),
-      names: [...new Set(active.map((r) => (r.univ_nomi_en ?? r.name_en ?? "").trim()).filter(Boolean))].sort(),
       loadedAt: Date.now(),
     };
     catalog = fresh;
@@ -119,53 +107,44 @@ function loadCatalog(): Promise<Catalog> {
 
 // ------------------------------------------------------------------ the model
 
-const INTENT_SCHEMA = {
+const TERMS_SCHEMA = {
   type: "OBJECT",
-  properties: {
-    keywords: { type: "ARRAY", items: { type: "STRING" } },
-    cities: { type: "ARRAY", items: { type: "STRING" } },
-    name: { type: "STRING", nullable: true },
-    degree: { type: "STRING", nullable: true, enum: ["bakalavr", "magistratura"] },
-    max_tuition_krw: { type: "NUMBER", nullable: true },
-    topik_max: { type: "INTEGER", nullable: true },
-    type: { type: "STRING", nullable: true, enum: ["national", "private"] },
-    english_only: { type: "BOOLEAN", nullable: true },
-    partner_only: { type: "BOOLEAN", nullable: true },
-  },
-  required: ["keywords", "cities"],
+  properties: { terms: { type: "ARRAY", items: { type: "STRING" } } },
+  required: ["terms"],
 };
 
-function systemInstruction(c: Catalog): string {
-  return [
-    "You read what a student typed into the university search of an app for studying in South Korea",
-    "and return the search conditions as JSON. The text may be Uzbek (Latin or Cyrillic), Russian,",
-    'English or Korean, with typos, Uzbek case endings ("Seulda", "Busandagi") and slang. It may be',
-    "unfinished because the student is still typing: read what is there and do not guess beyond it.",
-    "",
-    "Fields (leave a field null or empty when the text does not say it):",
-    "- name: a university the student names, written exactly as in the list below (fix typos and",
-    '  transliterations: "vusong" -> "Woosong University"). Only when the text names one university.',
-    "- cities: cities or provinces, written exactly as in the city list below when one fits;",
-    '  a province ("Gyeonggi", "Chungnam") as its English short name.',
-    "- keywords: the field of study, as 1-5 short English word stems that begin words in faculty",
-    '  names ("comput", "software", "nurs", "business", "econom", "design", "korean") AND the',
-    '  same field as 1-3 Korean words ("컴퓨터", "소프트웨어", "간호", "경영"). IT means computer,',
-    "  software, information and AI. Empty when no field is named.",
-    '- degree: "bakalavr" for bachelor\'s, "magistratura" for master\'s.',
-    "- max_tuition_krw: the highest tuition per SEMESTER in Korean won. Convert: USD x 1400,",
-    '  Uzbek so\'m / 9, per year / 2. "arzon" / "cheap" alone means 3000000.',
-    '- topik_max: the TOPIK level the student has. "TOPIKsiz", "without TOPIK", "TOPIK shart emas"',
-    "  means 0.",
-    '- type: "national" for state universities (davlat), "private" for private ones (xususiy).',
-    "- english_only: true when the student wants to study in English.",
-    "- partner_only: true when the student asks for the agency's partner universities (hamkor).",
-    "",
-    `Cities: ${c.cities.join(", ")}.`,
-    `Universities: ${c.names.join("; ")}.`,
-  ].join("\n");
-}
+const SYSTEM = [
+  "A student types into the university search of an app for studying in South Korea. Find the FIELD",
+  "OF STUDY in the text and return search terms that find the Korean universities' programmes of",
+  'that field by name, as JSON {"terms": [...]}. The text may be Uzbek (Latin or Cyrillic), Russian,',
+  "English or Korean, with typos and slang, and may be unfinished because the student is still typing.",
+  "",
+  'Programme names are in English and/or Korean, e.g. "Computer Science and Engineering",',
+  '"Dept. of Information Security", "치위생학과 (Dental Hygiene)", "컴퓨터공학과". A term matches',
+  'the start of an English word (a stem or a phrase: "comput", "information secur"), a whole short',
+  'acronym ("ai", "it", "ict", "sw"), or any part of a Korean name ("컴퓨터", "치위생").',
+  "",
+  "Rules:",
+  "- Give 4-16 terms: English stems AND Korean words, for the field and the programmes that clearly",
+  "  belong to it. Include close sub-fields of the same profession.",
+  "- Be precise: every term must name ONLY that field. Never a broad word that also names other",
+  '  fields: not "information", "data", "cyber", "science", "engineering", "management",',
+  '  "정보", "데이터", "공학" alone; use phrases ("information technolog", "data scien",',
+  '  "cybersecur", "정보통신", "정보보호", "데이터사이언스").',
+  "- Ignore everything that is not a field: cities, fees, TOPIK, degree, university names.",
+  '- No field in the text (only a university name, a city, a fee...) -> {"terms": []}.',
+  "",
+  "Examples:",
+  "IT / АйТи / dasturlash -> comput, software, information technolog, information secur, information and",
+  "  communication, information system, informatics, cybersecur, cyber secur, artificial intelligence,",
+  "  data scien, ai, it, ict, 컴퓨터, 소프트웨어, 정보통신, 정보보호, 정보보안, 인공지능, 데이터사이언스",
+  "stomatologiya / стоматология / dentist -> dent, 치의, 치위생, 치기공, 치과",
+  "hamshiralik / медсестра / nursing -> nurs, 간호",
+  "biznes / менеджмент -> business, 경영",
+  "Woosong / Seul / arzon / TOPIK 3 -> (no field) []",
+].join("\n");
 
-async function readIntent(query: string, c: Catalog): Promise<Intent | null> {
+async function readTerms(query: string): Promise<string[] | null> {
   if (!GEMINI_API_KEY) return null;
   const res = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${GEMINI_API_KEY}`,
@@ -174,13 +153,13 @@ async function readIntent(query: string, c: Catalog): Promise<Intent | null> {
       headers: { "Content-Type": "application/json" },
       signal: AbortSignal.timeout(MODEL_TIMEOUT_MS),
       body: JSON.stringify({
-        systemInstruction: { parts: [{ text: systemInstruction(c) }] },
+        systemInstruction: { parts: [{ text: SYSTEM }] },
         contents: [{ role: "user", parts: [{ text: query }] }],
         generationConfig: {
           temperature: 0,
           maxOutputTokens: 400,
           responseMimeType: "application/json",
-          responseSchema: INTENT_SCHEMA,
+          responseSchema: TERMS_SCHEMA,
           // A lookup, not a puzzle: thinking would only add latency.
           thinkingConfig: { thinkingBudget: 0 },
         },
@@ -192,18 +171,18 @@ async function readIntent(query: string, c: Catalog): Promise<Intent | null> {
   const text: string = body?.candidates?.[0]?.content?.parts?.map((p: { text?: string }) => p.text ?? "").join("") ??
     "";
   if (!text) return null;
-  return sanitizeIntent(JSON.parse(text));
+  return sanitizeTerms(JSON.parse(text));
 }
 
 /** The same text typed again (or by someone else) needs no second call. */
-const INTENT_CACHE_MAX = 500;
-const intentCache = new Map<string, Intent>();
+const TERMS_CACHE_MAX = 500;
+const termsCache = new Map<string, string[]>();
 
-function cacheIntent(key: string, intent: Intent) {
-  if (intentCache.size >= INTENT_CACHE_MAX) {
-    intentCache.delete(intentCache.keys().next().value!);
+function cacheTerms(key: string, terms: string[]) {
+  if (termsCache.size >= TERMS_CACHE_MAX) {
+    termsCache.delete(termsCache.keys().next().value!);
   }
-  intentCache.set(key, intent);
+  termsCache.set(key, terms);
 }
 
 // --------------------------------------------------------------- allowance
@@ -283,25 +262,20 @@ Deno.serve(async (req) => {
   }
 
   const key = normalizeQuery(query);
-  let intent = intentCache.get(key) ?? null;
-  let mode: "ai" | "text" = "ai";
-  if (!intent) {
-    if (await takeAllowance(req)) {
-      try {
-        intent = await readIntent(query, c);
-        if (intent) cacheIntent(key, intent);
-      } catch (e) {
-        console.error("readIntent:", e instanceof Error ? e.message : e);
-      }
-    }
-    if (!intent) {
-      intent = fallbackIntent(query);
-      mode = "text";
+  let terms = termsCache.get(key) ?? null;
+  if (!terms && (await takeAllowance(req))) {
+    try {
+      terms = await readTerms(query);
+      if (terms) cacheTerms(key, terms);
+    } catch (e) {
+      console.error("readTerms:", e instanceof Error ? e.message : e);
     }
   }
+  if (!terms) return json({ results: [], terms: [], mode: "text" });
+  if (terms.length === 0) return json({ results: [], terms, mode: "none" });
 
-  // Every match, not a top few: what fits the student's conditions all shows.
-  const { hits, relaxed } = searchCatalog(c.rows, c.faculties, intent ?? EMPTY_INTENT, 200);
+  // Every university of the field, not a top few.
+  const hits = searchByField(c.rows, c.faculties, terms);
   return json({
     results: hits.map((h) => ({
       institution_id: h.institution_id,
@@ -309,18 +283,7 @@ Deno.serve(async (req) => {
       matched: h.matched,
       match_count: h.matchCount,
     })),
-    interpreted: {
-      keywords: intent.keywords,
-      cities: intent.cities,
-      name: intent.name,
-      degree: intent.degree,
-      max_tuition_krw: intent.maxTuitionKrw,
-      topik_max: intent.topikMax,
-      type: intent.type,
-      english_only: intent.englishOnly,
-      partner_only: intent.partnerOnly,
-    },
-    relaxed,
-    mode,
+    terms,
+    mode: "field",
   });
 });

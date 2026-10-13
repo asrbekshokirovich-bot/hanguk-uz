@@ -6,52 +6,13 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'catalog_filters.dart';
 
-/// The search box, read by a language model (owner, 2026-10-13: "qidiruvda
-/// yozganda sun'iy intellekt topsin"). The text goes to the
-/// `ai-university-search` edge function while the student types; it answers
-/// with universities from the same catalogue the app shows, so a result is
-/// always one the app has a card for.
-
-/// What the model read from the text. Field-of-study keywords stay on the
-/// server: they are search stems, not words to show.
-@immutable
-class AiSearchIntent {
-  const AiSearchIntent({
-    this.cities = const [],
-    this.degree,
-    this.maxTuitionKrw,
-    this.topikMax,
-    this.type,
-    this.englishOnly = false,
-    this.partnerOnly = false,
-  });
-
-  factory AiSearchIntent.fromJson(Map<String, dynamic> j) => AiSearchIntent(
-    cities: [for (final c in (j['cities'] as List? ?? const [])) if (c is String) c],
-    degree: j['degree'] as String?,
-    maxTuitionKrw: j['max_tuition_krw'] as num?,
-    topikMax: j['topik_max'] as num?,
-    type: j['type'] as String?,
-    englishOnly: j['english_only'] == true,
-    partnerOnly: j['partner_only'] == true,
-  );
-
-  final List<String> cities;
-
-  /// `bakalavr` or `magistratura`.
-  final String? degree;
-
-  /// Highest fee per semester, in KRW.
-  final num? maxTuitionKrw;
-
-  /// The TOPIK level the student has; 0 means none.
-  final num? topikMax;
-
-  /// `national` or `private`.
-  final String? type;
-  final bool englishOnly;
-  final bool partnerOnly;
-}
+/// The search box, read by a language model, by field of study (owner,
+/// 2026-10-13: "IT deb yozsam IT ga aloqador barcha universitetlar,
+/// stomatologiya deb yozsa faqat stomatologiya yo'nalishi bor universitetlar
+/// chiqsin"). The text goes to the `ai-university-search` edge function while
+/// the student types; it answers with every university of the catalogue the
+/// app shows that has a programme of that field. A name or a city is not a
+/// field: then the app's own name filter answers, as before.
 
 @immutable
 class AiSearchHit {
@@ -72,45 +33,33 @@ class AiSearchHit {
   final String institutionId;
   final String guidelineId;
 
-  /// Up to three faculty names that match the field of study.
+  /// The programmes of the field in this guideline, as staff typed them.
   final List<String> matched;
 
-  /// How many faculties match in all.
+  /// How many there are.
   final int matchCount;
 }
 
 @immutable
 class AiSearchResult {
-  const AiSearchResult({
-    required this.hits,
-    this.intent = const AiSearchIntent(),
-    this.relaxed = const [],
-    this.byModel = true,
-  });
+  const AiSearchResult({required this.hits, this.byField = true});
 
   factory AiSearchResult.fromJson(Map<String, dynamic> j) => AiSearchResult(
     hits: [
       for (final r in (j['results'] as List? ?? const []))
         if (r is Map<String, dynamic>) AiSearchHit.fromJson(r),
     ],
-    intent: j['interpreted'] is Map<String, dynamic>
-        ? AiSearchIntent.fromJson(j['interpreted'] as Map<String, dynamic>)
-        : const AiSearchIntent(),
-    relaxed: [for (final r in (j['relaxed'] as List? ?? const [])) if (r is String) r],
-    byModel: j['mode'] == 'ai',
+    byField: j['mode'] == 'field',
   );
 
-  /// Best first.
+  /// Best first; a university's guidelines one after another, the bachelor's
+  /// first.
   final List<AiSearchHit> hits;
-  final AiSearchIntent intent;
 
-  /// Conditions the server dropped to find anything: `tuition`, `topik`,
-  /// `english`.
-  final List<String> relaxed;
-
-  /// False when the server fell back to a plain name search (the model was
-  /// unavailable or the daily allowance was spent).
-  final bool byModel;
+  /// The text named a field and [hits] are its universities. False when it
+  /// did not (a name, a city), or the model was unavailable or the daily
+  /// allowance spent: the name filter answers then.
+  final bool byField;
 }
 
 /// The search's state: the newest answer and the text it answers.
