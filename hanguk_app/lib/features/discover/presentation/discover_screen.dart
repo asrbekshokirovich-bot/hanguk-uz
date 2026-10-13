@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -39,6 +40,7 @@ class DiscoverScreen extends ConsumerStatefulWidget {
 
 class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
   int _index = 0;
+  final _deck = GlobalKey<_DeckState>();
 
   void _advance(int count) => setState(() => _index = (_index + 1) % count);
   void _back(int count) => setState(() => _index = (_index - 1 + count) % count);
@@ -113,15 +115,20 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                       Padding(
                         padding: const EdgeInsets.fromLTRB(18, 12, 18, 0),
                         child: _Deck(
-                          key: ValueKey(u.institutionId),
-                          card: UniStackCard(
-                            university: u,
-                            guideline: g,
-                            position: index + 1,
-                            deadline: _deadlineOf(windows, g),
-                            isVisiting: u.institutionId == kGuestUniversityId,
-                            onAdmission: () => context.push(kAssessmentPath, extra: u.institutionId),
-                          ),
+                          key: _deck,
+                          cardAt: (offset) {
+                            final i = (index + offset) % deck.length;
+                            final c = deck[i];
+                            return UniStackCard(
+                              key: ValueKey(c.institutionId),
+                              university: c,
+                              guideline: c.primary,
+                              position: i + 1,
+                              deadline: _deadlineOf(windows, c.primary),
+                              isVisiting: c.institutionId == kGuestUniversityId,
+                              onAdmission: () => context.push(kAssessmentPath, extra: c.institutionId),
+                            );
+                          },
                           onTap: () => context.push(universityPath(u.institutionId)),
                           onSkip: () => _advance(deck.length),
                           onSave: () {
@@ -129,7 +136,6 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                             _advance(deck.length);
                           },
                           onPrevious: () => _back(deck.length),
-                          onNext: () => _advance(deck.length),
                           previousLabel: l.fdPrevious,
                           nextLabel: l.fdNext,
                         ),
@@ -144,7 +150,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                               fill: FdColors.card,
                               glyph: LucideIcons.x,
                               iconColor: FdColors.ink,
-                              onTap: () => _advance(deck.length),
+                              onTap: () => _deck.currentState?.fling(right: false),
                             ),
                             const SizedBox(width: 24),
                             SizedBox(
@@ -162,10 +168,9 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                               glyph: LucideIcons.heart,
                               iconColor: FdColors.onLime,
                               badge: saved.isEmpty ? null : '${saved.length}',
-                              onTap: () {
-                                ref.read(savedUniversitiesProvider.notifier).save(u.institutionId);
-                                _advance(deck.length);
-                              },
+                              badgeLabel: l.fdSavedTitle,
+                              onBadgeTap: () => context.push(kDiscoverSavedPath),
+                              onTap: () => _deck.currentState?.fling(right: true),
                             ),
                           ],
                         ),
@@ -278,25 +283,44 @@ class _SearchField extends StatelessWidget {
 /// The card on top of two tilted blank cards. Dragging it sideways throws it:
 /// left skips, right saves; a short drag springs back. The side chevrons
 /// step through the stack.
+/// Where a layer of the stack sits: how far down, how much it is turned,
+/// and how much smaller than the top card it is drawn.
+class _Pose {
+  const _Pose(this.top, this.degrees, this.scale);
+
+  final double top;
+  final double degrees;
+  final double scale;
+
+  static _Pose lerp(_Pose a, _Pose b, double t) => _Pose(
+    a.top + (b.top - a.top) * t,
+    a.degrees + (b.degrees - a.degrees) * t,
+    a.scale + (b.scale - a.scale) * t,
+  );
+}
+
+/// The card stack (design screen 03). The top card follows the finger; let
+/// go past a third of the width (or flick it) and it drops away to that side
+/// while the next university, already waiting behind it, pops up into its
+/// place. ✕, ♡ and the chevrons play the same throw.
 class _Deck extends StatefulWidget {
   const _Deck({
     super.key,
-    required this.card,
+    required this.cardAt,
     required this.onTap,
     required this.onSkip,
     required this.onSave,
     required this.onPrevious,
-    required this.onNext,
     required this.previousLabel,
     required this.nextLabel,
   });
 
-  final Widget card;
+  /// The card [offset] places after the top one: 0 is on top, 1 behind it.
+  final Widget Function(int offset) cardAt;
   final VoidCallback onTap;
   final VoidCallback onSkip;
   final VoidCallback onSave;
   final VoidCallback onPrevious;
-  final VoidCallback onNext;
   final String previousLabel;
   final String nextLabel;
 
@@ -304,29 +328,97 @@ class _Deck extends StatefulWidget {
   State<_Deck> createState() => _DeckState();
 }
 
-class _DeckState extends State<_Deck> with SingleTickerProviderStateMixin {
-  late final AnimationController _settle = AnimationController(vsync: this, duration: SeoulMotion.fast)
-    ..addListener(() => setState(() => _dx = _from * (1 - Curves.easeOut.transform(_settle.value))));
+class _DeckState extends State<_Deck> with TickerProviderStateMixin {
+  static const _Pose _front = _Pose(22, 0, 1);
+  static const _Pose _second = _Pose(10, 2, 0.955);
+  static const _Pose _third = _Pose(0, -3, 0.91);
+
+  /// The top card going back to the middle when it was not thrown far
+  /// enough, or coming in from the left for "previous".
+  late final AnimationController _settle = AnimationController(vsync: this, duration: const Duration(milliseconds: 260))
+    ..addListener(() => setState(() => _dx = _from * (1 - Curves.easeOutCubic.transform(_settle.value))));
+
+  /// The throw: the top card leaves, the one behind rises.
+  late final AnimationController _fly = AnimationController(vsync: this, duration: const Duration(milliseconds: 380));
+
+  /// The card that became second sliding up from third place.
+  late final AnimationController _enter = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 260),
+    value: 1,
+  );
+
   double _dx = 0;
   double _from = 0;
+  double _flyFrom = 0;
+  bool _flyRight = true;
+  double _width = 1;
+
+  @override
+  void initState() {
+    super.initState();
+    _fly.addListener(() => setState(() {}));
+    _enter.addListener(() => setState(() {}));
+  }
 
   @override
   void dispose() {
     _settle.dispose();
+    _fly.dispose();
+    _enter.dispose();
     super.dispose();
   }
 
-  void _end(DragEndDetails d, double width) {
-    final throwIt = _dx.abs() > width * 0.28 || d.velocity.pixelsPerSecond.dx.abs() > 900;
-    if (throwIt) {
-      final right = (_dx == 0 ? d.velocity.pixelsPerSecond.dx : _dx) > 0;
-      _dx = 0;
-      right ? widget.onSave() : widget.onSkip();
+  bool get _busy => _fly.isAnimating;
+
+  /// Throws the top card to the right (saved) or the left (skipped).
+  Future<void> fling({required bool right}) async {
+    if (_busy) return;
+    _settle.stop();
+    HapticFeedback.lightImpact();
+    _flyRight = right;
+    _flyFrom = _dx;
+    await _fly.forward(from: 0);
+    if (!mounted) return;
+    right ? widget.onSave() : widget.onSkip();
+    _dx = 0;
+    // The card that was behind is now the top one, drawn where it ended up;
+    // the next one slides up behind it.
+    _fly.value = 0;
+    _enter.forward(from: 0);
+  }
+
+  /// The previous card comes back in from the left.
+  void back() {
+    if (_busy) return;
+    widget.onPrevious();
+    _from = -_width * 1.1;
+    _dx = _from;
+    _settle.forward(from: 0);
+  }
+
+  void _end(DragEndDetails d) {
+    final vx = d.velocity.pixelsPerSecond.dx;
+    if (_dx.abs() > _width * 0.3 || vx.abs() > 900) {
+      fling(right: (_dx.abs() > 8 ? _dx : vx) > 0);
       return;
     }
     _from = _dx;
     _settle.forward(from: 0);
   }
+
+  Widget _layer(_Pose pose, Widget child, {Offset shift = Offset.zero, double extraTurn = 0}) => Positioned(
+    left: 0,
+    right: 0,
+    top: pose.top,
+    child: Transform.translate(
+      offset: shift,
+      child: Transform.rotate(
+        angle: pose.degrees * math.pi / 180 + extraTurn,
+        child: Transform.scale(scale: pose.scale, alignment: Alignment.topCenter, child: child),
+      ),
+    ),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -334,37 +426,63 @@ class _DeckState extends State<_Deck> with SingleTickerProviderStateMixin {
       height: 310,
       child: LayoutBuilder(
         builder: (context, box) {
-          final w = box.maxWidth;
-          final turn = (_dx / w) * 0.25;
+          _width = box.maxWidth;
+          final w = _width;
+          final t = _fly.value;
+
+          // The top card: following the finger, or on its way out — out to
+          // the side, a little down, turning further as it goes.
+          final out = Curves.easeInCubic.transform(t);
+          final target = (_flyRight ? 1 : -1) * w * 1.35;
+          final dx = _busy || t > 0 ? _flyFrom + (target - _flyFrom) * out : _dx;
+          final dy = 70 * out;
+          final turn = (dx / w) * 0.28;
+
+          // How far the card behind has come up: with the drag, then all the
+          // way with a small overshoot while the top card flies.
+          final drag = (_dx.abs() / (w * 0.3)).clamp(0.0, 1.0) * 0.35;
+          final rise = t > 0 ? drag + (1 - drag) * Curves.easeOutBack.transform(t) : drag;
+          final secondPose = _Pose.lerp(_second, _front, rise);
+
+          // A new second card slides up from third place after a throw.
+          final enter = Curves.easeOutCubic.transform(_enter.value);
+          final restingSecond = _Pose.lerp(_third, _second, enter);
+
           return Stack(
             clipBehavior: Clip.none,
             children: [
               Positioned(
                 left: -17,
                 top: 150,
-                child: _Chevron(glyph: LucideIcons.chevronLeft, label: widget.previousLabel, onTap: widget.onPrevious),
+                child: _Chevron(glyph: LucideIcons.chevronLeft, label: widget.previousLabel, onTap: back),
               ),
               Positioned(
                 right: -17,
                 top: 150,
-                child: _Chevron(glyph: LucideIcons.chevronRight, label: widget.nextLabel, onTap: widget.onNext),
+                child: _Chevron(glyph: LucideIcons.chevronRight, label: widget.nextLabel, onTap: () => fling(right: false)),
               ),
-              Positioned(left: 16, right: 16, top: 0, child: Transform.rotate(angle: -3 * math.pi / 180, child: const _BlankCard())),
-              Positioned(left: 8, right: 8, top: 10, child: Transform.rotate(angle: 2 * math.pi / 180, child: const _BlankCard())),
-              Positioned(
-                left: 0,
-                right: 0,
-                top: 22,
-                child: GestureDetector(
-                  onTap: widget.onTap,
-                  onHorizontalDragStart: (_) => _settle.stop(),
-                  onHorizontalDragUpdate: (d) => setState(() => _dx += d.delta.dx),
-                  onHorizontalDragEnd: (d) => _end(d, w),
-                  child: Transform.translate(
-                    offset: Offset(_dx, 0),
-                    child: Transform.rotate(angle: turn, child: widget.card),
-                  ),
+              _layer(_third, const _BlankCard()),
+              _layer(
+                t > 0 || _dx != 0 ? secondPose : restingSecond,
+                IgnorePointer(
+                  child: ExcludeSemantics(child: RepaintBoundary(child: widget.cardAt(1))),
                 ),
+              ),
+              _layer(
+                _front,
+                GestureDetector(
+                  onTap: _busy ? null : widget.onTap,
+                  onHorizontalDragStart: (_) => _settle.stop(),
+                  onHorizontalDragUpdate: (d) {
+                    if (!_busy) setState(() => _dx += d.delta.dx);
+                  },
+                  onHorizontalDragEnd: (d) {
+                    if (!_busy) _end(d);
+                  },
+                  child: RepaintBoundary(child: widget.cardAt(0)),
+                ),
+                shift: Offset(dx, dy),
+                extraTurn: turn,
               ),
             ],
           );
@@ -415,7 +533,8 @@ class _Chevron extends StatelessWidget {
   }
 }
 
-/// ✕ and ♡: 62px circles with a 3px hard shadow; ♡ carries the saved count.
+/// ✕ and ♡: 62px circles with a 3px hard shadow; ♡ carries the saved count,
+/// which opens the saved list (screen 16).
 class _RoundButton extends StatelessWidget {
   const _RoundButton({
     required this.semanticLabel,
@@ -424,6 +543,8 @@ class _RoundButton extends StatelessWidget {
     required this.iconColor,
     required this.onTap,
     this.badge,
+    this.onBadgeTap,
+    this.badgeLabel,
   });
 
   final String semanticLabel;
@@ -432,13 +553,14 @@ class _RoundButton extends StatelessWidget {
   final Color iconColor;
   final VoidCallback onTap;
   final String? badge;
+  final VoidCallback? onBadgeTap;
+  final String? badgeLabel;
 
   @override
   Widget build(BuildContext context) {
     return Semantics(
       button: true,
       label: semanticLabel,
-      excludeSemantics: true,
       child: GestureDetector(
         onTap: onTap,
         behavior: HitTestBehavior.opaque,
@@ -455,19 +577,33 @@ class _RoundButton extends StatelessWidget {
                   boxShadow: const [BoxShadow(color: FdColors.ink, offset: Offset(3, 3))],
                 ),
                 alignment: Alignment.center,
-                child: Lucide(glyph, size: 24, color: iconColor),
+                child: ExcludeSemantics(child: Lucide(glyph, size: 24, color: iconColor)),
               ),
               if (badge != null)
                 Positioned(
-                  top: -6,
-                  right: -6,
-                  child: Container(
-                    constraints: const BoxConstraints(minWidth: 22),
-                    height: 22,
-                    padding: const EdgeInsets.symmetric(horizontal: 5),
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(color: FdColors.ink, borderRadius: BorderRadius.circular(999)),
-                    child: Text(badge!, style: fdText(11, FontWeight.w800, FdColors.lime)),
+                  top: -14,
+                  right: -14,
+                  child: Semantics(
+                    button: true,
+                    label: badgeLabel,
+                    value: badge,
+                    excludeSemantics: true,
+                    child: GestureDetector(
+                      onTap: onBadgeTap,
+                      behavior: HitTestBehavior.opaque,
+                      // A bigger target than the 22px badge it draws.
+                      child: Padding(
+                        padding: const EdgeInsets.all(8),
+                        child: Container(
+                          constraints: const BoxConstraints(minWidth: 22),
+                          height: 22,
+                          padding: const EdgeInsets.symmetric(horizontal: 5),
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(color: FdColors.ink, borderRadius: BorderRadius.circular(999)),
+                          child: Text(badge!, style: fdText(11, FontWeight.w800, FdColors.lime)),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
             ],

@@ -21,6 +21,41 @@ List<CatalogUniversity> boardResults(WidgetRef ref, List<CatalogUniversity> all,
   return applyCatalogFilter(all, f.copyWith(query: ''), fieldMatches: matches);
 }
 
+/// A field tile's label ("IT", "Muhandislik").
+String fieldLabel(AppLocalizations l, String key) => switch (key) {
+  'it' => l.fdFieldIt,
+  'business' => l.fdFieldBusiness,
+  'engineering' => l.fdFieldEngineering,
+  'medicine' => l.fdFieldMedicine,
+  'design' => l.fdFieldDesign,
+  'tourism' => l.fdFieldTourism,
+  'education' => l.fdFieldEducation,
+  _ => key,
+};
+
+/// A city group's label: the design's own names, two of them translated.
+String regionLabel(AppLocalizations l, String region) => switch (region) {
+  CatalogRegion.seoul => l.fdRegionSeoul,
+  CatalogRegion.other => l.fdOther,
+  _ => region,
+};
+
+/// "Muhandislik · TOPIK ≤3 · ₩2 000 000 gacha": the board's choices in one
+/// line, for the results' search field (design screen 06). Null when none.
+String? filterSummary(AppLocalizations l, CatalogFilter f) {
+  final parts = [
+    if (f.field != null) fieldLabel(l, f.field!),
+    for (final r in f.regions) regionLabel(l, r),
+    if (f.degree == CatalogDegree.bachelor) l.catalogDegreeBachelor,
+    if (f.degree == CatalogDegree.master) l.catalogDegreeMaster,
+    if (f.topik == CatalogTopik.none) 'TOPIK: ${l.fdTopikNone}' else if (f.topik != null) 'TOPIK ≤${f.topik}',
+    if (f.maxPrice != null) l.fdFeeUpTo(money(f.maxPrice!, 'KRW', locale: l.localeName)),
+    if (f.type == 'state') l.catalogTypeStateShort,
+    if (f.type == 'private') l.catalogTypePrivateShort,
+  ];
+  return parts.isEmpty ? null : parts.join(' · ');
+}
+
 /// Design screen 05, "Filtr doskasi — son jonli o'zgaradi": the count of
 /// matching universities and its 50-tick meter, then Yo'nalish, Shahar,
 /// Daraja, the TOPIK requirement, the fee ceiling and the type. Every choice
@@ -40,16 +75,7 @@ class FilterBoardScreen extends ConsumerWidget {
 
     void set(CatalogFilter next) => notifier.set(next);
 
-    final fieldLabels = {
-      'it': l.fdFieldIt,
-      'business': l.fdFieldBusiness,
-      'engineering': l.fdFieldEngineering,
-      'medicine': l.fdFieldMedicine,
-      'design': l.fdFieldDesign,
-      'tourism': l.fdFieldTourism,
-      'education': l.fdFieldEducation,
-    };
-    final regionLabels = {CatalogRegion.seoul: l.fdRegionSeoul, CatalogRegion.other: l.fdOther};
+
 
     final fee = f.maxPrice;
     final feeShare = fee == null ? 1.0 : ((fee - bounds.min) / (bounds.max - bounds.min)).clamp(0.0, 1.0);
@@ -116,7 +142,7 @@ class FilterBoardScreen extends ConsumerWidget {
                       children: [
                         for (final t in kFieldTiles)
                           HardChoice(
-                            label: fieldLabels[t.key]!,
+                            label: fieldLabel(l, t.key),
                             glyph: t.glyph,
                             height: 64,
                             fontSize: 10,
@@ -147,7 +173,7 @@ class FilterBoardScreen extends ConsumerWidget {
                           // otherwise fill the Wrap's whole row.
                           IntrinsicWidth(
                             child: HardChoice(
-                              label: regionLabels[r] ?? r,
+                              label: regionLabel(l, r),
                               height: 34,
                               radius: 999,
                               fontSize: 12,

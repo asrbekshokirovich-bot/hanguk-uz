@@ -3708,4 +3708,126 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get fdUniCta => '나는 정말 한국에 갈 수 있을까?';
+
+  @override
+  String fdResultsMatching(int count) {
+    return '맞는 대학 $count곳';
+  }
+
+  @override
+  String get fdResultsBestFirst => '가장 맞는 순';
+
+  @override
+  String get fdSlotDropHere => '여기에';
+
+  @override
+  String fdSlotNumber(int n) {
+    return '$n번 슬롯';
+  }
+
+  @override
+  String get fdSlotEmpty => '비어 있음';
+
+  @override
+  String get fdAddToSlot => '슬롯에 추가';
+
+  @override
+  String get fdRemoveFromSlot => '슬롯에서 빼기';
+
+  @override
+  String fdInSlot(int n) {
+    return '✓ $n번 슬롯';
+  }
+
+  @override
+  String get fdSlotsFull => '슬롯 3개가 모두 찼어요. 먼저 하나를 비우세요.';
+
+  @override
+  String get fdBestThreeTitle => '가장 좋은 3곳을 고르세요';
+
+  @override
+  String fdBestThreeBody(int count) {
+    return '$count곳 중 — 두 곳씩 비교';
+  }
+
+  @override
+  String get fdDuelTitleLead => '가장 좋은';
+
+  @override
+  String get fdDuelTitleMark => '3곳';
+
+  @override
+  String fdDuelCompared(int count) {
+    return '$count번 비교';
+  }
+
+  @override
+  String get fdOr => '또는';
+
+  @override
+  String get fdDuelLegend => '= 챔피언, 슬롯에 들어가요';
+
+  @override
+  String get fdDuelPick => '이곳 선택';
+
+  @override
+  String get fdChosenTitleMark => '멋진';
+
+  @override
+  String get fdChosenTitleTail => '선택!';
+
+  @override
+  String get fdChosenBodyThree => '세 대학이 준비됐어요. 어디가 가능한지 지금 알아봐요.';
+
+  @override
+  String fdChosenBody(int count) {
+    return '$count곳이 준비됐어요. 어디가 가능한지 지금 알아봐요.';
+  }
+
+  @override
+  String get fdChosenNext => '이제 가장 중요한 질문';
+
+  @override
+  String get fdChosenAdmission => '이 대학들에 갈 수 있을까?';
+
+  @override
+  String get fdChosenVisa => '비자가 나올까?';
+
+  @override
+  String get fdChosenEmpty => '슬롯이 아직 비어 있어요. 결과에서 대학을 추가하세요.';
+
+  @override
+  String get fdCompareTitle => '비교';
+
+  @override
+  String fdCompareCount(int count) {
+    return '대학 $count곳';
+  }
+
+  @override
+  String get fdCompareCity => '도시';
+
+  @override
+  String get fdCompareType => '유형';
+
+  @override
+  String get fdCompareAdmission => '입학';
+
+  @override
+  String get fdSavedTitle => '저장한 대학';
+
+  @override
+  String get fdSavedCompareThree => '세 곳 비교';
+
+  @override
+  String get fdSavedCompareTwo => '두 곳 비교';
+
+  @override
+  String get fdSavedCompareBody => '등록금, 어학 조건, 마감 나란히';
+
+  @override
+  String get fdSavedEmpty => '아직 저장한 대학이 없어요. 홈에서 카드를 오른쪽으로 넘기거나 ♡를 누르세요.';
+
+  @override
+  String get fdUnsave => '저장 취소';
 }

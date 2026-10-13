@@ -15,7 +15,16 @@ class AssessmentNotifier extends Notifier<AssessmentInput> {
   @override
   AssessmentInput build() => const AssessmentInput();
 
-  void set(AssessmentInput next) => state = next;
+  /// A change the student made on the board.
+  void set(AssessmentInput next) {
+    state = next;
+    ref.read(assessmentTouchedProvider.notifier).mark();
+  }
+
+  /// The universities to weigh, chosen elsewhere (the slots, the saved list,
+  /// the comparison); the board's other answers stay as they are.
+  void useUniversities(List<String> ids) =>
+      state = state.copyWith(universityIds: ids.take(kAssessmentUniversities).toList());
 
   /// The universities to weigh, starting from [startId] (the card or page the
   /// student came from), then the saved ones, then the catalogue's first for
@@ -45,6 +54,19 @@ class AssessmentNotifier extends Notifier<AssessmentInput> {
 }
 
 final assessmentProvider = NotifierProvider<AssessmentNotifier, AssessmentInput>(AssessmentNotifier.new);
+
+/// Whether the student has answered anything on the board yet: until then an
+/// admission chance would rest on the defaults, so screens show "?%".
+class AssessmentTouchedNotifier extends Notifier<bool> {
+  @override
+  bool build() => false;
+
+  void mark() {
+    if (!state) state = true;
+  }
+}
+
+final assessmentTouchedProvider = NotifierProvider<AssessmentTouchedNotifier, bool>(AssessmentTouchedNotifier.new);
 
 /// The board's outcome for the current answers; null until the catalogue is
 /// read.

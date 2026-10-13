@@ -6961,6 +6961,222 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Can I really go to Korea?'**
   String get fdUniCta;
+
+  /// Results (design 06) list heading.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} matching universities'**
+  String fdResultsMatching(int count);
+
+  /// Results list ordering note.
+  ///
+  /// In en, this message translates to:
+  /// **'best match first'**
+  String get fdResultsBestFirst;
+
+  /// An empty slot while a university is dragged over it.
+  ///
+  /// In en, this message translates to:
+  /// **'Drop here'**
+  String get fdSlotDropHere;
+
+  /// Screen-reader label of a slot.
+  ///
+  /// In en, this message translates to:
+  /// **'Slot {n}'**
+  String fdSlotNumber(int n);
+
+  /// Screen-reader state of an empty slot.
+  ///
+  /// In en, this message translates to:
+  /// **'empty'**
+  String get fdSlotEmpty;
+
+  /// Puts a university in the first empty slot.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to a slot'**
+  String get fdAddToSlot;
+
+  /// Takes a university out of its slot.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from the slot'**
+  String get fdRemoveFromSlot;
+
+  /// University page button when the university is in a slot.
+  ///
+  /// In en, this message translates to:
+  /// **'✓ In slot {n}'**
+  String fdInSlot(int n);
+
+  /// Shown when adding to full slots.
+  ///
+  /// In en, this message translates to:
+  /// **'All three slots are taken. Free one first.'**
+  String get fdSlotsFull;
+
+  /// Results banner title: opens the duel (design 07).
+  ///
+  /// In en, this message translates to:
+  /// **'Pick your best 3'**
+  String get fdBestThreeTitle;
+
+  /// Results banner subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'from {count} — two at a time'**
+  String fdBestThreeBody(int count);
+
+  /// Duel (design 07) title, first part.
+  ///
+  /// In en, this message translates to:
+  /// **'Your best'**
+  String get fdDuelTitleLead;
+
+  /// Duel title, marked part.
+  ///
+  /// In en, this message translates to:
+  /// **'3'**
+  String get fdDuelTitleMark;
+
+  /// Duel: how many picks so far.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} compared'**
+  String fdDuelCompared(int count);
+
+  /// Between the two duel cards.
+  ///
+  /// In en, this message translates to:
+  /// **'OR'**
+  String get fdOr;
+
+  /// Duel legend after two lime pips.
+  ///
+  /// In en, this message translates to:
+  /// **'= champion, goes into a slot'**
+  String get fdDuelLegend;
+
+  /// Screen-reader hint on a duel card.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick this one'**
+  String get fdDuelPick;
+
+  /// Chosen (design 08) title, marked part.
+  ///
+  /// In en, this message translates to:
+  /// **'Great'**
+  String get fdChosenTitleMark;
+
+  /// Chosen title, last part.
+  ///
+  /// In en, this message translates to:
+  /// **'choice!'**
+  String get fdChosenTitleTail;
+
+  /// Chosen body with three universities.
+  ///
+  /// In en, this message translates to:
+  /// **'Your three universities are ready. Let\'s find out which are open to you.'**
+  String get fdChosenBodyThree;
+
+  /// Chosen body with fewer than three.
+  ///
+  /// In en, this message translates to:
+  /// **'Your {count} universities are ready. Let\'s find out which are open to you.'**
+  String fdChosenBody(int count);
+
+  /// Above the chosen screen's buttons, followed by a down arrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Now the big question'**
+  String get fdChosenNext;
+
+  /// Opens the assessment with these universities.
+  ///
+  /// In en, this message translates to:
+  /// **'Can I get into these?'**
+  String get fdChosenAdmission;
+
+  /// Opens the assessment (its visa side).
+  ///
+  /// In en, this message translates to:
+  /// **'Will I get the visa?'**
+  String get fdChosenVisa;
+
+  /// Chosen screen with no slotted universities.
+  ///
+  /// In en, this message translates to:
+  /// **'The slots are still empty. Add universities from the results.'**
+  String get fdChosenEmpty;
+
+  /// Compare (design 09) title.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare'**
+  String get fdCompareTitle;
+
+  /// Compare header count.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} universities'**
+  String fdCompareCount(int count);
+
+  /// Compare row label.
+  ///
+  /// In en, this message translates to:
+  /// **'City'**
+  String get fdCompareCity;
+
+  /// Compare row label.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get fdCompareType;
+
+  /// Compare row label: the admission chance.
+  ///
+  /// In en, this message translates to:
+  /// **'Admission'**
+  String get fdCompareAdmission;
+
+  /// Saved (design 16) title.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved'**
+  String get fdSavedTitle;
+
+  /// Saved: compare the first three.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare all three'**
+  String get fdSavedCompareThree;
+
+  /// Saved: compare two.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare both'**
+  String get fdSavedCompareTwo;
+
+  /// Saved compare card subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Fee, language and deadline side by side'**
+  String get fdSavedCompareBody;
+
+  /// Saved list empty state.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing saved yet. On the home screen, swipe a card right or tap ♡.'**
+  String get fdSavedEmpty;
+
+  /// Screen-reader label of the heart on a saved row.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from saved'**
+  String get fdUnsave;
 }
 
 class _AppLocalizationsDelegate

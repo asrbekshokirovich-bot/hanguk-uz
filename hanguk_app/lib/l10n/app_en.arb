@@ -4974,5 +4974,184 @@
   "fdUniCta": "Can I really go to Korea?",
   "@fdUniCta": {
     "description": "University page main button: opens the assessment."
+  },
+  "fdResultsMatching": "{count} matching universities",
+  "@fdResultsMatching": {
+    "description": "Results (design 06) list heading.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fdResultsBestFirst": "best match first",
+  "@fdResultsBestFirst": {
+    "description": "Results list ordering note."
+  },
+  "fdSlotDropHere": "Drop here",
+  "@fdSlotDropHere": {
+    "description": "An empty slot while a university is dragged over it."
+  },
+  "fdSlotNumber": "Slot {n}",
+  "@fdSlotNumber": {
+    "description": "Screen-reader label of a slot.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "fdSlotEmpty": "empty",
+  "@fdSlotEmpty": {
+    "description": "Screen-reader state of an empty slot."
+  },
+  "fdAddToSlot": "Add to a slot",
+  "@fdAddToSlot": {
+    "description": "Puts a university in the first empty slot."
+  },
+  "fdRemoveFromSlot": "Remove from the slot",
+  "@fdRemoveFromSlot": {
+    "description": "Takes a university out of its slot."
+  },
+  "fdInSlot": "✓ In slot {n}",
+  "@fdInSlot": {
+    "description": "University page button when the university is in a slot.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "fdSlotsFull": "All three slots are taken. Free one first.",
+  "@fdSlotsFull": {
+    "description": "Shown when adding to full slots."
+  },
+  "fdBestThreeTitle": "Pick your best 3",
+  "@fdBestThreeTitle": {
+    "description": "Results banner title: opens the duel (design 07)."
+  },
+  "fdBestThreeBody": "from {count} — two at a time",
+  "@fdBestThreeBody": {
+    "description": "Results banner subtitle.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fdDuelTitleLead": "Your best",
+  "@fdDuelTitleLead": {
+    "description": "Duel (design 07) title, first part."
+  },
+  "fdDuelTitleMark": "3",
+  "@fdDuelTitleMark": {
+    "description": "Duel title, marked part."
+  },
+  "fdDuelCompared": "{count} compared",
+  "@fdDuelCompared": {
+    "description": "Duel: how many picks so far.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fdOr": "OR",
+  "@fdOr": {
+    "description": "Between the two duel cards."
+  },
+  "fdDuelLegend": "= champion, goes into a slot",
+  "@fdDuelLegend": {
+    "description": "Duel legend after two lime pips."
+  },
+  "fdDuelPick": "Pick this one",
+  "@fdDuelPick": {
+    "description": "Screen-reader hint on a duel card."
+  },
+  "fdChosenTitleMark": "Great",
+  "@fdChosenTitleMark": {
+    "description": "Chosen (design 08) title, marked part."
+  },
+  "fdChosenTitleTail": "choice!",
+  "@fdChosenTitleTail": {
+    "description": "Chosen title, last part."
+  },
+  "fdChosenBodyThree": "Your three universities are ready. Let's find out which are open to you.",
+  "@fdChosenBodyThree": {
+    "description": "Chosen body with three universities."
+  },
+  "fdChosenBody": "Your {count} universities are ready. Let's find out which are open to you.",
+  "@fdChosenBody": {
+    "description": "Chosen body with fewer than three.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fdChosenNext": "Now the big question",
+  "@fdChosenNext": {
+    "description": "Above the chosen screen's buttons, followed by a down arrow."
+  },
+  "fdChosenAdmission": "Can I get into these?",
+  "@fdChosenAdmission": {
+    "description": "Opens the assessment with these universities."
+  },
+  "fdChosenVisa": "Will I get the visa?",
+  "@fdChosenVisa": {
+    "description": "Opens the assessment (its visa side)."
+  },
+  "fdChosenEmpty": "The slots are still empty. Add universities from the results.",
+  "@fdChosenEmpty": {
+    "description": "Chosen screen with no slotted universities."
+  },
+  "fdCompareTitle": "Compare",
+  "@fdCompareTitle": {
+    "description": "Compare (design 09) title."
+  },
+  "fdCompareCount": "{count} universities",
+  "@fdCompareCount": {
+    "description": "Compare header count.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fdCompareCity": "City",
+  "@fdCompareCity": {
+    "description": "Compare row label."
+  },
+  "fdCompareType": "Type",
+  "@fdCompareType": {
+    "description": "Compare row label."
+  },
+  "fdCompareAdmission": "Admission",
+  "@fdCompareAdmission": {
+    "description": "Compare row label: the admission chance."
+  },
+  "fdSavedTitle": "Saved",
+  "@fdSavedTitle": {
+    "description": "Saved (design 16) title."
+  },
+  "fdSavedCompareThree": "Compare all three",
+  "@fdSavedCompareThree": {
+    "description": "Saved: compare the first three."
+  },
+  "fdSavedCompareTwo": "Compare both",
+  "@fdSavedCompareTwo": {
+    "description": "Saved: compare two."
+  },
+  "fdSavedCompareBody": "Fee, language and deadline side by side",
+  "@fdSavedCompareBody": {
+    "description": "Saved compare card subtitle."
+  },
+  "fdSavedEmpty": "Nothing saved yet. On the home screen, swipe a card right or tap ♡.",
+  "@fdSavedEmpty": {
+    "description": "Saved list empty state."
+  },
+  "fdUnsave": "Remove from saved",
+  "@fdUnsave": {
+    "description": "Screen-reader label of the heart on a saved row."
   }
 }

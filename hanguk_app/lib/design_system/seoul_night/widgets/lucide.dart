@@ -250,4 +250,25 @@ abstract final class LucideIcons {
   static const share = LucideGlyph(
     paths: ['M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8', 'M16 6L12 2L8 6', 'M12 2L12 15'],
   );
+
+  /// lucide `grip-vertical`
+  static const gripVertical = LucideGlyph(
+    paths: [],
+    circles: [(9, 12, 1), (9, 5, 1), (9, 19, 1), (15, 12, 1), (15, 5, 1), (15, 19, 1)],
+  );
+
+  /// lucide `trophy`
+  static const trophy = LucideGlyph(
+    paths: ['M6 9H4.5a2.5 2.5 0 0 1 0-5H6', 'M18 9h1.5a2.5 2.5 0 0 0 0-5H18', 'M4 22h16', 'M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22', 'M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22', 'M18 2H6v7a6 6 0 0 0 12 0V2Z'],
+  );
+
+  /// lucide `arrow-left-right`
+  static const arrowLeftRight = LucideGlyph(
+    paths: ['M8 3 4 7l4 4', 'M4 7h16', 'm16 21 4-4-4-4', 'M20 17H4'],
+  );
+
+  /// lucide `arrow-down`
+  static const arrowDown = LucideGlyph(
+    paths: ['M12 5v14', 'm19 12-7 7-7-7'],
+  );
 }

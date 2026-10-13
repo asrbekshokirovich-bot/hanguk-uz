@@ -3857,4 +3857,129 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get fdUniCta => 'Can I really go to Korea?';
+
+  @override
+  String fdResultsMatching(int count) {
+    return '$count matching universities';
+  }
+
+  @override
+  String get fdResultsBestFirst => 'best match first';
+
+  @override
+  String get fdSlotDropHere => 'Drop here';
+
+  @override
+  String fdSlotNumber(int n) {
+    return 'Slot $n';
+  }
+
+  @override
+  String get fdSlotEmpty => 'empty';
+
+  @override
+  String get fdAddToSlot => 'Add to a slot';
+
+  @override
+  String get fdRemoveFromSlot => 'Remove from the slot';
+
+  @override
+  String fdInSlot(int n) {
+    return '✓ In slot $n';
+  }
+
+  @override
+  String get fdSlotsFull => 'All three slots are taken. Free one first.';
+
+  @override
+  String get fdBestThreeTitle => 'Pick your best 3';
+
+  @override
+  String fdBestThreeBody(int count) {
+    return 'from $count — two at a time';
+  }
+
+  @override
+  String get fdDuelTitleLead => 'Your best';
+
+  @override
+  String get fdDuelTitleMark => '3';
+
+  @override
+  String fdDuelCompared(int count) {
+    return '$count compared';
+  }
+
+  @override
+  String get fdOr => 'OR';
+
+  @override
+  String get fdDuelLegend => '= champion, goes into a slot';
+
+  @override
+  String get fdDuelPick => 'Pick this one';
+
+  @override
+  String get fdChosenTitleMark => 'Great';
+
+  @override
+  String get fdChosenTitleTail => 'choice!';
+
+  @override
+  String get fdChosenBodyThree =>
+      'Your three universities are ready. Let\'s find out which are open to you.';
+
+  @override
+  String fdChosenBody(int count) {
+    return 'Your $count universities are ready. Let\'s find out which are open to you.';
+  }
+
+  @override
+  String get fdChosenNext => 'Now the big question';
+
+  @override
+  String get fdChosenAdmission => 'Can I get into these?';
+
+  @override
+  String get fdChosenVisa => 'Will I get the visa?';
+
+  @override
+  String get fdChosenEmpty =>
+      'The slots are still empty. Add universities from the results.';
+
+  @override
+  String get fdCompareTitle => 'Compare';
+
+  @override
+  String fdCompareCount(int count) {
+    return '$count universities';
+  }
+
+  @override
+  String get fdCompareCity => 'City';
+
+  @override
+  String get fdCompareType => 'Type';
+
+  @override
+  String get fdCompareAdmission => 'Admission';
+
+  @override
+  String get fdSavedTitle => 'Saved';
+
+  @override
+  String get fdSavedCompareThree => 'Compare all three';
+
+  @override
+  String get fdSavedCompareTwo => 'Compare both';
+
+  @override
+  String get fdSavedCompareBody => 'Fee, language and deadline side by side';
+
+  @override
+  String get fdSavedEmpty =>
+      'Nothing saved yet. On the home screen, swipe a card right or tap ♡.';
+
+  @override
+  String get fdUnsave => 'Remove from saved';
 }

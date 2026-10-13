@@ -14,6 +14,7 @@ import '../../catalog/presentation/catalog_detail_screen.dart';
 import '../../catalog/presentation/catalog_format.dart';
 import '../data/application_windows.dart';
 import '../data/saved_universities.dart';
+import '../data/slots.dart';
 import 'discover_routes.dart';
 import 'widgets/uni_stack_card.dart';
 
@@ -121,6 +122,7 @@ class _UniversityScreenState extends ConsumerState<UniversityScreen> {
     final groups = facultyGroups(detail?.faculties ?? const [], byFaculty: kListFacultiesByName.contains(g.id));
     final majorCount = groups.fold<int>(0, (s, x) => s + majorsOf(x).length);
     final saved = ref.watch(savedUniversitiesProvider).contains(u.institutionId);
+    final slots = ref.watch(slotsProvider);
     final window = ref.watch(applicationWindowsProvider).value?[g.id];
     final deadline = window?.endDate ?? window?.startDate;
     final season = seasonLabel(l, g);
@@ -253,8 +255,17 @@ class _UniversityScreenState extends ConsumerState<UniversityScreen> {
           ),
         ),
         _BottomBar(
-          saved: saved,
-          onSave: toggleSaved,
+          slot: slots.indexOf(u.institutionId),
+          onSlot: () {
+            final n = ref.read(slotsProvider.notifier);
+            if (n.indexOf(u.institutionId) >= 0) {
+              n.remove(u.institutionId);
+            } else if (!n.add(u.institutionId)) {
+              ScaffoldMessenger.of(context)
+                ..hideCurrentSnackBar()
+                ..showSnackBar(SnackBar(content: Text(l.fdSlotsFull)));
+            }
+          },
           onAssess: () => context.push(kAssessmentPath, extra: u.institutionId),
         ),
       ],
@@ -745,11 +756,14 @@ class _InfoCard extends StatelessWidget {
   }
 }
 
+/// "✓ 1-slotda" (or "Slotga qo'shish"), the dashed "Qabul ?%", and the
+/// main "Koreaga keta olamanmi o'zi?".
 class _BottomBar extends StatelessWidget {
-  const _BottomBar({required this.saved, required this.onSave, required this.onAssess});
+  const _BottomBar({required this.slot, required this.onSlot, required this.onAssess});
 
-  final bool saved;
-  final VoidCallback onSave;
+  /// The slot this university is in, or -1.
+  final int slot;
+  final VoidCallback onSlot;
   final VoidCallback onAssess;
 
   @override
@@ -763,12 +777,15 @@ class _BottomBar extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: HardChoice(
-                  label: saved ? '✓ ${l.fdSaved}' : l.fdSave,
-                  selected: saved,
-                  height: 44,
-                  fontWeight: FontWeight.w800,
-                  onTap: onSave,
+                child: Semantics(
+                  hint: slot >= 0 ? l.fdRemoveFromSlot : null,
+                  child: HardChoice(
+                    label: slot >= 0 ? l.fdInSlot(slot + 1) : '+ ${l.fdAddToSlot}',
+                    selected: slot >= 0,
+                    height: 44,
+                    fontWeight: FontWeight.w800,
+                    onTap: onSlot,
+                  ),
                 ),
               ),
               const SizedBox(width: 8),
