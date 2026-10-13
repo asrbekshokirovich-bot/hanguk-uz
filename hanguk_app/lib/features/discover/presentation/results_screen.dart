@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/lucide.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../auth/presentation/widgets/sign_in_chrome.dart';
 import '../../catalog/data/catalog_filters.dart';
 import '../../catalog/data/catalog_repository.dart';
 import '../../catalog/domain/catalog_models.dart';
@@ -26,7 +25,7 @@ class ResultsScreen extends ConsumerWidget {
     final list = boardResults(ref, all, f);
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: SignInBackdrop(
+      body: FdPage(
         child: SafeArea(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -41,7 +40,7 @@ class ResultsScreen extends ConsumerWidget {
                       onTap: () => context.pop(),
                     ),
                     const SizedBox(width: 10),
-                    Expanded(child: Text(l.catalogAiResultsTitle, style: fdText(18, FontWeight.w800, Colors.white))),
+                    Expanded(child: Text(l.catalogAiResultsTitle, style: fdText(18, FontWeight.w800, FdColors.ink))),
                     Text(l.fdCountTa(list.length), style: fdText(11, FontWeight.w700, FdColors.pageMuted)),
                   ],
                 ),

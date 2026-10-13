@@ -7,7 +7,6 @@ import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/hard_slider.dart';
 import '../../../design_system/seoul_night/widgets/lucide.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../auth/presentation/widgets/sign_in_chrome.dart';
 import '../../catalog/data/catalog_filters.dart';
 import '../../catalog/data/catalog_repository.dart';
 import '../../catalog/domain/catalog_models.dart';
@@ -57,7 +56,7 @@ class FilterBoardScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: SignInBackdrop(
+      body: FdPage(
         child: SafeArea(
           bottom: false,
           child: Column(
@@ -93,9 +92,9 @@ class FilterBoardScreen extends ConsumerWidget {
                           alignment: Alignment.center,
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(999),
-                            border: Border.all(color: Colors.white, width: 1.5),
+                            border: Border.all(color: FdColors.ink, width: 1.5),
                           ),
-                          child: Text(l.catalogFilterClear, style: fdText(11, FontWeight.w700, Colors.white)),
+                          child: Text(l.catalogFilterClear, style: fdText(11, FontWeight.w700, FdColors.ink)),
                         ),
                       ),
                     ),
@@ -255,7 +254,7 @@ class FilterBoardScreen extends ConsumerWidget {
     );
   }
 
-  static final TextStyle _title = fdText(18, FontWeight.w800, Colors.white, letterSpacing: -0.36);
+  static final TextStyle _title = fdText(18, FontWeight.w800, FdColors.ink, letterSpacing: -0.36);
 }
 
 /// "28 ta mos universitet · 350 tadan" over a 50-tick meter.

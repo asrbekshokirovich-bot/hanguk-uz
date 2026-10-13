@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../design_system/seoul_night/widgets/lucide.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../auth/presentation/widgets/sign_in_chrome.dart';
+import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../guest/presentation/guest_map_screen.dart';
 import 'discover_screen.dart';
 import 'prepare_screen.dart';
@@ -27,7 +27,7 @@ class _DiscoverShellState extends State<DiscoverShell> {
     final l = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: SignInBackdrop(
+      body: FdPage(
         child: IndexedStack(
           index: _tab,
           children: [

@@ -6,7 +6,6 @@ import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/lucide.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../auth/presentation/widgets/sign_in_chrome.dart';
 import '../../catalog/data/ai_search.dart';
 import '../../catalog/data/campus_photos.dart';
 import '../../catalog/data/catalog_filters.dart';
@@ -70,7 +69,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: SignInBackdrop(
+      body: FdPage(
         child: SafeArea(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -123,14 +122,14 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            Expanded(child: Text(l.catalogAiResultsTitle, style: fdText(13, FontWeight.w800, Colors.white))),
+                            Expanded(child: Text(l.catalogAiResultsTitle, style: fdText(13, FontWeight.w800, FdColors.ink))),
                             if (ai.loading) ...[
                               const SizedBox.square(
                                 dimension: 11,
-                                child: CircularProgressIndicator(strokeWidth: 1.6, color: SeoulColors.lime),
+                                child: CircularProgressIndicator(strokeWidth: 1.6, color: FdColors.navy),
                               ),
                               const SizedBox(width: 6),
-                              Text(l.catalogAiSearching, style: fdText(11, FontWeight.w700, SeoulColors.lime)),
+                              Text(l.catalogAiSearching, style: fdText(11, FontWeight.w700, FdColors.navy)),
                             ] else
                               Text(l.fdCountTa(rows.length), style: fdText(11, FontWeight.w700, FdColors.pageMuted)),
                           ],
@@ -151,7 +150,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            Text(l.fdPopularCities, style: fdText(13, FontWeight.w800, Colors.white)),
+                            Text(l.fdPopularCities, style: fdText(13, FontWeight.w800, FdColors.ink)),
                             const SizedBox(height: 6),
                             Row(
                               children: [
@@ -317,7 +316,7 @@ class SearchResultRow extends StatelessWidget {
     final meta = <InlineSpan>[
       if (u.city != null) TextSpan(text: u.city),
       if (price != null)
-        TextSpan(text: money(price, g.currency, locale: l.localeName), style: fdText(11, FontWeight.w800, Colors.white)),
+        TextSpan(text: money(price, g.currency, locale: l.localeName), style: fdText(11, FontWeight.w800, FdColors.ink)),
       if (topik != null) TextSpan(text: 'TOPIK ${scoreText(topik)}+'),
     ];
     return Semantics(
@@ -363,7 +362,7 @@ class SearchResultRow extends StatelessWidget {
                       u.displayName,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: fdText(14, FontWeight.w800, Colors.white, height: 1.2),
+                      style: fdText(14, FontWeight.w800, FdColors.ink, height: 1.2),
                     ),
                     if (meta.isNotEmpty) ...[
                       const SizedBox(height: 2),

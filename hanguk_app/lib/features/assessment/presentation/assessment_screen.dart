@@ -7,7 +7,6 @@ import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/hard_slider.dart';
 import '../../../design_system/seoul_night/widgets/lucide.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../auth/presentation/widgets/sign_in_chrome.dart';
 import '../../catalog/data/campus_photos.dart';
 import '../../catalog/data/catalog_repository.dart';
 import '../../discover/data/saved_universities.dart';
@@ -64,7 +63,7 @@ class _AssessmentScreenState extends ConsumerState<AssessmentScreen> {
 
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: SignInBackdrop(
+      body: FdPage(
         child: SafeArea(
           bottom: false,
           child: Column(
@@ -87,7 +86,7 @@ class _AssessmentScreenState extends ConsumerState<AssessmentScreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: outcome == null
-                    ? const SizedBox(height: 120, child: Center(child: CircularProgressIndicator(color: SeoulColors.lime)))
+                    ? const SizedBox(height: 120, child: Center(child: CircularProgressIndicator(color: FdColors.navy)))
                     : _Meters(outcome: outcome, input: input),
               ),
               Expanded(
@@ -211,7 +210,7 @@ class _AssessTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final style = fdText(18, FontWeight.w800, Colors.white, letterSpacing: -0.36);
+    final style = fdText(18, FontWeight.w800, FdColors.ink, letterSpacing: -0.36);
     return Wrap(
       crossAxisAlignment: WrapCrossAlignment.end,
       children: [Text('$lead ', style: style), LimeMark(mark, style: style)],

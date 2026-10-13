@@ -53,7 +53,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
     return SafeArea(
       bottom: false,
       child: async.when(
-        loading: () => const Center(child: CircularProgressIndicator(color: SeoulColors.lime)),
+        loading: () => const Center(child: CircularProgressIndicator(color: FdColors.navy)),
         error: (_, _) => Center(
           child: Padding(
             padding: const EdgeInsets.all(24),
@@ -220,7 +220,7 @@ class _Header extends StatelessWidget {
           Semantics(
             label: 'Hanguk Consulting',
             excludeSemantics: true,
-            child: Text('Hanguk', style: fdText(17, FontWeight.w800, Colors.white, letterSpacing: -0.17)),
+            child: Text('Hanguk', style: fdText(17, FontWeight.w800, FdColors.ink, letterSpacing: -0.17)),
           ),
           const Spacer(),
           if (intake != null) Text(intake!, style: fdText(11, FontWeight.w700, FdColors.pageMuted)),

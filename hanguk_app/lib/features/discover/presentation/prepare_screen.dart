@@ -27,7 +27,7 @@ class PrepareScreen extends StatelessWidget {
             child: ExcludeSemantics(
               child: Text(
                 '준비',
-                style: fdText(104, FontWeight.w800, const Color(0x12FFFFFF), height: 1, letterSpacing: -4),
+                style: fdText(104, FontWeight.w800, FdColors.ghost, height: 1, letterSpacing: -4),
               ),
             ),
           ),
@@ -40,7 +40,7 @@ class PrepareScreen extends StatelessWidget {
                 alignment: Alignment.centerLeft,
                 child: LimeMark(
                   l.fdPrepareTitle,
-                  style: fdText(26, FontWeight.w800, Colors.white, height: 1, letterSpacing: -0.78),
+                  style: fdText(26, FontWeight.w800, FdColors.ink, height: 1, letterSpacing: -0.78),
                 ),
               ),
               const SizedBox(height: 22),

@@ -6,7 +6,6 @@ import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/lucide.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../auth/presentation/widgets/sign_in_chrome.dart';
 import '../../catalog/data/campus_photos.dart';
 import '../../catalog/data/catalog_filters.dart';
 import '../../catalog/data/catalog_repository.dart';
@@ -68,10 +67,10 @@ class _UniversityScreenState extends ConsumerState<UniversityScreen> {
 
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: SignInBackdrop(
+      body: FdPage(
         child: u == null
             ? catalog.isLoading
-                  ? const Center(child: CircularProgressIndicator(color: FdColors.lime))
+                  ? const Center(child: CircularProgressIndicator(color: FdColors.navy))
                   : SafeArea(
                       child: Padding(
                         padding: const EdgeInsets.all(16),
@@ -87,7 +86,7 @@ class _UniversityScreenState extends ConsumerState<UniversityScreen> {
                               onTap: () => _back(context),
                             ),
                             const Spacer(),
-                            Center(child: Text(l.uniDbLoadFailed, style: fdText(14, FontWeight.w600, Colors.white))),
+                            Center(child: Text(l.uniDbLoadFailed, style: fdText(14, FontWeight.w600, FdColors.ink))),
                             const SizedBox(height: 12),
                             Center(
                               child: SeoulOutlineButton(
@@ -168,10 +167,10 @@ class _UniversityScreenState extends ConsumerState<UniversityScreen> {
                     if (u.nameKo != null)
                       Text(
                         u.nameKo!,
-                        style: fdText(30, FontWeight.w800, SeoulColors.infoText, height: 1.1, letterSpacing: -0.9),
+                        style: fdText(30, FontWeight.w800, FdColors.navy, height: 1.1, letterSpacing: -0.9),
                       ),
                     const SizedBox(height: 3),
-                    Text(u.displayName, style: fdText(17, FontWeight.w700, Colors.white)),
+                    Text(u.displayName, style: fdText(17, FontWeight.w700, FdColors.ink)),
                     const SizedBox(height: 11),
                     Wrap(
                       spacing: 6,
@@ -220,7 +219,7 @@ class _UniversityScreenState extends ConsumerState<UniversityScreen> {
                   crossAxisAlignment: CrossAxisAlignment.baseline,
                   textBaseline: TextBaseline.alphabetic,
                   children: [
-                    Expanded(child: Text(l.catalogFaculties, style: fdText(15, FontWeight.w800, Colors.white))),
+                    Expanded(child: Text(l.catalogFaculties, style: fdText(15, FontWeight.w800, FdColors.ink))),
                     if (groups.isNotEmpty)
                       Text(
                         l.fdUniFacultiesSummary(groups.length, majorCount),
@@ -266,7 +265,7 @@ class _UniversityScreenState extends ConsumerState<UniversityScreen> {
     if (async.isLoading && groups.isEmpty) {
       return const Padding(
         padding: EdgeInsets.symmetric(vertical: 20),
-        child: Center(child: CircularProgressIndicator(color: FdColors.lime)),
+        child: Center(child: CircularProgressIndicator(color: FdColors.navy)),
       );
     }
     if (async.hasError && groups.isEmpty) {
@@ -780,10 +779,10 @@ class _BottomBar extends StatelessWidget {
                     onTap: onAssess,
                     behavior: HitTestBehavior.opaque,
                     child: CustomPaint(
-                      painter: const DashedPillPainter(color: FdColors.lime, radius: 12),
+                      painter: const DashedPillPainter(color: FdColors.navy, radius: 12),
                       child: SizedBox(
                         height: 44,
-                        child: Center(child: Text(l.fdAdmissionUnknown, style: fdText(13, FontWeight.w800, FdColors.lime))),
+                        child: Center(child: Text(l.fdAdmissionUnknown, style: fdText(13, FontWeight.w800, FdColors.navy))),
                       ),
                     ),
                   ),

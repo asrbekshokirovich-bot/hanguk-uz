@@ -6,11 +6,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
 
-import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/lucide.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../auth/presentation/widgets/sign_in_chrome.dart';
 import '../../discover/presentation/discover_routes.dart';
 import '../../entry/data/entry_store.dart';
 import '../../entry/presentation/widgets/entry_fields.dart';
@@ -116,14 +114,14 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
     if (outcome == null) {
       return const Scaffold(
         backgroundColor: Colors.transparent,
-        body: SignInBackdrop(child: Center(child: CircularProgressIndicator(color: SeoulColors.lime))),
+        body: FdPage(child: Center(child: CircularProgressIndicator(color: FdColors.navy))),
       );
     }
     final best = outcome.chances.isEmpty ? 0 : outcome.chances.map((c) => c.percent).reduce((a, b) => a > b ? a : b);
 
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: SignInBackdrop(
+      body: FdPage(
         child: SafeArea(
           child: Stack(
             children: [
@@ -131,7 +129,7 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
                 right: -10,
                 top: -14,
                 child: ExcludeSemantics(
-                  child: Text('결과', style: fdText(100, FontWeight.w800, const Color(0x12FFFFFF), height: 1, letterSpacing: -4)),
+                  child: Text('결과', style: fdText(100, FontWeight.w800, FdColors.ghost, height: 1, letterSpacing: -4)),
                 ),
               ),
               ListView(
@@ -170,10 +168,11 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
                       children: [
                         LimeMark(
                           _verdict(l, outcome.band),
-                          style: fdText(54, FontWeight.w800, Colors.white, height: 1, letterSpacing: -2.16),
+                          style: fdText(54, FontWeight.w800, FdColors.ink, height: 1, letterSpacing: -2.16),
+                          from: 0.6,
                         ),
                         const SizedBox(height: 4),
-                        Text(_verdictNote(l, outcome.band), style: fdText(14, FontWeight.w700, Colors.white, height: 1.35)),
+                        Text(_verdictNote(l, outcome.band), style: fdText(14, FontWeight.w700, FdColors.ink, height: 1.35)),
                       ],
                     ),
                   ),

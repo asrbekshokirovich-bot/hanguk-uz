@@ -55,7 +55,7 @@ class SentScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: SignInBackdrop(
+      body: FdPage(
         child: SafeArea(
           child: Stack(
             children: [
@@ -63,7 +63,7 @@ class SentScreen extends ConsumerWidget {
                 right: -12,
                 top: -14,
                 child: ExcludeSemantics(
-                  child: Text('감사', style: fdText(104, FontWeight.w800, const Color(0x12FFFFFF), height: 1, letterSpacing: -4)),
+                  child: Text('감사', style: fdText(104, FontWeight.w800, FdColors.ghost, height: 1, letterSpacing: -4)),
                 ),
               ),
               LayoutBuilder(
@@ -165,7 +165,7 @@ class SentScreen extends ConsumerWidget {
     );
   }
 
-  static final TextStyle _big = fdText(32, FontWeight.w800, Colors.white, height: 1.1, letterSpacing: -0.96);
+  static final TextStyle _big = fdText(32, FontWeight.w800, FdColors.ink, height: 1.1, letterSpacing: -0.96);
 }
 
 /// The agency's card: the logo, "Hanguk Consulting", and Telegram / call.

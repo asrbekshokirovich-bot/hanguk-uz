@@ -1,19 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../seoul_night_tokens.dart';
 import '../seoul_night_typography.dart';
 import 'hard_shadow.dart';
 import 'lucide.dart';
 
-/// The full design's ("Hanguk App — Full Design") palette. The design draws
-/// on a light page; the app keeps its navy backdrop (owner, 2026-10-12), so
-/// the page-level text that the design sets in ink is white here, and
-/// everything inside a white card keeps the design's colours exactly.
+/// The full design's ("Hanguk App — Full Design") palette, on the design's
+/// light page (owner, 2026-10-13).
 abstract final class FdColors {
   static const Color ink = SeoulColors.ink; // #0A1A34
   static const Color lime = SeoulColors.lime; // #D4E94C
   static const Color navy = SeoulColors.royalBlue; // #1A3A6C
   static const Color card = Colors.white;
+
+  /// The page behind everything (`#EFF2F5`).
+  static const Color page = Color(0xFFEFF2F5);
+
+  /// The ghost hangul behind a title ("결과", "감사").
+  static const Color ghost = Color(0xFFD9DFE8);
 
   /// Text on lime, on a white card's lime parts.
   static const Color onLime = Color(0xFF16203A);
@@ -37,12 +42,11 @@ abstract final class FdColors {
   /// Secondary text on a navy card.
   static const Color onNavyMuted = Color(0xFFD6DEEC);
 
-  /// Page-level secondary text: the design's #52627A, read on the navy
-  /// backdrop.
-  static const Color pageMuted = Color(0xFFA9B7CE);
+  /// Page-level secondary text.
+  static const Color pageMuted = muted;
 
   /// Page-level hairlines (the design's 1.5px ink rules).
-  static const Color pageRule = Color(0x2EFFFFFF);
+  static const Color pageRule = ink;
 }
 
 /// Inter at the design's size and weight. [height] defaults to CSS
@@ -65,17 +69,53 @@ TextStyle fdText(
 );
 
 /// A word the design marks with its lime highlighter
-/// (`linear-gradient(transparent 55%, #D4E94C 55%)`). On the navy page the
-/// highlighter would sit under white text and wash it out, so the word is set
-/// in lime instead — the way screen 02 marks "tanlang".
+/// (`linear-gradient(transparent 55%, #D4E94C 55%)`): lime behind the lower
+/// part of the line, the text itself in [style]'s colour.
 class LimeMark extends StatelessWidget {
-  const LimeMark(this.text, {super.key, required this.style});
+  const LimeMark(this.text, {super.key, required this.style, this.from = 0.55});
 
   final String text;
   final TextStyle style;
 
+  /// Where the lime starts, as a fraction of the line's height (the report's
+  /// verdict uses 60%).
+  final double from;
+
   @override
-  Widget build(BuildContext context) => Text(text, style: style.copyWith(color: FdColors.lime));
+  Widget build(BuildContext context) => CustomPaint(
+    painter: _Highlighter(from),
+    child: Text(text, style: style),
+  );
+}
+
+class _Highlighter extends CustomPainter {
+  const _Highlighter(this.from);
+
+  final double from;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.drawRect(
+      Rect.fromLTRB(0, size.height * from, size.width, size.height),
+      Paint()..color = FdColors.lime,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_Highlighter old) => old.from != from;
+}
+
+/// The design's light page: `#EFF2F5` with dark status-bar icons.
+class FdPage extends StatelessWidget {
+  const FdPage({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => AnnotatedRegion<SystemUiOverlayStyle>(
+    value: SystemUiOverlayStyle.dark.copyWith(statusBarColor: Colors.transparent),
+    child: ColoredBox(color: FdColors.page, child: child),
+  );
 }
 
 /// A square hard-shadow button holding one icon: the 36px back button, the
@@ -211,7 +251,7 @@ class FdSectionLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final label = Text(text, style: fdText(13, FontWeight.w800, Colors.white));
+    final label = Text(text, style: fdText(13, FontWeight.w800, FdColors.ink));
     if (trailing == null) return label;
     return Row(children: [Expanded(child: label), trailing!]);
   }
@@ -245,7 +285,10 @@ class FdBottomBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final inset = MediaQuery.paddingOf(context).bottom;
     return DecoratedBox(
-      decoration: const BoxDecoration(border: Border(top: BorderSide(color: FdColors.pageRule, width: 1.5))),
+      decoration: const BoxDecoration(
+        color: FdColors.page,
+        border: Border(top: BorderSide(color: FdColors.pageRule, width: 1.5)),
+      ),
       child: Padding(
         padding: EdgeInsets.fromLTRB(16, 12, 16, inset > 0 ? inset : 16),
         child: child,
