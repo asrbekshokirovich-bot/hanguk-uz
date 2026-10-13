@@ -50,7 +50,7 @@ class UniStackCard extends StatelessWidget {
     final u = university;
     final g = guideline;
     final photo = campusPhotoAsset(u.institutionId);
-    final qs = qsRankOf(u.institutionId);
+    final qs = worldRankOf(u.institutionId);
     final price = priceOf(g);
     final topik = g.topikMin;
     final place = u.city == null ? null : splitCity(u.city!);
@@ -270,7 +270,7 @@ class _TypeLine extends StatelessWidget {
   }
 }
 
-/// The navy "QS WORLD" block: the position in lime, and "~1400 · jahon
+/// The navy "QS WORLD" (or "THE WORLD") block: the position in lime, and "~1400 · jahon
 /// reytingi" under it (for a band, its last place).
 class _QsBlock extends StatelessWidget {
   const _QsBlock({required this.rank});
@@ -298,7 +298,7 @@ class _QsBlock extends StatelessWidget {
             children: [
               const Lucide(LucideIcons.trophy, size: 11, color: FdColors.lime),
               const SizedBox(width: 4),
-              Text('QS WORLD', style: fdText(9, FontWeight.w800, FdColors.onNavyMuted, letterSpacing: 0.6)),
+              Text(rank.source == RankSource.the ? 'THE WORLD' : 'QS WORLD', style: fdText(9, FontWeight.w800, FdColors.onNavyMuted, letterSpacing: 0.6)),
             ],
           ),
           const SizedBox(height: 4),

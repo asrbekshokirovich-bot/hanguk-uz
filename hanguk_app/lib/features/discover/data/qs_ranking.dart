@@ -1,11 +1,26 @@
-/// QS World University Rankings position of a university, for the QS block
-/// on the home card (design screen 03).
+/// Who published a ranking.
+enum RankSource { qs, the }
+
+/// World ranking position of a university, for the ranking block on the home
+/// card (design screen 03): the QS World University Rankings, and the Times
+/// Higher Education World University Rankings for a university QS does not
+/// list.
 ///
-/// [from] is the position, or the first of QS's band for the lower ranks
+/// [from] is the position, or the first of the band for the lower ranks
 /// ("1201-1400"); [to] is the band's last. The block is drawn only for
-/// universities listed in [kQsRanks]; the others show the card without it.
+/// universities in [kQsRanks] or [kTheRanks]; the others show the card
+/// without it.
 class QsRank {
-  const QsRank(this.from, [this.to, this.tied = false, this.openEnded = false]);
+  const QsRank(
+    this.from, [
+    this.to,
+    this.tied = false,
+    this.openEnded = false,
+    this.source = RankSource.qs,
+  ]);
+
+  /// Where the position comes from.
+  final RankSource source;
 
   final int from;
   final int? to;
@@ -20,7 +35,7 @@ class QsRank {
   String get label => openEnded ? '$from+' : (tied ? '=$from' : '$from');
 
   /// "38", "=52", "1201-1400" or "1401+".
-  static QsRank? parse(String text) {
+  static QsRank? parse(String text, {RankSource source = RankSource.qs}) {
     final m = RegExp(
       r'^\s*(=?)(\d+)(?:\s*[-–]\s*(\d+)|(\+))?\s*$',
     ).firstMatch(text);
@@ -32,6 +47,7 @@ class QsRank {
       to != null && to > from ? to : null,
       m.group(1) == '=',
       m.group(4) != null,
+      source,
     );
   }
 }
@@ -99,7 +115,25 @@ const Map<String, String> kQsRanks = {
   'aca61dee-fc98-42fd-966f-62dd2fb75dee': '1401+', // Hongik University
 };
 
+/// THE World University Rankings 2026 for the catalogue universities QS does
+/// not list, from THE's own ranking data
+/// (timeshighereducation.com, world-university-rankings/2026/world-ranking).
+/// Chosun University is in THE's last band, 1501+.
+const Map<String, String> kTheRanks = {
+  '668564cc-8da1-4989-9829-a79cf07a3783': '1501+', // Chosun University
+  'd76edb4e-ee03-4055-b74c-4e98747bb034':
+      '1201-1500', // Incheon National University
+};
+
 QsRank? qsRankOf(String institutionId) {
   final text = kQsRanks[institutionId];
   return text == null ? null : QsRank.parse(text);
+}
+
+/// The position the card shows: QS's, else THE's, else none.
+QsRank? worldRankOf(String institutionId) {
+  final qs = qsRankOf(institutionId);
+  if (qs != null) return qs;
+  final text = kTheRanks[institutionId];
+  return text == null ? null : QsRank.parse(text, source: RankSource.the);
 }

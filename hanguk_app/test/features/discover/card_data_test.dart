@@ -31,6 +31,21 @@ void main() {
     });
   });
 
+  test('a university QS does not list takes THE\'s position', () {
+    const chosun = '668564cc-8da1-4989-9829-a79cf07a3783';
+    expect(kQsRanks.containsKey(chosun), isFalse);
+    final r = worldRankOf(chosun)!;
+    expect((r.source, r.label), (RankSource.the, '1501+'));
+    final incheon = worldRankOf('d76edb4e-ee03-4055-b74c-4e98747bb034')!;
+    expect((incheon.source, incheon.from, incheon.to), (RankSource.the, 1201, 1500));
+    // QS wins where both list it.
+    expect(worldRankOf('11111111-1111-1111-1111-111111111111')!.source, RankSource.qs);
+    expect(worldRankOf('nope'), isNull);
+    for (final e in kTheRanks.entries) {
+      expect(kQsRanks.containsKey(e.key), isFalse, reason: 'THE is only for the ones QS lacks');
+    }
+  });
+
   test('splitCity separates the province the Excel adds', () {
     expect(splitCity('Gangneung (Gangwon-do)'), (city: 'Gangneung', province: 'Gangwon'));
     expect(splitCity('Gongju (Chungcheongnam-do)'), (city: 'Gongju', province: 'Chungcheongnam'));
