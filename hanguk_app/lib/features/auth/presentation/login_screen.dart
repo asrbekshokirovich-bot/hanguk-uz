@@ -8,6 +8,7 @@ import '../../../l10n/app_localizations.dart';
 import '../data/auth_repository.dart';
 import 'widgets/auth_controls.dart';
 import 'widgets/sign_in_chrome.dart';
+import '../../discover/presentation/discover_routes.dart';
 
 // ─── Login Screen ──────────────────────────────────────────────────────────────
 
@@ -270,14 +271,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
   bool _isCodeReady(String text) =>
       text.replaceAll(RegExp(r'[^A-Za-z0-9]'), '').length >= 8;
 
-  /// Back to wherever the visitor came from — Welcome, in practice. A deep
-  /// link or a redirect can land here with nothing under it, so fall back to
-  /// Welcome instead of popping the app away.
+  /// Back to wherever the visitor came from — the home (design 03), in
+  /// practice. A deep link or a redirect can land here with nothing under it,
+  /// so fall back to the home instead of popping the app away.
   void _handleBack() {
     if (context.canPop()) {
       context.pop();
     } else {
-      context.go('/welcome');
+      context.go(kDiscoverPath);
     }
   }
 

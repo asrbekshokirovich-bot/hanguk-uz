@@ -13,7 +13,15 @@ import '../../features/entry/presentation/language_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
 import '../../features/home/presentation/home_tab_provider.dart';
 import '../../features/home/presentation/notifications_screen.dart';
-import '../../features/guest/presentation/guest_shell.dart';
+import '../../features/assessment/presentation/assessment_screen.dart';
+import '../../features/assessment/presentation/report_screen.dart';
+import '../../features/assessment/presentation/sent_screen.dart';
+import '../../features/discover/presentation/discover_routes.dart';
+import '../../features/discover/presentation/discover_shell.dart';
+import '../../features/discover/presentation/filter_board_screen.dart';
+import '../../features/discover/presentation/results_screen.dart';
+import '../../features/discover/presentation/search_screen.dart';
+import '../../features/discover/presentation/university_screen.dart';
 import '../../features/map/data/map_repository.dart';
 import '../../features/onboarding/onboarding_routes.dart';
 import '../../features/onboarding/presentation/quiz_s02_screen.dart';
@@ -63,11 +71,25 @@ List<RouteBase> _accountRoutes() => [
   ),
 ];
 
-/// Guest Explorer (DESIGN_SPEC 3b). Registered as a plain GoRoute so the
-/// catalogue can be reached without a session — see the redirect below,
-/// which lists `/guest` alongside `/welcome` and `/login`.
+/// The full design's guest flow: the home (03) with its search (04), filter
+/// board (05) and results, a university's page (10), and "Koreaga keta
+/// olamanmi o'zi?" (11–13). Plain GoRoutes so the catalogue can be reached
+/// without a session — see the redirect below.
 List<RouteBase> _guestRoutes() => [
-  GoRoute(path: '/guest', builder: (context, state) => const GuestShell()),
+  GoRoute(path: kDiscoverPath, builder: (context, state) => const DiscoverShell()),
+  GoRoute(path: kDiscoverSearchPath, builder: (context, state) => const SearchScreen()),
+  GoRoute(path: kDiscoverFilterPath, builder: (context, state) => const FilterBoardScreen()),
+  GoRoute(path: kDiscoverResultsPath, builder: (context, state) => const ResultsScreen()),
+  GoRoute(
+    path: '/university/:id',
+    builder: (context, state) => UniversityScreen(institutionId: state.pathParameters['id'] ?? ''),
+  ),
+  GoRoute(
+    path: kAssessmentPath,
+    builder: (context, state) => AssessmentScreen(startId: state.extra is String ? state.extra as String : null),
+  ),
+  GoRoute(path: kAssessmentReportPath, builder: (context, state) => const ReportScreen()),
+  GoRoute(path: kAssessmentSentPath, builder: (context, state) => const SentScreen()),
 ];
 
 /// The way in before Welcome: the language picker on first launch — see the
@@ -325,30 +347,33 @@ String? resolveAppRedirect({
   required bool isAuthenticated,
   required bool hasLanguage,
 }) {
-  final isGoingToLogin = loc == '/login';
-  final isGoingToWelcome = loc == '/welcome';
-  // Guest Explorer is a public surface: it reads only the anon-readable
-  // catalogue view and holds no student data. `/walkaround` rides along
-  // because the guest map's detail sheet opens it — it is a Kakao
-  // panorama of a campus, catalogue content like any other, and it
-  // resolves through the same public view. Without this a guest tapping
-  // it would be bounced out to /welcome mid-browse.
+  final path = Uri.parse(loc).path;
+  final isGoingToLogin = path == '/login';
+  final isGoingToWelcome = path == '/welcome';
+  // The guest flow is a public surface: it reads only the anon-readable
+  // catalogue views and holds no student data. `/walkaround` rides along
+  // because the map's detail sheet opens it — a Kakao panorama of a campus,
+  // catalogue content like any other. A university's page (10) and the
+  // assessment (11–13) are public too: the visitor gives a phone only in 12.
   final isGoingToGuest =
-      loc.startsWith('/guest') || loc.startsWith('/walkaround');
+      path.startsWith('/guest') ||
+      path.startsWith('/walkaround') ||
+      path.startsWith('/university/') ||
+      path == kAssessmentPath ||
+      path.startsWith('$kAssessmentPath/');
 
-  final isGoingToLanguage = loc == '/language';
-  // "Viza imkoniyatim" (S02–S06) is public too: the quiz, the result and the
-  // tariffs are seen before any phone is given (owner, 2026-10-05).
-  final isGoingToOnboarding = isOnboardingPath(Uri.parse(loc).path);
+  final isGoingToLanguage = path == '/language';
+  // The old "Viza imkoniyatim" screens (S01–S06) stay reachable by link until
+  // they are removed; nothing in the flow leads there any more.
+  final isGoingToOnboarding = isOnboardingPath(path);
 
   if (isLoading) return null;
 
-  // The way in: the language on first launch, then Welcome (S01). There is
-  // no sign-up any more (owner, 2026-10-05): the phone is asked in S04 only.
+  // The way in: the language on first launch, then the home (design 03).
   // A signed-in student skips all of it.
   if (!isAuthenticated) {
     if (!hasLanguage) return isGoingToLanguage ? null : '/language';
-    if (isGoingToLanguage) return '/welcome';
+    if (isGoingToLanguage) return kDiscoverPath;
   }
 
   if (!isAuthenticated &&
@@ -356,17 +381,17 @@ String? resolveAppRedirect({
       !isGoingToWelcome &&
       !isGoingToGuest &&
       !isGoingToOnboarding) {
-    return '/welcome';
+    return kDiscoverPath;
   }
 
-  // A signed-in student has the real thing; guest mode is a lesser view
+  // A signed-in student has the real thing; the guest home is a lesser view
   // of it, so send them home rather than letting them land there.
   if (isAuthenticated &&
       (isGoingToLogin ||
           isGoingToWelcome ||
           isGoingToLanguage ||
           isGoingToOnboarding ||
-          loc.startsWith('/guest'))) {
+          path.startsWith('/guest'))) {
     return '/';
   }
 

@@ -3476,4 +3476,385 @@ class AppLocalizationsEn extends AppLocalizations {
   String catalogAiFields(String fields) {
     return 'Programs: $fields';
   }
+
+  @override
+  String fdIntakeLabel(String season) {
+    return '$season intake';
+  }
+
+  @override
+  String get fdSearchHint => 'Search universities';
+
+  @override
+  String get fdCellLanguage => 'Language';
+
+  @override
+  String get fdCellDeadline => 'Deadline';
+
+  @override
+  String get fdAdmissionUnknown => 'Admission ?%';
+
+  @override
+  String fdCounter(int current, int total) {
+    return '$current / $total';
+  }
+
+  @override
+  String get fdBannerUniversities => 'universities';
+
+  @override
+  String get fdBannerSubtitle => 'By field · city · TOPIK';
+
+  @override
+  String get fdSkip => 'Skip';
+
+  @override
+  String get fdSave => 'Save';
+
+  @override
+  String get fdPrevious => 'Previous';
+
+  @override
+  String get fdNext => 'Next';
+
+  @override
+  String get fdNavUniversities => 'Universities';
+
+  @override
+  String get fdNavMap => '360° map';
+
+  @override
+  String get fdNavPrepare => 'Preparation';
+
+  @override
+  String get fdPrepareEyebrow => 'Getting ready for';
+
+  @override
+  String get fdPrepareTitle => 'university';
+
+  @override
+  String fdPrepareStudyPlanSteps(int done, int total) {
+    return '$done / $total steps';
+  }
+
+  @override
+  String get fdPrepareStudyPlanTitle => 'Write your Study Plan';
+
+  @override
+  String get fdPrepareStudyPlanBody =>
+      'Write your study plan in 4 steps; Hanguk AI gives feedback.';
+
+  @override
+  String get fdPrepareNew => 'New';
+
+  @override
+  String get fdPrepareInterviewTitle => 'Interview practice';
+
+  @override
+  String get fdPrepareInterviewBody =>
+      'Practise 8 questions out loud with the Hanguk AI interviewer.';
+
+  @override
+  String get fdPrepareAskTitle => 'Ask Hanguk AI';
+
+  @override
+  String get fdPrepareAskBody => 'About documents, visas, dormitories';
+
+  @override
+  String get fdRecentSearches => 'Recent searches';
+
+  @override
+  String fdCountTa(int count) {
+    return '$count';
+  }
+
+  @override
+  String get fdPopularCities => 'Popular cities';
+
+  @override
+  String get fdFieldIt => 'IT';
+
+  @override
+  String get fdFieldBusiness => 'Business';
+
+  @override
+  String get fdFieldEngineering => 'Engineering';
+
+  @override
+  String get fdFieldMedicine => 'Medicine';
+
+  @override
+  String get fdFieldDesign => 'Design';
+
+  @override
+  String get fdFieldTourism => 'Tourism';
+
+  @override
+  String get fdFieldEducation => 'Education';
+
+  @override
+  String get fdRegionSeoul => 'Seoul';
+
+  @override
+  String get fdOther => 'Other';
+
+  @override
+  String get fdFilterTitleLead => 'What university';
+
+  @override
+  String get fdFilterTitleMark => 'do you need?';
+
+  @override
+  String get fdSectionField => 'Field';
+
+  @override
+  String get fdSectionCity => 'City';
+
+  @override
+  String get fdSectionDegree => 'Degree';
+
+  @override
+  String get fdSectionTopik => 'TOPIK required for admission';
+
+  @override
+  String get fdAny => 'Any';
+
+  @override
+  String get fdTopikNone => 'Not required';
+
+  @override
+  String get fdSectionFee => 'Tuition / semester';
+
+  @override
+  String fdFeeUpTo(String amount) {
+    return 'Up to $amount';
+  }
+
+  @override
+  String get fdSectionType => 'Type';
+
+  @override
+  String fdShowUniversities(int count) {
+    return 'Show $count universities →';
+  }
+
+  @override
+  String get fdMatchingUniversities => 'matching universities';
+
+  @override
+  String fdOfTotal(int total) {
+    return 'of $total';
+  }
+
+  @override
+  String get fdSegLow => 'Low';
+
+  @override
+  String get fdSegMid => 'Fair';
+
+  @override
+  String get fdSegGood => 'Good';
+
+  @override
+  String get fdSegHigh => 'High';
+
+  @override
+  String get fdSegVeryHigh => 'Very high';
+
+  @override
+  String get fdAssessTitleLead => 'Can I really go';
+
+  @override
+  String get fdAssessTitleMark => 'to Korea?';
+
+  @override
+  String get fdAssessTopik => 'My Korean (TOPIK)';
+
+  @override
+  String get fdAssessGpa => 'School certificate average';
+
+  @override
+  String get fdAssessBank => 'Bank balance (D-2)';
+
+  @override
+  String fdAssessBankNeed(String amount) {
+    return '$amount required';
+  }
+
+  @override
+  String fdMln(int n) {
+    return '₩${n}M';
+  }
+
+  @override
+  String get fdLanguageCourse => 'Language course';
+
+  @override
+  String get fdAssessRefused => 'Has a visa been refused before?';
+
+  @override
+  String get fdNo => 'No';
+
+  @override
+  String get fdYes => 'Yes';
+
+  @override
+  String get fdAssessSeeReport => 'See the report →';
+
+  @override
+  String fdAssessAdmissionCount(int n) {
+    return 'Admission · $n universities';
+  }
+
+  @override
+  String get fdVisa => 'Visa';
+
+  @override
+  String fdAssessTopikHint(int level, String uni, String word) {
+    return 'TOPIK $level → $uni admission becomes «$word»';
+  }
+
+  @override
+  String get fdReportNameError => 'Enter your name';
+
+  @override
+  String get fdReportPhoneError => 'Enter the full phone number';
+
+  @override
+  String get fdReportNetworkError =>
+      'Couldn\'t send. Check the connection and try again.';
+
+  @override
+  String get fdShare => 'Share';
+
+  @override
+  String get fdVerdictYes => 'YES';
+
+  @override
+  String get fdVerdictMaybe => 'MAYBE';
+
+  @override
+  String get fdVerdictNotYet => 'NOT YET';
+
+  @override
+  String get fdVerdictYesNote =>
+      'Your figures are enough — you can start the documents.';
+
+  @override
+  String get fdVerdictMaybeNote =>
+      'Raise one or two figures and the answer becomes «YES».';
+
+  @override
+  String get fdVerdictNotYetNote =>
+      'The figures aren\'t there yet — start with the steps below.';
+
+  @override
+  String get fdReportFixesTitle => 'What to do';
+
+  @override
+  String get fdReportAdmission => 'University admission';
+
+  @override
+  String fdReportOpenOf(int total, int open) {
+    return '$open of $total open';
+  }
+
+  @override
+  String get fdReportVisa => 'D-2 visa';
+
+  @override
+  String get fdReportStudy => 'Studying in Korea';
+
+  @override
+  String fdFixBank(String amount) {
+    return 'Bring the bank balance to $amount';
+  }
+
+  @override
+  String fdFixTopik(int level) {
+    return 'Reach TOPIK $level';
+  }
+
+  @override
+  String fdGainVisa(int n) {
+    return 'visa +$n%';
+  }
+
+  @override
+  String fdGainAdmission(int n) {
+    return 'admission +$n%';
+  }
+
+  @override
+  String get fdReportFormLead => 'We\'ll send the report';
+
+  @override
+  String get fdReportFormFree => 'free';
+
+  @override
+  String get fdReportFormTail => '';
+
+  @override
+  String get fdReportName => 'First and last name';
+
+  @override
+  String get fdReportSend => 'Send';
+
+  @override
+  String get fdSentThanks => 'Thank you';
+
+  @override
+  String fdSentBody(String phone) {
+    return 'The report was sent to $phone. Your consultant will call within 24 hours.';
+  }
+
+  @override
+  String get fdSentMeanwhile => 'Meanwhile';
+
+  @override
+  String get fdSentDocsTitle => 'Document list';
+
+  @override
+  String fdSentDocsBody(String uni, int count) {
+    return '$count documents for $uni';
+  }
+
+  @override
+  String fdSentTopikTitle(int level) {
+    return 'Prepare for TOPIK $level';
+  }
+
+  @override
+  String get fdSentBack => 'Back to universities';
+
+  @override
+  String get fdSentConsultant => 'Your consultant';
+
+  @override
+  String get fdSentCall => 'Call';
+
+  @override
+  String get fdUniTuitionSem => 'Tuition / sem';
+
+  @override
+  String get fdUniTuitionYear => 'Tuition / year';
+
+  @override
+  String get fdUniDeadline => 'Document deadline';
+
+  @override
+  String fdUniFacultiesSummary(int faculties, int majors) {
+    return '$faculties faculties · $majors programmes';
+  }
+
+  @override
+  String fdUniAllMajors(int count) {
+    return 'All $count programmes →';
+  }
+
+  @override
+  String get fdSaved => 'Saved';
+
+  @override
+  String get fdUniCta => 'Can I really go to Korea?';
 }

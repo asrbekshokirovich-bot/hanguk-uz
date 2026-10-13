@@ -1019,7 +1019,9 @@
           "english": "English",
           "money": "Budget and payer",
           "documents": "Income and deposit",
-          "whereWhen": "Region and when"
+          "whereWhen": "Region and when",
+          "assessment": "Assessment board",
+          "universities": "Universities"
         },
         "band": {
           "high": "High chance",
@@ -1080,6 +1082,11 @@
           "hanbox": "Hanbox"
         },
         "kdb": "KDB deposit",
+        "gpa": "Certificate: {{gpa}}",
+        "bankKrw": "Bank: ₩{{amount}}",
+        "visaRefused": "Visa refused before",
+        "visaNotRefused": "No visa refusal",
+        "visaPct": "Visa: {{pct}}%",
         "kdbStatus": {
           "ready": "ready",
           "by_intake": "by the intake",

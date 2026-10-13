@@ -59,6 +59,37 @@ export function LeadAppQuiz({ lead }: LeadAppQuizProps) {
     { key: 'whereWhen', value: [str(a.region), label('intake', a.intake)] },
   ];
 
+  // The app's assessment board (design screens 11–12) sends its own figures
+  // next to the codes above: the certificate, the bank in won, a prior visa
+  // refusal, and the universities with the chance the app showed for each.
+  if (a.source === 'assessment_v1') {
+    const r = lead.eligibility_result ?? {};
+    const bank = typeof a.bank_krw === 'number' ? a.bank_krw : null;
+    const visaPct = typeof r.visa_pct === 'number' ? r.visa_pct : null;
+    const unis = Array.isArray(r.universities) ? (r.universities as Record<string, unknown>[]) : [];
+    rows.push(
+      {
+        key: 'assessment',
+        value: [
+          str(a.gpa) ? t('leads.profile.app.gpa', { gpa: str(a.gpa) }) : null,
+          bank !== null ? t('leads.profile.app.bankKrw', { amount: bank.toLocaleString() }) : null,
+          typeof a.visa_refused === 'boolean'
+            ? t(a.visa_refused ? 'leads.profile.app.visaRefused' : 'leads.profile.app.visaNotRefused')
+            : null,
+          visaPct !== null ? t('leads.profile.app.visaPct', { pct: visaPct }) : null,
+        ],
+      },
+      {
+        key: 'universities',
+        value: unis.map((u) => {
+          const name = str(u.name);
+          if (!name) return null;
+          return typeof u.pct === 'number' ? `${name} ${u.pct}%` : name;
+        }),
+      },
+    );
+  }
+
   const band = lead.eligibility_band;
   const tariff = lead.tariff_interest;
   const sent = lead.quiz_submitted_at ? new Date(lead.quiz_submitted_at) : null;

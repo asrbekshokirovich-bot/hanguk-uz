@@ -3473,4 +3473,384 @@ class AppLocalizationsVi extends AppLocalizations {
   String catalogAiFields(String fields) {
     return 'Ngành: $fields';
   }
+
+  @override
+  String fdIntakeLabel(String season) {
+    return 'Kỳ tuyển $season';
+  }
+
+  @override
+  String get fdSearchHint => 'Tìm trường đại học';
+
+  @override
+  String get fdCellLanguage => 'Ngôn ngữ';
+
+  @override
+  String get fdCellDeadline => 'Hạn chót';
+
+  @override
+  String get fdAdmissionUnknown => 'Đỗ ?%';
+
+  @override
+  String fdCounter(int current, int total) {
+    return '$current / $total';
+  }
+
+  @override
+  String get fdBannerUniversities => 'trường';
+
+  @override
+  String get fdBannerSubtitle => 'Theo ngành · thành phố · TOPIK';
+
+  @override
+  String get fdSkip => 'Bỏ qua';
+
+  @override
+  String get fdSave => 'Lưu';
+
+  @override
+  String get fdPrevious => 'Trước';
+
+  @override
+  String get fdNext => 'Tiếp';
+
+  @override
+  String get fdNavUniversities => 'Trường';
+
+  @override
+  String get fdNavMap => 'Bản đồ 360°';
+
+  @override
+  String get fdNavPrepare => 'Chuẩn bị';
+
+  @override
+  String get fdPrepareEyebrow => 'Chuẩn bị';
+
+  @override
+  String get fdPrepareTitle => 'vào đại học';
+
+  @override
+  String fdPrepareStudyPlanSteps(int done, int total) {
+    return '$done / $total bước';
+  }
+
+  @override
+  String get fdPrepareStudyPlanTitle => 'Viết Study Plan';
+
+  @override
+  String get fdPrepareStudyPlanBody =>
+      'Viết kế hoạch học tập trong 4 bước, Hanguk AI sẽ nhận xét.';
+
+  @override
+  String get fdPrepareNew => 'Mới';
+
+  @override
+  String get fdPrepareInterviewTitle => 'Luyện phỏng vấn';
+
+  @override
+  String get fdPrepareInterviewBody =>
+      'Luyện nói 8 câu hỏi với người phỏng vấn Hanguk AI.';
+
+  @override
+  String get fdPrepareAskTitle => 'Hỏi Hanguk AI';
+
+  @override
+  String get fdPrepareAskBody => 'Về hồ sơ, visa, ký túc xá';
+
+  @override
+  String get fdRecentSearches => 'Tìm kiếm gần đây';
+
+  @override
+  String fdCountTa(int count) {
+    return '$count';
+  }
+
+  @override
+  String get fdPopularCities => 'Thành phố phổ biến';
+
+  @override
+  String get fdFieldIt => 'CNTT';
+
+  @override
+  String get fdFieldBusiness => 'Kinh doanh';
+
+  @override
+  String get fdFieldEngineering => 'Kỹ thuật';
+
+  @override
+  String get fdFieldMedicine => 'Y khoa';
+
+  @override
+  String get fdFieldDesign => 'Thiết kế';
+
+  @override
+  String get fdFieldTourism => 'Du lịch';
+
+  @override
+  String get fdFieldEducation => 'Sư phạm';
+
+  @override
+  String get fdRegionSeoul => 'Seoul';
+
+  @override
+  String get fdOther => 'Khác';
+
+  @override
+  String get fdFilterTitleLead => 'Bạn cần trường';
+
+  @override
+  String get fdFilterTitleMark => 'như thế nào?';
+
+  @override
+  String get fdSectionField => 'Ngành';
+
+  @override
+  String get fdSectionCity => 'Thành phố';
+
+  @override
+  String get fdSectionDegree => 'Bậc học';
+
+  @override
+  String get fdSectionTopik => 'TOPIK yêu cầu khi nhập học';
+
+  @override
+  String get fdAny => 'Bất kỳ';
+
+  @override
+  String get fdTopikNone => 'Không yêu cầu';
+
+  @override
+  String get fdSectionFee => 'Học phí / học kỳ';
+
+  @override
+  String fdFeeUpTo(String amount) {
+    return 'Đến $amount';
+  }
+
+  @override
+  String get fdSectionType => 'Loại';
+
+  @override
+  String fdShowUniversities(int count) {
+    return 'Xem $count trường →';
+  }
+
+  @override
+  String get fdMatchingUniversities => 'trường phù hợp';
+
+  @override
+  String fdOfTotal(int total) {
+    return 'trên $total';
+  }
+
+  @override
+  String get fdSegLow => 'Thấp';
+
+  @override
+  String get fdSegMid => 'Trung bình';
+
+  @override
+  String get fdSegGood => 'Khá';
+
+  @override
+  String get fdSegHigh => 'Cao';
+
+  @override
+  String get fdSegVeryHigh => 'Rất cao';
+
+  @override
+  String get fdAssessTitleLead => 'Liệu tôi có thể';
+
+  @override
+  String get fdAssessTitleMark => 'sang Hàn Quốc?';
+
+  @override
+  String get fdAssessTopik => 'Tiếng Hàn của tôi (TOPIK)';
+
+  @override
+  String get fdAssessGpa => 'Điểm trung bình học bạ';
+
+  @override
+  String get fdAssessBank => 'Số dư ngân hàng (D-2)';
+
+  @override
+  String fdAssessBankNeed(String amount) {
+    return 'cần $amount';
+  }
+
+  @override
+  String fdMln(int n) {
+    return '₩$n triệu';
+  }
+
+  @override
+  String get fdLanguageCourse => 'Khóa tiếng';
+
+  @override
+  String get fdAssessRefused => 'Bạn từng bị từ chối visa chưa?';
+
+  @override
+  String get fdNo => 'Không';
+
+  @override
+  String get fdYes => 'Có';
+
+  @override
+  String get fdAssessSeeReport => 'Xem báo cáo →';
+
+  @override
+  String fdAssessAdmissionCount(int n) {
+    return 'Nhập học · $n trường';
+  }
+
+  @override
+  String get fdVisa => 'Visa';
+
+  @override
+  String fdAssessTopikHint(int level, String uni, String word) {
+    return 'TOPIK $level → nhập học $uni sẽ là «$word»';
+  }
+
+  @override
+  String get fdReportNameError => 'Nhập tên của bạn';
+
+  @override
+  String get fdReportPhoneError => 'Nhập đầy đủ số điện thoại';
+
+  @override
+  String get fdReportNetworkError =>
+      'Không gửi được. Kiểm tra kết nối và thử lại.';
+
+  @override
+  String get fdShare => 'Chia sẻ';
+
+  @override
+  String get fdVerdictYes => 'CÓ';
+
+  @override
+  String get fdVerdictMaybe => 'CÓ THỂ';
+
+  @override
+  String get fdVerdictNotYet => 'CHƯA';
+
+  @override
+  String get fdVerdictYesNote => 'Chỉ số của bạn đã đủ — có thể bắt đầu hồ sơ.';
+
+  @override
+  String get fdVerdictMaybeNote =>
+      'Nâng một hai chỉ số, câu trả lời sẽ là «CÓ».';
+
+  @override
+  String get fdVerdictNotYetNote =>
+      'Chỉ số chưa đủ — hãy bắt đầu từ các bước dưới đây.';
+
+  @override
+  String get fdReportFixesTitle => 'Cần làm gì';
+
+  @override
+  String get fdReportAdmission => 'Nhập học';
+
+  @override
+  String fdReportOpenOf(int total, int open) {
+    return '$open/$total khả thi';
+  }
+
+  @override
+  String get fdReportVisa => 'Visa D-2';
+
+  @override
+  String get fdReportStudy => 'Du học Hàn Quốc';
+
+  @override
+  String fdFixBank(String amount) {
+    return 'Nâng số dư lên $amount';
+  }
+
+  @override
+  String fdFixTopik(int level) {
+    return 'Đạt TOPIK $level';
+  }
+
+  @override
+  String fdGainVisa(int n) {
+    return 'visa +$n%';
+  }
+
+  @override
+  String fdGainAdmission(int n) {
+    return 'nhập học +$n%';
+  }
+
+  @override
+  String get fdReportFormLead => 'Chúng tôi gửi báo cáo';
+
+  @override
+  String get fdReportFormFree => 'miễn phí';
+
+  @override
+  String get fdReportFormTail => '';
+
+  @override
+  String get fdReportName => 'Họ và tên';
+
+  @override
+  String get fdReportSend => 'Gửi';
+
+  @override
+  String get fdSentThanks => 'Cảm ơn';
+
+  @override
+  String fdSentBody(String phone) {
+    return 'Báo cáo đã gửi tới $phone. Tư vấn viên sẽ gọi trong 24 giờ.';
+  }
+
+  @override
+  String get fdSentMeanwhile => 'Trong lúc chờ';
+
+  @override
+  String get fdSentDocsTitle => 'Danh sách hồ sơ';
+
+  @override
+  String fdSentDocsBody(String uni, int count) {
+    return '$count giấy tờ cho $uni';
+  }
+
+  @override
+  String fdSentTopikTitle(int level) {
+    return 'Luyện thi TOPIK $level';
+  }
+
+  @override
+  String get fdSentBack => 'Về danh sách trường';
+
+  @override
+  String get fdSentConsultant => 'Tư vấn viên của bạn';
+
+  @override
+  String get fdSentCall => 'Gọi';
+
+  @override
+  String get fdUniTuitionSem => 'Học phí / kỳ';
+
+  @override
+  String get fdUniTuitionYear => 'Học phí / năm';
+
+  @override
+  String get fdUniDeadline => 'Hạn nộp hồ sơ';
+
+  @override
+  String fdUniFacultiesSummary(int faculties, int majors) {
+    return '$faculties khoa · $majors ngành';
+  }
+
+  @override
+  String fdUniAllMajors(int count) {
+    return 'Tất cả $count ngành →';
+  }
+
+  @override
+  String get fdSaved => 'Đã lưu';
+
+  @override
+  String get fdUniCta => 'Liệu tôi có thể sang Hàn Quốc?';
 }

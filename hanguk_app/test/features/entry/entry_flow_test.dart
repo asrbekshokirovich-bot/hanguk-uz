@@ -45,27 +45,41 @@ void main() {
       expect(go('/language', language: false), isNull);
     });
 
-    test('language chosen: Welcome (S01), no sign-up', () {
-      expect(go('/'), '/welcome');
-      expect(go('/language'), '/welcome');
-      expect(go('/register'), '/welcome');
-      expect(go('/welcome'), isNull);
+    test('language chosen: the home (design 03), no sign-up', () {
+      expect(go('/'), '/guest');
+      expect(go('/language'), '/guest');
+      expect(go('/register'), '/guest');
       expect(go('/guest'), isNull);
       expect(go('/login'), isNull);
     });
 
-    test('the quiz, its result and the tariffs are public', () {
+    test('the guest flow is public', () {
+      for (final loc in [
+        '/guest/search',
+        '/guest/filter',
+        '/guest/results',
+        '/university/abc',
+        '/assess',
+        '/assess/report',
+        '/assess/sent',
+      ]) {
+        expect(go(loc), isNull, reason: loc);
+      }
+    });
+
+    test('the old quiz is no longer the way in, but its links still open', () {
+      expect(go('/'), isNot('/welcome'));
+      expect(go('/welcome'), isNull);
       expect(go('/quiz'), isNull);
-      expect(go('/quiz/result'), isNull);
-      expect(go('/tariffs'), isNull);
       expect(go('/tariffs/premium'), isNull);
     });
 
     test('a signed-in student skips the way in', () {
-      for (final loc in ['/language', '/welcome', '/quiz', '/tariffs/premium', '/guest']) {
+      for (final loc in ['/language', '/welcome', '/quiz', '/tariffs/premium', '/guest', '/guest/search']) {
         expect(go(loc, auth: true, language: false), '/');
       }
       expect(go('/', auth: true, language: false), isNull);
+      expect(go('/university/abc', auth: true), isNull);
     });
 
     test('nothing moves while the session is loading', () {
