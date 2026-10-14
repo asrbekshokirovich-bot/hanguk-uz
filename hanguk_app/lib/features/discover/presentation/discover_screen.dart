@@ -22,6 +22,7 @@ import '../../onboarding/domain/eligibility_engine.dart';
 import '../data/deck_hint.dart';
 import '../data/saved_universities.dart';
 import 'discover_routes.dart';
+import 'widgets/saved_sheet.dart';
 import 'widgets/uni_stack_card.dart';
 
 /// The catalogue in the order the card stack deals it: the visiting
@@ -59,7 +60,13 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
     final input = ref.watch(assessmentProvider);
     final rules = ref.watch(eligibilityRulesProvider).value ?? const EligibilityRules();
 
-    return SafeArea(
+    // The saved sheet's handle rests on the page's foot, above the tabs; the
+    // page keeps that strip free.
+    return Stack(
+      children: [
+        Padding(
+          padding: EdgeInsets.only(bottom: saved.isEmpty ? 0 : kSavedPeek),
+          child: SafeArea(
       bottom: false,
       child: async.when(
         loading: () => const Center(child: CircularProgressIndicator(color: FdColors.navy)),
@@ -215,6 +222,10 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
           );
         },
       ),
+          ),
+        ),
+        const Positioned.fill(child: SavedPullSheet()),
+      ],
     );
   }
 }

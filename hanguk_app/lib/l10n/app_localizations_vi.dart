@@ -4286,4 +4286,12 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get fdPlanDictateUnavailable =>
       'Không chuyển giọng nói thành văn bản được trên điện thoại này. Hãy kiểm tra quyền micrô.';
+
+  @override
+  String fdSavedPeek(int count) {
+    return 'Đã lưu $count · kéo lên';
+  }
+
+  @override
+  String get fdSavedSheetClose => 'Đóng';
 }

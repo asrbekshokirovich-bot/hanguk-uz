@@ -4294,4 +4294,12 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get fdPlanDictateUnavailable =>
       'Speech-to-text did not work on this phone. Check the microphone permission.';
+
+  @override
+  String fdSavedPeek(int count) {
+    return '$count saved · pull up';
+  }
+
+  @override
+  String get fdSavedSheetClose => 'Close';
 }

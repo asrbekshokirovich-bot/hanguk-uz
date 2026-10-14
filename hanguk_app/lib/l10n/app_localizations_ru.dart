@@ -4305,4 +4305,12 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get fdPlanDictateUnavailable =>
       'Распознавание речи на этом телефоне не сработало. Проверьте доступ к микрофону.';
+
+  @override
+  String fdSavedPeek(int count) {
+    return 'Сохранено: $count · потяните вверх';
+  }
+
+  @override
+  String get fdSavedSheetClose => 'Закрыть';
 }

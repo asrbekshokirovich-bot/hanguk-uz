@@ -4130,4 +4130,12 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get fdPlanDictateUnavailable =>
       '이 휴대폰에서 음성 인식을 사용할 수 없습니다. 마이크 권한을 확인하세요.';
+
+  @override
+  String fdSavedPeek(int count) {
+    return '저장 $count개 · 위로 끌어올리기';
+  }
+
+  @override
+  String get fdSavedSheetClose => '닫기';
 }

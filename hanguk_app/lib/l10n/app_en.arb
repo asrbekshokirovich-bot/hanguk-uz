@@ -5579,5 +5579,18 @@
   "fdPlanDictateUnavailable": "Speech-to-text did not work on this phone. Check the microphone permission.",
   "@fdPlanDictateUnavailable": {
     "description": "Snackbar when dictation cannot start."
+  },
+  "fdSavedPeek": "{count} saved · pull up",
+  "@fdSavedPeek": {
+    "description": "The thin pull-up handle above the bottom tabs on the home screen.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fdSavedSheetClose": "Close",
+  "@fdSavedSheetClose": {
+    "description": "Screen-reader label to collapse the saved sheet."
   }
 }

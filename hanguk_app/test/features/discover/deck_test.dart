@@ -131,4 +131,29 @@ void main() {
     await pump(t);
     expect(find.text("Surib ko'ring"), findsNothing);
   });
+
+  testWidgets('nothing saved: no pull-up sheet', (t) async {
+    await pump(t);
+    expect(find.textContaining('tepaga torting'), findsNothing);
+  });
+
+  testWidgets('saved ones wait in a thin sheet that opens to the full list; the page stays', (t) async {
+    final c = await pump(t);
+    c.read(savedUniversitiesProvider.notifier).save('Gamma');
+    c.read(savedUniversitiesProvider.notifier).save('Beta');
+    await t.pump();
+    expect(find.text('2 ta saqlangan · tepaga torting'), findsOneWidget);
+
+    await t.tap(find.text('2 ta saqlangan · tepaga torting'));
+    await t.pumpAndSettle();
+    expect(find.text('2 ta saqlangan · tepaga torting'), findsNothing);
+    expect(find.text('Gamma University'), findsWidgets);
+    expect(find.bySemanticsLabel('Yopish'), findsOneWidget);
+
+    await t.tap(find.bySemanticsLabel('Yopish'));
+    await t.pumpAndSettle();
+    expect(find.text('2 ta saqlangan · tepaga torting'), findsOneWidget);
+    // The page itself never left.
+    expect(find.text('1 / 3'), findsOneWidget);
+  });
 }

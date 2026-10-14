@@ -7735,6 +7735,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Speech-to-text did not work on this phone. Check the microphone permission.'**
   String get fdPlanDictateUnavailable;
+
+  /// The thin pull-up handle above the bottom tabs on the home screen.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} saved · pull up'**
+  String fdSavedPeek(int count);
+
+  /// Screen-reader label to collapse the saved sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get fdSavedSheetClose;
 }
 
 class _AppLocalizationsDelegate
