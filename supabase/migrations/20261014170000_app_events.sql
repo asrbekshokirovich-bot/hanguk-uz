@@ -226,8 +226,8 @@ begin
         left join public.institutions i on i.id::text = s.iid
     ), '[]'::jsonb),
     'daily', coalesce((
-      select jsonb_agg(jsonb_build_object('day', day, 'devices', d) order by day)
-        from (select (occurred_at at time zone 'Asia/Tashkent')::date day, count(distinct install_id) d
+      select jsonb_agg(jsonb_build_object('day', s.on_day, 'devices', s.d) order by s.on_day)
+        from (select (occurred_at at time zone 'Asia/Tashkent')::date as on_day, count(distinct install_id) as d
                 from ev group by 1) s
     ), '[]'::jsonb)
   ) into v_out;

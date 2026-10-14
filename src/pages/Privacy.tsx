@@ -12,7 +12,7 @@ export default function Privacy() {
   const content = {
     en: {
       title: 'Privacy Policy',
-      lastUpdated: 'Last Updated: September 2026',
+      lastUpdated: 'Last Updated: October 2026',
       intro: 'Hanguk Consulting ("we", "our", or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, and safeguard your information when you use our mobile application and services.',
       sections: [
         {
@@ -22,7 +22,9 @@ export default function Privacy() {
 • Academic records and documents
 • Application materials for universities
 • Communication history with our staff
-• Device information and usage data`
+• Device information and usage data
+
+In the app we record what you open and press (for example the screens you visit, the universities you view or save, and the steps you complete), together with a random installation identifier, the app version and the time. If you send us a request or sign in, this activity is linked to your request or your account so that your consultant can help you better and we can improve the app. We do not record what you type, your passwords or client codes, or the figures you enter in the assessment.`
         },
         {
           title: '2. How We Use Your Information',
@@ -63,7 +65,7 @@ These services have their own privacy policies and data handling practices.`
     },
     uz: {
       title: 'Maxfiylik siyosati',
-      lastUpdated: 'Oxirgi yangilanish: 2026-yil sentyabr',
+      lastUpdated: 'Oxirgi yangilanish: 2026-yil oktyabr',
       intro: 'Hanguk Consulting ("biz") sizning maxfiyligingizni himoya qilishga sodiqmiz. Ushbu Maxfiylik siyosati mobil ilovamiz va xizmatlarimizdan foydalanganingizda ma\'lumotlaringizni qanday to\'plashimiz, ishlatishimiz va himoya qilishimizni tushuntiradi.',
       sections: [
         {
@@ -73,7 +75,9 @@ These services have their own privacy policies and data handling practices.`
 • Akademik yozuvlar va hujjatlar
 • Universitetlarga ariza materiallari
 • Xodimlarimiz bilan aloqa tarixi
-• Qurilma ma'lumotlari va foydalanish ma'lumotlari`
+• Qurilma ma'lumotlari va foydalanish ma'lumotlari
+
+Ilovada nimani ochganingiz va bosganingiz (masalan, qaysi ekranlarni ochganingiz, qaysi universitetlarni ko'rgan yoki saqlaganingiz, qaysi bosqichlarni bajarganingiz) tasodifiy o'rnatish identifikatori, ilova versiyasi va vaqt bilan birga yozib boriladi. Ariza yuborsangiz yoki tizimga kirsangiz, bu faollik arizangiz yoki hisobingizga bog'lanadi — konsultantingiz sizga yaxshiroq yordam berishi va ilovani yaxshilashimiz uchun. Siz yozgan matnlar, parol va mijoz kodlari hamda baholashga kiritgan raqamlaringiz yozilmaydi.`
         },
         {
           title: '2. Ma\'lumotlaringizdan qanday foydalanamiz',
@@ -114,7 +118,7 @@ Bu xizmatlar o'zlarining maxfiylik siyosatlariga ega.`
     },
     ru: {
       title: 'Политика конфиденциальности',
-      lastUpdated: 'Последнее обновление: Сентябрь 2026',
+      lastUpdated: 'Последнее обновление: Октябрь 2026',
       intro: 'Hanguk Consulting ("мы") стремится защитить вашу конфиденциальность. Эта Политика конфиденциальности объясняет, как мы собираем, используем и защищаем вашу информацию при использовании нашего мобильного приложения и услуг.',
       sections: [
         {
@@ -124,7 +128,9 @@ Bu xizmatlar o'zlarining maxfiylik siyosatlariga ega.`
 • Академические записи и документы
 • Материалы заявок в университеты
 • История общения с нашими сотрудниками
-• Информация об устройстве и данные использования`
+• Информация об устройстве и данные использования
+
+В приложении мы записываем, что вы открываете и нажимаете (например, какие экраны открываете, какие университеты просматриваете или сохраняете, какие шаги проходите), вместе со случайным идентификатором установки, версией приложения и временем. Если вы отправите заявку или войдёте в аккаунт, эта активность связывается с вашей заявкой или аккаунтом, чтобы консультант мог лучше вам помочь, а мы — улучшать приложение. Мы не записываем то, что вы печатаете, пароли и коды клиента, а также цифры, которые вы вводите в оценке.`
         },
         {
           title: '2. Как мы используем вашу информацию',
@@ -165,7 +171,7 @@ Bu xizmatlar o'zlarining maxfiylik siyosatlariga ega.`
     },
     ko: {
       title: '개인정보 처리방침',
-      lastUpdated: '최종 업데이트: 2026년 9월',
+      lastUpdated: '최종 업데이트: 2026년 10월',
       intro: 'Hanguk Consulting("당사")은 귀하의 개인정보 보호를 위해 최선을 다하고 있습니다. 본 개인정보 처리방침은 귀하가 당사의 모바일 애플리케이션 및 서비스를 이용할 때 정보를 수집, 사용 및 보호하는 방법을 설명합니다.',
       sections: [
         {
@@ -175,7 +181,9 @@ Bu xizmatlar o'zlarining maxfiylik siyosatlariga ega.`
 • 학업 기록 및 서류
 • 대학 지원 자료
 • 직원과의 커뮤니케이션 기록
-• 기기 정보 및 사용 데이터`
+• 기기 정보 및 사용 데이터
+
+앱에서는 귀하가 무엇을 열고 눌렀는지(예: 방문한 화면, 조회하거나 저장한 대학, 완료한 단계)를 임의의 설치 식별자, 앱 버전, 시간과 함께 기록합니다. 상담을 신청하거나 로그인하면 이 활동은 상담사가 더 잘 도울 수 있도록, 그리고 앱 개선을 위해 귀하의 신청 또는 계정과 연결됩니다. 입력한 글, 비밀번호와 고객 코드, 평가에 입력한 수치는 기록하지 않습니다.`
         },
         {
           title: '2. 정보 사용 방법',

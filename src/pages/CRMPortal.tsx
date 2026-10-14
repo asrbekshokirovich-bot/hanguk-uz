@@ -46,6 +46,7 @@ const DistributionContent = lazy(() => import('@/components/finance/IncomeDistri
 const BonusesContent = lazy(() => import('@/components/finance/StaffBonusesPanel').then(m => ({ default: m.StaffBonusesPanel })));
 const UniversityCatalogContent = lazy(() => import('@/components/crm/pages/UniversityCatalogContent'));
 const UniversitySelectionContent = lazy(() => import('@/components/crm/pages/UniversitySelectionContent'));
+const AppActivityContent = lazy(() => import('@/components/crm/pages/AppActivityContent'));
 const UniversitiesContent = lazy(() => import('@/components/crm/pages/UniversitiesContent'));
 const TasksContent = lazy(() => import('@/components/crm/pages/TasksContent'));
 const MessagesContent = lazy(() => import('@/components/crm/pages/MessagesContent'));
@@ -137,6 +138,7 @@ export default function CRMPortal() {
     if (currentPath.startsWith('/crm/payments')) return 'finance'; // Legacy redirect
     if (currentPath.startsWith('/crm/universities')) return 'universities';
     if (currentPath.startsWith('/crm/university-selection')) return 'university-selection';
+    if (currentPath.startsWith('/crm/app-activity')) return 'app-activity';
     if (currentPath.startsWith('/crm/application-fees')) return 'application-fees';
     if (currentPath.startsWith('/crm/tasks')) return 'tasks';
     if (currentPath.startsWith('/crm/messages')) return 'messages';
@@ -415,6 +417,9 @@ export default function CRMPortal() {
             />
           </SafeSuspense>
         );
+      case 'app-activity':
+        if (!isAdmin) return <AccessDenied />;
+        return <SafeSuspense><AppActivityContent /></SafeSuspense>;
       case 'application-fees':
         if (!isDocumentHandler) return <AccessDenied />;
         return <SafeSuspense><ApplicationFeeContent /></SafeSuspense>;

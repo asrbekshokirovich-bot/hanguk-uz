@@ -83,6 +83,7 @@ import AITranslationPage from '@/components/crm/pages/AITranslationPage';
 import { ClickToCall } from '@/components/calls/ClickToCall';
 import { StudentContacts } from './StudentContacts';
 import { StudentConversations } from './StudentConversations';
+import { AppActivity } from '@/components/crm/appActivity/AppActivity';
 import { planAllowsInstallment } from '@/hooks/useStudentPlan';
 
 type StudentProfile = Tables<'profiles'> & {
@@ -1117,6 +1118,7 @@ export function StudentDetail({
                 Tarjima
               </TabsTrigger>
               <TabsTrigger value="contacts">Kontaktlar</TabsTrigger>
+              <TabsTrigger value="app">{t('appActivity.tab')}</TabsTrigger>
               <TabsTrigger value="comments">Comments</TabsTrigger>
             </TabsList>
 
@@ -2137,6 +2139,9 @@ export function StudentDetail({
               )}
             </TabsContent>
 
+            <TabsContent value="app" className="mt-6">
+              <AppActivity userId={student.user_id} />
+            </TabsContent>
           </Tabs>
         </SheetContent>
       </Sheet>
