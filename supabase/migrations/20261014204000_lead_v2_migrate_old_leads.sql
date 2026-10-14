@@ -22,7 +22,11 @@
 --     target_intake stays as a field.
 --
 -- Safe to re-run: only rows that have not been migrated yet (stage_changed_at
--- is NULL) are touched. It writes only to old-generation rows.
+-- is NULL) are touched, and only the queue rows this run created are parked.
+-- It writes only to old-generation rows. An old lead that the engine
+-- (20261014202000) already moved to 'lost' from its status, before this file
+-- ran, has stage_changed_at but no reason: it is picked up too and keeps its
+-- stage_changed_at.
 --
 -- Everything below runs with the lead triggers switched off for this
 -- transaction (lead_v2.merging), so 600+ rows do not write 600 stage events
@@ -38,6 +42,7 @@ declare
   n_lost integer := 0;
   n_student integer := 0;
   n_active integer := 0;
+  v_lost_ids uuid[] := '{}';
 begin
   perform set_config('lead_v2.merging', '1', true);
 
@@ -45,14 +50,15 @@ begin
     select l.id, l.status, l.notes, l.cert_level, l.converted_to_student_id, l.updated_at, l.created_at
       from public.leads l
      where l.crm_generation = 'old'
-       and l.stage_changed_at is null
        and l.merged_into_id is null
+       and (l.stage_changed_at is null
+            or (l.stage = 'lost' and l.lost_reason is null))
   loop
     n_total := n_total + 1;
 
     if r.status = 'converted' or r.converted_to_student_id is not null then
       update public.leads
-         set stage = 'student', stage_changed_at = coalesce(r.updated_at, r.created_at)
+         set stage = 'student', stage_changed_at = coalesce(stage_changed_at, r.updated_at, r.created_at)
        where id = r.id;
       n_student := n_student + 1;
 
@@ -88,25 +94,28 @@ begin
       update public.leads
          set stage = 'lost', lost_reason = v_reason, lost_competitor = v_comp,
              competitor = coalesce(competitor, v_comp),
-             lost_at = coalesce(r.updated_at, r.created_at),
-             stage_changed_at = coalesce(r.updated_at, r.created_at)
+             lost_at = coalesce(lost_at, r.updated_at, r.created_at),
+             stage_changed_at = coalesce(stage_changed_at, r.updated_at, r.created_at)
        where id = r.id;
       perform public.fn_lead_enqueue_reactivation(r.id, v_reason);
+      v_lost_ids := v_lost_ids || r.id;
       n_lost := n_lost + 1;
 
     else
       update public.leads
-         set stage = 'contacted', stage_changed_at = coalesce(r.updated_at, r.created_at)
+         set stage = 'contacted', stage_changed_at = coalesce(stage_changed_at, r.updated_at, r.created_at)
        where id = r.id;
       n_active := n_active + 1;
     end if;
   end loop;
 
-  -- Nothing starts by itself: the queues wait for "Navbatni boshlash".
+  -- Nothing starts by itself: the queues wait for "Navbatni boshlash". Only
+  -- the rows of the leads migrated in this run: a re-run must not park the
+  -- queues that lead_lose has dated since (other_center +30 d, no_contact ...).
   update public.reactivation_queues q
      set due_at = null
    where q.status = 'waiting'
-     and exists (select 1 from public.leads l where l.id = q.lead_id and l.crm_generation = 'old');
+     and q.lead_id = any (v_lost_ids);
 
   raise notice 'lead v2 migration: % old leads (% active -> Aloqada, % students, % lost with queues)',
     n_total, n_active, n_student, n_lost;

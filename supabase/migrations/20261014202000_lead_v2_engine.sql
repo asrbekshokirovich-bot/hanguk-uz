@@ -1154,7 +1154,11 @@ $$;
 -- Same body as 20260930120000_ignore_instagram_template_echo.sql; STABLE now,
 -- because fn_after_hours_reply_texts() reads lead_settings.
 -- Plus: a message written by the Telegram bot (telegram-webhook stamps
--- metadata.bot = true) is not a person answering either.
+-- metadata.bot = true) is not a person answering either; nor is the after-hours
+-- reply, recognised by the flag lead-sla-check stamps on its row
+-- (metadata.auto_reply) and not only by its text — the text can be edited in
+-- Sozlamalar while a reply with the old text is still on its way. The text
+-- match stays for the Instagram echo, which can arrive as its own row.
 create or replace function public.fn_is_automatic_outgoing(p_content text, p_metadata jsonb)
 returns boolean
 language sql
@@ -1164,6 +1168,7 @@ as $$
   select trim(coalesce(p_content, '')) like '[template]%'
       or coalesce(p_metadata->'attachments'->0->>'type', '') = 'template'
       or coalesce(p_metadata->>'bot', '') in ('true', 't', '1')
+      or coalesce(p_metadata->>'auto_reply', '') <> ''
       or trim(coalesce(p_content, '')) = any (public.fn_after_hours_reply_texts())
 $$;
 
