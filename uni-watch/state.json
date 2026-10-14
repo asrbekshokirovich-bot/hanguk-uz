@@ -1,5 +1,5 @@
 {
- "last_run": "2026-10-13T23:22:08+00:00",
+ "last_run": "2026-10-14T04:57:31+00:00",
  "seen": {
   "http://enter.konkuk.ac.kr/submenu.do?menuurl=k8b%2fCUaWlntKYwhT%2fh%2bKUA%3d%3d&": [],
   "https://adm-u.postech.ac.kr/": [
@@ -254,6 +254,9 @@
   "https://dst.ac.kr": [],
   "https://dsu.ac.kr": [],
   "https://ent.donga.ac.kr/": [
+   "3fb812cf3ec7b48f",
+   "484590dbd7d24964",
+   "7bbcc8dfec59d511",
    "e89a98a7f7d26d30",
    "04bea0d150087ac9",
    "2a9c68e08d6ebe29",
@@ -786,6 +789,7 @@
   "https://ipsi.gw.ac.kr/": [],
   "https://ipsi.halla.ac.kr/": [],
   "https://ipsi.hknu.ac.kr/": [
+   "4cfc95d452d88322",
    "b73856be1af11053",
    "73fd3b38f76c4c2e",
    "905f197f840ce892",
@@ -1162,6 +1166,7 @@
    "a049a4b850fa0c80"
   ],
   "https://www.hanbat.ac.kr/admission/": [
+   "5c869c3d92bea65f",
    "b741440a726ce26e",
    "a9e60659ec97f7de"
   ],
