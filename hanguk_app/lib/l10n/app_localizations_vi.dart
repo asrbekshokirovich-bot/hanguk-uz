@@ -4318,6 +4318,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get ucStatusChangeRequested => 'Đã yêu cầu đổi';
 
   @override
+  String get ucStatusPartner => 'Trường đối tác — không cần trả lời';
+
+  @override
   String get ucStatusConfirmed => 'Đã xác nhận';
 
   @override

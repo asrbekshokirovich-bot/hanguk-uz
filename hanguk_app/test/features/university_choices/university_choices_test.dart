@@ -136,10 +136,21 @@ void main() {
     expect(find.text('Universitet tanlovi'), findsNothing);
   });
 
+  testWidgets('the partner slot needs no answer from the student', (t) async {
+    await pump(t, const UniversityChoicesScreen(), [
+      choice('c1', 1, UniversityChoiceStatus.confirmed),
+      choice('c3', 3, UniversityChoiceStatus.offered, name: 'Daegu Haany University', partner: true),
+    ]);
+    expect(find.text('Hamkor — javob shart emas'), findsOneWidget);
+    expect(find.text('Roziman'), findsNothing);
+    expect(find.text('Tasdiqlashingiz kerak'), findsNothing);
+  });
+
   testWidgets('the journey entry counts the offers waiting for an answer', (t) async {
     await pump(t, const Scaffold(body: UniversityChoicesEntry()), [
       choice('c1', 1, UniversityChoiceStatus.offered),
       choice('c2', 2, UniversityChoiceStatus.offered),
+      choice('c3', 3, UniversityChoiceStatus.offered, partner: true),
     ]);
     expect(find.text('Universitet tanlovi'), findsOneWidget);
     expect(find.text('2 ta universitet javobingizni kutmoqda'), findsOneWidget);

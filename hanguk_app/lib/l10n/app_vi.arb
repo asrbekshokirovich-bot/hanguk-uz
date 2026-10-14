@@ -1414,6 +1414,7 @@
   "ucStatusOffered": "Đang chờ bạn trả lời",
   "ucStatusAccepted": "Tư vấn viên đang xác nhận",
   "ucStatusChangeRequested": "Đã yêu cầu đổi",
+  "ucStatusPartner": "Trường đối tác — không cần trả lời",
   "ucStatusConfirmed": "Đã xác nhận",
   "ucConfirmedNote": "Đã xác nhận — hồ sơ đang được chuẩn bị.",
   "ucChangeSentNote": "Tư vấn viên sẽ sớm đề xuất trường khác.",

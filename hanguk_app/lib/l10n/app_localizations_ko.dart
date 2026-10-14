@@ -4161,6 +4161,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get ucStatusChangeRequested => '변경 요청됨';
 
   @override
+  String get ucStatusPartner => '협력 대학 — 응답 불필요';
+
+  @override
   String get ucStatusConfirmed => '확정됨';
 
   @override

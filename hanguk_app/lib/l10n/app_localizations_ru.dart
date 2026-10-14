@@ -4337,6 +4337,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get ucStatusChangeRequested => 'Запрошена замена';
 
   @override
+  String get ucStatusPartner => 'Партнёр — ответ не нужен';
+
+  @override
   String get ucStatusConfirmed => 'Закреплён';
 
   @override

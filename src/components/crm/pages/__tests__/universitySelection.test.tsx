@@ -135,6 +135,17 @@ describe('UniversitySelectionContent', () => {
     expect(within(rows[2]).queryByLabelText('Olib tashlash')).not.toBeInTheDocument();
   });
 
+  it('lets staff confirm the partner slot without waiting for the student', () => {
+    choices = [choice('c1', 'ku', 1, 'offered'), choice('c3', 'dh', 3, 'offered')];
+    setup();
+    const rows = screen.getAllByTestId('choice-row');
+    expect(within(rows[0]).getByText('Talaba javobi kutilmoqda')).toBeInTheDocument();
+    expect(within(rows[0]).queryByText('Yakuniy tasdiqlash')).not.toBeInTheDocument();
+    expect(within(rows[1]).getByText("Talaba tasdig'i shart emas")).toBeInTheDocument();
+    fireEvent.click(within(rows[1]).getByText('Yakuniy tasdiqlash'));
+    expect(confirm).toHaveBeenCalledWith(choices[1], expect.anything());
+  });
+
   it('sends only confirmed choices to applications', async () => {
     choices = [choice('c1', 'ku', 1, 'confirmed'), choice('c2', 'pn', 2, 'accepted'), choice('c3', 'dh', 3, 'confirmed')];
     const onCreateApplication = vi.fn().mockResolvedValue({ error: null });
