@@ -151,6 +151,24 @@ describe('DocumentsContent application pack', () => {
     await waitFor(() => expect(onDocumentsChanged).toHaveBeenCalled());
   });
 
+  it('tints a contracted card amber until paid, green after, with no status label', () => {
+    const mk = (id: string, name: string, contract_date: string | null, hasPaid: boolean) =>
+      ({ ...student, user_id: id, full_name: name, contract_date, hasPaid, documents: [] }) as unknown as Student;
+    render(
+      <DocumentsContent
+        students={[mk('a', 'PAID ONE', '2026-10-01', true), mk('b', 'UNPAID ONE', '2026-10-01', false), mk('c', 'LEAD ONE', null, false)]}
+        loading={false}
+        currentLang="uz"
+        onUpdateDocumentStatus={vi.fn().mockResolvedValue({ error: null })}
+      />,
+    );
+    const tintOf = (name: string) => screen.getAllByText(name)[0].closest('[data-tint]')?.getAttribute('data-tint');
+    expect(tintOf('PAID ONE')).toBe('paid');
+    expect(tintOf('UNPAID ONE')).toBe('unpaid');
+    expect(tintOf('LEAD ONE')).toBe('none');
+    expect(screen.queryByText(/To'lov kutilmoqda|To'lov kechikdi|To'langan/)).not.toBeInTheDocument();
+  });
+
   it('describes uploads as uploaded, not accepted, in the history', () => {
     setup();
     expect(screen.getByText('"[diploma] QR CODE.pdf" hujjati yuklandi')).toBeInTheDocument();
