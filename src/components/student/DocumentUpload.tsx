@@ -103,9 +103,9 @@ const requiredDocuments: DocumentType[] = [
   },
   { 
     id: 'language_certificate',
-    nameUz: "Til sertifikat nusxasi (kamida IELTS 5.5 yoki TOPIK 2)",
-    nameEn: "Language certificate copy (min. IELTS 5.5 or TOPIK 2)",
-    nameRu: "Копия языкового сертификата (мин. IELTS 5.5 или TOPIK 2)",
+    nameUz: "IELTS sertifikati nusxasi (kamida IELTS 5.5)",
+    nameEn: "IELTS certificate copy (min. IELTS 5.5)",
+    nameRu: "Копия сертификата IELTS (мин. IELTS 5.5)",
     required: true
   },
   // Separate from language_certificate on purpose: that slot stays as it is for
@@ -145,6 +145,13 @@ const requiredDocuments: DocumentType[] = [
     nameRu: "Копия свидетельства о браке",
     required: true
   },
+  {
+    id: 'death_certificate',
+    nameUz: "O'lim guvohnomasi nusxasi (agar tegishli bo'lsa)",
+    nameEn: "Death certificate copy (if applicable)",
+    nameRu: "Копия свидетельства о смерти (при необходимости)",
+    required: false
+  },
 ];
 
 // Translation slots — one for each of the 13 required documents
@@ -156,12 +163,13 @@ const translationSlots: Record<string, DocumentType> = {
   mother_id_card: { id: 'mother_id_card_translation', nameUz: "Ona ID karta tarjimasi", nameEn: "Mother's ID card translation", nameRu: "Перевод ID-карты матери" },
   
   birth_certificate: { id: 'birth_certificate_translation', nameUz: "Tug'ilganlik guvohnomasi tarjimasi", nameEn: "Birth certificate translation", nameRu: "Перевод свидетельства о рождении" },
-  language_certificate: { id: 'language_certificate_translation', nameUz: "Til sertifikat tarjimasi", nameEn: "Language certificate translation", nameRu: "Перевод языкового сертификата" },
+  language_certificate: { id: 'language_certificate_translation', nameUz: "IELTS sertifikati tarjimasi", nameEn: "IELTS certificate translation", nameRu: "Перевод сертификата IELTS" },
   topik_certificate: { id: 'topik_certificate_translation', nameUz: "TOPIK sertifikati tarjimasi", nameEn: "TOPIK certificate translation", nameRu: "Перевод сертификата TOPIK" },
   photo: { id: 'photo_translation', nameUz: "Rasm tarjimasi", nameEn: "Photo translation", nameRu: "Перевод фото" },
   diploma: { id: 'diploma_translation', nameUz: "Diplom tarjimasi", nameEn: "Diploma translation", nameRu: "Перевод диплома" },
   diploma_apostille: { id: 'diploma_apostille_translation', nameUz: "Apostil tarjimasi", nameEn: "Apostille translation", nameRu: "Перевод апостиля" },
   marriage_certificate: { id: 'marriage_certificate_translation', nameUz: "Nikoh guvohnomasi tarjimasi", nameEn: "Marriage certificate translation", nameRu: "Перевод свидетельства о браке" },
+  death_certificate: { id: 'death_certificate_translation', nameUz: "O'lim guvohnomasi tarjimasi", nameEn: "Death certificate translation", nameRu: "Перевод свидетельства о смерти" },
 };
 
 // Translation slots for additional/conditional documents
@@ -186,7 +194,6 @@ const conditionalTranslationSlots: Record<string, DocumentType> = {
   },
   father_foreign_passport: { id: 'father_foreign_passport_translation', nameUz: "Ota zagran pasport tarjimasi", nameEn: "Father's foreign passport translation", nameRu: "Перевод загранпаспорта отца" },
   mother_foreign_passport: { id: 'mother_foreign_passport_translation', nameUz: "Ona zagran pasport tarjimasi", nameEn: "Mother's foreign passport translation", nameRu: "Перевод загранпаспорта матери" },
-  death_certificate: { id: 'death_certificate_translation', nameUz: "O'lim guvohnomasi tarjimasi", nameEn: "Death certificate translation", nameRu: "Перевод свидетельства о смерти" },
   diploma_supplement: { id: 'diploma_supplement_translation', nameUz: "Diplom ilovasi tarjimasi", nameEn: "Diploma supplement translation", nameRu: "Перевод приложения к диплому" },
 };
 
@@ -226,13 +233,6 @@ const conditionalDocuments: DocumentType[] = [
     nameEn: "Mother's foreign passport copy",
     nameRu: "Копия загранпаспорта матери",
     note: { uz: "Agar mavjud bo'lsa", en: "If available", ru: "При наличии" }
-  },
-  { 
-    id: 'death_certificate',
-    nameUz: "O'lim guvohnomasi nusxasi",
-    nameEn: "Death certificate copy",
-    nameRu: "Копия свидетельства о смерти",
-    note: { uz: "Agar tegishli bo'lsa", en: "If applicable", ru: "При необходимости" }
   },
   { 
     id: 'diploma_supplement',
@@ -606,8 +606,9 @@ export function DocumentUpload({
     uploadTitle: { uz: "Hujjat yuklash", en: "Upload Document", ru: "Загрузка документа" },
     selectFile: { uz: "Fayl tanlang", en: "Select file", ru: "Выберите файл" },
     analyzing: { uz: "AI tahlil qilmoqda...", en: "AI analyzing...", ru: "AI анализирует..." },
-    approved: { uz: "Hujjat qabul qilindi", en: "Document approved", ru: "Документ принят" },
-    rejected: { uz: "Hujjat rad etildi", en: "Document rejected", ru: "Документ отклонён" },
+    // AI pre-check result only — documents are approved by an admin, never here.
+    approved: { uz: "AI tekshiruvi: hujjat mos", en: "AI check: document looks right", ru: "Проверка AI: документ подходит" },
+    rejected: { uz: "AI tekshiruvi: muammo bor", en: "AI check: issues found", ru: "Проверка AI: есть проблемы" },
     issues: { uz: "Muammolar", en: "Issues", ru: "Проблемы" },
     suggestions: { uz: "Tavsiyalar", en: "Suggestions", ru: "Рекомендации" },
     uploadAnyway: { uz: "Baribir yuklash", en: "Upload anyway", ru: "Загрузить всё равно" },
@@ -959,7 +960,7 @@ export function DocumentUpload({
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-2">
-          {requiredDocuments.every(doc => isDocumentApproved(doc.id)) && (
+          {requiredDocuments.filter(doc => doc.required !== false).every(doc => isDocumentApproved(doc.id)) && (
             <div className="text-center py-4 text-success">
               <CheckCircle className="h-8 w-8 mx-auto mb-2" />
               <p className="font-medium">{currentLang === 'ru' ? 'Все документы приняты!' : currentLang === 'en' ? 'All documents accepted!' : 'Barcha hujjatlar qabul qilindi!'}</p>
