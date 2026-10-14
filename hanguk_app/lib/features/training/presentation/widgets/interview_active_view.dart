@@ -68,6 +68,11 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
   Timer? _timeLimitTimer;
   Timer? _greetTimer;
 
+  // Read once in initState: `ref` cannot be used inside dispose(), and the
+  // teardown there still has to reach the provider.
+  late final InterviewNotifier _notifier;
+  bool _disposing = false;
+
   // Screen 20's presentation state: the running clock, the microphone and
   // the interviewer's latest line. None of it steers the call.
   Timer? _clock;
@@ -78,6 +83,7 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
   @override
   void initState() {
     super.initState();
+    _notifier = ref.read(interviewProvider.notifier);
     WidgetsBinding.instance.addObserver(this);
     // An interview is minutes of the student talking, not touching the phone.
     // On the normal idle timer the screen dims and locks part-way through:
@@ -522,7 +528,7 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
         );
       }
       // Notify provider of failed connection so UI can react globally
-      ref.read(interviewProvider.notifier).setVapiConnected(false);
+      _notifier.setVapiConnected(false);
       // Don't overwrite a message the connect watchdog already surfaced.
       if (mounted && _errorMessage == null) {
         setState(() {
@@ -555,8 +561,14 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
     _clock?.cancel();
 
     // Sync UI/provider state FIRST so no SDK-teardown failure can prevent it.
-    if (mounted) {
-      ref.read(interviewProvider.notifier).setVapiConnected(false);
+    // From dispose() neither `ref` nor setState may be used (either throws
+    // and aborts the rest of this teardown, leaving the call and microphone
+    // live), so the provider is told right after the current frame instead.
+    if (_disposing) {
+      final notifier = _notifier;
+      unawaited(Future.microtask(() => notifier.setVapiConnected(false)));
+    } else if (mounted) {
+      _notifier.setVapiConnected(false);
       setState(() {
         _isCallActive = false;
         _isAI_Speaking = false;
@@ -726,6 +738,7 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
 
   @override
   void dispose() {
+    _disposing = true;
     WidgetsBinding.instance.removeObserver(this);
     // Give the screen back to the normal idle timer. This runs on every way
     // out of the interview — finished, ended early, errored, or backed out of
@@ -739,9 +752,11 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
     // expiry), mark the row as 'abandoned' so history-replay isn't
     // littered with permanently-active sessions.
     if (!_didEndSession) {
-      final notifier = ref.read(interviewProvider.notifier);
+      final notifier = _notifier;
       // Fire-and-forget — the network call shouldn't block widget teardown.
-      unawaited(notifier.markAbandoned());
+      // After this frame: a provider must not change while the tree is
+      // being finalized.
+      unawaited(Future.microtask(notifier.markAbandoned));
     }
     super.dispose();
   }

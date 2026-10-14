@@ -11,7 +11,6 @@ import '../../../design_system/seoul_night/widgets/lucide.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../discover/presentation/discover_routes.dart';
 import '../data/auth_repository.dart';
-import 'login_screen.dart' show authErrorMessage;
 
 /// "Mijoz kodi bilan kirish" (design screen 14): the 8-character code the
 /// consultant gave, typed into eight cells. The sign-in itself is the same
@@ -410,3 +409,21 @@ class _Cell extends StatelessWidget {
     return CustomPaint(foregroundPainter: const DashedPillPainter(color: FdColors.ink, radius: 10), child: box);
   }
 }
+
+/// The words for an [AuthError], in the app language.
+String authErrorMessage(AppLocalizations l, AuthError error) =>
+    switch (error) {
+      AuthError.invalidAccessCode => l.loginErrorInvalidAccessCode,
+      AuthError.codeNotFound => l.authErrorCodeNotFound,
+      AuthError.serverUnreachable => l.authErrorServerUnreachable,
+      AuthError.staffBlocked => l.authErrorStaffBlocked,
+      AuthError.accountSetupBusy => l.authErrorAccountSetupBusy,
+      AuthError.loginServerError => l.authErrorLoginServer,
+      AuthError.unexpected => l.authErrorUnexpected,
+      AuthError.crmAccount => l.authErrorCrmAccount,
+      AuthError.alreadyRegistered => l.authErrorAlreadyRegistered,
+      AuthError.signUpDisabled => l.authErrorSignUpDisabled,
+      AuthError.invalidPhoneFormat => l.authErrorPhoneFormat,
+      AuthError.invalidCredentials => l.loginErrorInvalidCredentials,
+      AuthError.signUpFailed => l.authErrorSignUpFailed,
+    };
