@@ -11,7 +11,7 @@ import { isNewLead } from './sla';
  * created.
  *
  * A lead that arrives on a day off or after working hours has its 10-minute
- * countdown start on the next working day at 10:00 (`sla_start_at`). It also
+ * countdown start on the next working day at 09:00 (`sla_start_at`). It also
  * counts as that day's lead (owner, 2026-10-05), so a Saturday or Sunday lead
  * answered on Monday shows in Monday's "Bugungi lidlar".
  */

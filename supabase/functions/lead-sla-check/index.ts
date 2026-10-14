@@ -10,7 +10,7 @@
 //
 // Each run first sends the automatic reply to new chats that arrived outside
 // working hours (after_hours.ts); their countdown, and so their alert, starts
-// at the next working 10:00 (fn_lead_sla_scan times from leads.sla_start_at).
+// at the next working 09:00 (fn_lead_sla_scan times from leads.sla_start_at).
 //
 // It also runs the owner's watchdogs (watchdog.ts): a new lead closed within
 // 30 seconds, and the 09:30 daily count.

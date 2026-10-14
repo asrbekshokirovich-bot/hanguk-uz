@@ -3108,7 +3108,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get onbContactSubtitle => '상담원이 답변을 확인하고 10분 안에 전화드립니다.';
 
   @override
-  String get onbContactAfterHours => '지금은 업무 시간이 아닙니다. 내일 10:00에 전화드릴게요.';
+  String get onbContactAfterHours => '지금은 업무 시간이 아닙니다. 내일 09:00에 전화드릴게요.';
 
   @override
   String get onbContactName => '이름';
@@ -3133,7 +3133,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get onbContactHours =>
-      '업무 시간 월–토 09:40–18:00. 그 외 시간에는 다음 날 10:00에 전화드립니다.';
+      '업무 시간 월–토 09:00–18:00. 그 외 시간에는 다음 날 09:00에 전화드립니다.';
 
   @override
   String onbContactSuccess(String name) {
@@ -3144,11 +3144,11 @@ class AppLocalizationsKo extends AppLocalizations {
   String get onbContactBackToResult => '결과로 돌아가기';
 
   @override
-  String get onbContactAfterHoursToday => '지금은 업무 시간이 아닙니다. 오늘 10:00에 전화드릴게요.';
+  String get onbContactAfterHoursToday => '지금은 업무 시간이 아닙니다. 오늘 09:00에 전화드릴게요.';
 
   @override
   String get onbContactAfterHoursMonday =>
-      '지금은 업무 시간이 아닙니다. 월요일 10:00에 전화드릴게요.';
+      '지금은 업무 시간이 아닙니다. 월요일 09:00에 전화드릴게요.';
 
   @override
   String get onbQuizAgeQ => '나이가 어떻게 되나요?';

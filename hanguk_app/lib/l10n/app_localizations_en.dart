@@ -3238,7 +3238,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onbContactAfterHours =>
-      'We\'re outside working hours now. We\'ll call you tomorrow at 10:00.';
+      'We\'re outside working hours now. We\'ll call you tomorrow at 09:00.';
 
   @override
   String get onbContactName => 'Your name';
@@ -3264,7 +3264,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onbContactHours =>
-      'Working hours Mon–Sat 09:40–18:00. At other times we\'ll call the next day at 10:00.';
+      'Working hours Mon–Sat 09:00–18:00. At other times we\'ll call the next day at 09:00.';
 
   @override
   String onbContactSuccess(String name) {
@@ -3276,11 +3276,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onbContactAfterHoursToday =>
-      'We\'re outside working hours now. We\'ll call you today at 10:00.';
+      'We\'re outside working hours now. We\'ll call you today at 09:00.';
 
   @override
   String get onbContactAfterHoursMonday =>
-      'We\'re outside working hours now. We\'ll call you on Monday at 10:00.';
+      'We\'re outside working hours now. We\'ll call you on Monday at 09:00.';
 
   @override
   String get onbQuizAgeQ => 'How old are you?';

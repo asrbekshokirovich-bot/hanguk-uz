@@ -3246,7 +3246,7 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get onbContactAfterHours =>
-      'Hozir ish vaqtidan tashqari. Ertaga 10:00 da qo\'ng\'iroq qilamiz.';
+      'Hozir ish vaqtidan tashqari. Ertaga 09:00 da qo\'ng\'iroq qilamiz.';
 
   @override
   String get onbContactName => 'Ismingiz';
@@ -3272,7 +3272,7 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get onbContactHours =>
-      'Ish vaqti Du–Sh 09:40–18:00. Boshqa vaqtda — ertasi 10:00 da qo\'ng\'iroq qilamiz.';
+      'Ish vaqti Du–Sh 09:00–18:00. Boshqa vaqtda — ertasi 09:00 da qo\'ng\'iroq qilamiz.';
 
   @override
   String onbContactSuccess(String name) {
@@ -3284,11 +3284,11 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get onbContactAfterHoursToday =>
-      'Hozir ish vaqtidan tashqari. Bugun 10:00 da qo\'ng\'iroq qilamiz.';
+      'Hozir ish vaqtidan tashqari. Bugun 09:00 da qo\'ng\'iroq qilamiz.';
 
   @override
   String get onbContactAfterHoursMonday =>
-      'Hozir ish vaqtidan tashqari. Dushanba kuni 10:00 da qo\'ng\'iroq qilamiz.';
+      'Hozir ish vaqtidan tashqari. Dushanba kuni 09:00 da qo\'ng\'iroq qilamiz.';
 
   @override
   String get onbQuizAgeQ => 'Yoshingiz nechada?';

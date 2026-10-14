@@ -1,7 +1,8 @@
 // The automatic reply to a chat that writes to us for the first time outside
-// working hours (Mon–Sat 09:40–18:00 Tashkent), new lead or not — see
-// 20260929120000_lead_after_hours.sql and
-// 20260929150000_after_hours_reply_every_new_chat.sql.
+// working hours (Mon–Sat 09:00–18:00 Tashkent), new lead or not — see
+// 20260929120000_lead_after_hours.sql,
+// 20260929150000_after_hours_reply_every_new_chat.sql and
+// 20261014220000_working_hours_0900_1800.sql.
 //
 // fn_after_hours_reply_claim hands out each such chat once, already stamped,
 // with the text to send. The reply goes out on the channel the person wrote

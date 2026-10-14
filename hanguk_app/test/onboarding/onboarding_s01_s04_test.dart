@@ -113,14 +113,15 @@ Future<void> _send(WidgetTester t) async {
 }
 
 void main() {
-  group('isTashkentWorkingHours (Mon–Sat 09:40–18:00, UTC+5)', () {
+  group('isTashkentWorkingHours (Mon–Sat 09:00–18:00, UTC+5)', () {
     // 2026-10-05 is a Monday. Tashkent = UTC + 5.
     DateTime tashkent(int day, int h, int m) =>
         DateTime.utc(2026, 10, day, h, m).subtract(const Duration(hours: 5));
 
-    test('opens at 09:40 and closes at 18:00', () {
-      expect(isTashkentWorkingHours(tashkent(5, 9, 39)), isFalse);
-      expect(isTashkentWorkingHours(tashkent(5, 9, 40)), isTrue);
+    test('opens at 09:00 and closes at 18:00', () {
+      expect(isTashkentWorkingHours(tashkent(5, 8, 59)), isFalse);
+      expect(isTashkentWorkingHours(tashkent(5, 9, 0)), isTrue);
+      expect(isTashkentWorkingHours(tashkent(5, 9, 20)), isTrue);
       expect(isTashkentWorkingHours(tashkent(5, 17, 59)), isTrue);
       expect(isTashkentWorkingHours(tashkent(5, 18, 0)), isFalse);
     });
@@ -133,6 +134,8 @@ void main() {
     test('the after-hours banner names the day of the call', () {
       expect(tashkentNextCallDay(tashkent(6, 12, 0)), isNull);
       expect(tashkentNextCallDay(tashkent(6, 8, 0)), NextCallDay.today);
+      expect(tashkentNextCallDay(tashkent(6, 8, 59)), NextCallDay.today);
+      expect(tashkentNextCallDay(tashkent(6, 9, 20)), isNull);
       expect(tashkentNextCallDay(tashkent(6, 19, 0)), NextCallDay.tomorrow);
       // Friday evening → Saturday is a working day.
       expect(tashkentNextCallDay(tashkent(9, 19, 0)), NextCallDay.tomorrow);

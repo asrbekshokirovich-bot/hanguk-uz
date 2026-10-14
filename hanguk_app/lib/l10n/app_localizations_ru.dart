@@ -3252,7 +3252,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get onbContactAfterHours =>
-      'Сейчас нерабочее время. Мы позвоним завтра в 10:00.';
+      'Сейчас нерабочее время. Мы позвоним завтра в 09:00.';
 
   @override
   String get onbContactName => 'Ваше имя';
@@ -3278,7 +3278,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get onbContactHours =>
-      'Рабочее время Пн–Сб 09:40–18:00. В другое время позвоним на следующий день в 10:00.';
+      'Рабочее время Пн–Сб 09:00–18:00. В другое время позвоним на следующий день в 09:00.';
 
   @override
   String onbContactSuccess(String name) {
@@ -3290,11 +3290,11 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get onbContactAfterHoursToday =>
-      'Сейчас нерабочее время. Мы позвоним сегодня в 10:00.';
+      'Сейчас нерабочее время. Мы позвоним сегодня в 09:00.';
 
   @override
   String get onbContactAfterHoursMonday =>
-      'Сейчас нерабочее время. Мы позвоним в понедельник в 10:00.';
+      'Сейчас нерабочее время. Мы позвоним в понедельник в 09:00.';
 
   @override
   String get onbQuizAgeQ => 'Сколько вам лет?';

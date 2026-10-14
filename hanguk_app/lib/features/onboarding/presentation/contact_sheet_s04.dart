@@ -20,16 +20,16 @@ final contactSheetClockProvider = Provider<DateTime Function()>(
   (ref) => DateTime.now,
 );
 
-/// Operators work Mon–Sat 09:40–18:00, Tashkent time (UTC+5, no DST).
+/// Operators work Mon–Sat 09:00–18:00, Tashkent time (UTC+5, no DST).
 bool isTashkentWorkingHours(DateTime now) {
   final t = now.toUtc().add(const Duration(hours: 5));
   if (t.weekday == DateTime.sunday) return false;
   final m = t.hour * 60 + t.minute;
-  return m >= 9 * 60 + 40 && m < 18 * 60;
+  return m >= 9 * 60 && m < 18 * 60;
 }
 
 /// When an operator calls back a lead sent at [now] outside working hours,
-/// as the CRM's automatic reply says it: the same day before 09:40, Monday
+/// as the CRM's automatic reply says it: the same day before 09:00, Monday
 /// from Saturday 18:00 and all Sunday, the next day otherwise.
 enum NextCallDay { today, tomorrow, monday }
 
@@ -42,7 +42,7 @@ NextCallDay? tashkentNextCallDay(DateTime now) {
       (t.weekday == DateTime.saturday && m >= 18 * 60)) {
     return NextCallDay.monday;
   }
-  return m < 9 * 60 + 40 ? NextCallDay.today : NextCallDay.tomorrow;
+  return m < 9 * 60 ? NextCallDay.today : NextCallDay.tomorrow;
 }
 
 /// S04 — Ism va telefon (pastki oyna), opened over S03.

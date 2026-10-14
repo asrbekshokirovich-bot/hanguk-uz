@@ -5891,7 +5891,7 @@ abstract class AppLocalizations {
   /// S04 contact sheet: banner shown outside working hours.
   ///
   /// In en, this message translates to:
-  /// **'We\'re outside working hours now. We\'ll call you tomorrow at 10:00.'**
+  /// **'We\'re outside working hours now. We\'ll call you tomorrow at 09:00.'**
   String get onbContactAfterHours;
 
   /// S04 contact sheet: name field label and placeholder.
@@ -5939,7 +5939,7 @@ abstract class AppLocalizations {
   /// S04 contact sheet: working-hours note under the button.
   ///
   /// In en, this message translates to:
-  /// **'Working hours Mon–Sat 09:40–18:00. At other times we\'ll call the next day at 10:00.'**
+  /// **'Working hours Mon–Sat 09:00–18:00. At other times we\'ll call the next day at 09:00.'**
   String get onbContactHours;
 
   /// S04 contact sheet: success message with the visitor's name.
@@ -5954,16 +5954,16 @@ abstract class AppLocalizations {
   /// **'Back to the result'**
   String get onbContactBackToResult;
 
-  /// S04 banner before 09:40 on a working day: the call comes the same day.
+  /// S04 banner before 09:00 on a working day: the call comes the same day.
   ///
   /// In en, this message translates to:
-  /// **'We\'re outside working hours now. We\'ll call you today at 10:00.'**
+  /// **'We\'re outside working hours now. We\'ll call you today at 09:00.'**
   String get onbContactAfterHoursToday;
 
   /// S04 banner from Saturday 18:00 and all Sunday: the call comes on Monday.
   ///
   /// In en, this message translates to:
-  /// **'We\'re outside working hours now. We\'ll call you on Monday at 10:00.'**
+  /// **'We\'re outside working hours now. We\'ll call you on Monday at 09:00.'**
   String get onbContactAfterHoursMonday;
 
   /// S02 question 2: age.
