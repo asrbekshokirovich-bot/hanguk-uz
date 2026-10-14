@@ -2003,7 +2003,7 @@
   "@aiReportFailed": {
     "description": "Shown when storing an AI report failed."
   },
-  "catalogSearchHint": "Search university name",
+  "catalogSearchHint": "Type a name, city or field",
   "@catalogSearchHint": {
     "description": "University catalogue (Explore / Applications browse)."
   },
@@ -3482,33 +3482,33 @@
   "@onbResultFactorsTitle": {
     "description": "S03 factors card title"
   },
-  "onbResultFactorKoreanStrong": "TOPIK 3 or higher",
+  "onbResultFactorKoreanStrong": "TOPIK 3 or higher — the bachelor's requirement is met",
   "@onbResultFactorKoreanStrong": {
-    "description": "S03 factor (+): degree route, TOPIK 3+"
+    "description": "Result factor"
   },
-  "onbResultFactorKoreanTopik2Degree": "TOPIK 2, many universities ask for TOPIK 3",
+  "onbResultFactorKoreanTopik2Degree": "TOPIK 2 — the embassy asks for TOPIK 3 for a bachelor's; enough for a college",
   "@onbResultFactorKoreanTopik2Degree": {
-    "description": "S03 factor (−): degree route, TOPIK 2"
+    "description": "Result factor"
   },
-  "onbResultFactorKoreanMissingDegree": "Below TOPIK 2, many universities ask for TOPIK 3",
+  "onbResultFactorKoreanMissingDegree": "The embassy asks for TOPIK 3 for a bachelor's",
   "@onbResultFactorKoreanMissingDegree": {
-    "description": "S03 factor (−): degree route, no certificate / TOPIK 1"
+    "description": "Result factor"
   },
   "onbResultFactorKoreanCollegeStrong": "TOPIK 3 or higher",
   "@onbResultFactorKoreanCollegeStrong": {
     "description": "S03 factor (+): vocational college, TOPIK 3+"
   },
-  "onbResultFactorKoreanCollegeTopik2": "TOPIK 2 — vocational colleges accept TOPIK 2",
+  "onbResultFactorKoreanCollegeTopik2": "TOPIK 2 — the college requirement is met",
   "@onbResultFactorKoreanCollegeTopik2": {
-    "description": "S03 factor (+): vocational college, TOPIK 2"
+    "description": "Result factor"
   },
   "onbResultFactorKoreanCourseCertificate": "Sejong 1A / TOPIK 1 certificate",
   "@onbResultFactorKoreanCourseCertificate": {
     "description": "S03 factor (+): language course, Sejong 1A / TOPIK 1+"
   },
-  "onbResultFactorKoreanCourseMissing": "No Korean language certificate",
+  "onbResultFactorKoreanCourseMissing": "A language-course visa needs TOPIK 1 or a Sejong certificate",
   "@onbResultFactorKoreanCourseMissing": {
-    "description": "S03 factor (−): no Korean certificate"
+    "description": "Result factor"
   },
   "onbResultFactorIncomeYes": "Parents' official income",
   "@onbResultFactorIncomeYes": {
@@ -3530,10 +3530,6 @@
   "@onbResultFactorAgeHigh": {
     "description": "S03 factor (−): age above the soft limit"
   },
-  "onbResultFactorBudgetLow": "Budget is below the estimated yearly cost",
-  "@onbResultFactorBudgetLow": {
-    "description": "S03 factor (−): budget below the yearly cost"
-  },
   "onbResultUnisTitle": "Universities that fit you",
   "@onbResultUnisTitle": {
     "description": "S03 section title"
@@ -3546,9 +3542,9 @@
   "@onbResultTuitionLabel": {
     "description": "S03 university card: tuition per semester"
   },
-  "onbResultBankLabel": "Bank statement",
+  "onbResultBankLabel": "KDB deposit",
   "@onbResultBankLabel": {
-    "description": "S03 university card and cost card: bank statement amount"
+    "description": "The KDB deposit amount label on the result"
   },
   "onbResultYearlyCost": "Estimated yearly cost",
   "@onbResultYearlyCost": {
@@ -3557,10 +3553,6 @@
   "onbResultStepsTitle": "Next 3 steps",
   "@onbResultStepsTitle": {
     "description": "S03 next steps card title"
-  },
-  "onbResultStepTopikPrep": "Prepare for TOPIK 3 or enter through a language course",
-  "@onbResultStepTopikPrep": {
-    "description": "S03 next step"
   },
   "onbResultStepSchoolDocs": "Translate and apostille the school certificate and passport",
   "@onbResultStepSchoolDocs": {
@@ -3578,29 +3570,34 @@
   "@onbResultPathsTitle": {
     "description": "S03 low band: section title instead of universities"
   },
-  "onbResultPathLanguageCourse": "Through a language course (D-4)",
+  "onbResultPathLanguageCourse": "A language course first (D-4)",
   "@onbResultPathLanguageCourse": {
-    "description": "S03 low band path title"
+    "description": "Path title"
   },
-  "onbResultPathLanguageCourseNote": "A language course, then moving on to a bachelor's.",
+  "onbResultPathLanguageCourseNote": "Learn Korean in Korea, then move on once you have TOPIK. The language-course visa also needs TOPIK 1 or a Sejong certificate.",
   "@onbResultPathLanguageCourseNote": {
-    "description": "S03 low band path note (design: '{N} semestr til kursi, …'; the number of semesters is not set yet)"
+    "description": "Path note"
   },
   "onbResultPathCollege": "Vocational college",
   "@onbResultPathCollege": {
-    "description": "S03 low band path title"
+    "description": "Path title"
   },
-  "onbResultPathCollegeNote": "Softer requirements, lower tuition.",
+  "onbResultPathCollegeNote": "Your TOPIK 2 is enough for a vocational college.",
   "@onbResultPathCollegeNote": {
-    "description": "S03 low band path note"
+    "description": "Path note"
   },
-  "onbResultPathNextSeason": "Preparing for the next season",
+  "onbResultPathNextSeason": "Get ready for the next intake",
   "@onbResultPathNextSeason": {
-    "description": "S03 low band path title"
+    "description": "Path title"
   },
-  "onbResultPathNextSeasonNote": "Fall 2027 with TOPIK 3 and a bank statement.",
+  "onbResultPathNextSeasonNote": "Get the TOPIK {level} certificate and apply for the next intake.",
   "@onbResultPathNextSeasonNote": {
-    "description": "S03 low band path note"
+    "description": "Path note",
+    "placeholders": {
+      "level": {
+        "type": "String"
+      }
+    }
   },
   "onbResultTariffWhy": "{tariff} — why? →",
   "@onbResultTariffWhy": {
@@ -3953,13 +3950,13 @@
   "@onbTariffContractPdf": {
     "description": "S06 link to the contract sample (hidden until a PDF exists)"
   },
-  "onbWelcomeTitle": "Study in Korea — find out your chances in 2 minutes",
+  "onbWelcomeTitle": "Find out your visa chances [in 2 minutes]",
   "@onbWelcomeTitle": {
-    "description": "S01 Welcome: headline."
+    "description": "S01 title; the part in [square brackets] is shown in lime"
   },
-  "onbWelcomeBody": "An honest assessment: no percentages, no guarantees — just the rules and your answers.",
+  "onbWelcomeBody": "Save time: answer a few short questions and get an honest assessment",
   "@onbWelcomeBody": {
-    "description": "S01 Welcome: one line under the headline."
+    "description": "S01 subtitle"
   },
   "onbWelcomeCta": "Check my chances",
   "@onbWelcomeCta": {
@@ -3968,19 +3965,6 @@
   "onbWelcomeCatalog": "Browse universities",
   "@onbWelcomeCatalog": {
     "description": "S01 Welcome: secondary button, opens the university catalogue."
-  },
-  "onbWelcomeTrustReply": "Operator reply",
-  "@onbWelcomeTrustReply": {
-    "description": "S01 Welcome: trust row label (operator reply time). Shown only with real data."
-  },
-  "onbWelcomeTrustReplyValue": "≤{minutes} min",
-  "@onbWelcomeTrustReplyValue": {
-    "description": "S01 Welcome: trust row value, operator reply time in minutes.",
-    "placeholders": {
-      "minutes": {
-        "type": "String"
-      }
-    }
   },
   "onbWelcomeClientCode": "I have a client code",
   "@onbWelcomeClientCode": {
@@ -3994,23 +3978,23 @@
   "@onbQuizBack": {
     "description": "S02 quiz: screen-reader label of the back arrow."
   },
-  "onbQuizQ1": "What would you like to study?",
+  "onbQuizQ1": "What do you want to study in Korea?",
   "@onbQuizQ1": {
     "description": "S02 question 1: study route."
   },
-  "onbQuizRouteCourse": "Language course",
+  "onbQuizRouteCourse": "Language course — learn Korean",
   "@onbQuizRouteCourse": {
     "description": "S02 Q1 option: Korean language course (D-4)."
   },
-  "onbQuizRouteBachelor": "Bachelor's",
+  "onbQuizRouteBachelor": "Bachelor's — university, 4 years",
   "@onbQuizRouteBachelor": {
     "description": "S02 Q1 option: bachelor's degree."
   },
-  "onbQuizRouteMaster": "Master's",
+  "onbQuizRouteMaster": "Master's — after a bachelor's",
   "@onbQuizRouteMaster": {
     "description": "S02 Q1 option: master's degree."
   },
-  "onbQuizRouteCollege": "Vocational college",
+  "onbQuizRouteCollege": "Vocational college — a 2–3 year trade",
   "@onbQuizRouteCollege": {
     "description": "S02 Q1 option: vocational college."
   },
@@ -4027,15 +4011,15 @@
   "@onbQuizStillStudying": {
     "description": "S02 Q2 option: still at school or university."
   },
-  "onbQuizQ3": "Your Korean level?",
+  "onbQuizQ3": "What is your Korean level?",
   "@onbQuizQ3": {
     "description": "S02 question 3: Korean level."
   },
-  "onbQuizQ3Hint": "Answer even without a certificate — it decides the route.",
+  "onbQuizQ3Hint": "Pick by your official certificate. The embassy does not accept an application without one.",
   "@onbQuizQ3Hint": {
     "description": "S02 question 3: one line under the question."
   },
-  "onbQuizKoreanNone": "None",
+  "onbQuizKoreanNone": "I don't speak Korean",
   "@onbQuizKoreanNone": {
     "description": "S02 Q3 option: no Korean."
   },
@@ -4043,7 +4027,7 @@
   "@onbQuizKoreanLearning": {
     "description": "S02 Q3 option: learning, no certificate."
   },
-  "onbQuizKoreanTopik1": "Sejong 1A / TOPIK 1",
+  "onbQuizKoreanTopik1": "TOPIK 1 or a Sejong Hakdang certificate",
   "@onbQuizKoreanTopik1": {
     "description": "S02 Q3 option: Sejong 1A / TOPIK 1."
   },
@@ -4051,35 +4035,19 @@
   "@onbQuizKoreanTopik2": {
     "description": "S02 Q3 option: TOPIK 2."
   },
-  "onbQuizKoreanTopik3": "TOPIK 3 or higher",
+  "onbQuizKoreanTopik3": "TOPIK 3",
   "@onbQuizKoreanTopik3": {
-    "description": "S02 Q3 option: TOPIK 3 or higher."
+    "description": "Quiz Korean option"
   },
-  "onbQuizKoreanUnknown": "Not sure yet",
+  "onbQuizKoreanUnknown": "Not sure",
   "@onbQuizKoreanUnknown": {
     "description": "S02 Q3 option: don't know yet."
-  },
-  "onbQuizBudgetUnder3": "Up to $3,000",
-  "@onbQuizBudgetUnder3": {
-    "description": "S02 Q4 option: up to $3,000 a year."
-  },
-  "onbQuizBudget3to6": "$3–6k",
-  "@onbQuizBudget3to6": {
-    "description": "S02 Q4 option: $3,000–6,000 a year."
-  },
-  "onbQuizBudget6to10": "$6–10k",
-  "@onbQuizBudget6to10": {
-    "description": "S02 Q4 option: $6,000–10,000 a year."
-  },
-  "onbQuizBudgetOver10": "$10,000+",
-  "@onbQuizBudgetOver10": {
-    "description": "S02 Q4 option: over $10,000 a year."
   },
   "onbQuizQ5": "Do your parents have an official income?",
   "@onbQuizQ5": {
     "description": "S02 question 5: parents' official income (and bank statement)."
   },
-  "onbQuizIncomeYes": "Yes, official income",
+  "onbQuizIncomeYes": "Yes",
   "@onbQuizIncomeYes": {
     "description": "S02 Q5 option: yes, official income."
   },
@@ -4087,11 +4055,11 @@
   "@onbQuizIncomeNo": {
     "description": "S02 Q5 option: no official income."
   },
-  "onbQuizIntakeSpring2027": "Spring 2027",
+  "onbQuizIntakeSpring2027": "Spring 2027 (March)",
   "@onbQuizIntakeSpring2027": {
     "description": "S02 Q6 option: spring 2027 intake."
   },
-  "onbQuizIntakeFall2027": "Fall 2027",
+  "onbQuizIntakeFall2027": "Fall 2027 (September)",
   "@onbQuizIntakeFall2027": {
     "description": "S02 Q6 option: fall 2027 intake."
   },
@@ -4172,11 +4140,11 @@
   "@onbQuizGradQ": {
     "description": "S02 question 3: the year of the last graduation."
   },
-  "onbQuizIeltsQ": "Your IELTS score?",
+  "onbQuizIeltsQ": "Do you have an IELTS score?",
   "@onbQuizIeltsQ": {
     "description": "S02 question 5: IELTS score."
   },
-  "onbQuizIeltsNone": "None",
+  "onbQuizIeltsNone": "None, or below 5.5",
   "@onbQuizIeltsNone": {
     "description": "S02 IELTS option: none."
   },
@@ -4192,15 +4160,11 @@
   "@onbQuizIelts65": {
     "description": "S02 IELTS option: 6.5 or higher."
   },
-  "onbQuizIeltsUnknown": "Not sure yet",
+  "onbQuizIeltsUnknown": "Not sure",
   "@onbQuizIeltsUnknown": {
     "description": "S02 IELTS option: don't know yet."
   },
-  "onbQuizBudgetQ": "How much can you spend a year on study and living?",
-  "@onbQuizBudgetQ": {
-    "description": "S02 question 6: yearly budget."
-  },
-  "onbQuizPayerQ": "Who pays?",
+  "onbQuizPayerQ": "Who pays for the studies?",
   "@onbQuizPayerQ": {
     "description": "S02 question 7: who pays."
   },
@@ -4212,21 +4176,21 @@
   "@onbQuizPayerSelfOption": {
     "description": "S02 payer option."
   },
-  "onbQuizPayerSponsorOption": "A sponsor",
+  "onbQuizPayerSponsorOption": "A sponsor or relative",
   "@onbQuizPayerSponsorOption": {
     "description": "S02 payer option."
   },
-  "onbQuizRegionQ": "Which region are you from?",
+  "onbQuizRegionQ": "Which region do you live in?",
   "@onbQuizRegionQ": {
     "description": "S02 question 10: region."
   },
-  "onbQuizIntakeQ": "When do you want to go?",
+  "onbQuizIntakeQ": "When do you want to start?",
   "@onbQuizIntakeQ": {
     "description": "S02 question 11: when to go."
   },
-  "onbResultFactorEnglishStrong": "IELTS 5.5 or higher",
+  "onbResultFactorEnglishStrong": "IELTS 5.5 or higher — for English-taught programmes",
   "@onbResultFactorEnglishStrong": {
-    "description": "S03 factor: a master's applicant with IELTS 5.5 or higher."
+    "description": "Result factor"
   },
   "onbResultPartner": "Official partner",
   "@onbResultPartner": {
@@ -4235,5 +4199,1385 @@
   "onbResultLanguageLabel": "Language",
   "@onbResultLanguageLabel": {
     "description": "S03 university card: the language requirement cell (TOPIK and/or IELTS)."
+  },
+  "onbQuizKoreanTopik4": "TOPIK 4 or higher",
+  "@onbQuizKoreanTopik4": {
+    "description": "Quiz Korean option"
+  },
+  "onbQuizKdbQ": "Can you put a deposit in the student's name?",
+  "@onbQuizKdbQ": {
+    "description": "Quiz question: the KDB deposit"
+  },
+  "onbQuizKdbHint": "Required for the visa: {low} (other cities) or {high} (Seoul, Gyeonggi, Incheon) in a KDB Bank Uzbekistan account in the student's name, for at least {months} month(s). It is not a payment — the money stays in the student's account.",
+  "@onbQuizKdbHint": {
+    "description": "Hint under the KDB question",
+    "placeholders": {
+      "low": {
+        "type": "String"
+      },
+      "high": {
+        "type": "String"
+      },
+      "months": {
+        "type": "String"
+      }
+    }
+  },
+  "onbQuizKdbReady": "Yes, the money is ready now",
+  "@onbQuizKdbReady": {
+    "description": "KDB option"
+  },
+  "onbQuizKdbByIntake": "We will have it before the intake",
+  "@onbQuizKdbByIntake": {
+    "description": "KDB option"
+  },
+  "onbQuizKdbNo": "No, we can't",
+  "@onbQuizKdbNo": {
+    "description": "KDB option"
+  },
+  "onbQuizKdbUnknown": "Not sure",
+  "@onbQuizKdbUnknown": {
+    "description": "KDB option"
+  },
+  "onbResultFactorKoreanMasterStrong": "TOPIK 4 or higher — the master's requirement is met",
+  "@onbResultFactorKoreanMasterStrong": {
+    "description": "Result factor"
+  },
+  "onbResultFactorKoreanTopik3Master": "TOPIK 3 — the embassy asks for TOPIK 4 for a master's",
+  "@onbResultFactorKoreanTopik3Master": {
+    "description": "Result factor"
+  },
+  "onbResultFactorKoreanMissingMaster": "The embassy asks for TOPIK 4 for a master's",
+  "@onbResultFactorKoreanMissingMaster": {
+    "description": "Result factor"
+  },
+  "onbResultFactorKoreanCollegeMissing": "The embassy asks for TOPIK 2 for a college",
+  "@onbResultFactorKoreanCollegeMissing": {
+    "description": "Result factor"
+  },
+  "onbResultFactorKdbReady": "The KDB deposit is ready in the student's name",
+  "@onbResultFactorKdbReady": {
+    "description": "Result factor"
+  },
+  "onbResultFactorKdbByIntake": "The KDB deposit is not there yet — needed before applying",
+  "@onbResultFactorKdbByIntake": {
+    "description": "Result factor"
+  },
+  "onbResultFactorKdbNo": "No KDB deposit — the embassy requires it",
+  "@onbResultFactorKdbNo": {
+    "description": "Result factor"
+  },
+  "onbResultBandLowNoteLanguage": "The language certificate is below the embassy's requirement — without it the application is refused without an interview.",
+  "@onbResultBandLowNoteLanguage": {
+    "description": "Low band note: language"
+  },
+  "onbResultBandLowNoteMoney": "The financial requirement (a KDB deposit in the student's name and the parents' papers) is not met yet.",
+  "@onbResultBandLowNoteMoney": {
+    "description": "Low band note: money"
+  },
+  "onbQuizQ1Hint": "The result follows the visa rules for this route.",
+  "@onbQuizQ1Hint": {
+    "description": "Quiz Q1 hint"
+  },
+  "onbQuizGradHint": "School, lyceum, college or university — whichever was last.",
+  "@onbQuizGradHint": {
+    "description": "Quiz graduation hint"
+  },
+  "onbQuizGradQMaster": "When did you finish your bachelor's?",
+  "@onbQuizGradQMaster": {
+    "description": "Quiz graduation, master's"
+  },
+  "onbQuizIeltsHint": "Needed for English-taught programmes. Only the regular IELTS (not Online), taken in the last 2 years.",
+  "@onbQuizIeltsHint": {
+    "description": "Quiz IELTS hint"
+  },
+  "onbQuizIncomeHint": "For example a salary certificate from work (my.gov.uz) or business and tax papers. The embassy asks for the parents' papers.",
+  "@onbQuizIncomeHint": {
+    "description": "Quiz income hint"
+  },
+  "onbWelcomeCallTimer": "Our operator will contact you within {minutes} minutes",
+  "@onbWelcomeCallTimer": {
+    "description": "S01, over the main button during working hours, next to a countdown",
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "onbResultStepLanguagePrep": "Prepare for the TOPIK {level} certificate",
+  "@onbResultStepLanguagePrep": {
+    "description": "Next step: the certificate the route needs",
+    "placeholders": {
+      "level": {
+        "type": "String"
+      }
+    }
+  },
+  "onbResultStepLanguagePrepEnglish": "Prepare for TOPIK {level} or IELTS 5.5",
+  "@onbResultStepLanguagePrepEnglish": {
+    "description": "Next step for a degree route: TOPIK or IELTS",
+    "placeholders": {
+      "level": {
+        "type": "String"
+      }
+    }
+  },
+  "onbResultStepDeposit": "Open the KDB deposit in the student's name: {low}–{high}, for at least {months} month(s)",
+  "@onbResultStepDeposit": {
+    "description": "Next step: the KDB deposit",
+    "placeholders": {
+      "low": {
+        "type": "String"
+      },
+      "high": {
+        "type": "String"
+      },
+      "months": {
+        "type": "String"
+      }
+    }
+  },
+  "onbResultStepParentsDocs": "Prepare the parents' income or property papers (my.gov.uz)",
+  "@onbResultStepParentsDocs": {
+    "description": "Next step: the parents' papers"
+  },
+  "onbResultPathEnglishTrack": "An English-taught programme",
+  "@onbResultPathEnglishTrack": {
+    "description": "Path title"
+  },
+  "onbResultPathEnglishTrackNote": "With IELTS 5.5, apply to a programme that does not ask for Korean.",
+  "@onbResultPathEnglishTrackNote": {
+    "description": "Path note"
+  },
+  "onbResultPathDeposit": "Prepare the KDB deposit",
+  "@onbResultPathDeposit": {
+    "description": "Path title"
+  },
+  "onbResultPathDepositNote": "{low}–{high} in the student's name for at least {months} month(s) — required for the visa.",
+  "@onbResultPathDepositNote": {
+    "description": "Path note",
+    "placeholders": {
+      "low": {
+        "type": "String"
+      },
+      "high": {
+        "type": "String"
+      },
+      "months": {
+        "type": "String"
+      }
+    }
+  },
+  "onbResultPathParentsDocs": "The parents' papers",
+  "@onbResultPathParentsDocs": {
+    "description": "Path title"
+  },
+  "onbResultPathParentsDocsNote": "Official work, business or property papers — the embassy asks for these.",
+  "@onbResultPathParentsDocsNote": {
+    "description": "Path note"
+  },
+  "catalogGuestUniTitle": "Guest University",
+  "@catalogGuestUniTitle": {
+    "description": "Eyebrow over the visiting-university card at the top of the catalogue; the app adds ' · 방문 중' after it."
+  },
+  "catalogGuestUniWhere": "In Uzbekistan now",
+  "@catalogGuestUniWhere": {
+    "description": "Right side of the visiting-university eyebrow: where the delegation is now."
+  },
+  "catalogGuestUniBadge": "Delegation visiting Samarkand",
+  "@catalogGuestUniBadge": {
+    "description": "Lime badge on the visiting university's photo."
+  },
+  "catalogAiResultsTitle": "Results",
+  "@catalogAiResultsTitle": {
+    "description": "AI search: the results heading while a search is typed."
+  },
+  "catalogAiSearching": "AI is searching…",
+  "@catalogAiSearching": {
+    "description": "AI search: shown while the model reads the typed text."
+  },
+  "catalogAiFields": "Programs: {fields}",
+  "@catalogAiFields": {
+    "description": "AI search reason line: the faculties that match the field of study typed.",
+    "placeholders": {
+      "fields": {
+        "type": "String"
+      }
+    }
+  },
+  "fdIntakeLabel": "{season} intake",
+  "@fdIntakeLabel": {
+    "description": "Home (design 03) header: the intake season.",
+    "placeholders": {
+      "season": {
+        "type": "String"
+      }
+    }
+  },
+  "fdSearchHint": "Search universities",
+  "@fdSearchHint": {
+    "description": "Home (design 03) search field placeholder."
+  },
+  "fdCellLanguage": "Language",
+  "@fdCellLanguage": {
+    "description": "Card stack cell label: language requirement."
+  },
+  "fdCellDeadline": "Deadline",
+  "@fdCellDeadline": {
+    "description": "Card stack cell label: application deadline."
+  },
+  "fdAdmissionUnknown": "Admission ?%",
+  "@fdAdmissionUnknown": {
+    "description": "Card stack pill: admission chance not yet assessed; opens the assessment."
+  },
+  "fdCounter": "{current} / {total}",
+  "@fdCounter": {
+    "description": "Card stack position.",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "fdBannerUniversities": "universities",
+  "@fdBannerUniversities": {
+    "description": "Home banner: after the count."
+  },
+  "fdBannerSubtitle": "By field · city · TOPIK",
+  "@fdBannerSubtitle": {
+    "description": "Home banner subtitle; opens the filter board."
+  },
+  "fdSkip": "Skip",
+  "@fdSkip": {
+    "description": "Card stack ✕ button."
+  },
+  "fdSave": "Save",
+  "@fdSave": {
+    "description": "Card stack ♡ button."
+  },
+  "fdPrevious": "Previous",
+  "@fdPrevious": {
+    "description": "Card stack left chevron."
+  },
+  "fdNext": "Next",
+  "@fdNext": {
+    "description": "Card stack right chevron."
+  },
+  "fdNavUniversities": "Universities",
+  "@fdNavUniversities": {
+    "description": "Bottom nav tab."
+  },
+  "fdNavMap": "360° map",
+  "@fdNavMap": {
+    "description": "Bottom nav tab."
+  },
+  "fdNavPrepare": "Preparation",
+  "@fdNavPrepare": {
+    "description": "Bottom nav tab."
+  },
+  "fdPrepareEyebrow": "Getting ready for",
+  "@fdPrepareEyebrow": {
+    "description": "Preparation (design 18) small line above the title."
+  },
+  "fdPrepareTitle": "university",
+  "@fdPrepareTitle": {
+    "description": "Preparation (design 18) title, marked in lime."
+  },
+  "fdPrepareStudyPlanSteps": "{done} / {total} steps",
+  "@fdPrepareStudyPlanSteps": {
+    "description": "Study Plan card progress tag.",
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "fdPrepareStudyPlanTitle": "Write your Study Plan",
+  "@fdPrepareStudyPlanTitle": {
+    "description": "Preparation card title."
+  },
+  "fdPrepareStudyPlanBody": "Write your study plan in 4 steps; Hanguk AI gives feedback.",
+  "@fdPrepareStudyPlanBody": {
+    "description": "Preparation card body."
+  },
+  "fdPrepareNew": "New",
+  "@fdPrepareNew": {
+    "description": "Preparation interview card tag."
+  },
+  "fdPrepareInterviewTitle": "Interview practice",
+  "@fdPrepareInterviewTitle": {
+    "description": "Preparation card title."
+  },
+  "fdPrepareInterviewBody": "Practise 8 questions out loud with the Hanguk AI interviewer.",
+  "@fdPrepareInterviewBody": {
+    "description": "Preparation card body."
+  },
+  "fdPrepareAskTitle": "Ask Hanguk AI",
+  "@fdPrepareAskTitle": {
+    "description": "Preparation row title."
+  },
+  "fdPrepareAskBody": "About documents, visas, dormitories",
+  "@fdPrepareAskBody": {
+    "description": "Preparation row subtitle."
+  },
+  "fdRecentSearches": "Recent searches",
+  "@fdRecentSearches": {
+    "description": "Search (design 04) section label."
+  },
+  "fdCountTa": "{count}",
+  "@fdCountTa": {
+    "description": "A bare count after a heading (Natijalar · 3 ta).",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fdPopularCities": "Popular cities",
+  "@fdPopularCities": {
+    "description": "Search (design 04) section label."
+  },
+  "fdFieldIt": "IT",
+  "@fdFieldIt": {
+    "description": "Filter board field tile."
+  },
+  "fdFieldBusiness": "Business",
+  "@fdFieldBusiness": {
+    "description": "Filter board field tile."
+  },
+  "fdFieldEngineering": "Engineering",
+  "@fdFieldEngineering": {
+    "description": "Filter board field tile."
+  },
+  "fdFieldMedicine": "Medicine",
+  "@fdFieldMedicine": {
+    "description": "Filter board field tile."
+  },
+  "fdFieldDesign": "Design",
+  "@fdFieldDesign": {
+    "description": "Filter board field tile."
+  },
+  "fdFieldTourism": "Tourism",
+  "@fdFieldTourism": {
+    "description": "Filter board field tile."
+  },
+  "fdFieldEducation": "Education",
+  "@fdFieldEducation": {
+    "description": "Filter board field tile."
+  },
+  "fdRegionSeoul": "Seoul",
+  "@fdRegionSeoul": {
+    "description": "Filter board city chip."
+  },
+  "fdOther": "Other",
+  "@fdOther": {
+    "description": "Filter board: the 'other' tile / chip."
+  },
+  "fdFilterTitleLead": "What university",
+  "@fdFilterTitleLead": {
+    "description": "Filter board title, first part."
+  },
+  "fdFilterTitleMark": "do you need?",
+  "@fdFilterTitleMark": {
+    "description": "Filter board title, the marked part."
+  },
+  "fdSectionField": "Field",
+  "@fdSectionField": {
+    "description": "Filter board section."
+  },
+  "fdSectionCity": "City",
+  "@fdSectionCity": {
+    "description": "Filter board section."
+  },
+  "fdSectionDegree": "Degree",
+  "@fdSectionDegree": {
+    "description": "Filter board / assessment section."
+  },
+  "fdSectionTopik": "TOPIK required for admission",
+  "@fdSectionTopik": {
+    "description": "Filter board section."
+  },
+  "fdAny": "Any",
+  "@fdAny": {
+    "description": "Filter board: no preference."
+  },
+  "fdTopikNone": "Not required",
+  "@fdTopikNone": {
+    "description": "Filter board: TOPIK not required."
+  },
+  "fdSectionFee": "Tuition / semester",
+  "@fdSectionFee": {
+    "description": "Filter board section."
+  },
+  "fdFeeUpTo": "Up to {amount}",
+  "@fdFeeUpTo": {
+    "description": "Filter board fee ceiling tag.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "fdSectionType": "Type",
+  "@fdSectionType": {
+    "description": "Filter board section."
+  },
+  "fdShowUniversities": "Show {count} universities →",
+  "@fdShowUniversities": {
+    "description": "Filter board main button.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fdMatchingUniversities": "matching universities",
+  "@fdMatchingUniversities": {
+    "description": "Filter board count card, after the number."
+  },
+  "fdOfTotal": "of {total}",
+  "@fdOfTotal": {
+    "description": "Filter board count card: out of the whole catalogue.",
+    "placeholders": {
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "fdSegLow": "Low",
+  "@fdSegLow": {
+    "description": "Chance meter word (design 11/12), below 25%."
+  },
+  "fdSegMid": "Fair",
+  "@fdSegMid": {
+    "description": "Chance meter word, 25–44%."
+  },
+  "fdSegGood": "Good",
+  "@fdSegGood": {
+    "description": "Chance meter word, 45–64%."
+  },
+  "fdSegHigh": "High",
+  "@fdSegHigh": {
+    "description": "Chance meter word, 65–81%."
+  },
+  "fdSegVeryHigh": "Very high",
+  "@fdSegVeryHigh": {
+    "description": "Chance meter word, 82% and up."
+  },
+  "fdAssessTitleLead": "Can I really go",
+  "@fdAssessTitleLead": {
+    "description": "Assessment (design 11) title, first part; the second part is marked."
+  },
+  "fdAssessTitleMark": "to Korea?",
+  "@fdAssessTitleMark": {
+    "description": "Assessment title, marked part."
+  },
+  "fdAssessTopik": "My Korean (TOPIK)",
+  "@fdAssessTopik": {
+    "description": "Assessment row label."
+  },
+  "fdAssessGpa": "School certificate average",
+  "@fdAssessGpa": {
+    "description": "Assessment row label."
+  },
+  "fdAssessBank": "Bank balance (D-2)",
+  "@fdAssessBank": {
+    "description": "Assessment row label."
+  },
+  "fdAssessBankNeed": "{amount} required",
+  "@fdAssessBankNeed": {
+    "description": "Marker under the bank slider: the amount the visa needs.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "fdMln": "₩{n}M",
+  "@fdMln": {
+    "description": "An amount in millions of won.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "fdLanguageCourse": "Language course",
+  "@fdLanguageCourse": {
+    "description": "Degree choice on the assessment."
+  },
+  "fdAssessRefused": "Has a visa been refused before?",
+  "@fdAssessRefused": {
+    "description": "Assessment row label."
+  },
+  "fdNo": "No",
+  "@fdNo": {
+    "description": "No."
+  },
+  "fdYes": "Yes",
+  "@fdYes": {
+    "description": "Yes."
+  },
+  "fdAssessSeeReport": "See the report →",
+  "@fdAssessSeeReport": {
+    "description": "Assessment bottom button."
+  },
+  "fdAssessAdmissionCount": "Admission · {n} universities",
+  "@fdAssessAdmissionCount": {
+    "description": "Assessment meters card heading.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "fdVisa": "Visa",
+  "@fdVisa": {
+    "description": "The visa row on the assessment meters card."
+  },
+  "fdAssessTopikHint": "TOPIK {level} → {uni} admission becomes «{word}»",
+  "@fdAssessTopikHint": {
+    "description": "Hint under the meters: what one more TOPIK level would do.",
+    "placeholders": {
+      "level": {
+        "type": "int"
+      },
+      "uni": {
+        "type": "String"
+      },
+      "word": {
+        "type": "String"
+      }
+    }
+  },
+  "fdReportNameError": "Enter your name",
+  "@fdReportNameError": {
+    "description": "Report lead form error."
+  },
+  "fdReportPhoneError": "Enter the full phone number",
+  "@fdReportPhoneError": {
+    "description": "Report lead form error."
+  },
+  "fdReportNetworkError": "Couldn't send. Check the connection and try again.",
+  "@fdReportNetworkError": {
+    "description": "Report lead form error."
+  },
+  "fdShare": "Share",
+  "@fdShare": {
+    "description": "Share button label."
+  },
+  "fdVerdictYes": "YES",
+  "@fdVerdictYes": {
+    "description": "Report verdict, high band."
+  },
+  "fdVerdictMaybe": "MAYBE",
+  "@fdVerdictMaybe": {
+    "description": "Report verdict, mid band."
+  },
+  "fdVerdictNotYet": "NOT YET",
+  "@fdVerdictNotYet": {
+    "description": "Report verdict, low band."
+  },
+  "fdVerdictYesNote": "Your figures are enough — you can start the documents.",
+  "@fdVerdictYesNote": {
+    "description": "Note under the HA verdict."
+  },
+  "fdVerdictMaybeNote": "Raise one or two figures and the answer becomes «YES».",
+  "@fdVerdictMaybeNote": {
+    "description": "Note under the BALKI verdict (design 12)."
+  },
+  "fdVerdictNotYetNote": "The figures aren't there yet — start with the steps below.",
+  "@fdVerdictNotYetNote": {
+    "description": "Note under the HOZIRCHA YO'Q verdict."
+  },
+  "fdReportFixesTitle": "What to do",
+  "@fdReportFixesTitle": {
+    "description": "Report section title."
+  },
+  "fdReportAdmission": "University admission",
+  "@fdReportAdmission": {
+    "description": "Report check row."
+  },
+  "fdReportOpenOf": "{open} of {total} open",
+  "@fdReportOpenOf": {
+    "description": "How many of the universities are a chance worth applying with.",
+    "placeholders": {
+      "total": {
+        "type": "int"
+      },
+      "open": {
+        "type": "int"
+      }
+    }
+  },
+  "fdReportVisa": "D-2 visa",
+  "@fdReportVisa": {
+    "description": "Report check row."
+  },
+  "fdReportStudy": "Studying in Korea",
+  "@fdReportStudy": {
+    "description": "Report check row."
+  },
+  "fdFixBank": "Bring the bank balance to {amount}",
+  "@fdFixBank": {
+    "description": "Report fix row.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "fdFixTopik": "Reach TOPIK {level}",
+  "@fdFixTopik": {
+    "description": "Report fix row.",
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "fdGainVisa": "visa +{n}%",
+  "@fdGainVisa": {
+    "description": "What a fix adds to the visa chance.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "fdGainAdmission": "admission +{n}%",
+  "@fdGainAdmission": {
+    "description": "What a fix adds to the admission chance.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "fdReportFormLead": "We'll send the report",
+  "@fdReportFormLead": {
+    "description": "Lead form title, first part."
+  },
+  "fdReportFormFree": "free",
+  "@fdReportFormFree": {
+    "description": "Lead form title, marked part."
+  },
+  "fdReportFormTail": "",
+  "@fdReportFormTail": {
+    "description": "Lead form title, last part (may be empty)."
+  },
+  "fdReportName": "First and last name",
+  "@fdReportName": {
+    "description": "Lead form field."
+  },
+  "fdReportSend": "Send",
+  "@fdReportSend": {
+    "description": "Lead form button."
+  },
+  "fdSentThanks": "Thank you",
+  "@fdSentThanks": {
+    "description": "Sent screen (design 13) title before the name."
+  },
+  "fdSentBody": "The report was sent to {phone}. Your consultant will call within 24 hours.",
+  "@fdSentBody": {
+    "description": "Sent screen body.",
+    "placeholders": {
+      "phone": {
+        "type": "String"
+      }
+    }
+  },
+  "fdSentMeanwhile": "Meanwhile",
+  "@fdSentMeanwhile": {
+    "description": "Sent screen section label."
+  },
+  "fdSentDocsTitle": "Document list",
+  "@fdSentDocsTitle": {
+    "description": "Sent screen row."
+  },
+  "fdSentDocsBody": "{count} documents for {uni}",
+  "@fdSentDocsBody": {
+    "description": "Sent screen row subtitle.",
+    "placeholders": {
+      "uni": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fdSentTopikTitle": "Prepare for TOPIK {level}",
+  "@fdSentTopikTitle": {
+    "description": "Sent screen row.",
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "fdSentBack": "Back to universities",
+  "@fdSentBack": {
+    "description": "Sent screen button."
+  },
+  "fdSentConsultant": "Your consultant",
+  "@fdSentConsultant": {
+    "description": "Sent screen agency card subtitle."
+  },
+  "fdSentCall": "Call",
+  "@fdSentCall": {
+    "description": "Sent screen call button."
+  },
+  "fdUniTuitionSem": "Tuition / sem",
+  "@fdUniTuitionSem": {
+    "description": "University page (design 10) stat cell."
+  },
+  "fdUniTuitionYear": "Tuition / year",
+  "@fdUniTuitionYear": {
+    "description": "University page stat cell when the fee is yearly."
+  },
+  "fdUniDeadline": "Document deadline",
+  "@fdUniDeadline": {
+    "description": "University page stat cell."
+  },
+  "fdUniFacultiesSummary": "{faculties} faculties · {majors} programmes",
+  "@fdUniFacultiesSummary": {
+    "description": "University page faculties heading, right side.",
+    "placeholders": {
+      "faculties": {
+        "type": "int"
+      },
+      "majors": {
+        "type": "int"
+      }
+    }
+  },
+  "fdUniAllMajors": "All {count} programmes →",
+  "@fdUniAllMajors": {
+    "description": "Shows the rest of a faculty's programmes.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fdSaved": "Saved",
+  "@fdSaved": {
+    "description": "Saved state of the save button."
+  },
+  "fdUniCta": "Can I really go to Korea?",
+  "@fdUniCta": {
+    "description": "University page main button: opens the assessment."
+  },
+  "fdResultsMatching": "{count} matching universities",
+  "@fdResultsMatching": {
+    "description": "Results (design 06) list heading.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fdResultsBestFirst": "best match first",
+  "@fdResultsBestFirst": {
+    "description": "Results list ordering note."
+  },
+  "fdSlotDropHere": "Drop here",
+  "@fdSlotDropHere": {
+    "description": "An empty slot while a university is dragged over it."
+  },
+  "fdSlotNumber": "Slot {n}",
+  "@fdSlotNumber": {
+    "description": "Screen-reader label of a slot.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "fdSlotEmpty": "empty",
+  "@fdSlotEmpty": {
+    "description": "Screen-reader state of an empty slot."
+  },
+  "fdAddToSlot": "Add to a slot",
+  "@fdAddToSlot": {
+    "description": "Puts a university in the first empty slot."
+  },
+  "fdRemoveFromSlot": "Remove from the slot",
+  "@fdRemoveFromSlot": {
+    "description": "Takes a university out of its slot."
+  },
+  "fdInSlot": "✓ In slot {n}",
+  "@fdInSlot": {
+    "description": "University page button when the university is in a slot.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "fdSlotsFull": "All three slots are taken. Free one first.",
+  "@fdSlotsFull": {
+    "description": "Shown when adding to full slots."
+  },
+  "fdBestThreeTitle": "Pick your best 3",
+  "@fdBestThreeTitle": {
+    "description": "Results banner title: opens the duel (design 07)."
+  },
+  "fdBestThreeBody": "from {count} — two at a time",
+  "@fdBestThreeBody": {
+    "description": "Results banner subtitle.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fdDuelTitleLead": "Your best",
+  "@fdDuelTitleLead": {
+    "description": "Duel (design 07) title, first part."
+  },
+  "fdDuelTitleMark": "3",
+  "@fdDuelTitleMark": {
+    "description": "Duel title, marked part."
+  },
+  "fdDuelCompared": "{count} compared",
+  "@fdDuelCompared": {
+    "description": "Duel: how many picks so far.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fdOr": "OR",
+  "@fdOr": {
+    "description": "Between the two duel cards."
+  },
+  "fdDuelLegend": "= champion, goes into a slot",
+  "@fdDuelLegend": {
+    "description": "Duel legend after two lime pips."
+  },
+  "fdDuelPick": "Pick this one",
+  "@fdDuelPick": {
+    "description": "Screen-reader hint on a duel card."
+  },
+  "fdChosenTitleMark": "Great",
+  "@fdChosenTitleMark": {
+    "description": "Chosen (design 08) title, marked part."
+  },
+  "fdChosenTitleTail": "choice!",
+  "@fdChosenTitleTail": {
+    "description": "Chosen title, last part."
+  },
+  "fdChosenBodyThree": "Your three universities are ready. Let's find out which are open to you.",
+  "@fdChosenBodyThree": {
+    "description": "Chosen body with three universities."
+  },
+  "fdChosenBody": "Your {count} universities are ready. Let's find out which are open to you.",
+  "@fdChosenBody": {
+    "description": "Chosen body with fewer than three.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fdChosenNext": "Now the big question",
+  "@fdChosenNext": {
+    "description": "Above the chosen screen's buttons, followed by a down arrow."
+  },
+  "fdChosenAdmission": "Can I get into these?",
+  "@fdChosenAdmission": {
+    "description": "Opens the assessment with these universities."
+  },
+  "fdChosenVisa": "Will I get the visa?",
+  "@fdChosenVisa": {
+    "description": "Opens the assessment (its visa side)."
+  },
+  "fdChosenEmpty": "The slots are still empty. Add universities from the results.",
+  "@fdChosenEmpty": {
+    "description": "Chosen screen with no slotted universities."
+  },
+  "fdCompareTitle": "Compare",
+  "@fdCompareTitle": {
+    "description": "Compare (design 09) title."
+  },
+  "fdCompareCount": "{count} universities",
+  "@fdCompareCount": {
+    "description": "Compare header count.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fdCompareCity": "City",
+  "@fdCompareCity": {
+    "description": "Compare row label."
+  },
+  "fdCompareType": "Type",
+  "@fdCompareType": {
+    "description": "Compare row label."
+  },
+  "fdCompareAdmission": "Admission",
+  "@fdCompareAdmission": {
+    "description": "Compare row label: the admission chance."
+  },
+  "fdSavedTitle": "Saved",
+  "@fdSavedTitle": {
+    "description": "Saved (design 16) title."
+  },
+  "fdSavedCompareThree": "Compare all three",
+  "@fdSavedCompareThree": {
+    "description": "Saved: compare the first three."
+  },
+  "fdSavedCompareTwo": "Compare both",
+  "@fdSavedCompareTwo": {
+    "description": "Saved: compare two."
+  },
+  "fdSavedCompareBody": "Fee, language and deadline side by side",
+  "@fdSavedCompareBody": {
+    "description": "Saved compare card subtitle."
+  },
+  "fdSavedEmpty": "Nothing saved yet. On the home screen, swipe a card right or tap ♡.",
+  "@fdSavedEmpty": {
+    "description": "Saved list empty state."
+  },
+  "fdUnsave": "Remove from saved",
+  "@fdUnsave": {
+    "description": "Screen-reader label of the heart on a saved row."
+  },
+  "fdOddsLead": "My admission chance",
+  "@fdOddsLead": {
+    "description": "Card pill (design 03): followed by the percentage or ?% and an arrow."
+  },
+  "fdStampSave": "SAVE",
+  "@fdStampSave": {
+    "description": "Stamp on the card while it is dragged to the right."
+  },
+  "fdStampSkip": "SKIP",
+  "@fdStampSkip": {
+    "description": "Stamp on the card while it is dragged to the left."
+  },
+  "fdSwipeHint": "Try swiping",
+  "@fdSwipeHint": {
+    "description": "Hint over the first card, shown until the first swipe."
+  },
+  "fdQsRanking": "world ranking",
+  "@fdQsRanking": {
+    "description": "Under the QS number on the card."
+  },
+  "fdPerSemShort": "/ sem",
+  "@fdPerSemShort": {
+    "description": "After the fee on the home card: per semester."
+  },
+  "fdPerYearShort": "/ year",
+  "@fdPerYearShort": {
+    "description": "After the fee on the home card: per year."
+  },
+  "fdCodeTitleLead": "Your client",
+  "@fdCodeTitleLead": {
+    "description": "Client code screen (design 14) title, first part; the second part is marked."
+  },
+  "fdCodeTitleMark": "code",
+  "@fdCodeTitleMark": {
+    "description": "Client code title, marked part."
+  },
+  "fdCodeBody": "Enter the 8-character code your consultant gave you — your application status opens.",
+  "@fdCodeBody": {
+    "description": "Client code screen body."
+  },
+  "fdCodeSubmit": "Sign in",
+  "@fdCodeSubmit": {
+    "description": "Client code screen button."
+  },
+  "fdCodeNoCode": "No code? Free consultation:",
+  "@fdCodeNoCode": {
+    "description": "Under the client code form, followed by the phone number."
+  },
+  "fdCodeCell": "Code character {n}",
+  "@fdCodeCell": {
+    "description": "Screen-reader label for the code field.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "fdMapKicker": "Across Korea · {count} universities",
+  "@fdMapKicker": {
+    "description": "Map (design 17) line above the title.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fdMapTitleMark": "map",
+  "@fdMapTitleMark": {
+    "description": "Map title, marked part, after '360° '."
+  },
+  "fdMapLabel": "KOREA · 대한민국",
+  "@fdMapLabel": {
+    "description": "Faint label in the map's corner."
+  },
+  "fdMapPin": "{city}: {count} universities",
+  "@fdMapPin": {
+    "description": "Screen-reader label of a map pin.",
+    "placeholders": {
+      "city": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fdMapZoomIn": "Zoom in",
+  "@fdMapZoomIn": {
+    "description": "Map zoom button."
+  },
+  "fdMapZoomOut": "Zoom out",
+  "@fdMapZoomOut": {
+    "description": "Map zoom button."
+  },
+  "fdMapOpen360": "Open the 360° view",
+  "@fdMapOpen360": {
+    "description": "Screen-reader label of the 360° button on the map card."
+  },
+  "fdMapEmpty": "No university matches this filter.",
+  "@fdMapEmpty": {
+    "description": "Map with no pins."
+  },
+  "fdMapCardOf": "{n} / {total}",
+  "@fdMapCardOf": {
+    "description": "Which university of a pin's list the card shows.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "fdNavApplication": "Application",
+  "@fdNavApplication": {
+    "description": "Client bottom nav tab (design 15)."
+  },
+  "fdNavDocuments": "Documents",
+  "@fdNavDocuments": {
+    "description": "Client bottom nav tab (design 15b)."
+  },
+  "fdJourneyTitle": "Application progress",
+  "@fdJourneyTitle": {
+    "description": "Application (design 15) title."
+  },
+  "fdJourneyCurrent": "Current stage",
+  "@fdJourneyCurrent": {
+    "description": "Application summary card label."
+  },
+  "fdJourneyNext": "Next stage: {stage}",
+  "@fdJourneyNext": {
+    "description": "Application summary card note.",
+    "placeholders": {
+      "stage": {
+        "type": "String"
+      }
+    }
+  },
+  "fdJourneyDone": "Every stage is done",
+  "@fdJourneyDone": {
+    "description": "Application summary card note when the journey is over."
+  },
+  "fdJourneyWaiting": "Waiting for the consultant to confirm your application",
+  "@fdJourneyWaiting": {
+    "description": "Application summary card note while the application is pending approval."
+  },
+  "fdJourneyEmpty": "No application yet",
+  "@fdJourneyEmpty": {
+    "description": "Application screen with no application."
+  },
+  "fdJourneyEmptyBody": "Once your consultant attaches a university, its progress shows here.",
+  "@fdJourneyEmptyBody": {
+    "description": "Application screen with no application."
+  },
+  "fdJourneyBrowse": "Browse universities",
+  "@fdJourneyBrowse": {
+    "description": "Button on the empty application screen."
+  },
+  "fdJourneyRoom": "University room",
+  "@fdJourneyRoom": {
+    "description": "Opens a university's room (discussion, announcements) from an application."
+  },
+  "fdConsultantRole": "Consultant · answers your questions",
+  "@fdConsultantRole": {
+    "description": "Under the agency name on the consultant card."
+  },
+  "fdDocsTitle": "My documents",
+  "@fdDocsTitle": {
+    "description": "Documents (design 15b) title."
+  },
+  "fdDocsAccepted": "Accepted documents",
+  "@fdDocsAccepted": {
+    "description": "Documents summary card label."
+  },
+  "fdDocsNeedMore": "{n} more needed",
+  "@fdDocsNeedMore": {
+    "description": "Documents summary card headline.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "fdDocsUnderReview": "{n} under review",
+  "@fdDocsUnderReview": {
+    "description": "Documents summary card headline when all are uploaded.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "fdDocsAllAccepted": "Everything is accepted",
+  "@fdDocsAllAccepted": {
+    "description": "Documents summary card headline when all are accepted."
+  },
+  "fdDocAccepted": "Accepted",
+  "@fdDocAccepted": {
+    "description": "Document row status."
+  },
+  "fdDocNeeded": "Needed",
+  "@fdDocNeeded": {
+    "description": "Document row status."
+  },
+  "fdDocReview": "Under review",
+  "@fdDocReview": {
+    "description": "Document row status."
+  },
+  "fdDocUpload": "Upload",
+  "@fdDocUpload": {
+    "description": "Document row button."
+  },
+  "fdDocView": "View",
+  "@fdDocView": {
+    "description": "Document actions."
+  },
+  "fdDocRemove": "Remove",
+  "@fdDocRemove": {
+    "description": "Document actions."
+  },
+  "accountMoreLabel": "More",
+  "@accountMoreLabel": {
+    "description": "Account screen card with the sections that are not in the bottom tabs."
+  },
+  "fdPlanTitle": "Study Plan",
+  "@fdPlanTitle": {
+    "description": "Study Plan builder header."
+  },
+  "fdPlanStepGoal": "Goal",
+  "@fdPlanStepGoal": {
+    "description": "Study Plan step chip 1."
+  },
+  "fdPlanStepKorea": "Why Korea",
+  "@fdPlanStepKorea": {
+    "description": "Study Plan step chip 2."
+  },
+  "fdPlanStepUni": "Why this university",
+  "@fdPlanStepUni": {
+    "description": "Study Plan step chip 3."
+  },
+  "fdPlanStepFuture": "Future plan",
+  "@fdPlanStepFuture": {
+    "description": "Study Plan step chip 4."
+  },
+  "fdPlanStepOf": "Step {n} · of {total}",
+  "@fdPlanStepOf": {
+    "description": "Card kicker of the Study Plan builder.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "fdPlanQ1Head": "Your",
+  "@fdPlanQ1Head": {
+    "description": "Step 1 title, before the highlighted word."
+  },
+  "fdPlanQ1Mark": "goal?",
+  "@fdPlanQ1Mark": {
+    "description": "Step 1 title, highlighted word."
+  },
+  "fdPlanQ1Hint": "3–5 sentences. What do you want to study and why do you need it? Be specific.",
+  "@fdPlanQ1Hint": {
+    "description": "Step 1 hint."
+  },
+  "fdPlanQ2Head": "Why",
+  "@fdPlanQ2Head": {
+    "description": "Step 2 title, before the highlighted word."
+  },
+  "fdPlanQ2Mark": "Korea?",
+  "@fdPlanQ2Mark": {
+    "description": "Step 2 title, highlighted word."
+  },
+  "fdPlanQ2Hint": "3–5 sentences. Write a personal reason: family, career, language, experience. Avoid generalities.",
+  "@fdPlanQ2Hint": {
+    "description": "Step 2 hint."
+  },
+  "fdPlanQ3Head": "Why this",
+  "@fdPlanQ3Head": {
+    "description": "Step 3 title, before the highlighted word."
+  },
+  "fdPlanQ3Mark": "university?",
+  "@fdPlanQ3Mark": {
+    "description": "Step 3 title, highlighted word."
+  },
+  "fdPlanQ3Hint": "3–5 sentences. Why do this university's programme, lab or major suit you? Give a concrete example.",
+  "@fdPlanQ3Hint": {
+    "description": "Step 3 hint."
+  },
+  "fdPlanQ4Head": "Your plan after",
+  "@fdPlanQ4Head": {
+    "description": "Step 4 title, before the highlighted word."
+  },
+  "fdPlanQ4Mark": "graduation?",
+  "@fdPlanQ4Mark": {
+    "description": "Step 4 title, highlighted word."
+  },
+  "fdPlanQ4Hint": "3–5 sentences. What will you do after your studies: work, a master's or going home? Write concrete steps.",
+  "@fdPlanQ4Hint": {
+    "description": "Step 4 hint."
+  },
+  "fdPlanHintField": "Write here…",
+  "@fdPlanHintField": {
+    "description": "Study Plan builder text field placeholder."
+  },
+  "fdPlanWarnTitle": "Important: do not submit AI-written text",
+  "@fdPlanWarnTitle": {
+    "description": "Warning card title."
+  },
+  "fdPlanWarnBody": "Universities detect AI text. What you write here is yours alone. Hanguk AI only gives feedback.",
+  "@fdPlanWarnBody": {
+    "description": "Warning card body."
+  },
+  "fdPlanFeedback": "Get feedback",
+  "@fdPlanFeedback": {
+    "description": "Study Plan builder main button."
+  },
+  "fdPlanFeedbackBusy": "Analysing…",
+  "@fdPlanFeedbackBusy": {
+    "description": "Main button while the analysis runs."
+  },
+  "fdPlanWriteFirst": "Write this step first.",
+  "@fdPlanWriteFirst": {
+    "description": "Shown when feedback is asked on an empty step."
+  },
+  "fdPlanSheetTitle": "Hanguk AI feedback",
+  "@fdPlanSheetTitle": {
+    "description": "Feedback sheet title."
+  },
+  "fdPlanStrengths": "Strengths",
+  "@fdPlanStrengths": {
+    "description": "Feedback sheet section."
+  },
+  "fdPlanImprove": "To improve",
+  "@fdPlanImprove": {
+    "description": "Feedback sheet section."
+  },
+  "fdPlanNext": "Next step",
+  "@fdPlanNext": {
+    "description": "Feedback sheet button."
+  },
+  "fdPlanClose": "Close",
+  "@fdPlanClose": {
+    "description": "Feedback sheet button on the last step."
+  },
+  "fdPlanLoadFailed": "Study Plan did not open. Check your connection and try again.",
+  "@fdPlanLoadFailed": {
+    "description": "Study Plan builder when the session could not be created or loaded."
+  },
+  "fdInterviewTitle": "Interview practice",
+  "@fdInterviewTitle": {
+    "description": "Live interview screen header."
+  },
+  "fdInterviewAi": "Hanguk AI · interviewer",
+  "@fdInterviewAi": {
+    "description": "Name under the interviewer avatar."
+  },
+  "fdInterviewStyle": "In the style of {university}'s admissions panel",
+  "@fdInterviewStyle": {
+    "description": "Line under the interviewer's name.",
+    "placeholders": {
+      "university": {
+        "type": "String"
+      }
+    }
+  },
+  "fdInterviewTip": "Speak clearly at a moderate pace · 60–90 seconds",
+  "@fdInterviewTip": {
+    "description": "Tip under the microphone button."
+  },
+  "fdInterviewMute": "Mute microphone",
+  "@fdInterviewMute": {
+    "description": "Microphone button label while it is on."
+  },
+  "fdInterviewUnmute": "Unmute microphone",
+  "@fdInterviewUnmute": {
+    "description": "Microphone button label while it is muted."
+  },
+  "fdInterviewMuted": "Microphone off — the interviewer cannot hear you",
+  "@fdInterviewMuted": {
+    "description": "Status while the microphone is muted."
+  },
+  "fdCodeScan": "Scan QR code",
+  "@fdCodeScan": {
+    "description": "Button under 'Kirish' on the client-code screen."
+  },
+  "fdScanTitle": "Scan the QR code",
+  "@fdScanTitle": {
+    "description": "QR scanner screen title."
+  },
+  "fdScanHint": "Hold the QR code your consultant gave you inside the frame",
+  "@fdScanHint": {
+    "description": "Line under the scanner frame."
+  },
+  "fdScanNoCode": "This QR code has no client code. Type the code instead.",
+  "@fdScanNoCode": {
+    "description": "Shown when a scanned QR holds no client code."
+  },
+  "fdScanNoCamera": "Camera access is off. Allow it in the phone's settings, or type the code instead.",
+  "@fdScanNoCamera": {
+    "description": "Scanner screen when the camera permission is denied."
+  },
+  "fdScanFailed": "The camera did not open. Type the code instead.",
+  "@fdScanFailed": {
+    "description": "Scanner screen when the camera fails for another reason."
+  },
+  "fdPlanDictate": "Dictate",
+  "@fdPlanDictate": {
+    "description": "Study Plan mic button label (screen reader)."
+  },
+  "fdPlanDictateStop": "Stop dictation",
+  "@fdPlanDictateStop": {
+    "description": "Study Plan mic button label while listening."
+  },
+  "fdPlanListening": "Listening… speak now",
+  "@fdPlanListening": {
+    "description": "Shown above the text box while dictating."
+  },
+  "fdPlanDictateUnavailable": "Speech-to-text did not work on this phone. Check the microphone permission.",
+  "@fdPlanDictateUnavailable": {
+    "description": "Snackbar when dictation cannot start."
   }
 }

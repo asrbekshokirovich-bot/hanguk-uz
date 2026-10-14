@@ -6,6 +6,7 @@ import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../design_system/seoul_night/widgets/svg_path_icon.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/presentation/widgets/sign_in_chrome.dart' show cssLinearGradient;
+import '../data/ai_search.dart';
 import '../data/campus_photos.dart';
 import '../data/catalog_compare_provider.dart';
 import '../data/catalog_filters.dart';
@@ -14,6 +15,10 @@ import '../domain/catalog_models.dart';
 import 'catalog_detail_screen.dart';
 import 'catalog_filter_screen.dart';
 import 'catalog_format.dart';
+
+/// The visiting delegation's university (Daegu Haany, 대구한의대학교), shown
+/// above the grid to everyone. Remove when the owner says the visit is over.
+const String kGuestUniversityId = '8f7d4351-c37d-4d26-b982-bfc76885225e';
 
 /// Design screen 01 — "Bosh sahifa: qidiruv va universitetlar": the search
 /// row with its filter button, the chips, and the two-column grid of
@@ -37,6 +42,7 @@ class CatalogBrowser extends ConsumerWidget {
     final l = AppLocalizations.of(context)!;
     final async = ref.watch(catalogProvider);
     final filter = ref.watch(catalogFilterProvider);
+    final ai = ref.watch(aiSearchProvider);
 
     return async.when(
       loading: () => const SliverFillRemaining(
@@ -64,7 +70,13 @@ class CatalogBrowser extends ConsumerWidget {
         ),
       ),
       data: (all) {
-        final list = applyCatalogFilter(all, filter);
+        // Typing in the box turns the grid into the search results (design
+        // screen 04), read by the model.
+        final searching = filter.query.trim().length >= kAiSearchMinLength;
+        final rows = searching ? catalogSearchRows(all, filter, ai) : const <CatalogSearchRow>[];
+        final list = searching ? [for (final r in rows) r.university] : applyCatalogFilter(all, filter);
+        // From the whole catalogue: the filters never hide the guest.
+        final guest = all.where((u) => u.institutionId == kGuestUniversityId).firstOrNull;
         final compare = ref.watch(catalogCompareProvider);
         final compareNotifier = ref.read(catalogCompareProvider.notifier);
         final title = filter.cities.length == 1
@@ -126,30 +138,51 @@ class CatalogBrowser extends ConsumerWidget {
                 ],
               ),
             ),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(17, 16, 17, 12),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.alphabetic,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: _inter(15, FontWeight.w700, Colors.white, height: 19 / 15),
-                      ),
-                    ),
-                    Text(
-                      compare.active ? l.catalogComparePickTwo : l.guestUniversitiesCount(list.length),
-                      style: _inter(11, FontWeight.w400, const Color(0x8CFFFFFF)),
-                    ),
-                  ],
+            if (guest != null)
+              SliverToBoxAdapter(
+                child: _GuestUniversityBlock(
+                  university: guest,
+                  guideline: guidelineFor(guest, filter) ?? guest.primary,
+                  onTap: () => CatalogDetailScreen.open(
+                    context,
+                    university: guest,
+                    degree: filter.degree,
+                    isGuest: isGuest,
+                  ),
                 ),
               ),
-            ),
-            if (list.isEmpty)
+            if (searching)
+              SliverToBoxAdapter(
+                child: _SearchHeader(count: rows.length, loading: ai.loading, compareActive: compare.active),
+              )
+            else
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(17, 16, 17, 12),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: _inter(15, FontWeight.w700, Colors.white, height: 19 / 15),
+                        ),
+                      ),
+                      Text(
+                        compare.active ? l.catalogComparePickTwo : l.guestUniversitiesCount(list.length),
+                        style: _inter(11, FontWeight.w400, const Color(0x8CFFFFFF)),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            // Nothing by name yet, but the model is still reading the text.
+            if (list.isEmpty && searching && ai.loading)
+              const SliverToBoxAdapter(child: SizedBox(height: 120))
+            else if (list.isEmpty)
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 60, horizontal: 20),
@@ -160,6 +193,33 @@ class CatalogBrowser extends ConsumerWidget {
                       Text(l.catalogEmptyBody, textAlign: TextAlign.center, style: SeoulType.bodySecondary.copyWith(fontSize: 13)),
                     ],
                   ),
+                ),
+              )
+            else if (searching)
+              SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, i) {
+                    final row = rows[i];
+                    final id = row.university.institutionId;
+                    return _SearchResultRow(
+                      row: row,
+                      reason: catalogSearchReason(l, row),
+                      coverIndex: i,
+                      compareMode: compare.active,
+                      selected: compare.active && compare.contains(id),
+                      compareFull: compare.full,
+                      onTap: compare.active
+                          ? () => compareNotifier.toggle(id)
+                          : () => CatalogDetailScreen.open(
+                              context,
+                              university: row.university,
+                              degree: filter.degree,
+                              isGuest: isGuest,
+                            ),
+                      onLongPress: () => compareNotifier.startWith(id),
+                    );
+                  },
+                  childCount: rows.length,
                 ),
               )
             else
@@ -470,6 +530,219 @@ class _CompareChip extends StatelessWidget {
   }
 }
 
+/// How far the guest card's photo is zoomed past its width: the design crops
+/// the campus out of the grid photo (960×540, cover-fitted there).
+const double _guestPhotoZoom = 1.17;
+
+/// "Mehmon universitet · 방문 중": the pulsing lime dot and "Hozir
+/// O'zbekistonda" over one wide card — the campus photo with the
+/// "Delegatsiya Samarqandda" badge, the type, the name and the city. A tap
+/// opens the detail page, compare mode or not.
+class _GuestUniversityBlock extends StatelessWidget {
+  const _GuestUniversityBlock({required this.university, required this.guideline, required this.onTap});
+
+  final CatalogUniversity university;
+  final CatalogGuideline guideline;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    final photo = campusPhotoAsset(university.institutionId);
+    final type = typeLabel(l, guideline.institutionType);
+    final city = university.city;
+
+    return Padding(
+      // The design's 6 px before the list.
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Flexible(
+                child: Row(
+                  children: [
+                    const _PulseDot(),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        '${l.catalogGuestUniTitle} · 방문 중',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: _inter(13, FontWeight.w700, SeoulColors.lime),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                l.catalogGuestUniWhere,
+                maxLines: 1,
+                style: _inter(13, FontWeight.w500, const Color(0x80FFFFFF)), // .5
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Semantics(
+            button: true,
+            child: GestureDetector(
+              key: const Key('catalog-guest-university'),
+              onTap: onTap,
+              behavior: HitTestBehavior.opaque,
+              child: Container(
+                padding: const EdgeInsets.all(7),
+                decoration: BoxDecoration(
+                  color: const Color(0x0FFFFFFF), // .06
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: const Color(0x8CD4E94C), width: 1.5), // lime .55
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    SizedBox(
+                      height: 150,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(14),
+                        child: Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            if (photo != null)
+                              ColoredBox(
+                                color: const Color(0xFF1C3764),
+                                // The design's framing: the grid photo zoomed
+                                // in on the campus, sky and hills cut off.
+                                child: LayoutBuilder(
+                                  builder: (context, box) => OverflowBox(
+                                    maxWidth: box.maxWidth * _guestPhotoZoom,
+                                    maxHeight: double.infinity,
+                                    alignment: Alignment.bottomCenter,
+                                    child: Image.asset(
+                                      photo,
+                                      width: box.maxWidth * _guestPhotoZoom,
+                                      fit: BoxFit.fitWidth,
+                                      cacheWidth: 960,
+                                    ),
+                                  ),
+                                ),
+                              )
+                            else
+                              _NameCover(name: university.nameKoShort ?? university.displayName, index: 0),
+                            Positioned(
+                              left: 10,
+                              bottom: 10,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                decoration: BoxDecoration(
+                                  color: SeoulColors.lime,
+                                  borderRadius: BorderRadius.circular(SeoulRadii.pill),
+                                ),
+                                child: Text(
+                                  l.catalogGuestUniBadge,
+                                  style: _inter(11, FontWeight.w700, const Color(0xFF0A1A34)),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(5, 0, 5, 6),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (type != null) ...[
+                            Text(type, style: _inter(12, FontWeight.w600, const Color(0xFF9DB8E8))),
+                            const SizedBox(height: 3),
+                          ],
+                          Text(
+                            university.displayName,
+                            style: _inter(17, FontWeight.w700, Colors.white, height: 1.2),
+                          ),
+                          if (city != null) ...[
+                            const SizedBox(height: 3),
+                            Text(city, style: _inter(12, FontWeight.w500, const Color(0x8CFFFFFF))), // .55
+                          ],
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The 8 px lime dot of the guest eyebrow. Its ring (hgPulse) grows to 9 px
+/// and fades every 1.6 s; still while the system turns motion off.
+class _PulseDot extends StatefulWidget {
+  const _PulseDot();
+
+  @override
+  State<_PulseDot> createState() => _PulseDotState();
+}
+
+class _PulseDotState extends State<_PulseDot> with SingleTickerProviderStateMixin {
+  late final AnimationController _pulse = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1600),
+  );
+
+  bool _still = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _still = MediaQuery.disableAnimationsOf(context);
+    if (_still) {
+      _pulse.stop();
+    } else if (!_pulse.isAnimating) {
+      _pulse.repeat();
+    }
+  }
+
+  @override
+  void dispose() {
+    _pulse.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _pulse,
+      builder: (context, _) {
+        final t = Curves.easeOut.transform(_pulse.value);
+        return Container(
+          width: 8,
+          height: 8,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: SeoulColors.lime,
+            boxShadow: _still
+                ? null
+                : [
+                    // box-shadow: 0 0 0 9px rgba(212,233,76,0) at 100%.
+                    BoxShadow(
+                      color: SeoulColors.lime.withValues(alpha: 0.7 * (1 - t)),
+                      spreadRadius: 9 * t,
+                    ),
+                  ],
+          ),
+        );
+      },
+    );
+  }
+}
+
 /// One card of the grid: the campus photo (or the university's name when no
 /// photo was found), the fee, the type, the name and "city · TOPIK".
 ///
@@ -740,6 +1013,237 @@ class _NameCover extends StatelessWidget {
               fontWeight: FontWeight.w800,
               color: blue ? Colors.white : const Color(0xFFCFE24E),
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// One row of the search results: the university, the guideline it is shown
+/// with, and — when the field search found it — its programmes of the field.
+typedef CatalogSearchRow = ({CatalogUniversity university, CatalogGuideline guideline, AiSearchHit? hit});
+
+/// The search results for the box's text. When the text names a field of
+/// study: every university with a programme of it, in the server's order,
+/// kept to what the Filtr screen allows. Otherwise — a name, a city, or no
+/// answer yet — the plain name filter.
+List<CatalogSearchRow> catalogSearchRows(List<CatalogUniversity> all, CatalogFilter f, AiSearchState ai) {
+  final result = ai.result;
+  if (result == null || !result.byField) {
+    return [
+      for (final u in applyCatalogFilter(all, f)) (university: u, guideline: guidelineFor(u, f)!, hit: null),
+    ];
+  }
+  final allowed = {for (final u in applyCatalogFilter(all, f.copyWith(query: ''))) u.institutionId: u};
+  final out = <CatalogSearchRow>[];
+  final seen = <String>{};
+  for (final h in result.hits) {
+    final u = allowed[h.institutionId];
+    if (u == null || seen.contains(u.institutionId)) continue;
+    final g = u.guidelines.where((g) => g.id == h.guidelineId).firstOrNull;
+    if (g == null) continue;
+    // The degree the Filtr screen asks for; with "all", the first guideline
+    // of the field (the server lists the bachelor's first).
+    if (f.degree != CatalogDegree.all && g.degree != f.degree) continue;
+    seen.add(u.institutionId);
+    out.add((university: u, guideline: g, hit: h));
+  }
+  return out;
+}
+
+/// The line under a field result: its programmes of the field — two names
+/// and the count of the rest, so the count survives the two-line clamp. The
+/// whole list is one tap away, on the university's page.
+String? catalogSearchReason(AppLocalizations l, CatalogSearchRow row) {
+  final hit = row.hit;
+  if (hit == null || hit.matched.isEmpty) return null;
+  final shown = hit.matched.take(2).toList();
+  final more = hit.matchCount - shown.length;
+  return l.catalogAiFields([shown.join(', '), if (more > 0) '+$more'].join(' '));
+}
+
+/// The heading over the results (design screen 04, "Natijalar · 3 ta"), with
+/// the spinner while the model reads the text.
+class _SearchHeader extends StatelessWidget {
+  const _SearchHeader({required this.count, required this.loading, required this.compareActive});
+
+  final int count;
+  final bool loading;
+  final bool compareActive;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(17, 16, 17, 12),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              l.catalogAiResultsTitle,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: _inter(15, FontWeight.w700, Colors.white, height: 19 / 15),
+            ),
+          ),
+          if (loading) ...[
+            const SizedBox.square(
+              dimension: 11,
+              child: CircularProgressIndicator(strokeWidth: 1.6, color: SeoulColors.lime),
+            ),
+            const SizedBox(width: 6),
+            Text(l.catalogAiSearching, style: _inter(11, FontWeight.w500, SeoulColors.lime)),
+          ] else
+            Text(
+              compareActive ? l.catalogComparePickTwo : l.guestUniversitiesCount(count),
+              style: _inter(11, FontWeight.w400, const Color(0x8CFFFFFF)),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+const _chevronPath = 'M9 6l6 6-6 6';
+
+/// One result row (design screen 04): the campus photo, the name, "city ·
+/// fee · TOPIK n+", the reason line, and the chevron — or, in compare mode,
+/// the pick circle.
+class _SearchResultRow extends StatelessWidget {
+  const _SearchResultRow({
+    required this.row,
+    required this.reason,
+    required this.coverIndex,
+    required this.onTap,
+    required this.onLongPress,
+    this.compareMode = false,
+    this.selected = false,
+    this.compareFull = false,
+  });
+
+  final CatalogSearchRow row;
+  final String? reason;
+  final int coverIndex;
+  final VoidCallback onTap;
+  final VoidCallback onLongPress;
+  final bool compareMode;
+  final bool selected;
+  final bool compareFull;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    final u = row.university;
+    final g = row.guideline;
+    final photo = campusPhotoAsset(u.institutionId);
+    final price = priceOf(g);
+    final topik = g.topikMin;
+    const faint = Color(0x8CFFFFFF); // .55
+    final metaStyle = _inter(12, FontWeight.w400, faint, height: 1.35);
+    final meta = <InlineSpan>[
+      if (u.city != null) TextSpan(text: u.city),
+      if (price != null)
+        TextSpan(
+          text: money(price, g.currency, locale: l.localeName),
+          style: _inter(12, FontWeight.w700, Colors.white, height: 1.35),
+        ),
+      if (topik != null) TextSpan(text: 'TOPIK ${scoreText(topik)}+'),
+    ];
+
+    return Semantics(
+      button: true,
+      selected: compareMode ? selected : null,
+      child: GestureDetector(
+        onTap: onTap,
+        onLongPress: onLongPress,
+        behavior: HitTestBehavior.opaque,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 17, vertical: 12),
+          decoration: BoxDecoration(
+            color: selected ? const Color(0x14D4E94C) : null,
+            border: const Border(bottom: BorderSide(color: Color(0x1FFFFFFF))),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 70,
+                height: 47,
+                clipBehavior: Clip.antiAlias,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: selected ? SeoulColors.lime : const Color(0x33FFFFFF), width: 1.5),
+                ),
+                child: photo != null
+                    ? ColoredBox(
+                        color: const Color(0xFF1C3764),
+                        child: Image.asset(photo, fit: BoxFit.cover, cacheWidth: 240),
+                      )
+                    : _NameCover(name: u.nameKoShort ?? u.displayName, index: coverIndex),
+              ),
+              const SizedBox(width: 13),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      u.displayName,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: _inter(15, FontWeight.w700, Colors.white, height: 1.2),
+                    ),
+                    if (meta.isNotEmpty) ...[
+                      const SizedBox(height: 3),
+                      Text.rich(
+                        TextSpan(
+                          style: metaStyle,
+                          children: [
+                            for (var i = 0; i < meta.length; i++) ...[
+                              if (i > 0) const TextSpan(text: ' · '),
+                              meta[i],
+                            ],
+                          ],
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                    if (reason != null) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        reason!,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: _inter(11.5, FontWeight.w600, SeoulColors.lime, height: 1.3),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              if (!compareMode)
+                const SvgPathIcon(paths: [_chevronPath], size: 16, strokeWidth: 2.2, color: faint)
+              else if (selected)
+                Container(
+                  width: 26,
+                  height: 26,
+                  alignment: Alignment.center,
+                  decoration: const BoxDecoration(shape: BoxShape.circle, color: SeoulColors.lime),
+                  child: const SvgPathIcon(paths: [_checkPath], size: 14, strokeWidth: 3.2, color: SeoulColors.ink),
+                )
+              else
+                Opacity(
+                  opacity: compareFull ? 0.35 : 1,
+                  child: Container(
+                    width: 26,
+                    height: 26,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 2),
+                    ),
+                  ),
+                ),
+            ],
           ),
         ),
       ),

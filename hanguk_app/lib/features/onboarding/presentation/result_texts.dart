@@ -31,31 +31,46 @@ String bandTitle(AppLocalizations l, EligibilityBand b) => switch (b) {
   EligibilityBand.low => l.onbResultBandLow,
 };
 
-String bandNote(AppLocalizations l, EligibilityBand b) => switch (b) {
+/// The note under the band; a low band names its reason.
+String bandNote(AppLocalizations l, EligibilityBand b, [LowReason? reason]) => switch (b) {
   EligibilityBand.high => l.onbResultBandHighNote,
   EligibilityBand.mid => l.onbResultBandMidNote,
-  EligibilityBand.low => l.onbResultBandLowNote,
+  EligibilityBand.low => switch (reason) {
+    LowReason.language => l.onbResultBandLowNoteLanguage,
+    LowReason.money => l.onbResultBandLowNoteMoney,
+    LowReason.both || null => l.onbResultBandLowNote,
+  },
 };
 
 String factorLabel(AppLocalizations l, FactorKind k) => switch (k) {
   FactorKind.koreanStrong => l.onbResultFactorKoreanStrong,
+  FactorKind.koreanMasterStrong => l.onbResultFactorKoreanMasterStrong,
   FactorKind.englishStrong => l.onbResultFactorEnglishStrong,
   FactorKind.koreanTopik2Degree => l.onbResultFactorKoreanTopik2Degree,
   FactorKind.koreanMissingDegree => l.onbResultFactorKoreanMissingDegree,
+  FactorKind.koreanTopik3Master => l.onbResultFactorKoreanTopik3Master,
+  FactorKind.koreanMissingMaster => l.onbResultFactorKoreanMissingMaster,
   FactorKind.koreanCollegeStrong => l.onbResultFactorKoreanCollegeStrong,
   FactorKind.koreanCollegeTopik2 => l.onbResultFactorKoreanCollegeTopik2,
+  FactorKind.koreanCollegeMissing => l.onbResultFactorKoreanCollegeMissing,
   FactorKind.koreanCourseCertificate => l.onbResultFactorKoreanCourseCertificate,
   FactorKind.koreanCourseMissing => l.onbResultFactorKoreanCourseMissing,
   FactorKind.incomeYes => l.onbResultFactorIncomeYes,
   FactorKind.incomeNo => l.onbResultFactorIncomeNo,
+  FactorKind.kdbReady => l.onbResultFactorKdbReady,
+  FactorKind.kdbByIntake => l.onbResultFactorKdbByIntake,
+  FactorKind.kdbNo => l.onbResultFactorKdbNo,
   FactorKind.gradRecent => l.onbResultFactorGradRecent,
   FactorKind.gradGapLong => l.onbResultFactorGradGapLong,
   FactorKind.ageHigh => l.onbResultFactorAgeHigh,
-  FactorKind.budgetLow => l.onbResultFactorBudgetLow,
 };
 
-String stepLabel(AppLocalizations l, NextStep s) => switch (s) {
-  NextStep.topikPrep => l.onbResultStepTopikPrep,
+String stepLabel(AppLocalizations l, NextStep s, EligibilityResult r, StudyRoute route) => switch (s) {
+  NextStep.languagePrep => route.isDegree
+      ? l.onbResultStepLanguagePrepEnglish('${r.topikNeed}')
+      : l.onbResultStepLanguagePrep('${r.topikNeed}'),
+  NextStep.deposit => l.onbResultStepDeposit(_usd(r.depositUsd.$1), _usd(r.depositUsd.$2), '${r.depositHoldMonths}'),
+  NextStep.parentsDocs => l.onbResultStepParentsDocs,
   NextStep.schoolDocs => l.onbResultStepSchoolDocs,
   NextStep.diplomaDocs => l.onbResultStepDiplomaDocs,
   NextStep.applyOnTime => l.onbResultStepApplyOnTime,
@@ -64,14 +79,23 @@ String stepLabel(AppLocalizations l, NextStep s) => switch (s) {
 String pathTitle(AppLocalizations l, AlternativePath p) => switch (p) {
   AlternativePath.languageCourse => l.onbResultPathLanguageCourse,
   AlternativePath.college => l.onbResultPathCollege,
+  AlternativePath.englishTrack => l.onbResultPathEnglishTrack,
   AlternativePath.nextSeason => l.onbResultPathNextSeason,
+  AlternativePath.deposit => l.onbResultPathDeposit,
+  AlternativePath.parentsDocs => l.onbResultPathParentsDocs,
 };
 
-String pathNote(AppLocalizations l, AlternativePath p) => switch (p) {
+String pathNote(AppLocalizations l, AlternativePath p, EligibilityResult r) => switch (p) {
   AlternativePath.languageCourse => l.onbResultPathLanguageCourseNote,
   AlternativePath.college => l.onbResultPathCollegeNote,
-  AlternativePath.nextSeason => l.onbResultPathNextSeasonNote,
+  AlternativePath.englishTrack => l.onbResultPathEnglishTrackNote,
+  AlternativePath.nextSeason => l.onbResultPathNextSeasonNote('${r.topikNeed}'),
+  AlternativePath.deposit => l.onbResultPathDepositNote(_usd(r.depositUsd.$1), _usd(r.depositUsd.$2), '${r.depositHoldMonths}'),
+  AlternativePath.parentsDocs => l.onbResultPathParentsDocsNote,
 };
+
+/// A deposit amount that never wraps.
+String _usd(int v) => usd(v, space: '\u00A0');
 
 String tariffName(AppLocalizations l, Tariff t) => switch (t) {
   Tariff.standart => l.onbTariffNameStandart,
@@ -117,7 +141,7 @@ String planText(AppLocalizations l, QuizAnswers a, EligibilityResult r) {
   final ctx = contextLine(l, a);
   if (ctx.isNotEmpty) out.add(ctx);
 
-  out.add('${bandTitle(l, r.band)}\n${bandNote(l, r.band)}');
+  out.add('${bandTitle(l, r.band)}\n${bandNote(l, r.band, r.lowReason)}');
 
   if (r.factors.isNotEmpty) {
     out.add(
@@ -151,7 +175,7 @@ String planText(AppLocalizations l, QuizAnswers a, EligibilityResult r) {
     out.add(
       [
         l.onbResultPathsTitle,
-        for (final p in r.paths) '• ${pathTitle(l, p)} — ${pathNote(l, p)}',
+        for (final p in r.paths) '• ${pathTitle(l, p)} — ${pathNote(l, p, r)}',
       ].join('\n'),
     );
   }
@@ -166,7 +190,7 @@ String planText(AppLocalizations l, QuizAnswers a, EligibilityResult r) {
     out.add(
       [
         l.onbResultStepsTitle,
-        for (var i = 0; i < r.steps.length && i < 3; i++) '${i + 1}. ${stepLabel(l, r.steps[i])}',
+        for (var i = 0; i < r.steps.length && i < 3; i++) '${i + 1}. ${stepLabel(l, r.steps[i], r, a.route ?? StudyRoute.bachelor)}',
       ].join('\n'),
     );
   }

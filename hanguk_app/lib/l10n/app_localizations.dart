@@ -3035,7 +3035,7 @@ abstract class AppLocalizations {
   /// University catalogue (Explore / Applications browse).
   ///
   /// In en, this message translates to:
-  /// **'Search university name'**
+  /// **'Type a name, city or field'**
   String get catalogSearchHint;
 
   /// University catalogue (Explore / Applications browse).
@@ -5066,22 +5066,22 @@ abstract class AppLocalizations {
   /// **'What affected it'**
   String get onbResultFactorsTitle;
 
-  /// S03 factor (+): degree route, TOPIK 3+
+  /// Result factor
   ///
   /// In en, this message translates to:
-  /// **'TOPIK 3 or higher'**
+  /// **'TOPIK 3 or higher — the bachelor\'s requirement is met'**
   String get onbResultFactorKoreanStrong;
 
-  /// S03 factor (−): degree route, TOPIK 2
+  /// Result factor
   ///
   /// In en, this message translates to:
-  /// **'TOPIK 2, many universities ask for TOPIK 3'**
+  /// **'TOPIK 2 — the embassy asks for TOPIK 3 for a bachelor\'s; enough for a college'**
   String get onbResultFactorKoreanTopik2Degree;
 
-  /// S03 factor (−): degree route, no certificate / TOPIK 1
+  /// Result factor
   ///
   /// In en, this message translates to:
-  /// **'Below TOPIK 2, many universities ask for TOPIK 3'**
+  /// **'The embassy asks for TOPIK 3 for a bachelor\'s'**
   String get onbResultFactorKoreanMissingDegree;
 
   /// S03 factor (+): vocational college, TOPIK 3+
@@ -5090,10 +5090,10 @@ abstract class AppLocalizations {
   /// **'TOPIK 3 or higher'**
   String get onbResultFactorKoreanCollegeStrong;
 
-  /// S03 factor (+): vocational college, TOPIK 2
+  /// Result factor
   ///
   /// In en, this message translates to:
-  /// **'TOPIK 2 — vocational colleges accept TOPIK 2'**
+  /// **'TOPIK 2 — the college requirement is met'**
   String get onbResultFactorKoreanCollegeTopik2;
 
   /// S03 factor (+): language course, Sejong 1A / TOPIK 1+
@@ -5102,10 +5102,10 @@ abstract class AppLocalizations {
   /// **'Sejong 1A / TOPIK 1 certificate'**
   String get onbResultFactorKoreanCourseCertificate;
 
-  /// S03 factor (−): no Korean certificate
+  /// Result factor
   ///
   /// In en, this message translates to:
-  /// **'No Korean language certificate'**
+  /// **'A language-course visa needs TOPIK 1 or a Sejong certificate'**
   String get onbResultFactorKoreanCourseMissing;
 
   /// S03 factor (+): parents' official income
@@ -5138,12 +5138,6 @@ abstract class AppLocalizations {
   /// **'Because of age, the study intent must be explained'**
   String get onbResultFactorAgeHigh;
 
-  /// S03 factor (−): budget below the yearly cost
-  ///
-  /// In en, this message translates to:
-  /// **'Budget is below the estimated yearly cost'**
-  String get onbResultFactorBudgetLow;
-
   /// S03 section title
   ///
   /// In en, this message translates to:
@@ -5162,10 +5156,10 @@ abstract class AppLocalizations {
   /// **'Tuition/semester'**
   String get onbResultTuitionLabel;
 
-  /// S03 university card and cost card: bank statement amount
+  /// The KDB deposit amount label on the result
   ///
   /// In en, this message translates to:
-  /// **'Bank statement'**
+  /// **'KDB deposit'**
   String get onbResultBankLabel;
 
   /// S03 cost card title
@@ -5179,12 +5173,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Next 3 steps'**
   String get onbResultStepsTitle;
-
-  /// S03 next step
-  ///
-  /// In en, this message translates to:
-  /// **'Prepare for TOPIK 3 or enter through a language course'**
-  String get onbResultStepTopikPrep;
 
   /// S03 next step
   ///
@@ -5210,41 +5198,41 @@ abstract class AppLocalizations {
   /// **'Paths that fit you'**
   String get onbResultPathsTitle;
 
-  /// S03 low band path title
+  /// Path title
   ///
   /// In en, this message translates to:
-  /// **'Through a language course (D-4)'**
+  /// **'A language course first (D-4)'**
   String get onbResultPathLanguageCourse;
 
-  /// S03 low band path note (design: '{N} semestr til kursi, …'; the number of semesters is not set yet)
+  /// Path note
   ///
   /// In en, this message translates to:
-  /// **'A language course, then moving on to a bachelor\'s.'**
+  /// **'Learn Korean in Korea, then move on once you have TOPIK. The language-course visa also needs TOPIK 1 or a Sejong certificate.'**
   String get onbResultPathLanguageCourseNote;
 
-  /// S03 low band path title
+  /// Path title
   ///
   /// In en, this message translates to:
   /// **'Vocational college'**
   String get onbResultPathCollege;
 
-  /// S03 low band path note
+  /// Path note
   ///
   /// In en, this message translates to:
-  /// **'Softer requirements, lower tuition.'**
+  /// **'Your TOPIK 2 is enough for a vocational college.'**
   String get onbResultPathCollegeNote;
 
-  /// S03 low band path title
+  /// Path title
   ///
   /// In en, this message translates to:
-  /// **'Preparing for the next season'**
+  /// **'Get ready for the next intake'**
   String get onbResultPathNextSeason;
 
-  /// S03 low band path note
+  /// Path note
   ///
   /// In en, this message translates to:
-  /// **'Fall 2027 with TOPIK 3 and a bank statement.'**
-  String get onbResultPathNextSeasonNote;
+  /// **'Get the TOPIK {level} certificate and apply for the next intake.'**
+  String onbResultPathNextSeasonNote(String level);
 
   /// S03 link to the recommended tariff's detail
   ///
@@ -5720,16 +5708,16 @@ abstract class AppLocalizations {
   /// **'Sample contract (PDF)'**
   String get onbTariffContractPdf;
 
-  /// S01 Welcome: headline.
+  /// S01 title; the part in [square brackets] is shown in lime
   ///
   /// In en, this message translates to:
-  /// **'Study in Korea — find out your chances in 2 minutes'**
+  /// **'Find out your visa chances [in 2 minutes]'**
   String get onbWelcomeTitle;
 
-  /// S01 Welcome: one line under the headline.
+  /// S01 subtitle
   ///
   /// In en, this message translates to:
-  /// **'An honest assessment: no percentages, no guarantees — just the rules and your answers.'**
+  /// **'Save time: answer a few short questions and get an honest assessment'**
   String get onbWelcomeBody;
 
   /// S01 Welcome: main button, starts the 6-question check (S02).
@@ -5743,18 +5731,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Browse universities'**
   String get onbWelcomeCatalog;
-
-  /// S01 Welcome: trust row label (operator reply time). Shown only with real data.
-  ///
-  /// In en, this message translates to:
-  /// **'Operator reply'**
-  String get onbWelcomeTrustReply;
-
-  /// S01 Welcome: trust row value, operator reply time in minutes.
-  ///
-  /// In en, this message translates to:
-  /// **'≤{minutes} min'**
-  String onbWelcomeTrustReplyValue(String minutes);
 
   /// S01 Welcome: small link for existing clients, opens sign-in with the client code.
   ///
@@ -5777,31 +5753,31 @@ abstract class AppLocalizations {
   /// S02 question 1: study route.
   ///
   /// In en, this message translates to:
-  /// **'What would you like to study?'**
+  /// **'What do you want to study in Korea?'**
   String get onbQuizQ1;
 
   /// S02 Q1 option: Korean language course (D-4).
   ///
   /// In en, this message translates to:
-  /// **'Language course'**
+  /// **'Language course — learn Korean'**
   String get onbQuizRouteCourse;
 
   /// S02 Q1 option: bachelor's degree.
   ///
   /// In en, this message translates to:
-  /// **'Bachelor\'s'**
+  /// **'Bachelor\'s — university, 4 years'**
   String get onbQuizRouteBachelor;
 
   /// S02 Q1 option: master's degree.
   ///
   /// In en, this message translates to:
-  /// **'Master\'s'**
+  /// **'Master\'s — after a bachelor\'s'**
   String get onbQuizRouteMaster;
 
   /// S02 Q1 option: vocational college.
   ///
   /// In en, this message translates to:
-  /// **'Vocational college'**
+  /// **'Vocational college — a 2–3 year trade'**
   String get onbQuizRouteCollege;
 
   /// S02 Q2 graduation-year picker: the last option, this year or any year before it.
@@ -5819,19 +5795,19 @@ abstract class AppLocalizations {
   /// S02 question 3: Korean level.
   ///
   /// In en, this message translates to:
-  /// **'Your Korean level?'**
+  /// **'What is your Korean level?'**
   String get onbQuizQ3;
 
   /// S02 question 3: one line under the question.
   ///
   /// In en, this message translates to:
-  /// **'Answer even without a certificate — it decides the route.'**
+  /// **'Pick by your official certificate. The embassy does not accept an application without one.'**
   String get onbQuizQ3Hint;
 
   /// S02 Q3 option: no Korean.
   ///
   /// In en, this message translates to:
-  /// **'None'**
+  /// **'I don\'t speak Korean'**
   String get onbQuizKoreanNone;
 
   /// S02 Q3 option: learning, no certificate.
@@ -5843,7 +5819,7 @@ abstract class AppLocalizations {
   /// S02 Q3 option: Sejong 1A / TOPIK 1.
   ///
   /// In en, this message translates to:
-  /// **'Sejong 1A / TOPIK 1'**
+  /// **'TOPIK 1 or a Sejong Hakdang certificate'**
   String get onbQuizKoreanTopik1;
 
   /// S02 Q3 option: TOPIK 2.
@@ -5852,41 +5828,17 @@ abstract class AppLocalizations {
   /// **'TOPIK 2'**
   String get onbQuizKoreanTopik2;
 
-  /// S02 Q3 option: TOPIK 3 or higher.
+  /// Quiz Korean option
   ///
   /// In en, this message translates to:
-  /// **'TOPIK 3 or higher'**
+  /// **'TOPIK 3'**
   String get onbQuizKoreanTopik3;
 
   /// S02 Q3 option: don't know yet.
   ///
   /// In en, this message translates to:
-  /// **'Not sure yet'**
+  /// **'Not sure'**
   String get onbQuizKoreanUnknown;
-
-  /// S02 Q4 option: up to $3,000 a year.
-  ///
-  /// In en, this message translates to:
-  /// **'Up to \$3,000'**
-  String get onbQuizBudgetUnder3;
-
-  /// S02 Q4 option: $3,000–6,000 a year.
-  ///
-  /// In en, this message translates to:
-  /// **'\$3–6k'**
-  String get onbQuizBudget3to6;
-
-  /// S02 Q4 option: $6,000–10,000 a year.
-  ///
-  /// In en, this message translates to:
-  /// **'\$6–10k'**
-  String get onbQuizBudget6to10;
-
-  /// S02 Q4 option: over $10,000 a year.
-  ///
-  /// In en, this message translates to:
-  /// **'\$10,000+'**
-  String get onbQuizBudgetOver10;
 
   /// S02 question 5: parents' official income (and bank statement).
   ///
@@ -5897,7 +5849,7 @@ abstract class AppLocalizations {
   /// S02 Q5 option: yes, official income.
   ///
   /// In en, this message translates to:
-  /// **'Yes, official income'**
+  /// **'Yes'**
   String get onbQuizIncomeYes;
 
   /// S02 Q5 option: no official income.
@@ -5909,13 +5861,13 @@ abstract class AppLocalizations {
   /// S02 Q6 option: spring 2027 intake.
   ///
   /// In en, this message translates to:
-  /// **'Spring 2027'**
+  /// **'Spring 2027 (March)'**
   String get onbQuizIntakeSpring2027;
 
   /// S02 Q6 option: fall 2027 intake.
   ///
   /// In en, this message translates to:
-  /// **'Fall 2027'**
+  /// **'Fall 2027 (September)'**
   String get onbQuizIntakeFall2027;
 
   /// S02 Q6 option: later.
@@ -6029,13 +5981,13 @@ abstract class AppLocalizations {
   /// S02 question 5: IELTS score.
   ///
   /// In en, this message translates to:
-  /// **'Your IELTS score?'**
+  /// **'Do you have an IELTS score?'**
   String get onbQuizIeltsQ;
 
   /// S02 IELTS option: none.
   ///
   /// In en, this message translates to:
-  /// **'None'**
+  /// **'None, or below 5.5'**
   String get onbQuizIeltsNone;
 
   /// S02 IELTS option.
@@ -6059,19 +6011,13 @@ abstract class AppLocalizations {
   /// S02 IELTS option: don't know yet.
   ///
   /// In en, this message translates to:
-  /// **'Not sure yet'**
+  /// **'Not sure'**
   String get onbQuizIeltsUnknown;
-
-  /// S02 question 6: yearly budget.
-  ///
-  /// In en, this message translates to:
-  /// **'How much can you spend a year on study and living?'**
-  String get onbQuizBudgetQ;
 
   /// S02 question 7: who pays.
   ///
   /// In en, this message translates to:
-  /// **'Who pays?'**
+  /// **'Who pays for the studies?'**
   String get onbQuizPayerQ;
 
   /// S02 payer option.
@@ -6089,25 +6035,25 @@ abstract class AppLocalizations {
   /// S02 payer option.
   ///
   /// In en, this message translates to:
-  /// **'A sponsor'**
+  /// **'A sponsor or relative'**
   String get onbQuizPayerSponsorOption;
 
   /// S02 question 10: region.
   ///
   /// In en, this message translates to:
-  /// **'Which region are you from?'**
+  /// **'Which region do you live in?'**
   String get onbQuizRegionQ;
 
   /// S02 question 11: when to go.
   ///
   /// In en, this message translates to:
-  /// **'When do you want to go?'**
+  /// **'When do you want to start?'**
   String get onbQuizIntakeQ;
 
-  /// S03 factor: a master's applicant with IELTS 5.5 or higher.
+  /// Result factor
   ///
   /// In en, this message translates to:
-  /// **'IELTS 5.5 or higher'**
+  /// **'IELTS 5.5 or higher — for English-taught programmes'**
   String get onbResultFactorEnglishStrong;
 
   /// S03 university card badge: an official HANGUK partner university.
@@ -6121,6 +6067,1674 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Language'**
   String get onbResultLanguageLabel;
+
+  /// Quiz Korean option
+  ///
+  /// In en, this message translates to:
+  /// **'TOPIK 4 or higher'**
+  String get onbQuizKoreanTopik4;
+
+  /// Quiz question: the KDB deposit
+  ///
+  /// In en, this message translates to:
+  /// **'Can you put a deposit in the student\'s name?'**
+  String get onbQuizKdbQ;
+
+  /// Hint under the KDB question
+  ///
+  /// In en, this message translates to:
+  /// **'Required for the visa: {low} (other cities) or {high} (Seoul, Gyeonggi, Incheon) in a KDB Bank Uzbekistan account in the student\'s name, for at least {months} month(s). It is not a payment — the money stays in the student\'s account.'**
+  String onbQuizKdbHint(String low, String high, String months);
+
+  /// KDB option
+  ///
+  /// In en, this message translates to:
+  /// **'Yes, the money is ready now'**
+  String get onbQuizKdbReady;
+
+  /// KDB option
+  ///
+  /// In en, this message translates to:
+  /// **'We will have it before the intake'**
+  String get onbQuizKdbByIntake;
+
+  /// KDB option
+  ///
+  /// In en, this message translates to:
+  /// **'No, we can\'t'**
+  String get onbQuizKdbNo;
+
+  /// KDB option
+  ///
+  /// In en, this message translates to:
+  /// **'Not sure'**
+  String get onbQuizKdbUnknown;
+
+  /// Result factor
+  ///
+  /// In en, this message translates to:
+  /// **'TOPIK 4 or higher — the master\'s requirement is met'**
+  String get onbResultFactorKoreanMasterStrong;
+
+  /// Result factor
+  ///
+  /// In en, this message translates to:
+  /// **'TOPIK 3 — the embassy asks for TOPIK 4 for a master\'s'**
+  String get onbResultFactorKoreanTopik3Master;
+
+  /// Result factor
+  ///
+  /// In en, this message translates to:
+  /// **'The embassy asks for TOPIK 4 for a master\'s'**
+  String get onbResultFactorKoreanMissingMaster;
+
+  /// Result factor
+  ///
+  /// In en, this message translates to:
+  /// **'The embassy asks for TOPIK 2 for a college'**
+  String get onbResultFactorKoreanCollegeMissing;
+
+  /// Result factor
+  ///
+  /// In en, this message translates to:
+  /// **'The KDB deposit is ready in the student\'s name'**
+  String get onbResultFactorKdbReady;
+
+  /// Result factor
+  ///
+  /// In en, this message translates to:
+  /// **'The KDB deposit is not there yet — needed before applying'**
+  String get onbResultFactorKdbByIntake;
+
+  /// Result factor
+  ///
+  /// In en, this message translates to:
+  /// **'No KDB deposit — the embassy requires it'**
+  String get onbResultFactorKdbNo;
+
+  /// Low band note: language
+  ///
+  /// In en, this message translates to:
+  /// **'The language certificate is below the embassy\'s requirement — without it the application is refused without an interview.'**
+  String get onbResultBandLowNoteLanguage;
+
+  /// Low band note: money
+  ///
+  /// In en, this message translates to:
+  /// **'The financial requirement (a KDB deposit in the student\'s name and the parents\' papers) is not met yet.'**
+  String get onbResultBandLowNoteMoney;
+
+  /// Quiz Q1 hint
+  ///
+  /// In en, this message translates to:
+  /// **'The result follows the visa rules for this route.'**
+  String get onbQuizQ1Hint;
+
+  /// Quiz graduation hint
+  ///
+  /// In en, this message translates to:
+  /// **'School, lyceum, college or university — whichever was last.'**
+  String get onbQuizGradHint;
+
+  /// Quiz graduation, master's
+  ///
+  /// In en, this message translates to:
+  /// **'When did you finish your bachelor\'s?'**
+  String get onbQuizGradQMaster;
+
+  /// Quiz IELTS hint
+  ///
+  /// In en, this message translates to:
+  /// **'Needed for English-taught programmes. Only the regular IELTS (not Online), taken in the last 2 years.'**
+  String get onbQuizIeltsHint;
+
+  /// Quiz income hint
+  ///
+  /// In en, this message translates to:
+  /// **'For example a salary certificate from work (my.gov.uz) or business and tax papers. The embassy asks for the parents\' papers.'**
+  String get onbQuizIncomeHint;
+
+  /// S01, over the main button during working hours, next to a countdown
+  ///
+  /// In en, this message translates to:
+  /// **'Our operator will contact you within {minutes} minutes'**
+  String onbWelcomeCallTimer(String minutes);
+
+  /// Next step: the certificate the route needs
+  ///
+  /// In en, this message translates to:
+  /// **'Prepare for the TOPIK {level} certificate'**
+  String onbResultStepLanguagePrep(String level);
+
+  /// Next step for a degree route: TOPIK or IELTS
+  ///
+  /// In en, this message translates to:
+  /// **'Prepare for TOPIK {level} or IELTS 5.5'**
+  String onbResultStepLanguagePrepEnglish(String level);
+
+  /// Next step: the KDB deposit
+  ///
+  /// In en, this message translates to:
+  /// **'Open the KDB deposit in the student\'s name: {low}–{high}, for at least {months} month(s)'**
+  String onbResultStepDeposit(String low, String high, String months);
+
+  /// Next step: the parents' papers
+  ///
+  /// In en, this message translates to:
+  /// **'Prepare the parents\' income or property papers (my.gov.uz)'**
+  String get onbResultStepParentsDocs;
+
+  /// Path title
+  ///
+  /// In en, this message translates to:
+  /// **'An English-taught programme'**
+  String get onbResultPathEnglishTrack;
+
+  /// Path note
+  ///
+  /// In en, this message translates to:
+  /// **'With IELTS 5.5, apply to a programme that does not ask for Korean.'**
+  String get onbResultPathEnglishTrackNote;
+
+  /// Path title
+  ///
+  /// In en, this message translates to:
+  /// **'Prepare the KDB deposit'**
+  String get onbResultPathDeposit;
+
+  /// Path note
+  ///
+  /// In en, this message translates to:
+  /// **'{low}–{high} in the student\'s name for at least {months} month(s) — required for the visa.'**
+  String onbResultPathDepositNote(String low, String high, String months);
+
+  /// Path title
+  ///
+  /// In en, this message translates to:
+  /// **'The parents\' papers'**
+  String get onbResultPathParentsDocs;
+
+  /// Path note
+  ///
+  /// In en, this message translates to:
+  /// **'Official work, business or property papers — the embassy asks for these.'**
+  String get onbResultPathParentsDocsNote;
+
+  /// Eyebrow over the visiting-university card at the top of the catalogue; the app adds ' · 방문 중' after it.
+  ///
+  /// In en, this message translates to:
+  /// **'Guest University'**
+  String get catalogGuestUniTitle;
+
+  /// Right side of the visiting-university eyebrow: where the delegation is now.
+  ///
+  /// In en, this message translates to:
+  /// **'In Uzbekistan now'**
+  String get catalogGuestUniWhere;
+
+  /// Lime badge on the visiting university's photo.
+  ///
+  /// In en, this message translates to:
+  /// **'Delegation visiting Samarkand'**
+  String get catalogGuestUniBadge;
+
+  /// AI search: the results heading while a search is typed.
+  ///
+  /// In en, this message translates to:
+  /// **'Results'**
+  String get catalogAiResultsTitle;
+
+  /// AI search: shown while the model reads the typed text.
+  ///
+  /// In en, this message translates to:
+  /// **'AI is searching…'**
+  String get catalogAiSearching;
+
+  /// AI search reason line: the faculties that match the field of study typed.
+  ///
+  /// In en, this message translates to:
+  /// **'Programs: {fields}'**
+  String catalogAiFields(String fields);
+
+  /// Home (design 03) header: the intake season.
+  ///
+  /// In en, this message translates to:
+  /// **'{season} intake'**
+  String fdIntakeLabel(String season);
+
+  /// Home (design 03) search field placeholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Search universities'**
+  String get fdSearchHint;
+
+  /// Card stack cell label: language requirement.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get fdCellLanguage;
+
+  /// Card stack cell label: application deadline.
+  ///
+  /// In en, this message translates to:
+  /// **'Deadline'**
+  String get fdCellDeadline;
+
+  /// Card stack pill: admission chance not yet assessed; opens the assessment.
+  ///
+  /// In en, this message translates to:
+  /// **'Admission ?%'**
+  String get fdAdmissionUnknown;
+
+  /// Card stack position.
+  ///
+  /// In en, this message translates to:
+  /// **'{current} / {total}'**
+  String fdCounter(int current, int total);
+
+  /// Home banner: after the count.
+  ///
+  /// In en, this message translates to:
+  /// **'universities'**
+  String get fdBannerUniversities;
+
+  /// Home banner subtitle; opens the filter board.
+  ///
+  /// In en, this message translates to:
+  /// **'By field · city · TOPIK'**
+  String get fdBannerSubtitle;
+
+  /// Card stack ✕ button.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get fdSkip;
+
+  /// Card stack ♡ button.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get fdSave;
+
+  /// Card stack left chevron.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous'**
+  String get fdPrevious;
+
+  /// Card stack right chevron.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get fdNext;
+
+  /// Bottom nav tab.
+  ///
+  /// In en, this message translates to:
+  /// **'Universities'**
+  String get fdNavUniversities;
+
+  /// Bottom nav tab.
+  ///
+  /// In en, this message translates to:
+  /// **'360° map'**
+  String get fdNavMap;
+
+  /// Bottom nav tab.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparation'**
+  String get fdNavPrepare;
+
+  /// Preparation (design 18) small line above the title.
+  ///
+  /// In en, this message translates to:
+  /// **'Getting ready for'**
+  String get fdPrepareEyebrow;
+
+  /// Preparation (design 18) title, marked in lime.
+  ///
+  /// In en, this message translates to:
+  /// **'university'**
+  String get fdPrepareTitle;
+
+  /// Study Plan card progress tag.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} / {total} steps'**
+  String fdPrepareStudyPlanSteps(int done, int total);
+
+  /// Preparation card title.
+  ///
+  /// In en, this message translates to:
+  /// **'Write your Study Plan'**
+  String get fdPrepareStudyPlanTitle;
+
+  /// Preparation card body.
+  ///
+  /// In en, this message translates to:
+  /// **'Write your study plan in 4 steps; Hanguk AI gives feedback.'**
+  String get fdPrepareStudyPlanBody;
+
+  /// Preparation interview card tag.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get fdPrepareNew;
+
+  /// Preparation card title.
+  ///
+  /// In en, this message translates to:
+  /// **'Interview practice'**
+  String get fdPrepareInterviewTitle;
+
+  /// Preparation card body.
+  ///
+  /// In en, this message translates to:
+  /// **'Practise 8 questions out loud with the Hanguk AI interviewer.'**
+  String get fdPrepareInterviewBody;
+
+  /// Preparation row title.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask Hanguk AI'**
+  String get fdPrepareAskTitle;
+
+  /// Preparation row subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'About documents, visas, dormitories'**
+  String get fdPrepareAskBody;
+
+  /// Search (design 04) section label.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent searches'**
+  String get fdRecentSearches;
+
+  /// A bare count after a heading (Natijalar · 3 ta).
+  ///
+  /// In en, this message translates to:
+  /// **'{count}'**
+  String fdCountTa(int count);
+
+  /// Search (design 04) section label.
+  ///
+  /// In en, this message translates to:
+  /// **'Popular cities'**
+  String get fdPopularCities;
+
+  /// Filter board field tile.
+  ///
+  /// In en, this message translates to:
+  /// **'IT'**
+  String get fdFieldIt;
+
+  /// Filter board field tile.
+  ///
+  /// In en, this message translates to:
+  /// **'Business'**
+  String get fdFieldBusiness;
+
+  /// Filter board field tile.
+  ///
+  /// In en, this message translates to:
+  /// **'Engineering'**
+  String get fdFieldEngineering;
+
+  /// Filter board field tile.
+  ///
+  /// In en, this message translates to:
+  /// **'Medicine'**
+  String get fdFieldMedicine;
+
+  /// Filter board field tile.
+  ///
+  /// In en, this message translates to:
+  /// **'Design'**
+  String get fdFieldDesign;
+
+  /// Filter board field tile.
+  ///
+  /// In en, this message translates to:
+  /// **'Tourism'**
+  String get fdFieldTourism;
+
+  /// Filter board field tile.
+  ///
+  /// In en, this message translates to:
+  /// **'Education'**
+  String get fdFieldEducation;
+
+  /// Filter board city chip.
+  ///
+  /// In en, this message translates to:
+  /// **'Seoul'**
+  String get fdRegionSeoul;
+
+  /// Filter board: the 'other' tile / chip.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get fdOther;
+
+  /// Filter board title, first part.
+  ///
+  /// In en, this message translates to:
+  /// **'What university'**
+  String get fdFilterTitleLead;
+
+  /// Filter board title, the marked part.
+  ///
+  /// In en, this message translates to:
+  /// **'do you need?'**
+  String get fdFilterTitleMark;
+
+  /// Filter board section.
+  ///
+  /// In en, this message translates to:
+  /// **'Field'**
+  String get fdSectionField;
+
+  /// Filter board section.
+  ///
+  /// In en, this message translates to:
+  /// **'City'**
+  String get fdSectionCity;
+
+  /// Filter board / assessment section.
+  ///
+  /// In en, this message translates to:
+  /// **'Degree'**
+  String get fdSectionDegree;
+
+  /// Filter board section.
+  ///
+  /// In en, this message translates to:
+  /// **'TOPIK required for admission'**
+  String get fdSectionTopik;
+
+  /// Filter board: no preference.
+  ///
+  /// In en, this message translates to:
+  /// **'Any'**
+  String get fdAny;
+
+  /// Filter board: TOPIK not required.
+  ///
+  /// In en, this message translates to:
+  /// **'Not required'**
+  String get fdTopikNone;
+
+  /// Filter board section.
+  ///
+  /// In en, this message translates to:
+  /// **'Tuition / semester'**
+  String get fdSectionFee;
+
+  /// Filter board fee ceiling tag.
+  ///
+  /// In en, this message translates to:
+  /// **'Up to {amount}'**
+  String fdFeeUpTo(String amount);
+
+  /// Filter board section.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get fdSectionType;
+
+  /// Filter board main button.
+  ///
+  /// In en, this message translates to:
+  /// **'Show {count} universities →'**
+  String fdShowUniversities(int count);
+
+  /// Filter board count card, after the number.
+  ///
+  /// In en, this message translates to:
+  /// **'matching universities'**
+  String get fdMatchingUniversities;
+
+  /// Filter board count card: out of the whole catalogue.
+  ///
+  /// In en, this message translates to:
+  /// **'of {total}'**
+  String fdOfTotal(int total);
+
+  /// Chance meter word (design 11/12), below 25%.
+  ///
+  /// In en, this message translates to:
+  /// **'Low'**
+  String get fdSegLow;
+
+  /// Chance meter word, 25–44%.
+  ///
+  /// In en, this message translates to:
+  /// **'Fair'**
+  String get fdSegMid;
+
+  /// Chance meter word, 45–64%.
+  ///
+  /// In en, this message translates to:
+  /// **'Good'**
+  String get fdSegGood;
+
+  /// Chance meter word, 65–81%.
+  ///
+  /// In en, this message translates to:
+  /// **'High'**
+  String get fdSegHigh;
+
+  /// Chance meter word, 82% and up.
+  ///
+  /// In en, this message translates to:
+  /// **'Very high'**
+  String get fdSegVeryHigh;
+
+  /// Assessment (design 11) title, first part; the second part is marked.
+  ///
+  /// In en, this message translates to:
+  /// **'Can I really go'**
+  String get fdAssessTitleLead;
+
+  /// Assessment title, marked part.
+  ///
+  /// In en, this message translates to:
+  /// **'to Korea?'**
+  String get fdAssessTitleMark;
+
+  /// Assessment row label.
+  ///
+  /// In en, this message translates to:
+  /// **'My Korean (TOPIK)'**
+  String get fdAssessTopik;
+
+  /// Assessment row label.
+  ///
+  /// In en, this message translates to:
+  /// **'School certificate average'**
+  String get fdAssessGpa;
+
+  /// Assessment row label.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank balance (D-2)'**
+  String get fdAssessBank;
+
+  /// Marker under the bank slider: the amount the visa needs.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} required'**
+  String fdAssessBankNeed(String amount);
+
+  /// An amount in millions of won.
+  ///
+  /// In en, this message translates to:
+  /// **'₩{n}M'**
+  String fdMln(int n);
+
+  /// Degree choice on the assessment.
+  ///
+  /// In en, this message translates to:
+  /// **'Language course'**
+  String get fdLanguageCourse;
+
+  /// Assessment row label.
+  ///
+  /// In en, this message translates to:
+  /// **'Has a visa been refused before?'**
+  String get fdAssessRefused;
+
+  /// No.
+  ///
+  /// In en, this message translates to:
+  /// **'No'**
+  String get fdNo;
+
+  /// Yes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes'**
+  String get fdYes;
+
+  /// Assessment bottom button.
+  ///
+  /// In en, this message translates to:
+  /// **'See the report →'**
+  String get fdAssessSeeReport;
+
+  /// Assessment meters card heading.
+  ///
+  /// In en, this message translates to:
+  /// **'Admission · {n} universities'**
+  String fdAssessAdmissionCount(int n);
+
+  /// The visa row on the assessment meters card.
+  ///
+  /// In en, this message translates to:
+  /// **'Visa'**
+  String get fdVisa;
+
+  /// Hint under the meters: what one more TOPIK level would do.
+  ///
+  /// In en, this message translates to:
+  /// **'TOPIK {level} → {uni} admission becomes «{word}»'**
+  String fdAssessTopikHint(int level, String uni, String word);
+
+  /// Report lead form error.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your name'**
+  String get fdReportNameError;
+
+  /// Report lead form error.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the full phone number'**
+  String get fdReportPhoneError;
+
+  /// Report lead form error.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t send. Check the connection and try again.'**
+  String get fdReportNetworkError;
+
+  /// Share button label.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get fdShare;
+
+  /// Report verdict, high band.
+  ///
+  /// In en, this message translates to:
+  /// **'YES'**
+  String get fdVerdictYes;
+
+  /// Report verdict, mid band.
+  ///
+  /// In en, this message translates to:
+  /// **'MAYBE'**
+  String get fdVerdictMaybe;
+
+  /// Report verdict, low band.
+  ///
+  /// In en, this message translates to:
+  /// **'NOT YET'**
+  String get fdVerdictNotYet;
+
+  /// Note under the HA verdict.
+  ///
+  /// In en, this message translates to:
+  /// **'Your figures are enough — you can start the documents.'**
+  String get fdVerdictYesNote;
+
+  /// Note under the BALKI verdict (design 12).
+  ///
+  /// In en, this message translates to:
+  /// **'Raise one or two figures and the answer becomes «YES».'**
+  String get fdVerdictMaybeNote;
+
+  /// Note under the HOZIRCHA YO'Q verdict.
+  ///
+  /// In en, this message translates to:
+  /// **'The figures aren\'t there yet — start with the steps below.'**
+  String get fdVerdictNotYetNote;
+
+  /// Report section title.
+  ///
+  /// In en, this message translates to:
+  /// **'What to do'**
+  String get fdReportFixesTitle;
+
+  /// Report check row.
+  ///
+  /// In en, this message translates to:
+  /// **'University admission'**
+  String get fdReportAdmission;
+
+  /// How many of the universities are a chance worth applying with.
+  ///
+  /// In en, this message translates to:
+  /// **'{open} of {total} open'**
+  String fdReportOpenOf(int total, int open);
+
+  /// Report check row.
+  ///
+  /// In en, this message translates to:
+  /// **'D-2 visa'**
+  String get fdReportVisa;
+
+  /// Report check row.
+  ///
+  /// In en, this message translates to:
+  /// **'Studying in Korea'**
+  String get fdReportStudy;
+
+  /// Report fix row.
+  ///
+  /// In en, this message translates to:
+  /// **'Bring the bank balance to {amount}'**
+  String fdFixBank(String amount);
+
+  /// Report fix row.
+  ///
+  /// In en, this message translates to:
+  /// **'Reach TOPIK {level}'**
+  String fdFixTopik(int level);
+
+  /// What a fix adds to the visa chance.
+  ///
+  /// In en, this message translates to:
+  /// **'visa +{n}%'**
+  String fdGainVisa(int n);
+
+  /// What a fix adds to the admission chance.
+  ///
+  /// In en, this message translates to:
+  /// **'admission +{n}%'**
+  String fdGainAdmission(int n);
+
+  /// Lead form title, first part.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'ll send the report'**
+  String get fdReportFormLead;
+
+  /// Lead form title, marked part.
+  ///
+  /// In en, this message translates to:
+  /// **'free'**
+  String get fdReportFormFree;
+
+  /// Lead form title, last part (may be empty).
+  ///
+  /// In en, this message translates to:
+  /// **''**
+  String get fdReportFormTail;
+
+  /// Lead form field.
+  ///
+  /// In en, this message translates to:
+  /// **'First and last name'**
+  String get fdReportName;
+
+  /// Lead form button.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get fdReportSend;
+
+  /// Sent screen (design 13) title before the name.
+  ///
+  /// In en, this message translates to:
+  /// **'Thank you'**
+  String get fdSentThanks;
+
+  /// Sent screen body.
+  ///
+  /// In en, this message translates to:
+  /// **'The report was sent to {phone}. Your consultant will call within 24 hours.'**
+  String fdSentBody(String phone);
+
+  /// Sent screen section label.
+  ///
+  /// In en, this message translates to:
+  /// **'Meanwhile'**
+  String get fdSentMeanwhile;
+
+  /// Sent screen row.
+  ///
+  /// In en, this message translates to:
+  /// **'Document list'**
+  String get fdSentDocsTitle;
+
+  /// Sent screen row subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} documents for {uni}'**
+  String fdSentDocsBody(String uni, int count);
+
+  /// Sent screen row.
+  ///
+  /// In en, this message translates to:
+  /// **'Prepare for TOPIK {level}'**
+  String fdSentTopikTitle(int level);
+
+  /// Sent screen button.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to universities'**
+  String get fdSentBack;
+
+  /// Sent screen agency card subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your consultant'**
+  String get fdSentConsultant;
+
+  /// Sent screen call button.
+  ///
+  /// In en, this message translates to:
+  /// **'Call'**
+  String get fdSentCall;
+
+  /// University page (design 10) stat cell.
+  ///
+  /// In en, this message translates to:
+  /// **'Tuition / sem'**
+  String get fdUniTuitionSem;
+
+  /// University page stat cell when the fee is yearly.
+  ///
+  /// In en, this message translates to:
+  /// **'Tuition / year'**
+  String get fdUniTuitionYear;
+
+  /// University page stat cell.
+  ///
+  /// In en, this message translates to:
+  /// **'Document deadline'**
+  String get fdUniDeadline;
+
+  /// University page faculties heading, right side.
+  ///
+  /// In en, this message translates to:
+  /// **'{faculties} faculties · {majors} programmes'**
+  String fdUniFacultiesSummary(int faculties, int majors);
+
+  /// Shows the rest of a faculty's programmes.
+  ///
+  /// In en, this message translates to:
+  /// **'All {count} programmes →'**
+  String fdUniAllMajors(int count);
+
+  /// Saved state of the save button.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved'**
+  String get fdSaved;
+
+  /// University page main button: opens the assessment.
+  ///
+  /// In en, this message translates to:
+  /// **'Can I really go to Korea?'**
+  String get fdUniCta;
+
+  /// Results (design 06) list heading.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} matching universities'**
+  String fdResultsMatching(int count);
+
+  /// Results list ordering note.
+  ///
+  /// In en, this message translates to:
+  /// **'best match first'**
+  String get fdResultsBestFirst;
+
+  /// An empty slot while a university is dragged over it.
+  ///
+  /// In en, this message translates to:
+  /// **'Drop here'**
+  String get fdSlotDropHere;
+
+  /// Screen-reader label of a slot.
+  ///
+  /// In en, this message translates to:
+  /// **'Slot {n}'**
+  String fdSlotNumber(int n);
+
+  /// Screen-reader state of an empty slot.
+  ///
+  /// In en, this message translates to:
+  /// **'empty'**
+  String get fdSlotEmpty;
+
+  /// Puts a university in the first empty slot.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to a slot'**
+  String get fdAddToSlot;
+
+  /// Takes a university out of its slot.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from the slot'**
+  String get fdRemoveFromSlot;
+
+  /// University page button when the university is in a slot.
+  ///
+  /// In en, this message translates to:
+  /// **'✓ In slot {n}'**
+  String fdInSlot(int n);
+
+  /// Shown when adding to full slots.
+  ///
+  /// In en, this message translates to:
+  /// **'All three slots are taken. Free one first.'**
+  String get fdSlotsFull;
+
+  /// Results banner title: opens the duel (design 07).
+  ///
+  /// In en, this message translates to:
+  /// **'Pick your best 3'**
+  String get fdBestThreeTitle;
+
+  /// Results banner subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'from {count} — two at a time'**
+  String fdBestThreeBody(int count);
+
+  /// Duel (design 07) title, first part.
+  ///
+  /// In en, this message translates to:
+  /// **'Your best'**
+  String get fdDuelTitleLead;
+
+  /// Duel title, marked part.
+  ///
+  /// In en, this message translates to:
+  /// **'3'**
+  String get fdDuelTitleMark;
+
+  /// Duel: how many picks so far.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} compared'**
+  String fdDuelCompared(int count);
+
+  /// Between the two duel cards.
+  ///
+  /// In en, this message translates to:
+  /// **'OR'**
+  String get fdOr;
+
+  /// Duel legend after two lime pips.
+  ///
+  /// In en, this message translates to:
+  /// **'= champion, goes into a slot'**
+  String get fdDuelLegend;
+
+  /// Screen-reader hint on a duel card.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick this one'**
+  String get fdDuelPick;
+
+  /// Chosen (design 08) title, marked part.
+  ///
+  /// In en, this message translates to:
+  /// **'Great'**
+  String get fdChosenTitleMark;
+
+  /// Chosen title, last part.
+  ///
+  /// In en, this message translates to:
+  /// **'choice!'**
+  String get fdChosenTitleTail;
+
+  /// Chosen body with three universities.
+  ///
+  /// In en, this message translates to:
+  /// **'Your three universities are ready. Let\'s find out which are open to you.'**
+  String get fdChosenBodyThree;
+
+  /// Chosen body with fewer than three.
+  ///
+  /// In en, this message translates to:
+  /// **'Your {count} universities are ready. Let\'s find out which are open to you.'**
+  String fdChosenBody(int count);
+
+  /// Above the chosen screen's buttons, followed by a down arrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Now the big question'**
+  String get fdChosenNext;
+
+  /// Opens the assessment with these universities.
+  ///
+  /// In en, this message translates to:
+  /// **'Can I get into these?'**
+  String get fdChosenAdmission;
+
+  /// Opens the assessment (its visa side).
+  ///
+  /// In en, this message translates to:
+  /// **'Will I get the visa?'**
+  String get fdChosenVisa;
+
+  /// Chosen screen with no slotted universities.
+  ///
+  /// In en, this message translates to:
+  /// **'The slots are still empty. Add universities from the results.'**
+  String get fdChosenEmpty;
+
+  /// Compare (design 09) title.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare'**
+  String get fdCompareTitle;
+
+  /// Compare header count.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} universities'**
+  String fdCompareCount(int count);
+
+  /// Compare row label.
+  ///
+  /// In en, this message translates to:
+  /// **'City'**
+  String get fdCompareCity;
+
+  /// Compare row label.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get fdCompareType;
+
+  /// Compare row label: the admission chance.
+  ///
+  /// In en, this message translates to:
+  /// **'Admission'**
+  String get fdCompareAdmission;
+
+  /// Saved (design 16) title.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved'**
+  String get fdSavedTitle;
+
+  /// Saved: compare the first three.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare all three'**
+  String get fdSavedCompareThree;
+
+  /// Saved: compare two.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare both'**
+  String get fdSavedCompareTwo;
+
+  /// Saved compare card subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Fee, language and deadline side by side'**
+  String get fdSavedCompareBody;
+
+  /// Saved list empty state.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing saved yet. On the home screen, swipe a card right or tap ♡.'**
+  String get fdSavedEmpty;
+
+  /// Screen-reader label of the heart on a saved row.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from saved'**
+  String get fdUnsave;
+
+  /// Card pill (design 03): followed by the percentage or ?% and an arrow.
+  ///
+  /// In en, this message translates to:
+  /// **'My admission chance'**
+  String get fdOddsLead;
+
+  /// Stamp on the card while it is dragged to the right.
+  ///
+  /// In en, this message translates to:
+  /// **'SAVE'**
+  String get fdStampSave;
+
+  /// Stamp on the card while it is dragged to the left.
+  ///
+  /// In en, this message translates to:
+  /// **'SKIP'**
+  String get fdStampSkip;
+
+  /// Hint over the first card, shown until the first swipe.
+  ///
+  /// In en, this message translates to:
+  /// **'Try swiping'**
+  String get fdSwipeHint;
+
+  /// Under the QS number on the card.
+  ///
+  /// In en, this message translates to:
+  /// **'world ranking'**
+  String get fdQsRanking;
+
+  /// After the fee on the home card: per semester.
+  ///
+  /// In en, this message translates to:
+  /// **'/ sem'**
+  String get fdPerSemShort;
+
+  /// After the fee on the home card: per year.
+  ///
+  /// In en, this message translates to:
+  /// **'/ year'**
+  String get fdPerYearShort;
+
+  /// Client code screen (design 14) title, first part; the second part is marked.
+  ///
+  /// In en, this message translates to:
+  /// **'Your client'**
+  String get fdCodeTitleLead;
+
+  /// Client code title, marked part.
+  ///
+  /// In en, this message translates to:
+  /// **'code'**
+  String get fdCodeTitleMark;
+
+  /// Client code screen body.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the 8-character code your consultant gave you — your application status opens.'**
+  String get fdCodeBody;
+
+  /// Client code screen button.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in'**
+  String get fdCodeSubmit;
+
+  /// Under the client code form, followed by the phone number.
+  ///
+  /// In en, this message translates to:
+  /// **'No code? Free consultation:'**
+  String get fdCodeNoCode;
+
+  /// Screen-reader label for the code field.
+  ///
+  /// In en, this message translates to:
+  /// **'Code character {n}'**
+  String fdCodeCell(int n);
+
+  /// Map (design 17) line above the title.
+  ///
+  /// In en, this message translates to:
+  /// **'Across Korea · {count} universities'**
+  String fdMapKicker(int count);
+
+  /// Map title, marked part, after '360° '.
+  ///
+  /// In en, this message translates to:
+  /// **'map'**
+  String get fdMapTitleMark;
+
+  /// Faint label in the map's corner.
+  ///
+  /// In en, this message translates to:
+  /// **'KOREA · 대한민국'**
+  String get fdMapLabel;
+
+  /// Screen-reader label of a map pin.
+  ///
+  /// In en, this message translates to:
+  /// **'{city}: {count} universities'**
+  String fdMapPin(String city, int count);
+
+  /// Map zoom button.
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom in'**
+  String get fdMapZoomIn;
+
+  /// Map zoom button.
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom out'**
+  String get fdMapZoomOut;
+
+  /// Screen-reader label of the 360° button on the map card.
+  ///
+  /// In en, this message translates to:
+  /// **'Open the 360° view'**
+  String get fdMapOpen360;
+
+  /// Map with no pins.
+  ///
+  /// In en, this message translates to:
+  /// **'No university matches this filter.'**
+  String get fdMapEmpty;
+
+  /// Which university of a pin's list the card shows.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} / {total}'**
+  String fdMapCardOf(int n, int total);
+
+  /// Client bottom nav tab (design 15).
+  ///
+  /// In en, this message translates to:
+  /// **'Application'**
+  String get fdNavApplication;
+
+  /// Client bottom nav tab (design 15b).
+  ///
+  /// In en, this message translates to:
+  /// **'Documents'**
+  String get fdNavDocuments;
+
+  /// Application (design 15) title.
+  ///
+  /// In en, this message translates to:
+  /// **'Application progress'**
+  String get fdJourneyTitle;
+
+  /// Application summary card label.
+  ///
+  /// In en, this message translates to:
+  /// **'Current stage'**
+  String get fdJourneyCurrent;
+
+  /// Application summary card note.
+  ///
+  /// In en, this message translates to:
+  /// **'Next stage: {stage}'**
+  String fdJourneyNext(String stage);
+
+  /// Application summary card note when the journey is over.
+  ///
+  /// In en, this message translates to:
+  /// **'Every stage is done'**
+  String get fdJourneyDone;
+
+  /// Application summary card note while the application is pending approval.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for the consultant to confirm your application'**
+  String get fdJourneyWaiting;
+
+  /// Application screen with no application.
+  ///
+  /// In en, this message translates to:
+  /// **'No application yet'**
+  String get fdJourneyEmpty;
+
+  /// Application screen with no application.
+  ///
+  /// In en, this message translates to:
+  /// **'Once your consultant attaches a university, its progress shows here.'**
+  String get fdJourneyEmptyBody;
+
+  /// Button on the empty application screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse universities'**
+  String get fdJourneyBrowse;
+
+  /// Opens a university's room (discussion, announcements) from an application.
+  ///
+  /// In en, this message translates to:
+  /// **'University room'**
+  String get fdJourneyRoom;
+
+  /// Under the agency name on the consultant card.
+  ///
+  /// In en, this message translates to:
+  /// **'Consultant · answers your questions'**
+  String get fdConsultantRole;
+
+  /// Documents (design 15b) title.
+  ///
+  /// In en, this message translates to:
+  /// **'My documents'**
+  String get fdDocsTitle;
+
+  /// Documents summary card label.
+  ///
+  /// In en, this message translates to:
+  /// **'Accepted documents'**
+  String get fdDocsAccepted;
+
+  /// Documents summary card headline.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} more needed'**
+  String fdDocsNeedMore(int n);
+
+  /// Documents summary card headline when all are uploaded.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} under review'**
+  String fdDocsUnderReview(int n);
+
+  /// Documents summary card headline when all are accepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything is accepted'**
+  String get fdDocsAllAccepted;
+
+  /// Document row status.
+  ///
+  /// In en, this message translates to:
+  /// **'Accepted'**
+  String get fdDocAccepted;
+
+  /// Document row status.
+  ///
+  /// In en, this message translates to:
+  /// **'Needed'**
+  String get fdDocNeeded;
+
+  /// Document row status.
+  ///
+  /// In en, this message translates to:
+  /// **'Under review'**
+  String get fdDocReview;
+
+  /// Document row button.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload'**
+  String get fdDocUpload;
+
+  /// Document actions.
+  ///
+  /// In en, this message translates to:
+  /// **'View'**
+  String get fdDocView;
+
+  /// Document actions.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get fdDocRemove;
+
+  /// Account screen card with the sections that are not in the bottom tabs.
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get accountMoreLabel;
+
+  /// Study Plan builder header.
+  ///
+  /// In en, this message translates to:
+  /// **'Study Plan'**
+  String get fdPlanTitle;
+
+  /// Study Plan step chip 1.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal'**
+  String get fdPlanStepGoal;
+
+  /// Study Plan step chip 2.
+  ///
+  /// In en, this message translates to:
+  /// **'Why Korea'**
+  String get fdPlanStepKorea;
+
+  /// Study Plan step chip 3.
+  ///
+  /// In en, this message translates to:
+  /// **'Why this university'**
+  String get fdPlanStepUni;
+
+  /// Study Plan step chip 4.
+  ///
+  /// In en, this message translates to:
+  /// **'Future plan'**
+  String get fdPlanStepFuture;
+
+  /// Card kicker of the Study Plan builder.
+  ///
+  /// In en, this message translates to:
+  /// **'Step {n} · of {total}'**
+  String fdPlanStepOf(int n, int total);
+
+  /// Step 1 title, before the highlighted word.
+  ///
+  /// In en, this message translates to:
+  /// **'Your'**
+  String get fdPlanQ1Head;
+
+  /// Step 1 title, highlighted word.
+  ///
+  /// In en, this message translates to:
+  /// **'goal?'**
+  String get fdPlanQ1Mark;
+
+  /// Step 1 hint.
+  ///
+  /// In en, this message translates to:
+  /// **'3–5 sentences. What do you want to study and why do you need it? Be specific.'**
+  String get fdPlanQ1Hint;
+
+  /// Step 2 title, before the highlighted word.
+  ///
+  /// In en, this message translates to:
+  /// **'Why'**
+  String get fdPlanQ2Head;
+
+  /// Step 2 title, highlighted word.
+  ///
+  /// In en, this message translates to:
+  /// **'Korea?'**
+  String get fdPlanQ2Mark;
+
+  /// Step 2 hint.
+  ///
+  /// In en, this message translates to:
+  /// **'3–5 sentences. Write a personal reason: family, career, language, experience. Avoid generalities.'**
+  String get fdPlanQ2Hint;
+
+  /// Step 3 title, before the highlighted word.
+  ///
+  /// In en, this message translates to:
+  /// **'Why this'**
+  String get fdPlanQ3Head;
+
+  /// Step 3 title, highlighted word.
+  ///
+  /// In en, this message translates to:
+  /// **'university?'**
+  String get fdPlanQ3Mark;
+
+  /// Step 3 hint.
+  ///
+  /// In en, this message translates to:
+  /// **'3–5 sentences. Why do this university\'s programme, lab or major suit you? Give a concrete example.'**
+  String get fdPlanQ3Hint;
+
+  /// Step 4 title, before the highlighted word.
+  ///
+  /// In en, this message translates to:
+  /// **'Your plan after'**
+  String get fdPlanQ4Head;
+
+  /// Step 4 title, highlighted word.
+  ///
+  /// In en, this message translates to:
+  /// **'graduation?'**
+  String get fdPlanQ4Mark;
+
+  /// Step 4 hint.
+  ///
+  /// In en, this message translates to:
+  /// **'3–5 sentences. What will you do after your studies: work, a master\'s or going home? Write concrete steps.'**
+  String get fdPlanQ4Hint;
+
+  /// Study Plan builder text field placeholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Write here…'**
+  String get fdPlanHintField;
+
+  /// Warning card title.
+  ///
+  /// In en, this message translates to:
+  /// **'Important: do not submit AI-written text'**
+  String get fdPlanWarnTitle;
+
+  /// Warning card body.
+  ///
+  /// In en, this message translates to:
+  /// **'Universities detect AI text. What you write here is yours alone. Hanguk AI only gives feedback.'**
+  String get fdPlanWarnBody;
+
+  /// Study Plan builder main button.
+  ///
+  /// In en, this message translates to:
+  /// **'Get feedback'**
+  String get fdPlanFeedback;
+
+  /// Main button while the analysis runs.
+  ///
+  /// In en, this message translates to:
+  /// **'Analysing…'**
+  String get fdPlanFeedbackBusy;
+
+  /// Shown when feedback is asked on an empty step.
+  ///
+  /// In en, this message translates to:
+  /// **'Write this step first.'**
+  String get fdPlanWriteFirst;
+
+  /// Feedback sheet title.
+  ///
+  /// In en, this message translates to:
+  /// **'Hanguk AI feedback'**
+  String get fdPlanSheetTitle;
+
+  /// Feedback sheet section.
+  ///
+  /// In en, this message translates to:
+  /// **'Strengths'**
+  String get fdPlanStrengths;
+
+  /// Feedback sheet section.
+  ///
+  /// In en, this message translates to:
+  /// **'To improve'**
+  String get fdPlanImprove;
+
+  /// Feedback sheet button.
+  ///
+  /// In en, this message translates to:
+  /// **'Next step'**
+  String get fdPlanNext;
+
+  /// Feedback sheet button on the last step.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get fdPlanClose;
+
+  /// Study Plan builder when the session could not be created or loaded.
+  ///
+  /// In en, this message translates to:
+  /// **'Study Plan did not open. Check your connection and try again.'**
+  String get fdPlanLoadFailed;
+
+  /// Live interview screen header.
+  ///
+  /// In en, this message translates to:
+  /// **'Interview practice'**
+  String get fdInterviewTitle;
+
+  /// Name under the interviewer avatar.
+  ///
+  /// In en, this message translates to:
+  /// **'Hanguk AI · interviewer'**
+  String get fdInterviewAi;
+
+  /// Line under the interviewer's name.
+  ///
+  /// In en, this message translates to:
+  /// **'In the style of {university}\'s admissions panel'**
+  String fdInterviewStyle(String university);
+
+  /// Tip under the microphone button.
+  ///
+  /// In en, this message translates to:
+  /// **'Speak clearly at a moderate pace · 60–90 seconds'**
+  String get fdInterviewTip;
+
+  /// Microphone button label while it is on.
+  ///
+  /// In en, this message translates to:
+  /// **'Mute microphone'**
+  String get fdInterviewMute;
+
+  /// Microphone button label while it is muted.
+  ///
+  /// In en, this message translates to:
+  /// **'Unmute microphone'**
+  String get fdInterviewUnmute;
+
+  /// Status while the microphone is muted.
+  ///
+  /// In en, this message translates to:
+  /// **'Microphone off — the interviewer cannot hear you'**
+  String get fdInterviewMuted;
+
+  /// Button under 'Kirish' on the client-code screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan QR code'**
+  String get fdCodeScan;
+
+  /// QR scanner screen title.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan the QR code'**
+  String get fdScanTitle;
+
+  /// Line under the scanner frame.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold the QR code your consultant gave you inside the frame'**
+  String get fdScanHint;
+
+  /// Shown when a scanned QR holds no client code.
+  ///
+  /// In en, this message translates to:
+  /// **'This QR code has no client code. Type the code instead.'**
+  String get fdScanNoCode;
+
+  /// Scanner screen when the camera permission is denied.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera access is off. Allow it in the phone\'s settings, or type the code instead.'**
+  String get fdScanNoCamera;
+
+  /// Scanner screen when the camera fails for another reason.
+  ///
+  /// In en, this message translates to:
+  /// **'The camera did not open. Type the code instead.'**
+  String get fdScanFailed;
+
+  /// Study Plan mic button label (screen reader).
+  ///
+  /// In en, this message translates to:
+  /// **'Dictate'**
+  String get fdPlanDictate;
+
+  /// Study Plan mic button label while listening.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop dictation'**
+  String get fdPlanDictateStop;
+
+  /// Shown above the text box while dictating.
+  ///
+  /// In en, this message translates to:
+  /// **'Listening… speak now'**
+  String get fdPlanListening;
+
+  /// Snackbar when dictation cannot start.
+  ///
+  /// In en, this message translates to:
+  /// **'Speech-to-text did not work on this phone. Check the microphone permission.'**
+  String get fdPlanDictateUnavailable;
 }
 
 class _AppLocalizationsDelegate

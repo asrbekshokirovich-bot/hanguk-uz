@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../design_system/seoul_night/seoul_night.dart';
+import '../../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../data/interview_repository.dart';
 
@@ -57,6 +58,15 @@ class _InterviewScreenState extends ConsumerState<InterviewScreen> {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     final state = ref.watch(interviewProvider);
+
+    // The live call is design screen 20, on the light page with its own
+    // header (the X there ends the call).
+    if (state.status == 'active') {
+      return const Scaffold(
+        backgroundColor: Colors.transparent,
+        body: FdPage(child: SafeArea(child: InterviewActiveView())),
+      );
+    }
 
     // Seoul Night: the gradient + ambient glow blobs come from the scaffold,
     // and the section header replaces the old AppBar (spec §2 — a glass
@@ -118,19 +128,6 @@ class _InterviewScreenState extends ConsumerState<InterviewScreen> {
               titleStyle: SeoulType.title,
             ),
           ),
-          // Unchanged behaviour: the header End control is rendered while the
-          // session row is 'active' and asks the notifier to end it.
-          if (state.status == 'active') ...[
-            const SizedBox(width: 10),
-            _HeaderEndAction(
-              label: l.endSession,
-              onTap: () async {
-                await ref
-                    .read(interviewProvider.notifier)
-                    .endSession(language: state.selectedLanguage);
-              },
-            ),
-          ],
         ],
       ),
     );
@@ -180,47 +177,5 @@ class _InterviewScreenState extends ConsumerState<InterviewScreen> {
         },
       );
     }
-  }
-}
-
-/// Compact destructive action in the section header. Warning-tinted rather
-/// than red: `danger*` is the desaturated destructive tone for the navy
-/// for "this needs your attention" (spec §1 Color tokens).
-class _HeaderEndAction extends StatelessWidget {
-  const _HeaderEndAction({required this.label, required this.onTap});
-
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Tooltip(
-      message: label,
-      child: Semantics(
-        button: true,
-        label: label,
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: onTap,
-          child: Container(
-            width: SeoulSizes.minTapTarget,
-            height: SeoulSizes.minTapTarget,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: SeoulColors.dangerFill,
-              border: Border.all(
-                color: SeoulColors.warning.withValues(alpha: 0.45),
-              ),
-            ),
-            child: const Icon(
-              Icons.call_end,
-              size: 20,
-              color: SeoulColors.dangerText,
-            ),
-          ),
-        ),
-      ),
-    );
   }
 }

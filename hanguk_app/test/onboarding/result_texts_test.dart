@@ -43,7 +43,6 @@ void main() {
     age: 18,
     gradYear: 2026,
     korean: KoreanLevel.none,
-    budget: Budget.from3to6k,
     payer: Payer.parents,
     formalIncome: false,
     region: 'Samarqand',
@@ -57,7 +56,7 @@ void main() {
       EligibilityFactor(FactorKind.incomeNo, positive: false),
     ],
     universities: [],
-    steps: [NextStep.topikPrep, NextStep.schoolDocs, NextStep.applyOnTime],
+    steps: [NextStep.languagePrep, NextStep.schoolDocs, NextStep.applyOnTime],
     paths: [AlternativePath.languageCourse, AlternativePath.college, AlternativePath.nextSeason],
     tariff: Tariff.hanbox,
     needsOperator: false,
@@ -68,7 +67,7 @@ void main() {
     expect(uz, startsWith("Bakalavr · Samarqand · 2027 bahor\n\nHozircha xavf yuqori — lekin yo'l bor"));
     expect(uz, contains("Sizga mos yo'llar"));
     expect(uz, contains('− Ota-onada rasmiy daromad yo\'q'));
-    expect(uz, contains('1. TOPIK 3 ga tayyorgarlik'));
+    expect(uz, contains('1. TOPIK 3 yoki IELTS 5.5 sertifikatiga tayyorgarlik'));
     expect(uz, contains('Hanbox'));
     expect(uz, endsWith('Bu dastlabki baho. Viza qarorini elchixona beradi.'));
     expect(uz, isNot(contains('<')));

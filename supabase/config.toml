@@ -236,3 +236,9 @@ verify_jwt = false
 # JWT, and its own check trusts the claims of a JWT the gateway has verified.)
 [functions.telegram-outbox]
 verify_jwt = false
+
+# The app's university search, read by a language model. Guests use it too, and
+# their key is not a user JWT, so verify_jwt is off; the function rations model
+# calls itself (ai_search_take) and only reads the public catalogue.
+[functions.ai-university-search]
+verify_jwt = false

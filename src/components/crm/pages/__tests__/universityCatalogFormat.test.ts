@@ -19,7 +19,7 @@ import {
   matchesSearch,
   offeredLevels,
   operatorCities,
-  resolveUploadInstitution,
+  romanKey,
 } from '../university-catalog/format';
 
 function guideline(over: Partial<GuidelineSummary> = {}): GuidelineSummary {
@@ -200,6 +200,76 @@ describe('matchesSearch', () => {
   });
 });
 
+describe('romanKey — koreyscha nomlarning turlicha lotincha yozilishi', () => {
+  it('bir xil o‘qiladigan yozuvlar bir xil kalitga tushadi', () => {
+    expect(romanKey('Kimpo')).toBe(romanKey('Gimpo'));
+    expect(romanKey('kimbo')).toBe(romanKey('Gimpo'));
+    expect(romanKey('Кимпо')).toBe(romanKey('Gimpo'));
+    expect(romanKey('Daekyung')).toBe(romanKey('Daekyeung'));
+    expect(romanKey('Pusan')).toBe(romanKey('Busan'));
+    expect(romanKey('Kyungpook')).toBe(romanKey('Gyeongbuk'));
+    expect(romanKey('Seul')).toBe(romanKey('Seoul'));
+    expect(romanKey('Keimyung')).toBe(romanKey('Gyemyeong'));
+    expect(romanKey('Chung-Ang')).toBe(romanKey('Jungang'));
+    expect(romanKey('Xanyang')).toBe(romanKey('Hanyang'));
+    expect(romanKey('Katolik')).toBe(romanKey('Catholic'));
+    expect(romanKey('Kyung Hee')).toBe(romanKey('Kyunghee'));
+  });
+
+  it('boshqacha nomlarni bir-biriga aralashtirmaydi', () => {
+    expect(romanKey('Kimpo')).not.toBe(romanKey('Kimhae'));
+    expect(romanKey('Daegu')).not.toBe(romanKey('Daejeon'));
+    expect(romanKey('Seoul')).not.toBe(romanKey('Suwon'));
+  });
+});
+
+describe('matchesSearch — lotincha yozuvdagi farq xalaqit bermaydi', () => {
+  const kimpo = uni({
+    name_ko: '김포대학교',
+    name_en: 'Gimpo University',
+    name_ko_short: null,
+    city_ko: '김포',
+    region_code: null,
+    primary_domain: 'gimpo.ac.kr',
+    institution_type: 'junior_college',
+  });
+  const daekyeung = uni({
+    name_ko: '대경대학교',
+    name_en: 'Daekyeung University',
+    name_ko_short: null,
+    city_ko: '경산',
+    region_code: null,
+    primary_domain: 'tk.ac.kr',
+    institution_type: 'junior_college',
+  });
+  const pusan = uni({
+    name_ko: '부산대학교',
+    name_en: 'Pusan National University',
+    name_ko_short: null,
+    city_ko: '부산',
+    region_code: null,
+    primary_domain: 'pusan.ac.kr',
+  });
+
+  it('"kimpo", "kimbo" va "Кимпо" Gimpo University‘ni topadi', () => {
+    expect(matchesSearch(kimpo, 'kimpo')).toBe(true);
+    expect(matchesSearch(kimpo, 'kimbo')).toBe(true);
+    expect(matchesSearch(kimpo, 'Кимпо')).toBe(true);
+    expect(matchesSearch(kimpo, 'Kimpo University')).toBe(true);
+  });
+
+  it('"daekyung" Daekyeung University‘ni, "busan" Pusan National University‘ni topadi', () => {
+    expect(matchesSearch(daekyeung, 'daekyung')).toBe(true);
+    expect(matchesSearch(pusan, 'busan')).toBe(true);
+  });
+
+  it('boshqa universitetni topib yubormaydi', () => {
+    expect(matchesSearch(kimpo, 'daekyung')).toBe(false);
+    expect(matchesSearch(daekyeung, 'kimpo')).toBe(false);
+    expect(matchesSearch(pusan, 'seoul')).toBe(false);
+  });
+});
+
 describe('matchesFilter', () => {
   const withData = entry();
   const withoutData = entry({ guidelines: [], latest: null });
@@ -308,6 +378,12 @@ describe('offeredLevels va matchesLevel', () => {
     ]);
   });
 
+  it('hidden_levels‘dagi daraja ko‘rinmaydi (교육대학교da bakalavr yo‘q)', () => {
+    const kyodae = uni({ institution_type: 'education_university', hidden_levels: ['bakalavr'] });
+    expect(offeredLevels(kyodae)).toEqual(['magistratura']);
+    expect(matchesLevel(kyodae, 'bakalavr')).toBe(false);
+  });
+
   it('"hammasi" hammani o‘tkazadi, aks holda daraja bo‘lishi shart', () => {
     const kollej = uni({ institution_type: 'junior_college' });
     expect(matchesLevel(kollej, 'hammasi')).toBe(true);
@@ -361,46 +437,5 @@ describe('daraja tanlanganda ma‘lumot filtrlari', () => {
     expect(focusGuideline(ikkalasi, 'magistratura')?.id).toBe('m');
     expect(focusGuideline(ikkalasi, 'hammasi')?.id).toBe('b');
     expect(focusGuideline(faqatBakalavr, 'kasbiy')).toBeNull();
-  });
-});
-
-describe('resolveUploadInstitution', () => {
-  function college(id: string, name_ko: string, guidelines: GuidelineSummary[] = []): CatalogEntry {
-    const e = uni({ name_ko, primary_domain: 'dhc.ac.kr', institution_type: 'junior_college' }, guidelines);
-    e.institution.id = id;
-    return e;
-  }
-
-  const jbnu = entry();
-  const list = [college('a', '대구보건대학교'), college('b', '동아보건대학교'), jbnu];
-
-  it('univ_kod bitta universitetga mos kelsa — o‘sha (katta-kichik harf farqsiz)', () => {
-    expect(
-      resolveUploadInstitution(list, { guideline_id: 'jbnu_2027_kuz_bakalavr', univ_kod: 'JBNU' }),
-    ).toEqual({ institutionId: 'i1', error: null });
-  });
-
-  it('bir nechta universitetga mos kelsa — nomlari bilan xato, jimgina tanlamaydi', () => {
-    const result = resolveUploadInstitution(list, {
-      guideline_id: 'dhc_2027_bahor_kasbiy',
-      univ_kod: 'dhc',
-    });
-    expect(result.institutionId).toBeNull();
-    expect(result.error).toContain('대구보건대학교, 동아보건대학교');
-    expect(result.error).toContain('kartasini oching');
-  });
-
-  it('avval yuklangan guideline qayta yuklansa — o‘z universitetida qoladi', () => {
-    const loaded = guideline({ id: 'k1', guideline_id: 'dhc_2027_bahor_kasbiy', daraja: 'kasbiy' });
-    const withLoaded = [college('a', '대구보건대학교'), college('b', '동아보건대학교', [loaded])];
-    expect(
-      resolveUploadInstitution(withLoaded, { guideline_id: 'dhc_2027_bahor_kasbiy', univ_kod: 'dhc' }),
-    ).toEqual({ institutionId: 'b', error: null });
-  });
-
-  it('katalogda bo‘lmasa (masalan, yashirilgan bo‘lsa) — xato', () => {
-    const result = resolveUploadInstitution(list, { guideline_id: 'gtc_2027', univ_kod: 'gtc' });
-    expect(result.institutionId).toBeNull();
-    expect(result.error).toContain('topilmadi');
   });
 });

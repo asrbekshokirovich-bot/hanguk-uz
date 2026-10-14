@@ -10,6 +10,7 @@ import { LeadTimeline } from '@/components/crm/leads/profile/LeadTimeline';
 import { LeadAiPanel } from '@/components/crm/leads/profile/LeadAiPanel';
 import { LeadChannelLinks } from '@/components/crm/leads/profile/LeadChannelLinks';
 import { LeadAppQuiz } from '@/components/crm/leads/profile/LeadAppQuiz';
+import { AppActivity } from '@/components/crm/appActivity/AppActivity';
 import {
   useLeadProfile,
   type Suggestion,
@@ -171,6 +172,8 @@ export default function LeadProfileContent({ leadId }: LeadProfileContentProps) 
       <LeadChannelLinks lead={lead} overview={overview} onLink={linkChannel} />
 
       <LeadAppQuiz lead={lead} />
+
+      <AppActivity leadId={lead.id} />
 
       <LeadTimeline entries={timeline} highlightId={highlightId} />
 

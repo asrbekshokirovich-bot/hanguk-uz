@@ -35,7 +35,8 @@ enum KoreanLevel {
   learning('learning', 0),
   topik1('topik1', 1),
   topik2('topik2', 2),
-  topik3plus('topik3plus', 3),
+  topik3('topik3', 3),
+  topik4plus('topik4plus', 4),
   unknown('unknown', 0);
 
   const KoreanLevel(this.code, this.topik);
@@ -60,31 +61,25 @@ enum EnglishLevel {
   final double ielts;
 }
 
-/// 6 — Yearly budget, in US dollars.
-enum Budget {
-  under3k('lt3', 0, 3000, "\$3 000 gacha"),
-  from3to6k('3to6', 3000, 6000, "\$3–6 ming"),
-  from6to10k('6to10', 6000, 10000, "\$6–10 ming"),
-  over10k('gt10', 10000, null, "\$10 000+");
-
-  const Budget(this.code, this.minUsd, this.maxUsd, this.crmLabel);
-  final String code;
-  final int minUsd;
-
-  /// Null for the open-ended top bracket.
-  final int? maxUsd;
-
-  /// What the CRM stores in `leads.budget_range` (stored values stay Uzbek).
-  final String crmLabel;
-}
-
-/// 7 — Who pays.
+/// 6 — Who pays.
 enum Payer {
   parents('parents'),
   self('self'),
   sponsor('sponsor');
 
   const Payer(this.code);
+  final String code;
+}
+
+/// 8 — The deposit the embassy asks for: a KDB Bank Uzbekistan account in the
+/// student's name, held for a set time before applying.
+enum KdbDeposit {
+  ready('ready'),
+  byIntake('by_intake'),
+  no('no'),
+  unknown('unknown');
+
+  const KdbDeposit(this.code);
   final String code;
 }
 
@@ -131,9 +126,9 @@ class QuizAnswers {
     this.stillStudying = false,
     this.korean,
     this.english,
-    this.budget,
     this.payer,
     this.formalIncome,
+    this.kdb,
     this.region,
     this.intake,
   });
@@ -148,11 +143,11 @@ class QuizAnswers {
   final bool stillStudying;
   final KoreanLevel? korean;
   final EnglishLevel? english;
-  final Budget? budget;
   final Payer? payer;
 
   /// Parents have an official income.
   final bool? formalIncome;
+  final KdbDeposit? kdb;
   final String? region;
   final Intake? intake;
 
@@ -163,9 +158,9 @@ class QuizAnswers {
     3 => gradYear != null || stillStudying,
     4 => korean != null,
     5 => english != null,
-    6 => budget != null,
-    7 => payer != null,
-    8 => formalIncome != null,
+    6 => payer != null,
+    7 => formalIncome != null,
+    8 => kdb != null,
     9 => region != null,
     10 => intake != null,
     _ => false,
@@ -180,9 +175,9 @@ class QuizAnswers {
     bool? stillStudying,
     KoreanLevel? korean,
     EnglishLevel? english,
-    Budget? budget,
     Payer? payer,
     bool? formalIncome,
+    KdbDeposit? kdb,
     String? region,
     Intake? intake,
     bool clearGradYear = false,
@@ -194,9 +189,9 @@ class QuizAnswers {
       stillStudying: stillStudying ?? this.stillStudying,
       korean: korean ?? this.korean,
       english: english ?? this.english,
-      budget: budget ?? this.budget,
       payer: payer ?? this.payer,
       formalIncome: formalIncome ?? this.formalIncome,
+      kdb: kdb ?? this.kdb,
       region: region ?? this.region,
       intake: intake ?? this.intake,
     );
@@ -210,9 +205,9 @@ class QuizAnswers {
     if (stillStudying) 'grad_year': 'studying',
     if (korean != null) 'korean': korean!.code,
     if (english != null) 'english': english!.code,
-    if (budget != null) 'budget': budget!.code,
     if (payer != null) 'payer': payer!.code,
     if (formalIncome != null) 'formal_income': formalIncome! ? 'yes' : 'no',
+    if (kdb != null) 'kdb': kdb!.code,
     if (region != null) 'region': region,
     if (intake != null) 'intake': intake!.code,
   };

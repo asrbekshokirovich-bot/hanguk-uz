@@ -2601,6 +2601,7 @@ export type Database = {
           city_ko: string | null
           created_at: string
           display_names: Json
+          hidden_levels: string[]
           id: string
           inactive_reason: string | null
           ieqas_status: string | null
@@ -2632,6 +2633,7 @@ export type Database = {
           city_ko?: string | null
           created_at?: string
           display_names?: Json
+          hidden_levels?: string[]
           id?: string
           inactive_reason?: string | null
           ieqas_status?: string | null
@@ -2663,6 +2665,7 @@ export type Database = {
           city_ko?: string | null
           created_at?: string
           display_names?: Json
+          hidden_levels?: string[]
           id?: string
           inactive_reason?: string | null
           ieqas_status?: string | null
@@ -8100,6 +8103,7 @@ export type Database = {
         | "call_operator"
         | "document_handler"
         | "university_staff"
+        | "investor"
       notification_event:
         | "recruitment_changed"
         | "correction_notice"
@@ -8258,6 +8262,7 @@ export const Constants = {
         "call_operator",
         "document_handler",
         "university_staff",
+        "investor",
       ],
       notification_event: [
         "recruitment_changed",

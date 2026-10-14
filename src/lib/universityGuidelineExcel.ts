@@ -28,6 +28,8 @@ interface ColSpec {
   readonly type: ColType;
   readonly required?: boolean;
   readonly choices?: readonly string[];
+  /** Xodimlar yozadigan boshqa nomlar → rasmiy qiymat ("kollej" → "kasbiy"). */
+  readonly aliases?: Readonly<Record<string, string>>;
   readonly min?: number;
   readonly max?: number;
 }
@@ -38,6 +40,17 @@ const c = (name: string, type: ColType = 'matn', extra: Omit<ColSpec, 'name' | '
 const SEMESTRLAR = ['bahor', 'kuz'] as const;
 // kasbiy — kasbiy ta'lim (전문대학, 전문학사).
 export const DARAJALAR = ['bakalavr', 'transfer', 'magistratura', 'doktorantura', 'til_kursi', 'kasbiy'] as const;
+/** Kasbiy ta'lim fayllarida daraja turlicha yoziladi — hammasi "kasbiy" deb o'qiladi. */
+const DARAJA_ALIASES: Readonly<Record<string, string>> = {
+  kollej: 'kasbiy',
+  college: 'kasbiy',
+  kasbiy_talim: 'kasbiy',
+  "kasbiy ta'lim": 'kasbiy',
+  kasbiy_ta_lim: 'kasbiy',
+  junior_college: 'kasbiy',
+  '전문대학': 'kasbiy',
+  '전문학사': 'kasbiy',
+};
 const VALYUTALAR = ['KRW', 'USD'] as const;
 const TRACKLAR = ['english', 'korean'] as const;
 const HOLATLAR = ['tasdiqlangan', 'taxminiy', 'nisbiy', 'keyin_elon', 'etap_yoq'] as const;
@@ -67,7 +80,7 @@ const SCHEMA: Record<GuidelineSheet, readonly ColSpec[]> = {
     c('shahar'),
     c('qabul_yili', 'butun', { min: 2000, max: 2100 }),
     c('semestr', 'tanlov', { choices: SEMESTRLAR }),
-    c('daraja', 'tanlov', { choices: DARAJALAR }),
+    c('daraja', 'tanlov', { choices: DARAJALAR, aliases: DARAJA_ALIASES }),
     c('guideline_sarlavha'),
     c('guideline_fayl'),
     c('ariza_sayti'),
@@ -217,6 +230,8 @@ function coerce(spec: ColSpec, raw: string): CoerceOutcome {
       if (choices.includes(text)) return { value: text };
       const ci = choices.find((o) => o.toLowerCase() === text.toLowerCase());
       if (ci) return { value: ci };
+      const alias = spec.aliases?.[text.toLowerCase().replace(/[ʻʼ‘’`]/g, "'")];
+      if (alias) return { value: alias };
       return { error: `"${text}" — ruxsat etilgan qiymatlar: ${choices.join(', ')}` };
     }
 

@@ -51,6 +51,8 @@ export interface CatalogInstitution {
   is_partner: boolean;
   logo_url: string | null;
   primary_admissions_url_ko: string | null;
+  /** Shu universitetda katalogdan yashirilgan darajalar (masalan, 교육대학교da bakalavr). */
+  hidden_levels?: string[] | null;
 }
 
 /** Katalog kartasi uchun yetarli bo'lgan guideline xulosasi. */
@@ -112,7 +114,7 @@ export function useUniversityCatalog() {
         .from('institutions')
         .select(
           'id, name_ko, name_en, name_ko_short, city_ko, region_code, primary_domain,' +
-            ' institution_type, tier, is_partner, logo_url, primary_admissions_url_ko',
+            ' institution_type, tier, is_partner, logo_url, primary_admissions_url_ko, hidden_levels',
         )
         // Yopilgan / qo'shilgan / xorijiy talaba qabul qilmaydiganlar katalogda ko'rinmaydi.
         .eq('is_active', true)

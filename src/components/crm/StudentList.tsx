@@ -1,5 +1,6 @@
 import { useState, useMemo, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
 import { useLeads } from '@/hooks/useLeads';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -186,11 +187,14 @@ export function StudentList({
     setTransferDialogOpen(true);
   };
   const [convertingLeadId, setConvertingLeadId] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
 
   const getUniversityName = (university?: Tables<'universities'>) => {
     if (!university) return '';
-    const nameKey = `name_${currentLang}` as keyof Tables<'universities'>;
-    return (university[nameKey] as string) || university.name_uz || '';
+    // The rows come from `institutions`, which only has name_en and name_ko,
+    // so fall back to those when the interface language has no column.
+    const names = university as unknown as Record<string, string | null | undefined>;
+    return names[`name_${currentLang}`] || names.name_uz || names.name_en || names.name_ko || '';
   };
 
   // Every number a student has. Newer records keep the second one in
@@ -317,6 +321,51 @@ export function StudentList({
     return status ? PAYMENT_META[status] : undefined;
   };
 
+  /**
+   * Download the students on screen (search, plan chip and filters applied)
+   * as a real .xlsx, with the same columns as the table. The library loads
+   * only when someone presses the button.
+   */
+  const exportExcel = async () => {
+    if (filteredStudents.length === 0) return;
+    setExporting(true);
+    try {
+      const { default: writeXlsxFile } = await import('write-excel-file/browser');
+      const head = (value: string) => ({ value, fontWeight: 'bold' as const });
+      const data = [
+        [
+          head(t('navigation.students')),
+          head(t('common.phone')),
+          head(t('crm.officeLocation', { defaultValue: 'Ofis' })),
+          head(t('navigation.universities')),
+          head(t('crm.selectPlan', { defaultValue: 'Plan' })),
+          head(t('student.progress', { defaultValue: 'Process' })),
+          head(t('navigation.payments')),
+        ],
+        ...filteredStudents.map((student) => [
+          student.full_name || '',
+          phoneList(student).join(', '),
+          student.office_location || '',
+          getUniversityName(student.applications?.[0]?.university),
+          planOf(student).label,
+          `${getProcess(student).step}/6`,
+          paymentOf(student)?.label ?? '',
+        ]),
+      ];
+      const name = [t('navigation.students'), seasonLabel, year].filter(Boolean).join(' ');
+      await writeXlsxFile(data, {
+        sheet: t('navigation.students'),
+        stickyRowsCount: 1,
+        columns: [{ width: 36 }, { width: 30 }, { width: 18 }, { width: 34 }, { width: 14 }, { width: 10 }, { width: 12 }],
+      }).toFile(`${name}.xlsx`);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      toast.error(`Excel yuklab bo'lmadi: ${message}`);
+    } finally {
+      setExporting(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -357,7 +406,12 @@ export function StudentList({
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => {}} className="gap-2">
+          <Button
+            variant="outline"
+            onClick={exportExcel}
+            disabled={exporting || filteredStudents.length === 0}
+            className="gap-2"
+          >
             <FileSpreadsheet className="h-4 w-4" />
             {t('crm.bulkUpload')}
           </Button>
@@ -567,8 +621,11 @@ export function StudentList({
         {/* Desktop filter row */}
         <div className="hidden flex-wrap items-center gap-2 sm:flex">
           <Select value={universityFilter} onValueChange={setUniversityFilter}>
-            <SelectTrigger className="w-[160px]">
-              <SelectValue placeholder="All Universities" />
+            <SelectTrigger className="w-auto min-w-[150px] max-w-[260px] gap-2">
+              <span className="flex-1 text-left">
+                <span className="text-muted-foreground">{t('crm.filterLabels.university')}: </span>
+                <SelectValue>{universityFilter === 'all' ? t('common.all') : undefined}</SelectValue>
+              </span>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{t('common.all')} Universities</SelectItem>
@@ -580,8 +637,11 @@ export function StudentList({
             </SelectContent>
           </Select>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[160px]">
-              <SelectValue placeholder="All Status" />
+            <SelectTrigger className="w-auto min-w-[150px] max-w-[260px] gap-2">
+              <span className="flex-1 text-left">
+                <span className="text-muted-foreground">{t('crm.filterLabels.status')}: </span>
+                <SelectValue>{statusFilter === 'all' ? t('common.all') : undefined}</SelectValue>
+              </span>
             </SelectTrigger>
             <SelectContent>
               {statusOptions.map((option) => (
@@ -592,8 +652,11 @@ export function StudentList({
             </SelectContent>
           </Select>
           <Select value={documentsFilter} onValueChange={setDocumentsFilter}>
-            <SelectTrigger className="w-[160px]">
-              <SelectValue placeholder="All Documents" />
+            <SelectTrigger className="w-auto min-w-[150px] max-w-[260px] gap-2">
+              <span className="flex-1 text-left">
+                <span className="text-muted-foreground">{t('crm.filterLabels.documents')}: </span>
+                <SelectValue>{documentsFilter === 'all' ? t('common.all') : undefined}</SelectValue>
+              </span>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{t('common.all')} Documents</SelectItem>
@@ -602,9 +665,12 @@ export function StudentList({
             </SelectContent>
           </Select>
           <Select value={gksFilter} onValueChange={setGksFilter}>
-            <SelectTrigger className="w-[160px]">
-              <GraduationCap className="mr-2 h-4 w-4" />
-              <SelectValue placeholder="All GKS" />
+            <SelectTrigger className="w-auto min-w-[150px] max-w-[260px] gap-2">
+              <GraduationCap className="h-4 w-4 shrink-0" />
+              <span className="flex-1 text-left">
+                <span className="text-muted-foreground">{t('crm.filterLabels.gks')}: </span>
+                <SelectValue>{gksFilter === 'all' ? t('common.all') : undefined}</SelectValue>
+              </span>
             </SelectTrigger>
             <SelectContent className="z-[100] bg-background">
               <SelectItem value="all">{t('common.all')} Students</SelectItem>
@@ -613,8 +679,11 @@ export function StudentList({
             </SelectContent>
           </Select>
           <Select value={paymentsFilter} onValueChange={setPaymentsFilter}>
-            <SelectTrigger className="w-[160px]">
-              <SelectValue placeholder="All Payments" />
+            <SelectTrigger className="w-auto min-w-[150px] max-w-[260px] gap-2">
+              <span className="flex-1 text-left">
+                <span className="text-muted-foreground">{t('crm.filterLabels.payments')}: </span>
+                <SelectValue>{paymentsFilter === 'all' ? t('common.all') : undefined}</SelectValue>
+              </span>
             </SelectTrigger>
             <SelectContent className="z-[100] bg-background">
               <SelectItem value="all">{t('common.all')} Payments</SelectItem>

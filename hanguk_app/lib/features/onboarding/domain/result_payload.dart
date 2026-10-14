@@ -17,7 +17,6 @@ Map<String, dynamic> resultPayload(
     'score': r.score,
     'tariff': r.tariff.code,
     'needs_operator': r.needsOperator,
-    'budget_label': a.budget?.crmLabel,
     'factors': [
       for (final f in r.factors) {'kind': f.kind.name, 'positive': f.positive},
     ],

@@ -12,9 +12,10 @@ export const UNCONTACTED_SLA_MINUTES = 10;
 const URGENT_AT_SECONDS_LEFT = 5 * 60;
 
 /**
- * A "Yangi lid": an Instagram/Telegram lead whose phone and name arrived after
- * the section went live (`new_lead_at`, set by the database), that nobody has
- * called yet. Older leads never carry `new_lead_at`, so they never land here.
+ * A "Yangi lid": an Instagram/Telegram lead that arrived as a new chat
+ * (`new_lead_at`, set by the database on the chat's first message, phone or
+ * not), that nobody has called yet. Older leads never carry `new_lead_at`, so
+ * they never land here.
  * `call_result` is what the ALOQA column writes; `last_contacted_at` is the
  * same signal from elsewhere — either one takes the lead out.
  */

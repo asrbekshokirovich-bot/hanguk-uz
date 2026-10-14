@@ -107,9 +107,70 @@ export function admissionLabel(g: GuidelineSummary | null): string | null {
   return parts.length > 0 ? parts.join(' · ') : null;
 }
 
+const CYRILLIC_TO_LATIN: Record<string, string> = {
+  а: 'a', б: 'b', в: 'v', г: 'g', д: 'd', е: 'e', ё: 'yo', ж: 'j', з: 'z', и: 'i',
+  й: 'y', к: 'k', л: 'l', м: 'm', н: 'n', о: 'o', п: 'p', р: 'r', с: 's', т: 't',
+  у: 'u', ф: 'f', х: 'h', ц: 'ts', ч: 'ch', ш: 'sh', щ: 'sh', ъ: '', ы: 'i', ь: '',
+  э: 'e', ю: 'yu', я: 'ya', ў: 'o', қ: 'q', ғ: 'g', ҳ: 'h',
+};
+
+/** Koreyscha bitta unli turlicha yoziladi: 경 = gyeong / kyung / kyong, 대 = dae / tae. */
+const VOWEL_RUNS: Record<string, string> = {
+  ae: 'e', ai: 'e', ei: 'e', oe: 'e',
+  eo: 'o', eu: 'o', oo: 'o', ou: 'o', eou: 'o', u: 'o',
+  ee: 'i', ui: 'i', eui: 'i',
+};
+
+/** Bitta so'zning kaliti — unli birikmalari so'z chegarasidan o'tib ketmasin ("Kyung Hee" = "Kyunghee"). */
+function wordKey(word: string): string {
+  return word
+    .replace(/sh/g, 's')
+    .replace(/ch/g, 'j')
+    .replace(/kh/g, 'h')
+    .replace(/th/g, 't')
+    .replace(/ph/g, 'p')
+    .replace(/[gqc]/g, 'k')
+    .replace(/d/g, 't')
+    .replace(/[bf]/g, 'p')
+    .replace(/v/g, 'w')
+    .replace(/x/g, 'h')
+    .replace(/[aeiou]+/g, (run) => VOWEL_RUNS[run] ?? run.replace(/u/g, 'o'))
+    .replace(/ye/g, 'e');
+}
+
+/**
+ * Lotincha (yoki kirillcha) nomning "tovush kaliti": bir xil o'qiladigan
+ * yozuvlar bir xil kalitga tushadi. Kimpo, Gimpo, Kimbo, Кимпо → "kimpo";
+ * Daekyung, Daekyeung → "tekyonk"; Busan, Pusan → "posan". Koreyscha
+ * harflar tushib qoladi — ular oddiy qidiruvda solishtiriladi.
+ */
+export function romanKey(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[а-яёўқғҳ]/g, (ch) => CYRILLIC_TO_LATIN[ch] ?? '')
+    .split(/[^a-z]+/)
+    .map(wordKey)
+    .join('')
+    .replace(/(.)\1+/g, '$1');
+}
+
+// Katalogdagi nomlar o'zgarmaydi, qidiruv esa har harfda ~1500 ta nomni
+// solishtiradi (darajalar yonidagi sonlar bilan) — kalitlar bir marta hisoblanadi.
+const romanKeyCache = new Map<string, string>();
+
+function cachedRomanKey(value: string): string {
+  let key = romanKeyCache.get(value);
+  if (key === undefined) {
+    key = romanKey(value);
+    romanKeyCache.set(value, key);
+  }
+  return key;
+}
+
 /**
  * Qidiruv: inglizcha va koreyscha nom, shahar, domen va univ_kod bo'yicha.
- * Bo'sh so'rov hammasini o'tkazadi.
+ * Lotincha yozuvdagi farq xalaqit bermaydi ("kimpo" ham "Gimpo University"ni
+ * topadi). Bo'sh so'rov hammasini o'tkazadi.
  */
 export function matchesSearch(entry: CatalogEntry, rawQuery: string): boolean {
   const query = rawQuery.trim().toLowerCase();
@@ -128,7 +189,10 @@ export function matchesSearch(entry: CatalogEntry, rawQuery: string): boolean {
     haystack.push(g.univ_nomi_en, g.univ_nomi_kr, g.shahar, g.kampus, g.univ_kod, g.guideline_id);
   }
 
-  return haystack.some((value) => value?.toLowerCase().includes(query));
+  if (haystack.some((value) => value?.toLowerCase().includes(query))) return true;
+
+  const key = romanKey(query);
+  return key.length >= 2 && haystack.some((value) => !!value && cachedRomanKey(value).includes(key));
 }
 
 // ---------------------------------------------------------------------------
@@ -175,7 +239,8 @@ function isGraduateOnly(entry: CatalogEntry): boolean {
  * Universitet qaysi darajalarda o'qitadi. Excel yuklangan daraja — aniq bor.
  * Qolgani oliygoh turidan: kollej (전문대학) — kasbiy ta'lim, nomida 대학원
  * bo'lgan oliygoh — faqat magistratura, qolgan 4 yillik universitetlarda ham
- * bakalavr, ham magistratura (대학원) bor.
+ * bakalavr, ham magistratura (대학원) bor. institutions.hidden_levels'dagi
+ * darajalar olib tashlanadi.
  */
 export function offeredLevels(entry: CatalogEntry): DegreeLevel[] {
   const levels = new Set<DegreeLevel>();
@@ -190,6 +255,8 @@ export function offeredLevels(entry: CatalogEntry): DegreeLevel[] {
   for (const g of entry.guidelines) {
     if (DEGREE_LEVELS.some((l) => l.key === g.daraja)) levels.add(g.daraja as DegreeLevel);
   }
+  // Xodim yashirgan daraja (chet ellik qabuli yo'q, faqat diniy) — Excel bo'lsa ham ko'rinmaydi.
+  for (const hidden of entry.institution.hidden_levels ?? []) levels.delete(hidden as DegreeLevel);
   return DEGREE_LEVELS.map((l) => l.key).filter((key) => levels.has(key));
 }
 
@@ -246,44 +313,6 @@ export function matchesOperatorFilter(
   if (f.ielts && !matchesFilter(entry, 'ielts', level)) return false;
   if (f.city && cityLabel(entry) !== f.city) return false;
   return true;
-}
-
-/** Topilsa — institutionId; topilmasa yoki aniq bo'lmasa — xodimga ko'rsatiladigan error. */
-export interface UploadInstitution {
-  institutionId: string | null;
-  error: string | null;
-}
-
-/**
- * Yuqoridagi umumiy "Excel ..." tugmasidan yuklangan fayl qaysi universitetga
- * tegishli. Import RPC'si ham univ_kod (domen prefiksi) bo'yicha qidiradi,
- * lekin katalogdan yashirilganlarni ham ko'radi va bir nechta mos kelsa
- * jimgina birinchisini oladi — kollejlarda bunday prefikslar bor ("dhc":
- * 대구보건대 va 동아보건대). Shuning uchun universitet shu yerda, faqat
- * katalogdagilar orasidan tanlanadi. Avval yuklangan guideline qayta
- * yuklansa — o'sha universitetida qoladi.
- */
-export function resolveUploadInstitution(
-  entries: CatalogEntry[],
-  file: { guideline_id: string; univ_kod: string },
-): UploadInstitution {
-  const existing = entries.find((e) => e.guidelines.some((g) => g.guideline_id === file.guideline_id));
-  if (existing) return { institutionId: existing.institution.id, error: null };
-
-  const code = file.univ_kod.trim().toLowerCase();
-  const matches = entries.filter((e) => institutionCode(e.institution.primary_domain) === code);
-  if (matches.length === 1) return { institutionId: matches[0].institution.id, error: null };
-  if (matches.length === 0) {
-    return {
-      institutionId: null,
-      error: `univ_kod "${code}" bo'yicha katalogda universitet topilmadi. univ_kod universitet domenining birinchi qismi bo'lishi kerak (jbnu.ac.kr → jbnu).`,
-    };
-  }
-  const names = matches.map((e) => e.institution.name_ko).join(', ');
-  return {
-    institutionId: null,
-    error: `univ_kod "${code}" bir nechta universitetga mos keladi: ${names}. Kerakli universitet kartasini oching va Excel'ni o'sha yerdagi tugma orqali yuklang.`,
-  };
 }
 
 /** Shahar ro'yxati: ma'lumotli universitetlarning asosiy shaharlari, alifbo tartibida. */

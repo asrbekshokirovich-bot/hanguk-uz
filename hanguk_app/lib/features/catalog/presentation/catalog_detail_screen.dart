@@ -51,8 +51,8 @@ class CatalogDetailScreen extends ConsumerStatefulWidget {
 
 /// Faculties grouped the way the design lists them: one row per college,
 /// "N ta yo'nalish" for the programmes under it, and its lowest fee.
-class _FacultyGroup {
-  _FacultyGroup(this.name);
+class FacultyGroup {
+  FacultyGroup(this.name);
 
   final String name;
   final List<CatalogFaculty> programmes = [];
@@ -62,14 +62,67 @@ class _FacultyGroup {
   String? get period => programmes.map((p) => p.tuitionPeriod).whereType<String>().firstOrNull;
 }
 
-List<_FacultyGroup> _groups(List<CatalogFaculty> faculties) {
-  final byName = <String, _FacultyGroup>{};
+/// Guidelines whose faculties are listed one by one instead of under their
+/// college: Daegu Haany puts both of its programmes under one "Adventure
+/// College", which alone says nothing about what can be studied there.
+const Set<String> kListFacultiesByName = {
+  '71e70627-7f40-4829-a121-f02bf90918de', // 대구한의대학교
+};
+
+List<FacultyGroup> facultyGroups(List<CatalogFaculty> faculties, {bool byFaculty = false}) {
+  final byName = <String, FacultyGroup>{};
   for (final f in faculties) {
-    final name = [f.collegeEn, f.collegeKr, f.facultyEn, f.facultyKr].whereType<String>().where((s) => s.trim().isNotEmpty).firstOrNull;
+    final name = [
+      if (!byFaculty) ...[f.collegeEn, f.collegeKr],
+      f.facultyEn,
+      f.facultyKr,
+    ].whereType<String>().where((s) => s.trim().isNotEmpty).firstOrNull;
     if (name == null) continue;
-    byName.putIfAbsent(name.trim(), () => _FacultyGroup(name.trim())).programmes.add(f);
+    byName.putIfAbsent(name.trim(), () => FacultyGroup(name.trim())).programmes.add(f);
   }
   return byName.values.toList();
+}
+
+/// The step's name in the app's language. The Excel's 11 steps are a fixed
+/// list numbered by `etap_raqam`; anything else shows as written.
+String catalogStepName(AppLocalizations l, CatalogRound r) => switch (r.step) {
+  1 => l.catalogStep1,
+  2 => l.catalogStep2,
+  3 => l.catalogStep3,
+  4 => l.catalogStep4,
+  5 => l.catalogStep5,
+  6 => l.catalogStep6,
+  7 => l.catalogStep7,
+  8 => l.catalogStep8,
+  9 => l.catalogStep9,
+  10 => l.catalogStep10,
+  11 => l.catalogStep11,
+  _ => r.name ?? '',
+};
+
+String catalogRoundValue(BuildContext context, AppLocalizations l, CatalogRound r) {
+  final s = r.startDate;
+  final e = r.endDate;
+  String text;
+  if (s != null && e != null && s != e) {
+    text = formatDateRange(context, s, e);
+  } else if (e != null || s != null) {
+    text = formatDate(context, (e ?? s)!);
+  } else if (r.status == 'keyin_elon') {
+    return l.catalogRoundLater;
+  } else {
+    return l.catalogRoundRelative;
+  }
+  return r.status == 'taxminiy' ? '$text (${l.catalogRoundEstimated})' : text;
+}
+
+/// The first admission stage's steps — the round a student reading today
+/// applies to. Steps the Excel marks as not held are dropped.
+List<CatalogRound> catalogFirstStage(List<CatalogRound> rounds) {
+  final live = rounds.where((r) => r.status != 'etap_yoq').toList();
+  if (live.isEmpty) return const [];
+  final first = live.map((r) => r.stage).reduce(math.min);
+  return live.where((r) => r.stage == first).toList();
 }
 
 class _CatalogDetailScreenState extends ConsumerState<CatalogDetailScreen> {
@@ -101,10 +154,10 @@ class _CatalogDetailScreenState extends ConsumerState<CatalogDetailScreen> {
     final detail = detailAsync.value;
     final season = seasonLabel(l, g);
 
-    final groups = _groups(detail?.faculties ?? const []);
+    final groups = facultyGroups(detail?.faculties ?? const [], byFaculty: kListFacultiesByName.contains(g.id));
     final group = groups.isEmpty ? null : groups[_group.clamp(0, groups.length - 1)];
 
-    final rounds = _firstStage(detail?.rounds ?? const []);
+    final rounds = catalogFirstStage(detail?.rounds ?? const []);
     final window = _window(rounds);
 
     return SeoulNightScaffold(
@@ -167,7 +220,7 @@ class _CatalogDetailScreenState extends ConsumerState<CatalogDetailScreen> {
     );
   }
 
-  Widget _facultiesCard(AppLocalizations l, AsyncValue<CatalogGuidelineDetail> async, List<_FacultyGroup> groups) {
+  Widget _facultiesCard(AppLocalizations l, AsyncValue<CatalogGuidelineDetail> async, List<FacultyGroup> groups) {
     return _Card(
       gap: 8,
       children: [
@@ -210,7 +263,7 @@ class _CatalogDetailScreenState extends ConsumerState<CatalogDetailScreen> {
     );
   }
 
-  Widget _tuitionCard(AppLocalizations l, CatalogGuideline g, _FacultyGroup? group) {
+  Widget _tuitionCard(AppLocalizations l, CatalogGuideline g, FacultyGroup? group) {
     final lo = group?.minFee ?? g.tuitionMin;
     final hi = group?.maxFee ?? g.tuitionMax;
     final period = group?.period ?? g.tuitionPeriod;
@@ -233,9 +286,8 @@ class _CatalogDetailScreenState extends ConsumerState<CatalogDetailScreen> {
         ),
       if (g.entranceFee != null) (l.catalogEntranceFee, money(g.entranceFee!, g.currency, locale: l.localeName)),
     ];
+    // No fee in the guideline: the card stays, with a dash for the amount.
     final big = range(lo, hi);
-
-    if (big == null && cells.isEmpty) return const SizedBox.shrink();
 
     return _Card(
       gap: 14,
@@ -245,32 +297,31 @@ class _CatalogDetailScreenState extends ConsumerState<CatalogDetailScreen> {
           trailing: g.currency,
           trailingSmall: true,
         ),
-        if (big != null)
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Flexible(
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    big,
-                    style: SeoulType.display.copyWith(fontSize: 32, fontWeight: FontWeight.w900, height: 1, color: SeoulColors.infoText),
-                  ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Flexible(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  big ?? '—',
+                  style: SeoulType.display.copyWith(fontSize: 32, fontWeight: FontWeight.w900, height: 1, color: SeoulColors.infoText),
                 ),
               ),
-              if (period != null) ...[
-                const SizedBox(width: 6),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 3),
-                  child: Text(
-                    period == 'yil' ? l.catalogPerYear : l.catalogPerSemester,
-                    style: SeoulType.caption.copyWith(fontSize: 13),
-                  ),
+            ),
+            if (big != null && period != null) ...[
+              const SizedBox(width: 6),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 3),
+                child: Text(
+                  period == 'yil' ? l.catalogPerYear : l.catalogPerSemester,
+                  style: SeoulType.caption.copyWith(fontSize: 13),
                 ),
-              ],
+              ),
             ],
-          ),
+          ],
+        ),
         if (cells.isNotEmpty)
           _TwoColumn(
             children: [
@@ -382,12 +433,12 @@ class _CatalogDetailScreenState extends ConsumerState<CatalogDetailScreen> {
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: Text(_stepName(l, rounds[i]), style: SeoulType.bodySecondary.copyWith(fontSize: 13.5)),
+                child: Text(catalogStepName(l, rounds[i]), style: SeoulType.bodySecondary.copyWith(fontSize: 13.5)),
               ),
               const SizedBox(width: 8),
               Flexible(
                 child: Text(
-                  _roundValue(context, l, rounds[i]),
+                  catalogRoundValue(context, l, rounds[i]),
                   textAlign: TextAlign.right,
                   style: SeoulType.body.copyWith(fontSize: 13.5, fontWeight: FontWeight.w700),
                 ),
@@ -396,48 +447,6 @@ class _CatalogDetailScreenState extends ConsumerState<CatalogDetailScreen> {
           ),
       ],
     );
-  }
-
-  /// The step's name in the app's language. The Excel's 11 steps are a fixed
-  /// list numbered by `etap_raqam`; anything else shows as written.
-  static String _stepName(AppLocalizations l, CatalogRound r) => switch (r.step) {
-    1 => l.catalogStep1,
-    2 => l.catalogStep2,
-    3 => l.catalogStep3,
-    4 => l.catalogStep4,
-    5 => l.catalogStep5,
-    6 => l.catalogStep6,
-    7 => l.catalogStep7,
-    8 => l.catalogStep8,
-    9 => l.catalogStep9,
-    10 => l.catalogStep10,
-    11 => l.catalogStep11,
-    _ => r.name ?? '',
-  };
-
-  static String _roundValue(BuildContext context, AppLocalizations l, CatalogRound r) {
-    final s = r.startDate;
-    final e = r.endDate;
-    String text;
-    if (s != null && e != null && s != e) {
-      text = formatDateRange(context, s, e);
-    } else if (e != null || s != null) {
-      text = formatDate(context, (e ?? s)!);
-    } else if (r.status == 'keyin_elon') {
-      return l.catalogRoundLater;
-    } else {
-      return l.catalogRoundRelative;
-    }
-    return r.status == 'taxminiy' ? '$text (${l.catalogRoundEstimated})' : text;
-  }
-
-  /// The first admission stage's steps — the round a student reading today
-  /// applies to. Steps the Excel marks as not held are dropped.
-  static List<CatalogRound> _firstStage(List<CatalogRound> rounds) {
-    final live = rounds.where((r) => r.status != 'etap_yoq').toList();
-    if (live.isEmpty) return const [];
-    final first = live.map((r) => r.stage).reduce(math.min);
-    return live.where((r) => r.stage == first).toList();
   }
 
   /// The application window for the bottom bar: the first step with a date.

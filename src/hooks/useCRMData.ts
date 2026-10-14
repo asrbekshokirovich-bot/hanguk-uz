@@ -150,6 +150,15 @@ export function useCRMData() {
         }
       }
 
+      // Any money actually received. The Hujjatlar page colours a contracted
+      // student by this: their documents are collected either way, but work on
+      // them starts only once they have paid.
+      const paidStudentIds = new Set(
+        allPayments
+          .filter((p) => p.status === 'completed' && Number(p.paid_amount || 0) > 0)
+          .map((p) => p.student_id),
+      );
+
       // Group by student_id
       const appsByStudent = new Map<string, typeof allApps>();
       for (const app of allApps) {
@@ -209,6 +218,12 @@ export function useCRMData() {
         paymentStatus: paymentStatusByStudent.get(profile.user_id) || null,
         initialPaymentOverdue: initialOverdueByStudent.get(profile.user_id) || false,
         freeReapplication: freeReapplicationIds.has(profile.user_id),
+        // Nothing is owed on a free plan or a free re-application, so those
+        // count as paid.
+        hasPaid:
+          paidStudentIds.has(profile.user_id) ||
+          freeReapplicationIds.has(profile.user_id) ||
+          getPlanByValue(profile.payment_plan)?.value === 'free',
         docsReady: docsReadyIds.has(profile.user_id),
       }));
 

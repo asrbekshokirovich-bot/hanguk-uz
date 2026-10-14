@@ -1643,7 +1643,7 @@ class AppLocalizationsRu extends AppLocalizations {
       'Не удалось отправить жалобу. Попробуйте ещё раз.';
 
   @override
-  String get catalogSearchHint => 'Поиск по названию университета';
+  String get catalogSearchHint => 'Название, город или направление';
 
   @override
   String get catalogListTitle => 'Университеты';
@@ -2781,22 +2781,23 @@ class AppLocalizationsRu extends AppLocalizations {
   String get onbResultFactorsTitle => 'Что повлияло';
 
   @override
-  String get onbResultFactorKoreanStrong => 'TOPIK 3 и выше';
+  String get onbResultFactorKoreanStrong =>
+      'TOPIK 3 и выше — требование для бакалавриата выполнено';
 
   @override
   String get onbResultFactorKoreanTopik2Degree =>
-      'TOPIK 2, многие вузы требуют TOPIK 3';
+      'TOPIK 2 — для бакалавриата посольство требует TOPIK 3, для колледжа достаточно';
 
   @override
   String get onbResultFactorKoreanMissingDegree =>
-      'Ниже TOPIK 2, многие вузы требуют TOPIK 3';
+      'Для бакалавриата посольство требует TOPIK 3';
 
   @override
   String get onbResultFactorKoreanCollegeStrong => 'TOPIK 3 и выше';
 
   @override
   String get onbResultFactorKoreanCollegeTopik2 =>
-      'TOPIK 2 — профессиональный колледж принимает TOPIK 2';
+      'TOPIK 2 — требование для колледжа выполнено';
 
   @override
   String get onbResultFactorKoreanCourseCertificate =>
@@ -2804,7 +2805,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get onbResultFactorKoreanCourseMissing =>
-      'Нет сертификата по корейскому языку';
+      'Для визы на языковые курсы нужен TOPIK 1 или сертификат Sejong';
 
   @override
   String get onbResultFactorIncomeYes => 'Официальный доход родителей';
@@ -2825,10 +2826,6 @@ class AppLocalizationsRu extends AppLocalizations {
       'Из-за возраста нужно объяснить цель учёбы';
 
   @override
-  String get onbResultFactorBudgetLow =>
-      'Бюджет ниже примерных годовых расходов';
-
-  @override
   String get onbResultUnisTitle => 'Подходящие вам университеты';
 
   @override
@@ -2838,17 +2835,13 @@ class AppLocalizationsRu extends AppLocalizations {
   String get onbResultTuitionLabel => 'Контракт/сем.';
 
   @override
-  String get onbResultBankLabel => 'Банковская справка';
+  String get onbResultBankLabel => 'Депозит KDB';
 
   @override
   String get onbResultYearlyCost => 'Примерные расходы в год';
 
   @override
   String get onbResultStepsTitle => 'Следующие 3 шага';
-
-  @override
-  String get onbResultStepTopikPrep =>
-      'Подготовка к TOPIK 3 или поступление через языковые курсы';
 
   @override
   String get onbResultStepSchoolDocs =>
@@ -2865,24 +2858,26 @@ class AppLocalizationsRu extends AppLocalizations {
   String get onbResultPathsTitle => 'Подходящие вам пути';
 
   @override
-  String get onbResultPathLanguageCourse => 'Через языковые курсы (D-4)';
+  String get onbResultPathLanguageCourse => 'Сначала языковые курсы (D-4)';
 
   @override
   String get onbResultPathLanguageCourseNote =>
-      'Языковые курсы, затем переход в бакалавриат.';
+      'Изучать язык в Корее и после TOPIK перейти на основную учёбу. Для визы на языковые курсы тоже нужен TOPIK 1 или сертификат Sejong.';
 
   @override
   String get onbResultPathCollege => 'Профессиональный колледж';
 
   @override
-  String get onbResultPathCollegeNote => 'Требования мягче, контракт ниже.';
+  String get onbResultPathCollegeNote =>
+      'Вашего TOPIK 2 достаточно для профессионального колледжа.';
 
   @override
-  String get onbResultPathNextSeason => 'Подготовка к следующему сезону';
+  String get onbResultPathNextSeason => 'Подготовка к следующему набору';
 
   @override
-  String get onbResultPathNextSeasonNote =>
-      'Осень 2027 с TOPIK 3 и банковской справкой.';
+  String onbResultPathNextSeasonNote(String level) {
+    return 'Получить сертификат TOPIK $level и подать документы на следующий набор.';
+  }
 
   @override
   String onbResultTariffWhy(String tariff) {
@@ -3160,26 +3155,17 @@ class AppLocalizationsRu extends AppLocalizations {
   String get onbTariffContractPdf => 'Образец договора (PDF)';
 
   @override
-  String get onbWelcomeTitle =>
-      'Учёба в Корее — узнайте свои шансы за 2 минуты';
+  String get onbWelcomeTitle => 'Узнайте шансы на визу [за 2 минуты]';
 
   @override
   String get onbWelcomeBody =>
-      'Честная оценка: без процентов и гарантий — только правила и ваши ответы.';
+      'Сэкономьте время: ответьте на короткие вопросы и получите честную оценку';
 
   @override
   String get onbWelcomeCta => 'Узнать мои шансы';
 
   @override
   String get onbWelcomeCatalog => 'Смотреть университеты';
-
-  @override
-  String get onbWelcomeTrustReply => 'Ответ оператора';
-
-  @override
-  String onbWelcomeTrustReplyValue(String minutes) {
-    return '≤$minutes мин';
-  }
 
   @override
   String get onbWelcomeClientCode => 'У меня есть код клиента';
@@ -3191,19 +3177,20 @@ class AppLocalizationsRu extends AppLocalizations {
   String get onbQuizBack => 'Назад';
 
   @override
-  String get onbQuizQ1 => 'По какому направлению хотите учиться?';
+  String get onbQuizQ1 => 'Что вы хотите изучать в Корее?';
 
   @override
-  String get onbQuizRouteCourse => 'Языковые курсы';
+  String get onbQuizRouteCourse => 'Языковые курсы — изучать корейский';
 
   @override
-  String get onbQuizRouteBachelor => 'Бакалавриат';
+  String get onbQuizRouteBachelor => 'Бакалавриат — университет, 4 года';
 
   @override
-  String get onbQuizRouteMaster => 'Магистратура';
+  String get onbQuizRouteMaster => 'Магистратура — после бакалавриата';
 
   @override
-  String get onbQuizRouteCollege => 'Профессиональный колледж';
+  String get onbQuizRouteCollege =>
+      'Профессиональный колледж — профессия за 2–3 года';
 
   @override
   String onbQuizGradYearOrEarlier(String year) {
@@ -3214,56 +3201,44 @@ class AppLocalizationsRu extends AppLocalizations {
   String get onbQuizStillStudying => 'Ещё учусь';
 
   @override
-  String get onbQuizQ3 => 'Ваш уровень корейского?';
+  String get onbQuizQ3 => 'Какой у вас уровень корейского?';
 
   @override
   String get onbQuizQ3Hint =>
-      'Ответьте, даже если нет сертификата, — от этого зависит путь.';
+      'Выберите по официальному сертификату. Без сертификата посольство заявление не принимает.';
 
   @override
-  String get onbQuizKoreanNone => 'Нет';
+  String get onbQuizKoreanNone => 'Не знаю корейский';
 
   @override
-  String get onbQuizKoreanLearning => 'Учу, без сертификата';
+  String get onbQuizKoreanLearning => 'Учу, сертификата нет';
 
   @override
-  String get onbQuizKoreanTopik1 => 'Sejong 1A / TOPIK 1';
+  String get onbQuizKoreanTopik1 => 'TOPIK 1 или сертификат Sejong Hakdang';
 
   @override
   String get onbQuizKoreanTopik2 => 'TOPIK 2';
 
   @override
-  String get onbQuizKoreanTopik3 => 'TOPIK 3 и выше';
+  String get onbQuizKoreanTopik3 => 'TOPIK 3';
 
   @override
-  String get onbQuizKoreanUnknown => 'Пока не знаю';
+  String get onbQuizKoreanUnknown => 'Точно не знаю';
 
   @override
-  String get onbQuizBudgetUnder3 => 'До \$3 000';
+  String get onbQuizQ5 => 'Есть ли у ваших родителей официальный доход?';
 
   @override
-  String get onbQuizBudget3to6 => '\$3–6 тыс.';
-
-  @override
-  String get onbQuizBudget6to10 => '\$6–10 тыс.';
-
-  @override
-  String get onbQuizBudgetOver10 => '\$10 000+';
-
-  @override
-  String get onbQuizQ5 => 'Есть ли у родителей официальный доход?';
-
-  @override
-  String get onbQuizIncomeYes => 'Да, есть официальный доход';
+  String get onbQuizIncomeYes => 'Да, есть';
 
   @override
   String get onbQuizIncomeNo => 'Нет';
 
   @override
-  String get onbQuizIntakeSpring2027 => 'Весна 2027';
+  String get onbQuizIntakeSpring2027 => 'Весна 2027 (март)';
 
   @override
-  String get onbQuizIntakeFall2027 => 'Осень 2027';
+  String get onbQuizIntakeFall2027 => 'Осень 2027 (сентябрь)';
 
   @override
   String get onbQuizIntakeLater => 'Позже';
@@ -3328,10 +3303,10 @@ class AppLocalizationsRu extends AppLocalizations {
   String get onbQuizGradQ => 'Когда вы окончили последнее место учёбы?';
 
   @override
-  String get onbQuizIeltsQ => 'Ваш балл IELTS?';
+  String get onbQuizIeltsQ => 'Есть ли у вас результат IELTS?';
 
   @override
-  String get onbQuizIeltsNone => 'Нет';
+  String get onbQuizIeltsNone => 'Нет или ниже 5.5';
 
   @override
   String get onbQuizIelts55 => 'IELTS 5.5';
@@ -3343,14 +3318,10 @@ class AppLocalizationsRu extends AppLocalizations {
   String get onbQuizIelts65 => 'IELTS 6.5 и выше';
 
   @override
-  String get onbQuizIeltsUnknown => 'Пока не знаю';
+  String get onbQuizIeltsUnknown => 'Точно не знаю';
 
   @override
-  String get onbQuizBudgetQ =>
-      'Сколько вы можете тратить в год на учёбу и жизнь?';
-
-  @override
-  String get onbQuizPayerQ => 'Кто оплачивает?';
+  String get onbQuizPayerQ => 'Кто оплачивает учёбу?';
 
   @override
   String get onbQuizPayerParentsOption => 'Родители';
@@ -3359,20 +3330,979 @@ class AppLocalizationsRu extends AppLocalizations {
   String get onbQuizPayerSelfOption => 'Я сам(а)';
 
   @override
-  String get onbQuizPayerSponsorOption => 'Спонсор';
+  String get onbQuizPayerSponsorOption => 'Спонсор или родственник';
 
   @override
-  String get onbQuizRegionQ => 'Из какого вы региона?';
+  String get onbQuizRegionQ => 'В каком регионе вы живёте?';
 
   @override
-  String get onbQuizIntakeQ => 'Когда планируете поехать?';
+  String get onbQuizIntakeQ => 'Когда хотите начать учёбу?';
 
   @override
-  String get onbResultFactorEnglishStrong => 'IELTS 5.5 и выше';
+  String get onbResultFactorEnglishStrong =>
+      'IELTS 5.5 и выше — для программ на английском';
 
   @override
   String get onbResultPartner => 'Официальный партнёр';
 
   @override
   String get onbResultLanguageLabel => 'Язык';
+
+  @override
+  String get onbQuizKoreanTopik4 => 'TOPIK 4 и выше';
+
+  @override
+  String get onbQuizKdbQ => 'Сможете положить депозит на имя студента?';
+
+  @override
+  String onbQuizKdbHint(String low, String high, String months) {
+    return 'Обязательно для визы: на счёте студента в KDB Bank Uzbekistan $low (другие города) или $high (Сеул, Кёнгидо, Инчхон), не менее $months мес. Это не оплата — деньги остаются на счёте студента.';
+  }
+
+  @override
+  String get onbQuizKdbReady => 'Да, деньги уже есть';
+
+  @override
+  String get onbQuizKdbByIntake => 'Соберём до набора';
+
+  @override
+  String get onbQuizKdbNo => 'Нет, не сможем';
+
+  @override
+  String get onbQuizKdbUnknown => 'Точно не знаю';
+
+  @override
+  String get onbResultFactorKoreanMasterStrong =>
+      'TOPIK 4 и выше — требование для магистратуры выполнено';
+
+  @override
+  String get onbResultFactorKoreanTopik3Master =>
+      'TOPIK 3 — для магистратуры посольство требует TOPIK 4';
+
+  @override
+  String get onbResultFactorKoreanMissingMaster =>
+      'Для магистратуры посольство требует TOPIK 4';
+
+  @override
+  String get onbResultFactorKoreanCollegeMissing =>
+      'Для колледжа посольство требует TOPIK 2';
+
+  @override
+  String get onbResultFactorKdbReady => 'Депозит KDB на имя студента готов';
+
+  @override
+  String get onbResultFactorKdbByIntake =>
+      'Депозита KDB пока нет — он нужен до подачи';
+
+  @override
+  String get onbResultFactorKdbNo =>
+      'Нет депозита KDB — посольство требует его обязательно';
+
+  @override
+  String get onbResultBandLowNoteLanguage =>
+      'Языковой сертификат ниже требования посольства — без него заявление отклоняют без собеседования.';
+
+  @override
+  String get onbResultBandLowNoteMoney =>
+      'Финансовое требование (депозит KDB на имя студента и документы родителей) пока не выполнено.';
+
+  @override
+  String get onbQuizQ1Hint =>
+      'Результат считается по визовым требованиям этого направления.';
+
+  @override
+  String get onbQuizGradHint =>
+      'Школа, лицей, колледж или университет — что было последним.';
+
+  @override
+  String get onbQuizGradQMaster => 'Когда вы окончили бакалавриат?';
+
+  @override
+  String get onbQuizIeltsHint =>
+      'Нужен для программ на английском. Только обычный IELTS (не Online), сданный за последние 2 года.';
+
+  @override
+  String get onbQuizIncomeHint =>
+      'Например, справка о зарплате с работы (my.gov.uz) или документы о бизнесе и налогах. Посольство запрашивает документы родителей.';
+
+  @override
+  String onbWelcomeCallTimer(String minutes) {
+    return 'Оператор свяжется с вами за $minutes минут';
+  }
+
+  @override
+  String onbResultStepLanguagePrep(String level) {
+    return 'Подготовка к сертификату TOPIK $level';
+  }
+
+  @override
+  String onbResultStepLanguagePrepEnglish(String level) {
+    return 'Подготовка к TOPIK $level или IELTS 5.5';
+  }
+
+  @override
+  String onbResultStepDeposit(String low, String high, String months) {
+    return 'Открыть депозит KDB на имя студента: $low–$high, не менее $months мес.';
+  }
+
+  @override
+  String get onbResultStepParentsDocs =>
+      'Подготовить документы родителей о доходе или имуществе (my.gov.uz)';
+
+  @override
+  String get onbResultPathEnglishTrack => 'Программа на английском';
+
+  @override
+  String get onbResultPathEnglishTrackNote =>
+      'С IELTS 5.5 подать документы на программу, где корейский не требуется.';
+
+  @override
+  String get onbResultPathDeposit => 'Подготовить депозит KDB';
+
+  @override
+  String onbResultPathDepositNote(String low, String high, String months) {
+    return '$low–$high на имя студента, не менее $months мес. — обязательно для визы.';
+  }
+
+  @override
+  String get onbResultPathParentsDocs => 'Документы родителей';
+
+  @override
+  String get onbResultPathParentsDocsNote =>
+      'Документы об официальной работе, бизнесе или имуществе — посольство запрашивает их.';
+
+  @override
+  String get catalogGuestUniTitle => 'Университет в гостях';
+
+  @override
+  String get catalogGuestUniWhere => 'Сейчас в Узбекистане';
+
+  @override
+  String get catalogGuestUniBadge => 'Делегация в Самарканде';
+
+  @override
+  String get catalogAiResultsTitle => 'Результаты';
+
+  @override
+  String get catalogAiSearching => 'ИИ ищет…';
+
+  @override
+  String catalogAiFields(String fields) {
+    return 'Направления: $fields';
+  }
+
+  @override
+  String fdIntakeLabel(String season) {
+    return 'Набор $season';
+  }
+
+  @override
+  String get fdSearchHint => 'Поиск университета';
+
+  @override
+  String get fdCellLanguage => 'Язык';
+
+  @override
+  String get fdCellDeadline => 'Срок';
+
+  @override
+  String get fdAdmissionUnknown => 'Приём ?%';
+
+  @override
+  String fdCounter(int current, int total) {
+    return '$current / $total';
+  }
+
+  @override
+  String get fdBannerUniversities => 'университетов';
+
+  @override
+  String get fdBannerSubtitle => 'По направлению · городу · TOPIK';
+
+  @override
+  String get fdSkip => 'Пропустить';
+
+  @override
+  String get fdSave => 'Сохранить';
+
+  @override
+  String get fdPrevious => 'Предыдущий';
+
+  @override
+  String get fdNext => 'Следующий';
+
+  @override
+  String get fdNavUniversities => 'Университеты';
+
+  @override
+  String get fdNavMap => 'Карта 360°';
+
+  @override
+  String get fdNavPrepare => 'Подготовка';
+
+  @override
+  String get fdPrepareEyebrow => 'Подготовка';
+
+  @override
+  String get fdPrepareTitle => 'к университету';
+
+  @override
+  String fdPrepareStudyPlanSteps(int done, int total) {
+    return '$done / $total этапа';
+  }
+
+  @override
+  String get fdPrepareStudyPlanTitle => 'Учебный план';
+
+  @override
+  String get fdPrepareStudyPlanBody =>
+      'Напишите учебный план в 4 этапа — Hanguk AI даст отзыв.';
+
+  @override
+  String get fdPrepareNew => 'Новое';
+
+  @override
+  String get fdPrepareInterviewTitle => 'Подготовка к собеседованию';
+
+  @override
+  String get fdPrepareInterviewBody =>
+      'Отработайте вслух 8 вопросов с интервьюером Hanguk AI.';
+
+  @override
+  String get fdPrepareAskTitle => 'Спросите Hanguk AI';
+
+  @override
+  String get fdPrepareAskBody => 'О документах, визе, общежитии';
+
+  @override
+  String get fdRecentSearches => 'Недавние запросы';
+
+  @override
+  String fdCountTa(int count) {
+    return '$count';
+  }
+
+  @override
+  String get fdPopularCities => 'Популярные города';
+
+  @override
+  String get fdFieldIt => 'IT';
+
+  @override
+  String get fdFieldBusiness => 'Бизнес';
+
+  @override
+  String get fdFieldEngineering => 'Инженерия';
+
+  @override
+  String get fdFieldMedicine => 'Медицина';
+
+  @override
+  String get fdFieldDesign => 'Дизайн';
+
+  @override
+  String get fdFieldTourism => 'Туризм';
+
+  @override
+  String get fdFieldEducation => 'Педагогика';
+
+  @override
+  String get fdRegionSeoul => 'Сеул';
+
+  @override
+  String get fdOther => 'Другое';
+
+  @override
+  String get fdFilterTitleLead => 'Какой университет';
+
+  @override
+  String get fdFilterTitleMark => 'нужен?';
+
+  @override
+  String get fdSectionField => 'Направление';
+
+  @override
+  String get fdSectionCity => 'Город';
+
+  @override
+  String get fdSectionDegree => 'Степень';
+
+  @override
+  String get fdSectionTopik => 'TOPIK для поступления';
+
+  @override
+  String get fdAny => 'Неважно';
+
+  @override
+  String get fdTopikNone => 'Не требуется';
+
+  @override
+  String get fdSectionFee => 'Контракт / семестр';
+
+  @override
+  String fdFeeUpTo(String amount) {
+    return 'До $amount';
+  }
+
+  @override
+  String get fdSectionType => 'Тип';
+
+  @override
+  String fdShowUniversities(int count) {
+    return 'Показать $count университетов →';
+  }
+
+  @override
+  String get fdMatchingUniversities => 'подходящих университетов';
+
+  @override
+  String fdOfTotal(int total) {
+    return 'из $total';
+  }
+
+  @override
+  String get fdSegLow => 'Низкий';
+
+  @override
+  String get fdSegMid => 'Средний';
+
+  @override
+  String get fdSegGood => 'Хороший';
+
+  @override
+  String get fdSegHigh => 'Высокий';
+
+  @override
+  String get fdSegVeryHigh => 'Очень высокий';
+
+  @override
+  String get fdAssessTitleLead => 'Смогу ли я уехать';
+
+  @override
+  String get fdAssessTitleMark => 'в Корею?';
+
+  @override
+  String get fdAssessTopik => 'Мой корейский (TOPIK)';
+
+  @override
+  String get fdAssessGpa => 'Средний балл аттестата';
+
+  @override
+  String get fdAssessBank => 'Счёт в банке (D-2)';
+
+  @override
+  String fdAssessBankNeed(String amount) {
+    return 'нужно $amount';
+  }
+
+  @override
+  String fdMln(int n) {
+    return '₩$n млн';
+  }
+
+  @override
+  String get fdLanguageCourse => 'Языковой курс';
+
+  @override
+  String get fdAssessRefused => 'Был ли раньше отказ в визе?';
+
+  @override
+  String get fdNo => 'Нет';
+
+  @override
+  String get fdYes => 'Да';
+
+  @override
+  String get fdAssessSeeReport => 'Смотреть отчёт →';
+
+  @override
+  String fdAssessAdmissionCount(int n) {
+    return 'Поступление · $n университета';
+  }
+
+  @override
+  String get fdVisa => 'Виза';
+
+  @override
+  String fdAssessTopikHint(int level, String uni, String word) {
+    return 'TOPIK $level → поступление в $uni станет «$word»';
+  }
+
+  @override
+  String get fdReportNameError => 'Введите имя';
+
+  @override
+  String get fdReportPhoneError => 'Введите номер полностью';
+
+  @override
+  String get fdReportNetworkError =>
+      'Не удалось отправить. Проверьте интернет и попробуйте снова.';
+
+  @override
+  String get fdShare => 'Поделиться';
+
+  @override
+  String get fdVerdictYes => 'ДА';
+
+  @override
+  String get fdVerdictMaybe => 'ВОЗМОЖНО';
+
+  @override
+  String get fdVerdictNotYet => 'ПОКА НЕТ';
+
+  @override
+  String get fdVerdictYesNote =>
+      'Ваших показателей достаточно — можно начинать документы.';
+
+  @override
+  String get fdVerdictMaybeNote =>
+      'Поднимите один-два показателя — и ответ станет «ДА».';
+
+  @override
+  String get fdVerdictNotYetNote =>
+      'Пока показателей не хватает — начните с шагов ниже.';
+
+  @override
+  String get fdReportFixesTitle => 'Что сделать';
+
+  @override
+  String get fdReportAdmission => 'Поступление';
+
+  @override
+  String fdReportOpenOf(int total, int open) {
+    return 'открыто $open из $total';
+  }
+
+  @override
+  String get fdReportVisa => 'Виза D-2';
+
+  @override
+  String get fdReportStudy => 'Учёба в Корее';
+
+  @override
+  String fdFixBank(String amount) {
+    return 'Довести счёт до $amount';
+  }
+
+  @override
+  String fdFixTopik(int level) {
+    return 'Сдать TOPIK $level';
+  }
+
+  @override
+  String fdGainVisa(int n) {
+    return 'виза +$n%';
+  }
+
+  @override
+  String fdGainAdmission(int n) {
+    return 'поступление +$n%';
+  }
+
+  @override
+  String get fdReportFormLead => 'Отчёт пришлём';
+
+  @override
+  String get fdReportFormFree => 'бесплатно';
+
+  @override
+  String get fdReportFormTail => '';
+
+  @override
+  String get fdReportName => 'Имя и фамилия';
+
+  @override
+  String get fdReportSend => 'Отправить';
+
+  @override
+  String get fdSentThanks => 'Спасибо';
+
+  @override
+  String fdSentBody(String phone) {
+    return 'Отчёт отправлен на номер $phone. Консультант позвонит в течение 24 часов.';
+  }
+
+  @override
+  String get fdSentMeanwhile => 'А пока';
+
+  @override
+  String get fdSentDocsTitle => 'Список документов';
+
+  @override
+  String fdSentDocsBody(String uni, int count) {
+    return '$count документов для $uni';
+  }
+
+  @override
+  String fdSentTopikTitle(int level) {
+    return 'Подготовка к TOPIK $level';
+  }
+
+  @override
+  String get fdSentBack => 'К университетам';
+
+  @override
+  String get fdSentConsultant => 'Ваш консультант';
+
+  @override
+  String get fdSentCall => 'Позвонить';
+
+  @override
+  String get fdUniTuitionSem => 'Контракт / сем';
+
+  @override
+  String get fdUniTuitionYear => 'Контракт / год';
+
+  @override
+  String get fdUniDeadline => 'Срок документов';
+
+  @override
+  String fdUniFacultiesSummary(int faculties, int majors) {
+    return '$faculties факультетов · $majors направлений';
+  }
+
+  @override
+  String fdUniAllMajors(int count) {
+    return 'Все $count направлений →';
+  }
+
+  @override
+  String get fdSaved => 'Сохранено';
+
+  @override
+  String get fdUniCta => 'Смогу ли я уехать в Корею?';
+
+  @override
+  String fdResultsMatching(int count) {
+    return '$count подходящих университетов';
+  }
+
+  @override
+  String get fdResultsBestFirst => 'сначала самые подходящие';
+
+  @override
+  String get fdSlotDropHere => 'Сюда';
+
+  @override
+  String fdSlotNumber(int n) {
+    return 'Слот $n';
+  }
+
+  @override
+  String get fdSlotEmpty => 'пусто';
+
+  @override
+  String get fdAddToSlot => 'Добавить в слот';
+
+  @override
+  String get fdRemoveFromSlot => 'Убрать из слота';
+
+  @override
+  String fdInSlot(int n) {
+    return '✓ В слоте $n';
+  }
+
+  @override
+  String get fdSlotsFull => 'Все три слота заняты. Сначала освободите один.';
+
+  @override
+  String get fdBestThreeTitle => 'Выберите лучшие 3';
+
+  @override
+  String fdBestThreeBody(int count) {
+    return 'из $count — сравнивая по два';
+  }
+
+  @override
+  String get fdDuelTitleLead => 'Лучшие';
+
+  @override
+  String get fdDuelTitleMark => '3';
+
+  @override
+  String fdDuelCompared(int count) {
+    return 'сравнено: $count';
+  }
+
+  @override
+  String get fdOr => 'ИЛИ';
+
+  @override
+  String get fdDuelLegend => '= чемпион, попадает в слот';
+
+  @override
+  String get fdDuelPick => 'Выбрать этот';
+
+  @override
+  String get fdChosenTitleMark => 'Отличный';
+
+  @override
+  String get fdChosenTitleTail => 'выбор!';
+
+  @override
+  String get fdChosenBodyThree =>
+      'Три ваших университета готовы. Сейчас узнаем, какие вам открыты.';
+
+  @override
+  String fdChosenBody(int count) {
+    return 'Ваши университеты ($count) готовы. Сейчас узнаем, какие вам открыты.';
+  }
+
+  @override
+  String get fdChosenNext => 'Теперь главный вопрос';
+
+  @override
+  String get fdChosenAdmission => 'Смогу ли я поступить сюда?';
+
+  @override
+  String get fdChosenVisa => 'Дадут ли мне визу?';
+
+  @override
+  String get fdChosenEmpty =>
+      'Слоты пока пусты. Добавьте университеты из результатов.';
+
+  @override
+  String get fdCompareTitle => 'Сравнение';
+
+  @override
+  String fdCompareCount(int count) {
+    return 'университетов: $count';
+  }
+
+  @override
+  String get fdCompareCity => 'Город';
+
+  @override
+  String get fdCompareType => 'Тип';
+
+  @override
+  String get fdCompareAdmission => 'Поступление';
+
+  @override
+  String get fdSavedTitle => 'Сохранённые';
+
+  @override
+  String get fdSavedCompareThree => 'Сравнить все три';
+
+  @override
+  String get fdSavedCompareTwo => 'Сравнить оба';
+
+  @override
+  String get fdSavedCompareBody => 'Цена, язык и сроки рядом';
+
+  @override
+  String get fdSavedEmpty =>
+      'Пока ничего не сохранено. На главном экране смахните карточку вправо или нажмите ♡.';
+
+  @override
+  String get fdUnsave => 'Убрать из сохранённых';
+
+  @override
+  String get fdOddsLead => 'Мой шанс поступления';
+
+  @override
+  String get fdStampSave => 'СОХРАНИТЬ';
+
+  @override
+  String get fdStampSkip => 'ПРОПУСТИТЬ';
+
+  @override
+  String get fdSwipeHint => 'Смахните карточку';
+
+  @override
+  String get fdQsRanking => 'мировой рейтинг';
+
+  @override
+  String get fdPerSemShort => '/ сем';
+
+  @override
+  String get fdPerYearShort => '/ год';
+
+  @override
+  String get fdCodeTitleLead => 'Ваш клиентский';
+
+  @override
+  String get fdCodeTitleMark => 'код';
+
+  @override
+  String get fdCodeBody =>
+      'Введите 8-значный код от консультанта — откроется статус вашей заявки.';
+
+  @override
+  String get fdCodeSubmit => 'Войти';
+
+  @override
+  String get fdCodeNoCode => 'Нет кода? Бесплатная консультация:';
+
+  @override
+  String fdCodeCell(int n) {
+    return 'Символ кода $n';
+  }
+
+  @override
+  String fdMapKicker(int count) {
+    return 'По Корее · университетов: $count';
+  }
+
+  @override
+  String get fdMapTitleMark => 'карта';
+
+  @override
+  String get fdMapLabel => 'КОРЕЯ · 대한민국';
+
+  @override
+  String fdMapPin(String city, int count) {
+    return '$city: университетов $count';
+  }
+
+  @override
+  String get fdMapZoomIn => 'Приблизить';
+
+  @override
+  String get fdMapZoomOut => 'Отдалить';
+
+  @override
+  String get fdMapOpen360 => 'Открыть обзор 360°';
+
+  @override
+  String get fdMapEmpty => 'По этому фильтру университетов нет.';
+
+  @override
+  String fdMapCardOf(int n, int total) {
+    return '$n / $total';
+  }
+
+  @override
+  String get fdNavApplication => 'Заявка';
+
+  @override
+  String get fdNavDocuments => 'Документы';
+
+  @override
+  String get fdJourneyTitle => 'Ход заявки';
+
+  @override
+  String get fdJourneyCurrent => 'Текущий этап';
+
+  @override
+  String fdJourneyNext(String stage) {
+    return 'Следующий этап: $stage';
+  }
+
+  @override
+  String get fdJourneyDone => 'Все этапы пройдены';
+
+  @override
+  String get fdJourneyWaiting => 'Ожидается подтверждение заявки консультантом';
+
+  @override
+  String get fdJourneyEmpty => 'Заявок пока нет';
+
+  @override
+  String get fdJourneyEmptyBody =>
+      'Когда консультант прикрепит университет, ход заявки появится здесь.';
+
+  @override
+  String get fdJourneyBrowse => 'Смотреть университеты';
+
+  @override
+  String get fdJourneyRoom => 'Комната университета';
+
+  @override
+  String get fdConsultantRole => 'Консультант · ответит на вопросы';
+
+  @override
+  String get fdDocsTitle => 'Мои документы';
+
+  @override
+  String get fdDocsAccepted => 'Принятые документы';
+
+  @override
+  String fdDocsNeedMore(int n) {
+    return 'Нужно ещё: $n';
+  }
+
+  @override
+  String fdDocsUnderReview(int n) {
+    return 'На проверке: $n';
+  }
+
+  @override
+  String get fdDocsAllAccepted => 'Всё принято';
+
+  @override
+  String get fdDocAccepted => 'Принято';
+
+  @override
+  String get fdDocNeeded => 'Нужно';
+
+  @override
+  String get fdDocReview => 'На проверке';
+
+  @override
+  String get fdDocUpload => 'Загрузить';
+
+  @override
+  String get fdDocView => 'Открыть';
+
+  @override
+  String get fdDocRemove => 'Удалить';
+
+  @override
+  String get accountMoreLabel => 'Ещё';
+
+  @override
+  String get fdPlanTitle => 'Study Plan';
+
+  @override
+  String get fdPlanStepGoal => 'Цель';
+
+  @override
+  String get fdPlanStepKorea => 'Почему Корея';
+
+  @override
+  String get fdPlanStepUni => 'Почему этот вуз';
+
+  @override
+  String get fdPlanStepFuture => 'План на будущее';
+
+  @override
+  String fdPlanStepOf(int n, int total) {
+    return 'Шаг $n · из $total';
+  }
+
+  @override
+  String get fdPlanQ1Head => 'Ваша';
+
+  @override
+  String get fdPlanQ1Mark => 'цель?';
+
+  @override
+  String get fdPlanQ1Hint =>
+      '3–5 предложений. Что вы хотите изучать и зачем это вам нужно? Пишите конкретно.';
+
+  @override
+  String get fdPlanQ2Head => 'Почему именно';
+
+  @override
+  String get fdPlanQ2Mark => 'Корея?';
+
+  @override
+  String get fdPlanQ2Hint =>
+      '3–5 предложений. Напишите личную причину: семья, профессия, язык, опыт. Избегайте общих фраз.';
+
+  @override
+  String get fdPlanQ3Head => 'Почему именно этот';
+
+  @override
+  String get fdPlanQ3Mark => 'вуз?';
+
+  @override
+  String get fdPlanQ3Hint =>
+      '3–5 предложений. Чем вам подходит программа, лаборатория или направление этого вуза? Приведите конкретный пример.';
+
+  @override
+  String get fdPlanQ4Head => 'План после';
+
+  @override
+  String get fdPlanQ4Mark => 'учёбы?';
+
+  @override
+  String get fdPlanQ4Hint =>
+      '3–5 предложений. Что вы будете делать после учёбы: работа, магистратура или возвращение домой? Напишите конкретные шаги.';
+
+  @override
+  String get fdPlanHintField => 'Пишите здесь…';
+
+  @override
+  String get fdPlanWarnTitle => 'Важно: не подавайте текст, написанный ИИ';
+
+  @override
+  String get fdPlanWarnBody =>
+      'Университеты распознают текст ИИ. То, что вы пишете здесь, — только ваше. Hanguk AI лишь даёт обратную связь.';
+
+  @override
+  String get fdPlanFeedback => 'Получить отзыв';
+
+  @override
+  String get fdPlanFeedbackBusy => 'Анализируем…';
+
+  @override
+  String get fdPlanWriteFirst => 'Сначала напишите этот шаг.';
+
+  @override
+  String get fdPlanSheetTitle => 'Отзыв Hanguk AI';
+
+  @override
+  String get fdPlanStrengths => 'Сильные стороны';
+
+  @override
+  String get fdPlanImprove => 'Что улучшить';
+
+  @override
+  String get fdPlanNext => 'Следующий шаг';
+
+  @override
+  String get fdPlanClose => 'Закрыть';
+
+  @override
+  String get fdPlanLoadFailed =>
+      'Study Plan не открылся. Проверьте соединение и попробуйте снова.';
+
+  @override
+  String get fdInterviewTitle => 'Практика интервью';
+
+  @override
+  String get fdInterviewAi => 'Hanguk AI · интервьюер';
+
+  @override
+  String fdInterviewStyle(String university) {
+    return 'В стиле приёмной комиссии $university';
+  }
+
+  @override
+  String get fdInterviewTip =>
+      'Говорите чётко и в умеренном темпе · 60–90 секунд';
+
+  @override
+  String get fdInterviewMute => 'Выключить микрофон';
+
+  @override
+  String get fdInterviewUnmute => 'Включить микрофон';
+
+  @override
+  String get fdInterviewMuted => 'Микрофон выключен — интервьюер вас не слышит';
+
+  @override
+  String get fdCodeScan => 'Сканировать QR-код';
+
+  @override
+  String get fdScanTitle => 'Отсканируйте QR-код';
+
+  @override
+  String get fdScanHint => 'Наведите рамку на QR-код от вашего консультанта';
+
+  @override
+  String get fdScanNoCode =>
+      'В этом QR-коде нет кода клиента. Введите код вручную.';
+
+  @override
+  String get fdScanNoCamera =>
+      'Нет доступа к камере. Разрешите его в настройках телефона или введите код вручную.';
+
+  @override
+  String get fdScanFailed => 'Камера не открылась. Введите код вручную.';
+
+  @override
+  String get fdPlanDictate => 'Диктовать';
+
+  @override
+  String get fdPlanDictateStop => 'Остановить диктовку';
+
+  @override
+  String get fdPlanListening => 'Слушаю… говорите';
+
+  @override
+  String get fdPlanDictateUnavailable =>
+      'Распознавание речи на этом телефоне не сработало. Проверьте доступ к микрофону.';
 }

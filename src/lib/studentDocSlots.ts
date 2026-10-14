@@ -14,6 +14,12 @@ export interface StudentDocSlot {
    * and can be verified, but never blocks "advance to the next stage".
    */
   required: boolean;
+  /**
+   * The slot also carries a translated copy, shown under it as its own row.
+   * The translation lives in `documents` under the `[<id>_translation]` tag —
+   * the same tag the student portal's translation slots write.
+   */
+  translation?: Localized;
 }
 
 /**
@@ -47,11 +53,14 @@ export const APPLICATION_PACK_SLOTS: StudentDocSlot[] = [
     id: 'birth_certificate',
     name: { uz: "Tug'ilganlik haqida guvohnoma nusxasi (Metrka)", en: 'Birth certificate copy', ru: 'Копия свидетельства о рождении (Метрика)' },
     required: true,
+    translation: { uz: "Tug'ilganlik guvohnomasi tarjimasi", en: 'Birth certificate translation', ru: 'Перевод свидетельства о рождении' },
   },
+  // The id stays `language_certificate` so uploads made before the rename keep
+  // matching; TOPIK has its own slot below.
   {
     id: 'language_certificate',
-    name: { uz: 'Til sertifikat nusxasi', en: 'Language certificate copy', ru: 'Копия языкового сертификата' },
-    note: { uz: 'Kamida IELTS 5.5 yoki TOPIK 2', en: 'Min. IELTS 5.5 or TOPIK 2', ru: 'Мин. IELTS 5.5 или TOPIK 2' },
+    name: { uz: 'IELTS sertifikati nusxasi', en: 'IELTS certificate copy', ru: 'Копия сертификата IELTS' },
+    note: { uz: 'Kamida IELTS 5.5', en: 'Min. IELTS 5.5', ru: 'Мин. IELTS 5.5' },
     required: true,
   },
   // TOPIK and the apostille sit in the contract pack and are shown with it, but
@@ -72,11 +81,13 @@ export const APPLICATION_PACK_SLOTS: StudentDocSlot[] = [
     id: 'diploma',
     name: { uz: 'Diplom yoki attestat nusxasi', en: 'Diploma or certificate copy', ru: 'Копия диплома или аттестата' },
     required: true,
+    translation: { uz: 'Diplom / attestat tarjimasi', en: 'Diploma / certificate translation', ru: 'Перевод диплома / аттестата' },
   },
   {
     id: 'diploma_apostille',
     name: { uz: 'Diplom / Attestat apostili', en: 'Diploma / certificate apostille', ru: 'Апостиль диплома / аттестата' },
     required: false,
+    translation: { uz: 'Apostil tarjimasi', en: 'Apostille translation', ru: 'Перевод апостиля' },
   },
   // The portal asks every student for this, but only married applicants have
   // one, so it is shown without gating the pack.
@@ -85,6 +96,14 @@ export const APPLICATION_PACK_SLOTS: StudentDocSlot[] = [
     name: { uz: 'Nikoh guvohnomasi nusxasi', en: 'Marriage certificate copy', ru: 'Копия свидетельства о браке' },
     note: { uz: "Agar mavjud bo'lsa", en: 'If applicable', ru: 'При наличии' },
     required: false,
+  },
+  // Only applicants with a deceased parent have one, so it never gates the pack.
+  {
+    id: 'death_certificate',
+    name: { uz: "O'lim guvohnomasi nusxasi", en: 'Death certificate copy', ru: 'Копия свидетельства о смерти' },
+    note: { uz: "Agar tegishli bo'lsa", en: 'If applicable', ru: 'При необходимости' },
+    required: false,
+    translation: { uz: "O'lim guvohnomasi tarjimasi", en: 'Death certificate translation', ru: 'Перевод свидетельства о смерти' },
   },
 ];
 
@@ -98,7 +117,6 @@ export const CONDITIONAL_DOC_SLOTS: StudentDocSlot[] = [
   { id: 'autobiography', name: { uz: "Avtobiografiya va o'qish reja (insho)", en: 'Autobiography and study plan (essay)', ru: 'Автобиография и план обучения (эссе)' }, required: false },
   { id: 'father_foreign_passport', name: { uz: 'Otaning zagran pasporti nusxasi', en: "Father's foreign passport copy", ru: 'Копия загранпаспорта отца' }, required: false },
   { id: 'mother_foreign_passport', name: { uz: 'Onaning zagran pasporti nusxasi', en: "Mother's foreign passport copy", ru: 'Копия загранпаспорта матери' }, required: false },
-  { id: 'death_certificate', name: { uz: "O'lim guvohnomasi nusxasi", en: 'Death certificate copy', ru: 'Копия свидетельства о смерти' }, required: false },
   { id: 'diploma_supplement', name: { uz: 'Diplom ilovasi nusxasi', en: 'Diploma supplement copy', ru: 'Копия приложения к диплому' }, required: false },
 ];
 
@@ -113,12 +131,27 @@ export interface ResolvedSlot {
   /** Newest upload matching the slot, if any. */
   doc: Tables<'documents'> | undefined;
   state: SlotState;
+  /** The translated copy, for a slot that has one. Never counted toward the gate. */
+  translation?: ResolvedSlot;
+}
+
+export function translationSlotId(slotId: string): string {
+  return `${slotId}_translation`;
+}
+
+function stateOf(doc: Tables<'documents'> | undefined): SlotState {
+  return !doc ? 'missing' : doc.status === 'approved' ? 'verified' : 'received';
 }
 
 function resolveSlot(slot: StudentDocSlot, docs: Tables<'documents'>[]): ResolvedSlot {
   const doc = findStudentDoc(docs, slot.id);
-  const state: SlotState = !doc ? 'missing' : doc.status === 'approved' ? 'verified' : 'received';
-  return { slot, doc, state };
+  const resolved: ResolvedSlot = { slot, doc, state: stateOf(doc) };
+  if (slot.translation) {
+    const tSlot: StudentDocSlot = { id: translationSlotId(slot.id), name: slot.translation, required: false };
+    const tDoc = findStudentDoc(docs, tSlot.id);
+    resolved.translation = { slot: tSlot, doc: tDoc, state: stateOf(tDoc) };
+  }
+  return resolved;
 }
 
 export interface ApplicationPack {

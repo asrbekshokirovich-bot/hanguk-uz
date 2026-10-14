@@ -42,6 +42,8 @@ class CatalogGuideline {
     this.ieqasStatus,
     this.isActive,
     this.isPartner,
+    this.regionCode,
+    this.visaRestricted,
   });
 
   final String id;
@@ -95,6 +97,22 @@ class CatalogGuideline {
   /// An official HANGUK partner (`institutions.is_partner`).
   final bool? isPartner;
 
+  /// `institutions.region_code`: the province in Korean ('서울', '경기', …).
+  final String? regionCode;
+
+  /// One of the universities the embassy gives almost no student visas to
+  /// (`institutions.visa_restricted`): never suggested by the quiz.
+  final bool? visaRestricted;
+
+  /// Seoul, Gyeonggi or Incheon: the embassy's higher deposit and the higher
+  /// cost of living apply.
+  bool get inCapitalArea {
+    final r = regionCode;
+    if (r != null && r.isNotEmpty) return r == '서울' || r == '경기' || r == '인천';
+    final c = '${cityKo ?? ''} ${city ?? ''}'.toLowerCase();
+    return c.contains('서울') || c.contains('seoul') || c.contains('인천') || c.contains('incheon');
+  }
+
   static num? _num(Object? v) =>
       v == null ? null : (v is num ? v : num.tryParse(v.toString()));
 
@@ -133,6 +151,8 @@ class CatalogGuideline {
       ieqasStatus: r['ieqas_status'] as String?,
       isActive: r['is_active'] as bool?,
       isPartner: r['is_partner'] as bool?,
+      regionCode: r['region_code'] as String?,
+      visaRestricted: r['visa_restricted'] as bool?,
     );
   }
 }

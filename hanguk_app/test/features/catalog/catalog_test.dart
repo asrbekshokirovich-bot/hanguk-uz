@@ -6,6 +6,8 @@
 // its labels say; fees stay in the guideline's currency; and the screen lists
 // exactly what the provider returns — including the no-photo fallback that
 // writes the university's name on the cover.
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -132,6 +134,20 @@ void main() {
     final b = priceBounds(_catalogue());
     expect(b.min, 1500000);
     expect(b.max, 6000000);
+  });
+
+  test('every listed campus photo is bundled, and every bundled one is listed', () {
+    final files = Directory('assets/campus')
+        .listSync()
+        .whereType<File>()
+        .map((f) => f.uri.pathSegments.last)
+        .where((n) => n.endsWith('.jpg'))
+        .map((n) => n.substring(0, n.length - 4))
+        .toSet();
+    expect(files, campusPhotoIds);
+    for (final id in campusPhotoIds) {
+      expect(campusPhotoAsset(id), 'assets/campus/$id.jpg');
+    }
   });
 
   testWidgets('the browser lists the catalogue and writes the name when there is no photo', (tester) async {

@@ -1,5 +1,5 @@
 {
- "last_run": "2026-10-05T09:08:36+00:00",
+ "last_run": "2026-10-14T15:12:16+00:00",
  "seen": {
   "http://enter.konkuk.ac.kr/submenu.do?menuurl=k8b%2fCUaWlntKYwhT%2fh%2bKUA%3d%3d&": [],
   "https://adm-u.postech.ac.kr/": [
@@ -49,6 +49,7 @@
    "2ce4ec91cb80d791"
   ],
   "https://admission.daejin.ac.kr/main.do": [
+   "e6213fd28d20fa11",
    "25810f65649d2d1c"
   ],
   "https://admission.dnue.ac.kr/ipsi/Main.do": [],
@@ -100,6 +101,8 @@
    "43ebd8a3fafe3608"
   ],
   "https://admission.kangnam.ac.kr/main.htm": [
+   "66a11ab0c5762258",
+   "dbda1d55e8c11b2e",
    "52e5e65410a8737f",
    "847553c52577796f",
    "ba4d3b78321fbd7c",
@@ -155,6 +158,10 @@
   "https://admission.snue.ac.kr/": [],
   "https://admission.sookmyung.ac.kr/": [],
   "https://admission.ssu.ac.kr/": [
+   "d8a5a4213d5e3c74",
+   "14af5c06fca86aa8",
+   "3154078e9a1e300a",
+   "cf81acab629e0373",
    "715c9212b311c049",
    "e73d1af33a32fc2a",
    "02218ee40a06a1ff",
@@ -171,6 +178,7 @@
    "f4d19b2c0400c65f"
   ],
   "https://admission.sunlin.ac.kr/": [
+   "fbe18389ed07905f",
    "bf3fddb8a21a1a8c",
    "86558fafdec7e223",
    "5ea3296e7ce7372c",
@@ -223,7 +231,9 @@
    "50b894b30c36502d"
   ],
   "https://apply.swc.ac.kr/": [],
-  "https://assist.ac.kr": [],
+  "https://assist.ac.kr": [
+   "3b9c2cb9868e04a2"
+  ],
   "https://baewha.ac.kr": [],
   "https://bau.ac.kr": [],
   "https://berea.ac.kr": [],
@@ -244,6 +254,9 @@
   "https://dst.ac.kr": [],
   "https://dsu.ac.kr": [],
   "https://ent.donga.ac.kr/": [
+   "3fb812cf3ec7b48f",
+   "484590dbd7d24964",
+   "7bbcc8dfec59d511",
    "e89a98a7f7d26d30",
    "04bea0d150087ac9",
    "2a9c68e08d6ebe29",
@@ -254,6 +267,7 @@
    "014fe9f672705d6f"
   ],
   "https://ent.hs.ac.kr/": [
+   "66851633e1200bbc",
    "ec053fdd17c338c5",
    "5ae3967f0c4ef41a",
    "8a3aeb1b669076fa",
@@ -285,6 +299,7 @@
   "https://enter.chsu.ac.kr/": [],
   "https://enter.chugye.ac.kr/": [],
   "https://enter.chungwoon.ac.kr/enter/index.do": [
+   "c8905d45f1c17236",
    "c16d966b22553df2",
    "6ef4c5a541743466",
    "9df7c29555b3dc07",
@@ -343,6 +358,7 @@
   "https://ghent.ac.kr": [],
   "https://gknu.ac.kr": [],
   "https://global.kduniv.ac.kr/iphak/": [],
+  "https://global.kosin.ac.kr/ia/bbs/board.php?bo_table=contents&wr_id=6": [],
   "https://go.cufs.ac.kr/": [],
   "https://go.cuk.edu/index.do": [],
   "https://go.global.ac.kr/": [
@@ -363,6 +379,7 @@
    "12bb95ddbcbd27ad"
   ],
   "https://go.khcu.ac.kr/": [
+   "1267ff8c19803b4e",
    "542bb98d0becc52d",
    "6d3e97e7715d0bc4",
    "ceec7dedd9d93853",
@@ -451,6 +468,7 @@
    "c7fd4204e3f71611"
   ],
   "https://ibsi.hannam.ac.kr/adms4/main/index_main.asp": [
+   "e9dd6d9402e52e65",
    "931d2f6218b292d5",
    "a174247ea23dda8d",
    "9b318df99e1aab1d",
@@ -496,6 +514,10 @@
    "22bd4475f35f2867"
   ],
   "https://igse.ac.kr": [
+   "9448d20ba2cc14db",
+   "adfc084f3b9d3ae5",
+   "f9407e3b6ed201c7",
+   "1cfc9b04a4fa348c",
    "009eb125e750ff69",
    "b2aa08ab8a9456d0",
    "f816ace8755efd9e"
@@ -591,6 +613,9 @@
    "f1ee867b9248133a"
   ],
   "https://iphak.osan.ac.kr/": [
+   "202d241e8eadebf6",
+   "0b5b13f382ac6fa5",
+   "5faa5ebbe1716e8b",
    "8ea34c3627bfd967",
    "10482c79afde56b9",
    "383adc0d740967ee"
@@ -725,6 +750,7 @@
   "https://ipsi.dongduk.ac.kr/": [],
   "https://ipsi.dongguk.ac.kr/": [],
   "https://ipsi.dongguk.edu/admission/html/abroad/guide.asp": [
+   "c798119c59729f59",
    "958d04edef240ea4",
    "e66feb7f66d064b3"
   ],
@@ -764,6 +790,8 @@
   "https://ipsi.gw.ac.kr/": [],
   "https://ipsi.halla.ac.kr/": [],
   "https://ipsi.hknu.ac.kr/": [
+   "4cfc95d452d88322",
+   "b73856be1af11053",
    "73fd3b38f76c4c2e",
    "905f197f840ce892",
    "04fdc1d95a3ba2ae",
@@ -891,10 +919,12 @@
    "37880b549e81e422"
   ],
   "https://ipsi.shinhan.ac.kr/": [
+   "a2d579da2013b0c4",
    "e6c40d962726ace9",
    "e41b6cbc8c7626bb"
   ],
   "https://ipsi.shinsung.ac.kr/main.do": [
+   "5a8a8941751cdf05",
    "3414689f3996c9d6"
   ],
   "https://ipsi.silla.ac.kr/": [],
@@ -962,6 +992,8 @@
   "https://kcgu.ac.kr": [],
   "https://kings.ac.kr": [],
   "https://kkot.ac.kr": [
+   "8f7bb0c0901d9d4f",
+   "e9906a592298c484",
    "3d309513db89a18f",
    "a0fcc318fc62f90a",
    "027be278e674051b"
@@ -983,7 +1015,9 @@
   "https://ocu.ac.kr": [],
   "https://oku.korea.ac.kr/oku/cms/FR_CON/index.do?MENU_ID=700": [],
   "https://sangha.ac.kr": [],
-  "https://sc.ac.kr": [],
+  "https://sc.ac.kr": [
+   "d6b20bb1987728fe"
+  ],
   "https://sejong.hongik.ac.kr": [
    "5b4579fa1c1a707a",
    "c03d0ec37b3128e7",
@@ -994,6 +1028,7 @@
   ],
   "https://seowon.ac.kr": [],
   "https://sky.yuhan.ac.kr/": [
+   "b46f31db2f775492",
    "721f896263f324ab"
   ],
   "https://smit.ac.kr": [],
@@ -1017,6 +1052,17 @@
   ],
   "https://wgst.ac.kr": [],
   "https://www.acts.ac.kr/admission/design/index.asp": [
+   "afbffe069d4511ee",
+   "4b3e87866f81e801",
+   "dbc6c491b84ecc51",
+   "f4483a59dfa6d2ad",
+   "7dd9a0ece227b93e",
+   "5a4bc850abd92b56",
+   "6c1d3adb53739983",
+   "493c5f47e85798dc",
+   "0af214fd5717f78e",
+   "e41a83886a586c2e",
+   "1a7f91aedb4820a0",
    "a92859ca4b07c225",
    "f1b5b96fc23faba3",
    "4a9998503d306293",
@@ -1121,6 +1167,8 @@
    "a049a4b850fa0c80"
   ],
   "https://www.hanbat.ac.kr/admission/": [
+   "f5579b7efd56c80e",
+   "5c869c3d92bea65f",
    "b741440a726ce26e",
    "a9e60659ec97f7de"
   ],
@@ -1183,6 +1231,7 @@
    "a06dbff89fb3c1b9"
   ],
   "https://www.knsu.ac.kr/ipsi/rolling/application.do": [
+   "b77ff206a923c35e",
    "aaad4da6aee39f59",
    "87055cd38f29407f",
    "a31b4e0f0eab1a43",

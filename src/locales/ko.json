@@ -281,6 +281,13 @@
     "newContracts": "새 계약"
   },
   "crm": {
+    "filterLabels": {
+      "university": "대학교",
+      "status": "상태",
+      "documents": "서류",
+      "gks": "GKS",
+      "payments": "결제"
+    },
     "title": "관리 시스템",
     "studentManagement": "학생 관리",
     "addStudent": "학생 추가",

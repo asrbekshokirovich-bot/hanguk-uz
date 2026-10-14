@@ -140,7 +140,7 @@ Telegram recipients: `lead_alert_recipients` (`escalate`, `boss_alerts`, `report
 | `meta-leadgen-webhook` | new | Meta lead form → lead (phone, campaign, ad, form) (§5) |
 | `tv-lead-alerts` | new | feeds the office TV warning (`fn_lead_tv_warnings`) |
 | `lead-sla-check` | changed | keeps only the after-hours auto-reply sender; the old SLA scan and watchdogs are gone |
-| `telegram-poll` | fixed | position saved before media downloads; bounded downloads (the 30.09 outage) |
+| `telegram-poll` | unchanged | the 30.09 outage was fixed on main (#397, live since 12 Oct); this branch keeps that version |
 | `telegram-webhook` | changed | the bot never opens with "raqam yozing" (§6.1) |
 | `instagram-webhook` | changed | comments → `social_comments` + lead (F2) |
 | role lists | changed | `lead_senior` added wherever `owner/admin/call_operator` is hard-coded |

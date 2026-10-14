@@ -46,6 +46,10 @@ const ScheduledPaymentsContent = lazy(() => import('@/components/finance/Schedul
 const DistributionContent = lazy(() => import('@/components/finance/IncomeDistributionPanel').then(m => ({ default: m.IncomeDistributionPanel })));
 const BonusesContent = lazy(() => import('@/components/finance/StaffBonusesPanel').then(m => ({ default: m.StaffBonusesPanel })));
 const UniversityCatalogContent = lazy(() => import('@/components/crm/pages/UniversityCatalogContent'));
+const UniversitySelectionContent = lazy(() => import('@/components/crm/pages/UniversitySelectionContent'));
+const OnlineApplicationContent = lazy(() => import('@/components/crm/pages/OnlineApplicationContent'));
+const OfflineApplicationContent = lazy(() => import('@/components/crm/pages/OfflineApplicationContent'));
+const AppActivityContent = lazy(() => import('@/components/crm/pages/AppActivityContent'));
 const UniversitiesContent = lazy(() => import('@/components/crm/pages/UniversitiesContent'));
 const TasksContent = lazy(() => import('@/components/crm/pages/TasksContent'));
 const MessagesContent = lazy(() => import('@/components/crm/pages/MessagesContent'));
@@ -107,6 +111,7 @@ export default function CRMPortal() {
     isLeadSenior,
     canWorkLeads,
     canSeeFinance,
+    canApproveDocuments,
     loading: roleLoading,
   } = useUserRole();
   const { canReview: canReviewUniDb } = useCanReviewUniDb();
@@ -156,6 +161,10 @@ export default function CRMPortal() {
     if (currentPath.startsWith('/crm/finance')) return 'finance';
     if (currentPath.startsWith('/crm/payments')) return 'finance'; // Legacy redirect
     if (currentPath.startsWith('/crm/universities')) return 'universities';
+    if (currentPath.startsWith('/crm/university-selection')) return 'university-selection';
+    if (currentPath.startsWith('/crm/online-application')) return 'online-application';
+    if (currentPath.startsWith('/crm/offline-application')) return 'offline-application';
+    if (currentPath.startsWith('/crm/app-activity')) return 'app-activity';
     if (currentPath.startsWith('/crm/application-fees')) return 'application-fees';
     if (currentPath.startsWith('/crm/tasks')) return 'tasks';
     if (currentPath.startsWith('/crm/messages')) return 'messages';
@@ -300,6 +309,7 @@ export default function CRMPortal() {
       onUpdateDocumentStatus={updateDocumentStatus}
       currentLang={currentLang}
       isDocumentHandler={isDocumentHandler}
+      canApproveDocuments={canApproveDocuments}
       onRefresh={refetchStudents}
     />
   ) : null;
@@ -376,6 +386,8 @@ export default function CRMPortal() {
               onUpdateDocumentStatus={updateDocumentStatus}
               onUpdateApplicationStatus={updateApplicationStatus}
               onSetDocsReady={setDocsReady}
+              canApproveDocuments={canApproveDocuments}
+              onDocumentsChanged={refetchStudents}
             />
           </SafeSuspense>
         );
@@ -432,6 +444,34 @@ export default function CRMPortal() {
         return <FinanceReportsWrapper />;
       case 'universities':
         return <SafeSuspense><UniversityCatalogContent /></SafeSuspense>;
+      case 'university-selection':
+        if (!(isAdmin || isDocumentHandler || isCallOperator)) return <AccessDenied />;
+        return (
+          <SafeSuspense>
+            <UniversitySelectionContent
+              students={students}
+              loading={loading}
+              onCreateApplication={createApplication}
+            />
+          </SafeSuspense>
+        );
+      case 'app-activity':
+        if (!isAdmin) return <AccessDenied />;
+        return <SafeSuspense><AppActivityContent /></SafeSuspense>;
+      case 'online-application':
+        if (!(isAdmin || isDocumentHandler || isCallOperator)) return <AccessDenied />;
+        return (
+          <SafeSuspense>
+            <OnlineApplicationContent students={students} loading={loading} />
+          </SafeSuspense>
+        );
+      case 'offline-application':
+        if (!(isAdmin || isDocumentHandler || isCallOperator)) return <AccessDenied />;
+        return (
+          <SafeSuspense>
+            <OfflineApplicationContent students={students} loading={loading} />
+          </SafeSuspense>
+        );
       case 'application-fees':
         if (!isDocumentHandler) return <AccessDenied />;
         return <SafeSuspense><ApplicationFeeContent /></SafeSuspense>;

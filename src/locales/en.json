@@ -292,6 +292,13 @@
     }
   },
   "crm": {
+    "filterLabels": {
+      "university": "University",
+      "status": "Status",
+      "documents": "Documents",
+      "gks": "GKS",
+      "payments": "Payment"
+    },
     "title": "Management System",
     "studentManagement": "Student Management",
     "addStudent": "Add Student",
@@ -1011,8 +1018,10 @@
           "korean": "Korean",
           "english": "English",
           "money": "Budget and payer",
-          "documents": "Income and statement",
-          "whereWhen": "Region and when"
+          "documents": "Income and deposit",
+          "whereWhen": "Region and when",
+          "assessment": "Assessment board",
+          "universities": "Universities"
         },
         "band": {
           "high": "High chance",
@@ -1032,7 +1041,9 @@
           "topik1": "Sejong 1A / TOPIK 1",
           "topik2": "TOPIK 2",
           "topik3plus": "TOPIK 3 or higher",
-          "unknown": "Don't know"
+          "unknown": "Don't know",
+          "topik3": "TOPIK 3",
+          "topik4plus": "TOPIK 4 or higher"
         },
         "english": {
           "none": "None",
@@ -1069,6 +1080,18 @@
           "premium": "Premium",
           "no_risk": "NO RISK",
           "hanbox": "Hanbox"
+        },
+        "kdb": "KDB deposit",
+        "gpa": "Certificate: {{gpa}}",
+        "bankKrw": "Bank: ₩{{amount}}",
+        "visaRefused": "Visa refused before",
+        "visaNotRefused": "No visa refusal",
+        "visaPct": "Visa: {{pct}}%",
+        "kdbStatus": {
+          "ready": "ready",
+          "by_intake": "by the intake",
+          "no": "no",
+          "unknown": "not sure"
         }
       }
     }
@@ -2162,5 +2185,155 @@
     "failed": "Could not link contact",
     "noIdentifierTitle": "Nothing to attach",
     "noIdentifierBody": "This conversation has no usable identifier."
+  },
+  "appActivity": {
+    "title": "App activity",
+    "tab": "App",
+    "loading": "Loading…",
+    "error": "Could not read the app activity.",
+    "empty": "Nothing done in the app yet (or the new app version is not installed).",
+    "lastSeen": "Last seen: {{date}}",
+    "visits_one": "{{count}} visit",
+    "visits_other": "{{count}} visits",
+    "saved_one": "{{count}} university saved",
+    "saved_other": "{{count}} universities saved",
+    "showAll": "Show all ({{count}})",
+    "showLess": "Show less",
+    "unknownUniversity": "a university",
+    "screens": {
+      "home": "Home",
+      "universities": "Universities",
+      "search": "Search",
+      "filter": "Filter",
+      "results": "Results",
+      "duel": "This or that?",
+      "chosen": "Chosen",
+      "compare": "Compare",
+      "saved": "Saved",
+      "university": "University page",
+      "assessment": "Chance assessment",
+      "report": "Report",
+      "sent": "Request sent",
+      "language": "Language",
+      "login": "Client-code sign-in",
+      "welcome": "Welcome",
+      "account": "Account",
+      "notifications": "Notifications",
+      "surveys": "Surveys",
+      "studyPlan": "Study Plan",
+      "interview": "Interview practice",
+      "aiChat": "Hanguk AI chat",
+      "qrScan": "QR scanner"
+    },
+    "tabs": {
+      "universities": "Universities",
+      "map": "360° map",
+      "prepare": "Preparation",
+      "application": "Application",
+      "documents": "Documents"
+    },
+    "channels": {
+      "phone": "call",
+      "telegram": "Telegram"
+    },
+    "results": {
+      "ok": "success",
+      "network": "network error",
+      "student": "number belongs to a client",
+      "invalidPhone": "invalid number",
+      "invalidName": "invalid name",
+      "code": "code read",
+      "closed": "closed",
+      "invalidAccessCode": "wrong code",
+      "codeNotFound": "code not found",
+      "serverUnreachable": "server did not answer"
+    },
+    "events": {
+      "app_open": "Opened the app",
+      "screen_view": "Opened: {{screen}}",
+      "tab_open": "Switched to: {{tab}}",
+      "university_open": "Viewed: {{name}}",
+      "university_save": "Saved: {{name}}",
+      "university_unsave": "Unsaved: {{name}}",
+      "university_skip": "Skipped: {{name}}",
+      "slot_set": "Put in slot {{slot}}: {{name}}",
+      "slot_remove": "Removed from slots: {{name}}",
+      "duel_pick": "Picked {{name}} over {{other}}",
+      "filter_apply": "Applied a filter ({{filters}}) — {{results}} results",
+      "search": "Searched",
+      "assessment_start_one": "Started the chance assessment ({{count}} university)",
+      "assessment_start_other": "Started the chance assessment ({{count}} universities)",
+      "report_view_one": "Viewed the report ({{count}} university)",
+      "report_view_other": "Viewed the report ({{count}} universities)",
+      "lead_submit": "Sent a request: {{result}}",
+      "sign_in": "Client-code sign-in: {{result}}",
+      "qr_scan": "QR scanner: {{result}}",
+      "study_plan_feedback": "Asked for feedback on Study Plan step {{step}}",
+      "dictation_start": "Dictated in Study Plan step {{step}}",
+      "interview_start": "Started interview practice ({{language}})",
+      "interview_end": "Finished interview practice ({{minutes}} min)",
+      "interview_leave": "Left interview practice ({{minutes}} min)",
+      "document_upload": "Uploaded a document: {{type}}",
+      "contact_tap": "Pressed a contact button: {{channel}}",
+      "language_set": "Chose language: {{language}}"
+    },
+    "page": {
+      "title": "App activity",
+      "subtitle": "What is opened and pressed in the student app. Typed text is not stored.",
+      "period": "Period",
+      "days_one": "{{count}} day",
+      "days_other": "{{count}} days",
+      "kpi": {
+        "devices": "Active devices",
+        "signedIn": "Signed-in clients",
+        "newDevices": "New installs",
+        "events": "Actions"
+      },
+      "funnel": "From the app to a request (devices)",
+      "steps": {
+        "app_open": "Opened the app",
+        "university_open": "Viewed a university",
+        "university_save": "Saved a university",
+        "assessment_start": "Started the assessment",
+        "report_view": "Viewed the report",
+        "lead_submit": "Sent a request"
+      },
+      "screens": "Most opened screens",
+      "saved": "Most saved universities",
+      "daily": "Active devices per day",
+      "actions": "All actions",
+      "screen": "Screen",
+      "university": "University",
+      "action": "Action",
+      "devices": "Devices",
+      "times": "Times",
+      "eventNames": {
+        "app_open": "Open the app",
+        "screen_view": "Open a screen",
+        "tab_open": "Switch tab",
+        "university_open": "View a university",
+        "university_save": "Save a university",
+        "university_unsave": "Unsave",
+        "university_skip": "Skip a university",
+        "slot_set": "Put in a slot",
+        "slot_remove": "Remove from a slot",
+        "duel_pick": "This or that: pick",
+        "filter_apply": "Filter",
+        "search": "Search",
+        "assessment_start": "Start the assessment",
+        "report_view": "View the report",
+        "lead_submit": "Send a request",
+        "sign_in": "Sign in",
+        "qr_scan": "QR scanner",
+        "study_plan_feedback": "Study Plan feedback",
+        "dictation_start": "Dictation",
+        "interview_start": "Start an interview",
+        "interview_end": "Finish an interview",
+        "interview_leave": "Leave an interview",
+        "document_upload": "Upload a document",
+        "contact_tap": "Contact",
+        "language_set": "Choose language"
+      }
+    }
   }
 }

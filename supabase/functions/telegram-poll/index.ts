@@ -36,7 +36,6 @@ import { Api, TelegramClient } from "npm:telegram@2.26.22";
 import { StringSession } from "npm:telegram@2.26.22/sessions/index.js";
 import { CustomFile } from "npm:telegram@2.26.22/client/uploads.js";
 import { returnBigInt } from "npm:telegram@2.26.22/Helpers.js";
-import { downloadBudget, ingestErrors, mediaVerdict, withTimeout, youngEnough } from "./media.ts";
 
 declare const EdgeRuntime: { waitUntil(p: Promise<unknown>): void } | undefined;
 
@@ -60,28 +59,10 @@ const RUN_BUDGET_MS = 45_000;
  *  next minute's run, never a second session on the same account. */
 const LEASE_SECONDS = 75;
 const DIFFERENCE_EVERY_MS = 5_000;
-/** After a pull that failed (telegram-ingest refused a message, a save failed)
- *  the same slice is asked for again after this. */
-const DIFFERENCE_RETRY_MS = 10_000;
 const OUTBOX_EVERY_MS = 3_000;
-/** Attachments are downloaded after their message is stored AND the position
- *  is saved (see pullDifference), so a large or stuck one costs only its own
- *  file, never the message or the poller. A file Telegram says is bigger than
- *  this is not fetched at all. */
+/** Attachments are downloaded after their message is already stored (see
+ *  ingestMessages), so a large one costs only its own file, never the message. */
 const MAX_MEDIA_BYTES = 8 * 1024 * 1024;
-/** One download may take this long. A download that never finished stalled the
- *  poller on 2026-09-30. */
-const MEDIA_TIMEOUT_MS = 15_000;
-/** Downloads may run this long past RUN_BUDGET_MS, so a photo that arrives in
- *  the last seconds still gets its file. RUN_BUDGET_MS + this + INGEST_TIMEOUT_MS
- *  (the re-delivery that carries the file) stays under LEASE_SECONDS. */
-const MEDIA_GRACE_MS = 10_000;
-/** A request to telegram-ingest that takes longer than this is given up: nothing
- *  is saved, the slice comes back on the next pull. */
-const INGEST_TIMEOUT_MS = 15_000;
-/** A message telegram-ingest keeps rejecting holds the position only this long;
- *  after that it is logged and let go, so one bad message cannot stall the rest. */
-const INGEST_RETRY_WINDOW_S = 10 * 60;
 const MAX_OUTBOUND_BYTES = 50 * 1024 * 1024;
 
 const corsHeaders = {
@@ -164,18 +145,8 @@ async function run(): Promise<void> {
     while (Date.now() - startedAt < RUN_BUDGET_MS) {
       const now = Date.now();
       if (now >= nextDifference) {
-        try {
-          state = await pullDifference(client, supabase, selfId, state, startedAt + RUN_BUDGET_MS + MEDIA_GRACE_MS);
-          failure = null;
-          nextDifference = Date.now() + DIFFERENCE_EVERY_MS;
-        } catch (e) {
-          // telegram-ingest refused a message, or the position could not be
-          // saved. The position was not moved past it, so the same slice comes
-          // back; meanwhile the outbox keeps draining.
-          failure = errText(e);
-          console.error("telegram-poll: difference:", failure);
-          nextDifference = Date.now() + DIFFERENCE_RETRY_MS;
-        }
+        state = await pullDifference(client, supabase, selfId, state);
+        nextDifference = Date.now() + DIFFERENCE_EVERY_MS;
       }
       if (now >= nextOutbox) {
         // Sending trouble must not stop messages coming in.
@@ -217,18 +188,14 @@ async function pullDifference(
   supabase: Supabase,
   selfId: string,
   state: PollState,
-  /** epoch ms: no download starts, and no further slice is pulled, past this */
-  deadline: number,
 ): Promise<PollState> {
-  // `state` is updated IN PLACE as each position is saved, so a caller that
-  // catches a throw from a later step still holds the position that was saved.
   if (state.pts == null || state.date == null) {
-    return Object.assign(state, await restart(client, supabase));
+    return await restart(client, supabase);
   }
 
   // A long gap comes back in slices; keep going until Telegram says we are
   // current, but never spend a whole run on one backlog.
-  for (let i = 0; i < 20 && Date.now() < deadline; i++) {
+  for (let i = 0; i < 20; i++) {
     const diff: any = await client.invoke(new Api.updates.GetDifference({
       pts: state.pts!,
       date: state.date!,
@@ -236,7 +203,7 @@ async function pullDifference(
     }));
 
     if (diff.className === "updates.DifferenceEmpty") {
-      Object.assign(state, { date: diff.date, seq: diff.seq });
+      state = { ...state, date: diff.date, seq: diff.seq };
       await save(supabase, state);
       return state;
     }
@@ -244,25 +211,22 @@ async function pullDifference(
       // Too far behind to page through. Nothing better exists than resuming
       // from now; say so, because the messages in the gap are not coming.
       console.error("telegram-poll: difference too long — resuming from the current position");
-      return Object.assign(state, await restart(client, supabase));
+      return await restart(client, supabase);
     }
 
     await rememberPeers(supabase, diff.users ?? []);
-    // 1. The text of every message goes to telegram-ingest first. This throws
-    //    if telegram-ingest refused a message that is still young, and then
-    //    nothing below runs: the position stays, the slice comes back.
     const withMedia = await ingestMessages(selfId, diff.newMessages ?? [], diff.users ?? []);
 
-    // 2. The position is saved BEFORE any attachment is touched. It used to be
-    //    saved after the downloads, and one download that never finished held
-    //    it — and the poller — for good (2026-09-30).
+    // Saved as soon as the text is stored, before any attachment is fetched.
+    // Downloads are the expensive part of a run: when one ran the function
+    // out of CPU time the position was never saved, and from 2026-09-30 every
+    // run replayed the same slice and died on the same files, so nothing
+    // after it reached the CRM.
     const next = diff.className === "updates.DifferenceSlice" ? diff.intermediateState : diff.state;
-    Object.assign(state, { pts: next.pts, qts: next.qts, date: next.date, seq: next.seq });
+    state = { pts: next.pts, qts: next.qts, date: next.date, seq: next.seq };
     await save(supabase, state);
 
-    // 3. Attachments: bounded, best effort, and never able to hold anything.
-    await fetchAttachments(client, withMedia, deadline);
-
+    await mirrorMedia(client, withMedia);
     if (diff.className === "updates.Difference") return state;
   }
   return state;
@@ -283,25 +247,21 @@ async function save(supabase: Supabase, s: PollState): Promise<void> {
 }
 
 /**
- * Store the 1:1 messages of a slice — their text — and hand back the ones that
- * carry an attachment, for fetchAttachments to download.
+ * Store the 1:1 messages in a batch and return the ones whose attachments
+ * still have to be fetched (mirrorMedia).
  *
- * Text first, files second, on purpose. A download that fails, hangs or runs
- * the run out of time must not take the message down with it — and it must not
- * hold the poller's position either: pullDifference saves the position between
- * the two steps. telegram-ingest attaches a file to a message it already has
- * when the same message is delivered again with the bytes (it "heals" the row,
- * see ingestOne there), so the second delivery in fetchAttachments is a plain
- * re-delivery. What is NOT retried is a file whose download failed or was
- * skipped: the position has moved on, so Telegram does not hand the message
- * over again; its text stays, its file is missing.
- *
- * telegram-ingest answers HTTP 200 even when single events failed (errors[]),
- * without saying which. Those are found by re-delivering one by one, and a
- * failure that is still young stops the position from advancing (it throws), so
- * the slice comes back instead of the message being lost.
+ * Text first, files second, on purpose. A download that fails, or that runs
+ * this function out of time, must not take the message down with it — and it
+ * must not come back every minute either, which is why the caller saves the
+ * position between the two. telegram-ingest attaches a file to a message it
+ * already has when the same message is delivered again with the bytes, so the
+ * second pass is a plain re-delivery.
  */
-async function ingestMessages(selfId: string, messages: any[], users: any[]): Promise<{ message: any; event: any }[]> {
+async function ingestMessages(
+  selfId: string,
+  messages: any[],
+  users: any[],
+): Promise<{ message: any; event: any }[]> {
   const byId = new Map<string, any>(users.map((u: any) => [String(u.id), u]));
   const kept: { message: any; event: any }[] = [];
 
@@ -317,34 +277,15 @@ async function ingestMessages(selfId: string, messages: any[], users: any[]): Pr
   }
   if (!kept.length) return [];
 
-  if ((await postEvents(kept.map((k) => k.event))).length) await settleRejected(kept.map((k) => k.event));
-
+  await postEvents(kept.map((k) => k.event));
   return kept.filter((k) => k.event.message.media_type);
 }
 
-/**
- * telegram-ingest returned errors[] for a batch. Deliver the events one at a
- * time (the ones it already stored come back as duplicates) to find the ones it
- * really refuses. Throws — so the position is not saved — if any of those is
- * young enough to be a passing failure; an old one is logged and let go.
- */
-async function settleRejected(events: any[]): Promise<void> {
-  const refused: { event: any; error: string }[] = [];
-  for (const ev of events) {
-    const errors = await postEvents([ev]).catch((e) => [errText(e)]);
-    if (errors.length) refused.push({ event: ev, error: errors[0] });
+async function mirrorMedia(client: TelegramClient, kept: { message: any; event: any }[]) {
+  for (const k of kept) {
+    const withMedia = await attachMedia(client, k.message, k.event);
+    if (withMedia) await postEvents([withMedia]).catch((e) => console.error("media post:", errText(e)));
   }
-  if (!refused.length) return; // it was a passing failure: everything is in now
-
-  const nowSec = Math.floor(Date.now() / 1000);
-  const hold = refused.filter((r) => youngEnough(r.event.message.date, nowSec, INGEST_RETRY_WINDOW_S));
-  for (const r of refused) {
-    console.error(
-      `telegram-poll: telegram-ingest rejected message ${r.event.message.id} of chat ${r.event.peer.id}: ${r.error}` +
-        (hold.includes(r) ? " — position held, will retry" : " — older than the retry window, dropped"),
-    );
-  }
-  if (hold.length) throw new Error(`telegram-ingest rejected ${hold.length} message(s); position not advanced`);
 }
 
 function toEvent(peer: any, message: any) {
@@ -369,18 +310,15 @@ function toEvent(peer: any, message: any) {
 }
 
 /** Delivered, or thrown — the caller must not save its position past a
- *  message telegram-ingest did not take. Returns the errors[] telegram-ingest
- *  reports inside its 200 for events it could not store (empty = all in). */
-async function postEvents(events: any[]): Promise<string[]> {
-  if (!events.length) return [];
+ *  message telegram-ingest did not take. */
+async function postEvents(events: any[]): Promise<void> {
+  if (!events.length) return;
   const res = await fetch(INGEST_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json", "x-ingest-secret": INGEST_SECRET },
     body: JSON.stringify(events.length === 1 ? events[0] : { events }),
-    signal: AbortSignal.timeout(INGEST_TIMEOUT_MS),
   });
   if (!res.ok) throw new Error(`telegram-ingest ${res.status}: ${(await res.text()).slice(0, 200)}`);
-  return ingestErrors(await res.json().catch(() => null));
 }
 
 function mediaType(message: any): string | null {
@@ -399,43 +337,17 @@ function mediaType(message: any): string | null {
   return "media";
 }
 
-/**
- * Download the attachments of messages that are already stored and re-deliver
- * each message with its bytes. Best effort: nothing in here may throw, hold the
- * position or outlast the run — a file is skipped when the deadline is near,
- * abandoned after MEDIA_TIMEOUT_MS, and not fetched at all when Telegram says it
- * is over MAX_MEDIA_BYTES.
- */
-async function fetchAttachments(client: TelegramClient, jobs: { message: any; event: any }[], deadline: number) {
-  for (const job of jobs) {
-    try {
-      const withMedia = await attachMedia(client, job.message, job.event, deadline);
-      if (withMedia) {
-        const errors = await postEvents([withMedia]).catch((e) => [errText(e)]);
-        if (errors.length) console.error(`telegram-poll: media post of message ${job.message.id}:`, errors[0]);
-      }
-    } catch (e) {
-      console.error(`telegram-poll: attachment of message ${job.message.id} skipped:`, errText(e));
-    }
-  }
-}
-
 /** A copy of the event carrying the file, or null when it cannot be had. */
-async function attachMedia(client: TelegramClient, message: any, event: any, deadline: number): Promise<any | null> {
+async function attachMedia(client: TelegramClient, message: any, event: any): Promise<any | null> {
   const kind = event.message.media_type;
   const doc = message.media?.document;
-  const verdict = mediaVerdict(message.media, MAX_MEDIA_BYTES);
-  if (!verdict.download) {
-    console.error(`telegram-poll: ${kind} on message ${message.id} not mirrored: ${verdict.size} bytes is over the limit`);
-    return null;
-  }
-  const budget = downloadBudget(Date.now(), deadline, MEDIA_TIMEOUT_MS);
-  if (!budget) {
-    console.error(`telegram-poll: ${kind} on message ${message.id} not mirrored: the run is out of time`);
+  const declared = doc?.size != null ? Number(doc.size) : 0;
+  if (declared > MAX_MEDIA_BYTES) {
+    console.error(`telegram-poll: ${kind} on message ${message.id} not mirrored: ${declared} bytes is over the limit`);
     return null;
   }
   try {
-    const buf = await withTimeout(client.downloadMedia(message, {}), budget, `download of message ${message.id}`);
+    const buf = await client.downloadMedia(message, {});
     if (!buf || !(buf as any).length || (buf as any).length > MAX_MEDIA_BYTES) return null;
     const named = (doc?.attributes || []).find((a: any) => a.className === "DocumentAttributeFilename");
     const audio = (doc?.attributes || []).find((a: any) => a.className === "DocumentAttributeAudio");

@@ -282,6 +282,13 @@
     "newContracts": "Новые контракты"
   },
   "crm": {
+    "filterLabels": {
+      "university": "Университет",
+      "status": "Статус",
+      "documents": "Документы",
+      "gks": "GKS",
+      "payments": "Оплата"
+    },
     "title": "Система управления",
     "studentManagement": "Управление студентами",
     "addStudent": "Добавить студента",
