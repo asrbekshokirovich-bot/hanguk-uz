@@ -123,6 +123,12 @@ Direct table access is allowed where RLS says so: `lead_contacts` (rw), `lead_dr
 `social_comments` (read), `lead_settings` (read all staff; write boss, templates also senior), `lead_alert_recipients`
 (boss), `reactivation_queues`, `lead_promises`, `lead_events`, `call_attempts` (read).
 
+On `leads` itself a direct update may change ordinary fields only. The engine's columns (stage, owner, timer, ladder,
+answered, wait, lost, pin, merge, priority, generation) are refused for `authenticated` by the trigger
+`trg_0_leads_v2_guard_columns`, whatever the role; they change through the RPCs above or from edge functions.
+`status` may be set directly only to `converted` together with `converted_to_student_id` (make-a-student flow).
+Hard delete is boss-only.
+
 ## 4. Settings (`lead_settings`, §3.7)
 `work_hours`, `timer_minutes`, `escalation_repeat_minutes`, `ladder`, `auto_reply{uz,ru}`, `forbidden_words`,
 `boss_alert_words`, `queue_daily_limit` (15, Q66), `chat_answers_phone_leads`, `control_line_10min` (Q64), `tv_warning`,

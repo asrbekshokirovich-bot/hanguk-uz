@@ -37,6 +37,8 @@ end $$;
 -- 2. v2 triggers ---------------------------------------------------------------
 drop trigger if exists trg_leads_v2_before_insert on public.leads;
 drop trigger if exists trg_leads_v2_after_insert on public.leads;
+drop trigger if exists trg_0_leads_v2_guard_columns on public.leads;
+drop function if exists public.fn_leads_v2_guard_columns();
 drop trigger if exists trg_a_leads_v2_before_update on public.leads;
 drop trigger if exists trg_leads_v2_after_update on public.leads;
 drop trigger if exists trg_leads_v2_on_message on public.messages;

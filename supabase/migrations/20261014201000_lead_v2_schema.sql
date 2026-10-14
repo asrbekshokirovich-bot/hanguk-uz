@@ -667,14 +667,10 @@ create policy "lead v2 update" on public.leads for update to authenticated
     or (public.fn_lead_has_any_role(array['call_operator']) and (owner_id is null or owner_id = auth.uid() or crm_generation = 'old'))
   );
 
+-- A hard delete takes the lead's events and call attempts with it, so only the
+-- boss may do it; operators close a lead with lead_lose (Yo'qotildi).
 create policy "lead v2 delete" on public.leads for delete to authenticated
-  using (
-    public.fn_lead_is_boss()
-    or (
-      public.fn_lead_has_any_role(array['call_operator'])
-      and (owner_id is null or owner_id = auth.uid())
-    )
-  );
+  using (public.fn_lead_is_boss());
 
 -- Child tables follow the lead: you see (and may touch) what you can see on
 -- the lead. The sub-select runs under the caller's own leads policy.

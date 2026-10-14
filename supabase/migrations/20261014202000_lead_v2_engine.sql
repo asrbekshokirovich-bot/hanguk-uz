@@ -881,6 +881,79 @@ create trigger trg_leads_v2_after_update
   after update on public.leads
   for each row execute function public.fn_leads_v2_after_update();
 
+-- The "lead v2 update" policy says WHICH rows a caller may update, not which
+-- columns. The columns below belong to the engine: they change only through
+-- the lead_* RPCs (security definer, so they run as the function owner) or
+-- from edge functions (service_role). A browser writing them straight through
+-- PostgREST runs as `authenticated` and is refused, whatever its role: it
+-- could otherwise stop a timer (due_at = null) without answering, skip the 5
+-- mandatory fields (stage), move the ladder, pin, or take a lead.
+-- status may still be set to 'converted' with converted_to_student_id: that is
+-- the "make a student" flow (LeadsContext.convertToStudent).
+-- SECURITY INVOKER on purpose: current_user must be the caller.
+create or replace function public.fn_leads_v2_guard_columns()
+returns trigger
+language plpgsql
+security invoker
+set search_path = public, pg_catalog
+as $$
+begin
+  if current_user not in ('authenticated', 'anon') then
+    return new;
+  end if;
+
+  if new.stage is distinct from old.stage
+     or new.crm_generation is distinct from old.crm_generation
+     or new.owner_id is distinct from old.owner_id
+     or new.first_contact_at is distinct from old.first_contact_at
+     or new.timer_kind is distinct from old.timer_kind
+     or new.timer_start_at is distinct from old.timer_start_at
+     or new.due_at is distinct from old.due_at
+     or new.first_due_at is distinct from old.first_due_at
+     or new.last_escalated_at is distinct from old.last_escalated_at
+     or new.escalation_count is distinct from old.escalation_count
+     or new.last_client_msg_at is distinct from old.last_client_msg_at
+     or new.last_operator_msg_at is distinct from old.last_operator_msg_at
+     or new.answered_at is distinct from old.answered_at
+     or new.answered_by is distinct from old.answered_by
+     or new.answer_kind is distinct from old.answer_kind
+     or new.attempt_no is distinct from old.attempt_no
+     or new.last_attempt_at is distinct from old.last_attempt_at
+     or new.next_attempt_at is distinct from old.next_attempt_at
+     or new.ladder_state is distinct from old.ladder_state
+     or new.wait_until is distinct from old.wait_until
+     or new.wait_reason is distinct from old.wait_reason
+     or new.lost_reason is distinct from old.lost_reason
+     or new.lost_competitor is distinct from old.lost_competitor
+     or new.lost_at is distinct from old.lost_at
+     or new.lost_by is distinct from old.lost_by
+     or new.pinned_at is distinct from old.pinned_at
+     or new.pinned_by is distinct from old.pinned_by
+     or new.merged_into_id is distinct from old.merged_into_id
+     or new.matched_student_id is distinct from old.matched_student_id
+     or new.priority_score is distinct from old.priority_score
+     or new.stage_changed_at is distinct from old.stage_changed_at
+     or new.reactivation_queue is distinct from old.reactivation_queue
+  then
+    raise exception 'not_allowed' using detail = 'engine_column', errcode = '42501';
+  end if;
+
+  if new.status is distinct from old.status
+     and not (new.status = 'converted' and new.converted_to_student_id is not null) then
+    raise exception 'not_allowed' using detail = 'status', errcode = '42501';
+  end if;
+
+  return new;
+end;
+$$;
+
+-- "trg_0_..." sorts before "trg_a_...": the guard sees the caller's own
+-- change, before fn_leads_v2_before_update derives stage/timers from status.
+drop trigger if exists trg_0_leads_v2_guard_columns on public.leads;
+create trigger trg_0_leads_v2_guard_columns
+  before update on public.leads
+  for each row execute function public.fn_leads_v2_guard_columns();
+
 ----------------------------------------------------------------------
 -- 5. Messages: the client wrote / we answered (spec §4, §1.4)
 ----------------------------------------------------------------------
