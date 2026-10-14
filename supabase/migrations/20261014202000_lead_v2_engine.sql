@@ -500,6 +500,9 @@ declare
   v_ans_kind text;
   t_kind text; t_start timestamptz; t_due timestamptz;
   d_kind text; d_start timestamptz; d_due timestamptz;
+  v_timer_from_d boolean := false;
+  v_wait_until date; v_wait_reason text;
+  v_student uuid;
   v_tbl text;
 begin
   if p_keep is null or p_drop is null or p_keep = p_drop then return; end if;
@@ -537,8 +540,24 @@ begin
   end if;
   if d_due is not null and (t_due is null or d_due < t_due) then
     t_kind := d_kind; t_start := d_start; t_due := d_due;
+    v_timer_from_d := true;
   end if;
-  if v_stage in ('student', 'lost') then t_kind := null; t_start := null; t_due := null; end if;
+  -- a student's phone is the manager's business, not a sales timer (as fn_lead_check_student)
+  v_student := coalesce(k.matched_student_id, d.matched_student_id);
+  if v_stage in ('student', 'lost') or v_student is not null then
+    t_kind := null; t_start := null; t_due := null;
+  end if;
+
+  -- Kutish: the date and reason travel with the waiting card (both waiting:
+  -- the earlier date). Without this a merged 'waiting' card had no date and
+  -- never came back to BUGUN.
+  if v_stage = 'waiting' then
+    if k.stage = 'waiting' and (d.stage <> 'waiting' or d.wait_until is null or k.wait_until <= d.wait_until) then
+      v_wait_until := k.wait_until; v_wait_reason := k.wait_reason;
+    else
+      v_wait_until := d.wait_until; v_wait_reason := d.wait_reason;
+    end if;
+  end if;
 
   update public.leads set
     phone = coalesce(k.phone, d.phone),
@@ -596,6 +615,21 @@ begin
     pinned_by = coalesce(k.pinned_by, d.pinned_by),
     answered_at = v_answered, answered_by = v_ans_by, answer_kind = v_ans_kind,
     stage = v_stage,
+    wait_until = v_wait_until, wait_reason = v_wait_reason,
+    -- lost details only on a card that is still lost
+    lost_reason = case when v_stage = 'lost' then coalesce(k.lost_reason, d.lost_reason) end,
+    lost_competitor = case when v_stage = 'lost' then coalesce(k.lost_competitor, d.lost_competitor) end,
+    lost_at = case when v_stage = 'lost' then coalesce(k.lost_at, d.lost_at) end,
+    lost_by = case when v_stage = 'lost' then coalesce(k.lost_by, d.lost_by) end,
+    matched_student_id = v_student,
+    -- the ladder goes with the timer that won
+    attempt_no = case when v_timer_from_d and t_kind = 'ladder' then d.attempt_no else k.attempt_no end,
+    ladder_state = case when v_timer_from_d and t_kind = 'ladder' then d.ladder_state
+                        when v_stage in ('student', 'lost') and k.ladder_state = 'running' then 'stopped'
+                        else k.ladder_state end,
+    next_attempt_at = case when v_timer_from_d and t_kind = 'ladder' then d.next_attempt_at
+                           when v_stage in ('student', 'lost') then null
+                           else k.next_attempt_at end,
     timer_kind = t_kind, timer_start_at = t_start, due_at = t_due,
     last_escalated_at = case when t_due is distinct from k.due_at then null else k.last_escalated_at end,
     next_action_at = coalesce(k.next_action_at, d.next_action_at),
@@ -643,6 +677,9 @@ begin
 
   perform public.fn_lead_log(p_keep, 'merge', p_actor, jsonb_build_object('merged', p_drop, 'name', d.full_name));
   perform set_config('lead_v2.merging', '', true);
+
+  -- the phone that came with the dropped card may be a student's
+  perform public.fn_lead_check_student(p_keep);
 end;
 $$;
 
