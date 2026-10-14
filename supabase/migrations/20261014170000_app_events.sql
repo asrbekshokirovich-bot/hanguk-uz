@@ -48,27 +48,25 @@ create index if not exists app_events_received_idx on public.app_events (install
 alter table public.app_installs enable row level security;
 alter table public.app_events enable row level security;
 
+-- Staff who work with leads and students (as on public.leads), investors never.
+create or replace function public.app_events_staff_can_read() returns boolean
+language sql stable security definer set search_path to 'pg_catalog', 'public' as $$
+  select not public.is_investor() and exists (
+    select 1 from public.user_roles r
+     where r.user_id = auth.uid()
+       and r.role = any (array['owner', 'admin', 'call_operator', 'document_handler']::public.app_role[]));
+$$;
+
+revoke all on function public.app_events_staff_can_read() from public, anon;
+grant execute on function public.app_events_staff_can_read() to authenticated;
+
 drop policy if exists "app_installs_staff_read" on public.app_installs;
 create policy "app_installs_staff_read" on public.app_installs
-  for select to authenticated
-  using (
-    not public.is_investor() and exists (
-      select 1 from public.user_roles r
-       where r.user_id = (select auth.uid())
-         and r.role = any (array['owner', 'admin', 'call_operator', 'document_handler']::public.app_role[])
-    )
-  );
+  for select to authenticated using (public.app_events_staff_can_read());
 
 drop policy if exists "app_events_staff_read" on public.app_events;
 create policy "app_events_staff_read" on public.app_events
-  for select to authenticated
-  using (
-    not public.is_investor() and exists (
-      select 1 from public.user_roles r
-       where r.user_id = (select auth.uid())
-         and r.role = any (array['owner', 'admin', 'call_operator', 'document_handler']::public.app_role[])
-    )
-  );
+  for select to authenticated using (public.app_events_staff_can_read());
 
 revoke all on public.app_installs from anon, authenticated;
 revoke all on public.app_events from anon, authenticated;
@@ -125,7 +123,7 @@ begin
          left(nullif(btrim(coalesce(x ->> 'screen', '')), ''), 80),
          case when jsonb_typeof(x -> 'props') = 'object' and length((x -> 'props')::text) <= 2000
               then x -> 'props' else '{}'::jsonb end,
-         case when (x ->> 'at') ~ '^\d{4}-\d{2}-\d{2}T'
+         case when (x ->> 'at') ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}T'
                    and (x ->> 'at')::timestamptz between now() - interval '30 days' and now() + interval '5 minutes'
               then (x ->> 'at')::timestamptz else now() end
     from jsonb_array_elements(p_events) as x
@@ -184,11 +182,7 @@ declare
   v_from timestamptz := now() - make_interval(days => greatest(1, least(coalesce(p_days, 7), 90)));
   v_out  jsonb;
 begin
-  if public.is_investor() or not exists (
-    select 1 from public.user_roles r
-     where r.user_id = auth.uid()
-       and r.role = any (array['owner', 'admin', 'call_operator', 'document_handler']::public.app_role[])
-  ) then
+  if not public.app_events_staff_can_read() then
     raise exception 'forbidden' using errcode = '42501';
   end if;
 
@@ -235,5 +229,5 @@ begin
 end;
 $$;
 
-revoke all on function public.app_events_summary(int) from public;
+revoke all on function public.app_events_summary(int) from public, anon;
 grant execute on function public.app_events_summary(int) to authenticated;
