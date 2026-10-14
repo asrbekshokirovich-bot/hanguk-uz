@@ -41,6 +41,8 @@ type StudentProfile = Tables<'profiles'> & {
   documents?: Tables<'documents'>[];
   /** Set for a student with no application yet — see onSetDocsReady below. */
   docsReady?: boolean;
+  /** Any payment received (or nothing owed) — see paymentTint below. */
+  hasPaid?: boolean;
 };
 
 interface DocumentsContentProps {
@@ -99,6 +101,20 @@ const ADVANCED_STATUSES = new Set([
 // ---------------------------------------------------------------------------
 
 const CONSULTANTS = ['Aziz K.', 'Madina T.', 'Sitora N.'];
+
+// A contracted student's card is tinted by payment alone, with no label:
+// amber while their documents are only being collected (contract signed,
+// nothing paid yet), green once they have paid and work on them starts.
+// No contract yet → the plain card.
+function paymentTint(student: Pick<StudentProfile, 'contract_date' | 'hasPaid'>): 'paid' | 'unpaid' | null {
+  if (!student.contract_date) return null;
+  return student.hasPaid ? 'paid' : 'unpaid';
+}
+
+const TINT_CLASS: Record<'paid' | 'unpaid', string> = {
+  paid: 'border-success/50 bg-success/15',
+  unpaid: 'border-warning/50 bg-warning/15',
+};
 
 function hashInt(seed: string) {
   let hash = 0;
@@ -334,8 +350,10 @@ export default function DocumentsContent({ students, loading, currentLang, onUpd
               <Card
                 key={p.student.user_id}
                 onClick={() => setSelectedId(p.student.user_id)}
+                data-tint={paymentTint(p.student) ?? 'none'}
                 className={cn(
                   'cursor-pointer space-y-2 p-3 transition-all hover:shadow-raised',
+                  paymentTint(p.student) && TINT_CLASS[paymentTint(p.student)!],
                   selected?.student.user_id === p.student.user_id && 'ring-2 ring-primary',
                 )}
               >
