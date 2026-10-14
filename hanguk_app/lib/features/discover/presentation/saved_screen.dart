@@ -63,7 +63,7 @@ class SavedScreen extends ConsumerWidget {
                         else ...[
                           const ColoredBox(color: FdColors.ink, child: SizedBox(height: 1.5)),
                           for (final u in saved)
-                            _SavedRow(
+                            SavedRow(
                               university: u,
                               onOpen: () => context.push(universityPath(u.institutionId)),
                               onUnsave: () => ref.read(savedUniversitiesProvider.notifier).remove(u.institutionId),
@@ -72,7 +72,7 @@ class SavedScreen extends ConsumerWidget {
                         if (saved.length >= 2)
                           Padding(
                             padding: const EdgeInsets.fromLTRB(18, 18, 18, 0),
-                            child: _CompareCard(
+                            child: SavedCompareCard(
                               title: saved.length >= 3 ? l.fdSavedCompareThree : l.fdSavedCompareTwo,
                               onTap: () => context.push(kDiscoverComparePath, extra: firstThree),
                             ),
@@ -95,8 +95,8 @@ class SavedScreen extends ConsumerWidget {
   }
 }
 
-class _SavedRow extends StatelessWidget {
-  const _SavedRow({required this.university, required this.onOpen, required this.onUnsave});
+class SavedRow extends StatelessWidget {
+  const SavedRow({required this.university, required this.onOpen, required this.onUnsave});
 
   final CatalogUniversity university;
   final VoidCallback onOpen;
@@ -163,8 +163,8 @@ class _SavedRow extends StatelessWidget {
 }
 
 /// "Uchalasini taqqoslash": the dashed card that opens screen 09.
-class _CompareCard extends StatelessWidget {
-  const _CompareCard({required this.title, required this.onTap});
+class SavedCompareCard extends StatelessWidget {
+  const SavedCompareCard({required this.title, required this.onTap});
 
   final String title;
   final VoidCallback onTap;
