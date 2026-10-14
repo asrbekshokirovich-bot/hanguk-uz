@@ -20,7 +20,7 @@ select proname, prosrc from pg_proc
 -- triggers on leads and messages (v2 drops two, adds five)
 select c.relname, t.tgname from pg_trigger t join pg_class c on c.oid = t.tgrelid
  where c.relname in ('leads','messages') and not t.tgisinternal order by 1, 2;
--- the policies on leads (v2 replaces all four)
+-- the policies on leads (v2 replaces the four "Staff can ..." ones; deny_investor_all stays)
 select policyname, cmd, qual from pg_policies where tablename = 'leads';
 -- cron jobs and the vault secret the jobs need
 select jobname, schedule from cron.job order by 1;
@@ -32,6 +32,19 @@ select column_name from information_schema.columns
 select enum_range(null::public.app_role);
 ```
 If a function body differs from the repo, **merge the live change into the migration file first**, then apply.
+
+**Pre-check run on 2026-10-14 (read-only, project `lysjdtyanhdfphqyijsr`)** — repeat it on the day, the live database moves:
+- The bodies of `fn_after_hours_reply_texts`, `fn_after_hours_reply_text`, `fn_queue_after_hours_reply`, `fn_is_automatic_outgoing`,
+  `fn_lead_sla_scan` and `fn_leads_qualified_guard` are identical to the copies in the rollback script (comments and whitespace aside),
+  so a rollback restores exactly what is live.
+- None of the v2 columns or tables exists yet, except `lead_alert_recipients`, `student_phones`, `communication_identities` and
+  `lead_field_suggestions`, which v2 expects to exist. `app_role` has no `lead_senior` yet; it does have `investor`.
+- `leads` also has a RESTRICTIVE policy `deny_investor_all`; v2 leaves it alone and it keeps applying on top of the v2 policies.
+- Live triggers not in the test stand-in (`trg_lead_converted_attach`, `trg_orbit_signal`, `trg_set_default_intake` on leads;
+  `trg_capture_phone_from_message`, `trg_link_message_identity`, `trg_mark_answered_on_outgoing`, … on messages) were read: every one
+  that writes to `leads` is security definer, so `trg_0_leads_v2_guard_columns` does not block them.
+- The last applied migration was `20261014170000`; `main`'s `20261014180000` was not applied yet. Apply whatever `main` has before the
+  v2 files (they are numbered after it).
 
 For every edge function listed as *changed* in `docs/lead-module-v2.md` §5, read the live source (dashboard → Edge Functions, or MCP `get_edge_function`) and diff it with the repo copy **before merging to `main`** — merging deploys it.
 
