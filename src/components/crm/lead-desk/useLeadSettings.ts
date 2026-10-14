@@ -3,7 +3,7 @@ import { fetchSettings } from './api';
 import type { LeadSettings } from './types';
 
 /**
- * What the database seeds (20261014201000_lead_v2_schema.sql). Used until the
+ * What the database seeds (20261014221000_lead_v2_schema.sql). Used until the
  * settings arrive and for any key an admin has not set, so the desk never
  * renders against `undefined`.
  */

@@ -65,12 +65,12 @@ The order is **SQL 1–3 → deploy the code → SQL 4 → SQL 5**: the new page
 jobs and the old-lead move should only start once the code that serves them is live.
 
 1. Apply with the MCP `apply_migration` (or the SQL editor), one file at a time, checking the result of each:
-   1. `20261014200000_lead_v2_role_lead_senior.sql`
-   2. `20261014201000_lead_v2_schema.sql`
-   3. `20261014202000_lead_v2_engine.sql`  ← from here the old alert is OFF
+   1. `20261014220000_lead_v2_role_lead_senior.sql`
+   2. `20261014221000_lead_v2_schema.sql`
+   3. `20261014222000_lead_v2_engine.sql`  ← from here the old alert is OFF
 2. Merge the branch to `main`: CI deploys the edge functions; your usual hosting deploys the frontend. Check the function logs.
-3. `20261014203000_lead_v2_jobs.sql` — starts the cron jobs (needs the vault secret; it warns and skips the HTTP jobs if it is missing).
-4. `20261014204000_lead_v2_migrate_old_leads.sql` — moves every existing lead to Baza; idempotent; prints a notice with the counts
+3. `20261014223000_lead_v2_jobs.sql` — starts the cron jobs (needs the vault secret; it warns and skips the HTTP jobs if it is missing).
+4. `20261014224000_lead_v2_migrate_old_leads.sql` — moves every existing lead to Baza; idempotent; prints a notice with the counts
    (compare with the 554 active leads and the 379 + 84 lost).
 5. Give the new role to the senior operator; add the Telegram recipients in Sozlamalar.
 

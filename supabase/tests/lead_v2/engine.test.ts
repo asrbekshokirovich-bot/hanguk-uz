@@ -310,7 +310,11 @@ describe('no-answer ladder (spec §9)', () => {
       expect(a.answer_kind).toBe('call_attempt');
     }
     // attempt 1 -> ~+15 min from now (shifted into hours); attempt 2 further out
-    expect(new Date(seen[1].next_attempt_at).getTime()).toBeGreaterThan(new Date(seen[0].next_attempt_at).getTime());
+    // (off hours both steps land on the next opening, 09:00, so they can be equal)
+    const [{ open }] = await h.q<{ open: boolean }>(`select fn_lead_in_hours(now()) as open`);
+    const [t1, t2] = [new Date(seen[0].next_attempt_at).getTime(), new Date(seen[1].next_attempt_at).getTime()];
+    if (open) expect(t2).toBeGreaterThan(t1);
+    else expect(t2).toBeGreaterThanOrEqual(t1);
 
     const last = await h.as<any>(op, `select lead_record_call($1, 'no_answer', '{}'::jsonb) as r`, [l.id]);
     expect(last[0].r.lost).toBe(true);
@@ -635,7 +639,14 @@ describe('the desk (spec §3.1)', () => {
     expect(a.timer_kind).toBe('first');
     expect(a.first_contact_at).not.toBeNull();
     const rows = await h.as<any>(senior, `select bucket from lead_desk() where id = $1`, [o.id]);
-    expect(rows[0].bucket).toBe('hozir');
+    // In working hours it is due now (HOZIR); off hours it waits for 09:00 (BUGUN after midnight, KEYIN before).
+    const [{ open }] = await h.q<{ open: boolean }>(`select fn_lead_in_hours(now()) as open`);
+    if (open) expect(rows[0].bucket).toBe('hozir');
+    else {
+      expect(['bugun', 'keyin']).toContain(rows[0].bucket);
+      const [{ next }] = await h.q<{ next: Date }>(`select fn_lead_shift_into_hours(now()) as next`);
+      expect(new Date(a.timer_start_at).getTime()).toBe(new Date(next).getTime());
+    }
   });
 });
 
