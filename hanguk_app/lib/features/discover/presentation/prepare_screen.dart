@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/analytics/app_events.dart';
 import '../../../design_system/seoul_night/seoul_night.dart' show SeoulGradients, SeoulColors, SeoulRadii;
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/lucide.dart';
@@ -20,10 +21,11 @@ class PrepareScreen extends StatelessWidget {
 
   void _signIn(BuildContext context) => context.push('/login', extra: const {'magic_code': true});
 
-  void _push(BuildContext context, Widget screen) =>
-      Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => screen));
+  void _push(BuildContext context, Widget screen, String name) =>
+      Navigator.of(context).push(MaterialPageRoute<void>(settings: RouteSettings(name: name), builder: (_) => screen));
 
   void _openChat(BuildContext context) {
+    AppEvents.track('screen_view', screen: 'ai_chat');
     const corners = BorderRadius.vertical(top: Radius.circular(SeoulRadii.hero));
     showModalBottomSheet<void>(
       context: context,
@@ -79,7 +81,7 @@ class PrepareScreen extends StatelessWidget {
                 title: l.fdPrepareStudyPlanTitle,
                 body: l.fdPrepareStudyPlanBody,
                 progress: 0,
-                onTap: () => signedIn ? _push(context, const StudyPlanBuilderScreen()) : _signIn(context),
+                onTap: () => signedIn ? _push(context, const StudyPlanBuilderScreen(), 'study_plan') : _signIn(context),
               ),
               const SizedBox(height: 14),
               _ToolCard(
@@ -88,7 +90,7 @@ class PrepareScreen extends StatelessWidget {
                 tag: l.fdPrepareNew,
                 title: l.fdPrepareInterviewTitle,
                 body: l.fdPrepareInterviewBody,
-                onTap: () => signedIn ? _push(context, const InterviewScreen()) : _signIn(context),
+                onTap: () => signedIn ? _push(context, const InterviewScreen(), 'interview') : _signIn(context),
               ),
               const SizedBox(height: 14),
               _AskRow(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/analytics/app_events.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/lucide.dart';
@@ -91,7 +92,11 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                       onTap: () => context.pop(),
                     ),
                     const SizedBox(width: 8),
-                    Expanded(child: _Field(controller: _text, focus: _focus, hint: l.fdSearchHint, onChanged: _set, onSubmit: (q) => ref.read(recentSearchesProvider.notifier).add(q))),
+                    Expanded(child: _Field(controller: _text, focus: _focus, hint: l.fdSearchHint, onChanged: _set, onSubmit: (q) {
+                          // The words are not sent, only that a search was made.
+                          AppEvents.track('search', props: {'chars': q.trim().length});
+                          ref.read(recentSearchesProvider.notifier).add(q);
+                        })),
                   ],
                 ),
               ),

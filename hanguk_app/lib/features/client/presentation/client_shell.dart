@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/analytics/app_events.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/lucide.dart';
 import '../../../l10n/app_localizations.dart';
@@ -40,6 +41,13 @@ class _ClientShellState extends State<ClientShell> {
   }
 
   void _go(int i) => setState(() {
+    if (i != _tab) {
+      AppEvents.track(
+        'tab_open',
+        screen: 'client',
+        props: {'tab': const ['universities', 'map', 'prepare', 'application', 'documents'][i]},
+      );
+    }
     _built.add(i);
     _tab = i;
   });

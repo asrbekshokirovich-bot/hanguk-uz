@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../../../core/analytics/app_events.dart';
 
 /// The universities a student kept with ♡ on the card stack (design screen
 /// 03) — the "Saqlanganlar" list of screen 16. Kept on the phone, in the same
@@ -34,11 +35,13 @@ class SavedUniversitiesNotifier extends Notifier<List<String>> {
   /// Newest first; saving one already kept does nothing.
   void save(String institutionId) {
     if (state.contains(institutionId)) return;
+    AppEvents.track('university_save', props: {'institution_id': institutionId});
     state = [institutionId, ...state];
     _persist();
   }
 
   void remove(String institutionId) {
+    if (state.contains(institutionId)) AppEvents.track('university_unsave', props: {'institution_id': institutionId});
     state = [for (final id in state) if (id != institutionId) id];
     _persist();
   }

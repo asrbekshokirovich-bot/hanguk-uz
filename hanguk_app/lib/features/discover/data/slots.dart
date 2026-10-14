@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../../../core/analytics/app_events.dart';
 
 /// How many universities the student narrows the choice down to (design
 /// screens 06–08).
@@ -61,9 +62,11 @@ class SlotsNotifier extends Notifier<List<String?>> {
     next[index] = institutionId;
     state = next;
     _persist();
+    AppEvents.track('slot_set', props: {'institution_id': institutionId, 'slot': index + 1});
   }
 
   void remove(String institutionId) {
+    if (state.contains(institutionId)) AppEvents.track('slot_remove', props: {'institution_id': institutionId});
     state = [for (final id in state) id == institutionId ? null : id];
     _persist();
   }
@@ -73,6 +76,7 @@ class SlotsNotifier extends Notifier<List<String?>> {
     next[i] = id;
     state = next;
     _persist();
+    AppEvents.track('slot_set', props: {'institution_id': id, 'slot': i + 1});
   }
 
   Future<void> _persist() async {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../core/analytics/app_events.dart';
 import '../../../../core/config/contact_links.dart';
 import '../../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../../design_system/seoul_night/widgets/lucide.dart';
@@ -172,7 +173,10 @@ class ConsultantRow extends StatelessWidget {
             size: 36,
             radius: 10,
             iconSize: 15,
-            onTap: () => _open(ContactLinks.telegramDirectUri),
+            onTap: () {
+              AppEvents.track('contact_tap', screen: 'application', props: {'channel': 'telegram'});
+              _open(ContactLinks.telegramDirectUri);
+            },
           ),
           const SizedBox(width: 8),
           HardIconButton(
@@ -183,7 +187,10 @@ class ConsultantRow extends StatelessWidget {
             iconSize: 15,
             fill: FdColors.lime,
             iconColor: FdColors.onLime,
-            onTap: () => _open(ContactLinks.phoneUri),
+            onTap: () {
+              AppEvents.track('contact_tap', screen: 'application', props: {'channel': 'phone'});
+              _open(ContactLinks.phoneUri);
+            },
           ),
         ],
       ),

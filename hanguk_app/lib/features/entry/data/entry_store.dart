@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../../../core/analytics/app_events.dart';
 
 /// The four languages offered on the first screen, in the order the owner
 /// gave them: Uzbek, English, Korean, Russian.
@@ -88,6 +89,7 @@ class EntryNotifier extends Notifier<EntryState> {
 
   Future<void> setLanguage(String code) async {
     if (!kEntryLanguages.contains(code)) return;
+    if (state.languageCode != code) AppEvents.track('language_set', props: {'language': code});
     state = state.copyWith(languageCode: code);
     await EntryStore.saveLanguage(code);
   }

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../design_system/seoul_night/seoul_night.dart';
+import '../analytics/app_events.dart';
 import '../../l10n/app_localizations.dart';
 import '../../design_system/seoul_night/seoul_night_gallery.dart';
 import '../../features/account/presentation/account_screen.dart';
@@ -324,6 +325,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
   return GoRouter(
     initialLocation: '/',
+    observers: [AppEventsNavigatorObserver()],
     routes: <RouteBase>[
       ...$appRoutes,
       ..._accountRoutes(),

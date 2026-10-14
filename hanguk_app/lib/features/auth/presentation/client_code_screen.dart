@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../core/analytics/app_events.dart';
 import '../../../core/config/contact_links.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
@@ -88,6 +89,7 @@ class _ClientCodeScreenState extends ConsumerState<ClientCodeScreen> {
       _loading = false;
       _retryNotice = null;
     });
+    AppEvents.track('sign_in', props: {'result': result.error?.name ?? 'ok'});
     if (result.error case final error?) {
       setState(() => _error = authErrorMessage(l, error));
       if (result.transient) setState(() => _offerGuest = true);
@@ -99,6 +101,7 @@ class _ClientCodeScreenState extends ConsumerState<ClientCodeScreen> {
   Future<void> _scan() async {
     if (_loading) return;
     final code = await QrScanScreen.open(context);
+    AppEvents.track('qr_scan', props: {'result': code == null ? 'closed' : 'code'});
     if (code == null || !mounted) return;
     _ctrl.text = code;
     setState(() => _error = null);
@@ -106,6 +109,7 @@ class _ClientCodeScreenState extends ConsumerState<ClientCodeScreen> {
   }
 
   Future<void> _call() async {
+    AppEvents.track('contact_tap', screen: 'client_code', props: {'channel': 'phone'});
     await launchUrl(ContactLinks.phoneUri, mode: LaunchMode.externalApplication);
   }
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/analytics/app_events.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/hard_slider.dart';
@@ -270,7 +271,23 @@ class FilterBoardScreen extends ConsumerWidget {
               FdBottomBar(
                 child: HardButton(
                   label: l.fdShowUniversities(results.length),
-                  onPressed: results.isEmpty ? null : () => context.push(kDiscoverResultsPath),
+                  onPressed: results.isEmpty
+                      ? null
+                      : () {
+                          AppEvents.track(
+                            'filter_apply',
+                            props: {
+                              'field': f.field,
+                              'regions': f.regions.isEmpty ? null : (f.regions.toList()..sort()).join(','),
+                              'degree': f.degree,
+                              'topik': f.topik,
+                              'type': f.type,
+                              'max_price': f.maxPrice,
+                              'results': results.length,
+                            },
+                          );
+                          context.push(kDiscoverResultsPath);
+                        },
                 ),
               ),
             ],
