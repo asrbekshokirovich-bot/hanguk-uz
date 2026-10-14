@@ -153,8 +153,16 @@ subprojects {
 // so legacy plugins compile under modern Kotlin. The setting is additive —
 // plugins that already specify 1.9+ are unaffected; plugins that specify
 // 1.6/1.7 get bumped.
+//
+// Exception: plugins whose sources need the Kotlin 2 (K2) compiler. Pinning
+// them to 1.9 selects the old compiler, which rejects their code
+// (mobile_scanner 7.4: "Type mismatch: inferred type is Bitmap? but Bitmap
+// was expected", a smart cast only K2 makes). They keep the Kotlin
+// compiler's own default.
 // ---------------------------------------------------------------------------
+val needsKotlin2 = setOf("mobile_scanner")
 subprojects {
+    if (name in needsKotlin2) return@subprojects
     tasks.withType(
         org.jetbrains.kotlin.gradle.tasks.KotlinCompile::class.java
     ).configureEach {
