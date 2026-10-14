@@ -122,7 +122,7 @@ export function NewSessionDialog({
                 <SelectItem value="none">{t('study.noSpecificUniversity', 'No specific university')}</SelectItem>
                 {universities.map(uni => (
                   <SelectItem key={uni.id} value={uni.id}>
-                    {uni.name_en || uni.name_ko || uni.name_uz}
+                    {uni.name_en || uni.name_ko}
                   </SelectItem>
                 ))}
               </SelectContent>

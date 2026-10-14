@@ -57,7 +57,7 @@ export function SessionHistoryList({
 
   const getUniversityName = (session: StudyPlanSession) => {
     if (!session.university) return null;
-    return session.university.name_en || session.university.name_ko || session.university.name_uz;
+    return session.university.name_en || session.university.name_ko;
   };
 
   if (isLoading) {
