@@ -271,6 +271,7 @@ export default function CRMPortal() {
       onUpdateDocumentStatus={updateDocumentStatus}
       currentLang={currentLang}
       isDocumentHandler={isDocumentHandler}
+      isAdmin={isAdmin}
       onRefresh={refetchStudents}
     />
   ) : null;
@@ -343,6 +344,8 @@ export default function CRMPortal() {
               onUpdateDocumentStatus={updateDocumentStatus}
               onUpdateApplicationStatus={updateApplicationStatus}
               onSetDocsReady={setDocsReady}
+              isAdmin={isAdmin}
+              onDocumentsChanged={refetchStudents}
             />
           </SafeSuspense>
         );

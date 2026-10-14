@@ -31,7 +31,7 @@ export const STUDENT_DOC_SLOTS: Record<string, { uz: string; en: string; ru: str
   diploma_apostille: { uz: 'Diplom / attestat apostili', en: 'Diploma / certificate apostille', ru: 'Апостиль диплома / аттестата' },
   diploma_supplement: { uz: 'Diplom ilovasi', en: 'Diploma supplement', ru: 'Приложение к диплому' },
   marriage_certificate: { uz: 'Nikoh guvohnomasi', en: 'Marriage certificate', ru: 'Свидетельство о браке' },
-  language_certificate: { uz: 'Til sertifikati', en: 'Language certificate', ru: 'Языковой сертификат' },
+  language_certificate: { uz: 'IELTS sertifikati', en: 'IELTS certificate', ru: 'Сертификат IELTS' },
   topik_certificate: { uz: 'TOPIK sertifikati', en: 'TOPIK certificate', ru: 'Сертификат TOPIK' },
   death_certificate: { uz: "O'lim guvohnomasi", en: 'Death certificate', ru: 'Свидетельство о смерти' },
 };

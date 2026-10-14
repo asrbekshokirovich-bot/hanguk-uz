@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState, type ChangeEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -25,10 +25,16 @@ import {
   CheckCircle2,
   ArrowRight,
   Sparkles,
+  Eye,
+  Upload,
+  RefreshCw,
+  Trash2,
+  Languages,
 } from 'lucide-react';
 import { Tables } from '@/integrations/supabase/types';
 import { cn } from '@/lib/utils';
-import { buildApplicationPack, slotLabel } from '@/lib/studentDocSlots';
+import { buildApplicationPack, slotLabel, type ResolvedSlot } from '@/lib/studentDocSlots';
+import { deleteStudentDocument, openStudentDocument, uploadStudentDocument } from '@/lib/staffDocumentActions';
 
 type StudentProfile = Tables<'profiles'> & {
   applications?: (Tables<'applications'> & { university?: Tables<'institutions'> })[];
@@ -52,6 +58,14 @@ interface DocumentsContentProps {
    * advance for them.
    */
   onSetDocsReady?: (studentId: string, ready: boolean) => Promise<{ error: unknown }>;
+  /**
+   * Only an admin (owner/admin role) verifies documents, and only an admin
+   * uploads, replaces or deletes a file on the student's behalf. Every other
+   * staff role sees the pack read-only.
+   */
+  isAdmin?: boolean;
+  /** Called after an admin upload/replace/delete so the parent refetches. */
+  onDocumentsChanged?: () => void | Promise<void>;
 }
 
 type PackFilter = 'all' | 'application' | 'visa';
@@ -104,7 +118,7 @@ function fmtDate(iso: string | null | undefined, lang: string) {
 }
 
 // ===========================================================================
-export default function DocumentsContent({ students, loading, currentLang, onUpdateDocumentStatus, onUpdateApplicationStatus, onSetDocsReady }: DocumentsContentProps) {
+export default function DocumentsContent({ students, loading, currentLang, onUpdateDocumentStatus, onUpdateApplicationStatus, onSetDocsReady, isAdmin = false, onDocumentsChanged }: DocumentsContentProps) {
   const [search, setSearch] = useState('');
   const [packFilter, setPackFilter] = useState<PackFilter>('all');
   const [stageFilter, setStageFilter] = useState<Stage | 'all'>('all');
@@ -116,6 +130,11 @@ export default function DocumentsContent({ students, loading, currentLang, onUpd
   // Staff must confirm before a student is pushed to the next stage.
   const [confirmAdvanceOpen, setConfirmAdvanceOpen] = useState(false);
   const [busySlot, setBusySlot] = useState<string | null>(null);
+  // Admin file actions: the slot a picked file goes into, and the row awaiting
+  // a delete confirmation.
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadTarget, setUploadTarget] = useState<{ studentId: string; slotId: string; existing?: Tables<'documents'> } | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<Tables<'documents'> | null>(null);
 
   const packs = useMemo(() => {
     return students.map((s) => {
@@ -191,6 +210,45 @@ export default function DocumentsContent({ students, loading, currentLang, onUpd
     if (error) toast.error("Nimadir xato ketdi");
     else toast.success("Talaba qayta yuklashi so'raldi");
   };
+  const pickFile = (studentId: string, slotId: string, existing?: Tables<'documents'>) => {
+    setUploadTarget({ studentId, slotId, existing });
+    fileInputRef.current?.click();
+  };
+  const handleFilePicked = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    const target = uploadTarget;
+    setUploadTarget(null);
+    if (!file || !target) return;
+    setBusySlot(target.existing?.id ?? target.slotId);
+    const { error } = await uploadStudentDocument(target.studentId, target.slotId, file, target.existing);
+    setBusySlot(null);
+    if (error) {
+      toast.error(`Yuklab bo'lmadi: ${error.message}`);
+      return;
+    }
+    toast.success(target.existing ? 'Hujjat almashtirildi' : 'Hujjat yuklandi');
+    await onDocumentsChanged?.();
+  };
+  const confirmDelete = async () => {
+    const doc = pendingDelete;
+    setPendingDelete(null);
+    if (!doc) return;
+    setBusySlot(doc.id);
+    const { error } = await deleteStudentDocument(doc);
+    setBusySlot(null);
+    if (error) {
+      toast.error("O'chirib bo'lmadi");
+      return;
+    }
+    toast.success("Hujjat o'chirildi");
+    await onDocumentsChanged?.();
+  };
+  const viewDoc = async (doc: Tables<'documents'>) => {
+    const { error } = await openStudentDocument(doc);
+    if (error) toast.error("Hujjatni ochib bo'lmadi");
+  };
+
   // At least one verified document → push the student onto the next pipeline
   // stage. A university/application isn't required — many students collect
   // documents before one is attached, so without an applicationId this
@@ -369,42 +427,28 @@ export default function DocumentsContent({ students, loading, currentLang, onUpd
                 </span>
               </div>
               <div className="divide-y divide-border">
-                {selected.slots.map(({ slot, doc, state }, idx) => (
-                  <div key={slot.id} className="flex items-center justify-between gap-3 py-3">
-                    <div className="flex items-start gap-3">
-                      <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-muted text-[10px] font-bold text-muted-foreground">
-                        {idx + 1}
-                      </span>
-                      <div>
-                        <div className="flex flex-wrap items-center gap-1.5 text-[13px] font-semibold text-foreground">
-                          {slotLabel(slot.name, currentLang)}
-                          {!slot.required && <Badge variant="neutral" className="text-[10px] font-medium">Ixtiyoriy</Badge>}
+                {selected.slots.map((resolved, idx) => {
+                  const rowProps = {
+                    lang: currentLang,
+                    isAdmin,
+                    busySlot,
+                    onVerify: markVerified,
+                    onRequestAgain: requestAgain,
+                    onView: viewDoc,
+                    onPick: (slotId: string, existing?: Tables<'documents'>) => pickFile(selected.student.user_id, slotId, existing),
+                    onDelete: setPendingDelete,
+                  };
+                  return (
+                    <div key={resolved.slot.id} className="py-3">
+                      <SlotRow resolved={resolved} index={idx + 1} {...rowProps} />
+                      {resolved.translation && (
+                        <div className="ml-8 mt-2 border-l-2 border-dashed border-border pl-3">
+                          <SlotRow resolved={resolved.translation} translation {...rowProps} />
                         </div>
-                        {slot.note && <div className="text-[11px] text-muted-foreground">{slotLabel(slot.note, currentLang)}</div>}
-                      </div>
-                    </div>
-                    <div className="flex shrink-0 items-center gap-1.5">
-                      {state === 'verified' && <Badge variant="successSoft" className="gap-1"><CheckCircle2 className="h-3 w-3" />Tasdiqlangan</Badge>}
-                      {state === 'received' && doc && (
-                        <>
-                          <Badge variant="warning">Qabul qilindi</Badge>
-                          <Button size="sm" variant="default" className="h-7 text-xs" disabled={busySlot === doc.id} onClick={() => markVerified(doc.id)}>
-                            Tarjimaga
-                          </Button>
-                          <Button size="sm" variant="outline" className="h-7 text-xs" disabled={busySlot === doc.id} onClick={() => requestAgain(doc.id)}>
-                            Qayta so'rash
-                          </Button>
-                        </>
-                      )}
-                      {state === 'missing' && (
-                        <>
-                          <Badge variant="neutral">Yo'q</Badge>
-                          <span className="text-[11px] text-muted-foreground">Talaba yuklashi kerak</span>
-                        </>
                       )}
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               <div className="mt-3 flex items-center justify-between gap-3 border-t border-border pt-3">
@@ -449,10 +493,138 @@ export default function DocumentsContent({ students, loading, currentLang, onUpd
             </Card>
 
             <HandlingHistory docs={selected.student.documents ?? []} lang={currentLang} />
+
+            {isAdmin && (
+              <>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  className="hidden"
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  onChange={handleFilePicked}
+                  data-testid="admin-doc-file-input"
+                />
+                <AlertDialog open={!!pendingDelete} onOpenChange={(open) => { if (!open) setPendingDelete(null); }}>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Hujjat o'chirilsinmi?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        <span className="font-semibold text-foreground">{pendingDelete?.name.replace(/^\[.*?\]\s*/, '')}</span>{' '}
+                        butunlay o'chiriladi. Bu amalni qaytarib bo'lmaydi.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Bekor qilish</AlertDialogCancel>
+                      <AlertDialogAction onClick={confirmDelete}>Ha, o'chirish</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </>
+            )}
           </div>
         )}
       </div>
     </div>
+  );
+}
+
+interface SlotRowProps {
+  resolved: ResolvedSlot;
+  /** 1-based position for a pack row; translation rows carry no number. */
+  index?: number;
+  translation?: boolean;
+  lang: string;
+  isAdmin: boolean;
+  busySlot: string | null;
+  onVerify: (documentId: string) => void;
+  onRequestAgain: (documentId: string) => void;
+  onView: (doc: Tables<'documents'>) => void;
+  onPick: (slotId: string, existing?: Tables<'documents'>) => void;
+  onDelete: (doc: Tables<'documents'>) => void;
+}
+
+function SlotRow({ resolved, index, translation, lang, isAdmin, busySlot, onVerify, onRequestAgain, onView, onPick, onDelete }: SlotRowProps) {
+  const { slot, doc, state } = resolved;
+  const busy = busySlot === (doc?.id ?? slot.id);
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <div className="flex items-start gap-3">
+        {translation ? (
+          <Languages className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+        ) : (
+          <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-muted text-[10px] font-bold text-muted-foreground">
+            {index}
+          </span>
+        )}
+        <div>
+          <div className={cn('flex flex-wrap items-center gap-1.5 font-semibold text-foreground', translation ? 'text-[12px]' : 'text-[13px]')}>
+            {slotLabel(slot.name, lang)}
+            {!translation && !slot.required && <Badge variant="neutral" className="text-[10px] font-medium">Ixtiyoriy</Badge>}
+          </div>
+          {slot.note && <div className="text-[11px] text-muted-foreground">{slotLabel(slot.note, lang)}</div>}
+        </div>
+      </div>
+      <div className="flex shrink-0 flex-wrap items-center justify-end gap-1.5">
+        {state === 'verified' && <Badge variant="successSoft" className="gap-1"><CheckCircle2 className="h-3 w-3" />Tasdiqlangan</Badge>}
+        {state === 'received' && doc && (
+          <>
+            <Badge variant="warning">Qabul qilindi</Badge>
+            {isAdmin ? (
+              <>
+                <Button size="sm" variant="default" className="h-7 text-xs" disabled={busy} onClick={() => onVerify(doc.id)}>
+                  {translation ? 'Tasdiqlash' : 'Tarjimaga'}
+                </Button>
+                <Button size="sm" variant="outline" className="h-7 text-xs" disabled={busy} onClick={() => onRequestAgain(doc.id)}>
+                  Qayta so'rash
+                </Button>
+              </>
+            ) : (
+              <span className="text-[11px] text-muted-foreground">Admin tasdiqlaydi</span>
+            )}
+          </>
+        )}
+        {state === 'missing' && (
+          <>
+            <Badge variant="neutral">Yo'q</Badge>
+            {isAdmin ? (
+              <Button size="sm" variant="outline" className="h-7 gap-1 text-xs" disabled={busy} onClick={() => onPick(slot.id)}>
+                <Upload className="h-3 w-3" />
+                Yuklash
+              </Button>
+            ) : (
+              <span className="text-[11px] text-muted-foreground">{translation ? 'Tarjima yuklanmagan' : 'Talaba yuklashi kerak'}</span>
+            )}
+          </>
+        )}
+        {doc && (
+          <>
+            <IconAction label="Ko'rish" onClick={() => onView(doc)} disabled={busy}><Eye className="h-3.5 w-3.5" /></IconAction>
+            {isAdmin && (
+              <>
+                <IconAction label="Almashtirish" onClick={() => onPick(slot.id, doc)} disabled={busy}><RefreshCw className="h-3.5 w-3.5" /></IconAction>
+                <IconAction label="O'chirish" onClick={() => onDelete(doc)} disabled={busy} destructive><Trash2 className="h-3.5 w-3.5" /></IconAction>
+              </>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function IconAction({ label, onClick, disabled, destructive, children }: { label: string; onClick: () => void; disabled?: boolean; destructive?: boolean; children: ReactNode }) {
+  return (
+    <Button
+      size="sm"
+      variant="ghost"
+      className={cn('h-7 w-7 p-0 text-muted-foreground', destructive ? 'hover:text-destructive' : 'hover:text-foreground')}
+      onClick={onClick}
+      disabled={disabled}
+      title={label}
+      aria-label={label}
+    >
+      {children}
+    </Button>
   );
 }
 

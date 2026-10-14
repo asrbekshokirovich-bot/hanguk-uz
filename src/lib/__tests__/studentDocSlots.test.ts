@@ -107,6 +107,29 @@ describe('buildApplicationPack', () => {
     expect(slots.language_certificate.state).toBe('received');
   });
 
+  it('carries the death certificate as the 12th, optional slot', () => {
+    const ids = APPLICATION_PACK_SLOTS.map((s) => s.id);
+    expect(ids[11]).toBe('death_certificate');
+    expect(APPLICATION_PACK_SLOTS[11].required).toBe(false);
+    expect(APPLICATION_PACK_SLOTS[5].name.uz).toBe('IELTS sertifikati nusxasi');
+  });
+
+  it('pairs slots 5, 9, 10 and 12 with their own translation rows', () => {
+    const pack = buildApplicationPack([
+      row('birth_certificate', 'BIRTH.pdf', 'approved'),
+      row('birth_certificate_translation', 'BIRTH_KO.pdf'),
+    ]);
+    const withTranslation = pack.slots.filter((s) => s.translation).map((s) => s.slot.id);
+    expect(withTranslation).toEqual(['birth_certificate', 'diploma', 'diploma_apostille', 'death_certificate']);
+
+    const birth = pack.slots.find((s) => s.slot.id === 'birth_certificate')!;
+    expect(birth.state).toBe('verified');
+    expect(birth.translation?.state).toBe('received');
+    expect(birth.translation?.slot.id).toBe('birth_certificate_translation');
+    // A translation never fills its original, and never moves the gate.
+    expect(buildApplicationPack([row('diploma_translation', 'D.pdf', 'approved')]).requiredVerified).toBe(0);
+  });
+
   it('accepts the legacy applicant_passport tag for the foreign passport slot', () => {
     expect(byId([row('applicant_passport', 'OLD.pdf')]).foreign_passport.state).toBe('received');
   });

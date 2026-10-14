@@ -99,6 +99,8 @@ interface StudentDetailProps {
   onUpdateDocumentStatus: (docId: string, status: string) => Promise<{ error: any }>;
   currentLang: string;
   isDocumentHandler: boolean;
+  /** Only an admin (owner/admin) may change a document's review status. */
+  isAdmin?: boolean;
   onRefresh: () => void;
 }
 
@@ -198,6 +200,7 @@ export function StudentDetail({
   onUpdateDocumentStatus,
   currentLang,
   isDocumentHandler,
+  isAdmin = false,
   onRefresh
 }: StudentDetailProps) {
   const { t } = useTranslation();
@@ -617,7 +620,7 @@ export function StudentDetail({
     { id: 'mother_id_card', nameUz: "Onaning ID karta (pasport) nusxasi", nameEn: "Mother's ID card copy", nameRu: "Копия ID-карты матери", required: true },
     { id: 'mother_foreign_passport', nameUz: "Onaning zagran pasporti nusxasi", nameEn: "Mother's foreign passport copy", nameRu: "Копия загранпаспорта матери", required: true },
     { id: 'birth_certificate', nameUz: "Tug'ilganlik haqida guvohnoma (Metrka)", nameEn: "Birth certificate copy", nameRu: "Копия свидетельства о рождении", required: true },
-    { id: 'language_certificate', nameUz: "Til sertifikat nusxasi", nameEn: "Language certificate copy", nameRu: "Копия языкового сертификата", required: true },
+    { id: 'language_certificate', nameUz: "IELTS sertifikati nusxasi", nameEn: "IELTS certificate copy", nameRu: "Копия сертификата IELTS", required: true },
     { id: 'topik_certificate', nameUz: "TOPIK sertifikati nusxasi", nameEn: "TOPIK certificate copy", nameRu: "Копия сертификата TOPIK", required: true },
     { id: 'photo', nameUz: "Rasm (3.5x4.5)", nameEn: "Photo (3.5x4.5 cm)", nameRu: "Фото (3.5x4.5 см)", required: true },
     { id: 'diploma', nameUz: "Diplom yoki attestat nusxasi", nameEn: "Diploma or certificate copy", nameRu: "Копия диплома или аттестата", required: true },
@@ -641,7 +644,7 @@ export function StudentDetail({
     mother_id_card: { id: 'mother_id_card_translation', nameUz: "Ona ID karta tarjimasi", nameEn: "Mother's ID card translation", nameRu: "Перевод ID-карты матери", required: false },
     mother_foreign_passport: { id: 'mother_foreign_passport_translation', nameUz: "Ona zagranpasport tarjimasi", nameEn: "Mother's foreign passport translation", nameRu: "Перевод загранпаспорта матери", required: false },
     birth_certificate: { id: 'birth_certificate_translation', nameUz: "Tug'ilganlik guvohnomasi tarjimasi", nameEn: "Birth certificate translation", nameRu: "Перевод свидетельства о рождении", required: false },
-    language_certificate: { id: 'language_certificate_translation', nameUz: "Til sertifikati tarjimasi", nameEn: "Language certificate translation", nameRu: "Перевод языкового сертификата", required: false },
+    language_certificate: { id: 'language_certificate_translation', nameUz: "IELTS sertifikati tarjimasi", nameEn: "IELTS certificate translation", nameRu: "Перевод сертификата IELTS", required: false },
     topik_certificate: { id: 'topik_certificate_translation', nameUz: "TOPIK sertifikati tarjimasi", nameEn: "TOPIK certificate translation", nameRu: "Перевод сертификата TOPIK", required: false },
     photo: { id: 'photo_translation', nameUz: "Rasm tarjimasi", nameEn: "Photo translation", nameRu: "Перевод фото", required: false },
     diploma: { id: 'diploma_translation', nameUz: "Diplom tarjimasi", nameEn: "Diploma translation", nameRu: "Перевод диплома", required: false },
@@ -1936,7 +1939,7 @@ export function StudentDetail({
                             </Badge>
                             {isViewing ? <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" /> : <Eye className="h-4 w-4 text-muted-foreground" />}
                             {isDocumentHandler && (<button className="text-muted-foreground hover:text-foreground transition-colors p-0.5" onClick={(e) => { e.stopPropagation(); triggerSlotUpload(docType.id); }} disabled={uploadingFile} title={currentLang === 'ru' ? 'Заменить' : currentLang === 'en' ? 'Replace' : 'Almashtirish'}><RefreshCw className="h-3.5 w-3.5" /></button>)}
-                            {isDocumentHandler && (<Select value={doc.status} onValueChange={(value) => handleDocStatusChange(doc.id, value)} disabled={updating === doc.id}><SelectTrigger className="w-24 h-6 text-[11px]"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="uploaded">{t('student.pending')}</SelectItem><SelectItem value="approved">{t('student.approved')}</SelectItem><SelectItem value="rejected">{t('student.rejected')}</SelectItem></SelectContent></Select>)}
+                            {isAdmin && (<Select value={doc.status} onValueChange={(value) => handleDocStatusChange(doc.id, value)} disabled={updating === doc.id}><SelectTrigger className="w-24 h-6 text-[11px]"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="uploaded">{t('student.pending')}</SelectItem><SelectItem value="approved">{t('student.approved')}</SelectItem><SelectItem value="rejected">{t('student.rejected')}</SelectItem></SelectContent></Select>)}
                           </div>
                         </div>
                       ) : (
@@ -2041,7 +2044,7 @@ export function StudentDetail({
                                     <Download className="h-3 w-3" />
                                     Download
                                   </Button>
-                                  {isDocumentHandler && (
+                                  {isAdmin && (
                                     <Select value={doc.status} onValueChange={(value) => handleDocStatusChange(doc.id, value)} disabled={updating === doc.id}>
                                       <SelectTrigger className="w-28 h-7 text-xs"><SelectValue /></SelectTrigger>
                                       <SelectContent>
