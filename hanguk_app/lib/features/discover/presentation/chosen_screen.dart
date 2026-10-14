@@ -12,7 +12,6 @@ import '../../catalog/domain/catalog_models.dart';
 import '../data/slots.dart';
 import 'discover_routes.dart';
 import 'widgets/fd_parts.dart';
-import 'widgets/uni_stack_card.dart';
 
 /// Opens the assessment (screen 11) on [ids].
 void openAssessmentFor(BuildContext context, WidgetRef ref, List<String> ids) {

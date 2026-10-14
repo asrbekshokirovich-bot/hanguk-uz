@@ -1,17 +1,45 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../design_system/seoul_night/seoul_night.dart' show SeoulGradients, SeoulColors, SeoulRadii;
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/lucide.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../chat/presentation/chat_tab.dart';
+import '../../training/presentation/interview_screen.dart';
+import '../../training/presentation/study_plan_builder_screen.dart';
 
 /// Design screen 18, "Tayyorgarlik": Study Plan, the interview practice and
-/// "Hanguk AI ga savol bering". All three are a student's tools, so for a
-/// guest each one opens the client-code sign-in.
+/// "Hanguk AI ga savol bering". All three are a student's tools: for a guest
+/// each one opens the client-code sign-in, for a signed-in student each one
+/// opens the tool itself.
 class PrepareScreen extends StatelessWidget {
-  const PrepareScreen({super.key});
+  const PrepareScreen({super.key, this.signedIn = false});
+
+  final bool signedIn;
 
   void _signIn(BuildContext context) => context.push('/login', extra: const {'magic_code': true});
+
+  void _push(BuildContext context, Widget screen) =>
+      Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => screen));
+
+  void _openChat(BuildContext context) {
+    const corners = BorderRadius.vertical(top: Radius.circular(SeoulRadii.hero));
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => Container(
+        height: MediaQuery.of(context).size.height * 0.9,
+        decoration: const BoxDecoration(
+          gradient: SeoulGradients.appBackground,
+          borderRadius: corners,
+          border: Border(top: BorderSide(color: SeoulColors.glassBorder)),
+        ),
+        child: const ClipRRect(borderRadius: corners, child: ChatTab()),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +79,7 @@ class PrepareScreen extends StatelessWidget {
                 title: l.fdPrepareStudyPlanTitle,
                 body: l.fdPrepareStudyPlanBody,
                 progress: 0,
-                onTap: () => _signIn(context),
+                onTap: () => signedIn ? _push(context, const StudyPlanBuilderScreen()) : _signIn(context),
               ),
               const SizedBox(height: 14),
               _ToolCard(
@@ -60,13 +88,13 @@ class PrepareScreen extends StatelessWidget {
                 tag: l.fdPrepareNew,
                 title: l.fdPrepareInterviewTitle,
                 body: l.fdPrepareInterviewBody,
-                onTap: () => _signIn(context),
+                onTap: () => signedIn ? _push(context, const InterviewScreen()) : _signIn(context),
               ),
               const SizedBox(height: 14),
               _AskRow(
                 title: l.fdPrepareAskTitle,
                 body: l.fdPrepareAskBody,
-                onTap: () => _signIn(context),
+                onTap: () => signedIn ? _openChat(context) : _signIn(context),
               ),
             ],
           ),

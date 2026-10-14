@@ -14,7 +14,11 @@ import '../../catalog/data/catalog_repository.dart';
 import '../../catalog/domain/catalog_models.dart';
 import '../../catalog/presentation/catalog_browser.dart' show kGuestUniversityId;
 import '../../catalog/presentation/catalog_format.dart';
-import '../data/application_windows.dart';
+import '../../assessment/data/assessment_controller.dart';
+import '../../assessment/domain/assessment.dart';
+import '../../onboarding/data/quiz_repository.dart';
+import '../../onboarding/domain/eligibility_engine.dart';
+import '../data/deck_hint.dart';
 import '../data/saved_universities.dart';
 import 'discover_routes.dart';
 import 'widgets/uni_stack_card.dart';
@@ -49,8 +53,10 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     final async = ref.watch(catalogProvider);
-    final windows = ref.watch(applicationWindowsProvider).value ?? const {};
     final saved = ref.watch(savedUniversitiesProvider);
+    final touched = ref.watch(assessmentTouchedProvider);
+    final input = ref.watch(assessmentProvider);
+    final rules = ref.watch(eligibilityRulesProvider).value ?? const EligibilityRules();
 
     return SafeArea(
       bottom: false,
@@ -116,6 +122,11 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                         padding: const EdgeInsets.fromLTRB(18, 12, 18, 0),
                         child: _Deck(
                           key: _deck,
+                          hint: ref.watch(deckHintProvider) == false,
+                          onSwiped: ref.read(deckHintProvider.notifier).markSwiped,
+                          hintLabel: l.fdSwipeHint,
+                          saveStamp: l.fdStampSave,
+                          skipStamp: l.fdStampSkip,
                           cardAt: (offset) {
                             final i = (index + offset) % deck.length;
                             final c = deck[i];
@@ -124,8 +135,8 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                               university: c,
                               guideline: c.primary,
                               position: i + 1,
-                              deadline: _deadlineOf(windows, c.primary),
                               isVisiting: c.institutionId == kGuestUniversityId,
+                              percent: touched ? admissionPercent(input, c.primary, rules: rules) : null,
                               onAdmission: () => context.push(kAssessmentPath, extra: c.institutionId),
                             );
                           },
@@ -201,11 +212,6 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
         },
       ),
     );
-  }
-
-  static String? _deadlineOf(Map<String, CatalogRound> windows, CatalogGuideline g) {
-    final w = windows[g.id];
-    return w?.endDate ?? w?.startDate;
   }
 }
 
@@ -313,10 +319,23 @@ class _Deck extends StatefulWidget {
     required this.onPrevious,
     required this.previousLabel,
     required this.nextLabel,
+    required this.hint,
+    required this.onSwiped,
+    required this.hintLabel,
+    required this.saveStamp,
+    required this.skipStamp,
   });
 
   /// The card [offset] places after the top one: 0 is on top, 1 behind it.
   final Widget Function(int offset) cardAt;
+
+  /// A first-time visitor: the top card nudges to both sides and wears
+  /// [hintLabel] until [onSwiped] is called.
+  final bool hint;
+  final VoidCallback onSwiped;
+  final String hintLabel;
+  final String saveStamp;
+  final String skipStamp;
   final VoidCallback onTap;
   final VoidCallback onSkip;
   final VoidCallback onSave;
@@ -348,6 +367,10 @@ class _DeckState extends State<_Deck> with TickerProviderStateMixin {
     value: 1,
   );
 
+  /// The nudge: 4.2s, of which the first 1.6s moves (right, then left) and
+  /// the rest is rest; played a few times, then it stops by itself.
+  late final AnimationController _nudge = AnimationController(vsync: this, duration: const Duration(milliseconds: 4200));
+
   double _dx = 0;
   double _from = 0;
   double _flyFrom = 0;
@@ -359,10 +382,46 @@ class _DeckState extends State<_Deck> with TickerProviderStateMixin {
     super.initState();
     _fly.addListener(() => setState(() {}));
     _enter.addListener(() => setState(() {}));
+    _nudge.addListener(() => setState(() {}));
+    _syncHint();
+  }
+
+  @override
+  void didUpdateWidget(_Deck old) {
+    super.didUpdateWidget(old);
+    if (old.hint != widget.hint) _syncHint();
+  }
+
+  void _syncHint() {
+    if (widget.hint) {
+      // Starts a moment after the screen is up, three rounds at most.
+      _nudge.value = 0.78;
+      _nudge.repeat(count: 4);
+    } else {
+      _nudge.stop();
+      _nudge.value = 0;
+    }
+  }
+
+  /// The student is swiping: the hint has done its job.
+  void _touched() {
+    if (widget.hint) widget.onSwiped();
+  }
+
+  /// How far the nudge has moved the card, as a share of the width: right
+  /// first, then left, then still.
+  double get _nudgeShare {
+    if (!widget.hint || !_nudge.isAnimating) return 0;
+    const moving = 1.6 / 4.2;
+    final t = _nudge.value;
+    if (t >= moving) return 0;
+    final phase = t / moving;
+    return math.sin(phase * 2 * math.pi) * (1 - 0.25 * phase);
   }
 
   @override
   void dispose() {
+    _nudge.dispose();
     _settle.dispose();
     _fly.dispose();
     _enter.dispose();
@@ -376,6 +435,7 @@ class _DeckState extends State<_Deck> with TickerProviderStateMixin {
     if (_busy) return;
     _settle.stop();
     HapticFeedback.lightImpact();
+    _touched();
     _flyRight = right;
     _flyFrom = _dx;
     await _fly.forward(from: 0);
@@ -391,6 +451,7 @@ class _DeckState extends State<_Deck> with TickerProviderStateMixin {
   /// The previous card comes back in from the left.
   void back() {
     if (_busy) return;
+    _touched();
     widget.onPrevious();
     _from = -_width * 1.1;
     _dx = _from;
@@ -423,7 +484,7 @@ class _DeckState extends State<_Deck> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 310,
+      height: UniStackCard.height + 36,
       child: LayoutBuilder(
         builder: (context, box) {
           _width = box.maxWidth;
@@ -434,9 +495,13 @@ class _DeckState extends State<_Deck> with TickerProviderStateMixin {
           // the side, a little down, turning further as it goes.
           final out = Curves.easeInCubic.transform(t);
           final target = (_flyRight ? 1 : -1) * w * 1.35;
-          final dx = _busy || t > 0 ? _flyFrom + (target - _flyFrom) * out : _dx;
+          final nudge = _dx == 0 && t == 0 ? _nudgeShare : 0.0;
+          final dx = _busy || t > 0 ? _flyFrom + (target - _flyFrom) * out : _dx + nudge * 30;
           final dy = 70 * out;
           final turn = (dx / w) * 0.28;
+          // The stamps: lime "SAQLASH" to the right, white "O'TKAZISH" to the
+          // left, stronger the further the card is dragged.
+          final stamp = (dx.abs() / (w * 0.3)).clamp(0.0, 1.0);
 
           // How far the card behind has come up: with the drag, then all the
           // way with a small overshoot while the top card flies.
@@ -453,12 +518,12 @@ class _DeckState extends State<_Deck> with TickerProviderStateMixin {
             children: [
               Positioned(
                 left: -17,
-                top: 150,
+                top: 170,
                 child: _Chevron(glyph: LucideIcons.chevronLeft, label: widget.previousLabel, onTap: back),
               ),
               Positioned(
                 right: -17,
-                top: 150,
+                top: 170,
                 child: _Chevron(glyph: LucideIcons.chevronRight, label: widget.nextLabel, onTap: () => fling(right: false)),
               ),
               _layer(_third, const _BlankCard()),
@@ -472,21 +537,116 @@ class _DeckState extends State<_Deck> with TickerProviderStateMixin {
                 _front,
                 GestureDetector(
                   onTap: _busy ? null : widget.onTap,
-                  onHorizontalDragStart: (_) => _settle.stop(),
+                  onHorizontalDragStart: (_) {
+                    _settle.stop();
+                    _touched();
+                  },
                   onHorizontalDragUpdate: (d) {
                     if (!_busy) setState(() => _dx += d.delta.dx);
                   },
                   onHorizontalDragEnd: (d) {
                     if (!_busy) _end(d);
                   },
-                  child: RepaintBoundary(child: widget.cardAt(0)),
+                  child: RepaintBoundary(
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        widget.cardAt(0),
+                        if (stamp > 0.05 && dx > 0)
+                          Positioned(
+                            left: 14,
+                            top: 52,
+                            child: Opacity(
+                              opacity: stamp,
+                              child: _Stamp(label: widget.saveStamp, fill: FdColors.lime, color: FdColors.onLime, turn: -0.2),
+                            ),
+                          ),
+                        if (stamp > 0.05 && dx < 0)
+                          Positioned(
+                            right: 14,
+                            top: 52,
+                            child: Opacity(
+                              opacity: stamp,
+                              child: _Stamp(label: widget.skipStamp, fill: FdColors.card, color: FdColors.ink, turn: 0.2),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
                 ),
                 shift: Offset(dx, dy),
                 extraTurn: turn,
               ),
+              // "← Surib ko'ring →" over the first card's photo while it nudges.
+              if (widget.hint)
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  top: 22 + 46,
+                  child: IgnorePointer(
+                    child: Center(child: _SwipeHint(label: widget.hintLabel)),
+                  ),
+                ),
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+/// "SAQLASH" / "O'TKAZISH" stamped on the card while it is dragged.
+class _Stamp extends StatelessWidget {
+  const _Stamp({required this.label, required this.fill, required this.color, required this.turn});
+
+  final String label;
+  final Color fill;
+  final Color color;
+  final double turn;
+
+  @override
+  Widget build(BuildContext context) {
+    return Transform.rotate(
+      angle: turn,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: fill,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: FdColors.ink, width: 1.5),
+          boxShadow: const [BoxShadow(color: FdColors.ink, offset: Offset(2, 2))],
+        ),
+        child: Text(label, style: fdText(14, FontWeight.w800, color, letterSpacing: 0.6)),
+      ),
+    );
+  }
+}
+
+/// The white "‹ Surib ko'ring ›" pill over the first card.
+class _SwipeHint extends StatelessWidget {
+  const _SwipeHint({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: FdColors.card,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: FdColors.ink, width: 1.5),
+        boxShadow: const [BoxShadow(color: FdColors.ink, offset: Offset(2, 2))],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Lucide(LucideIcons.chevronLeft, size: 14, color: FdColors.ink),
+          const SizedBox(width: 6),
+          Text(label, style: fdText(12, FontWeight.w800, FdColors.ink)),
+          const SizedBox(width: 6),
+          const Lucide(LucideIcons.chevronRight, size: 14, color: FdColors.ink),
+        ],
       ),
     );
   }

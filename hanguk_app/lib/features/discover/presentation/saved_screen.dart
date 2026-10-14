@@ -12,7 +12,6 @@ import '../data/saved_universities.dart';
 import 'chosen_screen.dart';
 import 'discover_routes.dart';
 import 'widgets/fd_parts.dart';
-import 'widgets/uni_stack_card.dart';
 
 /// Design screen 16, "Saqlanganlar": the universities kept with ♡, newest
 /// first. The heart takes one off the list; the first three can be compared

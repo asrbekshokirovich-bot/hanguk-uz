@@ -7177,6 +7177,504 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Remove from saved'**
   String get fdUnsave;
+
+  /// Card pill (design 03): followed by the percentage or ?% and an arrow.
+  ///
+  /// In en, this message translates to:
+  /// **'My admission chance'**
+  String get fdOddsLead;
+
+  /// Stamp on the card while it is dragged to the right.
+  ///
+  /// In en, this message translates to:
+  /// **'SAVE'**
+  String get fdStampSave;
+
+  /// Stamp on the card while it is dragged to the left.
+  ///
+  /// In en, this message translates to:
+  /// **'SKIP'**
+  String get fdStampSkip;
+
+  /// Hint over the first card, shown until the first swipe.
+  ///
+  /// In en, this message translates to:
+  /// **'Try swiping'**
+  String get fdSwipeHint;
+
+  /// Under the QS number on the card.
+  ///
+  /// In en, this message translates to:
+  /// **'world ranking'**
+  String get fdQsRanking;
+
+  /// After the fee on the home card: per semester.
+  ///
+  /// In en, this message translates to:
+  /// **'/ sem'**
+  String get fdPerSemShort;
+
+  /// After the fee on the home card: per year.
+  ///
+  /// In en, this message translates to:
+  /// **'/ year'**
+  String get fdPerYearShort;
+
+  /// Client code screen (design 14) title, first part; the second part is marked.
+  ///
+  /// In en, this message translates to:
+  /// **'Your client'**
+  String get fdCodeTitleLead;
+
+  /// Client code title, marked part.
+  ///
+  /// In en, this message translates to:
+  /// **'code'**
+  String get fdCodeTitleMark;
+
+  /// Client code screen body.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the 8-character code your consultant gave you — your application status opens.'**
+  String get fdCodeBody;
+
+  /// Client code screen button.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in'**
+  String get fdCodeSubmit;
+
+  /// Under the client code form, followed by the phone number.
+  ///
+  /// In en, this message translates to:
+  /// **'No code? Free consultation:'**
+  String get fdCodeNoCode;
+
+  /// Screen-reader label for the code field.
+  ///
+  /// In en, this message translates to:
+  /// **'Code character {n}'**
+  String fdCodeCell(int n);
+
+  /// Map (design 17) line above the title.
+  ///
+  /// In en, this message translates to:
+  /// **'Across Korea · {count} universities'**
+  String fdMapKicker(int count);
+
+  /// Map title, marked part, after '360° '.
+  ///
+  /// In en, this message translates to:
+  /// **'map'**
+  String get fdMapTitleMark;
+
+  /// Faint label in the map's corner.
+  ///
+  /// In en, this message translates to:
+  /// **'KOREA · 대한민국'**
+  String get fdMapLabel;
+
+  /// Screen-reader label of a map pin.
+  ///
+  /// In en, this message translates to:
+  /// **'{city}: {count} universities'**
+  String fdMapPin(String city, int count);
+
+  /// Map zoom button.
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom in'**
+  String get fdMapZoomIn;
+
+  /// Map zoom button.
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom out'**
+  String get fdMapZoomOut;
+
+  /// Screen-reader label of the 360° button on the map card.
+  ///
+  /// In en, this message translates to:
+  /// **'Open the 360° view'**
+  String get fdMapOpen360;
+
+  /// Map with no pins.
+  ///
+  /// In en, this message translates to:
+  /// **'No university matches this filter.'**
+  String get fdMapEmpty;
+
+  /// Which university of a pin's list the card shows.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} / {total}'**
+  String fdMapCardOf(int n, int total);
+
+  /// Client bottom nav tab (design 15).
+  ///
+  /// In en, this message translates to:
+  /// **'Application'**
+  String get fdNavApplication;
+
+  /// Client bottom nav tab (design 15b).
+  ///
+  /// In en, this message translates to:
+  /// **'Documents'**
+  String get fdNavDocuments;
+
+  /// Application (design 15) title.
+  ///
+  /// In en, this message translates to:
+  /// **'Application progress'**
+  String get fdJourneyTitle;
+
+  /// Application summary card label.
+  ///
+  /// In en, this message translates to:
+  /// **'Current stage'**
+  String get fdJourneyCurrent;
+
+  /// Application summary card note.
+  ///
+  /// In en, this message translates to:
+  /// **'Next stage: {stage}'**
+  String fdJourneyNext(String stage);
+
+  /// Application summary card note when the journey is over.
+  ///
+  /// In en, this message translates to:
+  /// **'Every stage is done'**
+  String get fdJourneyDone;
+
+  /// Application summary card note while the application is pending approval.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for the consultant to confirm your application'**
+  String get fdJourneyWaiting;
+
+  /// Application screen with no application.
+  ///
+  /// In en, this message translates to:
+  /// **'No application yet'**
+  String get fdJourneyEmpty;
+
+  /// Application screen with no application.
+  ///
+  /// In en, this message translates to:
+  /// **'Once your consultant attaches a university, its progress shows here.'**
+  String get fdJourneyEmptyBody;
+
+  /// Button on the empty application screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse universities'**
+  String get fdJourneyBrowse;
+
+  /// Opens a university's room (discussion, announcements) from an application.
+  ///
+  /// In en, this message translates to:
+  /// **'University room'**
+  String get fdJourneyRoom;
+
+  /// Under the agency name on the consultant card.
+  ///
+  /// In en, this message translates to:
+  /// **'Consultant · answers your questions'**
+  String get fdConsultantRole;
+
+  /// Documents (design 15b) title.
+  ///
+  /// In en, this message translates to:
+  /// **'My documents'**
+  String get fdDocsTitle;
+
+  /// Documents summary card label.
+  ///
+  /// In en, this message translates to:
+  /// **'Accepted documents'**
+  String get fdDocsAccepted;
+
+  /// Documents summary card headline.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} more needed'**
+  String fdDocsNeedMore(int n);
+
+  /// Documents summary card headline when all are uploaded.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} under review'**
+  String fdDocsUnderReview(int n);
+
+  /// Documents summary card headline when all are accepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything is accepted'**
+  String get fdDocsAllAccepted;
+
+  /// Document row status.
+  ///
+  /// In en, this message translates to:
+  /// **'Accepted'**
+  String get fdDocAccepted;
+
+  /// Document row status.
+  ///
+  /// In en, this message translates to:
+  /// **'Needed'**
+  String get fdDocNeeded;
+
+  /// Document row status.
+  ///
+  /// In en, this message translates to:
+  /// **'Under review'**
+  String get fdDocReview;
+
+  /// Document row button.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload'**
+  String get fdDocUpload;
+
+  /// Document actions.
+  ///
+  /// In en, this message translates to:
+  /// **'View'**
+  String get fdDocView;
+
+  /// Document actions.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get fdDocRemove;
+
+  /// Account screen card with the sections that are not in the bottom tabs.
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get accountMoreLabel;
+
+  /// Study Plan builder header.
+  ///
+  /// In en, this message translates to:
+  /// **'Study Plan'**
+  String get fdPlanTitle;
+
+  /// Study Plan step chip 1.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal'**
+  String get fdPlanStepGoal;
+
+  /// Study Plan step chip 2.
+  ///
+  /// In en, this message translates to:
+  /// **'Why Korea'**
+  String get fdPlanStepKorea;
+
+  /// Study Plan step chip 3.
+  ///
+  /// In en, this message translates to:
+  /// **'Why this university'**
+  String get fdPlanStepUni;
+
+  /// Study Plan step chip 4.
+  ///
+  /// In en, this message translates to:
+  /// **'Future plan'**
+  String get fdPlanStepFuture;
+
+  /// Card kicker of the Study Plan builder.
+  ///
+  /// In en, this message translates to:
+  /// **'Step {n} · of {total}'**
+  String fdPlanStepOf(int n, int total);
+
+  /// Step 1 title, before the highlighted word.
+  ///
+  /// In en, this message translates to:
+  /// **'Your'**
+  String get fdPlanQ1Head;
+
+  /// Step 1 title, highlighted word.
+  ///
+  /// In en, this message translates to:
+  /// **'goal?'**
+  String get fdPlanQ1Mark;
+
+  /// Step 1 hint.
+  ///
+  /// In en, this message translates to:
+  /// **'3–5 sentences. What do you want to study and why do you need it? Be specific.'**
+  String get fdPlanQ1Hint;
+
+  /// Step 2 title, before the highlighted word.
+  ///
+  /// In en, this message translates to:
+  /// **'Why'**
+  String get fdPlanQ2Head;
+
+  /// Step 2 title, highlighted word.
+  ///
+  /// In en, this message translates to:
+  /// **'Korea?'**
+  String get fdPlanQ2Mark;
+
+  /// Step 2 hint.
+  ///
+  /// In en, this message translates to:
+  /// **'3–5 sentences. Write a personal reason: family, career, language, experience. Avoid generalities.'**
+  String get fdPlanQ2Hint;
+
+  /// Step 3 title, before the highlighted word.
+  ///
+  /// In en, this message translates to:
+  /// **'Why this'**
+  String get fdPlanQ3Head;
+
+  /// Step 3 title, highlighted word.
+  ///
+  /// In en, this message translates to:
+  /// **'university?'**
+  String get fdPlanQ3Mark;
+
+  /// Step 3 hint.
+  ///
+  /// In en, this message translates to:
+  /// **'3–5 sentences. Why do this university\'s programme, lab or major suit you? Give a concrete example.'**
+  String get fdPlanQ3Hint;
+
+  /// Step 4 title, before the highlighted word.
+  ///
+  /// In en, this message translates to:
+  /// **'Your plan after'**
+  String get fdPlanQ4Head;
+
+  /// Step 4 title, highlighted word.
+  ///
+  /// In en, this message translates to:
+  /// **'graduation?'**
+  String get fdPlanQ4Mark;
+
+  /// Step 4 hint.
+  ///
+  /// In en, this message translates to:
+  /// **'3–5 sentences. What will you do after your studies: work, a master\'s or going home? Write concrete steps.'**
+  String get fdPlanQ4Hint;
+
+  /// Study Plan builder text field placeholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Write here…'**
+  String get fdPlanHintField;
+
+  /// Warning card title.
+  ///
+  /// In en, this message translates to:
+  /// **'Important: do not submit AI-written text'**
+  String get fdPlanWarnTitle;
+
+  /// Warning card body.
+  ///
+  /// In en, this message translates to:
+  /// **'Universities detect AI text. What you write here is yours alone. Hanguk AI only gives feedback.'**
+  String get fdPlanWarnBody;
+
+  /// Study Plan builder main button.
+  ///
+  /// In en, this message translates to:
+  /// **'Get feedback'**
+  String get fdPlanFeedback;
+
+  /// Main button while the analysis runs.
+  ///
+  /// In en, this message translates to:
+  /// **'Analysing…'**
+  String get fdPlanFeedbackBusy;
+
+  /// Shown when feedback is asked on an empty step.
+  ///
+  /// In en, this message translates to:
+  /// **'Write this step first.'**
+  String get fdPlanWriteFirst;
+
+  /// Feedback sheet title.
+  ///
+  /// In en, this message translates to:
+  /// **'Hanguk AI feedback'**
+  String get fdPlanSheetTitle;
+
+  /// Feedback sheet section.
+  ///
+  /// In en, this message translates to:
+  /// **'Strengths'**
+  String get fdPlanStrengths;
+
+  /// Feedback sheet section.
+  ///
+  /// In en, this message translates to:
+  /// **'To improve'**
+  String get fdPlanImprove;
+
+  /// Feedback sheet button.
+  ///
+  /// In en, this message translates to:
+  /// **'Next step'**
+  String get fdPlanNext;
+
+  /// Feedback sheet button on the last step.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get fdPlanClose;
+
+  /// Study Plan builder when the session could not be created or loaded.
+  ///
+  /// In en, this message translates to:
+  /// **'Study Plan did not open. Check your connection and try again.'**
+  String get fdPlanLoadFailed;
+
+  /// Live interview screen header.
+  ///
+  /// In en, this message translates to:
+  /// **'Interview practice'**
+  String get fdInterviewTitle;
+
+  /// Name under the interviewer avatar.
+  ///
+  /// In en, this message translates to:
+  /// **'Hanguk AI · interviewer'**
+  String get fdInterviewAi;
+
+  /// Line under the interviewer's name.
+  ///
+  /// In en, this message translates to:
+  /// **'In the style of {university}\'s admissions panel'**
+  String fdInterviewStyle(String university);
+
+  /// Tip under the microphone button.
+  ///
+  /// In en, this message translates to:
+  /// **'Speak clearly at a moderate pace · 60–90 seconds'**
+  String get fdInterviewTip;
+
+  /// Microphone button label while it is on.
+  ///
+  /// In en, this message translates to:
+  /// **'Mute microphone'**
+  String get fdInterviewMute;
+
+  /// Microphone button label while it is muted.
+  ///
+  /// In en, this message translates to:
+  /// **'Unmute microphone'**
+  String get fdInterviewUnmute;
+
+  /// Status while the microphone is muted.
+  ///
+  /// In en, this message translates to:
+  /// **'Microphone off — the interviewer cannot hear you'**
+  String get fdInterviewMuted;
 }
 
 class _AppLocalizationsDelegate

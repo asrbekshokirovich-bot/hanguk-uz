@@ -3996,4 +3996,280 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get fdUnsave => 'Убрать из сохранённых';
+
+  @override
+  String get fdOddsLead => 'Мой шанс поступления';
+
+  @override
+  String get fdStampSave => 'СОХРАНИТЬ';
+
+  @override
+  String get fdStampSkip => 'ПРОПУСТИТЬ';
+
+  @override
+  String get fdSwipeHint => 'Смахните карточку';
+
+  @override
+  String get fdQsRanking => 'мировой рейтинг';
+
+  @override
+  String get fdPerSemShort => '/ сем';
+
+  @override
+  String get fdPerYearShort => '/ год';
+
+  @override
+  String get fdCodeTitleLead => 'Ваш клиентский';
+
+  @override
+  String get fdCodeTitleMark => 'код';
+
+  @override
+  String get fdCodeBody =>
+      'Введите 8-значный код от консультанта — откроется статус вашей заявки.';
+
+  @override
+  String get fdCodeSubmit => 'Войти';
+
+  @override
+  String get fdCodeNoCode => 'Нет кода? Бесплатная консультация:';
+
+  @override
+  String fdCodeCell(int n) {
+    return 'Символ кода $n';
+  }
+
+  @override
+  String fdMapKicker(int count) {
+    return 'По Корее · университетов: $count';
+  }
+
+  @override
+  String get fdMapTitleMark => 'карта';
+
+  @override
+  String get fdMapLabel => 'КОРЕЯ · 대한민국';
+
+  @override
+  String fdMapPin(String city, int count) {
+    return '$city: университетов $count';
+  }
+
+  @override
+  String get fdMapZoomIn => 'Приблизить';
+
+  @override
+  String get fdMapZoomOut => 'Отдалить';
+
+  @override
+  String get fdMapOpen360 => 'Открыть обзор 360°';
+
+  @override
+  String get fdMapEmpty => 'По этому фильтру университетов нет.';
+
+  @override
+  String fdMapCardOf(int n, int total) {
+    return '$n / $total';
+  }
+
+  @override
+  String get fdNavApplication => 'Заявка';
+
+  @override
+  String get fdNavDocuments => 'Документы';
+
+  @override
+  String get fdJourneyTitle => 'Ход заявки';
+
+  @override
+  String get fdJourneyCurrent => 'Текущий этап';
+
+  @override
+  String fdJourneyNext(String stage) {
+    return 'Следующий этап: $stage';
+  }
+
+  @override
+  String get fdJourneyDone => 'Все этапы пройдены';
+
+  @override
+  String get fdJourneyWaiting => 'Ожидается подтверждение заявки консультантом';
+
+  @override
+  String get fdJourneyEmpty => 'Заявок пока нет';
+
+  @override
+  String get fdJourneyEmptyBody =>
+      'Когда консультант прикрепит университет, ход заявки появится здесь.';
+
+  @override
+  String get fdJourneyBrowse => 'Смотреть университеты';
+
+  @override
+  String get fdJourneyRoom => 'Комната университета';
+
+  @override
+  String get fdConsultantRole => 'Консультант · ответит на вопросы';
+
+  @override
+  String get fdDocsTitle => 'Мои документы';
+
+  @override
+  String get fdDocsAccepted => 'Принятые документы';
+
+  @override
+  String fdDocsNeedMore(int n) {
+    return 'Нужно ещё: $n';
+  }
+
+  @override
+  String fdDocsUnderReview(int n) {
+    return 'На проверке: $n';
+  }
+
+  @override
+  String get fdDocsAllAccepted => 'Всё принято';
+
+  @override
+  String get fdDocAccepted => 'Принято';
+
+  @override
+  String get fdDocNeeded => 'Нужно';
+
+  @override
+  String get fdDocReview => 'На проверке';
+
+  @override
+  String get fdDocUpload => 'Загрузить';
+
+  @override
+  String get fdDocView => 'Открыть';
+
+  @override
+  String get fdDocRemove => 'Удалить';
+
+  @override
+  String get accountMoreLabel => 'Ещё';
+
+  @override
+  String get fdPlanTitle => 'Study Plan';
+
+  @override
+  String get fdPlanStepGoal => 'Цель';
+
+  @override
+  String get fdPlanStepKorea => 'Почему Корея';
+
+  @override
+  String get fdPlanStepUni => 'Почему этот вуз';
+
+  @override
+  String get fdPlanStepFuture => 'План на будущее';
+
+  @override
+  String fdPlanStepOf(int n, int total) {
+    return 'Шаг $n · из $total';
+  }
+
+  @override
+  String get fdPlanQ1Head => 'Ваша';
+
+  @override
+  String get fdPlanQ1Mark => 'цель?';
+
+  @override
+  String get fdPlanQ1Hint =>
+      '3–5 предложений. Что вы хотите изучать и зачем это вам нужно? Пишите конкретно.';
+
+  @override
+  String get fdPlanQ2Head => 'Почему именно';
+
+  @override
+  String get fdPlanQ2Mark => 'Корея?';
+
+  @override
+  String get fdPlanQ2Hint =>
+      '3–5 предложений. Напишите личную причину: семья, профессия, язык, опыт. Избегайте общих фраз.';
+
+  @override
+  String get fdPlanQ3Head => 'Почему именно этот';
+
+  @override
+  String get fdPlanQ3Mark => 'вуз?';
+
+  @override
+  String get fdPlanQ3Hint =>
+      '3–5 предложений. Чем вам подходит программа, лаборатория или направление этого вуза? Приведите конкретный пример.';
+
+  @override
+  String get fdPlanQ4Head => 'План после';
+
+  @override
+  String get fdPlanQ4Mark => 'учёбы?';
+
+  @override
+  String get fdPlanQ4Hint =>
+      '3–5 предложений. Что вы будете делать после учёбы: работа, магистратура или возвращение домой? Напишите конкретные шаги.';
+
+  @override
+  String get fdPlanHintField => 'Пишите здесь…';
+
+  @override
+  String get fdPlanWarnTitle => 'Важно: не подавайте текст, написанный ИИ';
+
+  @override
+  String get fdPlanWarnBody =>
+      'Университеты распознают текст ИИ. То, что вы пишете здесь, — только ваше. Hanguk AI лишь даёт обратную связь.';
+
+  @override
+  String get fdPlanFeedback => 'Получить отзыв';
+
+  @override
+  String get fdPlanFeedbackBusy => 'Анализируем…';
+
+  @override
+  String get fdPlanWriteFirst => 'Сначала напишите этот шаг.';
+
+  @override
+  String get fdPlanSheetTitle => 'Отзыв Hanguk AI';
+
+  @override
+  String get fdPlanStrengths => 'Сильные стороны';
+
+  @override
+  String get fdPlanImprove => 'Что улучшить';
+
+  @override
+  String get fdPlanNext => 'Следующий шаг';
+
+  @override
+  String get fdPlanClose => 'Закрыть';
+
+  @override
+  String get fdPlanLoadFailed =>
+      'Study Plan не открылся. Проверьте соединение и попробуйте снова.';
+
+  @override
+  String get fdInterviewTitle => 'Практика интервью';
+
+  @override
+  String get fdInterviewAi => 'Hanguk AI · интервьюер';
+
+  @override
+  String fdInterviewStyle(String university) {
+    return 'В стиле приёмной комиссии $university';
+  }
+
+  @override
+  String get fdInterviewTip =>
+      'Говорите чётко и в умеренном темпе · 60–90 секунд';
+
+  @override
+  String get fdInterviewMute => 'Выключить микрофон';
+
+  @override
+  String get fdInterviewUnmute => 'Включить микрофон';
+
+  @override
+  String get fdInterviewMuted => 'Микрофон выключен — интервьюер вас не слышит';
 }

@@ -3977,4 +3977,280 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get fdUnsave => 'Bỏ lưu';
+
+  @override
+  String get fdOddsLead => 'Cơ hội nhập học của tôi';
+
+  @override
+  String get fdStampSave => 'LƯU';
+
+  @override
+  String get fdStampSkip => 'BỎ QUA';
+
+  @override
+  String get fdSwipeHint => 'Hãy thử vuốt';
+
+  @override
+  String get fdQsRanking => 'xếp hạng thế giới';
+
+  @override
+  String get fdPerSemShort => '/ kỳ';
+
+  @override
+  String get fdPerYearShort => '/ năm';
+
+  @override
+  String get fdCodeTitleLead => 'Mã';
+
+  @override
+  String get fdCodeTitleMark => 'khách hàng';
+
+  @override
+  String get fdCodeBody =>
+      'Nhập mã 8 ký tự do tư vấn viên gửi — trạng thái hồ sơ của bạn sẽ mở ra.';
+
+  @override
+  String get fdCodeSubmit => 'Vào';
+
+  @override
+  String get fdCodeNoCode => 'Chưa có mã? Tư vấn miễn phí:';
+
+  @override
+  String fdCodeCell(int n) {
+    return 'Ký tự mã thứ $n';
+  }
+
+  @override
+  String fdMapKicker(int count) {
+    return 'Khắp Hàn Quốc · $count trường';
+  }
+
+  @override
+  String get fdMapTitleMark => 'bản đồ';
+
+  @override
+  String get fdMapLabel => 'HÀN QUỐC · 대한민국';
+
+  @override
+  String fdMapPin(String city, int count) {
+    return '$city: $count trường';
+  }
+
+  @override
+  String get fdMapZoomIn => 'Phóng to';
+
+  @override
+  String get fdMapZoomOut => 'Thu nhỏ';
+
+  @override
+  String get fdMapOpen360 => 'Mở chế độ 360°';
+
+  @override
+  String get fdMapEmpty => 'Không có trường nào khớp bộ lọc này.';
+
+  @override
+  String fdMapCardOf(int n, int total) {
+    return '$n / $total';
+  }
+
+  @override
+  String get fdNavApplication => 'Hồ sơ';
+
+  @override
+  String get fdNavDocuments => 'Giấy tờ';
+
+  @override
+  String get fdJourneyTitle => 'Tiến trình hồ sơ';
+
+  @override
+  String get fdJourneyCurrent => 'Giai đoạn hiện tại';
+
+  @override
+  String fdJourneyNext(String stage) {
+    return 'Giai đoạn tiếp theo: $stage';
+  }
+
+  @override
+  String get fdJourneyDone => 'Đã hoàn thành mọi giai đoạn';
+
+  @override
+  String get fdJourneyWaiting => 'Đang chờ tư vấn viên xác nhận hồ sơ';
+
+  @override
+  String get fdJourneyEmpty => 'Chưa có hồ sơ';
+
+  @override
+  String get fdJourneyEmptyBody =>
+      'Khi tư vấn viên gắn trường vào hồ sơ, tiến trình sẽ hiện ở đây.';
+
+  @override
+  String get fdJourneyBrowse => 'Xem các trường';
+
+  @override
+  String get fdJourneyRoom => 'Phòng trường';
+
+  @override
+  String get fdConsultantRole => 'Tư vấn viên · giải đáp thắc mắc';
+
+  @override
+  String get fdDocsTitle => 'Giấy tờ của tôi';
+
+  @override
+  String get fdDocsAccepted => 'Giấy tờ đã được nhận';
+
+  @override
+  String fdDocsNeedMore(int n) {
+    return 'Cần thêm $n';
+  }
+
+  @override
+  String fdDocsUnderReview(int n) {
+    return '$n đang được xem xét';
+  }
+
+  @override
+  String get fdDocsAllAccepted => 'Tất cả đã được nhận';
+
+  @override
+  String get fdDocAccepted => 'Đã nhận';
+
+  @override
+  String get fdDocNeeded => 'Cần có';
+
+  @override
+  String get fdDocReview => 'Đang xem xét';
+
+  @override
+  String get fdDocUpload => 'Tải lên';
+
+  @override
+  String get fdDocView => 'Xem';
+
+  @override
+  String get fdDocRemove => 'Xóa';
+
+  @override
+  String get accountMoreLabel => 'Thêm';
+
+  @override
+  String get fdPlanTitle => 'Study Plan';
+
+  @override
+  String get fdPlanStepGoal => 'Mục tiêu';
+
+  @override
+  String get fdPlanStepKorea => 'Vì sao Hàn Quốc';
+
+  @override
+  String get fdPlanStepUni => 'Vì sao trường này';
+
+  @override
+  String get fdPlanStepFuture => 'Kế hoạch tương lai';
+
+  @override
+  String fdPlanStepOf(int n, int total) {
+    return 'Bước $n · trên $total';
+  }
+
+  @override
+  String get fdPlanQ1Head => '';
+
+  @override
+  String get fdPlanQ1Mark => 'Mục tiêu của bạn là gì?';
+
+  @override
+  String get fdPlanQ1Hint =>
+      '3–5 câu. Bạn muốn học gì và vì sao cần điều đó? Hãy viết cụ thể.';
+
+  @override
+  String get fdPlanQ2Head => 'Vì sao lại là';
+
+  @override
+  String get fdPlanQ2Mark => 'Hàn Quốc?';
+
+  @override
+  String get fdPlanQ2Hint =>
+      '3–5 câu. Viết lý do cá nhân: gia đình, nghề nghiệp, ngôn ngữ, kinh nghiệm. Tránh nói chung chung.';
+
+  @override
+  String get fdPlanQ3Head => 'Vì sao lại là';
+
+  @override
+  String get fdPlanQ3Mark => 'trường này?';
+
+  @override
+  String get fdPlanQ3Hint =>
+      '3–5 câu. Chương trình, phòng thí nghiệm hay ngành của trường này phù hợp với bạn ở điểm nào? Nêu ví dụ cụ thể.';
+
+  @override
+  String get fdPlanQ4Head => 'Kế hoạch sau';
+
+  @override
+  String get fdPlanQ4Mark => 'khi tốt nghiệp?';
+
+  @override
+  String get fdPlanQ4Hint =>
+      '3–5 câu. Sau khi học bạn sẽ làm gì: đi làm, học thạc sĩ hay về nước? Viết các bước cụ thể.';
+
+  @override
+  String get fdPlanHintField => 'Viết ở đây…';
+
+  @override
+  String get fdPlanWarnTitle => 'Quan trọng: đừng nộp văn bản do AI viết';
+
+  @override
+  String get fdPlanWarnBody =>
+      'Các trường phát hiện được văn bản do AI viết. Những gì bạn viết ở đây chỉ là của bạn. Hanguk AI chỉ đưa ra nhận xét.';
+
+  @override
+  String get fdPlanFeedback => 'Nhận nhận xét';
+
+  @override
+  String get fdPlanFeedbackBusy => 'Đang phân tích…';
+
+  @override
+  String get fdPlanWriteFirst => 'Hãy viết bước này trước.';
+
+  @override
+  String get fdPlanSheetTitle => 'Nhận xét của Hanguk AI';
+
+  @override
+  String get fdPlanStrengths => 'Điểm mạnh';
+
+  @override
+  String get fdPlanImprove => 'Cần cải thiện';
+
+  @override
+  String get fdPlanNext => 'Bước tiếp theo';
+
+  @override
+  String get fdPlanClose => 'Đóng';
+
+  @override
+  String get fdPlanLoadFailed =>
+      'Không mở được Study Plan. Hãy kiểm tra kết nối và thử lại.';
+
+  @override
+  String get fdInterviewTitle => 'Luyện phỏng vấn';
+
+  @override
+  String get fdInterviewAi => 'Hanguk AI · người phỏng vấn';
+
+  @override
+  String fdInterviewStyle(String university) {
+    return 'Theo phong cách hội đồng tuyển sinh $university';
+  }
+
+  @override
+  String get fdInterviewTip => 'Nói rõ ràng, tốc độ vừa phải · 60–90 giây';
+
+  @override
+  String get fdInterviewMute => 'Tắt micrô';
+
+  @override
+  String get fdInterviewUnmute => 'Bật micrô';
+
+  @override
+  String get fdInterviewMuted =>
+      'Micrô đang tắt — người phỏng vấn không nghe thấy bạn';
 }

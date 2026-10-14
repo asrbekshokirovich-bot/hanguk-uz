@@ -56,6 +56,12 @@ void main() {
   group('signed in', () {
     test('guest mode is redundant, so /guest goes home', () {
       expect(redirectFor('/guest', isAuthenticated: true), '/');
+      expect(redirectFor('/guest?tab=1', isAuthenticated: true), '/');
+    });
+
+    test('but the pages pushed from it stay open', () {
+      expect(redirectFor('/guest/results', isAuthenticated: true), isNull);
+      expect(redirectFor('/guest/saved', isAuthenticated: true), isNull);
     });
 
     test('/walkaround still works — it is a normal in-app screen', () {

@@ -61,6 +61,7 @@ class HardButton extends StatefulWidget {
     this.fill = SeoulColors.lime,
     this.foreground = SeoulColors.ink,
     this.trailing,
+    this.leading,
   });
 
   final String label;
@@ -71,6 +72,9 @@ class HardButton extends StatefulWidget {
 
   /// Drawn after the label, e.g. the forward arrow of "Continue →".
   final Widget? trailing;
+
+  /// Drawn before the label, e.g. the sparkle of "✦ Fikr-mulohaza olish".
+  final Widget? leading;
 
   @override
   State<HardButton> createState() => _HardButtonState();
@@ -124,6 +128,10 @@ class _HardButtonState extends State<HardButton> {
                     : Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
+                          if (widget.leading != null) ...[
+                            widget.leading!,
+                            const SizedBox(width: 8),
+                          ],
                           Flexible(
                             child: Text(
                               widget.label,

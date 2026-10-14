@@ -56,6 +56,18 @@ final authStateProvider = StreamProvider<AuthState>((ref) {
   return ref.watch(authRepositoryProvider).authStateChanges;
 });
 
+/// Whether a student is signed in. False before Supabase is up, so screens
+/// that only adapt to it (the bottom nav of a pushed screen) can be built
+/// anywhere.
+final signedInProvider = Provider<bool>((ref) {
+  try {
+    final state = ref.watch(authStateProvider);
+    return (state.value?.session ?? Supabase.instance.client.auth.currentSession) != null;
+  } catch (_) {
+    return false;
+  }
+});
+
 /// The signed-in student's display name, read from `profiles.full_name`.
 ///
 /// The magic-code login (`student-login-v2`) returns the name but recovers the

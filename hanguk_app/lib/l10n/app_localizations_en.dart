@@ -3982,4 +3982,282 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get fdUnsave => 'Remove from saved';
+
+  @override
+  String get fdOddsLead => 'My admission chance';
+
+  @override
+  String get fdStampSave => 'SAVE';
+
+  @override
+  String get fdStampSkip => 'SKIP';
+
+  @override
+  String get fdSwipeHint => 'Try swiping';
+
+  @override
+  String get fdQsRanking => 'world ranking';
+
+  @override
+  String get fdPerSemShort => '/ sem';
+
+  @override
+  String get fdPerYearShort => '/ year';
+
+  @override
+  String get fdCodeTitleLead => 'Your client';
+
+  @override
+  String get fdCodeTitleMark => 'code';
+
+  @override
+  String get fdCodeBody =>
+      'Enter the 8-character code your consultant gave you — your application status opens.';
+
+  @override
+  String get fdCodeSubmit => 'Sign in';
+
+  @override
+  String get fdCodeNoCode => 'No code? Free consultation:';
+
+  @override
+  String fdCodeCell(int n) {
+    return 'Code character $n';
+  }
+
+  @override
+  String fdMapKicker(int count) {
+    return 'Across Korea · $count universities';
+  }
+
+  @override
+  String get fdMapTitleMark => 'map';
+
+  @override
+  String get fdMapLabel => 'KOREA · 대한민국';
+
+  @override
+  String fdMapPin(String city, int count) {
+    return '$city: $count universities';
+  }
+
+  @override
+  String get fdMapZoomIn => 'Zoom in';
+
+  @override
+  String get fdMapZoomOut => 'Zoom out';
+
+  @override
+  String get fdMapOpen360 => 'Open the 360° view';
+
+  @override
+  String get fdMapEmpty => 'No university matches this filter.';
+
+  @override
+  String fdMapCardOf(int n, int total) {
+    return '$n / $total';
+  }
+
+  @override
+  String get fdNavApplication => 'Application';
+
+  @override
+  String get fdNavDocuments => 'Documents';
+
+  @override
+  String get fdJourneyTitle => 'Application progress';
+
+  @override
+  String get fdJourneyCurrent => 'Current stage';
+
+  @override
+  String fdJourneyNext(String stage) {
+    return 'Next stage: $stage';
+  }
+
+  @override
+  String get fdJourneyDone => 'Every stage is done';
+
+  @override
+  String get fdJourneyWaiting =>
+      'Waiting for the consultant to confirm your application';
+
+  @override
+  String get fdJourneyEmpty => 'No application yet';
+
+  @override
+  String get fdJourneyEmptyBody =>
+      'Once your consultant attaches a university, its progress shows here.';
+
+  @override
+  String get fdJourneyBrowse => 'Browse universities';
+
+  @override
+  String get fdJourneyRoom => 'University room';
+
+  @override
+  String get fdConsultantRole => 'Consultant · answers your questions';
+
+  @override
+  String get fdDocsTitle => 'My documents';
+
+  @override
+  String get fdDocsAccepted => 'Accepted documents';
+
+  @override
+  String fdDocsNeedMore(int n) {
+    return '$n more needed';
+  }
+
+  @override
+  String fdDocsUnderReview(int n) {
+    return '$n under review';
+  }
+
+  @override
+  String get fdDocsAllAccepted => 'Everything is accepted';
+
+  @override
+  String get fdDocAccepted => 'Accepted';
+
+  @override
+  String get fdDocNeeded => 'Needed';
+
+  @override
+  String get fdDocReview => 'Under review';
+
+  @override
+  String get fdDocUpload => 'Upload';
+
+  @override
+  String get fdDocView => 'View';
+
+  @override
+  String get fdDocRemove => 'Remove';
+
+  @override
+  String get accountMoreLabel => 'More';
+
+  @override
+  String get fdPlanTitle => 'Study Plan';
+
+  @override
+  String get fdPlanStepGoal => 'Goal';
+
+  @override
+  String get fdPlanStepKorea => 'Why Korea';
+
+  @override
+  String get fdPlanStepUni => 'Why this university';
+
+  @override
+  String get fdPlanStepFuture => 'Future plan';
+
+  @override
+  String fdPlanStepOf(int n, int total) {
+    return 'Step $n · of $total';
+  }
+
+  @override
+  String get fdPlanQ1Head => 'Your';
+
+  @override
+  String get fdPlanQ1Mark => 'goal?';
+
+  @override
+  String get fdPlanQ1Hint =>
+      '3–5 sentences. What do you want to study and why do you need it? Be specific.';
+
+  @override
+  String get fdPlanQ2Head => 'Why';
+
+  @override
+  String get fdPlanQ2Mark => 'Korea?';
+
+  @override
+  String get fdPlanQ2Hint =>
+      '3–5 sentences. Write a personal reason: family, career, language, experience. Avoid generalities.';
+
+  @override
+  String get fdPlanQ3Head => 'Why this';
+
+  @override
+  String get fdPlanQ3Mark => 'university?';
+
+  @override
+  String get fdPlanQ3Hint =>
+      '3–5 sentences. Why do this university\'s programme, lab or major suit you? Give a concrete example.';
+
+  @override
+  String get fdPlanQ4Head => 'Your plan after';
+
+  @override
+  String get fdPlanQ4Mark => 'graduation?';
+
+  @override
+  String get fdPlanQ4Hint =>
+      '3–5 sentences. What will you do after your studies: work, a master\'s or going home? Write concrete steps.';
+
+  @override
+  String get fdPlanHintField => 'Write here…';
+
+  @override
+  String get fdPlanWarnTitle => 'Important: do not submit AI-written text';
+
+  @override
+  String get fdPlanWarnBody =>
+      'Universities detect AI text. What you write here is yours alone. Hanguk AI only gives feedback.';
+
+  @override
+  String get fdPlanFeedback => 'Get feedback';
+
+  @override
+  String get fdPlanFeedbackBusy => 'Analysing…';
+
+  @override
+  String get fdPlanWriteFirst => 'Write this step first.';
+
+  @override
+  String get fdPlanSheetTitle => 'Hanguk AI feedback';
+
+  @override
+  String get fdPlanStrengths => 'Strengths';
+
+  @override
+  String get fdPlanImprove => 'To improve';
+
+  @override
+  String get fdPlanNext => 'Next step';
+
+  @override
+  String get fdPlanClose => 'Close';
+
+  @override
+  String get fdPlanLoadFailed =>
+      'Study Plan did not open. Check your connection and try again.';
+
+  @override
+  String get fdInterviewTitle => 'Interview practice';
+
+  @override
+  String get fdInterviewAi => 'Hanguk AI · interviewer';
+
+  @override
+  String fdInterviewStyle(String university) {
+    return 'In the style of $university\'s admissions panel';
+  }
+
+  @override
+  String get fdInterviewTip =>
+      'Speak clearly at a moderate pace · 60–90 seconds';
+
+  @override
+  String get fdInterviewMute => 'Mute microphone';
+
+  @override
+  String get fdInterviewUnmute => 'Unmute microphone';
+
+  @override
+  String get fdInterviewMuted =>
+      'Microphone off — the interviewer cannot hear you';
 }

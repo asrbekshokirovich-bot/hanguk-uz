@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../../design_system/seoul_night/widgets/lucide.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../auth/data/auth_repository.dart' show signedInProvider;
 import '../../../catalog/data/campus_photos.dart';
 import '../../../catalog/data/catalog_filters.dart';
 import '../../../catalog/domain/catalog_models.dart';
@@ -129,14 +131,16 @@ class GhostWord extends StatelessWidget {
   );
 }
 
-/// The guest's bottom nav on a screen pushed over the home: Universitetlar
-/// stays lit; another tab goes back to the home with that tab open.
-class GuestTabsBar extends StatelessWidget {
+/// The bottom nav on a screen pushed over the home: Universitetlar stays lit;
+/// another tab goes back to the home (the guest's, or the signed-in
+/// student's) with that tab open.
+class GuestTabsBar extends ConsumerWidget {
   const GuestTabsBar({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context)!;
+    final signedIn = ref.watch(signedInProvider);
     return FdBottomNav(
       current: 0,
       items: [
@@ -144,7 +148,7 @@ class GuestTabsBar extends StatelessWidget {
         (label: l.fdNavMap, glyph: LucideIcons.map),
         (label: l.fdNavPrepare, glyph: LucideIcons.target),
       ],
-      onSelect: (i) => context.go(discoverTabPath(i)),
+      onSelect: (i) => context.go(signedIn ? '/?tab=$i' : discoverTabPath(i)),
     );
   }
 }

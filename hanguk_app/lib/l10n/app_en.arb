@@ -5153,5 +5153,391 @@
   "fdUnsave": "Remove from saved",
   "@fdUnsave": {
     "description": "Screen-reader label of the heart on a saved row."
+  },
+  "fdOddsLead": "My admission chance",
+  "@fdOddsLead": {
+    "description": "Card pill (design 03): followed by the percentage or ?% and an arrow."
+  },
+  "fdStampSave": "SAVE",
+  "@fdStampSave": {
+    "description": "Stamp on the card while it is dragged to the right."
+  },
+  "fdStampSkip": "SKIP",
+  "@fdStampSkip": {
+    "description": "Stamp on the card while it is dragged to the left."
+  },
+  "fdSwipeHint": "Try swiping",
+  "@fdSwipeHint": {
+    "description": "Hint over the first card, shown until the first swipe."
+  },
+  "fdQsRanking": "world ranking",
+  "@fdQsRanking": {
+    "description": "Under the QS number on the card."
+  },
+  "fdPerSemShort": "/ sem",
+  "@fdPerSemShort": {
+    "description": "After the fee on the home card: per semester."
+  },
+  "fdPerYearShort": "/ year",
+  "@fdPerYearShort": {
+    "description": "After the fee on the home card: per year."
+  },
+  "fdCodeTitleLead": "Your client",
+  "@fdCodeTitleLead": {
+    "description": "Client code screen (design 14) title, first part; the second part is marked."
+  },
+  "fdCodeTitleMark": "code",
+  "@fdCodeTitleMark": {
+    "description": "Client code title, marked part."
+  },
+  "fdCodeBody": "Enter the 8-character code your consultant gave you — your application status opens.",
+  "@fdCodeBody": {
+    "description": "Client code screen body."
+  },
+  "fdCodeSubmit": "Sign in",
+  "@fdCodeSubmit": {
+    "description": "Client code screen button."
+  },
+  "fdCodeNoCode": "No code? Free consultation:",
+  "@fdCodeNoCode": {
+    "description": "Under the client code form, followed by the phone number."
+  },
+  "fdCodeCell": "Code character {n}",
+  "@fdCodeCell": {
+    "description": "Screen-reader label for the code field.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "fdMapKicker": "Across Korea · {count} universities",
+  "@fdMapKicker": {
+    "description": "Map (design 17) line above the title.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fdMapTitleMark": "map",
+  "@fdMapTitleMark": {
+    "description": "Map title, marked part, after '360° '."
+  },
+  "fdMapLabel": "KOREA · 대한민국",
+  "@fdMapLabel": {
+    "description": "Faint label in the map's corner."
+  },
+  "fdMapPin": "{city}: {count} universities",
+  "@fdMapPin": {
+    "description": "Screen-reader label of a map pin.",
+    "placeholders": {
+      "city": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fdMapZoomIn": "Zoom in",
+  "@fdMapZoomIn": {
+    "description": "Map zoom button."
+  },
+  "fdMapZoomOut": "Zoom out",
+  "@fdMapZoomOut": {
+    "description": "Map zoom button."
+  },
+  "fdMapOpen360": "Open the 360° view",
+  "@fdMapOpen360": {
+    "description": "Screen-reader label of the 360° button on the map card."
+  },
+  "fdMapEmpty": "No university matches this filter.",
+  "@fdMapEmpty": {
+    "description": "Map with no pins."
+  },
+  "fdMapCardOf": "{n} / {total}",
+  "@fdMapCardOf": {
+    "description": "Which university of a pin's list the card shows.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "fdNavApplication": "Application",
+  "@fdNavApplication": {
+    "description": "Client bottom nav tab (design 15)."
+  },
+  "fdNavDocuments": "Documents",
+  "@fdNavDocuments": {
+    "description": "Client bottom nav tab (design 15b)."
+  },
+  "fdJourneyTitle": "Application progress",
+  "@fdJourneyTitle": {
+    "description": "Application (design 15) title."
+  },
+  "fdJourneyCurrent": "Current stage",
+  "@fdJourneyCurrent": {
+    "description": "Application summary card label."
+  },
+  "fdJourneyNext": "Next stage: {stage}",
+  "@fdJourneyNext": {
+    "description": "Application summary card note.",
+    "placeholders": {
+      "stage": {
+        "type": "String"
+      }
+    }
+  },
+  "fdJourneyDone": "Every stage is done",
+  "@fdJourneyDone": {
+    "description": "Application summary card note when the journey is over."
+  },
+  "fdJourneyWaiting": "Waiting for the consultant to confirm your application",
+  "@fdJourneyWaiting": {
+    "description": "Application summary card note while the application is pending approval."
+  },
+  "fdJourneyEmpty": "No application yet",
+  "@fdJourneyEmpty": {
+    "description": "Application screen with no application."
+  },
+  "fdJourneyEmptyBody": "Once your consultant attaches a university, its progress shows here.",
+  "@fdJourneyEmptyBody": {
+    "description": "Application screen with no application."
+  },
+  "fdJourneyBrowse": "Browse universities",
+  "@fdJourneyBrowse": {
+    "description": "Button on the empty application screen."
+  },
+  "fdJourneyRoom": "University room",
+  "@fdJourneyRoom": {
+    "description": "Opens a university's room (discussion, announcements) from an application."
+  },
+  "fdConsultantRole": "Consultant · answers your questions",
+  "@fdConsultantRole": {
+    "description": "Under the agency name on the consultant card."
+  },
+  "fdDocsTitle": "My documents",
+  "@fdDocsTitle": {
+    "description": "Documents (design 15b) title."
+  },
+  "fdDocsAccepted": "Accepted documents",
+  "@fdDocsAccepted": {
+    "description": "Documents summary card label."
+  },
+  "fdDocsNeedMore": "{n} more needed",
+  "@fdDocsNeedMore": {
+    "description": "Documents summary card headline.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "fdDocsUnderReview": "{n} under review",
+  "@fdDocsUnderReview": {
+    "description": "Documents summary card headline when all are uploaded.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "fdDocsAllAccepted": "Everything is accepted",
+  "@fdDocsAllAccepted": {
+    "description": "Documents summary card headline when all are accepted."
+  },
+  "fdDocAccepted": "Accepted",
+  "@fdDocAccepted": {
+    "description": "Document row status."
+  },
+  "fdDocNeeded": "Needed",
+  "@fdDocNeeded": {
+    "description": "Document row status."
+  },
+  "fdDocReview": "Under review",
+  "@fdDocReview": {
+    "description": "Document row status."
+  },
+  "fdDocUpload": "Upload",
+  "@fdDocUpload": {
+    "description": "Document row button."
+  },
+  "fdDocView": "View",
+  "@fdDocView": {
+    "description": "Document actions."
+  },
+  "fdDocRemove": "Remove",
+  "@fdDocRemove": {
+    "description": "Document actions."
+  },
+  "accountMoreLabel": "More",
+  "@accountMoreLabel": {
+    "description": "Account screen card with the sections that are not in the bottom tabs."
+  },
+  "fdPlanTitle": "Study Plan",
+  "@fdPlanTitle": {
+    "description": "Study Plan builder header."
+  },
+  "fdPlanStepGoal": "Goal",
+  "@fdPlanStepGoal": {
+    "description": "Study Plan step chip 1."
+  },
+  "fdPlanStepKorea": "Why Korea",
+  "@fdPlanStepKorea": {
+    "description": "Study Plan step chip 2."
+  },
+  "fdPlanStepUni": "Why this university",
+  "@fdPlanStepUni": {
+    "description": "Study Plan step chip 3."
+  },
+  "fdPlanStepFuture": "Future plan",
+  "@fdPlanStepFuture": {
+    "description": "Study Plan step chip 4."
+  },
+  "fdPlanStepOf": "Step {n} · of {total}",
+  "@fdPlanStepOf": {
+    "description": "Card kicker of the Study Plan builder.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "fdPlanQ1Head": "Your",
+  "@fdPlanQ1Head": {
+    "description": "Step 1 title, before the highlighted word."
+  },
+  "fdPlanQ1Mark": "goal?",
+  "@fdPlanQ1Mark": {
+    "description": "Step 1 title, highlighted word."
+  },
+  "fdPlanQ1Hint": "3–5 sentences. What do you want to study and why do you need it? Be specific.",
+  "@fdPlanQ1Hint": {
+    "description": "Step 1 hint."
+  },
+  "fdPlanQ2Head": "Why",
+  "@fdPlanQ2Head": {
+    "description": "Step 2 title, before the highlighted word."
+  },
+  "fdPlanQ2Mark": "Korea?",
+  "@fdPlanQ2Mark": {
+    "description": "Step 2 title, highlighted word."
+  },
+  "fdPlanQ2Hint": "3–5 sentences. Write a personal reason: family, career, language, experience. Avoid generalities.",
+  "@fdPlanQ2Hint": {
+    "description": "Step 2 hint."
+  },
+  "fdPlanQ3Head": "Why this",
+  "@fdPlanQ3Head": {
+    "description": "Step 3 title, before the highlighted word."
+  },
+  "fdPlanQ3Mark": "university?",
+  "@fdPlanQ3Mark": {
+    "description": "Step 3 title, highlighted word."
+  },
+  "fdPlanQ3Hint": "3–5 sentences. Why do this university's programme, lab or major suit you? Give a concrete example.",
+  "@fdPlanQ3Hint": {
+    "description": "Step 3 hint."
+  },
+  "fdPlanQ4Head": "Your plan after",
+  "@fdPlanQ4Head": {
+    "description": "Step 4 title, before the highlighted word."
+  },
+  "fdPlanQ4Mark": "graduation?",
+  "@fdPlanQ4Mark": {
+    "description": "Step 4 title, highlighted word."
+  },
+  "fdPlanQ4Hint": "3–5 sentences. What will you do after your studies: work, a master's or going home? Write concrete steps.",
+  "@fdPlanQ4Hint": {
+    "description": "Step 4 hint."
+  },
+  "fdPlanHintField": "Write here…",
+  "@fdPlanHintField": {
+    "description": "Study Plan builder text field placeholder."
+  },
+  "fdPlanWarnTitle": "Important: do not submit AI-written text",
+  "@fdPlanWarnTitle": {
+    "description": "Warning card title."
+  },
+  "fdPlanWarnBody": "Universities detect AI text. What you write here is yours alone. Hanguk AI only gives feedback.",
+  "@fdPlanWarnBody": {
+    "description": "Warning card body."
+  },
+  "fdPlanFeedback": "Get feedback",
+  "@fdPlanFeedback": {
+    "description": "Study Plan builder main button."
+  },
+  "fdPlanFeedbackBusy": "Analysing…",
+  "@fdPlanFeedbackBusy": {
+    "description": "Main button while the analysis runs."
+  },
+  "fdPlanWriteFirst": "Write this step first.",
+  "@fdPlanWriteFirst": {
+    "description": "Shown when feedback is asked on an empty step."
+  },
+  "fdPlanSheetTitle": "Hanguk AI feedback",
+  "@fdPlanSheetTitle": {
+    "description": "Feedback sheet title."
+  },
+  "fdPlanStrengths": "Strengths",
+  "@fdPlanStrengths": {
+    "description": "Feedback sheet section."
+  },
+  "fdPlanImprove": "To improve",
+  "@fdPlanImprove": {
+    "description": "Feedback sheet section."
+  },
+  "fdPlanNext": "Next step",
+  "@fdPlanNext": {
+    "description": "Feedback sheet button."
+  },
+  "fdPlanClose": "Close",
+  "@fdPlanClose": {
+    "description": "Feedback sheet button on the last step."
+  },
+  "fdPlanLoadFailed": "Study Plan did not open. Check your connection and try again.",
+  "@fdPlanLoadFailed": {
+    "description": "Study Plan builder when the session could not be created or loaded."
+  },
+  "fdInterviewTitle": "Interview practice",
+  "@fdInterviewTitle": {
+    "description": "Live interview screen header."
+  },
+  "fdInterviewAi": "Hanguk AI · interviewer",
+  "@fdInterviewAi": {
+    "description": "Name under the interviewer avatar."
+  },
+  "fdInterviewStyle": "In the style of {university}'s admissions panel",
+  "@fdInterviewStyle": {
+    "description": "Line under the interviewer's name.",
+    "placeholders": {
+      "university": {
+        "type": "String"
+      }
+    }
+  },
+  "fdInterviewTip": "Speak clearly at a moderate pace · 60–90 seconds",
+  "@fdInterviewTip": {
+    "description": "Tip under the microphone button."
+  },
+  "fdInterviewMute": "Mute microphone",
+  "@fdInterviewMute": {
+    "description": "Microphone button label while it is on."
+  },
+  "fdInterviewUnmute": "Unmute microphone",
+  "@fdInterviewUnmute": {
+    "description": "Microphone button label while it is muted."
+  },
+  "fdInterviewMuted": "Microphone off — the interviewer cannot hear you",
+  "@fdInterviewMuted": {
+    "description": "Status while the microphone is muted."
   }
 }

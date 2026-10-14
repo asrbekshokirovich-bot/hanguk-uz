@@ -3830,4 +3830,273 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get fdUnsave => '저장 취소';
+
+  @override
+  String get fdOddsLead => '나의 합격 가능성';
+
+  @override
+  String get fdStampSave => '저장';
+
+  @override
+  String get fdStampSkip => '건너뛰기';
+
+  @override
+  String get fdSwipeHint => '밀어 보세요';
+
+  @override
+  String get fdQsRanking => '세계 순위';
+
+  @override
+  String get fdPerSemShort => '/ 학기';
+
+  @override
+  String get fdPerYearShort => '/ 년';
+
+  @override
+  String get fdCodeTitleLead => '고객';
+
+  @override
+  String get fdCodeTitleMark => '코드';
+
+  @override
+  String get fdCodeBody => '상담사가 알려준 8자리 코드를 입력하세요 — 신청 현황이 열립니다.';
+
+  @override
+  String get fdCodeSubmit => '입장';
+
+  @override
+  String get fdCodeNoCode => '코드가 없나요? 무료 상담:';
+
+  @override
+  String fdCodeCell(int n) {
+    return '코드 $n번째 글자';
+  }
+
+  @override
+  String fdMapKicker(int count) {
+    return '한국 전역 · 대학 $count곳';
+  }
+
+  @override
+  String get fdMapTitleMark => '지도';
+
+  @override
+  String get fdMapLabel => '한국 · 대한민국';
+
+  @override
+  String fdMapPin(String city, int count) {
+    return '$city: 대학 $count곳';
+  }
+
+  @override
+  String get fdMapZoomIn => '확대';
+
+  @override
+  String get fdMapZoomOut => '축소';
+
+  @override
+  String get fdMapOpen360 => '360° 보기';
+
+  @override
+  String get fdMapEmpty => '이 필터에 맞는 대학이 없어요.';
+
+  @override
+  String fdMapCardOf(int n, int total) {
+    return '$n / $total';
+  }
+
+  @override
+  String get fdNavApplication => '지원';
+
+  @override
+  String get fdNavDocuments => '서류';
+
+  @override
+  String get fdJourneyTitle => '지원 진행 상황';
+
+  @override
+  String get fdJourneyCurrent => '현재 단계';
+
+  @override
+  String fdJourneyNext(String stage) {
+    return '다음 단계: $stage';
+  }
+
+  @override
+  String get fdJourneyDone => '모든 단계가 끝났어요';
+
+  @override
+  String get fdJourneyWaiting => '상담사의 신청 확인을 기다리는 중';
+
+  @override
+  String get fdJourneyEmpty => '아직 신청이 없어요';
+
+  @override
+  String get fdJourneyEmptyBody => '상담사가 대학을 연결하면 진행 상황이 여기에 표시됩니다.';
+
+  @override
+  String get fdJourneyBrowse => '대학 둘러보기';
+
+  @override
+  String get fdJourneyRoom => '대학 룸';
+
+  @override
+  String get fdConsultantRole => '상담사 · 질문에 답해 드려요';
+
+  @override
+  String get fdDocsTitle => '내 서류';
+
+  @override
+  String get fdDocsAccepted => '승인된 서류';
+
+  @override
+  String fdDocsNeedMore(int n) {
+    return '$n개 더 필요해요';
+  }
+
+  @override
+  String fdDocsUnderReview(int n) {
+    return '$n개 검토 중';
+  }
+
+  @override
+  String get fdDocsAllAccepted => '모두 승인되었어요';
+
+  @override
+  String get fdDocAccepted => '승인됨';
+
+  @override
+  String get fdDocNeeded => '필요';
+
+  @override
+  String get fdDocReview => '검토 중';
+
+  @override
+  String get fdDocUpload => '올리기';
+
+  @override
+  String get fdDocView => '보기';
+
+  @override
+  String get fdDocRemove => '삭제';
+
+  @override
+  String get accountMoreLabel => '더 보기';
+
+  @override
+  String get fdPlanTitle => '학업계획서';
+
+  @override
+  String get fdPlanStepGoal => '목표';
+
+  @override
+  String get fdPlanStepKorea => '왜 한국';
+
+  @override
+  String get fdPlanStepUni => '왜 이 대학';
+
+  @override
+  String get fdPlanStepFuture => '미래 계획';
+
+  @override
+  String fdPlanStepOf(int n, int total) {
+    return '$n단계 · 총 $total단계';
+  }
+
+  @override
+  String get fdPlanQ1Head => '당신의';
+
+  @override
+  String get fdPlanQ1Mark => '목표는?';
+
+  @override
+  String get fdPlanQ1Hint => '3~5문장. 무엇을 공부하고 싶고 왜 필요한지 구체적으로 쓰세요.';
+
+  @override
+  String get fdPlanQ2Head => '왜 하필';
+
+  @override
+  String get fdPlanQ2Mark => '한국?';
+
+  @override
+  String get fdPlanQ2Hint =>
+      '3~5문장. 가족, 직업, 언어, 경험 등 개인적인 이유를 쓰세요. 뻔한 말은 피하세요.';
+
+  @override
+  String get fdPlanQ3Head => '왜 이';
+
+  @override
+  String get fdPlanQ3Mark => '대학?';
+
+  @override
+  String get fdPlanQ3Hint => '3~5문장. 이 대학의 프로그램, 연구실, 전공이 왜 맞는지 구체적인 예를 드세요.';
+
+  @override
+  String get fdPlanQ4Head => '졸업 후';
+
+  @override
+  String get fdPlanQ4Mark => '계획?';
+
+  @override
+  String get fdPlanQ4Hint => '3~5문장. 졸업 후 취업, 대학원, 귀국 중 무엇을 할지 구체적인 단계로 쓰세요.';
+
+  @override
+  String get fdPlanHintField => '여기에 쓰세요…';
+
+  @override
+  String get fdPlanWarnTitle => '중요: AI가 쓴 글은 제출하지 마세요';
+
+  @override
+  String get fdPlanWarnBody =>
+      '대학은 AI 작성 글을 가려냅니다. 여기서 쓰는 글은 오직 본인의 것입니다. Hanguk AI는 피드백만 드립니다.';
+
+  @override
+  String get fdPlanFeedback => '피드백 받기';
+
+  @override
+  String get fdPlanFeedbackBusy => '분석 중…';
+
+  @override
+  String get fdPlanWriteFirst => '먼저 이 단계를 작성하세요.';
+
+  @override
+  String get fdPlanSheetTitle => 'Hanguk AI 피드백';
+
+  @override
+  String get fdPlanStrengths => '잘한 점';
+
+  @override
+  String get fdPlanImprove => '개선할 점';
+
+  @override
+  String get fdPlanNext => '다음 단계';
+
+  @override
+  String get fdPlanClose => '닫기';
+
+  @override
+  String get fdPlanLoadFailed => '학업계획서를 열 수 없습니다. 연결을 확인하고 다시 시도하세요.';
+
+  @override
+  String get fdInterviewTitle => '면접 연습';
+
+  @override
+  String get fdInterviewAi => 'Hanguk AI · 면접관';
+
+  @override
+  String fdInterviewStyle(String university) {
+    return '$university 입학 면접 방식';
+  }
+
+  @override
+  String get fdInterviewTip => '또렷하게, 적당한 속도로 말하세요 · 60~90초';
+
+  @override
+  String get fdInterviewMute => '마이크 끄기';
+
+  @override
+  String get fdInterviewUnmute => '마이크 켜기';
+
+  @override
+  String get fdInterviewMuted => '마이크 꺼짐 — 면접관이 듣지 못합니다';
 }
