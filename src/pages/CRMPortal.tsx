@@ -46,6 +46,7 @@ const DistributionContent = lazy(() => import('@/components/finance/IncomeDistri
 const BonusesContent = lazy(() => import('@/components/finance/StaffBonusesPanel').then(m => ({ default: m.StaffBonusesPanel })));
 const UniversityCatalogContent = lazy(() => import('@/components/crm/pages/UniversityCatalogContent'));
 const UniversitySelectionContent = lazy(() => import('@/components/crm/pages/UniversitySelectionContent'));
+const OnlineApplicationContent = lazy(() => import('@/components/crm/pages/OnlineApplicationContent'));
 const AppActivityContent = lazy(() => import('@/components/crm/pages/AppActivityContent'));
 const UniversitiesContent = lazy(() => import('@/components/crm/pages/UniversitiesContent'));
 const TasksContent = lazy(() => import('@/components/crm/pages/TasksContent'));
@@ -138,6 +139,7 @@ export default function CRMPortal() {
     if (currentPath.startsWith('/crm/payments')) return 'finance'; // Legacy redirect
     if (currentPath.startsWith('/crm/universities')) return 'universities';
     if (currentPath.startsWith('/crm/university-selection')) return 'university-selection';
+    if (currentPath.startsWith('/crm/online-application')) return 'online-application';
     if (currentPath.startsWith('/crm/app-activity')) return 'app-activity';
     if (currentPath.startsWith('/crm/application-fees')) return 'application-fees';
     if (currentPath.startsWith('/crm/tasks')) return 'tasks';
@@ -420,6 +422,13 @@ export default function CRMPortal() {
       case 'app-activity':
         if (!isAdmin) return <AccessDenied />;
         return <SafeSuspense><AppActivityContent /></SafeSuspense>;
+      case 'online-application':
+        if (!(isAdmin || isDocumentHandler || isCallOperator)) return <AccessDenied />;
+        return (
+          <SafeSuspense>
+            <OnlineApplicationContent students={students} loading={loading} />
+          </SafeSuspense>
+        );
       case 'application-fees':
         if (!isDocumentHandler) return <AccessDenied />;
         return <SafeSuspense><ApplicationFeeContent /></SafeSuspense>;
