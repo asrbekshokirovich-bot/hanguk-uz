@@ -47,6 +47,7 @@ const BonusesContent = lazy(() => import('@/components/finance/StaffBonusesPanel
 const UniversityCatalogContent = lazy(() => import('@/components/crm/pages/UniversityCatalogContent'));
 const UniversitySelectionContent = lazy(() => import('@/components/crm/pages/UniversitySelectionContent'));
 const OnlineApplicationContent = lazy(() => import('@/components/crm/pages/OnlineApplicationContent'));
+const OfflineApplicationContent = lazy(() => import('@/components/crm/pages/OfflineApplicationContent'));
 const AppActivityContent = lazy(() => import('@/components/crm/pages/AppActivityContent'));
 const UniversitiesContent = lazy(() => import('@/components/crm/pages/UniversitiesContent'));
 const TasksContent = lazy(() => import('@/components/crm/pages/TasksContent'));
@@ -140,6 +141,7 @@ export default function CRMPortal() {
     if (currentPath.startsWith('/crm/universities')) return 'universities';
     if (currentPath.startsWith('/crm/university-selection')) return 'university-selection';
     if (currentPath.startsWith('/crm/online-application')) return 'online-application';
+    if (currentPath.startsWith('/crm/offline-application')) return 'offline-application';
     if (currentPath.startsWith('/crm/app-activity')) return 'app-activity';
     if (currentPath.startsWith('/crm/application-fees')) return 'application-fees';
     if (currentPath.startsWith('/crm/tasks')) return 'tasks';
@@ -427,6 +429,13 @@ export default function CRMPortal() {
         return (
           <SafeSuspense>
             <OnlineApplicationContent students={students} loading={loading} />
+          </SafeSuspense>
+        );
+      case 'offline-application':
+        if (!(isAdmin || isDocumentHandler || isCallOperator)) return <AccessDenied />;
+        return (
+          <SafeSuspense>
+            <OfflineApplicationContent students={students} loading={loading} />
           </SafeSuspense>
         );
       case 'application-fees':

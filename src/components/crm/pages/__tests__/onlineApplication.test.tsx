@@ -45,6 +45,18 @@ vi.mock('@/hooks/useStudentSurveyAnswers', async (orig) => ({
 
 vi.mock('@/integrations/supabase/client', () => ({ supabase: {} }));
 
+const save = vi.fn();
+let submissions: { student_id: string; institution_id: string; online_submitted_at: string | null }[] = [];
+vi.mock('@/hooks/useUniversitySubmissions', () => ({
+  submissionKey: (s: string, i: string) => `${s}:${i}`,
+  useUniversitySubmissions: () => ({
+    byKey: new Map(submissions.map((r) => [`${r.student_id}:${r.institution_id}`, r])),
+    loading: false,
+    error: null,
+    save: { mutate: save, isPending: false },
+  }),
+}));
+
 const students = [
   { user_id: 'a', full_name: 'ALIYEV SARDOR', avatar_url: null, magic_code: 'AAA', contract_date: '2026-10-01', hasPaid: true },
   { user_id: 'b', full_name: 'KARIMOVA MADINA', avatar_url: null, magic_code: 'BBB', contract_date: null },
@@ -83,6 +95,26 @@ describe('OnlineApplicationContent', () => {
     expect(screen.getByText(/Qaysi shaharda/)).toBeInTheDocument();
     expect(screen.getByText('Daegu')).toBeInTheDocument();
     expect(screen.getByText('Javob berilmagan')).toBeInTheDocument();
+  });
+});
+
+describe('Onlayn topshirildi', () => {
+  it('marks one student at one university as submitted online, and can undo it', () => {
+    submissions = [{ student_id: 'a', institution_id: 'pnu', online_submitted_at: '2026-10-14T10:00:00Z' }];
+    setup();
+    const toggles = screen.getAllByText('Onlayn topshirildi').map((el) => el.closest('button')!);
+    // KNU: ALIYEV (a, rank 1) then KARIMOVA (b); PNU: ALIYEV — already submitted.
+    expect(toggles.map((b) => b.getAttribute('aria-pressed'))).toEqual(['false', 'false', 'true']);
+    fireEvent.click(toggles[0]);
+    expect(save).toHaveBeenLastCalledWith(
+      { studentId: 'a', institutionId: 'knu', patch: { online_submitted_at: expect.any(String) } },
+      expect.anything(),
+    );
+    fireEvent.click(toggles[2]);
+    expect(save).toHaveBeenLastCalledWith(
+      { studentId: 'a', institutionId: 'pnu', patch: { online_submitted_at: null } },
+      expect.anything(),
+    );
   });
 });
 
