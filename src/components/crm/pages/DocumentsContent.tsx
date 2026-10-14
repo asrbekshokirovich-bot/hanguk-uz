@@ -34,6 +34,7 @@ import {
 import { Tables } from '@/integrations/supabase/types';
 import { cn } from '@/lib/utils';
 import { buildApplicationPack, slotLabel, type ResolvedSlot } from '@/lib/studentDocSlots';
+import { paymentTint, TINT_CLASS } from '@/lib/paymentTint';
 import { deleteStudentDocument, openStudentDocument, uploadStudentDocument } from '@/lib/staffDocumentActions';
 
 type StudentProfile = Tables<'profiles'> & {
@@ -41,7 +42,7 @@ type StudentProfile = Tables<'profiles'> & {
   documents?: Tables<'documents'>[];
   /** Set for a student with no application yet — see onSetDocsReady below. */
   docsReady?: boolean;
-  /** Any payment received (or nothing owed) — see paymentTint below. */
+  /** Any payment received (or nothing owed) — see @/lib/paymentTint. */
   hasPaid?: boolean;
 };
 
@@ -101,20 +102,6 @@ const ADVANCED_STATUSES = new Set([
 // ---------------------------------------------------------------------------
 
 const CONSULTANTS = ['Aziz K.', 'Madina T.', 'Sitora N.'];
-
-// A contracted student's card is tinted by payment alone, with no label:
-// amber while their documents are only being collected (contract signed,
-// nothing paid yet), green once they have paid and work on them starts.
-// No contract yet → the plain card.
-function paymentTint(student: Pick<StudentProfile, 'contract_date' | 'hasPaid'>): 'paid' | 'unpaid' | null {
-  if (!student.contract_date) return null;
-  return student.hasPaid ? 'paid' : 'unpaid';
-}
-
-const TINT_CLASS: Record<'paid' | 'unpaid', string> = {
-  paid: 'border-success/50 bg-success/15',
-  unpaid: 'border-warning/50 bg-warning/15',
-};
 
 function hashInt(seed: string) {
   let hash = 0;
