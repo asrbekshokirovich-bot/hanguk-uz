@@ -4286,4 +4286,100 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get fdPlanDictateUnavailable =>
       'Không chuyển giọng nói thành văn bản được trên điện thoại này. Hãy kiểm tra quyền micrô.';
+
+  @override
+  String get ucTitle => 'Chọn trường';
+
+  @override
+  String get ucSubtitle => 'Các trường tư vấn viên chọn cho bạn';
+
+  @override
+  String get ucNeedsAnswerTitle => 'Bạn cần trả lời';
+
+  @override
+  String get ucNeedsAnswerBody =>
+      'Xem từng trường và bấm \"Tôi đồng ý\" hoặc \"Yêu cầu đổi\".';
+
+  @override
+  String ucRank(int rank) {
+    return 'LỰA CHỌN $rank';
+  }
+
+  @override
+  String get ucPartner => 'Đối tác';
+
+  @override
+  String get ucStatusOffered => 'Đang chờ bạn trả lời';
+
+  @override
+  String get ucStatusAccepted => 'Tư vấn viên đang xác nhận';
+
+  @override
+  String get ucStatusChangeRequested => 'Đã yêu cầu đổi';
+
+  @override
+  String get ucStatusPartner => 'Trường đối tác — không cần trả lời';
+
+  @override
+  String get ucStatusConfirmed => 'Đã xác nhận';
+
+  @override
+  String get ucConfirmedNote => 'Đã xác nhận — hồ sơ đang được chuẩn bị.';
+
+  @override
+  String get ucChangeSentNote => 'Tư vấn viên sẽ sớm đề xuất trường khác.';
+
+  @override
+  String get ucFitOk => 'Điểm của bạn phù hợp';
+
+  @override
+  String get ucFitGap => 'Điểm thấp hơn yêu cầu';
+
+  @override
+  String ucDeadline(String date) {
+    return 'Nộp trước $date';
+  }
+
+  @override
+  String ucContract(String amount) {
+    return 'Học phí từ $amount';
+  }
+
+  @override
+  String get ucAccept => 'Tôi đồng ý';
+
+  @override
+  String get ucRequestChange => 'Yêu cầu đổi';
+
+  @override
+  String get ucChangeQuestion => 'Vì sao trường này không phù hợp với bạn?';
+
+  @override
+  String get ucReasonCity => 'Thành phố không phù hợp';
+
+  @override
+  String get ucReasonPrice => 'Học phí quá cao';
+
+  @override
+  String get ucReasonMajor => 'Tôi muốn ngành khác';
+
+  @override
+  String get ucReasonOther => 'Lý do khác';
+
+  @override
+  String get ucChangeNote => 'Ghi chú (không bắt buộc)';
+
+  @override
+  String get ucChangeSend => 'Gửi cho tư vấn viên';
+
+  @override
+  String get ucSendError => 'Không gửi được. Vui lòng thử lại.';
+
+  @override
+  String get ucEmpty => 'Tư vấn viên chưa đề xuất trường nào.';
+
+  @override
+  String ucBannerPending(int count) {
+    return '$count trường đang chờ bạn trả lời';
+  }
 }

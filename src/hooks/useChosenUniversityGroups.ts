@@ -1,7 +1,7 @@
 /**
  * The chosen universities, each with the students chosen for it — shared by
- * the Onlayn ariza and Oflayn ariza pages. Only universities chosen for at
- * least one student (student_university_choices) appear; a student with
+ * the Onlayn ariza and Oflayn ariza pages. Only universities confirmed for at
+ * least one student (student_university_choices, status 'confirmed') appear; a student with
  * several choices appears under each one, carrying their rank for it.
  */
 
@@ -32,7 +32,12 @@ export function useChosenUniversityGroups(students: StudentLite[], search: strin
   const catalog = useUniversityCatalog();
   const choices = useUniversityChoices();
 
-  const allChoices = useMemo(() => [...choices.byStudent.values()].flat(), [choices.byStudent]);
+  // Only choices the student agreed to and staff confirmed reach Onlayn /
+  // Oflayn ariza; offered or disputed ones stay on Universitet tanlash.
+  const allChoices = useMemo(
+    () => [...choices.byStudent.values()].flat().filter((c) => c.status === 'confirmed'),
+    [choices.byStudent],
+  );
 
   // Students chosen for a university but outside the CRM's loaded season are
   // fetched so their card still has a name.

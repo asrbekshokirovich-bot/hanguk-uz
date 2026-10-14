@@ -7735,6 +7735,180 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Speech-to-text did not work on this phone. Check the microphone permission.'**
   String get fdPlanDictateUnavailable;
+
+  /// Title of the screen where the student answers the universities the consultant offered.
+  ///
+  /// In en, this message translates to:
+  /// **'University choice'**
+  String get ucTitle;
+
+  /// Line under the University choice title.
+  ///
+  /// In en, this message translates to:
+  /// **'Universities your consultant picked for you'**
+  String get ucSubtitle;
+
+  /// Banner title when some offers wait for the student's answer.
+  ///
+  /// In en, this message translates to:
+  /// **'Your answer is needed'**
+  String get ucNeedsAnswerTitle;
+
+  /// Banner body under ucNeedsAnswerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Look at each university and tap \"I agree\" or \"Ask for a change\".'**
+  String get ucNeedsAnswerBody;
+
+  /// Rank chip on a university card.
+  ///
+  /// In en, this message translates to:
+  /// **'CHOICE {rank}'**
+  String ucRank(int rank);
+
+  /// Chip on the partner university's card.
+  ///
+  /// In en, this message translates to:
+  /// **'Partner'**
+  String get ucPartner;
+
+  /// Status chip: offered, not answered yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for your answer'**
+  String get ucStatusOffered;
+
+  /// Status chip: the student agreed, staff have not confirmed yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Consultant is confirming'**
+  String get ucStatusAccepted;
+
+  /// Status chip: the student asked for another university.
+  ///
+  /// In en, this message translates to:
+  /// **'Change requested'**
+  String get ucStatusChangeRequested;
+
+  /// Status chip on the third (partner university) choice: staff attach it themselves, the student does not answer.
+  ///
+  /// In en, this message translates to:
+  /// **'Partner — no answer needed'**
+  String get ucStatusPartner;
+
+  /// Status chip: staff gave the final confirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirmed'**
+  String get ucStatusConfirmed;
+
+  /// Line under a confirmed card.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirmed — your application is being prepared.'**
+  String get ucConfirmedNote;
+
+  /// Line under a card after the student asked for a change.
+  ///
+  /// In en, this message translates to:
+  /// **'Your consultant will offer another university soon.'**
+  String get ucChangeSentNote;
+
+  /// Chip: the student's IELTS/TOPIK meets the minimum.
+  ///
+  /// In en, this message translates to:
+  /// **'Your score fits'**
+  String get ucFitOk;
+
+  /// Chip: the student's IELTS/TOPIK is below the minimum.
+  ///
+  /// In en, this message translates to:
+  /// **'Score below the minimum'**
+  String get ucFitGap;
+
+  /// Chip with the online application deadline.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply by {date}'**
+  String ucDeadline(String date);
+
+  /// Chip with the lowest tuition.
+  ///
+  /// In en, this message translates to:
+  /// **'Tuition from {amount}'**
+  String ucContract(String amount);
+
+  /// Button: the student accepts the offered university.
+  ///
+  /// In en, this message translates to:
+  /// **'I agree'**
+  String get ucAccept;
+
+  /// Button: the student asks for a different university.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask for a change'**
+  String get ucRequestChange;
+
+  /// Question at the top of the change-request sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Why doesn\'t this university suit you?'**
+  String get ucChangeQuestion;
+
+  /// Change reason.
+  ///
+  /// In en, this message translates to:
+  /// **'The city doesn\'t suit me'**
+  String get ucReasonCity;
+
+  /// Change reason.
+  ///
+  /// In en, this message translates to:
+  /// **'Tuition is too high'**
+  String get ucReasonPrice;
+
+  /// Change reason.
+  ///
+  /// In en, this message translates to:
+  /// **'I want a different major'**
+  String get ucReasonMajor;
+
+  /// Change reason.
+  ///
+  /// In en, this message translates to:
+  /// **'Another reason'**
+  String get ucReasonOther;
+
+  /// Label of the comment field on the change-request sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Comment (optional)'**
+  String get ucChangeNote;
+
+  /// Submit button on the change-request sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Send to consultant'**
+  String get ucChangeSend;
+
+  /// Snackbar when the answer could not be sent.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t send. Please try again.'**
+  String get ucSendError;
+
+  /// Empty state of the University choice screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Your consultant hasn\'t offered any universities yet.'**
+  String get ucEmpty;
+
+  /// Entry card on the journey screen when offers wait for an answer.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 university is waiting for your answer} other{{count} universities are waiting for your answer}}'**
+  String ucBannerPending(int count);
 }
 
 class _AppLocalizationsDelegate

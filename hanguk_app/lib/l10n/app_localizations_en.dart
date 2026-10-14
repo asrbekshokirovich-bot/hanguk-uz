@@ -4294,4 +4294,108 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get fdPlanDictateUnavailable =>
       'Speech-to-text did not work on this phone. Check the microphone permission.';
+
+  @override
+  String get ucTitle => 'University choice';
+
+  @override
+  String get ucSubtitle => 'Universities your consultant picked for you';
+
+  @override
+  String get ucNeedsAnswerTitle => 'Your answer is needed';
+
+  @override
+  String get ucNeedsAnswerBody =>
+      'Look at each university and tap \"I agree\" or \"Ask for a change\".';
+
+  @override
+  String ucRank(int rank) {
+    return 'CHOICE $rank';
+  }
+
+  @override
+  String get ucPartner => 'Partner';
+
+  @override
+  String get ucStatusOffered => 'Waiting for your answer';
+
+  @override
+  String get ucStatusAccepted => 'Consultant is confirming';
+
+  @override
+  String get ucStatusChangeRequested => 'Change requested';
+
+  @override
+  String get ucStatusPartner => 'Partner — no answer needed';
+
+  @override
+  String get ucStatusConfirmed => 'Confirmed';
+
+  @override
+  String get ucConfirmedNote =>
+      'Confirmed — your application is being prepared.';
+
+  @override
+  String get ucChangeSentNote =>
+      'Your consultant will offer another university soon.';
+
+  @override
+  String get ucFitOk => 'Your score fits';
+
+  @override
+  String get ucFitGap => 'Score below the minimum';
+
+  @override
+  String ucDeadline(String date) {
+    return 'Apply by $date';
+  }
+
+  @override
+  String ucContract(String amount) {
+    return 'Tuition from $amount';
+  }
+
+  @override
+  String get ucAccept => 'I agree';
+
+  @override
+  String get ucRequestChange => 'Ask for a change';
+
+  @override
+  String get ucChangeQuestion => 'Why doesn\'t this university suit you?';
+
+  @override
+  String get ucReasonCity => 'The city doesn\'t suit me';
+
+  @override
+  String get ucReasonPrice => 'Tuition is too high';
+
+  @override
+  String get ucReasonMajor => 'I want a different major';
+
+  @override
+  String get ucReasonOther => 'Another reason';
+
+  @override
+  String get ucChangeNote => 'Comment (optional)';
+
+  @override
+  String get ucChangeSend => 'Send to consultant';
+
+  @override
+  String get ucSendError => 'Couldn\'t send. Please try again.';
+
+  @override
+  String get ucEmpty => 'Your consultant hasn\'t offered any universities yet.';
+
+  @override
+  String ucBannerPending(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count universities are waiting for your answer',
+      one: '1 university is waiting for your answer',
+    );
+    return '$_temp0';
+  }
 }

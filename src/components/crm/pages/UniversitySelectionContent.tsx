@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { ArrowDown, ArrowUp, CheckCircle2, GraduationCap, Plus, Search, Send, X } from 'lucide-react';
+import { ArrowDown, ArrowUp, CheckCircle2, GraduationCap, Handshake, Lock, Plus, RefreshCw, Search, Send, X } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -13,7 +13,15 @@ import { cn } from '@/lib/utils';
 import { paymentTint, TINT_CLASS } from '@/lib/paymentTint';
 import { languageFit } from '@/lib/universityFit';
 import { useUniversityCatalog, type CatalogEntry } from '@/hooks/useUniversityCatalog';
-import { MAX_CHOICES, useUniversityChoices, type UniversityChoice } from '@/hooks/useUniversityChoices';
+import {
+  canConfirm,
+  CHANGE_REASON_LABELS,
+  MAX_CHOICES,
+  MAX_REGULAR,
+  PARTNER_RANK,
+  useUniversityChoices,
+  type UniversityChoice,
+} from '@/hooks/useUniversityChoices';
 import {
   cityLabel,
   contractRange,
@@ -74,6 +82,14 @@ export default function UniversitySelectionContent({ students, loading, onCreate
 
   const cities = useMemo(() => operatorCities(catalog.entries), [catalog.entries]);
 
+  // The third choice is always a partner university. With exactly one partner
+  // it is filled in automatically; with several, staff pick one.
+  const partners = useMemo(() => catalog.entries.filter((e) => e.institution.is_partner), [catalog.entries]);
+  const autoPartnerId = partners.length === 1 ? partners[0].institution.id : null;
+  const regularChoices = studentChoices.filter((c) => c.rank !== PARTNER_RANK);
+  const partnerChoice = studentChoices.find((c) => c.rank === PARTNER_RANK) ?? null;
+  const [partnerPick, setPartnerPick] = useState('');
+
   // Universities with an uploaded guideline first — those carry the
   // requirements, fees and deadlines a choice is made on.
   const universities = useMemo(() => {
@@ -86,10 +102,10 @@ export default function UniversitySelectionContent({ students, loading, onCreate
     return list.sort((a, b) => Number(!!b.latest) - Number(!!a.latest));
   }, [catalog.entries, uniSearch, city, onlyFit, student]);
 
-  const choose = (entry: CatalogEntry) => {
+  const choose = (entry: CatalogEntry, partner = false) => {
     if (!student) return;
     choices.add.mutate(
-      { studentId: student.user_id, institutionId: entry.institution.id },
+      { studentId: student.user_id, institutionId: entry.institution.id, partner, autoPartnerId },
       {
         onSuccess: () => toast.success(`${displayName(entry).primary} tanlandi`),
         onError: (e) => toast.error(e instanceof Error ? e.message : 'Nimadir xato ketdi'),
@@ -99,7 +115,8 @@ export default function UniversitySelectionContent({ students, loading, onCreate
 
   const sendToApplications = async () => {
     if (!student || !onCreateApplication) return;
-    const pending = studentChoices.filter((c) => !appliedIds.has(c.institution_id));
+    // Only choices the student agreed to and staff confirmed become applications.
+    const pending = studentChoices.filter((c) => c.status === 'confirmed' && !appliedIds.has(c.institution_id));
     setSending(true);
     let failed = 0;
     for (const c of pending) {
@@ -130,7 +147,8 @@ export default function UniversitySelectionContent({ students, loading, onCreate
     );
   }
 
-  const notApplied = studentChoices.filter((c) => !appliedIds.has(c.institution_id)).length;
+  const notApplied = studentChoices.filter((c) => c.status === 'confirmed' && !appliedIds.has(c.institution_id)).length;
+  const onError = (e: unknown) => toast.error(e instanceof Error ? e.message : 'Nimadir xato ketdi');
 
   return (
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-[300px_1fr] lg:items-start">
@@ -222,27 +240,79 @@ export default function UniversitySelectionContent({ students, loading, onCreate
                   {studentChoices.length}/{MAX_CHOICES}
                 </span>
               </div>
-              {studentChoices.length === 0 ? (
-                <p className="rounded-lg border border-dashed border-border px-3 py-4 text-center text-xs text-muted-foreground">
-                  Hali tanlanmagan — quyidagi ro'yxatdan {MAX_CHOICES} tagacha universitet tanlang.
-                </p>
-              ) : (
-                <div className="space-y-2">
-                  {studentChoices.map((c, i) => (
-                    <ChoiceRow
-                      key={c.id}
-                      choice={c}
-                      entry={entryById.get(c.institution_id)}
-                      first={i === 0}
-                      last={i === studentChoices.length - 1}
-                      applied={appliedIds.has(c.institution_id)}
-                      busy={choices.move.isPending || choices.remove.isPending}
-                      onMove={(direction) => choices.move.mutate({ choice: c, direction })}
-                      onRemove={() => choices.remove.mutate(c)}
-                    />
-                  ))}
-                </div>
-              )}
+              <p className="mb-2 text-[11px] text-muted-foreground">
+                Xodim {MAX_REGULAR} ta universitet tanlaydi — talaba ilovada rozi bo'lgach, yakuniy tasdiqlang. 3-tanlov — hamkor universitet, talaba tasdig'i shart emas.
+              </p>
+              <div className="space-y-2">
+                {regularChoices.length === 0 && (
+                  <p className="rounded-lg border border-dashed border-border px-3 py-4 text-center text-xs text-muted-foreground">
+                    Hali tanlanmagan — quyidagi ro'yxatdan {MAX_REGULAR} ta universitet tanlang.
+                  </p>
+                )}
+                {[...regularChoices, ...(partnerChoice ? [partnerChoice] : [])].map((c, i) => (
+                  <ChoiceRow
+                    key={c.id}
+                    choice={c}
+                    entry={entryById.get(c.institution_id)}
+                    first={i === 0}
+                    last={c.rank === PARTNER_RANK || i === regularChoices.length - 1}
+                    applied={appliedIds.has(c.institution_id)}
+                    busy={choices.move.isPending || choices.remove.isPending || choices.confirm.isPending}
+                    onMove={(direction) => choices.move.mutate({ choice: c, direction }, { onError })}
+                    onRemove={() => choices.remove.mutate(c, { onError })}
+                    onConfirm={() =>
+                      choices.confirm.mutate(c, { onSuccess: () => toast.success('Yakuniy tasdiqlandi'), onError })
+                    }
+                  />
+                ))}
+                {!partnerChoice && (
+                  <div className="flex flex-wrap items-center gap-2 rounded-lg border border-dashed border-border px-3 py-2">
+                    <Handshake className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-xs font-semibold text-foreground">3-tanlov — hamkor universitet</span>
+                    {partners.length === 0 ? (
+                      <span className="text-xs text-muted-foreground">Katalogda hamkor universitet yo'q</span>
+                    ) : partners.length === 1 ? (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="ml-auto h-7 gap-1 text-xs"
+                        disabled={choices.add.isPending}
+                        onClick={() => choose(partners[0], true)}
+                      >
+                        <Plus className="h-3 w-3" />
+                        {displayName(partners[0]).primary}
+                      </Button>
+                    ) : (
+                      <div className="ml-auto flex items-center gap-2">
+                        <select
+                          aria-label="Hamkor universitet"
+                          value={partnerPick}
+                          onChange={(e) => setPartnerPick(e.target.value)}
+                          className="h-8 rounded-md border border-input bg-background px-2 text-xs"
+                        >
+                          <option value="">Hamkorni tanlang</option>
+                          {partners.map((pe) => (
+                            <option key={pe.institution.id} value={pe.institution.id}>
+                              {displayName(pe).primary}
+                            </option>
+                          ))}
+                        </select>
+                        <Button
+                          size="sm"
+                          className="h-8 text-xs"
+                          disabled={!partnerPick || choices.add.isPending}
+                          onClick={() => {
+                            const pe = partners.find((x) => x.institution.id === partnerPick);
+                            if (pe) choose(pe, true);
+                          }}
+                        >
+                          Qo'shish
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
               {wishes.length > 0 && (
                 <div className="mt-3 text-xs text-muted-foreground">
                   <span className="font-semibold text-foreground">Talabaning avvalgi istaklari: </span>
@@ -308,7 +378,9 @@ export default function UniversitySelectionContent({ students, loading, onCreate
                   const name = displayName(e);
                   const fit = languageFit(student, e.latest);
                   const chosen = studentChoices.some((c) => c.institution_id === e.institution.id);
-                  const full = studentChoices.length >= MAX_CHOICES;
+                  const isPartner = e.institution.is_partner;
+                  // A partner can only go into the partner slot.
+                  const full = isPartner ? !!partnerChoice : regularChoices.length >= MAX_REGULAR;
                   return (
                     <div key={e.institution.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
                       <div className="min-w-0">
@@ -334,11 +406,11 @@ export default function UniversitySelectionContent({ students, loading, onCreate
                             size="sm"
                             className="h-7 gap-1 text-xs"
                             disabled={full || choices.add.isPending}
-                            title={full ? `Ko'pi bilan ${MAX_CHOICES} ta` : undefined}
-                            onClick={() => choose(e)}
+                            title={full ? (isPartner ? 'Hamkor tanlovi band' : `Xodim ko'pi bilan ${MAX_REGULAR} ta tanlaydi`) : undefined}
+                            onClick={() => choose(e, isPartner)}
                           >
                             <Plus className="h-3 w-3" />
-                            Tanlash
+                            {isPartner ? 'Hamkor sifatida' : 'Tanlash'}
                           </Button>
                         )}
                       </div>
@@ -368,40 +440,125 @@ interface ChoiceRowProps {
   busy: boolean;
   onMove: (direction: -1 | 1) => void;
   onRemove: () => void;
+  onConfirm: () => void;
 }
 
-function ChoiceRow({ choice, entry, first, last, applied, busy, onMove, onRemove }: ChoiceRowProps) {
+function fmtDay(iso: string | null) {
+  return iso ? new Date(iso).toLocaleDateString('uz', { day: 'numeric', month: 'short' }) : '';
+}
+
+function StatusBadge({ choice }: { choice: UniversityChoice }) {
+  if (choice.rank === PARTNER_RANK && choice.status !== 'confirmed') {
+    return (
+      <Badge variant="info" className="text-[10px]">
+        Talaba tasdig'i shart emas
+      </Badge>
+    );
+  }
+  switch (choice.status) {
+    case 'confirmed':
+      return (
+        <Badge variant="successSoft" className="gap-1 text-[10px]">
+          <Lock className="h-3 w-3" />
+          Biriktirildi · {fmtDay(choice.confirmed_at)}
+        </Badge>
+      );
+    case 'accepted':
+      return (
+        <Badge variant="successSoft" className="gap-1 text-[10px]">
+          <CheckCircle2 className="h-3 w-3" />
+          Talaba rozi · {fmtDay(choice.responded_at)}
+        </Badge>
+      );
+    case 'change_requested':
+      return (
+        <Badge variant="destructive" className="text-[10px]">
+          Talaba o'zgartirish so'radi
+        </Badge>
+      );
+    default:
+      return (
+        <Badge variant="warning" className="text-[10px]">
+          Talaba javobi kutilmoqda
+        </Badge>
+      );
+  }
+}
+
+function ChoiceRow({ choice, entry, first, last, applied, busy, onMove, onRemove, onConfirm }: ChoiceRowProps) {
   const name = entry ? displayName(entry) : { primary: '—', secondary: null };
+  const isPartner = choice.rank === PARTNER_RANK;
+  const confirmed = choice.status === 'confirmed';
+  const changeRequested = choice.status === 'change_requested';
   return (
-    <div className="flex items-center gap-3 rounded-lg border border-border bg-background px-3 py-2">
-      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary text-xs font-bold text-primary-foreground">
-        {choice.rank}
-      </span>
-      <div className="min-w-0 flex-1">
-        <div className="truncate text-[13px] font-semibold text-foreground">{name.primary}</div>
-        <div className="truncate text-[11px] text-muted-foreground">
-          {[entry ? cityLabel(entry) : null, entry ? contractRange(entry.latest) : null].filter(Boolean).join(' · ') || '—'}
+    <div
+      data-testid="choice-row"
+      data-status={choice.status}
+      className={cn(
+        'space-y-2 rounded-lg border bg-background px-3 py-2',
+        changeRequested ? 'border-destructive/40 bg-destructive/5' : confirmed ? 'border-success/40' : 'border-border',
+      )}
+    >
+      <div className="flex items-center gap-3">
+        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary text-xs font-bold text-primary-foreground">
+          {choice.rank}
+        </span>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-1.5 truncate text-[13px] font-semibold text-foreground">
+            {name.primary}
+            {isPartner && <Badge variant="info" className="text-[10px]">Hamkor</Badge>}
+          </div>
+          <div className="truncate text-[11px] text-muted-foreground">
+            {[entry ? cityLabel(entry) : null, entry ? contractRange(entry.latest) : null].filter(Boolean).join(' · ') || '—'}
+          </div>
         </div>
+        <StatusBadge choice={choice} />
+        {applied && <Badge variant="successSoft" className="text-[10px]">Arizada</Badge>}
+        {!confirmed && (
+          <div className="flex shrink-0 items-center">
+            {!isPartner && (
+              <>
+                <Button size="sm" variant="ghost" className="h-7 w-7 p-0" aria-label="Yuqoriga" disabled={first || busy} onClick={() => onMove(-1)}>
+                  <ArrowUp className="h-3.5 w-3.5" />
+                </Button>
+                <Button size="sm" variant="ghost" className="h-7 w-7 p-0" aria-label="Pastga" disabled={last || busy} onClick={() => onMove(1)}>
+                  <ArrowDown className="h-3.5 w-3.5" />
+                </Button>
+              </>
+            )}
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive"
+              aria-label="Olib tashlash"
+              disabled={busy}
+              onClick={onRemove}
+            >
+              <X className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+        )}
       </div>
-      {applied && <Badge variant="successSoft" className="text-[10px]">Arizada</Badge>}
-      <div className="flex shrink-0 items-center">
-        <Button size="sm" variant="ghost" className="h-7 w-7 p-0" aria-label="Yuqoriga" disabled={first || busy} onClick={() => onMove(-1)}>
-          <ArrowUp className="h-3.5 w-3.5" />
-        </Button>
-        <Button size="sm" variant="ghost" className="h-7 w-7 p-0" aria-label="Pastga" disabled={last || busy} onClick={() => onMove(1)}>
-          <ArrowDown className="h-3.5 w-3.5" />
-        </Button>
-        <Button
-          size="sm"
-          variant="ghost"
-          className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive"
-          aria-label="Olib tashlash"
-          disabled={busy}
-          onClick={onRemove}
-        >
-          <X className="h-3.5 w-3.5" />
-        </Button>
-      </div>
+      {changeRequested && (
+        <div className="flex flex-wrap items-center justify-between gap-2 pl-10">
+          <div className="text-xs text-foreground">
+            <span className="font-semibold">{CHANGE_REASON_LABELS[choice.change_reason ?? ''] ?? 'Sabab ko\'rsatilmagan'}</span>
+            {choice.change_note && <span className="text-muted-foreground"> — “{choice.change_note}”</span>}
+          </div>
+          <Button size="sm" variant="outline" className="h-7 gap-1 text-xs" disabled={busy} onClick={onRemove}>
+            <RefreshCw className="h-3 w-3" />
+            Almashtirish
+          </Button>
+        </div>
+      )}
+      {canConfirm(choice) && (
+        <div className="pl-10">
+          <Button size="sm" variant="highlight" className="h-7 gap-1 text-xs" disabled={busy} onClick={onConfirm}>
+            <Lock className="h-3 w-3" />
+            Yakuniy tasdiqlash
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

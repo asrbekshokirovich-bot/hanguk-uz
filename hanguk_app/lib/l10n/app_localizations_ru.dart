@@ -4305,4 +4305,101 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get fdPlanDictateUnavailable =>
       'Распознавание речи на этом телефоне не сработало. Проверьте доступ к микрофону.';
+
+  @override
+  String get ucTitle => 'Выбор университета';
+
+  @override
+  String get ucSubtitle => 'Университеты, которые выбрал для вас консультант';
+
+  @override
+  String get ucNeedsAnswerTitle => 'Нужен ваш ответ';
+
+  @override
+  String get ucNeedsAnswerBody =>
+      'Посмотрите каждый университет и нажмите «Согласен» или «Попросить замену».';
+
+  @override
+  String ucRank(int rank) {
+    return 'ВЫБОР $rank';
+  }
+
+  @override
+  String get ucPartner => 'Партнёр';
+
+  @override
+  String get ucStatusOffered => 'Ждём вашего ответа';
+
+  @override
+  String get ucStatusAccepted => 'Консультант подтверждает';
+
+  @override
+  String get ucStatusChangeRequested => 'Запрошена замена';
+
+  @override
+  String get ucStatusPartner => 'Партнёр — ответ не нужен';
+
+  @override
+  String get ucStatusConfirmed => 'Закреплён';
+
+  @override
+  String get ucConfirmedNote => 'Подтверждено — заявка готовится.';
+
+  @override
+  String get ucChangeSentNote =>
+      'Консультант скоро предложит другой университет.';
+
+  @override
+  String get ucFitOk => 'Ваш балл подходит';
+
+  @override
+  String get ucFitGap => 'Балл ниже требования';
+
+  @override
+  String ucDeadline(String date) {
+    return 'Подать до $date';
+  }
+
+  @override
+  String ucContract(String amount) {
+    return 'Контракт от $amount';
+  }
+
+  @override
+  String get ucAccept => 'Согласен';
+
+  @override
+  String get ucRequestChange => 'Попросить замену';
+
+  @override
+  String get ucChangeQuestion => 'Почему этот университет вам не подходит?';
+
+  @override
+  String get ucReasonCity => 'Не подходит город';
+
+  @override
+  String get ucReasonPrice => 'Слишком дорогой контракт';
+
+  @override
+  String get ucReasonMajor => 'Хочу другое направление';
+
+  @override
+  String get ucReasonOther => 'Другая причина';
+
+  @override
+  String get ucChangeNote => 'Комментарий (необязательно)';
+
+  @override
+  String get ucChangeSend => 'Отправить консультанту';
+
+  @override
+  String get ucSendError => 'Не удалось отправить. Попробуйте ещё раз.';
+
+  @override
+  String get ucEmpty => 'Консультант пока не предложил университеты.';
+
+  @override
+  String ucBannerPending(int count) {
+    return '$count университета ждут вашего ответа';
+  }
 }
