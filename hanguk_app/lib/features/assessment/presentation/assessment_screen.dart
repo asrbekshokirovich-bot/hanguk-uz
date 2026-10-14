@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/analytics/app_events.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/hard_slider.dart';
@@ -47,6 +48,10 @@ class _AssessmentScreenState extends ConsumerState<AssessmentScreen> {
     if (_seeded || catalog == null) return;
     _seeded = true;
     ref.read(assessmentProvider.notifier).startFrom(widget.startId, catalog, ref.read(savedUniversitiesProvider));
+    AppEvents.track(
+      'assessment_start',
+      props: {'universities': ref.read(assessmentProvider).universityIds.length},
+    );
   }
 
   @override

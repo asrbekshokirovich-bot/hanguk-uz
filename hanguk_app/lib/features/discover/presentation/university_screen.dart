@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/analytics/app_events.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/lucide.dart';
@@ -59,6 +60,12 @@ class _UniversityScreenState extends ConsumerState<UniversityScreen> {
   String? _degree;
   int? _open = 0;
   final Set<int> _expanded = {};
+
+  @override
+  void initState() {
+    super.initState();
+    AppEvents.track('university_open', props: {'institution_id': widget.institutionId});
+  }
 
   @override
   Widget build(BuildContext context) {

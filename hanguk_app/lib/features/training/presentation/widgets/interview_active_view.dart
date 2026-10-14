@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:vapi/vapi.dart';
 import 'dart:async';
 import 'dart:math' as math;
+import '../../../../core/analytics/app_events.dart';
 import '../../../../design_system/seoul_night/seoul_night.dart';
 import '../../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../../design_system/seoul_night/widgets/lucide.dart';
@@ -92,6 +93,7 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
     // as long as this view is alive — released in dispose(), which is the one
     // exit every path goes through.
     unawaited(ScreenAwake.enable());
+    AppEvents.track('interview_start', props: {'language': ref.read(interviewProvider).selectedLanguage});
     _initVapi();
   }
 
@@ -624,6 +626,7 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
   /// the provider is left in a state that unmounts this screen — the End
   /// button must NEVER be a no-op.
   Future<void> _completeAutoEnd() async {
+    AppEvents.track('interview_end', props: {'seconds': _seconds, 'by_ai': _aiRequestedEnd});
     // Capture provider handles up-front: the notifier outlives this widget,
     // so the flow keeps working even if the view unmounts mid-way.
     final notifier = ref.read(interviewProvider.notifier);
@@ -752,6 +755,7 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
     // expiry), mark the row as 'abandoned' so history-replay isn't
     // littered with permanently-active sessions.
     if (!_didEndSession) {
+      AppEvents.track('interview_leave', props: {'seconds': _seconds});
       final notifier = _notifier;
       // Fire-and-forget — the network call shouldn't block widget teardown.
       // After this frame: a provider must not change while the tree is

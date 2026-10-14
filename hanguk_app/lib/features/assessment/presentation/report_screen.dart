@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../../../core/analytics/app_events.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/lucide.dart';
 import '../../../l10n/app_localizations.dart';
@@ -54,6 +55,7 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
     super.initState();
     final saved = ref.read(entryProvider).phone;
     if (saved != null) _phone.text = UzPhoneFormatter.format(UzPhoneFormatter.digitsOf(saved));
+    AppEvents.track('report_view', props: {'universities': ref.read(assessmentProvider).universityIds.length});
   }
 
   @override
@@ -81,6 +83,8 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
       answers: input.toAnswers(requiredBankKrw: outcome.requiredBankKrw),
       result: outcome.toResult(),
     );
+    AppEvents.track('lead_submit', props: {'status': res.status.name});
+    if (res.status == QuizSubmitStatus.ok) AppEvents.linkLead(res.linkCode);
     if (!mounted) return;
     setState(() => _sending = false);
     switch (res.status) {

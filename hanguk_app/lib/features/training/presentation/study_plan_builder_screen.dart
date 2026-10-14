@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 
+import '../../../core/analytics/app_events.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/hard_shadow.dart' show HardButton, HardShadowBox;
 import '../../../design_system/seoul_night/widgets/lucide.dart';
@@ -153,6 +154,7 @@ class _StudyPlanBuilderScreenState extends ConsumerState<StudyPlanBuilderScreen>
       localeId = locales.where((x) => x.localeId.toLowerCase().startsWith(lang)).firstOrNull?.localeId;
     } catch (_) {}
     if (!mounted) return;
+    AppEvents.track('dictation_start', props: {'step': _step + 1, 'locale': localeId ?? 'device'});
     _dictationBase = _controller.text;
     setState(() => _listening = true);
     await _speech.listen(
@@ -173,6 +175,7 @@ class _StudyPlanBuilderScreenState extends ConsumerState<StudyPlanBuilderScreen>
   }
 
   Future<void> _feedback() async {
+    AppEvents.track('study_plan_feedback', props: {'step': _step + 1});
     _stopDictation();
     final l = AppLocalizations.of(context)!;
     final messenger = ScaffoldMessenger.of(context);

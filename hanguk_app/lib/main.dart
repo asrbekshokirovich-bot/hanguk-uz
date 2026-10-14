@@ -7,6 +7,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'core/analytics/app_events.dart';
 import 'core/router/app_router.dart';
 import 'design_system/theme/app_theme.dart';
 import 'features/auth/presentation/widgets/sign_in_chrome.dart';
@@ -62,6 +63,10 @@ Future<void> main() async {
   } catch (e) {
     debugPrint('Supabase init error (offline mode): $e');
   }
+
+  // Usage events (what is opened and pressed; see AppEvents).
+  await AppEvents.start();
+  AppEvents.track('app_open', props: {'signed_in': _signedIn()});
 
   // Warm the Map tab's institutions query as soon as Supabase is ready,
   // instead of waiting for the user to open the tab. The Map screen also
@@ -150,5 +155,13 @@ class HangukApp extends ConsumerWidget {
       ],
       supportedLocales: AppLocalizations.supportedLocales,
     );
+  }
+}
+
+bool _signedIn() {
+  try {
+    return Supabase.instance.client.auth.currentUser != null;
+  } catch (_) {
+    return false;
   }
 }

@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/analytics/app_events.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/lucide.dart';
@@ -141,7 +142,10 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                             );
                           },
                           onTap: () => context.push(universityPath(u.institutionId)),
-                          onSkip: () => _advance(deck.length),
+                          onSkip: () {
+                            AppEvents.track('university_skip', props: {'institution_id': u.institutionId});
+                            _advance(deck.length);
+                          },
                           onSave: () {
                             ref.read(savedUniversitiesProvider.notifier).save(u.institutionId);
                             _advance(deck.length);

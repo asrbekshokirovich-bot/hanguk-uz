@@ -7,6 +7,7 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../core/analytics/app_events.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/lucide.dart';
 import '../../../l10n/app_localizations.dart';
@@ -59,6 +60,7 @@ class _ClientDocumentsScreenState extends ConsumerState<ClientDocumentsScreen> {
       if (result != null && result.files.single.path != null) {
         setState(() => _busy[type.id] = true);
         await ref.read(documentsRepositoryProvider).uploadDocument(File(result.files.single.path!), type);
+        AppEvents.track('document_upload', props: {'type': type.id});
         ref.invalidate(documentsProvider);
       }
     } catch (e, st) {

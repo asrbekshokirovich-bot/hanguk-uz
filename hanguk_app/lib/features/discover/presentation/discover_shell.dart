@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/analytics/app_events.dart';
 import '../../../design_system/seoul_night/widgets/lucide.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
@@ -58,6 +59,7 @@ class _DiscoverShellState extends State<DiscoverShell> {
           (label: l.fdNavPrepare, glyph: LucideIcons.target),
         ],
         onSelect: (i) => setState(() {
+          if (i != _tab) AppEvents.track('tab_open', screen: 'guest', props: {'tab': const ['universities', 'map', 'prepare'][i]});
           _built.add(i);
           _tab = i;
         }),

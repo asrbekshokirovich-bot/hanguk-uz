@@ -14,7 +14,9 @@ class QrScanScreen extends StatefulWidget {
 
   /// Opens the scanner; the code, or null when the student closed it.
   static Future<String?> open(BuildContext context) =>
-      Navigator.of(context).push<String>(MaterialPageRoute(builder: (_) => const QrScanScreen()));
+      Navigator.of(context).push<String>(
+        MaterialPageRoute(settings: const RouteSettings(name: 'qr_scan'), builder: (_) => const QrScanScreen()),
+      );
 
   @override
   State<QrScanScreen> createState() => _QrScanScreenState();

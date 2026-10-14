@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/analytics/app_events.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/lucide.dart';
 import '../../../l10n/app_localizations.dart';
@@ -49,6 +50,7 @@ class _DuelScreenState extends ConsumerState<DuelScreen> {
     final d = _duel;
     if (d == null || d.done) return;
     HapticFeedback.selectionClick();
+    AppEvents.track('duel_pick', props: {'institution_id': first ? d.a : d.b, 'other_id': first ? d.b : d.a});
     final next = d.pick(first: first);
     final slots = ref.read(slotsProvider.notifier);
     String? crowned;
