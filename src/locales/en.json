@@ -195,7 +195,20 @@
     "staffTabHelper": "For Hanguk staff with a username and password.",
     "registerTabHelper": "Create an account to track your applications as a guest.",
     "staffSignIn": "Staff Sign-In",
-    "createAccount": "Create Account"
+    "createAccount": "Create Account",
+    "contactTitle": "Contact a consultant",
+    "contactHelper": "Leave your name and phone number — our consultant will contact you.",
+    "phone": "Phone number",
+    "emailOptional": "Email (optional)",
+    "contactBtn": "Send",
+    "contactSentTitle": "Your request has been received",
+    "contactSentBody": "Our consultant will contact you soon during working hours (09:00–22:00).",
+    "contactInvalidPhone": "Enter a valid number, e.g. +998 90 123 45 67.",
+    "contactInvalidEmail": "The email address is not valid.",
+    "contactStudent": "This number belongs to one of our students. Please write to your manager or sign in with your access code.",
+    "contactBusy": "Too many requests right now. Please try again shortly.",
+    "contactFormUpdated": "The page has been updated. Please reload it.",
+    "contactError": "Could not send. Please try again."
   },
   "navigation": {
     "home": "Home",

@@ -7,8 +7,8 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   signInWithUsername: (username: string, password: string) => Promise<{ error: Error | null }>;
-  signInGuest: (email: string, password: string) => Promise<{ error: Error | null; data?: any }>;
-  signUpGuest: (email: string, password: string, fullName: string) => Promise<{ error: Error | null; data?: any }>;
+  /** "Konsultantga murojaat": a contact request that becomes a lead. The error message is a code (INVALID_PHONE, STUDENT, ...). */
+  requestConsultant: (fullName: string, phone: string, email?: string) => Promise<{ error: Error | null }>;
   signUpOwner: (username: string, password: string, fullName: string) => Promise<{ error: Error | null }>;
   createStaffAccount: (username: string, password: string, fullName: string, roles: string[]) => Promise<{ error: Error | null; userId?: string }>;
   signOut: () => Promise<void>;
@@ -53,47 +53,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { error };
   };
 
-  const signInGuest = async (email: string, password: string) => {
+  // The guest sign-up/login that used to live here stored the password in
+  // leads.password as typed and led to /guest-portal, a page that does not
+  // exist. It is now a plain contact request (guest-auth, action 'contact'):
+  // no password, and nothing about the lead comes back to the browser.
+  const requestConsultant = async (fullName: string, phone: string, email?: string) => {
     try {
-      // Guest credentials are validated server-side (service role) so the
-      // `leads` table — which stores plaintext passwords — is never exposed to
-      // the anon key. See supabase/functions/guest-auth.
-      const { data, error } = await supabase.functions.invoke('guest-auth', {
-        body: { action: 'login', email, password },
+      const { data } = await supabase.functions.invoke('guest-auth', {
+        body: { action: 'contact', fullName, phone, email: email || null },
       });
-
-      if (error && !data) {
-        return { error: new Error(error.message || 'INVALID_CREDENTIALS') };
-      }
-
-      if (!data?.success) {
-        // data.code is one of EMAIL_NOT_FOUND | INVALID_PASSWORD | SERVER_ERROR
-        return { error: new Error(data?.code || 'INVALID_CREDENTIALS') };
-      }
-
-      return { error: null, data: data.lead };
-    } catch (err: any) {
-      return { error: err };
-    }
-  };
-
-  const signUpGuest = async (email: string, password: string, fullName: string) => {
-    try {
-      const { data, error } = await supabase.functions.invoke('guest-auth', {
-        body: { action: 'signup', email, password, fullName },
-      });
-
-      if (error && !data) {
-        return { error: new Error(error.message || 'Signup failed') };
-      }
-
-      if (!data?.success) {
-        return { error: new Error(data?.message || data?.code || 'Signup failed') };
-      }
-
-      return { error: null, data: data.lead };
-    } catch (err: any) {
-      return { error: err };
+      if (data?.success) return { error: null };
+      return { error: new Error(data?.code || 'SERVER_ERROR') };
+    } catch {
+      return { error: new Error('SERVER_ERROR') };
     }
   };
 
@@ -191,8 +163,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       session, 
       loading, 
       signInWithUsername, 
-      signInGuest,
-      signUpGuest,
+      requestConsultant,
       signUpOwner, 
       createStaffAccount,
       signOut 
