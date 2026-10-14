@@ -1,5 +1,5 @@
 {
- "last_run": "2026-10-14T04:57:31+00:00",
+ "last_run": "2026-10-14T10:15:48+00:00",
  "seen": {
   "http://enter.konkuk.ac.kr/submenu.do?menuurl=k8b%2fCUaWlntKYwhT%2fh%2bKUA%3d%3d&": [],
   "https://adm-u.postech.ac.kr/": [
@@ -750,6 +750,7 @@
   "https://ipsi.dongduk.ac.kr/": [],
   "https://ipsi.dongguk.ac.kr/": [],
   "https://ipsi.dongguk.edu/admission/html/abroad/guide.asp": [
+   "c798119c59729f59",
    "958d04edef240ea4",
    "e66feb7f66d064b3"
   ],
