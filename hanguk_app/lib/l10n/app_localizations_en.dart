@@ -4260,4 +4260,38 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get fdInterviewMuted =>
       'Microphone off — the interviewer cannot hear you';
+
+  @override
+  String get fdCodeScan => 'Scan QR code';
+
+  @override
+  String get fdScanTitle => 'Scan the QR code';
+
+  @override
+  String get fdScanHint =>
+      'Hold the QR code your consultant gave you inside the frame';
+
+  @override
+  String get fdScanNoCode =>
+      'This QR code has no client code. Type the code instead.';
+
+  @override
+  String get fdScanNoCamera =>
+      'Camera access is off. Allow it in the phone\'s settings, or type the code instead.';
+
+  @override
+  String get fdScanFailed => 'The camera did not open. Type the code instead.';
+
+  @override
+  String get fdPlanDictate => 'Dictate';
+
+  @override
+  String get fdPlanDictateStop => 'Stop dictation';
+
+  @override
+  String get fdPlanListening => 'Listening… speak now';
+
+  @override
+  String get fdPlanDictateUnavailable =>
+      'Speech-to-text did not work on this phone. Check the microphone permission.';
 }

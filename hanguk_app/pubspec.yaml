@@ -80,6 +80,8 @@ dependencies:
   # Play Store in-app update flow (P0 #1 split: store builds use this,
   # non-store builds keep the existing APK updater).
   in_app_update: ^4.2.3
+  mobile_scanner: ^7.4.2
+  speech_to_text: ^7.5.0
 
 dev_dependencies:
   flutter_test:

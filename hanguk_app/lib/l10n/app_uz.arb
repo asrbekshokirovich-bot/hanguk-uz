@@ -1394,5 +1394,15 @@
   "fdInterviewTip": "Aniq va o'rtacha tezlikda gapiring · 60–90 soniya",
   "fdInterviewMute": "Mikrofonni o'chirish",
   "fdInterviewUnmute": "Mikrofonni yoqish",
-  "fdInterviewMuted": "Mikrofon o'chirilgan — intervyuer sizni eshitmaydi"
+  "fdInterviewMuted": "Mikrofon o'chirilgan — intervyuer sizni eshitmaydi",
+  "fdCodeScan": "QR kodni skanerlash",
+  "fdScanTitle": "QR kodni skanerlang",
+  "fdScanHint": "Konsultantingiz bergan QR kodni ramka ichiga keltiring",
+  "fdScanNoCode": "Bu QR kodda mijoz kodi topilmadi. Kodni qo'lda kiriting.",
+  "fdScanNoCamera": "Kameraga ruxsat berilmagan. Telefon sozlamalaridan ruxsat bering yoki kodni qo'lda kiriting.",
+  "fdScanFailed": "Kamera ochilmadi. Kodni qo'lda kiriting.",
+  "fdPlanDictate": "Ovoz bilan yozish",
+  "fdPlanDictateStop": "Yozishni to'xtatish",
+  "fdPlanListening": "Tinglayapman… gapiring",
+  "fdPlanDictateUnavailable": "Bu telefonda ovozni matnga aylantirish ishlamadi. Mikrofon ruxsatini tekshiring."
 }

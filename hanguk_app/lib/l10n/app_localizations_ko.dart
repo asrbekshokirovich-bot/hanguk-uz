@@ -4099,4 +4099,35 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get fdInterviewMuted => '마이크 꺼짐 — 면접관이 듣지 못합니다';
+
+  @override
+  String get fdCodeScan => 'QR 코드 스캔';
+
+  @override
+  String get fdScanTitle => 'QR 코드를 스캔하세요';
+
+  @override
+  String get fdScanHint => '상담사에게 받은 QR 코드를 틀 안에 맞추세요';
+
+  @override
+  String get fdScanNoCode => '이 QR 코드에는 고객 코드가 없습니다. 코드를 직접 입력하세요.';
+
+  @override
+  String get fdScanNoCamera => '카메라 권한이 없습니다. 휴대폰 설정에서 허용하거나 코드를 직접 입력하세요.';
+
+  @override
+  String get fdScanFailed => '카메라를 열 수 없습니다. 코드를 직접 입력하세요.';
+
+  @override
+  String get fdPlanDictate => '음성으로 입력';
+
+  @override
+  String get fdPlanDictateStop => '음성 입력 중지';
+
+  @override
+  String get fdPlanListening => '듣고 있어요… 말씀하세요';
+
+  @override
+  String get fdPlanDictateUnavailable =>
+      '이 휴대폰에서 음성 인식을 사용할 수 없습니다. 마이크 권한을 확인하세요.';
 }

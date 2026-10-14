@@ -54,3 +54,13 @@ List<String> parsePlan(String content) {
 
 /// How many parts are written.
 int writtenParts(List<String> parts) => parts.where((p) => p.trim().length >= kPlanMinChars).length;
+
+/// [base] with [spoken] appended after a space, cut to [max] characters:
+/// what the box holds while the student dictates.
+String appendDictation(String base, String spoken, int max) {
+  final words = spoken.trim();
+  if (words.isEmpty) return base.length > max ? base.substring(0, max) : base;
+  final glue = base.isEmpty || base.endsWith(' ') || base.endsWith('\n') ? '' : ' ';
+  final text = '$base$glue$words';
+  return text.length > max ? text.substring(0, max) : text;
+}

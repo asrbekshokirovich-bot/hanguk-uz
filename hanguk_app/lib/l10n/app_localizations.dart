@@ -7675,6 +7675,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Microphone off — the interviewer cannot hear you'**
   String get fdInterviewMuted;
+
+  /// Button under 'Kirish' on the client-code screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan QR code'**
+  String get fdCodeScan;
+
+  /// QR scanner screen title.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan the QR code'**
+  String get fdScanTitle;
+
+  /// Line under the scanner frame.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold the QR code your consultant gave you inside the frame'**
+  String get fdScanHint;
+
+  /// Shown when a scanned QR holds no client code.
+  ///
+  /// In en, this message translates to:
+  /// **'This QR code has no client code. Type the code instead.'**
+  String get fdScanNoCode;
+
+  /// Scanner screen when the camera permission is denied.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera access is off. Allow it in the phone\'s settings, or type the code instead.'**
+  String get fdScanNoCamera;
+
+  /// Scanner screen when the camera fails for another reason.
+  ///
+  /// In en, this message translates to:
+  /// **'The camera did not open. Type the code instead.'**
+  String get fdScanFailed;
+
+  /// Study Plan mic button label (screen reader).
+  ///
+  /// In en, this message translates to:
+  /// **'Dictate'**
+  String get fdPlanDictate;
+
+  /// Study Plan mic button label while listening.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop dictation'**
+  String get fdPlanDictateStop;
+
+  /// Shown above the text box while dictating.
+  ///
+  /// In en, this message translates to:
+  /// **'Listening… speak now'**
+  String get fdPlanListening;
+
+  /// Snackbar when dictation cannot start.
+  ///
+  /// In en, this message translates to:
+  /// **'Speech-to-text did not work on this phone. Check the microphone permission.'**
+  String get fdPlanDictateUnavailable;
 }
 
 class _AppLocalizationsDelegate
