@@ -4302,4 +4302,100 @@ class AppLocalizationsUz extends AppLocalizations {
   @override
   String get fdPlanDictateUnavailable =>
       'Bu telefonda ovozni matnga aylantirish ishlamadi. Mikrofon ruxsatini tekshiring.';
+
+  @override
+  String get ucTitle => 'Universitet tanlovi';
+
+  @override
+  String get ucSubtitle => 'Konsultantingiz siz uchun tanlagan universitetlar';
+
+  @override
+  String get ucNeedsAnswerTitle => 'Tasdiqlashingiz kerak';
+
+  @override
+  String get ucNeedsAnswerBody =>
+      'Har bir universitetni ko\'rib chiqib \"Roziman\" yoki \"O\'zgartirish so\'rayman\" ni bosing.';
+
+  @override
+  String ucRank(int rank) {
+    return '$rank-TANLOV';
+  }
+
+  @override
+  String get ucPartner => 'Hamkor';
+
+  @override
+  String get ucStatusOffered => 'Javobingiz kutilmoqda';
+
+  @override
+  String get ucStatusAccepted => 'Konsultant tasdiqlamoqda';
+
+  @override
+  String get ucStatusChangeRequested => 'O\'zgartirish so\'raldi';
+
+  @override
+  String get ucStatusConfirmed => 'Biriktirildi';
+
+  @override
+  String get ucConfirmedNote =>
+      'Yakuniy tasdiqlandi — endi ariza tayyorlanmoqda.';
+
+  @override
+  String get ucChangeSentNote =>
+      'Konsultantingiz tez orada boshqa universitet taklif qiladi.';
+
+  @override
+  String get ucFitOk => 'Balingiz mos';
+
+  @override
+  String get ucFitGap => 'Bal talabdan past';
+
+  @override
+  String ucDeadline(String date) {
+    return 'Ariza: $date gacha';
+  }
+
+  @override
+  String ucContract(String amount) {
+    return 'Kontrakt: $amount dan';
+  }
+
+  @override
+  String get ucAccept => 'Roziman';
+
+  @override
+  String get ucRequestChange => 'O\'zgartirish so\'rayman';
+
+  @override
+  String get ucChangeQuestion =>
+      'Nima uchun bu universitet sizga to\'g\'ri kelmaydi?';
+
+  @override
+  String get ucReasonCity => 'Shahar to\'g\'ri kelmaydi';
+
+  @override
+  String get ucReasonPrice => 'Kontrakt narxi qimmat';
+
+  @override
+  String get ucReasonMajor => 'Boshqa yo\'nalish xohlayman';
+
+  @override
+  String get ucReasonOther => 'Boshqa sabab';
+
+  @override
+  String get ucChangeNote => 'Izoh (ixtiyoriy)';
+
+  @override
+  String get ucChangeSend => 'Konsultantga yuborish';
+
+  @override
+  String get ucSendError => 'Yuborib bo\'lmadi. Qayta urinib ko\'ring.';
+
+  @override
+  String get ucEmpty => 'Konsultantingiz hali universitet taklif qilmadi.';
+
+  @override
+  String ucBannerPending(int count) {
+    return '$count ta universitet javobingizni kutmoqda';
+  }
 }

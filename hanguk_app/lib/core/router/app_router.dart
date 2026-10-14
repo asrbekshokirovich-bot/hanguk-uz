@@ -43,6 +43,7 @@ import '../../features/uni_db/presentation/application_tracker_screen.dart';
 import '../../features/uni_db/presentation/institution_compare_screen.dart';
 import '../../features/uni_db/presentation/institution_detail_screen.dart';
 import '../../features/uni_db/presentation/notification_settings_screen.dart';
+import '../../features/university_choices/presentation/university_choices_screen.dart';
 import '../feature_flags/uni_db_flag.dart';
 
 part 'app_router.g.dart';
@@ -134,6 +135,10 @@ List<RouteBase> _onboardingRoutes() => [
     builder: (context, state) =>
         TariffDetailScreen(code: state.pathParameters['code'] ?? 'premium'),
   ),
+];
+
+List<RouteBase> _universityChoiceRoutes() => [
+  GoRoute(path: kUniversityChoicesPath, builder: (context, state) => const UniversityChoicesScreen()),
 ];
 
 List<RouteBase> _surveyRoutes() => [
@@ -333,6 +338,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ..._entryRoutes(),
       ..._onboardingRoutes(),
       ..._surveyRoutes(),
+      ..._universityChoiceRoutes(),
       ..._mapRoutes(),
       if (kUniDbEnabled) ..._uniDbRoutes(),
       // Seoul Night design-system gallery. Debug builds only — the flag is

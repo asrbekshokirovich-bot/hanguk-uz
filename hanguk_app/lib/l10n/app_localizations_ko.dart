@@ -4130,4 +4130,96 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get fdPlanDictateUnavailable =>
       '이 휴대폰에서 음성 인식을 사용할 수 없습니다. 마이크 권한을 확인하세요.';
+
+  @override
+  String get ucTitle => '대학 선택';
+
+  @override
+  String get ucSubtitle => '상담사가 추천한 대학';
+
+  @override
+  String get ucNeedsAnswerTitle => '답변이 필요합니다';
+
+  @override
+  String get ucNeedsAnswerBody => '각 대학을 확인하고 \"동의합니다\" 또는 \"변경 요청\"을 누르세요.';
+
+  @override
+  String ucRank(int rank) {
+    return '$rank지망';
+  }
+
+  @override
+  String get ucPartner => '협력 대학';
+
+  @override
+  String get ucStatusOffered => '답변 대기 중';
+
+  @override
+  String get ucStatusAccepted => '상담사 확인 중';
+
+  @override
+  String get ucStatusChangeRequested => '변경 요청됨';
+
+  @override
+  String get ucStatusConfirmed => '확정됨';
+
+  @override
+  String get ucConfirmedNote => '확정되었습니다. 지원서를 준비하고 있습니다.';
+
+  @override
+  String get ucChangeSentNote => '상담사가 곧 다른 대학을 추천합니다.';
+
+  @override
+  String get ucFitOk => '점수 충족';
+
+  @override
+  String get ucFitGap => '점수 미달';
+
+  @override
+  String ucDeadline(String date) {
+    return '$date까지 지원';
+  }
+
+  @override
+  String ucContract(String amount) {
+    return '등록금 $amount부터';
+  }
+
+  @override
+  String get ucAccept => '동의합니다';
+
+  @override
+  String get ucRequestChange => '변경 요청';
+
+  @override
+  String get ucChangeQuestion => '이 대학이 맞지 않는 이유는 무엇인가요?';
+
+  @override
+  String get ucReasonCity => '도시가 맞지 않음';
+
+  @override
+  String get ucReasonPrice => '등록금이 비쌈';
+
+  @override
+  String get ucReasonMajor => '다른 전공을 원함';
+
+  @override
+  String get ucReasonOther => '기타 이유';
+
+  @override
+  String get ucChangeNote => '메모 (선택)';
+
+  @override
+  String get ucChangeSend => '상담사에게 보내기';
+
+  @override
+  String get ucSendError => '보내지 못했습니다. 다시 시도해 주세요.';
+
+  @override
+  String get ucEmpty => '아직 상담사가 추천한 대학이 없습니다.';
+
+  @override
+  String ucBannerPending(int count) {
+    return '$count개 대학이 답변을 기다리고 있습니다';
+  }
 }

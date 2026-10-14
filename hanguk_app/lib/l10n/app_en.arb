@@ -5579,5 +5579,137 @@
   "fdPlanDictateUnavailable": "Speech-to-text did not work on this phone. Check the microphone permission.",
   "@fdPlanDictateUnavailable": {
     "description": "Snackbar when dictation cannot start."
+  },
+  "ucTitle": "University choice",
+  "@ucTitle": {
+    "description": "Title of the screen where the student answers the universities the consultant offered."
+  },
+  "ucSubtitle": "Universities your consultant picked for you",
+  "@ucSubtitle": {
+    "description": "Line under the University choice title."
+  },
+  "ucNeedsAnswerTitle": "Your answer is needed",
+  "@ucNeedsAnswerTitle": {
+    "description": "Banner title when some offers wait for the student's answer."
+  },
+  "ucNeedsAnswerBody": "Look at each university and tap \"I agree\" or \"Ask for a change\".",
+  "@ucNeedsAnswerBody": {
+    "description": "Banner body under ucNeedsAnswerTitle."
+  },
+  "ucRank": "CHOICE {rank}",
+  "@ucRank": {
+    "description": "Rank chip on a university card.",
+    "placeholders": {
+      "rank": {
+        "type": "int"
+      }
+    }
+  },
+  "ucPartner": "Partner",
+  "@ucPartner": {
+    "description": "Chip on the partner university's card."
+  },
+  "ucStatusOffered": "Waiting for your answer",
+  "@ucStatusOffered": {
+    "description": "Status chip: offered, not answered yet."
+  },
+  "ucStatusAccepted": "Consultant is confirming",
+  "@ucStatusAccepted": {
+    "description": "Status chip: the student agreed, staff have not confirmed yet."
+  },
+  "ucStatusChangeRequested": "Change requested",
+  "@ucStatusChangeRequested": {
+    "description": "Status chip: the student asked for another university."
+  },
+  "ucStatusConfirmed": "Confirmed",
+  "@ucStatusConfirmed": {
+    "description": "Status chip: staff gave the final confirmation."
+  },
+  "ucConfirmedNote": "Confirmed — your application is being prepared.",
+  "@ucConfirmedNote": {
+    "description": "Line under a confirmed card."
+  },
+  "ucChangeSentNote": "Your consultant will offer another university soon.",
+  "@ucChangeSentNote": {
+    "description": "Line under a card after the student asked for a change."
+  },
+  "ucFitOk": "Your score fits",
+  "@ucFitOk": {
+    "description": "Chip: the student's IELTS/TOPIK meets the minimum."
+  },
+  "ucFitGap": "Score below the minimum",
+  "@ucFitGap": {
+    "description": "Chip: the student's IELTS/TOPIK is below the minimum."
+  },
+  "ucDeadline": "Apply by {date}",
+  "@ucDeadline": {
+    "description": "Chip with the online application deadline.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "ucContract": "Tuition from {amount}",
+  "@ucContract": {
+    "description": "Chip with the lowest tuition.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "ucAccept": "I agree",
+  "@ucAccept": {
+    "description": "Button: the student accepts the offered university."
+  },
+  "ucRequestChange": "Ask for a change",
+  "@ucRequestChange": {
+    "description": "Button: the student asks for a different university."
+  },
+  "ucChangeQuestion": "Why doesn't this university suit you?",
+  "@ucChangeQuestion": {
+    "description": "Question at the top of the change-request sheet."
+  },
+  "ucReasonCity": "The city doesn't suit me",
+  "@ucReasonCity": {
+    "description": "Change reason."
+  },
+  "ucReasonPrice": "Tuition is too high",
+  "@ucReasonPrice": {
+    "description": "Change reason."
+  },
+  "ucReasonMajor": "I want a different major",
+  "@ucReasonMajor": {
+    "description": "Change reason."
+  },
+  "ucReasonOther": "Another reason",
+  "@ucReasonOther": {
+    "description": "Change reason."
+  },
+  "ucChangeNote": "Comment (optional)",
+  "@ucChangeNote": {
+    "description": "Label of the comment field on the change-request sheet."
+  },
+  "ucChangeSend": "Send to consultant",
+  "@ucChangeSend": {
+    "description": "Submit button on the change-request sheet."
+  },
+  "ucSendError": "Couldn't send. Please try again.",
+  "@ucSendError": {
+    "description": "Snackbar when the answer could not be sent."
+  },
+  "ucEmpty": "Your consultant hasn't offered any universities yet.",
+  "@ucEmpty": {
+    "description": "Empty state of the University choice screen."
+  },
+  "ucBannerPending": "{count, plural, =1{1 university is waiting for your answer} other{{count} universities are waiting for your answer}}",
+  "@ucBannerPending": {
+    "description": "Entry card on the journey screen when offers wait for an answer.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   }
 }

@@ -15,6 +15,7 @@ import 'package:hanguk_app/features/documents/data/documents_repository.dart';
 import 'package:hanguk_app/features/documents/domain/document.dart';
 import 'package:hanguk_app/features/documents/domain/document_type.dart';
 import 'package:hanguk_app/features/map/domain/university.dart';
+import 'package:hanguk_app/features/university_choices/data/university_choices_repository.dart';
 import 'package:hanguk_app/l10n/app_localizations.dart';
 
 StudentApplication app(String id, String status, {String name = 'Kongju National University'}) => StudentApplication(
@@ -82,6 +83,7 @@ void main() {
           studentFullNameProvider.overrideWith((ref) async => 'Dilnoza Karimova'),
           catalogProvider.overrideWith((ref) async => const []),
           applicationWindowsProvider.overrideWith((ref) async => const {}),
+          myUniversityChoicesProvider.overrideWith((ref) async => const []),
           signedInProvider.overrideWithValue(true),
         ],
         child: MaterialApp(

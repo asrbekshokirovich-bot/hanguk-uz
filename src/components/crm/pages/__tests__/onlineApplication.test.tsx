@@ -5,9 +5,11 @@ import OnlineApplicationContent from '../OnlineApplicationContent';
 import { formatAnswer } from '@/hooks/useStudentSurveyAnswers';
 
 const choices = [
-  { id: 'c1', student_id: 'a', institution_id: 'knu', rank: 1, created_at: '' },
-  { id: 'c2', student_id: 'a', institution_id: 'pnu', rank: 2, created_at: '' },
-  { id: 'c3', student_id: 'b', institution_id: 'knu', rank: 2, created_at: '' },
+  { id: 'c1', student_id: 'a', institution_id: 'knu', rank: 1, created_at: '', status: 'confirmed' },
+  { id: 'c2', student_id: 'a', institution_id: 'pnu', rank: 2, created_at: '', status: 'confirmed' },
+  { id: 'c3', student_id: 'b', institution_id: 'knu', rank: 2, created_at: '', status: 'confirmed' },
+  // Not confirmed yet — must not show on Onlayn ariza.
+  { id: 'c4', student_id: 'b', institution_id: 'snu', rank: 1, created_at: '', status: 'accepted' },
 ];
 
 vi.mock('@/hooks/useUniversityChoices', () => ({
