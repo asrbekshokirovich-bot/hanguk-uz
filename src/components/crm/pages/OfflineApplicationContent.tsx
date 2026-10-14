@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { Check, FileText, Search, Send, Users } from 'lucide-react';
+import { Check, FileText, Mailbox, Search, Send, Users } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -25,6 +25,8 @@ import { cn } from '@/lib/utils';
 import { paymentTint, TINT_CLASS } from '@/lib/paymentTint';
 import { getInitials, useChosenUniversityGroups, type StudentLite } from '@/hooks/useChosenUniversityGroups';
 import { submissionKey, useUniversitySubmissions, type UniversitySubmission } from '@/hooks/useUniversitySubmissions';
+import { useOfflineDeadlines, type OfflineDeadline } from '@/hooks/useOfflineDeadlines';
+import { planPost } from '@/lib/postSchedule';
 
 interface OfflineApplicationContentProps {
   students: StudentLite[];
@@ -54,6 +56,7 @@ export default function OfflineApplicationContent({ students, loading }: Offline
   const groups = useChosenUniversityGroups(students, search);
   const submissions = useUniversitySubmissions();
   const { universities, studentById } = groups;
+  const deadlines = useOfflineDeadlines(universities.map((u) => u.institutionId));
 
   if (loading || groups.loading || submissions.loading) {
     return (
@@ -114,7 +117,7 @@ export default function OfflineApplicationContent({ students, loading }: Offline
                     {[u.name.secondary, u.city].filter(Boolean).join(' · ')}
                   </div>
                 </div>
-                <div className="flex gap-1.5">
+                <div className="flex flex-wrap gap-1.5">
                   <Badge variant="info" className="gap-1">
                     <Users className="h-3 w-3" />
                     {u.choices.length} ta talaba
@@ -125,6 +128,7 @@ export default function OfflineApplicationContent({ students, loading }: Offline
                   </Badge>
                 </div>
               </div>
+              <PostLine deadline={deadlines.byInstitution.get(u.institutionId) ?? null} loading={deadlines.loading} />
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3">
                 {u.choices.map((c) => {
                   const s = studentById.get(c.student_id);
@@ -241,6 +245,55 @@ export default function OfflineApplicationContent({ students, loading }: Offline
           )}
         </SheetContent>
       </Sheet>
+    </div>
+  );
+}
+
+const WEEKDAYS = ['yakshanba', 'dushanba', 'seshanba', 'chorshanba', 'payshanba', 'juma', 'shanba'];
+const MONTHS = ['yan', 'fev', 'mar', 'apr', 'may', 'iyun', 'iyul', 'avg', 'sen', 'okt', 'noy', 'dek'];
+function dayLabel(d: Date, withWeekday = true) {
+  const base = `${d.getUTCDate()}-${MONTHS[d.getUTCMonth()]}`;
+  return withWeekday ? `${base}, ${WEEKDAYS[d.getUTCDay()]}` : base;
+}
+
+/**
+ * The university's post plan: the latest day its paper documents may leave
+ * (two post days before the last post that still arrives by the deadline —
+ * see src/lib/postSchedule.ts) and the next post day.
+ */
+function PostLine({ deadline, loading }: { deadline: OfflineDeadline | null; loading: boolean }) {
+  if (loading) return <Skeleton className="mb-3 h-8 w-full rounded-lg" />;
+  if (!deadline) {
+    return (
+      <div className="mb-3 rounded-lg border border-dashed border-border px-3 py-2 text-xs text-muted-foreground">
+        Oflayn hujjat topshirish muddati kiritilmagan
+      </div>
+    );
+  }
+  const plan = planPost(deadline.date, new Date());
+  const passed = plan.daysLeft < 0;
+  const urgent = !passed && plan.daysLeft <= 3;
+  return (
+    <div
+      data-testid="post-line"
+      className={cn(
+        'mb-3 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border px-3 py-2 text-xs',
+        passed ? 'border-destructive/40 bg-destructive/10' : urgent ? 'border-warning/40 bg-warning/10' : 'border-border bg-muted/40',
+      )}
+    >
+      <span className="flex items-center gap-1.5 font-semibold text-foreground">
+        <Mailbox className="h-3.5 w-3.5" />
+        Oxirgi pochta: {dayLabel(plan.lastDispatch)}
+      </span>
+      <span className={cn('font-semibold', passed ? 'text-destructive' : urgent ? 'text-warning' : 'text-muted-foreground')}>
+        {passed ? "Pochta muddati o'tib ketdi" : plan.daysLeft === 0 ? 'Bugun oxirgi kun' : `${plan.daysLeft} kun qoldi`}
+      </span>
+      {plan.nextDispatch && (
+        <span className="text-muted-foreground">Keyingi pochta: {dayLabel(plan.nextDispatch)}</span>
+      )}
+      <span className="text-muted-foreground">
+        Universitet muddati: {dayLabel(plan.deadline, false)} ({deadline.bosqich}-bosqich)
+      </span>
     </div>
   );
 }

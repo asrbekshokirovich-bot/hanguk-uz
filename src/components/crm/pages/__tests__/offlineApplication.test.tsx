@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import OfflineApplicationContent from '../OfflineApplicationContent';
 
@@ -37,6 +37,11 @@ vi.mock('@/hooks/useChosenUniversityGroups', () => ({
   }),
 }));
 
+let deadline: { date: string; bosqich: number } | null = { date: '2026-10-31', bosqich: 1 };
+vi.mock('@/hooks/useOfflineDeadlines', () => ({
+  useOfflineDeadlines: () => ({ byInstitution: new Map(deadline ? [['knu', deadline]] : []), loading: false }),
+}));
+
 const setup = () => render(<OfflineApplicationContent students={[]} loading={false} />);
 
 describe('OfflineApplicationContent', () => {
@@ -46,6 +51,37 @@ describe('OfflineApplicationContent', () => {
       { student_id: 'a', institution_id: 'knu', online_submitted_at: '2026-10-10T00:00:00Z', offline_sent_at: null, copies: 2, note: null },
       { student_id: 'c', institution_id: 'knu', online_submitted_at: '2026-10-10T00:00:00Z', offline_sent_at: '2026-10-12T00:00:00Z', copies: null, note: null },
     ];
+  });
+
+  describe('post plan', () => {
+    afterEach(() => vi.useRealTimers());
+
+    it("shows the latest post day two post days before the last one that arrives in time", () => {
+      vi.useFakeTimers({ toFake: ['Date'] });
+      vi.setSystemTime(new Date('2026-10-14T09:00:00Z'));
+      deadline = { date: '2026-10-31', bosqich: 1 };
+      setup();
+      const line = screen.getByTestId('post-line');
+      expect(line).toHaveTextContent('Oxirgi pochta: 21-okt, chorshanba');
+      expect(line).toHaveTextContent('7 kun qoldi');
+      expect(line).toHaveTextContent('Keyingi pochta: 14-okt, chorshanba');
+      expect(line).toHaveTextContent('Universitet muddati: 31-okt (1-bosqich)');
+    });
+
+    it('warns once the last post day has passed', () => {
+      vi.useFakeTimers({ toFake: ['Date'] });
+      vi.setSystemTime(new Date('2026-10-22T09:00:00Z'));
+      deadline = { date: '2026-10-31', bosqich: 1 };
+      setup();
+      expect(screen.getByTestId('post-line')).toHaveTextContent("Pochta muddati o'tib ketdi");
+    });
+
+    it('says when the university has no offline deadline', () => {
+      deadline = null;
+      setup();
+      expect(screen.getByText('Oflayn hujjat topshirish muddati kiritilmagan')).toBeInTheDocument();
+      deadline = { date: '2026-10-31', bosqich: 1 };
+    });
   });
 
   it('dims a student whose online application is not done and blocks sending', () => {
