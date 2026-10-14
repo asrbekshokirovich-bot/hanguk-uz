@@ -80,7 +80,8 @@ create trigger update_leads_updated_at before update on public.leads
   for each row execute function public.update_updated_at_column();
 
 create or replace function public.fn_leads_qualified_guard() returns trigger language plpgsql as
-$$ begin new.qualified := coalesce(trim(new.phone), '') <> ''; return new; end $$;
+-- as in production since 20261012080000 (#400): a phone, or a chat that arrived as a new lead
+$$ begin new.qualified := coalesce(trim(new.phone), '') <> '' or new.new_lead_at is not null; return new; end $$;
 create trigger trg_leads_qualified_guard before insert or update of phone on public.leads
   for each row execute function public.fn_leads_qualified_guard();
 

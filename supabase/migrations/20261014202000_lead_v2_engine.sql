@@ -31,6 +31,26 @@
 drop trigger if exists trg_leads_mark_new_lead on public.leads;
 drop trigger if exists trg_mark_lead_contacted_on_reply on public.messages;
 
+-- leads.qualified is what the old leads list (LeadsContext, used by the card's
+-- "Talabaga aylantirish") filters on. Since 20261012080000 (#400) it means "a
+-- phone, or new_lead_at"; new_lead_at came from trg_leads_mark_new_lead, which
+-- is dropped above, so a phone-less v2 lead would be unqualified and missing
+-- from that list. Every live v2 card counts; a merge tombstone does not (the
+-- merge sets qualified = false without touching the phone, so this guard,
+-- which fires on insert and on a phone change, leaves it so).
+create or replace function public.fn_leads_qualified_guard()
+returns trigger
+language plpgsql
+set search_path to 'public'
+as $function$
+begin
+  new.qualified := coalesce(trim(new.phone), '') <> ''
+    or new.new_lead_at is not null
+    or (new.crm_generation = 'new' and new.merged_into_id is null);
+  return new;
+end;
+$function$;
+
 create or replace function public.fn_lead_sla_scan(p_minutes integer default 10, p_dry boolean default false)
 returns table(id uuid, full_name text, phone text, how_heard text, source text, arrived_at timestamptz, minutes_waiting integer)
 language sql
@@ -1548,7 +1568,7 @@ begin
     -- armed, their timer escalated to everyone every 10 minutes for good —
     -- nothing could answer it (no phone; a chat reply only stops first/reply).
     update public.leads
-       set phone = null, qualified = false,
+       set phone = null,
            next_attempt_at = null,
            ladder_state = case when ladder_state = 'running' then 'stopped' else ladder_state end
      where id = p_lead_id;

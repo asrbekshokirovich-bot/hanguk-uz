@@ -204,6 +204,18 @@ create trigger trg_mark_lead_contacted_on_reply
   after insert on public.messages
   for each row execute function public.fn_mark_lead_contacted_on_reply();
 
+-- the qualified guard, as in 20261012080000_new_lead_on_first_message.sql
+create or replace function public.fn_leads_qualified_guard()
+returns trigger
+language plpgsql
+set search_path to 'public'
+as $function$
+begin
+  new.qualified := coalesce(trim(new.phone), '') <> '' or new.new_lead_at is not null;
+  return new;
+end;
+$function$;
+
 -- 6. the old row level security on leads (everybody on staff sees every lead)
 drop policy if exists "lead v2 select" on public.leads;
 drop policy if exists "lead v2 insert" on public.leads;
