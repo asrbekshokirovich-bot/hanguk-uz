@@ -10,6 +10,7 @@ import '../../applications/presentation/widgets/process_tracker.dart';
 import '../../applications/presentation/widgets/university_room_modal.dart';
 import '../../assessment/presentation/assessment_widgets.dart';
 import '../../auth/data/auth_repository.dart';
+import '../../university_choices/presentation/university_choices_entry.dart';
 import 'widgets/client_parts.dart';
 
 /// The furthest-along application. A rejected one sits on the last stage,
@@ -112,6 +113,7 @@ class _Empty extends StatelessWidget {
     return Column(
       children: [
         ClientHeader(title: l.fdJourneyTitle, subtitle: name),
+        const UniversityChoicesEntry(),
         Expanded(
           child: Center(
             child: Padding(
@@ -176,6 +178,7 @@ class _Body extends StatelessWidget {
           child: ListView(
             padding: EdgeInsets.zero,
             children: [
+              const UniversityChoicesEntry(),
               if (apps.length > 1)
                 SizedBox(
                   height: 40,
