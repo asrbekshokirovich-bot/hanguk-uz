@@ -4268,4 +4268,38 @@ class AppLocalizationsUz extends AppLocalizations {
   @override
   String get fdInterviewMuted =>
       'Mikrofon o\'chirilgan — intervyuer sizni eshitmaydi';
+
+  @override
+  String get fdCodeScan => 'QR kodni skanerlash';
+
+  @override
+  String get fdScanTitle => 'QR kodni skanerlang';
+
+  @override
+  String get fdScanHint =>
+      'Konsultantingiz bergan QR kodni ramka ichiga keltiring';
+
+  @override
+  String get fdScanNoCode =>
+      'Bu QR kodda mijoz kodi topilmadi. Kodni qo\'lda kiriting.';
+
+  @override
+  String get fdScanNoCamera =>
+      'Kameraga ruxsat berilmagan. Telefon sozlamalaridan ruxsat bering yoki kodni qo\'lda kiriting.';
+
+  @override
+  String get fdScanFailed => 'Kamera ochilmadi. Kodni qo\'lda kiriting.';
+
+  @override
+  String get fdPlanDictate => 'Ovoz bilan yozish';
+
+  @override
+  String get fdPlanDictateStop => 'Yozishni to\'xtatish';
+
+  @override
+  String get fdPlanListening => 'Tinglayapman… gapiring';
+
+  @override
+  String get fdPlanDictateUnavailable =>
+      'Bu telefonda ovozni matnga aylantirish ishlamadi. Mikrofon ruxsatini tekshiring.';
 }

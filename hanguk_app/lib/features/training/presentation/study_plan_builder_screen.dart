@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:speech_to_text/speech_to_text.dart';
 
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/hard_shadow.dart' show HardButton, HardShadowBox;
@@ -37,6 +38,11 @@ class _StudyPlanBuilderScreenState extends ConsumerState<StudyPlanBuilderScreen>
   bool _busy = false;
   String? _savedContent;
 
+  // The mic button: the device's own speech recognizer, writing into the box.
+  final _speech = SpeechToText();
+  bool _listening = false;
+  String _dictationBase = '';
+
   @override
   void initState() {
     super.initState();
@@ -45,6 +51,7 @@ class _StudyPlanBuilderScreenState extends ConsumerState<StudyPlanBuilderScreen>
 
   @override
   void dispose() {
+    if (_listening) _speech.cancel();
     _controller.dispose();
     super.dispose();
   }
@@ -86,6 +93,7 @@ class _StudyPlanBuilderScreenState extends ConsumerState<StudyPlanBuilderScreen>
   }
 
   void _go(int step) {
+    _stopDictation();
     _parts[_step] = _controller.text;
     _controller.text = _parts[step];
     _controller.selection = TextSelection.collapsed(offset: _controller.text.length);
@@ -103,7 +111,69 @@ class _StudyPlanBuilderScreenState extends ConsumerState<StudyPlanBuilderScreen>
     return ok;
   }
 
+  void _stopDictation() {
+    if (!_listening) return;
+    _speech.stop();
+    setState(() => _listening = false);
+  }
+
+  /// Starts or stops dictation into the current part, in the app's language
+  /// when the phone's recognizer has it.
+  Future<void> _toggleDictation() async {
+    if (_listening) {
+      _stopDictation();
+      return;
+    }
+    final l = AppLocalizations.of(context)!;
+    final messenger = ScaffoldMessenger.of(context);
+    final lang = Localizations.localeOf(context).languageCode;
+    var ready = false;
+    try {
+      ready = await _speech.initialize(
+        onStatus: (status) {
+          if ((status == SpeechToText.doneStatus || status == SpeechToText.notListeningStatus) && mounted) {
+            setState(() => _listening = false);
+          }
+        },
+        onError: (_) {
+          if (mounted) setState(() => _listening = false);
+        },
+      );
+    } catch (e) {
+      debugPrint('speech init failed: $e');
+    }
+    if (!mounted) return;
+    if (!ready) {
+      messenger.showSnackBar(SnackBar(content: Text(l.fdPlanDictateUnavailable)));
+      return;
+    }
+    String? localeId;
+    try {
+      final locales = await _speech.locales();
+      localeId = locales.where((x) => x.localeId.toLowerCase().startsWith(lang)).firstOrNull?.localeId;
+    } catch (_) {}
+    if (!mounted) return;
+    _dictationBase = _controller.text;
+    setState(() => _listening = true);
+    await _speech.listen(
+      onResult: (r) {
+        if (!mounted) return;
+        final text = appendDictation(_dictationBase, r.recognizedWords, kPlanMaxChars);
+        _controller.value = TextEditingValue(text: text, selection: TextSelection.collapsed(offset: text.length));
+        setState(() {});
+      },
+      listenOptions: SpeechListenOptions(
+        listenMode: ListenMode.dictation,
+        partialResults: true,
+        localeId: localeId,
+        pauseFor: const Duration(seconds: 5),
+        listenFor: const Duration(minutes: 2),
+      ),
+    );
+  }
+
   Future<void> _feedback() async {
+    _stopDictation();
     final l = AppLocalizations.of(context)!;
     final messenger = ScaffoldMessenger.of(context);
     _parts[_step] = _controller.text;
@@ -133,6 +203,7 @@ class _StudyPlanBuilderScreenState extends ConsumerState<StudyPlanBuilderScreen>
   }
 
   Future<void> _leave() async {
+    _stopDictation();
     final navigator = Navigator.of(context);
     await _save();
     if (navigator.mounted) navigator.pop();
@@ -273,6 +344,13 @@ class _StudyPlanBuilderScreenState extends ConsumerState<StudyPlanBuilderScreen>
                         Text(hints[_step], style: fdText(12, FontWeight.w400, FdColors.muted, height: 1.45)),
                         const SizedBox(height: 10),
                         _Field(controller: _controller, hint: l.fdPlanHintField, onChanged: () => setState(() {})),
+                        if (_listening) ...[
+                          const SizedBox(height: 8),
+                          Semantics(
+                            liveRegion: true,
+                            child: Text(l.fdPlanListening, style: fdText(11, FontWeight.w700, FdColors.good)),
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -310,16 +388,60 @@ class _StudyPlanBuilderScreenState extends ConsumerState<StudyPlanBuilderScreen>
           ),
         ),
         FdBottomBar(
-          child: HardButton(
-            label: _busy ? l.fdPlanFeedbackBusy : l.fdPlanFeedback,
-            loading: _busy,
-            onPressed: _busy ? null : _feedback,
-            leading: const Lucide(LucideIcons.sparkles, size: 16, color: FdColors.onLime),
+          child: Row(
+            children: [
+              _MicButton(
+                listening: _listening,
+                label: _listening ? l.fdPlanDictateStop : l.fdPlanDictate,
+                onTap: _busy ? null : _toggleDictation,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: HardButton(
+                  label: _busy ? l.fdPlanFeedbackBusy : l.fdPlanFeedback,
+                  loading: _busy,
+                  onPressed: _busy ? null : _feedback,
+                  leading: const Lucide(LucideIcons.sparkles, size: 16, color: FdColors.onLime),
+                ),
+              ),
+            ],
           ),
         ),
       ],
     );
   }
+}
+
+/// The 52px mic square left of the main button; lime while it listens.
+class _MicButton extends StatelessWidget {
+  const _MicButton({required this.listening, required this.label, required this.onTap});
+
+  final bool listening;
+  final String label;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    button: true,
+    toggled: listening,
+    label: label,
+    excludeSemantics: true,
+    child: GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        width: 52,
+        height: 52,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: listening ? FdColors.lime : FdColors.card,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: FdColors.ink, width: 1.5),
+        ),
+        child: Lucide(listening ? LucideIcons.micOff : LucideIcons.mic, size: 20, color: FdColors.ink),
+      ),
+    ),
+  );
 }
 
 enum _ChipState { done, active, ahead }

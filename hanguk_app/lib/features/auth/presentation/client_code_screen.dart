@@ -11,6 +11,7 @@ import '../../../design_system/seoul_night/widgets/lucide.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../discover/presentation/discover_routes.dart';
 import '../data/auth_repository.dart';
+import 'qr_scan_screen.dart';
 
 /// "Mijoz kodi bilan kirish" (design screen 14): the 8-character code the
 /// consultant gave, typed into eight cells. The sign-in itself is the same
@@ -91,6 +92,17 @@ class _ClientCodeScreenState extends ConsumerState<ClientCodeScreen> {
       setState(() => _error = authErrorMessage(l, error));
       if (result.transient) setState(() => _offerGuest = true);
     }
+  }
+
+  /// "QR kodni skanerlash": the code from the consultant's QR, signed in
+  /// with as if typed.
+  Future<void> _scan() async {
+    if (_loading) return;
+    final code = await QrScanScreen.open(context);
+    if (code == null || !mounted) return;
+    _ctrl.text = code;
+    setState(() => _error = null);
+    await _submit();
   }
 
   Future<void> _call() async {
@@ -206,6 +218,8 @@ class _ClientCodeScreenState extends ConsumerState<ClientCodeScreen> {
                                   opacity: ready || _loading ? 1 : 0.55,
                                   child: HardButton(label: l.fdCodeSubmit, onPressed: _submit, loading: _loading),
                                 ),
+                                const SizedBox(height: 12),
+                                _ScanButton(label: l.fdCodeScan, onTap: _loading ? null : _scan),
                                 if (_offerGuest) ...[
                                   const SizedBox(height: 12),
                                   HardChoice(
@@ -256,6 +270,47 @@ class _ClientCodeScreenState extends ConsumerState<ClientCodeScreen> {
   }
 
   static final TextStyle _title = fdText(28, FontWeight.w800, FdColors.ink, height: 1.1, letterSpacing: -0.84);
+}
+
+/// The white "QR kodni skanerlash" button under "Kirish".
+class _ScanButton extends StatelessWidget {
+  const _ScanButton({required this.label, required this.onTap});
+
+  final String label;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    button: true,
+    enabled: onTap != null,
+    child: GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        height: 44,
+        decoration: BoxDecoration(
+          color: FdColors.card,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: FdColors.ink, width: 1.5),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Lucide(LucideIcons.qrCode, size: 16, color: FdColors.ink),
+            const SizedBox(width: 8),
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: fdText(13, FontWeight.w700, FdColors.ink),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
 }
 
 /// Keeps letters and digits only, capitals, at most [ClientCodeScreen.length].

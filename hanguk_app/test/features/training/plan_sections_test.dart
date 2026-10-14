@@ -22,4 +22,12 @@ void main() {
   test('a part counts as written from the minimum length on', () {
     expect(writtenParts(['x' * kPlanMinChars, 'short', '', 'y' * 100]), 2);
   });
+
+  test('dictation is appended after a space and kept within the limit', () {
+    expect(appendDictation('', 'men koreyani', 300), 'men koreyani');
+    expect(appendDictation('Salom.', 'men', 300), 'Salom. men');
+    expect(appendDictation('Salom. ', 'men', 300), 'Salom. men');
+    expect(appendDictation('abc', '   ', 300), 'abc');
+    expect(appendDictation('x' * 298, 'yyyy', 300).length, 300);
+  });
 }

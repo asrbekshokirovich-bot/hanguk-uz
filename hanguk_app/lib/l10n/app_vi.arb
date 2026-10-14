@@ -1394,5 +1394,15 @@
   "fdInterviewTip": "Nói rõ ràng, tốc độ vừa phải · 60–90 giây",
   "fdInterviewMute": "Tắt micrô",
   "fdInterviewUnmute": "Bật micrô",
-  "fdInterviewMuted": "Micrô đang tắt — người phỏng vấn không nghe thấy bạn"
+  "fdInterviewMuted": "Micrô đang tắt — người phỏng vấn không nghe thấy bạn",
+  "fdCodeScan": "Quét mã QR",
+  "fdScanTitle": "Quét mã QR",
+  "fdScanHint": "Đưa mã QR mà tư vấn viên đưa vào trong khung",
+  "fdScanNoCode": "Mã QR này không chứa mã khách hàng. Hãy nhập mã bằng tay.",
+  "fdScanNoCamera": "Chưa cấp quyền camera. Hãy cho phép trong cài đặt điện thoại hoặc nhập mã bằng tay.",
+  "fdScanFailed": "Không mở được camera. Hãy nhập mã bằng tay.",
+  "fdPlanDictate": "Đọc để nhập",
+  "fdPlanDictateStop": "Dừng đọc",
+  "fdPlanListening": "Đang nghe… hãy nói",
+  "fdPlanDictateUnavailable": "Không chuyển giọng nói thành văn bản được trên điện thoại này. Hãy kiểm tra quyền micrô."
 }

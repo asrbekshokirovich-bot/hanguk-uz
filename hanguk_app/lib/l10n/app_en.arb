@@ -5539,5 +5539,45 @@
   "fdInterviewMuted": "Microphone off — the interviewer cannot hear you",
   "@fdInterviewMuted": {
     "description": "Status while the microphone is muted."
+  },
+  "fdCodeScan": "Scan QR code",
+  "@fdCodeScan": {
+    "description": "Button under 'Kirish' on the client-code screen."
+  },
+  "fdScanTitle": "Scan the QR code",
+  "@fdScanTitle": {
+    "description": "QR scanner screen title."
+  },
+  "fdScanHint": "Hold the QR code your consultant gave you inside the frame",
+  "@fdScanHint": {
+    "description": "Line under the scanner frame."
+  },
+  "fdScanNoCode": "This QR code has no client code. Type the code instead.",
+  "@fdScanNoCode": {
+    "description": "Shown when a scanned QR holds no client code."
+  },
+  "fdScanNoCamera": "Camera access is off. Allow it in the phone's settings, or type the code instead.",
+  "@fdScanNoCamera": {
+    "description": "Scanner screen when the camera permission is denied."
+  },
+  "fdScanFailed": "The camera did not open. Type the code instead.",
+  "@fdScanFailed": {
+    "description": "Scanner screen when the camera fails for another reason."
+  },
+  "fdPlanDictate": "Dictate",
+  "@fdPlanDictate": {
+    "description": "Study Plan mic button label (screen reader)."
+  },
+  "fdPlanDictateStop": "Stop dictation",
+  "@fdPlanDictateStop": {
+    "description": "Study Plan mic button label while listening."
+  },
+  "fdPlanListening": "Listening… speak now",
+  "@fdPlanListening": {
+    "description": "Shown above the text box while dictating."
+  },
+  "fdPlanDictateUnavailable": "Speech-to-text did not work on this phone. Check the microphone permission.",
+  "@fdPlanDictateUnavailable": {
+    "description": "Snackbar when dictation cannot start."
   }
 }

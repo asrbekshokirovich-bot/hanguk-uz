@@ -4272,4 +4272,37 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get fdInterviewMuted => 'Микрофон выключен — интервьюер вас не слышит';
+
+  @override
+  String get fdCodeScan => 'Сканировать QR-код';
+
+  @override
+  String get fdScanTitle => 'Отсканируйте QR-код';
+
+  @override
+  String get fdScanHint => 'Наведите рамку на QR-код от вашего консультанта';
+
+  @override
+  String get fdScanNoCode =>
+      'В этом QR-коде нет кода клиента. Введите код вручную.';
+
+  @override
+  String get fdScanNoCamera =>
+      'Нет доступа к камере. Разрешите его в настройках телефона или введите код вручную.';
+
+  @override
+  String get fdScanFailed => 'Камера не открылась. Введите код вручную.';
+
+  @override
+  String get fdPlanDictate => 'Диктовать';
+
+  @override
+  String get fdPlanDictateStop => 'Остановить диктовку';
+
+  @override
+  String get fdPlanListening => 'Слушаю… говорите';
+
+  @override
+  String get fdPlanDictateUnavailable =>
+      'Распознавание речи на этом телефоне не сработало. Проверьте доступ к микрофону.';
 }

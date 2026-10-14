@@ -4253,4 +4253,37 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get fdInterviewMuted =>
       'Micrô đang tắt — người phỏng vấn không nghe thấy bạn';
+
+  @override
+  String get fdCodeScan => 'Quét mã QR';
+
+  @override
+  String get fdScanTitle => 'Quét mã QR';
+
+  @override
+  String get fdScanHint => 'Đưa mã QR mà tư vấn viên đưa vào trong khung';
+
+  @override
+  String get fdScanNoCode =>
+      'Mã QR này không chứa mã khách hàng. Hãy nhập mã bằng tay.';
+
+  @override
+  String get fdScanNoCamera =>
+      'Chưa cấp quyền camera. Hãy cho phép trong cài đặt điện thoại hoặc nhập mã bằng tay.';
+
+  @override
+  String get fdScanFailed => 'Không mở được camera. Hãy nhập mã bằng tay.';
+
+  @override
+  String get fdPlanDictate => 'Đọc để nhập';
+
+  @override
+  String get fdPlanDictateStop => 'Dừng đọc';
+
+  @override
+  String get fdPlanListening => 'Đang nghe… hãy nói';
+
+  @override
+  String get fdPlanDictateUnavailable =>
+      'Không chuyển giọng nói thành văn bản được trên điện thoại này. Hãy kiểm tra quyền micrô.';
 }
