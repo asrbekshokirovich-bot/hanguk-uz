@@ -57,5 +57,58 @@ export function useUniversityEvents(_roomId: string | null) {
     throw new Error('university_events is retired.');
   }, []);
 
-  return { events, loading, refetch, create, remove, update };
+  // Read helpers the calendar still calls. They work on the (always empty)
+  // list, so the Taqvim tab renders its empty state instead of crashing.
+  const getEventsForDate = useCallback((date: Date): UniversityEvent[] => {
+    const dateStr = date.toISOString().split('T')[0];
+    return events.filter(event => event.event_date.split('T')[0] === dateStr);
+  }, [events]);
+
+  const getUpcomingEvents = useCallback((limit = 5): UniversityEvent[] => {
+    const now = new Date();
+    return events.filter(event => new Date(event.event_date) >= now).slice(0, limit);
+  }, [events]);
+
+  return {
+    events,
+    loading,
+    refetch,
+    create,
+    remove,
+    update,
+    getEventsForDate,
+    getUpcomingEvents,
+    getEventTypeColor,
+    getEventTypeTextColor,
+  };
+}
+
+function getEventTypeColor(type: EventType): string {
+  switch (type) {
+    case 'tuition_payment':
+      return 'bg-red-500';
+    case 'interview':
+      return 'bg-blue-500';
+    case 'deadline':
+      return 'bg-orange-500';
+    case 'orientation':
+      return 'bg-green-500';
+    default:
+      return 'bg-gray-500';
+  }
+}
+
+function getEventTypeTextColor(type: EventType): string {
+  switch (type) {
+    case 'tuition_payment':
+      return 'text-red-600';
+    case 'interview':
+      return 'text-blue-600';
+    case 'deadline':
+      return 'text-orange-600';
+    case 'orientation':
+      return 'text-green-600';
+    default:
+      return 'text-gray-600';
+  }
 }
