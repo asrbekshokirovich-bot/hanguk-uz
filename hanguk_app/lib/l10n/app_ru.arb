@@ -1404,7 +1404,5 @@
   "fdPlanDictate": "Диктовать",
   "fdPlanDictateStop": "Остановить диктовку",
   "fdPlanListening": "Слушаю… говорите",
-  "fdPlanDictateUnavailable": "Распознавание речи на этом телефоне не сработало. Проверьте доступ к микрофону.",
-  "fdSavedPeek": "Сохранено: {count} · потяните вверх",
-  "fdSavedSheetClose": "Закрыть"
+  "fdPlanDictateUnavailable": "Распознавание речи на этом телефоне не сработало. Проверьте доступ к микрофону."
 }

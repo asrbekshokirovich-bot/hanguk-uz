@@ -1404,7 +1404,5 @@
   "fdPlanDictate": "Ovoz bilan yozish",
   "fdPlanDictateStop": "Yozishni to'xtatish",
   "fdPlanListening": "Tinglayapman… gapiring",
-  "fdPlanDictateUnavailable": "Bu telefonda ovozni matnga aylantirish ishlamadi. Mikrofon ruxsatini tekshiring.",
-  "fdSavedPeek": "{count} ta saqlangan · tepaga torting",
-  "fdSavedSheetClose": "Yopish"
+  "fdPlanDictateUnavailable": "Bu telefonda ovozni matnga aylantirish ishlamadi. Mikrofon ruxsatini tekshiring."
 }

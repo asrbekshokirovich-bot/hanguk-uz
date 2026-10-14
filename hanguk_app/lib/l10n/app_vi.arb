@@ -1404,7 +1404,5 @@
   "fdPlanDictate": "Đọc để nhập",
   "fdPlanDictateStop": "Dừng đọc",
   "fdPlanListening": "Đang nghe… hãy nói",
-  "fdPlanDictateUnavailable": "Không chuyển giọng nói thành văn bản được trên điện thoại này. Hãy kiểm tra quyền micrô.",
-  "fdSavedPeek": "Đã lưu {count} · kéo lên",
-  "fdSavedSheetClose": "Đóng"
+  "fdPlanDictateUnavailable": "Không chuyển giọng nói thành văn bản được trên điện thoại này. Hãy kiểm tra quyền micrô."
 }

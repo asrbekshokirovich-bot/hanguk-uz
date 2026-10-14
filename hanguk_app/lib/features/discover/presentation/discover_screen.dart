@@ -22,7 +22,7 @@ import '../../onboarding/domain/eligibility_engine.dart';
 import '../data/deck_hint.dart';
 import '../data/saved_universities.dart';
 import 'discover_routes.dart';
-import 'widgets/saved_sheet.dart';
+import 'widgets/saved_section.dart';
 import 'widgets/uni_stack_card.dart';
 
 /// The catalogue in the order the card stack deals it: the visiting
@@ -60,13 +60,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
     final input = ref.watch(assessmentProvider);
     final rules = ref.watch(eligibilityRulesProvider).value ?? const EligibilityRules();
 
-    // The saved sheet's handle rests on the page's foot, above the tabs; the
-    // page keeps that strip free.
-    return Stack(
-      children: [
-        Padding(
-          padding: EdgeInsets.only(bottom: saved.isEmpty ? 0 : kSavedPeek),
-          child: SafeArea(
+    return SafeArea(
       bottom: false,
       child: async.when(
         loading: () => const Center(child: CircularProgressIndicator(color: FdColors.navy)),
@@ -96,136 +90,144 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
           final u = deck[index];
           final g = u.primary;
           final season = seasonLabel(l, g);
+          final byId = {for (final x in all) x.institutionId: x};
+          final savedUnis = [for (final id in saved) ?byId[id]];
 
+          // The first screen fills the view as before; the saved universities
+          // continue below it, their heading just showing at the foot.
           return LayoutBuilder(
             builder: (context, box) => SingleChildScrollView(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: box.maxHeight),
-                child: IntrinsicHeight(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      _Header(intake: season == null ? null : l.fdIntakeLabel(season)),
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(18, 10, 18, 0),
-                        child: Row(
-                          children: [
-                            Expanded(child: _SearchField(hint: l.fdSearchHint, onTap: () => context.push(kDiscoverSearchPath))),
-                            const SizedBox(width: 8),
-                            HardIconButton(
-                              glyph: LucideIcons.slidersHorizontal,
-                              semanticLabel: l.catalogFilterTitle,
-                              size: 48,
-                              radius: 14,
-                              iconSize: 19,
-                              fill: FdColors.navy,
-                              iconColor: Colors.white,
-                              shadow: 3,
-                              onTap: () => context.push(kDiscoverFilterPath),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  ConstrainedBox(
+                    constraints: BoxConstraints(minHeight: box.maxHeight - (savedUnis.isEmpty ? 0 : kSavedHeadPeek)),
+                    child: IntrinsicHeight(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _Header(intake: season == null ? null : l.fdIntakeLabel(season)),
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(18, 10, 18, 0),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: _SearchField(
+                                    hint: l.fdSearchHint,
+                                    onTap: () => context.push(kDiscoverSearchPath),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                HardIconButton(
+                                  glyph: LucideIcons.slidersHorizontal,
+                                  semanticLabel: l.catalogFilterTitle,
+                                  size: 48,
+                                  radius: 14,
+                                  iconSize: 19,
+                                  fill: FdColors.navy,
+                                  iconColor: Colors.white,
+                                  shadow: 3,
+                                  onTap: () => context.push(kDiscoverFilterPath),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(18, 12, 18, 0),
-                        child: _Deck(
-                          key: _deck,
-                          hint: ref.watch(deckHintProvider) == false,
-                          onSwiped: ref.read(deckHintProvider.notifier).markSwiped,
-                          hintLabel: l.fdSwipeHint,
-                          saveStamp: l.fdStampSave,
-                          skipStamp: l.fdStampSkip,
-                          cardAt: (offset) {
-                            final i = (index + offset) % deck.length;
-                            final c = deck[i];
-                            return UniStackCard(
-                              key: ValueKey(c.institutionId),
-                              university: c,
-                              guideline: c.primary,
-                              position: i + 1,
-                              isVisiting: c.institutionId == kGuestUniversityId,
-                              percent: touched ? admissionPercent(input, c.primary, rules: rules) : null,
-                              onAdmission: () => context.push(kAssessmentPath, extra: c.institutionId),
-                            );
-                          },
-                          onTap: () => context.push(universityPath(u.institutionId)),
-                          onSkip: () {
-                            AppEvents.track('university_skip', props: {'institution_id': u.institutionId});
-                            _advance(deck.length);
-                          },
-                          onSave: () {
-                            ref.read(savedUniversitiesProvider.notifier).save(u.institutionId);
-                            _advance(deck.length);
-                          },
-                          onPrevious: () => _back(deck.length),
-                          previousLabel: l.fdPrevious,
-                          nextLabel: l.fdNext,
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(top: 14),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            _RoundButton(
-                              semanticLabel: l.fdSkip,
-                              fill: FdColors.card,
-                              glyph: LucideIcons.x,
-                              iconColor: FdColors.ink,
-                              onTap: () => _deck.currentState?.fling(right: false),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(18, 12, 18, 0),
+                            child: _Deck(
+                              key: _deck,
+                              hint: ref.watch(deckHintProvider) == false,
+                              onSwiped: ref.read(deckHintProvider.notifier).markSwiped,
+                              hintLabel: l.fdSwipeHint,
+                              saveStamp: l.fdStampSave,
+                              skipStamp: l.fdStampSkip,
+                              cardAt: (offset) {
+                                final i = (index + offset) % deck.length;
+                                final c = deck[i];
+                                return UniStackCard(
+                                  key: ValueKey(c.institutionId),
+                                  university: c,
+                                  guideline: c.primary,
+                                  position: i + 1,
+                                  isVisiting: c.institutionId == kGuestUniversityId,
+                                  percent: touched ? admissionPercent(input, c.primary, rules: rules) : null,
+                                  onAdmission: () => context.push(kAssessmentPath, extra: c.institutionId),
+                                );
+                              },
+                              onTap: () => context.push(universityPath(u.institutionId)),
+                              onSkip: () {
+                                AppEvents.track('university_skip', props: {'institution_id': u.institutionId});
+                                _advance(deck.length);
+                              },
+                              onSave: () {
+                                ref.read(savedUniversitiesProvider.notifier).save(u.institutionId);
+                                _advance(deck.length);
+                              },
+                              onPrevious: () => _back(deck.length),
+                              previousLabel: l.fdPrevious,
+                              nextLabel: l.fdNext,
                             ),
-                            const SizedBox(width: 24),
-                            SizedBox(
-                              width: 52,
-                              child: Text(
-                                l.fdCounter(index + 1, deck.length),
-                                textAlign: TextAlign.center,
-                                style: fdText(13, FontWeight.w800, FdColors.pageMuted),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(top: 14),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                _RoundButton(
+                                  semanticLabel: l.fdSkip,
+                                  fill: FdColors.card,
+                                  glyph: LucideIcons.x,
+                                  iconColor: FdColors.ink,
+                                  onTap: () => _deck.currentState?.fling(right: false),
+                                ),
+                                const SizedBox(width: 24),
+                                SizedBox(
+                                  width: 52,
+                                  child: Text(
+                                    l.fdCounter(index + 1, deck.length),
+                                    textAlign: TextAlign.center,
+                                    style: fdText(13, FontWeight.w800, FdColors.pageMuted),
+                                  ),
+                                ),
+                                const SizedBox(width: 24),
+                                _RoundButton(
+                                  semanticLabel: l.fdSave,
+                                  fill: FdColors.lime,
+                                  glyph: LucideIcons.heart,
+                                  iconColor: FdColors.onLime,
+                                  badge: saved.isEmpty ? null : '${saved.length}',
+                                  badgeLabel: l.fdSavedTitle,
+                                  onBadgeTap: () => context.push(kDiscoverSavedPath),
+                                  onTap: () => _deck.currentState?.fling(right: true),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(18, 14, 18, 0),
+                            child: _CatalogBanner(count: deck.length, onTap: () => context.push(kDiscoverFilterPath)),
+                          ),
+                          const Spacer(),
+                          Center(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              child: _ClientCodePill(
+                                label: l.onbWelcomeClientCode,
+                                onTap: () => context.push('/login', extra: const {'magic_code': true}),
                               ),
                             ),
-                            const SizedBox(width: 24),
-                            _RoundButton(
-                              semanticLabel: l.fdSave,
-                              fill: FdColors.lime,
-                              glyph: LucideIcons.heart,
-                              iconColor: FdColors.onLime,
-                              badge: saved.isEmpty ? null : '${saved.length}',
-                              badgeLabel: l.fdSavedTitle,
-                              onBadgeTap: () => context.push(kDiscoverSavedPath),
-                              onTap: () => _deck.currentState?.fling(right: true),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(18, 14, 18, 0),
-                        child: _CatalogBanner(
-                          count: deck.length,
-                          onTap: () => context.push(kDiscoverFilterPath),
-                        ),
-                      ),
-                      const Spacer(),
-                      Center(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 10),
-                          child: _ClientCodePill(
-                            label: l.onbWelcomeClientCode,
-                            onTap: () => context.push('/login', extra: const {'magic_code': true}),
                           ),
-                        ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
-                ),
+                  if (savedUnis.isNotEmpty) SavedSection(saved: savedUnis),
+                ],
               ),
             ),
           );
         },
       ),
-          ),
-        ),
-        const Positioned.fill(child: SavedPullSheet()),
-      ],
     );
   }
 }
@@ -313,11 +315,8 @@ class _Pose {
   final double degrees;
   final double scale;
 
-  static _Pose lerp(_Pose a, _Pose b, double t) => _Pose(
-    a.top + (b.top - a.top) * t,
-    a.degrees + (b.degrees - a.degrees) * t,
-    a.scale + (b.scale - a.scale) * t,
-  );
+  static _Pose lerp(_Pose a, _Pose b, double t) =>
+      _Pose(a.top + (b.top - a.top) * t, a.degrees + (b.degrees - a.degrees) * t, a.scale + (b.scale - a.scale) * t);
 }
 
 /// The card stack (design screen 03). The top card follows the finger; let
@@ -384,7 +383,10 @@ class _DeckState extends State<_Deck> with TickerProviderStateMixin {
 
   /// The nudge: 4.2s, of which the first 1.6s moves (right, then left) and
   /// the rest is rest; played a few times, then it stops by itself.
-  late final AnimationController _nudge = AnimationController(vsync: this, duration: const Duration(milliseconds: 4200));
+  late final AnimationController _nudge = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 4200),
+  );
 
   double _dx = 0;
   double _from = 0;
@@ -539,7 +541,11 @@ class _DeckState extends State<_Deck> with TickerProviderStateMixin {
               Positioned(
                 right: -17,
                 top: 170,
-                child: _Chevron(glyph: LucideIcons.chevronRight, label: widget.nextLabel, onTap: () => fling(right: false)),
+                child: _Chevron(
+                  glyph: LucideIcons.chevronRight,
+                  label: widget.nextLabel,
+                  onTap: () => fling(right: false),
+                ),
               ),
               _layer(_third, const _BlankCard()),
               _layer(
@@ -573,7 +579,12 @@ class _DeckState extends State<_Deck> with TickerProviderStateMixin {
                             top: 52,
                             child: Opacity(
                               opacity: stamp,
-                              child: _Stamp(label: widget.saveStamp, fill: FdColors.lime, color: FdColors.onLime, turn: -0.2),
+                              child: _Stamp(
+                                label: widget.saveStamp,
+                                fill: FdColors.lime,
+                                color: FdColors.onLime,
+                                turn: -0.2,
+                              ),
                             ),
                           ),
                         if (stamp > 0.05 && dx < 0)
@@ -582,7 +593,12 @@ class _DeckState extends State<_Deck> with TickerProviderStateMixin {
                             top: 52,
                             child: Opacity(
                               opacity: stamp,
-                              child: _Stamp(label: widget.skipStamp, fill: FdColors.card, color: FdColors.ink, turn: 0.2),
+                              child: _Stamp(
+                                label: widget.skipStamp,
+                                fill: FdColors.card,
+                                color: FdColors.ink,
+                                turn: 0.2,
+                              ),
                             ),
                           ),
                       ],
@@ -836,7 +852,10 @@ class _CatalogBanner extends StatelessWidget {
                     Text.rich(
                       TextSpan(
                         children: [
-                          TextSpan(text: '$count', style: const TextStyle(color: FdColors.lime)),
+                          TextSpan(
+                            text: '$count',
+                            style: const TextStyle(color: FdColors.lime),
+                          ),
                           TextSpan(text: ' ${l.fdBannerUniversities}'),
                         ],
                       ),

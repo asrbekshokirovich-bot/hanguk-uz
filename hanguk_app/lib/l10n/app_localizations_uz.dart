@@ -4302,12 +4302,4 @@ class AppLocalizationsUz extends AppLocalizations {
   @override
   String get fdPlanDictateUnavailable =>
       'Bu telefonda ovozni matnga aylantirish ishlamadi. Mikrofon ruxsatini tekshiring.';
-
-  @override
-  String fdSavedPeek(int count) {
-    return '$count ta saqlangan · tepaga torting';
-  }
-
-  @override
-  String get fdSavedSheetClose => 'Yopish';
 }
