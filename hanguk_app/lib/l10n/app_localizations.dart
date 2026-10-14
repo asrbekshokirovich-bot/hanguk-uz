@@ -7790,6 +7790,12 @@ abstract class AppLocalizations {
   /// **'Change requested'**
   String get ucStatusChangeRequested;
 
+  /// Status chip on the third (partner university) choice: staff attach it themselves, the student does not answer.
+  ///
+  /// In en, this message translates to:
+  /// **'Partner — no answer needed'**
+  String get ucStatusPartner;
+
   /// Status chip: staff gave the final confirmation.
   ///
   /// In en, this message translates to:

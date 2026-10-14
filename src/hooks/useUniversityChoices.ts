@@ -3,9 +3,10 @@
  * formadan qolgan erkin matnli istaklar.
  *
  * The owner's rule (2026-10-14): staff pick two universities themselves
- * (ranks 1–2); the third choice (rank 3) is always a partner university. Each
- * choice is offered to the student, who answers in the mobile app ("Roziman" /
- * "O'zgartirish so'rayman"), and staff then give the final confirmation.
+ * (ranks 1–2); the third choice (rank 3) is always a partner university. The
+ * two staff picks are offered to the student, who answers in the mobile app
+ * ("Roziman" / "O'zgartirish so'rayman"); the partner slot needs no answer.
+ * Staff then give the final confirmation.
  *
  * Ikkala jadval ham generated types'da yo'q (student_university_choices yangi,
  * student_university_priorities esa src'da ishlatilmagan edi), shuning uchun
@@ -43,6 +44,12 @@ export const CHANGE_REASON_LABELS: Record<string, string> = {
   major: "Boshqa yo'nalish xohlaydi",
   other: 'Boshqa sabab',
 };
+
+/** The partner slot is attached by staff alone; only ranks 1–2 wait on the student. */
+export function canConfirm(choice: Pick<UniversityChoice, 'rank' | 'status'>): boolean {
+  if (choice.status === 'confirmed') return false;
+  return choice.rank === PARTNER_RANK || choice.status === 'accepted';
+}
 
 export interface LegacyWish {
   id: string;
@@ -165,10 +172,10 @@ export function useUniversityChoices() {
     onSettled: invalidate,
   });
 
-  /** Staff's final word, once the student has agreed. */
+  /** Staff's final word, once the student has agreed (the partner slot needs no agreement). */
   const confirm = useMutation({
     mutationFn: async (choice: UniversityChoice) => {
-      if (choice.status !== 'accepted') throw new Error('Talaba hali rozi bo\'lmagan');
+      if (!canConfirm(choice)) throw new Error('Talaba hali rozi bo\'lmagan');
       const { data: auth } = await supabase.auth.getUser();
       await run(
         db

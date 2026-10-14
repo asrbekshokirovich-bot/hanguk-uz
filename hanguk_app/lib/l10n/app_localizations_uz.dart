@@ -4334,6 +4334,9 @@ class AppLocalizationsUz extends AppLocalizations {
   String get ucStatusChangeRequested => 'O\'zgartirish so\'raldi';
 
   @override
+  String get ucStatusPartner => 'Hamkor — javob shart emas';
+
+  @override
   String get ucStatusConfirmed => 'Biriktirildi';
 
   @override

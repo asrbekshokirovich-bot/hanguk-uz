@@ -1414,6 +1414,7 @@
   "ucStatusOffered": "답변 대기 중",
   "ucStatusAccepted": "상담사 확인 중",
   "ucStatusChangeRequested": "변경 요청됨",
+  "ucStatusPartner": "협력 대학 — 응답 불필요",
   "ucStatusConfirmed": "확정됨",
   "ucConfirmedNote": "확정되었습니다. 지원서를 준비하고 있습니다.",
   "ucChangeSentNote": "상담사가 곧 다른 대학을 추천합니다.",

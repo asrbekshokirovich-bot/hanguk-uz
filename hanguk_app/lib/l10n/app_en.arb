@@ -5621,6 +5621,10 @@
   "@ucStatusChangeRequested": {
     "description": "Status chip: the student asked for another university."
   },
+  "ucStatusPartner": "Partner — no answer needed",
+  "@ucStatusPartner": {
+    "description": "Status chip on the third (partner university) choice: staff attach it themselves, the student does not answer."
+  },
   "ucStatusConfirmed": "Confirmed",
   "@ucStatusConfirmed": {
     "description": "Status chip: staff gave the final confirmation."

@@ -1414,6 +1414,7 @@
   "ucStatusOffered": "Ждём вашего ответа",
   "ucStatusAccepted": "Консультант подтверждает",
   "ucStatusChangeRequested": "Запрошена замена",
+  "ucStatusPartner": "Партнёр — ответ не нужен",
   "ucStatusConfirmed": "Закреплён",
   "ucConfirmedNote": "Подтверждено — заявка готовится.",
   "ucChangeSentNote": "Консультант скоро предложит другой университет.",

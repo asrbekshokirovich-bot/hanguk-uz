@@ -191,7 +191,9 @@ class _UniversityChoiceCardState extends ConsumerState<UniversityChoiceCard> {
     final l = AppLocalizations.of(context)!;
     final c = widget.choice;
     final locale = Localizations.localeOf(context).toString();
-    final status = _statusStyle(c.status, l);
+    final status = c.isPartnerSlot && c.status != UniversityChoiceStatus.confirmed
+        ? (label: l.ucStatusPartner, fill: FdColors.tint, fg: FdColors.navy)
+        : _statusStyle(c.status, l);
     final contract = c.contractMin == null ? null : formatMoney(c.contractMin!, c.currency, locale);
 
     return HardShadowBox(

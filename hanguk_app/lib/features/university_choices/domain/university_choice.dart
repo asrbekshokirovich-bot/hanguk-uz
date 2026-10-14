@@ -1,7 +1,8 @@
 /// One university the consultant offered the student (the CRM's
 /// "Universitet tanlash" page): two picked by staff and the third a partner
-/// university. The student answers "Roziman" or "O'zgartirish so'rayman";
-/// staff then give the final confirmation.
+/// university. The student answers "Roziman" or "O'zgartirish so'rayman" on
+/// the two staff picks; the partner slot needs no answer. Staff then give the
+/// final confirmation.
 enum UniversityChoiceStatus { offered, accepted, changeRequested, confirmed }
 
 UniversityChoiceStatus parseChoiceStatus(String? raw) => switch (raw) {
@@ -52,8 +53,15 @@ class UniversityChoice {
   final double? studentIelts;
   final double? studentTopik;
 
-  /// The student can still answer until staff confirm.
-  bool get canAnswer => status == UniversityChoiceStatus.offered;
+  /// Rank of the partner-university slot (PARTNER_RANK in the CRM).
+  static const partnerRank = 3;
+
+  /// The third choice is the partner university staff attach themselves.
+  bool get isPartnerSlot => rank == partnerRank;
+
+  /// The student answers the two staff picks until staff confirm; the
+  /// partner slot is never theirs to answer.
+  bool get canAnswer => status == UniversityChoiceStatus.offered && !isPartnerSlot;
 
   LanguageFit get fit {
     if (ieltsMin == null && topikMin == null) return LanguageFit.unknown;

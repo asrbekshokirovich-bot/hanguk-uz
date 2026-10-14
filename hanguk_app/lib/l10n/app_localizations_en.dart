@@ -4326,6 +4326,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ucStatusChangeRequested => 'Change requested';
 
   @override
+  String get ucStatusPartner => 'Partner — no answer needed';
+
+  @override
   String get ucStatusConfirmed => 'Confirmed';
 
   @override

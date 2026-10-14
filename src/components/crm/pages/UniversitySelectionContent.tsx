@@ -14,6 +14,7 @@ import { paymentTint, TINT_CLASS } from '@/lib/paymentTint';
 import { languageFit } from '@/lib/universityFit';
 import { useUniversityCatalog, type CatalogEntry } from '@/hooks/useUniversityCatalog';
 import {
+  canConfirm,
   CHANGE_REASON_LABELS,
   MAX_CHOICES,
   MAX_REGULAR,
@@ -240,7 +241,7 @@ export default function UniversitySelectionContent({ students, loading, onCreate
                 </span>
               </div>
               <p className="mb-2 text-[11px] text-muted-foreground">
-                Xodim {MAX_REGULAR} ta universitet tanlaydi, 3-tanlov — hamkor universitet. Talaba ilovada rozi bo'lgach, yakuniy tasdiqlang.
+                Xodim {MAX_REGULAR} ta universitet tanlaydi — talaba ilovada rozi bo'lgach, yakuniy tasdiqlang. 3-tanlov — hamkor universitet, talaba tasdig'i shart emas.
               </p>
               <div className="space-y-2">
                 {regularChoices.length === 0 && (
@@ -447,6 +448,13 @@ function fmtDay(iso: string | null) {
 }
 
 function StatusBadge({ choice }: { choice: UniversityChoice }) {
+  if (choice.rank === PARTNER_RANK && choice.status !== 'confirmed') {
+    return (
+      <Badge variant="info" className="text-[10px]">
+        Talaba tasdig'i shart emas
+      </Badge>
+    );
+  }
   switch (choice.status) {
     case 'confirmed':
       return (
@@ -543,7 +551,7 @@ function ChoiceRow({ choice, entry, first, last, applied, busy, onMove, onRemove
           </Button>
         </div>
       )}
-      {choice.status === 'accepted' && (
+      {canConfirm(choice) && (
         <div className="pl-10">
           <Button size="sm" variant="highlight" className="h-7 gap-1 text-xs" disabled={busy} onClick={onConfirm}>
             <Lock className="h-3 w-3" />

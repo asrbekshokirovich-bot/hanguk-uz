@@ -1414,6 +1414,7 @@
   "ucStatusOffered": "Javobingiz kutilmoqda",
   "ucStatusAccepted": "Konsultant tasdiqlamoqda",
   "ucStatusChangeRequested": "O'zgartirish so'raldi",
+  "ucStatusPartner": "Hamkor — javob shart emas",
   "ucStatusConfirmed": "Biriktirildi",
   "ucConfirmedNote": "Yakuniy tasdiqlandi — endi ariza tayyorlanmoqda.",
   "ucChangeSentNote": "Konsultantingiz tez orada boshqa universitet taklif qiladi.",
