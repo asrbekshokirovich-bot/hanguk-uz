@@ -90,7 +90,7 @@ export default function CRMPortal() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, signOut, loading: authLoading } = useAuth();
-  const { isStaff, isOwner, isAdmin, isCallOperator, isDocumentHandler, canSeeFinance, loading: roleLoading } = useUserRole();
+  const { isStaff, isOwner, isAdmin, isCallOperator, isDocumentHandler, canSeeFinance, canApproveDocuments, loading: roleLoading } = useUserRole();
   const { canReview: canReviewUniDb } = useCanReviewUniDb();
   const {
     students,
@@ -271,7 +271,7 @@ export default function CRMPortal() {
       onUpdateDocumentStatus={updateDocumentStatus}
       currentLang={currentLang}
       isDocumentHandler={isDocumentHandler}
-      isAdmin={isAdmin}
+      canApproveDocuments={canApproveDocuments}
       onRefresh={refetchStudents}
     />
   ) : null;
@@ -344,7 +344,7 @@ export default function CRMPortal() {
               onUpdateDocumentStatus={updateDocumentStatus}
               onUpdateApplicationStatus={updateApplicationStatus}
               onSetDocsReady={setDocsReady}
-              isAdmin={isAdmin}
+              canApproveDocuments={canApproveDocuments}
               onDocumentsChanged={refetchStudents}
             />
           </SafeSuspense>
