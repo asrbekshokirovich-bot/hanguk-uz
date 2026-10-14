@@ -99,8 +99,8 @@ interface StudentDetailProps {
   onUpdateDocumentStatus: (docId: string, status: string) => Promise<{ error: any }>;
   currentLang: string;
   isDocumentHandler: boolean;
-  /** Only an admin (owner/admin) may change a document's review status. */
-  isAdmin?: boolean;
+  /** Only an owner or a listed document approver may change a document's review status. */
+  canApproveDocuments?: boolean;
   onRefresh: () => void;
 }
 
@@ -200,7 +200,7 @@ export function StudentDetail({
   onUpdateDocumentStatus,
   currentLang,
   isDocumentHandler,
-  isAdmin = false,
+  canApproveDocuments = false,
   onRefresh
 }: StudentDetailProps) {
   const { t } = useTranslation();
@@ -1939,7 +1939,7 @@ export function StudentDetail({
                             </Badge>
                             {isViewing ? <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" /> : <Eye className="h-4 w-4 text-muted-foreground" />}
                             {isDocumentHandler && (<button className="text-muted-foreground hover:text-foreground transition-colors p-0.5" onClick={(e) => { e.stopPropagation(); triggerSlotUpload(docType.id); }} disabled={uploadingFile} title={currentLang === 'ru' ? 'Заменить' : currentLang === 'en' ? 'Replace' : 'Almashtirish'}><RefreshCw className="h-3.5 w-3.5" /></button>)}
-                            {isAdmin && (<Select value={doc.status} onValueChange={(value) => handleDocStatusChange(doc.id, value)} disabled={updating === doc.id}><SelectTrigger className="w-24 h-6 text-[11px]"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="uploaded">{t('student.pending')}</SelectItem><SelectItem value="approved">{t('student.approved')}</SelectItem><SelectItem value="rejected">{t('student.rejected')}</SelectItem></SelectContent></Select>)}
+                            {canApproveDocuments && (<Select value={doc.status} onValueChange={(value) => handleDocStatusChange(doc.id, value)} disabled={updating === doc.id}><SelectTrigger className="w-24 h-6 text-[11px]"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="uploaded">{t('student.pending')}</SelectItem><SelectItem value="approved">{t('student.approved')}</SelectItem><SelectItem value="rejected">{t('student.rejected')}</SelectItem></SelectContent></Select>)}
                           </div>
                         </div>
                       ) : (
@@ -2044,7 +2044,7 @@ export function StudentDetail({
                                     <Download className="h-3 w-3" />
                                     Download
                                   </Button>
-                                  {isAdmin && (
+                                  {canApproveDocuments && (
                                     <Select value={doc.status} onValueChange={(value) => handleDocStatusChange(doc.id, value)} disabled={updating === doc.id}>
                                       <SelectTrigger className="w-28 h-7 text-xs"><SelectValue /></SelectTrigger>
                                       <SelectContent>

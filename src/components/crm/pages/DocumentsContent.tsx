@@ -59,12 +59,12 @@ interface DocumentsContentProps {
    */
   onSetDocsReady?: (studentId: string, ready: boolean) => Promise<{ error: unknown }>;
   /**
-   * Only an admin (owner/admin role) verifies documents, and only an admin
-   * uploads, replaces or deletes a file on the student's behalf. Every other
-   * staff role sees the pack read-only.
+   * Only an approver (an owner, or someone listed in document_approvers)
+   * verifies documents and uploads, replaces or deletes a file on the
+   * student's behalf. Every other staff role sees the pack read-only.
    */
-  isAdmin?: boolean;
-  /** Called after an admin upload/replace/delete so the parent refetches. */
+  canApproveDocuments?: boolean;
+  /** Called after an approver's upload/replace/delete so the parent refetches. */
   onDocumentsChanged?: () => void | Promise<void>;
 }
 
@@ -118,7 +118,7 @@ function fmtDate(iso: string | null | undefined, lang: string) {
 }
 
 // ===========================================================================
-export default function DocumentsContent({ students, loading, currentLang, onUpdateDocumentStatus, onUpdateApplicationStatus, onSetDocsReady, isAdmin = false, onDocumentsChanged }: DocumentsContentProps) {
+export default function DocumentsContent({ students, loading, currentLang, onUpdateDocumentStatus, onUpdateApplicationStatus, onSetDocsReady, canApproveDocuments = false, onDocumentsChanged }: DocumentsContentProps) {
   const [search, setSearch] = useState('');
   const [packFilter, setPackFilter] = useState<PackFilter>('all');
   const [stageFilter, setStageFilter] = useState<Stage | 'all'>('all');
@@ -130,7 +130,7 @@ export default function DocumentsContent({ students, loading, currentLang, onUpd
   // Staff must confirm before a student is pushed to the next stage.
   const [confirmAdvanceOpen, setConfirmAdvanceOpen] = useState(false);
   const [busySlot, setBusySlot] = useState<string | null>(null);
-  // Admin file actions: the slot a picked file goes into, and the row awaiting
+  // Approver file actions: the slot a picked file goes into, and the row awaiting
   // a delete confirmation.
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadTarget, setUploadTarget] = useState<{ studentId: string; slotId: string; existing?: Tables<'documents'> } | null>(null);
@@ -430,7 +430,7 @@ export default function DocumentsContent({ students, loading, currentLang, onUpd
                 {selected.slots.map((resolved, idx) => {
                   const rowProps = {
                     lang: currentLang,
-                    isAdmin,
+                    canApprove: canApproveDocuments,
                     busySlot,
                     onVerify: markVerified,
                     onRequestAgain: requestAgain,
@@ -494,7 +494,7 @@ export default function DocumentsContent({ students, loading, currentLang, onUpd
 
             <HandlingHistory docs={selected.student.documents ?? []} lang={currentLang} />
 
-            {isAdmin && (
+            {canApproveDocuments && (
               <>
                 <input
                   ref={fileInputRef}
@@ -502,7 +502,7 @@ export default function DocumentsContent({ students, loading, currentLang, onUpd
                   className="hidden"
                   accept=".pdf,.jpg,.jpeg,.png"
                   onChange={handleFilePicked}
-                  data-testid="admin-doc-file-input"
+                  data-testid="approver-doc-file-input"
                 />
                 <AlertDialog open={!!pendingDelete} onOpenChange={(open) => { if (!open) setPendingDelete(null); }}>
                   <AlertDialogContent>
@@ -534,7 +534,7 @@ interface SlotRowProps {
   index?: number;
   translation?: boolean;
   lang: string;
-  isAdmin: boolean;
+  canApprove: boolean;
   busySlot: string | null;
   onVerify: (documentId: string) => void;
   onRequestAgain: (documentId: string) => void;
@@ -543,7 +543,7 @@ interface SlotRowProps {
   onDelete: (doc: Tables<'documents'>) => void;
 }
 
-function SlotRow({ resolved, index, translation, lang, isAdmin, busySlot, onVerify, onRequestAgain, onView, onPick, onDelete }: SlotRowProps) {
+function SlotRow({ resolved, index, translation, lang, canApprove, busySlot, onVerify, onRequestAgain, onView, onPick, onDelete }: SlotRowProps) {
   const { slot, doc, state } = resolved;
   const busy = busySlot === (doc?.id ?? slot.id);
   return (
@@ -569,7 +569,7 @@ function SlotRow({ resolved, index, translation, lang, isAdmin, busySlot, onVeri
         {state === 'received' && doc && (
           <>
             <Badge variant="warning">Qabul qilindi</Badge>
-            {isAdmin ? (
+            {canApprove ? (
               <>
                 <Button size="sm" variant="default" className="h-7 text-xs" disabled={busy} onClick={() => onVerify(doc.id)}>
                   {translation ? 'Tasdiqlash' : 'Tarjimaga'}
@@ -579,14 +579,14 @@ function SlotRow({ resolved, index, translation, lang, isAdmin, busySlot, onVeri
                 </Button>
               </>
             ) : (
-              <span className="text-[11px] text-muted-foreground">Admin tasdiqlaydi</span>
+              <span className="text-[11px] text-muted-foreground">Tasdiqlash kutilmoqda</span>
             )}
           </>
         )}
         {state === 'missing' && (
           <>
             <Badge variant="neutral">Yo'q</Badge>
-            {isAdmin ? (
+            {canApprove ? (
               <Button size="sm" variant="outline" className="h-7 gap-1 text-xs" disabled={busy} onClick={() => onPick(slot.id)}>
                 <Upload className="h-3 w-3" />
                 Yuklash
@@ -599,7 +599,7 @@ function SlotRow({ resolved, index, translation, lang, isAdmin, busySlot, onVeri
         {doc && (
           <>
             <IconAction label="Ko'rish" onClick={() => onView(doc)} disabled={busy}><Eye className="h-3.5 w-3.5" /></IconAction>
-            {isAdmin && (
+            {canApprove && (
               <>
                 <IconAction label="Almashtirish" onClick={() => onPick(slot.id, doc)} disabled={busy}><RefreshCw className="h-3.5 w-3.5" /></IconAction>
                 <IconAction label="O'chirish" onClick={() => onDelete(doc)} disabled={busy} destructive><Trash2 className="h-3.5 w-3.5" /></IconAction>

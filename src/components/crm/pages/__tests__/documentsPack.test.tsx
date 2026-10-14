@@ -58,7 +58,7 @@ const student = {
   ],
 } as unknown as Student;
 
-const setup = ({ isAdmin = true }: { isAdmin?: boolean } = {}) => {
+const setup = ({ canApprove = true }: { canApprove?: boolean } = {}) => {
   const onUpdateDocumentStatus = vi.fn().mockResolvedValue({ error: null });
   const onDocumentsChanged = vi.fn();
   render(
@@ -68,7 +68,7 @@ const setup = ({ isAdmin = true }: { isAdmin?: boolean } = {}) => {
       currentLang="uz"
       onUpdateDocumentStatus={onUpdateDocumentStatus}
       onUpdateApplicationStatus={vi.fn().mockResolvedValue({ error: null })}
-      isAdmin={isAdmin}
+      canApproveDocuments={canApprove}
       onDocumentsChanged={onDocumentsChanged}
     />,
   );
@@ -77,7 +77,7 @@ const setup = ({ isAdmin = true }: { isAdmin?: boolean } = {}) => {
 
 describe('DocumentsContent application pack', () => {
   it('shows each real upload as received instead of missing', () => {
-    setup({ isAdmin: false });
+    setup({ canApprove: false });
     // Seven uploads awaiting review; five pack slots genuinely empty — the
     // father's ID card plus the four optional ones (marriage and death
     // certificates, TOPIK, diploma apostille) — and the four translations
@@ -110,34 +110,34 @@ describe('DocumentsContent application pack', () => {
     await waitFor(() => expect(onUpdateDocumentStatus).toHaveBeenCalledWith('doc-applicant_id_card', 'approved'));
   });
 
-  it('lets only an admin verify, upload, replace or delete', () => {
-    setup({ isAdmin: false });
+  it('lets only an approver verify, upload, replace or delete', () => {
+    setup({ canApprove: false });
     expect(screen.queryByText('Tarjimaga')).not.toBeInTheDocument();
     expect(screen.queryByText("Qayta so'rash")).not.toBeInTheDocument();
     expect(screen.queryByText('Yuklash')).not.toBeInTheDocument();
     expect(screen.queryAllByLabelText('Almashtirish')).toHaveLength(0);
     expect(screen.queryAllByLabelText("O'chirish")).toHaveLength(0);
-    expect(screen.getAllByText('Admin tasdiqlaydi')).toHaveLength(7);
+    expect(screen.getAllByText('Tasdiqlash kutilmoqda')).toHaveLength(7);
     // Viewing stays open to every staff role.
     expect(screen.getAllByLabelText("Ko'rish")).toHaveLength(7);
   });
 
-  it('uploads into an empty slot as an admin', async () => {
+  it('uploads into an empty slot as an approver', async () => {
     const { onDocumentsChanged } = setup();
     // Nine empty rows: five pack slots and four translations.
     expect(screen.getAllByText('Yuklash')).toHaveLength(9);
     fireEvent.click(screen.getAllByText('Yuklash')[0]);
     const file = new File(['x'], 'FATHER.pdf', { type: 'application/pdf' });
-    fireEvent.change(screen.getByTestId('admin-doc-file-input'), { target: { files: [file] } });
+    fireEvent.change(screen.getByTestId('approver-doc-file-input'), { target: { files: [file] } });
     await waitFor(() => expect(uploadStudentDocument).toHaveBeenCalledWith('u1', 'father_id_card', file, undefined));
     await waitFor(() => expect(onDocumentsChanged).toHaveBeenCalled());
   });
 
-  it('replaces an uploaded document as an admin', async () => {
+  it('replaces an uploaded document as an approver', async () => {
     setup();
     fireEvent.click(screen.getAllByLabelText('Almashtirish')[0]);
     const file = new File(['x'], 'NEW.pdf', { type: 'application/pdf' });
-    fireEvent.change(screen.getByTestId('admin-doc-file-input'), { target: { files: [file] } });
+    fireEvent.change(screen.getByTestId('approver-doc-file-input'), { target: { files: [file] } });
     await waitFor(() =>
       expect(uploadStudentDocument).toHaveBeenCalledWith('u1', 'applicant_id_card', file, expect.objectContaining({ id: 'doc-applicant_id_card' })),
     );
