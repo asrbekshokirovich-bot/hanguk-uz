@@ -297,9 +297,16 @@ describe('no-answer ladder (spec §9)', () => {
       expect(a.attempt_no).toBe(i);
       expect(a.ladder_state).toBe('running');
       expect(a.timer_kind).toBe('ladder');
-      expect(iso(a.due_at)).toBe(iso(a.next_attempt_at));
-      // visible from 10 minutes before it is due
-      expect(new Date(a.due_at).getTime() - new Date(a.timer_start_at).getTime()).toBe(10 * 60_000);
+      const next = new Date(a.next_attempt_at);
+      if (next.getUTCHours() === 4 && next.getUTCMinutes() === 0) {
+        // pushed to opening time (09:00 Tashkent): visible at 09:00, due 09:10
+        expect(iso(a.timer_start_at)).toBe(iso(a.next_attempt_at));
+        expect(new Date(a.due_at).getTime() - next.getTime()).toBe(10 * 60_000);
+      } else {
+        expect(iso(a.due_at)).toBe(iso(a.next_attempt_at));
+        // visible from 10 minutes before it is due
+        expect(new Date(a.due_at).getTime() - new Date(a.timer_start_at).getTime()).toBe(10 * 60_000);
+      }
       expect(a.answer_kind).toBe('call_attempt');
     }
     // attempt 1 -> ~+15 min from now (shifted into hours); attempt 2 further out

@@ -263,7 +263,9 @@ as $$
 $$;
 
 -- The next call of the ladder shows in HOZIR 10 minutes before it is due and
--- is overdue when its time has come.
+-- is overdue when its time has come. A call that was pushed to opening time
+-- (21:50 + 15 min -> 09:00) cannot show before the office opens, so it gets
+-- the same window as an overnight lead instead: visible at 09:00, due 09:10.
 create or replace function public.fn_lead_arm_ladder(p_id uuid)
 returns void
 language plpgsql
@@ -278,7 +280,11 @@ begin
     perform public.fn_lead_clear_timer(p_id);
     return;
   end if;
-  perform public.fn_lead_set_timer(p_id, 'ladder', v_next - interval '10 minutes', v_next);
+  if (v_next at time zone 'Asia/Tashkent')::time = public.fn_lead_work_start() then
+    perform public.fn_lead_set_timer(p_id, 'ladder', v_next, public.fn_lead_due_at(v_next));
+  else
+    perform public.fn_lead_set_timer(p_id, 'ladder', v_next - interval '10 minutes', v_next);
+  end if;
   update public.leads set ladder_state = 'running' where id = p_id;
 end;
 $$;
@@ -1354,6 +1360,7 @@ declare
   v_has_chat boolean;
   v_first_answer boolean;
   v_window integer := coalesce((public.fn_lead_setting('ladder')->>'window_days')::integer, 7);
+  v_ladder_start timestamptz;
   v_dm_after integer := coalesce((public.fn_lead_setting('ladder')->>'dm_after_attempt')::integer, 2);
   v_tpl jsonb;
   v_lang text;
@@ -1462,8 +1469,18 @@ begin
     v_attempt := l.attempt_no + 1;
     update public.leads set attempt_no = v_attempt where id = p_lead_id;
 
+    -- The 7-day window counts from the first miss of THIS ladder (attempt_no
+    -- counts the misses since the last finished call; this miss is already in
+    -- call_attempts), not from first_contact_at: a lead that came in weeks ago
+    -- would otherwise be closed after 3 misses of a new ladder.
+    select ca.started_at into v_ladder_start
+      from public.call_attempts ca
+     where ca.lead_id = p_lead_id and ca.result = 'no_answer'
+     order by ca.started_at desc, ca.created_at desc
+     offset v_attempt - 1 limit 1;
+
     if v_attempt >= coalesce(jsonb_array_length(public.fn_lead_setting('ladder')->'steps'), 4) + 1
-       or (l.first_contact_at is not null and v_now - l.first_contact_at > make_interval(days => v_window)
+       or (v_ladder_start is not null and v_now - v_ladder_start > make_interval(days => v_window)
            and v_attempt >= 3) then
       -- 5 attempts and nobody picked up: "aloqa yo'q" (spec §4.2)
       update public.leads set ladder_state = 'exhausted' where id = p_lead_id;
@@ -1527,7 +1544,17 @@ begin
 
   ---------------------------------------------------------- wrong_number
   else
-    update public.leads set phone = null, qualified = false where id = p_lead_id;
+    -- No number left to call: the ladder and any call-back go with it. Left
+    -- armed, their timer escalated to everyone every 10 minutes for good —
+    -- nothing could answer it (no phone; a chat reply only stops first/reply).
+    update public.leads
+       set phone = null, qualified = false,
+           next_attempt_at = null,
+           ladder_state = case when ladder_state = 'running' then 'stopped' else ladder_state end
+     where id = p_lead_id;
+    if l.timer_kind in ('ladder', 'callback') then
+      perform public.fn_lead_clear_timer(p_lead_id);
+    end if;
     perform public.fn_lead_log(p_lead_id, 'field', v_uid,
       jsonb_build_object('keys', jsonb_build_array('phone'), 'wrong_number', l.phone));
     if v_has_chat then
