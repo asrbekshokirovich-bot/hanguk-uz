@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { FileText, Search, Users } from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
+import { CheckCircle2, Circle, FileText, Search, Users } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -8,32 +8,16 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 import { paymentTint, TINT_CLASS } from '@/lib/paymentTint';
-import { useUniversityCatalog } from '@/hooks/useUniversityCatalog';
-import { useUniversityChoices } from '@/hooks/useUniversityChoices';
 import { useStudentSurveyAnswers } from '@/hooks/useStudentSurveyAnswers';
-import { cityLabel, displayName } from '@/components/crm/pages/university-catalog/format';
-
-interface StudentLite {
-  user_id: string;
-  full_name: string | null;
-  avatar_url: string | null;
-  magic_code: string | null;
-  contract_date?: string | null;
-  hasPaid?: boolean;
-}
+import { getInitials, useChosenUniversityGroups, type StudentLite } from '@/hooks/useChosenUniversityGroups';
+import { submissionKey, useUniversitySubmissions } from '@/hooks/useUniversitySubmissions';
 
 interface OnlineApplicationContentProps {
   /** The CRM's loaded students; anyone chosen for a university but not in it is fetched. */
   students: StudentLite[];
   loading: boolean;
-}
-
-function getInitials(name: string | null) {
-  if (!name) return 'U';
-  return name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
 }
 
 /**
@@ -43,62 +27,13 @@ function getInitials(name: string | null) {
  * for it. A student with three choices appears under all three.
  */
 export default function OnlineApplicationContent({ students, loading }: OnlineApplicationContentProps) {
-  const catalog = useUniversityCatalog();
-  const choices = useUniversityChoices();
   const [search, setSearch] = useState('');
   const [openStudentId, setOpenStudentId] = useState<string | null>(null);
+  const groups = useChosenUniversityGroups(students, search);
+  const submissions = useUniversitySubmissions();
+  const { universities, studentById } = groups;
 
-  const allChoices = useMemo(() => [...choices.byStudent.values()].flat(), [choices.byStudent]);
-
-  const known = useMemo(() => new Map(students.map((s) => [s.user_id, s])), [students]);
-  const missingIds = useMemo(
-    () => [...new Set(allChoices.map((c) => c.student_id))].filter((id) => !known.has(id)).sort(),
-    [allChoices, known],
-  );
-  const extraProfiles = useQuery<StudentLite[], Error>({
-    queryKey: ['online-application-profiles', missingIds],
-    enabled: missingIds.length > 0,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('user_id, full_name, avatar_url, magic_code, contract_date')
-        .in('user_id', missingIds);
-      if (error) throw new Error(error.message);
-      return (data ?? []) as StudentLite[];
-    },
-  });
-  const studentById = useMemo(() => {
-    const m = new Map(known);
-    for (const p of extraProfiles.data ?? []) m.set(p.user_id, p);
-    return m;
-  }, [known, extraProfiles.data]);
-
-  const entryById = useMemo(() => new Map(catalog.entries.map((e) => [e.institution.id, e])), [catalog.entries]);
-
-  const universities = useMemo(() => {
-    const groups = new Map<string, typeof allChoices>();
-    for (const c of allChoices) groups.set(c.institution_id, [...(groups.get(c.institution_id) ?? []), c]);
-    const q = search.trim().toLowerCase();
-    return [...groups.entries()]
-      .map(([institutionId, list]) => {
-        const entry = entryById.get(institutionId);
-        const name = entry ? displayName(entry) : { primary: '—', secondary: null };
-        const sorted = [...list].sort(
-          (a, b) =>
-            a.rank - b.rank ||
-            (studentById.get(a.student_id)?.full_name ?? '').localeCompare(studentById.get(b.student_id)?.full_name ?? ''),
-        );
-        return { institutionId, name, city: entry ? cityLabel(entry) : null, choices: sorted };
-      })
-      .filter((u) => {
-        if (!q) return true;
-        if (`${u.name.primary} ${u.name.secondary ?? ''}`.toLowerCase().includes(q)) return true;
-        return u.choices.some((c) => (studentById.get(c.student_id)?.full_name ?? '').toLowerCase().includes(q));
-      })
-      .sort((a, b) => b.choices.length - a.choices.length || a.name.primary.localeCompare(b.name.primary));
-  }, [allChoices, entryById, studentById, search]);
-
-  if (loading || catalog.loading || choices.loading) {
+  if (loading || groups.loading || submissions.loading) {
     return (
       <div className="space-y-4">
         <Skeleton className="h-10 w-72" />
@@ -108,9 +43,18 @@ export default function OnlineApplicationContent({ students, loading }: OnlineAp
     );
   }
 
-  if (choices.error) {
-    return <EmptyState icon={FileText} title="Ma'lumotni yuklab bo'lmadi" description={choices.error.message} />;
+  if (groups.error) {
+    return <EmptyState icon={FileText} title="Ma'lumotni yuklab bo'lmadi" description={groups.error.message} />;
   }
+
+  // "Onlayn topshirildi" is what lets the Oflayn ariza page send this
+  // student's paper documents to this university.
+  const toggleOnline = (studentId: string, institutionId: string, done: boolean) => {
+    submissions.save.mutate(
+      { studentId, institutionId, patch: { online_submitted_at: done ? null : new Date().toISOString() } },
+      { onError: (e) => toast.error(e instanceof Error ? e.message : 'Nimadir xato ketdi') },
+    );
+  };
 
   const openStudent = openStudentId ? studentById.get(openStudentId) ?? null : null;
 
@@ -151,32 +95,50 @@ export default function OnlineApplicationContent({ students, loading }: OnlineAp
               {u.choices.map((c) => {
                 const s = studentById.get(c.student_id);
                 const tint = s ? paymentTint(s) : null;
+                const online = !!submissions.byKey.get(submissionKey(c.student_id, u.institutionId))?.online_submitted_at;
                 return (
-                  <button
+                  <div
                     key={c.id}
-                    type="button"
-                    onClick={() => setOpenStudentId(c.student_id)}
                     className={cn(
-                      'flex items-center justify-between gap-2 rounded-xl border border-border bg-card p-3 text-left transition-all hover:shadow-raised',
+                      'flex flex-col gap-2 rounded-xl border border-border bg-card p-3 transition-all hover:shadow-raised',
                       tint && TINT_CLASS[tint],
                     )}
                   >
-                    <div className="flex min-w-0 items-center gap-2">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={s?.avatar_url || undefined} />
-                        <AvatarFallback className="bg-primary/10 text-[10px] font-semibold text-primary">
-                          {getInitials(s?.full_name ?? null)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="min-w-0">
-                        <div className="truncate text-[13px] font-semibold text-foreground">{s?.full_name || '—'}</div>
-                        {s?.magic_code && <div className="font-mono text-[10px] text-muted-foreground">HK · {s.magic_code}</div>}
+                    <button
+                      type="button"
+                      onClick={() => setOpenStudentId(c.student_id)}
+                      className="flex items-center justify-between gap-2 text-left"
+                    >
+                      <div className="flex min-w-0 items-center gap-2">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={s?.avatar_url || undefined} />
+                          <AvatarFallback className="bg-primary/10 text-[10px] font-semibold text-primary">
+                            {getInitials(s?.full_name ?? null)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="min-w-0">
+                          <div className="truncate text-[13px] font-semibold text-foreground">{s?.full_name || '—'}</div>
+                          {s?.magic_code && <div className="font-mono text-[10px] text-muted-foreground">HK · {s.magic_code}</div>}
+                        </div>
                       </div>
-                    </div>
-                    <Badge variant={c.rank === 1 ? 'default' : 'neutral'} className="shrink-0 text-[10px]">
-                      {c.rank}-tanlov
-                    </Badge>
-                  </button>
+                      <Badge variant={c.rank === 1 ? 'default' : 'neutral'} className="shrink-0 text-[10px]">
+                        {c.rank}-tanlov
+                      </Badge>
+                    </button>
+                    <button
+                      type="button"
+                      aria-pressed={online}
+                      disabled={submissions.save.isPending}
+                      onClick={() => toggleOnline(c.student_id, u.institutionId, online)}
+                      className={cn(
+                        'flex items-center gap-1.5 self-start rounded-md px-2 py-1 text-[11px] font-semibold transition-colors',
+                        online ? 'bg-success/15 text-success' : 'bg-muted text-muted-foreground hover:text-foreground',
+                      )}
+                    >
+                      {online ? <CheckCircle2 className="h-3.5 w-3.5" /> : <Circle className="h-3.5 w-3.5" />}
+                      Onlayn topshirildi
+                    </button>
+                  </div>
                 );
               })}
             </div>
