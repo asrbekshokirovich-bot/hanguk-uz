@@ -18,7 +18,7 @@ import { Database } from '@/integrations/supabase/types';
 import { z } from 'zod';
 import { User, Lock, UserPlus } from 'lucide-react';
 
-// 'lead_senior' (lead module v2, migration 20261005160000) is not in the
+// 'lead_senior' (lead module v2, migration 20261014200000) is not in the
 // generated enum yet, so it is added here rather than editing the generated file.
 type AppRole = Database['public']['Enums']['app_role'] | 'lead_senior';
 

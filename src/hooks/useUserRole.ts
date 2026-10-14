@@ -8,7 +8,7 @@ type AppRole = Database['public']['Enums']['app_role'];
 // 'investor' was added to public.app_role by migration 20260729_0001 and is not
 // in the generated Database type yet, so it is matched as a plain string.
 const INVESTOR_ROLE = 'investor';
-// 'lead_senior' (lead module v2, migration 20261005160000) is not in the
+// 'lead_senior' (lead module v2, migration 20261014200000) is not in the
 // generated Database type either.
 const LEAD_SENIOR_ROLE = 'lead_senior';
 

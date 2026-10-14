@@ -10,11 +10,11 @@ const read = (p: string) => readFileSync(p, 'utf8');
 
 /** The five lead-v2 migrations, in apply order. */
 export const V2_FILES = [
-  '20261005160000_lead_v2_role_lead_senior.sql',
-  '20261005161000_lead_v2_schema.sql',
-  '20261005162000_lead_v2_engine.sql',
-  '20261005163000_lead_v2_jobs.sql',
-  '20261005164000_lead_v2_migrate_old_leads.sql',
+  '20261014200000_lead_v2_role_lead_senior.sql',
+  '20261014201000_lead_v2_schema.sql',
+  '20261014202000_lead_v2_engine.sql',
+  '20261014203000_lead_v2_jobs.sql',
+  '20261014204000_lead_v2_migrate_old_leads.sql',
 ];
 
 export interface Harness {

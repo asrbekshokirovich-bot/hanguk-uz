@@ -1,7 +1,7 @@
 // Text of the Telegram alerts (spec §4, §11, §14) and the choice of who gets
 // them. Pure: no imports, so vitest runs it. Plain text, no parse mode.
 //
-// The rows come from lead_alert_outbox (see 20261005161000_lead_v2_schema.sql);
+// The rows come from lead_alert_outbox (see 20261014201000_lead_v2_schema.sql);
 // what is in `payload` is decided by the SQL that enqueues them:
 //   escalation  name, username, phone, source, channel, campaign, form, timer,
 //               attempt, minutes_late, repeat, owner_id        (fn_lead_timer_scan)

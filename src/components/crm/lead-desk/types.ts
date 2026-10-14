@@ -2,8 +2,8 @@
  * Lead module v2 — shared types.
  *
  * These mirror the database contract in
- * supabase/migrations/20261005161000_lead_v2_schema.sql and
- * 20261005162000_lead_v2_engine.sql (see docs/lead-module-v2.md). The generated
+ * supabase/migrations/20261014201000_lead_v2_schema.sql and
+ * 20261014202000_lead_v2_engine.sql (see docs/lead-module-v2.md). The generated
  * Supabase types are stale for `leads`, so the module has its own.
  */
 

@@ -2,7 +2,7 @@
 --
 -- Spec §16 / decision 9.2. Every lead that lived in the old CRM becomes
 -- crm_generation = 'old' (the column default did that for existing rows when
--- 20261005161000 added the column) and moves to "Baza":
+-- 20261014201000 added the column) and moves to "Baza":
 --
 --   * stage from the old status:
 --       new / contacted / qualified  -> contacted  ("Aloqada")
